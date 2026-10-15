@@ -1,0 +1,2 @@
+# A separate Cargo workspace with no committed lock: its dependency versions float between builds.
+Cargo.lock

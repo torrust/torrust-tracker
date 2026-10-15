@@ -86,6 +86,8 @@ impl fmt::Debug for CookieCipher {
 
 #[cfg(test)]
 mod tests {
+    use zeroize::ZeroizeOnDrop;
+
     use super::{CookieBlock, CookieCipher, KEY_LEN};
 
     fn encrypted(cipher: &CookieCipher, plain_text: [u8; 8]) -> CookieBlock {
@@ -139,9 +141,13 @@ mod tests {
 
         // Assert
         assert_eq!(debug_output, "CookieCipher([REDACTED])");
-        assert!(
-            !debug_output.contains(&format!("{unique_key_bytes:?}")) && !debug_output.contains("5a"),
-            "the debug output `{debug_output}` contains the key bytes"
-        );
+    }
+
+    #[test]
+    fn it_should_wipe_the_key_schedule_when_the_cipher_is_dropped() {
+        fn wipes_itself_on_drop<T: ZeroizeOnDrop>(_: &T) {}
+
+        // Fails to compile if the held cipher stops implementing `ZeroizeOnDrop`.
+        wipes_itself_on_drop(&CookieCipher::fixed_for_testing().0);
     }
 }

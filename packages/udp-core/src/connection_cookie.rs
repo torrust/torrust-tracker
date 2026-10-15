@@ -260,6 +260,9 @@ mod tests {
 
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
+    use quickcheck::TestResult;
+    use quickcheck_macros::quickcheck;
+
     use super::*;
 
     fn fixed_test_cipher() -> CookieCipher {
@@ -267,127 +270,230 @@ mod tests {
     }
 
     #[test]
-    fn it_should_make_a_connection_cookie() {
+    fn it_should_keep_the_cookie_encoding_stable_for_the_test_key() {
+        // Arrange
         let fingerprint = 1_000_000;
         let issue_at = 1000.0;
+
+        // Act
         let cookie = make(&fixed_test_cipher(), fingerprint, issue_at).unwrap().0.get();
 
-        // Expected connection ID derived through experimentation
+        // Assert
         assert_eq!(cookie.to_le_bytes(), [10, 130, 175, 211, 244, 253, 230, 210]);
     }
 
     #[test]
     fn it_should_create_same_cookie_for_same_input() {
+        // Arrange
         let fingerprint = 1_000_000;
         let issue_at = 1000.0;
+
+        // Act
         let cookie1 = make(&fixed_test_cipher(), fingerprint, issue_at).unwrap();
         let cookie2 = make(&fixed_test_cipher(), fingerprint, issue_at).unwrap();
 
+        // Assert
         assert_eq!(cookie1, cookie2);
     }
 
     #[test]
     fn it_should_create_different_cookies_for_different_fingerprints() {
+        // Arrange
         let fingerprint1 = 1_000_000;
         let fingerprint2 = 2_000_000;
         let issue_at = 1000.0;
+
+        // Act
         let cookie1 = make(&fixed_test_cipher(), fingerprint1, issue_at).unwrap();
         let cookie2 = make(&fixed_test_cipher(), fingerprint2, issue_at).unwrap();
 
+        // Assert
         assert_ne!(cookie1, cookie2);
     }
 
     #[test]
     fn it_should_create_different_cookies_for_different_issue_times() {
+        // Arrange
         let fingerprint = 1_000_000;
         let issue_at1 = 1000.0;
         let issue_at2 = 2000.0;
+
+        // Act
         let cookie1 = make(&fixed_test_cipher(), fingerprint, issue_at1).unwrap();
         let cookie2 = make(&fixed_test_cipher(), fingerprint, issue_at2).unwrap();
 
+        // Assert
         assert_ne!(cookie1, cookie2);
     }
 
     #[test]
-    fn it_should_validate_a_valid_cookie() {
+    fn it_should_return_the_issue_time_when_the_cookie_was_issued_inside_the_valid_range() {
+        // Arrange
         let fingerprint = 1_000_000;
         let issue_at = 1_000_000_000_f64;
         let cookie = make(&fixed_test_cipher(), fingerprint, issue_at).unwrap();
 
-        let min = issue_at - 10.0;
-        let max = issue_at + 10.0;
+        // Act
+        let result = check(&fixed_test_cipher(), &cookie, fingerprint, issue_at - 10.0..issue_at + 10.0).unwrap();
 
-        let result = check(&fixed_test_cipher(), &cookie, fingerprint, min..max).unwrap();
-
-        // we should have exactly the same bytes returned
+        // Assert
         assert_eq!(result.to_ne_bytes(), issue_at.to_ne_bytes());
     }
 
     #[test]
     fn it_should_reject_an_expired_cookie() {
+        // Arrange
         let fingerprint = 1_000_000;
         let issue_at = 1_000_000_000_f64;
         let cookie = make(&fixed_test_cipher(), fingerprint, issue_at).unwrap();
 
-        let min = issue_at + 10.0;
-        let max = issue_at + 20.0;
+        // Act
+        let result = check(&fixed_test_cipher(), &cookie, fingerprint, issue_at + 10.0..issue_at + 20.0);
 
-        let result = check(&fixed_test_cipher(), &cookie, fingerprint, min..max).unwrap_err();
-
-        match result {
-            ConnectionCookieError::ValueExpired { .. } => {} // Expected error
-            _ => panic!("Expected ConnectionIdExpired error"),
-        }
+        // Assert
+        assert!(matches!(result, Err(ConnectionCookieError::ValueExpired { .. })));
     }
 
     #[test]
     fn it_should_reject_a_cookie_from_the_future() {
+        // Arrange
         let fingerprint = 1_000_000;
         let issue_at = 1_000_000_000_f64;
-
         let cookie = make(&fixed_test_cipher(), fingerprint, issue_at).unwrap();
 
-        let min = issue_at - 20.0;
-        let max = issue_at - 10.0;
+        // Act
+        let result = check(&fixed_test_cipher(), &cookie, fingerprint, issue_at - 20.0..issue_at - 10.0);
 
-        let result = check(&fixed_test_cipher(), &cookie, fingerprint, min..max).unwrap_err();
-
-        match result {
-            ConnectionCookieError::ValueFromFuture { .. } => {} // Expected error
-            _ => panic!("Expected ConnectionIdFromFuture error"),
-        }
+        // Assert
+        assert!(matches!(result, Err(ConnectionCookieError::ValueFromFuture { .. })));
     }
 
     #[test]
-    fn it_should_reject_a_cookie_with_a_wrong_fingerprint_realistic_addresses() {
-        // A cookie obtained from one client address should not validate
-        // when presented from a different client address.
-        //
+    fn it_should_reject_a_cookie_when_checked_with_another_client_address_fingerprint() {
         // This relies on the fingerprint (which covers the full SocketAddr)
         // being different for each address. Because the fingerprint is mixed
         // via wrapping arithmetic (not a MAC), the test must use realistic
         // fingerprints produced by gen_remote_fingerprint() — small integer
         // fingerprints may coincidentally pass (see module-level docs under
         // "Fingerprint is NOT client authentication").
+
+        // Arrange
         let issue_at = 1_000_000_000_f64;
         let client_addr_a = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 4000);
         let client_addr_b = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2)), 4000);
-
         let fingerprint_a = gen_remote_fingerprint(&client_addr_a);
         let fingerprint_b = gen_remote_fingerprint(&client_addr_b);
-
         assert_ne!(fingerprint_a, fingerprint_b, "test requires different fingerprints");
-
         let cookie = make(&fixed_test_cipher(), fingerprint_a, issue_at).unwrap();
 
-        let min = issue_at - 120.0;
-        let max = issue_at + 120.0;
+        // Act
+        let result = check(
+            &fixed_test_cipher(),
+            &cookie,
+            fingerprint_b,
+            issue_at - 120.0..issue_at + 120.0,
+        );
 
-        let result = check(&fixed_test_cipher(), &cookie, fingerprint_b, min..max);
-
+        // Assert
         assert!(
             result.is_err(),
             "cookie issued for client A should be invalid when verified with client B's fingerprint"
         );
+    }
+
+    fn not_normal_issue_times() -> [f64; 4] {
+        [0.0, f64::NAN, f64::INFINITY, f64::MIN_POSITIVE / 2.0]
+    }
+
+    #[test]
+    fn it_should_refuse_to_make_a_cookie_from_an_issue_time_that_is_not_normal() {
+        for issue_at in not_normal_issue_times() {
+            // Act
+            let result = make(&fixed_test_cipher(), 1_000_000, issue_at);
+
+            // Assert
+            assert!(
+                matches!(result, Err(ConnectionCookieError::ValueNotNormal { .. })),
+                "issue time {issue_at:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn it_should_reject_a_forged_cookie_that_decodes_to_an_issue_time_that_is_not_normal() {
+        let fingerprint = 1_000_000;
+
+        for issue_at in not_normal_issue_times() {
+            // Arrange
+            let forged_cookie: Cookie =
+                zerocopy::FromBytes::read_from_bytes(encode(&fixed_test_cipher(), assemble(fingerprint, issue_at)).as_slice())
+                    .expect("it should be the same size");
+
+            // Act
+            let result = check(&fixed_test_cipher(), &forged_cookie, fingerprint, 0.0..f64::MAX);
+
+            // Assert
+            assert!(
+                matches!(result, Err(ConnectionCookieError::ValueNotNormal { .. })),
+                "issue time {issue_at:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn it_should_accept_a_cookie_issued_exactly_at_the_start_of_the_valid_range() {
+        // Arrange
+        let fingerprint = 1_000_000;
+        let issue_at = 1_000_000_000_f64;
+        let cookie = make(&fixed_test_cipher(), fingerprint, issue_at).unwrap();
+
+        // Act
+        let result = check(&fixed_test_cipher(), &cookie, fingerprint, issue_at..issue_at + 10.0);
+
+        // Assert
+        assert_eq!(result, Ok(issue_at));
+    }
+
+    #[test]
+    fn it_should_accept_a_cookie_issued_exactly_at_the_end_of_the_valid_range() {
+        // Arrange
+        let fingerprint = 1_000_000;
+        let issue_at = 1_000_000_000_f64;
+        let cookie = make(&fixed_test_cipher(), fingerprint, issue_at).unwrap();
+
+        // Act
+        let result = check(&fixed_test_cipher(), &cookie, fingerprint, issue_at - 10.0..issue_at);
+
+        // Assert
+        assert_eq!(result, Ok(issue_at));
+    }
+
+    #[test]
+    #[should_panic(expected = "range start is larger than range end")]
+    fn it_should_panic_when_the_valid_range_start_is_after_its_end() {
+        // Arrange
+        let fingerprint = 1_000_000;
+        let issue_at = 1_000_000_000_f64;
+        let cookie = make(&fixed_test_cipher(), fingerprint, issue_at).unwrap();
+        let range_start = issue_at + 10.0;
+        let range_end = issue_at - 10.0;
+
+        // Act
+        let _ = check(&fixed_test_cipher(), &cookie, fingerprint, range_start..range_end);
+    }
+
+    #[quickcheck]
+    fn it_should_round_trip_any_normal_issue_time_for_any_fingerprint(fingerprint: u64, issue_at: f64) -> TestResult {
+        // Arrange
+        if !issue_at.is_normal() {
+            return TestResult::discard();
+        }
+        let cookie = make(&fixed_test_cipher(), fingerprint, issue_at).unwrap();
+
+        // Act
+        let result = check(&fixed_test_cipher(), &cookie, fingerprint, issue_at..issue_at);
+
+        // Assert
+        TestResult::from_bool(result.map(f64::to_bits) == Ok(issue_at.to_bits()))
     }
 }

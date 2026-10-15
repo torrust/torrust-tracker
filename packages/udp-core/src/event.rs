@@ -180,99 +180,150 @@ pub(crate) mod tests {
 
     use super::ConnectionContext;
 
-    #[test]
-    fn client_address_ip_family_should_be_inet_for_ipv4() {
-        let configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
-        let ctx = ConnectionContext::new(
-            configuration_instance_id,
-            SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 6969),
-            ServiceBinding::new(Protocol::UDP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 6969)).unwrap(),
-        );
+    const PUBLIC_URL: &str = "udp://tracker.example.test:6969/announce";
 
-        assert_eq!(ctx.client_address_ip_family(), IpFamily::Inet);
+    fn server_socket_addr() -> SocketAddr {
+        SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969)
+    }
+
+    fn context_for_client(client_socket_addr: SocketAddr) -> ConnectionContext {
+        ConnectionContext::new(
+            ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
+            client_socket_addr,
+            ServiceBinding::new(Protocol::UDP, server_socket_addr()).unwrap(),
+        )
+    }
+
+    fn ipv4_client() -> SocketAddr {
+        SocketAddr::new(IpAddr::V4(Ipv4Addr::new(198, 51, 100, 7)), 51_000)
+    }
+
+    fn ipv6_client() -> SocketAddr {
+        SocketAddr::new(IpAddr::V6(Ipv6Addr::LOCALHOST), 51_000)
+    }
+
+    #[test]
+    fn it_should_return_the_client_socket_address_not_the_server_one() {
+        // Arrange
+        let context = context_for_client(ipv4_client());
+
+        // Act
+        let client_socket_addr = context.client_socket_addr();
+
+        // Assert
+        assert_eq!(client_socket_addr, ipv4_client());
+    }
+
+    #[test]
+    fn it_should_report_the_inet_family_when_the_client_is_ipv4() {
+        // Arrange
+        let context = context_for_client(ipv4_client());
+
+        // Act
+        let ip_family = context.client_address_ip_family();
+
+        // Assert
+        assert_eq!(ip_family, IpFamily::Inet);
+    }
+
+    #[test]
+    fn it_should_report_the_inet6_family_when_the_client_is_ipv6() {
+        // Arrange
+        let context = context_for_client(ipv6_client());
+
+        // Act
+        let ip_family = context.client_address_ip_family();
+
+        // Assert
+        assert_eq!(ip_family, IpFamily::Inet6);
+    }
+
+    #[test]
+    fn it_should_report_a_plain_ip_type_when_the_client_is_ipv4() {
+        // Arrange
+        let context = context_for_client(ipv4_client());
+
+        // Act
+        let ip_type = context.client_address_ip_type();
+
+        // Assert
+        assert_eq!(ip_type, IpType::Plain);
+    }
+
+    #[test]
+    fn it_should_report_a_plain_ip_type_when_the_client_is_native_ipv6() {
+        // Arrange
+        let context = context_for_client(ipv6_client());
+
+        // Act
+        let ip_type = context.client_address_ip_type();
+
+        // Assert
+        assert_eq!(ip_type, IpType::Plain);
+    }
+
+    #[test]
+    fn it_should_report_a_v4_mapped_v6_ip_type_when_the_client_is_ipv4_mapped_ipv6() {
+        // Arrange
+        let v4_mapped_v6_client = SocketAddr::new(IpAddr::V6(Ipv4Addr::new(192, 168, 1, 1).to_ipv6_mapped()), 51_000);
+        let context = context_for_client(v4_mapped_v6_client);
+
+        // Act
+        let ip_type = context.client_address_ip_type();
+
+        // Assert
+        assert_eq!(ip_type, IpType::V4MappedV6);
     }
 
     #[test]
     fn it_should_retain_an_optional_configured_public_url() {
-        let ctx = ConnectionContext::new(
-            ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
-            SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 6969),
-            ServiceBinding::new(Protocol::UDP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 6969)).unwrap(),
-        )
-        .with_public_url(Some("udp://tracker.example.test:6969/announce".to_string()));
+        // Arrange
+        let context = context_for_client(ipv4_client()).with_public_url(Some(PUBLIC_URL.to_string()));
 
-        assert_eq!(ctx.public_url(), Some("udp://tracker.example.test:6969/announce"));
+        // Act
+        let public_url = context.public_url();
+
+        // Assert
+        assert_eq!(public_url, Some(PUBLIC_URL));
     }
 
     #[test]
-    fn connection_context_labels_should_include_the_configured_public_url_only_when_present() {
-        let connection = ConnectionContext::new(
-            ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
-            SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 6969),
-            ServiceBinding::new(Protocol::UDP, SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 6969)).unwrap(),
-        )
-        .with_public_url(Some("udp://tracker.example.test:6969/announce".to_string()));
+    fn it_should_project_the_server_binding_and_the_client_address_into_metric_labels() {
+        // Arrange
+        let context = context_for_client(ipv4_client());
 
-        let configured_labels = LabelSet::from(connection);
-        let absent_labels = LabelSet::from(ConnectionContext::new(
-            ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
-            SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 6969),
-            ServiceBinding::new(Protocol::UDP, SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 6969)).unwrap(),
-        ));
+        // Act
+        let labels = LabelSet::from(context);
+
+        // Assert
+        assert_eq!(
+            labels,
+            LabelSet::from([
+                (label_name!("server_binding_protocol"), LabelValue::new("udp")),
+                (label_name!("server_binding_ip"), LabelValue::new("203.0.113.196")),
+                (label_name!("server_binding_address_ip_type"), LabelValue::new("plain")),
+                (label_name!("server_binding_address_ip_family"), LabelValue::new("inet")),
+                (label_name!("server_binding_port"), LabelValue::new("6969")),
+                (label_name!("client_address_ip_family"), LabelValue::new("inet")),
+                (label_name!("client_address_ip_type"), LabelValue::new("plain")),
+            ])
+        );
+    }
+
+    #[test]
+    fn it_should_include_the_public_url_label_only_when_a_public_url_is_configured() {
+        // Arrange
+        let configured = context_for_client(ipv4_client()).with_public_url(Some(PUBLIC_URL.to_string()));
+        let not_configured = context_for_client(ipv4_client());
         let public_url_label = label_name!("public_url");
-        let public_url = LabelValue::new("udp://tracker.example.test:6969/announce");
+        let public_url = LabelValue::new(PUBLIC_URL);
 
+        // Act
+        let configured_labels = LabelSet::from(configured);
+        let absent_labels = LabelSet::from(not_configured);
+
+        // Assert
         assert!(configured_labels.contains_pair(&public_url_label, &public_url));
         assert!(!absent_labels.contains_pair(&public_url_label, &public_url));
-    }
-
-    #[test]
-    fn client_address_ip_family_should_be_inet6_for_ipv6() {
-        let configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
-        let ctx = ConnectionContext::new(
-            configuration_instance_id,
-            SocketAddr::new(IpAddr::V6(Ipv6Addr::LOCALHOST), 6969),
-            ServiceBinding::new(Protocol::UDP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 6969)).unwrap(),
-        );
-
-        assert_eq!(ctx.client_address_ip_family(), IpFamily::Inet6);
-    }
-
-    #[test]
-    fn client_address_ip_type_should_be_plain_for_direct_ipv4() {
-        let configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
-        let ctx = ConnectionContext::new(
-            configuration_instance_id,
-            SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 6969),
-            ServiceBinding::new(Protocol::UDP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 6969)).unwrap(),
-        );
-
-        assert_eq!(ctx.client_address_ip_type(), IpType::Plain);
-    }
-
-    #[test]
-    fn client_address_ip_type_should_be_plain_for_native_ipv6() {
-        let configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
-        let ctx = ConnectionContext::new(
-            configuration_instance_id,
-            SocketAddr::new(IpAddr::V6(Ipv6Addr::LOCALHOST), 6969),
-            ServiceBinding::new(Protocol::UDP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 6969)).unwrap(),
-        );
-
-        assert_eq!(ctx.client_address_ip_type(), IpType::Plain);
-    }
-
-    #[test]
-    fn client_address_ip_type_should_be_v4_mapped_v6_for_ipv4_mapped_ipv6() {
-        let v4_mapped_v6_addr = IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0xffff, 0xc0a8, 0x0101)); // ::ffff:192.168.1.1
-        let configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
-
-        let ctx = ConnectionContext::new(
-            configuration_instance_id,
-            SocketAddr::new(v4_mapped_v6_addr, 6969),
-            ServiceBinding::new(Protocol::UDP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 6969)).unwrap(),
-        );
-
-        assert_eq!(ctx.client_address_ip_type(), IpType::V4MappedV6);
     }
 }

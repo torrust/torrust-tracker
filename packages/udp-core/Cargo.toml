@@ -43,6 +43,8 @@ zeroize = { version = "1.9.1", default-features = false }
 criterion = { version = "0.5.1", features = [ "async_tokio" ] }
 mockall = "0"
 quickcheck = { version = "1", default-features = false }
+quickcheck_macros = "1"
+rstest = "0"
 
 [[bench]]
 harness = false

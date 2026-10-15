@@ -216,3 +216,410 @@ impl From<WhitelistError> for UdpAnnounceError {
         Self::TrackerCoreWhitelistError { source: whitelist_error }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::future;
+    use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+    use std::num::NonZeroU16;
+    use std::ops::Range;
+    use std::sync::Arc;
+
+    use mockall::predicate::eq;
+    use torrust_clock::clock::Time;
+    use torrust_info_hash::InfoHash;
+    use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
+    use torrust_tracker_configuration::v3_0_0::core::Core;
+    use torrust_tracker_core::announce_handler::AnnounceHandler;
+    use torrust_tracker_core::databases::error::Error as DatabaseError;
+    use torrust_tracker_core::databases::{MockTorrentMetricsStore, TorrentMetricsStore};
+    use torrust_tracker_core::error::{AnnounceError, WhitelistError};
+    use torrust_tracker_core::statistics::persisted::downloads::DatabaseDownloadsMetricRepository;
+    use torrust_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
+    use torrust_tracker_core::whitelist::authorization::WhitelistAuthorization;
+    use torrust_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
+    use torrust_tracker_primitives::peer::Peer;
+    use torrust_tracker_primitives::{AnnounceEvent, ConfigurationInstanceId, Driver, NumberOfBytes, PeerId, ServiceRole};
+    use torrust_tracker_udp_protocol::{
+        AnnounceActionPlaceholder, AnnounceRequest, ConnectionId, NumberOfPeers, PeerKey, Port, TransactionId,
+    };
+
+    use super::{AnnounceService, UdpAnnounceError};
+    use crate::CurrentClock;
+    use crate::connection_cookie::{ConnectionCookieError, gen_remote_fingerprint, make};
+    use crate::crypto::cookie_cipher::CookieCipher;
+    use crate::event::{ConnectionContext, Event};
+    use crate::services::tests::MockUdpCoreStatsEventSender;
+
+    const INSTANCE_ID: ConfigurationInstanceId = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
+    const VALIDATE_COOKIE: bool = true;
+    const SKIP_COOKIE_VALIDATION: bool = false;
+    const COOKIE_VALID_FROM: f64 = 1_000_000_000.0;
+    const COOKIE_VALID_UNTIL: f64 = 1_000_000_120.0;
+    const INFO_HASH: [u8; 20] = [0x11; 20];
+    const PEER_ID: [u8; 20] = [0x2d; 20];
+    const PEER_PORT: u16 = 6881;
+    const PUBLIC_URL: &str = "udp://tracker.example.test:6969/announce";
+
+    /// The service under test plus the torrent repository its announce handler writes to.
+    struct AnnounceServiceFixture {
+        service: AnnounceService,
+        torrents: Arc<InMemoryTorrentRepository>,
+    }
+
+    impl AnnounceServiceFixture {
+        fn public_tracker() -> Self {
+            Self::new(&Core::default(), None, None, None)
+        }
+
+        fn listed_tracker_without_whitelisted_torrents() -> Self {
+            Self::new(
+                &Core {
+                    listed: true,
+                    ..Core::default()
+                },
+                None,
+                None,
+                None,
+            )
+        }
+
+        fn public_tracker_with_external_ip(external_ip: IpAddr) -> Self {
+            Self::new(&Core::default(), Some(external_ip), None, None)
+        }
+
+        fn public_tracker_publishing_events_to(event_sender: MockUdpCoreStatsEventSender) -> Self {
+            Self::new(&Core::default(), None, None, Some(Arc::new(event_sender)))
+        }
+
+        fn tracker_with_persisted_downloads_from(store: MockTorrentMetricsStore) -> Self {
+            Self::new(&Core::default(), None, Some(store), None)
+        }
+
+        fn new(
+            core: &Core,
+            tracker_external_ip: Option<IpAddr>,
+            persisted_downloads_store: Option<MockTorrentMetricsStore>,
+            event_sender: crate::event::sender::Sender,
+        ) -> Self {
+            let whitelist_authorization = Arc::new(WhitelistAuthorization::new(core, &Arc::new(InMemoryWhitelist::default())));
+            let torrents = Arc::new(InMemoryTorrentRepository::default());
+            let announce_handler = persisted_downloads_store.map_or_else(
+                || AnnounceHandler::new_public(core, &whitelist_authorization, &torrents),
+                |store| {
+                    let store: Arc<dyn TorrentMetricsStore> = Arc::new(store);
+                    AnnounceHandler::new_with_persistent_completed_statistics(
+                        core,
+                        &whitelist_authorization,
+                        &torrents,
+                        &Arc::new(DatabaseDownloadsMetricRepository::new(&store)),
+                    )
+                },
+            );
+
+            let service = AnnounceService::new(
+                Arc::new(announce_handler),
+                whitelist_authorization,
+                Arc::new(fixed_test_cipher()),
+                event_sender,
+                INSTANCE_ID,
+                tracker_external_ip,
+            );
+
+            Self { service, torrents }
+        }
+
+        async fn announced_peer_addresses(&self) -> Vec<SocketAddr> {
+            self.torrents
+                .get_torrent_peers(&InfoHash::from(INFO_HASH), 10)
+                .await
+                .iter()
+                .map(|peer| peer.peer_addr)
+                .collect()
+        }
+    }
+
+    fn client_socket_addr() -> SocketAddr {
+        SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 10)), 51_000)
+    }
+
+    fn loopback_client_socket_addr() -> SocketAddr {
+        SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 51_000)
+    }
+
+    fn server_service_binding() -> ServiceBinding {
+        ServiceBinding::new(
+            Protocol::UDP,
+            SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969),
+        )
+        .unwrap()
+    }
+
+    fn cookie_valid_range() -> Range<f64> {
+        COOKIE_VALID_FROM..COOKIE_VALID_UNTIL
+    }
+
+    fn fixed_test_cipher() -> CookieCipher {
+        CookieCipher::fixed_for_testing()
+    }
+
+    fn valid_connection_id_for(client: SocketAddr) -> ConnectionId {
+        make(
+            &fixed_test_cipher(),
+            gen_remote_fingerprint(&client),
+            COOKIE_VALID_FROM + 60.0,
+        )
+        .unwrap()
+    }
+
+    fn expired_connection_id_for(client: SocketAddr) -> ConnectionId {
+        make(&fixed_test_cipher(), gen_remote_fingerprint(&client), COOKIE_VALID_FROM - 1.0).unwrap()
+    }
+
+    fn announce_request(connection_id: ConnectionId) -> AnnounceRequest {
+        AnnounceRequest {
+            connection_id,
+            action_placeholder: AnnounceActionPlaceholder::default(),
+            transaction_id: TransactionId(0i32.into()),
+            info_hash: torrust_tracker_udp_protocol::InfoHash(INFO_HASH),
+            peer_id: PeerId(PEER_ID),
+            bytes_downloaded: torrust_tracker_udp_protocol::NumberOfBytes(0i64.into()),
+            bytes_uploaded: torrust_tracker_udp_protocol::NumberOfBytes(0i64.into()),
+            bytes_left: torrust_tracker_udp_protocol::NumberOfBytes(0i64.into()),
+            event: torrust_tracker_udp_protocol::AnnounceEvent::Started.into(),
+            ip_address: Ipv4Addr::UNSPECIFIED.into(),
+            key: PeerKey::new(0i32),
+            peers_wanted: NumberOfPeers::new(1i32),
+            port: Port::new(NonZeroU16::new(PEER_PORT).unwrap()),
+        }
+    }
+
+    #[tokio::test]
+    async fn it_should_reject_an_expired_connection_id_when_cookie_validation_is_enabled() {
+        // Arrange
+        let fixture = AnnounceServiceFixture::public_tracker();
+        let request = announce_request(expired_connection_id_for(client_socket_addr()));
+
+        // Act
+        let result = fixture
+            .service
+            .handle_announce(
+                client_socket_addr(),
+                server_service_binding(),
+                &request,
+                cookie_valid_range(),
+                VALIDATE_COOKIE,
+            )
+            .await;
+
+        // Assert
+        assert!(matches!(
+            result,
+            Err(UdpAnnounceError::ConnectionCookieError {
+                source: ConnectionCookieError::ValueExpired { .. }
+            })
+        ));
+    }
+
+    #[tokio::test]
+    async fn it_should_accept_an_expired_connection_id_when_cookie_validation_is_skipped() {
+        // Arrange
+        let fixture = AnnounceServiceFixture::public_tracker();
+        let request = announce_request(expired_connection_id_for(client_socket_addr()));
+
+        // Act
+        let result = fixture
+            .service
+            .handle_announce(
+                client_socket_addr(),
+                server_service_binding(),
+                &request,
+                cookie_valid_range(),
+                SKIP_COOKIE_VALIDATION,
+            )
+            .await;
+
+        // Assert
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn it_should_reject_an_announce_for_a_torrent_that_is_not_whitelisted_on_a_listed_tracker() {
+        // Arrange
+        let fixture = AnnounceServiceFixture::listed_tracker_without_whitelisted_torrents();
+        let request = announce_request(valid_connection_id_for(client_socket_addr()));
+
+        // Act
+        let result = fixture
+            .service
+            .handle_announce(
+                client_socket_addr(),
+                server_service_binding(),
+                &request,
+                cookie_valid_range(),
+                VALIDATE_COOKIE,
+            )
+            .await;
+
+        // Assert
+        assert!(matches!(
+            result,
+            Err(UdpAnnounceError::TrackerCoreWhitelistError {
+                source: WhitelistError::TorrentNotWhitelisted { info_hash, .. }
+            }) if info_hash == InfoHash::from(INFO_HASH)
+        ));
+    }
+
+    #[tokio::test]
+    async fn it_should_report_a_failing_persisted_downloads_lookup_as_a_tracker_core_announce_error() {
+        // Arrange
+        let mut failing_store = MockTorrentMetricsStore::new();
+        failing_store.expect_load_torrent_downloads().returning(|_| {
+            Box::pin(future::ready(Err(DatabaseError::MalformedDatabaseRecord {
+                message: "corrupt record".to_string(),
+                driver: Driver::Sqlite3,
+            })))
+        });
+        let fixture = AnnounceServiceFixture::tracker_with_persisted_downloads_from(failing_store);
+        let request = announce_request(valid_connection_id_for(client_socket_addr()));
+
+        // Act
+        let result = fixture
+            .service
+            .handle_announce(
+                client_socket_addr(),
+                server_service_binding(),
+                &request,
+                cookie_valid_range(),
+                VALIDATE_COOKIE,
+            )
+            .await;
+
+        // Assert
+        assert!(matches!(
+            result,
+            Err(UdpAnnounceError::TrackerCoreAnnounceError {
+                source: AnnounceError::Database(_)
+            })
+        ));
+    }
+
+    #[tokio::test]
+    async fn it_should_validate_the_connection_id_before_revealing_whether_the_torrent_is_whitelisted() {
+        // Arrange
+        let fixture = AnnounceServiceFixture::listed_tracker_without_whitelisted_torrents();
+        let request = announce_request(expired_connection_id_for(client_socket_addr()));
+
+        // Act
+        let result = fixture
+            .service
+            .handle_announce(
+                client_socket_addr(),
+                server_service_binding(),
+                &request,
+                cookie_valid_range(),
+                VALIDATE_COOKIE,
+            )
+            .await;
+
+        // Assert
+        assert!(matches!(result, Err(UdpAnnounceError::ConnectionCookieError { .. })));
+    }
+
+    #[tokio::test]
+    async fn it_should_announce_the_peer_with_the_client_socket_ip_instead_of_the_ip_in_the_request() {
+        // Arrange
+        let fixture = AnnounceServiceFixture::public_tracker();
+        let mut request = announce_request(valid_connection_id_for(client_socket_addr()));
+        request.ip_address = Ipv4Addr::new(198, 51, 100, 77).into();
+
+        // Act
+        fixture
+            .service
+            .handle_announce(
+                client_socket_addr(),
+                server_service_binding(),
+                &request,
+                cookie_valid_range(),
+                VALIDATE_COOKIE,
+            )
+            .await
+            .unwrap();
+
+        // Assert
+        assert_eq!(
+            fixture.announced_peer_addresses().await,
+            vec![SocketAddr::new(client_socket_addr().ip(), PEER_PORT)]
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_announce_a_loopback_client_with_the_configured_tracker_external_ip() {
+        // Arrange
+        let external_ip = IpAddr::V4(Ipv4Addr::new(198, 51, 100, 1));
+        let fixture = AnnounceServiceFixture::public_tracker_with_external_ip(external_ip);
+        let request = announce_request(valid_connection_id_for(loopback_client_socket_addr()));
+
+        // Act
+        fixture
+            .service
+            .handle_announce(
+                loopback_client_socket_addr(),
+                server_service_binding(),
+                &request,
+                cookie_valid_range(),
+                VALIDATE_COOKIE,
+            )
+            .await
+            .unwrap();
+
+        // Assert
+        assert_eq!(
+            fixture.announced_peer_addresses().await,
+            vec![SocketAddr::new(external_ip, PEER_PORT)]
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_publish_an_announce_event_with_the_connection_context_and_the_announced_peer() {
+        // Arrange
+        let expected_event = Event::UdpAnnounce {
+            connection: ConnectionContext::new(INSTANCE_ID, client_socket_addr(), server_service_binding())
+                .with_public_url(Some(PUBLIC_URL.to_string())),
+            info_hash: InfoHash::from(INFO_HASH),
+            announcement: Peer {
+                peer_id: PeerId(PEER_ID),
+                peer_addr: SocketAddr::new(client_socket_addr().ip(), PEER_PORT),
+                updated: CurrentClock::now(),
+                uploaded: NumberOfBytes::new(0),
+                downloaded: NumberOfBytes::new(0),
+                left: NumberOfBytes::new(0),
+                event: AnnounceEvent::Started,
+            },
+        };
+        let mut event_sender = MockUdpCoreStatsEventSender::new();
+        event_sender
+            .expect_send()
+            .with(eq(expected_event))
+            .times(1)
+            .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
+        let service = AnnounceServiceFixture::public_tracker_publishing_events_to(event_sender)
+            .service
+            .with_public_url(Some(PUBLIC_URL.to_string()));
+        let request = announce_request(valid_connection_id_for(client_socket_addr()));
+
+        // Act
+        let result = service
+            .handle_announce(
+                client_socket_addr(),
+                server_service_binding(),
+                &request,
+                cookie_valid_range(),
+                VALIDATE_COOKIE,
+            )
+            .await;
+
+        // Assert: the mock verifies the single expected event when it is dropped.
+        assert!(result.is_ok());
+    }
+}

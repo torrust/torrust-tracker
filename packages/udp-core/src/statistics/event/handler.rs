@@ -6,9 +6,6 @@ use crate::event::Event;
 use crate::statistics::UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL;
 use crate::statistics::repository::Repository;
 
-/// # Panics
-///
-/// This function panics if the IP version does not match the event type.
 pub async fn handle_event(event: Event, stats_repository: &Repository, now: DurationSinceUnixEpoch) {
     let (mut label_set, request_kind) = labels_and_request_kind(event);
     label_set.upsert(label_name!("request_kind"), LabelValue::new(request_kind));
@@ -35,6 +32,7 @@ fn labels_and_request_kind(event: Event) -> (LabelSet, &'static str) {
 mod tests {
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 
+    use rstest::rstest;
     use torrust_clock::clock::Time;
     use torrust_metrics::label::{LabelSet, LabelValue};
     use torrust_metrics::metric_collection::aggregate::sum::Sum;
@@ -50,170 +48,44 @@ mod tests {
     use crate::statistics::repository::Repository;
     use crate::tests::sample_info_hash;
 
-    #[tokio::test]
-    async fn should_increase_the_udp4_connections_counter_when_it_receives_a_udp4_connect_event() {
-        let stats_repository = Repository::new();
-        let configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
-
-        handle_event(
-            Event::UdpConnect {
-                connection: ConnectionContext::new(
-                    configuration_instance_id,
-                    SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 195)), 8080),
-                    ServiceBinding::new(
-                        Protocol::UDP,
-                        SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969),
-                    )
-                    .unwrap(),
-                ),
-            },
-            &stats_repository,
-            CurrentClock::now(),
+    fn connection() -> ConnectionContext {
+        ConnectionContext::new(
+            ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
+            SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 195)), 8080),
+            ServiceBinding::new(
+                Protocol::UDP,
+                SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969),
+            )
+            .unwrap(),
         )
-        .await;
-
-        let stats = stats_repository.get_stats().await;
-
-        assert_eq!(stats.udp4_connections_handled(), 1);
     }
 
+    #[rstest]
+    #[case::connect(Event::UdpConnect { connection: connection() }, "connect")]
+    #[case::announce(
+        Event::UdpAnnounce { connection: connection(), info_hash: sample_info_hash(), announcement: PeerAnnouncement::default() },
+        "announce"
+    )]
+    #[case::scrape(Event::UdpScrape { connection: connection() }, "scrape")]
     #[tokio::test]
-    async fn should_increase_the_udp4_announces_counter_when_it_receives_a_udp4_announce_event() {
+    async fn it_should_count_each_event_as_one_request_of_its_kind(#[case] event: Event, #[case] request_kind: &str) {
+        // Arrange
         let stats_repository = Repository::new();
-        let configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
 
-        handle_event(
-            Event::UdpAnnounce {
-                connection: ConnectionContext::new(
-                    configuration_instance_id,
-                    SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 195)), 8080),
-                    ServiceBinding::new(
-                        Protocol::UDP,
-                        SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969),
-                    )
-                    .unwrap(),
-                ),
-                info_hash: sample_info_hash(),
-                announcement: PeerAnnouncement::default(),
-            },
-            &stats_repository,
-            CurrentClock::now(),
-        )
-        .await;
+        // Act
+        handle_event(event, &stats_repository, CurrentClock::now()).await;
 
-        let stats = stats_repository.get_stats().await;
-
-        assert_eq!(stats.udp4_announces_handled(), 1);
-    }
-
-    #[tokio::test]
-    async fn should_increase_the_udp4_scrapes_counter_when_it_receives_a_udp4_scrape_event() {
-        let stats_repository = Repository::new();
-        let configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
-
-        handle_event(
-            Event::UdpScrape {
-                connection: ConnectionContext::new(
-                    configuration_instance_id,
-                    SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 195)), 8080),
-                    ServiceBinding::new(
-                        Protocol::UDP,
-                        SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969),
-                    )
-                    .unwrap(),
-                ),
-            },
-            &stats_repository,
-            CurrentClock::now(),
-        )
-        .await;
-
-        let stats = stats_repository.get_stats().await;
-
-        assert_eq!(stats.udp4_scrapes_handled(), 1);
-    }
-
-    #[tokio::test]
-    async fn should_increase_the_udp6_connections_counter_when_it_receives_a_udp6_connect_event() {
-        let stats_repository = Repository::new();
-        let configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
-
-        handle_event(
-            Event::UdpConnect {
-                connection: ConnectionContext::new(
-                    configuration_instance_id,
-                    SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 195)), 8080),
-                    ServiceBinding::new(
-                        Protocol::UDP,
-                        SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969),
-                    )
-                    .unwrap(),
-                ),
-            },
-            &stats_repository,
-            CurrentClock::now(),
-        )
-        .await;
-
-        let stats = stats_repository.get_stats().await;
-
-        assert_eq!(stats.udp6_connections_handled(), 1);
-    }
-
-    #[tokio::test]
-    async fn should_increase_the_udp6_announces_counter_when_it_receives_a_udp6_announce_event() {
-        let stats_repository = Repository::new();
-        let configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
-
-        handle_event(
-            Event::UdpAnnounce {
-                connection: ConnectionContext::new(
-                    configuration_instance_id,
-                    SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 195)), 8080),
-                    ServiceBinding::new(
-                        Protocol::UDP,
-                        SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969),
-                    )
-                    .unwrap(),
-                ),
-                info_hash: sample_info_hash(),
-                announcement: PeerAnnouncement::default(),
-            },
-            &stats_repository,
-            CurrentClock::now(),
-        )
-        .await;
-
-        let stats = stats_repository.get_stats().await;
-
-        assert_eq!(stats.udp6_announces_handled(), 1);
-    }
-
-    #[tokio::test]
-    async fn should_increase_the_udp6_scrapes_counter_when_it_receives_a_udp6_scrape_event() {
-        let stats_repository = Repository::new();
-        let configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0);
-
-        handle_event(
-            Event::UdpScrape {
-                connection: ConnectionContext::new(
-                    configuration_instance_id,
-                    SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 195)), 8080),
-                    ServiceBinding::new(
-                        Protocol::UDP,
-                        SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 203, 0, 113, 196)), 6969),
-                    )
-                    .unwrap(),
-                ),
-            },
-            &stats_repository,
-            CurrentClock::now(),
-        )
-        .await;
-
-        let stats = stats_repository.get_stats().await;
-
-        assert_eq!(stats.udp6_scrapes_handled(), 1);
+        // Assert
+        let requests_of_this_kind = stats_repository
+            .get_stats()
+            .await
+            .metric_collection
+            .sum(
+                &metric_name!(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL),
+                &[("request_kind", request_kind)].into(),
+            )
+            .unwrap();
+        assert!((requests_of_this_kind - 1.0).abs() < f64::EPSILON);
     }
 
     #[tokio::test]

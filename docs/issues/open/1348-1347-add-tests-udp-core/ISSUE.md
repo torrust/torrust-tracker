@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p2
 epic: 1347
 github-issue: 1348
 spec-path: docs/issues/open/1348-1347-add-tests-udp-core/ISSUE.md
-branch: "1348-1347-add-tests-udp-core-spec"
-related-pr: null
-last-updated-utc: "2026-10-02 11:42"
+branch: "1348-1347-add-tests-udp-core"
+related-pr: 2538
+last-updated-utc: "2026-10-15 11:56"
 semantic-links:
   skill-links:
     - create-issue
@@ -202,14 +202,14 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | ------ | ---- | ----------------------- |
-| T1 | TODO | Create coverage evidence and complete module inventory | `coverage-evidence.md` records clean aggregate/global and unit-only commands and totals, and the inventory lists every `packages/udp-core/src/` file with unit-only coverage, property-test candidacy, selected behavior, and T1 hypothesis. No tests change. |
-| T2 | TODO | Create shared plan guidance and the first file test plan | `test-refactor-plans/README.md` holds shared guardrails and the plan index; the first file plan is created. No tests change. |
-| T3 | TODO | Review and approve the processing order | Maintainer approves the ledger order; it may be changed at any time. |
-| T4 | TODO | Process every source file through the per-file workflow | Every ledger row has a completed plan, recorded coverage result, completed-file review, and signed per-file commit. |
-| T5 | TODO | Implement integration-test increments selected by file test plans | Only if a plan selected a 3B increment; otherwise record why none was needed. |
-| T6 | TODO | Perform bounded mutation assessment | `mutation-evidence.md` records configuration, timeout, scope, outcomes, and limitations. |
-| T7 | TODO | Reconcile evidence and progress state | Ledger, plans, plan index, coverage evidence, acceptance rows, and both EPIC coverage tables agree. Grep completed records for stray `TODO`/`IN_PROGRESS` labels and stale frontmatter. |
-| T8 | TODO | Complete verification and acceptance review | Automatic checks, manual verification, acceptance review, and retrospective decision are recorded. |
+| T1 | DONE | Create coverage evidence and complete module inventory | [coverage-evidence.md](coverage-evidence.md) records clean aggregate/global and unit-only commands and totals. Its inventory lists every `packages/udp-core/src/` file with unit-only coverage, property-test candidacy, selected behavior, and T1 hypothesis. No tests changed. |
+| T2 | DONE | Create shared plan guidance and the first file test plan | [test-refactor-plans/README.md](test-refactor-plans/README.md) holds shared guardrails and the plan index; the first plan is [services-announce-tests.md](test-refactor-plans/services-announce-tests.md). No tests changed. |
+| T3 | DONE | Review and approve the processing order | Maintainer approves the ledger order; it may be changed at any time. |
+| T4 | DONE | Process every source file through the per-file workflow | Every ledger row has a completed plan, recorded coverage result, completed-file review, and signed per-file commit. |
+| T5 | DONE | Implement integration-test increments selected by file test plans | Only if a plan selected a 3B increment; otherwise record why none was needed. None selected: all 20 plans record R3 `SKIPPED` with a boundary rationale (in-memory collaborators, or lifecycle owned by #1488 / #2414). |
+| T6 | DONE | Perform bounded mutation assessment | `mutation-evidence.md` records configuration, timeout, scope, outcomes, and limitations. |
+| T7 | DONE | Reconcile evidence and progress state | Ledger, plans, plan index, coverage evidence, acceptance rows, and both EPIC coverage tables agree. Grep completed records for stray `TODO`/`IN_PROGRESS` labels and stale frontmatter. |
+| T8 | DONE | Complete verification and acceptance review | Automatic checks, manual verification, acceptance review, and retrospective decision are recorded. |
 
 After the last T4/T5 test-producing increment, stop for maintainer review before T6-T8, any final
 verification commit, or opening a pull request. Use the independent Task Reviewer for the final
@@ -276,33 +276,38 @@ the test needs; they do not reuse production container factories.
 
 ## Source File Ledger
 
-States: `PENDING` (no plan yet), `IN_PROGRESS`, `DONE`. Order follows
-[Key Package Responsibilities](#key-package-responsibilities), most critical first; within a
+States: `PENDING` (no plan yet), `IN_PROGRESS`, `DONE`, `REMOVED` (the file no longer exists; the
+row keeps the history). Critical-path files with no unit-only
+coverage come first (announce, its peer mapping, scrape); the rest follow
+[Key Package Responsibilities](#key-package-responsibilities), most critical first. Within a
 responsibility, the module holding the decision comes before its supporting modules. Unit-only
-lines are the preliminary measurement and are replaced by T1 evidence.
+lines are the T1 measurement; files added after T1 show their first measurement instead.
+Issue #2458 (merged 2026-10-08) replaced the global cookie keys with an injected
+`CookieCipher`, so the rows after `connection_cookie.rs` were re-planned on 2026-10-09.
 
 | Order | Source module | Rank | Unit-only lines | T1 hypothesis | State | Plan |
 | ---: | --- | ---: | ---: | --- | --- | --- |
-| 1 | `connection_cookie.rs` | 1 | 130 / 135 (96.30%) | Property candidate | PENDING | - |
-| 2 | `crypto/keys.rs` | 1 | 35 / 41 (85.37%) | Test candidate | PENDING | - |
-| 3 | `crypto/ephemeral_instance_keys.rs` | 1 | 5 / 10 (50.00%) | Probably no change | PENDING | - |
-| 4 | `services/announce.rs` | 2 | 0 / 101 (0.00%) | Test candidate | PENDING | - |
-| 5 | `peer_builder.rs` | 2 | 0 / 14 (0.00%) | Test candidate | PENDING | - |
-| 6 | `services/scrape.rs` | 3 | 0 / 77 (0.00%) | Test candidate | PENDING | - |
-| 7 | `services/connect.rs` | 4 | 147 / 157 (93.63%) | Probably no change | PENDING | - |
-| 8 | `services/banning.rs` | 5 | 60 / 66 (90.91%) | Property candidate | PENDING | - |
-| 9 | `event.rs` | 6 | 131 / 137 (95.62%) | Probably no change | PENDING | - |
-| 10 | `container.rs` | 7 | 0 / 97 (0.00%) | Test candidate | PENDING | - |
-| 11 | `statistics/event/handler.rs` | 8 | 199 / 200 (99.50%) | Probably no change | PENDING | - |
-| 12 | `statistics/repository.rs` | 8 | 21 / 26 (80.77%) | Test candidate | PENDING | - |
-| 13 | `statistics/metrics.rs` | 8 | 56 / 65 (86.15%) | Test candidate | PENDING | - |
-| 14 | `statistics/services.rs` | 8 | 32 / 32 (100.00%) | Probably no change | PENDING | - |
-| 15 | `statistics/event/listener.rs` | 8 | 124 / 145 (85.52%) | Lifecycle (#1488) | PENDING | - |
-| 16 | `statistics/mod.rs` | 8 | 8 / 8 (100.00%) | Probably no change | PENDING | - |
-| 17 | `lib.rs` | 9 | 5 / 10 (50.00%) | Probably no change | PENDING | - |
-| 18 | `services/mod.rs` | 9 | 22 / 24 (91.67%) | Test support only | PENDING | - |
-| 19 | `crypto/mod.rs` | 9 | No executable entries | Wiring only | PENDING | - |
-| 20 | `statistics/event/mod.rs` | 9 | No executable entries | Wiring only | PENDING | - |
+| 1 | `services/announce.rs` | 2 | 0 / 101 (0.00%) | Test candidate | DONE | [services-announce-tests.md](test-refactor-plans/services-announce-tests.md) |
+| 2 | `peer_builder.rs` | 2 | 0 / 14 (0.00%) | Test candidate | DONE | [peer-builder-tests.md](test-refactor-plans/peer-builder-tests.md) |
+| 3 | `services/scrape.rs` | 3 | 0 / 77 (0.00%) | Test candidate | DONE | [services-scrape-tests.md](test-refactor-plans/services-scrape-tests.md) |
+| 4 | `connection_cookie.rs` | 1 | 130 / 135 (96.30%) | Property candidate | DONE | [connection-cookie-tests.md](test-refactor-plans/connection-cookie-tests.md) |
+| 5 | `crypto/cookie_cipher.rs` | 1 | 49 / 49 (100.00%) after #2458 | Not in T1 (added by #2458 with tests) | DONE | [crypto-cookie-cipher-tests.md](test-refactor-plans/crypto-cookie-cipher-tests.md) |
+| 6 | `services/connect.rs` | 4 | 147 / 157 (93.63%) | Probably no change | DONE | [services-connect-tests.md](test-refactor-plans/services-connect-tests.md) |
+| 7 | `services/banning.rs` | 5 | 60 / 66 (90.91%) | Property candidate | DONE | [services-banning-tests.md](test-refactor-plans/services-banning-tests.md) |
+| 8 | `event.rs` | 6 | 131 / 137 (95.62%) | Probably no change | DONE | [event-tests.md](test-refactor-plans/event-tests.md) |
+| 9 | `container.rs` | 7 | 0 / 97 (0.00%) | Test candidate (#2458 added tests) | DONE | [container-tests.md](test-refactor-plans/container-tests.md) |
+| 10 | `statistics/event/handler.rs` | 8 | 199 / 200 (99.50%) | Probably no change | DONE | [statistics-event-handler-tests.md](test-refactor-plans/statistics-event-handler-tests.md) |
+| 11 | `statistics/repository.rs` | 8 | 21 / 26 (80.77%) | Test candidate | DONE | [statistics-repository-tests.md](test-refactor-plans/statistics-repository-tests.md) |
+| 12 | `statistics/metrics.rs` | 8 | 56 / 65 (86.15%) | Test candidate | DONE | [statistics-metrics-tests.md](test-refactor-plans/statistics-metrics-tests.md) |
+| 13 | `statistics/services.rs` | 8 | 32 / 32 (100.00%) | Probably no change | REMOVED | [statistics-services-tests.md](test-refactor-plans/statistics-services-tests.md) (superseded by #2521) |
+| 14 | `statistics/event/listener.rs` | 8 | 124 / 145 (85.52%) | Lifecycle (#1488) | DONE | [statistics-event-listener-tests.md](test-refactor-plans/statistics-event-listener-tests.md) |
+| 15 | `statistics/mod.rs` | 8 | 8 / 8 (100.00%) | Probably no change | DONE | [statistics-mod-tests.md](test-refactor-plans/statistics-mod-tests.md) |
+| 16 | `lib.rs` | 9 | 5 / 10 (50.00%) | Probably no change | DONE | [lib-tests.md](test-refactor-plans/lib-tests.md) |
+| 17 | `services/mod.rs` | 9 | 22 / 24 (91.67%) | Test support only | DONE | [services-mod-tests.md](test-refactor-plans/services-mod-tests.md) |
+| 18 | `crypto/mod.rs` | 9 | No executable entries | Wiring only | DONE | [crypto-mod-tests.md](test-refactor-plans/crypto-mod-tests.md) |
+| 19 | `statistics/event/mod.rs` | 9 | No executable entries | Wiring only | DONE | [statistics-event-mod-tests.md](test-refactor-plans/statistics-event-mod-tests.md) |
+| - | `crypto/keys.rs` | 1 | 35 / 41 (85.37%) | Test candidate | REMOVED (#2458) | [crypto-keys-tests.md](test-refactor-plans/crypto-keys-tests.md) (superseded) |
+| - | `crypto/ephemeral_instance_keys.rs` | 1 | 5 / 10 (50.00%) | Probably no change | REMOVED (#2458) | - |
 
 ## Progress Tracking
 
@@ -314,17 +319,17 @@ lines are the preliminary measurement and are replaced by T1 evidence.
 - [x] Local branch `1348-1347-add-tests-udp-core-spec` created from `develop` for the spec-only PR;
       `1348-1347-add-tests-udp-core` is reserved for implementation.
 - [x] Specification reviewed and approved by user/maintainer.
-- [ ] Spec-only PR #2407 merged into `develop` before implementation.
-- [ ] Complete module inventory and baseline coverage evidence recorded.
-- [ ] Shared plan guidance and the first file test plan created; processing order approved.
-- [ ] EPIC #1347 Subissues and coverage tables updated with the T1 baseline.
-- [ ] Every ledger row is `DONE` with its own file test plan.
-- [ ] Maintainer review after the final test-producing increment.
-- [ ] Automatic verification completed with toolchain-qualified evidence.
-- [ ] Manual verification recorded in `manual-verification-evidence.md`.
-- [ ] Bounded mutation assessment recorded in `mutation-evidence.md`.
-- [ ] Acceptance criteria reviewed after implementation.
-- [ ] Implementation completion review recorded (`implementation-retrospective.md` or a
+- [x] Spec-only PR #2407 merged into `develop` before implementation.
+- [x] Complete module inventory and baseline coverage evidence recorded.
+- [x] Shared plan guidance and the first file test plan created; processing order approved.
+- [x] EPIC #1347 Subissues and coverage tables updated with the T1 baseline.
+- [x] Every ledger row is `DONE` with its own file test plan.
+- [x] Maintainer review after the final test-producing increment.
+- [x] Automatic verification completed with toolchain-qualified evidence.
+- [x] Manual verification recorded in `manual-verification-evidence.md`.
+- [x] Bounded mutation assessment recorded in `mutation-evidence.md`.
+- [x] Acceptance criteria reviewed after implementation.
+- [x] Implementation completion review recorded (`implementation-retrospective.md` or a
       progress-log reason); independent reviewer results in `agent-review-reports.md` when used.
 - [ ] Issue closed and spec moved to `docs/issues/closed/`.
 
@@ -342,32 +347,248 @@ lines are the preliminary measurement and are replaced by T1 evidence.
   spec-only PR before implementation starts on `1348-1347-add-tests-udp-core`.
 - 2026-10-02 11:42 UTC - GitHub Copilot - Opened spec-only PR #2407
   (<https://github.com/torrust/torrust-tracker/pull/2407>) with `Related to #1348`.
+- 2026-10-02 17:06 UTC - GitHub Copilot - Started implementation on branch
+  `1348-1347-add-tests-udp-core` after PR #2407 merged as `6eba68a1f`. Completed T1 without
+  changing tests or production code: [coverage-evidence.md](coverage-evidence.md) records clean
+  aggregate and unit-only source measurements, the 20-file inventory, property-test candidates,
+  ownership boundaries, and prioritized gaps. The package has 43 unit tests and no package
+  integration test target at baseline. T2/T3 await maintainer review of this inventory and order.
+- 2026-10-02 18:34 UTC - Jose Celano / GitHub Copilot - T1 approved and committed as
+  `docs(issues): record udp core coverage baseline and inventory`. Maintainer chose to start with
+  `services/announce.rs` (critical and uncovered). T2 created the shared plan guidance and the
+  announce plan; T3 proposes moving announce, `peer_builder.rs`, and scrape ahead of the
+  cookie/crypto files. Also checked the EPIC-baseline checkpoint missed in T1. Plan and order await
+  approval; no Rust tests changed.
+- 2026-10-02 18:43 UTC - Jose Celano - Approved the processing order (T3) and the announce plan.
+  T4 is paused: the maintainer is fixing a bug that adds tests to this package. Rebase onto
+  `develop` after that PR merges, then re-check the announce plan against the new tests before
+  starting R2.
+- 2026-10-04 09:48 UTC - GitHub Copilot - PR #2423 merged; rebased onto `develop`. #2423 touched
+  only doc comments in `udp-core`, so the announce plan was kept unchanged. Added 7 announce
+  service unit tests (unit-only file lines 0 / 101 to 338 / 347). Awaiting completed-file review.
+- 2026-10-04 10:35 UTC - Jose Celano - Approved the `services/announce.rs` completed-file review;
+  ledger row 1 is `DONE`.
+- 2026-10-05 12:56 UTC - GitHub Copilot - Rebased onto `develop` (no `udp-core` change). The
+  `peer_builder.rs` plan was approved; added 5 unit tests (unit-only file lines 11 / 14 to
+  79 / 79). Awaiting completed-file review.
+- 2026-10-05 13:19 UTC - Jose Celano - Approved the `peer_builder.rs` completed-file review;
+  ledger row 2 is `DONE`.
+- 2026-10-05 18:03 UTC - GitHub Copilot - Rebased onto `develop` (no `udp-core` change). The
+  `services/scrape.rs` plan was approved; added 6 unit tests (unit-only file lines 0 / 77 to
+  264 / 273). Maintainer also approved reopening `services/announce.rs` for one more test (R2h,
+  tracker-core failure adaptation) as a separate commit after scrape. Awaiting scrape
+  completed-file review.
+- 2026-10-05 18:44 UTC - Jose Celano - Approved the `services/scrape.rs` completed-file review;
+  ledger row 3 is `DONE`.
+- 2026-10-05 18:49 UTC - GitHub Copilot - Reopened `services/announce.rs` (ledger row 1) for the
+  approved R2h test. Unit-only file lines 338 / 347 to 390 / 396. Awaiting completed-file review.
+- 2026-10-05 21:06 UTC - Jose Celano - Approved R2h; ledger row 1 is `DONE` again.
+- 2026-10-06 11:41 UTC - GitHub Copilot - Rebased onto `develop` (no `udp-core` change). The
+  `connection_cookie.rs` plan and R1 refactor were approved; added 6 tests including the first
+  `quickcheck` property and the `quickcheck` dev-dependencies (unit-only file lines 130 / 135 to
+  171 / 171). Created [lessons.md](lessons.md) with four follow-up candidates. Awaiting
+  completed-file review.
+- 2026-10-06 11:51 UTC - Jose Celano - Approved the `connection_cookie.rs` completed-file review;
+  ledger row 4 is `DONE`.
+- 2026-10-06 13:38 UTC - Jose Celano / GitHub Copilot - The `crypto/keys.rs` plan (ledger row 5)
+  found that the startup `check_seed()` cannot detect a zeroed cookie key in production. The
+  maintainer chose to fix the design by injecting one cookie key, as a separate issue implemented
+  in parallel by another agent; the draft spec and hand-off were prepared in the local, git-ignored
+  `.tmp/inject-udp-cookie-cipher/`. **#1348 is paused** until that work merges. On resume: rebase,
+  adapt the committed cookie, announce, and scrape tests to the injected key, and re-plan rows 5-7
+  (`crypto/keys.rs`, `crypto/ephemeral_instance_keys.rs`, `services/connect.rs`) and row 10
+  (`container.rs`) against the new design.
+- 2026-10-07 10:59 UTC - GitHub Copilot - The hand-off became Issue #2458
+  ([spec](../../closed/2458-inject-udp-cookie-cipher/ISSUE.md)), implemented by another agent and in review
+  as PR #2470. #1348 stays paused until PR #2470 merges.
+- 2026-10-09 07:30 UTC - GitHub Copilot - PR #2470 merged; #1348 resumed. Rebased onto `develop`
+  (255 commits). The cookie file's conflicts were resolved by keeping the R1 refactor and passing
+  `CookieCipher::fixed_for_testing()` explicitly; the announce and scrape fixtures now inject the
+  fixed test cipher into the service constructors. 67 package unit tests pass. #2458 deleted
+  `crypto/keys.rs` and `crypto/ephemeral_instance_keys.rs` (ledger rows 5-6) and added
+  `crypto/cookie_cipher.rs`, with its own tests; the ledger is re-planned next.
+- 2026-10-09 07:30 UTC - GitHub Copilot - Ledger re-planned after #2458 (awaiting maintainer
+  approval): `crypto/keys.rs` and `crypto/ephemeral_instance_keys.rs` marked `REMOVED`, their
+  plan superseded; `crypto/cookie_cipher.rs` added as order 5 (rank 1). Fresh unit-only package
+  coverage: 2,026 / 2,097 lines (96.61%); `container.rs` (183 / 183) and `lib.rs` (5 / 5) are now
+  fully covered by #2458's changes, but every remaining row still gets its own file plan.
+- 2026-10-09 11:19 UTC - Jose Celano - Approved the re-planned ledger.
+- 2026-10-10 09:25 UTC - GitHub Copilot - The `crypto/cookie_cipher.rs` plan was approved; removed
+  one redundant assertion and added a compile-time guarantee that the key schedule is wiped on drop
+  (unit-only file lines 49 / 49 to 51 / 51). Awaiting completed-file review.
+- 2026-10-10 10:10 UTC - Jose Celano - Approved the `crypto/cookie_cipher.rs` completed-file
+  review; ledger row 5 is `DONE`.
+- 2026-10-10 11:22 UTC - GitHub Copilot - The `services/connect.rs` plan was approved; replaced 5
+  tests with 3 contract tests and removed four shared helpers in `services/mod.rs` that the removal
+  left unused (a necessary exception to one file per commit). Awaiting completed-file review.
+- 2026-10-10 11:29 UTC - Jose Celano - Approved the `services/connect.rs` completed-file review,
+  including the `services/mod.rs` exception; ledger row 6 is `DONE`.
+- 2026-10-13 14:26 UTC - GitHub Copilot - The `services/banning.rs` plan was approved. The
+  banned-IPs total finding (the metric counts every IP with an invalid connection ID, and goes
+  stale after a reset) was handed off as a bug draft and hand-off for another agent in the local,
+  git-ignored `.tmp/udp-banned-ips-metric/`. Refactored 4 tests and added 2, including a kept
+  `quickcheck` threshold property (unit-only file lines 60 / 66 to 78 / 84). Awaiting
+  completed-file review.
+- 2026-10-13 15:03 UTC - Jose Celano - Approved the `services/banning.rs` completed-file review;
+  ledger row 7 is `DONE`. Chose Option A for the handed-off bug (count would-be bans in `disabled`
+  mode); another agent is implementing it.
+- 2026-10-13 17:06 UTC - GitHub Copilot - The `event.rs` plan was approved; refactored 7 tests
+  around one fixture and added the full label-projection and client-address tests (unit-only file
+  lines 131 / 137 to 144 / 147). Awaiting completed-file review.
+- 2026-10-13 17:12 UTC - Jose Celano - Approved the `event.rs` completed-file review; ledger row 8
+  is `DONE`.
+- 2026-10-13 17:15 UTC - Jose Celano / GitHub Copilot - `container.rs` (order 9) is deferred until
+  Issue #2505 (the banned-IPs metric bug handed off on 2026-10-13) is implemented, because that fix
+  may change how the container builds `BanService`. The statistics files go first. Proposed:
+  process `statistics/metrics.rs` (order 12) before `statistics/event/handler.rs` (order 10). The
+  handler's six per-family tests are the only coverage of the `metrics.rs` IPv4/IPv6 projections,
+  so `metrics.rs` should get direct tests before the handler tests are narrowed to the handler's
+  own routing decision.
+- 2026-10-13 17:19 UTC - Jose Celano - Approved processing `statistics/metrics.rs` (order 12)
+  before `statistics/event/handler.rs` (order 10). Its plan was created.
+- 2026-10-13 17:38 UTC - GitHub Copilot - The `statistics/metrics.rs` plan was approved; added 3
+  direct projection tests (unit-only file lines 56 / 65 to 110 / 119). Awaiting completed-file
+  review.
+- 2026-10-13 17:52 UTC - Jose Celano - Approved the `statistics/metrics.rs` completed-file review;
+  ledger row 12 is `DONE`.
+- 2026-10-13 19:46 UTC - GitHub Copilot - The `statistics/event/handler.rs` plan was approved with
+  `rstest` (maintainer guidance: parameterize only where it improves maintainability,
+  readability, or expressiveness) and the stale `# Panics` doc removal. Replaced six per-family
+  tests with one `rstest` test (unit-only file lines 199 / 200 to 60 / 61). Awaiting
+  completed-file review. The maintainer also approved converting earlier loop-based tests to
+  `rstest` where that criterion holds, as a separate commit.
+- 2026-10-14 05:31 UTC - Jose Celano - Approved the `statistics/event/handler.rs` completed-file
+  review; ledger row 10 is `DONE`.
+- 2026-10-14 05:40 UTC - GitHub Copilot - Applied the `rstest` criterion to the earlier loop tests:
+  `peer_builder.rs` P4 converted to four named cases; `connection_cookie.rs` C1 and C2 kept as
+  loops over the shared `not_normal_issue_times()` helper. Reasons recorded in both plans.
+- 2026-10-14 06:42 UTC - Jose Celano - Approved the `statistics/repository.rs` plan (S1-S4); ledger
+  row 11 is `IN_PROGRESS`. Its two findings (unused SI-30 stats traits; public `stats` locks in five
+  statistics repositories) become EPIC #1669 sub-issues, drafted under `.tmp/` with hand-off notes
+  for another agent.
+- 2026-10-14 08:07 UTC - Jose Celano - Approved the `statistics/repository.rs` completed-file
+  review; ledger row 11 is `DONE` (4 tests added; unit-only 21 / 26 to 86 / 86 lines).
+- 2026-10-14 08:57 UTC - Jose Celano - Approved the `statistics/services.rs` plan (V0 replaced by
+  V1-V2; stale module docs fixed); ledger row 13 is `IN_PROGRESS`. The unused `get_metrics()` /
+  `TrackerMetrics` finding is in `lessons.md`, forwarded by the maintainer to the agent handling the
+  unused SI-30 traits draft.
+- 2026-10-14 09:13 UTC - Jose Celano - Approved the `statistics/services.rs` completed-file review;
+  ledger row 13 is `DONE` (1 test replaced by 2; module docs fixed).
+- 2026-10-14 10:03 UTC - Jose Celano - Approved the `statistics/event/listener.rs` plan (R1, L1);
+  ledger row 14 is `IN_PROGRESS`. Cancellation priority and the spawn entry points stay with #1488
+  / #2414.
+- 2026-10-14 10:13 UTC - Jose Celano - Approved the `statistics/event/listener.rs` completed-file
+  review; ledger row 14 is `DONE` (1 test sharpened, 1 added; unit-only 124 / 145 to 144 / 164
+  lines).
+- 2026-10-14 10:55 UTC - Jose Celano - Approved the `statistics/mod.rs` plan (D1, a literal-name
+  contract test); ledger row 15 is `IN_PROGRESS`.
+- 2026-10-14 10:59 UTC - Jose Celano - Approved the `statistics/mod.rs` completed-file review;
+  ledger row 15 is `DONE` (1 contract test added).
+- 2026-10-14 11:27 UTC - Jose Celano - Approved the `lib.rs` no-change plan; ledger row 16 is
+  `DONE`. The unused `Default` derive on `ConnectionIdValidationPolicy` is in `lessons.md`.
+- 2026-10-14 11:52 UTC - Jose Celano - Approved the `services/mod.rs` plan (R1: move the
+  connect-only test helpers into `connect.rs`); ledger row 17 is `IN_PROGRESS`.
+- 2026-10-14 12:22 UTC - Jose Celano - Approved the `services/mod.rs` completed-file review; ledger
+  row 17 is `DONE` (helpers moved; the file keeps only the shared mock).
+- 2026-10-14 12:28 UTC - Jose Celano - Approved no change for `crypto/mod.rs`; ledger row 18 is
+  `DONE`.
+- 2026-10-14 12:28 UTC - Jose Celano - Approved no change for `statistics/event/mod.rs`; ledger
+  row 19 is `DONE`. Only `container.rs` (row 9) remains, deferred until #2505.
+- 2026-10-14 14:43 UTC - GitHub Copilot - #2505 (the banned-IPs metric bug handed off from the
+  banning plan) merged in PR #2524. Rebased onto `develop` at `8045bd252`; conflicts only in the
+  `udp-core` dev-dependencies (kept #2505's `quickcheck` without default features plus this issue's
+  `quickcheck_macros`), `Cargo.lock`, and the banning test imports. 93 package unit tests pass.
+  #2505 also removed `BanningStats` and `last_connection_id_errors_reset`; records updated.
+  `container.rs` (row 9) is unblocked.
+- 2026-10-14 14:58 UTC - Jose Celano - Approved the `container.rs` plan (C1-C5: configuration
+  wiring and shared services); ledger row 9 is `IN_PROGRESS`.
+- 2026-10-14 15:05 UTC - Jose Celano - Approved the `container.rs` completed-file review; ledger row
+  9 is `DONE` (5 wiring tests added). Every ledger row is now `DONE` or `REMOVED`.
+- 2026-10-14 15:10 UTC - GitHub Copilot - T4 is `DONE`. T5 is `DONE` with no increment: all 20 file
+  plans record R3 `SKIPPED` with a boundary rationale, and every Results section says "Integration
+  selected: No". The package still has no `tests/` directory, so there is no integration-only
+  coverage to record. Next: T6 (bounded mutation assessment).
+- 2026-10-14 15:17 UTC - GitHub Copilot - T6 is `DONE`: `cargo-mutants 27.0.0` on
+  `connection_cookie.rs` with the file's own tests; 19 caught, 1 unviable, 0 missed
+  ([mutation-evidence.md](mutation-evidence.md)). The workspace `-D unused` flags made 7 real
+  mutants unviable in a first run, so the recorded run caps lints to warnings.
+- 2026-10-14 15:58 UTC - GitHub Copilot - T7 is `DONE`. Final clean measurement (stable Rust
+  1.99.0, `cargo-llvm-cov 0.6.16`, 98 tests): unit-only and aggregate lines 975 / 1,345
+  (72.49%) → 2,246 / 2,290 (98.08%); recorded in `coverage-evidence.md` (per-file final values,
+  remaining uncovered lines with reasons) and both EPIC #1347 tables. Reconciled: 19 ledger rows
+  `DONE` plus 2 `REMOVED`; 20 plans `done` (the keys plan `superseded`) and indexed; plan index
+  frontmatter set to `done`. The banning plan's "uncovered banned-IPs total" is now covered by
+  #2505. Next: T8.
+- 2026-10-14 16:27 UTC - GitHub Copilot - T8 verification. Automatic: `cargo +nightly fmt --all --
+  --check` (nightly 1.101.0) pass; `cargo test -p torrust-tracker-udp-core` (stable 1.99.0) 98 unit
+  and 2 doc tests pass; pre-push checks (nightly fmt, check, docs; full stable suite) pass; coverage
+  as recorded in T7. Manual: M1-M4 `DONE` against a local tracker
+  ([manual-verification-evidence.md](manual-verification-evidence.md)). For M3/M4 the maintainer
+  chose the specified disposable Rust client over reusing #2505's shell probe, noting it is the
+  second time such a client was needed. Added the Final Test-Technique Assessment (AC1) to
+  `coverage-evidence.md`, repaired two garbled lines in the disposable-script section, and filled
+  the acceptance table. Awaiting maintainer review of T8 and the retrospective decision.
+- 2026-10-14 16:32 UTC - Jose Celano / GitHub Copilot - The maintainer reviewed T8, agreed to keep
+  the M3/M4 client in the issue folder with `tracker_client` options as the follow-up, and asked
+  for the retrospective: [implementation-retrospective.md](implementation-retrospective.md). T8 is
+  `DONE`. Remaining: PR (after the pre-push `git fetch` behind-check), then issue closure.
+- 2026-10-14 16:57 UTC - GitHub Copilot - The pre-push behind-check found `develop` 48 commits
+  ahead, including #2517 (private metrics lock) and #2521 (removed the unused statistics traits
+  and `statistics/services.rs`), both follow-ups of this issue's findings, and #2505's spec archive.
+  Rebased onto `e2e21f20c` with the maintainer-approved resolution: accepted the deletion of
+  `statistics/services.rs` (ledger row 13 `REMOVED`, its plan `superseded`); in
+  `statistics/repository.rs` kept #2517's private field and doc test, dropped S4 (its trait method
+  is gone) and #2517's `new`-only test (superseded by S1); re-applied the IPv4 server-socket
+  wording to the docs #2521 moved into `statistics/mod.rs`. Re-measured: lines 98.03%
+  (2,190 / 2,234), 95 unit and 3 doc tests. Updated #2505 links to `closed/` and the EPIC tables.
+  Manual verification (M1-M4) ran on the pre-rebase build; the rebase removed only unused code
+  and changed no request handling, so it was not repeated.
+- 2026-10-15 07:23 UTC - GitHub Copilot - Addressed Cameron's PR #2538 review (F1-F9; audit in
+  `docs/pr-reviews/pr-2538-review/PR-REVIEW.md`). With the maintainer's approval the branch
+  history was rewritten so every commit compiles the package tests; the fixes added a near-limit
+  ban property, bound the zeroize check to the cipher's field, renamed and structured the
+  statistics tests, corrected the unviable-mutant cause and the lock-file rationale, and
+  reconciled these records. Re-measured: lines 98.04% (2,198 / 2,242), 96 unit tests.
+- 2026-10-15 10:41 UTC - GitHub Copilot - Rebased onto `develop` at `9c8bcdf8a` (no conflicts; no
+  `udp-core` or manifest change since `48c4d3013`) and ran the independent Task Reviewer the spec
+  requires for the final pre-PR review, late, as PR #2538 review finding F4 noted. It failed
+  ([agent-review-reports.md](agent-review-reports.md)): no plan recorded the prose-first AAA review
+  AC7 requires. With the maintainer's approval the review was done now for every test-producing
+  file and recorded in each plan; it renamed ten tests, added AAA sections to three properties,
+  inlined one hidden Act, and made the container external-IP test read the info hash and port
+  from its request. Also fixed the reviewer's record findings. Re-measured: lines 98.04%
+  (2,202 / 2,246), 96 unit tests. The completion-review checkpoint stays open until a passing
+  review is recorded.
+- 2026-10-15 11:56 UTC - GitHub Copilot - The Task Reviewer re-review passed
+  ([agent-review-reports.md](agent-review-reports.md)); fixed its count and wording findings and
+  ticked the completion-review checkpoint. Next: the PR #2538 review audit, push, and thread
+  replies.
 
 ## Acceptance Criteria
 
-- [ ] AC1: A complete `packages/udp-core/src/` module inventory is recorded with unit-only coverage,
+- [x] AC1: A complete `packages/udp-core/src/` module inventory is recorded with unit-only coverage,
       property-test candidacy, selected behavior, and a T1 hypothesis for every source file, plus
       the final test-technique assessment.
-- [ ] AC2: Every source file has its own file test plan processed through the per-file workflow,
+- [x] AC2: Every source file has its own file test plan processed through the per-file workflow,
       with its resulting unit-only coverage recorded in `coverage-evidence.md`.
-- [ ] AC3: Fresh aggregate/global and unit-only coverage evidence (and integration-only, if a
+- [x] AC3: Fresh aggregate/global and unit-only coverage evidence (and integration-only, if a
       target is added) is recorded with clean reproducible commands and toolchain-qualified results.
-- [ ] AC4: Selected tests protect package-owned behavior at the narrowest maintainable boundary.
-- [ ] AC5: Any package integration test has a reviewed rationale.
-- [ ] AC6: No-change and deferral decisions enumerate uncovered lines or behavior groups and name
+- [x] AC4: Selected tests protect package-owned behavior at the narrowest maintainable boundary.
+- [x] AC5: Any package integration test has a reviewed rationale.
+- [x] AC6: No-change and deferral decisions enumerate uncovered lines or behavior groups and name
       the owner or reason.
-- [ ] AC7: Test-producing increments complete the prose-first AAA review and focused validation
+- [x] AC7: Test-producing increments complete the prose-first AAA review and focused validation
       before the next file begins.
-- [ ] AC8: Bounded mutation assessment is completed without a score target or CI gate.
-- [ ] AC9: Reconciliation confirms plans, evidence, acceptance rows, and EPIC tables agree; the
+- [x] AC8: Bounded mutation assessment is completed without a score target or CI gate.
+- [x] AC9: Reconciliation confirms plans, evidence, acceptance rows, and EPIC tables agree; the
       EPIC aggregate and unit-only tables record this package's baseline and final measurement.
-- [ ] AC15: Every high-risk and high objective in Coverage Objectives is protected by a unit test
+- [x] AC15: Every high-risk and high objective in Coverage Objectives is protected by a unit test
       or has a recorded owner-based reason.
-- [ ] AC10: `cargo +nightly fmt --all -- --check` passes.
-- [ ] AC11: `linter all` exits with code `0`.
-- [ ] AC12: `cargo test -p torrust-tracker-udp-core` passes.
-- [ ] AC13: Manual verification scenarios are executed and recorded.
-- [ ] AC14: Acceptance criteria are re-reviewed after implementation.
+- [x] AC10: `cargo +nightly fmt --all -- --check` passes.
+- [x] AC11: `linter all` exits with code `0`.
+- [x] AC12: `cargo test -p torrust-tracker-udp-core` passes.
+- [x] AC13: Manual verification scenarios are executed and recorded.
+- [x] AC14: Acceptance criteria are re-reviewed after implementation.
 
 ## Verification Plan
 
@@ -395,10 +616,10 @@ configuration. Running automated tests never satisfies it.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | UDP announce | Start an isolated tracker and run `cargo run -p torrust-tracker-client --bin tracker_client -- udp announce <url> <hash>`. | Valid announce response. | TODO | `manual-verification-evidence.md` |
-| M2 | UDP scrape | Run `cargo run -p torrust-tracker-client --bin tracker_client -- udp scrape <url> <hash>` for the announced hash. | Scrape returns the announced torrent. | TODO | `manual-verification-evidence.md` |
-| M3 | Invalid connection ID | With `connection_id_validation = "strict"`, use the low-level verification client (below) to send one announce and one scrape carrying an invalid connection ID. | The tracker answers each with a UDP error response naming the cookie failure. | TODO | `manual-verification-evidence.md` |
-| M4 | Ban after repeated invalid IDs | With `max_connection_id_errors_per_ip = 10`, use the same client to send invalid connection IDs until the threshold is passed, then send a valid connect. | Pre-threshold requests get error responses; after the threshold the tracker stops answering this IP. | TODO | `manual-verification-evidence.md` |
+| M1 | UDP announce | Start an isolated tracker and run `cargo run -p torrust-tracker-client --bin tracker_client -- udp announce <url> <hash>`. | Valid announce response. | DONE | `manual-verification-evidence.md` V1 |
+| M2 | UDP scrape | Run `cargo run -p torrust-tracker-client --bin tracker_client -- udp scrape <url> <hash>` for the announced hash. | Scrape returns the announced torrent. | DONE | `manual-verification-evidence.md` V2 |
+| M3 | Invalid connection ID | With `connection_id_validation = "strict"`, use the low-level verification client (below) to send one announce and one scrape carrying an invalid connection ID. | The tracker answers each with a UDP error response naming the cookie failure. | DONE | `manual-verification-evidence.md` V3 |
+| M4 | Ban after repeated invalid IDs | With `max_connection_id_errors_per_ip = 10`, use the same client to send invalid connection IDs until the threshold is passed, then send a valid connect. | Pre-threshold requests get error responses; after the threshold the tracker stops answering this IP. | DONE | `manual-verification-evidence.md` V4 |
 
 The `tracker_client` CLI always performs a valid connect first and has no option to supply a
 connection ID. The `torrust-tracker-client` library exposes a lower-level client,
@@ -416,8 +637,10 @@ construction from `packages/test-helpers/src/udp.rs` where practical.
   not a workspace member. Build output goes to `.tmp/`.
 - Why not a maintained test: the scenarios verify the built tracker binary from a client's point
   of view; the same behaviors are protected by maintained unit and `udp-server` integration tests.
-  `tracker_client` option through a separate issue.
-  `tracker_client` option through a separate issue.
+- Retention: kept in the issue folder (it moves to `docs/issues/closed/` with the spec). The
+  maintainer noted this is the second time such a client was needed (#2505 used a raw-packet
+  shell probe); the agreed follow-up is raw-request options on `tracker_client` (`lessons.md`),
+  not a separate `contrib/dev-tools` crate.
 - If building the client proves impractical, mark M3 and M4 `BLOCKED`, record the attempted
   commands and constraint, and define another human-oriented interaction before final
   verification. The `udp-server` integration tests are supporting evidence only; they do not
@@ -427,7 +650,21 @@ construction from `packages/test-helpers/src/udp.rs` where practical.
 
 | AC ID | Status | Evidence |
 | ----- | ------ | -------- |
-| AC1-AC15 | TODO | Filled in during T8. |
+| AC1 | Met | `coverage-evidence.md`: module inventory with T1 hypotheses for all 20 files, and the Final Test-Technique Assessment. |
+| AC2 | Met | Ledger: 18 rows `DONE`, 3 `REMOVED` (two by #2458, `statistics/services.rs` by #2521); one plan per file; per-file final values in `coverage-evidence.md`. |
+| AC3 | Met | `coverage-evidence.md` Final Measurement: clean aggregate and unit-only reports after the final rebase (stable Rust 1.99.0, `cargo-llvm-cov 0.6.16`); no integration target. |
+| AC4 | Met | Every plan names the module-owned decisions and keeps collaborator semantics out of unit tests; mutation proofs are recorded for every test-producing plan (not for every test), plus the bounded `cargo-mutants` sample on `connection_cookie.rs`. |
+| AC5 | Met (vacuous) | No package integration test was added; every plan records why (T5). |
+| AC6 | Met | No-change plans (`lib.rs`, `crypto/mod.rs`, `statistics/event/mod.rs`) and every remaining uncovered line list a reason or owner (`coverage-evidence.md` Final Measurement). |
+| AC7 | Met | Each test-producing plan records R2 validation (tests, pedantic Clippy, nightly fmt, `git diff --check`), the maintainer's completed-file review, and one signed commit before the next file. The prose-first AAA comparison was not recorded at the time; it was done and recorded in each plan's Prose-First AAA Review section on 2026-10-15, after the Task Reviewer's finding. |
+| AC8 | Met | `mutation-evidence.md`: bounded sample, no score target or CI gate. |
+| AC9 | Met | T7 reconciliation; EPIC #1347 aggregate and unit-only tables record baseline and final values. |
+| AC15 | Met | Highest-risk: cookie windows, fingerprints and round trip (`connection_cookie.rs`, property and mutation sample), cipher (`crypto/cookie_cipher.rs`), ban counting (`services/banning.rs`, property, plus #2505), validation bypass (`services/announce.rs`, `services/scrape.rs`). High: error adaptation, event publication with and without a sender, and peer mapping are tested in the service and `peer_builder.rs` plans; the unreachable `TrackerCoreWhitelistError` path is recorded with its reason. |
+| AC10 | Met | `cargo +nightly fmt --all -- --check` (nightly 1.101.0) exit 0; also in the pre-push run. |
+| AC11 | Met | `linter all` passes in every pre-commit run, the latest before the T8 commit. |
+| AC12 | Met | `cargo test -p torrust-tracker-udp-core` (stable 1.99.0): 96 unit tests and 6 runnable doc tests (the compile/compile-fail pairs in `container.rs`, `crypto/cookie_cipher.rs`, and `statistics/repository.rs`) pass, with 3 `ignore` blocks, after the PR #2538 review fixes. Pre-push full stable suite also passes. |
+| AC13 | Met | `manual-verification-evidence.md` V1-V4, all `DONE`. |
+| AC14 | Met | This table, reviewed after implementation on 2026-10-14 and again on 2026-10-15 after the PR #2538 review and the Task Reviewer's findings. |
 
 ## Risks and Trade-offs
 

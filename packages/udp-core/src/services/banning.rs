@@ -83,46 +83,54 @@ mod tests {
     use std::net::IpAddr;
 
     use quickcheck::{Arbitrary, Gen, QuickCheck, TestResult};
+    use quickcheck_macros::quickcheck;
 
     use super::BanService;
 
-    /// Sample service with one day ban duration.
-    fn ban_service(counter_limit: u32) -> BanService {
-        BanService::new(counter_limit)
+    fn ban_service(max_connection_id_errors_per_ip: u32) -> BanService {
+        BanService::new(max_connection_id_errors_per_ip)
     }
 
     #[test]
     fn it_should_increase_the_errors_counter_for_a_given_ip() {
+        // Arrange
         let mut ban_service = ban_service(1);
-
         let ip: IpAddr = "127.0.0.2".parse().unwrap();
 
+        // Act
         ban_service.increase_counter(&ip);
 
+        // Assert
         assert_eq!(ban_service.get_count(&ip), Some(1));
     }
 
     #[test]
     fn it_should_ban_ips_with_counters_exceeding_a_predefined_limit() {
+        // Arrange
         let mut ban_service = ban_service(1);
-
         let ip: IpAddr = "127.0.0.2".parse().unwrap();
+        ban_service.increase_counter(&ip);
+        ban_service.increase_counter(&ip);
 
-        ban_service.increase_counter(&ip); // Counter = 1
-        ban_service.increase_counter(&ip); // Counter = 2
+        // Act
+        let is_banned = ban_service.is_banned(&ip);
 
-        assert!(ban_service.is_banned(&ip));
+        // Assert
+        assert!(is_banned);
     }
 
     #[test]
     fn it_should_not_ban_ips_whose_counters_do_not_exceed_the_predefined_limit() {
+        // Arrange
         let mut ban_service = ban_service(1);
-
         let ip: IpAddr = "127.0.0.2".parse().unwrap();
-
         ban_service.increase_counter(&ip);
 
-        assert!(!ban_service.is_banned(&ip));
+        // Act
+        let is_banned = ban_service.is_banned(&ip);
+
+        // Assert
+        assert!(!is_banned);
     }
 
     #[test]
@@ -139,7 +147,7 @@ mod tests {
     }
 
     #[test]
-    fn it_should_allow_resetting_all_the_counters() {
+    fn it_should_clear_an_ips_error_count_when_the_bans_are_reset() {
         // Arrange
         let mut ban_service = ban_service(1);
         let ip: IpAddr = "127.0.0.2".parse().unwrap();
@@ -152,7 +160,53 @@ mod tests {
 
         // Assert
         assert_eq!(ban_service.get_count(&ip), None);
-        assert!(!ban_service.is_banned(&ip));
+    }
+
+    #[test]
+    fn it_should_not_count_one_ips_errors_against_another_ip() {
+        // Arrange
+        let mut ban_service = ban_service(1);
+        let offending_ip: IpAddr = "127.0.0.2".parse().unwrap();
+        let other_ip: IpAddr = "127.0.0.3".parse().unwrap();
+        ban_service.increase_counter(&offending_ip);
+        ban_service.increase_counter(&offending_ip);
+
+        // Act
+        let is_other_ip_banned = ban_service.is_banned(&other_ip);
+
+        // Assert
+        assert!(!is_other_ip_banned);
+    }
+
+    #[quickcheck]
+    fn it_should_ban_an_ip_exactly_when_its_errors_exceed_the_limit(limit: u16, errors: u16) -> bool {
+        // Arrange
+        let mut ban_service = ban_service(u32::from(limit));
+        let ip: IpAddr = "127.0.0.2".parse().unwrap();
+        record_connection_id_errors(&mut ban_service, &ip, u32::from(errors));
+
+        // Act
+        let is_banned = ban_service.is_banned(&ip);
+
+        // Assert
+        is_banned == (errors > limit)
+    }
+
+    /// Full-range draws rarely land on the boundary, so these errors stay within two of the limit.
+    #[quickcheck]
+    fn it_should_ban_an_ip_exactly_when_its_errors_exceed_the_limit_for_counts_within_two_of_it(limit: u16, offset: i8) -> bool {
+        // Arrange
+        let limit = u32::from(limit);
+        let errors = limit.saturating_add_signed(i32::from(offset % 3));
+        let mut ban_service = ban_service(limit);
+        let ip: IpAddr = "127.0.0.2".parse().unwrap();
+        record_connection_id_errors(&mut ban_service, &ip, errors);
+
+        // Act
+        let is_banned = ban_service.is_banned(&ip);
+
+        // Assert
+        is_banned == (errors > limit)
     }
 
     fn record_connection_id_errors(ban_service: &mut BanService, ip: &IpAddr, errors: u32) {
