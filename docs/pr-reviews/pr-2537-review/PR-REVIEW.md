@@ -86,8 +86,9 @@ da2ce7's fourth review 5525009643 (APPROVED, submitted 2026-10-14 21:38:28 UTC, 
 head) carries three inline `Nit` findings, F17-F19, and raises nothing else in its body. The PR
 merged at the rebase head at 2026-10-15 06:44:22 UTC while they were still unprocessed. Their
 fixes were pushed to this PR's branch and replied to after the merge, so none reached `develop`.
-Under the post-merge approval above, follow-up PR #2539 carries them, and the three rows stay
-`FOLLOW_UP`/`OPEN` until it merges.
+Under the post-merge approval above, follow-up PR #2539 carried them. It merged at 2026-10-15
+07:21:44 UTC as "Merge torrust/torrust-tracker#2539: chore(pr-reviews): land the PR #2537 review
+fixes that missed its merge", so the three rows are now `FIXED`/`RESOLVED`.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -107,9 +108,9 @@ Under the post-merge approval above, follow-up PR #2539 carries them, and the th
 | F14 | `review-finding:pr-2537-f14` | Human | Nit | testing | ORIGINAL | FIXED | RESOLVED |
 | F15 | `review-finding:pr-2537-f15` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F16 | `review-finding:pr-2537-f16` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
-| F17 | `review-finding:pr-2537-f17` | Human | Nit | documentation | ORIGINAL | FOLLOW_UP | OPEN |
-| F18 | `review-finding:pr-2537-f18` | Human | Nit | documentation | ORIGINAL | FOLLOW_UP | OPEN |
-| F19 | `review-finding:pr-2537-f19` | Human | Nit | other | ORIGINAL | FOLLOW_UP | OPEN |
+| F17 | `review-finding:pr-2537-f17` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F18 | `review-finding:pr-2537-f18` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F19 | `review-finding:pr-2537-f19` | Human | Nit | maintainability | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -407,12 +408,13 @@ this PR; a follow-up reply on this thread describes it.
 - Solution: the body edit on this PR came after the merge commit was made, so the merge commit
   keeps the original body. The follow-up PR's body describes both `open-pull-request` skill
   changes, and its merge commit carries that description into `develop`.
-- Current-tree verification: the follow-up PR body (outside the worktree) names
-  "docs(skills): check every changed file for PR-branch commit ids" and the F18 change, cites no
-  commit ids, and has no closing keyword.
-- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4279987154>
+- Current-tree verification: on `develop`, the PR #2539 merge commit's body names
+  "docs(skills): check every changed file for PR-branch commit ids" and the F18 change. The
+  earlier `FOLLOW_UP` reply is
+  <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4279987154>.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4280210547>
 - Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2539>
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4279987154>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4280210547>
 
 ### F18 - The check still runs only after a rebase
 
@@ -426,11 +428,12 @@ this PR; a follow-up reply on this thread describes it.
   documentation push". The skill then says the rule holds whether or not the branch is rebased,
   and runs the check before every push that changes an issue spec, evidence file, or review
   audit, and after a rebase.
-- Current-tree verification: on the follow-up branch, `open-pull-request` `SKILL.md`:78-81 holds
-  the new wording.
-- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4279987332>
+- Current-tree verification: on `develop`, `open-pull-request` `SKILL.md`:78-81 holds the new
+  wording. The earlier `FOLLOW_UP` reply is
+  <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4279987332>.
+- Resolution reference: docs(skills): run the PR-branch commit-id check before every documentation push
 - Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2539>
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4279987332>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4280210834>
 
 ### F19 - An ordinary English word was added to the dictionary
 
@@ -443,11 +446,12 @@ this PR; a follow-up reply on this thread describes it.
 - Solution: the follow-up PR lands "docs(pr-reviews): ignore unreassigned in the PR #2537 audit,
   not the dictionary". It removes the word from `project-words.txt`, and this record carries
   `<!-- cspell:ignore unreassigned -->`, as the PR #2344 and PR #2423 audits do.
-- Current-tree verification: on the follow-up branch, `project-words.txt` has no `unreassigned`
-  line, and this record's line 12 is the directive.
-- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4279987545>
+- Current-tree verification: on `develop`, `project-words.txt` has no `unreassigned` line, and
+  this record's line 12 is the directive. The earlier `FOLLOW_UP` reply is
+  <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4279987545>.
+- Resolution reference: docs(pr-reviews): ignore unreassigned in the PR #2537 audit, not the dictionary
 - Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2539>
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4279987545>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4280211116>
 
 ## Processing Log
 
@@ -497,6 +501,10 @@ this PR; a follow-up reply on this thread describes it.
   threads were reopened. Follow-up PR #2539, branched from `develop`, carries the two fix commits
   and this update. The rows stay `FOLLOW_UP`/`OPEN` until it merges; then this record is closed
   out.
+- 2026-10-15 07:25 UTC - PR #2539 merged at 07:21:44 UTC. Re-verified F17-F19 on `develop`, replied
+  `FIXED` with the merge reference on the three threads, and moved the rows to `FIXED`/`RESOLVED`.
+  The threads are resolved after this update is pushed. The earlier `FOLLOW_UP` replies stay on the
+  threads, and the detail entries name them.
 
 ## Completion Rules
 
