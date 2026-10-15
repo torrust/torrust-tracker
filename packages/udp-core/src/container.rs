@@ -249,7 +249,7 @@ mod tests {
     }
 
     fn loopback_client_socket_addr() -> SocketAddr {
-        SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 6881)
+        SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 40_000)
     }
 
     fn server_service_binding() -> ServiceBinding {
@@ -410,6 +410,7 @@ mod tests {
             .connect_service
             .handle_connect(loopback_client_socket_addr(), server_service_binding(), ISSUE_TIME)
             .await;
+        let request = announce_request_with(connection_id);
 
         // Act
         container
@@ -417,7 +418,7 @@ mod tests {
             .handle_announce(
                 loopback_client_socket_addr(),
                 server_service_binding(),
-                &announce_request_with(connection_id),
+                &request,
                 valid_range(),
                 true,
             )
@@ -428,12 +429,15 @@ mod tests {
         let announced_peer_addresses: Vec<SocketAddr> = container
             .tracker_core_container
             .in_memory_torrent_repository
-            .get_torrent_peers(&torrust_info_hash::InfoHash::from([0; 20]), 10)
+            .get_torrent_peers(&torrust_info_hash::InfoHash::from(request.info_hash.0), 10)
             .await
             .iter()
             .map(|peer| peer.peer_addr)
             .collect();
-        assert_eq!(announced_peer_addresses, vec![SocketAddr::new(external_ip, 6881)]);
+        assert_eq!(
+            announced_peer_addresses,
+            vec![SocketAddr::new(external_ip, request.port.0.get())]
+        );
     }
 
     #[tokio::test]

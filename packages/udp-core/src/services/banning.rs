@@ -147,7 +147,7 @@ mod tests {
     }
 
     #[test]
-    fn it_should_allow_resetting_all_the_counters() {
+    fn it_should_clear_an_ips_error_count_when_the_bans_are_reset() {
         // Arrange
         let mut ban_service = ban_service(1);
         let ip: IpAddr = "127.0.0.2".parse().unwrap();
@@ -180,25 +180,33 @@ mod tests {
 
     #[quickcheck]
     fn it_should_ban_an_ip_exactly_when_its_errors_exceed_the_limit(limit: u16, errors: u16) -> bool {
+        // Arrange
         let mut ban_service = ban_service(u32::from(limit));
         let ip: IpAddr = "127.0.0.2".parse().unwrap();
-        for _ in 0..errors {
-            ban_service.increase_counter(&ip);
-        }
+        record_connection_id_errors(&mut ban_service, &ip, u32::from(errors));
 
-        ban_service.is_banned(&ip) == (errors > limit)
+        // Act
+        let is_banned = ban_service.is_banned(&ip);
+
+        // Assert
+        is_banned == (errors > limit)
     }
 
-    /// Unlike the full-range property above, every draw lands within two errors of the limit.
+    /// Full-range draws rarely land on the boundary, so these errors stay within two of the limit.
     #[quickcheck]
-    fn it_should_ban_an_ip_exactly_when_its_errors_exceed_the_limit_near_the_limit(limit: u16, offset: i8) -> bool {
+    fn it_should_ban_an_ip_exactly_when_its_errors_exceed_the_limit_for_counts_within_two_of_it(limit: u16, offset: i8) -> bool {
+        // Arrange
         let limit = u32::from(limit);
         let errors = limit.saturating_add_signed(i32::from(offset % 3));
         let mut ban_service = ban_service(limit);
         let ip: IpAddr = "127.0.0.2".parse().unwrap();
         record_connection_id_errors(&mut ban_service, &ip, errors);
 
-        ban_service.is_banned(&ip) == (errors > limit)
+        // Act
+        let is_banned = ban_service.is_banned(&ip);
+
+        // Assert
+        is_banned == (errors > limit)
     }
 
     fn record_connection_id_errors(ban_service: &mut BanService, ip: &IpAddr, errors: u32) {

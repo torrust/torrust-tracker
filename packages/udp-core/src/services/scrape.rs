@@ -406,7 +406,11 @@ mod tests {
         // Assert
         assert_eq!(
             scrape_data.files.get(&InfoHash::from(INFO_HASH)),
-            Some(&SwarmMetadata::new(0, 1, 0))
+            Some(&SwarmMetadata {
+                downloaded: 0,
+                complete: 1,
+                incomplete: 0,
+            })
         );
     }
 
@@ -473,7 +477,7 @@ mod tests {
             )
             .await;
 
-        // Assert
+        // Assert: the mock verifies the single expected event when it is dropped.
         assert!(result.is_ok());
     }
 }

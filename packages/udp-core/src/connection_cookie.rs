@@ -327,7 +327,7 @@ mod tests {
     }
 
     #[test]
-    fn it_should_validate_a_valid_cookie() {
+    fn it_should_return_the_issue_time_when_the_cookie_was_issued_inside_the_valid_range() {
         // Arrange
         let fingerprint = 1_000_000;
         let issue_at = 1_000_000_000_f64;
@@ -369,10 +369,7 @@ mod tests {
     }
 
     #[test]
-    fn it_should_reject_a_cookie_with_a_wrong_fingerprint_realistic_addresses() {
-        // A cookie obtained from one client address should not validate
-        // when presented from a different client address.
-        //
+    fn it_should_reject_a_cookie_when_checked_with_another_client_address_fingerprint() {
         // This relies on the fingerprint (which covers the full SocketAddr)
         // being different for each address. Because the fingerprint is mixed
         // via wrapping arithmetic (not a MAC), the test must use realistic
@@ -487,14 +484,16 @@ mod tests {
 
     #[quickcheck]
     fn it_should_round_trip_any_normal_issue_time_for_any_fingerprint(fingerprint: u64, issue_at: f64) -> TestResult {
+        // Arrange
         if !issue_at.is_normal() {
             return TestResult::discard();
         }
-
         let cookie = make(&fixed_test_cipher(), fingerprint, issue_at).unwrap();
 
+        // Act
         let result = check(&fixed_test_cipher(), &cookie, fingerprint, issue_at..issue_at);
 
+        // Assert
         TestResult::from_bool(result.map(f64::to_bits) == Ok(issue_at.to_bits()))
     }
 }

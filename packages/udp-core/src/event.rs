@@ -215,7 +215,7 @@ pub(crate) mod tests {
     }
 
     #[test]
-    fn client_address_ip_family_should_be_inet_for_ipv4() {
+    fn it_should_report_the_inet_family_when_the_client_is_ipv4() {
         // Arrange
         let context = context_for_client(ipv4_client());
 
@@ -227,7 +227,7 @@ pub(crate) mod tests {
     }
 
     #[test]
-    fn client_address_ip_family_should_be_inet6_for_ipv6() {
+    fn it_should_report_the_inet6_family_when_the_client_is_ipv6() {
         // Arrange
         let context = context_for_client(ipv6_client());
 
@@ -239,7 +239,7 @@ pub(crate) mod tests {
     }
 
     #[test]
-    fn client_address_ip_type_should_be_plain_for_direct_ipv4() {
+    fn it_should_report_a_plain_ip_type_when_the_client_is_ipv4() {
         // Arrange
         let context = context_for_client(ipv4_client());
 
@@ -251,7 +251,7 @@ pub(crate) mod tests {
     }
 
     #[test]
-    fn client_address_ip_type_should_be_plain_for_native_ipv6() {
+    fn it_should_report_a_plain_ip_type_when_the_client_is_native_ipv6() {
         // Arrange
         let context = context_for_client(ipv6_client());
 
@@ -263,9 +263,9 @@ pub(crate) mod tests {
     }
 
     #[test]
-    fn client_address_ip_type_should_be_v4_mapped_v6_for_ipv4_mapped_ipv6() {
+    fn it_should_report_a_v4_mapped_v6_ip_type_when_the_client_is_ipv4_mapped_ipv6() {
         // Arrange
-        let v4_mapped_v6_client = SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0xffff, 0xc0a8, 0x0101)), 51_000); // ::ffff:192.168.1.1
+        let v4_mapped_v6_client = SocketAddr::new(IpAddr::V6(Ipv4Addr::new(192, 168, 1, 1).to_ipv6_mapped()), 51_000);
         let context = context_for_client(v4_mapped_v6_client);
 
         // Act
@@ -311,7 +311,7 @@ pub(crate) mod tests {
     }
 
     #[test]
-    fn connection_context_labels_should_include_the_configured_public_url_only_when_present() {
+    fn it_should_include_the_public_url_label_only_when_a_public_url_is_configured() {
         // Arrange
         let configured = context_for_client(ipv4_client()).with_public_url(Some(PUBLIC_URL.to_string()));
         let not_configured = context_for_client(ipv4_client());

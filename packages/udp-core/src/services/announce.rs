@@ -619,7 +619,7 @@ mod tests {
             )
             .await;
 
-        // Assert
+        // Assert: the mock verifies the single expected event when it is dropped.
         assert!(result.is_ok());
     }
 }

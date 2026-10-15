@@ -91,17 +91,6 @@ mod tests {
         [("server_binding_address_ip_family", "inet"), ("request_kind", "announce")].into()
     }
 
-    async fn record_one_announce(repository: &Repository) {
-        repository
-            .increase_counter(
-                &metric_name!(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL),
-                &announce_labels(),
-                DurationSinceUnixEpoch::ZERO,
-            )
-            .await
-            .unwrap();
-    }
-
     #[rstest]
     #[case::new(Repository::new)]
     #[case::default(Repository::default)]
@@ -128,7 +117,14 @@ mod tests {
         let repository = Repository::new();
 
         // Act
-        record_one_announce(&repository).await;
+        repository
+            .increase_counter(
+                &metric_name!(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL),
+                &announce_labels(),
+                DurationSinceUnixEpoch::ZERO,
+            )
+            .await
+            .unwrap();
 
         // Assert
         let count = repository
