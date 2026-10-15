@@ -106,6 +106,20 @@ verification for living documents; rendering for output-only documents, with fro
 data source. Drafted with an AI assistant using the Copilot SDK in VS Code (Claude Opus 5.5);
 reviewed and adopted by Jose Celano.
 
+##### Q1 - Cameron Garnham (`da2ce7`), 2026-10-15, PR #2430
+
+I agree that the line falls per fact, not per file; it is the line the proposal already draws for
+records, whose "prose stays authored" ([Document Classes](initial-proposal.md#document-classes)).
+Where I differ is the restated part of a living document: a subissue `Status` column, a findings
+table, a count, an inventory. I would render it as a generated region rather than verify it with a
+second tool, because a check that only verifies still leaves the copy to be edited by hand; a
+rendering removes the copy. The original facts around it stay hand-edited, under typed frontmatter and
+the validator as today. The root ADRs remain the first documents to convert, each conversion an
+editorial pass, and equivalence with the previous bytes is never a gate condition
+([Conversion Is an Editorial Pass](initial-proposal.md#conversion-is-an-editorial-pass)).
+
+AI assistance not disclosed: the author's private tooling may include machine-learning tools.
+
 ### Q2 - Should a rendering be a second file or a generated region?
 
 The proposal leaves open "a rendering as a second file or as generated regions". With a second file,
@@ -122,6 +136,20 @@ regeneration step, is one of the strengths of the current approach. Generated re
 everything outside the rendered block, so they look like the better starting point; I would like the
 author's view on when a full second file is necessary. Drafted with an AI assistant using the Copilot
 SDK in VS Code (Claude Opus 5.5); reviewed and adopted by Jose Celano.
+
+##### Q2 - Cameron Garnham (`da2ce7`), 2026-10-15, PR #2430
+
+I concede the default: a generated region. The `.md` stays the file people edit, a prose fix needs no
+regeneration, and only the marked block is locked. A whole-file rendering earns its template only
+where a document is restated facts apart from a fixed preamble, such as the ADR index
+([`docs/adrs/index.md`](../../../adrs/index.md)) or a catalog of skills or of specifications. So a
+second file is necessary per document, not per class, and the choice stays where the proposal lists
+it, among the [engineering choices](initial-proposal.md#engineering-choices-left-to-implementation).
+Both forms sit behind one dataset interface: the renderer writes the same records into a whole file or
+into a marked block, and the gate compares either with a fresh render, so moving a document from one
+form to the other is engineering, not design.
+
+AI assistance not disclosed: the author's private tooling may include machine-learning tools.
 
 ### Q3 - Should living documents become per-document render templates?
 
@@ -146,6 +174,20 @@ dynamically; for living documents that is acceptable, and restated facts in them
 instead. Drafted with an AI assistant using the Copilot SDK in VS Code (Claude Opus 5.5); reviewed
 and adopted by Jose Celano.
 
+##### Q3 - Cameron Garnham (`da2ce7`), 2026-10-15, PR #2430
+
+I withdraw the root-ADR subissue's per-document templates ("Each of the 29 becomes a template",
+[Subissues](initial-proposal.md#subissues)): a living document keeps no per-document template. On the
+open question, the data generator reads frontmatter from the file people edit, which for a living
+document is the `.md` itself, and never from a template. That frontmatter is the authority and is
+never rendered. A managed output, whether a whole-file rendering or a generated region, enters the
+census only by its declared template, never by its rendered bytes. This authority rule keeps the data
+flow acyclic: every fact moves from a hand-edited authority through a dataset into a rendering, and no
+rendering is read back as input, so no document's data can derive from its own output and the loop the
+topic asks about cannot form.
+
+AI assistance not disclosed: the author's private tooling may include machine-learning tools.
+
 ### Q4 - Is a committed JSON dataset layer needed from the start?
 
 The proposal commits JSON datasets and makes the renderer read only them. They are aggregates built
@@ -156,7 +198,19 @@ datasets when a concrete need appears. Added by Jose Celano. Session record: S2,
 
 #### Positions
 
-No entries yet.
+##### Q4 - Cameron Garnham (`da2ce7`), 2026-10-15, PR #2430
+
+I hold to committed datasets, with a narrower claim. A committed dataset is what makes the gate
+deterministic: the renderer reads committed bytes, never a fresh scan, so every rendering is
+reproducible from the tree alone, and a pull request shows the data change apart from the prose
+change. One [dataset crate](initial-proposal.md#one-dataset-crate-as-the-only-shared-interface) stays
+the only interface the data generator, the renderer and the checkers share, so no checker parses the
+tree on its own terms. What I narrow is the reach: datasets arrive per aggregate, the ADR census
+first, not as a layer under every document from the start. The merge-conflict point a generated file
+adds for parallel pull requests is a cost I accept per aggregate, where the reviewable data diff pays
+for it.
+
+AI assistance not disclosed: the author's private tooling may include machine-learning tools.
 
 ### Q5 - Where and when does the gate run?
 
@@ -174,6 +228,20 @@ small deployable increments, so agents do not do much without committing, and co
 guardrail checks well. This would not hold if agents ran for hours without committing. Drafted with an
 AI assistant using the Copilot SDK in VS Code (Claude Opus 5.5); reviewed and adopted by Jose Celano.
 
+##### Q5 - Cameron Garnham (`da2ce7`), 2026-10-15, PR #2430
+
+I agree: pre-commit and pre-push, on the staged snapshot, as the frontmatter validator already runs
+with `--staged` in [`pre-commit.sh`](../../../../contrib/dev-tools/git/hooks/pre-commit.sh). On the
+open question, the hooks run `check` only, never `write`. A hook that runs `write` changes bytes the
+author neither staged nor read, and it hides a stale rendering instead of reporting it; a failing
+`check` names the command to run and leaves the edit, and its review, with the author. The roster fits
+commit time: the data check, the document check, Markdown, spelling and the frontmatter check on the
+staged files. Markdown and spelling took about 6 s each on the merged tree in the review session (S3
+in the [session record](maintainer-review-session.md)), and a check that renders in memory and
+compares committed bytes adds little to that.
+
+AI assistance not disclosed: the author's private tooling may include machine-learning tools.
+
 ### Q6 - How do forge facts enter, and who refreshes them?
 
 Under the proposal, GitHub facts enter only as committed captures stamped "as of" an instant, and the
@@ -185,7 +253,19 @@ links, committed captures and check results") contain. Added by Jose Celano. Ses
 
 #### Positions
 
-No entries yet.
+##### Q6 - Cameron Garnham (`da2ce7`), 2026-10-15, PR #2430
+
+A capture is refreshed by whoever edits the row it feeds, in the same change, so the refresh is
+reviewed with the edit that needed it. Every capture carries its "as of" stamp, and the rendering
+prints that stamp beside the value, so a reader sees the age of a forge fact instead of trusting it.
+The gate fails when a capture is older than a declared window. The window is declared with the
+aggregate that carries the capture, when that aggregate is introduced: it is a value set there, not a
+design point for this discussion to decide. The "check results" among the data generator's inputs
+([Four Stages](initial-proposal.md#four-stages-each-committed-and-gated)) are the outputs of the
+repository's own checkers, such as the frontmatter validator and the link check, committed as stamped
+data, never live tool runs.
+
+AI assistance not disclosed: the author's private tooling may include machine-learning tools.
 
 ### Q7 - How does template syntax relate to semantic links?
 
@@ -206,6 +286,19 @@ placeholders are resolved in the final file and semantic links are not, but in a
 side by side. The two mechanisms need a clear boundary. Drafted with an AI assistant using the Copilot
 SDK in VS Code (Claude Opus 5.5); reviewed and adopted by Jose Celano.
 
+##### Q7 - Cameron Garnham (`da2ce7`), 2026-10-15, PR #2430
+
+I agree, and I would draw the boundary this way: a placeholder produces presentation text only and
+never mints a semantic link, and no semantic-link syntax, whether frontmatter `semantic-links`, a
+`<!-- skill-link: ... -->` marker, a `review-finding:` reference or the prose-path syntax EPIC #2264
+adopts, appears inside a placeholder. A semantic link is written by hand and stays verbatim in the
+rendering, where validators and agents read it; a placeholder is resolved and disappears. The boundary
+is enforced by policy and by a lint over the templates, not left to the engine: a maintained template
+engine substitutes whatever a template asks for and has no notion of a presentation-only template, so
+it does not hold the boundary by itself.
+
+AI assistance not disclosed: the author's private tooling may include machine-learning tools.
+
 ### Q8 - When should this be implemented?
 
 The proposal's author asked on PR #2430 whether this is work for now or for after version 4. The
@@ -223,6 +316,18 @@ are too many things in progress, and a change of this size is better made in iso
 tasks in parallel. Drafted with an AI assistant using the Copilot SDK in VS Code (Claude Opus 5.5);
 reviewed and adopted by Jose Celano.
 
+##### Q8 - Cameron Garnham (`da2ce7`), 2026-10-15, PR #2430
+
+I agree: not before the tracker v4.0.0 release and the work in progress it carries. The conversions
+change how every contributor and agent edits the documents they touch, and making that change while
+many issues are open would cost more than it saves. The two phases can still be split if an earlier
+review of the engine is wanted: the tooling converts no document, so it could land under
+[`contrib/dev-tools`](../../../../contrib/dev-tools) first, behind its own review, at the cost of the
+workspace registration the topic notes. Every conversion waits for the release either way, so nothing
+a contributor edits changes before then.
+
+AI assistance not disclosed: the author's private tooling may include machine-learning tools.
+
 ### Q9 - How should ideas mature into planned work?
 
 This proposal arrived as an EPIC with a binding design. A staged path would let ideas mature from high
@@ -239,6 +344,18 @@ Ideas should go from a higher level of abstraction and uncertainty to more concr
 discussion, feature, EPIC, subissues. This workflow should be documented, in a separate change.
 Drafted with an AI assistant using the Copilot SDK in VS Code (Claude Opus 5.5); reviewed and
 adopted by Jose Celano.
+
+##### Q9 - Cameron Garnham (`da2ce7`), 2026-10-15, PR #2430
+
+I agree with the path from discussion to feature, then EPIC, then subissues, and with documenting it
+in a separate change. This round is its first instance: the proposal arrived as an EPIC with a binding
+[design](initial-proposal.md#design), and it now sits in this folder as source material, kept as
+written, while the questions it raised are argued topic by topic. That is the order the path asks for:
+a binding design comes after the topics settle and the decision owner records the Outcome, and an EPIC
+specification for issue #2429, if one is still wanted, is written from that Outcome rather than from
+the proposal. Issue #2429 stays the issue this discussion informs.
+
+AI assistance not disclosed: the author's private tooling may include machine-learning tools.
 
 ## Outcome
 
