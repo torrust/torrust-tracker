@@ -20,6 +20,7 @@ use torrust_info_hash::InfoHash;
 use torrust_peer_id::PeerId;
 use torrust_tracker_axum_http_server::testing::environment::Started;
 use torrust_tracker_client::http::client::Client;
+use torrust_tracker_http_core::statistics::metrics::Metrics;
 use torrust_tracker_http_protocol::percent_encoding::percent_encode_byte_array;
 use torrust_tracker_http_protocol::v1::requests::announce::{AnnounceBuilder, Compact};
 use torrust_tracker_http_protocol::v1::responses::announce::deserialization::{
@@ -901,11 +902,14 @@ async fn should_increase_the_number_of_tcp4_announce_requests_handled_in_statist
         .await
         .unwrap();
 
-    let stats = env.container.http_tracker_core_container.stats_repository.get_stats().await;
+    let tcp4_announces_handled = env
+        .container
+        .http_tracker_core_container
+        .stats_repository
+        .read_metrics(Metrics::tcp4_announces_handled)
+        .await;
 
-    assert_eq!(stats.tcp4_announces_handled(), 1);
-
-    drop(stats);
+    assert_eq!(tcp4_announces_handled, 1);
 
     env.stop().await;
 }
@@ -932,11 +936,14 @@ async fn should_increase_the_number_of_tcp6_announce_requests_handled_in_statist
         .await
         .unwrap();
 
-    let stats = env.container.http_tracker_core_container.stats_repository.get_stats().await;
+    let tcp6_announces_handled = env
+        .container
+        .http_tracker_core_container
+        .stats_repository
+        .read_metrics(Metrics::tcp6_announces_handled)
+        .await;
 
-    assert_eq!(stats.tcp6_announces_handled(), 1);
-
-    drop(stats);
+    assert_eq!(tcp6_announces_handled, 1);
 
     env.stop().await;
 }

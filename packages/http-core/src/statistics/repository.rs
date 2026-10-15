@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use tokio::sync::{RwLock, RwLockReadGuard};
+use tokio::sync::RwLock;
 use torrust_clock::DurationSinceUnixEpoch;
 use torrust_metrics::label::LabelSet;
 use torrust_metrics::metric::MetricName;
@@ -11,9 +11,9 @@ use super::metrics::Metrics;
 
 /// A repository for the tracker metrics.
 ///
-/// External callers read statistics through [`Repository::get_stats`].
+/// External callers read statistics through [`Repository::read_metrics`].
 ///
-/// The metrics lock is private:
+/// The metrics lock and the metric collection field are private:
 ///
 /// ```rust,compile_fail,E0616
 /// use torrust_tracker_http_core::statistics::repository::Repository;
@@ -23,13 +23,30 @@ use super::metrics::Metrics;
 /// }
 /// ```
 ///
-/// Read through the accessor instead:
+/// ```rust,compile_fail,E0616
+/// use torrust_tracker_http_core::statistics::repository::Repository;
+///
+/// async fn read_collection(repository: &Repository) {
+///     repository
+///         .read_metrics(|metrics| {
+///             let _collection = &metrics.metric_collection;
+///         })
+///         .await;
+/// }
+/// ```
+///
+/// Read through the closure and the collection accessor instead:
 ///
 /// ```rust
 /// use torrust_tracker_http_core::statistics::repository::Repository;
 ///
 /// async fn read_stats(repository: &Repository) {
-///     let _stats = repository.get_stats().await;
+///     let _tcp4_announces = repository.read_metrics(|metrics| metrics.tcp4_announces_handled()).await;
+///     let _collection_is_readable = repository
+///         .read_metrics(|metrics| {
+///             let _collection = metrics.metric_collection();
+///         })
+///         .await;
 /// }
 /// ```
 #[derive(Clone)]
@@ -51,8 +68,13 @@ impl Repository {
         Self { stats }
     }
 
-    pub async fn get_stats(&self) -> RwLockReadGuard<'_, Metrics> {
-        self.stats.read().await
+    /// Runs `read` on the current metrics while holding the read lock.
+    ///
+    /// Writers wait while `read` runs, so keep it short: it must not block the thread
+    /// (blocking I/O, sleeping, or long computation) or call `read_metrics` on this repository.
+    pub async fn read_metrics<R>(&self, read: impl FnOnce(&Metrics) -> R) -> R {
+        let metrics = self.stats.read().await;
+        read(&metrics)
     }
 
     /// # Errors

@@ -72,7 +72,17 @@ impl StatsQueryPort for TrackerStatsAdapter {
             .get_torrents_downloads_persisted_total()
             .await;
 
-        let http_stats = self.http_stats_repository.get_stats().await;
+        let (tcp4_announces_handled, tcp4_scrapes_handled, tcp6_announces_handled, tcp6_scrapes_handled) = self
+            .http_stats_repository
+            .read_metrics(|http_stats| {
+                (
+                    http_stats.tcp4_announces_handled(),
+                    http_stats.tcp4_scrapes_handled(),
+                    http_stats.tcp6_announces_handled(),
+                    http_stats.tcp6_scrapes_handled(),
+                )
+            })
+            .await;
 
         self.udp_server_stats_repository
             .read_metrics(|udp_server_stats| Stats {
@@ -86,14 +96,14 @@ impl StatsQueryPort for TrackerStatsAdapter {
                 leechers: aggregate_swarm_metadata.total_incomplete,
 
                 // TCPv4
-                tcp4_connections_handled: http_stats.tcp4_announces_handled() + http_stats.tcp4_scrapes_handled(),
-                tcp4_announces_handled: http_stats.tcp4_announces_handled(),
-                tcp4_scrapes_handled: http_stats.tcp4_scrapes_handled(),
+                tcp4_connections_handled: tcp4_announces_handled + tcp4_scrapes_handled,
+                tcp4_announces_handled,
+                tcp4_scrapes_handled,
 
                 // TCPv6
-                tcp6_connections_handled: http_stats.tcp6_announces_handled() + http_stats.tcp6_scrapes_handled(),
-                tcp6_announces_handled: http_stats.tcp6_announces_handled(),
-                tcp6_scrapes_handled: http_stats.tcp6_scrapes_handled(),
+                tcp6_connections_handled: tcp6_announces_handled + tcp6_scrapes_handled,
+                tcp6_announces_handled,
+                tcp6_scrapes_handled,
 
                 // UDP
                 udp_requests_discarded: udp_server_stats.udp_requests_discarded_total(),
@@ -132,8 +142,9 @@ impl StatsQueryPort for TrackerStatsAdapter {
         metrics
             .merge(&self.tracker_core_stats_repository.get_metrics().await.metric_collection)
             .expect("failed to merge tracker core metrics");
-        metrics
-            .merge(&self.http_stats_repository.get_stats().await.metric_collection)
+        self.http_stats_repository
+            .read_metrics(|http| metrics.merge(http.metric_collection()))
+            .await
             .expect("failed to merge HTTP core metrics");
         self.udp_core_stats_repository
             .read_metrics(|udp_core| metrics.merge(udp_core.metric_collection()))

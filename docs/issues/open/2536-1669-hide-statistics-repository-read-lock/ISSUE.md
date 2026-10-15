@@ -235,7 +235,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2  | DONE   | Capture the M1 baseline on `develop`                    | Run M1 before any change and store the five `develop` outputs listed under Manual Verification Scenarios under `evidence/`. |
 | T3  | DONE   | Hide the read lock and field in `udp-core`              | `read_metrics()`, `metric_collection()`, `pub(crate)` field, doctests and their rustdoc lead-in link, and updated callers; the workspace builds and its tests pass. |
 | T4  | DONE   | Hide the read lock and field in `udp-server`            | Same as T3; the largest task (30 in-crate unit-test calls, the `metrics_snapshot` helper, and the guard-accessor test to replace). |
-| T5  | TODO   | Hide the read lock and field in `http-core`             | Same as T3.                                                                                                                              |
+| T5  | DONE   | Hide the read lock and field in `http-core`             | Same as T3.                                                                                                                              |
 | T6  | TODO   | Hide the read lock and field in `tracker-core`          | Same as T3, including the repository's own counter reads.                                                                               |
 | T7  | TODO   | Hide the read lock and field in `swarm-coordination-registry` | Same as T3.                                                                                                                        |
 | T8  | TODO   | Verification                                            | Starts only after the maintainer review that follows T7. See Verification Plan; run M1 on the branch, store its five outputs, and compare them with T2's. |
@@ -387,6 +387,13 @@ request.
   `get_labeled_stats()` merges the collection inside its closure. Prose-first AAA comparison:
   unchanged Arrange/Act sections, the Assert still names the expected counter value; only the
   read path changed. Clippy `-D warnings` is clean for the workspace.
+- 2026-10-15 19:25 UTC - GitHub Copilot - T5 done (`http-core`). Red/green for the new
+  `compile_fail,E0616` doctest: FAILED with the field temporarily `pub`, passes with `pub(crate)`.
+  Test-design review: the unit and contract tests keep their Arrange/Act/Assert and expected
+  counts and read through `Metrics::<method>`; the contract tests drop their `drop(stats)` lines,
+  because no guard exists any more. No helper was added. The REST adapter now reads the four
+  HTTP counters in one `read_metrics()` closure before building the `Stats` and merges the HTTP
+  collection inside its closure.
 
 ## Acceptance Criteria
 

@@ -15,6 +15,7 @@ use tokio::net::TcpListener;
 use torrust_info_hash::InfoHash;
 use torrust_tracker_axum_http_server::testing::environment::Started;
 use torrust_tracker_client::http::client::Client;
+use torrust_tracker_http_core::statistics::metrics::Metrics;
 use torrust_tracker_http_protocol::v1::requests::scrape_builder::{Query, QueryBuilder};
 use torrust_tracker_http_protocol::v1::responses::scrape::deserialization::{self, File, ResponseBuilder};
 use torrust_tracker_primitives::PeerId;
@@ -270,11 +271,14 @@ async fn should_increase_the_number_ot_tcp4_scrape_requests_handled_in_statistic
         .await
         .unwrap();
 
-    let stats = env.container.http_tracker_core_container.stats_repository.get_stats().await;
+    let tcp4_scrapes_handled = env
+        .container
+        .http_tracker_core_container
+        .stats_repository
+        .read_metrics(Metrics::tcp4_scrapes_handled)
+        .await;
 
-    assert_eq!(stats.tcp4_scrapes_handled(), 1);
-
-    drop(stats);
+    assert_eq!(tcp4_scrapes_handled, 1);
 
     env.stop().await;
 }
@@ -303,11 +307,14 @@ async fn should_increase_the_number_ot_tcp6_scrape_requests_handled_in_statistic
         .await
         .unwrap();
 
-    let stats = env.container.http_tracker_core_container.stats_repository.get_stats().await;
+    let tcp6_scrapes_handled = env
+        .container
+        .http_tracker_core_container
+        .stats_repository
+        .read_metrics(Metrics::tcp6_scrapes_handled)
+        .await;
 
-    assert_eq!(stats.tcp6_scrapes_handled(), 1);
-
-    drop(stats);
+    assert_eq!(tcp6_scrapes_handled, 1);
 
     env.stop().await;
 }
