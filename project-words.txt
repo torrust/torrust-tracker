@@ -543,6 +543,7 @@ unistd
 unittests
 unparked
 unpushed
+unreassigned
 unrecognised
 unrepresentable
 unreviewed

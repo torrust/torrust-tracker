@@ -75,16 +75,28 @@ Because a rebase rewrites the branch's commit ids and rebases still happen, no d
 cite a PR-branch commit by id. Durable references are repository artifacts (issue specs, evidence
 files, review audits), the PR body, which the maintainer merge tool copies into the merge commit,
 and review replies, which stay on GitHub after the branch is rewritten.
-Cite the Conventional Commit subject instead; ids are durable only once on `develop`. Before pushing after a rebase, run
+Cite the Conventional Commit subject instead; ids are durable only once on `develop`. Before pushing
+after a rebase, run this check from the repository root:
 
 ```bash
-git grep -ohE '\b[0-9a-f]{7,40}\b' -- docs/issues/open/<issue-folder> | grep '[a-f]' | sort -u
+UPSTREAM_REMOTE=torrust  # replace if your remote has a different name
+
+git diff -z --name-only --diff-filter=d "$UPSTREAM_REMOTE/develop"...HEAD |
+  xargs -0 -r grep -IohE '\b[0-9a-f]{7,40}\b' | sort -u |
+  while read -r token; do
+    git rev-parse -q --verify "$token^{commit}" >/dev/null || continue
+    git merge-base --is-ancestor "$token" "$UPSTREAM_REMOTE/develop" ||
+      echo "PR-branch commit id: $token"
+  done
 ```
 
-and check that each token is a `develop` commit, a tag, an external reference (toolchain build
-hash, third-party commit), or non-commit data (info-hashes, checksums, recorded ids). The
-`grep '[a-f]'` drops purely decimal values such as config sizes. This grep covers only the
-worktree; the PR body and review replies are a manual read.
+Empty output means no file the branch changes cites a commit that is not on `develop`. The check
+scans every changed text file, not only the issue folder, so it also covers review audits and
+evidence files. It keeps all-digit tokens, because an abbreviated commit id can be all digits. It
+reports a token only when it resolves to a local commit outside `develop`, so `develop` commits,
+info-hashes, checksums, GitHub review or comment IDs, and decimal values pass without a manual
+read. It skips ids it cannot resolve: commits that exist only on another fork, and ambiguous
+abbreviations. It covers only the worktree; the PR body and review replies are a manual read.
 
 <!-- markdownlint-disable-next-line MD028 -->
 
