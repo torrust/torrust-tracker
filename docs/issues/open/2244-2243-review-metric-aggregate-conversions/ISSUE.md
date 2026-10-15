@@ -1,14 +1,15 @@
 ---
+schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p2
 epic: 2243
 github-issue: 2244
 spec-path: docs/issues/open/2244-2243-review-metric-aggregate-conversions/ISSUE.md
 branch: "2244-2243-review-metric-aggregate-conversions"
 related-pr: null
-last-updated-utc: 2026-09-18 14:40
+last-updated-utc: "2026-10-15 16:40"
 semantic-links:
   skill-links:
     - create-issue
@@ -65,12 +66,61 @@ counter, a gauge, or an average, what its bounds are, and what the cast does at 
 Not applicable: this work changes local conversion boundaries and does not introduce child
 processes, asynchronous I/O, network readiness, resource cleanup, or reusable test fixtures.
 
+## Conversion Review
+
+### Aggregate API Context
+
+`torrust-metrics` 0.1.0 stores counters as `u64` and gauges as `f64`. Its public aggregate traits
+(`Sum`, `Avg` on `MetricCollection`) return `Option<f64>` for both metric kinds, so an exact `u64`
+counter sum is converted to `f64` inside the crate and back to `u64` by the tracker. The exact
+per-metric integer sum (`Metric<Counter>::sum`) is not reachable from the tracker because the
+collection fields are `pub(super)`; `get_counter_value` matches one exact label set and does not
+aggregate.
+
+Rust float-to-integer `as` casts saturate: negative values and `NaN` become `0`, values above
+`u64::MAX` (including `+inf`) become `u64::MAX`, and fractional parts are truncated toward zero.
+Integer-to-`f64` casts are exact up to `2^53`.
+
+### Review Table
+
+| Group | Entries | Source | Semantics and bounds | Edge behavior | Outcome |
+| ----- | ------- | ------ | -------------------- | ------------- | ------- |
+| G1 Counter totals | A080-A087 | `http-core/src/statistics/metrics.rs` (4 accessors) | Integer `u64` counter sum, round-tripped through `f64`. Non-negative, whole, finite. Exact below `2^53` (~285 years at 1M req/s). | Fractional, negative, and non-finite values cannot occur. Above `2^53` the value is the nearest representable `f64`. | Replace per-accessor casts with one private package helper carrying a permanent `#[expect]` reason (external `f64` interface + whole-counter invariant). |
+| G1 Counter totals | A143-A154 | `udp-core/src/statistics/metrics.rs` (6 accessors) | Same as above. | Same as above. | Same package-helper outcome. |
+| G1 Counter totals | A181-A184, A187-A188, A195-A222 | `udp-server/src/statistics/metrics.rs` (17 accessors: accepted, processed, aborted, discarded, banned requests and IPv4/IPv6 received, accepted, responses, errors) | Same as above. | Same as above. | Same package-helper outcome. |
+| G2 Integer gauge | A189-A190 | `udp-server` `udp_banned_ips_total` | Gauge set from a `usize` banned-IP count; whole, non-negative, bounded by the ban-service map size. | Same as G1. | Use the same package helper; it reads a whole, non-negative `f64`. |
+| G3 Moving-average gauge | A178, A179-A180 | `udp-server` `recalculate_udp_avg_processing_time_ns`, `udp_avg_processing_time_ns` | Fractional gauge in nanoseconds; running mean of request processing times. | **Defect:** the previous average is truncated to `u64` before each update, so the running sum loses `(n-1) * fraction` per request. A simulation of the exact arithmetic with 20-60 µs requests reports ~20,175 ns against a true mean of ~40,009 ns after 200k requests; the average ratchets toward the fastest requests and gets stuck. | Fix: read the previous average and the processed count as `f64` without truncation. Add a red/green regression test. Retain only the `Duration::as_nanos()` (`u128`) to `f64` cast with an `#[expect]` reason (processing durations are far below `2^53` ns, ~104 days). |
+| G4 Averaged gauges | A185-A186, A191-A194 | `udp-server` `udp_avg_{connect,announce,scrape}_processing_time_ns_averaged` | Mean of per-server moving-average gauges in nanoseconds; non-negative, finite; the REST API exposes whole nanoseconds. | Truncates the sub-nanosecond fraction; `0` when no samples. | Retain truncation (no behavior change) with an `#[expect]` reason per accessor. |
+| G5 Gauge inputs | A113-A114 | `swarm-coordination-registry` `update_inactive_{peers,torrents}_total` | `usize` counts of inactive peers and torrents. | Exact: memory cannot hold `2^53` peers or torrents. | Retain with a permanent `#[expect]` reason. |
+| G5 Gauge inputs | A170 | `udp-server/src/banning/event/handler.rs` | `usize` count of banned IPs. | Same as above. | Retain with a permanent `#[expect]` reason, narrowed to the cast expression. |
+| G6 Test reads | A224-A227 | `udp-server/src/statistics/repository.rs` test | Gauge read only to assert on it. | Not applicable. | Remove: assert on the `f64` gauge value directly. |
+
+Total: 72 entries (G1 54, G2 2, G3 3, G4 6, G5 3, G6 4).
+
+### Maintainer Decisions
+
+Recorded 2026-10-15 from the implementation-start review with josecelano:
+
+1. Fix the G3 moving-average defect in this issue with a red/green regression test, following the
+   `fix-bug` skill for that part.
+2. Handle G1 counter totals with one private helper per package (HTTP core, UDP core, UDP server)
+   carrying a single `#[expect]` with the invariant reason, not a cast per accessor.
+3. File a follow-up in `torrust/torrust-metrics` for an exact `u64` counter-sum API. The helper
+   reasons stay **permanent** (external `f64` interface + whole-counter invariant), not temporary,
+   so this issue does not depend on an external release; adopting the upstream API later is an
+   optional cleanup.
+4. Keep truncation to whole nanoseconds for the G4 averaged accessors.
+5. Retain G5 `usize` to `f64` gauge inputs with permanent reasons.
+6. Remove G6 test casts by asserting on the `f64` gauge directly.
+7. Use `#[expect(..., reason = "...")]` for every retained cast: these pedantic cast lints fire on
+   every supported toolchain.
+
 ## Implementation Plan
 
 | ID | Status | Task | Notes / Expected Output |
 | -- | ------ | ---- | ----------------------- |
-| T1 | TODO | Classify aggregate semantics | Record whether each owned value is an integer counter, gauge, or average, and its realistic bounds. |
-| T2 | TODO | Judge each cast | Per entry: correct as-is, clearer alternative available, or defective. Record edge behavior (fractional, negative, non-finite, out of range). |
+| T1 | DONE | Classify aggregate semantics | See the Review Table. |
+| T2 | DONE | Judge each cast | See the Review Table and Maintainer Decisions. |
 | T3 | TODO | Apply outcomes | Add native reasons to retained casts; implement and test alternatives or fixes where chosen. |
 | T4 | TODO | Reconcile inventory | Update #2158 evidence by ID with each outcome. |
 
@@ -87,9 +137,9 @@ processes, asynchronous I/O, network readiness, resource cleanup, or reusable te
 ### Workflow Checkpoints
 
 - [x] Folder-style spec drafted in `docs/issues/drafts/numeric-conversion-metric-aggregate-review/ISSUE.md`
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created and issue number added to this spec
-- [ ] Spec-only PR merged into `develop` before implementation
+- [x] Spec reviewed and approved by user/maintainer
+- [x] GitHub issue created and issue number added to this spec
+- [x] Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
@@ -102,6 +152,7 @@ processes, asynchronous I/O, network readiness, resource cleanup, or reusable te
 
 - 2026-09-15 14:46 UTC - GitHub Copilot - Drafted from the #2158 metric aggregate design input - Awaiting maintainer review
 - 2026-09-16 12:20 UTC - josecelano - Reframed as a review with retain-with-reason as a valid outcome - Chat decision
+- 2026-10-15 16:40 UTC - GitHub Copilot - T1-T2 review table recorded; found the moving-average truncation defect (G3); maintainer decisions recorded; synchronized stale checkboxes with the GitHub issue body - Implementation started on branch `2244-2243-review-metric-aggregate-conversions`
 
 ## Acceptance Criteria
 
