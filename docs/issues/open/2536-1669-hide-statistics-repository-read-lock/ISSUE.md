@@ -8,7 +8,7 @@ epic: 1669
 github-issue: 2536
 spec-path: docs/issues/open/2536-1669-hide-statistics-repository-read-lock/ISSUE.md
 branch: "2536-1669-hide-statistics-repository-read-lock"
-related-pr: null
+related-pr: 2545
 last-updated-utc: "2026-10-15 19:55"
 semantic-links:
   skill-links:
