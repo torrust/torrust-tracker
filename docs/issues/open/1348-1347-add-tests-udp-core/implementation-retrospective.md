@@ -42,9 +42,10 @@ production changes are documentation fixes in the files under test.
   could encrypt cookies with the public test key (#2458, which removed two files from the ledger).
   The banning review found the banned-IPs metric counted non-banned IPs (#2505). `container.rs`
   waited for #2505 and the branch was rebased onto both.
-- **`cargo-mutants` misreported the most important mutants.** With the workspace's `-D unused`,
-  7 of 8 "unviable" cookie mutants were real behavior changes (for example, `check` accepting any
-  ID); the recorded run uses `RUSTFLAGS="--cap-lints=warn"` ([mutation-evidence.md](mutation-evidence.md)).
+- **`cargo-mutants` misreported the most important mutants.** With the `unused` lint denied in
+  `[workspace.lints.rust]`, 7 of 8 "unviable" cookie mutants were real behavior changes (for
+  example, `check` accepting any ID); the recorded run uses `RUSTFLAGS="--cap-lints=warn"`
+  ([mutation-evidence.md](mutation-evidence.md)).
 - **Findings outgrew the issue.** Several findings turned out to be workspace-wide, such as the
   unused SI-30 traits and the public `stats` lock in five packages. They became EPIC #1669 drafts,
   were implemented by other agents as #2521 and #2517, and merged before this PR; the final rebase

@@ -30,12 +30,14 @@ RUSTFLAGS="--cap-lints=warn" cargo mutants \
 the 14 `connection_cookie::tests` tests. Mutants are built in a scratch copy; the working tree is
 not modified. The `.tmp` output is a git-ignored working-session artifact.
 
-**Why `--cap-lints=warn`.** A first run with the workspace flags reported 12 caught and 8 unviable.
-Seven of the 8 were real behavior changes (for example, `check` returning `Ok` without validating,
-or a constant client fingerprint) that failed to build only because `.cargo/config.toml` denies
-unused code (`-D unused`): skipping a function body leaves its helpers and imports unused. An empty
-`RUSTFLAGS` does not override the configuration (Cargo treats it as unset), so the run caps lints
-to warnings. Without that, the sample would have silently excluded the most important mutants.
+**Why `--cap-lints=warn`.** A first run with the workspace lint levels reported 12 caught and 8
+unviable. Seven of the 8 were real behavior changes (for example, `check` returning `Ok` without
+validating, or a constant client fingerprint) that failed to build only because the root
+`Cargo.toml` denies unused code in `[workspace.lints.rust]` (`unused = "deny"`), which
+`udp-core` inherits through `[lints]`: skipping a function body leaves its helpers and imports
+unused. `RUSTFLAGS="--cap-lints=warn"` caps the lint levels Cargo passes from `[lints]`, so the
+recorded run demotes those errors to warnings. Without that, the sample would have silently
+excluded the most important mutants.
 
 ## Results
 
