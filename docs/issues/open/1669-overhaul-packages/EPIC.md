@@ -6,7 +6,7 @@ epic: null
 github-issue: 1669
 spec-path: docs/issues/open/1669-overhaul-packages/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-15 17:55"
+last-updated-utc: "2026-10-15 19:55"
 semantic-links:
   skill-links:
     - create-issue
@@ -1026,6 +1026,9 @@ Previously referenced tools (screenshots from CodeScene already in the issue com
 - 2026-10-15 17:55 UTC - GitHub Copilot - Started implementing #2536 on branch
   `2536-1669-hide-statistics-repository-read-lock`. The maintainer asked for a root ADR making
   closure-based statistics reads the rule; it is task T9 of the #2536 spec.
+- 2026-10-15 19:55 UTC - GitHub Copilot - #2536 implementation and verification are finished on
+  its branch (all five repositories, the root ADR, M1 byte-identical to `develop`, pre-push
+  checks pass); the pull request is open for review.
 
 ## Acceptance Criteria
 
