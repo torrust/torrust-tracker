@@ -240,7 +240,8 @@ ID F4); F11 and F12 keep the reviewer's IDs.
 - Concern: the History section said one commit was reworded as `docs`; the rewrite retyped three
   and changed a fourth subject.
 - Solution: the History section lists all four renames, before and after.
-- Current-tree verification: the four pre-rewrite subjects match `git log 48c4d3013..5d67ddd14`
+- Current-tree verification: the four pre-rewrite subjects match the log of the head review
+  5522366109 read, from the base `48c4d3013`,
   and the four current subjects match `git log torrust/develop..HEAD`.
 - Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2538#issuecomment-6192488538>
 - Follow-up PR URL: N/A
@@ -255,7 +256,7 @@ ID F4); F11 and F12 keep the reviewer's IDs.
 - Concern: the Findings introduction named the reviewed head by a subject created by the rewrite.
 - Solution: it quotes the subject the head had at review time and adds the current name.
 - Current-tree verification: the introduction quotes "test(udp-core): reconcile the statistics
-  tests with #2517 and #2521", the subject of the reviewed head `5d67ddd14`.
+  tests with #2517 and #2521", the subject of the head review 5522366109 read.
 - Resolution reference: docs(pr-reviews): quote the reviewed head's subject as it was at review time
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2538#discussion_r4283169725>
@@ -272,6 +273,8 @@ ID F4); F11 and F12 keep the reviewer's IDs.
   separate commits and F11 in the PR body, pushed, posted the PR conversation response, and
   replied on the three threads. Resolved the first nine threads after the audit push; the three
   new ones are resolved after this update is pushed.
+- 2026-10-15 13:02 UTC - The pre-push commit-id check flagged the pre-rewrite head id cited in
+  the F11 and F12 details; both now name the head by the review that read it.
 
 ## Completion Rules
 
