@@ -9,7 +9,7 @@ semantic-links:
     - packages/udp-core/src/peer_builder.rs
     - packages/udp-core/src/services/announce.rs
     - packages/udp-protocol/src/announce.rs
-    - docs/issues/open/1348-1347-add-tests-udp-core/coverage-evidence.md
+    - docs/issues/closed/1348-1347-add-tests-udp-core/coverage-evidence.md
 ---
 
 # UDP Core Peer Builder File Test Plan

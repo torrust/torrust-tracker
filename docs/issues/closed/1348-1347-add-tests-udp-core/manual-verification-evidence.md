@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/1348-1347-add-tests-udp-core/ISSUE.md
-last-updated-utc: 2026-10-14 16:25
+issue-spec: docs/issues/closed/1348-1347-add-tests-udp-core/ISSUE.md
+last-updated-utc: 2026-10-15 16:30
 ---
 
 # Manual Verification Evidence
@@ -92,7 +92,7 @@ Relevant startup log lines:
 The M3/M4 client was built outside the workspace:
 
 ```bash
-cd docs/issues/open/1348-1347-add-tests-udp-core/manual-verification/invalid-connection-id
+cd docs/issues/closed/1348-1347-add-tests-udp-core/manual-verification/invalid-connection-id
 CARGO_TARGET_DIR=<repo>/.tmp/1348-manual/client-target cargo build
 ```
 

@@ -9,7 +9,7 @@ github-issue: 2536
 spec-path: docs/issues/open/2536-1669-hide-statistics-repository-read-lock/ISSUE.md
 branch: "2536-1669-hide-statistics-repository-read-lock-spec"
 related-pr: null
-last-updated-utc: "2026-10-14 21:11"
+last-updated-utc: "2026-10-15 16:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -481,7 +481,7 @@ steps in the evidence instead of committing it, as #2517 did.
     `docs/issues/open/2414-2410-si-22-2-drain-listener-queues-on-shutdown/ISSUE.md`) edits all
     five `statistics/event/listener.rs` files, whose unit tests call the removed accessors, and
     changes `tracker-core/tests/common/test_env.rs`, one of this issue's callers.
-  - #1348 (udp-core tests, `docs/issues/open/1348-1347-add-tests-udp-core/ISSUE.md`) plans tests
+  - #1348 (udp-core tests, `docs/issues/closed/1348-1347-add-tests-udp-core/ISSUE.md`) plans tests
     for `udp-core`'s `statistics/repository.rs`.
   - #2518 (HTTP first-announce benchmark, `docs/issues/open/2518-http-first-announce-benchmark/ISSUE.md`)
     plans an assertion that reads through the swarm `Repository::get_metrics`.

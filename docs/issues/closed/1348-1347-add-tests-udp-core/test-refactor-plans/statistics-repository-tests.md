@@ -11,7 +11,7 @@ semantic-links:
     - packages/udp-core/src/statistics/metrics.rs
     - packages/udp-server/src/statistics/repository.rs
     - packages/rest-api-runtime-adapter/src/v1/adapters/stats.rs
-    - docs/issues/open/1348-1347-add-tests-udp-core/coverage-evidence.md
+    - docs/issues/closed/1348-1347-add-tests-udp-core/coverage-evidence.md
 ---
 
 # UDP Core Statistics Repository File Test Plan

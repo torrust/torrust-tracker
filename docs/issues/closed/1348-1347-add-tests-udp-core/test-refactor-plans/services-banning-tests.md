@@ -10,7 +10,7 @@ semantic-links:
     - packages/udp-core/docs/adrs/20260829204258_use_exact_ip_counters_for_udp_banning.md
     - packages/udp-server/src/banning/event/handler.rs
     - src/bootstrap/jobs/udp_tracker_server.rs
-    - docs/issues/open/1348-1347-add-tests-udp-core/coverage-evidence.md
+    - docs/issues/closed/1348-1347-add-tests-udp-core/coverage-evidence.md
 ---
 
 # UDP Core Banning Service File Test Plan
