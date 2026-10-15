@@ -49,7 +49,8 @@ The commit ids the review cites no longer exist on the branch.
 
 da2ce7's review 5533063376 (approve) adds three Nits as inline threads. Its restated F4 reuses an
 existing ID for a narrower concern, so it is recorded as F10 (`RE_RAISE_OF:F4`, reviewer finding
-ID F4); F11 and F12 keep the reviewer's IDs.
+ID F4); F11 and F12 keep the reviewer's IDs. da2ce7's review 5533494270 (approve) adds F13; it
+read the head before the audit recorded review 5533063376.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -65,6 +66,7 @@ ID F4); F11 and F12 keep the reviewer's IDs.
 | F10 | review-finding:pr-2538-f10 | Human | Nit | metadata | RE_RAISE_OF:F4 | FIXED | RESOLVED |
 | F11 | review-finding:pr-2538-f11 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F12 | review-finding:pr-2538-f12 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F13 | review-finding:pr-2538-f13 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -261,6 +263,21 @@ ID F4); F11 and F12 keep the reviewer's IDs.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2538#discussion_r4283169725>
 
+### F13 - The audit does not record the round-3 findings
+
+- PR number: 2538
+- Source review ID: 5533494270
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2538#discussion_r4283264085>
+- Concern: at the head the review read, the audit had no rows, detail entries, reply URLs, or log
+  entry for review 5533063376's three findings.
+- Solution: the audit update pushed after that review added F10-F12 and a log entry for the round.
+- Current-tree verification: the Findings table and details hold F10-F12 with reply URLs; the
+  validator reports 13 rows and 0 failures.
+- Resolution reference: docs(pr-reviews): record the second da2ce7 review in the PR #2538 audit
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2538#discussion_r4284403127>
+
 ## Processing Log
 
 - 2026-10-15 07:23 UTC - Fixed F1-F9 in separate signed commits; F1 by an approved history
@@ -275,6 +292,10 @@ ID F4); F11 and F12 keep the reviewer's IDs.
   new ones are resolved after this update is pushed.
 - 2026-10-15 13:02 UTC - The pre-push commit-id check flagged the pre-rewrite head id cited in
   the F11 and F12 details; both now name the head by the review that read it.
+- 2026-10-15 14:41 UTC - Resolved F10-F12 after the push. The same resolution step also resolved
+  F13's thread, which had arrived with review 5533494270 and had no reply yet: the reply check's
+  failure was hidden by a pipe. The thread was reopened, replied to, and recorded here as F13; it
+  is resolved after this update is pushed.
 
 ## Completion Rules
 
