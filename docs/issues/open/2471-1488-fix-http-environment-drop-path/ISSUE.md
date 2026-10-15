@@ -9,7 +9,7 @@ github-issue: 2471
 spec-path: docs/issues/open/2471-1488-fix-http-environment-drop-path/ISSUE.md
 branch: "2471-fix-http-environment-drop-path"
 related-pr: null
-last-updated-utc: "2026-10-15 17:20"
+last-updated-utc: "2026-10-15 19:38"
 semantic-links:
   skill-links:
     - create-issue
@@ -32,9 +32,13 @@ semantic-links:
 
 Parent: [EPIC #1488 - Overhaul: Tracker Shutdown](../1488-overhaul-tracker-shutdown/ISSUE.md)
 
-> A regression from SI-16 (#2412, PR #2439), found on 2026-10-07 while
-> checking SI-22's specs against what SI-17 learned. SI-17 fixed the same bug
-> in the UDP environment during review (PR #2459, finding F1).
+> A gap found on 2026-10-07 while checking SI-22's specs against what SI-17
+> learned: the HTTP test environment never stopped its server when dropped
+> without `stop()`, before or after SI-16 (#2412, PR #2439). SI-17 fixed the
+> same gap in the UDP environment during review (PR #2459, finding F1); this
+> issue aligns HTTP with UDP. An earlier version of this spec called it a
+> regression from SI-16; PR #2544 review finding F5 (reviewer ID F1) showed
+> that was wrong, and V4 confirms it.
 
 ## Goal
 
@@ -60,15 +64,21 @@ environment does, so the HTTP binding is released.
 ### Which expectation it breaks
 
 - Before SI-16, the running state held the legacy halt sender. Dropping it
-  closed the halt channel, which made `torrust-server-lib`'s
-  `shutdown_signal` return (by panicking), so the server stopped on drop.
-  SI-16's Design and Ownership Review says a drop without `stop()` "keeps
-  today's behavior"; the token migration lost it, and no SI-16 test covered
-  the drop path.
-- The UDP test environment stops on drop since PR #2459: its running state
-  holds the token as a `DropGuard`, and its test
+  closed the halt channel, so `torrust-server-lib`'s `shutdown_signal`
+  panicked ("Failed to install stop signal") inside the spawned
+  `graceful_shutdown` task. That panic happens before the task calls
+  `handle.graceful_shutdown`, so the server kept serving and kept its
+  binding. V4 ran the drop test on the tree before SI-16 and observed it:
+  the binding was still taken after 10 s. SI-16's Design and Ownership
+  Review says a drop without `stop()` "keeps today's behavior", which was
+  accurate: the token migration kept the gap and no SI-16 test covered the
+  drop path.
+- The UDP test environment stops on drop since PR #2459: its legacy launcher
+  has treated a closed halt channel as a stop since SI-14, and its running
+  state now holds the token as a `DropGuard`. Its test
   `it_should_release_the_udp_socket_when_dropped_without_being_stopped`
-  proves it. The two environments now differ.
+  proves it. The two environments differ until this issue aligns HTTP with
+  UDP.
 
 ### Impact
 
@@ -88,8 +98,10 @@ environment and relies on the drop path.
 ### Out of Scope
 
 - The REST API and health-check API test environments (SI-23 #2449, SI-24
-  #2450): they still use the legacy halt sender, which stops on drop; their
-  migrations must keep that, which their specs should state.
+  #2450): they still use the legacy halt sender. Whether dropping one stops
+  its server was not checked here; V4 shows only that the HTTP environment's
+  legacy drop did not. Their specs require the drop path for the migrated
+  environments.
 - Separate server and listener tokens (SI-22 T9).
 
 ## Architectural Decisions
@@ -121,7 +133,8 @@ Follows [fix-bug](../../../../.github/skills/dev/debugging/fix-bug/SKILL.md):
 1. **Analysis** (done): the running state holds a plain token; see
    Background.
 2. **Reproduction** (done, **Reproduced**): a temporary test dropped a started
-   environment and waited for the binding; it timed out (V1).
+   environment and waited for the binding; it timed out (V1). V4 ran the same
+   test on the tree before SI-16 and it timed out too.
 3. **Regression-test boundary**: the environment's unit tests (below).
 4. **Red**: add the maintained test and record it failing before the fix.
 5. **Fix**: hold the token as a `DropGuard`; disarm it in `stop()`.
@@ -184,6 +197,7 @@ for the test. Sign every commit with GPG.
 - 2026-10-07 12:45 UTC - GitHub Copilot - Maintainer approved the spec. Created #2471, linked it as a sub-issue of EPIC #1488, and moved the spec to `docs/issues/open/`. It ships in a spec-only PR with the SI-22, SI-23 and SI-24 spec refreshes; the fix gets its own PR before SI-22 starts.
 - 2026-10-15 17:20 UTC - GitHub Copilot - Implemented on branch `2471-fix-http-environment-drop-path`. Added the regression test and recorded it red (V2: binding still taken after 10.02 s), then held the token as a `DropGuard` and disarmed it in `stop()` (V3: 7 environment tests, 44 unit and 62 integration tests pass; clippy clean).
 - 2026-10-15 17:20 UTC - GitHub Copilot - Design-review checkpoint (prose-first Arrange-Act-Assert). Arrange: a started HTTP environment on an ephemeral port, whose binding is read before the drop. Act: drop the environment without `stop()`. Assert: within `TEST_DEADLINE` the same address can be bound again, polled because the guard only requests cancellation and the server task releases the socket when it next runs. The test fails for the defect (V2) and passes for the fix (V3), and mirrors the UDP test. Checked `stop()`: it disarms the guard, then cancels once and joins the server task, its drain controller, and the listener as before, so the drop path does not run on a normal stop; the existing stop, restart and failure-join tests still pass. The `Running` interface and public fields are unchanged.
+- 2026-10-15 19:36 UTC - GitHub Copilot - PR #2544 review finding F5 (reviewer da2ce7, ID F1): the "regression from SI-16" framing was wrong. Verified in source (the spawned `graceful_shutdown` task panics on the closed halt channel before `handle.graceful_shutdown`) and by running the drop test on the tree before SI-16 (V4, `evidence/v4-pre-si16-drop-run.txt`): the binding was still taken after 10.02 s. Corrected the Background, the out-of-scope note, V1's conclusion, the EPIC roadmap row 14, the SI-23 and SI-24 drop-path notes, and the GitHub issue body.
 
 ## Acceptance Criteria
 

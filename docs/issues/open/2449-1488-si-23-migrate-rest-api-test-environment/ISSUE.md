@@ -9,7 +9,7 @@ github-issue: 2449
 spec-path: docs/issues/open/2449-1488-si-23-migrate-rest-api-test-environment/ISSUE.md
 branch: "2449-migrate-rest-api-test-environment"
 related-pr: null
-last-updated-utc: "2026-10-08 07:35"
+last-updated-utc: "2026-10-15 19:38"
 semantic-links:
   skill-links:
     - create-issue
@@ -116,11 +116,12 @@ and is not in the EPIC roadmap:
 - **Normal path**: `stop()` cancels the token, joins both tasks, and returns
   `Environment<Stopped>`; the binding is released when it returns.
 - **Failure path**: join both tasks before panicking (D1).
-- **Drop path**: dropping a running environment without `stop()` must still
-  stop the server and release the binding, as the legacy halt sender does
-  today. Dropping a `CancellationToken` does not cancel it, so hold it as a
-  `DropGuard` and disarm it in `stop()`; SI-16 lost this behavior without a
-  test (#2471), and the UDP environment has the fix (#2459). A drop can only
+- **Drop path**: dropping a running environment without `stop()` must stop
+  the server and release the binding. Dropping a `CancellationToken` does not
+  cancel it, so hold it as a `DropGuard` and disarm it in `stop()`. The HTTP
+  environment lacked this both before and after SI-16 (#2471, V4 there), and
+  the UDP environment has the fix (#2459); whether this environment's legacy
+  halt sender stops its server on drop was not checked. A drop can only
   request cancellation: it drops the task handles without joining them, so
   the tasks end shortly after the drop rather than before it returns.
 - **Deadlines**: the drain is bounded by `API_GRACEFUL_DRAIN_TIMEOUT`; tests
@@ -193,6 +194,7 @@ before maintainer review and commit. Sign every commit with GPG.
 - 2026-10-06 11:34 UTC - GitHub Copilot - Drafted after the SI-17 refresh found this environment still on the legacy path and missing from the roadmap; the maintainer chose one item per environment.
 - 2026-10-06 11:41 UTC - GitHub Copilot - Maintainer approved this spec. Created #2449 (sub-issue of #1488) and moved the spec to `docs/issues/open/`.
 - 2026-10-07 13:05 UTC - GitHub Copilot - The drop path is no longer "unchanged": a token migration loses the halt sender's stop-on-drop, as SI-16 did (#2471). Added the `DropGuard` requirement, a T1 drop test, and AC7.
+- 2026-10-15 19:38 UTC - GitHub Copilot - Corrected the drop-path note after PR #2544 review finding F5 (reviewer ID F1): the HTTP environment never stopped on drop, before or after SI-16, so the note no longer says SI-16 lost the behavior or that the legacy halt sender stops its server on drop. The `DropGuard` requirement and AC7 stand.
 
 ## Acceptance Criteria
 

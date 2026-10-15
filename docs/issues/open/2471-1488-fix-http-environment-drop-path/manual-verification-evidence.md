@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2471-1488-fix-http-environment-drop-path/ISSUE.md
-last-updated-utc: 2026-10-15 17:20
+last-updated-utc: 2026-10-15 19:38
 ---
 
 # Manual Verification Evidence
@@ -107,12 +107,79 @@ test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 43 filtered out;
 Reproduced: the binding was still taken 10 s after the drop, so the HTTP
 server kept running.
 
-Pre-regression behavior, from source (not run): before PR #2439
-(`29afe946c^1`), the running state held `halt_task:
-oneshot::Sender<Halted>`. `torrust-server-lib` 0.3.0's `shutdown_signal`
-awaits the receiver and panics on `Err`, which a dropped sender produces, so
-the server task ended when the environment was dropped. PR #2459 F1 recorded
-the same mechanism for the UDP environment.
+Correction (PR #2544 review finding F5, reviewer ID F1, 2026-10-15): this section first said,
+from source and without running it, that before PR #2439 a dropped halt
+sender ended the server, so the gap was a regression from SI-16. That was
+wrong. `torrust-server-lib` 0.3.0's `shutdown_signal` panics on the closed
+halt channel inside the spawned `graceful_shutdown` task, before the task
+calls `handle.graceful_shutdown`, so the server kept serving. V4 below ran
+the check.
+
+### V4 - The Same Drop Test on the Tree Before SI-16
+
+- Goal: check whether the gap predates SI-16.
+- Tree: the first parent of the PR #2439 merge (`29afe946c^1`), in a
+  temporary worktree that was removed afterwards. The environment there has
+  no test module, so a temporary test, written the same way as the V1 test
+  against that tree's `Started::new` and `server.state.binding`, was added
+  and never committed.
+- Toolchain: `rustc 1.99.0 (b940084d7 2026-09-28)`.
+- Command: `cargo test -p torrust-tracker-axum-http-server --lib -- temporary_pre_si16`
+- Status: `DONE` (outcome: **Reproduced** on the tree before SI-16)
+- Artifact: [`evidence/v4-pre-si16-drop-run.txt`](./evidence/v4-pre-si16-drop-run.txt).
+
+The temporary test, verbatim (appended to that tree's
+`packages/axum-http-server/src/testing/environment.rs`, run once, never
+committed):
+
+```rust
+#[cfg(test)]
+mod temporary_pre_si16 {
+    use std::net::TcpListener;
+    use std::sync::Arc;
+    use std::time::Duration;
+
+    use torrust_tracker_test_helpers::configuration::ephemeral_public;
+
+    use super::Started;
+
+    #[tokio::test]
+    async fn temporary_reproduction_http_binding_after_drop_without_stop() {
+        let configuration = ephemeral_public();
+        let core_config = Arc::new(configuration.core.clone());
+        let http_tracker_config = Arc::new(configuration.http_trackers.expect("HTTP enabled")[0].clone());
+        let environment = Started::new(&core_config, &http_tracker_config).await;
+        let binding = environment.server.state.binding;
+
+        drop(environment);
+
+        tokio::time::timeout(Duration::from_secs(10), async {
+            while TcpListener::bind(binding).is_err() {
+                tokio::time::sleep(Duration::from_millis(10)).await;
+            }
+        })
+        .await
+        .expect("the HTTP binding should be released within the test deadline after the environment is dropped");
+    }
+}
+```
+
+Observed result, abridged:
+
+```text
+thread '...' panicked at .../torrust-server-lib-0.3.0/src/signals.rs:71:25:
+Failed to install stop signal: channel closed
+
+the HTTP binding should be released within the test deadline after the environment is dropped: Elapsed(())
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 36 filtered out; finished in 10.02s
+```
+
+Conclusion: before SI-16 a dropped HTTP test environment also left its server
+running; the halt sender's drop only made the shutdown task panic. The gap
+predates SI-16, SI-16's "keeps today's behavior" was accurate, and this issue
+aligns HTTP with UDP, whose legacy launcher has treated a closed halt channel
+as a stop since SI-14.
 
 ## Red, Fix, Green and Recheck
 

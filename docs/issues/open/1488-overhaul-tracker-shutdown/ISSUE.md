@@ -6,7 +6,7 @@ epic: null
 github-issue: 1488
 spec-path: docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-15 17:50"
+last-updated-utc: "2026-10-15 19:38"
 semantic-links:
   skill-links:
     - create-issue
@@ -204,7 +204,7 @@ deterministic tests, and manual evidence.
 | 11       | #2370 | [Define UDP active-request shutdown policy](../../closed/2370-1488-si-15-define-udp-active-request-policy/ISSUE.md)  | Done       | Loop-owned request processors; five-second drain with deadline abort and one outcome summary.        |
 | 12       | #2412 | [Migrate standalone HTTP environment/example](../../closed/2412-1488-si-16-migrate-standalone-http-environment/ISSUE.md) | Done       | One supported standalone HTTP consumer migration; the token-aware drain now force-closes at its deadline (#2439). |
 | 13       | #2448 | [Migrate standalone UDP environment/example](../../closed/2448-1488-si-17-migrate-standalone-udp-environment/ISSUE.md) | Done       | SI-17. One supported standalone UDP consumer migration; a dropped environment now releases its socket (#2459). |
-| 14       | #2471 | [Stop the HTTP test environment when dropped without `stop()`](../2471-1488-fix-http-environment-drop-path/ISSUE.md) | Done       | Bug. Regression from SI-16 found on 2026-10-07: a dropped HTTP test environment keeps its server running. Hold the token as a `DropGuard`, as #2459 did for UDP. |
+| 14       | #2471 | [Stop the HTTP test environment when dropped without `stop()`](../2471-1488-fix-http-environment-drop-path/ISSUE.md) | Done       | Bug. Gap found on 2026-10-07: a dropped HTTP test environment keeps its server running, before and after SI-16 (checked on the tree before SI-16). Hold the token as a `DropGuard`, as #2459 did for UDP. |
 | 15       | #2410 | [Process queued events before listeners stop](../2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md) | Planned  | Bug, sub-EPIC (SI-22) with four sub-issues, #2413 to #2416 (docs and ADR draft; listener drain; per-component tokens; stop order): stop event producers before consumers; listeners process queued events within the deadline. |
 | 16       | #2449 | [Migrate REST API test environment](../2449-1488-si-23-migrate-rest-api-test-environment/ISSUE.md) | Planned    | SI-23. One test environment migration; found while refreshing SI-17 (2026-10-06). May run alongside SI-22 (no dependency on it). |
 | 17       | #2450 | [Migrate health-check API test environment](../2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md) | Planned    | SI-24. One test environment migration; found while refreshing SI-17 (2026-10-06). May run alongside SI-22 (no dependency on it). |
@@ -237,8 +237,10 @@ SI-22 and may be done alongside it, not only after it: they unblock the
 environment moves of EPIC #2482, which waits for them. The sequence numbers
 stay as they are.
 Issue #2471 was added on 2026-10-07, when checking SI-22 against SI-17 showed
-that the HTTP test environment from SI-16 no longer stops when dropped without
-`stop()`. It precedes SI-22 because SI-22 T9 changes the same environment.
+that the HTTP test environment does not stop its server when dropped without
+`stop()`, a gap that predates SI-16 (the legacy halt sender's drop only made
+the shutdown task panic). It precedes SI-22 because SI-22 T9 changes the same
+environment.
 
 ### Superseded Draft Retention
 
