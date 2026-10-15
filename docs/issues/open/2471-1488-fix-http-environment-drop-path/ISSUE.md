@@ -9,7 +9,7 @@ github-issue: 2471
 spec-path: docs/issues/open/2471-1488-fix-http-environment-drop-path/ISSUE.md
 branch: "2471-fix-http-environment-drop-path"
 related-pr: null
-last-updated-utc: "2026-10-15 19:38"
+last-updated-utc: "2026-10-15 19:39"
 semantic-links:
   skill-links:
     - create-issue
@@ -159,7 +159,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T0  | DONE   | Reproduction         | V1: Reproduced; binding still taken 10 s after the drop.                       |
 | T1  | DONE   | Red regression test  | The maintained test fails against the plain token; red output recorded (V2). |
 | T2  | DONE   | Fix                  | Running state holds a `DropGuard`; `stop()` disarms it before cancelling.      |
-| T3  | IN_PROGRESS | Green and recheck    | Test and package tests pass; V1 rerun passes; outputs recorded (V3). `linter all` and pre-push checks pending. |
+| T3  | DONE   | Green and recheck    | Test and package tests pass; V1 rerun passes; outputs recorded (V3). `linter all` ran in each commit's pre-commit hook and the pre-push checks ran on the push; both passed. |
 
 ## Commit Points
 
@@ -182,7 +182,7 @@ for the test. Sign every commit with GPG.
 - [x] Spec-only PR merged into `develop` before implementation (#2483)
 - [x] Implementation completed
 - [x] Design-review checkpoint recorded after the regression test turned green, before maintainer review and commit
-- [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
+- [x] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
@@ -198,6 +198,7 @@ for the test. Sign every commit with GPG.
 - 2026-10-15 17:20 UTC - GitHub Copilot - Implemented on branch `2471-fix-http-environment-drop-path`. Added the regression test and recorded it red (V2: binding still taken after 10.02 s), then held the token as a `DropGuard` and disarmed it in `stop()` (V3: 7 environment tests, 44 unit and 62 integration tests pass; clippy clean).
 - 2026-10-15 17:20 UTC - GitHub Copilot - Design-review checkpoint (prose-first Arrange-Act-Assert). Arrange: a started HTTP environment on an ephemeral port, whose binding is read before the drop. Act: drop the environment without `stop()`. Assert: within `TEST_DEADLINE` the same address can be bound again, polled because the guard only requests cancellation and the server task releases the socket when it next runs. The test fails for the defect (V2) and passes for the fix (V3), and mirrors the UDP test. Checked `stop()`: it disarms the guard, then cancels once and joins the server task, its drain controller, and the listener as before, so the drop path does not run on a normal stop; the existing stop, restart and failure-join tests still pass. The `Running` interface and public fields are unchanged.
 - 2026-10-15 19:36 UTC - GitHub Copilot - PR #2544 review finding F5 (reviewer da2ce7, ID F1): the "regression from SI-16" framing was wrong. Verified in source (the spawned `graceful_shutdown` task panics on the closed halt channel before `handle.graceful_shutdown`) and by running the drop test on the tree before SI-16 (V4, `evidence/v4-pre-si16-drop-run.txt`): the binding was still taken after 10.02 s. Corrected the Background, the out-of-scope note, V1's conclusion, the EPIC roadmap row 14, the SI-23 and SI-24 drop-path notes, and the GitHub issue body.
+- 2026-10-15 19:39 UTC - GitHub Copilot - PR #2544 review findings F1 and F2 (Copilot, same concern at two lines): the spec still showed the automatic checks as pending. The pre-commit hook (which runs `linter all`) passed on every commit and the pre-push checks (nightly fmt, check and docs, and the full stable test suite) passed on the push, so T3 is DONE and the checkpoint is ticked.
 
 ## Acceptance Criteria
 
