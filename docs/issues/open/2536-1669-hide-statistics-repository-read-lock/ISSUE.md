@@ -236,7 +236,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T3  | DONE   | Hide the read lock and field in `udp-core`              | `read_metrics()`, `metric_collection()`, `pub(crate)` field, doctests and their rustdoc lead-in link, and updated callers; the workspace builds and its tests pass. |
 | T4  | DONE   | Hide the read lock and field in `udp-server`            | Same as T3; the largest task (30 in-crate unit-test calls, the `metrics_snapshot` helper, and the guard-accessor test to replace). |
 | T5  | DONE   | Hide the read lock and field in `http-core`             | Same as T3.                                                                                                                              |
-| T6  | TODO   | Hide the read lock and field in `tracker-core`          | Same as T3, including the repository's own counter reads.                                                                               |
+| T6  | DONE   | Hide the read lock and field in `tracker-core`          | Same as T3, including the repository's own counter reads.                                                                               |
 | T7  | TODO   | Hide the read lock and field in `swarm-coordination-registry` | Same as T3.                                                                                                                        |
 | T8  | TODO   | Verification                                            | Starts only after the maintainer review that follows T7. See Verification Plan; run M1 on the branch, store its five outputs, and compare them with T2's. |
 | T9  | TODO   | Write the root ADR for closure-based statistics reads   | `docs/adrs/<timestamp>_<title>.md` registered in `docs/adrs/index.md`; passes `linter markdown` and `linter cspell`. Needs no maintainer test review, so it can be written before T8. |
@@ -394,6 +394,15 @@ request.
   because no guard exists any more. No helper was added. The REST adapter now reads the four
   HTTP counters in one `read_metrics()` closure before building the `Stats` and merges the HTTP
   collection inside its closure.
+- 2026-10-15 19:45 UTC - GitHub Copilot - T6 done (`tracker-core`). Red/green for the new
+  `compile_fail,E0616` doctest: FAILED with the field temporarily `pub`, passes with `pub(crate)`.
+  Test-design review: the two repository unit tests used to hold a guard across their Assert; each
+  now does its Act in one `read_metrics()` call that returns the values to check (three `bool`s,
+  or one), so the Assert section compares plain values and needs no `drop(metrics)`. The
+  repository's own `get_counter_value` and the integration `TestEnv::get_counter_value` read the
+  counter inside the closure. Prose-first AAA comparison: Arrange = a repository with the two
+  flags, Act = read whether each counter is described, Assert = persisted counter present only
+  when enabled.
 
 ## Acceptance Criteria
 

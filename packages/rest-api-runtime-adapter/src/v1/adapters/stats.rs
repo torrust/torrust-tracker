@@ -139,8 +139,9 @@ impl StatsQueryPort for TrackerStatsAdapter {
         metrics
             .merge(&self.swarms_stats_repository.get_metrics().await.metric_collection)
             .expect("failed to merge torrent repository metrics");
-        metrics
-            .merge(&self.tracker_core_stats_repository.get_metrics().await.metric_collection)
+        self.tracker_core_stats_repository
+            .read_metrics(|tracker_core| metrics.merge(tracker_core.metric_collection()))
+            .await
             .expect("failed to merge tracker core metrics");
         self.http_stats_repository
             .read_metrics(|http| metrics.merge(http.metric_collection()))

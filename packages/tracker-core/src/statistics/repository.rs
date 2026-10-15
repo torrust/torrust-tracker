@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use tokio::sync::{RwLock, RwLockReadGuard};
+use tokio::sync::RwLock;
 use torrust_clock::DurationSinceUnixEpoch;
 use torrust_metrics::label::LabelSet;
 use torrust_metrics::metric::MetricName;
@@ -15,9 +15,9 @@ use super::{
 
 /// A repository for the torrent repository metrics.
 ///
-/// External callers read statistics through [`Repository::get_metrics`].
+/// External callers read statistics through [`Repository::read_metrics`].
 ///
-/// The metrics lock is private:
+/// The metrics lock and the metric collection field are private:
 ///
 /// ```rust,compile_fail,E0616
 /// use torrust_tracker_core::statistics::repository::Repository;
@@ -27,13 +27,29 @@ use super::{
 /// }
 /// ```
 ///
-/// Read through the accessor instead:
+/// ```rust,compile_fail,E0616
+/// use torrust_tracker_core::statistics::repository::Repository;
+///
+/// async fn read_collection(repository: &Repository) {
+///     repository
+///         .read_metrics(|metrics| {
+///             let _collection = &metrics.metric_collection;
+///         })
+///         .await;
+/// }
+/// ```
+///
+/// Read through the closure and the collection accessor instead:
 ///
 /// ```rust
 /// use torrust_tracker_core::statistics::repository::Repository;
 ///
 /// async fn read_metrics(repository: &Repository) {
-///     let _metrics = repository.get_metrics().await;
+///     let _collection_is_readable = repository
+///         .read_metrics(|metrics| {
+///             let _collection = metrics.metric_collection();
+///         })
+///         .await;
 /// }
 /// ```
 #[derive(Clone)]
@@ -58,8 +74,13 @@ impl Repository {
         Self { stats }
     }
 
-    pub async fn get_metrics(&self) -> RwLockReadGuard<'_, Metrics> {
-        self.stats.read().await
+    /// Runs `read` on the current metrics while holding the read lock.
+    ///
+    /// Writers wait while `read` runs, so keep it short: it must not block the thread
+    /// (blocking I/O, sleeping, or long computation) or call `read_metrics` on this repository.
+    pub async fn read_metrics<R>(&self, read: impl FnOnce(&Metrics) -> R) -> R {
+        let metrics = self.stats.read().await;
+        read(&metrics)
     }
 
     /// # Errors
@@ -200,11 +221,13 @@ impl Repository {
     }
 
     async fn get_counter_value(&self, metric_name: &str) -> u64 {
-        self.get_metrics()
-            .await
-            .metric_collection
-            .get_counter_value(&metric_name!(metric_name), &LabelSet::default())
-            .map_or(0, |downloads| downloads.value())
+        self.read_metrics(|metrics| {
+            metrics
+                .metric_collection()
+                .get_counter_value(&metric_name!(metric_name), &LabelSet::default())
+                .map_or(0, |downloads| downloads.value())
+        })
+        .await
     }
 }
 
@@ -224,25 +247,21 @@ mod tests {
         let repository = Repository::new(true, false);
 
         // Act
-        let metrics = repository.get_metrics().await;
+        let (has_persistent, has_in_session, has_persisted) = repository
+            .read_metrics(|metrics| {
+                let collection = metrics.metric_collection();
+                (
+                    collection.contains_counter(&metric_name!(TRACKER_CORE_PERSISTENT_TORRENTS_DOWNLOADS_TOTAL)),
+                    collection.contains_counter(&metric_name!(TRACKER_CORE_IN_SESSION_TORRENTS_DOWNLOADS_TOTAL)),
+                    collection.contains_counter(&metric_name!(TRACKER_CORE_PERSISTED_TORRENTS_DOWNLOADS_TOTAL)),
+                )
+            })
+            .await;
 
         // Assert
-        assert!(
-            metrics
-                .metric_collection
-                .contains_counter(&metric_name!(TRACKER_CORE_PERSISTENT_TORRENTS_DOWNLOADS_TOTAL))
-        );
-        assert!(
-            metrics
-                .metric_collection
-                .contains_counter(&metric_name!(TRACKER_CORE_IN_SESSION_TORRENTS_DOWNLOADS_TOTAL))
-        );
-        assert!(
-            !metrics
-                .metric_collection
-                .contains_counter(&metric_name!(TRACKER_CORE_PERSISTED_TORRENTS_DOWNLOADS_TOTAL))
-        );
-        drop(metrics);
+        assert!(has_persistent);
+        assert!(has_in_session);
+        assert!(!has_persisted);
     }
 
     #[tokio::test]
@@ -251,15 +270,16 @@ mod tests {
         let repository = Repository::new(true, true);
 
         // Act
-        let metrics = repository.get_metrics().await;
+        let has_persisted = repository
+            .read_metrics(|metrics| {
+                metrics
+                    .metric_collection()
+                    .contains_counter(&metric_name!(TRACKER_CORE_PERSISTED_TORRENTS_DOWNLOADS_TOTAL))
+            })
+            .await;
 
         // Assert
-        assert!(
-            metrics
-                .metric_collection
-                .contains_counter(&metric_name!(TRACKER_CORE_PERSISTED_TORRENTS_DOWNLOADS_TOTAL))
-        );
-        drop(metrics);
+        assert!(has_persisted);
         assert_eq!(repository.get_torrents_downloads_persisted_total().await, 0);
     }
 }
