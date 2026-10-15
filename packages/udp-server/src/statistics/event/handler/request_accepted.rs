@@ -39,6 +39,7 @@ mod tests {
     use crate::event::Event;
     use crate::handlers::announce::tests::announce_request::AnnounceRequestBuilder;
     use crate::statistics::event::handler::handle_event;
+    use crate::statistics::metrics::Metrics;
     use crate::statistics::repository::Repository;
 
     #[tokio::test]
@@ -63,9 +64,12 @@ mod tests {
         )
         .await;
 
-        let stats = stats_repository.get_stats().await;
-
-        assert_eq!(stats.udp4_connect_requests_accepted_total(), 1);
+        assert_eq!(
+            stats_repository
+                .read_metrics(Metrics::udp4_connect_requests_accepted_total)
+                .await,
+            1
+        );
     }
 
     #[tokio::test]
@@ -92,9 +96,12 @@ mod tests {
         )
         .await;
 
-        let stats = stats_repository.get_stats().await;
-
-        assert_eq!(stats.udp4_announce_requests_accepted_total(), 1);
+        assert_eq!(
+            stats_repository
+                .read_metrics(Metrics::udp4_announce_requests_accepted_total)
+                .await,
+            1
+        );
     }
 
     #[tokio::test]
@@ -119,9 +126,12 @@ mod tests {
         )
         .await;
 
-        let stats = stats_repository.get_stats().await;
-
-        assert_eq!(stats.udp4_scrape_requests_accepted_total(), 1);
+        assert_eq!(
+            stats_repository
+                .read_metrics(Metrics::udp4_scrape_requests_accepted_total)
+                .await,
+            1
+        );
     }
 
     #[tokio::test]
@@ -146,9 +156,12 @@ mod tests {
         )
         .await;
 
-        let stats = stats_repository.get_stats().await;
-
-        assert_eq!(stats.udp6_connect_requests_accepted_total(), 1);
+        assert_eq!(
+            stats_repository
+                .read_metrics(Metrics::udp6_connect_requests_accepted_total)
+                .await,
+            1
+        );
     }
 
     #[tokio::test]
@@ -175,9 +188,12 @@ mod tests {
         )
         .await;
 
-        let stats = stats_repository.get_stats().await;
-
-        assert_eq!(stats.udp6_announce_requests_accepted_total(), 1);
+        assert_eq!(
+            stats_repository
+                .read_metrics(Metrics::udp6_announce_requests_accepted_total)
+                .await,
+            1
+        );
     }
 
     #[tokio::test]
@@ -202,8 +218,11 @@ mod tests {
         )
         .await;
 
-        let stats = stats_repository.get_stats().await;
-
-        assert_eq!(stats.udp6_scrape_requests_accepted_total(), 1);
+        assert_eq!(
+            stats_repository
+                .read_metrics(Metrics::udp6_scrape_requests_accepted_total)
+                .await,
+            1
+        );
     }
 }

@@ -32,6 +32,7 @@ mod tests {
     use crate::CurrentClock;
     use crate::event::Event;
     use crate::statistics::event::handler::handle_event;
+    use crate::statistics::metrics::Metrics;
     use crate::statistics::repository::Repository;
 
     #[tokio::test]
@@ -55,8 +56,6 @@ mod tests {
         )
         .await;
 
-        let stats = stats_repository.get_stats().await;
-
-        assert_eq!(stats.udp_requests_banned_total(), 1);
+        assert_eq!(stats_repository.read_metrics(Metrics::udp_requests_banned_total).await, 1);
     }
 }

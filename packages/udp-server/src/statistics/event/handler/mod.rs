@@ -57,5 +57,8 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
         }
     }
 
-    tracing::debug!("stats: {:?}", stats_repository.get_stats().await);
+    tracing::debug!(
+        "stats: {}",
+        stats_repository.read_metrics(|metrics| format!("{metrics:?}")).await
+    );
 }

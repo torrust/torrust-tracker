@@ -234,7 +234,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T1  | DONE   | Re-verify the callers on current `develop`              | Repeat the caller search; record the commit and any new caller in the Progress Log.                                                     |
 | T2  | DONE   | Capture the M1 baseline on `develop`                    | Run M1 before any change and store the five `develop` outputs listed under Manual Verification Scenarios under `evidence/`. |
 | T3  | DONE   | Hide the read lock and field in `udp-core`              | `read_metrics()`, `metric_collection()`, `pub(crate)` field, doctests and their rustdoc lead-in link, and updated callers; the workspace builds and its tests pass. |
-| T4  | TODO   | Hide the read lock and field in `udp-server`            | Same as T3; the largest task (30 in-crate unit-test calls, the `metrics_snapshot` helper, and the guard-accessor test to replace). |
+| T4  | DONE   | Hide the read lock and field in `udp-server`            | Same as T3; the largest task (30 in-crate unit-test calls, the `metrics_snapshot` helper, and the guard-accessor test to replace). |
 | T5  | TODO   | Hide the read lock and field in `http-core`             | Same as T3.                                                                                                                              |
 | T6  | TODO   | Hide the read lock and field in `tracker-core`          | Same as T3, including the repository's own counter reads.                                                                               |
 | T7  | TODO   | Hide the read lock and field in `swarm-coordination-registry` | Same as T3.                                                                                                                        |
@@ -374,6 +374,19 @@ request.
   of the private field through `read_metrics`, Assert = `E0616`. The event handler's debug log
   now reads inside the `tracing::debug!` arguments, so the lock is still taken only when `debug`
   is enabled, and the logged text stays `stats: Metrics { .. }`.
+- 2026-10-15 19:05 UTC - GitHub Copilot - T4 done (`udp-server`). Red/green for the new
+  `compile_fail,E0616` doctest: with the field temporarily `pub` it FAILED; with `pub(crate)` it
+  passes on nightly. The #2517 guard-accessor test `it_should_return_a_read_guard_to_metrics` was
+  replaced by `it_should_run_the_closure_on_the_metrics_and_return_its_result`, which tests
+  `read_metrics()` itself (the closure runs on the metrics and its value is returned). The
+  `metrics_snapshot` helper stays: it names one action (copy the repository's metrics so a test
+  can read them without the lock) and now clones `metric_collection()` inside `read_metrics()`.
+  The other tests keep their assertions and expected values and read through `Metrics::<method>`
+  passed to `read_metrics()` (or one closure when several values are read together). In the REST
+  adapter, `get_stats()` now builds the `Stats` inside the `udp-server` closure, and
+  `get_labeled_stats()` merges the collection inside its closure. Prose-first AAA comparison:
+  unchanged Arrange/Act sections, the Assert still names the expected counter value; only the
+  read path changed. Clippy `-D warnings` is clean for the workspace.
 
 ## Acceptance Criteria
 

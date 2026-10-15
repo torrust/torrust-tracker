@@ -134,6 +134,7 @@ mod receiving_an_announce_request {
         AnnounceActionPlaceholder, AnnounceEvent, AnnounceRequest, ConnectionId, InfoHash, NumberOfBytes, NumberOfPeers, PeerKey,
         Port, TransactionId,
     };
+    use torrust_tracker_udp_server::statistics::metrics::Metrics;
 
     use super::DEFAULT_UDP_TIMEOUT;
     use crate::common::fixtures::{random_info_hash, random_transaction_id};
@@ -299,9 +300,8 @@ mod receiving_an_announce_request {
             .container
             .udp_tracker_server_container
             .stats_repository
-            .get_stats()
-            .await
-            .udp_requests_banned_total();
+            .read_metrics(Metrics::udp_requests_banned_total)
+            .await;
 
         // This should return a timeout error
         match client.send(announce_request.into()).await {
@@ -315,9 +315,8 @@ mod receiving_an_announce_request {
             .container
             .udp_tracker_server_container
             .stats_repository
-            .get_stats()
-            .await
-            .udp_requests_banned_total();
+            .read_metrics(Metrics::udp_requests_banned_total)
+            .await;
         let udp_banned_ips_total_after = ban_service.read().await.get_banned_ips_total();
 
         // UDP counter for banned requests should be increased by 1
@@ -671,6 +670,7 @@ mod publishing_the_banned_ips_total {
     use torrust_tracker_configuration::v3_0_0::udp_tracker_server::{ConnectionIdValidationPolicy, UdpTrackerServer};
     use torrust_tracker_test_helpers::configuration;
     use torrust_tracker_udp_protocol::{ConnectionId, TransactionId};
+    use torrust_tracker_udp_server::statistics::metrics::Metrics;
     use torrust_tracker_udp_server::testing::environment::Started;
 
     use super::DEFAULT_UDP_TIMEOUT;
@@ -746,9 +746,8 @@ mod publishing_the_banned_ips_total {
             .container
             .udp_tracker_server_container
             .stats_repository
-            .get_stats()
+            .read_metrics(Metrics::udp_banned_ips_total)
             .await
-            .udp_banned_ips_total()
     }
 
     /// Waits until the published banned-IPs total equals `expected`, returning

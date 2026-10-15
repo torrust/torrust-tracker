@@ -1,9 +1,9 @@
 use std::sync::Arc;
 use std::time::Duration;
 
+use tokio::sync::RwLock;
 #[cfg(test)]
 use tokio::sync::RwLockWriteGuard;
-use tokio::sync::{RwLock, RwLockReadGuard};
 use torrust_clock::DurationSinceUnixEpoch;
 use torrust_metrics::label::LabelSet;
 use torrust_metrics::metric::MetricName;
@@ -14,9 +14,9 @@ use super::metrics::Metrics;
 
 /// A repository for the tracker metrics.
 ///
-/// External callers read statistics through [`Repository::get_stats`].
+/// External callers read statistics through [`Repository::read_metrics`].
 ///
-/// The metrics lock is private:
+/// The metrics lock and the metric collection field are private:
 ///
 /// ```rust,compile_fail,E0616
 /// use torrust_tracker_udp_server::statistics::repository::Repository;
@@ -26,13 +26,30 @@ use super::metrics::Metrics;
 /// }
 /// ```
 ///
-/// Read through the accessor instead:
+/// ```rust,compile_fail,E0616
+/// use torrust_tracker_udp_server::statistics::repository::Repository;
+///
+/// async fn read_collection(repository: &Repository) {
+///     repository
+///         .read_metrics(|metrics| {
+///             let _collection = &metrics.metric_collection;
+///         })
+///         .await;
+/// }
+/// ```
+///
+/// Read through the closure and the collection accessor instead:
 ///
 /// ```rust
 /// use torrust_tracker_udp_server::statistics::repository::Repository;
 ///
 /// async fn read_stats(repository: &Repository) {
-///     let _stats = repository.get_stats().await;
+///     let _udp_requests_aborted = repository.read_metrics(|metrics| metrics.udp_requests_aborted_total()).await;
+///     let _collection_is_readable = repository
+///         .read_metrics(|metrics| {
+///             let _collection = metrics.metric_collection();
+///         })
+///         .await;
 /// }
 /// ```
 #[derive(Clone)]
@@ -60,8 +77,13 @@ impl Repository {
         self.stats.write().await
     }
 
-    pub async fn get_stats(&self) -> RwLockReadGuard<'_, Metrics> {
-        self.stats.read().await
+    /// Runs `read` on the current metrics while holding the read lock.
+    ///
+    /// Writers wait while `read` runs, so keep it short: it must not block the thread
+    /// (blocking I/O, sleeping, or long computation) or call `read_metrics` on this repository.
+    pub async fn read_metrics<R>(&self, read: impl FnOnce(&Metrics) -> R) -> R {
+        let metrics = self.stats.read().await;
+        read(&metrics)
     }
 
     /// # Errors
@@ -131,10 +153,10 @@ mod tests {
     use crate::CurrentClock;
     use crate::statistics::*;
 
-    /// Copies the repository's metrics, so no read guard outlives the call.
+    /// Copies the repository's metrics, so a test can read them without holding the lock.
     async fn metrics_snapshot(repo: &Repository) -> Metrics {
         Metrics {
-            metric_collection: repo.get_stats().await.metric_collection.clone(),
+            metric_collection: repo.read_metrics(|metrics| metrics.metric_collection().clone()).await,
         }
     }
 
@@ -215,13 +237,14 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn it_should_return_a_read_guard_to_metrics() {
+    async fn it_should_run_the_closure_on_the_metrics_and_return_its_result() {
         let repo = Repository::new();
-        let stats = repo.get_stats().await;
 
-        // Should be able to read metrics through the guard
-        assert_eq!(stats.udp_requests_aborted_total(), 0);
-        assert_eq!(stats.udp_requests_banned_total(), 0);
+        let (aborted, banned) = repo
+            .read_metrics(|metrics| (metrics.udp_requests_aborted_total(), metrics.udp_requests_banned_total()))
+            .await;
+
+        assert_eq!((aborted, banned), (0, 0));
     }
 
     #[tokio::test]
@@ -238,8 +261,7 @@ mod tests {
         assert!(result.is_ok());
 
         // Verify the counter was incremented
-        let stats = repo.get_stats().await;
-        assert_eq!(stats.udp_requests_aborted_total(), 1);
+        assert_eq!(repo.read_metrics(Metrics::udp_requests_aborted_total).await, 1);
     }
 
     #[tokio::test]
@@ -256,8 +278,7 @@ mod tests {
         }
 
         // Verify the counter was incremented correctly
-        let stats = repo.get_stats().await;
-        assert_eq!(stats.udp_requests_aborted_total(), 5);
+        assert_eq!(repo.read_metrics(Metrics::udp_requests_aborted_total).await, 5);
     }
 
     #[tokio::test]
@@ -278,9 +299,11 @@ mod tests {
             .unwrap();
 
         // Verify both labeled metrics
-        let stats = repo.get_stats().await;
-        assert_eq!(stats.udp4_requests_received_total(), 1);
-        assert_eq!(stats.udp6_requests_received_total(), 1);
+        let (udp4_requests, udp6_requests) = repo
+            .read_metrics(|metrics| (metrics.udp4_requests_received_total(), metrics.udp6_requests_received_total()))
+            .await;
+        assert_eq!(udp4_requests, 1);
+        assert_eq!(udp6_requests, 1);
     }
 
     #[tokio::test]
@@ -297,8 +320,7 @@ mod tests {
         assert!(result.is_ok());
 
         // Verify the gauge was set
-        let stats = repo.get_stats().await;
-        assert_eq!(stats.udp_banned_ips_total(), 42);
+        assert_eq!(repo.read_metrics(Metrics::udp_banned_ips_total).await, 42);
     }
 
     #[tokio::test]
@@ -318,8 +340,7 @@ mod tests {
             .unwrap();
 
         // Verify the gauge has the new value
-        let stats = repo.get_stats().await;
-        assert_eq!(stats.udp_banned_ips_total(), 25);
+        assert_eq!(repo.read_metrics(Metrics::udp_banned_ips_total).await, 25);
     }
 
     #[tokio::test]
@@ -504,8 +525,7 @@ mod tests {
         }
 
         // Verify all increments were properly recorded
-        let stats = repo.get_stats().await;
-        assert_eq!(stats.udp_requests_aborted_total(), 50); // 10 tasks * 5 increments each
+        assert_eq!(repo.read_metrics(Metrics::udp_requests_aborted_total).await, 50); // 10 tasks * 5 increments each
     }
 
     #[tokio::test]
@@ -563,10 +583,18 @@ mod tests {
         .unwrap();
 
         // Check final state
-        let stats = repo.get_stats().await;
-        assert_eq!(stats.udp_requests_aborted_total(), 1);
-        assert_eq!(stats.udp_banned_ips_total(), 10);
-        assert_eq!(stats.udp_requests_banned_total(), 1);
+        let (aborted, banned_ips, banned_requests) = repo
+            .read_metrics(|metrics| {
+                (
+                    metrics.udp_requests_aborted_total(),
+                    metrics.udp_banned_ips_total(),
+                    metrics.udp_requests_banned_total(),
+                )
+            })
+            .await;
+        assert_eq!(aborted, 1);
+        assert_eq!(banned_ips, 10);
+        assert_eq!(banned_requests, 1);
     }
 
     #[tokio::test]

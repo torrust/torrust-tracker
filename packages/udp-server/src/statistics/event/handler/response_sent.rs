@@ -79,6 +79,7 @@ mod tests {
     use crate::event::Event;
     use crate::handlers::announce::tests::announce_request::AnnounceRequestBuilder;
     use crate::statistics::event::handler::handle_event;
+    use crate::statistics::metrics::Metrics;
     use crate::statistics::repository::Repository;
 
     #[tokio::test]
@@ -106,9 +107,8 @@ mod tests {
         // Assert
         assert_eq!(
             stats_repository
-                .get_stats()
-                .await
-                .udp_avg_connect_processing_time_ns_averaged(),
+                .read_metrics(Metrics::udp_avg_connect_processing_time_ns_averaged)
+                .await,
             1_000_000_000
         );
     }
@@ -140,9 +140,7 @@ mod tests {
         )
         .await;
 
-        let stats = stats_repository.get_stats().await;
-
-        assert_eq!(stats.udp4_responses_sent_total(), 1);
+        assert_eq!(stats_repository.read_metrics(Metrics::udp4_responses_sent_total).await, 1);
     }
 
     #[tokio::test]
@@ -172,8 +170,6 @@ mod tests {
         )
         .await;
 
-        let stats = stats_repository.get_stats().await;
-
-        assert_eq!(stats.udp6_responses_sent_total(), 1);
+        assert_eq!(stats_repository.read_metrics(Metrics::udp6_responses_sent_total).await, 1);
     }
 }

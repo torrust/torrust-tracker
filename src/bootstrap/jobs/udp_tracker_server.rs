@@ -128,6 +128,7 @@ mod tests {
     use torrust_tracker_udp_server::banning::PublicationOrder;
     use torrust_tracker_udp_server::banning::event::handler::handle_event;
     use torrust_tracker_udp_server::event::{ErrorKind, Event};
+    use torrust_tracker_udp_server::statistics::metrics::Metrics;
     use torrust_tracker_udp_server::statistics::repository::Repository;
 
     use super::run_ban_cleanup_job;
@@ -203,7 +204,7 @@ mod tests {
 
         // Assert
         assert_eq!(
-            stats_repository.get_stats().await.udp_banned_ips_total(),
+            stats_repository.read_metrics(Metrics::udp_banned_ips_total).await,
             0,
             "published banned IPs total {reset_interval_in_secs} s after the cleanup job started, when \
              {banned_client_ip} had been banned and published as 1 before the first reset"

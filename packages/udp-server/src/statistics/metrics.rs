@@ -21,10 +21,16 @@ use crate::statistics::{
 #[derive(Debug, PartialEq, Default, Serialize)]
 pub struct Metrics {
     /// A collection of metrics.
-    pub metric_collection: MetricCollection,
+    pub(crate) metric_collection: MetricCollection,
 }
 
 impl Metrics {
+    /// The collection of metrics, for read-only access.
+    #[must_use]
+    pub const fn metric_collection(&self) -> &MetricCollection {
+        &self.metric_collection
+    }
+
     /// # Errors
     ///
     /// Returns an error if the metric does not exist and it cannot be created.
