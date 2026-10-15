@@ -231,8 +231,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                                    | Notes / Expected Output                                                                                                                  |
 | --- | ------ | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Re-verify the callers on current `develop`              | Repeat the caller search; record the commit and any new caller in the Progress Log.                                                     |
-| T2  | TODO   | Capture the M1 baseline on `develop`                    | Run M1 before any change and store the five `develop` outputs listed under Manual Verification Scenarios under `evidence/`. |
+| T1  | DONE   | Re-verify the callers on current `develop`              | Repeat the caller search; record the commit and any new caller in the Progress Log.                                                     |
+| T2  | DONE   | Capture the M1 baseline on `develop`                    | Run M1 before any change and store the five `develop` outputs listed under Manual Verification Scenarios under `evidence/`. |
 | T3  | TODO   | Hide the read lock and field in `udp-core`              | `read_metrics()`, `metric_collection()`, `pub(crate)` field, doctests and their rustdoc lead-in link, and updated callers; the workspace builds and its tests pass. |
 | T4  | TODO   | Hide the read lock and field in `udp-server`            | Same as T3; the largest task (30 in-crate unit-test calls, the `metrics_snapshot` helper, and the guard-accessor test to replace). |
 | T5  | TODO   | Hide the read lock and field in `http-core`             | Same as T3.                                                                                                                              |
@@ -358,6 +358,12 @@ request.
   (1) write a root ADR making closure-based reads the rule (new task T9 and AC6; Architectural
   Decisions updated); (2) the agent runs M1 itself (T2 baseline and T8); (3) nobody is working on
   #2414, so the overlap risk needs no rebase ordering now; (4) no other spec changes.
+- 2026-10-15 18:10 UTC - GitHub Copilot - T1 done on `develop` at `fe5d8264a` (the branch code is
+  identical, only specs differ): the AC1 call grep prints 80 lines (84 at `48c4d3013`), no new
+  caller file outside those the spec lists, and the five rustdoc lead-in links are unchanged.
+  T2 done: the baseline binaries were built from this code and M1 ran twice on `develop`; the two
+  normalized runs were identical, which confirms the normalization is deterministic. The five
+  `develop` outputs are stored as `evidence/m1-develop-*`.
 
 ## Acceptance Criteria
 
