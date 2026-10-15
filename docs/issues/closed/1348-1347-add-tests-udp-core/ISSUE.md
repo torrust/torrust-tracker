@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-progress
+status: done
 priority: p2
 epic: 1347
 github-issue: 1348
-spec-path: docs/issues/open/1348-1347-add-tests-udp-core/ISSUE.md
+spec-path: docs/issues/closed/1348-1347-add-tests-udp-core/ISSUE.md
 branch: "1348-1347-add-tests-udp-core"
 related-pr: 2538
-last-updated-utc: "2026-10-15 11:56"
+last-updated-utc: "2026-10-15 15:15"
 semantic-links:
   skill-links:
     - create-issue
@@ -331,7 +331,7 @@ Issue #2458 (merged 2026-10-08) replaced the global cookie keys with an injected
 - [x] Acceptance criteria reviewed after implementation.
 - [x] Implementation completion review recorded (`implementation-retrospective.md` or a
       progress-log reason); independent reviewer results in `agent-review-reports.md` when used.
-- [ ] Issue closed and spec moved to `docs/issues/closed/`.
+- [x] Issue closed and spec moved to `docs/issues/closed/`.
 
 ### Progress Log
 
@@ -563,6 +563,8 @@ Issue #2458 (merged 2026-10-08) replaced the global cookie keys with an injected
   ([agent-review-reports.md](agent-review-reports.md)); fixed its count and wording findings and
   ticked the completion-review checkpoint. Next: the PR #2538 review audit, push, and thread
   replies.
+- 2026-10-15 15:15 UTC - GitHub Copilot - PR #2538 merged into `develop` on 2026-10-15 at
+  15:06 UTC, and GitHub closed #1348. Archived this spec to `docs/issues/closed/`.
 
 ## Acceptance Criteria
 
@@ -632,7 +634,7 @@ requests (`send_invalid_connection_ids_until_banned`).
 M3 and M4 use a small disposable Rust program built on `UdpTrackerClient`, reusing the request
 construction from `packages/test-helpers/src/udp.rs` where practical.
 
-- Path: `docs/issues/open/1348-1347-add-tests-udp-core/manual-verification/invalid-connection-id/`,
+- Path: `docs/issues/closed/1348-1347-add-tests-udp-core/manual-verification/invalid-connection-id/`,
   a standalone Cargo package with an empty `[workspace]` table and path dependencies, so it is
   not a workspace member. Build output goes to `.tmp/`.
 - Why not a maintained test: the scenarios verify the built tracker binary from a client's point

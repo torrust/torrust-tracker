@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/1348-1347-add-tests-udp-core/ISSUE.md
-last-updated-utc: 2026-10-14 16:25
+issue-spec: docs/issues/closed/1348-1347-add-tests-udp-core/ISSUE.md
+last-updated-utc: 2026-10-15 15:15
 ---
 
 # Manual Verification Evidence

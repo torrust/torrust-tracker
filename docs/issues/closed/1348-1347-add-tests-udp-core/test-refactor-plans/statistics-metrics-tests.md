@@ -10,7 +10,7 @@ semantic-links:
     - packages/udp-core/src/statistics/mod.rs
     - packages/udp-core/src/statistics/event/handler.rs
     - packages/udp-server/src/statistics/metrics.rs
-    - docs/issues/open/1348-1347-add-tests-udp-core/coverage-evidence.md
+    - docs/issues/closed/1348-1347-add-tests-udp-core/coverage-evidence.md
 ---
 
 # UDP Core Statistics Metrics File Test Plan

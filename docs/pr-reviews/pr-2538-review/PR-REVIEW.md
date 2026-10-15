@@ -4,7 +4,7 @@ semantic-links:
     - process-pr-review
   related-artifacts:
     - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
-    - docs/issues/open/1348-1347-add-tests-udp-core/ISSUE.md
+    - docs/issues/closed/1348-1347-add-tests-udp-core/ISSUE.md
 ---
 
 <!-- skill-link: process-pr-review -->

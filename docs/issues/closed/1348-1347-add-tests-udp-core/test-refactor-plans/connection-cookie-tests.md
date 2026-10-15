@@ -9,7 +9,7 @@ semantic-links:
     - packages/udp-core/src/connection_cookie.rs
     - packages/udp-core/src/crypto/keys.rs
     - .github/skills/dev/maintenance/add-rust-dependency/SKILL.md
-    - docs/issues/open/1348-1347-add-tests-udp-core/coverage-evidence.md
+    - docs/issues/closed/1348-1347-add-tests-udp-core/coverage-evidence.md
 ---
 
 # UDP Core Connection Cookie File Test Plan
