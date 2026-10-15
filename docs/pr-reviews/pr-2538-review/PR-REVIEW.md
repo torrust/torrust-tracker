@@ -47,6 +47,10 @@ them as a summary, so the body adds no rows. The review read the head whose last
 retyped it as "docs(udp-core): reconcile the statistics docs and records with #2517 and #2521".
 The commit ids the review cites no longer exist on the branch.
 
+da2ce7's review 5533063376 (approve) adds three Nits as inline threads. Its restated F4 reuses an
+existing ID for a narrower concern, so it is recorded as F10 (`RE_RAISE_OF:F4`, reviewer finding
+ID F4); F11 and F12 keep the reviewer's IDs.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2538-f1 | Human | Major | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -58,6 +62,9 @@ The commit ids the review cites no longer exist on the branch.
 | F7 | review-finding:pr-2538-f7 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F8 | review-finding:pr-2538-f8 | Human | Suggestion | testing | ORIGINAL | FIXED | RESOLVED |
 | F9 | review-finding:pr-2538-f9 | Human | Suggestion | testing | ORIGINAL | FIXED | RESOLVED |
+| F10 | review-finding:pr-2538-f10 | Human | Nit | metadata | RE_RAISE_OF:F4 | FIXED | RESOLVED |
+| F11 | review-finding:pr-2538-f11 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F12 | review-finding:pr-2538-f12 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -209,6 +216,50 @@ The commit ids the review cites no longer exist on the branch.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2538#discussion_r4282749496>
 
+### F10 - The EPIC's timestamp predates its latest entry
+
+- PR number: 2538
+- Source review ID: 5533063376
+- Reviewer finding ID: F4
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2538#discussion_r4282935055>
+- Concern: restating F4 for one file, the #1347 EPIC's `last-updated-utc` was 07:23 while its
+  latest progress-log entry is 11:56.
+- Solution: set the EPIC's `last-updated-utc` to its latest entry's time.
+- Current-tree verification: `EPIC.md` frontmatter reads `last-updated-utc: "2026-10-15 11:56"`,
+  equal to its last progress-log entry.
+- Resolution reference: docs(issues): align the #1347 EPIC timestamp with its latest entry
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2538#discussion_r4283168922>
+
+### F11 - The PR body's History understates the retyped commits
+
+- PR number: 2538
+- Source review ID: 5533063376
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2538#discussion_r4282935076>
+- Concern: the History section said one commit was reworded as `docs`; the rewrite retyped three
+  and changed a fourth subject.
+- Solution: the History section lists all four renames, before and after.
+- Current-tree verification: the four pre-rewrite subjects match `git log 48c4d3013..5d67ddd14`
+  and the four current subjects match `git log torrust/develop..HEAD`.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2538#issuecomment-6192488538>
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2538#discussion_r4283169289>
+
+### F12 - The audit names the reviewed head by its post-rewrite subject
+
+- PR number: 2538
+- Source review ID: 5533063376
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2538#discussion_r4282935088>
+- Concern: the Findings introduction named the reviewed head by a subject created by the rewrite.
+- Solution: it quotes the subject the head had at review time and adds the current name.
+- Current-tree verification: the introduction quotes "test(udp-core): reconcile the statistics
+  tests with #2517 and #2521", the subject of the reviewed head `5d67ddd14`.
+- Resolution reference: docs(pr-reviews): quote the reviewed head's subject as it was at review time
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2538#discussion_r4283169725>
+
 ## Processing Log
 
 - 2026-10-15 07:23 UTC - Fixed F1-F9 in separate signed commits; F1 by an approved history
@@ -217,6 +268,10 @@ The commit ids the review cites no longer exist on the branch.
   after the prose-first AAA review), rebased onto the latest `develop`, pushed, updated the PR body,
   posted the PR conversation response, verified every claim against the current tree, and replied
   on all nine threads. The threads are resolved after this audit is pushed.
+- 2026-10-15 12:51 UTC - Processed review 5533063376 (approve, three Nits): fixed F10 and F12 in
+  separate commits and F11 in the PR body, pushed, posted the PR conversation response, and
+  replied on the three threads. Resolved the first nine threads after the audit push; the three
+  new ones are resolved after this update is pushed.
 
 ## Completion Rules
 
