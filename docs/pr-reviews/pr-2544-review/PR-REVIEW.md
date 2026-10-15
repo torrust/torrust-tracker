@@ -50,6 +50,13 @@ cleanup" and "marks the fix complete" claims deserve findings repeat reviewer F1
 and F6), so the body adds no rows. The reviews read the head whose subject is
 "docs(issues): [#1488] mark #2471 done in the shutdown roadmap".
 
+A second da2ce7 review, 5539246048 (approved), read the head whose subject is "docs(pr-reviews):
+add the PR #2544 review audit" and left six non-blocking inline threads whose reviewer IDs F1-F6
+again collide with existing IDs, so they are recorded as F10-F15 with the reviewer's ID kept in
+the detail entry. Its body is a round summary that repeats those six findings and confirms the nine
+earlier ones as resolved, so it adds no rows; a separate PR conversation comment, `ACK`, records
+its verdict.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2544-f1 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
@@ -61,6 +68,12 @@ and F6), so the body adds no rows. The reviews read the head whose subject is
 | F7 | review-finding:pr-2544-f7 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F8 | review-finding:pr-2544-f8 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F9 | review-finding:pr-2544-f9 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F10 | review-finding:pr-2544-f10 | Human | Minor | link-integrity | ORIGINAL | FIXED | RESOLVED |
+| F11 | review-finding:pr-2544-f11 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F12 | review-finding:pr-2544-f12 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F13 | review-finding:pr-2544-f13 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
+| F14 | review-finding:pr-2544-f14 | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
+| F15 | review-finding:pr-2544-f15 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -224,6 +237,109 @@ and F6), so the body adds no rows. The reviews read the head whose subject is
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2544#discussion_r4287546142>
 
+### F10 - The record cites a PR-branch commit by id
+
+- PR number: 2544
+- Source review ID: 5539246048
+- Reviewer finding ID: F1
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2544#discussion_r4287770695>
+- Concern: the Findings introduction cited the reviewed head by commit id, which no longer resolves
+  after a rebase; the `open-pull-request` skill says no durable reference may cite a PR-branch
+  commit by id and lists review audits as durable references.
+- Solution: the introduction cites the reviewed head by its subject only. My earlier commit-id
+  check ran before this audit existed, so it could not have caught it.
+- Current-tree verification: the skill's commit-id check, run verbatim against `torrust/develop`,
+  prints nothing, and `grep -rn` for the id finds nothing under `docs`.
+- Resolution reference: docs(pr-reviews): [#2544] correct the audit's head citation and its F4, F5 and F7 entries
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2544#discussion_r4288019515>
+
+### F11 - F4 is a no-change thread, which the skill records as SUPERSEDED with an exact reply
+
+- PR number: 2544
+- Source review ID: 5539246048
+- Reviewer finding ID: F2
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2544#discussion_r4287770707>
+- Concern: the `process-pr-review` rule says a no-change thread gets the reply `Superseded by
+  <FindingId>: <reason>.` and the `SUPERSEDED` state; F4's row says `NO_ACTION` and `RESOLVED`.
+  The row should follow the rule or the record should say plainly that it departs from it.
+- Solution: the record now says plainly that F4 departs from the rule and why: no finding
+  supersedes a declined suggestion. The reply already posted stays as written. The rule may need a
+  clause for declined suggestions; that is a skill change for a separate issue.
+- Current-tree verification: the F4 Solution says "This departs from the `process-pr-review`
+  rule for a no-change thread" and names the reply and state the rule prescribes.
+- Resolution reference: docs(pr-reviews): [#2544] correct the audit's head citation and its F4, F5 and F7 entries
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2544#discussion_r4288019766>
+
+### F12 - Specs cite audit findings by bare ID, not by their reference
+
+- PR number: 2544
+- Source review ID: 5539246048
+- Reviewer finding ID: F3
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2544#discussion_r4287770715>
+- Concern: the #2471 spec, the evidence, and the SI-23 and SI-24 logs cited findings as "PR #2544
+  review finding F5 (reviewer ID F1)", but the template defines `review-finding:pr-2544-f5` for
+  citing a finding from other artifacts, and on the PR the reviewer's own tags name different
+  findings.
+- Solution: replaced the bare citations with the reference form in those four files.
+- Current-tree verification: `grep -rn "PR #2544 review finding" docs/issues/open` returns nothing.
+- Resolution reference: docs(issues): [#2471] cite review findings by their review-finding reference
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2544#discussion_r4288020071>
+
+### F13 - V1's Hypothesis still states the disproved premise
+
+- PR number: 2544
+- Source review ID: 5539246048
+- Reviewer finding ID: F4
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2544#discussion_r4287770731>
+- Concern: the V1 Hypothesis still says the halt sender's drop ended the server, and the F5
+  verification claimed the old wording survived only in correction entries, which missed this line.
+- Solution: added a marker to the Hypothesis pointing to the correction and V4, and corrected the
+  F5 verification to admit the miss.
+- Current-tree verification: the Hypothesis ends with "(The second sentence is disproved: see the
+  correction under V1's conclusion and V4. ...)"; `grep` for the old premise finds it only there
+  and in the quoted correction entries.
+- Resolution reference: docs(issues): [#2471] mark V1's hypothesis as disproved
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2544#discussion_r4288020365>
+
+### F14 - "Was not checked" for the REST and health-check drops, which the code answers
+
+- PR number: 2544
+- Source review ID: 5539246048
+- Reviewer finding ID: F5
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2544#discussion_r4287770746>
+- Concern: the SI-23, SI-24 and #2471 notes said whether the legacy REST and health-check drops
+  stop their servers was not checked, but both servers spawn the same `graceful_shutdown` task as
+  HTTP, so the code already answers it.
+- Solution: confirmed in the code and stated in the three notes, marked as read from source and not
+  run, because V4 ran only the HTTP environment.
+- Current-tree verification: `axum-rest-api-server/src/server.rs` and
+  `axum-health-check-api-server/src/server.rs` spawn `graceful_shutdown`, which awaits
+  `shutdown_signal_with_message` in `axum-server/src/signals.rs` before it signals the handle;
+  `grep -c "was not checked"` finds none in the three specs.
+- Resolution reference: docs(issues): [#2471] record that the REST and health-check legacy drops do not stop the server either
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2544#discussion_r4288020691>
+
+### F15 - F7's Concern misreads the 17:35 stamp
+
+- PR number: 2544
+- Source review ID: 5539246048
+- Reviewer finding ID: F6
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2544#discussion_r4287770757>
+- Concern: the reviewer cited 17:35 (before its commit) as the correct contrast to 17:50; F7's
+  Concern and my reply made it read like a second defect.
+- Solution: the F7 entry now says only the 17:50 stamp was wrong. The reply stays as posted and
+  the corrected entry is the record.
+- Current-tree verification: the F7 Concern cites 17:35 as the correct contrast and the Solution
+  names only the 17:50 stamp.
+- Resolution reference: docs(pr-reviews): [#2544] correct the audit's head citation and its F4, F5 and F7 entries
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2544#discussion_r4288020998>
+
 ## Processing Log
 
 - 2026-10-15 19:35 UTC - Fetched every thread and review, classified and numbered the findings, and
@@ -233,6 +349,11 @@ and F6), so the body adds no rows. The reviews read the head whose subject is
 - 2026-10-15 19:45 UTC - Pushed, corrected the PR body and the GitHub issue body, re-derived each
   reply claim against the current tree, and replied on all nine threads.
 - 2026-10-15 19:46 UTC - Started this record, with a reply URL in every row.
+- 2026-10-15 20:36 UTC - da2ce7's approving review 5539246048 (six non-blocking threads) arrived
+  after the first round was closed. Fixed F12, F13, F14 and the audit's own F10, F11 and F15 in
+  separate signed commits, pushed, and replied on all six threads.
+- 2026-10-15 20:37 UTC - Added F10-F15 to this record. Review 5539246048 shows `DISMISSED` after
+  the push that followed it, so the PR needs a fresh approval.
 
 ## Completion Rules
 
