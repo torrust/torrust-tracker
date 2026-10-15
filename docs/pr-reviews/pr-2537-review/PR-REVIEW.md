@@ -110,7 +110,7 @@ fixes that missed its merge", so the three rows are now `FIXED`/`RESOLVED`.
 | F16 | `review-finding:pr-2537-f16` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F17 | `review-finding:pr-2537-f17` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F18 | `review-finding:pr-2537-f18` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
-| F19 | `review-finding:pr-2537-f19` | Human | Nit | other | ORIGINAL | FIXED | RESOLVED |
+| F19 | `review-finding:pr-2537-f19` | Human | Nit | maintainability | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
