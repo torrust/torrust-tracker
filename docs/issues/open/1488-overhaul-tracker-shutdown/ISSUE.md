@@ -6,7 +6,7 @@ epic: null
 github-issue: 1488
 spec-path: docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-07 12:50"
+last-updated-utc: "2026-10-15 17:35"
 semantic-links:
   skill-links:
     - create-issue
@@ -206,8 +206,8 @@ deterministic tests, and manual evidence.
 | 13       | #2448 | [Migrate standalone UDP environment/example](../../closed/2448-1488-si-17-migrate-standalone-udp-environment/ISSUE.md) | Done       | SI-17. One supported standalone UDP consumer migration; a dropped environment now releases its socket (#2459). |
 | 14       | #2471 | [Stop the HTTP test environment when dropped without `stop()`](../2471-1488-fix-http-environment-drop-path/ISSUE.md) | Planned    | Bug. Regression from SI-16 found on 2026-10-07: a dropped HTTP test environment keeps its server running. Hold the token as a `DropGuard`, as #2459 did for UDP. |
 | 15       | #2410 | [Process queued events before listeners stop](../2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md) | Planned  | Bug, sub-EPIC (SI-22) with four sub-issues, #2413 to #2416 (docs and ADR draft; listener drain; per-component tokens; stop order): stop event producers before consumers; listeners process queued events within the deadline. |
-| 16       | #2449 | [Migrate REST API test environment](../2449-1488-si-23-migrate-rest-api-test-environment/ISSUE.md) | Planned    | SI-23. One test environment migration; found while refreshing SI-17 (2026-10-06). |
-| 17       | #2450 | [Migrate health-check API test environment](../2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md) | Planned    | SI-24. One test environment migration; found while refreshing SI-17 (2026-10-06). |
+| 16       | #2449 | [Migrate REST API test environment](../2449-1488-si-23-migrate-rest-api-test-environment/ISSUE.md) | Planned    | SI-23. One test environment migration; found while refreshing SI-17 (2026-10-06). May run alongside SI-22 (no dependency on it). |
+| 17       | #2450 | [Migrate health-check API test environment](../2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md) | Planned    | SI-24. One test environment migration; found while refreshing SI-17 (2026-10-06). May run alongside SI-22 (no dependency on it). |
 | 18       | SI-18 | [Deprecate legacy shutdown API](../../drafts/1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md)                           | Draft      | Compatibility-preserving source deprecation only.                                                    |
 | 19       | SI-19 | [Remove legacy shutdown API and library OS signals](../../drafts/1488-si-19-remove-legacy-shutdown-api/ISSUE.md)          | Draft      | Breaking release after migration, deprecation, and compatibility gates.                              |
 | 20       | SI-20 | [Configure shutdown policy and deployment contract](../../drafts/1488-si-20-configure-shutdown-policy/ISSUE.md)           | Draft      | Apply approved Q3/Q4 outcomes, budgets, configuration, and deployment guidance.                      |
@@ -232,6 +232,10 @@ first, and favors tasks that strengthen the test safety net before the changes
 that rely on it (review of 2026-10-01). SI-23 and SI-24 were added on
 2026-10-06, when the SI-17 refresh found the REST API and health-check API test
 environments still on the legacy path; they must precede SI-18 and SI-19.
+On 2026-10-15 the maintainer agreed that SI-23 and SI-24 do not depend on
+SI-22 and may be done alongside it, not only after it: they unblock the
+environment moves of EPIC #2482, which waits for them. The sequence numbers
+stay as they are.
 Issue #2471 was added on 2026-10-07, when checking SI-22 against SI-17 showed
 that the HTTP test environment from SI-16 no longer stops when dropped without
 `stop()`. It precedes SI-22 because SI-22 T9 changes the same environment.
@@ -281,10 +285,11 @@ superseded later gets the same retention note and joins this cleanup.
 Before declaring this EPIC complete, reassess and complete
 [issue #1419](https://github.com/torrust/torrust-tracker/issues/1419), **Allow
 multiple integration tests at the main app level**. Its remaining shared-event-
-bus policy integration test depends on canonical identity and registration
-metadata from #2036 and #2041, and on the outstanding event-metrics policy work
-in #2039 (the latest #2039 comment says its previous closure was premature).
-This EPIC must also leave every started application instance with deterministic,
+bus policy integration test used to depend on canonical identity and
+registration metadata from #2036 and #2041, and on the event-metrics policy work
+in #2039. All three are closed; #2039 was reopened on 2026-08-18 after a
+premature automatic closure and closed again on 2026-08-19, when PR #2064
+implemented it. This EPIC must also leave every started application instance with deterministic,
 awaitable shutdown and no leaked tasks or listener bindings.
 
 The final #1419 verification must demonstrate concurrent main-application test
