@@ -9,7 +9,7 @@ github-issue: 2536
 spec-path: docs/issues/open/2536-1669-hide-statistics-repository-read-lock/ISSUE.md
 branch: "2536-1669-hide-statistics-repository-read-lock"
 related-pr: null
-last-updated-utc: "2026-10-15 17:55"
+last-updated-utc: "2026-10-15 18:20"
 semantic-links:
   skill-links:
     - create-issue
@@ -237,9 +237,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T4  | DONE   | Hide the read lock and field in `udp-server`            | Same as T3; the largest task (30 in-crate unit-test calls, the `metrics_snapshot` helper, and the guard-accessor test to replace). |
 | T5  | DONE   | Hide the read lock and field in `http-core`             | Same as T3.                                                                                                                              |
 | T6  | DONE   | Hide the read lock and field in `tracker-core`          | Same as T3, including the repository's own counter reads.                                                                               |
-| T7  | TODO   | Hide the read lock and field in `swarm-coordination-registry` | Same as T3.                                                                                                                        |
+| T7  | IN_PROGRESS | Hide the read lock and field in `swarm-coordination-registry` | Same as T3.                                                                                                                        |
 | T8  | TODO   | Verification                                            | Starts only after the maintainer review that follows T7. See Verification Plan; run M1 on the branch, store its five outputs, and compare them with T2's. |
-| T9  | TODO   | Write the root ADR for closure-based statistics reads   | `docs/adrs/<timestamp>_<title>.md` registered in `docs/adrs/index.md`; passes `linter markdown` and `linter cspell`. Needs no maintainer test review, so it can be written before T8. |
+| T9  | DONE   | Write the root ADR for closure-based statistics reads   | `docs/adrs/<timestamp>_<title>.md` registered in `docs/adrs/index.md`; passes `linter markdown` and `linter cspell`. Needs no maintainer test review, so it can be written before T8. |
 
 ## Commit Points
 
@@ -352,19 +352,19 @@ request.
   masks the two activity-job gauges (swarm_coordination_registry_peers_inactive_total and
   _torrents_inactive_total), whose presence and values depend on time since startup, not on the
   announces.
-- 2026-10-15 17:55 UTC - GitHub Copilot - Implementation started on branch
+- 2026-10-15 17:56 UTC - GitHub Copilot - Implementation started on branch
   `2536-1669-hide-statistics-repository-read-lock` from `torrust/develop` at `fe5d8264a`. The caller
   grep now prints 80 lines (84 at `48c4d3013`); T1 records the difference. Maintainer feedback:
   (1) write a root ADR making closure-based reads the rule (new task T9 and AC6; Architectural
   Decisions updated); (2) the agent runs M1 itself (T2 baseline and T8); (3) nobody is working on
   #2414, so the overlap risk needs no rebase ordering now; (4) no other spec changes.
-- 2026-10-15 18:10 UTC - GitHub Copilot - T1 done on `develop` at `fe5d8264a` (the branch code is
+- 2026-10-15 17:58 UTC - GitHub Copilot - T1 done on `develop` at `fe5d8264a` (the branch code is
   identical, only specs differ): the AC1 call grep prints 80 lines (84 at `48c4d3013`), no new
   caller file outside those the spec lists, and the five rustdoc lead-in links are unchanged.
   T2 done: the baseline binaries were built from this code and M1 ran twice on `develop`; the two
   normalized runs were identical, which confirms the normalization is deterministic. The five
   `develop` outputs are stored as `evidence/m1-develop-*`.
-- 2026-10-15 18:40 UTC - GitHub Copilot - T3 done (`udp-core`). Red/green for the new
+- 2026-10-15 18:02 UTC - GitHub Copilot - T3 done (`udp-core`). Red/green for the new
   `compile_fail,E0616` doctest (`metrics.metric_collection` read inside `read_metrics`): with the
   field temporarily `pub` it FAILED (it compiled); with `pub(crate)` it passes on nightly. The old
   `Repository::stats` doctest is unchanged. Test-design review: the migrated tests keep their
@@ -374,7 +374,7 @@ request.
   of the private field through `read_metrics`, Assert = `E0616`. The event handler's debug log
   now reads inside the `tracing::debug!` arguments, so the lock is still taken only when `debug`
   is enabled, and the logged text stays `stats: Metrics { .. }`.
-- 2026-10-15 19:05 UTC - GitHub Copilot - T4 done (`udp-server`). Red/green for the new
+- 2026-10-15 18:08 UTC - GitHub Copilot - T4 done (`udp-server`). Red/green for the new
   `compile_fail,E0616` doctest: with the field temporarily `pub` it FAILED; with `pub(crate)` it
   passes on nightly. The #2517 guard-accessor test `it_should_return_a_read_guard_to_metrics` was
   replaced by `it_should_run_the_closure_on_the_metrics_and_return_its_result`, which tests
@@ -387,14 +387,14 @@ request.
   `get_labeled_stats()` merges the collection inside its closure. Prose-first AAA comparison:
   unchanged Arrange/Act sections, the Assert still names the expected counter value; only the
   read path changed. Clippy `-D warnings` is clean for the workspace.
-- 2026-10-15 19:25 UTC - GitHub Copilot - T5 done (`http-core`). Red/green for the new
+- 2026-10-15 18:11 UTC - GitHub Copilot - T5 done (`http-core`). Red/green for the new
   `compile_fail,E0616` doctest: FAILED with the field temporarily `pub`, passes with `pub(crate)`.
   Test-design review: the unit and contract tests keep their Arrange/Act/Assert and expected
   counts and read through `Metrics::<method>`; the contract tests drop their `drop(stats)` lines,
   because no guard exists any more. No helper was added. The REST adapter now reads the four
   HTTP counters in one `read_metrics()` closure before building the `Stats` and merges the HTTP
   collection inside its closure.
-- 2026-10-15 19:45 UTC - GitHub Copilot - T6 done (`tracker-core`). Red/green for the new
+- 2026-10-15 18:13 UTC - GitHub Copilot - T6 done (`tracker-core`). Red/green for the new
   `compile_fail,E0616` doctest: FAILED with the field temporarily `pub`, passes with `pub(crate)`.
   Test-design review: the two repository unit tests used to hold a guard across their Assert; each
   now does its Act in one `read_metrics()` call that returns the values to check (three `bool`s,
@@ -403,6 +403,18 @@ request.
   counter inside the closure. Prose-first AAA comparison: Arrange = a repository with the two
   flags, Act = read whether each counter is described, Assert = persisted counter present only
   when enabled.
+- 2026-10-15 18:20 UTC - GitHub Copilot - T7 implemented in the working tree for
+  `swarm-coordination-registry` and NOT committed: the spec stops for the maintainer review of all
+  test increments first. Red/green for the new `compile_fail,E0616` doctest: FAILED with the field
+  temporarily `pub`, passes with `pub(crate)`. Test-design review: the metric-reading test helpers
+  (`get_counter_metric`, `get_gauge_metric`, `expect_peer_added_metric_to_be`, and
+  `inactive_peers_total`) each name one action, read a single metric, and now do that inside one
+  `read_metrics()` call; their callers and expected values are unchanged. `inactive_peers_total`
+  keeps its gauge-to-count conversion outside the closure. T9 done: the root ADR
+  `docs/adrs/20261015181650_read_statistics_repositories_through_a_closure.md` is registered in
+  `docs/adrs/index.md`. The AC1 call grep prints exactly the two REST-port lines; the AC2 grep, the
+  AC3 grep, and the guard grep (only the `#[cfg(test)] pub(crate) write_lock_for_test()` matches)
+  give the expected results. `cargo test --workspace` passes and clippy `-D warnings` is clean.
 
 ## Acceptance Criteria
 
