@@ -94,6 +94,20 @@ No action in this issue. Both points are recorded as follow-up candidates in
 - **Integration selected:** No.
 - **Completed-file review:** Approved by Jose Celano on 2026-10-05.
 
+## Prose-First AAA Review
+
+Recorded on 2026-10-15, late: the PR #2538 Task Reviewer found no record of it (AC7). For each
+test, temporary Arrange, Act, and Assert prose was compared with the code and then removed.
+
+| Test | Arrange → Act → Assert | Outcome |
+| --- | --- | --- |
+| `..._reject_an_expired_connection_id_when_cookie_validation_is_enabled` | Expired ID → `handle_scrape` validating → `ValueExpired` | No change |
+| `..._accept_an_expired_connection_id_when_cookie_validation_is_skipped` | Expired ID → `handle_scrape` skipping → `Ok` | No change |
+| `..._validate_the_connection_id_before_reading_any_persisted_downloads` | Store that fails if read, expired ID → `handle_scrape` → cookie error | No change |
+| `..._return_the_swarm_statistics_under_the_requested_info_hash` | One seeder announced → `handle_scrape` → one complete peer | Changed: the expected `SwarmMetadata` is a struct literal, so `complete: 1` visibly matches the one seeder |
+| `..._report_a_failing_persisted_downloads_lookup_as_a_tracker_core_scrape_error` | Failing downloads store → `handle_scrape` → `Database` error | No change |
+| `..._publish_a_scrape_event_with_the_connection_context` | Mock expects one event → `handle_scrape` → mock verifies on drop | Changed: the `// Assert` marker now says the mock verifies the event |
+
 ## Approval
 
 Approved by Jose Celano on 2026-10-05: S1-S6 and the fixture approach. The whitelist finding is
@@ -110,3 +124,6 @@ recorded above as a `lessons.md` candidate, with no action in this issue.
   `cargo-llvm-cov 0.6.16`). The plan awaits completed-file review.
 - 2026-10-05 18:44 UTC - Jose Celano - Approved completed-file review. The file is ready for
   pre-commit and its signed per-file commit.
+- 2026-10-15 10:30 UTC - GitHub Copilot - Recorded the prose-first AAA review late, after the
+  PR #2538 Task Reviewer found no record (AC7). Two changes: the expected swarm statistics as a
+  struct literal and the event test's `// Assert` marker.

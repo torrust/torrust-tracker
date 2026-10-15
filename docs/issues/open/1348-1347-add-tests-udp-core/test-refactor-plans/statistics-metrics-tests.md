@@ -76,6 +76,17 @@ small label sets (family, request kind, port). Expectations are written as liter
 - **Integration selected:** No.
 - **Completed-file review:** Approved by Jose Celano on 2026-10-13.
 
+## Prose-First AAA Review
+
+Recorded on 2026-10-15, late: the PR #2538 Task Reviewer found no record of it (AC7). For each
+test, temporary Arrange, Act, and Assert prose was compared with the code and then removed.
+
+| Test | Arrange → Act → Assert | Outcome |
+| --- | --- | --- |
+| M1 `it_should_count_in_each_projection_only_its_own_ip_family_and_request_kind` | Counts 1-6 per (family, kind) → six projections → `[1, 2, 3, 4, 5, 6]` | No change |
+| M2 `it_should_add_up_in_a_projection_the_requests_received_by_every_listener` | IPv4 announces on two ports (2, 3) → `udp4_announces_handled` → 5 | No change |
+| M3 `it_should_project_zero_everywhere_when_no_request_was_recorded` | Described metrics only → six projections → all 0 | No change |
+
 ## Approval
 
 Approved by Jose Celano on 2026-10-13: M1-M3 and recording the two findings.
@@ -89,3 +100,7 @@ Approved by Jose Celano on 2026-10-13: M1-M3 and recording the two findings.
   1.99.0, nightly 1.101.0, `cargo-llvm-cov 0.6.16`). The plan awaits completed-file review.
 - 2026-10-13 17:52 UTC - Jose Celano - Approved completed-file review. The file is ready for
   pre-commit and its signed per-file commit.
+- 2026-10-15 10:30 UTC - GitHub Copilot - The PR #2538 review (F6) gave M1-M3 the `it_should_`
+  prefix ("test(udp-core): name and structure the statistics tests by the unit-test
+  conventions"). After the Task Reviewer found no prose-first record, recorded the review above.
+  No further change.

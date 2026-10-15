@@ -70,6 +70,16 @@ Conclusion: `refactor` (one small change).
 - **Integration selected:** No.
 - **Completed-file review:** Approved by Jose Celano on 2026-10-10.
 
+## Prose-First AAA Review
+
+Recorded on 2026-10-15, late: the PR #2538 Task Reviewer found no record of it (AC7). For each
+test, temporary Arrange, Act, and Assert prose was compared with the code and then removed.
+
+| Test | Arrange → Act → Assert | Outcome |
+| --- | --- | --- |
+| R1 `..._redact_the_key_when_formatted_for_debugging` | Distinctive key bytes → `format!("{cipher:?}")` → exact redacted text | No change |
+| Z1 `..._wipe_the_key_schedule_when_the_cipher_is_dropped` | The cipher `CookieCipher` holds → type check → `ZeroizeOnDrop` compiles | No change; bound to the held field in the PR #2538 review (F9) |
+
 ## Approval
 
 Approved by Jose Celano on 2026-10-10: R1 (one test with only the exact-output assertion, after
@@ -86,3 +96,7 @@ discussing splitting it into two) and Z1.
   review.
 - 2026-10-10 10:10 UTC - Jose Celano - Approved completed-file review. The file is ready for
   pre-commit and its signed per-file commit.
+- 2026-10-15 10:30 UTC - GitHub Copilot - The PR #2538 review (F9) bound Z1 to the cipher
+  `CookieCipher` actually holds, so a change to a non-zeroizing cipher fails to compile ("test(udp-core):
+  check key wiping on the cipher the cookie cipher holds"). After the Task Reviewer found no
+  prose-first record, recorded the review above. No further change.

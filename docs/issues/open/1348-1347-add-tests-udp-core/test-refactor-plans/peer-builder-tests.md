@@ -66,6 +66,19 @@ vary the fields that helper fixes, and two short literals do not justify a crate
 - **Integration selected:** No.
 - **Completed-file review:** Approved by Jose Celano on 2026-10-05.
 
+## Prose-First AAA Review
+
+Recorded on 2026-10-15, late: the PR #2538 Task Reviewer found no record of it (AC7). For each
+test, temporary Arrange, Act, and Assert prose was compared with the code and then removed.
+
+| Test | Arrange → Act → Assert | Outcome |
+| --- | --- | --- |
+| P1 `..._carry_the_request_peer_id` | Distinctive peer ID → `from_request` → same ID | No change |
+| P2 `..._use_the_supplied_ip_and_the_request_port_instead_of_the_ip_in_the_request` | Request IP differs from supplied IP → `from_request` → supplied IP, request port | No change |
+| P3 `..._map_each_transfer_counter_to_the_matching_peer_field` | Distinct counters → `from_request` → each in its field | No change |
+| P4 `..._map_each_wire_announce_event_to_the_matching_domain_event` | Each wire event → `from_request` → matching domain event | No change |
+| P5 `..._stamp_the_peer_with_the_current_time` | Stopped clock at a known instant → `from_request` → that instant | No change |
+
 ## Approval
 
 Approved by Jose Celano on 2026-10-05: P1-P5, the local request data, and no property-based
@@ -84,3 +97,5 @@ testing.
 - 2026-10-14 05:40 UTC - GitHub Copilot - Follow-up (maintainer-approved, 2026-10-13): P4's loop
   became an `rstest` test with four named cases, so each wire-to-domain event pair is visible and
   fails on its own. 73 package unit tests passed; pedantic Clippy and nightly formatting clean.
+- 2026-10-15 10:30 UTC - GitHub Copilot - Recorded the prose-first AAA review late, after the
+  PR #2538 Task Reviewer found no record (AC7). No change.

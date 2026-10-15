@@ -90,6 +90,28 @@ dependency and the reason recorded.
 - **Integration selected:** No.
 - **Completed-file review:** Approved by Jose Celano on 2026-10-06.
 
+## Prose-First AAA Review
+
+Recorded on 2026-10-15, late: the PR #2538 Task Reviewer found no record of it (AC7). For each
+test, temporary Arrange, Act, and Assert prose was compared with the code and then removed.
+
+| Test | Arrange → Act → Assert | Outcome |
+| --- | --- | --- |
+| `..._keep_the_cookie_encoding_stable_for_the_test_key` | Fixed key and inputs → `make` → known bytes | No change |
+| `..._create_same_cookie_for_same_input` | Same inputs twice → `make` ×2 → equal | No change |
+| `..._create_different_cookies_for_different_fingerprints` | Two fingerprints → `make` ×2 → different | No change |
+| `..._create_different_cookies_for_different_issue_times` | Two issue times → `make` ×2 → different | No change |
+| `..._return_the_issue_time_when_the_cookie_was_issued_inside_the_valid_range` | Cookie inside the range → `check` → issue time | Changed: renamed from `..._validate_a_valid_cookie`, which named no result |
+| `..._reject_an_expired_cookie` | Range after the issue time → `check` → `ValueExpired` | No change |
+| `..._reject_a_cookie_from_the_future` | Range before the issue time → `check` → `ValueFromFuture` | No change |
+| `..._reject_a_cookie_when_checked_with_another_client_address_fingerprint` | Cookie for address A → `check` with B → error | Changed: renamed from `..._wrong_fingerprint_realistic_addresses`; the comment keeps only why realistic fingerprints are needed |
+| C2 `..._refuse_to_make_a_cookie_from_an_issue_time_that_is_not_normal` | Each non-normal time → `make` → `ValueNotNormal` | No change |
+| C1 `..._reject_a_forged_cookie_that_decodes_to_an_issue_time_that_is_not_normal` | Forged cookie → `check` → `ValueNotNormal` | No change |
+| C3 `..._accept_a_cookie_issued_exactly_at_the_start_of_the_valid_range` | Start equals issue time → `check` → issue time | No change |
+| C3 `..._accept_a_cookie_issued_exactly_at_the_end_of_the_valid_range` | End equals issue time → `check` → issue time | No change |
+| C4 `..._panic_when_the_valid_range_start_is_after_its_end` | Inverted range → `check` → panic message | No change |
+| C5 `..._round_trip_any_normal_issue_time_for_any_fingerprint` | Any normal time and fingerprint → `check` → same bits | Changed: AAA sections |
+
 ## Approval
 
 Approved by Jose Celano on 2026-10-06: the R1 refactor, C1-C5, the `quickcheck` dev-dependencies,
@@ -114,3 +136,6 @@ and recording the two findings in `lessons.md`.
   Kept as loops: both iterate one named helper, `not_normal_issue_times()`, which states the domain
   concept once; `rstest` would repeat the four values as cases in both tests, and the loop already
   names the failing value.
+- 2026-10-15 10:30 UTC - GitHub Copilot - Recorded the prose-first AAA review late, after the
+  PR #2538 Task Reviewer found no record (AC7). Two renames, one trimmed comment, and AAA
+  sections in C5.

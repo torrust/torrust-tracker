@@ -20,7 +20,7 @@ maintainer approves it.
 
 ## Plans
 
-| Order | Plan | State | Result |
+| Plan sequence | Plan | State | Result |
 | ---: | --- | --- | --- |
 | 1 | [services-announce-tests.md](services-announce-tests.md) | DONE | 8 unit tests added (R2h reopened); unit-only 0.00% → 98.48% lines |
 | 2 | [peer-builder-tests.md](peer-builder-tests.md) | DONE | 5 unit tests added; unit-only 78.57% → 100.00% lines |
@@ -29,7 +29,7 @@ maintainer approves it.
 | 5 | [crypto-keys-tests.md](crypto-keys-tests.md) | SUPERSEDED | File deleted by #2458; no Rust change made under this plan |
 | 6 | [crypto-cookie-cipher-tests.md](crypto-cookie-cipher-tests.md) | DONE | 1 test refactored, 1 compile-time guarantee added; unit-only 100.00% lines |
 | 7 | [services-connect-tests.md](services-connect-tests.md) | DONE | 5 tests replaced by 3 contract tests; 4 unused shared helpers removed; only getters uncovered |
-| 8 | [services-banning-tests.md](services-banning-tests.md) | DONE | 4 tests refactored, 2 added (1 property); banned-IPs total handed off as a bug |
+| 8 | [services-banning-tests.md](services-banning-tests.md) | DONE | 4 tests refactored, 3 added (2 properties); banned-IPs total handed off as a bug |
 | 9 | [event-tests.md](event-tests.md) | DONE | 7 tests refactored around one fixture, 2 added; only the dead `server_socket_addr()` uncovered |
 | 10 | [statistics-metrics-tests.md](statistics-metrics-tests.md) | DONE | 3 direct projection tests added; only the dead `set_gauge` uncovered |
 | 11 | [statistics-event-handler-tests.md](statistics-event-handler-tests.md) | DONE | 6 per-family tests replaced by one `rstest` test; stale `# Panics` doc removed |

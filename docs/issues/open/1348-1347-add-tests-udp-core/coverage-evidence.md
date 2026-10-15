@@ -91,15 +91,15 @@ and Issue #2505, the `rstest` conversion of `peer_builder.rs`, and the helpers m
 | --- | ---: | ---: | ---: | ---: | --- |
 | `services/announce.rs` | 0 / 101 (0.00%) | 408 / 408 (100.00%) | 451 / 454 (99.34%) | 51 / 51 (100.00%) | [services-announce-tests.md](test-refactor-plans/services-announce-tests.md) |
 | `peer_builder.rs` | 0 / 14 (0.00%) | 63 / 63 (100.00%) | 97 / 97 (100.00%) | 7 / 7 (100.00%) | [peer-builder-tests.md](test-refactor-plans/peer-builder-tests.md) |
-| `services/scrape.rs` | 0 / 77 (0.00%) | 284 / 287 (98.95%) | 320 / 326 (98.16%) | 40 / 41 (97.56%) | [services-scrape-tests.md](test-refactor-plans/services-scrape-tests.md) |
+| `services/scrape.rs` | 0 / 77 (0.00%) | 287 / 290 (98.97%) | 319 / 325 (98.15%) | 40 / 41 (97.56%) | [services-scrape-tests.md](test-refactor-plans/services-scrape-tests.md) |
 | `connection_cookie.rs` | 130 / 135 (96.30%) | 182 / 182 (100.00%) | 398 / 402 (99.00%) | 23 / 23 (100.00%) | [connection-cookie-tests.md](test-refactor-plans/connection-cookie-tests.md) |
 | `crypto/cookie_cipher.rs` | 49 / 49 (100.00%) after #2458 | 51 / 51 (100.00%) | 89 / 89 (100.00%) | 12 / 12 (100.00%) | [crypto-cookie-cipher-tests.md](test-refactor-plans/crypto-cookie-cipher-tests.md) |
 | `services/connect.rs` | 147 / 157 (93.63%) | 120 / 120 (100.00%) | 127 / 127 (100.00%) | 17 / 17 (100.00%) | [services-connect-tests.md](test-refactor-plans/services-connect-tests.md) |
-| `services/banning.rs` | 60 / 66 (90.91%) | 224 / 230 (97.39%) | 481 / 489 (98.36%) | 32 / 32 (100.00%) | [services-banning-tests.md](test-refactor-plans/services-banning-tests.md) |
+| `services/banning.rs` | 60 / 66 (90.91%) | 224 / 230 (97.39%) | 487 / 495 (98.38%) | 32 / 32 (100.00%) | [services-banning-tests.md](test-refactor-plans/services-banning-tests.md) |
 | `event.rs` | 131 / 137 (95.62%) | 144 / 147 (97.96%) | 229 / 233 (98.28%) | 21 / 22 (95.45%) | [event-tests.md](test-refactor-plans/event-tests.md) |
-| `container.rs` | 0 / 97 (0.00%) | 317 / 317 (100.00%) | 333 / 333 (100.00%) | 30 / 30 (100.00%) | [container-tests.md](test-refactor-plans/container-tests.md) |
+| `container.rs` | 0 / 97 (0.00%) | 322 / 322 (100.00%) | 338 / 338 (100.00%) | 30 / 30 (100.00%) | [container-tests.md](test-refactor-plans/container-tests.md) |
 | `statistics/event/handler.rs` | 199 / 200 (99.50%) | 60 / 61 (98.36%) | 104 / 108 (96.30%) | 6 / 6 (100.00%) | [statistics-event-handler-tests.md](test-refactor-plans/statistics-event-handler-tests.md) |
-| `statistics/repository.rs` | 21 / 26 (80.77%) | 70 / 70 (100.00%) | 73 / 74 (98.65%) | 13 / 13 (100.00%) | [statistics-repository-tests.md](test-refactor-plans/statistics-repository-tests.md) |
+| `statistics/repository.rs` | 21 / 26 (80.77%) | 66 / 66 (100.00%) | 68 / 69 (98.55%) | 11 / 11 (100.00%) | [statistics-repository-tests.md](test-refactor-plans/statistics-repository-tests.md) |
 | `statistics/metrics.rs` | 56 / 65 (86.15%) | 110 / 119 (92.44%) | 144 / 152 (94.74%) | 11 / 12 (91.67%) | [statistics-metrics-tests.md](test-refactor-plans/statistics-metrics-tests.md) |
 | `statistics/services.rs` | 32 / 32 (100.00%) | Removed by #2521 | - | - | [statistics-services-tests.md](test-refactor-plans/statistics-services-tests.md) (superseded) |
 | `statistics/event/listener.rs` | 124 / 145 (85.52%) | 144 / 164 (87.80%) | 193 / 211 (91.47%) | 21 / 24 (87.50%) | [statistics-event-listener-tests.md](test-refactor-plans/statistics-event-listener-tests.md) |
@@ -151,26 +151,27 @@ removing covered test code. After `statistics/repository.rs`: 1,924 / 1,987 line
 2,190 / 2,234 lines (98.03%), 3,037 / 3,095 regions (98.13%), 287 / 294 functions (97.62%). After
 the PR #2538 review fixes (a near-limit ban property, the cipher zeroize check bound to its field,
 and renamed statistics tests): 2,198 / 2,242 lines (98.04%), 3,064 / 3,122 regions (98.14%),
-288 / 295 functions (97.63%).
+288 / 295 functions (97.63%). After the prose-first AAA review changes (test renames and AAA
+sections, an inlined repository Act, and the container external-IP test reading its request):
+2,202 / 2,246 lines (98.04%), 3,069 / 3,127 regions (98.15%), 286 / 293 functions (97.61%).
 
 ## Final Measurement
 
-Measured on 2026-10-15T07:22:10Z after the PR #2538 review fixes (the commit "test(udp-core): name
-and structure the statistics tests by the unit-test conventions" and its predecessors, on
-`develop` at `48c4d3013`), with stable Rust 1.99.0 and `cargo-llvm-cov 0.6.16`, using the same
-two clean commands as the baseline (outputs `.tmp/1348-coverage/final3-aggregate.json` and
-`.tmp/1348-coverage/final3-unit.json`). Both ran 96 package unit tests. The package still has no
+Measured on 2026-10-15T10:39:16Z after the prose-first AAA review changes, on `develop` at
+`9c8bcdf8a`, with stable Rust 1.99.0 and `cargo-llvm-cov 0.6.16`, using the same
+two clean commands as the baseline (outputs `.tmp/1348-coverage/final4-aggregate.json` and
+`.tmp/1348-coverage/final4-unit.json`). Both ran 96 package unit tests. The package still has no
 integration target, so the aggregate command again selected only the unit-test binary and its
 totals equal unit-only.
 
 | Level | Baseline (T1) | Final (T7) | Change |
 | --- | ---: | ---: | ---: |
-| Aggregate lines | 975 / 1,345 (72.49%) | 2,198 / 2,242 (98.04%) | +25.55 pp |
-| Aggregate regions | 1,488 / 1,894 (78.56%) | 3,064 / 3,122 (98.14%) | +19.58 pp |
-| Aggregate functions | 129 / 181 (71.27%) | 288 / 295 (97.63%) | +26.36 pp |
-| Unit-only lines | 975 / 1,345 (72.49%) | 2,198 / 2,242 (98.04%) | +25.55 pp |
-| Unit-only regions | 1,488 / 1,894 (78.56%) | 3,064 / 3,122 (98.14%) | +19.58 pp |
-| Unit-only functions | 129 / 181 (71.27%) | 288 / 295 (97.63%) | +26.36 pp |
+| Aggregate lines | 975 / 1,345 (72.49%) | 2,202 / 2,246 (98.04%) | +25.55 pp |
+| Aggregate regions | 1,488 / 1,894 (78.56%) | 3,069 / 3,127 (98.15%) | +19.58 pp |
+| Aggregate functions | 129 / 181 (71.27%) | 286 / 293 (97.61%) | +26.34 pp |
+| Unit-only lines | 975 / 1,345 (72.49%) | 2,202 / 2,246 (98.04%) | +25.55 pp |
+| Unit-only regions | 1,488 / 1,894 (78.56%) | 3,069 / 3,127 (98.15%) | +19.58 pp |
+| Unit-only functions | 129 / 181 (71.27%) | 286 / 293 (97.61%) | +26.34 pp |
 
 The change is not all from #1348. Issue #2458 removed the two key modules and added the cookie
 cipher and the first container tests; Issue #2505 rewrote the banned-IPs counting and added
@@ -187,7 +188,7 @@ Remaining uncovered lines and their recorded reasons:
 | `services/scrape.rs` | 178-180 | `From<WhitelistError>`, unreachable from this service (`lessons.md`). |
 | `statistics/event/handler.rs` | 17 | Error log when the repository rejects a counter increase. |
 | `services/mod.rs` | 15 | `mock!` expansion (generated code). |
-| `services/banning.rs` | 244, 264, 285, 351, 379, 451 | Failure-message arguments in #2505's test assertions, evaluated only when an assertion fails. The banning plan's earlier uncovered lines (the banned-IPs total) are now covered by #2505. |
+| `services/banning.rs` | 252, 272, 293, 359, 387, 459 | Failure-message arguments in #2505's test assertions, evaluated only when an assertion fails. The banning plan's earlier uncovered lines (the banned-IPs total) are now covered by #2505. |
 
 ## Final Test-Technique Assessment
 

@@ -55,6 +55,10 @@ production changes are documentation fixes in the files under test.
 - **The manual-verification client was needed a second time** (after #2505's shell probe); the
   maintainer chose a Rust client and the reusable form is a follow-up.
 - **The spec carried two garbled lines** from its merge; repaired during T8.
+- **The prose-first AAA review was never recorded.** The per-file workflow names it, but no plan
+  template section asked for it, and the final Task Reviewer ran only after the PR #2538 review
+  noted its absence. It failed on this gap; the review was then done for every test-producing
+  file, renamed nine tests, and fixed one hidden Act and one fixture-coupled assertion.
 
 ## Root Cause
 
@@ -75,6 +79,8 @@ production changes are documentation fixes in the files under test.
    disposable code.
 3. **Hand-off pattern:** the `.tmp/<topic>/ISSUE.md` + `HANDOFF.md` pair worked for four hand-offs
    in one issue; consider documenting it in the `create-issue` skill.
+4. **Prose-first record:** give the #1347 file-plan template a Prose-First AAA Review section, and
+   run the Task Reviewer before opening the PR, as the spec says.
 
 ## Avoiding Overcorrection
 

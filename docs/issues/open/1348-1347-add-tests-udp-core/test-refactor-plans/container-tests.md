@@ -91,6 +91,19 @@ Two callers pass it (`src/container.rs` and `initialize_from_tracker_core`).
 - **Integration selected:** No.
 - **Completed-file review:** Approved by Jose Celano on 2026-10-14.
 
+## Prose-First AAA Review
+
+Recorded on 2026-10-15, late: the PR #2538 Task Reviewer found no record of it (AC7). For each
+test, temporary Arrange, Act, and Assert prose was compared with the code and then removed.
+
+| Test | Arrange → Act → Assert | Outcome |
+| --- | --- | --- |
+| C1 `..._give_every_service_the_configured_public_url` | Configured URL → build the container → three services report it | No change |
+| C2 `..._give_the_container_and_every_service_its_configuration_instance_id` | Instance ID 7 → build the container → container and services report it | No change |
+| C3 `..._ban_an_ip_only_after_more_than_the_configured_connection_id_errors` | Limit 3, three errors → `is_banned`, one more error, `is_banned` → `(false, true)` | No change |
+| C4 `..._announce_a_loopback_client_with_the_configured_external_ip` | External IP, loopback client → `handle_announce` → peer at external IP and request port | Changed: info hash and port are read from the request instead of repeated literals, and the loopback client port now differs from the request port, so a port mix-up fails |
+| C5 `..._accept_in_one_container_a_connection_id_issued_by_another_container_built_from_the_same_services` | ID from the first container → second container's `authenticate` → issue time | No change |
+
 ## Approval
 
 Approved by Jose Celano on 2026-10-14: C1-C5 and recording the finding.
@@ -106,3 +119,6 @@ Approved by Jose Celano on 2026-10-14: C1-C5 and recording the finding.
   nightly 1.101.0, `cargo-llvm-cov 0.6.16`). The plan awaits completed-file review.
 - 2026-10-14 15:05 UTC - Jose Celano - Approved completed-file review. The file is ready for
   pre-commit and its signed per-file commit.
+- 2026-10-15 10:30 UTC - GitHub Copilot - Recorded the prose-first AAA review late, after the
+  PR #2538 Task Reviewer found no record (AC7). One change, in C4. Unit-only file totals:
+  322 / 322 lines, 338 / 338 regions, 30 / 30 functions.

@@ -63,6 +63,15 @@ Line coverage is already 100%; D1 adds a contract check, not coverage.
 - **Integration selected:** No.
 - **Completed-file review:** Approved by Jose Celano on 2026-10-14.
 
+## Prose-First AAA Review
+
+Recorded on 2026-10-15, late: the PR #2538 Task Reviewer found no record of it (AC7). The
+temporary Arrange, Act, and Assert prose was compared with the code and then removed.
+
+| Test | Arrange → Act → Assert | Outcome |
+| --- | --- | --- |
+| D1 `it_should_declare_the_requests_received_counter_under_its_exported_name` | Nothing → `describe_metrics` → a counter under the literal exported name | No change |
+
 ## Approval
 
 Approved by Jose Celano on 2026-10-14: D1.
@@ -77,3 +86,6 @@ Approved by Jose Celano on 2026-10-14: D1.
   nightly 1.101.0, `cargo-llvm-cov 0.6.16`). The plan awaits completed-file review.
 - 2026-10-14 10:59 UTC - Jose Celano - Approved completed-file review. The file is ready for
   pre-commit and its signed per-file commit.
+- 2026-10-15 10:30 UTC - GitHub Copilot - The PR #2538 review (F6) added AAA sections to D1
+  ("test(udp-core): name and structure the statistics tests by the unit-test conventions"). After
+  the Task Reviewer found no prose-first record, recorded the review above. No further change.

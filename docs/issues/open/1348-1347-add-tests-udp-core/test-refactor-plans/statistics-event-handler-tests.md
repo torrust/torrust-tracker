@@ -81,6 +81,15 @@ the section.
 - **Integration selected:** No.
 - **Completed-file review:** Approved by Jose Celano on 2026-10-14.
 
+## Prose-First AAA Review
+
+Recorded on 2026-10-15, late: the PR #2538 Task Reviewer found no record of it (AC7). The
+temporary Arrange, Act, and Assert prose was compared with the code and then removed.
+
+| Test | Arrange → Act → Assert | Outcome |
+| --- | --- | --- |
+| H1 `it_should_count_each_event_as_one_request_of_its_kind` | Empty repository; the case gives the event kind → `handle_event` → that kind counts 1 | No change |
+
 ## Approval
 
 Approved by Jose Celano on 2026-10-13: the `rstest` H1, adding `rstest`, removing the stale
@@ -97,3 +106,5 @@ only where they improve maintainability, readability, or expressiveness.
   awaits completed-file review.
 - 2026-10-14 05:31 UTC - Jose Celano - Approved completed-file review. The file is ready for
   pre-commit and its signed per-file commit.
+- 2026-10-15 10:30 UTC - GitHub Copilot - Recorded the prose-first AAA review late, after the
+  PR #2538 Task Reviewer found no record (AC7). No change.

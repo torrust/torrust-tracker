@@ -80,13 +80,31 @@ Conclusion: `refactor`.
   168 / 176 regions; 14 / 16 functions. The six uncovered lines are exactly the banned-IPs total
   (46-48, 68-70), left for the bug issue.
 - **Tests refactored:** 4 (AAA sections, fixture comment and parameter, redundant assertion).
-- **Tests added:** 2: B1 (per-IP isolation) and P1 (`quickcheck` threshold property).
+- **Tests added:** 2: B1 (per-IP isolation) and P1 (`quickcheck` threshold property); the PR #2538
+  review added P2, a near-limit threshold property, so 3 in total.
 - **Property testing kept:** yes, with mutation evidence above.
 - **Findings:** handed off as a bug and fixed by
   [#2505](../../../closed/2505-udp-banned-ips-metric/ISSUE.md) (merged in PR #2524); also recorded in
   [lessons.md](../lessons.md).
 - **Integration selected:** No.
 - **Completed-file review:** Approved by Jose Celano on 2026-10-13.
+
+## Prose-First AAA Review
+
+Recorded on 2026-10-15, late: the PR #2538 Task Reviewer found no record of it (AC7). For each
+test this plan touched, temporary Arrange, Act, and Assert prose was compared with the code and
+then removed. #2505's tests are its own.
+
+| Test | Arrange → Act → Assert | Outcome |
+| --- | --- | --- |
+| `..._increase_the_errors_counter_for_a_given_ip` | Fresh service → one error → count 1 | No change |
+| `..._ban_ips_with_counters_exceeding_a_predefined_limit` | Limit 1, two errors → `is_banned` → true | No change |
+| `..._not_ban_ips_whose_counters_do_not_exceed_the_predefined_limit` | Limit 1, one error → `is_banned` → false | No change |
+| `..._not_ban_ips_without_connection_id_errors` | No errors → `is_banned` → false | No change |
+| `it_should_clear_an_ips_error_count_when_the_bans_are_reset` | Two errors → `reset_bans` → no count | Changed: renamed from `..._allow_resetting_all_the_counters`, which named no behavior |
+| B1 `..._not_count_one_ips_errors_against_another_ip` | Offending IP over the limit → `is_banned(other)` → false | No change |
+| P1 `..._ban_an_ip_exactly_when_its_errors_exceed_the_limit` | Any limit and errors → `is_banned` → `errors > limit` | Changed: AAA sections; errors recorded with `record_connection_id_errors` like P2 |
+| P2 `..._exceed_the_limit_for_counts_within_two_of_it` | Errors within two of any limit → `is_banned` → `errors > limit` | Changed: renamed from `..._near_the_limit`; AAA sections; the doc comment states why the draws stay near the limit |
 
 ## Approval
 
@@ -112,3 +130,8 @@ fix the banned-IPs total in parallel, as with #2458.
   [#2505](../../../closed/2505-udp-banned-ips-metric/ISSUE.md), merged in PR #2524. Rebased #1348 onto it: the
   only conflict was the test module imports (`quickcheck` types from #2505, the `quickcheck` macro
   from this plan); both kept. All 17 banning tests pass.
+- 2026-10-15 10:30 UTC - GitHub Copilot - The PR #2538 review (F8) added P2, a property that
+  draws error counts within two of the limit, so the property itself owns the boundary
+  ("test(udp-core): add a ban threshold property that draws near the limit"). After the Task
+  Reviewer found no prose-first record, recorded the review above: one rename, AAA sections in
+  P1 and P2, and the shared error-recording helper. 18 banning tests pass.

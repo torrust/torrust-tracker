@@ -87,6 +87,17 @@ literals and `PeerBuilder`, as the other `udp-core` tests do.
 - **Integration selected:** No.
 - **Completed-file review:** Approved by Jose Celano on 2026-10-14.
 
+## Prose-First AAA Review
+
+Recorded on 2026-10-15, late: the PR #2538 Task Reviewer found no record of it (AC7). For each
+test this plan touched, temporary Arrange, Act, and Assert prose was compared with the code and
+then removed.
+
+| Test | Arrange → Act → Assert | Outcome |
+| --- | --- | --- |
+| R1 `it_should_complete_when_the_receiver_is_closed` | Receiver yields only `Closed` → `dispatch_events` → `Completed` | No change |
+| L1 `it_should_count_an_event_of_any_kind_from_a_metrics_enabled_listener` | One event of the case's kind from an enabled listener → `dispatch_events` → one request counted | No change |
+
 ## Approval
 
 Approved by Jose Celano on 2026-10-14: R1 and L1.
@@ -101,3 +112,5 @@ Approved by Jose Celano on 2026-10-14: R1 and L1.
   1.99.0, nightly 1.101.0, `cargo-llvm-cov 0.6.16`). The plan awaits completed-file review.
 - 2026-10-14 10:13 UTC - Jose Celano - Approved completed-file review. The file is ready for
   pre-commit and its signed per-file commit.
+- 2026-10-15 10:30 UTC - GitHub Copilot - Recorded the prose-first AAA review late, after the
+  PR #2538 Task Reviewer found no record (AC7). No change.

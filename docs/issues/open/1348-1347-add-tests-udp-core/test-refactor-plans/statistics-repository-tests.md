@@ -89,6 +89,17 @@ Test data: label sets and counts written as literals; the metric name comes from
 - **Integration selected:** No.
 - **Completed-file review:** Approved by Jose Celano on 2026-10-14.
 
+## Prose-First AAA Review
+
+Recorded on 2026-10-15, late: the PR #2538 Task Reviewer found no record of it (AC7). For each
+test, temporary Arrange, Act, and Assert prose was compared with the code and then removed.
+
+| Test | Arrange → Act → Assert | Outcome |
+| --- | --- | --- |
+| S1 `it_should_describe_the_requests_received_counter_when_created` | The case picks `new` or `default` → construct → the counter is described | No change |
+| S2 `it_should_make_an_increased_counter_visible_through_the_repository_stats` | Empty repository → `increase_counter` → the stats read 1 | Changed: the `increase_counter` call is inline under `// Act`; the single-use helper that hid it is gone |
+| S3 `it_should_return_the_metric_collection_error_when_a_counter_cannot_be_increased` | Name already a gauge → `increase_counter` → collision error | No change |
+
 ## Approval
 
 Approved by Jose Celano on 2026-10-14: S1-S4. Both findings become separate EPIC #1669 sub-issues,
@@ -111,3 +122,8 @@ drafted with hand-off notes under `.tmp/` for another agent to take through spec
   Celano: S4 was dropped with the trait method it tested, and #2517's construction test was
   dropped as superseded by S1's `new` case. S1-S3 remain; S3 still writes through `stats` from the
   in-file test module. Unit-only file totals: 70 / 70 lines, 73 / 74 regions, 13 / 13 functions.
+- 2026-10-15 10:30 UTC - GitHub Copilot - The PR #2538 review (F6) gave S1 and S2 the
+  `it_should_` prefix, AAA sections, and S1 an assertion message ("test(udp-core): name and
+  structure the statistics tests by the unit-test conventions"). After the Task Reviewer found no
+  prose-first record, recorded the review above: S2's Act is now inline. Unit-only file totals:
+  66 / 66 lines, 68 / 69 regions, 11 / 11 functions.

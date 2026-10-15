@@ -81,6 +81,22 @@ in-file announce request builder; `udp-server`'s builder is not shared across pa
 - **Completed-file review:** Approved by Jose Celano on 2026-10-04 for R2a-R2g and on 2026-10-05
   for R2h.
 
+## Prose-First AAA Review
+
+Recorded on 2026-10-15, late: the PR #2538 Task Reviewer found no record of it (AC7). For each
+test, temporary Arrange, Act, and Assert prose was compared with the code and then removed.
+
+| Test | Arrange → Act → Assert | Outcome |
+| --- | --- | --- |
+| R2a `..._reject_an_expired_connection_id_when_cookie_validation_is_enabled` | Expired ID → `handle_announce` validating → `ValueExpired` | No change |
+| R2b `..._accept_an_expired_connection_id_when_cookie_validation_is_skipped` | Expired ID → `handle_announce` skipping → `Ok` | No change |
+| R2c `..._reject_an_announce_for_a_torrent_that_is_not_whitelisted_on_a_listed_tracker` | Listed tracker, empty whitelist → `handle_announce` → `TorrentNotWhitelisted` | No change |
+| R2h `..._report_a_failing_persisted_downloads_lookup_as_a_tracker_core_announce_error` | Failing downloads store → `handle_announce` → `Database` error | No change |
+| R2d `..._validate_the_connection_id_before_revealing_whether_the_torrent_is_whitelisted` | Listed tracker, expired ID → `handle_announce` → cookie error | No change |
+| R2e `..._announce_the_peer_with_the_client_socket_ip_instead_of_the_ip_in_the_request` | Request IP set inline → `handle_announce` → peer at socket IP | No change |
+| R2f `..._announce_a_loopback_client_with_the_configured_tracker_external_ip` | External IP, loopback client → `handle_announce` → peer at external IP | No change |
+| R2g `..._publish_an_announce_event_with_the_connection_context_and_the_announced_peer` | Mock expects one event → `handle_announce` → mock verifies on drop | Changed: the `// Assert` marker now says the mock verifies the event, as in `connect.rs` |
+
 ## Approval
 
 Approved by Jose Celano on 2026-10-02: R2a-R2g, the fixture approach, and not testing
@@ -105,3 +121,5 @@ Approved by Jose Celano on 2026-10-02: R2a-R2g, the fixture approach, and not te
   extended the fixture with an optional persisted-downloads store, and re-measured coverage.
   Awaiting completed-file review of R2h.
 - 2026-10-05 21:06 UTC - Jose Celano - Approved the R2h completed-file review.
+- 2026-10-15 10:30 UTC - GitHub Copilot - Recorded the prose-first AAA review late, after the
+  PR #2538 Task Reviewer found no record (AC7). One change: R2g's `// Assert` marker.

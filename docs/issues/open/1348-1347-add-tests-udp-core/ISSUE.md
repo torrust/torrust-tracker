@@ -8,8 +8,8 @@ epic: 1347
 github-issue: 1348
 spec-path: docs/issues/open/1348-1347-add-tests-udp-core/ISSUE.md
 branch: "1348-1347-add-tests-udp-core"
-related-pr: null
-last-updated-utc: "2026-10-15 07:23"
+related-pr: 2538
+last-updated-utc: "2026-10-15 10:41"
 semantic-links:
   skill-links:
     - create-issue
@@ -329,7 +329,7 @@ Issue #2458 (merged 2026-10-08) replaced the global cookie keys with an injected
 - [x] Manual verification recorded in `manual-verification-evidence.md`.
 - [x] Bounded mutation assessment recorded in `mutation-evidence.md`.
 - [x] Acceptance criteria reviewed after implementation.
-- [x] Implementation completion review recorded (`implementation-retrospective.md` or a
+- [ ] Implementation completion review recorded (`implementation-retrospective.md` or a
       progress-log reason); independent reviewer results in `agent-review-reports.md` when used.
 - [ ] Issue closed and spec moved to `docs/issues/closed/`.
 
@@ -549,6 +549,16 @@ Issue #2458 (merged 2026-10-08) replaced the global cookie keys with an injected
   ban property, bound the zeroize check to the cipher's field, renamed and structured the
   statistics tests, corrected the unviable-mutant cause and the lock-file rationale, and
   reconciled these records. Re-measured: lines 98.04% (2,198 / 2,242), 96 unit tests.
+- 2026-10-15 10:41 UTC - GitHub Copilot - Rebased onto `develop` at `9c8bcdf8a` (no conflicts; no
+  `udp-core` or manifest change since `48c4d3013`) and ran the independent Task Reviewer the spec
+  requires for the final pre-PR review, late, as PR #2538 review finding F4 noted. It failed
+  ([agent-review-reports.md](agent-review-reports.md)): no plan recorded the prose-first AAA review
+  AC7 requires. With the maintainer's approval the review was done now for every test-producing
+  file and recorded in each plan; it renamed nine tests, added AAA sections to three properties,
+  inlined one hidden Act, and made the container external-IP test read the info hash and port
+  from its request. Also fixed the reviewer's record findings. Re-measured: lines 98.04%
+  (2,202 / 2,246), 96 unit tests. The completion-review checkpoint stays open until a passing
+  review is recorded.
 
 ## Acceptance Criteria
 
@@ -642,7 +652,7 @@ construction from `packages/test-helpers/src/udp.rs` where practical.
 | AC4 | Met | Every plan names the module-owned decisions and keeps collaborator semantics out of unit tests; mutation proofs are recorded for every test-producing plan (not for every test), plus the bounded `cargo-mutants` sample on `connection_cookie.rs`. |
 | AC5 | Met (vacuous) | No package integration test was added; every plan records why (T5). |
 | AC6 | Met | No-change plans (`lib.rs`, `crypto/mod.rs`, `statistics/event/mod.rs`) and every remaining uncovered line list a reason or owner (`coverage-evidence.md` Final Measurement). |
-| AC7 | Met | Each test-producing plan records R2 validation (tests, pedantic Clippy, nightly fmt, `git diff --check`), the maintainer's completed-file review, and one signed commit before the next file. |
+| AC7 | Met | Each test-producing plan records R2 validation (tests, pedantic Clippy, nightly fmt, `git diff --check`), the maintainer's completed-file review, and one signed commit before the next file. The prose-first AAA comparison was not recorded at the time; it was done and recorded in each plan's Prose-First AAA Review section on 2026-10-15, after the Task Reviewer's finding. |
 | AC8 | Met | `mutation-evidence.md`: bounded sample, no score target or CI gate. |
 | AC9 | Met | T7 reconciliation; EPIC #1347 aggregate and unit-only tables record baseline and final values. |
 | AC15 | Met | Highest-risk: cookie windows, fingerprints and round trip (`connection_cookie.rs`, property and mutation sample), cipher (`crypto/cookie_cipher.rs`), ban counting (`services/banning.rs`, property, plus #2505), validation bypass (`services/announce.rs`, `services/scrape.rs`). High: error adaptation, event publication with and without a sender, and peer mapping are tested in the service and `peer_builder.rs` plans; the unreachable `TrackerCoreWhitelistError` path is recorded with its reason. |
@@ -650,7 +660,7 @@ construction from `packages/test-helpers/src/udp.rs` where practical.
 | AC11 | Met | `linter all` passes in every pre-commit run, the latest before the T8 commit. |
 | AC12 | Met | `cargo test -p torrust-tracker-udp-core` (stable 1.99.0): 96 unit tests and 6 runnable doc tests (the compile/compile-fail pairs in `container.rs`, `crypto/cookie_cipher.rs`, and `statistics/repository.rs`) pass, with 3 `ignore` blocks, after the PR #2538 review fixes. Pre-push full stable suite also passes. |
 | AC13 | Met | `manual-verification-evidence.md` V1-V4, all `DONE`. |
-| AC14 | Met | This table, reviewed after implementation on 2026-10-14. |
+| AC14 | Met | This table, reviewed after implementation on 2026-10-14 and again on 2026-10-15 after the PR #2538 review and the Task Reviewer's findings. |
 
 ## Risks and Trade-offs
 

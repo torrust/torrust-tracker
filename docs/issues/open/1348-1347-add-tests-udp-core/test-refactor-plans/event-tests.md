@@ -75,6 +75,23 @@ Conclusion: `refactor`.
 - **Integration selected:** No.
 - **Completed-file review:** Approved by Jose Celano on 2026-10-13.
 
+## Prose-First AAA Review
+
+Recorded on 2026-10-15, late: the PR #2538 Task Reviewer found no record of it (AC7). For each
+test, temporary Arrange, Act, and Assert prose was compared with the code and then removed.
+
+| Test | Arrange → Act → Assert | Outcome |
+| --- | --- | --- |
+| E2 `..._return_the_client_socket_address_not_the_server_one` | IPv4 client → `client_socket_addr` → that client | No change |
+| `it_should_report_the_inet_family_when_the_client_is_ipv4` | IPv4 client → `client_address_ip_family` → `Inet` | Changed: `it_should_` name |
+| `it_should_report_the_inet6_family_when_the_client_is_ipv6` | IPv6 client → `client_address_ip_family` → `Inet6` | Changed: `it_should_` name |
+| `it_should_report_a_plain_ip_type_when_the_client_is_ipv4` | IPv4 client → `client_address_ip_type` → `Plain` | Changed: `it_should_` name |
+| `it_should_report_a_plain_ip_type_when_the_client_is_native_ipv6` | Native IPv6 client → `client_address_ip_type` → `Plain` | Changed: `it_should_` name |
+| `it_should_report_a_v4_mapped_v6_ip_type_when_the_client_is_ipv4_mapped_ipv6` | Mapped client → `client_address_ip_type` → `V4MappedV6` | Changed: `it_should_` name; the address is built with `to_ipv6_mapped()` instead of hex and a comment |
+| `..._retain_an_optional_configured_public_url` | Context with a URL → `public_url` → that URL | No change |
+| E1 `..._project_the_server_binding_and_the_client_address_into_metric_labels` | IPv4 client → `LabelSet::from` → literal seven labels | No change; the server values come from the one helper that owns them |
+| `it_should_include_the_public_url_label_only_when_a_public_url_is_configured` | With and without a URL → `LabelSet::from` ×2 → label only in the first | Changed: `it_should_` name |
+
 ## Approval
 
 Approved by Jose Celano on 2026-10-13: R1, E1, E2, and recording `server_socket_addr()` as a
@@ -91,3 +108,6 @@ removal candidate.
   review.
 - 2026-10-13 17:12 UTC - Jose Celano - Approved completed-file review. The file is ready for
   pre-commit and its signed per-file commit.
+- 2026-10-15 10:30 UTC - GitHub Copilot - Recorded the prose-first AAA review late, after the
+  PR #2538 Task Reviewer found no record (AC7). Six tests renamed to the `it_should_` form; the
+  mapped address is built with `to_ipv6_mapped()`.

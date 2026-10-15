@@ -85,6 +85,17 @@ Conclusion: `refactor`.
 - **Completed-file review:** Approved by Jose Celano on 2026-10-10, including the `services/mod.rs`
   helper removal in the same commit.
 
+## Prose-First AAA Review
+
+Recorded on 2026-10-15, late: the PR #2538 Task Reviewer found no record of it (AC7). For each
+test, temporary Arrange, Act, and Assert prose was compared with the code and then removed.
+
+| Test | Arrange → Act → Assert | Outcome |
+| --- | --- | --- |
+| `..._issue_a_connection_id_that_validates_for_the_client_at_the_issue_time` | Shared cipher, fixed time → `handle_connect` → `check` returns the issue time | No change |
+| `..._publish_a_connect_event_with_the_connection_context` | Mock expects one event → `handle_connect` → mock verifies on drop | No change; the comment on the drop check is context the code cannot show |
+| `..._panic_when_the_issue_time_is_not_a_normal_value` | Issue time `0.0` inline → `handle_connect` → panic message | No change |
+
 ## Approval
 
 Approved by Jose Celano on 2026-10-10: the R1 refactor (5 tests become 2) and C1.
@@ -99,3 +110,5 @@ Approved by Jose Celano on 2026-10-10: the R1 refactor (5 tests become 2) and C1
   completed-file review.
 - 2026-10-10 11:29 UTC - Jose Celano - Approved completed-file review. The file is ready for
   pre-commit and its signed per-file commit.
+- 2026-10-15 10:30 UTC - GitHub Copilot - Recorded the prose-first AAA review late, after the
+  PR #2538 Task Reviewer found no record (AC7). No change.
