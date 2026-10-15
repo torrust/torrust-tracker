@@ -76,8 +76,16 @@ The rule applies to the five existing repositories and to any new statistics rep
   wait. The closure must not block the thread (blocking I/O, sleeping, or long computation) and must
   not call `read_metrics` on the same repository, which could deadlock. The type system does not
   enforce this; `read_metrics()`'s rustdoc states it.
-- **One acquisition reads consistent values.** A caller that needs several values, such as the REST
-  `Stats` with about twenty, reads them in one closure.
+- **One acquisition reads consistent values.** A caller that needs several values that one
+  repository serves together, such as the REST `Stats` with about twenty values from the UDP server
+  repository, reads them in one closure. A caller that needs values from several repositories
+  takes one acquisition per repository.
+- **Accepted exception: `tracker-core`'s per-value accessors.** `tracker-core`'s repository also
+  keeps `get_torrents_downloads_total()`, `get_torrents_downloads_in_session_total()` and
+  `get_torrents_downloads_persisted_total()`. Each is one `read_metrics()` call, so the REST `Stats`
+  reads the three with three acquisitions. This decision does not change them: they were already
+  per-value accessors, no statistics field combines the three, and they expose no lock or field.
+  A caller that must read them consistently with each other uses `read_metrics()` directly.
 - **Debug logging stays lazy.** An event handler that logs the metrics reads inside the
   `tracing::debug!` arguments, so the lock is taken only when `debug` is enabled:
 
@@ -89,8 +97,9 @@ The rule applies to the five existing repositories and to any new statistics rep
 
 - **Return the read guard (the previous design).** Rejected: it makes the lock type public API and
   lets a caller hold the lock across an `.await`.
-- **One accessor method per value.** Rejected: each call takes the lock again, so several values
-  read together may not be consistent with each other.
+- **One accessor method per value as the way to read several values together.** Rejected: each
+  call takes the lock again, so several values read together may not be consistent with each
+  other. The `tracker-core` accessors above are the existing exception.
 - **Return an owned snapshot of `Metrics`.** Rejected: it clones the whole collection on every
   read, which the #2517 spec already ruled out for event paths.
 
