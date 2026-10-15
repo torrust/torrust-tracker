@@ -9,7 +9,7 @@ github-issue: 1348
 spec-path: docs/issues/open/1348-1347-add-tests-udp-core/ISSUE.md
 branch: "1348-1347-add-tests-udp-core"
 related-pr: 2538
-last-updated-utc: "2026-10-15 10:41"
+last-updated-utc: "2026-10-15 11:56"
 semantic-links:
   skill-links:
     - create-issue
