@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2471-1488-fix-http-environment-drop-path/ISSUE.md
-last-updated-utc: 2026-10-15 19:38
+last-updated-utc: 2026-10-15 20:31
 ---
 
 # Manual Verification Evidence
@@ -107,7 +107,7 @@ test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 43 filtered out;
 Reproduced: the binding was still taken 10 s after the drop, so the HTTP
 server kept running.
 
-Correction (PR #2544 review finding F5, reviewer ID F1, 2026-10-15): this section first said,
+Correction (`review-finding:pr-2544-f5`, 2026-10-15): this section first said,
 from source and without running it, that before PR #2439 a dropped halt
 sender ended the server, so the gap was a regression from SI-16. That was
 wrong. `torrust-server-lib` 0.3.0's `shutdown_signal` panics on the closed

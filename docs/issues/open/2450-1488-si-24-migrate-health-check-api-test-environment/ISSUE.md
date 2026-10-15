@@ -9,7 +9,7 @@ github-issue: 2450
 spec-path: docs/issues/open/2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md
 branch: "2450-migrate-health-check-api-test-environment"
 related-pr: null
-last-updated-utc: "2026-10-15 19:38"
+last-updated-utc: "2026-10-15 20:31"
 semantic-links:
   skill-links:
     - create-issue
@@ -199,7 +199,7 @@ before maintainer review and commit. Sign every commit with GPG.
 - 2026-10-06 11:34 UTC - GitHub Copilot - Drafted after the SI-17 refresh found this environment still on the legacy path and missing from the roadmap; the maintainer chose one item per environment.
 - 2026-10-06 11:41 UTC - GitHub Copilot - Maintainer approved this spec, including D1 (keep the `Result` signature). Created #2450 (sub-issue of #1488) and moved the spec to `docs/issues/open/`.
 - 2026-10-07 13:05 UTC - GitHub Copilot - The drop path is no longer "unchanged": a token migration loses the halt sender's stop-on-drop, as SI-16 did (#2471). Added the `DropGuard` requirement, a T1 drop test, and AC7.
-- 2026-10-15 19:38 UTC - GitHub Copilot - Corrected the drop-path note after PR #2544 review finding F5 (reviewer ID F1): the HTTP environment never stopped on drop, before or after SI-16, so the note no longer says SI-16 lost the behavior or that the legacy halt sender stops its server on drop. The `DropGuard` requirement and AC7 stand.
+- 2026-10-15 19:38 UTC - GitHub Copilot - Corrected the drop-path note after `review-finding:pr-2544-f5`: the HTTP environment never stopped on drop, before or after SI-16, so the note no longer says SI-16 lost the behavior or that the legacy halt sender stops its server on drop. The `DropGuard` requirement and AC7 stand.
 
 ## Acceptance Criteria
 

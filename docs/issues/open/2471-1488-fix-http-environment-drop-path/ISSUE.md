@@ -9,7 +9,7 @@ github-issue: 2471
 spec-path: docs/issues/open/2471-1488-fix-http-environment-drop-path/ISSUE.md
 branch: "2471-fix-http-environment-drop-path"
 related-pr: null
-last-updated-utc: "2026-10-15 19:40"
+last-updated-utc: "2026-10-15 20:31"
 semantic-links:
   skill-links:
     - create-issue
@@ -37,7 +37,7 @@ Parent: [EPIC #1488 - Overhaul: Tracker Shutdown](../1488-overhaul-tracker-shutd
 > without `stop()`, before or after SI-16 (#2412, PR #2439). SI-17 fixed the
 > same gap in the UDP environment during review (PR #2459, finding F1); this
 > issue aligns HTTP with UDP. An earlier version of this spec called it a
-> regression from SI-16; PR #2544 review finding F5 (reviewer ID F1) showed
+> regression from SI-16; `review-finding:pr-2544-f5` showed
 > that was wrong, and V4 confirms it.
 
 ## Goal
@@ -197,9 +197,10 @@ for the test. Sign every commit with GPG.
 - 2026-10-07 12:45 UTC - GitHub Copilot - Maintainer approved the spec. Created #2471, linked it as a sub-issue of EPIC #1488, and moved the spec to `docs/issues/open/`. It ships in a spec-only PR with the SI-22, SI-23 and SI-24 spec refreshes; the fix gets its own PR before SI-22 starts.
 - 2026-10-15 17:20 UTC - GitHub Copilot - Implemented on branch `2471-fix-http-environment-drop-path`. Added the regression test and recorded it red (V2: binding still taken after 10.02 s), then held the token as a `DropGuard` and disarmed it in `stop()` (V3: 7 environment tests, 44 unit and 62 integration tests pass; clippy clean).
 - 2026-10-15 17:20 UTC - GitHub Copilot - Design-review checkpoint (prose-first Arrange-Act-Assert). Arrange: a started HTTP environment on an ephemeral port, whose binding is read before the drop. Act: drop the environment without `stop()`. Assert: within `TEST_DEADLINE` the same address can be bound again, polled because the guard only requests cancellation and the server task releases the socket when it next runs. The test fails for the defect (V2) and passes for the fix (V3), and mirrors the UDP test. Checked `stop()`: it disarms the guard, then cancels once and joins the server task, its drain controller, and the listener as before, so the drop path does not run on a normal stop; the existing stop, restart and failure-join tests still pass. The `Running` interface and public fields are unchanged.
-- 2026-10-15 19:36 UTC - GitHub Copilot - PR #2544 review finding F5 (reviewer da2ce7, ID F1): the "regression from SI-16" framing was wrong. Verified in source (the spawned `graceful_shutdown` task panics on the closed halt channel before `handle.graceful_shutdown`) and by running the drop test on the tree before SI-16 (V4, `evidence/v4-pre-si16-drop-run.txt`): the binding was still taken after 10.02 s. Corrected the Background, the out-of-scope note, V1's conclusion, the EPIC roadmap row 14, the SI-23 and SI-24 drop-path notes, and the GitHub issue body.
-- 2026-10-15 19:39 UTC - GitHub Copilot - PR #2544 review findings F1 and F2 (Copilot, same concern at two lines): the spec still showed the automatic checks as pending. The pre-commit hook (which runs `linter all`) passed on every commit and the pre-push checks (nightly fmt, check and docs, and the full stable test suite) passed on the push, so T3 is DONE and the checkpoint is ticked.
-- 2026-10-15 19:40 UTC - GitHub Copilot - PR #2544 review findings F8 (reviewer ID F4) and F9 (reviewer ID F5): the implementer must not tick acceptance criteria, so AC1 to AC3 are cleared and their rows are back to `TODO` with the evidence pointers kept for the reviewer. `status` is `in-progress`. The manual-verification workflow checkpoint is ticked (V1 to V4 and M1 are recorded); the matching acceptance-criteria box stays clear for the reviewer.
+- 2026-10-15 19:36 UTC - GitHub Copilot - `review-finding:pr-2544-f5`: the "regression from SI-16" framing was wrong. Verified in source (the spawned `graceful_shutdown` task panics on the closed halt channel before `handle.graceful_shutdown`) and by running the drop test on the tree before SI-16 (V4, `evidence/v4-pre-si16-drop-run.txt`): the binding was still taken after 10.02 s. Corrected the Background, the out-of-scope note, V1's conclusion, the EPIC roadmap row 14, the SI-23 and SI-24 drop-path notes, and the GitHub issue body.
+- 2026-10-15 19:39 UTC - GitHub Copilot - `review-finding:pr-2544-f1` and `review-finding:pr-2544-f2` (Copilot, same concern at two lines): the spec still showed the automatic checks as pending. The pre-commit hook (which runs `linter all`) passed on every commit and the pre-push checks (nightly fmt, check and docs, and the full stable test suite) passed on the push, so T3 is DONE and the checkpoint is ticked.
+- 2026-10-15 19:40 UTC - GitHub Copilot - `review-finding:pr-2544-f8` and `review-finding:pr-2544-f9`: the implementer must not tick acceptance criteria, so AC1 to AC3 are cleared and their rows are back to `TODO` with the evidence pointers kept for the reviewer. `status` is `in-progress`. The manual-verification workflow checkpoint is ticked (V1 to V4 and M1 are recorded); the matching acceptance-criteria box stays clear for the reviewer.
+- 2026-10-15 20:31 UTC - GitHub Copilot - Round 2 of the PR #2544 review (da2ce7, approved with non-blocking findings): `review-finding:pr-2544-f12` asked that specs cite audit findings by their reference, not by a bare ID. Replaced the bare citations in this spec, the evidence, SI-23 and SI-24.
 
 ## Acceptance Criteria
 
