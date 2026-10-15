@@ -9,7 +9,7 @@ github-issue: 2536
 spec-path: docs/issues/open/2536-1669-hide-statistics-repository-read-lock/ISSUE.md
 branch: "2536-1669-hide-statistics-repository-read-lock"
 related-pr: 2545
-last-updated-utc: "2026-10-15 19:55"
+last-updated-utc: "2026-10-15 21:05"
 semantic-links:
   skill-links:
     - create-issue
@@ -403,7 +403,7 @@ request.
   counter inside the closure. Prose-first AAA comparison: Arrange = a repository with the two
   flags, Act = read whether each counter is described, Assert = persisted counter present only
   when enabled.
-- 2026-10-15 18:20 UTC - GitHub Copilot - T7 implemented in the working tree for
+- 2026-10-15 18:18 UTC - GitHub Copilot - T7 implemented in the working tree for
   `swarm-coordination-registry` and NOT committed: the spec stops for the maintainer review of all
   test increments first. Red/green for the new `compile_fail,E0616` doctest: FAILED with the field
   temporarily `pub`, passes with `pub(crate)`. Test-design review: the metric-reading test helpers
@@ -417,7 +417,7 @@ request.
   give the expected results. `cargo test --workspace` passes and clippy `-D warnings` is clean.
 - 2026-10-15 19:40 UTC - GitHub Copilot - The maintainer reviewed and approved the test increments
   T3-T7. T7 is committed; T8 (final verification) starts.
-- 2026-10-15 19:55 UTC - GitHub Copilot - T8 done. M1 ran on the branch and its five normalized
+- 2026-10-15 19:48 UTC - GitHub Copilot - T8 done. M1 ran on the branch and its five normalized
   outputs are byte-identical to T2's `develop` outputs (AC5); lazy debug logging checked at
   runtime (AC4). `linter all` (pre-commit) and the pre-push checks pass (nightly format, check,
   docs and library docs, and the full stable test suite). Evidence:
@@ -427,6 +427,12 @@ request.
   `tracker-core` unit tests now do their Act in one `read_metrics()` call; the maintainer added
   only the ADR (T9), done as planned. Still open: reviewer validation, committer check,
   and closing the issue after the PR merges.
+- 2026-10-15 21:05 UTC - GitHub Copilot - PR #2545 review (F2, da2ce7): stamps that were later than
+  the commits carrying them are corrected to the commits' time: the T7 entry (18:20 to 18:18), the
+  T8 entry (19:55 to 19:48), the evidence file's `last-updated-utc` (19:50 to 19:48), and the
+  EPIC's entry and `last-updated-utc` (19:55 to 19:48). The five earlier entries that the ADR
+  commit rewrote in place stay as they are in history; their values were already correct. From now
+  on, each stamp is taken from `date -u` immediately before its commit.
 
 ## Acceptance Criteria
 
