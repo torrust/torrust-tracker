@@ -9,6 +9,8 @@ semantic-links:
 
 <!-- skill-link: process-pr-review -->
 
+<!-- cspell:ignore unreassigned -->
+
 # PR #2537 Review Audit
 
 Source: pull-request reviews and inline review threads for <https://github.com/torrust/torrust-tracker/pull/2537>.
@@ -18,7 +20,7 @@ Source: pull-request reviews and inline review threads for <https://github.com/t
 The PR author owns this tracked audit record. Reviewers, including repository review agents,
 deliver findings through GitHub and have no repository-artifact obligation.
 
-- Post-merge workflow approval: N/A
+- Post-merge workflow approval: <https://github.com/torrust/torrust-tracker/pull/2537#issuecomment-6186327939>
 
 ## Status Values
 
@@ -50,7 +52,9 @@ after a rebase:
 - round-2-fix head: "docs(issues): [#2536] hold T7's commit until the maintainer review";
 - second audit head: "docs(pr-reviews): record the second da2ce7 review in the PR #2537 audit",
   which da2ce7's third review read;
-- round-3-fix head: "docs(issues): [#2536] normalize the activity job's gauges in M1".
+- round-3-fix head: "docs(issues): [#2536] normalize the activity job's gauges in M1";
+- rebase head: "docs(pr-reviews): record the rebase onto develop in the PR #2537 audit", the first
+  head after the rebase onto `develop`, which da2ce7's fourth review read and which merged.
 
 Copilot review 5521920535 (COMMENTED, submitted 2026-10-14 17:25:40 UTC, at the spec head)
 carries three inline findings with `[<Severity>][<FindingId>]` headers: F1 and F2 (`Major`) and F3
@@ -78,6 +82,13 @@ maintainer chose knowing the approval would likely be dismissed. The second revi
 also noted that the `open-pull-request` check cannot catch such ids. That skill gap was fixed in
 this PR (see F12), as `AGENTS.md` allows for small process fixes, so it adds no row.
 
+da2ce7's fourth review 5525009643 (APPROVED, submitted 2026-10-14 21:38:28 UTC, at the rebase
+head) carries three inline `Nit` findings, F17-F19, and raises nothing else in its body. The PR
+merged at the rebase head at 2026-10-15 06:44:22 UTC while they were still unprocessed. Their
+fixes were pushed to this PR's branch and replied to after the merge, so none reached `develop`.
+Under the post-merge approval above, follow-up PR #2539 carries them, and the three rows stay
+`FOLLOW_UP`/`OPEN` until it merges.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | `review-finding:pr-2537-f1` | Copilot | Major | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -96,6 +107,9 @@ this PR (see F12), as `AGENTS.md` allows for small process fixes, so it adds no 
 | F14 | `review-finding:pr-2537-f14` | Human | Nit | testing | ORIGINAL | FIXED | RESOLVED |
 | F15 | `review-finding:pr-2537-f15` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F16 | `review-finding:pr-2537-f16` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F17 | `review-finding:pr-2537-f17` | Human | Nit | documentation | ORIGINAL | FOLLOW_UP | OPEN |
+| F18 | `review-finding:pr-2537-f18` | Human | Nit | documentation | ORIGINAL | FOLLOW_UP | OPEN |
+| F19 | `review-finding:pr-2537-f19` | Human | Nit | other | ORIGINAL | FOLLOW_UP | OPEN |
 
 ## Finding Details
 
@@ -381,6 +395,60 @@ this PR; a follow-up reply on this thread describes it.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4276361850>
 
+### F17 - The PR body does not mention the skill change
+
+- PR number: 2537
+- Source review ID: 5525009643
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4276548236>
+- Concern: the merge tool copies the PR body into the merge commit, and the body's Changes list
+  named only the spec and the EPIC rows, so `develop` would record the skill change without saying
+  so.
+- Solution: the body edit on this PR came after the merge commit was made, so the merge commit
+  keeps the original body. The follow-up PR's body describes both `open-pull-request` skill
+  changes, and its merge commit carries that description into `develop`.
+- Current-tree verification: the follow-up PR body (outside the worktree) names
+  "docs(skills): check every changed file for PR-branch commit ids" and the F18 change, cites no
+  commit ids, and has no closing keyword.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4279987154>
+- Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2539>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4279987154>
+
+### F18 - The check still runs only after a rebase
+
+- PR number: 2537
+- Source review ID: 5525009643
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4276548245>
+- Concern: the rule bars PR-branch ids at any time, and the ids this PR's audit cited were written
+  in a normal review round, but the skill ran the check only after a rebase.
+- Solution: the follow-up PR lands "docs(skills): run the PR-branch commit-id check before every
+  documentation push". The skill then says the rule holds whether or not the branch is rebased,
+  and runs the check before every push that changes an issue spec, evidence file, or review
+  audit, and after a rebase.
+- Current-tree verification: on the follow-up branch, `open-pull-request` `SKILL.md`:78-81 holds
+  the new wording.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4279987332>
+- Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2539>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4279987332>
+
+### F19 - An ordinary English word was added to the dictionary
+
+- PR number: 2537
+- Source review ID: 5525009643
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4276548252>
+- Concern: `project-words.txt` holds technical terms, and the PR #2423 review already ruled
+  `unreassigned` out of it in favor of a file-local cspell directive.
+- Solution: the follow-up PR lands "docs(pr-reviews): ignore unreassigned in the PR #2537 audit,
+  not the dictionary". It removes the word from `project-words.txt`, and this record carries
+  `<!-- cspell:ignore unreassigned -->`, as the PR #2344 and PR #2423 audits do.
+- Current-tree verification: on the follow-up branch, `project-words.txt` has no `unreassigned`
+  line, and this record's line 12 is the directive.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4279987545>
+- Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2539>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2537#discussion_r4279987545>
+
 ## Processing Log
 
 - 2026-10-14 17:30 UTC - Started audit: read Copilot review 5521920535 (three inline findings) and
@@ -417,6 +485,18 @@ this PR; a follow-up reply on this thread describes it.
   develop's #2521 entry. No Rust source changed on `develop`, so the counts and grep results cited
   at `48c4d3013` still hold. Re-ran the validator and the PR-branch commit-id check after the
   rebase.
+- 2026-10-15 06:58 UTC - The maintainer reported open threads. Fetching every thread with the
+  `github-review-threads` tool found da2ce7's fourth review 5525009643 (APPROVED; F17-F19), which
+  had arrived after the rebase. At the maintainer's choice, the F19 and F18 fixes were committed
+  on this PR's branch at 06:41:13 and 06:42:03 UTC, and the PR body was edited. The PR then merged
+  at the rebase head at 06:44:22 UTC, by accident, before the push. The push, the replies
+  (06:44:50-06:44:53 UTC), the thread resolutions, and the audit rows recorded on the merged branch
+  came after the merge and never reached `develop`, and the merge commit kept the original body. Under the
+  process-pr-review post-merge rules, the maintainer approved a follow-up (retrospective record:
+  <https://github.com/torrust/torrust-tracker/pull/2537#issuecomment-6186327939>). The three
+  threads were reopened. Follow-up PR #2539, branched from `develop`, carries the two fix commits
+  and this update. The rows stay `FOLLOW_UP`/`OPEN` until it merges; then this record is closed
+  out.
 
 ## Completion Rules
 
