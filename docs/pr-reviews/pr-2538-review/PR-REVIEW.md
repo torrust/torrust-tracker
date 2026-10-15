@@ -42,9 +42,10 @@ deliver findings through GitHub and have no repository-artifact obligation.
 Two reviews were submitted. Copilot's review 5521914331 left no inline comments; its overview says
 its full review did not start before a timeout, so it has no actionable assertion and no row.
 da2ce7's review 5522366109 (changes requested) carries F1-F9 as inline threads; its body repeats
-them as a summary, so the body adds no rows. The review read the head whose last commit was
-"docs(udp-core): reconcile the statistics docs and records with #2517 and #2521" before the F1
-history rewrite; the commit ids it cites no longer exist on the branch.
+them as a summary, so the body adds no rows. The review read the head whose last commit was then
+"test(udp-core): reconcile the statistics tests with #2517 and #2521"; the F1 history rewrite
+retyped it as "docs(udp-core): reconcile the statistics docs and records with #2517 and #2521".
+The commit ids the review cites no longer exist on the branch.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
