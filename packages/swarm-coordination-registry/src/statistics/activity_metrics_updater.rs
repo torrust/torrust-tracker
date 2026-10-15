@@ -96,9 +96,9 @@ fn inactivity_cutoff(now: DurationSinceUnixEpoch, max_peer_timeout: u32) -> Dura
 }
 
 async fn update_inactive_peers_total(stats_repository: &Arc<Repository>, inactive_peers_total: usize) {
-    #[allow(
+    #[expect(
         clippy::cast_precision_loss,
-        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
+        reason = "The gauge API takes f64; an in-memory peer count is far below 2^53, so the conversion is exact"
     )]
     let inactive_peers_total = inactive_peers_total as f64;
 
@@ -113,9 +113,9 @@ async fn update_inactive_peers_total(stats_repository: &Arc<Repository>, inactiv
 }
 
 async fn update_inactive_torrents_total(stats_repository: &Arc<Repository>, inactive_torrents_total: usize) {
-    #[allow(
+    #[expect(
         clippy::cast_precision_loss,
-        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
+        reason = "The gauge API takes f64; an in-memory torrent count is far below 2^53, so the conversion is exact"
     )]
     let inactive_torrents_total = inactive_torrents_total as f64;
 
