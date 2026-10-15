@@ -111,7 +111,7 @@ Review 5506433536 by the review bot (round 3, state `COMMENTED`, submitted 2026-
 - Current-tree verification: `git ls-tree -r HEAD -- docs/issues/open/2429-templated-documentation` prints nothing; with the note's eight lines (the blockquote after the H1 and the blank line after it) removed, `initial-proposal.md` is byte-identical to the EPIC at the reviewed head.
 - Resolution reference: `docs(discussions): [#2429] keep the EPIC text as the proposal's source material`
 - Follow-up PR URL: N/A
-- Reply URL: Pending: the PR conversation response to review 5469057611, recorded once it is posted.
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2430#issuecomment-6191069336>
 
 ### F5 - Add the PR author's positions on Q1 to Q9
 
@@ -124,7 +124,7 @@ Review 5506433536 by the review bot (round 3, state `COMMENTED`, submitted 2026-
 - Current-tree verification: `grep -c '^##### Q[1-9] - .*, 2026-10-15, PR #2430$'` on the discussion README prints `9`; with the nine entries removed and "No entries yet." restored under Q4 and Q6, the README is byte-identical to its `develop` version.
 - Resolution reference: `docs(discussions): [#2429] add my round on templated documentation`
 - Follow-up PR URL: N/A
-- Reply URL: Pending: the PR conversation response to review 5469057611, recorded once it is posted.
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2430#issuecomment-6191069336>
 
 ### F6 - Retitle issue #2429 and drop its EPIC label
 
@@ -135,9 +135,9 @@ Review 5506433536 by the review bot (round 3, state `COMMENTED`, submitted 2026-
 - Concern: The reviewer asked for issue #2429 to be retitled and its `EPIC` label dropped; it stays the issue the discussion informs (request 2).
 - Solution: An issue edit outside the repository tree, made when this rework is pushed: the issue is retitled as the discussion's subject, its `EPIC` label is removed, and its body points to the discussion and its initial proposal.
 - Current-tree verification: N/A in the tree; the issue title and labels are checked on GitHub after the edit.
-- Resolution reference: Pending: the PR conversation response that states the issue edit, recorded once it is posted.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2430#issuecomment-6191069336>
 - Follow-up PR URL: N/A
-- Reply URL: Pending: the PR conversation response to review 5469057611, recorded once it is posted.
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2430#issuecomment-6191069336>
 
 ### F7 - Link the PR author's implementation once it is published
 
@@ -148,9 +148,9 @@ Review 5506433536 by the review bot (round 3, state `COMMENTED`, submitted 2026-
 - Concern: The reviewer asked for a link to the PR author's own implementation of the approach once it is published, as evidence for the discussion (request 3).
 - Solution: The implementation is not yet published on a public `develop` branch, so nothing is linked; the link is added in a later round of the discussion once it is.
 - Current-tree verification: no file on the branch links the implementation.
-- Resolution reference: Pending: the PR conversation response that states the follow-up, recorded once it is posted.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2430#issuecomment-6191069336>
 - Follow-up PR URL: N/A
-- Reply URL: Pending: the PR conversation response to review 5469057611, recorded once it is posted.
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2430#issuecomment-6191069336>
 
 ### F8 - Remove the binding EPIC specification and keep its text as the initial proposal
 
@@ -163,7 +163,7 @@ Review 5506433536 by the review bot (round 3, state `COMMENTED`, submitted 2026-
 - Current-tree verification: F4's checks hold at the branch head: `git ls-tree -r HEAD -- docs/issues/open/2429-templated-documentation` prints nothing, and `initial-proposal.md` without its note is byte-identical to the EPIC at the reviewed head.
 - Resolution reference: `docs(discussions): [#2429] keep the EPIC text as the proposal's source material`
 - Follow-up PR URL: N/A
-- Reply URL: Pending: the PR conversation response to review 5506433536, recorded once it is posted.
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2430#issuecomment-6191069336>
 
 ### F9 - Record the decision owner's review and the rework in the audit
 
@@ -176,7 +176,7 @@ Review 5506433536 by the review bot (round 3, state `COMMENTED`, submitted 2026-
 - Current-tree verification: the audit validator reports 9 rows, each with its detail entry, and the Processing Log in chronological order.
 - Resolution reference: `docs(pr-reviews): [#2429] record the rework of PR #2430 in its audit`
 - Follow-up PR URL: N/A
-- Reply URL: Pending: the PR conversation response to review 5506433536, recorded once it is posted.
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2430#issuecomment-6191069336>
 
 ## Processing Log
 
@@ -192,6 +192,7 @@ Review 5506433536 by the review bot (round 3, state `COMMENTED`, submitted 2026-
 - 2026-10-15 10:41 UTC - Ran `validate-audit-record.py --pr-number 2430 --base eb96d2957` against the captured review comments: `{"status": "failed", "rows": 7, "log_entries": 10, "failures": 2}`. Both failures are the pending F6 and F7 resolution references; review IDs, detail entries, the F1, F4 and F5 commit subjects and log order pass. The validator must exit `0` once the response URL is recorded.
 - 2026-10-15 10:49 UTC - Started round 3 from the captured REST reviews, review comments and thread list: review 5506433536 by the review bot (`COMMENTED`) has no review comment, and the thread list still holds only the three round-1 threads, all resolved. Its "0 open findings" and its three resolved items (the F1 to F3 threads) make no row; its two "previously missed" items, retrievable in full from the review body, are normalized as F8 (`RE_RAISE_OF:F4`, `FIXED` by F4's commit) and F9 (`ORIGINAL`, `FIXED` by the commit that carries this record). Neither has a thread to reply on, so each is answered by the PR conversation response the skill prescribes for review bodies; one response may cover reviews 5469057611 and 5506433536 only if it names both review IDs and F4 to F9 with their dispositions and resolution references, and its URL then goes in each of those rows.
 - 2026-10-15 10:49 UTC - Ran `validate-audit-record.py --pr-number 2430 --base eb96d2957` against the captured review comments: `{"status": "failed", "rows": 9, "log_entries": 12, "failures": 2}`. Both failures are still the pending F6 and F7 resolution references; F8 and F9, including F9's subject for this record's own commit, pass.
+- 2026-10-15 11:34 UTC - Posted the PR conversation response (comment 6191069336) to reviews 5469057611 and 5506433536 after the rework was pushed, and recorded its URL as the Reply URL of F4 to F9 and as the resolution reference of F6 (the issue #2429 edit: retitled `Templated documentation`, the `EPIC` label removed, the body replaced) and F7 (the follow-up link, which waits for publication).
 
 ## Completion Rules
 
