@@ -9,7 +9,7 @@ github-issue: 2450
 spec-path: docs/issues/open/2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md
 branch: "2450-migrate-health-check-api-test-environment"
 related-pr: null
-last-updated-utc: "2026-10-15 20:31"
+last-updated-utc: "2026-10-15 20:33"
 semantic-links:
   skill-links:
     - create-issue
@@ -125,8 +125,12 @@ and is not in the EPIC roadmap:
   the server and release the binding. Dropping a `CancellationToken` does not
   cancel it, so hold it as a `DropGuard` and disarm it in `stop()`. The HTTP
   environment lacked this both before and after SI-16 (#2471, V4 there), and
-  the UDP environment has the fix (#2459); whether this environment's legacy
-  halt sender stops its server on drop was not checked. A drop can only
+  the UDP environment has the fix (#2459). This environment's legacy drop
+  does not stop its server either: the health-check API server spawns the
+  same `graceful_shutdown` task
+  (`packages/axum-health-check-api-server/src/server.rs`), which awaits the
+  panicking `shutdown_signal_with_message` before it signals the handle (read
+  from source, not run). A drop can only
   request cancellation: it drops the task handles without joining them, so
   the tasks end shortly after the drop rather than before it returns.
 - **Deadlines**: the drain is bounded by
@@ -200,6 +204,7 @@ before maintainer review and commit. Sign every commit with GPG.
 - 2026-10-06 11:41 UTC - GitHub Copilot - Maintainer approved this spec, including D1 (keep the `Result` signature). Created #2450 (sub-issue of #1488) and moved the spec to `docs/issues/open/`.
 - 2026-10-07 13:05 UTC - GitHub Copilot - The drop path is no longer "unchanged": a token migration loses the halt sender's stop-on-drop, as SI-16 did (#2471). Added the `DropGuard` requirement, a T1 drop test, and AC7.
 - 2026-10-15 19:38 UTC - GitHub Copilot - Corrected the drop-path note after `review-finding:pr-2544-f5`: the HTTP environment never stopped on drop, before or after SI-16, so the note no longer says SI-16 lost the behavior or that the legacy halt sender stops its server on drop. The `DropGuard` requirement and AC7 stand.
+- 2026-10-15 20:33 UTC - GitHub Copilot - `review-finding:pr-2544-f14`: the code answers the open question. The health-check API server spawns the same `graceful_shutdown` task as HTTP, so its legacy drop does not stop the server either (read from source, not run). The drop-path note says so.
 
 ## Acceptance Criteria
 

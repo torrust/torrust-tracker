@@ -9,7 +9,7 @@ github-issue: 2471
 spec-path: docs/issues/open/2471-1488-fix-http-environment-drop-path/ISSUE.md
 branch: "2471-fix-http-environment-drop-path"
 related-pr: null
-last-updated-utc: "2026-10-15 20:32"
+last-updated-utc: "2026-10-15 20:33"
 semantic-links:
   skill-links:
     - create-issue
@@ -98,10 +98,13 @@ environment and relies on the drop path.
 ### Out of Scope
 
 - The REST API and health-check API test environments (SI-23 #2449, SI-24
-  #2450): they still use the legacy halt sender. Whether dropping one stops
-  its server was not checked here; V4 shows only that the HTTP environment's
-  legacy drop did not. Their specs require the drop path for the migrated
-  environments.
+  #2450): they still use the legacy halt sender, and their legacy drop does
+  not stop the server either. Each server spawns the same `graceful_shutdown`
+  task as HTTP (`packages/axum-rest-api-server/src/server.rs`,
+  `packages/axum-health-check-api-server/src/server.rs`), which awaits the
+  panicking `shutdown_signal_with_message` before it signals the handle. This
+  is read from source, not run: V4 ran only the HTTP environment. Their specs
+  require the drop path for the migrated environments.
 - Separate server and listener tokens (SI-22 T9).
 
 ## Architectural Decisions
@@ -202,6 +205,7 @@ for the test. Sign every commit with GPG.
 - 2026-10-15 19:40 UTC - GitHub Copilot - `review-finding:pr-2544-f8` and `review-finding:pr-2544-f9`: the implementer must not tick acceptance criteria, so AC1 to AC3 are cleared and their rows are back to `TODO` with the evidence pointers kept for the reviewer. `status` is `in-progress`. The manual-verification workflow checkpoint is ticked (V1 to V4 and M1 are recorded); the matching acceptance-criteria box stays clear for the reviewer.
 - 2026-10-15 20:31 UTC - GitHub Copilot - Round 2 of the PR #2544 review (da2ce7, approved with non-blocking findings): `review-finding:pr-2544-f12` asked that specs cite audit findings by their reference, not by a bare ID. Replaced the bare citations in this spec, the evidence, SI-23 and SI-24.
 - 2026-10-15 20:32 UTC - GitHub Copilot - `review-finding:pr-2544-f13`: V1's Hypothesis still stated the disproved premise as fact; it now carries a marker pointing to the correction and V4.
+- 2026-10-15 20:33 UTC - GitHub Copilot - `review-finding:pr-2544-f14`: the Out of Scope note now says that the REST API and health-check API legacy drops do not stop their servers either, from the same `graceful_shutdown` code path (read from source, not run).
 
 ## Acceptance Criteria
 
