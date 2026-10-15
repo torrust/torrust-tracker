@@ -47,6 +47,8 @@ Review 5469057611 by the decision owner (`josecelano`, round 2, state `CHANGES_R
 
 Review 5506433536 by the review bot (round 3, state `COMMENTED`, submitted 2026-10-13 16:00 UTC on head `docs(pr-reviews): [#2429] add the PR #2430 review audit record`) has no inline comments and opens no thread. Its body is an overview: a verdict that summarizes its two items, "0 open findings", and three items resolved since its last review, which are the F1 to F3 threads and make no row. Its two "previously missed" items sit in collapsed sections whose full content is retrievable and actionable, so they are F8 and F9. The badge markup rates both `Medium severity`, recorded as `Minor (inferred)` as for F1 to F3. F8 asks for the change F4 records, against the same current tree, so it is `RE_RAISE_OF:F4` with F4's disposition; F9 asks for this record to normalize review 5469057611 and the rework, and is fixed by the commit that carries this record. Having no thread, both are `NON_RESOLVABLE`.
 
+Review 5535382217 by the decision owner (`josecelano`, round 4, state `APPROVED`, submitted 2026-10-15 15:10 UTC on head `docs(pr-reviews): [#2429] record the PR #2430 response to the reviews`) opens one inline thread. Its body is the approval verdict and requests no change, so it makes no row. The inline comment opens with its own `[Minor][F10]` prefix: F10 keeps the reviewer's ID, which collides with no earlier finding ID, and its severity is `Minor` as written. It asks for a sentence in the PR description, an edit outside the repository tree, so the PR conversation response that states the edit is its resolution reference. Its thread is `RESOLVED`, recorded as the round-1 threads were, once the reply citing that response is posted and the thread resolved.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | `review-finding:pr-2430-f1` | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
@@ -58,6 +60,7 @@ Review 5506433536 by the review bot (round 3, state `COMMENTED`, submitted 2026-
 | F7 | `review-finding:pr-2430-f7` | Human | Suggestion (inferred) | documentation | ORIGINAL | FOLLOW_UP | NON_RESOLVABLE |
 | F8 | `review-finding:pr-2430-f8` | Copilot | Minor (inferred) | documentation | RE_RAISE_OF:F4 | FIXED | NON_RESOLVABLE |
 | F9 | `review-finding:pr-2430-f9` | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F10 | `review-finding:pr-2430-f10` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -178,6 +181,19 @@ Review 5506433536 by the review bot (round 3, state `COMMENTED`, submitted 2026-
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2430#issuecomment-6191069336>
 
+### F10 - The PR description does not say the history was rewritten
+
+- PR number: 2430
+- Source review ID: 5535382217
+- Reviewer finding ID: F10
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2430#discussion_r4284749699>
+- Concern: Anchored at the 2026-10-15 10:40 UTC Processing Log entry that records the rebuild, the reviewer noted that the branch was rebuilt and the three EPIC commits dropped, while `AGENTS.md` asks a rewrite to keep every step and to "Say in the PR body that the history was rewritten". Since the content is preserved (the EPIC text in `initial-proposal.md`, round 1 in this audit), the reviewer did not ask to restore the commits, only for a sentence in the PR description. Non-blocking.
+- Solution: An edit to the PR body, outside the repository tree; the commits are not restored. A `## History` section before `## Validation` says the history was rewritten during review: the branch was rebuilt from `develop` instead of rebased, and the previous head's three commits are no longer on it. Each commit is named by its subject, with where its content is now: `docs(issues): [#2429] add the templated documentation EPIC specification` (the EPIC text, as `initial-proposal.md`), `docs(issues): [#2429] anchor the counts to the develop head` (the round-1 fix, verbatim at `initial-proposal.md:59`) and `docs(pr-reviews): [#2429] add the PR #2430 review audit record` (round 1, in this audit). The section adds that this audit cites the previous head by its last commit's subject.
+- Current-tree verification: `git log --format=%s` over the previous head's three commits prints the three subjects the section names. `sed -n '59p'` on `initial-proposal.md` prints the sentence opening "At `develop` `eb96d2957` the tree tracks 970 Markdown files". F1 to F3 and their log entries are in this record. The Findings introduction names every head by commit subject, never by id.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2430#issuecomment-6195603169>
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2430#discussion_r4284874718>
+
 ## Processing Log
 
 - 2026-10-03 14:52 UTC - Started audit for Copilot review 5401297360 from the captured REST reviews, REST review comments and GraphQL thread list: three inline threads, opened by review comments 4173600206 (F1), 4173600228 (F2) and 4173600238 (F3) and all `resolved=false`, no reviewer finding IDs, no human review, and a body with no independently actionable assertion. Normalized as F1-F3.
@@ -193,6 +209,9 @@ Review 5506433536 by the review bot (round 3, state `COMMENTED`, submitted 2026-
 - 2026-10-15 10:49 UTC - Started round 3 from the captured REST reviews, review comments and thread list: review 5506433536 by the review bot (`COMMENTED`) has no review comment, and the thread list still holds only the three round-1 threads, all resolved. Its "0 open findings" and its three resolved items (the F1 to F3 threads) make no row; its two "previously missed" items, retrievable in full from the review body, are normalized as F8 (`RE_RAISE_OF:F4`, `FIXED` by F4's commit) and F9 (`ORIGINAL`, `FIXED` by the commit that carries this record). Neither has a thread to reply on, so each is answered by the PR conversation response the skill prescribes for review bodies; one response may cover reviews 5469057611 and 5506433536 only if it names both review IDs and F4 to F9 with their dispositions and resolution references, and its URL then goes in each of those rows.
 - 2026-10-15 10:49 UTC - Ran `validate-audit-record.py --pr-number 2430 --base eb96d2957` against the captured review comments: `{"status": "failed", "rows": 9, "log_entries": 12, "failures": 2}`. Both failures are still the pending F6 and F7 resolution references; F8 and F9, including F9's subject for this record's own commit, pass.
 - 2026-10-15 11:34 UTC - Posted the PR conversation response (comment 6191069336) to reviews 5469057611 and 5506433536 after the rework was pushed, and recorded its URL as the Reply URL of F4 to F9 and as the resolution reference of F6 (the issue #2429 edit: retitled `Templated documentation`, the `EPIC` label removed, the body replaced) and F7 (the follow-up link, which waits for publication).
+- 2026-10-15 15:16 UTC - Started round 4 from the captured REST reviews, review comments and thread list: review 5535382217 by the decision owner (`APPROVED`) opens one inline thread, from review comment 4284749699 (`resolved=false`), whose `[Minor][F10]` prefix gives the finding ID and the severity; the approval body requests no change. Normalized as F10, category `documentation`: the concern is prose missing from the PR description, not a structured field such as a title, label or link keyword, which `metadata` covers (F6).
+- 2026-10-15 15:16 UTC - Fixed F10 outside the repository tree: the PR body gains a `## History` section, before `## Validation`, saying the history was rewritten, naming the previous head's three commits by subject and saying where each one's content is now. The PR conversation response to review 5535382217 states the edit and is F10's resolution reference; the reply on the thread cites that response, and the thread is resolved after the reply, so F10 is `RESOLVED`.
+- 2026-10-15 15:16 UTC - Ran `validate-audit-record.py --pr-number 2430 --base 9c8bcdf8a` against the captured review comments: `{"status": "failed", "rows": 10, "log_entries": 16, "failures": 2}`. Both failures are F10's: its resolution reference and its Reply URL hold placeholders until the response and the reply are posted. Every other check passes, including F10's source review ID and its `Minor` severity against the comment's bracket.
 
 ## Completion Rules
 
