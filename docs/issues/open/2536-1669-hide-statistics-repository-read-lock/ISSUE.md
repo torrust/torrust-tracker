@@ -7,9 +7,9 @@ priority: p3
 epic: 1669
 github-issue: 2536
 spec-path: docs/issues/open/2536-1669-hide-statistics-repository-read-lock/ISSUE.md
-branch: "2536-1669-hide-statistics-repository-read-lock-spec"
+branch: "2536-1669-hide-statistics-repository-read-lock"
 related-pr: null
-last-updated-utc: "2026-10-15 15:15"
+last-updated-utc: "2026-10-15 17:55"
 semantic-links:
   skill-links:
     - create-issue
@@ -18,6 +18,7 @@ semantic-links:
     - "issue #1669"
     - docs/issues/closed/2517-1669-encapsulate-statistics-repository-state/ISSUE.md
     - docs/adrs/20260629000000_adopt_independent_package_versioning.md
+    - docs/adrs/index.md
     - packages/udp-core/src/statistics/repository.rs
     - packages/udp-server/src/statistics/repository.rs
     - packages/http-core/src/statistics/repository.rs
@@ -192,9 +193,13 @@ repository.read_metrics(|metrics| collection.merge(metrics.metric_collection()))
 
 - Related ADRs: `docs/adrs/20260629000000_adopt_independent_package_versioning.md` (the read API
   is public API; changing it after a publish is breaking).
-- ADRs to create: none planned. The read design is recorded in this spec. Create a root ADR if
-  review decides that closure-based reads should become the rule for every future statistics
-  repository; it would be a multi-package decision, so it belongs in `docs/adrs/`.
+- ADRs to create: one root ADR in `docs/adrs/` (task T9), because the maintainer decided that
+  closure-based reads become the rule for every statistics repository. It is a multi-package
+  decision, so it is a root ADR. It records the rule (a repository exposes no lock type and no
+  metric-collection field in its public read API; callers read through `read_metrics()` and
+  `metric_collection()`), the alternatives rejected in Proposed Design, and the caller obligation
+  from the Design and Ownership Review. Follow the `create-adr` skill, including registering it
+  in `docs/adrs/index.md`.
 
 ## Design and Ownership Review
 
@@ -234,6 +239,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T6  | TODO   | Hide the read lock and field in `tracker-core`          | Same as T3, including the repository's own counter reads.                                                                               |
 | T7  | TODO   | Hide the read lock and field in `swarm-coordination-registry` | Same as T3.                                                                                                                        |
 | T8  | TODO   | Verification                                            | Starts only after the maintainer review that follows T7. See Verification Plan; run M1 on the branch, store its five outputs, and compare them with T2's. |
+| T9  | TODO   | Write the root ADR for closure-based statistics reads   | `docs/adrs/<timestamp>_<title>.md` registered in `docs/adrs/index.md`; passes `linter markdown` and `linter cspell`. Needs no maintainer test review, so it can be written before T8. |
 
 ## Commit Points
 
@@ -241,6 +247,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ----- | --------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
 | T3-T7 | `refactor(<package>): [#2536] hide the statistics read lock and metric collection field`, one per package, each with its callers and doctests, so every commit builds | Commit after focused validation and the test-design review; T7's commit also waits for the maintainer review (see Test-Development Workflow). |
 | T2, T8 | Manual verification evidence and spec progress updates                                                                                       | Commit after the evidence is recorded.                      |
+| T9    | `docs(adrs): [#2536] record closure-based reads for the statistics repositories`                                                              | Commit after the ADR passes `linter markdown` and `linter cspell`. |
 
 Every commit is GPG signed. Because `rest-api-runtime-adapter` and the tests read from all five
 crates, each package commit updates the callers of that package's accessor in the same commit.
@@ -345,6 +352,12 @@ request.
   masks the two activity-job gauges (swarm_coordination_registry_peers_inactive_total and
   _torrents_inactive_total), whose presence and values depend on time since startup, not on the
   announces.
+- 2026-10-15 17:55 UTC - GitHub Copilot - Implementation started on branch
+  `2536-1669-hide-statistics-repository-read-lock` from `torrust/develop` at `fe5d8264a`. The caller
+  grep now prints 80 lines (84 at `48c4d3013`); T1 records the difference. Maintainer feedback:
+  (1) write a root ADR making closure-based reads the rule (new task T9 and AC6; Architectural
+  Decisions updated); (2) the agent runs M1 itself (T2 baseline and T8); (3) nobody is working on
+  #2414, so the overlap risk needs no rebase ordering now; (4) no other spec changes.
 
 ## Acceptance Criteria
 
@@ -359,6 +372,8 @@ request.
   their debug log only when `debug` is enabled.
 - [ ] AC5: REST `/api/v1/stats` and `/api/v1/metrics` report the same values as `develop` for the
   same announces.
+- [ ] AC6: A root ADR records closure-based reads as the rule for the statistics repositories and is
+  listed in `docs/adrs/index.md`.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
@@ -459,6 +474,7 @@ steps in the evidence instead of committing it, as #2517 did.
 | AC3   | TODO                   | {test/log/PR link} |
 | AC4   | TODO                   | {test/log/PR link} |
 | AC5   | TODO                   | {test/log/PR link} |
+| AC6   | TODO                   | {test/log/PR link} |
 
 ## Risks and Trade-offs
 

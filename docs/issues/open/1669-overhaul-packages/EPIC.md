@@ -6,7 +6,7 @@ epic: null
 github-issue: 1669
 spec-path: docs/issues/open/1669-overhaul-packages/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-14 17:03"
+last-updated-utc: "2026-10-15 17:55"
 semantic-links:
   skill-links:
     - create-issue
@@ -735,7 +735,7 @@ Details:
 | Error enum audit           | [#2454](https://github.com/torrust/torrust-tracker/issues/2454) — Mark public error enums `#[non_exhaustive]` before first publish                                                        | [docs/issues/open/2454-1669-mark-public-error-enums-non-exhaustive/ISSUE.md](../2454-1669-mark-public-error-enums-non-exhaustive/ISSUE.md)                                                     | TODO   | Pre-publish API checklist; per crate in dependency order, before its first publish                                                            |
 | Statistics lock privacy    | [#2517](https://github.com/torrust/torrust-tracker/issues/2517) — Make the statistics repositories' metrics lock private | [docs/issues/closed/2517-1669-encapsulate-statistics-repository-state/ISSUE.md](../../closed/2517-1669-encapsulate-statistics-repository-state/ISSUE.md) | DONE | Pre-publish API hygiene; `udp-core`, `udp-server`, `http-core`, `tracker-core`, `swarm-coordination-registry` |
 | Unused UDP stats traits    | [#2521](https://github.com/torrust/torrust-tracker/issues/2521) — Remove the unused UDP statistics traits and services                                                                  | [docs/issues/closed/2521-1669-remove-unused-udp-stats-traits/ISSUE.md](../../closed/2521-1669-remove-unused-udp-stats-traits/ISSUE.md)                                                                     | DONE   | SI-30 repository traits and `statistics::services`; `BanningStats` is removed by #2505                                                      |
-| Statistics read lock       | [#2536](https://github.com/torrust/torrust-tracker/issues/2536) — Hide the statistics repositories' read lock and metric collection field | [docs/issues/open/2536-1669-hide-statistics-repository-read-lock/ISSUE.md](../2536-1669-hide-statistics-repository-read-lock/ISSUE.md) | TODO | Pre-publish API hygiene; closure-based `read_metrics()` in the five statistics repositories; follow-up of #2517 |
+| Statistics read lock       | [#2536](https://github.com/torrust/torrust-tracker/issues/2536) — Hide the statistics repositories' read lock and metric collection field | [docs/issues/open/2536-1669-hide-statistics-repository-read-lock/ISSUE.md](../2536-1669-hide-statistics-repository-read-lock/ISSUE.md) | IN_PROGRESS | Pre-publish API hygiene; closure-based `read_metrics()` in the five statistics repositories; follow-up of #2517; includes a root ADR for the rule |
 
 Proposal note:
 After SI-14, there is a proposal to evaluate a dedicated repository for protocol crates so protocol packages can evolve with BEP/spec changes while tracker app packages evolve with domain/product changes. This is proposal-only for now (not committed scope) and is tracked in [#1835](https://github.com/torrust/torrust-tracker/issues/1835).
@@ -1023,6 +1023,9 @@ Previously referenced tools (screenshots from CodeScene already in the issue com
 - 2026-10-14 17:03 UTC - GitHub Copilot - Created #2536 (hide the five statistics repositories'
   read lock and the `Metrics.metric_collection` field), the follow-up recorded in #2517's Out of
   Scope, and linked it as a sub-issue.
+- 2026-10-15 17:55 UTC - GitHub Copilot - Started implementing #2536 on branch
+  `2536-1669-hide-statistics-repository-read-lock`. The maintainer asked for a root ADR making
+  closure-based statistics reads the rule; it is task T9 of the #2536 spec.
 
 ## Acceptance Criteria
 
