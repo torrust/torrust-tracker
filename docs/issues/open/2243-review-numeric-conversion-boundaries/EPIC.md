@@ -6,7 +6,7 @@ epic: null
 github-issue: 2243
 spec-path: docs/issues/open/2243-review-numeric-conversion-boundaries/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-07 08:59"
+last-updated-utc: "2026-10-15 21:00"
 semantic-links:
   skill-links:
     - create-issue
@@ -70,7 +70,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | Order | Issue | Local Spec | Status | Notes |
 | ----- | ----- | ---------- | ------ | ----- |
-| 1 | #2244 - Review metric aggregate conversions | `docs/issues/open/2244-2243-review-metric-aggregate-conversions/ISSUE.md` | IN_PROGRESS | Owns 72 metric entries: A080-A087, A113-A114, A143-A154, A170, A178-A222, A224-A227. |
+| 1 | #2244 - Review metric aggregate conversions | `docs/issues/open/2244-2243-review-metric-aggregate-conversions/ISSUE.md` | IN_PROGRESS | Owns 72 metric entries: A080-A087, A113-A114, A143-A154, A170, A178-A222, A224-A227. Implemented; awaiting review. Also fixes a UDP average processing time defect. |
 | 2 | #2245 - Review numeric protocol wire conversions | `docs/issues/closed/2245-2243-review-numeric-protocol-wire-conversions/ISSUE.md` | DONE | Owns A156 and A171 only. Follow-up: #2466 (under configuration EPIC #1978) rejects an announce `interval` above `i32::MAX` at configuration load with a typed value. |
 | 3 | #2246 - Review domain numeric conversions | `docs/issues/closed/2246-2243-review-domain-numeric-conversions/ISSUE.md` | DONE | Owns A099, A123, and A129. |
 
@@ -128,6 +128,7 @@ For each subissue implementation in this EPIC, the default completion policy is:
 - 2026-10-06 09:10 UTC - GitHub Copilot - #2246 done: PR #2440 merged with all three domain allowances (A099, A123, A129) removed; spec archived to `docs/issues/closed/` - 1 of 3 subissues done; #2244 and #2245 remain TODO
 - 2026-10-06 16:03 UTC - GitHub Copilot - #2245 done: PR #2452 merged with A156 replaced by a checked conversion mapped to a parse error and A171 clamped to the BEP 15 field width; spec archived to `docs/issues/closed/`. The configuration-load follow-up is not yet specified - 2 of 3 subissues done; #2244 remains TODO
 - 2026-10-07 08:59 UTC - GitHub Copilot - The #2245 configuration-load follow-up is #2466, a subissue of the reopened configuration EPIC #1978 rather than of this EPIC - No change to this EPIC's scope
+- 2026-10-15 21:00 UTC - GitHub Copilot - #2244 implemented on its branch: all 72 metric entries resolved (68 removed, 4 retained with native reasons), a UDP average processing time truncation defect fixed, and torrust/torrust-metrics#1 filed for an exact counter-sum API - Awaiting maintainer review; #2244 remains IN_PROGRESS until merged
 
 ## Acceptance Criteria
 
