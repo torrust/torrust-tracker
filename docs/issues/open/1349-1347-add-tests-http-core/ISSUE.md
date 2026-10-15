@@ -8,8 +8,8 @@ epic: 1347
 github-issue: 1349
 spec-path: docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md
 branch: "1349-1347-add-tests-http-core-spec"
-related-pr: null
-last-updated-utc: "2026-10-15 16:40"
+related-pr: 2546
+last-updated-utc: "2026-10-15 16:55"
 semantic-links:
   skill-links:
     - create-issue
@@ -317,7 +317,7 @@ open a PR, get it reviewed, and merge it. The spec-only PR comes first.
 
 | Slice | Content | Ledger rows | Branch | PR | Status |
 | --- | --- | --- | --- | --- | --- |
-| S0 | This specification and the EPIC registration with the baseline | - | `1349-1347-add-tests-http-core-spec` | - | IN_PROGRESS |
+| S0 | This specification and the EPIC registration with the baseline | - | `1349-1347-add-tests-http-core-spec` | #2546 | IN_PROGRESS |
 | S1 | T1-T3: coverage evidence, inventory, shared plan guidance, first plan, approved order | - | `1349-1347-add-tests-http-core-inventory` | - | TODO |
 | S2 | Announce service and its error mapping (ranks 1-2) | 1-2 | `1349-1347-add-tests-http-core-announce` | - | TODO |
 | S3 | Scrape service (rank 3) | 3 | `1349-1347-add-tests-http-core-scrape` | - | TODO |
@@ -481,6 +481,9 @@ lines are the [baseline](#baseline-coverage) measurement.
   inventory as its own docs-only slice (S1), run the Task Reviewer before every slice PR, do not
   stack slice branches (start each slice after the previous one merges), and refresh the stale
   GitHub issue title and body to point to this specification.
+- 2026-10-15 16:55 UTC - GitHub Copilot - Refreshed the GitHub issue #1349 title and body and
+  opened spec-only PR #2546 (<https://github.com/torrust/torrust-tracker/pull/2546>) with
+  `Related to #1349`.
 
 ## Acceptance Criteria
 
