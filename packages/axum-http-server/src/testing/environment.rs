@@ -27,7 +27,8 @@ pub struct Stopped {
 /// A test environment whose HTTP tracker and statistics event listener run
 /// on the token-aware lifecycle. The environment owns every task it started.
 ///
-/// Dropping it without `stop()` cancels the token, so the server shuts down.
+/// Dropping it without `stop()` requests cancellation, and the server shuts
+/// down once it observes it, so the binding is released shortly after the drop.
 pub struct Running {
     server: CancellationRunning,
     event_listener_job: JoinHandle<()>,
