@@ -75,8 +75,10 @@ Because a rebase rewrites the branch's commit ids and rebases still happen, no d
 cite a PR-branch commit by id. Durable references are repository artifacts (issue specs, evidence
 files, review audits), the PR body, which the maintainer merge tool copies into the merge commit,
 and review replies, which stay on GitHub after the branch is rewritten.
-Cite the Conventional Commit subject instead; ids are durable only once on `develop`. Before pushing
-after a rebase, run this check from the repository root:
+Cite the Conventional Commit subject instead; ids are durable only once on `develop`. The rule holds
+whether or not the branch is ever rebased: an id cited during a normal review round becomes wrong at
+the next rebase. Run this check from the repository root before every push that changes an issue
+spec, evidence file, or review audit, and before pushing after a rebase:
 
 ```bash
 UPSTREAM_REMOTE=torrust  # replace if your remote has a different name
