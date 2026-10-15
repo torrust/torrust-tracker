@@ -9,7 +9,7 @@ github-issue: 2244
 spec-path: docs/issues/open/2244-2243-review-metric-aggregate-conversions/ISSUE.md
 branch: "2244-2243-review-metric-aggregate-conversions"
 related-pr: null
-last-updated-utc: "2026-10-15 21:00"
+last-updated-utc: "2026-10-15 21:10"
 semantic-links:
   skill-links:
     - create-issue
@@ -179,7 +179,7 @@ depends on wall-clock processing times.
 - [x] GitHub issue created and issue number added to this spec
 - [x] Spec-only PR merged into `develop` before implementation
 - [x] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded
@@ -193,13 +193,14 @@ depends on wall-clock processing times.
 - 2026-10-15 20:32 UTC - GitHub Copilot - T1-T2 review table recorded; found the moving-average truncation defect (G3); maintainer decisions recorded; synchronized stale checkboxes with the GitHub issue body - Implementation started on branch `2244-2243-review-metric-aggregate-conversions`
 - 2026-10-15 20:40 UTC - GitHub Copilot - Filed torrust/torrust-metrics#1 for an exact `u64` counter-sum API (maintainer decision 3) - Helper reasons remain permanent
 - 2026-10-15 21:00 UTC - GitHub Copilot - T3-T4 done: G3 defect reproduced, fixed red/green, and rechecked; all 72 entries resolved; inventory reconciled; no retrospective needed because the plan held and the defect fix was within the spec's "fix a demonstrated defect" scope - Awaiting maintainer implementation review and pre-push checks
+- 2026-10-15 21:10 UTC - GitHub Copilot - `pre-push.sh` passed - Awaiting maintainer implementation review
 
 ## Acceptance Criteria
 
 - [x] Every owned entry has a recorded semantics classification, bounds, and outcome.
 - [x] Every retained cast carries a native `reason` stating its invariant.
 - [x] Every changed conversion has a focused test for the stated bound or new behavior.
-- [ ] `linter all` exits with code `0` and relevant package tests pass.
+- [x] `linter all` exits with code `0` and relevant package tests pass.
 
 ## Verification Plan
 
@@ -222,7 +223,7 @@ depends on wall-clock processing times.
 | AC1 | DONE | Review Table above; #2158 inventory rows updated by ID with each outcome. |
 | AC2 | DONE | Every retained cast is an `#[expect]` with an invariant reason: the `whole_total` helpers in HTTP core, UDP core, and UDP server, `averaged_processing_time_ns`, two statements in `recalculate_udp_avg_processing_time_ns`, and the three gauge inputs. No `#2244` temporary reason remains (`grep -rn 2244 packages --include=*.rs` is empty). `#[expect]` also fails Clippy if a lint stops firing. |
 | AC3 | DONE | G3 (the only behavior change): two regression tests, red then green (evidence V2-V3). G1, G2, and G4 preserve behavior, and existing accessor tests in each package pass. G6 asserts on the `f64` gauge directly. |
-| AC4 | TODO | Focused Clippy and package tests pass, and pre-commit `linter all` passed on every commit. Pre-push checks pending. |
+| AC4 | DONE | Focused Clippy (`-D warnings`, all targets and features) and the tests of the five affected packages pass. Pre-commit `linter all` passed on every commit. `pre-push.sh` passed (nightly fmt, check, and docs; all tests) on `docs(issues): [#2244] record metric conversion outcomes and verification evidence`. |
 
 ## Risks and Trade-offs
 
