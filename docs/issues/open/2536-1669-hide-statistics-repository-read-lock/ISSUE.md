@@ -126,7 +126,7 @@ Each `Metrics` type makes its field `pub(crate)` and adds a read-only accessor:
 ```rust,ignore
 impl Metrics {
     #[must_use]
-    pub fn metric_collection(&self) -> &MetricCollection {
+    pub const fn metric_collection(&self) -> &MetricCollection {
         &self.metric_collection
     }
 }
@@ -233,7 +233,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | ------ | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
 | T1  | DONE   | Re-verify the callers on current `develop`              | Repeat the caller search; record the commit and any new caller in the Progress Log.                                                     |
 | T2  | DONE   | Capture the M1 baseline on `develop`                    | Run M1 before any change and store the five `develop` outputs listed under Manual Verification Scenarios under `evidence/`. |
-| T3  | TODO   | Hide the read lock and field in `udp-core`              | `read_metrics()`, `metric_collection()`, `pub(crate)` field, doctests and their rustdoc lead-in link, and updated callers; the workspace builds and its tests pass. |
+| T3  | DONE   | Hide the read lock and field in `udp-core`              | `read_metrics()`, `metric_collection()`, `pub(crate)` field, doctests and their rustdoc lead-in link, and updated callers; the workspace builds and its tests pass. |
 | T4  | TODO   | Hide the read lock and field in `udp-server`            | Same as T3; the largest task (30 in-crate unit-test calls, the `metrics_snapshot` helper, and the guard-accessor test to replace). |
 | T5  | TODO   | Hide the read lock and field in `http-core`             | Same as T3.                                                                                                                              |
 | T6  | TODO   | Hide the read lock and field in `tracker-core`          | Same as T3, including the repository's own counter reads.                                                                               |
@@ -364,6 +364,16 @@ request.
   T2 done: the baseline binaries were built from this code and M1 ran twice on `develop`; the two
   normalized runs were identical, which confirms the normalization is deterministic. The five
   `develop` outputs are stored as `evidence/m1-develop-*`.
+- 2026-10-15 18:40 UTC - GitHub Copilot - T3 done (`udp-core`). Red/green for the new
+  `compile_fail,E0616` doctest (`metrics.metric_collection` read inside `read_metrics`): with the
+  field temporarily `pub` it FAILED (it compiled); with `pub(crate)` it passes on nightly. The old
+  `Repository::stats` doctest is unchanged. Test-design review: the migrated tests keep their
+  Arrange/Act/Assert and expected values and change only how the value is read (`read_metrics`
+  with `metric_collection()` or `Metrics::udp4_connections_handled`); no helper was added. Prose-first AAA
+  comparison for the `compile_fail` doctest: Arrange = a `&Repository`, Act = compile the read
+  of the private field through `read_metrics`, Assert = `E0616`. The event handler's debug log
+  now reads inside the `tracing::debug!` arguments, so the lock is still taken only when `debug`
+  is enabled, and the logged text stays `stats: Metrics { .. }`.
 
 ## Acceptance Criteria
 

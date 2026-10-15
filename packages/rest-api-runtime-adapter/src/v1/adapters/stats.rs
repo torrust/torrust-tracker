@@ -134,8 +134,9 @@ impl StatsQueryPort for TrackerStatsAdapter {
         metrics
             .merge(&self.http_stats_repository.get_stats().await.metric_collection)
             .expect("failed to merge HTTP core metrics");
-        metrics
-            .merge(&self.udp_core_stats_repository.get_stats().await.metric_collection)
+        self.udp_core_stats_repository
+            .read_metrics(|udp_core| metrics.merge(udp_core.metric_collection()))
+            .await
             .expect("failed to merge UDP core metrics");
         metrics
             .merge(&self.udp_server_stats_repository.get_stats().await.metric_collection)
