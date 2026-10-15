@@ -1,9 +1,9 @@
 ---
 name: cleanup-completed-issues
-description: Guide for archiving closed issue specification files from docs/issues/open/ to docs/issues/closed/. Covers verifying closure on GitHub, moving files, updating frontmatter, auditing and repairing affected documentation links, creating a branch, and opening a PR. Permanent deletion of closed specs is not automated — the user must explicitly request it. Use when cleaning up closed issue specs, archiving issue docs, or maintaining the docs/issues/ folder. Triggers on "cleanup issue", "archive issue", "move closed issue", "clean completed issues", or "maintain issue docs".
+description: Guide for archiving closed issue specification files from docs/issues/open/ to docs/issues/closed/. Covers verifying closure on GitHub, moving files, updating frontmatter, auditing and repairing affected documentation links, creating a branch, and opening a PR. Permanent deletion of closed specs is not automated — the user must explicitly request it. Also covers a read-only periodic audit that checks docs/issues/open/ holds only open issues. Use when cleaning up closed issue specs, archiving issue docs, auditing docs/issues/, or maintaining the docs/issues/ folder. Triggers on "cleanup issue", "archive issue", "move closed issue", "clean completed issues", "audit issue specs", or "maintain issue docs".
 metadata:
   author: torrust
-  version: "1.11"
+  version: "1.12"
 ---
 
 # Cleaning Up Completed Issues
@@ -33,6 +33,8 @@ Related lifecycle docs:
 - **After PR merge**: Move the issue file when its PR is merged and the issue is closed on GitHub.
 - **Batch archive**: Periodically move multiple closed issue files during maintenance.
 - **Before releases**: Tidy `docs/issues/` before major releases.
+- **Periodically**: Run the [Periodic Audit](#periodic-audit) to catch specs whose closing
+  pull request was forgotten.
 
 ## Prerequisites
 
@@ -294,3 +296,61 @@ gh pr create \
 - Updated workflow checkboxes where applicable
 - Pre-commit hooks passed"
 ```
+
+## Periodic Audit
+
+The closing pull request is easy to forget. Run this read-only audit periodically, and after a
+batch of merges, to confirm that `docs/issues/open/` holds only specs whose GitHub issue is open.
+It changes nothing: it only reports. Run it from the repository root on an up-to-date `develop`.
+
+> Automating this workflow in a script is tracked by
+> [#1774](../../../../../docs/issues/open/1774-automate-cleanup-completed-issues-skill-script/ISSUE.md).
+> Until that lands, use the commands below.
+
+The issue number is the leading number of the spec's folder name (for example `2414` in
+`2414-2410-si-22-2-...`), not the EPIC number that follows it.
+
+```bash
+REPO=torrust/torrust-tracker
+OPEN_ISSUES=$(gh issue list --repo "$REPO" --state open --limit 5000 --json number --jq '.[].number' \
+  | LC_ALL=C sort -u)
+
+spec_numbers() {
+  find "$1" -maxdepth 1 -mindepth 1 \( -type d -o -name '*.md' \) \
+    ! -name README.md ! -name AGENTS.md -exec basename {} \; \
+    | sed -E 's/^([0-9]+).*/\1/' | grep -E '^[0-9]+$' | LC_ALL=C sort -u
+}
+
+echo "[1] open/ specs whose issue is not open"
+comm -23 <(spec_numbers docs/issues/open) <(echo "$OPEN_ISSUES")
+
+echo "[2] closed/ specs whose issue is open"
+comm -12 <(spec_numbers docs/issues/closed) <(echo "$OPEN_ISSUES")
+
+echo "[3] drafts already linked to a GitHub issue"
+grep -rlE '^github-issue: [0-9]+' docs/issues/drafts --include=ISSUE.md --include=EPIC.md
+
+echo "[4] open/ specs with a terminal status"
+grep -lE '^status: (done|closed|completed|resolved)' \
+  docs/issues/open/*/ISSUE.md docs/issues/open/*/EPIC.md
+```
+
+Empty output under every heading means the folders are consistent. Otherwise:
+
+| Finding                                       | Meaning                                                    | Action                                                                                                               |
+| --------------------------------------------- | ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| [1] a number                                  | The issue is closed, or no such GitHub issue exists        | Confirm with [Step 1](#step-1-verify-issue-is-closed-on-github). If `CLOSED`, archive it with Steps 0-7.            |
+| [2] a number                                  | The issue is open again, or the spec was filed in `closed/` early | Follow [reopen-issue](../reopen-issue/SKILL.md) if it regressed; otherwise move the spec back to `open/`.     |
+| [3] a path                                    | A draft must not stay in `drafts/` once it has an issue   | Reconcile it with [Step 0.6](#step-06-reconcile-drafts-that-already-have-a-github-issue-mandatory).                  |
+| [4] a path                                    | The frontmatter and the folder disagree                    | Check the issue state. If it is closed, archive it; if it is open, correct the `status` field.                       |
+
+Rules for reading the result:
+
+- **A closed EPIC child list is not a closed EPIC.** An EPIC can have draft subissues that have no
+  GitHub issue yet, so finding no open child issue does not mean the EPIC is complete. An EPIC
+  appears under [1] only when its own GitHub issue is closed. Before closing or archiving one,
+  apply [Step 0.7](#step-07-block-epic-closure-while-draft-subissues-remain-mandatory).
+- **`status` in `closed/` is not checked.** Legacy specs there use inconsistent values (`closed`,
+  `completed`, `resolved`, and others), so the GitHub issue state in [2] is the authority.
+- **A number in [1] is not proof of closure.** A spec can be misnumbered. Always run Step 1 before
+  moving anything.
