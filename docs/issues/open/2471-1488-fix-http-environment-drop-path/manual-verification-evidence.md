@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2471-1488-fix-http-environment-drop-path/ISSUE.md
-last-updated-utc: 2026-10-15 20:31
+last-updated-utc: 2026-10-15 20:32
 ---
 
 # Manual Verification Evidence
@@ -52,7 +52,9 @@ files, but never as the only copy of something the evidence relies on.
 - Hypothesis: dropping a `CancellationToken` does not cancel it, so dropping a
   started HTTP environment without `stop()` leaves its server task running and
   its address bound. SI-16 (PR #2439) replaced the halt sender, whose drop did
-  end the server, with this token.
+  end the server, with this token. (The second sentence is disproved: see the
+  correction under V1's conclusion and V4. The halt sender's drop never
+  stopped the server.)
 - Initial state: a started environment; no `stop()` call.
 - Status: `DONE` (outcome: **Reproduced**)
 

@@ -9,7 +9,7 @@ github-issue: 2471
 spec-path: docs/issues/open/2471-1488-fix-http-environment-drop-path/ISSUE.md
 branch: "2471-fix-http-environment-drop-path"
 related-pr: null
-last-updated-utc: "2026-10-15 20:31"
+last-updated-utc: "2026-10-15 20:32"
 semantic-links:
   skill-links:
     - create-issue
@@ -201,6 +201,7 @@ for the test. Sign every commit with GPG.
 - 2026-10-15 19:39 UTC - GitHub Copilot - `review-finding:pr-2544-f1` and `review-finding:pr-2544-f2` (Copilot, same concern at two lines): the spec still showed the automatic checks as pending. The pre-commit hook (which runs `linter all`) passed on every commit and the pre-push checks (nightly fmt, check and docs, and the full stable test suite) passed on the push, so T3 is DONE and the checkpoint is ticked.
 - 2026-10-15 19:40 UTC - GitHub Copilot - `review-finding:pr-2544-f8` and `review-finding:pr-2544-f9`: the implementer must not tick acceptance criteria, so AC1 to AC3 are cleared and their rows are back to `TODO` with the evidence pointers kept for the reviewer. `status` is `in-progress`. The manual-verification workflow checkpoint is ticked (V1 to V4 and M1 are recorded); the matching acceptance-criteria box stays clear for the reviewer.
 - 2026-10-15 20:31 UTC - GitHub Copilot - Round 2 of the PR #2544 review (da2ce7, approved with non-blocking findings): `review-finding:pr-2544-f12` asked that specs cite audit findings by their reference, not by a bare ID. Replaced the bare citations in this spec, the evidence, SI-23 and SI-24.
+- 2026-10-15 20:32 UTC - GitHub Copilot - `review-finding:pr-2544-f13`: V1's Hypothesis still stated the disproved premise as fact; it now carries a marker pointing to the correction and V4.
 
 ## Acceptance Criteria
 
