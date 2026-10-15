@@ -69,7 +69,7 @@ impl Metrics {
         let req_processing_time = req_processing_time.as_nanos() as f64;
 
         // Moving average: https://en.wikipedia.org/wiki/Moving_average
-        let new_avg = previous_avg as f64 + (req_processing_time - previous_avg as f64) / processed_requests_total;
+        let new_avg = previous_avg + (req_processing_time - previous_avg) / processed_requests_total;
 
         tracing::debug!(
             "Recalculated UDP average processing time for labels {}: {} ns (previous: {} ns, req_processing_time: {} ns, request_processed_total: {})",
@@ -85,22 +85,17 @@ impl Metrics {
         new_avg
     }
 
+    /// The moving-average gauge for one label set, kept as `f64`: truncating
+    /// it before the next update would bias the average toward the fastest
+    /// requests.
     #[must_use]
-    #[allow(
-        clippy::cast_sign_loss,
-        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
-    )]
-    #[allow(
-        clippy::cast_possible_truncation,
-        reason = "temporary: #2244 reviews metric aggregate conversion boundaries"
-    )]
-    fn udp_avg_processing_time_ns(&self, label_set: &LabelSet) -> u64 {
+    fn udp_avg_processing_time_ns(&self, label_set: &LabelSet) -> f64 {
         self.metric_collection
             .sum(
                 &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSING_TIME_NS),
                 label_set,
             )
-            .unwrap_or_default() as u64
+            .unwrap_or_default()
     }
 
     #[must_use]
@@ -1459,6 +1454,43 @@ mod tests {
 
             // With only one server, the average should be the same as the single value
             assert_eq!(metrics.udp_avg_connect_processing_time_ns_averaged(), 1234);
+        }
+    }
+
+    mod processing_time_moving_average {
+        use std::time::Duration;
+
+        use super::*;
+
+        fn recalculate_for_all(metrics: &mut Metrics, processing_times_ns: &[u64]) -> f64 {
+            let now = CurrentClock::now();
+            let labels = LabelSet::from([("request_kind", "connect")]);
+
+            let mut average = 0.0;
+            for &time_ns in processing_times_ns {
+                average = metrics.recalculate_udp_avg_processing_time_ns(Duration::from_nanos(time_ns), &labels, now);
+            }
+            average
+        }
+
+        #[test]
+        fn it_should_keep_the_fractional_part_of_the_previous_average() {
+            let mut metrics = Metrics::default();
+
+            let average = recalculate_for_all(&mut metrics, &[100, 101, 101, 101]);
+
+            // (100 + 101 + 101 + 101) / 4
+            assert!((average - 100.75).abs() < 1e-9, "average was {average}");
+        }
+
+        #[test]
+        fn it_should_not_drift_toward_the_fastest_requests_over_many_requests() {
+            let mut metrics = Metrics::default();
+            let processing_times_ns: Vec<u64> = (0..10_000).map(|i| if i % 2 == 0 { 100 } else { 101 }).collect();
+
+            let average = recalculate_for_all(&mut metrics, &processing_times_ns);
+
+            assert!((average - 100.5).abs() < 1e-6, "average was {average}");
         }
     }
 }
