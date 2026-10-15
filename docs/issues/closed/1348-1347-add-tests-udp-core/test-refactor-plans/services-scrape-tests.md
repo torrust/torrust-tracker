@@ -10,7 +10,7 @@ semantic-links:
     - packages/tracker-core/src/scrape_handler.rs
     - packages/tracker-core/src/error.rs
     - packages/udp-server/src/handlers/scrape.rs
-    - docs/issues/open/1348-1347-add-tests-udp-core/coverage-evidence.md
+    - docs/issues/closed/1348-1347-add-tests-udp-core/coverage-evidence.md
 ---
 
 # UDP Core Scrape Service File Test Plan

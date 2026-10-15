@@ -10,7 +10,7 @@ semantic-links:
     - packages/udp-core/src/crypto/ephemeral_instance_keys.rs
     - packages/udp-core/src/connection_cookie.rs
     - src/bootstrap/app.rs
-    - docs/issues/open/1348-1347-add-tests-udp-core/coverage-evidence.md
+    - docs/issues/closed/1348-1347-add-tests-udp-core/coverage-evidence.md
 ---
 
 # UDP Core Crypto Keys File Test Plan

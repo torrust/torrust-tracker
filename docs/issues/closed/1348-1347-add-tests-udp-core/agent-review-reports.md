@@ -2,7 +2,7 @@
 semantic-links:
   related-artifacts:
     - .github/agents/task-reviewer.agent.md
-    - docs/issues/open/1348-1347-add-tests-udp-core/ISSUE.md
+    - docs/issues/closed/1348-1347-add-tests-udp-core/ISSUE.md
 ---
 
 # Agent Review Reports - Issue #1348 Add Tests to the udp-core Package

@@ -8,7 +8,7 @@ package: torrust-tracker-udp-core
 
 Candidate lessons collected while working on Issue #1348. Promoting any of them into
 `docs/testing/`, `.github/skills/`, or a production change is a separate decision after this
-issue, per the [subissue guidelines](../1347-overhaul-packages-testing/subissue-spec-guidelines.md).
+issue, per the [subissue guidelines](../../open/1347-overhaul-packages-testing/subissue-spec-guidelines.md).
 
 ## Follow-Up Candidates
 

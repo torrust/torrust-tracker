@@ -3,9 +3,9 @@ semantic-links:
   skill-links:
     - write-markdown-docs
   related-artifacts:
-    - docs/issues/open/1348-1347-add-tests-udp-core/ISSUE.md
-    - docs/issues/open/1348-1347-add-tests-udp-core/lessons.md
-    - docs/issues/open/1348-1347-add-tests-udp-core/mutation-evidence.md
+    - docs/issues/closed/1348-1347-add-tests-udp-core/ISSUE.md
+    - docs/issues/closed/1348-1347-add-tests-udp-core/lessons.md
+    - docs/issues/closed/1348-1347-add-tests-udp-core/mutation-evidence.md
     - .github/skills/dev/planning/create-issue/SKILL.md
 ---
 

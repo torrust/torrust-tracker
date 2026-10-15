@@ -9,7 +9,7 @@ semantic-links:
     - packages/udp-core/src/lib.rs
     - packages/configuration/src/v3_0_0/udp_tracker_server.rs
     - src/app.rs
-    - docs/issues/open/1348-1347-add-tests-udp-core/coverage-evidence.md
+    - docs/issues/closed/1348-1347-add-tests-udp-core/coverage-evidence.md
 ---
 
 # UDP Core Crate Root File Test Plan
