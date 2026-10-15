@@ -135,10 +135,8 @@ mod tests {
             torrust_metrics::label::LabelValue::new("seeder"),
         ));
         let value = stats_repository
-            .get_metrics()
+            .read_metrics(|metrics| metrics.metric_collection().get_counter_value(&metric_name, &label_set))
             .await
-            .metric_collection
-            .get_counter_value(&metric_name, &label_set)
             .map_or(0, |counter| counter.value());
 
         assert_eq!(value, expected_value);

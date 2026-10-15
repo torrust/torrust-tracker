@@ -9,7 +9,7 @@ github-issue: 2536
 spec-path: docs/issues/open/2536-1669-hide-statistics-repository-read-lock/ISSUE.md
 branch: "2536-1669-hide-statistics-repository-read-lock"
 related-pr: null
-last-updated-utc: "2026-10-15 18:20"
+last-updated-utc: "2026-10-15 19:40"
 semantic-links:
   skill-links:
     - create-issue
@@ -237,7 +237,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T4  | DONE   | Hide the read lock and field in `udp-server`            | Same as T3; the largest task (30 in-crate unit-test calls, the `metrics_snapshot` helper, and the guard-accessor test to replace). |
 | T5  | DONE   | Hide the read lock and field in `http-core`             | Same as T3.                                                                                                                              |
 | T6  | DONE   | Hide the read lock and field in `tracker-core`          | Same as T3, including the repository's own counter reads.                                                                               |
-| T7  | IN_PROGRESS | Hide the read lock and field in `swarm-coordination-registry` | Same as T3.                                                                                                                        |
+| T7  | DONE        | Hide the read lock and field in `swarm-coordination-registry` | Same as T3.                                                                                                                        |
 | T8  | TODO   | Verification                                            | Starts only after the maintainer review that follows T7. See Verification Plan; run M1 on the branch, store its five outputs, and compare them with T2's. |
 | T9  | DONE   | Write the root ADR for closure-based statistics reads   | `docs/adrs/<timestamp>_<title>.md` registered in `docs/adrs/index.md`; passes `linter markdown` and `linter cspell`. Needs no maintainer test review, so it can be written before T8. |
 
@@ -289,8 +289,8 @@ request.
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
-- [ ] Test-design review (with the prose-first AAA comparison) recorded for each of T3-T7 before the next task started
-- [ ] Maintainer reviewed the test increments after T7, before T7's commit and final verification
+- [x] Test-design review (with the prose-first AAA comparison) recorded for each of T3-T7 before the next task started
+- [x] Maintainer reviewed the test increments after T7, before T7's commit and final verification
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
@@ -415,6 +415,8 @@ request.
   `docs/adrs/index.md`. The AC1 call grep prints exactly the two REST-port lines; the AC2 grep, the
   AC3 grep, and the guard grep (only the `#[cfg(test)] pub(crate) write_lock_for_test()` matches)
   give the expected results. `cargo test --workspace` passes and clippy `-D warnings` is clean.
+- 2026-10-15 19:40 UTC - GitHub Copilot - The maintainer reviewed and approved the test increments
+  T3-T7. T7 is committed; T8 (final verification) starts.
 
 ## Acceptance Criteria
 

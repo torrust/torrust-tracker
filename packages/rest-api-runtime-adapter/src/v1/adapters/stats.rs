@@ -136,8 +136,9 @@ impl StatsQueryPort for TrackerStatsAdapter {
     async fn get_labeled_stats(&self) -> LabeledStats {
         let mut metrics = MetricCollection::default();
 
-        metrics
-            .merge(&self.swarms_stats_repository.get_metrics().await.metric_collection)
+        self.swarms_stats_repository
+            .read_metrics(|swarms| metrics.merge(swarms.metric_collection()))
+            .await
             .expect("failed to merge torrent repository metrics");
         self.tracker_core_stats_repository
             .read_metrics(|tracker_core| metrics.merge(tracker_core.metric_collection()))
