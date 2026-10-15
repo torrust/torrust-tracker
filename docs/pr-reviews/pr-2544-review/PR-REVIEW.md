@@ -47,7 +47,7 @@ four, so the body adds no rows. F1 and F2 are the same concern at two lines, so 
 reviewer IDs F1-F5 collide with F1-F5 above, so they are recorded as F5-F9 with the reviewer's ID
 kept in the detail entry. Its body is a round summary; its assertions that the bot's "restoring
 cleanup" and "marks the fix complete" claims deserve findings repeat reviewer F1 and F2 (audit F5
-and F6), so the body adds no rows. The reviews read head `75c7be0fc`, whose subject is
+and F6), so the body adds no rows. The reviews read the head whose subject is
 "docs(issues): [#1488] mark #2471 done in the shutdown roadmap".
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
@@ -122,9 +122,10 @@ and F6), so the body adds no rows. The reviews read head `75c7be0fc`, whose subj
 - Solution: declined. The UDP test environment uses the identical single expression, so the two
   read alike; the property that matters is that nothing awaits between the disarm and the cancel,
   which one expression keeps visible. A split would add a binding without changing behavior and
-  would make HTTP diverge from UDP. The reply form `Superseded by <FindingId>: <reason>.` does not
-  fit a declined suggestion, because no finding supersedes it, so the reply states the reason
-  directly and the thread was resolved.
+  would make HTTP diverge from UDP. This departs from the `process-pr-review` rule for a no-change
+  thread, which prescribes the reply `Superseded by <FindingId>: <reason>.` and the
+  `SUPERSEDED` thread state: no finding supersedes a declined suggestion, so the reply states the
+  reason directly and the row records `NO_ACTION` with the thread `RESOLVED`.
 - Current-tree verification: `grep -n 'disarm()'` finds `cancel_on_drop.disarm().cancel();` in
   both `packages/axum-http-server/src/testing/environment.rs` and
   `packages/udp-server/src/testing/environment.rs`.
@@ -148,9 +149,10 @@ and F6), so the body adds no rows. The reviews read head `75c7be0fc`, whose subj
   the gap predates SI-16 and that the change aligns HTTP with UDP. The GitHub issue #2471 body and
   the PR body were corrected too. The V1 claim was inferred from source and marked "not run"; it
   was wrong.
-- Current-tree verification: `grep` for the old wording finds it only in the correction entries
-  that quote it; `evidence/v4-pre-si16-drop-run.txt` records the failing run; the issue body and PR
-  body read "predates SI-16".
+- Current-tree verification: `grep` for the old wording found it in the correction entries that
+  quote it but missed V1's Hypothesis, which still stated the premise as fact until
+  review-finding:pr-2544-f13 and now carries a marker; `evidence/v4-pre-si16-drop-run.txt` records
+  the failing run; the issue body and PR body read "predates SI-16".
 - Resolution reference: docs(issues): [#2471] correct the history: the HTTP drop gap predates SI-16
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2544#discussion_r4287544789>
@@ -176,11 +178,12 @@ and F6), so the body adds no rows. The reviews read head `75c7be0fc`, whose subj
 - Source review ID: 5537908774
 - Reviewer finding ID: F3
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2544#discussion_r4286685333>
-- Concern: the stamp (17:50) is after the commit that carries it (17:42:43Z), and the previous
-  commit's stamp was also before its own time.
-- Solution: every stamp written after the review is at or before its commit. The two earlier
-  stamps stay in history, because rewriting would invalidate the review round and the new commits
-  correct the current values.
+- Concern: the stamp (17:50) is after the commit that carries it (17:42:43Z). The review cited the
+  previous commit's stamp (17:35, before its commit at 17:41:29Z) as the correct contrast; only the
+  17:50 stamp was wrong.
+- Solution: every stamp written after the review is at or before its commit. The 17:50 stamp
+  stays in history, because rewriting would invalidate the review round, and the new commits
+  correct the current value.
 - Current-tree verification: for each commit after the reviewed head, compared the
   `last-updated-utc` of every changed spec with the commit author time in UTC; all are at or before
   it (the EPIC stamp is 19:41 in a commit authored at 19:41:40Z).
