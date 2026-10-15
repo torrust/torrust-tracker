@@ -189,6 +189,18 @@ mod tests {
         ban_service.is_banned(&ip) == (errors > limit)
     }
 
+    /// Unlike the full-range property above, every draw lands within two errors of the limit.
+    #[quickcheck]
+    fn it_should_ban_an_ip_exactly_when_its_errors_exceed_the_limit_near_the_limit(limit: u16, offset: i8) -> bool {
+        let limit = u32::from(limit);
+        let errors = limit.saturating_add_signed(i32::from(offset % 3));
+        let mut ban_service = ban_service(limit);
+        let ip: IpAddr = "127.0.0.2".parse().unwrap();
+        record_connection_id_errors(&mut ban_service, &ip, errors);
+
+        ban_service.is_banned(&ip) == (errors > limit)
+    }
+
     fn record_connection_id_errors(ban_service: &mut BanService, ip: &IpAddr, errors: u32) {
         for _ in 0..errors {
             ban_service.increase_counter(ip);
