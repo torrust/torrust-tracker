@@ -235,6 +235,9 @@ For each subissue implementation, the completion policy is:
   both tables. T8 verification is complete; the PR is next.
 - 2026-10-15 07:23 UTC - GitHub Copilot - #1348's PR #2538 review fixes added a near-limit ban
   property and adjusted tests; re-measured `udp-core` lines 98.04% in both tables.
+- 2026-10-15 11:56 UTC - GitHub Copilot - #1348's late prose-first AAA review renamed and
+  restructured tests; re-measured `udp-core` regions 98.15% and functions 97.61% in both tables
+  (lines unchanged at 98.04%).
 
 ## Acceptance Criteria
 

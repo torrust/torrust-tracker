@@ -94,7 +94,8 @@ Two callers pass it (`src/container.rs` and `initialize_from_tracker_core`).
 ## Prose-First AAA Review
 
 Recorded on 2026-10-15, late: the PR #2538 Task Reviewer found no record of it (AC7). For each
-test, temporary Arrange, Act, and Assert prose was compared with the code and then removed.
+test this plan added, temporary Arrange, Act, and Assert prose was compared with the code and then
+removed. #2458's two tests are its own.
 
 | Test | Arrange → Act → Assert | Outcome |
 | --- | --- | --- |

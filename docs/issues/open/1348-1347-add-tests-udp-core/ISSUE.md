@@ -329,7 +329,7 @@ Issue #2458 (merged 2026-10-08) replaced the global cookie keys with an injected
 - [x] Manual verification recorded in `manual-verification-evidence.md`.
 - [x] Bounded mutation assessment recorded in `mutation-evidence.md`.
 - [x] Acceptance criteria reviewed after implementation.
-- [ ] Implementation completion review recorded (`implementation-retrospective.md` or a
+- [x] Implementation completion review recorded (`implementation-retrospective.md` or a
       progress-log reason); independent reviewer results in `agent-review-reports.md` when used.
 - [ ] Issue closed and spec moved to `docs/issues/closed/`.
 
@@ -554,11 +554,15 @@ Issue #2458 (merged 2026-10-08) replaced the global cookie keys with an injected
   requires for the final pre-PR review, late, as PR #2538 review finding F4 noted. It failed
   ([agent-review-reports.md](agent-review-reports.md)): no plan recorded the prose-first AAA review
   AC7 requires. With the maintainer's approval the review was done now for every test-producing
-  file and recorded in each plan; it renamed nine tests, added AAA sections to three properties,
+  file and recorded in each plan; it renamed ten tests, added AAA sections to three properties,
   inlined one hidden Act, and made the container external-IP test read the info hash and port
   from its request. Also fixed the reviewer's record findings. Re-measured: lines 98.04%
   (2,202 / 2,246), 96 unit tests. The completion-review checkpoint stays open until a passing
   review is recorded.
+- 2026-10-15 11:56 UTC - GitHub Copilot - The Task Reviewer re-review passed
+  ([agent-review-reports.md](agent-review-reports.md)); fixed its count and wording findings and
+  ticked the completion-review checkpoint. Next: the PR #2538 review audit, push, and thread
+  replies.
 
 ## Acceptance Criteria
 

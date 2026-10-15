@@ -55,3 +55,33 @@ semantic-links:
   - Commit and validate the PR #2538 review audit, or drop the citation.
   - Leave the completion-review checkpoint open until a passing review is recorded.
   - Fix the MINOR record drift, then re-run the Task Reviewer.
+
+### 2026-10-15 11:56 UTC - Task Reviewer
+
+- Invocation scope: Re-review after the commits "test(udp-core): apply the prose-first AAA
+  review to the package tests" and "docs(udp-core): record the prose-first AAA review and the
+  failed Task Reviewer run": the earlier findings, AC1-AC15, record consistency, Prose-First
+  tables against the code, branch-only commit ids, and the Test Design checklist for the changed
+  tests.
+- Inputs: the issue records and 20 plans, the #1347 `EPIC.md`, the first report above,
+  `git diff torrust/develop...HEAD`, and the `review-task` and `process-pr-review` skills.
+- Evidence: `cargo test -p torrust-tracker-udp-core` (stable 1.99.0): 96 unit tests, 6 runnable
+  and 3 ignored doc tests pass; 18 banning tests. `linter all`, nightly `fmt --check`, and
+  `git diff --check` exit 0. A unit-only `cargo llvm-cov` run reproduced 2,202 / 2,246 lines,
+  3,069 / 3,127 regions, 286 / 293 functions, all 16 per-file rows, and every uncovered-line
+  reference. Totals agree across `ISSUE.md`, `coverage-evidence.md`, the retrospective, and both
+  EPIC tables. All 70 Prose-First table entries in the 15 test-producing plans resolve to one
+  test each. Every cited commit id is a `develop` ancestor. Every earlier finding is resolved;
+  the PR #2538 review audit is accepted as pending, provided it is committed before the next push.
+- Findings:
+  - MINOR: `ISSUE.md` and the retrospective say nine tests were renamed; the test commit renames
+    ten.
+  - NIT: the container and cookie-cipher Prose-First intros say "each test" but omit #2458's
+    tests.
+  - NIT: the EPIC progress log has no entry for the 2026-10-15 regions and functions change.
+- Verdict: REVIEW PASSED
+- Follow-up actions:
+  - Fix the count and the two NITs (done in the same commit as this report).
+  - Write, validate, and commit the PR #2538 review audit before pushing; then reply to and
+    resolve the threads.
+  - Close the issue and move the spec to `closed/` after merge.

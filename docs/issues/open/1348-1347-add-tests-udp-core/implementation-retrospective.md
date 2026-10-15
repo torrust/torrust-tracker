@@ -58,7 +58,7 @@ production changes are documentation fixes in the files under test.
 - **The prose-first AAA review was never recorded.** The per-file workflow names it, but no plan
   template section asked for it, and the final Task Reviewer ran only after the PR #2538 review
   noted its absence. It failed on this gap; the review was then done for every test-producing
-  file, renamed nine tests, and fixed one hidden Act and one fixture-coupled assertion.
+  file, renamed ten tests, and fixed one hidden Act and one fixture-coupled assertion.
 
 ## Root Cause
 
