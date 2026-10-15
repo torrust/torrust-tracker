@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2493-security-code-scanning-triage/ISSUE.md
-last-updated-utc: 2026-10-08 18:54
+issue-spec: docs/issues/closed/2493-security-code-scanning-triage/ISSUE.md
+last-updated-utc: 2026-10-14 16:52
 ---
 
 <!-- cspell:ignore findall setdefault splitlines startswith -->

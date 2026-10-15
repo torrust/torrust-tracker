@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-review
+status: done
 priority: p2
 epic: null
 github-issue: 2493
-spec-path: docs/issues/open/2493-security-code-scanning-triage/ISSUE.md
+spec-path: docs/issues/closed/2493-security-code-scanning-triage/ISSUE.md
 branch: "2493-security-code-scanning-triage"
 related-pr: 2498
-last-updated-utc: "2026-10-08 18:59"
+last-updated-utc: "2026-10-14 16:52"
 semantic-links:
   skill-links:
     - create-issue
@@ -159,9 +159,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Manual verification scenarios executed and recorded
 - [x] Acceptance criteria reviewed after implementation
 - [x] Evidence-based completion review recorded
-- [ ] Reviewer validated acceptance criteria
+- [x] Reviewer validated acceptance criteria
 - [x] Committer verified spec progress before commit
-- [ ] Issue closed and spec moved to `docs/issues/closed/`
+- [x] Issue closed and spec moved to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -200,6 +200,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-10-08 18:59 UTC - Copilot - Processed PR #2498 review round 2 (da2ce7 review 5461276899, 3
   findings, all fixed): restamped log entries to the commits that carry them, recorded both V2
   reconciliation runs, and recorded the exact #2499 reproduction commands.
+- 2026-10-14 16:52 UTC - Copilot - PR #2498 merged into `develop` (2026-10-08 19:41:58 UTC) at the
+  head da2ce7 approved (review state `APPROVED`, 2026-10-08 19:18:28 UTC, with an ACK naming that
+  head), which validated the acceptance criteria; #2493 closed as completed. Archived this spec to
+  `docs/issues/closed/` and set `status: done`.
 
 ## Acceptance Criteria
 
