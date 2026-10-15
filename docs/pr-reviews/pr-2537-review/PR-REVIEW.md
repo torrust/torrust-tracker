@@ -9,6 +9,8 @@ semantic-links:
 
 <!-- skill-link: process-pr-review -->
 
+<!-- cspell:ignore unreassigned -->
+
 # PR #2537 Review Audit
 
 Source: pull-request reviews and inline review threads for <https://github.com/torrust/torrust-tracker/pull/2537>.
