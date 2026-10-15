@@ -7,9 +7,9 @@ priority: p2
 epic: 1488
 github-issue: 2471
 spec-path: docs/issues/open/2471-1488-fix-http-environment-drop-path/ISSUE.md
-branch: "2471-fix-http-environment-drop-path-spec"
+branch: "2471-fix-http-environment-drop-path"
 related-pr: null
-last-updated-utc: "2026-10-08 07:33"
+last-updated-utc: "2026-10-15 17:20"
 semantic-links:
   skill-links:
     - create-issue
@@ -144,9 +144,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status | Task                 | Notes / Expected Output                                                        |
 | --- | ------ | -------------------- | ------------------------------------------------------------------------------ |
 | T0  | DONE   | Reproduction         | V1: Reproduced; binding still taken 10 s after the drop.                       |
-| T1  | TODO   | Red regression test  | The maintained test fails against the plain token; red output recorded (V2). |
-| T2  | TODO   | Fix                  | Running state holds a `DropGuard`; `stop()` disarms it before cancelling.      |
-| T3  | TODO   | Green and recheck    | Test and package tests pass; V1 rerun passes; outputs recorded (V3).           |
+| T1  | DONE   | Red regression test  | The maintained test fails against the plain token; red output recorded (V2). |
+| T2  | DONE   | Fix                  | Running state holds a `DropGuard`; `stop()` disarms it before cancelling.      |
+| T3  | IN_PROGRESS | Green and recheck    | Test and package tests pass; V1 rerun passes; outputs recorded (V3). `linter all` and pre-push checks pending. |
 
 ## Commit Points
 
@@ -166,9 +166,9 @@ for the test. Sign every commit with GPG.
 - [x] Reproduction attempted and classified in `manual-verification-evidence.md` (V1: Reproduced)
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Design-review checkpoint recorded after the regression test turned green, before maintainer review and commit
+- [x] Spec-only PR merged into `develop` before implementation (#2483)
+- [x] Implementation completed
+- [x] Design-review checkpoint recorded after the regression test turned green, before maintainer review and commit
 - [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
@@ -182,14 +182,16 @@ for the test. Sign every commit with GPG.
 
 - 2026-10-07 11:09 UTC - GitHub Copilot - Drafted after checking SI-22's specs against SI-17's drop-path finding. Reproduced with a temporary test (V1), recorded verbatim and reverted; the pre-SI-16 halt-sender drop path confirmed in `torrust-server-lib` 0.3.0.
 - 2026-10-07 12:45 UTC - GitHub Copilot - Maintainer approved the spec. Created #2471, linked it as a sub-issue of EPIC #1488, and moved the spec to `docs/issues/open/`. It ships in a spec-only PR with the SI-22, SI-23 and SI-24 spec refreshes; the fix gets its own PR before SI-22 starts.
+- 2026-10-15 17:20 UTC - GitHub Copilot - Implemented on branch `2471-fix-http-environment-drop-path`. Added the regression test and recorded it red (V2: binding still taken after 10.02 s), then held the token as a `DropGuard` and disarmed it in `stop()` (V3: 7 environment tests, 44 unit and 62 integration tests pass; clippy clean).
+- 2026-10-15 17:20 UTC - GitHub Copilot - Design-review checkpoint (prose-first Arrange-Act-Assert). Arrange: a started HTTP environment on an ephemeral port, whose binding is read before the drop. Act: drop the environment without `stop()`. Assert: within `TEST_DEADLINE` the same address can be bound again, polled because the guard only requests cancellation and the server task releases the socket when it next runs. The test fails for the defect (V2) and passes for the fix (V3), and mirrors the UDP test. Checked `stop()`: it disarms the guard, then cancels once and joins the server task, its drain controller, and the listener as before, so the drop path does not run on a normal stop; the existing stop, restart and failure-join tests still pass. The `Running` interface and public fields are unchanged.
 
 ## Acceptance Criteria
 
-- [ ] AC1: Dropping a running HTTP test environment without `stop()` releases
+- [x] AC1: Dropping a running HTTP test environment without `stop()` releases
       its HTTP binding within the test deadline.
-- [ ] AC2: `stop()` keeps its behavior: it cancels once, joins every owned
+- [x] AC2: `stop()` keeps its behavior: it cancels once, joins every owned
       task, and reports failures as today; all existing environment tests pass.
-- [ ] AC3: The regression test is proven red before the fix and green after.
+- [x] AC3: The regression test is proven red before the fix and green after.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
@@ -210,15 +212,15 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario                    | Human-oriented command/steps                                                       | Expected Result                              | Status | Evidence                                     |
 | --- | --------------------------- | ---------------------------------------------------------------------------------- | -------------------------------------------- | ------ | -------------------------------------------- |
-| M1  | Drop a running environment  | Temporary test from V1: start, drop, poll `TcpListener::bind` for up to 10 s       | Before fix: times out. After fix: succeeds.  | IN_PROGRESS | `manual-verification-evidence.md` sections V1 and V3 |
+| M1  | Drop a running environment  | Temporary test from V1: start, drop, poll `TcpListener::bind` for up to 10 s       | Before fix: times out. After fix: succeeds.  | DONE | `manual-verification-evidence.md` sections V1 and V3 |
 
 ### Acceptance Verification
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1   | TODO                   |          |
-| AC2   | TODO                   |          |
-| AC3   | TODO                   |          |
+| AC1   | DONE                   | V3: the maintained drop-path test passes within the deadline. |
+| AC2   | DONE                   | V3: `stop()` unchanged; 7 environment tests, 44 unit and 62 integration tests pass. |
+| AC3   | DONE                   | V2 red (10.02 s timeout) before the fix; V3 green after.      |
 
 ## Risks and Trade-offs
 

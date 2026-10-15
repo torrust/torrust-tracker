@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2471-1488-fix-http-environment-drop-path/ISSUE.md
-last-updated-utc: 2026-10-08 07:31
+last-updated-utc: 2026-10-15 17:20
 ---
 
 # Manual Verification Evidence
@@ -113,6 +113,61 @@ oneshot::Sender<Halted>`. `torrust-server-lib` 0.3.0's `shutdown_signal`
 awaits the receiver and panics on `Err`, which a dropped sender produces, so
 the server task ended when the environment was dropped. PR #2459 F1 recorded
 the same mechanism for the UDP environment.
+
+## Red, Fix, Green and Recheck
+
+### V2 - Maintained Regression Test Is Red Before the Fix
+
+- Boundary: a unit test in the environment's own test module. The environment
+  decides what dropping it does, so this is the causal seam; it mirrors the UDP
+  test `it_should_release_the_udp_socket_when_dropped_without_being_stopped`.
+- Toolchain: `rustc 1.99.0 (b940084d7 2026-09-28)`, `cargo 1.99.0 (5f94df478
+  2026-08-27)`, on `develop` plus only the new test (the plain `CancellationToken`
+  still in place).
+- Command: `cargo test -p torrust-tracker-axum-http-server --lib -- testing::environment::tests::it_should_release_the_http_binding_when_dropped`
+
+```text
+running 1 test
+test testing::environment::tests::it_should_release_the_http_binding_when_dropped_without_being_stopped ... FAILED
+
+---- testing::environment::tests::it_should_release_the_http_binding_when_dropped_without_being_stopped stdout ----
+
+thread 'testing::environment::tests::it_should_release_the_http_binding_when_dropped_without_being_stopped' (1190028) panicked at packages/axum-http-server/src/testing/environment.rs:394:10:
+the HTTP binding should be released within the test deadline after the environment is dropped: Elapsed(())
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 43 filtered out; finished in 10.02s
+```
+
+### V3 - Green After the Fix, and Like-for-Like Recheck of V1
+
+The fix: `Running` holds the token as a `DropGuard` (`cancel_on_drop`);
+`stop()` disarms it, then cancels and joins exactly as before.
+
+- Command: `cargo test -p torrust-tracker-axum-http-server --lib -- testing::environment`
+
+```text
+running 7 tests
+test testing::environment::tests::it_should_report_a_drain_timeout_even_when_every_task_joins ... ok
+test testing::environment::tests::it_should_join_the_event_listener_before_reporting_an_http_server_task_failure ... ok
+test testing::environment::tests::it_should_release_the_http_binding_when_stopped ... ok
+test testing::environment::tests::it_should_not_leave_the_statistics_listener_running_when_the_http_server_fails_to_start ... ok
+test testing::environment::tests::it_should_stop_without_a_join_failure_when_every_owned_task_finishes_through_cancellation ... ok
+test testing::environment::tests::it_should_release_the_http_binding_when_dropped_without_being_stopped ... ok
+test testing::environment::tests::it_should_serve_requests_after_being_stopped_and_started_again ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 37 filtered out; finished in 1.03s
+```
+
+- Like-for-like recheck of V1: the maintained test has the same body as the
+  V1 temporary test (start, read the binding, drop, poll
+  `TcpListener::bind` for up to `TEST_DEADLINE`). V1 timed out after 10.02 s;
+  the maintained test now passes. The artifact under test is the test
+  environment itself, so the test run is the real-artifact recheck.
+- Package suite: `cargo test -p torrust-tracker-axum-http-server`: 44 unit
+  tests and 62 integration tests passed, 0 failed.
+- `cargo clippy -p torrust-tracker-axum-http-server --all-targets --all-features -- -D warnings`: clean.
+- Code state: the working tree for the commit
+  `fix(axum-http-server): [#2471] stop the HTTP test environment when dropped without stop()`.
 
 ## Failures and Follow-up
 
