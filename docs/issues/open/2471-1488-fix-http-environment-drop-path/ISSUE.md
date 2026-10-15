@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: planned
+status: in-progress
 priority: p2
 epic: 1488
 github-issue: 2471
 spec-path: docs/issues/open/2471-1488-fix-http-environment-drop-path/ISSUE.md
 branch: "2471-fix-http-environment-drop-path"
 related-pr: null
-last-updated-utc: "2026-10-15 19:39"
+last-updated-utc: "2026-10-15 19:40"
 semantic-links:
   skill-links:
     - create-issue
@@ -183,7 +183,7 @@ for the test. Sign every commit with GPG.
 - [x] Implementation completed
 - [x] Design-review checkpoint recorded after the regression test turned green, before maintainer review and commit
 - [x] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
@@ -199,14 +199,15 @@ for the test. Sign every commit with GPG.
 - 2026-10-15 17:20 UTC - GitHub Copilot - Design-review checkpoint (prose-first Arrange-Act-Assert). Arrange: a started HTTP environment on an ephemeral port, whose binding is read before the drop. Act: drop the environment without `stop()`. Assert: within `TEST_DEADLINE` the same address can be bound again, polled because the guard only requests cancellation and the server task releases the socket when it next runs. The test fails for the defect (V2) and passes for the fix (V3), and mirrors the UDP test. Checked `stop()`: it disarms the guard, then cancels once and joins the server task, its drain controller, and the listener as before, so the drop path does not run on a normal stop; the existing stop, restart and failure-join tests still pass. The `Running` interface and public fields are unchanged.
 - 2026-10-15 19:36 UTC - GitHub Copilot - PR #2544 review finding F5 (reviewer da2ce7, ID F1): the "regression from SI-16" framing was wrong. Verified in source (the spawned `graceful_shutdown` task panics on the closed halt channel before `handle.graceful_shutdown`) and by running the drop test on the tree before SI-16 (V4, `evidence/v4-pre-si16-drop-run.txt`): the binding was still taken after 10.02 s. Corrected the Background, the out-of-scope note, V1's conclusion, the EPIC roadmap row 14, the SI-23 and SI-24 drop-path notes, and the GitHub issue body.
 - 2026-10-15 19:39 UTC - GitHub Copilot - PR #2544 review findings F1 and F2 (Copilot, same concern at two lines): the spec still showed the automatic checks as pending. The pre-commit hook (which runs `linter all`) passed on every commit and the pre-push checks (nightly fmt, check and docs, and the full stable test suite) passed on the push, so T3 is DONE and the checkpoint is ticked.
+- 2026-10-15 19:40 UTC - GitHub Copilot - PR #2544 review findings F8 (reviewer ID F4) and F9 (reviewer ID F5): the implementer must not tick acceptance criteria, so AC1 to AC3 are cleared and their rows are back to `TODO` with the evidence pointers kept for the reviewer. `status` is `in-progress`. The manual-verification workflow checkpoint is ticked (V1 to V4 and M1 are recorded); the matching acceptance-criteria box stays clear for the reviewer.
 
 ## Acceptance Criteria
 
-- [x] AC1: Dropping a running HTTP test environment without `stop()` releases
+- [ ] AC1: Dropping a running HTTP test environment without `stop()` releases
       its HTTP binding within the test deadline.
-- [x] AC2: `stop()` keeps its behavior: it cancels once, joins every owned
+- [ ] AC2: `stop()` keeps its behavior: it cancels once, joins every owned
       task, and reports failures as today; all existing environment tests pass.
-- [x] AC3: The regression test is proven red before the fix and green after.
+- [ ] AC3: The regression test is proven red before the fix and green after.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
@@ -233,9 +234,9 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1   | DONE                   | V3: the maintained drop-path test passes within the deadline. |
-| AC2   | DONE                   | V3: `stop()` unchanged; 7 environment tests, 44 unit and 62 integration tests pass. |
-| AC3   | DONE                   | V2 red (10.02 s timeout) before the fix; V3 green after.      |
+| AC1   | TODO                   | Evidence ready for the reviewer: V3, the maintained drop-path test passes within the deadline. |
+| AC2   | TODO                   | Evidence ready for the reviewer: V3, `stop()` unchanged; 7 environment tests, 44 unit and 62 integration tests pass. |
+| AC3   | TODO                   | Evidence ready for the reviewer: V2 red (10.02 s timeout) before the fix; V3 green after.      |
 
 ## Risks and Trade-offs
 
