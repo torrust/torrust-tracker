@@ -188,7 +188,7 @@ mod tests {
     }
 
     #[test]
-    fn each_projection_should_count_only_its_own_ip_family_and_request_kind() {
+    fn it_should_count_in_each_projection_only_its_own_ip_family_and_request_kind() {
         // Arrange
         let mut metrics = describe_metrics();
         record_requests(&mut metrics, "inet", "connect", "6969", 1);
@@ -213,7 +213,7 @@ mod tests {
     }
 
     #[test]
-    fn a_projection_should_add_up_the_requests_received_by_every_listener() {
+    fn it_should_add_up_in_a_projection_the_requests_received_by_every_listener() {
         // Arrange
         let mut metrics = describe_metrics();
         record_requests(&mut metrics, "inet", "announce", "6969", 2);
@@ -227,7 +227,7 @@ mod tests {
     }
 
     #[test]
-    fn every_projection_should_be_zero_when_no_request_was_recorded() {
+    fn it_should_project_zero_everywhere_when_no_request_was_recorded() {
         // Arrange
         let metrics = describe_metrics();
 

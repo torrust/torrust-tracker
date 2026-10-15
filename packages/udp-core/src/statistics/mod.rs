@@ -54,12 +54,15 @@ mod tests {
 
     #[test]
     fn it_should_declare_the_requests_received_counter_under_its_exported_name() {
+        // Act
         let metrics = describe_metrics();
 
+        // Assert
         assert!(
             metrics
                 .metric_collection
-                .contains_counter(&metric_name!("udp_tracker_core_requests_received_total"))
+                .contains_counter(&metric_name!("udp_tracker_core_requests_received_total")),
+            "the counter should be exported as `udp_tracker_core_requests_received_total`"
         );
     }
 }

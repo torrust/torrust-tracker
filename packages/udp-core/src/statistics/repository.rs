@@ -106,24 +106,31 @@ mod tests {
     #[case::new(Repository::new)]
     #[case::default(Repository::default)]
     #[tokio::test]
-    async fn a_new_repository_should_describe_the_requests_received_counter(#[case] construct: fn() -> Repository) {
+    async fn it_should_describe_the_requests_received_counter_when_created(#[case] construct: fn() -> Repository) {
+        // Act
         let repository = construct();
 
+        // Assert
         let described = repository
             .get_stats()
             .await
             .metric_collection
             .contains_counter(&metric_name!(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL));
-
-        assert!(described);
+        assert!(
+            described,
+            "a new repository should contain the described `{UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL}` counter"
+        );
     }
 
     #[tokio::test]
-    async fn an_increased_counter_should_be_visible_through_the_repository_stats() {
+    async fn it_should_make_an_increased_counter_visible_through_the_repository_stats() {
+        // Arrange
         let repository = Repository::new();
 
+        // Act
         record_one_announce(&repository).await;
 
+        // Assert
         let count = repository
             .get_stats()
             .await
