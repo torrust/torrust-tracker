@@ -33,7 +33,7 @@ maintainer approves it.
 | 9 | [event-tests.md](event-tests.md) | DONE | 7 tests refactored around one fixture, 2 added; only the dead `server_socket_addr()` uncovered |
 | 10 | [statistics-metrics-tests.md](statistics-metrics-tests.md) | DONE | 3 direct projection tests added; only the dead `set_gauge` uncovered |
 | 11 | [statistics-event-handler-tests.md](statistics-event-handler-tests.md) | DONE | 6 per-family tests replaced by one `rstest` test; stale `# Panics` doc removed |
-| 12 | [statistics-repository-tests.md](statistics-repository-tests.md) | DONE | 4 unit tests added (1 `rstest` with 2 cases); unit-only 80.77% → 100.00% lines; findings handed off to #1669 |
+| 12 | [statistics-repository-tests.md](statistics-repository-tests.md) | DONE | 3 unit tests remain (1 `rstest` with 2 cases) after S4 went with #2521; unit-only 80.77% → 100.00% lines; findings done in #2517 and #2521 |
 | 13 | [statistics-services-tests.md](statistics-services-tests.md) | SUPERSEDED | File deleted by #2521 after this plan's finding; its 2 tests went with it, its doc fix was re-applied to `statistics/mod.rs` |
 | 14 | [statistics-event-listener-tests.md](statistics-event-listener-tests.md) | DONE | 1 assertion sharpened, 1 `rstest` test added; lifecycle left to #1488 / #2414 |
 | 15 | [statistics-mod-tests.md](statistics-mod-tests.md) | DONE | 1 contract test added for the exported metric name |

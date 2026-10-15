@@ -75,13 +75,15 @@ Test data: label sets and counts written as literals; the metric name comes from
 | R1 | SKIPPED | No existing tests to refactor. | Recorded above. |
 | R2 | DONE | Add S1-S4. | 78 package unit tests passed (stable Rust 1.99.0); pedantic Clippy, nightly formatting (nightly 1.101.0), and `git diff --check` clean. Mutations, reverted by hand: `increase_counter()` returning `Ok(())` failed S3; `Default` building `Metrics::default()` without the description failed S1's `default` case. |
 | R3 | SKIPPED | No integration increment: in-memory state behind a lock. | Explicit rationale. |
-| R4 | DONE | Re-run unit-only coverage; record before/after. | 21 / 26 to 86 / 86 lines; see Results. |
+| R4 | DONE | Re-run unit-only coverage; record before/after. | 21 / 26 to 86 / 86 lines at the time, 70 / 70 after S4 was dropped; see Results. |
 
 ## Results
 
 - **Unit-only coverage (test-inclusive file totals, `cargo-llvm-cov 0.6.16`):** 21 / 26 (80.77%)
-  to 86 / 86 (100.00%) lines; 94 / 95 regions; 16 / 16 functions.
-- **Tests added:** 4 (S1 as one `rstest` test with `new` and `default` cases, S2-S4).
+  to 86 / 86 (100.00%) lines, 94 / 95 regions, 16 / 16 functions at completion; 70 / 70 lines,
+  73 / 74 regions, 13 / 13 functions after the rebase onto #2517 and #2521.
+- **Tests added:** 4 at completion (S1 as one `rstest` test with `new` and `default` cases,
+  S2-S4); 3 remain after S4 was dropped with the trait method it tested.
 - **Findings:** both handed off as EPIC #1669 sub-issue drafts and recorded in
   [lessons.md](../lessons.md).
 - **Integration selected:** No.

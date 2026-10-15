@@ -9,7 +9,7 @@ github-issue: 1348
 spec-path: docs/issues/open/1348-1347-add-tests-udp-core/ISSUE.md
 branch: "1348-1347-add-tests-udp-core"
 related-pr: null
-last-updated-utc: "2026-10-14 15:58"
+last-updated-utc: "2026-10-15 07:23"
 semantic-links:
   skill-links:
     - create-issue
@@ -543,6 +543,12 @@ Issue #2458 (merged 2026-10-08) replaced the global cookie keys with an injected
   (2,190 / 2,234), 95 unit and 3 doc tests. Updated #2505 links to `closed/` and the EPIC tables.
   Manual verification (M1-M4) ran on the pre-rebase build; the rebase removed only unused code
   and changed no request handling, so it was not repeated.
+- 2026-10-15 07:23 UTC - GitHub Copilot - Addressed Cameron's PR #2538 review (F1-F9; audit in
+  `docs/pr-reviews/pr-2538-review/PR-REVIEW.md`). With the maintainer's approval the branch
+  history was rewritten so every commit compiles the package tests; the fixes added a near-limit
+  ban property, bound the zeroize check to the cipher's field, renamed and structured the
+  statistics tests, corrected the unviable-mutant cause and the lock-file rationale, and
+  reconciled these records. Re-measured: lines 98.04% (2,198 / 2,242), 96 unit tests.
 
 ## Acceptance Criteria
 
@@ -631,9 +637,9 @@ construction from `packages/test-helpers/src/udp.rs` where practical.
 | AC ID | Status | Evidence |
 | ----- | ------ | -------- |
 | AC1 | Met | `coverage-evidence.md`: module inventory with T1 hypotheses for all 20 files, and the Final Test-Technique Assessment. |
-| AC2 | Met | Ledger: 19 rows `DONE`, 2 `REMOVED` by #2458; one plan per file; per-file final values in `coverage-evidence.md`. |
+| AC2 | Met | Ledger: 18 rows `DONE`, 3 `REMOVED` (two by #2458, `statistics/services.rs` by #2521); one plan per file; per-file final values in `coverage-evidence.md`. |
 | AC3 | Met | `coverage-evidence.md` Final Measurement: clean aggregate and unit-only reports after the final rebase (stable Rust 1.99.0, `cargo-llvm-cov 0.6.16`); no integration target. |
-| AC4 | Met | Every plan names the module-owned decisions and keeps collaborator semantics out of unit tests; mutation proofs show each new test fails for its own decision. |
+| AC4 | Met | Every plan names the module-owned decisions and keeps collaborator semantics out of unit tests; mutation proofs are recorded for every test-producing plan (not for every test), plus the bounded `cargo-mutants` sample on `connection_cookie.rs`. |
 | AC5 | Met (vacuous) | No package integration test was added; every plan records why (T5). |
 | AC6 | Met | No-change plans (`lib.rs`, `crypto/mod.rs`, `statistics/event/mod.rs`) and every remaining uncovered line list a reason or owner (`coverage-evidence.md` Final Measurement). |
 | AC7 | Met | Each test-producing plan records R2 validation (tests, pedantic Clippy, nightly fmt, `git diff --check`), the maintainer's completed-file review, and one signed commit before the next file. |
@@ -642,7 +648,7 @@ construction from `packages/test-helpers/src/udp.rs` where practical.
 | AC15 | Met | Highest-risk: cookie windows, fingerprints and round trip (`connection_cookie.rs`, property and mutation sample), cipher (`crypto/cookie_cipher.rs`), ban counting (`services/banning.rs`, property, plus #2505), validation bypass (`services/announce.rs`, `services/scrape.rs`). High: error adaptation, event publication with and without a sender, and peer mapping are tested in the service and `peer_builder.rs` plans; the unreachable `TrackerCoreWhitelistError` path is recorded with its reason. |
 | AC10 | Met | `cargo +nightly fmt --all -- --check` (nightly 1.101.0) exit 0; also in the pre-push run. |
 | AC11 | Met | `linter all` passes in every pre-commit run, the latest before the T8 commit. |
-| AC12 | Met | `cargo test -p torrust-tracker-udp-core` (stable 1.99.0): 95 unit tests and 3 doc tests pass after the final rebase. Pre-push full stable suite also passes. |
+| AC12 | Met | `cargo test -p torrust-tracker-udp-core` (stable 1.99.0): 96 unit tests and 6 runnable doc tests (the compile/compile-fail pairs in `container.rs`, `crypto/cookie_cipher.rs`, and `statistics/repository.rs`) pass, with 3 `ignore` blocks, after the PR #2538 review fixes. Pre-push full stable suite also passes. |
 | AC13 | Met | `manual-verification-evidence.md` V1-V4, all `DONE`. |
 | AC14 | Met | This table, reviewed after implementation on 2026-10-14. |
 

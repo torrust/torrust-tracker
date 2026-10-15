@@ -19,7 +19,8 @@ This is a blameless review; it does not replace the acceptance review in [ISSUE.
 ## Outcome
 
 Every `udp-core` source file went through its own reviewed file test plan, with one signed commit
-per file. Unit-only line coverage rose from 72.49% to 98.03%, part of it from #2458 and #2505.
+per file. Unit-only line coverage rose from 72.49% to 98.04%, part of it from #2458, #2505, #2517,
+and #2521.
 Mutation proofs are recorded for every test-producing plan, a bounded `cargo-mutants` sample on
 the connection cookie left no survivors, and M1-M4 passed against a running tracker. The only
 production changes are documentation fixes in the files under test.
@@ -49,7 +50,8 @@ production changes are documentation fixes in the files under test.
 - **Findings outgrew the issue.** Several findings turned out to be workspace-wide, such as the
   unused SI-30 traits and the public `stats` lock in five packages. They became EPIC #1669 drafts,
   were implemented by other agents as #2521 and #2517, and merged before this PR; the final rebase
-  had to drop two #1348 tests whose code those issues removed, and one duplicate test.
+  had to drop three #1348 tests whose code those issues removed (V1 and V2 with
+  `statistics/services.rs`, and S4 with its trait method), and one duplicate test.
 - **The manual-verification client was needed a second time** (after #2505's shell probe); the
   maintainer chose a Rust client and the reusable form is a follow-up.
 - **The spec carried two garbled lines** from its merge; repaired during T8.
