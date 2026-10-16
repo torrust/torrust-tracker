@@ -9,7 +9,7 @@ github-issue: 1349
 spec-path: docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md
 branch: "1349-1347-add-tests-http-core-spec"
 related-pr: 2546
-last-updated-utc: "2026-10-15 16:55"
+last-updated-utc: "2026-10-16 06:20"
 semantic-links:
   skill-links:
     - create-issue
@@ -453,7 +453,7 @@ lines are the [baseline](#baseline-coverage) measurement.
       #1348 specification, retrospective, and lessons used as the template.
 - [x] Local branch `1349-1347-add-tests-http-core-spec` created from `develop` for the spec-only PR.
 - [x] Clean baseline coverage measured and recorded in this spec and the EPIC tables.
-- [x] Specification reviewed and approved by user/maintainer.
+- [x] Specification reviewed and approved by the maintainer, Jose Celano (2026-10-15).
 - [x] GitHub issue #1349 title and body refreshed to the current package name and this spec.
 - [ ] Spec-only PR (S0) merged into `develop` before implementation.
 - [ ] Complete module inventory and coverage evidence recorded (T1).
