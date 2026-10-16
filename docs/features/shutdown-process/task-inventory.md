@@ -225,7 +225,7 @@ producer holds its own sender; `EventBus::receiver()` calls `subscribe()`.
 
 | Bus | Producers (publish sites) | Consumers (listeners) |
 | --- | --- | --- |
-| Swarm (swarm-coordination registry) | `swarm/coordinator.rs` (`PeerAdded`, `PeerRemoved`, `PeerUpdated`, `PeerDownloadCompleted`) and `swarm/registry.rs` (`TorrentAdded`, `TorrentRemoved`), driven by announce requests through the HTTP and UDP request paths and by the torrent cleanup job | `swarm_coordination_registry_event_listener`; `tracker_core_in_memory_event_listener`; `tracker_core_persistent_completed_statistics_event_listener` (only when persistent completed-download statistics are enabled) |
+| Swarm (swarm-coordination registry) | `swarm/coordinator.rs` (`PeerAdded`, `PeerRemoved`, `PeerUpdated`, `PeerDownloadCompleted`) and `swarm/registry.rs` (`TorrentAdded`, `TorrentRemoved`), driven by announce requests through the HTTP and UDP request paths and by the torrent cleanup job | `swarm_coordination_registry_event_listener` and `tracker_core_in_memory_event_listener` (both only when `core.tracker_usage_statistics` is on); `tracker_core_persistent_completed_statistics_event_listener` (only when persistent completed-download statistics are enabled) |
 | HTTP core | `http-core` `services/announce.rs` and `services/scrape.rs` | `http_core_event_listener` |
 | UDP core | `udp-core` `services/connect.rs`, `services/announce.rs`, `services/scrape.rs` | `udp_core_event_listener` |
 | UDP server | `udp-server` `server/launcher.rs`, in the receive loop (`UdpRequestReceived`, `UdpRequestAborted`, `UdpRequestDiscarded` for source-port-zero requests, and `UdpRequestBanned`, through the awaited helper `publish_event_if_sender_available`); `server/processor.rs` (`UdpRequestDiscarded`, `UdpResponseSent`); and `handlers/{connect,announce,scrape,error}.rs` (including `UdpError`) | `udp_server_stats_event_listener`; `udp_server_banning_event_listener` (both started only with the UDP tracker services) |
@@ -233,7 +233,7 @@ producer holds its own sender; `EventBus::receiver()` calls `subscribe()`.
 The listeners subscribe synchronously during bootstrap
 (`src/bootstrap/jobs/{torrent_repository,tracker_core,http_tracker_core,udp_tracker_core,udp_tracker_server}.rs`,
 through `EventBus::receiver()`), before the runner future is spawned.
-`start_jobs_with_manager` starts the five core listeners first, then the UDP
+`start_jobs_with_manager` starts the core listeners first (the http-core and udp-core listeners always; the swarm and in-memory listeners when `tracker_usage_statistics` is on; the persistent listener when persistent completed-download statistics are on), then the UDP
 services, the HTTP instances, torrent cleanup, the inactivity update, the REST
 API, and the health-check API (`src/app.rs`). A request can only arrive after
 the listener of its bus has subscribed.
