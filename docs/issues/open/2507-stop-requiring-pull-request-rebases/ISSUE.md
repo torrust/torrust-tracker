@@ -9,7 +9,7 @@ github-issue: 2507
 spec-path: docs/issues/open/2507-stop-requiring-pull-request-rebases/ISSUE.md
 branch: "2507-stop-requiring-pull-request-rebases"
 related-pr: 2526
-last-updated-utc: "2026-10-16 10:25"
+last-updated-utc: "2026-10-16 11:21"
 semantic-links:
   skill-links:
     - create-issue
@@ -348,6 +348,10 @@ two-week measurement no longer blocks closure, because it moved to #2547 (T7).
   `docs/pr-reviews/pr-2550-review/PR-REVIEW.md`). V4 now classifies each force-push by whether it
   moved the base and shows the base of all 11, the evidence stamp follows its newest edit, and
   `agent-review-reports.md` says which fix the second re-review did not cover.
+- 2026-10-16 11:21 UTC - AI assistant - Processed the third PR #2550 review round (Copilot: one finding
+  in its review body; da2ce7 approved with four new threads, F15 to F19 in
+  `docs/pr-reviews/pr-2550-review/PR-REVIEW.md`). The `agent-review-reports.md` correction note now
+  names the contradiction with the 08:30 entry, and the audit records both dismissed approvals.
 
 ## Acceptance Criteria
 
