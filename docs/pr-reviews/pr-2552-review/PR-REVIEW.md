@@ -60,9 +60,20 @@ commit is `docs(pr-reviews): [#2244] record the second review round in the PR #2
 four inline findings. da2ce7 numbered them F1 to F4, which collide again, so they are F8 to F11 here
 with the original number kept as the reviewer finding ID. The review body is a verification report
 that resolves four round-1 findings and finds one partly resolved, which F8 records. It reports no
-review from the bot after 08:44:03 UTC, and adds no other row. Its ACK comment
-(<https://github.com/torrust/torrust-tracker/pull/2552#issuecomment-6214899623>) names that head, so
-it does not cover the commits that fix F8 to F11.
+review from the bot after 08:44:03 UTC, and adds no other row. The approval was dismissed at
+11:57:39 UTC by the PR author's push whose newest commit is
+`docs(udp-server): [#2244] end the averaged reason on a test, not on this review`, which triggers
+the repository's stale-approval rule, under two minutes before the audit commit that records the
+round. Its ACK comment (<https://github.com/torrust/torrust-tracker/pull/2552#issuecomment-6214899623>)
+names that head, so neither covers the commits that fix F8 to F11.
+
+Round 4: da2ce7's review 5547644742 (APPROVED, 2026-10-16 12:17:24 UTC, on the head whose newest
+commit is `docs(pr-reviews): [#2244] record the third review round in the PR #2552 audit`) carries
+one inline finding. da2ce7 numbered it F1, which collides again, so it is F12 here with the original
+number kept as the reviewer finding ID. The review body is a verification report that resolves the
+four round-3 findings and adds no other row. It reports no review from the bot after 08:44:03 UTC.
+Its ACK comment (<https://github.com/torrust/torrust-tracker/pull/2552#issuecomment-6215323251>)
+names that head, so it does not cover the commit that fixes F12.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -77,6 +88,7 @@ it does not cover the commits that fix F8 to F11.
 | F9 | `review-finding:pr-2552-f9` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F10 | `review-finding:pr-2552-f10` | Human | Suggestion | metadata | ORIGINAL | FIXED | RESOLVED |
 | F11 | `review-finding:pr-2552-f11` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F12 | `review-finding:pr-2552-f12` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -298,6 +310,25 @@ it does not cover the commits that fix F8 to F11.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2552#discussion_r4294404720>
 
+### F12 - The Round 3 record calls review 5547398388 approved; it was dismissed before this commit
+
+- PR number: 2552
+- Source review ID: 5547644742
+- Reviewer finding ID: F1
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2552#discussion_r4294554917>
+- Concern: the Round 3 paragraph and the 11:58 Round 3 log line call review 5547398388 approved and
+  say why its ACK does not cover the fixes, but not that the approval no longer stands. The timeline
+  shows it dismissed at 11:57:39 UTC by the PR author, under two minutes before the audit commit.
+  This is the gap F11 closed for round 2.
+- Solution: the Round 3 paragraph now names the dismissal, its time, and the push that triggered it,
+  by the subject of its newest commit and not by id, and an appended correction log entry records it
+  too. The log is append-only, so the 11:58 Round 3 entry is not rewritten.
+- Current-tree verification: the timeline's `review_dismissed` event for review 5547398388 reads
+  2026-10-16T11:57:39Z by josecelano, and the paragraph and the log entry say the same.
+- Resolution reference: docs(pr-reviews): [#2244] record the dismissal of the round 3 approval in the PR #2552 audit
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2552#discussion_r4294562980>
+
 ## Processing Log
 
 - 2026-10-16 10:40 UTC - Started audit after Copilot's review 5545198548. Fixed F1 and F2 in
@@ -316,6 +347,13 @@ it does not cover the commits that fix F8 to F11.
   ended with the Round 2 audit commit) carried four findings, F8 to F11 here. Fixed F8 and F9 in
   separate commits, pushed them, and replied on the four threads. F10 and F11 are fixed in this
   audit.
+- 2026-10-16 12:18 UTC - Correction to the Round 3 entry above: it calls da2ce7's review 5547398388
+  an approval and ACK without saying that the approval had been dismissed at 11:57:39 UTC by the push
+  whose newest commit is `docs(udp-server): [#2244] end the averaged reason on a test, not on this
+  review`.
+- 2026-10-16 12:18 UTC - Round 4: da2ce7's review 5547644742 (APPROVED and ACK on the head that ended
+  with the Round 3 audit commit) carried one finding, F12 here. Replied on its thread. F12 is fixed in
+  this audit.
 
 ## Completion Rules
 
