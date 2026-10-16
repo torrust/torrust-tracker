@@ -328,8 +328,9 @@ two-week measurement no longer blocks closure, because it moved to #2547 (T7).
   [`manual-verification-evidence.md`](manual-verification-evidence.md) section "Merges Under the
   New Policy"
 - 2026-10-16 06:12 UTC - AI assistant - Maintainer approved the follow-up draft; created issue #2547
-  and moved its spec to `docs/issues/open/2547-measure-effect-of-optional-rebases/`. Recorded the
-  #2525 Delivery Sequence in that specification (C3).
+  and moved its spec to `docs/issues/open/2547-measure-effect-of-optional-rebases/` (C3). The #2525
+  Delivery Sequence was recorded separately in `docs/issues/open/2525-ci-gate-required-check/ISSUE.md`,
+  whose own log entry is 2026-10-15 17:20 UTC.
 - 2026-10-16 06:40 UTC - AI assistant - Task Reviewer validated the close-out (C5) and found no
   blockers. Fixed its findings: weighed the alternative explanation in V1 and marked M1 as indirect,
   corrected the scope and initial state of the merge evidence, reworded AC9 to the verifiable
