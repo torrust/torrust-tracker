@@ -268,7 +268,7 @@ which keeps the detailed steps for all sub-issues.
 
 | Order | Issue | Local Spec | Tasks | Acceptance criteria | Status | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | #2413 - Document event flows and draft the shutdown-order ADR | [ISSUE.md](../2413-2410-si-22-1-document-event-flows-and-draft-adr/ISSUE.md) | T1, T2 | AC9; ADR draft for AC8 | TODO | Documentation only. |
+| 1 | #2413 - Document event flows and draft the shutdown-order ADR | [ISSUE.md](../2413-2410-si-22-1-document-event-flows-and-draft-adr/ISSUE.md) | T1, T2 | AC9; ADR draft for AC8 | IN_PROGRESS | Documentation only. |
 | 2 | #2414 - Drain listener queues on shutdown | [ISSUE.md](../2414-2410-si-22-2-drain-listener-queues-on-shutdown/ISSUE.md) | T3, T4, T5 | AC1, AC3, AC4, AC6, AC11, AC12 | TODO | Addresses window (a), isolated by the control run; race-run loss attribution remains incomplete. |
 | 3 | #2415 - Give each application component its own cancellation token | [ISSUE.md](../2415-2410-si-22-3-per-component-cancellation-tokens/ISSUE.md) | T6 | AC13 (keeps it; no behavior change) | TODO | Refactor that prepares sub-issue 4. |
 | 4 | #2416 - Stop event producers before event listeners | [ISSUE.md](../2416-2410-si-22-4-stop-producers-before-listeners/ISSUE.md) | T7, T8, T9, T10 | AC2, AC5, AC7, AC8, AC10, AC13 | TODO | Closes window (b). T9 needs #2471 merged. |
@@ -1882,8 +1882,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status | Task                              | Notes / Expected Output                                                                                                         |
 | --- | ------ | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | T0  | DONE   | Real-artifact reproduction        | Reproduced (V1): control runs isolate window (a); race runs lost about 92% of answered completions. Disposable script `reproduce-lost-completions.sh`. |
-| T1  | TODO   | Producer/consumer inventory       | Every producer, consumer, and listener chain recorded in the shutdown task inventory.                                           |
-| T2  | TODO   | Glossary, jobs doc, ADR draft     | `docs/architecture/glossary.md` created and `docs/application-jobs.md` moved (D12); ADR draft `adr-draft.md` in this folder (D15) covering D1, D7-D9, and D13, written to fully supersede the cancellation-tree ADR (D11). Maintainer approval before code. |
+| T1  | DONE   | Producer/consumer inventory       | Every producer, consumer, and listener chain recorded in the shutdown task inventory.                                           |
+| T2  | DONE   | Glossary, jobs doc, ADR draft     | `docs/architecture/glossary.md` created and `docs/application-jobs.md` moved (D12); ADR draft `adr-draft.md` in this folder (D15) covering D1, D7-D9, and D13, written to fully supersede the cancellation-tree ADR (D11). Maintainer approval before code. |
 | T3  | TODO   | Red regression test (listener)    | Persistent listener test fails against the cancel-first loop; red output recorded.                                              |
 | T4  | TODO   | Listener drain (first listener)   | Persistent listener drains until empty or timeout, logs counts and leftover warning; tests green. Design-review checkpoint.     |
 | T5  | TODO   | Listener drain (remaining)        | Same policy for the other six listener components; characterization tests replaced.                                             |
