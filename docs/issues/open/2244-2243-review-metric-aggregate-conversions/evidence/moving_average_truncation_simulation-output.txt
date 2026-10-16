@@ -1,0 +1,6 @@
+n=    10 current=   40618.8 true=   40619.7
+n=   100 current=   41349.8 true=   41377.0
+n=  1000 current=   39957.4 true=   40210.6
+n= 10000 current=   37526.0 true=   39991.4
+n=100000 current=   22152.4 true=   40040.2
+n=200000 current=   20175.1 true=   40009.1
