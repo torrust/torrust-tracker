@@ -670,7 +670,7 @@ rest, so it adds no rows; an `ACK` comment records its verdict for that head.
   fourth round's last commit, 5547864394 on the fifth round's, and 5548042871 on the sixth round's.
 - Resolution reference: docs(pr-reviews): record the seventh review round of PR #2550
 - Follow-up PR URL: N/A
-- Reply URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2550#discussion_r4294910149>
 
 ## Processing Log
 
@@ -733,6 +733,8 @@ rest, so it adds no rows; an `ACK` comment records its verdict for that head.
   record's head, with one new thread (F28). Copilot's review 5548042871 recommended approval with no
   open findings at 12:54 UTC.
 - 2026-10-16 12:57 UTC - Fixed F28 in this record.
+- 2026-10-16 13:00 UTC - Pushed the fix, replied on the thread after the push, and added the reply
+  URL to this record.
 
 ## Completion Rules
 
