@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2413-2410-si-22-1-document-event-flows-and-draft-adr/ISSUE.md
-last-updated-utc: "2026-10-16 11:54"
+last-updated-utc: "2026-10-16 12:15"
 ---
 
 # Manual Verification Evidence
@@ -40,7 +40,7 @@ No separate issue exists for this defect; it blocked the push of #2413, so it is
 
 The first rerun, at 11:24 UTC, is discarded. Its whole-second stamps show dependent steps starting in the same second, so it was not shown to have run one step at a time, which `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md` requires (`review-finding:pr-2553-f14`). The test file has also changed since (`review-finding:pr-2553-f13`, then `review-finding:pr-2553-f17`, which made the Git comparison a subset check), so the evidence is recorded again on the final file.
 
-Same toolchain as above. Each step was one tool call, run only after the previous one returned, with `date -u +%T.%3N` taken at its start and end. Times are UTC on 2026-10-16. A first pass of step 1 at 11:51:27, with whole-second stamps, was repeated at millisecond resolution.
+Same toolchain as above. Each step was one tool call, run only after the previous one returned, with `date -u +%T.%3N` taken at its start and end. "The file equals `HEAD`" below means that `git diff --quiet HEAD -- <test file>` exited 0, and the command printed `file == HEAD`. Times are UTC on 2026-10-16. A first pass of step 1 at 11:51:27, with whole-second stamps, was repeated at millisecond resolution.
 
 1. 11:51:34.301 to 11:51:34.417, green: the test file equals `HEAD`, and `cargo test -q -p clippy-allow-reasons --test cli` gave `test result: ok. 10 passed; 0 failed`.
 2. 11:51:39.708 to 11:51:40.304, red A (mutation): `sed -i 's/    "GIT_COMMON_DIR",/    "GIT_COMMON_DIR_X",/'` on the test file gave `it_should_list_every_variable_git_reports_as_repository_local --- FAILED`, the message "REPOSITORY_ENVIRONMENT lacks variables from `git rev-parse --local-env-vars`: [\"GIT_COMMON_DIR\"]", and `test result: FAILED. 9 passed; 1 failed`.

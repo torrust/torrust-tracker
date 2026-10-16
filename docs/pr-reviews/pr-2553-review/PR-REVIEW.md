@@ -269,7 +269,7 @@ F14 to F17, with the same ID reassignment. It repeats no further request in its 
 - Reviewer finding ID: F1
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2553#discussion_r4294333111>
 - Concern: Items 1 to 3 of the rerun carry the same second, and item 6 carries a stamp before items 4 and 5, so the evidence is not shown to have run one step at a time, as the template requires. The recheck is not shown to have run on the restored file.
-- Solution: Discarded the 11:24 rerun and recorded a new one on the final test file: six steps, one tool call each, with millisecond stamps and a `git diff --quiet HEAD` check after each restore. The new section also records that the host clock was not monotonic at millisecond resolution (the last step's end stamp precedes its start stamp), so the order rests on the one-call-per-step sequencing.
+- Solution: Discarded the 11:24 rerun and recorded a new one on the final test file: six steps, one tool call each, with millisecond stamps. The evidence names the `git diff --quiet HEAD -- <test file>` check that showed the file equal to `HEAD` at steps 1, 3, 5 and 6. It also records that the last step's end stamp precedes its start stamp.
 - Current-tree verification: The issue-local `manual-verification-evidence.md` has the section `Sequential rerun on the final test file` with the six steps; the discarded rerun is described and no longer listed as evidence.
 - Resolution reference: docs(issues): [#2413] rerun the isolation evidence one step at a time
 - Follow-up PR URL: N/A
