@@ -9,7 +9,7 @@ github-issue: 2536
 spec-path: docs/issues/open/2536-1669-hide-statistics-repository-read-lock/ISSUE.md
 branch: "2536-1669-hide-statistics-repository-read-lock"
 related-pr: 2545
-last-updated-utc: "2026-10-15 21:06"
+last-updated-utc: "2026-10-16 06:16"
 semantic-links:
   skill-links:
     - create-issue
@@ -552,7 +552,7 @@ steps in the evidence instead of committing it, as #2517 did.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence           |
 | ----- | ---------------------- | ------------------ |
-| AC1   | DONE                   | `grep -E RwLock(Read\|Write)Guard` matches only the `#[cfg(test)]` `write_lock_for_test()`; the call grep prints only the two REST-port lines (progress log, 2026-10-15 18:20 UTC) |
+| AC1   | DONE                   | `grep -E RwLock(Read\|Write)Guard` matches only the `#[cfg(test)]` `write_lock_for_test()`; the call grep prints only the two REST-port lines (progress log, 2026-10-15 18:18 UTC) |
 | AC2   | DONE                   | AC2 grep prints nothing; `metric_collection()` is the only outside read path (commits `refactor(<package>): [#2536] ...`) |
 | AC3   | DONE                   | five `compile_fail,E0616` doctests, red/green recorded per package in the progress log; AC3 grep prints nothing; nightly library docs build passes (pre-push) |
 | AC4   | DONE                   | handlers read inside `tracing::debug!`; runtime check in `manual-verification-evidence.md` V1 (0 lines at `info`, 9 at `debug`) |
@@ -593,7 +593,7 @@ After implementation, compare the result with this specification. Record
 invalidated assumptions, material design changes, unexpected validation
 findings, and reusable lessons.
 
-- Retrospective: `Not needed`; see the 2026-10-15 19:55 UTC progress-log entry.
+- Retrospective: `Not needed`; see the 2026-10-15 19:48 UTC progress-log entry.
 - If needed, create `implementation-retrospective.md` from the repository
   template at `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this issue
   specification's directory.
