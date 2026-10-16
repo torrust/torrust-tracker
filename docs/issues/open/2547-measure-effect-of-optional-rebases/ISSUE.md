@@ -9,7 +9,7 @@ github-issue: 2547
 spec-path: docs/issues/open/2547-measure-effect-of-optional-rebases/ISSUE.md
 branch: "2547-measure-effect-of-optional-rebases"
 related-pr: null
-last-updated-utc: "2026-10-16 08:25"
+last-updated-utc: "2026-10-16 08:55"
 semantic-links:
   skill-links:
     - create-issue
@@ -80,16 +80,19 @@ pull requests #2530, #2538, and #2430 rebased clean branches. See the #2507
     which 13 have author dates from 1 to 13 October, so do not divide the whole list by 13 days or by
     the 67 October merges;
   - pull-request volume and the daily open-PR queue, for context.
-- Classify each force-push in the window with the method of #2507 manual-verification section V4:
-  - required: the pushed-away head conflicted with the `develop` tip of its time, and the new head is
-    based on that tip;
-  - recommended: the pushed-away head merged cleanly, and the new head is based on that tip;
-  - not a rebase: the new head is not based on the `develop` tip of its time. Since PR #2531 merged
-    (2026-10-14 16:09 UTC), `AGENTS.md` allows other rewrites of an unmerged pull request's history,
-    such as splitting or reordering commits, which the baseline could not contain: baseline section 5
-    counts every force-push as a rebase because history rewrites were otherwise forbidden.
+- Classify each force-push in the window with the method of #2507 manual-verification section V4,
+  which compares where the push put the head's base, not only where the new head sits. The `develop`
+  tip of its time is the last first-parent `develop` commit whose pull request has a `merged_at`
+  before the push. A rewrite of a head that was already on the tip must not be counted as a rebase:
+  - rebase: the push moved the base, that is, `git merge-base <tip> <beforeCommit>` differs from
+    `git merge-base <tip> <afterCommit>`. It is required when the pushed-away head conflicted with the
+    tip (`git merge-tree --write-tree`), and recommended when it merged cleanly;
+  - not a rebase: the push left the base unchanged. Since PR #2531 merged (2026-10-14 16:09 UTC),
+    `AGENTS.md` allows other rewrites of an unmerged pull request's history, such as splitting or
+    reordering commits, which the baseline could not contain: baseline section 5 counts every
+    force-push as a rebase because history rewrites were otherwise forbidden.
   Report the total force-pushes per merged PR, which is the baseline's measure, and the rebase-only
-  figure, which excludes the third class.
+  figure, which excludes the second class.
 - Count merges made while behind `develop` whose head was pushed before `develop` reached `M^1`, the
   `develop` tip the merge was built on, and not pushed again before the merge (the recorded-base
   refresh path). The cutoff is `M^1`, not the Git merge base, which a head always postdates. As in
@@ -177,6 +180,10 @@ with GPG.
   force-pushes that are not rebases form a third class (listed among the confounders), and PR #2531's
   merge time is the one GitHub reports. The GitHub issue body was updated to match - audit
   `docs/pr-reviews/pr-2550-review/PR-REVIEW.md`
+- 2026-10-16 08:55 UTC - AI assistant - Classify a force-push by whether it moved the base (the
+  merge bases of the tip with the pushed-away and the new head), with the tip taken by `merged_at`,
+  after the second review round of PR #2550 showed that "the new head is based on the tip" cannot
+  tell a rebase from a rewrite. The GitHub issue body was updated to match.
 
 ## Acceptance Criteria
 
