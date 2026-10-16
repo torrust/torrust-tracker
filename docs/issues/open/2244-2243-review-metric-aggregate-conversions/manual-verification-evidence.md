@@ -20,10 +20,13 @@ relies on is preserved in this issue folder:
 - The tracker configuration is embedded below.
 - [`evidence/reproduce_avg_processing_time.py`](evidence/reproduce_avg_processing_time.py) is the
   load and comparison script.
+- [`evidence/m1_stats_check.py`](evidence/m1_stats_check.py) is the sender and reader behind V5. It
+  was run inline and is saved verbatim.
 - [`evidence/before-fix-log-excerpt.txt`](evidence/before-fix-log-excerpt.txt) and
   [`evidence/after-fix-log-excerpt.txt`](evidence/after-fix-log-excerpt.txt) hold the first and last
-  moving-average debug lines of each run, plus sample statistics-receiver lag warnings. The full
-  debug logs (about 1 GB each) were not kept.
+  moving-average debug lines of each run. The before excerpt also holds three sample
+  statistics-receiver lag warnings. The after excerpt holds none, although that run lagged too
+  (13,905 `lagged by` warnings). The full debug logs (about 1 GB each) were not kept.
 
 ## Environment and Prerequisites
 
@@ -159,9 +162,28 @@ average was 100.0001
 test result: FAILED. 0 passed; 2 failed; 0 ignored; 0 measured; 222 filtered out; finished in 0.01s
 ```
 
+The panic line numbers are those of the tests as first written. A later edit replaced a `fold` with
+a `for` loop in the test helper, with the same arithmetic, so the committed tests panic on other
+lines. To check the committed tests, `previous_avg` in
+`Metrics::recalculate_udp_avg_processing_time_ns` was temporarily changed to
+`self.udp_avg_processing_time_ns(label_set).trunc()`, which restores the old behavior, at the PR head
+(after `docs(statistics): [#2244] correct the float-to-integer cast reasons`). The mutation was
+reverted afterwards and the working tree was clean. The same command gave:
+
+```text
+test statistics::metrics::tests::processing_time_moving_average::it_should_keep_the_fractional_part_of_the_previous_average ... FAILED
+test statistics::metrics::tests::processing_time_moving_average::it_should_not_drift_toward_the_fastest_requests_over_many_requests ... FAILED
+thread '...::it_should_keep_the_fractional_part_of_the_previous_average' panicked at packages/udp-server/src/statistics/metrics.rs:1300:13:
+average was 100.25
+thread '...::it_should_not_drift_toward_the_fastest_requests_over_many_requests' panicked at packages/udp-server/src/statistics/metrics.rs:1310:13:
+average was 100.0001
+test result: FAILED. 0 passed; 2 failed; 0 ignored; 0 measured; 222 filtered out; finished in 0.01s
+```
+
 #### Conclusion
 
-Red as expected: the averages should be 100.75 and 100.5.
+Red as expected, on both the first and the committed test text: the averages should be 100.75 and
+100.5, and the defect gives 100.25 and 100.0001.
 
 ### V3 - Regression Tests Green After the Fix
 
@@ -224,8 +246,9 @@ average rounded time.
 #### Steps Performed
 
 1. `./target/release/torrust-tracker --config-toml-path .tmp/2244/tracker-info.toml > .tmp/2244/tracker-m1.log 2>&1`
-2. Sent 1,000 sequential BEP 15 connect requests to `127.0.0.1:26969` and waited for each response.
-   Waited 2 s, then read `GET http://127.0.0.1:21212/api/v1/stats?token=MyAccessToken`.
+2. `python3 evidence/m1_stats_check.py` (the saved copy of the inline script that was run). It sends
+   1,000 sequential BEP 15 connect requests to `127.0.0.1:26969` and waits for each response. It
+   then waits 2 s and reads `GET http://127.0.0.1:21212/api/v1/stats?token=MyAccessToken`.
 
 #### Observed Result
 
