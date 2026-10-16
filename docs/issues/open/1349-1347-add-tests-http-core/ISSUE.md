@@ -299,7 +299,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 | ID | Status | Task | Notes / Expected Output |
 | --- | ------ | ---- | ----------------------- |
 | T1 | TODO | Create coverage evidence and complete module inventory | `coverage-evidence.md` records the baseline commands and totals from this spec, per-file uncovered regions, property-test candidacy, selected behavior, and initial hypothesis for every `packages/http-core/src/` file. No tests changed. |
-| T2 | TODO | Create shared plan guidance and the first file test plan | `test-refactor-plans/README.md` holds the shared guardrails and the plan index; the first plan is `services-announce-tests.md`. No tests changed. |
+| T2 | TODO | Create shared plan guidance and the first file test plan | `test-refactor-plans/README.md` holds the shared guardrails and the plan index, including the two #1348 testing lessons that apply here: re-check an assumed-unreachable error path against `tracker-core`'s exported store doubles before recording it untestable, and prove an ordering decision (for example, authentication before authorization before client-IP resolution) with an expectation-free double that fails on the first call. The first plan is `services-announce-tests.md`. No tests changed. |
 | T3 | TODO | Review and approve the processing order and slice boundaries | Maintainer approves the ledger order and the pull-request slices; both may change at any time. |
 | T4 | TODO | Process every source file through the per-file workflow | Every ledger row has a completed plan, recorded coverage result, completed-file review, and signed per-file commit, merged through its slice. |
 | T5 | TODO | Implement integration-test increments selected by file test plans | Only if a plan selected a 3B increment; otherwise record why none was needed. |
@@ -570,8 +570,11 @@ owner here before writing it.
 
 - Indirect coverage from `axum-http-server` can hide missing package-local tests; mitigate by using
   unit-only evidence for every decision.
-- Service tests need real `tracker-core` collaborators; mitigate by constructing only the needed
-  in-memory services rather than reusing production container factories.
+- Service tests need `tracker-core` collaborators; mitigate by constructing only the needed
+  in-memory services rather than reusing production container factories. Where a path needs a
+  failing or call-recording collaborator, use `tracker-core`'s exported `#[automock]` store doubles
+  (`packages/tracker-core/src/databases/traits/`: keys, whitelist, torrent metrics) instead of
+  recording the path as untestable.
 - High baseline line coverage can suggest little work remains; mitigate with the per-file "what
   does this module decide?" analysis, which found #1348's two bugs in covered code.
 - Several PRs mean more review and rebase overhead, and a slice may land with records that the next
