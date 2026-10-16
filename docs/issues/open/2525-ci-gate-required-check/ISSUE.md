@@ -9,7 +9,7 @@ github-issue: 2525
 spec-path: docs/issues/open/2525-ci-gate-required-check/ISSUE.md
 branch: "2525-ci-gate-required-check"
 related-pr: null
-last-updated-utc: "2026-10-14 10:38"
+last-updated-utc: "2026-10-15 17:20"
 semantic-links:
   skill-links:
     - create-issue
@@ -133,9 +133,28 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T3  | TODO   | Rust verdict                                    | Pass when every needed group succeeded or the override applies; fail naming each failing, cancelled, or missing group. Unit tests for success, failure, skipped-but-not-needed, missing, and override cases.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | T4  | TODO   | Decision gate: gate cost and override           | In a fork sandbox like #2507's: measure the runner time the gate adds to a documentation-only PR (tool compile included, with and without caching or a prebuilt binary), and verify that a later successful `CI gate` check run from an override-only run supersedes the earlier failing one for the required check. Maintainer approves the approach.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | T5  | TODO   | Decision gate: cross-run state for the override | A `labeled` or `unlabeled` event starts a new workflow run that cannot read the earlier run's `needs` results, and later events do not say who applied an existing label. Define, with a maintainer-approved design: (a) where the gate reads the heavy jobs' results for the head SHA (for example the checks API, persisted artifacts, or rerunning the jobs); (b) where it reads label provenance (for example the issue events API) and how it verifies the actor's Maintain or Admin role; (c) the token permissions this needs on fork pull requests, whose `GITHUB_TOKEN` is read-only, and the trust boundary of each input; (d) whether an override survives a new push (`synchronize`) or applies only to the head SHA it was granted for. Prove it with hosted runs in a sandbox for label added, label removed, and a push after an override. Keep provider queries in a thin adapter so the verdict stays provider-neutral. |
-| T6  | TODO   | Orchestrating workflow                          | Convert the pull-request triggers of the heavy workflows into `workflow_call` invocations from one orchestrator; keep `push` triggers; final `CI gate` job; `labeled`/`unlabeled` handling that only re-evaluates the verdict. Follow `implement-workflow`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| T7  | TODO   | Ruleset and documentation                       | After T6 is proven on real PRs: add the required `CI gate` context (Actions app, not strict) to the rulesets, update `docs/github-rulesets.md`, the `merge-pull-request` override procedure, and `implement-workflow`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| T8  | TODO   | Measure                                         | Compare PR CI runner time per documentation-only and code PR before and after, using the #2507 baseline commands.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| T6  | TODO   | Orchestrating workflow                          | Convert the pull-request triggers of the heavy workflows into `workflow_call` invocations from one orchestrator; keep `push` triggers; final `CI gate` job; `labeled`/`unlabeled` handling that only re-evaluates the verdict. Follow `implement-workflow`. `CI gate` lands reporting but **not required**: no ruleset change in T6. Before T7, observe it on at least one real code PR and one real documentation-only PR (M1, M2 without the required rule) and record both runs.                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| T7  | TODO   | Ruleset and documentation                       | Only after T6 is observed on real PRs, and only with explicit maintainer approval: add the required `CI gate` context (Actions app, not strict) to the rulesets. Save the ruleset JSON before and after under `evidence/`, and record the rollback command in `docs/github-rulesets.md`, so a broken gate can be removed in one step without disabling a ruleset. Update `docs/github-rulesets.md`, the `merge-pull-request` override procedure, and `implement-workflow`.                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| T8  | TODO   | Measure                                         | Not done in this issue, so #2525 can close without a waiting period (the same decision as #2507 T7, 2026-10-15). (a) Before T6 merges, record the "before" PR CI runner time per documentation-only and code PR in this folder, using the #2507 baseline commands, because workflow-run data expires. (b) When T7 lands, draft and create a follow-up measurement issue that compares at least two weeks after T7 with (a), and link it here.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+
+## Delivery Sequence
+
+Agreed with the maintainer on 2026-10-15. Each step is safe to merge on its own. No step changes
+which checks GitHub requires until step 5.
+
+1. **Rust only (T1 to T3).** ADR, change detection, and verdict, with unit tests. No workflow or
+   ruleset change, so CI behavior stays the same. These may land in one or more pull requests.
+2. **Sandbox decision gates (T4, T5).** Gate cost, check-run superseding, and the override's
+   cross-run state, proven in a fork sandbox. The maintainer approves each decision before T6
+   starts.
+3. **Before-baseline (T8 a).** Record the current PR CI runner time before T6 merges.
+4. **Orchestrator, not required (T6).** `CI gate` reports on every pull request but no ruleset
+   requires it. Observe it on real code and documentation-only pull requests.
+5. **Make it required (T7).** Only with explicit maintainer approval. Save the ruleset JSON and
+   document the rollback.
+6. **Close.** Create the follow-up measurement issue (T8 b), finish the verification and review
+   checkpoints, close #2525, and archive this specification. Closing does not wait for the
+   measurement window.
 
 ## Commit Points
 
@@ -148,7 +167,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T5   | Sandbox evidence and the approved cross-run design       | Commit after the maintainer approves the design.                        |
 | T6   | One commit per converted workflow, then the orchestrator | Commit after `linter all` and a sandbox or PR run.                      |
 | T7   | Documentation and skills; ruleset evidence               | Commit after the maintainer applies the ruleset.                        |
-| T8   | `post-change-evidence.md`                                | Commit after the measurement window.                                    |
+| T8   | Before-baseline evidence; follow-up issue specification  | Commit (a) before T6 merges; commit (b) after maintainer review.        |
 
 For test-producing work, use the `write-unit-test` skill and record the prose-first
 Arrange-Act-Assert review after each passing increment, before maintainer review and commit. Use
@@ -181,6 +200,12 @@ Conventional Commits with narrow scopes and sign every commit with GPG.
   implementation branch is `2525-ci-gate-required-check`.
 - 2026-10-14 10:38 UTC - AI assistant - Added decision gate T5 for the override's cross-run state
   (Copilot review of PR #2526, finding F3) and renumbered the later tasks; added scenarios M6 and M7.
+- 2026-10-15 17:20 UTC - AI assistant - Recorded the maintainer-agreed Delivery Sequence. T6 lands
+  `CI gate` reporting but not required, and T7 makes it required only after real-PR observation and
+  maintainer approval, with a documented rollback. T8 now records a before-baseline before T6 and
+  moves the measurement to a follow-up issue created at T7, so #2525 can close without a waiting
+  period, as decided for #2507 T7. The specification merged with PR #2526, so no separate spec-only
+  PR is needed.
 
 ## Acceptance Criteria
 
