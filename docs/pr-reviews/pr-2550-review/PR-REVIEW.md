@@ -639,7 +639,7 @@ comment records its verdict for that head.
   followed by `--grep='rebase|rebased|...|orphan'` on the next line, and F26 says so.
 - Resolution reference: docs(pr-reviews): record the sixth review round of PR #2550
 - Follow-up PR URL: N/A
-- Reply URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2550#discussion_r4294739924>
 
 ## Processing Log
 
@@ -696,6 +696,8 @@ comment records its verdict for that head.
   record's head, with one new thread (F27). Copilot's review 5547644540 had recommended approval with
   no open findings at 12:17 UTC.
 - 2026-10-16 12:37 UTC - Fixed F27 in this record.
+- 2026-10-16 12:40 UTC - Pushed the fix, replied on the thread after the push, and added the reply
+  URL to this record.
 
 ## Completion Rules
 
