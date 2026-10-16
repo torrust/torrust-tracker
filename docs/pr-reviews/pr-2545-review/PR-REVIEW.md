@@ -38,7 +38,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Copilot's review 5539177165 (COMMENTED, 2026-10-15 20:03:35 UTC) is an overview with no findings, so it adds no row. da2ce7's review 5539892352 (APPROVED, 2026-10-15 21:02:29 UTC) carries four inline findings, F1-F4, all non-blocking. Its body raises nothing else; its "Checked, no finding" list is not a request. All four are fixed before merge and answered in one consolidated PR conversation response, <https://github.com/torrust/torrust-tracker/pull/2545#issuecomment-6202317771>, which names both reviews and every finding. da2ce7's second review 5540236537 (APPROVED, 2026-10-15 21:35:58 UTC, at the pushed head) carries four more inline `Nit` findings. Its own IDs F1-F4 collide with the rows above, so they are recorded as F5-F8 with the reviewer's ID kept in each entry. Its body raises nothing else. The four later reviews by the PR author are reply wrappers and add no row. All four are fixed and answered in a second consolidated response, <https://github.com/torrust/torrust-tracker/pull/2545#issuecomment-6210195811>.
+Copilot's review 5539177165 (COMMENTED, 2026-10-15 20:03:35 UTC) is an overview with no findings, so it adds no row. da2ce7's review 5539892352 (APPROVED, 2026-10-15 21:02:29 UTC) carries four inline findings, F1-F4, all non-blocking. Its body raises nothing else; its "Checked, no finding" list is not a request. All four are fixed before merge and answered in one consolidated PR conversation response, <https://github.com/torrust/torrust-tracker/pull/2545#issuecomment-6202317771>, which names both reviews and every finding. da2ce7's second review 5540236537 (APPROVED, 2026-10-15 21:35:58 UTC, at the pushed head) carries four more inline `Nit` findings. Its own IDs F1-F4 collide with the rows above, so they are recorded as F5-F8 with the reviewer's ID kept in each entry. Its body raises nothing else. The four later reviews by the PR author are reply wrappers and add no row. All four are fixed and answered in a second consolidated response, <https://github.com/torrust/torrust-tracker/pull/2545#issuecomment-6210195811>. da2ce7's third review 5544427728 (APPROVED, 2026-10-16 07:34:32 UTC, at the pushed head) carries one more inline `Nit` finding, whose own ID F1 collides with the first row, so it is recorded as F9. Its body raises nothing else. It is fixed and answered in a third consolidated response, <https://github.com/torrust/torrust-tracker/pull/2545#issuecomment-6211150310>.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -50,6 +50,7 @@ Copilot's review 5539177165 (COMMENTED, 2026-10-15 20:03:35 UTC) is an overview 
 | F6 | `review-finding:pr-2545-f6` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F7 | `review-finding:pr-2545-f7` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F8 | `review-finding:pr-2545-f8` | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F9 | `review-finding:pr-2545-f9` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -157,10 +158,24 @@ Copilot's review 5539177165 (COMMENTED, 2026-10-15 20:03:35 UTC) is an overview 
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2545#discussion_r4291876557>
 
+### F9 - The 2026-10-16 corrections have no Progress Log entry
+
+- PR number: 2545
+- Source review ID: 5544427728
+- Reviewer finding ID: F1
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2545#discussion_r4292016761>
+- Concern: three commits on 2026-10-16 changed the spec's two pointers and rewrote its 21:05 and 21:06 entries in place without appending a Progress Log line, so those entries carry text written the next morning under their old stamps. The template asks for one line per meaningful update.
+- Solution: a 2026-10-16 entry names the three corrections by commit subject and says the 21:05 and 21:06 entries carry wording written the next morning. The third consolidated response is <https://github.com/torrust/torrust-tracker/pull/2545#issuecomment-6211150310>.
+- Current-tree verification: the spec's Progress Log ends with a 2026-10-16 entry after the 21:06 one, naming the three corrections, and the spec's `last-updated-utc` equals that entry's stamp.
+- Resolution reference: docs(issues): [#2536] record the 2026-10-16 spec corrections in the progress log
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2545#discussion_r4292339883>
+
 ## Processing Log
 
 - 2026-10-15 21:09 UTC - Started audit after da2ce7's review 5539892352 on PR #2545. Fixed F1-F3 in three signed commits, corrected the PR description for F4, posted the consolidated response, replied on the four threads, and resolved them. Pushing the fixes dismissed the approval, so the review needs a fresh approval.
 - 2026-10-16 07:15 UTC - Round 2: da2ce7's review 5540236537 (APPROVED) raised four Nit findings, recorded as F5-F8. Fixed each in its own signed commit, posted the second consolidated response, replied on the four threads, corrected the round-1 F2 and F3 Solution texts in this record, and resolved the threads. Round-1 rows are otherwise unchanged.
+- 2026-10-16 08:15 UTC - Round 3: da2ce7's review 5544427728 (APPROVED) raised one Nit finding, recorded as F9. Fixed it in a signed commit, posted the third consolidated response, replied on the thread, and resolved it. Earlier rows are unchanged.
 
 ## Completion Rules
 
