@@ -263,7 +263,8 @@ as wrong; leave it uncovered, with the finding as its owner, until the fix merge
 Writing tests often exposes bugs (#1348 found two, fixed by #2458 and #2505) and dead or misleading
 code (removed by #2517 and #2521). Handle every finding that needs a production change this way:
 
-1. **Stop the current increment** at a clean point: committed, or with a `handoff.md` note.
+1. **Stop the current increment** at a clean point: committed, or with an issue-local
+   `interruption-note.md` (see [Commit Points](#commit-points)).
 2. **Write the hand-off** in a new git-ignored folder `.tmp/1349-<short-topic>/` with two files:
    - `ISSUE.md` - a draft specification from `docs/templates/ISSUE.md`. A bug draft includes the
      `Bug-Fix Process` and `Regression Test Strategy` sections that the `fix-bug` skill requires,
@@ -380,8 +381,10 @@ Use Conventional Commit messages that name the narrow affected area, for example
 All commits must be GPG signed. Cite commits in issue-local evidence by their unique Conventional
 Commit subject, never by branch SHA, until they merge.
 
-When work stops mid-task, record a one-paragraph `handoff.md` in the issue folder: the next action,
-the validation state at stop, and any uncommitted-work locations. Remove it when the work resumes.
+When work stops mid-task, record a one-paragraph `interruption-note.md` in the issue folder: the
+next action, the validation state at stop, and any uncommitted-work locations. Remove it when the
+work resumes. It is not the findings hand-off: that is `HANDOFF.md` in a git-ignored `.tmp/` folder,
+defined in [Findings During Implementation](#findings-during-implementation).
 
 ## Per-File Workflow
 
@@ -606,7 +609,7 @@ owner here before writing it.
 - Waiting for each slice to merge before starting the next can leave idle time during review;
   accepted by the maintainer in exchange for no stacked-branch rebases or record conflicts. Keep
   slices small so reviews are quick.
-- A paused issue can go stale while a finding is fixed; mitigate with `handoff.md` and the resume
+- A paused issue can go stale while a finding is fixed; mitigate with `interruption-note.md` and the resume
   steps in the findings procedure.
 - Mutation testing can grow into a backlog; mitigate with a bounded sample and no score target.
 - Adding a property-testing dependency increases maintenance cost; mitigate by requiring a recorded
