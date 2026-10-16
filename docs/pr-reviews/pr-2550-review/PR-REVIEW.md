@@ -697,7 +697,7 @@ for that head.
   entry after the 12:53 entry.
 - Resolution reference: docs(pr-reviews): record the eighth review round of PR #2550
 - Follow-up PR URL: N/A
-- Reply URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2550#discussion_r4295044141>
 
 ## Processing Log
 
@@ -768,6 +768,8 @@ for that head.
   after 12:54:40 UTC, because it reports the `ACK` comment (12:54:00 UTC) and Copilot's review
   (12:54:40 UTC). Its stamp is the time of the first event it reports, the approving review (12:53:56
   UTC), not the time it was written. Fixed F29 in this record.
+- 2026-10-16 13:16 UTC - Pushed the fix, replied on the thread after the push, and added the reply
+  URL to this record.
 
 ## Completion Rules
 
