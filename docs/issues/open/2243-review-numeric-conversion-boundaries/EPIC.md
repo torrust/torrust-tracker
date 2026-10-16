@@ -6,7 +6,7 @@ epic: null
 github-issue: 2243
 spec-path: docs/issues/open/2243-review-numeric-conversion-boundaries/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-15 21:00"
+last-updated-utc: "2026-10-16 11:12"
 semantic-links:
   skill-links:
     - create-issue
@@ -129,6 +129,7 @@ For each subissue implementation in this EPIC, the default completion policy is:
 - 2026-10-06 16:03 UTC - GitHub Copilot - #2245 done: PR #2452 merged with A156 replaced by a checked conversion mapped to a parse error and A171 clamped to the BEP 15 field width; spec archived to `docs/issues/closed/`. The configuration-load follow-up is not yet specified - 2 of 3 subissues done; #2244 remains TODO
 - 2026-10-07 08:59 UTC - GitHub Copilot - The #2245 configuration-load follow-up is #2466, a subissue of the reopened configuration EPIC #1978 rather than of this EPIC - No change to this EPIC's scope
 - 2026-10-15 21:00 UTC - GitHub Copilot - #2244 implemented on its branch: all 72 metric entries resolved (68 removed, 4 retained with native reasons), a UDP average processing time truncation defect fixed, and torrust/torrust-metrics#1 filed for an exact counter-sum API - Awaiting maintainer review; #2244 remains IN_PROGRESS until merged
+- 2026-10-16 11:12 UTC - GitHub Copilot - Correction: the 2026-10-15 21:00 UTC entry above was written at 20:52 UTC, the author time of `docs(issues): [#2244] record metric conversion outcomes and verification evidence`; the stamp was an estimate - No change to this EPIC's scope
 
 ## Acceptance Criteria
 

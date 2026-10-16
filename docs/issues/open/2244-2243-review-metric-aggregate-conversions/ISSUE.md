@@ -9,7 +9,7 @@ github-issue: 2244
 spec-path: docs/issues/open/2244-2243-review-metric-aggregate-conversions/ISSUE.md
 branch: "2244-2243-review-metric-aggregate-conversions"
 related-pr: null
-last-updated-utc: "2026-10-15 21:10"
+last-updated-utc: "2026-10-16 11:12"
 semantic-links:
   skill-links:
     - create-issue
@@ -194,6 +194,7 @@ depends on wall-clock processing times.
 - 2026-10-15 20:40 UTC - GitHub Copilot - Filed torrust/torrust-metrics#1 for an exact `u64` counter-sum API (maintainer decision 3) - Helper reasons remain permanent
 - 2026-10-15 21:00 UTC - GitHub Copilot - T3-T4 done: G3 defect reproduced, fixed red/green, and rechecked; all 72 entries resolved; inventory reconciled; no retrospective needed because the plan held and the defect fix was within the spec's "fix a demonstrated defect" scope - Awaiting maintainer implementation review and pre-push checks
 - 2026-10-15 21:10 UTC - GitHub Copilot - `pre-push.sh` passed - Awaiting maintainer implementation review
+- 2026-10-16 11:12 UTC - GitHub Copilot - Correction to the entries stamped 2026-10-15 21:00 and 21:10 UTC: they were written at 20:52 and 20:54 UTC, the author times of `docs(issues): [#2244] record metric conversion outcomes and verification evidence` and `docs(issues): [#2244] record pre-push verification`; the two stamps were estimates, not read from the clock. Addressed da2ce7's review of the PR's second head: corrected ten inventory IDs and the G1/G2/G4 ranges, the averaged-accessor wording, the G3 outcome, and the evidence; nothing else changed - Awaiting re-review
 
 ## Acceptance Criteria
 
