@@ -112,6 +112,13 @@ thread whose reviewer ID F1 collides with F1 above, so it is recorded as F28 wit
 kept in the detail entry. Its body is a round summary that repeats that finding and confirms the
 rest, so it adds no rows; an `ACK` comment records its verdict for that head.
 
+An eighth round followed the push of the seventh round's fixes. da2ce7's approving review 5548219175
+read the head whose subject is "docs(pr-reviews): add the reply URL of the seventh review round of
+PR #2550" and carries one inline thread whose reviewer ID F1 collides with F1 above, so it is
+recorded as F29 with the reviewer's ID kept in the detail entry. Its body is a round summary that
+repeats that finding and confirms the rest, so it adds no rows; an `ACK` comment records its verdict
+for that head.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2550-f1 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -142,6 +149,7 @@ rest, so it adds no rows; an `ACK` comment records its verdict for that head.
 | F26 | review-finding:pr-2550-f26 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F27 | review-finding:pr-2550-f27 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F28 | review-finding:pr-2550-f28 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F29 | review-finding:pr-2550-f29 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -672,6 +680,25 @@ rest, so it adds no rows; an `ACK` comment records its verdict for that head.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2550#discussion_r4294910149>
 
+### F29 - The 12:53 log entry reports events from the next minute
+
+- PR number: 2550
+- Source review ID: 5548219175
+- Reviewer finding ID: F1
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2550#discussion_r4295002064>
+- Concern: the entry is stamped 12:53 but reports the `ACK` comment (12:54:00Z) and Copilot's review,
+  which it dates "at 12:54 UTC" itself (12:54:40Z). By the record's convention an entry carries the
+  time it was recorded, so it was written at 12:54 or later.
+- Solution: the Processing Log is append-only, so the 12:53 entry is unchanged. A correction entry
+  says that it was recorded after 12:54:40 UTC, and that it is stamped with the time of the first
+  event it reports, the approving review (12:53:56 UTC), not with the time it was written.
+- Current-tree verification: the review (12:53:56Z), the `ACK` comment (12:54:00Z), and Copilot's
+  review (12:54:40Z) are the times captured from GitHub, and the Processing Log has the correction
+  entry after the 12:53 entry.
+- Resolution reference: docs(pr-reviews): record the eighth review round of PR #2550
+- Follow-up PR URL: N/A
+- Reply URL: N/A
+
 ## Processing Log
 
 - 2026-10-16 08:15 UTC - Fetched every thread and review, classified and numbered the findings, and
@@ -735,6 +762,12 @@ rest, so it adds no rows; an `ACK` comment records its verdict for that head.
 - 2026-10-16 12:57 UTC - Fixed F28 in this record.
 - 2026-10-16 13:00 UTC - Pushed the fix, replied on the thread after the push, and added the reply
   URL to this record.
+- 2026-10-16 13:10 UTC - da2ce7's approving review 5548219175 and an `ACK` comment arrived for the
+  record's head, with one new thread (F29).
+- 2026-10-16 13:13 UTC - Correction of the 12:53 UTC entry's stamp (F29): that entry was recorded
+  after 12:54:40 UTC, because it reports the `ACK` comment (12:54:00 UTC) and Copilot's review
+  (12:54:40 UTC). Its stamp is the time of the first event it reports, the approving review (12:53:56
+  UTC), not the time it was written. Fixed F29 in this record.
 
 ## Completion Rules
 
