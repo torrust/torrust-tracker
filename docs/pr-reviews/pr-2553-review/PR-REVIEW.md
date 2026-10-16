@@ -48,6 +48,9 @@ da2ce7's approving review 5547031766 carries eleven inline threads, F3 to F13, e
 reassigned in source order and the original ID is recorded as the reviewer finding ID. His review
 body repeats no further request and adds no row.
 
+His approving review 5547366758, at the head after the round 2 fixes, carries four more inline threads,
+F14 to F17, with the same ID reassignment. It repeats no further request in its body and adds no row.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2553-f1 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -63,6 +66,10 @@ body repeats no further request and adds no row.
 | F11 | review-finding:pr-2553-f11 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F12 | review-finding:pr-2553-f12 | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
 | F13 | review-finding:pr-2553-f13 | Human | Suggestion | testing | ORIGINAL | FIXED | RESOLVED |
+| F14 | review-finding:pr-2553-f14 | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F15 | review-finding:pr-2553-f15 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F16 | review-finding:pr-2553-f16 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F17 | review-finding:pr-2553-f17 | Human | Suggestion | testing | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -255,6 +262,58 @@ body repeats no further request and adds no row.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2553#discussion_r4294188226>
 
+### F14 - The rerun's stamps show dependent steps issued together
+
+- PR number: 2553
+- Source review ID: 5547366758
+- Reviewer finding ID: F1
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2553#discussion_r4294333111>
+- Concern: Items 1 to 3 of the rerun carry the same second, and item 6 carries a stamp before items 4 and 5, so the evidence is not shown to have run one step at a time, as the template requires. The recheck is not shown to have run on the restored file.
+- Solution: Discarded the 11:24 rerun and recorded a new one on the final test file: six steps, one tool call each, with millisecond stamps and a `git diff --quiet HEAD` check after each restore. The new section also records that the host clock was not monotonic at millisecond resolution (the last step's end stamp precedes its start stamp), so the order rests on the one-call-per-step sequencing.
+- Current-tree verification: The issue-local `manual-verification-evidence.md` has the section `Sequential rerun on the final test file` with the six steps; the discarded rerun is described and no longer listed as evidence.
+- Resolution reference: docs(issues): [#2413] rerun the isolation evidence one step at a time
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2553#discussion_r4294393176>
+
+### F15 - The M1 row still says TODO
+
+- PR number: 2553
+- Source review ID: 5547366758
+- Reviewer finding ID: F2
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2553#discussion_r4294333119>
+- Concern: M1 ran and is recorded, with its correction, in the issue folder, but its row in the spec still says `TODO`. A scenario's status belongs to whoever runs it.
+- Solution: Set the M1 row to `DONE`. The acceptance criteria and the two delivery-gate checkpoints stay unchecked for the reviewer.
+- Current-tree verification: The M1 row of the spec's Manual Verification Scenarios table ends with `DONE`.
+- Resolution reference: docs(issues): [#2413] mark manual scenario M1 as done in the spec
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2553#discussion_r4294393423>
+
+### F16 - The EPIC allowance is cited without a section
+
+- PR number: 2553
+- Source review ID: 5547366758
+- Reviewer finding ID: F3
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2553#discussion_r4294333125>
+- Concern: The evidence cites "the Manual Verification task rule", which is not a heading of EPIC #1488's `ISSUE.md`.
+- Solution: Cited the last sentence of the manual-verification bullet under "Release and Review Requirements", lines 279-280.
+- Current-tree verification: `docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md` has the heading at line 260 and the sentence at lines 279-280, and the evidence file cites both.
+- Resolution reference: docs(issues): [#2413] cite the EPIC documentation-only allowance by section and line
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2553#discussion_r4294393617>
+
+### F17 - Exact equality makes the test depend on the installed Git in both directions
+
+- PR number: 2553
+- Source review ID: 5547366758
+- Reviewer finding ID: F4
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2553#discussion_r4294333128>
+- Concern: A newer Git that adds a name fails the test, which is the intended alarm, but an older Git that reports fewer than the 15 names fails it too, although the fixtures stay isolated.
+- Solution: Changed the assertion to a subset check: every name Git reports must be in `REPOSITORY_ENVIRONMENT`. The alarm for a newer Git stays and the false failure for an older Git goes.
+- Current-tree verification: `it_should_list_every_variable_git_reports_as_repository_local` filters Git's names against the constant; the sequential rerun shows red when the constant lacks `GIT_COMMON_DIR` and green on the committed file.
+- Resolution reference: test(dev-tools): [#2413] assert that the fixture environment list covers Git's, not equals it
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2553#discussion_r4294393827>
+
 ## Processing Log
 
 - 2026-10-16 10:42 UTC - Fetched the review and both inline threads, classified them as Copilot
@@ -271,6 +330,11 @@ body repeats no further request and adds no row.
   F2 rows above to `Minor (inferred)` in place; they previously said `Major (inferred)`.
 - 2026-10-16 11:32 UTC - Pushed, replied on all eleven threads, and resolved them. Added F3 to F13 to this
   record, with a reply URL in every row.
+- 2026-10-16 11:49 UTC - da2ce7's approving review 5547366758 arrived with four inline threads. Fetched them,
+  reassigned his IDs F1 to F4 to F14 to F17, and re-derived each against the current tree. All were valid.
+- 2026-10-16 11:55 UTC - Fixed F14 to F17 in separate signed commits and pushed.
+- 2026-10-16 11:57 UTC - Replied on all four threads, resolved them, and added F14 to F17 to this record, with
+  a reply URL in every row.
 
 ## Completion Rules
 
