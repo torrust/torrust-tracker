@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2413-2410-si-22-1-document-event-flows-and-draft-adr/ISSUE.md
-last-updated-utc: "2026-10-16 12:17"
+last-updated-utc: "2026-10-16 12:18"
 ---
 
 # Manual Verification Evidence
@@ -49,7 +49,7 @@ Same toolchain as above. Each step was one tool call, run only after the previou
 5. 11:51:54.814 to 11:51:55.133, restore and green: the file equals `HEAD` again, and the test run gave `test result: ok. 10 passed; 0 failed`.
 6. 11:52:01.946 to 11:52:01.602, like-for-like recheck on the restored file, on a new throwaway repository with `GIT_DIR=$S/.git GIT_WORK_TREE=$S` exported: `test result: ok. 10 passed; 0 failed`, and the throwaway repository kept one commit, one branch, a clean status and no `user.name`. The real repository was unchanged, with an empty `git status --short`.
 
-The step 6 end stamp is earlier than its start stamp by 0.344 s, so this host's clock is not monotonic at millisecond resolution. The order of the steps is guaranteed by running each in its own tool call, not by the stamps, and the stamps are kept as printed.
+The step 6 end stamp (11:52:01.602) is earlier than its start stamp (11:52:01.946). The cause is unknown, and the stamps are kept as printed. Each step was a separate tool call that ran after the previous one returned, and the stamps still show the order: step 6 starts and ends after step 5 ends.
 
 ## Correction: the older-Git claim in a commit body
 
