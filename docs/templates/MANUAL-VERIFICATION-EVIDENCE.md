@@ -49,6 +49,14 @@ or agent tool calls. If dependent steps ran concurrently, discard the run and
 restart it. In issue #2505 two dependent probes ran as parallel tool calls, and
 the run had to be discarded.
 
+Record when each dependent step started and ended (for example with
+`date -u +%T.%3N`), so the record itself shows the order. Name the command
+behind every state claim and the point where it ran: write "`git diff --quiet
+HEAD -- <file>` exited 0 after the restore", not "the file equals `HEAD`". In
+PR #2553 a rerun stamped dependent steps in the same second, and an unnamed
+"equals `HEAD`" check was later described with three different placements; each
+cost a review round.
+
 ### V1 - {Scenario Name}
 
 - Goal:
