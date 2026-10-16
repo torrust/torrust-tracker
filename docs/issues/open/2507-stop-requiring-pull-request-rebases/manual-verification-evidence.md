@@ -411,9 +411,26 @@ exception for this case.
 | #2532 | 2026-10-14 16:36:21 | `55a414e98`    | `b24550171`   | conflict            | `2328de9cc`   | yes                | clean              |
 | #2537 | 2026-10-14 21:27:23 | `94fcf5a7f`    | `07750152f`   | conflict            | `b084b2ea5`   | yes                | clean              |
 
-Both rebased heads were mergeable and both were merged (table above). The other force-pushes
-(#2530, #2532 at 16:39:53, #2538, and #2430) rebased heads that merged cleanly. Those were
-recommended rebases, not required ones. Whether `--force-with-lease` was used cannot be read from
+Both rebased heads were mergeable and both were merged (table above). The 18 merged pull requests
+had 11 force-pushes in all. The same commands classify the other nine; their commit ids come from the
+same query and are not repeated here:
+
+| PR    | Force-push (UTC)    | Before vs `develop` | After based on tip | Class        |
+| ----- | ------------------- | ------------------- | ------------------ | ------------ |
+| #2526 | 2026-10-14 10:52:21 | clean               | yes                | recommended  |
+| #2526 | 2026-10-14 11:44:40 | clean               | yes                | recommended  |
+| #2524 | 2026-10-14 10:28:49 | clean               | no                 | not a rebase |
+| #2524 | 2026-10-14 10:55:17 | clean               | yes                | recommended  |
+| #2524 | 2026-10-14 13:14:00 | clean               | yes                | recommended  |
+| #2530 | 2026-10-14 15:31:22 | clean               | yes                | recommended  |
+| #2532 | 2026-10-14 16:39:53 | clean               | yes                | recommended  |
+| #2538 | 2026-10-15 12:04:26 | clean               | yes                | recommended  |
+| #2430 | 2026-10-15 11:31:01 | clean               | yes                | recommended  |
+
+So two force-pushes were required by a conflict, eight were recommended rebases of a clean head, and
+one (#2524 at 10:28:49) left a head that was not based on the `develop` tip of its time, so it is not
+a rebase by this method. The `develop` tip of its time is the last first-parent commit on `develop`
+before the push, by committer date. Whether `--force-with-lease` was used cannot be read from
 GitHub.
 
 #### V5 - Code Pull Request Merges Under the New Rulesets (M5)
