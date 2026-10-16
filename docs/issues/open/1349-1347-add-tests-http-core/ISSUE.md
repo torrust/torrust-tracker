@@ -9,7 +9,7 @@ github-issue: 1349
 spec-path: docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md
 branch: "1349-1347-add-tests-http-core-spec"
 related-pr: 2546
-last-updated-utc: "2026-10-16 06:20"
+last-updated-utc: "2026-10-16 06:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -306,6 +306,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 | T6 | TODO | Perform bounded mutation assessment | `mutation-evidence.md` records configuration, timeout, scope, outcomes, and the reason for each unviable mutant. |
 | T7 | TODO | Reconcile evidence and progress state | Ledger, plans, plan index, slice table, coverage evidence, acceptance rows, and both EPIC coverage tables agree. Grep completed records for stray `TODO`/`IN_PROGRESS` labels and stale frontmatter. |
 | T8 | TODO | Complete verification and acceptance review | Automatic checks, manual verification, the final Task Reviewer review, acceptance review, and the retrospective decision are recorded. |
+
+The specification frontmatter `status` stays `planned`, and the EPIC #1347 subissue row stays
+`TODO`, until the spec-only PR merges and T1 starts; both then change to `in-progress` and
+`IN_PROGRESS` in the T1 commit (the same sequence #1348 followed).
 
 After the last T4/T5 test-producing increment, stop for maintainer review before T6-T8 or the final
 pull request.

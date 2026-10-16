@@ -6,7 +6,7 @@ epic: null
 github-issue: 1347
 spec-path: docs/issues/open/1347-overhaul-packages-testing/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-15 16:30"
+last-updated-utc: "2026-10-16 06:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -87,7 +87,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | Order | Issue                                             | Local Spec                                                                        | Status | Notes                                                                                                                |
 | ----- | ------------------------------------------------- | --------------------------------------------------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------- |
 | 1     | #1348 - Add tests to the udp-core package         | `docs/issues/closed/1348-1347-add-tests-udp-core/ISSUE.md`                        | DONE   | Every package source file processed through a reviewed per-file plan; unit-only lines 72.49% → 98.04% (includes #2458, #2505, #2517, and #2521); bounded mutation sample and manual verification recorded; merged through PR #2538. |
-| 2     | #1349 - Add tests to the http-core package        | `docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md`                         | IN_PROGRESS | Spec drafted from the #1348 template with a clean baseline (unit-only lines 89.06%); implementation is delivered in several pull-request slices instead of one large PR. |
+| 2     | #1349 - Add tests to the http-core package        | `docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md`                         | TODO   | Spec approved, based on the #1348 template, with a clean baseline (unit-only lines 89.06%); merged through spec-only PR #2546 before T1. Becomes `IN_PROGRESS` when T1 starts. Implementation is delivered in several pull-request slices instead of one large PR. |
 | 3     | #2136 - Add tests to the axum-http-server package | `docs/issues/closed/2136-1347-add-tests-axum-http-server/ISSUE.md`                | DONE   | Added fast package-local response, request-ID, and lifecycle tests; verification and final review evidence recorded. |
 | 4     | #2140 - Review axum-http-server integration tests | `docs/issues/closed/2140-1347-review-axum-http-server-integration-tests/ISSUE.md` | DONE   | Inventory, coverage/domain analysis, and test-design review completed.                                               |
 | 5     | #2149 - Add focused UDP server package tests      | `docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/ISSUE.md`        | DONE   | Focused transport, dispatch, socket, event/error, and overload tests added through reviewed per-file plans; separate coverage scopes, bounded mutation sample, and manual verification recorded; merged via PR #2174. |
