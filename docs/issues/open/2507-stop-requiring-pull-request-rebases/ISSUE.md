@@ -9,7 +9,7 @@ github-issue: 2507
 spec-path: docs/issues/open/2507-stop-requiring-pull-request-rebases/ISSUE.md
 branch: "2507-stop-requiring-pull-request-rebases"
 related-pr: 2526
-last-updated-utc: "2026-10-16 06:40"
+last-updated-utc: "2026-10-16 08:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -331,11 +331,18 @@ two-week measurement no longer blocks closure, because it moved to #2547 (T7).
   and moved its spec to `docs/issues/open/2547-measure-effect-of-optional-rebases/` (C3). The #2525
   Delivery Sequence was recorded separately in `docs/issues/open/2525-ci-gate-required-check/ISSUE.md`,
   whose own log entry is 2026-10-15 17:20 UTC.
-- 2026-10-16 06:40 UTC - AI assistant - Task Reviewer validated the close-out (C5) and found no
-  blockers. Fixed its findings: weighed the alternative explanation in V1 and marked M1 as indirect,
+- 2026-10-16 06:40 UTC - AI assistant - Task Reviewer reviewed the close-out (C5): verdict
+  `REVIEW FAILED`, with five should-fix and three nit findings, which were fixed in the same pull
+  request. Fixed its findings: weighed the alternative explanation in V1 and marked M1 as indirect,
   corrected the scope and initial state of the merge evidence, reworded AC9 to the verifiable
   outcome, corrected timestamps, and described #2541 as a heavy-CI rather than code PR -
   [`agent-review-reports.md`](agent-review-reports.md)
+- 2026-10-16 08:30 UTC - AI assistant - Processed the PR #2550 reviews (Copilot and da2ce7; audit in
+  `docs/pr-reviews/pr-2550-review/PR-REVIEW.md`). Recorded a re-review of the fixes, which first
+  found residual "proven" wording for M1 and an incomplete V4 account, then passed at 08:30 UTC.
+  Corrected the log entries above, labelled the force-push event commits in V4 and added the fetch
+  step, classified all 11 force-pushes of the 18 merges, and amended the #2547 specification and
+  issue body - [`agent-review-reports.md`](agent-review-reports.md)
 
 ## Acceptance Criteria
 
