@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2507-stop-requiring-pull-request-rebases/ISSUE.md
-last-updated-utc: 2026-10-16 06:40
+last-updated-utc: 2026-10-16 08:17
 ---
 
 # Manual Verification Evidence
@@ -377,21 +377,39 @@ every merge push, and each pull request shows as merged.
 The `open-pull-request` skill requires a rebase or other update when "the branch conflicts with
 `develop`" and shows `git rebase` followed by a push "use `--force-with-lease` when rewriting
 history". Two real pull requests took that path. Each force-push's before and after commits came from
-the GraphQL `HeadRefForcePushedEvent`, and the `develop` tip at that time from
-`git rev-list -1 --first-parent --before=<time> torrust/develop`:
+the GraphQL `HeadRefForcePushedEvent` (`beforeCommit` and `afterCommit`), and the `develop` tip at
+that time from `git rev-list -1 --first-parent --before=<time> torrust/develop`. A `beforeCommit` is
+a head that the force-push removed from the pull-request branch, so it is on no `develop` commit and
+no tag, and a clone does not hold it until it is fetched. Fetch each full `oid` the query returns
+before comparing it:
 
 ```sh
 gh api graphql -f query='{repository(owner:"torrust",name:"torrust-tracker"){pullRequest(number:<n>){
   timelineItems(itemTypes:[HEAD_REF_FORCE_PUSHED_EVENT],first:10){nodes{... on HeadRefForcePushedEvent{
   createdAt beforeCommit{oid} afterCommit{oid}}}}}}}'
+git fetch torrust <oid from beforeCommit or afterCommit>
 git merge-tree --write-tree <develop tip> <commit> >/dev/null && echo clean || echo CONFLICT
 git merge-base <develop tip> <after commit>
 ```
 
-| PR    | Force-push (UTC)    | Before commit | `develop` tip | Before vs `develop` | After commit | After based on tip | After vs `develop` |
-| ----- | ------------------- | ------------- | ------------- | ------------------- | ------------ | ------------------ | ------------------ |
-| #2532 | 2026-10-14 16:36:21 | `55a414e98`   | `b24550171`   | conflict            | `2328de9cc`  | yes                | clean              |
-| #2537 | 2026-10-14 21:27:23 | `94fcf5a7f`   | `07750152f`   | conflict            | `b084b2ea5`  | yes                | clean              |
+The full `oid` values the query returned (the `develop` tips are `b245501717fe251e99b1364f80cb209fffed0c2e`
+and `07750152f1f37a2115570289f651481b8535519a`):
+
+```text
+#2532 beforeCommit 55a414e98a1df60999ae5aa9689b6662ee168c5a
+#2532 afterCommit  2328de9cccf737fec570bb0bb7ab199742288a6c
+#2537 beforeCommit 94fcf5a7fc466d42f0dcc060d85341fb0f79661b
+#2537 afterCommit  b084b2ea57571ce1facdcf2f3317f82d08cddc18
+```
+
+The values are fixed event data, not commits of any branch of this repository's history, so the
+`open-pull-request` commit-id check reports them in a clone that fetched them. The skill defines no
+exception for this case.
+
+| PR    | Force-push (UTC)    | `beforeCommit` | `develop` tip | Before vs `develop` | `afterCommit` | After based on tip | After vs `develop` |
+| ----- | ------------------- | -------------- | ------------- | ------------------- | ------------- | ------------------ | ------------------ |
+| #2532 | 2026-10-14 16:36:21 | `55a414e98`    | `b24550171`   | conflict            | `2328de9cc`   | yes                | clean              |
+| #2537 | 2026-10-14 21:27:23 | `94fcf5a7f`    | `07750152f`   | conflict            | `b084b2ea5`   | yes                | clean              |
 
 Both rebased heads were mergeable and both were merged (table above). The other force-pushes
 (#2530, #2532 at 16:39:53, #2538, and #2430) rebased heads that merged cleanly. Those were
