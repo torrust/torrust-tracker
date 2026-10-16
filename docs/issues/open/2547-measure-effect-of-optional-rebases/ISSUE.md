@@ -9,7 +9,7 @@ github-issue: 2547
 spec-path: docs/issues/open/2547-measure-effect-of-optional-rebases/ISSUE.md
 branch: "2547-measure-effect-of-optional-rebases"
 related-pr: null
-last-updated-utc: "2026-10-16 06:40"
+last-updated-utc: "2026-10-16 08:25"
 semantic-links:
   skill-links:
     - create-issue
@@ -169,6 +169,14 @@ with GPG.
 - 2026-10-16 06:12 UTC - AI assistant - Maintainer approved the draft; created issue #2547 and moved
   the spec to `docs/issues/open/`. It ships with the #2507 close-out pull request; no separate
   spec-only PR.
+- 2026-10-16 06:40 UTC - AI assistant - Applied the Task Reviewer's findings of the #2507 close-out to
+  this specification: "for example" before the list of recommended rebases, the corrected creation
+  time of this issue, and the progress-log wording.
+- 2026-10-16 08:25 UTC - AI assistant - Processed the review of PR #2550 on this specification: the
+  rebase-fallout baseline is recounted for 1 to 13 October only, the refresh-path cutoff is `M^1`,
+  force-pushes that are not rebases form a third class (listed among the confounders), and PR #2531's
+  merge time is the one GitHub reports. The GitHub issue body was updated to match - audit
+  `docs/pr-reviews/pr-2550-review/PR-REVIEW.md`
 
 ## Acceptance Criteria
 
