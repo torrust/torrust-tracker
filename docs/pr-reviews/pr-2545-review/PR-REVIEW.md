@@ -38,7 +38,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Copilot's review 5539177165 (COMMENTED, 2026-10-15 20:03:35 UTC) is an overview with no findings, so it adds no row. da2ce7's review 5539892352 (APPROVED, 2026-10-15 21:02:29 UTC) carries four inline findings, F1-F4, all non-blocking. Its body raises nothing else; its "Checked, no finding" list is not a request. All four are fixed before merge and answered in one consolidated PR conversation response, <https://github.com/torrust/torrust-tracker/pull/2545#issuecomment-6202317771>, which names both reviews and every finding. da2ce7's second review 5540236537 (APPROVED, 2026-10-15 21:35:58 UTC, at the pushed head) carries four more inline `Nit` findings. Its own IDs F1-F4 collide with the rows above, so they are recorded as F5-F8 with the reviewer's ID kept in each entry. Its body raises nothing else. The four later reviews by the PR author are reply wrappers and add no row. All four are fixed and answered in a second consolidated response, <https://github.com/torrust/torrust-tracker/pull/2545#issuecomment-6210195811>. da2ce7's third review 5544427728 (APPROVED, 2026-10-16 07:34:32 UTC, at the pushed head) carries one more inline `Nit` finding, whose own ID F1 collides with the first row, so it is recorded as F9. Its body raises nothing else. It is fixed and answered in a third consolidated response, <https://github.com/torrust/torrust-tracker/pull/2545#issuecomment-6211150310>. da2ce7's fourth review 5545068167 (APPROVED, 2026-10-16 08:32:40 UTC, at the pushed head) and its ACK comment carry no finding, so they add no row. Copilot's second review 5545105221 (COMMENTED, 2026-10-16 08:35:45 UTC, Lite effort after an agentic-review timeout) carries one inline finding, F10. Its body only summarizes that finding and a timeout warning, so it adds no other row. F10 is a no-change concern, answered in a fourth consolidated response, <https://github.com/torrust/torrust-tracker/pull/2545#issuecomment-6213345067>.
+Copilot's review 5539177165 (COMMENTED, 2026-10-15 20:03:35 UTC) is an overview with no findings, so it adds no row. da2ce7's review 5539892352 (APPROVED, 2026-10-15 21:02:29 UTC) carries four inline findings, F1-F4, all non-blocking. Its body raises nothing else; its "Checked, no finding" list is not a request. All four are fixed before merge and answered in one consolidated PR conversation response, <https://github.com/torrust/torrust-tracker/pull/2545#issuecomment-6202317771>, which names both reviews and every finding. da2ce7's second review 5540236537 (APPROVED, 2026-10-15 21:35:58 UTC, at the pushed head) carries four more inline `Nit` findings. Its own IDs F1-F4 collide with the rows above, so they are recorded as F5-F8 with the reviewer's ID kept in each entry. Its body raises nothing else. The four later reviews by the PR author are reply wrappers and add no row. All four are fixed and answered in a second consolidated response, <https://github.com/torrust/torrust-tracker/pull/2545#issuecomment-6210195811>. da2ce7's third review 5544427728 (APPROVED, 2026-10-16 07:34:32 UTC, at the pushed head) carries one more inline `Nit` finding, whose own ID F1 collides with the first row, so it is recorded as F9. Its body raises nothing else. It is fixed and answered in a third consolidated response, <https://github.com/torrust/torrust-tracker/pull/2545#issuecomment-6211150310>. da2ce7's fourth review 5545068167 (APPROVED, 2026-10-16 08:32:40 UTC, at the pushed head) and its ACK comment carry no finding, so they add no row. Copilot's second review 5545105221 (COMMENTED, 2026-10-16 08:35:45 UTC, Lite effort after an agentic-review timeout) carries one inline finding, F10. Its body only summarizes that finding and a timeout warning, so it adds no other row. F10 is a no-change concern, answered in a fourth consolidated response, <https://github.com/torrust/torrust-tracker/pull/2545#issuecomment-6213345067>. da2ce7's fifth review 5546973741 (APPROVED, 2026-10-16 11:09:54 UTC, at the pushed head) carries two inline `Nit` findings, whose own IDs F1 and F2 collide with earlier rows, so they are recorded as F11 and F12. Its body raises nothing else. Both are fixed and answered in a fifth consolidated response, <https://github.com/torrust/torrust-tracker/pull/2545#issuecomment-6214298167>.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -52,6 +52,8 @@ Copilot's review 5539177165 (COMMENTED, 2026-10-15 20:03:35 UTC) is an overview 
 | F8 | `review-finding:pr-2545-f8` | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F9 | `review-finding:pr-2545-f9` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F10 | `review-finding:pr-2545-f10` | Copilot | Minor (inferred) | other | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F11 | `review-finding:pr-2545-f11` | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F12 | `review-finding:pr-2545-f12` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -185,12 +187,39 @@ Copilot's review 5539177165 (COMMENTED, 2026-10-15 20:03:35 UTC) is an overview 
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2545#discussion_r4293529526>
 
+### F11 - The row records `Suggestion (inferred)`; the reviewer's own label is Medium
+
+- PR number: 2545
+- Source review ID: 5546973741
+- Reviewer finding ID: F1
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2545#discussion_r4294017462>
+- Concern: The F10 row recorded `Suggestion (inferred)`, but the review's overview labels the finding Medium and the round summary lists it as "F10 (Medium, ...)". No rule maps the bot's labels onto the five severity values, so the row disagreed with both with no stated reason.
+- Solution: The F10 row now records `Minor (inferred)`, and the F10 entry says the scale has no Medium and `Minor` is the nearest value. The fifth consolidated response is <https://github.com/torrust/torrust-tracker/pull/2545#issuecomment-6214298167>.
+- Current-tree verification: The F10 row in this record reads `Minor (inferred)`, and the F10 entry's Concern states the mapping.
+- Resolution reference: docs(pr-reviews): [#2536] map the PR #2545 F10 severity from the reviewer's Medium label
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2545#discussion_r4294067924>
+
+### F12 - The intro omits da2ce7's fourth review, so "Round 4" reads as the reviewer's fourth round
+
+- PR number: 2545
+- Source review ID: 5546973741
+- Reviewer finding ID: F2
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2545#discussion_r4294017474>
+- Concern: The intro named every review on the PR except da2ce7's review 5545068167 (APPROVED at the pushed head, no findings), and the log's "Round 4" labels Copilot's second review while Rounds 2 and 3 were da2ce7's second and third, so the review history was incomplete.
+- Solution: The intro now says review 5545068167 and its ACK comment carry no finding and add no row. The Processing Log is append-only, so "Round 4" stays; the Round 5 entry below says the round numbers count processing rounds, not one reviewer's reviews. The fifth consolidated response is <https://github.com/torrust/torrust-tracker/pull/2545#issuecomment-6214298167>.
+- Current-tree verification: The intro names review 5545068167 and says it adds no row; the Round 5 log entry explains the numbering.
+- Resolution reference: docs(pr-reviews): [#2536] record da2ce7's no-finding approval in the PR #2545 audit
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2545#discussion_r4294068140>
+
 ## Processing Log
 
 - 2026-10-15 21:09 UTC - Started audit after da2ce7's review 5539892352 on PR #2545. Fixed F1-F3 in three signed commits, corrected the PR description for F4, posted the consolidated response, replied on the four threads, and resolved them. Pushing the fixes dismissed the approval, so the review needs a fresh approval.
 - 2026-10-16 07:15 UTC - Round 2: da2ce7's review 5540236537 (APPROVED) raised four Nit findings, recorded as F5-F8. Fixed each in its own signed commit, posted the second consolidated response, replied on the four threads, corrected the round-1 F2 and F3 Solution texts in this record, and resolved the threads. Round-1 rows are otherwise unchanged.
 - 2026-10-16 08:15 UTC - Round 3: da2ce7's review 5544427728 (APPROVED) raised one Nit finding, recorded as F9. Fixed it in a signed commit, posted the third consolidated response, replied on the thread, and resolved it. Earlier rows are unchanged.
 - 2026-10-16 10:20 UTC - Round 4: Copilot's review 5545105221 (COMMENTED) raised one inline finding, recorded as F10. Re-derived the claim against the current tree, posted the fourth consolidated response, replied on the thread with the prescribed `Superseded by F10:` form, and resolved it. No code or spec change; earlier rows are unchanged.
+- 2026-10-16 11:15 UTC - Round 5: da2ce7's review 5546973741 (APPROVED) raised two Nit findings, recorded as F11 and F12. Fixed each in its own signed commit, posted the fifth consolidated response, replied on both threads, and resolved them. Round numbers in this log count processing rounds, not one reviewer's reviews: rounds 2, 3 and 5 processed da2ce7's second, third and fifth reviews, and round 4 processed Copilot's second review; da2ce7's fourth review 5545068167 had no finding. Earlier rows are unchanged except F10's severity, which F11 corrected.
 
 ## Completion Rules
 
