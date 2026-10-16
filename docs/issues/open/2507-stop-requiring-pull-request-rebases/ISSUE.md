@@ -9,7 +9,7 @@ github-issue: 2507
 spec-path: docs/issues/open/2507-stop-requiring-pull-request-rebases/ISSUE.md
 branch: "2507-stop-requiring-pull-request-rebases"
 related-pr: 2526
-last-updated-utc: "2026-10-14 11:40"
+last-updated-utc: "2026-10-16 12:17"
 semantic-links:
   skill-links:
     - create-issue
@@ -20,6 +20,11 @@ semantic-links:
   related-artifacts:
     - docs/issues/open/2507-stop-requiring-pull-request-rebases/baseline-evidence.md
     - docs/issues/open/2507-stop-requiring-pull-request-rebases/manual-verification-evidence.md
+    - docs/issues/open/2507-stop-requiring-pull-request-rebases/implementation-retrospective.md
+    - docs/issues/open/2507-stop-requiring-pull-request-rebases/agent-review-reports.md
+    - "issue #2525"
+    - "issue #2547"
+    - docs/issues/open/2547-measure-effect-of-optional-rebases/ISSUE.md
     - docs/adrs/20261013161419_stop_requiring_pull_request_rebases.md
     - .github/skills/dev/git-workflow/open-pull-request/SKILL.md
     - .github/skills/dev/git-workflow/merge-pull-request/SKILL.md
@@ -174,16 +179,16 @@ fixture tests (T2).
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status      | Task                                                       | Notes / Expected Output                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| --- | ----------- | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | DONE        | Decision gate: find a non-rewriting merge-ref refresh      | Maintainer-approved fork sandbox (evidence section T1). GitHub accepts the direct merge push when the PR `base.sha` equals the target tip; merge-ref freshness is irrelevant. Waiting is unreliable; close/reopen, Update branch, and a no-op base edit all refresh `base.sha` without rewriting commits. **Decision (maintainer, 2026-10-14):** the merge tool performs the no-op base edit itself.                                                                                                                                                                  |
-| T2  | DONE        | Make `github-merge.py` check and refresh the recorded base | Guard compares the PR `base.sha` with the fetched target tip; a stale base is refreshed with the no-op base edit through `gh`, whose response supplies the new `base.sha`; refusal (exit `4`) prints the manual command. The GitHub-merge comparison is skipped when that merge has a stale base. Tests: 5 fixture scenarios plus 2 `gh` request tests; mutations (skip the guard, never refresh, always compare, wrong base argument) each failed at least one new test. Commit `fix(git): [#2507] check and refresh the recorded pull-request base before merging`. |
-| T3  | DONE        | Update the `merge-pull-request` skill                      | Automatic refresh, `gh` prerequisite, manual command, and the `GH013` diagnosis now name the recorded base. Commits `docs(skills): [#2507] describe the automatic recorded-base refresh in the merge skill` and `docs(skills): [#2507] name the recorded base in the merge push-failure diagnosis`.                                                                                                                                                                                                                                                                   |
-| T4  | DONE        | Update the `open-pull-request` skill and `AGENTS.md`       | Done in spec PR #2508. A search of `.github/`, `AGENTS.md`, `docs/templates/`, and `contrib/dev-tools/git/` for rebase mentions on 2026-10-14 found no remaining mandatory-rebase instruction; the remaining mentions describe the new rule or why rebases rewrite commit ids.                                                                                                                                                                                                                                                                                        |
-| T5  | IN_PROGRESS | Reconcile repository rulesets                              | Applied 2026-10-14 with maintainer approval: new always-active force-push ruleset 25068452; deleted 94237, 19245352, and 87098 (definitions saved under `evidence/`). Evidence section "T5 - Ruleset Changes Applied". Remaining: M5 and M6, real merges of a code PR and a documentation-only PR under the new rulesets. The required `CI gate` is the follow-up issue (T8).                                                                                                                                                                                         |
-| T6  | DONE        | Document the ruleset configuration                         | New guide `docs/github-rulesets.md` (linked from `docs/index.md`): policy, every active ruleset and why it exists, deleted rulesets, and a drift check. The merge skill guardrails forbid disabling a ruleset to merge. Commits `docs(github): [#2507] document the active repository rulesets` and `docs(skills): [#2507] forbid disabling rulesets to merge`.                                                                                                                                                                                                       |
-| T7  | TODO        | Post-change measurement                                    | After at least two weeks under the new policy, rerun the baseline commands for force-pushes per merged PR, PR CI runner-hours, and rebase-fallout commits; record the comparison in `post-change-evidence.md`.                                                                                                                                                                                                                                                                                                                                                        |
-| T8  | DONE        | Draft and create the CI gate follow-up issue               | Maintainer approved the draft on 2026-10-14; created #2525 with its specification under `docs/issues/open/2525-ci-gate-required-check/`. Commit `docs(issues): add issue specification for #2525`.                                                                                                                                                                                                                                                                                                                                                                    |
+| ID  | Status | Task                                                       | Notes / Expected Output                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| --- | ------ | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T1  | DONE   | Decision gate: find a non-rewriting merge-ref refresh      | Maintainer-approved fork sandbox (evidence section T1). GitHub accepts the direct merge push when the PR `base.sha` equals the target tip; merge-ref freshness is irrelevant. Waiting is unreliable; close/reopen, Update branch, and a no-op base edit all refresh `base.sha` without rewriting commits. **Decision (maintainer, 2026-10-14):** the merge tool performs the no-op base edit itself.                                                                                                                                                                  |
+| T2  | DONE   | Make `github-merge.py` check and refresh the recorded base | Guard compares the PR `base.sha` with the fetched target tip; a stale base is refreshed with the no-op base edit through `gh`, whose response supplies the new `base.sha`; refusal (exit `4`) prints the manual command. The GitHub-merge comparison is skipped when that merge has a stale base. Tests: 5 fixture scenarios plus 2 `gh` request tests; mutations (skip the guard, never refresh, always compare, wrong base argument) each failed at least one new test. Commit `fix(git): [#2507] check and refresh the recorded pull-request base before merging`. |
+| T3  | DONE   | Update the `merge-pull-request` skill                      | Automatic refresh, `gh` prerequisite, manual command, and the `GH013` diagnosis now name the recorded base. Commits `docs(skills): [#2507] describe the automatic recorded-base refresh in the merge skill` and `docs(skills): [#2507] name the recorded base in the merge push-failure diagnosis`.                                                                                                                                                                                                                                                                   |
+| T4  | DONE   | Update the `open-pull-request` skill and `AGENTS.md`       | Done in spec PR #2508. A search of `.github/`, `AGENTS.md`, `docs/templates/`, and `contrib/dev-tools/git/` for rebase mentions on 2026-10-14 found no remaining mandatory-rebase instruction; the remaining mentions describe the new rule or why rebases rewrite commit ids.                                                                                                                                                                                                                                                                                        |
+| T5  | DONE   | Reconcile repository rulesets                              | Applied 2026-10-14 with maintainer approval: new always-active force-push ruleset 25068452; deleted 94237, 19245352, and 87098 (definitions saved under `evidence/`). Evidence section "T5 - Ruleset Changes Applied". M5 and M6 confirmed on 2026-10-15 by real code and documentation-only merges with no ruleset changed (evidence V5, V6). The required `CI gate` is the follow-up issue #2525 (T8).                                                                                                                                                              |
+| T6  | DONE   | Document the ruleset configuration                         | New guide `docs/github-rulesets.md` (linked from `docs/index.md`): policy, every active ruleset and why it exists, deleted rulesets, and a drift check. The merge skill guardrails forbid disabling a ruleset to merge. Commits `docs(github): [#2507] document the active repository rulesets` and `docs(skills): [#2507] forbid disabling rulesets to merge`.                                                                                                                                                                                                       |
+| T7  | DONE   | Post-change measurement                                    | Moved out of this issue by maintainer decision on 2026-10-15 so it can close without a two-week wait: follow-up issue #2547 measures the window 2026-10-15 to 2026-10-28 against [`baseline-evidence.md`](baseline-evidence.md) and records `post-change-evidence.md` in its own folder. No measurement is done here.                                                                                                                                                                                                                                                 |
+| T8  | DONE   | Draft and create the CI gate follow-up issue               | Maintainer approved the draft on 2026-10-14; created #2525 with its specification under `docs/issues/open/2525-ci-gate-required-check/`. Commit `docs(issues): add issue specification for #2525`.                                                                                                                                                                                                                                                                                                                                                                    |
 
 ### Ruleset Target State
 
@@ -212,12 +217,27 @@ the settings are outside Git.
 | T4   | `open-pull-request` skill, `AGENTS.md`, and any other aligned instructions          | Commit after `linter all` passes.                                                  |
 | T5   | Ruleset evidence (settings change itself is not in Git)                             | One commit per code change; commit evidence after the maintainer applies settings. |
 | T6   | Ruleset documentation                                                               | Commit after `linter all` passes.                                                  |
-| T7   | `post-change-evidence.md`                                                           | Commit after the measurement window; may land after the implementation PR.         |
+| T7   | Follow-up measurement specification (moved to #2547)                                | Commit with the close-out evidence after maintainer review of the draft.           |
 | T8   | Draft follow-up specification under `docs/issues/drafts/`                           | Commit after maintainer review of the draft.                                       |
 
 Record a justified no-change decision in the task's evidence without creating an empty commit.
 Use Conventional Commits with the narrow affected scope (`fix(git)`, `ci(workflows)`,
 `docs(skills)`, `docs(issues)`), and sign every commit with GPG.
+
+## Closure Plan
+
+Recorded 2026-10-15 so the remaining steps are not forgotten. Follow them in order. The
+two-week measurement no longer blocks closure, because it moved to #2547 (T7).
+
+| Step | Status | Action                                                                                                                                                                                                                                                           |
+| ---- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| C1   | DONE   | Record M1 to M6 and M8 from the real merges after PR #2526 (`manual-verification-evidence.md`, section "Merges Under the New Policy"), and tick AC1 to AC4 and AC6 with evidence.                                                                                |
+| C2   | DONE   | Maintainer accepts AC6 as met while no check is required, with the always-reporting required `CI gate` tracked by #2525. #2507 does not wait for #2525.                                                                                                          |
+| C3   | DONE   | Move T7 and AC9 to follow-up issue #2547, with its specification in `docs/issues/open/`.                                                                                                                                                                         |
+| C4   | DONE   | Record the implementation completion review in [`implementation-retrospective.md`](implementation-retrospective.md).                                                                                                                                             |
+| C5   | DONE   | Run the independent Task Reviewer on this specification and the close-out branch; record its result in `agent-review-reports.md` and fix its findings.                                                                                                           |
+| C6   | TODO   | Commit, push, and open the close-out PR with `Related to #2507` (not `Closes`), then process its review with `process-pr-review`.                                                                                                                                |
+| C7   | TODO   | After the close-out PR merges, close #2507 on GitHub with a comment that links the close-out PR, #2525, and #2547. Then archive this folder to `docs/issues/closed/` with the `cleanup-completed-issues` skill, which also repairs links such as those in #2547. |
 
 ## Progress Tracking
 
@@ -227,14 +247,14 @@ Use Conventional Commits with the narrow affected scope (`fix(git)`, `ci(workflo
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [x] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, merge-tool tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
-- [ ] Committer verified spec progress is up to date before commit
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, merge-tool tests, and any pre-push checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
+- [x] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
@@ -292,32 +312,82 @@ Use Conventional Commits with the narrow affected scope (`fix(git)`, `ci(workflo
   "Correction from T1" added to the Background, two stamps corrected, and the 19245352 and 87098
   target-state rows record the applied deletions. The merge tool also refuses a pull request that
   targets another branch and reports `gh` failures with a timeout.
+- 2026-10-14 12:18 UTC - Maintainer - PR #2526 merged with the maintainer tool; implementation
+  (T1 to T6, T8) is on `develop`.
+- 2026-10-15 16:55 UTC - AI assistant - Close-out on branch
+  `2507-record-verification-and-split-measurement`. Recorded M1 to M6 and M8 from the 18 real
+  merges from PR #2526 to #2543: six behind pull requests merged through the recorded-base refresh (M1, by
+  indirect evidence because the tool output was not captured), nine merged behind without
+  rewriting commits (M2), every merged head reachable from `develop` (M3), #2532 and #2537 took
+  the conflict rebase path (M4), code and documentation-only merges with no ruleset changed (M5,
+  M6), and one first-parent merge per pull request (M8). Re-ran the merge-tool tests: 51 tests OK
+  (Python 3.14.4) and the wrapper tests passed. Maintainer decisions: accept AC6 while no check is
+  required, with the `CI gate` tracked by #2525, and move T7 and AC9 to a follow-up issue,
+  drafted for review. Added the Closure Plan and
+  [`implementation-retrospective.md`](implementation-retrospective.md) -
+  [`manual-verification-evidence.md`](manual-verification-evidence.md) section "Merges Under the
+  New Policy"
+- 2026-10-16 06:12 UTC - AI assistant - Maintainer approved the follow-up draft; created issue #2547
+  and moved its spec to `docs/issues/open/2547-measure-effect-of-optional-rebases/` (C3). The #2525
+  Delivery Sequence was recorded separately in `docs/issues/open/2525-ci-gate-required-check/ISSUE.md`,
+  whose own log entry is 2026-10-15 17:20 UTC.
+- 2026-10-16 06:40 UTC - AI assistant - Task Reviewer reviewed the close-out (C5): verdict
+  `REVIEW FAILED`, with five should-fix and three nit findings, which were fixed in the same pull
+  request. Fixed its findings: weighed the alternative explanation in V1 and marked M1 as indirect,
+  corrected the scope and initial state of the merge evidence, reworded AC9 to the verifiable
+  outcome, corrected timestamps, and described #2541 as a heavy-CI rather than code PR -
+  [`agent-review-reports.md`](agent-review-reports.md)
+- 2026-10-16 08:30 UTC - AI assistant - Processed the PR #2550 reviews (Copilot and da2ce7; audit in
+  `docs/pr-reviews/pr-2550-review/PR-REVIEW.md`). Recorded a re-review of the fixes, which first
+  found residual "proven" wording for M1 and an incomplete V4 account, then passed at 08:30 UTC.
+  Corrected the log entries above, labelled the force-push event commits in V4 and added the fetch
+  step, classified all 11 force-pushes of the 18 merges, and amended the #2547 specification and
+  issue body - [`agent-review-reports.md`](agent-review-reports.md)
+- 2026-10-16 10:25 UTC - AI assistant - Processed the second PR #2550 review round (Copilot approval
+  recommended; da2ce7 approved at the audit head with five new threads, F10 to F14 in
+  `docs/pr-reviews/pr-2550-review/PR-REVIEW.md`). V4 now classifies each force-push by whether it
+  moved the base and shows the base of all 11, the evidence stamp follows its newest edit, and
+  `agent-review-reports.md` says which fix the second re-review did not cover.
+- 2026-10-16 11:21 UTC - AI assistant - Processed the third PR #2550 review round (Copilot: one finding
+  in its review body; da2ce7 approved with four new threads, F15 to F19 in
+  `docs/pr-reviews/pr-2550-review/PR-REVIEW.md`). The `agent-review-reports.md` correction note now
+  names the contradiction with the 08:30 entry, and the audit records both dismissed approvals.
+- 2026-10-16 11:55 UTC - AI assistant - Processed the fourth PR #2550 review round (Copilot: one
+  thread; da2ce7 approved with three new threads, F20 to F23 in
+  `docs/pr-reviews/pr-2550-review/PR-REVIEW.md`). The #2547 specification now limits its shared
+  population to the force-push measures, and the audit records the third dismissal and why later
+  pushes are not logged one by one.
+- 2026-10-16 12:17 UTC - AI assistant - Processed the fifth PR #2550 review round (da2ce7 approved with
+  three new threads, F24 to F26 in `docs/pr-reviews/pr-2550-review/PR-REVIEW.md`). The #2547
+  specification now states its CI and fallout selection rules as its own, not as the baseline
+  sections', and the audit corrects the order of one of its log entries.
 
 ## Acceptance Criteria
 
-- [ ] AC1: No skill, agent profile, or `AGENTS.md` instruction makes a rebase mandatory merely
+- [x] AC1: No skill, agent profile, or `AGENTS.md` instruction makes a rebase mandatory merely
       because `develop` advanced; the recommendation and the required cases match the ADR.
-- [ ] AC2: A behind, conflict-free PR can be merged with `merge-pull-request.sh` without rewriting
+- [x] AC2: A behind, conflict-free PR can be merged with `merge-pull-request.sh` without rewriting
       its commits (T1 refresh), or with a rebase only when T1 finds no other method.
-- [ ] AC3: `github-merge.py` refuses, before building a merge and without editing the pull
+- [x] AC3: `github-merge.py` refuses, before building a merge and without editing the pull
       request, a pull request that targets another branch. It refreshes a stale recorded base
       (`base.sha`) with the no-op base edit, and refuses to sign or push while the recorded base is
       not the target tip, printing the refresh command. A stale GitHub merge ref alone does not
       block the merge; only the comparison with that merge is skipped.
-- [ ] AC4: Commit ids of a PR merged without rebase remain reachable from `develop`.
+- [x] AC4: Commit ids of a PR merged without rebase remain reachable from `develop`.
 - [x] AC5: The force-push ban is active on `develop`, `main`, and `releases/*`.
-- [ ] AC6: Every active required-check mechanism can be satisfied by both a code PR and a
+- [x] AC6: Every active required-check mechanism can be satisfied by both a code PR and a
       documentation-only PR, and both were merged under it without disabling any ruleset.
 - [x] AC7: Rulesets 94237, 19245352, and 87098 are each either active with a documented purpose
       or deleted; no ruleset is left disabled without a recorded reason.
 - [x] AC8: The active ruleset configuration is documented in the repository (T6).
-- [ ] AC9: Post-change force-pushes per merged PR and PR CI runner-hours are measured and compared
-      with the baseline.
-- [ ] `linter all` exits with code `0`
-- [ ] Merge-tool tests pass
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
-- [ ] Documentation is updated when behavior/workflow changes
+- [x] AC9: The measurement of post-change force-pushes per merged PR and PR CI runner-hours against
+      the baseline is tracked by follow-up issue #2547. Originally this criterion required the
+      measurement inside this issue; the maintainer moved it on 2026-10-15 (T7).
+- [x] `linter all` exits with code `0`
+- [x] Merge-tool tests pass
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] Documentation is updated when behavior/workflow changes
 
 ## Verification Plan
 
@@ -335,14 +405,14 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario                                     | Human-oriented command/steps                                                                                                                                          | Expected Result                                                                                                        | Status | Evidence                                                                 |
 | --- | -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ------ | ------------------------------------------------------------------------ |
-| M1  | Stale recorded base is refreshed             | Pick a PR whose `gh api repos/torrust/torrust-tracker/pulls/<n> --jq .base.sha` is not the `develop` tip and run `./contrib/dev-tools/git/merge-pull-request.sh <n>`. | Tool prints `Refreshed the recorded base of torrust/torrust-tracker#<n>` and continues to inspection without a rebase. | TODO   | `manual-verification-evidence.md` section V1                             |
-| M2  | Merge a behind PR without rewriting commits  | Continue the M1 run: inspect, sign, and push.                                                                                                                         | Push accepted; PR shows as merged; reviewed commits keep their ids.                                                    | TODO   | `manual-verification-evidence.md` section V2                             |
-| M3  | Reviewed ids survive the merge               | After M2, run `git merge-base --is-ancestor <reviewed head id> torrust/develop`.                                                                                      | Exit code `0`.                                                                                                         | TODO   | `manual-verification-evidence.md` section V3                             |
-| M4  | Conflicting PR follows the rebase path       | Follow the updated `open-pull-request` skill for a PR GitHub reports as conflicting.                                                                                  | Skill directs a rebase with `--force-with-lease`; PR becomes mergeable.                                                | TODO   | `manual-verification-evidence.md` section V4                             |
-| M5  | Code PR merges under the new rulesets        | Merge a real code PR with the maintainer tool after T5 is applied.                                                                                                    | Push accepted without disabling any ruleset.                                                                           | TODO   | `manual-verification-evidence.md` section V5                             |
-| M6  | Documentation-only PR merges under new rules | Merge a real Markdown-only PR with the maintainer tool after T5 is applied.                                                                                           | Push accepted without disabling any ruleset; heavy workflows stay skipped.                                             | TODO   | `manual-verification-evidence.md` section V6                             |
+| M1  | Stale recorded base is refreshed             | Pick a PR whose `gh api repos/torrust/torrust-tracker/pulls/<n> --jq .base.sha` is not the `develop` tip and run `./contrib/dev-tools/git/merge-pull-request.sh <n>`. | Tool prints `Refreshed the recorded base of torrust/torrust-tracker#<n>` and continues to inspection without a rebase. | DONE   | `manual-verification-evidence.md` section V1 (indirect)                  |
+| M2  | Merge a behind PR without rewriting commits  | Continue the M1 run: inspect, sign, and push.                                                                                                                         | Push accepted; PR shows as merged; reviewed commits keep their ids.                                                    | DONE   | `manual-verification-evidence.md` section V2                             |
+| M3  | Reviewed ids survive the merge               | After M2, run `git merge-base --is-ancestor <reviewed head id> torrust/develop`.                                                                                      | Exit code `0`.                                                                                                         | DONE   | `manual-verification-evidence.md` section V3                             |
+| M4  | Conflicting PR follows the rebase path       | Follow the updated `open-pull-request` skill for a PR GitHub reports as conflicting.                                                                                  | Skill directs a rebase with `--force-with-lease`; PR becomes mergeable.                                                | DONE   | `manual-verification-evidence.md` section V4                             |
+| M5  | Code PR merges under the new rulesets        | Merge a real code PR with the maintainer tool after T5 is applied.                                                                                                    | Push accepted without disabling any ruleset.                                                                           | DONE   | `manual-verification-evidence.md` section V5                             |
+| M6  | Documentation-only PR merges under new rules | Merge a real Markdown-only PR with the maintainer tool after T5 is applied.                                                                                           | Push accepted without disabling any ruleset; heavy workflows stay skipped.                                             | DONE   | `manual-verification-evidence.md` section V6                             |
 | M7  | Force-push ban applies to `develop`          | Run `gh api repos/torrust/torrust-tracker/rules/branches/develop` and the same for `main`.                                                                            | A `non_fast_forward` rule is listed for both branches.                                                                 | DONE   | `manual-verification-evidence.md` section "T5 - Ruleset Changes Applied" |
-| M8  | First-parent history unchanged               | `git log --first-parent --oneline -10 torrust/develop` after several merges under the new policy.                                                                     | One merge commit per PR in merge order.                                                                                | TODO   | `manual-verification-evidence.md` section V8                             |
+| M8  | First-parent history unchanged               | `git log --first-parent --oneline -10 torrust/develop` after several merges under the new policy.                                                                     | One merge commit per PR in merge order.                                                                                | DONE   | `manual-verification-evidence.md` section V8                             |
 
 Notes:
 
@@ -357,17 +427,17 @@ None planned. The baseline and post-change statistics use the `gh` and `git` com
 
 ### Acceptance Verification
 
-| AC ID | Status (`TODO`/`DONE`) | Evidence                                                                                                                                                                   |
-| ----- | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| AC1   | TODO                   |                                                                                                                                                                            |
-| AC2   | TODO                   |                                                                                                                                                                            |
-| AC3   | TODO                   |                                                                                                                                                                            |
-| AC4   | TODO                   |                                                                                                                                                                            |
-| AC5   | DONE                   | `non_fast_forward` listed for `develop`, `main`, and `releases/v3.0.0-rc.1` (evidence section "T5 - Ruleset Changes Applied"; release branch command and output included). |
-| AC6   | TODO                   |                                                                                                                                                                            |
-| AC7   | DONE                   | 94237, 19245352, and 87098 deleted; definitions in `evidence/`. No disabled ruleset remains.                                                                               |
-| AC8   | DONE                   | `docs/github-rulesets.md`                                                                                                                                                  |
-| AC9   | TODO                   |                                                                                                                                                                            |
+| AC ID | Status (`TODO`/`DONE`) | Evidence                                                                                                                                                                                                                                                                            |
+| ----- | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| AC1   | DONE                   | T4 search of 2026-10-14 and a broader `git grep -niE rebase` on 2026-10-15 over `AGENTS.md`, `.github/agents`, `.github/skills`, `docs/*.md`, `docs/templates`, and `contrib/dev-tools/git/*.md`: only the optional-rebase rule, its required cases, and historical records remain. |
+| AC2   | DONE                   | M1 and M2: nine PRs merged behind `develop` without a rebase at merge time. #2528, #2529, #2530, #2534, #2535, and #2541 merged through the recorded-base refresh (evidence V1, V2).                                                                                                |
+| AC3   | DONE                   | T2 tests (51 tests OK, Python 3.14.4, re-run 2026-10-15) and the PR #2526 review; in production, the refresh path in V1.                                                                                                                                                            |
+| AC4   | DONE                   | M3: `git merge-base --is-ancestor` exits `0` for all 18 merged heads (evidence V3).                                                                                                                                                                                                 |
+| AC5   | DONE                   | `non_fast_forward` listed for `develop`, `main`, and `releases/v3.0.0-rc.1` (evidence section "T5 - Ruleset Changes Applied"; release branch command and output included).                                                                                                          |
+| AC6   | DONE                   | No required-check mechanism is active after T5, so code PR #2529, heavy-CI PR #2541, and documentation-only PRs #2533, #2540, and #2543 merged with no ruleset changed (V5, V6). Maintainer accepted this on 2026-10-15; the required `CI gate` is #2525.                           |
+| AC7   | DONE                   | 94237, 19245352, and 87098 deleted; definitions in `evidence/`. No disabled ruleset remains.                                                                                                                                                                                        |
+| AC8   | DONE                   | `docs/github-rulesets.md`                                                                                                                                                                                                                                                           |
+| AC9   | DONE                   | Issue #2547 exists, and its spec scopes the measurement against [`baseline-evidence.md`](baseline-evidence.md) for 2026-10-15 to 2026-10-28.                                                                                                                                        |
 
 ## Risks and Trade-offs
 
@@ -388,7 +458,7 @@ None planned. The baseline and post-change statistics use the `gh` and `git` com
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
+- Retrospective: created, [`implementation-retrospective.md`](implementation-retrospective.md)
 - If needed, create `implementation-retrospective.md` from
   `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this directory.
 - If no retrospective is needed, add a concise progress-log entry explaining why.
@@ -400,8 +470,10 @@ None planned. The baseline and post-change statistics use the `gh` and `git` com
 - Related PRs: #2229 (stale merge-base guard), #2320 (review retrospective), #2000 (last merge that
   required disabling ruleset 94237)
 - Related issues: #2022 (vendor and document the maintainer merge workflow), #1743
-  (documentation-only CI fast path), #2525 (required CI gate follow-up)
+  (documentation-only CI fast path), #2525 (required CI gate follow-up), #2547 (post-change
+  measurement follow-up)
 - Related ADRs:
   [`20261013161419_stop_requiring_pull_request_rebases.md`](../../../adrs/20261013161419_stop_requiring_pull_request_rebases.md),
   [`20260926142648_adopt_self_hosted_hetzner_runner_for_container_tests.md`](../../../adrs/20260926142648_adopt_self_hosted_hetzner_runner_for_container_tests.md)
-- Evidence: [`baseline-evidence.md`](baseline-evidence.md)
+- Evidence: [`baseline-evidence.md`](baseline-evidence.md),
+  [`manual-verification-evidence.md`](manual-verification-evidence.md)
