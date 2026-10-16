@@ -9,7 +9,7 @@ github-issue: 2536
 spec-path: docs/issues/open/2536-1669-hide-statistics-repository-read-lock/ISSUE.md
 branch: "2536-1669-hide-statistics-repository-read-lock"
 related-pr: 2545
-last-updated-utc: "2026-10-16 06:16"
+last-updated-utc: "2026-10-16 07:10"
 semantic-links:
   skill-links:
     - create-issue
@@ -430,7 +430,8 @@ request.
 - 2026-10-15 21:05 UTC - GitHub Copilot - PR #2545 review (F2, da2ce7): stamps that were later than
   the commits carrying them are corrected to the commits' time: the T7 entry (18:20 to 18:18), the
   T8 entry (19:55 to 19:48), the evidence file's `last-updated-utc` (19:50 to 19:48), and the
-  EPIC's entry and `last-updated-utc` (19:55 to 19:48). The five earlier entries that the ADR
+  EPIC's log entry (19:55 to 19:48). The `last-updated-utc` of this spec and of the EPIC were set
+  to 21:05, the time of that commit, not to 19:48. The five earlier entries that the ADR
   commit rewrote in place stay as they are in history; their values were already correct. From now
   on, each stamp is taken from `date -u` immediately before its commit.
 - 2026-10-15 21:06 UTC - GitHub Copilot - PR #2545 review (F3, da2ce7): the maintainer's review
