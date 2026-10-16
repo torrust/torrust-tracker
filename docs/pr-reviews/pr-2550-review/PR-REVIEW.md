@@ -41,13 +41,23 @@ deliver findings through GitHub and have no repository-artifact obligation.
 ## Findings
 
 Two reviews were submitted. Copilot's review 5544328074 carries two inline threads, F1 and F2; its
-overview repeats them, so the body adds no rows. da2ce7's approving review 5544619071 carries seven
+overview repeats them, so the body adds no rows. da2ce7's approving review 5544619071 (later dismissed
+at 08:31:50 UTC by the push of "docs(issues): [#2507] record the Task Reviewer's re-review of the
+close-out fixes") carries seven
 inline threads, whose reviewer IDs are F1-F7. Reviewer IDs F3-F7 do not collide with the audit's IDs
 and are kept. Reviewer IDs F1 and F2 collide with Copilot's F1 and F2, so they are recorded as F8 and
 F9 with the reviewer's ID kept in the detail entry. They are also the same concerns as Copilot's F2
 and F1, so F8 is recorded as `RE_RAISE_OF:F2` and F9 as `RE_RAISE_OF:F1`. Its body is a round summary
 that repeats those seven findings and confirms the rest of the close-out, so it adds no rows. Both
 reviews read the head whose subject is "docs(issues): [#2525] record the agreed delivery sequence".
+
+A second round followed the push of the audit. Copilot's review 5545295102 recommends approval with
+no open findings and adds no row. da2ce7's approving review 5545292694 read the head whose subject is
+"docs(pr-reviews): add the PR #2550 review audit" and carries five inline threads whose reviewer IDs
+F1-F5 collide with F1-F5 above, so they are recorded as F10-F14 with the reviewer's ID kept in the
+detail entry. Its body is a round summary that repeats those five findings and confirms the earlier
+ones as resolved, so it adds no rows; a separate PR conversation comment, `ACK`, records its verdict
+for that head.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -60,6 +70,11 @@ reviews read the head whose subject is "docs(issues): [#2525] record the agreed 
 | F7 | review-finding:pr-2550-f7 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F8 | review-finding:pr-2550-f8 | Human | Minor | correctness | RE_RAISE_OF:F2 | FIXED | RESOLVED |
 | F9 | review-finding:pr-2550-f9 | Human | Minor | correctness | RE_RAISE_OF:F1 | FIXED | RESOLVED |
+| F10 | review-finding:pr-2550-f10 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F11 | review-finding:pr-2550-f11 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F12 | review-finding:pr-2550-f12 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F13 | review-finding:pr-2550-f13 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F14 | review-finding:pr-2550-f14 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -213,6 +228,96 @@ reviews read the head whose subject is "docs(issues): [#2525] record the agreed 
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2550#discussion_r4292508565>
 
+### F10 - The three classes cannot tell a rebase from a rewrite
+
+- PR number: 2550
+- Source review ID: 5545292694
+- Reviewer finding ID: F1
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2550#discussion_r4292678053>
+- Concern: the classes test only whether the new head is based on the `develop` tip of its time. A
+  rebase onto a tip the author had not yet fetched lands in "not a rebase" (#2524 at 10:28:49, 4 min
+  31 s after its tip was committed), and a rewrite of a head already on the tip lands in
+  "recommended". Classify by whether the push moved the base.
+- Solution: the specification and V4 compare `git merge-base <tip> <beforeCommit>` with
+  `git merge-base <tip> <afterCommit>`: a moved base is a rebase, required when the before commit
+  conflicts with the tip and recommended otherwise, and an unchanged base is not a rebase. The tip is
+  the last first-parent `develop` commit whose pull request `merged_at` precedes the push. V4 applies
+  the method to all 11 force-pushes; the classes are unchanged (two required, eight recommended, one
+  not a rebase). The GitHub issue body was updated to match.
+- Current-tree verification: the `ISSUE.md` scope bullet and the V4 tables state the method and show
+  both bases. For each of the 11 pushes the `merged_at` of the tip's pull request is before the push,
+  and #2538's push moved the base from `48c4d3013` to `9c8bcdf8a`.
+- Resolution reference: docs(issues): [#2547] classify a force-push by whether it moved the base
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2550#discussion_r4293588299>
+
+### F11 - The evidence stamp is older than two later commits
+
+- PR number: 2550
+- Source review ID: 5545292694
+- Reviewer finding ID: F2
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2550#discussion_r4292678062>
+- Concern: `last-updated-utc` of `manual-verification-evidence.md` was 08:17, but two later commits
+  changed the file (08:24:31 and 08:25:04 UTC). Set it to 08:25.
+- Solution: set the stamp to 08:25 as asked. The V4 rewrite of this round then moved it to the time
+  of that edit, 10:22 UTC.
+- Current-tree verification: the evidence frontmatter says `2026-10-16 10:22`, the minute of the last
+  commit that changes the file.
+- Resolution reference: docs(issues): [#2507] set the evidence stamp to its newest edit
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2550#discussion_r4293588540>
+
+### F12 - The second re-review's input omits that one fix was committed with its entry
+
+- PR number: 2550
+- Source review ID: 5545292694
+- Reviewer finding ID: F3
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2550#discussion_r4292678068>
+- Concern: the second re-review lists "the committed branch" as its input, but the reworded 06:40
+  log line was committed with that entry.
+- Solution: neither offered wording is true, because that line was excluded from the re-review's
+  scope on purpose and no reviewer checked it. A correction note, appended as a new bullet and not as
+  an edit of the entry, says that the 08:30 verdict does not cover that one-sentence change.
+- Current-tree verification: the Correction notes section of `agent-review-reports.md` has the new
+  bullet, and the 08:30 entry is unchanged.
+- Resolution reference: docs(issues): [#2507] state what the second re-review did not check
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2550#discussion_r4293588749>
+
+### F13 - The #2531 merge time is unlabelled where the evidence uses committer time
+
+- PR number: 2550
+- Source review ID: 5545292694
+- Reviewer finding ID: F4
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2550#discussion_r4292678076>
+- Concern: the specification gives the #2531 merge as 16:09 UTC without saying it is the reported
+  time, while the evidence dates merges by Git committer time (16:06:29 UTC for the same merge).
+- Solution: both places in the specification say `merged_at`, and its progress log explains the
+  three-minute gap. The GitHub issue body was updated to match.
+- Current-tree verification: `grep -n merged_at` on the `ISSUE.md` finds the scope bullet and the
+  Risks entry.
+- Resolution reference: docs(issues): [#2547] label the PR #2531 merge time as merged_at
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2550#discussion_r4293589021>
+
+### F14 - The audit does not say the first approval was dismissed
+
+- PR number: 2550
+- Source review ID: 5545292694
+- Reviewer finding ID: F5
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2550#discussion_r4292678085>
+- Concern: the record calls review 5544619071 "approving" without saying that the author dismissed
+  it at 08:31:50 UTC on the push of the re-review commit, an event of this processing round.
+- Solution: the Findings paragraph says the approval was later dismissed and names the push, and the
+  Processing Log records the dismissal. The log is append-only and chronological, so the entry
+  carries the time it was recorded and names the event time. The record also gains rows F10 to F14
+  and the second round's entries.
+- Current-tree verification: the audit has both additions. The timeline holds one `review_dismissed`
+  event, actor `josecelano`, at 2026-10-16T08:31:50Z.
+- Resolution reference: docs(pr-reviews): record the dismissed approval and the second review round of PR #2550
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2550#discussion_r4293589228>
+
 ## Processing Log
 
 - 2026-10-16 08:15 UTC - Fetched every thread and review, classified and numbered the findings, and
@@ -223,6 +328,14 @@ reviews read the head whose subject is "docs(issues): [#2525] record the agreed 
 - 2026-10-16 08:33 UTC - Pushed, updated the GitHub issue body of #2547, re-derived each reply claim
   against the current tree, and replied on all nine threads.
 - 2026-10-16 08:35 UTC - Started this record, with a reply URL in every row.
+- 2026-10-16 08:38 UTC - Pushed the record, resolved all nine threads, and re-requested da2ce7 and
+  Copilot.
+- 2026-10-16 08:51 UTC - da2ce7's approving review 5545292694 and an `ACK` comment arrived for the
+  record's head, with five new threads, and Copilot's review 5545295102 recommended approval with no
+  open findings.
+- 2026-10-16 10:28 UTC - Recorded the dismissal of review 5544619071's approval, which happened at
+  08:31:50 UTC on the push of the re-review commit (F14). Fixed F10, F11, F12, F13 and F14 in separate
+  signed commits, pushed, and replied on the five threads, then added F10-F14 to this record.
 
 ## Completion Rules
 
