@@ -6,7 +6,7 @@ epic: null
 github-issue: 1347
 spec-path: docs/issues/open/1347-overhaul-packages-testing/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-16 06:30"
+last-updated-utc: "2026-10-16 06:53"
 semantic-links:
   skill-links:
     - create-issue
@@ -242,11 +242,13 @@ For each subissue implementation, the completion policy is:
   (lines unchanged at 98.04%).
 - 2026-10-15 15:15 UTC - GitHub Copilot - #1348 merged through PR #2538 and closed; its spec is
   archived to `docs/issues/closed/` and its subissue row is `DONE`.
-- 2026-10-15 16:30 UTC - GitHub Copilot - Drafted the #1349 (`http-core`) specification from the
+- 2026-10-15 16:18 UTC - GitHub Copilot - Drafted the #1349 (`http-core`) specification from the
   #1348 template and recorded its clean baseline in both coverage tables (unit-only and aggregate
   lines 89.06%; no integration target). At the maintainer's request it delivers the work in
   several pull-request slices and defines a findings procedure (draft spec plus hand-off in
   `.tmp/`, parallel or pause) for bugs found while adding tests.
+- 2026-10-16 06:53 UTC - GitHub Copilot - After review of spec-only PR #2546, kept the #1349
+  subissue row `TODO` until T1 starts, as #1348 did, instead of `IN_PROGRESS`.
 
 ## Acceptance Criteria
 

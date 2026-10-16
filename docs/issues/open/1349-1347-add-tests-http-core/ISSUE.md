@@ -9,7 +9,7 @@ github-issue: 1349
 spec-path: docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md
 branch: "1349-1347-add-tests-http-core-spec"
 related-pr: 2546
-last-updated-utc: "2026-10-16 06:30"
+last-updated-utc: "2026-10-15 20:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -476,16 +476,16 @@ lines are the [baseline](#baseline-coverage) measurement.
 
 ### Progress Log
 
-- 2026-10-15 16:30 UTC - GitHub Copilot - Created this specification on branch
+- 2026-10-15 16:18 UTC - GitHub Copilot - Created this specification on branch
   `1349-1347-add-tests-http-core-spec`, using #1348 as the template. Measured a clean baseline at
   `a9d8c5703` (32 unit tests; unit-only and aggregate lines 89.06%) and recorded it here and in the
   EPIC tables. Added the pull-request slices and the findings procedure the maintainer asked for
   after #1348. No tests or production code changed.
-- 2026-10-15 16:40 UTC - Jose Celano - Approved the specification with these decisions: keep the
+- 2026-10-15 20:27 UTC - Jose Celano - Approved the specification with these decisions: keep the
   inventory as its own docs-only slice (S1), run the Task Reviewer before every slice PR, do not
   stack slice branches (start each slice after the previous one merges), and refresh the stale
   GitHub issue title and body to point to this specification.
-- 2026-10-15 16:55 UTC - GitHub Copilot - Refreshed the GitHub issue #1349 title and body and
+- 2026-10-15 20:30 UTC - GitHub Copilot - Refreshed the GitHub issue #1349 title and body and
   opened spec-only PR #2546 (<https://github.com/torrust/torrust-tracker/pull/2546>) with
   `Related to #1349`.
 
