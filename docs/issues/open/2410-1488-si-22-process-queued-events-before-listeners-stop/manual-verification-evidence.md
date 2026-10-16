@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
-last-updated-utc: "2026-10-16 10:19"
+last-updated-utc: "2026-10-16 10:44"
 ---
 
 # Manual Verification Evidence
@@ -206,6 +206,7 @@ Issue #2413 changes only Markdown: an inventory, a glossary, a moved document, a
 - Date and time (UTC): 2026-10-16 07:55; `develop` at `702cff6cc`.
 - Method: `rg` for `.send(`, `event_bus`, `.receiver()` and `spawn` across `src/` and `packages/`, then reading each hit, including `packages/axum-http-server/src/testing/environment.rs` and `packages/udp-server/src/testing/environment.rs`. Read from source, not run.
 - Result: every producer and consumer found is listed in the inventory in `docs/features/shutdown-process/task-inventory.md`. No unlisted producer or consumer was found. The reviewer ticks the acceptance criteria.
+- Correction (2026-10-16 10:44 UTC): the result above was wrong. The method searched for `.send(` call sites, so it missed the four publish sites in the UDP receive loop (`packages/udp-server/src/server/launcher.rs`), which reach `send` through the awaited helper `publish_event_if_sender_available`. Copilot found them in review (`review-finding:pr-2553-f2`). Re-swept on 2026-10-16 by reading every file that holds a bus sender (`rg 'stats_event_sender|event_sender|publish_event_if_sender_available'`); the launcher was the only file missing from the inventory. Fixed in `docs/features/shutdown-process/task-inventory.md`. Read from source, not run.
 
 ### Tooling defect found while pushing: pre-push tests leaked into the real repository
 
