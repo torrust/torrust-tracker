@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: in-progress
+status: done
 priority: p2
 epic: 1488
 github-issue: 2471
-spec-path: docs/issues/open/2471-1488-fix-http-environment-drop-path/ISSUE.md
+spec-path: docs/issues/closed/2471-1488-fix-http-environment-drop-path/ISSUE.md
 branch: "2471-fix-http-environment-drop-path"
-related-pr: null
-last-updated-utc: "2026-10-15 20:33"
+related-pr: 2544
+last-updated-utc: "2026-10-16 07:09"
 semantic-links:
   skill-links:
     - create-issue
@@ -30,7 +30,7 @@ semantic-links:
 
 # Issue #2471 - Stop the HTTP Test Environment's Tasks When It Is Dropped Without `stop()`
 
-Parent: [EPIC #1488 - Overhaul: Tracker Shutdown](../1488-overhaul-tracker-shutdown/ISSUE.md)
+Parent: [EPIC #1488 - Overhaul: Tracker Shutdown](../../open/1488-overhaul-tracker-shutdown/ISSUE.md)
 
 > A gap found on 2026-10-07 while checking SI-22's specs against what SI-17
 > learned: the HTTP test environment never stopped its server when dropped
@@ -187,12 +187,12 @@ for the test. Sign every commit with GPG.
 - [x] Design-review checkpoint recorded after the regression test turned green, before maintainer review and commit
 - [x] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
-- [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
+- [x] Committer verified spec progress is up to date before commit
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -206,19 +206,20 @@ for the test. Sign every commit with GPG.
 - 2026-10-15 20:31 UTC - GitHub Copilot - Round 2 of the PR #2544 review (da2ce7, approved with non-blocking findings): `review-finding:pr-2544-f12` asked that specs cite audit findings by their reference, not by a bare ID. Replaced the bare citations in this spec, the evidence, SI-23 and SI-24.
 - 2026-10-15 20:32 UTC - GitHub Copilot - `review-finding:pr-2544-f13`: V1's Hypothesis still stated the disproved premise as fact; it now carries a marker pointing to the correction and V4.
 - 2026-10-15 20:33 UTC - GitHub Copilot - `review-finding:pr-2544-f14`: the Out of Scope note now says that the REST API and health-check API legacy drops do not stop their servers either, from the same `graceful_shutdown` code path (read from source, not run).
+- 2026-10-16 07:09 UTC - GitHub Copilot - Archived. PR #2544 merged on 2026-10-16 06:58 UTC and issue #2471 closed one second later. The acceptance criteria are ticked on the strength of da2ce7's approving review 5539758788, which recomputed the criteria, re-ran the package tests and a mutation check on the drop guard, and checked V4 against the pre-SI-16 tree. No `agent-review-reports.md` exists because the independent review was the PR review, recorded in `docs/pr-reviews/pr-2544-review/PR-REVIEW.md`. No retrospective is needed: the one material discovery, that the gap predates SI-16, is recorded in the Background, V1's correction, V4, and `review-finding:pr-2544-f5` in that audit.
 
 ## Acceptance Criteria
 
-- [ ] AC1: Dropping a running HTTP test environment without `stop()` releases
+- [x] AC1: Dropping a running HTTP test environment without `stop()` releases
       its HTTP binding within the test deadline.
-- [ ] AC2: `stop()` keeps its behavior: it cancels once, joins every owned
+- [x] AC2: `stop()` keeps its behavior: it cancels once, joins every owned
       task, and reports failures as today; all existing environment tests pass.
-- [ ] AC3: The regression test is proven red before the fix and green after.
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
-- [ ] Documentation is updated when behavior/workflow changes
+- [x] AC3: The regression test is proven red before the fix and green after.
+- [x] `linter all` exits with code `0`
+- [x] Relevant tests pass
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] Documentation is updated when behavior/workflow changes
 
 ## Verification Plan
 
@@ -240,9 +241,9 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1   | TODO                   | Evidence ready for the reviewer: V3, the maintained drop-path test passes within the deadline. |
-| AC2   | TODO                   | Evidence ready for the reviewer: V3, `stop()` unchanged; 7 environment tests, 44 unit and 62 integration tests pass. |
-| AC3   | TODO                   | Evidence ready for the reviewer: V2 red (10.02 s timeout) before the fix; V3 green after.      |
+| AC1   | DONE                   | V3, the maintained drop-path test passes within the deadline. Validated by da2ce7 in PR #2544 review 5539758788 (approved). |
+| AC2   | DONE                   | V3, `stop()` unchanged; 7 environment tests, 44 unit and 62 integration tests pass. Validated by da2ce7 in PR #2544 review 5539758788 (approved). |
+| AC3   | DONE                   | V2 red (10.02 s timeout) before the fix; V3 green after.      Validated by da2ce7 in PR #2544 review 5539758788 (approved). |
 
 ## Risks and Trade-offs
 
@@ -252,7 +253,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
+- Retrospective: `Not needed`; see the 2026-10-16 progress-log entry.
 - If needed, create `implementation-retrospective.md` from
   `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this directory;
   otherwise add a progress-log entry explaining why it was not needed.

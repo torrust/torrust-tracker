@@ -4,7 +4,7 @@ semantic-links:
     - process-pr-review
   related-artifacts:
     - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
-    - docs/issues/open/2471-1488-fix-http-environment-drop-path/ISSUE.md
+    - docs/issues/closed/2471-1488-fix-http-environment-drop-path/ISSUE.md
 ---
 
 <!-- skill-link: process-pr-review -->

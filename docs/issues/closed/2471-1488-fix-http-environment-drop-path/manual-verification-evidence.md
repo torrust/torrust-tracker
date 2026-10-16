@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2471-1488-fix-http-environment-drop-path/ISSUE.md
-last-updated-utc: 2026-10-15 20:32
+issue-spec: docs/issues/closed/2471-1488-fix-http-environment-drop-path/ISSUE.md
+last-updated-utc: 2026-10-16 07:09
 ---
 
 # Manual Verification Evidence

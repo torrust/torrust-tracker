@@ -6,7 +6,7 @@ epic: 1669
 github-issue: 2482
 spec-path: docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-08 15:20"
+last-updated-utc: "2026-10-16 07:10"
 semantic-links:
   skill-links:
     - create-issue
@@ -145,7 +145,7 @@ subissue 1 and GitHub issues one at a time afterwards.
 | 2 | #[To be assigned] - Move the `test-helpers` protocol helpers to their consumer | Provisional | TODO | Pattern B; coupling report finding 1. |
 | 3 | #[To be assigned] - Gate `tracker-core`'s test modules and mocks | Provisional | TODO | Patterns C and D. |
 | 4 | #[To be assigned] - Relocate the `udp-server` test environment | Provisional | TODO | Pattern A; includes `examples/udp_only_public_tracker.rs`. |
-| 5 | #[To be assigned] - Relocate the `axum-http-server` test environment | Provisional | TODO | Pattern A; includes `examples/http_only_public_tracker.rs` and the doc-link-only `configuration` edge. After #2471. |
+| 5 | #[To be assigned] - Relocate the `axum-http-server` test environment | Provisional | TODO | Pattern A; includes `examples/http_only_public_tracker.rs` and the doc-link-only `configuration` edge. After #2471, which merged on 2026-10-16. |
 | 6 | #[To be assigned] - Relocate the `axum-rest-api-server` test environment | Provisional | TODO | Pattern A; six forced edges. After #2449. |
 | 7 | #[To be assigned] - Relocate the `axum-health-check-api-server` test environment | Provisional | TODO | Pattern A. After #2450 and after rows 4 to 6, whose environments its tests use. |
 | 8 | #[To be assigned] - Label optional dependency edges in the coupling tool and diagram | Provisional | TODO | Only if the ADR chooses O1; before the first O1 move merges. |
@@ -201,8 +201,8 @@ kept):
 - **Behaviour stays the same.** A move changes where test support code lives and how it is
   compiled, not what tests verify. Every test, example and bench that used the moved code still
   builds and passes.
-- **Coordination with EPIC #1488.** Its open subissues #2449, #2450 and #2471 change the
-  environments this EPIC moves. Each environment move starts after the #1488 subissue that
+- **Coordination with EPIC #1488.** Its open subissues #2449 and #2450 (and #2471, which
+  merged on 2026-10-16) change the environments this EPIC moves. Each environment move starts after the #1488 subissue that
   changes the same environment merges, or its spec records why the order does not matter.
   #1488 work is not delayed for this EPIC.
 - **The inventory is a living document.** Each subissue marks the inventory rows it resolves,
@@ -287,6 +287,10 @@ Append one line per meaningful update.
   #2484 review finding F12. Subissue 1's spec will carry the full Design and Ownership Review.
 - 2026-10-08 15:20 UTC - GitHub Copilot - The 14:48 entry now says subissue 1's spec "will
   carry" the section, since that spec does not exist yet, per PR #2484 review finding F13.
+- 2026-10-16 07:10 UTC - GitHub Copilot - #2471 (HTTP environment drop path) merged on
+  2026-10-16, so the move of the `axum-http-server` test environment (subissue 5) is no longer
+  blocked on it. Its spec moved to `docs/issues/closed/`; updated the links and the ordering
+  text. #2449 and #2450 are still open.
 
 ## Acceptance Criteria
 
@@ -329,9 +333,9 @@ Append one line per meaningful update.
   keeps each change small.
 - The examples start their trackers through the test environments; their subissues must give
   them a production-style startup or label them as test-support demonstrations.
-- Three open subissues of EPIC #1488 change the environments this EPIC would move: #2449
-  (REST API environment), #2450 (health check API environment) and #2471 (HTTP environment
-  drop path). The ordering rule in "How we work in this EPIC" handles them.
+- Three subissues of EPIC #1488 change the environments this EPIC would move: #2449 (REST API
+  environment), #2450 (health check API environment) and #2471 (HTTP environment drop path,
+  merged on 2026-10-16). The ordering rule in "How we work in this EPIC" handles them.
 - A sub-EPIC adds one level of tracking; the Subissues table here and the single row in #1669
   keep it to one place each.
 
@@ -346,8 +350,8 @@ Append one line per meaningful update.
   `#[cfg(test)]` and private to its crate.
 - Related ADRs: [`20260629000000_adopt_independent_package_versioning.md`](../../../adrs/20260629000000_adopt_independent_package_versioning.md)
 - Baseline issue: #2446
-- Shutdown overhaul EPIC: #1488, with open subissues that change the environments:
+- Shutdown overhaul EPIC: #1488, with subissues that change the environments (#2471 is closed):
   [#2449](../2449-1488-si-23-migrate-rest-api-test-environment/ISSUE.md),
   [#2450](../2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md) and
-  [#2471](../2471-1488-fix-http-environment-drop-path/ISSUE.md)
+  [#2471](../../closed/2471-1488-fix-http-environment-drop-path/ISSUE.md)
 - Earlier review of this spec: PR #2462 (as a draft task), PR #2484 (spec PR)
