@@ -94,6 +94,14 @@ fourth round's fixes caused, at 11:56:26 UTC (review 5547344550). Later dismissa
 pattern and are not logged one by one, because each `ACK` comment names the head it applies to and
 the next review supersedes it.
 
+A sixth round followed the push of the fifth round's fixes. Copilot's review 5547644540, posted on the
+head of the fourth round's last commit, recommends approval with no open findings and adds no row.
+da2ce7's approving review 5547815458 read the head whose subject is "docs(pr-reviews): add the reply
+URLs of the fifth review round of PR #2550" and carries one inline thread whose reviewer ID F1
+collides with F1 above, so it is recorded as F27 with the reviewer's ID kept in the detail entry. Its
+body is a round summary that repeats that finding and confirms the rest, so it adds no rows; an `ACK`
+comment records its verdict for that head.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2550-f1 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -122,6 +130,7 @@ the next review supersedes it.
 | F24 | review-finding:pr-2550-f24 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F25 | review-finding:pr-2550-f25 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F26 | review-finding:pr-2550-f26 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F27 | review-finding:pr-2550-f27 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -604,12 +613,33 @@ the next review supersedes it.
   what sections 6 and 7 say, and the GitHub issue body matches. F20's text no longer attributes the
   rules to the baseline sections.
 - Current-tree verification: the `ISSUE.md` scope bullet says so, baseline section 6 reports 899 runs
-  and names no date field, and the section 7 command is
-  `git log --no-merges --since=2026-06-01 --format='%h %ad %s' --date=short`, which prints author
-  dates and filters by committer date.
+  and names no date field, and the section 7 command begins
+  `git log --no-merges --since=2026-06-01 --format='%h %ad %s' --date=short` and continues with `-i -E`
+  and a `--grep` for the rebase-related words. It filters with `--since`, which is the committer
+  date, and prints author dates (`%ad`). This entry first quoted only the first line (F27).
 - Resolution reference: docs(issues): [#2547] state the selection rules as this specification's own
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2550#discussion_r4294575223>
+
+### F27 - The quoted section 7 command drops its filter
+
+- PR number: 2550
+- Source review ID: 5547815458
+- Reviewer finding ID: F1
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2550#discussion_r4294689542>
+- Concern: F26's verification quotes the baseline section 7 command as ending at `--date=short`, but
+  that command continues with `-i -E` and a `--grep` for the rebase-related words. Run as quoted, it
+  lists every non-merge commit since June. The date point stands. Quote both lines, or say that the
+  command filters with `--since=2026-06-01`.
+- Solution: F26's verification now says the command begins with the quoted line and continues with
+  `-i -E` and a `--grep`, and that it filters with `--since` (committer date) and prints `%ad`
+  (author date).
+- Current-tree verification: baseline section 7's reproduce command is
+  `git log --no-merges --since=2026-06-01 --format='%h %ad %s' --date=short -i -E`
+  followed by `--grep='rebase|rebased|...|orphan'` on the next line, and F26 says so.
+- Resolution reference: docs(pr-reviews): record the sixth review round of PR #2550
+- Follow-up PR URL: N/A
+- Reply URL: N/A
 
 ## Processing Log
 
@@ -662,6 +692,10 @@ the next review supersedes it.
 - 2026-10-16 12:17 UTC - Fixed F26 in one signed commit and F24 and F25 in this record.
 - 2026-10-16 12:20 UTC - Pushed the fixes, updated the GitHub issue body of #2547, and, after the
   push, replied on the three threads and added the reply URLs to this record.
+- 2026-10-16 12:33 UTC - da2ce7's approving review 5547815458 and an `ACK` comment arrived for the
+  record's head, with one new thread (F27). Copilot's review 5547644540 had recommended approval with
+  no open findings at 12:17 UTC.
+- 2026-10-16 12:37 UTC - Fixed F27 in this record.
 
 ## Completion Rules
 
