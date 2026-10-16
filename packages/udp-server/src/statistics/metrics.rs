@@ -61,7 +61,7 @@ impl Metrics {
     #[expect(
         clippy::cast_sign_loss,
         clippy::cast_possible_truncation,
-        reason = "The torrust-metrics Sum API returns f64; a counter sum or a count gauge is a finite, non-negative whole number, so the cast is exact below 2^53 and saturates above it"
+        reason = "The torrust-metrics Sum API returns f64; a counter sum or a count gauge is a finite, non-negative whole number, so the cast is exact up to 2^53, and beyond that the f64 may already be rounded (the cast itself saturates only above u64::MAX)"
     )]
     fn whole_total(&self, metric_name: &MetricName, labels: &LabelSet) -> u64 {
         self.metric_collection.sum(metric_name, labels).unwrap_or_default() as u64
