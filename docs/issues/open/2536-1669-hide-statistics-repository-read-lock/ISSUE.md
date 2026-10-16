@@ -9,7 +9,7 @@ github-issue: 2536
 spec-path: docs/issues/open/2536-1669-hide-statistics-repository-read-lock/ISSUE.md
 branch: "2536-1669-hide-statistics-repository-read-lock"
 related-pr: 2545
-last-updated-utc: "2026-10-16 07:11"
+last-updated-utc: "2026-10-16 08:12"
 semantic-links:
   skill-links:
     - create-issue
@@ -442,6 +442,16 @@ request.
   "Reviewer validated acceptance criteria" checkpoint is ticked on that basis. No
   `agent-review-reports.md` exists: the review was posted on GitHub, not given this spec folder by
   an agent.
+- 2026-10-16 08:12 UTC - GitHub Copilot - PR #2545 review rounds 2 and 3 (da2ce7): on 2026-10-16 three
+  commits corrected this spec: `docs(issues): [#2536] point the spec's pointers at the corrected
+  progress-log stamps` (the retrospective pointer and the AC1 evidence row now name the 19:48 and
+  18:18 entries); `docs(issues): [#2536] state the last-updated stamps the F2 correction actually
+  set` (rewrote the 21:05 entry in place: the EPIC's log entry went to 19:48, and the
+  `last-updated-utc` of the spec and the EPIC were set to 21:05); and `docs(issues): [#2536] name
+  da2ce7's review where the spec called it the maintainer's` (rewrote the 21:06 entry in place).
+  The 21:05 and 21:06 entries therefore carry wording written the next morning under their old
+  stamps, and this entry is the record of that. The audit
+  (`docs/pr-reviews/pr-2545-review/PR-REVIEW.md`) records the findings behind each correction.
 
 ## Acceptance Criteria
 
