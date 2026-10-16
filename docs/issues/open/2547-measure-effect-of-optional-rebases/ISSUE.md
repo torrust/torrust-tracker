@@ -75,7 +75,10 @@ pull requests #2530, #2538, and #2430 rebased clean branches. See the #2507
   baseline commands, and normalize per merged PR and per day so the 13-day baseline stays comparable:
   - force-pushes per merged PR and the share of merged PRs force-pushed at least once;
   - estimated PR CI runner-hours per workflow, sampled as in the baseline;
-  - rebase-fallout commits, selected the same way as the baseline;
+  - rebase-fallout commits, selected the same way as the baseline, compared with a baseline recounted
+    for 1 to 13 October only: section 7 of the baseline lists 23 commits "since September 2026", of
+    which 13 have author dates from 1 to 13 October, so do not divide the whole list by 13 days or by
+    the 67 October merges;
   - pull-request volume and the daily open-PR queue, for context.
 - Classify each force-push in the window as required, because the head conflicted with `develop`, or
   recommended, because it merged cleanly. Use the method of #2507 manual-verification section V4.
@@ -115,11 +118,11 @@ Not applicable. No code changes.
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                         | Notes / Expected Output                                                                                                                                                                                                   |
-| --- | ------ | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Wait for the window to close | Do not start before 2026-10-29. Check whether #2525 changed any PR workflow between 2026-10-15 and 2026-10-28, and record it.                                                                                             |
-| T2  | TODO   | Collect the measurements     | Run the baseline commands of sections 4 to 7 for the window, plus the V1 and V4 classifications. Write the raw per-PR results as a table in `post-change-evidence.md`, not as generated JSON.                             |
-| T3  | TODO   | Compare and conclude         | Baseline vs window table normalized per merged PR and per day, a short conclusion, and any caveats (sampling, workflow changes, PR volume). If the result argues for a policy change, draft a new issue and link it here. |
+| ID  | Status | Task                         | Notes / Expected Output                                                                                                                                                                                                                                     |
+| --- | ------ | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T1  | TODO   | Wait for the window to close | Do not start before 2026-10-29. Check whether #2525 changed any PR workflow between 2026-10-15 and 2026-10-28, and record it.                                                                                                                               |
+| T2  | TODO   | Collect the measurements     | Run the baseline commands of sections 4 to 7 for the window, plus the V1 and V4 classifications. Recount the rebase-fallout baseline for 1 to 13 October only. Write the raw per-PR results as a table in `post-change-evidence.md`, not as generated JSON. |
+| T3  | TODO   | Compare and conclude         | Baseline vs window table normalized per merged PR and per day, a short conclusion, and any caveats (sampling, workflow changes, PR volume). If the result argues for a policy change, draft a new issue and link it here.                                   |
 
 ## Commit Points
 
@@ -160,7 +163,8 @@ with GPG.
 
 - [ ] AC1: `post-change-evidence.md` compares the window with the #2507 baseline for force-pushes per
       merged PR, share of merged PRs force-pushed, estimated PR CI runner-hours, and rebase-fallout
-      commits, normalized per merged PR and per day.
+      commits, normalized per merged PR and per day. The rebase-fallout baseline is recounted for
+      1 to 13 October with the same subject reading, not taken from the whole section 7 list.
 - [ ] AC2: Every force-push in the window is classified as required (conflict) or recommended
       (clean), and the count of merges through the recorded-base refresh is reported.
 - [ ] AC3: Every number can be reproduced from commands recorded verbatim in the evidence.
