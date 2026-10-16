@@ -9,7 +9,7 @@ github-issue: 2547
 spec-path: docs/issues/open/2547-measure-effect-of-optional-rebases/ISSUE.md
 branch: "2547-measure-effect-of-optional-rebases"
 related-pr: null
-last-updated-utc: "2026-10-16 10:24"
+last-updated-utc: "2026-10-16 11:16"
 semantic-links:
   skill-links:
     - create-issue
@@ -72,7 +72,11 @@ pull requests #2530, #2538, and #2430 rebased clean branches. See the #2507
 ### In Scope
 
 - Measure the window from 2026-10-15 00:00 UTC to 2026-10-28 23:59 UTC (14 days) with the #2507
-  baseline commands, and normalize per merged PR and per day so the 13-day baseline stays comparable:
+  baseline commands, and normalize per merged PR and per day so the 13-day baseline stays comparable.
+  The population is the pull requests merged in the window (`merged_at`), with every force-push of
+  each of them, including events before 2026-10-15: baseline section 5 selects pull requests by merge
+  date and counts each one's whole force-push timeline. The force-push total and its classification
+  below use this same population:
   - force-pushes per merged PR and the share of merged PRs force-pushed at least once;
   - estimated PR CI runner-hours per workflow, sampled as in the baseline;
   - rebase-fallout commits, selected the same way as the baseline, compared with a baseline recounted
@@ -80,7 +84,7 @@ pull requests #2530, #2538, and #2430 rebased clean branches. See the #2507
     which 13 have author dates from 1 to 13 October, so do not divide the whole list by 13 days or by
     the 67 October merges;
   - pull-request volume and the daily open-PR queue, for context.
-- Classify each force-push in the window with the method of #2507 manual-verification section V4,
+- Classify every force-push of those pull requests with the method of #2507 manual-verification section V4,
   which compares where the push put the head's base, not only where the new head sits. The `develop`
   tip of its time is the last first-parent `develop` commit whose pull request has a `merged_at`
   before the push. A rewrite of a head that was already on the tip must not be counted as a rebase:
@@ -187,6 +191,10 @@ with GPG.
 - 2026-10-16 10:24 UTC - AI assistant - Labelled the merge time of PR #2531 as GitHub's `merged_at`
   (the evidence dates merges by Git committer time, so the two differ by three minutes), after the
   second review round of PR #2550.
+- 2026-10-16 11:16 UTC - AI assistant - The population of every measure is now the pull requests
+  merged in the window, with all of their force-pushes, so the total and the classification count the
+  same pushes (#2537 merged in the window, but its required rebase was on 2026-10-14). Raised by the
+  third review round of PR #2550. The GitHub issue body was updated to match.
 
 ## Acceptance Criteria
 
@@ -194,8 +202,9 @@ with GPG.
       merged PR, share of merged PRs force-pushed, estimated PR CI runner-hours, and rebase-fallout
       commits, normalized per merged PR and per day. The rebase-fallout baseline is recounted for
       1 to 13 October with the same subject reading, not taken from the whole section 7 list.
-- [ ] AC2: Every force-push in the window is classified as required (conflict), recommended (clean),
-      or not a rebase, and the count of merges through the recorded-base refresh is reported.
+- [ ] AC2: Every force-push of the pull requests merged in the window, including events before it, is
+      classified as required (conflict), recommended (clean), or not a rebase, and the count of merges
+      through the recorded-base refresh is reported.
 - [ ] AC3: Every number can be reproduced from commands recorded verbatim in the evidence.
 - [ ] AC4: The conclusion states whether the policy reduced each measure, names the caveats, and
       links a new issue if a policy change is proposed.
