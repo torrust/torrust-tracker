@@ -364,11 +364,12 @@ Rules:
 
 | Task | Coherent change set | Commit policy |
 | ---- | ------------------- | ------------- |
-| Spec (S0) | This specification and the EPIC registration with the baseline | One signed `docs(issues)` commit after maintainer approval, plus a follow-up signed commit that records the spec-only PR number once the PR exists, plus any review-fix commits; merged through the spec-only PR. |
+| Spec (S0) | This specification, the EPIC registration with the baseline, and the PR review audit | One signed `docs(issues)` commit after maintainer approval, plus a follow-up signed commit that records the spec-only PR number once the PR exists, plus any review-fix commits, plus the review-audit commit (next row); merged through the spec-only PR. |
 | T1 | Coverage evidence and module inventory | Documentation-only commit after review. |
 | T2-T3 | Shared plan guidance, first plan, and approved order | Documentation-only commit before test-producing work. |
 | T4 | One source file: its plan, test refactor, unit tests, and recorded coverage | One commit per completed file after its completed-file review. A no-change conclusion is committed as documentation. Never mix two source files in one commit. |
 | Slice close | Slice coverage measurement, EPIC table update, reviewer report, records | One documentation commit per slice, right before its PR. |
+| Review round (every PR, including this one) | `docs/pr-reviews/pr-<PR>-review/PR-REVIEW.md`, plus the review-fix commits it records | One signed `docs(pr-reviews)` commit for the audit, separate from the fixes, as `process-pr-review` requires; each independent fix is its own signed commit. |
 | T5 | One integration increment | Commit after focused validation and recorded boundary rationale. |
 | T6 | Mutation evidence | Commit if it records a material decision, survivor, or follow-up; otherwise include in final evidence. |
 | T7 | Reconciliation fixes | Separate documentation commit when it materially changes evidence. |
