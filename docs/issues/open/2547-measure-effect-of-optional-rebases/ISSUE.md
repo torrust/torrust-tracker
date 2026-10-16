@@ -80,8 +80,16 @@ pull requests #2530, #2538, and #2430 rebased clean branches. See the #2507
     which 13 have author dates from 1 to 13 October, so do not divide the whole list by 13 days or by
     the 67 October merges;
   - pull-request volume and the daily open-PR queue, for context.
-- Classify each force-push in the window as required, because the head conflicted with `develop`, or
-  recommended, because it merged cleanly. Use the method of #2507 manual-verification section V4.
+- Classify each force-push in the window with the method of #2507 manual-verification section V4:
+  - required: the pushed-away head conflicted with the `develop` tip of its time, and the new head is
+    based on that tip;
+  - recommended: the pushed-away head merged cleanly, and the new head is based on that tip;
+  - not a rebase: the new head is not based on the `develop` tip of its time. Since PR #2531 merged
+    (2026-10-14 16:06 UTC), `AGENTS.md` allows other rewrites of an unmerged pull request's history,
+    such as splitting or reordering commits, which the baseline could not contain: baseline section 5
+    counts every force-push as a rebase because history rewrites were otherwise forbidden.
+  Report the total force-pushes per merged PR, which is the baseline's measure, and the rebase-only
+  figure, which excludes the third class.
 - Count merges made while behind `develop` whose head was pushed before `develop` reached `M^1`, the
   `develop` tip the merge was built on, and not pushed again before the merge (the recorded-base
   refresh path). The cutoff is `M^1`, not the Git merge base, which a head always postdates. As in
@@ -168,8 +176,8 @@ with GPG.
       merged PR, share of merged PRs force-pushed, estimated PR CI runner-hours, and rebase-fallout
       commits, normalized per merged PR and per day. The rebase-fallout baseline is recounted for
       1 to 13 October with the same subject reading, not taken from the whole section 7 list.
-- [ ] AC2: Every force-push in the window is classified as required (conflict) or recommended
-      (clean), and the count of merges through the recorded-base refresh is reported.
+- [ ] AC2: Every force-push in the window is classified as required (conflict), recommended (clean),
+      or not a rebase, and the count of merges through the recorded-base refresh is reported.
 - [ ] AC3: Every number can be reproduced from commands recorded verbatim in the evidence.
 - [ ] AC4: The conclusion states whether the policy reduced each measure, names the caveats, and
       links a new issue if a policy change is proposed.
@@ -216,6 +224,10 @@ None planned.
 - **Confounders.** PR volume, the mix of documentation and code PRs, and #2525 workflow changes all
   affect CI time. Mitigation: normalize per merged PR, report the documentation and code split, and
   record any workflow changes in the window.
+- **Policy change on rewrites.** PR #2531 (merged 2026-10-14 16:06 UTC) allows force-pushes that are
+  not rebases, so the window's force-push count can exceed the baseline's rebase count for a reason
+  unrelated to the rebase policy. Mitigation: classify each force-push (not a rebase) and report both
+  the total and the rebase-only figures.
 - **Expired data.** GitHub keeps workflow-run logs for a limited time. Mitigation: start soon after
   2026-10-29.
 
