@@ -51,7 +51,7 @@ Copilot's review 5539177165 (COMMENTED, 2026-10-15 20:03:35 UTC) is an overview 
 | F7 | `review-finding:pr-2545-f7` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F8 | `review-finding:pr-2545-f8` | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F9 | `review-finding:pr-2545-f9` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
-| F10 | `review-finding:pr-2545-f10` | Copilot | Suggestion (inferred) | other | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F10 | `review-finding:pr-2545-f10` | Copilot | Minor (inferred) | other | ORIGINAL | NO_ACTION | SUPERSEDED |
 
 ## Finding Details
 
@@ -178,7 +178,7 @@ Copilot's review 5539177165 (COMMENTED, 2026-10-15 20:03:35 UTC) is an overview 
 - Source review ID: 5545105221
 - Reviewer finding ID: N/A
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2545#discussion_r4292535346>
-- Concern: in `packages/http-core/src/statistics/event/handler.rs`, `format!` allocates inside the `read_metrics` closure, which holds the read lock. Copilot suggests moving `tracing::debug!` into the closure to avoid the allocation and shorten the lock hold. The severity is inferred from the free prose ("Consider moving"); the review's overview labels it Medium.
+- Concern: in `packages/http-core/src/statistics/event/handler.rs`, `format!` allocates inside the `read_metrics` closure, which holds the read lock. Copilot suggests moving `tracing::debug!` into the closure to avoid the allocation and shorten the lock hold. The review's overview labels the finding Medium severity and its text only says "Consider moving"; the audit scale has no Medium, so the row records `Minor (inferred)`, the nearest value, rather than `Suggestion`, which would set the reviewer's label aside.
 - Solution: no change. Moving `tracing::debug!` into the closure would take the read lock on every event even when `debug` is disabled, which the spec's Risks section ("Eager debug logging") and AC4 forbid and the ADR's "Debug logging stays lazy" rule rules out. As written, the `read_metrics(...)` call and its `format!` are inside the macro's arguments, so neither runs unless `debug` is enabled. The reply uses the prescribed `Superseded by F10:` form, naming the finding itself, as for an original no-change finding in the PR #2334 audit. The fourth consolidated response is <https://github.com/torrust/torrust-tracker/pull/2545#issuecomment-6213345067>.
 - Current-tree verification: the handler's `tracing::debug!` arguments contain `stats_repository.read_metrics(|metrics| format!("{metrics:?}")).await`; the runtime check in `manual-verification-evidence.md` (V1) logged 0 `stats: Metrics` lines at `info` and 9 at `debug`.
 - Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2545#discussion_r4293529526>
