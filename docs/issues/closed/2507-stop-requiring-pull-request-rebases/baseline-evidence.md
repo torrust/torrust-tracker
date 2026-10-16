@@ -3,7 +3,7 @@ semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
-    - docs/issues/open/2507-stop-requiring-pull-request-rebases/ISSUE.md
+    - docs/issues/closed/2507-stop-requiring-pull-request-rebases/ISSUE.md
 ---
 
 <!-- skill-link: create-issue -->

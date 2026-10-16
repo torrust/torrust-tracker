@@ -9,14 +9,14 @@ github-issue: 2547
 spec-path: docs/issues/open/2547-measure-effect-of-optional-rebases/ISSUE.md
 branch: "2547-measure-effect-of-optional-rebases"
 related-pr: null
-last-updated-utc: "2026-10-16 12:14"
+last-updated-utc: "2026-10-16 15:40"
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
-    - docs/issues/open/2507-stop-requiring-pull-request-rebases/ISSUE.md
-    - docs/issues/open/2507-stop-requiring-pull-request-rebases/baseline-evidence.md
-    - docs/issues/open/2507-stop-requiring-pull-request-rebases/manual-verification-evidence.md
+    - docs/issues/closed/2507-stop-requiring-pull-request-rebases/ISSUE.md
+    - docs/issues/closed/2507-stop-requiring-pull-request-rebases/baseline-evidence.md
+    - docs/issues/closed/2507-stop-requiring-pull-request-rebases/manual-verification-evidence.md
     - docs/adrs/20261013161419_stop_requiring_pull_request_rebases.md
     - "issue #2507"
     - "issue #2525"
@@ -44,8 +44,8 @@ at least two weeks of merges under the new policy. The maintainer decided on 202
 this issue so #2507 could close once its implementation and manual verification were complete.
 
 Issue #2507 recorded the baseline, with reproduction commands, in
-[`baseline-evidence.md`](../2507-stop-requiring-pull-request-rebases/baseline-evidence.md).
-That file moves to `docs/issues/closed/2507-stop-requiring-pull-request-rebases/` when #2507 is
+[`baseline-evidence.md`](../../closed/2507-stop-requiring-pull-request-rebases/baseline-evidence.md).
+That file lives in `docs/issues/closed/2507-stop-requiring-pull-request-rebases/` since #2507 was
 archived. The baseline has these sections:
 
 - section 4: pull-request volume and queue;
@@ -208,6 +208,8 @@ with GPG.
   specification's own (runs created in the window; commits whose author date is in the window), after
   the fifth review round of PR #2550 showed that baseline sections 6 and 7 do not state them. The
   GitHub issue body was updated to match.
+- 2026-10-16 15:40 UTC - AI assistant - #2507 was closed and its specification archived, so the links
+  to its baseline and evidence now point to `docs/issues/closed/2507-stop-requiring-pull-request-rebases/`.
 
 ## Acceptance Criteria
 
@@ -282,5 +284,5 @@ None planned.
 
 - Related issues: #2507 (origin, baseline), #2525 (possible confounder)
 - Related documents:
-  [`baseline-evidence.md`](../2507-stop-requiring-pull-request-rebases/baseline-evidence.md),
-  [`manual-verification-evidence.md`](../2507-stop-requiring-pull-request-rebases/manual-verification-evidence.md)
+  [`baseline-evidence.md`](../../closed/2507-stop-requiring-pull-request-rebases/baseline-evidence.md),
+  [`manual-verification-evidence.md`](../../closed/2507-stop-requiring-pull-request-rebases/manual-verification-evidence.md)
