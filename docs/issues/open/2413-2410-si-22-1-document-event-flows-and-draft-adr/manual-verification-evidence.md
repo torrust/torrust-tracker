@@ -12,7 +12,7 @@ Record the verification of #2413 (SI-22.1), a documentation-only task. The repro
 
 ## Non-applicability of executable-boundary verification
 
-Issue #2413 changes only Markdown: an inventory, a glossary, a moved document, and an ADR draft. No runtime behaviour changes, so there is no executable boundary to run and the V0/V1 reproduction does not apply. EPIC #1488 allows a pure documentation or test-only task to record a reasoned non-applicability decision instead (`docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md`, the Manual Verification task rule), and the sub-EPIC's Shared Delivery Gates ask each child to keep its evidence in its own `manual-verification-evidence.md`.
+Issue #2413 changes only Markdown: an inventory, a glossary, a moved document, and an ADR draft. No runtime behaviour changes, so there is no executable boundary to run and the V0/V1 reproduction does not apply. EPIC #1488 allows a pure documentation or test-only task to record a reasoned non-applicability decision instead (`docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md`, last sentence of the manual-verification bullet under "Release and Review Requirements", lines 279-280), and the sub-EPIC's Shared Delivery Gates ask each child to keep its evidence in its own `manual-verification-evidence.md`.
 
 ## M1 - Inventory against the code
 
