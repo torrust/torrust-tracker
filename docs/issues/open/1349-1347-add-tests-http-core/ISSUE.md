@@ -505,7 +505,7 @@ lines are the [baseline](#baseline-coverage) measurement.
   finding (F9 in the audit): the S0 Commit Points row now names the `Review round` row instead of
   calling it the next row. Fixed and resolved.
 - 2026-10-16 08:35 UTC - GitHub Copilot - da2ce7 approved the head with no finding. Copilot's
-  re-review left one `Nit` (F10 in the audit): the PR description still said the EPIC row was
+  re-review left one `Minor (inferred)` finding (F10 in the audit): the PR description still said the EPIC row was
   `IN_PROGRESS`. The description was corrected and the thread resolved; no repository file changed
   for it.
 

@@ -63,8 +63,9 @@ processed, so this is the normal pre-merge workflow.
 - da2ce7's fourth review 5545066382 (APPROVED, 2026-10-16 08:32:31 UTC, at the head after the
   third round's fixes) has no inline finding and adds no row; its ACK comment names that head.
 - Copilot's second review 5545078410 (COMMENTED, 2026-10-16 08:33:35 UTC) has one inline finding,
-  F10. It gives no severity, so it is recorded as `Nit (inferred)`. Its overview marks the two
-  round-1 findings resolved.
+  F10. Its overview marks the open finding "Medium severity", the same mark read as
+  `Minor (inferred)` for F5 and F6, so F10 is recorded the same way. Its overview also marks the
+  two round-1 findings resolved.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -77,7 +78,7 @@ processed, so this is the normal pre-merge workflow.
 | F7 | `review-finding:pr-2546-f7` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F8 | `review-finding:pr-2546-f8` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F9 | `review-finding:pr-2546-f9` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
-| F10 | `review-finding:pr-2546-f10` | Copilot | Nit (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F10 | `review-finding:pr-2546-f10` | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
