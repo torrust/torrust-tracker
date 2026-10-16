@@ -460,6 +460,10 @@ in its body and adds no row. The next fix push dismissed it at 12:41:19Z.
   (GitHub's timeline dismissed review 5547834689 at 12:41:19Z).
 - 2026-10-16 12:42 UTC - Replied on all three threads, resolved them, and added F22 to F24 to this record, with
   a reply URL in every row.
+- 2026-10-16 15:41 UTC - At the maintainer's request, after da2ce7's approval 5548045897 with no finding,
+  added `review-retrospective.md` beside this record (commit at 15:41:10Z), with the template and skill
+  changes it lists in their own commits (15:35 to 15:39). Written with Claude Opus 5.5; the earlier
+  entries were written with Claude Sonnet 5.5, per the maintainer.
 
 ## Completion Rules
 

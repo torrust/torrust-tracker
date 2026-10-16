@@ -6,7 +6,7 @@ epic: 1488
 github-issue: 2410
 spec-path: docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-16 12:42"
+last-updated-utc: "2026-10-16 15:41"
 semantic-links:
   skill-links:
     - create-issue
@@ -2158,6 +2158,7 @@ avoids duplicating the full workflow in four drafts:
 - 2026-10-16 11:57 UTC - GitHub Copilot - #2413 review round 3: four non-blocking findings fixed (`review-finding:pr-2553-f14` to `review-finding:pr-2553-f17`), none touching the design record.
 - 2026-10-16 12:21 UTC - GitHub Copilot - #2413 review round 4: four Nit findings fixed (`review-finding:pr-2553-f18` to `review-finding:pr-2553-f21`), none touching the design record.
 - 2026-10-16 12:42 UTC - GitHub Copilot - #2413 review round 5: three findings fixed (`review-finding:pr-2553-f22` to `review-finding:pr-2553-f24`), none touching the design record.
+- 2026-10-16 15:41 UTC - GitHub Copilot (Claude Opus 5.5) - #2413: PR #2553 review retrospective added (`docs/pr-reviews/pr-2553-review/review-retrospective.md`), with template and skill changes; progress-log entries now name the AI model. None of it touches the design record.
 
 ## Acceptance Criteria
 
