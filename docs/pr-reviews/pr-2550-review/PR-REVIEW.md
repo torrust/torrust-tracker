@@ -332,10 +332,11 @@ earlier ones as resolved, so it adds no rows; an `ACK` comment records its verdi
 - Current-tree verification: the audit has both additions. When this entry was written the timeline
   held two `review_dismissed` events, both with actor `josecelano` and no message: 2026-10-16T08:31:50Z
   for review 5544619071 and 2026-10-16T10:26:39Z for review 5545292694. This entry first said that it
-  held one; F17 corrects that and records the second.
+  held one; F17 corrects that and records the second. The reply this row cites is the second one on
+  the thread, posted from the pushed head (F19).
 - Resolution reference: docs(pr-reviews): record the dismissed approval and the second review round of PR #2550
 - Follow-up PR URL: N/A
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2550#discussion_r4293589228>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2550#discussion_r4294126277>
 
 ### F15 - The force-push total and its classification use different populations
 
@@ -356,7 +357,7 @@ earlier ones as resolved, so it adds no rows; an `ACK` comment records its verdi
   force-pushes, including #2537's rebase on 14 October.
 - Resolution reference: docs(issues): [#2547] count and classify the force-pushes of the PRs merged in the window
 - Follow-up PR URL: N/A
-- Reply URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2550#issuecomment-6214418071>
 
 ### F16 - The total and the classification count different force-pushes
 
@@ -372,7 +373,7 @@ earlier ones as resolved, so it adds no rows; an `ACK` comment records its verdi
 - Current-tree verification: the same as F15.
 - Resolution reference: docs(issues): [#2547] count and classify the force-pushes of the PRs merged in the window
 - Follow-up PR URL: N/A
-- Reply URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2550#discussion_r4294125384>
 
 ### F17 - The second approval was dismissed too, and the record says one event
 
@@ -391,7 +392,7 @@ earlier ones as resolved, so it adds no rows; an `ACK` comment records its verdi
   5545292694). The audit names both.
 - Resolution reference: docs(pr-reviews): record the second dismissal and the third review round of PR #2550
 - Follow-up PR URL: N/A
-- Reply URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2550#discussion_r4294125635>
 
 ### F18 - The correction note contradicts the entry it corrects
 
@@ -409,7 +410,7 @@ earlier ones as resolved, so it adds no rows; an `ACK` comment records its verdi
   note with the contradiction, and the 08:30 entry is unchanged.
 - Resolution reference: docs(issues): [#2507] name the contradiction in the second re-review's scope
 - Follow-up PR URL: N/A
-- Reply URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2550#discussion_r4294125860>
 
 ### F19 - The F14 reply preceded its fix
 
@@ -429,7 +430,7 @@ earlier ones as resolved, so it adds no rows; an `ACK` comment records its verdi
   after the commit it cites was pushed.
 - Resolution reference: docs(pr-reviews): record the second dismissal and the third review round of PR #2550
 - Follow-up PR URL: N/A
-- Reply URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2550#discussion_r4294126082>
 
 ## Processing Log
 
@@ -458,6 +459,9 @@ earlier ones as resolved, so it adds no rows; an `ACK` comment records its verdi
 - 2026-10-16 11:19 UTC - Recorded that review 5545292694's approval was dismissed at 10:26:39 UTC by
   the push of the "log the second PR #2550 review round" commit (F17). Fixed F15 and F16, and F18, in
   signed commits, and fixed F17 and F19 by adding F15-F19 and these entries to this record.
+- 2026-10-16 11:24 UTC - Pushed the fixes, updated the GitHub issue body of #2547, replied on the
+  four new threads and, from the pushed head, on the F14 thread, posted a PR conversation response
+  for F15, and added the reply URLs to this record.
 
 ## Completion Rules
 
