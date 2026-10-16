@@ -9,7 +9,7 @@ github-issue: 1349
 spec-path: docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md
 branch: "1349-1347-add-tests-http-core-spec"
 related-pr: 2546
-last-updated-utc: "2026-10-16 08:14"
+last-updated-utc: "2026-10-16 08:35"
 semantic-links:
   skill-links:
     - create-issue
@@ -504,6 +504,10 @@ lines are the [baseline](#baseline-coverage) measurement.
 - 2026-10-16 08:14 UTC - GitHub Copilot - da2ce7 approved the head again and left one `Nit`
   finding (F9 in the audit): the S0 Commit Points row now names the `Review round` row instead of
   calling it the next row. Fixed and resolved.
+- 2026-10-16 08:35 UTC - GitHub Copilot - da2ce7 approved the head with no finding. Copilot's
+  re-review left one `Nit` (F10 in the audit): the PR description still said the EPIC row was
+  `IN_PROGRESS`. The description was corrected and the thread resolved; no repository file changed
+  for it.
 
 ## Acceptance Criteria
 

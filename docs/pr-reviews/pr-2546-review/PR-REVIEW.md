@@ -60,6 +60,11 @@ processed, so this is the normal pre-merge workflow.
   second round's fixes) carries one inline `Nit` finding with the ID F1, which collides with this
   audit's F1, so it is recorded as F9 with the original ID kept in its detail entry. Its body
   raises nothing further to act on.
+- da2ce7's fourth review 5545066382 (APPROVED, 2026-10-16 08:32:31 UTC, at the head after the
+  third round's fixes) has no inline finding and adds no row; its ACK comment names that head.
+- Copilot's second review 5545078410 (COMMENTED, 2026-10-16 08:33:35 UTC) has one inline finding,
+  F10. It gives no severity, so it is recorded as `Nit (inferred)`. Its overview marks the two
+  round-1 findings resolved.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -72,6 +77,7 @@ processed, so this is the normal pre-merge workflow.
 | F7 | `review-finding:pr-2546-f7` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F8 | `review-finding:pr-2546-f8` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F9 | `review-finding:pr-2546-f9` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F10 | `review-finding:pr-2546-f10` | Copilot | Nit (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -244,6 +250,24 @@ processed, so this is the normal pre-merge workflow.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2546#discussion_r4292332164>
 
+### F10 - The PR description says the EPIC row was set to `IN_PROGRESS`, but the diff keeps `TODO`
+
+- PR number: 2546
+- Source review ID: 5545078410
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2546#discussion_r4292515318>
+- Concern: the PR description's Files section said the EPIC #1349 row was set to `IN_PROGRESS`,
+  but review round 1 changed the row to `TODO`, so the description no longer matched the diff.
+- Solution: edited the PR description. Its Files section now says the row stays `TODO` until T1
+  starts and was `IN_PROGRESS` only in the first commit, and it also lists this audit file, which
+  the description had omitted. No repository file changed.
+- Current-tree verification: `git diff --name-only torrust/develop...HEAD` lists the spec, the
+  EPIC and this audit, and the EPIC row reads `TODO`; the edited description lines match both, and
+  the closing-keyword scan of the new body printed nothing.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2546#issuecomment-6211505974>
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2546#discussion_r4292530053>
+
 ## Processing Log
 
 - 2026-10-16 06:16 UTC - Started audit; fetched the threads and reviews (Copilot's two threads).
@@ -261,6 +285,10 @@ processed, so this is the normal pre-merge workflow.
 - 2026-10-16 08:12 UTC - da2ce7 approved the head (review 5544488533) with one new `Nit` thread,
   F9; fetched it and committed the fix.
 - 2026-10-16 08:14 UTC - Pushed, replied on the thread and resolved it; recorded it here.
+- 2026-10-16 08:17 UTC - Re-requested review from da2ce7 and Copilot after the push.
+- 2026-10-16 08:34 UTC - Found da2ce7's approval (review 5545066382, no finding) and Copilot's
+  review 5545078410 with one new thread, F10; edited the PR description.
+- 2026-10-16 08:35 UTC - Posted the conversation response, replied on the thread and resolved it.
 
 ## Completion Rules
 
