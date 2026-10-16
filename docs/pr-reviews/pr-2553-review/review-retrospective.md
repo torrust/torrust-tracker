@@ -14,8 +14,9 @@ semantic-links:
 
 # PR Review Retrospective — PR #2553
 
-Covers the six reviews up to da2ce7's approval 5548045897 of `6b7839d01`, the first head he
-approved with no finding. Written at the maintainer's request, because five of the six reviews
+Covers the six reviews up to da2ce7's approval 5548045897 of the head ending in
+`docs(reviews): [#2413] record the PR 2553 review round 5 audit`, the first head he approved with
+no finding. Written at the maintainer's request, because five of the six reviews
 produced findings on a documentation-only PR. Any review of this retrospective is recorded in the
 audit and not counted below.
 
@@ -41,8 +42,8 @@ change. It does not replace the audit record and is not required for routine rev
 
 Sources: `gh api repos/torrust/torrust-tracker/pulls/2553/reviews` for the reviews, their times
 and heads; the Findings table and Finding Details of `PR-REVIEW.md` for counts and subjects;
-`git rev-list --count torrust/develop..6b7839d01` and the `docs(reviews)` subjects in
-`git log --format=%s torrust/develop..6b7839d01` for commits. The author model comes from the
+`git rev-list --count` and the `docs(reviews)` subjects of `git log --format=%s`, both from
+`torrust/develop` to that approved head, for commits. The author model comes from the
 maintainer; the session was switched to Claude Opus 5.5 after the approval, and that model wrote
 this retrospective.
 
