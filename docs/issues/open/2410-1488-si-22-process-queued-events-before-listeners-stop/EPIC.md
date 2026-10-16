@@ -453,15 +453,16 @@ Alternatives considered:
   returns an event or a new `TryRecvError` (`Empty`, `Lagged(n)`, or
   `Closed`), and `len`, the number of events this receiver has not read yet.
   Both map directly onto Tokio's `broadcast::Receiver::try_recv` and
-  `broadcast::Receiver::len`, verified in tokio 1.53.1, the version in
-  `Cargo.lock`. A shared drain helper in `packages/events` runs the loop for
+  `broadcast::Receiver::len`, verified in tokio 1.53.1 on 2026-10-01 and
+  re-read in tokio 1.53.3, the version in `Cargo.lock` on 2026-10-16 (read from
+  source, not run). A shared drain helper in `packages/events` runs the loop for
   every listener: after cancellation it takes events with `try_recv` until
   `Empty` or the drain timeout, hands each one to the listener's handler, and
   returns the counts of events processed, lost to lag, and left over (`len`
   when the timeout expires). All seven listeners therefore share one policy
   and one log format. Why: it is the most robust option: explicit,
   deterministic, testable with the existing `ScriptedReceiver`s, and it gives
-  an unread-position count for D1's reporting. Tokio 1.53.1 `len()` includes
+  an unread-position count for D1's reporting. Tokio 1.53.3 `len()` includes
   overwritten unread messages until `Lagged` advances the receiver, so it is
   not always the number still recoverable. Report this distinction, avoid
   double-counting lag, and test timeout before the first lag observation.
