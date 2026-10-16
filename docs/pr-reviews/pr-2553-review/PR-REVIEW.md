@@ -335,6 +335,11 @@ F14 to F17, with the same ID reassignment. It repeats no further request in its 
 - 2026-10-16 11:55 UTC - Fixed F14 to F17 in separate signed commits and pushed.
 - 2026-10-16 11:57 UTC - Replied on all four threads, resolved them, and added F14 to F17 to this record, with
   a reply URL in every row.
+- 2026-10-16 12:14 UTC - da2ce7's approving review 5547599741 arrived with four inline threads. Fetched them,
+  reassigned his IDs F1 to F4 to F18 to F21, and re-derived each against the current tree. All were valid.
+- 2026-10-16 12:15 UTC - Correction to the 11:55 entry, which said F14 to F17 were fixed and pushed at 11:55:
+  the fixes were committed by 11:54, and the push came later, at about 11:56 (GitHub's timeline dismissed
+  review 5547366758 at 11:56:24Z). The 11:55 entry is left as written.
 
 ## Completion Rules
 
