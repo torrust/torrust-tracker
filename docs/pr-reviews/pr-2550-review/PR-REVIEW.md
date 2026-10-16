@@ -568,7 +568,7 @@ the next review supersedes it.
   08:31:50, 10:26:39, 11:22:22, and 11:56:26 UTC, all with actor `josecelano` and no message.
 - Resolution reference: docs(pr-reviews): record the fifth review round of PR #2550
 - Follow-up PR URL: N/A
-- Reply URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2550#discussion_r4294574667>
 
 ### F25 - The 11:57 log entry lists actions in an order that did not happen
 
@@ -587,7 +587,7 @@ the next review supersedes it.
   reviewer captured.
 - Resolution reference: docs(pr-reviews): record the fifth review round of PR #2550
 - Follow-up PR URL: N/A
-- Reply URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2550#discussion_r4294574962>
 
 ### F26 - The selection rules are attributed to baseline sections that do not state them
 
@@ -609,7 +609,7 @@ the next review supersedes it.
   dates and filters by committer date.
 - Resolution reference: docs(issues): [#2547] state the selection rules as this specification's own
 - Follow-up PR URL: N/A
-- Reply URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2550#discussion_r4294575223>
 
 ## Processing Log
 
@@ -660,6 +660,8 @@ the next review supersedes it.
   fixes (11:56:26 UTC), so the edited response described the specification fix before it reached the
   branch, the same order that F19 recorded.
 - 2026-10-16 12:17 UTC - Fixed F26 in one signed commit and F24 and F25 in this record.
+- 2026-10-16 12:20 UTC - Pushed the fixes, updated the GitHub issue body of #2547, and, after the
+  push, replied on the three threads and added the reply URLs to this record.
 
 ## Completion Rules
 
