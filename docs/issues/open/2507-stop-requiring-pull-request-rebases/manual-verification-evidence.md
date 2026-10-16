@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2507-stop-requiring-pull-request-rebases/ISSUE.md
-last-updated-utc: 2026-10-16 08:25
+last-updated-utc: 2026-10-16 10:22
 ---
 
 # Manual Verification Evidence
@@ -377,23 +377,37 @@ every merge push, and each pull request shows as merged.
 The `open-pull-request` skill requires a rebase or other update when "the branch conflicts with
 `develop`" and shows `git rebase` followed by a push "use `--force-with-lease` when rewriting
 history". Two real pull requests took that path. Each force-push's before and after commits came from
-the GraphQL `HeadRefForcePushedEvent` (`beforeCommit` and `afterCommit`), and the `develop` tip at
-that time from `git rev-list -1 --first-parent --before=<time> torrust/develop`. A `beforeCommit` is
-a head that the force-push removed from the pull-request branch, so it is on no `develop` commit and
-no tag, and a clone does not hold it until it is fetched. Fetch each full `oid` the query returns
-before comparing it:
+the GraphQL `HeadRefForcePushedEvent` (`beforeCommit` and `afterCommit`). A `beforeCommit` is a head
+that the force-push removed from the pull-request branch, so it is on no `develop` commit and no tag,
+and a clone does not hold it until it is fetched. Fetch each full `oid` the query returns before
+comparing it.
+
+Method. The `develop` tip of the push is the last first-parent `develop` commit whose pull request
+has a `merged_at` before the push. A push is a rebase when it moved the base, that is, when the merge
+base of the tip with the `beforeCommit` differs from its merge base with the `afterCommit`. A rebase
+is required when the `beforeCommit` conflicts with the tip, and recommended when it merges cleanly.
+A push that left the base unchanged is not a rebase, because a rewrite of a head that was already on
+the tip (a split, a reorder, an amend) leaves the base where it was. Comparing only whether the new
+head sits on the tip cannot make that distinction:
 
 ```sh
 gh api graphql -f query='{repository(owner:"torrust",name:"torrust-tracker"){pullRequest(number:<n>){
   timelineItems(itemTypes:[HEAD_REF_FORCE_PUSHED_EVENT],first:10){nodes{... on HeadRefForcePushedEvent{
   createdAt beforeCommit{oid} afterCommit{oid}}}}}}}'
 git fetch torrust <oid from beforeCommit or afterCommit>
-git merge-tree --write-tree <develop tip> <commit> >/dev/null && echo clean || echo CONFLICT
-git merge-base <develop tip> <after commit>
+gh api repos/torrust/torrust-tracker/pulls/<tip's pull request> --jq .merged_at
+git merge-base <develop tip> <beforeCommit>
+git merge-base <develop tip> <afterCommit>
+git merge-tree --write-tree <develop tip> <beforeCommit> >/dev/null && echo clean || echo CONFLICT
 ```
 
-The full `oid` values the query returned (the `develop` tips are `b245501717fe251e99b1364f80cb209fffed0c2e`
-and `07750152f1f37a2115570289f651481b8535519a`):
+The `develop` tip was first found with `git rev-list -1 --first-parent --before=<time> torrust/develop`,
+which orders by committer date. The `merged_at` of each tip's pull request is before its push in all
+11 cases, and a merge that is committed after the tip cannot be merged before it, so both rules give
+the same tip for every push below.
+
+The full `oid` values the query returned for the two conflicting pushes (the `develop` tips are
+`b245501717fe251e99b1364f80cb209fffed0c2e` and `07750152f1f37a2115570289f651481b8535519a`):
 
 ```text
 #2532 beforeCommit 55a414e98a1df60999ae5aa9689b6662ee168c5a
@@ -406,32 +420,31 @@ The values are fixed event data, not commits of any branch of this repository's 
 `open-pull-request` commit-id check reports them in a clone that fetched them. The skill defines no
 exception for this case.
 
-| PR    | Force-push (UTC)    | `beforeCommit` | `develop` tip | Before vs `develop` | `afterCommit` | After based on tip | After vs `develop` |
-| ----- | ------------------- | -------------- | ------------- | ------------------- | ------------- | ------------------ | ------------------ |
-| #2532 | 2026-10-14 16:36:21 | `55a414e98`    | `b24550171`   | conflict            | `2328de9cc`   | yes                | clean              |
-| #2537 | 2026-10-14 21:27:23 | `94fcf5a7f`    | `07750152f`   | conflict            | `b084b2ea5`   | yes                | clean              |
+| PR    | Force-push (UTC)    | `beforeCommit` | `develop` tip | Before vs `develop` | `afterCommit` | Base before to after       | After vs `develop` |
+| ----- | ------------------- | -------------- | ------------- | ------------------- | ------------- | -------------------------- | ------------------ |
+| #2532 | 2026-10-14 16:36:21 | `55a414e98`    | `b24550171`   | conflict            | `2328de9cc`   | `90e8daf75` to `b24550171` | clean              |
+| #2537 | 2026-10-14 21:27:23 | `94fcf5a7f`    | `07750152f`   | conflict            | `b084b2ea5`   | `48c4d3013` to `07750152f` | clean              |
 
-Both rebased heads were mergeable and both were merged (table above). The 18 merged pull requests
-had 11 force-pushes in all. The same commands classify the other nine; their commit ids come from the
-same query and are not repeated here:
+Both pushes moved the base, so both are required rebases. Both rebased heads were mergeable and both
+were merged (table above). The 18 merged pull requests had 11 force-pushes in all. The same commands
+classify the other nine; their commit ids come from the same query and are not repeated here:
 
-| PR    | Force-push (UTC)    | Before vs `develop` | After based on tip | Class        |
-| ----- | ------------------- | ------------------- | ------------------ | ------------ |
-| #2526 | 2026-10-14 10:52:21 | clean               | yes                | recommended  |
-| #2526 | 2026-10-14 11:44:40 | clean               | yes                | recommended  |
-| #2524 | 2026-10-14 10:28:49 | clean               | no                 | not a rebase |
-| #2524 | 2026-10-14 10:55:17 | clean               | yes                | recommended  |
-| #2524 | 2026-10-14 13:14:00 | clean               | yes                | recommended  |
-| #2530 | 2026-10-14 15:31:22 | clean               | yes                | recommended  |
-| #2532 | 2026-10-14 16:39:53 | clean               | yes                | recommended  |
-| #2538 | 2026-10-15 12:04:26 | clean               | yes                | recommended  |
-| #2430 | 2026-10-15 11:31:01 | clean               | yes                | recommended  |
+| PR    | Force-push (UTC)    | `develop` tip | Base before to after       | Before vs `develop` | Class        |
+| ----- | ------------------- | ------------- | -------------------------- | ------------------- | ------------ |
+| #2526 | 2026-10-14 10:52:21 | `01bdb2c8b`   | `d1bf013ea` to `01bdb2c8b` | clean               | recommended  |
+| #2526 | 2026-10-14 11:44:40 | `1c6707a43`   | `01bdb2c8b` to `1c6707a43` | clean               | recommended  |
+| #2524 | 2026-10-14 10:28:49 | `55e879a3c`   | `d1bf013ea` unchanged      | clean               | not a rebase |
+| #2524 | 2026-10-14 10:55:17 | `01bdb2c8b`   | `d1bf013ea` to `01bdb2c8b` | clean               | recommended  |
+| #2524 | 2026-10-14 13:14:00 | `c1874facb`   | `01bdb2c8b` to `c1874facb` | clean               | recommended  |
+| #2530 | 2026-10-14 15:31:22 | `988c3bc76`   | `184446a2b` to `988c3bc76` | clean               | recommended  |
+| #2532 | 2026-10-14 16:39:53 | `e2e21f20c`   | `b24550171` to `e2e21f20c` | clean               | recommended  |
+| #2538 | 2026-10-15 12:04:26 | `9c8bcdf8a`   | `48c4d3013` to `9c8bcdf8a` | clean               | recommended  |
+| #2430 | 2026-10-15 11:31:01 | `9c8bcdf8a`   | `eb96d2957` to `9c8bcdf8a` | clean               | recommended  |
 
 So two force-pushes were required by a conflict, eight were recommended rebases of a clean head, and
-one (#2524 at 10:28:49) left a head that was not based on the `develop` tip of its time, so it is not
-a rebase by this method. The `develop` tip of its time is the last first-parent commit on `develop`
-before the push, by committer date. Whether `--force-with-lease` was used cannot be read from
-GitHub.
+one (#2524 at 10:28:49) left the base unchanged, so it is not a rebase. The #2538 push moved the base
+from `48c4d3013` to the tip although most of its commits were written earlier, so it is a rebase.
+Whether `--force-with-lease` was used cannot be read from GitHub.
 
 #### V5 - Code Pull Request Merges Under the New Rulesets (M5)
 
