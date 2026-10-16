@@ -6,7 +6,7 @@ epic: 1488
 github-issue: 2410
 spec-path: docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-16 08:27"
+last-updated-utc: "2026-10-16 10:19"
 semantic-links:
   skill-links:
     - create-issue
@@ -2151,6 +2151,7 @@ avoids duplicating the full workflow in four drafts:
 - 2026-10-16 08:04 UTC - GitHub Copilot - #2413 T2a done: `docs/application-jobs.md` moved to `docs/architecture/application-jobs.md` in a separate commit; live links updated (the record keeps the old path where it describes the D12 decision). Historical records keep the old path.
 - 2026-10-16 08:07 UTC - GitHub Copilot - #2413 T2b done: `docs/architecture/glossary.md` is the canonical glossary and this record links to it. The table in this record stays as the design-time record.
 - 2026-10-16 08:27 UTC - GitHub Copilot - #2413 T2c done: `adr-draft.md` is in this folder (D15), approved by the maintainer. tokio in `Cargo.lock` is 1.53.3; D13's claims about `try_recv` and `len` hold for it (read from source, not run).
+- 2026-10-16 10:19 UTC - GitHub Copilot - #2413 push blocked by a test-isolation defect in `clippy-allow-reasons` (hook `GIT_DIR` leaked into fixture Git commands); fixed in a separate commit, evidence in `manual-verification-evidence.md`.
 
 ## Acceptance Criteria
 

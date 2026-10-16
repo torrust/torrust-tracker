@@ -9,7 +9,7 @@ github-issue: 2413
 spec-path: docs/issues/open/2413-2410-si-22-1-document-event-flows-and-draft-adr/ISSUE.md
 branch: "2413-document-event-flows-and-draft-adr"
 related-pr: null
-last-updated-utc: "2026-10-16 08:27"
+last-updated-utc: "2026-10-16 10:19"
 semantic-links:
   skill-links:
     - create-issue
@@ -183,3 +183,4 @@ pre-push checks still apply to this documentation-only PR.
 - 2026-10-16 08:04 UTC - GitHub Copilot - T2a done: moved `docs/application-jobs.md` to `docs/architecture/application-jobs.md` in its own commit and updated the live links (`docs/index.md`, `docs/architecture/README.md`, `docs/architecture/tracker-instance-architecture.md`, this spec, and the sub-EPIC). The moved file has no relative links to fix. Historical records keep the old path: closed specs `1453-...` and `2095-...` and the PR #2126 review record.
 - 2026-10-16 08:07 UTC - GitHub Copilot - T2b done: `docs/architecture/glossary.md` created (one definition per term, merged with the jobs doc "Terms", planned SI-22 terms marked **Planned**, no event topology copied from `events.md`). The jobs doc "Terms" section now links to the glossary. The glossary is linked from the architecture README, `docs/index.md`, and the sub-EPIC.
 - 2026-10-16 08:27 UTC - GitHub Copilot - T2c done: `adr-draft.md` written in the sub-EPIC folder and approved by the maintainer before this commit. It restates the cancellation-tree ADR points that stay valid (D11) and cites the tokio 1.53.3 `try_recv` and `len` semantics (read from source, not run). The old ADR budgets (25 s, 20 s, 5 s) differ from the code (10 s, 90 s, 5 s); the draft records this and leaves the alignment to SI-20.
+- 2026-10-16 10:19 UTC - GitHub Copilot - The first push was blocked: the pre-push tests of `clippy-allow-reasons` ran their fixture Git commands against the real repository because Git exports `GIT_DIR` to hooks. The damage (a stray test commit on this branch, a `feature` branch, `user.name` and `user.email` in `.git/config`) was reverted by hand, and nothing was pushed. Fixed in a separate commit (`fix(dev-tools): [#2413] isolate clippy-allow-reasons fixture Git commands from hook environment`); evidence is in `manual-verification-evidence.md` of the sub-EPIC. No separate issue exists for it.
