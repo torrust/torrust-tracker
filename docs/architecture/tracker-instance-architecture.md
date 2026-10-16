@@ -5,7 +5,7 @@ semantic-links:
   related-artifacts:
     - docs/architecture/README.md
     - docs/architecture/events.md
-    - docs/application-jobs.md
+    - docs/architecture/application-jobs.md
     - docs/packages.md
     - docs/adrs/20260721000000_make_network_configuration_per_tracker_instance.md
     - docs/adrs/20260727180000_shared_services_across_tracker_instances.md
@@ -73,7 +73,7 @@ objects.
 | Core policies                                                                    | Private mode, listing/whitelist authorization, announce policy, and tracker policy govern shared tracker behavior.                             |
 | UDP ban state                                                                    | An invalid-request budget remains process-wide so an attacker cannot multiply it by targeting several UDP listeners.                           |
 | HTTP, UDP-core, and UDP-server event paths and aggregate statistics repositories | Events describe application facts and feed aggregate observability; metrics policy is applied by consumers. See [events.md](events.md).        |
-| Runtime service registry and application jobs                                    | The application tracks the started services and owns jobs according to service lifetime. See [../application-jobs.md](../application-jobs.md). |
+| Runtime service registry and application jobs                                    | The application tracks the started services and owns jobs according to service lifetime. See [application-jobs.md](application-jobs.md). |
 
 The current runtime consumes the configuration v3 model. Shutdown policy is not
 yet part of that schema; when it is introduced, process-wide policy belongs in
@@ -143,5 +143,5 @@ within one process provide.
 - [Runtime architecture index](README.md)
 - [Event topology and metrics policy](events.md)
 - [Package architecture](../packages.md)
-- [Application jobs and task ownership](../application-jobs.md)
+- [Application jobs and task ownership](application-jobs.md)
 - [Shared services ADR](../adrs/20260727180000_shared_services_across_tracker_instances.md)
