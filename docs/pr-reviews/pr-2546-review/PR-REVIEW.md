@@ -66,6 +66,10 @@ processed, so this is the normal pre-merge workflow.
   F10. Its overview marks the open finding "Medium severity", the same mark read as
   `Minor (inferred)` for F5 and F6, so F10 is recorded the same way. Its overview also marks the
   two round-1 findings resolved.
+- da2ce7's fifth review 5545239095 (APPROVED, 2026-10-16 08:47:26 UTC, at the head after the
+  fourth round) carries one inline `Minor` finding with the ID F1, which collides with this audit's
+  F1, so it is recorded as F11 with the original ID kept in its detail entry. Its body raises
+  nothing further to act on.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -79,6 +83,7 @@ processed, so this is the normal pre-merge workflow.
 | F8 | `review-finding:pr-2546-f8` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F9 | `review-finding:pr-2546-f9` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F10 | `review-finding:pr-2546-f10` | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F11 | `review-finding:pr-2546-f11` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -269,6 +274,24 @@ processed, so this is the normal pre-merge workflow.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2546#discussion_r4292530053>
 
+### F11 - The review bot did give F10 a severity: "Medium severity"
+
+- PR number: 2546
+- Source review ID: 5545239095
+- Reviewer finding ID: F1
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2546#discussion_r4292634980>
+- Concern: the audit said Copilot gave F10 no severity and recorded `Nit (inferred)`, but the
+  review overview marks the open finding "Medium severity", the mark read as `Minor (inferred)`
+  for F5 and F6. I had read the review through a view that stripped the image alt text.
+- Solution: the audit's intro and F10 tracking row now record `Minor (inferred)`, the same
+  mapping as F5 and F6, and the spec's progress-log entry for the round says the same.
+- Current-tree verification: the raw review body contains `alt="Medium severity"` on the open
+  finding; `grep -n "F10"` on the audit shows `Minor (inferred)` in the intro and the row, and the
+  spec entry reads `Minor (inferred)`.
+- Resolution reference: docs(pr-reviews): [#2546] record F10 with Copilot's Medium severity mark
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2546#discussion_r4293547260>
+
 ## Processing Log
 
 - 2026-10-16 06:16 UTC - Started audit; fetched the threads and reviews (Copilot's two threads).
@@ -290,6 +313,14 @@ processed, so this is the normal pre-merge workflow.
 - 2026-10-16 08:34 UTC - Found da2ce7's approval (review 5545066382, no finding) and Copilot's
   review 5545078410 with one new thread, F10; edited the PR description.
 - 2026-10-16 08:35 UTC - Posted the conversation response, replied on the thread and resolved it.
+- 2026-10-16 08:38 UTC - Pushed the fourth-round audit and re-requested review from da2ce7 and
+  Copilot.
+- 2026-10-16 08:48 UTC - Found da2ce7's approval (review 5545239095) with one new `Minor` thread,
+  F11, and verified the "Medium severity" mark in the raw Copilot review body.
+- 2026-10-16 10:20 UTC - Committed the F11 fix after a GPG passphrase timeout was retried with the
+  maintainer's approval.
+- 2026-10-16 10:22 UTC - Pushed, replied on the thread and resolved it.
+- 2026-10-16 10:23 UTC - Recorded this round here.
 
 ## Completion Rules
 
