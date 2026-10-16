@@ -6,7 +6,7 @@ epic: 1488
 github-issue: 2410
 spec-path: docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-16 10:19"
+last-updated-utc: "2026-10-16 10:48"
 semantic-links:
   skill-links:
     - create-issue
@@ -2152,6 +2152,7 @@ avoids duplicating the full workflow in four drafts:
 - 2026-10-16 08:07 UTC - GitHub Copilot - #2413 T2b done: `docs/architecture/glossary.md` is the canonical glossary and this record links to it. The table in this record stays as the design-time record.
 - 2026-10-16 08:27 UTC - GitHub Copilot - #2413 T2c done: `adr-draft.md` is in this folder (D15), approved by the maintainer. tokio in `Cargo.lock` is 1.53.3; D13's claims about `try_recv` and `len` hold for it (read from source, not run).
 - 2026-10-16 10:19 UTC - GitHub Copilot - #2413 push blocked by a test-isolation defect in `clippy-allow-reasons` (hook `GIT_DIR` leaked into fixture Git commands); fixed in a separate commit, evidence in `manual-verification-evidence.md`.
+- 2026-10-16 10:48 UTC - GitHub Copilot - #2413 review round 1: the T1 inventory missed the UDP receive loop publish sites (`launcher.rs`, awaited helper `publish_event_if_sender_available`); corrected in the inventory and in the M1 evidence (`review-finding:pr-2553-f2`). The glossary now separates server drain deadlines from listener admission timeouts (`review-finding:pr-2553-f1`). Entry 27's "sends are `.send(...).await`" fact holds, but the UDP receive loop publishes through a helper that awaits `send`.
 
 ## Acceptance Criteria
 
