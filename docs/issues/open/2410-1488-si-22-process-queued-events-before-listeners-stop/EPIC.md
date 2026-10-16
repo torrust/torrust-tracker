@@ -6,7 +6,7 @@ epic: 1488
 github-issue: 2410
 spec-path: docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-16 12:21"
+last-updated-utc: "2026-10-16 12:42"
 semantic-links:
   skill-links:
     - create-issue
@@ -2157,6 +2157,7 @@ avoids duplicating the full workflow in four drafts:
 - 2026-10-16 11:33 UTC - GitHub Copilot - #2413 review round 2: eleven non-blocking findings fixed. D13's decision text now names tokio 1.53.3, the #2413 evidence moved to its own folder, and the plan rows T1 and T2 are `DONE` (`review-finding:pr-2553-f8`, `review-finding:pr-2553-f4`, `review-finding:pr-2553-f7`).
 - 2026-10-16 11:57 UTC - GitHub Copilot - #2413 review round 3: four non-blocking findings fixed (`review-finding:pr-2553-f14` to `review-finding:pr-2553-f17`), none touching the design record.
 - 2026-10-16 12:21 UTC - GitHub Copilot - #2413 review round 4: four Nit findings fixed (`review-finding:pr-2553-f18` to `review-finding:pr-2553-f21`), none touching the design record.
+- 2026-10-16 12:42 UTC - GitHub Copilot - #2413 review round 5: three findings fixed (`review-finding:pr-2553-f22` to `review-finding:pr-2553-f24`), none touching the design record.
 
 ## Acceptance Criteria
 

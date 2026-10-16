@@ -56,6 +56,10 @@ His approving review 5547599741, at the head after the round 3 fixes, carries fo
 F18 to F21, all `Nit`, with the same ID reassignment. It repeats no further request in its body and adds
 no row. The next fix push dismissed it at 12:20:03Z.
 
+His approving review 5547834689, at the head after the round 4 fixes, carries three more inline threads,
+F22 to F24 (two `Nit` and one `Suggestion`), with the same ID reassignment. It repeats no further request
+in its body and adds no row. The next fix push dismissed it at 12:41:19Z.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2553-f1 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -79,6 +83,9 @@ no row. The next fix push dismissed it at 12:20:03Z.
 | F19 | review-finding:pr-2553-f19 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F20 | review-finding:pr-2553-f20 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F21 | review-finding:pr-2553-f21 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F22 | review-finding:pr-2553-f22 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F23 | review-finding:pr-2553-f23 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F24 | review-finding:pr-2553-f24 | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -375,6 +382,45 @@ no row. The next fix push dismissed it at 12:20:03Z.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2553#discussion_r4294578624>
 
+### F22 - Three statements of the HEAD-equality check disagree
+
+- PR number: 2553
+- Source review ID: 5547834689
+- Reviewer finding ID: F1
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2553#discussion_r4294705110>
+- Concern: The evidence uses "equals `HEAD`" at steps 1, 3 and 5 only, F14's Solution said the check showed equality at steps 1, 3, 5 and 6, and F19's Solution said it ran before steps 1, 3, 5 and 6, as did the reply on its thread. Before steps 3 and 5 the file still carried a mutation, so a check there could not have exited 0.
+- Solution: One placement, taken from the commands that ran: `git diff --quiet HEAD -- <test file>` ran before the run at steps 1 and 6 and right after the restore at steps 3 and 5. The evidence, F14's Solution and F19's Solution now say so, the evidence's step 6 records the check, and the reply on this thread says that the earlier reply on F19's thread was wrong.
+- Current-tree verification: The evidence's intro to the sequential rerun and its step 6 state the placement, and F14's and F19's Solutions above repeat it.
+- Resolution reference: docs(reviews): [#2413] state one placement for the HEAD-equality check
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2553#discussion_r4294755266>
+
+### F23 - The 12:19 log entry says the fixes were pushed before they were
+
+- PR number: 2553
+- Source review ID: 5547834689
+- Reviewer finding ID: F2
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2553#discussion_r4294705122>
+- Concern: The round 4 log entry at 12:19 says F18 to F21 were fixed and pushed, but the push came later: GitHub's timeline dismissed review 5547599741 at 12:20:03Z.
+- Solution: The Processing Log is append-only, so a correction entry was appended, as for round 3. It gives the push time as about 12:20, and the 12:19 entry is left as written.
+- Current-tree verification: The Processing Log has the 12:37 correction entry after the 12:19 entry; the validator passes.
+- Resolution reference: docs(reviews): [#2413] correct the push time in the round 4 processing log
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2553#discussion_r4294755504>
+
+### F24 - The audit calls the reviews approving without noting their dismissal
+
+- PR number: 2553
+- Source review ID: 5547834689
+- Reviewer finding ID: F3
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2553#discussion_r4294705128>
+- Concern: The audit calls da2ce7's reviews approving, but each was dismissed by the next fix push, as sibling audits note.
+- Solution: Added one clause per round to the Findings introduction with the dismissal time from GitHub's timeline (11:30:11Z, 11:56:24Z and 12:20:03Z), and the same clause for this round's review (12:41:19Z).
+- Current-tree verification: The Findings introduction has a dismissal clause after each of da2ce7's four reviews that were dismissed by a fix push, and none after Copilot's review, which was not dismissed.
+- Resolution reference: docs(reviews): [#2413] note the dismissal of each approving review in the audit
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2553#discussion_r4294755748>
+
 ## Processing Log
 
 - 2026-10-16 10:42 UTC - Fetched the review and both inline threads, classified them as Copilot
@@ -410,6 +456,10 @@ no row. The next fix push dismissed it at 12:20:03Z.
 - 2026-10-16 12:37 UTC - Correction to the 12:19 entry, which said F18 to F21 were fixed and pushed at 12:19:
   the fixes were committed by 12:18, and the push came later, at about 12:20 (GitHub's timeline dismissed
   review 5547599741 at 12:20:03Z). The 12:19 entry is left as written.
+- 2026-10-16 12:41 UTC - Fixed F22 to F24 in separate signed commits (committed 12:37 to 12:39) and pushed
+  (GitHub's timeline dismissed review 5547834689 at 12:41:19Z).
+- 2026-10-16 12:42 UTC - Replied on all three threads, resolved them, and added F22 to F24 to this record, with
+  a reply URL in every row.
 
 ## Completion Rules
 
