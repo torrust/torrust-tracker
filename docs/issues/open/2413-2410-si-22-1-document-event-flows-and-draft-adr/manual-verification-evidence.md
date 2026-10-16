@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2413-2410-si-22-1-document-event-flows-and-draft-adr/ISSUE.md
-last-updated-utc: "2026-10-16 12:15"
+last-updated-utc: "2026-10-16 12:17"
 ---
 
 # Manual Verification Evidence
@@ -50,3 +50,7 @@ Same toolchain as above. Each step was one tool call, run only after the previou
 6. 11:52:01.946 to 11:52:01.602, like-for-like recheck on the restored file, on a new throwaway repository with `GIT_DIR=$S/.git GIT_WORK_TREE=$S` exported: `test result: ok. 10 passed; 0 failed`, and the throwaway repository kept one commit, one branch, a clean status and no `user.name`. The real repository was unchanged, with an empty `git status --short`.
 
 The step 6 end stamp is earlier than its start stamp by 0.344 s, so this host's clock is not monotonic at millisecond resolution. The order of the steps is guaranteed by running each in its own tool call, not by the stamps, and the stamps are kept as printed.
+
+## Correction: the older-Git claim in a commit body
+
+The body of the commit `test(dev-tools): [#2413] assert that the fixture environment list covers Git's, not equals it` says the equality comparison "failed on an older Git that reports fewer names". No such run exists. That case was a possibility raised in review (`review-finding:pr-2553-f17`), and the Git recorded above (2.53.0) reports the same 15 names as the constant. The comment above the assertion in the test file says "may report", which is correct. The commit body is not rewritten, because the repository keeps a branch's history and a rewrite would change the commit ids the review rounds cite (`review-finding:pr-2553-f21`).
