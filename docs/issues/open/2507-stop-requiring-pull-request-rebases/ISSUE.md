@@ -9,7 +9,7 @@ github-issue: 2507
 spec-path: docs/issues/open/2507-stop-requiring-pull-request-rebases/ISSUE.md
 branch: "2507-stop-requiring-pull-request-rebases"
 related-pr: 2526
-last-updated-utc: "2026-10-16 11:55"
+last-updated-utc: "2026-10-16 12:17"
 semantic-links:
   skill-links:
     - create-issue
@@ -357,6 +357,10 @@ two-week measurement no longer blocks closure, because it moved to #2547 (T7).
   `docs/pr-reviews/pr-2550-review/PR-REVIEW.md`). The #2547 specification now limits its shared
   population to the force-push measures, and the audit records the third dismissal and why later
   pushes are not logged one by one.
+- 2026-10-16 12:17 UTC - AI assistant - Processed the fifth PR #2550 review round (da2ce7 approved with
+  three new threads, F24 to F26 in `docs/pr-reviews/pr-2550-review/PR-REVIEW.md`). The #2547
+  specification now states its CI and fallout selection rules as its own, not as the baseline
+  sections', and the audit corrects the order of one of its log entries.
 
 ## Acceptance Criteria
 
