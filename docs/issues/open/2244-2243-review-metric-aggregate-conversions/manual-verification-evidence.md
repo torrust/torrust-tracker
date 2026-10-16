@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2244-2243-review-metric-aggregate-conversions/ISSUE.md
-last-updated-utc: 2026-10-16 11:12
+last-updated-utc: 2026-10-16 11:54
 ---
 
 # Manual Verification Evidence
@@ -166,9 +166,11 @@ The panic line numbers are those of the tests as first written. A later edit rep
 a `for` loop in the test helper, with the same arithmetic, so the committed tests panic on other
 lines. To check the committed tests, `previous_avg` in
 `Metrics::recalculate_udp_avg_processing_time_ns` was temporarily changed to
-`self.udp_avg_processing_time_ns(label_set).trunc()`, which restores the old behavior, at the PR head
-(after `docs(statistics): [#2244] correct the float-to-integer cast reasons`). The mutation was
-reverted afterwards and the working tree was clean. The same command gave:
+`self.udp_avg_processing_time_ns(label_set).trunc()`, which restores the old behavior, on the tree of
+`docs(udp-server): [#2244] say the averaged accessors round toward zero`. That commit adds one
+doc-comment line above the tests, which is why they sit on lines 1300 and 1310 there and on lines
+1299 and 1309 one commit earlier. The mutation was reverted afterwards and the working tree was
+clean. The same command gave:
 
 ```text
 test statistics::metrics::tests::processing_time_moving_average::it_should_keep_the_fractional_part_of_the_previous_average ... FAILED
