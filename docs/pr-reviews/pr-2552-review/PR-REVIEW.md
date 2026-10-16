@@ -72,8 +72,11 @@ commit is `docs(pr-reviews): [#2244] record the third review round in the PR #25
 one inline finding. da2ce7 numbered it F1, which collides again, so it is F12 here with the original
 number kept as the reviewer finding ID. The review body is a verification report that resolves the
 four round-3 findings and adds no other row. It reports no review from the bot after 08:44:03 UTC.
-Its ACK comment (<https://github.com/torrust/torrust-tracker/pull/2552#issuecomment-6215323251>)
-names that head, so it does not cover the commit that fixes F12.
+The approval was dismissed at 12:20:58 UTC by the PR author's push whose newest commit is
+`docs(pr-reviews): [#2244] record the dismissal of the round 3 approval in the PR #2552 audit`,
+which is the commit that fixes F12. Its ACK comment
+(<https://github.com/torrust/torrust-tracker/pull/2552#issuecomment-6215323251>) names the head
+before that push, so neither covers it.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -354,6 +357,8 @@ names that head, so it does not cover the commit that fixes F12.
 - 2026-10-16 12:18 UTC - Round 4: da2ce7's review 5547644742 (APPROVED and ACK on the head that ended
   with the Round 3 audit commit) carried one finding, F12 here. Replied on its thread. F12 is fixed in
   this audit.
+- 2026-10-16 12:21 UTC - Recorded the dismissal of review 5547644742 at 12:20:58 UTC, by the push that
+  carried the F12 fix, and resolved the F12 thread.
 
 ## Completion Rules
 
