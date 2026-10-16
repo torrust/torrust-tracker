@@ -9,7 +9,7 @@ github-issue: 2536
 spec-path: docs/issues/open/2536-1669-hide-statistics-repository-read-lock/ISSUE.md
 branch: "2536-1669-hide-statistics-repository-read-lock"
 related-pr: 2545
-last-updated-utc: "2026-10-16 07:10"
+last-updated-utc: "2026-10-16 07:11"
 semantic-links:
   skill-links:
     - create-issue
@@ -434,7 +434,7 @@ request.
   to 21:05, the time of that commit, not to 19:48. The five earlier entries that the ADR
   commit rewrote in place stay as they are in history; their values were already correct. From now
   on, each stamp is taken from `date -u` immediately before its commit.
-- 2026-10-15 21:06 UTC - GitHub Copilot - PR #2545 review (F3, da2ce7): the maintainer's review
+- 2026-10-15 21:06 UTC - GitHub Copilot - PR #2545 review (F3, da2ce7): da2ce7's review
   (https://github.com/torrust/torrust-tracker/pull/2545#pullrequestreview-5539892352, APPROVED
   2026-10-15 21:02 UTC at the pushed head) recomputed the spec greps, the five doctests, and the
   byte-identical M1 evidence, and found AC1-AC6 met. The implementer had ticked the acceptance
