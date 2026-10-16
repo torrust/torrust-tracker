@@ -328,6 +328,25 @@ fn it_should_not_let_fixture_commands_inherit_the_repository_environment() {
     assert!(inherited.is_empty(), "fixture commands inherit: {inherited:?}");
 }
 
+#[test]
+fn it_should_list_every_variable_git_reports_as_repository_local() {
+    let output = fixture_command("git")
+        .args(["rev-parse", "--local-env-vars"])
+        .output()
+        .expect("failed to run Git");
+    assert!(output.status.success(), "git rev-parse --local-env-vars failed");
+
+    let mut reported: Vec<&str> = std::str::from_utf8(&output.stdout).unwrap().lines().collect();
+    let mut listed = REPOSITORY_ENVIRONMENT.to_vec();
+    reported.sort_unstable();
+    listed.sort_unstable();
+
+    assert_eq!(
+        listed, reported,
+        "REPOSITORY_ENVIRONMENT differs from `git rev-parse --local-env-vars`"
+    );
+}
+
 fn git<const N: usize>(directory: &Path, arguments: [&str; N]) {
     let status = fixture_command("git")
         .args(arguments)
