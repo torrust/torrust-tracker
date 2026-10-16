@@ -139,7 +139,7 @@ Sign every commit with GPG.
 
 | ID | Scenario | Steps | Expected Result | Status |
 | --- | --- | --- | --- | --- |
-| M1 | Inventory against the code | For each bus, search for `send`/`publish` calls and listener `subscribe` calls, including in the test environments; compare with the inventory | No unlisted producer or consumer | TODO |
+| M1 | Inventory against the code | For each bus, search for `send`/`publish` calls and listener `subscribe` calls, including in the test environments; compare with the inventory | No unlisted producer or consumer | DONE |
 
 Not applicable: bug-fix process and regression tests (documentation only).
 
