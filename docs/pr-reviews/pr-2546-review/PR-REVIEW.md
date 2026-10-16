@@ -74,6 +74,12 @@ processed, so this is the normal pre-merge workflow.
   fourth round) has two inline findings, F12 and F13. Their overview marks them "Medium severity"
   and "Low severity", recorded as `Minor (inferred)` and `Nit (inferred)`. My polling first saw
   this review at 10:25 UTC, because the earlier poll had ended on da2ce7's approval.
+- Copilot's fourth review 5546639678 (COMMENTED, 2026-10-16 10:42:17 UTC, at the head after the
+  sixth round) reports no open finding and "Approval recommended", so it adds no row.
+- da2ce7's sixth review 5546740618 (APPROVED, 2026-10-16 10:50:40 UTC, at the head after the sixth
+  round) carries one inline `Minor` finding with the ID F1, which collides with this audit's F1, so
+  it is recorded as F14 with the original ID kept in its detail entry. Its body raises nothing
+  further to act on.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -90,6 +96,7 @@ processed, so this is the normal pre-merge workflow.
 | F11 | `review-finding:pr-2546-f11` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F12 | `review-finding:pr-2546-f12` | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 | F13 | `review-finding:pr-2546-f13` | Copilot | Nit (inferred) | link-integrity | ORIGINAL | FIXED | RESOLVED |
+| F14 | `review-finding:pr-2546-f14` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -335,6 +342,24 @@ processed, so this is the normal pre-merge workflow.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2546#discussion_r4293612807>
 
+### F14 - Review `5545341095` was submitted at the head after the fourth round, not the third
+
+- PR number: 2546
+- Source review ID: 5546740618
+- Reviewer finding ID: F1
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2546#discussion_r4293830615>
+- Concern: the audit said Copilot's review 5545341095 was submitted at the head after the third
+  round, but it was submitted at the head after the fourth round, as the audit says for review
+  5545239095.
+- Solution: the audit now says "fourth". I also compared every other "head after the Nth round"
+  claim with the `commit_id` of its review through the GitHub API and found no other mismatch.
+- Current-tree verification: `gh api repos/torrust/torrust-tracker/pulls/2546/reviews` gives
+  review 5545341095 at the head `docs(pr-reviews): [#2546] record the fourth review round in the
+  audit`, and the intro bullet for that review now says "after the fourth round".
+- Resolution reference: docs(pr-reviews): [#2546] correct the head review 5545341095 was submitted at
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2546#discussion_r4293869129>
+
 ## Processing Log
 
 - 2026-10-16 06:16 UTC - Started audit; fetched the threads and reviews (Copilot's two threads).
@@ -369,6 +394,14 @@ processed, so this is the normal pre-merge workflow.
 - 2026-10-16 10:27 UTC - Committed the F12 and F13 fixes and pushed.
 - 2026-10-16 10:29 UTC - Replied on the two threads and resolved them.
 - 2026-10-16 10:30 UTC - Recorded this round here.
+- 2026-10-16 10:32 UTC - Pushed the sixth-round audit; the 10:25 review requests were still
+  pending.
+- 2026-10-16 10:43 UTC - Found Copilot's review 5546639678 (no finding).
+- 2026-10-16 10:51 UTC - Found da2ce7's approval (review 5546740618) with one new `Minor` thread,
+  F14, and compared every "head after the Nth round" claim with the reviews' `commit_id`.
+- 2026-10-16 10:52 UTC - Committed the F14 fix and pushed.
+- 2026-10-16 10:54 UTC - Replied on the thread and resolved it.
+- 2026-10-16 10:55 UTC - Recorded this round here.
 
 ## Completion Rules
 
