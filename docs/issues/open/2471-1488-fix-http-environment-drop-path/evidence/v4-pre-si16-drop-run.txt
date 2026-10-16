@@ -1,0 +1,26 @@
+# V4 - pre-SI-16 drop reproduction (tree: parent of the PR #2439 merge, torrust/torrust-tracker develop)
+# command: CARGO_TARGET_DIR=<a scratch directory> cargo test -p torrust-tracker-axum-http-server --lib -- temporary_pre_si16
+# toolchain: rustc 1.99.0 (b940084d7 2026-09-28)
+
+running 1 test
+test testing::environment::temporary_pre_si16::temporary_reproduction_http_binding_after_drop_without_stop ... FAILED
+
+failures:
+
+---- testing::environment::temporary_pre_si16::temporary_reproduction_http_binding_after_drop_without_stop stdout ----
+
+thread 'testing::environment::temporary_pre_si16::temporary_reproduction_http_binding_after_drop_without_stop' (1376577) panicked at ~/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/torrust-server-lib-0.3.0/src/signals.rs:71:25:
+Failed to install stop signal: channel closed
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'testing::environment::temporary_pre_si16::temporary_reproduction_http_binding_after_drop_without_stop' (1376577) panicked at packages/axum-http-server/src/testing/environment.rs:239:10:
+the HTTP binding should be released within the test deadline after the environment is dropped: Elapsed(())
+
+
+failures:
+    testing::environment::temporary_pre_si16::temporary_reproduction_http_binding_after_drop_without_stop
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 36 filtered out; finished in 10.02s
+
+error: test failed, to rerun pass `-p torrust-tracker-axum-http-server --lib`
+exit=101

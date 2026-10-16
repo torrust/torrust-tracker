@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use tokio::task::JoinHandle;
-use tokio_util::sync::CancellationToken;
+use tokio_util::sync::{CancellationToken, DropGuard};
 use torrust_info_hash::InfoHash;
 use torrust_server_lib::registar::{FnSpawnServiceHeathCheck, Registar};
 use torrust_tracker_axum_server::signals::GracefulShutdownOutcome;
@@ -26,10 +26,13 @@ pub struct Stopped {
 
 /// A test environment whose HTTP tracker and statistics event listener run
 /// on the token-aware lifecycle. The environment owns every task it started.
+///
+/// Dropping it without `stop()` requests cancellation, and the server shuts
+/// down once it observes it, so the binding is released shortly after the drop.
 pub struct Running {
     server: CancellationRunning,
     event_listener_job: JoinHandle<()>,
-    cancellation_token: CancellationToken,
+    cancel_on_drop: DropGuard,
 }
 
 pub struct Environment<S> {
@@ -133,7 +136,7 @@ impl Environment<Stopped> {
             state: Running {
                 server,
                 event_listener_job,
-                cancellation_token,
+                cancel_on_drop: cancellation_token.drop_guard(),
             },
         }
     }
@@ -167,10 +170,10 @@ impl Environment<Running> {
                     ..
                 },
             event_listener_job,
-            cancellation_token,
+            cancel_on_drop,
         } = self.state;
 
-        cancellation_token.cancel();
+        cancel_on_drop.disarm().cancel();
 
         let launcher = join_owned_tasks(task, shutdown_controller, event_listener_job)
             .await
@@ -372,6 +375,26 @@ mod tests {
 
         // Assert
         TcpListener::bind(binding).expect("the HTTP binding should be free as soon as stop() returns");
+    }
+
+    #[tokio::test]
+    async fn it_should_release_the_http_binding_when_dropped_without_being_stopped() {
+        // Arrange
+        let environment = start_within_deadline(unstarted_environment().await).await;
+        let binding: SocketAddr = *environment.bind_address();
+
+        // Act
+        drop(environment);
+
+        // Assert
+        // Dropping cannot await the server task, so the binding is released shortly after, not at once.
+        tokio::time::timeout(TEST_DEADLINE, async {
+            while TcpListener::bind(binding).is_err() {
+                tokio::time::sleep(Duration::from_millis(10)).await;
+            }
+        })
+        .await
+        .expect("the HTTP binding should be released within the test deadline after the environment is dropped");
     }
 
     #[tokio::test]
