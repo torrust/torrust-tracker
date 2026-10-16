@@ -82,8 +82,11 @@ pull requests #2530, #2538, and #2430 rebased clean branches. See the #2507
   - pull-request volume and the daily open-PR queue, for context.
 - Classify each force-push in the window as required, because the head conflicted with `develop`, or
   recommended, because it merged cleanly. Use the method of #2507 manual-verification section V4.
-- Count merges made while behind `develop` without a head push after `develop` reached the merge base
-  (the recorded-base refresh path). Use the method of #2507 manual-verification section V1.
+- Count merges made while behind `develop` whose head was pushed before `develop` reached `M^1`, the
+  `develop` tip the merge was built on, and not pushed again before the merge (the recorded-base
+  refresh path). The cutoff is `M^1`, not the Git merge base, which a head always postdates. As in
+  #2507 manual-verification section V1, the count is inferred, because the merge tool's output is not
+  captured.
 - Record the comparison and a short conclusion in issue-local `post-change-evidence.md`.
 
 ### Out of Scope
