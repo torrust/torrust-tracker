@@ -101,3 +101,10 @@ semantic-links:
 - The 06:30 UTC entry's N1 says "misaligned table rows". The reviewer originally used a word for
   rows that lack column padding, which the repository's spell checker rejects, so it was replaced
   before commit. The meaning is unchanged.
+- The 08:30 UTC entry lists "the committed branch" as its input. Of the four follow-up actions of the
+  08:15 UTC entry, three (the M1 wording, the V4 account, and the #2531 merge time) were committed
+  before 08:30 UTC and were checked by that review. The fourth, the reworded 06:40 UTC progress-log
+  line, was excluded from that review's scope on purpose, because the author had not yet made the
+  change. It was made in the same commit as the 08:15 and 08:30 UTC entries, so no reviewer checked
+  it, and the 08:30 UTC verdict does not cover it. The change is one sentence in the #2507
+  specification's progress log.
