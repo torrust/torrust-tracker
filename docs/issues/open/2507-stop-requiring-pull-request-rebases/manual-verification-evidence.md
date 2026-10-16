@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2507-stop-requiring-pull-request-rebases/ISSUE.md
-last-updated-utc: 2026-10-16 08:17
+last-updated-utc: 2026-10-16 08:25
 ---
 
 # Manual Verification Evidence
