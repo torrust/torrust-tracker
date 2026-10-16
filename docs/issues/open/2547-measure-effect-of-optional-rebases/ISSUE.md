@@ -85,7 +85,7 @@ pull requests #2530, #2538, and #2430 rebased clean branches. See the #2507
     based on that tip;
   - recommended: the pushed-away head merged cleanly, and the new head is based on that tip;
   - not a rebase: the new head is not based on the `develop` tip of its time. Since PR #2531 merged
-    (2026-10-14 16:06 UTC), `AGENTS.md` allows other rewrites of an unmerged pull request's history,
+    (2026-10-14 16:09 UTC), `AGENTS.md` allows other rewrites of an unmerged pull request's history,
     such as splitting or reordering commits, which the baseline could not contain: baseline section 5
     counts every force-push as a rebase because history rewrites were otherwise forbidden.
   Report the total force-pushes per merged PR, which is the baseline's measure, and the rebase-only
@@ -224,7 +224,7 @@ None planned.
 - **Confounders.** PR volume, the mix of documentation and code PRs, and #2525 workflow changes all
   affect CI time. Mitigation: normalize per merged PR, report the documentation and code split, and
   record any workflow changes in the window.
-- **Policy change on rewrites.** PR #2531 (merged 2026-10-14 16:06 UTC) allows force-pushes that are
+- **Policy change on rewrites.** PR #2531 (merged 2026-10-14 16:09 UTC) allows force-pushes that are
   not rebases, so the window's force-push count can exceed the baseline's rebase count for a reason
   unrelated to the rebase policy. Mitigation: classify each force-push (not a rebase) and report both
   the total and the rebase-only figures.
