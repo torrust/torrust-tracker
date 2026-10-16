@@ -9,7 +9,7 @@ github-issue: 2547
 spec-path: docs/issues/open/2547-measure-effect-of-optional-rebases/ISSUE.md
 branch: "2547-measure-effect-of-optional-rebases"
 related-pr: null
-last-updated-utc: "2026-10-16 11:51"
+last-updated-utc: "2026-10-16 12:14"
 semantic-links:
   skill-links:
     - create-issue
@@ -73,19 +73,21 @@ pull requests #2530, #2538, and #2430 rebased clean branches. See the #2507
 
 - Measure the window from 2026-10-15 00:00 UTC to 2026-10-28 23:59 UTC (14 days) with the #2507
   baseline commands, and normalize per merged PR and per day so the 13-day baseline stays comparable.
-  Each measure selects its data the way its baseline section does:
+  This specification fixes how each measure selects its data, because the baseline sections do not
+  all say how they selected theirs:
   - force-pushes per merged PR and the share of merged PRs force-pushed at least once. The population
     is the pull requests merged in the window (`merged_at`), with every force-push of each of them,
     including events before 2026-10-15: baseline section 5 selects pull requests by merge date and
     counts each one's whole force-push timeline. The classification below uses the same population;
   - estimated PR CI runner-hours per workflow, sampled as in the baseline. The runs are the
-    `pull_request` workflow runs created within the window, as in baseline section 6, which counts
-    runs by creation date and not by the merge date of their pull request, so runs of pull requests
-    still open count too;
-  - rebase-fallout commits, selected the same way as the baseline (section 7, by author date within
-    the window), compared with a baseline recounted for 1 to 13 October only: section 7 of the
-    baseline lists 23 commits "since September 2026", of which 13 have author dates from 1 to 13
-    October, so do not divide the whole list by 13 days or by the 67 October merges;
+    `pull_request` workflow runs created within the window, not the runs of the pull requests merged in
+    it, so runs of pull requests still open count too. Baseline section 6 reports 899 runs for 1 to 13
+    October and names no date field; creation date is this specification's reading of it;
+  - rebase-fallout commits, compared with a baseline recounted for 1 to 13 October only: section 7 of
+    the baseline lists 23 commits "since September 2026", of which 13 have author dates from 1 to 13
+    October, so do not divide the whole list by 13 days or by the 67 October merges. A commit is in
+    the window when its author date is, as in that 13-of-23 recount. The command in section 7 filters
+    with `--since`, which is the committer date, and prints author dates;
   - pull-request volume and the daily open-PR queue, for context, as in baseline section 4.
 - Classify every force-push of those pull requests with the method of #2507 manual-verification section V4,
   which compares where the push put the head's base, not only where the new head sits. The `develop`
@@ -202,6 +204,10 @@ with GPG.
   fourth review round of PR #2550: CI runs are selected by creation date as in baseline section 6,
   and fallout commits by author date as in section 7, each as its baseline section does. The GitHub
   issue body was updated to match.
+- 2026-10-16 12:14 UTC - AI assistant - Stated the CI and fallout selection rules as this
+  specification's own (runs created in the window; commits whose author date is in the window), after
+  the fifth review round of PR #2550 showed that baseline sections 6 and 7 do not state them. The
+  GitHub issue body was updated to match.
 
 ## Acceptance Criteria
 
