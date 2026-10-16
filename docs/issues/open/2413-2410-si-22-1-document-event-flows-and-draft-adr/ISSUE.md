@@ -9,7 +9,7 @@ github-issue: 2413
 spec-path: docs/issues/open/2413-2410-si-22-1-document-event-flows-and-draft-adr/ISSUE.md
 branch: "2413-document-event-flows-and-draft-adr"
 related-pr: null
-last-updated-utc: "2026-10-16 11:57"
+last-updated-utc: "2026-10-16 12:21"
 semantic-links:
   skill-links:
     - create-issue
@@ -189,3 +189,4 @@ pre-push checks still apply to this documentation-only PR.
 - 2026-10-16 10:48 UTC - GitHub Copilot - Review round 1 of PR #2553: Copilot raised two findings (`review-finding:pr-2553-f1`, `review-finding:pr-2553-f2`), both valid and fixed in separate commits. F2 showed that the T1 inventory missed the UDP receive loop publish sites in `launcher.rs` (the search was for `.send(`); the M1 evidence now carries a dated correction. Audit: `docs/pr-reviews/pr-2553-review/PR-REVIEW.md`.
 - 2026-10-16 11:33 UTC - GitHub Copilot - Review round 2 of PR #2553: da2ce7 approved with eleven non-blocking findings (`review-finding:pr-2553-f3` to `review-finding:pr-2553-f13`), all valid and fixed in separate commits. The #2413 evidence moved to `manual-verification-evidence.md` in this folder (the Task Reviewer report and retrospective gates are listed below as unchecked checkpoints), the ADR draft restates the old ADR consequences and the exit-result gap, and the inventory marks the conditional listeners. Audit: `docs/pr-reviews/pr-2553-review/PR-REVIEW.md`.
 - 2026-10-16 11:57 UTC - GitHub Copilot - Review round 3 of PR #2553: da2ce7 approved the head after the round 2 fixes with four non-blocking findings (`review-finding:pr-2553-f14` to `review-finding:pr-2553-f17`), all valid and fixed in separate commits. The isolation evidence was rerun one step at a time on the final test file, M1 is `DONE`, and the fixture-environment test is now a subset check. Audit: `docs/pr-reviews/pr-2553-review/PR-REVIEW.md`.
+- 2026-10-16 12:21 UTC - GitHub Copilot - Review round 4 of PR #2553: da2ce7 approved the head after the round 3 fixes with four Nit findings (`review-finding:pr-2553-f18` to `review-finding:pr-2553-f21`), all valid and fixed in separate commits. The fixes only correct statements in the isolation evidence and the audit that outran the record. Audit: `docs/pr-reviews/pr-2553-review/PR-REVIEW.md`.

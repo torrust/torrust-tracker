@@ -51,6 +51,10 @@ body repeats no further request and adds no row.
 His approving review 5547366758, at the head after the round 2 fixes, carries four more inline threads,
 F14 to F17, with the same ID reassignment. It repeats no further request in its body and adds no row.
 
+His approving review 5547599741, at the head after the round 3 fixes, carries four more inline threads,
+F18 to F21, all `Nit`, with the same ID reassignment. It repeats no further request in its body and adds
+no row.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2553-f1 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -70,6 +74,10 @@ F14 to F17, with the same ID reassignment. It repeats no further request in its 
 | F15 | review-finding:pr-2553-f15 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F16 | review-finding:pr-2553-f16 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F17 | review-finding:pr-2553-f17 | Human | Suggestion | testing | ORIGINAL | FIXED | RESOLVED |
+| F18 | review-finding:pr-2553-f18 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F19 | review-finding:pr-2553-f19 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F20 | review-finding:pr-2553-f20 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F21 | review-finding:pr-2553-f21 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -314,6 +322,58 @@ F14 to F17, with the same ID reassignment. It repeats no further request in its 
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2553#discussion_r4294393827>
 
+### F18 - The step 6 note reads more into the stamps than they show
+
+- PR number: 2553
+- Source review ID: 5547599741
+- Reviewer finding ID: F1
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2553#discussion_r4294519684>
+- Concern: The note says the host clock was not monotonic, but a wall clock is never guaranteed monotonic, and a one-digit slip in the end stamp explains the stamps equally. The bytes cannot tell a step from a slip.
+- Solution: The note now says only that the end stamp precedes the start stamp, that the cause is unknown, and that the stamps still show step 6 starting and ending after step 5 ended.
+- Current-tree verification: The issue-local `manual-verification-evidence.md` states the two stamps, says the cause is unknown, and no longer mentions a clock that is not monotonic.
+- Resolution reference: docs(issues): [#2413] state only what the step 6 stamps show
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2553#discussion_r4294577877>
+
+### F19 - F14's Solution names a check the evidence does not record
+
+- PR number: 2553
+- Source review ID: 5547599741
+- Reviewer finding ID: F2
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2553#discussion_r4294519692>
+- Concern: F14's Solution says each restore was followed by a `git diff --quiet HEAD` check, but the evidence records no such command, only that the file "equals `HEAD`". The sentence also repeats the clock reading of F18.
+- Solution: The evidence now names the check, `git diff --quiet HEAD -- <test file>` exiting 0 and printing `file == HEAD`, which was run before steps 1, 3, 5 and 6. F14's Solution was reworded to state only what the evidence shows, without the clock reading.
+- Current-tree verification: The evidence's intro to the sequential rerun names the command, and F14's Solution above matches it.
+- Resolution reference: docs(reviews): [#2413] align the F14 solution with the recorded evidence
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2553#discussion_r4294578109>
+
+### F20 - The 11:55 log entry says the fixes were pushed before they were
+
+- PR number: 2553
+- Source review ID: 5547599741
+- Reviewer finding ID: F3
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2553#discussion_r4294519700>
+- Concern: The round 3 log entry at 11:55 says F14 to F17 were fixed and pushed, but the push came later: GitHub's timeline dismissed review 5547366758 at 11:56:24Z.
+- Solution: The Processing Log is append-only, so a correction entry was appended that gives the push time as about 11:56, and the 11:55 entry is left as written.
+- Current-tree verification: The Processing Log has the 12:15 correction entry after the 11:55 entry; the validator passes.
+- Resolution reference: docs(reviews): [#2413] correct the push time in the round 3 processing log
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2553#discussion_r4294578334>
+
+### F21 - A commit body claims a failure that no record shows
+
+- PR number: 2553
+- Source review ID: 5547599741
+- Reviewer finding ID: F4
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2553#discussion_r4294519712>
+- Concern: The body of the commit that made the Git-variable test a subset check says the equality comparison "failed on an older Git that reports fewer names", but no such run is recorded. The evidence's Git (2.53.0) reports the same 15 names, and the case was only a possibility raised in review.
+- Solution: The commit body is not rewritten, because the repository keeps a branch's history and a rewrite would change the commit ids the review rounds cite. The issue-local evidence has a section that records the correction and what the body should have said.
+- Current-tree verification: The evidence has the section `Correction: the older-Git claim in a commit body`; the test file's own comment says "may report".
+- Resolution reference: docs(issues): [#2413] correct the older-Git claim in a commit body
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2553#discussion_r4294578624>
+
 ## Processing Log
 
 - 2026-10-16 10:42 UTC - Fetched the review and both inline threads, classified them as Copilot
@@ -340,6 +400,10 @@ F14 to F17, with the same ID reassignment. It repeats no further request in its 
 - 2026-10-16 12:15 UTC - Correction to the 11:55 entry, which said F14 to F17 were fixed and pushed at 11:55:
   the fixes were committed by 11:54, and the push came later, at about 11:56 (GitHub's timeline dismissed
   review 5547366758 at 11:56:24Z). The 11:55 entry is left as written.
+- 2026-10-16 12:19 UTC - Fixed F18 to F21 in separate signed commits and pushed (the earlier F20 correction
+  and the evidence and audit corrections for F18, F19 and F21 landed between 12:15 and 12:18).
+- 2026-10-16 12:21 UTC - Replied on all four threads, resolved them, and added F18 to F21 to this record, with
+  a reply URL in every row.
 
 ## Completion Rules
 

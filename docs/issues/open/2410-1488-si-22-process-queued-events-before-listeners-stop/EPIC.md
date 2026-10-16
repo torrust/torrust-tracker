@@ -6,7 +6,7 @@ epic: 1488
 github-issue: 2410
 spec-path: docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-16 11:57"
+last-updated-utc: "2026-10-16 12:21"
 semantic-links:
   skill-links:
     - create-issue
@@ -2156,6 +2156,7 @@ avoids duplicating the full workflow in four drafts:
 - 2026-10-16 10:48 UTC - GitHub Copilot - #2413 review round 1: the T1 inventory missed the UDP receive loop publish sites (`launcher.rs`, awaited helper `publish_event_if_sender_available`); corrected in the inventory and in the M1 evidence (`review-finding:pr-2553-f2`). The glossary now separates server drain deadlines from listener admission timeouts (`review-finding:pr-2553-f1`). Entry 27's "sends are `.send(...).await`" fact holds, but the UDP receive loop publishes through a helper that awaits `send`.
 - 2026-10-16 11:33 UTC - GitHub Copilot - #2413 review round 2: eleven non-blocking findings fixed. D13's decision text now names tokio 1.53.3, the #2413 evidence moved to its own folder, and the plan rows T1 and T2 are `DONE` (`review-finding:pr-2553-f8`, `review-finding:pr-2553-f4`, `review-finding:pr-2553-f7`).
 - 2026-10-16 11:57 UTC - GitHub Copilot - #2413 review round 3: four non-blocking findings fixed (`review-finding:pr-2553-f14` to `review-finding:pr-2553-f17`), none touching the design record.
+- 2026-10-16 12:21 UTC - GitHub Copilot - #2413 review round 4: four Nit findings fixed (`review-finding:pr-2553-f18` to `review-finding:pr-2553-f21`), none touching the design record.
 
 ## Acceptance Criteria
 
