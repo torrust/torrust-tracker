@@ -80,12 +80,19 @@ reviewer's ID kept in the detail entry. Its F3 is the same concern as F20, so F2
 `RE_RAISE_OF:F20`. Its body is a round summary that repeats those three findings and confirms the
 earlier ones as resolved, so it adds no rows; an `ACK` comment records its verdict for that head.
 
+A fifth round followed the push of the fourth round's fixes. da2ce7's approving review 5547591114
+read the head whose subject is "docs(pr-reviews): add the reply URLs of the fourth review round of
+PR #2550" and carries three inline threads whose reviewer IDs F1-F3 collide with F1-F3 above, so they
+are recorded as F24-F26 with the reviewer's ID kept in the detail entry. Its body is a round summary
+that repeats those three findings, marks one earlier finding partly resolved (its R5-F1, raised as
+F24), and confirms the rest, so it adds no rows; an `ACK` comment records its verdict for that head.
+
 Every push dismisses the standing approval (the pull-request ruleset dismisses stale reviews on
-push), always with the author's account as actor and no message. The timeline holds one
-`review_dismissed` event for each of the three approvals above, at 08:31:50, 10:26:39, and 11:22:22
-UTC. The push that carries the fixes of the fourth round dismisses review 5547344550 in the same way;
-its approval is not logged as a separate event, because the `ACK` comments name the head each one
-applies to and the next review supersedes it.
+push), always with the author's account as actor and no message. This record names the dismissals of
+the first three approvals, at 08:31:50, 10:26:39, and 11:22:22 UTC, and the one that the push of the
+fourth round's fixes caused, at 11:56:26 UTC (review 5547344550). Later dismissals follow the same
+pattern and are not logged one by one, because each `ACK` comment names the head it applies to and
+the next review supersedes it.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -112,6 +119,9 @@ applies to and the next review supersedes it.
 | F21 | review-finding:pr-2550-f21 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F22 | review-finding:pr-2550-f22 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F23 | review-finding:pr-2550-f23 | Human | Nit | correctness | RE_RAISE_OF:F20 | FIXED | RESOLVED |
+| F24 | review-finding:pr-2550-f24 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F25 | review-finding:pr-2550-f25 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F26 | review-finding:pr-2550-f26 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -470,12 +480,13 @@ applies to and the next review supersedes it.
   figures, select CI runs by creation date within the window, and align the progress entry and the
   GitHub issue body.
 - Solution: the shared population applies only to the force-push total and its classification. The
-  scope bullet states how each other measure selects its data, as its baseline section does: CI runs
-  by creation date (section 6), fallout commits by author date (section 7), and volume as in section
-  4. The progress entry says "every force-push measure", and the issue body was updated to match.
+  scope bullet states how each other measure selects its data: CI runs by creation date and fallout
+  commits by author date, and volume as in baseline section 4. The progress entry says "every
+  force-push measure", and the issue body was updated to match. This entry first attributed the CI
+  and fallout rules to baseline sections 6 and 7, which do not state them; F26 corrects that.
 - Current-tree verification: the `ISSUE.md` scope bullet lists the selection of each measure and its
-  11:16 progress entry says "every force-push measure". Baseline section 6 counts runs by creation
-  date.
+  11:16 progress entry says "every force-push measure". Baseline section 6 reports 899 runs for 1 to
+  13 October and names no date field, so the creation-date rule is the specification's own.
 - Resolution reference: docs(issues): [#2547] limit the shared population to the force-push measures
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2550#discussion_r4294393917>
@@ -495,9 +506,11 @@ applies to and the next review supersedes it.
   every push dismisses the standing approval and that the push carrying this round's fixes dismisses
   review 5547344550 in the same way, so that gap does not recur for each later push: the `ACK`
   comments name the head each one applies to.
-- Current-tree verification: the timeline holds three `review_dismissed` events, all with actor
-  `josecelano` and no message: 2026-10-16T08:31:50Z (review 5544619071), 10:26:39Z (review
-  5545292694), and 11:22:22Z (review 5547008497). The audit names all three.
+- Current-tree verification: when this entry was written the timeline held three `review_dismissed`
+  events, all with actor `josecelano` and no message: 2026-10-16T08:31:50Z (review 5544619071),
+  10:26:39Z (review 5545292694), and 11:22:22Z (review 5547008497). The audit names all three. The
+  push that carried this round's fixes dismissed a fourth at 11:56:26Z (review 5547344550), as the
+  Findings paragraph says it would.
 - Resolution reference: docs(pr-reviews): record the third dismissal and the fourth review round of PR #2550
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2550#discussion_r4294394133>
@@ -538,6 +551,65 @@ applies to and the next review supersedes it.
 - Resolution reference: docs(issues): [#2547] limit the shared population to the force-push measures
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2550#discussion_r4294394552>
+
+### F24 - F21's verification asserts a count that went stale
+
+- PR number: 2550
+- Source review ID: 5547591114
+- Reviewer finding ID: F1
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2550#discussion_r4294512807>
+- Concern: F21's verification says "the timeline holds three `review_dismissed` events", but it held
+  four when this record's last commit was made (the fourth at 11:56:26Z, review 5547344550, the push
+  the Findings paragraph predicts). Write "held three when this entry was written", or drop the count.
+- Solution: F21's verification now says the timeline held three events when the entry was written and
+  names the fourth. The Findings paragraph on dismissals states times for the events it names and no
+  longer says how many the timeline holds.
+- Current-tree verification: the timeline holds four `review_dismissed` events as of this entry, at
+  08:31:50, 10:26:39, 11:22:22, and 11:56:26 UTC, all with actor `josecelano` and no message.
+- Resolution reference: docs(pr-reviews): record the fifth review round of PR #2550
+- Follow-up PR URL: N/A
+- Reply URL: N/A
+
+### F25 - The 11:57 log entry lists actions in an order that did not happen
+
+- PR number: 2550
+- Source review ID: 5547591114
+- Reviewer finding ID: F2
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2550#discussion_r4294512826>
+- Concern: the entry lists "Pushed the fixes, updated the GitHub issue body of #2547, edited the
+  conversation response", but the response edit (11:53:18Z) and the issue body update (11:56:21Z)
+  came before the push (11:56:26Z). The edited response described a spec fix three minutes before it
+  reached the branch, the reply-before-push order that F19 recorded.
+- Solution: the Processing Log is append-only, so the 11:57 entry is unchanged and a correction entry
+  gives the real order and says that the edit preceded the push.
+- Current-tree verification: the Processing Log has the correction entry after the 11:57 entry. The
+  edit (11:53:18Z), the issue body update (11:56:21Z), and the push (11:56:26Z) are the times the
+  reviewer captured.
+- Resolution reference: docs(pr-reviews): record the fifth review round of PR #2550
+- Follow-up PR URL: N/A
+- Reply URL: N/A
+
+### F26 - The selection rules are attributed to baseline sections that do not state them
+
+- PR number: 2550
+- Source review ID: 5547591114
+- Reviewer finding ID: F3
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2550#discussion_r4294512840>
+- Concern: baseline section 6 has no reproduce command and names no date field, and the command in
+  section 7 filters with `--since`, which is the committer date, while printing author dates. The
+  specification and F20 attributed "runs by creation date" and "commits by author date" to those
+  sections. State the rules as the specification's own.
+- Solution: the specification says that it fixes how each measure selects its data (runs created in
+  the window; commits whose author date is in the window, as the 13-of-23 recount did) and notes
+  what sections 6 and 7 say, and the GitHub issue body matches. F20's text no longer attributes the
+  rules to the baseline sections.
+- Current-tree verification: the `ISSUE.md` scope bullet says so, baseline section 6 reports 899 runs
+  and names no date field, and the section 7 command is
+  `git log --no-merges --since=2026-06-01 --format='%h %ad %s' --date=short`, which prints author
+  dates and filters by committer date.
+- Resolution reference: docs(issues): [#2547] state the selection rules as this specification's own
+- Follow-up PR URL: N/A
+- Reply URL: N/A
 
 ## Processing Log
 
@@ -581,6 +653,13 @@ applies to and the next review supersedes it.
 - 2026-10-16 11:57 UTC - Pushed the fixes, updated the GitHub issue body of #2547, edited the
   conversation response to say "every force-push measure", replied on the four new threads, and added
   the reply URLs to this record.
+- 2026-10-16 12:12 UTC - da2ce7's approving review 5547591114 and an `ACK` comment arrived for the
+  record's head, with three new threads (F24-F26).
+- 2026-10-16 12:17 UTC - Correction of the 11:57 UTC entry's order (F25): the conversation-response
+  edit (11:53:18 UTC) and the GitHub issue body update (11:56:21 UTC) came before the push of the
+  fixes (11:56:26 UTC), so the edited response described the specification fix before it reached the
+  branch, the same order that F19 recorded.
+- 2026-10-16 12:17 UTC - Fixed F26 in one signed commit and F24 and F25 in this record.
 
 ## Completion Rules
 
