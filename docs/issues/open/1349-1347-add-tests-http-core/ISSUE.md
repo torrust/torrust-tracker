@@ -342,7 +342,11 @@ Rules:
 - **Issue linking.** S0-S5 use `Related to #1349`; only S6 uses `Closes #1349` (see the
   `open-pull-request` skill). Titles follow the repository convention, for example
   `test(http-core): [#1349] cover announce peer-IP selection`.
-- **Branches.** Cut each slice branch from the latest `develop` only after the previous slice PR
+- **Branches.** The `create-issue` skill reserves the base name `1349-1347-add-tests-http-core` for
+  a single implementation PR. With several slices, each PR needs its own branch, so the slice
+  branches below replace that reserved name on purpose, and the base name stays unused rather than
+  naming S1 (which would suggest it carries the whole implementation). Cut each slice branch from
+  the latest `develop` only after the previous slice PR
   has merged. Do not stack slice branches (maintainer decision): while a slice PR is in review,
   only review fixes, findings hand-offs, and the next file's plan draft (kept outside git until
   its branch exists) may proceed. Keep at most one open implementation PR. The frontmatter
