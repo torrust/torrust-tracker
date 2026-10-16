@@ -227,11 +227,13 @@ impl TestEnv {
     pub async fn get_counter_value(&self, metric_name: &str) -> u64 {
         self.tracker_core_container
             .stats_repository
-            .get_metrics()
+            .read_metrics(|metrics| {
+                metrics
+                    .metric_collection()
+                    .get_counter_value(&MetricName::new(metric_name), &LabelSet::default())
+                    .unwrap()
+                    .value()
+            })
             .await
-            .metric_collection
-            .get_counter_value(&MetricName::new(metric_name), &LabelSet::default())
-            .unwrap()
-            .value()
     }
 }

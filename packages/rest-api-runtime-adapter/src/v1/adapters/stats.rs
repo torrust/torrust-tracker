@@ -72,73 +72,89 @@ impl StatsQueryPort for TrackerStatsAdapter {
             .get_torrents_downloads_persisted_total()
             .await;
 
-        let http_stats = self.http_stats_repository.get_stats().await;
-        let udp_server_stats = self.udp_server_stats_repository.get_stats().await;
+        let (tcp4_announces_handled, tcp4_scrapes_handled, tcp6_announces_handled, tcp6_scrapes_handled) = self
+            .http_stats_repository
+            .read_metrics(|http_stats| {
+                (
+                    http_stats.tcp4_announces_handled(),
+                    http_stats.tcp4_scrapes_handled(),
+                    http_stats.tcp6_announces_handled(),
+                    http_stats.tcp6_scrapes_handled(),
+                )
+            })
+            .await;
 
-        Stats {
-            // Torrent metrics
-            torrents: aggregate_swarm_metadata.total_torrents,
-            seeders: aggregate_swarm_metadata.total_complete,
-            completed: total_downloaded,
-            completed_in_session,
-            completed_persisted,
-            completed_persisted_enabled: self.completed_persisted_enabled,
-            leechers: aggregate_swarm_metadata.total_incomplete,
+        self.udp_server_stats_repository
+            .read_metrics(|udp_server_stats| Stats {
+                // Torrent metrics
+                torrents: aggregate_swarm_metadata.total_torrents,
+                seeders: aggregate_swarm_metadata.total_complete,
+                completed: total_downloaded,
+                completed_in_session,
+                completed_persisted,
+                completed_persisted_enabled: self.completed_persisted_enabled,
+                leechers: aggregate_swarm_metadata.total_incomplete,
 
-            // TCPv4
-            tcp4_connections_handled: http_stats.tcp4_announces_handled() + http_stats.tcp4_scrapes_handled(),
-            tcp4_announces_handled: http_stats.tcp4_announces_handled(),
-            tcp4_scrapes_handled: http_stats.tcp4_scrapes_handled(),
+                // TCPv4
+                tcp4_connections_handled: tcp4_announces_handled + tcp4_scrapes_handled,
+                tcp4_announces_handled,
+                tcp4_scrapes_handled,
 
-            // TCPv6
-            tcp6_connections_handled: http_stats.tcp6_announces_handled() + http_stats.tcp6_scrapes_handled(),
-            tcp6_announces_handled: http_stats.tcp6_announces_handled(),
-            tcp6_scrapes_handled: http_stats.tcp6_scrapes_handled(),
+                // TCPv6
+                tcp6_connections_handled: tcp6_announces_handled + tcp6_scrapes_handled,
+                tcp6_announces_handled,
+                tcp6_scrapes_handled,
 
-            // UDP
-            udp_requests_discarded: udp_server_stats.udp_requests_discarded_total(),
-            udp_requests_aborted: udp_server_stats.udp_requests_aborted_total(),
-            udp_requests_banned: udp_server_stats.udp_requests_banned_total(),
-            udp_banned_ips_total: udp_server_stats.udp_banned_ips_total(),
-            udp_avg_connect_processing_time_ns: udp_server_stats.udp_avg_connect_processing_time_ns_averaged(),
-            udp_avg_announce_processing_time_ns: udp_server_stats.udp_avg_announce_processing_time_ns_averaged(),
-            udp_avg_scrape_processing_time_ns: udp_server_stats.udp_avg_scrape_processing_time_ns_averaged(),
+                // UDP
+                udp_requests_discarded: udp_server_stats.udp_requests_discarded_total(),
+                udp_requests_aborted: udp_server_stats.udp_requests_aborted_total(),
+                udp_requests_banned: udp_server_stats.udp_requests_banned_total(),
+                udp_banned_ips_total: udp_server_stats.udp_banned_ips_total(),
+                udp_avg_connect_processing_time_ns: udp_server_stats.udp_avg_connect_processing_time_ns_averaged(),
+                udp_avg_announce_processing_time_ns: udp_server_stats.udp_avg_announce_processing_time_ns_averaged(),
+                udp_avg_scrape_processing_time_ns: udp_server_stats.udp_avg_scrape_processing_time_ns_averaged(),
 
-            // UDPv4
-            udp4_requests: udp_server_stats.udp4_requests_received_total(),
-            udp4_connections_handled: udp_server_stats.udp4_connect_requests_accepted_total(),
-            udp4_announces_handled: udp_server_stats.udp4_announce_requests_accepted_total(),
-            udp4_scrapes_handled: udp_server_stats.udp4_scrape_requests_accepted_total(),
-            udp4_responses: udp_server_stats.udp4_responses_sent_total(),
-            udp4_errors_handled: udp_server_stats.udp4_errors_total(),
+                // UDPv4
+                udp4_requests: udp_server_stats.udp4_requests_received_total(),
+                udp4_connections_handled: udp_server_stats.udp4_connect_requests_accepted_total(),
+                udp4_announces_handled: udp_server_stats.udp4_announce_requests_accepted_total(),
+                udp4_scrapes_handled: udp_server_stats.udp4_scrape_requests_accepted_total(),
+                udp4_responses: udp_server_stats.udp4_responses_sent_total(),
+                udp4_errors_handled: udp_server_stats.udp4_errors_total(),
 
-            // UDPv6
-            udp6_requests: udp_server_stats.udp6_requests_received_total(),
-            udp6_connections_handled: udp_server_stats.udp6_connect_requests_accepted_total(),
-            udp6_announces_handled: udp_server_stats.udp6_announce_requests_accepted_total(),
-            udp6_scrapes_handled: udp_server_stats.udp6_scrape_requests_accepted_total(),
-            udp6_responses: udp_server_stats.udp6_responses_sent_total(),
-            udp6_errors_handled: udp_server_stats.udp6_errors_total(),
-        }
+                // UDPv6
+                udp6_requests: udp_server_stats.udp6_requests_received_total(),
+                udp6_connections_handled: udp_server_stats.udp6_connect_requests_accepted_total(),
+                udp6_announces_handled: udp_server_stats.udp6_announce_requests_accepted_total(),
+                udp6_scrapes_handled: udp_server_stats.udp6_scrape_requests_accepted_total(),
+                udp6_responses: udp_server_stats.udp6_responses_sent_total(),
+                udp6_errors_handled: udp_server_stats.udp6_errors_total(),
+            })
+            .await
     }
 
     async fn get_labeled_stats(&self) -> LabeledStats {
         let mut metrics = MetricCollection::default();
 
-        metrics
-            .merge(&self.swarms_stats_repository.get_metrics().await.metric_collection)
+        self.swarms_stats_repository
+            .read_metrics(|swarms| metrics.merge(swarms.metric_collection()))
+            .await
             .expect("failed to merge torrent repository metrics");
-        metrics
-            .merge(&self.tracker_core_stats_repository.get_metrics().await.metric_collection)
+        self.tracker_core_stats_repository
+            .read_metrics(|tracker_core| metrics.merge(tracker_core.metric_collection()))
+            .await
             .expect("failed to merge tracker core metrics");
-        metrics
-            .merge(&self.http_stats_repository.get_stats().await.metric_collection)
+        self.http_stats_repository
+            .read_metrics(|http| metrics.merge(http.metric_collection()))
+            .await
             .expect("failed to merge HTTP core metrics");
-        metrics
-            .merge(&self.udp_core_stats_repository.get_stats().await.metric_collection)
+        self.udp_core_stats_repository
+            .read_metrics(|udp_core| metrics.merge(udp_core.metric_collection()))
+            .await
             .expect("failed to merge UDP core metrics");
-        metrics
-            .merge(&self.udp_server_stats_repository.get_stats().await.metric_collection)
+        self.udp_server_stats_repository
+            .read_metrics(|udp_server| metrics.merge(udp_server.metric_collection()))
+            .await
             .expect("failed to merge UDP server metrics");
 
         LabeledStats { metrics }

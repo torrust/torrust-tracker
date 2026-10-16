@@ -195,13 +195,13 @@ mod tests {
         async fn inactive_peers_total(&self) -> usize {
             let gauge_value = self
                 .stats_repository
-                .get_metrics()
+                .read_metrics(|metrics| {
+                    metrics.metric_collection().get_gauge_value(
+                        &metric_name!(SWARM_COORDINATION_REGISTRY_PEERS_INACTIVE_TOTAL),
+                        &LabelSet::default(),
+                    )
+                })
                 .await
-                .metric_collection
-                .get_gauge_value(
-                    &metric_name!(SWARM_COORDINATION_REGISTRY_PEERS_INACTIVE_TOTAL),
-                    &LabelSet::default(),
-                )
                 .expect("the update tick should set the inactive peers gauge")
                 .value();
 

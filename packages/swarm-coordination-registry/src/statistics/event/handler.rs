@@ -254,10 +254,8 @@ mod tests {
 
     async fn get_counter_metric(stats_repository: &Arc<Repository>, metric_name: &MetricName, label_set: &LabelSet) -> u64 {
         stats_repository
-            .get_metrics()
+            .read_metrics(|metrics| metrics.metric_collection().get_counter_value(metric_name, label_set))
             .await
-            .metric_collection
-            .get_counter_value(metric_name, label_set)
             .unwrap_or_else(|| panic!("Failed to get counter value for metric name '{metric_name}' and label set '{label_set}'"))
             .value()
     }
@@ -274,10 +272,8 @@ mod tests {
 
     async fn get_gauge_metric(stats_repository: &Arc<Repository>, metric_name: &MetricName, label_set: &LabelSet) -> f64 {
         stats_repository
-            .get_metrics()
+            .read_metrics(|metrics| metrics.metric_collection().get_gauge_value(metric_name, label_set))
             .await
-            .metric_collection
-            .get_gauge_value(metric_name, label_set)
             .unwrap_or_else(|| panic!("Failed to get gauge value for metric name '{metric_name}' and label set '{label_set}'"))
             .value()
     }

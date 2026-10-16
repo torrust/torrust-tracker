@@ -20,7 +20,10 @@ pub async fn handle_event(event: Event, stats_repository: &Arc<Repository>, now:
         Err(err) => tracing::error!("Failed to increase the counter: {}", err),
     }
 
-    tracing::debug!("stats: {:?}", stats_repository.get_stats().await);
+    tracing::debug!(
+        "stats: {}",
+        stats_repository.read_metrics(|metrics| format!("{metrics:?}")).await
+    );
 }
 
 fn labels_and_request_kind(event: Event) -> (LabelSet, RequestKind) {
@@ -79,6 +82,7 @@ mod tests {
     use crate::event::{ConnectionContext, Event};
     use crate::statistics::HTTP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL;
     use crate::statistics::event::handler::handle_event;
+    use crate::statistics::metrics::Metrics;
     use crate::statistics::repository::Repository;
     use crate::tests::{sample_info_hash, sample_peer_using_ipv4, sample_peer_using_ipv6};
 
@@ -104,9 +108,7 @@ mod tests {
         )
         .await;
 
-        let stats = stats_repository.get_stats().await;
-
-        assert_eq!(stats.tcp4_announces_handled(), 1);
+        assert_eq!(stats_repository.read_metrics(Metrics::tcp4_announces_handled).await, 1);
     }
 
     #[tokio::test]
@@ -130,9 +132,7 @@ mod tests {
         )
         .await;
 
-        let stats = stats_repository.get_stats().await;
-
-        assert_eq!(stats.tcp4_scrapes_handled(), 1);
+        assert_eq!(stats_repository.read_metrics(Metrics::tcp4_scrapes_handled).await, 1);
     }
 
     #[tokio::test]
@@ -157,9 +157,7 @@ mod tests {
         )
         .await;
 
-        let stats = stats_repository.get_stats().await;
-
-        assert_eq!(stats.tcp6_announces_handled(), 1);
+        assert_eq!(stats_repository.read_metrics(Metrics::tcp6_announces_handled).await, 1);
     }
 
     #[tokio::test]
@@ -185,9 +183,7 @@ mod tests {
         )
         .await;
 
-        let stats = stats_repository.get_stats().await;
-
-        assert_eq!(stats.tcp6_scrapes_handled(), 1);
+        assert_eq!(stats_repository.read_metrics(Metrics::tcp6_scrapes_handled).await, 1);
     }
 
     #[tokio::test]
@@ -224,13 +220,14 @@ mod tests {
         handle_event(event, &stats_repository, CurrentClock::now()).await;
 
         // Assert
-        let counter_value = {
-            let stats = stats_repository.get_stats().await;
-            stats
-                .metric_collection
-                .sum(&metric_name!(HTTP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL), &expected_labels)
-                .unwrap()
-        };
+        let counter_value = stats_repository
+            .read_metrics(|metrics| {
+                metrics
+                    .metric_collection()
+                    .sum(&metric_name!(HTTP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL), &expected_labels)
+            })
+            .await
+            .unwrap();
         assert!((counter_value - 1.0).abs() < f64::EPSILON);
     }
 }

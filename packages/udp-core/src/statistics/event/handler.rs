@@ -17,7 +17,10 @@ pub async fn handle_event(event: Event, stats_repository: &Repository, now: Dura
         tracing::error!("Failed to increase the counter: {}", err);
     }
 
-    tracing::debug!("stats: {:?}", stats_repository.get_stats().await);
+    tracing::debug!(
+        "stats: {}",
+        stats_repository.read_metrics(|metrics| format!("{metrics:?}")).await
+    );
 }
 
 fn labels_and_request_kind(event: Event) -> (LabelSet, &'static str) {
@@ -77,13 +80,13 @@ mod tests {
 
         // Assert
         let requests_of_this_kind = stats_repository
-            .get_stats()
+            .read_metrics(|metrics| {
+                metrics.metric_collection().sum(
+                    &metric_name!(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL),
+                    &[("request_kind", request_kind)].into(),
+                )
+            })
             .await
-            .metric_collection
-            .sum(
-                &metric_name!(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL),
-                &[("request_kind", request_kind)].into(),
-            )
             .unwrap();
         assert!((requests_of_this_kind - 1.0).abs() < f64::EPSILON);
     }
@@ -119,13 +122,14 @@ mod tests {
         handle_event(event, &stats_repository, CurrentClock::now()).await;
 
         // Assert
-        let counter_value = {
-            let stats = stats_repository.get_stats().await;
-            stats
-                .metric_collection
-                .sum(&metric_name!(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL), &expected_labels)
-                .unwrap()
-        };
+        let counter_value = stats_repository
+            .read_metrics(|metrics| {
+                metrics
+                    .metric_collection()
+                    .sum(&metric_name!(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL), &expected_labels)
+            })
+            .await
+            .unwrap();
         assert!((counter_value - 1.0).abs() < f64::EPSILON);
     }
 }

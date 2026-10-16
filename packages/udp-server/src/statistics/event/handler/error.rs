@@ -118,6 +118,7 @@ mod tests {
     use crate::CurrentClock;
     use crate::event::{ErrorKind, UdpRequestKind};
     use crate::handlers::announce::tests::announce_request::AnnounceRequestBuilder;
+    use crate::statistics::metrics::Metrics;
     use crate::statistics::repository::Repository;
     use crate::statistics::{UDP_TRACKER_SERVER_CONNECTION_ID_ERRORS_TOTAL, UDP_TRACKER_SERVER_ERRORS_TOTAL};
 
@@ -144,9 +145,7 @@ mod tests {
         handle_event(connection_context, None, error_kind, &stats_repository, CurrentClock::now()).await;
 
         // Assert
-        let stats = stats_repository.get_stats().await;
-
-        assert_eq!(stats.udp4_errors_total(), 1);
+        assert_eq!(stats_repository.read_metrics(Metrics::udp4_errors_total).await, 1);
     }
 
     #[tokio::test]
@@ -169,13 +168,14 @@ mod tests {
         .await;
 
         // Assert
-        let counter_value = {
-            let stats = stats_repository.get_stats().await;
-            stats
-                .metric_collection
-                .sum(&metric_name!(UDP_TRACKER_SERVER_ERRORS_TOTAL), &expected_labels)
-                .expect("connect-labelled general error metric should exist")
-        };
+        let counter_value = stats_repository
+            .read_metrics(|metrics| {
+                metrics
+                    .metric_collection()
+                    .sum(&metric_name!(UDP_TRACKER_SERVER_ERRORS_TOTAL), &expected_labels)
+            })
+            .await
+            .expect("connect-labelled general error metric should exist");
         assert!((counter_value - 1.0).abs() < f64::EPSILON);
     }
 
@@ -202,13 +202,14 @@ mod tests {
         .await;
 
         // Assert
-        let counter_value = {
-            let stats = stats_repository.get_stats().await;
-            stats
-                .metric_collection
-                .sum(&metric_name!(UDP_TRACKER_SERVER_CONNECTION_ID_ERRORS_TOTAL), &expected_labels)
-                .expect("QBitTorrent connection-ID-error metric should exist")
-        };
+        let counter_value = stats_repository
+            .read_metrics(|metrics| {
+                metrics
+                    .metric_collection()
+                    .sum(&metric_name!(UDP_TRACKER_SERVER_CONNECTION_ID_ERRORS_TOTAL), &expected_labels)
+            })
+            .await
+            .expect("QBitTorrent connection-ID-error metric should exist");
         assert!((counter_value - 1.0).abs() < f64::EPSILON);
     }
 }

@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p3
 epic: 1669
 github-issue: 2536
 spec-path: docs/issues/open/2536-1669-hide-statistics-repository-read-lock/ISSUE.md
-branch: "2536-1669-hide-statistics-repository-read-lock-spec"
-related-pr: null
-last-updated-utc: "2026-10-15 15:15"
+branch: "2536-1669-hide-statistics-repository-read-lock"
+related-pr: 2545
+last-updated-utc: "2026-10-16 08:12"
 semantic-links:
   skill-links:
     - create-issue
@@ -18,6 +18,7 @@ semantic-links:
     - "issue #1669"
     - docs/issues/closed/2517-1669-encapsulate-statistics-repository-state/ISSUE.md
     - docs/adrs/20260629000000_adopt_independent_package_versioning.md
+    - docs/adrs/index.md
     - packages/udp-core/src/statistics/repository.rs
     - packages/udp-server/src/statistics/repository.rs
     - packages/http-core/src/statistics/repository.rs
@@ -125,7 +126,7 @@ Each `Metrics` type makes its field `pub(crate)` and adds a read-only accessor:
 ```rust,ignore
 impl Metrics {
     #[must_use]
-    pub fn metric_collection(&self) -> &MetricCollection {
+    pub const fn metric_collection(&self) -> &MetricCollection {
         &self.metric_collection
     }
 }
@@ -192,9 +193,13 @@ repository.read_metrics(|metrics| collection.merge(metrics.metric_collection()))
 
 - Related ADRs: `docs/adrs/20260629000000_adopt_independent_package_versioning.md` (the read API
   is public API; changing it after a publish is breaking).
-- ADRs to create: none planned. The read design is recorded in this spec. Create a root ADR if
-  review decides that closure-based reads should become the rule for every future statistics
-  repository; it would be a multi-package decision, so it belongs in `docs/adrs/`.
+- ADRs to create: one root ADR in `docs/adrs/` (task T9), because the maintainer decided that
+  closure-based reads become the rule for every statistics repository. It is a multi-package
+  decision, so it is a root ADR. It records the rule (a repository exposes no lock type and no
+  metric-collection field in its public read API; callers read through `read_metrics()` and
+  `metric_collection()`), the alternatives rejected in Proposed Design, and the caller obligation
+  from the Design and Ownership Review. Follow the `create-adr` skill, including registering it
+  in `docs/adrs/index.md`.
 
 ## Design and Ownership Review
 
@@ -226,14 +231,15 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                                    | Notes / Expected Output                                                                                                                  |
 | --- | ------ | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Re-verify the callers on current `develop`              | Repeat the caller search; record the commit and any new caller in the Progress Log.                                                     |
-| T2  | TODO   | Capture the M1 baseline on `develop`                    | Run M1 before any change and store the five `develop` outputs listed under Manual Verification Scenarios under `evidence/`. |
-| T3  | TODO   | Hide the read lock and field in `udp-core`              | `read_metrics()`, `metric_collection()`, `pub(crate)` field, doctests and their rustdoc lead-in link, and updated callers; the workspace builds and its tests pass. |
-| T4  | TODO   | Hide the read lock and field in `udp-server`            | Same as T3; the largest task (30 in-crate unit-test calls, the `metrics_snapshot` helper, and the guard-accessor test to replace). |
-| T5  | TODO   | Hide the read lock and field in `http-core`             | Same as T3.                                                                                                                              |
-| T6  | TODO   | Hide the read lock and field in `tracker-core`          | Same as T3, including the repository's own counter reads.                                                                               |
-| T7  | TODO   | Hide the read lock and field in `swarm-coordination-registry` | Same as T3.                                                                                                                        |
-| T8  | TODO   | Verification                                            | Starts only after the maintainer review that follows T7. See Verification Plan; run M1 on the branch, store its five outputs, and compare them with T2's. |
+| T1  | DONE   | Re-verify the callers on current `develop`              | Repeat the caller search; record the commit and any new caller in the Progress Log.                                                     |
+| T2  | DONE   | Capture the M1 baseline on `develop`                    | Run M1 before any change and store the five `develop` outputs listed under Manual Verification Scenarios under `evidence/`. |
+| T3  | DONE   | Hide the read lock and field in `udp-core`              | `read_metrics()`, `metric_collection()`, `pub(crate)` field, doctests and their rustdoc lead-in link, and updated callers; the workspace builds and its tests pass. |
+| T4  | DONE   | Hide the read lock and field in `udp-server`            | Same as T3; the largest task (30 in-crate unit-test calls, the `metrics_snapshot` helper, and the guard-accessor test to replace). |
+| T5  | DONE   | Hide the read lock and field in `http-core`             | Same as T3.                                                                                                                              |
+| T6  | DONE   | Hide the read lock and field in `tracker-core`          | Same as T3, including the repository's own counter reads.                                                                               |
+| T7  | DONE        | Hide the read lock and field in `swarm-coordination-registry` | Same as T3.                                                                                                                        |
+| T8  | DONE   | Verification                                            | Starts only after the maintainer review that follows T7. See Verification Plan; run M1 on the branch, store its five outputs, and compare them with T2's. |
+| T9  | DONE   | Write the root ADR for closure-based statistics reads   | `docs/adrs/<timestamp>_<title>.md` registered in `docs/adrs/index.md`; passes `linter markdown` and `linter cspell`. Needs no maintainer test review, so it can be written before T8. |
 
 ## Commit Points
 
@@ -241,6 +247,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ----- | --------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
 | T3-T7 | `refactor(<package>): [#2536] hide the statistics read lock and metric collection field`, one per package, each with its callers and doctests, so every commit builds | Commit after focused validation and the test-design review; T7's commit also waits for the maintainer review (see Test-Development Workflow). |
 | T2, T8 | Manual verification evidence and spec progress updates                                                                                       | Commit after the evidence is recorded.                      |
+| T9    | `docs(adrs): [#2536] record closure-based reads for the statistics repositories`                                                              | Commit after the ADR passes `linter markdown` and `linter cspell`. |
 
 Every commit is GPG signed. Because `rest-api-runtime-adapter` and the tests read from all five
 crates, each package commit updates the callers of that package's accessor in the same commit.
@@ -282,14 +289,14 @@ request.
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
-- [ ] Test-design review (with the prose-first AAA comparison) recorded for each of T3-T7 before the next task started
-- [ ] Maintainer reviewed the test increments after T7, before T7's commit and final verification
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Test-design review (with the prose-first AAA comparison) recorded for each of T3-T7 before the next task started
+- [x] Maintainer reviewed the test increments after T7, before T7's commit and final verification
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [ ] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
@@ -345,25 +352,127 @@ request.
   masks the two activity-job gauges (swarm_coordination_registry_peers_inactive_total and
   _torrents_inactive_total), whose presence and values depend on time since startup, not on the
   announces.
+- 2026-10-15 17:56 UTC - GitHub Copilot - Implementation started on branch
+  `2536-1669-hide-statistics-repository-read-lock` from `torrust/develop` at `fe5d8264a`. The caller
+  grep now prints 80 lines (84 at `48c4d3013`); T1 records the difference. Maintainer feedback:
+  (1) write a root ADR making closure-based reads the rule (new task T9 and AC6; Architectural
+  Decisions updated); (2) the agent runs M1 itself (T2 baseline and T8); (3) nobody is working on
+  #2414, so the overlap risk needs no rebase ordering now; (4) no other spec changes.
+- 2026-10-15 17:58 UTC - GitHub Copilot - T1 done on `develop` at `fe5d8264a` (the branch code is
+  identical, only specs differ): the AC1 call grep prints 80 lines (84 at `48c4d3013`), no new
+  caller file outside those the spec lists, and the five rustdoc lead-in links are unchanged.
+  T2 done: the baseline binaries were built from this code and M1 ran twice on `develop`; the two
+  normalized runs were identical, which confirms the normalization is deterministic. The five
+  `develop` outputs are stored as `evidence/m1-develop-*`.
+- 2026-10-15 18:02 UTC - GitHub Copilot - T3 done (`udp-core`). Red/green for the new
+  `compile_fail,E0616` doctest (`metrics.metric_collection` read inside `read_metrics`): with the
+  field temporarily `pub` it FAILED (it compiled); with `pub(crate)` it passes on nightly. The old
+  `Repository::stats` doctest is unchanged. Test-design review: the migrated tests keep their
+  Arrange/Act/Assert and expected values and change only how the value is read (`read_metrics`
+  with `metric_collection()` or `Metrics::udp4_connections_handled`); no helper was added. Prose-first AAA
+  comparison for the `compile_fail` doctest: Arrange = a `&Repository`, Act = compile the read
+  of the private field through `read_metrics`, Assert = `E0616`. The event handler's debug log
+  now reads inside the `tracing::debug!` arguments, so the lock is still taken only when `debug`
+  is enabled, and the logged text stays `stats: Metrics { .. }`.
+- 2026-10-15 18:08 UTC - GitHub Copilot - T4 done (`udp-server`). Red/green for the new
+  `compile_fail,E0616` doctest: with the field temporarily `pub` it FAILED; with `pub(crate)` it
+  passes on nightly. The #2517 guard-accessor test `it_should_return_a_read_guard_to_metrics` was
+  replaced by `it_should_run_the_closure_on_the_metrics_and_return_its_result`, which tests
+  `read_metrics()` itself (the closure runs on the metrics and its value is returned). The
+  `metrics_snapshot` helper stays: it names one action (copy the repository's metrics so a test
+  can read them without the lock) and now clones `metric_collection()` inside `read_metrics()`.
+  The other tests keep their assertions and expected values and read through `Metrics::<method>`
+  passed to `read_metrics()` (or one closure when several values are read together). In the REST
+  adapter, `get_stats()` now builds the `Stats` inside the `udp-server` closure, and
+  `get_labeled_stats()` merges the collection inside its closure. Prose-first AAA comparison:
+  unchanged Arrange/Act sections, the Assert still names the expected counter value; only the
+  read path changed. Clippy `-D warnings` is clean for the workspace.
+- 2026-10-15 18:11 UTC - GitHub Copilot - T5 done (`http-core`). Red/green for the new
+  `compile_fail,E0616` doctest: FAILED with the field temporarily `pub`, passes with `pub(crate)`.
+  Test-design review: the unit and contract tests keep their Arrange/Act/Assert and expected
+  counts and read through `Metrics::<method>`; the contract tests drop their `drop(stats)` lines,
+  because no guard exists any more. No helper was added. The REST adapter now reads the four
+  HTTP counters in one `read_metrics()` closure before building the `Stats` and merges the HTTP
+  collection inside its closure.
+- 2026-10-15 18:13 UTC - GitHub Copilot - T6 done (`tracker-core`). Red/green for the new
+  `compile_fail,E0616` doctest: FAILED with the field temporarily `pub`, passes with `pub(crate)`.
+  Test-design review: the two repository unit tests used to hold a guard across their Assert; each
+  now does its Act in one `read_metrics()` call that returns the values to check (three `bool`s,
+  or one), so the Assert section compares plain values and needs no `drop(metrics)`. The
+  repository's own `get_counter_value` and the integration `TestEnv::get_counter_value` read the
+  counter inside the closure. Prose-first AAA comparison: Arrange = a repository with the two
+  flags, Act = read whether each counter is described, Assert = persisted counter present only
+  when enabled.
+- 2026-10-15 18:18 UTC - GitHub Copilot - T7 implemented in the working tree for
+  `swarm-coordination-registry` and NOT committed: the spec stops for the maintainer review of all
+  test increments first. Red/green for the new `compile_fail,E0616` doctest: FAILED with the field
+  temporarily `pub`, passes with `pub(crate)`. Test-design review: the metric-reading test helpers
+  (`get_counter_metric`, `get_gauge_metric`, `expect_peer_added_metric_to_be`, and
+  `inactive_peers_total`) each name one action, read a single metric, and now do that inside one
+  `read_metrics()` call; their callers and expected values are unchanged. `inactive_peers_total`
+  keeps its gauge-to-count conversion outside the closure. T9 done: the root ADR
+  `docs/adrs/20261015181650_read_statistics_repositories_through_a_closure.md` is registered in
+  `docs/adrs/index.md`. The AC1 call grep prints exactly the two REST-port lines; the AC2 grep, the
+  AC3 grep, and the guard grep (only the `#[cfg(test)] pub(crate) write_lock_for_test()` matches)
+  give the expected results. `cargo test --workspace` passes and clippy `-D warnings` is clean.
+- 2026-10-15 19:40 UTC - GitHub Copilot - The maintainer reviewed and approved the test increments
+  T3-T7. T7 is committed; T8 (final verification) starts.
+- 2026-10-15 19:48 UTC - GitHub Copilot - T8 done. M1 ran on the branch and its five normalized
+  outputs are byte-identical to T2's `develop` outputs (AC5); lazy debug logging checked at
+  runtime (AC4). `linter all` (pre-commit) and the pre-push checks pass (nightly format, check,
+  docs and library docs, and the full stable test suite). Evidence:
+  `manual-verification-evidence.md` and `evidence/m1-*`. No retrospective is needed: the design,
+  scope, and task list held, the only differences from the spec were that `metric_collection()`
+  must be `const fn` (clippy `missing_const_for_fn`, the spec snippet is updated) and that the
+  `tracker-core` unit tests now do their Act in one `read_metrics()` call; the maintainer added
+  only the ADR (T9), done as planned. Still open: reviewer validation, committer check,
+  and closing the issue after the PR merges.
+- 2026-10-15 21:05 UTC - GitHub Copilot - PR #2545 review (F2, da2ce7): stamps that were later than
+  the commits carrying them are corrected to the commits' time: the T7 entry (18:20 to 18:18), the
+  T8 entry (19:55 to 19:48), the evidence file's `last-updated-utc` (19:50 to 19:48), and the
+  EPIC's log entry (19:55 to 19:48). The `last-updated-utc` of this spec and of the EPIC were set
+  to 21:05, the time of that commit, not to 19:48. The five earlier entries that the ADR
+  commit rewrote in place stay as they are in history; their values were already correct. From now
+  on, each stamp is taken from `date -u` immediately before its commit.
+- 2026-10-15 21:06 UTC - GitHub Copilot - PR #2545 review (F3, da2ce7): da2ce7's review
+  (https://github.com/torrust/torrust-tracker/pull/2545#pullrequestreview-5539892352, APPROVED
+  2026-10-15 21:02 UTC at the pushed head) recomputed the spec greps, the five doctests, and the
+  byte-identical M1 evidence, and found AC1-AC6 met. The implementer had ticked the acceptance
+  boxes in the final spec commit; this entry records that the reviewer validated them, and the
+  "Reviewer validated acceptance criteria" checkpoint is ticked on that basis. No
+  `agent-review-reports.md` exists: the review was posted on GitHub, not given this spec folder by
+  an agent.
+- 2026-10-16 08:12 UTC - GitHub Copilot - PR #2545 review rounds 2 and 3 (da2ce7): on 2026-10-16 three
+  commits corrected this spec: `docs(issues): [#2536] point the spec's pointers at the corrected
+  progress-log stamps` (the retrospective pointer and the AC1 evidence row now name the 19:48 and
+  18:18 entries); `docs(issues): [#2536] state the last-updated stamps the F2 correction actually
+  set` (rewrote the 21:05 entry in place: the EPIC's log entry went to 19:48, and the
+  `last-updated-utc` of the spec and the EPIC were set to 21:05); and `docs(issues): [#2536] name
+  da2ce7's review where the spec called it the maintainer's` (rewrote the 21:06 entry in place).
+  The 21:05 and 21:06 entries therefore carry wording written the next morning under their old
+  stamps, and this entry is the record of that. The audit
+  (`docs/pr-reviews/pr-2545-review/PR-REVIEW.md`) records the findings behind each correction.
 
 ## Acceptance Criteria
 
-- [ ] AC1: No public method of the five statistics repositories returns a lock guard or any other
+- [x] AC1: No public method of the five statistics repositories returns a lock guard or any other
   lock type; `get_stats()` and `get_metrics()` no longer exist.
-- [ ] AC2: The five `Metrics` types have no `pub` `metric_collection` field; code outside each crate
+- [x] AC2: The five `Metrics` types have no `pub` `metric_collection` field; code outside each crate
   reads it only through `metric_collection()`.
-- [ ] AC3: Each crate has a `compile_fail,E0616` doctest for the field and a compiling
+- [x] AC3: Each crate has a `compile_fail,E0616` doctest for the field and a compiling
   `read_metrics()` example, and neither the #2517 companion doctests nor the rustdoc lead-in
   above them refers to a removed accessor.
-- [ ] AC4: The `udp-core`, `udp-server`, and `http-core` event handlers still take the read lock for
+- [x] AC4: The `udp-core`, `udp-server`, and `http-core` event handlers still take the read lock for
   their debug log only when `debug` is enabled.
-- [ ] AC5: REST `/api/v1/stats` and `/api/v1/metrics` report the same values as `develop` for the
+- [x] AC5: REST `/api/v1/stats` and `/api/v1/metrics` report the same values as `develop` for the
   same announces.
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
-- [ ] Documentation is updated when behavior/workflow changes
+- [x] AC6: A root ADR records closure-based reads as the rule for the statistics repositories and is
+  listed in `docs/adrs/index.md`.
+- [x] `linter all` exits with code `0`
+- [x] Relevant tests pass
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] Documentation is updated when behavior/workflow changes
 
 ## Verification Plan
 
@@ -414,7 +523,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario                 | Human-oriented command/steps                                                                                                                                                                                         | Expected Result                                                                                                  | Status | Evidence                                     |
 | --- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ------ | -------------------------------------------- |
-| M1  | REST metrics unchanged   | Run the tracker (`run-tracker-locally` skill) on `develop` and on the branch with fresh databases; send the same HTTP and UDP `started` and `completed` announces with `tracker_client`; read `/api/v1/stats` and `/api/v1/metrics` before and after | The five normalized outputs (see Notes) are byte-identical between the two runs | TODO   | `manual-verification-evidence.md` section V1 |
+| M1  | REST metrics unchanged   | Run the tracker (`run-tracker-locally` skill) on `develop` and on the branch with fresh databases; send the same HTTP and UDP `started` and `completed` announces with `tracker_client`; read `/api/v1/stats` and `/api/v1/metrics` before and after | The five normalized outputs (see Notes) are byte-identical between the two runs | DONE   | `manual-verification-evidence.md` section V1 |
 
 Notes:
 
@@ -454,11 +563,12 @@ steps in the evidence instead of committing it, as #2517 did.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence           |
 | ----- | ---------------------- | ------------------ |
-| AC1   | TODO                   | {test/log/PR link} |
-| AC2   | TODO                   | {test/log/PR link} |
-| AC3   | TODO                   | {test/log/PR link} |
-| AC4   | TODO                   | {test/log/PR link} |
-| AC5   | TODO                   | {test/log/PR link} |
+| AC1   | DONE                   | `grep -E RwLock(Read\|Write)Guard` matches only the `#[cfg(test)]` `write_lock_for_test()`; the call grep prints only the two REST-port lines (progress log, 2026-10-15 18:18 UTC) |
+| AC2   | DONE                   | AC2 grep prints nothing; `metric_collection()` is the only outside read path (commits `refactor(<package>): [#2536] ...`) |
+| AC3   | DONE                   | five `compile_fail,E0616` doctests, red/green recorded per package in the progress log; AC3 grep prints nothing; nightly library docs build passes (pre-push) |
+| AC4   | DONE                   | handlers read inside `tracing::debug!`; runtime check in `manual-verification-evidence.md` V1 (0 lines at `info`, 9 at `debug`) |
+| AC5   | DONE                   | `manual-verification-evidence.md` V1: five normalized outputs byte-identical to `develop` |
+| AC6   | DONE                   | `docs/adrs/20261015181650_read_statistics_repositories_through_a_closure.md`, listed in `docs/adrs/index.md` |
 
 ## Risks and Trade-offs
 
@@ -494,7 +604,7 @@ After implementation, compare the result with this specification. Record
 invalidated assumptions, material design changes, unexpected validation
 findings, and reusable lessons.
 
-- Retrospective: `Not yet assessed`
+- Retrospective: `Not needed`; see the 2026-10-15 19:48 UTC progress-log entry.
 - If needed, create `implementation-retrospective.md` from the repository
   template at `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this issue
   specification's directory.

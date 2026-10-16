@@ -137,6 +137,7 @@ mod tests {
     use super::dispatch_events;
     use crate::event::Event;
     use crate::event::receiver::Receiver;
+    use crate::statistics::metrics::Metrics;
     use crate::statistics::repository::Repository;
 
     struct ScriptedReceiver {
@@ -201,7 +202,7 @@ mod tests {
         .await;
 
         // Assert
-        assert_eq!(repository.get_stats().await.udp4_requests_received_total(), 1);
+        assert_eq!(repository.read_metrics(Metrics::udp4_requests_received_total).await, 1);
     }
 
     #[tokio::test]
@@ -243,7 +244,7 @@ mod tests {
         .await;
 
         // Assert
-        assert_eq!(repository.get_stats().await.udp4_requests_received_total(), 1);
+        assert_eq!(repository.read_metrics(Metrics::udp4_requests_received_total).await, 1);
     }
 
     #[tokio::test]
@@ -265,6 +266,6 @@ mod tests {
         .await;
 
         // Assert
-        assert_eq!(repository.get_stats().await.udp4_requests_received_total(), 0);
+        assert_eq!(repository.read_metrics(Metrics::udp4_requests_received_total).await, 0);
     }
 }

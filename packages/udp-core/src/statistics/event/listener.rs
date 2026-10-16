@@ -133,6 +133,7 @@ mod tests {
     use crate::event::receiver::Receiver;
     use crate::event::{ConnectionContext, Event};
     use crate::statistics::UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL;
+    use crate::statistics::metrics::Metrics;
     use crate::statistics::repository::Repository;
     use crate::tests::sample_info_hash;
 
@@ -226,10 +227,12 @@ mod tests {
 
         // Assert
         let requests_received = repository
-            .get_stats()
-            .await
-            .metric_collection
-            .sum(&metric_name!(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL), &LabelSet::empty());
+            .read_metrics(|metrics| {
+                metrics
+                    .metric_collection()
+                    .sum(&metric_name!(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL), &LabelSet::empty())
+            })
+            .await;
         assert_eq!(requests_received, Some(1.0));
     }
 
@@ -254,7 +257,7 @@ mod tests {
         .await;
 
         // Assert
-        assert_eq!(repository.get_stats().await.udp4_connections_handled(), 1);
+        assert_eq!(repository.read_metrics(Metrics::udp4_connections_handled).await, 1);
     }
 
     #[tokio::test]
@@ -270,7 +273,7 @@ mod tests {
         dispatch_events(receiver, cancellation_token, repository.clone(), [(enabled_id, true)].into()).await;
 
         // Assert
-        assert_eq!(repository.get_stats().await.udp4_connections_handled(), 0);
+        assert_eq!(repository.read_metrics(Metrics::udp4_connections_handled).await, 0);
     }
 
     #[tokio::test]
@@ -297,6 +300,6 @@ mod tests {
         .await;
 
         // Assert
-        assert_eq!(repository.get_stats().await.udp4_connections_handled(), 1);
+        assert_eq!(repository.read_metrics(Metrics::udp4_connections_handled).await, 1);
     }
 }

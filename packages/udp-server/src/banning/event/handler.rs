@@ -78,6 +78,7 @@ mod tests {
     use super::handle_event;
     use crate::banning::PublicationOrder;
     use crate::event::{ErrorKind, Event};
+    use crate::statistics::metrics::Metrics;
     use crate::statistics::repository::Repository;
 
     const EVENT_TIME: DurationSinceUnixEpoch = DurationSinceUnixEpoch::new(1_700_000_000, 0);
@@ -179,7 +180,7 @@ mod tests {
 
         // Assert
         assert_eq!(
-            context.stats_repository.get_stats().await.udp_banned_ips_total(),
+            context.stats_repository.read_metrics(Metrics::udp_banned_ips_total).await,
             expected_banned_ip_total,
             "published banned IPs total after a cookie error takes {cookie_error_client_ip} over the limit of \
              {CONNECTION_ID_ERROR_LIMIT} while {banned_client_ip} is already banned and \

@@ -75,6 +75,7 @@ mod tests {
     use super::{PublicationOrder, reset_bans};
     use crate::banning::event::handler::handle_event;
     use crate::event::{ErrorKind, Event};
+    use crate::statistics::metrics::Metrics;
     use crate::statistics::repository::Repository;
 
     const EVENT_TIME: DurationSinceUnixEpoch = DurationSinceUnixEpoch::new(1_700_000_000, 0);
@@ -120,7 +121,7 @@ mod tests {
 
         // Assert
         assert_eq!(
-            stats_repository.get_stats().await.udp_banned_ips_total(),
+            stats_repository.read_metrics(Metrics::udp_banned_ips_total).await,
             0,
             "published banned IPs total after a reset, when {banned_client_ip} had been banned and published as 1"
         );

@@ -127,6 +127,7 @@ mod tests {
     use super::dispatch_events;
     use crate::event::receiver::Receiver;
     use crate::event::{ConnectionContext, Event};
+    use crate::statistics::metrics::Metrics;
     use crate::statistics::repository::Repository;
 
     struct ScriptedReceiver {
@@ -169,7 +170,7 @@ mod tests {
         dispatch_events(receiver, CancellationToken::new(), repository.clone(), BTreeMap::new()).await;
 
         // Assert
-        assert_eq!(repository.get_stats().await.tcp4_scrapes_handled(), 0);
+        assert_eq!(repository.read_metrics(Metrics::tcp4_scrapes_handled).await, 0);
     }
 
     #[tokio::test]
@@ -193,7 +194,7 @@ mod tests {
         .await;
 
         // Assert
-        assert_eq!(repository.get_stats().await.tcp4_scrapes_handled(), 1);
+        assert_eq!(repository.read_metrics(Metrics::tcp4_scrapes_handled).await, 1);
     }
 
     #[tokio::test]
@@ -209,7 +210,7 @@ mod tests {
         dispatch_events(receiver, cancellation_token, repository.clone(), [(enabled_id, true)].into()).await;
 
         // Assert
-        assert_eq!(repository.get_stats().await.tcp4_scrapes_handled(), 0);
+        assert_eq!(repository.read_metrics(Metrics::tcp4_scrapes_handled).await, 0);
     }
 
     #[tokio::test]
@@ -236,6 +237,6 @@ mod tests {
         .await;
 
         // Assert
-        assert_eq!(repository.get_stats().await.tcp4_scrapes_handled(), 1);
+        assert_eq!(repository.read_metrics(Metrics::tcp4_scrapes_handled).await, 1);
     }
 }
