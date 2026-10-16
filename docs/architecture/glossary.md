@@ -117,13 +117,20 @@ lists every producer and consumer.
   producer's completion is what allows its consumers to be cancelled.
 - **Drain**: the work a component does after a stop request: an HTTP or UDP
   server finishes the requests it already accepted, and **Planned** a listener
-  processes the events queued for it. A drain bounds its waiting between
-  events. It does not interrupt a handler that is running.
-- **Drain timeout**: a component-specific drain policy, not necessarily a hard
-  handler deadline. The HTTP server uses 90 seconds, and the UDP server uses 5
-  seconds for active requests. **Planned**: each listener gets an admission
-  budget injected through its constructor, and a later issue (SI-20) aligns the
-  aggregate budgets.
+  processes the events queued for it. What a drain timeout does when it expires
+  depends on the component (see **Drain timeout**).
+- **Drain timeout**: a component-specific drain policy. Two kinds exist, and
+  they differ at expiry:
+  - A **server drain deadline** is a hard limit. The HTTP server forces shutdown
+    when its 90-second timeout passes, and the UDP server aborts the request
+    processors still running when its 5-second deadline passes.
+  - **Planned**: a **listener admission timeout** is checked only between
+    events, so it never interrupts a handler that is running. Each listener gets
+    its budget injected through its constructor, and a later issue (SI-20) aligns
+    the aggregate budgets.
+
+  Every drain timeout is still bounded by the shared deadline, which aborts
+  whatever is left, including a running handler.
 - **Shared deadline**: the single deadline `JobManager::wait_for_all` applies to
   all top-level components together. `main` passes 10 seconds today, and SI-20
   makes it configurable. When it expires, `JobManager` aborts the remaining
