@@ -38,7 +38,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Copilot's review 5539177165 (COMMENTED, 2026-10-15 20:03:35 UTC) is an overview with no findings, so it adds no row. da2ce7's review 5539892352 (APPROVED, 2026-10-15 21:02:29 UTC) carries four inline findings, F1-F4, all non-blocking. Its body raises nothing else; its "Checked, no finding" list is not a request. All four are fixed before merge and answered in one consolidated PR conversation response, <https://github.com/torrust/torrust-tracker/pull/2545#issuecomment-6202317771>, which names both reviews and every finding.
+Copilot's review 5539177165 (COMMENTED, 2026-10-15 20:03:35 UTC) is an overview with no findings, so it adds no row. da2ce7's review 5539892352 (APPROVED, 2026-10-15 21:02:29 UTC) carries four inline findings, F1-F4, all non-blocking. Its body raises nothing else; its "Checked, no finding" list is not a request. All four are fixed before merge and answered in one consolidated PR conversation response, <https://github.com/torrust/torrust-tracker/pull/2545#issuecomment-6202317771>, which names both reviews and every finding. da2ce7's second review 5540236537 (APPROVED, 2026-10-15 21:35:58 UTC, at the pushed head) carries four more inline `Nit` findings. Its own IDs F1-F4 collide with the rows above, so they are recorded as F5-F8 with the reviewer's ID kept in each entry. Its body raises nothing else. The four later reviews by the PR author are reply wrappers and add no row. All four are fixed and answered in a second consolidated response, <https://github.com/torrust/torrust-tracker/pull/2545#issuecomment-6210195811>.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -46,6 +46,10 @@ Copilot's review 5539177165 (COMMENTED, 2026-10-15 20:03:35 UTC) is an overview 
 | F2 | `review-finding:pr-2545-f2` | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F3 | `review-finding:pr-2545-f3` | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F4 | `review-finding:pr-2545-f4` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F5 | `review-finding:pr-2545-f5` | Human | Nit | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F6 | `review-finding:pr-2545-f6` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F7 | `review-finding:pr-2545-f7` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F8 | `review-finding:pr-2545-f8` | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -69,7 +73,7 @@ Copilot's review 5539177165 (COMMENTED, 2026-10-15 20:03:35 UTC) is an overview 
 - Reviewer finding ID: N/A
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2545#discussion_r4288246380>
 - Concern: The spec's `last-updated-utc` and the 19:55 Progress Log entry, the evidence file's and the EPIC's stamps, and the 18:20 entry were later than the commits that carry them, and the commit titled for the ADR rewrote five earlier stamps in place. The audit skill treats a later stamp as a defect.
-- Solution: The later stamps are corrected to their commits' time (T7 entry 18:18, T8 entry 19:48, evidence 19:48, EPIC entry and stamp 19:48) with a Progress Log entry. The five stamps rewritten in place stay in history because the branch history is kept; their values were already correct. Each stamp is now taken from `date -u` immediately before its commit. The consolidated response is https://github.com/torrust/torrust-tracker/pull/2545#issuecomment-6202317771.
+- Solution: The later stamps are corrected to their commits' time (T7 entry 18:18, T8 entry 19:48, evidence 19:48, EPIC log entry 19:48); the `last-updated-utc` of the spec and of the EPIC were set to 21:05, the time of that commit with a Progress Log entry. The five stamps rewritten in place stay in history because the branch history is kept; their values were already correct. Each stamp is now taken from `date -u` immediately before its commit. The consolidated response is https://github.com/torrust/torrust-tracker/pull/2545#issuecomment-6202317771.
 - Current-tree verification: In the spec, the T7 entry reads 18:18 UTC and the T8 entry 19:48 UTC; the evidence file reads `last-updated-utc: 2026-10-15 19:48`; the EPIC's entry reads 19:48 UTC. Every stamp is no later than its commit's UTC time.
 - Resolution reference: docs(issues): [#2536] correct progress-log stamps that were later than their commits
 - Follow-up PR URL: N/A
@@ -82,7 +86,7 @@ Copilot's review 5539177165 (COMMENTED, 2026-10-15 20:03:35 UTC) is an overview 
 - Reviewer finding ID: N/A
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2545#discussion_r4288246386>
 - Concern: AC1-AC6 and the standard criteria were ticked by the implementer in the final spec commit, while the template's separate checkpoint "Reviewer validated acceptance criteria and updated checkboxes" stayed open, and no `agent-review-reports.md` records who validated them.
-- Solution: The checkpoint is ticked on the basis of the maintainer's review 5539892352, which found AC1-AC6 met, and a Progress Log entry cites it and says no `agent-review-reports.md` exists because the review was posted on GitHub. The consolidated response is https://github.com/torrust/torrust-tracker/pull/2545#issuecomment-6202317771.
+- Solution: The checkpoint is ticked on the basis of da2ce7's review 5539892352, which found AC1-AC6 met, and a Progress Log entry cites it and says no `agent-review-reports.md` exists because the review was posted on GitHub. The consolidated response is https://github.com/torrust/torrust-tracker/pull/2545#issuecomment-6202317771.
 - Current-tree verification: The spec's "Reviewer validated acceptance criteria and updated checkboxes" checkpoint is `[x]`, and the 21:06 UTC Progress Log entry cites the review URL.
 - Resolution reference: docs(issues): [#2536] record the reviewer's validation of the acceptance criteria
 - Follow-up PR URL: N/A
@@ -101,9 +105,62 @@ Copilot's review 5539177165 (COMMENTED, 2026-10-15 20:03:35 UTC) is an overview 
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2545#discussion_r4288302698>
 
+### F5 - Two pointers still name the stamps that the F2 correction changed
+
+- PR number: 2545
+- Source review ID: 5540236537
+- Reviewer finding ID: F1
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2545#discussion_r4288526741>
+- Concern: The spec's retrospective pointer named "the 2026-10-15 19:55 UTC progress-log entry" and the AC1 evidence row named "progress log, 2026-10-15 18:20 UTC", but the F2 correction had changed those entries to 19:48 and 18:18, so each pointer named an entry that no longer existed.
+- Solution: Both pointers now name the corrected entries. The consolidated response is <https://github.com/torrust/torrust-tracker/pull/2545#issuecomment-6210195811>.
+- Current-tree verification: In the spec, the retrospective line reads 19:48 UTC and the AC1 row reads 18:18 UTC; the only 19:55 and 18:20 mentions left are in the 21:05 entry that describes the correction.
+- Resolution reference: docs(issues): [#2536] point the spec's pointers at the corrected progress-log stamps
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2545#discussion_r4291876039>
+
+### F6 - The EPIC's `last-updated-utc` is recorded as 19:48; it reads 21:05
+
+- PR number: 2545
+- Source review ID: 5540236537
+- Reviewer finding ID: F2
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2545#discussion_r4288526749>
+- Concern: The spec's 21:05 entry and my round-1 reply, consolidated response and audit F2 Solution said the EPIC's entry and `last-updated-utc` went from 19:55 to 19:48. The EPIC's `last-updated-utc` reads 21:05, set by that commit; only its log entry reads 19:48.
+- Solution: The 21:05 spec entry and the F2 Solution above now say the EPIC's log entry went to 19:48 and that the `last-updated-utc` of the spec and the EPIC were set to 21:05. The earlier GitHub reply and consolidated response cannot be edited reliably, so the second consolidated response <https://github.com/torrust/torrust-tracker/pull/2545#issuecomment-6210195811> corrects that claim.
+- Current-tree verification: `EPIC.md` line 9 reads `last-updated-utc: "2026-10-15 21:05"`; the spec's 21:05 entry and the F2 Solution state the same.
+- Resolution reference: docs(issues): [#2536] state the last-updated stamps the F2 correction actually set
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2545#discussion_r4291876194>
+
+### F7 - The entry calls review 5539892352 "the maintainer's review"; it is da2ce7's
+
+- PR number: 2545
+- Source review ID: 5540236537
+- Reviewer finding ID: F3
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2545#discussion_r4288526756>
+- Concern: In the spec, "the maintainer" chose the design, approved the spec and reviewed T3-T7, so calling da2ce7's review "the maintainer's review" in the 21:06 entry and in the audit's F3 Solution read as if the same person validated the acceptance criteria.
+- Solution: Both places now say "da2ce7's review". The consolidated response is <https://github.com/torrust/torrust-tracker/pull/2545#issuecomment-6210195811>.
+- Current-tree verification: The 21:06 spec entry reads "da2ce7's review"; `grep "maintainer's review"` on the spec prints nothing; the F3 Solution above reads "da2ce7's review 5539892352".
+- Resolution reference: docs(issues): [#2536] name da2ce7's review where the spec called it the maintainer's
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2545#discussion_r4291876391>
+
+### F8 - The Ownership section omits the template's post-merge approval line
+
+- PR number: 2545
+- Source review ID: 5540236537
+- Reviewer finding ID: F4
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2545#discussion_r4288526763>
+- Concern: The template copies the Ownership section verbatim, ending with the `- Post-merge workflow approval:` line, and this audit omitted it.
+- Solution: The line is added with the value `N/A`, since the review took place before merge. The consolidated response is <https://github.com/torrust/torrust-tracker/pull/2545#issuecomment-6210195811>.
+- Current-tree verification: The Ownership section of this record ends with `- Post-merge workflow approval: N/A`.
+- Resolution reference: docs(pr-reviews): [#2536] add the post-merge approval line to the PR #2545 audit
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2545#discussion_r4291876557>
+
 ## Processing Log
 
 - 2026-10-15 21:09 UTC - Started audit after da2ce7's review 5539892352 on PR #2545. Fixed F1-F3 in three signed commits, corrected the PR description for F4, posted the consolidated response, replied on the four threads, and resolved them. Pushing the fixes dismissed the approval, so the review needs a fresh approval.
+- 2026-10-16 07:15 UTC - Round 2: da2ce7's review 5540236537 (APPROVED) raised four Nit findings, recorded as F5-F8. Fixed each in its own signed commit, posted the second consolidated response, replied on the four threads, corrected the round-1 F2 and F3 Solution texts in this record, and resolved the threads. Round-1 rows are otherwise unchanged.
 
 ## Completion Rules
 
