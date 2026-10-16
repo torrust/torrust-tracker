@@ -336,14 +336,16 @@ fn it_should_list_every_variable_git_reports_as_repository_local() {
         .expect("failed to run Git");
     assert!(output.status.success(), "git rev-parse --local-env-vars failed");
 
-    let mut reported: Vec<&str> = std::str::from_utf8(&output.stdout).unwrap().lines().collect();
-    let mut listed = REPOSITORY_ENVIRONMENT.to_vec();
-    reported.sort_unstable();
-    listed.sort_unstable();
+    // Subset, not equality: an older Git may report fewer names, and the fixtures stay isolated.
+    let missing: Vec<&str> = std::str::from_utf8(&output.stdout)
+        .unwrap()
+        .lines()
+        .filter(|name| !REPOSITORY_ENVIRONMENT.contains(name))
+        .collect();
 
-    assert_eq!(
-        listed, reported,
-        "REPOSITORY_ENVIRONMENT differs from `git rev-parse --local-env-vars`"
+    assert!(
+        missing.is_empty(),
+        "REPOSITORY_ENVIRONMENT lacks variables from `git rev-parse --local-env-vars`: {missing:?}"
     );
 }
 
