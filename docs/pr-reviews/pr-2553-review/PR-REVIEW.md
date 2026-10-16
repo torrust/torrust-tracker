@@ -277,7 +277,7 @@ no row.
 - Reviewer finding ID: F1
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2553#discussion_r4294333111>
 - Concern: Items 1 to 3 of the rerun carry the same second, and item 6 carries a stamp before items 4 and 5, so the evidence is not shown to have run one step at a time, as the template requires. The recheck is not shown to have run on the restored file.
-- Solution: Discarded the 11:24 rerun and recorded a new one on the final test file: six steps, one tool call each, with millisecond stamps. The evidence names the `git diff --quiet HEAD -- <test file>` check that showed the file equal to `HEAD` at steps 1, 3, 5 and 6. It also records that the last step's end stamp precedes its start stamp.
+- Solution: Discarded the 11:24 rerun and recorded a new one on the final test file: six steps, one tool call each, with millisecond stamps. The evidence names the `git diff --quiet HEAD -- <test file>` check and where it ran: before the run at steps 1 and 6, and right after the restore at steps 3 and 5. It also records that the last step's end stamp precedes its start stamp.
 - Current-tree verification: The issue-local `manual-verification-evidence.md` has the section `Sequential rerun on the final test file` with the six steps; the discarded rerun is described and no longer listed as evidence.
 - Resolution reference: docs(issues): [#2413] rerun the isolation evidence one step at a time
 - Follow-up PR URL: N/A
@@ -342,7 +342,7 @@ no row.
 - Reviewer finding ID: F2
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2553#discussion_r4294519692>
 - Concern: F14's Solution says each restore was followed by a `git diff --quiet HEAD` check, but the evidence records no such command, only that the file "equals `HEAD`". The sentence also repeats the clock reading of F18.
-- Solution: The evidence now names the check, `git diff --quiet HEAD -- <test file>` exiting 0 and printing `file == HEAD`, which was run before steps 1, 3, 5 and 6. F14's Solution was reworded to state only what the evidence shows, without the clock reading.
+- Solution: The evidence now names the check, `git diff --quiet HEAD -- <test file>` exiting 0 and printing `file == HEAD`, which ran before the run at steps 1 and 6 and right after the restore at steps 3 and 5. F14's Solution was reworded to state only what the evidence shows, without the clock reading.
 - Current-tree verification: The evidence's intro to the sequential rerun names the command, and F14's Solution above matches it.
 - Resolution reference: docs(reviews): [#2413] align the F14 solution with the recorded evidence
 - Follow-up PR URL: N/A
