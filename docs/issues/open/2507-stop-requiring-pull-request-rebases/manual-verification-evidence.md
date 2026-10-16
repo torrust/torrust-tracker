@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2507-stop-requiring-pull-request-rebases/ISSUE.md
-last-updated-utc: 2026-10-14 10:47
+last-updated-utc: 2026-10-16 06:40
 ---
 
 # Manual Verification Evidence
@@ -258,6 +258,244 @@ Conclusion: the force-push ban is enforced again on `develop`, `main`, and relea
 (scenario M7), and no
 required status check is configured until the follow-up `CI gate` issue.
 
+### Merges Under the New Policy (Scenarios M1 to M6 and M8)
+
+- Goal: verify scenarios M1 to M6 and M8 from the real maintainer merges made after PR #2526
+  landed, as the specification's scenario notes intend ("executed during real maintainer merges").
+- Date and time (UTC): data collected 2026-10-15 16:20 to 16:50; `develop` reached `fd04ac51e`
+  (`Merge torrust/torrust-tracker#2543`) at 16:33 and was re-read at that commit.
+- Scope: the 18 pull-request merges from PR #2526 (GitHub `merged_at` 2026-10-14 12:18:38 UTC) to
+  #2543, both included. #2500 was still open during collection and merged at 17:13:46 UTC, after
+  `fd04ac51e`; it is not included. Its head was pushed at 16:49:48 UTC, after `develop` reached its
+  merge base, so it would not have exercised the refresh anyway.
+- Tools: `git` and GitHub CLI `gh` authenticated as `josecelano`.
+- Status: `DONE` (M1 by indirect evidence; see V1)
+
+For each first-parent merge commit `M`, `M^1` is the `develop` tip the merge was built on and
+`M^2` is the merged pull-request head. A head is "behind" when `git merge-base M^1 M^2` is not
+`M^1`. Commands, run in a Bash loop over the merges:
+
+```sh
+git log --first-parent --merges --since='2026-10-14T12:00:00Z' --format='%H %cI %s' torrust/develop
+git merge-base "$M^1" "$M^2"
+git merge-base --is-ancestor "$M^2" torrust/develop; echo $?
+gh api repos/torrust/torrust-tracker/issues/<n>/timeline --paginate \
+  --jq '[.[]|select(.event=="head_ref_force_pushed")|.created_at]|join(",")'
+git diff --name-only "$M^1...$M^2"   # code files = paths not ending in .md
+```
+
+Observed result (merge time in UTC+01:00, as Git prints it; "ancestor" is the exit code of
+`git merge-base --is-ancestor`):
+
+| PR    | Merged           | `M^1` (`develop`) | `M^2` (head) | Behind at merge   | Ancestor | Head force-pushes (UTC)   | Code files | Files |
+| ----- | ---------------- | ----------------- | ------------ | ----------------- | -------- | ------------------------- | ---------- | ----- |
+| #2526 | 2026-10-14 13:17 | `1c6707a43`       | `8ab3174a5`  | no                | 0        | 10-14 10:52, 11:44        | 6          | 16    |
+| #2524 | 2026-10-14 15:19 | `c1874facb`       | `f51bee826`  | no                | 0        | 10-14 10:28, 10:55, 13:14 | 19         | 26    |
+| #2527 | 2026-10-14 16:03 | `8045bd252`       | `081f6e6b0`  | no                | 0        | none                      | 9          | 12    |
+| #2528 | 2026-10-14 16:18 | `184446a2b`       | `620b2a606`  | yes (`8045bd252`) | 0        | none                      | 5          | 14    |
+| #2531 | 2026-10-14 17:06 | `988c3bc76`       | `b65cd96cb`  | no                | 0        | none                      | 0          | 2     |
+| #2529 | 2026-10-14 17:19 | `3b0b40047`       | `9af096dca`  | yes (`8045bd252`) | 0        | none                      | 19         | 23    |
+| #2530 | 2026-10-14 17:28 | `90e8daf75`       | `ab6ea7da6`  | yes (`988c3bc76`) | 0        | 10-14 15:31               | 4          | 10    |
+| #2533 | 2026-10-14 17:36 | `b24550171`       | `0d377b033`  | no                | 0        | none                      | 0          | 1     |
+| #2534 | 2026-10-14 17:42 | `e2e21f20c`       | `0782a8210`  | yes (`3b0b40047`) | 0        | none                      | 0          | 6     |
+| #2532 | 2026-10-14 22:08 | `48c4d3013`       | `2488cae4e`  | yes (`e2e21f20c`) | 0        | 10-14 16:36, 16:39        | 10         | 16    |
+| #2537 | 2026-10-15 07:41 | `07750152f`       | `b084b2ea5`  | no                | 0        | 10-14 21:27               | 1          | 5     |
+| #2535 | 2026-10-15 07:48 | `e6b46013b`       | `ed56f2efe`  | yes (`48c4d3013`) | 0        | none                      | 0          | 2     |
+| #2539 | 2026-10-15 08:18 | `ee4eb8e9c`       | `51ca18aff`  | yes (`e6b46013b`) | 0        | none                      | 1          | 3     |
+| #2540 | 2026-10-15 08:36 | `759893bd1`       | `e346138ce`  | no                | 0        | none                      | 0          | 2     |
+| #2538 | 2026-10-15 16:06 | `9c8bcdf8a`       | `fffdb8c03`  | no                | 0        | 10-15 12:04               | 20         | 50    |
+| #2430 | 2026-10-15 16:42 | `3195b8b60`       | `ff8015ad1`  | yes (`9c8bcdf8a`) | 0        | 10-15 11:31               | 0          | 3     |
+| #2541 | 2026-10-15 16:47 | `09887e70d`       | `079b6e741`  | yes (`3195b8b60`) | 0        | none                      | 3          | 34    |
+| #2543 | 2026-10-15 17:32 | `a9d8c5703`       | `34a8db13d`  | no                | 0        | none                      | 0          | 1     |
+
+The "Behind at merge" column names the merge base when it is not `M^1`.
+
+#### V1 - Stale Recorded Base Is Refreshed (M1)
+
+The terminal output of these merges was not captured, so the printed line
+`Refreshed the recorded base of torrust/torrust-tracker#<n>` is not available. The evidence is
+indirect. For each behind pull request, its recorded base after merge was compared with `M^1`, and
+the time its head was first pushed (the creation of the earliest `pull_request` workflow run for
+`M^2`) with the time `develop` reached `M^1`:
+
+```sh
+gh api repos/torrust/torrust-tracker/pulls/<n> --jq .base.sha
+gh api "repos/torrust/torrust-tracker/actions/runs?head_sha=$(git rev-parse "$M^2")&event=pull_request&per_page=100" \
+  --jq '[.workflow_runs[].created_at]|min'
+git log -1 --format=%cI "$M^1"
+gh api repos/torrust/torrust-tracker/issues/<n>/timeline --paginate \
+  --jq '[.[]|select(.event=="reopened" or .event=="closed" or .event=="base_ref_changed")|"\(.event)@\(.created_at)"]|join(",")'
+```
+
+| PR    | `base.sha` = `M^1` | Head first pushed (UTC) | `develop` reached `M^1` (UTC) | Head push before `M^1`? |
+| ----- | ------------------ | ----------------------- | ----------------------------- | ----------------------- |
+| #2528 | yes                | 2026-10-14 14:58:41     | 2026-10-14 15:03:58           | yes                     |
+| #2529 | yes                | 2026-10-14 16:00:25     | 2026-10-14 16:06:29           | yes                     |
+| #2530 | yes                | 2026-10-14 16:06:44     | 2026-10-14 16:19:52           | yes                     |
+| #2534 | yes                | 2026-10-14 16:34:46     | 2026-10-14 16:36:43           | yes                     |
+| #2532 | yes                | 2026-10-14 19:43:48     | 2026-10-14 16:42:40           | no                      |
+| #2535 | yes                | 2026-10-14 16:55:35     | 2026-10-15 06:41:23           | yes                     |
+| #2539 | yes                | 2026-10-15 07:01:02     | 2026-10-15 06:48:41           | no                      |
+| #2430 | yes                | 2026-10-15 15:22:41     | 2026-10-15 15:06:29           | no                      |
+| #2541 | yes                | 2026-10-15 15:22:40     | 2026-10-15 15:42:11           | yes                     |
+
+The timeline query returned only the `closed` event of each merge: no `reopened` or
+`base_ref_changed` event. For #2528, #2529, #2530, #2534, #2535, and #2541 the head was pushed before
+`develop` reached `M^1`, yet `base.sha` equals `M^1` and GitHub accepted the merge push.
+
+What the T1 sandbox established:
+
+- GitHub accepts the direct merge push only when `base.sha` is the target tip (steps 2 and 7
+  rejected).
+- `base.sha` was refreshed by close and reopen, Update branch, a base toggle, and a no-op base
+  edit.
+- `base.sha` was not refreshed by a title-only edit (step 10), or by doing nothing for about 14
+  minutes while the base moved (step 7).
+- Under option (a), GitHub once recomputed a merge ref with no visible trigger, about 9 minutes
+  after a base push. `base.sha` was not recorded there.
+
+Conclusion: the six merges were not rewritten (no head push after the first) and have no close,
+reopen, or Update-branch trace. The merge tool's no-op base edit is the explanation consistent with
+all of this evidence. A spontaneous `base.sha` refresh cannot be excluded completely, but it would
+have to happen in all six cases between `develop` reaching `M^1` and the merge, which T1 never
+observed. M1 is therefore `DONE` by inference. The expected tool output was not observed (see
+"Failures and Follow-up").
+
+#### V2 - Behind Pull Request Merged Without Rewriting Commits (M2)
+
+Pull requests #2528, #2529, #2534, #2535, #2539, and #2541 were behind `develop` at merge and had
+no force-push at all. #2530, #2532, and #2430 were force-pushed earlier but were behind again at merge. GitHub accepted
+every merge push, and each pull request shows as merged.
+
+#### V3 - Reviewed Commit Ids Survive the Merge (M3)
+
+`git merge-base --is-ancestor "$M^2" torrust/develop` exited `0` for all 18 merged heads (column
+"Ancestor" above), including the nine behind ones.
+
+#### V4 - Conflicting Pull Request Follows the Rebase Path (M4)
+
+The `open-pull-request` skill requires a rebase or other update when "the branch conflicts with
+`develop`" and shows `git rebase` followed by a push "use `--force-with-lease` when rewriting
+history". Two real pull requests took that path. Each force-push's before and after commits came from
+the GraphQL `HeadRefForcePushedEvent`, and the `develop` tip at that time from
+`git rev-list -1 --first-parent --before=<time> torrust/develop`:
+
+```sh
+gh api graphql -f query='{repository(owner:"torrust",name:"torrust-tracker"){pullRequest(number:<n>){
+  timelineItems(itemTypes:[HEAD_REF_FORCE_PUSHED_EVENT],first:10){nodes{... on HeadRefForcePushedEvent{
+  createdAt beforeCommit{oid} afterCommit{oid}}}}}}}'
+git merge-tree --write-tree <develop tip> <commit> >/dev/null && echo clean || echo CONFLICT
+git merge-base <develop tip> <after commit>
+```
+
+| PR    | Force-push (UTC)    | Before commit | `develop` tip | Before vs `develop` | After commit | After based on tip | After vs `develop` |
+| ----- | ------------------- | ------------- | ------------- | ------------------- | ------------ | ------------------ | ------------------ |
+| #2532 | 2026-10-14 16:36:21 | `55a414e98`   | `b24550171`   | conflict            | `2328de9cc`  | yes                | clean              |
+| #2537 | 2026-10-14 21:27:23 | `94fcf5a7f`   | `07750152f`   | conflict            | `b084b2ea5`  | yes                | clean              |
+
+Both rebased heads were mergeable and both were merged (table above). The other force-pushes
+(#2530, #2532 at 16:39:53, #2538, and #2430) rebased heads that merged cleanly. Those were
+recommended rebases, not required ones. Whether `--force-with-lease` was used cannot be read from
+GitHub.
+
+#### V5 - Code Pull Request Merges Under the New Rulesets (M5)
+
+Code pull request #2529 (19 Rust and other non-Markdown files) was merged with the maintainer tool
+after T5. #2541 also ran the full heavy CI and merged the same way. Its 3 non-Markdown files are
+archived files under `docs/issues/closed/` (`Cargo.toml`, `main.rs`, and `.gitignore` of an archived
+crate), so it counts as a heavy-CI pull request rather than a code change. No ruleset was disabled or changed at any point after T5: the only ruleset version created since
+2026-10-14 09:00 UTC is the creation of 25068452, and every ruleset is active.
+
+```sh
+for id in $(gh api repos/torrust/torrust-tracker/rulesets --jq '.[].id'); do
+  gh api repos/torrust/torrust-tracker/rulesets/$id/history \
+    --jq ".[]|select(.updated_at > \"2026-10-14T09:00:00Z\")|\"$id \(.version_id) \(.updated_at)\""
+  gh api repos/torrust/torrust-tracker/rulesets/$id --jq '"\(.id) \(.enforcement) updated:\(.updated_at)"'
+done
+```
+
+```text
+87085 active updated:2024-11-29T16:01:32.717+00:00
+25068452 53138124 2026-10-14T10:59:31.292+01:00
+25068452 active updated:2026-10-14T10:59:31.166+01:00
+94133 active updated:2024-10-03T11:55:05.557+01:00
+86945 active updated:2024-10-03T11:55:49.590+01:00
+94096 active updated:2026-07-20T10:12:19.610+01:00
+90587 active updated:2024-10-03T11:55:58.199+01:00
+87069 active updated:2024-10-03T11:55:29.524+01:00
+94135 active updated:2024-10-03T11:56:06.114+01:00
+94130 active updated:2024-10-03T11:55:45.553+01:00
+```
+
+Workflows that ran on the merged code heads:
+
+```sh
+gh api "repos/torrust/torrust-tracker/actions/runs?head_sha=<M^2>&per_page=100" \
+  --jq '[.workflow_runs[]|"\(.name)=\(.conclusion)"]|unique|join(", ")'
+```
+
+```text
+#2529: Container=success, Docs Lint=success, Generate Coverage Reports (PR)=success, OS Compatibility=success, Testing=success
+#2541: Container=success, Docs Lint=success, Generate Coverage Reports (PR)=success, OS Compatibility=success, Testing=success
+```
+
+#### V6 - Documentation-Only Pull Request Merges Under the New Rulesets (M6)
+
+Pull requests #2533, #2540, and #2543 changed only Markdown files and were merged with the maintainer tool after
+T5, under the same unchanged rulesets (V5). The same workflow-run query shows that only the docs
+workflow ran:
+
+```text
+#2533: Docs Lint=success
+#2540: Docs Lint=success
+#2543: Docs Lint=success
+```
+
+#### V8 - First-Parent History Unchanged (M8)
+
+```sh
+git log --first-parent --format='%h %ad %s' --date=format:'%m-%d %H:%M' -19 torrust/develop
+```
+
+```text
+fd04ac51e 10-15 17:32 Merge torrust/torrust-tracker#2543: docs(skills): document periodic audit in cleanup-completed-issues
+a9d8c5703 10-15 16:47 Merge torrust/torrust-tracker#2541: chore(issues): archive closed issue #1348 spec
+09887e70d 10-15 16:42 Merge torrust/torrust-tracker#2430: docs(discussions): [#2429] add my round on templated documentation
+3195b8b60 10-15 16:06 Merge torrust/torrust-tracker#2538: test(udp-core): [#1348] add tests to the udp-core package
+9c8bcdf8a 10-15 08:36 Merge torrust/torrust-tracker#2540: docs(pr-reviews): close the PR #2537 follow-up findings after PR #2539 merged
+759893bd1 10-15 08:18 Merge torrust/torrust-tracker#2539: chore(pr-reviews): land the PR #2537 review fixes that missed its merge
+ee4eb8e9c 10-15 07:48 Merge torrust/torrust-tracker#2535: chore(issues): archive closed issue #2493 spec
+e6b46013b 10-15 07:41 Merge torrust/torrust-tracker#2537: docs(issues): [#2536] add specification for hiding the statistics read lock
+07750152f 10-14 22:08 Merge torrust/torrust-tracker#2532: chore(issues): archive closed issue #2521 spec
+48c4d3013 10-14 17:42 Merge torrust/torrust-tracker#2534: docs(skills): apply the #2505 retrospective process improvements
+e2e21f20c 10-14 17:36 Merge torrust/torrust-tracker#2533: docs(pr-reviews): close the PR #2527 post-merge findings after PR #2530 merged
+b24550171 10-14 17:28 Merge torrust/torrust-tracker#2530: chore(issues): archive closed issue #2517 spec
+90e8daf75 10-14 17:19 Merge torrust/torrust-tracker#2529: refactor: [#2521] remove the unused UDP statistics traits and services
+3b0b40047 10-14 17:06 Merge torrust/torrust-tracker#2531: docs(agents): allow rewriting an unmerged pull request's history with safeguards
+988c3bc76 10-14 16:18 Merge torrust/torrust-tracker#2528: chore(issues): archive the closed #2505 spec and close its late spec-review findings
+184446a2b 10-14 16:03 Merge torrust/torrust-tracker#2527: refactor: [#2517] make the statistics repositories' metrics lock private
+8045bd252 10-14 15:19 Merge torrust/torrust-tracker#2524: fix(udp-core): [#2505] count only IPs over the limit as banned and refresh the total on reset
+c1874facb 10-14 13:17 Merge torrust/torrust-tracker#2526: fix(git): [#2507] refresh the recorded pull-request base and reconcile rulesets
+1c6707a43 10-14 12:32 Merge torrust/torrust-tracker#2522: docs(issues): [#2521] add issue specification for #2521
+```
+
+Times are UTC+01:00. Each first-parent commit is one pull-request merge, newest first, in the same
+order as the per-PR table above (#2526 to #2543); the last line, #2522, is the merge before #2526.
+
+### Automatic Checks Re-Run
+
+- Date and time (UTC): 2026-10-15 16:45, `develop` at `fd04ac51e`, Python 3.14.4.
+
+```text
+$ python3 contrib/dev-tools/git/tests/test-github-merge-symlinks.py
+Ran 51 tests in 7.007s
+OK
+$ bash contrib/dev-tools/git/tests/test-merge-pull-request.sh
+All merge workflow wrapper tests passed.
+```
+
 ## Failures and Follow-up
 
-None yet.
+- M1's literal tool output was not captured. V1 proves the refresh from GitHub state instead. The
+  next maintainer merge of a behind pull request can paste the line here, but closing the issue does
+  not depend on it.
