@@ -6,7 +6,7 @@ epic: 1488
 github-issue: 2410
 spec-path: docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-16 08:04"
+last-updated-utc: "2026-10-16 08:07"
 semantic-links:
   skill-links:
     - create-issue
@@ -64,8 +64,10 @@ draining.
 
 ## Glossary
 
-The terms below are used with these exact meanings in this spec. The glossary
-lives here provisionally; T2 moves it to `docs/architecture/glossary.md` (D12).
+The terms below are used with these exact meanings in this spec. The
+canonical glossary is [`docs/architecture/glossary.md`](../../../architecture/glossary.md)
+(D12, created by #2413 T2b). The table below is the design-time record it was
+drawn from; when the two differ, the glossary file wins.
 
 | Term                                   | Meaning                                                                                                                                       | Constraints                                                                                                                                                                                                                                       |
 | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -2147,6 +2149,7 @@ avoids duplicating the full workflow in four drafts:
 - 2026-10-08 06:58 UTC - GitHub Copilot - Maintainer decision D20: the test environments use independent server and listener tokens, each with its own `DropGuard`, mirroring `JobManager`. Rejected the parent-child token option. Updated Test environments, T9, and sub-issue 4.
 - 2026-10-16 07:56 UTC - GitHub Copilot - #2413 T1 done: the producer-consumer inventory is in `docs/features/shutdown-process/task-inventory.md` (read from source, not run). Differences for the coordinator (D14): `docs/architecture/events.md` omits the swarm bus; entry 27 should say torrent cleanup publishes on the swarm bus indirectly; tokio in `Cargo.lock` is 1.53.3, not 1.53.1.
 - 2026-10-16 08:04 UTC - GitHub Copilot - #2413 T2a done: `docs/application-jobs.md` moved to `docs/architecture/application-jobs.md` in a separate commit; live links updated (the record keeps the old path where it describes the D12 decision). Historical records keep the old path.
+- 2026-10-16 08:07 UTC - GitHub Copilot - #2413 T2b done: `docs/architecture/glossary.md` is the canonical glossary and this record links to it. The table in this record stays as the design-time record.
 
 ## Acceptance Criteria
 

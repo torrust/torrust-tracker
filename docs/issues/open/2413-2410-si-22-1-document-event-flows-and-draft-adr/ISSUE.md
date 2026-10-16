@@ -9,7 +9,7 @@ github-issue: 2413
 spec-path: docs/issues/open/2413-2410-si-22-1-document-event-flows-and-draft-adr/ISSUE.md
 branch: "2413-document-event-flows-and-draft-adr"
 related-pr: null
-last-updated-utc: "2026-10-16 08:04"
+last-updated-utc: "2026-10-16 08:07"
 semantic-links:
   skill-links:
     - create-issue
@@ -72,7 +72,7 @@ items 2 (T1) and 3 (T2). Revalidate paths before starting.
 | --- | --- | --- | --- |
 | T1 | DONE | Producer-consumer inventory | Every producer, consumer, and listener chain recorded, including the test environments' chains (see below); differences from the design record reported to the maintainer (D14). |
 | T2a | DONE | Move the jobs doc | `docs/architecture/application-jobs.md`; every live link updated (see below); `linter lychee` passes. |
-| T2b | TODO | Glossary | `docs/architecture/glossary.md` from the design record's glossary, merged with the jobs doc's "Terms" (one definition per term). The "Stop request" entry notes that dropping a `CancellationToken` does not cancel it, so an owner that can be dropped without `stop()` holds a `DropGuard` (#2459, #2471). |
+| T2b | DONE | Glossary | `docs/architecture/glossary.md` from the design record's glossary, merged with the jobs doc's "Terms" (one definition per term). The "Stop request" entry notes that dropping a `CancellationToken` does not cancel it, so an owner that can be dropped without `stop()` holds a `DropGuard` (#2459, #2471). |
 | T2c | TODO | ADR draft | `adr-draft.md` in the sub-EPIC folder, `create-adr` structure, covering D1, D7, D8, D9, D13 and the rules in the design record's Architectural Decisions; written to fully supersede the cancellation-tree ADR (D11). |
 
 **Test environments in the T1 inventory.** SI-16 and SI-17 gave both
@@ -181,3 +181,4 @@ pre-push checks still apply to this documentation-only PR.
 - 2026-10-07 13:00 UTC - GitHub Copilot - Refreshed with lessons from SI-17 (#2448, #2459) and the archive PRs (#2457, #2465): T1 and AC1 cover the test environments' listener chains; T2a finds links with `rg` because lychee skips closed specs, and historical records keep the old path (maintainer decision); T2b records the `DropGuard` rule; `branch:` names the implementation branch.
 - 2026-10-16 07:56 UTC - GitHub Copilot - T1 done: producer-consumer inventory added to `docs/features/shutdown-process/task-inventory.md` (read from source, not run). M1 source search recorded in the sub-EPIC's `manual-verification-evidence.md`. Findings for the coordinator: `docs/architecture/events.md` omits the swarm bus; entry 27 differs on torrent cleanup, which publishes on the swarm bus indirectly; tokio in `Cargo.lock` is 1.53.3, not 1.53.1.
 - 2026-10-16 08:04 UTC - GitHub Copilot - T2a done: moved `docs/application-jobs.md` to `docs/architecture/application-jobs.md` in its own commit and updated the live links (`docs/index.md`, `docs/architecture/README.md`, `docs/architecture/tracker-instance-architecture.md`, this spec, and the sub-EPIC). The moved file has no relative links to fix. Historical records keep the old path: closed specs `1453-...` and `2095-...` and the PR #2126 review record.
+- 2026-10-16 08:07 UTC - GitHub Copilot - T2b done: `docs/architecture/glossary.md` created (one definition per term, merged with the jobs doc "Terms", planned SI-22 terms marked **Planned**, no event topology copied from `events.md`). The jobs doc "Terms" section now links to the glossary. The glossary is linked from the architecture README, `docs/index.md`, and the sub-EPIC.

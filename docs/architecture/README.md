@@ -7,6 +7,7 @@ semantic-links:
     - docs/packages.md
     - docs/architecture/application-jobs.md
     - docs/architecture/events.md
+    - docs/architecture/glossary.md
     - docs/architecture/tracker-instance-architecture.md
     - docs/adrs/20260727180000_shared_services_across_tracker_instances.md
     - docs/skills/semantic-skill-link-convention.md
@@ -25,6 +26,7 @@ the current codebase; they do not replace the accepted decisions in
 | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
 | [tracker-instance-architecture.md](tracker-instance-architecture.md) | Process topology, shared services, listener-instance boundaries, configuration placement, and when to use separate tracker processes. |
 | [events.md](events.md)                                               | Event topology, event consumers, aggregate statistics, and per-listener metrics policy.                                               |
+| [glossary.md](glossary.md) | Definitions of the runtime and shutdown terms, one definition per term. |
 
 ## Related Documentation
 

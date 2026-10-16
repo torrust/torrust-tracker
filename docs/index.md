@@ -8,6 +8,7 @@ semantic-links:
     - docs/research/AGENTS.md
     - docs/discussions/AGENTS.md
     - docs/architecture/README.md
+    - docs/architecture/glossary.md
     - docs/adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md
     - docs/benchmarking.md
     - docs/architecture/application-jobs.md
@@ -62,6 +63,7 @@ complement ADRs, which record accepted architectural decisions.
 | Document                                         | Description                                                                         |
 | ------------------------------------------------ | ----------------------------------------------------------------------------------- |
 | [architecture/README.md](architecture/README.md) | Runtime architecture index: tracker instances, shared services, and event topology. |
+| [architecture/glossary.md](architecture/glossary.md) | Runtime and shutdown terms, one definition per term |
 
 ## AI Agents
 
