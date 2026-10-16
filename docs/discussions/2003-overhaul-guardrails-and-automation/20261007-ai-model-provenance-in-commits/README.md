@@ -402,7 +402,7 @@ purposes (tracking, analytics) does the rule still serve for agent-made commits,
 Drafted with an AI assistant using the Copilot SDK in VS Code (`claude-opus-5.5`); reviewed and
 adopted by Jose Celano.
 
-##### Q11 - Cameron Garnham (`da2ce7`), 2026-10-16, PR #TBD
+##### Q11 - Cameron Garnham (`da2ce7`), 2026-10-16, PR #2548
 
 This entry answers the amendment to `project-automation-is-a-dependency` and the question for the decision owner in the [entry above](#q11---jose-celano-josecelano-2026-10-13-pr-2502); it replaces no earlier entry.
 
@@ -448,7 +448,7 @@ This discussion and the repository use the word "harness" in three senses and de
 
 #### Positions
 
-##### Q13 - Cameron Garnham (`da2ce7`), 2026-10-16, PR #TBD
+##### Q13 - Cameron Garnham (`da2ce7`), 2026-10-16, PR #2548
 
 **`harness-as-agent-runtime` — The agent runtime.** The product that runs a model and commits for a person: it switches models mid-session, adds default trailers and exposes a model identifier. This is the sense of this discussion's [Context](#context) ("the agent harness", "The harness adds the trailer", "the harness switched the main model"), of the identifier format `<harness>:<vendor>/<model-id>` under [Q3](#q3---identifier-format), and of my own Q3 entry in its first wording, corrected in this round to `identifier-from-the-runtime-not-the-model`. The project neither configures nor pins it; it is personal tooling under `personal-toolchains-are-private`. It is the only sense in which a "harness" can name a model identifier.
 
