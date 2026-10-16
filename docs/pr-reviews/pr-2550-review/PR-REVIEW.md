@@ -478,7 +478,7 @@ applies to and the next review supersedes it.
   date.
 - Resolution reference: docs(issues): [#2547] limit the shared population to the force-push measures
 - Follow-up PR URL: N/A
-- Reply URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2550#discussion_r4294393917>
 
 ### F21 - The third approval was dismissed too, and the record does not say so
 
@@ -500,7 +500,7 @@ applies to and the next review supersedes it.
   5545292694), and 11:22:22Z (review 5547008497). The audit names all three.
 - Resolution reference: docs(pr-reviews): record the third dismissal and the fourth review round of PR #2550
 - Follow-up PR URL: N/A
-- Reply URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2550#discussion_r4294394133>
 
 ### F22 - The round-3 summary is described as confirming findings it called partly resolved
 
@@ -518,7 +518,7 @@ applies to and the next review supersedes it.
   both bodies were re-read.
 - Resolution reference: docs(pr-reviews): record the third dismissal and the fourth review round of PR #2550
 - Follow-up PR URL: N/A
-- Reply URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2550#discussion_r4294394352>
 
 ### F23 - "The population of every measure" overstates the fix
 
@@ -537,7 +537,7 @@ applies to and the next review supersedes it.
   force-push measure".
 - Resolution reference: docs(issues): [#2547] limit the shared population to the force-push measures
 - Follow-up PR URL: N/A
-- Reply URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2550#discussion_r4294394552>
 
 ## Processing Log
 
@@ -578,6 +578,9 @@ applies to and the next review supersedes it.
   the push of the "log the third PR #2550 review round" commit (F21). Fixed F20 and F23 in one
   signed commit and F21 and F22 in this record, which also says why later pushes are not logged one
   by one.
+- 2026-10-16 11:57 UTC - Pushed the fixes, updated the GitHub issue body of #2547, edited the
+  conversation response to say "every force-push measure", replied on the four new threads, and added
+  the reply URLs to this record.
 
 ## Completion Rules
 
