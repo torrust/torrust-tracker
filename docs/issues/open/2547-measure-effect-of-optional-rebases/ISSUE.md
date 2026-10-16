@@ -9,7 +9,7 @@ github-issue: 2547
 spec-path: docs/issues/open/2547-measure-effect-of-optional-rebases/ISSUE.md
 branch: "2547-measure-effect-of-optional-rebases"
 related-pr: null
-last-updated-utc: "2026-10-16 11:16"
+last-updated-utc: "2026-10-16 11:51"
 semantic-links:
   skill-links:
     - create-issue
@@ -73,17 +73,20 @@ pull requests #2530, #2538, and #2430 rebased clean branches. See the #2507
 
 - Measure the window from 2026-10-15 00:00 UTC to 2026-10-28 23:59 UTC (14 days) with the #2507
   baseline commands, and normalize per merged PR and per day so the 13-day baseline stays comparable.
-  The population is the pull requests merged in the window (`merged_at`), with every force-push of
-  each of them, including events before 2026-10-15: baseline section 5 selects pull requests by merge
-  date and counts each one's whole force-push timeline. The force-push total and its classification
-  below use this same population:
-  - force-pushes per merged PR and the share of merged PRs force-pushed at least once;
-  - estimated PR CI runner-hours per workflow, sampled as in the baseline;
-  - rebase-fallout commits, selected the same way as the baseline, compared with a baseline recounted
-    for 1 to 13 October only: section 7 of the baseline lists 23 commits "since September 2026", of
-    which 13 have author dates from 1 to 13 October, so do not divide the whole list by 13 days or by
-    the 67 October merges;
-  - pull-request volume and the daily open-PR queue, for context.
+  Each measure selects its data the way its baseline section does:
+  - force-pushes per merged PR and the share of merged PRs force-pushed at least once. The population
+    is the pull requests merged in the window (`merged_at`), with every force-push of each of them,
+    including events before 2026-10-15: baseline section 5 selects pull requests by merge date and
+    counts each one's whole force-push timeline. The classification below uses the same population;
+  - estimated PR CI runner-hours per workflow, sampled as in the baseline. The runs are the
+    `pull_request` workflow runs created within the window, as in baseline section 6, which counts
+    runs by creation date and not by the merge date of their pull request, so runs of pull requests
+    still open count too;
+  - rebase-fallout commits, selected the same way as the baseline (section 7, by author date within
+    the window), compared with a baseline recounted for 1 to 13 October only: section 7 of the
+    baseline lists 23 commits "since September 2026", of which 13 have author dates from 1 to 13
+    October, so do not divide the whole list by 13 days or by the 67 October merges;
+  - pull-request volume and the daily open-PR queue, for context, as in baseline section 4.
 - Classify every force-push of those pull requests with the method of #2507 manual-verification section V4,
   which compares where the push put the head's base, not only where the new head sits. The `develop`
   tip of its time is the last first-parent `develop` commit whose pull request has a `merged_at`
@@ -191,10 +194,14 @@ with GPG.
 - 2026-10-16 10:24 UTC - AI assistant - Labelled the merge time of PR #2531 as GitHub's `merged_at`
   (the evidence dates merges by Git committer time, so the two differ by three minutes), after the
   second review round of PR #2550.
-- 2026-10-16 11:16 UTC - AI assistant - The population of every measure is now the pull requests
-  merged in the window, with all of their force-pushes, so the total and the classification count the
-  same pushes (#2537 merged in the window, but its required rebase was on 2026-10-14). Raised by the
-  third review round of PR #2550. The GitHub issue body was updated to match.
+- 2026-10-16 11:16 UTC - AI assistant - The population of every force-push measure is now the pull
+  requests merged in the window, with all of their force-pushes, so the total and the classification
+  count the same pushes (#2537 merged in the window, but its required rebase was on 2026-10-14).
+  Raised by the third review round of PR #2550. The GitHub issue body was updated to match.
+- 2026-10-16 11:51 UTC - AI assistant - Limited that population to the force-push measures, after the
+  fourth review round of PR #2550: CI runs are selected by creation date as in baseline section 6,
+  and fallout commits by author date as in section 7, each as its baseline section does. The GitHub
+  issue body was updated to match.
 
 ## Acceptance Criteria
 
