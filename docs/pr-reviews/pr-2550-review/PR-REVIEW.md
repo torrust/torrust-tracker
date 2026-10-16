@@ -80,7 +80,9 @@ reviewer's ID kept in the detail entry. Its F3 is the same concern as F20, so F2
 `RE_RAISE_OF:F20`. Its body is a round summary that repeats those three findings and confirms the
 earlier ones as resolved, so it adds no rows; an `ACK` comment records its verdict for that head.
 
-A fifth round followed the push of the fourth round's fixes. da2ce7's approving review 5547591114
+A fifth round followed the push of the fourth round's fixes. Copilot's review 5547644540, posted at
+12:17:23 UTC on the head of the fourth round's last commit, recommends approval with no open findings
+and adds no row. da2ce7's approving review 5547591114
 read the head whose subject is "docs(pr-reviews): add the reply URLs of the fourth review round of
 PR #2550" and carries three inline threads whose reviewer IDs F1-F3 collide with F1-F3 above, so they
 are recorded as F24-F26 with the reviewer's ID kept in the detail entry. Its body is a round summary
@@ -94,13 +96,21 @@ fourth round's fixes caused, at 11:56:26 UTC (review 5547344550). Later dismissa
 pattern and are not logged one by one, because each `ACK` comment names the head it applies to and
 the next review supersedes it.
 
-A sixth round followed the push of the fifth round's fixes. Copilot's review 5547644540, posted on the
-head of the fourth round's last commit, recommends approval with no open findings and adds no row.
-da2ce7's approving review 5547815458 read the head whose subject is "docs(pr-reviews): add the reply
-URLs of the fifth review round of PR #2550" and carries one inline thread whose reviewer ID F1
-collides with F1 above, so it is recorded as F27 with the reviewer's ID kept in the detail entry. Its
-body is a round summary that repeats that finding and confirms the rest, so it adds no rows; an `ACK`
-comment records its verdict for that head.
+A sixth round followed the push of the fifth round's fixes. Copilot's review 5547864394, posted at
+12:38:27 UTC on the head of the fifth round's last commit, recommends approval with no open findings
+and adds no row. da2ce7's approving review 5547815458 read the head whose subject is
+"docs(pr-reviews): add the reply URLs of the fifth review round of PR #2550" and carries one inline
+thread whose reviewer ID F1 collides with F1 above, so it is recorded as F27 with the reviewer's ID
+kept in the detail entry. Its body is a round summary that repeats that finding and confirms the
+rest, so it adds no rows; an `ACK` comment records its verdict for that head.
+
+A seventh round followed the push of the sixth round's fixes. Copilot's review 5548042871, posted at
+12:54:40 UTC on the head of the sixth round's last commit, recommends approval with no open findings
+and adds no row. da2ce7's approving review 5548034498 read the head whose subject is
+"docs(pr-reviews): add the reply URL of the sixth review round of PR #2550" and carries one inline
+thread whose reviewer ID F1 collides with F1 above, so it is recorded as F28 with the reviewer's ID
+kept in the detail entry. Its body is a round summary that repeats that finding and confirms the
+rest, so it adds no rows; an `ACK` comment records its verdict for that head.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -131,6 +141,7 @@ comment records its verdict for that head.
 | F25 | review-finding:pr-2550-f25 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F26 | review-finding:pr-2550-f26 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F27 | review-finding:pr-2550-f27 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F28 | review-finding:pr-2550-f28 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -641,6 +652,26 @@ comment records its verdict for that head.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2550#discussion_r4294739924>
 
+### F28 - The sixth-round paragraph names the wrong Copilot review
+
+- PR number: 2550
+- Source review ID: 5548034498
+- Reviewer finding ID: F1
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2550#discussion_r4294859387>
+- Concern: the review round's Copilot review is 5547864394 (12:38:27 UTC, on the head that round
+  read), but the paragraph named 5547644540, which was posted at 12:17:23 UTC on the previous head,
+  during the fifth round. Both recommend approval with no findings and no inline comments, so no row
+  changes. Name 5547864394 and place the 12:17 review in the fifth round's paragraph.
+- Solution: the fifth-round paragraph names 5547644540 (12:17:23 UTC), the sixth-round paragraph names
+  5547864394 (12:38:27 UTC), and a seventh-round paragraph names the Copilot review of the head that
+  this round read, 5548042871 (12:54:40 UTC). The Processing Log entry that mentions the 12:17
+  review states its own time and is unchanged.
+- Current-tree verification: the reviews of the pull request list 5547644540 on the head of the
+  fourth round's last commit, 5547864394 on the fifth round's, and 5548042871 on the sixth round's.
+- Resolution reference: docs(pr-reviews): record the seventh review round of PR #2550
+- Follow-up PR URL: N/A
+- Reply URL: N/A
+
 ## Processing Log
 
 - 2026-10-16 08:15 UTC - Fetched every thread and review, classified and numbered the findings, and
@@ -698,6 +729,10 @@ comment records its verdict for that head.
 - 2026-10-16 12:37 UTC - Fixed F27 in this record.
 - 2026-10-16 12:40 UTC - Pushed the fix, replied on the thread after the push, and added the reply
   URL to this record.
+- 2026-10-16 12:53 UTC - da2ce7's approving review 5548034498 and an `ACK` comment arrived for the
+  record's head, with one new thread (F28). Copilot's review 5548042871 recommended approval with no
+  open findings at 12:54 UTC.
+- 2026-10-16 12:57 UTC - Fixed F28 in this record.
 
 ## Completion Rules
 
