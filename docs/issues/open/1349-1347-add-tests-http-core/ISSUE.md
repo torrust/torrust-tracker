@@ -354,7 +354,7 @@ Rules:
   its branch exists) may proceed. Keep at most one open implementation PR. The frontmatter
   `branch` and `related-pr` fields name the current slice; this table keeps the full history
   (issue frontmatter allows one PR; see draft
-  `docs/issues/drafts/2264-support-multiple-related-prs-in-issue-frontmatter/`).
+  `docs/issues/drafts/2264-support-multiple-related-prs-in-issue-frontmatter/ISSUE.md`).
 - **Re-slicing.** The maintainer may split, merge, or reorder slices at any time, for example to
   deliver finished rows early when a finding pauses the work. Record each change in the progress
   log.
