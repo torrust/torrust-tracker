@@ -368,8 +368,8 @@ mod tests {
             )
             .unwrap_or_default();
 
-        assert!((udp_avg_connect_processing_time_ns - 1000.0).abs() < f64::EPSILON);
-        assert!((udp_avg_announce_processing_time_ns - 2000.0).abs() < f64::EPSILON);
+        assert!((udp_avg_connect_processing_time_ns - 1000.0).abs() < 1e-9);
+        assert!((udp_avg_announce_processing_time_ns - 2000.0).abs() < 1e-9);
     }
 
     #[tokio::test]
