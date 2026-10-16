@@ -315,7 +315,11 @@ history:
    25-second shared process deadline with a 20-second HTTP-family budget and a
    5-second UDP budget; the code today uses 10, 90, and 5 seconds (read from
    source, not run), and SI-20 owns aligning them. This ADR does not change any
-   budget.
+   budget. The code does not apply the exit-result policy yet either: `main`
+   discards the `Vec<JobOutcome>` that `JobManager::wait_for_all` returns and
+   logs a successful shutdown, so a shutdown timeout or abort exits with code 0
+   today (`src/main.rs`, `src/bootstrap/jobs/manager.rs`; read from source, not
+   run).
 7. A supervisor deadline applies concurrently across top-level components, not
    sequentially as a per-job budget.
 8. Shared lifecycle APIs follow add, migrate consumers, deprecate, remove. The
