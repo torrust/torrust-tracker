@@ -404,6 +404,11 @@ no row.
   and the evidence and audit corrections for F18, F19 and F21 landed between 12:15 and 12:18).
 - 2026-10-16 12:21 UTC - Replied on all four threads, resolved them, and added F18 to F21 to this record, with
   a reply URL in every row.
+- 2026-10-16 12:36 UTC - da2ce7's approving review 5547834689 arrived with three inline threads. Fetched them,
+  reassigned his IDs F1 to F3 to F22 to F24, and re-derived each against the current tree. All were valid.
+- 2026-10-16 12:37 UTC - Correction to the 12:19 entry, which said F18 to F21 were fixed and pushed at 12:19:
+  the fixes were committed by 12:18, and the push came later, at about 12:20 (GitHub's timeline dismissed
+  review 5547599741 at 12:20:03Z). The 12:19 entry is left as written.
 
 ## Completion Rules
 
