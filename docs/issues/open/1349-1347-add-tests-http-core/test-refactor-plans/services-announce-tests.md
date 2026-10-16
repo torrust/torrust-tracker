@@ -3,7 +3,7 @@ doc-type: file-test-plan
 issue: 1349
 package: torrust-tracker-http-core
 target-file: packages/http-core/src/services/announce.rs
-status: proposed
+status: approved
 semantic-links:
   related-artifacts:
     - packages/http-core/src/services/announce.rs
@@ -15,8 +15,7 @@ semantic-links:
 # HTTP Core Announce Service File Test Plan
 
 Follow the shared [guidance](README.md). This plan covers only
-`packages/http-core/src/services/announce.rs`. Nothing below is approved yet: no test or production
-code changes until the maintainer approves this plan.
+`packages/http-core/src/services/announce.rs`. The maintainer approved this plan on 2026-10-16.
 
 ## Current State
 
@@ -75,10 +74,9 @@ named scenario constructors for the one state difference (private, listed, with 
 with a failing downloads store). The fixture keeps the torrent repository for state assertions and
 builds the request with a small in-file builder. The production container is not used.
 
-**Decision for the maintainer.** Table-driven tests would use `rstest`, which is not yet a
+**Decision (approved 2026-10-16).** Table-driven tests use `rstest`, which is not yet a
 dev-dependency of this package (the workspace uses `rstest = "0"` elsewhere). Adding it follows the
-`add-rust-dependency` skill. Without it, R1 and R2f/R2i use one plain table iterated by a loop that
-holds no logic, or separate named tests.
+`add-rust-dependency` skill and happens in S2, with the version rationale recorded.
 
 ## Steps
 
@@ -102,10 +100,12 @@ To be recorded after R4.
 
 ## Approval
 
-Pending.
+Approved by Jose Celano on 2026-10-16 (16:02 UTC): R1, R2a-R2j, the fixture approach, and adding `rstest` as a dev-dependency of `torrust-tracker-http-core` for the table-driven tests, following the `add-rust-dependency` skill in the announce slice (S2). The peer-IP property stays conditional on the mutation check.
 
 ## Progress Log
 
 - 2026-10-16 15:40 UTC - GitHub Copilot - Created the plan from `services/announce.rs`, the T1 coverage
   evidence and uncovered regions, and the `tracker-core` collaborators. No Rust test or production
   code changed. The plan awaits maintainer approval.
+- 2026-10-16 16:02 UTC - Jose Celano - Approved the plan, including `rstest`. R1 and R2 start in S2,
+  after S1 merges.

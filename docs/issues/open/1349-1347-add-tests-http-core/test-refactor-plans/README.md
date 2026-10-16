@@ -24,7 +24,7 @@ maintainer approves it.
 
 | Plan sequence | Plan | State | Result |
 | ---: | --- | --- | --- |
-| 1 | [services-announce-tests.md](services-announce-tests.md) | PROPOSED | Awaiting maintainer approval; no test changed |
+| 1 | [services-announce-tests.md](services-announce-tests.md) | APPROVED | Approved 2026-10-16; R1 and R2 start in S2 |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 

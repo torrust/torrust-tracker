@@ -9,7 +9,7 @@ github-issue: 1349
 spec-path: docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md
 branch: "1349-1347-add-tests-http-core-inventory"
 related-pr: null
-last-updated-utc: "2026-10-16 15:42"
+last-updated-utc: "2026-10-16 16:02"
 semantic-links:
   skill-links:
     - create-issue
@@ -307,7 +307,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 | --- | ------ | ---- | ----------------------- |
 | T1 | DONE | Create coverage evidence and complete module inventory | `coverage-evidence.md` records the baseline commands and totals from this spec, per-file uncovered regions, property-test candidacy, selected behavior, and initial hypothesis for every `packages/http-core/src/` file. No tests changed. |
 | T2 | DONE | Create shared plan guidance and the first file test plan | `test-refactor-plans/README.md` holds the shared guardrails and the plan index, including the two #1348 testing lessons that apply here: re-check an assumed-unreachable error path against `tracker-core`'s exported store doubles before recording it untestable, and prove an ordering decision (for example, authentication before authorization before client-IP resolution) with an expectation-free double that fails on the first call. The first plan is `services-announce-tests.md`. No tests changed. |
-| T3 | IN_PROGRESS | Review and approve the processing order and slice boundaries | Maintainer approves the ledger order and the pull-request slices; both may change at any time. |
+| T3 | DONE | Review and approve the processing order and slice boundaries | Maintainer approves the ledger order and the pull-request slices; both may change at any time. |
 | T4 | TODO | Process every source file through the per-file workflow | Every ledger row has a completed plan, recorded coverage result, completed-file review, and signed per-file commit, merged through its slice. |
 | T5 | TODO | Implement integration-test increments selected by file test plans | Only if a plan selected a 3B increment; otherwise record why none was needed. |
 | T6 | TODO | Perform bounded mutation assessment | `mutation-evidence.md` records configuration, timeout, scope, outcomes, and the reason for each unviable mutant. |
@@ -446,7 +446,7 @@ lines are the T1 baseline measurement (see [Baseline Coverage](#baseline-coverag
 
 | Order | Source module | Rank | Slice | Unit-only lines | Tests | Initial hypothesis | State | Plan |
 | ---: | --- | ---: | --- | ---: | ---: | --- | --- | --- |
-| 1 | `services/announce.rs` | 1-2 | S2 | 675 / 727 (92.85%) | 8 | Property candidate (peer-IP selection) | PENDING | [services-announce-tests.md](test-refactor-plans/services-announce-tests.md) (proposed) |
+| 1 | `services/announce.rs` | 1-2 | S2 | 675 / 727 (92.85%) | 8 | Property candidate (peer-IP selection) | PENDING | [services-announce-tests.md](test-refactor-plans/services-announce-tests.md) (approved) |
 | 2 | `services/error_mapping.rs` | 2 | S2 | 0 / 15 (0.00%) | 0 | Test candidate | PENDING | - |
 | 3 | `services/scrape.rs` | 3 | S3 | 507 / 540 (93.89%) | 8 | Test candidate (error paths) | PENDING | - |
 | 4 | `event.rs` | 4 | S4 | 174 / 187 (93.05%) | 7 | Probably small change | PENDING | - |
@@ -475,7 +475,7 @@ lines are the T1 baseline measurement (see [Baseline Coverage](#baseline-coverag
 - [x] GitHub issue #1349 title and body refreshed to the current package name and this spec.
 - [x] Spec-only PR (S0) merged into `develop` before implementation (#2546).
 - [x] Complete module inventory and coverage evidence recorded (T1).
-- [ ] Shared plan guidance and the first file test plan created; processing order and slices
+- [x] Shared plan guidance and the first file test plan created; processing order and slices
       approved (T2-T3).
 - [ ] Every ledger row is `DONE` with its own file test plan, merged through its slice.
 - [ ] Maintainer review after the final test-producing increment.
@@ -540,6 +540,9 @@ lines are the T1 baseline measurement (see [Baseline Coverage](#baseline-coverag
   [announce plan](test-refactor-plans/services-announce-tests.md). T3 awaits the maintainer's
   approval of the announce plan, the ledger order and the slice boundaries. No test or production
   code changed.
+- 2026-10-16 16:02 UTC - Jose Celano - Approved the announce plan, the ledger order, slices S1-S6,
+  and adding `rstest` as a dev-dependency in S2. T3 is `DONE`. S1 awaits the independent Task
+  Reviewer, the pre-push checks and its PR.
 
 ## Acceptance Criteria
 
