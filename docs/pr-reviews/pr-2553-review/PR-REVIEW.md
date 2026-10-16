@@ -40,12 +40,13 @@ deliver findings through GitHub and have no repository-artifact obligation.
 ## Findings
 
 Copilot's review 5546625913 carries two inline threads, F1 and F2. Its overview is a summary of
-those two findings and adds no row.
+those two findings and adds no row. The inline comments have no `[Severity]` bracket, so their
+severity is inferred as `Minor` from the overview's "Low severity" badge on each finding.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
-| F1 | review-finding:pr-2553-f1 | Copilot | Major (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
-| F2 | review-finding:pr-2553-f2 | Copilot | Major (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
+| F1 | review-finding:pr-2553-f1 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
+| F2 | review-finding:pr-2553-f2 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
