@@ -3,8 +3,8 @@ semantic-links:
   skill-links:
     - write-markdown-docs
   related-artifacts:
-    - docs/issues/open/2507-stop-requiring-pull-request-rebases/ISSUE.md
-    - docs/issues/open/2507-stop-requiring-pull-request-rebases/manual-verification-evidence.md
+    - docs/issues/closed/2507-stop-requiring-pull-request-rebases/ISSUE.md
+    - docs/issues/closed/2507-stop-requiring-pull-request-rebases/manual-verification-evidence.md
     - docs/adrs/20261013161419_stop_requiring_pull_request_rebases.md
 ---
 

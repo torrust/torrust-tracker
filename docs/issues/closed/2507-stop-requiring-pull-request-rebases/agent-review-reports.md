@@ -2,7 +2,7 @@
 semantic-links:
   related-artifacts:
     - .github/agents/task-reviewer.agent.md
-    - docs/issues/open/2507-stop-requiring-pull-request-rebases/ISSUE.md
+    - docs/issues/closed/2507-stop-requiring-pull-request-rebases/ISSUE.md
 ---
 
 # Agent Review Reports - Stop Requiring Pull-Request Rebases and Reconcile Repository Rulesets
