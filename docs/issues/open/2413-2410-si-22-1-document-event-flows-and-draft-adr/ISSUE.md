@@ -173,6 +173,8 @@ pre-push checks still apply to this documentation-only PR.
 - [x] Spec reviewed and approved by the maintainer
 - [x] GitHub issue created and linked to the sub-EPIC
 - [ ] Implementation completed and acceptance criteria reviewed
+- [ ] Independent Task Reviewer report recorded in `agent-review-reports.md` (sub-EPIC Shared Delivery Gates)
+- [ ] Retrospective recorded, or the reason none is needed (sub-EPIC Shared Delivery Gates)
 
 ### Progress Log
 
