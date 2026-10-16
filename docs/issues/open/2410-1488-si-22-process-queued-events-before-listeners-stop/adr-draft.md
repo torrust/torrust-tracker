@@ -318,14 +318,28 @@ history:
    budget.
 7. A supervisor deadline applies concurrently across top-level components, not
    sequentially as a per-job budget.
-8. The old ADR's rejected alternatives stay rejected:
-   - supervisor-owned raw `Halted` senders, because transport-specific channels
-     leak into application supervision and do not define component-owned child
-     completion;
-   - a cancellation token without lifecycle ownership, because cancellation only
-     requests stop and proves nothing about completion, failure, or timeout;
-   - token-to-oneshot forwarding as the final architecture, because it leaves two
-     normal cancellation paths and library OS-signal subscriptions.
+8. Shared lifecycle APIs follow add, migrate consumers, deprecate, remove. The
+   `JobManager` changes of section 3 apply this: `reserve` and the edge-aware
+   `spawn` arrive beside today's `spawn`, components migrate one by one, and
+   `register_legacy` stays until `udp_ban_cleanup` migrates.
+9. Each migration includes deterministic token and lifecycle tests. OS-signal
+   and container behavior remain executable-level integration evidence.
+10. The task inventory is revisited whenever lifecycle topology changes. The old
+    ADR also required revalidating it before issue #1588 closed; that condition
+    lapsed because the issue is closed, and the revisit-on-change rule is the
+    part that stays.
+11. The architecture is implemented progressively, by EPIC #1488 and sub-EPIC
+    #2410. This ADR does not claim that the current implementation already
+    satisfies it.
+12. The old ADR's rejected alternatives stay rejected:
+
+    - supervisor-owned raw `Halted` senders, because transport-specific channels
+      leak into application supervision and do not define component-owned child
+      completion;
+    - a cancellation token without lifecycle ownership, because cancellation only
+      requests stop and proves nothing about completion, failure, or timeout;
+    - token-to-oneshot forwarding as the final architecture, because it leaves two
+      normal cancellation paths and library OS-signal subscriptions.
 
 ## Alternatives Considered
 
