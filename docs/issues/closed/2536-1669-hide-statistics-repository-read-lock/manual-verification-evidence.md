@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2536-1669-hide-statistics-repository-read-lock/ISSUE.md
-last-updated-utc: 2026-10-15 19:48
+issue-spec: docs/issues/closed/2536-1669-hide-statistics-repository-read-lock/ISSUE.md
+last-updated-utc: 2026-10-16 15:30
 ---
 
 # Manual Verification Evidence
