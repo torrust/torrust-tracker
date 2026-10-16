@@ -79,10 +79,11 @@ processed, so this is the normal pre-merge workflow.
   update (20:27:44Z), the PR creation (20:30:24Z) and the branch reflog. The spec entries are now
   16:18, 20:27 and 20:30 UTC. While fixing F5 and F6 I had also guessed two stamps (06:20 and
   06:30); the real clock gave 06:53, which is now the EPIC entry and stamp.
-- Current-tree verification: `grep -nE '^- 2026-10-1[56] [0-9:]+ UTC'` on the spec and the EPIC
-  shows the spec entries at 16:18, 20:27 and 20:30, and the EPIC's 16:18 and 06:53 entries. The
-  spec's `last-updated-utc` is `2026-10-15 20:30` before this audit's own entry, and the EPIC's is
-  `2026-10-16 06:53`, each equal to its latest entry.
+- Current-tree verification: at the head `docs(pr-reviews): [#2546] record the review audit for the
+  #1349 spec PR`, `grep -nE '^- 2026-10-1[56] [0-9:]+ UTC'` on the spec lists the entries 16:18,
+  20:27, 20:30 and 07:04 (the review-round entry), and on the EPIC the three earlier #1348 entries
+  from 2026-10-15 (07:23, 11:56, 15:15), then 16:18 and 06:53. The spec's `last-updated-utc` is
+  `2026-10-16 07:04` and the EPIC's is `2026-10-16 06:53`, each equal to its file's latest entry.
 - Resolution reference: docs(issues): [#1349] re-stamp the progress-log entries from the real event times
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2546#discussion_r4291771951>
