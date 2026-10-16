@@ -1,3 +1,4 @@
+use std::ffi::OsStr;
 use std::fs;
 use std::path::Path;
 use std::process::Command;
@@ -11,7 +12,7 @@ fn it_should_report_a_changed_allow_without_a_native_reason() {
     workspace.establish_baseline();
     workspace.add_undocumented_allow();
 
-    let output = Command::new(env!("CARGO_BIN_EXE_clippy-allow-reasons"))
+    let output = fixture_command(env!("CARGO_BIN_EXE_clippy-allow-reasons"))
         .args(["--base-ref", "develop"])
         .current_dir(workspace.path())
         .output()
@@ -139,7 +140,7 @@ fn parse_single_diagnostic(stderr: &[u8]) -> Value {
 }
 
 fn run_validator(directory: &Path, arguments: &[&str]) -> std::process::Output {
-    Command::new(env!("CARGO_BIN_EXE_clippy-allow-reasons"))
+    fixture_command(env!("CARGO_BIN_EXE_clippy-allow-reasons"))
         .args(arguments)
         .current_dir(directory)
         .output()
@@ -282,8 +283,53 @@ impl Drop for FixtureRepository {
     }
 }
 
+/// Repository-selecting variables from `git rev-parse --local-env-vars`.
+///
+/// Git exports them to hooks, so a test run from a hook (for example the pre-push hook) would
+/// otherwise point its fixture Git commands at the real repository instead of the fixture.
+const REPOSITORY_ENVIRONMENT: [&str; 15] = [
+    "GIT_ALTERNATE_OBJECT_DIRECTORIES",
+    "GIT_CONFIG",
+    "GIT_CONFIG_PARAMETERS",
+    "GIT_CONFIG_COUNT",
+    "GIT_OBJECT_DIRECTORY",
+    "GIT_DIR",
+    "GIT_WORK_TREE",
+    "GIT_IMPLICIT_WORK_TREE",
+    "GIT_GRAFT_FILE",
+    "GIT_INDEX_FILE",
+    "GIT_NO_REPLACE_OBJECTS",
+    "GIT_REPLACE_REF_BASE",
+    "GIT_PREFIX",
+    "GIT_SHALLOW_FILE",
+    "GIT_COMMON_DIR",
+];
+
+/// Builds a command that cannot reach the repository the test run itself belongs to.
+fn fixture_command(program: impl AsRef<OsStr>) -> Command {
+    let mut command = Command::new(program);
+
+    for name in REPOSITORY_ENVIRONMENT {
+        command.env_remove(name);
+    }
+
+    command
+}
+
+#[test]
+fn it_should_not_let_fixture_commands_inherit_the_repository_environment() {
+    let command = fixture_command("git");
+
+    let inherited: Vec<&str> = REPOSITORY_ENVIRONMENT
+        .into_iter()
+        .filter(|name| !command.get_envs().any(|(key, value)| key == *name && value.is_none()))
+        .collect();
+
+    assert!(inherited.is_empty(), "fixture commands inherit: {inherited:?}");
+}
+
 fn git<const N: usize>(directory: &Path, arguments: [&str; N]) {
-    let status = Command::new("git")
+    let status = fixture_command("git")
         .args(arguments)
         .current_dir(directory)
         .status()
