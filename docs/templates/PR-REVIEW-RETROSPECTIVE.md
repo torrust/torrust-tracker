@@ -34,8 +34,11 @@ change. It does not replace the audit record and is not required for routine rev
 | Findings about the audit record itself | <COUNT> |
 | Commits on the branch | <COUNT> (<AUDIT_ONLY> audit-only) |
 | First review to last thread resolution | <DURATION_OR_RANGE> |
+| AI models used | <AUTHOR_MODEL_OR_UNKNOWN> (author), <REVIEWER_MODELS_OR_UNKNOWN> (reviewers) |
 
 Derive every number from the audit record, `git log`, or the GitHub API, and say how.
+Record a model only when the session or the progress log names it; otherwise write `unknown`.
+A model is an observation for later comparison, not a finding about the review.
 
 ## What Went Well
 
