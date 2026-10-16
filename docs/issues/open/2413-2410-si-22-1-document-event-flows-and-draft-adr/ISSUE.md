@@ -9,7 +9,7 @@ github-issue: 2413
 spec-path: docs/issues/open/2413-2410-si-22-1-document-event-flows-and-draft-adr/ISSUE.md
 branch: "2413-document-event-flows-and-draft-adr"
 related-pr: null
-last-updated-utc: "2026-10-07 13:00"
+last-updated-utc: "2026-10-16 07:56"
 semantic-links:
   skill-links:
     - create-issue
@@ -179,3 +179,4 @@ pre-push checks still apply to this documentation-only PR.
 - 2026-10-02 11:03 UTC - GitHub Copilot - Drafted from SI-22 T1-T2 (D17).
 - 2026-10-02 13:30 UTC - GitHub Copilot - AC1 now rechecks the channel-lifetime facts of the sub-EPIC's record entry 27.
 - 2026-10-07 13:00 UTC - GitHub Copilot - Refreshed with lessons from SI-17 (#2448, #2459) and the archive PRs (#2457, #2465): T1 and AC1 cover the test environments' listener chains; T2a finds links with `rg` because lychee skips closed specs, and historical records keep the old path (maintainer decision); T2b records the `DropGuard` rule; `branch:` names the implementation branch.
+- 2026-10-16 07:56 UTC - GitHub Copilot - T1 done: producer-consumer inventory added to `docs/features/shutdown-process/task-inventory.md` (read from source, not run). M1 source search recorded in the sub-EPIC's `manual-verification-evidence.md`. Findings for the coordinator: `docs/architecture/events.md` omits the swarm bus; entry 27 differs on torrent cleanup, which publishes on the swarm bus indirectly; tokio in `Cargo.lock` is 1.53.3, not 1.53.1.

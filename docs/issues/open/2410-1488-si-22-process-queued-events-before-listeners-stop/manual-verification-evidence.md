@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
-last-updated-utc: "2026-10-02 15:38"
+last-updated-utc: "2026-10-16 07:56"
 ---
 
 # Manual Verification Evidence
@@ -194,3 +194,15 @@ answered_minus_persisted=0
 `bash -n` and `shellcheck` passed. This verifies script mechanics for a small
 normal run; it is not a post-fix recheck or a new throughput measurement.
 Failure/interrupt cleanup has static checks but was not fault-injected here.
+
+## Issue #2413 (SI-22.1): Documentation-Only Verification
+
+### Non-applicability of executable-boundary verification
+
+Issue #2413 changes only Markdown: an inventory, a glossary, a moved document, and an ADR draft. No runtime behaviour changes, so there is no executable boundary to run and the V0/V1 reproduction does not apply. The sub-EPIC allows a reasoned non-applicability decision for documentation-only work.
+
+### M1 - Inventory against the code
+
+- Date and time (UTC): 2026-10-16 07:55; `develop` at `702cff6cc`.
+- Method: `rg` for `.send(`, `event_bus`, `.receiver()` and `spawn` across `src/` and `packages/`, then reading each hit, including `packages/axum-http-server/src/testing/environment.rs` and `packages/udp-server/src/testing/environment.rs`. Read from source, not run.
+- Result: every producer and consumer found is listed in the inventory in `docs/features/shutdown-process/task-inventory.md`. No unlisted producer or consumer was found. The reviewer ticks the acceptance criteria.
