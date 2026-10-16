@@ -46,20 +46,37 @@ Round 2: da2ce7's review 5546913953 (APPROVED, 2026-10-16 11:05:05 UTC, on the P
 the audit's first commit) carries five inline findings. da2ce7 numbered them F1 to F5, which collide
 with the rows above, so they are F3 to F7 here and the original number is kept in each detail entry
 as the reviewer finding ID. The review body is a verification report. Its only other judgment is a
-severity rating of round 1: F1 a Nit and F2 a Minor, the reverse of the icons. The F1 and F2
-severities above follow that rating, still marked inferred because it is free prose. Its approval
-and its ACK comment (<https://github.com/torrust/torrust-tracker/pull/2552#issuecomment-6214120780>)
-name the second head, so they do not cover the commits that fix F3 to F7.
+severity rating of round 1: F1 a Nit and F2 a Minor, the reverse of the icons. That rating is the
+reviewer's view of the threads, not their source's own mark, so the F1 and F2 rows keep the bot's
+icons, as the Round 1 paragraph says. The approval was dismissed at 11:13:45 UTC by the PR author's
+push of `docs(issues): [#2244] correct the progress-log times of the implementation round`, which
+triggers the repository's stale-approval rule, two minutes before the audit commit that records the
+round. Its ACK comment
+(<https://github.com/torrust/torrust-tracker/pull/2552#issuecomment-6214120780>) names the second
+head, so neither covers the commits that fix F3 to F7.
+
+Round 3: da2ce7's review 5547398388 (APPROVED, 2026-10-16 11:52:22 UTC, on the head whose newest
+commit is `docs(pr-reviews): [#2244] record the second review round in the PR #2552 audit`) carries
+four inline findings. da2ce7 numbered them F1 to F4, which collide again, so they are F8 to F11 here
+with the original number kept as the reviewer finding ID. The review body is a verification report
+that resolves four round-1 findings and finds one partly resolved, which F8 records. It reports no
+review from the bot after 08:44:03 UTC, and adds no other row. Its ACK comment
+(<https://github.com/torrust/torrust-tracker/pull/2552#issuecomment-6214899623>) names that head, so
+it does not cover the commits that fix F8 to F11.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
-| F1 | `review-finding:pr-2552-f1` | Copilot | Nit (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
-| F2 | `review-finding:pr-2552-f2` | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F1 | `review-finding:pr-2552-f1` | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
+| F2 | `review-finding:pr-2552-f2` | Copilot | Nit (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 | F3 | `review-finding:pr-2552-f3` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F4 | `review-finding:pr-2552-f4` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F5 | `review-finding:pr-2552-f5` | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F6 | `review-finding:pr-2552-f6` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F7 | `review-finding:pr-2552-f7` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F8 | `review-finding:pr-2552-f8` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F9 | `review-finding:pr-2552-f9` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F10 | `review-finding:pr-2552-f10` | Human | Suggestion | metadata | ORIGINAL | FIXED | RESOLVED |
+| F11 | `review-finding:pr-2552-f11` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -204,6 +221,83 @@ name the second head, so they do not cover the commits that fix F3 to F7.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2552#discussion_r4294059998>
 
+### F8 - The committed-test red run names a revision whose test lines are not 1300 and 1310
+
+- PR number: 2552
+- Source review ID: 5547398388
+- Reviewer finding ID: F1
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2552#discussion_r4294358429>
+- Concern: the evidence placed the mutate-then-restore run at the PR head after
+  `docs(statistics): [#2244] correct the float-to-integer cast reasons`. At that commit the two
+  assertions are on lines 1299 and 1309. They move to 1300 and 1310 only with the next commit, whose
+  doc comment adds a line, and a one-line mutation adds none. The run therefore used a tree that
+  already had that next commit, and the fix-bug skill asks the evidence to name the commit whose
+  build ran.
+- Solution: V2 now names `docs(udp-server): [#2244] say the averaged accessors round toward zero` as
+  the tree that ran, and says why the lines are 1300 and 1310 there and 1299 and 1309 one commit
+  earlier. The values 100.25 and 100.0001 are the same either way.
+- Current-tree verification: `git show` of both commits shows the assertions on lines 1299 and 1309
+  before and 1300 and 1310 after, and the evidence file names the second commit.
+- Resolution reference: docs(issues): [#2244] name the revision of the committed-test red run
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2552#discussion_r4294403954>
+
+### F9 - "the behavior from before this review" has no referent once merged
+
+- PR number: 2552
+- Source review ID: 5547398388
+- Reviewer finding ID: F2
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2552#discussion_r4294358447>
+- Concern: the `averaged_processing_time_ns` reason ended on "keeps the behavior from before this
+  review". The rest of the reason names the interface and the cast, as the decision framework asks,
+  but "this review" is a process reference that a reader of the code cannot resolve, and the six
+  inventory rows A193-A198 repeated it.
+- Solution: the reason and the six rows now end on the existing test
+  `it_should_handle_fractional_averages_with_truncation`, which pins the rounding toward zero.
+- Current-tree verification: that test exists in the same file and passes, `grep -rn "before this
+  review"` over `packages`, the spec folder, and the inventory finds nothing, and Clippy with
+  `-D warnings` is clean for `torrust-tracker-udp-server`.
+- Resolution reference: docs(udp-server): [#2244] end the averaged reason on a test, not on this review
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2552#discussion_r4294404197>
+
+### F10 - Rows F1 and F2 carry another reviewer's rating rather than their source's own marks
+
+- PR number: 2552
+- Source review ID: 5547398388
+- Reviewer finding ID: F3
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2552#discussion_r4294358454>
+- Concern: after round 2 the F1 and F2 rows carried da2ce7's rating of the bot's threads instead of
+  the bot's own icons. The skill marks a severity inferred from free prose without saying whose
+  prose, so the text permits it, but the validator compares each row with its own source comment's
+  mark. The rating is a reviewer's view of the threads, not their severity, and the Round 1 paragraph
+  still cited the icons.
+- Solution: F1 is `Minor (inferred)` and F2 is `Nit (inferred)` again, from the bot's Medium and Low
+  icons, and da2ce7's rating stays as prose in the Round 2 paragraph. The append-only 11:14 log line
+  that says the rating was adopted is not rewritten. A correction entry names it.
+- Current-tree verification: the F1 and F2 rows read Minor (inferred) and Nit (inferred), the Round 2
+  paragraph states the rating as prose, and the Processing Log has the correction entry.
+- Resolution reference: docs(pr-reviews): [#2244] record the third review round in the PR #2552 audit
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2552#discussion_r4294404503>
+
+### F11 - The Round 2 paragraph records the review as approved; it was dismissed before this commit
+
+- PR number: 2552
+- Source review ID: 5547398388
+- Reviewer finding ID: F4
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2552#discussion_r4294358462>
+- Concern: the audit called review 5546913953 APPROVED and explained why the approval does not cover
+  the fixes, but did not say that it no longer stands. The timeline shows it dismissed at 11:13:45
+  UTC by the PR author, two minutes before the audit commit.
+- Solution: the Round 2 paragraph now names the dismissal, its time, and the commit whose push
+  triggered it, by subject and not by id. A correction log entry records it too.
+- Current-tree verification: the timeline's `review_dismissed` event for review 5546913953 reads
+  2026-10-16T11:13:45Z by josecelano, and the paragraph and the log entry say the same.
+- Resolution reference: docs(pr-reviews): [#2244] record the third review round in the PR #2552 audit
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2552#discussion_r4294404720>
+
 ## Processing Log
 
 - 2026-10-16 10:40 UTC - Started audit after Copilot's review 5545198548. Fixed F1 and F2 in
@@ -214,6 +308,14 @@ name the second head, so they do not cover the commits that fix F3 to F7.
 - 2026-10-16 11:14 UTC - Round 2: da2ce7's review 5546913953 (APPROVED and ACK on the second head)
   carried five findings, F3 to F7 here. Fixed each in its own commit, pushed, and replied on the five
   threads. Adopted da2ce7's severity rating of round 1 for F1 and F2.
+- 2026-10-16 11:58 UTC - Correction to the two entries above. The Round 2 entry says da2ce7's
+  review 5546913953 was an approval and that the rating of F1 and F2 was adopted. The approval had
+  been dismissed at 11:13:45 UTC by the push of `docs(issues): [#2244] correct the progress-log
+  times of the implementation round`, and the rows keep the bot's own icons again.
+- 2026-10-16 11:58 UTC - Round 3: da2ce7's review 5547398388 (APPROVED and ACK on the head that
+  ended with the Round 2 audit commit) carried four findings, F8 to F11 here. Fixed F8 and F9 in
+  separate commits, pushed them, and replied on the four threads. F10 and F11 are fixed in this
+  audit.
 
 ## Completion Rules
 
