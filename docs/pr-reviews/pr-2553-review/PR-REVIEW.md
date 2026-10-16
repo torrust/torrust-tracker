@@ -46,14 +46,15 @@ severity is inferred as `Minor` from the overview's "Low severity" badge on each
 da2ce7's approving review 5547031766 carries eleven inline threads, F3 to F13, each with a
 `[Severity][Fn]` header. His IDs F1 to F11 collide with this audit's F1 and F2, so they are
 reassigned in source order and the original ID is recorded as the reviewer finding ID. His review
-body repeats no further request and adds no row.
+body repeats no further request and adds no row. GitHub's timeline shows the next fix push dismissing
+this review at 11:30:11Z.
 
 His approving review 5547366758, at the head after the round 2 fixes, carries four more inline threads,
-F14 to F17, with the same ID reassignment. It repeats no further request in its body and adds no row.
+F14 to F17, with the same ID reassignment. It repeats no further request in its body and adds no row. The next fix push dismissed it at 11:56:24Z.
 
 His approving review 5547599741, at the head after the round 3 fixes, carries four more inline threads,
 F18 to F21, all `Nit`, with the same ID reassignment. It repeats no further request in its body and adds
-no row.
+no row. The next fix push dismissed it at 12:20:03Z.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
