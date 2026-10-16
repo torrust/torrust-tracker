@@ -9,7 +9,7 @@ github-issue: 1349
 spec-path: docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md
 branch: "1349-1347-add-tests-http-core-spec"
 related-pr: 2546
-last-updated-utc: "2026-10-16 07:28"
+last-updated-utc: "2026-10-16 08:14"
 semantic-links:
   skill-links:
     - create-issue
@@ -501,6 +501,9 @@ lines are the [baseline](#baseline-coverage) measurement.
 - 2026-10-16 07:28 UTC - GitHub Copilot - da2ce7 approved PR #2546 at the head after the first
   round's fixes and left two `Nit` findings (F7, F8 in the audit); both are fixed and resolved. The
   Commit Points table now covers the review-audit commit for this and every later slice PR.
+- 2026-10-16 08:14 UTC - GitHub Copilot - da2ce7 approved the head again and left one `Nit`
+  finding (F9 in the audit): the S0 Commit Points row now names the `Review round` row instead of
+  calling it the next row. Fixed and resolved.
 
 ## Acceptance Criteria
 

@@ -56,6 +56,10 @@ processed, so this is the normal pre-merge workflow.
   first round's fixes) carries two inline `Nit` findings with the IDs F1 and F2, which collide
   with this audit's F1 and F2, so they are recorded as F7 and F8 with the original ID kept in each
   detail entry. Its body raises nothing further to act on.
+- da2ce7's third review 5544488533 (APPROVED, 2026-10-16 07:41:21 UTC, at the head after the
+  second round's fixes) carries one inline `Nit` finding with the ID F1, which collides with this
+  audit's F1, so it is recorded as F9 with the original ID kept in its detail entry. Its body
+  raises nothing further to act on.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -67,6 +71,7 @@ processed, so this is the normal pre-merge workflow.
 | F6 | `review-finding:pr-2546-f6` | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 | F7 | `review-finding:pr-2546-f7` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F8 | `review-finding:pr-2546-f8` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F9 | `review-finding:pr-2546-f9` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -223,6 +228,22 @@ processed, so this is the normal pre-merge workflow.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2546#discussion_r4291965087>
 
+### F9 - The S0 row calls the review round row the "next row", but the next row is T1
+
+- PR number: 2546
+- Source review ID: 5544488533
+- Reviewer finding ID: F1
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2546#discussion_r4292065484>
+- Concern: the S0 Commit Points row points to the review-audit commit row as "next row", but the
+  row after S0 is T1; the "Review round" row sits after T2-T3, T4 and Slice close.
+- Solution: the S0 row now names the row ("see the `Review round` row below") instead of relying
+  on its position.
+- Current-tree verification: the S0 row of the spec's Commit Points table contains `see the "Review
+  round" row below` (`grep -n`); its only remaining "next row" is this round's progress-log entry.
+- Resolution reference: docs(issues): [#1349] name the review round row instead of calling it the next row
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2546#discussion_r4292332164>
+
 ## Processing Log
 
 - 2026-10-16 06:16 UTC - Started audit; fetched the threads and reviews (Copilot's two threads).
@@ -237,6 +258,9 @@ processed, so this is the normal pre-merge workflow.
   F7 and F8; fetched them.
 - 2026-10-16 07:26 UTC - Committed the F7 and F8 fixes and pushed.
 - 2026-10-16 07:28 UTC - Replied on the two threads and resolved them; recorded them here.
+- 2026-10-16 08:12 UTC - da2ce7 approved the head (review 5544488533) with one new `Nit` thread,
+  F9; fetched it and committed the fix.
+- 2026-10-16 08:14 UTC - Pushed, replied on the thread and resolved it; recorded it here.
 
 ## Completion Rules
 
