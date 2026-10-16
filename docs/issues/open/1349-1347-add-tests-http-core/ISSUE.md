@@ -9,7 +9,7 @@ github-issue: 1349
 spec-path: docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md
 branch: "1349-1347-add-tests-http-core-spec"
 related-pr: 2546
-last-updated-utc: "2026-10-16 10:23"
+last-updated-utc: "2026-10-16 10:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -514,6 +514,9 @@ lines are the [baseline](#baseline-coverage) measurement.
 - 2026-10-16 10:23 UTC - GitHub Copilot - da2ce7 approved the head again and left one `Minor`
   finding (F11 in the audit): Copilot's review had marked F10 "Medium severity", so F10 is
   `Minor (inferred)`. Fixed in the audit and in the entry above, and resolved.
+- 2026-10-16 10:30 UTC - GitHub Copilot - Copilot's third re-review left two findings (F12 and F13
+  in the audit): the interruption note is now `interruption-note.md`, distinct from the findings
+  `HANDOFF.md`, and the 2264 draft is linked by its file. Both fixed and resolved.
 
 ## Acceptance Criteria
 

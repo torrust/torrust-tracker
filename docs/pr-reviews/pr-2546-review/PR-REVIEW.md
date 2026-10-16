@@ -70,6 +70,10 @@ processed, so this is the normal pre-merge workflow.
   fourth round) carries one inline `Minor` finding with the ID F1, which collides with this audit's
   F1, so it is recorded as F11 with the original ID kept in its detail entry. Its body raises
   nothing further to act on.
+- Copilot's third review 5545341095 (COMMENTED, 2026-10-16 08:55:56 UTC, at the head after the
+  third round) has two inline findings, F12 and F13. Their overview marks them "Medium severity"
+  and "Low severity", recorded as `Minor (inferred)` and `Nit (inferred)`. My polling first saw
+  this review at 10:25 UTC, because the earlier poll had ended on da2ce7's approval.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -84,6 +88,8 @@ processed, so this is the normal pre-merge workflow.
 | F9 | `review-finding:pr-2546-f9` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F10 | `review-finding:pr-2546-f10` | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 | F11 | `review-finding:pr-2546-f11` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F12 | `review-finding:pr-2546-f12` | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F13 | `review-finding:pr-2546-f13` | Copilot | Nit (inferred) | link-integrity | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -292,6 +298,43 @@ processed, so this is the normal pre-merge workflow.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2546#discussion_r4293547260>
 
+### F12 - The spec uses both `handoff.md` and `HANDOFF.md` for the same artifact name
+
+- PR number: 2546
+- Source review ID: 5545341095
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2546#discussion_r4292715268>
+- Concern: the spec named `handoff.md` and `HANDOFF.md`, differing only by case, so tooling or a
+  reader could confuse them and miss a hand-off.
+- Solution: they are two different artifacts, so they now have distinct names. The issue-local
+  note for stopping mid-task is `interruption-note.md` in the findings procedure, the Commit
+  Points paragraph and the Risks line, and that paragraph states it is not the findings
+  `HANDOFF.md`, which lives in a git-ignored `.tmp/` folder and is defined in the findings
+  procedure. The uppercase name is kept for the findings hand-off because earlier hand-offs
+  used it.
+- Current-tree verification: `grep -n "handoff.md\|interruption-note\|HANDOFF.md"` on the spec
+  finds no lowercase `handoff.md`, and each `interruption-note.md` and `HANDOFF.md` reference
+  matches its definition.
+- Resolution reference: docs(issues): [#1349] give the interruption note its own file name
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2546#discussion_r4293612383>
+
+### F13 - A reference points to a directory path
+
+- PR number: 2546
+- Source review ID: 5545341095
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2546#discussion_r4292715350>
+- Concern: the Branches rule cited the 2264 draft by its directory, a broad directory reference,
+  where a specific file link is more precise.
+- Solution: the rule now names `docs/issues/drafts/2264-support-multiple-related-prs-in-issue-frontmatter/ISSUE.md`,
+  which exists.
+- Current-tree verification: `ls docs/issues/drafts/2264-support-multiple-related-prs-in-issue-frontmatter/`
+  lists `ISSUE.md`, and the spec's reference ends in `/ISSUE.md`.
+- Resolution reference: docs(issues): [#1349] link the 2264 draft file instead of its directory
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2546#discussion_r4293612807>
+
 ## Processing Log
 
 - 2026-10-16 06:16 UTC - Started audit; fetched the threads and reviews (Copilot's two threads).
@@ -321,6 +364,11 @@ processed, so this is the normal pre-merge workflow.
   maintainer's approval.
 - 2026-10-16 10:22 UTC - Pushed, replied on the thread and resolved it.
 - 2026-10-16 10:23 UTC - Recorded this round here.
+- 2026-10-16 10:25 UTC - Pushed the fifth-round audit, re-requested review from da2ce7 and
+  Copilot, and found Copilot's review 5545341095 (submitted 08:55:56 UTC) with F12 and F13.
+- 2026-10-16 10:27 UTC - Committed the F12 and F13 fixes and pushed.
+- 2026-10-16 10:29 UTC - Replied on the two threads and resolved them.
+- 2026-10-16 10:30 UTC - Recorded this round here.
 
 ## Completion Rules
 
