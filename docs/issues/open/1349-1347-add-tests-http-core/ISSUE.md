@@ -364,7 +364,7 @@ Rules:
 
 | Task | Coherent change set | Commit policy |
 | ---- | ------------------- | ------------- |
-| Spec (S0) | This specification, the EPIC registration with the baseline, and the PR review audit | One signed `docs(issues)` commit after maintainer approval, plus a follow-up signed commit that records the spec-only PR number once the PR exists, plus any review-fix commits, plus the review-audit commit (next row); merged through the spec-only PR. |
+| Spec (S0) | This specification, the EPIC registration with the baseline, and the PR review audit | One signed `docs(issues)` commit after maintainer approval, plus a follow-up signed commit that records the spec-only PR number once the PR exists, plus any review-fix commits, plus the review-audit commit (see the "Review round" row below); merged through the spec-only PR. |
 | T1 | Coverage evidence and module inventory | Documentation-only commit after review. |
 | T2-T3 | Shared plan guidance, first plan, and approved order | Documentation-only commit before test-producing work. |
 | T4 | One source file: its plan, test refactor, unit tests, and recorded coverage | One commit per completed file after its completed-file review. A no-change conclusion is committed as documentation. Never mix two source files in one commit. |
