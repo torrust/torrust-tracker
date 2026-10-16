@@ -57,17 +57,35 @@ by the push of "docs(issues): [#2507] log the second PR #2550 review round") rea
 subject is "docs(pr-reviews): add the PR #2550 review audit" and carries five inline threads whose
 reviewer IDs F1-F5 collide with F1-F5 above, so they are recorded as F10-F14 with the reviewer's ID
 kept in the detail entry. Its body is a round summary that repeats those five findings and confirms
-the earlier ones as resolved, so it adds no rows; a separate PR conversation comment, `ACK`, records
-its verdict for that head.
+the round-1 findings as resolved except two gaps it names (the class test and the re-review's stated
+input), which are raised as F10 and F12, so it adds no rows; a separate PR conversation comment,
+`ACK`, records its verdict for that head.
 
 A third round followed the push of the second round's fixes. Copilot's review 5546689152 carries one
 finding in its body and no inline thread, so it is recorded as F15 with `NON_RESOLVABLE` and the
-review URL as its source. da2ce7's approving review 5547008497 read the head whose subject is
+review URL as its source. da2ce7's approving review 5547008497 (later dismissed at 11:22:22 UTC by the
+push of "docs(issues): [#2507] log the third PR #2550 review round") read the head whose subject is
 "docs(pr-reviews): record the dismissed approval and the second review round of PR #2550" and carries
 four inline threads whose reviewer IDs F1-F4 collide with F1-F4 above, so they are recorded as F16-F19
 with the reviewer's ID kept in the detail entry. Its F1 is the same concern as F15, so F16 is recorded
-as `RE_RAISE_OF:F15`. Its body is a round summary that repeats those four findings and confirms the
+as `RE_RAISE_OF:F15`. Its body is a round summary that repeats those four findings and confirms three
+of the earlier ones as resolved and finds two partly resolved (its R3-F3 and R3-F5), which are raised
+as F18 and F17, so it adds no rows; an `ACK` comment records its verdict for that head.
+
+A fourth round followed the push of the third round's fixes. Copilot's review 5547291916 carries one
+inline thread, recorded as F20. da2ce7's approving review 5547344550 read the head whose subject is
+"docs(pr-reviews): add the reply URLs of the third review round of PR #2550" and carries three inline
+threads whose reviewer IDs F1-F3 collide with F1-F3 above, so they are recorded as F21-F23 with the
+reviewer's ID kept in the detail entry. Its F3 is the same concern as F20, so F23 is recorded as
+`RE_RAISE_OF:F20`. Its body is a round summary that repeats those three findings and confirms the
 earlier ones as resolved, so it adds no rows; an `ACK` comment records its verdict for that head.
+
+Every push dismisses the standing approval (the pull-request ruleset dismisses stale reviews on
+push), always with the author's account as actor and no message. The timeline holds one
+`review_dismissed` event for each of the three approvals above, at 08:31:50, 10:26:39, and 11:22:22
+UTC. The push that carries the fixes of the fourth round dismisses review 5547344550 in the same way;
+its approval is not logged as a separate event, because the `ACK` comments name the head each one
+applies to and the next review supersedes it.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -90,6 +108,10 @@ earlier ones as resolved, so it adds no rows; an `ACK` comment records its verdi
 | F17 | review-finding:pr-2550-f17 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F18 | review-finding:pr-2550-f18 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F19 | review-finding:pr-2550-f19 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F20 | review-finding:pr-2550-f20 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
+| F21 | review-finding:pr-2550-f21 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F22 | review-finding:pr-2550-f22 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F23 | review-finding:pr-2550-f23 | Human | Nit | correctness | RE_RAISE_OF:F20 | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -348,9 +370,11 @@ earlier ones as resolved, so it adds no rows; an `ACK` comment records its verdi
   timelines, but the #2547 scope bullet and AC2 select pushes by event date. #2537 merged on 15
   October but its required rebase was on 14 October, so it contributes to the baseline-style total
   and not to the classification. Use one population and align AC2 and the issue body.
-- Solution: the population of every measure is the pull requests merged in the window (`merged_at`),
-  with all of their force-pushes, including events before the window. The scope, AC2, and the GitHub
-  issue body say so. The finding has no inline thread, so its state is `NON_RESOLVABLE`.
+- Solution: the population of every force-push measure is the pull requests merged in the window
+  (`merged_at`), with all of their force-pushes, including events before the window. The scope, AC2,
+  and the GitHub issue body say so. The finding has no inline thread, so its state is
+  `NON_RESOLVABLE`. This entry first said "every measure", which overstated the fix; F20 and F23
+  limit it to the force-push measures.
 - Current-tree verification: the `ISSUE.md` scope bullet names the population, its classification
   bullet says "every force-push of those pull requests", and AC2 says "including events before it".
   V4 of the evidence already uses this population: the 18 merges from #2526 to #2543 with all of their
@@ -387,9 +411,10 @@ earlier ones as resolved, so it adds no rows; an `ACK` comment records its verdi
 - Solution: the Findings paragraph says the approval was later dismissed and names the push, F14's
   verification states both events and says it first said one, and the Processing Log records the
   second dismissal.
-- Current-tree verification: the timeline holds two `review_dismissed` events, both with actor
-  `josecelano`: 2026-10-16T08:31:50Z (review 5544619071) and 2026-10-16T10:26:39Z (review
-  5545292694). The audit names both.
+- Current-tree verification: when this entry was written the timeline held two `review_dismissed`
+  events, both with actor `josecelano`: 2026-10-16T08:31:50Z (review 5544619071) and
+  2026-10-16T10:26:39Z (review 5545292694). A third came with the next push, at 2026-10-16T11:22:22Z
+  for review 5547008497, and is recorded by F21. The audit names all three.
 - Resolution reference: docs(pr-reviews): record the second dismissal and the third review round of PR #2550
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2550#discussion_r4294125635>
@@ -432,6 +457,88 @@ earlier ones as resolved, so it adds no rows; an `ACK` comment records its verdi
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2550#discussion_r4294126082>
 
+### F20 - The CI measurement population should keep the baseline's selection
+
+- PR number: 2550
+- Source review ID: 5547291916
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2550#discussion_r4294275456>
+- Concern: baseline section 6 estimates the `pull_request` workflow runs of 1 to 13 October, not the
+  lifetime runs of the pull requests merged then. A population rule that applies to every measure
+  would exclude CI for still-open pull requests and include pre-window runs, so the comparison with
+  197.8 runner-hours would be inconsistent. Limit the merged-pull-request rule to the force-push
+  figures, select CI runs by creation date within the window, and align the progress entry and the
+  GitHub issue body.
+- Solution: the shared population applies only to the force-push total and its classification. The
+  scope bullet states how each other measure selects its data, as its baseline section does: CI runs
+  by creation date (section 6), fallout commits by author date (section 7), and volume as in section
+  4. The progress entry says "every force-push measure", and the issue body was updated to match.
+- Current-tree verification: the `ISSUE.md` scope bullet lists the selection of each measure and its
+  11:16 progress entry says "every force-push measure". Baseline section 6 counts runs by creation
+  date.
+- Resolution reference: docs(issues): [#2547] limit the shared population to the force-push measures
+- Follow-up PR URL: N/A
+- Reply URL: N/A
+
+### F21 - The third approval was dismissed too, and the record does not say so
+
+- PR number: 2550
+- Source review ID: 5547344550
+- Reviewer finding ID: F1
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2550#discussion_r4294315577>
+- Concern: review 5547008497 is called "approving", but its approval was dismissed at 11:22:22 UTC by
+  the push of the "log the third PR #2550 review round" commit, before this record's last commit. F17's
+  verification still says the timeline holds two events, and the 11:24 entry, which records that push,
+  does not name the dismissal. This is F17's gap again for the third approval.
+- Solution: the Findings paragraph says the approval was later dismissed and names the push, F17's
+  verification names the third event, and the Processing Log records it. The paragraph also says that
+  every push dismisses the standing approval and that the push carrying this round's fixes dismisses
+  review 5547344550 in the same way, so that gap does not recur for each later push: the `ACK`
+  comments name the head each one applies to.
+- Current-tree verification: the timeline holds three `review_dismissed` events, all with actor
+  `josecelano` and no message: 2026-10-16T08:31:50Z (review 5544619071), 10:26:39Z (review
+  5545292694), and 11:22:22Z (review 5547008497). The audit names all three.
+- Resolution reference: docs(pr-reviews): record the third dismissal and the fourth review round of PR #2550
+- Follow-up PR URL: N/A
+- Reply URL: N/A
+
+### F22 - The round-3 summary is described as confirming findings it called partly resolved
+
+- PR number: 2550
+- Source review ID: 5547344550
+- Reviewer finding ID: F2
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2550#discussion_r4294315594>
+- Concern: the audit says the round-3 body "confirms the earlier ones as resolved", but that body
+  called two of them partly resolved ("R3-F3 partly" and "R3-F5 partly"), and raised the rest as its
+  F3 and F2 (F18 and F17 here).
+- Solution: the third-round paragraph now says the body confirms three earlier findings as resolved
+  and finds two partly resolved, raised as F18 and F17. The second-round paragraph had the same
+  overstatement, because that body names two remaining gaps raised as F10 and F12, and now says so.
+- Current-tree verification: the Findings paragraphs for the second and third rounds say so, and
+  both bodies were re-read.
+- Resolution reference: docs(pr-reviews): record the third dismissal and the fourth review round of PR #2550
+- Follow-up PR URL: N/A
+- Reply URL: N/A
+
+### F23 - "The population of every measure" overstates the fix
+
+- PR number: 2550
+- Source review ID: 5547344550
+- Reviewer finding ID: F3
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2550#discussion_r4294315602>
+- Concern: the same as F20: the scope bullet applies the merged-in-the-window population to the
+  force-push total and its classification only, while baseline section 6 counts runs dated 1 to 13
+  October and section 7 counts commits by author date. The conversation response and F15 repeat
+  "every measure".
+- Solution: fixed together with F20. The progress entry, F15, and the conversation response say
+  "every force-push measure".
+- Current-tree verification: `grep -n "every measure"` on the `ISSUE.md` and the audit finds nothing
+  that applies the population to other measures, and the conversation response reads "every
+  force-push measure".
+- Resolution reference: docs(issues): [#2547] limit the shared population to the force-push measures
+- Follow-up PR URL: N/A
+- Reply URL: N/A
+
 ## Processing Log
 
 - 2026-10-16 08:15 UTC - Fetched every thread and review, classified and numbered the findings, and
@@ -462,6 +569,15 @@ earlier ones as resolved, so it adds no rows; an `ACK` comment records its verdi
 - 2026-10-16 11:24 UTC - Pushed the fixes, updated the GitHub issue body of #2547, replied on the
   four new threads and, from the pushed head, on the F14 thread, posted a PR conversation response
   for F15, and added the reply URLs to this record.
+- 2026-10-16 11:25 UTC - Resolved the four threads and re-requested da2ce7 and Copilot.
+- 2026-10-16 11:42 UTC - Copilot's review 5547291916 arrived at the pushed head, with one inline
+  thread (F20).
+- 2026-10-16 11:47 UTC - da2ce7's approving review 5547344550 and an `ACK` comment arrived for the
+  same head, with three new threads (F21-F23).
+- 2026-10-16 11:54 UTC - Recorded that review 5547008497's approval was dismissed at 11:22:22 UTC by
+  the push of the "log the third PR #2550 review round" commit (F21). Fixed F20 and F23 in one
+  signed commit and F21 and F22 in this record, which also says why later pushes are not logged one
+  by one.
 
 ## Completion Rules
 
