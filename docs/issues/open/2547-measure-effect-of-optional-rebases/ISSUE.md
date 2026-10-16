@@ -9,7 +9,7 @@ github-issue: 2547
 spec-path: docs/issues/open/2547-measure-effect-of-optional-rebases/ISSUE.md
 branch: "2547-measure-effect-of-optional-rebases"
 related-pr: null
-last-updated-utc: "2026-10-16 08:55"
+last-updated-utc: "2026-10-16 10:24"
 semantic-links:
   skill-links:
     - create-issue
@@ -87,7 +87,7 @@ pull requests #2530, #2538, and #2430 rebased clean branches. See the #2507
   - rebase: the push moved the base, that is, `git merge-base <tip> <beforeCommit>` differs from
     `git merge-base <tip> <afterCommit>`. It is required when the pushed-away head conflicted with the
     tip (`git merge-tree --write-tree`), and recommended when it merged cleanly;
-  - not a rebase: the push left the base unchanged. Since PR #2531 merged (2026-10-14 16:09 UTC),
+  - not a rebase: the push left the base unchanged. Since PR #2531 merged (`merged_at` 2026-10-14 16:09 UTC),
     `AGENTS.md` allows other rewrites of an unmerged pull request's history, such as splitting or
     reordering commits, which the baseline could not contain: baseline section 5 counts every
     force-push as a rebase because history rewrites were otherwise forbidden.
@@ -184,6 +184,9 @@ with GPG.
   merge bases of the tip with the pushed-away and the new head), with the tip taken by `merged_at`,
   after the second review round of PR #2550 showed that "the new head is based on the tip" cannot
   tell a rebase from a rewrite. The GitHub issue body was updated to match.
+- 2026-10-16 10:24 UTC - AI assistant - Labelled the merge time of PR #2531 as GitHub's `merged_at`
+  (the evidence dates merges by Git committer time, so the two differ by three minutes), after the
+  second review round of PR #2550.
 
 ## Acceptance Criteria
 
@@ -239,7 +242,7 @@ None planned.
 - **Confounders.** PR volume, the mix of documentation and code PRs, and #2525 workflow changes all
   affect CI time. Mitigation: normalize per merged PR, report the documentation and code split, and
   record any workflow changes in the window.
-- **Policy change on rewrites.** PR #2531 (merged 2026-10-14 16:09 UTC) allows force-pushes that are
+- **Policy change on rewrites.** PR #2531 (`merged_at` 2026-10-14 16:09 UTC) allows force-pushes that are
   not rebases, so the window's force-push count can exceed the baseline's rebase count for a reason
   unrelated to the rebase policy. Mitigation: classify each force-push (not a rebase) and report both
   the total and the rebase-only figures.
