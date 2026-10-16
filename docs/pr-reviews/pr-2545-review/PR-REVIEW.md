@@ -17,6 +17,8 @@ Source: pull-request reviews and inline review threads for <https://github.com/t
 The PR author owns this tracked audit record. Reviewers, including repository review agents,
 deliver findings through GitHub and have no repository-artifact obligation.
 
+- Post-merge workflow approval: N/A
+
 ## Status Values
 
 - Relationship: `ORIGINAL`, `RE_RAISE_OF:<FindingId>`
