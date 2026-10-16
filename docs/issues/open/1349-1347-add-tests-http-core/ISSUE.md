@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p2
 epic: 1347
 github-issue: 1349
 spec-path: docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md
-branch: "1349-1347-add-tests-http-core-spec"
-related-pr: 2546
-last-updated-utc: "2026-10-16 10:55"
+branch: "1349-1347-add-tests-http-core-inventory"
+related-pr: null
+last-updated-utc: "2026-10-16 15:42"
 semantic-links:
   skill-links:
     - create-issue
@@ -25,6 +25,7 @@ semantic-links:
     - docs/issues/closed/1348-1347-add-tests-udp-core/implementation-retrospective.md
     - docs/issues/closed/1348-1347-add-tests-udp-core/lessons.md
     - docs/pr-reviews/pr-2546-review/PR-REVIEW.md
+    - docs/issues/open/1349-1347-add-tests-http-core/coverage-evidence.md
     - packages/http-core
 ---
 
@@ -110,9 +111,12 @@ The `torrust-tracker-axum-http-server` package and the root `tests/` exercise th
 indirectly. EPIC #1347 does not accept coverage from another package, an integration test, or an
 end-to-end test as evidence that a feasible package-owned unit seam is protected.
 
-T1 copies this baseline into `coverage-evidence.md`, adds per-file uncovered regions, and
-re-measures only if `packages/http-core/` changed on `develop` after `a9d8c5703`. The EPIC #1347
-Package Coverage Tracking tables record this baseline in both the aggregate and unit-only tables.
+T1 re-measured, because `packages/http-core/` changed on `develop` after `a9d8c5703`: the #2536
+refactor (merged through #2545) touched four statistics files. The T1 baseline at `04013e7f1` is
+lines 1,746 / 1,962 (88.99%), regions 2,329 / 2,577 (90.38%), and functions 159 / 189 (84.13%), from
+the same 32 unit tests, with unit-only equal to aggregate. It supersedes the table above;
+[coverage-evidence.md](coverage-evidence.md) holds the per-file results and the differences. The
+Source File Ledger and the EPIC #1347 Package Coverage Tracking tables use the T1 baseline.
 
 ## Key Package Responsibilities
 
@@ -300,7 +304,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | ------ | ---- | ----------------------- |
-| T1 | TODO | Create coverage evidence and complete module inventory | `coverage-evidence.md` records the baseline commands and totals from this spec, per-file uncovered regions, property-test candidacy, selected behavior, and initial hypothesis for every `packages/http-core/src/` file. No tests changed. |
+| T1 | DONE | Create coverage evidence and complete module inventory | `coverage-evidence.md` records the baseline commands and totals from this spec, per-file uncovered regions, property-test candidacy, selected behavior, and initial hypothesis for every `packages/http-core/src/` file. No tests changed. |
 | T2 | TODO | Create shared plan guidance and the first file test plan | `test-refactor-plans/README.md` holds the shared guardrails and the plan index, including the two #1348 testing lessons that apply here: re-check an assumed-unreachable error path against `tracker-core`'s exported store doubles before recording it untestable, and prove an ordering decision (for example, authentication before authorization before client-IP resolution) with an expectation-free double that fails on the first call. The first plan is `services-announce-tests.md`. No tests changed. |
 | T3 | TODO | Review and approve the processing order and slice boundaries | Maintainer approves the ledger order and the pull-request slices; both may change at any time. |
 | T4 | TODO | Process every source file through the per-file workflow | Every ledger row has a completed plan, recorded coverage result, completed-file review, and signed per-file commit, merged through its slice. |
@@ -323,8 +327,8 @@ open a PR, get it reviewed, and merge it. The spec-only PR comes first.
 
 | Slice | Content | Ledger rows | Branch | PR | Status |
 | --- | --- | --- | --- | --- | --- |
-| S0 | This specification and the EPIC registration with the baseline | - | `1349-1347-add-tests-http-core-spec` | #2546 | IN_PROGRESS |
-| S1 | T1-T3: coverage evidence, inventory, shared plan guidance, first plan, approved order | - | `1349-1347-add-tests-http-core-inventory` | - | TODO |
+| S0 | This specification and the EPIC registration with the baseline | - | `1349-1347-add-tests-http-core-spec` | #2546 | DONE |
+| S1 | T1-T3: coverage evidence, inventory, shared plan guidance, first plan, approved order | - | `1349-1347-add-tests-http-core-inventory` | - | IN_PROGRESS |
 | S2 | Announce service and its error mapping (ranks 1-2) | 1-2 | `1349-1347-add-tests-http-core-announce` | - | TODO |
 | S3 | Scrape service (rank 3) | 3 | `1349-1347-add-tests-http-core-scrape` | - | TODO |
 | S4 | Events and composition (ranks 4-5) | 4-5 | `1349-1347-add-tests-http-core-events-container` | - | TODO |
@@ -437,7 +441,7 @@ States: `PENDING` (no plan yet), `IN_PROGRESS`, `BLOCKED` (paused by a finding; 
 `DONE`, `REMOVED` (the file no longer exists; the row keeps the history). Rows follow
 [Key Package Responsibilities](#key-package-responsibilities), most critical first; within a
 responsibility, the module holding the decision comes before its supporting modules. Unit-only
-lines are the [baseline](#baseline-coverage) measurement.
+lines are the T1 baseline measurement (see [Baseline Coverage](#baseline-coverage)).
 
 | Order | Source module | Rank | Slice | Unit-only lines | Tests | Initial hypothesis | State | Plan |
 | ---: | --- | ---: | --- | ---: | ---: | --- | --- | --- |
@@ -446,10 +450,10 @@ lines are the [baseline](#baseline-coverage) measurement.
 | 3 | `services/scrape.rs` | 3 | S3 | 507 / 540 (93.89%) | 8 | Test candidate (error paths) | PENDING | - |
 | 4 | `event.rs` | 4 | S4 | 174 / 187 (93.05%) | 7 | Probably small change | PENDING | - |
 | 5 | `container.rs` | 5 | S4 | 0 / 73 (0.00%) | 0 | Test candidate | PENDING | - |
-| 6 | `statistics/event/handler.rs` | 6 | S5 | 159 / 160 (99.38%) | 5 | Probably no change | PENDING | - |
+| 6 | `statistics/event/handler.rs` | 6 | S5 | 158 / 161 (98.14%) | 5 | Probably no change | PENDING | - |
 | 7 | `statistics/event/listener.rs` | 6 | S5 | 133 / 148 (89.86%) | 4 | Lifecycle (#1488) | PENDING | - |
-| 8 | `statistics/metrics.rs` | 6 | S5 | 40 / 49 (81.63%) | 0 | Test candidate | PENDING | - |
-| 9 | `statistics/repository.rs` | 6 | S5 | 20 / 23 (86.96%) | 0 (2 doc tests) | Test candidate | PENDING | - |
+| 8 | `statistics/metrics.rs` | 6 | S5 | 43 / 52 (82.69%) | 0 | Test candidate | PENDING | - |
+| 9 | `statistics/repository.rs` | 6 | S5 | 21 / 24 (87.50%) | 0 (2 doc tests) | Test candidate | PENDING | - |
 | 10 | `statistics/mod.rs` | 6 | S5 | 8 / 8 (100.00%) | 0 | Probably small change (metric-name contract) | PENDING | - |
 | 11 | `lib.rs` | 7 | S6 | 27 / 27 (100.00%) | 0 | Test support only | PENDING | - |
 | 12 | `services/mod.rs` | 7 | S6 | No executable entries | 0 | Wiring only | PENDING | - |
@@ -468,8 +472,8 @@ lines are the [baseline](#baseline-coverage) measurement.
 - [x] Clean baseline coverage measured and recorded in this spec and the EPIC tables.
 - [x] Specification reviewed and approved by the maintainer, Jose Celano (2026-10-15).
 - [x] GitHub issue #1349 title and body refreshed to the current package name and this spec.
-- [ ] Spec-only PR (S0) merged into `develop` before implementation.
-- [ ] Complete module inventory and coverage evidence recorded (T1).
+- [x] Spec-only PR (S0) merged into `develop` before implementation (#2546).
+- [x] Complete module inventory and coverage evidence recorded (T1).
 - [ ] Shared plan guidance and the first file test plan created; processing order and slices
       approved (T2-T3).
 - [ ] Every ledger row is `DONE` with its own file test plan, merged through its slice.
@@ -520,6 +524,18 @@ lines are the [baseline](#baseline-coverage) measurement.
 - 2026-10-16 10:55 UTC - GitHub Copilot - Copilot's fourth review has no finding. da2ce7 approved
   the head again with one `Minor` finding (F14 in the audit): the audit named the wrong round for
   one review's head. Fixed and resolved.
+- 2026-10-16 11:35 UTC - Jose Celano - Merged spec-only PR #2546 into `develop` (merge commit
+  subject `Merge torrust/torrust-tracker#2546: docs(issues): [#1349] add issue specification for
+  http-core package tests`).
+- 2026-10-16 15:42 UTC - GitHub Copilot - Started S1 on branch `1349-1347-add-tests-http-core-inventory` and
+  set the specification to `in-progress`. T1: `packages/http-core/` had changed since the spec
+  baseline (#2536 through #2545), so the package was re-measured at `04013e7f1` (stable Rust 1.99.0,
+  `cargo-llvm-cov 0.6.16`): lines 1,746 / 1,962 (88.99%), 32 unit tests, unit-only equal to
+  aggregate; [coverage-evidence.md](coverage-evidence.md) records the 13-file inventory, the
+  uncovered-line groups, and the regions that line coverage hides (the early-return paths of
+  `handle_announce` and `handle_scrape`). Three dead-code candidates (the `ConnectionContext`
+  getters, `ClientConnectionContext::port`, and `Metrics::set_gauge`) await their file plans. No
+  test or production code changed.
 
 ## Acceptance Criteria
 
