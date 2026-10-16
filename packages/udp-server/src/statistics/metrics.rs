@@ -73,7 +73,7 @@ impl Metrics {
     #[expect(
         clippy::cast_sign_loss,
         clippy::cast_possible_truncation,
-        reason = "The mean of finite, non-negative processing-time gauges; the REST API reports a whole-nanosecond average and `as u64` rounds toward zero, which keeps the behavior from before this review"
+        reason = "The mean of finite, non-negative processing-time gauges; the REST API reports a whole-nanosecond average and `as u64` rounds toward zero, which the test `it_should_handle_fractional_averages_with_truncation` pins"
     )]
     fn averaged_processing_time_ns(&self, request_kind: &str) -> u64 {
         self.metric_collection
