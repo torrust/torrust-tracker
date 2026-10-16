@@ -52,6 +52,10 @@ processed, so this is the normal pre-merge workflow.
   on: it reports checks with no finding, and it states that the two Copilot comments were declined.
   The threads for F5 and F6 were still unresolved, and the concerns were small and cheap to fix,
   so both were fixed rather than declined; each row says so.
+- da2ce7's second review 5544329988 (APPROVED, 2026-10-16 07:23:42 UTC, at the head after the
+  first round's fixes) carries two inline `Nit` findings with the IDs F1 and F2, which collide
+  with this audit's F1 and F2, so they are recorded as F7 and F8 with the original ID kept in each
+  detail entry. Its body raises nothing further to act on.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -61,6 +65,8 @@ processed, so this is the normal pre-merge workflow.
 | F4 | `review-finding:pr-2546-f4` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F5 | `review-finding:pr-2546-f5` | Copilot | Minor (inferred) | metadata | ORIGINAL | FIXED | RESOLVED |
 | F6 | `review-finding:pr-2546-f6` | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F7 | `review-finding:pr-2546-f7` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F8 | `review-finding:pr-2546-f8` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -182,6 +188,41 @@ processed, so this is the normal pre-merge workflow.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2546#discussion_r4291771805>
 
+### F7 - The F1 current-tree line describes the tree before the audit's own commit
+
+- PR number: 2546
+- Source review ID: 5544329988
+- Reviewer finding ID: F1
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2546#discussion_r4291938615>
+- Concern: the F1 `Current-tree verification` line reported the grep result before the audit
+  commit. At the head the spec's stamp and entries, and the EPIC entries the grep also lists, differ,
+  although the conclusion still stands.
+- Solution: the line now states the grep result at the audit commit, named by its subject: the
+  spec entries 16:18, 20:27, 20:30 and 07:04 with stamp 07:04, and the EPIC entries with stamp
+  06:53.
+- Current-tree verification: re-ran `grep -nE '^- 2026-10-1[56] [0-9:]+ UTC'` on the spec and the
+  EPIC at that head and compared with the F1 entry; they agree.
+- Resolution reference: docs(pr-reviews): [#2546] state F1's verification result at the audit commit
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2546#discussion_r4291964811>
+
+### F8 - The S0 row's commit policy does not cover the review-audit commit
+
+- PR number: 2546
+- Source review ID: 5544329988
+- Reviewer finding ID: F2
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2546#discussion_r4291938624>
+- Concern: the S0 Commit Points row lists the spec commit, the PR-number follow-up and review
+  fixes, but the audit commit, which `process-pr-review` requires on the PR branch separately from
+  the fixes, is none of those, and every later slice PR will carry one too.
+- Solution: the S0 row now names the audit commit and lists the audit in its change set, and a new
+  "Review round (every PR, including this one)" row covers each later slice PR.
+- Current-tree verification: the spec's Commit Points table has both rows (`grep -n "Review
+  round"` and the S0 row), and the audit file is the one this record describes.
+- Resolution reference: docs(issues): [#1349] cover the review-audit commit in the commit points
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2546#discussion_r4291965087>
+
 ## Processing Log
 
 - 2026-10-16 06:16 UTC - Started audit; fetched the threads and reviews (Copilot's two threads).
@@ -192,6 +233,10 @@ processed, so this is the normal pre-merge workflow.
 - 2026-10-16 07:00 UTC - Committed the F1-F4 fixes and pushed all six.
 - 2026-10-16 07:02 UTC - Replied on the six threads and resolved them.
 - 2026-10-16 07:04 UTC - Recorded this audit and ran the validator and a final thread refresh.
+- 2026-10-16 07:24 UTC - da2ce7 approved the head (review 5544329988) with two new `Nit` threads,
+  F7 and F8; fetched them.
+- 2026-10-16 07:26 UTC - Committed the F7 and F8 fixes and pushed.
+- 2026-10-16 07:28 UTC - Replied on the two threads and resolved them; recorded them here.
 
 ## Completion Rules
 
