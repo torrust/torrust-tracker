@@ -68,11 +68,12 @@ impl Metrics {
     }
 
     /// Mean of the per-server average processing time gauges for one request
-    /// kind, in whole nanoseconds. Returns `0` when there are no samples.
+    /// kind, rounded toward zero to whole nanoseconds. Returns `0` when there
+    /// are no samples.
     #[expect(
         clippy::cast_sign_loss,
         clippy::cast_possible_truncation,
-        reason = "The mean of finite, non-negative processing-time gauges; the stats API reports whole nanoseconds, so truncating the sub-nanosecond fraction is intended"
+        reason = "The mean of finite, non-negative processing-time gauges; the REST API reports a whole-nanosecond average and `as u64` rounds toward zero, which keeps the behavior from before this review"
     )]
     fn averaged_processing_time_ns(&self, request_kind: &str) -> u64 {
         self.metric_collection

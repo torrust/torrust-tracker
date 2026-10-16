@@ -90,7 +90,7 @@ Integer-to-`f64` casts are exact up to `2^53`.
 | G1 Counter totals | A181-A190, A199-A222 | `udp-server/src/statistics/metrics.rs` (17 accessors: accepted, processed, aborted, discarded, banned requests and IPv4/IPv6 received, accepted, responses, errors) | Same as above. | Same as above. | Same package-helper outcome. |
 | G2 Integer gauge | A191-A192 | `udp-server` `udp_banned_ips_total` | Gauge set from a `usize` banned-IP count; whole, non-negative, bounded by the ban-service map size. | Same as G1. | Use the same package helper; it reads a whole, non-negative `f64`. |
 | G3 Moving-average gauge | A178, A179-A180 | `udp-server` `recalculate_udp_avg_processing_time_ns`, `udp_avg_processing_time_ns` | Fractional gauge in nanoseconds; running mean of request processing times. | **Defect:** the previous average is truncated to `u64` before each update, so the running sum loses `(n-1) * fraction` per request. A simulation of the exact arithmetic with 20-60 µs requests reports ~20,175 ns against a true mean of ~40,009 ns after 200k requests; the average ratchets toward the fastest requests and gets stuck. | Fix: read the previous average and the processed count as `f64` without truncation. Add a red/green regression test. Retain only the `Duration::as_nanos()` (`u128`) to `f64` cast with an `#[expect]` reason (processing durations are far below `2^53` ns, ~104 days). |
-| G4 Averaged gauges | A193-A198 | `udp-server` `udp_avg_{connect,announce,scrape}_processing_time_ns_averaged` | Mean of per-server moving-average gauges in nanoseconds; non-negative, finite; the REST API exposes whole nanoseconds. | Truncates the sub-nanosecond fraction; `0` when no samples. | Retain truncation (no behavior change) in one private `averaged_processing_time_ns` helper with an `#[expect]` reason. |
+| G4 Averaged gauges | A193-A198 | `udp-server` `udp_avg_{connect,announce,scrape}_processing_time_ns_averaged` | Mean of per-server moving-average gauges in nanoseconds; non-negative, finite; the REST API exposes whole nanoseconds. | Truncates the sub-nanosecond fraction; `0` when no samples. | Retain rounding toward zero (no behavior change) in one private `averaged_processing_time_ns` helper with an `#[expect]` reason; the REST API documents these fields as an "average rounded time" in whole nanoseconds. |
 | G5 Gauge inputs | A113-A114 | `swarm-coordination-registry` `update_inactive_{peers,torrents}_total` | `usize` counts of inactive peers and torrents. | Exact: memory cannot hold `2^53` peers or torrents. | Retain with a permanent `#[expect]` reason. |
 | G5 Gauge inputs | A170 | `udp-server/src/banning/event/handler.rs` | `usize` count of banned IPs. | Same as above. | Retain with a permanent `#[expect]` reason, narrowed to the cast expression. |
 | G6 Test reads | A224-A227 | `udp-server/src/statistics/repository.rs` test | Gauge read only to assert on it. | Not applicable. | Remove: assert on the `f64` gauge value directly. |
@@ -109,8 +109,8 @@ Recorded 2026-10-15 from the implementation-start review with josecelano:
    reasons stay **permanent** (external `f64` interface + whole-counter invariant), not temporary,
    so this issue does not depend on an external release; adopting the upstream API later is an
    optional cleanup.
-4. Keep truncation to whole nanoseconds for the G4 averaged accessors. Implemented through one
-   private helper rather than an attribute per accessor, as for G1.
+4. Keep the current rounding toward zero to whole nanoseconds for the G4 averaged accessors.
+   Implemented through one private helper rather than an attribute per accessor, as for G1.
 5. Retain G5 `usize` to `f64` gauge inputs with permanent reasons.
 6. Remove G6 test casts by asserting on the `f64` gauge directly.
 7. Use `#[expect(..., reason = "...")]` for every retained cast: these pedantic cast lints fire on

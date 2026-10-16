@@ -209,8 +209,9 @@ API udp_avg_connect_processing_time_ns: 13851 ns
 
 #### Conclusion
 
-Fixed. The API value equals the true mean truncated to whole nanoseconds, which is the documented
-contract of the averaged accessors.
+Fixed. The API value equals the true mean rounded toward zero to whole nanoseconds. That is what the
+averaged accessors report: `as u64` rounds toward zero, and the REST API documents the field as an
+average rounded time.
 
 ### V5 - M1: Integer and Average Metrics Match Their Semantics
 
