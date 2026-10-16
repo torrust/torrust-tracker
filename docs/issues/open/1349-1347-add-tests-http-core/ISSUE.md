@@ -9,7 +9,7 @@ github-issue: 1349
 spec-path: docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md
 branch: "1349-1347-add-tests-http-core-spec"
 related-pr: 2546
-last-updated-utc: "2026-10-15 20:30"
+last-updated-utc: "2026-10-16 07:04"
 semantic-links:
   skill-links:
     - create-issue
@@ -24,6 +24,7 @@ semantic-links:
     - docs/issues/closed/1348-1347-add-tests-udp-core/ISSUE.md
     - docs/issues/closed/1348-1347-add-tests-udp-core/implementation-retrospective.md
     - docs/issues/closed/1348-1347-add-tests-udp-core/lessons.md
+    - docs/pr-reviews/pr-2546-review/PR-REVIEW.md
     - packages/http-core
 ---
 
@@ -492,6 +493,10 @@ lines are the [baseline](#baseline-coverage) measurement.
 - 2026-10-15 20:30 UTC - GitHub Copilot - Refreshed the GitHub issue #1349 title and body and
   opened spec-only PR #2546 (<https://github.com/torrust/torrust-tracker/pull/2546>) with
   `Related to #1349`.
+- 2026-10-16 07:04 UTC - GitHub Copilot - Processed the PR #2546 review round (Copilot F5-F6 and
+  da2ce7 F1-F4); all six findings are fixed and their threads resolved, recorded in
+  [the review audit](../../../pr-reviews/pr-2546-review/PR-REVIEW.md). Re-stamped the earlier
+  entries from the real event times (F1).
 
 ## Acceptance Criteria
 
