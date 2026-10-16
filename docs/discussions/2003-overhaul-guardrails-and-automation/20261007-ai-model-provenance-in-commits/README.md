@@ -236,7 +236,7 @@ Jose Celano.
 
 ##### Q3 - Cameron Garnham (`da2ce7`), 2026-10-08, PR #2486
 
-**`identifier-from-the-harness` — Identifier format (Q3).** Small questions once `scope-by-content-not-presence` and `project-automation-is-a-dependency` hold. Identifiers come from the harness, with `unknown` when the harness cannot name the model, so that the record never looks more complete than it is.
+**`identifier-from-the-runtime-not-the-model` — Identifier format (Q3).** Small questions once `scope-by-content-not-presence` and `project-automation-is-a-dependency` hold. Identifiers come from the runtime that ran the model, never from the model's own account of itself, with `unknown` when that runtime cannot name the model, so that the record never looks more complete than it is.
 
 First posted as [comment 6035743101 on PR #2467](https://github.com/torrust/torrust-tracker/pull/2467#issuecomment-6035743101) on 2026-10-07 under the number label `C3`.
 
@@ -267,7 +267,7 @@ committer? Added by Jose Celano.
 
 ##### Q5 - Cameron Garnham (`da2ce7`), 2026-10-08, PR #2486
 
-**`harness-configuration-is-the-source-of-truth` — Source of truth (Q5).** For project automation the harness configuration is the source of truth and is tracked, by `project-automation-is-a-dependency`.
+**`tracked-configuration-is-the-source-of-truth` — Source of truth (Q5).** For project automation the tracked configuration of that automation is the source of truth, by `project-automation-is-a-dependency`.
 
 First posted as [comment 6035743101 on PR #2467](https://github.com/torrust/torrust-tracker/pull/2467#issuecomment-6035743101) on 2026-10-07 under the number label `C4`.
 
@@ -450,13 +450,13 @@ This discussion and the repository use the word "harness" in three senses and de
 
 ##### Q13 - Cameron Garnham (`da2ce7`), 2026-10-16, PR #TBD
 
-**`harness-as-agent-runtime` — The agent runtime.** The product that runs a model and commits for a person: it switches models mid-session, adds default trailers and exposes a model identifier. This is the sense of this discussion's [Context](#context) ("the agent harness", "The harness adds the trailer", "the harness switched the main model"), of the identifier format `<harness>:<vendor>/<model-id>` under [Q3](#q3---identifier-format), and of `identifier-from-the-harness`. The project neither configures nor pins it; it is personal tooling under `personal-toolchains-are-private`. It is the only sense in which a "harness" can name a model identifier.
+**`harness-as-agent-runtime` — The agent runtime.** The product that runs a model and commits for a person: it switches models mid-session, adds default trailers and exposes a model identifier. This is the sense of this discussion's [Context](#context) ("the agent harness", "The harness adds the trailer", "the harness switched the main model"), of the identifier format `<harness>:<vendor>/<model-id>` under [Q3](#q3---identifier-format), and of my own Q3 entry in its first wording, corrected in this round to `identifier-from-the-runtime-not-the-model`. The project neither configures nor pins it; it is personal tooling under `personal-toolchains-are-private`. It is the only sense in which a "harness" can name a model identifier.
 
 **`harness-as-repository-dev-tools` — The repository's development tools.** The tracked Rust tools under `contrib/dev-tools/` (validators, report-contract checks, coverage checks), which the [draft issue to separate them into their own Cargo workspace](../../../issues/drafts/2003-separate-ai-harness-cargo-workspace/ISSUE.md) and the [`add-workspace-member` skill](../../../../.github/skills/dev/maintenance/add-workspace-member/SKILL.md) call the "AI-harness tools". These are tracked bytes, built and gated: a project dependency in the sense of `project-automation-is-a-dependency`. They run no model.
 
 **`harness-as-process-layer` — The process layer.** The skills, hooks, templates and conventions together, as the [templated-documentation discussion](../../2429-templated-documentation/20261009-templated-documentation-design/README.md) ("the AI harness built on top of their original code", "In the current harness") and its [maintainer-review session](../../2429-templated-documentation/20261009-templated-documentation-design/maintainer-review-session.md) ("In the current AI harness") use the word. These are instructions that a tool may follow, not an executor; following them transfers nothing about who runs the tool.
 
-**`undefined-term-carries-no-rule` — An undefined term carries no rule.** A rule whose scope is set by a word that the text never defines and uses in three senses cannot be assessed, and a paragraph that lets the word change sense between its clauses is not sound in the sense the merge gate asks for. `harness-configuration-is-the-source-of-truth` (Q5) scopes the word to project automation, while the Q11 amendment needs the first sense for "the harness's model identifier" and the third for "runs this repository's tracked agent definitions or skills", and slides between them inside one paragraph. The discussion's own identifier format treats the word as a vendor-product name, the repository has an issue draft titled with it in a second sense, and the design discussions use it in a third. Before any rule is hung on the word, the discussion should define it once: I offer the three labels above as that vocabulary, and ask that the bare word be used in no rule.
+**`undefined-term-carries-no-rule` — An undefined term carries no rule.** A rule whose scope is set by a word that the text never defines and uses in three senses cannot be assessed, and a paragraph that lets the word change sense between its clauses is not sound in the sense the merge gate asks for. My own Q5 entry in its first wording scoped the word to project automation and is corrected in this round to `tracked-configuration-is-the-source-of-truth`, while the Q11 amendment needs the first sense for "the harness's model identifier" and the third for "runs this repository's tracked agent definitions or skills", and slides between them inside one paragraph. The discussion's own identifier format treats the word as a vendor-product name, the repository has an issue draft titled with it in a second sense, and the design discussions use it in a third. Before any rule is hung on the word, the discussion should define it once: I offer the three labels above as that vocabulary, and ask that the bare word be used in no rule.
 
 AI assistance not disclosed: the author's private tooling may include machine-learning tools.
 
