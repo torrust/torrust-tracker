@@ -9,7 +9,7 @@ github-issue: 2507
 spec-path: docs/issues/open/2507-stop-requiring-pull-request-rebases/ISSUE.md
 branch: "2507-stop-requiring-pull-request-rebases"
 related-pr: 2526
-last-updated-utc: "2026-10-16 08:30"
+last-updated-utc: "2026-10-16 10:25"
 semantic-links:
   skill-links:
     - create-issue
@@ -343,6 +343,11 @@ two-week measurement no longer blocks closure, because it moved to #2547 (T7).
   Corrected the log entries above, labelled the force-push event commits in V4 and added the fetch
   step, classified all 11 force-pushes of the 18 merges, and amended the #2547 specification and
   issue body - [`agent-review-reports.md`](agent-review-reports.md)
+- 2026-10-16 10:25 UTC - AI assistant - Processed the second PR #2550 review round (Copilot approval
+  recommended; da2ce7 approved at the audit head with five new threads, F10 to F14 in
+  `docs/pr-reviews/pr-2550-review/PR-REVIEW.md`). V4 now classifies each force-push by whether it
+  moved the base and shows the base of all 11, the evidence stamp follows its newest edit, and
+  `agent-review-reports.md` says which fix the second re-review did not cover.
 
 ## Acceptance Criteria
 
