@@ -71,7 +71,7 @@ processed, so this is the normal pre-merge workflow.
   F1, so it is recorded as F11 with the original ID kept in its detail entry. Its body raises
   nothing further to act on.
 - Copilot's third review 5545341095 (COMMENTED, 2026-10-16 08:55:56 UTC, at the head after the
-  third round) has two inline findings, F12 and F13. Their overview marks them "Medium severity"
+  fourth round) has two inline findings, F12 and F13. Their overview marks them "Medium severity"
   and "Low severity", recorded as `Minor (inferred)` and `Nit (inferred)`. My polling first saw
   this review at 10:25 UTC, because the earlier poll had ended on da2ce7's approval.
 
