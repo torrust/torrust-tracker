@@ -514,6 +514,6 @@ All merge workflow wrapper tests passed.
 
 ## Failures and Follow-up
 
-- M1's literal tool output was not captured. V1 proves the refresh from GitHub state instead. The
+- M1's literal tool output was not captured. V1 infers the refresh from GitHub state instead. The
   next maintainer merge of a behind pull request can paste the line here, but closing the issue does
   not depend on it.

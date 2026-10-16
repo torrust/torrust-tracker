@@ -51,7 +51,7 @@ time, and six of them went through the refresh. No ruleset was disabled. See
   would have kept #2507 open after everything else was done. They moved to follow-up issue
   #2547.
 - **Unrecorded tool output.** M1 expects the merge tool to print `Refreshed the recorded base`, but
-  nobody captured the output during the real merges. M1 was proven indirectly from GitHub state:
+  nobody captured the output during the real merges. M1 was inferred from GitHub state:
   each head was pushed before `develop` reached the recorded base, yet the merge push was accepted.
 
 ## Root Cause
@@ -76,9 +76,9 @@ time, and six of them went through the refresh. No ruleset was disabled. See
 
 ## Avoiding Overcorrection
 
-No script or hook is needed to capture merge-tool output: GitHub state proved M1 well enough. Do not
-require a sandbox for every workflow change; it paid off here because the design depended on
-undocumented GitHub behavior.
+No script or hook is needed to capture merge-tool output: GitHub state supported the M1 inference
+well enough. Do not require a sandbox for every workflow change; it paid off here because the design
+depended on undocumented GitHub behavior.
 
 ## Evidence
 
