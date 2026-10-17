@@ -148,7 +148,7 @@ feature can be tested without raw `curl` commands? Added by Jose Celano.
 
 ##### Q1 - Cameron Garnham (`da2ce7`), 2026-10-08, PR #2500
 
-**`addressing-as-a-layer` — Scope (Q1).** A peer is reachable at an address in some addressing layer: the IP layer (an IP address and port, IPv4 or IPv6) is one such layer, and other layers name peers in other ways. The tracker should not take on any one of them as a feature. Its first delivery is the general layer that every addressing layer needs from it, found by investigation, made general, and exported through the public API so that any project can bind an addressing layer to it, from outside the tracker or inside it. Today's IP-layer behaviour becomes the first binding of that layer. Support for an addressing layer then means that binding it is easy, and I2P is the exemplar that shows whether the layer is general enough.
+**`addressing-as-a-layer` — Scope (Q1).** A peer is reachable at an address in some addressing layer: the IP layer (an IP address and port, IPv4 or IPv6) is one such layer, and other layers name peers in other ways. The tracker should not take on any one of them as a feature. Its first delivery is the general layer that every addressing layer needs from it, found by investigation, made general, and exported through the exposed public library API so that any project can bind an addressing layer to it, from outside the tracker or inside it. Today's IP-layer behaviour becomes the first binding of that layer. Support for an addressing layer then means that binding it is easy, and I2P is the exemplar that shows whether the layer is general enough.
 
 AI assistance not disclosed: the author's private tooling may include machine-learning tools.
 
@@ -175,7 +175,7 @@ an AI assistant using the Copilot SDK in VS Code from my review documents.
 
 ##### Q2 - Cameron Garnham (`da2ce7`), 2026-10-08, PR #2500
 
-**`identity-belongs-to-binding` — Address trust (Q2).** What proves that a peer owns the address it announces depends on its addressing layer: on the IP layer, the connection's source and any proxy the operator trusts are that layer's evidence, and another layer has evidence of its own. Verifying an identity therefore belongs to the binding for each layer, and the general layer must leave room for every binding to enforce identity its own way. The opening author's entry places the first secure delivery inside the tracker; the view I take places enforcement in each binding, the IP binding and an I2P one alike, and the room for it in the tracker.
+**`identity-belongs-to-binding` — Address trust (Q2).** What proves that a peer owns the address it announces depends on its addressing layer: on the IP layer, the connection's source and any proxy the operator trusts are that layer's evidence, and another layer has evidence of its own. Verifying an identity therefore belongs to the binding for each layer, and the general layer must leave room for every binding to enforce identity its own way. A trust rule is a layer's evidence about its own addresses, so it belongs to that layer's binding; the general layer holds the hook that enforces a rule and never the rule.
 
 AI assistance not disclosed: the author's private tooling may include machine-learning tools.
 
@@ -212,7 +212,7 @@ assistant using the Copilot SDK in VS Code from my PR comment.
 
 ##### Q4 - Cameron Garnham (`da2ce7`), 2026-10-08, PR #2500
 
-**`address-model-at-centre` — Peer address model (Q4).** The peer's address is the centre of the general layer. The tracker should carry an address that belongs to an addressing layer rather than one that assumes an IP address and port, and expose that model through the public API, so that each binding brings its own kind of address and its own rules for comparing and presenting it, without the tracker knowing those rules. An IP address and port is then one kind of address among others, held the same way as the rest. The opening author's entry leans the same way, toward a more generic notion of a peer; I would make that generality the deliverable, with an I2P binding beside the IP binding as the test that the model is general enough.
+**`address-model-at-centre` — Peer address model (Q4).** The peer's address is the centre of the general layer. The tracker should carry an address that belongs to an addressing layer rather than one that assumes an IP address and port, and expose that model through the public library API, so that each binding brings its own kind of address and its own rules for comparing and presenting it, without the tracker knowing those rules. An IP address and port is then one kind of address among others, held the same way as the rest. The opening author's entry leans the same way, toward a more generic notion of a peer; I would make that generality the deliverable, with an I2P binding beside the IP binding as the test that the model is general enough.
 
 AI assistance not disclosed: the author's private tooling may include machine-learning tools.
 
@@ -227,7 +227,7 @@ peers (A5), but what should scrape responses, the REST API, and metrics count? S
 
 ##### Q5 - Cameron Garnham (`da2ce7`), 2026-10-08, PR #2500
 
-**`reachability-decided-once` — Swarm isolation and statistics (Q5).** Which peers are offered to which, and what the counts report, should be decided once in the general layer and hold for every addressing layer. The layer owns the rule that a peer is offered only peers it can reach, and the counts that announce, scrape, the public API and metrics report under that rule. Each binding declares which of its addresses can reach which; on the IP layer, for instance, that is a question between IPv4 and IPv6 peers. Limits on how many peers an answer carries belong to the layer as well, so that no binding invents them again, and a binding adds statistics of its own only where they mean something to its layer alone.
+**`reachability-decided-once` — Swarm isolation and statistics (Q5).** Which peers are offered to which, and what the counts report, should be decided once in the general layer and hold for every addressing layer. The layer owns the rule that a peer is offered only peers it can reach, and the counts that announce, scrape and the application API report under that rule. Each binding declares which of its addresses can reach which; on the IP layer, for instance, that is a question between IPv4 and IPv6 peers. Limits on how many peers an answer carries belong to the layer as well, so that no binding invents them again, and a binding adds statistics of its own only where they mean something to its layer alone.
 
 AI assistance not disclosed: the author's private tooling may include machine-learning tools.
 
@@ -287,7 +287,11 @@ VS Code from my review documents.
 
 ##### Q8 - Cameron Garnham (`da2ce7`), 2026-10-08, PR #2500
 
-**`api-exports-the-layer` — Public API, logs and privacy (Q8).** The public API is where the general layer is exported, so its shape for peers should describe the general address model, with an IP address and port as one kind of address, and let every binding present its addresses through it without a field of its own. What an address may reveal, and whether logs and metrics redact it, depends on its layer, so each binding decides it and the layer carries that choice through every surface it exports. The opening author's entry places the representation in the REST API overhaul as a separately typed collection; I would have that overhaul design the general address model, of which IP-layer peers and I2P peers are two cases.
+**`library-api-exports-the-layer` — The exposed public library API.** The exported library surface that a project links against to bind an addressing layer, from outside the tracker or inside it. Its shape for peers is the general address model, with an IP address and port as one kind of address, and every binding presents its addresses through it without a field of its own. It is consumed by linking against a given version: it is the library's public items, and no stable binary shape is promised.
+
+**`application-api-presents-the-layer` — The application API.** What the running tracker exposes on top of that export, in every shape it takes: the REST API (torrents and their peers, the whitelist, authentication keys, statistics in JSON and Prometheus form, the health check), the health-check API server and the logs. It is a consumer of the export, never a second definition of the address model.
+
+**`api-exports-the-layer` — Application API and privacy (Q8).** What an address may reveal, and whether the application API's shapes redact it, depends on its layer, so each binding decides it and the layer carries that choice through every shape of the application API. The opening author's entry places the representation in the REST API overhaul as a separately typed collection; I would have that overhaul present the general address model, of which IP-layer peers and I2P peers are two cases.
 
 AI assistance not disclosed: the author's private tooling may include machine-learning tools.
 
@@ -300,7 +304,7 @@ test run a real I2P router and tunnel, and is that feasible in CI? Added by Jose
 
 ##### Q9 - Cameron Garnham (`da2ce7`), 2026-10-08, PR #2500
 
-**`layer-tested-independently` — Testing (Q9).** The general layer is tested on its own terms, through the public API it exports, with more than one binding: the IP binding shows that today's behaviour holds on the new layer, and a second binding shows that the layer is general. How a binding tests its own addressing layer, including whether its tests need that layer's real network, is the binding's question; for an I2P binding beside the IP binding, that includes whether a real router can run in CI.
+**`layer-tested-independently` — Testing (Q9).** The general layer is tested on its own terms, through the library API it exports, with more than one binding: the IP binding shows that today's behaviour holds on the new layer, and a second binding shows that the layer is general. How a binding tests its own addressing layer, including whether its tests need that layer's real network, is the binding's question; for an I2P binding beside the IP binding, that includes whether a real router can run in CI.
 
 AI assistance not disclosed: the author's private tooling may include machine-learning tools.
 
