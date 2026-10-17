@@ -1,12 +1,12 @@
 ---
 schema-version: 1
 doc-type: epic
-status: planned
+status: done
 epic: null
 github-issue: 2243
-spec-path: docs/issues/open/2243-review-numeric-conversion-boundaries/EPIC.md
+spec-path: docs/issues/closed/2243-review-numeric-conversion-boundaries/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-16 11:12"
+last-updated-utc: "2026-10-16 16:04"
 semantic-links:
   skill-links:
     - create-issue
@@ -70,7 +70,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | Order | Issue | Local Spec | Status | Notes |
 | ----- | ----- | ---------- | ------ | ----- |
-| 1 | #2244 - Review metric aggregate conversions | `docs/issues/open/2244-2243-review-metric-aggregate-conversions/ISSUE.md` | IN_PROGRESS | Owns 72 metric entries: A080-A087, A113-A114, A143-A154, A170, A178-A222, A224-A227. Implemented; awaiting review. Also fixes a UDP average processing time defect. |
+| 1 | #2244 - Review metric aggregate conversions | `docs/issues/closed/2244-2243-review-metric-aggregate-conversions/ISSUE.md` | DONE | Owns 72 metric entries: A080-A087, A113-A114, A143-A154, A170, A178-A222, A224-A227. PR #2552 removed 68 and retained 4 (A113, A114, A170, A178) with native reasons, and fixed a UDP average processing time defect. Follow-up: torrust/torrust-metrics#1 (an exact `u64` counter sum) is optional. |
 | 2 | #2245 - Review numeric protocol wire conversions | `docs/issues/closed/2245-2243-review-numeric-protocol-wire-conversions/ISSUE.md` | DONE | Owns A156 and A171 only. Follow-up: #2466 (under configuration EPIC #1978) rejects an announce `interval` above `i32::MAX` at configuration load with a typed value. |
 | 3 | #2246 - Review domain numeric conversions | `docs/issues/closed/2246-2243-review-domain-numeric-conversions/ISSUE.md` | DONE | Owns A099, A123, and A129. |
 
@@ -114,12 +114,12 @@ For each subissue implementation in this EPIC, the default completion policy is:
 - [x] Epic spec reviewed and approved by user/maintainer
 - [x] GitHub epic issue created and issue number added to this spec
 - [x] Subissues created and linked in this spec
-- [ ] Subissue statuses kept up to date in the `Subissues` table
-- [ ] For each implemented subissue: automatic checks completed and recorded
-- [ ] For each implemented subissue: manual verification completed and recorded
-- [ ] For each implemented subissue: acceptance criteria reviewed post-implementation
-- [ ] Epic acceptance criteria reviewed and checked off
-- [ ] Epic issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Subissue statuses kept up to date in the `Subissues` table
+- [x] For each implemented subissue: automatic checks completed and recorded
+- [x] For each implemented subissue: manual verification completed and recorded
+- [x] For each implemented subissue: acceptance criteria reviewed post-implementation
+- [x] Epic acceptance criteria reviewed and checked off
+- [x] Epic issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -130,15 +130,17 @@ For each subissue implementation in this EPIC, the default completion policy is:
 - 2026-10-07 08:59 UTC - GitHub Copilot - The #2245 configuration-load follow-up is #2466, a subissue of the reopened configuration EPIC #1978 rather than of this EPIC - No change to this EPIC's scope
 - 2026-10-15 21:00 UTC - GitHub Copilot - #2244 implemented on its branch: all 72 metric entries resolved (68 removed, 4 retained with native reasons), a UDP average processing time truncation defect fixed, and torrust/torrust-metrics#1 filed for an exact counter-sum API - Awaiting maintainer review; #2244 remains IN_PROGRESS until merged
 - 2026-10-16 11:12 UTC - GitHub Copilot - Correction: the 2026-10-15 21:00 UTC entry above was written at 20:52 UTC, the author time of `docs(issues): [#2244] record metric conversion outcomes and verification evidence`; the stamp was an estimate - No change to this EPIC's scope
+- 2026-10-16 15:39 UTC - GitHub Copilot - #2244 done: PR #2552 merged and GitHub closed the issue. All three subissues are done. Verified the acceptance criteria against the tree: all 77 owned inventory entries are present with an outcome, none is `Temporary`, and no temporary reason remains in the source
+- 2026-10-16 16:04 UTC - GitHub Copilot - Archived this EPIC and the #2244 spec to `docs/issues/closed/`; the PR that archives them closes the EPIC when it merges - Done
 
 ## Acceptance Criteria
 
-- [ ] All three child issues are created and linked after specification-bundle approval.
-- [ ] Each child has a clear non-overlapping inventory ownership boundary.
-- [ ] A156 and A171 are owned only by the wire-review child issue.
-- [ ] Every owned entry has a recorded outcome: retained with a native reason, improved, or fixed.
-- [ ] Every implemented child records automated and manual verification evidence.
-- [ ] #2158 is updated with the outcome for every owned entry.
+- [x] All three child issues are created and linked after specification-bundle approval.
+- [x] Each child has a clear non-overlapping inventory ownership boundary.
+- [x] A156 and A171 are owned only by the wire-review child issue.
+- [x] Every owned entry has a recorded outcome: retained with a native reason, improved, or fixed.
+- [x] Every implemented child records automated and manual verification evidence.
+- [x] #2158 is updated with the outcome for every owned entry.
 
 ### Acceptance Verification
 
@@ -147,9 +149,9 @@ For each subissue implementation in this EPIC, the default completion policy is:
 | AC1 | DONE | GitHub issues #2244, #2245, and #2246 were created and linked. |
 | AC2 | DONE | Child specification scope sections define non-overlapping ownership. |
 | AC3 | DONE | Wire-review specification scope section explicitly owns A156 and A171 only. |
-| AC4 | TODO | Child review tables and source attributes. |
-| AC5 | TODO | Child issue verification artifacts. |
-| AC6 | TODO | #2158 inventory reconciliation. |
+| AC4 | DONE | The #2158 inventory holds all 77 owned entries (A080-A087, A113-A114, A143-A154, A170, A178-A222, A224-A227, A099, A123, A129, A156, A171) with 0 missing: 73 `Removed` and 4 `Retain`. `git grep` finds no `temporary: #2244`, `#2245`, or `#2246` reason in the source. |
+| AC5 | DONE | Each of the #2244, #2245, and #2246 spec folders holds a `manual-verification-evidence.md`, and every child spec has all its acceptance criteria checked. |
+| AC6 | DONE | The inventory has 0 `Temporary` rows. Its follow-up table and its evidence tables record #2244, #2245, and #2246 by ID. |
 
 ## Risks and Trade-offs
 
@@ -162,6 +164,6 @@ For each subissue implementation in this EPIC, the default completion policy is:
 
 ## References
 
-- Related issues: #2158, #2466 (follow-up of #2245)
-- Related PRs: #2247 (specification bundle), #2440 (#2246), #2452 (#2245)
+- Related issues: #2158, #2466 (follow-up of #2245), torrust/torrust-metrics#1 (optional follow-up of #2244)
+- Related PRs: #2247 (specification bundle), #2440 (#2246), #2452 (#2245), #2552 (#2244)
 - Related ADRs: None

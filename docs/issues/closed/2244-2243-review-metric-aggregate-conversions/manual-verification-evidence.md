@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2244-2243-review-metric-aggregate-conversions/ISSUE.md
-last-updated-utc: 2026-10-16 11:54
+issue-spec: docs/issues/closed/2244-2243-review-metric-aggregate-conversions/ISSUE.md
+last-updated-utc: 2026-10-16 16:03
 ---
 
 # Manual Verification Evidence
