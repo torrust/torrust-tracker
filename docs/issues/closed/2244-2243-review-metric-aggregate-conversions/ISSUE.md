@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-progress
+status: done
 priority: p2
 epic: 2243
 github-issue: 2244
-spec-path: docs/issues/open/2244-2243-review-metric-aggregate-conversions/ISSUE.md
+spec-path: docs/issues/closed/2244-2243-review-metric-aggregate-conversions/ISSUE.md
 branch: "2244-2243-review-metric-aggregate-conversions"
-related-pr: null
-last-updated-utc: "2026-10-16 11:12"
+related-pr: 2552
+last-updated-utc: "2026-10-16 16:03"
 semantic-links:
   skill-links:
     - create-issue
@@ -177,14 +177,14 @@ depends on wall-clock processing times.
 - [x] Folder-style spec drafted in `docs/issues/drafts/numeric-conversion-metric-aggregate-review/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [x] Spec-only PR merged into `develop` before implementation
+- [x] Spec-only PR merged into `develop` before implementation (#2247)
 - [x] Implementation completed
 - [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded
-- [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Committer verified spec progress is up to date before commit
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -195,6 +195,7 @@ depends on wall-clock processing times.
 - 2026-10-15 21:00 UTC - GitHub Copilot - T3-T4 done: G3 defect reproduced, fixed red/green, and rechecked; all 72 entries resolved; inventory reconciled; no retrospective needed because the plan held and the defect fix was within the spec's "fix a demonstrated defect" scope - Awaiting maintainer implementation review and pre-push checks
 - 2026-10-15 21:10 UTC - GitHub Copilot - `pre-push.sh` passed - Awaiting maintainer implementation review
 - 2026-10-16 11:12 UTC - GitHub Copilot - Correction to the entries stamped 2026-10-15 21:00 and 21:10 UTC: they were written at 20:52 and 20:54 UTC, the author times of `docs(issues): [#2244] record metric conversion outcomes and verification evidence` and `docs(issues): [#2244] record pre-push verification`; the two stamps were estimates, not read from the clock. Addressed da2ce7's review of the PR's second head: corrected ten inventory IDs and the G1/G2/G4 ranges, the averaged-accessor wording, the G3 outcome, and the evidence; nothing else changed - Awaiting re-review
+- 2026-10-16 15:39 UTC - GitHub Copilot - PR #2552 merged after four review rounds by da2ce7 and one by Copilot, all findings fixed and all 12 threads resolved, and GitHub closed the issue as completed; the merge commit's `Tree-SHA512` and the ACKs are on `develop`. Archived this spec to `docs/issues/closed/` - Done
 
 ## Acceptance Criteria
 
@@ -243,5 +244,5 @@ depends on wall-clock processing times.
 ## References
 
 - Related issues: #2158, torrust/torrust-metrics#1
-- Related PRs: None
+- Related PRs: #2247 (specification), #2552 (implementation)
 - Related ADRs: None
