@@ -9,7 +9,7 @@ github-issue: 2475
 spec-path: docs/issues/open/2475-1669-coupling-tool-resolve-lib-names-and-renames/ISSUE.md
 branch: "2475-1669-coupling-tool-resolve-lib-names-and-renames"
 related-pr: null
-last-updated-utc: "2026-10-17 12:26"
+last-updated-utc: "2026-10-17 12:40"
 semantic-links:
   skill-links:
     - create-issue
@@ -133,10 +133,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                                                                     | Notes / Expected Output                                                       |
 | --- | ------ | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| T1  | TODO   | Add regression tests for a renamed dependency, a custom library name and the default    | Recorded red run: the rename and library-name cases fail on the current tool |
-| T2  | TODO   | Resolve module names from `rename` and the library target name                          | The T1 tests pass                                                             |
-| T3  | TODO   | Green run plus like-for-like recheck: rerun the R1 command unchanged                     | R2 in the evidence lists no false "no references" edge                        |
-| T4  | TODO   | Regenerate the coupling report as a new dated file                                       | The five edges list their imports                                             |
+| T1  | DONE   | Add regression tests for a renamed dependency, a custom library name and the default    | Recorded red run: the rename and library-name cases fail on the current tool |
+| T2  | DONE   | Resolve module names from `rename` and the library target name                          | The T1 tests pass                                                             |
+| T3  | DONE   | Green run plus like-for-like recheck: rerun the R1 command unchanged                     | R2 in the evidence lists no false "no references" edge                        |
+| T4  | DONE   | Regenerate the coupling report as a new dated file                                       | The five edges list their imports                                             |
 
 ## Commit Points
 
@@ -158,9 +158,9 @@ Use a Conventional Commit message with the issue reference and sign every commit
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [x] Spec moved to `docs/issues/open/` with issue number prefix
-- [ ] Implementation completed
+- [x] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests and pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local
+- [x] Manual verification scenarios executed and recorded in issue-local
       `manual-verification-evidence.md`
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Evidence-based implementation completion review recorded
@@ -185,6 +185,11 @@ Use a Conventional Commit message with the issue reference and sign every commit
   decisions (resolver placement in `lib.rs`, library target kinds, new report file name) in
   "Maintainer Decisions". The spec-only branch had already merged; implementation proceeds on
   branch `2475-1669-coupling-tool-resolve-lib-names-and-renames`.
+- 2026-10-17 12:40 UTC - GitHub Copilot - Implemented T1-T4: regression tests recorded red,
+  per-edge module-name resolution, R2 recheck (zero false "no references" edges) and the
+  regenerated `workspace-coupling-report-2026-10-17.md`. The generated Observations text was
+  hand-adjusted in the report to pass markdownlint (blank line before a list) and to describe
+  this regeneration. Awaiting maintainer review (AC6).
 
 ## Acceptance Criteria
 
@@ -214,7 +219,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | ID  | Scenario                     | Human-oriented command/steps                                                                 | Expected Result                                             | Status | Evidence                                     |
 | --- | ---------------------------- | -------------------------------------------------------------------------------------------- | ----------------------------------------------------------- | ------ | -------------------------------------------- |
 | R1  | Initial reproduction          | `cargo run -q -p workspace-coupling -- /tmp/repro-2446.md`, then list the "no references" edges | Five used edges reported with no references (the bug)       | DONE   | `manual-verification-evidence.md` section R1 |
-| R2  | Like-for-like recheck         | Same command and listing as R1, after the fix                                                 | No false "no references" edge; the five edges list imports  | TODO   | `manual-verification-evidence.md` section R2 |
+| R2  | Like-for-like recheck         | Same command and listing as R1, after the fix                                                 | No false "no references" edge; the five edges list imports  | DONE   | `manual-verification-evidence.md` section R2 |
 
 Record the toolchain for each `cargo` command in the evidence file.
 
@@ -222,11 +227,11 @@ Record the toolchain for each `cargo` command in the evidence file.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1   | TODO                   |          |
-| AC2   | TODO                   |          |
-| AC3   | TODO                   |          |
-| AC4   | TODO                   |          |
-| AC5   | TODO                   |          |
+| AC1   | DONE                   | `resolve_module_name` in `src/lib.rs`; commit `fix(workspace-coupling): [#2475] resolve module names from renames and library target names`. |
+| AC2   | DONE                   | `tests/resolve_module_name.rs`; red run (6 of 9 failing) recorded as T1 in `manual-verification-evidence.md`. |
+| AC3   | DONE                   | R2 in `manual-verification-evidence.md`: zero "no references" edges; the five edges list imports. |
+| AC4   | DONE                   | `cargo test -p workspace-coupling` and `linter all` exit 0 (T3 in the evidence). Pre-push checks run before pushing. |
+| AC5   | DONE                   | R1, T1, T3 and R2 in `manual-verification-evidence.md`. |
 | AC6   | TODO                   |          |
 
 ## Risks and Trade-offs

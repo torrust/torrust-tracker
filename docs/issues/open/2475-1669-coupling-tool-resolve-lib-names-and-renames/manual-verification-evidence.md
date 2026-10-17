@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2475-1669-coupling-tool-resolve-lib-names-and-renames/ISSUE.md
-last-updated-utc: 2026-10-07 16:39
+last-updated-utc: 2026-10-17 12:40
 ---
 
 <!-- cspell:ignore splitlines startswith -->
@@ -109,11 +109,81 @@ The tool searched for `torrust_tracker_client_lib::` and `torrust_tracker::`, wh
 appear. The `axum-http-server` edge is a dev dependency, so the 2026-10-06 report's finding
 (which counted only normal edges) listed four.
 
+### T1 - Red run of the regression tests
+
+- Goal: show the new regression tests fail against the unfixed name resolution.
+- Status: `DONE` — outcome: **Red as expected**
+- Toolchain: stable, `rustc 1.99.0 (b940084d7 2026-09-28)`
+
+#### Steps Performed
+
+The cargo-metadata structs moved to `src/lib.rs` together with a `resolve_module_name` stub that
+still returned the package name with hyphens replaced (the unfixed behavior), and the tests in
+`tests/resolve_module_name.rs` were added. Then:
+
+```sh
+cargo test -p workspace-coupling --test resolve_module_name
+```
+
+#### Observed Result
+
+```text
+failures:
+    it_should_prefer_the_rename_over_a_custom_library_name
+    it_should_replace_hyphens_in_the_library_target_name_and_in_the_rename
+    it_should_resolve_the_same_package_differently_for_each_dependent
+    it_should_use_the_library_target_name_when_the_library_has_a_custom_name
+    it_should_use_the_name_of_a_proc_macro_target
+    it_should_use_the_rename_when_the_dependency_is_renamed_in_the_dependent_manifest
+
+test result: FAILED. 3 passed; 6 failed; 0 ignored; 0 measured; 0 filtered out
+```
+
+For example, the rename test failed with `left: "torrust_tracker_client_lib"`,
+`right: "torrust_tracker_client"`. The three passing tests cover the default (package name),
+an unknown dependency package and non-importable targets, which the unfixed code also handled.
+
+### T3 - Green run
+
+- Status: `DONE` — outcome: **Green**
+- Toolchain: stable, `rustc 1.99.0 (b940084d7 2026-09-28)`
+
+After the fix, `cargo test -p workspace-coupling` passes: 9 tests in `resolve_module_name` and 9
+in `parse_imports`, 0 failures. `linter all` exits 0.
+
 ### R2 - Final recheck
 
 - Goal: after the fix, the same command lists no false "no references" edge.
-- Status: `TODO`
+- Status: `DONE` — outcome: **Fixed**
+- Toolchain: stable, `rustc 1.99.0 (b940084d7 2026-09-28)`, branch
+  `2475-1669-coupling-tool-resolve-lib-names-and-renames`
+
+#### Steps Performed
+
+The R1 steps 1 and 2 were rerun unchanged: the tool on the workspace, then the listing script
+over `/tmp/repro-2446.md`.
+
+```sh
+cargo run -q -p workspace-coupling -- /tmp/repro-2446.md
+```
+
+#### Observed Result
+
+The listing script printed no line: zero edges are reported with "No ... references found".
+The five edges of R1 now list their imports:
+
+```text
+torrust-tracker-axum-http-server -> torrust-tracker-client-lib: 2 lines, first: `torrust_tracker_client::http::client::Client`
+torrust-tracker-client -> torrust-tracker-client-lib: 5 lines, first: `torrust_tracker_client::http::client`
+torrust-tracker-e2e-tools -> torrust-tracker: 3 lines, first: `torrust_tracker_lib::console::ci::e2e`
+torrust-tracker-test-helpers -> torrust-tracker-client-lib: 3 lines, first: `torrust_tracker_client::http::client::Client`
+torrust-tracker-udp-server -> torrust-tracker-client-lib: 2 lines, first: `torrust_tracker_client::udp::client::UdpTrackerClient`
+```
+
+#### Conclusion
+
+**Fixed.** The tool finds the imports of all five previously missed edges.
 
 ## Failures and Follow-up
 
-None yet.
+None.
