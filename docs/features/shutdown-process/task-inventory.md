@@ -1,7 +1,7 @@
 ---
 doc-type: feature-supporting-analysis
 status: verified
-last-updated-utc: "2026-10-06 15:55"
+last-updated-utc: "2026-10-16 11:21"
 semantic-links:
   related-artifacts:
     - docs/features/shutdown-process/README.md
@@ -10,6 +10,7 @@ semantic-links:
     - issue #1488
     - issue #1586
     - issue #1588
+    - docs/architecture/events.md
     - src/app.rs
     - src/bootstrap/jobs/manager.rs
     - src/main.rs
@@ -195,6 +196,112 @@ The constant three represents the HTTP-core listener, UDP-core listener, and
 health-check API. Torrent cleanup is conditional on its cleanup interval. The
 sole legacy job is separately conditional as shown above.
 
+## Event Producer-Consumer Inventory
+
+This section lists who publishes on and who consumes from each event bus, and
+which component owns the channel. The bus topology, the HTTP and UDP asymmetry,
+and the proposed normalization stay in [`events.md`][events-architecture];
+this section does not repeat them. Everything below was read from source on
+2026-10-16 at `develop` commit `702cff6cc` and was not run.
+
+[`events.md`][events-architecture] documents three buses (HTTP core, UDP core,
+UDP server). It omits the swarm bus, which carries the swarm-coordination
+registry events consumed by three listeners. Reconciling the two documents is
+left to the sub-EPIC's later documentation task.
+
+### Channel ownership
+
+Every bus is an `EventBus` whose `Broadcaster` wraps one `tokio` broadcast
+channel with a capacity of 65,536 events (`packages/events/src/broadcaster.rs`).
+Each bus lives in a package container, and `AppContainer` owns those
+containers. `main` binds the container as `_app_container` and holds it past
+`jobs.wait_for_all(...)` (`src/main.rs`), so the channels stay open through
+listener shutdown. `EventBus::sender()` clones the `Broadcaster`, so each
+producer holds its own sender; `EventBus::receiver()` calls `subscribe()`.
+`broadcast::Receiver<Event>` is the only production `Receiver` implementation
+(`packages/events/src/broadcaster.rs`).
+
+### Buses, producers, and consumers
+
+| Bus | Producers (publish sites) | Consumers (listeners) |
+| --- | --- | --- |
+| Swarm (swarm-coordination registry) | `swarm/coordinator.rs` (`PeerAdded`, `PeerRemoved`, `PeerUpdated`, `PeerDownloadCompleted`) and `swarm/registry.rs` (`TorrentAdded`, `TorrentRemoved`), driven by announce requests through the HTTP and UDP request paths and by the torrent cleanup job | `swarm_coordination_registry_event_listener` and `tracker_core_in_memory_event_listener` (both only when `core.tracker_usage_statistics` is on); `tracker_core_persistent_completed_statistics_event_listener` (only when persistent completed-download statistics are enabled) |
+| HTTP core | `http-core` `services/announce.rs` and `services/scrape.rs` | `http_core_event_listener` |
+| UDP core | `udp-core` `services/connect.rs`, `services/announce.rs`, `services/scrape.rs` | `udp_core_event_listener` |
+| UDP server | `udp-server` `server/launcher.rs`, in the receive loop (`UdpRequestReceived`, `UdpRequestAborted`, `UdpRequestDiscarded` for source-port-zero requests, which is the production discard site, and `UdpRequestBanned`, through the awaited helper `publish_event_if_sender_available`); `server/processor.rs` (`UdpResponseSent`, and `UdpRequestDiscarded` for the same source-port-zero case, kept as defence in depth: its only production caller is the receive loop, which discards port 0 first, so that publish is unreachable from the tracker); and `handlers/{connect,announce,scrape,error}.rs` (including `UdpError`) | `udp_server_stats_event_listener`; `udp_server_banning_event_listener` (both started only with the UDP tracker services) |
+
+The listeners subscribe synchronously during bootstrap
+(`src/bootstrap/jobs/{torrent_repository,tracker_core,http_tracker_core,udp_tracker_core,udp_tracker_server}.rs`,
+through `EventBus::receiver()`), before the runner future is spawned.
+`start_jobs_with_manager` starts the core listeners first (the http-core and udp-core listeners always; the swarm and in-memory listeners when `tracker_usage_statistics` is on; the persistent listener when persistent completed-download statistics are on), then the UDP
+services, the HTTP instances, torrent cleanup, the inactivity update, the REST
+API, and the health-check API (`src/app.rs`). A request can only arrive after
+the listener of its bus has subscribed.
+
+### Components that publish nothing
+
+- `peers_inactivity_update` (activity metrics) reads the swarm registry and
+  writes metrics; it sends no event.
+- `udp_ban_cleanup` calls `reset_bans`, which updates the ban service and the
+  statistics repository directly; it sends no event.
+- The REST API handlers (stats, torrents, auth keys, whitelist) do not mutate
+  swarms, so the REST API publishes no swarm event. Its test environment seeds
+  a swarm through the in-memory torrent repository's `handle_announcement`
+  (test setup only).
+- The health-check API sends no event.
+
+Torrent cleanup publishes indirectly: `TorrentsManager::cleanup_torrents` calls
+`remove_inactive_peers` and `remove_peerless_torrents`, which send `PeerRemoved`
+and `TorrentRemoved` on the swarm bus.
+
+### Producer send path
+
+All publish sites await `send` inline in the request path or in the service
+that handles it; none sends from a detached task. Most call `.send(...).await`
+directly. The UDP receive loop reaches it through
+`publish_event_if_sender_available` (`packages/udp-server/src/server/launcher.rs`),
+a helper that awaits `send`, which is why a search for `.send(` alone does not
+find those four publish sites.
+`Broadcaster::send` wraps the synchronous `broadcast::Sender::send`, so the
+await completes immediately. Two UDP execution paths publish on the UDP-server
+bus. The receive loop (`UdpRequestReceived`, `UdpRequestAborted`,
+`UdpRequestDiscarded`, `UdpRequestBanned`) runs in the server's own task. The
+processors that publish `UdpResponseSent` run in the launcher's processor set,
+which the receive loop joins on cancellation (SI-15). The processor's own
+`UdpRequestDiscarded` publish guards the same source-port-zero case as the
+receive loop and is unreachable from the tracker, because the receive loop
+discards port 0 before it spawns a processor.
+The `spawn` hits found in event modules are test code or the listener spawns
+themselves.
+
+### Test environments
+
+| Environment | Listeners | Subscription and ownership |
+| --- | --- | --- |
+| HTTP tracker (`packages/axum-http-server/src/testing/environment.rs`) | One: the HTTP-core statistics listener | Subscribes before the server starts; spawns the listener after a successful start; the `Running` state holds a `DropGuard` (`cancel_on_drop`) on its own token. |
+| UDP tracker (`packages/udp-server/src/testing/environment.rs`) | Three: UDP-core statistics, UDP-server statistics, and UDP-server banning | Subscribes all three receivers before the server starts; the `Running` state holds a `DropGuard` (`cancel_on_drop`) on its own token. |
+| REST API and health-check API | None | These environments run no event listener. |
+
+Neither tracker environment runs a swarm-bus listener, although announce
+requests can publish on that bus; no listener consumes those events there.
+
+### Recheck of record entry 27 (read from source, not run)
+
+| Fact in entry 27 | Result |
+| --- | --- |
+| `main` holds `_app_container` until after `wait_for_all` | Confirmed (`src/main.rs`). |
+| Consumers subscribe in bootstrap before producers start | Confirmed (see above). |
+| Sends are `.send(...).await` in the request path, none detached | Confirmed; no detached sender found. |
+| `udp_ban_cleanup` has no events | Confirmed. |
+| Torrent cleanup and the REST API publish no event of their own | Differs: cleanup publishes on the swarm bus indirectly (above); the REST API does not mutate swarms. |
+
+Counts rechecked on 2026-10-16: `src/app.rs` has 13 `job_manager.spawn` sites
+(a plain `spawn` search reports 14 lines because the extra match is in a
+test at line 654), 14 token sites and 4 `child_token`
+calls. There is one production `Receiver` implementation plus six test
+`ScriptedReceiver` implementations, seven in total. Seven
+`it_should_prioritize_*` tests exist across the six listener files.
+
 ## Findings and Roadmap Mapping
 
 1. The #1586 supervisor boundary is present: direct top-level component
@@ -232,3 +339,4 @@ shutdown slice. The [EPIC #1488 roadmap][issue-1488] records SI-5 as complete.
 [issue-1488]: ../../issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
 [issue-1586]: ../../issues/closed/1586-evaluate-job-manager-join-set/ISSUE.md
 [issue-1588]: ../../issues/closed/1588-review-shutdown-process-for-all-tasks-jobs/ISSUE.md
+[events-architecture]: ../../architecture/events.md

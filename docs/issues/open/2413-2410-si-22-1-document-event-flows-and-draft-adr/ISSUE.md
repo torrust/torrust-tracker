@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-review
 priority: p1
 epic: 2410
 github-issue: 2413
 spec-path: docs/issues/open/2413-2410-si-22-1-document-event-flows-and-draft-adr/ISSUE.md
 branch: "2413-document-event-flows-and-draft-adr"
 related-pr: null
-last-updated-utc: "2026-10-07 13:00"
+last-updated-utc: "2026-10-16 15:41"
 semantic-links:
   skill-links:
     - create-issue
@@ -17,7 +17,7 @@ semantic-links:
     - write-markdown-docs
   related-artifacts:
     - docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
-    - docs/application-jobs.md
+    - docs/architecture/application-jobs.md
     - docs/features/shutdown-process/task-inventory.md
     - docs/adrs/20260902074438_adopt_supervised_cancellation_tree_for_shutdown.md
 ---
@@ -70,10 +70,10 @@ items 2 (T1) and 3 (T2). Revalidate paths before starting.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T1 | TODO | Producer-consumer inventory | Every producer, consumer, and listener chain recorded, including the test environments' chains (see below); differences from the design record reported to the maintainer (D14). |
-| T2a | TODO | Move the jobs doc | `docs/architecture/application-jobs.md`; every live link updated (see below); `linter lychee` passes. |
-| T2b | TODO | Glossary | `docs/architecture/glossary.md` from the design record's glossary, merged with the jobs doc's "Terms" (one definition per term). The "Stop request" entry notes that dropping a `CancellationToken` does not cancel it, so an owner that can be dropped without `stop()` holds a `DropGuard` (#2459, #2471). |
-| T2c | TODO | ADR draft | `adr-draft.md` in the sub-EPIC folder, `create-adr` structure, covering D1, D7, D8, D9, D13 and the rules in the design record's Architectural Decisions; written to fully supersede the cancellation-tree ADR (D11). |
+| T1 | DONE | Producer-consumer inventory | Every producer, consumer, and listener chain recorded, including the test environments' chains (see below); differences from the design record reported to the maintainer (D14). |
+| T2a | DONE | Move the jobs doc | `docs/architecture/application-jobs.md`; every live link updated (see below); `linter lychee` passes. |
+| T2b | DONE | Glossary | `docs/architecture/glossary.md` from the design record's glossary, merged with the jobs doc's "Terms" (one definition per term). The "Stop request" entry notes that dropping a `CancellationToken` does not cancel it, so an owner that can be dropped without `stop()` holds a `DropGuard` (#2459, #2471). |
+| T2c | DONE | ADR draft | `adr-draft.md` in the sub-EPIC folder, `create-adr` structure, covering D1, D7, D8, D9, D13 and the rules in the design record's Architectural Decisions; written to fully supersede the cancellation-tree ADR (D11). |
 
 **Test environments in the T1 inventory.** SI-16 and SI-17 gave both
 migrated test environments their own listener chains, and T9 (#2416) changes
@@ -139,7 +139,7 @@ Sign every commit with GPG.
 
 | ID | Scenario | Steps | Expected Result | Status |
 | --- | --- | --- | --- | --- |
-| M1 | Inventory against the code | For each bus, search for `send`/`publish` calls and listener `subscribe` calls, including in the test environments; compare with the inventory | No unlisted producer or consumer | TODO |
+| M1 | Inventory against the code | For each bus, search for `send`/`publish` calls and listener `subscribe` calls, including in the test environments; compare with the inventory | No unlisted producer or consumer | DONE |
 
 Not applicable: bug-fix process and regression tests (documentation only).
 
@@ -173,9 +173,22 @@ pre-push checks still apply to this documentation-only PR.
 - [x] Spec reviewed and approved by the maintainer
 - [x] GitHub issue created and linked to the sub-EPIC
 - [ ] Implementation completed and acceptance criteria reviewed
+- [ ] Independent Task Reviewer report recorded in `agent-review-reports.md` (sub-EPIC Shared Delivery Gates)
+- [ ] Retrospective recorded, or the reason none is needed (sub-EPIC Shared Delivery Gates)
 
 ### Progress Log
 
 - 2026-10-02 11:03 UTC - GitHub Copilot - Drafted from SI-22 T1-T2 (D17).
 - 2026-10-02 13:30 UTC - GitHub Copilot - AC1 now rechecks the channel-lifetime facts of the sub-EPIC's record entry 27.
 - 2026-10-07 13:00 UTC - GitHub Copilot - Refreshed with lessons from SI-17 (#2448, #2459) and the archive PRs (#2457, #2465): T1 and AC1 cover the test environments' listener chains; T2a finds links with `rg` because lychee skips closed specs, and historical records keep the old path (maintainer decision); T2b records the `DropGuard` rule; `branch:` names the implementation branch.
+- 2026-10-16 07:56 UTC - GitHub Copilot - T1 done: producer-consumer inventory added to `docs/features/shutdown-process/task-inventory.md` (read from source, not run). M1 source search recorded in the sub-EPIC's `manual-verification-evidence.md`. Findings for the coordinator: `docs/architecture/events.md` omits the swarm bus; entry 27 differs on torrent cleanup, which publishes on the swarm bus indirectly; tokio in `Cargo.lock` is 1.53.3, not 1.53.1.
+- 2026-10-16 08:04 UTC - GitHub Copilot - T2a done: moved `docs/application-jobs.md` to `docs/architecture/application-jobs.md` in its own commit and updated the live links (`docs/index.md`, `docs/architecture/README.md`, `docs/architecture/tracker-instance-architecture.md`, this spec, and the sub-EPIC). The moved file has no relative links to fix. Historical records keep the old path: closed specs `1453-...` and `2095-...` and the PR #2126 review record.
+- 2026-10-16 08:07 UTC - GitHub Copilot - T2b done: `docs/architecture/glossary.md` created (one definition per term, merged with the jobs doc "Terms", planned SI-22 terms marked **Planned**, no event topology copied from `events.md`). The jobs doc "Terms" section now links to the glossary. The glossary is linked from the architecture README, `docs/index.md`, and the sub-EPIC.
+- 2026-10-16 08:27 UTC - GitHub Copilot - T2c done: `adr-draft.md` written in the sub-EPIC folder and approved by the maintainer before this commit. It restates the cancellation-tree ADR points that stay valid (D11) and cites the tokio 1.53.3 `try_recv` and `len` semantics (read from source, not run). The old ADR budgets (25 s, 20 s, 5 s) differ from the code (10 s, 90 s, 5 s); the draft records this and leaves the alignment to SI-20.
+- 2026-10-16 10:19 UTC - GitHub Copilot - The first push was blocked: the pre-push tests of `clippy-allow-reasons` ran their fixture Git commands against the real repository because Git exports `GIT_DIR` to hooks. The damage (a stray test commit on this branch, a `feature` branch, `user.name` and `user.email` in `.git/config`) was reverted by hand, and nothing was pushed. Fixed in a separate commit (`fix(dev-tools): [#2413] isolate clippy-allow-reasons fixture Git commands from hook environment`); evidence is in `manual-verification-evidence.md` of the sub-EPIC. No separate issue exists for it.
+- 2026-10-16 10:48 UTC - GitHub Copilot - Review round 1 of PR #2553: Copilot raised two findings (`review-finding:pr-2553-f1`, `review-finding:pr-2553-f2`), both valid and fixed in separate commits. F2 showed that the T1 inventory missed the UDP receive loop publish sites in `launcher.rs` (the search was for `.send(`); the M1 evidence now carries a dated correction. Audit: `docs/pr-reviews/pr-2553-review/PR-REVIEW.md`.
+- 2026-10-16 11:33 UTC - GitHub Copilot - Review round 2 of PR #2553: da2ce7 approved with eleven non-blocking findings (`review-finding:pr-2553-f3` to `review-finding:pr-2553-f13`), all valid and fixed in separate commits. The #2413 evidence moved to `manual-verification-evidence.md` in this folder (the Task Reviewer report and retrospective gates are listed below as unchecked checkpoints), the ADR draft restates the old ADR consequences and the exit-result gap, and the inventory marks the conditional listeners. Audit: `docs/pr-reviews/pr-2553-review/PR-REVIEW.md`.
+- 2026-10-16 11:57 UTC - GitHub Copilot - Review round 3 of PR #2553: da2ce7 approved the head after the round 2 fixes with four non-blocking findings (`review-finding:pr-2553-f14` to `review-finding:pr-2553-f17`), all valid and fixed in separate commits. The isolation evidence was rerun one step at a time on the final test file, M1 is `DONE`, and the fixture-environment test is now a subset check. Audit: `docs/pr-reviews/pr-2553-review/PR-REVIEW.md`.
+- 2026-10-16 12:21 UTC - GitHub Copilot - Review round 4 of PR #2553: da2ce7 approved the head after the round 3 fixes with four Nit findings (`review-finding:pr-2553-f18` to `review-finding:pr-2553-f21`), all valid and fixed in separate commits. The fixes only correct statements in the isolation evidence and the audit that outran the record. Audit: `docs/pr-reviews/pr-2553-review/PR-REVIEW.md`.
+- 2026-10-16 12:42 UTC - GitHub Copilot - Review round 5 of PR #2553: da2ce7 approved the head after the round 4 fixes with three findings (`review-finding:pr-2553-f22` to `review-finding:pr-2553-f24`), all valid and fixed in separate commits. The fixes only make statements in the audit and the evidence agree with what the commands and the timeline show. Audit: `docs/pr-reviews/pr-2553-review/PR-REVIEW.md`.
+- 2026-10-16 15:41 UTC - GitHub Copilot (Claude Opus 5.5) - After da2ce7 approved PR #2553 with no finding, the maintainer asked for a PR review retrospective: `docs/pr-reviews/pr-2553-review/review-retrospective.md`. It records that 15 of the 24 findings were about the author's own records, and the maintainer's observation that the earlier entries here were written with Claude Sonnet 5.5. The evidence template, the issue and EPIC templates (model in progress logs), the review retrospective template and `process-pr-review` (version 1.6) were updated in their own commits.

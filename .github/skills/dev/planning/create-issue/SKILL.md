@@ -123,7 +123,8 @@ explicitly during implementation:
   implementation commit points belong in the linked subissue specifications. Record justified
   no-change decisions in task evidence without creating an empty commit.
 - `Architectural Decisions`, linking relevant ADRs and listing any ADRs expected from the work
-- `Progress Tracking` (`Workflow Checkpoints` and first `Progress Log` entry)
+- `Progress Tracking` (`Workflow Checkpoints` and first `Progress Log` entry; an AI agent names
+  its model after the agent in each log entry it writes)
 - `Acceptance Criteria` and `Acceptance Verification`
 - `Implementation Completion Review`, with the conditions for creating an
   issue-local `implementation-retrospective.md` or recording why one is

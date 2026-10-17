@@ -89,9 +89,11 @@ For each subissue implementation in this EPIC, the default completion policy is:
 
 ### Progress Log
 
-Append one line per meaningful update.
+Append one line per meaningful update. When an AI agent did the work, name its model after the
+agent, for example `GitHub Copilot (Claude Opus 5.5)`, so later reviews can relate outcomes to
+the model that produced them.
 
-- YYYY-MM-DD HH:MM UTC - {Role/Agent} - {Update summary} - {Links to evidence}
+- YYYY-MM-DD HH:MM UTC - {Role/Agent (model)} - {Update summary} - {Links to evidence}
 
 ## Acceptance Criteria
 

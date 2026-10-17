@@ -26,22 +26,8 @@ and its [draft PR #1993](https://github.com/torrust/torrust-tracker/pull/1993).
 
 ## Terms
 
-- **Direct component**: a named component future spawned directly by
-  `JobManager` into its `JoinSet`.
-- **Legacy job**: the pre-spawned UDP IP-ban cleanup handle retained by
-  `JobManager` outside the `JoinSet` until it receives its own periodic-job
-  migration.
-- **Owner**: `JobManager` owns direct component tasks and the retained legacy
-  handles; a direct component owns any nested server task it starts.
-- **Service**: a runtime capability stored in an application or instance
-  container. Services may be shared between instances or owned by one instance.
-- **Instance**: a configured UDP or HTTP listener, such as one element of
-  `[[udp_trackers]]`.
-
-Tokio jobs are not operating-system processes. An unmanaged job can nevertheless
-outlive the component that logically owns it, retain resources, and make
-shutdown unreliable. This document calls such a task **unmanaged** or
-**orphaned**, not a zombie process.
+The terms used here (direct component, legacy job, owner, service, instance,
+unmanaged task) are defined once in the [glossary](glossary.md).
 
 ## Current Bootstrap Flow
 

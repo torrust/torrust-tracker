@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
-last-updated-utc: "2026-10-02 15:38"
+last-updated-utc: "2026-10-16 11:25"
 ---
 
 # Manual Verification Evidence
@@ -194,3 +194,7 @@ answered_minus_persisted=0
 `bash -n` and `shellcheck` passed. This verifies script mechanics for a small
 normal run; it is not a post-fix recheck or a new throughput measurement.
 Failure/interrupt cleanup has static checks but was not fault-injected here.
+
+## Issue #2413 (SI-22.1)
+
+The documentation-only verification of #2413 lives in its own folder, as the Shared Delivery Gates ask: [manual-verification-evidence.md](../2413-2410-si-22-1-document-event-flows-and-draft-adr/manual-verification-evidence.md).
