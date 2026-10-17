@@ -82,7 +82,7 @@ dev-dependency of this package (the workspace uses `rstest = "0"` elsewhere). Ad
 
 | ID | Status | Work | Completion evidence |
 | --- | --- | --- | --- |
-| R1 | TODO | Refactor the existing tests: replace the `match` in the non-empty-IP test with a data table, give the three event tests one scenario fixture, add AAA structure and explicit assertions, and shrink the fixture. | Focused tests, `cargo +nightly fmt --all -- --check`, `git diff --check`, prose-first AAA review. |
+| R1 | TODO | Refactor the existing tests: replace the `match` in the non-empty-IP test with a data table, give the three event tests one scenario fixture, add AAA structure and explicit assertions, rename or reconfigure the tcp6 event test so its name matches its Arrange, and shrink the fixture. | Focused tests, `cargo +nightly fmt --all -- --check`, `git diff --check`, prose-first AAA review. |
 | R2 | TODO | Add R2a-R2j. | Same validation; hand-made mutation proofs for R2d, R2e, and R2f. |
 | R3 | TODO | Select an integration increment, or `none`. | Expected: `none`. The service has no network boundary of its own. |
 | R4 | TODO | Re-run unit-only coverage; record before and after. | Plan Results and `coverage-evidence.md`. |
@@ -109,3 +109,7 @@ Approved by Jose Celano on 2026-10-16 (16:02 UTC): R1, R2a-R2j, the fixture appr
   code changed. The plan awaits maintainer approval.
 - 2026-10-16 16:02 UTC - Jose Celano - Approved the plan, including `rstest`. R1 and R2 start in S2,
   after S1 merges.
+- 2026-10-17 08:22 UTC - GitHub Copilot - After the approval, the S1 Task Reviewer found that the
+  tcp6 event test's name describes a peer-IP change its Arrange does not set up. The finding was
+  added to the Current Tests Review and to R1. This amends the approved plan: the maintainer
+  confirms the rename when reviewing the R1 result.

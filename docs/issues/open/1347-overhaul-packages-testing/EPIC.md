@@ -6,7 +6,7 @@ epic: null
 github-issue: 1347
 spec-path: docs/issues/open/1347-overhaul-packages-testing/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-16 15:43"
+last-updated-utc: "2026-10-17 08:22"
 semantic-links:
   skill-links:
     - create-issue
@@ -87,7 +87,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | Order | Issue                                             | Local Spec                                                                        | Status | Notes                                                                                                                |
 | ----- | ------------------------------------------------- | --------------------------------------------------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------- |
 | 1     | #1348 - Add tests to the udp-core package         | `docs/issues/closed/1348-1347-add-tests-udp-core/ISSUE.md`                        | DONE   | Every package source file processed through a reviewed per-file plan; unit-only lines 72.49% → 98.04% (includes #2458, #2505, #2517, and #2521); bounded mutation sample and manual verification recorded; merged through PR #2538. |
-| 2     | #1349 - Add tests to the http-core package        | `docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md`                         | IN_PROGRESS | T1 is done: re-measured baseline at `04013e7f1` (unit-only lines 88.99%) with a 13-file inventory; implementation is delivered in several pull-request slices (S1 is the docs-only inventory PR). |
+| 2     | #1349 - Add tests to the http-core package        | `docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md`                         | IN_PROGRESS | T1-T3 are done: re-measured baseline at `04013e7f1` (unit-only lines 88.99%), a 13-file inventory and an approved announce plan; implementation is delivered in several pull-request slices (S1 is the docs-only inventory PR). |
 | 3     | #2136 - Add tests to the axum-http-server package | `docs/issues/closed/2136-1347-add-tests-axum-http-server/ISSUE.md`                | DONE   | Added fast package-local response, request-ID, and lifecycle tests; verification and final review evidence recorded. |
 | 4     | #2140 - Review axum-http-server integration tests | `docs/issues/closed/2140-1347-review-axum-http-server-integration-tests/ISSUE.md` | DONE   | Inventory, coverage/domain analysis, and test-design review completed.                                               |
 | 5     | #2149 - Add focused UDP server package tests      | `docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/ISSUE.md`        | DONE   | Focused transport, dispatch, socket, event/error, and overload tests added through reviewed per-file plans; separate coverage scopes, bounded mutation sample, and manual verification recorded; merged via PR #2174. |
@@ -254,6 +254,9 @@ For each subissue implementation, the completion policy is:
   aggregate and unit-only baseline rows now read lines 88.99%, regions 90.38%, functions 84.13%
   (32 unit tests, no integration target) and link the issue-local coverage evidence. The subissue
   row is `IN_PROGRESS`.
+- 2026-10-17 08:22 UTC - GitHub Copilot - #1349 T2-T3: the shared plan guidance and the announce
+  plan were approved on 2026-10-16, with the ledger order, slices S1-S6 and `rstest` as a
+  dev-dependency for S2. S1 passed the independent Task Reviewer after fixes.
 
 ## Acceptance Criteria
 

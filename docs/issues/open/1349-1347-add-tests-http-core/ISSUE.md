@@ -9,7 +9,7 @@ github-issue: 1349
 spec-path: docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md
 branch: "1349-1347-add-tests-http-core-inventory"
 related-pr: null
-last-updated-utc: "2026-10-16 16:02"
+last-updated-utc: "2026-10-17 08:22"
 semantic-links:
   skill-links:
     - create-issue
@@ -543,6 +543,12 @@ lines are the T1 baseline measurement (see [Baseline Coverage](#baseline-coverag
 - 2026-10-16 16:02 UTC - Jose Celano - Approved the announce plan, the ledger order, slices S1-S6,
   and adding `rstest` as a dev-dependency in S2. T3 is `DONE`. S1 awaits the independent Task
   Reviewer, the pre-push checks and its PR.
+- 2026-10-17 08:22 UTC - GitHub Copilot - The independent Task Reviewer failed S1 with three
+  `MEDIUM` and four `LOW` findings ([agent-review-reports.md](agent-review-reports.md)): a
+  misclassified listener region, a wrongly described scrape region, the announce ledger row left
+  `PENDING`, a stale doc-test count, a missing test-name smell, and an unexplained missed-line
+  difference. All six blocking items were fixed in separate commits (the ledger row is now
+  `IN_PROGRESS`), and the re-review passed. Next: the pre-push checks and the S1 pull request.
 
 ## Acceptance Criteria
 
