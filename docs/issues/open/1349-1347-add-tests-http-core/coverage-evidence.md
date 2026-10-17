@@ -16,9 +16,9 @@ This document records the clean package-source baseline and complete module inve
 
 ```text
 cargo llvm-cov clean --workspace
-cargo llvm-cov -p torrust-tracker-http-core --all-features --json --output-path .tmp/1349-coverage/t1-aggregate.json
+cargo llvm-cov -p torrust-tracker-http-core --all-features --json --output-path .tmp/1349-coverage/t1b-aggregate.json
 cargo llvm-cov clean --workspace
-cargo llvm-cov -p torrust-tracker-http-core --all-features --lib --json --output-path .tmp/1349-coverage/t1-unit.json
+cargo llvm-cov -p torrust-tracker-http-core --all-features --lib --json --output-path .tmp/1349-coverage/t1b-unit.json
 cargo llvm-cov report -p torrust-tracker-http-core --show-missing-lines
 ```
 
@@ -28,7 +28,7 @@ Line coverage can hide untested branches, so the uncovered-lines table below als
 
 ### Re-measurement After the Spec Baseline
 
-The specification recorded a baseline at `a9d8c5703`. It required a re-measurement if `packages/http-core/` changed on `develop` afterwards. One commit did: `refactor(http-core): [#2536] hide the statistics read lock and metric collection field` (merged through #2545) changed four statistics files (`get_stats` became `read_metrics`, and the metric collection field became private with a read accessor). This document's numbers replace the specification baseline, and the specification ledger and the EPIC #1347 tables carry them.
+The specification recorded a baseline at `a9d8c5703`. It required a re-measurement if `packages/http-core/` changed on `develop` afterwards. A first commit did: `refactor(http-core): [#2536] hide the statistics read lock and metric collection field` (merged through #2545) changed four statistics files (`get_stats` became `read_metrics`, and the metric collection field became private with a read accessor). This document's numbers replace the specification baseline, and the specification ledger and the EPIC #1347 tables carry them.
 
 | Scope | Spec baseline (`a9d8c5703`) | T1 baseline (`a3810b813`) |
 | --- | ---: | ---: |
@@ -93,7 +93,7 @@ The 13 files are every `.rs` file under `packages/http-core/src/` (`git ls-tree`
 
 ## Uncovered Lines By Group
 
-Unit-only uncovered lines from `cargo llvm-cov report --show-missing-lines`, grouped by behavior. Each group is a hypothesis for its file plan, which makes the final decision. Classifications follow the per-file workflow: **3A** a package-owned decision testable at the module's API; **3B** observable only through a package integration boundary; **owner** not testable here, with the owner named; **finding** looks wrong and is handed off; **logging** observability only. Line numbers are at `04013e7f1` and shift when tests are added.
+Unit-only uncovered lines from `cargo llvm-cov report --show-missing-lines`, grouped by behavior. Each group is a hypothesis for its file plan, which makes the final decision. Classifications follow the per-file workflow: **3A** a package-owned decision testable at the module's API; **3B** observable only through a package integration boundary; **owner** not testable here, with the owner named; **finding** looks wrong and is handed off; **logging** observability only. Line numbers are at `a3810b813` and shift when tests are added.
 
 | File | Lines | Behavior | Hypothesis |
 | --- | --- | --- | --- |
