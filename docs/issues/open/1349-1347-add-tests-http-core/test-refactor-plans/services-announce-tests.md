@@ -42,7 +42,7 @@ suite hard to extend, and the new tests need a smaller fixture.
 | `it_should_reject_or_select_non_empty_peer_ip_according_to_policy` | Logic in the test: a `match` re-derives the expected result from the input, with an `unreachable!()` arm. Replace with a table of independently written expectations. |
 | `it_should_return_the_announce_data` | No `// Arrange`, `// Act`, `// Assert` structure; the expected `policy` is read from the fixture used by the Act. |
 | `it_should_use_the_http_tracker_policy_for_query_string_and_reverse_proxy_ips` | Complex Arrange (over 50 lines); the expected event is built inside a mock predicate, and the assertion is only `result.is_ok()`. |
-| `it_should_prefer_a_query_string_peer_ip_over_the_external_ip_for_a_loopback_client_...` | Same predicate-built expectation and `is_ok()` assertion. |
+| `it_should_prefer_a_query_string_peer_ip_over_the_external_ip_for_a_loopback_client_...` | Same predicate-built expectation and `is_ok()` assertion. It also cannot prove its name: it builds the service with `PeerIpSelectionPolicy::enabled()`, whose `external_ip` is `None`, so the external IP configured in its fixture never reaches the service, and a service that wrongly preferred the external IP would still pass. |
 | the three `it_should_send_the_tcp_{4,6}_announce_event_...` tests | Three near-identical 40-70 line bodies differing in two inputs; none has AAA markers or an explicit assertion (the mock verifies on drop), and the expected event is built inside a mock predicate. The tcp6 test's name says the tracker changes the peer IP to IPv4, but it uses the default configuration with no external IP, so the peer IP is never changed and the name describes an Arrange the test does not set up; R1 renames it or gives it the configuration its name claims. |
 
 The shared fixture `initialize_core_tracker_services_with_config` also creates a real database,
@@ -82,7 +82,7 @@ dev-dependency of this package (the workspace uses `rstest = "0"` elsewhere). Ad
 
 | ID | Status | Work | Completion evidence |
 | --- | --- | --- | --- |
-| R1 | TODO | Refactor the existing tests: replace the `match` in the non-empty-IP test with a data table, give the three event tests one scenario fixture, add AAA structure and explicit assertions, rename or reconfigure the tcp6 event test so its name matches its Arrange, and shrink the fixture. | Focused tests, `cargo +nightly fmt --all -- --check`, `git diff --check`, prose-first AAA review. |
+| R1 | TODO | Refactor the existing tests: replace the `match` in the non-empty-IP test with a data table, give the three event tests one scenario fixture, add AAA structure and explicit assertions, rename or reconfigure the tcp6 event test so its name matches its Arrange, give the precedence test a policy that enables overrides and carries a distinct external IP (and confirm it fails under a temporary change that prefers the external IP), and shrink the fixture. | Focused tests, `cargo +nightly fmt --all -- --check`, `git diff --check`, prose-first AAA review. |
 | R2 | TODO | Add R2a-R2j. | Same validation; hand-made mutation proofs for R2d, R2e, and R2f. |
 | R3 | TODO | Select an integration increment, or `none`. | Expected: `none`. The service has no network boundary of its own. |
 | R4 | TODO | Re-run unit-only coverage; record before and after. | Plan Results and `coverage-evidence.md`. |
@@ -113,3 +113,7 @@ Approved by Jose Celano on 2026-10-16 (16:02 UTC): R1, R2a-R2j, the fixture appr
   tcp6 event test's name describes a peer-IP change its Arrange does not set up. The finding was
   added to the Current Tests Review and to R1. This amends the approved plan: the maintainer
   confirms the rename when reviewing the R1 result.
+- 2026-10-17 09:49 UTC - GitHub Copilot - PR #2558 review finding F1 (Copilot): the precedence test
+  never gives the service an external IP. Verified against `PeerIpSelectionPolicy::enabled()`, which
+  sets `external_ip: None`. Added the smell to the Current Tests Review and a step to R1. This
+  amends the approved plan a second time; the maintainer confirms it when reviewing the R1 result.
