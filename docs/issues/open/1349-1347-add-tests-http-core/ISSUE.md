@@ -8,8 +8,8 @@ epic: 1347
 github-issue: 1349
 spec-path: docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md
 branch: "1349-1347-add-tests-http-core-inventory"
-related-pr: null
-last-updated-utc: "2026-10-17 09:23"
+related-pr: 2558
+last-updated-utc: "2026-10-17 09:28"
 semantic-links:
   skill-links:
     - create-issue
@@ -330,7 +330,7 @@ open a PR, get it reviewed, and merge it. The spec-only PR comes first.
 | Slice | Content | Ledger rows | Branch | PR | Status |
 | --- | --- | --- | --- | --- | --- |
 | S0 | This specification and the EPIC registration with the baseline | - | `1349-1347-add-tests-http-core-spec` | #2546 | DONE |
-| S1 | T1-T3: coverage evidence, inventory, shared plan guidance, first plan, approved order | - | `1349-1347-add-tests-http-core-inventory` | - | IN_PROGRESS |
+| S1 | T1-T3: coverage evidence, inventory, shared plan guidance, first plan, approved order | - | `1349-1347-add-tests-http-core-inventory` | #2558 | IN_PROGRESS |
 | S2 | Announce service and its error mapping (ranks 1-2) | 1-2 | `1349-1347-add-tests-http-core-announce` | - | TODO |
 | S3 | Scrape service (rank 3) | 3 | `1349-1347-add-tests-http-core-scrape` | - | TODO |
 | S4 | Events and composition (ranks 4-5) | 4-5 | `1349-1347-add-tests-http-core-events-container` | - | TODO |
@@ -562,6 +562,8 @@ lines are the T1 baseline measurement (see [Baseline Coverage](#baseline-coverag
   reports, and one sentence) and passed after the fixes
   ([agent-review-reports.md](agent-review-reports.md)). Next: the pre-push checks and the S1 pull
   request.
+- 2026-10-17 09:28 UTC - GitHub Copilot - Opened the S1 pull request #2558
+  (<https://github.com/torrust/torrust-tracker/pull/2558>) with `Related to #1349`.
 
 ## Acceptance Criteria
 
