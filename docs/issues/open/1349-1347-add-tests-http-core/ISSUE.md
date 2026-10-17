@@ -9,7 +9,7 @@ github-issue: 1349
 spec-path: docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md
 branch: "1349-1347-add-tests-http-core-inventory"
 related-pr: null
-last-updated-utc: "2026-10-17 08:25"
+last-updated-utc: "2026-10-17 09:23"
 semantic-links:
   skill-links:
     - create-issue
@@ -557,6 +557,11 @@ lines are the T1 baseline measurement (see [Baseline Coverage](#baseline-coverag
   `statistics/metrics.rs` changed (lines 34 / 43, 79.07%, after the new `whole_total` helper); the
   uncovered lines and every other file are unchanged. Updated the evidence, the baseline paragraph,
   the ledger row and the EPIC rows.
+- 2026-10-17 09:23 UTC - GitHub Copilot - The Task Reviewer failed the re-measurement commit with one
+  `MEDIUM` and two `LOW` findings (a stale base commit, reproduction commands naming the superseded
+  reports, and one sentence) and passed after the fixes
+  ([agent-review-reports.md](agent-review-reports.md)). Next: the pre-push checks and the S1 pull
+  request.
 
 ## Acceptance Criteria
 

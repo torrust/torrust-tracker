@@ -62,3 +62,38 @@ semantic-links:
 - Verdict: REVIEW PASSED
 - Follow-up actions:
   - Record the review round in the progress log and the plan log, and add the rename to R1.
+
+### 2026-10-17 09:14 UTC - Task Reviewer (slice S1, re-measurement)
+
+- Invocation scope: The commit `docs(issues): [#1349] re-measure the http core baseline after #2244`
+  on the S1 branch, rebased onto `develop` `a3810b813` after #2244 (merged through #2552) changed
+  `statistics/metrics.rs`.
+- Inputs: the S1 deliverables, the EPIC #1347 rows and log, and the raw reports of the second
+  measurement in `.tmp/1349-coverage/` (`t1b-*`).
+- Evidence: recomputed totals (lines 1,737 / 1,953, regions 2,335 / 2,583, functions 160 / 190);
+  only `statistics/metrics.rs` differs from the first measurement and the uncovered-line lists are
+  identical; every file carrying the baseline agrees; the stamps are real and chronological; the
+  diff is documentation only; `linter markdown`, `linter cspell` and `linter lychee` pass.
+- Findings:
+  - MEDIUM: `coverage-evidence.md` still named the superseded commit `04013e7f1` as the base of the
+    uncovered line numbers.
+  - LOW: its reproduction commands wrote to the superseded `t1-*` reports instead of the `t1b-*`
+    reports that hold the numbers.
+  - LOW: "One commit did:" no longer read correctly above the added second-commit paragraph.
+- Verdict: REVIEW FAILED
+- Follow-up actions:
+  - Fix the three items and confirm.
+
+### 2026-10-17 09:23 UTC - Task Reviewer (slice S1, confirmation)
+
+- Invocation scope: The commit `docs(issues): [#1349] point the coverage evidence at the
+  re-measured reports`, which fixes the three findings of the 09:14 UTC report.
+- Inputs: `coverage-evidence.md`, the other S1 deliverables, the EPIC, and the raw `t1b-*` reports.
+- Evidence: the three fixes are present; the remaining `04013e7f1` mentions are dated history
+  followed by entries that record the re-measurement; no new inconsistency; the diff against
+  `develop` is documentation only; `linter markdown`, `linter cspell` and `linter lychee` pass.
+- Findings:
+  - None.
+- Verdict: REVIEW PASSED
+- Follow-up actions:
+  - None.
