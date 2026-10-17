@@ -16,16 +16,16 @@
 //! `docs/issues/open/1669-overhaul-packages/workspace-coupling-report.md`
 //! relative to the workspace root.
 
-use std::collections::{BTreeSet, HashSet};
+use std::collections::{BTreeSet, HashMap, HashSet};
 use std::fmt::Write;
 use std::fs;
 use std::io::{self, Write as _};
 use std::path::{Path, PathBuf};
 use std::process::{Command, ExitCode};
 
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use walkdir::WalkDir;
-use workspace_coupling::try_parse_imports_from_source;
+use workspace_coupling::{Dep, Metadata, Package, resolve_module_name, try_parse_imports_from_source};
 
 const EXIT_RUNTIME_FAILURE: u8 = 1;
 const EXIT_USAGE_ERROR: u8 = 2;
@@ -42,27 +42,6 @@ struct CliEvent {
     output_file: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     exit_code: Option<u8>,
-}
-
-#[derive(Deserialize)]
-struct Metadata {
-    workspace_root: String,
-    workspace_members: Vec<String>,
-    packages: Vec<Package>,
-}
-
-#[derive(Deserialize)]
-struct Package {
-    id: String,
-    name: String,
-    manifest_path: String,
-    dependencies: Vec<Dep>,
-}
-
-#[derive(Deserialize)]
-struct Dep {
-    name: String,
-    kind: Option<String>,
 }
 
 fn emit_event(event: &CliEvent) -> io::Result<()> {
@@ -119,10 +98,6 @@ fn failure(message: &str, detail: String, exit_code: u8) -> ExitCode {
     }
 
     ExitCode::from(exit_code)
-}
-
-fn crate_to_module(name: &str) -> String {
-    name.replace('-', "_")
 }
 
 fn dep_kind_label(kind: Option<&str>) -> &'static str {
@@ -293,12 +268,12 @@ fn write_leaves(out: &mut String, meta: &Metadata, ws_ids: &HashSet<&str>, ws_na
     writeln!(out).unwrap();
 }
 
-fn write_dep_section(out: &mut String, dep: &Dep, scan_dirs: &[&Path]) -> Result<(), String> {
+fn write_dep_section(out: &mut String, dep: &Dep, dep_package: Option<&Package>, scan_dirs: &[&Path]) -> Result<(), String> {
     let kind = dep_kind_label(dep.kind.as_deref());
     writeln!(out, "#### `{}` [{kind}]", dep.name).unwrap();
     writeln!(out).unwrap();
 
-    let module = crate_to_module(&dep.name);
+    let module = resolve_module_name(dep, dep_package);
     let scan = scan_imports(scan_dirs, &module)?;
 
     if !scan.imports.is_empty() {
@@ -336,6 +311,7 @@ fn write_coupling_details(
 
     let mut sorted_packages: Vec<&Package> = meta.packages.iter().filter(|p| ws_ids.contains(p.id.as_str())).collect();
     sorted_packages.sort_by(|a, b| a.name.cmp(&b.name));
+    let packages_by_name: HashMap<&str, &Package> = sorted_packages.iter().map(|p| (p.name.as_str(), *p)).collect();
 
     for pkg in sorted_packages {
         let manifest_dir = Path::new(&pkg.manifest_path)
@@ -368,7 +344,7 @@ fn write_coupling_details(
         writeln!(out).unwrap();
 
         for dep in ws_deps {
-            write_dep_section(out, dep, &scan_dirs)?;
+            write_dep_section(out, dep, packages_by_name.get(dep.name.as_str()).copied(), &scan_dirs)?;
         }
     }
 

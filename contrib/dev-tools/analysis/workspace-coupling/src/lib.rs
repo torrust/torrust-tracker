@@ -1,9 +1,76 @@
-//! Import parsing utilities for the workspace coupling report.
+//! Import parsing and module-name resolution utilities for the workspace coupling report.
 
 use std::collections::BTreeSet;
 
+use serde::Deserialize;
 use syn::visit::{self, Visit};
 use syn::{Path, UseTree};
+
+/// The subset of `cargo metadata` output the coupling report needs.
+#[derive(Deserialize)]
+pub struct Metadata {
+    pub workspace_root: String,
+    pub workspace_members: Vec<String>,
+    pub packages: Vec<Package>,
+}
+
+/// A package entry of `cargo metadata`.
+#[derive(Deserialize)]
+pub struct Package {
+    pub id: String,
+    pub name: String,
+    pub manifest_path: String,
+    pub dependencies: Vec<Dep>,
+    #[serde(default)]
+    pub targets: Vec<Target>,
+}
+
+/// A dependency declaration of a package in `cargo metadata`.
+#[derive(Deserialize)]
+pub struct Dep {
+    /// The name of the dependency package, not the name used in Rust code.
+    pub name: String,
+    pub kind: Option<String>,
+    /// The key used in `Cargo.toml` when the dependency is renamed with `package = "..."`.
+    #[serde(default)]
+    pub rename: Option<String>,
+}
+
+/// A build target of a package in `cargo metadata`.
+#[derive(Deserialize)]
+pub struct Target {
+    pub name: String,
+    pub kind: Vec<String>,
+}
+
+/// Returns the module name that Rust code uses to import the dependency `dep`.
+///
+/// Resolution order: the `rename` set in the dependent's `Cargo.toml`, otherwise the name of the
+/// dependency package's library target, otherwise the dependency package name. Hyphens become
+/// underscores, as Cargo does. `dep_package` is the package the dependency resolves to, when known.
+#[must_use]
+pub fn resolve_module_name(dep: &Dep, dep_package: Option<&Package>) -> String {
+    let name = dep
+        .rename
+        .as_deref()
+        .or_else(|| dep_package.and_then(Package::library_target_name))
+        .unwrap_or(&dep.name);
+
+    name.replace('-', "_")
+}
+
+impl Package {
+    /// The name of the target other crates import: the first library, `rlib`, `dylib` or
+    /// procedural macro target.
+    fn library_target_name(&self) -> Option<&str> {
+        const IMPORTABLE_KINDS: [&str; 4] = ["lib", "rlib", "dylib", "proc-macro"];
+
+        self.targets
+            .iter()
+            .find(|target| target.kind.iter().any(|kind| IMPORTABLE_KINDS.contains(&kind.as_str())))
+            .map(|target| target.name.as_str())
+    }
+}
 
 /// Parses Rust source and returns dependency paths imported from `dep_module`.
 ///
