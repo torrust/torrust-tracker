@@ -22,7 +22,7 @@ cargo llvm-cov -p torrust-tracker-http-core --all-features --lib --json --output
 cargo llvm-cov report -p torrust-tracker-http-core --show-missing-lines
 ```
 
-Both measurement commands completed successfully and ran the same 32 package unit tests. The package has no `tests/` directory and no `[[test]]` target, so there is no integration-only baseline, and the aggregate command selected the same `src/lib.rs` unit-test binary as `--lib`. Identical totals do not make aggregate coverage evidence of an independent test level. The last command lists the uncovered lines of the unit-only run.
+Both measurement commands completed successfully and ran the same 32 package unit tests. The package has no `tests/` directory and no `[[test]]` target, so there is no integration-only baseline, and the aggregate command selected the same `src/lib.rs` unit-test binary as `--lib`. Identical totals do not make aggregate coverage evidence of an independent test level. The last command lists the uncovered lines of the unit-only run. It can list one or two fewer lines than the summary's missed-line count for a file (for example, 72 listed against 73 missed in `container.rs`); the groups below follow the listed lines and the region check.
 
 Line coverage can hide untested branches, so the uncovered-lines table below also lists *regions only* entries: a region with a zero count (from the unit-only JSON segments) on a line that the missing-lines report counts as covered. A typical case is the early-return path of a `?`.
 
@@ -79,9 +79,9 @@ Every source file has one T1 hypothesis. It determines processing order but is n
 | `event.rs` | 7 | 174 / 187 (93.05%) | 277 / 294 | 16 / 20 | No | Connection-context label projection, client IP family and type, and public-URL projection are directly tested. The uncovered getters have no caller. | Probably small change |
 | `container.rs` | 0 | 0 / 73 (0.00%) | 0 / 89 | 0 / 5 | No | Composition of the announce and scrape services with the instance policy, instance ID, event bus, and shared repository. Do not use the production container factories as a test bootstrap. | Test candidate |
 | `statistics/event/handler.rs` | 5 | 158 / 161 (98.14%) | 215 / 221 | 16 / 17 | No | Event-to-counter routing and label propagation are directly tested; the remaining lines are failure and debug logging. | Probably no change |
-| `statistics/event/listener.rs` | 4 | 133 / 148 (89.86%) | 183 / 204 | 19 / 22 | No | Dispatch loop behavior has direct tests. The spawned wrapper and the unspawned entry point are lifecycle owned by #1488. | Lifecycle (#1488) |
+| `statistics/event/listener.rs` | 4 | 133 / 148 (89.86%) | 183 / 204 | 19 / 22 | No | Dispatch loop behavior has direct tests, but only for `TcpScrape` events. The spawned wrapper and the unspawned entry point are lifecycle owned by #1488. | Lifecycle (#1488) |
 | `statistics/metrics.rs` | 0 | 43 / 52 (82.69%) | 38 / 46 | 6 / 7 | No | The four TCP request-count projections are covered through the handler tests. `set_gauge` has no caller. | Test candidate |
-| `statistics/repository.rs` | 0 (2 doc tests) | 21 / 24 (87.50%) | 26 / 29 | 5 / 6 | No | Initialization, counter update and the read accessor are covered; the compile and compile-fail doc tests protect the private lock. `Default` is not exercised. | Test candidate |
+| `statistics/repository.rs` | 0 (3 doc tests) | 21 / 24 (87.50%) | 26 / 29 | 5 / 6 | No | Initialization, counter update and the read accessor are covered; the compile-fail and runnable doc tests protect the private lock and its accessor. `Default` is not exercised. | Test candidate |
 | `statistics/mod.rs` | 0 | 8 / 8 (100.00%) | 10 / 10 | 1 / 1 | No | The exported metric name and description composition, covered through other modules. | Probably small change (metric-name contract) |
 | `lib.rs` | 0 | 27 / 27 (100.00%) | 24 / 24 | 4 / 4 | No | Clock alias, log target and shared test samples; the samples are test support. | Test support only |
 | `services/mod.rs` | 0 | No executable entries | - | - | No | Module declarations. | Wiring only |
@@ -103,7 +103,7 @@ Unit-only uncovered lines from `cargo llvm-cov report --show-missing-lines`, gro
 | `services/announce.rs` | 350 | The absent-sender path of `send_event` (every announce test supplies a sender; the scrape tests already cover it) | 3A |
 | `services/announce.rs` (test module) | 486-490, 565, 568, 571, 597, 682 | The persistent-completed-stat fixture branch, the `Stopped`, `Completed` and `None` arms of the request-builder fixture, the `mock!` macro, and an `unreachable!` | test support; the file plan reviews the fixture |
 | `services/error_mapping.rs` | 4-17, 19 | All four `TrackerCoreError` arms | 3A |
-| `services/scrape.rs` | 112, 115, 127 (regions only) | The error paths of the `?` after the tracker-core scrape and after client-IP resolution in `handle_scrape`, and the private-mode path with no key presented | 3A |
+| `services/scrape.rs` | 112, 115, 127 (regions only) | The error paths of the `?` after the tracker-core scrape and after client-IP resolution in `handle_scrape`, and the arm where a key is presented (`Some(key)` at line 127; the no-key path is covered by the existing private-mode test) | 3A |
 | `services/scrape.rs` | 128 | An authenticated scrape in private mode (`is_authenticated` with a key) | 3A |
 | `services/scrape.rs` | 163-167, 171-175, 179-183, 187-191, 195-199, 203-206, 208 | The five `From` conversions into `HttpScrapeError` and the conversion to the failure response | 3A |
 | `services/scrape.rs` (test module) | 317 | The `mock!` macro | test support |
@@ -112,7 +112,8 @@ Unit-only uncovered lines from `cargo llvm-cov report --show-missing-lines`, gro
 | `container.rs` | 36-42, 45-53, 56-57, 60-65, 67-71, 73, 76-106, 117, 119-120, 127, 129, 131-136 | `initialize` (needs a configured database), `initialize_from_tracker_core`, `initialize_from_services` wiring, and `HttpTrackerCoreServices::initialize_from` | 3A for the wiring of `initialize_from_services`; `initialize` composes `tracker-core` and is owned there |
 | `statistics/event/handler.rs` | 20 | The `Err` arm that logs a failed counter increase | logging; reaching it needs a failing metric collection, which is `torrust-metrics` behavior |
 | `statistics/event/handler.rs` | 25 | The closure that formats the debug line | logging |
-| `statistics/event/listener.rs` | 24, 108 (regions only) | The `tokio::spawn` wrapper region, and one arm of `event_connection_id` used for the unknown-listener warning | owner: #1488 for the wrapper; the arm is logging |
+| `statistics/event/listener.rs` | 24 (region only) | The `tokio::spawn` wrapper region | owner: #1488 lifecycle |
+| `statistics/event/listener.rs` | 108 (region only) | The `TcpAnnounce` alternative of `event_connection_id`, which the listener calls for every event to look up the metrics policy. All four listener tests dispatch only `TcpScrape`, so the policy lookup for an announce event is unprotected. | 3A candidate for the listener plan |
 | `statistics/event/listener.rs` | 25, 27-28 | The spawned `run_event_listener` wrapper | owner: #1488 lifecycle |
 | `statistics/event/listener.rs` | 32-40 | `run_event_listener_unspawned`, the entry point the production bootstrap calls | owner: #1488 lifecycle |
 | `statistics/event/listener.rs` | 100 | The `warn!` for an event from an unknown or metrics-disabled listener | logging; the branch itself is tested |
