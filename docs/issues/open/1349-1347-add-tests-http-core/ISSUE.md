@@ -9,7 +9,7 @@ github-issue: 1349
 spec-path: docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md
 branch: "1349-1347-add-tests-http-core-inventory"
 related-pr: 2558
-last-updated-utc: "2026-10-17 09:28"
+last-updated-utc: "2026-10-17 12:23"
 semantic-links:
   skill-links:
     - create-issue
@@ -564,6 +564,9 @@ lines are the T1 baseline measurement (see [Baseline Coverage](#baseline-coverag
   request.
 - 2026-10-17 09:28 UTC - GitHub Copilot - Opened the S1 pull request #2558
   (<https://github.com/torrust/torrust-tracker/pull/2558>) with `Related to #1349`.
+- 2026-10-17 12:23 UTC - GitHub Copilot - Copilot's review of PR #2558 found one `Minor` issue (F1 in
+  the audit): the plan's precedence test never gives the service an external IP. Fixed in the
+  announce plan and resolved; the review audit is [PR #2558 review audit](../../../pr-reviews/pr-2558-review/PR-REVIEW.md).
 
 ## Acceptance Criteria
 
