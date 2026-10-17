@@ -9,7 +9,7 @@ github-issue: 1349
 spec-path: docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md
 branch: "1349-1347-add-tests-http-core-inventory"
 related-pr: null
-last-updated-utc: "2026-10-17 08:22"
+last-updated-utc: "2026-10-17 08:25"
 semantic-links:
   skill-links:
     - create-issue
@@ -113,8 +113,9 @@ indirectly. EPIC #1347 does not accept coverage from another package, an integra
 end-to-end test as evidence that a feasible package-owned unit seam is protected.
 
 T1 re-measured, because `packages/http-core/` changed on `develop` after `a9d8c5703`: the #2536
-refactor (merged through #2545) touched four statistics files. The T1 baseline at `04013e7f1` is
-lines 1,746 / 1,962 (88.99%), regions 2,329 / 2,577 (90.38%), and functions 159 / 189 (84.13%), from
+refactor (merged through #2545) touched four statistics files, and the #2244 refactor (merged
+through #2552) changed `statistics/metrics.rs` again. The T1 baseline at `develop` `a3810b813` is
+lines 1,737 / 1,953 (88.94%), regions 2,335 / 2,583 (90.40%), and functions 160 / 190 (84.21%), from
 the same 32 unit tests, with unit-only equal to aggregate. It supersedes the table above;
 [coverage-evidence.md](coverage-evidence.md) holds the per-file results and the differences. The
 Source File Ledger and the EPIC #1347 Package Coverage Tracking tables use the T1 baseline.
@@ -453,7 +454,7 @@ lines are the T1 baseline measurement (see [Baseline Coverage](#baseline-coverag
 | 5 | `container.rs` | 5 | S4 | 0 / 73 (0.00%) | 0 | Test candidate | PENDING | - |
 | 6 | `statistics/event/handler.rs` | 6 | S5 | 158 / 161 (98.14%) | 5 | Probably no change | PENDING | - |
 | 7 | `statistics/event/listener.rs` | 6 | S5 | 133 / 148 (89.86%) | 4 | Lifecycle (#1488) | PENDING | - |
-| 8 | `statistics/metrics.rs` | 6 | S5 | 43 / 52 (82.69%) | 0 | Test candidate | PENDING | - |
+| 8 | `statistics/metrics.rs` | 6 | S5 | 34 / 43 (79.07%) | 0 | Test candidate | PENDING | - |
 | 9 | `statistics/repository.rs` | 6 | S5 | 21 / 24 (87.50%) | 0 (3 doc tests) | Test candidate | PENDING | - |
 | 10 | `statistics/mod.rs` | 6 | S5 | 8 / 8 (100.00%) | 0 | Probably small change (metric-name contract) | PENDING | - |
 | 11 | `lib.rs` | 7 | S6 | 27 / 27 (100.00%) | 0 | Test support only | PENDING | - |
@@ -549,6 +550,13 @@ lines are the T1 baseline measurement (see [Baseline Coverage](#baseline-coverag
   `PENDING`, a stale doc-test count, a missing test-name smell, and an unexplained missed-line
   difference. All six blocking items were fixed in separate commits (the ledger row is now
   `IN_PROGRESS`), and the re-review passed. Next: the pre-push checks and the S1 pull request.
+- 2026-10-17 08:25 UTC - GitHub Copilot - The pre-PR check found `develop` 64 commits ahead,
+  including #2244 (merged through #2552), which changed `statistics/metrics.rs` again. Rebased S1
+  onto `develop` (no conflicts, signatures kept) and re-measured at `a3810b813`: lines 1,737 / 1,953
+  (88.94%), regions 90.40%, functions 84.21%, 32 unit tests, unit-only equal to aggregate. Only
+  `statistics/metrics.rs` changed (lines 34 / 43, 79.07%, after the new `whole_total` helper); the
+  uncovered lines and every other file are unchanged. Updated the evidence, the baseline paragraph,
+  the ledger row and the EPIC rows.
 
 ## Acceptance Criteria
 

@@ -20,7 +20,7 @@ Follow the shared [guidance](README.md). This plan covers only
 ## Current State
 
 - **Unit-only coverage:** 675 / 727 lines (92.85%), 878 / 938 regions, 56 / 63 functions
-  ([coverage evidence](../coverage-evidence.md), `04013e7f1`). The totals include the test module.
+  ([coverage evidence](../coverage-evidence.md), `a3810b813`). The totals include the test module.
 - **Existing tests:** 8 in the file (2 synchronous peer-IP decision tests and 3 asynchronous service
   tests, plus 3 event tests). `axum-http-server` exercises the service through HTTP, which EPIC #1347 does not accept as
   evidence for this package's unit seam.

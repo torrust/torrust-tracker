@@ -2,13 +2,13 @@
 doc-type: coverage-evidence
 issue: 1349
 package: torrust-tracker-http-core
-measured-commit: 04013e7f1
-measured-utc: 2026-10-16T15:32:54Z
+measured-commit: a3810b813
+measured-utc: 2026-10-17T08:24:45Z
 ---
 
 # HTTP Core Coverage Evidence
 
-This document records the clean package-source baseline and complete module inventory for Issue #1349. The reports were collected on `develop` at the merge of #2545, after spec-only PR #2546 merged and before any Issue #1349 test or production change. Raw JSON reports stay ignored local artifacts under `.tmp/1349-coverage/`.
+This document records the clean package-source baseline and complete module inventory for Issue #1349. The reports were collected on `develop` at the merge of #2552, after spec-only PR #2546 merged and before any Issue #1349 test or production change. Raw JSON reports stay ignored local artifacts under `.tmp/1349-coverage/`.
 
 ## Measurement Scope
 
@@ -30,19 +30,21 @@ Line coverage can hide untested branches, so the uncovered-lines table below als
 
 The specification recorded a baseline at `a9d8c5703`. It required a re-measurement if `packages/http-core/` changed on `develop` afterwards. One commit did: `refactor(http-core): [#2536] hide the statistics read lock and metric collection field` (merged through #2545) changed four statistics files (`get_stats` became `read_metrics`, and the metric collection field became private with a read accessor). This document's numbers replace the specification baseline, and the specification ledger and the EPIC #1347 tables carry them.
 
-| Scope | Spec baseline (`a9d8c5703`) | T1 baseline (`04013e7f1`) |
+| Scope | Spec baseline (`a9d8c5703`) | T1 baseline (`a3810b813`) |
 | --- | ---: | ---: |
-| Lines | 1,743 / 1,957 (89.06%) | 1,746 / 1,962 (88.99%) |
-| Regions | 2,337 / 2,582 (90.51%) | 2,329 / 2,577 (90.38%) |
-| Functions | 157 / 186 (84.41%) | 159 / 189 (84.13%) |
+| Lines | 1,743 / 1,957 (89.06%) | 1,737 / 1,953 (88.94%) |
+| Regions | 2,337 / 2,582 (90.51%) | 2,335 / 2,583 (90.40%) |
+| Functions | 157 / 186 (84.41%) | 160 / 190 (84.21%) |
 
-Only the four files below differ; every other file has identical counts.
+A second commit changed the package before this slice merged: `refactor(http-core): [#2244] document the counter-total metric conversion` (merged through #2552) added a private `whole_total` helper to `statistics/metrics.rs`. The package was measured again on `develop` at `a3810b813`, and the numbers in this document are from that run. The raw reports of the earlier run at `04013e7f1` (lines 1,746 / 1,962) are not used.
+
+Only the four files below differ from the spec baseline; every other file has identical counts.
 
 | Source module | Lines before → after | Regions before → after | Functions before → after |
 | --- | ---: | ---: | ---: |
 | `statistics/event/handler.rs` | 159 / 160 → 158 / 161 | 220 / 223 → 215 / 221 | 15 / 15 → 16 / 17 |
 | `statistics/event/listener.rs` | 133 / 148 → 133 / 148 | 191 / 212 → 183 / 204 | 19 / 22 → 19 / 22 |
-| `statistics/metrics.rs` | 40 / 49 → 43 / 52 | 35 / 43 → 38 / 46 | 5 / 6 → 6 / 7 |
+| `statistics/metrics.rs` | 40 / 49 → 34 / 43 | 35 / 43 → 44 / 52 | 5 / 6 → 7 / 8 |
 | `statistics/repository.rs` | 20 / 23 → 21 / 24 | 24 / 27 → 26 / 29 | 5 / 6 → 5 / 6 |
 
 ## Test-Level Baseline
@@ -53,7 +55,7 @@ Aggregate coverage includes the selected default package test target and is broa
 
 | Lines | Regions | Functions |
 | ---: | ---: | ---: |
-| 1,746 / 1,962 (88.99%) | 2,329 / 2,577 (90.38%) | 159 / 189 (84.13%) |
+| 1,737 / 1,953 (88.94%) | 2,335 / 2,583 (90.40%) | 160 / 190 (84.21%) |
 
 ### Unit-Only Coverage
 
@@ -61,7 +63,7 @@ Unit-only (`--lib`) coverage is the primary Issue #1349 metric.
 
 | Lines | Regions | Functions |
 | ---: | ---: | ---: |
-| 1,746 / 1,962 (88.99%) | 2,329 / 2,577 (90.38%) | 159 / 189 (84.13%) |
+| 1,737 / 1,953 (88.94%) | 2,335 / 2,583 (90.40%) | 160 / 190 (84.21%) |
 
 ### Integration-Only Coverage
 
@@ -80,7 +82,7 @@ Every source file has one T1 hypothesis. It determines processing order but is n
 | `container.rs` | 0 | 0 / 73 (0.00%) | 0 / 89 | 0 / 5 | No | Composition of the announce and scrape services with the instance policy, instance ID, event bus, and shared repository. Do not use the production container factories as a test bootstrap. | Test candidate |
 | `statistics/event/handler.rs` | 5 | 158 / 161 (98.14%) | 215 / 221 | 16 / 17 | No | Event-to-counter routing and label propagation are directly tested; the remaining lines are failure and debug logging. | Probably no change |
 | `statistics/event/listener.rs` | 4 | 133 / 148 (89.86%) | 183 / 204 | 19 / 22 | No | Dispatch loop behavior has direct tests, but only for `TcpScrape` events. The spawned wrapper and the unspawned entry point are lifecycle owned by #1488. | Lifecycle (#1488) |
-| `statistics/metrics.rs` | 0 | 43 / 52 (82.69%) | 38 / 46 | 6 / 7 | No | The four TCP request-count projections are covered through the handler tests. `set_gauge` has no caller. | Test candidate |
+| `statistics/metrics.rs` | 0 | 34 / 43 (79.07%) | 44 / 52 | 7 / 8 | No | The four TCP request-count projections, which share the private `whole_total` helper, are covered through the handler tests. `set_gauge` has no caller. | Test candidate |
 | `statistics/repository.rs` | 0 (3 doc tests) | 21 / 24 (87.50%) | 26 / 29 | 5 / 6 | No | Initialization, counter update and the read accessor are covered; the compile-fail and runnable doc tests protect the private lock and its accessor. `Default` is not exercised. | Test candidate |
 | `statistics/mod.rs` | 0 | 8 / 8 (100.00%) | 10 / 10 | 1 / 1 | No | The exported metric name and description composition, covered through other modules. | Probably small change (metric-name contract) |
 | `lib.rs` | 0 | 27 / 27 (100.00%) | 24 / 24 | 4 / 4 | No | Clock alias, log target and shared test samples; the samples are test support. | Test support only |
