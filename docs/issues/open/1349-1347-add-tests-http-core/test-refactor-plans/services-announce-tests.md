@@ -43,7 +43,7 @@ suite hard to extend, and the new tests need a smaller fixture.
 | `it_should_return_the_announce_data` | No `// Arrange`, `// Act`, `// Assert` structure; the expected `policy` is read from the fixture used by the Act. |
 | `it_should_use_the_http_tracker_policy_for_query_string_and_reverse_proxy_ips` | Complex Arrange (over 50 lines); the expected event is built inside a mock predicate, and the assertion is only `result.is_ok()`. |
 | `it_should_prefer_a_query_string_peer_ip_over_the_external_ip_for_a_loopback_client_...` | Same predicate-built expectation and `is_ok()` assertion. |
-| the three `it_should_send_the_tcp_{4,6}_announce_event_...` tests | Three near-identical 40-70 line bodies differing in two inputs; none has AAA markers or an explicit assertion (the mock verifies on drop), and the expected event is built inside a mock predicate. |
+| the three `it_should_send_the_tcp_{4,6}_announce_event_...` tests | Three near-identical 40-70 line bodies differing in two inputs; none has AAA markers or an explicit assertion (the mock verifies on drop), and the expected event is built inside a mock predicate. The tcp6 test's name says the tracker changes the peer IP to IPv4, but it uses the default configuration with no external IP, so the peer IP is never changed and the name describes an Arrange the test does not set up; R1 renames it or gives it the configuration its name claims. |
 
 The shared fixture `initialize_core_tracker_services_with_config` also creates a real database,
 a statistics repository and bus, and (when usage statistics are on) spawns an event listener whose
