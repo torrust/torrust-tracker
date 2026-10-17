@@ -492,6 +492,7 @@ srcset
 sscanf
 stabilised
 stackoverflow
+staticlib
 strfmon
 subissue
 subkey

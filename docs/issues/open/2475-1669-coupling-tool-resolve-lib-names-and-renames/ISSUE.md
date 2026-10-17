@@ -7,9 +7,9 @@ priority: p3
 epic: 1669
 github-issue: 2475
 spec-path: docs/issues/open/2475-1669-coupling-tool-resolve-lib-names-and-renames/ISSUE.md
-branch: "2475-1669-coupling-tool-resolve-lib-names-and-renames-spec"
+branch: "2475-1669-coupling-tool-resolve-lib-names-and-renames"
 related-pr: null
-last-updated-utc: "2026-10-07 16:39"
+last-updated-utc: "2026-10-17 12:26"
 semantic-links:
   skill-links:
     - create-issue
@@ -94,6 +94,19 @@ library target name (`targets[]` with kind `lib`).
 
 Not applicable: a single pure name-resolution step changes; no processes, I/O or fixtures.
 
+### Maintainer Decisions (pre-implementation review, 2026-10-17)
+
+- **Placement**: the `cargo metadata` structs (`Metadata`, `Package`, `Dep`) move from
+  `src/main.rs` to `src/lib.rs`, together with a new pure `resolve_module_name` function, so the
+  integration tests in `tests/` can exercise it with `cargo metadata`-shaped JSON. `main.rs`
+  keeps only report generation and I/O.
+- **Library target kinds**: the library target is the first `targets[]` entry whose `kind`
+  contains `lib`, `rlib`, `dylib` or `proc-macro` (the kinds other crates can import).
+  `cdylib` and `staticlib` targets are ignored. If none matches, fall back to the package name.
+- **Report file**: the regenerated report is
+  `docs/issues/open/1669-overhaul-packages/workspace-coupling-report-2026-10-17.md`. Earlier
+  reports stay untouched.
+
 ## Bug-Fix Process
 
 Follows the [`fix-bug`](../../../../.github/skills/dev/debugging/fix-bug/SKILL.md) skill:
@@ -168,6 +181,10 @@ Use a Conventional Commit message with the issue reference and sign every commit
 - 2026-10-07 16:39 UTC - GitHub Copilot - Maintainer approved the draft (reviewed in PR #2462).
   Created issue #2475, linked it as a subissue of EPIC #1669, and moved the spec to
   `docs/issues/open/`.
+- 2026-10-17 12:26 UTC - GitHub Copilot - Recorded the maintainer's pre-implementation
+  decisions (resolver placement in `lib.rs`, library target kinds, new report file name) in
+  "Maintainer Decisions". The spec-only branch had already merged; implementation proceeds on
+  branch `2475-1669-coupling-tool-resolve-lib-names-and-renames`.
 
 ## Acceptance Criteria
 
