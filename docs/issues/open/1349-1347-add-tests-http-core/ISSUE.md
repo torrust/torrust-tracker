@@ -446,7 +446,7 @@ lines are the T1 baseline measurement (see [Baseline Coverage](#baseline-coverag
 
 | Order | Source module | Rank | Slice | Unit-only lines | Tests | Initial hypothesis | State | Plan |
 | ---: | --- | ---: | --- | ---: | ---: | --- | --- | --- |
-| 1 | `services/announce.rs` | 1-2 | S2 | 675 / 727 (92.85%) | 8 | Property candidate (peer-IP selection) | PENDING | [services-announce-tests.md](test-refactor-plans/services-announce-tests.md) (approved) |
+| 1 | `services/announce.rs` | 1-2 | S2 | 675 / 727 (92.85%) | 8 | Property candidate (peer-IP selection) | IN_PROGRESS | [services-announce-tests.md](test-refactor-plans/services-announce-tests.md) (approved) |
 | 2 | `services/error_mapping.rs` | 2 | S2 | 0 / 15 (0.00%) | 0 | Test candidate | PENDING | - |
 | 3 | `services/scrape.rs` | 3 | S3 | 507 / 540 (93.89%) | 8 | Test candidate (error paths) | PENDING | - |
 | 4 | `event.rs` | 4 | S4 | 174 / 187 (93.05%) | 7 | Probably small change | PENDING | - |
@@ -454,7 +454,7 @@ lines are the T1 baseline measurement (see [Baseline Coverage](#baseline-coverag
 | 6 | `statistics/event/handler.rs` | 6 | S5 | 158 / 161 (98.14%) | 5 | Probably no change | PENDING | - |
 | 7 | `statistics/event/listener.rs` | 6 | S5 | 133 / 148 (89.86%) | 4 | Lifecycle (#1488) | PENDING | - |
 | 8 | `statistics/metrics.rs` | 6 | S5 | 43 / 52 (82.69%) | 0 | Test candidate | PENDING | - |
-| 9 | `statistics/repository.rs` | 6 | S5 | 21 / 24 (87.50%) | 0 (2 doc tests) | Test candidate | PENDING | - |
+| 9 | `statistics/repository.rs` | 6 | S5 | 21 / 24 (87.50%) | 0 (3 doc tests) | Test candidate | PENDING | - |
 | 10 | `statistics/mod.rs` | 6 | S5 | 8 / 8 (100.00%) | 0 | Probably small change (metric-name contract) | PENDING | - |
 | 11 | `lib.rs` | 7 | S6 | 27 / 27 (100.00%) | 0 | Test support only | PENDING | - |
 | 12 | `services/mod.rs` | 7 | S6 | No executable entries | 0 | Wiring only | PENDING | - |
