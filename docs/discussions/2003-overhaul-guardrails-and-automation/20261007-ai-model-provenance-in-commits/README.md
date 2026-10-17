@@ -236,7 +236,7 @@ Jose Celano.
 
 ##### Q3 - Cameron Garnham (`da2ce7`), 2026-10-08, PR #2486
 
-**`identifier-from-the-harness` — Identifier format (Q3).** Small questions once `scope-by-content-not-presence` and `project-automation-is-a-dependency` hold. Identifiers come from the harness, with `unknown` when the harness cannot name the model, so that the record never looks more complete than it is.
+**`identifier-from-the-runtime-not-the-model` — Identifier format (Q3).** Small questions once `scope-by-content-not-presence` and `project-automation-is-a-dependency` hold. Identifiers come from the runtime that ran the model, never from the model's own account of itself, with `unknown` when that runtime cannot name the model, so that the record never looks more complete than it is.
 
 First posted as [comment 6035743101 on PR #2467](https://github.com/torrust/torrust-tracker/pull/2467#issuecomment-6035743101) on 2026-10-07 under the number label `C3`.
 
@@ -267,7 +267,7 @@ committer? Added by Jose Celano.
 
 ##### Q5 - Cameron Garnham (`da2ce7`), 2026-10-08, PR #2486
 
-**`harness-configuration-is-the-source-of-truth` — Source of truth (Q5).** For project automation the harness configuration is the source of truth and is tracked, by `project-automation-is-a-dependency`.
+**`tracked-configuration-is-the-source-of-truth` — Source of truth (Q5).** For project automation the tracked configuration of that automation is the source of truth, by `project-automation-is-a-dependency`.
 
 First posted as [comment 6035743101 on PR #2467](https://github.com/torrust/torrust-tracker/pull/2467#issuecomment-6035743101) on 2026-10-07 under the number label `C4`.
 
@@ -402,6 +402,20 @@ purposes (tracking, analytics) does the rule still serve for agent-made commits,
 Drafted with an AI assistant using the Copilot SDK in VS Code (`claude-opus-5.5`); reviewed and
 adopted by Jose Celano.
 
+##### Q11 - Cameron Garnham (`da2ce7`), 2026-10-16, PR #2548
+
+This entry answers the amendment to `project-automation-is-a-dependency` and the question for the decision owner in the [entry above](#q11---jose-celano-josecelano-2026-10-13-pr-2502); it replaces no earlier entry.
+
+**`custody-not-instructions` — Custody, not instructions.** The line between project automation and personal tooling is custody, not instructions. Project automation is what the project runs and can pin in tracked bytes, change through a pull request and check with a gate. A contributor's runtime that follows the repository's tracked skills does not come under the project's custody: the skills are text that a human-controlled tool chooses to follow, and the project cannot pin, gate or even observe what ran them.
+
+**`self-declaration-is-not-a-dependency-record` — A self-declaration is not a dependency record.** Treating such a commit "as project automation for the purpose of the record" records a dependency the project does not have. The commit is made under the contributor's own account with a model the project never chose, and a trailer the agent writes about itself is a self-declaration: a check can verify its form and never its completeness (`tool-record-not-authorship`, `format-checkable-completeness-not`). Writing it from "the harness's model identifier" names the runtime in the sense of `harness-as-agent-runtime` (Q13), which is exactly the sense `personal-toolchains-are-private` keeps out of the record.
+
+**`every-editor-becomes-automation` — Every agent-enabled editor becomes automation.** Under the amendment, every contributor who opens the repository in an agent-enabled editor becomes project automation at their first commit, because what triggers the rule is following the tracked skills, not the content of the change. The amendment's exclusions (editors, spell checkers, translation, unassisted writing) do not prevent this, since `scope-by-content-not-presence` bounds the record by content while the amendment's trigger is presence.
+
+**`purposes-are-served-by-custody` — The purposes are served by custody.** This is my answer to the question put to the decision owner. For commits made with personal tooling the rule serves tracking and analytics not at all, by design: that is what `project-automation-is-a-dependency` means by "A contributor's personal tool is not a project dependency". Tracking and analytics are served for the automation the project runs, where a model's identity is pinned in tracked bytes and a choice can be traced to it. Adding unpinned self-declarations to that set makes the history's record less useful, not more, because a reader cannot tell a pinned identity from a declared one.
+
+AI assistance not disclosed: the author's private tooling may include machine-learning tools.
+
 ### Q12 - AI-assistance disclosure in discussion rounds
 
 The round rules in [`docs/discussions/AGENTS.md`](../../AGENTS.md) require an entry to say when an
@@ -427,6 +441,24 @@ discussion's Outcome alone.
 
 Drafted with an AI assistant using the Copilot SDK in VS Code (`claude-opus-5.5`); reviewed and
 adopted by Jose Celano.
+
+### Q13 - What "harness" names
+
+This discussion and the repository use the word "harness" in three senses and define it nowhere, and the scope of the Q11 amendment to `project-automation-is-a-dependency` turns on which sense is meant. Added by Cameron Garnham (`da2ce7`).
+
+#### Positions
+
+##### Q13 - Cameron Garnham (`da2ce7`), 2026-10-16, PR #2548
+
+**`harness-as-agent-runtime` — The agent runtime.** The product that runs a model and commits for a person: it switches models mid-session, adds default trailers and exposes a model identifier. This is the sense of this discussion's [Context](#context) ("the agent harness", "The harness adds the trailer", "the harness switched the main model"), of the identifier format `<harness>:<vendor>/<model-id>` under [Q3](#q3---identifier-format), and of my own Q3 entry in its first wording, corrected in this round to `identifier-from-the-runtime-not-the-model`. The project neither configures nor pins it; it is personal tooling under `personal-toolchains-are-private`. It is the only sense in which a "harness" can name a model identifier.
+
+**`harness-as-repository-dev-tools` — The repository's development tools.** The tracked Rust tools under `contrib/dev-tools/` (validators, report-contract checks, coverage checks), which the [draft issue to separate them into their own Cargo workspace](../../../issues/drafts/2003-separate-ai-harness-cargo-workspace/ISSUE.md) and the [`add-workspace-member` skill](../../../../.github/skills/dev/maintenance/add-workspace-member/SKILL.md) call the "AI-harness tools". These are tracked bytes, built and gated: a project dependency in the sense of `project-automation-is-a-dependency`. As of 2026-10-15 they appear to use no machine-learning tool.
+
+**`harness-as-process-layer` — The process layer.** The skills, hooks, templates and conventions together, as the [templated-documentation discussion](../../2429-templated-documentation/20261009-templated-documentation-design/README.md) ("the AI harness built on top of their original code", "In the current harness") and its [maintainer-review session](../../2429-templated-documentation/20261009-templated-documentation-design/maintainer-review-session.md) ("In the current AI harness") use the word. These are instructions that a tool may follow, not an executor; following them transfers nothing about who runs the tool.
+
+**`undefined-term-carries-no-rule` — An undefined term carries no rule.** A rule whose scope is set by a word that the text never defines and uses in three senses cannot be assessed, and a paragraph that lets the word change sense between its clauses is not sound in the sense the merge gate asks for. My own Q5 entry in its first wording scoped the word to project automation and is corrected in this round to `tracked-configuration-is-the-source-of-truth`, while the Q11 amendment needs the first sense for "the harness's model identifier" and the third for "runs this repository's tracked agent definitions or skills", and slides between them inside one paragraph. The discussion's own identifier format treats the word as a vendor-product name, the repository has an issue draft titled with it in a second sense, and the design discussions use it in a third. Before any rule is hung on the word, the discussion should define it once: I offer the three labels above as that vocabulary, and ask that the bare word be used in no rule.
+
+AI assistance not disclosed: the author's private tooling may include machine-learning tools.
 
 ## Outcome
 
