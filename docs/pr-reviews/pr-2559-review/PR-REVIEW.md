@@ -48,7 +48,11 @@ inline findings, F1 to F7, which da2ce7 numbered the same way. Its body is a ver
 adds no other row. da2ce7 also left an ACK comment
 (<https://github.com/torrust/torrust-tracker/pull/2559#issuecomment-6266450751>) that names that
 first head. The review was dismissed at 11:55:00 UTC by the push that carries the fixes, so neither
-the review nor the ACK covers the commits that fix F1 to F7.
+the review nor the ACK covers the commits that fix F1 to F7. The PR conversation comment
+<https://github.com/torrust/torrust-tracker/pull/2559#issuecomment-6266681876>, posted at 11:59:32
+UTC, is the consolidated response for this round. It names reviews 5570637563, 5570856899 and
+5571038375 and every finding F1 to F7 with its disposition and resolution reference. Each row's
+`Reply URL` is the per-thread reply, which is the durable evidence the validation script checks.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -185,6 +189,19 @@ the review nor the ACK covers the commits that fix F1 to F7.
 - 2026-10-19 11:57 UTC - Started audit after da2ce7's review 5571038375. Copilot's two reviews had
   no finding. Fixed F1 to F7 in separate commits, pushed them, replied on the seven threads, ran
   the validation script (zero failures) and resolved the seven threads.
+- 2026-10-19 12:19 UTC - Correction to the entry above, per da2ce7's review 5571393132. That one
+  entry, stamped 11:57 UTC, stands for events spread over ten minutes, and its order is wrong
+  against the skill. The log is append-only, so the events are listed here with their times from
+  the commits, the GitHub timeline and the review threads, instead of rewriting the entry. The
+  seven fix commits were authored from 11:47:48 to 11:53:40 UTC. The push that carries them, and
+  the dismissal of da2ce7's review 5571038375 by it, was at 11:55:00 UTC. The seven replies were
+  posted from 11:55:33 to 11:55:45 UTC. The validation script first ran at 11:57:05 UTC, after the
+  replies, although the skill asks for a run before replying; for this round it could not run
+  earlier on the new rows, because it requires each row's reply URL to exist. The seven threads
+  were resolved at about 11:57:43 UTC, and the audit commit was authored at 11:57:50 UTC. The
+  summary comment <https://github.com/torrust/torrust-tracker/pull/2559#issuecomment-6266681876> was
+  posted at 11:59:32 UTC, after the audit commit, which is why its URL is stored only now (finding
+  F10).
 
 ## Completion Rules
 
