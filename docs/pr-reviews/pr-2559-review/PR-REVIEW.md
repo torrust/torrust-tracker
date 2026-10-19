@@ -54,6 +54,21 @@ UTC, is the consolidated response for this round. It names reviews 5570637563, 5
 5571038375 and every finding F1 to F7 with its disposition and resolution reference. Each row's
 `Reply URL` is the per-thread reply, which is the durable evidence the validation script checks.
 
+Round 3: da2ce7's review 5571393132 (APPROVED, 2026-10-19 12:16:29 UTC, on the head whose newest
+commit is `docs(pr-reviews): [#2475] record the review rounds in the PR #2559 audit`) carries four
+inline findings. da2ce7 numbered them F1 to F4, which collide with the rows above, so they are F8 to
+F11 here with the original number kept as the reviewer finding ID. The review body is a
+verification report that confirms the seven round-2 fixes and adds no other row. Its ACK comment
+(<https://github.com/torrust/torrust-tracker/pull/2559#issuecomment-6266990302>) names that head.
+Copilot made no review after 11:28:45 UTC. The branch was rebased onto `develop` to fix F8 and
+force-pushed at 12:21:03 UTC, which dismissed the approval, so neither the review nor the ACK
+covers the commits that fix F8 to F11. The rebase replaced the commit ids that the reviews of
+rounds 2 and 3 cite, so this record identifies every cited commit by its subject, as the details
+below do. The consolidated response for this round is
+<https://github.com/torrust/torrust-tracker/pull/2559#issuecomment-6267088991>, posted at 12:21:54
+UTC. It names review 5571393132 and every finding F8 to F11 with its disposition and resolution
+reference.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | `review-finding:pr-2559-f1` | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
@@ -63,6 +78,10 @@ UTC, is the consolidated response for this round. It names reviews 5570637563, 5
 | F5 | `review-finding:pr-2559-f5` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F6 | `review-finding:pr-2559-f6` | Human | Suggestion | testing | ORIGINAL | FIXED | RESOLVED |
 | F7 | `review-finding:pr-2559-f7` | Human | Suggestion | link-integrity | ORIGINAL | FIXED | RESOLVED |
+| F8 | `review-finding:pr-2559-f8` | Human | Major | other | ORIGINAL | FIXED | RESOLVED |
+| F9 | `review-finding:pr-2559-f9` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F10 | `review-finding:pr-2559-f10` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F11 | `review-finding:pr-2559-f11` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -184,6 +203,83 @@ UTC, is the consolidated response for this round. It names reviews 5570637563, 5
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2559#discussion_r4313503607>
 
+### F8 - `EPIC.md` conflicts with `develop`, so the branch must be updated before it can merge
+
+- PR number: 2559
+- Source review ID: 5571393132
+- Reviewer finding ID: F1
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2559#discussion_r4313694186>
+- Concern: a three-way merge with `develop` conflicts in two hunks of the EPIC file, the
+  `last-updated-utc` line and the progress-log append. The fix for F7, which edits that file,
+  introduced the conflict, and GitHub reported the PR as not mergeable.
+- Solution: rebase onto the current `develop`, keeping every commit, and resolve the two hunks as the
+  reviewer described: keep `2026-10-19 11:53` and both log entries in date order. The conflict is
+  resolved inside the F7 fix commit, `docs(issues): [#2475] link the corrected coupling report and
+  the new files from the spec and the EPIC`. The force-push used `--force-with-lease`, and the PR
+  body now says the history was rewritten.
+- Current-tree verification: `git merge-tree --write-tree torrust/develop HEAD` exits 0,
+  `git log --format=%G? torrust/develop..HEAD` shows a signature (`U`, good signature, unknown
+  trust) on every commit, and `gh pr view 2559 --json mergeable` reports `MERGEABLE`.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2559#issuecomment-6267088991>
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2559#discussion_r4313737658>
+
+### F9 - One log entry, stamped 11:57 and labelled "Started audit", reports the whole round
+
+- PR number: 2559
+- Source review ID: 5571393132
+- Reviewer finding ID: F2
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2559#discussion_r4313694191>
+- Concern: the 11:57 entry stands for events spread over ten minutes, gives no time for the thread
+  resolutions, and says the validator ran after the replies, although the skill asks for a run
+  before replying. The log may not be rewritten, so dated entries and a correction are due.
+- Solution: append an entry, stamped 12:19 UTC, that names the 11:57 entry and lists each event
+  with its time. A log entry cannot carry an earlier stamp than the entries before it, so the times
+  are in the text. The entry also says why the validator could not run earlier on the new rows
+  (each row's reply URL must exist first). For this round the validator ran before replying, on the
+  existing rows.
+- Current-tree verification: `grep -n "Correction to the entry above, per da2ce7" docs/pr-reviews/pr-2559-review/PR-REVIEW.md`
+  finds the entry, and the validation script reports zero failures with the entries in order.
+- Resolution reference: docs(pr-reviews): [#2475] list the round 2 events with their times and store the summary comment URL
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2559#discussion_r4313738006>
+
+### F10 - The summary comment's URL is not stored
+
+- PR number: 2559
+- Source review ID: 5571393132
+- Reviewer finding ID: F3
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2559#discussion_r4313694195>
+- Concern: the round 2 summary comment names the reviews and findings, but no row or paragraph
+  stores its URL, which step 8 of the workflow asks for.
+- Solution: the Round 2 paragraph of the Findings section now stores the comment URL with its time,
+  and says each row's `Reply URL` is the per-thread reply that the validator checks. The Round 3
+  paragraph does the same for this round's comment, which was posted before this record was
+  committed.
+- Current-tree verification: `grep -n "issuecomment-6266681876" docs/pr-reviews/pr-2559-review/PR-REVIEW.md`
+  finds the URL in the Findings section.
+- Resolution reference: docs(pr-reviews): [#2475] list the round 2 events with their times and store the summary comment URL
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2559#discussion_r4313738324>
+
+### F11 - The "summary lines" are an edited excerpt
+
+- PR number: 2559
+- Source review ID: 5571393132
+- Reviewer finding ID: F4
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2559#discussion_r4313694203>
+- Concern: the T3 block in the evidence file has four of the five `cargo test` result lines and
+  trimmed `Running` lines, so it is an excerpt, although the file asks for output as observed.
+- Solution: rerun the command and paste all five result lines verbatim, with the `Running` suffixes
+  and the `Doc-tests` line, and say the block is the output filtered with
+  `grep -E "Running|Doc-tests|test result"`.
+- Current-tree verification: `grep -n "Doc-tests workspace_coupling" docs/issues/open/2475-*/manual-verification-evidence.md`
+  finds the line, and `cargo test -p workspace-coupling` prints the same five result lines
+  (11 + 9 tests).
+- Resolution reference: docs(issues): [#2475] paste the T3 cargo test result lines verbatim
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2559#discussion_r4313738651>
+
 ## Processing Log
 
 - 2026-10-19 11:57 UTC - Started audit after da2ce7's review 5571038375. Copilot's two reviews had
@@ -202,6 +298,13 @@ UTC, is the consolidated response for this round. It names reviews 5570637563, 5
   summary comment <https://github.com/torrust/torrust-tracker/pull/2559#issuecomment-6266681876> was
   posted at 11:59:32 UTC, after the audit commit, which is why its URL is stored only now (finding
   F10).
+- 2026-10-19 12:22 UTC - Round 3: da2ce7's review 5571393132 (APPROVED and ACK on the head that
+  ended with the Round 2 audit commit) carried four findings, F8 to F11 here. Ran the validation
+  script on the existing rows before replying (zero failures). Rebased onto `develop` and
+  resolved the `EPIC.md` conflict (F8); the force-push at 12:21:03 UTC dismissed the approval.
+  Fixed F11 in one commit and F9 and F10 in a second one, both before the push, replied on the four threads, and
+  posted the consolidated response at 12:21:54 UTC. F8 to F11 are recorded in this audit commit,
+  and the threads are resolved after the validation script passes on the new rows.
 
 ## Completion Rules
 
