@@ -7,6 +7,7 @@ semantic-links:
     - docs/issues/open/2525-ci-gate-required-check/ISSUE.md
     - docs/github-rulesets.md
     - docs/adrs/20261013161419_stop_requiring_pull_request_rebases.md
+    - docs/adrs/20260519000000_define_global_cli_output_contract.md
     - docs/adrs/20260926142648_adopt_self_hosted_hetzner_runner_for_container_tests.md
     - .github/workflows/docs-lint.yaml
     - .github/workflows/testing.yaml
@@ -66,10 +67,13 @@ tools, and report the result.
 Concretely:
 
 - **Inputs and outputs are provider-neutral.** A tool takes revisions or paths, structured job
-  results (JSON), and an optional override with its actor, and prints text or JSON. It does not read
-  GitHub-specific environment variables, and it does not call the GitHub API. Anything that needs a
-  provider query (the checks API, label events, role lookups) goes through a thin adapter, so the
-  rule that uses the answer stays testable without the provider.
+  results (JSON), and an optional override with its actor. Its output follows the
+  [global CLI output contract](20260519000000_define_global_cli_output_contract.md): one JSON result
+  object on stdout, NDJSON records on stderr, and the contract's exit codes, with no plain text on
+  either channel. The human-readable explanation of a result goes in a field of the JSON object. It
+  does not read GitHub-specific environment variables, and it does not call the GitHub API. Anything
+  that needs a provider query (the checks API, label events, role lookups) goes through a thin
+  adapter, so the rule that uses the answer stays testable without the provider.
 - **Change detection is a tool.** Which job groups a change needs (documentation, Rust build and
   tests, container, databases, security scan) is decided by one Rust tool that replaces the
   workflow-level `paths` and `paths-ignore` filters. It first reproduces today's filters exactly,
@@ -77,7 +81,10 @@ Concretely:
 - **The merge verdict is a tool.** Whether a pull request may merge is decided by a Rust tool from
   the needed job groups, each group's result, and an optional maintainer override. It passes only
   when every needed group succeeded or the override applies, and otherwise names each failing,
-  cancelled, or missing group.
+  cancelled, or missing group in the explanation field of its JSON result. The contract treats a
+  failed command as empty stdout and exit code 1, and a result as a JSON object with exit code 0, so
+  how a failing verdict reaches the job's status (the exit code, or a field the workflow reads) is a
+  choice for the task that writes the verdict tool, made under that contract.
 - **Workflows only wire.** A workflow may run a tool, pass it job results, set a job's status from its
   exit code, and consume a scheduling decision that a tool computed: a job's `if:` or a matrix that
   reads an earlier tool job's output, as `generate_coverage_pr.yaml` does with the
@@ -170,5 +177,7 @@ Negative, with the mitigation:
 - Issue #1743: the documentation-only CI fast path
 - [`20261013161419_stop_requiring_pull_request_rebases.md`](20261013161419_stop_requiring_pull_request_rebases.md):
   required checks must not require up-to-date branches
+- [`20260519000000_define_global_cli_output_contract.md`](20260519000000_define_global_cli_output_contract.md):
+  the output contract the tools follow
 - [`20260926142648_adopt_self_hosted_hetzner_runner_for_container_tests.md`](20260926142648_adopt_self_hosted_hetzner_runner_for_container_tests.md)
 - `AGENTS.md`, "Shell vs Rust threshold"
