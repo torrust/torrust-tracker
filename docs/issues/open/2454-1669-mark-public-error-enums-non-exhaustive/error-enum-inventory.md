@@ -288,7 +288,7 @@ Updated in each T3 commit. `TODO` until the crate's commit lands. `Marked` count
 | 7 | `torrust-tracker-http-protocol` | 7 | 0 | DONE: `feat(http-protocol)!: [#2454] mark public error enums non_exhaustive` |
 | 8 | `torrust-tracker-http-core` | 2 | 0 | DONE: `feat(http-core)!: [#2454] mark public error enums non_exhaustive` |
 | 9 | `torrust-tracker-axum-http-server` | 1 | 0 | DONE: `feat(axum-http-server)!: [#2454] mark public error enums non_exhaustive` |
-| 10 | `torrust-tracker-rest-api-protocol` | 2 | 0 | TODO |
+| 10 | `torrust-tracker-rest-api-protocol` | 2 | 0 | DONE: `feat(rest-api-protocol)!: [#2454] mark public error enums non_exhaustive` |
 | 11 | `torrust-tracker-rest-api-client` | 2 | 0 | TODO |
 | 12 | `torrust-tracker-udp-protocol` | 0 | 1 (E2) | TODO |
 | 13 | `torrust-tracker-udp-core` | 3 | 0 | TODO |

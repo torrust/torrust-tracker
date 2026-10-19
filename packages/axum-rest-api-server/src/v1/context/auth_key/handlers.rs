@@ -41,7 +41,8 @@ pub async fn add_auth_key_handler(
             AuthKeyError::DurationOverflow { seconds_valid } => invalid_auth_key_duration_response(*seconds_valid),
             AuthKeyError::InvalidKey { key, reason } => invalid_auth_key_response(key, reason),
             AuthKeyError::DisabledByConfiguration { .. } => disabled_response(),
-            AuthKeyError::Database(_) => failed_to_add_key_response(AuthKeyErrorDisplay(&err)),
+            // `Database` and any variant added later: a generic failure response.
+            _ => failed_to_add_key_response(AuthKeyErrorDisplay(&err)),
         },
     }
 }
