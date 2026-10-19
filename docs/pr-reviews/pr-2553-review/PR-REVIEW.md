@@ -505,7 +505,7 @@ adds no row. The next fix push dismissed it at 2026-10-19 11:53:05Z.
 - Reviewer finding ID: F1
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2553#discussion_r4313428822>
 - Concern: The 2026-10-19 11:29 entry reports the push of the F28 fix, but GitHub's timeline dismissed review 5570845377 at 11:31:25Z.
-- Solution: The Processing Log is append-only, so a correction entry was appended with the push time. Every other entry that reports a push was checked against the timeline dismissals, and none other was stamped before its push.
+- Solution: The Processing Log is append-only, so a correction entry was appended with the push time. Every other entry that reports a push was checked against the timeline dismissals: the 11:55 and 12:19 entries were also stamped before their pushes and already carry appended corrections (12:15 and 12:37), so this was the only one still uncorrected.
 - Current-tree verification: `gh api repos/torrust/torrust-tracker/issues/2553/timeline` lists the dismissal at 2026-10-19T11:31:25Z; the log has the 11:49 correction entry after the 11:32 entry; the validator passes.
 - Resolution reference: docs(reviews): [#2413] correct the push time in the round 8 processing log
 - Follow-up PR URL: N/A
@@ -605,6 +605,12 @@ adds no row. The next fix push dismissed it at 2026-10-19 11:53:05Z.
   11:51:09Z) and pushed (the timeline dismissed review 5571054785 at 11:53:05Z).
 - 2026-10-19 11:54 UTC - Replied on all three threads, resolved them, and added F29 to F31 to this record, with
   a reply URL in every row.
+- 2026-10-19 12:11 UTC - da2ce7's approving review 5571314192 arrived with one inline thread at 12:09Z.
+  Fetched it, reassigned his ID F1 to F32, and re-derived it against the log and the timeline. It was valid.
+  Correction to the 11:49 entry, which said that the other push-reporting entries were checked and that the
+  11:29 entry "was the only one stamped before its push": the 11:55 and 12:19 entries were also stamped before
+  their pushes (the timeline dismissals are at 11:56:24Z and 12:20:03Z) and already carry appended corrections,
+  so the 11:29 entry was the only one still uncorrected. The 11:49 entry is left as written.
 
 ## Completion Rules
 
