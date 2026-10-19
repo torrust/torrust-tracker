@@ -85,8 +85,9 @@ Concretely:
   failed command as empty stdout and exit code 1, and a result as a JSON object with exit code 0, so
   how a failing verdict reaches the job's status (the exit code, or a field the workflow reads) is a
   choice for the task that writes the verdict tool, made under that contract.
-- **Workflows only wire.** A workflow may run a tool, pass it job results, set a job's status from its
-  exit code, and consume a scheduling decision that a tool computed: a job's `if:` or a matrix that
+- **Workflows only wire.** A workflow may run a tool, pass it job results, set a job's status from the
+  tool's exit code or from a field of its JSON result (which of the two is the verdict task's choice,
+  above), and consume a scheduling decision that a tool computed: a job's `if:` or a matrix that
   reads an earlier tool job's output, as `generate_coverage_pr.yaml` does with the
   `package-coverage-check` tool. It must not decide which job groups a change needs, evaluate the
   results of earlier jobs, or compose a verdict itself.
