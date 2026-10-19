@@ -9,7 +9,7 @@ github-issue: 2454
 spec-path: docs/issues/open/2454-1669-mark-public-error-enums-non-exhaustive/ISSUE.md
 branch: "2454-1669-mark-public-error-enums-non-exhaustive"
 related-pr: null
-last-updated-utc: "2026-10-19 16:50"
+last-updated-utc: "2026-10-19 16:53"
 semantic-links:
   skill-links:
     - create-issue
@@ -146,9 +146,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task | Notes / Expected Output |
 | --- | ------ | ---- | ----------------------- |
-| T1  | TODO   | Inventory public error enums per crate | Issue-local `error-enum-inventory.md`: crate, enum, path, public reachability, variant count, derives, downstream exhaustive matches, decision, and a per-crate completion status that T3 and T4 update. For each crate already on crates.io (today the root `torrust-tracker`, `torrust-tracker-configuration`, `torrust-tracker-primitives`, and `torrust-tracker-test-helpers`, all at 3.0.0), it records that the next publish must be a semver-major bump (a minor bump for `0.x` crates), and the path that applies it: the tracker application release for the root crate, the per-package publish for the others. Confirms or corrects the 61-enum hypothesis. Maintainer reviews it before T3. |
+| T1  | DONE   | Inventory public error enums per crate | Issue-local `error-enum-inventory.md`: crate, enum, path, public reachability, variant count, derives, downstream exhaustive matches, decision, and a per-crate completion status that T3 and T4 update. For each crate already on crates.io (today the root `torrust-tracker`, `torrust-tracker-configuration`, `torrust-tracker-primitives`, and `torrust-tracker-test-helpers`, all at 3.0.0), it records that the next publish must be a semver-major bump (a minor bump for `0.x` crates), and the path that applies it: the tracker application release for the root crate, the per-package publish for the others. Confirms or corrects the 61-enum hypothesis. Maintainer reviews it before T3. Done 2026-10-19: [error-enum-inventory.md](error-enum-inventory.md) lists 60 enums in 18 packages (58 to mark, 2 kept exhaustive); the maintainer reviewed and approved it. |
 | T2  | DONE   | Decide how to guard the property | Options: a per-crate `compile_fail` doctest, a lint, or the checklist only. Recommend the lightest option; maintainer decides. If a doctest is chosen, its first increment follows the `write-unit-test` skill's progressive test-development loop, and its design review is recorded before T3 starts. Decided 2026-10-19: checklist plus mandatory manual check M1 only; no doctest, so no test-development loop applies. |
-| T3  | TODO   | Apply `#[non_exhaustive]` crate by crate | One commit per crate (or per tightly coupled group), including the downstream wildcard arms that the change forces. Order: dependency order, a crate before its dependents, which crates.io publication also forces. |
+| T3  | TODO   | Apply `#[non_exhaustive]` crate by crate | One commit per crate (or per tightly coupled group), including the downstream wildcard arms that the change forces. Order: dependency order, a crate before its dependents, which crates.io publication also forces. Commits are typed `feat(<package>)!:` (maintainer decision 6). The two exhaustive enums (E1, E2) get a doc-comment commit each instead (`docs(events)`, `docs(udp-protocol)`). |
 | T4  | TODO   | Evaluate placeholders and derive decisions | `configuration::Error::Infallible` and any similar finding; derive decisions recorded in the inventory; changes only with maintainer approval. |
 | T5  | TODO   | Link the per-crate record from EPIC #1669 | Add a line under the Pre-publish API checklist linking the T1 inventory as the per-crate completion record. |
 
@@ -188,6 +188,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-10-07 08:04 UTC - Copilot - Addressed da2ce7's round-2 review of PR #2456: T1's list of already-published crates now includes the root `torrust-tracker` crate, and T1, Out of Scope, and Risks name the tracker application release as the path that applies its bump; the EPIC checklist lead-in now also covers later publishes. Updated the issue body and the PR body's crate count to match.
 - 2026-10-19 16:16 UTC - GitHub Copilot - Started implementation on branch `2454-1669-mark-public-error-enums-non-exhaustive`, cut from `torrust/develop`. The maintainer answered the pre-implementation questions; the answers are in "Maintainer Decisions". T2 is decided (checklist plus manual M1, no doctest). The spec-only PR #2456 is merged, so that optional checkpoint is ticked; `branch` now names the implementation branch and `status` is `in-progress`.
 - 2026-10-19 16:50 UTC - GitHub Copilot - During the T1 review the maintainer decided that an error enum whose variants select different recovery actions should stay exhaustive, because a wildcard arm would silently choose an action for a variant nobody designed for (decision 9). Recorded as an amendment of ADR 20261005145329, in EPIC checklist item 1, and in the `handle-errors-in-code` skill. `RecvError` (stop or continue a listener) and `RequestParseError` (reply or drop) stay exhaustive.
+- 2026-10-19 16:53 UTC - GitHub Copilot - T1 is done: committed [error-enum-inventory.md](error-enum-inventory.md) after the maintainer's review. It lists 60 public error enums in 18 publishable packages, of which 58 get `#[non_exhaustive]` and two stay exhaustive (decision 9), eight downstream `match` sites that need a wildcard arm, the `configuration::Error::Infallible` finding, the derive findings (record only), and the per-crate publish bump. The maintainer confirmed `ErrorKind` out of scope and the `PeerKeyError` mapping to `AuthKeyError::Database`.
 
 ## Acceptance Criteria
 
