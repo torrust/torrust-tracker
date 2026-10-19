@@ -74,6 +74,10 @@ review round 7 audit` records round 8. Round 8 carries one more inline thread, F
 reassignment. It repeats no further request in its body and adds no row. The next fix push dismissed it at
 2026-10-19 11:31:25Z.
 
+His approving review 5571054785, at the head after the round 8 fix, is round 9. It carries three more inline
+threads, F29 to F31 (all `Nit`), with the same ID reassignment. It repeats no further request in its body and
+adds no row. The next fix push dismissed it at 2026-10-19 11:53:05Z.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2553-f1 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -104,6 +108,9 @@ reassignment. It repeats no further request in its body and adds no row. The nex
 | F26 | review-finding:pr-2553-f26 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 | F27 | review-finding:pr-2553-f27 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F28 | review-finding:pr-2553-f28 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F29 | review-finding:pr-2553-f29 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F30 | review-finding:pr-2553-f30 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F31 | review-finding:pr-2553-f31 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -491,6 +498,45 @@ reassignment. It repeats no further request in its body and adds no row. The nex
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2553#discussion_r4313294108>
 
+### F29 - The 11:29 log entry reports a push that happened later
+
+- PR number: 2553
+- Source review ID: 5571054785
+- Reviewer finding ID: F1
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2553#discussion_r4313428822>
+- Concern: The 2026-10-19 11:29 entry reports the push of the F28 fix, but GitHub's timeline dismissed review 5570845377 at 11:31:25Z.
+- Solution: The Processing Log is append-only, so a correction entry was appended with the push time. Every other entry that reports a push was checked against the timeline dismissals, and none other was stamped before its push.
+- Current-tree verification: `gh api repos/torrust/torrust-tracker/issues/2553/timeline` lists the dismissal at 2026-10-19T11:31:25Z; the log has the 11:49 correction entry after the 11:32 entry; the validator passes.
+- Resolution reference: docs(reviews): [#2413] correct the push time in the round 8 processing log
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2553#discussion_r4313484245>
+
+### F30 - The F28 verification says the search finds no match
+
+- PR number: 2553
+- Source review ID: 5571054785
+- Reviewer finding ID: F2
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2553#discussion_r4313428835>
+- Concern: The F28 verification says the search for `round 6` finds no match in the spec or the sub-EPIC, but it finds the two rename entries that quote it.
+- Solution: Stated the two matches and the narrower fact that holds: no entry still calls review 5562034258 round 6.
+- Current-tree verification: `rg -n 'round 6' docs/issues/open/2413-* docs/issues/open/2410-*` prints one line in `ISSUE.md` and one in `EPIC.md`, both rename entries; the F28 verification says that.
+- Resolution reference: docs(reviews): [#2413] state what the round 6 search finds in the F28 verification
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2553#discussion_r4313484596>
+
+### F31 - Two commit subjects use the round numbering the tree dropped
+
+- PR number: 2553
+- Source review ID: 5571054785
+- Reviewer finding ID: F3
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2553#discussion_r4313428842>
+- Concern: The audit places review 5570845377 after the round 7 fixes, but the subject of the commit that records it says round 7, while the spec, the sub-EPIC and the retrospective give round 7 to review 5562034258. The subject of the commit that records review 5562034258 says round 6, which is the retrospective's number for review 5548045897.
+- Solution: The audit's Findings introduction now states the numbering the tree uses (round 6 is review 5548045897, round 7 is review 5562034258, round 8 is review 5570845377) and which of the two commit subjects records which round. The subjects are not reworded, because the repository keeps a branch's history and a rewrite would change the commit ids that the review rounds cite. The spec, the sub-EPIC and the PR body were searched for other uses of these round numbers, and none contradicts this numbering.
+- Current-tree verification: `git log --format=%s torrust/develop..HEAD` lists the two subjects; the introduction names both; `rg -n 'round [678]' docs/issues/open/2413-* docs/issues/open/2410-*` prints four log entries, the 11:13 and 11:29 entries in each file, which call review 5562034258 round 7 or quote the old "round 6".
+- Resolution reference: docs(reviews): [#2413] state the round numbering and the two commit subjects that predate it
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2553#discussion_r4313484836>
+
 ## Processing Log
 
 - 2026-10-16 10:42 UTC - Fetched the review and both inline threads, classified them as Copilot
@@ -555,6 +601,10 @@ reassignment. It repeats no further request in its body and adds no row. The nex
   11:31 (GitHub's timeline dismissed review 5570845377 at 11:31:25Z). The 11:29 entry is left as written. The
   other entries that report a push were checked against the timeline dismissals, and this was the only one
   stamped before its push.
+- 2026-10-19 11:53 UTC - Fixed F29 to F31 in three signed commits (committed 11:49:20Z, 11:50:12Z and
+  11:51:09Z) and pushed (the timeline dismissed review 5571054785 at 11:53:05Z).
+- 2026-10-19 11:54 UTC - Replied on all three threads, resolved them, and added F29 to F31 to this record, with
+  a reply URL in every row.
 
 ## Completion Rules
 
