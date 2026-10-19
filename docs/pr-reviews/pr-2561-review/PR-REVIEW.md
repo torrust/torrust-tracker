@@ -58,12 +58,19 @@ Round 3: da2ce7's review 5571606463 (APPROVED, 2026-10-19 12:35:28 UTC, on the h
 commit is `docs(pr-reviews): [#2560] add the PR #2561 review audit`) carries one inline finding.
 da2ce7 numbered it F1, which collides again, so it is F6 here with the original number kept as the
 reviewer finding ID. The review body is a verification report that resolves round 1's and round 2's
-findings and adds no other row. It agrees with all three of Copilot's items and reports no review
-from the bot after 11:59:52 UTC. The approval was dismissed at 12:39:10 UTC by the PR author's push
+findings and adds no other row. It agrees with all three of Copilot's items and, at its capture
+time, reports no review from the bot after 11:59:52 UTC. The approval was dismissed at 12:39:10 UTC by the PR author's push
 whose newest commit is `docs(statistics): [#2560] say that counter_total reads a gauge as zero`,
 which is the commit that fixes F6. Its ACK comment
 (<https://github.com/torrust/torrust-tracker/pull/2561#issuecomment-6267341946>) names the head
 before that push, so neither covers it.
+
+Round 3 also has Copilot's second review 5571626600 (COMMENTED, 2026-10-19 12:37:07 UTC, on the head
+whose newest commit is `docs(pr-reviews): [#2560] add the PR #2561 review audit`), which landed after
+da2ce7's capture. It reports no open inline issue and marks its three earlier items resolved. Its
+body carries one independently actionable finding with no inline thread, F7, so F7 has the
+submitted review's URL as its source and the thread state `NON_RESOLVABLE`. The bot marked it with a
+low severity icon, so the severity is inferred.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -73,6 +80,7 @@ before that push, so neither covers it.
 | F4 | `review-finding:pr-2561-f4` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F5 | `review-finding:pr-2561-f5` | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
 | F6 | `review-finding:pr-2561-f6` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F7 | `review-finding:pr-2561-f7` | Copilot | Nit (inferred) | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
 
 ## Finding Details
 
@@ -190,6 +198,30 @@ before that push, so neither covers it.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2561#discussion_r4313901817>
 
+### F7 - The spec and the PR description misstate counter overflow and floating-point rounding
+
+- PR number: 2561
+- Source review ID: 5571626600
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2561#pullrequestreview-5571626600>
+- Concern: the Risks section of the spec and the "One behavior difference" section of the PR
+  description said the old path saturated through `f64` on overflow, so that `sum_counter` changes
+  overflow behavior. The upstream `Sum` implementation already calls `Metric<Counter>::sum`, a
+  `u64` addition, before it converts to `f64`, so both paths panic on overflow in a debug build and
+  the old final saturating cast never protected that addition. The reviewer asked for the paragraph
+  to distinguish the removed floating-point rounding from the unchanged integer overflow.
+- Solution: the reviewer is right, and the claim was wrong. A throwaway test with two counter
+  samples at `u64::MAX` panics with an overflow on both `Sum::sum` and `sum_counter` in a debug
+  build. It is saved with its output as `evidence/overflow-check.txt`, and the test file was deleted.
+  The spec's Risks bullet now says overflow is unchanged and only the rounding of totals above 2^53
+  goes away, and the PR description section is replaced by one that says the same.
+- Current-tree verification: the spec has the corrected bullet and the evidence file, the PR
+  description no longer says the old path saturated on overflow, and the evidence output shows both
+  tests passing as `should panic` tests.
+- Resolution reference: docs(issues): [#2560] correct the overflow claim: only the f64 rounding goes away
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2561#issuecomment-6267553195>
+
 ## Processing Log
 
 - 2026-10-19 12:15 UTC - Started audit after Copilot's review 5571188743 and da2ce7's review
@@ -200,6 +232,10 @@ before that push, so neither covers it.
   ended with the first audit commit) carried one finding, F6 here. Fixed it, pushed, and replied on
   its thread. The approval was dismissed at 12:39:10 UTC by that push, as recorded in the Findings
   section.
+- 2026-10-19 12:47 UTC - Round 3 also had Copilot's second review 5571626600 (COMMENTED, 12:37:07
+  UTC), whose body carried one finding without an inline thread, F7 here. Fixed it in the spec and
+  the PR description, answered it with a PR conversation comment, and recorded it as
+  `NON_RESOLVABLE`. No approval was standing when the fix was pushed.
 
 ## Completion Rules
 
