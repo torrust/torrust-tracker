@@ -61,8 +61,8 @@ non-actionable and add no row.
   comment's own tag is used.
 - da2ce7's third review 5571966713 (APPROVED, 2026-10-19 13:05:30 UTC, at the head `docs(pr-reviews):
   [#2558] record the third review round in the audit`) and his ACK comment of that head carry one
-  inline `Nit` finding with the ID F1, which collides with this audit's F1, so it is recorded as F6
-  with the original ID kept in its detail entry.
+  inline `Nit` finding tagged `[Nit][F6]`. The ID does not collide with this audit's, so it is kept
+  as F6 and its `Reviewer finding ID` is `N/A`.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -178,16 +178,18 @@ non-actionable and add no row.
 
 - PR number: 2558
 - Source review ID: 5571966713
-- Reviewer finding ID: F1
+- Reviewer finding ID: N/A
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2558#discussion_r4314150959>
 - Concern: the audit recorded `F5` as F5's `Reviewer finding ID`, but the skill says to record the
   original ID only when it was reassigned, and Copilot's `[Minor][F5]` tag did not collide, so the
   id was kept, as for its `[Minor][F1]`, which the audit records as `N/A`.
-- Solution: F5's `Reviewer finding ID` is `N/A`. Only F2, F3 and F4, which were reassigned, and F6
-  carry original ids.
-- Current-tree verification: `grep -n "Reviewer finding ID"` on the audit gives `N/A` (F1), `F1`
-  (F2), `F2` (F3), `F3` (F4), `N/A` (F5) and `F1` (F6); the skill text at
-  `process-pr-review/SKILL.md` lines 217-219 states the rule.
+- Solution: F5's `Reviewer finding ID` is `N/A`. Only F2, F3 and F4, which were reassigned, carry
+  original ids; F1, F5 and F6 kept their own ids.
+- Current-tree verification: the comment is tagged `[Nit][F6]`. `grep -n "Reviewer finding ID"` on
+  the audit gives `N/A` (F1), `F1` (F2), `F2` (F3), `F3` (F4), `N/A` (F5) and `N/A` (F6), and each
+  matches the tag on its source comment (`[Minor][F1]`, `[Minor][F1]`, `[Suggestion][F2]`,
+  `[Nit][F3]`, `[Minor][F5]`, `[Nit][F6]`); the skill text at `process-pr-review/SKILL.md` lines
+  217-219 states the rule.
 - Resolution reference: docs(pr-reviews): [#2558] record N/A as F5's reviewer finding ID
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2558#discussion_r4315768038>
