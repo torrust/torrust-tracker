@@ -9,7 +9,7 @@ github-issue: 1349
 spec-path: docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md
 branch: "1349-1347-add-tests-http-core-inventory"
 related-pr: 2558
-last-updated-utc: "2026-10-19 15:36"
+last-updated-utc: "2026-10-19 16:01"
 semantic-links:
   skill-links:
     - create-issue
@@ -578,6 +578,9 @@ lines are the T1 baseline measurement (see [Baseline Coverage](#baseline-coverag
   it and fixed in the plan (M5 runs with `--cap-lints=warn`); M1-M4 compile by default. Resolved.
 - 2026-10-19 15:36 UTC - GitHub Copilot - da2ce7 approved the head on 2026-10-19 13:05 UTC with one
   `Nit` (F6 in the audit): F5's `Reviewer finding ID` should be `N/A`. Fixed and resolved.
+- 2026-10-19 16:01 UTC - GitHub Copilot - Copilot's fourth review raised one `Nit` (F7 in the
+  audit): the audit recorded the wrong source finding ID for F6. Fixed, with every entry
+  cross-checked against its source comment, and resolved.
 
 ## Acceptance Criteria
 

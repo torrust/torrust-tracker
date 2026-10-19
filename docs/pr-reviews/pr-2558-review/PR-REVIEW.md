@@ -63,6 +63,13 @@ non-actionable and add no row.
   [#2558] record the third review round in the audit`) and his ACK comment of that head carry one
   inline `Nit` finding tagged `[Nit][F6]`. The ID does not collide with this audit's, so it is kept
   as F6 and its `Reviewer finding ID` is `N/A`.
+- Copilot's third re-review 5571996499 (COMMENTED, 2026-10-19 13:07:53 UTC, at the head
+  `docs(pr-reviews): [#2558] record the third review round in the audit`) reports no open finding, marks
+  F5 resolved, and adds no row.
+- Copilot's fourth review 5574223021 (COMMENTED, 2026-10-19 15:55:07 UTC, at the head `docs(pr-reviews):
+  [#2558] record the fourth review round in the audit`) has one inline finding, F7, tagged
+  `[Nit][F7]`; the ID does not collide, so its `Reviewer finding ID` is `N/A`. Its overview marks
+  it "Low severity" and the comment's own tag is used.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -72,6 +79,7 @@ non-actionable and add no row.
 | F4 | `review-finding:pr-2558-f4` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F5 | `review-finding:pr-2558-f5` | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
 | F6 | `review-finding:pr-2558-f6` | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F7 | `review-finding:pr-2558-f7` | Copilot | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -194,6 +202,25 @@ non-actionable and add no row.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2558#discussion_r4315768038>
 
+### F7 - F6's source finding ID is wrong
+
+- PR number: 2558
+- Source review ID: 5574223021
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2558#discussion_r4315950536>
+- Concern: F6 recorded `F1` as its source finding ID, but the source comment is tagged
+  `[Nit][F6]`, so the ID was kept and `Reviewer finding ID` is `N/A`, as for F5. The intro bullet and
+  the F6 entry's explanation and verification output repeated the wrong claim.
+- Solution: the intro bullet, F6's `Reviewer finding ID` and its solution and verification text now
+  say the ID was kept. I wrote `F1` without reading the comment. Every entry's recorded ID was then
+  cross-checked against the tag on its source comment through the API, and F6 was the only mismatch.
+- Current-tree verification: the six source comments are tagged `[Minor][F1]`, `[Minor][F1]`,
+  `[Suggestion][F2]`, `[Nit][F3]`, `[Minor][F5]` and `[Nit][F6]`; the audit records `N/A`, `F1`, `F2`,
+  `F3`, `N/A` and `N/A` for them; the audit validator passes.
+- Resolution reference: docs(pr-reviews): [#2558] correct F6's source finding ID and the claims about it
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2558#discussion_r4316006471>
+
 ## Processing Log
 
 - 2026-10-17 09:46 UTC - Copilot submitted review 5557264376 with the one inline finding.
@@ -230,6 +257,13 @@ non-actionable and add no row.
   maintainer's approval; the wait spanned about two hours.
 - 2026-10-19 15:36 UTC - Pushed, replied on the thread and resolved it.
 - 2026-10-19 15:36 UTC - Recorded this round here.
+- 2026-10-19 15:40 UTC - Pushed the fourth-round audit and re-requested review from da2ce7 and
+  Copilot.
+- 2026-10-19 15:55 UTC - Copilot's fourth review 5574223021 raised F7 on that head.
+- 2026-10-19 15:56 UTC - Found it while polling and checked the source comment's tag through the API.
+- 2026-10-19 15:58 UTC - Committed the F7 fix.
+- 2026-10-19 16:01 UTC - Pushed, replied on the thread and resolved it.
+- 2026-10-19 16:01 UTC - Recorded this round here.
 
 ## Completion Rules
 
