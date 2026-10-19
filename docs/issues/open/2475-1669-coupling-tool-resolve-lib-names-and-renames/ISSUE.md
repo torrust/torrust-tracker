@@ -9,7 +9,7 @@ github-issue: 2475
 spec-path: docs/issues/open/2475-1669-coupling-tool-resolve-lib-names-and-renames/ISSUE.md
 branch: "2475-1669-coupling-tool-resolve-lib-names-and-renames"
 related-pr: 2559
-last-updated-utc: "2026-10-19 12:18"
+last-updated-utc: "2026-10-19 12:44"
 semantic-links:
   skill-links:
     - create-issue
@@ -193,29 +193,34 @@ Use a Conventional Commit message with the issue reference and sign every commit
   regenerated `workspace-coupling-report-2026-10-17.md`. The generated Observations text was
   hand-adjusted in the report to pass markdownlint (blank line before a list) and to describe
   this regeneration. Awaiting maintainer review (AC6).
-- 2026-10-19 11:50 UTC - GitHub Copilot - Set `status: in-review` and `related-pr: 2559`, per PR
-  #2559 review finding F1.
+- 2026-10-19 11:50 UTC - GitHub Copilot - Set `status: in-review` and `related-pr: 2559`, per
+  `review-finding:pr-2559-f1`.
 - 2026-10-19 11:51 UTC - GitHub Copilot - Ticked the checkboxes of AC1 to AC5 and of "Automatic
-  verification completed" so they agree with the Acceptance Verification table, per PR #2559
-  review finding F3.
+  verification completed" so they agree with the Acceptance Verification table, per
+  `review-finding:pr-2559-f3`.
 - 2026-10-19 11:51 UTC - GitHub Copilot - Restamped the implementation entry from 12:40 to 12:33
   UTC, the time of the commit that wrote it. The `last-updated-utc` of this spec and of the
-  evidence file were restamped by the commits that edit them, per PR #2559 review finding F2.
+  evidence file were restamped by the commits that edit them, per `review-finding:pr-2559-f2`.
   (The stamp of this entry was first written as 11:52, later than its commit at 11:51:50; the
   next commit corrected it to 11:51.)
 - 2026-10-19 11:53 UTC - GitHub Copilot - Added `lib.rs`, `tests/resolve_module_name.rs` and the
   2026-10-17 report to `related-artifacts`, and linked the 2026-10-17 report from the EPIC, per
-  PR #2559 review finding F7.
+  `review-finding:pr-2559-f7`.
 - 2026-10-19 11:53 UTC - GitHub Copilot - Correction to the 2026-10-17 12:33 UTC entry: it logs
   T4 (the regenerated report) as done, but the report was committed by the next commit,
   `docs(issues): [#2475] regenerate the workspace coupling report`, after the commit that wrote the
   entry (`docs(issues): [#2475] record the red run, green run and R2 recheck`). The history is kept
   as it happened, per the repository's commit-history policy, and the Commit Points table lists T4
-  as the last commit. This is PR #2559 review finding F5.
+  as the last commit. This is `review-finding:pr-2559-f5`.
 - 2026-10-19 12:18 UTC - GitHub Copilot - T3 now pastes the `cargo test` result lines verbatim
   (all five, with the `Running` and `Doc-tests` lines as printed) and says they are filtered with
-  `grep`, per PR #2559 review finding F11. The branch was also rebased onto `develop` for finding
-  F8; the rebase kept every commit and changed only the EPIC file's conflicting lines.
+  `grep`, per `review-finding:pr-2559-f11`. The branch was also rebased onto `develop` for
+  `review-finding:pr-2559-f8`; the rebase kept every commit and changed only the EPIC file's
+  conflicting lines.
+- 2026-10-19 12:44 UTC - GitHub Copilot - The log entries of this round now cite findings by their
+  immutable reference, `review-finding:pr-2559-f<n>`, instead of "review finding F<n>", which was
+  ambiguous because the review comments carry their own numbers (`review-finding:pr-2559-f12`).
+  The EPIC's progress-log entry changed the same way.
 
 ## Acceptance Criteria
 

@@ -6,7 +6,7 @@ epic: null
 github-issue: 1669
 spec-path: docs/issues/open/1669-overhaul-packages/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-19 11:53"
+last-updated-utc: "2026-10-19 12:44"
 semantic-links:
   skill-links:
     - create-issue
@@ -1034,7 +1034,7 @@ Previously referenced tools (screenshots from CodeScene already in the issue com
 - 2026-10-19 11:53 UTC - GitHub Copilot - #2475 implementation is on PR #2559: the coupling tool
   now resolves renamed dependencies and custom library names. The corrected
   [2026-10-17 coupling report](workspace-coupling-report-2026-10-17.md) supersedes the
-  2026-10-06 report for finding 3 (PR #2559 review finding F7).
+  2026-10-06 report for finding 3 (`review-finding:pr-2559-f7`).
 
 ## Acceptance Criteria
 
