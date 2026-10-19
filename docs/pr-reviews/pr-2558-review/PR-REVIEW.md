@@ -153,7 +153,7 @@ non-actionable and add no row.
 
 - PR number: 2558
 - Source review ID: 5571126185
-- Reviewer finding ID: F5
+- Reviewer finding ID: N/A
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2558#discussion_r4313486866>
 - Concern: deleting the `with_public_url` call removes the only read of the private
   `AnnounceService::public_url` field, and the workspace denies `unused` and `warnings`, so the
