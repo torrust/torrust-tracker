@@ -25,7 +25,7 @@ semantic-links:
 | Opened by      | Jose Celano (`josecelano`)                                                                                                                                                                                 |
 | Decision owner | Not assigned yet: the owner of EPIC #2491, once assigned                                                                                                                                                   |
 | Informs        | EPIC #2491 - I2P peer support                                                                                                                                                                              |
-| Scope          | The design decisions needed before the tracker supports I2P peers, using PR #2050 and its review in PR #2059 as input. UDP over I2P, I2P PEX, and I2P DHT are left out; the EPIC lists them as out of scope |
+| Scope          | The design decisions needed before the tracker supports I2P peers, using PR #2050 and its review in PR #2059 as input. UDP over I2P, I2P PEX, and I2P DHT are left out; the EPIC lists them as out of scope. WebTorrent is considered as a design input (Q12), not a deliverable |
 | AI assistance  | AI assistant using the Copilot SDK in VS Code (model not recorded): research of both PRs and their branches, and the draft of this document                                                               |
 
 ## Context
@@ -152,6 +152,31 @@ feature can be tested without raw `curl` commands? Added by Jose Celano.
 
 AI assistance not disclosed: the author's private tooling may include machine-learning tools.
 
+##### Q1 - Jose Celano (`josecelano`), 2026-10-19, PR #TBD
+
+Reply to [`addressing-as-a-layer`](#q1---cameron-garnham-da2ce7-2026-10-08-pr-2500). I agree
+with the goal: the tracker should not hard-code one addressing layer, and I2P is the right
+exemplar, because it is the first layer whose addresses are not an IP address and port.
+
+I disagree with building the general layer first and checking it against I2P afterwards. I would
+build thin vertical slices: each slice adds a little to the I2P service, a little to the core it
+needs, and a little to the tracker client, and ends with an integration test that runs through all
+of them. Building every layer a little at a time finds integration problems while they are cheap
+to fix, and each slice brings its own tests instead of waiting for a layer to be finished. Slicing
+does not replace design: the contracts between the layers should be designed before the first
+slice, because they are what keeps the slices from drifting apart.
+
+The first slice is a proof of concept, because the solution is still uncertain: an HTTP announce
+from I2P peers on its own service (see Q11), without scrape, touching the core only as far as that
+announce needs. UDP over I2P has its own announce specification, separate from BEP 15, and stays
+out of scope with PEX and DHT. The tracker client gains I2P support slice by slice, starting with
+what the first slice's tests need.
+
+This discussion should end with the high-level positions agreed or marked as open, topic by topic,
+before the EPIC designs types, traits or package changes. A draft design is welcome here as
+illustration. Drafted with an AI assistant using the Copilot SDK in VS Code (Claude); reviewed and
+adopted by Jose Celano.
+
 ### Q2 - Destination trust model
 
 A plain HTTP announce does not prove that the client owns the Destination in `ip`. An attacker can
@@ -216,6 +241,30 @@ assistant using the Copilot SDK in VS Code from my PR comment.
 
 AI assistance not disclosed: the author's private tooling may include machine-learning tools.
 
+##### Q4 - Jose Celano (`josecelano`), 2026-10-19, PR #TBD
+
+This replaces my [2026-10-08 entry](#q4---jose-celano-josecelano-2026-10-08-pr-2492) and replies to
+[`address-model-at-centre`](#q4---cameron-garnham-da2ce7-2026-10-08-pr-2500). I agree that a
+peer's address belongs to an addressing method and that an IP address and port is one kind of
+address. I no longer think one `Peer` type whose address field can hold any method's address at
+run time, as PR #2050's `PeerAddress` enum does, is the right shape. Peers are never offered across
+addressing methods (see my Q5 entry), so the enum would make `Peer` larger, cost it `Copy`, and put
+a tag check on every IP operation for no benefit, and it would touch the HTTP and UDP trackers to
+add something they never use.
+
+The shared core keeps one group of peers per addressing method, each with its own peer type. The
+proof of concept of my Q1 and Q11 entries adds a peer type and a group for I2P Destinations and
+leaves the IP `Peer` unchanged. Once two concrete groups exist, the extraction step decides what
+they share: probably one structure that is generic over the peer's address, so the IP path pays
+nothing for the others. A related refactor is to split today's `Peer` into its address and the
+announce data common to every method (peer ID, the bytes uploaded, downloaded and left, the event,
+the time of the last announce); the swarm already stores the address twice, as the map key and
+inside the value. That split is a breaking change to `torrust-tracker-primitives` and should be
+checked against WebTorrent first (see Q12), where a peer is never offered by its network address. How an address
+is presented on the wire belongs to each service's protocol package, so the core needs only an
+address it can store and compare. Drafted with an AI assistant using the Copilot SDK in VS Code
+(Claude); reviewed and adopted by Jose Celano.
+
 ### Q5 - Swarm isolation and statistics
 
 PR #2050 keeps one swarm per info hash and filters peers by network when it answers. Is that
@@ -230,6 +279,41 @@ peers (A5), but what should scrape responses, the REST API, and metrics count? S
 **`reachability-decided-once` — Swarm isolation and statistics (Q5).** Which peers are offered to which, and what the counts report, should be decided once in the general layer and hold for every addressing layer. The layer owns the rule that a peer is offered only peers it can reach, and the counts that announce, scrape and the application API report under that rule. Each binding declares which of its addresses can reach which; on the IP layer, for instance, that is a question between IPv4 and IPv6 peers. Limits on how many peers an answer carries belong to the layer as well, so that no binding invents them again, and a binding adds statistics of its own only where they mean something to its layer alone.
 
 AI assistance not disclosed: the author's private tooling may include machine-learning tools.
+
+##### Q5 - Jose Celano (`josecelano`), 2026-10-19, PR #TBD
+
+Reply to [`reachability-decided-once`](#q5---cameron-garnham-da2ce7-2026-10-08-pr-2500). I would
+separate two decisions that are easy to mix up: how the core stores peers, and which peers a
+service returns.
+
+**Storage.** There is one swarm per info hash, in the shared core, for every service. The
+[shared-services ADR](../../../adrs/20260727180000_shared_services_across_tracker_instances.md)
+already rejects a peer repository per tracker instance, because the reason to run several
+listeners is to serve the same swarm: a peer that announces to one listener is returned by every
+other listener that can use its address, whatever its protocol. Inside that swarm, peers are kept
+in one group per addressing method: IPv4, IPv6, I2P Destinations, and later WebTorrent (see Q12).
+Separate groups reduce contention, so an I2P or WebTorrent announce does not compete with IP
+traffic for the same peer list, and the IPv4/IPv6 split is already planned as a performance
+improvement
+([discussion #774](https://github.com/torrust/torrust-tracker/discussions/774#discussioncomment-8999151)).
+Partitioning is not isolation: no group belongs to one listener.
+
+**Delivery.** Each service decides which groups it reads, within what its protocol allows. The HTTP
+tracker reads both IP groups and returns them in `peers` and `peers6`, as it does today, so the
+split need not change its behaviour; reading two groups costs two lookups. The UDP tracker reads
+the requester's address family only, because BEP 15 picks the response format from the family of
+the request packet (#1366). The I2P service reads Destinations only, because the I2P specification
+forbids returning clearnet peers, and a WebTorrent service reads only WebTorrent peers. This is
+where I differ from the entry: the rule of who may receive whom belongs to each service's protocol,
+not to one rule in the general layer, while the core owns the groups, the selection of peers within
+a group, and the limits such as `max_peers_per_announce` and `numwant`.
+
+This rules out PR #2050's shape, one peer list per info hash with I2P and IP peers filtered on
+every read. One question stays open: what the counts report. Today `complete`, `incomplete`, scrape
+and the `downloads` counter cover both IP families of an info hash. For an I2P or WebTorrent client
+they should probably count only its own group, while the REST API and metrics can report per group
+and in total; the persisted `downloads` counter needs a decision of its own. Drafted with an AI
+assistant using the Copilot SDK in VS Code (Claude); reviewed and adopted by Jose Celano.
 
 ### Q6 - Wire format and input handling
 
@@ -295,6 +379,18 @@ VS Code from my review documents.
 
 AI assistance not disclosed: the author's private tooling may include machine-learning tools.
 
+##### Q8 - Jose Celano (`josecelano`), 2026-10-19, PR #TBD
+
+Reply to [`api-exports-the-layer`](#q8---cameron-garnham-da2ce7-2026-10-08-pr-2500). I agree
+with naming the library API and the application API separately, and with the rule that the
+application API presents the address model and never defines a second one. I keep my earlier
+position on the shape: with one group of peers per addressing method (my Q5 entry), the REST API
+presents each group's peers as its own typed collection, which is what I asked for in PR #2059, and a
+Destination never travels in a field typed for a socket address. Whether logs and metrics redact a
+Destination is a question for the I2P binding, as the entry says; the general rule I would add is
+that no surface prints a full Destination by default. Drafted with an AI assistant using the
+Copilot SDK in VS Code (Claude); reviewed and adopted by Jose Celano.
+
 ### Q9 - Testing
 
 How is I2P support tested? The review used synthetic Destinations and `curl`. Should an end-to-end
@@ -321,6 +417,140 @@ Added by Jose Celano.
 **`proposal-as-next-binding` — Reusing the contribution (Q10).** I would start from the agreed design rather than rework the proposal's branch, because the deliverable has changed shape: the general layer comes first, with today's IP-layer behaviour as its first binding, and the proposal's knowledge of its addressing layer becomes the next binding, inside the tracker or outside it, whichever the layer makes easier. Its parsing, encoding and isolation work is the most direct evidence of what the layer must offer an addressing layer that is not IP, so the layer's design should be checked against it before it is settled. That check is what using I2P as the exemplar means.
 
 AI assistance not disclosed: the author's private tooling may include machine-learning tools.
+
+### Q11 - HTTP tracker mode or separate I2P tracker service
+
+Should I2P support be a mode of the existing HTTP tracker, sharing its listener, handlers and code
+paths, or a separate tracker service that happens to speak the same HTTP announce protocol? Added
+by Jose Celano.
+
+#### Positions
+
+##### Q11 - Jose Celano (`josecelano`), 2026-10-19, PR #TBD
+
+Both choices have a cost. As a mode of the HTTP tracker, every path that handles a peer's address
+gains a condition for the two modes. As a separate service, much of the HTTP tracker's code is
+duplicated, because the two speak the same announce protocol. I lean towards a separate service,
+because the two look alike but are not:
+
+- **Different specifications.** BEP 3 and BEP 23 belong to BitTorrent.org; the I2P BitTorrent
+  specification belongs to the I2P project, which already changes the announce `ip` parameter, the
+  compact peer format and the source of the client's identity. Either organisation can change its
+  specification without regard to the other.
+- **Different reasons to change.** The HTTP tracker is one of the services users ask for most. It
+  should stay stable, mature and well tested. I2P support is experimental. Keeping them apart
+  means a change made for one cannot break the other.
+- **Little of the delivery layer is shared.** `axum-http-server` is already a thin layer, and much
+  of it is specific to IP addresses. Resolving the client's address from the connection or from
+  `X-Forwarded-For` (`client_ip_sources.rs`) does not apply: an I2P peer's identity comes from the
+  headers that the I2P server tunnel adds.
+
+The strategy I would follow:
+
+1. Add a new service to the tracker's orchestration, with its own configuration section and its
+   own listener. A dedicated listener is also what Q2 needs for the loopback-only tunnel.
+2. Give the I2P service its own full stack except the tracker core: its own protocol, core and
+   server packages, built for the first version by copying the HTTP tracker's packages and
+   removing what does not apply to I2P or is not needed yet, such as client IP resolution. The
+   tracker core is shared by every service and keeps one group of peers per addressing method,
+   Destinations apart from IP addresses; each service chooses which groups it returns (see my Q5
+   entry). Splitting IPv4 from IPv6 peers the same way is already planned as a performance
+   improvement
+   ([discussion #774](https://github.com/torrust/torrust-tracker/discussions/774#discussioncomment-8999151)).
+   Authentication keys and the whitelist already live in the shared core, so the I2P service can
+   use them later; the first slice leaves them out, together with scrape.
+3. Re-evaluate the remaining code and move what the HTTP tracker and the I2P tracker share
+   completely into shared packages.
+
+Some duplication is deliberate. The announce query looks the same for both services but carries
+conflicting domain rules: the HTTP tracker's request type classifies the `ip` parameter as an IP
+literal, a DNS name or an invalid value, and has no place for a Destination, while the I2P
+service's request type must accept a Destination and nothing else. With one shared type, a
+deployment that runs both services could let one of them accept an address that belongs to the
+other. Separate types reject it when the query is decoded, which is the earliest point it can be
+caught.
+
+This is the proof of concept of my Q1 entry. What the I2P service needs from the shared core, today
+built around a peer with an IP address and port, is the question of Q4 and Q5.
+
+Another tracker faces the same choice. In aquatic's open
+[I2P support issue](https://github.com/greatest-ape/aquatic/issues/248), a contributor weighs one
+general host address type for every network, which they call a fundamental refactor, against an
+additional stack for I2P alongside the IP stacks. The maintainer has not had time to take it on, so
+the issue does not record a decision, but it shows the same trade-off between Cameron's general
+layer and a separate service. Drafted with an AI assistant using the Copilot SDK in VS Code
+(Claude); reviewed and adopted by Jose Celano.
+
+### Q12 - WebTorrent as a second design input
+
+WebTorrent (BitTorrent over WebRTC, for browsers) is another way to address peers, with its own
+tracker protocol over WebSocket, and the project once considered supporting it (#15). I2P and
+WebTorrent would be delivered one at a time, but both affect the same parts of the architecture.
+Should the design of the shared core and the services be checked against WebTorrent as well as
+I2P, even if WebTorrent is not delivered by EPIC #2491? Added by Jose Celano.
+
+#### Positions
+
+##### Q12 - Jose Celano (`josecelano`), 2026-10-19, PR #TBD
+
+Yes. Designing for both is cheaper than reworking the core for the second one. What follows comes
+from two implementations: [`webtorrent/bittorrent-tracker`](https://github.com/webtorrent/bittorrent-tracker),
+the reference tracker from the organisation that defined the protocol, and aquatic's `ws_protocol`
+and `ws` crates.
+
+A WebTorrent tracker does two things. It keeps a peer list, as every tracker does, and it relays
+messages between peers. An announce carries no address the peer can be reached at: it carries
+WebRTC offers, or an answer to an offer that another peer sent. The tracker forwards each offer to
+a randomly chosen peer of the swarm over that peer's open WebSocket connection and relays the answer
+back. The announce response carries only the counts and the interval, never a peer list, and the
+reference tracker gives WebSocket clients an interval five times shorter than HTTP clients.
+
+Both implementations already keep the two responsibilities apart. In the reference tracker the
+swarm only stores peers and picks them: for a WebSocket announce it picks as many peers as the
+announce carries offers, and the WebSocket server sends the offers and relays the answers. In
+aquatic a swarm worker owns the peer list and returns messages addressed to connections, and socket
+workers own the connections and deliver them. I would keep that separation: the peer list belongs
+to the shared core like any other group (see my Q5 entry), keyed by peer ID, as both
+implementations key it, and the relay belongs to the WebTorrent service. Choosing N peers of a group
+excluding the requester is the same core operation for every service; for WebTorrent N is the number
+of offers. A WebTorrent peer is then reached through the connection the tracker holds for it, not
+through an address the other peer connects to.
+
+Four points couple the two more than for the other methods, and the design has to place each one:
+
+1. **Lifecycle.** A peer leaves when its connection closes, not only when it expires or announces
+   `stopped`. The reference tracker remembers which swarms each connection joined and, when the
+   connection closes, announces `stopped` for it in each of them, so the core needs no operation of
+   its own for this.
+2. **Several listeners.** The shared-services ADR lets a peer on one WebTorrent listener be offered
+   to a peer on another, so the handle to a peer's connection must name the listener that holds it,
+   and the service must route messages between listeners. Aquatic does the same between its socket
+   workers inside one process.
+3. **Pending offers.** Aquatic relays an answer only to the peer whose offer it forwarded, so it
+   remembers the offers waiting for an answer in the peer entry. The reference tracker relays an
+   answer to any peer of the swarm named in it. The check is hardening that can live in the
+   WebTorrent service.
+4. **Identity.** The connection is the evidence of a peer's identity. Aquatic ignores an announce
+   that reuses a peer ID from a different connection; the reference tracker does not check it. That
+   is a trust rule of the kind Q2 places in each addressing method.
+
+A global swarm grouped by addressing method still fits: WebTorrent peers are one more group, and
+the WebTorrent service reads only that group. Mixing groups has no use, because a browser peer can
+connect only over WebRTC and a WebTorrent response carries no peer list; a client that speaks both
+announces to both kinds of tracker and appears in both groups. The reference tracker shows both
+sides of the counting question of Q5: it keeps HTTP, UDP and WebTorrent peers in one swarm per info
+hash and filters them by type when it picks peers, which is the shape my Q5 entry rules out for
+performance, and its counts cover every type, so a WebTorrent client is told about seeders it
+cannot reach. Aquatic reports each group's own counts. The reference tracker also keeps the IP
+address of each WebSocket connection, honouring `X-Forwarded-For` when it trusts a proxy, for its
+statistics; the core can use it for controls keyed by IP address (Q7) even though it is never
+offered to other peers. Aquatic splits WebTorrent peers by the IP version of their connection, and
+the reference tracker does not. WebTorrent has no specification for IPv6, and a member of the
+WebTorrent community told me on the project's Discord that peers connected over IPv4 should receive
+peers connected over IPv6, which would make aquatic's split a bug. I have asked aquatic for its
+reason ([greatest-ape/aquatic#262](https://github.com/greatest-ape/aquatic/issues/262)) and would
+not copy the split without one. Drafted with an AI assistant using the Copilot SDK in VS Code
+(Claude); reviewed and adopted by Jose Celano.
 
 ## Outcome
 
