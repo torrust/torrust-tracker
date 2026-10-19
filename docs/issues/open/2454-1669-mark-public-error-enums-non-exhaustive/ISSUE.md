@@ -8,8 +8,8 @@ epic: 1669
 github-issue: 2454
 spec-path: docs/issues/open/2454-1669-mark-public-error-enums-non-exhaustive/ISSUE.md
 branch: "2454-1669-mark-public-error-enums-non-exhaustive"
-related-pr: null
-last-updated-utc: "2026-10-19 19:23"
+related-pr: 2568
+last-updated-utc: "2026-10-19 19:57"
 semantic-links:
   skill-links:
     - create-issue
@@ -191,6 +191,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-10-19 16:53 UTC - GitHub Copilot - T1 is done: committed [error-enum-inventory.md](error-enum-inventory.md) after the maintainer's review. It lists 60 public error enums in 18 publishable packages, of which 58 get `#[non_exhaustive]` and two stay exhaustive (decision 9), eight downstream `match` sites that need a wildcard arm, the `configuration::Error::Infallible` finding, the derive findings (record only), and the per-crate publish bump. The maintainer confirmed `ErrorKind` out of scope and the `PeerKeyError` mapping to `AuthKeyError::Database`.
 - 2026-10-19 17:21 UTC - GitHub Copilot - T5 is done: the Pre-publish API checklist in EPIC #1669 links the inventory's per-crate completion section.
 - 2026-10-19 19:23 UTC - GitHub Copilot - T2 to T5 are done and verification is recorded. Implementation: 16 `feat(<package>)!:` commits, two `docs(<package>):` commits for the exhaustive enums, and `refactor(configuration)!: [#2454] remove the never-constructed Infallible error variant`. M1 passed ([evidence](manual-verification-evidence.md)); the pre-push checks passed on the rebased branch. Independent review: the Task Reviewer's pre-PR review ([report](agent-review-reports.md)) found no defect in the Rust changes and six process findings, which this entry and the commits around it address: the spec is updated, the evidence is committed, the inventory wording is corrected, the S5 note records the `report_runtime_failure` helper, the pre-push output is stored, and the branch is rebased onto `develop` (the rebase conflicted only in EPIC #1669's stamp and progress log). A scratch worktree built every commit with `cargo check --workspace --all-targets --all-features` (stable Rust toolchain). No retrospective is needed: the one material discovery, that a wildcard arm can silently choose a recovery action, changed the plan during the T1 review and is already recorded as decision 9, the ADR amendment, EPIC checklist item 1, and the `handle-errors-in-code` skill. The workflow checkpoints "Reviewer validated acceptance criteria" and "Committer verified spec progress" stay not ticked: they belong to the pull-request reviewer and to the committer step, and the AC ticks above rest on the Task Reviewer's check and the implementer's evidence.
+- 2026-10-19 19:57 UTC - GitHub Copilot - Opened PR #2568 for the implementation (`Closes #2454`) and requested da2ce7's review. The branch's own commit range is `torrust/develop..HEAD`; PR review rounds are recorded in `docs/pr-reviews/pr-2568-review/PR-REVIEW.md`.
 
 ## Acceptance Criteria
 
@@ -268,5 +269,5 @@ None planned.
 ## References
 
 - Related issues: #2435, #1669
-- Related PRs: #2445
+- Related PRs: #2445, #2456 (spec-only), #2568 (implementation)
 - Related ADRs: [20261005145329](../../../adrs/20261005145329_return_result_only_for_concretely_fallible_public_apis.md), [20260629000000](../../../adrs/20260629000000_adopt_independent_package_versioning.md)

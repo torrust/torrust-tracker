@@ -6,7 +6,7 @@ epic: null
 github-issue: 1669
 spec-path: docs/issues/open/1669-overhaul-packages/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-19 17:21"
+last-updated-utc: "2026-10-19 19:57"
 semantic-links:
   skill-links:
     - create-issue
@@ -1048,6 +1048,9 @@ Previously referenced tools (screenshots from CodeScene already in the issue com
 - 2026-10-19 16:50 UTC - GitHub Copilot - The maintainer amended ADR 20261005145329 during the
   #2454 T1 review: a public error enum whose variants select different recovery actions stays
   exhaustive, with a doc comment saying why. Pre-publish API checklist item 1 states the exception.
+- 2026-10-19 19:57 UTC - GitHub Copilot - #2454 implementation is on PR #2568: 58 public error enums in 16 packages
+  are `#[non_exhaustive]`, two stay exhaustive, and `configuration::Error::Infallible` is removed. The
+  Pre-publish API checklist links the inventory's per-crate completion record.
 
 ## Acceptance Criteria
 
