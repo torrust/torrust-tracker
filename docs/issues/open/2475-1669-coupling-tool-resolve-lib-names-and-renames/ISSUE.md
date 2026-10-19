@@ -9,7 +9,7 @@ github-issue: 2475
 spec-path: docs/issues/open/2475-1669-coupling-tool-resolve-lib-names-and-renames/ISSUE.md
 branch: "2475-1669-coupling-tool-resolve-lib-names-and-renames"
 related-pr: 2559
-last-updated-utc: "2026-10-19 11:50"
+last-updated-utc: "2026-10-19 11:51"
 semantic-links:
   skill-links:
     - create-issue
@@ -159,7 +159,7 @@ Use a Conventional Commit message with the issue reference and sign every commit
 - [x] GitHub issue created and issue number added to this spec
 - [x] Spec moved to `docs/issues/open/` with issue number prefix
 - [x] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests and pre-push checks)
+- [x] Automatic verification completed (`linter all`, relevant tests and pre-push checks)
 - [x] Manual verification scenarios executed and recorded in issue-local
       `manual-verification-evidence.md`
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
@@ -192,17 +192,20 @@ Use a Conventional Commit message with the issue reference and sign every commit
   this regeneration. Awaiting maintainer review (AC6).
 - 2026-10-19 11:50 UTC - GitHub Copilot - Set `status: in-review` and `related-pr: 2559`, per PR
   #2559 review finding F1.
+- 2026-10-19 11:51 UTC - GitHub Copilot - Ticked the checkboxes of AC1 to AC5 and of "Automatic
+  verification completed" so they agree with the Acceptance Verification table, per PR #2559
+  review finding F3.
 
 ## Acceptance Criteria
 
-- [ ] AC1: The tool resolves a dependency's module name from its `rename`, then its library
+- [x] AC1: The tool resolves a dependency's module name from its `rename`, then its library
       target name, then its package name.
-- [ ] AC2: Regression tests cover a renamed dependency, a custom library name and the default;
+- [x] AC2: Regression tests cover a renamed dependency, a custom library name and the default;
       the rename and library-name tests were recorded failing against the unfixed tool.
-- [ ] AC3: Rerunning the R1 command unchanged (R2) lists no false "no references" edge, and the
+- [x] AC3: Rerunning the R1 command unchanged (R2) lists no false "no references" edge, and the
       five edges in the Background list their imports.
-- [ ] AC4: `cargo test -p workspace-coupling` and `linter all` exit with code `0`.
-- [ ] AC5: The reproduction (R1) and the recheck (R2) are recorded in issue-local
+- [x] AC4: `cargo test -p workspace-coupling` and `linter all` exit with code `0`.
+- [x] AC5: The reproduction (R1) and the recheck (R2) are recorded in issue-local
       `manual-verification-evidence.md`.
 - [ ] AC6: The acceptance criteria are re-reviewed after implementation.
 
