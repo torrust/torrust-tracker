@@ -6,7 +6,7 @@ epic: 1488
 github-issue: 2410
 spec-path: docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-19 15:50"
+last-updated-utc: "2026-10-19 17:08"
 semantic-links:
   skill-links:
     - create-issue
@@ -271,7 +271,7 @@ which keeps the detailed steps for all sub-issues.
 | 1 | #2413 - Document event flows and draft the shutdown-order ADR | [ISSUE.md](../../closed/2413-2410-si-22-1-document-event-flows-and-draft-adr/ISSUE.md) | T1, T2 | AC9; ADR draft for AC8 | DONE | Documentation only. |
 | 2 | #2414 - Drain listener queues on shutdown | [ISSUE.md](../2414-2410-si-22-2-drain-listener-queues-on-shutdown/ISSUE.md) | T3, T4, T5 | AC1, AC3, AC4, AC6, AC11, AC12 | TODO | Addresses window (a), isolated by the control run; race-run loss attribution remains incomplete. |
 | 3 | #2415 - Give each application component its own cancellation token | [ISSUE.md](../2415-2410-si-22-3-per-component-cancellation-tokens/ISSUE.md) | T6 | AC13 (keeps it; no behavior change) | TODO | Refactor that prepares sub-issue 4. |
-| 4 | #2416 - Stop event producers before event listeners | [ISSUE.md](../2416-2410-si-22-4-stop-producers-before-listeners/ISSUE.md) | T7, T8, T9, T10 | AC2, AC5, AC7, AC8, AC10, AC13 | TODO | Closes window (b). T9 needs #2471 merged. |
+| 4 | #2416 - Stop event producers before event listeners | [ISSUE.md](../2416-2410-si-22-4-stop-producers-before-listeners/ISSUE.md) | T7, T8, T9, T10 | AC2, AC5, AC7, AC8, AC10, AC13 | TODO | Closes window (b). T9's prerequisite #2471 is satisfied (merged in PR #2544 on 2026-10-16). |
 
 T0 (the reproduction) is done in this folder: evidence in
 [manual-verification-evidence.md](manual-verification-evidence.md) and the
@@ -1555,8 +1555,8 @@ SI-17 established (refresh of 2026-10-07):
   before it reports any failure.
 - **Dropping the environment without `stop()` still stops everything.**
   Dropping a `CancellationToken` does not cancel it, so the UDP environment
-  holds its token as a `DropGuard` (#2459), and #2471 adds the same to the HTTP
-  environment. With two tokens, the drop path must cancel both: each token is
+  holds its token as a `DropGuard` (#2459), and #2471 added the same to the HTTP
+  environment (PR #2544). With two tokens, the drop path must cancel both: each token is
   independent and has its own `DropGuard`, and `stop()` disarms both (D20).
   Do not derive one token from the other.
 
@@ -1890,7 +1890,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T6  | TODO   | Per-component tokens (refactor)   | Reservation-based registration; every component uses only its own token. No edges yet: `cancel()` still cancels everything at once. Existing tests green. |
 | T7  | TODO   | Red regression test (stop order)  | `JobManager` stop-order test fails while edges are stored but not enforced; red output recorded.                                |
 | T8  | TODO   | Stop order                        | `JobManager` enforces edges; `EventFlows` registry; bootstrap declarations per the Chosen Design; tests green.                  |
-| T9  | TODO   | Test environments                 | HTTP and UDP environments stop servers before listeners, keep both guarantees in [Test environments](#test-environments), and gain the late-event test for each (needs #2471 merged). |
+| T9  | TODO   | Test environments                 | HTTP and UDP environments stop servers before listeners, keep both guarantees in [Test environments](#test-environments), and gain the late-event test for each (prerequisite #2471 merged in PR #2544). |
 | T10 | TODO   | Docs, verification, recheck       | Jobs doc and glossary updated to the final implementation; ADR draft moved into `docs/adrs/` and the old ADR superseded (D15); diagrams moved to `docs/architecture/` (D16); task inventory and feature docs; automatic checks; T0 recheck; AC review; completion review. |
 
 ### Implementation Steps
@@ -1919,7 +1919,8 @@ the registration refactor (T6), and after the stop order (T8).
 
 **Prerequisites.** Every open question is decided (D7, D9-D13, and D15).
 SI-16 (#2412) and SI-17 (#2448) are merged. #2471, which fixes the HTTP
-environment's drop path, is merged before T9.
+environment's drop path and had to merge before T9, is satisfied: it merged in
+PR #2544 on 2026-10-16.
 
 **Pull-request boundaries** (confirmed by D17, one sub-issue each): (1) T0-T2:
 evidence, inventory, glossary, the jobs-doc move, and the ADR draft; (2)
@@ -2051,7 +2052,9 @@ with rollback subject to the dependencies between the changes.
     propose documenting it in the `create-adr` skill, in a separate commit
     and only with the maintainer's approval. Move the five diagrams (D16)
     to stable documents: the event data flow to
-    `docs/architecture/events.md`; the supervision tree, both sequences, and
+    `docs/architecture/events.md`, which today omits the swarm bus, its
+    producers, and its three consumers (finding from #2413 T1), so T10 adds
+    them there; the supervision tree, both sequences, and
     the component boundary to `docs/architecture/application-jobs.md`,
     replacing its current bootstrap diagram; update or remove the
     shutdown diagrams they replace in
@@ -2162,6 +2165,7 @@ avoids duplicating the full workflow in four drafts:
 - 2026-10-19 11:13 UTC - GitHub Copilot (Claude Opus 5.5) - #2413 review round 7: three Nit findings fixed (`review-finding:pr-2553-f25` to `review-finding:pr-2553-f27`), none touching the design record.
 - 2026-10-19 11:29 UTC - GitHub Copilot (Claude Opus 5.5) - #2413: renamed the 11:13 entry above from "round 6" to "round 7" (`review-finding:pr-2553-f28`), to match the retrospective's round table.
 - 2026-10-19 15:50 UTC - GitHub Copilot (Claude Opus 5.5) - #2413 archived to `docs/issues/closed/` after PR #2553 merged (2026-10-19 15:18 UTC); its row in the sub-issue table is `DONE`. Its Task Reviewer report and implementation retrospective gates were not done and stay unchecked in its spec.
+- 2026-10-19 17:08 UTC - GitHub Copilot (Claude Opus 5.5) - Refreshed stale text before #2414 starts: #2471, the T9 prerequisite, is satisfied (merged in PR #2544 on 2026-10-16) in the Subissues table, the Chosen Design, the T9 row, the Prerequisites paragraph, and Dependencies; the T10 step adds the swarm bus, its producers, and its three consumers to `docs/architecture/events.md` (finding from #2413 T1). The child specs #2414 to #2416 name their implementation branches, and #1488 roadmap row 15 is `In progress`. No design change.
 
 ## Acceptance Criteria
 
@@ -2275,8 +2279,9 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 - SI-16 (#2412) and SI-17 (#2448): done. The test environments use the token
   lifecycle.
-- #2471: the HTTP test environment stops when dropped without `stop()`. Must be
-  merged before T9, which changes the same file.
+- #2471: the HTTP test environment stops when dropped without `stop()`. It had
+  to merge before T9, which changes the same file; satisfied, merged in PR
+  #2544 on 2026-10-16.
 - Interacts with SI-20: the ADR's deadline rule must stay valid when SI-20
   makes budgets configurable.
 

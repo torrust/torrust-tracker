@@ -7,9 +7,9 @@ priority: p1
 epic: 2410
 github-issue: 2415
 spec-path: docs/issues/open/2415-2410-si-22-3-per-component-cancellation-tokens/ISSUE.md
-branch: "2410-process-queued-events-before-listeners-stop-spec"
+branch: "2415-per-component-cancellation-tokens"
 related-pr: null
-last-updated-utc: "2026-10-02 17:28"
+last-updated-utc: "2026-10-19 17:08"
 semantic-links:
   skill-links:
     - create-issue
@@ -25,8 +25,7 @@ semantic-links:
 
 # Issue #2415 - Give Each Application Component Its Own Cancellation Token
 
-Parent: [EPIC #2410 - Process queued events before event listeners stop](../2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md)
-(`epic` is set to the sub-EPIC's issue number once it exists),
+Parent: [EPIC #2410 - Process queued events before event listeners stop](../2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md),
 under EPIC #1488.
 
 > Sub-issue 3 of 4 (SI-22 task T6). A refactor with no behavior change; it
@@ -156,3 +155,4 @@ assessment, and independent Task Reviewer report.
 
 - 2026-10-02 11:03 UTC - GitHub Copilot - Drafted from SI-22 T6 (D17).
 - 2026-10-02 13:30 UTC - GitHub Copilot - Added AC4: the refactor keeps the listeners-first startup order and the bus lifetimes (sub-EPIC AC13).
+- 2026-10-19 17:08 UTC - GitHub Copilot (Claude Opus 5.5) - Refreshed: `branch:` names the planned implementation branch `2415-per-component-cancellation-tokens`; removed the obsolete note about setting `epic`.
