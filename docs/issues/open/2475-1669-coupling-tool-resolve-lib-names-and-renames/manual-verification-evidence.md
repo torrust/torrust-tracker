@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2475-1669-coupling-tool-resolve-lib-names-and-renames/ISSUE.md
-last-updated-utc: 2026-10-19 11:49
+last-updated-utc: 2026-10-19 12:18
 ---
 
 <!-- cspell:ignore splitlines startswith -->
@@ -157,17 +157,23 @@ cargo test -p workspace-coupling
 linter all
 ```
 
-Observed result (`cargo test` summary lines, exit code `0`):
+Observed result: the lines of the `cargo test -p workspace-coupling` output that match
+`Running|Doc-tests|test result`, pasted verbatim (all five result lines, with the `Running` and
+`Doc-tests` lines as printed). The command's other lines, the compile and per-test lines, are
+omitted. This is from a rerun on 2026-10-19 12:17 UTC, after the branch was rebased onto
+`develop`; the exit code was `0`.
 
 ```text
-     Running unittests src/lib.rs
+     Running unittests src/lib.rs (target/debug/deps/workspace_coupling-f3239a465ad7bfc2)
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
-     Running unittests src/main.rs
+     Running unittests src/main.rs (target/debug/deps/workspace_coupling-3d479aeca1704a2e)
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
-     Running tests/parse_imports.rs
+     Running tests/parse_imports.rs (target/debug/deps/parse_imports-3e781121949680e5)
 test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
-     Running tests/resolve_module_name.rs
+     Running tests/resolve_module_name.rs (target/debug/deps/resolve_module_name-6a763f8c920ce0b5)
 test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+   Doc-tests workspace_coupling
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 ```
 
 `linter all` exited `0`; its last line was `torrust_linting::cli: All linters passed`.

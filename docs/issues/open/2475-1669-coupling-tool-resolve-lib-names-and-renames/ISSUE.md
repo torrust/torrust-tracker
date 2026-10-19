@@ -9,7 +9,7 @@ github-issue: 2475
 spec-path: docs/issues/open/2475-1669-coupling-tool-resolve-lib-names-and-renames/ISSUE.md
 branch: "2475-1669-coupling-tool-resolve-lib-names-and-renames"
 related-pr: 2559
-last-updated-utc: "2026-10-19 11:53"
+last-updated-utc: "2026-10-19 12:18"
 semantic-links:
   skill-links:
     - create-issue
@@ -212,6 +212,10 @@ Use a Conventional Commit message with the issue reference and sign every commit
   entry (`docs(issues): [#2475] record the red run, green run and R2 recheck`). The history is kept
   as it happened, per the repository's commit-history policy, and the Commit Points table lists T4
   as the last commit. This is PR #2559 review finding F5.
+- 2026-10-19 12:18 UTC - GitHub Copilot - T3 now pastes the `cargo test` result lines verbatim
+  (all five, with the `Running` and `Doc-tests` lines as printed) and says they are filtered with
+  `grep`, per PR #2559 review finding F11. The branch was also rebased onto `develop` for finding
+  F8; the rebase kept every commit and changed only the EPIC file's conflicting lines.
 
 ## Acceptance Criteria
 
