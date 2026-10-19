@@ -1,0 +1,16 @@
+started: 19:19:16 UTC
+Running pre-push checks...
+Note: these checks can take several minutes. If Git reports a closed SSH connection after they pass, see <repository root>/docs/git-hooks.md.
+
+[Step 1/5] Checking format with nightly toolchain ... PASS (0s)
+[Step 2/5] Checking workspace with nightly toolchain ... PASS (2s)
+[Step 3/5] Building documentation with nightly toolchain ... PASS (7s)
+[Step 4/5] Building library documentation with nightly toolchain ... PASS (8s)
+[Step 5/5] Running all tests ... PASS (39s)
+==========================================
+SUCCESS: All pre-push checks passed! (56s)
+==========================================
+
+You can now safely push your changes.
+exit code: 0
+ended: 19:20:12 UTC

@@ -30,7 +30,7 @@ a way to find candidates, never the criterion.
 
 Result: 60 enums in 18 publishable packages: 58 to mark `#[non_exhaustive]` and 2 to keep exhaustive
 (maintainer decision 9, see "Exhaustive enums"). The 2026-10-06 hypothesis of 61 matches the 61 name-based
-hits in publishable packages today; the difference is `ErrorKind`, listed under "Not in scope". No enum has `#[non_exhaustive]` today. No
+hits in publishable packages today; the difference is `ErrorKind`, listed under "Not in scope". No enum had `#[non_exhaustive]` at inventory time. No
 enum is in a private module or binary-only code: every enum below is reachable from its library
 crate's root. All 60 have at least one real variant.
 
@@ -67,7 +67,7 @@ The decision is `mark` for every row except the two rows that say `keep exhausti
 | Enum | Variants | Derives | impl Error | `E` of public `Result` | Downstream matches | Decision |
 | ---- | -------- | ------- | ---------- | ---------------------- | ------------------ | -------- |
 | `validator::SemanticValidationError` | 1 | - | yes | yes | none | mark |
-| `Error` | 8 | - | yes | yes | none | mark; remove the `Infallible` variant in T4 |
+| `Error` | 8 (7 after T4) | - | yes | yes | none | mark; remove the `Infallible` variant in T4 |
 
 ### `torrust-tracker-axum-server`
 
@@ -234,8 +234,8 @@ S5 at the T1 review (see "Review outcome").
 | S1 | `core::error::TrackerCoreError` | `protocol_error_from_tracker_core_error` in `http-core` | `failure_reason: format!("Tracker error: {error}")`, the same shape as the existing arms. |
 | S2 | `core::error::PeerKeyError` | `map_peer_key_error` in `rest-api-runtime-adapter` | `AuthKeyError::Database(error.to_string())`, the only generic failure variant `AuthKeyError` has. |
 | S3 | `core::error::AnnounceError`, `core::error::ScrapeError`, `udp-core::UdpAnnounceError`, `udp-core::UdpScrapeError` | Four nested matches in `From<Error> for ErrorKind` in `udp-server` | `Self::InternalServer(error.to_string())`, the existing generic `ErrorKind` variant. |
-| S4 | `rest-api-protocol::AuthKeyError` | `add_auth_key_handler` in `axum-rest-api-server` | `failed_to_add_key_response(AuthKeyErrorDisplay(&err))`, the handling of the `Database` variant. |
-| S5 | `console unified::app::Error` | `main` of the `tracker_client` binary | Report it as a `runtime_failure`, like `Error::Other`, with `format!("{error:?}")` as the message (the enum has no `Display`). |
+| S4 | `rest-api-protocol::AuthKeyError` | `add_auth_key_handler` in `axum-rest-api-server` | `failed_to_add_key_response(AuthKeyErrorDisplay(&err))`, the handling of the `Database` variant. The `Database(_)` arm became the `_` arm, because clippy's `match_same_arms` rejects two arms with one body. |
+| S5 | `console unified::app::Error` | `main` of the `tracker_client` binary | Report it as a `runtime_failure`, like `Error::Other`, with `format!("{unknown:?}")` as the message (the enum has no `Display`). Both arms call a new `report_runtime_failure` helper, extracted from the `Other` arm so the JSON is not duplicated; its output and exit code are unchanged. |
 
 ## Derive findings (checklist item 2)
 
