@@ -54,6 +54,17 @@ which triggers the repository's stale-approval rule. Its ACK comment
 (<https://github.com/torrust/torrust-tracker/pull/2561#issuecomment-6266790165>) names the first
 head, so neither covers the commits that fix F1 to F5.
 
+Round 3: da2ce7's review 5571606463 (APPROVED, 2026-10-19 12:35:28 UTC, on the head whose newest
+commit is `docs(pr-reviews): [#2560] add the PR #2561 review audit`) carries one inline finding.
+da2ce7 numbered it F1, which collides again, so it is F6 here with the original number kept as the
+reviewer finding ID. The review body is a verification report that resolves round 1's and round 2's
+findings and adds no other row. It agrees with all three of Copilot's items and reports no review
+from the bot after 11:59:52 UTC. The approval was dismissed at 12:39:10 UTC by the PR author's push
+whose newest commit is `docs(statistics): [#2560] say that counter_total reads a gauge as zero`,
+which is the commit that fixes F6. Its ACK comment
+(<https://github.com/torrust/torrust-tracker/pull/2561#issuecomment-6267341946>) names the head
+before that push, so neither covers it.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | `review-finding:pr-2561-f1` | Copilot | Minor (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
@@ -61,6 +72,7 @@ head, so neither covers the commits that fix F1 to F5.
 | F3 | `review-finding:pr-2561-f3` | Copilot | Nit (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
 | F4 | `review-finding:pr-2561-f4` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F5 | `review-finding:pr-2561-f5` | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
+| F6 | `review-finding:pr-2561-f6` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -159,12 +171,35 @@ head, so neither covers the commits that fix F1 to F5.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2561#discussion_r4313673940>
 
+### F6 - The `counter_total` doc comment omits the gauge case
+
+- PR number: 2561
+- Source review ID: 5571606463
+- Reviewer finding ID: F1
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2561#discussion_r4313865069>
+- Concern: the doc comment said the helper returns `0` when the metric does not exist yet, which is
+  one of two cases. `sum_counter` also returns `None` for a gauge name, so the helper reads a gauge
+  as a silent `0`. That is why `udp_banned_ips_total` stays on `sum`, and a later caller could route
+  a gauge through the helper without noticing. The same two lines are in HTTP core and UDP core.
+- Solution: the doc comment of `counter_total` in HTTP core, UDP core, and the UDP server now says
+  it also returns `0` when the metric is a gauge, because `sum_counter` returns `None` for a gauge,
+  and that it must be called only with counter names.
+- Current-tree verification: `grep -c "Call it only with counter"` reads 1 in each of the three
+  files, and Clippy and `cargo doc` with `-D warnings` are clean for the three packages.
+- Resolution reference: docs(statistics): [#2560] say that counter_total reads a gauge as zero
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2561#discussion_r4313901817>
+
 ## Processing Log
 
 - 2026-10-19 12:15 UTC - Started audit after Copilot's review 5571188743 and da2ce7's review
   5571266146. Fixed F1 to F5 in separate commits, pushed them, and replied on the five threads. The
   approval of review 5571266146 was dismissed at 12:09:34 UTC by the push of the first fixes, as
   recorded in the Findings section.
+- 2026-10-19 12:39 UTC - Round 3: da2ce7's review 5571606463 (APPROVED and ACK on the head that
+  ended with the first audit commit) carried one finding, F6 here. Fixed it, pushed, and replied on
+  its thread. The approval was dismissed at 12:39:10 UTC by that push, as recorded in the Findings
+  section.
 
 ## Completion Rules
 
