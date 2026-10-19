@@ -28,7 +28,8 @@ Follow the shared [guidance](README.md). This plan covers only
   `ip` literal, DNS name, invalid value, loopback substitution by the configured external IP);
   private-mode authentication; the order authenticate, authorize, resolve client IP, select peer
   IP, announce; the protocol-to-domain announcement mapping; `numwant` to `PeersWanted`; event
-  publication with and without a sender; and the failure reason of every `HttpAnnounceError`.
+  publication with and without a sender, carrying the instance's public URL; and the failure reason
+  of every `HttpAnnounceError`.
 - **T1 hypothesis:** property candidate.
 
 ## Current Tests Review
@@ -62,6 +63,7 @@ repository, the whitelist, the torrent repository, and the announce handler.
 | Request-to-announcement mapping (lines 260-262) | 3A unit | R2f: every event variant and an absent event, absent byte counters defaulting to zero, the port, and the stopped-clock timestamp, against independently written expected values. |
 | `numwant` to `PeersWanted` | 3A unit | R2g: absent gives as many as possible; a number gives that limit (`PeersWanted` is `PartialEq`). |
 | Absent event sender (line 350) | 3A unit | R2h: an announce without a sender succeeds. |
+| Instance public URL in the announce event (lines 74, 192, 342) | 3A unit | R2k: an instance configured with a public URL publishes it in the event's connection context. `HttpTrackerPolicy::from(&HttpTracker)` maps it, the service stores it, and `send_event` attaches it with `with_public_url`; `announce_events_match` compares it through `ConnectionContext`'s `PartialEq`. Every existing announce test runs with no URL, so dropping that call, or mapping the URL to `None`, passes all eight tests today. |
 | Failure reasons of the package-owned variants (lines 419-429) | 3A unit | R2i: the text of `PeerIpOverrideDisabled`, `PeerIpDnsNameUnsupported`, and `PeerIpInvalid`. `PeerIpResolutionError` text is `http-protocol`'s and `TrackerCoreError` text is the `error_mapping.rs` plan's. |
 | Tracker-core announce failure (region at line 226) | Collaboration | R2j: `tracker-core` exports `MockTorrentMetricsStore`, so a failing persisted-downloads lookup reaches `TrackerCoreError::AnnounceError` without a database (#1348 lesson). |
 | `From` conversions (lines 379-415) | Covered by R2a, R2c, R2d, R2j | A conversion no test reaches is a finding candidate (dead code); record it in `lessons.md`. |
@@ -83,7 +85,7 @@ dev-dependency of this package (the workspace uses `rstest = "0"` elsewhere). Ad
 | ID | Status | Work | Completion evidence |
 | --- | --- | --- | --- |
 | R1 | TODO | Refactor the existing tests: replace the `match` in the non-empty-IP test with a data table, give the three event tests one scenario fixture, add AAA structure and explicit assertions, rename or reconfigure the tcp6 event test so its name matches its Arrange, give the precedence test a policy that enables overrides and carries a distinct external IP (and confirm it fails under a temporary change that prefers the external IP), and shrink the fixture. | Focused tests, `cargo +nightly fmt --all -- --check`, `git diff --check`, prose-first AAA review. |
-| R2 | TODO | Add R2a-R2j. | Same validation; hand-made mutation proofs for R2d, R2e, and R2f. |
+| R2 | TODO | Add R2a-R2k. | Same validation; hand-made mutation proofs for R2d, R2e, and R2f. |
 | R3 | TODO | Select an integration increment, or `none`. | Expected: `none`. The service has no network boundary of its own. |
 | R4 | TODO | Re-run unit-only coverage; record before and after. | Plan Results and `coverage-evidence.md`. |
 
@@ -117,3 +119,8 @@ Approved by Jose Celano on 2026-10-16 (16:02 UTC): R1, R2a-R2j, the fixture appr
   never gives the service an external IP. Verified against `PeerIpSelectionPolicy::enabled()`, which
   sets `external_ip: None`. Added the smell to the Current Tests Review and a step to R1. This
   amends the approved plan a second time; the maintainer confirms it when reviewing the R1 result.
+- 2026-10-19 11:23 UTC - GitHub Copilot - PR #2558 review finding F2 (da2ce7): the plan names no case
+  for the instance public URL that the announce event carries. Verified at `announce.rs` lines 74,
+  192 and 342 and in `announce_events_match`. Added the decision row and R2k, and R2 now reads
+  R2a-R2k. This amends the approved plan a third time, adding one test to R2; the maintainer
+  confirms it when reviewing the R2 result. The approval record above keeps its original wording.
