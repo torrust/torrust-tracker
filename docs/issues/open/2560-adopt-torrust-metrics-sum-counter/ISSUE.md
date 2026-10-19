@@ -36,11 +36,11 @@ Upstream issue torrust/torrust-metrics#1 asked for an exact `u64` counter sum. I
 
 Cargo treats `0.1.0` and `0.2.0` as incompatible, and `MetricCollection` appears in public structs that cross package boundaries, so all eight manifests that depend on `torrust-metrics` must move together. A partial bump would put two copies of the crate, and two unrelated `MetricCollection` types, in one build.
 
-One conversion cannot go away. The UDP server's `udp_banned_ips_total` reads a gauge, because the banned-IP count falls when `BanService::reset_bans` clears the bans. `sum_counter` returns `None` for a gauge name, so that accessor keeps an `f64` to `u64` cast. The maintainer asked for the cleanest and most maintainable outcome regardless of effort. The decision is to keep that one cast in one small helper with a permanent reason, for these reasons:
+One conversion cannot go away. The UDP server's `udp_banned_ips_total` reads a gauge, because the banned-IP count falls when `BanService::reset_bans` clears the bans. `sum_counter` returns `None` for a gauge name, so that accessor keeps an `f64` to `u64` cast. The maintainer asked for the cleanest and most maintainable outcome regardless of effort. The decision is to keep that one cast in the `udp_banned_ips_total` accessor with a permanent reason, because it is the only gauge reader and a helper would only wrap a single call. The reasons are:
 
 - It is a real gauge, so converting it to a counter would change how the metric behaves for every consumer of the metrics.
 - Asking a float-gauge library for an integer gauge accessor would widen its API, and fix a rounding policy, for one consumer.
-- After this issue the cast is the only one left in the counter and gauge read path, with one documented reason.
+- After this issue it is the only cast left for the integer totals (counter and gauge sums), with one documented reason. The averaged accessors keep their own documented cast, which is out of scope here.
 
 ## Scope
 
