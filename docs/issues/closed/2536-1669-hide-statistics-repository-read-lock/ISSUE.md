@@ -9,7 +9,7 @@ github-issue: 2536
 spec-path: docs/issues/closed/2536-1669-hide-statistics-repository-read-lock/ISSUE.md
 branch: "2536-1669-hide-statistics-repository-read-lock"
 related-pr: 2545
-last-updated-utc: "2026-10-18 08:04"
+last-updated-utc: "2026-10-19 10:16"
 semantic-links:
   skill-links:
     - create-issue
@@ -454,6 +454,7 @@ request.
   (`docs/pr-reviews/pr-2545-review/PR-REVIEW.md`) records the findings behind each correction.
 - 2026-10-16 15:30 UTC - GitHub Copilot - PR #2545 merged into `develop` on 2026-10-16 15:22 UTC and #2536 is closed. This spec moved from `docs/issues/open/` to `docs/issues/closed/` and its status is `done`. The optional "Spec-only PR merged" checkpoint is ticked: the spec-only PR #2537 merged into `develop` on 2026-10-15 06:44 UTC. The "Independent reviewer reports" checkpoint is ticked because no agent received this folder: the reviews were posted on GitHub and are audited in `docs/pr-reviews/pr-2545-review/PR-REVIEW.md`; there is no `agent-review-reports.md`. The "Committer verified" checkpoint is ticked on the same basis as the other implementation checkpoints, since every commit passed the pre-commit checks.
 - 2026-10-18 08:04 UTC - GitHub Copilot - PR #2554 review (F1 and F2, da2ce7): two corrections to the 2026-10-16 15:30 UTC archive entry, which stays as written. (F1) The "Independent reviewer reports" checkpoint is open again and marked not applicable on its own line, because no `agent-review-reports.md` exists and no agent received this folder; the 2026-10-15 21:06 UTC entry gives the reason. (F2) The "Committer verified spec progress is up to date" tick now rests on a check of the spec, not on the pre-commit hook: I compared `git log --follow` for this spec with its Progress Log. Every spec commit has a log entry that covers it, except `docs(issues): [#2536] record the pull request number`, which set `related-pr` and has none of its own; the #1669 EPIC's log records PR #2545. The log is current through the archive commit.
+- 2026-10-19 10:16 UTC - GitHub Copilot - PR #2554 review round 2 (F1 and F2, da2ce7), appended without rewriting the 2026-10-18 08:04 UTC entry. (F1) That entry said every spec commit has a covering entry except `docs(issues): [#2536] record the pull request number`. There are two exceptions: the second is `chore(issues): archive closed issue #1348 spec to docs/issues/closed`, which only repaired this spec's #1348 link in Risks and its `last-updated-utc` and, as an archive of another issue's spec, asks no entry here. (F2) The 08:04 stamp on that entry was true when written on 2026-10-18, but its commit `docs(issues): [#2536] correct two checkpoint ticks in the archived spec` was delayed about 26 hours by a GPG passphrase timeout and was made on 2026-10-19 09:55 UTC. That entry keeps its stamp, which is the time of the writing, and `last-updated-utc` now carries the time of this edit. When a signing timeout delays a commit, the stamps are re-taken from `date -u` immediately before the commit that finally lands.
 
 ## Acceptance Criteria
 
