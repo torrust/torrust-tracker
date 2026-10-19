@@ -1,0 +1,6 @@
+test statistics::metrics::tests::udp_general_metrics::it_should_return_exactly_a_udp_requests_aborted_total_that_an_f64_cannot_represent ... FAILED
+assertion `left == right` failed
+  left: 9007199254740992
+ right: 9007199254740993
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 224 filtered out; finished in 0.00s
+error: test failed, to rerun pass `-p torrust-tracker-udp-server --lib`

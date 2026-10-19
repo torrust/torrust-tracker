@@ -1,0 +1,7 @@
+tcp4_announces_handled: 50  udp_banned_ips_total: 0
+udp_banned_ips_total: 1
+udp_requests_banned: 2
+udp4_errors_handled: 4
+udp_requests_aborted: 0
+udp4_requests: 2006
+udp4_connections_handled: 1000

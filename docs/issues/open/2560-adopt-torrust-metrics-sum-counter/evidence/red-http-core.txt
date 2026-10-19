@@ -1,0 +1,5 @@
+test statistics::metrics::tests::it_should_project_exactly_a_total_that_an_f64_cannot_represent ... FAILED
+assertion `left == right` failed
+  left: 9007199254740992
+ right: 9007199254740993
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 32 filtered out; finished in 0.00s
