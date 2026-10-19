@@ -6,7 +6,7 @@ epic: null
 github-issue: 1669
 spec-path: docs/issues/open/1669-overhaul-packages/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-19 15:33"
+last-updated-utc: "2026-10-19 16:16"
 semantic-links:
   skill-links:
     - create-issue
@@ -1037,6 +1037,10 @@ Previously referenced tools (screenshots from CodeScene already in the issue com
   2026-10-06 report for finding 3 (`review-finding:pr-2559-f7`).
 - 2026-10-19 15:33 UTC - GitHub Copilot - #2475 is done (PR #2559 merged); its spec moved to
   `docs/issues/closed/2475-1669-coupling-tool-resolve-lib-names-and-renames/`.
+- 2026-10-19 16:16 UTC - GitHub Copilot - Started implementing #2454 on branch
+  `2454-1669-mark-public-error-enums-non-exhaustive`. The maintainer's scoping decisions (all
+  publishable crates, public reachability only, remove `configuration::Error::Infallible`, one
+  `feat(<package>)!:` commit per package) are in the #2454 spec.
 
 ## Acceptance Criteria
 

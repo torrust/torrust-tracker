@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p2
 epic: 1669
 github-issue: 2454
 spec-path: docs/issues/open/2454-1669-mark-public-error-enums-non-exhaustive/ISSUE.md
-branch: "2454-1669-mark-public-error-enums-non-exhaustive-spec"
+branch: "2454-1669-mark-public-error-enums-non-exhaustive"
 related-pr: null
-last-updated-utc: "2026-10-07 08:04"
+last-updated-utc: "2026-10-19 16:16"
 semantic-links:
   skill-links:
     - create-issue
@@ -98,6 +98,29 @@ Inventory at `develop` on 2026-10-06 (hypothesis to confirm in T1):
 - ADRs to create: none expected. If the inventory shows a class of error types that the existing
   ADR does not cover, stop and propose an ADR amendment.
 
+### Maintainer Decisions (2026-10-19, before implementation)
+
+The maintainer answered the pre-implementation questions on 2026-10-19:
+
+1. **Crates in scope**: every publishable workspace crate (`publish` unset or true, including the
+   root `torrust-tracker` and `console/tracker-client`). Crates with `publish = []` (the
+   `contrib/dev-tools` tools, benchmark and e2e crates) are excluded.
+2. **Visibility**: only enums reachable from a crate's public API. Enums that sit in private
+   modules or binary-only code are recorded in the inventory as not public API and left unchanged.
+3. **Root crate**: `torrust-tracker` has a public `lib.rs` (`pub mod app`, `bootstrap`, `console`,
+   `container`), so its error enums are marked like any other publicly reachable enum.
+4. **`configuration::Error::Infallible`**: remove it in its own commit (T4), after
+   `#[non_exhaustive]` lands for `torrust-tracker-configuration`.
+5. **Inventory**: commit `error-enum-inventory.md` in this spec folder and update its per-crate
+   completion status in each per-crate commit.
+6. **Commits**: one signed commit per package in dependency order, typed `feat(<package>)!:`
+   because each is a breaking API change; downstream wildcard arms go in the same commit as the
+   enum change, so every commit builds.
+7. **Guard (T2)**: the lightest option, no per-enum guard. The checklist plus mandatory manual
+   check M1 are the guard.
+8. **Derives**: record per-enum findings in the inventory only; ask the maintainer before changing
+   any derive.
+
 ## Design and Ownership Review
 
 Not applicable: a compile-time API attribute with no processes, I/O, or resource lifetimes.
@@ -118,7 +141,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status | Task | Notes / Expected Output |
 | --- | ------ | ---- | ----------------------- |
 | T1  | TODO   | Inventory public error enums per crate | Issue-local `error-enum-inventory.md`: crate, enum, path, public reachability, variant count, derives, downstream exhaustive matches, decision, and a per-crate completion status that T3 and T4 update. For each crate already on crates.io (today the root `torrust-tracker`, `torrust-tracker-configuration`, `torrust-tracker-primitives`, and `torrust-tracker-test-helpers`, all at 3.0.0), it records that the next publish must be a semver-major bump (a minor bump for `0.x` crates), and the path that applies it: the tracker application release for the root crate, the per-package publish for the others. Confirms or corrects the 61-enum hypothesis. Maintainer reviews it before T3. |
-| T2  | TODO   | Decide how to guard the property | Options: a per-crate `compile_fail` doctest, a lint, or the checklist only. Recommend the lightest option; maintainer decides. If a doctest is chosen, its first increment follows the `write-unit-test` skill's progressive test-development loop, and its design review is recorded before T3 starts. |
+| T2  | DONE   | Decide how to guard the property | Options: a per-crate `compile_fail` doctest, a lint, or the checklist only. Recommend the lightest option; maintainer decides. If a doctest is chosen, its first increment follows the `write-unit-test` skill's progressive test-development loop, and its design review is recorded before T3 starts. Decided 2026-10-19: checklist plus mandatory manual check M1 only; no doctest, so no test-development loop applies. |
 | T3  | TODO   | Apply `#[non_exhaustive]` crate by crate | One commit per crate (or per tightly coupled group), including the downstream wildcard arms that the change forces. Order: dependency order, a crate before its dependents, which crates.io publication also forces. |
 | T4  | TODO   | Evaluate placeholders and derive decisions | `configuration::Error::Infallible` and any similar finding; derive decisions recorded in the inventory; changes only with maintainer approval. |
 | T5  | TODO   | Link the per-crate record from EPIC #1669 | Add a line under the Pre-publish API checklist linking the T1 inventory as the per-crate completion record. |
@@ -140,7 +163,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Folder-style spec drafted in `docs/issues/drafts/1669-mark-public-error-enums-non-exhaustive/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
+- [x] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation (PR #2456)
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
@@ -157,6 +180,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-10-06 16:05 UTC - Copilot - The maintainer approved the draft as written, including the open manual-verification question, which is to be settled before implementation. Created GitHub issue #2454 with the `task` label, linked it as a sub-issue of EPIC #1669, and moved the spec to `docs/issues/open/` on the spec-only branch `2454-1669-mark-public-error-enums-non-exhaustive-spec`.
 - 2026-10-06 20:31 UTC - Copilot - Addressed the PR #2456 reviews (da2ce7 F1 to F6, plus Copilot's three findings, two of which match da2ce7's F1 and F3). Changes: M1 is mandatory with a positive half, and the template AC wording is restored; added the toolchain-evidence rule; the `Infallible` placeholder variant now falls under the `handle-errors-in-code` rule, and its approved removal is exempt from Out of Scope; T3 uses dependency order and the T1 inventory holds per-crate completion; added a conditional test loop for a doctest guard; added the EPIC Details row. On Copilot's SemVer finding, the maintainer decided that the publish flow owns version bumps: new AC6 and EPIC checklist item 4. Audit: `docs/pr-reviews/pr-2456-review/PR-REVIEW.md`.
 - 2026-10-07 08:04 UTC - Copilot - Addressed da2ce7's round-2 review of PR #2456: T1's list of already-published crates now includes the root `torrust-tracker` crate, and T1, Out of Scope, and Risks name the tracker application release as the path that applies its bump; the EPIC checklist lead-in now also covers later publishes. Updated the issue body and the PR body's crate count to match.
+- 2026-10-19 16:16 UTC - GitHub Copilot - Started implementation on branch `2454-1669-mark-public-error-enums-non-exhaustive`, cut from `torrust/develop`. The maintainer answered the pre-implementation questions; the answers are in "Maintainer Decisions". T2 is decided (checklist plus manual M1, no doctest). The spec-only PR #2456 is merged, so that optional checkpoint is ticked; `branch` now names the implementation branch and `status` is `in-progress`.
 
 ## Acceptance Criteria
 
