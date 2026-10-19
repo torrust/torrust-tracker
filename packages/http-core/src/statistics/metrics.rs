@@ -50,7 +50,9 @@ impl Metrics {
 
 impl Metrics {
     /// Sum of the counter samples matching `labels`. Returns `0` when the
-    /// metric does not exist yet.
+    /// metric does not exist yet, and also when it is a gauge, because
+    /// `sum_counter` returns `None` for a gauge. Call it only with counter
+    /// names.
     fn counter_total(&self, metric_name: &MetricName, labels: &LabelSet) -> u64 {
         self.metric_collection.sum_counter(metric_name, labels).unwrap_or_default()
     }
