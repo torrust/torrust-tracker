@@ -15,7 +15,26 @@ semantic-links:
 # HTTP Core Announce Service File Test Plan
 
 Follow the shared [guidance](README.md). This plan covers only
-`packages/http-core/src/services/announce.rs`. The maintainer approved this plan on 2026-10-16.
+`packages/http-core/src/services/announce.rs`. The maintainer approved this plan on 2026-10-16; the
+plan has since been amended in five places that await his confirmation (see
+[Post-Approval Amendments](#post-approval-amendments)), so `status: approved` covers the approved
+scope only.
+
+## Post-Approval Amendments
+
+The approval below covers R1, R2a-R2j, the fixture approach and `rstest`. These later changes were
+made in response to review findings and are **pending maintainer confirmation**, at the review of
+the step each one touches. Each is also in the Progress Log.
+
+| Date (UTC) | Amendment | Touches | Confirmed |
+| --- | --- | --- | --- |
+| 2026-10-17 08:22 | Rename or reconfigure the tcp6 event test so its name matches its Arrange | R1 | Pending (R1 review) |
+| 2026-10-17 09:49 | Give the precedence test a policy with overrides enabled and a distinct external IP | R1 | Pending (R1 review) |
+| 2026-10-19 11:23 | Add R2k (the instance public URL in the announce event); R2 reads R2a-R2k | R2 | Pending (R2 review) |
+| 2026-10-19 11:24 | Add the Named Mutations table (M1-M5) and point R1, R2 and the order row at it | R1, R2 | Pending (R1 and R2 reviews) |
+| 2026-10-19 12:44 | Run M5 with `RUSTFLAGS="--cap-lints=warn"` and count it only when R2k runs and fails | R2 | Pending (R2 review) |
+
+Update the Confirmed column when the maintainer confirms an amendment.
 
 ## Current State
 
@@ -123,7 +142,7 @@ To be recorded after R4.
 
 ## Approval
 
-Approved by Jose Celano on 2026-10-16 (16:02 UTC): R1, R2a-R2j, the fixture approach, and adding `rstest` as a dev-dependency of `torrust-tracker-http-core` for the table-driven tests, following the `add-rust-dependency` skill in the announce slice (S2). The peer-IP property stays conditional on the mutation check.
+Approved by Jose Celano on 2026-10-16 (16:02 UTC), before any amendment in [Post-Approval Amendments](#post-approval-amendments): R1, R2a-R2j, the fixture approach, and adding `rstest` as a dev-dependency of `torrust-tracker-http-core` for the table-driven tests, following the `add-rust-dependency` skill in the announce slice (S2). The peer-IP property stays conditional on the mutation check.
 
 ## Progress Log
 
@@ -152,3 +171,7 @@ Approved by Jose Celano on 2026-10-16 (16:02 UTC): R1, R2a-R2j, the fixture appr
   compile under the workspace lints. Verified by applying it: `field public_url is never read`, exit
   101 by default and 0 with `--cap-lints=warn`; M1-M4 compile by default. Added the compile note and
   the cap to M5.
+- 2026-10-19 16:25 UTC - GitHub Copilot - PR #2558 review finding F8 (Copilot): `status: approved` and
+  the approval text read as full authorization although the plan was amended five times. Added the
+  Post-Approval Amendments table (date, scope, step, confirmation) near the top and linked it from
+  the approval record, whose wording is unchanged otherwise.
