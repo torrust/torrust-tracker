@@ -6,7 +6,7 @@ epic: 1488
 github-issue: 2410
 spec-path: docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-19 17:20"
+last-updated-utc: "2026-10-19 17:21"
 semantic-links:
   skill-links:
     - create-issue
@@ -2167,6 +2167,7 @@ avoids duplicating the full workflow in four drafts:
 - 2026-10-19 15:50 UTC - GitHub Copilot (Claude Opus 5.5) - #2413 archived to `docs/issues/closed/` after PR #2553 merged (2026-10-19 15:18 UTC); its row in the sub-issue table is `DONE`. Its Task Reviewer report and implementation retrospective gates were not done and stay unchecked in its spec.
 - 2026-10-19 17:08 UTC - GitHub Copilot (Claude Opus 5.5) - Refreshed stale text before #2414 starts: #2471, the T9 prerequisite, is satisfied (merged in PR #2544 on 2026-10-16) in the Subissues table, the Chosen Design, the T9 row, the Prerequisites paragraph, and Dependencies; the T10 step adds the swarm bus, its producers, and its three consumers to `docs/architecture/events.md` (finding from #2413 T1). The child specs #2414 to #2416 name their implementation branches, and #1488 roadmap row 15 is `In progress`. No design change.
 - 2026-10-19 17:20 UTC - GitHub Copilot (Claude Opus 5.5) - Correction to the 2026-10-16 07:56 entry: "entry 27 should say torrent cleanup publishes on the swarm bus indirectly" was wrong. Entry 27 says nothing about torrent cleanup, and "D Versus F" already names it a swarm producer, so there was no difference. The inventory's entry 27 recheck table now attributes the publish-nothing facts to "D Versus F" and marks them Confirmed. Found by the post-merge Task Reviewer report on #2413 (F1, 2026-10-19 17:12 UTC). The two real differences stand: `events.md` omits the swarm bus (now in T10), and tokio is 1.53.3.
+- 2026-10-19 17:21 UTC - GitHub Copilot (Claude Opus 5.5) - #2413's two delivery gates are closed after merge: the Task Reviewer report (verdict `POST_MERGE_FINDINGS`, AC1 to AC3 pass) is in its `agent-review-reports.md` with the maintainer's decisions, and `implementation-retrospective.md` is in the same archived folder. Both checkpoints are ticked in its spec. No design change.
 
 ## Acceptance Criteria
 
