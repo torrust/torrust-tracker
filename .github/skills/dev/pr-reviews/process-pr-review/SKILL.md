@@ -3,7 +3,7 @@ name: process-pr-review
 description: Process every pull-request review finding, regardless of whether it was authored by Copilot, a person, or another bot. Use when asked to process PR review feedback, resolve review threads, audit review comments, address Copilot and maintainer findings together, triage review feedback submitted after merge, or handle a review left on a closed pull request that another pull request replaced.
 metadata:
   author: torrust
-  version: "1.5"
+  version: "1.6"
   semantic-links:
     related-artifacts:
       - docs/issues/closed/2219-2003-unify-pr-review-processing/ISSUE.md
@@ -100,6 +100,23 @@ feedback is prevented earlier and future review processing consumes fewer tokens
    thread data and show no unresolved
    actionable thread. Update the audit progressively and commit it separately
    from product fixes.
+
+## Statements in Your Own Records
+
+The audit, the evidence file, spec progress logs, replies, and commit bodies are reviewed like the
+change itself. In PR #2553 two of the five rounds with findings (rounds 4 and 5) found nothing but statements in
+these records that went further than what had run, and most findings of rounds 3 to 5 were of that kind. Issue #2503 plans the full author self-audit gate; until it
+lands, follow these rules:
+
+- **Stamp an event only after it happened.** Write a log entry about a push, reply, or resolution
+  after the event, and take its time from `git log --format=%cI`, the command's own output, or the
+  GitHub `created_at` or timeline time. Never write "and pushed" in an entry made before the push.
+- **State only what ran.** A Solution, a reply, or a commit body describes the commands that ran
+  and their output. Do not add interpretation the output cannot show, and do not describe a check
+  that the evidence does not name.
+- **Sweep for the same mistake.** When a finding corrects one of your own statements, search all
+  your records on the branch, and your open replies, for other instances of the same mistake, and
+  fix them in the same round.
 
 ## Reviews Submitted After Merge
 

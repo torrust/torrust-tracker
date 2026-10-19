@@ -6,7 +6,7 @@ epic: 1488
 github-issue: 2410
 spec-path: docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-08 06:58"
+last-updated-utc: "2026-10-19 11:29"
 semantic-links:
   skill-links:
     - create-issue
@@ -64,8 +64,10 @@ draining.
 
 ## Glossary
 
-The terms below are used with these exact meanings in this spec. The glossary
-lives here provisionally; T2 moves it to `docs/architecture/glossary.md` (D12).
+The terms below are used with these exact meanings in this spec. The
+canonical glossary is [`docs/architecture/glossary.md`](../../../architecture/glossary.md)
+(D12, created by #2413 T2b). The table below is the design-time record it was
+drawn from; when the two differ, the glossary file wins.
 
 | Term                                   | Meaning                                                                                                                                       | Constraints                                                                                                                                                                                                                                       |
 | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -266,7 +268,7 @@ which keeps the detailed steps for all sub-issues.
 
 | Order | Issue | Local Spec | Tasks | Acceptance criteria | Status | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | #2413 - Document event flows and draft the shutdown-order ADR | [ISSUE.md](../2413-2410-si-22-1-document-event-flows-and-draft-adr/ISSUE.md) | T1, T2 | AC9; ADR draft for AC8 | TODO | Documentation only. |
+| 1 | #2413 - Document event flows and draft the shutdown-order ADR | [ISSUE.md](../2413-2410-si-22-1-document-event-flows-and-draft-adr/ISSUE.md) | T1, T2 | AC9; ADR draft for AC8 | IN_PROGRESS | Documentation only. |
 | 2 | #2414 - Drain listener queues on shutdown | [ISSUE.md](../2414-2410-si-22-2-drain-listener-queues-on-shutdown/ISSUE.md) | T3, T4, T5 | AC1, AC3, AC4, AC6, AC11, AC12 | TODO | Addresses window (a), isolated by the control run; race-run loss attribution remains incomplete. |
 | 3 | #2415 - Give each application component its own cancellation token | [ISSUE.md](../2415-2410-si-22-3-per-component-cancellation-tokens/ISSUE.md) | T6 | AC13 (keeps it; no behavior change) | TODO | Refactor that prepares sub-issue 4. |
 | 4 | #2416 - Stop event producers before event listeners | [ISSUE.md](../2416-2410-si-22-4-stop-producers-before-listeners/ISSUE.md) | T7, T8, T9, T10 | AC2, AC5, AC7, AC8, AC10, AC13 | TODO | Closes window (b). T9 needs #2471 merged. |
@@ -451,15 +453,16 @@ Alternatives considered:
   returns an event or a new `TryRecvError` (`Empty`, `Lagged(n)`, or
   `Closed`), and `len`, the number of events this receiver has not read yet.
   Both map directly onto Tokio's `broadcast::Receiver::try_recv` and
-  `broadcast::Receiver::len`, verified in tokio 1.53.1, the version in
-  `Cargo.lock`. A shared drain helper in `packages/events` runs the loop for
+  `broadcast::Receiver::len`, verified in tokio 1.53.1 on 2026-10-01 and
+  re-read in tokio 1.53.3, the version in `Cargo.lock` on 2026-10-16 (read from
+  source, not run). A shared drain helper in `packages/events` runs the loop for
   every listener: after cancellation it takes events with `try_recv` until
   `Empty` or the drain timeout, hands each one to the listener's handler, and
   returns the counts of events processed, lost to lag, and left over (`len`
   when the timeout expires). All seven listeners therefore share one policy
   and one log format. Why: it is the most robust option: explicit,
   deterministic, testable with the existing `ScriptedReceiver`s, and it gives
-  an unread-position count for D1's reporting. Tokio 1.53.1 `len()` includes
+  an unread-position count for D1's reporting. Tokio 1.53.3 `len()` includes
   overwritten unread messages until `Lagged` advances the receiver, so it is
   not always the number still recoverable. Report this distinction, avoid
   double-counting lag, and test timeout before the first lag observation.
@@ -1374,7 +1377,7 @@ lost. Times are UTC.
     Outcome: D16 and the three validated Mermaid diagrams.
 23. **20:00 - Job boundary.** The maintainer asked for a diagram of the job
     boundary, like the existing instantiation tree in
-    `docs/application-jobs.md`. Copilot noted that the existing diagram mixes
+    `docs/architecture/application-jobs.md`. Copilot noted that the existing diagram mixes
     creation, service sharing, and cancellation and is outdated (Ctrl-C only,
     one shared token), and proposed two focused diagrams instead: a startup
     sequence (the instantiation tree in time order, mirroring the shutdown
@@ -1879,8 +1882,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status | Task                              | Notes / Expected Output                                                                                                         |
 | --- | ------ | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | T0  | DONE   | Real-artifact reproduction        | Reproduced (V1): control runs isolate window (a); race runs lost about 92% of answered completions. Disposable script `reproduce-lost-completions.sh`. |
-| T1  | TODO   | Producer/consumer inventory       | Every producer, consumer, and listener chain recorded in the shutdown task inventory.                                           |
-| T2  | TODO   | Glossary, jobs doc, ADR draft     | `docs/architecture/glossary.md` created and `docs/application-jobs.md` moved (D12); ADR draft `adr-draft.md` in this folder (D15) covering D1, D7-D9, and D13, written to fully supersede the cancellation-tree ADR (D11). Maintainer approval before code. |
+| T1  | DONE   | Producer/consumer inventory       | Every producer, consumer, and listener chain recorded in the shutdown task inventory.                                           |
+| T2  | DONE   | Glossary, jobs doc, ADR draft     | `docs/architecture/glossary.md` created and `docs/application-jobs.md` moved (D12); ADR draft `adr-draft.md` in this folder (D15) covering D1, D7-D9, and D13, written to fully supersede the cancellation-tree ADR (D11). Maintainer approval before code. |
 | T3  | TODO   | Red regression test (listener)    | Persistent listener test fails against the cancel-first loop; red output recorded.                                              |
 | T4  | TODO   | Listener drain (first listener)   | Persistent listener drains until empty or timeout, logs counts and leftover warning; tests green. Design-review checkpoint.     |
 | T5  | TODO   | Listener drain (remaining)        | Same policy for the other six listener components; characterization tests replaced.                                             |
@@ -2145,6 +2148,19 @@ avoids duplicating the full workflow in four drafts:
 - 2026-10-02 15:40 UTC - GitHub Copilot - Diff review corrected absolute channel/handler guarantees, soft drain versus shared abort, unread length including lag, conditional listener inventory, and rollback/commit boundaries. Added lifecycle edge-case tests and shared child review gates. Hardened and smoke-tested the disposable script; original reproduction numbers remain historical. The HTTP follow-up now has real 75/1000-hash evidence; its policy choice remains separate.
 - 2026-10-07 13:05 UTC - GitHub Copilot - Refreshed with lessons from SI-17 (#2448, #2459) and the archive PRs (#2457, #2465): the Chosen Design and T9 now keep SI-17's join-all failure reporting and cancel both tokens on drop; the late-event test covers UDP as well as HTTP; T1 records the test environments' listener chains; T2 finds links with `rg` because lychee skips closed specs, and historical records keep the old path (maintainer decision). Ticked the spec-only PR checkpoint (#2421); SI-16 and SI-17 are done, and T9 now waits for #2471, the HTTP environment drop-path bug found in this check.
 - 2026-10-08 06:58 UTC - GitHub Copilot - Maintainer decision D20: the test environments use independent server and listener tokens, each with its own `DropGuard`, mirroring `JobManager`. Rejected the parent-child token option. Updated Test environments, T9, and sub-issue 4.
+- 2026-10-16 07:56 UTC - GitHub Copilot - #2413 T1 done: the producer-consumer inventory is in `docs/features/shutdown-process/task-inventory.md` (read from source, not run). Differences for the coordinator (D14): `docs/architecture/events.md` omits the swarm bus; entry 27 should say torrent cleanup publishes on the swarm bus indirectly; tokio in `Cargo.lock` is 1.53.3, not 1.53.1.
+- 2026-10-16 08:04 UTC - GitHub Copilot - #2413 T2a done: `docs/application-jobs.md` moved to `docs/architecture/application-jobs.md` in a separate commit; live links updated (the record keeps the old path where it describes the D12 decision). Historical records keep the old path.
+- 2026-10-16 08:07 UTC - GitHub Copilot - #2413 T2b done: `docs/architecture/glossary.md` is the canonical glossary and this record links to it. The table in this record stays as the design-time record.
+- 2026-10-16 08:27 UTC - GitHub Copilot - #2413 T2c done: `adr-draft.md` is in this folder (D15), approved by the maintainer. tokio in `Cargo.lock` is 1.53.3; D13's claims about `try_recv` and `len` hold for it (read from source, not run).
+- 2026-10-16 10:19 UTC - GitHub Copilot - #2413 push blocked by a test-isolation defect in `clippy-allow-reasons` (hook `GIT_DIR` leaked into fixture Git commands); fixed in a separate commit, evidence in `manual-verification-evidence.md`.
+- 2026-10-16 10:48 UTC - GitHub Copilot - #2413 review round 1: the T1 inventory missed the UDP receive loop publish sites (`launcher.rs`, awaited helper `publish_event_if_sender_available`); corrected in the inventory and in the M1 evidence (`review-finding:pr-2553-f2`). The glossary now separates server drain deadlines from listener admission timeouts (`review-finding:pr-2553-f1`). Entry 27's "sends are `.send(...).await`" fact holds, but the UDP receive loop publishes through a helper that awaits `send`.
+- 2026-10-16 11:33 UTC - GitHub Copilot - #2413 review round 2: eleven non-blocking findings fixed. D13's decision text now names tokio 1.53.3, the #2413 evidence moved to its own folder, and the plan rows T1 and T2 are `DONE` (`review-finding:pr-2553-f8`, `review-finding:pr-2553-f4`, `review-finding:pr-2553-f7`).
+- 2026-10-16 11:57 UTC - GitHub Copilot - #2413 review round 3: four non-blocking findings fixed (`review-finding:pr-2553-f14` to `review-finding:pr-2553-f17`), none touching the design record.
+- 2026-10-16 12:21 UTC - GitHub Copilot - #2413 review round 4: four Nit findings fixed (`review-finding:pr-2553-f18` to `review-finding:pr-2553-f21`), none touching the design record.
+- 2026-10-16 12:42 UTC - GitHub Copilot - #2413 review round 5: three findings fixed (`review-finding:pr-2553-f22` to `review-finding:pr-2553-f24`), none touching the design record.
+- 2026-10-16 15:41 UTC - GitHub Copilot (Claude Opus 5.5) - #2413: PR #2553 review retrospective added (`docs/pr-reviews/pr-2553-review/review-retrospective.md`), with template and skill changes; progress-log entries now name the AI model. None of it touches the design record.
+- 2026-10-19 11:13 UTC - GitHub Copilot (Claude Opus 5.5) - #2413 review round 7: three Nit findings fixed (`review-finding:pr-2553-f25` to `review-finding:pr-2553-f27`), none touching the design record.
+- 2026-10-19 11:29 UTC - GitHub Copilot (Claude Opus 5.5) - #2413: renamed the 11:13 entry above from "round 6" to "round 7" (`review-finding:pr-2553-f28`), to match the retrospective's round table.
 
 ## Acceptance Criteria
 

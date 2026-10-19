@@ -8,9 +8,10 @@ semantic-links:
     - docs/research/AGENTS.md
     - docs/discussions/AGENTS.md
     - docs/architecture/README.md
+    - docs/architecture/glossary.md
     - docs/adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md
     - docs/benchmarking.md
-    - docs/application-jobs.md
+    - docs/architecture/application-jobs.md
     - docs/containers.md
     - docs/github-rulesets.md
     - docs/packages.md
@@ -38,7 +39,7 @@ Operational and development guides for working with the tracker.
 
 | Document                                                                                                                                                                           | Description                                                                |
 | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| [application-jobs.md](application-jobs.md)                                                                                                                                         | Current background-job ownership, lifecycle, and shutdown behavior         |
+| [architecture/application-jobs.md](architecture/application-jobs.md)                                                                                                                                         | Current background-job ownership, lifecycle, and shutdown behavior         |
 | [benchmarking.md](benchmarking.md)                                                                                                                                                 | How to run and interpret the torrent-repository benchmarks                 |
 | [containers.md](containers.md)                                                                                                                                                     | Building and running the tracker with Docker / Podman                      |
 | [git-hooks.md](git-hooks.md)                                                                                                                                                       | Hook behavior and SSH idle-timeout troubleshooting                         |
@@ -62,6 +63,7 @@ complement ADRs, which record accepted architectural decisions.
 | Document                                         | Description                                                                         |
 | ------------------------------------------------ | ----------------------------------------------------------------------------------- |
 | [architecture/README.md](architecture/README.md) | Runtime architecture index: tracker instances, shared services, and event topology. |
+| [architecture/glossary.md](architecture/glossary.md) | Runtime and shutdown terms, one definition per term |
 
 ## AI Agents
 
