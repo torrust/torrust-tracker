@@ -5,5 +5,5 @@ udp4_responses: 2000
 udp4_errors_handled: 0
 udp_requests_aborted: 0
 udp_banned_ips_total: 0
-udp_avg_connect_processing_time_ns: 15599
-udp_avg_announce_processing_time_ns: 22608
+udp_avg_connect_processing_time_ns: 14498
+udp_avg_announce_processing_time_ns: 21603

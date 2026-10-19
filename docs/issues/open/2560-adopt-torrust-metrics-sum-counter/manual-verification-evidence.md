@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2560-adopt-torrust-metrics-sum-counter/ISSUE.md
-last-updated-utc: 2026-10-19 11:40
+last-updated-utc: 2026-10-19 12:06
 ---
 
 # Manual Verification Evidence
@@ -20,8 +20,8 @@ The runs wrote their files under the git-ignored `.tmp/2560/` directory. Everyth
 
 ## Environment and Prerequisites
 
-- Date and time (UTC): 2026-10-19 11:20-11:40
-- Artifact under test: `target/release/torrust-tracker` and `target/release/tracker_client`, built from the tree of `refactor(udp-server): [#2560] read counter totals through sum_counter`. The later commits only change the issue folder.
+- Date and time (UTC): 2026-10-19 11:20-11:40 for V1 and the first M1 and M2 run, and between 12:03 and 12:06 for the final M1 and M2 run recorded below
+- Artifact under test: `target/release/torrust-tracker` built from the tree of `refactor(statistics): [#2560] share the counter read behind a cast-free helper`, and `target/release/tracker_client` built earlier from the same code, which the tracker change does not touch. The later commits only change the issue folder. The first M1 and M2 run used the tree of `refactor(udp-server): [#2560] read counter totals through sum_counter`, before that helper existed, and gave the same counters. The V2 and V3 output below is from the final run.
 - Operating system / environment: Linux 7.0.0-38-generic, rustc 1.99.0 (b940084d7 2026-09-28), release profile, `torrust-metrics` 0.2.0 from crates.io.
 - Prerequisites and setup performed: `cargo build --release --bin torrust-tracker` and `cargo build --release -p torrust-tracker-client --bin tracker_client`. The tracker used loopback ports because the machine is shared. The database file was deleted before the run, and no tracker was running on those ports.
 
@@ -81,7 +81,7 @@ admin = "MyAccessToken"
    `cargo test -p torrust-tracker-http-core --lib exactly_a_total`
 3. UDP server: the test was added with the accessors still on the old path.
    `cargo test -p torrust-tracker-udp-server --lib f64_cannot_represent`
-4. The same commands were rerun after the production change.
+4. The same commands were rerun after the production change, and `cargo test --workspace --lib f64_cannot_represent` was rerun after the `counter_total` helper was added: all three tests still pass.
 
 #### Observed Result
 
@@ -129,8 +129,8 @@ udp4_responses: 2000
 udp4_errors_handled: 0
 udp_requests_aborted: 0
 udp_banned_ips_total: 0
-udp_avg_connect_processing_time_ns: 15599
-udp_avg_announce_processing_time_ns: 22608
+udp_avg_connect_processing_time_ns: 14498
+udp_avg_announce_processing_time_ns: 21603
 ```
 
 #### Conclusion
@@ -177,4 +177,5 @@ Met. `tcp4_announces_handled` equals the 50 announces sent. Of the 6 invalid pac
 
 ## Failures and Follow-up
 
-None. One planning note: the spec said M1 would send 1,000 connect requests. The maintained client sends a connect and an announce per invocation, so the evidence records both.
+- One attempt at the final M2 run was discarded: a `stop_bash` call for the tracker was issued in the same batch as the M2 commands and killed the tracker mid-run, so every HTTP announce failed and no statistics were read. The tracker was restarted from a fresh database and M1 and M2 were rerun in separate steps. The output above is that rerun.
+- One planning note: the spec said M1 would send 1,000 connect requests. The maintained client sends a connect and an announce per invocation, so the evidence records both.

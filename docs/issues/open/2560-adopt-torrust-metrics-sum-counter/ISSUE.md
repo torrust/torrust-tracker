@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-progress
+status: in-review
 priority: p3
 epic: null
 github-issue: 2560
 spec-path: docs/issues/open/2560-adopt-torrust-metrics-sum-counter/ISSUE.md
 branch: "2560-adopt-torrust-metrics-sum-counter"
-related-pr: null
-last-updated-utc: "2026-10-19 11:38"
+related-pr: 2561
+last-updated-utc: "2026-10-19 12:03"
 semantic-links:
   skill-links:
     - create-issue
@@ -47,8 +47,8 @@ One conversion cannot go away. The UDP server's `udp_banned_ips_total` reads a g
 ### In Scope
 
 - Bump `torrust-metrics` from `0.1.0` to `0.2.0` in the eight manifests: `axum-rest-api-server`, `http-core`, `rest-api-protocol`, `rest-api-runtime-adapter`, `swarm-coordination-registry`, `tracker-core`, `udp-core`, and `udp-server`. Update `Cargo.lock` and check that only expected entries change.
-- Replace the `whole_total` helpers of HTTP core and UDP core with `sum_counter`, and remove their `#[expect]` attributes.
-- In the UDP server, read counters with `sum_counter` and keep one retained `#[expect]` with a permanent reason in the `udp_banned_ips_total` accessor, which is the only gauge reader. (The draft proposed a renamed gauge helper. With a single call site the cast belongs in the accessor, so no helper remains.)
+- Replace the `whole_total` helpers of HTTP core and UDP core with a cast-free `counter_total` helper over `sum_counter`, and remove their `#[expect]` attributes. (The draft planned to call `sum_counter` in every accessor. Review finding `review-finding:pr-2561-f1` asked for one place for that expression, and the UDP server alone has 17 call sites.)
+- In the UDP server, read counters through the same cast-free helper and keep one retained `#[expect]` with a permanent reason in the `udp_banned_ips_total` accessor, which is the only gauge reader. (The draft proposed a renamed gauge helper. With a single call site the cast belongs in the accessor, so no helper remains.)
 - Add a focused test per package that a counter above 2^53 is returned exactly. The old path rounded it.
 - Keep the behavior of every accessor for realistic values, including `0` for a metric that does not exist yet.
 
@@ -84,7 +84,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | -- | ------ | ---- | ----------------------- |
 | T1 | DONE | Bump `torrust-metrics` to `0.2.0` in the eight manifests and `Cargo.lock` | `cargo build --workspace` passes. `git diff Cargo.lock` is reviewed and records any transitive change, which should be only `torrust-metrics` itself. Follow the `update-dependencies` skill. |
 | T2 | DONE | Read counters through `sum_counter` in HTTP core and UDP core, with a test that a counter above 2^53 is exact | The `whole_total` helpers and their `#[expect]` attributes are gone. Each package has a test that fails on the old code and passes on the new. |
-| T3 | DONE | Do the same in the UDP server and keep the cast only in `udp_banned_ips_total` | One retained `#[expect]` with a permanent reason that names the gauge and the `reset_bans` fall. `udp_processed_requests_total` and the other 16 counter accessors use `sum_counter`. |
+| T3 | DONE | Do the same in the UDP server and keep the cast only in `udp_banned_ips_total` | One retained `#[expect]` with a permanent reason that names the gauge and the `reset_bans` fall. `udp_processed_requests_total` and the other 16 counter accessors use `counter_total`, which calls `sum_counter`. |
 | T4 | DONE | Run the workspace checks and the manual scenarios | Clippy with `-D warnings`, the affected package tests, `linter all`, and pre-push pass. Evidence is recorded. |
 
 The tests for T2 and T3 prove they fail on the old code with the mutate-then-restore method: temporarily route the accessor back through `Sum::sum` and `as u64`, observe the failure, restore.
@@ -119,11 +119,12 @@ The tests for T2 and T3 prove they fail on the old code with the mutate-then-res
 - 2026-10-19 10:26 UTC - GitHub Copilot - Drafted after `torrust-metrics` 0.2.0 was released with the exact counter sum; the maintainer chose one task issue with one implementation PR that carries this spec, and asked for the cleanest long-term outcome for the banned-IP gauge - Awaiting maintainer review
 - 2026-10-19 11:23 UTC - GitHub Copilot - Maintainer approved the spec; created issue #2560, moved the spec to `docs/issues/open/`, and renamed the branch to `2560-adopt-torrust-metrics-sum-counter` (no spec-only PR, as chosen) - Implementation starts
 - 2026-10-19 11:38 UTC - GitHub Copilot - T1-T4 done: bumped `torrust-metrics` to 0.2.0 in the eight manifests (one lock entry changed); moved HTTP core, UDP core, and the UDP server's 17 counters to `sum_counter` with one red/green test per package; kept the banned-IP gauge cast in its accessor with a permanent reason (a single call site made a helper pointless, a deviation from the draft); ran M1 and M2 against a local release tracker and `pre-push.sh`, all passing; no retrospective needed - Awaiting review
+- 2026-10-19 12:03 UTC - GitHub Copilot - PR #2561 review round 1 (Copilot, three findings, all valid): added a cast-free `counter_total` helper per package for the repeated `sum_counter` read, switched the UDP server test to a fixed timestamp, and set the status to `in-review` with `related-pr: 2561` - See `docs/pr-reviews/pr-2561-review/PR-REVIEW.md`
 
 ## Acceptance Criteria
 
 - [x] AC1: All eight manifests depend on `torrust-metrics` `0.2.0`, and `Cargo.lock` resolves a single `torrust-metrics` version.
-- [x] AC2: HTTP core and UDP core read counter totals with `sum_counter` and have no float-to-integer cast and no `#[expect]` in their metrics modules.
+- [x] AC2: HTTP core and UDP core read counter totals through `sum_counter` and have no float-to-integer cast and no `#[expect]` in their metrics modules.
 - [x] AC3: The UDP server reads counter totals with `sum_counter`. Its only remaining float-to-integer cast for these totals is in the `udp_banned_ips_total` accessor, with one `#[expect]` whose reason names the gauge and the `reset_bans` fall.
 - [x] AC4: A counter above 2^53 is returned exactly by an accessor in each of the three packages, and each test is proven red against the old code.
 - [x] AC5: Every accessor returns the same value as before for realistic values, including `0` for a metric that does not exist yet. The existing tests of the three packages pass unchanged.
@@ -167,8 +168,8 @@ None kept. M1 and M2 use the maintained `tracker_client` binary. M2 needs UDP an
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
 | AC1 | DONE | `grep -rn 'torrust-metrics' --include=Cargo.toml` shows `0.2.0` in all eight manifests, and `Cargo.lock` has one `torrust-metrics` entry at 0.2.0. The lock diff is that entry's version and checksum only. |
-| AC2 | DONE | `grep -rn 'whole_total\|#\[expect' packages/http-core/src/statistics/metrics.rs packages/udp-core/src/statistics/metrics.rs` finds nothing. Both packages read every counter with `sum_counter`. |
-| AC3 | DONE | 17 counter accessors in `packages/udp-server/src/statistics/metrics.rs` use `sum_counter`. The four remaining `#[expect]` attributes there are the averaged helper, the two moving-average conversions, and `udp_banned_ips_total`. |
+| AC2 | DONE | `grep -rn 'whole_total\|#\[expect' packages/http-core/src/statistics/metrics.rs packages/udp-core/src/statistics/metrics.rs` finds nothing. Both packages read every counter through a cast-free `counter_total` helper, whose body is the only `sum_counter` call. |
+| AC3 | DONE | 17 counter accessors in `packages/udp-server/src/statistics/metrics.rs` use `counter_total`, whose body is the only `sum_counter` call. The four remaining `#[expect]` attributes there are the averaged helper, the two moving-average conversions, and `udp_banned_ips_total`. |
 | AC4 | DONE | One test per package, red against the old path with `left: 9007199254740992` and `right: 9007199254740993`, and green after (`manual-verification-evidence.md` V1). |
 | AC5 | DONE | The existing tests pass unchanged (HTTP core 33, UDP core 97, UDP server 225 after one new test each), `pre-push.sh` passes, and M1 and M2 read the expected counters. |
 
