@@ -40,14 +40,19 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-One review was submitted. Copilot's review 5550796171 carries two inline threads, F1 and F2. Its
-overview repeats them, so the body adds no rows. It read the head whose subject is
-"docs(issues): [#2525] mark T1 done and link the CI-portability ADR".
+Two reviews were submitted, both by Copilot. Review 5550796171 carries two inline threads, F1 and
+F2. Its overview repeats them, so the body adds no rows. It read the head whose subject is
+"docs(issues): [#2525] mark T1 done and link the CI-portability ADR". Review 5574378420 read the head
+whose subject is "docs(pr-reviews): add the PR #2556 review audit" and carries two inline threads,
+F3 and F4; its overview repeats them and warns that the full agentic review did not start before a
+timeout, so the body adds no rows.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2556-f1 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
 | F2 | review-finding:pr-2556-f2 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
+| F3 | review-finding:pr-2556-f3 | Copilot | Nit (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F4 | review-finding:pr-2556-f4 | Copilot | Nit (inferred) | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -96,6 +101,40 @@ overview repeats them, so the body adds no rows. It read the head whose subject 
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2556#discussion_r4315890698>
 
+### F3 - The wiring bullet allows only the exit code, but the verdict bullet leaves two mechanisms open
+
+- PR number: 2556
+- Source review ID: 5574378420
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2556#discussion_r4316081356>
+- Concern: the "merge verdict" bullet allows a failing verdict to reach the job status through the
+  exit code or through a JSON field, but "Workflows only wire" lets a workflow set a job's status from
+  the exit code only, which implies a single mandated mechanism.
+- Solution: the wiring bullet allows setting a job's status from the tool's exit code or from a field
+  of its JSON result, and says that which of the two is the verdict task's choice.
+- Current-tree verification: the ADR's "Workflows only wire" bullet names both mechanisms and refers
+  to the verdict bullet.
+- Resolution reference: docs(adrs): [#2525] let workflows set a job's status from the exit code or a JSON field
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2556#discussion_r4316144582>
+
+### F4 - The log entry's actor label does not match the repository's
+
+- PR number: 2556
+- Source review ID: 5574378420
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2556#discussion_r4316081439>
+- Concern: "AI assistant" is ambiguous and does not match the terminology used elsewhere in the
+  repository. Use a consistent actor label.
+- Solution: the T1 entry this pull request adds to the #2525 specification now says `GitHub Copilot`.
+  The earlier entries of that log, and those in the #2507 and #2547 specifications, are already
+  merged and keep their label, because relabelling them is outside this pull request.
+- Current-tree verification: `rg 'UTC - GitHub Copilot -' docs/issues` finds 1106 progress-log
+  entries, `UTC - Copilot -` 256, and `UTC - AI assistant -` 34. The T1 entry says `GitHub Copilot`.
+- Resolution reference: docs(issues): [#2525] use the repository's actor label in the T1 log entry
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2556#discussion_r4316144861>
+
 ## Processing Log
 
 - 2026-10-19 15:47 UTC - Fetched the review and its two threads, classified and numbered the findings,
@@ -103,6 +142,12 @@ overview repeats them, so the body adds no rows. It read the head whose subject 
 - 2026-10-19 15:48 UTC - Ran the pre-push checks, pushed, and, after the push, replied on both
   threads.
 - 2026-10-19 15:49 UTC - Started this record, with a reply URL in every row.
+- 2026-10-19 15:52 UTC - Pushed this record, resolved both threads, and re-requested da2ce7 and
+  Copilot.
+- 2026-10-19 16:09 UTC - Copilot's review 5574378420 arrived at the pushed head, with two new threads
+  (F3 and F4).
+- 2026-10-19 16:17 UTC - Fixed F3 and F4 in separate signed commits, pushed, replied on both threads
+  after the push, and added F3 and F4 with their reply URLs to this record.
 
 ## Completion Rules
 
