@@ -60,6 +60,11 @@ His approving review 5547834689, at the head after the round 4 fixes, carries th
 F22 to F24 (two `Nit` and one `Suggestion`), with the same ID reassignment. It repeats no further request
 in its body and adds no row. The next fix push dismissed it at 12:41:19Z.
 
+His review 5562034258, a re-review at the head after the retrospective, carries three more inline threads,
+F25 to F27, all `Nit`, with the same ID reassignment. It repeats no further request in its body and adds no
+row. The next fix push dismissed it at 2026-10-19 11:12:26Z. A conversation comment of 2026-10-19 10:40 UTC
+answers the question in the re-review request about issue #2503 and asks for no change here.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2553-f1 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -86,6 +91,9 @@ in its body and adds no row. The next fix push dismissed it at 12:41:19Z.
 | F22 | review-finding:pr-2553-f22 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F23 | review-finding:pr-2553-f23 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F24 | review-finding:pr-2553-f24 | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
+| F25 | review-finding:pr-2553-f25 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F26 | review-finding:pr-2553-f26 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
+| F27 | review-finding:pr-2553-f27 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -421,6 +429,45 @@ in its body and adds no row. The next fix push dismissed it at 12:41:19Z.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2553#discussion_r4294755748>
 
+### F25 - The retrospective's audit-only count conflates two counts
+
+- PR number: 2553
+- Source review ID: 5562034258
+- Reviewer finding ID: F1
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2553#discussion_r4306265333>
+- Concern: The Review Summary row says all 11 `docs(reviews)` commits are audit-only, but the template's audit-only count covers commits that touch nothing but the audit, and only four do.
+- Solution: Wrote "11 `docs(reviews)`, 4 of them audit-only: they touch nothing but `PR-REVIEW.md`".
+- Current-tree verification: `git show --stat` for each of the 11 `docs(reviews)` commits up to the approved head lists only `PR-REVIEW.md` for four of them, and a file list for the other seven that includes the spec, the sub-EPIC or the evidence; the retrospective row says so.
+- Resolution reference: docs(reviews): [#2413] count the audit-only commits as the template defines them
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2553#discussion_r4313138453>
+
+### F26 - The skill's round count disagrees with the retrospective's
+
+- PR number: 2553
+- Source review ID: 5562034258
+- Reviewer finding ID: F2
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2553#discussion_r4306265340>
+- Concern: The new `process-pr-review` section and the commit body say three of five rounds found nothing but statements in the author's records, but the retrospective counts round 3 as also having a deliverable finding (F17), so the measured count is two of the five rounds with findings.
+- Solution: Changed the skill sentence to the measured count (two of the five rounds with findings, rounds 4 and 5, and most findings of rounds 3 to 5). The commit body is not reworded, because the repository keeps a branch's history and a rewrite would change the commit ids the review rounds cite.
+- Current-tree verification: `rg 'three of five' .github docs` finds no match in the skill; its section states two of the five rounds with findings; the retrospective's round table agrees.
+- Resolution reference: docs(skills): [#2413] state the measured round count in the author-records rules
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2553#discussion_r4313138734>
+
+### F27 - The log entry's commit time range ends a minute late
+
+- PR number: 2553
+- Source review ID: 5562034258
+- Reviewer finding ID: F3
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2553#discussion_r4306265344>
+- Concern: The 15:41 entry gives the template and skill commits as "15:35 to 15:39", but they are at 15:35:37Z, 15:36:58Z and 15:38:14Z.
+- Solution: The Processing Log is append-only, so a correction entry was appended giving 15:35 to 15:38, and the 15:41 entry is left as written.
+- Current-tree verification: `git log --format=%cI` gives those three times for the commits; the Processing Log has the 2026-10-19 11:10 correction after the 15:41 entry; the validator passes.
+- Resolution reference: docs(reviews): [#2413] correct the commit time range in the retrospective log entry
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2553#discussion_r4313138972>
+
 ## Processing Log
 
 - 2026-10-16 10:42 UTC - Fetched the review and both inline threads, classified them as Copilot
@@ -467,6 +514,12 @@ in its body and adds no row. The next fix push dismissed it at 12:41:19Z.
 - 2026-10-19 11:10 UTC - Correction to the 2026-10-16 15:41 entry, whose range "15:35 to 15:39" ends a minute
   late: the three template and skill commits are at 15:35:37Z, 15:36:58Z and 15:38:14Z, so the range is
   15:35 to 15:38. The 15:41 entry is left as written.
+- 2026-10-19 11:12 UTC - da2ce7's re-review 5562034258 had arrived on 2026-10-18 at 08:01 UTC with three inline
+  threads, which the author found only on 2026-10-19 (polling had stopped). Reassigned his IDs F1 to F3 to
+  F25 to F27 and re-derived each against git; all were valid. The fixes were committed at 11:07:48Z,
+  11:08:43Z and 11:10:37Z and pushed at about 11:12Z (the timeline dismissed review 5562034258 at 11:12:26Z).
+- 2026-10-19 11:13 UTC - Replied on all three threads, resolved them, and added F25 to F27 to this record, with
+  a reply URL in every row.
 
 ## Completion Rules
 
