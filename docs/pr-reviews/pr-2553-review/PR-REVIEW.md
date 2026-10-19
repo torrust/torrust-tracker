@@ -4,7 +4,7 @@ semantic-links:
     - process-pr-review
   related-artifacts:
     - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
-    - docs/issues/open/2413-2410-si-22-1-document-event-flows-and-draft-adr/ISSUE.md
+    - docs/issues/closed/2413-2410-si-22-1-document-event-flows-and-draft-adr/ISSUE.md
 ---
 
 <!-- skill-link: process-pr-review -->
