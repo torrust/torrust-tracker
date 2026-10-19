@@ -70,6 +70,14 @@ non-actionable and add no row.
   [#2558] record the fourth review round in the audit`) has one inline finding, F7, tagged
   `[Nit][F7]`; the ID does not collide, so its `Reviewer finding ID` is `N/A`. Its overview marks
   it "Low severity" and the comment's own tag is used.
+- Copilot's fifth review 5574519669 (COMMENTED, 2026-10-19 16:22:20 UTC, at the head `docs(pr-reviews):
+  [#2558] record the fifth review round in the audit`) has four inline findings without an ID or a
+  severity tag. Its overview marks the first three "Medium severity" (recorded as `Minor
+  (inferred)`) and the fourth "Low severity" (`Nit (inferred)`). The first three are one comment
+  posted on three lines of the announce plan: F8 is the one on line 18 and F9 and F10 are its
+  re-raises, so each is `RE_RAISE_OF:F8`, `NO_ACTION` and `SUPERSEDED`, with the prescribed reply.
+  The fourth, on the specification's frontmatter, is F11. None gives an ID, so `Reviewer finding ID`
+  is `N/A` for all four.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -80,6 +88,10 @@ non-actionable and add no row.
 | F5 | `review-finding:pr-2558-f5` | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
 | F6 | `review-finding:pr-2558-f6` | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F7 | `review-finding:pr-2558-f7` | Copilot | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F8 | `review-finding:pr-2558-f8` | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F9 | `review-finding:pr-2558-f9` | Copilot | Minor (inferred) | documentation | RE_RAISE_OF:F8 | NO_ACTION | SUPERSEDED |
+| F10 | `review-finding:pr-2558-f10` | Copilot | Minor (inferred) | documentation | RE_RAISE_OF:F8 | NO_ACTION | SUPERSEDED |
+| F11 | `review-finding:pr-2558-f11` | Copilot | Nit (inferred) | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -221,6 +233,66 @@ non-actionable and add no row.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2558#discussion_r4316006471>
 
+### F8 - `status: approved` hides that the plan was amended after the approval
+
+- PR number: 2558
+- Source review ID: 5574519669
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2558#discussion_r4316199493>
+- Concern: the plan's header and Approval section say it was approved on 2026-10-16, but the plan
+  was amended afterwards, with the confirmation deferred to later reviews, so a reader or a tool that
+  treats `status: approved` as full authorization is misled.
+- Solution: a Post-Approval Amendments section near the top lists the five amendments with their
+  date, scope, the step they touch and a Confirmed column (all Pending); the intro line and the
+  approval record link to it, and the approval record's wording is otherwise unchanged.
+- Current-tree verification: the plan's table has five rows that match the five amendment entries in
+  its Progress Log (2026-10-17 08:22 and 09:49; 2026-10-19 11:23, 11:24 and 12:44).
+- Resolution reference: docs(issues): [#1349] list the post-approval amendments of the announce plan
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2558#discussion_r4316266022>
+
+### F9 - Re-raise of F8, on the plan's Approval line
+
+- PR number: 2558
+- Source review ID: 5574519669
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2558#discussion_r4316199588>
+- Concern: the same comment as F8, posted on a second line of the plan.
+- Solution: none separate; the fix for F8 addresses it.
+- Current-tree verification: the three comments have identical text; the Approval section links to
+  the Post-Approval Amendments section.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2558#discussion_r4316266342>
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2558#discussion_r4316266342>
+
+### F10 - Re-raise of F8, on the plan's last amendment entry
+
+- PR number: 2558
+- Source review ID: 5574519669
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2558#discussion_r4316199625>
+- Concern: the same comment as F8, posted on a third line of the plan.
+- Solution: none separate; the fix for F8 addresses it.
+- Current-tree verification: as for F9.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2558#discussion_r4316266657>
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2558#discussion_r4316266657>
+
+### F11 - The PR #2558 audit is not in the specification's `related-artifacts`
+
+- PR number: 2558
+- Source review ID: 5574519669
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2558#discussion_r4316199671>
+- Concern: the specification lists the #2546 audit under `semantic-links.related-artifacts` but not
+  the #2558 audit that this PR adds and its progress log links.
+- Solution: the audit is listed in the frontmatter.
+- Current-tree verification: the frontmatter lists `docs/pr-reviews/pr-2558-review/PR-REVIEW.md`,
+  which exists, and the staged frontmatter validator passed.
+- Resolution reference: docs(issues): [#1349] link the PR 2558 review audit from the specification
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2558#discussion_r4316266918>
+
 ## Processing Log
 
 - 2026-10-17 09:46 UTC - Copilot submitted review 5557264376 with the one inline finding.
@@ -264,6 +336,13 @@ non-actionable and add no row.
 - 2026-10-19 15:58 UTC - Committed the F7 fix.
 - 2026-10-19 16:01 UTC - Pushed, replied on the thread and resolved it.
 - 2026-10-19 16:01 UTC - Recorded this round here.
+- 2026-10-19 16:05 UTC - Pushed the fifth-round audit and re-requested review.
+- 2026-10-19 16:22 UTC - Copilot's fifth review 5574519669 raised four threads on that head.
+- 2026-10-19 16:24 UTC - Found them while polling; verified both claims against the plan and the
+  specification frontmatter, and found that three threads are one comment on three lines.
+- 2026-10-19 16:26 UTC - Committed the F8 and F11 fixes, one commit each.
+- 2026-10-19 16:29 UTC - Pushed, replied on the four threads and resolved them.
+- 2026-10-19 16:30 UTC - Recorded this round here.
 
 ## Completion Rules
 

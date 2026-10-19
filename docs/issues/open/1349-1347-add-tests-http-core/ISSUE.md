@@ -9,7 +9,7 @@ github-issue: 1349
 spec-path: docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md
 branch: "1349-1347-add-tests-http-core-inventory"
 related-pr: 2558
-last-updated-utc: "2026-10-19 16:01"
+last-updated-utc: "2026-10-19 16:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -582,6 +582,10 @@ lines are the T1 baseline measurement (see [Baseline Coverage](#baseline-coverag
 - 2026-10-19 16:01 UTC - GitHub Copilot - Copilot's fourth review raised one `Nit` (F7 in the
   audit): the audit recorded the wrong source finding ID for F6. Fixed, with every entry
   cross-checked against its source comment, and resolved.
+- 2026-10-19 16:30 UTC - GitHub Copilot - Copilot's fifth review raised four threads (F8-F11 in the
+  audit): the announce plan now lists its five post-approval amendments, each pending the
+  maintainer's confirmation at the R1 or R2 review, and the specification links the PR #2558
+  audit. Three of the threads were one comment on three lines. All are resolved.
 
 ## Acceptance Criteria
 
