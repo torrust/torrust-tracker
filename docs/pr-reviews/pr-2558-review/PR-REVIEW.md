@@ -53,6 +53,12 @@ non-actionable and add no row.
   inline findings with the IDs F1, F2 and F3, which collide with this audit's F1, so they are
   recorded as F2, F3 and F4 with the original IDs kept in the detail entries. His ACK comment names
   that head, and his review body raises nothing further to act on.
+- da2ce7's second review 5571057583 (APPROVED, 2026-10-19 11:47:25 UTC, at the head
+  `docs(pr-reviews): [#2558] record the second review round in the audit`) and his ACK comment of
+  that head carry no finding.
+- Copilot's third review 5571126185 (COMMENTED, 2026-10-19 11:53:47 UTC, at that same head) has one
+  inline finding, F5. Its overview marks it "Low severity" and the comment is tagged `[Minor]`; the
+  comment's own tag is used.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -60,6 +66,7 @@ non-actionable and add no row.
 | F2 | `review-finding:pr-2558-f2` | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
 | F3 | `review-finding:pr-2558-f3` | Human | Suggestion | testing | ORIGINAL | FIXED | RESOLVED |
 | F4 | `review-finding:pr-2558-f4` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F5 | `review-finding:pr-2558-f5` | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -142,6 +149,26 @@ non-actionable and add no row.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2558#discussion_r4313284642>
 
+### F5 - Mutation M5 does not compile under the workspace lints
+
+- PR number: 2558
+- Source review ID: 5571126185
+- Reviewer finding ID: F5
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2558#discussion_r4313486866>
+- Concern: deleting the `with_public_url` call removes the only read of the private
+  `AnnounceService::public_url` field, and the workspace denies `unused` and `warnings`, so the
+  documented M5 fails compilation before R2k runs and proves nothing.
+- Solution: the plan's Named Mutations section says to run M5 with `RUSTFLAGS="--cap-lints=warn"`
+  (as T6 does), to count it only when R2k runs and fails and not on a compile error, and to try a new
+  mutation without the cap first. M1-M4 were compile-checked too and compile under the default
+  lints.
+- Current-tree verification: applying M5 gave `field public_url is never read` and exit 101 with the
+  default lints, and exit 0 with the cap; M1-M4 gave exit 0 by default; `git diff -- packages` was
+  empty afterwards; the plan's M5 row and the section note carry the new wording.
+- Resolution reference: docs(issues): [#1349] run mutation M5 with the lint cap in the announce plan
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2558#discussion_r4313979913>
+
 ## Processing Log
 
 - 2026-10-17 09:46 UTC - Copilot submitted review 5557264376 with the one inline finding.
@@ -161,6 +188,14 @@ non-actionable and add no row.
   each.
 - 2026-10-19 11:30 UTC - Pushed, replied on the three threads and resolved them.
 - 2026-10-19 11:31 UTC - Recorded this round here.
+- 2026-10-19 11:47 UTC - da2ce7 approved the head (review 5571057583) and posted an ACK with no
+  finding.
+- 2026-10-19 11:53 UTC - Copilot's third review 5571126185 raised F5 on that head.
+- 2026-10-19 12:43 UTC - Found F5 while verifying the PR before posting the maintainer's ACK, and
+  verified it by applying mutations M1-M5 and compiling each.
+- 2026-10-19 12:44 UTC - Committed the F5 fix.
+- 2026-10-19 12:47 UTC - Pushed, replied on the thread and resolved it.
+- 2026-10-19 12:48 UTC - Recorded this round here.
 
 ## Completion Rules
 

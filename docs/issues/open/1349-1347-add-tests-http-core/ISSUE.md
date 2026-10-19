@@ -9,7 +9,7 @@ github-issue: 1349
 spec-path: docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md
 branch: "1349-1347-add-tests-http-core-inventory"
 related-pr: 2558
-last-updated-utc: "2026-10-19 11:31"
+last-updated-utc: "2026-10-19 12:48"
 semantic-links:
   skill-links:
     - create-issue
@@ -573,6 +573,9 @@ lines are the T1 baseline measurement (see [Baseline Coverage](#baseline-coverag
   now says that `ClientConnectionContext::port` is dead only together with `client_port`. All three
   are fixed and resolved. The announce plan is amended a third time; the maintainer confirms the
   amendments at the R1 and R2 reviews.
+- 2026-10-19 12:48 UTC - GitHub Copilot - Copilot's third review raised one `Minor` finding (F5 in
+  the audit): mutation M5 does not compile under the workspace `unused` denial. Verified by applying
+  it and fixed in the plan (M5 runs with `--cap-lints=warn`); M1-M4 compile by default. Resolved.
 
 ## Acceptance Criteria
 
