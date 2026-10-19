@@ -112,3 +112,19 @@ fn it_should_resolve_the_same_package_differently_for_each_dependent() {
     assert_eq!(resolve_module_name(&dep("b", Some("bar")), Some(&dep_package)), "bar");
     assert_eq!(resolve_module_name(&dep("b", None), Some(&dep_package)), "b");
 }
+
+#[test]
+fn it_should_use_the_name_of_an_rlib_or_dylib_target() {
+    let rlib_package = package("b", &json!([{ "name": "b_rlib", "kind": ["rlib"] }]));
+    let dylib_package = package("b", &json!([{ "name": "b_dylib", "kind": ["dylib"] }]));
+
+    assert_eq!(resolve_module_name(&dep("b", None), Some(&rlib_package)), "b_rlib");
+    assert_eq!(resolve_module_name(&dep("b", None), Some(&dylib_package)), "b_dylib");
+}
+
+#[test]
+fn it_should_use_the_library_target_name_when_the_target_has_several_kinds() {
+    let dep_package = package("b", &json!([{ "name": "b_multi", "kind": ["cdylib", "rlib"] }]));
+
+    assert_eq!(resolve_module_name(&dep("b", None), Some(&dep_package)), "b_multi");
+}
