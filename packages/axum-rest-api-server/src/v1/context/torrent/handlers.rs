@@ -100,6 +100,7 @@ pub async fn get_torrents_handler(State(service): State<Arc<TorrentApiService>>,
 }
 
 #[derive(Error, Debug)]
+#[non_exhaustive]
 pub enum QueryParamError {
     #[error("invalid infohash {info_hash}")]
     InvalidInfoHash { info_hash: String },
