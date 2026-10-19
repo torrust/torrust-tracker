@@ -482,7 +482,7 @@ dismissed it at 2026-10-19 11:31:25Z.
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2553#discussion_r4313261505>
 - Concern: the spec and sub-EPIC log entries called review 5562034258 "round 6", but the retrospective's round table uses round 6 for the approval review 5548045897, so "round 6" named two different reviews in the tree.
 - Solution: renamed the two log entries to round 7, as the reviewer's own ACK calls it, and appended a log entry in each file that records the rename. The audit already gave the review no number. The subject of the commit that says round 6 is not reworded, because the repository keeps a branch's history and a rewrite would change the commit ids that the review rounds cite.
-- Current-tree verification: `rg -n 'round 6' docs/issues/open/2413-* docs/issues/open/2410-*` finds no match in the spec or the sub-EPIC, and the retrospective's table still uses round 6 only for review 5548045897.
+- Current-tree verification: `rg -n 'round 6' docs/issues/open/2413-* docs/issues/open/2410-*` finds two matches, the rename entries in the spec and in the sub-EPIC, which quote "round 6" to record the rename. No entry still calls review 5562034258 round 6, and the retrospective's table uses round 6 only for review 5548045897.
 - Resolution reference: docs(issues): [#2413] number the retrospective re-review as round 7 in the spec and sub-EPIC logs
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2553#discussion_r4313294108>
