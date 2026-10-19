@@ -255,6 +255,8 @@ No derive change is proposed; changing one needs the maintainer's approval.
   is never constructed and never matched: its declaration in `packages/configuration/src/lib.rs` is
   the only `Infallible` in `packages/`, `console/`, `src/`, and `contrib/`. The maintainer decided to
   remove it in its own T4 commit after the configuration crate gains `#[non_exhaustive]`.
+  Done in `refactor(configuration)!: [#2454] remove the never-constructed Infallible error variant`;
+  the enum has 7 variants since then (the tables above show the count at inventory time).
 - No public API returns `Result<_, Infallible>`, and no public enum is empty (every enum above has at
   least one variant; the rustdoc scan found no variant-less enum in any crate).
 
@@ -298,7 +300,7 @@ Updated in each T3 commit. `TODO` until the crate's commit lands. `Marked` count
 | 17 | `torrust-tracker` | 11 | 0 | DONE: `feat(torrust-tracker)!: [#2454] mark public error enums non_exhaustive` |
 | 18 | `torrust-tracker-client` | 6 | 0 | DONE: `feat(tracker-client)!: [#2454] mark public error enums non_exhaustive` |
 
-T4 (remove `configuration::Error::Infallible`): TODO.
+T4 (remove `configuration::Error::Infallible`): DONE: `refactor(configuration)!: [#2454] remove the never-constructed Infallible error variant`.
 
 ## Review outcome
 

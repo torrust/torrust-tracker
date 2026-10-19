@@ -337,9 +337,6 @@ pub enum Error {
         source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
     },
 
-    #[error("The error for errors that can never happen.")]
-    Infallible,
-
     #[error("Unsupported configuration version: {version}")]
     UnsupportedVersion { version: Version },
 
