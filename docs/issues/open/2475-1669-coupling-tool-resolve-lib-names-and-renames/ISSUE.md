@@ -9,16 +9,19 @@ github-issue: 2475
 spec-path: docs/issues/open/2475-1669-coupling-tool-resolve-lib-names-and-renames/ISSUE.md
 branch: "2475-1669-coupling-tool-resolve-lib-names-and-renames"
 related-pr: 2559
-last-updated-utc: "2026-10-19 11:52"
+last-updated-utc: "2026-10-19 11:53"
 semantic-links:
   skill-links:
     - create-issue
     - fix-bug
   related-artifacts:
     - docs/issues/open/2475-1669-coupling-tool-resolve-lib-names-and-renames/manual-verification-evidence.md
+    - contrib/dev-tools/analysis/workspace-coupling/src/lib.rs
     - contrib/dev-tools/analysis/workspace-coupling/src/main.rs
     - contrib/dev-tools/analysis/workspace-coupling/tests/parse_imports.rs
+    - contrib/dev-tools/analysis/workspace-coupling/tests/resolve_module_name.rs
     - docs/issues/open/1669-overhaul-packages/workspace-coupling-report-2026-10-06.md
+    - docs/issues/open/1669-overhaul-packages/workspace-coupling-report-2026-10-17.md
     - docs/issues/open/1669-overhaul-packages/EPIC.md
 ---
 
@@ -195,9 +198,14 @@ Use a Conventional Commit message with the issue reference and sign every commit
 - 2026-10-19 11:51 UTC - GitHub Copilot - Ticked the checkboxes of AC1 to AC5 and of "Automatic
   verification completed" so they agree with the Acceptance Verification table, per PR #2559
   review finding F3.
-- 2026-10-19 11:52 UTC - GitHub Copilot - Restamped the implementation entry from 12:40 to 12:33
+- 2026-10-19 11:51 UTC - GitHub Copilot - Restamped the implementation entry from 12:40 to 12:33
   UTC, the time of the commit that wrote it. The `last-updated-utc` of this spec and of the
   evidence file were restamped by the commits that edit them, per PR #2559 review finding F2.
+  (The stamp of this entry was first written as 11:52, later than its commit at 11:51:50; the
+  next commit corrected it to 11:51.)
+- 2026-10-19 11:53 UTC - GitHub Copilot - Added `lib.rs`, `tests/resolve_module_name.rs` and the
+  2026-10-17 report to `related-artifacts`, and linked the 2026-10-17 report from the EPIC, per
+  PR #2559 review finding F7.
 
 ## Acceptance Criteria
 
