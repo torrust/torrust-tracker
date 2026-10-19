@@ -206,6 +206,12 @@ Use a Conventional Commit message with the issue reference and sign every commit
 - 2026-10-19 11:53 UTC - GitHub Copilot - Added `lib.rs`, `tests/resolve_module_name.rs` and the
   2026-10-17 report to `related-artifacts`, and linked the 2026-10-17 report from the EPIC, per
   PR #2559 review finding F7.
+- 2026-10-19 11:53 UTC - GitHub Copilot - Correction to the 2026-10-17 12:33 UTC entry: it logs
+  T4 (the regenerated report) as done, but the report was committed by the next commit,
+  `docs(issues): [#2475] regenerate the workspace coupling report`, after the commit that wrote the
+  entry (`docs(issues): [#2475] record the red run, green run and R2 recheck`). The history is kept
+  as it happened, per the repository's commit-history policy, and the Commit Points table lists T4
+  as the last commit. This is PR #2559 review finding F5.
 
 ## Acceptance Criteria
 
