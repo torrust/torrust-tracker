@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: planned
+status: in-review
 priority: p3
 epic: 1669
 github-issue: 2475
 spec-path: docs/issues/open/2475-1669-coupling-tool-resolve-lib-names-and-renames/ISSUE.md
 branch: "2475-1669-coupling-tool-resolve-lib-names-and-renames"
-related-pr: null
-last-updated-utc: "2026-10-17 12:40"
+related-pr: 2559
+last-updated-utc: "2026-10-19 11:50"
 semantic-links:
   skill-links:
     - create-issue
@@ -190,6 +190,8 @@ Use a Conventional Commit message with the issue reference and sign every commit
   regenerated `workspace-coupling-report-2026-10-17.md`. The generated Observations text was
   hand-adjusted in the report to pass markdownlint (blank line before a list) and to describe
   this regeneration. Awaiting maintainer review (AC6).
+- 2026-10-19 11:50 UTC - GitHub Copilot - Set `status: in-review` and `related-pr: 2559`, per PR
+  #2559 review finding F1.
 
 ## Acceptance Criteria
 
