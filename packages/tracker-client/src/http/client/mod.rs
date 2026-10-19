@@ -14,6 +14,7 @@ use torrust_tracker_http_protocol::v1::requests::announce::Announce;
 use torrust_tracker_http_protocol::v1::requests::scrape_builder;
 
 #[derive(Debug, Clone, Error)]
+#[non_exhaustive]
 pub enum Error {
     #[error("Failed to Build a Http Client: {err:?}")]
     ClientBuildingError { err: Arc<reqwest::Error> },
