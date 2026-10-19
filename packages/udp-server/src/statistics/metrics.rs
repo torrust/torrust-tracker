@@ -519,7 +519,7 @@ mod tests {
                     &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ABORTED_TOTAL),
                     &LabelSet::empty(),
                     total_beyond_f64_precision,
-                    CurrentClock::now(),
+                    DurationSinceUnixEpoch::ZERO,
                 )
                 .unwrap();
 
