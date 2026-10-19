@@ -104,8 +104,8 @@ feedback is prevented earlier and future review processing consumes fewer tokens
 ## Statements in Your Own Records
 
 The audit, the evidence file, spec progress logs, replies, and commit bodies are reviewed like the
-change itself. In PR #2553 three of five review rounds found nothing but statements in these records
-that went further than what had run. Issue #2503 plans the full author self-audit gate; until it
+change itself. In PR #2553 two of the five rounds with findings (rounds 4 and 5) found nothing but statements in
+these records that went further than what had run, and most findings of rounds 3 to 5 were of that kind. Issue #2503 plans the full author self-audit gate; until it
 lands, follow these rules:
 
 - **Stamp an event only after it happened.** Write a log entry about a push, reply, or resolution
