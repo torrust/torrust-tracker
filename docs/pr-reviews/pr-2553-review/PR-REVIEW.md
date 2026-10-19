@@ -78,6 +78,10 @@ His approving review 5571054785, at the head after the round 8 fix, is round 9. 
 threads, F29 to F31 (all `Nit`), with the same ID reassignment. It repeats no further request in its body and
 adds no row. The next fix push dismissed it at 2026-10-19 11:53:05Z.
 
+His approving review 5571314192, at the head after the round 9 fixes, is round 10. It carries one more inline
+thread, F32 (`Nit`), with the same ID reassignment. It repeats no further request in its body and adds no row.
+The next fix push dismissed it at 2026-10-19 12:13:27Z.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2553-f1 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -111,6 +115,7 @@ adds no row. The next fix push dismissed it at 2026-10-19 11:53:05Z.
 | F29 | review-finding:pr-2553-f29 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F30 | review-finding:pr-2553-f30 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F31 | review-finding:pr-2553-f31 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F32 | review-finding:pr-2553-f32 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -537,6 +542,19 @@ adds no row. The next fix push dismissed it at 2026-10-19 11:53:05Z.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2553#discussion_r4313484836>
 
+### F32 - The push-time sweep claim covers more than it found
+
+- PR number: 2553
+- Source review ID: 5571314192
+- Reviewer finding ID: F1
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2553#discussion_r4313628694>
+- Concern: F29's Solution and the 11:49 log entry say no other push-reporting entry was stamped before its push, but the 11:55 and 12:19 entries were, at 11:56:24Z and 12:20:03Z. Both already carry appended corrections, so the sweep found something narrower: the 11:29 entry was the only one still uncorrected.
+- Solution: reworded F29's Solution to the narrower fact and appended a correction entry after the 11:49 entry, which is left as written because the Processing Log is append-only. The earlier reply on F29's thread had the same wrong sentence, so a dated correction was appended to it, keeping its original text.
+- Current-tree verification: `gh api repos/torrust/torrust-tracker/issues/2553/timeline` lists the dismissals at 2026-10-16T11:56:24Z and 12:20:03Z; the log has the 12:11 correction entry after the 11:49 entry; F29's Solution names the two earlier entries and their corrections (12:15 and 12:37).
+- Resolution reference: docs(reviews): [#2413] limit the push-time sweep claim to what it found
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2553#discussion_r4313668629>
+
 ## Processing Log
 
 - 2026-10-16 10:42 UTC - Fetched the review and both inline threads, classified them as Copilot
@@ -611,6 +629,10 @@ adds no row. The next fix push dismissed it at 2026-10-19 11:53:05Z.
   11:29 entry "was the only one stamped before its push": the 11:55 and 12:19 entries were also stamped before
   their pushes (the timeline dismissals are at 11:56:24Z and 12:20:03Z) and already carry appended corrections,
   so the 11:29 entry was the only one still uncorrected. The 11:49 entry is left as written.
+- 2026-10-19 12:13 UTC - Fixed F32 in one signed commit (committed 12:11:24Z) and pushed (the timeline
+  dismissed review 5571314192 at 12:13:27Z).
+- 2026-10-19 12:14 UTC - Replied on the thread, resolved it, appended a dated correction to the earlier F29
+  reply, and added F32 to this record, with a reply URL in its row.
 
 ## Completion Rules
 
