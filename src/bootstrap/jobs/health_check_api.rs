@@ -19,6 +19,7 @@ use tracing::instrument;
 use crate::bootstrap::jobs::manager::{ComponentCompletion, ComponentError, ComponentResult, TokenAwareServerTask};
 
 #[derive(Debug, thiserror::Error)]
+#[non_exhaustive]
 pub enum Error {
     #[error("Could not start the health check API: {source}")]
     Start { source: server::Error },

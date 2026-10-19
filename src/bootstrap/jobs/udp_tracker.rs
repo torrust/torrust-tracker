@@ -21,6 +21,7 @@ use tracing::instrument;
 use crate::bootstrap::jobs::manager::{ComponentCompletion, ComponentError, ComponentResult, OwnedTask};
 
 #[derive(Debug, thiserror::Error)]
+#[non_exhaustive]
 pub enum Error {
     #[error("Could not start the UDP tracker listener. Check that its bind address is available: {source}")]
     Listener {

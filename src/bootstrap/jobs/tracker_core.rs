@@ -8,6 +8,7 @@ use crate::container::AppContainer;
 
 /// Errors encountered while starting tracker-core background jobs.
 #[derive(Debug, thiserror::Error)]
+#[non_exhaustive]
 pub enum Error {
     #[error("Persistent completed statistics require a persistence container")]
     PersistentStatisticsRequirePersistence,

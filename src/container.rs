@@ -14,6 +14,7 @@ use torrust_tracker_udp_server::container::UdpTrackerServerContainer;
 use tracing::instrument;
 
 #[derive(thiserror::Error, Debug)]
+#[non_exhaustive]
 pub enum Error {
     #[error("Could not compose the tracker application. Review the configured persistence settings: {source}")]
     TrackerCoreComposition { source: torrust_tracker_core::container::Error },
