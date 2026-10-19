@@ -9,7 +9,7 @@ github-issue: 2475
 spec-path: docs/issues/open/2475-1669-coupling-tool-resolve-lib-names-and-renames/ISSUE.md
 branch: "2475-1669-coupling-tool-resolve-lib-names-and-renames"
 related-pr: 2559
-last-updated-utc: "2026-10-19 11:51"
+last-updated-utc: "2026-10-19 11:52"
 semantic-links:
   skill-links:
     - create-issue
@@ -185,7 +185,7 @@ Use a Conventional Commit message with the issue reference and sign every commit
   decisions (resolver placement in `lib.rs`, library target kinds, new report file name) in
   "Maintainer Decisions". The spec-only branch had already merged; implementation proceeds on
   branch `2475-1669-coupling-tool-resolve-lib-names-and-renames`.
-- 2026-10-17 12:40 UTC - GitHub Copilot - Implemented T1-T4: regression tests recorded red,
+- 2026-10-17 12:33 UTC - GitHub Copilot - Implemented T1-T4: regression tests recorded red,
   per-edge module-name resolution, R2 recheck (zero false "no references" edges) and the
   regenerated `workspace-coupling-report-2026-10-17.md`. The generated Observations text was
   hand-adjusted in the report to pass markdownlint (blank line before a list) and to describe
@@ -195,6 +195,9 @@ Use a Conventional Commit message with the issue reference and sign every commit
 - 2026-10-19 11:51 UTC - GitHub Copilot - Ticked the checkboxes of AC1 to AC5 and of "Automatic
   verification completed" so they agree with the Acceptance Verification table, per PR #2559
   review finding F3.
+- 2026-10-19 11:52 UTC - GitHub Copilot - Restamped the implementation entry from 12:40 to 12:33
+  UTC, the time of the commit that wrote it. The `last-updated-utc` of this spec and of the
+  evidence file were restamped by the commits that edit them, per PR #2559 review finding F2.
 
 ## Acceptance Criteria
 
