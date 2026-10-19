@@ -9,7 +9,7 @@ github-issue: 2536
 spec-path: docs/issues/closed/2536-1669-hide-statistics-repository-read-lock/ISSUE.md
 branch: "2536-1669-hide-statistics-repository-read-lock"
 related-pr: 2545
-last-updated-utc: "2026-10-16 15:30"
+last-updated-utc: "2026-10-18 08:04"
 semantic-links:
   skill-links:
     - create-issue
@@ -297,7 +297,7 @@ request.
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [x] Reviewer validated acceptance criteria and updated checkboxes
-- [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
+- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification (not applicable: no agent received this folder; see the 2026-10-15 21:06 UTC entry)
 - [x] Committer verified spec progress is up to date before commit
 - [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
@@ -453,6 +453,7 @@ request.
   stamps, and this entry is the record of that. The audit
   (`docs/pr-reviews/pr-2545-review/PR-REVIEW.md`) records the findings behind each correction.
 - 2026-10-16 15:30 UTC - GitHub Copilot - PR #2545 merged into `develop` on 2026-10-16 15:22 UTC and #2536 is closed. This spec moved from `docs/issues/open/` to `docs/issues/closed/` and its status is `done`. The optional "Spec-only PR merged" checkpoint is ticked: the spec-only PR #2537 merged into `develop` on 2026-10-15 06:44 UTC. The "Independent reviewer reports" checkpoint is ticked because no agent received this folder: the reviews were posted on GitHub and are audited in `docs/pr-reviews/pr-2545-review/PR-REVIEW.md`; there is no `agent-review-reports.md`. The "Committer verified" checkpoint is ticked on the same basis as the other implementation checkpoints, since every commit passed the pre-commit checks.
+- 2026-10-18 08:04 UTC - GitHub Copilot - PR #2554 review (F1 and F2, da2ce7): two corrections to the 2026-10-16 15:30 UTC archive entry, which stays as written. (F1) The "Independent reviewer reports" checkpoint is open again and marked not applicable on its own line, because no `agent-review-reports.md` exists and no agent received this folder; the 2026-10-15 21:06 UTC entry gives the reason. (F2) The "Committer verified spec progress is up to date" tick now rests on a check of the spec, not on the pre-commit hook: I compared `git log --follow` for this spec with its Progress Log. Every spec commit has a log entry that covers it, except `docs(issues): [#2536] record the pull request number`, which set `related-pr` and has none of its own; the #1669 EPIC's log records PR #2545. The log is current through the archive commit.
 
 ## Acceptance Criteria
 
