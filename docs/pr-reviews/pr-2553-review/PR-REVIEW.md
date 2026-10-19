@@ -464,6 +464,9 @@ in its body and adds no row. The next fix push dismissed it at 12:41:19Z.
   added `review-retrospective.md` beside this record (commit at 15:41:10Z), with the template and skill
   changes it lists in their own commits (15:35 to 15:39). Written with Claude Opus 5.5; the earlier
   entries were written with Claude Sonnet 5.5, per the maintainer.
+- 2026-10-19 11:10 UTC - Correction to the 2026-10-16 15:41 entry, whose range "15:35 to 15:39" ends a minute
+  late: the three template and skill commits are at 15:35:37Z, 15:36:58Z and 15:38:14Z, so the range is
+  15:35 to 15:38. The 15:41 entry is left as written.
 
 ## Completion Rules
 
