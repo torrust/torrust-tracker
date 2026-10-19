@@ -286,7 +286,7 @@ Updated in each T3 commit. `TODO` until the crate's commit lands. `Marked` count
 | 5 | `torrust-tracker-events` | 0 | 1 (E1) | DONE: `docs(events): [#2454] document why RecvError stays exhaustive` |
 | 6 | `torrust-tracker-core` | 10 | 0 | DONE: `feat(tracker-core)!: [#2454] mark public error enums non_exhaustive` |
 | 7 | `torrust-tracker-http-protocol` | 7 | 0 | DONE: `feat(http-protocol)!: [#2454] mark public error enums non_exhaustive` |
-| 8 | `torrust-tracker-http-core` | 2 | 0 | TODO |
+| 8 | `torrust-tracker-http-core` | 2 | 0 | DONE: `feat(http-core)!: [#2454] mark public error enums non_exhaustive` |
 | 9 | `torrust-tracker-axum-http-server` | 1 | 0 | TODO |
 | 10 | `torrust-tracker-rest-api-protocol` | 2 | 0 | TODO |
 | 11 | `torrust-tracker-rest-api-client` | 2 | 0 | TODO |
