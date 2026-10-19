@@ -36,7 +36,7 @@ change. It does not replace the audit record and is not required for routine rev
 | Re-raised findings (`RE_RAISE_OF`) | 0 |
 | Findings about the audit record itself | 6 (F5, F19, F20, F22, F23, F24) |
 | Findings about the other records (evidence, spec, stamps, a commit body) | 9 (F4, F7, F9, F11, F14, F15, F16, F18, F21) |
-| Commits on the branch | 36 at the approved head (11 `docs(reviews)` audit-only) |
+| Commits on the branch | 36 at the approved head (11 `docs(reviews)`, 4 of them audit-only: they touch nothing but `PR-REVIEW.md`) |
 | First review to last thread resolution | 2026-10-16 10:41 UTC (Copilot) to about 12:41 UTC (round 5 threads resolved); approval with no finding at 12:54 UTC |
 | AI models used | Claude Sonnet 5.5 (author: implementation and review processing, per the maintainer); unknown (da2ce7 and the Copilot review bot) |
 
