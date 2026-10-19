@@ -81,6 +81,7 @@ fn map_peer_key_error(err: torrust_tracker_core::error::PeerKeyError) -> AuthKey
             reason: source.to_string(),
         },
         PeerKeyError::DatabaseError { source } => AuthKeyError::Database(source.to_string()),
+        unknown => AuthKeyError::Database(unknown.to_string()),
     }
 }
 

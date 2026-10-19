@@ -46,6 +46,7 @@ pub async fn load_persisted_metrics(
 }
 
 #[derive(Error, Debug, Clone)]
+#[non_exhaustive]
 pub enum Error {
     #[error("Database error: {err}")]
     DatabaseError { err: databases::error::Error },

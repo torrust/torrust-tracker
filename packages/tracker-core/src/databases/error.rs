@@ -19,6 +19,7 @@ use torrust_tracker_primitives::Driver;
 /// Database error type that encapsulates various failures encountered during
 /// database operations.
 #[derive(thiserror::Error, Debug, Clone)]
+#[non_exhaustive]
 pub enum Error {
     /// Indicates that a query unexpectedly returned no rows.
     ///

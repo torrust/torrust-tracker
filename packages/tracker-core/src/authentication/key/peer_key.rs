@@ -189,6 +189,7 @@ impl Key {
 /// If the string does not contains a valid key, the parser function will return
 /// this error.
 #[derive(Debug, Error)]
+#[non_exhaustive]
 pub enum ParseKeyError {
     /// The provided key does not have exactly 32 characters.
     #[error("Invalid key length. Key must be have 32 chars")]
