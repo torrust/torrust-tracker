@@ -114,3 +114,51 @@ semantic-links:
       the audit numbers them 9 (F29 to F31) and 10 (F32), and round 8 (F28) is already logged.
     - F6: leave as is.
   - A Task Reviewer re-review of these fixes is appended before the prep pull request opens.
+
+### 2026-10-19 19:08 UTC - Task Reviewer (re-review of the prep branch)
+
+- Invocation scope: the whole prep branch `2410-si-22-prep-after-2413` from the archive merge of
+  #2413 to its third commit: `docs(issues): [#2410] refresh stale SI-22 spec text before #2414`,
+  `docs(shutdown): [#2413] attribute the publish-nothing facts to D Versus F, not entry 27` (F1),
+  and
+  `docs(issues): [#2413] record the post-merge Task Reviewer report and the implementation retrospective`
+  (F2 and F5, with the F3, F4, and F6 decisions). Read-only.
+- Inputs: the branch diff (9 files) and commit log; the two new files in this folder and their
+  templates; `PR-REVIEW.md` and `review-retrospective.md` of PR #2553; the merge commits of PRs
+  #2544, #2545, and #2552; the branch-naming rules in `AGENTS.md` and the `create-issue` skill.
+- Evidence:
+  - All three commits are signed. The `branch:` values of #2414, #2415, and #2416 follow the
+    naming rule, and the obsolete `epic` note is gone.
+  - `rg '#2471'` over the sub-EPIC and #2414 to #2416 finds no remaining "must merge" statement
+    outside dated log entries. PR #2544 merged at 06:56 UTC on 2026-10-16.
+  - The T10 swarm-bus addition is in the sub-EPIC T10 step, #2416 Scope, and the #2416 T10 row.
+  - The #2414 revalidation note matches `git diff --stat` of the two merges against their first
+    parents, except for N1.
+  - The #1488 diff changes only roadmap row 15 and `last-updated-utc`.
+  - The F1 fix moves the two rows to a table attributed to "D Versus F" (EPIC lines 1172 to 1176),
+    both Confirmed, with dated log corrections; the sub-EPIC entry records the two real
+    differences.
+  - The 17:12 UTC entry above summarizes the first report faithfully; the retrospective's checked
+    claims hold (`git log -S` finds the rows first in the T1 commit; `gh api` shows approval
+    5571665038 at 12:40:32Z with no inline comment), except N2 and N3. Both ticked checkpoints are
+    justified.
+  - Bookkeeping: each touched spec's `last-updated-utc` equals its newest log entry, every stamp
+    is before its commit's committer time, every new log entry names the model, and no branch
+    commit id appears in repository files. The frontmatter validator passed on the changed files.
+    `linter all` exited 0 on the third commit.
+- Findings:
+  - N1 (nit): the #2414 note on PR #2545 omits the statistics repositories and metrics it changed,
+    including `packages/tracker-core/src/statistics/repository.rs`, which the persistent listener's
+    handler uses; the PR #2552 bullet does name them.
+  - N2 (nit): the retrospective quotes a search for `Command::new("git")`, which now finds only the
+    `frontmatter-validator` tests because `clippy-allow-reasons` uses `fixture_command("git")`; the
+    conclusion still holds.
+  - N3 (nit): "The coordinator's #2414 brief repeats it" has no repository evidence.
+  - F1, F2, and F5 of the first report are fixed; F3, F4, and F6 are closed by maintainer decisions.
+- Verdict: REVIEW PASSED
+- Follow-up actions:
+  - Caller (GitHub Copilot, Claude Opus 5.5), recorded at 19:09 UTC: N1 to N3 are fixed in the
+    next commit of the prep branch. N1: the #2414 note names the statistics repositories and
+    metrics, and tracker-core's repository. N2: the retrospective quotes the search actually run,
+    `rg -l '"git"' --glob '**/tests/**/*.rs'`, and the two isolation helpers. N3: the sentence is
+    removed. These are wording fixes, so no further review was run.

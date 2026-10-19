@@ -9,7 +9,7 @@ github-issue: 2414
 spec-path: docs/issues/open/2414-2410-si-22-2-drain-listener-queues-on-shutdown/ISSUE.md
 branch: "2414-drain-listener-queues-on-shutdown"
 related-pr: null
-last-updated-utc: "2026-10-19 17:08"
+last-updated-utc: "2026-10-19 19:09"
 semantic-links:
   skill-links:
     - create-issue
@@ -113,7 +113,10 @@ requests merged into `develop` on 2026-10-16 changed the code it touches
   the event handlers in the same `statistics/event/` folders, the banning
   handler `packages/udp-server/src/banning/event/handler.rs` and
   `packages/udp-server/src/banning/mod.rs`, and
-  `packages/tracker-core/tests/common/test_env.rs` (T3b).
+  `packages/tracker-core/tests/common/test_env.rs` (T3b). It also changed the
+  statistics repositories and metrics of those packages, including
+  `packages/tracker-core/src/statistics/repository.rs`, which the persistent
+  listener's handler (T3a, T4c) also updates (read from source, not run).
 - PR #2552 (#2244, UDP metric aggregates) changed the banning handler again,
   plus other statistics files outside `statistics/event/` (metrics,
   repositories, and the activity metrics updater).
@@ -236,3 +239,4 @@ and independent Task Reviewer report.
 - 2026-10-02 11:03 UTC - GitHub Copilot - Drafted from SI-22 T3-T5 (D17).
 - 2026-10-02 13:30 UTC - GitHub Copilot - Added AC7 (sub-EPIC AC12): the drain timeout does not interrupt a handler; shared-deadline abort remains an exception.
 - 2026-10-19 17:08 UTC - GitHub Copilot (Claude Opus 5.5) - Refreshed before implementation: `branch:` names the implementation branch `2414-drain-listener-queues-on-shutdown`; removed the obsolete note about setting `epic`; the Implementation Plan now asks to revalidate the code that PRs #2545 and #2552 changed after this spec was written (file lists from `git diff --stat` of each merge).
+- 2026-10-19 19:09 UTC - GitHub Copilot (Claude Opus 5.5) - The revalidation note now also names the statistics repositories and metrics that PR #2545 changed, including tracker-core's repository, which the persistent listener's handler updates (nit N1 of the #2413 Task Reviewer re-review).

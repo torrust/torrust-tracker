@@ -98,8 +98,7 @@ request that also carries this document.
 ## Improvements for Future Work
 
 1. **Run the Task Reviewer and record the retrospective before push** — sub-EPIC Shared Delivery
-   Gates — no change: the guidance existed and was not followed. The coordinator's #2414 brief
-   repeats it.
+   Gates — no change: the guidance existed and was not followed.
 2. **When unplanned code enters a pull request, apply the gates for code to it** (bug process,
    prose-first Arrange-Act-Assert review, Task Reviewer), whatever the issue type says. A lesson for
    #2414 to #2416; no rule added (see below).
@@ -115,10 +114,10 @@ request that also carries this document.
 - No rule against fixing tooling defects inside another issue's pull request. The repository lets
   minor process improvements ride along in their own commits, and the maintainer accepted this fix.
 - No new checker for recheck tables or log-only findings: one occurrence each.
-- No workspace-wide Git-isolation rule. A search for `Command::new("git")` in Rust test files finds
-  fixture Git commands only in `frontmatter-validator` and `clippy-allow-reasons`, and both now clear
-  the repository-local variables (searched on 2026-10-19, read from source, not run). Shell and
-  Python tests were not checked.
+- No workspace-wide Git-isolation rule. `rg -l '"git"' --glob '**/tests/**/*.rs'` finds fixture Git
+  commands only in the `frontmatter-validator` and `clippy-allow-reasons` test files. Both send them
+  through a helper (`isolated` and `fixture_command`) that removes the repository-selecting
+  variables (searched and read on 2026-10-19, not run). Shell and Python tests were not checked.
 
 ## Evidence
 
