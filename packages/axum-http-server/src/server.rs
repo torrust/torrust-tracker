@@ -41,6 +41,7 @@ const HTTP_GRACEFUL_DRAIN_TIMEOUT: Duration = Duration::from_secs(90);
 /// - The task to shutdown the server on the spawned server failed to execute to
 ///   completion.
 #[derive(Debug, thiserror::Error)]
+#[non_exhaustive]
 pub enum Error {
     #[error("could not bind HTTP tracker listener: {source}")]
     Bind { source: std::io::Error },
