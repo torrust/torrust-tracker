@@ -146,6 +146,7 @@ impl ScrapeService {
 
 /// Errors related to scrape requests.
 #[derive(thiserror::Error, Debug, Clone)]
+#[non_exhaustive]
 pub enum UdpScrapeError {
     /// Error returned when there was an error with the connection cookie.
     #[error("Connection cookie error: {source}")]
