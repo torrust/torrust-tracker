@@ -9,6 +9,7 @@ use tracing::instrument;
 
 /// Error returned by the Bootstrap Process.
 #[derive(Error, Debug)]
+#[non_exhaustive]
 pub enum Error {
     /// Enabled tls but missing config.
     #[error("TLS certificate or key file does not exist: certificate={cert}, key={key}")]
