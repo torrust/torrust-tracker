@@ -78,9 +78,11 @@ Concretely:
   the needed job groups, each group's result, and an optional maintainer override. It passes only
   when every needed group succeeded or the override applies, and otherwise names each failing,
   cancelled, or missing group.
-- **Workflows only wire.** A workflow may run a tool, pass it job results, and set a job's status
-  from its exit code. It must not classify changes, evaluate conditions beyond what the platform
-  needs to schedule a job, or compose a verdict.
+- **Workflows only wire.** A workflow may run a tool, pass it job results, set a job's status from its
+  exit code, and consume a scheduling decision that a tool computed: a job's `if:` or a matrix that
+  reads an earlier tool job's output, as `generate_coverage_pr.yaml` does with the
+  `package-coverage-check` tool. It must not decide which job groups a change needs, evaluate the
+  results of earlier jobs, or compose a verdict itself.
 - **One always-reporting required check.** GitHub is asked to require one check, `CI gate`, which
   reports on every pull request, whether it changes code or only documentation. The tool behind it
   decides its outcome. The issue that implements the gate (#2525) defines the override and the other
@@ -91,12 +93,14 @@ Concretely:
 Keep a rule in a workflow only when all of these hold:
 
 - The platform needs it to schedule the job (an event trigger, a matrix, a runner label, a
-  permission, an artifact hand-off).
-- It has no branches on the content of the change or on earlier results.
+  permission, an artifact hand-off), or it only reads a scheduling decision that a tool already
+  computed (for example, running a job only when the classifier tool's output lists its group).
+- It has no branches of its own on the content of the change or on earlier results.
 - A reader needs no test to trust it.
 
-If a rule depends on which paths changed, on the result of another job, or on who did something, it
-is decision logic and belongs in a tool, where a unit test can cover it.
+If a rule itself depends on which paths changed, on the results of other jobs, or on who did
+something, it is decision logic and belongs in a tool, where a unit test can cover it. Reading the
+tool's answer is wiring; producing the answer is not.
 
 ### What this ADR does not decide
 
