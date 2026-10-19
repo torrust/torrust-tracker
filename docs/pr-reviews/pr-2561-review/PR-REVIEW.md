@@ -72,6 +72,16 @@ body carries one independently actionable finding with no inline thread, F7, so 
 submitted review's URL as its source and the thread state `NON_RESOLVABLE`. The bot marked it with a
 low severity icon, so the severity is inferred.
 
+Round 4: da2ce7's review 5571915234 (APPROVED, 2026-10-19 13:01:24 UTC, on the head whose newest
+commit is `docs(pr-reviews): [#2560] record Copilot's second review in the PR #2561 audit`) carries
+one inline finding. da2ce7 numbered it F8, which does not collide with an audit row, so it keeps
+that ID. The review body is a verification report that resolves round 3's findings and adds no other
+row. It reports no review from the bot after 12:37:07 UTC. The approval was dismissed at
+15:36:32 UTC by the PR author's push whose newest commit is `docs(issues): [#2560] put the overflow
+check where a reader looks for it`, which is the commit that fixes F8. Its ACK comment
+(<https://github.com/torrust/torrust-tracker/pull/2561#issuecomment-6267827863>) names the head
+before that push, so neither covers it.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | `review-finding:pr-2561-f1` | Copilot | Minor (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
@@ -81,6 +91,7 @@ low severity icon, so the severity is inferred.
 | F5 | `review-finding:pr-2561-f5` | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
 | F6 | `review-finding:pr-2561-f6` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F7 | `review-finding:pr-2561-f7` | Copilot | Nit (inferred) | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F8 | `review-finding:pr-2561-f8` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -222,6 +233,30 @@ low severity icon, so the severity is inferred.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2561#issuecomment-6267553195>
 
+### F8 - The overflow check is recorded only as an unlinked artifact
+
+- PR number: 2561
+- Source review ID: 5571915234
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2561#discussion_r4314111554>
+- Concern: the spec's Disposable Verification Scripts section still said "None kept", although the
+  overflow check was a throwaway Rust test that was created, run, and deleted, which is what the
+  template asks the section to describe: why temporary automation, where it lives, and who removes
+  it. The evidence file did not link `evidence/overflow-check.txt` either, although the evidence
+  template says artifacts stored in `evidence/` are linked from there.
+- Solution: the section now describes both disposable artifacts, the `/dev/udp` one-liner of M2 and
+  the throwaway Rust test, with why a maintained test is the wrong home, who owned and removed it,
+  why it is Rust, and where its source and output live. The evidence file links the artifact in its
+  artifact list and has a new V4 with the goal, steps, output, and conclusion. V4 also compares the
+  counter `Sum` of `torrust-metrics` 0.1.0 and 0.2.0, which both call `metric.sum` and then cast
+  with `as f64`, and states that the measurement was made in a debug build only.
+- Current-tree verification: `grep -c "None kept"` over the spec reads 0, the spec names
+  `tmp_overflow_check.rs`, the evidence file links `evidence/overflow-check.txt` and has a `### V4`
+  section, and the evidence file exists.
+- Resolution reference: docs(issues): [#2560] put the overflow check where a reader looks for it
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2561#discussion_r4315773189>
+
 ## Processing Log
 
 - 2026-10-19 12:15 UTC - Started audit after Copilot's review 5571188743 and da2ce7's review
@@ -236,6 +271,10 @@ low severity icon, so the severity is inferred.
   UTC), whose body carried one finding without an inline thread, F7 here. Fixed it in the spec and
   the PR description, answered it with a PR conversation comment, and recorded it as
   `NON_RESOLVABLE`. No approval was standing when the fix was pushed.
+- 2026-10-19 15:37 UTC - Round 4: da2ce7's review 5571915234 (APPROVED and ACK on the head that
+  ended with the Round 3 audit commit) carried one finding, F8. Fixed it, pushed, and replied on its
+  thread. The approval was dismissed at 15:36:32 UTC by that push, as recorded in the Findings
+  section. The push waited for a GPG passphrase prompt, so it landed well after the review.
 
 ## Completion Rules
 
