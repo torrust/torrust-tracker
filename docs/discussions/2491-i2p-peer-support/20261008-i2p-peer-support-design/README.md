@@ -152,7 +152,7 @@ feature can be tested without raw `curl` commands? Added by Jose Celano.
 
 AI assistance not disclosed: the author's private tooling may include machine-learning tools.
 
-##### Q1 - Jose Celano (`josecelano`), 2026-10-19, PR #TBD
+##### Q1 - Jose Celano (`josecelano`), 2026-10-19, PR #2562
 
 Reply to [`addressing-as-a-layer`](#q1---cameron-garnham-da2ce7-2026-10-08-pr-2500). I agree
 with the goal: the tracker should not hard-code one addressing layer, and I2P is the right
@@ -241,7 +241,7 @@ assistant using the Copilot SDK in VS Code from my PR comment.
 
 AI assistance not disclosed: the author's private tooling may include machine-learning tools.
 
-##### Q4 - Jose Celano (`josecelano`), 2026-10-19, PR #TBD
+##### Q4 - Jose Celano (`josecelano`), 2026-10-19, PR #2562
 
 This replaces my [2026-10-08 entry](#q4---jose-celano-josecelano-2026-10-08-pr-2492) and replies to
 [`address-model-at-centre`](#q4---cameron-garnham-da2ce7-2026-10-08-pr-2500). I agree that a
@@ -280,7 +280,7 @@ peers (A5), but what should scrape responses, the REST API, and metrics count? S
 
 AI assistance not disclosed: the author's private tooling may include machine-learning tools.
 
-##### Q5 - Jose Celano (`josecelano`), 2026-10-19, PR #TBD
+##### Q5 - Jose Celano (`josecelano`), 2026-10-19, PR #2562
 
 Reply to [`reachability-decided-once`](#q5---cameron-garnham-da2ce7-2026-10-08-pr-2500). I would
 separate two decisions that are easy to mix up: how the core stores peers, and which peers a
@@ -379,7 +379,7 @@ VS Code from my review documents.
 
 AI assistance not disclosed: the author's private tooling may include machine-learning tools.
 
-##### Q8 - Jose Celano (`josecelano`), 2026-10-19, PR #TBD
+##### Q8 - Jose Celano (`josecelano`), 2026-10-19, PR #2562
 
 Reply to [`api-exports-the-layer`](#q8---cameron-garnham-da2ce7-2026-10-08-pr-2500). I agree
 with naming the library API and the application API separately, and with the rule that the
@@ -426,7 +426,7 @@ by Jose Celano.
 
 #### Positions
 
-##### Q11 - Jose Celano (`josecelano`), 2026-10-19, PR #TBD
+##### Q11 - Jose Celano (`josecelano`), 2026-10-19, PR #2562
 
 Both choices have a cost. As a mode of the HTTP tracker, every path that handles a peer's address
 gains a condition for the two modes. As a separate service, much of the HTTP tracker's code is
@@ -491,7 +491,7 @@ I2P, even if WebTorrent is not delivered by EPIC #2491? Added by Jose Celano.
 
 #### Positions
 
-##### Q12 - Jose Celano (`josecelano`), 2026-10-19, PR #TBD
+##### Q12 - Jose Celano (`josecelano`), 2026-10-19, PR #2562
 
 Yes. Designing for both is cheaper than reworking the core for the second one. What follows comes
 from two implementations: [`webtorrent/bittorrent-tracker`](https://github.com/webtorrent/bittorrent-tracker),
