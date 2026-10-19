@@ -176,6 +176,7 @@ pub struct Announce {
 /// EPIC](../../../../../docs/issues/drafts/generalize-error-events/EPIC.md) before
 /// exposing parser failures through an event stream.
 #[derive(Error, Debug)]
+#[non_exhaustive]
 pub enum ParseAnnounceQueryError {
     /// A mandatory param is missing.
     #[error("missing query params for announce request in {location}")]

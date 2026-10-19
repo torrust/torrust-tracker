@@ -8,6 +8,7 @@ use thiserror::Error;
 /// path. These are the possible errors that can occur when extracting the key
 /// from the URL path.
 #[derive(Debug, Error)]
+#[non_exhaustive]
 pub enum Error {
     #[error("Invalid format for authentication key param. Error in {location}")]
     InvalidKeyFormat { location: &'static Location<'static> },

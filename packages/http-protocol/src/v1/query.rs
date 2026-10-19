@@ -96,6 +96,7 @@ impl Query {
 /// This error can be returned when parsing a [`Query`]
 /// from a string.
 #[derive(Error, Debug)]
+#[non_exhaustive]
 pub enum ParseQueryError {
     /// Invalid URL query param. For example: `"name=value=value"`. It contains
     /// an unescaped `=` character.
