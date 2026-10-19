@@ -50,70 +50,64 @@ impl Metrics {
 }
 
 impl Metrics {
+    /// Sum of the counter samples matching `labels`. Returns `0` when the
+    /// metric does not exist yet.
+    fn counter_total(&self, metric_name: &MetricName, labels: &LabelSet) -> u64 {
+        self.metric_collection.sum_counter(metric_name, labels).unwrap_or_default()
+    }
+
     /// Total number of UDP (UDP tracker) connections from IPv4 peers.
     #[must_use]
     pub fn udp4_connections_handled(&self) -> u64 {
-        self.metric_collection
-            .sum_counter(
-                &metric_name!(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL),
-                &[("server_binding_address_ip_family", "inet"), ("request_kind", "connect")].into(),
-            )
-            .unwrap_or_default()
+        self.counter_total(
+            &metric_name!(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL),
+            &[("server_binding_address_ip_family", "inet"), ("request_kind", "connect")].into(),
+        )
     }
 
     /// Total number of UDP (UDP tracker) `announce` requests from IPv4 peers.
     #[must_use]
     pub fn udp4_announces_handled(&self) -> u64 {
-        self.metric_collection
-            .sum_counter(
-                &metric_name!(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL),
-                &[("server_binding_address_ip_family", "inet"), ("request_kind", "announce")].into(),
-            )
-            .unwrap_or_default()
+        self.counter_total(
+            &metric_name!(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL),
+            &[("server_binding_address_ip_family", "inet"), ("request_kind", "announce")].into(),
+        )
     }
 
     /// Total number of UDP (UDP tracker) `scrape` requests from IPv4 peers.
     #[must_use]
     pub fn udp4_scrapes_handled(&self) -> u64 {
-        self.metric_collection
-            .sum_counter(
-                &metric_name!(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL),
-                &[("server_binding_address_ip_family", "inet"), ("request_kind", "scrape")].into(),
-            )
-            .unwrap_or_default()
+        self.counter_total(
+            &metric_name!(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL),
+            &[("server_binding_address_ip_family", "inet"), ("request_kind", "scrape")].into(),
+        )
     }
 
     /// Total number of UDP (UDP tracker) `connection` requests from IPv6 peers.
     #[must_use]
     pub fn udp6_connections_handled(&self) -> u64 {
-        self.metric_collection
-            .sum_counter(
-                &metric_name!(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL),
-                &[("server_binding_address_ip_family", "inet6"), ("request_kind", "connect")].into(),
-            )
-            .unwrap_or_default()
+        self.counter_total(
+            &metric_name!(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL),
+            &[("server_binding_address_ip_family", "inet6"), ("request_kind", "connect")].into(),
+        )
     }
 
     /// Total number of UDP (UDP tracker) `announce` requests from IPv6 peers.
     #[must_use]
     pub fn udp6_announces_handled(&self) -> u64 {
-        self.metric_collection
-            .sum_counter(
-                &metric_name!(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL),
-                &[("server_binding_address_ip_family", "inet6"), ("request_kind", "announce")].into(),
-            )
-            .unwrap_or_default()
+        self.counter_total(
+            &metric_name!(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL),
+            &[("server_binding_address_ip_family", "inet6"), ("request_kind", "announce")].into(),
+        )
     }
 
     /// Total number of UDP (UDP tracker) `scrape` requests from IPv6 peers.
     #[must_use]
     pub fn udp6_scrapes_handled(&self) -> u64 {
-        self.metric_collection
-            .sum_counter(
-                &metric_name!(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL),
-                &[("server_binding_address_ip_family", "inet6"), ("request_kind", "scrape")].into(),
-            )
-            .unwrap_or_default()
+        self.counter_total(
+            &metric_name!(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL),
+            &[("server_binding_address_ip_family", "inet6"), ("request_kind", "scrape")].into(),
+        )
     }
 }
 

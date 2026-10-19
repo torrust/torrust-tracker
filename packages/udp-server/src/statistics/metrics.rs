@@ -58,6 +58,12 @@ impl Metrics {
 }
 
 impl Metrics {
+    /// Sum of the counter samples matching `labels`. Returns `0` when the
+    /// metric does not exist yet.
+    fn counter_total(&self, metric_name: &MetricName, labels: &LabelSet) -> u64 {
+        self.metric_collection.sum_counter(metric_name, labels).unwrap_or_default()
+    }
+
     /// Mean of the per-server average processing time gauges for one request
     /// kind, rounded toward zero to whole nanoseconds. Returns `0` when there
     /// are no samples.
@@ -127,19 +133,15 @@ impl Metrics {
 
     #[must_use]
     pub fn udp_request_accepted_total(&self, label_set: &LabelSet) -> u64 {
-        self.metric_collection
-            .sum_counter(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL), label_set)
-            .unwrap_or_default()
+        self.counter_total(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL), label_set)
     }
 
     #[must_use]
     fn udp_processed_requests_total(&self, label_set: &LabelSet) -> u64 {
-        self.metric_collection
-            .sum_counter(
-                &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSED_REQUESTS_TOTAL),
-                label_set,
-            )
-            .unwrap_or_default()
+        self.counter_total(
+            &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSED_REQUESTS_TOTAL),
+            label_set,
+        )
     }
 
     fn update_udp_avg_processing_time_ns(&mut self, new_avg: f64, label_set: &LabelSet, now: DurationSinceUnixEpoch) {
@@ -177,26 +179,20 @@ impl Metrics {
     /// Total number of UDP (UDP tracker) requests aborted.
     #[must_use]
     pub fn udp_requests_aborted_total(&self) -> u64 {
-        self.metric_collection
-            .sum_counter(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_ABORTED_TOTAL), &LabelSet::empty())
-            .unwrap_or_default()
+        self.counter_total(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_ABORTED_TOTAL), &LabelSet::empty())
     }
 
     /// Total number of UDP (UDP tracker) requests discarded before processing
     /// (e.g. because the client source port is 0).
     #[must_use]
     pub fn udp_requests_discarded_total(&self) -> u64 {
-        self.metric_collection
-            .sum_counter(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_DISCARDED_TOTAL), &LabelSet::empty())
-            .unwrap_or_default()
+        self.counter_total(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_DISCARDED_TOTAL), &LabelSet::empty())
     }
 
     /// Total number of UDP (UDP tracker) requests banned.
     #[must_use]
     pub fn udp_requests_banned_total(&self) -> u64 {
-        self.metric_collection
-            .sum_counter(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_BANNED_TOTAL), &LabelSet::empty())
-            .unwrap_or_default()
+        self.counter_total(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_BANNED_TOTAL), &LabelSet::empty())
     }
 
     /// Number of IPs whose connection ID errors exceed the limit.
@@ -240,134 +236,110 @@ impl Metrics {
     /// Total number of UDP (UDP tracker) requests from IPv4 peers.
     #[must_use]
     pub fn udp4_requests_received_total(&self) -> u64 {
-        self.metric_collection
-            .sum_counter(
-                &metric_name!(UDP_TRACKER_SERVER_REQUESTS_RECEIVED_TOTAL),
-                &[("server_binding_address_ip_family", "inet")].into(),
-            )
-            .unwrap_or_default()
+        self.counter_total(
+            &metric_name!(UDP_TRACKER_SERVER_REQUESTS_RECEIVED_TOTAL),
+            &[("server_binding_address_ip_family", "inet")].into(),
+        )
     }
 
     /// Total number of UDP (UDP tracker) connections from IPv4 peers.
     #[must_use]
     pub fn udp4_connect_requests_accepted_total(&self) -> u64 {
-        self.metric_collection
-            .sum_counter(
-                &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL),
-                &[("server_binding_address_ip_family", "inet"), ("request_kind", "connect")].into(),
-            )
-            .unwrap_or_default()
+        self.counter_total(
+            &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL),
+            &[("server_binding_address_ip_family", "inet"), ("request_kind", "connect")].into(),
+        )
     }
 
     /// Total number of UDP (UDP tracker) `announce` requests from IPv4 peers.
     #[must_use]
     pub fn udp4_announce_requests_accepted_total(&self) -> u64 {
-        self.metric_collection
-            .sum_counter(
-                &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL),
-                &[("server_binding_address_ip_family", "inet"), ("request_kind", "announce")].into(),
-            )
-            .unwrap_or_default()
+        self.counter_total(
+            &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL),
+            &[("server_binding_address_ip_family", "inet"), ("request_kind", "announce")].into(),
+        )
     }
 
     /// Total number of UDP (UDP tracker) `scrape` requests from IPv4 peers.
     #[must_use]
     pub fn udp4_scrape_requests_accepted_total(&self) -> u64 {
-        self.metric_collection
-            .sum_counter(
-                &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL),
-                &[("server_binding_address_ip_family", "inet"), ("request_kind", "scrape")].into(),
-            )
-            .unwrap_or_default()
+        self.counter_total(
+            &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL),
+            &[("server_binding_address_ip_family", "inet"), ("request_kind", "scrape")].into(),
+        )
     }
 
     /// Total number of UDP (UDP tracker) responses from IPv4 peers.
     #[must_use]
     pub fn udp4_responses_sent_total(&self) -> u64 {
-        self.metric_collection
-            .sum_counter(
-                &metric_name!(UDP_TRACKER_SERVER_RESPONSES_SENT_TOTAL),
-                &[("server_binding_address_ip_family", "inet")].into(),
-            )
-            .unwrap_or_default()
+        self.counter_total(
+            &metric_name!(UDP_TRACKER_SERVER_RESPONSES_SENT_TOTAL),
+            &[("server_binding_address_ip_family", "inet")].into(),
+        )
     }
 
     /// Total number of UDP (UDP tracker) `error` requests from IPv4 peers.
     #[must_use]
     pub fn udp4_errors_total(&self) -> u64 {
-        self.metric_collection
-            .sum_counter(
-                &metric_name!(UDP_TRACKER_SERVER_ERRORS_TOTAL),
-                &[("server_binding_address_ip_family", "inet")].into(),
-            )
-            .unwrap_or_default()
+        self.counter_total(
+            &metric_name!(UDP_TRACKER_SERVER_ERRORS_TOTAL),
+            &[("server_binding_address_ip_family", "inet")].into(),
+        )
     }
 
     // UDPv6
     /// Total number of UDP (UDP tracker) requests from IPv6 peers.
     #[must_use]
     pub fn udp6_requests_received_total(&self) -> u64 {
-        self.metric_collection
-            .sum_counter(
-                &metric_name!(UDP_TRACKER_SERVER_REQUESTS_RECEIVED_TOTAL),
-                &[("server_binding_address_ip_family", "inet6")].into(),
-            )
-            .unwrap_or_default()
+        self.counter_total(
+            &metric_name!(UDP_TRACKER_SERVER_REQUESTS_RECEIVED_TOTAL),
+            &[("server_binding_address_ip_family", "inet6")].into(),
+        )
     }
 
     /// Total number of UDP (UDP tracker) `connection` requests from IPv6 peers.
     #[must_use]
     pub fn udp6_connect_requests_accepted_total(&self) -> u64 {
-        self.metric_collection
-            .sum_counter(
-                &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL),
-                &[("server_binding_address_ip_family", "inet6"), ("request_kind", "connect")].into(),
-            )
-            .unwrap_or_default()
+        self.counter_total(
+            &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL),
+            &[("server_binding_address_ip_family", "inet6"), ("request_kind", "connect")].into(),
+        )
     }
 
     /// Total number of UDP (UDP tracker) `announce` requests from IPv6 peers.
     #[must_use]
     pub fn udp6_announce_requests_accepted_total(&self) -> u64 {
-        self.metric_collection
-            .sum_counter(
-                &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL),
-                &[("server_binding_address_ip_family", "inet6"), ("request_kind", "announce")].into(),
-            )
-            .unwrap_or_default()
+        self.counter_total(
+            &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL),
+            &[("server_binding_address_ip_family", "inet6"), ("request_kind", "announce")].into(),
+        )
     }
 
     /// Total number of UDP (UDP tracker) `scrape` requests from IPv6 peers.
     #[must_use]
     pub fn udp6_scrape_requests_accepted_total(&self) -> u64 {
-        self.metric_collection
-            .sum_counter(
-                &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL),
-                &[("server_binding_address_ip_family", "inet6"), ("request_kind", "scrape")].into(),
-            )
-            .unwrap_or_default()
+        self.counter_total(
+            &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL),
+            &[("server_binding_address_ip_family", "inet6"), ("request_kind", "scrape")].into(),
+        )
     }
 
     /// Total number of UDP (UDP tracker) responses from IPv6 peers.
     #[must_use]
     pub fn udp6_responses_sent_total(&self) -> u64 {
-        self.metric_collection
-            .sum_counter(
-                &metric_name!(UDP_TRACKER_SERVER_RESPONSES_SENT_TOTAL),
-                &[("server_binding_address_ip_family", "inet6")].into(),
-            )
-            .unwrap_or_default()
+        self.counter_total(
+            &metric_name!(UDP_TRACKER_SERVER_RESPONSES_SENT_TOTAL),
+            &[("server_binding_address_ip_family", "inet6")].into(),
+        )
     }
 
     /// Total number of UDP (UDP tracker) `error` requests from IPv6 peers.
     #[must_use]
     pub fn udp6_errors_total(&self) -> u64 {
-        self.metric_collection
-            .sum_counter(
-                &metric_name!(UDP_TRACKER_SERVER_ERRORS_TOTAL),
-                &[("server_binding_address_ip_family", "inet6")].into(),
-            )
-            .unwrap_or_default()
+        self.counter_total(
+            &metric_name!(UDP_TRACKER_SERVER_ERRORS_TOTAL),
+            &[("server_binding_address_ip_family", "inet6")].into(),
+        )
     }
 }
 
