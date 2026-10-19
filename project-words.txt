@@ -470,6 +470,7 @@ sendmsg
 sendto
 serde
 serialisation
+setdefault
 setgid
 setgroups
 setsid
@@ -492,6 +493,7 @@ srcset
 sscanf
 stabilised
 stackoverflow
+staticlib
 strfmon
 subissue
 subkey
