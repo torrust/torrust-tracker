@@ -207,7 +207,7 @@ Conventional Commits with narrow scopes and sign every commit with GPG.
   moves the measurement to a follow-up issue created at T7, so #2525 can close without a waiting
   period, as decided for #2507 T7. The specification merged with PR #2526, so no separate spec-only
   PR is needed.
-- 2026-10-16 16:03 UTC - AI assistant - T1 done: the maintainer reviewed and approved the draft of the
+- 2026-10-16 16:03 UTC - GitHub Copilot - T1 done: the maintainer reviewed and approved the draft of the
   CI-portability ADR. It records that CI decision logic lives in Rust tools with provider-neutral
   inputs and outputs and that workflows stay thin, with one always-reporting `CI gate`, and leaves the
   override mechanism, the gate cost, and the tool layout to T2 to T5. Next: T2 and T3 (Rust only, no
