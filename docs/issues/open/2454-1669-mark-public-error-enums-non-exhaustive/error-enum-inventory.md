@@ -279,7 +279,7 @@ Updated in each T3 commit. `TODO` until the crate's commit lands. `Marked` count
 
 | Order | Package | Marked | Kept exhaustive | Status |
 | ----- | ------- | ------ | --------------- | ------ |
-| 1 | `torrust-tracker-primitives` | 2 | 0 | TODO |
+| 1 | `torrust-tracker-primitives` | 2 | 0 | DONE: `feat(primitives)!: [#2454] mark public error enums non_exhaustive` |
 | 2 | `torrust-tracker-configuration` | 2 | 0 | TODO |
 | 3 | `torrust-tracker-axum-server` | 1 | 0 | TODO |
 | 4 | `torrust-tracker-axum-health-check-api-server` | 2 | 0 | TODO |

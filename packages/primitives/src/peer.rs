@@ -78,6 +78,7 @@ impl FromStr for PeerRole {
 }
 
 #[derive(Error, Debug)]
+#[non_exhaustive]
 pub enum ParsePeerRoleError {
     #[error("invalid param {raw_param} in {location}")]
     InvalidPeerRole {
@@ -325,6 +326,7 @@ use thiserror::Error;
 ///
 /// Usually because the source format does not contain 20 bytes.
 #[derive(Error, Debug)]
+#[non_exhaustive]
 pub enum IdConversionError {
     #[error("not enough bytes for peer id: {message} {location}")]
     NotEnoughBytes {
