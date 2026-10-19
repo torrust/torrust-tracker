@@ -9,7 +9,7 @@ github-issue: 2560
 spec-path: docs/issues/open/2560-adopt-torrust-metrics-sum-counter/ISSUE.md
 branch: "2560-adopt-torrust-metrics-sum-counter"
 related-pr: 2561
-last-updated-utc: "2026-10-19 12:10"
+last-updated-utc: "2026-10-19 12:43"
 semantic-links:
   skill-links:
     - create-issue
@@ -122,6 +122,7 @@ The tests for T2 and T3 prove they fail on the old code with the mutate-then-res
 - 2026-10-19 11:38 UTC - GitHub Copilot - T1-T4 done: bumped `torrust-metrics` to 0.2.0 in the eight manifests (one lock entry changed); moved HTTP core, UDP core, and the UDP server's 17 counters to `sum_counter` with one red/green test per package; kept the banned-IP gauge cast in its accessor with a permanent reason (a single call site made a helper pointless, a deviation from the draft); ran M1 and M2 against a local release tracker and `pre-push.sh`, all passing; no retrospective needed - Awaiting review
 - 2026-10-19 12:03 UTC - GitHub Copilot - PR #2561 review round 1 (Copilot, three findings, all valid): added a cast-free `counter_total` helper per package for the repeated `sum_counter` read, switched the UDP server test to a fixed timestamp, and set the status to `in-review` with `related-pr: 2561` - See `docs/pr-reviews/pr-2561-review/PR-REVIEW.md`
 - 2026-10-19 12:10 UTC - GitHub Copilot - PR #2561 review round 2 (da2ce7, two findings, both valid): the Background now says the cast stays in the accessor and is the only one left for the integer totals, and the template's independent-reviewer-reports checkpoint is restored and left open - See `docs/pr-reviews/pr-2561-review/PR-REVIEW.md`
+- 2026-10-19 12:43 UTC - GitHub Copilot - PR #2561 review round 3 (Copilot's second review, one finding in the review body, valid): corrected the Risks bullet, which wrongly said the old path saturated on overflow, and saved the overflow check as evidence - See `docs/pr-reviews/pr-2561-review/PR-REVIEW.md`
 
 ## Acceptance Criteria
 
@@ -177,7 +178,7 @@ None kept. M1 and M2 use the maintained `tracker_client` binary. M2 needs UDP an
 
 ## Risks and Trade-offs
 
-- **Overflow behavior differs above `u64::MAX`.** The old path saturated through `f64`, and `sum_counter` adds with unchecked `u64`, which panics in debug and wraps in release. A counter that reaches `u64::MAX` is unreachable at any realistic request rate, since it would need about 580,000 years at one million requests per second. The difference is recorded here and in the `SumCounter` documentation, and is not repeated on each accessor, because it cannot occur.
+- **Overflow behavior is unchanged, and the change removes one rounding.** The old path summed the samples as `u64` in `Metric<Counter>::sum` before converting to `f64`, and `sum_counter` returns that same `u64` sum, so both panic on overflow in a debug build (`evidence/overflow-check.txt` shows it for two samples at `u64::MAX`), and the final saturating cast of the old path never protected that earlier addition. What changes is that a total above 2^53 is no longer rounded to the nearest `f64`. A counter would need about 580,000 years at one million requests per second to reach `u64::MAX`, so overflow cannot occur in practice. (The first draft of this spec claimed the old path saturated. A review finding corrected it.)
 - **A partial bump breaks the build, or worse, builds with two copies of the crate.** Mitigation: bump all eight manifests in one commit and assert a single resolved version in AC1.
 - **Transitive dependency changes in `Cargo.lock`.** Mitigation: review the lock diff and record any change that is not `torrust-metrics` itself.
 - **The gauge cast stays.** It is the cleanest outcome for a true gauge and is documented as permanent, so it is not a deferred cleanup.
