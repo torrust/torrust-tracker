@@ -66,11 +66,11 @@ request is opened, its head is pushed, or its base is edited, but not reliably w
 advances through locally pushed merges. This ADR originally named the freshness of
 `refs/pull/<n>/merge` as the condition; the sandbox experiment of the implementing issue showed that
 pushes are accepted with a stale merge ref and rejected with a stale `base.sha`
-([evidence](../issues/open/2507-stop-requiring-pull-request-rebases/manual-verification-evidence.md),
+([evidence](../issues/closed/2507-stop-requiring-pull-request-rebases/manual-verification-evidence.md),
 sections T1 and T5).
 
 Evidence and reproduction commands: issue-local
-[`baseline-evidence.md`](../issues/open/2507-stop-requiring-pull-request-rebases/baseline-evidence.md).
+[`baseline-evidence.md`](../issues/closed/2507-stop-requiring-pull-request-rebases/baseline-evidence.md).
 
 ## Agreement
 
@@ -152,7 +152,7 @@ refuses it as stale.
 ## References
 
 - Implementing issue: #2507
-  ([specification](../issues/open/2507-stop-requiring-pull-request-rebases/ISSUE.md))
+  ([specification](../issues/closed/2507-stop-requiring-pull-request-rebases/ISSUE.md))
 - PR #2229 — stale merge-base guard in `github-merge.py`
 - Issue #1743 — documentation-only CI fast path
 - Issue #2022 — vendor and document the maintainer merge workflow

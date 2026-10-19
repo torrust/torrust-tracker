@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-progress
+status: done
 priority: p1
 epic: null
 github-issue: 2507
-spec-path: docs/issues/open/2507-stop-requiring-pull-request-rebases/ISSUE.md
+spec-path: docs/issues/closed/2507-stop-requiring-pull-request-rebases/ISSUE.md
 branch: "2507-stop-requiring-pull-request-rebases"
 related-pr: 2526
-last-updated-utc: "2026-10-16 12:17"
+last-updated-utc: "2026-10-16 15:40"
 semantic-links:
   skill-links:
     - create-issue
@@ -18,10 +18,10 @@ semantic-links:
     - merge-pull-request
     - implement-workflow
   related-artifacts:
-    - docs/issues/open/2507-stop-requiring-pull-request-rebases/baseline-evidence.md
-    - docs/issues/open/2507-stop-requiring-pull-request-rebases/manual-verification-evidence.md
-    - docs/issues/open/2507-stop-requiring-pull-request-rebases/implementation-retrospective.md
-    - docs/issues/open/2507-stop-requiring-pull-request-rebases/agent-review-reports.md
+    - docs/issues/closed/2507-stop-requiring-pull-request-rebases/baseline-evidence.md
+    - docs/issues/closed/2507-stop-requiring-pull-request-rebases/manual-verification-evidence.md
+    - docs/issues/closed/2507-stop-requiring-pull-request-rebases/implementation-retrospective.md
+    - docs/issues/closed/2507-stop-requiring-pull-request-rebases/agent-review-reports.md
     - "issue #2525"
     - "issue #2547"
     - docs/issues/open/2547-measure-effect-of-optional-rebases/ISSUE.md
@@ -236,8 +236,8 @@ two-week measurement no longer blocks closure, because it moved to #2547 (T7).
 | C3   | DONE   | Move T7 and AC9 to follow-up issue #2547, with its specification in `docs/issues/open/`.                                                                                                                                                                         |
 | C4   | DONE   | Record the implementation completion review in [`implementation-retrospective.md`](implementation-retrospective.md).                                                                                                                                             |
 | C5   | DONE   | Run the independent Task Reviewer on this specification and the close-out branch; record its result in `agent-review-reports.md` and fix its findings.                                                                                                           |
-| C6   | TODO   | Commit, push, and open the close-out PR with `Related to #2507` (not `Closes`), then process its review with `process-pr-review`.                                                                                                                                |
-| C7   | TODO   | After the close-out PR merges, close #2507 on GitHub with a comment that links the close-out PR, #2525, and #2547. Then archive this folder to `docs/issues/closed/` with the `cleanup-completed-issues` skill, which also repairs links such as those in #2547. |
+| C6   | DONE   | Commit, push, and open the close-out PR with `Related to #2507` (not `Closes`), then process its review with `process-pr-review`.                                                                                                                                |
+| C7   | DONE   | After the close-out PR merges, close #2507 on GitHub with a comment that links the close-out PR, #2525, and #2547. Then archive this folder to `docs/issues/closed/` with the `cleanup-completed-issues` skill, which also repairs links such as those in #2547. |
 
 ## Progress Tracking
 
@@ -255,7 +255,7 @@ two-week measurement no longer blocks closure, because it moved to #2547 (T7).
 - [x] Reviewer validated acceptance criteria and updated checkboxes
 - [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [x] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -361,6 +361,10 @@ two-week measurement no longer blocks closure, because it moved to #2547 (T7).
   three new threads, F24 to F26 in `docs/pr-reviews/pr-2550-review/PR-REVIEW.md`). The #2547
   specification now states its CI and fallout selection rules as its own, not as the baseline
   sections', and the audit corrects the order of one of its log entries.
+- 2026-10-16 15:40 UTC - AI assistant - Close-out PR #2550 merged (`merged_at` 15:35:12 UTC) after
+  nine review rounds. Closed issue #2507 on GitHub with a comment linking #2526, #2550, #2525, and
+  #2547, and archived this folder to `docs/issues/closed/` (C6 and C7). Repaired the live links in the
+  ADR and in the #2547 specification; the PR review audits keep the paths they recorded.
 
 ## Acceptance Criteria
 
