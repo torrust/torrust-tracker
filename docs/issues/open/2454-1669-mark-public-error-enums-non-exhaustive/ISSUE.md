@@ -9,7 +9,7 @@ github-issue: 2454
 spec-path: docs/issues/open/2454-1669-mark-public-error-enums-non-exhaustive/ISSUE.md
 branch: "2454-1669-mark-public-error-enums-non-exhaustive"
 related-pr: null
-last-updated-utc: "2026-10-19 16:16"
+last-updated-utc: "2026-10-19 16:50"
 semantic-links:
   skill-links:
     - create-issue
@@ -120,6 +120,12 @@ The maintainer answered the pre-implementation questions on 2026-10-19:
    check M1 are the guard.
 8. **Derives**: record per-enum findings in the inventory only; ask the maintainer before changing
    any derive.
+9. **Exhaustive exception** (2026-10-19, during the T1 review): `#[non_exhaustive]` applies when
+   consumers can handle an unknown variant generically. An enum whose variants select different
+   recovery actions stays exhaustive, with a doc comment saying why, so that a new variant is a
+   deliberate breaking change. The ADR, the EPIC checklist, and the `handle-errors-in-code` skill
+   record the rule. `events::receiver::RecvError` and `udp_protocol::request::RequestParseError`
+   stay exhaustive; AC2 already allows a maintainer-approved reason.
 
 ## Design and Ownership Review
 
@@ -181,6 +187,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-10-06 20:31 UTC - Copilot - Addressed the PR #2456 reviews (da2ce7 F1 to F6, plus Copilot's three findings, two of which match da2ce7's F1 and F3). Changes: M1 is mandatory with a positive half, and the template AC wording is restored; added the toolchain-evidence rule; the `Infallible` placeholder variant now falls under the `handle-errors-in-code` rule, and its approved removal is exempt from Out of Scope; T3 uses dependency order and the T1 inventory holds per-crate completion; added a conditional test loop for a doctest guard; added the EPIC Details row. On Copilot's SemVer finding, the maintainer decided that the publish flow owns version bumps: new AC6 and EPIC checklist item 4. Audit: `docs/pr-reviews/pr-2456-review/PR-REVIEW.md`.
 - 2026-10-07 08:04 UTC - Copilot - Addressed da2ce7's round-2 review of PR #2456: T1's list of already-published crates now includes the root `torrust-tracker` crate, and T1, Out of Scope, and Risks name the tracker application release as the path that applies its bump; the EPIC checklist lead-in now also covers later publishes. Updated the issue body and the PR body's crate count to match.
 - 2026-10-19 16:16 UTC - GitHub Copilot - Started implementation on branch `2454-1669-mark-public-error-enums-non-exhaustive`, cut from `torrust/develop`. The maintainer answered the pre-implementation questions; the answers are in "Maintainer Decisions". T2 is decided (checklist plus manual M1, no doctest). The spec-only PR #2456 is merged, so that optional checkpoint is ticked; `branch` now names the implementation branch and `status` is `in-progress`.
+- 2026-10-19 16:50 UTC - GitHub Copilot - During the T1 review the maintainer decided that an error enum whose variants select different recovery actions should stay exhaustive, because a wildcard arm would silently choose an action for a variant nobody designed for (decision 9). Recorded as an amendment of ADR 20261005145329, in EPIC checklist item 1, and in the `handle-errors-in-code` skill. `RecvError` (stop or continue a listener) and `RequestParseError` (reply or drop) stay exhaustive.
 
 ## Acceptance Criteria
 

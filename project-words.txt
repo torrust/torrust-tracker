@@ -352,6 +352,7 @@ mmdb
 mockall
 monomorphisation
 mprotect
+mpsc
 multimap
 myacicontext
 mysqladmin

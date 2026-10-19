@@ -6,7 +6,7 @@ epic: null
 github-issue: 1669
 spec-path: docs/issues/open/1669-overhaul-packages/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-19 16:16"
+last-updated-utc: "2026-10-19 16:50"
 semantic-links:
   skill-links:
     - create-issue
@@ -809,7 +809,9 @@ public error API changed, audit its public error API
 ([ADR 20261005145329](../../../adrs/20261005145329_return_result_only_for_concretely_fallible_public_apis.md)):
 
 1. Mark every public error enum that has real variants `#[non_exhaustive]`, so that adding a
-   variant later is not a breaking change.
+   variant later is not a breaking change. Keep an enum exhaustive, with a doc comment saying why,
+   when its variants select different recovery actions (stop or continue, reply or drop): a new
+   variant there must be a deliberate breaking change (ADR amendment of 2026-10-19).
 2. Derive only the traits every future variant can keep; removing a derive is a breaking change.
 3. Confirm that no public API returns `Result<_, Infallible>` or an empty error enum as a
    placeholder for future failures.
@@ -1041,6 +1043,9 @@ Previously referenced tools (screenshots from CodeScene already in the issue com
   `2454-1669-mark-public-error-enums-non-exhaustive`. The maintainer's scoping decisions (all
   publishable crates, public reachability only, remove `configuration::Error::Infallible`, one
   `feat(<package>)!:` commit per package) are in the #2454 spec.
+- 2026-10-19 16:50 UTC - GitHub Copilot - The maintainer amended ADR 20261005145329 during the
+  #2454 T1 review: a public error enum whose variants select different recovery actions stays
+  exhaustive, with a doc comment saying why. Pre-publish API checklist item 1 states the exception.
 
 ## Acceptance Criteria
 

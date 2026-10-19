@@ -108,7 +108,9 @@ fn it_should_parse_valid_config() {
 Return `Result` only when an operation can fail today, crosses an I/O boundary, or is a trait or port
 with an existing or planned backend that can fail. Otherwise return a plain value; a real failure later is a
 semver-signalled breaking change. Never use `Infallible` or an empty error enum as a placeholder, and mark
-existing public error enums `#[non_exhaustive]` before first publish. See [ADR 20261005145329](../../../../../docs/adrs/20261005145329_return_result_only_for_concretely_fallible_public_apis.md).
+existing public error enums `#[non_exhaustive]` before first publish, except an enum whose variants select
+different recovery actions (stop or continue, reply or drop): keep it exhaustive and say why in a doc comment, so
+that a new variant is a deliberate breaking change. See [ADR 20261005145329](../../../../../docs/adrs/20261005145329_return_result_only_for_concretely_fallible_public_apis.md).
 
 ## Quick Checklist
 
