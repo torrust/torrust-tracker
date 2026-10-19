@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2475-1669-coupling-tool-resolve-lib-names-and-renames/ISSUE.md
-last-updated-utc: 2026-10-17 12:40
+last-updated-utc: 2026-10-19 11:49
 ---
 
 <!-- cspell:ignore splitlines startswith -->
@@ -148,8 +148,29 @@ an unknown dependency package and non-importable targets, which the unfixed code
 - Status: `DONE` — outcome: **Green**
 - Toolchain: stable, `rustc 1.99.0 (b940084d7 2026-09-28)`
 
-After the fix, `cargo test -p workspace-coupling` passes: 9 tests in `resolve_module_name` and 9
-in `parse_imports`, 0 failures. `linter all` exits 0.
+The first green run was made at the fix commit, with 9 tests in `resolve_module_name`. The
+commands were rerun on 2026-10-19 11:48 UTC, after the review round that added two tests
+(`rlib`/`dylib` and a multi-kind library), so the counts below are 11 and 9.
+
+```sh
+cargo test -p workspace-coupling
+linter all
+```
+
+Observed result (`cargo test` summary lines, exit code `0`):
+
+```text
+     Running unittests src/lib.rs
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+     Running unittests src/main.rs
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+     Running tests/parse_imports.rs
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+     Running tests/resolve_module_name.rs
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+```
+
+`linter all` exited `0`; its last line was `torrust_linting::cli: All linters passed`.
 
 ### R2 - Final recheck
 
@@ -167,9 +188,35 @@ over `/tmp/repro-2446.md`.
 cargo run -q -p workspace-coupling -- /tmp/repro-2446.md
 ```
 
+The R1 listing script printed nothing (exit code `0`): zero edges are reported with
+"No ... references found". A second script then listed the five R1 edges with their import
+lines. It reuses the heading patterns of the R1 script and prints each edge's first import line
+(the output below is from the rerun of 2026-10-19 11:48 UTC, and matches the first run):
+
+```python
+import re
+txt = open("/tmp/repro-2446.md").read()
+want = [("torrust-tracker-axum-http-server", "torrust-tracker-client-lib"),
+        ("torrust-tracker-client", "torrust-tracker-client-lib"),
+        ("torrust-tracker-e2e-tools", "torrust-tracker"),
+        ("torrust-tracker-test-helpers", "torrust-tracker-client-lib"),
+        ("torrust-tracker-udp-server", "torrust-tracker-client-lib")]
+pkg = dep = None
+items = {}
+for line in txt.splitlines():
+    m = re.match(r"^### `(.+)`", line)
+    if m: pkg = m.group(1); continue
+    m = re.match(r"^#### `(.+)` \[(.+)\]", line)
+    if m: dep = m.group(1); continue
+    if pkg and dep and line.startswith(("- `", "_")):
+        items.setdefault((pkg, dep), []).append(line)
+for k in want:
+    v = items[k]
+    print(f"{k[0]} -> {k[1]}: {len(v)} lines, first: {v[0][2:]}")
+```
+
 #### Observed Result
 
-The listing script printed no line: zero edges are reported with "No ... references found".
 The five edges of R1 now list their imports:
 
 ```text
