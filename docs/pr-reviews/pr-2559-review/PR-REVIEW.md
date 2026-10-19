@@ -69,6 +69,19 @@ below do. The consolidated response for this round is
 UTC. It names review 5571393132 and every finding F8 to F11 with its disposition and resolution
 reference.
 
+Round 4: da2ce7's review 5571702121 (APPROVED, 2026-10-19 12:43:37 UTC, on the head whose newest
+commit is `docs(pr-reviews): [#2475] record the third review round in the PR #2559 audit`) carries
+two inline findings, which da2ce7 numbered F12 and F13. The numbers do not collide, so the audit
+ids are the same. The review body is a verification report that adds no other row. Its ACK comment
+(<https://github.com/torrust/torrust-tracker/pull/2559#issuecomment-6267492597>) names that head.
+Copilot made no review after 11:28:45 UTC. The push that carries the fixes dismissed the approval
+at 12:47:25 UTC, so neither the review nor the ACK covers the commits that fix F12 and F13. The
+consolidated response for this round is
+<https://github.com/torrust/torrust-tracker/pull/2559#issuecomment-6267577845>, posted at 12:48:15
+UTC. It names review 5571702121 and both findings with their dispositions and resolution
+references. It also records that my first reply on F12 gave an inaccurate list of the remaining
+grep hits and that I edited the reply, so the reply text at its URL is the corrected one.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | `review-finding:pr-2559-f1` | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
@@ -82,6 +95,8 @@ reference.
 | F9 | `review-finding:pr-2559-f9` | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F10 | `review-finding:pr-2559-f10` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F11 | `review-finding:pr-2559-f11` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F12 | `review-finding:pr-2559-f12` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F13 | `review-finding:pr-2559-f13` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -280,6 +295,44 @@ reference.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2559#discussion_r4313738651>
 
+### F12 - "review finding F11" and "finding F8" are audit ids, not the review's
+
+- PR number: 2559
+- Source review ID: 5571702121
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2559#discussion_r4313942368>
+- Concern: a spec log entry cites "PR #2559 review finding F11" and "finding F8", but the review
+  comments carry other numbers (F4 and F1), so the reader must look the mapping up. The
+  repository's immutable form for citing a finding from another artifact is
+  `review-finding:pr-<PR>-<id>`.
+- Solution: cite every finding of this PR in the spec's progress log and in the EPIC's log entry
+  by its immutable reference, not only the two the reviewer named, because "review finding F1"
+  was ambiguous between rounds. The new log entry names `review-finding:pr-2559-f12`. The first
+  reply on this thread said the remaining grep hits were three cites of PR #2462; the hits also
+  include one cite of PR #2445 in the EPIC and the new entry that quotes the old wording. I edited
+  the reply to the accurate list.
+- Current-tree verification: `grep -n "review finding F" docs/issues/open/2475-*/ISSUE.md docs/issues/open/1669-overhaul-packages/EPIC.md`
+  finds no cite of a PR #2559 finding.
+- Resolution reference: docs(issues): [#2475] cite review findings by their immutable reference
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2559#discussion_r4313980197>
+
+### F13 - Which run does the `linter all` line come from?
+
+- PR number: 2559
+- Source review ID: 5571702121
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2559#discussion_r4313942375>
+- Concern: T3 gives two rerun times, 11:48 and 12:17 UTC, and the `linter all` line does not say
+  which run it belongs to. If it is the 11:48 run, it predates the file's current content.
+- Solution: rerun `linter all` on the branch after the rebase, and record its own time (12:45 UTC),
+  the exit code and its last line as printed.
+- Current-tree verification: `grep -n "12:45" docs/issues/open/2475-*/manual-verification-evidence.md`
+  finds the run time and the pasted last line.
+- Resolution reference: docs(issues): [#2475] give the T3 linter all result its own run time
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2559#discussion_r4313980512>
+
 ## Processing Log
 
 - 2026-10-19 11:57 UTC - Started audit after da2ce7's review 5571038375. Copilot's two reviews had
@@ -305,6 +358,14 @@ reference.
   Fixed F11 in one commit and F9 and F10 in a second one, both before the push, replied on the four threads, and
   posted the consolidated response at 12:21:54 UTC. F8 to F11 are recorded in this audit commit,
   and the threads are resolved after the validation script passes on the new rows.
+- 2026-10-19 12:48 UTC - Round 4: da2ce7's review 5571702121 (APPROVED and ACK on the head that
+  ended with the Round 3 audit commit) carried two findings, F12 and F13 here. Fixed each in its
+  own commit and pushed them at about 12:47 UTC; the push dismissed the approval at 12:47:25 UTC.
+  Ran the validation script on the existing rows at 12:47:31 UTC, before replying (zero failures),
+  replied on the two threads, and posted the consolidated response at 12:48:15 UTC. F12 and F13
+  are recorded in this audit commit, and the threads are resolved after the validation script
+  passes on the new rows. The reply on F12 was edited after posting to correct a wrong list of
+  grep hits, which the Round 4 paragraph and the F12 detail state.
 
 ## Completion Rules
 
