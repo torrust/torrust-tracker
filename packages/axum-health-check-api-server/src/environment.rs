@@ -13,6 +13,7 @@ use crate::{HEALTH_CHECK_API_LOG_TARGET, server};
 pub type Started = Environment<Running>;
 
 #[derive(Debug)]
+#[non_exhaustive]
 pub enum Error {
     #[allow(dead_code)]
     Error(String),

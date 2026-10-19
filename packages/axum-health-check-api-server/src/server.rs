@@ -38,6 +38,7 @@ const HEALTH_CHECK_API_GRACEFUL_DRAIN_TIMEOUT: Duration = Duration::from_secs(5)
 
 /// Errors returned by [`start_with_cancellation`].
 #[derive(Debug, thiserror::Error)]
+#[non_exhaustive]
 pub enum Error {
     #[error("Could not bind the health check API listener. Check that its bind address is available: {source}")]
     Bind { source: std::io::Error },
