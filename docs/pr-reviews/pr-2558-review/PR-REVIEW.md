@@ -59,6 +59,10 @@ non-actionable and add no row.
 - Copilot's third review 5571126185 (COMMENTED, 2026-10-19 11:53:47 UTC, at that same head) has one
   inline finding, F5. Its overview marks it "Low severity" and the comment is tagged `[Minor]`; the
   comment's own tag is used.
+- da2ce7's third review 5571966713 (APPROVED, 2026-10-19 13:05:30 UTC, at the head `docs(pr-reviews):
+  [#2558] record the third review round in the audit`) and his ACK comment of that head carry one
+  inline `Nit` finding with the ID F1, which collides with this audit's F1, so it is recorded as F6
+  with the original ID kept in its detail entry.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -67,6 +71,7 @@ non-actionable and add no row.
 | F3 | `review-finding:pr-2558-f3` | Human | Suggestion | testing | ORIGINAL | FIXED | RESOLVED |
 | F4 | `review-finding:pr-2558-f4` | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F5 | `review-finding:pr-2558-f5` | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F6 | `review-finding:pr-2558-f6` | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -169,6 +174,24 @@ non-actionable and add no row.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2558#discussion_r4313979913>
 
+### F6 - F5's `Reviewer finding ID` should be `N/A`
+
+- PR number: 2558
+- Source review ID: 5571966713
+- Reviewer finding ID: F1
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2558#discussion_r4314150959>
+- Concern: the audit recorded `F5` as F5's `Reviewer finding ID`, but the skill says to record the
+  original ID only when it was reassigned, and Copilot's `[Minor][F5]` tag did not collide, so the
+  id was kept, as for its `[Minor][F1]`, which the audit records as `N/A`.
+- Solution: F5's `Reviewer finding ID` is `N/A`. Only F2, F3 and F4, which were reassigned, and F6
+  carry original ids.
+- Current-tree verification: `grep -n "Reviewer finding ID"` on the audit gives `N/A` (F1), `F1`
+  (F2), `F2` (F3), `F3` (F4), `N/A` (F5) and `F1` (F6); the skill text at
+  `process-pr-review/SKILL.md` lines 217-219 states the rule.
+- Resolution reference: docs(pr-reviews): [#2558] record N/A as F5's reviewer finding ID
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2558#discussion_r4315768038>
+
 ## Processing Log
 
 - 2026-10-17 09:46 UTC - Copilot submitted review 5557264376 with the one inline finding.
@@ -196,6 +219,15 @@ non-actionable and add no row.
 - 2026-10-19 12:44 UTC - Committed the F5 fix.
 - 2026-10-19 12:47 UTC - Pushed, replied on the thread and resolved it.
 - 2026-10-19 12:48 UTC - Recorded this round here.
+- 2026-10-19 12:51 UTC - Pushed the third-round audit and re-requested review from da2ce7 and
+  Copilot.
+- 2026-10-19 13:05 UTC - da2ce7 approved the head (review 5571966713) and posted an ACK, with one
+  `Nit` thread, F6.
+- 2026-10-19 13:06 UTC - Found it while polling and verified the claim against the skill text.
+- 2026-10-19 15:33 UTC - Committed the F6 fix after a GPG passphrase timeout was retried with the
+  maintainer's approval; the wait spanned about two hours.
+- 2026-10-19 15:36 UTC - Pushed, replied on the thread and resolved it.
+- 2026-10-19 15:36 UTC - Recorded this round here.
 
 ## Completion Rules
 
