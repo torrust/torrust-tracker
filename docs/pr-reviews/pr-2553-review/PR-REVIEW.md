@@ -65,6 +65,11 @@ F25 to F27, all `Nit`, with the same ID reassignment. It repeats no further requ
 row. The next fix push dismissed it at 2026-10-19 11:12:26Z. A conversation comment of 2026-10-19 10:40 UTC
 answers the question in the re-review request about issue #2503 and asks for no change here.
 
+His approving review 5570845377, at the head after the round 7 fixes (so called here by his own ACK; the
+retrospective's table uses round 6 for review 5548045897), carries one more inline thread, F28 (`Nit`), with
+the same ID reassignment. It repeats no further request in its body and adds no row. The next fix push
+dismissed it at 2026-10-19 11:31:25Z.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2553-f1 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -94,6 +99,7 @@ answers the question in the re-review request about issue #2503 and asks for no 
 | F25 | review-finding:pr-2553-f25 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F26 | review-finding:pr-2553-f26 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 | F27 | review-finding:pr-2553-f27 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F28 | review-finding:pr-2553-f28 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -468,6 +474,19 @@ answers the question in the re-review request about issue #2503 and asks for no 
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2553#discussion_r4313138972>
 
+### F28 - Two reviews are both called round 6
+
+- PR number: 2553
+- Source review ID: 5570845377
+- Reviewer finding ID: F1
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2553#discussion_r4313261505>
+- Concern: the spec and sub-EPIC log entries called review 5562034258 "round 6", but the retrospective's round table uses round 6 for the approval review 5548045897, so "round 6" named two different reviews in the tree.
+- Solution: renamed the two log entries to round 7, as the reviewer's own ACK calls it, and appended a log entry in each file that records the rename. The audit already gave the review no number. The subject of the commit that says round 6 is not reworded, because the repository keeps a branch's history and a rewrite would change the commit ids that the review rounds cite.
+- Current-tree verification: `rg -n 'round 6' docs/issues/open/2413-* docs/issues/open/2410-*` finds no match in the spec or the sub-EPIC, and the retrospective's table still uses round 6 only for review 5548045897.
+- Resolution reference: docs(issues): [#2413] number the retrospective re-review as round 7 in the spec and sub-EPIC logs
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2553#discussion_r4313294108>
+
 ## Processing Log
 
 - 2026-10-16 10:42 UTC - Fetched the review and both inline threads, classified them as Copilot
@@ -520,6 +539,12 @@ answers the question in the re-review request about issue #2503 and asks for no 
   11:08:43Z and 11:10:37Z and pushed at about 11:12Z (the timeline dismissed review 5562034258 at 11:12:26Z).
 - 2026-10-19 11:13 UTC - Replied on all three threads, resolved them, and added F25 to F27 to this record, with
   a reply URL in every row.
+- 2026-10-19 11:27 UTC - da2ce7's approving review 5570845377 arrived with one inline thread. Fetched it,
+  reassigned his ID F1 to F28, and re-derived it against the tree. It was valid.
+- 2026-10-19 11:29 UTC - Fixed F28 in one signed commit (committed 11:29:25Z) and pushed (the timeline
+  dismissed review 5570845377 at 11:31:25Z).
+- 2026-10-19 11:32 UTC - Replied on the thread, resolved it, and added F28 to this record, with a reply URL in
+  its row.
 
 ## Completion Rules
 
