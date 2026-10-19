@@ -18,6 +18,7 @@ impl OutputFormat {
 }
 
 #[derive(Debug)]
+#[non_exhaustive]
 pub enum Error {
     Check(AppError),
     Other(anyhow::Error),

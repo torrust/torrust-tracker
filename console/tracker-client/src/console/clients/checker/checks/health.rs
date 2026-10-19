@@ -10,6 +10,7 @@ use url::Url;
 
 #[derive(Debug, Clone, Error, Serialize)]
 #[serde(into = "String")]
+#[non_exhaustive]
 pub enum Error {
     #[error("Failed to Build a Http Client: {err:?}")]
     ClientBuildingError { err: Arc<reqwest::Error> },

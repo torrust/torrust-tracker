@@ -36,6 +36,7 @@ pub struct Configuration {
 }
 
 #[derive(Debug)]
+#[non_exhaustive]
 pub enum ConfigurationError {
     JsonParseError(serde_json::Error),
     InvalidUdpAddress(std::net::AddrParseError),

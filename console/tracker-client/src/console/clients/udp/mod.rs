@@ -11,6 +11,7 @@ pub mod responses;
 
 #[derive(Error, Debug, Clone, Serialize)]
 #[serde(into = "String")]
+#[non_exhaustive]
 pub enum Error {
     #[error("Failed to Connect to: {remote_addr}, with error: {err}")]
     UnableToBindAndConnect { remote_addr: SocketAddr, err: Box<udp::Error> },

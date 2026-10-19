@@ -35,6 +35,7 @@ impl fmt::Display for ConfigSource {
 
 /// Top-level application errors for the tracker checker.
 #[derive(Debug)]
+#[non_exhaustive]
 pub enum AppError {
     /// The provided configuration was invalid (bad JSON, invalid URLs, etc.).
     InvalidConfig {
