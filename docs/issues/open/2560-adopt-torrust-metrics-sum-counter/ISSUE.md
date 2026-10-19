@@ -9,7 +9,7 @@ github-issue: 2560
 spec-path: docs/issues/open/2560-adopt-torrust-metrics-sum-counter/ISSUE.md
 branch: "2560-adopt-torrust-metrics-sum-counter"
 related-pr: 2561
-last-updated-utc: "2026-10-19 12:43"
+last-updated-utc: "2026-10-19 13:02"
 semantic-links:
   skill-links:
     - create-issue
@@ -123,6 +123,7 @@ The tests for T2 and T3 prove they fail on the old code with the mutate-then-res
 - 2026-10-19 12:03 UTC - GitHub Copilot - PR #2561 review round 1 (Copilot, three findings, all valid): added a cast-free `counter_total` helper per package for the repeated `sum_counter` read, switched the UDP server test to a fixed timestamp, and set the status to `in-review` with `related-pr: 2561` - See `docs/pr-reviews/pr-2561-review/PR-REVIEW.md`
 - 2026-10-19 12:10 UTC - GitHub Copilot - PR #2561 review round 2 (da2ce7, two findings, both valid): the Background now says the cast stays in the accessor and is the only one left for the integer totals, and the template's independent-reviewer-reports checkpoint is restored and left open - See `docs/pr-reviews/pr-2561-review/PR-REVIEW.md`
 - 2026-10-19 12:43 UTC - GitHub Copilot - PR #2561 review round 3 (Copilot's second review, one finding in the review body, valid): corrected the Risks bullet, which wrongly said the old path saturated on overflow, and saved the overflow check as evidence - See `docs/pr-reviews/pr-2561-review/PR-REVIEW.md`
+- 2026-10-19 13:02 UTC - GitHub Copilot - PR #2561 review round 4 (da2ce7, one finding, valid): described the throwaway overflow test in the Disposable Verification Scripts section and linked its evidence from `manual-verification-evidence.md` as a new V4 - See `docs/pr-reviews/pr-2561-review/PR-REVIEW.md`
 
 ## Acceptance Criteria
 
@@ -164,7 +165,10 @@ Notes:
 
 ### Disposable Verification Scripts
 
-None kept. M1 and M2 use the maintained `tracker_client` binary. M2 needs UDP announces with an invalid connection ID, which `tracker_client` cannot send, so one shell one-liner over `/dev/udp` was used and is recorded verbatim in the evidence.
+Two disposable artifacts were used, and neither is kept as a script.
+
+- M2 needs UDP announces with an invalid connection ID, which `tracker_client` cannot send, so one shell one-liner over `/dev/udp` was used. It is recorded verbatim in the evidence (V3).
+- A throwaway Rust test, `packages/udp-core/tests/tmp_overflow_check.rs`, was created, run, and deleted in the same session to compare the overflow behavior of the old `Sum::sum` path and `sum_counter`, to settle a review finding (V4). A maintained test is the wrong home for it: it asserts behavior of the upstream `torrust-metrics` crate, which belongs in that crate's tests, and would pin the tracker to an upstream implementation detail. The PR author owned and removed it before the commit. It is Rust, not Python. Its source and output are in `evidence/overflow-check.txt`.
 
 ### Acceptance Verification
 

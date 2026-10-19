@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2560-adopt-torrust-metrics-sum-counter/ISSUE.md
-last-updated-utc: 2026-10-19 12:06
+last-updated-utc: 2026-10-19 13:02
 ---
 
 # Manual Verification Evidence
@@ -17,10 +17,11 @@ The runs wrote their files under the git-ignored `.tmp/2560/` directory. Everyth
 - The tracker configuration is embedded below.
 - [`evidence/red-http-core.txt`](evidence/red-http-core.txt), [`evidence/red-udp-server.txt`](evidence/red-udp-server.txt), and [`evidence/green-udp-server.txt`](evidence/green-udp-server.txt) hold the red and green test runs. UDP core's red run is embedded in V1.
 - [`evidence/m1-stats.txt`](evidence/m1-stats.txt) and [`evidence/m2-stats.txt`](evidence/m2-stats.txt) hold the statistics read in M1 and M2.
+- [`evidence/overflow-check.txt`](evidence/overflow-check.txt) holds the source and output of the throwaway overflow test of V4.
 
 ## Environment and Prerequisites
 
-- Date and time (UTC): 2026-10-19 11:20-11:40 for V1 and the first M1 and M2 run, and between 12:03 and 12:06 for the final M1 and M2 run recorded below
+- Date and time (UTC): 2026-10-19 11:20-11:40 for V1 and the first M1 and M2 run, between 12:03 and 12:06 for the final M1 and M2 run recorded below, and between 12:39 and 12:44 for V4
 - Artifact under test: `target/release/torrust-tracker` built from the tree of `refactor(statistics): [#2560] share the counter read behind a cast-free helper`, and `target/release/tracker_client` built earlier from the same code, which the tracker change does not touch. The later commits only change the issue folder. The first M1 and M2 run used the tree of `refactor(udp-server): [#2560] read counter totals through sum_counter`, before that helper existed, and gave the same counters. The V2 and V3 output below is from the final run.
 - Operating system / environment: Linux 7.0.0-38-generic, rustc 1.99.0 (b940084d7 2026-09-28), release profile, `torrust-metrics` 0.2.0 from crates.io.
 - Prerequisites and setup performed: `cargo build --release --bin torrust-tracker` and `cargo build --release -p torrust-tracker-client --bin tracker_client`. The tracker used loopback ports because the machine is shared. The database file was deleted before the run, and no tracker was running on those ports.
@@ -174,6 +175,31 @@ udp_tracker_server_ips_banned_total 1
 #### Conclusion
 
 Met. `tcp4_announces_handled` equals the 50 announces sent. Of the 6 invalid packets, 4 produced a connection-ID error, which banned the IP, and the other 2 were rejected as banned (4 + 2 = 6). The banned-IP gauge reads 1 through the retained cast in `udp_banned_ips_total`, and Prometheus reports the same value as a gauge.
+
+### V4 - Overflow of the Old and the New Counter Sum Path
+
+- Goal: settle a review finding that the old path and `sum_counter` overflow the same way, so that the change removes only the `f64` rounding of totals above 2^53.
+- Initial state: production code as of `docs(statistics): [#2560] say that counter_total reads a gauge as zero`, with `torrust-metrics` 0.2.0.
+- Status: `DONE`
+
+#### Steps Performed
+
+1. Created a throwaway Rust test, `packages/udp-core/tests/tmp_overflow_check.rs`, with two counter samples at `u64::MAX` under different label sets and two `#[should_panic(expected = "overflow")]` tests, one calling the old `Sum::sum` and one calling `SumCounter::sum_counter` (full source in [`evidence/overflow-check.txt`](evidence/overflow-check.txt)).
+2. `cargo test -p torrust-tracker-udp-core --test tmp_overflow_check` in a debug build.
+3. Deleted the test file. `git status` showed no change except the saved evidence file.
+4. Compared the `Sum` implementation for counters in `torrust-metrics` 0.1.0 and 0.2.0 in the local Cargo registry. Both call `metric.sum(label_set_criteria)`, the `u64` sum of `Metric<Counter>`, and then cast with `as f64` (line 31 of `sum.rs` in 0.1.0 and line 72 in 0.2.0).
+
+#### Observed Result
+
+```text
+test the_new_sum_counter_path_panics_on_overflow - should panic ... ok
+test the_old_sum_path_panics_on_overflow - should panic ... ok
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+```
+
+#### Conclusion
+
+Both paths panic on overflow in a debug build, so the old final saturating cast never protected the earlier `u64` addition, and overflow behavior is unchanged. The change removes only the rounding of totals above 2^53, which V1 shows. This was measured in a debug build only. The release behavior of the `u64` addition is the same for both paths, since it is the same addition, but it was not run.
 
 ## Failures and Follow-up
 
