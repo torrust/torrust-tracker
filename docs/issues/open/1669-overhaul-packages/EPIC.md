@@ -6,7 +6,7 @@ epic: null
 github-issue: 1669
 spec-path: docs/issues/open/1669-overhaul-packages/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-19 16:50"
+last-updated-utc: "2026-10-19 17:21"
 semantic-links:
   skill-links:
     - create-issue
@@ -820,7 +820,9 @@ public error API changed, audit its public error API
    change.
 
 Issue [#2454](https://github.com/torrust/torrust-tracker/issues/2454) applies this checklist to
-the workspace crates.
+the workspace crates. Its per-crate completion record, with each crate's decisions and the publish
+bump for the crates already on crates.io, is the
+[error enum inventory](../2454-1669-mark-public-error-enums-non-exhaustive/error-enum-inventory.md#per-crate-completion).
 
 ## Open Questions
 

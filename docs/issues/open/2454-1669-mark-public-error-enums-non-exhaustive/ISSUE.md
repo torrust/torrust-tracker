@@ -9,7 +9,7 @@ github-issue: 2454
 spec-path: docs/issues/open/2454-1669-mark-public-error-enums-non-exhaustive/ISSUE.md
 branch: "2454-1669-mark-public-error-enums-non-exhaustive"
 related-pr: null
-last-updated-utc: "2026-10-19 16:53"
+last-updated-utc: "2026-10-19 17:21"
 semantic-links:
   skill-links:
     - create-issue
@@ -150,7 +150,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2  | DONE   | Decide how to guard the property | Options: a per-crate `compile_fail` doctest, a lint, or the checklist only. Recommend the lightest option; maintainer decides. If a doctest is chosen, its first increment follows the `write-unit-test` skill's progressive test-development loop, and its design review is recorded before T3 starts. Decided 2026-10-19: checklist plus mandatory manual check M1 only; no doctest, so no test-development loop applies. |
 | T3  | TODO   | Apply `#[non_exhaustive]` crate by crate | One commit per crate (or per tightly coupled group), including the downstream wildcard arms that the change forces. Order: dependency order, a crate before its dependents, which crates.io publication also forces. Commits are typed `feat(<package>)!:` (maintainer decision 6). The two exhaustive enums (E1, E2) get a doc-comment commit each instead (`docs(events)`, `docs(udp-protocol)`). |
 | T4  | TODO   | Evaluate placeholders and derive decisions | `configuration::Error::Infallible` and any similar finding; derive decisions recorded in the inventory; changes only with maintainer approval. |
-| T5  | TODO   | Link the per-crate record from EPIC #1669 | Add a line under the Pre-publish API checklist linking the T1 inventory as the per-crate completion record. |
+| T5  | DONE   | Link the per-crate record from EPIC #1669 | Add a line under the Pre-publish API checklist linking the T1 inventory as the per-crate completion record. Done 2026-10-19: the checklist now links the inventory's per-crate completion section. |
 
 ## Commit Points
 
@@ -189,6 +189,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-10-19 16:16 UTC - GitHub Copilot - Started implementation on branch `2454-1669-mark-public-error-enums-non-exhaustive`, cut from `torrust/develop`. The maintainer answered the pre-implementation questions; the answers are in "Maintainer Decisions". T2 is decided (checklist plus manual M1, no doctest). The spec-only PR #2456 is merged, so that optional checkpoint is ticked; `branch` now names the implementation branch and `status` is `in-progress`.
 - 2026-10-19 16:50 UTC - GitHub Copilot - During the T1 review the maintainer decided that an error enum whose variants select different recovery actions should stay exhaustive, because a wildcard arm would silently choose an action for a variant nobody designed for (decision 9). Recorded as an amendment of ADR 20261005145329, in EPIC checklist item 1, and in the `handle-errors-in-code` skill. `RecvError` (stop or continue a listener) and `RequestParseError` (reply or drop) stay exhaustive.
 - 2026-10-19 16:53 UTC - GitHub Copilot - T1 is done: committed [error-enum-inventory.md](error-enum-inventory.md) after the maintainer's review. It lists 60 public error enums in 18 publishable packages, of which 58 get `#[non_exhaustive]` and two stay exhaustive (decision 9), eight downstream `match` sites that need a wildcard arm, the `configuration::Error::Infallible` finding, the derive findings (record only), and the per-crate publish bump. The maintainer confirmed `ErrorKind` out of scope and the `PeerKeyError` mapping to `AuthKeyError::Database`.
+- 2026-10-19 17:21 UTC - GitHub Copilot - T5 is done: the Pre-publish API checklist in EPIC #1669 links the inventory's per-crate completion section.
 
 ## Acceptance Criteria
 
