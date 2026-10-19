@@ -95,13 +95,20 @@ Each proof is a temporary, hand-made change to production code that the named te
 reverted after the check, and the result is recorded in the Results section. Lines are those of
 `services/announce.rs` at `a3810b813`, which the test changes do not move.
 
+The workspace denies `unused` and `warnings`, so a mutation that leaves code unused fails to compile
+and proves nothing. Compile-checked on 2026-10-19: M1-M4 compile under the default lints; M5 does not,
+because deleting the call removes the only read of the private `public_url` field. Run M5 with
+`RUSTFLAGS="--cap-lints=warn"` (as T6 does), and count it only when R2k runs and fails; a compile
+error is not a caught mutant. Run a new mutation without the cap first, and use the cap only when
+that fails to compile.
+
 | ID | Test | Site | Temporary change |
 | --- | --- | --- | --- |
 | M1 | R1 precedence test | `select_peer_ip_with_policy`, the `PeerIp::Literal(ip)` arm (line 288) | Return `peer_ip_selection_policy.external_ip.filter(\|_\| connection_peer_ip.is_loopback()).unwrap_or(*ip)` instead of `*ip`, so a loopback connection prefers the external IP over the literal. |
 | M2 | R2d order | `handle_announce`, lines 211 and 213 (and 215) | Swap `self.authenticate(maybe_key).await?;` and `self.authorize(announce_request.info_hash).await?;`; repeat with the `resolve_remote_client_addr` call moved above `authenticate`. |
 | M3 | R2e loopback | `external_ip_for_loopback_connection`, the `is_loopback()` guard (line 298) | Remove the guard so any connection takes the configured external IP. |
 | M4 | R2f mapping | `peer_from_request`, the `ProtocolAnnounceEvent::Stopped` arm (line 260) | Map `Stopped` to `AnnounceEvent::None`. |
-| M5 | R2k public URL | `send_event`, the `with_public_url` call (line 342) | Delete `.with_public_url(self.public_url.clone())`. |
+| M5 | R2k public URL | `send_event`, the `with_public_url` call (line 342) | With `RUSTFLAGS="--cap-lints=warn"`, delete `.with_public_url(self.public_url.clone())`. |
 
 Gates: this plan needs approval first; R1 needs maintainer review of its result; the completed
 file needs the maintainer's completed-file review before its one signed commit.
@@ -141,3 +148,7 @@ Approved by Jose Celano on 2026-10-16 (16:02 UTC): R1, R2a-R2j, the fixture appr
 - 2026-10-19 11:24 UTC - GitHub Copilot - PR #2558 review finding F3 (da2ce7): the temporary
   changes were not located. Added the Named Mutations table (M1-M5), checked against the source
   lines, and pointed R1, R2 and the order row at it.
+- 2026-10-19 12:44 UTC - GitHub Copilot - PR #2558 review finding F5 (Copilot): mutation M5 does not
+  compile under the workspace lints. Verified by applying it: `field public_url is never read`, exit
+  101 by default and 0 with `--cap-lints=warn`; M1-M4 compile by default. Added the compile note and
+  the cap to M5.
