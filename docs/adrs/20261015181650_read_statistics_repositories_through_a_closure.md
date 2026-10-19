@@ -3,7 +3,7 @@ semantic-links:
   skill-links:
     - create-adr
   related-artifacts:
-    - docs/issues/open/2536-1669-hide-statistics-repository-read-lock/ISSUE.md
+    - docs/issues/closed/2536-1669-hide-statistics-repository-read-lock/ISSUE.md
     - docs/issues/closed/2517-1669-encapsulate-statistics-repository-state/ISSUE.md
     - docs/adrs/20260629000000_adopt_independent_package_versioning.md
     - packages/udp-core/src/statistics/repository.rs
