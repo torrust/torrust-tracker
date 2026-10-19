@@ -65,10 +65,14 @@ F25 to F27, all `Nit`, with the same ID reassignment. It repeats no further requ
 row. The next fix push dismissed it at 2026-10-19 11:12:26Z. A conversation comment of 2026-10-19 10:40 UTC
 answers the question in the re-review request about issue #2503 and asks for no change here.
 
-His approving review 5570845377, at the head after the round 7 fixes (so called here by his own ACK; the
-retrospective's table uses round 6 for review 5548045897), carries one more inline thread, F28 (`Nit`), with
-the same ID reassignment. It repeats no further request in its body and adds no row. The next fix push
-dismissed it at 2026-10-19 11:31:25Z.
+His approving review 5570845377, at the head after the round 7 fixes, is round 8 (his ACK calls its fix the
+round-8 fix). The numbering used here is the spec's, the sub-EPIC's and the retrospective's: round 6 is review
+5548045897, round 7 is review 5562034258, and round 8 is review 5570845377. Two commit subjects use an earlier
+numbering and are not reworded, because the repository keeps a branch's history: `docs(reviews): [#2413]
+record the PR 2553 review round 6 audit` records round 7, and `docs(reviews): [#2413] record the PR 2553
+review round 7 audit` records round 8. Round 8 carries one more inline thread, F28 (`Nit`), with the same ID
+reassignment. It repeats no further request in its body and adds no row. The next fix push dismissed it at
+2026-10-19 11:31:25Z.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
