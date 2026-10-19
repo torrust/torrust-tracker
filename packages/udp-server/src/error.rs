@@ -18,6 +18,7 @@ pub struct ConnectionCookie(pub ConnectionId);
 /// new event payload without the stable reason classification required by the
 /// [general error-events EPIC](../../../docs/issues/drafts/generalize-error-events/EPIC.md).
 #[derive(Error, Debug, Clone)]
+#[non_exhaustive]
 pub enum Error {
     /// Error returned when the request is invalid.
     #[error("error parsing request: {request_parse_error:?}")]

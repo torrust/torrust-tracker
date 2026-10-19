@@ -21,6 +21,7 @@ use crate::{RawRequest, handlers};
 ///
 /// A UDP error response is a handled request, not a processor error.
 #[derive(Debug, thiserror::Error)]
+#[non_exhaustive]
 pub enum ProcessorError {
     #[error("failed to encode the UDP response: {source}")]
     EncodeResponse { source: std::io::Error },

@@ -293,7 +293,7 @@ Updated in each T3 commit. `TODO` until the crate's commit lands. `Marked` count
 | 12 | `torrust-tracker-udp-protocol` | 0 | 1 (E2) | DONE: `docs(udp-protocol): [#2454] document why RequestParseError stays exhaustive` |
 | 13 | `torrust-tracker-udp-core` | 3 | 0 | DONE: `feat(udp-core)!: [#2454] mark public error enums non_exhaustive` |
 | 14 | `torrust-tracker-client-lib` | 2 | 0 | DONE: `feat(client-lib)!: [#2454] mark public error enums non_exhaustive` |
-| 15 | `torrust-tracker-udp-server` | 3 | 0 | TODO |
+| 15 | `torrust-tracker-udp-server` | 3 | 0 | DONE: `feat(udp-server)!: [#2454] mark public error enums non_exhaustive` |
 | 16 | `torrust-tracker-axum-rest-api-server` | 2 | 0 | TODO |
 | 17 | `torrust-tracker` | 11 | 0 | TODO |
 | 18 | `torrust-tracker-client` | 6 | 0 | TODO |

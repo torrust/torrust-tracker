@@ -23,6 +23,7 @@ pub mod states;
 ///
 /// - The [`Server`] cannot send the shutdown signal to the spawned UDP service thread.
 #[derive(Debug, Error)]
+#[non_exhaustive]
 pub enum UdpError {
     #[error("could not bind UDP tracker listener: {source}")]
     Bind { source: std::io::Error },
