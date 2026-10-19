@@ -1,7 +1,7 @@
 ---
 doc-type: feature-supporting-analysis
 status: verified
-last-updated-utc: "2026-10-16 11:21"
+last-updated-utc: "2026-10-19 17:20"
 semantic-links:
   related-artifacts:
     - docs/features/shutdown-process/README.md
@@ -292,8 +292,17 @@ requests can publish on that bus; no listener consumes those events there.
 | `main` holds `_app_container` until after `wait_for_all` | Confirmed (`src/main.rs`). |
 | Consumers subscribe in bootstrap before producers start | Confirmed (see above). |
 | Sends are `.send(...).await` in the request path, none detached | Confirmed; no detached sender found. |
-| `udp_ban_cleanup` has no events | Confirmed. |
-| Torrent cleanup and the REST API publish no event of their own | Differs: cleanup publishes on the swarm bus indirectly (above); the REST API does not mutate swarms. |
+
+Entry 27 says nothing about which components publish nothing. Those facts are
+in the sub-EPIC's "D Versus F, Measured Against the Current Code" section, and
+the code agrees with them. Correction of 2026-10-19: this table listed them as
+entry 27 facts and reported a difference on torrent cleanup that does not
+exist, because "D Versus F" already names torrent cleanup as a swarm producer.
+
+| Fact in "D Versus F" | Result |
+| --- | --- |
+| Torrent cleanup publishes on the swarm bus (`PeerRemoved`, `TorrentRemoved`) | Confirmed; indirectly, through `remove_inactive_peers` and `remove_peerless_torrents` (above). |
+| The activity-metrics job, the REST API, the health-check API, and `udp_ban_cleanup` publish nothing | Confirmed (see "Components that publish nothing"). |
 
 Counts rechecked on 2026-10-16: `src/app.rs` has 13 `job_manager.spawn` sites
 (a plain `spawn` search reports 14 lines because the extra match is in a
