@@ -58,7 +58,7 @@ repository, the whitelist, the torrent repository, and the announce handler.
 | Private mode: no key, an unknown key, and a valid key (lines 307-311) | Collaboration | R2a: the `private` flag selects the check and a missing or rejected key returns the authentication failure; key validity is `tracker-core`'s, so the valid-key case only shows that the service proceeds. |
 | Public mode ignores a presented key | 3A unit | R2b: a public tracker with an arbitrary key still announces; the flag is the one Arrange difference. |
 | Listed mode rejects a torrent that is not whitelisted | Collaboration | R2c: `TorrentNotWhitelisted` surfaces as the whitelist failure. |
-| Order of the checks (regions at lines 211, 213, 215, 217, 226) | 3A unit | R2d: with several failures present at once, the earliest check's error is returned, no event is sent (an expectation-free sender double), and no peer is registered. Confirmed by a temporary order swap. |
+| Order of the checks (regions at lines 211, 213, 215, 217, 226) | 3A unit | R2d: with several failures present at once, the earliest check's error is returned, no event is sent (an expectation-free sender double), and no peer is registered. Confirmed by mutation M2. |
 | Non-loopback connection keeps its address when an external IP is configured; IPv6 loopback is substituted | 3A unit | R2e: the substitution applies only to loopback connections. This is untested today and is a spoofing-relevant decision. |
 | Request-to-announcement mapping (lines 260-262) | 3A unit | R2f: every event variant and an absent event, absent byte counters defaulting to zero, the port, and the stopped-clock timestamp, against independently written expected values. |
 | `numwant` to `PeersWanted` | 3A unit | R2g: absent gives as many as possible; a number gives that limit (`PeersWanted` is `PartialEq`). |
@@ -84,10 +84,24 @@ dev-dependency of this package (the workspace uses `rstest = "0"` elsewhere). Ad
 
 | ID | Status | Work | Completion evidence |
 | --- | --- | --- | --- |
-| R1 | TODO | Refactor the existing tests: replace the `match` in the non-empty-IP test with a data table, give the three event tests one scenario fixture, add AAA structure and explicit assertions, rename or reconfigure the tcp6 event test so its name matches its Arrange, give the precedence test a policy that enables overrides and carries a distinct external IP (and confirm it fails under a temporary change that prefers the external IP), and shrink the fixture. | Focused tests, `cargo +nightly fmt --all -- --check`, `git diff --check`, prose-first AAA review. |
-| R2 | TODO | Add R2a-R2k. | Same validation; hand-made mutation proofs for R2d, R2e, and R2f. |
+| R1 | TODO | Refactor the existing tests: replace the `match` in the non-empty-IP test with a data table, give the three event tests one scenario fixture, add AAA structure and explicit assertions, rename or reconfigure the tcp6 event test so its name matches its Arrange, give the precedence test a policy that enables overrides and carries a distinct external IP (and confirm it fails under mutation M1), and shrink the fixture. | Focused tests, `cargo +nightly fmt --all -- --check`, `git diff --check`, prose-first AAA review. |
+| R2 | TODO | Add R2a-R2k. | Same validation; the named mutations M2-M5 each make their test fail. |
 | R3 | TODO | Select an integration increment, or `none`. | Expected: `none`. The service has no network boundary of its own. |
 | R4 | TODO | Re-run unit-only coverage; record before and after. | Plan Results and `coverage-evidence.md`. |
+
+## Named Mutations
+
+Each proof is a temporary, hand-made change to production code that the named test must catch; it is
+reverted after the check, and the result is recorded in the Results section. Lines are those of
+`services/announce.rs` at `a3810b813`, which the test changes do not move.
+
+| ID | Test | Site | Temporary change |
+| --- | --- | --- | --- |
+| M1 | R1 precedence test | `select_peer_ip_with_policy`, the `PeerIp::Literal(ip)` arm (line 288) | Return `peer_ip_selection_policy.external_ip.filter(\|_\| connection_peer_ip.is_loopback()).unwrap_or(*ip)` instead of `*ip`, so a loopback connection prefers the external IP over the literal. |
+| M2 | R2d order | `handle_announce`, lines 211 and 213 (and 215) | Swap `self.authenticate(maybe_key).await?;` and `self.authorize(announce_request.info_hash).await?;`; repeat with the `resolve_remote_client_addr` call moved above `authenticate`. |
+| M3 | R2e loopback | `external_ip_for_loopback_connection`, the `is_loopback()` guard (line 298) | Remove the guard so any connection takes the configured external IP. |
+| M4 | R2f mapping | `peer_from_request`, the `ProtocolAnnounceEvent::Stopped` arm (line 260) | Map `Stopped` to `AnnounceEvent::None`. |
+| M5 | R2k public URL | `send_event`, the `with_public_url` call (line 342) | Delete `.with_public_url(self.public_url.clone())`. |
 
 Gates: this plan needs approval first; R1 needs maintainer review of its result; the completed
 file needs the maintainer's completed-file review before its one signed commit.
@@ -124,3 +138,6 @@ Approved by Jose Celano on 2026-10-16 (16:02 UTC): R1, R2a-R2j, the fixture appr
   192 and 342 and in `announce_events_match`. Added the decision row and R2k, and R2 now reads
   R2a-R2k. This amends the approved plan a third time, adding one test to R2; the maintainer
   confirms it when reviewing the R2 result. The approval record above keeps its original wording.
+- 2026-10-19 11:24 UTC - GitHub Copilot - PR #2558 review finding F3 (da2ce7): the temporary
+  changes were not located. Added the Named Mutations table (M1-M5), checked against the source
+  lines, and pointed R1, R2 and the order row at it.
