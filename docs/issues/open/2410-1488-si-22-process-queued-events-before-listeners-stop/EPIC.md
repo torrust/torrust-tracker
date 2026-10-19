@@ -6,7 +6,7 @@ epic: 1488
 github-issue: 2410
 spec-path: docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-19 11:29"
+last-updated-utc: "2026-10-19 15:50"
 semantic-links:
   skill-links:
     - create-issue
@@ -268,7 +268,7 @@ which keeps the detailed steps for all sub-issues.
 
 | Order | Issue | Local Spec | Tasks | Acceptance criteria | Status | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | #2413 - Document event flows and draft the shutdown-order ADR | [ISSUE.md](../2413-2410-si-22-1-document-event-flows-and-draft-adr/ISSUE.md) | T1, T2 | AC9; ADR draft for AC8 | IN_PROGRESS | Documentation only. |
+| 1 | #2413 - Document event flows and draft the shutdown-order ADR | [ISSUE.md](../../closed/2413-2410-si-22-1-document-event-flows-and-draft-adr/ISSUE.md) | T1, T2 | AC9; ADR draft for AC8 | DONE | Documentation only. |
 | 2 | #2414 - Drain listener queues on shutdown | [ISSUE.md](../2414-2410-si-22-2-drain-listener-queues-on-shutdown/ISSUE.md) | T3, T4, T5 | AC1, AC3, AC4, AC6, AC11, AC12 | TODO | Addresses window (a), isolated by the control run; race-run loss attribution remains incomplete. |
 | 3 | #2415 - Give each application component its own cancellation token | [ISSUE.md](../2415-2410-si-22-3-per-component-cancellation-tokens/ISSUE.md) | T6 | AC13 (keeps it; no behavior change) | TODO | Refactor that prepares sub-issue 4. |
 | 4 | #2416 - Stop event producers before event listeners | [ISSUE.md](../2416-2410-si-22-4-stop-producers-before-listeners/ISSUE.md) | T7, T8, T9, T10 | AC2, AC5, AC7, AC8, AC10, AC13 | TODO | Closes window (b). T9 needs #2471 merged. |
@@ -2161,6 +2161,7 @@ avoids duplicating the full workflow in four drafts:
 - 2026-10-16 15:41 UTC - GitHub Copilot (Claude Opus 5.5) - #2413: PR #2553 review retrospective added (`docs/pr-reviews/pr-2553-review/review-retrospective.md`), with template and skill changes; progress-log entries now name the AI model. None of it touches the design record.
 - 2026-10-19 11:13 UTC - GitHub Copilot (Claude Opus 5.5) - #2413 review round 7: three Nit findings fixed (`review-finding:pr-2553-f25` to `review-finding:pr-2553-f27`), none touching the design record.
 - 2026-10-19 11:29 UTC - GitHub Copilot (Claude Opus 5.5) - #2413: renamed the 11:13 entry above from "round 6" to "round 7" (`review-finding:pr-2553-f28`), to match the retrospective's round table.
+- 2026-10-19 15:50 UTC - GitHub Copilot (Claude Opus 5.5) - #2413 archived to `docs/issues/closed/` after PR #2553 merged (2026-10-19 15:18 UTC); its row in the sub-issue table is `DONE`. Its Task Reviewer report and implementation retrospective gates were not done and stay unchecked in its spec.
 
 ## Acceptance Criteria
 

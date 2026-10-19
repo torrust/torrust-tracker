@@ -5,7 +5,7 @@ semantic-links:
     - write-markdown-docs
   related-artifacts:
     - docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
-    - docs/issues/open/2413-2410-si-22-1-document-event-flows-and-draft-adr/ISSUE.md
+    - docs/issues/closed/2413-2410-si-22-1-document-event-flows-and-draft-adr/ISSUE.md
     - docs/architecture/glossary.md
     - docs/architecture/events.md
     - docs/architecture/application-jobs.md
@@ -424,7 +424,7 @@ produces the same stop-before edges.
 
 - EPIC #1488: [Overhaul Tracker Shutdown](../../open/1488-overhaul-tracker-shutdown/ISSUE.md)
 - Sub-EPIC #2410: [EPIC.md](EPIC.md), the design record with decisions D1 to D20, the discussion record, and the diagrams
-- Issue #2413: [SI-22.1 spec](../2413-2410-si-22-1-document-event-flows-and-draft-adr/ISSUE.md)
+- Issue #2413: [SI-22.1 spec](../../closed/2413-2410-si-22-1-document-event-flows-and-draft-adr/ISSUE.md)
 - [Runtime architecture glossary](../../../architecture/glossary.md)
 - [Events architecture](../../../architecture/events.md)
 - [Application jobs and task ownership](../../../architecture/application-jobs.md)

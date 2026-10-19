@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-review
+status: done
 priority: p1
 epic: 2410
 github-issue: 2413
-spec-path: docs/issues/open/2413-2410-si-22-1-document-event-flows-and-draft-adr/ISSUE.md
+spec-path: docs/issues/closed/2413-2410-si-22-1-document-event-flows-and-draft-adr/ISSUE.md
 branch: "2413-document-event-flows-and-draft-adr"
-related-pr: null
-last-updated-utc: "2026-10-19 11:29"
+related-pr: 2553
+last-updated-utc: "2026-10-19 15:50"
 semantic-links:
   skill-links:
     - create-issue
@@ -26,7 +26,7 @@ semantic-links:
 
 # Issue #2413 - Document Event Flows and Draft the Shutdown-Order ADR
 
-Parent: [EPIC #2410 - Process queued events before event listeners stop](../2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md),
+Parent: [EPIC #2410 - Process queued events before event listeners stop](../../open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md),
 under EPIC #1488.
 
 > Sub-issue 1 of 4 (SI-22 tasks T1 and T2). Documentation only; no code
@@ -65,7 +65,7 @@ reviews can point to them.
 ## Implementation Plan
 
 Detailed steps: sub-EPIC
-[Implementation Steps](../2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md#implementation-steps),
+[Implementation Steps](../../open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md#implementation-steps),
 items 2 (T1) and 3 (T2). Revalidate paths before starting.
 
 | ID | Status | Task | Notes / Expected Output |
@@ -112,20 +112,20 @@ Sign every commit with GPG.
 
 ## Acceptance Criteria
 
-- [ ] AC1: The task inventory lists every event producer and consumer
+- [x] AC1: The task inventory lists every event producer and consumer
       component and the buses between them, checked against the code,
       including the listener chains of the HTTP and UDP test environments. It
       also rechecks the facts of the sub-EPIC's record entry 27 (who owns
       each sender and when it is dropped, where each receiver is created,
       and that no producer sends from a detached task) and reports any
       difference to the maintainer.
-- [ ] AC2 (sub-EPIC AC9): the glossary is at `docs/architecture/glossary.md`,
+- [x] AC2 (sub-EPIC AC9): the glossary is at `docs/architecture/glossary.md`,
       the jobs doc at `docs/architecture/application-jobs.md`, every live link
       to the moved file is updated (historical records keep the old path), and
       the sub-EPIC links to the glossary.
-- [ ] AC3: `adr-draft.md` exists in the sub-EPIC folder and the maintainer
+- [x] AC3: `adr-draft.md` exists in the sub-EPIC folder and the maintainer
       has approved it.
-- [ ] `linter all` exits with code `0`.
+- [x] `linter all` exits with code `0`.
 
 ## Verification Plan
 
@@ -154,13 +154,13 @@ the glossary and moved jobs document; no runtime behavior changes here.
 
 | AC ID | Status | Evidence |
 | --- | --- | --- |
-| AC1 | TODO | Source-checked inventory and manual review record |
-| AC2 | TODO | Moved documents, updated links, and lychee result |
-| AC3 | TODO | ADR draft and maintainer approval |
+| AC1 | DONE | `docs/features/shutdown-process/task-inventory.md` (read from source, not run); M1 and its correction in `manual-verification-evidence.md`; da2ce7's review 5547031766: "The inventory holds against the code, now including the receive loop." |
+| AC2 | DONE | `docs/architecture/application-jobs.md` and `docs/architecture/glossary.md` exist; the sub-EPIC links to the glossary; da2ce7's review 5547031766 checked the move ("every old-path hit is updated, historical or decision text"); `linter all` (lychee included) exited 0 before every commit. |
+| AC3 | DONE | `adr-draft.md` in the sub-EPIC folder; the maintainer approved it in the session on 2026-10-16 before it was committed (progress log, 2026-10-16 08:27 UTC); da2ce7's review 5547031766 checked its code claims. |
 
 ## Implementation Completion Review
 
-Follow the sub-EPIC's [Shared Delivery Gates](../2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md#shared-delivery-gates),
+Follow the sub-EPIC's [Shared Delivery Gates](../../open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md#shared-delivery-gates),
 including local manual evidence for the source review, acceptance re-review,
 retrospective assessment, and independent Task Reviewer report. Required
 pre-push checks still apply to this documentation-only PR.
@@ -172,7 +172,7 @@ pre-push checks still apply to this documentation-only PR.
 - [x] Spec drafted
 - [x] Spec reviewed and approved by the maintainer
 - [x] GitHub issue created and linked to the sub-EPIC
-- [ ] Implementation completed and acceptance criteria reviewed
+- [x] Implementation completed and acceptance criteria reviewed
 - [ ] Independent Task Reviewer report recorded in `agent-review-reports.md` (sub-EPIC Shared Delivery Gates)
 - [ ] Retrospective recorded, or the reason none is needed (sub-EPIC Shared Delivery Gates)
 
@@ -194,3 +194,4 @@ pre-push checks still apply to this documentation-only PR.
 - 2026-10-16 15:41 UTC - GitHub Copilot (Claude Opus 5.5) - After da2ce7 approved PR #2553 with no finding, the maintainer asked for a PR review retrospective: `docs/pr-reviews/pr-2553-review/review-retrospective.md`. It records that 15 of the 24 findings were about the author's own records, and the maintainer's observation that the earlier entries here were written with Claude Sonnet 5.5. The evidence template, the issue and EPIC templates (model in progress logs), the review retrospective template and `process-pr-review` (version 1.6) were updated in their own commits.
 - 2026-10-19 11:13 UTC - GitHub Copilot (Claude Opus 5.5) - Review round 7 of PR #2553: da2ce7's re-review of the head after the retrospective (posted 2026-10-18) had three Nit findings (`review-finding:pr-2553-f25` to `review-finding:pr-2553-f27`), all valid and fixed in separate commits: the retrospective's audit-only count, the round count in the `process-pr-review` section, and a log time range. Audit: `docs/pr-reviews/pr-2553-review/PR-REVIEW.md`.
 - 2026-10-19 11:29 UTC - GitHub Copilot (Claude Opus 5.5) - Renamed the 11:13 entry above from "round 6" to "round 7" (`review-finding:pr-2553-f28`): the retrospective's round table uses round 6 for the approval review 5548045897, so review 5562034258 is round 7.
+- 2026-10-19 15:50 UTC - GitHub Copilot (Claude Opus 5.5) - Archived. PR #2553 merged on 2026-10-19 at 15:18:12 UTC and issue #2413 closed one second later. AC1 to AC3 and the `linter all` criterion are ticked, on the strength of da2ce7's approving review 5571665038 at the merged head and review 5547031766 (see the Acceptance Verification table) and of the maintainer's approval of the ADR draft, as the maintainer decided for this archive. The independent Task Reviewer report (`agent-review-reports.md`) and the implementation retrospective were not done, so those two checkpoints stay unchecked. The PR review retrospective at `docs/pr-reviews/pr-2553-review/review-retrospective.md` is a different document and does not stand in for the implementation retrospective.
