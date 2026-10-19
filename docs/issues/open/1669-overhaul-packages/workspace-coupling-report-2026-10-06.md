@@ -1222,7 +1222,7 @@ five edges that are used:
 
 Reading the library target name and the dependency rename from `cargo metadata` would fix
 this. Subissue: #2475
-([`2475-1669-coupling-tool-resolve-lib-names-and-renames`](../2475-1669-coupling-tool-resolve-lib-names-and-renames/ISSUE.md)).
+([`2475-1669-coupling-tool-resolve-lib-names-and-renames`](../../closed/2475-1669-coupling-tool-resolve-lib-names-and-renames/ISSUE.md)).
 
 #### Acceptable thin dependencies (not worth addressing)
 

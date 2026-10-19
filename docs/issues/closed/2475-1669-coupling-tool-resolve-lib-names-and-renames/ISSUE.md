@@ -2,20 +2,20 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: in-review
+status: done
 priority: p3
 epic: 1669
 github-issue: 2475
-spec-path: docs/issues/open/2475-1669-coupling-tool-resolve-lib-names-and-renames/ISSUE.md
+spec-path: docs/issues/closed/2475-1669-coupling-tool-resolve-lib-names-and-renames/ISSUE.md
 branch: "2475-1669-coupling-tool-resolve-lib-names-and-renames"
 related-pr: 2559
-last-updated-utc: "2026-10-19 12:46"
+last-updated-utc: "2026-10-19 15:32"
 semantic-links:
   skill-links:
     - create-issue
     - fix-bug
   related-artifacts:
-    - docs/issues/open/2475-1669-coupling-tool-resolve-lib-names-and-renames/manual-verification-evidence.md
+    - docs/issues/closed/2475-1669-coupling-tool-resolve-lib-names-and-renames/manual-verification-evidence.md
     - contrib/dev-tools/analysis/workspace-coupling/src/lib.rs
     - contrib/dev-tools/analysis/workspace-coupling/src/main.rs
     - contrib/dev-tools/analysis/workspace-coupling/tests/parse_imports.rs
@@ -165,9 +165,9 @@ Use a Conventional Commit message with the issue reference and sign every commit
 - [x] Automatic verification completed (`linter all`, relevant tests and pre-push checks)
 - [x] Manual verification scenarios executed and recorded in issue-local
       `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
-- [ ] Issue closed and spec moved to `docs/issues/closed/`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded
+- [x] Issue closed and spec moved to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -221,6 +221,20 @@ Use a Conventional Commit message with the issue reference and sign every commit
   immutable reference, `review-finding:pr-2559-f<n>`, instead of "review finding F<n>", which was
   ambiguous because the review comments carry their own numbers (`review-finding:pr-2559-f12`).
   The EPIC's progress-log entry changed the same way.
+- 2026-10-19 15:29 UTC - GitHub Copilot - PR #2559 merged (merge commit
+  `Merge torrust/torrust-tracker#2559: fix(workspace-coupling): [#2475] resolve module names from renames and library target names`)
+  and issue #2475 closed. da2ce7 gave the final ACK on the last head after four review rounds
+  (13 findings, all fixed; audit: `docs/pr-reviews/pr-2559-review/PR-REVIEW.md`).
+- 2026-10-19 15:32 UTC - GitHub Copilot - Archived the spec to `docs/issues/closed/` and closed the
+  remaining checkpoints. Acceptance-criteria re-review (AC6): AC1 to AC5 were checked against the
+  merged tree. `resolve_module_name` has the specified precedence, the 11 regression tests pass
+  (6 of the first 9 recorded failing before the fix), R2 lists no false "no references" edge, and
+  `cargo test -p workspace-coupling` and `linter all` exit 0. Implementation completion review: no
+  retrospective is needed. The assumptions held, since `cargo metadata` supplied both the
+  `rename` and the library target name; the one finding beyond the spec, the fifth affected edge
+  (the `axum-http-server` dev dependency), was found in the R1 reproduction before review and is
+  in the spec. The review rounds corrected only the spec's records and added `rlib`, `dylib` and
+  multi-kind tests, with no design change.
 
 ## Acceptance Criteria
 
@@ -233,7 +247,7 @@ Use a Conventional Commit message with the issue reference and sign every commit
 - [x] AC4: `cargo test -p workspace-coupling` and `linter all` exit with code `0`.
 - [x] AC5: The reproduction (R1) and the recheck (R2) are recorded in issue-local
       `manual-verification-evidence.md`.
-- [ ] AC6: The acceptance criteria are re-reviewed after implementation.
+- [x] AC6: The acceptance criteria are re-reviewed after implementation.
 
 ## Verification Plan
 
@@ -263,7 +277,7 @@ Record the toolchain for each `cargo` command in the evidence file.
 | AC3   | DONE                   | R2 in `manual-verification-evidence.md`: zero "no references" edges; the five edges list imports. |
 | AC4   | DONE                   | `cargo test -p workspace-coupling` and `linter all` exit 0 (T3 in the evidence). Pre-push checks run before pushing. |
 | AC5   | DONE                   | R1, T1, T3 and R2 in `manual-verification-evidence.md`. |
-| AC6   | TODO                   |          |
+| AC6   | DONE                   | Re-reviewed against the merged code, tests and evidence (see the 2026-10-19 progress-log entry). |
 
 ## Risks and Trade-offs
 
@@ -276,7 +290,7 @@ After implementation, compare the result with this specification. Record
 invalidated assumptions, material design changes, unexpected validation
 findings, and reusable lessons.
 
-- Retrospective: `Not yet assessed`
+- Retrospective: `Not needed`; see the progress-log entry of the archival.
 - If needed, create `implementation-retrospective.md` from the repository
   template at `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this issue
   specification's directory.
