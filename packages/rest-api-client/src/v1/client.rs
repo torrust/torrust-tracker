@@ -24,6 +24,7 @@ const DEFAULT_REQUEST_TIMEOUT_IN_SECS: u64 = 5;
 
 /// Error type for [`ApiClient`] operations.
 #[derive(Debug, Error)]
+#[non_exhaustive]
 pub enum ClientError {
     /// A transport-level error (connection refused, timeout, DNS failure, etc.).
     #[error("transport error: {0}")]

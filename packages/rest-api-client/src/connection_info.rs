@@ -35,6 +35,7 @@ pub struct Origin {
 }
 
 #[derive(Debug, Error)]
+#[non_exhaustive]
 pub enum OriginError {
     #[error("Invalid URL: {0}")]
     InvalidUrl(#[from] url::ParseError),
