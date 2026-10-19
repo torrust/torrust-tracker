@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2475-1669-coupling-tool-resolve-lib-names-and-renames/ISSUE.md
-last-updated-utc: 2026-10-19 12:46
+issue-spec: docs/issues/closed/2475-1669-coupling-tool-resolve-lib-names-and-renames/ISSUE.md
+last-updated-utc: 2026-10-19 15:32
 ---
 
 <!-- cspell:ignore splitlines startswith -->

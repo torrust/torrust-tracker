@@ -5,7 +5,7 @@ semantic-links:
   related-artifacts:
     - docs/issues/open/1669-overhaul-packages/EPIC.md
     - docs/issues/open/1669-overhaul-packages/DECISIONS.md
-    - docs/issues/open/2475-1669-coupling-tool-resolve-lib-names-and-renames/ISSUE.md
+    - docs/issues/closed/2475-1669-coupling-tool-resolve-lib-names-and-renames/ISSUE.md
     - "issue #2475"
     - packages/
 ---
