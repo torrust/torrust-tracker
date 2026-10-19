@@ -9,7 +9,7 @@ github-issue: 1349
 spec-path: docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md
 branch: "1349-1347-add-tests-http-core-inventory"
 related-pr: 2558
-last-updated-utc: "2026-10-17 12:23"
+last-updated-utc: "2026-10-19 11:31"
 semantic-links:
   skill-links:
     - create-issue
@@ -567,6 +567,12 @@ lines are the T1 baseline measurement (see [Baseline Coverage](#baseline-coverag
 - 2026-10-17 12:23 UTC - GitHub Copilot - Copilot's review of PR #2558 found one `Minor` issue (F1 in
   the audit): the plan's precedence test never gives the service an external IP. Fixed in the
   announce plan and resolved; the review audit is [PR #2558 review audit](../../../pr-reviews/pr-2558-review/PR-REVIEW.md).
+- 2026-10-19 11:31 UTC - GitHub Copilot - da2ce7 approved the S1 head on 2026-10-18 with three
+  findings (F2-F4 in the [audit](../../../pr-reviews/pr-2558-review/PR-REVIEW.md)): the announce plan
+  gains R2k (the instance public URL in the event) and a Named Mutations table, and the evidence
+  now says that `ClientConnectionContext::port` is dead only together with `client_port`. All three
+  are fixed and resolved. The announce plan is amended a third time; the maintainer confirms the
+  amendments at the R1 and R2 reviews.
 
 ## Acceptance Criteria
 
