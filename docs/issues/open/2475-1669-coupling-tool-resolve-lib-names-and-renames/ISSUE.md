@@ -9,7 +9,7 @@ github-issue: 2475
 spec-path: docs/issues/open/2475-1669-coupling-tool-resolve-lib-names-and-renames/ISSUE.md
 branch: "2475-1669-coupling-tool-resolve-lib-names-and-renames"
 related-pr: 2559
-last-updated-utc: "2026-10-19 12:44"
+last-updated-utc: "2026-10-19 12:46"
 semantic-links:
   skill-links:
     - create-issue

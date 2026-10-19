@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2475-1669-coupling-tool-resolve-lib-names-and-renames/ISSUE.md
-last-updated-utc: 2026-10-19 12:18
+last-updated-utc: 2026-10-19 12:46
 ---
 
 <!-- cspell:ignore splitlines startswith -->
@@ -176,7 +176,12 @@ test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fin
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 ```
 
-`linter all` exited `0`; its last line was `torrust_linting::cli: All linters passed`.
+`linter all` was rerun on 2026-10-19 12:45 UTC, on the branch after the rebase and before the commit
+that records it. It exited `0`, and its last line, as printed, was:
+
+```text
+2026-10-19T12:45:47.460532Z  INFO torrust_linting::cli: All linters passed
+```
 
 ### R2 - Final recheck
 
