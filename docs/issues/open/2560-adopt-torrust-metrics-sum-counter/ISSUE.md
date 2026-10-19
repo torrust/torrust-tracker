@@ -9,7 +9,7 @@ github-issue: 2560
 spec-path: docs/issues/open/2560-adopt-torrust-metrics-sum-counter/ISSUE.md
 branch: "2560-adopt-torrust-metrics-sum-counter"
 related-pr: 2561
-last-updated-utc: "2026-10-19 12:03"
+last-updated-utc: "2026-10-19 12:10"
 semantic-links:
   skill-links:
     - create-issue
@@ -111,6 +111,7 @@ The tests for T2 and T3 prove they fail on the old code with the mutate-then-res
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
+- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [x] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
@@ -120,6 +121,7 @@ The tests for T2 and T3 prove they fail on the old code with the mutate-then-res
 - 2026-10-19 11:23 UTC - GitHub Copilot - Maintainer approved the spec; created issue #2560, moved the spec to `docs/issues/open/`, and renamed the branch to `2560-adopt-torrust-metrics-sum-counter` (no spec-only PR, as chosen) - Implementation starts
 - 2026-10-19 11:38 UTC - GitHub Copilot - T1-T4 done: bumped `torrust-metrics` to 0.2.0 in the eight manifests (one lock entry changed); moved HTTP core, UDP core, and the UDP server's 17 counters to `sum_counter` with one red/green test per package; kept the banned-IP gauge cast in its accessor with a permanent reason (a single call site made a helper pointless, a deviation from the draft); ran M1 and M2 against a local release tracker and `pre-push.sh`, all passing; no retrospective needed - Awaiting review
 - 2026-10-19 12:03 UTC - GitHub Copilot - PR #2561 review round 1 (Copilot, three findings, all valid): added a cast-free `counter_total` helper per package for the repeated `sum_counter` read, switched the UDP server test to a fixed timestamp, and set the status to `in-review` with `related-pr: 2561` - See `docs/pr-reviews/pr-2561-review/PR-REVIEW.md`
+- 2026-10-19 12:10 UTC - GitHub Copilot - PR #2561 review round 2 (da2ce7, two findings, both valid): the Background now says the cast stays in the accessor and is the only one left for the integer totals, and the template's independent-reviewer-reports checkpoint is restored and left open - See `docs/pr-reviews/pr-2561-review/PR-REVIEW.md`
 
 ## Acceptance Criteria
 
