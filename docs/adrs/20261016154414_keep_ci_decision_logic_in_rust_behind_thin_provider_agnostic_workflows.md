@@ -83,8 +83,11 @@ Concretely:
   when every needed group succeeded or the override applies, and otherwise names each failing,
   cancelled, or missing group in the explanation field of its JSON result. The contract treats a
   failed command as empty stdout and exit code 1, and a result as a JSON object with exit code 0, so
-  how a failing verdict reaches the job's status (the exit code, or a field the workflow reads) is a
-  choice for the task that writes the verdict tool, made under that contract.
+  how a failing verdict reaches the job's status (the exit code, or a field the workflow reads) was a
+  choice for the task that wrote the verdict tool, made under that contract. It chose the field: a
+  decided verdict, passing or failing, is a result, so the tool exits with 0 and prints `verdict`
+  as `pass` or `fail`, and a command that cannot decide (unreadable input) exits with 1 and prints
+  nothing, which also fails the job. Both paths fail closed.
 - **Workflows only wire.** A workflow may run a tool, pass it job results, set a job's status from the
   tool's exit code or from a field of its JSON result (which of the two is the verdict task's choice,
   above), and consume a scheduling decision that a tool computed: a job's `if:` or a matrix that
