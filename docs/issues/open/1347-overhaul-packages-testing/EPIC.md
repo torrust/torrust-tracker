@@ -6,7 +6,7 @@ epic: null
 github-issue: 1347
 spec-path: docs/issues/open/1347-overhaul-packages-testing/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-16 06:53"
+last-updated-utc: "2026-10-17 08:25"
 semantic-links:
   skill-links:
     - create-issue
@@ -87,7 +87,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | Order | Issue                                             | Local Spec                                                                        | Status | Notes                                                                                                                |
 | ----- | ------------------------------------------------- | --------------------------------------------------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------- |
 | 1     | #1348 - Add tests to the udp-core package         | `docs/issues/closed/1348-1347-add-tests-udp-core/ISSUE.md`                        | DONE   | Every package source file processed through a reviewed per-file plan; unit-only lines 72.49% → 98.04% (includes #2458, #2505, #2517, and #2521); bounded mutation sample and manual verification recorded; merged through PR #2538. |
-| 2     | #1349 - Add tests to the http-core package        | `docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md`                         | TODO   | Spec approved, based on the #1348 template, with a clean baseline (unit-only lines 89.06%); merged through spec-only PR #2546 before T1. Becomes `IN_PROGRESS` when T1 starts. Implementation is delivered in several pull-request slices instead of one large PR. |
+| 2     | #1349 - Add tests to the http-core package        | `docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md`                         | IN_PROGRESS | T1-T3 are done: re-measured baseline at `a3810b813` (unit-only lines 88.94%), a 13-file inventory and an approved announce plan; implementation is delivered in several pull-request slices (S1 is the docs-only inventory PR). |
 | 3     | #2136 - Add tests to the axum-http-server package | `docs/issues/closed/2136-1347-add-tests-axum-http-server/ISSUE.md`                | DONE   | Added fast package-local response, request-ID, and lifecycle tests; verification and final review evidence recorded. |
 | 4     | #2140 - Review axum-http-server integration tests | `docs/issues/closed/2140-1347-review-axum-http-server-integration-tests/ISSUE.md` | DONE   | Inventory, coverage/domain analysis, and test-design review completed.                                               |
 | 5     | #2149 - Add focused UDP server package tests      | `docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/ISSUE.md`        | DONE   | Focused transport, dispatch, socket, event/error, and overload tests added through reviewed per-file plans; separate coverage scopes, bounded mutation sample, and manual verification recorded; merged via PR #2174. |
@@ -118,7 +118,7 @@ level or determine whether unit coverage is adequate.
 | `torrust-tracker-udp-server`       | [#2149](../../closed/2149-1347-add-focused-udp-server-package-tests/ISSUE.md) | Lines: 96.96%; regions: 95.79%; functions: 97.19% | Lines: 97.85%; regions: 96.64%; functions: 97.63% | Lines: +0.89 pp; regions: +0.85 pp; functions: +0.44 pp | [Coverage evidence](../../closed/2149-1347-add-focused-udp-server-package-tests/coverage-evidence.md) |
 | `torrust-tracker-udp-server`       | [#2283](../../closed/2283-1347-increase-udp-server-package-coverage/ISSUE.md) | Lines: 97.86%; regions: 96.64%; functions: 97.64% | Lines: 98.58%; regions: 97.62%; functions: 98.56% | Lines: +0.72 pp; regions: +0.98 pp; functions: +0.92 pp | [Coverage evidence](../../closed/2283-1347-increase-udp-server-package-coverage/coverage-evidence.md) |
 | `torrust-tracker-udp-core`         | [#1348](../../closed/1348-1347-add-tests-udp-core/ISSUE.md) | Lines: 72.49%; regions: 78.56%; functions: 71.27% | Lines: 98.04%; regions: 98.15%; functions: 97.61% | Lines: +25.55 pp; regions: +19.58 pp; functions: +26.34 pp | [Coverage evidence](../../closed/1348-1347-add-tests-udp-core/coverage-evidence.md) |
-| `torrust-tracker-http-core`        | [#1349](../1349-1347-add-tests-http-core/ISSUE.md) | Lines: 89.06%; regions: 90.51%; functions: 84.41% | Baseline only; no tests added yet | - | [Baseline coverage](../1349-1347-add-tests-http-core/ISSUE.md#baseline-coverage) |
+| `torrust-tracker-http-core`        | [#1349](../1349-1347-add-tests-http-core/ISSUE.md) | Lines: 88.94%; regions: 90.40%; functions: 84.21% | Baseline only; no tests added yet | - | [Coverage evidence](../1349-1347-add-tests-http-core/coverage-evidence.md) |
 
 ### Unit-Only Coverage
 
@@ -131,7 +131,7 @@ weak unit-only result with aggregate, integration, example, or end-to-end covera
 | `torrust-tracker-udp-server` | [#2149](../../closed/2149-1347-add-focused-udp-server-package-tests/ISSUE.md) | Not measured before #2149 increments | Lines: 96.18%; regions: 95.34%; functions: 94.92% | Not comparable (no unit-only baseline) | [Coverage evidence](../../closed/2149-1347-add-focused-udp-server-package-tests/coverage-evidence.md) |
 | `torrust-tracker-udp-server` | [#2283](../../closed/2283-1347-increase-udp-server-package-coverage/ISSUE.md) | Lines: 96.18%; regions: 95.34%; functions: 94.93% | Lines: 98.18%; regions: 97.04%; functions: 97.70% | Lines: +2.00 pp; regions: +1.70 pp; functions: +2.77 pp | [Coverage evidence](../../closed/2283-1347-increase-udp-server-package-coverage/coverage-evidence.md) |
 | `torrust-tracker-udp-core` | [#1348](../../closed/1348-1347-add-tests-udp-core/ISSUE.md) | Lines: 72.49%; regions: 78.56%; functions: 71.27% | Lines: 98.04%; regions: 98.15%; functions: 97.61% | Lines: +25.55 pp; regions: +19.58 pp; functions: +26.34 pp | [Coverage evidence](../../closed/1348-1347-add-tests-udp-core/coverage-evidence.md) |
-| `torrust-tracker-http-core` | [#1349](../1349-1347-add-tests-http-core/ISSUE.md) | Lines: 89.06%; regions: 90.51%; functions: 84.41% | Baseline only; no tests added yet | - | [Baseline coverage](../1349-1347-add-tests-http-core/ISSUE.md#baseline-coverage) |
+| `torrust-tracker-http-core` | [#1349](../1349-1347-add-tests-http-core/ISSUE.md) | Lines: 88.94%; regions: 90.40%; functions: 84.21% | Baseline only; no tests added yet | - | [Coverage evidence](../1349-1347-add-tests-http-core/coverage-evidence.md) |
 
 ## Delivery Strategy
 
@@ -249,6 +249,17 @@ For each subissue implementation, the completion policy is:
   `.tmp/`, parallel or pause) for bugs found while adding tests.
 - 2026-10-16 06:53 UTC - GitHub Copilot - After review of spec-only PR #2546, kept the #1349
   subissue row `TODO` until T1 starts, as #1348 did, instead of `IN_PROGRESS`.
+- 2026-10-16 15:43 UTC - GitHub Copilot - #1349 (`http-core`) T1: re-measured the package at `04013e7f1`
+  because #2536 (merged through #2545) changed four statistics files after the spec baseline. The
+  aggregate and unit-only baseline rows now read lines 88.99%, regions 90.38%, functions 84.13%
+  (32 unit tests, no integration target) and link the issue-local coverage evidence. The subissue
+  row is `IN_PROGRESS`.
+- 2026-10-17 08:22 UTC - GitHub Copilot - #1349 T2-T3: the shared plan guidance and the announce
+  plan were approved on 2026-10-16, with the ledger order, slices S1-S6 and `rstest` as a
+  dev-dependency for S2. S1 passed the independent Task Reviewer after fixes.
+- 2026-10-17 08:25 UTC - GitHub Copilot - #1349: `develop` changed `statistics/metrics.rs` again
+  (#2244, merged through #2552), so the S1 branch was rebased and the package re-measured at
+  `a3810b813`. The baseline rows now read lines 88.94%, regions 90.40%, functions 84.21%.
 
 ## Acceptance Criteria
 

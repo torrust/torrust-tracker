@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p2
 epic: 1347
 github-issue: 1349
 spec-path: docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md
-branch: "1349-1347-add-tests-http-core-spec"
-related-pr: 2546
-last-updated-utc: "2026-10-16 10:55"
+branch: "1349-1347-add-tests-http-core-inventory"
+related-pr: 2558
+last-updated-utc: "2026-10-19 16:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -25,6 +25,9 @@ semantic-links:
     - docs/issues/closed/1348-1347-add-tests-udp-core/implementation-retrospective.md
     - docs/issues/closed/1348-1347-add-tests-udp-core/lessons.md
     - docs/pr-reviews/pr-2546-review/PR-REVIEW.md
+    - docs/pr-reviews/pr-2558-review/PR-REVIEW.md
+    - docs/issues/open/1349-1347-add-tests-http-core/coverage-evidence.md
+    - docs/issues/open/1349-1347-add-tests-http-core/test-refactor-plans/README.md
     - packages/http-core
 ---
 
@@ -110,9 +113,13 @@ The `torrust-tracker-axum-http-server` package and the root `tests/` exercise th
 indirectly. EPIC #1347 does not accept coverage from another package, an integration test, or an
 end-to-end test as evidence that a feasible package-owned unit seam is protected.
 
-T1 copies this baseline into `coverage-evidence.md`, adds per-file uncovered regions, and
-re-measures only if `packages/http-core/` changed on `develop` after `a9d8c5703`. The EPIC #1347
-Package Coverage Tracking tables record this baseline in both the aggregate and unit-only tables.
+T1 re-measured, because `packages/http-core/` changed on `develop` after `a9d8c5703`: the #2536
+refactor (merged through #2545) touched four statistics files, and the #2244 refactor (merged
+through #2552) changed `statistics/metrics.rs` again. The T1 baseline at `develop` `a3810b813` is
+lines 1,737 / 1,953 (88.94%), regions 2,335 / 2,583 (90.40%), and functions 160 / 190 (84.21%), from
+the same 32 unit tests, with unit-only equal to aggregate. It supersedes the table above;
+[coverage-evidence.md](coverage-evidence.md) holds the per-file results and the differences. The
+Source File Ledger and the EPIC #1347 Package Coverage Tracking tables use the T1 baseline.
 
 ## Key Package Responsibilities
 
@@ -300,9 +307,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | ------ | ---- | ----------------------- |
-| T1 | TODO | Create coverage evidence and complete module inventory | `coverage-evidence.md` records the baseline commands and totals from this spec, per-file uncovered regions, property-test candidacy, selected behavior, and initial hypothesis for every `packages/http-core/src/` file. No tests changed. |
-| T2 | TODO | Create shared plan guidance and the first file test plan | `test-refactor-plans/README.md` holds the shared guardrails and the plan index, including the two #1348 testing lessons that apply here: re-check an assumed-unreachable error path against `tracker-core`'s exported store doubles before recording it untestable, and prove an ordering decision (for example, authentication before authorization before client-IP resolution) with an expectation-free double that fails on the first call. The first plan is `services-announce-tests.md`. No tests changed. |
-| T3 | TODO | Review and approve the processing order and slice boundaries | Maintainer approves the ledger order and the pull-request slices; both may change at any time. |
+| T1 | DONE | Create coverage evidence and complete module inventory | `coverage-evidence.md` records the baseline commands and totals from this spec, per-file uncovered regions, property-test candidacy, selected behavior, and initial hypothesis for every `packages/http-core/src/` file. No tests changed. |
+| T2 | DONE | Create shared plan guidance and the first file test plan | `test-refactor-plans/README.md` holds the shared guardrails and the plan index, including the two #1348 testing lessons that apply here: re-check an assumed-unreachable error path against `tracker-core`'s exported store doubles before recording it untestable, and prove an ordering decision (for example, authentication before authorization before client-IP resolution) with an expectation-free double that fails on the first call. The first plan is `services-announce-tests.md`. No tests changed. |
+| T3 | DONE | Review and approve the processing order and slice boundaries | Maintainer approves the ledger order and the pull-request slices; both may change at any time. |
 | T4 | TODO | Process every source file through the per-file workflow | Every ledger row has a completed plan, recorded coverage result, completed-file review, and signed per-file commit, merged through its slice. |
 | T5 | TODO | Implement integration-test increments selected by file test plans | Only if a plan selected a 3B increment; otherwise record why none was needed. |
 | T6 | TODO | Perform bounded mutation assessment | `mutation-evidence.md` records configuration, timeout, scope, outcomes, and the reason for each unviable mutant. |
@@ -323,8 +330,8 @@ open a PR, get it reviewed, and merge it. The spec-only PR comes first.
 
 | Slice | Content | Ledger rows | Branch | PR | Status |
 | --- | --- | --- | --- | --- | --- |
-| S0 | This specification and the EPIC registration with the baseline | - | `1349-1347-add-tests-http-core-spec` | #2546 | IN_PROGRESS |
-| S1 | T1-T3: coverage evidence, inventory, shared plan guidance, first plan, approved order | - | `1349-1347-add-tests-http-core-inventory` | - | TODO |
+| S0 | This specification and the EPIC registration with the baseline | - | `1349-1347-add-tests-http-core-spec` | #2546 | DONE |
+| S1 | T1-T3: coverage evidence, inventory, shared plan guidance, first plan, approved order | - | `1349-1347-add-tests-http-core-inventory` | #2558 | IN_PROGRESS |
 | S2 | Announce service and its error mapping (ranks 1-2) | 1-2 | `1349-1347-add-tests-http-core-announce` | - | TODO |
 | S3 | Scrape service (rank 3) | 3 | `1349-1347-add-tests-http-core-scrape` | - | TODO |
 | S4 | Events and composition (ranks 4-5) | 4-5 | `1349-1347-add-tests-http-core-events-container` | - | TODO |
@@ -437,19 +444,19 @@ States: `PENDING` (no plan yet), `IN_PROGRESS`, `BLOCKED` (paused by a finding; 
 `DONE`, `REMOVED` (the file no longer exists; the row keeps the history). Rows follow
 [Key Package Responsibilities](#key-package-responsibilities), most critical first; within a
 responsibility, the module holding the decision comes before its supporting modules. Unit-only
-lines are the [baseline](#baseline-coverage) measurement.
+lines are the T1 baseline measurement (see [Baseline Coverage](#baseline-coverage)).
 
 | Order | Source module | Rank | Slice | Unit-only lines | Tests | Initial hypothesis | State | Plan |
 | ---: | --- | ---: | --- | ---: | ---: | --- | --- | --- |
-| 1 | `services/announce.rs` | 1-2 | S2 | 675 / 727 (92.85%) | 8 | Property candidate (peer-IP selection) | PENDING | - |
+| 1 | `services/announce.rs` | 1-2 | S2 | 675 / 727 (92.85%) | 8 | Property candidate (peer-IP selection) | IN_PROGRESS | [services-announce-tests.md](test-refactor-plans/services-announce-tests.md) (approved) |
 | 2 | `services/error_mapping.rs` | 2 | S2 | 0 / 15 (0.00%) | 0 | Test candidate | PENDING | - |
 | 3 | `services/scrape.rs` | 3 | S3 | 507 / 540 (93.89%) | 8 | Test candidate (error paths) | PENDING | - |
 | 4 | `event.rs` | 4 | S4 | 174 / 187 (93.05%) | 7 | Probably small change | PENDING | - |
 | 5 | `container.rs` | 5 | S4 | 0 / 73 (0.00%) | 0 | Test candidate | PENDING | - |
-| 6 | `statistics/event/handler.rs` | 6 | S5 | 159 / 160 (99.38%) | 5 | Probably no change | PENDING | - |
+| 6 | `statistics/event/handler.rs` | 6 | S5 | 158 / 161 (98.14%) | 5 | Probably no change | PENDING | - |
 | 7 | `statistics/event/listener.rs` | 6 | S5 | 133 / 148 (89.86%) | 4 | Lifecycle (#1488) | PENDING | - |
-| 8 | `statistics/metrics.rs` | 6 | S5 | 40 / 49 (81.63%) | 0 | Test candidate | PENDING | - |
-| 9 | `statistics/repository.rs` | 6 | S5 | 20 / 23 (86.96%) | 0 (2 doc tests) | Test candidate | PENDING | - |
+| 8 | `statistics/metrics.rs` | 6 | S5 | 34 / 43 (79.07%) | 0 | Test candidate | PENDING | - |
+| 9 | `statistics/repository.rs` | 6 | S5 | 21 / 24 (87.50%) | 0 (3 doc tests) | Test candidate | PENDING | - |
 | 10 | `statistics/mod.rs` | 6 | S5 | 8 / 8 (100.00%) | 0 | Probably small change (metric-name contract) | PENDING | - |
 | 11 | `lib.rs` | 7 | S6 | 27 / 27 (100.00%) | 0 | Test support only | PENDING | - |
 | 12 | `services/mod.rs` | 7 | S6 | No executable entries | 0 | Wiring only | PENDING | - |
@@ -468,9 +475,9 @@ lines are the [baseline](#baseline-coverage) measurement.
 - [x] Clean baseline coverage measured and recorded in this spec and the EPIC tables.
 - [x] Specification reviewed and approved by the maintainer, Jose Celano (2026-10-15).
 - [x] GitHub issue #1349 title and body refreshed to the current package name and this spec.
-- [ ] Spec-only PR (S0) merged into `develop` before implementation.
-- [ ] Complete module inventory and coverage evidence recorded (T1).
-- [ ] Shared plan guidance and the first file test plan created; processing order and slices
+- [x] Spec-only PR (S0) merged into `develop` before implementation (#2546).
+- [x] Complete module inventory and coverage evidence recorded (T1).
+- [x] Shared plan guidance and the first file test plan created; processing order and slices
       approved (T2-T3).
 - [ ] Every ledger row is `DONE` with its own file test plan, merged through its slice.
 - [ ] Maintainer review after the final test-producing increment.
@@ -520,6 +527,65 @@ lines are the [baseline](#baseline-coverage) measurement.
 - 2026-10-16 10:55 UTC - GitHub Copilot - Copilot's fourth review has no finding. da2ce7 approved
   the head again with one `Minor` finding (F14 in the audit): the audit named the wrong round for
   one review's head. Fixed and resolved.
+- 2026-10-16 11:35 UTC - Jose Celano - Merged spec-only PR #2546 into `develop` (merge commit
+  subject `Merge torrust/torrust-tracker#2546: docs(issues): [#1349] add issue specification for
+  http-core package tests`).
+- 2026-10-16 15:42 UTC - GitHub Copilot - Started S1 on branch `1349-1347-add-tests-http-core-inventory` and
+  set the specification to `in-progress`. T1: `packages/http-core/` had changed since the spec
+  baseline (#2536 through #2545), so the package was re-measured at `04013e7f1` (stable Rust 1.99.0,
+  `cargo-llvm-cov 0.6.16`): lines 1,746 / 1,962 (88.99%), 32 unit tests, unit-only equal to
+  aggregate; [coverage-evidence.md](coverage-evidence.md) records the 13-file inventory, the
+  uncovered-line groups, and the regions that line coverage hides (the early-return paths of
+  `handle_announce` and `handle_scrape`). Three dead-code candidates (the `ConnectionContext`
+  getters, `ClientConnectionContext::port`, and `Metrics::set_gauge`) await their file plans. T2:
+  created [the shared plan guidance](test-refactor-plans/README.md) and the proposed
+  [announce plan](test-refactor-plans/services-announce-tests.md). T3 awaits the maintainer's
+  approval of the announce plan, the ledger order and the slice boundaries. No test or production
+  code changed.
+- 2026-10-16 16:02 UTC - Jose Celano - Approved the announce plan, the ledger order, slices S1-S6,
+  and adding `rstest` as a dev-dependency in S2. T3 is `DONE`. S1 awaits the independent Task
+  Reviewer, the pre-push checks and its PR.
+- 2026-10-17 08:22 UTC - GitHub Copilot - The independent Task Reviewer failed S1 with three
+  `MEDIUM` and four `LOW` findings ([agent-review-reports.md](agent-review-reports.md)): a
+  misclassified listener region, a wrongly described scrape region, the announce ledger row left
+  `PENDING`, a stale doc-test count, a missing test-name smell, and an unexplained missed-line
+  difference. All six blocking items were fixed in separate commits (the ledger row is now
+  `IN_PROGRESS`), and the re-review passed. Next: the pre-push checks and the S1 pull request.
+- 2026-10-17 08:25 UTC - GitHub Copilot - The pre-PR check found `develop` 64 commits ahead,
+  including #2244 (merged through #2552), which changed `statistics/metrics.rs` again. Rebased S1
+  onto `develop` (no conflicts, signatures kept) and re-measured at `a3810b813`: lines 1,737 / 1,953
+  (88.94%), regions 90.40%, functions 84.21%, 32 unit tests, unit-only equal to aggregate. Only
+  `statistics/metrics.rs` changed (lines 34 / 43, 79.07%, after the new `whole_total` helper); the
+  uncovered lines and every other file are unchanged. Updated the evidence, the baseline paragraph,
+  the ledger row and the EPIC rows.
+- 2026-10-17 09:23 UTC - GitHub Copilot - The Task Reviewer failed the re-measurement commit with one
+  `MEDIUM` and two `LOW` findings (a stale base commit, reproduction commands naming the superseded
+  reports, and one sentence) and passed after the fixes
+  ([agent-review-reports.md](agent-review-reports.md)). Next: the pre-push checks and the S1 pull
+  request.
+- 2026-10-17 09:28 UTC - GitHub Copilot - Opened the S1 pull request #2558
+  (<https://github.com/torrust/torrust-tracker/pull/2558>) with `Related to #1349`.
+- 2026-10-17 12:23 UTC - GitHub Copilot - Copilot's review of PR #2558 found one `Minor` issue (F1 in
+  the audit): the plan's precedence test never gives the service an external IP. Fixed in the
+  announce plan and resolved; the review audit is [PR #2558 review audit](../../../pr-reviews/pr-2558-review/PR-REVIEW.md).
+- 2026-10-19 11:31 UTC - GitHub Copilot - da2ce7 approved the S1 head on 2026-10-18 with three
+  findings (F2-F4 in the [audit](../../../pr-reviews/pr-2558-review/PR-REVIEW.md)): the announce plan
+  gains R2k (the instance public URL in the event) and a Named Mutations table, and the evidence
+  now says that `ClientConnectionContext::port` is dead only together with `client_port`. All three
+  are fixed and resolved. The announce plan is amended a third time; the maintainer confirms the
+  amendments at the R1 and R2 reviews.
+- 2026-10-19 12:48 UTC - GitHub Copilot - Copilot's third review raised one `Minor` finding (F5 in
+  the audit): mutation M5 does not compile under the workspace `unused` denial. Verified by applying
+  it and fixed in the plan (M5 runs with `--cap-lints=warn`); M1-M4 compile by default. Resolved.
+- 2026-10-19 15:36 UTC - GitHub Copilot - da2ce7 approved the head on 2026-10-19 13:05 UTC with one
+  `Nit` (F6 in the audit): F5's `Reviewer finding ID` should be `N/A`. Fixed and resolved.
+- 2026-10-19 16:01 UTC - GitHub Copilot - Copilot's fourth review raised one `Nit` (F7 in the
+  audit): the audit recorded the wrong source finding ID for F6. Fixed, with every entry
+  cross-checked against its source comment, and resolved.
+- 2026-10-19 16:30 UTC - GitHub Copilot - Copilot's fifth review raised four threads (F8-F11 in the
+  audit): the announce plan now lists its five post-approval amendments, each pending the
+  maintainer's confirmation at the R1 or R2 review, and the specification links the PR #2558
+  audit. Three of the threads were one comment on three lines. All are resolved.
 
 ## Acceptance Criteria
 
