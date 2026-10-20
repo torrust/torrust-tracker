@@ -2,7 +2,7 @@ use futures::FutureExt;
 use futures::future::BoxFuture;
 use tokio::sync::broadcast::{self};
 
-use crate::receiver::{Receiver, RecvError};
+use crate::receiver::{Receiver, RecvError, TryRecvError};
 use crate::sender::{SendError, Sender};
 
 const CHANNEL_CAPACITY: usize = 65536;
@@ -41,11 +41,29 @@ impl<Event: Sync + Send + Clone> Receiver for broadcast::Receiver<Event> {
     fn recv(&mut self) -> BoxFuture<'_, Result<Self::Event, RecvError>> {
         async move { self.recv().await.map_err(std::convert::Into::into) }.boxed()
     }
+
+    fn try_recv(&mut self) -> Result<Self::Event, TryRecvError> {
+        Self::try_recv(self).map_err(std::convert::Into::into)
+    }
+
+    fn len(&self) -> usize {
+        Self::len(self)
+    }
 }
 
 impl<Event> From<broadcast::error::SendError<Event>> for SendError<Event> {
     fn from(err: broadcast::error::SendError<Event>) -> Self {
         Self(err.0)
+    }
+}
+
+impl From<broadcast::error::TryRecvError> for TryRecvError {
+    fn from(err: broadcast::error::TryRecvError) -> Self {
+        match err {
+            broadcast::error::TryRecvError::Empty => Self::Empty,
+            broadcast::error::TryRecvError::Closed => Self::Closed,
+            broadcast::error::TryRecvError::Lagged(amt) => Self::Lagged(amt),
+        }
     }
 }
 
@@ -113,5 +131,82 @@ mod tests {
 
         assert_eq!(val1, 1);
         assert_eq!(val2, 1);
+    }
+
+    #[test]
+    fn it_should_report_empty_without_waiting_when_the_receiver_has_read_every_event() {
+        // Arrange
+        // A channel whose only receiver has read the one event sent, with its sender alive.
+        let (sender, mut receiver) = broadcast::channel::<u32>(4);
+        sender.send(1).unwrap();
+        assert_eq!(Receiver::try_recv(&mut receiver), Ok(1));
+
+        // Act
+        let result = Receiver::try_recv(&mut receiver);
+
+        // Assert
+        // The receiver reports `Empty`, not `Closed`, because a sender could still send.
+        assert_eq!(result, Err(TryRecvError::Empty));
+    }
+
+    #[test]
+    fn it_should_report_the_number_of_skipped_events_then_continue_with_the_oldest_retained_one() {
+        // Arrange
+        // A channel that holds two events, and five sent: three were overwritten before the
+        // receiver read anything.
+        let (sender, mut receiver) = broadcast::channel::<u32>(2);
+        for event in 1..=5 {
+            sender.send(event).unwrap();
+        }
+
+        // Act
+        let first = Receiver::try_recv(&mut receiver);
+        let second = Receiver::try_recv(&mut receiver);
+
+        // Assert
+        // The first call reports the three skipped events, and the next returns the oldest
+        // event that is still retained.
+        assert_eq!(first, Err(TryRecvError::Lagged(3)));
+        assert_eq!(second, Ok(4));
+    }
+
+    #[test]
+    fn it_should_report_closed_only_after_the_buffered_events_were_read() {
+        // Arrange
+        // One event is buffered and the only sender is dropped.
+        let (sender, mut receiver) = broadcast::channel::<u32>(4);
+        sender.send(1).unwrap();
+        drop(sender);
+
+        // Act
+        let buffered = Receiver::try_recv(&mut receiver);
+        let after = Receiver::try_recv(&mut receiver);
+
+        // Assert
+        // The buffered event is delivered first, and only then does the receiver report closed.
+        assert_eq!(buffered, Ok(1));
+        assert_eq!(after, Err(TryRecvError::Closed));
+    }
+
+    #[test]
+    fn it_should_count_sent_positions_not_yet_received_including_overwritten_ones() {
+        // Arrange
+        // Capacity two, five events sent, and none received, then one event received after the
+        // lag is reported.
+        let (sender, mut receiver) = broadcast::channel::<u32>(2);
+        for event in 1..=5 {
+            sender.send(event).unwrap();
+        }
+        let before_any_receive = Receiver::len(&receiver);
+
+        // Act
+        let _lag = Receiver::try_recv(&mut receiver);
+        let after_the_lag_was_reported = Receiver::len(&receiver);
+
+        // Assert
+        // Before the lag is reported, `len` counts all five sent positions, although only two are
+        // readable. Once the lag was reported, only the two retained events remain.
+        assert_eq!(before_any_receive, 5);
+        assert_eq!(after_the_lag_was_reported, 2);
     }
 }

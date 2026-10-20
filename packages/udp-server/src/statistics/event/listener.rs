@@ -165,6 +165,21 @@ mod tests {
             self.receives.fetch_add(1, Ordering::SeqCst);
             futures::future::ready(self.results.pop_front().expect("scripted receive result")).boxed()
         }
+
+        fn try_recv(&mut self) -> Result<Self::Event, torrust_tracker_events::receiver::TryRecvError> {
+            use torrust_tracker_events::receiver::TryRecvError;
+
+            match self.results.pop_front() {
+                Some(Ok(event)) => Ok(event),
+                Some(Err(RecvError::Closed)) => Err(TryRecvError::Closed),
+                Some(Err(RecvError::Lagged(skipped))) => Err(TryRecvError::Lagged(skipped)),
+                None => Err(TryRecvError::Empty),
+            }
+        }
+
+        fn len(&self) -> usize {
+            self.results.iter().filter(|result| result.is_ok()).count()
+        }
     }
 
     fn request_received_event(configuration_instance_id: ConfigurationInstanceId) -> Event {

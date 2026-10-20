@@ -119,6 +119,21 @@ mod tests {
         fn recv(&mut self) -> BoxFuture<'_, Result<Self::Event, RecvError>> {
             Box::pin(future::ready(self.results.pop_front().unwrap_or(Err(RecvError::Closed))))
         }
+
+        fn try_recv(&mut self) -> Result<Self::Event, torrust_tracker_events::receiver::TryRecvError> {
+            use torrust_tracker_events::receiver::TryRecvError;
+
+            match self.results.pop_front() {
+                Some(Ok(event)) => Ok(event),
+                Some(Err(RecvError::Closed)) => Err(TryRecvError::Closed),
+                Some(Err(RecvError::Lagged(skipped))) => Err(TryRecvError::Lagged(skipped)),
+                None => Err(TryRecvError::Empty),
+            }
+        }
+
+        fn len(&self) -> usize {
+            self.results.iter().filter(|result| result.is_ok()).count()
+        }
     }
 
     fn peer_added_event() -> Event {

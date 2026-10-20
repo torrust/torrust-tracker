@@ -23,3 +23,4 @@ tokio = { version = "1", features = [ "macros", "net", "rt-multi-thread", "signa
 
 [dev-dependencies]
 mockall = "0"
+tokio = { version = "1", features = [ "test-util" ] }

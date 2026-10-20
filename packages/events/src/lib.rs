@@ -1,5 +1,6 @@
 pub mod broadcaster;
 pub mod bus;
+pub mod drain;
 pub mod receiver;
 pub mod sender;
 pub mod shutdown;
