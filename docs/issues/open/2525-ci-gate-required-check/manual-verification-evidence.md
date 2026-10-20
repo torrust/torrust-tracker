@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2525-ci-gate-required-check/ISSUE.md
-last-updated-utc: 2026-10-20 13:06
+last-updated-utc: 2026-10-20 14:59
 ---
 
 # Manual Verification Evidence
@@ -171,6 +171,11 @@ end-to-end space test fail), keeping git's quoted form of the non-ASCII name (th
 and splitting records on newlines too (the parser test fails). Cargo stops after the first failing
 test target, so the first mutant was re-run with `--no-fail-fast` to see the end-to-end test fail as
 well.
+
+Second review round: the same checks were extended for three more findings. Two more mutants were
+killed: a parser that drops a path that is not valid UTF-8 instead of decoding it (three unit tests
+fail), and a binary that writes a stray line to stderr on success (all four success-path
+command-line tests fail). The final run has 104 unit and 5 command-line tests.
 
 ## Failures and Follow-up
 
