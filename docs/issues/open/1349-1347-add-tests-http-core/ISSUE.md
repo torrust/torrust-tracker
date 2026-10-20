@@ -8,8 +8,8 @@ epic: 1347
 github-issue: 1349
 spec-path: docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md
 branch: "1349-1347-add-tests-http-core-announce"
-related-pr: null
-last-updated-utc: "2026-10-20 16:08"
+related-pr: 2575
+last-updated-utc: "2026-10-20 16:20"
 semantic-links:
   skill-links:
     - create-issue
@@ -334,7 +334,7 @@ open a PR, get it reviewed, and merge it. The spec-only PR comes first.
 | --- | --- | --- | --- | --- | --- |
 | S0 | This specification and the EPIC registration with the baseline | - | `1349-1347-add-tests-http-core-spec` | #2546 | DONE |
 | S1 | T1-T3: coverage evidence, inventory, shared plan guidance, first plan, approved order | - | `1349-1347-add-tests-http-core-inventory` | #2558 | DONE |
-| S2 | Announce service and its error mapping (ranks 1-2) | 1-2 | `1349-1347-add-tests-http-core-announce` | - | IN_PROGRESS |
+| S2 | Announce service and its error mapping (ranks 1-2) | 1-2 | `1349-1347-add-tests-http-core-announce` | #2575 | IN_PROGRESS |
 | S3 | Scrape service (rank 3) | 3 | `1349-1347-add-tests-http-core-scrape` | - | TODO |
 | S4 | Events and composition (ranks 4-5) | 4-5 | `1349-1347-add-tests-http-core-events-container` | - | TODO |
 | S5 | Statistics (rank 6) | 6-10 | `1349-1347-add-tests-http-core-statistics` | - | TODO |
