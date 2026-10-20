@@ -6,7 +6,7 @@ epic: 1488
 github-issue: 2410
 spec-path: docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-20 12:57"
+last-updated-utc: "2026-10-20 15:48"
 semantic-links:
   skill-links:
     - create-issue
@@ -2219,6 +2219,7 @@ avoids duplicating the full workflow in four drafts:
 - 2026-10-20 12:45 UTC - GitHub Copilot (Claude Sonnet 5.5) - #2414 T4a to T4c implemented and verified in the working tree, awaiting the T4 design review (nothing of T3a, T3c, T4 is committed yet, per the Commit Points). Design-change proposals recorded as Design Discussion Record entry 28 (default drain timeout 5 s from the release measurement, which shows a full buffer cannot drain within the deadline; a log macro instead of a function; counts are events; `Receiver::is_empty`). `adr-draft.md` is unchanged until the maintainer agrees (D14).
 - 2026-10-20 12:51 UTC - GitHub Copilot (Claude Sonnet 5.5) - The maintainer agreed to the design changes of record entry 28 at the T4 design review (default drain timeout 5 s, the `log_drain_report!` macro, "events" wording, `Receiver::is_empty`, the package `TestEnv` keeps its polling, three commits). `adr-draft.md` section 7, D9, D13, and the Chosen Design are updated in the same change (D14). The workflow checkpoint "Every design change was agreed and recorded" stays open until the end of the implementation.
 - 2026-10-20 12:57 UTC - GitHub Copilot (Claude Sonnet 5.5) - #2414 T3a, T3c, T4a to T4c committed (two code commits and one documentation commit); T5 is next. No design change beyond entry 28.
+- 2026-10-20 15:48 UTC - GitHub Copilot (Claude Sonnet 5.5) - #2414 T5 done (all seven listeners drain, one commit per package) and M1 to M3 rechecked on the real binary after the last production change: the T0 control run persists 500 of 500 (T0: 467), both race runs lose nothing (T0: 790 and 775), every listener logs its drain, and a cut-short drain logs the warning. Evidence in #2414's `manual-verification-evidence.md` (V9, V10). Remaining for #2414: Task Reviewer, retrospective, pre-push checks, PR. No design change beyond entry 28.
 
 ## Acceptance Criteria
 

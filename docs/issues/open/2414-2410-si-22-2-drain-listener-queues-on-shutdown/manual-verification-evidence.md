@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2414-2410-si-22-2-drain-listener-queues-on-shutdown/ISSUE.md
-last-updated-utc: "2026-10-20 15:39"
+last-updated-utc: "2026-10-20 15:45"
 ---
 
 # Manual Verification Evidence
@@ -834,6 +834,111 @@ failed, `--all-targets` gave 3,117 and 0, and `linter all`, `cargo +nightly fmt 
 All seven listeners now drain. A search for the old behavior,
 `rg 'shutting down .* event listener' packages src`, finds no listener that still logs "shutting down"
 without draining (read from the search, not traced).
+
+### V10 - M1, M2, M3: the final real-binary recheck, after the last production change
+
+- Goal: the `fix-bug` skill's like-for-like recheck of the original symptom, run after the last
+  production change (T5), plus the drain logs of every listener (M1).
+- Initial state: a clean working tree at the commit
+  `fix(udp-server): [#2414] drain the statistics and banning listeners' queues when they are cancelled`
+  (the last code change; the evidence commits after it change no code). Built with
+  `cargo build --bin torrust-tracker` (the `dev` profile, `opt-level = 1`, as the T0 evidence),
+  `rustc 1.99.0`, 15:40:35 to 15:40:44. Ports free before each run. The machine was shared, with a load
+  average of 4 to 7 (lower than during V6 and V8).
+- Status: `DONE`.
+
+#### M2 and M3: the T0 parameters, the sub-EPIC's script
+
+`reproduce-lost-completions.sh` with the T0 parameters (`PEERS=500` for the control run, and
+`PEERS=2000 SIGTERM_DELAY=0.5` for the race runs). Times are UTC on 2026-10-20.
+
+| Run (UTC start) | Mode | Answered `completed` | Persisted (torrent / global) | Lost | Exit status | T0 on `develop` (answered, persisted, lost) |
+| --- | --- | --- | --- | --- | --- | --- |
+| 15:40:51 | control | 500 | 500 / 500 | 0 | 0 | 500, 467, 33 |
+| 15:41:03 | race | 748 | 748 / 748 | 0 | 0 | 856, 66, 790 |
+| 15:41:07 | race | 715 | 715 / 715 | 0 | 0 | 845, 70, 775 |
+
+The control run's shutdown log (colour codes removed; other lines omitted):
+
+```text
+2026-10-20T15:40:53.550968Z  INFO torrust_tracker: Torrust tracker shutting down (SIGTERM) ...
+2026-10-20T15:40:53.551629Z  INFO TRACKER_CORE: Received cancellation request, draining tracker core persistent completed statistics event listener.
+2026-10-20T15:40:53.652556Z  INFO TRACKER_CORE: Event listener drained its queue after cancellation listener="tracker_core_persistent_completed_statistics" outcome="emptied" processed=84 lost_to_lag=0
+2026-10-20T15:40:53.652628Z  INFO torrust_tracker: Torrust tracker successfully shutdown.
+```
+
+The race runs are informative and isolate nothing (the maintainer's decision in the spec): scheduling
+changes the deficit, and window (b) (producers still answering while listeners stop) is not closed
+until sub-issue 4. In these two runs the persistent listener drained 1,384 and 1,316 events in about
+2.1 s, `outcome="emptied"`, and no completion was lost. The answered counts differ from T0 because
+the tracker stopped answering at a different moment relative to SIGTERM. No run logged a lagged
+receiver or a database error.
+
+#### M1: drain logs of every listener, and the warning
+
+The script's tracker has no UDP tracker, so the two `udp-server` listeners do not run in it. A
+second run used a configuration with an HTTP and a UDP tracker (ports 47170, 47171, and 47413; the
+first attempt used ports 47070 to 47313 and the tracker failed to start with "Address in use" for its HTTP
+listener a few seconds after the previous run, although `ss` showed nothing listening when I looked
+afterwards; I did not investigate the cause, and changed the ports). The
+configuration is [`evidence/m1-tracker.toml`](evidence/m1-tracker.toml), and the harness that started the
+tracker, sent 60 UDP and 100 HTTP completed-download announces, and sent SIGTERM is
+[`evidence/run_m1.py`](evidence/run_m1.py) (a disposable harness, kept here as evidence: Python because the
+shell tool refuses `kill` on a variable PID, and it replaces nothing maintained). Both are the exact files
+that ran; the harness is run from the repository root, and during the run the configuration was at
+`.tmp/m1/tracker.toml`, the path the harness reads.
+
+Two mistakes in the first attempts, with no effect on the final result: the UDP client rejected my
+peer id as an option, because it starts with `-` (`error: unexpected argument '-q' found`), so the
+first run sent no UDP announces, which I noticed because the database held only the HTTP torrent; the
+harness now passes `--peer-id=-qB...`, and one announce was checked by hand first
+(`{"AnnounceIpv4":{"transaction_id":-888840697,"announce_interval":120,"leechers":0,"seeders":1,"peers":[]}}`,
+exit 0).
+
+Run at 15:44:00 to 15:44:01 (SIGTERM at 15:44:01.035), tracker exit status 0, persisted rows
+`(1, '3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0', 60)`, `(2, '5349323253493232534932325349323253493232', 100)`,
+and `('torrents_downloads_total', 160)`: every UDP and HTTP completion persisted. The shutdown log:
+
+```text
+2026-10-20T15:44:01.035750Z  INFO torrust_tracker: Torrust tracker shutting down (SIGTERM) ...
+2026-10-20T15:44:01.035800Z  INFO UDP TRACKER: Event listener drained its queue after cancellation listener="udp_tracker_core_statistics" outcome="emptied" processed=0 lost_to_lag=0
+2026-10-20T15:44:01.035820Z  INFO SWARM_COORDINATION_REGISTRY: Event listener drained its queue after cancellation listener="swarm_coordination_registry_statistics" outcome="emptied" processed=0 lost_to_lag=0
+2026-10-20T15:44:01.035838Z  INFO UDP TRACKER: Event listener drained its queue after cancellation listener="udp_tracker_server_banning" outcome="emptied" processed=0 lost_to_lag=0
+2026-10-20T15:44:01.035842Z  INFO HTTP TRACKER: Event listener drained its queue after cancellation listener="http_tracker_core_statistics" outcome="emptied" processed=0 lost_to_lag=0
+2026-10-20T15:44:01.035834Z  INFO TRACKER_CORE: Event listener drained its queue after cancellation listener="tracker_core_in_memory_statistics" outcome="emptied" processed=0 lost_to_lag=0
+2026-10-20T15:44:01.035849Z  INFO UDP TRACKER: Event listener drained its queue after cancellation listener="udp_tracker_server_statistics" outcome="emptied" processed=0 lost_to_lag=0
+2026-10-20T15:44:01.243011Z  INFO TRACKER_CORE: Event listener drained its queue after cancellation listener="tracker_core_persistent_completed_statistics" outcome="emptied" processed=184 lost_to_lag=0
+2026-10-20T15:44:01.243061Z  INFO torrust_tracker: Torrust tracker successfully shutdown.
+```
+
+All seven listeners logged their drain, with the same fields; no warning or error was logged
+(`grep -ciE ' ERROR | WARN '` gave 0). Six of the seven drained an empty queue, because they keep up
+with the traffic; their drain path with events is covered by the unit tests (V9) and not shown here.
+
+The warning, on the final tree: `PEERS=10000 SIGTERM_DELAY=3 .../reproduce-lost-completions.sh race`
+(15:44:11 to 15:44:25): 4,696 answered, 1,657 persisted, 3,039 answered but not persisted (the drain
+was cut short and 5,304 later announces got no answer), exit status 0, and the log:
+
+```text
+2026-10-20T15:44:20.513470Z  INFO torrust_tracker: Torrust tracker shutting down (SIGTERM) ...
+2026-10-20T15:44:20.517435Z  INFO TRACKER_CORE: Received cancellation request, draining tracker core persistent completed statistics event listener.
+2026-10-20T15:44:25.518678Z  WARN TRACKER_CORE: Event listener drain lost events after cancellation listener="tracker_core_persistent_completed_statistics" outcome="timed_out" processed=2514 lost_to_lag=0 unread_when_timed_out=6078
+2026-10-20T15:44:25.518859Z  INFO torrust_tracker: Torrust tracker successfully shutdown.
+```
+
+The warning came 5.001 s after the drain began (15:44:20.517 to 15:44:25.518). The counts are events of
+every type, not completions (record entry 28), so they say how many events were left, not how many
+completions were lost.
+
+#### Conclusion
+
+- M2: with the T0 parameters the control run loses nothing (T0: 33 of 500), and the tracker exits 0.
+- M3: the two race runs lose nothing (T0: 790 and 775). Informative only, as the spec says.
+- M1: every listener logs its drain with the same fields, a cut-short drain logs a warning with the
+  listener name and the counts, and shutdown still exits 0 and logs "successfully shutdown".
+- Not shown: the loss that remains when a backlog is larger than the drain can clear in 5 s (the last
+  run), which is the bounded policy D1 and D18 accept and the warning now reports; and window (b),
+  which sub-issue 4 closes.
 
 ## Commits
 

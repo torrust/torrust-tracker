@@ -9,7 +9,7 @@ github-issue: 2414
 spec-path: docs/issues/open/2414-2410-si-22-2-drain-listener-queues-on-shutdown/ISSUE.md
 branch: "2414-drain-listener-queues-on-shutdown"
 related-pr: null
-last-updated-utc: "2026-10-20 15:39"
+last-updated-utc: "2026-10-20 15:47"
 semantic-links:
   skill-links:
     - create-issue
@@ -192,9 +192,9 @@ queue size or double-count it with already-observed lag (D13).
 
 | ID | Scenario | Steps | Expected Result | Status |
 | --- | --- | --- | --- | --- |
-| M1 | Drain logs | Run the tracker, send `completed` announces, SIGTERM | Each listener logs its drain count; a cut-short drain logs a warning | TODO |
-| M2 | Recheck window (a) | `reproduce-lost-completions.sh control` with the T0 parameters | No loss | TODO |
-| M3 | Race (informative) | `reproduce-lost-completions.sh race` with the T0 parameters | Record counts and lag/failure/abort logs; scheduling can change the deficit, and this run does not isolate window (b) | TODO |
+| M1 | Drain logs | Run the tracker, send `completed` announces, SIGTERM | Each listener logs its drain count; a cut-short drain logs a warning | DONE (V10) |
+| M2 | Recheck window (a) | `reproduce-lost-completions.sh control` with the T0 parameters | No loss | DONE (V10) |
+| M3 | Race (informative) | `reproduce-lost-completions.sh race` with the T0 parameters | Record counts and lag/failure/abort logs; scheduling can change the deficit, and this run does not isolate window (b) | DONE (V10) |
 
 Record evidence in an issue-local `manual-verification-evidence.md`.
 
@@ -214,9 +214,13 @@ to a root ADR here; sub-issue 4 owns that step.
 
 | AC ID | Status | Evidence |
 | --- | --- | --- |
-| AC1-AC5 | TODO | Focused tests, red/green evidence, and release measurement |
-| AC6 | TODO | Like-for-like control recheck |
-| AC7 | TODO | Slow-handler test; shared-deadline proof linked from sub-issue 4 |
+| AC1 | DONE | All seven listeners: a queued event is handled and the listener returns `Cancelled` (V7, V9; one test per listener, mutation-checked). Real binary: V10. The finite-backlog qualification stands: a backlog larger than the drain clears is cut short (V6, V10). |
+| AC2 | DONE | The `log_drain_report!` fields on the real binary for all seven listeners, and the warning with the listener name and the counts when the drain timed out (V8, V10). Counts are events, not completions (record entry 28). Verified on the real binary; no unit test captures the log lines (read from source, not run: the macro). |
+| AC3 | DONE, with a qualification | The `release` measurement is recorded (V6). It showed that a full buffer cannot drain within the 10 s deadline, so the default (5 s, `DEFAULT_DRAIN_TIMEOUT`) is a policy choice bounded by the measurement, not derived from it; the maintainer agreed (record entry 28, 2026-10-20). The timeout bounds admission, not handler completion. |
+| AC4 | DONE | The seven `it_should_prioritize_*` tests are replaced: the persistent one in V3 and V7, the other six in V9. |
+| AC5 | DONE | `it_should_persist_every_completed_download_queued_before_the_persistent_listener_is_cancelled`: red on the cancel-first loop (V4), green after the fix (V7), with a passing uncancelled control (V4). |
+| AC6 | DONE | V10: the control run with the T0 parameters persists 500 of 500 (T0: 467). |
+| AC7 | DONE, helper level | `it_should_finish_a_slow_handler_that_crosses_the_timeout_before_stopping` and its mutation (V5). The helper owns this rule for every listener; no per-listener slow-handler test exists. The shared-deadline abort is sub-issue 4's. |
 
 ## Implementation Completion Review
 
@@ -250,3 +254,4 @@ and independent Task Reviewer report.
 - 2026-10-20 15:26 UTC - GitHub Copilot (Claude Sonnet 5.5) - T5: the `http-core` listener drains on cancellation (V9), mutation-checked, with a third test that a drained event is subject to the metrics policy. `axum-http-server` gained a direct dependency on `torrust-tracker-events` for the default timeout (the listener's callers there pass it); workspace 3,159 passed, `linter all` 0.
 - 2026-10-20 15:32 UTC - GitHub Copilot (Claude Sonnet 5.5) - T5: the `udp-core` listener drains on cancellation (V9), mutation-checked, with the metrics-policy test; workspace 3,161 passed, `linter all` 0. Only the `udp-server` listeners remain.
 - 2026-10-20 15:39 UTC - GitHub Copilot (Claude Sonnet 5.5) - T5 done: the `udp-server` statistics and banning listeners drain on cancellation (V9), mutation-checked; workspace 3,164 passed, `linter all` 0. All seven listeners drain through the shared helper, one package per commit. Remaining: the final real-binary recheck (M1 to M3) after this last production change, the acceptance-criteria evidence, the Task Reviewer report, the retrospective, and the pre-push checks.
+- 2026-10-20 15:47 UTC - GitHub Copilot (Claude Sonnet 5.5) - M1 to M3 rechecked on the real binary after the last production change (V10): the control run with the T0 parameters persists 500 of 500 (T0: 467), both race runs persist everything they answered (T0: 790 and 775 lost), all seven listeners log their drain with the same fields, and a cut-short drain logs the warning after 5 s. The Verification Plan rows are `DONE` and the Acceptance Verification table has its evidence. The acceptance criteria are not ticked: the reviewer does that. Two slips in the recheck (a UDP client argument and ports) are recorded in V10. Next: the Task Reviewer report, the retrospective, and the pre-push checks.
