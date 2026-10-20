@@ -265,7 +265,9 @@ python3 .github/skills/dev/pr-reviews/process-pr-review/scripts/validate-audit-r
   --pr-number <PR_NUMBER>
 ```
 
-It fetches review comments with `gh` unless `--comments-file` is given, and compares commit
+It fetches review comments with `gh` unless `--comments-file` is given. It merges the repo-level
+comment listing with each review's own comment listing, because a reply can be visible on its review
+before it appears in the repo-level listing. It compares commit
 subjects against `<base>..HEAD` (`--base` defaults to `develop`). It checks every row whose finding
 ID is audit-local (`F1`) or reviewer-provided (`OPS-001`: uppercase letters and digits in
 hyphen-separated groups). It fails when:
