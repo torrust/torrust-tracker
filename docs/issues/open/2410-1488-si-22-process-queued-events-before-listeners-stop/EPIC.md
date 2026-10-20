@@ -6,7 +6,7 @@ epic: 1488
 github-issue: 2410
 spec-path: docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-20 19:30"
+last-updated-utc: "2026-10-20 20:39"
 semantic-links:
   skill-links:
     - create-issue
@@ -2239,6 +2239,8 @@ avoids duplicating the full workflow in four drafts:
 - 2026-10-20 12:57 UTC - GitHub Copilot (Claude Sonnet 5.5) - #2414 T3a, T3c, T4a to T4c committed (two code commits and one documentation commit); T5 is next. No design change beyond entry 28.
 - 2026-10-20 15:48 UTC - GitHub Copilot (Claude Sonnet 5.5) - #2414 T5 done (all seven listeners drain, one commit per package) and M1 to M3 rechecked on the real binary after the last production change: the T0 control run persists 500 of 500 (T0: 467), both race runs lose nothing (T0: 790 and 775), every listener logs its drain, and a cut-short drain logs the warning. Evidence in #2414's `manual-verification-evidence.md` (V9, V10). Remaining for #2414: Task Reviewer, retrospective, pre-push checks, PR. No design change beyond entry 28.
 - 2026-10-20 16:19 UTC - GitHub Copilot (Claude Sonnet 5.5) - The independent Task Reviewer report on #2414 (REVIEW PASSED, two should-fix items) led to record entry 29, agreed by the maintainer: the drain yields between events and uses `checked_add`, `axum-http-server` keeps no new dependency (`http-core` re-exports the timeout), and the zero-timeout listener tests stand. `adr-draft.md` section 7 is updated in the same change (D14).
+- 2026-10-20 19:30 UTC - GitHub Copilot (Claude Sonnet 5.5) - #2414 merged in PR #2578 (2026-10-20 19:28 UTC) and archived to `docs/issues/closed/`; its Subissues row is `DONE` and links the archived spec. #2415 and #2416 are not started.
+- 2026-10-20 20:39 UTC - GitHub Copilot (Claude Opus 5.5) - Moved the 2026-10-20 19:30 UTC entry above from the end of this file, where it had been appended after `## References`, into this Progress Log in time order; its text is unchanged. No design change.
 
 ## Acceptance Criteria
 
@@ -2398,4 +2400,3 @@ characterization tests come back from history. No data format changes.
 - Related issues: #1405 (listener cancellation tokens), #2132 (SI-1), #2283
   (listener test review)
 - Related ADR: `docs/adrs/20260902074438_adopt_supervised_cancellation_tree_for_shutdown.md`
-- 2026-10-20 19:30 UTC - GitHub Copilot (Claude Sonnet 5.5) - #2414 merged in PR #2578 (2026-10-20 19:28 UTC) and archived to `docs/issues/closed/`; its Subissues row is `DONE` and links the archived spec. #2415 and #2416 are not started.
