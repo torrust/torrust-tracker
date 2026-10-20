@@ -78,7 +78,7 @@ package's `Cargo.toml` holds its version. Rows marked _(unpublished)_ set `publi
 | `http-protocol`                   | `torrust-tracker-http-protocol`                   | `*-protocol`         | HTTP tracker protocol (BEP 3/23) parsing                |
 | `http-core`                       | `torrust-tracker-http-core`                       | `*-core`             | HTTP-specific tracker domain logic                      |
 | `persistence-benchmark`           | `torrust-tracker-persistence-benchmark`           | benchmarking         | Persistence layer benchmark _(unpublished)_             |
-| `primitives`                      | `torrust-tracker-primitives`                      | domain               | Core domain types (InfoHash, PeerId, ...)               |
+| `primitives`                      | `torrust-tracker-primitives`                      | domain               | Core domain types (PeerId, Peer, SwarmMetadata, ...)    |
 | `rest-api-application`            | `torrust-tracker-rest-api-application`            | REST API application | REST API port traits and use-case services              |
 | `rest-api-client`                 | `torrust-tracker-rest-api-client`                 | client tools         | REST API client library                                 |
 | `rest-api-protocol`               | `torrust-tracker-rest-api-protocol`               | REST API protocol    | REST API wire contract (DTOs, error schemas)            |
