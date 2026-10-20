@@ -154,7 +154,7 @@ mod tests {
     use tokio_util::sync::CancellationToken;
     use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
     use torrust_tracker_events::drain::DEFAULT_DRAIN_TIMEOUT;
-    use torrust_tracker_events::receiver::RecvError;
+    use torrust_tracker_events::receiver::{RecvError, TryRecvError};
     use torrust_tracker_events::shutdown::Completion;
     use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
     use torrust_tracker_udp_core::event::ConnectionContext;
@@ -196,9 +196,7 @@ mod tests {
             .boxed()
         }
 
-        fn try_recv(&mut self) -> Result<Self::Event, torrust_tracker_events::receiver::TryRecvError> {
-            use torrust_tracker_events::receiver::TryRecvError;
-
+        fn try_recv(&mut self) -> Result<Self::Event, TryRecvError> {
             match self.results.pop_front() {
                 Some(Ok(event)) => Ok(event),
                 Some(Err(RecvError::Closed)) => Err(TryRecvError::Closed),

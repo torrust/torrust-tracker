@@ -246,7 +246,7 @@ mod tests {
     use torrust_clock::clock;
     use torrust_clock::clock::stopped::Stopped as _;
     use torrust_tracker_events::drain::DEFAULT_DRAIN_TIMEOUT;
-    use torrust_tracker_events::receiver::RecvError;
+    use torrust_tracker_events::receiver::{RecvError, TryRecvError};
     use torrust_tracker_events::shutdown::Completion;
     use torrust_tracker_swarm_coordination_registry::event::Event;
 
@@ -277,9 +277,7 @@ mod tests {
             Box::pin(async move { self.results.pop_front().unwrap_or(Err(RecvError::Closed)) })
         }
 
-        fn try_recv(&mut self) -> Result<Self::Event, torrust_tracker_events::receiver::TryRecvError> {
-            use torrust_tracker_events::receiver::TryRecvError;
-
+        fn try_recv(&mut self) -> Result<Self::Event, TryRecvError> {
             match self.results.pop_front() {
                 Some(Ok(event)) => Ok(event),
                 Some(Err(RecvError::Closed)) => Err(TryRecvError::Closed),
@@ -308,10 +306,15 @@ mod tests {
     }
 
     async fn expect_in_memory_download_metrics_to_be(stats_repository: &Repository, expected_value: u64) {
-        assert_eq!(stats_repository.get_torrents_downloads_total().await, expected_value);
+        assert_eq!(
+            stats_repository.get_torrents_downloads_total().await,
+            expected_value,
+            "in-memory downloads total of the statistics repository"
+        );
         assert_eq!(
             stats_repository.get_torrents_downloads_in_session_total().await,
-            expected_value
+            expected_value,
+            "in-session downloads total of the statistics repository"
         );
     }
 

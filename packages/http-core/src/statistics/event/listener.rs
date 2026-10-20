@@ -5,6 +5,9 @@ use std::time::Duration;
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 use torrust_clock::clock::Time;
+/// The drain timeout the application gives every listener (see [`torrust_tracker_events::drain`]),
+/// re-exported so the HTTP server's tests need no direct dependency on `torrust-tracker-events`.
+pub use torrust_tracker_events::drain::DEFAULT_DRAIN_TIMEOUT;
 use torrust_tracker_events::drain::drain;
 use torrust_tracker_events::log_drain_report;
 use torrust_tracker_events::receiver::RecvError;
@@ -15,10 +18,6 @@ use super::handler::handle_event;
 use crate::event::receiver::Receiver;
 use crate::statistics::repository::Repository;
 use crate::{CurrentClock, HTTP_TRACKER_LOG_TARGET};
-
-/// The drain timeout the application gives every listener (see [`torrust_tracker_events::drain`]),
-/// re-exported so the HTTP server's tests need no direct dependency on `torrust-tracker-events`.
-pub use torrust_tracker_events::drain::DEFAULT_DRAIN_TIMEOUT;
 
 #[must_use]
 pub fn run_event_listener(
@@ -155,7 +154,7 @@ mod tests {
     use tokio_util::sync::CancellationToken;
     use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
     use torrust_tracker_events::drain::DEFAULT_DRAIN_TIMEOUT;
-    use torrust_tracker_events::receiver::RecvError;
+    use torrust_tracker_events::receiver::{RecvError, TryRecvError};
     use torrust_tracker_events::shutdown::Completion;
     use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::{RemoteClientAddr, ResolvedIp};
     use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
@@ -187,9 +186,7 @@ mod tests {
             Box::pin(async move { self.results.pop_front().unwrap_or(Err(RecvError::Closed)) })
         }
 
-        fn try_recv(&mut self) -> Result<Self::Event, torrust_tracker_events::receiver::TryRecvError> {
-            use torrust_tracker_events::receiver::TryRecvError;
-
+        fn try_recv(&mut self) -> Result<Self::Event, TryRecvError> {
             match self.results.pop_front() {
                 Some(Ok(event)) => Ok(event),
                 Some(Err(RecvError::Closed)) => Err(TryRecvError::Closed),
@@ -282,7 +279,11 @@ mod tests {
         // Assert
         // The queued scrape is counted, and the listener reports that it stopped because of the
         // cancellation.
-        assert_eq!(repository.read_metrics(Metrics::tcp4_scrapes_handled).await, 1);
+        assert_eq!(
+            repository.read_metrics(Metrics::tcp4_scrapes_handled).await,
+            1,
+            "`tcp4_scrapes_handled` counted after the queued event was drained"
+        );
         assert_eq!(completion, Completion::Cancelled, "a drained listener must return Cancelled");
     }
 
@@ -310,7 +311,11 @@ mod tests {
         // Assert
         // Nothing was counted, because the timeout stops admission, and the listener still returns
         // Cancelled so the supervisor sees a cooperative stop.
-        assert_eq!(repository.read_metrics(Metrics::tcp4_scrapes_handled).await, 0);
+        assert_eq!(
+            repository.read_metrics(Metrics::tcp4_scrapes_handled).await,
+            0,
+            "`tcp4_scrapes_handled` stays at zero after a drain whose timeout had already expired"
+        );
         assert_eq!(
             completion,
             Completion::Cancelled,
@@ -342,7 +347,11 @@ mod tests {
         // Assert
         // The drain reads the event but, like a live event, it is not counted: the policy decides, not
         // the drain.
-        assert_eq!(repository.read_metrics(Metrics::tcp4_scrapes_handled).await, 0);
+        assert_eq!(
+            repository.read_metrics(Metrics::tcp4_scrapes_handled).await,
+            0,
+            "`tcp4_scrapes_handled` stays at zero after draining an event from a metrics-disabled instance"
+        );
     }
 
     #[tokio::test]

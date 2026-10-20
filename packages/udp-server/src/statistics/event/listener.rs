@@ -161,7 +161,7 @@ mod tests {
     use futures::future::BoxFuture;
     use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
     use torrust_tracker_events::drain::DEFAULT_DRAIN_TIMEOUT;
-    use torrust_tracker_events::receiver::RecvError;
+    use torrust_tracker_events::receiver::{RecvError, TryRecvError};
     use torrust_tracker_events::shutdown::Completion;
     use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
     use torrust_tracker_udp_core::event::ConnectionContext;
@@ -203,9 +203,7 @@ mod tests {
             .boxed()
         }
 
-        fn try_recv(&mut self) -> Result<Self::Event, torrust_tracker_events::receiver::TryRecvError> {
-            use torrust_tracker_events::receiver::TryRecvError;
-
+        fn try_recv(&mut self) -> Result<Self::Event, TryRecvError> {
             match self.results.pop_front() {
                 Some(Ok(event)) => Ok(event),
                 Some(Err(RecvError::Closed)) => Err(TryRecvError::Closed),
@@ -326,7 +324,11 @@ mod tests {
         // Assert
         // The queued request is counted, and the listener reports that it stopped because of the
         // cancellation.
-        assert_eq!(repository.read_metrics(Metrics::udp4_requests_received_total).await, 1);
+        assert_eq!(
+            repository.read_metrics(Metrics::udp4_requests_received_total).await,
+            1,
+            "`udp4_requests_received_total` counted after the queued event was drained"
+        );
         assert_eq!(completion, Completion::Cancelled, "a drained listener must return Cancelled");
     }
 
@@ -354,7 +356,11 @@ mod tests {
         // Assert
         // Nothing was counted, because the timeout stops admission, and the listener still returns
         // Cancelled so the supervisor sees a cooperative stop.
-        assert_eq!(repository.read_metrics(Metrics::udp4_requests_received_total).await, 0);
+        assert_eq!(
+            repository.read_metrics(Metrics::udp4_requests_received_total).await,
+            0,
+            "`udp4_requests_received_total` stays at zero after a drain whose timeout had already expired"
+        );
         assert_eq!(
             completion,
             Completion::Cancelled,
@@ -386,6 +392,10 @@ mod tests {
         // Assert
         // The drain reads the event but, like a live event, it is not counted: the policy decides, not
         // the drain.
-        assert_eq!(repository.read_metrics(Metrics::udp4_requests_received_total).await, 0);
+        assert_eq!(
+            repository.read_metrics(Metrics::udp4_requests_received_total).await,
+            0,
+            "`udp4_requests_received_total` stays at zero after draining an event from a metrics-disabled instance"
+        );
     }
 }

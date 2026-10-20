@@ -122,7 +122,7 @@ mod tests {
     use torrust_metrics::label::LabelSet;
     use torrust_metrics::metric_name;
     use torrust_tracker_events::drain::DEFAULT_DRAIN_TIMEOUT;
-    use torrust_tracker_events::receiver::RecvError;
+    use torrust_tracker_events::receiver::{RecvError, TryRecvError};
     use torrust_tracker_events::shutdown::Completion;
 
     use super::dispatch_events;
@@ -153,9 +153,7 @@ mod tests {
             Box::pin(async move { self.results.pop_front().unwrap_or(Err(RecvError::Closed)) })
         }
 
-        fn try_recv(&mut self) -> Result<Self::Event, torrust_tracker_events::receiver::TryRecvError> {
-            use torrust_tracker_events::receiver::TryRecvError;
-
+        fn try_recv(&mut self) -> Result<Self::Event, TryRecvError> {
             match self.results.pop_front() {
                 Some(Ok(event)) => Ok(event),
                 Some(Err(RecvError::Closed)) => Err(TryRecvError::Closed),
@@ -187,7 +185,7 @@ mod tests {
             .await
             .map_or(0, |counter| counter.value());
 
-        assert_eq!(value, expected_value);
+        assert_eq!(value, expected_value, "peers-added counter of the statistics repository");
     }
 
     #[tokio::test]
