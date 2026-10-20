@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2414-2410-si-22-2-drain-listener-queues-on-shutdown/ISSUE.md
-last-updated-utc: "2026-10-20 17:15"
+issue-spec: docs/issues/closed/2414-2410-si-22-2-drain-listener-queues-on-shutdown/ISSUE.md
+last-updated-utc: "2026-10-20 19:30"
 ---
 
 # Manual Verification Evidence
@@ -11,7 +11,7 @@ last-updated-utc: "2026-10-20 17:15"
 Record the verification of #2414 (SI-22.2): the red and green runs of its regression tests, the
 release-build drain measurement, and the like-for-like recheck of the bug. The reproduction of the
 bug itself is in the sub-EPIC's
-[manual-verification-evidence.md](../2410-1488-si-22-process-queued-events-before-listeners-stop/manual-verification-evidence.md)
+[manual-verification-evidence.md](../../open/2410-1488-si-22-process-queued-events-before-listeners-stop/manual-verification-evidence.md)
 (V0 and V1), the EPIC baseline; this file does not repeat it.
 
 ## Environment and Prerequisites

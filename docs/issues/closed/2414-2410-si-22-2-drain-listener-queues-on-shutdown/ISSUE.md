@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: in-progress
+status: done
 priority: p1
 epic: 2410
 github-issue: 2414
-spec-path: docs/issues/open/2414-2410-si-22-2-drain-listener-queues-on-shutdown/ISSUE.md
+spec-path: docs/issues/closed/2414-2410-si-22-2-drain-listener-queues-on-shutdown/ISSUE.md
 branch: "2414-drain-listener-queues-on-shutdown"
 related-pr: 2578
-last-updated-utc: "2026-10-20 17:26"
+last-updated-utc: "2026-10-20 19:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -32,7 +32,7 @@ semantic-links:
 
 # Issue #2414 - Drain Listener Queues on Shutdown
 
-Parent: [EPIC #2410 - Process queued events before event listeners stop](../2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md),
+Parent: [EPIC #2410 - Process queued events before event listeners stop](../../open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md),
 under EPIC #1488.
 
 > Sub-issue 2 of 4 (SI-22 tasks T3 to T5). Closes loss window (a), where the
@@ -52,7 +52,7 @@ tracker shuts down, a listener with a queue of events stops at once and the
 queue is thrown away. The reproduction lost about 92% of answered
 `completed` announces, consistent with this backlog loss but without exact
 per-window attribution (sub-EPIC
-[manual-verification-evidence.md](../2410-1488-si-22-process-queued-events-before-listeners-stop/manual-verification-evidence.md), V1).
+[manual-verification-evidence.md](../../open/2410-1488-si-22-process-queued-events-before-listeners-stop/manual-verification-evidence.md), V1).
 
 ## Scope
 
@@ -77,7 +77,7 @@ per-window attribution (sub-EPIC
 ## Design and Ownership Review
 
 See the sub-EPIC's
-[Design and Ownership Review](../2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md#design-and-ownership-review).
+[Design and Ownership Review](../../open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md#design-and-ownership-review).
 In this issue: each listener owns its drain. Its timeout stops admission of
 another event, not an in-progress handler. The shared shutdown deadline can
 abort that handler; its outcome may then be unknown. A design-review
@@ -93,7 +93,7 @@ red tests (T3), the fix (T4, T5), and the recheck of the `control` scenario
 ## Regression Test Strategy
 
 Sub-EPIC
-[Regression Test Strategy](../2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md#regression-test-strategy):
+[Regression Test Strategy](../../open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md#regression-test-strategy):
 unit tests at each dispatch function (pre-cancelled token plus ready events),
 a paused-time timeout test, and option 1, the package-level integration test
 with a deterministic red.
@@ -101,7 +101,7 @@ with a deterministic red.
 ## Implementation Plan
 
 Detailed steps: sub-EPIC
-[Implementation Steps](../2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md#implementation-steps),
+[Implementation Steps](../../open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md#implementation-steps),
 items 4 (T3), 5 (T4), and 6 (T5).
 
 **Revalidate before starting.** This plan was written on 2026-10-02. Two pull
@@ -157,28 +157,28 @@ queue size or double-count it with already-observed lag (D13).
 
 ## Acceptance Criteria
 
-- [ ] AC1 (sub-EPIC AC1): a listener cancelled with events already queued
+- [x] AC1 (sub-EPIC AC1): a listener cancelled with events already queued
   processes all of them when the finite backlog fits its budgets and no
   lag or handler failure occurs, then returns `Cancelled` (all seven components).
-- [ ] AC2 (sub-EPIC AC3): each listener logs the number of events processed
+- [x] AC2 (sub-EPIC AC3): each listener logs the number of events processed
       after cancellation, and warns with the listener name and leftover count
       when its drain timeout expires.
-- [ ] AC3 (sub-EPIC AC4): the drain timeout default is chosen from a
+- [x] AC3 (sub-EPIC AC4): the drain timeout default is chosen from a
   recorded release measurement. It bounds admission between events, not
   handler completion; shared-deadline escalation and producer-budget
   starvation remain explicit exceptions, covered in sub-issue 4.
-- [ ] AC4 (sub-EPIC AC6): the seven `it_should_prioritize_*` tests are
+- [x] AC4 (sub-EPIC AC6): the seven `it_should_prioritize_*` tests are
       replaced by tests of the new policy.
-- [ ] AC5 (sub-EPIC AC11): the package-level integration test is proven red
+- [x] AC5 (sub-EPIC AC11): the package-level integration test is proven red
       against the cancel-first loop and green after the fix.
-- [ ] AC6: the `control` scenario of `reproduce-lost-completions.sh`, rerun
+- [x] AC6: the `control` scenario of `reproduce-lost-completions.sh`, rerun
       with the T0 parameters, loses no completion.
-- [ ] AC7 (sub-EPIC AC12): the drain timeout is checked only between events.
+- [x] AC7 (sub-EPIC AC12): the drain timeout is checked only between events.
   A test shows a slow handler crossing this timeout still completes before
   the drain stops. Shared-deadline abort remains an explicit exception,
   verified with supervisor coverage in sub-issue 4; a received event is
   not included in the receiver's leftover count.
-- [ ] `linter all` exits with code `0`; relevant tests pass.
+- [x] `linter all` exits with code `0`; relevant tests pass.
 
 ## Verification Plan
 
@@ -224,7 +224,7 @@ to a root ADR here; sub-issue 4 owns that step.
 
 ## Implementation Completion Review
 
-Follow the sub-EPIC's [Shared Delivery Gates](../2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md#shared-delivery-gates),
+Follow the sub-EPIC's [Shared Delivery Gates](../../open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md#shared-delivery-gates),
 including local manual evidence, acceptance re-review, retrospective assessment,
 and independent Task Reviewer report.
 
@@ -236,7 +236,7 @@ and independent Task Reviewer report.
 - [x] Spec reviewed and approved by the maintainer
 - [x] GitHub issue created and linked to the sub-EPIC
 - [x] Design-review checkpoint after T4 recorded
-- [ ] Implementation completed and acceptance criteria reviewed
+- [x] Implementation completed and acceptance criteria reviewed
 - [x] Independent Task Reviewer report recorded in `agent-review-reports.md` (sub-EPIC Shared Delivery Gates)
 - [x] Retrospective recorded in `implementation-retrospective.md` (sub-EPIC Shared Delivery Gates)
 - [x] Task Reviewer re-review of the review fixes recorded in `agent-review-reports.md`
@@ -264,3 +264,4 @@ and independent Task Reviewer report.
 - 2026-10-20 17:15 UTC - GitHub Copilot (Claude Sonnet 5.5) - PR #2578 is open. Copilot's review of it has three inline findings. For the first (the per-event yield; `review-finding:pr-2578-f1`) the cost was measured, V12: about 0.3 to 0.4 microseconds per event, 19 to 26 ms for a full buffer; the yield stays and its trade-off is now stated in the `drain` comment and `adr-draft.md`. No behavior changed.
 - 2026-10-20 17:20 UTC - GitHub Copilot (Claude Sonnet 5.5) - Copilot's review of PR #2578 is processed in `docs/pr-reviews/pr-2578-review/PR-REVIEW.md`: F1 is `FIXED` (the measurement and comment above), F2 and F3 are `NO_ACTION` with the prescribed replies and the reasons in the audit. All three threads are replied to and resolved, and the audit validates. Waiting for the maintainer's review and merge.
 - 2026-10-20 17:26 UTC - GitHub Copilot (Claude Sonnet 5.5) - PR #2578 conflicted with `develop` after the merge of PR #2575 (`test(http-core): [#1349] pin the announce service and error mapping decisions with unit tests`), which rewrote the test module of `packages/http-core/src/services/announce.rs`. The branch was rebased again; the only conflict was in that file. The new test fixture starts no event listener, so the one-line change that passed `DEFAULT_DRAIN_TIMEOUT` to the old fixture's `run_event_listener` call has nothing to apply to, and the file takes `develop`'s version. The rebased tree passes the pre-push checks, `linter all`, `cargo machete --with-metadata`, `cargo deny check bans`, and nightly `cargo fmt --check`. The history of the branch was rewritten by the rebase; the entries cite Conventional Commit subjects, which are unchanged.
+- 2026-10-20 19:30 UTC - GitHub Copilot (Claude Sonnet 5.5) - PR #2578 merged on 2026-10-20 at 19:28 UTC and issue #2414 is closed on GitHub. The maintainer approved the head of the PR (`ACK` comment) and, asked how to treat the criteria still open, chose to count his review and merge as the acceptance review, so AC1 to AC7 and the `linter all` criterion are ticked here at his instruction, with the qualifications already recorded in the Acceptance Verification table (AC1: a backlog larger than the drain clears is cut short; AC3: the 5 s default is a policy bounded by the measurement, not derived from it; AC7: tested at helper level). The workflow checkpoint is ticked. The spec is archived to `docs/issues/closed/`. The Copilot review had no unprocessed finding at merge: its three threads were replied to and resolved before the merge (`docs/pr-reviews/pr-2578-review/PR-REVIEW.md`).

@@ -6,7 +6,7 @@ epic: 1488
 github-issue: 2410
 spec-path: docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-20 16:19"
+last-updated-utc: "2026-10-20 19:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -269,7 +269,7 @@ which keeps the detailed steps for all sub-issues.
 | Order | Issue | Local Spec | Tasks | Acceptance criteria | Status | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | #2413 - Document event flows and draft the shutdown-order ADR | [ISSUE.md](../../closed/2413-2410-si-22-1-document-event-flows-and-draft-adr/ISSUE.md) | T1, T2 | AC9; ADR draft for AC8 | DONE | Documentation only. |
-| 2 | #2414 - Drain listener queues on shutdown | [ISSUE.md](../2414-2410-si-22-2-drain-listener-queues-on-shutdown/ISSUE.md) | T3, T4, T5 | AC1, AC3, AC4, AC6, AC11, AC12 | IN_PROGRESS | Addresses window (a), isolated by the control run; race-run loss attribution remains incomplete. |
+| 2 | #2414 - Drain listener queues on shutdown | [ISSUE.md](../../closed/2414-2410-si-22-2-drain-listener-queues-on-shutdown/ISSUE.md) | T3, T4, T5 | AC1, AC3, AC4, AC6, AC11, AC12 | DONE | Addresses window (a), isolated by the control run (500 of 500 persisted, V10 and V11); merged in PR #2578 on 2026-10-20. The 5 s default drain timeout bounds admission and does not drain a full buffer (entry 28); race-run loss attribution remains incomplete. |
 | 3 | #2415 - Give each application component its own cancellation token | [ISSUE.md](../2415-2410-si-22-3-per-component-cancellation-tokens/ISSUE.md) | T6 | AC13 (keeps it; no behavior change) | TODO | Refactor that prepares sub-issue 4. |
 | 4 | #2416 - Stop event producers before event listeners | [ISSUE.md](../2416-2410-si-22-4-stop-producers-before-listeners/ISSUE.md) | T7, T8, T9, T10 | AC2, AC5, AC7, AC8, AC10, AC13 | TODO | Closes window (b). T9's prerequisite #2471 is satisfied (merged in PR #2544 on 2026-10-16). |
 
@@ -2398,3 +2398,4 @@ characterization tests come back from history. No data format changes.
 - Related issues: #1405 (listener cancellation tokens), #2132 (SI-1), #2283
   (listener test review)
 - Related ADR: `docs/adrs/20260902074438_adopt_supervised_cancellation_tree_for_shutdown.md`
+- 2026-10-20 19:30 UTC - GitHub Copilot (Claude Sonnet 5.5) - #2414 merged in PR #2578 (2026-10-20 19:28 UTC) and archived to `docs/issues/closed/`; its Subissues row is `DONE` and links the archived spec. #2415 and #2416 are not started.

@@ -8,7 +8,7 @@ semantic-links:
   related-artifacts:
     - packages/udp-core/src/statistics/event/listener.rs
     - packages/udp-core/src/statistics/event/handler.rs
-    - docs/issues/open/2414-2410-si-22-2-drain-listener-queues-on-shutdown/ISSUE.md
+    - docs/issues/closed/2414-2410-si-22-2-drain-listener-queues-on-shutdown/ISSUE.md
     - docs/issues/closed/1348-1347-add-tests-udp-core/coverage-evidence.md
 ---
 
