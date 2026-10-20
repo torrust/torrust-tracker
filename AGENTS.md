@@ -58,29 +58,38 @@ native IPv4/IPv6 support, private/whitelisted mode, and a management REST API.
 
 ## 📦 Package Catalog
 
-All packages live under `packages/`. The workspace version is `3.0.0-develop`.
+This catalog is the canonical list of workspace packages. The workspace members are the root crate
+`torrust-tracker`, the packages under `packages/` (table below), the console tool under `console/`
+and the developer tools under `contrib/dev-tools/` (tables further down). The authoritative list is
+`cargo metadata --no-deps --format-version 1`. Packages are versioned independently (see
+[ADR 20260629000000](docs/adrs/20260629000000_adopt_independent_package_versioning.md)); each
+package's `Cargo.toml` holds its version. Rows marked _(unpublished)_ set `publish = false`.
 
-| Package                           | Crate Name                                        | Prefix / Layer  | Description                                   |
-| --------------------------------- | ------------------------------------------------- | --------------- | --------------------------------------------- |
-| `axum-health-check-api-server`    | `torrust-tracker-axum-health-check-api-server`    | `axum-*`        | Health monitoring endpoint                    |
-| `axum-http-server`                | `torrust-tracker-axum-http-server`                | `axum-*`        | BitTorrent HTTP tracker server (BEP 3/23)     |
-| `axum-rest-api-server`            | `torrust-tracker-axum-rest-api-server`            | `axum-*`        | Management REST API server                    |
-| `axum-server`                     | `torrust-tracker-axum-server`                     | `axum-*`        | Base Axum HTTP server infrastructure          |
-| `configuration`                   | `torrust-tracker-configuration`                   | domain          | Config file parsing, environment variables    |
-| `events`                          | `torrust-tracker-events`                          | domain          | Domain event definitions                      |
-| `http-protocol`                   | `torrust-tracker-http-protocol`                   | `*-protocol`    | HTTP tracker protocol (BEP 3/23) parsing      |
-| `http-core`                       | `torrust-tracker-http-core`                       | `*-core`        | HTTP-specific tracker domain logic            |
-| `primitives`                      | `torrust-tracker-primitives`                      | domain          | Core domain types (InfoHash, PeerId, ...)     |
-| `rest-api-client`                 | `torrust-tracker-rest-api-client`                 | client tools    | REST API client library                       |
-| `rest-api-runtime-adapter`        | `torrust-tracker-rest-api-runtime-adapter`        | runtime adapter | REST API runtime adapter and container wiring |
-| `swarm-coordination-registry`     | `torrust-tracker-swarm-coordination-registry`     | domain          | Torrent/peer coordination registry            |
-| `test-helpers`                    | `torrust-tracker-test-helpers`                    | utilities       | Mock servers, test data generation            |
-| `torrent-repository-benchmarking` | `torrust-tracker-torrent-repository-benchmarking` | benchmarking    | Torrent storage benchmarks                    |
-| `tracker-client`                  | `torrust-tracker-client`                          | client tools    | CLI tracker interaction/testing client        |
-| `tracker-core`                    | `torrust-tracker-core`                            | `*-core`        | Central tracker peer-management logic         |
-| `udp-protocol`                    | `torrust-tracker-udp-protocol`                    | `*-protocol`    | UDP tracker protocol (BEP 15) framing/parsing |
-| `udp-core`                        | `torrust-tracker-udp-core`                        | `*-core`        | UDP-specific tracker domain logic             |
-| `udp-server`                      | `torrust-tracker-udp-server`                      | server          | UDP tracker server implementation             |
+| Package                           | Crate Name                                        | Prefix / Layer       | Description                                             |
+| --------------------------------- | ------------------------------------------------- | -------------------- | ------------------------------------------------------- |
+| `axum-health-check-api-server`    | `torrust-tracker-axum-health-check-api-server`    | `axum-*`             | Health monitoring endpoint                              |
+| `axum-http-server`                | `torrust-tracker-axum-http-server`                | `axum-*`             | BitTorrent HTTP tracker server (BEP 3/23)               |
+| `axum-rest-api-server`            | `torrust-tracker-axum-rest-api-server`            | `axum-*`             | Management REST API server                              |
+| `axum-server`                     | `torrust-tracker-axum-server`                     | `axum-*`             | Base Axum HTTP server infrastructure                    |
+| `configuration`                   | `torrust-tracker-configuration`                   | domain               | Config file parsing, environment variables              |
+| `e2e-tools`                       | `torrust-tracker-e2e-tools`                       | dev tools            | E2E test runners and profiling binaries _(unpublished)_ |
+| `events`                          | `torrust-tracker-events`                          | domain               | Domain event definitions                                |
+| `http-protocol`                   | `torrust-tracker-http-protocol`                   | `*-protocol`         | HTTP tracker protocol (BEP 3/23) parsing                |
+| `http-core`                       | `torrust-tracker-http-core`                       | `*-core`             | HTTP-specific tracker domain logic                      |
+| `persistence-benchmark`           | `torrust-tracker-persistence-benchmark`           | benchmarking         | Persistence layer benchmark _(unpublished)_             |
+| `primitives`                      | `torrust-tracker-primitives`                      | domain               | Core domain types (InfoHash, PeerId, ...)               |
+| `rest-api-application`            | `torrust-tracker-rest-api-application`            | REST API application | REST API port traits and use-case services              |
+| `rest-api-client`                 | `torrust-tracker-rest-api-client`                 | client tools         | REST API client library                                 |
+| `rest-api-protocol`               | `torrust-tracker-rest-api-protocol`               | REST API protocol    | REST API wire contract (DTOs, error schemas)            |
+| `rest-api-runtime-adapter`        | `torrust-tracker-rest-api-runtime-adapter`        | runtime adapter      | REST API runtime adapter and container wiring           |
+| `swarm-coordination-registry`     | `torrust-tracker-swarm-coordination-registry`     | domain               | Torrent/peer coordination registry                      |
+| `test-helpers`                    | `torrust-tracker-test-helpers`                    | utilities            | Mock servers, test data generation                      |
+| `torrent-repository-benchmarking` | `torrust-tracker-torrent-repository-benchmarking` | benchmarking         | Torrent storage benchmarks _(unpublished)_              |
+| `tracker-client`                  | `torrust-tracker-client-lib`                      | client tools         | Generic UDP and HTTP tracker client library             |
+| `tracker-core`                    | `torrust-tracker-core`                            | `*-core`             | Central tracker peer-management logic                   |
+| `udp-protocol`                    | `torrust-tracker-udp-protocol`                    | `*-protocol`         | UDP tracker protocol (BEP 15) framing/parsing           |
+| `udp-core`                        | `torrust-tracker-udp-core`                        | `*-core`             | UDP-specific tracker domain logic                       |
+| `udp-server`                      | `torrust-tracker-udp-server`                      | server               | UDP tracker server implementation                       |
 
 **Extracted packages** — previously part of this workspace, now in their own standalone repositories:
 
@@ -94,9 +103,21 @@ All packages live under `packages/`. The workspace version is `3.0.0-develop`.
 
 **Console tools** (under `console/`):
 
-| Tool             | Description                          |
-| ---------------- | ------------------------------------ |
-| `tracker-client` | Client for interacting with trackers |
+| Tool             | Crate Name               | Description                                                                    |
+| ---------------- | ------------------------ | ------------------------------------------------------------------------------ |
+| `tracker-client` | `torrust-tracker-client` | Console clients for trackers (`tracker_client`, `tracker_checker`, and others) |
+
+**Workspace developer tools** (under `contrib/dev-tools/`, all _(unpublished)_):
+
+| Tool                                  | Crate Name                     | Description                                                |
+| ------------------------------------- | ------------------------------ | ---------------------------------------------------------- |
+| `analysis/workspace-coupling`         | `workspace-coupling`           | Generates the workspace coupling report                    |
+| `checks/agent-review-report-contract` | `agent-review-report-contract` | Validates agent-review report documentation contracts      |
+| `checks/ci-gate`                      | `ci-gate`                      | Decides which CI job groups a pull request needs           |
+| `checks/clippy-allow-reasons`         | `clippy-allow-reasons`         | Validates documented Clippy allow attributes               |
+| `checks/frontmatter-validator`        | `frontmatter-validator`        | Validates Markdown frontmatter                             |
+| `checks/package-coverage-check`       | `package-coverage-check`       | Checks changed workspace packages for coverage regressions |
+| `github/github-review-threads`        | `github-review-threads`        | Fetches pull-request review threads through the GitHub CLI |
 
 **Community contributions** (under `contrib/`):
 
