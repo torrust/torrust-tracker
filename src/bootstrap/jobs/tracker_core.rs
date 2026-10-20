@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use tokio_util::sync::CancellationToken;
 use torrust_tracker_configuration::v3_0_0::Configuration;
+use torrust_tracker_events::drain::DEFAULT_DRAIN_TIMEOUT;
 use torrust_tracker_events::shutdown::Completion;
 
 use crate::container::AppContainer;
@@ -56,6 +57,7 @@ pub fn run_persistent_completed_statistics_event_listener(
             cancellation_token,
             persistence.db_downloads_metric_repository.clone(),
             app_container.tracker_core_container.stats_repository.clone(),
+            DEFAULT_DRAIN_TIMEOUT,
         ),
     ))
 }

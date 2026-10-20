@@ -1,8 +1,11 @@
 use std::sync::Arc;
+use std::time::Duration;
 
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 use torrust_clock::clock::Time;
+use torrust_tracker_events::drain::drain;
+use torrust_tracker_events::log_drain_report;
 use torrust_tracker_events::receiver::RecvError;
 use torrust_tracker_events::shutdown::Completion;
 use torrust_tracker_swarm_coordination_registry::event::receiver::Receiver;
@@ -32,6 +35,7 @@ pub fn run_persistent_completed_statistics_event_listener(
     cancellation_token: CancellationToken,
     db_downloads_metric_repository: &Arc<DatabaseDownloadsMetricRepository>,
     repository: &Arc<Repository>,
+    drain_timeout: Duration,
 ) -> JoinHandle<()> {
     let db_downloads_metric_repository = db_downloads_metric_repository.clone();
     let stats_repository = repository.clone();
@@ -41,6 +45,7 @@ pub fn run_persistent_completed_statistics_event_listener(
             cancellation_token,
             db_downloads_metric_repository,
             stats_repository,
+            drain_timeout,
         )
         .await;
 
@@ -59,11 +64,16 @@ pub async fn run_in_memory_event_listener_unspawned(
 }
 
 /// Runs the persistent-statistics listener without spawning so a caller can retain task ownership.
+///
+/// After cancellation the listener keeps persisting the events already queued for it until its
+/// queue is empty or `drain_timeout` expires (see [`drain`]), logs what it did, and returns
+/// [`Completion::Cancelled`].
 pub async fn run_persistent_completed_statistics_event_listener_unspawned(
     receiver: Receiver,
     cancellation_token: CancellationToken,
     db_downloads_metric_repository: Arc<DatabaseDownloadsMetricRepository>,
     stats_repository: Arc<Repository>,
+    drain_timeout: Duration,
 ) -> Completion {
     tracing::info!(target: TRACKER_CORE_LOG_TARGET, "Starting tracker core persistent completed statistics event listener");
     dispatch_persistent_completed_statistics_events(
@@ -71,6 +81,7 @@ pub async fn run_persistent_completed_statistics_event_listener_unspawned(
         cancellation_token,
         db_downloads_metric_repository,
         stats_repository,
+        drain_timeout,
     )
     .await
 }
@@ -103,13 +114,23 @@ async fn dispatch_persistent_completed_statistics_events(
     cancellation_token: CancellationToken,
     db_downloads_metric_repository: Arc<DatabaseDownloadsMetricRepository>,
     stats_repository: Arc<Repository>,
+    drain_timeout: Duration,
 ) -> Completion {
     loop {
         tokio::select! {
             biased;
 
             () = cancellation_token.cancelled() => {
-                tracing::info!(target: TRACKER_CORE_LOG_TARGET, "Received cancellation request, shutting down tracker core persistent completed statistics event listener.");
+                tracing::info!(target: TRACKER_CORE_LOG_TARGET, "Received cancellation request, draining tracker core persistent completed statistics event listener.");
+
+                drain_persistent_completed_statistics_events(
+                    &mut receiver,
+                    drain_timeout,
+                    &db_downloads_metric_repository,
+                    &stats_repository,
+                )
+                .await;
+
                 return Completion::Cancelled;
             }
 
@@ -124,6 +145,26 @@ async fn dispatch_persistent_completed_statistics_events(
             }
         }
     }
+}
+
+/// Persists the events still queued for the listener after its cancellation, within the timeout,
+/// and logs what the drain did.
+async fn drain_persistent_completed_statistics_events(
+    receiver: &mut Receiver,
+    drain_timeout: Duration,
+    db_downloads_metric_repository: &Arc<DatabaseDownloadsMetricRepository>,
+    stats_repository: &Arc<Repository>,
+) {
+    let report = drain(&mut **receiver, drain_timeout, |event| {
+        handle_persistent_completed_statistics_event(event, db_downloads_metric_repository, stats_repository, CurrentClock::now())
+    })
+    .await;
+
+    log_drain_report!(
+        TRACKER_CORE_LOG_TARGET,
+        "tracker_core_persistent_completed_statistics",
+        report
+    );
 }
 
 async fn handle_in_memory_receive_result(
@@ -178,11 +219,14 @@ mod tests {
     use std::future::Future;
     use std::pin::Pin;
     use std::sync::Arc;
+    use std::time::Duration;
 
     use tokio_util::sync::CancellationToken;
     use torrust_clock::clock;
     use torrust_clock::clock::stopped::Stopped as _;
+    use torrust_tracker_events::drain::DEFAULT_DRAIN_TIMEOUT;
     use torrust_tracker_events::receiver::RecvError;
+    use torrust_tracker_events::shutdown::Completion;
     use torrust_tracker_swarm_coordination_registry::event::Event;
 
     use super::{dispatch_in_memory_events, dispatch_persistent_completed_statistics_events};
@@ -207,7 +251,9 @@ mod tests {
         type Event = Event;
 
         fn recv(&mut self) -> Pin<Box<dyn Future<Output = Result<Self::Event, RecvError>> + Send + '_>> {
-            Box::pin(std::future::ready(self.results.pop_front().unwrap_or(Err(RecvError::Closed))))
+            // Lazy, like a real receiver: `select!` creates this future even when another branch wins,
+            // and an eager pop would consume an event the drain must still see.
+            Box::pin(async move { self.results.pop_front().unwrap_or(Err(RecvError::Closed)) })
         }
 
         fn try_recv(&mut self) -> Result<Self::Event, torrust_tracker_events::receiver::TryRecvError> {
@@ -253,10 +299,15 @@ mod tests {
         stats_repository: &Repository,
         expected_value: Option<u32>,
     ) {
-        assert_eq!(downloads_repository.load_global_downloads().await.unwrap(), expected_value);
+        assert_eq!(
+            downloads_repository.load_global_downloads().await.unwrap(),
+            expected_value,
+            "global downloads stored in the database"
+        );
         assert_eq!(
             stats_repository.get_torrents_downloads_persisted_total().await,
-            u64::from(expected_value.unwrap_or(0))
+            u64::from(expected_value.unwrap_or(0)),
+            "persisted downloads counter of the statistics repository"
         );
     }
 
@@ -340,6 +391,7 @@ mod tests {
             CancellationToken::new(),
             downloads_repository.clone(),
             stats_repository.clone(),
+            DEFAULT_DRAIN_TIMEOUT,
         )
         .await;
 
@@ -365,6 +417,7 @@ mod tests {
             CancellationToken::new(),
             downloads_repository.clone(),
             stats_repository.clone(),
+            DEFAULT_DRAIN_TIMEOUT,
         )
         .await;
 
@@ -385,6 +438,7 @@ mod tests {
             CancellationToken::new(),
             downloads_repository.clone(),
             stats_repository.clone(),
+            DEFAULT_DRAIN_TIMEOUT,
         )
         .await;
 
@@ -393,8 +447,10 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn it_should_prioritize_a_pre_cancelled_token_over_a_ready_persistent_event() {
+    async fn it_should_persist_a_queued_completed_download_when_cancellation_is_already_pending() {
         // Arrange
+        // At shutdown a completed download is queued for the persistent listener, and the
+        // listener's token is cancelled before the listener takes the event.
         let stats_repository = Arc::new(Repository::new(true, true));
         let downloads_repository = database_downloads_repository().await;
         let receiver = Box::new(ScriptedReceiver::new([Ok(peer_download_completed_event())]));
@@ -407,10 +463,78 @@ mod tests {
             cancellation_token,
             downloads_repository.clone(),
             stats_repository.clone(),
+            DEFAULT_DRAIN_TIMEOUT,
         )
         .await;
 
         // Assert
+        // The queued download reaches the database, and the persisted counter shows it.
+        expect_persisted_download_metrics_to_be(&downloads_repository, &stats_repository, Some(1)).await;
+    }
+
+    #[tokio::test]
+    async fn it_should_persist_every_queued_event_then_return_cancelled_when_cancellation_is_already_pending() {
+        // Arrange
+        // Two completed downloads are queued for the persistent listener, and its token is
+        // cancelled before the listener takes them.
+        let stats_repository = Arc::new(Repository::new(true, true));
+        let downloads_repository = database_downloads_repository().await;
+        let receiver = Box::new(ScriptedReceiver::new([
+            Ok(peer_download_completed_event()),
+            Ok(peer_download_completed_event()),
+        ]));
+        let cancellation_token = CancellationToken::new();
+        cancellation_token.cancel();
+
+        // Act
+        let completion = dispatch_persistent_completed_statistics_events(
+            receiver,
+            cancellation_token,
+            downloads_repository.clone(),
+            stats_repository.clone(),
+            DEFAULT_DRAIN_TIMEOUT,
+        )
+        .await;
+
+        // Assert
+        // Both downloads were persisted, and the listener reports that it stopped because of the
+        // cancellation, not because its receiver closed.
+        expect_persisted_download_metrics_to_be(&downloads_repository, &stats_repository, Some(2)).await;
+        assert_eq!(completion, Completion::Cancelled, "a drained listener must return Cancelled");
+    }
+
+    #[tokio::test]
+    async fn it_should_leave_the_queued_events_unprocessed_and_return_cancelled_when_the_drain_timeout_has_expired() {
+        // Arrange
+        // Two completed downloads are queued, the token is cancelled, and the drain timeout is zero,
+        // so it has expired before the first event could be admitted.
+        let stats_repository = Arc::new(Repository::new(true, true));
+        let downloads_repository = database_downloads_repository().await;
+        let receiver = Box::new(ScriptedReceiver::new([
+            Ok(peer_download_completed_event()),
+            Ok(peer_download_completed_event()),
+        ]));
+        let cancellation_token = CancellationToken::new();
+        cancellation_token.cancel();
+
+        // Act
+        let completion = dispatch_persistent_completed_statistics_events(
+            receiver,
+            cancellation_token,
+            downloads_repository.clone(),
+            stats_repository.clone(),
+            Duration::ZERO,
+        )
+        .await;
+
+        // Assert
+        // Nothing was persisted, because the timeout stops admission, and the listener still
+        // returns Cancelled so the supervisor sees a cooperative stop.
         expect_persisted_download_metrics_to_be(&downloads_repository, &stats_repository, None).await;
+        assert_eq!(
+            completion,
+            Completion::Cancelled,
+            "an expired drain must still return Cancelled"
+        );
     }
 }

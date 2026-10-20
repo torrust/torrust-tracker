@@ -4,6 +4,10 @@ use common::fixtures::{ephemeral_configuration, remote_client_ip, sample_info_ha
 use common::test_env::TestEnv;
 use tokio::task::yield_now;
 use tokio::time::{Duration, Instant};
+use tokio_util::sync::CancellationToken;
+use torrust_tracker_core::statistics::event::listener::run_persistent_completed_statistics_event_listener_unspawned;
+use torrust_tracker_events::drain::DEFAULT_DRAIN_TIMEOUT;
+use torrust_tracker_primitives::peer::Peer;
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 use torrust_tracker_primitives::{AnnounceData, AnnouncePolicy};
 use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
@@ -362,5 +366,72 @@ async fn it_should_cancel_every_listener_when_the_environment_is_dropped_without
         number_of_swarm_bus_listeners_once_they_finish(&swarm_container).await,
         0,
         "dropping the environment without stop() must still cancel every listener"
+    );
+}
+
+fn sample_peer_listening_on_port(port: u16) -> Peer {
+    let mut peer = sample_peer();
+    peer.peer_addr.set_port(port);
+    peer
+}
+
+#[tokio::test]
+async fn it_should_persist_every_completed_download_queued_before_the_persistent_listener_is_cancelled() {
+    // Arrange
+    // The environment's listeners are not started, so nothing consumes the events while the
+    // test publishes them. The persistent listener's receiver is taken first, so it is
+    // subscribed before any event is published, as at the application's startup. Three
+    // different peers then announce `started` and `completed` for one torrent, so three
+    // completed downloads are queued, and the listener's token is cancelled before it runs.
+    let number_of_completions: u32 = 3;
+    let mut core_config = ephemeral_configuration();
+    core_config.tracker_policy.persistent_torrent_completed_stat = true;
+    let test_env = TestEnv::new(core_config).await;
+    let persistent_listener_receiver = test_env.swarm_coordination_registry_container.event_bus.receiver();
+    let info_hash = sample_info_hash();
+    for port in (8080..).take(number_of_completions as usize) {
+        let peer = sample_peer_listening_on_port(port);
+        test_env.announce_peer_started(peer, &remote_client_ip(), &info_hash).await;
+        test_env.announce_peer_completed(peer, &remote_client_ip(), &info_hash).await;
+    }
+    let cancellation_token = CancellationToken::new();
+    cancellation_token.cancel();
+    let persistence = test_env
+        .tracker_core_container
+        .persistence
+        .as_ref()
+        .expect("this test requires persistence");
+
+    // Act
+    run_persistent_completed_statistics_event_listener_unspawned(
+        persistent_listener_receiver,
+        cancellation_token,
+        persistence.db_downloads_metric_repository.clone(),
+        test_env.tracker_core_container.stats_repository.clone(),
+        DEFAULT_DRAIN_TIMEOUT,
+    )
+    .await;
+
+    // Assert
+    // Every queued completion is in the database, for the torrent and in the global count.
+    assert_eq!(
+        persistence
+            .database_stores
+            .torrent_metrics_store
+            .load_torrent_downloads(&info_hash)
+            .await
+            .unwrap(),
+        Some(number_of_completions),
+        "downloads of the torrent stored in the database after {number_of_completions} queued completions"
+    );
+    assert_eq!(
+        persistence
+            .database_stores
+            .torrent_metrics_store
+            .load_global_downloads()
+            .await
+            .unwrap(),
+        Some(number_of_completions),
+        "global downloads stored in the database after {number_of_completions} queued completions"
     );
 }

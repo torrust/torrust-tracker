@@ -13,6 +13,7 @@ use torrust_tracker_configuration::v3_0_0::core::Core;
 use torrust_tracker_core::announce_handler::PeersWanted;
 use torrust_tracker_core::container::TrackerCoreContainer;
 use torrust_tracker_core::statistics::persisted::load_persisted_metrics;
+use torrust_tracker_events::drain::DEFAULT_DRAIN_TIMEOUT;
 use torrust_tracker_primitives::peer::Peer;
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 use torrust_tracker_primitives::{AnnounceData, AnnounceEvent, ScrapeData};
@@ -181,6 +182,7 @@ impl TestEnv {
                         .expect("tracker core test environment requires persistence")
                         .db_downloads_metric_repository,
                     &self.tracker_core_container.stats_repository,
+                    DEFAULT_DRAIN_TIMEOUT,
                 );
             self.listeners
                 .add("persistent completed statistics", persistent_statistics_listener);
