@@ -4,7 +4,7 @@
 //! pull-request workflows declare today (issue #2525, task T2). They live in one typed table, so a
 //! unit test can pin each rule, instead of in six workflow files.
 //!
-//! GitHub's filters have three shapes, modelled by [`PathFilter`]:
+//! GitHub's filters have three shapes, modelled by the private `PathFilter` type:
 //!
 //! - no filter: the workflow runs on every pull request;
 //! - `paths-ignore`: the workflow runs unless **every** changed path matches an ignored pattern;
