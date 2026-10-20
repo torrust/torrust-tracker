@@ -9,7 +9,7 @@ github-issue: 2414
 spec-path: docs/issues/open/2414-2410-si-22-2-drain-listener-queues-on-shutdown/ISSUE.md
 branch: "2414-drain-listener-queues-on-shutdown"
 related-pr: 2578
-last-updated-utc: "2026-10-20 17:15"
+last-updated-utc: "2026-10-20 17:20"
 semantic-links:
   skill-links:
     - create-issue
@@ -262,3 +262,4 @@ and independent Task Reviewer report.
 - 2026-10-20 16:37 UTC - GitHub Copilot (Claude Sonnet 5.5) - The Task Reviewer re-review of the review fixes is recorded in `agent-review-reports.md` (REVIEW PASSED WITH FINDINGS: no should-fix item, three nits fixed in this commit). The evidence lists the four commits added after the first review. Next: the pre-push checks, then asking the maintainer to push and open the PR.
 - 2026-10-20 16:45 UTC - GitHub Copilot (Claude Sonnet 5.5) - The branch was rebased onto the latest `torrust/develop` (107 new commits, no conflicts; the trial merge was clean) before the first push, so the commit ids of the earlier entries changed; the entries cite Conventional Commit subjects, which are unchanged. The rebased tree passes the pre-push checks (nightly format, check, and documentation; the full test suite), `linter all`, `cargo machete --with-metadata`, `cargo deny check bans`, and nightly `cargo fmt --check`. The M1 to M3 real-binary runs (V10, V11) were not repeated on the rebased tree; they ran on the pre-rebase tree. Next: push and open the PR.
 - 2026-10-20 17:15 UTC - GitHub Copilot (Claude Sonnet 5.5) - PR #2578 is open. Copilot's review of it has three inline findings. For the first (the per-event yield; `review-finding:pr-2578-f1`) the cost was measured, V12: about 0.3 to 0.4 microseconds per event, 19 to 26 ms for a full buffer; the yield stays and its trade-off is now stated in the `drain` comment and `adr-draft.md`. No behavior changed.
+- 2026-10-20 17:20 UTC - GitHub Copilot (Claude Sonnet 5.5) - Copilot's review of PR #2578 is processed in `docs/pr-reviews/pr-2578-review/PR-REVIEW.md`: F1 is `FIXED` (the measurement and comment above), F2 and F3 are `NO_ACTION` with the prescribed replies and the reasons in the audit. All three threads are replied to and resolved, and the audit validates. Waiting for the maintainer's review and merge.
