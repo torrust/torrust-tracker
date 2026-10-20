@@ -2,7 +2,7 @@
 //!
 //! The rules reproduce, exactly, the `paths`, `paths-ignore`, and `branches` filters that the
 //! pull-request workflows declare today (issue #2525, task T2). They live in one typed table, so a
-//! unit test can pin each rule, instead of in six workflow files.
+//! unit test can pin each rule, instead of in the workflow files.
 //!
 //! GitHub's filters have three shapes, modelled by the private `PathFilter` type:
 //!
