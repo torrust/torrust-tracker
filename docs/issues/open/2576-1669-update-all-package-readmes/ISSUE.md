@@ -9,7 +9,7 @@ github-issue: 2576
 spec-path: docs/issues/open/2576-1669-update-all-package-readmes/ISSUE.md
 branch: "2576-1669-update-all-package-readmes-spec"
 related-pr: null
-last-updated-utc: "2026-10-20 16:21"
+last-updated-utc: "2026-10-20 16:43"
 semantic-links:
   skill-links:
     - create-issue
@@ -174,7 +174,10 @@ For each README in scope:
 6. **Stability.** An accurate statement for a `0.x` or `3.x` crate, replacing the current
    disclaimers.
 7. **Documentation.** A link to the crate's own docs.rs page (`https://docs.rs/<crate>`), plus
-   links to package docs that ship with it (ADRs, benchmarking notes).
+   links to package docs that ship with it (ADRs, benchmarking notes). For a tier U crate that
+   page exists only after its first publish, so this issue checks that the URL matches the crate
+   name and records it as pending; the publish tracking issue checks that it resolves after each
+   publish.
 8. **License.** Matches the `license` field and links the right text.
 9. **Links work on GitHub and crates.io.** Links to files outside the package directory use
    absolute `https://github.com/torrust/torrust-tracker/...` URLs, because only the package
@@ -277,6 +280,10 @@ Commit.
   package README template). The maintainer approved the draft. Created #2576, linked it as a
   subissue of #1669, and moved the spec to `docs/issues/open/` for a spec-only PR on branch
   `2576-1669-update-all-package-readmes-spec`.
+- 2026-10-20 16:43 UTC - GitHub Copilot (Claude Opus 5.5) - PR #2577 review finding F1 (Copilot): M1 could
+  not pass before publication, because tier U crates have no docs.rs page yet. The quality bar
+  and M1 now record those links as pending after checking the URL matches the crate name; the
+  publish tracking issue checks that they resolve.
 
 ## Acceptance Criteria
 
@@ -327,7 +334,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario                              | Human-oriented command/steps                                                                                    | Expected Result                                                              | Status | Evidence                                     |
 | --- | ------------------------------------- | --------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | ------ | -------------------------------------------- |
-| M1  | Read each README as a new user        | Open each changed README on the pushed branch on GitHub; follow every link                                     | Quality bar met; every link resolves; title matches the crate               | TODO   | `manual-verification-evidence.md` section V1 |
+| M1  | Read each README as a new user        | Open each changed README on the pushed branch on GitHub; follow every link                                     | Quality bar met; title matches the crate; every link resolves, except each tier U crate's own docs.rs link, which matches `https://docs.rs/<crate name>` and is recorded as pending | TODO   | `manual-verification-evidence.md` section V1 |
 | M2  | Read each README as crates.io shows it | For each tier U crate, run `cargo package -p <crate> --list` and read `README.md` with only the packaged files in mind | No link points to a file that is not packaged unless it is an absolute URL | TODO   | `manual-verification-evidence.md` section V2 |
 | M3  | Re-audit                              | Re-rate every package with the audit's quality scale                                                            | No tier U or P package rated stub or minimal                                 | TODO   | `manual-verification-evidence.md` section V3 |
 
