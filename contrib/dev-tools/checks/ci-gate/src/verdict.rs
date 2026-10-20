@@ -482,4 +482,29 @@ mod tests {
         // Assert
         assert!(parsed.is_err(), "the input {input} must be rejected");
     }
+
+    #[rstest]
+    #[case::the_classification("/classification")]
+    #[case::a_group_decision("/classification/groups/0")]
+    fn it_should_reject_an_unknown_field_at_every_level_of_the_classification(#[case] object_pointer: &str) {
+        // Arrange
+        let mut input = serde_json::json!({
+            "classification": crate::change_detection::classify(&["README.md"], "develop"),
+            "results": { "docs-lint": "success" },
+        });
+        input
+            .pointer_mut(object_pointer)
+            .and_then(serde_json::Value::as_object_mut)
+            .expect("the pointer names an object of the input")
+            .insert("unexpected".to_string(), serde_json::json!(true));
+
+        // Act
+        let parsed = serde_json::from_value::<VerdictInput>(input.clone());
+
+        // Assert
+        assert!(
+            parsed.is_err(),
+            "an unknown field in the object at `{object_pointer}` must be rejected, but {input} was accepted"
+        );
+    }
 }
