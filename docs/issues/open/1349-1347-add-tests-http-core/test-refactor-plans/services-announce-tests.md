@@ -39,7 +39,7 @@ Update the Confirmed column when the maintainer confirms an amendment.
 ## Current State
 
 - **Unit-only coverage:** 675 / 727 lines (92.85%), 878 / 938 regions, 56 / 63 functions
-  ([coverage evidence](../coverage-evidence.md), `a3810b813`). The totals include the test module.
+  ([coverage evidence](../coverage-evidence.md), `87690b15e`). The totals include the test module.
 - **Existing tests:** 8 in the file (2 synchronous peer-IP decision tests and 3 asynchronous service
   tests, plus 3 event tests). `axum-http-server` exercises the service through HTTP, which EPIC #1347 does not accept as
   evidence for this package's unit seam.
@@ -83,9 +83,9 @@ repository, the whitelist, the torrent repository, and the announce handler.
 | `numwant` to `PeersWanted` | 3A unit | R2g: absent gives as many as possible; a number gives that limit (`PeersWanted` is `PartialEq`). |
 | Absent event sender (line 350) | 3A unit | R2h: an announce without a sender succeeds. |
 | Instance public URL in the announce event (lines 74, 192, 342) | 3A unit | R2k: an instance configured with a public URL publishes it in the event's connection context. `HttpTrackerPolicy::from(&HttpTracker)` maps it, the service stores it, and `send_event` attaches it with `with_public_url`; `announce_events_match` compares it through `ConnectionContext`'s `PartialEq`. Every existing announce test runs with no URL, so dropping that call, or mapping the URL to `None`, passes all eight tests today. |
-| Failure reasons of the package-owned variants (lines 419-429) | 3A unit | R2i: the text of `PeerIpOverrideDisabled`, `PeerIpDnsNameUnsupported`, and `PeerIpInvalid`. `PeerIpResolutionError` text is `http-protocol`'s and `TrackerCoreError` text is the `error_mapping.rs` plan's. |
+| Failure reasons of the package-owned variants (lines 420-430) | 3A unit | R2i: the text of `PeerIpOverrideDisabled`, `PeerIpDnsNameUnsupported`, and `PeerIpInvalid`. `PeerIpResolutionError` text is `http-protocol`'s and `TrackerCoreError` text is the `error_mapping.rs` plan's. |
 | Tracker-core announce failure (region at line 226) | Collaboration | R2j: `tracker-core` exports `MockTorrentMetricsStore`, so a failing persisted-downloads lookup reaches `TrackerCoreError::AnnounceError` without a database (#1348 lesson). |
-| `From` conversions (lines 379-415) | Covered by R2a, R2c, R2d, R2j | A conversion no test reaches is a finding candidate (dead code); record it in `lessons.md`. |
+| `From` conversions (lines 380-416) | Covered by R2a, R2c, R2d, R2j | A conversion no test reaches is a finding candidate (dead code); record it in `lessons.md`. |
 | Debug logging in `send_event` | logging | Not tested. |
 | Peer-IP selection property | Assess after R2 | Apply hand-made mutations to `select_peer_ip_with_policy` and `external_ip_for_loopback_connection`. Add a property only if a mutation survives the examples (the udp-core cookie did); otherwise record that examples suffice and add no dependency. |
 | Announce rules, whitelist policy, key validity, peer selection | Collaborator-owned | `tracker-core`; no test here. |
@@ -112,7 +112,7 @@ dev-dependency of this package (the workspace uses `rstest = "0"` elsewhere). Ad
 
 Each proof is a temporary, hand-made change to production code that the named test must catch; it is
 reverted after the check, and the result is recorded in the Results section. Lines are those of
-`services/announce.rs` at `a3810b813`, which the test changes do not move.
+`services/announce.rs` at `87690b15e`, which the test changes do not move. The lines of M1-M5 are unchanged since `a3810b813`: `#[non_exhaustive]` (#2454) was added after them.
 
 The workspace denies `unused` and `warnings`, so a mutation that leaves code unused fails to compile
 and proves nothing. Compile-checked on 2026-10-19: M1-M4 compile under the default lints; M5 does not,

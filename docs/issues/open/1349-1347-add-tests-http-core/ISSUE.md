@@ -7,9 +7,9 @@ priority: p2
 epic: 1347
 github-issue: 1349
 spec-path: docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md
-branch: "1349-1347-add-tests-http-core-inventory"
-related-pr: 2558
-last-updated-utc: "2026-10-19 16:30"
+branch: "1349-1347-add-tests-http-core-announce"
+related-pr: null
+last-updated-utc: "2026-10-20 12:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -105,7 +105,7 @@ The two scopes are identical because the package has no `tests/` integration tar
 Integration-only coverage does not apply unless a file plan adds a target.
 
 Per-file unit-only lines are in the [Source File Ledger](#source-file-ledger). Two package-owned
-files have no unit-only coverage: `container.rs` (0 / 73) and `services/error_mapping.rs` (0 / 15).
+files have no unit-only coverage: `container.rs` (0 / 73) and `services/error_mapping.rs` (0 / 18).
 The rest have high line coverage, but #1348 showed that a covered file can still pin the wrong value
 or miss a decision, so every file still gets its own plan.
 
@@ -113,13 +113,15 @@ The `torrust-tracker-axum-http-server` package and the root `tests/` exercise th
 indirectly. EPIC #1347 does not accept coverage from another package, an integration test, or an
 end-to-end test as evidence that a feasible package-owned unit seam is protected.
 
-T1 re-measured, because `packages/http-core/` changed on `develop` after `a9d8c5703`: the #2536
-refactor (merged through #2545) touched four statistics files, and the #2244 refactor (merged
-through #2552) changed `statistics/metrics.rs` again. The T1 baseline at `develop` `a3810b813` is
-lines 1,737 / 1,953 (88.94%), regions 2,335 / 2,583 (90.40%), and functions 160 / 190 (84.21%), from
-the same 32 unit tests, with unit-only equal to aggregate. It supersedes the table above;
-[coverage-evidence.md](coverage-evidence.md) holds the per-file results and the differences. The
-Source File Ledger and the EPIC #1347 Package Coverage Tracking tables use the T1 baseline.
+`packages/http-core/` changed on `develop` after `a9d8c5703`, so the package was re-measured twice:
+before S1 (T1: the #2536 refactor merged through #2545, and the #2244 refactor merged through #2552)
+and again before S2, at `develop` `87690b15e` (the merge of S1, #2558), after `non_exhaustive` on the
+public error enums (#2454, merged through #2568) and the exact counter sum from `torrust-metrics`
+0.2.0 (#2560, merged through #2561). The S2 baseline is lines 1,751 / 1,970 (88.88%), regions
+2,357 / 2,607 (90.41%), and functions 161 / 191 (84.29%), from 33 unit tests, with unit-only equal
+to aggregate. It supersedes the table above; [coverage-evidence.md](coverage-evidence.md) holds the
+per-file results and the differences. The Source File Ledger and the EPIC #1347 Package Coverage
+Tracking tables use the S2 baseline.
 
 ## Key Package Responsibilities
 
@@ -331,8 +333,8 @@ open a PR, get it reviewed, and merge it. The spec-only PR comes first.
 | Slice | Content | Ledger rows | Branch | PR | Status |
 | --- | --- | --- | --- | --- | --- |
 | S0 | This specification and the EPIC registration with the baseline | - | `1349-1347-add-tests-http-core-spec` | #2546 | DONE |
-| S1 | T1-T3: coverage evidence, inventory, shared plan guidance, first plan, approved order | - | `1349-1347-add-tests-http-core-inventory` | #2558 | IN_PROGRESS |
-| S2 | Announce service and its error mapping (ranks 1-2) | 1-2 | `1349-1347-add-tests-http-core-announce` | - | TODO |
+| S1 | T1-T3: coverage evidence, inventory, shared plan guidance, first plan, approved order | - | `1349-1347-add-tests-http-core-inventory` | #2558 | DONE |
+| S2 | Announce service and its error mapping (ranks 1-2) | 1-2 | `1349-1347-add-tests-http-core-announce` | - | IN_PROGRESS |
 | S3 | Scrape service (rank 3) | 3 | `1349-1347-add-tests-http-core-scrape` | - | TODO |
 | S4 | Events and composition (ranks 4-5) | 4-5 | `1349-1347-add-tests-http-core-events-container` | - | TODO |
 | S5 | Statistics (rank 6) | 6-10 | `1349-1347-add-tests-http-core-statistics` | - | TODO |
@@ -444,18 +446,18 @@ States: `PENDING` (no plan yet), `IN_PROGRESS`, `BLOCKED` (paused by a finding; 
 `DONE`, `REMOVED` (the file no longer exists; the row keeps the history). Rows follow
 [Key Package Responsibilities](#key-package-responsibilities), most critical first; within a
 responsibility, the module holding the decision comes before its supporting modules. Unit-only
-lines are the T1 baseline measurement (see [Baseline Coverage](#baseline-coverage)).
+lines are the S2 baseline measurement (see [Baseline Coverage](#baseline-coverage)).
 
 | Order | Source module | Rank | Slice | Unit-only lines | Tests | Initial hypothesis | State | Plan |
 | ---: | --- | ---: | --- | ---: | ---: | --- | --- | --- |
 | 1 | `services/announce.rs` | 1-2 | S2 | 675 / 727 (92.85%) | 8 | Property candidate (peer-IP selection) | IN_PROGRESS | [services-announce-tests.md](test-refactor-plans/services-announce-tests.md) (approved) |
-| 2 | `services/error_mapping.rs` | 2 | S2 | 0 / 15 (0.00%) | 0 | Test candidate | PENDING | - |
+| 2 | `services/error_mapping.rs` | 2 | S2 | 0 / 18 (0.00%) | 0 | Test candidate | PENDING | - |
 | 3 | `services/scrape.rs` | 3 | S3 | 507 / 540 (93.89%) | 8 | Test candidate (error paths) | PENDING | - |
 | 4 | `event.rs` | 4 | S4 | 174 / 187 (93.05%) | 7 | Probably small change | PENDING | - |
 | 5 | `container.rs` | 5 | S4 | 0 / 73 (0.00%) | 0 | Test candidate | PENDING | - |
 | 6 | `statistics/event/handler.rs` | 6 | S5 | 158 / 161 (98.14%) | 5 | Probably no change | PENDING | - |
 | 7 | `statistics/event/listener.rs` | 6 | S5 | 133 / 148 (89.86%) | 4 | Lifecycle (#1488) | PENDING | - |
-| 8 | `statistics/metrics.rs` | 6 | S5 | 34 / 43 (79.07%) | 0 | Test candidate | PENDING | - |
+| 8 | `statistics/metrics.rs` | 6 | S5 | 48 / 57 (84.21%) | 1 | Test candidate | PENDING | - |
 | 9 | `statistics/repository.rs` | 6 | S5 | 21 / 24 (87.50%) | 0 (3 doc tests) | Test candidate | PENDING | - |
 | 10 | `statistics/mod.rs` | 6 | S5 | 8 / 8 (100.00%) | 0 | Probably small change (metric-name contract) | PENDING | - |
 | 11 | `lib.rs` | 7 | S6 | 27 / 27 (100.00%) | 0 | Test support only | PENDING | - |
@@ -586,6 +588,16 @@ lines are the T1 baseline measurement (see [Baseline Coverage](#baseline-coverag
   audit): the announce plan now lists its five post-approval amendments, each pending the
   maintainer's confirmation at the R1 or R2 review, and the specification links the PR #2558
   audit. Three of the threads were one comment on three lines. All are resolved.
+- 2026-10-20 12:19 UTC - GitHub Copilot - The S1 pull request #2558 was merged (`87690b15e`) at the
+  maintainer's request, before da2ce7 acknowledged the last head; all 11 review threads were
+  resolved. S1 is `DONE`.
+- 2026-10-20 12:30 UTC - GitHub Copilot - S2 started on `1349-1347-add-tests-http-core-announce`.
+  `develop` had changed `packages/http-core/` again (#2454 and #2560), so the package was
+  re-measured at `87690b15e`: lines 1,751 / 1,970 (88.88%), regions 90.41%, functions 84.29%, 33
+  unit tests, unit-only equal to aggregate. `services/error_mapping.rs` gained a wildcard arm
+  (0 / 18 lines) that no test can reach while `TrackerCoreError` has four variants, and
+  `statistics/metrics.rs` gained its first test (48 / 57 lines). The evidence, the ledger and the
+  EPIC rows use the new baseline.
 
 ## Acceptance Criteria
 
