@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-review
+status: done
 priority: p3
 epic: null
 github-issue: 2560
-spec-path: docs/issues/open/2560-adopt-torrust-metrics-sum-counter/ISSUE.md
+spec-path: docs/issues/closed/2560-adopt-torrust-metrics-sum-counter/ISSUE.md
 branch: "2560-adopt-torrust-metrics-sum-counter"
 related-pr: 2561
-last-updated-utc: "2026-10-19 13:02"
+last-updated-utc: "2026-10-20 12:16"
 semantic-links:
   skill-links:
     - create-issue
@@ -110,10 +110,10 @@ The tests for T2 and T3 prove they fail on the old code with the mutate-then-res
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [x] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -124,6 +124,7 @@ The tests for T2 and T3 prove they fail on the old code with the mutate-then-res
 - 2026-10-19 12:10 UTC - GitHub Copilot - PR #2561 review round 2 (da2ce7, two findings, both valid): the Background now says the cast stays in the accessor and is the only one left for the integer totals, and the template's independent-reviewer-reports checkpoint is restored and left open - See `docs/pr-reviews/pr-2561-review/PR-REVIEW.md`
 - 2026-10-19 12:43 UTC - GitHub Copilot - PR #2561 review round 3 (Copilot's second review, one finding in the review body, valid): corrected the Risks bullet, which wrongly said the old path saturated on overflow, and saved the overflow check as evidence - See `docs/pr-reviews/pr-2561-review/PR-REVIEW.md`
 - 2026-10-19 13:02 UTC - GitHub Copilot - PR #2561 review round 4 (da2ce7, one finding, valid): described the throwaway overflow test in the Disposable Verification Scripts section and linked its evidence from `manual-verification-evidence.md` as a new V4 - See `docs/pr-reviews/pr-2561-review/PR-REVIEW.md`
+- 2026-10-20 12:16 UTC - GitHub Copilot - PR #2561 merged on 2026-10-20 at 12:13 UTC and GitHub closed the issue as completed; archived this spec to `docs/issues/closed/`. Ticked "Reviewer validated acceptance criteria": da2ce7's reviews of PR #2561 recomputed each acceptance criterion from the bytes (the manifests and the lock entry, the counter accessors, the retained gauge cast, and the three exact-total tests) and approved on that basis. Left the independent-reviewer-reports checkpoint open on purpose: no independent reviewer agent received this spec, and the pull-request reviews are recorded in `docs/pr-reviews/pr-2561-review/PR-REVIEW.md` - Done
 
 ## Acceptance Criteria
 
@@ -195,6 +196,6 @@ Two disposable artifacts were used, and neither is kept as a script.
 ## References
 
 - Related issues: #2244, #2243, torrust/torrust-metrics#1
-- Related PRs: #2552 (the tracker side of the round trip), torrust/torrust-metrics#2 (the new API)
+- Related PRs: #2552 (the tracker side of the round trip), #2561 (implementation), torrust/torrust-metrics#2 (the new API)
 - Release: <https://github.com/torrust/torrust-metrics/releases/tag/v0.2.0>
 - Related ADRs: None

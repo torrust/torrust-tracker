@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2560-adopt-torrust-metrics-sum-counter/ISSUE.md
-last-updated-utc: 2026-10-19 13:02
+issue-spec: docs/issues/closed/2560-adopt-torrust-metrics-sum-counter/ISSUE.md
+last-updated-utc: 2026-10-20 12:16
 ---
 
 # Manual Verification Evidence
