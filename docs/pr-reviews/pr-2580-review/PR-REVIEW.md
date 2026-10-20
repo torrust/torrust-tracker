@@ -46,7 +46,7 @@ Its overview repeats that thread, so the body adds no rows.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
-| F1 | review-finding:pr-2580-f1 | Copilot | Medium (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
+| F1 | review-finding:pr-2580-f1 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
