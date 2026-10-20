@@ -9,7 +9,7 @@ github-issue: 2413
 spec-path: docs/issues/closed/2413-2410-si-22-1-document-event-flows-and-draft-adr/ISSUE.md
 branch: "2413-document-event-flows-and-draft-adr"
 related-pr: 2553
-last-updated-utc: "2026-10-19 15:50"
+last-updated-utc: "2026-10-19 19:09"
 semantic-links:
   skill-links:
     - create-issue
@@ -173,8 +173,8 @@ pre-push checks still apply to this documentation-only PR.
 - [x] Spec reviewed and approved by the maintainer
 - [x] GitHub issue created and linked to the sub-EPIC
 - [x] Implementation completed and acceptance criteria reviewed
-- [ ] Independent Task Reviewer report recorded in `agent-review-reports.md` (sub-EPIC Shared Delivery Gates)
-- [ ] Retrospective recorded, or the reason none is needed (sub-EPIC Shared Delivery Gates)
+- [x] Independent Task Reviewer report recorded in `agent-review-reports.md` (sub-EPIC Shared Delivery Gates)
+- [x] Retrospective recorded, or the reason none is needed (sub-EPIC Shared Delivery Gates)
 
 ### Progress Log
 
@@ -195,3 +195,7 @@ pre-push checks still apply to this documentation-only PR.
 - 2026-10-19 11:13 UTC - GitHub Copilot (Claude Opus 5.5) - Review round 7 of PR #2553: da2ce7's re-review of the head after the retrospective (posted 2026-10-18) had three Nit findings (`review-finding:pr-2553-f25` to `review-finding:pr-2553-f27`), all valid and fixed in separate commits: the retrospective's audit-only count, the round count in the `process-pr-review` section, and a log time range. Audit: `docs/pr-reviews/pr-2553-review/PR-REVIEW.md`.
 - 2026-10-19 11:29 UTC - GitHub Copilot (Claude Opus 5.5) - Renamed the 11:13 entry above from "round 6" to "round 7" (`review-finding:pr-2553-f28`): the retrospective's round table uses round 6 for the approval review 5548045897, so review 5562034258 is round 7.
 - 2026-10-19 15:50 UTC - GitHub Copilot (Claude Opus 5.5) - Archived. PR #2553 merged on 2026-10-19 at 15:18:12 UTC and issue #2413 closed one second later. AC1 to AC3 and the `linter all` criterion are ticked, on the strength of da2ce7's approving review 5571665038 at the merged head and review 5547031766 (see the Acceptance Verification table) and of the maintainer's approval of the ADR draft, as the maintainer decided for this archive. The independent Task Reviewer report (`agent-review-reports.md`) and the implementation retrospective were not done, so those two checkpoints stay unchecked. The PR review retrospective at `docs/pr-reviews/pr-2553-review/review-retrospective.md` is a different document and does not stand in for the implementation retrospective.
+- 2026-10-19 17:20 UTC - GitHub Copilot (Claude Opus 5.5) - Correction to the 2026-10-16 07:56 entry: "entry 27 differs on torrent cleanup" was wrong. Entry 27 says nothing about torrent cleanup, and the sub-EPIC's "D Versus F" already names it a swarm producer. The inventory's entry 27 recheck table now attributes the publish-nothing facts to "D Versus F" and marks them Confirmed. Found by the post-merge Task Reviewer report (F1, 17:12 UTC), recorded in `agent-review-reports.md` in this folder by the prep pull request.
+- 2026-10-19 17:21 UTC - GitHub Copilot (Claude Opus 5.5) - Late entry for review rounds 9 and 10 of PR #2553, which were recorded only in `PR-REVIEW.md` (Task Reviewer F5): da2ce7's approving review 5571054785 (11:47 UTC) had three Nit findings (`review-finding:pr-2553-f29` to `review-finding:pr-2553-f31`), and his approving review 5571314192 (12:09 UTC) had one (`review-finding:pr-2553-f32`). All four were fixed in separate commits. His approval 5571665038 (12:40 UTC) had no finding.
+- 2026-10-19 17:21 UTC - GitHub Copilot (Claude Opus 5.5) - Closed the two delivery gates after merge, so this is not a pre-push review. The Task Reviewer report (17:12 UTC, verdict `POST_MERGE_FINDINGS`: AC1 to AC3 and `linter all` pass, four should-fix findings) is in `agent-review-reports.md`, with the maintainer's decisions. `implementation-retrospective.md` (maintainer's choice over a log-only statement) covers what the PR review retrospective does not: the hook-environment defect, the entry 27 recheck error, the T1 finding that stayed in logs, and the skipped gates, including the missing Arrange-Act-Assert review of the two `clippy-allow-reasons` tests (F3). The maintainer accepted the out-of-scope tooling fix and the template and skill edits, with no tracking issue (F4). Both checkpoints ticked.
+- 2026-10-19 19:09 UTC - GitHub Copilot (Claude Opus 5.5) - The Task Reviewer re-review of the prep branch (19:08 UTC) passed with three nits, all fixed: the retrospective now quotes the search that was actually run and drops a claim with no repository evidence, and the #2414 revalidation note is complete. The re-review is the second entry in `agent-review-reports.md`.

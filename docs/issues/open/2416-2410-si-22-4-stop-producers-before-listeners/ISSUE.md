@@ -7,9 +7,9 @@ priority: p1
 epic: 2410
 github-issue: 2416
 spec-path: docs/issues/open/2416-2410-si-22-4-stop-producers-before-listeners/ISSUE.md
-branch: "2410-process-queued-events-before-listeners-stop-spec"
+branch: "2416-stop-producers-before-listeners"
 related-pr: null
-last-updated-utc: "2026-10-08 06:58"
+last-updated-utc: "2026-10-19 17:08"
 semantic-links:
   skill-links:
     - create-issue
@@ -29,8 +29,7 @@ semantic-links:
 
 # Issue #2416 - Stop Event Producers Before Event Listeners
 
-Parent: [EPIC #2410 - Process queued events before event listeners stop](../2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md)
-(`epic` is set to the sub-EPIC's issue number once it exists),
+Parent: [EPIC #2410 - Process queued events before event listeners stop](../2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md),
 under EPIC #1488.
 
 > Sub-issue 4 of 4 (SI-22 tasks T7 to T10). Closes loss window (b) and
@@ -59,10 +58,13 @@ process them.
 - `EventFlows` and `Bus` in `src/bootstrap/`, wired in `src/app.rs` (Chosen
   Design).
 - The HTTP and UDP test environments stop servers before listeners (SI-16
-  and SI-17 are merged; needs #2471 merged).
+  and SI-17 are merged; the #2471 prerequisite is satisfied, merged in PR
+  #2544 on 2026-10-16).
 - Documentation: move the ADR draft into `docs/adrs/` and supersede the
   cancellation-tree ADR (D11, D15); move the diagrams (D16); update the jobs
-  doc, glossary, shutdown feature document, and task inventory.
+  doc, glossary, shutdown feature document, and task inventory; add the swarm
+  bus, its producers, and its three consumers to `docs/architecture/events.md`,
+  which omits them (finding from #2413 T1).
 
 ### Out of Scope
 
@@ -103,7 +105,7 @@ items 8 (T7) to 11 (T10).
 | T7 | TODO | Reproduce window (b), then red stop-order test | Controlled late publication proves the lost effect; consumer must remain live while any of two producers runs; red output recorded. |
 | T8 | TODO | Stop order | Edges enforced with waiting and cancellation logs; `EventFlows` with unit tests; `src/app.rs` wired; in-process application test. Design-review checkpoint. |
 | T9 | TODO | Test environments | HTTP and UDP environments stop servers first, keeping the sub-EPIC's [Test environments](../2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md#test-environments) guarantees (join-all failure reporting; independent server and listener tokens, each with its own `DropGuard`, D20); for each environment, a test that an event from a request completed just before `stop()` is counted. |
-| T10 | TODO | Documentation and verification | ADR moved and old ADR superseded; diagrams moved; docs updated; M1-M3; AC review; completion review for the sub-EPIC. |
+| T10 | TODO | Documentation and verification | ADR moved and old ADR superseded; diagrams moved; `docs/architecture/events.md` gains the swarm bus, its producers, and its three consumers (#2413 T1 finding); docs updated; M1-M3; AC review; completion review for the sub-EPIC. |
 
 ## Commit Points
 
@@ -193,6 +195,7 @@ maintainer decides to keep it.
 - 2026-10-02 13:30 UTC - GitHub Copilot - Added AC6 (sub-EPIC AC13): listeners-first registration, retained bus ownership through join, and ADR coverage; the review qualifies clone drops and hard aborts.
 - 2026-10-07 13:05 UTC - GitHub Copilot - Refreshed T9 with the sub-EPIC: keep SI-17's join-all failure reporting, cancel both tokens on drop, add the late-event test for UDP as well as HTTP, and wait for #2471 (SI-16 and SI-17 are merged).
 - 2026-10-08 06:58 UTC - GitHub Copilot - Maintainer decision D20 (sub-EPIC): T9 uses independent server and listener tokens, each with its own `DropGuard`, mirroring `JobManager`; the parent-child token option is rejected.
+- 2026-10-19 17:08 UTC - GitHub Copilot (Claude Opus 5.5) - Refreshed: `branch:` names the planned implementation branch `2416-stop-producers-before-listeners`; removed the obsolete note about setting `epic`; the #2471 prerequisite of T9 is satisfied (merged in PR #2544 on 2026-10-16); T10 also adds the swarm bus, its producers, and its three consumers to `docs/architecture/events.md` (finding from #2413 T1).
 
 ## Architectural Decisions
 

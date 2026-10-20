@@ -7,9 +7,9 @@ priority: p1
 epic: 2410
 github-issue: 2414
 spec-path: docs/issues/open/2414-2410-si-22-2-drain-listener-queues-on-shutdown/ISSUE.md
-branch: "2410-process-queued-events-before-listeners-stop-spec"
+branch: "2414-drain-listener-queues-on-shutdown"
 related-pr: null
-last-updated-utc: "2026-10-02 17:28"
+last-updated-utc: "2026-10-19 19:09"
 semantic-links:
   skill-links:
     - create-issue
@@ -32,8 +32,7 @@ semantic-links:
 
 # Issue #2414 - Drain Listener Queues on Shutdown
 
-Parent: [EPIC #2410 - Process queued events before event listeners stop](../2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md)
-(`epic` is set to the sub-EPIC's issue number once it exists),
+Parent: [EPIC #2410 - Process queued events before event listeners stop](../2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md),
 under EPIC #1488.
 
 > Sub-issue 2 of 4 (SI-22 tasks T3 to T5). Closes loss window (a), where the
@@ -104,6 +103,26 @@ with a deterministic red.
 Detailed steps: sub-EPIC
 [Implementation Steps](../2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md#implementation-steps),
 items 4 (T3), 5 (T4), and 6 (T5).
+
+**Revalidate before starting.** This plan was written on 2026-10-02. Two pull
+requests merged into `develop` on 2026-10-16 changed the code it touches
+(checked with `git diff --stat` against each merge's first parent):
+
+- PR #2545 (#2536, hide the statistics repositories' read lock) changed the
+  listeners in `packages/{http-core,swarm-coordination-registry,udp-core,udp-server}/src/statistics/event/listener.rs`,
+  the event handlers in the same `statistics/event/` folders, the banning
+  handler `packages/udp-server/src/banning/event/handler.rs` and
+  `packages/udp-server/src/banning/mod.rs`, and
+  `packages/tracker-core/tests/common/test_env.rs` (T3b). It also changed the
+  statistics repositories and metrics of those packages, including
+  `packages/tracker-core/src/statistics/repository.rs`, which the persistent
+  listener's handler (T3a, T4c) also updates (read from source, not run).
+- PR #2552 (#2244, UDP metric aggregates) changed the banning handler again,
+  plus other statistics files outside `statistics/event/` (metrics,
+  repositories, and the activity metrics updater).
+
+Recheck the listener loops, handler signatures, the `it_should_prioritize_*`
+tests, and `TestEnv` against the current code before T3.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
@@ -219,3 +238,5 @@ and independent Task Reviewer report.
 
 - 2026-10-02 11:03 UTC - GitHub Copilot - Drafted from SI-22 T3-T5 (D17).
 - 2026-10-02 13:30 UTC - GitHub Copilot - Added AC7 (sub-EPIC AC12): the drain timeout does not interrupt a handler; shared-deadline abort remains an exception.
+- 2026-10-19 17:08 UTC - GitHub Copilot (Claude Opus 5.5) - Refreshed before implementation: `branch:` names the implementation branch `2414-drain-listener-queues-on-shutdown`; removed the obsolete note about setting `epic`; the Implementation Plan now asks to revalidate the code that PRs #2545 and #2552 changed after this spec was written (file lists from `git diff --stat` of each merge).
+- 2026-10-19 19:09 UTC - GitHub Copilot (Claude Opus 5.5) - The revalidation note now also names the statistics repositories and metrics that PR #2545 changed, including tracker-core's repository, which the persistent listener's handler updates (nit N1 of the #2413 Task Reviewer re-review).
