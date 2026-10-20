@@ -2,7 +2,7 @@
 semantic-links:
   related-artifacts:
     - .github/agents/task-reviewer.agent.md
-    - docs/issues/open/2414-2410-si-22-2-drain-listener-queues-on-shutdown/ISSUE.md
+    - docs/issues/closed/2414-2410-si-22-2-drain-listener-queues-on-shutdown/ISSUE.md
 ---
 
 # Agent Review Reports - Drain Listener Queues on Shutdown
