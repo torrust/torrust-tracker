@@ -9,7 +9,7 @@ github-issue: 1349
 spec-path: docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md
 branch: "1349-1347-add-tests-http-core-scrape"
 related-pr: null
-last-updated-utc: "2026-10-20 17:09"
+last-updated-utc: "2026-10-20 17:48"
 semantic-links:
   skill-links:
     - create-issue
@@ -452,7 +452,7 @@ lines are the S2 baseline measurement (see [Baseline Coverage](#baseline-coverag
 | ---: | --- | ---: | --- | ---: | ---: | --- | --- | --- |
 | 1 | `services/announce.rs` | 1-2 | S2 | 675 / 727 (92.85%) | 8 | Property candidate (peer-IP selection) | DONE | [services-announce-tests.md](test-refactor-plans/services-announce-tests.md) (done; 843 / 851 lines after) |
 | 2 | `services/error_mapping.rs` | 2 | S2 | 0 / 18 (0.00%) | 0 | Test candidate | DONE | [services-error-mapping-tests.md](test-refactor-plans/services-error-mapping-tests.md) (done; 26 / 29 lines after, wildcard arm untestable) |
-| 3 | `services/scrape.rs` | 3 | S3 | 507 / 540 (93.89%) | 8 | Test candidate (error paths) | DONE | [services-scrape-tests.md](test-refactor-plans/services-scrape-tests.md) (done; 488 / 492 lines after) |
+| 3 | `services/scrape.rs` | 3 | S3 | 507 / 540 (93.89%) | 8 | Test candidate (error paths) | DONE | [services-scrape-tests.md](test-refactor-plans/services-scrape-tests.md) (done; 533 / 537 lines after) |
 | 4 | `event.rs` | 4 | S4 | 174 / 187 (93.05%) | 7 | Probably small change | PENDING | - |
 | 5 | `container.rs` | 5 | S4 | 0 / 73 (0.00%) | 0 | Test candidate | PENDING | - |
 | 6 | `statistics/event/handler.rs` | 6 | S5 | 158 / 161 (98.14%) | 5 | Probably no change | PENDING | - |
@@ -638,6 +638,17 @@ lines are the S2 baseline measurement (see [Baseline Coverage](#baseline-coverag
   because no mutation can fail it. Package after S3: lines 1,900 / 2,053 (92.55%), regions 2,492 / 2,669
   (93.37%), functions 228 / 244 (93.44%), 90 unit tests. No finding needed a hand-off. Next: the
   independent Task Reviewer, the pre-push checks and the S3 pull request.
+- 2026-10-20 17:48 UTC - GitHub Copilot - The independent Task Reviewer passed S3 with one `MEDIUM` and six
+  `LOW` findings ([agent-review-reports.md](agent-review-reports.md)). The `MEDIUM` was a surviving mutant:
+  the zeroed branch of `handle_scrape` returning early skipped the client-IP resolution and the event, and
+  no test covered the private-tracker path. It is fixed with a private-tracker event test and a private
+  case in the unresolvable client-IP table. `RecordingSender` now records when the future returned by
+  `send` is polled, one test pins that a tracker not behind a reverse proxy ignores a forwarded address,
+  and the no-sender test asserts the data. The scrape file now has 22 cases and the package 93 unit tests.
+  Final S3 package coverage: lines 1,949 / 2,102 (92.72%), regions 2,566 / 2,743 (93.55%), functions
+  233 / 249 (93.57%). R1 and R2 were coded together although the plan gates R1 on a maintainer review; the
+  maintainer approved R1 and the completed file together on 2026-10-20 at 17:09 UTC, which satisfies the
+  gate. Next: the pre-push checks and the S3 pull request.
 
 ## Acceptance Criteria
 

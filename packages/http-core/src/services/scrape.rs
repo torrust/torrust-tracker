@@ -600,6 +600,61 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn it_should_publish_the_scrape_event_for_an_unauthenticated_peer_on_a_private_tracker() {
+        // Arrange
+        let fixture = Fixture::new(&configuration::ephemeral_private());
+        let sender = RecordingSender::new();
+        let service = fixture.service(Some(sender.clone()));
+
+        // Act
+        let result = service
+            .handle_scrape(
+                &scrape_request_for(vec![sample_info_hash()]),
+                &direct_connection_from(localhost()),
+                &sample_server_service_binding(),
+                None,
+            )
+            .await;
+
+        // Assert
+        assert!(result.is_ok(), "the scrape should succeed: {result:?}");
+        let expected_event = Event::TcpScrape {
+            connection: expected_connection(&fixture, ResolvedIp::FromSocketAddr(localhost())),
+        };
+        assert_eq!(sender.events(), vec![expected_event]);
+    }
+
+    #[tokio::test]
+    async fn it_should_ignore_the_forwarded_address_when_the_http_tracker_is_not_behind_a_reverse_proxy() {
+        // Arrange
+        let connection_ip = ip("192.0.2.10");
+        let fixture = Fixture::new(&configuration::ephemeral_public());
+        let sender = RecordingSender::new();
+        let service = fixture.service_for_http_tracker(Some(sender.clone()));
+        let client_ip_sources = ClientIpSources {
+            right_most_x_forwarded_for: Some(ip("203.0.113.195")),
+            connection_info_socket_address: Some(SocketAddr::new(connection_ip, CONNECTION_PORT)),
+        };
+
+        // Act
+        let result = service
+            .handle_scrape(
+                &scrape_request_for(vec![sample_info_hash()]),
+                &client_ip_sources,
+                &sample_server_service_binding(),
+                None,
+            )
+            .await;
+
+        // Assert
+        assert!(result.is_ok(), "the scrape should succeed: {result:?}");
+        let expected_event = Event::TcpScrape {
+            connection: expected_connection(&fixture, ResolvedIp::FromSocketAddr(connection_ip)),
+        };
+        assert_eq!(sender.events(), vec![expected_event]);
+    }
+
+    #[tokio::test]
     async fn it_should_use_the_http_tracker_reverse_proxy_policy() {
         // Arrange
         let proxy_ip = ip("203.0.113.195");
@@ -679,7 +734,7 @@ mod tests {
             .await;
 
         // Assert
-        assert!(result.is_ok(), "the scrape should succeed: {result:?}");
+        assert_eq!(result.unwrap(), scrape_data_of(vec![(sample_info_hash(), one_seeder())]));
     }
 
     #[tokio::test]
@@ -718,6 +773,7 @@ mod tests {
     #[rstest]
     #[case::without_a_reverse_proxy(configuration::ephemeral_public())]
     #[case::behind_a_reverse_proxy(configuration::ephemeral_with_reverse_proxy())]
+    #[case::on_a_private_tracker_without_a_key(configuration::ephemeral_private())]
     #[tokio::test]
     async fn it_should_report_an_unresolvable_client_ip_without_publishing_an_event(#[case] configuration: Configuration) {
         // Arrange

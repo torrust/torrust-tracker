@@ -132,9 +132,11 @@ confused with any other port.
 | `it_should_publish_the_connection_address_of_the_client_in_the_scrape_event` (IPv4 client, IPv6 client) | A public tracker, a recording sender, a client at the case's address. | Scrape the sample torrent. | Exactly one event, with that address as the remote client, the connection port and the server binding. | Matches the code. R1; one table replaces four duplicate tests. |
 | `it_should_use_the_http_tracker_reverse_proxy_policy` | An HTTP tracker behind a reverse proxy, a forwarded address that differs from the connection address, a recording sender. | Scrape the sample torrent. | One event whose remote client is the forwarded address, with the connection port. | Matches the code. R1; probe P2 fails it. |
 | `it_should_publish_the_public_url_of_the_http_tracker_in_the_scrape_event` | An HTTP tracker configured with a public URL, a recording sender. | Scrape the sample torrent. | One event whose connection context carries that URL as text. | Matches the code. R2f; mutation M4 fails it. |
-| `it_should_scrape_without_publishing_when_there_is_no_event_sender` | A public tracker and no sender. | Scrape the sample torrent. | The scrape succeeds. | Matches the code. R2f. |
+| `it_should_scrape_without_publishing_when_there_is_no_event_sender` | A public tracker with a seeder and no sender. | Scrape the sample torrent. | The data shows the seeder. | Matches the code. R2f; the Task Reviewer noted that the Arrange seeded a peer that nothing asserted on, so the Assert now checks the data. |
+| `it_should_publish_the_scrape_event_for_an_unauthenticated_peer_on_a_private_tracker` | A private tracker, no key, a recording sender. | Scrape the sample torrent. | The scrape succeeds and exactly one event is published, with the connection address as the remote client. | Matches the code. Added after the S3 Task Reviewer found mutant M5 (below) surviving: no test published an event on the zeroed path. |
+| `it_should_ignore_the_forwarded_address_when_the_http_tracker_is_not_behind_a_reverse_proxy` | An HTTP tracker that is not behind a reverse proxy, client IP sources with both a forwarded address and a connection address, a recording sender. | Scrape the sample torrent. | One event whose remote client is the connection address. | Matches the code. Added after the reviewer found that mutant (d) was killed only incidentally; it now fails directly. |
 | `it_should_report_a_failing_persisted_downloads_lookup_as_a_tracker_core_scrape_error` | A tracker whose persisted-downloads store fails, a recording sender. | Scrape a torrent absent from memory. | The tracker-core scrape failure wrapping a database error; no event. | Matches the code. R2c (collaboration, no database). |
-| `it_should_report_an_unresolvable_client_ip_without_publishing_an_event` (without a reverse proxy, behind a reverse proxy) | An HTTP tracker of the case's kind, client IP sources that name no address, a recording sender. | Scrape the sample torrent. | The resolution failure; no event. | Matches the code. R2d. |
+| `it_should_report_an_unresolvable_client_ip_without_publishing_an_event` (without a reverse proxy, behind a reverse proxy, on a private tracker without a key) | An HTTP tracker of the case's kind, client IP sources that name no address, a recording sender. | Scrape the sample torrent. | The resolution failure; no event. | Matches the code. R2d; the private case was added after the reviewer found mutant M5 surviving: the zeroed path must resolve the client IP too. |
 | `it_should_scrape_before_resolving_the_client_ip` | A failing persisted-downloads store and client IP sources that name no address. | Scrape. | The tracker-core failure, not the resolution failure; no event. | Matches the code. R2e; mutation M3 fails it. |
 | `it_should_wrap_a_whitelist_error_in_the_tracker_core_variant` | A not-whitelisted error. | Convert it into `HttpScrapeError`. | The tracker-core variant wrapping a whitelist error. | Matches the code. R2g; a public conversion with no caller in the repository. |
 | `it_should_wrap_an_authentication_error_in_the_tracker_core_variant` | A missing-key error. | Convert it. | The tracker-core variant wrapping an authentication error. | Matches the code. R2g; same remark. |
@@ -146,13 +148,16 @@ confused with any other port.
 
 ### R0-R4 (2026-10-20, stable Rust 1.99.0, nightly `rustfmt`)
 
-- `cargo test -p torrust-tracker-http-core`: 90 unit tests pass and the 3 doc tests pass. The file's 8 tests
-  are now 19 cases (17 functions); the announce and `error_mapping.rs` tests are unchanged (the announce
+- `cargo test -p torrust-tracker-http-core`: 93 unit tests pass and the 3 doc tests pass. The file's 8 tests
+  are now 22 cases (19 functions; 19 cases at the completed-file review plus three added after the S3 Task
+  Reviewer's findings); the announce and `error_mapping.rs` tests are unchanged (the announce
   tests only import `RecordingSender` from `crate::tests` now). `cargo +nightly fmt --all -- --check`,
   `cargo clippy -p torrust-tracker-http-core --all-targets --all-features -- -D warnings`,
   `cargo machete --with-metadata` and `git diff --check` pass. A comparison of everything before
   `#[cfg(test)]` with `HEAD` shows production code identical.
-- `crate::tests::RecordingSender` (R0) is the announce tests' sender moved unchanged; `mockall` stays a
+- `crate::tests::RecordingSender` (R0) is the announce tests' sender moved from `announce.rs`; after the S3
+  Task Reviewer's finding F2 it records an event when the future returned by `send` is polled, like the
+  production broadcaster, so a service that drops that future publishes nothing. `mockall` stays a
   dev-dependency because the Criterion bench helpers use it.
 - Mutations (each applied by hand, run, and reverted):
 
@@ -165,6 +170,10 @@ confused with any other port.
 | M4: delete `with_public_url` | Does not compile by default (`field public_url is never read`). With `RUSTFLAGS="--cap-lints=warn"`, fails `it_should_publish_the_public_url_of_the_http_tracker_in_the_scrape_event` only. |
 | P1 (probe): private zeroing returns an empty set | Fails the two zeroing tests. |
 | P2 (probe): the HTTP tracker config's reverse-proxy mode is ignored | Fails `it_should_use_the_http_tracker_reverse_proxy_policy` only. |
+| M5 (found by the S3 Task Reviewer): the zeroed branch returns early, skipping the client-IP resolution and the event | **Survived all 90 tests** before the review fix. Now fails `it_should_publish_the_scrape_event_for_an_unauthenticated_peer_on_a_private_tracker` and the private case of `it_should_report_an_unresolvable_client_ip_without_publishing_an_event`. |
+| P3 (found by the reviewer): `send(event)` is dropped instead of awaited | Survived because `RecordingSender` recorded when `send` was called, not when its future was polled (as the production broadcaster does). `RecordingSender` now records inside the returned future; the mutant then fails all six event tests. |
+| P4 (found by the reviewer): `new_with_http_tracker_config` always enables the reverse proxy | Was killed only incidentally by the public-URL test; now fails `it_should_ignore_the_forwarded_address_when_the_http_tracker_is_not_behind_a_reverse_proxy` and the public-URL test. |
+| P5 (found by the reviewer, informational): publish the event only for a non-empty result | Survives, and is equivalent for any request the HTTP parser accepts (`http-protocol` returns `MissingParam` for a scrape with no `info_hash`); no test is added. |
 
 - The planned test of a public tracker that ignores a presented key was dropped: no mutation of this file
   can fail it, because `AuthenticationService::authenticate` accepts any key on a public tracker. It would
@@ -180,15 +189,13 @@ torrust-tracker-http-core --all-features --lib`, `cargo-llvm-cov 0.6.16`, stable
 
 | Scope | Before (S2 baseline) | After |
 | --- | ---: | ---: |
-| `services/scrape.rs` lines | 507 / 540 (93.89%) | 488 / 492 (99.19%) |
-| `services/scrape.rs` regions | 678 / 711 (95.36%) | 659 / 664 (99.25%) |
-| `services/scrape.rs` functions | 36 / 43 (83.72%) | 66 / 66 (100.00%) |
+| `services/scrape.rs` lines | 507 / 540 (93.89%) | 533 / 537 (99.26%) |
+| `services/scrape.rs` regions | 678 / 711 (95.36%) | 730 / 735 (99.32%) |
+| `services/scrape.rs` functions | 36 / 43 (83.72%) | 70 / 70 (100.00%) |
 
-The file's counted lines fell by 48 because the refactored test module has fewer instrumented lines than
-the 8 old tests (four duplicate event tests became one table, and the fixture shrank).
-Every production line, region and function of the file is covered: the four uncovered lines and five
-uncovered regions are the failure branches of `matches!` assertions in the test module (lines 705, 785, 807
-and 827, plus 766). The package totals after slice S3 are in the
+Every production line, region and function of the file is covered: the four uncovered lines (760, 841, 863
+and 883) and five uncovered regions (those lines and 822) are the failure branches of `matches!` assertions
+in the test module. The package totals after slice S3 are in the
 [coverage evidence](../coverage-evidence.md#package-after-slice-s3).
 
 ## Approval
@@ -207,3 +214,10 @@ Approved by Jose Celano on 2026-10-20 (16:54 UTC): R0 (the shared `RecordingSend
   tracker ignoring a presented key was dropped because no mutation can fail it (see Results). The
   completed file awaits the maintainer's review.
 - 2026-10-20 17:09 UTC - Jose Celano - Approved R1 and the completed file. The plan is `done`.
+- 2026-10-20 17:46 UTC - GitHub Copilot - The S3 Task Reviewer passed the slice but found mutant M5 (the
+  zeroed branch returning early) surviving all 90 tests: no test published an event or resolved the client
+  IP on a private tracker. Fixed with a private-tracker event test and a private case in the unresolvable
+  client-IP table; `RecordingSender` now records when its future is polled (F2); one test pins that a
+  tracker not behind a reverse proxy ignores a forwarded address (F5); the no-sender test asserts the data
+  (F7). The scrape file now has 22 cases and the package 93 unit tests. The earlier entries keep their
+  original wording.

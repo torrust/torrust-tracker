@@ -139,3 +139,47 @@ semantic-links:
     decision was the plan's own rule, not a restated claim); the E2 row now names the `{ source: _ }`
     form that was actually run; the duplicated literal is gone. Package coverage after the fixes:
     lines 91.34%, regions 92.45%, functions 89.59%, with 79 unit tests.
+
+### 2026-10-20 - Task Reviewer (slice S3)
+
+- Time: the report returned after the S3 commit (17:11 UTC) and before the first fix at 17:46 UTC; the
+  exact time was not recorded.
+- Invocation scope: Slice S3 (ledger row 3: `services/scrape.rs`) of #1349 on branch
+  `1349-1347-add-tests-http-core-scrape`: the commits `docs(issues): [#1349] record the S2 merge and
+  start slice S3` and `test(http-core): [#1349] pin the scrape service decisions with unit tests`.
+- Inputs: `ISSUE.md`, `coverage-evidence.md`, both file plans (scrape and the announce template), the
+  plan guidance, the S1 and S2 reports, the EPIC, the `write-unit-test` skill, and the three changed Rust
+  files.
+- Evidence: production code before `#[cfg(test)]` in `scrape.rs` and `announce.rs` is byte-identical to
+  `develop` at `fe70cf908`; `lib.rs` gains only the moved `RecordingSender`; no manifest change;
+  90 unit tests and 3 doc tests passed, also under `--test-threads=1`; nightly `rustfmt`,
+  `clippy -D warnings`, `cargo machete`, `git diff --check`, `linter markdown` and `linter cspell`
+  passed; a clean `cargo llvm-cov` run and a worktree at `fe70cf908` reproduced every documented number;
+  M1 (compiling form), M2, M3 and M4 (with the lint cap) failed only the tests named for them and the
+  extra mutants (b), (c), (e) and (f) were killed; dropping the planned "public tracker ignores a key"
+  test was right; the ledger, slice table, plan status, progress logs, EPIC rows and signatures agree.
+- Findings:
+  - MEDIUM (F1): mutant (a) survived all 90 tests: the zeroed branch of `handle_scrape` returning early,
+    which skips the client-IP resolution and the event. No test published an event or resolved the
+    client IP on a private tracker; the replacement for the old `with_zeroed_data` event tests was never
+    written.
+  - LOW (F2): `RecordingSender` recorded when `send` was called, not when its future was polled, so
+    `drop(sender.send(event))` instead of `.await` passed every test.
+  - LOW (F3, informational): mutant (a'') (publish only for a non-empty result) survives, and is
+    equivalent for any request the protocol accepts.
+  - LOW (F4): the coverage document explained the fall in absolute counts too broadly: lines and regions
+    fell, functions rose.
+  - LOW (F5): mutant (d) (the HTTP-tracker constructor always enables the reverse proxy) was killed only
+    incidentally, by the public-URL test.
+  - LOW (F6): the ledger and slice table did not say that the R1 gate was satisfied by a combined review.
+  - LOW (F7): the no-sender test seeded a peer that nothing asserted on.
+- Verdict: REVIEW PASSED, with F1 required before the pull request.
+- Follow-up actions:
+  - Handling (2026-10-20 17:48 UTC, commit `test(http-core): [#1349] pin the private scrape path and
+    record the S3 review`): F1 is fixed with a private-tracker event test and a private case in the
+    unresolvable client-IP table, which fail the mutant; F2 is fixed by recording inside the returned
+    future, after which the dropped-future mutant fails six tests; F4 is fixed by dropping the claim; F5 is
+    fixed by a test that fails the mutant directly; F6 is recorded in the `ISSUE.md` log; F7 is fixed by
+    asserting the data. F3 is recorded in the plan as an equivalent mutant and needs no test. The scrape
+    file now has 22 cases and the package 93 unit tests: lines 1,949 / 2,102 (92.72%), regions 2,566 /
+    2,743 (93.55%), functions 233 / 249 (93.57%).

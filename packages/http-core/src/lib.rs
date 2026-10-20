@@ -20,7 +20,6 @@ pub const HTTP_TRACKER_LOG_TARGET: &str = "HTTP TRACKER";
 
 #[cfg(test)]
 pub(crate) mod tests {
-    use std::future;
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
     use std::sync::{Arc, Mutex};
 
@@ -34,9 +33,13 @@ pub(crate) mod tests {
 
     /// An event sender that keeps every event it receives, so a test can assert
     /// on the events a service publishes explicitly.
+    ///
+    /// Like the production broadcaster, it records an event only when the
+    /// future returned by `send` is polled, so a service that drops that
+    /// future publishes nothing.
     #[derive(Default)]
     pub struct RecordingSender {
-        events: Mutex<Vec<Event>>,
+        events: Arc<Mutex<Vec<Event>>>,
     }
 
     impl RecordingSender {
@@ -58,8 +61,11 @@ pub(crate) mod tests {
         type Event = Event;
 
         fn send(&self, event: Event) -> BoxFuture<'static, Option<Result<usize, SendError<Event>>>> {
-            self.events.lock().unwrap().push(event);
-            Box::pin(future::ready(Some(Ok(1))))
+            let events = Arc::clone(&self.events);
+            Box::pin(async move {
+                events.lock().unwrap().push(event);
+                Some(Ok(1))
+            })
         }
     }
 
