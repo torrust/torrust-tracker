@@ -36,14 +36,15 @@ native IPv4/IPv6 support, private/whitelisted mode, and a management REST API.
 ## 📁 Key Directories
 
 - `src/` — Main binary and library entry points (`main.rs`, `lib.rs`, `app.rs`, `container.rs`)
-- `src/bin/` — Additional binary targets (`e2e_tests_runner`, `http_health_check`, `profiling`)
+- `src/bin/` — Additional binary target `http_health_check` (the E2E runners and `profiling` are in
+  `packages/e2e-tools`)
 - `src/bootstrap/` — Application bootstrap logic
 - `src/console/` — Console entry points
 - `packages/` — Cargo workspace packages (all domain logic lives here; see package catalog below)
 - `console/` — Console tools (e.g., `tracker-client`)
 - `contrib/` — Developer tooling
 - `contrib/dev-tools/` — Developer tools: git hooks (`pre-commit.sh`, `pre-push.sh`, `install-git-hooks.sh`),
-  container scripts, and init scripts
+  container scripts, init scripts, and the Rust developer-tool crates listed in the package catalog
 - `tests/` — Integration tests (`integration.rs`, `servers/`)
 - `docs/` — Project documentation, ADRs, issue specs, and benchmarking guides
 - `docs/adrs/` — Architectural Decision Records
@@ -127,14 +128,15 @@ package's `Cargo.toml` holds its version. Rows marked _(unpublished)_ set `publi
 
 ## 🏷️ Package Naming Conventions
 
-| Prefix       | Responsibility                         | Dependencies             |
-| ------------ | -------------------------------------- | ------------------------ |
-| `axum-*`     | HTTP server components using Axum      | Axum framework           |
-| `*-server`   | Server implementations                 | Corresponding `*-core`   |
-| `*-core`     | Domain logic and business rules        | Protocol implementations |
-| `*-protocol` | BitTorrent protocol implementations    | BEP specifications       |
-| `udp-*`      | UDP protocol-specific implementations  | Tracker core             |
-| `http-*`     | HTTP protocol-specific implementations | Tracker core             |
+| Prefix       | Responsibility                         | Dependencies                                                                  |
+| ------------ | -------------------------------------- | ----------------------------------------------------------------------------- |
+| `axum-*`     | HTTP server components using Axum      | Axum framework                                                                |
+| `*-server`   | Server implementations                 | Corresponding `*-core`                                                        |
+| `*-core`     | Domain logic and business rules        | Protocol implementations                                                      |
+| `*-protocol` | Wire protocol implementations          | BEP specifications, or the REST API contract (`rest-api-protocol`)            |
+| `rest-api-*` | REST API layers (contract-first)       | See [docs/packages.md](docs/packages.md#rest-api-contract-first-architecture) |
+| `udp-*`      | UDP protocol-specific implementations  | Tracker core                                                                  |
+| `http-*`     | HTTP protocol-specific implementations | Tracker core                                                                  |
 
 ## 📄 Key Configuration Files
 
@@ -178,7 +180,7 @@ cargo test --tests --benches --examples --workspace --all-targets --all-features
 cargo test --test integration
 cargo +nightly doc --no-deps --bins --examples --workspace --all-features
 cargo +nightly doc --no-deps --lib --workspace --all-features
-cargo bench --package torrent-repository-benchmarking
+cargo bench --package torrust-tracker-torrent-repository-benchmarking
 ```
 
 Mandatory quality gate before every commit:
