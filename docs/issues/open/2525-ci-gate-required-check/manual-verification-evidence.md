@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2525-ci-gate-required-check/ISSUE.md
-last-updated-utc: 2026-10-20 14:59
+last-updated-utc: 2026-10-20 15:35
 ---
 
 # Manual Verification Evidence
@@ -176,6 +176,12 @@ Second review round: the same checks were extended for three more findings. Two 
 killed: a parser that drops a path that is not valid UTF-8 instead of decoding it (three unit tests
 fail), and a binary that writes a stray line to stderr on success (all four success-path
 command-line tests fail). The final run has 104 unit and 5 command-line tests.
+
+Third review round: a real binary run with an argument that is not valid UTF-8 (`--base-branch` given
+the bytes `develop` followed by `0xFF`, and a subcommand with the same byte) panicked with exit code 101
+and a plain-text message, not the JSON usage diagnostic with exit code 2. After the fix it exits with 2
+and one `usage_error` record on stderr. The new Unix-only command-line test was seen to fail against the
+original behaviour first. The final run has 104 unit and 6 command-line tests.
 
 ## Failures and Follow-up
 
