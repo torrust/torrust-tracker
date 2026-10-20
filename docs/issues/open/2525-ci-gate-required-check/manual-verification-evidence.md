@@ -198,13 +198,13 @@ git diff --cached --name-only -z torrust/develop | target/debug/ci-gate classify
 # needed: docs-lint, testing, os-compatibility, coverage, container
 ```
 
-| Case                                             | Results given                                  | Verdict | Exit | Explanation                                                                                                                                       |
-| ------------------------------------------------ | ---------------------------------------------- | ------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| every needed group succeeded                     | the five needed groups, all `success`          | `pass`  |    0 | `every needed group succeeded: docs-lint, testing, os-compatibility, coverage, container`                                                         |
-| `testing` failed and three groups never reported | `docs-lint` success, `testing` failure         | `fail`  |    0 | `needed groups without a success: testing (failure), os-compatibility (missing), coverage (missing), container (missing)`                         |
-| the same, with `--override-actor josecelano`     | the same                                       | `pass`  |    0 | overridden by josecelano; needed groups without a success: testing (failure), os-compatibility (missing), coverage (missing), container (missing) |
-| a group that is not needed failed                | five needed `success`, `security-scan` failure | `pass`  |    0 | `every needed group succeeded: ...` (`security-scan` is ignored)                                                                                  |
-| unreadable input (`{"classification": 1}`)       | -                                              | none    |    1 | one `runtime_error` record on stderr, nothing on stdout                                                                                           |
+| Case                                             | Results given                                  | Verdict | Exit | Explanation                                                                                                                                             |
+| ------------------------------------------------ | ---------------------------------------------- | ------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| every needed group succeeded                     | the five needed groups, all `success`          | `pass`  |    0 | `every needed group succeeded: docs-lint, testing, os-compatibility, coverage, container`                                                               |
+| `testing` failed and three groups never reported | `docs-lint` success, `testing` failure         | `fail`  |    0 | `needed groups without a success: testing (failure), os-compatibility (missing), coverage (missing), container (missing)`                               |
+| the same, with `--override-actor josecelano`     | the same                                       | `pass`  |    0 | ``overridden by `josecelano`; needed groups without a success: testing (failure), os-compatibility (missing), coverage (missing), container (missing)`` |
+| a group that is not needed failed                | five needed `success`, `security-scan` failure | `pass`  |    0 | `every needed group succeeded: ...` (`security-scan` is ignored)                                                                                        |
+| unreadable input (`{"classification": 1}`)       | -                                              | none    |    1 | one `runtime_error` record on stderr, nothing on stdout                                                                                                 |
 
 A first run of the same commands used a branch with no commits, so the change set was empty and only
 `docs-lint` was needed; the cases that expect a failing group then passed, which showed the setup was
