@@ -8,8 +8,8 @@ epic: 1347
 github-issue: 1349
 spec-path: docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md
 branch: "1349-1347-add-tests-http-core-scrape"
-related-pr: null
-last-updated-utc: "2026-10-20 17:48"
+related-pr: 2586
+last-updated-utc: "2026-10-20 17:55"
 semantic-links:
   skill-links:
     - create-issue
@@ -335,7 +335,7 @@ open a PR, get it reviewed, and merge it. The spec-only PR comes first.
 | S0 | This specification and the EPIC registration with the baseline | - | `1349-1347-add-tests-http-core-spec` | #2546 | DONE |
 | S1 | T1-T3: coverage evidence, inventory, shared plan guidance, first plan, approved order | - | `1349-1347-add-tests-http-core-inventory` | #2558 | DONE |
 | S2 | Announce service and its error mapping (ranks 1-2) | 1-2 | `1349-1347-add-tests-http-core-announce` | #2575 | DONE |
-| S3 | Scrape service (rank 3) | 3 | `1349-1347-add-tests-http-core-scrape` | - | IN_PROGRESS |
+| S3 | Scrape service (rank 3) | 3 | `1349-1347-add-tests-http-core-scrape` | #2586 | IN_PROGRESS |
 | S4 | Events and composition (ranks 4-5) | 4-5 | `1349-1347-add-tests-http-core-events-container` | - | TODO |
 | S5 | Statistics (rank 6) | 6-10 | `1349-1347-add-tests-http-core-statistics` | - | TODO |
 | S6 | Crate root and wiring (rank 7), then T5-T8 | 11-13 | `1349-1347-add-tests-http-core-final` | - | TODO |
@@ -649,6 +649,10 @@ lines are the S2 baseline measurement (see [Baseline Coverage](#baseline-coverag
   233 / 249 (93.57%). R1 and R2 were coded together although the plan gates R1 on a maintainer review; the
   maintainer approved R1 and the completed file together on 2026-10-20 at 17:09 UTC, which satisfies the
   gate. Next: the pre-push checks and the S3 pull request.
+- 2026-10-20 17:54 UTC - GitHub Copilot - The pre-push checks passed and the S3 pull request #2586
+  (<https://github.com/torrust/torrust-tracker/pull/2586>) was opened with `Related to #1349`. It was
+  not rebased onto the latest `develop`, which changed only outside `packages/http-core`;
+  `git merge-tree` reports no conflict.
 
 ## Acceptance Criteria
 
