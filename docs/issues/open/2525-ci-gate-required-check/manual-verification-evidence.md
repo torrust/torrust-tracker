@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2525-ci-gate-required-check/ISSUE.md
-last-updated-utc: 2026-10-20 15:35
+last-updated-utc: 2026-10-20 17:52
 ---
 
 # Manual Verification Evidence
@@ -182,6 +182,64 @@ the bytes `develop` followed by `0xFF`, and a subcommand with the same byte) pan
 and a plain-text message, not the JSON usage diagnostic with exit code 2. After the fix it exits with 2
 and one `usage_error` record on stderr. The new Unix-only command-line test was seen to fail against the
 original behaviour first. The final run has 104 unit and 6 command-line tests.
+
+### V7 - The verdict (task T3)
+
+- Goal: show that the verdict decides correctly on the real output of the real tools, and that its tests
+  fail when a rule is wrong.
+- Initial state: branch `2525-ci-gate-verdict` from the merge of PR #2574, with the new work staged.
+- Status: `DONE`
+
+The change set was the staged diff against `torrust/develop` (7 paths), piped as NUL-separated records
+into `classify`, whose output was then fed unchanged to `verdict` with hand-written results:
+
+```sh
+git diff --cached --name-only -z torrust/develop | target/debug/ci-gate classify --base-branch develop
+# needed: docs-lint, testing, os-compatibility, coverage, container
+```
+
+| Case                                             | Results given                                  | Verdict | Exit | Explanation                                                                                                                                             |
+| ------------------------------------------------ | ---------------------------------------------- | ------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| every needed group succeeded                     | the five needed groups, all `success`          | `pass`  |    0 | `every needed group succeeded: docs-lint, testing, os-compatibility, coverage, container`                                                               |
+| `testing` failed and three groups never reported | `docs-lint` success, `testing` failure         | `fail`  |    0 | `needed groups without a success: testing (failure), os-compatibility (missing), coverage (missing), container (missing)`                               |
+| the same, with `--override-actor josecelano`     | the same                                       | `pass`  |    0 | ``overridden by `josecelano`; needed groups without a success: testing (failure), os-compatibility (missing), coverage (missing), container (missing)`` |
+| a group that is not needed failed                | five needed `success`, `security-scan` failure | `pass`  |    0 | `every needed group succeeded: ...` (`security-scan` is ignored)                                                                                        |
+| unreadable input (`{"classification": 1}`)       | -                                              | none    |    1 | one `runtime_error` record on stderr, nothing on stdout                                                                                                 |
+
+A first run of the same commands used a branch with no commits, so the change set was empty and only
+`docs-lint` was needed; the cases that expect a failing group then passed, which showed the setup was
+wrong and not the tool. The table above is the rerun on the staged diff.
+
+Ten mutants of `verdict.rs` were applied one at a time and the whole test suite run for each, with the
+file restored afterwards (`diff` against a saved copy). Two of them did not compile the first time,
+because the workspace's `-D warnings` rejects an unused value, so they ran no test; they were rewritten
+and rerun. All ten compiled and were killed:
+
+| Mutant                                                     | Failing tests |
+| ---------------------------------------------------------- | ------------- |
+| groups that are not needed count towards the verdict       |            14 |
+| a needed group that was skipped counts as a success        |             1 |
+| a needed group with no result counts as a success          |             4 |
+| a needed group that was cancelled counts as a success      |             2 |
+| a needed group that failed counts as a success             |             4 |
+| the override is ignored                                    |             2 |
+| the override is recorded when there is nothing to override |             1 |
+| a failing verdict with no override passes                  |             6 |
+| the completeness check of the classification is removed    |             2 |
+| unknown input fields are accepted                          |             1 |
+
+Review round on PR #2580: a real run with an extra field (`"unexpected": true`) inside the
+classification, and again inside a group decision, still printed `pass` with exit code 0, because
+`deny_unknown_fields` on the verdict input does not reach nested types. After the fix both exit with 1,
+naming the unknown field, and nothing is printed on stdout. Two more mutants, one per nested type with the
+denial removed, were each killed by their own test case, so the verdict has 12 mutants killed in all. The
+final run has 134 unit and 10 command-line tests.
+
+Second review round on PR #2580: a classification whose groups arrive in reverse order printed its
+problems and its explanation in that reverse order, not in the documented group order. The new test with a
+reversed classification failed before the fix, which is the mutant for this rule, and passes after it, so
+the verdict has 13 mutants killed in all. The override explanation in the table above was checked against
+the real output of the command and quoted verbatim. The final run has 135 unit and 10 command-line tests.
 
 ## Failures and Follow-up
 

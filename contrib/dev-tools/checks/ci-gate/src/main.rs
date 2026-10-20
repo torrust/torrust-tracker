@@ -11,7 +11,8 @@ use std::process::ExitCode;
 use std::{env, fmt};
 
 use ci_gate::change_detection::{classify, parse_changed_paths};
-use ci_gate::cli::{USAGE, parse_arguments};
+use ci_gate::cli::{Command, USAGE, parse_arguments};
+use ci_gate::verdict::{VerdictInput, decide};
 use serde_json::json;
 
 /// Why a run failed, which decides the diagnostic record and the exit code.
@@ -75,17 +76,32 @@ fn run() -> Result<(), Failure> {
             })
         })
         .collect::<Result<Vec<String>, Failure>>()?;
-    let parsed = parse_arguments(&arguments).map_err(|message| Failure::Usage(format!("{message}. {USAGE}")))?;
+    let command = parse_arguments(&arguments).map_err(|message| Failure::Usage(format!("{message}. {USAGE}")))?;
 
     let mut input = Vec::new();
     io::stdin()
         .lock()
         .read_to_end(&mut input)
-        .map_err(|error| Failure::Runtime(format!("cannot read the changed paths from stdin: {error}")))?;
+        .map_err(|error| Failure::Runtime(format!("cannot read stdin: {error}")))?;
 
-    let classification = classify(&parse_changed_paths(&input), &parsed.base_branch);
-    let result =
-        serde_json::to_string(&classification).map_err(|error| Failure::Runtime(format!("cannot encode the result: {error}")))?;
+    let result = match command {
+        Command::Classify(arguments) => {
+            let classification = classify(&parse_changed_paths(&input), &arguments.base_branch);
+            serde_json::to_string(&classification)
+        }
+        Command::Verdict(arguments) => {
+            let verdict_input: VerdictInput = serde_json::from_slice(&input)
+                .map_err(|error| Failure::Runtime(format!("stdin is not a valid verdict input: {error}")))?;
+            let verdict = decide(
+                &verdict_input.classification,
+                &verdict_input.results,
+                arguments.override_actor.as_deref(),
+            )
+            .map_err(Failure::Runtime)?;
+            serde_json::to_string(&verdict)
+        }
+    }
+    .map_err(|error| Failure::Runtime(format!("cannot encode the result: {error}")))?;
 
     writeln!(io::stdout().lock(), "{result}")
         .map_err(|error| Failure::Runtime(format!("cannot write the result to stdout: {error}")))

@@ -8,7 +8,7 @@ use std::ffi::OsStr;
 use std::io::Write;
 use std::process::{Command, Output, Stdio};
 
-use serde_json::Value;
+use serde_json::{Value, json};
 
 /// Runs the binary with the given arguments and changed paths on stdin, with stdout piped.
 fn run_ci_gate<S: AsRef<OsStr>>(arguments: &[S], stdin: &[u8]) -> Output {
@@ -38,6 +38,24 @@ fn assert_succeeded_without_diagnostics(output: &Output) {
         "a successful run writes no diagnostics, but stderr was: {}",
         String::from_utf8_lossy(&output.stderr)
     );
+}
+
+/// The `classify` output for a change to `changed_paths` into `develop`, produced by the binary itself.
+fn classify_output(changed_paths: &[u8]) -> Value {
+    let output = run_ci_gate(&["classify", "--base-branch", "develop"], changed_paths);
+    assert_succeeded_without_diagnostics(&output);
+    serde_json::from_slice(&output.stdout).expect("classify prints one JSON object")
+}
+
+/// Runs `verdict` with the given extra arguments on the `classify` output and the given results.
+fn run_verdict(extra_arguments: &[&str], classification: &Value, results: &Value) -> Output {
+    let input = json!({ "classification": classification, "results": results });
+    let arguments: Vec<&str> = std::iter::once("verdict").chain(extra_arguments.iter().copied()).collect();
+    run_ci_gate(&arguments, input.to_string().as_bytes())
+}
+
+fn parse_verdict_stdout(output: &Output) -> Value {
+    serde_json::from_slice(&output.stdout).expect("stdout is one JSON object")
 }
 
 fn group<'a>(result: &'a Value, name: &str) -> &'a Value {
@@ -197,4 +215,85 @@ fn it_should_need_the_database_groups_when_a_tracker_core_file_has_a_non_ascii_n
         (Value::Bool(true), Value::Bool(true)),
         "a file below `packages/tracker-core/` needs both database groups, whatever its name"
     );
+}
+
+#[test]
+fn it_should_pass_when_it_is_given_the_classify_output_and_every_needed_group_succeeded() {
+    // Arrange
+    let classification = classify_output(b"docs/index.md\0");
+    let results = json!({ "docs-lint": "success" });
+
+    // Act
+    let output = run_verdict(&[], &classification, &results);
+
+    // Assert
+    assert_succeeded_without_diagnostics(&output);
+    let result = parse_verdict_stdout(&output);
+    assert_eq!(result["verdict"], "pass");
+    assert_eq!(result["problems"], json!([]));
+    assert_eq!(result["overridden_by"], Value::Null);
+}
+
+#[test]
+fn it_should_exit_with_zero_and_print_a_failing_verdict_naming_the_group_when_a_needed_group_failed() {
+    // Arrange
+    let classification = classify_output(b"src/main.rs\0");
+    let results = json!({ "docs-lint": "success", "testing": "failure" });
+
+    // Act
+    let output = run_verdict(&[], &classification, &results);
+
+    // Assert
+    // The global CLI output contract gives a result exit code 0, so a failing verdict is data that the
+    // workflow reads from `verdict`, not a failed command.
+    assert_succeeded_without_diagnostics(&output);
+    let result = parse_verdict_stdout(&output);
+    assert_eq!(result["verdict"], "fail");
+    let explanation = result["explanation"].as_str().expect("the explanation is a string");
+    assert!(
+        explanation.contains("testing (failure)") && explanation.contains("os-compatibility (missing)"),
+        "the explanation should name a failed group and a group that reported nothing, but was: {explanation}"
+    );
+}
+
+#[test]
+fn it_should_pass_naming_the_actor_when_the_override_actor_is_given_and_a_needed_group_failed() {
+    // Arrange
+    let classification = classify_output(b"src/main.rs\0");
+    let results = json!({ "docs-lint": "success", "testing": "failure" });
+
+    // Act
+    let output = run_verdict(&["--override-actor", "josecelano"], &classification, &results);
+
+    // Assert
+    assert_succeeded_without_diagnostics(&output);
+    let result = parse_verdict_stdout(&output);
+    assert_eq!(
+        (result["verdict"].clone(), result["overridden_by"].clone()),
+        (json!("pass"), json!("josecelano"))
+    );
+}
+
+#[test]
+fn it_should_write_a_json_runtime_error_and_nothing_on_stdout_when_stdin_is_not_a_verdict_input() {
+    // Arrange
+    let not_a_verdict_input = b"not json";
+
+    // Act
+    let output = run_ci_gate(&["verdict"], not_a_verdict_input);
+
+    // Assert
+    assert_eq!(
+        output.status.code(),
+        Some(1),
+        "a runtime failure exits with code 1, so the gate fails closed"
+    );
+    assert!(
+        output.stdout.is_empty(),
+        "a failed run writes nothing to stdout, but stdout was: {}",
+        String::from_utf8_lossy(&output.stdout)
+    );
+    let stderr = String::from_utf8(output.stderr).expect("stderr is UTF-8");
+    let record: Value = serde_json::from_str(&stderr).expect("the diagnostic is one JSON object");
+    assert_eq!(record["kind"], "runtime_error");
 }

@@ -1,12 +1,12 @@
 //! The job groups that the pull-request workflows run.
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 /// A group of CI jobs, one per pull-request workflow.
 ///
 /// The variants and their order mirror the workflows under `.github/workflows/`. Change detection
 /// ([`crate::change_detection`]) decides which groups a change needs.
-#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum JobGroup {
     /// `docs-lint.yaml`: runs on every pull request.
@@ -39,6 +39,21 @@ impl JobGroup {
         Self::DbBenchmarking,
         Self::SecurityScan,
     ];
+
+    /// The name the group has in the JSON the tool reads and writes.
+    #[must_use]
+    pub const fn name(self) -> &'static str {
+        match self {
+            Self::DocsLint => "docs-lint",
+            Self::Testing => "testing",
+            Self::OsCompatibility => "os-compatibility",
+            Self::Coverage => "coverage",
+            Self::Container => "container",
+            Self::DbCompatibility => "db-compatibility",
+            Self::DbBenchmarking => "db-benchmarking",
+            Self::SecurityScan => "security-scan",
+        }
+    }
 
     /// The workflow file that runs this group, relative to the repository root.
     #[must_use]
