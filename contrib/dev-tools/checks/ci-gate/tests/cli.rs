@@ -29,6 +29,16 @@ fn run_ci_gate(arguments: &[&str], stdin: &[u8]) -> Output {
     child.wait_with_output().expect("the ci-gate binary should finish")
 }
 
+/// Asserts the success contract: exit status 0 and nothing on stderr.
+fn assert_succeeded_without_diagnostics(output: &Output) {
+    assert!(output.status.success(), "exit status was {:?}", output.status);
+    assert!(
+        output.stderr.is_empty(),
+        "a successful run writes no diagnostics, but stderr was: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
 fn group<'a>(result: &'a Value, name: &str) -> &'a Value {
     result["groups"]
         .as_array()
@@ -47,12 +57,7 @@ fn it_should_print_one_json_object_on_stdout_and_nothing_on_stderr_when_it_class
     let output = run_ci_gate(&["classify", "--base-branch", "develop"], changed_paths);
 
     // Assert
-    assert!(output.status.success(), "exit status was {:?}", output.status);
-    assert!(
-        output.stderr.is_empty(),
-        "a successful run writes no diagnostics, but stderr was: {}",
-        String::from_utf8_lossy(&output.stderr)
-    );
+    assert_succeeded_without_diagnostics(&output);
     let stdout = String::from_utf8(output.stdout).expect("stdout is UTF-8");
     assert_eq!(
         stdout.lines().count(),
@@ -76,6 +81,7 @@ fn it_should_not_need_the_code_groups_when_the_change_is_documentation_only() {
     let output = run_ci_gate(&["classify", "--base-branch", "develop"], changed_paths);
 
     // Assert
+    assert_succeeded_without_diagnostics(&output);
     let result: Value = serde_json::from_slice(&output.stdout).expect("stdout is one JSON object");
     assert_eq!(
         (
@@ -124,6 +130,7 @@ fn it_should_need_the_code_groups_when_a_file_name_has_a_trailing_or_leading_spa
     let output = run_ci_gate(&["classify", "--base-branch", "develop"], changed_paths);
 
     // Assert
+    assert_succeeded_without_diagnostics(&output);
     let result: Value = serde_json::from_slice(&output.stdout).expect("stdout is one JSON object");
     assert_eq!(
         group(&result, "testing")["needed"],
@@ -142,6 +149,7 @@ fn it_should_need_the_database_groups_when_a_tracker_core_file_has_a_non_ascii_n
     let output = run_ci_gate(&["classify", "--base-branch", "develop"], changed_paths);
 
     // Assert
+    assert_succeeded_without_diagnostics(&output);
     let result: Value = serde_json::from_slice(&output.stdout).expect("stdout is one JSON object");
     assert_eq!(
         (
