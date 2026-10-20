@@ -5,7 +5,7 @@ use torrust_clock::DurationSinceUnixEpoch;
 use torrust_metrics::label::LabelSet;
 use torrust_metrics::metric::MetricName;
 use torrust_metrics::metric_collection::aggregate::avg::Avg;
-use torrust_metrics::metric_collection::aggregate::sum::Sum;
+use torrust_metrics::metric_collection::aggregate::sum::{Sum, SumCounter};
 use torrust_metrics::metric_collection::{Error, MetricCollection};
 use torrust_metrics::metric_name;
 
@@ -58,19 +58,12 @@ impl Metrics {
 }
 
 impl Metrics {
-    /// Sum of the samples matching `labels`, as a whole number.
-    ///
-    /// Use it only for counters and for gauges set from whole counts.
-    /// `torrust-metrics` returns aggregate sums as `f64` even for `u64`
-    /// counters (see torrust/torrust-metrics#1). Returns `0` when the metric
-    /// does not exist yet.
-    #[expect(
-        clippy::cast_sign_loss,
-        clippy::cast_possible_truncation,
-        reason = "The torrust-metrics Sum API returns f64; a counter sum or a count gauge is a finite, non-negative whole number, so the cast is exact up to 2^53, and beyond that the f64 may already be rounded (the cast itself saturates only above u64::MAX)"
-    )]
-    fn whole_total(&self, metric_name: &MetricName, labels: &LabelSet) -> u64 {
-        self.metric_collection.sum(metric_name, labels).unwrap_or_default() as u64
+    /// Sum of the counter samples matching `labels`. Returns `0` when the
+    /// metric does not exist yet, and also when it is a gauge, because
+    /// `sum_counter` returns `None` for a gauge. Call it only with counter
+    /// names.
+    fn counter_total(&self, metric_name: &MetricName, labels: &LabelSet) -> u64 {
+        self.metric_collection.sum_counter(metric_name, labels).unwrap_or_default()
     }
 
     /// Mean of the per-server average processing time gauges for one request
@@ -142,12 +135,12 @@ impl Metrics {
 
     #[must_use]
     pub fn udp_request_accepted_total(&self, label_set: &LabelSet) -> u64 {
-        self.whole_total(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL), label_set)
+        self.counter_total(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL), label_set)
     }
 
     #[must_use]
     fn udp_processed_requests_total(&self, label_set: &LabelSet) -> u64 {
-        self.whole_total(
+        self.counter_total(
             &metric_name!(UDP_TRACKER_SERVER_PERFORMANCE_AVG_PROCESSED_REQUESTS_TOTAL),
             label_set,
         )
@@ -188,20 +181,20 @@ impl Metrics {
     /// Total number of UDP (UDP tracker) requests aborted.
     #[must_use]
     pub fn udp_requests_aborted_total(&self) -> u64 {
-        self.whole_total(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_ABORTED_TOTAL), &LabelSet::empty())
+        self.counter_total(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_ABORTED_TOTAL), &LabelSet::empty())
     }
 
     /// Total number of UDP (UDP tracker) requests discarded before processing
     /// (e.g. because the client source port is 0).
     #[must_use]
     pub fn udp_requests_discarded_total(&self) -> u64 {
-        self.whole_total(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_DISCARDED_TOTAL), &LabelSet::empty())
+        self.counter_total(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_DISCARDED_TOTAL), &LabelSet::empty())
     }
 
     /// Total number of UDP (UDP tracker) requests banned.
     #[must_use]
     pub fn udp_requests_banned_total(&self) -> u64 {
-        self.whole_total(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_BANNED_TOTAL), &LabelSet::empty())
+        self.counter_total(&metric_name!(UDP_TRACKER_SERVER_REQUESTS_BANNED_TOTAL), &LabelSet::empty())
     }
 
     /// Number of IPs whose connection ID errors exceed the limit.
@@ -209,8 +202,15 @@ impl Metrics {
     /// They are banned when connection ID validation is `strict`. When it is
     /// `disabled`, they are "would-be banned": counted, but not blocked.
     #[must_use]
+    #[expect(
+        clippy::cast_sign_loss,
+        clippy::cast_possible_truncation,
+        reason = "The banned-IP total is a gauge, not a counter, because `BanService::reset_bans` lowers it, so SumCounter does not apply (it returns None for a gauge). It is set from a whole usize count, so the f64 sum is a finite, non-negative whole number: the cast is exact up to 2^53, and beyond that the f64 may already be rounded (the cast itself saturates only above u64::MAX)"
+    )]
     pub fn udp_banned_ips_total(&self) -> u64 {
-        self.whole_total(&metric_name!(UDP_TRACKER_SERVER_IPS_BANNED_TOTAL), &LabelSet::empty())
+        self.metric_collection
+            .sum(&metric_name!(UDP_TRACKER_SERVER_IPS_BANNED_TOTAL), &LabelSet::empty())
+            .unwrap_or_default() as u64
     }
 
     /// Average processing time for UDP connect requests across all servers (in nanoseconds).
@@ -238,7 +238,7 @@ impl Metrics {
     /// Total number of UDP (UDP tracker) requests from IPv4 peers.
     #[must_use]
     pub fn udp4_requests_received_total(&self) -> u64 {
-        self.whole_total(
+        self.counter_total(
             &metric_name!(UDP_TRACKER_SERVER_REQUESTS_RECEIVED_TOTAL),
             &[("server_binding_address_ip_family", "inet")].into(),
         )
@@ -247,7 +247,7 @@ impl Metrics {
     /// Total number of UDP (UDP tracker) connections from IPv4 peers.
     #[must_use]
     pub fn udp4_connect_requests_accepted_total(&self) -> u64 {
-        self.whole_total(
+        self.counter_total(
             &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL),
             &[("server_binding_address_ip_family", "inet"), ("request_kind", "connect")].into(),
         )
@@ -256,7 +256,7 @@ impl Metrics {
     /// Total number of UDP (UDP tracker) `announce` requests from IPv4 peers.
     #[must_use]
     pub fn udp4_announce_requests_accepted_total(&self) -> u64 {
-        self.whole_total(
+        self.counter_total(
             &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL),
             &[("server_binding_address_ip_family", "inet"), ("request_kind", "announce")].into(),
         )
@@ -265,7 +265,7 @@ impl Metrics {
     /// Total number of UDP (UDP tracker) `scrape` requests from IPv4 peers.
     #[must_use]
     pub fn udp4_scrape_requests_accepted_total(&self) -> u64 {
-        self.whole_total(
+        self.counter_total(
             &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL),
             &[("server_binding_address_ip_family", "inet"), ("request_kind", "scrape")].into(),
         )
@@ -274,7 +274,7 @@ impl Metrics {
     /// Total number of UDP (UDP tracker) responses from IPv4 peers.
     #[must_use]
     pub fn udp4_responses_sent_total(&self) -> u64 {
-        self.whole_total(
+        self.counter_total(
             &metric_name!(UDP_TRACKER_SERVER_RESPONSES_SENT_TOTAL),
             &[("server_binding_address_ip_family", "inet")].into(),
         )
@@ -283,7 +283,7 @@ impl Metrics {
     /// Total number of UDP (UDP tracker) `error` requests from IPv4 peers.
     #[must_use]
     pub fn udp4_errors_total(&self) -> u64 {
-        self.whole_total(
+        self.counter_total(
             &metric_name!(UDP_TRACKER_SERVER_ERRORS_TOTAL),
             &[("server_binding_address_ip_family", "inet")].into(),
         )
@@ -293,7 +293,7 @@ impl Metrics {
     /// Total number of UDP (UDP tracker) requests from IPv6 peers.
     #[must_use]
     pub fn udp6_requests_received_total(&self) -> u64 {
-        self.whole_total(
+        self.counter_total(
             &metric_name!(UDP_TRACKER_SERVER_REQUESTS_RECEIVED_TOTAL),
             &[("server_binding_address_ip_family", "inet6")].into(),
         )
@@ -302,7 +302,7 @@ impl Metrics {
     /// Total number of UDP (UDP tracker) `connection` requests from IPv6 peers.
     #[must_use]
     pub fn udp6_connect_requests_accepted_total(&self) -> u64 {
-        self.whole_total(
+        self.counter_total(
             &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL),
             &[("server_binding_address_ip_family", "inet6"), ("request_kind", "connect")].into(),
         )
@@ -311,7 +311,7 @@ impl Metrics {
     /// Total number of UDP (UDP tracker) `announce` requests from IPv6 peers.
     #[must_use]
     pub fn udp6_announce_requests_accepted_total(&self) -> u64 {
-        self.whole_total(
+        self.counter_total(
             &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL),
             &[("server_binding_address_ip_family", "inet6"), ("request_kind", "announce")].into(),
         )
@@ -320,7 +320,7 @@ impl Metrics {
     /// Total number of UDP (UDP tracker) `scrape` requests from IPv6 peers.
     #[must_use]
     pub fn udp6_scrape_requests_accepted_total(&self) -> u64 {
-        self.whole_total(
+        self.counter_total(
             &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ACCEPTED_TOTAL),
             &[("server_binding_address_ip_family", "inet6"), ("request_kind", "scrape")].into(),
         )
@@ -329,7 +329,7 @@ impl Metrics {
     /// Total number of UDP (UDP tracker) responses from IPv6 peers.
     #[must_use]
     pub fn udp6_responses_sent_total(&self) -> u64 {
-        self.whole_total(
+        self.counter_total(
             &metric_name!(UDP_TRACKER_SERVER_RESPONSES_SENT_TOTAL),
             &[("server_binding_address_ip_family", "inet6")].into(),
         )
@@ -338,7 +338,7 @@ impl Metrics {
     /// Total number of UDP (UDP tracker) `error` requests from IPv6 peers.
     #[must_use]
     pub fn udp6_errors_total(&self) -> u64 {
-        self.whole_total(
+        self.counter_total(
             &metric_name!(UDP_TRACKER_SERVER_ERRORS_TOTAL),
             &[("server_binding_address_ip_family", "inet6")].into(),
         )
@@ -479,6 +479,25 @@ mod tests {
                 .unwrap();
 
             assert_eq!(metrics.udp_requests_aborted_total(), 2);
+        }
+
+        #[test]
+        fn it_should_return_exactly_a_udp_requests_aborted_total_that_an_f64_cannot_represent() {
+            // 2^53 + 1 is the first whole number an f64 rounds.
+            let total_beyond_f64_precision = (1_u64 << 53) + 1;
+            let mut metrics = Metrics::default();
+
+            metrics
+                .metric_collection
+                .set_counter(
+                    &metric_name!(UDP_TRACKER_SERVER_REQUESTS_ABORTED_TOTAL),
+                    &LabelSet::empty(),
+                    total_beyond_f64_precision,
+                    DurationSinceUnixEpoch::ZERO,
+                )
+                .unwrap();
+
+            assert_eq!(metrics.udp_requests_aborted_total(), total_beyond_f64_precision);
         }
 
         #[test]

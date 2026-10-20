@@ -4853,9 +4853,9 @@ dependencies = [
 
 [[package]]
 name = "torrust-metrics"
-version = "0.1.0"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6724f0905a1bc194734d18ba705c0a2d4bddd6acac9311a6165579c578533f69"
+checksum = "4d2313fad50f485f837be5e92431d4126112269cb66740ea2af88a374e1f431b"
 dependencies = [
  "chrono",
  "derive_more 2.1.1",

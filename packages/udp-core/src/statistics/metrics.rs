@@ -2,7 +2,7 @@ use serde::Serialize;
 use torrust_clock::DurationSinceUnixEpoch;
 use torrust_metrics::label::LabelSet;
 use torrust_metrics::metric::MetricName;
-use torrust_metrics::metric_collection::aggregate::sum::Sum;
+use torrust_metrics::metric_collection::aggregate::sum::SumCounter;
 use torrust_metrics::metric_collection::{Error, MetricCollection};
 use torrust_metrics::metric_name;
 
@@ -50,24 +50,18 @@ impl Metrics {
 }
 
 impl Metrics {
-    /// Sum of the counter samples matching `labels`, as a whole number.
-    ///
-    /// `torrust-metrics` returns aggregate sums as `f64` even for `u64`
-    /// counters (see torrust/torrust-metrics#1). Returns `0` when the metric
-    /// does not exist yet.
-    #[expect(
-        clippy::cast_sign_loss,
-        clippy::cast_possible_truncation,
-        reason = "The torrust-metrics Sum API returns f64; a counter sum is a finite, non-negative whole number, so the cast is exact up to 2^53, and beyond that the f64 may already be rounded (the cast itself saturates only above u64::MAX)"
-    )]
-    fn whole_total(&self, metric_name: &MetricName, labels: &LabelSet) -> u64 {
-        self.metric_collection.sum(metric_name, labels).unwrap_or_default() as u64
+    /// Sum of the counter samples matching `labels`. Returns `0` when the
+    /// metric does not exist yet, and also when it is a gauge, because
+    /// `sum_counter` returns `None` for a gauge. Call it only with counter
+    /// names.
+    fn counter_total(&self, metric_name: &MetricName, labels: &LabelSet) -> u64 {
+        self.metric_collection.sum_counter(metric_name, labels).unwrap_or_default()
     }
 
     /// Total number of UDP (UDP tracker) connections from IPv4 peers.
     #[must_use]
     pub fn udp4_connections_handled(&self) -> u64 {
-        self.whole_total(
+        self.counter_total(
             &metric_name!(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL),
             &[("server_binding_address_ip_family", "inet"), ("request_kind", "connect")].into(),
         )
@@ -76,7 +70,7 @@ impl Metrics {
     /// Total number of UDP (UDP tracker) `announce` requests from IPv4 peers.
     #[must_use]
     pub fn udp4_announces_handled(&self) -> u64 {
-        self.whole_total(
+        self.counter_total(
             &metric_name!(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL),
             &[("server_binding_address_ip_family", "inet"), ("request_kind", "announce")].into(),
         )
@@ -85,7 +79,7 @@ impl Metrics {
     /// Total number of UDP (UDP tracker) `scrape` requests from IPv4 peers.
     #[must_use]
     pub fn udp4_scrapes_handled(&self) -> u64 {
-        self.whole_total(
+        self.counter_total(
             &metric_name!(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL),
             &[("server_binding_address_ip_family", "inet"), ("request_kind", "scrape")].into(),
         )
@@ -94,7 +88,7 @@ impl Metrics {
     /// Total number of UDP (UDP tracker) `connection` requests from IPv6 peers.
     #[must_use]
     pub fn udp6_connections_handled(&self) -> u64 {
-        self.whole_total(
+        self.counter_total(
             &metric_name!(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL),
             &[("server_binding_address_ip_family", "inet6"), ("request_kind", "connect")].into(),
         )
@@ -103,7 +97,7 @@ impl Metrics {
     /// Total number of UDP (UDP tracker) `announce` requests from IPv6 peers.
     #[must_use]
     pub fn udp6_announces_handled(&self) -> u64 {
-        self.whole_total(
+        self.counter_total(
             &metric_name!(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL),
             &[("server_binding_address_ip_family", "inet6"), ("request_kind", "announce")].into(),
         )
@@ -112,7 +106,7 @@ impl Metrics {
     /// Total number of UDP (UDP tracker) `scrape` requests from IPv6 peers.
     #[must_use]
     pub fn udp6_scrapes_handled(&self) -> u64 {
-        self.whole_total(
+        self.counter_total(
             &metric_name!(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL),
             &[("server_binding_address_ip_family", "inet6"), ("request_kind", "scrape")].into(),
         )
@@ -203,5 +197,28 @@ mod tests {
 
         // Assert
         assert_eq!(projections, [0; 6]);
+    }
+
+    #[test]
+    fn it_should_project_exactly_a_total_that_an_f64_cannot_represent() {
+        // Arrange: 2^53 + 1 is the first whole number an f64 rounds.
+        let total_beyond_f64_precision = (1_u64 << 53) + 1;
+        let mut metrics = describe_metrics();
+        let labels: LabelSet = [("server_binding_address_ip_family", "inet"), ("request_kind", "announce")].into();
+        metrics
+            .metric_collection
+            .set_counter(
+                &metric_name!(UDP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL),
+                &labels,
+                total_beyond_f64_precision,
+                DurationSinceUnixEpoch::ZERO,
+            )
+            .unwrap();
+
+        // Act
+        let announces = metrics.udp4_announces_handled();
+
+        // Assert
+        assert_eq!(announces, total_beyond_f64_precision);
     }
 }

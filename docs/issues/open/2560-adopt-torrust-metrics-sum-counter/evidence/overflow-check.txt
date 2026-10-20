@@ -1,0 +1,34 @@
+Throwaway test, run with: cargo test -p torrust-tracker-udp-core --test tmp_overflow_check (debug profile, torrust-metrics 0.2.0).
+The file packages/udp-core/tests/tmp_overflow_check.rs was deleted afterwards; its source is below.
+
+---- source
+use torrust_clock::DurationSinceUnixEpoch;
+use torrust_metrics::label::LabelSet;
+use torrust_metrics::metric_collection::MetricCollection;
+use torrust_metrics::metric_collection::aggregate::sum::{Sum, SumCounter};
+use torrust_metrics::metric_name;
+
+fn two_counters_at_u64_max() -> MetricCollection {
+    let mut collection = MetricCollection::default();
+    let name = metric_name!("t");
+    collection.set_counter(&name, &[("a", "1")].into(), u64::MAX, DurationSinceUnixEpoch::ZERO).unwrap();
+    collection.set_counter(&name, &[("a", "2")].into(), u64::MAX, DurationSinceUnixEpoch::ZERO).unwrap();
+    collection
+}
+
+#[test]
+#[should_panic(expected = "overflow")]
+fn the_old_sum_path_panics_on_overflow() {
+    let _ = two_counters_at_u64_max().sum(&metric_name!("t"), &LabelSet::empty());
+}
+
+#[test]
+#[should_panic(expected = "overflow")]
+fn the_new_sum_counter_path_panics_on_overflow() {
+    let _ = two_counters_at_u64_max().sum_counter(&metric_name!("t"), &LabelSet::empty());
+}
+
+---- output
+test the_new_sum_counter_path_panics_on_overflow - should panic ... ok
+test the_old_sum_path_panics_on_overflow - should panic ... ok
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
