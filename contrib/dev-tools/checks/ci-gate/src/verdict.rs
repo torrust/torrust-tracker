@@ -111,16 +111,10 @@ pub fn decide(
 ) -> Result<VerdictResult, String> {
     check_every_group_is_listed_once(classification)?;
 
-    let problems: Vec<GroupProblem> = classification
-        .groups
+    let needed = needed_groups(classification);
+    let problems: Vec<GroupProblem> = needed
         .iter()
-        .filter(|decision| decision.needed)
-        .filter_map(|decision| {
-            problem_of(results.get(&decision.group)).map(|problem| GroupProblem {
-                group: decision.group,
-                problem,
-            })
-        })
+        .filter_map(|group| problem_of(results.get(group)).map(|problem| GroupProblem { group: *group, problem }))
         .collect();
 
     let overridden_by = override_actor.filter(|_| !problems.is_empty()).map(str::to_string);
@@ -129,7 +123,7 @@ pub fn decide(
     } else {
         Verdict::Fail
     };
-    let explanation = explain(classification, &problems, overridden_by.as_deref());
+    let explanation = explain(&needed, &problems, overridden_by.as_deref());
 
     Ok(VerdictResult {
         verdict,
@@ -156,6 +150,20 @@ fn check_every_group_is_listed_once(classification: &Classification) -> Result<(
     Ok(())
 }
 
+/// The needed groups, in [`JobGroup::ALL`] order whatever the order of the classification. The
+/// classification has already been checked to list every group exactly once.
+fn needed_groups(classification: &Classification) -> Vec<JobGroup> {
+    JobGroup::ALL
+        .into_iter()
+        .filter(|group| {
+            classification
+                .groups
+                .iter()
+                .any(|decision| decision.group == *group && decision.needed)
+        })
+        .collect()
+}
+
 const fn problem_of(result: Option<&GroupResult>) -> Option<Problem> {
     match result {
         Some(GroupResult::Success) => None,
@@ -166,15 +174,10 @@ const fn problem_of(result: Option<&GroupResult>) -> Option<Problem> {
     }
 }
 
-fn explain(classification: &Classification, problems: &[GroupProblem], overridden_by: Option<&str>) -> String {
+fn explain(needed: &[JobGroup], problems: &[GroupProblem], overridden_by: Option<&str>) -> String {
     if problems.is_empty() {
-        let needed: Vec<&str> = classification
-            .groups
-            .iter()
-            .filter(|decision| decision.needed)
-            .map(|decision| decision.group.name())
-            .collect();
-        return format!("every needed group succeeded: {}", needed.join(", "));
+        let names: Vec<&str> = needed.iter().map(|group| group.name()).collect();
+        return format!("every needed group succeeded: {}", names.join(", "));
     }
 
     let mut listed = String::new();
@@ -239,6 +242,36 @@ mod tests {
                 overridden_by: None,
                 explanation: "every needed group succeeded: docs-lint, testing".to_string(),
             }
+        );
+    }
+
+    #[test]
+    fn it_should_list_groups_in_group_order_when_the_classification_lists_them_in_another_order() {
+        // Arrange
+        let mut classification = classification_needing(&[JobGroup::DocsLint, JobGroup::Testing, JobGroup::Coverage]);
+        classification.groups.reverse();
+        let failing = results(&[
+            (JobGroup::DocsLint, GroupResult::Failure),
+            (JobGroup::Coverage, GroupResult::Failure),
+        ]);
+        let succeeding = results(&[
+            (JobGroup::DocsLint, GroupResult::Success),
+            (JobGroup::Testing, GroupResult::Success),
+            (JobGroup::Coverage, GroupResult::Success),
+        ]);
+
+        // Act
+        let failed = decide(&classification, &failing, None).expect("the classification is complete");
+        let passed = decide(&classification, &succeeding, None).expect("the classification is complete");
+
+        // Assert
+        assert_eq!(
+            failed.explanation, "needed groups without a success: docs-lint (failure), testing (missing), coverage (failure)",
+            "the problems must follow the order of `JobGroup::ALL`, not the order of the classification"
+        );
+        assert_eq!(
+            passed.explanation, "every needed group succeeded: docs-lint, testing, coverage",
+            "the needed groups must follow the order of `JobGroup::ALL`, not the order of the classification"
         );
     }
 
