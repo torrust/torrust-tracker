@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2414-2410-si-22-2-drain-listener-queues-on-shutdown/ISSUE.md
-last-updated-utc: "2026-10-20 12:08"
+last-updated-utc: "2026-10-20 12:57"
 ---
 
 # Manual Verification Evidence
@@ -365,7 +365,405 @@ step 2: test ... ok
 Red against the cancel-first loop: three queued completions, a cancelled listener, and nothing in the
 database. The control shows the red is caused by cancellation and not by the setup.
 
+### V5 - T4a: the `Receiver` trait, `TryRecvError`, and the shared drain helper
+
+- Goal: show each new test can fail, so it guards the behavior it names. T4a adds behavior, not a
+  bug fix, so there is no red-before-fix run; the evidence is mutation: each production line is
+  broken in turn and the tests must fail, then the file is restored.
+- Initial state: the working tree after T4a (run uncommitted; committed in
+  `feat(events): [#2414] add try_recv, len, TryRecvError, and the shared listener drain helper`): `packages/events/src/{receiver,broadcaster,drain,lib}.rs`, `packages/events/Cargo.toml`
+  (a `tokio` dev-dependency with `test-util`), and `try_recv` and `len` added to the six scripted
+  test receivers (`http-core`, `udp-core`, `udp-server` twice, `swarm-coordination-registry`,
+  `tracker-core`). The `mockall` mock is generated from the trait. `cargo test --workspace --no-run`
+  compiled everything.
+- Status: `DONE`.
+
+#### Design (maintainer-approved, 2026-10-20)
+
+- `Receiver::try_recv` and `Receiver::len`, plus `TryRecvError { Empty, Closed, Lagged(u64) }`.
+  The maintainer's answer to the clippy question: if `len_without_is_empty` fires, add a default
+  `is_empty()`. It fired for the trait, so `Receiver::is_empty` exists as a default method
+  (`len() == 0`). It is a small addition to the design record's trait, recorded here.
+- `drain(receiver, timeout, handler) -> DrainReport` in `packages/events/src/drain.rs`: the
+  deadline is set at entry with `tokio::time::Instant` and checked only before each event is taken;
+  a taken event is awaited and not raced against the timeout. `Lagged(n)` adds to `lost_to_lag` and the drain continues.
+  `DrainReport { outcome, processed, lost_to_lag, unread_when_timed_out }`, where the last field is
+  `Receiver::len()` at timeout, documented as an unread-position count that includes lag not yet
+  observed.
+- The drain does not log; each listener logs the report (maintainer decision), done in T4c.
+
+#### Tests (prose-first Arrange-Act-Assert, in the test comments)
+
+`drain.rs`: empty receiver; buffered events handled before `Closed` (real channel, sender
+dropped); timeout stops admission and reports the leftover (paused time); `Lagged` counted and
+draining continues; unobserved lag included in the unread count at timeout (real channel of
+capacity 2 with 5 sent); a slow handler that crosses the timeout completes (AC7); `Emptied` and
+not `TimedOut` when the deadline passes with nothing unread. `broadcaster.rs`: `Empty` without
+waiting; `Lagged(3)` then the oldest retained event; `Closed` only after buffered events;
+`len` counts five sent positions before the lag is reported and two after.
+
+#### Steps Performed
+
+Each mutation ran as one shell command (mutate with a one-line replace, `cargo test -p
+torrust-tracker-events`, restore from a backup copy, `cmp`), after `cmp` confirmed the file equalled
+its backup. Times are UTC on 2026-10-20 (start to end).
+
+| Mutation | Time | Failed tests |
+| --- | --- | --- |
+| M1: the deadline check disabled (`if false && ...`) | 12:18:59.390 to .840 | the timeout-stops-admission test, the slow-handler test, the unobserved-lag test |
+| M2: the handler raced against the deadline (`timeout_at(deadline, handle(event))`) | 12:19:05.898 to 12:19:06.289 | the slow-handler test |
+| M3: lag ignored (`Lagged(_) => {}`) | 12:19:10.798 | none ran: it did not compile (unused `mut`), so it is not a result |
+| M3 again: lag counted as zero (`skipped.min(0)`) | 12:19:20.485 to 12:19:21.937 | the lag test |
+| M4: `Closed` reported as `Emptied` | 12:19:26.722 to 12:19:27.129 | the buffered-then-closed test |
+| M5: any deadline expiry reported as `TimedOut` | 12:19:44.563 to .937 | the emptied-at-deadline test |
+| M6: broadcast `Lagged` mapped to `Empty` | 12:19:51.488 to 12:19:55.477 | the skipped-events test |
+| M7: broadcast `len` returns 0 | 12:19:55.532 to .594 | the `len` test and the unobserved-lag drain test |
+| M8: broadcast `Closed` mapped to `Empty` | 12:20:03.100 to .410 | the closed-after-buffered test and the buffered-then-closed drain test |
+| M9: broadcast `Empty` mapped to `Closed` | 12:20:03.415 to .760 | the empty-without-waiting test |
+
+The mutation that exposed a gap: M5 first passed every test, because nothing covered a deadline
+that expires with nothing unread. The test for it was added (it is the seventh `drain` test) and
+M5 then failed it, as shown. Every restore ended with `cmp` exit 0.
+
+After the last mutation: `cargo test -p torrust-tracker-events` gave 20 passed; `cargo test
+--workspace --no-run` compiled; `linter all` exited 0 (it first failed on `clippy::use_self` in the
+broadcast impl, fixed to `Self::try_recv(self)` and `Self::len(self)`; an inherent method wins over
+the trait's, which the tests would show as a stack overflow if it did not).
+
+#### Conclusion
+
+Every behavior the helper and the trait implementation decide fails at least one test when broken.
+Not covered: a handler that panics, and the shared-deadline abort of a drain in progress (the
+abort is the supervisor's, sub-issue 4).
+
+### V6 - T4b: time to drain the persistent listener's queue (release build)
+
+- Goal: choose the default drain timeout from a `release`-build measurement of the persistent
+  listener's handler draining a full buffer of 65,536 events (D9, D18).
+- Initial state: the T4a tree. The measurement is a temporary Rust test (below), not committed:
+  it measures a number, it asserts no behavior, and a maintained benchmark of a one-off value
+  would need a rationale this issue does not have. Written in Rust, not a script.
+- Status: `DONE` (measurement recorded); the default is a proposal for the T4 design review.
+
+#### Environment
+
+- Machine: Linux, 32 logical CPUs, NVMe `WD_BLACK SN850X` (non-rotational, on an LVM volume; the filesystem type was not checked). It is
+  **shared**: the load average was 21 to 25 at the first runs and 7 to 12 later (the `uptime`
+  before each run is in the table). `/tmp` is tmpfs (memory).
+- Toolchain: `rustc 1.99.0 (b940084d7 2026-09-28)`, `cargo 1.99.0`; build:
+  `cargo test --release -p torrust-tracker-core --test drain_rate_measurement --no-run`
+  (`[profile.release]`: `opt-level = 3`, `lto = "fat"`, `debug = 1`).
+- Code measured: the real `handle_persistent_completed_statistics_event` (two SQLite writes and a
+  counter update per event) driven by the real `drain` helper over a real tokio broadcast
+  receiver already holding the events, on a multi-thread runtime, as the listener's drain will.
+  SQLite through the tracker's `sqlite3` driver and the default configuration.
+
+#### Test code (verbatim, `packages/tracker-core/tests/drain_rate_measurement.rs`, deleted afterwards)
+
+```rust
+//! TEMPORARY (issue #2414, T4b): measures how long the persistent listener's handler needs to
+//! drain a full queue. Not committed; its code is recorded in `manual-verification-evidence.md`.
+#![allow(dead_code)]
+mod common;
+
+use std::time::{Duration, Instant};
+
+use common::fixtures::{ephemeral_configuration, sample_peer};
+use common::test_env::TestEnv;
+use tokio::sync::broadcast;
+use torrust_clock::DurationSinceUnixEpoch;
+use torrust_info_hash::InfoHash;
+use torrust_tracker_configuration::v3_0_0::database::Database;
+use torrust_tracker_core::statistics::event::handler::handle_persistent_completed_statistics_event;
+use torrust_tracker_events::drain::drain;
+use torrust_tracker_swarm_coordination_registry::event::Event;
+
+fn env_or(name: &str, default: &str) -> String {
+    std::env::var(name).unwrap_or_else(|_| default.to_owned())
+}
+
+#[tokio::test(flavor = "multi_thread")]
+#[ignore = "temporary measurement; run explicitly with --ignored"]
+async fn measure_the_time_to_drain_a_queue_of_completed_downloads() {
+    let database_path = env_or("DRAIN_MEASUREMENT_DB", "");
+    let number_of_events: usize = env_or("DRAIN_MEASUREMENT_EVENTS", "65536").parse().unwrap();
+    let distinct_torrents = env_or("DRAIN_MEASUREMENT_DISTINCT_TORRENTS", "0") == "1";
+
+    let mut core_config = ephemeral_configuration();
+    core_config.tracker_policy.persistent_torrent_completed_stat = true;
+    if !database_path.is_empty() {
+        let Some(Database::Sqlite3 { path }) = core_config.database.as_mut() else {
+            panic!("this measurement needs the SQLite driver");
+        };
+        database_path.clone_into(path);
+    }
+    let test_env = TestEnv::new(core_config).await;
+    let persistence = test_env.tracker_core_container.persistence.as_ref().unwrap();
+
+    let (sender, mut receiver) = broadcast::channel::<Event>(65_536);
+    for index in 0..number_of_events {
+        let info_hash = if distinct_torrents {
+            format!("{index:040x}").parse::<InfoHash>().unwrap()
+        } else {
+            format!("{:040x}", 1).parse::<InfoHash>().unwrap()
+        };
+        sender
+            .send(Event::PeerDownloadCompleted {
+                info_hash,
+                peer: sample_peer(),
+            })
+            .unwrap();
+    }
+
+    let started = Instant::now();
+    let report = drain(&mut receiver, Duration::from_secs(3600), |event| {
+        handle_persistent_completed_statistics_event(
+            event,
+            &persistence.db_downloads_metric_repository,
+            &test_env.tracker_core_container.stats_repository,
+            DurationSinceUnixEpoch::from_secs(0),
+        )
+    })
+    .await;
+    let elapsed = started.elapsed();
+
+    let global = persistence.database_stores.torrent_metrics_store.load_global_downloads().await.unwrap();
+    println!(
+        "MEASUREMENT events={number_of_events} distinct_torrents={distinct_torrents} db={database_path:?} \
+         elapsed_ms={} per_event_us={:.1} report={report:?} global_downloads_in_db={global:?}",
+        elapsed.as_millis(),
+        elapsed.as_micros() as f64 / number_of_events as f64,
+    );
+}
+```
+
+#### Steps Performed and Observed Result
+
+Each run: `target/release/deps/drain_rate_measurement-<hash> --ignored --nocapture`, with the
+environment variables shown. All runs drained to `Emptied` with 0 lost to lag, and the database
+held the expected global count (65,536, or 1,000).
+
+| Run | Database | Events | Torrents | Start (UTC) | Load average before | Elapsed | Per event |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | tmpfs | 1,000 | one | 12:24:59 | 21.06 | 221 ms | 221 us |
+| 2 | tmpfs | 65,536 | one | 12:25:05 | 19.61 | 12,499 ms | 191 us |
+| 3 | tmpfs | 65,536 | distinct | 12:25:18 | 17.21 | 13,904 ms | 212 us |
+| 4 | NVMe | 1,000 | one | 12:25:40 | 12.68 | 2,311 ms | 2,311 us |
+| 5 | NVMe | 65,536 | one | 12:25:51 | 11.49 | 187,792 ms | 2,866 us |
+| 6 | NVMe | 65,536 | one | 12:29:20 | 10.90 | 157,884 ms | 2,409 us |
+| 7 | tmpfs | 65,536 | one | 12:32:03 | 7.14 | 13,646 ms | 208 us |
+| 8 | tmpfs | 65,536 | one | 12:32:17 | 6.96 | 14,362 ms | 219 us |
+
+- **Noise:** the full buffer on tmpfs took 12.5 to 14.4 s over four runs with one torrent (about
+  15%), and 13.9 s with distinct torrents. On NVMe it took 187.8 s and 157.9 s (about 17% apart).
+  The machine was shared, so these are not isolated numbers.
+- **Check that it measures something:** the database held 65,536 global downloads after each full
+  run, so every event was written. The per-event cost fits the work: about 0.2 ms on tmpfs for two
+  statements with no real flush, and about 2.4 ms on NVMe for two committed writes. That
+  explanation is an inference: no flush counter or syscall trace was measured.
+- **Not measured:** MySQL and PostgreSQL (a driver over a connection is expected to be slower
+  per write, not measured here); other disks; a loaded tracker with producers running; the broadcast
+  receive itself (the events were already queued).
+
+#### Conclusion
+
+With SQLite on a real disk, a full buffer takes about 158 to 188 s, far above both the 10 s shared
+deadline that bounds shutdown and the HTTP drain's 90 s. On tmpfs it takes about 12 to 14 s, which
+also exceeds the 10 s deadline. So no drain timeout that fits the shutdown deadline can drain a full
+buffer: the timeout can only bound how long admission continues, and the warning with the leftover
+count (D1) is how a larger backlog is reported. This is the case D18 anticipates, and it supports
+the separate batching issue (#2418): about 350 completions per second is the rate the persistent
+listener can sustain on this NVMe, 4,500 on tmpfs. Proposal for the default and its reasoning are in
+the T4 design-review checkpoint.
+
+### V7 - T4c: the persistent listener drains on cancellation (green), and the findings on the way
+
+- Goal: show the cancel-first bug is fixed at the seam (T3a) and at the package level (T3c), and
+  that each new listener test can fail.
+- Initial state: V5's tree plus T4c, run uncommitted before the T4 design review and committed in the
+  two commits named under "Commits" below:
+  `packages/tracker-core/src/statistics/event/listener.rs` (the drain, an injected `drain_timeout`),
+  `src/bootstrap/jobs/tracker_core.rs`, `packages/tracker-core/tests/common/test_env.rs` and
+  `tests/integration.rs` (callers pass `DEFAULT_DRAIN_TIMEOUT`), `packages/events/src/drain.rs`
+  (`DEFAULT_DRAIN_TIMEOUT`, `DrainOutcome::as_str`, the `log_drain_report!` macro), and
+  `project-words.txt` (`tmpfs`).
+- Status: `DONE`.
+
+#### Design
+
+- On cancellation the listener logs "draining", calls `drain_persistent_completed_statistics_events`
+  (the shared `drain` with the real handler), logs the report with `log_drain_report!`, and
+  returns `Completion::Cancelled`. A closed receiver still returns `Completed`. The function is
+  separate because the dispatch function's cognitive complexity was 29 of an allowed 25.
+- The timeout is a parameter of `run_persistent_completed_statistics_event_listener` and of its
+  `_unspawned` variant, passed from `src/bootstrap/jobs/tracker_core.rs` as
+  `DEFAULT_DRAIN_TIMEOUT` (5 s, proposed, see V6 and the sub-EPIC's record entry 28).
+- Log fields are explicit scalars (`listener`, `outcome` as a stable string, `processed`,
+  `lost_to_lag`, `unread_when_timed_out`), never `Debug`, following the structured-logging skill.
+
+#### Prose-first Arrange-Act-Assert (the two new listener tests; T3a and T3c are in V3 and V4)
+
+- `it_should_persist_every_queued_event_then_return_cancelled_when_cancellation_is_already_pending`:
+  Arrange two queued completed downloads and a token cancelled before the listener runs. Act: the
+  dispatch function, visible. Assert: both downloads persisted (`Some(2)`) and the completion is
+  `Cancelled`, the two facets of "drains, then stops because of the cancellation".
+- `it_should_leave_the_queued_events_unprocessed_and_return_cancelled_when_the_drain_timeout_has_expired`:
+  Arrange the same queue with a zero timeout, so it has expired before the first event. Act: the
+  dispatch function. Assert: nothing persisted (`None`) and still `Cancelled`. A zero timeout is the
+  deterministic form: with paused time an always-ready receiver never advances the clock, and the
+  admission semantics under paused time are tested on the helper (V5).
+
+#### Steps Performed
+
+1. 12:45:02.578 to 12:45:06.538, green by name: `cargo test -p torrust-tracker-core --lib
+   it_should_persist_a_queued`, then `--test integration it_should_persist_every_completed`.
+2. Mutations on the final code, each as one command (mutate, run the package tests, restore from
+   a backup, `cmp`):
+
+| Mutation | Time | Failed tests |
+| --- | --- | --- |
+| L1: effective timeout zero (`drain_timeout.min(Duration::ZERO)`) | 12:41:09.129 to 12:41:12.907 | T3a, the two-events test, and T3c |
+| L2: no timeout in effect (`drain_timeout.max(3600 s)`) | 12:41:21.737 to 12:41:25.673 | the expired-timeout test |
+| L3: `Completion::Completed` after the drain | 12:41:25.678 to 12:41:29.557 | the two-events test and the expired-timeout test |
+
+A first form of L1 (`Duration::ZERO` in place of the argument) did not compile (unused variable),
+so it is not a result. L1 to L3 were first run on the code before the extraction of the drain
+function and gave the same failures; the table is the rerun on the final code.
+
+Step 3: On the final tree: `cargo test --workspace --no-fail-fast` gave 3,155 passed and 0 failed;
+   `cargo +nightly fmt --all -- --check` exited 0; `linter all` exited 0 (after fixing, in turn:
+   `clippy::use_self`, `clippy::doc_markdown` on `NVMe`, `clippy::cognitive_complexity` on the
+   dispatch function, `manual_unwrap_or_default` in an earlier test, and `cspell` on `tmpfs`).
+
+#### Observed Result
+
+```text
+step 1: test ...::it_should_persist_a_queued_completed_download_when_cancellation_is_already_pending ... ok
+        test it_should_persist_every_completed_download_queued_before_the_persistent_listener_is_cancelled ... ok
+```
+
+V3 and V4 were red on the cancel-first loop; the same two tests are green here, so the fix, and
+nothing in the tests, changed the result.
+
+#### Findings during T4c
+
+- **A log function cannot carry the target.** `tracing::info!(target: target, ...)` with a function
+  parameter gives `error[E0435]: attempt to use a non-constant value in a constant`
+  (a scratch test, removed). The shared format is therefore a macro (record entry 28).
+- **The scripted test receivers pop eagerly.** The first T4c run left T3a red:
+  `DrainReport { outcome: Emptied, processed: 0, ... }`, because `ScriptedReceiver::recv` popped its
+  queue when called, and `tokio::select!` creates that future even when the cancellation branch
+  wins, so the event was gone before the drain. A temporary `eprintln!` of the report showed it
+  (reverted, `cmp` against a backup exit 0). The real receiver is lazy; the `tracker-core` double is
+  now lazy too, and the other five are fixed in T5.
+
+#### Conclusion
+
+T3a and T3c are green for the stated reason, and the new listener tests fail when the timeout or
+the returned completion is broken. Not covered: a handler that panics, and the supervisor's abort
+of a drain in progress (sub-issue 4).
+
+### V8 - M1, M2, M3 (interim at T4c): the real binary
+
+- Goal: check the drain on the application binary, as an interim result before T5. The final
+  recheck is repeated after the last production change (T5), as the `fix-bug` skill requires.
+- Initial state: the T4c working tree, built with `cargo build --bin torrust-tracker` (the `dev`
+  profile, `opt-level = 1`, as the T0 evidence), `rustc 1.99.0`; SQLite database in
+  `.tmp/si22-t0/` on the NVMe disk; the sub-EPIC's `reproduce-lost-completions.sh` with the T0
+  parameters; ports 47070 and 47313 free before the runs; machine shared (load average 8 to 10).
+- Status: `DONE` (interim).
+
+#### Steps Performed and Observed Result
+
+1. 12:44:06.729 to 12:44:08.602, M2 (control, the T0 parameters):
+   `PEERS=500 docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/reproduce-lost-completions.sh control`
+
+```text
+mode=control peers=500 concurrency=64 sigterm_delay=0.05 control_wait=1
+tracker_exit_status=0
+started_ok=500
+completed_ok=500 completed_failed=0
+persisted_torrent_completed=500
+persisted_global_downloads=500
+answered_minus_persisted=0
+```
+
+   The T0 control run on `develop` gave 500 answered, 467 persisted, 33 lost. The shutdown log of
+   this run (colour codes removed; the other listeners' lines omitted):
+
+```text
+2026-10-20T12:44:08.486380Z  INFO torrust_tracker: Torrust tracker shutting down (SIGTERM) ...
+2026-10-20T12:44:08.486494Z  INFO TRACKER_CORE: Received cancellation request, draining tracker core persistent completed statistics event listener.
+2026-10-20T12:44:08.569748Z  INFO TRACKER_CORE: Event listener drained its queue after cancellation listener="tracker_core_persistent_completed_statistics" outcome="emptied" processed=72 lost_to_lag=0
+2026-10-20T12:44:08.569786Z  INFO torrust_tracker_lib::bootstrap::jobs::manager: Job completed after cooperative cancellation job=tracker_core_persistent_completed_statistics_event_listener
+2026-10-20T12:44:08.569805Z  INFO torrust_tracker: Torrust tracker successfully shutdown.
+```
+
+Step 2: 12:44:29.986 to 12:44:43.266, M1 (the cut-short drain) and M3 (race, informative):
+   `PEERS=10000 SIGTERM_DELAY=3 .../reproduce-lost-completions.sh race`. A backlog larger than the
+   5 s drain can clear.
+
+```text
+mode=race peers=10000 concurrency=64 sigterm_delay=3 control_wait=1
+tracker_exit_status=0
+started_ok=10000
+completed_ok=5096 completed_failed=4904
+persisted_torrent_completed=1818
+persisted_global_downloads=1818
+answered_minus_persisted=3278
+2026-10-20T12:44:38.159301Z  INFO torrust_tracker: Torrust tracker shutting down (SIGTERM) ...
+2026-10-20T12:44:38.163827Z  INFO TRACKER_CORE: Received cancellation request, draining tracker core persistent completed statistics event listener.
+2026-10-20T12:44:43.164707Z  WARN TRACKER_CORE: Event listener drain lost events after cancellation listener="tracker_core_persistent_completed_statistics" outcome="timed_out" processed=2804 lost_to_lag=0 unread_when_timed_out=6556
+2026-10-20T12:44:43.164886Z  INFO torrust_tracker_lib::bootstrap::jobs::manager: Job completed after cooperative cancellation job=tracker_core_persistent_completed_statistics_event_listener
+2026-10-20T12:44:43.164904Z  INFO torrust_tracker: Torrust tracker successfully shutdown.
+```
+
+#### Conclusion
+
+- M2: with the T0 parameters no completion was lost (500 of 500, T0: 467), and the tracker exited 0.
+  The drain logged its counts in the structured format, in 83 ms.
+- M1: a drain cut short logged the warning after exactly 5 s (12:44:38.1638 to 12:44:43.1647), with
+  the listener name and the counts, and the tracker still exited 0 and logged "successfully
+  shutdown". The unread events are lost, as D1 accepts, and now reported.
+- M3 is informative and isolates nothing: 3,278 answered completions are not persisted. The
+  drain was cut short, so a backlog of unread events was lost (`unread_when_timed_out=6556`), and
+  4,904 `completed` announces got no answer (the script counts them as failed; they were sent after
+  the server stopped answering, read from the script's counters, not traced). The counts are events of every type on the
+  swarm bus, not completions: the persistent listener ignores all but `PeerDownloadCompleted`, which
+  is why 1,818 persisted. The log therefore cannot say how many completions the 6,556 unread events
+  held. The persisted rows were counted by the script with `sqlite3`.
+- Window (b) is not addressed here: producers still stop at the same time as the listeners until
+  sub-issue 4.
+
+## Commits
+
+After the T4 design review (maintainer, 2026-10-20; he agreed to a 5 s default timeout, the
+`log_drain_report!` macro, the "events" wording, an updated `adr-draft.md`, keeping the package
+`TestEnv` polling, and three commits), T3a, T3c, and T4 were committed as:
+
+1. `feat(events): [#2414] add try_recv, len, TryRecvError, and the shared listener drain helper`
+   (T4a: `packages/events`, the six scripted receivers, `project-words.txt`). Its tree was tested
+   alone before the commit: 3,152 passed, 0 failed.
+2. `fix(tracker-core): [#2414] drain the persistent listener's queue when it is cancelled`
+   (T4c with T3a and T3c, the bootstrap wiring, and the `TestEnv` caller). Its tree was tested alone
+   before the commit: 3,155 passed, 0 failed.
+3. The documentation commit that carries this file, the specs, the sub-EPIC record, and
+   `adr-draft.md`. The evidence of V5 to V8 lands here, and not with the code, because it is one
+   file.
+
+The V3 and V4 red evidence was already committed earlier as
+`docs(issues): [#2414] record the red evidence of the T3a and T3c regression tests`.
+
 ## Failures and Follow-up
 
 - The `git checkout` restore that reverted uncommitted work, described under V1, cost one rewrite
   and no result: the rewrite was verified by the timed steps above.
+- Splitting the work into commits went wrong twice, with no change to the result. A `git stash pop`
+  re-applied the already committed receiver migration to `listener.rs` (duplicate `try_recv` and
+  `len`, a compile error in the staged tree); the file was restored from a backup taken after its
+  last edit, and the tree of commit 2 was tested after that. A second pop conflicted on the same
+  file; the committed version was taken (`cmp` against the backup exited 0). Stashes are shared by
+  every worktree of the repository, so none is used for the rest of the work.
+- The message of the first commit said the helper had eight tests. It has seven (`grep -c 'async fn
+  it_should' packages/events/src/drain.rs` gives 7), and I had written eight in my report to the
+  maintainer. The unpushed commit was amended to say seven.

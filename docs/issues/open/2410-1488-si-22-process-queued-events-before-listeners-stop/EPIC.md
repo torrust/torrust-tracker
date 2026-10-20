@@ -6,7 +6,7 @@ epic: 1488
 github-issue: 2410
 spec-path: docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-20 12:08"
+last-updated-utc: "2026-10-20 12:57"
 semantic-links:
   skill-links:
     - create-issue
@@ -401,9 +401,12 @@ Alternatives considered:
   from the time left in the shared deadline. A value passed in explicitly is
   simpler, deterministic to test, and keeps listeners independent of the
   supervisor's state; the shared deadline still bounds everything through its
-  abort. SI-22 uses a default (T4 chooses it from a measurement: the time the
-  slowest listener, the persistent one with database writes, needs to drain a
-  full buffer of 65,536 events). It will later become a configuration value in
+  abort. SI-22 uses a default of 5 seconds, `DEFAULT_DRAIN_TIMEOUT` in
+  `packages/events` (agreed 2026-10-20, record entry 28). T4 measured the time the
+  slowest listener, the persistent one with database writes, needs to drain a full
+  buffer of 65,536 events: 12 to 14 s on tmpfs and 158 to 188 s on NVMe with
+  SQLite, more than the 10-second shared deadline, so the default bounds
+  admission and does not derive from that time. It will later become a configuration value in
   the section each listener belongs to; evaluating that placement belongs to
   SI-20, which owns shutdown budgets and their validation against the process
   deadline. Findings for that evaluation:
@@ -460,7 +463,10 @@ Alternatives considered:
   `Empty` or the drain timeout, hands each one to the listener's handler, and
   returns the counts of events processed, lost to lag, and left over (`len`
   when the timeout expires). All seven listeners therefore share one policy
-  and one log format. Why: it is the most robust option: explicit,
+  and one log format (a `log_drain_report!` macro that each listener's package
+  expands with its own constant `tracing` target, because a function cannot take
+  the target; agreed 2026-10-20, record entry 28). The trait also has a default
+  `is_empty`. Why: it is the most robust option: explicit,
   deterministic, testable with the existing `ScriptedReceiver`s, and it gives
   an unread-position count for D1's reporting. Tokio 1.53.3 `len()` includes
   overwritten unread messages until `Lagged` advances the receiver, so it is
@@ -1449,6 +1455,43 @@ lost. Times are UTC.
     current channel ownership, without closing the channel as a shutdown
     signal. These qualified findings correct the original unconditional
     lifetime and handler-completion claims; they do not guarantee zero loss.
+28. **2026-10-20 12:45 - Findings of #2414 T4a to T4c (design changes, D14;
+    agreed by the maintainer on 2026-10-20).** Evidence: #2414's `manual-verification-evidence.md`, V5 to V8.
+    - **The default drain timeout cannot come from "the time to drain a full buffer" (D9).** In a
+      `release` build, the persistent listener's handler needs 12.5 to 14.4 s to drain 65,536
+      completed-download events with SQLite on tmpfs (four runs), and 157.9 to 187.8 s on an NVMe
+      disk (two runs); about 350 to 415 events per second on the disk, on a shared machine (V6).
+      No timeout that fits the 10 s shared deadline drains a full buffer, so the timeout can only
+      bound admission, and the warning (D1) reports the rest. This is the case D18 anticipates.
+      **Proposal:** `DEFAULT_DRAIN_TIMEOUT` is 5 s, a named constant in `packages/events`, below the
+      shared deadline (an overlap with the other components' stops stays inside it) and equal to the
+      UDP request drain's 5 s. About 1,700 events at the NVMe rate. Alternatives: 8 s (more of the
+      10 s, less margin), 10 s (equal to the shared deadline, so the abort would cut it first), a value
+      derived from the time left (rejected by D9). SI-20 makes it configuration.
+    - **The shared log format is a macro, not a function.** D13 and the maintainer's T4a decision
+      say "listeners log; one shared function formats it per listener". `tracing` needs a constant
+      `target`, and each package has its own (compile error `E0435` on a function taking it as a
+      parameter, V7). **Proposal:** `torrust_tracker_events::log_drain_report!(TARGET, listener, report)`,
+      expanded in each listener's package; one format, with the explicit fields `listener`,
+      `outcome`, `processed`, `lost_to_lag`, and `unread_when_timed_out`, never `Debug`. It logs a
+      warning when the drain lost events (`TimedOut` or lag) and an info line otherwise.
+    - **Counts are events, not completions.** The swarm bus carries every swarm event; the persistent
+      listener ignores all but `PeerDownloadCompleted`. In the race run of V8, `processed=2804` and
+      `unread_when_timed_out=6556` count events of every type, while 1,818 completions persisted.
+      The ADR draft, glossary, and log wording must say "events" and must not promise a lost
+      completion count.
+    - **`Receiver::is_empty` exists as a default method** (the maintainer's answer to clippy's
+      `len_without_is_empty`). A small addition to D13's trait.
+    - **The scripted test receivers pop eagerly in `recv()`.** `tokio::select!` creates that future even
+      when the cancellation branch wins, which consumed the queued event before the drain. The real
+      receiver is lazy, so production was never affected; `tracker-core`'s double is now lazy, and the
+      other five become lazy in T5.
+    - **Not changed:** the persistence polling and the 100 ms startup sleep of the package `TestEnv`.
+      Open: whether the restart test should call `stop()` (now a drain) instead of polling, which
+      would test shutdown persistence and no longer live persistence.
+    **Agreed 2026-10-20** (default 5 s, the macro, the events wording, `adr-draft.md`, the package
+    `TestEnv` keeps its polling, and three commits). `adr-draft.md` section 7, D9, D13, and the Chosen
+    Design are updated in the same change.
 
 ## Chosen Design (D7, D8)
 
@@ -1540,6 +1583,8 @@ Invariants and exceptions (Design Discussion Record entry 27):
 
 `len()` is the unread-position count, including unobserved lag, not a guaranteed
 recoverable queue count (D13). Log fields and tests must retain that distinction.
+The drain's counts are events of every type on the bus, not completions: the persistent
+listener ignores all but `PeerDownloadCompleted`, so logs and documents say "events".
 
 ### Test environments
 
@@ -2171,6 +2216,9 @@ avoids duplicating the full workflow in four drafts:
 - 2026-10-19 19:09 UTC - GitHub Copilot (Claude Opus 5.5) - #2413: the Task Reviewer re-review of the prep branch passed (`REVIEW PASSED`, three nits fixed), recorded in its `agent-review-reports.md`.
 - 2026-10-20 12:02 UTC - GitHub Copilot (Claude Sonnet 5.5) - #2414 started after PR #2569 merged; its row is `IN_PROGRESS`. T3b done (the package test environment owns, cancels, and joins its listeners; evidence in #2414's `manual-verification-evidence.md`). No design change.
 - 2026-10-20 12:08 UTC - GitHub Copilot (Claude Sonnet 5.5) - #2414 T3 red evidence recorded (T3a and T3c fail against the cancel-first loop, with a passing control); the red tests are committed with the T4c fix. No design change.
+- 2026-10-20 12:45 UTC - GitHub Copilot (Claude Sonnet 5.5) - #2414 T4a to T4c implemented and verified in the working tree, awaiting the T4 design review (nothing of T3a, T3c, T4 is committed yet, per the Commit Points). Design-change proposals recorded as Design Discussion Record entry 28 (default drain timeout 5 s from the release measurement, which shows a full buffer cannot drain within the deadline; a log macro instead of a function; counts are events; `Receiver::is_empty`). `adr-draft.md` is unchanged until the maintainer agrees (D14).
+- 2026-10-20 12:51 UTC - GitHub Copilot (Claude Sonnet 5.5) - The maintainer agreed to the design changes of record entry 28 at the T4 design review (default drain timeout 5 s, the `log_drain_report!` macro, "events" wording, `Receiver::is_empty`, the package `TestEnv` keeps its polling, three commits). `adr-draft.md` section 7, D9, D13, and the Chosen Design are updated in the same change (D14). The workflow checkpoint "Every design change was agreed and recorded" stays open until the end of the implementation.
+- 2026-10-20 12:57 UTC - GitHub Copilot (Claude Sonnet 5.5) - #2414 T3a, T3c, T4a to T4c committed (two code commits and one documentation commit); T5 is next. No design change beyond entry 28.
 
 ## Acceptance Criteria
 
