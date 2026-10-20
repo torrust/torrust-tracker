@@ -16,6 +16,10 @@ use crate::event::receiver::Receiver;
 use crate::statistics::repository::Repository;
 use crate::{CurrentClock, HTTP_TRACKER_LOG_TARGET};
 
+/// The drain timeout the application gives every listener (see [`torrust_tracker_events::drain`]),
+/// re-exported so the HTTP server's tests need no direct dependency on `torrust-tracker-events`.
+pub use torrust_tracker_events::drain::DEFAULT_DRAIN_TIMEOUT;
+
 #[must_use]
 pub fn run_event_listener(
     receiver: Receiver,

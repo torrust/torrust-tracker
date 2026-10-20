@@ -35,7 +35,6 @@ torrust-tracker-axum-server = { version = "0.1.0", path = "../axum-server" }
 torrust-server-lib = "0.3.0"
 torrust-clock = "3.0.0"
 torrust-tracker-configuration = { version = "3.0.0", path = "../configuration" }
-torrust-tracker-events = { version = "0.1.0", path = "../events" }
 torrust-net-primitives = "0.1.0"
 torrust-tracker-primitives = { version = "3.0.0", path = "../primitives" }
 torrust-tracker-swarm-coordination-registry = { version = "0.1.0", path = "../swarm-coordination-registry" }

@@ -536,13 +536,12 @@ mod tests {
     use torrust_tracker_axum_server::tls::make_rust_tls;
     use torrust_tracker_configuration::v3_0_0::{Configuration, logging};
     use torrust_tracker_core::container::TrackerCoreContainer;
-    use torrust_tracker_events::drain::DEFAULT_DRAIN_TIMEOUT;
     use torrust_tracker_http_core::container::HttpTrackerCoreContainer;
     use torrust_tracker_http_core::event::bus::EventBus;
     use torrust_tracker_http_core::event::sender::Broadcaster;
     use torrust_tracker_http_core::services::announce::AnnounceService;
     use torrust_tracker_http_core::services::scrape::ScrapeService;
-    use torrust_tracker_http_core::statistics::event::listener::run_event_listener;
+    use torrust_tracker_http_core::statistics::event::listener::{DEFAULT_DRAIN_TIMEOUT, run_event_listener};
     use torrust_tracker_http_core::statistics::repository::Repository;
     use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
     use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;

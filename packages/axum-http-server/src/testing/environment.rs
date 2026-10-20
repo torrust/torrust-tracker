@@ -9,9 +9,8 @@ use torrust_tracker_axum_server::tls::make_rust_tls;
 use torrust_tracker_configuration::v3_0_0::core::Core;
 use torrust_tracker_configuration::v3_0_0::http_tracker::HttpTracker;
 use torrust_tracker_core::container::TrackerCoreContainer;
-use torrust_tracker_events::drain::DEFAULT_DRAIN_TIMEOUT;
 use torrust_tracker_http_core::container::HttpTrackerCoreContainer;
-use torrust_tracker_http_core::statistics::event::listener::run_event_listener;
+use torrust_tracker_http_core::statistics::event::listener::{DEFAULT_DRAIN_TIMEOUT, run_event_listener};
 use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole, peer};
 use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
 

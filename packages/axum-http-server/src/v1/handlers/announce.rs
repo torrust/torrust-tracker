@@ -150,11 +150,10 @@ mod tests {
     use torrust_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
     use torrust_tracker_core::whitelist::authorization::WhitelistAuthorization;
     use torrust_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
-    use torrust_tracker_events::drain::DEFAULT_DRAIN_TIMEOUT;
     use torrust_tracker_http_core::event::bus::EventBus;
     use torrust_tracker_http_core::event::sender::Broadcaster;
     use torrust_tracker_http_core::services::announce::AnnounceService;
-    use torrust_tracker_http_core::statistics::event::listener::run_event_listener;
+    use torrust_tracker_http_core::statistics::event::listener::{DEFAULT_DRAIN_TIMEOUT, run_event_listener};
     use torrust_tracker_http_core::statistics::repository::Repository;
     use torrust_tracker_http_protocol::v1::requests::announce::{Announce, Compact, PeerIp};
     use torrust_tracker_http_protocol::v1::responses;

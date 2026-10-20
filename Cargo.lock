@@ -5020,7 +5020,6 @@ dependencies = [
  "torrust-tracker-client-lib",
  "torrust-tracker-configuration",
  "torrust-tracker-core",
- "torrust-tracker-events",
  "torrust-tracker-http-core",
  "torrust-tracker-http-protocol",
  "torrust-tracker-primitives",
