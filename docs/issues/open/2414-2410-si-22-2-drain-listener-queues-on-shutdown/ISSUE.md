@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: planned
+status: in-progress
 priority: p1
 epic: 2410
 github-issue: 2414
 spec-path: docs/issues/open/2414-2410-si-22-2-drain-listener-queues-on-shutdown/ISSUE.md
 branch: "2414-drain-listener-queues-on-shutdown"
-related-pr: null
-last-updated-utc: "2026-10-19 19:09"
+related-pr: 2578
+last-updated-utc: "2026-10-20 17:26"
 semantic-links:
   skill-links:
     - create-issue
@@ -126,13 +126,13 @@ tests, and `TestEnv` against the current code before T3.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T3a | TODO | Red unit test, persistent listener | Pre-cancelled token and a ready event: red output recorded. |
-| T3b | TODO | `TestEnv` owns its listeners | Token and handles kept; `stop()` cancels and joins; remove only waits that shutdown makes redundant, preserving tests of live persistence. |
-| T3c | TODO | Red package test (AC11) | N completions, already-cancelled listener: red output recorded. |
-| T4a | TODO | Receiver trait and drain helper | `try_recv`, `len`, `TryRecvError`; all implementations, mocks, and scripted receivers compile together; helper unit tests (empty, closed with buffered events, timeout with leftovers, lag). |
-| T4b | TODO | Measure drain rate (`release`) | Time to drain the persistent listener's queue; default timeout chosen and recorded. |
-| T4c | TODO | Persistent listener drain | T3a and T3c green; paused-time timeout test. Design-review checkpoint. |
-| T5 | TODO | Remaining six listener components | Same helper; characterization tests replaced. |
+| T3a | DONE | Red unit test, persistent listener | Pre-cancelled token and a ready event: red output recorded (V3). The test is committed with the T4c fix, never failing. |
+| T3b | DONE | `TestEnv` owns its listeners | Token and handles kept; `stop()` cancels and joins; remove only waits that shutdown makes redundant, preserving tests of live persistence. Waits are kept for now: `stop()` discards the queue until T4c. Evidence: V1 in `manual-verification-evidence.md`. |
+| T3c | DONE | Red package test (AC11) | N completions, already-cancelled listener: red output recorded (V4), with a control that passes without cancellation. The test is committed with the T4c fix, never failing. |
+| T4a | DONE | Receiver trait and drain helper | `try_recv`, `len`, `TryRecvError`; all implementations, mocks, and scripted receivers compile together; helper unit tests (empty, closed with buffered events, timeout with leftovers, lag). |
+| T4b | DONE | Measure drain rate (`release`) | Time to drain the persistent listener's queue; default timeout chosen and recorded. |
+| T4c | DONE | Persistent listener drain | T3a and T3c green; paused-time timeout test. Design-review checkpoint. |
+| T5 | DONE | Remaining six listener components | Same helper; characterization tests replaced. |
 
 ## Commit Points
 
@@ -192,9 +192,9 @@ queue size or double-count it with already-observed lag (D13).
 
 | ID | Scenario | Steps | Expected Result | Status |
 | --- | --- | --- | --- | --- |
-| M1 | Drain logs | Run the tracker, send `completed` announces, SIGTERM | Each listener logs its drain count; a cut-short drain logs a warning | TODO |
-| M2 | Recheck window (a) | `reproduce-lost-completions.sh control` with the T0 parameters | No loss | TODO |
-| M3 | Race (informative) | `reproduce-lost-completions.sh race` with the T0 parameters | Record counts and lag/failure/abort logs; scheduling can change the deficit, and this run does not isolate window (b) | TODO |
+| M1 | Drain logs | Run the tracker, send `completed` announces, SIGTERM | Each listener logs its drain count; a cut-short drain logs a warning | DONE (V10) |
+| M2 | Recheck window (a) | `reproduce-lost-completions.sh control` with the T0 parameters | No loss | DONE (V10) |
+| M3 | Race (informative) | `reproduce-lost-completions.sh race` with the T0 parameters | Record counts and lag/failure/abort logs; scheduling can change the deficit, and this run does not isolate window (b) | DONE (V10) |
 
 Record evidence in an issue-local `manual-verification-evidence.md`.
 
@@ -214,9 +214,13 @@ to a root ADR here; sub-issue 4 owns that step.
 
 | AC ID | Status | Evidence |
 | --- | --- | --- |
-| AC1-AC5 | TODO | Focused tests, red/green evidence, and release measurement |
-| AC6 | TODO | Like-for-like control recheck |
-| AC7 | TODO | Slow-handler test; shared-deadline proof linked from sub-issue 4 |
+| AC1 | DONE | All seven listeners: a queued event is handled and the listener returns `Cancelled` (V7, V9; one test per listener, mutation-checked). Real binary: V10. The finite-backlog qualification stands: a backlog larger than the drain clears is cut short (V6, V10). |
+| AC2 | DONE | The `log_drain_report!` fields on the real binary for all seven listeners, and the warning with the listener name and the counts when the drain timed out (V8, V10). Counts are events, not completions (record entry 28). Verified on the real binary; no unit test captures the log lines (read from source, not run: the macro). |
+| AC3 | DONE, with a qualification | The `release` measurement is recorded (V6). It showed that a full buffer cannot drain within the 10 s deadline, so the default (5 s, `DEFAULT_DRAIN_TIMEOUT`) is a policy choice bounded by the measurement, not derived from it; the maintainer agreed (record entry 28, 2026-10-20). The timeout bounds admission, not handler completion. |
+| AC4 | DONE | The seven `it_should_prioritize_*` tests are replaced: the persistent one in V3 and V7, the other six in V9. |
+| AC5 | DONE | `it_should_persist_every_completed_download_queued_before_the_persistent_listener_is_cancelled`: red on the cancel-first loop (V4), green after the fix (V7), with a passing uncancelled control (V4). |
+| AC6 | DONE | V10: the control run with the T0 parameters persists 500 of 500 (T0: 467). |
+| AC7 | DONE, helper level | `it_should_finish_a_slow_handler_that_crosses_the_timeout_before_stopping` and its mutation (V5). The helper owns this rule for every listener; no per-listener slow-handler test exists. Cooperative scheduling (review finding S1): the drain yields after each event; `it_should_let_other_tasks_run_while_it_drains_a_ready_queue` runs on the current-thread test runtime (V11). The shared-deadline abort is sub-issue 4's. |
 
 ## Implementation Completion Review
 
@@ -231,8 +235,11 @@ and independent Task Reviewer report.
 - [x] Spec drafted
 - [x] Spec reviewed and approved by the maintainer
 - [x] GitHub issue created and linked to the sub-EPIC
-- [ ] Design-review checkpoint after T4 recorded
+- [x] Design-review checkpoint after T4 recorded
 - [ ] Implementation completed and acceptance criteria reviewed
+- [x] Independent Task Reviewer report recorded in `agent-review-reports.md` (sub-EPIC Shared Delivery Gates)
+- [x] Retrospective recorded in `implementation-retrospective.md` (sub-EPIC Shared Delivery Gates)
+- [x] Task Reviewer re-review of the review fixes recorded in `agent-review-reports.md`
 
 ### Progress Log
 
@@ -240,3 +247,20 @@ and independent Task Reviewer report.
 - 2026-10-02 13:30 UTC - GitHub Copilot - Added AC7 (sub-EPIC AC12): the drain timeout does not interrupt a handler; shared-deadline abort remains an exception.
 - 2026-10-19 17:08 UTC - GitHub Copilot (Claude Opus 5.5) - Refreshed before implementation: `branch:` names the implementation branch `2414-drain-listener-queues-on-shutdown`; removed the obsolete note about setting `epic`; the Implementation Plan now asks to revalidate the code that PRs #2545 and #2552 changed after this spec was written (file lists from `git diff --stat` of each merge).
 - 2026-10-19 19:09 UTC - GitHub Copilot (Claude Opus 5.5) - The revalidation note now also names the statistics repositories and metrics that PR #2545 changed, including tracker-core's repository, which the persistent listener's handler updates (nit N1 of the #2413 Task Reviewer re-review).
+- 2026-10-20 12:02 UTC - GitHub Copilot (Claude Sonnet 5.5) - Started after PR #2569 merged (branch `2414-drain-listener-queues-on-shutdown` cut from `develop`). Revalidated against the code (read from source, not run): `Receiver` still has only `recv` and a `mockall` `automock`; tokio is 1.53.3; the seven `it_should_prioritize_*` tests are where the sub-EPIC lists them; `TestEnv` created a local token, dropped the three listener handles, and slept 100 ms. T3b done on the maintainer-approved design: `TestEnv` owns a token with a `DropGuard` and the named handles, and `stop()` cancels and joins them under one absolute deadline. New test `it_should_release_every_listener_receiver_when_the_environment_is_stopped`, shown to fail when `stop()` does not cancel and when it does not join (V1). The 100 ms sleep and the persistence polling stay until `stop()` can drain (T4c). At the T3b review the maintainer asked for a drop-path test: `it_should_cancel_every_listener_when_the_environment_is_dropped_without_being_stopped`, shown to fail when the drop guard is on a different token (V2). A listener that panics is not simulated (read from source, not run).
+- 2026-10-20 12:08 UTC - GitHub Copilot (Claude Sonnet 5.5) - T3a and T3c red evidence recorded in `manual-verification-evidence.md` (V3, V4), with both tests embedded verbatim because they are committed only with the T4c fix. T3a replaces `it_should_prioritize_a_pre_cancelled_token_over_a_ready_persistent_event` and fails with `left: None, right: Some(1)`; T3c (N = 3, the maintainer left the value to the proposed default) fails with `left: None, right: Some(3)`, and a temporary uncancelled control persists all three, so the red is caused by cancellation. A package run on the working tree failed exactly those two tests. The shared helper `expect_persisted_download_metrics_to_be` gained assertion messages. Both tests wait in the working tree for T4a to T4c.
+- 2026-10-20 12:45 UTC - GitHub Copilot (Claude Sonnet 5.5) - T4a to T4c implemented in the working tree; the T4 design-review checkpoint is pending, so T4c stays `IN_PROGRESS` and nothing of T3a, T3c, or T4 is committed (Commit Points). T4a: `Receiver::try_recv`, `len`, a default `is_empty`, `TryRecvError`, and `packages/events/src/drain.rs` with its tests, all mutation-checked (V5). T4b: the release measurement (V6). T4c: the persistent listener drains on cancellation with an injected timeout and logs through `log_drain_report!`; T3a and T3c are green; an interim real-binary check (V8): the T0 control run now persists 500 of 500 (T0: 467), the drain logged `outcome="emptied" processed=72`, and a larger race run logged the timeout warning after 5 s. Proposed design changes are in the sub-EPIC's Design Discussion Record, entry 28.
+- 2026-10-20 12:51 UTC - GitHub Copilot (Claude Sonnet 5.5) - T4 design review held: the maintainer agreed to a 5 s default drain timeout, the `log_drain_report!` macro, the "events" wording, `Receiver::is_empty`, keeping the package `TestEnv` polling, and three commits (T4a; the T4c fix with T3a and T3c; the docs). `adr-draft.md`, D9, D13, and the Chosen Design are updated; the sub-EPIC's record entry 28 is marked agreed. T4c is `DONE`; the checkpoint is ticked. T5 is next.
+- 2026-10-20 12:57 UTC - GitHub Copilot (Claude Sonnet 5.5) - T3a, T3c, and T4 committed as two code commits, `feat(events): [#2414] add try_recv, len, TryRecvError, and the shared listener drain helper` and `fix(tracker-core): [#2414] drain the persistent listener's queue when it is cancelled`, each tested alone before its commit, plus this documentation commit. The unpushed first commit was amended once to correct its test count (seven drain tests, not eight). T5 (the other six listeners, one package per commit) is next.
+- 2026-10-20 15:14 UTC - GitHub Copilot (Claude Sonnet 5.5) - T5 started after the maintainer approved its plan and test design: one commit per package, each with two tests replacing the `it_should_prioritize_*` test. First done: the `tracker-core` in-memory listener (V9), mutation-checked, workspace 3,156 passed, `linter all` 0. Stashes are shared by every worktree of the repository, so none is used from here on.
+- 2026-10-20 15:19 UTC - GitHub Copilot (Claude Sonnet 5.5) - T5: the `swarm-coordination-registry` listener drains on cancellation (V9), mutation-checked; workspace 3,157 passed, `linter all` 0.
+- 2026-10-20 15:26 UTC - GitHub Copilot (Claude Sonnet 5.5) - T5: the `http-core` listener drains on cancellation (V9), mutation-checked, with a third test that a drained event is subject to the metrics policy. `axum-http-server` gained a direct dependency on `torrust-tracker-events` for the default timeout (the listener's callers there pass it); workspace 3,159 passed, `linter all` 0.
+- 2026-10-20 15:32 UTC - GitHub Copilot (Claude Sonnet 5.5) - T5: the `udp-core` listener drains on cancellation (V9), mutation-checked, with the metrics-policy test; workspace 3,161 passed, `linter all` 0. Only the `udp-server` listeners remain.
+- 2026-10-20 15:39 UTC - GitHub Copilot (Claude Sonnet 5.5) - T5 done: the `udp-server` statistics and banning listeners drain on cancellation (V9), mutation-checked; workspace 3,164 passed, `linter all` 0. All seven listeners drain through the shared helper, one package per commit. Remaining: the final real-binary recheck (M1 to M3) after this last production change, the acceptance-criteria evidence, the Task Reviewer report, the retrospective, and the pre-push checks.
+- 2026-10-20 15:47 UTC - GitHub Copilot (Claude Sonnet 5.5) - M1 to M3 rechecked on the real binary after the last production change (V10): the control run with the T0 parameters persists 500 of 500 (T0: 467), both race runs persist everything they answered (T0: 790 and 775 lost), all seven listeners log their drain with the same fields, and a cut-short drain logs the warning after 5 s. The Verification Plan rows are `DONE` and the Acceptance Verification table has its evidence. The acceptance criteria are not ticked: the reviewer does that. Two slips in the recheck (a UDP client argument and ports) are recorded in V10. Next: the Task Reviewer report, the retrospective, and the pre-push checks.
+- 2026-10-20 16:30 UTC - GitHub Copilot (Claude Sonnet 5.5) - The independent Task Reviewer report before push is recorded in `agent-review-reports.md` (REVIEW PASSED; two should-fix items and six nits), with the maintainer's decisions. The fixes are committed: the drain yields between events and tolerates a huge timeout (`fix(events): [#2414] drain without panicking on a huge timeout, and yield between events`), the http-core re-export replaces the new dependency edge (`refactor(http-core): [#2414] re-export the default drain timeout instead of adding a dependency`), and the import and assertion-message nits (`test(listeners): [#2414] move the TryRecvError imports up and add causal assertion messages`). The real-binary recheck on the final build is V11 (control 500 of 500; race runs 665 of 665 and 641 of 641; a cut-short drain warns after 5 s). The retrospective is `implementation-retrospective.md`; the sub-EPIC record has entry 29. The acceptance criteria stay open for the reviewer. Next: a Task Reviewer re-review of the fixes, the pre-push checks, and asking the maintainer to push.
+- 2026-10-20 16:37 UTC - GitHub Copilot (Claude Sonnet 5.5) - The Task Reviewer re-review of the review fixes is recorded in `agent-review-reports.md` (REVIEW PASSED WITH FINDINGS: no should-fix item, three nits fixed in this commit). The evidence lists the four commits added after the first review. Next: the pre-push checks, then asking the maintainer to push and open the PR.
+- 2026-10-20 16:45 UTC - GitHub Copilot (Claude Sonnet 5.5) - The branch was rebased onto the latest `torrust/develop` (107 new commits, no conflicts; the trial merge was clean) before the first push, so the commit ids of the earlier entries changed; the entries cite Conventional Commit subjects, which are unchanged. The rebased tree passes the pre-push checks (nightly format, check, and documentation; the full test suite), `linter all`, `cargo machete --with-metadata`, `cargo deny check bans`, and nightly `cargo fmt --check`. The M1 to M3 real-binary runs (V10, V11) were not repeated on the rebased tree; they ran on the pre-rebase tree. Next: push and open the PR.
+- 2026-10-20 17:15 UTC - GitHub Copilot (Claude Sonnet 5.5) - PR #2578 is open. Copilot's review of it has three inline findings. For the first (the per-event yield; `review-finding:pr-2578-f1`) the cost was measured, V12: about 0.3 to 0.4 microseconds per event, 19 to 26 ms for a full buffer; the yield stays and its trade-off is now stated in the `drain` comment and `adr-draft.md`. No behavior changed.
+- 2026-10-20 17:20 UTC - GitHub Copilot (Claude Sonnet 5.5) - Copilot's review of PR #2578 is processed in `docs/pr-reviews/pr-2578-review/PR-REVIEW.md`: F1 is `FIXED` (the measurement and comment above), F2 and F3 are `NO_ACTION` with the prescribed replies and the reasons in the audit. All three threads are replied to and resolved, and the audit validates. Waiting for the maintainer's review and merge.
+- 2026-10-20 17:26 UTC - GitHub Copilot (Claude Sonnet 5.5) - PR #2578 conflicted with `develop` after the merge of PR #2575 (`test(http-core): [#1349] pin the announce service and error mapping decisions with unit tests`), which rewrote the test module of `packages/http-core/src/services/announce.rs`. The branch was rebased again; the only conflict was in that file. The new test fixture starts no event listener, so the one-line change that passed `DEFAULT_DRAIN_TIMEOUT` to the old fixture's `run_event_listener` call has nothing to apply to, and the file takes `develop`'s version. The rebased tree passes the pre-push checks, `linter all`, `cargo machete --with-metadata`, `cargo deny check bans`, and nightly `cargo fmt --check`. The history of the branch was rewritten by the rebase; the entries cite Conventional Commit subjects, which are unchanged.

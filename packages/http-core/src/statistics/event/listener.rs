@@ -1,9 +1,15 @@
 use std::collections::BTreeMap;
 use std::sync::Arc;
+use std::time::Duration;
 
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 use torrust_clock::clock::Time;
+/// The drain timeout the application gives every listener (see [`torrust_tracker_events::drain`]),
+/// re-exported so the HTTP server's tests need no direct dependency on `torrust-tracker-events`.
+pub use torrust_tracker_events::drain::DEFAULT_DRAIN_TIMEOUT;
+use torrust_tracker_events::drain::drain;
+use torrust_tracker_events::log_drain_report;
 use torrust_tracker_events::receiver::RecvError;
 use torrust_tracker_events::shutdown::Completion;
 use torrust_tracker_primitives::ConfigurationInstanceId;
@@ -19,24 +25,30 @@ pub fn run_event_listener(
     cancellation_token: CancellationToken,
     repository: &Arc<Repository>,
     metrics_policy: BTreeMap<ConfigurationInstanceId, bool>,
+    drain_timeout: Duration,
 ) -> JoinHandle<()> {
     let stats_repository = repository.clone();
     tokio::spawn(async move {
-        let _ = run_event_listener_unspawned(receiver, cancellation_token, stats_repository, metrics_policy).await;
+        let _ = run_event_listener_unspawned(receiver, cancellation_token, stats_repository, metrics_policy, drain_timeout).await;
 
         tracing::info!(target: HTTP_TRACKER_LOG_TARGET, "HTTP tracker core event listener finished");
     })
 }
 
 /// Runs the listener without spawning so a caller can retain task ownership.
+///
+/// After cancellation the listener keeps handling the events already queued for it until its
+/// queue is empty or `drain_timeout` expires (see [`drain`]), logs what it did, and returns
+/// [`Completion::Cancelled`].
 pub async fn run_event_listener_unspawned(
     receiver: Receiver,
     cancellation_token: CancellationToken,
     stats_repository: Arc<Repository>,
     metrics_policy: BTreeMap<ConfigurationInstanceId, bool>,
+    drain_timeout: Duration,
 ) -> Completion {
     tracing::info!(target: HTTP_TRACKER_LOG_TARGET, "Starting HTTP tracker core event listener");
-    dispatch_events(receiver, cancellation_token, stats_repository, metrics_policy).await
+    dispatch_events(receiver, cancellation_token, stats_repository, metrics_policy, drain_timeout).await
 }
 
 async fn dispatch_events(
@@ -44,6 +56,7 @@ async fn dispatch_events(
     cancellation_token: CancellationToken,
     stats_repository: Arc<Repository>,
     metrics_policy: BTreeMap<ConfigurationInstanceId, bool>,
+    drain_timeout: Duration,
 ) -> Completion {
     // issue: #2039
     // Metrics policy is enforced here, at the aggregate-repository consumer,
@@ -53,7 +66,10 @@ async fn dispatch_events(
             biased;
 
             () = cancellation_token.cancelled() => {
-                tracing::info!(target: HTTP_TRACKER_LOG_TARGET, "Received cancellation request, shutting down HTTP tracker core event listener.");
+                tracing::info!(target: HTTP_TRACKER_LOG_TARGET, "Received cancellation request, draining HTTP tracker core event listener.");
+
+                drain_events(&mut receiver, drain_timeout, &stats_repository, &metrics_policy).await;
+
                 return Completion::Cancelled;
             }
 
@@ -64,6 +80,22 @@ async fn dispatch_events(
             }
         }
     }
+}
+
+/// Handles the events still queued for the listener after its cancellation, within the timeout,
+/// and logs what the drain did. The metrics policy applies to a drained event as to any other.
+async fn drain_events(
+    receiver: &mut Receiver,
+    drain_timeout: Duration,
+    stats_repository: &Arc<Repository>,
+    metrics_policy: &BTreeMap<ConfigurationInstanceId, bool>,
+) {
+    let report = drain(&mut **receiver, drain_timeout, |event| {
+        handle_received_event(event, stats_repository, metrics_policy)
+    })
+    .await;
+
+    log_drain_report!(HTTP_TRACKER_LOG_TARGET, "http_tracker_core_statistics", report);
 }
 
 async fn should_stop_after_receiving_event(
@@ -116,11 +148,14 @@ mod tests {
     use std::collections::{BTreeMap, VecDeque};
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
     use std::sync::Arc;
+    use std::time::Duration;
 
     use futures::future::BoxFuture;
     use tokio_util::sync::CancellationToken;
     use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
-    use torrust_tracker_events::receiver::RecvError;
+    use torrust_tracker_events::drain::DEFAULT_DRAIN_TIMEOUT;
+    use torrust_tracker_events::receiver::{RecvError, TryRecvError};
+    use torrust_tracker_events::shutdown::Completion;
     use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::{RemoteClientAddr, ResolvedIp};
     use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
 
@@ -146,7 +181,22 @@ mod tests {
         type Event = Event;
 
         fn recv(&mut self) -> BoxFuture<'_, Result<Self::Event, RecvError>> {
-            Box::pin(std::future::ready(self.results.pop_front().unwrap_or(Err(RecvError::Closed))))
+            // Lazy, like a real receiver: `select!` creates this future even when another branch wins,
+            // and an eager pop would consume an event the drain must still see.
+            Box::pin(async move { self.results.pop_front().unwrap_or(Err(RecvError::Closed)) })
+        }
+
+        fn try_recv(&mut self) -> Result<Self::Event, TryRecvError> {
+            match self.results.pop_front() {
+                Some(Ok(event)) => Ok(event),
+                Some(Err(RecvError::Closed)) => Err(TryRecvError::Closed),
+                Some(Err(RecvError::Lagged(skipped))) => Err(TryRecvError::Lagged(skipped)),
+                None => Err(TryRecvError::Empty),
+            }
+        }
+
+        fn len(&self) -> usize {
+            self.results.iter().filter(|result| result.is_ok()).count()
         }
     }
 
@@ -167,7 +217,14 @@ mod tests {
         let repository = Arc::new(Repository::new());
 
         // Act
-        dispatch_events(receiver, CancellationToken::new(), repository.clone(), BTreeMap::new()).await;
+        dispatch_events(
+            receiver,
+            CancellationToken::new(),
+            repository.clone(),
+            BTreeMap::new(),
+            DEFAULT_DRAIN_TIMEOUT,
+        )
+        .await;
 
         // Assert
         assert_eq!(repository.read_metrics(Metrics::tcp4_scrapes_handled).await, 0);
@@ -190,6 +247,7 @@ mod tests {
             CancellationToken::new(),
             repository.clone(),
             [(enabled_id, true)].into(),
+            DEFAULT_DRAIN_TIMEOUT,
         )
         .await;
 
@@ -198,8 +256,10 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn it_should_prioritize_cancellation_over_a_ready_event() {
+    async fn it_should_handle_a_queued_event_then_return_cancelled_when_cancellation_is_already_pending() {
         // Arrange
+        // A scrape event from a metrics-enabled instance is queued for the listener, and its token is
+        // cancelled before the listener takes the event.
         let enabled_id = ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0);
         let receiver: Receiver = Box::new(ScriptedReceiver::new([Ok(scrape_event(enabled_id))]));
         let cancellation_token = CancellationToken::new();
@@ -207,10 +267,91 @@ mod tests {
         let repository = Arc::new(Repository::new());
 
         // Act
-        dispatch_events(receiver, cancellation_token, repository.clone(), [(enabled_id, true)].into()).await;
+        let completion = dispatch_events(
+            receiver,
+            cancellation_token,
+            repository.clone(),
+            [(enabled_id, true)].into(),
+            DEFAULT_DRAIN_TIMEOUT,
+        )
+        .await;
 
         // Assert
-        assert_eq!(repository.read_metrics(Metrics::tcp4_scrapes_handled).await, 0);
+        // The queued scrape is counted, and the listener reports that it stopped because of the
+        // cancellation.
+        assert_eq!(
+            repository.read_metrics(Metrics::tcp4_scrapes_handled).await,
+            1,
+            "`tcp4_scrapes_handled` counted after the queued event was drained"
+        );
+        assert_eq!(completion, Completion::Cancelled, "a drained listener must return Cancelled");
+    }
+
+    #[tokio::test]
+    async fn it_should_leave_the_queued_event_unprocessed_and_return_cancelled_when_the_drain_timeout_has_expired() {
+        // Arrange
+        // The same queued scrape and cancelled token, with a drain timeout of zero, so it has expired
+        // before the first event could be admitted.
+        let enabled_id = ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0);
+        let receiver: Receiver = Box::new(ScriptedReceiver::new([Ok(scrape_event(enabled_id))]));
+        let cancellation_token = CancellationToken::new();
+        cancellation_token.cancel();
+        let repository = Arc::new(Repository::new());
+
+        // Act
+        let completion = dispatch_events(
+            receiver,
+            cancellation_token,
+            repository.clone(),
+            [(enabled_id, true)].into(),
+            Duration::ZERO,
+        )
+        .await;
+
+        // Assert
+        // Nothing was counted, because the timeout stops admission, and the listener still returns
+        // Cancelled so the supervisor sees a cooperative stop.
+        assert_eq!(
+            repository.read_metrics(Metrics::tcp4_scrapes_handled).await,
+            0,
+            "`tcp4_scrapes_handled` stays at zero after a drain whose timeout had already expired"
+        );
+        assert_eq!(
+            completion,
+            Completion::Cancelled,
+            "an expired drain must still return Cancelled"
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_apply_the_metrics_policy_to_a_drained_event() {
+        // Arrange
+        // A scrape event from a metrics-disabled instance is queued, and the token is cancelled
+        // before the listener takes it.
+        let disabled_id = ConfigurationInstanceId::new(ServiceRole::HttpTracker, 1);
+        let receiver: Receiver = Box::new(ScriptedReceiver::new([Ok(scrape_event(disabled_id))]));
+        let cancellation_token = CancellationToken::new();
+        cancellation_token.cancel();
+        let repository = Arc::new(Repository::new());
+
+        // Act
+        dispatch_events(
+            receiver,
+            cancellation_token,
+            repository.clone(),
+            [(disabled_id, false)].into(),
+            DEFAULT_DRAIN_TIMEOUT,
+        )
+        .await;
+
+        // Assert
+        // The drain reads the event but, like a live event, it is not counted: the policy decides, not
+        // the drain.
+        assert_eq!(
+            repository.read_metrics(Metrics::tcp4_scrapes_handled).await,
+            0,
+            "`tcp4_scrapes_handled` stays at zero after draining an event from a metrics-disabled instance"
+        );
     }
 
     #[tokio::test]
@@ -233,6 +374,7 @@ mod tests {
             CancellationToken::new(),
             repository.clone(),
             [(enabled_id, true), (disabled_id, false)].into(),
+            DEFAULT_DRAIN_TIMEOUT,
         )
         .await;
 

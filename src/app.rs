@@ -656,6 +656,7 @@ mod tests {
             app_container.swarm_coordination_registry_container.event_bus.receiver(),
             cancellation_token.clone(),
             app_container.tracker_core_container.stats_repository.clone(),
+            torrust_tracker_events::drain::DEFAULT_DRAIN_TIMEOUT,
         );
 
         cancellation_token.cancel();

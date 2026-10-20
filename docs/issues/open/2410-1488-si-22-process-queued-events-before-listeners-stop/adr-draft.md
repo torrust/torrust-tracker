@@ -230,11 +230,17 @@ drain counts as lost events.
 
 - **Per-listener timeout.** Each listener's drain timeout is its own value,
   injected through its constructor. It is not derived at run time from the time
-  left in the shared deadline. The implementing issue picks a default from a
-  measurement: the time the slowest listener (the persistent one, which writes to
-  the database) needs to drain a full buffer of 65,536 events. A later issue
-  (SI-20) owns where the value becomes configuration and how it fits the process
-  deadline.
+  left in the shared deadline. The default is `DEFAULT_DRAIN_TIMEOUT`, 5 seconds,
+  a named constant in `packages/events`. A `release`-build measurement (issue
+  #2414) showed that the slowest listener, the persistent one, needs 12 to 14
+  seconds to persist a full buffer of 65,536 completed-download events with SQLite
+  on tmpfs and 158 to 188 seconds on an NVMe disk, so no timeout that fits the
+  10-second shared deadline drains a full buffer. The timeout therefore bounds how
+  long a cancelled listener keeps admitting events, and the warning reports what
+  is left; batching the writes (issue #2418) is the separate remedy. The default
+  stays below the shared deadline and equals the UDP request drain's budget. A
+  later issue (SI-20) owns where the value becomes configuration and how it fits
+  the process deadline.
 - **Admission only.** The drain checks its timeout between events. An event
   taken from the buffer is awaited without racing it against the timeout, so the
   timeout is an admission budget, not a hard bound on a handler. The shared
@@ -242,16 +248,33 @@ drain counts as lost events.
   failure remain exceptions to the drain: the abort log names the component but
   cannot quantify an in-progress event's outcome, and queue length cannot count
   an event already received.
+  After each handled event the drain yields to the runtime, so a handler that never waits cannot hold
+  the worker thread until the timeout expires. On a release build with a handler that does nothing, the
+  yield costs about 0.3 to 0.4 microseconds per event, 19 to 26 ms for a full 65,536-event buffer,
+  and yielding every 64 events costs about 0.6 ms; the choice of yielding after every event is kept
+  because that cost is small next to a handler that locks or does I/O (V12 of the #2414
+  manual-verification evidence). The deadline is computed with `checked_add`, so a
+  timeout too large for the clock to represent never expires, and does not panic.
 - **`Receiver` trait.** The trait in `packages/events/src/receiver.rs` gains a
   non-blocking `try_recv` that returns an event or a new `TryRecvError` (`Empty`,
   `Lagged(n)`, or `Closed`), and `len`, the number of events this receiver has
-  not read yet. A shared drain helper in `packages/events` runs the loop for all
+  not read yet, with a default `is_empty` next to it. A shared drain helper in `packages/events` runs the loop for all
   seven listeners: after cancellation it takes events with `try_recv` until
   `Empty` or the timeout, hands each to the listener's handler, and returns the
   counts of events processed, lost to lag, and left over. One policy and one log
   format follow. The change touches the trait, its seven implementations (one
   production, six scripted test receivers), and the `mockall` mock; the coming
   major release allows it.
+- **Log format and wording.** The helper only returns the counts; each listener
+  logs them through the `log_drain_report!` macro in `packages/events`, which
+  expands in the listener's own package so it uses that package's constant
+  `tracing` target (a function cannot take the target: `tracing` needs a constant
+  one). Every listener logs the same explicit fields (`listener`, `outcome`,
+  `processed`, `lost_to_lag`, `unread_when_timed_out`), never a `Debug`
+  rendering, with a warning when the drain lost events and an info line otherwise.
+  The counts are **events of every type** on the bus, not completions: the
+  persistent listener ignores all but `PeerDownloadCompleted`, so a count of
+  unread events does not say how many completed downloads were lost.
 - **Tokio semantics the trait relies on** (tokio 1.53.3, the version in
   `Cargo.lock`; **read from source, not run**: `tokio-1.53.3/src/sync/broadcast.rs`):
   - `Receiver::try_recv` returns the next buffered value, or

@@ -541,7 +541,7 @@ mod tests {
     use torrust_tracker_http_core::event::sender::Broadcaster;
     use torrust_tracker_http_core::services::announce::AnnounceService;
     use torrust_tracker_http_core::services::scrape::ScrapeService;
-    use torrust_tracker_http_core::statistics::event::listener::run_event_listener;
+    use torrust_tracker_http_core::statistics::event::listener::{DEFAULT_DRAIN_TIMEOUT, run_event_listener};
     use torrust_tracker_http_core::statistics::repository::Repository;
     use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
     use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
@@ -607,6 +607,7 @@ mod tests {
                 cancellation_token,
                 &http_stats_repository,
                 [(configuration_instance_id, true)].into(),
+                DEFAULT_DRAIN_TIMEOUT,
             );
         }
 

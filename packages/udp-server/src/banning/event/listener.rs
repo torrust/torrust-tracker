@@ -1,9 +1,12 @@
 use std::sync::Arc;
+use std::time::Duration;
 
 use tokio::sync::RwLock;
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 use torrust_clock::clock::Time;
+use torrust_tracker_events::drain::drain;
+use torrust_tracker_events::log_drain_report;
 use torrust_tracker_events::receiver::RecvError;
 use torrust_tracker_events::shutdown::Completion;
 use torrust_tracker_udp_core::UDP_TRACKER_LOG_TARGET;
@@ -22,6 +25,7 @@ pub fn run_event_listener(
     ban_service: &Arc<RwLock<BanService>>,
     publication_order: &Arc<PublicationOrder>,
     repository: &Arc<Repository>,
+    drain_timeout: Duration,
 ) -> JoinHandle<()> {
     let ban_service_clone = ban_service.clone();
     let publication_order_clone = publication_order.clone();
@@ -33,6 +37,7 @@ pub fn run_event_listener(
             ban_service_clone,
             publication_order_clone,
             repository_clone,
+            drain_timeout,
         )
         .await;
 
@@ -41,15 +46,28 @@ pub fn run_event_listener(
 }
 
 /// Runs the listener without spawning so a caller can retain task ownership.
+///
+/// After cancellation the listener keeps handling the events already queued for it until its
+/// queue is empty or `drain_timeout` expires (see [`drain`]), logs what it did, and returns
+/// [`Completion::Cancelled`].
 pub async fn run_event_listener_unspawned(
     receiver: Receiver,
     cancellation_token: CancellationToken,
     ban_service: Arc<RwLock<BanService>>,
     publication_order: Arc<PublicationOrder>,
     repository: Arc<Repository>,
+    drain_timeout: Duration,
 ) -> Completion {
     tracing::info!(target: UDP_TRACKER_LOG_TARGET, "Starting UDP tracker server event listener (banning)");
-    dispatch_events(receiver, cancellation_token, ban_service, publication_order, repository).await
+    dispatch_events(
+        receiver,
+        cancellation_token,
+        ban_service,
+        publication_order,
+        repository,
+        drain_timeout,
+    )
+    .await
 }
 
 async fn dispatch_events(
@@ -58,6 +76,7 @@ async fn dispatch_events(
     ban_service: Arc<RwLock<BanService>>,
     publication_order: Arc<PublicationOrder>,
     repository: Arc<Repository>,
+    drain_timeout: Duration,
 ) -> Completion {
     loop {
         tokio::select! {
@@ -65,6 +84,9 @@ async fn dispatch_events(
 
             () = cancellation_token.cancelled() => {
                 log_cancellation();
+
+                drain_events(&mut receiver, drain_timeout, &ban_service, &publication_order, &repository).await;
+
                 return Completion::Cancelled;
             }
 
@@ -75,6 +97,23 @@ async fn dispatch_events(
             }
         }
     }
+}
+
+/// Handles the events still queued for the listener after its cancellation, within the timeout,
+/// and logs what the drain did.
+async fn drain_events(
+    receiver: &mut Receiver,
+    drain_timeout: Duration,
+    ban_service: &Arc<RwLock<BanService>>,
+    publication_order: &Arc<PublicationOrder>,
+    repository: &Arc<Repository>,
+) {
+    let report = drain(&mut **receiver, drain_timeout, |event| {
+        handle_event(event, ban_service, publication_order, repository, CurrentClock::now())
+    })
+    .await;
+
+    log_drain_report!(UDP_TRACKER_LOG_TARGET, "udp_tracker_server_banning", report);
 }
 
 async fn handle_received_event(
@@ -98,7 +137,7 @@ async fn handle_received_event(
 }
 
 fn log_cancellation() {
-    tracing::info!(target: UDP_TRACKER_LOG_TARGET, "Received cancellation request, shutting down UDP tracker server event listener.");
+    tracing::info!(target: UDP_TRACKER_LOG_TARGET, "Received cancellation request, draining UDP tracker server event listener (banning).");
 }
 
 #[cfg(test)]
@@ -107,13 +146,16 @@ mod tests {
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
     use std::sync::Arc;
     use std::sync::atomic::{AtomicUsize, Ordering};
+    use std::time::Duration;
 
     use futures::FutureExt as _;
     use futures::future::BoxFuture;
     use tokio::sync::RwLock;
     use tokio_util::sync::CancellationToken;
     use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
-    use torrust_tracker_events::receiver::RecvError;
+    use torrust_tracker_events::drain::DEFAULT_DRAIN_TIMEOUT;
+    use torrust_tracker_events::receiver::{RecvError, TryRecvError};
+    use torrust_tracker_events::shutdown::Completion;
     use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
     use torrust_tracker_udp_core::event::ConnectionContext;
     use torrust_tracker_udp_core::services::banning::BanService;
@@ -145,8 +187,26 @@ mod tests {
         type Event = Event;
 
         fn recv(&mut self) -> BoxFuture<'_, Result<Self::Event, RecvError>> {
-            self.receives.fetch_add(1, Ordering::SeqCst);
-            futures::future::ready(self.results.pop_front().expect("scripted receive result")).boxed()
+            // Lazy, like a real receiver: `select!` creates this future even when another branch wins,
+            // and an eager pop would consume an event the drain must still see.
+            async move {
+                self.receives.fetch_add(1, Ordering::SeqCst);
+                self.results.pop_front().expect("scripted receive result")
+            }
+            .boxed()
+        }
+
+        fn try_recv(&mut self) -> Result<Self::Event, TryRecvError> {
+            match self.results.pop_front() {
+                Some(Ok(event)) => Ok(event),
+                Some(Err(RecvError::Closed)) => Err(TryRecvError::Closed),
+                Some(Err(RecvError::Lagged(skipped))) => Err(TryRecvError::Lagged(skipped)),
+                None => Err(TryRecvError::Empty),
+            }
+        }
+
+        fn len(&self) -> usize {
+            self.results.iter().filter(|result| result.is_ok()).count()
         }
     }
 
@@ -180,6 +240,7 @@ mod tests {
             ban_service(),
             Arc::new(PublicationOrder::default()),
             Arc::new(Repository::new()),
+            DEFAULT_DRAIN_TIMEOUT,
         )
         .await;
 
@@ -204,6 +265,7 @@ mod tests {
             ban_service.clone(),
             Arc::new(PublicationOrder::default()),
             Arc::new(Repository::new()),
+            DEFAULT_DRAIN_TIMEOUT,
         )
         .await;
 
@@ -216,8 +278,10 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn it_should_prioritize_cancellation_over_a_ready_event() {
+    async fn it_should_handle_a_queued_event_then_return_cancelled_when_cancellation_is_already_pending() {
         // Arrange
+        // A connection-cookie error is queued for the banning listener, and its token is cancelled
+        // before the listener takes the event.
         let (scripted_receiver, _receives) =
             ScriptedReceiver::new([Ok(error_event(ErrorKind::ConnectionCookie("expired".into())))]);
         let cancellation_token = CancellationToken::new();
@@ -225,20 +289,61 @@ mod tests {
         let ban_service = ban_service();
 
         // Act
-        dispatch_events(
+        let completion = dispatch_events(
             Box::new(scripted_receiver),
             cancellation_token,
             ban_service.clone(),
             Arc::new(PublicationOrder::default()),
             Arc::new(Repository::new()),
+            DEFAULT_DRAIN_TIMEOUT,
         )
         .await;
 
         // Assert
+        // The queued error is counted against the client, and the listener reports that it stopped
+        // because of the cancellation.
+        assert_eq!(
+            ban_service.read().await.get_count(&EVENT_CLIENT_IP),
+            Some(1),
+            "connection ID errors recorded for {EVENT_CLIENT_IP}"
+        );
+        assert_eq!(completion, Completion::Cancelled, "a drained listener must return Cancelled");
+    }
+
+    #[tokio::test]
+    async fn it_should_leave_the_queued_event_unprocessed_and_return_cancelled_when_the_drain_timeout_has_expired() {
+        // Arrange
+        // The same queued error and cancelled token, with a drain timeout of zero, so it has expired
+        // before the first event could be admitted.
+        let (scripted_receiver, _receives) =
+            ScriptedReceiver::new([Ok(error_event(ErrorKind::ConnectionCookie("expired".into())))]);
+        let cancellation_token = CancellationToken::new();
+        cancellation_token.cancel();
+        let ban_service = ban_service();
+
+        // Act
+        let completion = dispatch_events(
+            Box::new(scripted_receiver),
+            cancellation_token,
+            ban_service.clone(),
+            Arc::new(PublicationOrder::default()),
+            Arc::new(Repository::new()),
+            Duration::ZERO,
+        )
+        .await;
+
+        // Assert
+        // Nothing was counted, because the timeout stops admission, and the listener still returns
+        // Cancelled so the supervisor sees a cooperative stop.
         assert_eq!(
             ban_service.read().await.get_count(&EVENT_CLIENT_IP),
             None,
             "connection ID errors recorded for {EVENT_CLIENT_IP}"
+        );
+        assert_eq!(
+            completion,
+            Completion::Cancelled,
+            "an expired drain must still return Cancelled"
         );
     }
 
@@ -258,6 +363,7 @@ mod tests {
             ban_service.clone(),
             Arc::new(PublicationOrder::default()),
             Arc::new(Repository::new()),
+            DEFAULT_DRAIN_TIMEOUT,
         )
         .await;
 

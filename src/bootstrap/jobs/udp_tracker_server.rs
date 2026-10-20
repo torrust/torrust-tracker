@@ -7,6 +7,7 @@ use tokio::time::interval;
 use tokio_util::sync::CancellationToken;
 use torrust_clock::clock::Time as _;
 use torrust_tracker_configuration::v3_0_0::Configuration;
+use torrust_tracker_events::drain::DEFAULT_DRAIN_TIMEOUT;
 use torrust_tracker_events::shutdown::Completion;
 use torrust_tracker_udp_core::UDP_TRACKER_LOG_TARGET;
 use torrust_tracker_udp_core::services::banning::BanService;
@@ -36,6 +37,7 @@ pub fn run_stats_event_listener(
         cancellation_token,
         app_container.udp_tracker_server_container.stats_repository.clone(),
         metrics_policy,
+        DEFAULT_DRAIN_TIMEOUT,
     )
 }
 
@@ -56,6 +58,7 @@ pub fn run_banning_event_listener(
             .banned_ips_publication_order
             .clone(),
         app_container.udp_tracker_server_container.stats_repository.clone(),
+        DEFAULT_DRAIN_TIMEOUT,
     )
 }
 
