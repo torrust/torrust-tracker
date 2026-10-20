@@ -6,7 +6,7 @@ epic: null
 github-issue: 1669
 spec-path: docs/issues/open/1669-overhaul-packages/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-20 11:57"
+last-updated-utc: "2026-10-20 16:21"
 semantic-links:
   skill-links:
     - create-issue
@@ -664,7 +664,7 @@ Status: TODO unless noted.
 #### 4. Other Tracked Items (Drafts and Promoted Issues)
 
 - [x] [#2446](https://github.com/torrust/torrust-tracker/issues/2446) SI-01: Establish baseline: dependency graph + README audit _(analysis; no blockers; informs all other subissues)_ — **DONE** (2026-10-06 coupling report, refreshed README audit and dependency diagram; three findings drafted as subissues)
-- [ ] Update all package READMEs _(documentation; after completed rename work; before extractions)_
+- [ ] [#2576](https://github.com/torrust/torrust-tracker/issues/2576) Update all package READMEs and crates.io metadata before the first publish _(documentation; blocked on #2482; before the first publish of any unpublished crate)_
 - [x] [#2454](https://github.com/torrust/torrust-tracker/issues/2454) Mark public error enums `#[non_exhaustive]` before first publish _(Pre-publish API checklist; per crate, before its first publish)_ — **DONE** (2026-10-20, PR #2568)
 - [ ] [#2482](https://github.com/torrust/torrust-tracker/issues/2482) Reorganize test support code shared between workspace packages _(sub-EPIC; findings 1 and 2 of the 2026-10-06 coupling report; amends DEC-13)_
 - [x] [#2475](https://github.com/torrust/torrust-tracker/issues/2475) Fix coupling-tool module name resolution for renamed dependencies and custom library names _(finding 3 of the 2026-10-06 coupling report; corrected report: [2026-10-17](workspace-coupling-report-2026-10-17.md))_ — **DONE** (2026-10-19, PR #2559)
@@ -699,7 +699,7 @@ Details:
 | Metrics rename             | [#1819](https://github.com/torrust/torrust-tracker/issues/1819) — Rename `torrust-tracker-metrics` to `torrust-metrics`                                                                   | [issue #1819](https://github.com/torrust/torrust-tracker/issues/1819)                                                                                                                          | DONE   | Rule U; not yet published; no blockers; prerequisite for metrics extraction                                                                   |
 | Clock rename               | [#1821](https://github.com/torrust/torrust-tracker/issues/1821) — Rename `torrust-tracker-clock` to `torrust-clock`                                                                       | [issue #1821](https://github.com/torrust/torrust-tracker/issues/1821)                                                                                                                          | DONE   | Rule P; published on crates.io; no blockers; prerequisite for clock extraction                                                                |
 | Located error rename       | [#1823](https://github.com/torrust/torrust-tracker/issues/1823) — Rename `torrust-tracker-located-error` to `torrust-located-error`                                                       | [docs/issues/closed/1823-1669-10-rename-torrust-tracker-located-error-to-torrust-located-error/ISSUE.md](../../closed/1823-1669-10-rename-torrust-tracker-located-error-to-torrust-located-error/ISSUE.md) | DONE   | Rule P; completed                                                                                                                             |
-| README refresh             | #TBD — Update all package READMEs                                                                                                                                                         | [docs/issues/drafts/1669-update-all-package-readmes/ISSUE.md](../../drafts/1669-update-all-package-readmes/ISSUE.md)                                                                                       | TODO   | Documentation; requires completed rename work; before extraction work                                                                         |
+| README refresh             | [#2576](https://github.com/torrust/torrust-tracker/issues/2576) — Update all package READMEs and crates.io metadata before the first publish | [docs/issues/open/2576-1669-update-all-package-readmes/ISSUE.md](../2576-1669-update-all-package-readmes/ISSUE.md) | TODO   | Documentation and `Cargo.toml` metadata; blocked on #2482; must merge before the first publish of any unpublished crate |
 | Bencode migration          | [#1881](https://github.com/torrust/torrust-tracker/issues/1881) SI-16: Migrate `contrib/bencode` to `torrust/torrust-bittorrent` as `torrust-bencode`                                     | [docs/issues/closed/1881-1669-16-migrate-contrib-bencode-to-torrust-bittorrent/ISSUE.md](../../closed/1881-1669-16-migrate-contrib-bencode-to-torrust-bittorrent/ISSUE.md)                     | DONE   | Rule E; torrust-bencode 3.0.0 published; contrib/bencode removed from tracker workspace                                                       |
 | Peer-ID move               | [#1884](https://github.com/torrust/torrust-tracker/issues/1884) — Move `bittorrent-peer-id` to `torrust/torrust-bittorrent` as `torrust-peer-id`                                          | [docs/issues/closed/1884-1669-19-move-bittorrent-peer-id-to-torrust-bittorrent/ISSUE.md](../../closed/1884-1669-19-move-bittorrent-peer-id-to-torrust-bittorrent/ISSUE.md)                                 | DONE   | Rule E; published as torrust-peer-id 0.1.0 on crates.io; 3 tracker consumers migrated; packages/peer-id removed                               |
 | Clock extraction           | [#1879](https://github.com/torrust/torrust-tracker/issues/1879) — Extract `torrust-clock` to standalone repository                                                                        | [docs/issues/closed/1879-1669-17-extract-torrust-clock-to-standalone-repo/ISSUE.md](../../closed/1879-1669-17-extract-torrust-clock-to-standalone-repo/ISSUE.md)                                           | DONE   | Rule E; torrust-clock v3.0.0 published; 13 consumers migrated; packages/clock removed                                                         |
@@ -744,7 +744,7 @@ After SI-14, there is a proposal to evaluate a dedicated repository for protocol
 
 - [docs/issues/closed/2446-1669-establish-baseline-analysis/ISSUE.md](../../closed/2446-1669-establish-baseline-analysis/ISSUE.md)
 - [docs/issues/closed/2454-1669-mark-public-error-enums-non-exhaustive/ISSUE.md](../../closed/2454-1669-mark-public-error-enums-non-exhaustive/ISSUE.md)
-- [docs/issues/drafts/1669-update-all-package-readmes/ISSUE.md](../../drafts/1669-update-all-package-readmes/ISSUE.md)
+- [docs/issues/open/2576-1669-update-all-package-readmes/ISSUE.md](../2576-1669-update-all-package-readmes/ISSUE.md)
 - [Issue #1669](https://github.com/torrust/torrust-tracker/issues/1669)
 - [Issue #1882](https://github.com/torrust/torrust-tracker/issues/1882)
 - [Issue #1884](https://github.com/torrust/torrust-tracker/issues/1884)
@@ -1055,6 +1055,10 @@ Previously referenced tools (screenshots from CodeScene already in the issue com
   `docs/issues/closed/2454-1669-mark-public-error-enums-non-exhaustive/`. The next publish of
   `torrust-tracker`, `torrust-tracker-configuration` and `torrust-tracker-primitives` must be a
   semver-major bump (checklist item 4).
+- 2026-10-20 16:21 UTC - GitHub Copilot (Claude Opus 5.5) - Promoted the README refresh draft to #2576
+  (Update all package READMEs and crates.io metadata before the first publish), linked as a
+  subissue. Spec at `docs/issues/open/2576-1669-update-all-package-readmes/ISSUE.md`; blocked on
+  #2482 and due before the first publish of any unpublished crate.
 
 ## Acceptance Criteria
 
