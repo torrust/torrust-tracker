@@ -211,598 +211,654 @@ impl From<HttpScrapeError> for HttpProtocolErrorResponse {
 
 #[cfg(test)]
 mod tests {
-
-    use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+    use std::collections::BTreeMap;
+    use std::future;
+    use std::net::{IpAddr, SocketAddr};
+    use std::panic::Location;
     use std::sync::Arc;
 
-    use futures::future::BoxFuture;
-    use mockall::mock;
-    use torrust_clock::DurationSinceUnixEpoch;
+    use rstest::rstest;
     use torrust_info_hash::InfoHash;
+    use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
     use torrust_tracker_configuration::v3_0_0::Configuration;
-    use torrust_tracker_core::announce_handler::AnnounceHandler;
+    use torrust_tracker_configuration::v3_0_0::core::Core;
+    use torrust_tracker_configuration::v3_0_0::http_tracker::HttpTracker;
+    use torrust_tracker_configuration::v3_0_0::public_url::HttpUrl;
+    use torrust_tracker_core::announce_handler::{AnnounceHandler, PeersWanted};
+    use torrust_tracker_core::authentication::Key;
     use torrust_tracker_core::authentication::key::repository::in_memory::InMemoryKeyRepository;
+    use torrust_tracker_core::authentication::key::{Error as AuthenticationKeyError, generate_key};
     use torrust_tracker_core::authentication::service::AuthenticationService;
-    use torrust_tracker_core::databases::TorrentMetricsStore;
-    use torrust_tracker_core::databases::setup::initialize_database;
+    use torrust_tracker_core::databases::error::Error as DatabaseError;
+    use torrust_tracker_core::databases::{MockTorrentMetricsStore, TorrentMetricsStore};
+    use torrust_tracker_core::error::{ScrapeError, TrackerCoreError, WhitelistError};
     use torrust_tracker_core::scrape_handler::ScrapeHandler;
     use torrust_tracker_core::statistics::persisted::downloads::DatabaseDownloadsMetricRepository;
     use torrust_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
     use torrust_tracker_core::whitelist::authorization::WhitelistAuthorization;
     use torrust_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
-    use torrust_tracker_events::sender::SendError;
-    use torrust_tracker_primitives::{AnnounceEvent, ConfigurationInstanceId, NumberOfBytes, PeerId, ServiceRole, peer};
+    use torrust_tracker_http_protocol::v1::requests::scrape::Scrape;
+    use torrust_tracker_http_protocol::v1::responses::error::Error as HttpProtocolErrorResponse;
+    use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::{
+        ClientIpSources, PeerIpResolutionError, RemoteClientAddr, ResolvedIp,
+    };
+    use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
+    use torrust_tracker_primitives::{ConfigurationInstanceId, Driver, ScrapeData, ServiceRole};
+    use torrust_tracker_test_helpers::configuration;
 
-    use crate::event::Event;
-    use crate::tests::sample_info_hash;
+    use crate::event;
+    use crate::event::{ConnectionContext, Event};
+    use crate::services::error_mapping::protocol_error_from_tracker_core_error;
+    use crate::services::scrape::{HttpScrapeError, ScrapeService};
+    use crate::tests::{RecordingSender, sample_info_hash, sample_peer};
 
-    struct Container {
+    /// The port of the TCP connection that the scrape arrives on.
+    const CONNECTION_PORT: u16 = 54_321;
+
+    /// The collaborators of one scrape scenario. It builds only what the service
+    /// needs: no database, statistics repository or event listener.
+    struct Fixture {
+        core_config: Arc<Core>,
         announce_handler: Arc<AnnounceHandler>,
         scrape_handler: Arc<ScrapeHandler>,
         authentication_service: Arc<AuthenticationService>,
+        in_memory_key_repository: Arc<InMemoryKeyRepository>,
         configuration_instance_id: ConfigurationInstanceId,
-        torrent_metrics_store: Arc<dyn TorrentMetricsStore>,
+        http_tracker_config: HttpTracker,
     }
 
-    async fn initialize_services_with_configuration(config: &Configuration) -> Container {
-        let configuration_instance_id = config
-            .http_trackers
-            .as_deref()
-            .expect("the test configuration should contain an HTTP tracker")
-            .iter()
-            .enumerate()
-            .next()
-            .map(|(index, _)| ConfigurationInstanceId::new(ServiceRole::HttpTracker, index))
-            .expect("the test configuration should contain an HTTP tracker");
-        let database = initialize_database(&config.core).await;
-        let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());
-        let whitelist_authorization = Arc::new(WhitelistAuthorization::new(&config.core, &in_memory_whitelist));
-        let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
-        let db_downloads_metric_repository = Arc::new(DatabaseDownloadsMetricRepository::new(&database.torrent_metrics_store));
-        let in_memory_key_repository = Arc::new(InMemoryKeyRepository::default());
-        let authentication_service = Arc::new(AuthenticationService::new(&config.core, &in_memory_key_repository));
-
-        let (announce_handler, scrape_handler) = if config.core.tracker_policy.persistent_torrent_completed_stat {
-            (
-                Arc::new(AnnounceHandler::new_with_persistent_completed_statistics(
-                    &config.core,
-                    &whitelist_authorization,
-                    &in_memory_torrent_repository,
-                    &db_downloads_metric_repository,
-                )),
-                Arc::new(ScrapeHandler::new_with_persistent_completed_statistics(
-                    &whitelist_authorization,
-                    &in_memory_torrent_repository,
-                    &db_downloads_metric_repository,
-                )),
-            )
-        } else {
-            (
-                Arc::new(AnnounceHandler::new_public(
-                    &config.core,
-                    &whitelist_authorization,
-                    &in_memory_torrent_repository,
-                )),
-                Arc::new(ScrapeHandler::new_public(
-                    &whitelist_authorization,
-                    &in_memory_torrent_repository,
-                )),
-            )
-        };
-
-        Container {
-            announce_handler,
-            scrape_handler,
-            authentication_service,
-            configuration_instance_id,
-            torrent_metrics_store: database.torrent_metrics_store,
+    impl Fixture {
+        fn new(configuration: &Configuration) -> Self {
+            Self::build(configuration, None)
         }
-    }
 
-    fn sample_info_hashes() -> Vec<InfoHash> {
-        vec![sample_info_hash()]
-    }
-
-    fn sample_peer() -> peer::Peer {
-        peer::Peer {
-            peer_id: PeerId(*b"-qB00000000000000000"),
-            peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
-            updated: DurationSinceUnixEpoch::new(1_669_397_478_934, 0),
-            uploaded: NumberOfBytes::new(0),
-            downloaded: NumberOfBytes::new(0),
-            left: NumberOfBytes::new(0),
-            event: AnnounceEvent::Started,
+        /// A tracker that reads the persisted download counts from `store`.
+        fn with_persisted_downloads_from(configuration: &Configuration, store: MockTorrentMetricsStore) -> Self {
+            Self::build(configuration, Some(store))
         }
-    }
 
-    mock! {
-        HttpStatsEventSender {}
-        impl torrust_tracker_events::sender::Sender for HttpStatsEventSender {
-             type Event = Event;
-
-             fn send(&self, event: Event) -> BoxFuture<'static,Option<Result<usize,SendError<Event> > > > ;
-        }
-    }
-
-    mod with_real_data {
-
-        use std::future;
-        use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
-        use std::sync::Arc;
-
-        use mockall::predicate::eq;
-        use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
-        use torrust_tracker_core::announce_handler::PeersWanted;
-        use torrust_tracker_events::bus::SenderStatus;
-        use torrust_tracker_http_protocol::v1::requests::scrape::Scrape;
-        use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::{ClientIpSources, RemoteClientAddr, ResolvedIp};
-        use torrust_tracker_primitives::ScrapeData;
-        use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
-        use torrust_tracker_test_helpers::configuration;
-
-        use crate::event::bus::EventBus;
-        use crate::event::sender::Broadcaster;
-        use crate::event::{ConnectionContext, Event};
-        use crate::services::scrape::ScrapeService;
-        use crate::services::scrape::tests::{
-            MockHttpStatsEventSender, initialize_services_with_configuration, sample_info_hashes, sample_peer,
-        };
-        use crate::tests::sample_info_hash;
-
-        #[tokio::test]
-        async fn it_should_use_the_http_tracker_reverse_proxy_policy() {
-            // Arrange
-            let configuration = configuration::ephemeral_with_reverse_proxy();
-            let container = initialize_services_with_configuration(&configuration).await;
+        fn build(configuration: &Configuration, persisted_downloads_store: Option<MockTorrentMetricsStore>) -> Self {
+            let core_config = Arc::new(configuration.core.clone());
+            let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
+            let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());
+            let whitelist_authorization = Arc::new(WhitelistAuthorization::new(&configuration.core, &in_memory_whitelist));
+            let in_memory_key_repository = Arc::new(InMemoryKeyRepository::default());
+            let authentication_service = Arc::new(AuthenticationService::new(&configuration.core, &in_memory_key_repository));
+            let announce_handler = Arc::new(AnnounceHandler::new_public(
+                &configuration.core,
+                &whitelist_authorization,
+                &in_memory_torrent_repository,
+            ));
+            let scrape_handler = Arc::new(persisted_downloads_store.map_or_else(
+                || ScrapeHandler::new_public(&whitelist_authorization, &in_memory_torrent_repository),
+                |store| {
+                    let store: Arc<dyn TorrentMetricsStore> = Arc::new(store);
+                    let db_downloads_metric_repository = Arc::new(DatabaseDownloadsMetricRepository::new(&store));
+                    ScrapeHandler::new_with_persistent_completed_statistics(
+                        &whitelist_authorization,
+                        &in_memory_torrent_repository,
+                        &db_downloads_metric_repository,
+                    )
+                },
+            ));
             let http_tracker_config = configuration
                 .http_trackers
-                .as_ref()
-                .expect("the test configuration should contain an HTTP tracker")[0]
+                .as_deref()
+                .and_then(<[HttpTracker]>::first)
+                .expect("the test configuration should contain an HTTP tracker")
                 .clone();
-            let proxy_ip = "203.0.113.195".parse().unwrap();
-            let connection_ip = "192.0.2.10".parse().unwrap();
-            let client_ip_sources = ClientIpSources {
-                right_most_x_forwarded_for: Some(proxy_ip),
-                connection_info_socket_address: Some(SocketAddr::new(connection_ip, 8080)),
-            };
-            let mut http_stats_event_sender_mock = MockHttpStatsEventSender::new();
-            http_stats_event_sender_mock
-                .expect_send()
-                .with(eq(Event::TcpScrape {
-                    connection: ConnectionContext::new(
-                        container.configuration_instance_id,
-                        RemoteClientAddr::new(ResolvedIp::FromXForwardedFor(proxy_ip), Some(8080)),
-                        ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070)).unwrap(),
-                    ),
-                }))
-                .times(1)
-                .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-            let scrape_service = ScrapeService::new_with_http_tracker_config(
-                Arc::new(configuration.core),
-                container.scrape_handler,
-                container.authentication_service,
-                Some(Arc::new(http_stats_event_sender_mock)),
-                &http_tracker_config,
-                container.configuration_instance_id,
-            );
-            let scrape_request = Scrape {
-                info_hashes: sample_info_hashes(),
-            };
-            let server_service_binding =
-                ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070)).unwrap();
 
-            // Act
-            let result = scrape_service
-                .handle_scrape(&scrape_request, &client_ip_sources, &server_service_binding, None)
-                .await;
-
-            // Assert
-            assert!(result.is_ok());
+            Self {
+                core_config,
+                announce_handler,
+                scrape_handler,
+                authentication_service,
+                in_memory_key_repository,
+                configuration_instance_id: ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0),
+                http_tracker_config,
+            }
         }
 
-        #[tokio::test]
-        async fn it_should_return_the_scrape_data_for_a_torrent() {
-            let configuration = configuration::ephemeral_public();
-            let core_config = Arc::new(configuration.core.clone());
+        /// Registers a permanent key and returns it.
+        async fn register_a_key(&self) -> Key {
+            let peer_key = generate_key(None);
+            let key = peer_key.key();
+            self.in_memory_key_repository.reset_with(vec![peer_key]).await;
+            key
+        }
 
-            // HTTP core stats
-            let http_core_broadcaster = Broadcaster::default();
-            let http_stats_event_bus = Arc::new(EventBus::new(SenderStatus::Disabled, http_core_broadcaster.clone()));
-
-            let http_stats_event_sender = http_stats_event_bus.sender();
-
-            let container = initialize_services_with_configuration(&configuration).await;
-
-            let info_hash = sample_info_hash();
-            let info_hashes = vec![info_hash];
-
-            // Announce a new peer to force scrape data to contain non zeroed data
+        /// Announces the sample peer, a seeder, for the sample torrent.
+        async fn announce_a_seeder(&self) {
             let mut peer = sample_peer();
-            let original_peer_ip = peer.ip();
-            container
-                .announce_handler
-                .handle_announcement(&info_hash, &mut peer, &original_peer_ip, None, &PeersWanted::AsManyAsPossible)
-                .await
-                .unwrap();
-
-            let scrape_request = Scrape {
-                info_hashes: info_hashes.clone(),
-            };
-
-            let client_ip_sources = ClientIpSources {
-                right_most_x_forwarded_for: None,
-                connection_info_socket_address: Some(SocketAddr::new(original_peer_ip, 8080)),
-            };
-
-            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070);
-            let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
-
-            let scrape_service = Arc::new(ScrapeService::new(
-                core_config.clone(),
-                container.scrape_handler.clone(),
-                container.authentication_service.clone(),
-                http_stats_event_sender.clone(),
-                container.configuration_instance_id,
-            ));
-
-            let scrape_data = scrape_service
-                .handle_scrape(&scrape_request, &client_ip_sources, &server_service_binding, None)
-                .await
-                .unwrap();
-
-            let mut expected_scrape_data = ScrapeData::empty();
-            expected_scrape_data.add_file(
-                &info_hash,
-                SwarmMetadata {
-                    complete: 1,
-                    downloaded: 0,
-                    incomplete: 0,
-                },
-            );
-
-            assert_eq!(scrape_data, expected_scrape_data);
-        }
-
-        #[tokio::test]
-        async fn it_should_return_the_persisted_downloads_of_a_torrent_absent_from_memory() {
-            // Arrange
-            let mut configuration = configuration::ephemeral_public();
-            configuration.core.tracker_policy.persistent_torrent_completed_stat = true;
-            let container = initialize_services_with_configuration(&configuration).await;
-            container
-                .torrent_metrics_store
-                .save_torrent_downloads(&sample_info_hash(), 7)
-                .await
-                .unwrap();
-            let scrape_service = ScrapeService::new(
-                Arc::new(configuration.core),
-                container.scrape_handler,
-                container.authentication_service,
-                None,
-                container.configuration_instance_id,
-            );
-            let client_ip_sources = ClientIpSources {
-                right_most_x_forwarded_for: None,
-                connection_info_socket_address: Some(SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080)),
-            };
-            let server_service_binding =
-                ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070)).unwrap();
-
-            // Act
-            let scrape_data = scrape_service
-                .handle_scrape(
-                    &Scrape {
-                        info_hashes: sample_info_hashes(),
-                    },
-                    &client_ip_sources,
-                    &server_service_binding,
-                    None,
-                )
-                .await
-                .unwrap();
-
-            // Assert
-            assert_eq!(
-                scrape_data.files[&sample_info_hash()],
-                SwarmMetadata::new(7, 0, 0),
-                "HTTP scrape should report the persisted downloads (7) of a torrent absent from memory"
-            );
-        }
-
-        #[tokio::test]
-        async fn it_should_send_the_tcp_4_scrape_event_when_the_peer_uses_ipv4() {
-            let config = configuration::ephemeral();
-            let container = initialize_services_with_configuration(&config).await;
-            let configuration_instance_id = container.configuration_instance_id;
-
-            let mut http_stats_event_sender_mock = MockHttpStatsEventSender::new();
-            http_stats_event_sender_mock
-                .expect_send()
-                .with(eq(Event::TcpScrape {
-                    connection: ConnectionContext::new(
-                        configuration_instance_id,
-                        RemoteClientAddr::new(
-                            ResolvedIp::FromSocketAddr(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1))),
-                            Some(8080),
-                        ),
-                        ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070)).unwrap(),
-                    ),
-                }))
-                .times(1)
-                .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-            let http_stats_event_sender: crate::event::sender::Sender = Some(Arc::new(http_stats_event_sender_mock));
-
-            let peer_ip = IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1));
-
-            let scrape_request = Scrape {
-                info_hashes: sample_info_hashes(),
-            };
-
-            let client_ip_sources = ClientIpSources {
-                right_most_x_forwarded_for: None,
-                connection_info_socket_address: Some(SocketAddr::new(peer_ip, 8080)),
-            };
-
-            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070);
-            let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
-
-            let scrape_service = Arc::new(ScrapeService::new(
-                Arc::new(config.core),
-                container.scrape_handler.clone(),
-                container.authentication_service.clone(),
-                http_stats_event_sender.clone(),
-                container.configuration_instance_id,
-            ));
-
-            scrape_service
-                .handle_scrape(&scrape_request, &client_ip_sources, &server_service_binding, None)
+            let peer_ip = peer.ip();
+            self.announce_handler
+                .handle_announcement(&sample_info_hash(), &mut peer, &peer_ip, None, &PeersWanted::AsManyAsPossible)
                 .await
                 .unwrap();
         }
 
-        #[tokio::test]
-        async fn it_should_send_the_tcp_6_scrape_event_when_the_peer_uses_ipv6() {
-            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070);
-            let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
+        /// A service built with `ScrapeService::new`: no reverse proxy and no public URL.
+        fn service(&self, sender: event::sender::Sender) -> ScrapeService {
+            ScrapeService::new(
+                self.core_config.clone(),
+                self.scrape_handler.clone(),
+                self.authentication_service.clone(),
+                sender,
+                self.configuration_instance_id,
+            )
+        }
 
-            let config = configuration::ephemeral();
-            let container = initialize_services_with_configuration(&config).await;
-            let configuration_instance_id = container.configuration_instance_id;
-
-            let mut http_stats_event_sender_mock = MockHttpStatsEventSender::new();
-            http_stats_event_sender_mock
-                .expect_send()
-                .with(eq(Event::TcpScrape {
-                    connection: ConnectionContext::new(
-                        configuration_instance_id,
-                        RemoteClientAddr::new(
-                            ResolvedIp::FromSocketAddr(IpAddr::V6(Ipv6Addr::new(
-                                0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969,
-                            ))),
-                            Some(8080),
-                        ),
-                        server_service_binding,
-                    ),
-                }))
-                .times(1)
-                .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-            let http_stats_event_sender: crate::event::sender::Sender = Some(Arc::new(http_stats_event_sender_mock));
-
-            let peer_ip = IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969));
-
-            let scrape_request = Scrape {
-                info_hashes: sample_info_hashes(),
-            };
-
-            let client_ip_sources = ClientIpSources {
-                right_most_x_forwarded_for: None,
-                connection_info_socket_address: Some(SocketAddr::new(peer_ip, 8080)),
-            };
-
-            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070);
-            let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
-
-            let scrape_service = Arc::new(ScrapeService::new(
-                Arc::new(config.core),
-                container.scrape_handler.clone(),
-                container.authentication_service.clone(),
-                http_stats_event_sender.clone(),
-                container.configuration_instance_id,
-            ));
-
-            scrape_service
-                .handle_scrape(&scrape_request, &client_ip_sources, &server_service_binding, None)
-                .await
-                .unwrap();
+        /// A service that takes its reverse-proxy mode and public URL from the configured HTTP tracker.
+        fn service_for_http_tracker(&self, sender: event::sender::Sender) -> ScrapeService {
+            ScrapeService::new_with_http_tracker_config(
+                self.core_config.clone(),
+                self.scrape_handler.clone(),
+                self.authentication_service.clone(),
+                sender,
+                &self.http_tracker_config,
+                self.configuration_instance_id,
+            )
         }
     }
 
-    mod with_zeroed_data {
+    fn ip(text: &str) -> IpAddr {
+        text.parse().expect("the test IP address should be valid")
+    }
 
-        use std::future;
-        use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
-        use std::sync::Arc;
+    fn localhost() -> IpAddr {
+        ip("127.0.0.1")
+    }
 
-        use mockall::predicate::eq;
-        use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
-        use torrust_tracker_core::announce_handler::PeersWanted;
-        use torrust_tracker_events::bus::SenderStatus;
-        use torrust_tracker_http_protocol::v1::requests::scrape::Scrape;
-        use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::{ClientIpSources, RemoteClientAddr, ResolvedIp};
-        use torrust_tracker_primitives::ScrapeData;
-        use torrust_tracker_test_helpers::configuration;
+    /// A torrent that nobody announced and that is not persisted.
+    fn unknown_info_hash() -> InfoHash {
+        "9c38422213e30bff212b30c360d26f9a02136422" // DevSkim: ignore DS173237
+            .parse()
+            .expect("the test info hash should be valid")
+    }
 
-        use crate::event::bus::EventBus;
-        use crate::event::sender::Broadcaster;
-        use crate::event::{ConnectionContext, Event};
-        use crate::services::scrape::ScrapeService;
-        use crate::services::scrape::tests::{
-            MockHttpStatsEventSender, initialize_services_with_configuration, sample_info_hashes, sample_peer,
+    fn scrape_request_for(info_hashes: Vec<InfoHash>) -> Scrape {
+        Scrape { info_hashes }
+    }
+
+    /// Client IP sources for a direct connection from `connection_ip`.
+    fn direct_connection_from(connection_ip: IpAddr) -> ClientIpSources {
+        ClientIpSources {
+            right_most_x_forwarded_for: None,
+            connection_info_socket_address: Some(SocketAddr::new(connection_ip, CONNECTION_PORT)),
+        }
+    }
+
+    /// Client IP sources that name no address, so resolving the client IP fails.
+    const fn unresolvable_client_ip_sources() -> ClientIpSources {
+        ClientIpSources {
+            right_most_x_forwarded_for: None,
+            connection_info_socket_address: None,
+        }
+    }
+
+    fn sample_server_service_binding() -> ServiceBinding {
+        ServiceBinding::new(Protocol::HTTP, SocketAddr::new(localhost(), 7070)).unwrap()
+    }
+
+    /// The metadata of the sample torrent after one seeder announced.
+    const fn one_seeder() -> SwarmMetadata {
+        SwarmMetadata {
+            complete: 1,
+            downloaded: 0,
+            incomplete: 0,
+        }
+    }
+
+    const fn nothing() -> SwarmMetadata {
+        SwarmMetadata {
+            complete: 0,
+            downloaded: 0,
+            incomplete: 0,
+        }
+    }
+
+    fn scrape_data_of(files: Vec<(InfoHash, SwarmMetadata)>) -> ScrapeData {
+        let mut scrape_data = ScrapeData::empty();
+        for (info_hash, metadata) in files {
+            scrape_data.add_file(&info_hash, metadata);
+        }
+        scrape_data
+    }
+
+    fn expected_connection(fixture: &Fixture, remote_client_ip: ResolvedIp) -> ConnectionContext {
+        ConnectionContext::new(
+            fixture.configuration_instance_id,
+            RemoteClientAddr::new(remote_client_ip, Some(CONNECTION_PORT)),
+            sample_server_service_binding(),
+        )
+    }
+
+    fn corrupt_record() -> DatabaseError {
+        DatabaseError::MalformedDatabaseRecord {
+            message: "corrupt record".to_string(),
+            driver: Driver::Sqlite3,
+        }
+    }
+
+    /// A persisted-downloads store whose lookup always fails.
+    fn failing_persisted_downloads_store() -> MockTorrentMetricsStore {
+        let mut store = MockTorrentMetricsStore::new();
+        store
+            .expect_load_torrents_downloads()
+            .returning(|_| Box::pin(future::ready(Err(corrupt_record()))));
+        store
+    }
+
+    #[tokio::test]
+    async fn it_should_return_the_scrape_data_for_a_torrent() {
+        // Arrange
+        let fixture = Fixture::new(&configuration::ephemeral_public());
+        fixture.announce_a_seeder().await;
+        let service = fixture.service(None);
+
+        // Act
+        let scrape_data = service
+            .handle_scrape(
+                &scrape_request_for(vec![sample_info_hash()]),
+                &direct_connection_from(localhost()),
+                &sample_server_service_binding(),
+                None,
+            )
+            .await
+            .unwrap();
+
+        // Assert
+        assert_eq!(scrape_data, scrape_data_of(vec![(sample_info_hash(), one_seeder())]));
+    }
+
+    #[tokio::test]
+    async fn it_should_return_the_persisted_downloads_of_a_torrent_absent_from_memory() {
+        // Arrange
+        let mut store = MockTorrentMetricsStore::new();
+        store
+            .expect_load_torrents_downloads()
+            .returning(|_| Box::pin(future::ready(Ok(BTreeMap::from([(sample_info_hash(), 7)])))));
+        let fixture = Fixture::with_persisted_downloads_from(&configuration::ephemeral_public(), store);
+        let service = fixture.service(None);
+
+        // Act
+        let scrape_data = service
+            .handle_scrape(
+                &scrape_request_for(vec![sample_info_hash()]),
+                &direct_connection_from(localhost()),
+                &sample_server_service_binding(),
+                None,
+            )
+            .await
+            .unwrap();
+
+        // Assert: the persisted downloads (7) are reported with no peers.
+        let expected_metadata = SwarmMetadata {
+            complete: 0,
+            downloaded: 7,
+            incomplete: 0,
         };
-        use crate::tests::sample_info_hash;
+        assert_eq!(scrape_data, scrape_data_of(vec![(sample_info_hash(), expected_metadata)]));
+    }
 
-        #[tokio::test]
-        async fn it_should_return_the_zeroed_scrape_data_when_the_tracker_is_running_in_private_mode_and_the_peer_is_not_authenticated()
-         {
-            let config = configuration::ephemeral_private();
+    #[tokio::test]
+    async fn it_should_zero_every_requested_torrent_for_an_unauthenticated_peer_on_a_private_tracker() {
+        // Arrange: one requested torrent has a swarm and the other is unknown.
+        let fixture = Fixture::new(&configuration::ephemeral_private());
+        fixture.announce_a_seeder().await;
+        let service = fixture.service(None);
+        let request = scrape_request_for(vec![sample_info_hash(), unknown_info_hash()]);
 
-            let container = initialize_services_with_configuration(&config).await;
+        // Act
+        let scrape_data = service
+            .handle_scrape(
+                &request,
+                &direct_connection_from(localhost()),
+                &sample_server_service_binding(),
+                None,
+            )
+            .await
+            .unwrap();
 
-            // HTTP core stats
-            let http_core_broadcaster = Broadcaster::default();
-            let http_stats_event_bus = Arc::new(EventBus::new(SenderStatus::Disabled, http_core_broadcaster.clone()));
+        // Assert
+        let expected = scrape_data_of(vec![(sample_info_hash(), nothing()), (unknown_info_hash(), nothing())]);
+        assert_eq!(scrape_data, expected);
+    }
 
-            let http_stats_event_sender = http_stats_event_bus.sender();
+    #[tokio::test]
+    async fn it_should_zero_the_scrape_data_for_an_unregistered_key_on_a_private_tracker() {
+        // Arrange
+        let fixture = Fixture::new(&configuration::ephemeral_private());
+        fixture.announce_a_seeder().await;
+        let service = fixture.service(None);
+        let unregistered_key = Key::random();
 
-            let info_hash = sample_info_hash();
-            let info_hashes = vec![info_hash];
+        // Act
+        let scrape_data = service
+            .handle_scrape(
+                &scrape_request_for(vec![sample_info_hash()]),
+                &direct_connection_from(localhost()),
+                &sample_server_service_binding(),
+                Some(unregistered_key),
+            )
+            .await
+            .unwrap();
 
-            // Announce a new peer to force scrape data to contain non zeroed data
-            let mut peer = sample_peer();
-            let original_peer_ip = peer.ip();
-            container
-                .announce_handler
-                .handle_announcement(&info_hash, &mut peer, &original_peer_ip, None, &PeersWanted::AsManyAsPossible)
-                .await
-                .unwrap();
+        // Assert
+        assert_eq!(scrape_data, scrape_data_of(vec![(sample_info_hash(), nothing())]));
+    }
 
-            let scrape_request = Scrape {
-                info_hashes: sample_info_hashes(),
-            };
+    #[tokio::test]
+    async fn it_should_return_the_scrape_data_for_a_registered_key_on_a_private_tracker() {
+        // Arrange
+        let fixture = Fixture::new(&configuration::ephemeral_private());
+        fixture.announce_a_seeder().await;
+        let registered_key = fixture.register_a_key().await;
+        let service = fixture.service(None);
 
-            let client_ip_sources = ClientIpSources {
-                right_most_x_forwarded_for: None,
-                connection_info_socket_address: Some(SocketAddr::new(original_peer_ip, 8080)),
-            };
+        // Act
+        let scrape_data = service
+            .handle_scrape(
+                &scrape_request_for(vec![sample_info_hash()]),
+                &direct_connection_from(localhost()),
+                &sample_server_service_binding(),
+                Some(registered_key),
+            )
+            .await
+            .unwrap();
 
-            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070);
-            let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
+        // Assert
+        assert_eq!(scrape_data, scrape_data_of(vec![(sample_info_hash(), one_seeder())]));
+    }
 
-            let scrape_service = Arc::new(ScrapeService::new(
-                Arc::new(config.core),
-                container.scrape_handler.clone(),
-                container.authentication_service.clone(),
-                http_stats_event_sender.clone(),
-                container.configuration_instance_id,
-            ));
+    #[rstest]
+    #[case::ipv4_client(ip("126.0.0.1"))]
+    #[case::ipv6_client(ip("6969:6969:6969:6969:6969:6969:6969:6969"))]
+    #[tokio::test]
+    async fn it_should_publish_the_connection_address_of_the_client_in_the_scrape_event(#[case] connection_ip: IpAddr) {
+        // Arrange
+        let fixture = Fixture::new(&configuration::ephemeral_public());
+        let sender = RecordingSender::new();
+        let service = fixture.service(Some(sender.clone()));
 
-            let scrape_data = scrape_service
-                .handle_scrape(&scrape_request, &client_ip_sources, &server_service_binding, None)
-                .await
-                .unwrap();
+        // Act
+        let result = service
+            .handle_scrape(
+                &scrape_request_for(vec![sample_info_hash()]),
+                &direct_connection_from(connection_ip),
+                &sample_server_service_binding(),
+                None,
+            )
+            .await;
 
-            let expected_scrape_data = ScrapeData::zeroed(&info_hashes);
+        // Assert
+        assert!(result.is_ok(), "the scrape should succeed: {result:?}");
+        let expected_event = Event::TcpScrape {
+            connection: expected_connection(&fixture, ResolvedIp::FromSocketAddr(connection_ip)),
+        };
+        assert_eq!(sender.events(), vec![expected_event]);
+    }
 
-            assert_eq!(scrape_data, expected_scrape_data);
-        }
+    #[tokio::test]
+    async fn it_should_use_the_http_tracker_reverse_proxy_policy() {
+        // Arrange
+        let proxy_ip = ip("203.0.113.195");
+        let fixture = Fixture::new(&configuration::ephemeral_with_reverse_proxy());
+        let sender = RecordingSender::new();
+        let service = fixture.service_for_http_tracker(Some(sender.clone()));
+        let client_ip_sources = ClientIpSources {
+            right_most_x_forwarded_for: Some(proxy_ip),
+            connection_info_socket_address: Some(SocketAddr::new(ip("192.0.2.10"), CONNECTION_PORT)),
+        };
 
-        #[tokio::test]
-        async fn it_should_send_the_tcp_4_scrape_event_when_the_peer_uses_ipv4() {
-            let config = configuration::ephemeral();
+        // Act
+        let result = service
+            .handle_scrape(
+                &scrape_request_for(vec![sample_info_hash()]),
+                &client_ip_sources,
+                &sample_server_service_binding(),
+                None,
+            )
+            .await;
 
-            let container = initialize_services_with_configuration(&config).await;
-            let configuration_instance_id = container.configuration_instance_id;
+        // Assert
+        assert!(result.is_ok(), "the scrape should succeed: {result:?}");
+        let expected_event = Event::TcpScrape {
+            connection: expected_connection(&fixture, ResolvedIp::FromXForwardedFor(proxy_ip)),
+        };
+        assert_eq!(sender.events(), vec![expected_event]);
+    }
 
-            let mut http_stats_event_sender_mock = MockHttpStatsEventSender::new();
-            http_stats_event_sender_mock
-                .expect_send()
-                .with(eq(Event::TcpScrape {
-                    connection: ConnectionContext::new(
-                        configuration_instance_id,
-                        RemoteClientAddr::new(
-                            ResolvedIp::FromSocketAddr(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1))),
-                            Some(8080),
-                        ),
-                        ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070)).unwrap(),
-                    ),
-                }))
-                .times(1)
-                .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-            let http_stats_event_sender: crate::event::sender::Sender = Some(Arc::new(http_stats_event_sender_mock));
+    #[tokio::test]
+    async fn it_should_publish_the_public_url_of_the_http_tracker_in_the_scrape_event() {
+        // Arrange
+        let mut configuration = configuration::ephemeral_public();
+        configuration
+            .http_trackers
+            .as_mut()
+            .expect("the test configuration should contain an HTTP tracker")[0]
+            .public_url = Some(HttpUrl::parse("https://tracker.example.com/").unwrap());
+        let fixture = Fixture::new(&configuration);
+        let sender = RecordingSender::new();
+        let service = fixture.service_for_http_tracker(Some(sender.clone()));
 
-            let peer_ip = IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1));
+        // Act
+        let result = service
+            .handle_scrape(
+                &scrape_request_for(vec![sample_info_hash()]),
+                &direct_connection_from(localhost()),
+                &sample_server_service_binding(),
+                None,
+            )
+            .await;
 
-            let scrape_request = Scrape {
-                info_hashes: sample_info_hashes(),
-            };
+        // Assert
+        assert!(result.is_ok(), "the scrape should succeed: {result:?}");
+        let expected_event = Event::TcpScrape {
+            connection: expected_connection(&fixture, ResolvedIp::FromSocketAddr(localhost()))
+                .with_public_url(Some("https://tracker.example.com/".to_string())),
+        };
+        assert_eq!(sender.events(), vec![expected_event]);
+    }
 
-            let client_ip_sources = ClientIpSources {
-                right_most_x_forwarded_for: None,
-                connection_info_socket_address: Some(SocketAddr::new(peer_ip, 8080)),
-            };
+    #[tokio::test]
+    async fn it_should_scrape_without_publishing_when_there_is_no_event_sender() {
+        // Arrange
+        let fixture = Fixture::new(&configuration::ephemeral_public());
+        fixture.announce_a_seeder().await;
+        let service = fixture.service(None);
 
-            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070);
-            let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
+        // Act
+        let result = service
+            .handle_scrape(
+                &scrape_request_for(vec![sample_info_hash()]),
+                &direct_connection_from(localhost()),
+                &sample_server_service_binding(),
+                None,
+            )
+            .await;
 
-            let scrape_service = Arc::new(ScrapeService::new(
-                Arc::new(config.core),
-                container.scrape_handler.clone(),
-                container.authentication_service.clone(),
-                http_stats_event_sender.clone(),
-                container.configuration_instance_id,
-            ));
+        // Assert
+        assert!(result.is_ok(), "the scrape should succeed: {result:?}");
+    }
 
-            scrape_service
-                .handle_scrape(&scrape_request, &client_ip_sources, &server_service_binding, None)
-                .await
-                .unwrap();
-        }
+    #[tokio::test]
+    async fn it_should_report_a_failing_persisted_downloads_lookup_as_a_tracker_core_scrape_error() {
+        // Arrange
+        let fixture =
+            Fixture::with_persisted_downloads_from(&configuration::ephemeral_public(), failing_persisted_downloads_store());
+        let sender = RecordingSender::new();
+        let service = fixture.service(Some(sender.clone()));
 
-        #[tokio::test]
-        async fn it_should_send_the_tcp_6_scrape_event_when_the_peer_uses_ipv6() {
-            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070);
-            let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
+        // Act
+        let result = service
+            .handle_scrape(
+                &scrape_request_for(vec![sample_info_hash()]),
+                &direct_connection_from(localhost()),
+                &sample_server_service_binding(),
+                None,
+            )
+            .await;
 
-            let config = configuration::ephemeral();
+        // Assert
+        assert!(
+            matches!(
+                result,
+                Err(HttpScrapeError::TrackerCoreError {
+                    source: TrackerCoreError::ScrapeError {
+                        source: ScrapeError::Database(_)
+                    }
+                })
+            ),
+            "unexpected result: {result:?}"
+        );
+        assert!(sender.events().is_empty(), "no event should be published");
+    }
 
-            let container = initialize_services_with_configuration(&config).await;
-            let configuration_instance_id = container.configuration_instance_id;
+    #[rstest]
+    #[case::without_a_reverse_proxy(configuration::ephemeral_public())]
+    #[case::behind_a_reverse_proxy(configuration::ephemeral_with_reverse_proxy())]
+    #[tokio::test]
+    async fn it_should_report_an_unresolvable_client_ip_without_publishing_an_event(#[case] configuration: Configuration) {
+        // Arrange
+        let fixture = Fixture::new(&configuration);
+        let sender = RecordingSender::new();
+        let service = fixture.service_for_http_tracker(Some(sender.clone()));
 
-            let mut http_stats_event_sender_mock = MockHttpStatsEventSender::new();
-            http_stats_event_sender_mock
-                .expect_send()
-                .with(eq(Event::TcpScrape {
-                    connection: ConnectionContext::new(
-                        configuration_instance_id,
-                        RemoteClientAddr::new(
-                            ResolvedIp::FromSocketAddr(IpAddr::V6(Ipv6Addr::new(
-                                0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969,
-                            ))),
-                            Some(8080),
-                        ),
-                        server_service_binding,
-                    ),
-                }))
-                .times(1)
-                .returning(|_| Box::pin(future::ready(Some(Ok(1)))));
-            let http_stats_event_sender: crate::event::sender::Sender = Some(Arc::new(http_stats_event_sender_mock));
+        // Act
+        let result = service
+            .handle_scrape(
+                &scrape_request_for(vec![sample_info_hash()]),
+                &unresolvable_client_ip_sources(),
+                &sample_server_service_binding(),
+                None,
+            )
+            .await;
 
-            let peer_ip = IpAddr::V6(Ipv6Addr::new(0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969, 0x6969));
+        // Assert
+        assert!(
+            matches!(result, Err(HttpScrapeError::PeerIpResolutionError { .. })),
+            "unexpected result: {result:?}"
+        );
+        assert!(sender.events().is_empty(), "no event should be published");
+    }
 
-            let scrape_request = Scrape {
-                info_hashes: sample_info_hashes(),
-            };
+    #[tokio::test]
+    async fn it_should_scrape_before_resolving_the_client_ip() {
+        // Arrange: the persisted-downloads lookup fails and the client IP cannot be resolved.
+        let fixture =
+            Fixture::with_persisted_downloads_from(&configuration::ephemeral_public(), failing_persisted_downloads_store());
+        let sender = RecordingSender::new();
+        let service = fixture.service(Some(sender.clone()));
 
-            let client_ip_sources = ClientIpSources {
-                right_most_x_forwarded_for: None,
-                connection_info_socket_address: Some(SocketAddr::new(peer_ip, 8080)),
-            };
+        // Act
+        let result = service
+            .handle_scrape(
+                &scrape_request_for(vec![sample_info_hash()]),
+                &unresolvable_client_ip_sources(),
+                &sample_server_service_binding(),
+                None,
+            )
+            .await;
 
-            let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070);
-            let server_service_binding = ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap();
+        // Assert
+        assert!(
+            matches!(result, Err(HttpScrapeError::TrackerCoreError { .. })),
+            "unexpected result: {result:?}"
+        );
+        assert!(sender.events().is_empty(), "no event should be published");
+    }
 
-            let scrape_service = Arc::new(ScrapeService::new(
-                Arc::new(config.core),
-                container.scrape_handler.clone(),
-                container.authentication_service.clone(),
-                http_stats_event_sender.clone(),
-                container.configuration_instance_id,
-            ));
+    #[test]
+    fn it_should_wrap_a_whitelist_error_in_the_tracker_core_variant() {
+        // Arrange
+        let whitelist_error = WhitelistError::TorrentNotWhitelisted {
+            info_hash: sample_info_hash(),
+            location: Location::caller(),
+        };
 
-            scrape_service
-                .handle_scrape(&scrape_request, &client_ip_sources, &server_service_binding, None)
-                .await
-                .unwrap();
-        }
+        // Act
+        let error = HttpScrapeError::from(whitelist_error);
+
+        // Assert
+        assert!(
+            matches!(
+                error,
+                HttpScrapeError::TrackerCoreError {
+                    source: TrackerCoreError::WhitelistError { .. }
+                }
+            ),
+            "unexpected error: {error:?}"
+        );
+    }
+
+    #[test]
+    fn it_should_wrap_an_authentication_error_in_the_tracker_core_variant() {
+        // Arrange
+        let authentication_error = AuthenticationKeyError::MissingAuthKey {
+            location: Location::caller(),
+        };
+
+        // Act
+        let error = HttpScrapeError::from(authentication_error);
+
+        // Assert
+        assert!(
+            matches!(
+                error,
+                HttpScrapeError::TrackerCoreError {
+                    source: TrackerCoreError::AuthenticationError { .. }
+                }
+            ),
+            "unexpected error: {error:?}"
+        );
+    }
+
+    #[test]
+    fn it_should_wrap_a_tracker_core_error_without_changing_it() {
+        // Arrange
+        let tracker_core_error = TrackerCoreError::from(ScrapeError::from(corrupt_record()));
+
+        // Act
+        let error = HttpScrapeError::from(tracker_core_error);
+
+        // Assert
+        assert!(
+            matches!(
+                error,
+                HttpScrapeError::TrackerCoreError {
+                    source: TrackerCoreError::ScrapeError { .. }
+                }
+            ),
+            "unexpected error: {error:?}"
+        );
+    }
+
+    #[test]
+    fn it_should_report_a_peer_ip_resolution_error_with_the_protocol_failure_reason() {
+        // Arrange
+        let resolution_error = PeerIpResolutionError::MissingClientIp {
+            location: Location::caller(),
+        };
+        let protocol_response = HttpProtocolErrorResponse::from(resolution_error.clone());
+
+        // Act
+        let response = HttpProtocolErrorResponse::from(HttpScrapeError::from(resolution_error));
+
+        // Assert
+        assert_eq!(response.failure_reason, protocol_response.failure_reason);
+    }
+
+    #[test]
+    fn it_should_report_a_tracker_core_error_with_the_tracker_core_failure_reason() {
+        // Arrange
+        let tracker_core_error = TrackerCoreError::from(ScrapeError::from(corrupt_record()));
+        let tracker_core_response = protocol_error_from_tracker_core_error(tracker_core_error.clone());
+
+        // Act
+        let response = HttpProtocolErrorResponse::from(HttpScrapeError::from(tracker_core_error));
+
+        // Assert
+        assert_eq!(response.failure_reason, tracker_core_response.failure_reason);
     }
 }

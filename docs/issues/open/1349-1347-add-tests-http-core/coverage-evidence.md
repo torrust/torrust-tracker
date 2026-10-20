@@ -207,3 +207,27 @@ Measured on 2026-10-20 at the final S2 commit with the same commands. The packag
 | Functions | 161 / 191 (84.29%) | 198 / 221 (89.59%) | +5.30 pp |
 
 The totals include the test modules, so part of the change is test code that is itself covered. The signal that matters is the per-file mutation proof in each plan.
+
+### `services/scrape.rs` (slice S3)
+
+Measured on 2026-10-20 on the S3 branch, whose production code is identical to `develop` at the merge of #2575. The plan is [services-scrape-tests.md](test-refactor-plans/services-scrape-tests.md).
+
+| Scope | Before (S2 baseline) | After |
+| --- | ---: | ---: |
+| `services/scrape.rs` lines | 507 / 540 (93.89%) | 488 / 492 (99.19%) |
+| `services/scrape.rs` regions | 678 / 711 (95.36%) | 659 / 664 (99.25%) |
+| `services/scrape.rs` functions | 36 / 43 (83.72%) | 66 / 66 (100.00%) |
+
+The file's 8 tests are now 19 cases. The counted lines fell because the refactored test module has fewer instrumented lines than the 8 old tests. Every production line, region and function of the file is covered: the four uncovered lines and five uncovered regions are the failure branches of `matches!` assertions in the test module. A shared `RecordingSender` moved into `lib.rs`, whose test module is 37 / 37 lines.
+
+### Package After Slice S3
+
+Measured on 2026-10-20 at the final S3 commit with the same commands. The package has 90 unit tests (33 before slice S2).
+
+| Scope | Original baseline (`87690b15e`) | After slice S2 | After slice S3 | Change since S2 |
+| --- | ---: | ---: | ---: | ---: |
+| Lines | 1,751 / 1,970 (88.88%) | 1,919 / 2,101 (91.34%) | 1,900 / 2,053 (92.55%) | +1.21 pp |
+| Regions | 2,357 / 2,607 (90.41%) | 2,511 / 2,716 (92.45%) | 2,492 / 2,669 (93.37%) | +0.92 pp |
+| Functions | 161 / 191 (84.29%) | 198 / 221 (89.59%) | 228 / 244 (93.44%) | +3.85 pp |
+
+Since the original baseline the package gained +3.66 pp of lines, +2.96 pp of regions and +9.15 pp of functions. The absolute counts fell in S3 because the refactor removed duplicated test code.

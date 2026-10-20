@@ -435,9 +435,8 @@ mod tests {
     use std::future;
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
     use std::panic::Location;
-    use std::sync::{Arc, Mutex};
+    use std::sync::Arc;
 
-    use futures::future::BoxFuture;
     use rstest::rstest;
     use torrust_clock::DurationSinceUnixEpoch;
     use torrust_clock::clock::stopped::Stopped as _;
@@ -458,7 +457,6 @@ mod tests {
     use torrust_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
     use torrust_tracker_core::whitelist::authorization::WhitelistAuthorization;
     use torrust_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
-    use torrust_tracker_events::sender::SendError;
     use torrust_tracker_http_protocol::v1::requests::announce::{
         Announce, Event as ProtocolAnnounceEvent, NumberOfBytes as ProtocolNumberOfBytes, PeerIp,
     };
@@ -476,7 +474,7 @@ mod tests {
     use crate::event::{ConnectionContext, Event};
     use crate::services::announce::{AnnounceService, HttpAnnounceError, PeerIpSelectionPolicy};
     use crate::services::error_mapping::protocol_error_from_tracker_core_error;
-    use crate::tests::{sample_info_hash, sample_peer};
+    use crate::tests::{RecordingSender, sample_info_hash, sample_peer};
     use crate::{CurrentClock, event};
 
     /// The port that the peer announces in every request.
@@ -597,32 +595,6 @@ mod tests {
                 &self.http_tracker_config,
                 self.configuration_instance_id,
             )
-        }
-    }
-
-    /// An event sender that keeps every event it receives, so a test can assert
-    /// on the events explicitly.
-    #[derive(Default)]
-    struct RecordingSender {
-        events: Mutex<Vec<Event>>,
-    }
-
-    impl RecordingSender {
-        fn new() -> Arc<Self> {
-            Arc::new(Self::default())
-        }
-
-        fn events(&self) -> Vec<Event> {
-            self.events.lock().unwrap().clone()
-        }
-    }
-
-    impl torrust_tracker_events::sender::Sender for RecordingSender {
-        type Event = Event;
-
-        fn send(&self, event: Event) -> BoxFuture<'static, Option<Result<usize, SendError<Event>>>> {
-            self.events.lock().unwrap().push(event);
-            Box::pin(future::ready(Some(Ok(1))))
         }
     }
 

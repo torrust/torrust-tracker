@@ -9,7 +9,7 @@ github-issue: 1349
 spec-path: docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md
 branch: "1349-1347-add-tests-http-core-scrape"
 related-pr: null
-last-updated-utc: "2026-10-20 16:50"
+last-updated-utc: "2026-10-20 17:09"
 semantic-links:
   skill-links:
     - create-issue
@@ -452,7 +452,7 @@ lines are the S2 baseline measurement (see [Baseline Coverage](#baseline-coverag
 | ---: | --- | ---: | --- | ---: | ---: | --- | --- | --- |
 | 1 | `services/announce.rs` | 1-2 | S2 | 675 / 727 (92.85%) | 8 | Property candidate (peer-IP selection) | DONE | [services-announce-tests.md](test-refactor-plans/services-announce-tests.md) (done; 843 / 851 lines after) |
 | 2 | `services/error_mapping.rs` | 2 | S2 | 0 / 18 (0.00%) | 0 | Test candidate | DONE | [services-error-mapping-tests.md](test-refactor-plans/services-error-mapping-tests.md) (done; 26 / 29 lines after, wildcard arm untestable) |
-| 3 | `services/scrape.rs` | 3 | S3 | 507 / 540 (93.89%) | 8 | Test candidate (error paths) | PENDING | - |
+| 3 | `services/scrape.rs` | 3 | S3 | 507 / 540 (93.89%) | 8 | Test candidate (error paths) | DONE | [services-scrape-tests.md](test-refactor-plans/services-scrape-tests.md) (done; 488 / 492 lines after) |
 | 4 | `event.rs` | 4 | S4 | 174 / 187 (93.05%) | 7 | Probably small change | PENDING | - |
 | 5 | `container.rs` | 5 | S4 | 0 / 73 (0.00%) | 0 | Test candidate | PENDING | - |
 | 6 | `statistics/event/handler.rs` | 6 | S5 | 158 / 161 (98.14%) | 5 | Probably no change | PENDING | - |
@@ -630,6 +630,14 @@ lines are the S2 baseline measurement (see [Baseline Coverage](#baseline-coverag
   `develop` at the merge of #2575. `packages/http-core` changed on `develop` only through S2, so the
   baseline is the final S2 measurement: lines 1,919 / 2,101 (91.34%), regions 2,511 / 2,716 (92.45%),
   functions 198 / 221 (89.59%), 79 unit tests; no re-measurement was needed.
+- 2026-10-20 17:09 UTC - GitHub Copilot - `services/scrape.rs` is `DONE` (S3): the maintainer approved the
+  plan (including a shared `RecordingSender` moved into `crate::tests`), the R1 refactor and the
+  completed file. The 8 tests became 19 cases; the real database is replaced by `MockTorrentMetricsStore`;
+  mutations M1-M4 and two probes each fail only their tests; unit-only line coverage of the file went
+  from 93.89% to 99.19%. One planned test (a public tracker ignoring a presented key) was dropped
+  because no mutation can fail it. Package after S3: lines 1,900 / 2,053 (92.55%), regions 2,492 / 2,669
+  (93.37%), functions 228 / 244 (93.44%), 90 unit tests. No finding needed a hand-off. Next: the
+  independent Task Reviewer, the pre-push checks and the S3 pull request.
 
 ## Acceptance Criteria
 
