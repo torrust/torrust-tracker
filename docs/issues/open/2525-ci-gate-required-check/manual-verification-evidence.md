@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2525-ci-gate-required-check/ISSUE.md
-last-updated-utc: 2026-10-20 16:50
+last-updated-utc: 2026-10-20 17:21
 ---
 
 # Manual Verification Evidence
@@ -227,6 +227,13 @@ and rerun. All ten compiled and were killed:
 | a failing verdict with no override passes                  |             6 |
 | the completeness check of the classification is removed    |             2 |
 | unknown input fields are accepted                          |             1 |
+
+Review round on PR #2580: a real run with an extra field (`"unexpected": true`) inside the
+classification, and again inside a group decision, still printed `pass` with exit code 0, because
+`deny_unknown_fields` on the verdict input does not reach nested types. After the fix both exit with 1,
+naming the unknown field, and nothing is printed on stdout. Two more mutants, one per nested type with the
+denial removed, were each killed by their own test case, so the verdict has 12 mutants killed in all. The
+final run has 134 unit and 10 command-line tests.
 
 ## Failures and Follow-up
 
