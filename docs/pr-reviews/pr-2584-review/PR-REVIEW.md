@@ -31,9 +31,9 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
-| F1 | review-finding:pr-2584-f1 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | OPEN |
-| F2 | review-finding:pr-2584-f2 | Copilot | Nit (inferred) | documentation | ORIGINAL | FIXED | OPEN |
-| F3 | review-finding:pr-2584-f3 | Copilot | Nit (inferred) | metadata | ORIGINAL | NO_ACTION | OPEN |
+| F1 | review-finding:pr-2584-f1 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F2 | review-finding:pr-2584-f2 | Copilot | Nit (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F3 | review-finding:pr-2584-f3 | Copilot | Nit (inferred) | metadata | ORIGINAL | NO_ACTION | RESOLVED |
 
 ## Finding Details
 
@@ -95,6 +95,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-10-20 19:35 UTC - Started audit of Copilot review 5589436901 on PR #2584.
 - 2026-10-20 19:36 UTC - Fixed F1 and F2 in spec commit `ccfde7bc9`; rejected F3 with the repository
   timestamp convention as rationale.
+- 2026-10-20 19:46 UTC - Resolved threads F1, F2, and F3 after replies were posted; no pending
+  reviews or unresolved threads remained on PR #2584.
 
 Append entries only. If an entry was rewritten in place, restore the prior entries, then append a
 correction that names the rewritten content; do not rewrite the record again.
