@@ -6,7 +6,7 @@ epic: null
 github-issue: 2243
 spec-path: docs/issues/closed/2243-review-numeric-conversion-boundaries/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-16 16:04"
+last-updated-utc: "2026-10-20 16:46"
 semantic-links:
   skill-links:
     - create-issue
@@ -70,7 +70,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | Order | Issue | Local Spec | Status | Notes |
 | ----- | ----- | ---------- | ------ | ----- |
-| 1 | #2244 - Review metric aggregate conversions | `docs/issues/closed/2244-2243-review-metric-aggregate-conversions/ISSUE.md` | DONE | Owns 72 metric entries: A080-A087, A113-A114, A143-A154, A170, A178-A222, A224-A227. PR #2552 removed 68 and retained 4 (A113, A114, A170, A178) with native reasons, and fixed a UDP average processing time defect. Follow-up: torrust/torrust-metrics#1 (an exact `u64` counter sum) is optional. |
+| 1 | #2244 - Review metric aggregate conversions | `docs/issues/closed/2244-2243-review-metric-aggregate-conversions/ISSUE.md` | DONE | Owns 72 metric entries: A080-A087, A113-A114, A143-A154, A170, A178-A222, A224-A227. PR #2552 removed 68 and retained 4 (A113, A114, A170, A178) with native reasons, and fixed a UDP average processing time defect. Follow-ups: torrust/torrust-metrics#1 added an exact `u64` counter sum (released as `torrust-metrics` 0.2.0), and #2560 adopted it in the tracker. |
 | 2 | #2245 - Review numeric protocol wire conversions | `docs/issues/closed/2245-2243-review-numeric-protocol-wire-conversions/ISSUE.md` | DONE | Owns A156 and A171 only. Follow-up: #2466 (under configuration EPIC #1978) rejects an announce `interval` above `i32::MAX` at configuration load with a typed value. |
 | 3 | #2246 - Review domain numeric conversions | `docs/issues/closed/2246-2243-review-domain-numeric-conversions/ISSUE.md` | DONE | Owns A099, A123, and A129. |
 
@@ -132,6 +132,7 @@ For each subissue implementation in this EPIC, the default completion policy is:
 - 2026-10-16 11:12 UTC - GitHub Copilot - Correction: the 2026-10-15 21:00 UTC entry above was written at 20:52 UTC, the author time of `docs(issues): [#2244] record metric conversion outcomes and verification evidence`; the stamp was an estimate - No change to this EPIC's scope
 - 2026-10-16 15:39 UTC - GitHub Copilot - #2244 done: PR #2552 merged and GitHub closed the issue. All three subissues are done. Verified the acceptance criteria against the tree: all 77 owned inventory entries are present with an outcome, none is `Temporary`, and no temporary reason remains in the source
 - 2026-10-16 16:04 UTC - GitHub Copilot - Archived this EPIC and the #2244 spec to `docs/issues/closed/`; the PR that archives them closes the EPIC when it merges - Done
+- 2026-10-20 16:46 UTC - GitHub Copilot - Recorded the follow-up chain of #2244: torrust/torrust-metrics#1 added the exact counter sum, `torrust-metrics` 0.2.0 released it, and #2560 (PR #2561) adopted it in the tracker. The earlier text called the upstream follow-up optional, which was true when written. This EPIC's scope is unchanged, and #2560 is a standalone task, not a subissue - No change to the outcome
 
 ## Acceptance Criteria
 
@@ -164,6 +165,6 @@ For each subissue implementation in this EPIC, the default completion policy is:
 
 ## References
 
-- Related issues: #2158, #2466 (follow-up of #2245), torrust/torrust-metrics#1 (optional follow-up of #2244)
-- Related PRs: #2247 (specification bundle), #2440 (#2246), #2452 (#2245), #2552 (#2244)
+- Related issues: #2158, #2466 (follow-up of #2245), torrust/torrust-metrics#1 (follow-up of #2244, released as `torrust-metrics` 0.2.0), #2560 (adopted it in the tracker)
+- Related PRs: #2247 (specification bundle), #2440 (#2246), #2452 (#2245), #2552 (#2244), #2561 (#2560)
 - Related ADRs: None
