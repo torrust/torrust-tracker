@@ -6,7 +6,7 @@ epic: null
 github-issue: 1669
 spec-path: docs/issues/open/1669-overhaul-packages/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-20 16:21"
+last-updated-utc: "2026-10-20 17:41"
 semantic-links:
   skill-links:
     - create-issue
@@ -665,6 +665,8 @@ Status: TODO unless noted.
 
 - [x] [#2446](https://github.com/torrust/torrust-tracker/issues/2446) SI-01: Establish baseline: dependency graph + README audit _(analysis; no blockers; informs all other subissues)_ — **DONE** (2026-10-06 coupling report, refreshed README audit and dependency diagram; three findings drafted as subissues)
 - [ ] [#2576](https://github.com/torrust/torrust-tracker/issues/2576) Update all package READMEs and crates.io metadata before the first publish _(documentation; blocked on #2482; before the first publish of any unpublished crate)_
+- [ ] [#2583](https://github.com/torrust/torrust-tracker/issues/2583) First publish of the unpublished workspace crates _(publish tracking issue; per-crate checklist in dependency order; blocked on #2482, #2576, #1488 and #1347; at the end of this EPIC)_
+- [ ] [#2582](https://github.com/torrust/torrust-tracker/issues/2582) Remove the self dev-dependency that stops the health check API server crate from being packaged _(bug; pre-publish sub-issue P1 of #2583; not blocked)_
 - [x] [#2454](https://github.com/torrust/torrust-tracker/issues/2454) Mark public error enums `#[non_exhaustive]` before first publish _(Pre-publish API checklist; per crate, before its first publish)_ — **DONE** (2026-10-20, PR #2568)
 - [ ] [#2482](https://github.com/torrust/torrust-tracker/issues/2482) Reorganize test support code shared between workspace packages _(sub-EPIC; findings 1 and 2 of the 2026-10-06 coupling report; amends DEC-13)_
 - [x] [#2475](https://github.com/torrust/torrust-tracker/issues/2475) Fix coupling-tool module name resolution for renamed dependencies and custom library names _(finding 3 of the 2026-10-06 coupling report; corrected report: [2026-10-17](workspace-coupling-report-2026-10-17.md))_ — **DONE** (2026-10-19, PR #2559)
@@ -700,6 +702,8 @@ Details:
 | Clock rename               | [#1821](https://github.com/torrust/torrust-tracker/issues/1821) — Rename `torrust-tracker-clock` to `torrust-clock`                                                                       | [issue #1821](https://github.com/torrust/torrust-tracker/issues/1821)                                                                                                                          | DONE   | Rule P; published on crates.io; no blockers; prerequisite for clock extraction                                                                |
 | Located error rename       | [#1823](https://github.com/torrust/torrust-tracker/issues/1823) — Rename `torrust-tracker-located-error` to `torrust-located-error`                                                       | [docs/issues/closed/1823-1669-10-rename-torrust-tracker-located-error-to-torrust-located-error/ISSUE.md](../../closed/1823-1669-10-rename-torrust-tracker-located-error-to-torrust-located-error/ISSUE.md) | DONE   | Rule P; completed                                                                                                                             |
 | README refresh             | [#2576](https://github.com/torrust/torrust-tracker/issues/2576) — Update all package READMEs and crates.io metadata before the first publish | [docs/issues/open/2576-1669-update-all-package-readmes/ISSUE.md](../2576-1669-update-all-package-readmes/ISSUE.md) | TODO   | Documentation and `Cargo.toml` metadata; blocked on #2482; must merge before the first publish of any unpublished crate |
+| First publish              | [#2583](https://github.com/torrust/torrust-tracker/issues/2583) — First publish of the unpublished workspace crates | [docs/issues/open/2583-1669-first-publish-of-workspace-crates/ISSUE.md](../2583-1669-first-publish-of-workspace-crates/ISSUE.md) | BLOCKED | 20 library crates, one at a time in dependency order; blocked on #2482, #2576, #1488 and #1347; root crate and console client published elsewhere |
+| Health check packaging fix | [#2582](https://github.com/torrust/torrust-tracker/issues/2582) — Remove the self dev-dependency that stops the health check API server crate from being packaged | [docs/issues/open/2582-1669-remove-health-check-self-dev-dependency/ISSUE.md](../2582-1669-remove-health-check-self-dev-dependency/ISSUE.md) | TODO   | Bug; pre-publish sub-issue P1 of #2583; adds a CI `cargo package --workspace --no-verify` check |
 | Bencode migration          | [#1881](https://github.com/torrust/torrust-tracker/issues/1881) SI-16: Migrate `contrib/bencode` to `torrust/torrust-bittorrent` as `torrust-bencode`                                     | [docs/issues/closed/1881-1669-16-migrate-contrib-bencode-to-torrust-bittorrent/ISSUE.md](../../closed/1881-1669-16-migrate-contrib-bencode-to-torrust-bittorrent/ISSUE.md)                     | DONE   | Rule E; torrust-bencode 3.0.0 published; contrib/bencode removed from tracker workspace                                                       |
 | Peer-ID move               | [#1884](https://github.com/torrust/torrust-tracker/issues/1884) — Move `bittorrent-peer-id` to `torrust/torrust-bittorrent` as `torrust-peer-id`                                          | [docs/issues/closed/1884-1669-19-move-bittorrent-peer-id-to-torrust-bittorrent/ISSUE.md](../../closed/1884-1669-19-move-bittorrent-peer-id-to-torrust-bittorrent/ISSUE.md)                                 | DONE   | Rule E; published as torrust-peer-id 0.1.0 on crates.io; 3 tracker consumers migrated; packages/peer-id removed                               |
 | Clock extraction           | [#1879](https://github.com/torrust/torrust-tracker/issues/1879) — Extract `torrust-clock` to standalone repository                                                                        | [docs/issues/closed/1879-1669-17-extract-torrust-clock-to-standalone-repo/ISSUE.md](../../closed/1879-1669-17-extract-torrust-clock-to-standalone-repo/ISSUE.md)                                           | DONE   | Rule E; torrust-clock v3.0.0 published; 13 consumers migrated; packages/clock removed                                                         |
@@ -745,6 +749,8 @@ After SI-14, there is a proposal to evaluate a dedicated repository for protocol
 - [docs/issues/closed/2446-1669-establish-baseline-analysis/ISSUE.md](../../closed/2446-1669-establish-baseline-analysis/ISSUE.md)
 - [docs/issues/closed/2454-1669-mark-public-error-enums-non-exhaustive/ISSUE.md](../../closed/2454-1669-mark-public-error-enums-non-exhaustive/ISSUE.md)
 - [docs/issues/open/2576-1669-update-all-package-readmes/ISSUE.md](../2576-1669-update-all-package-readmes/ISSUE.md)
+- [docs/issues/open/2583-1669-first-publish-of-workspace-crates/ISSUE.md](../2583-1669-first-publish-of-workspace-crates/ISSUE.md)
+- [docs/issues/open/2582-1669-remove-health-check-self-dev-dependency/ISSUE.md](../2582-1669-remove-health-check-self-dev-dependency/ISSUE.md)
 - [Issue #1669](https://github.com/torrust/torrust-tracker/issues/1669)
 - [Issue #1882](https://github.com/torrust/torrust-tracker/issues/1882)
 - [Issue #1884](https://github.com/torrust/torrust-tracker/issues/1884)
@@ -1059,6 +1065,12 @@ Previously referenced tools (screenshots from CodeScene already in the issue com
   (Update all package READMEs and crates.io metadata before the first publish), linked as a
   subissue. Spec at `docs/issues/open/2576-1669-update-all-package-readmes/ISSUE.md`; blocked on
   #2482 and due before the first publish of any unpublished crate.
+- 2026-10-20 17:41 UTC - GitHub Copilot (Claude Opus 5.5) - Created #2583 (First publish of the unpublished
+  workspace crates), labelled `Blocked`, and its pre-publish sub-issue #2582 (the
+  `axum-health-check-api-server` self dev-dependency that makes `cargo package --workspace` fail),
+  both linked as subissues. #2583 publishes the 20 library crates one at a time in dependency order
+  after #2482, #2576, #1488 and #1347; its next publish of `configuration` and `primitives` is
+  4.0.0, and the tracker release publishes the root crate at 4.0.0.
 
 ## Acceptance Criteria
 
