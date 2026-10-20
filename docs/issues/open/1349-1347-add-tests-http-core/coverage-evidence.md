@@ -186,3 +186,18 @@ Measured on 2026-10-20 on the S2 branch, whose production code is identical to `
 | Package functions | 161 / 191 (84.29%) | 196 / 219 (89.50%) |
 
 The package has 73 unit tests (33 before). The file's 8 tests are now 48 cases. Every production line, region and function of the file is covered: the 8 uncovered lines and 10 uncovered regions are the failure branches of `matches!` assertions in the test module. Property-based testing was assessed and not selected: after mutants M1 and M3 and a probe that found one surviving mutant (a loopback `ip` literal replaced by the external IP), which one added example now kills, no mutation survives the examples.
+
+### `services/error_mapping.rs` (slice S2)
+
+Measured on 2026-10-20 on the S2 branch, whose production code is identical to `develop` at `87690b15e`. The plan is [services-error-mapping-tests.md](test-refactor-plans/services-error-mapping-tests.md).
+
+| Scope | Before (`87690b15e`) | After |
+| --- | ---: | ---: |
+| `services/error_mapping.rs` lines | 0 / 18 (0.00%) | 26 / 29 (89.66%) |
+| `services/error_mapping.rs` regions | 0 / 13 | 17 / 19 (89.47%) |
+| `services/error_mapping.rs` functions | 0 / 1 | 3 / 3 (100.00%) |
+| Package lines | 1,751 / 1,970 (88.88%) | 1,919 / 2,101 (91.34%) |
+| Package regions | 2,357 / 2,607 (90.41%) | 2,507 / 2,712 (92.44%) |
+| Package functions | 161 / 191 (84.29%) | 198 / 221 (89.59%) |
+
+The package has 77 unit tests. The 29 counted lines are the 18 production lines (15 covered) and 11 test-module lines. The three uncovered lines are the wildcard arm for an unknown `TrackerCoreError` variant, which no test can reach while the enum has four variants and is `#[non_exhaustive]`; `tracker-core` owns the change that would unlock it.

@@ -9,7 +9,7 @@ github-issue: 1349
 spec-path: docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md
 branch: "1349-1347-add-tests-http-core-announce"
 related-pr: null
-last-updated-utc: "2026-10-20 12:58"
+last-updated-utc: "2026-10-20 14:56"
 semantic-links:
   skill-links:
     - create-issue
@@ -451,7 +451,7 @@ lines are the S2 baseline measurement (see [Baseline Coverage](#baseline-coverag
 | Order | Source module | Rank | Slice | Unit-only lines | Tests | Initial hypothesis | State | Plan |
 | ---: | --- | ---: | --- | ---: | ---: | --- | --- | --- |
 | 1 | `services/announce.rs` | 1-2 | S2 | 675 / 727 (92.85%) | 8 | Property candidate (peer-IP selection) | DONE | [services-announce-tests.md](test-refactor-plans/services-announce-tests.md) (done; 843 / 851 lines after) |
-| 2 | `services/error_mapping.rs` | 2 | S2 | 0 / 18 (0.00%) | 0 | Test candidate | PENDING | - |
+| 2 | `services/error_mapping.rs` | 2 | S2 | 0 / 18 (0.00%) | 0 | Test candidate | DONE | [services-error-mapping-tests.md](test-refactor-plans/services-error-mapping-tests.md) (done; 26 / 29 lines after, wildcard arm untestable) |
 | 3 | `services/scrape.rs` | 3 | S3 | 507 / 540 (93.89%) | 8 | Test candidate (error paths) | PENDING | - |
 | 4 | `event.rs` | 4 | S4 | 174 / 187 (93.05%) | 7 | Probably small change | PENDING | - |
 | 5 | `container.rs` | 5 | S4 | 0 / 73 (0.00%) | 0 | Test candidate | PENDING | - |
@@ -605,6 +605,13 @@ lines are the S2 baseline measurement (see [Baseline Coverage](#baseline-coverag
   [plan](test-refactor-plans/services-announce-tests.md) and
   [coverage evidence](coverage-evidence.md#per-file-results). No finding needed a hand-off. Next:
   `services/error_mapping.rs`, which closes S2.
+- 2026-10-20 14:56 UTC - GitHub Copilot - `services/error_mapping.rs` is `DONE` (S2): the maintainer
+  approved the plan and the completed file. One `rstest` table of four cases pins the failure-reason
+  prefix of each `TrackerCoreError` variant; mutations E1 and E2 each fail their own case. The
+  wildcard arm added by #2454 cannot be reached by a test and stays uncovered (three lines), owned by
+  `tracker-core`. Interim unit-only package coverage after S2: lines 91.34%, regions 92.44%,
+  functions 89.59% (totals include the test modules). Both ledger rows of S2 are `DONE`. Next: the
+  independent Task Reviewer, the pre-push checks and the S2 pull request.
 
 ## Acceptance Criteria
 
