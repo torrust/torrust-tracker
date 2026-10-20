@@ -64,7 +64,17 @@ fn run() -> Result<(), Failure> {
         return Err(Failure::TtyRefusal);
     }
 
-    let arguments: Vec<String> = env::args().skip(1).collect();
+    let arguments = env::args_os()
+        .skip(1)
+        .map(|argument| {
+            argument.into_string().map_err(|argument| {
+                Failure::Usage(format!(
+                    "an argument is not valid UTF-8: {}. {USAGE}",
+                    argument.to_string_lossy()
+                ))
+            })
+        })
+        .collect::<Result<Vec<String>, Failure>>()?;
     let parsed = parse_arguments(&arguments).map_err(|message| Failure::Usage(format!("{message}. {USAGE}")))?;
 
     let mut input = Vec::new();

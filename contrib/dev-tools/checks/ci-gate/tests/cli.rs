@@ -4,13 +4,14 @@
 //! be triggered without a pseudo-terminal. Its code is one early return in `main`, and manual
 //! verification covers it (issue #2525, scenario M8).
 
+use std::ffi::OsStr;
 use std::io::Write;
 use std::process::{Command, Output, Stdio};
 
 use serde_json::Value;
 
 /// Runs the binary with the given arguments and changed paths on stdin, with stdout piped.
-fn run_ci_gate(arguments: &[&str], stdin: &[u8]) -> Output {
+fn run_ci_gate<S: AsRef<OsStr>>(arguments: &[S], stdin: &[u8]) -> Output {
     let mut child = Command::new(env!("CARGO_BIN_EXE_ci-gate"))
         .args(arguments)
         .stdin(Stdio::piped())
@@ -120,6 +121,41 @@ fn it_should_write_a_json_usage_error_on_stderr_and_nothing_on_stdout_when_the_b
             .as_str()
             .is_some_and(|message| message.contains("--base-branch")),
         "the message should name the missing argument, but was: {record}"
+    );
+}
+
+#[cfg(unix)]
+#[test]
+fn it_should_write_a_json_usage_error_instead_of_panicking_when_an_argument_is_not_valid_utf8() {
+    use std::os::unix::ffi::OsStrExt;
+
+    // Arrange
+    let invalid_utf8_branch = OsStr::from_bytes(b"develop\xff");
+    let arguments = [OsStr::new("classify"), OsStr::new("--base-branch"), invalid_utf8_branch];
+
+    // Act
+    // No stdin is written: the binary rejects the arguments before it reads it.
+    let output = run_ci_gate(&arguments, b"");
+
+    // Assert
+    assert_eq!(
+        output.status.code(),
+        Some(2),
+        "a usage error exits with code 2, but the run ended with {:?}; stderr was: {}",
+        output.status,
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        output.stdout.is_empty(),
+        "a failed run writes nothing to stdout, but stdout was: {}",
+        String::from_utf8_lossy(&output.stdout)
+    );
+    let stderr = String::from_utf8(output.stderr).expect("stderr is UTF-8");
+    let record: Value = serde_json::from_str(&stderr).expect("the diagnostic is one JSON object");
+    assert_eq!(record["kind"], "usage_error");
+    assert!(
+        record["message"].as_str().is_some_and(|message| message.contains("UTF-8")),
+        "the message should say that an argument is not valid UTF-8, but was: {record}"
     );
 }
 
