@@ -16,6 +16,7 @@ use torrust_tracker_core::statistics::persisted::downloads::DatabaseDownloadsMet
 use torrust_tracker_core::torrent::repository::in_memory::InMemoryTorrentRepository;
 use torrust_tracker_core::whitelist::authorization::WhitelistAuthorization;
 use torrust_tracker_core::whitelist::repository::in_memory::InMemoryWhitelist;
+use torrust_tracker_events::drain::DEFAULT_DRAIN_TIMEOUT;
 use torrust_tracker_events::sender::SendError;
 use torrust_tracker_http_core::event::Event;
 use torrust_tracker_http_core::event::bus::EventBus;
@@ -92,6 +93,7 @@ pub async fn initialize_core_tracker_services_with_config(
             cancellation_token,
             &http_stats_repository,
             [(configuration_instance_id, true)].into(),
+            DEFAULT_DRAIN_TIMEOUT,
         );
     }
 

@@ -536,6 +536,7 @@ mod tests {
     use torrust_tracker_axum_server::tls::make_rust_tls;
     use torrust_tracker_configuration::v3_0_0::{Configuration, logging};
     use torrust_tracker_core::container::TrackerCoreContainer;
+    use torrust_tracker_events::drain::DEFAULT_DRAIN_TIMEOUT;
     use torrust_tracker_http_core::container::HttpTrackerCoreContainer;
     use torrust_tracker_http_core::event::bus::EventBus;
     use torrust_tracker_http_core::event::sender::Broadcaster;
@@ -607,6 +608,7 @@ mod tests {
                 cancellation_token,
                 &http_stats_repository,
                 [(configuration_instance_id, true)].into(),
+                DEFAULT_DRAIN_TIMEOUT,
             );
         }
 

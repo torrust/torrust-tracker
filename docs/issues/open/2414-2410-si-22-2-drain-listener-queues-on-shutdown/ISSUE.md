@@ -9,7 +9,7 @@ github-issue: 2414
 spec-path: docs/issues/open/2414-2410-si-22-2-drain-listener-queues-on-shutdown/ISSUE.md
 branch: "2414-drain-listener-queues-on-shutdown"
 related-pr: null
-last-updated-utc: "2026-10-20 15:19"
+last-updated-utc: "2026-10-20 15:26"
 semantic-links:
   skill-links:
     - create-issue
@@ -247,3 +247,4 @@ and independent Task Reviewer report.
 - 2026-10-20 12:57 UTC - GitHub Copilot (Claude Sonnet 5.5) - T3a, T3c, and T4 committed as two code commits, `feat(events): [#2414] add try_recv, len, TryRecvError, and the shared listener drain helper` and `fix(tracker-core): [#2414] drain the persistent listener's queue when it is cancelled`, each tested alone before its commit, plus this documentation commit. The unpushed first commit was amended once to correct its test count (seven drain tests, not eight). T5 (the other six listeners, one package per commit) is next.
 - 2026-10-20 15:14 UTC - GitHub Copilot (Claude Sonnet 5.5) - T5 started after the maintainer approved its plan and test design: one commit per package, each with two tests replacing the `it_should_prioritize_*` test. First done: the `tracker-core` in-memory listener (V9), mutation-checked, workspace 3,156 passed, `linter all` 0. Stashes are shared by every worktree of the repository, so none is used from here on.
 - 2026-10-20 15:19 UTC - GitHub Copilot (Claude Sonnet 5.5) - T5: the `swarm-coordination-registry` listener drains on cancellation (V9), mutation-checked; workspace 3,157 passed, `linter all` 0.
+- 2026-10-20 15:26 UTC - GitHub Copilot (Claude Sonnet 5.5) - T5: the `http-core` listener drains on cancellation (V9), mutation-checked, with a third test that a drained event is subject to the metrics policy. `axum-http-server` gained a direct dependency on `torrust-tracker-events` for the default timeout (the listener's callers there pass it); workspace 3,159 passed, `linter all` 0.

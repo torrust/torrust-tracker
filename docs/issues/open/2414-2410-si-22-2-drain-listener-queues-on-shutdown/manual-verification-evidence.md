@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2414-2410-si-22-2-drain-listener-queues-on-shutdown/ISSUE.md
-last-updated-utc: "2026-10-20 15:19"
+last-updated-utc: "2026-10-20 15:26"
 ---
 
 # Manual Verification Evidence
@@ -772,6 +772,11 @@ cancel-first again.
 | `swarm-coordination-registry` | timeout never expires (an hour) | 15:17:39.615 to 15:17:42.912 | the expired-timeout test |
 | `swarm-coordination-registry` | returns `Completed` after the drain | 15:17:51.368 to 15:17:54.361 | both new tests |
 | `swarm-coordination-registry` | the bug (the drain never runs) | 15:17:54.365 to 15:17:57.687 | the handle-queued-event test |
+| `http-core` | timeout forced to zero | 15:23:20.390 to 15:23:33.325 | the handle-queued-event test |
+| `http-core` | timeout never expires (an hour) | 15:23:33.329 to 15:23:34.384 | the expired-timeout test |
+| `http-core` | the drain bypasses the metrics policy (`handle_event` called directly) | 15:23:43.708 to 15:23:44.828 | the metrics-policy test |
+| `http-core` | returns `Completed` after the drain | 15:23:44.833 to 15:23:45.969 | both new tests |
+| `http-core` | the bug (the drain never runs) | 15:23:54.292 to 15:23:55.401 | the handle-queued-event test |
 
 A first form of "the bug" removed the call and did not compile (the function became unused under
 `-D warnings`), so it is not a result; the table row is the rerun.
@@ -785,6 +790,17 @@ A first form of "the bug" removed the call and did not compile (the function bec
 `swarm-coordination-registry`: the package gave 111 passed; the workspace gave 3,157 passed and 0
 failed; `linter all` and `cargo +nightly fmt --all -- --check` exited 0. Its scripted receiver's
 `recv` is now lazy.
+
+`http-core`: three tests replace the old one (the third checks that the metrics policy applies to a
+drained event as to a live one, so a drain cannot count an event from a metrics-disabled instance).
+The listener has callers in the bootstrap job, the HTTP test environment, two handler test modules,
+and a benchmark helper; all pass `DEFAULT_DRAIN_TIMEOUT`, and `axum-http-server` gained a direct
+dependency on `torrust-tracker-events` for it (`Cargo.lock` records the edge). A first form of the
+policy mutation did not compile (an unused variable) and is not a result; the row is the rerun.
+`cargo test --workspace` gave 3,159 passed and 0 failed; `cargo test --workspace --all-targets`
+(which builds the benchmarks) gave 3,112 passed and 0 failed; `linter all`,
+`cargo +nightly fmt --all -- --check`, `cargo machete --with-metadata`, and `cargo deny check bans`
+exited 0. `cargo +nightly fmt` reordered only imports in the call-site files.
 
 ## Commits
 
