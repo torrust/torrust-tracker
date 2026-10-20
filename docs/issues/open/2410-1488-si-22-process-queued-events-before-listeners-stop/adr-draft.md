@@ -249,7 +249,11 @@ drain counts as lost events.
   cannot quantify an in-progress event's outcome, and queue length cannot count
   an event already received.
   After each handled event the drain yields to the runtime, so a handler that never waits cannot hold
-  the worker thread until the timeout expires. The deadline is computed with `checked_add`, so a
+  the worker thread until the timeout expires. On a release build with a handler that does nothing, the
+  yield costs about 0.3 to 0.4 microseconds per event, 19 to 26 ms for a full 65,536-event buffer,
+  and yielding every 64 events costs about 0.6 ms; the choice of yielding after every event is kept
+  because that cost is small next to a handler that locks or does I/O (V12 of the #2414
+  manual-verification evidence). The deadline is computed with `checked_add`, so a
   timeout too large for the clock to represent never expires, and does not panic.
 - **`Receiver` trait.** The trait in `packages/events/src/receiver.rs` gains a
   non-blocking `try_recv` that returns an event or a new `TryRecvError` (`Empty`,

@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2414-2410-si-22-2-drain-listener-queues-on-shutdown/ISSUE.md
-last-updated-utc: "2026-10-20 16:37"
+last-updated-utc: "2026-10-20 17:15"
 ---
 
 # Manual Verification Evidence
@@ -1052,7 +1052,7 @@ The warning, `PEERS=10000 SIGTERM_DELAY=3 .../reproduce-lost-completions.sh race
 
 The warning came 5.002 s after the drain began. The drain processed 2,020 events in 5 s, against 2,514
 and 2,804 in V10 and V8 (about 400 events per second here); the machine was busier, so these rates
-are not comparable, and I did not test whether the per-event yield costs throughput. The yield costs
+are not comparable, and this table did not measure whether the per-event yield costs throughput (V12 does). The yield costs
 a scheduler turn per event, which the 2 to 3 ms database write per event dwarfs (an inference from V6).
 
 #### Conclusion
@@ -1061,6 +1061,105 @@ The two review defects are fixed with tests that were seen red. The recheck of t
 on the final build matches V10: no completion is lost with the T0 parameters, every listener logs its
 drain, and a cut-short drain logs the warning. V10 stays as the first recheck; this table is the one
 that counts for the final code.
+
+### V12 - The cost of the per-event yield (review finding F1 of PR #2578)
+
+- Goal: measure what `yield_now().await` after every drained event costs, because Copilot's review
+  of PR #2578 (`review-finding:pr-2578-f1`) said it can reduce drain throughput for fast handlers
+  and suggested yielding every N events. V11 had said this was not measured.
+- Initial state: the branch at `docs(issues): [#2414] record the rebase onto the latest develop`,
+  with one temporary file, `packages/events/tests/scratch_yield.rs`, added and removed after the run.
+  It is not committed and is embedded below.
+- Method: 65,536 `u64` events (the full buffer of V6) are sent on a `tokio::sync::broadcast` channel,
+  then drained with `try_recv` and a handler that only does `black_box`; the loop either never yields,
+  yields after every event, or after every 64th. Seven runs of each, minimum, median, and maximum
+  of the drain time only (sending is outside the timer). This copies the drain loop instead of calling
+  `drain`, so only the cost of yielding is measured.
+- Environment: AMD Ryzen 9 7950X (32 logical CPUs), `rustc 1.99.0 (b940084d7 2026-09-28)`, release
+  build (`cargo test --release`), `--test-threads=1`. The multi-thread runtime has 4 workers and
+  nothing else ready on it, so each yield reschedules the same task at once; on a busy runtime other
+  tasks would run, which is the purpose of the yield and not a cost of draining.
+- Command: `cargo test --release -p torrust-tracker-events --test scratch_yield -- --nocapture --test-threads=1`
+
+```text
+test scratch_measure_yield_cost ... yield_every=  0  min=237.124µs median=259.986µs max=390.301µs
+yield_every=  1  min=17.841237ms median=19.069626ms max=21.604849ms
+yield_every= 64  min=594.201µs median=642.262µs max=653.111µs
+test scratch_measure_yield_cost_current_thread ... ct yield_every=  0  min=250.619µs median=254.035µs max=258.133µs
+ct yield_every=  1  min=26.034426ms median=26.133691ms max=28.606577ms
+ct yield_every= 64  min=652.361µs median=657.961µs max=666.046µs
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.36s
+```
+
+Reading of the result (arithmetic on the medians above): relative to a handler that does nothing,
+yielding after every event is about 70 to 100 times slower, which is the reviewer's point. In
+absolute terms it adds about 0.29 microseconds per event on the multi-thread runtime
+(19.07 ms / 65,536) and 0.40 microseconds on the current-thread runtime (26.13 ms / 65,536), so a
+full buffer pays 19 to 26 ms, about 0.4 to 0.5 percent of the 5 s default timeout. Yielding every
+64 events would save about 18 to 25 ms per full buffer. For comparison, the persistent listener's
+handler took 2 to 3 ms per event with SQLite (V6), about 10,000 times the yield cost; the other six
+handlers update in-memory metrics, and their per-event cost was not measured here. A handler that
+costs on the order of a microsecond would be slowed by the yield by a noticeable fraction, and none
+of the seven listeners' handlers was measured at that scale, so that statement is an inference.
+
+Decision: keep the yield after every event, for the reason in the first sentence of the code
+comment (a handler that never waits would hold the worker thread until the timeout), and make the
+trade-off explicit in the `drain` comment and in `adr-draft.md` section 7. No behavior changed, so
+M1 to M3 (V10, V11) were not repeated.
+
+The temporary file, verbatim:
+
+```rust
+use std::time::Instant;
+
+use tokio::sync::broadcast;
+use tokio::task::yield_now;
+
+const EVENTS: u64 = 65_536;
+
+async fn drain_with(every: u64) -> std::time::Duration {
+    let (tx, mut rx) = broadcast::channel::<u64>(EVENTS as usize);
+    for i in 0..EVENTS {
+        tx.send(i).unwrap();
+    }
+    let start = Instant::now();
+    let mut sum = 0u64;
+    let mut n = 0u64;
+    while let Ok(event) = rx.try_recv() {
+        sum = sum.wrapping_add(std::hint::black_box(event));
+        n += 1;
+        if every != 0 && n % every == 0 {
+            yield_now().await;
+        }
+    }
+    std::hint::black_box(sum);
+    start.elapsed()
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn scratch_measure_yield_cost() {
+    for every in [0u64, 1, 64] {
+        let mut times = Vec::new();
+        for _ in 0..7 {
+            times.push(tokio::spawn(drain_with(every)).await.unwrap());
+        }
+        times.sort();
+        println!("yield_every={every:>3}  min={:?} median={:?} max={:?}", times[0], times[3], times[6]);
+    }
+}
+
+#[tokio::test(flavor = "current_thread")]
+async fn scratch_measure_yield_cost_current_thread() {
+    for every in [0u64, 1, 64] {
+        let mut times = Vec::new();
+        for _ in 0..7 {
+            times.push(drain_with(every).await);
+        }
+        times.sort();
+        println!("ct yield_every={every:>3}  min={:?} median={:?} max={:?}", times[0], times[3], times[6]);
+    }
+}
+```
 
 ## Commits
 

@@ -109,7 +109,9 @@ where
                 processed += 1;
 
                 // A handler that never waits would otherwise hold the worker thread until the timeout
-                // expires, starving the other tasks that are shutting down.
+                // expires, starving the other tasks that are shutting down. The yield costs a scheduler
+                // turn per event, which is small next to any handler that locks or does I/O; yielding
+                // every N events would save little and hold the thread for N handler runs at a time.
                 yield_now().await;
             }
             Err(TryRecvError::Lagged(skipped)) => lost_to_lag += skipped,
