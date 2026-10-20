@@ -171,9 +171,12 @@ pub fn classify<S: AsRef<str>>(changed_paths: &[S], base_branch: &str) -> Classi
 ///
 /// A record is kept exactly as it is, including leading and trailing spaces, because those can be
 /// part of a file name, and `-z` also disables the C-quoting that plain `git diff --name-only`
-/// applies to non-ASCII names. Only empty records are ignored (a trailing NUL leaves one). A name
-/// that is not valid UTF-8 has its invalid bytes replaced, which does not change whether it matches
-/// the ASCII patterns of the rules.
+/// applies to non-ASCII names. Only empty records are ignored (a trailing NUL leaves one).
+///
+/// A name that is not valid UTF-8 has each invalid sequence replaced by U+FFFD. Matching is
+/// unaffected, because every pattern of the rules is ASCII: an ASCII byte always decodes to itself,
+/// and U+FFFD is not ASCII, so a pattern matches the decoded name exactly when it matches the raw
+/// bytes. Tests pin this for a prefix, an extension, and an exact path.
 #[must_use]
 pub fn parse_changed_paths(input: &[u8]) -> Vec<String> {
     input
@@ -564,6 +567,34 @@ mod tests {
         assert_eq!(
             changed_paths,
             vec![format!("packages/tracker-core/src/caf{}.rs", char::REPLACEMENT_CHARACTER)]
+        );
+    }
+
+    // Each case decides as the raw bytes would against the ASCII pattern: an invalid byte outside
+    // the part a pattern names changes nothing, and one inside it breaks the match.
+    #[rstest]
+    #[case::invalid_byte_after_the_directory_prefix(b"packages/tracker-core/src/caf\xe9.rs\0".as_slice(), JobGroup::DbCompatibility, true)]
+    #[case::invalid_byte_inside_the_directory_prefix(b"packages/tracker-core\xff/src/lib.rs\0".as_slice(), JobGroup::DbCompatibility, false)]
+    #[case::invalid_byte_before_the_extension(b"docs/caf\xe9.md\0".as_slice(), JobGroup::Testing, false)]
+    #[case::invalid_byte_after_the_extension(b"docs/index.md\xff\0".as_slice(), JobGroup::Testing, true)]
+    #[case::invalid_byte_after_an_exact_path(b"Containerfile\xff\0".as_slice(), JobGroup::SecurityScan, false)]
+    fn it_should_decide_a_path_that_is_not_utf8_as_its_raw_bytes_would(
+        #[case] input: &[u8],
+        #[case] group: JobGroup,
+        #[case] expected_needed: bool,
+    ) {
+        // Arrange
+        let changed_paths = parse_changed_paths(input);
+
+        // Act
+        let classification = classify(&changed_paths, "develop");
+
+        // Assert
+        assert_eq!(
+            classification.needs(group),
+            expected_needed,
+            "{group:?} for the path {:?}",
+            String::from_utf8_lossy(input)
         );
     }
 }
