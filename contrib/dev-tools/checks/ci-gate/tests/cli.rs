@@ -10,7 +10,7 @@ use std::process::{Command, Output, Stdio};
 use serde_json::Value;
 
 /// Runs the binary with the given arguments and changed paths on stdin, with stdout piped.
-fn run_ci_gate(arguments: &[&str], stdin: &str) -> Output {
+fn run_ci_gate(arguments: &[&str], stdin: &[u8]) -> Output {
     let mut child = Command::new(env!("CARGO_BIN_EXE_ci-gate"))
         .args(arguments)
         .stdin(Stdio::piped())
@@ -23,7 +23,7 @@ fn run_ci_gate(arguments: &[&str], stdin: &str) -> Output {
         .stdin
         .take()
         .expect("stdin is piped")
-        .write_all(stdin.as_bytes())
+        .write_all(stdin)
         .expect("the changed paths should be written to stdin");
 
     child.wait_with_output().expect("the ci-gate binary should finish")
@@ -41,7 +41,7 @@ fn group<'a>(result: &'a Value, name: &str) -> &'a Value {
 #[test]
 fn it_should_print_one_json_object_on_stdout_and_nothing_on_stderr_when_it_classifies_a_change() {
     // Arrange
-    let changed_paths = "README.md\nsrc/main.rs\n";
+    let changed_paths = b"README.md\0src/main.rs\0";
 
     // Act
     let output = run_ci_gate(&["classify", "--base-branch", "develop"], changed_paths);
@@ -70,7 +70,7 @@ fn it_should_print_one_json_object_on_stdout_and_nothing_on_stderr_when_it_class
 #[test]
 fn it_should_not_need_the_code_groups_when_the_change_is_documentation_only() {
     // Arrange
-    let changed_paths = "docs/index.md\nproject-words.txt\n";
+    let changed_paths = b"docs/index.md\0project-words.txt\0";
 
     // Act
     let output = run_ci_gate(&["classify", "--base-branch", "develop"], changed_paths);
@@ -90,7 +90,7 @@ fn it_should_not_need_the_code_groups_when_the_change_is_documentation_only() {
 #[test]
 fn it_should_write_a_json_usage_error_on_stderr_and_nothing_on_stdout_when_the_base_branch_is_missing() {
     // Act
-    let output = run_ci_gate(&["classify"], "src/main.rs\n");
+    let output = run_ci_gate(&["classify"], b"src/main.rs\0");
 
     // Assert
     assert_eq!(output.status.code(), Some(2), "a usage error exits with code 2");
@@ -112,5 +112,43 @@ fn it_should_write_a_json_usage_error_on_stderr_and_nothing_on_stdout_when_the_b
             .as_str()
             .is_some_and(|message| message.contains("--base-branch")),
         "the message should name the missing argument, but was: {record}"
+    );
+}
+
+#[test]
+fn it_should_need_the_code_groups_when_a_file_name_has_a_trailing_or_leading_space() {
+    // Arrange
+    let changed_paths = b"README.md \0 project-words.txt\0";
+
+    // Act
+    let output = run_ci_gate(&["classify", "--base-branch", "develop"], changed_paths);
+
+    // Assert
+    let result: Value = serde_json::from_slice(&output.stdout).expect("stdout is one JSON object");
+    assert_eq!(
+        group(&result, "testing")["needed"],
+        true,
+        "`README.md ` and ` project-words.txt` are not the documentation files the workflows ignore"
+    );
+}
+
+#[test]
+fn it_should_need_the_database_groups_when_a_tracker_core_file_has_a_non_ascii_name() {
+    // Arrange
+    // `git diff --name-only -z` prints the name as it is; without `-z` git would write it quoted and escaped.
+    let changed_paths = "packages/tracker-core/src/café.rs\0".as_bytes();
+
+    // Act
+    let output = run_ci_gate(&["classify", "--base-branch", "develop"], changed_paths);
+
+    // Assert
+    let result: Value = serde_json::from_slice(&output.stdout).expect("stdout is one JSON object");
+    assert_eq!(
+        (
+            group(&result, "db-compatibility")["needed"].clone(),
+            group(&result, "db-benchmarking")["needed"].clone()
+        ),
+        (Value::Bool(true), Value::Bool(true)),
+        "a file below `packages/tracker-core/` needs both database groups, whatever its name"
     );
 }

@@ -166,14 +166,20 @@ pub fn classify<S: AsRef<str>>(changed_paths: &[S], base_branch: &str) -> Classi
     }
 }
 
-/// Reads a newline-delimited list of changed paths, ignoring blank lines and surrounding spaces.
+/// Reads the changed paths from the output of `git diff --name-only -z`: records separated by NUL
+/// bytes.
+///
+/// A record is kept exactly as it is, including leading and trailing spaces, because those can be
+/// part of a file name, and `-z` also disables the C-quoting that plain `git diff --name-only`
+/// applies to non-ASCII names. Only empty records are ignored (a trailing NUL leaves one). A name
+/// that is not valid UTF-8 has its invalid bytes replaced, which does not change whether it matches
+/// the ASCII patterns of the rules.
 #[must_use]
-pub fn parse_changed_paths(input: &str) -> Vec<String> {
+pub fn parse_changed_paths(input: &[u8]) -> Vec<String> {
     input
-        .lines()
-        .map(str::trim)
-        .filter(|line| !line.is_empty())
-        .map(str::to_string)
+        .split(|byte| *byte == 0)
+        .filter(|record| !record.is_empty())
+        .map(|record| String::from_utf8_lossy(record).into_owned())
         .collect()
 }
 
@@ -292,6 +298,8 @@ mod tests {
     #[case::documentation_mixed_with_code(&["README.md", "src/main.rs"], true)]
     #[case::file_that_only_looks_like_markdown(&["notes.md.bak"], true)]
     #[case::dictionary_name_below_the_root(&["docs/project-words.txt"], true)]
+    #[case::markdown_name_with_a_trailing_space(&["README.md "], true)]
+    #[case::dictionary_name_with_a_leading_space(&[" project-words.txt"], true)]
     fn it_should_need_the_code_groups_only_when_a_changed_path_is_not_documentation(
         #[case] changed_paths: &[&str],
         #[case] expected_needed: bool,
@@ -356,6 +364,7 @@ mod tests {
     #[case::tracker_core_manifest(&["packages/tracker-core/Cargo.toml"], true)]
     #[case::own_workflow(&[".github/workflows/db-compatibility.yaml"], true)]
     #[case::code_elsewhere_with_one_tracker_core_file(&["src/main.rs", "packages/tracker-core/src/lib.rs"], true)]
+    #[case::non_ascii_tracker_core_file(&["packages/tracker-core/src/café.rs"], true)]
     #[case::other_package(&["packages/udp-core/src/lib.rs"], false)]
     #[case::package_whose_name_starts_with_the_same_text(&["packages/tracker-core-extra/src/lib.rs"], false)]
     #[case::other_workflow(&[".github/workflows/testing.yaml"], false)]
@@ -493,14 +502,68 @@ mod tests {
     }
 
     #[test]
-    fn it_should_ignore_blank_lines_and_surrounding_spaces_when_reading_changed_paths() {
+    fn it_should_keep_the_spaces_that_belong_to_a_file_name_when_reading_changed_paths() {
         // Arrange
-        let input = "  README.md  \n\nsrc/main.rs\n   \n";
+        let input = b"README.md \0 project-words.txt\0";
+
+        // Act
+        let changed_paths = parse_changed_paths(input);
+
+        // Assert
+        assert_eq!(
+            changed_paths,
+            vec!["README.md ".to_string(), " project-words.txt".to_string()]
+        );
+    }
+
+    #[test]
+    fn it_should_ignore_empty_records_when_reading_changed_paths() {
+        // Arrange
+        let input = b"README.md\0\0src/main.rs\0";
 
         // Act
         let changed_paths = parse_changed_paths(input);
 
         // Assert
         assert_eq!(changed_paths, vec!["README.md".to_string(), "src/main.rs".to_string()]);
+    }
+
+    #[test]
+    fn it_should_keep_a_newline_inside_a_file_name_when_reading_changed_paths() {
+        // Arrange
+        let input = b"docs/first\nsecond.md\0";
+
+        // Act
+        let changed_paths = parse_changed_paths(input);
+
+        // Assert
+        assert_eq!(changed_paths, vec!["docs/first\nsecond.md".to_string()]);
+    }
+
+    #[test]
+    fn it_should_read_a_non_ascii_path_as_it_is_without_git_quoting() {
+        // Arrange
+        let input = "packages/tracker-core/src/café.rs\0".as_bytes();
+
+        // Act
+        let changed_paths = parse_changed_paths(input);
+
+        // Assert
+        assert_eq!(changed_paths, vec!["packages/tracker-core/src/café.rs".to_string()]);
+    }
+
+    #[test]
+    fn it_should_replace_the_invalid_bytes_of_a_path_that_is_not_utf8_when_reading_changed_paths() {
+        // Arrange
+        let input = b"packages/tracker-core/src/caf\xe9.rs\0";
+
+        // Act
+        let changed_paths = parse_changed_paths(input);
+
+        // Assert
+        assert_eq!(
+            changed_paths,
+            vec![format!("packages/tracker-core/src/caf{}.rs", char::REPLACEMENT_CHARACTER)]
+        );
     }
 }

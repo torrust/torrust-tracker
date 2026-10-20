@@ -1,7 +1,7 @@
 //! Command-line arguments of the `ci-gate` binary.
 
 /// The usage text carried by a usage error.
-pub const USAGE: &str = "usage: ci-gate classify --base-branch <branch>  (changed paths on stdin, one per line)";
+pub const USAGE: &str = "usage: ci-gate classify --base-branch <branch>  (changed paths on stdin, NUL-separated, as `git diff --name-only -z` prints them)";
 
 /// A parsed `classify` command.
 #[derive(Debug, Eq, PartialEq)]

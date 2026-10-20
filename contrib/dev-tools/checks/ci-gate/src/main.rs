@@ -67,10 +67,10 @@ fn run() -> Result<(), Failure> {
     let arguments: Vec<String> = env::args().skip(1).collect();
     let parsed = parse_arguments(&arguments).map_err(|message| Failure::Usage(format!("{message}. {USAGE}")))?;
 
-    let mut input = String::new();
+    let mut input = Vec::new();
     io::stdin()
         .lock()
-        .read_to_string(&mut input)
+        .read_to_end(&mut input)
         .map_err(|error| Failure::Runtime(format!("cannot read the changed paths from stdin: {error}")))?;
 
     let classification = classify(&parse_changed_paths(&input), &parsed.base_branch);
