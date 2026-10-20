@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2525-ci-gate-required-check/ISSUE.md
-last-updated-utc: 2026-10-20 17:21
+last-updated-utc: 2026-10-20 17:52
 ---
 
 # Manual Verification Evidence
@@ -234,6 +234,12 @@ classification, and again inside a group decision, still printed `pass` with exi
 naming the unknown field, and nothing is printed on stdout. Two more mutants, one per nested type with the
 denial removed, were each killed by their own test case, so the verdict has 12 mutants killed in all. The
 final run has 134 unit and 10 command-line tests.
+
+Second review round on PR #2580: a classification whose groups arrive in reverse order printed its
+problems and its explanation in that reverse order, not in the documented group order. The new test with a
+reversed classification failed before the fix, which is the mutant for this rule, and passes after it, so
+the verdict has 13 mutants killed in all. The override explanation in the table above was checked against
+the real output of the command and quoted verbatim. The final run has 135 unit and 10 command-line tests.
 
 ## Failures and Follow-up
 
