@@ -366,8 +366,8 @@ evidence.
 ## Risks and Trade-offs
 
 - **Drift before publish.** READMEs written now can go stale before the first publish, mainly
-  because of #2482. Mitigation: start after #2482, or run T6, and re-check at publish time from
-  the publish tracking issue.
+  because of #2482. Mitigation: start after #2482 closes, and re-check at publish time from the
+  publish tracking issue.
 - **Duplicating `docs/packages.md`.** Dependency context in every README can drift from the
   canonical package doc. Mitigation: one or two sentences plus a link.
 - **Unchecked examples.** Code blocks in READMEs are not compiled unless a doctest hook includes
