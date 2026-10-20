@@ -44,6 +44,7 @@ use crate::container::AppContainer;
 
 /// Errors encountered while completing initial tracker startup.
 #[derive(Debug, thiserror::Error)]
+#[non_exhaustive]
 pub enum Error {
     #[error("Tracker setup failed. Correct the reported configuration or dependency problem and restart: {source}")]
     Setup { source: crate::bootstrap::app::Error },

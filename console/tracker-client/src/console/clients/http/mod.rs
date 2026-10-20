@@ -8,6 +8,7 @@ pub mod app;
 
 #[derive(Debug, Clone, Error, Serialize)]
 #[serde(into = "String")]
+#[non_exhaustive]
 pub enum Error {
     #[error("Http request did not receive a response within the timeout: {err:?}")]
     HttpClientError {

@@ -19,6 +19,7 @@ use torrust_info_hash::InfoHash;
 use torrust_peer_id::PeerId;
 
 #[derive(thiserror::Error, Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum PeerIdConversionError {
     #[error("Peer id too short: expected 20 bytes, got {actual}")]
     NotEnoughBytes { actual: usize },

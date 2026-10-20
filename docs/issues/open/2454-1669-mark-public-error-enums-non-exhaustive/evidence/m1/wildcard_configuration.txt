@@ -1,0 +1,6 @@
+started: 17:18:05.427 UTC
+=== cargo +stable check --bin wildcard_configuration
+    Checking m1-non-exhaustive v0.0.0 (<scratch-crate>)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.07s
+exit code: 0
+ended: 17:18:05.522 UTC

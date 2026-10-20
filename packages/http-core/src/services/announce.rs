@@ -358,6 +358,7 @@ impl AnnounceService {
 /// event must use a stable, bounded, consumer-safe reason type defined by the
 /// [general error-events EPIC](../../../../docs/issues/drafts/generalize-error-events/EPIC.md).
 #[derive(thiserror::Error, Debug, Clone)]
+#[non_exhaustive]
 pub enum HttpAnnounceError {
     #[error("Error resolving peer IP: {source}")]
     PeerIpResolutionError { source: PeerIpResolutionError },

@@ -296,6 +296,7 @@ pub use torrust_tracker_primitives::AnnouncePolicy;
 
 /// Errors that can occur when loading the configuration.
 #[derive(Error, Debug)]
+#[non_exhaustive]
 pub enum Error {
     /// Unable to read an explicitly selected configuration file.
     #[error("Unable to load explicit configuration file `{path}`: {source}")]
@@ -335,9 +336,6 @@ pub enum Error {
     ConfigError {
         source: LocatedError<'static, dyn std::error::Error + Send + Sync>,
     },
-
-    #[error("The error for errors that can never happen.")]
-    Infallible,
 
     #[error("Unsupported configuration version: {version}")]
     UnsupportedVersion { version: Version },

@@ -13,6 +13,10 @@ pub trait Receiver: Sync + Send {
 }
 
 /// An error returned from the [`recv`](Receiver::recv) function on a [`Receiver`].
+///
+/// This enum is intentionally exhaustive, not `#[non_exhaustive]`: each variant selects a
+/// different recovery action in a receive loop (`Closed` ends it, `Lagged` continues), so a new
+/// variant must be a breaking change that makes every consumer decide what to do with it.
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum RecvError {
     /// There are no more active senders implying no further messages will ever

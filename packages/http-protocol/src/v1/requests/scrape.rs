@@ -36,6 +36,7 @@ pub struct Scrape {
 /// EPIC](../../../../../docs/issues/drafts/generalize-error-events/EPIC.md) before
 /// exposing parser failures through an event stream.
 #[derive(Error, Debug)]
+#[non_exhaustive]
 pub enum ParseScrapeQueryError {
     #[error("missing query params for scrape request in {location}")]
     MissingParams { location: &'static Location<'static> },

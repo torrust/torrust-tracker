@@ -15,5 +15,8 @@ pub fn protocol_error_from_tracker_core_error(error: TrackerCoreError) -> HttpPr
         TrackerCoreError::AuthenticationError { source } => HttpProtocolErrorResponse {
             failure_reason: format!("Tracker authentication error: {source}"),
         },
+        unknown => HttpProtocolErrorResponse {
+            failure_reason: format!("Tracker error: {unknown}"),
+        },
     }
 }

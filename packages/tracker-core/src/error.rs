@@ -24,6 +24,7 @@ use crate::authentication;
 /// EPIC](../../../docs/issues/drafts/generalize-error-events/EPIC.md) before adding
 /// error events derived from it.
 #[derive(thiserror::Error, Debug, Clone)]
+#[non_exhaustive]
 pub enum TrackerCoreError {
     /// Error returned when there was an error with the tracker core announce handler.
     #[error("Tracker core announce error: {source}")]
@@ -68,6 +69,7 @@ impl From<authentication::key::Error> for TrackerCoreError {
 
 /// Errors related to announce requests.
 #[derive(thiserror::Error, Debug, Clone)]
+#[non_exhaustive]
 pub enum AnnounceError {
     /// Wraps errors related to torrent whitelisting.
     #[error("Whitelist error: {0}")]
@@ -80,6 +82,7 @@ pub enum AnnounceError {
 
 /// Errors related to scrape requests.
 #[derive(thiserror::Error, Debug, Clone)]
+#[non_exhaustive]
 pub enum ScrapeError {
     /// Wraps errors related to torrent whitelisting.
     #[error("Whitelist error: {0}")]
@@ -95,6 +98,7 @@ pub enum ScrapeError {
 /// This error is returned when an operation involves a torrent that is not
 /// present in the whitelist.
 #[derive(thiserror::Error, Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum WhitelistError {
     /// Indicates that the torrent identified by `info_hash` is not whitelisted.
     #[error("The torrent: {info_hash}, is not whitelisted, {location}")]
@@ -114,6 +118,7 @@ pub enum WhitelistError {
     reason = "error type identifies the peer-key domain among tracker-core errors"
 )]
 #[derive(thiserror::Error, Debug, Clone)]
+#[non_exhaustive]
 pub enum PeerKeyError {
     /// Returned when the duration specified for the peer key exceeds the
     /// maximum.

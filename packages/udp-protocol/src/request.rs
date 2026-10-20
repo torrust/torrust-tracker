@@ -179,6 +179,12 @@ impl From<ScrapeRequest> for Request {
     }
 }
 
+/// An error returned when a UDP tracker request cannot be parsed.
+///
+/// This enum is intentionally exhaustive, not `#[non_exhaustive]`: each variant selects a
+/// different action for the server (`Sendable` carries the ids needed to reply to the client,
+/// `Unsendable` means the request is dropped), so a new variant must be a breaking change that
+/// makes every consumer decide whether it can reply.
 #[derive(Debug)]
 pub enum RequestParseError {
     Sendable {

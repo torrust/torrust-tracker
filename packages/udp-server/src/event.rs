@@ -130,16 +130,20 @@ impl From<Error> for ErrorKind {
                 UdpAnnounceError::TrackerCoreAnnounceError { source } => match source {
                     AnnounceError::Whitelist(whitelist_error) => Self::Whitelist(whitelist_error.to_string()),
                     AnnounceError::Database(error) => Self::Database(error.to_string()),
+                    unknown => Self::InternalServer(unknown.to_string()),
                 },
                 UdpAnnounceError::TrackerCoreWhitelistError { source } => Self::Whitelist(source.to_string()),
+                unknown => Self::InternalServer(unknown.to_string()),
             },
             Error::ScrapeFailed { source } => match source {
                 UdpScrapeError::ConnectionCookieError { source } => Self::ConnectionCookie(source.to_string()),
                 UdpScrapeError::TrackerCoreScrapeError { source } => match source {
                     ScrapeError::Whitelist(whitelist_error) => Self::Whitelist(whitelist_error.to_string()),
                     ScrapeError::Database(error) => Self::Database(error.to_string()),
+                    unknown => Self::InternalServer(unknown.to_string()),
                 },
                 UdpScrapeError::TrackerCoreWhitelistError { source } => Self::Whitelist(source.to_string()),
+                unknown => Self::InternalServer(unknown.to_string()),
             },
             Error::Internal { location: _, message } => Self::InternalServer(message),
             Error::AuthRequired { location } => Self::TrackerAuthentication(location.to_string()),

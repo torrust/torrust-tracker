@@ -172,6 +172,7 @@ use crate::bootstrap::jobs::manager::JobManager;
 
 /// Errors that cause the profiling executable to exit unsuccessfully.
 #[derive(Debug, thiserror::Error)]
+#[non_exhaustive]
 pub enum Error {
     #[error("Tracker startup failed: {source}")]
     Startup { source: app::Error },

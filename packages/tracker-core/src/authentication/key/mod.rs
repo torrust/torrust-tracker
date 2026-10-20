@@ -168,6 +168,7 @@ pub fn verify_key_expiration(auth_key: &PeerKey) -> Result<(), Error> {
 /// verified with the [`crate::authentication::key::verify_key_expiration`] function.
 #[derive(Debug, Error, Clone)]
 #[allow(dead_code)]
+#[non_exhaustive]
 pub enum Error {
     /// Wraps an underlying error encountered during key verification.
     #[error("Key could not be verified: {source}")]

@@ -16,18 +16,21 @@ async fn main() {
                 eprintln!("{json}");
                 std::process::exit(exit_code);
             }
-            app::Error::Other(err) => {
-                let json = serde_json::json!({
-                    "error": {
-                        "kind": "runtime_failure",
-                        "source": "runtime",
-                        "message": err.to_string(),
-                    }
-                })
-                .to_string();
-                eprintln!("{json}");
-                std::process::exit(1);
-            }
+            app::Error::Other(err) => report_runtime_failure(&err.to_string()),
+            unknown => report_runtime_failure(&format!("{unknown:?}")),
         }
     }
+}
+
+fn report_runtime_failure(message: &str) -> ! {
+    let json = serde_json::json!({
+        "error": {
+            "kind": "runtime_failure",
+            "source": "runtime",
+            "message": message,
+        }
+    })
+    .to_string();
+    eprintln!("{json}");
+    std::process::exit(1);
 }

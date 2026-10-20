@@ -183,6 +183,7 @@ impl AnnounceService {
 
 /// Errors related to announce requests.
 #[derive(thiserror::Error, Debug, Clone)]
+#[non_exhaustive]
 pub enum UdpAnnounceError {
     /// Error returned when there was an error with the connection cookie.
     #[error("Connection cookie error: {source}")]

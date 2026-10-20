@@ -38,6 +38,7 @@ use tracing::instrument;
 use crate::bootstrap::jobs::manager::{ComponentCompletion, ComponentError, ComponentResult, TokenAwareServerTask};
 
 #[derive(Debug, thiserror::Error)]
+#[non_exhaustive]
 pub enum Error {
     #[error("Could not load TLS material for the tracker API. Verify the configured certificate and key paths: {source}")]
     Tls {

@@ -81,7 +81,8 @@ Related rules:
   to two enums). With
   `#[non_exhaustive]`, adding a variant is not a breaking change. This is the cheap, standard tool;
   RFC 2008 names error types as its most common use. Derive only traits every future variant can
-  keep, because removing a derive is a breaking change.
+  keep, because removing a derive is a breaking change. The 2026-10-19 amendment below
+  makes an exception for enums whose variants select a recovery action.
 
 ### Why Breaking Changes Are Acceptable
 
@@ -122,6 +123,31 @@ Negative:
   fail?" is
   usually clear, but borderline cases should be decided in review.
 
+### Amendment (2026-10-19): Enums Whose Variants Select a Recovery Action Stay Exhaustive
+
+Applying the rule in issue #2454 showed that `#[non_exhaustive]` is not right for every public
+error enum. Marking an enum makes every consumer outside its crate add a wildcard arm. For an
+enum that consumers only report or convert (log it, show its message, answer with a generic `500`,
+map it to a label), the wildcard is harmless, and a new variant is not a breaking change. For an
+enum whose variants select different recovery actions (stop or continue, retry or give up, reply
+or drop), the wildcard silently picks an action for a variant that nobody designed for, and no
+compiler error tells the consumer to decide. There, the breaking change is the safer signal.
+
+So the rule above applies in this form:
+
+- Mark a public error enum `#[non_exhaustive]` when consumers can handle an unknown variant
+  generically.
+- Keep it exhaustive when its variants select different recovery actions, and say so in a doc
+  comment on the enum, so that a later reader does not add the attribute. Adding a variant to it is
+  then a deliberate breaking change that forces every consumer to decide.
+
+This follows the standard library and tokio: `std::sync::mpsc::TryRecvError` and tokio's
+`broadcast::error::RecvError` (closed or lagged) are exhaustive control-flow enums, while
+`std::io::ErrorKind` is `#[non_exhaustive]`. The maintainer decided this on 2026-10-19 during
+issue #2454, which applies the rule to every workspace crate: `torrust_tracker_events::receiver::RecvError`
+(closed stops a listener, lagged continues) and `torrust_tracker_udp_protocol::request::RequestParseError`
+(sendable replies to the client, unsendable drops) are its two exhaustive enums.
+
 ## Affected Code
 
 - [`packages/swarm-coordination-registry/src/swarm/registry.rs`](../../packages/swarm-coordination-registry/src/swarm/registry.rs)
@@ -129,10 +155,11 @@ Negative:
 
 ## Date
 
-2026-10-05
+2026-10-05. Amended 2026-10-19 (enums whose variants select a recovery action stay exhaustive).
 
 ## References
 
+- Issue #2454 (applies the `#[non_exhaustive]` rule to every workspace crate; source of the amendment)
 - Issue #2435 and its [specification](../issues/closed/2435-remove-misleading-panics-in-in-memory-torrent-repository/ISSUE.md)
 - Found during PR #2423 (issue #2406) review
 - EPIC #1669 (package overhaul and publishing)

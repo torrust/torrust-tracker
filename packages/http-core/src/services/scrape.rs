@@ -151,6 +151,7 @@ impl ScrapeService {
 /// event must use the stable, bounded, consumer-safe reason types defined by
 /// the [general error-events EPIC](../../../../docs/issues/drafts/generalize-error-events/EPIC.md).
 #[derive(thiserror::Error, Debug, Clone)]
+#[non_exhaustive]
 pub enum HttpScrapeError {
     #[error("Error resolving peer IP: {source}")]
     PeerIpResolutionError { source: PeerIpResolutionError },

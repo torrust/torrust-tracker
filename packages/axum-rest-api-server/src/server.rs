@@ -54,6 +54,7 @@ const API_GRACEFUL_DRAIN_TIMEOUT: Duration = Duration::from_secs(90);
 
 /// Errors that can occur when starting or stopping the API server.
 #[derive(Debug, Error)]
+#[non_exhaustive]
 pub enum Error {
     #[error("could not bind tracker API listener: {source}")]
     Bind { source: std::io::Error },

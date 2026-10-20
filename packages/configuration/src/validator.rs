@@ -9,6 +9,7 @@ use thiserror::Error;
 
 /// Errors that can occur while validating cross-field configuration consistency.
 #[derive(Error, Debug)]
+#[non_exhaustive]
 pub enum SemanticValidationError {
     #[error("Private mode section in configuration can only be included when the tracker is running in private mode.")]
     UselessPrivateModeSection,

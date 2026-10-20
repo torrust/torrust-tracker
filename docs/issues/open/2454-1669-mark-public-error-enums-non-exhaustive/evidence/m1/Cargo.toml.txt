@@ -1,0 +1,12 @@
+[package]
+name = "m1-non-exhaustive"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[workspace]
+
+[dependencies]
+torrust-tracker-primitives = { path = "<worktree>/packages/primitives" }
+torrust-tracker-events = { path = "<worktree>/packages/events" }
+torrust-tracker-configuration = { path = "<worktree>/packages/configuration" }

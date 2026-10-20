@@ -8,6 +8,7 @@ use torrust_tracker_configuration::v3_0_0::core::Core;
 
 /// An enabled capability whose persistence requirement is unmet.
 #[derive(thiserror::Error, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum PersistenceRequirementError {
     /// Listing needs the whitelist persistence store.
     #[error("Configuration requires persistence for `core.listed`, but `[core.database]` is missing.")]

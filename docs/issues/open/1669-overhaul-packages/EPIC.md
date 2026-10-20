@@ -6,7 +6,7 @@ epic: null
 github-issue: 1669
 spec-path: docs/issues/open/1669-overhaul-packages/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-19 15:33"
+last-updated-utc: "2026-10-19 19:57"
 semantic-links:
   skill-links:
     - create-issue
@@ -809,7 +809,9 @@ public error API changed, audit its public error API
 ([ADR 20261005145329](../../../adrs/20261005145329_return_result_only_for_concretely_fallible_public_apis.md)):
 
 1. Mark every public error enum that has real variants `#[non_exhaustive]`, so that adding a
-   variant later is not a breaking change.
+   variant later is not a breaking change. Keep an enum exhaustive, with a doc comment saying why,
+   when its variants select different recovery actions (stop or continue, reply or drop): a new
+   variant there must be a deliberate breaking change (ADR amendment of 2026-10-19).
 2. Derive only the traits every future variant can keep; removing a derive is a breaking change.
 3. Confirm that no public API returns `Result<_, Infallible>` or an empty error enum as a
    placeholder for future failures.
@@ -818,7 +820,9 @@ public error API changed, audit its public error API
    change.
 
 Issue [#2454](https://github.com/torrust/torrust-tracker/issues/2454) applies this checklist to
-the workspace crates.
+the workspace crates. Its per-crate completion record, with each crate's decisions and the publish
+bump for the crates already on crates.io, is the
+[error enum inventory](../2454-1669-mark-public-error-enums-non-exhaustive/error-enum-inventory.md#per-crate-completion).
 
 ## Open Questions
 
@@ -1037,6 +1041,16 @@ Previously referenced tools (screenshots from CodeScene already in the issue com
   2026-10-06 report for finding 3 (`review-finding:pr-2559-f7`).
 - 2026-10-19 15:33 UTC - GitHub Copilot - #2475 is done (PR #2559 merged); its spec moved to
   `docs/issues/closed/2475-1669-coupling-tool-resolve-lib-names-and-renames/`.
+- 2026-10-19 16:16 UTC - GitHub Copilot - Started implementing #2454 on branch
+  `2454-1669-mark-public-error-enums-non-exhaustive`. The maintainer's scoping decisions (all
+  publishable crates, public reachability only, remove `configuration::Error::Infallible`, one
+  `feat(<package>)!:` commit per package) are in the #2454 spec.
+- 2026-10-19 16:50 UTC - GitHub Copilot - The maintainer amended ADR 20261005145329 during the
+  #2454 T1 review: a public error enum whose variants select different recovery actions stays
+  exhaustive, with a doc comment saying why. Pre-publish API checklist item 1 states the exception.
+- 2026-10-19 19:57 UTC - GitHub Copilot - #2454 implementation is on PR #2568: 58 public error enums in 16 packages
+  are `#[non_exhaustive]`, two stay exhaustive, and `configuration::Error::Infallible` is removed. The
+  Pre-publish API checklist links the inventory's per-crate completion record.
 
 ## Acceptance Criteria
 

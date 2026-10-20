@@ -8,6 +8,7 @@ use torrust_tracker_udp_protocol::Request;
 pub mod client;
 
 #[derive(Debug, Clone, Error)]
+#[non_exhaustive]
 pub enum Error {
     #[error("Timeout while waiting for socket to bind: {addr:?}")]
     TimeoutWhileBindingToSocket { addr: SocketAddr },

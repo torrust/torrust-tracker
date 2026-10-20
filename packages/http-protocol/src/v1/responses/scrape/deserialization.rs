@@ -93,6 +93,7 @@ impl ResponseBuilder {
 }
 
 #[derive(Debug, Error)]
+#[non_exhaustive]
 pub enum BencodeParseError {
     #[error("failed to deserialize bencoded scrape response: {source}")]
     DeserializationError { source: serde_bencode::Error },

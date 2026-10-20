@@ -23,6 +23,7 @@ use crate::container::AppContainer;
 
 /// Errors encountered before tracker jobs start.
 #[derive(Debug, thiserror::Error)]
+#[non_exhaustive]
 pub enum Error {
     #[error("Tracker configuration could not be loaded. Correct the configuration source and restart: {source}")]
     Configuration { source: super::config::Error },

@@ -26,6 +26,7 @@ use crate::{statistics, whitelist};
 
 /// Errors while composing the tracker core.
 #[derive(Debug, thiserror::Error)]
+#[non_exhaustive]
 pub enum Error {
     /// The configured persistence driver could not be initialized or migrated.
     #[error(

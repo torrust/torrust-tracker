@@ -9,6 +9,7 @@ use torrust_tracker_configuration::v3_0_0::Configuration;
 
 /// Errors while reading the tracker configuration source.
 #[derive(Debug, thiserror::Error)]
+#[non_exhaustive]
 pub enum Error {
     #[error(
         "Could not prepare the tracker configuration source. Check `--config-toml-path`, `TORRUST_TRACKER_CONFIG_TOML_PATH`, or `TORRUST_TRACKER_CONFIG_TOML`: {source}"

@@ -107,6 +107,7 @@ use crate::crypto::cookie_cipher::{CookieBlock, CookieCipher};
 
 /// Error returned when there was an error with the connection cookie.
 #[derive(Error, Debug, Clone, PartialEq)]
+#[non_exhaustive]
 pub enum ConnectionCookieError {
     #[error("cookie value is not normal: {not_normal_value}")]
     ValueNotNormal { not_normal_value: f64 },

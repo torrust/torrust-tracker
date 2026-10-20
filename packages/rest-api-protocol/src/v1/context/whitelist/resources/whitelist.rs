@@ -11,6 +11,7 @@ use std::fmt;
 /// the application layer and Axum handlers can handle errors
 /// without depending on `tracker-core` database error types.
 #[derive(Debug)]
+#[non_exhaustive]
 pub enum WhitelistError {
     /// The listed-tracker capability is disabled by configuration.
     DisabledByConfiguration { capability: &'static str },

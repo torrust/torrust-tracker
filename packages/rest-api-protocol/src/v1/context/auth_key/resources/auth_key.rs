@@ -23,6 +23,7 @@ pub struct AuthKey {
 /// These correspond to the variants of `tracker_core::error::PeerKeyError`
 /// but are protocol-level types without tracker-core dependencies.
 #[derive(Debug)]
+#[non_exhaustive]
 pub enum AuthKeyError {
     /// The provided duration overflows.
     DurationOverflow { seconds_valid: u64 },
