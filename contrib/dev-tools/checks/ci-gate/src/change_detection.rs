@@ -14,7 +14,7 @@
 //! (`**/*.md`), an exact path from the repository root (`Containerfile`), and a directory subtree
 //! (`packages/tracker-core/**`).
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::job_group::JobGroup;
 
@@ -127,7 +127,7 @@ const RULES: [Rule; 8] = [
 ];
 
 /// Whether one job group is needed, and why.
-#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct GroupDecision {
     pub group: JobGroup,
     pub needed: bool,
@@ -136,7 +136,7 @@ pub struct GroupDecision {
 }
 
 /// The job groups a change needs.
-#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Classification {
     pub base_branch: String,
     pub changed_path_count: usize,
