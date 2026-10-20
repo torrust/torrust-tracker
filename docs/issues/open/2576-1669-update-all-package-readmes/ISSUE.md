@@ -9,7 +9,7 @@ github-issue: 2576
 spec-path: docs/issues/open/2576-1669-update-all-package-readmes/ISSUE.md
 branch: "2576-1669-update-all-package-readmes-spec"
 related-pr: null
-last-updated-utc: "2026-10-20 16:43"
+last-updated-utc: "2026-10-20 20:52"
 semantic-links:
   skill-links:
     - create-issue
@@ -48,11 +48,11 @@ Three titles are wrong, and 14 READMEs link the root crate's documentation
 
 A check of the current workspace (`cargo metadata --no-deps`, 2026-10-20) adds these facts:
 
-- **Package set.** 31 workspace members. 22 can be published; 4 of them are already on
+- **Package set.** 32 workspace members. 22 can be published; 4 of them are already on
   crates.io at 3.0.0 (`torrust-tracker`, `torrust-tracker-configuration`,
   `torrust-tracker-primitives`, `torrust-tracker-test-helpers`) and 18 have never been
   published. Three tracker packages set `publish = false` (`e2e-tools`,
-  `persistence-benchmark`, `torrent-repository-benchmarking`), as do the six
+  `persistence-benchmark`, `torrent-repository-benchmarking`), as do the seven
   `contrib/dev-tools/` members.
 - **`documentation`.** Every tracker crate inherits `documentation.workspace = true`, which is
   `https://docs.rs/crate/torrust-tracker/`, so crates.io links each crate to the root crate's
@@ -152,7 +152,7 @@ The maintainer's answers of 2026-10-20 set this scope:
 - Code, test or public API changes, except the README doctest hook.
 - Changing any crate's license, adding license files, renaming crates or bumping versions.
 - Publishing any crate (publish tracking issue) and extracting the console client.
-- The six `contrib/dev-tools/` members.
+- The seven `contrib/dev-tools/` members.
 
 ### README Quality Bar
 
@@ -284,6 +284,10 @@ Commit.
   not pass before publication, because tier U crates have no docs.rs page yet. The quality bar
   and M1 now record those links as pending after checking the URL matches the crate name; the
   publish tracking issue checks that they resolve.
+- 2026-10-20 20:52 UTC - GitHub Copilot - Corrected the package-set counts from
+  `cargo metadata --no-deps`: the workspace has 32 members and seven `contrib/dev-tools/` members;
+  the 2026-10-20 count missed `workspace-coupling`. The publishable and published counts are
+  unchanged. Found while syncing the package catalogs for #1669.
 
 ## Acceptance Criteria
 
