@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-progress
+status: done
 priority: p2
 epic: 1669
 github-issue: 2454
-spec-path: docs/issues/open/2454-1669-mark-public-error-enums-non-exhaustive/ISSUE.md
+spec-path: docs/issues/closed/2454-1669-mark-public-error-enums-non-exhaustive/ISSUE.md
 branch: "2454-1669-mark-public-error-enums-non-exhaustive"
 related-pr: 2568
-last-updated-utc: "2026-10-19 19:57"
+last-updated-utc: "2026-10-20 11:57"
 semantic-links:
   skill-links:
     - create-issue
@@ -177,8 +177,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
-- [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Committer verified spec progress is up to date before commit (by the implementer, in the archive commit)
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -192,6 +192,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-10-19 17:21 UTC - GitHub Copilot - T5 is done: the Pre-publish API checklist in EPIC #1669 links the inventory's per-crate completion section.
 - 2026-10-19 19:23 UTC - GitHub Copilot - T2 to T5 are done and verification is recorded. Implementation: 16 `feat(<package>)!:` commits, two `docs(<package>):` commits for the exhaustive enums, and `refactor(configuration)!: [#2454] remove the never-constructed Infallible error variant`. M1 passed ([evidence](manual-verification-evidence.md)); the pre-push checks passed on the rebased branch. Independent review: the Task Reviewer's pre-PR review ([report](agent-review-reports.md)) found no defect in the Rust changes and six process findings, which this entry and the commits around it address: the spec is updated, the evidence is committed, the inventory wording is corrected, the S5 note records the `report_runtime_failure` helper, the pre-push output is stored, and the branch is rebased onto `develop` (the rebase conflicted only in EPIC #1669's stamp and progress log). A scratch worktree built every commit with `cargo check --workspace --all-targets --all-features` (stable Rust toolchain). No retrospective is needed: the one material discovery, that a wildcard arm can silently choose a recovery action, changed the plan during the T1 review and is already recorded as decision 9, the ADR amendment, EPIC checklist item 1, and the `handle-errors-in-code` skill. The workflow checkpoints "Reviewer validated acceptance criteria" and "Committer verified spec progress" stay not ticked: they belong to the pull-request reviewer and to the committer step, and the AC ticks above rest on the Task Reviewer's check and the implementer's evidence.
 - 2026-10-19 19:57 UTC - GitHub Copilot - Opened PR #2568 for the implementation (`Closes #2454`) and requested da2ce7's review. The branch's own commit range is `torrust/develop..HEAD`; PR review rounds are recorded in `docs/pr-reviews/pr-2568-review/PR-REVIEW.md`.
+- 2026-10-20 11:57 UTC - GitHub Copilot - PR #2568 was merged by the maintainer on 2026-10-20 at 11:46 UTC (merge commit `e1bf6fef2` on `develop`), and issue #2454 is closed. da2ce7 never reviewed the PR, so no `ACK` comment exists; the maintainer merged on the strength of green CI, Copilot's no-finding review, the Task Reviewer's pre-PR report, and his own review of the inventory and decisions. For that reason the checkpoint "Reviewer validated acceptance criteria and updated checkboxes" stays not ticked: no reviewer other than the implementer's pre-PR Task Reviewer checked the acceptance criteria after the fixes. The spec moved to `docs/issues/closed/`; the parent EPIC #1669 now ticks #2454 and links the archived paths. Checked in the archive commit that the other checkpoints and acceptance criteria match the merged tree and the evidence files.
 
 ## Acceptance Criteria
 
@@ -269,5 +270,5 @@ None planned.
 ## References
 
 - Related issues: #2435, #1669
-- Related PRs: #2445, #2456 (spec-only), #2568 (implementation)
+- Related PRs: #2445, #2456 (spec-only), #2568 (implementation, merged)
 - Related ADRs: [20261005145329](../../../adrs/20261005145329_return_result_only_for_concretely_fallible_public_apis.md), [20260629000000](../../../adrs/20260629000000_adopt_independent_package_versioning.md)

@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2454-1669-mark-public-error-enums-non-exhaustive/ISSUE.md
-last-updated-utc: 2026-10-19 19:23
+issue-spec: docs/issues/closed/2454-1669-mark-public-error-enums-non-exhaustive/ISSUE.md
+last-updated-utc: 2026-10-20 11:57
 ---
 
 # Manual Verification Evidence
