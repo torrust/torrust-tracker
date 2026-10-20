@@ -6,7 +6,7 @@ epic: null
 github-issue: 1347
 spec-path: docs/issues/open/1347-overhaul-packages-testing/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-20 14:56"
+last-updated-utc: "2026-10-20 16:08"
 semantic-links:
   skill-links:
     - create-issue
@@ -118,7 +118,7 @@ level or determine whether unit coverage is adequate.
 | `torrust-tracker-udp-server`       | [#2149](../../closed/2149-1347-add-focused-udp-server-package-tests/ISSUE.md) | Lines: 96.96%; regions: 95.79%; functions: 97.19% | Lines: 97.85%; regions: 96.64%; functions: 97.63% | Lines: +0.89 pp; regions: +0.85 pp; functions: +0.44 pp | [Coverage evidence](../../closed/2149-1347-add-focused-udp-server-package-tests/coverage-evidence.md) |
 | `torrust-tracker-udp-server`       | [#2283](../../closed/2283-1347-increase-udp-server-package-coverage/ISSUE.md) | Lines: 97.86%; regions: 96.64%; functions: 97.64% | Lines: 98.58%; regions: 97.62%; functions: 98.56% | Lines: +0.72 pp; regions: +0.98 pp; functions: +0.92 pp | [Coverage evidence](../../closed/2283-1347-increase-udp-server-package-coverage/coverage-evidence.md) |
 | `torrust-tracker-udp-core`         | [#1348](../../closed/1348-1347-add-tests-udp-core/ISSUE.md) | Lines: 72.49%; regions: 78.56%; functions: 71.27% | Lines: 98.04%; regions: 98.15%; functions: 97.61% | Lines: +25.55 pp; regions: +19.58 pp; functions: +26.34 pp | [Coverage evidence](../../closed/1348-1347-add-tests-udp-core/coverage-evidence.md) |
-| `torrust-tracker-http-core`        | [#1349](../1349-1347-add-tests-http-core/ISSUE.md) | Lines: 88.88%; regions: 90.41%; functions: 84.29% | Lines: 91.34%; regions: 92.44%; functions: 89.59% (interim, after S2) | Lines: +2.45 pp; regions: +2.03 pp; functions: +5.30 pp (interim) | [Coverage evidence](../1349-1347-add-tests-http-core/coverage-evidence.md) |
+| `torrust-tracker-http-core`        | [#1349](../1349-1347-add-tests-http-core/ISSUE.md) | Lines: 88.88%; regions: 90.41%; functions: 84.29% | Lines: 91.34%; regions: 92.45%; functions: 89.59% (interim, after S2) | Lines: +2.45 pp; regions: +2.04 pp; functions: +5.30 pp (interim) | [Coverage evidence](../1349-1347-add-tests-http-core/coverage-evidence.md) |
 
 ### Unit-Only Coverage
 
@@ -131,7 +131,7 @@ weak unit-only result with aggregate, integration, example, or end-to-end covera
 | `torrust-tracker-udp-server` | [#2149](../../closed/2149-1347-add-focused-udp-server-package-tests/ISSUE.md) | Not measured before #2149 increments | Lines: 96.18%; regions: 95.34%; functions: 94.92% | Not comparable (no unit-only baseline) | [Coverage evidence](../../closed/2149-1347-add-focused-udp-server-package-tests/coverage-evidence.md) |
 | `torrust-tracker-udp-server` | [#2283](../../closed/2283-1347-increase-udp-server-package-coverage/ISSUE.md) | Lines: 96.18%; regions: 95.34%; functions: 94.93% | Lines: 98.18%; regions: 97.04%; functions: 97.70% | Lines: +2.00 pp; regions: +1.70 pp; functions: +2.77 pp | [Coverage evidence](../../closed/2283-1347-increase-udp-server-package-coverage/coverage-evidence.md) |
 | `torrust-tracker-udp-core` | [#1348](../../closed/1348-1347-add-tests-udp-core/ISSUE.md) | Lines: 72.49%; regions: 78.56%; functions: 71.27% | Lines: 98.04%; regions: 98.15%; functions: 97.61% | Lines: +25.55 pp; regions: +19.58 pp; functions: +26.34 pp | [Coverage evidence](../../closed/1348-1347-add-tests-udp-core/coverage-evidence.md) |
-| `torrust-tracker-http-core` | [#1349](../1349-1347-add-tests-http-core/ISSUE.md) | Lines: 88.88%; regions: 90.41%; functions: 84.29% | Lines: 91.34%; regions: 92.44%; functions: 89.59% (interim, after S2) | Lines: +2.45 pp; regions: +2.03 pp; functions: +5.30 pp (interim) | [Coverage evidence](../1349-1347-add-tests-http-core/coverage-evidence.md) |
+| `torrust-tracker-http-core` | [#1349](../1349-1347-add-tests-http-core/ISSUE.md) | Lines: 88.88%; regions: 90.41%; functions: 84.29% | Lines: 91.34%; regions: 92.45%; functions: 89.59% (interim, after S2) | Lines: +2.45 pp; regions: +2.04 pp; functions: +5.30 pp (interim) | [Coverage evidence](../1349-1347-add-tests-http-core/coverage-evidence.md) |
 
 ## Delivery Strategy
 
@@ -268,6 +268,9 @@ For each subissue implementation, the completion policy is:
   `services/error_mapping.rs` are done. Interim unit-only package coverage is lines 91.34%, regions
   92.44% and functions 89.59% (totals include the test modules); both coverage tables carry it until
   the final measurement.
+- 2026-10-20 16:05 UTC - GitHub Copilot - #1349 S2: after the independent review, two announce cases
+  were added, so the interim figures read lines 91.34%, regions 92.45% and functions 89.59% (79 unit
+  tests). Both coverage tables carry them.
 
 ## Acceptance Criteria
 

@@ -153,6 +153,7 @@ the announced port (8080), so a mix-up between them fails.
 | `it_should_prefer_a_query_string_peer_ip_over_the_external_ip_for_a_loopback_client_when_overrides_are_enabled` | A policy that enables overrides **and** carries a distinct external IP, a loopback client, a literal `ip`, a recording sender. | Handle the announce. | The event announces the literal IP, not the external IP. | Matches the code. Mutation M1 fails it (Results). The old test never gave the service an external IP. |
 | `it_should_publish_the_connection_address_and_the_selected_peer_ip_in_the_announce_event` (IPv4 client, IPv6 client, IPv4 loopback with an IPv6 external IP, IPv6 loopback with an IPv4 external IP) | A tracker with or without an external IP, a client at the case's connection address, a recording sender. | Handle an announce with no `ip`. | Exactly one event carries the connection address as the remote client and the case's peer IP: the external IP only for a loopback client. | Matches the code. One table replaces three 40-70 line bodies. |
 | `it_should_not_replace_a_loopback_literal_peer_ip_with_the_external_ip` | Overrides enabled, an external IP configured, the client supplies the loopback literal `127.0.0.2`. | Select the peer IP. | The literal is selected, not the external IP. | Matches the code. Added after mutant P1 survived (Results). |
+| `it_should_replace_a_loopback_connection_address_with_the_external_ip_for_an_absent_or_empty_peer_ip` (absent, empty) | A tracker with an external IP, a request with an absent or an empty `ip`, a loopback connection. | Select the peer IP. | The external IP is selected, for both. | Matches the code. Added after the S2 Task Reviewer's mutant P2 survived: an empty `ip=` must get the same loopback substitution as an absent one. |
 | `it_should_keep_the_connection_address_of_a_non_loopback_client_when_an_external_ip_is_configured` (IPv4, IPv6) | A tracker with an external IP, a request with no `ip`, a non-loopback connection. | Select the peer IP. | The connection address is kept. | Matches the code. R2e; mutation M3 fails both cases. |
 | `it_should_reject_an_announce_without_a_key_on_a_private_tracker` | A private tracker, no key. | Handle the announce. | The authentication failure for a missing key; no event; no peer registered. | Matches the code. R2a. |
 | `it_should_reject_an_announce_with_an_unregistered_key_on_a_private_tracker` | A private tracker with no registered key, a random key presented. | Handle the announce. | The authentication failure for an unreadable key; no event; no peer. | Matches the code. R2a. Key validity is `tracker-core`'s; the test shows only that the service surfaces the failure. |
@@ -173,7 +174,7 @@ the announced port (8080), so a mix-up between them fails.
 | `it_should_publish_the_public_url_of_the_http_tracker_in_the_announce_event` | An HTTP tracker configured with a public URL, a frozen clock. | Handle the announce. | One event whose connection context carries that URL as text. | Matches the code. R2k; mutations M5 (with `--cap-lints=warn`) and the URL mapped to `None` fail it. |
 | `it_should_report_a_rejected_peer_ip_with_its_failure_reason` (override disabled, DNS name, invalid) | One of the three package-owned errors. | Convert it to a protocol response. | The failure reason is the literal client-visible text. | Matches the code. R2i. |
 | `it_should_report_a_peer_ip_resolution_error_with_the_protocol_failure_reason` | A resolution error. | Convert it through `HttpAnnounceError`. | The reason equals the protocol crate's own conversion of the same error. | Matches the code. R2i. It checks delegation, not text, which is `http-protocol`'s; the expectation is derived from that crate on purpose. |
-| `it_should_report_a_tracker_core_error_with_the_tracker_core_failure_reason` | A not-whitelisted error wrapped as `HttpAnnounceError`. | Convert it to a protocol response. | The reason starts with the whitelist prefix. | Matches the code. R2i. The prefix text belongs to `error_mapping.rs`, whose own plan will pin all of it; this test checks only that the announce error delegates there. |
+| `it_should_report_a_tracker_core_error_with_the_tracker_core_failure_reason` | A tracker-core error, and the protocol response that `error_mapping.rs` gives it. | Convert it through `HttpAnnounceError`. | The failure reason equals that response's. | Matches the code. R2i. It checks only delegation: the text is pinned once, in `error_mapping.rs`. The expectation is derived from that function on purpose. |
 | `it_should_wrap_a_tracker_core_error_without_changing_it` | A tracker-core error. | Convert it into `HttpAnnounceError`. | It is the tracker-core variant, still holding the same error kind. | Matches the code. The only conversion no other test reaches; it is a public conversion with no caller in the repository (Results). |
 
 ## Results
@@ -199,11 +200,13 @@ the announced port (8080), so a mix-up between them fails.
 
 ### R2-R4 (2026-10-20, stable Rust 1.99.0, nightly `rustfmt`)
 
-- `cargo test -p torrust-tracker-http-core`: 73 unit tests pass (the file's 8 tests are now 48
-  cases; the other 25 are unchanged), and the 3 doc tests pass. `cargo +nightly fmt --all --
-  --check`, `cargo clippy -p torrust-tracker-http-core --all-targets --all-features -- -D warnings`
-  and `git diff --check` pass. A comparison of everything before `#[cfg(test)]` with `HEAD` shows
-  production code identical.
+- `cargo test -p torrust-tracker-http-core`: 79 unit tests pass (the file's 8 tests are now 50
+  cases; the 4 `error_mapping.rs` cases and the other 25 tests are unchanged), and the 3 doc tests
+  pass. `cargo +nightly fmt --all -- --check`, `cargo clippy -p torrust-tracker-http-core
+  --all-targets --all-features -- -D warnings` and `git diff --check` pass. A comparison of everything
+  before `#[cfg(test)]` with `HEAD` shows production code identical. The file had 48 cases at the
+  completed-file review; two more were added after the S2 Task Reviewer found a surviving mutant
+  (see the property assessment).
 - Named mutations (each applied by hand, run, and reverted):
 
 | Mutation | Result |
@@ -216,13 +219,22 @@ the announced port (8080), so a mix-up between them fails.
 | M4: map `Stopped` to `None` | Fails the `stopped` case of `it_should_map_the_announce_event_to_the_announcement_event` only. |
 | M5: delete `with_public_url` | Does not compile by default (`field public_url is never read`). With `RUSTFLAGS="--cap-lints=warn"`, fails `it_should_publish_the_public_url_of_the_http_tracker_in_the_announce_event` only. |
 | M5b: map the URL to `None` in `HttpTrackerPolicy::from` | Fails the same test only. |
+| P1: the `PeerIp::Literal` arm routes the literal through `external_ip_for_loopback_connection` | Survived the first examples; killed by `it_should_not_replace_a_loopback_literal_peer_ip_with_the_external_ip` only (see below). |
+| P2: `PeerIp::Empty` returns the connection address, skipping the external-IP substitution | Survived all 77 tests (found by the S2 Task Reviewer); killed by the `empty` case of `it_should_replace_a_loopback_connection_address_with_the_external_ip_for_an_absent_or_empty_peer_ip` only. |
 
-- Peer-IP property assessment: besides M1 and M3, mutant P1 (the `PeerIp::Literal` arm routes the
-  literal through `external_ip_for_loopback_connection`, so a client-supplied loopback literal is
-  replaced by the external IP) **survived** the examples. One example fixed it,
-  `it_should_not_replace_a_loopback_literal_peer_ip_with_the_external_ip`, and P1 then failed that
-  test only. A property test adds no mutation that the examples miss now, so no property-testing
-  dependency is added.
+- Peer-IP property assessment: besides M1 and M3, two mutants of `select_peer_ip_with_policy`
+  **survived** the examples and were each fixed with one example, so a property test is still not
+  needed. P1 (the `PeerIp::Literal` arm routes the literal through
+  `external_ip_for_loopback_connection`, so a client-supplied loopback literal is replaced by the
+  external IP) was found by my own probe and fixed by
+  `it_should_not_replace_a_loopback_literal_peer_ip_with_the_external_ip`. P2 (an empty `ip=` skips
+  the loopback substitution that an absent `ip` gets) was found by the S2 Task Reviewer, and my
+  claim that no mutation survived the examples was wrong until then; the two-case test
+  `it_should_replace_a_loopback_connection_address_with_the_external_ip_for_an_absent_or_empty_peer_ip`
+  fixed it. Both mutants are a small input-by-state grid that examples cover; the dependency stays
+  out. The mutations of the selection decision that were actually run are M1, M3, P1 and P2, plus
+  one the reviewer ran (passing the remote client address instead of the selected peer IP to the
+  announce handler, which four tests catch); only P1 and P2 survived, and each is now caught.
 - Order proofs: the five order tests assert that no event was published and no peer registered when
   an earlier check fails. A `RecordingSender` with an empty list replaces the expectation-free
   `mockall` double (amendment confirmed 2026-10-20).
@@ -234,26 +246,26 @@ the announced port (8080), so a mix-up between them fails.
   (`axum-http-server` uses only `HttpAnnounceError` as a return type). It is kept and pinned by one
   test. Removing it would be a breaking change to a public API, so it is not a finding for this
   issue; the maintainer may remove it in a separate change.
-- `it_should_report_a_tracker_core_error_with_the_tracker_core_failure_reason` asserts the prefix
-  of text that `error_mapping.rs` owns; that file's plan pins the full text.
+- `it_should_report_a_tracker_core_error_with_the_tracker_core_failure_reason` checks only that the
+  announce error delegates to `error_mapping.rs`: its expectation is that function's own result for
+  the same error. The text itself is pinned once, in `error_mapping.rs` (the S2 Task Reviewer noted
+  that a literal prefix here would duplicate it).
 
-Unit-only coverage (`cargo llvm-cov clean --workspace`, then `cargo llvm-cov -p
-torrust-tracker-http-core --all-features --lib`, `cargo-llvm-cov 0.6.16`, stable Rust 1.99.0):
+Unit-only coverage of the file (`cargo llvm-cov clean --workspace`, then `cargo llvm-cov -p
+torrust-tracker-http-core --all-features --lib`, `cargo-llvm-cov 0.6.16`, stable Rust 1.99.0). The
+package totals after slice S2 are in the [coverage evidence](../coverage-evidence.md#per-file-results).
 
 | Scope | Before (`87690b15e`) | After |
 | --- | ---: | ---: |
 | `services/announce.rs` lines | 675 / 727 (92.85%) | 843 / 851 (99.06%) |
-| `services/announce.rs` regions | 878 / 938 (93.60%) | 1,035 / 1,045 (99.04%) |
+| `services/announce.rs` regions | 878 / 938 (93.60%) | 1,039 / 1,049 (99.05%) |
 | `services/announce.rs` functions | 56 / 63 (88.89%) | 92 / 92 (100.00%) |
-| Package lines | 1,751 / 1,970 (88.88%) | 1,899 / 2,090 (90.86%) |
-| Package regions | 2,357 / 2,607 (90.41%) | 2,495 / 2,706 (92.20%) |
-| Package functions | 161 / 191 (84.29%) | 196 / 219 (89.50%) |
 
 The totals include the test module, so a file with more tests has more covered lines; the
 meaningful signal is that every production decision above is pinned by a mutation. The eight
 uncovered lines of `announce.rs` are the failure branches of the `matches!` assertions in the test
-module (lines 1021, 1054, 1134, 1166, 1196, 1226, 1433 and 1549), and the ten uncovered regions are
-those same branches (the two extra regions are at lines 1260 and 1289): test code that runs only when
+module (lines 1046, 1079, 1159, 1191, 1221, 1251, 1458 and 1571), and the ten uncovered regions are
+those same branches (the two extra regions are at lines 1285 and 1314): test code that runs only when
 a test fails. Every production line, region and function of the service is covered.
 
 ## Approval
@@ -301,3 +313,10 @@ Approved by Jose Celano on 2026-10-16 (16:02 UTC), before any amendment in [Post
   its test, one surviving mutant (a loopback `ip` literal) was found and fixed with one example, and
   announce coverage is 99.06% of lines. The maintainer approved the completed file at 12:57 UTC.
   The plan is `done`.
+- 2026-10-20 16:05 UTC - GitHub Copilot - The S2 Task Reviewer found a surviving mutant in
+  `select_peer_ip_with_policy`: an empty `ip=` that skips the loopback substitution (P2). It
+  contradicted this plan's claim that no mutation survived the examples. Added a two-case test (absent
+  and empty `ip`, loopback connection, external IP) that kills it, and reworked the tracker-core
+  delegation test to compare with `error_mapping.rs`'s own result instead of repeating its prefix. The
+  file now has 50 cases; the Prose-First AAA Review, the mutation table and the coverage numbers above
+  are updated. The earlier entries keep their original wording.

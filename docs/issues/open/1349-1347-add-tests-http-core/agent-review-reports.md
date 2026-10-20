@@ -97,3 +97,45 @@ semantic-links:
 - Verdict: REVIEW PASSED
 - Follow-up actions:
   - None.
+
+### 2026-10-20 - Task Reviewer (slice S2)
+
+- Time: the report returned after the S2 commits (the last at 14:57 UTC) and before the first fix at
+  16:05 UTC; the exact time was not recorded.
+- Invocation scope: Slice S2 (ledger rows 1-2: `services/announce.rs` and `services/error_mapping.rs`) of
+  #1349 on branch `1349-1347-add-tests-http-core-announce`: the commits `docs(issues): [#1349]
+  re-measure the http-core baseline before slice S2`, `test(http-core): [#1349] pin the announce
+  service decisions with unit tests` and `test(http-core): [#1349] pin the failure reason of each
+  tracker core error`.
+- Inputs: `ISSUE.md`, `coverage-evidence.md`, both file plans, the plan guidance, the S1 reports, the
+  EPIC, the `write-unit-test`, `review-task` and `add-rust-dependency` skills, and both source files.
+- Evidence: production code before `#[cfg(test)]` is byte-identical to `develop` at `87690b15e`; the
+  only manifest change is `rstest = "0.28.0"` (the latest stable; `"0"` would have locked 0.27.0);
+  77 unit tests and 3 doc tests passed, also under `--test-threads=1` and on repeated runs (the
+  thread-local stopped clock is not flaky); nightly `rustfmt`, `clippy -D warnings`, `cargo machete`,
+  `git diff --check`, `linter markdown` and `linter cspell` passed; a clean `cargo llvm-cov` run
+  reproduced every documented number, including the baseline measured in a worktree at `87690b15e`;
+  mutations M2a, M3, M4, P1 and one extra (passing the remote client address instead of the peer IP to
+  the announce handler) each failed only the expected tests and were reverted; the tree was clean after;
+  the wildcard arm of `error_mapping.rs` cannot be reached by a test; the ledger, slice table, plan
+  statuses, amendment confirmations, progress-log order and EPIC rows agree.
+- Findings:
+  - MEDIUM: mutant P2 survived all 77 tests: `PeerIp::Empty` returning the connection address and so
+    skipping the loopback substitution that an absent `ip` gets. This contradicted the plan, the
+    evidence and the progress log, which said no mutation survived the examples. By the plan's own
+    rule a survivor must be fixed or the claim restated. (`announce.rs`, the `PeerIp::Absent |
+    PeerIp::Empty` arm.)
+  - LOW: mutation E2 as written does not compile under the workspace lints (`unused variable: source`);
+    its recorded result holds only with `RUSTFLAGS="--cap-lints=warn"`. (`services-error-mapping-tests.md`,
+    Named Mutations.)
+  - LOW: `it_should_report_a_tracker_core_error_with_the_tracker_core_failure_reason` repeated the
+    `Tracker whitelist error:` literal that `error_mapping.rs` now pins itself; optional.
+- Verdict: REVIEW PASSED
+- Follow-up actions:
+  - Fix or restate the P2 finding before the pull request; fix the E2 wording; optionally remove the
+    duplicated literal.
+  - Handling (2026-10-20 16:05 UTC, commit `test(http-core): [#1349] kill the empty-ip loopback mutant
+    and record the S2 review`): P2 is fixed by a two-case test that fails the mutant (the maintainer
+    decision was the plan's own rule, not a restated claim); the E2 row now names the `{ source: _ }`
+    form that was actually run; the duplicated literal is gone. Package coverage after the fixes:
+    lines 91.34%, regions 92.45%, functions 89.59%, with 79 unit tests.

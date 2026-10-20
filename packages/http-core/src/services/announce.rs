@@ -475,6 +475,7 @@ mod tests {
 
     use crate::event::{ConnectionContext, Event};
     use crate::services::announce::{AnnounceService, HttpAnnounceError, PeerIpSelectionPolicy};
+    use crate::services::error_mapping::protocol_error_from_tracker_core_error;
     use crate::tests::{sample_info_hash, sample_peer};
     use crate::{CurrentClock, event};
 
@@ -718,6 +719,30 @@ mod tests {
 
         // Assert
         assert_eq!(selected.unwrap(), connection_ip);
+    }
+
+    #[rstest]
+    #[case::absent(PeerIp::Absent)]
+    #[case::empty(PeerIp::Empty)]
+    fn it_should_replace_a_loopback_connection_address_with_the_external_ip_for_an_absent_or_empty_peer_ip(
+        #[case] peer_ip: PeerIp,
+    ) {
+        // Arrange
+        let external_ip = ip("203.0.113.195");
+        let policy = PeerIpSelectionPolicy {
+            use_ip_from_query_string: false,
+            external_ip: Some(external_ip),
+        };
+        let request = Announce {
+            ip: peer_ip,
+            ..sample_announce_request()
+        };
+
+        // Act
+        let selected = AnnounceService::select_peer_ip_with_policy(policy, &request, localhost());
+
+        // Assert
+        assert_eq!(selected.unwrap(), external_ip);
     }
 
     #[rstest]
@@ -1517,20 +1542,17 @@ mod tests {
     #[test]
     fn it_should_report_a_tracker_core_error_with_the_tracker_core_failure_reason() {
         // Arrange
-        let error = HttpAnnounceError::from(WhitelistError::TorrentNotWhitelisted {
+        let tracker_core_error = TrackerCoreError::from(WhitelistError::TorrentNotWhitelisted {
             info_hash: sample_info_hash(),
             location: Location::caller(),
         });
+        let tracker_core_response = protocol_error_from_tracker_core_error(tracker_core_error.clone());
 
         // Act
-        let response = HttpProtocolErrorResponse::from(error);
+        let response = HttpProtocolErrorResponse::from(HttpAnnounceError::from(tracker_core_error));
 
         // Assert
-        assert!(
-            response.failure_reason.starts_with("Tracker whitelist error: "),
-            "unexpected failure reason: {}",
-            response.failure_reason
-        );
+        assert_eq!(response.failure_reason, tracker_core_response.failure_reason);
     }
 
     #[test]

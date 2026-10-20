@@ -9,7 +9,7 @@ github-issue: 1349
 spec-path: docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md
 branch: "1349-1347-add-tests-http-core-announce"
 related-pr: null
-last-updated-utc: "2026-10-20 14:56"
+last-updated-utc: "2026-10-20 16:08"
 semantic-links:
   skill-links:
     - create-issue
@@ -612,6 +612,13 @@ lines are the S2 baseline measurement (see [Baseline Coverage](#baseline-coverag
   `tracker-core`. Interim unit-only package coverage after S2: lines 91.34%, regions 92.44%,
   functions 89.59% (totals include the test modules). Both ledger rows of S2 are `DONE`. Next: the
   independent Task Reviewer, the pre-push checks and the S2 pull request.
+- 2026-10-20 16:05 UTC - GitHub Copilot - The independent Task Reviewer passed S2 with one `MEDIUM`
+  and two `LOW` findings ([agent-review-reports.md](agent-review-reports.md)). The `MEDIUM` was a
+  surviving mutant (an empty `ip=` skipping the loopback substitution) that contradicted the
+  "no mutation survives" claim; it is fixed with a two-case test, so `services/announce.rs` has 50
+  cases and the package 79 unit tests. The mutation E2 wording and a duplicated failure-reason
+  literal were fixed too. Final S2 package coverage: lines 1,919 / 2,101 (91.34%), regions 2,511 /
+  2,716 (92.45%), functions 198 / 221 (89.59%). Next: the pre-push checks and the S2 pull request.
 
 ## Acceptance Criteria
 

@@ -58,7 +58,7 @@ result is recorded in Results. Lines are those of `services/error_mapping.rs` at
 | ID | Test | Site | Temporary change |
 | --- | --- | --- | --- |
 | E1 | The announce case | The `AnnounceError` arm (line 6) | Use the prefix `Tracker scrape error:` instead of the announce one. |
-| E2 | The authentication case | The `AuthenticationError` arm (line 15) | Drop the wrapped text: `failure_reason: "Tracker authentication error".to_string()`. |
+| E2 | The authentication case | The `AuthenticationError` arm (line 15) | Drop the wrapped text: change the pattern to `{ source: _ }` and the reason to `"Tracker authentication error".to_string()`. Leaving `source` unused does not compile under the workspace lints (`unused variable`); that would be a compile error, not a caught mutant, unless `RUSTFLAGS="--cap-lints=warn"` is set. |
 
 Gates: this plan needs the maintainer's approval first; the completed file needs the maintainer's
 completed-file review before its one signed commit.
@@ -92,9 +92,10 @@ torrust-tracker-http-core --all-features --lib`, `cargo-llvm-cov 0.6.16`, stable
 | `services/error_mapping.rs` lines | 0 / 18 (0.00%) | 26 / 29 (89.66%) |
 | `services/error_mapping.rs` regions | 0 / 13 | 17 / 19 (89.47%) |
 | `services/error_mapping.rs` functions | 0 / 1 | 3 / 3 (100.00%) |
-| Package lines | 1,751 / 1,970 (88.88%) | 1,919 / 2,101 (91.34%) |
-| Package regions | 2,357 / 2,607 (90.41%) | 2,507 / 2,712 (92.44%) |
-| Package functions | 161 / 191 (84.29%) | 198 / 221 (89.59%) |
+
+The package totals after slice S2 are in the
+[coverage evidence](../coverage-evidence.md#package-after-slice-s2); they include the later announce
+cases.
 
 The totals include the test module. Of the file's 29 lines, 18 are production lines (the same 18 as
 before: 15 now covered and the 3 wildcard lines uncovered) and 11 are test-module lines, all covered.
@@ -114,3 +115,7 @@ Approved by Jose Celano on 2026-10-20 (13:21 UTC): R1 skipped, R2 as one table o
   own case, the file is at 26 / 29 lines with only the wildcard arm uncovered. The completed file awaits
   the maintainer's review.
 - 2026-10-20 14:56 UTC - Jose Celano - Approved the completed file. The plan is `done`.
+- 2026-10-20 16:05 UTC - GitHub Copilot - The S2 Task Reviewer found that mutation E2 as written does
+  not compile under the workspace lints (LOW). Reproduced: a plain unused `source` fails with `unused
+  variable`. The run recorded above used the `{ source: _ }` form, which compiles, so its result stands;
+  the Named Mutations row now says so.
