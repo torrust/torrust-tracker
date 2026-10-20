@@ -7,9 +7,9 @@ priority: p2
 epic: 1347
 github-issue: 1349
 spec-path: docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md
-branch: "1349-1347-add-tests-http-core-announce"
-related-pr: 2575
-last-updated-utc: "2026-10-20 16:20"
+branch: "1349-1347-add-tests-http-core-scrape"
+related-pr: 2586
+last-updated-utc: "2026-10-20 17:55"
 semantic-links:
   skill-links:
     - create-issue
@@ -334,8 +334,8 @@ open a PR, get it reviewed, and merge it. The spec-only PR comes first.
 | --- | --- | --- | --- | --- | --- |
 | S0 | This specification and the EPIC registration with the baseline | - | `1349-1347-add-tests-http-core-spec` | #2546 | DONE |
 | S1 | T1-T3: coverage evidence, inventory, shared plan guidance, first plan, approved order | - | `1349-1347-add-tests-http-core-inventory` | #2558 | DONE |
-| S2 | Announce service and its error mapping (ranks 1-2) | 1-2 | `1349-1347-add-tests-http-core-announce` | #2575 | IN_PROGRESS |
-| S3 | Scrape service (rank 3) | 3 | `1349-1347-add-tests-http-core-scrape` | - | TODO |
+| S2 | Announce service and its error mapping (ranks 1-2) | 1-2 | `1349-1347-add-tests-http-core-announce` | #2575 | DONE |
+| S3 | Scrape service (rank 3) | 3 | `1349-1347-add-tests-http-core-scrape` | #2586 | IN_PROGRESS |
 | S4 | Events and composition (ranks 4-5) | 4-5 | `1349-1347-add-tests-http-core-events-container` | - | TODO |
 | S5 | Statistics (rank 6) | 6-10 | `1349-1347-add-tests-http-core-statistics` | - | TODO |
 | S6 | Crate root and wiring (rank 7), then T5-T8 | 11-13 | `1349-1347-add-tests-http-core-final` | - | TODO |
@@ -452,7 +452,7 @@ lines are the S2 baseline measurement (see [Baseline Coverage](#baseline-coverag
 | ---: | --- | ---: | --- | ---: | ---: | --- | --- | --- |
 | 1 | `services/announce.rs` | 1-2 | S2 | 675 / 727 (92.85%) | 8 | Property candidate (peer-IP selection) | DONE | [services-announce-tests.md](test-refactor-plans/services-announce-tests.md) (done; 843 / 851 lines after) |
 | 2 | `services/error_mapping.rs` | 2 | S2 | 0 / 18 (0.00%) | 0 | Test candidate | DONE | [services-error-mapping-tests.md](test-refactor-plans/services-error-mapping-tests.md) (done; 26 / 29 lines after, wildcard arm untestable) |
-| 3 | `services/scrape.rs` | 3 | S3 | 507 / 540 (93.89%) | 8 | Test candidate (error paths) | PENDING | - |
+| 3 | `services/scrape.rs` | 3 | S3 | 507 / 540 (93.89%) | 8 | Test candidate (error paths) | DONE | [services-scrape-tests.md](test-refactor-plans/services-scrape-tests.md) (done; 533 / 537 lines after) |
 | 4 | `event.rs` | 4 | S4 | 174 / 187 (93.05%) | 7 | Probably small change | PENDING | - |
 | 5 | `container.rs` | 5 | S4 | 0 / 73 (0.00%) | 0 | Test candidate | PENDING | - |
 | 6 | `statistics/event/handler.rs` | 6 | S5 | 158 / 161 (98.14%) | 5 | Probably no change | PENDING | - |
@@ -619,6 +619,40 @@ lines are the S2 baseline measurement (see [Baseline Coverage](#baseline-coverag
   cases and the package 79 unit tests. The mutation E2 wording and a duplicated failure-reason
   literal were fixed too. Final S2 package coverage: lines 1,919 / 2,101 (91.34%), regions 2,511 /
   2,716 (92.45%), functions 198 / 221 (89.59%). Next: the pre-push checks and the S2 pull request.
+- 2026-10-20 16:18 UTC - GitHub Copilot - The pre-push checks passed and the S2 pull request #2575
+  (<https://github.com/torrust/torrust-tracker/pull/2575>) was opened with `Related to #1349`. It
+  was not rebased onto the latest `develop`, which changed only outside `packages/http-core`;
+  `git merge-tree` reports no conflict.
+- 2026-10-20 16:47 UTC - GitHub Copilot - The S2 pull request #2575 was merged (`fe70cf908`). Copilot
+  reviewed the last head with no open issue and da2ce7 did not reply within the agreed 15 minutes, so
+  the maintainer's ACK was posted on the head and no review round was needed. S2 is `DONE`.
+- 2026-10-20 16:50 UTC - GitHub Copilot - S3 started on `1349-1347-add-tests-http-core-scrape`, cut from
+  `develop` at the merge of #2575. `packages/http-core` changed on `develop` only through S2, so the
+  baseline is the final S2 measurement: lines 1,919 / 2,101 (91.34%), regions 2,511 / 2,716 (92.45%),
+  functions 198 / 221 (89.59%), 79 unit tests; no re-measurement was needed.
+- 2026-10-20 17:09 UTC - GitHub Copilot - `services/scrape.rs` is `DONE` (S3): the maintainer approved the
+  plan (including a shared `RecordingSender` moved into `crate::tests`), the R1 refactor and the
+  completed file. The 8 tests became 19 cases; the real database is replaced by `MockTorrentMetricsStore`;
+  mutations M1-M4 and two probes each fail only their tests; unit-only line coverage of the file went
+  from 93.89% to 99.19%. One planned test (a public tracker ignoring a presented key) was dropped
+  because no mutation can fail it. Package after S3: lines 1,900 / 2,053 (92.55%), regions 2,492 / 2,669
+  (93.37%), functions 228 / 244 (93.44%), 90 unit tests. No finding needed a hand-off. Next: the
+  independent Task Reviewer, the pre-push checks and the S3 pull request.
+- 2026-10-20 17:48 UTC - GitHub Copilot - The independent Task Reviewer passed S3 with one `MEDIUM` and six
+  `LOW` findings ([agent-review-reports.md](agent-review-reports.md)). The `MEDIUM` was a surviving mutant:
+  the zeroed branch of `handle_scrape` returning early skipped the client-IP resolution and the event, and
+  no test covered the private-tracker path. It is fixed with a private-tracker event test and a private
+  case in the unresolvable client-IP table. `RecordingSender` now records when the future returned by
+  `send` is polled, one test pins that a tracker not behind a reverse proxy ignores a forwarded address,
+  and the no-sender test asserts the data. The scrape file now has 22 cases and the package 93 unit tests.
+  Final S3 package coverage: lines 1,949 / 2,102 (92.72%), regions 2,566 / 2,743 (93.55%), functions
+  233 / 249 (93.57%). R1 and R2 were coded together although the plan gates R1 on a maintainer review; the
+  maintainer approved R1 and the completed file together on 2026-10-20 at 17:09 UTC, which satisfies the
+  gate. Next: the pre-push checks and the S3 pull request.
+- 2026-10-20 17:54 UTC - GitHub Copilot - The pre-push checks passed and the S3 pull request #2586
+  (<https://github.com/torrust/torrust-tracker/pull/2586>) was opened with `Related to #1349`. It was
+  not rebased onto the latest `develop`, which changed only outside `packages/http-core`;
+  `git merge-tree` reports no conflict.
 
 ## Acceptance Criteria
 

@@ -21,10 +21,53 @@ pub const HTTP_TRACKER_LOG_TARGET: &str = "HTTP TRACKER";
 #[cfg(test)]
 pub(crate) mod tests {
     use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
+    use std::sync::{Arc, Mutex};
 
+    use futures::future::BoxFuture;
     use torrust_clock::DurationSinceUnixEpoch;
     use torrust_info_hash::InfoHash;
+    use torrust_tracker_events::sender::SendError;
     use torrust_tracker_primitives::{AnnounceEvent, NumberOfBytes, PeerId, peer};
+
+    use crate::event::Event;
+
+    /// An event sender that keeps every event it receives, so a test can assert
+    /// on the events a service publishes explicitly.
+    ///
+    /// Like the production broadcaster, it records an event only when the
+    /// future returned by `send` is polled, so a service that drops that
+    /// future publishes nothing.
+    #[derive(Default)]
+    pub struct RecordingSender {
+        events: Arc<Mutex<Vec<Event>>>,
+    }
+
+    impl RecordingSender {
+        #[must_use]
+        pub fn new() -> Arc<Self> {
+            Arc::new(Self::default())
+        }
+
+        /// # Panics
+        ///
+        /// Will panic if another thread panicked while recording an event.
+        #[must_use]
+        pub fn events(&self) -> Vec<Event> {
+            self.events.lock().unwrap().clone()
+        }
+    }
+
+    impl torrust_tracker_events::sender::Sender for RecordingSender {
+        type Event = Event;
+
+        fn send(&self, event: Event) -> BoxFuture<'static, Option<Result<usize, SendError<Event>>>> {
+            let events = Arc::clone(&self.events);
+            Box::pin(async move {
+                events.lock().unwrap().push(event);
+                Some(Ok(1))
+            })
+        }
+    }
 
     /// # Panics
     ///
