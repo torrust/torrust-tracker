@@ -7,9 +7,9 @@ priority: p2
 epic: 1347
 github-issue: 1349
 spec-path: docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md
-branch: "1349-1347-add-tests-http-core-announce"
-related-pr: 2575
-last-updated-utc: "2026-10-20 16:20"
+branch: "1349-1347-add-tests-http-core-scrape"
+related-pr: null
+last-updated-utc: "2026-10-20 16:50"
 semantic-links:
   skill-links:
     - create-issue
@@ -334,8 +334,8 @@ open a PR, get it reviewed, and merge it. The spec-only PR comes first.
 | --- | --- | --- | --- | --- | --- |
 | S0 | This specification and the EPIC registration with the baseline | - | `1349-1347-add-tests-http-core-spec` | #2546 | DONE |
 | S1 | T1-T3: coverage evidence, inventory, shared plan guidance, first plan, approved order | - | `1349-1347-add-tests-http-core-inventory` | #2558 | DONE |
-| S2 | Announce service and its error mapping (ranks 1-2) | 1-2 | `1349-1347-add-tests-http-core-announce` | #2575 | IN_PROGRESS |
-| S3 | Scrape service (rank 3) | 3 | `1349-1347-add-tests-http-core-scrape` | - | TODO |
+| S2 | Announce service and its error mapping (ranks 1-2) | 1-2 | `1349-1347-add-tests-http-core-announce` | #2575 | DONE |
+| S3 | Scrape service (rank 3) | 3 | `1349-1347-add-tests-http-core-scrape` | - | IN_PROGRESS |
 | S4 | Events and composition (ranks 4-5) | 4-5 | `1349-1347-add-tests-http-core-events-container` | - | TODO |
 | S5 | Statistics (rank 6) | 6-10 | `1349-1347-add-tests-http-core-statistics` | - | TODO |
 | S6 | Crate root and wiring (rank 7), then T5-T8 | 11-13 | `1349-1347-add-tests-http-core-final` | - | TODO |
@@ -619,6 +619,17 @@ lines are the S2 baseline measurement (see [Baseline Coverage](#baseline-coverag
   cases and the package 79 unit tests. The mutation E2 wording and a duplicated failure-reason
   literal were fixed too. Final S2 package coverage: lines 1,919 / 2,101 (91.34%), regions 2,511 /
   2,716 (92.45%), functions 198 / 221 (89.59%). Next: the pre-push checks and the S2 pull request.
+- 2026-10-20 16:18 UTC - GitHub Copilot - The pre-push checks passed and the S2 pull request #2575
+  (<https://github.com/torrust/torrust-tracker/pull/2575>) was opened with `Related to #1349`. It
+  was not rebased onto the latest `develop`, which changed only outside `packages/http-core`;
+  `git merge-tree` reports no conflict.
+- 2026-10-20 16:47 UTC - GitHub Copilot - The S2 pull request #2575 was merged (`fe70cf908`). Copilot
+  reviewed the last head with no open issue and da2ce7 did not reply within the agreed 15 minutes, so
+  the maintainer's ACK was posted on the head and no review round was needed. S2 is `DONE`.
+- 2026-10-20 16:50 UTC - GitHub Copilot - S3 started on `1349-1347-add-tests-http-core-scrape`, cut from
+  `develop` at the merge of #2575. `packages/http-core` changed on `develop` only through S2, so the
+  baseline is the final S2 measurement: lines 1,919 / 2,101 (91.34%), regions 2,511 / 2,716 (92.45%),
+  functions 198 / 221 (89.59%), 79 unit tests; no re-measurement was needed.
 
 ## Acceptance Criteria
 

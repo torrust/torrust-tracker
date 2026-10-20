@@ -6,7 +6,7 @@ epic: null
 github-issue: 1347
 spec-path: docs/issues/open/1347-overhaul-packages-testing/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-20 16:08"
+last-updated-utc: "2026-10-20 16:50"
 semantic-links:
   skill-links:
     - create-issue
@@ -87,7 +87,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | Order | Issue                                             | Local Spec                                                                        | Status | Notes                                                                                                                |
 | ----- | ------------------------------------------------- | --------------------------------------------------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------- |
 | 1     | #1348 - Add tests to the udp-core package         | `docs/issues/closed/1348-1347-add-tests-udp-core/ISSUE.md`                        | DONE   | Every package source file processed through a reviewed per-file plan; unit-only lines 72.49% → 98.04% (includes #2458, #2505, #2517, and #2521); bounded mutation sample and manual verification recorded; merged through PR #2538. |
-| 2     | #1349 - Add tests to the http-core package        | `docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md`                         | IN_PROGRESS | S0 (spec) and S1 (inventory, merged through #2558) are done. S2 (the announce service and its error mapping, in review) raised unit-only lines from 88.88% to 91.34%. Implementation is delivered in several pull-request slices. |
+| 2     | #1349 - Add tests to the http-core package        | `docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md`                         | IN_PROGRESS | S0 (spec), S1 (inventory, merged through #2558) and S2 (the announce service and its error mapping, merged through #2575) are done: unit-only lines went from 88.88% to 91.34%. S3 (the scrape service) is in progress. Implementation is delivered in several pull-request slices. |
 | 3     | #2136 - Add tests to the axum-http-server package | `docs/issues/closed/2136-1347-add-tests-axum-http-server/ISSUE.md`                | DONE   | Added fast package-local response, request-ID, and lifecycle tests; verification and final review evidence recorded. |
 | 4     | #2140 - Review axum-http-server integration tests | `docs/issues/closed/2140-1347-review-axum-http-server-integration-tests/ISSUE.md` | DONE   | Inventory, coverage/domain analysis, and test-design review completed.                                               |
 | 5     | #2149 - Add focused UDP server package tests      | `docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/ISSUE.md`        | DONE   | Focused transport, dispatch, socket, event/error, and overload tests added through reviewed per-file plans; separate coverage scopes, bounded mutation sample, and manual verification recorded; merged via PR #2174. |
