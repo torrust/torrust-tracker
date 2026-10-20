@@ -7,9 +7,9 @@ priority: p2
 epic: 1347
 github-issue: 1349
 spec-path: docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md
-branch: "1349-1347-add-tests-http-core-scrape"
-related-pr: 2586
-last-updated-utc: "2026-10-20 17:55"
+branch: "1349-1347-add-tests-http-core-events-container"
+related-pr: null
+last-updated-utc: "2026-10-20 19:51"
 semantic-links:
   skill-links:
     - create-issue
@@ -335,8 +335,8 @@ open a PR, get it reviewed, and merge it. The spec-only PR comes first.
 | S0 | This specification and the EPIC registration with the baseline | - | `1349-1347-add-tests-http-core-spec` | #2546 | DONE |
 | S1 | T1-T3: coverage evidence, inventory, shared plan guidance, first plan, approved order | - | `1349-1347-add-tests-http-core-inventory` | #2558 | DONE |
 | S2 | Announce service and its error mapping (ranks 1-2) | 1-2 | `1349-1347-add-tests-http-core-announce` | #2575 | DONE |
-| S3 | Scrape service (rank 3) | 3 | `1349-1347-add-tests-http-core-scrape` | #2586 | IN_PROGRESS |
-| S4 | Events and composition (ranks 4-5) | 4-5 | `1349-1347-add-tests-http-core-events-container` | - | TODO |
+| S3 | Scrape service (rank 3) | 3 | `1349-1347-add-tests-http-core-scrape` | #2586 | DONE |
+| S4 | Events and composition (ranks 4-5) | 4-5 | `1349-1347-add-tests-http-core-events-container` | - | IN_PROGRESS |
 | S5 | Statistics (rank 6) | 6-10 | `1349-1347-add-tests-http-core-statistics` | - | TODO |
 | S6 | Crate root and wiring (rank 7), then T5-T8 | 11-13 | `1349-1347-add-tests-http-core-final` | - | TODO |
 
@@ -653,6 +653,14 @@ lines are the S2 baseline measurement (see [Baseline Coverage](#baseline-coverag
   (<https://github.com/torrust/torrust-tracker/pull/2586>) was opened with `Related to #1349`. It was
   not rebased onto the latest `develop`, which changed only outside `packages/http-core`;
   `git merge-tree` reports no conflict.
+- 2026-10-20 19:49 UTC - GitHub Copilot - The S3 pull request #2586 was merged (`fefefdd9e`). Copilot
+  reviewed the last head with no open issue, the one cancelled CI job was re-run and passed, and
+  da2ce7 did not reply within the agreed 15 minutes, so the maintainer's ACK was posted on the head.
+  S3 is `DONE`.
+- 2026-10-20 19:50 UTC - GitHub Copilot - S4 started on `1349-1347-add-tests-http-core-events-container`,
+  cut from `develop` at the merge of #2586. `packages/http-core` did not change on `develop` after the
+  S3 head, so the baseline is the final S3 measurement: lines 1,949 / 2,102 (92.72%), regions
+  2,566 / 2,743 (93.55%), functions 233 / 249 (93.57%), 93 unit tests; no re-measurement was needed.
 
 ## Acceptance Criteria
 
