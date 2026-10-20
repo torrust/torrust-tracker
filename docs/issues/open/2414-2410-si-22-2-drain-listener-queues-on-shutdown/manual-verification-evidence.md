@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2414-2410-si-22-2-drain-listener-queues-on-shutdown/ISSUE.md
-last-updated-utc: "2026-10-20 16:18"
+last-updated-utc: "2026-10-20 16:37"
 ---
 
 # Manual Verification Evidence
@@ -1080,6 +1080,16 @@ After the T4 design review (maintainer, 2026-10-20; he agreed to a 5 s default t
 
 The V3 and V4 red evidence was already committed earlier as
 `docs(issues): [#2414] record the red evidence of the T3a and T3c regression tests`.
+
+After the independent review (V11), three code commits and a documentation commit were added:
+
+1. `fix(events): [#2414] drain without panicking on a huge timeout, and yield between events`
+   (review findings S1 and N2, each with a red-first test, and the `is_empty` test).
+2. `refactor(http-core): [#2414] re-export the default drain timeout instead of adding a dependency`
+   (review finding S2; `Cargo.lock` equals `develop`'s).
+3. `test(listeners): [#2414] move the TryRecvError imports up and add causal assertion messages`
+   (review findings N1 and N4).
+4. `docs(issues): [#2414] record the review fixes, the Task Reviewer report, and the retrospective`.
 
 ## Failures and Follow-up
 

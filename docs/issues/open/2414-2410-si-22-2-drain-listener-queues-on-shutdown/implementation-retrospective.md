@@ -45,8 +45,8 @@ between events and tolerates a huge timeout, and the 5 s default is named in `pa
    nothing unread had no test until a mutation passed every test (V5). Mutations that did not compile were
    recorded as non-results each time, and not as "no test failed".
 4. **The independent review found what my tests missed.** The Task Reviewer, before push, confirmed the
-   structure and raised the cooperative-scheduling requirement and the unrecorded dependency edge. I had found
-   the `Instant` overflow myself shortly before, and it confirmed it.
+   structure and raised the cooperative-scheduling requirement and the unrecorded dependency edge. It also
+   found the `Instant` overflow in `drain` (its finding N2), which I then confirmed with a scratch program.
 
 ## What Changed During Implementation
 

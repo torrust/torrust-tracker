@@ -9,7 +9,7 @@ github-issue: 2414
 spec-path: docs/issues/open/2414-2410-si-22-2-drain-listener-queues-on-shutdown/ISSUE.md
 branch: "2414-drain-listener-queues-on-shutdown"
 related-pr: null
-last-updated-utc: "2026-10-20 16:30"
+last-updated-utc: "2026-10-20 16:37"
 semantic-links:
   skill-links:
     - create-issue
@@ -239,7 +239,7 @@ and independent Task Reviewer report.
 - [ ] Implementation completed and acceptance criteria reviewed
 - [x] Independent Task Reviewer report recorded in `agent-review-reports.md` (sub-EPIC Shared Delivery Gates)
 - [x] Retrospective recorded in `implementation-retrospective.md` (sub-EPIC Shared Delivery Gates)
-- [ ] Task Reviewer re-review of the review fixes recorded in `agent-review-reports.md`
+- [x] Task Reviewer re-review of the review fixes recorded in `agent-review-reports.md`
 
 ### Progress Log
 
@@ -259,3 +259,4 @@ and independent Task Reviewer report.
 - 2026-10-20 15:39 UTC - GitHub Copilot (Claude Sonnet 5.5) - T5 done: the `udp-server` statistics and banning listeners drain on cancellation (V9), mutation-checked; workspace 3,164 passed, `linter all` 0. All seven listeners drain through the shared helper, one package per commit. Remaining: the final real-binary recheck (M1 to M3) after this last production change, the acceptance-criteria evidence, the Task Reviewer report, the retrospective, and the pre-push checks.
 - 2026-10-20 15:47 UTC - GitHub Copilot (Claude Sonnet 5.5) - M1 to M3 rechecked on the real binary after the last production change (V10): the control run with the T0 parameters persists 500 of 500 (T0: 467), both race runs persist everything they answered (T0: 790 and 775 lost), all seven listeners log their drain with the same fields, and a cut-short drain logs the warning after 5 s. The Verification Plan rows are `DONE` and the Acceptance Verification table has its evidence. The acceptance criteria are not ticked: the reviewer does that. Two slips in the recheck (a UDP client argument and ports) are recorded in V10. Next: the Task Reviewer report, the retrospective, and the pre-push checks.
 - 2026-10-20 16:30 UTC - GitHub Copilot (Claude Sonnet 5.5) - The independent Task Reviewer report before push is recorded in `agent-review-reports.md` (REVIEW PASSED; two should-fix items and six nits), with the maintainer's decisions. The fixes are committed: the drain yields between events and tolerates a huge timeout (`fix(events): [#2414] drain without panicking on a huge timeout, and yield between events`), the http-core re-export replaces the new dependency edge (`refactor(http-core): [#2414] re-export the default drain timeout instead of adding a dependency`), and the import and assertion-message nits (`test(listeners): [#2414] move the TryRecvError imports up and add causal assertion messages`). The real-binary recheck on the final build is V11 (control 500 of 500; race runs 665 of 665 and 641 of 641; a cut-short drain warns after 5 s). The retrospective is `implementation-retrospective.md`; the sub-EPIC record has entry 29. The acceptance criteria stay open for the reviewer. Next: a Task Reviewer re-review of the fixes, the pre-push checks, and asking the maintainer to push.
+- 2026-10-20 16:37 UTC - GitHub Copilot (Claude Sonnet 5.5) - The Task Reviewer re-review of the review fixes is recorded in `agent-review-reports.md` (REVIEW PASSED WITH FINDINGS: no should-fix item, three nits fixed in this commit). The evidence lists the four commits added after the first review. Next: the pre-push checks, then asking the maintainer to push and open the PR.

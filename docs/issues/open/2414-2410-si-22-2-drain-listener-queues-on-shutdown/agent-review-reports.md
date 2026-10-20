@@ -77,3 +77,26 @@ semantic-links:
     level; an `is_empty` test was added (V11).
   - The fixes changed production code (the drain), so the recheck of M1 to M3 was repeated on the new
     build (V11). A re-review of the fixes follows in the next entry.
+
+### 2026-10-20 16:37 UTC - Task Reviewer (re-review of the review fixes, before push)
+
+- Scope: the three code commits and the documentation commit added after the first report, against the
+  first report's findings S1, S2, and N1 to N6, and the Shared Delivery Gates.
+- Verdict: REVIEW PASSED WITH FINDINGS. No blocking issue and no should-fix item.
+- Findings S1, S2, and N1 to N6: all resolved as the maintainer decided, with code and document lines cited
+  by the reviewer (`drain.rs` yield and `checked_add`, the `http-core` re-export, the imports, the assertion
+  messages, the `is_empty` test, `status: in-progress`).
+- Code: no regression or new defect in the three code commits. `Cargo.lock` equals `develop`'s.
+- Docs: the acceptance criteria are still open; no PR-branch commit id; un-run claims are labelled; stamps equal
+  the newest log entries.
+- The reviewer ran `cargo test -p torrust-tracker-events` (23 passed), `-p torrust-tracker-http-core`,
+  `-p torrust-tracker-core`, `cargo fmt --check`, `linter markdown`, and `linter cspell`. It did not re-run
+  the workspace suite, `cargo machete`, `cargo deny`, the real-binary scenarios, or the mutation checks.
+- Nits, all resolved by the author in the commit that carries this entry:
+  - F1: the retrospective said I found the `Instant` overflow before the review; the first report lists it
+    as the reviewer's N2. The retrospective now credits the review.
+  - F2: the evidence's Commits section listed only the first three commits; it now lists the four added
+    after the review.
+  - F3 (optional): the maintainer's N5 decisions and the N1/N4 fixes are recorded here and in the first
+    entry only, not in entry 29 or V11; left as is, since they changed no design.
+- Delivery gates still open: the pre-push checks, and the maintainer's approval to push.
