@@ -77,27 +77,35 @@ def parse_args() -> argparse.Namespace:
     return args
 
 
-def load_comments(args: argparse.Namespace) -> dict[int, dict]:
-    if args.comments_file:
-        raw = Path(args.comments_file).read_text()
-    else:
-        print(f"Fetching review comments for {args.owner}/{args.repo} PR #{args.pr_number}...", file=sys.stderr)
-        raw = subprocess.run(
-            ["gh", "api", f"repos/{args.owner}/{args.repo}/pulls/{args.pr_number}/comments", "--paginate"],
-            capture_output=True,
-            text=True,
-            check=True,
-        ).stdout
+def parse_json_arrays(raw: str) -> list[dict]:
     # --paginate can emit concatenated arrays; json.JSONDecoder.raw_decode handles that.
     decoder = json.JSONDecoder()
-    comments: list[dict] = []
+    items: list[dict] = []
     pos = 0
     raw = raw.strip()
     while pos < len(raw):
         chunk, pos = decoder.raw_decode(raw, pos)
-        comments.extend(chunk)
+        items.extend(chunk)
         while pos < len(raw) and raw[pos].isspace():
             pos += 1
+    return items
+
+
+def gh_paginated(endpoint: str) -> list[dict]:
+    raw = subprocess.run(["gh", "api", endpoint, "--paginate"], capture_output=True, text=True, check=True).stdout
+    return parse_json_arrays(raw)
+
+
+def load_comments(args: argparse.Namespace) -> dict[int, dict]:
+    if args.comments_file:
+        return {c["id"]: c for c in parse_json_arrays(Path(args.comments_file).read_text())}
+    print(f"Fetching review comments for {args.owner}/{args.repo} PR #{args.pr_number}...", file=sys.stderr)
+    pull = f"repos/{args.owner}/{args.repo}/pulls/{args.pr_number}"
+    comments = gh_paginated(f"{pull}/comments")
+    # The repo-level listing can lag behind replies that are already visible on their review,
+    # so merge each review's own comment listing too.
+    for review in gh_paginated(f"{pull}/reviews"):
+        comments.extend(gh_paginated(f"{pull}/reviews/{review['id']}/comments"))
     return {c["id"]: c for c in comments}
 
 
