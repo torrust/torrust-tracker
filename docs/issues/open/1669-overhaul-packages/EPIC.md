@@ -6,7 +6,7 @@ epic: null
 github-issue: 1669
 spec-path: docs/issues/open/1669-overhaul-packages/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-19 19:57"
+last-updated-utc: "2026-10-20 11:57"
 semantic-links:
   skill-links:
     - create-issue
@@ -665,7 +665,7 @@ Status: TODO unless noted.
 
 - [x] [#2446](https://github.com/torrust/torrust-tracker/issues/2446) SI-01: Establish baseline: dependency graph + README audit _(analysis; no blockers; informs all other subissues)_ — **DONE** (2026-10-06 coupling report, refreshed README audit and dependency diagram; three findings drafted as subissues)
 - [ ] Update all package READMEs _(documentation; after completed rename work; before extractions)_
-- [ ] [#2454](https://github.com/torrust/torrust-tracker/issues/2454) Mark public error enums `#[non_exhaustive]` before first publish _(Pre-publish API checklist; per crate, before its first publish)_
+- [x] [#2454](https://github.com/torrust/torrust-tracker/issues/2454) Mark public error enums `#[non_exhaustive]` before first publish _(Pre-publish API checklist; per crate, before its first publish)_ — **DONE** (2026-10-20, PR #2568)
 - [ ] [#2482](https://github.com/torrust/torrust-tracker/issues/2482) Reorganize test support code shared between workspace packages _(sub-EPIC; findings 1 and 2 of the 2026-10-06 coupling report; amends DEC-13)_
 - [x] [#2475](https://github.com/torrust/torrust-tracker/issues/2475) Fix coupling-tool module name resolution for renamed dependencies and custom library names _(finding 3 of the 2026-10-06 coupling report; corrected report: [2026-10-17](workspace-coupling-report-2026-10-17.md))_ — **DONE** (2026-10-19, PR #2559)
 - [x] [#2517](https://github.com/torrust/torrust-tracker/issues/2517) Make the statistics repositories' metrics lock private _(Pre-publish API hygiene; five unpublished crates; found by #1348)_ — **DONE** (2026-10-14, PR #2527)
@@ -732,7 +732,7 @@ Details:
 | HTTP/UDP crate renames     | [#1910](https://github.com/torrust/torrust-tracker/issues/1910) — SI-29: Remove redundant `-tracker-` from HTTP and UDP crate names                                                       | [docs/issues/closed/1910-1669-si-29-rename-udp-and-http-core-protocol-crates-to-remove-redundant-tracker/ISSUE.md](../../closed/1910-1669-si-29-rename-udp-and-http-core-protocol-crates-to-remove-redundant-tracker/ISSUE.md) | DONE   | Rule U; DEC-15 folder convention                                                                                                              |
 | HTTP type consolidation    | [#1965](https://github.com/torrust/torrust-tracker/issues/1965) — SI-34: Consolidate duplicate HTTP types into `http-protocol`                                                            | [docs/issues/closed/1965-1669-si-34-consolidate-duplicate-http-types/ISSUE.md](../../closed/1965-1669-si-34-consolidate-duplicate-http-types/ISSUE.md)                                         | DONE   |                                                                                                                                               |
 | UDP type consolidation     | [#1966](https://github.com/torrust/torrust-tracker/issues/1966) — SI-35: Consolidate duplicate UDP types                                                                                  | [docs/issues/closed/1966-1669-si-35-consolidate-duplicate-udp-types/ISSUE.md](../../closed/1966-1669-si-35-consolidate-duplicate-udp-types/ISSUE.md)                                           | DONE   |                                                                                                                                               |
-| Error enum audit           | [#2454](https://github.com/torrust/torrust-tracker/issues/2454) — Mark public error enums `#[non_exhaustive]` before first publish                                                        | [docs/issues/open/2454-1669-mark-public-error-enums-non-exhaustive/ISSUE.md](../2454-1669-mark-public-error-enums-non-exhaustive/ISSUE.md)                                                     | TODO   | Pre-publish API checklist; per crate in dependency order, before its first publish                                                            |
+| Error enum audit           | [#2454](https://github.com/torrust/torrust-tracker/issues/2454) — Mark public error enums `#[non_exhaustive]` before first publish                                                        | [docs/issues/closed/2454-1669-mark-public-error-enums-non-exhaustive/ISSUE.md](../../closed/2454-1669-mark-public-error-enums-non-exhaustive/ISSUE.md)                                                     | DONE   | Pre-publish API checklist; per crate in dependency order, before its first publish                                                            |
 | Statistics lock privacy    | [#2517](https://github.com/torrust/torrust-tracker/issues/2517) — Make the statistics repositories' metrics lock private | [docs/issues/closed/2517-1669-encapsulate-statistics-repository-state/ISSUE.md](../../closed/2517-1669-encapsulate-statistics-repository-state/ISSUE.md) | DONE | Pre-publish API hygiene; `udp-core`, `udp-server`, `http-core`, `tracker-core`, `swarm-coordination-registry` |
 | Unused UDP stats traits    | [#2521](https://github.com/torrust/torrust-tracker/issues/2521) — Remove the unused UDP statistics traits and services                                                                  | [docs/issues/closed/2521-1669-remove-unused-udp-stats-traits/ISSUE.md](../../closed/2521-1669-remove-unused-udp-stats-traits/ISSUE.md)                                                                     | DONE   | SI-30 repository traits and `statistics::services`; `BanningStats` is removed by #2505                                                      |
 | Statistics read lock       | [#2536](https://github.com/torrust/torrust-tracker/issues/2536) — Hide the statistics repositories' read lock and metric collection field | [docs/issues/closed/2536-1669-hide-statistics-repository-read-lock/ISSUE.md](../../closed/2536-1669-hide-statistics-repository-read-lock/ISSUE.md) | DONE | Pre-publish API hygiene; PR #2545; closure-based `read_metrics()` in the five statistics repositories; follow-up of #2517; includes a root ADR for the rule |
@@ -743,7 +743,7 @@ After SI-14, there is a proposal to evaluate a dedicated repository for protocol
 ### Subissue Specs Index
 
 - [docs/issues/closed/2446-1669-establish-baseline-analysis/ISSUE.md](../../closed/2446-1669-establish-baseline-analysis/ISSUE.md)
-- [docs/issues/open/2454-1669-mark-public-error-enums-non-exhaustive/ISSUE.md](../2454-1669-mark-public-error-enums-non-exhaustive/ISSUE.md)
+- [docs/issues/closed/2454-1669-mark-public-error-enums-non-exhaustive/ISSUE.md](../../closed/2454-1669-mark-public-error-enums-non-exhaustive/ISSUE.md)
 - [docs/issues/drafts/1669-update-all-package-readmes/ISSUE.md](../../drafts/1669-update-all-package-readmes/ISSUE.md)
 - [Issue #1669](https://github.com/torrust/torrust-tracker/issues/1669)
 - [Issue #1882](https://github.com/torrust/torrust-tracker/issues/1882)
@@ -822,7 +822,7 @@ public error API changed, audit its public error API
 Issue [#2454](https://github.com/torrust/torrust-tracker/issues/2454) applies this checklist to
 the workspace crates. Its per-crate completion record, with each crate's decisions and the publish
 bump for the crates already on crates.io, is the
-[error enum inventory](../2454-1669-mark-public-error-enums-non-exhaustive/error-enum-inventory.md#per-crate-completion).
+[error enum inventory](../../closed/2454-1669-mark-public-error-enums-non-exhaustive/error-enum-inventory.md#per-crate-completion).
 
 ## Open Questions
 
@@ -1051,6 +1051,10 @@ Previously referenced tools (screenshots from CodeScene already in the issue com
 - 2026-10-19 19:57 UTC - GitHub Copilot - #2454 implementation is on PR #2568: 58 public error enums in 16 packages
   are `#[non_exhaustive]`, two stay exhaustive, and `configuration::Error::Infallible` is removed. The
   Pre-publish API checklist links the inventory's per-crate completion record.
+- 2026-10-20 11:57 UTC - GitHub Copilot - #2454 is done (PR #2568 merged); its spec moved to
+  `docs/issues/closed/2454-1669-mark-public-error-enums-non-exhaustive/`. The next publish of
+  `torrust-tracker`, `torrust-tracker-configuration` and `torrust-tracker-primitives` must be a
+  semver-major bump (checklist item 4).
 
 ## Acceptance Criteria
 

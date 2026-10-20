@@ -1,7 +1,7 @@
 # Error Enum Inventory (#2454, task T1)
 
 Spec: [ISSUE.md](ISSUE.md). Policy: [ADR 20261005145329](../../../adrs/20261005145329_return_result_only_for_concretely_fallible_public_apis.md)
-and the Pre-publish API checklist in [EPIC #1669](../1669-overhaul-packages/EPIC.md).
+and the Pre-publish API checklist in [EPIC #1669](../../open/1669-overhaul-packages/EPIC.md).
 
 Inventory taken at `torrust/develop` `55e08830f` (2026-10-19), before any code change.
 
