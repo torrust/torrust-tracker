@@ -9,7 +9,7 @@ github-issue: 2414
 spec-path: docs/issues/open/2414-2410-si-22-2-drain-listener-queues-on-shutdown/ISSUE.md
 branch: "2414-drain-listener-queues-on-shutdown"
 related-pr: null
-last-updated-utc: "2026-10-19 19:09"
+last-updated-utc: "2026-10-20 12:02"
 semantic-links:
   skill-links:
     - create-issue
@@ -127,7 +127,7 @@ tests, and `TestEnv` against the current code before T3.
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
 | T3a | TODO | Red unit test, persistent listener | Pre-cancelled token and a ready event: red output recorded. |
-| T3b | TODO | `TestEnv` owns its listeners | Token and handles kept; `stop()` cancels and joins; remove only waits that shutdown makes redundant, preserving tests of live persistence. |
+| T3b | DONE | `TestEnv` owns its listeners | Token and handles kept; `stop()` cancels and joins; remove only waits that shutdown makes redundant, preserving tests of live persistence. Waits are kept for now: `stop()` discards the queue until T4c. Evidence: V1 in `manual-verification-evidence.md`. |
 | T3c | TODO | Red package test (AC11) | N completions, already-cancelled listener: red output recorded. |
 | T4a | TODO | Receiver trait and drain helper | `try_recv`, `len`, `TryRecvError`; all implementations, mocks, and scripted receivers compile together; helper unit tests (empty, closed with buffered events, timeout with leftovers, lag). |
 | T4b | TODO | Measure drain rate (`release`) | Time to drain the persistent listener's queue; default timeout chosen and recorded. |
@@ -240,3 +240,4 @@ and independent Task Reviewer report.
 - 2026-10-02 13:30 UTC - GitHub Copilot - Added AC7 (sub-EPIC AC12): the drain timeout does not interrupt a handler; shared-deadline abort remains an exception.
 - 2026-10-19 17:08 UTC - GitHub Copilot (Claude Opus 5.5) - Refreshed before implementation: `branch:` names the implementation branch `2414-drain-listener-queues-on-shutdown`; removed the obsolete note about setting `epic`; the Implementation Plan now asks to revalidate the code that PRs #2545 and #2552 changed after this spec was written (file lists from `git diff --stat` of each merge).
 - 2026-10-19 19:09 UTC - GitHub Copilot (Claude Opus 5.5) - The revalidation note now also names the statistics repositories and metrics that PR #2545 changed, including tracker-core's repository, which the persistent listener's handler updates (nit N1 of the #2413 Task Reviewer re-review).
+- 2026-10-20 12:02 UTC - GitHub Copilot (Claude Sonnet 5.5) - Started after PR #2569 merged (branch `2414-drain-listener-queues-on-shutdown` cut from `develop`). Revalidated against the code (read from source, not run): `Receiver` still has only `recv` and a `mockall` `automock`; tokio is 1.53.3; the seven `it_should_prioritize_*` tests are where the sub-EPIC lists them; `TestEnv` created a local token, dropped the three listener handles, and slept 100 ms. T3b done on the maintainer-approved design: `TestEnv` owns a token with a `DropGuard` and the named handles, and `stop()` cancels and joins them under one absolute deadline. New test `it_should_release_every_listener_receiver_when_the_environment_is_stopped`, shown to fail when `stop()` does not cancel and when it does not join (V1). The 100 ms sleep and the persistence polling stay until `stop()` can drain (T4c). At the T3b review the maintainer asked for a drop-path test: `it_should_cancel_every_listener_when_the_environment_is_dropped_without_being_stopped`, shown to fail when the drop guard is on a different token (V2). A listener that panics is not simulated (read from source, not run).

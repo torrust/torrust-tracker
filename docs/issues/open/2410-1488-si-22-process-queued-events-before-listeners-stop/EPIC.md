@@ -6,7 +6,7 @@ epic: 1488
 github-issue: 2410
 spec-path: docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-19 19:09"
+last-updated-utc: "2026-10-20 12:02"
 semantic-links:
   skill-links:
     - create-issue
@@ -269,7 +269,7 @@ which keeps the detailed steps for all sub-issues.
 | Order | Issue | Local Spec | Tasks | Acceptance criteria | Status | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | #2413 - Document event flows and draft the shutdown-order ADR | [ISSUE.md](../../closed/2413-2410-si-22-1-document-event-flows-and-draft-adr/ISSUE.md) | T1, T2 | AC9; ADR draft for AC8 | DONE | Documentation only. |
-| 2 | #2414 - Drain listener queues on shutdown | [ISSUE.md](../2414-2410-si-22-2-drain-listener-queues-on-shutdown/ISSUE.md) | T3, T4, T5 | AC1, AC3, AC4, AC6, AC11, AC12 | TODO | Addresses window (a), isolated by the control run; race-run loss attribution remains incomplete. |
+| 2 | #2414 - Drain listener queues on shutdown | [ISSUE.md](../2414-2410-si-22-2-drain-listener-queues-on-shutdown/ISSUE.md) | T3, T4, T5 | AC1, AC3, AC4, AC6, AC11, AC12 | IN_PROGRESS | Addresses window (a), isolated by the control run; race-run loss attribution remains incomplete. |
 | 3 | #2415 - Give each application component its own cancellation token | [ISSUE.md](../2415-2410-si-22-3-per-component-cancellation-tokens/ISSUE.md) | T6 | AC13 (keeps it; no behavior change) | TODO | Refactor that prepares sub-issue 4. |
 | 4 | #2416 - Stop event producers before event listeners | [ISSUE.md](../2416-2410-si-22-4-stop-producers-before-listeners/ISSUE.md) | T7, T8, T9, T10 | AC2, AC5, AC7, AC8, AC10, AC13 | TODO | Closes window (b). T9's prerequisite #2471 is satisfied (merged in PR #2544 on 2026-10-16). |
 
@@ -2169,6 +2169,7 @@ avoids duplicating the full workflow in four drafts:
 - 2026-10-19 17:20 UTC - GitHub Copilot (Claude Opus 5.5) - Correction to the 2026-10-16 07:56 entry: "entry 27 should say torrent cleanup publishes on the swarm bus indirectly" was wrong. Entry 27 says nothing about torrent cleanup, and "D Versus F" already names it a swarm producer, so there was no difference. The inventory's entry 27 recheck table now attributes the publish-nothing facts to "D Versus F" and marks them Confirmed. Found by the post-merge Task Reviewer report on #2413 (F1, 2026-10-19 17:12 UTC). The two real differences stand: `events.md` omits the swarm bus (now in T10), and tokio is 1.53.3.
 - 2026-10-19 17:21 UTC - GitHub Copilot (Claude Opus 5.5) - #2413's two delivery gates are closed after merge: the Task Reviewer report (verdict `POST_MERGE_FINDINGS`, AC1 to AC3 pass) is in its `agent-review-reports.md` with the maintainer's decisions, and `implementation-retrospective.md` is in the same archived folder. Both checkpoints are ticked in its spec. No design change.
 - 2026-10-19 19:09 UTC - GitHub Copilot (Claude Opus 5.5) - #2413: the Task Reviewer re-review of the prep branch passed (`REVIEW PASSED`, three nits fixed), recorded in its `agent-review-reports.md`.
+- 2026-10-20 12:02 UTC - GitHub Copilot (Claude Sonnet 5.5) - #2414 started after PR #2569 merged; its row is `IN_PROGRESS`. T3b done (the package test environment owns, cancels, and joins its listeners; evidence in #2414's `manual-verification-evidence.md`). No design change.
 
 ## Acceptance Criteria
 

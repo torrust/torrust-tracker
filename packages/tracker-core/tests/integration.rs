@@ -2,8 +2,47 @@ mod common;
 
 use common::fixtures::{ephemeral_configuration, remote_client_ip, sample_info_hash, sample_peer};
 use common::test_env::TestEnv;
+use tokio::task::yield_now;
+use tokio::time::{Duration, Instant};
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
 use torrust_tracker_primitives::{AnnounceData, AnnouncePolicy};
+use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
+use torrust_tracker_swarm_coordination_registry::event::Event;
+
+/// Publishes a harmless swarm event and returns how many receivers got it: the number of
+/// event listeners still subscribed to the swarm bus.
+async fn number_of_swarm_bus_listeners(container: &SwarmCoordinationRegistryContainer) -> usize {
+    let sender = container
+        .event_bus
+        .sender()
+        .expect("the swarm event bus must be enabled for this test");
+
+    let probe = Event::TorrentRemoved {
+        info_hash: sample_info_hash(),
+    };
+
+    sender
+        .send(probe)
+        .await
+        .expect("an enabled sender always reports a result")
+        .unwrap_or_default()
+}
+
+/// Waits, within one absolute deadline, until no listener is left on the swarm bus, and
+/// returns how many were still there when the wait ended.
+async fn number_of_swarm_bus_listeners_once_they_finish(container: &SwarmCoordinationRegistryContainer) -> usize {
+    let deadline = Instant::now() + Duration::from_secs(5);
+
+    loop {
+        let remaining = number_of_swarm_bus_listeners(container).await;
+
+        if remaining == 0 || Instant::now() >= deadline {
+            return remaining;
+        }
+
+        yield_now().await;
+    }
+}
 
 #[tokio::test]
 async fn it_should_handle_the_announce_request() {
@@ -264,5 +303,64 @@ async fn it_should_reset_in_session_completed_downloads_after_a_persistence_free
             .get_torrents_downloads_persisted_total()
             .await,
         0
+    );
+}
+
+#[tokio::test]
+async fn it_should_release_every_listener_receiver_when_the_environment_is_stopped() {
+    // Arrange
+    // Persistence for completed downloads is on, so the environment runs three swarm-bus
+    // listeners.
+    let mut core_config = ephemeral_configuration();
+    core_config.tracker_policy.persistent_torrent_completed_stat = true;
+    let mut test_env = TestEnv::started(core_config).await;
+    let listeners_before_stop = number_of_swarm_bus_listeners(&test_env.swarm_coordination_registry_container).await;
+
+    // Act
+    let stopped = test_env.stop().await;
+
+    // Assert
+    // A finished listener drops its receiver, so an event published after the stop reaches nobody.
+    assert_eq!(
+        stopped,
+        Ok(()),
+        "stopping the environment must join every listener without failure"
+    );
+    assert_eq!(
+        listeners_before_stop, 3,
+        "an environment with persistent completed statistics runs three swarm-bus listeners"
+    );
+    assert_eq!(
+        number_of_swarm_bus_listeners(&test_env.swarm_coordination_registry_container).await,
+        0,
+        "no listener may remain subscribed to the swarm bus after the environment is stopped"
+    );
+}
+
+#[tokio::test]
+async fn it_should_cancel_every_listener_when_the_environment_is_dropped_without_being_stopped() {
+    // Arrange
+    // The environment runs three swarm-bus listeners. The test keeps a handle to the swarm
+    // container, so it can still observe the bus after the environment is gone.
+    let mut core_config = ephemeral_configuration();
+    core_config.tracker_policy.persistent_torrent_completed_stat = true;
+    let test_env = TestEnv::started(core_config).await;
+    let swarm_container = test_env.swarm_coordination_registry_container.clone();
+    let listeners_before_drop = number_of_swarm_bus_listeners(&swarm_container).await;
+
+    // Act
+    drop(test_env);
+
+    // Assert
+    // Dropping a cancellation token does not cancel it, so the cancellation comes from the
+    // environment's drop guard. The listeners finish after the drop, so the test waits for them.
+    assert_eq!(
+        listeners_before_drop, 3,
+        "an environment with persistent completed statistics runs three swarm-bus listeners"
+    );
+    assert_eq!(
+        number_of_swarm_bus_listeners_once_they_finish(&swarm_container).await,
+        0,
+        "dropping the environment without stop() must still cancel every listener"
     );
 }
