@@ -9,7 +9,7 @@ github-issue: 1349
 spec-path: docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md
 branch: "1349-1347-add-tests-http-core-events-container"
 related-pr: null
-last-updated-utc: "2026-10-20 19:51"
+last-updated-utc: "2026-10-20 20:41"
 semantic-links:
   skill-links:
     - create-issue
@@ -453,7 +453,7 @@ lines are the S2 baseline measurement (see [Baseline Coverage](#baseline-coverag
 | 1 | `services/announce.rs` | 1-2 | S2 | 675 / 727 (92.85%) | 8 | Property candidate (peer-IP selection) | DONE | [services-announce-tests.md](test-refactor-plans/services-announce-tests.md) (done; 843 / 851 lines after) |
 | 2 | `services/error_mapping.rs` | 2 | S2 | 0 / 18 (0.00%) | 0 | Test candidate | DONE | [services-error-mapping-tests.md](test-refactor-plans/services-error-mapping-tests.md) (done; 26 / 29 lines after, wildcard arm untestable) |
 | 3 | `services/scrape.rs` | 3 | S3 | 507 / 540 (93.89%) | 8 | Test candidate (error paths) | DONE | [services-scrape-tests.md](test-refactor-plans/services-scrape-tests.md) (done; 533 / 537 lines after) |
-| 4 | `event.rs` | 4 | S4 | 174 / 187 (93.05%) | 7 | Probably small change | PENDING | - |
+| 4 | `event.rs` | 4 | S4 | 174 / 187 (93.05%) | 7 | Probably small change | DONE | [event-tests.md](test-refactor-plans/event-tests.md) (done; 135 / 135 lines after) |
 | 5 | `container.rs` | 5 | S4 | 0 / 73 (0.00%) | 0 | Test candidate | PENDING | - |
 | 6 | `statistics/event/handler.rs` | 6 | S5 | 158 / 161 (98.14%) | 5 | Probably no change | PENDING | - |
 | 7 | `statistics/event/listener.rs` | 6 | S5 | 133 / 148 (89.86%) | 4 | Lifecycle (#1488) | PENDING | - |
@@ -661,6 +661,16 @@ lines are the S2 baseline measurement (see [Baseline Coverage](#baseline-coverag
   cut from `develop` at the merge of #2586. `packages/http-core` did not change on `develop` after the
   S3 head, so the baseline is the final S3 measurement: lines 1,949 / 2,102 (92.72%), regions
   2,566 / 2,743 (93.55%), functions 233 / 249 (93.57%), 93 unit tests; no re-measurement was needed.
+- 2026-10-20 20:41 UTC - GitHub Copilot - Correction to the 19:50 UTC entry: the claim that
+  `packages/http-core` did not change after the S3 head was wrong. The S3 merge brought #2414, which changed
+  `statistics/event/listener.rs` (production and tests). The S4 baseline was measured again at `fefefdd9e`:
+  lines 2,040 / 2,197 (92.85%), regions 2,664 / 2,845 (93.64%), functions 244 / 260 (93.85%), 95 unit tests
+  (see `coverage-evidence.md`). The S5 listener plan must start from the changed file.
+- 2026-10-20 20:41 UTC - GitHub Copilot - `event.rs` is `DONE` (S4): the maintainer approved R1 and the
+  completed file. The 7 tests are now 27 cases in 10 test functions, the dead `announce_events_match` helper
+  and `pub mod test` are gone, and the four unused accessors are pinned as public API. Coverage of the file
+  is 135 / 135 lines, 184 / 184 regions and 22 / 22 functions; the package has 115 unit tests. Mutations
+  L1-L4 and six extra probes were killed.
 
 ## Acceptance Criteria
 

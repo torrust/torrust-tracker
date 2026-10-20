@@ -27,6 +27,7 @@ maintainer approves it.
 | 1 | [services-announce-tests.md](services-announce-tests.md) | DONE | Approved 2026-10-16; R1 approved 2026-10-20; completed-file review approved 2026-10-20 |
 | 2 | [services-error-mapping-tests.md](services-error-mapping-tests.md) | DONE | Approved 2026-10-20; completed-file review approved 2026-10-20 |
 | 3 | [services-scrape-tests.md](services-scrape-tests.md) | DONE | Approved 2026-10-20; R1 and the completed file approved 2026-10-20 |
+| 4 | [event-tests.md](event-tests.md) | DONE | Approved 2026-10-20; R1 and the completed file approved 2026-10-20 |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 
