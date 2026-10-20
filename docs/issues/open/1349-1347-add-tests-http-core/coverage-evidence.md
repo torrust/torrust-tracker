@@ -2,13 +2,13 @@
 doc-type: coverage-evidence
 issue: 1349
 package: torrust-tracker-http-core
-measured-commit: a3810b813
-measured-utc: 2026-10-17T08:24:45Z
+measured-commit: 87690b15e
+measured-utc: 2026-10-20T12:20:54Z
 ---
 
 # HTTP Core Coverage Evidence
 
-This document records the clean package-source baseline and complete module inventory for Issue #1349. The reports were collected on `develop` at the merge of #2552, after spec-only PR #2546 merged and before any Issue #1349 test or production change. Raw JSON reports stay ignored local artifacts under `.tmp/1349-coverage/`.
+This document records the clean package-source baseline and complete module inventory for Issue #1349. The reports were collected on `develop` at the merge of #2558 (`87690b15e`, slice S1), before any Issue #1349 test or production change. Earlier reports at `a3810b813` are superseded by the [S2 re-measurement](#re-measurement-before-slice-s2). Raw JSON reports stay ignored local artifacts under `.tmp/1349-coverage/`.
 
 ## Measurement Scope
 
@@ -22,7 +22,7 @@ cargo llvm-cov -p torrust-tracker-http-core --all-features --lib --json --output
 cargo llvm-cov report -p torrust-tracker-http-core --show-missing-lines
 ```
 
-Both measurement commands completed successfully and ran the same 32 package unit tests. The package has no `tests/` directory and no `[[test]]` target, so there is no integration-only baseline, and the aggregate command selected the same `src/lib.rs` unit-test binary as `--lib`. Identical totals do not make aggregate coverage evidence of an independent test level. The last command lists the uncovered lines of the unit-only run. It can list one or two fewer lines than the summary's missed-line count for a file (for example, 72 listed against 73 missed in `container.rs`); the groups below follow the listed lines and the region check.
+Both measurement commands completed successfully and ran the same 33 package unit tests. The package has no `tests/` directory and no `[[test]]` target, so there is no integration-only baseline, and the aggregate command selected the same `src/lib.rs` unit-test binary as `--lib`. Identical totals do not make aggregate coverage evidence of an independent test level. The last command lists the uncovered lines of the unit-only run. It can list one or two fewer lines than the summary's missed-line count for a file (for example, 72 listed against 73 missed in `container.rs`); the groups below follow the listed lines and the region check.
 
 Line coverage can hide untested branches, so the uncovered-lines table below also lists *regions only* entries: a region with a zero count (from the unit-only JSON segments) on a line that the missing-lines report counts as covered. A typical case is the early-return path of a `?`.
 
@@ -47,6 +47,29 @@ Only the four files below differ from the spec baseline; every other file has id
 | `statistics/metrics.rs` | 40 / 49 → 34 / 43 | 35 / 43 → 44 / 52 | 5 / 6 → 7 / 8 |
 | `statistics/repository.rs` | 20 / 23 → 21 / 24 | 24 / 27 → 26 / 29 | 5 / 6 → 5 / 6 |
 
+### Re-measurement Before Slice S2
+
+Three more commits changed `packages/http-core/` on `develop` after `a3810b813`, so the package was measured again at `87690b15e` before any S2 change (same commands, stable Rust 1.99.0, `cargo-llvm-cov 0.6.16`; both reports ran the same 33 unit tests):
+
+- `feat(http-core)!: [#2454] mark public error enums non_exhaustive` (merged through #2568) added `#[non_exhaustive]` to `HttpAnnounceError` and `HttpScrapeError`, and a wildcard arm to the `match` in `services/error_mapping.rs`, which handles a `TrackerCoreError` variant that the package does not name yet. No test can reach this arm today: `TrackerCoreError` has exactly four variants and, being `#[non_exhaustive]`, a crate other than `tracker-core` cannot construct a fifth one. Every line after the attribute in `services/announce.rs` and `services/scrape.rs` moved down by one.
+- `refactor(http-core): [#2560] adopt the exact counter sum from torrust-metrics 0.2.0` (merged through #2561) replaced the private `whole_total` helper with `counter_total` and added the first `statistics/metrics.rs` test, a regression test for a counter total that an `f64` cannot represent. The package now has 33 unit tests.
+- `chore(deps): [#2560] bump torrust-metrics to 0.2.0` is part of the same change.
+
+| Scope | T1 baseline (`a3810b813`) | S2 baseline (`87690b15e`) |
+| --- | ---: | ---: |
+| Lines | 1,737 / 1,953 (88.94%) | 1,751 / 1,970 (88.88%) |
+| Regions | 2,335 / 2,583 (90.40%) | 2,357 / 2,607 (90.41%) |
+| Functions | 160 / 190 (84.21%) | 161 / 191 (84.29%) |
+
+Only the two files below differ in counts; the other files differ only in line numbers (`announce.rs` and `scrape.rs`) or not at all.
+
+| Source module | Lines before → after | Regions before → after | Functions before → after |
+| --- | ---: | ---: | ---: |
+| `services/error_mapping.rs` | 0 / 15 → 0 / 18 | 0 / 11 → 0 / 13 | 0 / 1 → 0 / 1 |
+| `statistics/metrics.rs` | 34 / 43 → 48 / 57 | 44 / 52 → 66 / 74 | 7 / 8 → 8 / 9 |
+
+The numbers in the sections below are from the S2 baseline.
+
 ## Test-Level Baseline
 
 ### Aggregate/Global Coverage
@@ -55,7 +78,7 @@ Aggregate coverage includes the selected default package test target and is broa
 
 | Lines | Regions | Functions |
 | ---: | ---: | ---: |
-| 1,737 / 1,953 (88.94%) | 2,335 / 2,583 (90.40%) | 160 / 190 (84.21%) |
+| 1,751 / 1,970 (88.88%) | 2,357 / 2,607 (90.41%) | 161 / 191 (84.29%) |
 
 ### Unit-Only Coverage
 
@@ -63,7 +86,7 @@ Unit-only (`--lib`) coverage is the primary Issue #1349 metric.
 
 | Lines | Regions | Functions |
 | ---: | ---: | ---: |
-| 1,737 / 1,953 (88.94%) | 2,335 / 2,583 (90.40%) | 160 / 190 (84.21%) |
+| 1,751 / 1,970 (88.88%) | 2,357 / 2,607 (90.41%) | 161 / 191 (84.29%) |
 
 ### Integration-Only Coverage
 
@@ -76,13 +99,13 @@ Every source file has one T1 hypothesis. It determines processing order but is n
 | Source module | Tests | Unit-only lines | Regions | Functions | Property candidate | Selected behavior or ownership boundary | T1 hypothesis |
 | --- | ---: | ---: | ---: | ---: | --- | --- | --- |
 | `services/announce.rs` | 8 | 675 / 727 (92.85%) | 878 / 938 | 56 / 63 | Yes: the peer-IP selection decision over `PeerIp` values, both policies, and connection addresses (for example, with the override disabled a client-supplied literal is never selected); the protocol-to-domain announcement mapping | Peer-IP selection and the instance policy, private-mode authentication before authorization and IP resolution, the request-to-announcement mapping (every event variant, absent byte counters), error adaptation to failure reasons, and event publication. Announce rules, whitelist policy and key validity remain `tracker-core`'s; header and `ip` parsing remain `http-protocol`'s. | Property candidate |
-| `services/error_mapping.rs` | 0 | 0 / 15 (0.00%) | 0 / 11 | 0 / 1 | No | One match mapping each `TrackerCoreError` variant to a client-visible failure reason. The text is package-owned; the wrapped errors are collaborators'. | Test candidate |
+| `services/error_mapping.rs` | 0 | 0 / 18 (0.00%) | 0 / 13 | 0 / 1 | No | One match mapping each named `TrackerCoreError` variant, plus a wildcard arm for a variant the package does not name yet (the enum is `#[non_exhaustive]`), to a client-visible failure reason. The text is package-owned; the wrapped errors are collaborators'. | Test candidate |
 | `services/scrape.rs` | 8 | 507 / 540 (93.89%) | 678 / 711 | 36 / 43 | No | Private-mode zeroing of unauthenticated scrapes (including the authenticated path), reverse-proxy client-IP resolution, error adaptation, and event publication. Scrape aggregation remains `tracker-core`'s. | Test candidate |
 | `event.rs` | 7 | 174 / 187 (93.05%) | 277 / 294 | 16 / 20 | No | Connection-context label projection, client IP family and type, and public-URL projection are directly tested. The uncovered getters are unused: three have no caller, and `ClientConnectionContext::port` is called only by the uncalled `client_port`. | Probably small change |
 | `container.rs` | 0 | 0 / 73 (0.00%) | 0 / 89 | 0 / 5 | No | Composition of the announce and scrape services with the instance policy, instance ID, event bus, and shared repository. Do not use the production container factories as a test bootstrap. | Test candidate |
 | `statistics/event/handler.rs` | 5 | 158 / 161 (98.14%) | 215 / 221 | 16 / 17 | No | Event-to-counter routing and label propagation are directly tested; the remaining lines are failure and debug logging. | Probably no change |
 | `statistics/event/listener.rs` | 4 | 133 / 148 (89.86%) | 183 / 204 | 19 / 22 | No | Dispatch loop behavior has direct tests, but only for `TcpScrape` events. The spawned wrapper and the unspawned entry point are lifecycle owned by #1488. | Lifecycle (#1488) |
-| `statistics/metrics.rs` | 0 | 34 / 43 (79.07%) | 44 / 52 | 7 / 8 | No | The four TCP request-count projections, which share the private `whole_total` helper, are covered through the handler tests. `set_gauge` has no caller. | Test candidate |
+| `statistics/metrics.rs` | 1 | 48 / 57 (84.21%) | 66 / 74 | 8 / 9 | No | The four TCP request-count projections, which share the private `counter_total` helper, are covered through the handler tests, and one test pins a total beyond `f64` precision. `set_gauge` has no caller. | Test candidate |
 | `statistics/repository.rs` | 0 (3 doc tests) | 21 / 24 (87.50%) | 26 / 29 | 5 / 6 | No | Initialization, counter update and the read accessor are covered; the compile-fail and runnable doc tests protect the private lock and its accessor. `Default` is not exercised. | Test candidate |
 | `statistics/mod.rs` | 0 | 8 / 8 (100.00%) | 10 / 10 | 1 / 1 | No | The exported metric name and description composition, covered through other modules. | Probably small change (metric-name contract) |
 | `lib.rs` | 0 | 27 / 27 (100.00%) | 24 / 24 | 4 / 4 | No | Clock alias, log target and shared test samples; the samples are test support. | Test support only |
@@ -93,22 +116,22 @@ The 13 files are every `.rs` file under `packages/http-core/src/` (`git ls-tree`
 
 ## Uncovered Lines By Group
 
-Unit-only uncovered lines from `cargo llvm-cov report --show-missing-lines`, grouped by behavior. Each group is a hypothesis for its file plan, which makes the final decision. Classifications follow the per-file workflow: **3A** a package-owned decision testable at the module's API; **3B** observable only through a package integration boundary; **owner** not testable here, with the owner named; **finding** looks wrong and is handed off; **logging** observability only. Line numbers are at `a3810b813` and shift when tests are added.
+Unit-only uncovered lines from `cargo llvm-cov report --show-missing-lines`, grouped by behavior. Each group is a hypothesis for its file plan, which makes the final decision. Classifications follow the per-file workflow: **3A** a package-owned decision testable at the module's API; **3B** observable only through a package integration boundary; **owner** not testable here, with the owner named; **finding** looks wrong and is handed off; **logging** observability only. Line numbers are at `87690b15e` and shift when tests are added.
 
 | File | Lines | Behavior | Hypothesis |
 | --- | --- | --- | --- |
 | `services/announce.rs` | 260-262 | `peer_from_request` arms for `Stopped`, `Completed` and `Empty` events (only `Started` is exercised) | 3A |
 | `services/announce.rs` | 307-309, 311 | Private-mode authentication: a missing key (`MissingAuthKey`) and a presented key checked by the authentication service. No test runs a private tracker. | 3A for the package-owned decision (the `private` flag, the order before authorization and IP resolution); key validity is `tracker-core`'s |
-| `services/announce.rs` | 379-383, 387-391, 395-399, 403-407, 411-415 | The five `From` conversions into `HttpAnnounceError` (peer-IP resolution, tracker-core, announce, whitelist and key errors) | 3A |
-| `services/announce.rs` | 419-422, 425-427, 429 | `From<HttpAnnounceError> for HttpProtocolErrorResponse`: the client-visible failure reason of every variant | 3A |
+| `services/announce.rs` | 380-384, 388-392, 396-400, 404-408, 412-416 | The five `From` conversions into `HttpAnnounceError` (peer-IP resolution, tracker-core, announce, whitelist and key errors) | 3A |
+| `services/announce.rs` | 420-423, 426-428, 430 | `From<HttpAnnounceError> for HttpProtocolErrorResponse`: the client-visible failure reason of every variant | 3A |
 | `services/announce.rs` | 211, 213, 215, 217, 226 (regions only; the lines count as covered) | The early-return error path of each `?` in `handle_announce`: authentication, authorization, client-IP resolution, peer-IP selection, and the tracker-core announce failure. The order of these steps is a package-owned decision and no test makes one of them fail through `handle_announce`. | 3A |
 | `services/announce.rs` | 350 | The absent-sender path of `send_event` (every announce test supplies a sender; the scrape tests already cover it) | 3A |
-| `services/announce.rs` (test module) | 486-490, 565, 568, 571, 597, 682 | The persistent-completed-stat fixture branch, the `Stopped`, `Completed` and `None` arms of the request-builder fixture, the `mock!` macro, and an `unreachable!` | test support; the file plan reviews the fixture |
-| `services/error_mapping.rs` | 4-17, 19 | All four `TrackerCoreError` arms | 3A |
+| `services/announce.rs` (test module) | 487-491, 566, 569, 572, 598, 683 | The persistent-completed-stat fixture branch, the `Stopped`, `Completed` and `None` arms of the request-builder fixture, the `mock!` macro, and an `unreachable!` | test support; the file plan reviews the fixture |
+| `services/error_mapping.rs` | 4-20, 22 | The function entry, the four named `TrackerCoreError` arms (lines 6-17) and the wildcard arm for an unknown variant (lines 18-20). The wildcard arm cannot be constructed by a test while `TrackerCoreError` has only four variants. | 3A for the four named arms; owner (`tracker-core`) for the wildcard arm: not testable until `tracker-core` adds a variant |
 | `services/scrape.rs` | 112, 115, 127 (regions only) | The error paths of the `?` after the tracker-core scrape and after client-IP resolution in `handle_scrape`, and the arm where a key is presented (`Some(key)` at line 127; the no-key path is covered by the existing private-mode test) | 3A |
 | `services/scrape.rs` | 128 | An authenticated scrape in private mode (`is_authenticated` with a key) | 3A |
-| `services/scrape.rs` | 163-167, 171-175, 179-183, 187-191, 195-199, 203-206, 208 | The five `From` conversions into `HttpScrapeError` and the conversion to the failure response | 3A |
-| `services/scrape.rs` (test module) | 317 | The `mock!` macro | test support |
+| `services/scrape.rs` | 164-168, 172-176, 180-184, 188-192, 196-200, 204-207, 209 | The five `From` conversions into `HttpScrapeError` and the conversion to the failure response | 3A |
+| `services/scrape.rs` (test module) | 318 | The `mock!` macro | test support |
 | `event.rs` | 80-82, 85-87, 90-92, 125-127 | `ConnectionContext::client_ip_addr`, `client_port`, `server_socket_addr` and `ClientConnectionContext::port`. No caller exists in the repository for the first three. `port` is called only by `client_port` (line 86), so it is dead only together with it. | finding candidate (dead code): the file plan confirms and records a `lessons.md` row that removes `client_port` and `port` together or neither |
 | `event.rs` (test support) | 244 | The `_ => false` arm of the `announce_events_match` helper | test support |
 | `container.rs` | 36-42, 45-53, 56-57, 60-65, 67-71, 73, 76-106, 117, 119-120, 127, 129, 131-136 | `initialize` (needs a configured database), `initialize_from_tracker_core`, `initialize_from_services` wiring, and `HttpTrackerCoreServices::initialize_from` | 3A for the wiring of `initialize_from_services`; `initialize` composes `tracker-core` and is owned there |
@@ -144,3 +167,43 @@ EPIC #1347 requires every package subissue to assess each technique. The initial
 | Property-based testing | To assess per file | `services/announce.rs` is the candidate. A property is kept only if it catches a mutation the examples miss, and the dependency follows `add-rust-dependency`. |
 | Fuzzing | Not selected | Untrusted parsing is owned by `http-protocol`. |
 | Benchmarks | Out of scope | The Criterion benches are not tests of correctness. |
+
+## Per-File Results
+
+Each completed file records its clean unit-only measurement (`cargo llvm-cov clean --workspace`, then `cargo llvm-cov -p torrust-tracker-http-core --all-features --lib`, `cargo-llvm-cov 0.6.16`, stable Rust 1.99.0). The totals include the in-file test module, so a file that gains tests gains covered lines; the file plan records which production decisions each mutation pins.
+
+### `services/announce.rs` (slice S2)
+
+Measured on 2026-10-20 on the S2 branch, whose production code is identical to `develop` at `87690b15e`. The plan is [services-announce-tests.md](test-refactor-plans/services-announce-tests.md).
+
+| Scope | Before (`87690b15e`) | After |
+| --- | ---: | ---: |
+| `services/announce.rs` lines | 675 / 727 (92.85%) | 843 / 851 (99.06%) |
+| `services/announce.rs` regions | 878 / 938 (93.60%) | 1,039 / 1,049 (99.05%) |
+| `services/announce.rs` functions | 56 / 63 (88.89%) | 92 / 92 (100.00%) |
+
+The file's 8 tests are now 50 cases (48 at the completed-file review; two were added after the independent review found a surviving mutant, see the plan). Every production line, region and function of the file is covered: the 8 uncovered lines and 10 uncovered regions are the failure branches of `matches!` assertions in the test module. Property-based testing was assessed and not selected: two mutants of the peer-IP selection survived the first examples (a loopback `ip` literal replaced by the external IP, and an empty `ip=` that skipped the loopback substitution), each is now killed by one added example, and no further survivor is known.
+
+### `services/error_mapping.rs` (slice S2)
+
+Measured on 2026-10-20 on the S2 branch, whose production code is identical to `develop` at `87690b15e`. The plan is [services-error-mapping-tests.md](test-refactor-plans/services-error-mapping-tests.md).
+
+| Scope | Before (`87690b15e`) | After |
+| --- | ---: | ---: |
+| `services/error_mapping.rs` lines | 0 / 18 (0.00%) | 26 / 29 (89.66%) |
+| `services/error_mapping.rs` regions | 0 / 13 | 17 / 19 (89.47%) |
+| `services/error_mapping.rs` functions | 0 / 1 | 3 / 3 (100.00%) |
+
+The 29 counted lines are the 18 production lines (15 covered) and 11 test-module lines. The three uncovered lines are the wildcard arm for an unknown `TrackerCoreError` variant, which no test can reach while the enum has four variants and is `#[non_exhaustive]`; `tracker-core` owns the change that would unlock it.
+
+### Package After Slice S2
+
+Measured on 2026-10-20 at the final S2 commit with the same commands. The package has 79 unit tests (33 before).
+
+| Scope | Before (`87690b15e`) | After slice S2 | Change |
+| --- | ---: | ---: | ---: |
+| Lines | 1,751 / 1,970 (88.88%) | 1,919 / 2,101 (91.34%) | +2.45 pp |
+| Regions | 2,357 / 2,607 (90.41%) | 2,511 / 2,716 (92.45%) | +2.04 pp |
+| Functions | 161 / 191 (84.29%) | 198 / 221 (89.59%) | +5.30 pp |
+
+The totals include the test modules, so part of the change is test code that is itself covered. The signal that matters is the per-file mutation proof in each plan.

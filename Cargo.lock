@@ -5218,6 +5218,7 @@ dependencies = [
  "criterion 0.5.1",
  "futures",
  "mockall",
+ "rstest 0.28.0",
  "serde",
  "thiserror 2.0.21",
  "tokio",
