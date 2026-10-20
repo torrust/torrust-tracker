@@ -40,7 +40,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Two reviews were submitted so far, both by Copilot.
+Three reviews were submitted so far, all by Copilot.
 
 - Review 5585221487 carries two inline threads, F1 and F2. Its overview repeats them, so the body adds
   no rows. It read the head whose subject is "fix(ci-gate): [#2525] avoid an intra-doc link to a
@@ -49,6 +49,10 @@ Two reviews were submitted so far, both by Copilot.
 - Review 5585732662 carries three inline threads, F3 to F5, on the head whose subject is "docs(pr-reviews):
   add the PR #2574 review audit". Its body says that the full agentic review did not start before the
   timeout and repeats the three threads, so it adds no rows. Each finding is fixed in its own commit.
+- Review 5587424828 read the head whose subject is "docs(pr-reviews): record the second review round in
+  the PR #2574 audit". It marks F3 to F5 as resolved and carries two findings in its body and no inline
+  thread, so they are recorded as F6 and F7 with `NON_RESOLVABLE` and the review URL as their source.
+  The reviewer's own IDs, F6 and F7, do not collide with the audit's.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -57,6 +61,8 @@ Two reviews were submitted so far, both by Copilot.
 | F3 | review-finding:pr-2574-f3 | Copilot | Medium (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 | F4 | review-finding:pr-2574-f4 | Copilot | Medium (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
 | F5 | review-finding:pr-2574-f5 | Copilot | Low (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F6 | review-finding:pr-2574-f6 | Copilot | Minor | correctness | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F7 | review-finding:pr-2574-f7 | Copilot | Minor | testing | ORIGINAL | FIXED | NON_RESOLVABLE |
 
 ## Finding Details
 
@@ -166,6 +172,47 @@ Two reviews were submitted so far, both by Copilot.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2574#discussion_r4326574949>
 
+### F6 - A non-UTF-8 argument panics instead of failing with a usage error
+
+- PR number: 2574
+- Source review ID: 5587424828
+- Reviewer finding ID: F6
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2574#pullrequestreview-5587424828>
+- Concern: on Unix a non-UTF-8 argument makes `env::args()` panic before argument validation or the
+  failure handler runs, which prints a plain-text panic and exits with 101 instead of the JSON usage
+  diagnostic and exit code 2 the CLI output contract requires. Use `args_os()` with a fallible
+  conversion routed through the usage failure, and add a Unix-only regression test.
+- Solution: the arguments are read with `args_os` and converted with a fallible step that fails with a
+  usage error naming the lossy argument and carrying the usage text. A Unix-only command-line test
+  passes a base branch that ends in an invalid byte and expects exit code 2, an empty stdout, and one
+  `usage_error` record that mentions UTF-8.
+- Current-tree verification: before the fix the real binary exited with 101 and a plain-text panic for a
+  non-UTF-8 base branch and for a non-UTF-8 subcommand, and the new test failed. After it, the binary
+  exits with 2 and one `usage_error` record, and `cargo test -p ci-gate` passes with 104 unit and 6
+  command-line tests.
+- Resolution reference: fix(ci-gate): [#2525] report a non-UTF-8 argument as a usage error
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2574#issuecomment-6294777122>
+
+### F7 - The usage-error test writes stdin to a command that exits before reading it
+
+- PR number: 2574
+- Source review ID: 5587424828
+- Reviewer finding ID: F7
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2574#pullrequestreview-5587424828>
+- Concern: the binary rejects a missing base branch before it reads stdin, so if it exits before the
+  test writes the supplied bytes, `write_all(...).expect(...)` panics with a broken pipe and fails the
+  test although the binary behaved correctly. Pass empty stdin, since the test only exercises argument
+  validation.
+- Solution: the test passes empty stdin and says why in a comment. The new non-UTF-8 argument test does
+  the same.
+- Current-tree verification: the binary reads stdin only after it parses its arguments
+  (`contrib/dev-tools/checks/ci-gate/src/main.rs`), so a write to it can lose the race; an empty
+  write cannot fail. `cargo test -p ci-gate --test cli` passes with 6 tests.
+- Resolution reference: test(ci-gate): [#2525] send no stdin to the command that rejects its arguments
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2574#issuecomment-6294777558>
+
 ## Processing Log
 
 - 2026-10-20 13:00 UTC - Fetched the review and its two threads, classified and numbered the findings,
@@ -182,6 +229,13 @@ Two reviews were submitted so far, both by Copilot.
   does not touch; it passed three times alone and the rerun was clean. Pushed, and replied on the three
   threads.
 - 2026-10-20 15:07 UTC - Added F3 to F5 and their reply URLs to this record.
+- 2026-10-20 15:30 UTC - Copilot's third review arrived with two findings in its body and no inline
+  thread, F6 and F7. F6 was reproduced with the real binary (exit code 101 and a plain-text panic), and
+  its regression test was seen to fail before the fix. F7 is a race in the test and was confirmed by
+  reading the binary's order of work.
+- 2026-10-20 15:40 UTC - Fixed each finding in its own signed commit and recorded the round in the
+  specification. Pushed and replied with a conversation comment per finding, since neither has a
+  thread. No thread is unresolved.
 
 ## Completion Rules
 
