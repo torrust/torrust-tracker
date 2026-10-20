@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2414-2410-si-22-2-drain-listener-queues-on-shutdown/ISSUE.md
-last-updated-utc: "2026-10-20 12:57"
+last-updated-utc: "2026-10-20 15:14"
 ---
 
 # Manual Verification Evidence
@@ -734,6 +734,49 @@ answered_minus_persisted=3278
   held. The persisted rows were counted by the script with `sqlite3`.
 - Window (b) is not addressed here: producers still stop at the same time as the listeners until
   sub-issue 4.
+
+### V9 - T5: the other six listeners drain on cancellation
+
+- Goal: the same policy as V7 in every remaining listener: on cancellation it handles the events
+  already queued, within an injected `drain_timeout`, logs through `log_drain_report!`, and returns
+  `Cancelled`.
+- Initial state: one commit per package, each tested on its own tree. The maintainer approved the
+  common design on 2026-10-20: every listener gets a `drain_timeout` parameter, an extracted drain
+  function, and two tests that replace its `it_should_prioritize_*` characterization test; the callers
+  pass `DEFAULT_DRAIN_TIMEOUT`.
+- Status: `IN_PROGRESS` (rows are added per package).
+
+#### Prose-first Arrange-Act-Assert (the same shape in every package)
+
+- `it_should_handle_a_queued_event_then_return_cancelled_when_cancellation_is_already_pending`:
+  Arrange one ready event with a visible effect and a token cancelled before the listener runs. Act:
+  the dispatch function, visible, with the default timeout. Assert: the effect is present and the
+  completion is `Cancelled`. It replaces the old test, which asserted that the event was dropped.
+- `it_should_leave_the_queued_event_unprocessed_and_return_cancelled_when_the_drain_timeout_has_expired`:
+  Arrange the same queue and a zero timeout. Act: the dispatch function. Assert: no effect and still
+  `Cancelled`.
+
+#### Mutations
+
+Each as one command (mutate, run the package tests, restore from a backup, `cmp`); times are UTC on
+2026-10-20. "The bug" keeps the drain function and its call but never runs it, so the listener is
+cancel-first again.
+
+| Package and listener | Mutation | Time | Failed tests |
+| --- | --- | --- | --- |
+| `tracker-core` in-memory | timeout forced to zero | 15:12:11.491 to 15:12:14.700 | the handle-queued-event test |
+| `tracker-core` in-memory | timeout never expires (an hour) | 15:12:14.704 to 15:12:18.314 | the expired-timeout test |
+| `tracker-core` in-memory | returns `Completed` after the drain | 15:12:30.472 to 15:12:33.759 | both new tests |
+| `tracker-core` in-memory | the bug (the drain never runs) | 15:13:11.163 to 15:13:15.135 | the handle-queued-event test |
+
+A first form of "the bug" removed the call and did not compile (the function became unused under
+`-D warnings`), so it is not a result; the table row is the rerun.
+
+#### Observed Result
+
+`tracker-core` in-memory: `cargo test -p torrust-tracker-core` gave 155 passed (unit) and 12 passed
+(integration); the workspace gave 3,156 passed and 0 failed; `linter all` and
+`cargo +nightly fmt --all -- --check` exited 0.
 
 ## Commits
 

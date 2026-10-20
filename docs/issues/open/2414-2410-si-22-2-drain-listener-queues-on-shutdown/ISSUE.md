@@ -9,7 +9,7 @@ github-issue: 2414
 spec-path: docs/issues/open/2414-2410-si-22-2-drain-listener-queues-on-shutdown/ISSUE.md
 branch: "2414-drain-listener-queues-on-shutdown"
 related-pr: null
-last-updated-utc: "2026-10-20 12:57"
+last-updated-utc: "2026-10-20 15:14"
 semantic-links:
   skill-links:
     - create-issue
@@ -132,7 +132,7 @@ tests, and `TestEnv` against the current code before T3.
 | T4a | DONE | Receiver trait and drain helper | `try_recv`, `len`, `TryRecvError`; all implementations, mocks, and scripted receivers compile together; helper unit tests (empty, closed with buffered events, timeout with leftovers, lag). |
 | T4b | DONE | Measure drain rate (`release`) | Time to drain the persistent listener's queue; default timeout chosen and recorded. |
 | T4c | DONE | Persistent listener drain | T3a and T3c green; paused-time timeout test. Design-review checkpoint. |
-| T5 | TODO | Remaining six listener components | Same helper; characterization tests replaced. |
+| T5 | IN_PROGRESS | Remaining six listener components | Same helper; characterization tests replaced. |
 
 ## Commit Points
 
@@ -245,3 +245,4 @@ and independent Task Reviewer report.
 - 2026-10-20 12:45 UTC - GitHub Copilot (Claude Sonnet 5.5) - T4a to T4c implemented in the working tree; the T4 design-review checkpoint is pending, so T4c stays `IN_PROGRESS` and nothing of T3a, T3c, or T4 is committed (Commit Points). T4a: `Receiver::try_recv`, `len`, a default `is_empty`, `TryRecvError`, and `packages/events/src/drain.rs` with its tests, all mutation-checked (V5). T4b: the release measurement (V6). T4c: the persistent listener drains on cancellation with an injected timeout and logs through `log_drain_report!`; T3a and T3c are green; an interim real-binary check (V8): the T0 control run now persists 500 of 500 (T0: 467), the drain logged `outcome="emptied" processed=72`, and a larger race run logged the timeout warning after 5 s. Proposed design changes are in the sub-EPIC's Design Discussion Record, entry 28.
 - 2026-10-20 12:51 UTC - GitHub Copilot (Claude Sonnet 5.5) - T4 design review held: the maintainer agreed to a 5 s default drain timeout, the `log_drain_report!` macro, the "events" wording, `Receiver::is_empty`, keeping the package `TestEnv` polling, and three commits (T4a; the T4c fix with T3a and T3c; the docs). `adr-draft.md`, D9, D13, and the Chosen Design are updated; the sub-EPIC's record entry 28 is marked agreed. T4c is `DONE`; the checkpoint is ticked. T5 is next.
 - 2026-10-20 12:57 UTC - GitHub Copilot (Claude Sonnet 5.5) - T3a, T3c, and T4 committed as two code commits, `feat(events): [#2414] add try_recv, len, TryRecvError, and the shared listener drain helper` and `fix(tracker-core): [#2414] drain the persistent listener's queue when it is cancelled`, each tested alone before its commit, plus this documentation commit. The unpushed first commit was amended once to correct its test count (seven drain tests, not eight). T5 (the other six listeners, one package per commit) is next.
+- 2026-10-20 15:14 UTC - GitHub Copilot (Claude Sonnet 5.5) - T5 started after the maintainer approved its plan and test design: one commit per package, each with two tests replacing the `it_should_prioritize_*` test. First done: the `tracker-core` in-memory listener (V9), mutation-checked, workspace 3,156 passed, `linter all` 0. Stashes are shared by every worktree of the repository, so none is used from here on.

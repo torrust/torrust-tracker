@@ -162,6 +162,7 @@ impl TestEnv {
             self.swarm_coordination_registry_container.event_bus.receiver(),
             self.listeners.token(),
             &self.tracker_core_container.stats_repository,
+            DEFAULT_DRAIN_TIMEOUT,
         );
         self.listeners.add("in-memory statistics", in_memory_statistics_listener);
 

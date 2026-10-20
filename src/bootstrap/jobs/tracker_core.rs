@@ -27,6 +27,7 @@ pub fn run_in_memory_event_listener(
             app_container.swarm_coordination_registry_container.event_bus.receiver(),
             cancellation_token,
             app_container.tracker_core_container.stats_repository.clone(),
+            DEFAULT_DRAIN_TIMEOUT,
         )
     })
 }

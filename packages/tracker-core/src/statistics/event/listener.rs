@@ -20,10 +20,11 @@ pub fn run_in_memory_event_listener(
     receiver: Receiver,
     cancellation_token: CancellationToken,
     repository: &Arc<Repository>,
+    drain_timeout: Duration,
 ) -> JoinHandle<()> {
     let stats_repository = repository.clone();
     tokio::spawn(async move {
-        let _ = run_in_memory_event_listener_unspawned(receiver, cancellation_token, stats_repository).await;
+        let _ = run_in_memory_event_listener_unspawned(receiver, cancellation_token, stats_repository, drain_timeout).await;
 
         tracing::info!(target: TRACKER_CORE_LOG_TARGET, "Tracker core in-memory statistics event listener finished");
     })
@@ -54,13 +55,18 @@ pub fn run_persistent_completed_statistics_event_listener(
 }
 
 /// Runs the in-memory listener without spawning so a caller can retain task ownership.
+///
+/// After cancellation the listener keeps handling the events already queued for it until its
+/// queue is empty or `drain_timeout` expires (see [`drain`]), logs what it did, and returns
+/// [`Completion::Cancelled`].
 pub async fn run_in_memory_event_listener_unspawned(
     receiver: Receiver,
     cancellation_token: CancellationToken,
     stats_repository: Arc<Repository>,
+    drain_timeout: Duration,
 ) -> Completion {
     tracing::info!(target: TRACKER_CORE_LOG_TARGET, "Starting tracker core in-memory statistics event listener");
-    dispatch_in_memory_events(receiver, cancellation_token, stats_repository).await
+    dispatch_in_memory_events(receiver, cancellation_token, stats_repository, drain_timeout).await
 }
 
 /// Runs the persistent-statistics listener without spawning so a caller can retain task ownership.
@@ -90,13 +96,17 @@ async fn dispatch_in_memory_events(
     mut receiver: Receiver,
     cancellation_token: CancellationToken,
     stats_repository: Arc<Repository>,
+    drain_timeout: Duration,
 ) -> Completion {
     loop {
         tokio::select! {
             biased;
 
             () = cancellation_token.cancelled() => {
-                tracing::info!(target: TRACKER_CORE_LOG_TARGET, "Received cancellation request, shutting down tracker core event listener.");
+                tracing::info!(target: TRACKER_CORE_LOG_TARGET, "Received cancellation request, draining tracker core in-memory statistics event listener.");
+
+                drain_in_memory_events(&mut receiver, drain_timeout, &stats_repository).await;
+
                 return Completion::Cancelled;
             }
 
@@ -145,6 +155,17 @@ async fn dispatch_persistent_completed_statistics_events(
             }
         }
     }
+}
+
+/// Handles the events still queued for the in-memory listener after its cancellation, within
+/// the timeout, and logs what the drain did.
+async fn drain_in_memory_events(receiver: &mut Receiver, drain_timeout: Duration, stats_repository: &Arc<Repository>) {
+    let report = drain(&mut **receiver, drain_timeout, |event| {
+        handle_in_memory_event(event, stats_repository, CurrentClock::now())
+    })
+    .await;
+
+    log_drain_report!(TRACKER_CORE_LOG_TARGET, "tracker_core_in_memory_statistics", report);
 }
 
 /// Persists the events still queued for the listener after its cancellation, within the timeout,
@@ -322,7 +343,13 @@ mod tests {
         ]));
 
         // Act
-        dispatch_in_memory_events(receiver, CancellationToken::new(), stats_repository.clone()).await;
+        dispatch_in_memory_events(
+            receiver,
+            CancellationToken::new(),
+            stats_repository.clone(),
+            DEFAULT_DRAIN_TIMEOUT,
+        )
+        .await;
 
         // Assert
         expect_in_memory_download_metrics_to_be(&stats_repository, 1).await;
@@ -340,7 +367,13 @@ mod tests {
         ]));
 
         // Act
-        dispatch_in_memory_events(receiver, CancellationToken::new(), stats_repository.clone()).await;
+        dispatch_in_memory_events(
+            receiver,
+            CancellationToken::new(),
+            stats_repository.clone(),
+            DEFAULT_DRAIN_TIMEOUT,
+        )
+        .await;
 
         // Assert
         expect_in_memory_download_metrics_to_be(&stats_repository, 1).await;
@@ -353,25 +386,62 @@ mod tests {
         let receiver = Box::new(ScriptedReceiver::new([Err(RecvError::Closed)]));
 
         // Act
-        dispatch_in_memory_events(receiver, CancellationToken::new(), stats_repository.clone()).await;
+        dispatch_in_memory_events(
+            receiver,
+            CancellationToken::new(),
+            stats_repository.clone(),
+            DEFAULT_DRAIN_TIMEOUT,
+        )
+        .await;
 
         // Assert
         expect_in_memory_download_metrics_to_be(&stats_repository, 0).await;
     }
 
     #[tokio::test]
-    async fn it_should_prioritize_a_pre_cancelled_token_over_a_ready_in_memory_event() {
+    async fn it_should_handle_a_queued_event_then_return_cancelled_when_cancellation_is_already_pending() {
         // Arrange
+        // A completed download is queued for the in-memory listener, and its token is cancelled
+        // before the listener takes the event.
+        clock::Stopped::local_set_to_unix_epoch();
         let stats_repository = Arc::new(Repository::default());
         let receiver = Box::new(ScriptedReceiver::new([Ok(peer_download_completed_event())]));
         let cancellation_token = CancellationToken::new();
         cancellation_token.cancel();
 
         // Act
-        dispatch_in_memory_events(receiver, cancellation_token, stats_repository.clone()).await;
+        let completion =
+            dispatch_in_memory_events(receiver, cancellation_token, stats_repository.clone(), DEFAULT_DRAIN_TIMEOUT).await;
 
         // Assert
+        // The queued download is counted, and the listener reports that it stopped because of the
+        // cancellation.
+        expect_in_memory_download_metrics_to_be(&stats_repository, 1).await;
+        assert_eq!(completion, Completion::Cancelled, "a drained listener must return Cancelled");
+    }
+
+    #[tokio::test]
+    async fn it_should_leave_the_queued_event_unprocessed_and_return_cancelled_when_the_drain_timeout_has_expired() {
+        // Arrange
+        // The same queued download and cancelled token, with a drain timeout of zero, so it has
+        // expired before the first event could be admitted.
+        let stats_repository = Arc::new(Repository::default());
+        let receiver = Box::new(ScriptedReceiver::new([Ok(peer_download_completed_event())]));
+        let cancellation_token = CancellationToken::new();
+        cancellation_token.cancel();
+
+        // Act
+        let completion = dispatch_in_memory_events(receiver, cancellation_token, stats_repository.clone(), Duration::ZERO).await;
+
+        // Assert
+        // Nothing was counted, because the timeout stops admission, and the listener still returns
+        // Cancelled so the supervisor sees a cooperative stop.
         expect_in_memory_download_metrics_to_be(&stats_repository, 0).await;
+        assert_eq!(
+            completion,
+            Completion::Cancelled,
+            "an expired drain must still return Cancelled"
+        );
     }
 
     #[tokio::test]
