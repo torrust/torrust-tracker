@@ -12,6 +12,7 @@ use torrust_tracker_configuration::v3_0_0::udp_tracker_server::{
     ConnectionIdValidationPolicy as ConfigurationConnectionIdValidationPolicy, UdpTrackerServer,
 };
 use torrust_tracker_core::container::TrackerCoreContainer;
+use torrust_tracker_events::drain::DEFAULT_DRAIN_TIMEOUT;
 use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
 use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
 use torrust_tracker_udp_core::ConnectionIdValidationPolicy;
@@ -145,6 +146,7 @@ impl Environment<Stopped> {
                 cancellation_token.clone(),
                 &self.container.udp_tracker_core_container.stats_repository,
                 [(ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0), true)].into(),
+                DEFAULT_DRAIN_TIMEOUT,
             ),
             server_statistics: crate::statistics::event::listener::run_event_listener(
                 udp_server_statistics_events,

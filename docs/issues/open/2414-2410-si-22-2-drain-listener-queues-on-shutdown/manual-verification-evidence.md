@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2414-2410-si-22-2-drain-listener-queues-on-shutdown/ISSUE.md
-last-updated-utc: "2026-10-20 15:26"
+last-updated-utc: "2026-10-20 15:32"
 ---
 
 # Manual Verification Evidence
@@ -777,6 +777,11 @@ cancel-first again.
 | `http-core` | the drain bypasses the metrics policy (`handle_event` called directly) | 15:23:43.708 to 15:23:44.828 | the metrics-policy test |
 | `http-core` | returns `Completed` after the drain | 15:23:44.833 to 15:23:45.969 | both new tests |
 | `http-core` | the bug (the drain never runs) | 15:23:54.292 to 15:23:55.401 | the handle-queued-event test |
+| `udp-core` | timeout forced to zero | 15:29:41.443 to 15:29:42.327 | the handle-queued-event test |
+| `udp-core` | timeout never expires (an hour) | 15:29:42.333 to 15:29:43.202 | the expired-timeout test |
+| `udp-core` | the drain bypasses the metrics policy | 15:29:52.728 to 15:29:53.758 | the metrics-policy test |
+| `udp-core` | returns `Completed` after the drain | 15:29:53.762 to 15:29:54.842 | both new tests |
+| `udp-core` | the bug (the drain never runs) | 15:29:54.846 to 15:29:55.866 | the handle-queued-event test |
 
 A first form of "the bug" removed the call and did not compile (the function became unused under
 `-D warnings`), so it is not a result; the table row is the rerun.
@@ -801,6 +806,12 @@ policy mutation did not compile (an unused variable) and is not a result; the ro
 (which builds the benchmarks) gave 3,112 passed and 0 failed; `linter all`,
 `cargo +nightly fmt --all -- --check`, `cargo machete --with-metadata`, and `cargo deny check bans`
 exited 0. `cargo +nightly fmt` reordered only imports in the call-site files.
+
+`udp-core`: the same three tests as `http-core` (a connect event and `udp4_connections_handled`). The
+bootstrap job and the `udp-server` test environment's call to this listener pass
+`DEFAULT_DRAIN_TIMEOUT`; the environment's other two listener calls change with `udp-server`.
+`cargo test --workspace` gave 3,161 passed and 0 failed, `--all-targets` gave 3,114 and 0, and
+`linter all`, `cargo +nightly fmt --all -- --check`, and `cargo machete --with-metadata` exited 0.
 
 ## Commits
 

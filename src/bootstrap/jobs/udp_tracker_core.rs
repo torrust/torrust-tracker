@@ -3,6 +3,7 @@ use std::sync::Arc;
 
 use tokio_util::sync::CancellationToken;
 use torrust_tracker_configuration::v3_0_0::Configuration;
+use torrust_tracker_events::drain::DEFAULT_DRAIN_TIMEOUT;
 use torrust_tracker_events::shutdown::Completion;
 
 use crate::container::AppContainer;
@@ -26,5 +27,6 @@ pub fn run_event_listener(
         cancellation_token,
         app_container.udp_tracker_core_services.stats_repository.clone(),
         metrics_policy,
+        DEFAULT_DRAIN_TIMEOUT,
     )
 }
