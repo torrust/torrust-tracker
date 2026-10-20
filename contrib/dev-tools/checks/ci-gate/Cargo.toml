@@ -1,0 +1,19 @@
+[package]
+description = "Provider-neutral CI decisions for pull requests: which job groups a change needs."
+name = "ci-gate"
+publish = false
+
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+version = "0.1.0"
+
+[lints]
+workspace = true
+
+[dependencies]
+serde = { version = "1", features = [ "derive" ] }
+serde_json = "1"
+
+[dev-dependencies]
+rstest = { version = "0.28", default-features = false }
