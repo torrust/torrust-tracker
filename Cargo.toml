@@ -134,6 +134,7 @@ members = [
   "console/tracker-client",
   "contrib/dev-tools/analysis/workspace-coupling",
   "contrib/dev-tools/checks/agent-review-report-contract",
+  "contrib/dev-tools/checks/ci-gate",
   "contrib/dev-tools/checks/clippy-allow-reasons",
   "contrib/dev-tools/checks/frontmatter-validator",
   "contrib/dev-tools/checks/package-coverage-check",
