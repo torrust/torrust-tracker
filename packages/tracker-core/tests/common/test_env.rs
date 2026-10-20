@@ -155,6 +155,7 @@ impl TestEnv {
                 self.swarm_coordination_registry_container.event_bus.receiver(),
                 self.listeners.token(),
                 &self.swarm_coordination_registry_container.stats_repository,
+                DEFAULT_DRAIN_TIMEOUT,
             );
         self.listeners.add("swarm statistics", swarm_statistics_listener);
 

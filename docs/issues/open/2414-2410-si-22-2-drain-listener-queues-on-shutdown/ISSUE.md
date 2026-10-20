@@ -9,7 +9,7 @@ github-issue: 2414
 spec-path: docs/issues/open/2414-2410-si-22-2-drain-listener-queues-on-shutdown/ISSUE.md
 branch: "2414-drain-listener-queues-on-shutdown"
 related-pr: null
-last-updated-utc: "2026-10-20 15:14"
+last-updated-utc: "2026-10-20 15:19"
 semantic-links:
   skill-links:
     - create-issue
@@ -246,3 +246,4 @@ and independent Task Reviewer report.
 - 2026-10-20 12:51 UTC - GitHub Copilot (Claude Sonnet 5.5) - T4 design review held: the maintainer agreed to a 5 s default drain timeout, the `log_drain_report!` macro, the "events" wording, `Receiver::is_empty`, keeping the package `TestEnv` polling, and three commits (T4a; the T4c fix with T3a and T3c; the docs). `adr-draft.md`, D9, D13, and the Chosen Design are updated; the sub-EPIC's record entry 28 is marked agreed. T4c is `DONE`; the checkpoint is ticked. T5 is next.
 - 2026-10-20 12:57 UTC - GitHub Copilot (Claude Sonnet 5.5) - T3a, T3c, and T4 committed as two code commits, `feat(events): [#2414] add try_recv, len, TryRecvError, and the shared listener drain helper` and `fix(tracker-core): [#2414] drain the persistent listener's queue when it is cancelled`, each tested alone before its commit, plus this documentation commit. The unpushed first commit was amended once to correct its test count (seven drain tests, not eight). T5 (the other six listeners, one package per commit) is next.
 - 2026-10-20 15:14 UTC - GitHub Copilot (Claude Sonnet 5.5) - T5 started after the maintainer approved its plan and test design: one commit per package, each with two tests replacing the `it_should_prioritize_*` test. First done: the `tracker-core` in-memory listener (V9), mutation-checked, workspace 3,156 passed, `linter all` 0. Stashes are shared by every worktree of the repository, so none is used from here on.
+- 2026-10-20 15:19 UTC - GitHub Copilot (Claude Sonnet 5.5) - T5: the `swarm-coordination-registry` listener drains on cancellation (V9), mutation-checked; workspace 3,157 passed, `linter all` 0.
