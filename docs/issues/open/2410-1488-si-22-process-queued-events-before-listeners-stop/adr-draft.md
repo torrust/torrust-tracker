@@ -153,8 +153,12 @@ the superseded ADR: the root token stops being the only source of tokens.
   and its failure outcome stays visible. Completion before shutdown never
   cancels a consumer by itself. Logs say what a component waits for and when it
   is cancelled.
-- `register_legacy` keeps today's behavior (root token, no edges) until
-  `udp_ban_cleanup` migrates.
+- `register_legacy` keeps today's behavior (the root token, no edges) until
+  `udp_ban_cleanup` migrates. The root token is reached only through
+  `legacy_cancellation_token()`, so a component cannot pick it up by accident.
+- A reservation is spawned at most once, because `spawn` consumes it, and only
+  by the manager that issued it: `spawn` returns `SpawnError::ForeignReservation`
+  otherwise, and bootstrap propagates that error as a startup failure.
 - Registration must not lose a stop request that was already issued: cancellation
   before `reserve`, between `reserve` and `spawn`, and repeated cancellation are
   covered. Foreign or released ids and edges added after ordered shutdown starts

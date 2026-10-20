@@ -6,7 +6,7 @@ epic: 1488
 github-issue: 2410
 spec-path: docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-20 20:39"
+last-updated-utc: "2026-10-20 20:59"
 semantic-links:
   skill-links:
     - create-issue
@@ -270,7 +270,7 @@ which keeps the detailed steps for all sub-issues.
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | #2413 - Document event flows and draft the shutdown-order ADR | [ISSUE.md](../../closed/2413-2410-si-22-1-document-event-flows-and-draft-adr/ISSUE.md) | T1, T2 | AC9; ADR draft for AC8 | DONE | Documentation only. |
 | 2 | #2414 - Drain listener queues on shutdown | [ISSUE.md](../../closed/2414-2410-si-22-2-drain-listener-queues-on-shutdown/ISSUE.md) | T3, T4, T5 | AC1, AC3, AC4, AC6, AC11, AC12 | DONE | Addresses window (a), isolated by the control run (500 of 500 persisted, V10 and V11); merged in PR #2578 on 2026-10-20. The 5 s default drain timeout bounds admission and does not drain a full buffer (entry 28); race-run loss attribution remains incomplete. |
-| 3 | #2415 - Give each application component its own cancellation token | [ISSUE.md](../2415-2410-si-22-3-per-component-cancellation-tokens/ISSUE.md) | T6 | AC13 (keeps it; no behavior change) | TODO | Refactor that prepares sub-issue 4. |
+| 3 | #2415 - Give each application component its own cancellation token | [ISSUE.md](../2415-2410-si-22-3-per-component-cancellation-tokens/ISSUE.md) | T6 | AC13 (keeps it; no behavior change) | IN_PROGRESS | Refactor that prepares sub-issue 4. |
 | 4 | #2416 - Stop event producers before event listeners | [ISSUE.md](../2416-2410-si-22-4-stop-producers-before-listeners/ISSUE.md) | T7, T8, T9, T10 | AC2, AC5, AC7, AC8, AC10, AC13 | TODO | Closes window (b). T9's prerequisite #2471 is satisfied (merged in PR #2544 on 2026-10-16). |
 
 T0 (the reproduction) is done in this folder: evidence in
@@ -1510,6 +1510,26 @@ lost. Times are UTC.
     - **Observation:** with the yield, a draining listener sees events that producers publish while it
       drains, so a drain under continuous publishing runs until its timeout. That is the policy; it
       was found because a test helper published a probe on every turn (V11).
+30. **2026-10-20 20:52 - T6a design review of #2415 (agreed by the maintainer on
+    2026-10-20).** Evidence: #2415's `manual-verification-evidence.md` V1. The Chosen Design
+    leaves the precise API errors to T6; the review settled them and three details:
+    - **`spawn` returns `Result<(), SpawnError>`.** `SpawnError::ForeignReservation` names the
+      component when a reservation issued by another manager is spawned; the runner is dropped
+      without being polled, and the issuing manager releases the reservation. A reservation cannot
+      be spawned twice because `spawn` consumes it, which a `compile_fail` doctest checks. The
+      errors about edges belong to T8.
+    - **Bootstrap propagates the error** as a new `app::Error::ComponentRegistration`, so
+      `start_jobs` keeps its cancel-and-wait cleanup. The alternative, `expect` in one helper
+      because a foreign reservation cannot happen in bootstrap today, was rejected: it would
+      replace that cleanup with a panic, and T8 adds predecessor-id errors on the same path.
+    - **The root-token accessor is renamed** from `new_cancellation_token()` to
+      `legacy_cancellation_token()`, so only legacy jobs can be seen to use it (AC1 of #2415).
+    - **Two commits with a temporary adapter.** The API and its tests land beside the previous
+      `spawn(name, future)`, renamed `spawn_unreserved`; the next commit converts every caller and
+      removes it. This follows the additive path of `adr-draft.md` section 9, point 8, and the
+      #2415 Commit Points, which allow a split with a compiling adapter.
+    Also agreed: the API, the lifecycle rules, and the seven reservation tests as implemented.
+    `StopBefore` is not added before T7. `adr-draft.md` section 3 is updated in the same change.
 
 ## Chosen Design (D7, D8)
 
@@ -1542,7 +1562,8 @@ Registration must not lose an already-issued stop request: cover cancellation
 before reserve, between reserve and spawn, and repeated cancellation. Reject
 foreign/released dependency IDs and dependency additions after ordered shutdown
 starts; do not introduce a live producer behind an already-cancelled consumer.
-The precise API errors are reviewed in T6/T8, without widening the chosen design.
+The precise API errors are reviewed in T6/T8, without widening the chosen design;
+T6 settled the reservation errors (record entry 30).
 Failed or panicked predecessors release dependents after their owned work is
 stopped, but their failure outcome remains visible. At the shared deadline,
 abort/join all remaining components, including consumers not yet cancelled.
@@ -2073,7 +2094,8 @@ with rollback subject to the dependencies between the changes.
    `new_cancellation_token()` calls with reservation tokens, dropping the four
    `.child_token()` calls on server sites; `udp_ban_cleanup` keeps the root
    token. Update the tests that build a `JobManager` directly (in
-   `manager.rs`, four in `src/app.rs`, and one in `src/console/profiling.rs`);
+   `manager.rs`, six in `src/app.rs`, and one in `src/console/profiling.rs`; this
+   step said four in `src/app.rs` until the 2026-10-20 recount);
    `tests/common/workspace.rs` only calls `cancel` and `wait_for_all`. Run the
    full test suite and `cargo test --test lifecycle-signals`.
 8. **T7 - Red stop-order test.** In the `manager.rs` tests, reserve a consumer
@@ -2241,6 +2263,8 @@ avoids duplicating the full workflow in four drafts:
 - 2026-10-20 16:19 UTC - GitHub Copilot (Claude Sonnet 5.5) - The independent Task Reviewer report on #2414 (REVIEW PASSED, two should-fix items) led to record entry 29, agreed by the maintainer: the drain yields between events and uses `checked_add`, `axum-http-server` keeps no new dependency (`http-core` re-exports the timeout), and the zero-timeout listener tests stand. `adr-draft.md` section 7 is updated in the same change (D14).
 - 2026-10-20 19:30 UTC - GitHub Copilot (Claude Sonnet 5.5) - #2414 merged in PR #2578 (2026-10-20 19:28 UTC) and archived to `docs/issues/closed/`; its Subissues row is `DONE` and links the archived spec. #2415 and #2416 are not started.
 - 2026-10-20 20:39 UTC - GitHub Copilot (Claude Opus 5.5) - Moved the 2026-10-20 19:30 UTC entry above from the end of this file, where it had been appended after `## References`, into this Progress Log in time order; its text is unchanged. No design change.
+- 2026-10-20 20:52 UTC - GitHub Copilot (Claude Opus 5.5) - #2415 started; its row is `IN_PROGRESS`. The T6 step now says six test-side `JobManager::new()` sites in `src/app.rs`, not four (recount on `develop` after the #2414 archive merge; the other T6 counts still hold). T6a (`reserve` and reservation-based `spawn`) is green in the working tree and awaits the T6 design review; evidence in #2415's `manual-verification-evidence.md` (V1). No design change.
+- 2026-10-20 20:59 UTC - GitHub Copilot (Claude Opus 5.5) - #2415 T6a design review: the maintainer agreed to the API and decided the reservation errors and two details, recorded as Design Discussion Record entry 30 (`spawn` returns `SpawnError`, which bootstrap propagates; the root-token accessor becomes `legacy_cancellation_token()`; two code commits with a temporary adapter). `adr-draft.md` section 3 is updated in the same change (D14, D15). T6a committed.
 
 ## Acceptance Criteria
 

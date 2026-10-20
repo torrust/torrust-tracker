@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p1
 epic: 2410
 github-issue: 2415
 spec-path: docs/issues/open/2415-2410-si-22-3-per-component-cancellation-tokens/ISSUE.md
 branch: "2415-per-component-cancellation-tokens"
 related-pr: null
-last-updated-utc: "2026-10-19 17:08"
+last-updated-utc: "2026-10-20 20:59"
 semantic-links:
   skill-links:
     - create-issue
@@ -19,6 +19,7 @@ semantic-links:
     - src/bootstrap/jobs/manager.rs
     - src/app.rs
     - src/console/profiling.rs
+    - docs/issues/open/2415-2410-si-22-3-per-component-cancellation-tokens/manual-verification-evidence.md
 ---
 
 <!-- skill-link: create-issue -->
@@ -80,7 +81,7 @@ item 7 (T6).
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T6a | TODO | `reserve` and reservation-based `spawn` | Unit tests: a reservation's token is cancelled by `cancel()`; a dropped reservation is released. |
+| T6a | DONE | `reserve` and reservation-based `spawn` | Unit tests: a reservation's token is cancelled by `cancel()`; a dropped reservation is released. Seven lifecycle tests and a `compile_fail` doctest (evidence V1); design agreed at the T6a review (sub-EPIC record entry 30). |
 | T6b | TODO | Convert `src/app.rs` | Every component uses only its reservation token; `.child_token()` calls on server sites removed; `udp_ban_cleanup` keeps the root token. |
 | T6c | TODO | Update direct `JobManager` users | Tests in `manager.rs`, `src/app.rs`, and `src/console/profiling.rs`. |
 
@@ -156,3 +157,6 @@ assessment, and independent Task Reviewer report.
 - 2026-10-02 11:03 UTC - GitHub Copilot - Drafted from SI-22 T6 (D17).
 - 2026-10-02 13:30 UTC - GitHub Copilot - Added AC4: the refactor keeps the listeners-first startup order and the bus lifetimes (sub-EPIC AC13).
 - 2026-10-19 17:08 UTC - GitHub Copilot (Claude Opus 5.5) - Refreshed: `branch:` names the planned implementation branch `2415-per-component-cancellation-tokens`; removed the obsolete note about setting `epic`.
+- 2026-10-20 20:40 UTC - GitHub Copilot (Claude Opus 5.5) - Started on branch `2415-per-component-cancellation-tokens` from `develop` after the #2414 archive merge. Recount in `src/app.rs`: 13 `spawn` sites, 14 `new_cancellation_token()` calls, 4 `.child_token()` calls, 1 `register_legacy`, and six test-side `JobManager::new()` sites (the sub-EPIC's T6 step says four); `src/bootstrap/jobs/manager.rs` has 10 `JobManager::new()`, `src/console/profiling.rs` one direct user, and `tests/common/workspace.rs` only calls `cancel` and `wait_for_all`.
+- 2026-10-20 20:52 UTC - GitHub Copilot (Claude Opus 5.5) - T6a implemented in the working tree, not committed: `reserve`, reservation-based `spawn` returning `SpawnError::ForeignReservation` for a reservation from another manager, released dropped reservations, and `cancel()` cancelling every component token and the legacy root token. Seven new unit tests and a `compile_fail` doctest pass; six mutations are each caught (evidence V1). Existing callers use a temporary `spawn_unreserved` adapter until T6b. Stopped for the design-review checkpoint (D14). No design change.
+- 2026-10-20 20:59 UTC - GitHub Copilot (Claude Opus 5.5) - T6a design review: the maintainer approved the API, the lifecycle rules, and the tests, and decided three details the Chosen Design left to T6, recorded as sub-EPIC record entry 30 with `adr-draft.md` section 3 updated: `SpawnError` is propagated by bootstrap as a new `app::Error::ComponentRegistration`; `new_cancellation_token()` is renamed `legacy_cancellation_token()`; and the work lands as two code commits, the API with the temporary `spawn_unreserved` adapter, then the caller conversion that removes it. T6a committed; T6b and T6c are next.
