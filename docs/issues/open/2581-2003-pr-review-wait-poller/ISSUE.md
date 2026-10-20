@@ -9,7 +9,7 @@ github-issue: 2581
 spec-path: docs/issues/open/2581-2003-pr-review-wait-poller/ISSUE.md
 branch: "2581-pr-review-wait-poller"
 related-pr: null
-last-updated-utc: "2026-10-20 17:30"
+last-updated-utc: "2026-10-20 19:33"
 semantic-links:
   skill-links:
     - create-issue
@@ -112,7 +112,8 @@ Proposed contract (to be confirmed before implementation):
 - **Output**: one JSON object on stdout describing the event. Diagnostic text goes to stderr.
 - **Exit codes**: distinct codes for event, timeout, and error. Exact values are set during implementation.
 - **Non-interactive**: the tool refuses to run when stdout is a TTY, as `github-review-threads` does.
-  Its output is for agents.
+  Its output is for agents. Manual runs must redirect stdout to a file or pipe it (for example
+  `| jq .`), so the manual verification steps never attach stdout to a terminal.
 - **Deterministic**: the tool makes no model calls and uses no MCP server.
 
 ## Implementation Plan
@@ -158,7 +159,8 @@ Decided by the maintainer (2026-10-20):
    `.github/skills/dev/pr-reviews/<tool-name>/`. The implementation issue must decide its
    workspace membership under `add-workspace-member`.
 4. **Parent EPIC.** Linked to EPIC #2003 (`Overhaul: Automation Tools and AI Agent Guardrails`).
-   The folder takes the `2003-` prefix when the issue is created.
+   The folder uses the `{issue}-{epic}-` prefix (`2581-2003-`), following the `create-issue`
+   convention: the GitHub issue number replaces the draft prefix and the EPIC number follows it.
 5. **Issue type.** `task`.
 
 Defaults to confirm during implementation (not blocking this spec):
