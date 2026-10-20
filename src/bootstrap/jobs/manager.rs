@@ -1,16 +1,21 @@
 //! Application-level background-component supervision.
 //!
 //! `JobManager` owns only direct components registered during application
-//! bootstrap. New components must use [`JobManager::spawn`]; each component,
-//! rather than this supervisor, owns and completes or deliberately aborts its
-//! nested tasks. Shutdown requests cooperative cancellation, waits under one
-//! shared deadline, then aborts and joins any remaining direct components.
+//! bootstrap. A component is registered in two steps: [`JobManager::reserve`]
+//! issues its [`Reservation`], which carries the component's own cancellation
+//! token, and [`JobManager::spawn`] starts the runner built with that token.
+//! Each component, rather than this supervisor, owns and completes or
+//! deliberately aborts its nested tasks. Shutdown requests cooperative
+//! cancellation, waits under one shared deadline, then aborts and joins any
+//! remaining direct components.
 //!
 //! issue: #1586
+//! issue: #2415
 
 use std::collections::HashMap;
 use std::future::Future;
 use std::pin::Pin;
+use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 use std::task::{Context, Poll};
 use std::time::Duration;
 
@@ -272,12 +277,160 @@ struct LegacyJob {
     handle: JoinHandle<()>,
 }
 
+/// Identifies a top-level component reserved in one [`JobManager`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub struct ComponentId(u64);
+
+/// The right to spawn one top-level component in the [`JobManager`] that
+/// issued it.
+///
+/// It carries the component's id and its own cancellation token, which is not
+/// derived from any other token. Build the component's runner with
+/// [`Reservation::cancellation_token`], then pass the reservation to
+/// [`JobManager::spawn`]. Dropping a reservation without spawning it releases
+/// it: the manager forgets its token and no other component is affected.
+///
+/// A reservation is spawned at most once, because spawning consumes it:
+///
+/// ```compile_fail,E0382
+/// # use torrust_tracker_lib::bootstrap::jobs::manager::{ComponentCompletion, JobManager};
+/// let mut manager = JobManager::new();
+/// let reservation = manager.reserve("component");
+/// let _ = manager.spawn(reservation, async { Ok(ComponentCompletion::Completed) });
+/// let _ = manager.spawn(reservation, async { Ok(ComponentCompletion::Completed) });
+/// ```
+///
+/// Reserve again to register another component:
+///
+/// ```no_run
+/// # use torrust_tracker_lib::bootstrap::jobs::manager::{ComponentCompletion, JobManager};
+/// let mut manager = JobManager::new();
+/// let first = manager.reserve("first-component");
+/// let _ = manager.spawn(first, async { Ok(ComponentCompletion::Completed) });
+/// let second = manager.reserve("second-component");
+/// let _ = manager.spawn(second, async { Ok(ComponentCompletion::Completed) });
+/// ```
+#[derive(Debug)]
+pub struct Reservation {
+    id: ComponentId,
+    name: String,
+    cancellation_token: CancellationToken,
+    registry: Arc<Mutex<ComponentRegistry>>,
+}
+
+impl Reservation {
+    /// The id of the reserved component.
+    #[must_use]
+    pub const fn id(&self) -> ComponentId {
+        self.id
+    }
+
+    /// The component's own cancellation token.
+    ///
+    /// It is cancelled by [`JobManager::cancel`], including when the manager
+    /// was cancelled before the reservation was issued or before it is spawned.
+    #[must_use]
+    pub fn cancellation_token(&self) -> CancellationToken {
+        self.cancellation_token.clone()
+    }
+}
+
+impl Drop for Reservation {
+    fn drop(&mut self) {
+        lock(&self.registry).release_if_reserved(self.id);
+    }
+}
+
+/// Errors returned when a reserved component cannot be spawned.
+#[derive(Debug, PartialEq, Eq, thiserror::Error)]
+#[non_exhaustive]
+pub enum SpawnError {
+    #[error(
+        "Component '{component}' was reserved by another `JobManager`, so this manager cannot spawn it. Spawn it with the manager whose `reserve` issued the reservation."
+    )]
+    ForeignReservation { component: String },
+}
+
+#[derive(Debug, PartialEq, Eq)]
+enum RegistrationState {
+    Reserved,
+    Spawned,
+}
+
+#[derive(Debug)]
+struct RegisteredComponent {
+    cancellation_token: CancellationToken,
+    state: RegistrationState,
+}
+
+/// The component tokens a manager has issued, shared with its reservations so
+/// a dropped reservation can release itself.
+#[derive(Debug, Default)]
+struct ComponentRegistry {
+    next_id: u64,
+    cancelled: bool,
+    components: HashMap<ComponentId, RegisteredComponent>,
+}
+
+impl ComponentRegistry {
+    fn reserve(&mut self) -> (ComponentId, CancellationToken) {
+        let id = ComponentId(self.next_id);
+        self.next_id += 1;
+
+        let cancellation_token = CancellationToken::new();
+        if self.cancelled {
+            cancellation_token.cancel();
+        }
+
+        self.components.insert(
+            id,
+            RegisteredComponent {
+                cancellation_token: cancellation_token.clone(),
+                state: RegistrationState::Reserved,
+            },
+        );
+
+        (id, cancellation_token)
+    }
+
+    fn mark_spawned(&mut self, id: ComponentId) {
+        if let Some(component) = self.components.get_mut(&id) {
+            component.state = RegistrationState::Spawned;
+        }
+    }
+
+    fn release_if_reserved(&mut self, id: ComponentId) {
+        if self
+            .components
+            .get(&id)
+            .is_some_and(|component| component.state == RegistrationState::Reserved)
+        {
+            self.components.remove(&id);
+        }
+    }
+
+    fn cancel_all(&mut self) {
+        self.cancelled = true;
+        for component in self.components.values() {
+            component.cancellation_token.cancel();
+        }
+    }
+}
+
+/// Locks the registry even if a thread panicked while holding the lock: every
+/// critical section leaves it consistent, and a reservation's drop must not
+/// panic.
+fn lock(registry: &Mutex<ComponentRegistry>) -> MutexGuard<'_, ComponentRegistry> {
+    registry.lock().unwrap_or_else(PoisonError::into_inner)
+}
+
 /// Manages direct, named top-level component tasks.
 #[derive(Debug, Default)]
 pub struct JobManager {
     jobs: JoinSet<ComponentResult>,
     job_names: HashMap<Id, String>,
     legacy_jobs: Vec<LegacyJob>,
+    registry: Arc<Mutex<ComponentRegistry>>,
     cancellation_token: CancellationToken,
 }
 
@@ -288,16 +441,67 @@ impl JobManager {
             jobs: JoinSet::new(),
             job_names: HashMap::new(),
             legacy_jobs: Vec::new(),
+            registry: Arc::new(Mutex::new(ComponentRegistry::default())),
             cancellation_token: CancellationToken::new(),
         }
     }
 
-    /// Spawns a direct top-level component task under this manager's ownership.
+    /// Reserves a top-level component and issues its own cancellation token.
     ///
-    /// The future must explicitly report independent completion, cooperative
-    /// cancellation, or component failure. A task panic and deadline abort are
-    /// supervisor outcomes and are recorded separately.
-    pub fn spawn<N, F>(&mut self, name: N, future: F)
+    /// The token is not derived from the legacy root token or from any other
+    /// component's token. If the manager has already been cancelled, the token
+    /// is issued cancelled.
+    pub fn reserve<N>(&mut self, name: N) -> Reservation
+    where
+        N: Into<String>,
+    {
+        let (id, cancellation_token) = lock(&self.registry).reserve();
+
+        Reservation {
+            id,
+            name: name.into(),
+            cancellation_token,
+            registry: Arc::clone(&self.registry),
+        }
+    }
+
+    /// Spawns a reserved top-level component task under this manager's ownership.
+    ///
+    /// The future must be built with the reservation's cancellation token, and
+    /// must explicitly report independent completion, cooperative cancellation,
+    /// or component failure. A task panic and deadline abort are supervisor
+    /// outcomes and are recorded separately.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`SpawnError::ForeignReservation`] when another manager issued
+    /// the reservation. The future is dropped without being polled, and the
+    /// reservation is released from the manager that issued it.
+    pub fn spawn<F>(&mut self, reservation: Reservation, future: F) -> Result<(), SpawnError>
+    where
+        F: Future<Output = ComponentResult> + Send + 'static,
+    {
+        if !Arc::ptr_eq(&reservation.registry, &self.registry) {
+            return Err(SpawnError::ForeignReservation {
+                component: reservation.name.clone(),
+            });
+        }
+
+        lock(&self.registry).mark_spawned(reservation.id);
+        let abort_handle = self.jobs.spawn(future);
+        self.job_names.insert(abort_handle.id(), reservation.name.clone());
+
+        // Consumed so it cannot be spawned twice. Its drop finds the component
+        // spawned and keeps its token registered for `cancel()`.
+        drop(reservation);
+
+        Ok(())
+    }
+
+    // TODO(#2415): temporary adapter for the T6a design review; callers move to
+    // `reserve` and `spawn` in T6b and this method is removed.
+    /// Spawns a direct top-level component task that uses the legacy root token.
+    pub fn spawn_unreserved<N, F>(&mut self, name: N, future: F)
     where
         N: Into<String>,
         F: Future<Output = ComponentResult> + Send + 'static,
@@ -323,14 +527,23 @@ impl JobManager {
         });
     }
 
+    /// Returns a clone of the legacy root token.
+    ///
+    /// Only jobs registered with [`Self::register_legacy`] use it. Components
+    /// spawned with [`Self::spawn`] use the token of their [`Reservation`].
     #[must_use]
     pub fn new_cancellation_token(&self) -> CancellationToken {
         self.cancellation_token.clone()
     }
 
     /// Signals cooperative cancellation to every component.
+    ///
+    /// It cancels the legacy root token and the token of every reserved or
+    /// spawned component. A reservation issued afterwards gets a cancelled
+    /// token. Calling it again has no further effect.
     pub fn cancel(&self) {
         self.cancellation_token.cancel();
+        lock(&self.registry).cancel_all();
     }
 
     /// Waits for all component tasks under one shared deadline.
@@ -493,20 +706,20 @@ mod tests {
     use tokio::time::{Duration, timeout};
     use torrust_server_lib::signals::Halted;
 
-    use super::{ComponentCompletion, ComponentError, JobManager, JobOutcome, JobStatus};
+    use super::{ComponentCompletion, ComponentError, JobManager, JobOutcome, JobStatus, Reservation, SpawnError};
 
     #[tokio::test]
     async fn it_should_report_jobs_in_completion_order() {
         // Arrange
         let mut manager = JobManager::new();
         let (second_finished_sender, second_finished_receiver) = oneshot::channel();
-        manager.spawn("first", async move {
+        manager.spawn_unreserved("first", async move {
             second_finished_receiver
                 .await
                 .expect("second task reports its completion before the first task completes");
             Ok(ComponentCompletion::Completed)
         });
-        manager.spawn("second", async move {
+        manager.spawn_unreserved("second", async move {
             second_finished_sender
                 .send(())
                 .expect("first task is waiting for the second task");
@@ -536,7 +749,7 @@ mod tests {
     async fn it_should_report_a_named_panic() {
         // Arrange
         let mut manager = JobManager::new();
-        manager.spawn("panic-job", async {
+        manager.spawn_unreserved("panic-job", async {
             panic!("expected panic");
         });
 
@@ -559,11 +772,11 @@ mod tests {
         let mut manager = JobManager::new();
         let (first_sender, first_receiver) = oneshot::channel::<()>();
         let (second_sender, second_receiver) = oneshot::channel::<()>();
-        manager.spawn("first", async move {
+        manager.spawn_unreserved("first", async move {
             let _ = first_receiver.await;
             Ok(ComponentCompletion::Completed)
         });
-        manager.spawn("second", async move {
+        manager.spawn_unreserved("second", async move {
             let _ = second_receiver.await;
             Ok(ComponentCompletion::Completed)
         });
@@ -585,7 +798,7 @@ mod tests {
         // Arrange
         let mut manager = JobManager::new();
         let cancellation_token = manager.new_cancellation_token();
-        manager.spawn("cooperative-job", async move {
+        manager.spawn_unreserved("cooperative-job", async move {
             cancellation_token.cancelled().await;
             Ok(ComponentCompletion::Cancelled)
         });
@@ -637,7 +850,7 @@ mod tests {
         let (child_completion_sender, child_completion_receiver) = oneshot::channel::<()>();
         let (halt_sender, halt_receiver) = oneshot::channel();
         let (server_ready_sender, server_ready_receiver) = oneshot::channel();
-        manager.spawn("server-component", async move {
+        manager.spawn_unreserved("server-component", async move {
             let mut server = super::NestedServerTask::new(
                 halt_sender,
                 tokio::spawn(async move {
@@ -677,7 +890,7 @@ mod tests {
         let (controller_completion_sender, controller_completion_receiver) = oneshot::channel::<()>();
         let (halt_sender, halt_receiver) = oneshot::channel();
         let (server_ready_sender, server_ready_receiver) = oneshot::channel();
-        manager.spawn("server-component", async move {
+        manager.spawn_unreserved("server-component", async move {
             let mut server = super::NestedServerTask::with_shutdown_controller(
                 halt_sender,
                 tokio::spawn(async move {
@@ -723,7 +936,7 @@ mod tests {
         let (running_completion_sender, running_completion_receiver) = oneshot::channel::<()>();
         let (halt_sender, halt_receiver) = oneshot::channel();
         let (halt_signal_ready_sender, halt_signal_ready_receiver) = oneshot::channel();
-        manager.spawn("running-server-component", async move {
+        manager.spawn_unreserved("running-server-component", async move {
             let _halt_signal = super::HaltSignal::new(halt_sender);
             halt_signal_ready_sender
                 .send(())
@@ -755,7 +968,7 @@ mod tests {
         let (direct_completion_sender, direct_completion_receiver) = oneshot::channel::<()>();
         let (first_legacy_completion_sender, first_legacy_completion_receiver) = oneshot::channel::<()>();
         let (second_legacy_completion_sender, second_legacy_completion_receiver) = oneshot::channel::<()>();
-        manager.spawn("direct-job", async move {
+        manager.spawn_unreserved("direct-job", async move {
             let _ = direct_completion_receiver.await;
             Ok(ComponentCompletion::Completed)
         });
@@ -804,7 +1017,7 @@ mod tests {
     async fn it_should_report_a_named_component_failure() {
         // Arrange
         let mut manager = JobManager::new();
-        manager.spawn("failing-job", async { Err(ComponentError::new("database connection lost")) });
+        manager.spawn_unreserved("failing-job", async { Err(ComponentError::new("database connection lost")) });
 
         // Act
         let outcomes = manager.wait_for_all(Duration::from_secs(1)).await;
@@ -816,6 +1029,195 @@ mod tests {
                 name: "failing-job".to_owned(),
                 status: JobStatus::Failed(ComponentError::new("database connection lost")),
             }]
+        );
+    }
+
+    // Reservation lifecycle (issue #2415).
+
+    /// Spawns a component that runs until its own reservation token is cancelled.
+    fn spawn_component_stopping_on_its_own_token(manager: &mut JobManager, reservation: Reservation) {
+        let cancellation_token = reservation.cancellation_token();
+        manager
+            .spawn(reservation, async move {
+                cancellation_token.cancelled().await;
+                Ok(ComponentCompletion::Cancelled)
+            })
+            .expect("the reservation was issued by this manager");
+    }
+
+    #[tokio::test]
+    async fn it_should_cancel_a_spawned_components_own_token_when_the_manager_is_cancelled() {
+        // Arrange
+        let mut manager = JobManager::new();
+        let reservation = manager.reserve("cooperative-component");
+        spawn_component_stopping_on_its_own_token(&mut manager, reservation);
+
+        // Act
+        manager.cancel();
+        let outcomes = manager.wait_for_all(Duration::from_secs(1)).await;
+
+        // Assert
+        assert_eq!(
+            outcomes,
+            vec![JobOutcome {
+                name: "cooperative-component".to_owned(),
+                status: JobStatus::Cancelled,
+            }]
+        );
+    }
+
+    #[test]
+    fn it_should_not_cancel_a_reserved_component_when_only_the_legacy_root_token_is_cancelled() {
+        // Arrange
+        let mut manager = JobManager::new();
+        let reservation = manager.reserve("component");
+
+        // Act
+        manager.new_cancellation_token().cancel();
+
+        // Assert
+        assert!(
+            !reservation.cancellation_token().is_cancelled(),
+            "a component token must not be a child of the legacy root token"
+        );
+    }
+
+    #[test]
+    fn it_should_issue_a_cancelled_token_when_a_component_is_reserved_after_the_manager_is_cancelled() {
+        // Arrange
+        let mut manager = JobManager::new();
+        manager.cancel();
+
+        // Act
+        let reservation = manager.reserve("late-component");
+
+        // Assert
+        assert!(
+            reservation.cancellation_token().is_cancelled(),
+            "a reservation issued after cancel() must carry a cancelled token"
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_cancel_a_reserved_component_that_is_spawned_after_the_manager_is_cancelled() {
+        // Arrange
+        let mut manager = JobManager::new();
+        let reservation = manager.reserve("component-spawned-after-cancel");
+
+        // Act
+        manager.cancel();
+        let token_cancelled_before_spawn = reservation.cancellation_token().is_cancelled();
+        spawn_component_stopping_on_its_own_token(&mut manager, reservation);
+        let outcomes = manager.wait_for_all(Duration::from_secs(1)).await;
+
+        // Assert
+        assert!(
+            token_cancelled_before_spawn,
+            "cancel() between reserve and spawn must cancel the reserved token"
+        );
+        assert_eq!(
+            outcomes,
+            vec![JobOutcome {
+                name: "component-spawned-after-cancel".to_owned(),
+                status: JobStatus::Cancelled,
+            }]
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_stop_components_and_legacy_jobs_once_when_the_manager_is_cancelled_twice() {
+        // Arrange
+        let mut manager = JobManager::new();
+        let reservation = manager.reserve("component");
+        spawn_component_stopping_on_its_own_token(&mut manager, reservation);
+        let legacy_token = manager.new_cancellation_token();
+        manager.register_legacy(
+            "legacy-job",
+            tokio::spawn(async move {
+                legacy_token.cancelled().await;
+            }),
+        );
+
+        // Act
+        manager.cancel();
+        manager.cancel();
+        let mut outcomes = manager.wait_for_all(Duration::from_secs(1)).await;
+
+        // Assert
+        outcomes.sort_by(|left, right| left.name.cmp(&right.name));
+        assert_eq!(
+            outcomes,
+            vec![
+                JobOutcome {
+                    name: "component".to_owned(),
+                    status: JobStatus::Cancelled,
+                },
+                JobOutcome {
+                    name: "legacy-job".to_owned(),
+                    status: JobStatus::Completed,
+                },
+            ]
+        );
+    }
+
+    #[test]
+    fn it_should_release_a_dropped_reservation_without_affecting_other_components() {
+        // Arrange
+        let mut manager = JobManager::new();
+        let dropped_reservation = manager.reserve("dropped-component");
+        let kept_reservation = manager.reserve("kept-component");
+        let dropped_token = dropped_reservation.cancellation_token();
+        drop(dropped_reservation);
+
+        // Act
+        manager.cancel();
+
+        // Assert
+        assert!(
+            !dropped_token.is_cancelled(),
+            "a released reservation's token must no longer be held by the manager"
+        );
+        assert!(
+            kept_reservation.cancellation_token().is_cancelled(),
+            "releasing one reservation must not stop the manager from cancelling the others"
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_reject_a_reservation_issued_by_another_manager() {
+        // Arrange
+        let mut issuing_manager = JobManager::new();
+        let mut other_manager = JobManager::new();
+        let reservation = issuing_manager.reserve("foreign-component");
+        let foreign_token = reservation.cancellation_token();
+        let (ran_sender, ran_receiver) = oneshot::channel::<()>();
+
+        // Act
+        let result = other_manager.spawn(reservation, async move {
+            let _ = ran_sender.send(());
+            Ok(ComponentCompletion::Completed)
+        });
+        issuing_manager.cancel();
+
+        // Assert
+        assert_eq!(
+            result,
+            Err(SpawnError::ForeignReservation {
+                component: "foreign-component".to_owned(),
+            })
+        );
+        assert!(
+            ran_receiver.await.is_err(),
+            "the runner of a rejected reservation must be dropped without running"
+        );
+        assert!(
+            !foreign_token.is_cancelled(),
+            "a rejected reservation must be released by the manager that issued it"
+        );
+        assert_eq!(
+            other_manager.wait_for_all(Duration::from_secs(1)).await,
+            Vec::<JobOutcome>::new(),
+            "the manager that rejected the reservation must not supervise its runner"
         );
     }
 }

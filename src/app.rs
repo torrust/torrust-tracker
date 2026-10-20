@@ -250,7 +250,7 @@ fn start_swarm_coordination_registry_event_listener(
     if let Some(runner) =
         jobs::torrent_repository::run_event_listener(config, app_container, job_manager.new_cancellation_token())
     {
-        job_manager.spawn("swarm_coordination_registry_event_listener", component_runner(runner));
+        job_manager.spawn_unreserved("swarm_coordination_registry_event_listener", component_runner(runner));
     }
 }
 
@@ -262,7 +262,7 @@ fn start_tracker_core_in_memory_event_listener(
     if let Some(runner) =
         jobs::tracker_core::run_in_memory_event_listener(config, app_container, job_manager.new_cancellation_token())
     {
-        job_manager.spawn("tracker_core_in_memory_event_listener", component_runner(runner));
+        job_manager.spawn_unreserved("tracker_core_in_memory_event_listener", component_runner(runner));
     }
 }
 
@@ -278,7 +278,7 @@ fn start_tracker_core_persistent_completed_statistics_event_listener(
     )
     .map_err(|_| Error::PersistentStatisticsRequirePersistence)?
     {
-        job_manager.spawn(
+        job_manager.spawn_unreserved(
             "tracker_core_persistent_completed_statistics_event_listener",
             component_runner(runner),
         );
@@ -288,7 +288,7 @@ fn start_tracker_core_persistent_completed_statistics_event_listener(
 }
 
 fn start_http_core_event_listener(config: &Configuration, app_container: &Arc<AppContainer>, job_manager: &mut JobManager) {
-    job_manager.spawn(
+    job_manager.spawn_unreserved(
         "http_core_event_listener",
         component_runner(jobs::http_tracker_core::run_event_listener(
             config,
@@ -299,7 +299,7 @@ fn start_http_core_event_listener(config: &Configuration, app_container: &Arc<Ap
 }
 
 fn start_udp_core_event_listener(config: &Configuration, app_container: &Arc<AppContainer>, job_manager: &mut JobManager) {
-    job_manager.spawn(
+    job_manager.spawn_unreserved(
         "udp_core_event_listener",
         component_runner(jobs::udp_tracker_core::run_event_listener(
             config,
@@ -352,7 +352,7 @@ fn start_udp_server_stats_event_listener(
     app_container: &Arc<AppContainer>,
     job_manager: &mut JobManager,
 ) {
-    job_manager.spawn(
+    job_manager.spawn_unreserved(
         "udp_server_stats_event_listener",
         component_runner(jobs::udp_tracker_server::run_stats_event_listener(
             config,
@@ -363,7 +363,7 @@ fn start_udp_server_stats_event_listener(
 }
 
 fn start_udp_server_banning_event_listener(app_container: &Arc<AppContainer>, job_manager: &mut JobManager) {
-    job_manager.spawn(
+    job_manager.spawn_unreserved(
         "udp_server_banning_event_listener",
         component_runner(jobs::udp_tracker_server::run_banning_event_listener(
             app_container,
@@ -440,7 +440,7 @@ async fn start_udp_instance(
         source: Box::new(source),
     })?;
 
-    job_manager.spawn(format!("udp_instance_{}_{}", idx, udp_tracker_config.bind_address), runner);
+    job_manager.spawn_unreserved(format!("udp_instance_{}_{}", idx, udp_tracker_config.bind_address), runner);
     Ok(())
 }
 
@@ -497,7 +497,7 @@ async fn start_http_instance(
         service: "HTTP tracker",
         source: Box::new(source),
     })? {
-        job_manager.spawn(format!("http_instance_{}_{}", idx, http_tracker_config.bind_address), runner);
+        job_manager.spawn_unreserved(format!("http_instance_{}_{}", idx, http_tracker_config.bind_address), runner);
     }
     Ok(())
 }
@@ -524,7 +524,7 @@ async fn start_the_http_api(
             service: "tracker API",
             source: Box::new(source),
         })? {
-            job_manager.spawn("http_api", runner);
+            job_manager.spawn_unreserved("http_api", runner);
         }
     } else {
         tracing::info!("No API block in configuration");
@@ -534,7 +534,7 @@ async fn start_the_http_api(
 
 fn start_torrent_cleanup(config: &Configuration, app_container: &Arc<AppContainer>, job_manager: &mut JobManager) {
     if config.core.inactive_peer_cleanup_interval > 0 {
-        job_manager.spawn(
+        job_manager.spawn_unreserved(
             "torrent_cleanup",
             component_runner(torrent_cleanup::run_job(
                 config.core.clone(),
@@ -547,7 +547,7 @@ fn start_torrent_cleanup(config: &Configuration, app_container: &Arc<AppContaine
 
 fn start_peers_inactivity_update(config: &Configuration, app_container: &Arc<AppContainer>, job_manager: &mut JobManager) {
     if config.core.tracker_usage_statistics {
-        job_manager.spawn(
+        job_manager.spawn_unreserved(
             "peers_inactivity_update",
             component_runner(activity_metrics_updater::run_job(
                 config,
@@ -576,7 +576,7 @@ async fn start_health_check_api(
         source: Box::new(source),
     })?;
 
-    job_manager.spawn("health_check_api", runner);
+    job_manager.spawn_unreserved("health_check_api", runner);
     Ok(())
 }
 

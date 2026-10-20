@@ -242,7 +242,7 @@ mod tests {
         let mut jobs = JobManager::new();
         let cancellation_token = jobs.new_cancellation_token();
         let (completed_sender, completed_receiver) = oneshot::channel();
-        jobs.spawn("test-job", async move {
+        jobs.spawn_unreserved("test-job", async move {
             cancellation_token.cancelled().await;
             completed_sender
                 .send(())
