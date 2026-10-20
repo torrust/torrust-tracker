@@ -40,15 +40,23 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-One review was submitted so far. Copilot's review 5585221487 carries two inline threads, F1 and F2.
-Its overview repeats them, so the body adds no rows. It read the head whose subject is
-"fix(ci-gate): [#2525] avoid an intra-doc link to a private type". Both findings have one root cause,
-the format of the tool's input, and are fixed by one change.
+Two reviews were submitted so far, both by Copilot.
+
+- Review 5585221487 carries two inline threads, F1 and F2. Its overview repeats them, so the body adds
+  no rows. It read the head whose subject is "fix(ci-gate): [#2525] avoid an intra-doc link to a
+  private type". Both findings have one root cause, the format of the tool's input, and are fixed by
+  one change.
+- Review 5585732662 carries three inline threads, F3 to F5, on the head whose subject is "docs(pr-reviews):
+  add the PR #2574 review audit". Its body says that the full agentic review did not start before the
+  timeout and repeats the three threads, so it adds no rows. Each finding is fixed in its own commit.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2574-f1 | Copilot | Major (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
 | F2 | review-finding:pr-2574-f2 | Copilot | Major (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
+| F3 | review-finding:pr-2574-f3 | Copilot | Medium (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F4 | review-finding:pr-2574-f4 | Copilot | Medium (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
+| F5 | review-finding:pr-2574-f5 | Copilot | Low (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -102,6 +110,62 @@ the format of the tool's input, and are fixed by one change.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2574#discussion_r4325308851>
 
+### F3 - The claim that lossy decoding cannot change a match is unsupported
+
+- PR number: 2574
+- Source review ID: 5585732662
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2574#discussion_r4325531763>
+- Concern: the parser documentation says that replacing invalid bytes "does not change whether it matches
+  the ASCII patterns", which is stronger than the implementation guarantees; an invalid byte inside the
+  `packages/tracker-core/` prefix could change a prefix match. Soften the claim, or match on raw bytes.
+- Solution: the claim is true, so the behaviour stays, and the documentation now gives the reason. Every
+  pattern of the rules is ASCII, an ASCII byte decodes to itself, and the replacement character U+FFFD
+  is not ASCII, so a pattern matches the decoded name exactly when it matches the raw bytes. Matching on
+  raw bytes would need a second matching implementation without changing any outcome, so it was not
+  adopted. Five table cases pin the equivalence for a directory prefix (an invalid byte after it and
+  inside it), an extension (before it and after it), and an exact path.
+- Current-tree verification: `cargo test -p ci-gate` passes with 104 unit and 5 command-line tests. A
+  mutant that drops a path that is not valid UTF-8 fails three of them.
+- Resolution reference: fix(ci-gate): [#2525] state why invalid UTF-8 cannot change a match
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2574#discussion_r4326573846>
+
+### F4 - Success-path CLI tests do not assert the success contract first
+
+- PR number: 2574
+- Source review ID: 5585732662
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2574#discussion_r4325531868>
+- Concern: several success-path CLI tests parse stdout without asserting a successful exit status and an
+  empty stderr, so a failure shows up as a parse error. Add a helper for the success contract and use it
+  in every success-path test.
+- Solution: `assert_succeeded_without_diagnostics` asserts exit status 0 and an empty stderr, with the
+  causal facts in the messages. All four success-path tests call it before reading stdout; the first
+  one keeps its single-line check.
+- Current-tree verification: `cargo test -p ci-gate --test cli` passes with 5 tests. A binary that
+  writes a stray line to stderr on success fails all four success-path tests (`--no-fail-fast`).
+- Resolution reference: test(ci-gate): [#2525] assert the success contract in every success-path CLI test
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2574#discussion_r4326574414>
+
+### F5 - The module documentation counts six workflows, but there are eight
+
+- PR number: 2574
+- Source review ID: 5585732662
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2574#discussion_r4325531922>
+- Concern: the module documentation says the rules replace "six workflow files", but the PR models
+  eight groups, one per workflow.
+- Solution: the module documentation no longer states a count, and the T2 row of the specification, which
+  had the same wrong count, says eight. The merged ADR also says "six workflow files"; it is a decision
+  record of the situation when it was written and is left unchanged.
+- Current-tree verification: the rule table has eight entries and `JobGroup::ALL` has length eight; no
+  other "six" remains in the crate or in the specification.
+- Resolution reference: docs(ci-gate): [#2525] correct the workflow count in the rules documentation
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2574#discussion_r4326574949>
+
 ## Processing Log
 
 - 2026-10-20 13:00 UTC - Fetched the review and its two threads, classified and numbered the findings,
@@ -111,6 +175,13 @@ the format of the tool's input, and are fixed by one change.
 - 2026-10-20 13:10 UTC - Ran the pre-push checks, pushed, and, after the push, replied on both
   threads.
 - 2026-10-20 13:12 UTC - Started this record, with a reply URL in every row.
+- 2026-10-20 13:31 UTC - Copilot's second review arrived with three threads, F3 to F5. Each was checked
+  against the tree: F3's claim is true but nothing argued it, F4 and F5 were correct.
+- 2026-10-20 15:05 UTC - Fixed each finding in its own signed commit and recorded the round in the
+  specification. A health-check API test failed once in the full pre-push run, in a package this change
+  does not touch; it passed three times alone and the rerun was clean. Pushed, and replied on the three
+  threads.
+- 2026-10-20 15:07 UTC - Added F3 to F5 and their reply URLs to this record.
 
 ## Completion Rules
 
