@@ -167,3 +167,22 @@ EPIC #1347 requires every package subissue to assess each technique. The initial
 | Property-based testing | To assess per file | `services/announce.rs` is the candidate. A property is kept only if it catches a mutation the examples miss, and the dependency follows `add-rust-dependency`. |
 | Fuzzing | Not selected | Untrusted parsing is owned by `http-protocol`. |
 | Benchmarks | Out of scope | The Criterion benches are not tests of correctness. |
+
+## Per-File Results
+
+Each completed file records its clean unit-only measurement (`cargo llvm-cov clean --workspace`, then `cargo llvm-cov -p torrust-tracker-http-core --all-features --lib`, `cargo-llvm-cov 0.6.16`, stable Rust 1.99.0). The totals include the in-file test module, so a file that gains tests gains covered lines; the file plan records which production decisions each mutation pins.
+
+### `services/announce.rs` (slice S2)
+
+Measured on 2026-10-20 on the S2 branch, whose production code is identical to `develop` at `87690b15e`. The plan is [services-announce-tests.md](test-refactor-plans/services-announce-tests.md).
+
+| Scope | Before (`87690b15e`) | After |
+| --- | ---: | ---: |
+| `services/announce.rs` lines | 675 / 727 (92.85%) | 843 / 851 (99.06%) |
+| `services/announce.rs` regions | 878 / 938 (93.60%) | 1,035 / 1,045 (99.04%) |
+| `services/announce.rs` functions | 56 / 63 (88.89%) | 92 / 92 (100.00%) |
+| Package lines | 1,751 / 1,970 (88.88%) | 1,899 / 2,090 (90.86%) |
+| Package regions | 2,357 / 2,607 (90.41%) | 2,495 / 2,706 (92.20%) |
+| Package functions | 161 / 191 (84.29%) | 196 / 219 (89.50%) |
+
+The package has 73 unit tests (33 before). The file's 8 tests are now 48 cases. Every production line, region and function of the file is covered: the 8 uncovered lines and 10 uncovered regions are the failure branches of `matches!` assertions in the test module. Property-based testing was assessed and not selected: after mutants M1 and M3 and a probe that found one surviving mutant (a loopback `ip` literal replaced by the external IP), which one added example now kills, no mutation survives the examples.

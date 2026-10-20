@@ -9,7 +9,7 @@ github-issue: 1349
 spec-path: docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md
 branch: "1349-1347-add-tests-http-core-announce"
 related-pr: null
-last-updated-utc: "2026-10-20 12:30"
+last-updated-utc: "2026-10-20 12:58"
 semantic-links:
   skill-links:
     - create-issue
@@ -450,7 +450,7 @@ lines are the S2 baseline measurement (see [Baseline Coverage](#baseline-coverag
 
 | Order | Source module | Rank | Slice | Unit-only lines | Tests | Initial hypothesis | State | Plan |
 | ---: | --- | ---: | --- | ---: | ---: | --- | --- | --- |
-| 1 | `services/announce.rs` | 1-2 | S2 | 675 / 727 (92.85%) | 8 | Property candidate (peer-IP selection) | IN_PROGRESS | [services-announce-tests.md](test-refactor-plans/services-announce-tests.md) (approved) |
+| 1 | `services/announce.rs` | 1-2 | S2 | 675 / 727 (92.85%) | 8 | Property candidate (peer-IP selection) | DONE | [services-announce-tests.md](test-refactor-plans/services-announce-tests.md) (done; 843 / 851 lines after) |
 | 2 | `services/error_mapping.rs` | 2 | S2 | 0 / 18 (0.00%) | 0 | Test candidate | PENDING | - |
 | 3 | `services/scrape.rs` | 3 | S3 | 507 / 540 (93.89%) | 8 | Test candidate (error paths) | PENDING | - |
 | 4 | `event.rs` | 4 | S4 | 174 / 187 (93.05%) | 7 | Probably small change | PENDING | - |
@@ -598,6 +598,13 @@ lines are the S2 baseline measurement (see [Baseline Coverage](#baseline-coverag
   (0 / 18 lines) that no test can reach while `TrackerCoreError` has four variants, and
   `statistics/metrics.rs` gained its first test (48 / 57 lines). The evidence, the ledger and the
   EPIC rows use the new baseline.
+- 2026-10-20 12:58 UTC - GitHub Copilot - `services/announce.rs` is `DONE` (S2): R1 and the completed
+  file were approved by the maintainer. 48 cases replace 8 tests, `rstest = "0.28.0"` became a
+  dev-dependency, every named mutation fails its test, and unit-only line coverage of the file went from
+  92.85% to 99.06% (package 88.88% to 90.86%; the totals include the test module). See the
+  [plan](test-refactor-plans/services-announce-tests.md) and
+  [coverage evidence](coverage-evidence.md#per-file-results). No finding needed a hand-off. Next:
+  `services/error_mapping.rs`, which closes S2.
 
 ## Acceptance Criteria
 

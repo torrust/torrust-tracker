@@ -3,7 +3,7 @@ doc-type: file-test-plan
 issue: 1349
 package: torrust-tracker-http-core
 target-file: packages/http-core/src/services/announce.rs
-status: approved
+status: done
 semantic-links:
   related-artifacts:
     - packages/http-core/src/services/announce.rs
@@ -15,24 +15,26 @@ semantic-links:
 # HTTP Core Announce Service File Test Plan
 
 Follow the shared [guidance](README.md). This plan covers only
-`packages/http-core/src/services/announce.rs`. The maintainer approved this plan on 2026-10-16; the
-plan has since been amended in five places that await his confirmation (see
-[Post-Approval Amendments](#post-approval-amendments)), so `status: approved` covers the approved
-scope only.
+`packages/http-core/src/services/announce.rs`. The maintainer approved this plan on 2026-10-16 and
+confirmed every later amendment, listed in
+[Post-Approval Amendments](#post-approval-amendments), at the R1 review and the completed-file
+review on 2026-10-20. The plan is done.
 
 ## Post-Approval Amendments
 
 The approval below covers R1, R2a-R2j, the fixture approach and `rstest`. These later changes were
-made in response to review findings and are **pending maintainer confirmation**, at the review of
-the step each one touches. Each is also in the Progress Log.
+made in response to review findings or during implementation. Each was confirmed by the maintainer at
+the review of the step it touches, and each is also in the Progress Log.
 
 | Date (UTC) | Amendment | Touches | Confirmed |
 | --- | --- | --- | --- |
-| 2026-10-17 08:22 | Rename or reconfigure the tcp6 event test so its name matches its Arrange | R1 | Pending (R1 review) |
-| 2026-10-17 09:49 | Give the precedence test a policy with overrides enabled and a distinct external IP | R1 | Pending (R1 review) |
-| 2026-10-19 11:23 | Add R2k (the instance public URL in the announce event); R2 reads R2a-R2k | R2 | Pending (R2 review) |
-| 2026-10-19 11:24 | Add the Named Mutations table (M1-M5) and point R1, R2 and the order row at it | R1, R2 | Pending (R1 and R2 reviews) |
-| 2026-10-19 12:44 | Run M5 with `RUSTFLAGS="--cap-lints=warn"` and count it only when R2k runs and fails | R2 | Pending (R2 review) |
+| 2026-10-17 08:22 | Rename or reconfigure the tcp6 event test so its name matches its Arrange | R1 | Confirmed 2026-10-20 12:43 (R1 review) |
+| 2026-10-17 09:49 | Give the precedence test a policy with overrides enabled and a distinct external IP | R1 | Confirmed 2026-10-20 12:43 (R1 review) |
+| 2026-10-19 11:23 | Add R2k (the instance public URL in the announce event); R2 reads R2a-R2k | R2 | Confirmed 2026-10-20 12:57 (completed-file review) |
+| 2026-10-19 11:24 | Add the Named Mutations table (M1-M5) and point R1, R2 and the order row at it | R1, R2 | R1 confirmed 2026-10-20 12:43; R2 confirmed 2026-10-20 12:57 (completed-file review) |
+| 2026-10-19 12:44 | Run M5 with `RUSTFLAGS="--cap-lints=warn"` and count it only when R2k runs and fails | R2 | Confirmed 2026-10-20 12:57 (completed-file review) |
+| 2026-10-20 12:40 | R1 keeps the plain IPv6 case under an accurate name and adds a case that matches the old tcp6 name (an IPv6 loopback client with an IPv4 external IP). That case also covers R2e's "IPv6 loopback is substituted", so R2e keeps only the non-loopback case. | R1, R2e | Confirmed 2026-10-20 12:43 (R1 review) |
+| 2026-10-20 12:41 | The announce tests record events with an in-file recording sender and assert on them, instead of a `mockall` double with a predicate. R2d proves "no event was sent" with the recorded list being empty, not with an expectation-free double. | R1, R2d | Confirmed 2026-10-20 12:43 (R1 review) |
 
 Update the Confirmed column when the maintainer confirms an amendment.
 
@@ -103,10 +105,10 @@ dev-dependency of this package (the workspace uses `rstest = "0"` elsewhere). Ad
 
 | ID | Status | Work | Completion evidence |
 | --- | --- | --- | --- |
-| R1 | TODO | Refactor the existing tests: replace the `match` in the non-empty-IP test with a data table, give the three event tests one scenario fixture, add AAA structure and explicit assertions, rename or reconfigure the tcp6 event test so its name matches its Arrange, give the precedence test a policy that enables overrides and carries a distinct external IP (and confirm it fails under mutation M1), and shrink the fixture. | Focused tests, `cargo +nightly fmt --all -- --check`, `git diff --check`, prose-first AAA review. |
-| R2 | TODO | Add R2a-R2k. | Same validation; the named mutations M2-M5 each make their test fail. |
-| R3 | TODO | Select an integration increment, or `none`. | Expected: `none`. The service has no network boundary of its own. |
-| R4 | TODO | Re-run unit-only coverage; record before and after. | Plan Results and `coverage-evidence.md`. |
+| R1 | DONE | Refactor the existing tests: replace the `match` in the non-empty-IP test with a data table, give the three event tests one scenario fixture, add AAA structure and explicit assertions, rename or reconfigure the tcp6 event test so its name matches its Arrange, give the precedence test a policy that enables overrides and carries a distinct external IP (and confirm it fails under mutation M1), and shrink the fixture. | Focused tests, `cargo +nightly fmt --all -- --check`, `git diff --check`, prose-first AAA review. Code done on 2026-10-20 (see Results); the maintainer approved the result on 2026-10-20 12:43 UTC. |
+| R2 | DONE | Add R2a-R2k. | Same validation; the named mutations M2-M5 each make their test fail. Done on 2026-10-20; the maintainer approved the completed file on 2026-10-20 12:57 UTC (see Results). |
+| R3 | DONE | Select an integration increment, or `none`. | `none`: the service has no network boundary of its own, and every decision is observable at its unit API with in-memory collaborators. `axum-http-server` covers transport. |
+| R4 | DONE | Re-run unit-only coverage; record before and after. | Results, below. `coverage-evidence.md` is updated with the completed-file review. |
 
 ## Named Mutations
 
@@ -134,11 +136,125 @@ file needs the maintainer's completed-file review before its one signed commit.
 
 ## Prose-First AAA Review
 
-To be recorded per added or changed test during R1 and R2.
+Temporary prose for each changed test, written before comparing with the code. R2 adds its rows. The
+fixture builds the collaborators of one scenario (no database, listener or statistics repository);
+`freeze_the_clock` makes the expected `updated` a literal; the connection port (54,321) differs from
+the announced port (8080), so a mix-up between them fails.
+
+| Test (cases) | Arrange prose | Act prose | Assert prose | Outcome |
+| --- | --- | --- | --- | --- |
+| `it_should_select_the_connection_address_for_an_absent_or_empty_peer_ip` (absent, empty) | A request whose `ip` is absent or empty, a connection from loopback, overrides enabled, no external IP. | Select the peer IP. | The connection address is selected. | Matches the code. Unchanged behavior; the loop became a table. |
+| `it_should_select_a_literal_peer_ip_when_the_policy_allows_the_override` (IPv4, IPv6) | A request carrying a literal `ip`, overrides enabled. | Select the peer IP. | The literal is selected. | Matches the code. Replaces the `match` that re-derived expectations. |
+| `it_should_reject_a_literal_peer_ip_when_the_policy_disables_the_override` (IPv4, IPv6) | The same request, overrides disabled. | Select the peer IP. | The override-disabled error is returned. | Matches the code. |
+| `it_should_reject_a_dns_name_peer_ip_under_any_override_policy` (enabled, disabled) | A request whose `ip` is a DNS name. | Select the peer IP. | The DNS-name error, whatever the policy. | Matches the code. |
+| `it_should_reject_an_invalid_peer_ip_under_any_override_policy` (enabled, disabled) | A request whose `ip` is invalid. | Select the peer IP. | The invalid-IP error, whatever the policy. | Matches the code. |
+| `it_should_return_the_announce_data` | A public tracker configured with a non-default announce policy (1800 s, 900 s, 50 peers), one started seeder announcing from loopback, no sender. | Handle the announce. | The data holds no peers, one complete and no incomplete peer, and the configured policy written as a literal. | Matches the code. The old expectation read the policy from the fixture the Act used. |
+| `it_should_use_the_http_tracker_policy_for_query_string_and_reverse_proxy_ips` | An HTTP tracker behind a reverse proxy that accepts the query-string `ip`; a request with a literal `ip`; a forwarded address and a different connection address; a recording sender; a frozen clock. | Handle the announce. | The announce succeeds, and exactly one event carries the forwarded address as the remote client, the connection port, the literal peer IP and the frozen timestamp. | Matches the code. The old assertion was `is_ok()` plus a mock predicate. |
+| `it_should_prefer_a_query_string_peer_ip_over_the_external_ip_for_a_loopback_client_when_overrides_are_enabled` | A policy that enables overrides **and** carries a distinct external IP, a loopback client, a literal `ip`, a recording sender. | Handle the announce. | The event announces the literal IP, not the external IP. | Matches the code. Mutation M1 fails it (Results). The old test never gave the service an external IP. |
+| `it_should_publish_the_connection_address_and_the_selected_peer_ip_in_the_announce_event` (IPv4 client, IPv6 client, IPv4 loopback with an IPv6 external IP, IPv6 loopback with an IPv4 external IP) | A tracker with or without an external IP, a client at the case's connection address, a recording sender. | Handle an announce with no `ip`. | Exactly one event carries the connection address as the remote client and the case's peer IP: the external IP only for a loopback client. | Matches the code. One table replaces three 40-70 line bodies. |
+| `it_should_not_replace_a_loopback_literal_peer_ip_with_the_external_ip` | Overrides enabled, an external IP configured, the client supplies the loopback literal `127.0.0.2`. | Select the peer IP. | The literal is selected, not the external IP. | Matches the code. Added after mutant P1 survived (Results). |
+| `it_should_keep_the_connection_address_of_a_non_loopback_client_when_an_external_ip_is_configured` (IPv4, IPv6) | A tracker with an external IP, a request with no `ip`, a non-loopback connection. | Select the peer IP. | The connection address is kept. | Matches the code. R2e; mutation M3 fails both cases. |
+| `it_should_reject_an_announce_without_a_key_on_a_private_tracker` | A private tracker, no key. | Handle the announce. | The authentication failure for a missing key; no event; no peer registered. | Matches the code. R2a. |
+| `it_should_reject_an_announce_with_an_unregistered_key_on_a_private_tracker` | A private tracker with no registered key, a random key presented. | Handle the announce. | The authentication failure for an unreadable key; no event; no peer. | Matches the code. R2a. Key validity is `tracker-core`'s; the test shows only that the service surfaces the failure. |
+| `it_should_accept_an_announce_with_a_registered_key_on_a_private_tracker` | A private tracker with one registered key, that key presented. | Handle the announce. | The announce succeeds, the peer is registered, one event is published. | Matches the code. R2a (collaboration). |
+| `it_should_ignore_a_presented_key_on_a_public_tracker` | A public tracker, a random key presented. | Handle the announce. | The announce succeeds, the peer is registered, one event is published. | Matches the code. R2b. |
+| `it_should_reject_a_torrent_that_is_not_whitelisted_on_a_listed_tracker` | A listed tracker with an empty whitelist. | Handle the announce. | The whitelist failure; no event; no peer. | Matches the code. R2c (collaboration). |
+| `it_should_authenticate_before_authorizing_the_torrent` | A private and listed tracker; the key is missing and the torrent is not whitelisted. | Handle the announce. | The authentication failure, not the whitelist failure; nothing announced. | Matches the code. R2d; mutation M2a fails it. |
+| `it_should_authenticate_before_resolving_the_client_ip` | A private tracker; the key is missing and no client address is available. | Handle the announce. | The authentication failure; nothing announced. | Matches the code. R2d; mutation M2b fails it. |
+| `it_should_authorize_the_torrent_before_resolving_the_client_ip` | A listed tracker, the torrent is not whitelisted and no client address is available. | Handle the announce. | The whitelist failure; nothing announced. | Matches the code. R2d; mutations M2b and M2c fail it. |
+| `it_should_resolve_the_client_ip_before_selecting_the_peer_ip` | A public tracker, no client address, and an `ip` that is a DNS name. | Handle the announce. | The resolution failure, not the DNS-name failure; nothing announced. | Matches the code. R2d. |
+| `it_should_select_the_peer_ip_before_announcing` | A public tracker that rejects a literal `ip`, and a request that carries one. | Handle the announce. | The override-disabled failure; no event, no peer registered. | Matches the code. R2d: the announce handler never ran. |
+| `it_should_map_the_announce_event_to_the_announcement_event` (started, stopped, completed, empty, absent) | A request with the case's protocol event. | Map the request to an announcement. | The case's announcement event; an empty or absent event is `None`. | Matches the code. R2f; mutation M4 fails the `stopped` case. |
+| `it_should_default_absent_byte_counters_to_zero_in_the_announcement` | A request with no byte counters. | Map the request. | Uploaded, downloaded and left are all zero. | Matches the code. R2f. |
+| `it_should_copy_the_peer_id_address_byte_counters_and_time_into_the_announcement` | A request with counters 1, 2 and 3, a frozen clock, a peer IP. | Map the request. | One announcement equal to a literal: the sample peer id, the peer IP and announced port, the frozen time, the counters and the started event. | Matches the code. R2f. |
+| `it_should_translate_numwant_into_the_number_of_peers_wanted` (absent, a number) | A request with the case's `numwant`. | Compute the peers wanted. | As many as possible when absent; otherwise exactly that number. | Matches the code. R2g. |
+| `it_should_announce_without_publishing_when_there_is_no_event_sender` | A public tracker and no sender. | Handle the announce. | The announce succeeds and the peer is registered. | Matches the code. R2h. |
+| `it_should_report_a_failing_persisted_downloads_lookup_as_a_tracker_core_announce_error` | A tracker whose persisted-downloads store fails on lookup, a torrent not yet in memory. | Handle the announce. | The tracker-core announce failure wrapping a database error; nothing announced. | Matches the code. R2j (collaboration, `MockTorrentMetricsStore`, no database). |
+| `it_should_publish_the_public_url_of_the_http_tracker_in_the_announce_event` | An HTTP tracker configured with a public URL, a frozen clock. | Handle the announce. | One event whose connection context carries that URL as text. | Matches the code. R2k; mutations M5 (with `--cap-lints=warn`) and the URL mapped to `None` fail it. |
+| `it_should_report_a_rejected_peer_ip_with_its_failure_reason` (override disabled, DNS name, invalid) | One of the three package-owned errors. | Convert it to a protocol response. | The failure reason is the literal client-visible text. | Matches the code. R2i. |
+| `it_should_report_a_peer_ip_resolution_error_with_the_protocol_failure_reason` | A resolution error. | Convert it through `HttpAnnounceError`. | The reason equals the protocol crate's own conversion of the same error. | Matches the code. R2i. It checks delegation, not text, which is `http-protocol`'s; the expectation is derived from that crate on purpose. |
+| `it_should_report_a_tracker_core_error_with_the_tracker_core_failure_reason` | A not-whitelisted error wrapped as `HttpAnnounceError`. | Convert it to a protocol response. | The reason starts with the whitelist prefix. | Matches the code. R2i. The prefix text belongs to `error_mapping.rs`, whose own plan will pin all of it; this test checks only that the announce error delegates there. |
+| `it_should_wrap_a_tracker_core_error_without_changing_it` | A tracker-core error. | Convert it into `HttpAnnounceError`. | It is the tracker-core variant, still holding the same error kind. | Matches the code. The only conversion no other test reaches; it is a public conversion with no caller in the repository (Results). |
 
 ## Results
 
-To be recorded after R4.
+### R1 (2026-10-20, stable Rust 1.99.0, nightly `rustfmt`)
+
+- `cargo test -p torrust-tracker-http-core --lib`: 42 passed. The announce tests are 9 functions that
+  run as 17 cases, where the file had 8 tests. The package had 33 tests before; the other 25 are
+  unchanged.
+- `cargo +nightly fmt --all -- --check`, `cargo clippy -p torrust-tracker-http-core --all-targets
+  --all-features -- -D warnings`, `cargo machete --with-metadata` and `git diff --check` pass.
+- Production code did not change. The diff starts inside the test module.
+- Mutation M1 (the `PeerIp::Literal` arm prefers the external IP for a loopback connection): exactly
+  one test failed, `it_should_prefer_a_query_string_peer_ip_over_the_external_ip_for_a_loopback_client_when_overrides_are_enabled`;
+  the other 16 cases passed. The change was reverted.
+- Dependency: `rstest = "0.28.0"` is a dev-dependency of `torrust-tracker-http-core` (the latest stable
+  version on crates.io on 2026-10-20). The workspace uses `rstest = "0"` elsewhere, which would have
+  locked 0.27.0 here because Cargo reuses an existing compatible lock entry; the exact requirement
+  gives this package the latest version. It is used only for the case tables; `cargo machete` passes.
+- The fixture no longer creates a database or an event listener, and the `mock!` double of the
+  announce tests is gone. `crate::event::test::announce_events_match` has no caller in the announce
+  tests now; the `event.rs` plan (S4) decides whether to remove it.
+
+### R2-R4 (2026-10-20, stable Rust 1.99.0, nightly `rustfmt`)
+
+- `cargo test -p torrust-tracker-http-core`: 73 unit tests pass (the file's 8 tests are now 48
+  cases; the other 25 are unchanged), and the 3 doc tests pass. `cargo +nightly fmt --all --
+  --check`, `cargo clippy -p torrust-tracker-http-core --all-targets --all-features -- -D warnings`
+  and `git diff --check` pass. A comparison of everything before `#[cfg(test)]` with `HEAD` shows
+  production code identical.
+- Named mutations (each applied by hand, run, and reverted):
+
+| Mutation | Result |
+| --- | --- |
+| M1 (R1, above) | Fails exactly the precedence test. |
+| M2a: authorize before authenticate | Fails `it_should_authenticate_before_authorizing_the_torrent` only. |
+| M2b: resolve the client IP before authenticating | Fails `it_should_authenticate_before_resolving_the_client_ip` and `it_should_authorize_the_torrent_before_resolving_the_client_ip`. |
+| M2c: resolve the client IP between authenticate and authorize | Fails `it_should_authorize_the_torrent_before_resolving_the_client_ip` only. |
+| M3: remove the `is_loopback()` guard | Fails both cases of `it_should_keep_the_connection_address_of_a_non_loopback_client_when_an_external_ip_is_configured`. |
+| M4: map `Stopped` to `None` | Fails the `stopped` case of `it_should_map_the_announce_event_to_the_announcement_event` only. |
+| M5: delete `with_public_url` | Does not compile by default (`field public_url is never read`). With `RUSTFLAGS="--cap-lints=warn"`, fails `it_should_publish_the_public_url_of_the_http_tracker_in_the_announce_event` only. |
+| M5b: map the URL to `None` in `HttpTrackerPolicy::from` | Fails the same test only. |
+
+- Peer-IP property assessment: besides M1 and M3, mutant P1 (the `PeerIp::Literal` arm routes the
+  literal through `external_ip_for_loopback_connection`, so a client-supplied loopback literal is
+  replaced by the external IP) **survived** the examples. One example fixed it,
+  `it_should_not_replace_a_loopback_literal_peer_ip_with_the_external_ip`, and P1 then failed that
+  test only. A property test adds no mutation that the examples miss now, so no property-testing
+  dependency is added.
+- Order proofs: the five order tests assert that no event was published and no peer registered when
+  an earlier check fails. A `RecordingSender` with an empty list replaces the expectation-free
+  `mockall` double (amendment confirmed 2026-10-20).
+- Collaborators: R2a (valid key), R2c (whitelist) and R2j (failing store) are collaboration tests;
+  they show how the service surfaces `tracker-core`'s failures, not the rules behind them. R2j uses
+  `MockTorrentMetricsStore`, so no database is created.
+- Conversions: all five `From` conversions into `HttpAnnounceError` are reached. `From<TrackerCoreError>`
+  was reached by no other test; it is a public conversion with no caller in this repository
+  (`axum-http-server` uses only `HttpAnnounceError` as a return type). It is kept and pinned by one
+  test. Removing it would be a breaking change to a public API, so it is not a finding for this
+  issue; the maintainer may remove it in a separate change.
+- `it_should_report_a_tracker_core_error_with_the_tracker_core_failure_reason` asserts the prefix
+  of text that `error_mapping.rs` owns; that file's plan pins the full text.
+
+Unit-only coverage (`cargo llvm-cov clean --workspace`, then `cargo llvm-cov -p
+torrust-tracker-http-core --all-features --lib`, `cargo-llvm-cov 0.6.16`, stable Rust 1.99.0):
+
+| Scope | Before (`87690b15e`) | After |
+| --- | ---: | ---: |
+| `services/announce.rs` lines | 675 / 727 (92.85%) | 843 / 851 (99.06%) |
+| `services/announce.rs` regions | 878 / 938 (93.60%) | 1,035 / 1,045 (99.04%) |
+| `services/announce.rs` functions | 56 / 63 (88.89%) | 92 / 92 (100.00%) |
+| Package lines | 1,751 / 1,970 (88.88%) | 1,899 / 2,090 (90.86%) |
+| Package regions | 2,357 / 2,607 (90.41%) | 2,495 / 2,706 (92.20%) |
+| Package functions | 161 / 191 (84.29%) | 196 / 219 (89.50%) |
+
+The totals include the test module, so a file with more tests has more covered lines; the
+meaningful signal is that every production decision above is pinned by a mutation. The eight
+uncovered lines of `announce.rs` are the failure branches of the `matches!` assertions in the test
+module (lines 1021, 1054, 1134, 1166, 1196, 1226, 1433 and 1549), and the ten uncovered regions are
+those same branches (the two extra regions are at lines 1260 and 1289): test code that runs only when
+a test fails. Every production line, region and function of the service is covered.
 
 ## Approval
 
@@ -175,3 +291,13 @@ Approved by Jose Celano on 2026-10-16 (16:02 UTC), before any amendment in [Post
   the approval text read as full authorization although the plan was amended five times. Added the
   Post-Approval Amendments table (date, scope, step, confirmation) near the top and linked it from
   the approval record, whose wording is unchanged otherwise.
+- 2026-10-20 12:45 UTC - GitHub Copilot - R1 coded in S2 (not committed): the existing tests were
+  refactored onto an in-file fixture, a recording sender and `rstest` tables; the precedence test now
+  gets an external IP and fails under M1. Two implementation choices are recorded as amendments
+  (the IPv6-loopback case and the recording sender). The Prose-First AAA Review and the R1 results are
+  above. Next: the maintainer's review of the R1 result, then R2.
+- 2026-10-20 12:58 UTC - GitHub Copilot - R1 was approved by the maintainer at 12:43 UTC, with both
+  implementation amendments. R2a-R2k, R3 (`none`) and R4 are done: 48 cases, every named mutation fails
+  its test, one surviving mutant (a loopback `ip` literal) was found and fixed with one example, and
+  announce coverage is 99.06% of lines. The maintainer approved the completed file at 12:57 UTC.
+  The plan is `done`.
