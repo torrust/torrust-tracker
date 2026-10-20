@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2414-2410-si-22-2-drain-listener-queues-on-shutdown/ISSUE.md
-last-updated-utc: "2026-10-20 15:45"
+last-updated-utc: "2026-10-20 16:18"
 ---
 
 # Manual Verification Evidence
@@ -554,9 +554,12 @@ held the expected global count (65,536, or 1,000).
 | 7 | tmpfs | 65,536 | one | 12:32:03 | 7.14 | 13,646 ms | 208 us |
 | 8 | tmpfs | 65,536 | one | 12:32:17 | 6.96 | 14,362 ms | 219 us |
 
-- **Noise:** the full buffer on tmpfs took 12.5 to 14.4 s over four runs with one torrent (about
-  15%), and 13.9 s with distinct torrents. On NVMe it took 187.8 s and 157.9 s (about 17% apart).
-  The machine was shared, so these are not isolated numbers.
+- **Noise:** the full buffer on tmpfs took 12.5, 13.6, and 14.4 s in the three runs with one torrent
+  (runs 2, 7, and 8; the slowest is about 15% above the fastest), and 13.9 s with distinct torrents
+  (run 3), so 12.5 to 14.4 s over the four tmpfs full-buffer runs. On NVMe it took 187.8 s and 157.9 s
+  (the faster run is about 16% below the slower one). The machine was shared, so these are not
+  isolated numbers. (An earlier wording of this paragraph said "four runs with one torrent" and
+  "about 17%", which the review of #2414 corrected.)
 - **Check that it measures something:** the database held 65,536 global downloads after each full
   run, so every event was written. The per-event cost fits the work: about 0.2 ms on tmpfs for two
   statements with no real flush, and about 2.4 ms on NVMe for two committed writes. That
@@ -939,6 +942,125 @@ completions were lost.
 - Not shown: the loss that remains when a backlog is larger than the drain can clear in 5 s (the last
   run), which is the bounded policy D1 and D18 accept and the warning now reports; and window (b),
   which sub-issue 4 closes.
+
+### V11 - The independent review's fixes (S1, N2, S2, N1, N4, N5), and the recheck repeated
+
+- Goal: record the regression tests that were red before the review fixes, the interaction the fixes
+  caused, and the final real-binary recheck on the build after the last production change. The
+  Task Reviewer report (before push) is in `agent-review-reports.md`.
+- Initial state: the branch at
+  `docs(issues): [#2414] record the T5 evidence and the final M1 to M3 recheck`.
+- Status: `DONE`.
+
+#### Red before the fix (prose-first Arrange-Act-Assert in the test comments)
+
+Times are UTC on 2026-10-20. Both tests were written first and run on the unfixed `drain`:
+
+`cargo test -p torrust-tracker-events --lib it_should_` at 16:05:38.481 to 16:05:39.230:
+
+```text
+test drain::tests::it_should_drain_every_event_when_the_timeout_is_too_large_to_add_to_the_clock ... FAILED
+   overflow when adding duration to instant
+test drain::tests::it_should_let_other_tasks_run_while_it_drains_a_ready_queue ... FAILED
+test result: FAILED. 20 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out
+```
+
+- Overflow (N2, a real bug): `drain` added its timeout to the current time with `+`. A scratch
+  program had shown that `tokio::time::Instant::now() + Duration::MAX` panics, and
+  `checked_add` returns `None`. The test queues three events and passes `Duration::MAX`.
+- Starvation (S1, the spec's "test cooperative scheduling"): on the single-threaded test runtime,
+  100 ready events and a spawned task that sets a flag; a handler records the flag at the 100th event.
+  Without a yield nothing else can run until the drain returns, so the flag was unset.
+
+#### The fixes and the green run
+
+`drain` computes its deadline with `checked_add` (a timeout the clock cannot represent never
+expires) and calls `tokio::task::yield_now().await` after each handled event. 16:05:51.546 to
+16:05:52.144: `cargo test -p torrust-tracker-events` gave 22 passed. `Receiver::is_empty`, which no
+test used, got a test: with the default inverted (`self.len() != 0`) it failed
+(16:06:08.443 to 16:06:08.913, one failure), and it passes on the committed default.
+
+#### An interaction the yield caused
+
+The first whole-workspace run after the fix failed one test, the package `TestEnv` drop-path test
+from T3b:
+
+```text
+assertion `left == right` failed: dropping the environment without stop() must still cancel every listener
+  left: 3
+ right: 0
+test result: FAILED. 11 passed; 1 failed (tests/integration.rs), finished in 5.12s
+```
+
+Its helper published a probe event on every loop turn, to count the listeners still subscribed.
+A cancelled listener drains the events queued for it, and with the yield the helper could publish
+between two of the drain's events, so a draining listener kept finding a new event until its 5 s drain
+timeout. That is the correct behavior of a drain under continuous publishing, and the observer was
+wrong. The helper now probes every 20 ms; the test passed three times in a row (0.36 s, 0.33 s,
+0.32 s), and its original mutation (the drop guard on a different token) still failed it:
+16:11:17.362 to 16:11:23.564, `left: 3, right: 0`, after 5.13 s.
+
+#### The other review items
+
+- S2.1: `axum-http-server`'s direct dependency on `torrust-tracker-events` is gone; `http-core`
+  re-exports `DEFAULT_DRAIN_TIMEOUT` from its listener module (the maintainer's choice, 2026-10-20).
+  `Cargo.lock` and the manifest equal `develop`'s again; `cargo test -p torrust-tracker-http-core -p
+  torrust-tracker-axum-http-server` gave 44, 62, 34, 1 and 2 passed on the staged content of that commit.
+- S2.2: the listener-level timeout tests keep `Duration::ZERO`, as the maintainer agreed.
+- N1: the six scripted receivers import `TryRecvError` at module level. N4: the new metric assertions
+  and two shared helpers have causal messages. N3: the V6 wording above. N6: the spec status is
+  `in-progress`.
+- N5: the log lines have no unit test (V10 shows them on the real binary); a `TryRecvError` `Display`
+  test is not added, because `RecvError` has none either; a handler panic during a drain is a
+  non-goal, as V5 says; the lag path during a drain is covered at helper level.
+
+#### The final gate
+
+On the tree of the last code commit
+`test(listeners): [#2414] move the TryRecvError imports up and add causal assertion messages`:
+`cargo test --workspace` gave 3,167 passed and 0 failed, `--all-targets` gave 3,120 and 0, and
+`linter all`, `cargo +nightly fmt --all -- --check`, `cargo machete --with-metadata`, and
+`cargo deny check bans` exited 0.
+
+#### The recheck repeated on the build after the last production change
+
+The drain's code changed (the yield and `checked_add`), so M1 to M3 were run again on a `dev` build of
+the last code commit above (16:16:14 to 16:16:21; a clean working tree except the documents; ports free;
+machine load average 13 to 16, higher than for V10). Same commands as V10.
+
+| Run (UTC start) | Mode | Answered `completed` | Persisted (torrent / global) | Lost | Persistent drain line |
+| --- | --- | --- | --- | --- | --- |
+| 16:16:21 | control (`PEERS=500`) | 500 | 500 / 500 | 0 | `outcome="emptied" processed=44` |
+| 16:16:34 | race (`PEERS=2000 SIGTERM_DELAY=0.5`) | 665 | 665 / 665 | 0 | `outcome="emptied" processed=1232` |
+| 16:16:39 | race (same) | 641 | 641 / 641 | 0 | `outcome="emptied" processed=1182` |
+
+M1 with the HTTP and UDP tracker (`evidence/run_m1.py`, SIGTERM at 16:16:53.107, exit status 0):
+persisted `(1, '3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0', 60)`, `(2, '5349323253493232534932325349323253493232', 100)`,
+and `('torrents_downloads_total', 160)`. All seven listeners logged their drain
+(`udp_tracker_server_banning`, `udp_tracker_core_statistics`, `tracker_core_in_memory_statistics`,
+`udp_tracker_server_statistics`, `swarm_coordination_registry_statistics`, `http_tracker_core_statistics`:
+`outcome="emptied" processed=0`; `tracker_core_persistent_completed_statistics`: `outcome="emptied"
+processed=186`), and the log held 0 warnings or errors.
+
+The warning, `PEERS=10000 SIGTERM_DELAY=3 .../reproduce-lost-completions.sh race` (16:16:53 to
+16:17:08): 4,612 answered, 1,380 persisted, exit status 0, and
+
+```text
+2026-10-20T16:17:03.289411Z  INFO TRACKER_CORE: Received cancellation request, draining tracker core persistent completed statistics event listener.
+2026-10-20T16:17:08.291869Z  WARN TRACKER_CORE: Event listener drain lost events after cancellation listener="tracker_core_persistent_completed_statistics" outcome="timed_out" processed=2020 lost_to_lag=0 unread_when_timed_out=6464
+```
+
+The warning came 5.002 s after the drain began. The drain processed 2,020 events in 5 s, against 2,514
+and 2,804 in V10 and V8 (about 400 events per second here); the machine was busier, so these rates
+are not comparable, and I did not test whether the per-event yield costs throughput. The yield costs
+a scheduler turn per event, which the 2 to 3 ms database write per event dwarfs (an inference from V6).
+
+#### Conclusion
+
+The two review defects are fixed with tests that were seen red. The recheck of the original symptom
+on the final build matches V10: no completion is lost with the T0 parameters, every listener logs its
+drain, and a cut-short drain logs the warning. V10 stays as the first recheck; this table is the one
+that counts for the final code.
 
 ## Commits
 

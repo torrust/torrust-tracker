@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: planned
+status: in-progress
 priority: p1
 epic: 2410
 github-issue: 2414
 spec-path: docs/issues/open/2414-2410-si-22-2-drain-listener-queues-on-shutdown/ISSUE.md
 branch: "2414-drain-listener-queues-on-shutdown"
 related-pr: null
-last-updated-utc: "2026-10-20 15:47"
+last-updated-utc: "2026-10-20 16:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -220,7 +220,7 @@ to a root ADR here; sub-issue 4 owns that step.
 | AC4 | DONE | The seven `it_should_prioritize_*` tests are replaced: the persistent one in V3 and V7, the other six in V9. |
 | AC5 | DONE | `it_should_persist_every_completed_download_queued_before_the_persistent_listener_is_cancelled`: red on the cancel-first loop (V4), green after the fix (V7), with a passing uncancelled control (V4). |
 | AC6 | DONE | V10: the control run with the T0 parameters persists 500 of 500 (T0: 467). |
-| AC7 | DONE, helper level | `it_should_finish_a_slow_handler_that_crosses_the_timeout_before_stopping` and its mutation (V5). The helper owns this rule for every listener; no per-listener slow-handler test exists. The shared-deadline abort is sub-issue 4's. |
+| AC7 | DONE, helper level | `it_should_finish_a_slow_handler_that_crosses_the_timeout_before_stopping` and its mutation (V5). The helper owns this rule for every listener; no per-listener slow-handler test exists. Cooperative scheduling (review finding S1): the drain yields after each event; `it_should_let_other_tasks_run_while_it_drains_a_ready_queue` runs on the current-thread test runtime (V11). The shared-deadline abort is sub-issue 4's. |
 
 ## Implementation Completion Review
 
@@ -237,6 +237,9 @@ and independent Task Reviewer report.
 - [x] GitHub issue created and linked to the sub-EPIC
 - [x] Design-review checkpoint after T4 recorded
 - [ ] Implementation completed and acceptance criteria reviewed
+- [x] Independent Task Reviewer report recorded in `agent-review-reports.md` (sub-EPIC Shared Delivery Gates)
+- [x] Retrospective recorded in `implementation-retrospective.md` (sub-EPIC Shared Delivery Gates)
+- [ ] Task Reviewer re-review of the review fixes recorded in `agent-review-reports.md`
 
 ### Progress Log
 
@@ -255,3 +258,4 @@ and independent Task Reviewer report.
 - 2026-10-20 15:32 UTC - GitHub Copilot (Claude Sonnet 5.5) - T5: the `udp-core` listener drains on cancellation (V9), mutation-checked, with the metrics-policy test; workspace 3,161 passed, `linter all` 0. Only the `udp-server` listeners remain.
 - 2026-10-20 15:39 UTC - GitHub Copilot (Claude Sonnet 5.5) - T5 done: the `udp-server` statistics and banning listeners drain on cancellation (V9), mutation-checked; workspace 3,164 passed, `linter all` 0. All seven listeners drain through the shared helper, one package per commit. Remaining: the final real-binary recheck (M1 to M3) after this last production change, the acceptance-criteria evidence, the Task Reviewer report, the retrospective, and the pre-push checks.
 - 2026-10-20 15:47 UTC - GitHub Copilot (Claude Sonnet 5.5) - M1 to M3 rechecked on the real binary after the last production change (V10): the control run with the T0 parameters persists 500 of 500 (T0: 467), both race runs persist everything they answered (T0: 790 and 775 lost), all seven listeners log their drain with the same fields, and a cut-short drain logs the warning after 5 s. The Verification Plan rows are `DONE` and the Acceptance Verification table has its evidence. The acceptance criteria are not ticked: the reviewer does that. Two slips in the recheck (a UDP client argument and ports) are recorded in V10. Next: the Task Reviewer report, the retrospective, and the pre-push checks.
+- 2026-10-20 16:30 UTC - GitHub Copilot (Claude Sonnet 5.5) - The independent Task Reviewer report before push is recorded in `agent-review-reports.md` (REVIEW PASSED; two should-fix items and six nits), with the maintainer's decisions. The fixes are committed: the drain yields between events and tolerates a huge timeout (`fix(events): [#2414] drain without panicking on a huge timeout, and yield between events`), the http-core re-export replaces the new dependency edge (`refactor(http-core): [#2414] re-export the default drain timeout instead of adding a dependency`), and the import and assertion-message nits (`test(listeners): [#2414] move the TryRecvError imports up and add causal assertion messages`). The real-binary recheck on the final build is V11 (control 500 of 500; race runs 665 of 665 and 641 of 641; a cut-short drain warns after 5 s). The retrospective is `implementation-retrospective.md`; the sub-EPIC record has entry 29. The acceptance criteria stay open for the reviewer. Next: a Task Reviewer re-review of the fixes, the pre-push checks, and asking the maintainer to push.

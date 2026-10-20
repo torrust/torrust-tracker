@@ -6,7 +6,7 @@ epic: 1488
 github-issue: 2410
 spec-path: docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-20 15:48"
+last-updated-utc: "2026-10-20 16:19"
 semantic-links:
   skill-links:
     - create-issue
@@ -1492,6 +1492,24 @@ lost. Times are UTC.
     **Agreed 2026-10-20** (default 5 s, the macro, the events wording, `adr-draft.md`, the package
     `TestEnv` keeps its polling, and three commits). `adr-draft.md` section 7, D9, D13, and the Chosen
     Design are updated in the same change.
+29. **2026-10-20 16:19 - Findings of the independent review of #2414 (agreed by the
+    maintainer on 2026-10-20).** Evidence: #2414's `manual-verification-evidence.md` V11 and
+    `agent-review-reports.md`.
+    - **The drain yields after each handled event, and a timeout the clock cannot represent never
+      expires.** The spec asks for cooperative scheduling to be tested. Without a yield a handler that
+      never waits holds the worker thread until the timeout expires (a test, red before the fix). And
+      `Instant::now() + timeout` panics for a huge `Duration` (verified), which SI-20's configurable
+      timeout would allow during shutdown; the deadline uses `checked_add`. Both are in `drain`, and
+      `adr-draft.md` section 7 says so.
+    - **`axum-http-server` does not gain a dependency on `torrust-tracker-events`.** The maintainer chose
+      to re-export `DEFAULT_DRAIN_TIMEOUT` from `http-core`'s listener module, which already depends on
+      events and owns that listener.
+    - **The listener-level timeout tests use `Duration::ZERO`, not paused time** (agreed). An
+      always-ready receiver never advances a paused clock, so the admission semantics under paused time
+      are tested on the helper, as the Regression Test Strategy asks for the listener-level behavior.
+    - **Observation:** with the yield, a draining listener sees events that producers publish while it
+      drains, so a drain under continuous publishing runs until its timeout. That is the policy; it
+      was found because a test helper published a probe on every turn (V11).
 
 ## Chosen Design (D7, D8)
 
@@ -2220,6 +2238,7 @@ avoids duplicating the full workflow in four drafts:
 - 2026-10-20 12:51 UTC - GitHub Copilot (Claude Sonnet 5.5) - The maintainer agreed to the design changes of record entry 28 at the T4 design review (default drain timeout 5 s, the `log_drain_report!` macro, "events" wording, `Receiver::is_empty`, the package `TestEnv` keeps its polling, three commits). `adr-draft.md` section 7, D9, D13, and the Chosen Design are updated in the same change (D14). The workflow checkpoint "Every design change was agreed and recorded" stays open until the end of the implementation.
 - 2026-10-20 12:57 UTC - GitHub Copilot (Claude Sonnet 5.5) - #2414 T3a, T3c, T4a to T4c committed (two code commits and one documentation commit); T5 is next. No design change beyond entry 28.
 - 2026-10-20 15:48 UTC - GitHub Copilot (Claude Sonnet 5.5) - #2414 T5 done (all seven listeners drain, one commit per package) and M1 to M3 rechecked on the real binary after the last production change: the T0 control run persists 500 of 500 (T0: 467), both race runs lose nothing (T0: 790 and 775), every listener logs its drain, and a cut-short drain logs the warning. Evidence in #2414's `manual-verification-evidence.md` (V9, V10). Remaining for #2414: Task Reviewer, retrospective, pre-push checks, PR. No design change beyond entry 28.
+- 2026-10-20 16:19 UTC - GitHub Copilot (Claude Sonnet 5.5) - The independent Task Reviewer report on #2414 (REVIEW PASSED, two should-fix items) led to record entry 29, agreed by the maintainer: the drain yields between events and uses `checked_add`, `axum-http-server` keeps no new dependency (`http-core` re-exports the timeout), and the zero-timeout listener tests stand. `adr-draft.md` section 7 is updated in the same change (D14).
 
 ## Acceptance Criteria
 

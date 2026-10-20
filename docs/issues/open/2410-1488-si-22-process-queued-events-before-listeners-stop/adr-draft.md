@@ -248,6 +248,9 @@ drain counts as lost events.
   failure remain exceptions to the drain: the abort log names the component but
   cannot quantify an in-progress event's outcome, and queue length cannot count
   an event already received.
+  After each handled event the drain yields to the runtime, so a handler that never waits cannot hold
+  the worker thread until the timeout expires. The deadline is computed with `checked_add`, so a
+  timeout too large for the clock to represent never expires, and does not panic.
 - **`Receiver` trait.** The trait in `packages/events/src/receiver.rs` gains a
   non-blocking `try_recv` that returns an event or a new `TryRecvError` (`Empty`,
   `Lagged(n)`, or `Closed`), and `len`, the number of events this receiver has
