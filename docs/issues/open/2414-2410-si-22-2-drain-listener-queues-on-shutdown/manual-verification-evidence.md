@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2414-2410-si-22-2-drain-listener-queues-on-shutdown/ISSUE.md
-last-updated-utc: "2026-10-20 15:32"
+last-updated-utc: "2026-10-20 15:39"
 ---
 
 # Manual Verification Evidence
@@ -744,7 +744,7 @@ answered_minus_persisted=3278
   common design on 2026-10-20: every listener gets a `drain_timeout` parameter, an extracted drain
   function, and two tests that replace its `it_should_prioritize_*` characterization test; the callers
   pass `DEFAULT_DRAIN_TIMEOUT`.
-- Status: `IN_PROGRESS` (rows are added per package).
+- Status: `DONE`.
 
 #### Prose-first Arrange-Act-Assert (the same shape in every package)
 
@@ -782,6 +782,15 @@ cancel-first again.
 | `udp-core` | the drain bypasses the metrics policy | 15:29:52.728 to 15:29:53.758 | the metrics-policy test |
 | `udp-core` | returns `Completed` after the drain | 15:29:53.762 to 15:29:54.842 | both new tests |
 | `udp-core` | the bug (the drain never runs) | 15:29:54.846 to 15:29:55.866 | the handle-queued-event test |
+| `udp-server` statistics | timeout forced to zero | 15:35:57.338 to 15:36:03.604 | the handle-queued-event test |
+| `udp-server` statistics | timeout never expires (an hour) | 15:36:03.646 to 15:36:08.942 | the expired-timeout test |
+| `udp-server` statistics | the drain bypasses the metrics policy | 15:36:08.946 to 15:36:14.598 | the metrics-policy test |
+| `udp-server` statistics | returns `Completed` after the drain | 15:36:25.320 to 15:36:31.165 | both new tests |
+| `udp-server` statistics | the bug (the drain never runs) | 15:36:31.169 to 15:36:36.942 | the handle-queued-event test |
+| `udp-server` banning | timeout forced to zero | 15:36:49.172 to 15:36:55.143 | the handle-queued-event test |
+| `udp-server` banning | timeout never expires (an hour) | 15:36:55.551 to 15:37:00.695 | the expired-timeout test |
+| `udp-server` banning | returns `Completed` after the drain | 15:37:00.700 to 15:37:06.477 | both new tests |
+| `udp-server` banning | the bug (the drain never runs) | 15:37:06.483 to 15:37:12.294 | the handle-queued-event test |
 
 A first form of "the bug" removed the call and did not compile (the function became unused under
 `-D warnings`), so it is not a result; the table row is the rerun.
@@ -812,6 +821,19 @@ bootstrap job and the `udp-server` test environment's call to this listener pass
 `DEFAULT_DRAIN_TIMEOUT`; the environment's other two listener calls change with `udp-server`.
 `cargo test --workspace` gave 3,161 passed and 0 failed, `--all-targets` gave 3,114 and 0, and
 `linter all`, `cargo +nightly fmt --all -- --check`, and `cargo machete --with-metadata` exited 0.
+
+`udp-server` (two listeners in one commit): the statistics listener has the same three tests as
+`udp-core` (a request-received event and `udp4_requests_received_total`); the banning listener has
+two (a connection-cookie error and the client's ban count, with no metrics policy to test). Both
+scripted receivers popped eagerly in `recv()` and one counts its calls; both are lazy now, and the
+call count is taken when the future is polled. The bootstrap jobs and the UDP test environment's
+remaining two calls pass `DEFAULT_DRAIN_TIMEOUT`. `cargo test --workspace` gave 3,164 passed and 0
+failed, `--all-targets` gave 3,117 and 0, and `linter all`, `cargo +nightly fmt --all -- --check`, and
+`cargo machete --with-metadata` exited 0.
+
+All seven listeners now drain. A search for the old behavior,
+`rg 'shutting down .* event listener' packages src`, finds no listener that still logs "shutting down"
+without draining (read from the search, not traced).
 
 ## Commits
 

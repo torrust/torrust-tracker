@@ -153,6 +153,7 @@ impl Environment<Stopped> {
                 cancellation_token.clone(),
                 &self.container.udp_tracker_server_container.stats_repository,
                 [(ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0), true)].into(),
+                DEFAULT_DRAIN_TIMEOUT,
             ),
             server_banning: crate::banning::event::listener::run_event_listener(
                 udp_server_banning_events,
@@ -160,6 +161,7 @@ impl Environment<Stopped> {
                 &self.container.udp_tracker_core_container.ban_service,
                 &self.container.udp_tracker_server_container.banned_ips_publication_order,
                 &self.container.udp_tracker_server_container.stats_repository,
+                DEFAULT_DRAIN_TIMEOUT,
             ),
         };
 

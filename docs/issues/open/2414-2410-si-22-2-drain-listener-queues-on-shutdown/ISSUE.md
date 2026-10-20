@@ -9,7 +9,7 @@ github-issue: 2414
 spec-path: docs/issues/open/2414-2410-si-22-2-drain-listener-queues-on-shutdown/ISSUE.md
 branch: "2414-drain-listener-queues-on-shutdown"
 related-pr: null
-last-updated-utc: "2026-10-20 15:32"
+last-updated-utc: "2026-10-20 15:39"
 semantic-links:
   skill-links:
     - create-issue
@@ -132,7 +132,7 @@ tests, and `TestEnv` against the current code before T3.
 | T4a | DONE | Receiver trait and drain helper | `try_recv`, `len`, `TryRecvError`; all implementations, mocks, and scripted receivers compile together; helper unit tests (empty, closed with buffered events, timeout with leftovers, lag). |
 | T4b | DONE | Measure drain rate (`release`) | Time to drain the persistent listener's queue; default timeout chosen and recorded. |
 | T4c | DONE | Persistent listener drain | T3a and T3c green; paused-time timeout test. Design-review checkpoint. |
-| T5 | IN_PROGRESS | Remaining six listener components | Same helper; characterization tests replaced. |
+| T5 | DONE | Remaining six listener components | Same helper; characterization tests replaced. |
 
 ## Commit Points
 
@@ -249,3 +249,4 @@ and independent Task Reviewer report.
 - 2026-10-20 15:19 UTC - GitHub Copilot (Claude Sonnet 5.5) - T5: the `swarm-coordination-registry` listener drains on cancellation (V9), mutation-checked; workspace 3,157 passed, `linter all` 0.
 - 2026-10-20 15:26 UTC - GitHub Copilot (Claude Sonnet 5.5) - T5: the `http-core` listener drains on cancellation (V9), mutation-checked, with a third test that a drained event is subject to the metrics policy. `axum-http-server` gained a direct dependency on `torrust-tracker-events` for the default timeout (the listener's callers there pass it); workspace 3,159 passed, `linter all` 0.
 - 2026-10-20 15:32 UTC - GitHub Copilot (Claude Sonnet 5.5) - T5: the `udp-core` listener drains on cancellation (V9), mutation-checked, with the metrics-policy test; workspace 3,161 passed, `linter all` 0. Only the `udp-server` listeners remain.
+- 2026-10-20 15:39 UTC - GitHub Copilot (Claude Sonnet 5.5) - T5 done: the `udp-server` statistics and banning listeners drain on cancellation (V9), mutation-checked; workspace 3,164 passed, `linter all` 0. All seven listeners drain through the shared helper, one package per commit. Remaining: the final real-binary recheck (M1 to M3) after this last production change, the acceptance-criteria evidence, the Task Reviewer report, the retrospective, and the pre-push checks.
