@@ -96,7 +96,9 @@ fn it_should_not_need_the_code_groups_when_the_change_is_documentation_only() {
 #[test]
 fn it_should_write_a_json_usage_error_on_stderr_and_nothing_on_stdout_when_the_base_branch_is_missing() {
     // Act
-    let output = run_ci_gate(&["classify"], b"src/main.rs\0");
+    // The binary rejects the arguments before it reads stdin, so none is written: writing to a process
+    // that has already exited would fail the test with a broken pipe.
+    let output = run_ci_gate(&["classify"], b"");
 
     // Assert
     assert_eq!(output.status.code(), Some(2), "a usage error exits with code 2");
