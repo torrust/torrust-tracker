@@ -1,3 +1,5 @@
+#2572 OK   4 files -> ['container', 'coverage', 'docs-lint', 'os-compatibility', 'security-scan', 'testing']
+#2571 OK   19 files -> ['container', 'coverage', 'docs-lint', 'os-compatibility', 'testing']
 #2570 OK   1 files -> ['container', 'coverage', 'docs-lint', 'os-compatibility', 'testing']
 #2569 OK   9 files -> ['docs-lint']
 #2568 OK   83 files -> ['container', 'coverage', 'db-benchmarking', 'db-compatibility', 'docs-lint', 'os-compatibility', 'testing']
@@ -6,6 +8,7 @@
 #2562 OK   1 files -> ['docs-lint']
 #2561 OK   21 files -> ['container', 'coverage', 'db-benchmarking', 'db-compatibility', 'docs-lint', 'os-compatibility', 'testing']
 #2559 OK   9 files -> ['container', 'coverage', 'docs-lint', 'os-compatibility', 'testing']
+#2558 OK   7 files -> ['docs-lint']
 #2557 OK   9 files -> ['container', 'coverage', 'docs-lint', 'os-compatibility', 'testing']
 #2556 OK   4 files -> ['docs-lint']
 #2555 OK   11 files -> ['container', 'coverage', 'docs-lint', 'os-compatibility', 'testing']
@@ -55,8 +58,6 @@
 #2489 OK   1 files -> ['container', 'coverage', 'docs-lint', 'os-compatibility', 'testing']
 #2488 OK   6 files -> ['container', 'coverage', 'docs-lint', 'os-compatibility', 'testing']
 #2487 OK   2 files -> ['docs-lint']
-#2486 OK   2 files -> ['docs-lint']
-#2485 OK   7 files -> ['docs-lint']
-#2484 OK   8 files -> ['docs-lint']
 
 match=60 differ=0 skipped=0
+merged 2026-10-08T12:32:23Z .. 2026-10-20T13:00:47Z

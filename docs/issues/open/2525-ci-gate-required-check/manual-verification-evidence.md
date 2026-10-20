@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2525-ci-gate-required-check/ISSUE.md
-last-updated-utc: 2026-10-20 12:28
+last-updated-utc: 2026-10-20 13:06
 ---
 
 # Manual Verification Evidence
@@ -49,15 +49,16 @@ Result: one JSON diagnostic on stderr, exit code 2, nothing on stdout.
 
 - Goal: run the tool the way a workflow would, on a real change set.
 - Initial state: this branch's changes against `torrust/develop`: the changed, new, and unstaged
-  files (11 paths).
+  files (14 paths when re-run on 2026-10-20 13:03 UTC, after the input format changed to
+  NUL-separated records; the first run, with newline-separated input, had 11).
 - Status: `DONE`
 
 ```sh
-{ git diff --name-only torrust/develop...HEAD; git ls-files --others --exclude-standard; git diff --name-only; } \
-  | sort -u | target/debug/ci-gate classify --base-branch develop
+{ git diff --name-only -z torrust/develop...HEAD; git ls-files --others --exclude-standard -z; git diff --name-only -z; } \
+  | sort -zu | target/debug/ci-gate classify --base-branch develop
 ```
 
-Result (the JSON object, formatted): 11 changed paths. `docs-lint`, `testing`, `os-compatibility`,
+Result (the JSON object, formatted): 14 changed paths. `docs-lint`, `testing`, `os-compatibility`,
 `coverage`, and `container` are needed, each with the explanation
 ``"`Cargo.lock` matches none of the ignored patterns `**/*.md`, `project-words.txt`"``;
 `db-compatibility`, `db-benchmarking`, and `security-scan` are skipped, each naming the patterns no
@@ -70,8 +71,9 @@ and exits 2.
 
 - Goal: show that the tool selects the same job groups that today's workflow filters selected, on
   real pull requests, not only on the unit-test cases.
-- Initial state: the 60 most recently merged pull requests into `develop` (merged 2026-10-08 to
-  2026-10-20). For each, the changed files from the GitHub API, and the workflow runs of event
+- Initial state: the 60 most recently merged pull requests into `develop`, re-run on 2026-10-20
+  at about 13:05 UTC with the NUL-separated input (merged 2026-10-08 12:32 to 2026-10-20 13:00 UTC;
+  the first run, with newline-separated input, covered a slightly older set). For each, the changed files from the GitHub API, and the workflow runs of event
   `pull_request` at the pull request's final head commit, mapped to groups by workflow name.
 - Status: `DONE`
 
@@ -84,7 +86,7 @@ gh pr list --repo torrust/torrust-tracker --state merged --base develop --limit 
 gh api repos/torrust/torrust-tracker/pulls/<n>                       # head sha, base branch
 gh api --paginate "repos/torrust/torrust-tracker/pulls/<n>/files?per_page=100"
 gh api "repos/torrust/torrust-tracker/actions/runs?head_sha=<sha>&event=pull_request&per_page=100"
-printf '%s\n' <files> | target/debug/ci-gate classify --base-branch <base>
+printf '%s\0' <files> | target/debug/ci-gate classify --base-branch <base>
 ```
 
 The workflow names `Docs Lint`, `Testing`, `OS Compatibility`, `Generate Coverage Reports (PR)`,
@@ -97,10 +99,10 @@ Result: **60 of 60 pull requests match**, 0 differ, 0 skipped.
 
 | Groups run                                                          | Pull requests |
 | ------------------------------------------------------------------- | ------------: |
-| `docs-lint` only                                                    |            32 |
-| `docs-lint`, `testing`, `os-compatibility`, `coverage`, `container` |            23 |
+| `docs-lint` only                                                    |            30 |
+| `docs-lint`, `testing`, `os-compatibility`, `coverage`, `container` |            24 |
 | the five above plus `db-compatibility` and `db-benchmarking`        |             4 |
-| the five above plus `security-scan`                                 |             1 |
+| the five above plus `security-scan`                                 |             2 |
 
 Limits of this check: every pull request in the sample targets `develop`, so the base-branch
 filters of `coverage` (`develop` only) and `container` (`develop` or `main`) are covered by unit
@@ -142,6 +144,33 @@ workspace's `-D warnings` rejects), so it proved nothing; it was redone as a mut
 cargo metadata --no-deps --format-version 1 > /dev/null    # exit 0
 docker build --target recipe --file Containerfile .         # exit 0
 ```
+
+### V6 - Review findings: file names with spaces, and git's quoting (PR #2574)
+
+- Goal: show that the two inputs Copilot's review named are classified correctly end to end, with
+  real git output, and that the new tests fail on the original bugs.
+- Status: `DONE`
+
+Real git output, in a throwaway repository (`/tmp/qp`, removed afterwards), with the files
+`packages/tracker-core/src/café.rs`, `README.md` with a trailing space, and `project-words.txt` with a
+leading space:
+
+```sh
+git diff --cached --name-only        # prints the quoted name "packages/tracker-core/src/caf\303\251.rs"
+git diff --cached --name-only -z     # prints the names as they are, NUL-separated
+git -C /tmp/qp diff --cached --name-only -z | target/debug/ci-gate classify --base-branch develop
+```
+
+Result with `-z`: `testing`, `db-compatibility`, and `db-benchmarking` all needed. The default output
+would have given the quoted `café` name, whose leading quote misses the `packages/tracker-core/`
+prefix, and `trim()` would have turned the two spaced names into the documentation files the workflows
+ignore.
+
+Three mutants that reintroduce the bugs were each killed: trimming each record (the parser test and the
+end-to-end space test fail), keeping git's quoted form of the non-ASCII name (the parser test fails),
+and splitting records on newlines too (the parser test fails). Cargo stops after the first failing
+test target, so the first mutant was re-run with `--no-fail-fast` to see the end-to-end test fail as
+well.
 
 ## Failures and Follow-up
 
