@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2414-2410-si-22-2-drain-listener-queues-on-shutdown/ISSUE.md
-last-updated-utc: "2026-10-20 12:02"
+last-updated-utc: "2026-10-20 12:08"
 ---
 
 # Manual Verification Evidence
@@ -173,6 +173,197 @@ step 3: test result: ok. 152 passed (unit); ok. 11 passed (tests/integration.rs)
 
 The test fails when the guard does not cancel the real listener token, and passes on the
 implementation. The 5 s wait is an absolute deadline, not a retry that resets its budget.
+
+### V3 - T3a: a queued completed download is not persisted when cancellation is pending (red)
+
+- Goal: show the persistent listener's cancel-first loop drops a ready completed-download event,
+  with a maintained unit test at the dispatch function.
+- Initial state: the tree of the commit
+  `test(tracker-core): [#2414] make TestEnv own, stop, and join its listeners`, plus the
+  uncommitted tests of V3 and V4. The tests are not committed failing; they are committed with
+  their fix (T4c). Their code is embedded below, verbatim.
+- Status: `DONE` (red recorded; green after T4c).
+
+The test replaces `it_should_prioritize_a_pre_cancelled_token_over_a_ready_persistent_event`,
+which asserted the bug (nothing persisted). The helper `expect_persisted_download_metrics_to_be`
+gained assertion messages, so a failure names what was measured (read as a stranger).
+
+#### Prose-first Arrange-Act-Assert
+
+- Arrange: at shutdown a completed download is queued for the persistent listener, and its token
+  is cancelled before the listener takes the event.
+- Act: `dispatch_persistent_completed_statistics_events(...)`, visible in the test body.
+- Assert: the queued download reaches the database (`Some(1)`) and the persisted counter shows
+  it. That the listener then returns `Cancelled` is asserted by the T4c drain tests.
+
+#### Test code (verbatim, in `packages/tracker-core/src/statistics/event/listener.rs`)
+
+```rust
+    #[tokio::test]
+    async fn it_should_persist_a_queued_completed_download_when_cancellation_is_already_pending() {
+        // Arrange
+        // At shutdown a completed download is queued for the persistent listener, and the
+        // listener's token is cancelled before the listener takes the event.
+        let stats_repository = Arc::new(Repository::new(true, true));
+        let downloads_repository = database_downloads_repository().await;
+        let receiver = Box::new(ScriptedReceiver::new([Ok(peer_download_completed_event())]));
+        let cancellation_token = CancellationToken::new();
+        cancellation_token.cancel();
+
+        // Act
+        dispatch_persistent_completed_statistics_events(
+            receiver,
+            cancellation_token,
+            downloads_repository.clone(),
+            stats_repository.clone(),
+        )
+        .await;
+
+        // Assert
+        // The queued download reaches the database, and the persisted counter shows it.
+        expect_persisted_download_metrics_to_be(&downloads_repository, &stats_repository, Some(1)).await;
+    }
+```
+
+#### Steps Performed
+
+1. 12:06:49.782 to 12:06:50.980: `cargo test -p torrust-tracker-core --lib it_should_persist_a_queued`.
+
+#### Observed Result
+
+```text
+test statistics::event::listener::tests::it_should_persist_a_queued_completed_download_when_cancellation_is_already_pending ... FAILED
+assertion `left == right` failed: global downloads stored in the database
+  left: None
+ right: Some(1)
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 151 filtered out; finished in 0.00s
+```
+
+#### Conclusion
+
+Red against the cancel-first loop, for the stated reason: the event was ready, the token was
+cancelled, and nothing was stored.
+
+### V4 - T3c: queued completions are not persisted when the listener is already cancelled (red), AC11
+
+- Goal: the package-level regression test of the design record's option 1: real event bus, real
+  announce handler, real listener function, and a real SQLite database, with no binary, network,
+  or signal.
+- Initial state: as V3.
+- Status: `DONE` (red recorded; green after T4c).
+
+#### Prose-first Arrange-Act-Assert
+
+- Arrange: the environment's listeners are not started (`TestEnv::new`), so nothing consumes the
+  events while the test publishes them. The persistent listener's receiver is taken first, so it
+  is subscribed before any publish, as at the application's startup. Three peers on different
+  ports announce `started` and `completed` for one torrent, so three completions are queued, and
+  the listener's token is cancelled before it runs. N = 3 (the maintainer left the value to the
+  proposed default).
+- Act: `run_persistent_completed_statistics_event_listener_unspawned(...)`, awaited, visible in
+  the test body.
+- Assert: the database holds 3 downloads for the torrent and 3 globally. The expected value is
+  the number of completions announced, not computed by production code.
+
+#### Test code (verbatim, in `packages/tracker-core/tests/integration.rs`)
+
+```rust
+fn sample_peer_listening_on_port(port: u16) -> Peer {
+    let mut peer = sample_peer();
+    peer.peer_addr.set_port(port);
+    peer
+}
+
+#[tokio::test]
+async fn it_should_persist_every_completed_download_queued_before_the_persistent_listener_is_cancelled() {
+    // Arrange
+    // The environment's listeners are not started, so nothing consumes the events while the
+    // test publishes them. The persistent listener's receiver is taken first, so it is
+    // subscribed before any event is published, as at the application's startup. Three
+    // different peers then announce `started` and `completed` for one torrent, so three
+    // completed downloads are queued, and the listener's token is cancelled before it runs.
+    let number_of_completions: u32 = 3;
+    let mut core_config = ephemeral_configuration();
+    core_config.tracker_policy.persistent_torrent_completed_stat = true;
+    let test_env = TestEnv::new(core_config).await;
+    let persistent_listener_receiver = test_env.swarm_coordination_registry_container.event_bus.receiver();
+    let info_hash = sample_info_hash();
+    for port in (8080..).take(number_of_completions as usize) {
+        let peer = sample_peer_listening_on_port(port);
+        test_env.announce_peer_started(peer, &remote_client_ip(), &info_hash).await;
+        test_env.announce_peer_completed(peer, &remote_client_ip(), &info_hash).await;
+    }
+    let cancellation_token = CancellationToken::new();
+    cancellation_token.cancel();
+    let persistence = test_env
+        .tracker_core_container
+        .persistence
+        .as_ref()
+        .expect("this test requires persistence");
+
+    // Act
+    run_persistent_completed_statistics_event_listener_unspawned(
+        persistent_listener_receiver,
+        cancellation_token,
+        persistence.db_downloads_metric_repository.clone(),
+        test_env.tracker_core_container.stats_repository.clone(),
+    )
+    .await;
+
+    // Assert
+    // Every queued completion is in the database, for the torrent and in the global count.
+    assert_eq!(
+        persistence
+            .database_stores
+            .torrent_metrics_store
+            .load_torrent_downloads(&info_hash)
+            .await
+            .unwrap(),
+        Some(number_of_completions),
+        "downloads of the torrent stored in the database after {number_of_completions} queued completions"
+    );
+    assert_eq!(
+        persistence
+            .database_stores
+            .torrent_metrics_store
+            .load_global_downloads()
+            .await
+            .unwrap(),
+        Some(number_of_completions),
+        "global downloads stored in the database after {number_of_completions} queued completions"
+    );
+}
+```
+
+#### Steps Performed
+
+1. 12:07:16.999 to 12:07:18.753, red:
+   `cargo test -p torrust-tracker-core --test integration it_should_persist_every_completed`.
+2. 12:07:35.784 to 12:07:37.903, control (temporary, reverted): the `cancel()` call was removed
+   and the Act was wrapped in `tokio::time::timeout(300 ms, ...)`, because an uncancelled listener
+   never ends. The same test then passed, so the three completions were queued and the persist path
+   works; only cancellation made the difference.
+3. 12:07:42.109 to 12:07:42.113, restore: `cp` from a backup taken after step 1; `cmp` exited 0.
+4. 12:07:51.592 to 12:07:53.730: `cargo test -p torrust-tracker-core --no-fail-fast` on the
+   restored tree: exactly these two tests failed (V3 and V4); the other 151 unit, 11 integration,
+   16 and 2 doctests passed.
+
+#### Observed Result
+
+```text
+step 1: test it_should_persist_every_completed_download_queued_before_the_persistent_listener_is_cancelled ... FAILED
+        assertion `left == right` failed: downloads of the torrent stored in the database after 3 queued completions
+          left: None
+         right: Some(3)
+        test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 11 filtered out; finished in 0.01s
+step 2: test ... ok
+        test result: ok. 1 passed; 0 failed; ... finished in 0.31s
+```
+
+#### Conclusion
+
+Red against the cancel-first loop: three queued completions, a cancelled listener, and nothing in the
+database. The control shows the red is caused by cancellation and not by the setup.
 
 ## Failures and Follow-up
 

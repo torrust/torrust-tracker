@@ -9,7 +9,7 @@ github-issue: 2414
 spec-path: docs/issues/open/2414-2410-si-22-2-drain-listener-queues-on-shutdown/ISSUE.md
 branch: "2414-drain-listener-queues-on-shutdown"
 related-pr: null
-last-updated-utc: "2026-10-20 12:02"
+last-updated-utc: "2026-10-20 12:08"
 semantic-links:
   skill-links:
     - create-issue
@@ -126,9 +126,9 @@ tests, and `TestEnv` against the current code before T3.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T3a | TODO | Red unit test, persistent listener | Pre-cancelled token and a ready event: red output recorded. |
+| T3a | IN_PROGRESS | Red unit test, persistent listener | Pre-cancelled token and a ready event: red output recorded (V3). The test is committed with the T4c fix, never failing. |
 | T3b | DONE | `TestEnv` owns its listeners | Token and handles kept; `stop()` cancels and joins; remove only waits that shutdown makes redundant, preserving tests of live persistence. Waits are kept for now: `stop()` discards the queue until T4c. Evidence: V1 in `manual-verification-evidence.md`. |
-| T3c | TODO | Red package test (AC11) | N completions, already-cancelled listener: red output recorded. |
+| T3c | IN_PROGRESS | Red package test (AC11) | N completions, already-cancelled listener: red output recorded (V4), with a control that passes without cancellation. The test is committed with the T4c fix, never failing. |
 | T4a | TODO | Receiver trait and drain helper | `try_recv`, `len`, `TryRecvError`; all implementations, mocks, and scripted receivers compile together; helper unit tests (empty, closed with buffered events, timeout with leftovers, lag). |
 | T4b | TODO | Measure drain rate (`release`) | Time to drain the persistent listener's queue; default timeout chosen and recorded. |
 | T4c | TODO | Persistent listener drain | T3a and T3c green; paused-time timeout test. Design-review checkpoint. |
@@ -241,3 +241,4 @@ and independent Task Reviewer report.
 - 2026-10-19 17:08 UTC - GitHub Copilot (Claude Opus 5.5) - Refreshed before implementation: `branch:` names the implementation branch `2414-drain-listener-queues-on-shutdown`; removed the obsolete note about setting `epic`; the Implementation Plan now asks to revalidate the code that PRs #2545 and #2552 changed after this spec was written (file lists from `git diff --stat` of each merge).
 - 2026-10-19 19:09 UTC - GitHub Copilot (Claude Opus 5.5) - The revalidation note now also names the statistics repositories and metrics that PR #2545 changed, including tracker-core's repository, which the persistent listener's handler updates (nit N1 of the #2413 Task Reviewer re-review).
 - 2026-10-20 12:02 UTC - GitHub Copilot (Claude Sonnet 5.5) - Started after PR #2569 merged (branch `2414-drain-listener-queues-on-shutdown` cut from `develop`). Revalidated against the code (read from source, not run): `Receiver` still has only `recv` and a `mockall` `automock`; tokio is 1.53.3; the seven `it_should_prioritize_*` tests are where the sub-EPIC lists them; `TestEnv` created a local token, dropped the three listener handles, and slept 100 ms. T3b done on the maintainer-approved design: `TestEnv` owns a token with a `DropGuard` and the named handles, and `stop()` cancels and joins them under one absolute deadline. New test `it_should_release_every_listener_receiver_when_the_environment_is_stopped`, shown to fail when `stop()` does not cancel and when it does not join (V1). The 100 ms sleep and the persistence polling stay until `stop()` can drain (T4c). At the T3b review the maintainer asked for a drop-path test: `it_should_cancel_every_listener_when_the_environment_is_dropped_without_being_stopped`, shown to fail when the drop guard is on a different token (V2). A listener that panics is not simulated (read from source, not run).
+- 2026-10-20 12:08 UTC - GitHub Copilot (Claude Sonnet 5.5) - T3a and T3c red evidence recorded in `manual-verification-evidence.md` (V3, V4), with both tests embedded verbatim because they are committed only with the T4c fix. T3a replaces `it_should_prioritize_a_pre_cancelled_token_over_a_ready_persistent_event` and fails with `left: None, right: Some(1)`; T3c (N = 3, the maintainer left the value to the proposed default) fails with `left: None, right: Some(3)`, and a temporary uncancelled control persists all three, so the red is caused by cancellation. A package run on the working tree failed exactly those two tests. The shared helper `expect_persisted_download_metrics_to_be` gained assertion messages. Both tests wait in the working tree for T4a to T4c.

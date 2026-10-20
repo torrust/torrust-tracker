@@ -6,7 +6,7 @@ epic: 1488
 github-issue: 2410
 spec-path: docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-20 12:02"
+last-updated-utc: "2026-10-20 12:08"
 semantic-links:
   skill-links:
     - create-issue
@@ -2170,6 +2170,7 @@ avoids duplicating the full workflow in four drafts:
 - 2026-10-19 17:21 UTC - GitHub Copilot (Claude Opus 5.5) - #2413's two delivery gates are closed after merge: the Task Reviewer report (verdict `POST_MERGE_FINDINGS`, AC1 to AC3 pass) is in its `agent-review-reports.md` with the maintainer's decisions, and `implementation-retrospective.md` is in the same archived folder. Both checkpoints are ticked in its spec. No design change.
 - 2026-10-19 19:09 UTC - GitHub Copilot (Claude Opus 5.5) - #2413: the Task Reviewer re-review of the prep branch passed (`REVIEW PASSED`, three nits fixed), recorded in its `agent-review-reports.md`.
 - 2026-10-20 12:02 UTC - GitHub Copilot (Claude Sonnet 5.5) - #2414 started after PR #2569 merged; its row is `IN_PROGRESS`. T3b done (the package test environment owns, cancels, and joins its listeners; evidence in #2414's `manual-verification-evidence.md`). No design change.
+- 2026-10-20 12:08 UTC - GitHub Copilot (Claude Sonnet 5.5) - #2414 T3 red evidence recorded (T3a and T3c fail against the cancel-first loop, with a passing control); the red tests are committed with the T4c fix. No design change.
 
 ## Acceptance Criteria
 
