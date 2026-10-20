@@ -209,4 +209,22 @@ mod tests {
         assert_eq!(before_any_receive, 5);
         assert_eq!(after_the_lag_was_reported, 2);
     }
+
+    #[test]
+    fn it_should_report_a_receiver_as_empty_only_when_it_has_no_unread_events() {
+        // Arrange
+        // One event is sent and not yet read by the only receiver.
+        let (sender, mut receiver) = broadcast::channel::<u32>(4);
+        sender.send(1).unwrap();
+        let empty_with_an_unread_event = Receiver::is_empty(&receiver);
+
+        // Act
+        let _event = Receiver::try_recv(&mut receiver);
+        let empty_after_reading_it = Receiver::is_empty(&receiver);
+
+        // Assert
+        // The receiver is not empty while the event is unread, and is empty once it has been read.
+        assert!(!empty_with_an_unread_event, "a receiver with an unread event is not empty");
+        assert!(empty_after_reading_it, "a receiver that has read every event is empty");
+    }
 }

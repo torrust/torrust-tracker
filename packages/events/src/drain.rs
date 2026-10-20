@@ -7,10 +7,12 @@
 //! The timeout is an *admission* budget: it is checked only between events. An event
 //! that was taken is always handled to completion, so the timeout is not a hard bound
 //! on a handler. The shared shutdown deadline, which aborts the listener task, stays
-//! the final bound.
+//! the final bound. After each handled event the drain yields to the runtime, so a long drain does
+//! not starve the other tasks that are shutting down.
 use std::future::Future;
 use std::time::Duration;
 
+use tokio::task::yield_now;
 use tokio::time::Instant;
 
 use crate::receiver::{Receiver, TryRecvError};
@@ -80,12 +82,13 @@ where
     H: FnMut(R::Event) -> Fut,
     Fut: Future<Output = ()>,
 {
-    let deadline = Instant::now() + timeout;
+    // A timeout too large for the clock to represent never expires.
+    let deadline = Instant::now().checked_add(timeout);
     let mut processed = 0;
     let mut lost_to_lag = 0;
 
     loop {
-        if Instant::now() >= deadline {
+        if deadline.is_some_and(|deadline| Instant::now() >= deadline) {
             let unread = receiver.len();
 
             return DrainReport {
@@ -104,6 +107,10 @@ where
             Ok(event) => {
                 handle(event).await;
                 processed += 1;
+
+                // A handler that never waits would otherwise hold the worker thread until the timeout
+                // expires, starving the other tasks that are shutting down.
+                yield_now().await;
             }
             Err(TryRecvError::Lagged(skipped)) => lost_to_lag += skipped,
             Err(TryRecvError::Empty) => return report(DrainOutcome::Emptied, processed, lost_to_lag),
@@ -162,6 +169,8 @@ const fn report(outcome: DrainOutcome, processed: u64, lost_to_lag: u64) -> Drai
 mod tests {
     use std::cell::RefCell;
     use std::collections::VecDeque;
+    use std::sync::Arc;
+    use std::sync::atomic::{AtomicBool, Ordering};
     use std::time::Duration;
 
     use futures::future::BoxFuture;
@@ -397,6 +406,58 @@ mod tests {
                 lost_to_lag: 0,
                 unread_when_timed_out: 0,
             }
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_drain_every_event_when_the_timeout_is_too_large_to_add_to_the_clock() {
+        // Arrange
+        // Three events are queued, and the timeout is the largest a `Duration` can hold, which is
+        // more than the clock can add to the current time.
+        let mut receiver = ScriptedReceiver::new([Ok(1), Ok(2), Ok(3)]);
+
+        // Act
+        let report = drain(&mut receiver, Duration::MAX, |_event| async {}).await;
+
+        // Assert
+        // The drain does not panic: a timeout that never expires drains the queue to the end.
+        assert_eq!(
+            report,
+            DrainReport {
+                outcome: DrainOutcome::Emptied,
+                processed: 3,
+                lost_to_lag: 0,
+                unread_when_timed_out: 0,
+            }
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_let_other_tasks_run_while_it_drains_a_ready_queue() {
+        // Arrange
+        // On the single-threaded test runtime, 100 events are ready, and another task is waiting to
+        // run. A handler that never waits gives the drain no reason to stop on its own.
+        let mut receiver = ScriptedReceiver::new((0..100).map(Ok));
+        let other_task_ran = Arc::new(AtomicBool::new(false));
+        let other_task_flag = other_task_ran.clone();
+        let _other_task = tokio::spawn(async move { other_task_flag.store(true, Ordering::SeqCst) });
+        let other_task_ran_before_the_last_event = RefCell::new(false);
+
+        // Act
+        let _report = drain(&mut receiver, Duration::from_secs(1), |event| {
+            if event == 99 {
+                *other_task_ran_before_the_last_event.borrow_mut() = other_task_ran.load(Ordering::SeqCst);
+            }
+            async {}
+        })
+        .await;
+
+        // Assert
+        // The other task ran while the drain was still handling events, so a long drain cannot hold a
+        // worker thread until its timeout expires.
+        assert!(
+            *other_task_ran_before_the_last_event.borrow(),
+            "another task must get to run before a drain of 100 ready events ends"
         );
     }
 }

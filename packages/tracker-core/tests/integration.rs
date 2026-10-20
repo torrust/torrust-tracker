@@ -2,8 +2,7 @@ mod common;
 
 use common::fixtures::{ephemeral_configuration, remote_client_ip, sample_info_hash, sample_peer};
 use common::test_env::TestEnv;
-use tokio::task::yield_now;
-use tokio::time::{Duration, Instant};
+use tokio::time::{Duration, Instant, sleep};
 use tokio_util::sync::CancellationToken;
 use torrust_tracker_core::statistics::event::listener::run_persistent_completed_statistics_event_listener_unspawned;
 use torrust_tracker_events::drain::DEFAULT_DRAIN_TIMEOUT;
@@ -34,6 +33,10 @@ async fn number_of_swarm_bus_listeners(container: &SwarmCoordinationRegistryCont
 
 /// Waits, within one absolute deadline, until no listener is left on the swarm bus, and
 /// returns how many were still there when the wait ended.
+///
+/// The probe is published at spaced intervals, not on every turn: a cancelled listener drains the
+/// events queued for it, so a probe published on every turn would keep a draining listener busy
+/// until its drain timeout expires.
 async fn number_of_swarm_bus_listeners_once_they_finish(container: &SwarmCoordinationRegistryContainer) -> usize {
     let deadline = Instant::now() + Duration::from_secs(5);
 
@@ -44,7 +47,7 @@ async fn number_of_swarm_bus_listeners_once_they_finish(container: &SwarmCoordin
             return remaining;
         }
 
-        yield_now().await;
+        sleep(Duration::from_millis(20)).await;
     }
 }
 
