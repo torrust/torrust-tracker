@@ -40,7 +40,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Five reviews were submitted so far, all by Copilot. Each body repeats its inline threads, so the bodies add
+Six reviews were submitted so far, all by Copilot. Each body repeats its inline threads, so the bodies add
 no rows.
 
 - Review 5599040224 read the head whose subject is "docs(issues): [#2525] propose the design of the override
@@ -55,6 +55,9 @@ no rows.
 - Review 5602414651 read the head whose subject is "docs(pr-reviews): record the fourth review round in the PR
   #2605 audit". It marks F6 as resolved and carries two inline threads, F7 and F8, which ask once more for the
   change of F4 and are recorded as re-raises of it.
+- Review 5602711782 read the head whose subject is "docs(pr-reviews): record the fifth review round in the PR
+  #2605 audit". It marks F7 and F8 as resolved and carries two inline threads: F9, a new finding about the
+  saved evidence, and F10, the claim of F4 a fourth time, recorded as a re-raise of it.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -66,6 +69,8 @@ no rows.
 | F6 | review-finding:pr-2605-f6 | Copilot | Nit (inferred) | formatting | RE_RAISE_OF:F4 | NO_ACTION | SUPERSEDED |
 | F7 | review-finding:pr-2605-f7 | Copilot | Nit (inferred) | formatting | RE_RAISE_OF:F4 | NO_ACTION | SUPERSEDED |
 | F8 | review-finding:pr-2605-f8 | Copilot | Nit (inferred) | documentation | RE_RAISE_OF:F4 | NO_ACTION | SUPERSEDED |
+| F9 | review-finding:pr-2605-f9 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F10 | review-finding:pr-2605-f10 | Copilot | Nit (inferred) | formatting | RE_RAISE_OF:F4 | NO_ACTION | SUPERSEDED |
 
 ## Finding Details
 
@@ -189,6 +194,44 @@ no rows.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4338938439>
 
+### F9 - The saved logs cannot be reconciled with the saved workflow
+
+- PR number: 2605
+- Source review ID: 5602711782
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4339141583>
+- Concern: the logs of `t5-gate-logs.txt` show `ci-gate verdict` invoked with an empty `--override-actor` when
+  there is no label, but the saved workflow adds that option only when the actor is not empty. Either note that
+  runs 1 and 3 used an earlier revision and identify it, or save the earlier workflow next to the fixed one.
+- Solution: both. The first revision of the workflow is saved as `t5-sandbox/exp-2525-orchestrator-first-revision.yaml`
+  next to the fixed one, the header of the logs and V10 say that runs 1 to 4 ran the first revision and runs 5 to
+  7 the fixed one, name the sandbox commits, and say what differs (the probe step, and a test with `-s` that is
+  true for a file that holds only a newline), and the logs show which revision ran, because only the fixed one
+  prints `probe:` lines. V10 had said that only run 3 still used the old workflow, and run 4 did too; that is
+  corrected.
+- Current-tree verification: the first revision, extracted from the sandbox commit, differs from its saved copy
+  only on the first line, and from the fixed one in the probe step, the test of the actor file, and the first
+  line; the saved first revision passes yamllint. The `probe:` lines are in runs 5 to 7 and not in runs 1 to 4.
+- Resolution reference: docs(issues): [#2525] save the first revision of the T5 workflow and say which runs used it
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4339194479>
+
+### F10 - The audit's table is said, a fourth time, to have a doubled leading pipe
+
+- PR number: 2605
+- Source review ID: 5602711782
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4339141684>
+- Concern: the rows of the findings table are said to start with `||`, which renders an empty first column and
+  contradicts the later text of F4, F6, F7, and F8. It is the concern of F4, raised for the fourth time, at line 68.
+- Solution: no change, for the reason given for F4. No row of the table starts with `||`.
+- Current-tree verification: the file was fetched from the GitHub contents API at the head of the pull request
+  (blob `05e3cb88b`, head `330a7aa68`): `grep -c "^||"` gives 0, the 10 table rows, the header, the separator, and
+  eight findings, begin with a single pipe, and line 68 is the row of F8. The audit validator parses all rows.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4339194835>
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4339194835>
+
 ## Processing Log
 
 - 2026-10-21 11:36 UTC - Copilot's review arrived with two threads, F1 and F2. Both were checked against
@@ -212,6 +255,11 @@ no rows.
   Fetched the file from the GitHub contents API at the head: no line starts with a doubled pipe.
 - 2026-10-21 15:55 UTC - Replied `Superseded by F4: <reason>.` on both threads, corrected the row count in the
   reply to F8 from 12 to 8, and added F7 and F8 to this record.
+- 2026-10-21 16:14 UTC - Copilot's sixth review arrived with two threads. F9, the saved logs against the saved
+  workflow, was confirmed, and reconciling them also showed an error in my text. F10 is the claim of F4 a fourth
+  time; the file was fetched again from the GitHub contents API and no line starts with a doubled pipe.
+- 2026-10-21 16:21 UTC - Saved the first revision of the workflow, corrected the evidence, recorded the round in
+  the specification, pushed, replied on both threads, and added F9 and F10 to this record.
 
 ## Completion Rules
 
