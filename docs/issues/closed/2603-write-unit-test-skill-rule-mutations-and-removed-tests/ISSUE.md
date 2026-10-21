@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: done
 priority: p3
 epic: null
 github-issue: 2603
-spec-path: docs/issues/open/2603-write-unit-test-skill-rule-mutations-and-removed-tests/ISSUE.md
+spec-path: docs/issues/closed/2603-write-unit-test-skill-rule-mutations-and-removed-tests/ISSUE.md
 branch: "2603-write-unit-test-skill-rule-mutations-and-removed-tests"
 related-pr: 2612
-last-updated-utc: "2026-10-21 13:58"
+last-updated-utc: "2026-10-21 15:17"
 semantic-links:
   skill-links:
     - create-issue
@@ -180,14 +180,14 @@ Checklist entries:
 - [x] GitHub issue created and issue number added to this spec
 - [x] (Optional) Spec-only PR merged into `develop` before implementation (PR #2604)
 - [x] Implementation completed
-- [ ] Automatic verification completed (`linter all`)
+- [x] Automatic verification completed (`linter all`)
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Reviewer validated acceptance criteria and updated checkboxes
 - [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md`
-- [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Committer verified spec progress is up to date before commit
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -202,16 +202,18 @@ Checklist entries:
 - 2026-10-21 12:25 UTC - GitHub Copilot (Claude Sonnet 5.5) - Independent Task Reviewer report recorded in `agent-review-reports.md`: REVIEW PASSED (with findings), AC1 to AC4 and `linter all` pass, nothing blocks the push. Its findings are addressed: the spec-only-PR checkpoint is ticked (S1), `branch:` names the implementation branch (N1; `related-pr` follows when the pull request is opened), V2 now says its step 4 checks existence only (N2), and the checklist wording stays as the maintainer approved it (N3). Completion review: no separate retrospective, for the reason in the section above. No design change.
 - 2026-10-21 13:54 UTC - GitHub Copilot (Claude Sonnet 5.5) - Maintainer decisions before push: push and open the pull request with `Closes #2603`, without rebasing onto the newer `develop` (its new commits touch neither the skill nor this folder); the maintainer's review and merge of the pull request is the acceptance review, as for #2414 and #2415, so AC1 to AC4 and the `linter all` item are ticked after the merge, in the archive pull request. No design change.
 - 2026-10-21 13:58 UTC - GitHub Copilot (Claude Sonnet 5.5) - Opened PR #2612 (`Closes #2603`; created 2026-10-21 at 13:57 UTC) and set `related-pr` to it. The pre-push hook passed on the push. Waiting for the maintainer's review and merge.
+- 2026-10-21 15:14 UTC - GitHub Copilot (Claude Sonnet 5.5) - PR #2612 merged on 2026-10-21 at 15:13 UTC, and issue #2603 closed at 15:13:58 UTC. The maintainer's review and merge is the acceptance review, so AC1 to AC4 and the manual-verification and acceptance-review checkboxes are ticked here. The spec moved from `docs/issues/open/` to `docs/issues/closed/`, `status` is `done`, and the issue-local artifacts and the `spec-path` point at the new location. The old `open/` path stays in the historical checkpoint and progress entries and in the PR #2604 review audit. This archive change is a follow-up chore pull request, per `cleanup-completed-issues`.
+- 2026-10-21 15:17 UTC - GitHub Copilot (Claude Sonnet 5.5) - `linter all` exits 0 on the archive branch (`chore/cleanup-completed-issues`), with `linter markdown` and `linter cspell` passing before it. The `linter all` checkpoint and acceptance-criterion line are ticked on this basis. Next: the signed commit, after the maintainer approves the push and pull request.
 
 ## Acceptance Criteria
 
-- [ ] AC1: the `write-unit-test` skill asks for at least one mutation per clause of a rule a test claims to guard, names negative clauses explicitly, and defines what the evidence records. It links to the existing mutation guidance instead of repeating it.
-- [ ] AC2: the skill asks that a removed or merged test, its replacement, and the new test count be recorded in the evidence and in the commit message when the acceptance criterion is that the existing tests still pass.
-- [ ] AC3: the "Quick Checklist" of the skill has an entry for each rule.
-- [ ] AC4: the two walk-throughs (M1 and M2) were run on the real #2415 artifacts and show that each rule would have prompted the missing action.
-- [ ] `linter all` exits with code `0`
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] AC1: the `write-unit-test` skill asks for at least one mutation per clause of a rule a test claims to guard, names negative clauses explicitly, and defines what the evidence records. It links to the existing mutation guidance instead of repeating it.
+- [x] AC2: the skill asks that a removed or merged test, its replacement, and the new test count be recorded in the evidence and in the commit message when the acceptance criterion is that the existing tests still pass.
+- [x] AC3: the "Quick Checklist" of the skill has an entry for each rule.
+- [x] AC4: the two walk-throughs (M1 and M2) were run on the real #2415 artifacts and show that each rule would have prompted the missing action.
+- [x] `linter all` exits with code `0`
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
 
 ## Verification Plan
 

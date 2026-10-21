@@ -1,6 +1,6 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2603-write-unit-test-skill-rule-mutations-and-removed-tests/ISSUE.md
+issue-spec: docs/issues/closed/2603-write-unit-test-skill-rule-mutations-and-removed-tests/ISSUE.md
 last-updated-utc: "2026-10-21 12:25"
 ---
 
