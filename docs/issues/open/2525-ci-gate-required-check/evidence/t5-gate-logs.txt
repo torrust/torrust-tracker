@@ -1,6 +1,7 @@
 T5 sandbox: the 'CI gate' job log of each orchestrator run of fork pull request 22 (josecelano/torrust-tracker),
 2026-10-21. The classification line is printed only for the first run; it is the same in every run.
-Sandbox workflow and ruleset: t5-sandbox/. The token of the gate job has only read scopes: contents, checks, issues, pull-requests.
+Sandbox workflow and ruleset: docs/issues/open/2525-ci-gate-required-check/evidence/t5-sandbox/ in this
+repository. The token of the gate job has only read scopes: contents, checks, issues, pull-requests.
 
 === run 1: 39586069094, 2026-10-21T10:38:31Z head=270a89e08
 event action: opened; sender: josecelano; head: 270a89e089bf4db3e0b436ef4fcf32a92a2a0a07
