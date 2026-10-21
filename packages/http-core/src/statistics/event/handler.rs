@@ -81,8 +81,8 @@ mod tests {
 
     use super::handle_event;
     use crate::event::{ConnectionContext, Event};
-    use crate::statistics::HTTP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL;
     use crate::statistics::repository::Repository;
+    use crate::statistics::{HTTP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL, describe_metrics};
     use crate::tests::{sample_info_hash, sample_peer_using_ipv4, sample_peer_using_ipv6};
 
     const NOW: DurationSinceUnixEpoch = DurationSinceUnixEpoch::ZERO;
@@ -314,5 +314,42 @@ mod tests {
         assert_eq!(sample_with_exactly(&repository, &without_public_url).await, Some(1));
         assert_eq!(sample_with_exactly(&repository, &with_public_url).await, Some(1));
         assert_eq!(counters(&repository).await, (0, 2, 0, 0));
+    }
+
+    #[tokio::test]
+    async fn it_should_record_the_given_time_on_the_sample_it_increases() {
+        // Arrange: the whole metrics value that one announce at 7 seconds must leave, built from literals.
+        let at_seven_seconds = DurationSinceUnixEpoch::from_secs(7);
+        let repository = Arc::new(Repository::new());
+        let mut expected = describe_metrics();
+        expected
+            .metric_collection
+            .set_counter(
+                &metric_name!(HTTP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL),
+                &labels(&[
+                    ("server_binding_protocol", "http"),
+                    ("server_binding_ip", "127.0.0.1"),
+                    ("server_binding_address_ip_type", "plain"),
+                    ("server_binding_address_ip_family", "inet"),
+                    ("server_binding_port", "7070"),
+                    ("client_address_ip_family", "inet"),
+                    ("client_address_ip_type", "plain"),
+                    ("request_kind", "announce"),
+                ]),
+                1,
+                at_seven_seconds,
+            )
+            .unwrap();
+
+        // Act
+        handle_event(
+            announce_event(connection("126.0.0.2", "127.0.0.1"), sample_peer_using_ipv4()),
+            &repository,
+            at_seven_seconds,
+        )
+        .await;
+
+        // Assert: the sample, and the time it was recorded at, are part of the value.
+        assert_eq!(repository.read_metrics(Clone::clone).await, expected);
     }
 }

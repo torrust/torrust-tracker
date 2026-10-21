@@ -9,7 +9,7 @@ github-issue: 1349
 spec-path: docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md
 branch: "1349-1347-add-tests-http-core-statistics"
 related-pr: null
-last-updated-utc: "2026-10-21 10:23"
+last-updated-utc: "2026-10-21 11:12"
 semantic-links:
   skill-links:
     - create-issue
@@ -728,6 +728,15 @@ lines are the S2 baseline measurement (see [Baseline Coverage](#baseline-coverag
   tests: lines 2,818 / 2,840 (99.23%), regions 3,679 / 3,709 (99.19%), functions 359 / 360 (99.72%). All
   ledger rows of S5 are `DONE`; the slice awaits the independent review, the pre-push checks and its pull
   request.
+- 2026-10-21 11:12 UTC - GitHub Copilot - The independent Task Reviewer passed S5 with one `MEDIUM` and four `LOW`
+  findings. The `MEDIUM` was a false claim of mine in three plans: that the recorded sample time and the metric
+  unit could not be observed through the package. `Metrics` is `PartialEq`, so they can, and seven mutants
+  survived (an added 7 seconds in the handler, the listener, the repository and the metrics wrapper, and a wrong
+  unit). All are fixed with whole-value tests and killed, together with a wiring survivor in the spawned listener
+  and an error-swallowing survivor in the repository; the plans carry the corrections. The package has 183 unit
+  tests: lines 2,974 / 2,996 (99.27%), regions 3,875 / 3,905 (99.23%), functions 372 / 373 (99.73%). The reviewer
+  also asks that the `tcp4`/`tcp6` "peers" wording question (the getters select on the server binding's family)
+  be carried into `lessons.md` in the retrospective, so it is not lost.
 
 ## Acceptance Criteria
 

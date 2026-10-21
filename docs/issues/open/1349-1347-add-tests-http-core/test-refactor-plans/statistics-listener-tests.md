@@ -150,6 +150,27 @@ Named mutations (each reverted; the production diff was checked empty afterwards
 Survivor probe beyond the plan: a lag that stops the listener was killed by the existing lag test. All five named
 mutations compiled in their first form.
 
+### Independent Review Round
+
+The independent Task Reviewer found three points in this file:
+
+- **F2 (wiring):** `run_event_listener` could receive a fresh token or a zero timeout in place of its arguments
+  and all tests passed. A table with two cases now gives the spawned listener one queued event and a token that
+  is already cancelled: with the default timeout the drain counts the event; with `Duration::ZERO` it counts
+  nothing. A token replaced by a live one fails the second case; a timeout replaced by zero fails the first.
+- **Time (the shared F1):** the handler's `now` is read from the clock by `handle_received_event`; a mutant that
+  adds 7 seconds survived. A new test sets the stopped clock to 7 seconds, runs one scrape and compares the
+  repository's whole `Metrics` with one built from literals.
+- **INFO, logic in a test:** the `if cancelled { token.cancel() }` of the unspawned test became two small helpers
+  (`live_token`, `cancelled_token`) passed as case parameters.
+
+A known limit, recorded and not fixed: a mutant that makes the `Closed` arm return `false` makes the loop spin
+forever, because the scripted receiver returns `Closed` indefinitely and never yields, so no timeout can fire.
+The existing closed-receiver test has the same property. It only matters when a mutation breaks the loop.
+
+After the round the file has 17 tests, 354 / 356 lines, 440 / 444 regions and 48 / 48 functions, with the same two
+uncovered lines.
+
 ## Approval
 
 Approved by Jose Celano on 2026-10-21 (09:46 UTC): R1 N/A, R2a-R2d, R3 and mutations K1-K5, with D1 (test the two public entry points).

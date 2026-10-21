@@ -153,6 +153,9 @@ mod tests {
     use futures::future::BoxFuture;
     use rstest::rstest;
     use tokio_util::sync::CancellationToken;
+    use torrust_clock::DurationSinceUnixEpoch;
+    use torrust_clock::clock::stopped::Stopped as _;
+    use torrust_metrics::metric_name;
     use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
     use torrust_tracker_events::drain::DEFAULT_DRAIN_TIMEOUT;
     use torrust_tracker_events::receiver::{RecvError, TryRecvError};
@@ -161,10 +164,12 @@ mod tests {
     use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
 
     use super::{dispatch_events, run_event_listener, run_event_listener_unspawned};
+    use crate::CurrentClock;
     use crate::event::receiver::Receiver;
     use crate::event::{ConnectionContext, Event};
     use crate::statistics::metrics::Metrics;
     use crate::statistics::repository::Repository;
+    use crate::statistics::{HTTP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL, describe_metrics};
     use crate::tests::{sample_info_hash, sample_peer_using_ipv4};
 
     struct ScriptedReceiver {
@@ -232,6 +237,16 @@ mod tests {
     /// The instance whose metrics are disabled in the policy of the tests below.
     fn disabled_id() -> ConfigurationInstanceId {
         ConfigurationInstanceId::new(ServiceRole::HttpTracker, 1)
+    }
+
+    fn live_token() -> CancellationToken {
+        CancellationToken::new()
+    }
+
+    fn cancelled_token() -> CancellationToken {
+        let cancellation_token = CancellationToken::new();
+        cancellation_token.cancel();
+        cancellation_token
     }
 
     /// The four public counters: IPv4 announces, IPv4 scrapes, IPv6 announces, IPv6 scrapes.
@@ -476,11 +491,11 @@ mod tests {
     }
 
     #[rstest]
-    #[case::the_receiver_closes(false, Completion::Completed)]
-    #[case::the_token_is_cancelled(true, Completion::Cancelled)]
+    #[case::the_receiver_closes(live_token(), Completion::Completed)]
+    #[case::the_token_is_cancelled(cancelled_token(), Completion::Cancelled)]
     #[tokio::test]
     async fn it_should_return_the_completion_that_says_why_the_unspawned_listener_stopped(
-        #[case] cancelled: bool,
+        #[case] cancellation_token: CancellationToken,
         #[case] expected_completion: Completion,
     ) {
         // Arrange
@@ -488,10 +503,6 @@ mod tests {
             Ok(scrape_event(enabled_id())),
             Err(RecvError::Closed),
         ]));
-        let cancellation_token = CancellationToken::new();
-        if cancelled {
-            cancellation_token.cancel();
-        }
         let repository = Arc::new(Repository::new());
 
         // Act
@@ -530,5 +541,76 @@ mod tests {
 
         // Assert
         assert_eq!(counters(&repository).await, (0, 1, 0, 0));
+    }
+
+    #[rstest]
+    #[case::drained_within_the_timeout(DEFAULT_DRAIN_TIMEOUT, (0, 1, 0, 0))]
+    #[case::the_drain_timeout_has_already_expired(Duration::ZERO, (0, 0, 0, 0))]
+    #[tokio::test]
+    async fn it_should_give_the_spawned_listener_the_cancellation_token_and_the_drain_timeout(
+        #[case] drain_timeout: Duration,
+        #[case] expected_counters: (u64, u64, u64, u64),
+    ) {
+        // Arrange: one event is queued and the token is cancelled before the task starts.
+        let receiver: Receiver = Box::new(ScriptedReceiver::new([Ok(scrape_event(enabled_id()))]));
+        let repository = Arc::new(Repository::new());
+
+        // Act
+        let listener = run_event_listener(
+            receiver,
+            cancelled_token(),
+            &repository,
+            [(enabled_id(), true)].into(),
+            drain_timeout,
+        );
+        listener.await.expect("the listener task should finish without panicking");
+
+        // Assert: the cancelled token sends the event through the drain, which the timeout can cut short.
+        assert_eq!(counters(&repository).await, expected_counters);
+    }
+
+    #[tokio::test]
+    async fn it_should_record_an_event_at_the_time_of_the_clock() {
+        // Arrange: the whole metrics value that one scrape at 7 seconds must leave, built from literals.
+        let at_seven_seconds = DurationSinceUnixEpoch::from_secs(7);
+        CurrentClock::local_set(&at_seven_seconds);
+        let receiver: Receiver = Box::new(ScriptedReceiver::new([
+            Ok(scrape_event(enabled_id())),
+            Err(RecvError::Closed),
+        ]));
+        let repository = Arc::new(Repository::new());
+        let mut expected = describe_metrics();
+        expected
+            .metric_collection
+            .set_counter(
+                &metric_name!(HTTP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL),
+                &[
+                    ("server_binding_protocol", "http"),
+                    ("server_binding_ip", "127.0.0.1"),
+                    ("server_binding_address_ip_type", "plain"),
+                    ("server_binding_address_ip_family", "inet"),
+                    ("server_binding_port", "7070"),
+                    ("client_address_ip_family", "inet"),
+                    ("client_address_ip_type", "plain"),
+                    ("request_kind", "scrape"),
+                ]
+                .into(),
+                1,
+                at_seven_seconds,
+            )
+            .unwrap();
+
+        // Act
+        dispatch_events(
+            receiver,
+            CancellationToken::new(),
+            repository.clone(),
+            [(enabled_id(), true)].into(),
+            DEFAULT_DRAIN_TIMEOUT,
+        )
+        .await;
+
+        // Assert
+        assert_eq!(repository.read_metrics(Clone::clone).await, expected);
     }
 }

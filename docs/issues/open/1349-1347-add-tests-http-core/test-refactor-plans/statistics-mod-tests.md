@@ -74,7 +74,8 @@ Three tests in a new test module of `mod.rs`.
 
 The literal text was first read from the collection's output and then checked against the registered description
 and the metric type by hand; it is the Prometheus contract the plan wanted pinned. The unit (`Unit::Count`) is not
-part of this output, so it is not pinned: no test can see it through this package.
+part of this output. This paragraph first said that no test could see it; that was wrong, and the review round
+added a whole-value comparison that does (see "Independent Review Round").
 
 ## Results
 
@@ -98,6 +99,14 @@ Named mutations (each reverted; the production diff was checked empty afterwards
 During D2 one edit removed lines of the file by mistake (the old text of the edit was longer than its
 replacement); the removed lines were restored from the text just printed and the production code was checked
 byte-identical to `HEAD` before the mutation was redone with a one-line edit.
+
+### Independent Review Round
+
+The independent Task Reviewer showed that `Some(Unit::Seconds)` in place of `Some(Unit::Count)` survived all tests,
+although the plan's coverage table pointed at the exposition text for "the description and the unit": that text
+omits the unit. A new test compares `describe_metrics()` with a `Metrics` built independently (the same name,
+`Unit::Count` and the description as literals), which also pins the unit; the mutant is killed by it. The file has
+4 tests, 41 / 41 lines, 55 / 55 regions and 5 / 5 functions.
 
 ## Approval
 

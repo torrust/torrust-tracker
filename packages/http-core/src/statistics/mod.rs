@@ -25,10 +25,12 @@ pub fn describe_metrics() -> Metrics {
 mod tests {
     use torrust_clock::DurationSinceUnixEpoch;
     use torrust_metrics::label::LabelSet;
+    use torrust_metrics::metric::description::MetricDescription;
     use torrust_metrics::metric_name;
     use torrust_metrics::prometheus::PrometheusSerializable;
+    use torrust_metrics::unit::Unit;
 
-    use super::{HTTP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL, describe_metrics};
+    use super::{HTTP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL, Metrics, describe_metrics};
 
     #[test]
     fn it_should_name_the_request_counter_http_tracker_core_requests_received_total() {
@@ -78,5 +80,22 @@ mod tests {
              # TYPE http_tracker_core_requests_received_total counter\n\
              http_tracker_core_requests_received_total{request_kind=\"announce\"} 1"
         );
+    }
+
+    #[test]
+    fn it_should_describe_the_request_counter_with_the_count_unit_and_its_description() {
+        // Arrange: the whole value, built independently, including the unit that the exposition text omits.
+        let mut expected = Metrics::default();
+        expected.metric_collection.describe_counter(
+            &metric_name!("http_tracker_core_requests_received_total"),
+            Some(Unit::Count),
+            Some(MetricDescription::new("Total number of HTTP requests received")),
+        );
+
+        // Act
+        let described = describe_metrics();
+
+        // Assert
+        assert_eq!(described, expected);
     }
 }

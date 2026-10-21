@@ -134,6 +134,14 @@ Named mutations (each reverted; the production diff was checked empty afterwards
 
 G4 and G5 needed `std::hint::black_box` to keep the unused argument compiling under the workspace lints.
 
+### Independent Review Round
+
+The independent Task Reviewer showed that `increase_counter` and `set_gauge` could pass the wrong time to the
+collection (`now + 7 s`) and all tests passed. Two tests now compare the whole `Metrics` value, after one increase
+and after one `set_gauge` at 7 seconds, with a value built independently through the collection; each mutant is
+killed by its own test. The file has 12 cases in 10 test functions, 167 / 167 lines, 295 / 295 regions and
+21 / 21 functions.
+
 ## Approval
 
 Approved by Jose Celano on 2026-10-21 (10:03 UTC): R2a-R2d, the D1 cross-family case pinned as option (a) (a test named for the server binding; the comment mismatch is recorded here and not handed off), R3 `none` and mutations G1-G5.

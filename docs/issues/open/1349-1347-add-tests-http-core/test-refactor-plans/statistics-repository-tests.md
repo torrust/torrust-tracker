@@ -40,7 +40,7 @@ Nothing to review: no unit test exists. The doc tests are the contract of the pr
 | `increase_counter` adds one to the sample of its labels, and only to it | 3A unit | R2b: two increases of one label set and one of another give exact samples of 2 and 1 (`get_counter_value` by exact labels). |
 | A clone shares the store | 3A unit | R2c: an increase through a clone is visible through the original and the other way round. |
 | Concurrent increases are not lost | 3A unit | R2d: many increases joined concurrently give the exact total. It pins the lock, which a lost update would break. |
-| The error of `increase_counter` | not tested | The collection fails only when a metric of another type has the counter's name; the repository always describes a counter and offers no way to add another metric, so the case is unreachable through the repository. Owner: `torrust-metrics`. |
+| The error of `increase_counter` | **corrected in the review round: tested** | This row first said the case was unreachable through the repository. It is unreachable from outside the module, but the module's own test can build a repository whose metrics hold a gauge under the counter's name (the field is private to the module, and the test module is inside it), so the error is tested there. See "Independent Review Round". |
 | `read_metrics` holding the read lock while the closure runs | not tested | A lock-contention timing test needs sleeps or a deadlock detector; the doc comment states the contract. |
 
 No property candidate: four small operations.
@@ -114,6 +114,25 @@ Named mutations (each reverted; the production diff was checked empty afterwards
 B2 and B3 needed `std::hint::black_box` to keep the unused value compiling under the workspace lints. The
 failed-increase `Err` arm of `increase_counter` stays untested, as decided: the repository offers no way to put a
 metric of another type under the counter's name.
+
+### Independent Review Round
+
+The independent Task Reviewer found two points in this file:
+
+- **Time:** `increase_counter` passing `now + 7 s` to the metrics survived all tests (the plan had called the
+  timestamp unobservable). A new test increases the counter at 7 seconds and compares the repository's whole
+  `Metrics` with one built from literals; the mutant is killed by it.
+- **The error (F4):** swallowing the collection's error in `increase_counter` survived. The plan's "unreachable"
+  was true from outside the module only. A test inside the module builds a repository whose metrics hold a gauge
+  under the counter's name and asserts `is_err()`; the swallowing mutant is killed by it. The row in the decision
+  table is corrected above.
+
+The reviewer also noted that the concurrency test has no mutation that fails it (the plan already says so) and adds
+runtime-flavor complexity. It is kept as a recorded design check, because it is deterministic (no sleep, four
+workers, eight tasks of twenty-five increases) and it passed 30 runs, 10 runs with `--test-threads=1` and 10 runs
+pinned to one CPU in the review.
+
+After the round the file has 7 cases in 6 test functions, 153 / 153 lines, 211 / 211 regions and 25 / 25 functions.
 
 ## Approval
 

@@ -280,4 +280,44 @@ mod tests {
             Some(Gauge::new(5.0))
         );
     }
+
+    #[test]
+    fn it_should_record_the_given_time_on_the_counter_it_increases() {
+        // Arrange: the whole value that one increase at 7 seconds must leave.
+        let at_seven_seconds = DurationSinceUnixEpoch::from_secs(7);
+        let name = metric_name!(HTTP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL);
+        let labels = request_labels("inet", "announce", "7070");
+        let mut metrics = Metrics::default();
+        let mut expected = Metrics::default();
+        expected
+            .metric_collection
+            .set_counter(&name, &labels, 1, at_seven_seconds)
+            .unwrap();
+
+        // Act
+        metrics.increase_counter(&name, &labels, at_seven_seconds).unwrap();
+
+        // Assert
+        assert_eq!(metrics, expected);
+    }
+
+    #[test]
+    fn it_should_record_the_given_time_on_the_gauge_it_sets() {
+        // Arrange
+        let at_seven_seconds = DurationSinceUnixEpoch::from_secs(7);
+        let name = metric_name!("a_test_gauge");
+        let labels = request_labels("inet", "announce", "7070");
+        let mut metrics = Metrics::default();
+        let mut expected = Metrics::default();
+        expected
+            .metric_collection
+            .set_gauge(&name, &labels, 5.0, at_seven_seconds)
+            .unwrap();
+
+        // Act
+        metrics.set_gauge(&name, &labels, 5.0, at_seven_seconds).unwrap();
+
+        // Assert
+        assert_eq!(metrics, expected);
+    }
 }

@@ -302,11 +302,11 @@ Measured on 2026-10-21 on the S5 branch, whose production code for this file is 
 
 | Scope | Before (S5 baseline) | After |
 | --- | ---: | ---: |
-| `statistics/event/handler.rs` lines | 158 / 161 (98.14%) | 143 / 146 (97.95%) |
-| `statistics/event/handler.rs` regions | 215 / 221 (97.29%) | 175 / 181 (96.69%) |
-| `statistics/event/handler.rs` functions | 16 / 17 (94.12%) | 21 / 22 (95.45%) |
+| `statistics/event/handler.rs` lines | 158 / 161 (98.14%) | 173 / 176 (98.30%) |
+| `statistics/event/handler.rs` regions | 215 / 221 (97.29%) | 202 / 208 (97.12%) |
+| `statistics/event/handler.rs` functions | 16 / 17 (94.12%) | 23 / 24 (95.83%) |
 
-The file's 5 tests are now 10 cases in 4 test functions. The counts fall because the new test module is shorter than the old one (the repeated event construction is gone); the production lines were already covered except the two the plan decides not to test: the failed-increase `Err` arm (line 20) and the debug closure (line 25). The package has 149 unit tests (144 at the S5 baseline): lines 2,521 / 2,577 (97.83%), regions 3,224 / 3,284 (98.17%), functions 314 / 320 (98.12%).
+The file's 5 tests are now 11 cases in 5 test functions (10 cases in 4 functions when first completed; the independent review added a test of the recorded time). The production lines were already covered except the two the plan decides not to test: the failed-increase `Err` arm (line 20) and the debug closure (line 25). The figures are those after the review round.
 
 ### `statistics/event/listener.rs` (slice S5)
 
@@ -314,11 +314,11 @@ Measured on 2026-10-21 on the S5 branch, whose production code for this file is 
 
 | Scope | Before (S5 baseline) | After |
 | --- | ---: | ---: |
-| `statistics/event/listener.rs` lines | 215 / 239 (89.96%) | 308 / 310 (99.35%) |
-| `statistics/event/listener.rs` regions | 275 / 298 (92.28%) | 390 / 394 (98.98%) |
-| `statistics/event/listener.rs` functions | 29 / 32 (90.63%) | 44 / 44 (100.00%) |
+| `statistics/event/listener.rs` lines | 215 / 239 (89.96%) | 354 / 356 (99.44%) |
+| `statistics/event/listener.rs` regions | 275 / 298 (92.28%) | 440 / 444 (99.10%) |
+| `statistics/event/listener.rs` functions | 29 / 32 (90.63%) | 48 / 48 (100.00%) |
 
-The file keeps its 6 tests and gains 8 cases in 4 test functions: the metrics policy for announce events, every queued event drained after cancellation, and the two public entry points (`Completion` and the spawned task). All production code is covered except the log argument of the ignored-event `warn!` (line 132); the one other uncovered line is the `Lagged` arm of the test receiver. The package has 157 unit tests: lines 2,614 / 2,648 (98.72%), regions 3,339 / 3,380 (98.79%), functions 329 / 332 (99.10%).
+The file keeps its 6 tests and gains 11 cases in 6 test functions: the metrics policy for announce events, every queued event drained after cancellation, the two public entry points (`Completion` and the spawned task, with a table that proves the spawned listener receives its token and its drain timeout) and the time an event is recorded at (the last two came from the independent review). All production code is covered except the log argument of the ignored-event `warn!` (line 132); the one other uncovered line is the `Lagged` arm of the test receiver. The figures are those after the review round.
 
 ### `statistics/metrics.rs`, `statistics/repository.rs` and `statistics/mod.rs` (slice S5)
 
@@ -326,20 +326,20 @@ Measured on 2026-10-21 on the S5 branch, whose production code for these files i
 
 | Source module | Lines before → after | Regions before → after | Functions before → after |
 | --- | ---: | ---: | ---: |
-| `statistics/metrics.rs` | 48 / 57 → 141 / 141 | 66 / 74 → 238 / 238 | 8 / 9 → 19 / 19 |
-| `statistics/repository.rs` | 21 / 24 → 108 / 108 | 26 / 29 → 161 / 161 | 5 / 6 → 21 / 21 |
-| `statistics/mod.rs` | 8 / 8 → 32 / 32 | 10 / 10 → 43 / 43 | 1 / 1 → 4 / 4 |
+| `statistics/metrics.rs` | 48 / 57 → 167 / 167 | 66 / 74 → 295 / 295 | 8 / 9 → 21 / 21 |
+| `statistics/repository.rs` | 21 / 24 → 153 / 153 | 26 / 29 → 211 / 211 | 5 / 6 → 25 / 25 |
+| `statistics/mod.rs` | 8 / 8 → 41 / 41 | 10 / 10 → 55 / 55 | 1 / 1 → 5 / 5 |
 
-The counted lines include the new test modules, so the rises far exceed the production lines they protect; every production line and function of the three files is covered, including the `set_gauge` wrapper and `Repository::default`, which were the uncovered code. The mutation results in each plan are the stronger signal; the metric-name test is the only test that fails when the public series name changes.
+The figures are those after the review round. The counted lines include the new test modules, so the rises far exceed the production lines they protect; every production line and function of the three files is covered, including the `set_gauge` wrapper and `Repository::default`, which were the uncovered code. The mutation results in each plan are the stronger signal; the metric-name test is the only test that fails when the public series name changes, and the review round added whole-value tests that also pin the recorded time and the metric unit.
 
 ### Package After Slice S5
 
-Measured on 2026-10-21 after the last S5 file with the same commands. The package has 174 unit tests (144 at the S5 baseline).
+Measured on 2026-10-21 after the independent review round with the same commands. The package has 183 unit tests (144 at the S5 baseline).
 
 | Scope | Original baseline (`87690b15e`) | S5 baseline (`b5ab35ae9`) | After slice S5 |
 | --- | ---: | ---: | ---: |
-| Lines | 1,751 / 1,970 (88.88%) | 2,536 / 2,592 (97.84%) | 2,818 / 2,840 (99.23%) |
-| Regions | 2,357 / 2,607 (90.41%) | 3,264 / 3,324 (98.19%) | 3,679 / 3,709 (99.19%) |
-| Functions | 161 / 191 (84.29%) | 309 / 315 (98.10%) | 359 / 360 (99.72%) |
+| Lines | 1,751 / 1,970 (88.88%) | 2,536 / 2,592 (97.84%) | 2,974 / 2,996 (99.27%) |
+| Regions | 2,357 / 2,607 (90.41%) | 3,264 / 3,324 (98.19%) | 3,875 / 3,905 (99.23%) |
+| Functions | 161 / 191 (84.29%) | 309 / 315 (98.10%) | 372 / 373 (99.73%) |
 
-Since the original baseline the package gained +10.35 pp of lines, +8.78 pp of regions and +15.43 pp of functions. The uncovered production lines of the statistics files are three, all decided in their plans: the failed-increase `Err` arm (line 20) and the debug closure (line 25) of `handler.rs`, and the ignored-event `warn!` argument (line 132) of `listener.rs`; the one other uncovered line (195 of `listener.rs`) is the `Lagged` arm of the test receiver. The totals include the test modules.
+Since the original baseline the package gained +10.39 pp of lines, +8.82 pp of regions and +15.44 pp of functions. The uncovered production lines of the statistics files are three, all decided in their plans: the failed-increase `Err` arm (line 20) and the debug closure (line 25) of `handler.rs`, and the ignored-event `warn!` argument (line 132) of `listener.rs`; the one other uncovered line (195 of `listener.rs`) is the `Lagged` arm of the test receiver. The totals include the test modules.

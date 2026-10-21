@@ -99,13 +99,16 @@ impl Repository {
 
 #[cfg(test)]
 mod tests {
+    use std::sync::Arc;
+
     use rstest::rstest;
+    use tokio::sync::RwLock;
     use torrust_clock::DurationSinceUnixEpoch;
     use torrust_metrics::label::LabelSet;
     use torrust_metrics::metric_name;
 
-    use super::Repository;
-    use crate::statistics::HTTP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL;
+    use super::{Metrics, Repository};
+    use crate::statistics::{HTTP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL, describe_metrics};
 
     const NOW: DurationSinceUnixEpoch = DurationSinceUnixEpoch::ZERO;
 
@@ -216,5 +219,65 @@ mod tests {
 
         // Assert
         assert_eq!(requests_with_exactly(&repository, &labels).await, Some(200));
+    }
+
+    #[tokio::test]
+    async fn it_should_record_the_given_time_on_the_sample_it_increases() {
+        // Arrange: the whole value that one increase at 7 seconds must leave.
+        let at_seven_seconds = DurationSinceUnixEpoch::from_secs(7);
+        let repository = Repository::new();
+        let labels = request_labels("announce");
+        let mut expected = describe_metrics();
+        expected
+            .metric_collection
+            .set_counter(
+                &metric_name!(HTTP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL),
+                &labels,
+                1,
+                at_seven_seconds,
+            )
+            .unwrap();
+
+        // Act
+        repository
+            .increase_counter(
+                &metric_name!(HTTP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL),
+                &labels,
+                at_seven_seconds,
+            )
+            .await
+            .unwrap();
+
+        // Assert
+        assert_eq!(repository.read_metrics(Clone::clone).await, expected);
+    }
+
+    #[tokio::test]
+    async fn it_should_return_the_error_of_the_collection_when_the_counter_name_belongs_to_a_gauge() {
+        // Arrange: a repository, built inside the module, whose metrics hold a gauge under the counter's name.
+        let mut metrics = Metrics::default();
+        metrics
+            .set_gauge(
+                &metric_name!(HTTP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL),
+                &request_labels("announce"),
+                1.0,
+                NOW,
+            )
+            .unwrap();
+        let repository = Repository {
+            stats: Arc::new(RwLock::new(metrics)),
+        };
+
+        // Act
+        let result = repository
+            .increase_counter(
+                &metric_name!(HTTP_TRACKER_CORE_REQUESTS_RECEIVED_TOTAL),
+                &request_labels("announce"),
+                NOW,
+            )
+            .await;
+
+        // Assert
+        assert!(result.is_err(), "increasing a gauge as a counter should fail: {result:?}");
     }
 }

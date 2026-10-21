@@ -52,7 +52,7 @@ Reviewed against `write-unit-test`. Conclusion: **refactor**.
 | One event increases exactly the counter of its request kind and server family, and no other | 3A unit | R1: one table of the four events. Each case asserts all four public counters (`tcp4_announces_handled`, `tcp4_scrapes_handled`, `tcp6_announces_handled`, `tcp6_scrapes_handled`) as a tuple, so a cross-counting increment fails. Client and server families match in every case: the family counters follow the server binding, and a client of the other family is left to the `metrics.rs` plan (see "Decisions needed", D1). |
 | The sample has exactly the connection labels plus `request_kind` (announce and scrape, IPv4 and IPv6, public URL present and absent) | 3A unit | R2a: a table of whole expected label sets as string literals, read with `MetricCollection::get_counter_value`, which looks the sample up by its exact label set. It replaces the float `sum` comparison and covers the `announce` value. |
 | Repeated events accumulate; events with different labels stay separate | 3A unit | R2b: two identical events give 2 on one series; two events that differ in one label (the public URL) give two series of 1 and a family counter of 2. |
-| `now` stored with the sample | not tested | The recorded timestamp is not readable through the public API of the package (`Metrics` exposes counter totals and the collection getter, which returns the counter value only), so a test cannot see it. It is `torrust-metrics`'s behavior. |
+| `now` stored with the sample | **corrected in the review round: tested** | This row first said the recorded timestamp was not readable through the package's public API. That was wrong: `Metrics` is `Clone`, `Debug` and `PartialEq`, so a whole-value comparison with an expected collection built from literals sees the sample's time. See "Independent Review Round". |
 | The failed-increase `Err` arm (line 20) | not tested | `increase_counter` fails only if a metric of another type has the counter's name. The repository always describes it as a counter and exposes no way to add another metric, so the arm cannot be reached through the package. Owner: `torrust-metrics`. |
 | The debug log closure (line 25) | not tested | Logging, evaluated only when a `debug` subscriber is installed; asserting log output needs a subscriber crate this package does not use. |
 
@@ -145,6 +145,17 @@ Named mutations (each reverted; the production diff was checked empty afterwards
 Survivor probe beyond the plan: `RequestKind::Announce.as_str()` returning `scrape` was killed by 5 tests. Two
 mutation forms did not compile under the workspace lints (a dead variant in H1, a non-binding `let` in H4) and
 were redone in a compiling form before they counted.
+
+### Independent Review Round
+
+The independent Task Reviewer (see `agent-review-reports.md`) showed that the plan's row on `now` was wrong: the
+sample's recorded time is observable by comparing the repository's whole `Metrics` value. Mutant `H5` (the handler
+passes `now + 7 s` to `increase_counter`) had survived all 174 tests. A new test,
+`it_should_record_the_given_time_on_the_sample_it_increases`, handles one announce at 7 seconds and compares
+`read_metrics(Clone::clone)` with a collection built from literals (the described counter plus one sample at 7
+seconds). H5 is now killed by that test and by the listener's clock test. The file has 11 tests (10 cases in 4
+functions plus the new one); the file's final measurement is 173 / 176 lines, 202 / 208 regions and 23 / 24
+functions, with the same two decided uncovered lines (20 and 25).
 
 ## Approval
 
