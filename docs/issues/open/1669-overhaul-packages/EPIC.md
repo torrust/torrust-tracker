@@ -6,7 +6,7 @@ epic: null
 github-issue: 1669
 spec-path: docs/issues/open/1669-overhaul-packages/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-20 20:54"
+last-updated-utc: "2026-10-21 07:44"
 semantic-links:
   skill-links:
     - create-issue
@@ -292,7 +292,7 @@ These packages are extracted to their own repositories under the Torrust organis
 | `torrust-metrics`        | `torrust-tracker-metrics`       | SI-08 (rename first)                          | **DONE** — published v0.1.0; all 7 consumers migrated                                                                                                          |
 | `torrust-net-primitives` | `torrust-net-primitives`        | Extraction issue TBD (SI-20)                  | **DONE** — published v0.1.0; standalone repo at [torrust/torrust-net-primitives](https://github.com/torrust/torrust-net-primitives); all 10 consumers migrated |
 | `torrust-server-lib`     | `torrust-server-lib`            | None                                          | **DONE** — published v0.1.0; standalone repo at [torrust/torrust-server-lib](https://github.com/torrust/torrust-server-lib); all 6 consumers migrated          |
-| `torrust-tracker-client` | `console/tracker-client`        | Publication of protocol crates and client lib | Standalone CLI tool; LGPL-3.0                                                                                                                                  |
+| `torrust-tracker-client` | `console/tracker-client`        | Publication of protocol crates and client lib | **BLOCKED** — [#2594](https://github.com/torrust/torrust-tracker/issues/2594), blocked by #2583; standalone CLI tool; LGPL-3.0; target repo `torrust/torrust-tracker-client` |
 
 ### Torrust Dependency Lists (Direct, Non-dev)
 
@@ -679,7 +679,7 @@ Status: TODO unless noted.
 - [x] Extract `torrust-metrics` to standalone repository — [#1882](https://github.com/torrust/torrust-tracker/issues/1882) _(Rule E; requires completed metrics rename work)_ — **DONE**
 - [x] Move `bittorrent-peer-id` to `torrust/torrust-bittorrent` as `torrust-peer-id` — [#1884](https://github.com/torrust/torrust-tracker/issues/1884) _(Rule E; no workspace deps; first `bittorrent-*` extraction)_ — **DONE**
 - [x] Extract `torrust-net-primitives` to standalone repository — [#1885](https://github.com/torrust/torrust-tracker/issues/1885) _(Rule E; no workspace deps; no prerequisites)_ — **DONE**
-- [ ] Extract `torrust-tracker-client` to standalone repository _(Rule E; blocked by publication of `torrust-tracker-udp-protocol`, `torrust-tracker-http-protocol`, and `torrust-tracker-client-lib`)_
+- [ ] [#2594](https://github.com/torrust/torrust-tracker/issues/2594) Extract the `torrust-tracker-client` console client to a standalone repository _(Rule E; blocked by #2583, which publishes `torrust-tracker-udp-protocol`, `torrust-tracker-http-protocol` and `torrust-tracker-client-lib`; last item of this EPIC)_ — **BLOCKED**
 - [x] [#1910](https://github.com/torrust/torrust-tracker/issues/1910) SI-29: Remove redundant `-tracker-` from HTTP and UDP crate names _(Rule U; rename 4 unpublished packages to match DEC-15 folder convention)_ — **DONE**
 - [x] [#1924](https://github.com/torrust/torrust-tracker/issues/1924) SI-30: Extract UDP trait abstractions for REST API _(Rule M; core → server dep kept; interface segregation only)_
 - [x] [#1925](https://github.com/torrust/torrust-tracker/issues/1925) SI-31: Configure `cargo deny` for workspace layer boundary enforcement _(tooling; create deny.toml with bans for all forbidden edges)_
@@ -712,7 +712,7 @@ Details:
 | Net-primitives extraction  | [#1885](https://github.com/torrust/torrust-tracker/issues/1885) — Extract `torrust-net-primitives` to standalone repository                                                               | [docs/issues/closed/1885-1669-20-extract-torrust-net-primitives-to-standalone-repo/ISSUE.md](../../closed/1885-1669-20-extract-torrust-net-primitives-to-standalone-repo/ISSUE.md)                         | DONE   | Rule E; no workspace deps; no prerequisites; 10 consumers migrated; crate v0.1.0 published                                                    |
 | Server-lib extraction      | [#1909](https://github.com/torrust/torrust-tracker/issues/1909) — Extract `torrust-server-lib` to standalone repository                                                                   | [docs/issues/closed/1909-1669-si-28-extract-server-lib-to-standalone-repo/ISSUE.md](../../closed/1909-1669-si-28-extract-server-lib-to-standalone-repo/ISSUE.md)                                           | DONE   | Rule E; no workspace deps; 6 consumers migrated; crate v0.1.0 published                                                                       |
 | InfoHash migration         | [#1889](https://github.com/torrust/torrust-tracker/issues/1889) — Migrate from `bittorrent-primitives` to `torrust-info-hash`                                                             | [docs/issues/closed/1889-1669-21-migrate-from-bittorrent-primitives-to-torrust-info-hash/ISSUE.md](../../closed/1889-1669-21-migrate-from-bittorrent-primitives-to-torrust-info-hash/ISSUE.md)             | DONE   | SI-21; replaces `bittorrent-primitives` deps across 14 Cargo.toml files with `torrust-info-hash`; unblocks `bittorrent-primitives` archiving  |
-| Tracker client extraction  | #TBD — Extract `torrust-tracker-client` to standalone repository                                                                                                                          | [docs/issues/drafts/1669-extract-torrust-tracker-client-to-standalone-repo/ISSUE.md](../../drafts/1669-extract-torrust-tracker-client-to-standalone-repo/ISSUE.md)                                         | TODO   | Rule E; blocked by publication of `udp-protocol`, `http-protocol`, and `tracker-client` lib                                                   |
+| Tracker client extraction  | [#2594](https://github.com/torrust/torrust-tracker/issues/2594) — Extract the `torrust-tracker-client` console client to a standalone repository | [docs/issues/open/2594-1669-extract-torrust-tracker-client-to-standalone-repo/ISSUE.md](../2594-1669-extract-torrust-tracker-client-to-standalone-repo/ISSUE.md) | BLOCKED | Rule E; blocked by #2583 (publishes `udp-protocol`, `http-protocol` and `client-lib`); new repository `torrust/torrust-tracker-client`; last item of this EPIC |
 | Test support reorganization | [#2482](https://github.com/torrust/torrust-tracker/issues/2482) — Reorganize test support code shared between workspace packages | [docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md](../2482-1669-reorganize-shared-test-support/EPIC.md) | TODO   | Sub-EPIC; its subissues are tracked there. Findings 1 and 2 of the 2026-10-06 coupling report (#2446); amends DEC-13 |
 | Coupling tool name fix     | [#2475](https://github.com/torrust/torrust-tracker/issues/2475) — Coupling tool misses renamed dependencies and custom library names                                                                                                                | [docs/issues/closed/2475-1669-coupling-tool-resolve-lib-names-and-renames/ISSUE.md](../../closed/2475-1669-coupling-tool-resolve-lib-names-and-renames/ISSUE.md)                           | DONE   | Finding 3 of the 2026-10-06 coupling report (#2446); corrected report: [2026-10-17](workspace-coupling-report-2026-10-17.md)           |
 | UDP trait abstractions     | [#1924](https://github.com/torrust/torrust-tracker/issues/1924) SI-30: Extract UDP trait abstractions for REST API (`BanningStats`, `UdpCoreStatsRepository`, `UdpServerStatsRepository`) | [docs/issues/closed/1924-1669-si-30-decouple-rest-api-core-from-udp-internals/ISSUE.md](../../closed/1924-1669-si-30-decouple-rest-api-core-from-udp-internals/ISSUE.md)                                   | DONE   | UDP-side only; REST-side wiring deferred to #1930; MAX_CONNECTION_ID_ERRORS_PER_IP → config option. The traits were never wired: #2521 removes `UdpCoreStatsRepository` and `UdpServerStatsRepository`, and #2505 removed `BanningStats`                                            |
@@ -760,7 +760,7 @@ After SI-14, there is a proposal to evaluate a dedicated repository for protocol
 - [docs/issues/closed/1924-1669-si-30-decouple-rest-api-core-from-udp-internals/ISSUE.md](../../closed/1924-1669-si-30-decouple-rest-api-core-from-udp-internals/ISSUE.md)
 - [docs/issues/closed/1925-1669-si-31-configure-cargo-deny-for-layer-boundary-enforcement/ISSUE.md](../../closed/1925-1669-si-31-configure-cargo-deny-for-layer-boundary-enforcement/ISSUE.md)
 - [docs/issues/closed/1926-1669-si-32-define-package-versioning-strategy/ISSUE.md](../../closed/1926-1669-si-32-define-package-versioning-strategy/ISSUE.md)
-- [docs/issues/drafts/1669-extract-torrust-tracker-client-to-standalone-repo/ISSUE.md](../../drafts/1669-extract-torrust-tracker-client-to-standalone-repo/ISSUE.md)
+- [docs/issues/open/2594-1669-extract-torrust-tracker-client-to-standalone-repo/ISSUE.md](../2594-1669-extract-torrust-tracker-client-to-standalone-repo/ISSUE.md)
 - [docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md](../2482-1669-reorganize-shared-test-support/EPIC.md)
 - [docs/issues/closed/2475-1669-coupling-tool-resolve-lib-names-and-renames/ISSUE.md](../../closed/2475-1669-coupling-tool-resolve-lib-names-and-renames/ISSUE.md)
 - [docs/issues/closed/2517-1669-encapsulate-statistics-repository-state/ISSUE.md](../../closed/2517-1669-encapsulate-statistics-repository-state/ISSUE.md)
@@ -1080,6 +1080,12 @@ Previously referenced tools (screenshots from CodeScene already in the issue com
   `packages/AGENTS.md` now links both catalogs instead of keeping a partial copy. The #2576 spec
   counts are corrected to 32 members and seven `contrib/dev-tools/` members. The
   catalog-accuracy acceptance criterion is left open because it applies after each change.
+- 2026-10-21 07:44 UTC - GitHub Copilot (Claude Opus 5.5) - Promoted the client-extraction draft to #2594
+  (Extract the `torrust-tracker-client` console client to a standalone repository), linked as a
+  subissue, labelled `Blocked` and marked blocked by #2583 on GitHub: it needs
+  `torrust-tracker-udp-protocol`, `torrust-tracker-http-protocol` and `torrust-tracker-client-lib`
+  on crates.io, so it is the last item of this EPIC. Spec at
+  `docs/issues/open/2594-1669-extract-torrust-tracker-client-to-standalone-repo/ISSUE.md`.
 
 ## Acceptance Criteria
 

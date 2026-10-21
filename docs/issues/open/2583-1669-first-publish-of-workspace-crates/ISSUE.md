@@ -9,7 +9,7 @@ github-issue: 2583
 spec-path: docs/issues/open/2583-1669-first-publish-of-workspace-crates/ISSUE.md
 branch: "2583-1669-first-publish-of-workspace-crates-spec"
 related-pr: null
-last-updated-utc: "2026-10-20 17:41"
+last-updated-utc: "2026-10-21 07:44"
 semantic-links:
   skill-links:
     - create-issue
@@ -274,7 +274,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T3 | BLOCKED | Wait for the prerequisites | #2482, #1488 and #1347 closed; #2576 merged; the rest of the EPIC's API work done; #2582 closed before row 21. |
 | T4 | BLOCKED | Check the checklist again | Re-run the checks in "Facts checked" (crate set, order, crates.io names, versions, `cargo package --workspace --no-verify`) and update the checklist; record them in `manual-verification-evidence.md`. Decide the `test-helpers` version against its published 3.0.0 API. |
 | T5 | BLOCKED | Publish each crate in checklist order | One crate at a time with the per-crate procedure; each row `PUBLISHED` with date and evidence. |
-| T6 | BLOCKED | Hand over | Tell the client-extraction issue that `client-lib`, `http-protocol` and `udp-protocol` are published, and the next tracker release that every library crate is published and the root crate owes 4.0.0. |
+| T6 | BLOCKED | Hand over | Tell the client-extraction issue (#2594) that `client-lib`, `http-protocol` and `udp-protocol` are published, and the next tracker release that every library crate is published and the root crate owes 4.0.0. |
 | T7 | BLOCKED | Verify and review acceptance criteria | Automatic checks and manual scenarios recorded; acceptance criteria re-reviewed. |
 
 ## Commit Points
@@ -327,6 +327,9 @@ release branch and a signed tag.
   #2582 (labels `Bug`, `packages`), linked both as subissues of #1669, and moved both specs to
   `docs/issues/open/` for one spec-only PR on branch
   `2583-1669-first-publish-of-workspace-crates-spec`.
+- 2026-10-21 07:44 UTC - GitHub Copilot (Claude Opus 5.5) - The client-extraction issue is #2594, blocked by this
+  issue on GitHub. With the maintainer's approval, T6 and the References name it and link its
+  spec instead of the removed draft.
 
 ## Acceptance Criteria
 
@@ -428,8 +431,8 @@ None planned. The crates.io name check is a `curl` loop recorded in the evidence
   ([error enum inventory](../../closed/2454-1669-mark-public-error-enums-non-exhaustive/error-enum-inventory.md))
 - Pre-publish sub-issue: #2582
   ([`ISSUE.md`](../2582-1669-remove-health-check-self-dev-dependency/ISSUE.md))
-- Blocks: the client-extraction issue (draft
-  [`1669-extract-torrust-tracker-client-to-standalone-repo`](../../drafts/1669-extract-torrust-tracker-client-to-standalone-repo/ISSUE.md))
+- Blocks: #2594, the client extraction
+  ([`ISSUE.md`](../2594-1669-extract-torrust-tracker-client-to-standalone-repo/ISSUE.md))
 - Procedure: [`docs/release_process.md`](../../../release_process.md#publishing-a-workspace-package);
   the root crate's tracker release: `release-new-version` skill
 - Cargo reference: [Publishing on crates.io](https://doc.rust-lang.org/cargo/reference/publishing.html)
