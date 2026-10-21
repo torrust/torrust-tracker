@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2518-http-first-announce-benchmark/ISSUE.md
-last-updated-utc: "2026-10-21 13:15"
+issue-spec: docs/issues/closed/2518-http-first-announce-benchmark/ISSUE.md
+last-updated-utc: "2026-10-21 15:00"
 ---
 
 # Manual Verification Evidence

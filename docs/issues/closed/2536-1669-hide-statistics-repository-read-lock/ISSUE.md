@@ -9,7 +9,7 @@ github-issue: 2536
 spec-path: docs/issues/closed/2536-1669-hide-statistics-repository-read-lock/ISSUE.md
 branch: "2536-1669-hide-statistics-repository-read-lock"
 related-pr: 2545
-last-updated-utc: "2026-10-19 10:16"
+last-updated-utc: "2026-10-21 15:00"
 semantic-links:
   skill-links:
     - create-issue
@@ -596,7 +596,7 @@ steps in the evidence instead of committing it, as #2517 did.
     changes `tracker-core/tests/common/test_env.rs`, one of this issue's callers.
   - #1348 (udp-core tests, `docs/issues/closed/1348-1347-add-tests-udp-core/ISSUE.md`) plans tests
     for `udp-core`'s `statistics/repository.rs`.
-  - #2518 (HTTP first-announce benchmark, `docs/issues/open/2518-http-first-announce-benchmark/ISSUE.md`)
+  - #2518 (HTTP first-announce benchmark, `docs/issues/closed/2518-http-first-announce-benchmark/ISSUE.md`)
     plans an assertion that reads through the swarm `Repository::get_metrics`.
 
   Any other open branch that touches these repositories or the REST adapter also needs a rebase.
