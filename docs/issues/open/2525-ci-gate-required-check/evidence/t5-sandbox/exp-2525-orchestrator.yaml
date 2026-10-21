@@ -1,4 +1,4 @@
-# Sandbox only (#2525 T5). Never merged upstream.
+# Sandbox only (#2525 T5). Stored here as evidence, not as a workflow of this repository.
 #
 # A rehearsal of the orchestrator for the question of T5: how the `CI gate` job of a run started by a
 # label event learns the results of the groups, who applied the override label, and whether the

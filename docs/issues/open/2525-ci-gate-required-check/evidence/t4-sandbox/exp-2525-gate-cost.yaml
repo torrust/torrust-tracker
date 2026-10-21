@@ -1,4 +1,4 @@
-# Sandbox only (#2525 T4, experiment E1). Never merged upstream.
+# Sandbox only (#2525 T4, experiment E1). Stored here as evidence, not as a workflow of this repository.
 #
 # Measures the runner time that a gate job adds to a documentation-only change, in four variants,
 # next to a copy of the real Docs Lint job as the reference. Every job runs the same final step:

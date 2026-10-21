@@ -258,7 +258,8 @@ everything it needs, checkout and toolchain setup included, and ends by classify
 base and the branch. Runner time is the job's `completed_at` minus `started_at`, as in
 [`pr-ci-cost-baseline.md`](pr-ci-cost-baseline.md). All 60 jobs succeeded, and the log of each variant
 shows `changed_path_count` 1 and `docs-lint` as the only needed group. The per-job data is in
-[`evidence/t4-gate-cost-runs.csv`](evidence/t4-gate-cost-runs.csv).
+[`evidence/t4-gate-cost-runs.csv`](evidence/t4-gate-cost-runs.csv). The workflow files saved in `evidence/t4-sandbox/` are the sandbox files; only the comment on their first line, which said
+they were never merged upstream, was reworded when they were stored here as evidence.
 
 | Variant                                                                                         | Attempt 1 | Median of attempts 2 to 12 | Mean of attempts 2 to 12 | Range of attempts 2 to 12 |
 | ----------------------------------------------------------------------------------------------- | --------- | -------------------------- | ------------------------ | ------------------------- |
@@ -403,6 +404,9 @@ Limits: the sandbox pull request is in the same repository as its base, not a fo
 the token of a pull request from a fork behaves. By the maintainer's decision this is verified on real
 pull requests when T6 lands. The jobs in the sandbox are stubs, and the jobs of the real workflows were
 not exercised. Not tested: reading the results from artifacts, or rerunning the jobs.
+
+The workflow saved in `evidence/t5-sandbox/` is the sandbox file, with only the comment on its first line
+reworded, as for the files of V8.
 
 Setup note: a fix to the sandbox workflow was pushed to the base branch at about 10:42, after setting the
 sandbox ruleset to `disabled` for the push and back to `active` right after, because the ruleset (like the
