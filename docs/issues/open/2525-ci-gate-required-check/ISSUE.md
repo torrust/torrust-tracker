@@ -9,7 +9,7 @@ github-issue: 2525
 spec-path: docs/issues/open/2525-ci-gate-required-check/ISSUE.md
 branch: "2525-ci-gate-required-check"
 related-pr: null
-last-updated-utc: "2026-10-21 11:07"
+last-updated-utc: "2026-10-21 11:53"
 semantic-links:
   skill-links:
     - create-issue
@@ -471,6 +471,13 @@ Conventional Commits with narrow scopes and sign every commit with GPG.
   recommended: T6a, the Rust adapter that turns raw API responses into the verdict input (no workflow
   change); T6b, one workflow converted behind the orchestrator, reporting but not required, tried in the
   fork sandbox first; T6c, the other workflows, one commit each.
+- 2026-10-21 11:53 UTC - GitHub Copilot - Processed Copilot's review of PR #2605 (two findings, both confirmed). The saved
+  sandbox workflows said they were never merged upstream, although they are stored in the repository as
+  evidence; all six now say that they are evidence and not workflows of this repository, and the evidence
+  notes that only that comment was reworded (`docs(issues): [#2525] say that the saved sandbox workflows are
+  evidence, not unmerged workflows`). I had cut the first classification line of the T5 gate logs off with an
+  ellipsis in a file described as verbatim, and restored the full line from the run's log (`docs(issues):
+  [#2525] restore the full classification line in the T5 gate logs`).
 
 ## Acceptance Criteria
 
