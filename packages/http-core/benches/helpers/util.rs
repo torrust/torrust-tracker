@@ -6,6 +6,7 @@ use mockall::mock;
 use tokio_util::sync::CancellationToken;
 use torrust_clock::DurationSinceUnixEpoch;
 use torrust_info_hash::InfoHash;
+use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
 use torrust_tracker_configuration::v3_0_0::Configuration;
 use torrust_tracker_configuration::v3_0_0::core::Core;
 use torrust_tracker_core::announce_handler::AnnounceHandler;
@@ -21,6 +22,7 @@ use torrust_tracker_events::sender::SendError;
 use torrust_tracker_http_core::event::Event;
 use torrust_tracker_http_core::event::bus::EventBus;
 use torrust_tracker_http_core::event::sender::Broadcaster;
+use torrust_tracker_http_core::services::announce::AnnounceService;
 use torrust_tracker_http_core::statistics::event::listener::run_event_listener;
 use torrust_tracker_http_core::statistics::repository::Repository;
 use torrust_tracker_http_protocol::v1::requests::announce::{
@@ -50,12 +52,20 @@ pub async fn initialize_core_tracker_services() -> (CoreTrackerServices, CoreHtt
 pub async fn initialize_core_tracker_services_with_config(
     config: &Configuration,
 ) -> (CoreTrackerServices, CoreHttpTrackerServices) {
+    initialize_core_tracker_services_with_torrent_repository(config, Arc::new(InMemoryTorrentRepository::default())).await
+}
+
+/// Builds the services around a caller-provided torrent repository, so a
+/// benchmark can choose how the swarm registry behind it is wired.
+pub async fn initialize_core_tracker_services_with_torrent_repository(
+    config: &Configuration,
+    in_memory_torrent_repository: Arc<InMemoryTorrentRepository>,
+) -> (CoreTrackerServices, CoreHttpTrackerServices) {
     let cancellation_token = CancellationToken::new();
     let configuration_instance_id = first_http_tracker_configuration_instance_id(config);
 
     let core_config = Arc::new(config.core.clone());
     let database = initialize_database(&config.core).await;
-    let in_memory_torrent_repository = Arc::new(InMemoryTorrentRepository::default());
     let db_downloads_metric_repository = Arc::new(DatabaseDownloadsMetricRepository::new(&database.torrent_metrics_store));
     let in_memory_whitelist = Arc::new(InMemoryWhitelist::default());
     let whitelist_authorization = Arc::new(WhitelistAuthorization::new(&config.core, &in_memory_whitelist));
@@ -109,6 +119,27 @@ pub async fn initialize_core_tracker_services_with_config(
             configuration_instance_id,
         },
     )
+}
+
+pub fn announce_service(
+    core_tracker_services: CoreTrackerServices,
+    core_http_tracker_services: CoreHttpTrackerServices,
+) -> AnnounceService {
+    AnnounceService::new(
+        core_tracker_services.core_config,
+        core_tracker_services.announce_handler,
+        core_tracker_services.authentication_service,
+        core_tracker_services.whitelist_authorization,
+        core_http_tracker_services.http_stats_event_sender,
+        core_http_tracker_services.configuration_instance_id,
+    )
+}
+
+/// # Panics
+///
+/// Panics if the fixed server address is not a valid HTTP service binding.
+pub fn sample_server_service_binding() -> ServiceBinding {
+    ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070)).unwrap()
 }
 
 fn first_http_tracker_configuration_instance_id(config: &Configuration) -> ConfigurationInstanceId {
