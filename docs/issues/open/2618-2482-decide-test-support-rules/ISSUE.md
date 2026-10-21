@@ -9,7 +9,7 @@ github-issue: 2618
 spec-path: docs/issues/open/2618-2482-decide-test-support-rules/ISSUE.md
 branch: "2618-2482-decide-test-support-rules-spec"
 related-pr: null
-last-updated-utc: "2026-10-21 16:38"
+last-updated-utc: "2026-10-21 18:50"
 semantic-links:
   skill-links:
     - create-issue
@@ -192,7 +192,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T1 | TODO | D1: run MV1 to MV4 in scratch workspaces and record them | `manual-verification-evidence.md` in this folder: exact commands, manifests, output, toolchain versions (stable, and 1.88.0, the MSRV). A packaging baseline on the real workspace (`cargo package --workspace --no-verify`, read-only). A result that contradicts the EPIC is recorded and raised with the maintainer. Scratch workspaces removed |
+| T1 | DONE | D1: run MV1 to MV4 in scratch workspaces and record them | `manual-verification-evidence.md` in this folder: exact commands, manifests, output, toolchain versions (stable, and 1.88.0, the MSRV). A packaging baseline on the real workspace (`cargo package --workspace --no-verify`, read-only). A result that contradicts the EPIC is recorded and raised with the maintainer. Scratch workspaces removed |
 | T2 | TODO | Summarize the evidence for the maintainer: per option, what the verification shows | Short table in the evidence file, sent to the maintainer through `ask_user` with a recommendation |
 | T3 | TODO | D2: write the ADR after the maintainer decides | New file in `docs/adrs/` with a timestamp name, registered in `docs/adrs/index.md`. Criteria; all of O1 to O8 and O1a to O1c with strengths, weaknesses and the reason for each rejection; one rule per pattern A to E; the ownership map; the mechanism for a package's own targets if O1 is chosen. Approved by the maintainer |
 | T4 | TODO | D3: add the DEC entry amending DEC-13 | New entry (DEC-18) at the top of `DECISIONS.md` linking the ADR and correcting the `tracker-core/src/test_helpers.rs` premise; a pointer line on DEC-13 (status line unchanged otherwise) |
@@ -222,10 +222,10 @@ Copilot trailer.
 - [x] Folder-style spec drafted in `docs/issues/drafts/2482-decide-test-support-rules/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer (josecelano, 2026-10-21, through the session's approval prompt)
 - [x] GitHub issue #2618 created, linked as a sub-issue of #2482, and its number added to this spec
-- [ ] Spec-only PR merged into `develop` before implementation
+- [x] Spec-only PR merged into `develop` before implementation (PR #2619)
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, pre-commit and pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md` (MV1 to MV4, by the implementing agent)
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
@@ -245,10 +245,22 @@ Append one line per meaningful update.
   (josecelano) approved the spec. Created issue #2618, linked it as a sub-issue of #2482 (checked
   with the issue's `parent_issue_url`), moved the spec to
   `docs/issues/open/2618-2482-decide-test-support-rules/` and updated the #2482 Subissues table.
+- 2026-10-21 17:14 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 1) - Spec-only PR
+  #2619 merged into `develop` (merge commit `7963007ee`, taken from GitHub's `mergeCommit`), at the
+  head the maintainer ACKed. Copilot reviewed once with no findings; the audit is
+  `docs/pr-reviews/pr-2619-review/PR-REVIEW.md`.
+- 2026-10-21 18:50 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 1) - Ran MV1 to MV4 and a
+  read-only packaging baseline in scratch workspaces on stable (cargo 1.99.1) and 1.88.0, and
+  recorded them in `manual-verification-evidence.md`; the scratch workspaces were removed. No
+  result contradicts the EPIC. New findings for the ADR: `cargo test --workspace` hides O1a and
+  O1b gaps when another member enables the feature; `--all-targets` enables dev-dependency
+  features for every target; a doc test cannot use `required-features`; a versioned
+  dev-dependency cycle between publishable crates cannot be packaged; Cargo 1.88.0 cannot run
+  `cargo package --workspace --no-verify` on this repository.
 
 ## Acceptance Criteria
 
-- [ ] AC1: `manual-verification-evidence.md` records MV1 to MV4 and the packaging baseline with
+- [x] AC1: `manual-verification-evidence.md` records MV1 to MV4 and the packaging baseline with
       exact commands, manifests, output and toolchain versions; every result that contradicts the
       EPIC is recorded and was raised with the maintainer; scratch workspaces are removed.
 - [ ] AC2: An ADR in `docs/adrs/`, registered in its index, records the criteria; all of O1 to O8
@@ -298,10 +310,10 @@ Dependent steps run one at a time.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| MV1 | Dev-dependency features stay out of normal builds | Scratch workspace with the repository's edition and resolver. Crate A has a `testing` feature gating a module; crate B enables it only from `[dev-dependencies]`. Run `cargo build -p B`, `cargo build --workspace`, `cargo tree -e features -p B`, and `cargo test -p B --no-run` | The feature is off in the normal builds and on when building B's tests | TODO | `manual-verification-evidence.md` section V1 |
-| MV2 | Dev-dependency cycle and type identity | Crate `support` depends on `a`; `a` dev-depends on `support`. Use a `support` type from `a`'s `#[cfg(test)]` code and from `a/tests/` | Records whether unit tests see mismatched types and integration tests do not | TODO | section V2 |
-| MV3 | Publishing with optional and dev dependencies | `cargo publish --dry-run` and `cargo package --workspace --no-verify` on a scratch crate with an optional path dependency, on one with a path-only dev-dependency on a `publish = false` crate, and on one with a versioned dev-dependency on it. Also `cargo package --list` and the packaged `Cargo.toml`. Baseline: `cargo package --workspace --no-verify` on this repository, read-only | Records which forms need the dependency on a registry and which ones packaging strips | TODO | section V3 |
-| MV4 | A crate's own targets using its own `testing` feature | Scratch crate with a `testing` feature and a gated module used from `src/` unit tests (`#[cfg(any(test, feature = "testing"))]`), `tests/`, `examples/` and a doc test. For O1a, O1b and O1c, run `cargo test -p <crate>`, `cargo test -p <crate> --all-features`, `cargo test --doc`, `cargo test --workspace --all-targets` and `cargo package --no-verify` | Per mechanism and target: compiles, runs, is skipped, or fails | TODO | section V4 |
+| MV1 | Dev-dependency features stay out of normal builds | Scratch workspace with the repository's edition and resolver. Crate A has a `testing` feature gating a module; crate B enables it only from `[dev-dependencies]`. Run `cargo build -p B`, `cargo build --workspace`, `cargo tree -e features -p B`, and `cargo test -p B --no-run` | The feature is off in the normal builds and on when building B's tests | DONE | `manual-verification-evidence.md` section V1 |
+| MV2 | Dev-dependency cycle and type identity | Crate `support` depends on `a`; `a` dev-depends on `support`. Use a `support` type from `a`'s `#[cfg(test)]` code and from `a/tests/` | Records whether unit tests see mismatched types and integration tests do not | DONE | section V2 |
+| MV3 | Publishing with optional and dev dependencies | `cargo publish --dry-run` and `cargo package --workspace --no-verify` on a scratch crate with an optional path dependency, on one with a path-only dev-dependency on a `publish = false` crate, and on one with a versioned dev-dependency on it. Also `cargo package --list` and the packaged `Cargo.toml`. Baseline: `cargo package --workspace --no-verify` on this repository, read-only | Records which forms need the dependency on a registry and which ones packaging strips | DONE | section V3 |
+| MV4 | A crate's own targets using its own `testing` feature | Scratch crate with a `testing` feature and a gated module used from `src/` unit tests (`#[cfg(any(test, feature = "testing"))]`), `tests/`, `examples/` and a doc test. For O1a, O1b and O1c, run `cargo test -p <crate>`, `cargo test -p <crate> --all-features`, `cargo test --doc`, `cargo test --workspace --all-targets` and `cargo package --no-verify` | Per mechanism and target: compiles, runs, is skipped, or fails | DONE | section V4 |
 
 Notes:
 
@@ -320,7 +332,7 @@ None. The scenarios run as recorded commands.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1   | TODO                   |          |
+| AC1   | DONE                   | [`manual-verification-evidence.md`](manual-verification-evidence.md), V1 to V4 and the packaging baseline; no result contradicts the EPIC; scratch workspaces removed (checked by the implementing agent, not yet by a reviewer) |
 | AC2   | TODO                   |          |
 | AC3   | TODO                   |          |
 | AC4   | TODO                   |          |
