@@ -56,7 +56,7 @@ All are unchanged. Three environment line counts changed (shown below). The new 
 | A. Public `testing`/`environment` module | `axum-http-server`, `axum-rest-api-server`, `udp-server`, `axum-health-check-api-server` | Yes, unconditionally | Yes | 9 normal dependency edges used only by these modules; test API in the public API |
 | B. Shared helper crate | `test-helpers` | No (every dependent uses it as a dev-dependency) | Yes, by 7 packages | 3 unpublished crates pulled in by 2 modules with one consumer |
 | C. Crate-private test helpers in `src/` | `tracker-core` | No (`#[cfg(test)]` inside), but declared `pub mod` | No | Empty public modules in the API; not reusable by the crate's own `tests/` |
-| D. Unconditional mocks | `tracker-core` (4 database traits) | Yes | Not used outside the crate | `mockall` is a normal dependency; `Mock*` types in the public API |
+| D. Unconditional mocks | `tracker-core` (4 database traits) | Yes | Partly: `MockTorrentMetricsStore` is used by `http-core` and `udp-core` unit tests; the other three mocks are not | `mockall` is a normal dependency; `Mock*` types in the public API |
 | E. Per-package `tests/` helpers | 7 packages plus the root crate | No | No | None; the expected place for single-package helpers |
 
 ## Pattern A: public `testing` and `environment` modules
@@ -154,7 +154,15 @@ integration tests, which keep separate fixtures in `tests/common/fixtures.rs`.
 `tracker-core` annotates four database traits with an unconditional `#[automock]`
 (`databases/traits/whitelist.rs`, `auth_keys.rs`, `torrent_metrics.rs`, `schema.rs`). `mockall`
 is therefore a normal dependency (it is also a dev-dependency), and the generated `Mock*` types
-are part of the public API. Only `tracker-core`'s own source uses them.
+are part of the public API. Three of them (`MockWhitelistStore`, `MockAuthKeyStore`,
+`MockSchemaMigrator`) are used only by `tracker-core`'s own source. `MockTorrentMetricsStore` is
+also imported from `torrust_tracker_core::databases` by `#[cfg(test)]` modules of four files in
+two other packages: `http-core` (`services/announce.rs`, `services/scrape.rs`) and `udp-core`
+(`services/announce.rs`, `services/scrape.rs`). So it is shared test support across packages, not
+a crate-private mock, and `#[cfg_attr(test, automock)]` alone would break those four modules.
+
+Corrected on 2026-10-21 by #2618 (the earlier text said only `tracker-core`'s own source uses the
+mocks, which was not checked against the other packages).
 
 `events` does this test-only: `#[cfg_attr(test, automock(…))]` with `mockall` as a
 dev-dependency. `http-core`, `udp-core`, `udp-server` and `swarm-coordination-registry` also keep
