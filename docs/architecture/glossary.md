@@ -9,6 +9,7 @@ semantic-links:
     - docs/features/shutdown-process/task-inventory.md
     - docs/adrs/20260727000000_events_are_objective_facts.md
     - docs/adrs/20260902074438_adopt_supervised_cancellation_tree_for_shutdown.md
+    - docs/adrs/20261021184946_order_shutdown_by_event_flow_and_drain_event_listeners.md
     - docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
     - issue #2410
     - issue #2413
@@ -23,9 +24,10 @@ This glossary defines the terms the tracker's runtime-architecture and shutdown
 documents use. Each term has one definition here. Other documents link to this
 file instead of redefining a term.
 
-The glossary describes the current code unless an entry is marked **Planned**.
-A planned entry belongs to the shutdown-order design of sub-EPIC #2410 (SI-22),
-which is not implemented yet. This file does not describe the event topology.
+The glossary describes the current code, including the shutdown order of
+sub-EPIC #2410 (SI-22), which the
+[shutdown-order ADR](../adrs/20261021184946_order_shutdown_by_event_flow_and_drain_event_listeners.md)
+records. This file does not describe the event topology.
 [`events.md`](events.md) owns it, and the
 [task inventory](../features/shutdown-process/task-inventory.md#event-producer-consumer-inventory)
 lists every producer and consumer.
@@ -51,10 +53,13 @@ lists every producer and consumer.
   in the task inventory publishes events, so there is none today. Event flow
   must have no cycles.
 - **Loss window (a)**: events already queued in a listener's channel when the
-  listener stops. Today a cancelled listener returns at once and drops them.
+  listener stops. A cancelled listener drains them within its drain timeout
+  and reports what it processed, lost to lag, and left over.
 - **Loss window (b)**: events published after every consumer of their bus has
-  stopped, for example by a request that is still draining. Today they are
-  dropped.
+  stopped, for example by a request that is still draining. Producers stop
+  before the listeners of their buses, so a listener is cancelled only after
+  every component that publishes on its buses has completed or the shared
+  deadline has aborted it.
 
 ## Components and ownership
 
@@ -71,8 +76,8 @@ lists every producer and consumer.
 - **Task**: a Tokio task, where code executes. A task can only finish or be
   aborted. It is never a node of the stop-order graph.
 - **Top-level component** (also called a **direct component**): a component
-  that `JobManager` supervises directly. Today `JobManager::spawn` runs each
-  one on exactly one task in its `JoinSet`. It is the unit of independent
+  that `JobManager` supervises directly. Today `JobManager::spawn` and
+  `JobManager::spawn_with` run each one on exactly one task in its `JoinSet`. It is the unit of independent
   shutdown, and the only kind of node in the stop-order graph (the boundary
   rule).
 - **Sub-component**: a component owned by another component. Its parent stops
@@ -99,8 +104,10 @@ lists every producer and consumer.
 - **`JobManager`**: the application supervisor in `src/bootstrap/jobs/manager.rs`.
   It owns top-level components only, not their children. It applies the shared
   deadline, then aborts and joins what remains. It issues each top-level
-  component its own stop token through a reservation (`reserve`, then `spawn`)
-  and cancels them all at once. **Planned**: it enforces the stop order.
+  component its own stop token through a reservation (`reserve`, then `spawn`
+  or `spawn_with`) and enforces the stop order: `cancel()` asks the components
+  that wait for nobody to stop, and `wait_for_all` asks each of the others once
+  the components it waits for have completed. It knows nothing about events.
 - **Composition root** (bootstrap): `src/app.rs` and `src/bootstrap/`, where
   services and components are created and wired. It is the only place that
   knows both producers and consumers, so it is the only place that declares the
@@ -115,18 +122,19 @@ lists every producer and consumer.
   `DropGuard` (issues #2459 and #2471).
 - **Completion** (outcome): proof that a component stopped. Its top-level task
   returned or was aborted, and `JobManager` recorded a `JobStatus`:
-  `Completed`, `Cancelled`, `Failed`, `Panicked`, or `Aborted`. **Planned**: a
-  producer's completion is what allows its consumers to be cancelled.
+  `Completed`, `Cancelled`, `Failed`, `Panicked`, or `Aborted`. A producer's
+  completion, in any of those states, is what allows its consumers to be
+  cancelled.
 - **Drain**: the work a component does after a stop request: an HTTP or UDP
-  server finishes the requests it already accepted, and **Planned** a listener
-  processes the events queued for it. What a drain timeout does when it expires
+  server finishes the requests it already accepted, and a listener processes the
+  events queued for it. What a drain timeout does when it expires
   depends on the component (see **Drain timeout**).
 - **Drain timeout**: a component-specific drain policy. Two kinds exist, and
   they differ at expiry:
   - A **server drain deadline** is a hard limit. The HTTP server forces shutdown
     when its 90-second timeout passes, and the UDP server aborts the request
     processors still running when its 5-second deadline passes.
-  - **Planned**: a **listener admission timeout** is checked only between
+  - A **listener admission timeout** is checked only between
     events, so it never interrupts a handler that is running. Each listener gets
     its budget injected through its constructor, and a later issue (SI-20) aligns
     the aggregate budgets.
@@ -145,9 +153,12 @@ lists every producer and consumer.
   before the shared deadline, with no forced abort. Completion alone does not
   prove that every event was persisted, so read the drain and failure logs.
 - **Stop-before edge** and **predecessor**: "P stops before C" is a stop-before
-  edge, and P is a predecessor of C. **Planned**: an edge may point only to
-  components that are already registered, so the graph has no cycles.
-- **Event-flow registry** (`EventFlows`): **Planned**: a registry in
-  `src/bootstrap/` that records which components publish on and consume from
-  each bus. It derives the stop-before edges, and it rejects a consumer
-  registered after a producer of its bus.
+  edge (`StopBefore` in `JobManager::spawn_with`), and P is a predecessor of C.
+  An edge may point only to components reserved earlier in the same manager, so
+  the graph has no cycles. When P fails or panics, C is still released and P's
+  failure stays in the outcomes.
+- **Event-flow registry** (`EventFlows`): a registry in
+  `src/bootstrap/event_flows.rs` that records which components consume from each
+  bus. It derives the stop-before edges of a producer from the buses it
+  publishes on, and it rejects a consumer registered after a producer of its
+  bus.

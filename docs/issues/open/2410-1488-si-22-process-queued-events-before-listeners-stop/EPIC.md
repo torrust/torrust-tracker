@@ -6,7 +6,7 @@ epic: 1488
 github-issue: 2410
 spec-path: docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-21 18:50"
+last-updated-utc: "2026-10-21 18:55"
 semantic-links:
   skill-links:
     - create-issue
@@ -1687,196 +1687,17 @@ SI-17 established (refresh of 2026-10-07):
 
 ## Diagrams (D16)
 
-Drawn from the code on 2026-10-01; T1 revalidates them, and every agreed
-design change (D14) updates them. They move to `docs/architecture/` in T10.
+The five diagrams were drawn from the code on 2026-10-01 and moved to stable
+documents in #2416 T10, updated to the final implementation (the startup
+sequence now shows `add_consumer` before `spawn`, and producers use
+`spawn_with`). The stable documents are their single source from now on:
 
-### 1. Event data flow
-
-Which components publish on which bus, through which shared services, and
-which listeners consume each bus. The stop-before edges in diagram 2 follow
-from it: every producer of a bus stops before every consumer of that bus.
-
-```mermaid
-flowchart LR
-    subgraph Producers["Producer components"]
-        HTTP["HTTP tracker instance (xN)"]
-        UDP["UDP tracker instance (xM)"]
-        CLEAN["Torrent cleanup"]
-    end
-    subgraph Services["Shared services (hold bus senders)"]
-        HCS["http-core announce and scrape services"]
-        TCS["tracker-core services and swarm registry"]
-        UCS["UdpTrackerCoreServices"]
-        USS["UdpTrackerServerServices"]
-    end
-    subgraph Buses["Event buses"]
-        BH(("http-core"))
-        BS(("swarm"))
-        BUC(("udp-core"))
-        BUS(("udp-server"))
-    end
-    subgraph Listeners["Consumer components (listeners)"]
-        LH["http-core listener"]
-        LS["swarm listener (if tracker_usage_statistics)"]
-        LTI["tracker-core in-memory listener (if tracker_usage_statistics)"]
-        LTP["tracker-core persistent listener (if persistent_torrent_completed_stat)"]
-        LUC["udp-core listener"]
-        udpServerStats["udp-server statistics listener"]
-        udpServerBanning["udp-server banning listener"]
-    end
-    HTTP --> HCS --> BH
-    HTTP --> TCS
-    UDP --> UCS --> BUC
-    UDP --> USS --> BUS
-    UDP --> TCS
-    CLEAN --> TCS --> BS
-    BH --> LH
-    BS --> LS & LTI & LTP
-    BUC --> LUC
-    BUS --> udpServerStats & udpServerBanning
-```
-
-The two UDP-server listeners start only when UDP trackers start. The udp-core
-listener starts unconditionally, like the http-core listener.
-
-### 2. Supervision tree and stop-before edges (after SI-22)
-
-Solid arrows are ownership: `JobManager` owns the top-level components, and
-each component owns and joins its child tasks. Dashed arrows are the
-stop-before edges that `EventFlows` derives. Components without edges stop
-as soon as shutdown starts.
-
-```mermaid
-flowchart TD
-    JM["JobManager (supervisor)"]
-    subgraph TopLevel["Top-level components (each with its own token)"]
-        HTTP["HTTP tracker instance (xN)"]
-        UDP["UDP tracker instance (xM)"]
-        CLEAN["Torrent cleanup"]
-        LH["http-core listener"]
-        LSW["swarm-bus listeners (up to 3)"]
-        LUC["udp-core listener"]
-        LUS["udp-server listeners (2)"]
-        REST["REST API"]
-        HEALTH["Health-check API"]
-        METRICS["Activity metrics updater"]
-        BAN["udp_ban_cleanup (legacy, root token)"]
-    end
-    JM --> HTTP & UDP & CLEAN & LH & LSW & LUC & LUS & REST & HEALTH & METRICS & BAN
-    HTTP --> httpTasks["server task + drain controller"]
-    UDP --> udpTasks["receive loop + request processors"]
-    REST --> restTasks["server task + drain controller"]
-    HEALTH --> healthTasks["server task + drain controller"]
-    HTTP -. "stops before" .-> LH
-    HTTP -. "stops before" .-> LSW
-    UDP -. "stops before" .-> LUC
-    UDP -. "stops before" .-> LUS
-    UDP -. "stops before" .-> LSW
-    CLEAN -. "stops before" .-> LSW
-```
-
-### 3. Shutdown sequence (after SI-22)
-
-A listener is cancelled as soon as every producer of its buses has completed;
-for example, the UDP listeners can stop while an HTTP drain is still running.
-
-```mermaid
-sequenceDiagram
-    participant Operator
-    participant Main as main()
-    participant JM as JobManager
-    participant Prod as Producers (HTTP, UDP, torrent cleanup)
-    participant Other as Components without edges
-    participant Lis as Event listeners
-    Operator->>Main: SIGTERM or SIGINT
-    Main->>JM: cancel()
-    JM->>Prod: cancel (no predecessors)
-    JM->>Other: cancel (no predecessors)
-    Note over Prod: Drain in-flight requests and keep publishing events
-    Prod-->>JM: completed
-    Other-->>JM: completed
-    JM->>Lis: cancel each listener once all its producers have completed
-    Note over Lis: try_recv until Empty or the drain timeout, then log counts
-    Lis-->>JM: Cancelled, with processed, lagged, and leftover counts
-    alt shared deadline expires first
-        JM->>Lis: abort and join what remains
-    end
-    JM-->>Main: named outcomes
-    Main-->>Operator: process exits
-```
-
-### 4. Startup sequence (after SI-22)
-
-The instantiation tree in time order, and the mirror of diagram 3. The
-construction phase builds services through constructors, in dependency order,
-with no lifecycle. The execution phase registers components: every listener
-first, so no event is published before its consumer exists, then the
-producers. Shutdown stops them in reverse.
-
-```mermaid
-sequenceDiagram
-    participant Main as main()
-    participant Boot as bootstrap
-    participant AC as AppContainer
-    participant JM as JobManager
-    participant Flows as EventFlows
-    Main->>Boot: setup
-    Boot->>AC: initialize()
-    Note over AC: Construction phase: package containers create the event buses and the shared services that hold their senders
-    Main->>Boot: start_jobs()
-    loop each started listener
-        Boot->>JM: reserve(name)
-        JM-->>Boot: id and own token
-        Boot->>AC: take a receiver from the listener's bus
-        Boot->>JM: spawn(reservation, listener runner)
-        Boot->>Flows: add_consumer(bus, id)
-    end
-    loop each producer (HTTP and UDP instances, torrent cleanup)
-        Boot->>JM: reserve(name)
-        JM-->>Boot: id and own token
-        Boot->>AC: get the shared services (servers bind their socket)
-        Boot->>Flows: consumers_of(buses)
-        Flows-->>Boot: consumer ids
-        Boot->>JM: spawn(reservation, runner, StopBefore(consumer ids))
-    end
-    Note over Boot,JM: REST API, health check, activity metrics, and udp_ban_cleanup register without edges
-    Boot-->>Main: JobManager
-```
-
-### 5. Boundary of one component
-
-Diagram 2 shows every component; this one zooms into one, an HTTP tracker
-instance, to show where a component ends (D8). Everything inside the box
-stops on the component's one token and is joined before the component reports
-its outcome. Everything outside is shared: the component only uses it, and
-never stops it.
-
-```mermaid
-flowchart LR
-    JM["JobManager"]
-    subgraph Component["Boundary of one top-level component: an HTTP tracker instance"]
-        direction TB
-        Token["own cancellation token"]
-        Runner["component runner (top-level task)"]
-        Server["server task"]
-        Drain["drain controller"]
-        Token --> Runner
-        Runner -->|owns and joins| Server
-        Runner -->|owns and joins| Drain
-    end
-    subgraph Shared["Shared: outside every component, no lifecycle"]
-        direction TB
-        HCont["HTTP instance container"]
-        HCS["http-core services"]
-        TCS["tracker-core services and swarm registry"]
-        Buses(("http-core and swarm buses"))
-    end
-    JM -->|issues| Token
-    JM -->|owns and joins| Runner
-    Server -. uses .-> HCont
-    HCont -. holds .-> HCS & TCS
-    HCS & TCS -. publish on .-> Buses
-```
+1. Event data flow: [Events Architecture](../../../architecture/events.md#event-data-flow-and-shutdown-order).
+2. Supervision tree and stop-before edges:
+   [Application Jobs](../../../architecture/application-jobs.md#supervision-tree-and-stop-order).
+3. Shutdown sequence: [Application Jobs](../../../architecture/application-jobs.md#shutdown-sequence).
+4. Startup sequence: [Application Jobs](../../../architecture/application-jobs.md#startup-sequence).
+5. Boundary of one component: [Application Jobs](../../../architecture/application-jobs.md#boundary-of-one-component).
 
 ## Architectural Decisions
 
@@ -2317,6 +2138,7 @@ avoids duplicating the full workflow in four drafts:
 - 2026-10-21 17:09 UTC - GitHub Copilot (Claude Opus 5.5) - #2416 T8 design-review checkpoint passed: the maintainer approved T8 and four additions (public `waiting_components()`, `ComponentId` naming its manager, the HTTP test helper and its `[[test]]` binary, a `BTreeMap` registry), recorded as Design Discussion Record entry 31; `adr-draft.md` sections 3 and 4 and the Chosen Design `JobManager` section are updated in the same change (D14, D15). T8 is `DONE` after its commit.
 - 2026-10-21 18:47 UTC - GitHub Copilot (Claude Opus 5.5) - #2416 T9 implemented and approved by the maintainer: both test environments stop the server first (D20), with record entry 32 for the guard detail. HTTP has a deterministic red/green late-event test; UDP does not (evidence V4). `adr-draft.md` section 8 updated in the same change.
 - 2026-10-21 18:50 UTC - GitHub Copilot (Claude Opus 5.5) - #2416 T10: the ADR draft moved from this folder to `docs/adrs/20261021184946_order_shutdown_by_event_flow_and_drain_event_listeners.md` (D15), the cancellation-tree ADR is marked `Superseded by` it, and `docs/adrs/index.md` lists it. The draft was bare-mentioned as `adr-draft.md` in closed specs and in earlier entries of this record; those are history and are not rewritten, and no link pointed to the draft.
+- 2026-10-21 18:55 UTC - GitHub Copilot (Claude Opus 5.5) - #2416 T10: the five diagrams (D16) moved to `docs/architecture/events.md` (event data flow, which now also documents the swarm bus, its producers, and its three listeners) and `docs/architecture/application-jobs.md` (supervision tree, startup and shutdown sequences, component boundary), updated to the final implementation; this record keeps links instead of copies. The jobs doc, glossary, task inventory, shutdown feature README, and shutdown architecture examples describe the final implementation.
 
 ## Acceptance Criteria
 

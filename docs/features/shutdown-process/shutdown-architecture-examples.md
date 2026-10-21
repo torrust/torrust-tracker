@@ -1,12 +1,14 @@
 ---
 doc-type: feature-supporting-analysis
 status: draft
-last-updated-utc: 2026-09-01
+last-updated-utc: 2026-10-21
 semantic-links:
   related-artifacts:
     - docs/features/shutdown-process/README.md
     - docs/features/shutdown-process/questions.md
     - docs/features/shutdown-process/task-inventory.md
+    - docs/architecture/application-jobs.md
+    - docs/adrs/20261021184946_order_shutdown_by_event_flow_and_drain_event_listeners.md
     - src/main.rs
     - src/bootstrap/jobs/manager.rs
     - packages/axum-server/src/signals.rs
@@ -163,8 +165,14 @@ the application's top-level supervisor: it owns named top-level task handles,
 initiates shutdown, awaits outcomes concurrently under one overall deadline,
 and reports completion, failure, and timeout by component name.
 
-Its root `CancellationToken` is the normal shutdown-request mechanism. Each
-long-running component receives a child token. Cancellation requests that a
+`CancellationToken` is the normal shutdown-request mechanism. `JobManager` issues
+each top-level component its own token (issue #2415) instead of a child of one
+root token, so that it can cancel components at different times: event listeners
+are cancelled only after the components that publish to them have completed (the
+[shutdown-order ADR](../../adrs/20261021184946_order_shutdown_by_event_flow_and_drain_event_listeners.md);
+the current supervision tree and sequences are in
+[Application Jobs](../../architecture/application-jobs.md)). Only the legacy
+jobs still use a root token. Cancellation requests that a
 component stop; it does not itself prove the component stopped. Every component
 is responsible for propagating cancellation to its children, applying its own
 graceful-stop policy, and joining or deliberately aborting every child it
@@ -183,15 +191,13 @@ sequenceDiagram
     participant Operator
     participant Main as main() signal boundary
     participant Supervisor as JobManager supervisor
-    participant Root as root CancellationToken
     participant HttpJob as HTTP managed job
     participant HttpServer as HTTP server task
     participant Drain as graceful-drain controller
 
     Operator->>Main: SIGTERM
     Main->>Supervisor: shutdown()
-    Supervisor->>Root: cancel()
-    Root-->>HttpJob: component child token cancelled
+    Supervisor->>HttpJob: cancel the component's own token
     HttpJob->>HttpServer: request component shutdown
     HttpServer->>Drain: start graceful connection drain
     Drain-->>HttpServer: drain completed or component deadline reached
@@ -208,7 +214,6 @@ sequenceDiagram
     participant Operator
     participant Main as main() signal boundary
     participant Supervisor as JobManager supervisor
-    participant Root as root CancellationToken
     participant UdpServer as UDP server task
     participant Receive as UDP receive loop
     participant BanCleanup as UDP IP-ban cleanup job
@@ -216,9 +221,8 @@ sequenceDiagram
 
     Operator->>Main: SIGTERM
     Main->>Supervisor: shutdown()
-    Supervisor->>Root: cancel()
-    Root-->>UdpServer: component child token cancelled
-    Root-->>BanCleanup: application token cancelled
+    Supervisor->>UdpServer: cancel the component's own token
+    Supervisor->>BanCleanup: cancel the legacy root token
     UdpServer->>Receive: stop accepting new UDP packets
     UdpServer->>Requests: apply documented in-flight-request policy
     Receive-->>UdpServer: receive loop joined
@@ -233,12 +237,12 @@ sequenceDiagram
 
 ```text
 main() [only OS-signal boundary]
-└─ JobManager supervisor [root token; named top-level task handles]
-   ├─ HTTP component child token
+└─ JobManager supervisor [legacy root token; named top-level task handles]
+   ├─ HTTP component token (issued by JobManager)
    │  └─ HTTP managed job [joined by JobManager]
    │     └─ HTTP server task [joined by HTTP job]
    │        └─ graceful-drain controller [joined by HTTP server]
-   └─ UDP component child token
+   └─ UDP component token (issued by JobManager)
       └─ UDP managed job [joined by JobManager]
          └─ UDP server task [joined by UDP job]
             ├─ receive loop [joined by UDP server]
@@ -250,8 +254,9 @@ main() [only OS-signal boundary]
 
 Standalone server environments must provide the same deterministic, in-process
 lifecycle behavior without depending on `JobManager`. Their `stop()` API
-requests cancellation through their component root token and awaits their owned
-tasks. A standalone binary, rather than the library, maps OS signals to that
+requests cancellation through their own component tokens and awaits their owned
+tasks, stopping the server before its event listeners (the HTTP and UDP test
+environments do, since issue #2416). A standalone binary, rather than the library, maps OS signals to that
 method. Tests call `stop()` or cancel an injected token directly.
 
 ### Why This Is the Recommended Target

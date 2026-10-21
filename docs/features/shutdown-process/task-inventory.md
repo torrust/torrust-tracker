@@ -1,7 +1,7 @@
 ---
 doc-type: feature-supporting-analysis
 status: verified
-last-updated-utc: "2026-10-20 21:08"
+last-updated-utc: "2026-10-21 18:52"
 semantic-links:
   related-artifacts:
     - docs/features/shutdown-process/README.md
@@ -11,7 +11,10 @@ semantic-links:
     - issue #1586
     - issue #1588
     - docs/architecture/events.md
+    - docs/architecture/application-jobs.md
+    - docs/adrs/20261021184946_order_shutdown_by_event_flow_and_drain_event_listeners.md
     - src/app.rs
+    - src/bootstrap/event_flows.rs
     - src/bootstrap/jobs/manager.rs
     - src/main.rs
     - packages/axum-server/src/signals.rs
@@ -33,8 +36,13 @@ and third-party framework internals whose exact task topology is not exposed.
 `SIGTERM`; it then calls `JobManager::cancel()` and awaits all manager-owned
 work under one shared ten-second deadline. Since issue #2415, every direct
 component gets its own cancellation token from `JobManager::reserve`, not a
-child of a shared root token; `cancel()` cancels all of them, and the legacy
-root token, at once. The supervisor owns direct top-level component futures
+child of a shared root token. Since issue #2416 the shutdown is ordered:
+`cancel()` cancels the legacy root token and the components that wait for no
+other component, and `wait_for_all` cancels each event listener once every
+component that publishes on its buses has completed (see
+[Application Jobs](../../architecture/application-jobs.md) and the
+[shutdown-order ADR](../../adrs/20261021184946_order_shutdown_by_event_flow_and_drain_event_listeners.md)).
+The supervisor owns direct top-level component futures
 only. Components own nested tasks and must join or
 deliberately abort them before returning; `JobManager` never collects nested
 handles.
@@ -72,7 +80,7 @@ torrust-tracker process (Tokio runtime; main)
 
 ```mermaid
 flowchart TD
-    main["main(): SIGINT / Unix SIGTERM"] --> cancel["JobManager.cancel(): every component token and the legacy root token"]
+    main["main(): SIGINT / Unix SIGTERM"] --> cancel["JobManager.cancel(): the legacy root token and the components that wait for nobody; event listeners wait for their producers"]
     cancel --> direct["Direct top-level JoinSet components"]
     direct --> listeners["Token-aware event listeners"]
     direct --> cleanup["Torrent cleanup (conditional)"]
@@ -100,20 +108,20 @@ each row.
 
 | Work                          | Cardinality | Ownership        | Current shutdown            | Roadmap                |
 | ----------------------------- | ----------- | ---------------- | --------------------------- | ---------------------- |
-| Swarm-registry listener       | 0–1         | Direct `JoinSet` | Own token                   | —                      |
-| Tracker-core listeners        | 0–2         | Direct `JoinSet` | Own token                   | —                      |
-| HTTP-core listener            | 1           | Direct `JoinSet` | Own token                   | —                      |
-| UDP-core listener             | 1           | Direct `JoinSet` | Own token                   | —                      |
-| UDP-server listeners          | 0–2         | Direct `JoinSet` | Own token                   | —                      |
-| UDP instances                 | N bindings  | Direct `JoinSet` | Own token                   | SI-14 complete         |
+| Swarm-registry listener       | 0–1         | Direct `JoinSet` | Own token, after producers  | SI-22 complete         |
+| Tracker-core listeners        | 0–2         | Direct `JoinSet` | Own token, after producers  | SI-22 complete         |
+| HTTP-core listener            | 1           | Direct `JoinSet` | Own token, after producers  | SI-22 complete         |
+| UDP-core listener             | 1           | Direct `JoinSet` | Own token, after producers  | SI-22 complete         |
+| UDP-server listeners          | 0–2         | Direct `JoinSet` | Own token, after producers  | SI-22 complete         |
+| UDP instances                 | N bindings  | Direct `JoinSet` | Own token, before listeners | SI-14, SI-22 complete  |
 | UDP request processors        | N datagrams | Component-owned  | Joined, 5 s drain           | SI-15 complete         |
-| HTTP instances                | N bindings  | Direct `JoinSet` | Own token                   | SI-11 complete         |
+| HTTP instances                | N bindings  | Direct `JoinSet` | Own token, before listeners | SI-11, SI-22 complete  |
 | REST API                      | 0–1         | Direct `JoinSet` | Own token                   | SI-12 complete         |
 | Health-check API              | 1           | Direct `JoinSet` | Own token                   | SI-13 complete, SI-21  |
 | HTTP/REST drain controllers   | Per server  | Component-owned  | Component token, 90 s drain | SI-11, SI-12 complete  |
 | Health-check drain controller | 1           | Component-owned  | Component token, 5 s drain  | SI-13 complete         |
 | Health-check request work     | Per request | Framework-owned  | Request lifetime            | —                      |
-| Torrent cleanup               | 0–1         | Direct `JoinSet` | Own token                   | SI-4 complete          |
+| Torrent cleanup               | 0–1         | Direct `JoinSet` | Own token, before listeners | SI-4, SI-22 complete   |
 | Peers inactivity update       | 0–1         | Direct `JoinSet` | Own token                   | SI-5 complete          |
 | UDP IP-ban cleanup            | 0–1         | Legacy registry  | Root token                  | Periodic-job migration |
 
@@ -207,10 +215,10 @@ and the proposed normalization stay in [`events.md`][events-architecture];
 this section does not repeat them. Everything below was read from source on
 2026-10-16 at `develop` commit `702cff6cc` and was not run.
 
-[`events.md`][events-architecture] documents three buses (HTTP core, UDP core,
-UDP server). It omits the swarm bus, which carries the swarm-coordination
-registry events consumed by three listeners. Reconciling the two documents is
-left to the sub-EPIC's later documentation task.
+[`events.md`][events-architecture] documents all four buses, including the swarm
+bus, which carries the swarm-coordination registry events consumed by three
+listeners, and the data-flow diagram (issue #2416 added them; issue #2413
+found the omission).
 
 ### Channel ownership
 
@@ -240,6 +248,18 @@ through `EventBus::receiver()`), before the runner future is spawned.
 services, the HTTP instances, torrent cleanup, the inactivity update, the REST
 API, and the health-check API (`src/app.rs`). A request can only arrive after
 the listener of its bus has subscribed.
+
+Since issue #2416 the same bootstrap declares the stop order. Each started
+listener is registered as a consumer of its bus in `EventFlows`
+(`src/bootstrap/event_flows.rs`), and each HTTP instance, UDP instance, and the
+torrent cleanup job is spawned with `StopBefore` edges to the consumers of the
+buses it publishes on (`start_http_instance`, `start_udp_instance`,
+`start_torrent_cleanup` in `src/app.rs`): the HTTP instance to the http-core and
+swarm listeners, the UDP instance to the udp-core, udp-server, and swarm
+listeners, and torrent cleanup to the swarm listeners. The REST API, the
+health-check API, the activity-metrics job, and `udp_ban_cleanup` have no edges.
+`JobManager::waiting_components()` returns the resulting waiting relation, and
+the application test asserts it.
 
 ### Components that publish nothing
 
@@ -281,8 +301,8 @@ themselves.
 
 | Environment | Listeners | Subscription and ownership |
 | --- | --- | --- |
-| HTTP tracker (`packages/axum-http-server/src/testing/environment.rs`) | One: the HTTP-core statistics listener | Subscribes before the server starts; spawns the listener after a successful start; the `Running` state holds a `DropGuard` (`cancel_on_drop`) on its own token. |
-| UDP tracker (`packages/udp-server/src/testing/environment.rs`) | Three: UDP-core statistics, UDP-server statistics, and UDP-server banning | Subscribes all three receivers before the server starts; the `Running` state holds a `DropGuard` (`cancel_on_drop`) on its own token. |
+| HTTP tracker (`packages/axum-http-server/src/testing/environment.rs`) | One: the HTTP-core statistics listener | Subscribes before the server starts; spawns the listener after a successful start; the `Running` state holds a `DropGuard` for the server token and another for the listener token (`cancel_server_on_drop`, `cancel_listener_on_drop`). `stop()` cancels and joins the server and its drain controller, then the listener (issue #2416). |
+| UDP tracker (`packages/udp-server/src/testing/environment.rs`) | Three: UDP-core statistics, UDP-server statistics, and UDP-server banning | Subscribes all three receivers before the server starts; the `Running` state holds a `DropGuard` for the receive-loop token and another for the one token of the three listeners (`cancel_server_on_drop`, `cancel_listeners_on_drop`). `stop()` cancels and joins the receive loop, then the listeners (issue #2416). |
 | REST API and health-check API | None | These environments run no event listener. |
 
 Neither tracker environment runs a swarm-bus listener, although announce
@@ -307,7 +327,7 @@ exist, because "D Versus F" already names torrent cleanup as a swarm producer.
 | Torrent cleanup publishes on the swarm bus (`PeerRemoved`, `TorrentRemoved`) | Confirmed; indirectly, through `remove_inactive_peers` and `remove_peerless_torrents` (above). |
 | The activity-metrics job, the REST API, the health-check API, and `udp_ban_cleanup` publish nothing | Confirmed (see "Components that publish nothing"). |
 
-Counts rechecked on 2026-10-16: `src/app.rs` has 13 `job_manager.spawn` sites
+Counts rechecked on 2026-10-16 (before issues #2415 and #2416): `src/app.rs` has 13 `job_manager.spawn` sites
 (a plain `spawn` search reports 14 lines because the extra match is in a
 test at line 654), 14 token sites and 4 `child_token`
 calls. There is one production `Receiver` implementation plus six test
