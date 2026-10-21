@@ -9,7 +9,7 @@ github-issue: 2606
 spec-path: docs/issues/open/2606-2278-validate-audit-record-merged-fix-subjects/ISSUE.md
 branch: "2606-validate-audit-record-merged-fix-subjects-spec"
 related-pr: null
-last-updated-utc: "2026-10-21 11:03"
+last-updated-utc: "2026-10-21 11:52"
 semantic-links:
   skill-links:
     - create-issue
@@ -117,8 +117,9 @@ The script runs short synchronous child processes (`git`, `gh`) and holds no res
 Follows [`fix-bug`](../../../../.github/skills/dev/debugging/fix-bug/SKILL.md):
 
 - analysis: the defect and hypothesis are in Background;
-- real-artifact reproduction: the commands above against the merged audits of PR #2584 and
-  PR #2599 (scenario M1), recorded in `manual-verification-evidence.md`;
+- real-artifact reproduction: **Reproduced** on 2026-10-21 against the merged audits of PR #2584 and
+  PR #2599 (scenarios M1 and M2). Commands, runtime versions, ref states, and output are in
+  `manual-verification-evidence.md` sections V1 and V2. The final green recheck is pending;
 - regression-test boundary: a unit test at the subject-set function (see below);
 - red test evidence, production fix, green evidence, and a like-for-like recheck of M1.
 
@@ -145,7 +146,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                                                     | Notes / Expected Output                                           |
 | --- | ------ | ------------------------------------------------------------------------ | ----------------------------------------------------------------- |
-| T1  | TODO   | Reproduce the failure on the merged audits (M1, red)                     | Commands and output in `manual-verification-evidence.md`          |
+| T1  | DONE   | Reproduce the failure on the merged audits (M1, M2, red)                 | Reproduced; `manual-verification-evidence.md` sections V1 and V2  |
 | T2  | TODO   | Add the failing unit tests with `git` and `gh` faked                     | Tests fail for the current code                                   |
 | T3  | TODO   | Build the subject set from the three sources                             | Tests pass; `check_row` and the output contract are unchanged     |
 | T4  | TODO   | Update the script help text and the `process-pr-review` skill            | The skill describes the three sources and the `--base` role       |
@@ -186,6 +187,9 @@ Use Conventional Commits with the `pr-reviews` scope and sign every commit with 
 - 2026-10-21 11:03 UTC - GitHub Copilot (Claude Sonnet 5.5) - The maintainer approved the draft. Created
   issue #2606, linked it as a sub-issue of EPIC #2278 (`parent_issue_url` verified), and moved this
   specification to `docs/issues/open/2606-2278-validate-audit-record-merged-fix-subjects/`.
+- 2026-10-21 11:51 UTC - GitHub Copilot (Claude Sonnet 5.5) - Addressed Copilot finding F1 on PR #2607: created
+  `manual-verification-evidence.md` with the reproduction runs made at 11:50 UTC (V1, V2; outcome
+  Reproduced), and marked T1 done.
 
 ## Acceptance Criteria
 
@@ -215,8 +219,8 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario                                         | Human-oriented command/steps                                                                                                                                | Expected Result                                          | Status | Evidence                                     |
 | --- | ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- | ------ | -------------------------------------------- |
-| M1  | Merged audits pass with a current base           | `git fetch torrust develop`, then `validate-audit-record.py --pr-number 2584 --base torrust/develop` and the same for `2599`                                | Red before the fix (4 failures), green after, exit 0     | TODO   | `manual-verification-evidence.md` section V1 |
-| M2  | Result is independent of the local `develop`     | Run M1 with `--base develop` while local `develop` is behind and again after `git pull --ff-only torrust develop`                                          | Same result in both states                               | TODO   | `manual-verification-evidence.md` section V2 |
+| M1  | Merged audits pass with a current base           | `git fetch torrust develop`, then `validate-audit-record.py --pr-number 2584 --base torrust/develop` and the same for `2599`                                | Red before the fix (4 failures), green after, exit 0     | IN_PROGRESS | Red: `manual-verification-evidence.md` section V1; green: pending |
+| M2  | Result is independent of the local `develop`     | Run M1 with `--base develop` while local `develop` is behind and again after `git pull --ff-only torrust develop`                                          | Same result in both states                               | IN_PROGRESS | Dependency on the base: `manual-verification-evidence.md` section V2; recheck: pending |
 | M3  | A bogus subject is still rejected                | Copy the PR #2599 audit, change the `Resolution reference` to a subject that exists in no commit, run the validator with `--audit-file`                    | Exit 1 with one `not a commit subject` failure           | TODO   | `manual-verification-evidence.md` section V3 |
 
 Notes:
@@ -230,7 +234,7 @@ Notes:
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence                                           |
 | ----- | ---------------------- | -------------------------------------------------- |
-| AC1   | TODO                   | `manual-verification-evidence.md` V1               |
+| AC1   | TODO                   | Red in `manual-verification-evidence.md` V1; green pending |
 | AC2   | TODO                   | `manual-verification-evidence.md` V2               |
 | AC3   | TODO                   | Unit test and V3                                   |
 | AC4   | TODO                   | Unit test                                          |
