@@ -8,7 +8,7 @@ semantic-links:
   related-artifacts:
     - packages/http-core/src/statistics/mod.rs
     - packages/http-core/src/statistics/repository.rs
-    - docs/issues/open/1349-1347-add-tests-http-core/coverage-evidence.md
+    - docs/issues/closed/1349-1347-add-tests-http-core/coverage-evidence.md
 ---
 
 # HTTP Core Statistics Module File Test Plan

@@ -9,7 +9,7 @@ semantic-links:
     - packages/http-core/src/lib.rs
     - packages/http-core/src/statistics/event/listener.rs
     - packages/axum-http-server/src/lib.rs
-    - docs/issues/open/1349-1347-add-tests-http-core/coverage-evidence.md
+    - docs/issues/closed/1349-1347-add-tests-http-core/coverage-evidence.md
 ---
 
 # HTTP Core Crate Root File Test Plan

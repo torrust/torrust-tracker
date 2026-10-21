@@ -9,7 +9,7 @@ semantic-links:
     - packages/http-core/src/statistics/event/handler.rs
     - packages/http-core/src/event.rs
     - packages/http-core/src/statistics/metrics.rs
-    - docs/issues/open/1349-1347-add-tests-http-core/coverage-evidence.md
+    - docs/issues/closed/1349-1347-add-tests-http-core/coverage-evidence.md
 ---
 
 # HTTP Core Statistics Handler File Test Plan

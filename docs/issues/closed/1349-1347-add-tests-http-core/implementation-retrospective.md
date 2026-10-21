@@ -4,8 +4,8 @@ semantic-links:
     - write-markdown-docs
   related-artifacts:
     - docs/templates/IMPLEMENTATION-RETROSPECTIVE.md
-    - docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md
-    - docs/issues/open/1349-1347-add-tests-http-core/lessons.md
+    - docs/issues/closed/1349-1347-add-tests-http-core/ISSUE.md
+    - docs/issues/closed/1349-1347-add-tests-http-core/lessons.md
     - docs/issues/closed/1348-1347-add-tests-udp-core/implementation-retrospective.md
 ---
 

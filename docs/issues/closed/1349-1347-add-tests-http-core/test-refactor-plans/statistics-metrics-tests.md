@@ -8,8 +8,8 @@ semantic-links:
   related-artifacts:
     - packages/http-core/src/statistics/metrics.rs
     - packages/http-core/src/statistics/event/handler.rs
-    - docs/issues/open/1349-1347-add-tests-http-core/test-refactor-plans/statistics-handler-tests.md
-    - docs/issues/open/1349-1347-add-tests-http-core/coverage-evidence.md
+    - docs/issues/closed/1349-1347-add-tests-http-core/test-refactor-plans/statistics-handler-tests.md
+    - docs/issues/closed/1349-1347-add-tests-http-core/coverage-evidence.md
 ---
 
 # HTTP Core Statistics Metrics File Test Plan

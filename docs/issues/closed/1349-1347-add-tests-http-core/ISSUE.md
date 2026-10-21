@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-progress
+status: done
 priority: p2
 epic: 1347
 github-issue: 1349
-spec-path: docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md
+spec-path: docs/issues/closed/1349-1347-add-tests-http-core/ISSUE.md
 branch: "1349-1347-add-tests-http-core-final"
 related-pr: 2616
-last-updated-utc: "2026-10-21 15:33"
+last-updated-utc: "2026-10-21 16:58"
 semantic-links:
   skill-links:
     - create-issue
@@ -26,8 +26,8 @@ semantic-links:
     - docs/issues/closed/1348-1347-add-tests-udp-core/lessons.md
     - docs/pr-reviews/pr-2546-review/PR-REVIEW.md
     - docs/pr-reviews/pr-2558-review/PR-REVIEW.md
-    - docs/issues/open/1349-1347-add-tests-http-core/coverage-evidence.md
-    - docs/issues/open/1349-1347-add-tests-http-core/test-refactor-plans/README.md
+    - docs/issues/closed/1349-1347-add-tests-http-core/coverage-evidence.md
+    - docs/issues/closed/1349-1347-add-tests-http-core/test-refactor-plans/README.md
     - packages/http-core
 ---
 
@@ -338,7 +338,7 @@ open a PR, get it reviewed, and merge it. The spec-only PR comes first.
 | S3 | Scrape service (rank 3) | 3 | `1349-1347-add-tests-http-core-scrape` | #2586 | DONE |
 | S4 | Events and composition (ranks 4-5) | 4-5 | `1349-1347-add-tests-http-core-events-container` | #2593 | DONE |
 | S5 | Statistics (rank 6) | 6-10 | `1349-1347-add-tests-http-core-statistics` | #2608 | DONE |
-| S6 | Crate root and wiring (rank 7), then T5-T8 | 11-13 | `1349-1347-add-tests-http-core-final` | #2616 | IN_PROGRESS |
+| S6 | Crate root and wiring (rank 7), then T5-T8 | 11-13 | `1349-1347-add-tests-http-core-final` | #2616 | DONE |
 
 Rules:
 
@@ -490,7 +490,7 @@ lines are the S2 baseline measurement (see [Baseline Coverage](#baseline-coverag
 - [x] Task Reviewer reports for every slice recorded in `agent-review-reports.md`.
 - [x] Acceptance criteria reviewed after implementation.
 - [x] Implementation completion review recorded (`implementation-retrospective.md`).
-- [ ] Issue closed and spec moved to `docs/issues/closed/`.
+- [x] Issue closed and spec moved to `docs/issues/closed/`.
 
 ### Progress Log
 
@@ -780,6 +780,11 @@ lines are the S2 baseline measurement (see [Baseline Coverage](#baseline-coverag
   (<https://github.com/torrust/torrust-tracker/pull/2616>) was opened with `Closes #1349`. It was not rebased onto
   the latest `develop`, which changed only the `http-core` benches and documentation; `git merge-tree` reports no
   conflict.
+- 2026-10-21 16:58 UTC - GitHub Copilot - The #1349 spec was archived from `docs/issues/open/` to
+  `docs/issues/closed/` on branch `chore/archive-issue-1349` from `develop`. The issue was already `CLOSED` on
+  GitHub (closed at 12:07 UTC when the S5 pull request #2608 merged, because its body used a closing keyword).
+  The frontmatter now reads `status: done` with the closed `spec-path`; the S6 row is `DONE`; and the closure
+  checkbox is ticked. The references in the moved evidence files and the EPIC were repaired to the closed path.
 
 ## Acceptance Criteria
 

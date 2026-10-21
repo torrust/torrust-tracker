@@ -1,6 +1,6 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md
+issue-spec: docs/issues/closed/1349-1347-add-tests-http-core/ISSUE.md
 last-updated-utc: 2026-10-21 15:05
 ---
 
