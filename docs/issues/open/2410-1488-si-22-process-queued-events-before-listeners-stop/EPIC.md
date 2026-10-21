@@ -6,7 +6,7 @@ epic: 1488
 github-issue: 2410
 spec-path: docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-21 09:23"
+last-updated-utc: "2026-10-21 17:09"
 semantic-links:
   skill-links:
     - create-issue
@@ -271,7 +271,7 @@ which keeps the detailed steps for all sub-issues.
 | 1 | #2413 - Document event flows and draft the shutdown-order ADR | [ISSUE.md](../../closed/2413-2410-si-22-1-document-event-flows-and-draft-adr/ISSUE.md) | T1, T2 | AC9; ADR draft for AC8 | DONE | Documentation only. |
 | 2 | #2414 - Drain listener queues on shutdown | [ISSUE.md](../../closed/2414-2410-si-22-2-drain-listener-queues-on-shutdown/ISSUE.md) | T3, T4, T5 | AC1, AC3, AC4, AC6, AC11, AC12 | DONE | Addresses window (a), isolated by the control run (500 of 500 persisted, V10 and V11); merged in PR #2578 on 2026-10-20. The 5 s default drain timeout bounds admission and does not drain a full buffer (entry 28); race-run loss attribution remains incomplete. |
 | 3 | #2415 - Give each application component its own cancellation token | [ISSUE.md](../../closed/2415-2410-si-22-3-per-component-cancellation-tokens/ISSUE.md) | T6 | AC13 (keeps it; no behavior change) | DONE | Refactor that prepares sub-issue 4; merged in PR #2591 on 2026-10-21. Every component uses its own reservation token; `cancel()` still cancels all at once. The listener-subscription test for AC13 stays with #2416. |
-| 4 | #2416 - Stop event producers before event listeners | [ISSUE.md](../2416-2410-si-22-4-stop-producers-before-listeners/ISSUE.md) | T7, T8, T9, T10 | AC2, AC5, AC7, AC8, AC10, AC13 | TODO | Closes window (b). T9's prerequisite #2471 is satisfied (merged in PR #2544 on 2026-10-16). |
+| 4 | #2416 - Stop event producers before event listeners | [ISSUE.md](../2416-2410-si-22-4-stop-producers-before-listeners/ISSUE.md) | T7, T8, T9, T10 | AC2, AC5, AC7, AC8, AC10, AC13 | IN_PROGRESS | Closes window (b). T9's prerequisite #2471 is satisfied (merged in PR #2544 on 2026-10-16). |
 
 T0 (the reproduction) is done in this folder: evidence in
 [manual-verification-evidence.md](manual-verification-evidence.md) and the
@@ -1530,6 +1530,34 @@ lost. Times are UTC.
       #2415 Commit Points, which allow a split with a compiling adapter.
     Also agreed: the API, the lifecycle rules, and the seven reservation tests as implemented.
     `StopBefore` is not added before T7. `adr-draft.md` section 3 is updated in the same change.
+31. **2026-10-21 17:09 - T7 and T8 design review of #2416 (agreed by the maintainer on
+    2026-10-21).** Evidence: #2416's `manual-verification-evidence.md` V1 to V3. The Chosen Design
+    leaves the precise API of the edges to T8; the maintainer approved it at the checkpoint before the
+    edges were built (V1: the controlled late-publication tests were red against a stub that stored
+    the edges and did not enforce them) and again after T8:
+    - **`spawn_with(reservation, StopBefore(&ids), runner)` is additive.** `spawn(reservation, runner)`
+      stays and means "no edges", so the 13 existing callers and #2415's API are untouched. The
+      alternative, a third argument on `spawn`, was rejected for the churn. `StopBefore` borrows a
+      slice of `ComponentId`.
+    - **Three new `SpawnError` variants** (`#[non_exhaustive]`, each leaves no edge and no running
+      runner and releases the reservation): `UnknownStopBeforeTarget` (an id that is not a component
+      of this manager: another manager's, a released reservation, never issued),
+      `StopBeforeTargetNotEarlier` (the component itself or one reserved after it, which keeps the
+      graph acyclic), and `ShutdownRequested` (edges after `cancel()`). Bootstrap propagates them
+      through `app::Error::ComponentRegistration`. `ComponentId` names its manager (a process-wide
+      counter), so a foreign id is detected instead of being read as a local index.
+    - **Completion is tracked where the task is joined, in `wait_for_all`.** A failed, panicked,
+      cancelled or completed component all release their dependents. Because `wait_for_all` consumes
+      the manager and `cancel()` precedes it, a producer that finished before `cancel()` is accounted
+      for at the first join and cannot hold its consumer back. The alternative, a drop guard inside
+      each task, was rejected: it adds machinery inside every task for no behavior the join does not
+      give.
+    - **`JobManager::waiting_components()` is public** (and `WaitingComponent`): which components
+      wait for which. The application test asserts the declared stop order with it, because the
+      completion order alone is timing-dependent (mutations W1 and W3 survived without it).
+    - **`EventFlows` as in the Chosen Design**, with `app::Error::EventFlows`; consumers are
+      registered before the runner is spawned, so a rejected registration runs nothing.
+    `adr-draft.md` sections 3 and 4 are updated in the same change.
 
 ## Chosen Design (D7, D8)
 
@@ -1541,8 +1569,9 @@ lost. Times are UTC.
   producers' cancellation would also cancel. Bootstrap builds the runner with
   the reservation's token; server components bind their socket at this point,
   as they do today.
-- `spawn(reservation, runner, StopBefore(ids))` registers the runner and its
-  stop-before edges. The ids can only come from earlier reservations, so
+- `spawn_with(reservation, StopBefore(&ids), runner)` registers the runner and its
+  stop-before edges (`spawn(reservation, runner)` is the same without edges;
+  record entry 31). The ids can only come from earlier reservations, so
   every edge points backwards and the graph cannot have a cycle. A
   reservation dropped without being spawned (for example after a bind
   failure) is released, so no component waits for it.
@@ -1972,8 +2001,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T4  | TODO   | Listener drain (first listener)   | Persistent listener drains until empty or timeout, logs counts and leftover warning; tests green. Design-review checkpoint.     |
 | T5  | TODO   | Listener drain (remaining)        | Same policy for the other six listener components; characterization tests replaced.                                             |
 | T6  | DONE   | Per-component tokens (refactor)   | Reservation-based registration; every component uses only its own token. No edges yet: `cancel()` still cancels everything at once. Existing tests green. |
-| T7  | TODO   | Red regression test (stop order)  | `JobManager` stop-order test fails while edges are stored but not enforced; red output recorded.                                |
-| T8  | TODO   | Stop order                        | `JobManager` enforces edges; `EventFlows` registry; bootstrap declarations per the Chosen Design; tests green.                  |
+| T7  | DONE   | Red regression test (stop order)  | `JobManager` stop-order test fails while edges are stored but not enforced; red output recorded.                                |
+| T8  | DONE   | Stop order                        | `JobManager` enforces edges; `EventFlows` registry; bootstrap declarations per the Chosen Design; tests green.                  |
 | T9  | TODO   | Test environments                 | HTTP and UDP environments stop servers before listeners, keep both guarantees in [Test environments](#test-environments), and gain the late-event test for each (prerequisite #2471 merged in PR #2544). |
 | T10 | TODO   | Docs, verification, recheck       | Jobs doc and glossary updated to the final implementation; ADR draft moved into `docs/adrs/` and the old ADR superseded (D15); diagrams moved to `docs/architecture/` (D16); task inventory and feature docs; automatic checks; T0 recheck; AC review; completion review. |
 
@@ -2270,6 +2299,8 @@ avoids duplicating the full workflow in four drafts:
 - 2026-10-21 07:20 UTC - GitHub Copilot (Claude Opus 5.5) - #2415 Task Reviewer report (REVIEW PASSED, with findings) and implementation retrospective recorded in its folder. Record entry 30 is restamped from 20:52 to 20:53, the minute the maintainer's answer arrived, because the 20:52 progress-log entry says the review was still pending (Task Reviewer N1). No design change.
 - 2026-10-21 08:18 UTC - GitHub Copilot (Claude Opus 5.5) - #2415 opened as PR #2591; Copilot review round 1 fixed two implementation details of `JobManager`'s registry (the id counter cannot wrap, and `mark_spawned` asserts its invariant), audit in `docs/pr-reviews/pr-2591-review/PR-REVIEW.md`. No design change.
 - 2026-10-21 09:23 UTC - GitHub Copilot (Claude Sonnet 5.5) - #2415 merged in PR #2591 (2026-10-21 09:19 UTC) and archived to `docs/issues/closed/`; its Subissues row and the T6 plan row are `DONE`. The two design-review checkpoints required by D14 for T6 were held, and record entry 30 holds their decisions. Its Task Reviewer report and implementation retrospective are in the archived folder. #2416 is not started. No design change.
+- 2026-10-21 17:07 UTC - GitHub Copilot (Claude Opus 5.5) - #2416 started (branch `2416-stop-producers-before-listeners`); its row is `IN_PROGRESS`, T7 is `DONE` and T8 `IN_PROGRESS`. T7: window (b) reproduced with controlled late publication on the real swarm bus (red, #2416 evidence V1); the real-binary `race` run is not the red proof. The maintainer approved the `StopBefore` API at the checkpoint before the edges were built (additive `spawn_with`, three `SpawnError` variants, completion tracked at the join in `wait_for_all`). T8 is implemented in the working tree and awaits the design-review checkpoint after T8. No design change beyond that approval; any addition found is recorded as a new record entry after the checkpoint.
+- 2026-10-21 17:09 UTC - GitHub Copilot (Claude Opus 5.5) - #2416 T8 design-review checkpoint passed: the maintainer approved T8 and four additions (public `waiting_components()`, `ComponentId` naming its manager, the HTTP test helper and its `[[test]]` binary, a `BTreeMap` registry), recorded as Design Discussion Record entry 31; `adr-draft.md` sections 3 and 4 and the Chosen Design `JobManager` section are updated in the same change (D14, D15). T8 is `DONE` after its commit.
 
 ## Acceptance Criteria
 

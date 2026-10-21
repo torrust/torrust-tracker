@@ -139,20 +139,27 @@ the superseded ADR: the root token stops being the only source of tokens.
   `CancellationToken`, not derived from a shared root token. A consumer
   registered before its producers must not hold a child of a token that its
   producers' cancellation would also cancel.
-- `spawn(reservation, runner, StopBefore(ids))` registers the runner and its
-  edges. Ids come only from earlier reservations, so every edge points
-  backwards and the graph has no cycle. A reservation dropped without being
-  spawned (for example after a bind failure) is released, and no component waits
-  for it.
+- `spawn_with(reservation, StopBefore(&ids), runner)` registers the runner and its
+  edges; `spawn(reservation, runner)` is the same without edges. The component
+  being spawned stops before every id in `StopBefore`. Ids come only from
+  earlier reservations of the same manager (an id names its manager and is
+  ordered by reservation), so every edge points backwards and the graph has no
+  cycle. A reservation dropped without being spawned (for example after a bind
+  failure) is released, and no component waits for it.
 - `cancel()` cancels every component with no unfinished predecessor, plus the
-  legacy root token.
+  legacy root token. It is idempotent.
 - `wait_for_all(deadline)` keeps one shared deadline, then aborts and joins what
-  remains, with named outcomes. After shutdown is requested, each completion
-  cancels the components whose predecessors have all finished. A failed or
-  panicked predecessor releases its dependents once its owned work has stopped,
-  and its failure outcome stays visible. Completion before shutdown never
-  cancels a consumer by itself. Logs say what a component waits for and when it
-  is cancelled.
+  remains, with named outcomes. A component is finished when its task has been
+  joined there. After shutdown is requested, each completion cancels the
+  components whose predecessors have all finished; a predecessor that finished
+  before `cancel()` is accounted for at the first join. A failed or panicked
+  predecessor releases its dependents once its owned work has stopped, and its
+  failure outcome stays visible. Completion before shutdown never cancels a
+  consumer by itself. At the deadline every component left, including consumers
+  that were never asked to stop, is aborted and joined, and the log names what
+  each was still waiting for. `cancel()` logs, per component, that it was asked
+  to stop or what it waits for; each release logs which completion released it.
+  `waiting_components()` returns the same waiting relation for inspection.
 - `register_legacy` keeps today's behavior (the root token, no edges) until
   `udp_ban_cleanup` migrates. The root token is reached only through
   `legacy_cancellation_token()`, so a component cannot pick it up by accident.
@@ -161,10 +168,14 @@ the superseded ADR: the root token stops being the only source of tokens.
   otherwise, and bootstrap propagates that error as a startup failure.
 - Registration must not lose a stop request that was already issued: cancellation
   before `reserve`, between `reserve` and `spawn`, and repeated cancellation are
-  covered. Foreign or released ids and edges added after ordered shutdown starts
-  are rejected, so no live producer appears behind an already-cancelled
-  consumer. The precise API errors are reviewed in the implementing issues,
-  without widening this design.
+  covered. `spawn_with` rejects, with a `SpawnError` that leaves no edge and no
+  running runner and releases the reservation: an id that is not a component of
+  this manager (another manager's, a released reservation, never issued)
+  (`UnknownStopBeforeTarget`), an id that is the component itself or was reserved
+  after it (`StopBeforeTargetNotEarlier`), and any edge once `cancel()` was
+  called (`ShutdownRequested`), so no live producer appears behind an
+  already-cancelled consumer. Bootstrap propagates these errors as startup
+  failures.
 
 ### 4. Per-bus declarations in a bootstrap registry (`EventFlows`)
 
@@ -189,9 +200,9 @@ impl EventFlows {
 | http-core listener                                                 | `add_consumer(Bus::HttpCore, ...)`                         |
 | udp-core listener                                                  | `add_consumer(Bus::UdpCore, ...)`, starts unconditionally  |
 | udp-server statistics and banning listeners                        | `add_consumer(Bus::UdpServer, ...)`, when UDP starts       |
-| HTTP tracker instance                                              | `StopBefore(consumers_of(&[HttpCore, Swarm]))`             |
-| UDP tracker instance                                               | `StopBefore(consumers_of(&[UdpCore, UdpServer, Swarm]))`   |
-| Torrent cleanup                                                    | `StopBefore(consumers_of(&[Swarm]))`                       |
+| HTTP tracker instance                                              | `spawn_with(.., StopBefore(&consumers_of(&[HttpCore, Swarm])), ..)` |
+| UDP tracker instance                                               | `spawn_with(.., StopBefore(&consumers_of(&[UdpCore, UdpServer, Swarm])), ..)` |
+| Torrent cleanup                                                    | `spawn_with(.., StopBefore(&consumers_of(&[Swarm])), ..)`  |
 | REST API, health-check API, activity metrics, `udp_ban_cleanup`    | No edges                                                   |
 
 `consumers_of` takes the buses a component publishes on, directly or through

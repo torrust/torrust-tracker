@@ -35,7 +35,8 @@ use torrust_tracker_udp_core::ConnectionIdValidationPolicy;
 use tracing::instrument;
 
 use crate::CurrentClock;
-use crate::bootstrap::jobs::manager::{ComponentCompletion, ComponentResult, JobManager, Reservation, SpawnError};
+use crate::bootstrap::event_flows::{self, Bus, EventFlows};
+use crate::bootstrap::jobs::manager::{ComponentCompletion, ComponentResult, JobManager, Reservation, SpawnError, StopBefore};
 use crate::bootstrap::jobs::{
     self, activity_metrics_updater, health_check_api, http_tracker, torrent_cleanup, tracker_apis, udp_tracker,
 };
@@ -79,6 +80,11 @@ pub enum Error {
         "Application bootstrap could not register a component with the job manager. This is a defect in the tracker's startup code; please report it: {source}"
     )]
     ComponentRegistration { source: SpawnError },
+
+    #[error(
+        "Application bootstrap declared the event flows of its components in an order that cannot protect their events. This is a defect in the tracker's startup code; please report it: {source}"
+    )]
+    EventFlows { source: event_flows::Error },
 }
 
 /// Starts the tracker application.
@@ -172,15 +178,18 @@ async fn start_jobs_with_manager(
     app_container: &Arc<AppContainer>,
     job_manager: &mut JobManager,
 ) -> Result<(), Error> {
-    start_swarm_coordination_registry_event_listener(config, app_container, job_manager)?;
-    start_tracker_core_in_memory_event_listener(config, app_container, job_manager)?;
-    start_tracker_core_persistent_completed_statistics_event_listener(config, app_container, job_manager)?;
-    start_http_core_event_listener(config, app_container, job_manager)?;
-    start_udp_core_event_listener(config, app_container, job_manager)?;
-    start_udp_tracker_services(config, app_container, job_manager).await?;
-    start_the_http_instances(config, app_container, job_manager).await?;
+    // Every listener is registered before any component that publishes on its bus: a listener must
+    // subscribe before the first event, and a producer stops before the listeners of its buses.
+    let mut flows = EventFlows::default();
+    start_swarm_coordination_registry_event_listener(config, app_container, job_manager, &mut flows)?;
+    start_tracker_core_in_memory_event_listener(config, app_container, job_manager, &mut flows)?;
+    start_tracker_core_persistent_completed_statistics_event_listener(config, app_container, job_manager, &mut flows)?;
+    start_http_core_event_listener(config, app_container, job_manager, &mut flows)?;
+    start_udp_core_event_listener(config, app_container, job_manager, &mut flows)?;
+    start_udp_tracker_services(config, app_container, job_manager, &mut flows).await?;
+    start_the_http_instances(config, app_container, job_manager, &mut flows).await?;
 
-    start_torrent_cleanup(config, app_container, job_manager)?;
+    start_torrent_cleanup(config, app_container, job_manager, &mut flows)?;
     start_peers_inactivity_update(config, app_container, job_manager)?;
 
     start_the_http_api(config, app_container, job_manager).await?;
@@ -251,10 +260,11 @@ fn start_swarm_coordination_registry_event_listener(
     config: &Configuration,
     app_container: &Arc<AppContainer>,
     job_manager: &mut JobManager,
+    flows: &mut EventFlows,
 ) -> Result<(), Error> {
     let reservation = job_manager.reserve("swarm_coordination_registry_event_listener");
     if let Some(runner) = jobs::torrent_repository::run_event_listener(config, app_container, reservation.cancellation_token()) {
-        spawn_component(job_manager, reservation, component_runner(runner))?;
+        spawn_listener(job_manager, flows, Bus::Swarm, reservation, component_runner(runner))?;
     }
 
     Ok(())
@@ -264,12 +274,13 @@ fn start_tracker_core_in_memory_event_listener(
     config: &Configuration,
     app_container: &Arc<AppContainer>,
     job_manager: &mut JobManager,
+    flows: &mut EventFlows,
 ) -> Result<(), Error> {
     let reservation = job_manager.reserve("tracker_core_in_memory_event_listener");
     if let Some(runner) =
         jobs::tracker_core::run_in_memory_event_listener(config, app_container, reservation.cancellation_token())
     {
-        spawn_component(job_manager, reservation, component_runner(runner))?;
+        spawn_listener(job_manager, flows, Bus::Swarm, reservation, component_runner(runner))?;
     }
 
     Ok(())
@@ -279,6 +290,7 @@ fn start_tracker_core_persistent_completed_statistics_event_listener(
     config: &Configuration,
     app_container: &Arc<AppContainer>,
     job_manager: &mut JobManager,
+    flows: &mut EventFlows,
 ) -> Result<(), Error> {
     let reservation = job_manager.reserve("tracker_core_persistent_completed_statistics_event_listener");
     if let Some(runner) = jobs::tracker_core::run_persistent_completed_statistics_event_listener(
@@ -288,7 +300,7 @@ fn start_tracker_core_persistent_completed_statistics_event_listener(
     )
     .map_err(|_| Error::PersistentStatisticsRequirePersistence)?
     {
-        spawn_component(job_manager, reservation, component_runner(runner))?;
+        spawn_listener(job_manager, flows, Bus::Swarm, reservation, component_runner(runner))?;
     }
 
     Ok(())
@@ -298,37 +310,40 @@ fn start_http_core_event_listener(
     config: &Configuration,
     app_container: &Arc<AppContainer>,
     job_manager: &mut JobManager,
+    flows: &mut EventFlows,
 ) -> Result<(), Error> {
     let reservation = job_manager.reserve("http_core_event_listener");
     let runner = jobs::http_tracker_core::run_event_listener(config, app_container, reservation.cancellation_token());
-    spawn_component(job_manager, reservation, component_runner(runner))
+    spawn_listener(job_manager, flows, Bus::HttpCore, reservation, component_runner(runner))
 }
 
 fn start_udp_core_event_listener(
     config: &Configuration,
     app_container: &Arc<AppContainer>,
     job_manager: &mut JobManager,
+    flows: &mut EventFlows,
 ) -> Result<(), Error> {
     let reservation = job_manager.reserve("udp_core_event_listener");
     let runner = jobs::udp_tracker_core::run_event_listener(config, app_container, reservation.cancellation_token());
-    spawn_component(job_manager, reservation, component_runner(runner))
+    spawn_listener(job_manager, flows, Bus::UdpCore, reservation, component_runner(runner))
 }
 
 async fn start_udp_tracker_services(
     config: &Configuration,
     app_container: &Arc<AppContainer>,
     job_manager: &mut JobManager,
+    flows: &mut EventFlows,
 ) -> Result<(), Error> {
     if !should_start_udp_tracker_services(config) {
         log_udp_tracker_services_not_started(config);
         return Ok(());
     }
 
-    start_udp_server_stats_event_listener(config, app_container, job_manager)?;
-    start_udp_server_banning_event_listener(app_container, job_manager)?;
+    start_udp_server_stats_event_listener(config, app_container, job_manager, flows)?;
+    start_udp_server_banning_event_listener(app_container, job_manager, flows)?;
     // issue: #1453
     start_udp_ban_cleanup_job(config, app_container, job_manager);
-    start_the_udp_instances(config, app_container, job_manager).await
+    start_the_udp_instances(config, app_container, job_manager, flows).await
 }
 
 fn should_start_udp_tracker_services(config: &Configuration) -> bool {
@@ -356,16 +371,21 @@ fn start_udp_server_stats_event_listener(
     config: &Configuration,
     app_container: &Arc<AppContainer>,
     job_manager: &mut JobManager,
+    flows: &mut EventFlows,
 ) -> Result<(), Error> {
     let reservation = job_manager.reserve("udp_server_stats_event_listener");
     let runner = jobs::udp_tracker_server::run_stats_event_listener(config, app_container, reservation.cancellation_token());
-    spawn_component(job_manager, reservation, component_runner(runner))
+    spawn_listener(job_manager, flows, Bus::UdpServer, reservation, component_runner(runner))
 }
 
-fn start_udp_server_banning_event_listener(app_container: &Arc<AppContainer>, job_manager: &mut JobManager) -> Result<(), Error> {
+fn start_udp_server_banning_event_listener(
+    app_container: &Arc<AppContainer>,
+    job_manager: &mut JobManager,
+    flows: &mut EventFlows,
+) -> Result<(), Error> {
     let reservation = job_manager.reserve("udp_server_banning_event_listener");
     let runner = jobs::udp_tracker_server::run_banning_event_listener(app_container, reservation.cancellation_token());
-    spawn_component(job_manager, reservation, component_runner(runner))
+    spawn_listener(job_manager, flows, Bus::UdpServer, reservation, component_runner(runner))
 }
 
 // issue: #1488
@@ -392,6 +412,40 @@ where
         .map_err(|source| Error::ComponentRegistration { source })
 }
 
+/// Spawns a listener that consumes from `bus`, and registers it as a consumer of that bus.
+fn spawn_listener<F>(
+    job_manager: &mut JobManager,
+    flows: &mut EventFlows,
+    bus: Bus,
+    reservation: Reservation,
+    runner: F,
+) -> Result<(), Error>
+where
+    F: Future<Output = ComponentResult> + Send + 'static,
+{
+    flows
+        .add_consumer(bus, reservation.id())
+        .map_err(|source| Error::EventFlows { source })?;
+    spawn_component(job_manager, reservation, runner)
+}
+
+/// Spawns a component that publishes on `buses`, so that it stops before every listener of those buses.
+fn spawn_producer<F>(
+    job_manager: &mut JobManager,
+    flows: &mut EventFlows,
+    buses: &[Bus],
+    reservation: Reservation,
+    runner: F,
+) -> Result<(), Error>
+where
+    F: Future<Output = ComponentResult> + Send + 'static,
+{
+    let consumers = flows.consumers_of(buses);
+    job_manager
+        .spawn_with(reservation, StopBefore(&consumers), runner)
+        .map_err(|source| Error::ComponentRegistration { source })
+}
+
 async fn component_runner(runner: impl Future<Output = torrust_tracker_events::shutdown::Completion>) -> ComponentResult {
     Ok(match runner.await {
         torrust_tracker_events::shutdown::Completion::Completed => ComponentCompletion::Completed,
@@ -403,6 +457,7 @@ async fn start_the_udp_instances(
     config: &Configuration,
     app_container: &Arc<AppContainer>,
     job_manager: &mut JobManager,
+    flows: &mut EventFlows,
 ) -> Result<(), Error> {
     let udp_trackers = config.udp_trackers.as_ref().ok_or_else(|| Error::ServiceStartup {
         service: "UDP tracker",
@@ -412,7 +467,15 @@ async fn start_the_udp_instances(
     let connection_id_validation = connection_id_validation_policy(config);
 
     for (idx, udp_tracker_config) in udp_trackers.iter().enumerate() {
-        start_udp_instance(idx, udp_tracker_config, connection_id_validation, app_container, job_manager).await?;
+        start_udp_instance(
+            idx,
+            udp_tracker_config,
+            connection_id_validation,
+            app_container,
+            job_manager,
+            flows,
+        )
+        .await?;
     }
 
     Ok(())
@@ -424,6 +487,7 @@ async fn start_udp_instance(
     connection_id_validation: ConnectionIdValidationPolicy,
     app_container: &Arc<AppContainer>,
     job_manager: &mut JobManager,
+    flows: &mut EventFlows,
 ) -> Result<(), Error> {
     let (configuration_instance_id, udp_tracker_container) =
         app_container
@@ -450,7 +514,13 @@ async fn start_udp_instance(
         source: Box::new(source),
     })?;
 
-    spawn_component(job_manager, reservation, runner)
+    spawn_producer(
+        job_manager,
+        flows,
+        &[Bus::UdpCore, Bus::UdpServer, Bus::Swarm],
+        reservation,
+        runner,
+    )
 }
 
 const fn connection_id_validation_policy(config: &Configuration) -> ConnectionIdValidationPolicy {
@@ -468,10 +538,11 @@ async fn start_the_http_instances(
     config: &Configuration,
     app_container: &Arc<AppContainer>,
     job_manager: &mut JobManager,
+    flows: &mut EventFlows,
 ) -> Result<(), Error> {
     if let Some(http_trackers) = &config.http_trackers {
         for (idx, http_tracker_config) in http_trackers.iter().enumerate() {
-            start_http_instance(idx, http_tracker_config, app_container, job_manager).await?;
+            start_http_instance(idx, http_tracker_config, app_container, job_manager, flows).await?;
         }
     } else {
         tracing::info!("No HTTP blocks in configuration");
@@ -484,6 +555,7 @@ async fn start_http_instance(
     http_tracker_config: &HttpTracker,
     app_container: &Arc<AppContainer>,
     job_manager: &mut JobManager,
+    flows: &mut EventFlows,
 ) -> Result<(), Error> {
     let (configuration_instance_id, http_tracker_container) =
         app_container
@@ -507,7 +579,7 @@ async fn start_http_instance(
         service: "HTTP tracker",
         source: Box::new(source),
     })? {
-        spawn_component(job_manager, reservation, runner)?;
+        spawn_producer(job_manager, flows, &[Bus::HttpCore, Bus::Swarm], reservation, runner)?;
     }
     Ok(())
 }
@@ -547,6 +619,7 @@ fn start_torrent_cleanup(
     config: &Configuration,
     app_container: &Arc<AppContainer>,
     job_manager: &mut JobManager,
+    flows: &mut EventFlows,
 ) -> Result<(), Error> {
     if config.core.inactive_peer_cleanup_interval > 0 {
         let reservation = job_manager.reserve("torrent_cleanup");
@@ -555,7 +628,7 @@ fn start_torrent_cleanup(
             app_container.tracker_core_container.torrents_manager.clone(),
             reservation.cancellation_token(),
         );
-        spawn_component(job_manager, reservation, component_runner(runner))?;
+        spawn_producer(job_manager, flows, &[Bus::Swarm], reservation, component_runner(runner))?;
     }
 
     Ok(())
@@ -603,19 +676,24 @@ mod tests {
     use std::sync::Arc;
     use std::time::Duration;
 
+    use tokio::sync::oneshot;
     use tokio_util::sync::CancellationToken;
     use torrust_tracker_configuration::v3_0_0::Configuration;
     use torrust_tracker_configuration::v3_0_0::core::Core;
     use torrust_tracker_configuration::v3_0_0::udp_tracker::UdpTracker;
+    use torrust_tracker_primitives::peer::Peer;
+    use torrust_tracker_swarm_coordination_registry::event::Event;
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
 
     use super::{
-        Error, connection_id_validation_policy, load_data_from_database, run_after_setup, should_start_udp_tracker_services,
-        start_health_check_api, start_http_instance, start_jobs_with_manager, start_peers_inactivity_update, start_the_http_api,
-        start_torrent_cleanup, start_udp_instance,
+        Error, EventFlows, component_runner, connection_id_validation_policy, load_data_from_database, run_after_setup,
+        should_start_udp_tracker_services, start_health_check_api, start_http_instance, start_jobs_with_manager,
+        start_peers_inactivity_update, start_swarm_coordination_registry_event_listener, start_the_http_api,
+        start_torrent_cleanup, start_tracker_core_in_memory_event_listener,
+        start_tracker_core_persistent_completed_statistics_event_listener, start_udp_instance,
     };
     use crate::bootstrap::app::initialize_global_services;
-    use crate::bootstrap::jobs::manager::{JobManager, JobOutcome, JobStatus};
+    use crate::bootstrap::jobs::manager::{ComponentCompletion, JobManager, JobOutcome, JobStatus, StopBefore};
     use crate::container::AppContainer;
 
     #[test]
@@ -700,7 +778,7 @@ mod tests {
                 .expect("composition should succeed"),
         );
         let mut job_manager = JobManager::new();
-        start_torrent_cleanup(&configuration, &app_container, &mut job_manager)
+        start_torrent_cleanup(&configuration, &app_container, &mut job_manager, &mut EventFlows::default())
             .expect("torrent cleanup should be registered through application bootstrap");
 
         // Act
@@ -762,9 +840,15 @@ mod tests {
                 .expect("composition should succeed"),
         );
         let mut job_manager = JobManager::new();
-        start_http_instance(0, http_tracker_config, &app_container, &mut job_manager)
-            .await
-            .expect("HTTP tracker should start through application bootstrap");
+        start_http_instance(
+            0,
+            http_tracker_config,
+            &app_container,
+            &mut job_manager,
+            &mut EventFlows::default(),
+        )
+        .await
+        .expect("HTTP tracker should start through application bootstrap");
 
         // Act
         job_manager.cancel();
@@ -828,6 +912,7 @@ mod tests {
             connection_id_validation_policy(&configuration),
             &app_container,
             &mut job_manager,
+            &mut EventFlows::default(),
         )
         .await
         .expect("UDP tracker should start through application bootstrap");
@@ -961,7 +1046,8 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn it_should_stop_every_started_component_cooperatively_when_the_manager_is_cancelled() {
+    async fn it_should_stop_every_started_component_cooperatively_and_each_producer_before_its_listeners_when_the_manager_is_cancelled()
+     {
         // Arrange
         let mut configuration = ephemeral_public();
         configuration.core.tracker_usage_statistics = true;
@@ -981,10 +1067,48 @@ mod tests {
             .expect("every component should start through application bootstrap");
 
         // Act
+        let declared_stop_order = sorted_stop_order(&job_manager);
         job_manager.cancel();
         let mut outcomes = job_manager.wait_for_all(Duration::from_secs(5)).await;
 
         // Assert
+        // Each listener waits for exactly the components that publish on its bus.
+        let udp_instance = format!("udp_instance_0_{udp_bind_address}");
+        let http_instance = format!("http_instance_0_{http_bind_address}");
+        let swarm_producers = [udp_instance.as_str(), http_instance.as_str(), "torrent_cleanup"];
+        assert_eq!(
+            declared_stop_order,
+            expected_stop_order(&[
+                ("swarm_coordination_registry_event_listener", &swarm_producers),
+                ("tracker_core_in_memory_event_listener", &swarm_producers),
+                (
+                    "tracker_core_persistent_completed_statistics_event_listener",
+                    &swarm_producers
+                ),
+                ("http_core_event_listener", &[http_instance.as_str()]),
+                ("udp_core_event_listener", &[udp_instance.as_str()]),
+                ("udp_server_stats_event_listener", &[udp_instance.as_str()]),
+                ("udp_server_banning_event_listener", &[udp_instance.as_str()]),
+            ]),
+            "every listener must wait for each component that publishes on its bus, and nothing else"
+        );
+
+        // Every producer completes before each listener of the buses it publishes on; the outcomes
+        // are in completion order until they are sorted below.
+        let completion_order: Vec<&str> = outcomes.iter().map(|outcome| outcome.name.as_str()).collect();
+        let swarm_listeners = [
+            "swarm_coordination_registry_event_listener",
+            "tracker_core_in_memory_event_listener",
+            "tracker_core_persistent_completed_statistics_event_listener",
+        ];
+        let udp_server_listeners = ["udp_server_stats_event_listener", "udp_server_banning_event_listener"];
+        assert_completes_before_every(&completion_order, &http_instance, &["http_core_event_listener"]);
+        assert_completes_before_every(&completion_order, &http_instance, &swarm_listeners);
+        assert_completes_before_every(&completion_order, &udp_instance, &["udp_core_event_listener"]);
+        assert_completes_before_every(&completion_order, &udp_instance, &udp_server_listeners);
+        assert_completes_before_every(&completion_order, &udp_instance, &swarm_listeners);
+        assert_completes_before_every(&completion_order, "torrent_cleanup", &swarm_listeners);
+
         outcomes.sort_by(|left, right| left.name.cmp(&right.name));
         let cancelled = |name: String| JobOutcome {
             name,
@@ -1014,6 +1138,184 @@ mod tests {
             outcomes, expected,
             "every started component must stop through the token `cancel()` cancels; an `Aborted` status names a component that was built with another token"
         );
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn it_should_count_a_download_published_during_shutdown_by_a_producer_that_stops_before_the_listener() {
+        // Arrange
+        // The in-memory tracker-core listener consumes the real swarm event bus. Two producers stop
+        // before it, and each publishes one completed download on that bus only when the test releases
+        // it, after shutdown began, like a request that finishes while the server drains.
+        let mut configuration = Configuration::default();
+        configuration.core.tracker_usage_statistics = true;
+        let app_container = Arc::new(
+            AppContainer::initialize(&configuration)
+                .await
+                .expect("composition should succeed"),
+        );
+        let mut job_manager = JobManager::new();
+        let listener_reservation = job_manager.reserve("tracker_core_in_memory_event_listener");
+        let listener_id = listener_reservation.id();
+        let listener = super::jobs::tracker_core::run_in_memory_event_listener(
+            &configuration,
+            &app_container,
+            listener_reservation.cancellation_token(),
+        )
+        .expect("the listener starts when tracker usage statistics are enabled");
+        job_manager
+            .spawn(listener_reservation, component_runner(listener))
+            .expect("the reservation was issued by this manager");
+        let mut release_producers = Vec::new();
+        for name in ["first_producer", "second_producer"] {
+            let reservation = job_manager.reserve(name);
+            let sender = app_container
+                .swarm_coordination_registry_container
+                .event_bus
+                .sender()
+                .expect("the swarm event bus is enabled");
+            let (release, released) = oneshot::channel::<()>();
+            release_producers.push(release);
+            job_manager
+                .spawn_with(reservation, StopBefore(&[listener_id]), async move {
+                    let _ = released.await;
+                    let _ = sender.send(completed_download_event()).await;
+                    Ok(ComponentCompletion::Completed)
+                })
+                .expect("the listener was reserved before the producers");
+        }
+
+        // Act
+        // Shutdown starts while both producers run, and then each producer publishes and completes.
+        job_manager.cancel();
+        let shutdown = tokio::spawn(job_manager.wait_for_all(Duration::from_secs(5)));
+        tokio::time::sleep(Duration::from_millis(1)).await;
+        for release in release_producers {
+            release.send(()).expect("the producer is waiting for its release");
+            tokio::time::sleep(Duration::from_millis(1)).await;
+        }
+        let outcomes = shutdown.await.expect("the shutdown task must not panic");
+
+        // Assert
+        // Both downloads, published after shutdown began, are counted, and the listener stopped last.
+        let counted = app_container
+            .tracker_core_container
+            .stats_repository
+            .get_torrents_downloads_in_session_total()
+            .await;
+        assert_eq!(
+            counted, 2,
+            "a download published by a producer after shutdown began is lost when the listener stops before the producer completes"
+        );
+        assert_eq!(
+            outcomes.last(),
+            Some(&JobOutcome {
+                name: "tracker_core_in_memory_event_listener".to_owned(),
+                status: JobStatus::Cancelled,
+            }),
+            "the listener must complete after both producers"
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_subscribe_every_started_swarm_listener_before_its_task_runs_or_any_producer_starts() {
+        // Arrange
+        // On a current-thread runtime a spawned listener task cannot run until the test awaits something
+        // that yields, so a receiver that exists now was created by bootstrap, not by the listener task.
+        let mut configuration = ephemeral_public();
+        configuration.core.tracker_usage_statistics = true;
+        configuration.core.tracker_policy.persistent_torrent_completed_stat = true;
+        initialize_global_services(&configuration);
+        let app_container = Arc::new(
+            AppContainer::initialize(&configuration)
+                .await
+                .expect("composition should succeed"),
+        );
+        let mut job_manager = JobManager::new();
+        let mut flows = EventFlows::default();
+
+        // Act
+        // Bootstrap starts the three swarm listeners, and then an event is published on the swarm bus.
+        start_swarm_coordination_registry_event_listener(&configuration, &app_container, &mut job_manager, &mut flows)
+            .expect("the swarm listener starts");
+        start_tracker_core_in_memory_event_listener(&configuration, &app_container, &mut job_manager, &mut flows)
+            .expect("the in-memory listener starts");
+        start_tracker_core_persistent_completed_statistics_event_listener(
+            &configuration,
+            &app_container,
+            &mut job_manager,
+            &mut flows,
+        )
+        .expect("the persistent listener starts");
+        let delivered_to = app_container
+            .swarm_coordination_registry_container
+            .event_bus
+            .sender()
+            .expect("the swarm event bus is enabled")
+            .send(completed_download_event())
+            .await;
+
+        // Assert
+        // The event reached the receivers of all three listeners: none subscribes later than the first event.
+        assert!(
+            matches!(delivered_to, Some(Ok(3))),
+            "all three swarm listeners must be subscribed when the first event is published, got {delivered_to:?}"
+        );
+        job_manager.cancel();
+        job_manager.wait_for_all(Duration::from_secs(5)).await;
+    }
+
+    /// The components that wait for others, with what each waits for, sorted by name.
+    fn sorted_stop_order(job_manager: &JobManager) -> Vec<(String, Vec<String>)> {
+        expected_stop_order_from(
+            job_manager
+                .waiting_components()
+                .into_iter()
+                .map(|component| (component.name, component.waiting_for)),
+        )
+    }
+
+    fn expected_stop_order(entries: &[(&str, &[&str])]) -> Vec<(String, Vec<String>)> {
+        expected_stop_order_from(entries.iter().map(|(listener, producers)| {
+            (
+                (*listener).to_owned(),
+                producers.iter().map(|producer| (*producer).to_owned()).collect(),
+            )
+        }))
+    }
+
+    fn expected_stop_order_from(entries: impl Iterator<Item = (String, Vec<String>)>) -> Vec<(String, Vec<String>)> {
+        let mut order: Vec<(String, Vec<String>)> = entries
+            .map(|(name, mut waiting_for)| {
+                waiting_for.sort();
+                (name, waiting_for)
+            })
+            .collect();
+        order.sort();
+        order
+    }
+
+    /// A completed download, which the in-memory tracker-core listener counts.
+    fn completed_download_event() -> Event {
+        Event::PeerDownloadCompleted {
+            info_hash: <_>::default(),
+            peer: Peer::default(),
+        }
+    }
+
+    /// Asserts that `producer` completed before each of `consumers` in `completion_order`.
+    fn assert_completes_before_every(completion_order: &[&str], producer: &str, consumers: &[&str]) {
+        let position = |name: &str| {
+            completion_order
+                .iter()
+                .position(|completed| *completed == name)
+                .unwrap_or_else(|| panic!("component '{name}' must be in the shutdown outcomes: {completion_order:?}"))
+        };
+        for consumer in consumers {
+            assert!(
+                position(producer) < position(consumer),
+                "'{producer}' publishes on a bus that '{consumer}' consumes, so it must complete first: {completion_order:?}"
+            );
+        }
     }
 
     fn reserve_udp_address() -> SocketAddr {

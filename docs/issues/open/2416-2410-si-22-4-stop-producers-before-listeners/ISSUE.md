@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: planned
+status: in-progress
 priority: p1
 epic: 2410
 github-issue: 2416
 spec-path: docs/issues/open/2416-2410-si-22-4-stop-producers-before-listeners/ISSUE.md
 branch: "2416-stop-producers-before-listeners"
 related-pr: null
-last-updated-utc: "2026-10-19 17:08"
+last-updated-utc: "2026-10-21 17:09"
 semantic-links:
   skill-links:
     - create-issue
@@ -102,8 +102,8 @@ items 8 (T7) to 11 (T10).
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T7 | TODO | Reproduce window (b), then red stop-order test | Controlled late publication proves the lost effect; consumer must remain live while any of two producers runs; red output recorded. |
-| T8 | TODO | Stop order | Edges enforced with waiting and cancellation logs; `EventFlows` with unit tests; `src/app.rs` wired; in-process application test. Design-review checkpoint. |
+| T7 | DONE | Reproduce window (b), then red stop-order test | Controlled late publication proves the lost effect; consumer must remain live while any of two producers runs; red output recorded (evidence V1). |
+| T8 | DONE | Stop order | Edges enforced with waiting and cancellation logs; `EventFlows` with unit tests; `src/app.rs` wired; in-process application test. Design-review checkpoint. Implemented and reviewed (evidence V2, V3; record entry 31). |
 | T9 | TODO | Test environments | HTTP and UDP environments stop servers first, keeping the sub-EPIC's [Test environments](../2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md#test-environments) guarantees (join-all failure reporting; independent server and listener tokens, each with its own `DropGuard`, D20); for each environment, a test that an event from a request completed just before `stop()` is counted. |
 | T10 | TODO | Documentation and verification | ADR moved and old ADR superseded; diagrams moved; `docs/architecture/events.md` gains the swarm bus, its producers, and its three consumers (#2413 T1 finding); docs updated; M1-M3; AC review; completion review for the sub-EPIC. |
 
@@ -186,7 +186,7 @@ maintainer decides to keep it.
 - [x] Spec drafted
 - [x] Spec reviewed and approved by the maintainer
 - [x] GitHub issue created and linked to the sub-EPIC
-- [ ] Design-review checkpoint after T8 recorded
+- [x] Design-review checkpoint after T8 recorded (sub-EPIC record entry 31)
 - [ ] Implementation completed and acceptance criteria reviewed
 
 ### Progress Log
@@ -196,6 +196,8 @@ maintainer decides to keep it.
 - 2026-10-07 13:05 UTC - GitHub Copilot - Refreshed T9 with the sub-EPIC: keep SI-17's join-all failure reporting, cancel both tokens on drop, add the late-event test for UDP as well as HTTP, and wait for #2471 (SI-16 and SI-17 are merged).
 - 2026-10-08 06:58 UTC - GitHub Copilot - Maintainer decision D20 (sub-EPIC): T9 uses independent server and listener tokens, each with its own `DropGuard`, mirroring `JobManager`; the parent-child token option is rejected.
 - 2026-10-19 17:08 UTC - GitHub Copilot (Claude Opus 5.5) - Refreshed: `branch:` names the planned implementation branch `2416-stop-producers-before-listeners`; removed the obsolete note about setting `epic`; the #2471 prerequisite of T9 is satisfied (merged in PR #2544 on 2026-10-16); T10 also adds the swarm bus, its producers, and its three consumers to `docs/architecture/events.md` (finding from #2413 T1).
+- 2026-10-21 17:07 UTC - GitHub Copilot (Claude Opus 5.5) - Started on branch `2416-stop-producers-before-listeners` (cut from `torrust/develop` at the merge of PR #2615). T7 done: the controlled late-publication test on the real swarm event bus and the stop-order `JobManager` test were red against a stub that stored the edges and did not enforce them (evidence V1; the real-binary `race` script is not claimed as the proof). The maintainer approved the `StopBefore` API (additive `spawn_with`, three `SpawnError` variants, completion tracked at the join in `wait_for_all`) at the design-review checkpoint before the edges were implemented. T8 implemented in the working tree: edges enforced in `cancel()` and `wait_for_all`, `EventFlows`/`Bus`, `src/app.rs` wired, the application-level and in-process application tests, and a recorded mutation per lifecycle clause (V2, V3). Awaiting the design-review checkpoint after T8.
+- 2026-10-21 17:09 UTC - GitHub Copilot (Claude Opus 5.5) - T8 design-review checkpoint passed; the maintainer approved T8 and four additions (public `waiting_components()`, `ComponentId` naming its manager, the HTTP test helper and its `[[test]]` binary, a `BTreeMap` registry), recorded as sub-EPIC record entry 31. T7-T8 committed (signed) after `linter all`. The recommendation to deliver one PR (D17) stands; the maintainer did not ask for a split. T9 next.
 
 ## Architectural Decisions
 
