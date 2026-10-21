@@ -267,8 +267,10 @@ fn assess_override(api: &dyn GithubApi, pull_request: &PullRequestRef) -> Overri
         Ok(events) => events,
         Err(error) => return OverrideAssessment::Ignored(format!("cannot read the events of the pull request: {error}")),
     };
-    let Some(request) = override_request(&labels, &events) else {
-        return OverrideAssessment::NotRequested;
+    let request = match override_request(&labels, &events) {
+        Ok(Some(request)) => request,
+        Ok(None) => return OverrideAssessment::NotRequested,
+        Err(reason) => return OverrideAssessment::Ignored(reason),
     };
     let Some(actor) = request.actor.as_deref() else {
         return OverrideAssessment::Ignored("the actor who applied the label is not known".to_string());
@@ -310,19 +312,27 @@ fn assess_override(api: &dyn GithubApi, pull_request: &PullRequestRef) -> Overri
 }
 
 /// The latest `labeled` event of the override label, when the label is still on the pull request.
-fn override_request(labels: &[Label], events: &[Event]) -> Option<OverrideRequest> {
+///
+/// # Errors
+///
+/// Returns a reason when the label is on the pull request but none of the events says that it was applied,
+/// so that an override that was asked for is not silently ignored.
+fn override_request(labels: &[Label], events: &[Event]) -> Result<Option<OverrideRequest>, String> {
     if !labels.iter().any(|label| label.name == OVERRIDE_LABEL) {
-        return None;
+        return Ok(None);
     }
 
     events
         .iter()
         .filter(|event| event.kind == "labeled" && event.label.as_ref().is_some_and(|label| label.name == OVERRIDE_LABEL))
         .max_by(|a, b| a.created_at.cmp(&b.created_at))
-        .map(|event| OverrideRequest {
-            actor: event.actor.as_ref().map(|user| user.login.clone()),
-            applied_at: event.created_at.clone(),
+        .map(|event| {
+            Some(OverrideRequest {
+                actor: event.actor.as_ref().map(|user| user.login.clone()),
+                applied_at: event.created_at.clone(),
+            })
         })
+        .ok_or_else(|| format!("the label `{OVERRIDE_LABEL}` is on the pull request but no event of it being applied was found"))
 }
 
 /// Whether an override applied at `applied_at` still counts, as `Ok`, or why it does not.
@@ -628,8 +638,8 @@ mod tests {
 
         // Assert
         assert!(
-            request.is_none(),
-            "an event about a label that was removed since must not count"
+            matches!(request, Ok(None)),
+            "an event about a label that was removed since must not count, and no label is no request"
         );
     }
 
@@ -650,7 +660,9 @@ mod tests {
         .collect();
 
         // Act
-        let request = override_request(&labels, &events).expect("the label is on the pull request");
+        let request = override_request(&labels, &events)
+            .expect("the events can be read")
+            .expect("the label is on the pull request");
 
         // Assert
         assert_eq!(
@@ -674,7 +686,9 @@ mod tests {
         .collect();
 
         // Act
-        let request = override_request(&labels, &events).expect("the label is on the pull request");
+        let request = override_request(&labels, &events)
+            .expect("the events can be read")
+            .expect("the label is on the pull request");
 
         // Assert
         assert_eq!(
@@ -1036,6 +1050,31 @@ mod tests {
             (verdict.verdict.verdict, verdict.verdict.overridden_by),
             (Verdict::Pass, Some("josecelano".to_string())),
             "the earliest suite, at 10:48:00 on the second page, is before the label, so the label counts"
+        );
+    }
+
+    #[test]
+    fn it_should_fail_without_an_override_and_say_so_when_the_label_is_on_the_pull_request_but_no_event_of_it_is_found() {
+        // Arrange
+        let api = failing_head()
+            .with(LABELS_PATH, vec![json!([{ "name": "ci-override" }])])
+            .with(EVENTS_PATH, vec![json!([{ "event": "labeled", "label": { "name": "bug" }, "actor": { "login": "someone" }, "created_at": "2026-10-21T10:49:13Z" }])]);
+
+        // Act
+        let verdict = decide_for_pull_request(&api, &pull_request(), &classification_needing_db_benchmarking()).expect("decided");
+
+        // Assert
+        assert_eq!(
+            (verdict.verdict.verdict, verdict.verdict.overridden_by),
+            (Verdict::Fail, None)
+        );
+        assert!(
+            verdict
+                .override_ignored
+                .as_deref()
+                .is_some_and(|reason| reason.contains("no event of it being applied was found")),
+            "a label that was asked for must not be silently ignored: {:?}",
+            verdict.override_ignored
         );
     }
 }
