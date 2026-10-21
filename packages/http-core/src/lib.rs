@@ -122,8 +122,15 @@ mod root_tests {
     fn scrape_event(public_url: &str) -> Event {
         let connection = ConnectionContext::new(
             ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0),
-            RemoteClientAddr::new(ResolvedIp::FromSocketAddr("126.0.0.1".parse().unwrap()), Some(8080)),
-            ServiceBinding::new(Protocol::HTTP, SocketAddr::new("127.0.0.1".parse().unwrap(), 7070)).unwrap(),
+            RemoteClientAddr::new(
+                ResolvedIp::FromSocketAddr("126.0.0.1".parse().expect("the client IP should be valid")),
+                Some(8080),
+            ),
+            ServiceBinding::new(
+                Protocol::HTTP,
+                SocketAddr::new("127.0.0.1".parse().expect("the server IP should be valid"), 7070),
+            )
+            .expect("an HTTP service binding on a non-zero port should be valid"),
         )
         .with_public_url(Some(public_url.to_string()));
 
@@ -183,13 +190,20 @@ mod root_tests {
     #[test]
     fn it_should_sample_an_ipv4_peer_that_is_the_default_sample_peer() {
         assert_eq!(sample_peer_using_ipv4(), sample_peer());
-        assert_eq!(sample_peer().peer_addr, "126.0.0.1:8080".parse::<SocketAddr>().unwrap());
+        assert_eq!(
+            sample_peer().peer_addr,
+            "126.0.0.1:8080"
+                .parse::<SocketAddr>()
+                .expect("the expected address should be valid")
+        );
     }
 
     #[test]
     fn it_should_sample_an_ipv6_peer_that_differs_from_the_ipv4_sample_only_by_its_address() {
         let mut expected = sample_peer();
-        expected.peer_addr = "[6969:6969:6969:6969:6969:6969:6969:6969]:8080".parse().unwrap();
+        expected.peer_addr = "[6969:6969:6969:6969:6969:6969:6969:6969]:8080"
+            .parse()
+            .expect("the expected IPv6 address should be valid");
 
         assert_eq!(sample_peer_using_ipv6(), expected);
     }
