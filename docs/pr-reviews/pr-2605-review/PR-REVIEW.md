@@ -40,14 +40,19 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-One review was submitted so far. Copilot's review 5599040224 read the head whose subject is "docs(issues):
-[#2525] propose the design of the override across runs". It carries two inline threads, F1 and F2. Its
-overview repeats them, so the body adds no rows.
+Two reviews were submitted so far, both by Copilot. Each body repeats its inline threads, so the bodies add
+no rows.
+
+- Review 5599040224 read the head whose subject is "docs(issues): [#2525] propose the design of the override
+  across runs". It carries two inline threads, F1 and F2.
+- Review 5599861652 read the head whose subject is "docs(pr-reviews): add the PR #2605 review audit". It
+  marks F1 and F2 as resolved and carries one inline thread, F3.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2605-f1 | Copilot | Nit (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 | F2 | review-finding:pr-2605-f2 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F3 | review-finding:pr-2605-f3 | Copilot | Minor (inferred) | correctness | ORIGINAL | FOLLOW_UP | RESOLVED |
 
 ## Finding Details
 
@@ -77,6 +82,27 @@ overview repeats them, so the body adds no rows.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4336492533>
 
+### F3 - The saved workflow does not paginate the check suites
+
+- PR number: 2605
+- Source review ID: 5599861652
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4336946940>
+- Concern: the `check-suites` call of the saved sandbox workflow is not paginated, so the first-seen time, and
+  with it the stale-override decision, can be wrong when the head commit has more than 100 check suites. Use
+  `gh api --paginate` and take the minimum across pages, as is done for the check runs.
+- Solution: the concern is right for that script, but the file is evidence of what ran in the sandbox, so it
+  was not changed. The limit is stated in V10, and the code that replaces it, the adapter of T6a in pull
+  request 2610, reads every page of every response; no test covered the pagination of the check suites, so
+  that pull request gained one, with the earliest suite on the second page, and the disposition is
+  `FOLLOW_UP` for that test.
+- Current-tree verification: V10 states the limit and points to the adapter. In the branch of pull request
+  2610 the test fails when only the first page, or the first listed suite, is used (two mutants), and
+  `cargo test -p ci-gate` passes with 199 unit and 18 command-line tests.
+- Resolution reference: docs(issues): [#2525] record that the saved T5 workflow does not paginate the check suites
+- Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2610>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4337084993>
+
 ## Processing Log
 
 - 2026-10-21 11:36 UTC - Copilot's review arrived with two threads, F1 and F2. Both were checked against
@@ -84,6 +110,10 @@ overview repeats them, so the body adds no rows.
 - 2026-10-21 11:53 UTC - Fixed each finding in its own signed commit, recorded the round in the
   specification, ran the pre-push checks, and pushed.
 - 2026-10-21 11:56 UTC - Replied on the two threads after the push, and started this record.
+- 2026-10-21 12:46 UTC - Copilot's second review arrived with one thread, F3. It was checked and confirmed for
+  the saved script; the file is evidence, so the limit was documented, and the missing pagination test of
+  the check suites was added in the pull request of the code that replaces it.
+- 2026-10-21 12:59 UTC - Pushed, replied on the thread, and added F3 to this record.
 
 ## Completion Rules
 
