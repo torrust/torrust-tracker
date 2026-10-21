@@ -40,7 +40,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Three reviews were submitted so far, all by Copilot. Each body repeats its inline threads, so the bodies add
+Four reviews were submitted so far, all by Copilot. Each body repeats its inline threads, so the bodies add
 no rows.
 
 - Review 5599696060 read the head whose subject is "feat(ci-gate): [#2525] add the GitHub adapter of the merge
@@ -50,6 +50,9 @@ no rows.
 - Review 5602354694 read the head whose subject is "docs(pr-reviews): record the second review round in the PR
   #2610 audit". It marks F5 and F6 as resolved and carries three inline threads, F7 to F9, which make one point
   at three lines of the same file, so F8 and F9 are recorded as re-raises of F7.
+- Review 5603061561 read the head whose subject is "docs(pr-reviews): add the PR #2610 review audit", the head
+  of the third round. It marks F5 and F6 as resolved and carries two inline threads, F10 and F11, which make one
+  point at two lines, so F11 is recorded as a re-raise of F10.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -62,6 +65,8 @@ no rows.
 | F7 | review-finding:pr-2610-f7 | Copilot | Suggestion | testing | ORIGINAL | FIXED | RESOLVED |
 | F8 | review-finding:pr-2610-f8 | Copilot | Suggestion | testing | RE_RAISE_OF:F7 | NO_ACTION | SUPERSEDED |
 | F9 | review-finding:pr-2610-f9 | Copilot | Suggestion | testing | RE_RAISE_OF:F7 | NO_ACTION | SUPERSEDED |
+| F10 | review-finding:pr-2610-f10 | Copilot | Nit (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
+| F11 | review-finding:pr-2610-f11 | Copilot | Nit (inferred) | testing | RE_RAISE_OF:F10 | NO_ACTION | SUPERSEDED |
 
 ## Finding Details
 
@@ -182,6 +187,32 @@ no rows.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4338933317>
 
+### F10 - The test name goes unchanged into a directory that is removed recursively
+
+- PR number: 2610
+- Source review ID: 5603061561
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4339419280>
+- Concern: `test_name` is interpolated unchanged into a filesystem path that is later removed recursively, so a future caller could pass a path separator or two dots and make the helper create and delete somewhere unexpected. Sanitize the name to a safe set of characters, or leave it out of the directory name.
+- Solution: every character of the test name that is not a letter, a digit, a hyphen, or an underscore is replaced in the directory name, and a test creates a fixture with the name `nested/name` and expects the directory to be a direct child of the temporary directory.
+- Current-tree verification: the test failed before the fix, with the directory one level too deep, and a mutant that replaces only the dots is killed. `cargo test -p ci-gate` passes with 209 unit and 20 command-line tests.
+- Resolution reference: test(ci-gate): [#2525] keep a fake gh directory inside the temporary directory
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4339476131>
+
+### F11 - The test name goes unchanged into a directory that is removed recursively (same concern, another line)
+
+- PR number: 2610
+- Source review ID: 5603061561
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4339419349>
+- Concern: `test_name` is interpolated unchanged into a filesystem path that is later removed recursively, so a future caller could pass a path separator or two dots and make the helper create and delete somewhere unexpected. Sanitize the name to a safe set of characters, or leave it out of the directory name. It is the concern of F10, raised at another line.
+- Solution: no change, for the reason given for F10.
+- Current-tree verification: the reply of F10 answers it, and the sanitizing covers every use of the name.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4339476470>
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4339476470>
+
 ## Processing Log
 
 - 2026-10-21 12:33 UTC - Copilot's review arrived with four threads, F1 to F4.
@@ -203,6 +234,10 @@ no rows.
   as a defect of the previous round's change, although the behavior was in the first version of the adapter and
   F1 had offered the implementation fix; corrected the text of F5 here, in the specification, and in the reply on
   the thread.
+- 2026-10-21 16:42 UTC - Copilot's fourth review arrived with two threads, F10 and F11, one concern at two lines.
+  Both were confirmed. The test failed first and was mutation-checked.
+- 2026-10-21 16:48 UTC - Fixed it in one signed commit, recorded the round in the specification, pushed, replied on
+  both threads, and added F10 and F11 to this record.
 
 ## Completion Rules
 
