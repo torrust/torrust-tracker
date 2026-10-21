@@ -9,7 +9,7 @@ github-issue: 2582
 spec-path: docs/issues/open/2582-1669-remove-health-check-self-dev-dependency/ISSUE.md
 branch: "2582-1669-remove-health-check-self-dev-dependency"
 related-pr: null
-last-updated-utc: "2026-10-21 09:27"
+last-updated-utc: "2026-10-21 09:39"
 semantic-links:
   skill-links:
     - create-issue
@@ -153,8 +153,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | -- | ------ | ---- | ----------------------- |
 | T1 | DONE | Reproduce | Evidence V1: exit `101`, "no matching package named `torrust-tracker-axum-health-check-api-server`". |
 | T0 | DONE | Record the maintainer's answers | [Maintainer Decisions](#maintainer-decisions). |
-| T2 | TODO | Add the CI packaging check | Job `workspace-packaging` in `testing.yaml` running `cargo package --workspace --no-verify`; it fails on the unfixed tree (red run, locally and in the fork's CI, recorded in evidence). |
-| T2b | TODO | Add the pre-push packaging step | `cargo +stable package --workspace --no-verify --allow-dirty` before "Running all tests"; the pre-push step lists in the docs updated; the step fails on the unfixed tree (red run recorded in evidence). |
+| T2 | DONE | Add the CI packaging check | Job `workspace-packaging` in `testing.yaml` running `cargo package --workspace --no-verify`; it fails on the unfixed tree (red run, locally and in the fork's CI, recorded in evidence). Red: evidence V3 (local) and V4 (fork CI). |
+| T2b | DONE | Add the pre-push packaging step | `cargo +stable package --workspace --no-verify --allow-dirty` before "Running all tests"; the pre-push step lists in the docs updated; the step fails on the unfixed tree (red run recorded in evidence). Red: evidence V5. |
 | T3 | TODO | Remove the self dev-dependency | One-line manifest change (and `Cargo.lock` if Cargo changes it). |
 | T4 | TODO | Green and recheck | The regression checks and the crate's tests pass; V1 repeated like-for-like and passes; recorded in evidence. |
 
@@ -203,6 +203,10 @@ Every commit is a signed Conventional Commit.
   [Maintainer Decisions](#maintainer-decisions): a new `testing.yaml` job, `--no-verify` only, the
   CI red run from the fork, and the same check in `pre-push.sh` with `--allow-dirty`. Added T0, T2b
   and AC5 for the pre-push step.
+- 2026-10-21 09:39 UTC - GitHub Copilot - T2 and T2b done. Added the `Workspace Packaging` job to
+  `testing.yaml` and the packaging step to `pre-push.sh` (with the documented step lists). Recorded
+  the red runs on the unfixed tree: the CI command locally (V3), the job in the fork's CI (V4), and
+  the pre-push step with a dirty tree (V5); all fail with the error of V1.
 
 ## Acceptance Criteria
 

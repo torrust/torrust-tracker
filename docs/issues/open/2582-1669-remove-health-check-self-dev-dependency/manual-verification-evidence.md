@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2582-1669-remove-health-check-self-dev-dependency/ISSUE.md
-last-updated-utc: 2026-10-20 17:35
+last-updated-utc: 2026-10-21 09:39
 ---
 
 # Manual Verification Evidence
@@ -101,6 +101,140 @@ test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
 Removing the line is sufficient: the crate's tests still pass (integration tests import the
 package under test without declaring it) and the whole workspace packages. This probe is not the
 final recheck; the implementation repeats V1 after the fix.
+
+### V3 - Red: the CI packaging command on the unfixed tree, locally
+
+- Goal: show that the regression check added to CI fails for the defect before the fix.
+- Initial state: branch `2582-1669-remove-health-check-self-dev-dependency` at the commit
+  "docs(issues): [#2582] record the maintainer's decisions for the packaging check" (`develop` at
+  `afbd5dbf1` plus that spec-only commit); clean tree (`git status --short` printed nothing).
+- Environment: stable Rust toolchain, `cargo 1.99.0 (5f94df478 2026-08-27)`,
+  `rustc 1.99.0 (b940084d7 2026-09-28)`.
+- Status: `DONE` (outcome: **red**, as expected)
+
+#### Steps Performed
+
+1. 2026-10-21 09:29:40 UTC `cargo package --workspace --no-verify` (the exact command of the new
+   `Workspace Packaging` CI job); ended 09:30:04 UTC.
+
+#### Observed Result
+
+Exit `101` after 25 `Packaged` lines; the tail of the output:
+
+```text
+    Packaged 53 files, 339.1KiB (74.0KiB compressed)
+   Packaging torrust-tracker-axum-health-check-api-server v0.1.0 (<repo>/packages/axum-health-check-api-server)
+    Updating crates.io index
+error: failed to prepare local package for uploading
+
+Caused by:
+  no matching package named `torrust-tracker-axum-health-check-api-server` found
+  location searched: crates.io index
+  required by package `torrust-tracker-axum-health-check-api-server v0.1.0 (<repo>/packages/axum-health-check-api-server)`
+```
+
+#### Conclusion
+
+The regression check is red for this defect, with the same error as V1.
+
+### V4 - Red: the `Workspace Packaging` CI job on the unfixed tree, in the fork
+
+- Goal: show that the new CI job fails for the defect on a hosted runner (AC4).
+- Initial state: the branch pushed to the fork with the commit
+  "ci(testing): [#2582] package every workspace crate on each run" on top of V3's state, and
+  without the fix.
+- Environment: GitHub-hosted `ubuntu-latest` runner, `dtolnay/rust-toolchain@stable` installed
+  `rustc 1.99.1 (58cf8f9c3 2026-10-13)`.
+- Status: `DONE` (outcome: **red**, as expected)
+
+#### Steps Performed
+
+1. `git push -u josecelano 2582-1669-remove-health-check-self-dev-dependency`, which completed at
+   about 09:33:54 UTC, when the fork created the run below (the installed pre-push hook passed; it
+   did not contain the packaging step yet).
+2. The push started the fork's `Testing` workflow,
+   [run 39577940822](https://github.com/josecelano/torrust-tracker/actions/runs/39577940822); its
+   `Workspace Packaging` job
+   ([job 119148033669](https://github.com/josecelano/torrust-tracker/actions/runs/39577940822/job/119148033669))
+   ran from 09:34:01 to 09:34:26 UTC and concluded `failure`.
+3. The job log was downloaded with
+   `gh api repos/josecelano/torrust-tracker/actions/jobs/119148033669/logs`, and ANSI codes were
+   stripped.
+
+#### Observed Result
+
+25 `Packaged` lines, then (timestamps kept, runner paths unchanged):
+
+```text
+2026-10-21T09:34:14.7734486Z ##[group]Run cargo package --workspace --no-verify
+2026-10-21T09:34:14.7734725Z cargo package --workspace --no-verify
+...
+2026-10-21T09:34:23.0998746Z     Packaged 53 files, 339.1KiB (74.0KiB compressed)
+2026-10-21T09:34:23.1251947Z    Packaging torrust-tracker-axum-health-check-api-server v0.1.0 (/home/runner/work/torrust-tracker/torrust-tracker/packages/axum-health-check-api-server)
+2026-10-21T09:34:23.1348391Z     Updating crates.io index
+2026-10-21T09:34:23.6449707Z error: failed to prepare local package for uploading
+2026-10-21T09:34:23.6449901Z
+2026-10-21T09:34:23.6449983Z Caused by:
+2026-10-21T09:34:23.6450179Z   no matching package named `torrust-tracker-axum-health-check-api-server` found
+2026-10-21T09:34:23.6450419Z   location searched: crates.io index
+2026-10-21T09:34:23.6450798Z   required by package `torrust-tracker-axum-health-check-api-server v0.1.0 (/home/runner/work/torrust-tracker/torrust-tracker/packages/axum-health-check-api-server)`
+2026-10-21T09:34:23.6581707Z ##[error]Process completed with exit code 101.
+```
+
+#### Conclusion
+
+The CI job is red for this defect on a hosted runner. The step itself took about 9 seconds; the
+whole job, including checkout and toolchain setup, 25 seconds.
+
+### V5 - Red: the pre-push packaging step on the unfixed tree
+
+- Goal: show that the new pre-push step fails for the defect (AC5) and that `--allow-dirty` lets it
+  run with uncommitted edits.
+- Initial state: V4's commits plus the uncommitted pre-push step and documentation edits of the
+  later commit "chore(git-hooks): [#2582] check workspace packaging before pushing", and the
+  uncommitted V3 evidence; the manifest still unfixed. The tree was dirty on purpose.
+- Environment: same as V3.
+- Status: `DONE` (outcome: **red**, as expected)
+
+#### Steps Performed
+
+1. 2026-10-21 09:34:54 UTC `TORRUST_GIT_HOOKS_LOG_DIR=.tmp ./contrib/dev-tools/git/hooks/pre-push.sh`;
+   exited `1` at 09:35:26 UTC.
+
+#### Observed Result
+
+```text
+Running pre-push checks...
+Note: these checks can take several minutes. If Git reports a closed SSH connection after they pass, see <repository root>/docs/git-hooks.md.
+
+[Step 1/6] Checking format with nightly toolchain ... PASS (1s)
+[Step 2/6] Checking workspace with nightly toolchain ... PASS (0s)
+[Step 3/6] Building documentation with nightly toolchain ... PASS (5s)
+[Step 4/6] Building library documentation with nightly toolchain ... PASS (3s)
+[Step 5/6] Checking that every workspace crate can be packaged ... FAIL (23s)  log: .tmp/pre-push-checking-that-every-workspace-crate-can-be-packaged-mKk07r.log
+        Updating crates.io index
+        Packaged 53 files, 339.1KiB (74.0KiB compressed)
+       Packaging torrust-tracker-axum-health-check-api-server v0.1.0 (<repo>/packages/axum-health-check-api-server)
+        Updating crates.io index
+    error: failed to prepare local package for uploading
+
+    Caused by:
+      no matching package named `torrust-tracker-axum-health-check-api-server` found
+      location searched: crates.io index
+      required by package `torrust-tracker-axum-health-check-api-server v0.1.0 (<repo>/packages/axum-health-check-api-server)`
+    (10 lines shown - full log: .tmp/pre-push-checking-that-every-workspace-crate-can-be-packaged-mKk07r.log)
+
+==========================================
+FAILED: Pre-push checks failed!
+Fix the errors above before pushing.
+==========================================
+```
+
+#### Conclusion
+
+The pre-push step is red for this defect and stops the hook before the full test suite. It ran
+despite the dirty tree, so `--allow-dirty` works as intended. The `.tmp/` log is not kept; the
+relevant lines are above.
 
 ## Failures and Follow-up
 
