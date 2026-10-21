@@ -9,7 +9,7 @@ github-issue: 1349
 spec-path: docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md
 branch: "1349-1347-add-tests-http-core-final"
 related-pr: null
-last-updated-utc: "2026-10-21 12:25"
+last-updated-utc: "2026-10-21 14:27"
 semantic-links:
   skill-links:
     - create-issue
@@ -460,7 +460,7 @@ lines are the S2 baseline measurement (see [Baseline Coverage](#baseline-coverag
 | 8 | `statistics/metrics.rs` | 6 | S5 | 48 / 57 (84.21%) | 1 | Test candidate | DONE | [statistics-metrics-tests.md](test-refactor-plans/statistics-metrics-tests.md) (done; 141 / 141 lines after) |
 | 9 | `statistics/repository.rs` | 6 | S5 | 21 / 24 (87.50%) | 0 (3 doc tests) | Test candidate | DONE | [statistics-repository-tests.md](test-refactor-plans/statistics-repository-tests.md) (done; 108 / 108 lines after) |
 | 10 | `statistics/mod.rs` | 6 | S5 | 8 / 8 (100.00%) | 0 | Probably small change (metric-name contract) | DONE | [statistics-mod-tests.md](test-refactor-plans/statistics-mod-tests.md) (done; 32 / 32 lines after, name and exposition pinned) |
-| 11 | `lib.rs` | 7 | S6 | 27 / 27 (100.00%) | 0 | Test support only | PENDING | - |
+| 11 | `lib.rs` | 7 | S6 | 27 / 27 (100.00%) | 0 | Test support only | DONE | [lib-tests.md](test-refactor-plans/lib-tests.md) (done; 97 / 97 lines after, log target and `RecordingSender` pinned) |
 | 12 | `services/mod.rs` | 7 | S6 | No executable entries | 0 | Wiring only | PENDING | - |
 | 13 | `statistics/event/mod.rs` | 7 | S6 | No executable entries | 0 | Wiring only | PENDING | - |
 
@@ -747,6 +747,11 @@ lines are the S2 baseline measurement (see [Baseline Coverage](#baseline-coverag
   head (`git diff af69b317c 889a6dc36 -- packages/http-core` is empty), and a clean unit-only measurement
   reproduced the S5 figures: 183 tests, lines 2,974 / 2,996 (99.27%), regions 3,875 / 3,905 (99.23%), functions
   372 / 373 (99.73%). `lib.rs` is 41 / 41 lines. Ledger rows 11-13 are next, then T5-T8.
+- 2026-10-21 14:27 UTC - GitHub Copilot - `lib.rs` is `DONE` (S6): the three S6 plans were approved (including the
+  comment correction of `services/mod.rs`), and `lib.rs` gained 8 tests (97 / 97 lines, 150 / 150 regions). All
+  mutations were killed by the new tests only, including a sender that records at call time instead of on poll,
+  which no earlier test noticed. Correction: the S6-start entry above is stamped 12:25 UTC but its commit was made
+  at 13:21 UTC (the real time was not read when it was written).
 
 ## Acceptance Criteria
 

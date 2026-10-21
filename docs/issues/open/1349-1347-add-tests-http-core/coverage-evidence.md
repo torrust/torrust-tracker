@@ -343,3 +343,23 @@ Measured on 2026-10-21 after the independent review round with the same commands
 | Functions | 161 / 191 (84.29%) | 309 / 315 (98.10%) | 372 / 373 (99.73%) |
 
 Since the original baseline the package gained +10.39 pp of lines, +8.82 pp of regions and +15.44 pp of functions. The uncovered production lines of the statistics files are three, all decided in their plans: the failed-increase `Err` arm (line 20) and the debug closure (line 25) of `handler.rs`, and the ignored-event `warn!` argument (line 132) of `listener.rs`; the one other uncovered line (195 of `listener.rs`) is the `Lagged` arm of the test receiver. The totals include the test modules.
+
+### Baseline Before Slice S6
+
+Measured on 2026-10-21 on the S6 branch at the merge of #2608 (`889a6dc36`), whose `packages/http-core` is identical to the S5 head, so the package figures equal the final S5 ones: lines 2,974 / 2,996 (99.27%), regions 3,875 / 3,905 (99.23%), functions 372 / 373 (99.73%), 183 unit tests. Clean `cargo llvm-cov clean --workspace` then `cargo llvm-cov -p torrust-tracker-http-core --all-features --lib --json` on the stable toolchain.
+
+| Source module | Lines | Regions | Functions |
+| --- | ---: | ---: | ---: |
+| `lib.rs` | 41 / 41 | 42 / 42 | 8 / 8 |
+| `services/mod.rs` | no executable entries | no executable entries | no executable entries |
+| `statistics/event/mod.rs` | no executable entries | no executable entries | no executable entries |
+
+### `lib.rs` (slice S6)
+
+Measured on 2026-10-21 on the S6 branch, whose production code in `lib.rs` is identical to `develop` (the diff has no removed line). The plan is [lib-tests.md](test-refactor-plans/lib-tests.md).
+
+| Source module | Lines before → after | Regions before → after | Functions before → after |
+| --- | ---: | ---: | ---: |
+| `lib.rs` | 41 / 41 → 97 / 97 | 42 / 42 → 150 / 150 | 8 / 8 → 20 / 20 |
+
+The file keeps no production line to cover; the eight new tests pin the public log target and the shared `RecordingSender` and fixtures that about 100 tests rely on. Package after the file: 191 unit tests, lines 3,030 / 3,052, regions 3,983 / 4,013, functions 384 / 385 (the totals include the test modules).
