@@ -436,10 +436,10 @@ GitHub JSON, and only the label response, which is `[{"name": "ci-override"}]`, 
 last row is the contract that T6b and T6c have to meet: nothing calls the adapter yet, so it changes no
 behavior today.
 
-Twenty-four mutants of `github.rs`, `gh.rs`, and the tests' fixture were applied one at a time and the whole test suite run for each, with the
+Twenty-five mutants of `github.rs`, `gh.rs`, and the tests' fixture were applied one at a time and the whole test suite run for each, with the
 file restored afterwards (`diff` against a saved copy). Six of them did not compile the first time, because
 the workspace's `-D warnings` rejects unused code, so they ran no test; they were rewritten and rerun. All
-twenty-four compiled and were killed:
+twenty-five compiled and were killed:
 
 | Mutant                                                                          | Failing tests |
 | ------------------------------------------------------------------------------- | ------------- |
@@ -467,8 +467,9 @@ twenty-four compiled and were killed:
 | the failure message omits `--paginate`                                          |             1 |
 | the error of a failed request is not limited in length                          |             1 |
 | output of `gh` that is not JSON is accepted as no page                          |             2 |
+| a test name with a path separator is allowed into the fake `gh` directory name  |             1 |
 
-The final run has 209 unit and 19 command-line tests; `cargo clippy`, `cargo +nightly fmt --check`, the
+The final run has 209 unit and 20 command-line tests; `cargo clippy`, `cargo +nightly fmt --check`, the
 documentation build, and `cargo machete` are clean.
 
 ## Failures and Follow-up

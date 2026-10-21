@@ -9,7 +9,7 @@ github-issue: 2525
 spec-path: docs/issues/open/2525-ci-gate-required-check/ISSUE.md
 branch: "2525-ci-gate-required-check"
 related-pr: null
-last-updated-utc: "2026-10-21 15:52"
+last-updated-utc: "2026-10-21 16:46"
 semantic-links:
   skill-links:
     - create-issue
@@ -483,7 +483,7 @@ Conventional Commits with narrow scopes and sign every commit with GPG.
   it; an error reading the check runs is a runtime error (exit 1, nothing on stdout), and an error reading
   anything the override needs means no override with the reason in `override_ignored`; a failing verdict
   still exits with 0; the repository, commit id, and login are validated because they become part of request
-  paths. 209 unit and 19 command-line tests, 24 of 24 mutants killed, and a manual run on real GitHub data,
+  paths. 209 unit and 20 command-line tests, 25 of 25 mutants killed, and a manual run on real GitHub data,
   including a replay of runs 5 and 7 of the T5 sandbox from the captured responses that gave the same results -
   [`manual-verification-evidence.md`](manual-verification-evidence.md) V11. The current upstream workflows
   have no check runs named after the groups, so on an upstream pull request every needed group is missing; that
@@ -545,6 +545,15 @@ Conventional Commits with narrow scopes and sign every commit with GPG.
   stand-in (`docs(ci-gate): [#2525] say why the github-verdict command-line tests are unix-only`). Now 209 unit and
   19 command-line tests, and four more mutants killed -
   [`manual-verification-evidence.md`](manual-verification-evidence.md) V11.
+- 2026-10-21 16:46 UTC - GitHub Copilot - Processed Copilot's fourth review of PR #2610 (two threads, one concern, both
+  confirmed). The name of a fake `gh` directory contained the test name unchanged, and the directory is removed
+  recursively when the fixture is dropped, so a name with a path separator or two dots could choose where it is
+  created and removed. Every character that is not a letter, a digit, a hyphen, or an underscore is now replaced
+  (`test(ci-gate): [#2525] keep a fake gh directory inside the temporary directory`). The new test failed first
+  and left a stray directory in the temporary directory, which was removed by hand; a mutant that replaces only
+  the dots is killed. My first attempt at that mutant asserted that the text to replace was there and stopped
+  because the formatter had wrapped it, so nothing was silently skipped. Now 209 unit and 20 command-line tests,
+  and one more mutant killed - [`manual-verification-evidence.md`](manual-verification-evidence.md) V11.
 
 ## Acceptance Criteria
 
