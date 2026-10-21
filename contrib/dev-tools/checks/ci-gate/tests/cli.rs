@@ -298,6 +298,13 @@ fn it_should_write_a_json_runtime_error_and_nothing_on_stdout_when_stdin_is_not_
     assert_eq!(record["kind"], "runtime_error");
 }
 
+// The end-to-end tests of `github-verdict` below run the binary against a stand-in `gh` that is a shell script, so
+// they exist only on Unix systems. The pull-request workflows run tests on Linux only; the other platforms of
+// `os-compatibility.yaml` only build. Every rule of the verdict is also tested without a process or a platform: the
+// rules of `github.rs` through the `GithubApi` trait, and the parsing of the output of `gh` and the failure message
+// in `gh.rs`, in unit tests that run everywhere. What only these tests cover is the spawning of the program and
+// the mapping of its exit status.
+
 /// A stand-in for the `gh` program, made of fixtures in a temporary directory. A request for which there is no fixture
 /// fails, as a request that GitHub refuses does.
 #[cfg(unix)]
