@@ -1007,4 +1007,33 @@ mod tests {
             "the second group is on the second page, so reading only the first would leave it missing"
         );
     }
+
+    #[test]
+    fn it_should_take_the_earliest_check_suite_over_all_pages_when_the_override_is_judged() {
+        // Arrange
+        // The label was applied at 10:49:13. The first page holds only suites created after it, at 10:50:00 and
+        // 10:52:00, which would make the label look stale. The earliest suite, at 10:48:00, is on the second page, so
+        // the label was applied after the head commit's first suite and counts.
+        let api = failing_head()
+            .with(LABELS_PATH, vec![json!([{ "name": "ci-override" }])])
+            .with(EVENTS_PATH, vec![json!([labeled_event("josecelano", "2026-10-21T10:49:13Z")])])
+            .with(
+                CHECK_SUITES_PATH,
+                vec![
+                    json!({ "check_suites": [{ "created_at": "2026-10-21T10:52:00Z" }, { "created_at": "2026-10-21T10:50:00Z" }] }),
+                    json!({ "check_suites": [{ "created_at": "2026-10-21T10:51:00Z" }, { "created_at": "2026-10-21T10:48:00Z" }] }),
+                ],
+            )
+            .with(&permission_path("josecelano"), vec![json!({ "permission": "admin" })]);
+
+        // Act
+        let verdict = decide_for_pull_request(&api, &pull_request(), &classification_needing_db_benchmarking()).expect("decided");
+
+        // Assert
+        assert_eq!(
+            (verdict.verdict.verdict, verdict.verdict.overridden_by),
+            (Verdict::Pass, Some("josecelano".to_string())),
+            "the earliest suite, at 10:48:00 on the second page, is before the label, so the label counts"
+        );
+    }
 }
