@@ -40,9 +40,13 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-One review was submitted so far. Copilot's review 5599696060 read the head whose subject is "feat(ci-gate):
-[#2525] add the GitHub adapter of the merge verdict". It carries four inline threads, F1 to F4. Its overview
-repeats them, so the body adds no rows.
+Two reviews were submitted so far, both by Copilot. Each body repeats its inline threads, so the bodies add
+no rows.
+
+- Review 5599696060 read the head whose subject is "feat(ci-gate): [#2525] add the GitHub adapter of the merge
+  verdict". It carries four inline threads, F1 to F4.
+- Review 5602014129 read the head whose subject is "docs(pr-reviews): add the PR #2610 review audit". It marks
+  F1 to F4 as resolved and carries two inline threads, F5 and F6.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -50,6 +54,8 @@ repeats them, so the body adds no rows.
 | F2 | review-finding:pr-2610-f2 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
 | F3 | review-finding:pr-2610-f3 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
 | F4 | review-finding:pr-2610-f4 | Copilot | Nit (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F5 | review-finding:pr-2610-f5 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
+| F6 | review-finding:pr-2610-f6 | Copilot | Nit (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -105,6 +111,32 @@ repeats them, so the body adds no rows.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4338275066>
 
+### F5 - The events are fetched even when the override label is absent
+
+- PR number: 2610
+- Source review ID: 5602014129
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4338604801>
+- Concern: `assess_override` fetches the events unconditionally, so a failing events request sets `override_ignored` although the labels, which were read, show that there is no override label. Fetch the labels first, return at once when the label is absent, and add a test of no label and a failing events API expecting `override_ignored` to be `None`.
+- Solution: `assess_override` returns that no override was asked for as soon as the labels do not include the label, and reads the events, check suites, and permission only after that. The documentation of the field says that it is `None` when the labels were read and the label is not among them. This was a defect in the change of the previous round, which had no test for that case.
+- Current-tree verification: the test with no label and an events API that fails expects `override_ignored` `None` and no events request: it failed before the fix, and a mutant that reads the events first fails it again. `cargo test -p ci-gate` passes with 201 unit and 19 command-line tests.
+- Resolution reference: fix(ci-gate): [#2525] read the events only when the override label is on the pull request
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4338661721>
+
+### F6 - The fake gh directory can collide when a test name is reused
+
+- PR number: 2610
+- Source review ID: 5602014129
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4338604878>
+- Concern: the directory of a fake `gh` is named after the process and the test name, so a reused name, or a concurrent retry, would collide. Add a monotonic counter, the time, or a random suffix.
+- Solution: a counter is added to the directory name, and a test creates two fixtures with the same name and expects different directories.
+- Current-tree verification: the test failed before the fix, and a mutant that removes the counter fails it again; `cargo test -p ci-gate --test cli` passes with 19 tests.
+- Resolution reference: test(ci-gate): [#2525] give each fake gh a directory of its own
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4338662055>
+
 ## Processing Log
 
 - 2026-10-21 12:33 UTC - Copilot's review arrived with four threads, F1 to F4.
@@ -113,6 +145,10 @@ repeats them, so the body adds no rows.
 - 2026-10-21 14:44 UTC - Fixed each finding in its own signed commit and recorded the round in the specification.
   One commit failed on a GPG passphrase timeout and was rerun after the maintainer was asked.
 - 2026-10-21 14:49 UTC - Pushed, replied on the four threads after the push, and started this record.
+- 2026-10-21 15:21 UTC - Copilot's second review arrived with two threads, F5 and F6. Both were confirmed,
+  and F5 was a defect of the first round's change.
+- 2026-10-21 15:27 UTC - Wrote the tests first and saw them fail, fixed each finding in its own signed commit,
+  recorded the round in the specification, pushed, replied on both threads, and added F5 and F6 to this record.
 
 ## Completion Rules
 
