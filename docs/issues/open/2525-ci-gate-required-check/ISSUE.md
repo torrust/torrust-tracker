@@ -9,7 +9,7 @@ github-issue: 2525
 spec-path: docs/issues/open/2525-ci-gate-required-check/ISSUE.md
 branch: "2525-ci-gate-required-check"
 related-pr: null
-last-updated-utc: "2026-10-21 11:07"
+last-updated-utc: "2026-10-21 11:23"
 semantic-links:
   skill-links:
     - create-issue
@@ -135,7 +135,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T3  | DONE        | Rust verdict                                    | Implemented as the `verdict` subcommand of the `ci-gate` crate on branch `2525-ci-gate-verdict`; decisions approved by the maintainer on 2026-10-20: one JSON object on stdin, `{"classification": <the classify output>, "results": {<group>: success, failure, cancelled, or skipped}}`; the override is `--override-actor <login>` (the Maintain or Admin role check of AC3 belongs to T5); a decided verdict, passing or failing, is a result, so the tool exits with 0 and the workflow reads `verdict`, while input it cannot decide on (unreadable, or a classification that does not list every group once) exits with 1 and prints nothing, so both fail the gate. A needed group that failed, was cancelled, was skipped, or never reported is a problem; a group that is not needed never counts; an override is recorded only when it overrides a problem. 135 unit and 10 command-line tests, 13 of 13 mutants killed. Evidence: [`manual-verification-evidence.md`](manual-verification-evidence.md) V7.                                                |
 | T4  | DONE        | Decision gate: gate cost and override           | In a fork sandbox like #2507's: measure the runner time the gate adds to a documentation-only PR (tool compile included, with and without caching or a prebuilt binary), and verify that a later successful `CI gate` check run from an override-only run supersedes the earlier failing one for the required check. Sandbox runs DONE on 2026-10-21 ([`manual-verification-evidence.md`](manual-verification-evidence.md) V8 and V9): a cold build of the tool costs a median 0.40 runner minutes per job and a prebuilt binary about 0.12; a later check run supersedes an earlier one in both directions for the same job of a workflow, and two workflows with a job named `CI gate` do not combine into a pass. Approved by the maintainer on 2026-10-21: both gate jobs build the tool cold, and a prebuilt binary is adopted only if a later measurement exceeds the AC6 bound, which is at most 1.0 runner minute added at the median to a documentation-only pushed head (two tool runs). |
 | T5  | DONE        | Decision gate: cross-run state for the override | A `labeled` or `unlabeled` event starts a new workflow run that cannot read the earlier run's `needs` results, and later events do not say who applied an existing label. Define, with a maintainer-approved design: (a) where the gate reads the heavy jobs' results for the head SHA (for example the checks API, persisted artifacts, or rerunning the jobs); (b) where it reads label provenance (for example the issue events API) and how it verifies the actor's Maintain or Admin role; (c) the token permissions this needs on fork pull requests, whose `GITHUB_TOKEN` is read-only, and the trust boundary of each input; (d) whether an override survives a new push (`synchronize`) or applies only to the head SHA it was granted for. Prove it with hosted runs in a sandbox for label added, label removed, and a push after an override. Keep provider queries in a thin adapter so the verdict stays provider-neutral. Sandbox runs DONE on 2026-10-21 ([`manual-verification-evidence.md`](manual-verification-evidence.md) V10); the design is in "T5 Design Proposal: the Override Across Runs", approved by the maintainer on 2026-10-21 as proposed. |
-| T6  | TODO        | Orchestrating workflow                          | Convert the pull-request triggers of the heavy workflows into `workflow_call` invocations from one orchestrator; keep `push` triggers; final `CI gate` job; `labeled`/`unlabeled` handling that only re-evaluates the verdict. Follow `implement-workflow`. `CI gate` lands reporting but **not required**: no ruleset change in T6. Before T7, observe it on at least one real code PR and one real documentation-only PR (M1, M2 without the required rule) and record both runs. Split on 2026-10-21 into three steps, each its own pull request: T6a, the Rust adapter that fetches the raw GitHub API responses and turns them into the verdict input, with the contract for the group job names, the stale-override check, and the role check, and no workflow change; T6b, one workflow converted behind the orchestrator, tried in the fork sandbox first; T6c, the other workflows, one commit each. |
+| T6  | IN_PROGRESS | Orchestrating workflow                          | Convert the pull-request triggers of the heavy workflows into `workflow_call` invocations from one orchestrator; keep `push` triggers; final `CI gate` job; `labeled`/`unlabeled` handling that only re-evaluates the verdict. Follow `implement-workflow`. `CI gate` lands reporting but **not required**: no ruleset change in T6. Before T7, observe it on at least one real code PR and one real documentation-only PR (M1, M2 without the required rule) and record both runs. Split on 2026-10-21 into three steps, each its own pull request: T6a, the Rust adapter that fetches the raw GitHub API responses and turns them into the verdict input, with the contract for the group job names, the stale-override check, and the role check, and no workflow change; T6b, one workflow converted behind the orchestrator, tried in the fork sandbox first; T6c, the other workflows, one commit each. T6a is implemented as the `github-verdict` subcommand of the `ci-gate` crate (`contrib/dev-tools/checks/ci-gate/src/github.rs` and `gh.rs`), on branch `2525-ci-gate-github-adapter`: [`manual-verification-evidence.md`](manual-verification-evidence.md) V11. |
 | T7  | TODO        | Ruleset and documentation                       | Only after T6 is observed on real PRs, and only with explicit maintainer approval: add the required `CI gate` context (Actions app, not strict) to the rulesets. Save the ruleset JSON before and after under `evidence/`, and record the rollback command in `docs/github-rulesets.md`, so a broken gate can be removed in one step without disabling a ruleset. Update `docs/github-rulesets.md`, the `merge-pull-request` override procedure, and `implement-workflow`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | T8  | IN_PROGRESS | Measure                                         | Not done in this issue, so #2525 can close without a waiting period (the same decision as #2507 T7, 2026-10-15). (a) DONE on 2026-10-21: [`pr-ci-cost-baseline.md`](pr-ci-cost-baseline.md) records the "before" runner time per pushed head and per pull request for documentation-only and code pull requests, from every run of the 98 pull requests merged since 7 October, with the raw per-run data under `evidence/`. (b) When T7 lands, draft and create a follow-up measurement issue that compares at least two weeks after T7 with (a), and link it here.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 
@@ -471,6 +471,42 @@ Conventional Commits with narrow scopes and sign every commit with GPG.
   recommended: T6a, the Rust adapter that turns raw API responses into the verdict input (no workflow
   change); T6b, one workflow converted behind the orchestrator, reporting but not required, tried in the
   fork sandbox first; T6c, the other workflows, one commit each.
+- 2026-10-21 11:23 UTC - GitHub Copilot - T6a implemented on branch `2525-ci-gate-github-adapter`, with the design of T5
+  and the defaults named here. `ci-gate github-verdict --repo <owner/name> --pull-request <number>
+  --head-sha <sha> --classification <file>` reads the check runs, labels, events, check suites, and the
+  actor's permission through `gh api --paginate`, and prints the verdict JSON with one more field,
+  `override_ignored`, which says why a label that was asked for did not count. Defaults chosen: the API is
+  reached through the `gh` program, behind a `GithubApi` trait, so the rules are tested with fixtures and
+  there is no new dependency; the classification comes from a file, which `classify` writes from
+  `git diff -z`; the "latest" run of a group is the one with the highest check-run id, not the latest start
+  time, because a queued rerun has no start time; the override is looked up only when the verdict fails without
+  it; an error reading the check runs is a runtime error (exit 1, nothing on stdout), and an error reading
+  anything the override needs means no override with the reason in `override_ignored`; a failing verdict
+  still exits with 0; the repository, commit id, and login are validated because they become part of request
+  paths. 198 unit and 18 command-line tests, 16 of 16 mutants killed, and a manual run on real GitHub data,
+  including a replay of runs 5 and 7 of the T5 sandbox from the captured responses that gave the same results -
+  [`manual-verification-evidence.md`](manual-verification-evidence.md) V11. The current upstream workflows
+  have no check runs named after the groups, so on an upstream pull request every needed group is missing; that
+  is the contract for T6b.
+  Test-design review (prose-first Arrange-Act-Assert, recorded after the tests passed):
+  - **Rule tables** (the result of a check run, which runs are ignored, which run of a group is the latest,
+    whether an override counts, which repositories are accepted): Arrange is one fixture value written in the
+    `#[case]`, named for the one difference that matters; Act is the visible call of the function under test;
+    Assert compares a literal. Nothing is derived from the production code.
+  - **Scenarios** through `decide_for_pull_request`: a `FakeApi` answers each path with a fixture and records the
+    requests. The causal values, the actor, the time of the label, the time of the first check suite, and the
+    permission, are arguments in the test and not hidden in the fake. The paths are written out in the tests,
+    because they are the contract with GitHub, and one test asserts that only the check runs are requested when
+    nothing failed.
+  - **Command-line tests**: `FakeGh` hides only how a stand-in `gh` program is written and removed; the
+    fixtures and the arguments stay in the test, and an end-to-end test exists for a passing verdict, a failing
+    one, an override, a stale override, an unreadable GitHub, a missing file, and a usage error.
+  - **Smells checked**: the first version of the end-to-end override helper hard-coded the actor that the
+    assertion then named, a hidden behavioral value; the actor is now an argument. The whole-result assertions
+    are one specification each.
+  - **Untested on purpose**: the real `gh` program talking to GitHub is exercised only manually (V11),
+    because a test needs GitHub and a token. The process spawning and the parse of its output, including
+    several pages one after the other, are tested with a stand-in program.
 
 ## Acceptance Criteria
 

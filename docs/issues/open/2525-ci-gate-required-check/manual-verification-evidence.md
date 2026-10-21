@@ -412,6 +412,57 @@ Cleanup, 2026-10-21 at 10:52 UTC: the sandbox ruleset, both `exp-2525-t5-*` bran
 label were deleted from the fork, and verified: only the two tag rulesets remain, no `exp-` branch, no open
 pull request, and none of those labels. Fork pull request 22 remains, merged, as history.
 
+### V11 - The GitHub adapter (task T6a)
+
+- Goal: show that `ci-gate github-verdict` decides correctly on real GitHub data, with the real `gh`, and
+  that its tests fail when a rule is wrong.
+- Initial state: branch `2525-ci-gate-github-adapter`, built with `cargo build -p ci-gate`; `gh`
+  authenticated as `josecelano`. The sandbox of T5 had been deleted, but its merged pull request 22 in the
+  fork `josecelano/torrust-tracker` still has its check runs, check suites, and events.
+- Status: `DONE`
+
+The classification of the pull request's file list came from `ci-gate classify --base-branch
+exp-2525-t5-base` (`docs-lint` and `db-benchmarking` needed). Head commit `ab8b42e90`.
+
+| Run                                                                                                                                                                                                   | Result                                                                                                                                                                                               |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Real `gh` against GitHub, pull request 22. The label no longer exists, so no override is asked for.                                                                                                   | `fail`, `db-benchmarking (failure)`, `override_ignored` null, exit code 0                                                                                                                            |
+| Replay A: the real events, check suites, and permission of that pull request, with the label added to the labels response. Label applied at 10:49:13, after the head's first check suite at 10:46:06. | `pass`, `overridden_by` `josecelano`, `db-benchmarking (failure)` kept in `problems`, the same as run 7 of V10                                                                                       |
+| Replay B: the real events up to 10:44:46, the time of the label before the push.                                                                                                                      | `fail`, with `override_ignored`: the label was applied at 10:44:46, not after the first check suite at 10:46:06, so a push revoked it; remove the label and apply it again. The same as run 5 of V10 |
+| Real `gh` against `torrust/torrust-tracker` pull request 2605 (open).                                                                                                                                 | `fail`, all five needed groups `missing`, because the names of the check runs of the current workflows (for example `Build on macos-latest (stable)`) are not group names yet                        |
+
+The replays used a program that serves the captured real responses, so they exercise the parsing of real
+GitHub JSON, and only the label response, which is `[{"name": "ci-override"}]`, was written by hand. The
+last row is the contract that T6b and T6c have to meet: nothing calls the adapter yet, so it changes no
+behavior today.
+
+Sixteen mutants of `github.rs` and `gh.rs` were applied one at a time and the whole test suite run for each, with the
+file restored afterwards (`diff` against a saved copy). Six of them did not compile the first time, because
+the workspace's `-D warnings` rejects unused code, so they ran no test; they were rewritten and rerun. All
+sixteen compiled and were killed:
+
+| Mutant                                              | Failing tests |
+| --------------------------------------------------- | ------------- |
+| a check run of any application counts               |             1 |
+| a skipped run counts                                |             1 |
+| the oldest run of a group wins                      |             4 |
+| a run that has not completed counts                 |             3 |
+| a cancelled run is a failure                        |             2 |
+| a job name is matched ignoring case                 |             1 |
+| the freshness of the label is not checked           |             4 |
+| a label applied in the second of the push counts    |             1 |
+| the permission `write` may override                 |             2 |
+| the override is looked up when the verdict passes   |             2 |
+| the label need not be on the pull request           |             1 |
+| the earliest `labeled` event is used                |             2 |
+| a permission that cannot be read counts             |             2 |
+| only the first page of a paginated response is read |             1 |
+| a repository that is not `owner/name` is accepted   |             4 |
+| only the first page of the output of `gh` is read   |             1 |
+
+The final run has 198 unit and 18 command-line tests; `cargo clippy`, `cargo +nightly fmt --check`, the
+documentation build, and `cargo machete` are clean.
+
 ## Failures and Follow-up
 
 None.
