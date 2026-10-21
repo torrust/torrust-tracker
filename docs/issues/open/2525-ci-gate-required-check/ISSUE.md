@@ -9,7 +9,7 @@ github-issue: 2525
 spec-path: docs/issues/open/2525-ci-gate-required-check/ISSUE.md
 branch: "2525-ci-gate-required-check"
 related-pr: null
-last-updated-utc: "2026-10-21 13:23"
+last-updated-utc: "2026-10-21 16:18"
 semantic-links:
   skill-links:
     - create-issue
@@ -491,6 +491,15 @@ Conventional Commits with narrow scopes and sign every commit with GPG.
   from the repository root; both now give the full repository path (`docs(issues): [#2525] give the sandbox
   folders in the evidence transcripts as repository paths`). The other finding said that every row of the
   review audit's table starts with a doubled pipe; no row does, so no change was made.
+- 2026-10-21 16:18 UTC - GitHub Copilot - Processed Copilot's sixth review of PR #2605 (two findings). The saved T5 logs show
+  `--override-actor` passed empty in runs 1 and 3, but only the fixed revision of the sandbox workflow was saved,
+  so the evidence could not be reconciled. This was right: I had saved the workflow as it ended, not as it ran.
+  The first revision is now saved next to the fixed one, the header of the logs says which runs used which, and the
+  logs themselves show it (only the fixed revision prints `probe:` lines). Doing it also showed that my text was
+  wrong: it said that only run 3 still used the old workflow, and run 4 did too (`docs(issues): [#2525] save the
+  first revision of the T5 workflow and say which runs used it`). The other finding repeats, a fourth time, that the
+  rows of the review audit's table start with `||`; the file was fetched again from the GitHub contents API and no
+  line does.
 
 ## Acceptance Criteria
 
