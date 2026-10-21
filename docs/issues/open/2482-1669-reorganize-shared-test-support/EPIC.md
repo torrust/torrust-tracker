@@ -6,7 +6,7 @@ epic: 1669
 github-issue: 2482
 spec-path: docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-21 14:40"
+last-updated-utc: "2026-10-21 15:21"
 semantic-links:
   skill-links:
     - create-issue
@@ -178,8 +178,8 @@ subissue 1 and GitHub issues one at a time afterwards.
 | 1 | #[To be assigned] - Decide how packages share test support code | `docs/issues/drafts/2482-decide-test-support-rules/ISSUE.md` (to be created from the Phase 1 plan below) | TODO | Tasks D1 to D5; MV1 to MV4. Blocks every other row. |
 | 2 | #[To be assigned] - Move the `test-helpers` protocol helpers to their consumer | Provisional | TODO | Pattern B; coupling report finding 1. A semver-major change to the published `test-helpers` (3.0.0); #2583 publishes the bump. |
 | 3 | #[To be assigned] - Gate `tracker-core`'s test modules and mocks | Provisional | TODO | Patterns C and D. |
-| 4 | #[To be assigned] - Relocate the `udp-server` test environment | Provisional | TODO | Pattern A; includes `examples/udp_only_public_tracker.rs`. |
-| 5 | #[To be assigned] - Relocate the `axum-http-server` test environment | Provisional | TODO | Pattern A; includes `examples/http_only_public_tracker.rs` and the doc-link-only `configuration` edge. After #2471, which merged on 2026-10-16. |
+| 4 | #[To be assigned] - Relocate the `udp-server` test environment | Provisional | TODO | Pattern A; includes `examples/udp_only_public_tracker.rs`. After #2416 (its T9 changes this environment). |
+| 5 | #[To be assigned] - Relocate the `axum-http-server` test environment | Provisional | TODO | Pattern A; includes `examples/http_only_public_tracker.rs` and the doc-link-only `configuration` edge. After #2471, which merged on 2026-10-16, and after #2416 (its T9 changes this environment). |
 | 6 | #[To be assigned] - Relocate the `axum-rest-api-server` test environment | Provisional | TODO | Pattern A; six forced edges; also removes the stale `rest-api-core` comment in `src/testing/mod.rs`. After #2449. |
 | 7 | #[To be assigned] - Relocate the `axum-health-check-api-server` test environment | Provisional | TODO | Pattern A. After #2450 and after rows 4 to 6, whose environments its tests use. |
 | 8 | #[To be assigned] - Label optional dependency edges in the coupling tool and diagram | Provisional | TODO | Only if the ADR chooses O1; before the first O1 move merges. |
@@ -244,12 +244,12 @@ kept):
   compiled, not what tests verify. Every test, example and bench that used the moved code still
   builds and passes, and no test target is skipped without notice: `required-features` on a test
   or example target is not allowed unless CI checks that the target runs.
-- **Coordination with EPIC #1488.** Its open subissues #2449 (REST API environment) and #2450
-  (health check API environment) change the environments this EPIC moves; #2471 (HTTP
-  environment drop path) merged on 2026-10-16. Each environment move starts after the #1488
-  subissue that changes the same environment merges, or its spec records why the order does not
-  matter. #1488's other open subissue, #2410 (queued events at shutdown), changes no environment.
-  #1488 work is not delayed for this EPIC.
+- **Coordination with EPIC #1488.** Its open subissues change the environments this EPIC moves:
+  #2449 (REST API environment), #2450 (health check API environment) and #2416 (stop producers
+  before event listeners, part of #2410), whose task T9 changes the HTTP and UDP environments.
+  #2471 (HTTP environment drop path) merged on 2026-10-16. Each environment move starts after
+  the #1488 subissue that changes the same environment merges, or its spec records why the order
+  does not matter. #1488 work is not delayed for this EPIC.
 - **The inventory is a living document.** Each subissue marks the inventory rows it resolves,
   and updates the dependency diagram when it removes edges.
 
@@ -371,6 +371,11 @@ Append one line per meaningful update.
 - 2026-10-21 14:40 UTC - AI assistant (Copilot SDK in VS Code, #2482 coordinator) - The
   maintainer (josecelano) approved the corrected spec; ticked the approval checkpoint.
   Rewrapped the first line of the 13:59 entry to 100 columns (no content change).
+- 2026-10-21 15:21 UTC - AI assistant (Copilot SDK in VS Code, #2482 coordinator) - Correction to the 13:59
+  entry, which kept "#2410" among the refreshed facts on the claim that it changes no
+  environment (taken from the orchestrator's review, not checked). #2410's child #2416 still
+  lists task T9, which changes the HTTP and UDP environments. The "Coordination with EPIC #1488"
+  rule, rows 4 and 5 and the long-pole risk now name #2416 (PR #2614 review finding F1).
 
 ## Acceptance Criteria
 
@@ -416,12 +421,14 @@ Append one line per meaningful update.
 - The examples start their trackers through the test environments; their subissues must give
   them a production-style startup (O7 for the examples) or label them as test-support
   demonstrations.
-- Three subissues of EPIC #1488 change the environments this EPIC would move: #2449 (REST API
-  environment), #2450 (health check API environment) and #2471 (HTTP environment drop path,
-  merged on 2026-10-16). The ordering rule in "How we work in this EPIC" handles them.
+- Four subissues of EPIC #1488 change the environments this EPIC would move: #2449 (REST API
+  environment), #2450 (health check API environment), #2416 (HTTP and UDP environments, task
+  T9) and #2471 (HTTP environment drop path, merged on 2026-10-16). The ordering rule in "How we
+  work in this EPIC" handles them.
 - **Long pole.** Eight sequential subissues, each with a spec PR and an implementation PR, and
-  rows 6 and 7 wait on #1488. This EPIC blocks #2576, then #2583, then #2594, so it gates the end
-  of #1669. The maintainer accepted that cost for one review at a time (2026-10-21).
+  rows 4 to 7 wait on #1488 (#2416, #2449, #2450). This EPIC blocks #2576, then #2583, then
+  #2594, so it gates the end of #1669. The maintainer accepted that cost for one review at a
+  time (2026-10-21).
 - **Silent test loss under O1.** `required-features` (O1b) makes Cargo skip a target when the
   feature is off, and a plain `cargo test -p <package>` still passes. Mitigation: the rule in "How
   we work in this EPIC" and the test-count check in the completion policy.
