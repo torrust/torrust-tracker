@@ -498,18 +498,6 @@ impl JobManager {
         Ok(())
     }
 
-    // TODO(#2415): temporary adapter for the T6a design review; callers move to
-    // `reserve` and `spawn` in T6b and this method is removed.
-    /// Spawns a direct top-level component task that uses the legacy root token.
-    pub fn spawn_unreserved<N, F>(&mut self, name: N, future: F)
-    where
-        N: Into<String>,
-        F: Future<Output = ComponentResult> + Send + 'static,
-    {
-        let abort_handle = self.jobs.spawn(future);
-        self.job_names.insert(abort_handle.id(), name.into());
-    }
-
     // issue: #1488
     /// Registers an existing periodic job without transferring it to `JoinSet`.
     ///
@@ -532,7 +520,7 @@ impl JobManager {
     /// Only jobs registered with [`Self::register_legacy`] use it. Components
     /// spawned with [`Self::spawn`] use the token of their [`Reservation`].
     #[must_use]
-    pub fn new_cancellation_token(&self) -> CancellationToken {
+    pub fn legacy_cancellation_token(&self) -> CancellationToken {
         self.cancellation_token.clone()
     }
 
@@ -702,24 +690,39 @@ fn panic_message(payload: &(dyn std::any::Any + Send + 'static)) -> String {
 
 #[cfg(test)]
 mod tests {
+    use std::future::Future;
+
     use tokio::sync::oneshot;
     use tokio::time::{Duration, timeout};
     use torrust_server_lib::signals::Halted;
 
-    use super::{ComponentCompletion, ComponentError, JobManager, JobOutcome, JobStatus, Reservation, SpawnError};
+    use super::{
+        ComponentCompletion, ComponentError, ComponentResult, JobManager, JobOutcome, JobStatus, Reservation, SpawnError,
+    };
+
+    /// Reserves a component and spawns it with a runner that does not use its token.
+    fn reserve_and_spawn<F>(manager: &mut JobManager, name: &str, future: F)
+    where
+        F: Future<Output = ComponentResult> + Send + 'static,
+    {
+        let reservation = manager.reserve(name);
+        manager
+            .spawn(reservation, future)
+            .expect("the reservation was issued by this manager");
+    }
 
     #[tokio::test]
     async fn it_should_report_jobs_in_completion_order() {
         // Arrange
         let mut manager = JobManager::new();
         let (second_finished_sender, second_finished_receiver) = oneshot::channel();
-        manager.spawn_unreserved("first", async move {
+        reserve_and_spawn(&mut manager, "first", async move {
             second_finished_receiver
                 .await
                 .expect("second task reports its completion before the first task completes");
             Ok(ComponentCompletion::Completed)
         });
-        manager.spawn_unreserved("second", async move {
+        reserve_and_spawn(&mut manager, "second", async move {
             second_finished_sender
                 .send(())
                 .expect("first task is waiting for the second task");
@@ -749,7 +752,7 @@ mod tests {
     async fn it_should_report_a_named_panic() {
         // Arrange
         let mut manager = JobManager::new();
-        manager.spawn_unreserved("panic-job", async {
+        reserve_and_spawn(&mut manager, "panic-job", async {
             panic!("expected panic");
         });
 
@@ -772,11 +775,11 @@ mod tests {
         let mut manager = JobManager::new();
         let (first_sender, first_receiver) = oneshot::channel::<()>();
         let (second_sender, second_receiver) = oneshot::channel::<()>();
-        manager.spawn_unreserved("first", async move {
+        reserve_and_spawn(&mut manager, "first", async move {
             let _ = first_receiver.await;
             Ok(ComponentCompletion::Completed)
         });
-        manager.spawn_unreserved("second", async move {
+        reserve_and_spawn(&mut manager, "second", async move {
             let _ = second_receiver.await;
             Ok(ComponentCompletion::Completed)
         });
@@ -791,30 +794,6 @@ mod tests {
         assert!(outcomes.iter().all(|outcome| outcome.status == JobStatus::Aborted));
         assert!(first_sender.send(()).is_err());
         assert!(second_sender.send(()).is_err());
-    }
-
-    #[tokio::test]
-    async fn it_should_report_cooperatively_cancelled_jobs() {
-        // Arrange
-        let mut manager = JobManager::new();
-        let cancellation_token = manager.new_cancellation_token();
-        manager.spawn_unreserved("cooperative-job", async move {
-            cancellation_token.cancelled().await;
-            Ok(ComponentCompletion::Cancelled)
-        });
-
-        // Act
-        manager.cancel();
-        let outcomes = manager.wait_for_all(Duration::from_secs(1)).await;
-
-        // Assert
-        assert_eq!(
-            outcomes,
-            vec![JobOutcome {
-                name: "cooperative-job".to_owned(),
-                status: JobStatus::Cancelled,
-            }]
-        );
     }
 
     #[tokio::test]
@@ -850,7 +829,7 @@ mod tests {
         let (child_completion_sender, child_completion_receiver) = oneshot::channel::<()>();
         let (halt_sender, halt_receiver) = oneshot::channel();
         let (server_ready_sender, server_ready_receiver) = oneshot::channel();
-        manager.spawn_unreserved("server-component", async move {
+        reserve_and_spawn(&mut manager, "server-component", async move {
             let mut server = super::NestedServerTask::new(
                 halt_sender,
                 tokio::spawn(async move {
@@ -890,7 +869,7 @@ mod tests {
         let (controller_completion_sender, controller_completion_receiver) = oneshot::channel::<()>();
         let (halt_sender, halt_receiver) = oneshot::channel();
         let (server_ready_sender, server_ready_receiver) = oneshot::channel();
-        manager.spawn_unreserved("server-component", async move {
+        reserve_and_spawn(&mut manager, "server-component", async move {
             let mut server = super::NestedServerTask::with_shutdown_controller(
                 halt_sender,
                 tokio::spawn(async move {
@@ -936,7 +915,7 @@ mod tests {
         let (running_completion_sender, running_completion_receiver) = oneshot::channel::<()>();
         let (halt_sender, halt_receiver) = oneshot::channel();
         let (halt_signal_ready_sender, halt_signal_ready_receiver) = oneshot::channel();
-        manager.spawn_unreserved("running-server-component", async move {
+        reserve_and_spawn(&mut manager, "running-server-component", async move {
             let _halt_signal = super::HaltSignal::new(halt_sender);
             halt_signal_ready_sender
                 .send(())
@@ -968,7 +947,7 @@ mod tests {
         let (direct_completion_sender, direct_completion_receiver) = oneshot::channel::<()>();
         let (first_legacy_completion_sender, first_legacy_completion_receiver) = oneshot::channel::<()>();
         let (second_legacy_completion_sender, second_legacy_completion_receiver) = oneshot::channel::<()>();
-        manager.spawn_unreserved("direct-job", async move {
+        reserve_and_spawn(&mut manager, "direct-job", async move {
             let _ = direct_completion_receiver.await;
             Ok(ComponentCompletion::Completed)
         });
@@ -1017,7 +996,9 @@ mod tests {
     async fn it_should_report_a_named_component_failure() {
         // Arrange
         let mut manager = JobManager::new();
-        manager.spawn_unreserved("failing-job", async { Err(ComponentError::new("database connection lost")) });
+        reserve_and_spawn(&mut manager, "failing-job", async {
+            Err(ComponentError::new("database connection lost"))
+        });
 
         // Act
         let outcomes = manager.wait_for_all(Duration::from_secs(1)).await;
@@ -1073,7 +1054,7 @@ mod tests {
         let reservation = manager.reserve("component");
 
         // Act
-        manager.new_cancellation_token().cancel();
+        manager.legacy_cancellation_token().cancel();
 
         // Assert
         assert!(
@@ -1130,7 +1111,7 @@ mod tests {
         let mut manager = JobManager::new();
         let reservation = manager.reserve("component");
         spawn_component_stopping_on_its_own_token(&mut manager, reservation);
-        let legacy_token = manager.new_cancellation_token();
+        let legacy_token = manager.legacy_cancellation_token();
         manager.register_legacy(
             "legacy-job",
             tokio::spawn(async move {
