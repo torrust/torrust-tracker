@@ -9,7 +9,7 @@ github-issue: 2525
 spec-path: docs/issues/open/2525-ci-gate-required-check/ISSUE.md
 branch: "2525-ci-gate-required-check"
 related-pr: null
-last-updated-utc: "2026-10-21 11:53"
+last-updated-utc: "2026-10-21 12:55"
 semantic-links:
   skill-links:
     - create-issue
@@ -478,6 +478,14 @@ Conventional Commits with narrow scopes and sign every commit with GPG.
   evidence, not unmerged workflows`). I had cut the first classification line of the T5 gate logs off with an
   ellipsis in a file described as verbatim, and restored the full line from the run's log (`docs(issues):
   [#2525] restore the full classification line in the T5 gate logs`).
+- 2026-10-21 12:55 UTC - GitHub Copilot - Processed Copilot's second review of PR #2605 (one finding, confirmed): the saved
+  T5 sandbox workflow reads the check suites with one request and does not paginate it, so with more than 100
+  suites on a head commit its stale-override decision could be wrong. The file is evidence of what ran and was
+  not changed; the limit is recorded in V10 (`docs(issues): [#2525] record that the saved T5 workflow does not
+  paginate the check suites`). The adapter of T6a reads every page of every response, but I found that no test
+  covered the pagination of the check suites, so PR #2610 gained one that puts the earliest suite on the second
+  page and fails when only the first page, or the first listed suite, is used (`test(ci-gate): [#2525] test that
+  the earliest check suite is taken over all pages`).
 
 ## Acceptance Criteria
 
