@@ -9,7 +9,7 @@ github-issue: 2525
 spec-path: docs/issues/open/2525-ci-gate-required-check/ISSUE.md
 branch: "2525-ci-gate-required-check"
 related-pr: null
-last-updated-utc: "2026-10-21 07:44"
+last-updated-utc: "2026-10-21 09:07"
 semantic-links:
   skill-links:
     - create-issue
@@ -157,6 +157,62 @@ which checks GitHub requires until step 5.
 6. **Close.** Create the follow-up measurement issue (T8 b), finish the verification and review
    checkpoints, close #2525, and archive this specification. Closing does not wait for the
    measurement window.
+
+### Sandbox Plan for T4 and T5
+
+Approved by the maintainer on 2026-10-21, as a throwaway sandbox in the fork `josecelano/torrust-tracker`
+instead of experiments on upstream pull requests, like the #2507 sandbox. T4 runs first. Its numbers go to
+the maintainer, who approves the AC6 bound, before T5 starts. Every experiment records its commands, its
+observed results with UTC times, and its cleanup in
+[`manual-verification-evidence.md`](manual-verification-evidence.md).
+
+#### Setup and cleanup
+
+- Branches `exp-2525-base` and one head branch per sandbox pull request, all prefixed `exp-2525-`. A
+  documentation-only sandbox pull request adds one signed commit with a Markdown file under `exp-2525/`,
+  so the fork's heavy workflows skip it.
+- A sandbox ruleset scoped to `refs/heads/exp-2525-base` that requires the status check `CI gate`
+  (Actions app, not strict), with the other rules of the upstream rulesets 87085 and 94133 that matter to a
+  merge (pull request required, signatures required).
+- Sandbox workflows exist only on the `exp-2525-*` branches and never reach upstream. Merges are built the
+  way `github-merge.py` builds them and pushed directly, as in #2507.
+- Cleanup at the end of each task: delete the sandbox ruleset, every `exp-2525-*` branch, and close every
+  sandbox pull request. Record the time.
+
+#### T4: gate cost and override
+
+- **E1, runner time the gate adds.** A minimal gate job runs on documentation-only sandbox pull requests, at
+  least 10 runs per variant, measured as job duration like the baseline
+  ([`pr-ci-cost-baseline.md`](pr-ci-cost-baseline.md)). Variants: (a) a cold `cargo build -p ci-gate` with
+  no cache; (b) the same with the Rust cache; (c) a prebuilt binary, either cached by a hash of the crate
+  or built by a build job and downloaded. The comparison is the `Docs Lint` baseline: median 0.85 minutes,
+  with a run of about 4.3 minutes one time in sixteen on documentation-only pull requests. The result is
+  a proposed bound for AC6, which the maintainer approves.
+- **E2, a later check run superseding an earlier one.** With `CI gate` required in the sandbox ruleset:
+  (a) a failing `CI gate` followed, for the same head commit, by a passing one from a different workflow
+  run, started by a `labeled` event; (b) the reverse order, a passing one followed by a failing one, started
+  by an `unlabeled` event; (c) two workflows that each define a job named `CI gate`. Each case records the
+  pull request's merge state and the result of a real merge push, because what the ruleset does is what
+  matters.
+
+#### T5: cross-run state for the override
+
+- **(a) Where the gate reads the earlier results.** Candidates: the check-runs API for the head commit,
+  artifacts of the earlier run, or rerunning the jobs. The first to prove is the check-runs API, behind a
+  thin adapter that produces the `results` JSON the verdict reads, so the verdict stays provider-neutral.
+- **(b) Where it reads who applied the label.** Candidates: `sender` in the `labeled` event payload, and
+  the issue events API for events that do not carry it. The role is checked with the collaborator
+  permission API; record which token can call it.
+- **(c) Token permissions.** `pull_request` against `pull_request_target`, where the re-evaluation runs
+  only trusted code from the base branch and never checks out the pull request's code. A pull request
+  inside the fork gets a write token, so the sandbox cannot reproduce the read-only token of a fork pull
+  request. By maintainer decision, this part relies on GitHub's documented behavior and is verified on real
+  upstream pull requests when T6 lands, where `CI gate` is reporting but not required.
+- **(d) Whether an override survives a push.** The recommended answer is that it does not, as the
+  repository already dismisses stale reviews on push. Two ways are tested: removing the label on
+  `synchronize`, and tying the override to the head commit it was granted for.
+- **Hosted runs** in the sandbox for label added, label removed, and a push after an override. The
+  maintainer approves the design before T6 starts.
 
 ## Commit Points
 
@@ -335,6 +391,11 @@ Conventional Commits with narrow scopes and sign every commit with GPG.
   (`docs(issues): [#2525] correct the Docs Lint duration bucket counts in the baseline`). The one-in-nine
   slow-run rate pooled both classes; for documentation-only pull requests it is 17 of 270 runs, about one
   in sixteen (`docs(issues): [#2525] give the Docs Lint slow-run rate per class of pull request`).
+- 2026-10-21 09:07 UTC - GitHub Copilot - The maintainer approved the sandbox plan for T4 and T5 (2026-10-21): a
+  throwaway sandbox in the fork, T4 first with its numbers approved before T5, and T5(c) relying on
+  GitHub's documented fork-pull-request token behavior, to be verified on real upstream pull requests when
+  T6 lands. The plan is recorded in "Sandbox Plan for T4 and T5". The fork was checked first: no leftover
+  `exp-` branches, no open pull requests, Actions enabled, and the workflows run on `ubuntu-latest`.
 
 ## Acceptance Criteria
 
