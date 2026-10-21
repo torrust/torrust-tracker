@@ -9,7 +9,7 @@ github-issue: 2525
 spec-path: docs/issues/open/2525-ci-gate-required-check/ISSUE.md
 branch: "2525-ci-gate-required-check"
 related-pr: null
-last-updated-utc: "2026-10-21 19:17"
+last-updated-utc: "2026-10-21 19:47"
 semantic-links:
   skill-links:
     - create-issue
@@ -578,6 +578,15 @@ Conventional Commits with narrow scopes and sign every commit with GPG.
   records, each in its own commit. F21 asks to fold the lint-fix commit into the one it fixes; it is not done,
   because the repository keeps a mistake and its correction on purpose. Now 226 unit and 23 command-line tests, and
   nine more mutants killed - [`manual-verification-evidence.md`](manual-verification-evidence.md) V11.
+- 2026-10-21 19:47 UTC - GitHub Copilot - Processed Copilot's sixth review of PR #2610 (three threads, F22 to F24), which had
+  arrived at 19:20 UTC, before I pushed the previous round. I found it only after a bulk resolve had closed its threads
+  without my reading them; I then read each, checked it, and replied. F22 asked to avoid `Option::is_none_or` for the
+  MSRV: it is stable since Rust 1.82.0, the workspace `rust-version` is 1.88, and the crate and its tests compile with
+  the 1.88.0 toolchain, so no change. F23 asked to simplify the `Some` built inside a `map`; done with a `let ... else`
+  (`refactor(ci-gate): [#2525] return the override request without a nested option in a map`), with two mutants
+  killed. F24 asked for `let _ =` instead of `drop(...)`, which the workspace lint `let_underscore_drop` denies; the
+  pattern stays and a comment says why (`test(ci-gate): [#2525] say why the fixture ignores the write with drop`).
+  Still 226 unit and 23 command-line tests - [`manual-verification-evidence.md`](manual-verification-evidence.md) V11.
 
 ## Acceptance Criteria
 
