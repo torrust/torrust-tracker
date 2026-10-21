@@ -31,6 +31,9 @@ maintainer approves it.
 | 5 | [container-tests.md](container-tests.md) | DONE | Approved 2026-10-20; completed file approved 2026-10-21 |
 | 6 | [statistics-handler-tests.md](statistics-handler-tests.md) | DONE | Approved 2026-10-21; R1 and the completed file approved 2026-10-21 |
 | 7 | [statistics-listener-tests.md](statistics-listener-tests.md) | DONE | Approved 2026-10-21; completed file approved 2026-10-21 |
+| 8 | [statistics-metrics-tests.md](statistics-metrics-tests.md) | DONE | Approved 2026-10-21; completed file approved 2026-10-21 |
+| 9 | [statistics-repository-tests.md](statistics-repository-tests.md) | DONE | Approved 2026-10-21; completed file approved 2026-10-21 |
+| 10 | [statistics-mod-tests.md](statistics-mod-tests.md) | DONE | Approved 2026-10-21; completed file approved 2026-10-21 |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 

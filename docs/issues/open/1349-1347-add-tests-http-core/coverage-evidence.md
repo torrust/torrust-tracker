@@ -319,3 +319,27 @@ Measured on 2026-10-21 on the S5 branch, whose production code for this file is 
 | `statistics/event/listener.rs` functions | 29 / 32 (90.63%) | 44 / 44 (100.00%) |
 
 The file keeps its 6 tests and gains 8 cases in 4 test functions: the metrics policy for announce events, every queued event drained after cancellation, and the two public entry points (`Completion` and the spawned task). All production code is covered except the log argument of the ignored-event `warn!` (line 132); the one other uncovered line is the `Lagged` arm of the test receiver. The package has 157 unit tests: lines 2,614 / 2,648 (98.72%), regions 3,339 / 3,380 (98.79%), functions 329 / 332 (99.10%).
+
+### `statistics/metrics.rs`, `statistics/repository.rs` and `statistics/mod.rs` (slice S5)
+
+Measured on 2026-10-21 on the S5 branch, whose production code for these files is identical to `develop` at the merge of #2593. The plans are [statistics-metrics-tests.md](test-refactor-plans/statistics-metrics-tests.md), [statistics-repository-tests.md](test-refactor-plans/statistics-repository-tests.md) and [statistics-mod-tests.md](test-refactor-plans/statistics-mod-tests.md).
+
+| Source module | Lines before → after | Regions before → after | Functions before → after |
+| --- | ---: | ---: | ---: |
+| `statistics/metrics.rs` | 48 / 57 → 141 / 141 | 66 / 74 → 238 / 238 | 8 / 9 → 19 / 19 |
+| `statistics/repository.rs` | 21 / 24 → 108 / 108 | 26 / 29 → 161 / 161 | 5 / 6 → 21 / 21 |
+| `statistics/mod.rs` | 8 / 8 → 32 / 32 | 10 / 10 → 43 / 43 | 1 / 1 → 4 / 4 |
+
+The counted lines include the new test modules, so the rises far exceed the production lines they protect; every production line and function of the three files is covered, including the `set_gauge` wrapper and `Repository::default`, which were the uncovered code. The mutation results in each plan are the stronger signal; the metric-name test is the only test that fails when the public series name changes.
+
+### Package After Slice S5
+
+Measured on 2026-10-21 after the last S5 file with the same commands. The package has 174 unit tests (144 at the S5 baseline).
+
+| Scope | Original baseline (`87690b15e`) | S5 baseline (`b5ab35ae9`) | After slice S5 |
+| --- | ---: | ---: | ---: |
+| Lines | 1,751 / 1,970 (88.88%) | 2,536 / 2,592 (97.84%) | 2,818 / 2,840 (99.23%) |
+| Regions | 2,357 / 2,607 (90.41%) | 3,264 / 3,324 (98.19%) | 3,679 / 3,709 (99.19%) |
+| Functions | 161 / 191 (84.29%) | 309 / 315 (98.10%) | 359 / 360 (99.72%) |
+
+Since the original baseline the package gained +10.35 pp of lines, +8.78 pp of regions and +15.43 pp of functions. The uncovered production lines of the statistics files are three, all decided in their plans: the failed-increase `Err` arm (line 20) and the debug closure (line 25) of `handler.rs`, and the ignored-event `warn!` argument (line 132) of `listener.rs`; the one other uncovered line (195 of `listener.rs`) is the `Lagged` arm of the test receiver. The totals include the test modules.
