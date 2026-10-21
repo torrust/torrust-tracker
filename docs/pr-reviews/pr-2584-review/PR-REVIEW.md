@@ -35,7 +35,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F1 | review-finding:pr-2584-f1 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 | F2 | review-finding:pr-2584-f2 | Copilot | Nit (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 | F3 | review-finding:pr-2584-f3 | Copilot | Nit (inferred) | metadata | ORIGINAL | NO_ACTION | RESOLVED |
-| WAIT-001 | review-finding:pr-2584-wait-001 | Copilot | Major | correctness | ORIGINAL | FOLLOW_UP | NON_RESOLVABLE |
+| WAIT-001 | review-finding:pr-2584-wait-001 | Copilot | Major | correctness | ORIGINAL | FIXED | NON_RESOLVABLE |
 
 ## Finding Details
 
@@ -103,15 +103,18 @@ deliver findings through GitHub and have no repository-artifact obligation.
   commits stays unresolved. The reviewer asked for a latest-head review plus a check of all PR
   threads, including older and outdated ones. The review body has no inline thread, so the
   finding is `NON_RESOLVABLE`.
-- Solution: Audit-only, per the maintainer's decision recorded in the approval comment. No spec
-  change in this round. The fix belongs with the implementation of #2581, which must replace the
-  latest-commit gate with a check across all PR threads.
+- Solution: The maintainer first approved an audit-only disposition (approval comment above). The
+  spec fix then followed in PR #2596: the exit condition requires Copilot's latest review on the
+  head commit and no unresolved actionable thread anywhere in the PR, including earlier commits.
 - Current-tree verification: `grep -n "latest commit" docs/issues/open/2581-2003-pr-review-wait-poller/ISSUE.md`
   on `develop` at `fcd78975c` shows the exit condition at lines 108-110 ("has reviewed the latest
   commit ... and has no unresolved threads on that commit") and line 156 ("has reviewed the latest
-  commit with no unresolved threads"). The finding remains live.
-- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2584#issuecomment-6301227746>
-- Follow-up PR URL: NA
+  commit with no unresolved threads"). The finding remained live at that point. Re-checked on
+  `develop` at `d21282aa4` after PR #2596 merged: `grep -c "has no unresolved threads on that
+  commit"` on the spec returns 0, and the exit condition (lines 112-114) now counts unresolved
+  actionable threads over the whole PR, including earlier commits. Decision 1 states the same.
+- Resolution reference: `docs(issues): [#2581] count unresolved threads over the whole PR in the poller exit condition`
+- Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2596>
 - Reply URL: NA
 
 ## Processing Log
@@ -150,3 +153,7 @@ correction that names the rewritten content; do not rewrite the record again.
 - Cite a fix by its unique Conventional Commit subject or durable reply URL, never by a branch SHA
   that can change after a rebase.
 - Refresh review threads using GraphQL and confirm that no unresolved actionable thread remains.
+- 2026-10-21 09:34 UTC - PR #2596 merged (`mergedAt` 09:33:59 UTC) with the spec fix for WAIT-001.
+  Changed WAIT-001 from `FOLLOW_UP` to `FIXED`, with the fix commit subject as the resolution
+  reference and #2596 as the follow-up PR. The tracking row, Solution, Current-tree verification,
+  and Follow-up PR URL of the WAIT-001 entry were updated in place; the earlier log entries are unchanged.
