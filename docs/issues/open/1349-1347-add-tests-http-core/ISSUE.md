@@ -8,8 +8,8 @@ epic: 1347
 github-issue: 1349
 spec-path: docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md
 branch: "1349-1347-add-tests-http-core-final"
-related-pr: null
-last-updated-utc: "2026-10-21 15:29"
+related-pr: 2616
+last-updated-utc: "2026-10-21 15:33"
 semantic-links:
   skill-links:
     - create-issue
@@ -338,7 +338,7 @@ open a PR, get it reviewed, and merge it. The spec-only PR comes first.
 | S3 | Scrape service (rank 3) | 3 | `1349-1347-add-tests-http-core-scrape` | #2586 | DONE |
 | S4 | Events and composition (ranks 4-5) | 4-5 | `1349-1347-add-tests-http-core-events-container` | #2593 | DONE |
 | S5 | Statistics (rank 6) | 6-10 | `1349-1347-add-tests-http-core-statistics` | #2608 | DONE |
-| S6 | Crate root and wiring (rank 7), then T5-T8 | 11-13 | `1349-1347-add-tests-http-core-final` | - | IN_PROGRESS |
+| S6 | Crate root and wiring (rank 7), then T5-T8 | 11-13 | `1349-1347-add-tests-http-core-final` | #2616 | IN_PROGRESS |
 
 Rules:
 
@@ -776,6 +776,10 @@ lines are the S2 baseline measurement (see [Baseline Coverage](#baseline-coverag
   with a shell heredoc, and Python replacements were used instead of the edit tool for the slice-table status flips
   at the S6 start and for the two EPIC table rows; their content was reviewed afterwards. The pre-push checks and the
   pull request follow.
+- 2026-10-21 15:33 UTC - GitHub Copilot - The pre-push checks passed and the final pull request #2616
+  (<https://github.com/torrust/torrust-tracker/pull/2616>) was opened with `Closes #1349`. It was not rebased onto
+  the latest `develop`, which changed only the `http-core` benches and documentation; `git merge-tree` reports no
+  conflict.
 
 ## Acceptance Criteria
 
