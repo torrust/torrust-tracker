@@ -100,8 +100,10 @@ impl PullRequestRef {
 pub struct GithubVerdict {
     #[serde(flatten)]
     pub verdict: VerdictResult,
-    /// Why the override label did not apply, when it is on the pull request and the verdict failed
-    /// without it.
+    /// Why an override did not apply, when the verdict failed without it and there is something to say:
+    /// the label is on the pull request but does not count (it is stale, or the actor may not override,
+    /// or no event of it being applied was found), or whether it is there could not be told because the
+    /// labels, the events, or the permission could not be read. It is `None` when there is no label.
     pub override_ignored: Option<String>,
 }
 
