@@ -8,7 +8,7 @@ Source: pull-request reviews and inline review threads for
 The PR author owns this tracked audit record. Reviewers, including repository review agents,
 deliver findings through GitHub and have no repository-artifact obligation.
 
-- Post-merge workflow approval: NA
+- Post-merge workflow approval: <https://github.com/torrust/torrust-tracker/pull/2584#issuecomment-6301227746>
 
 ## Status Values
 
@@ -34,6 +34,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F1 | review-finding:pr-2584-f1 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 | F2 | review-finding:pr-2584-f2 | Copilot | Nit (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 | F3 | review-finding:pr-2584-f3 | Copilot | Nit (inferred) | metadata | ORIGINAL | NO_ACTION | RESOLVED |
+| WAIT-001 | review-finding:pr-2584-wait-001 | Copilot | Major | correctness | ORIGINAL | FOLLOW_UP | NON_RESOLVABLE |
 
 ## Finding Details
 
@@ -90,6 +91,28 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: NA
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2584#discussion_r4329431689>
 
+### WAIT-001 - The review-loop exit condition checks only the latest commit
+
+- PR number: 2584
+- Source review ID: 5591068061
+- Reviewer finding ID: WAIT-001
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2584#pullrequestreview-5591068061>
+- Concern: The spec's exit condition requires Copilot's review and an empty unresolved-thread
+  list on the latest commit only. The loop can finish while actionable feedback from earlier
+  commits stays unresolved. The reviewer asked for a latest-head review plus a check of all PR
+  threads, including older and outdated ones. The review body has no inline thread, so the
+  finding is `NON_RESOLVABLE`.
+- Solution: Audit-only, per the maintainer's decision recorded in the approval comment. No spec
+  change in this round. The fix belongs with the implementation of #2581, which must replace the
+  latest-commit gate with a check across all PR threads.
+- Current-tree verification: `grep -n "latest commit" docs/issues/open/2581-2003-pr-review-wait-poller/ISSUE.md`
+  on `develop` at `fcd78975c` shows the exit condition at lines 108-110 ("has reviewed the latest
+  commit ... and has no unresolved threads on that commit") and line 156 ("has reviewed the latest
+  commit with no unresolved threads"). The finding remains live.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2584#issuecomment-6301227746>
+- Follow-up PR URL: NA
+- Reply URL: NA
+
 ## Processing Log
 
 - 2026-10-20 19:35 UTC - Started audit of Copilot review 5589436901 on PR #2584.
@@ -97,6 +120,11 @@ deliver findings through GitHub and have no repository-artifact obligation.
   timestamp convention as rationale.
 - 2026-10-20 19:46 UTC - Resolved threads F1, F2, and F3 after replies were posted; no pending
   reviews or unresolved threads remained on PR #2584.
+- 2026-10-20 20:53 UTC - Recorded the maintainer's audit-only disposition for Copilot review
+  5591068061 (WAIT-001) in approval comment
+  <https://github.com/torrust/torrust-tracker/pull/2584#issuecomment-6301227746>, created at
+  20:52:32 UTC. Added the WAIT-001 tracking row and detail entry to this audit. The record was
+  not yet validated or committed at this entry.
 
 Append entries only. If an entry was rewritten in place, restore the prior entries, then append a
 correction that names the rewritten content; do not rewrite the record again.
