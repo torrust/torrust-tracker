@@ -6,7 +6,7 @@ epic: 1488
 github-issue: 2410
 spec-path: docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-21 07:20"
+last-updated-utc: "2026-10-21 08:18"
 semantic-links:
   skill-links:
     - create-issue
@@ -2268,6 +2268,7 @@ avoids duplicating the full workflow in four drafts:
 - 2026-10-20 21:16 UTC - GitHub Copilot (Claude Opus 5.5) - #2415 T6b and T6c done in the working tree: every `JobManager` component uses only its reservation token, and `udp_ban_cleanup` keeps the root token. No existing test guarded that a component uses its own token; a new app-level test in `src/app.rs` does (#2415 evidence V2). M1 matches `develop` (V3). The jobs doc, glossary, and task inventory now describe per-component tokens. Awaiting the T6-complete design review. No design change.
 - 2026-10-21 07:02 UTC - GitHub Copilot (Claude Opus 5.5) - #2415 T6-complete design review passed (the D14 checkpoint after T6): the maintainer approved the caller conversion, the documentation updates, and the app-level AC1 test. T6 is committed; the delivery gates (Task Reviewer, retrospective, pre-push checks) remain before the pull request. No design change beyond record entry 30.
 - 2026-10-21 07:20 UTC - GitHub Copilot (Claude Opus 5.5) - #2415 Task Reviewer report (REVIEW PASSED, with findings) and implementation retrospective recorded in its folder. Record entry 30 is restamped from 20:52 to 20:53, the minute the maintainer's answer arrived, because the 20:52 progress-log entry says the review was still pending (Task Reviewer N1). No design change.
+- 2026-10-21 08:18 UTC - GitHub Copilot (Claude Opus 5.5) - #2415 opened as PR #2591; Copilot review round 1 fixed two implementation details of `JobManager`'s registry (the id counter cannot wrap, and `mark_spawned` asserts its invariant), audit in `docs/pr-reviews/pr-2591-review/PR-REVIEW.md`. No design change.
 
 ## Acceptance Criteria
 
