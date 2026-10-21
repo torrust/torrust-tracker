@@ -300,5 +300,5 @@ material design changes, unexpected validation findings, and reusable lessons.
   - the work taught a reusable lesson for the review workflow.
 - If none of these happened, add a concise progress-log entry that says why the work had no
   material discovery.
-- When an independent reviewer receives this folder-style specification, it records its result in
-  `agent-review-reports.md` using `docs/templates/AGENT-REVIEW-REPORTS.md`.
+- When an independent reviewer receives this folder-style specification, the reviewer records their
+  result in `agent-review-reports.md` using `docs/templates/AGENT-REVIEW-REPORTS.md`.
