@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2582-1669-remove-health-check-self-dev-dependency/ISSUE.md
-last-updated-utc: 2026-10-21 09:51
+last-updated-utc: 2026-10-21 09:55
 ---
 
 # Manual Verification Evidence
@@ -328,6 +328,30 @@ Step 4: 32 `Packaging` lines; the step's excerpt:
 The V1 symptom is gone: the whole workspace packages, the crate's tests pass, and both new checks
 that were red in V3, V4 and V5 are green. If a later commit changes production code, this recheck is
 repeated and the commit it ran on is named here.
+
+#### Rerun after rebasing onto `develop`
+
+V3 to V6 above ran on the branch based on `develop` at `afbd5dbf1`. Before opening the pull
+request the branch was rebased onto `develop` at `97c689fe1` (no conflicts, no change to this
+issue's commits). On the rebased fix commit, with a clean tree:
+
+1. 2026-10-21 09:53:24 UTC `TORRUST_GIT_HOOKS_LOG_DIR=.tmp ./contrib/dev-tools/git/hooks/pre-push.sh`
+   passed at 09:54:50 UTC:
+
+   ```text
+   [Step 1/6] Checking format with nightly toolchain ... PASS (0s)
+   [Step 2/6] Checking workspace with nightly toolchain ... PASS (3s)
+   [Step 3/6] Building documentation with nightly toolchain ... PASS (12s)
+   [Step 4/6] Building library documentation with nightly toolchain ... PASS (8s)
+   [Step 5/6] Checking that every workspace crate can be packaged ... PASS (21s)
+   [Step 6/6] Running all tests ... PASS (42s)
+   SUCCESS: All pre-push checks passed! (1m 26s)
+   ```
+
+2. `cargo test -p torrust-tracker-axum-health-check-api-server` passed again (3 unit, 8
+   integration, 0 doc tests).
+
+The pull request's own `Workspace Packaging` job checks the rebased commits in CI.
 
 ## Failures and Follow-up
 
