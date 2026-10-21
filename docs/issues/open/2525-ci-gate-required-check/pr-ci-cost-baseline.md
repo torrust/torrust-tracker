@@ -93,8 +93,18 @@ cost will be compared with. Across all 444 `Docs Lint` runs the median is 0.88 m
 1.2. The runs form two groups: 392 take under 1.5 minutes, and 48 (11%) take 3.0 to 4.9 minutes; only 4
 fall in between (1.65, 1.78, 2.83 and 2.98 minutes). The slow runs occur on 7 of the 12
 days that have runs. The workflow installs the linter with `cargo install --locked torrust-linting`
-behind a Rust cache, so the slow runs are probably cache misses; this was not confirmed. A documentation-only
-head therefore costs about 0.85 minutes typically, and about 4.5 minutes one time in nine.
+behind a Rust cache, so the slow runs are probably cache misses; this was not confirmed.
+
+The 11% pools both classes of pull request, so it overstates the rate for documentation-only pull requests.
+Per run, by class of pull request:
+
+| Class     | `Docs Lint` runs | Runs of 3.0 minutes or more | Share | Median of the slow runs | Median of all runs |
+| --------- | ---------------: | --------------------------: | ----: | ----------------------: | -----------------: |
+| docs-only |              270 |                          17 |  6.3% |                    4.32 |               0.85 |
+| code      |              174 |                          31 | 17.8% |                    4.35 |               0.94 |
+
+A documentation-only head therefore costs about 0.85 minutes typically, and about 4.3 minutes in one run of
+sixteen. The share is per run, not per pull request or per head.
 
 ## 3. Cross-Check Against the #2507 Baseline
 

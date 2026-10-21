@@ -323,7 +323,7 @@ Conventional Commits with narrow scopes and sign every commit with GPG.
   is recorded in [`pr-ci-cost-baseline.md`](pr-ci-cost-baseline.md), from every `pull_request` run of the
   98 pull requests merged into `develop` since 7 October (1,189 attributed runs), with the per-run data in
   `evidence/` because GitHub deletes old runs. A documentation-only pushed head costs a mean 1.1 runner
-  minutes (median 0.85; one run in nine takes about 4.5), a code pushed head 87.8 (90.8 since #2526).
+  minutes (median 0.85; one run in sixteen takes about 4.3), a code pushed head 87.8 (90.8 since #2526).
   The first collection silently dropped 245 runs because a listing is capped at 1000 results; comparing
   with `total_count` showed it, and per-day queries fixed it. T8(b) remains for when T7 lands. Next: the
   T4 and T5 decision gates, which need a fork sandbox and the maintainer's approval.
