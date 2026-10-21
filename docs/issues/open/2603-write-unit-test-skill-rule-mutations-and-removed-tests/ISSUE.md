@@ -7,9 +7,9 @@ priority: p3
 epic: null
 github-issue: 2603
 spec-path: docs/issues/open/2603-write-unit-test-skill-rule-mutations-and-removed-tests/ISSUE.md
-branch: "2603-write-unit-test-skill-rule-mutations-and-removed-tests-spec"
+branch: "2603-write-unit-test-skill-rule-mutations-and-removed-tests"
 related-pr: null
-last-updated-utc: "2026-10-21 11:57"
+last-updated-utc: "2026-10-21 12:25"
 semantic-links:
   skill-links:
     - create-issue
@@ -178,14 +178,14 @@ Checklist entries:
 - [x] Folder-style spec drafted in `docs/issues/drafts/write-unit-test-skill-rule-mutations-and-removed-tests/ISSUE.md`, then moved to `docs/issues/open/2603-write-unit-test-skill-rule-mutations-and-removed-tests/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] (Optional) Spec-only PR merged into `develop` before implementation
+- [x] (Optional) Spec-only PR merged into `develop` before implementation (PR #2604)
 - [x] Implementation completed
 - [ ] Automatic verification completed (`linter all`)
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md`
+- [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md`
 - [ ] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
@@ -199,6 +199,7 @@ Checklist entries:
 - 2026-10-21 11:34 UTC - GitHub Copilot (Claude Sonnet 5.5) - PR #2604 merged on 2026-10-21 at 11:32 UTC; issue #2603 stays open. Implementation started on the reserved branch `2603-write-unit-test-skill-rule-mutations-and-removed-tests`, cut from the merged `develop`.
 - 2026-10-21 11:50 UTC - GitHub Copilot (Claude Sonnet 5.5) - T2 and T3 written in the skill and shown to the maintainer, who approved the wording (verdict `approve`, no changes). Two things differ from the agreed text, both disclosed at the review: each new section cites the #2415 observation in one sentence, and the removed-test rule is its own `###` section instead of a paragraph. Committed as `docs(skills): [#2603] ask for a mutation per clause of a rule a test guards` and `docs(skills): [#2603] ask for a record when a refactor removes or merges a test`. The T3 plan row asked for two checklist entries, but the Commit Points and AC3 mean one per rule; one each was added, and the row is corrected. No design change.
 - 2026-10-21 11:57 UTC - GitHub Copilot (Claude Sonnet 5.5) - T4 done: M1 and M2 recorded in `manual-verification-evidence.md` (V1, V2). M2 flags the test the #2415 conversion removed (manager tests 17 to 16, no record in the commit message). M1 yields the mutation the original release test missed, but was not blind as the scenario asked: I wrote the #2415 finding up and knew it, and the mutation outcomes are cited from #2415's evidence, not re-run. Both limits are in V1. Next: pre-push checks, the Task Reviewer report, and the completion review.
+- 2026-10-21 12:25 UTC - GitHub Copilot (Claude Sonnet 5.5) - Independent Task Reviewer report recorded in `agent-review-reports.md`: REVIEW PASSED (with findings), AC1 to AC4 and `linter all` pass, nothing blocks the push. Its findings are addressed: the spec-only-PR checkpoint is ticked (S1), `branch:` names the implementation branch (N1; `related-pr` follows when the pull request is opened), V2 now says its step 4 checks existence only (N2), and the checklist wording stays as the maintainer approved it (N3). Completion review: no separate retrospective, for the reason in the section above. No design change.
 
 ## Acceptance Criteria
 
@@ -284,7 +285,7 @@ The maintainer decided Q1 to Q4 on 2026-10-21, each as recommended.
 After implementation, compare the result with this specification. Record invalidated assumptions,
 material design changes, unexpected validation findings, and reusable lessons.
 
-- Retrospective: `Not yet assessed`
+- Retrospective: none needed (assessed 2026-10-21, see the progress log). The independent review found only documentation items, the maintainer approved the wording unchanged, and the two small lessons (the M1 scenario could not be blind for the author, and the T3 row said "two" checklist entries where the Commit Points meant one per rule) are already recorded in `manual-verification-evidence.md` and the progress log.
 - If needed, create `implementation-retrospective.md` from
   `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this directory; otherwise add a concise
   progress-log entry explaining why none was needed.

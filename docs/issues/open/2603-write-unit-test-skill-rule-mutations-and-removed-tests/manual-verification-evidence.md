@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2603-write-unit-test-skill-rule-mutations-and-removed-tests/ISSUE.md
-last-updated-utc: "2026-10-21 11:57"
+last-updated-utc: "2026-10-21 12:25"
 ---
 
 # Manual Verification Evidence
@@ -89,6 +89,10 @@ missed, and to explain why M7 could not expose the gap. Two limits:
    `git show <commit>^:src/bootstrap/jobs/manager.rs | grep -cE '^\s*(async )?fn it_should_'`, and the same on `<commit>`.
 4. Checked whether the replacement exists before the commit:
    `git show <commit>^:src/bootstrap/jobs/manager.rs | grep -c 'fn it_should_cancel_a_spawned_components_own_token_when_the_manager_is_cancelled'`.
+   This checks that the replacement exists, not that it covers the same behavior. #2415's evidence
+   (V2) states that the removed test became the same test as the replacement, and the Task Reviewer
+   compared the two bodies and found the same Act and Assert (see `agent-review-reports.md`); they
+   were not compared again here.
 5. Checked the commit message for a record: `git log -1 --format=%B <commit> | grep -inE 'remov|delet|duplicate|count'`.
 
 #### Observed Result
