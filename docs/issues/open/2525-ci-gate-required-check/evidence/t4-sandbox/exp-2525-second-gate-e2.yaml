@@ -1,0 +1,32 @@
+# Sandbox only (#2525 T4, experiment E2, case c). Never merged upstream.
+#
+# A second workflow that also defines a job named "CI gate". It fails only when the label
+# `exp-second-fail` is set, so a test can see what the required check does when two workflows report
+# the same check name with different results.
+
+name: exp-2525 second gate
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+    branches:
+      - "exp-2525-e2-base"
+
+permissions: {}
+
+jobs:
+  gate:
+    name: CI gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Decide from the labels
+        env:
+          LABELS: ${{ toJSON(github.event.pull_request.labels.*.name) }}
+        run: |
+          echo "labels: $LABELS"
+          if echo "$LABELS" | grep -q '"exp-second-fail"'; then
+            echo "failing on purpose: the label exp-second-fail is set"
+            exit 1
+          fi
+          echo "passing"

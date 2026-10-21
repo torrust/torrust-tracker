@@ -1,0 +1,126 @@
+# Sandbox only (#2525 T4, experiment E1). Never merged upstream.
+#
+# Measures the runner time that a gate job adds to a documentation-only change, in four variants,
+# next to a copy of the real Docs Lint job as the reference. Every job runs the same final step:
+# classify the diff between the sandbox base branch and the dispatched branch with ci-gate.
+# The jobs of one run start together, so they see the same runner conditions. The experiment is started
+# by a push to an exp-2525-run-* branch and repeated with `gh run rerun`.
+
+name: exp-2525 gate cost
+
+on:
+  push:
+    branches:
+      - "exp-2525-run-*"
+
+jobs:
+  docs-lint-reference:
+    name: docs-lint-reference
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7.0.1
+      - name: Setup Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+      - name: Setup Node.js
+        uses: actions/setup-node@v7.1.0
+        with:
+          node-version: "20"
+      - name: Enable Job Cache
+        uses: Swatinem/rust-cache@v2.9.2
+      - name: Install Internal Linter
+        run: cargo install --locked torrust-linting@0.2.0 --bin linter
+      - name: Check Local Documentation Links
+        run: linter lychee
+      - name: Lint Markdown
+        run: linter markdown
+      - name: Check Spelling
+        run: linter cspell
+
+  gate-cold:
+    name: gate-cold
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7.0.1
+      - name: Setup Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+      - name: Build ci-gate
+        run: cargo build --release -p ci-gate
+      - name: Classify the change
+        run: |
+          git fetch --no-tags --depth=1 origin exp-2525-base
+          git diff --name-only -z FETCH_HEAD HEAD | target/release/ci-gate classify --base-branch develop | tee classify.json
+
+  gate-rust-cache:
+    name: gate-rust-cache
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7.0.1
+      - name: Setup Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+      - name: Enable Job Cache
+        uses: Swatinem/rust-cache@v2.9.2
+      - name: Build ci-gate
+        run: cargo build --release -p ci-gate
+      - name: Classify the change
+        run: |
+          git fetch --no-tags --depth=1 origin exp-2525-base
+          git diff --name-only -z FETCH_HEAD HEAD | target/release/ci-gate classify --base-branch develop | tee classify.json
+
+  gate-binary-cache:
+    name: gate-binary-cache
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7.0.1
+      - id: binary
+        name: Restore the binary from the cache
+        uses: actions/cache@v6.1.0
+        with:
+          path: ci-gate-bin
+          key: ci-gate-${{ hashFiles('contrib/dev-tools/checks/ci-gate/**', 'Cargo.lock') }}
+      - name: Setup Toolchain
+        if: steps.binary.outputs.cache-hit != 'true'
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+      - name: Build ci-gate
+        if: steps.binary.outputs.cache-hit != 'true'
+        run: |
+          cargo build --release -p ci-gate
+          mkdir -p ci-gate-bin
+          cp target/release/ci-gate ci-gate-bin/ci-gate
+      - name: Classify the change
+        run: |
+          git fetch --no-tags --depth=1 origin exp-2525-base
+          git diff --name-only -z FETCH_HEAD HEAD | ci-gate-bin/ci-gate classify --base-branch develop | tee classify.json
+
+  gate-release-download:
+    name: gate-release-download
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7.0.1
+      - name: Download the prebuilt binary
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download exp-2525-binary --repo "${{ github.repository }}" --pattern ci-gate-linux-x86_64 --output ci-gate
+          chmod +x ci-gate
+      - name: Classify the change
+        run: |
+          git fetch --no-tags --depth=1 origin exp-2525-base
+          git diff --name-only -z FETCH_HEAD HEAD | ./ci-gate classify --base-branch develop | tee classify.json

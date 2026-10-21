@@ -451,6 +451,7 @@ ringsize
 rlib
 rmem
 rngs
+rollup
 rosegment
 routable
 rsplit

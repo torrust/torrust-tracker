@@ -1,0 +1,110 @@
+T4 experiment E2: does a later check run named "CI gate" supersede an earlier one?
+Sandbox: josecelano/torrust-tracker (a fork), 2026-10-21. Pull requests 20 and 21 of the fork.
+The outputs below are copied as the observation helper and git printed them. Sandbox workflows and
+rulesets are in t4-sandbox/. In every case the ruleset requires the status check "CI gate" (Actions app,
+not strict), and the merge is a signed merge commit built the way github-merge.py builds it and pushed
+directly to the base branch.
+
+========================================================================================
+Case c (two workflows define a job named "CI gate") followed by case a (failing, then passing).
+Fork pull request 20, base exp-2525-e2-base. Workflow 1 fails while the label exp-fail is set; workflow 2
+always passes. The pull request was opened with the label exp-fail, so "opened" and "labeled" each started
+both workflows.
+========================================================================================
+
+== 2026-10-21T09:22:36Z PR 20 head 4ca4b5bef
+labels: exp-fail | state: open | mergeable_state: blocked
+  check-run 119142457182 "CI gate" suite=107248600748 completed/failure started=2026-10-21T09:21:10Z completed=2026-10-21T09:21:12Z
+  check-run 119142462062 "CI gate" suite=107248604699 completed/failure started=2026-10-21T09:21:11Z completed=2026-10-21T09:21:14Z
+  check-run 119142457445 "CI gate" suite=107248600936 completed/success started=2026-10-21T09:21:10Z completed=2026-10-21T09:21:12Z
+  check-run 119142462246 "CI gate" suite=107248604740 completed/success started=2026-10-21T09:21:11Z completed=2026-10-21T09:21:14Z
+  check-run 119142428358 "Docs Lint" suite=107248577497 in_progress/null started=2026-10-21T09:21:06Z completed=null
+  check-run 119142461753 "Docs Lint" suite=107248604450 in_progress/null started=2026-10-21T09:21:11Z completed=null
+  check-run 119142515315 "copilot-pull-request-reviewer" suite=107248641382 completed/success started=2026-10-21T09:21:20Z completed=2026-10-21T09:22:23Z
+  graphql: mergeStateStatus=BLOCKED mergeable=MERGEABLE rollup=FAILURE contexts=[CI gate:FAILURE, CI gate:FAILURE, Docs Lint:null, Docs Lint:null, CI gate:SUCCESS, CI gate:SUCCESS]
+
+Merge push with the failing check (merge commit 26b345490, parents 56d414a4d and 4ca4b5bef):
+--- push at 09:23:06
+remote: error: GH013: Repository rule violations found for refs/heads/exp-2525-e2-base.
+remote: Review all repository rules at https://github.com/josecelano/torrust-tracker/rules?ref=refs%2Fheads%2Fexp-2525-e2-base
+remote:
+remote: - Required status check "CI gate" is failing.
+remote:
+To github.com:josecelano/torrust-tracker.git
+ ! [remote rejected]     HEAD -> exp-2525-e2-base (push declined due to repository rule violations)
+error: failed to push some refs to 'github.com:josecelano/torrust-tracker.git'
+
+The label exp-fail was removed at 09:23:17Z ("unlabeled" started both workflows again):
+
+== 2026-10-21T09:24:09Z PR 20 head 4ca4b5bef
+labels:  | state: open | mergeable_state: unstable
+  check-run 119142457182 "CI gate" suite=107248600748 completed/failure started=2026-10-21T09:21:10Z completed=2026-10-21T09:21:12Z
+  check-run 119142462062 "CI gate" suite=107248604699 completed/failure started=2026-10-21T09:21:11Z completed=2026-10-21T09:21:14Z
+  check-run 119142457445 "CI gate" suite=107248600936 completed/success started=2026-10-21T09:21:10Z completed=2026-10-21T09:21:12Z
+  check-run 119142462246 "CI gate" suite=107248604740 completed/success started=2026-10-21T09:21:11Z completed=2026-10-21T09:21:14Z
+  check-run 119143413231 "CI gate" suite=107249383964 completed/success started=2026-10-21T09:23:22Z completed=2026-10-21T09:23:24Z
+  check-run 119143414132 "CI gate" suite=107249384623 completed/success started=2026-10-21T09:23:22Z completed=2026-10-21T09:23:26Z
+  check-run 119142428358 "Docs Lint" suite=107248577497 in_progress/null started=2026-10-21T09:21:06Z completed=null
+  check-run 119142461753 "Docs Lint" suite=107248604450 in_progress/null started=2026-10-21T09:21:11Z completed=null
+  check-run 119142515315 "copilot-pull-request-reviewer" suite=107248641382 completed/success started=2026-10-21T09:21:20Z completed=2026-10-21T09:22:23Z
+  graphql: mergeStateStatus=UNSTABLE mergeable=MERGEABLE rollup=FAILURE contexts=[CI gate:FAILURE, CI gate:FAILURE, Docs Lint:null, Docs Lint:null, CI gate:SUCCESS, CI gate:SUCCESS, CI gate:SUCCESS, CI gate:SUCCESS]
+
+(After the later runs pass, the rollup field stays FAILURE and still lists the two earlier failures, but the
+required check is satisfied: the merge state changed from BLOCKED to UNSTABLE, where UNSTABLE means that
+only non-required checks, here "Docs Lint", were still in progress, and the merge push was accepted.)
+
+Merge push with the same merge commit after the later passing runs:
+--- push at 09:24:20
+To github.com:josecelano/torrust-tracker.git
+   56d414a4d..26b345490  HEAD -> exp-2525-e2-base
+state=closed merged=true
+
+========================================================================================
+Cases b and a with a single workflow.
+Fork pull request 21, base exp-2525-e2s-base, one workflow with a job named "CI gate". The pull request
+was opened without a label.
+========================================================================================
+
+== 2026-10-21T09:26:05Z PR 21 head 0cc14902a
+labels:  | state: open | mergeable_state: unstable
+  check-run 119144183871 "CI gate" suite=107250014896 completed/success started=2026-10-21T09:25:08Z completed=2026-10-21T09:25:12Z
+  check-run 119144164804 "Docs Lint" suite=107249999145 in_progress/null started=2026-10-21T09:25:05Z completed=null
+  check-run 119144183509 "Docs Lint" suite=107250014932 in_progress/null started=2026-10-21T09:25:08Z completed=null
+  check-run 119144233615 "copilot-pull-request-reviewer" suite=107250049294 in_progress/null started=2026-10-21T09:25:17Z completed=null
+  graphql: mergeStateStatus=UNSTABLE mergeable=MERGEABLE rollup=PENDING contexts=[Docs Lint:null, Docs Lint:null, CI gate:SUCCESS]
+
+Case b: the label exp-fail was added at 09:26:15Z ("labeled" started the workflow), after the passing run:
+
+== 2026-10-21T09:27:02Z PR 21 head 0cc14902a
+labels: exp-fail | state: open | mergeable_state: blocked
+  check-run 119144706414 "CI gate" suite=107250445174 completed/failure started=2026-10-21T09:26:20Z completed=2026-10-21T09:26:23Z
+  check-run 119144183871 "CI gate" suite=107250014896 completed/success started=2026-10-21T09:25:08Z completed=2026-10-21T09:25:12Z
+  check-run 119144164804 "Docs Lint" suite=107249999145 in_progress/null started=2026-10-21T09:25:05Z completed=null
+  check-run 119144183509 "Docs Lint" suite=107250014932 in_progress/null started=2026-10-21T09:25:08Z completed=null
+  check-run 119144233615 "copilot-pull-request-reviewer" suite=107250049294 completed/success started=2026-10-21T09:25:17Z completed=2026-10-21T09:26:49Z
+  graphql: mergeStateStatus=BLOCKED mergeable=MERGEABLE rollup=FAILURE contexts=[CI gate:FAILURE, Docs Lint:null, Docs Lint:null, CI gate:SUCCESS]
+
+--- push at 09:27:07
+remote:
+remote: - Required status check "CI gate" is failing.
+remote:
+To github.com:josecelano/torrust-tracker.git
+ ! [remote rejected]     HEAD -> exp-2525-e2s-base (push declined due to repository rule violations)
+error: failed to push some refs to 'github.com:josecelano/torrust-tracker.git'
+
+Case a: the label exp-fail was removed at 09:27:18Z ("unlabeled" started the workflow), after the failing run:
+
+== 2026-10-21T09:28:05Z PR 21 head 0cc14902a
+labels:  | state: open | mergeable_state: unstable
+  check-run 119144706414 "CI gate" suite=107250445174 completed/failure started=2026-10-21T09:26:20Z completed=2026-10-21T09:26:23Z
+  check-run 119144183871 "CI gate" suite=107250014896 completed/success started=2026-10-21T09:25:08Z completed=2026-10-21T09:25:12Z
+  check-run 119145169913 "CI gate" suite=107250816019 completed/success started=2026-10-21T09:27:23Z completed=2026-10-21T09:27:26Z
+  check-run 119144164804 "Docs Lint" suite=107249999145 in_progress/null started=2026-10-21T09:25:05Z completed=null
+  check-run 119144183509 "Docs Lint" suite=107250014932 in_progress/null started=2026-10-21T09:25:08Z completed=null
+  check-run 119144233615 "copilot-pull-request-reviewer" suite=107250049294 completed/success started=2026-10-21T09:25:17Z completed=2026-10-21T09:26:49Z
+  graphql: mergeStateStatus=UNSTABLE mergeable=MERGEABLE rollup=FAILURE contexts=[CI gate:FAILURE, Docs Lint:null, Docs Lint:null, CI gate:SUCCESS, CI gate:SUCCESS]
+
+--- push at 09:28:08
+To github.com:josecelano/torrust-tracker.git
+   49567edb0..cb6ec861e  HEAD -> exp-2525-e2s-base
+state=closed merged=true

@@ -1,0 +1,34 @@
+# Sandbox only (#2525 T4, experiment E2). Never merged upstream.
+#
+# A job named "CI gate" whose result depends only on the pull request's labels, so a test can produce a
+# failing and a passing check run for the same head commit from different workflow runs, by adding and
+# removing the label `exp-fail`.
+
+name: exp-2525 gate
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+    branches:
+      - "exp-2525-e2-base"
+
+permissions: {}
+
+jobs:
+  gate:
+    name: CI gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Decide from the labels
+        env:
+          LABELS: ${{ toJSON(github.event.pull_request.labels.*.name) }}
+          EVENT_ACTION: ${{ github.event.action }}
+        run: |
+          echo "event action: $EVENT_ACTION"
+          echo "labels: $LABELS"
+          if echo "$LABELS" | grep -q '"exp-fail"'; then
+            echo "failing on purpose: the label exp-fail is set"
+            exit 1
+          fi
+          echo "passing"
