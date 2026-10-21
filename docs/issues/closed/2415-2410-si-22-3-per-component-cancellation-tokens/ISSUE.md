@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-progress
+status: done
 priority: p1
 epic: 2410
 github-issue: 2415
-spec-path: docs/issues/open/2415-2410-si-22-3-per-component-cancellation-tokens/ISSUE.md
+spec-path: docs/issues/closed/2415-2410-si-22-3-per-component-cancellation-tokens/ISSUE.md
 branch: "2415-per-component-cancellation-tokens"
 related-pr: 2591
-last-updated-utc: "2026-10-21 08:18"
+last-updated-utc: "2026-10-21 09:23"
 semantic-links:
   skill-links:
     - create-issue
@@ -19,9 +19,9 @@ semantic-links:
     - src/bootstrap/jobs/manager.rs
     - src/app.rs
     - src/console/profiling.rs
-    - docs/issues/open/2415-2410-si-22-3-per-component-cancellation-tokens/manual-verification-evidence.md
-    - docs/issues/open/2415-2410-si-22-3-per-component-cancellation-tokens/agent-review-reports.md
-    - docs/issues/open/2415-2410-si-22-3-per-component-cancellation-tokens/implementation-retrospective.md
+    - docs/issues/closed/2415-2410-si-22-3-per-component-cancellation-tokens/manual-verification-evidence.md
+    - docs/issues/closed/2415-2410-si-22-3-per-component-cancellation-tokens/agent-review-reports.md
+    - docs/issues/closed/2415-2410-si-22-3-per-component-cancellation-tokens/implementation-retrospective.md
 ---
 
 <!-- skill-link: create-issue -->
@@ -97,16 +97,16 @@ Sign every commit with GPG.
 
 ## Acceptance Criteria
 
-- [ ] AC1: every component spawned through `JobManager` uses only the token
+- [x] AC1: every component spawned through `JobManager` uses only the token
       from its reservation.
-- [ ] AC2: shutdown behavior is unchanged: all existing tests pass, including
+- [x] AC2: shutdown behavior is unchanged: all existing tests pass, including
       `cargo test --test lifecycle-signals`.
-- [ ] AC3: the new `JobManager` API has unit tests.
-- [ ] AC4 (keeps sub-EPIC AC13): listeners are still registered before any
+- [x] AC3: the new `JobManager` API has unit tests.
+- [x] AC4 (keeps sub-EPIC AC13): listeners are still registered before any
   producer in `start_jobs_with_manager`, their subscriptions exist before
   publication, and sufficient bus ownership is retained through their join.
   Dropping individual sender clones is allowed (sub-EPIC entry 27).
-- [ ] `linter all` exits with code `0`.
+- [x] `linter all` exits with code `0`.
 
 ## Verification Plan
 
@@ -133,10 +133,10 @@ promoting the ADR; sub-issue 4 owns final supersession.
 
 | AC ID | Status | Evidence |
 | --- | --- | --- |
-| AC1 | TODO | Caller inventory and focused tests; evidence V2 (inventory, the app-level test, and its 14 mutations) |
-| AC2 | TODO | Existing suite and manual baseline comparison; evidence V2 and V3 |
-| AC3 | TODO | Reservation lifecycle and cancellation tests; evidence V1 |
-| AC4 | TODO | Bootstrap subscription/ownership check; evidence V2 (registration order unchanged; read from source) |
+| AC1 | DONE | Caller inventory and focused tests; evidence V2 (13 `reserve` sites, no `.child_token()`, the app-level test and its 14 mutations) |
+| AC2 | DONE | Existing suite and manual baseline comparison; evidence V2, V3, and V4 (full stable workspace suite, `lifecycle-signals`, M1 against `develop`) |
+| AC3 | DONE | Reservation lifecycle and cancellation tests; evidence V1 and V4 (seven lifecycle tests, the id-exhaustion test added in review, a `compile_fail` doctest, and their mutations) |
+| AC4 | DONE | Bootstrap subscription/ownership check; evidence V2 and the Task Reviewer report: registration order in `start_jobs_with_manager` is unchanged, read from source, not run |
 
 ## Implementation Completion Review
 
@@ -155,7 +155,7 @@ assessment, and independent Task Reviewer report.
 - [x] Spec reviewed and approved by the maintainer
 - [x] GitHub issue created and linked to the sub-EPIC
 - [x] Design-review checkpoint recorded
-- [ ] Implementation completed and acceptance criteria reviewed
+- [x] Implementation completed and acceptance criteria reviewed
 
 ### Progress Log
 
@@ -171,3 +171,4 @@ assessment, and independent Task Reviewer report.
 - 2026-10-21 07:22 UTC - GitHub Copilot (Claude Opus 5.5) - S3 closed: on the final code commit the full stable workspace suite passes (77 targets, 3337 passed) and an M1 recheck on a binary built from it matches `develop` (evidence V4). Next: the maintainer's decision on push and the pull request. No design change.
 - 2026-10-21 07:25 UTC - GitHub Copilot (Claude Opus 5.5) - Maintainer decisions before push: push and open the pull request with `Closes #2415`, without rebasing onto the newer `develop` (its new commits touch none of this branch's files); the maintainer's review and merge of the pull request is the acceptance review, as for #2414, so AC1 to AC4 and the linter item are ticked after the merge, in the archive pull request. No design change.
 - 2026-10-21 08:18 UTC - GitHub Copilot (Claude Opus 5.5) - Opened PR #2591. Copilot review round 1 (three findings) processed with the maintainer's approval, audit in `docs/pr-reviews/pr-2591-review/PR-REVIEW.md`: the component id counter no longer wraps in release builds and a test proves it (`review-finding:pr-2591-f1`; `review-finding:pr-2591-f2` is the same concern), and `mark_spawned` asserts its invariant (`review-finding:pr-2591-f3`). No design change.
+- 2026-10-21 09:23 UTC - GitHub Copilot (Claude Sonnet 5.5) - PR #2591 merged on 2026-10-21 at 09:19 UTC after 17 passing checks (3 skipped: the two publish jobs and Docker E2E), and issue #2415 is closed on GitHub. The maintainer approved the head of the PR (`ACK` comment) and, asked how the acceptance criteria are reviewed, chose to count his review and merge as the acceptance review, so AC1 to AC4 and the `linter all` criterion are ticked here at his instruction, as for #2414. Qualifications: AC4 was read from source and not run: this issue adds no test of subscription before the first publication, which the sub-EPIC lists under its AC13 for #2416; and AC1 is proven by the application-level test and its mutations, because the existing suite could not detect a component on the wrong token. The three Copilot review threads of PR #2591 are resolved. The spec is archived to `docs/issues/closed/`, and the delivery gates are done: evidence V1 to V4, the Task Reviewer report, and the retrospective.
