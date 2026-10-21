@@ -121,6 +121,15 @@ level that can observe everything it asserts without reading other modules.
 A test that passes only because of a collaborator's rule is not a unit test of the module it sits
 in, even when it is deterministic and fast; it fails for reasons the module cannot explain.
 
+### Remove or Merge a Test Only With a Record
+
+In a refactor whose acceptance criterion is that the existing tests still pass, a deleted or merged
+test changes the evidence. Before removing one, name the test that now covers its behavior, or state
+why that behavior is dropped. Record the removal, the replacement, and the new test count in the
+issue's evidence and in the commit message. In #2415 a duplicate manager test was deleted during a
+conversion, taking the count from 17 to 16, and nothing recorded it until the independent reviewer
+found it.
+
 ### Prove a Regression Test Guards the Bug
 
 A regression test is only evidence if it has been seen to fail against the bug it claims to
@@ -156,6 +165,30 @@ be sufficient and a mutation showed it was not.
    the doctest to fail to compile but accepts any error; only nightly checks the pinned error code.
    Run the mutations with both `cargo test --doc` and `cargo +nightly test --doc`, and rely on the
    nightly CI job, which runs the doctests, to enforce the error code.
+
+### Prove a Test Guards Each Clause of a Rule
+
+[Prove a Regression Test Guards the Bug](#prove-a-regression-test-guards-the-bug) is written for a
+bug. The same proof applies to any test that claims to guard a rule the repository states, such as a
+lifecycle rule in an issue specification or an invariant in an ADR. In #2415 the mutations were
+chosen by asking how each mechanism could break, so a rule with two clauses had a mutation for only
+the first, and a weak assertion passed until the independent reviewer found it.
+
+1. **List the clauses.** Split the rule as written into its clauses, and include the negative ones
+   ("without cancelling unrelated components", "a stop request is not lost", "only by the manager
+   that issued it"). A negative clause is the one most often left without a mutation.
+2. **One mutation per clause.** For each clause, write a mutation that breaks that clause and
+   nothing else, and run the tests as described in the section above, including the check that it
+   compiled. A mutation that breaks several clauses at once cannot show which clause a test guards.
+   On the rule "a dropped reservation releases its state without cancelling unrelated components",
+   making a drop cancel every token breaks both clauses: the released reservation's own token is
+   cancelled, and so are the others. An assertion on the released token then fails the test and
+   hides that the other clause has no assertion. Making a drop cancel only the other tokens breaks
+   just the second clause, and exposes the missing assertion.
+3. **Record it.** In the evidence, list each clause, its mutation, and the tests that failed. A
+   clause with no failing test is a gap in the tests, not a pass.
+4. **Bound it.** Apply this to rules stated in a specification, ADR, or acceptance criterion, not
+   to every line of code.
 
 ### Lifecycle Fixture Design Review
 
@@ -503,6 +536,8 @@ establishes a reusable pattern for future tests.
 - [ ] Test follows AAA pattern with comments (`// Arrange`, `// Act`, `// Assert`)
 - [ ] Behaviors were inventoried; each test sits at the lowest level that can observe everything it asserts
 - [ ] For a bug fix: the regression test was seen to fail against the reintroduced bug and its nearest variants, then the production file was restored
+- [ ] For a rule with several clauses (including negative ones): each clause has a mutation that breaks only it, and the failing tests are recorded
+- [ ] For a refactor that removes or merges a test: the replacement and the new test count are recorded in the evidence and the commit message
 - [ ] Assertion messages state the causal facts; the failure output was read once without opening the test
 - [ ] Temporary prose-first AAA specification was compared with the code; redundant prose was removed
 - [ ] No `std::time::SystemTime::now()` in production code — use the `CurrentClock` type alias instead
