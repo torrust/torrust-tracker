@@ -82,7 +82,8 @@ The pre-push script runs these steps in order:
 2. `cargo +nightly check ...` — nightly workspace check
 3. `cargo +nightly doc --no-deps --bins --examples ...` — nightly documentation build for binaries and examples
 4. `cargo +nightly doc --no-deps --lib ...` — nightly documentation build for libraries
-5. `cargo +stable test --tests --benches --examples --workspace --all-targets --all-features` — all tests
+5. `cargo +stable package --workspace --no-verify --allow-dirty` — workspace packaging check
+6. `cargo +stable test --tests --benches --examples --workspace --all-targets --all-features` — all tests
 
 Steps already covered by pre-commit (machete, linters, doc tests) are intentionally
 omitted — they always run before each commit. E2E tests are excluded because they are
@@ -93,7 +94,8 @@ slow and run in CI, which is the merge authority.
 Check ownership is intentionally split by gate:
 
 - Pre-commit: fast local gate (`cargo machete`, `linter all`, `cargo test --doc --workspace`)
-- Pre-push: nightly toolchain checks + full stable test suite (no duplicates of pre-commit; no E2E)
+- Pre-push: nightly toolchain checks + workspace packaging check + full stable test suite (no duplicates of
+  pre-commit; no E2E)
 - CI: merge authority with full validation and E2E matrix jobs
 
 ## SSH Idle-Timeout Problem

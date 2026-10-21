@@ -143,7 +143,8 @@ Check ownership is intentionally split by gate:
 
 - Pre-commit: fast local gate (the nine ordered checks above, including staged frontmatter,
   dependency, formatting, lint, Containerfile, and documentation-test checks)
-- Pre-push: nightly toolchain checks + full stable test suite (no duplicates of pre-commit; no E2E)
+- Pre-push: nightly toolchain checks + workspace packaging check + full stable test suite (no duplicates of
+  pre-commit; no E2E)
 - CI: merge authority with full validation and E2E matrix jobs
 
 E2E tests are intentionally excluded from both pre-commit and pre-push. They run only in CI.

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Pre-push verification script
-# Run nightly toolchain validation and the full stable test suite before pushing.
+# Run nightly toolchain validation, the workspace packaging check and the full stable test suite before pushing.
 # Pre-commit checks (machete, linters, doc tests) are intentionally excluded here
 # because they always run before each commit. E2E tests are excluded because they
 # are slow and run in CI, which is the merge authority.
@@ -48,6 +48,8 @@ declare -a STEPS=(
     "Building documentation with nightly toolchain|cargo +nightly doc --no-deps --bins --examples --workspace --all-features"
     # Separate from the binaries step: some dev-tool crates share a lib and bin name, which collides in one run.
     "Building library documentation with nightly toolchain|cargo +nightly doc --no-deps --lib --workspace --all-features"
+    # issue: #2582. `--allow-dirty` checks the working tree, like the other steps; CI checks the commits strictly.
+    "Checking that every workspace crate can be packaged|cargo +stable package --workspace --no-verify --allow-dirty"
     "Running all tests|cargo +stable test --tests --benches --examples --workspace --all-targets --all-features"
 )
 
