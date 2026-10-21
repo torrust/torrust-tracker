@@ -7,9 +7,9 @@ priority: p3
 epic: null
 github-issue: 2518
 spec-path: docs/issues/open/2518-http-first-announce-benchmark/ISSUE.md
-branch: "2518-http-first-announce-benchmark-spec"
+branch: "2518-http-first-announce-benchmark"
 related-pr: null
-last-updated-utc: "2026-10-14 10:02"
+last-updated-utc: "2026-10-21 09:45"
 semantic-links:
   skill-links:
     - create-issue
@@ -403,6 +403,13 @@ the review in `manual-verification-evidence.md`. All commits are GPG signed Conv
   rule for D5: exact counts only when the run sent no more events than the channel capacity
   (`review-finding:pr-2519-f8`). The listener now subscribes before the pre-fill. The Regression
   Test Strategy names the D5 assertions (`review-finding:pr-2519-f9`).
+- 2026-10-21 09:45 UTC - Copilot - Implementation started on branch
+  `2518-http-first-announce-benchmark`, cut from `torrust/develop`. Maintainer answers before
+  implementation: (1) T3 is a real gate: stop after T2 and do not start T4 (documentation) until
+  the maintainer has reviewed the benchmark; (2) the agent must tell the maintainer before running
+  any `cargo bench` (including M2), because the maintainer prefers to run benchmarks while no other
+  task is using the computer, as load changes the results. `cargo test --benches` runs one
+  iteration per benchmark and is not a benchmark run.
 
 ## Acceptance Criteria
 
