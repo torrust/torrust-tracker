@@ -9,6 +9,7 @@ The PR author owns this tracked audit record. Reviewers, including repository re
 deliver findings through GitHub and have no repository-artifact obligation.
 
 - Post-merge workflow approval: <https://github.com/torrust/torrust-tracker/pull/2584#issuecomment-6301227746>
+- Merge-gate waiver (reviewer ACK and Copilot approval): <https://github.com/torrust/torrust-tracker/pull/2584#issuecomment-6310493858>
 
 ## Status Values
 
@@ -125,6 +126,10 @@ deliver findings through GitHub and have no repository-artifact obligation.
   <https://github.com/torrust/torrust-tracker/pull/2584#issuecomment-6301227746>, created at
   20:52:32 UTC. Added the WAIT-001 tracking row and detail entry to this audit. The record was
   not yet validated or committed at this entry.
+- 2026-10-21 07:25 UTC - Recorded the maintainer's waiver of the reviewer ACK and the Copilot-approval
+  merge gate for PR #2584 in comment
+  <https://github.com/torrust/torrust-tracker/pull/2584#issuecomment-6310493858>, created at
+  07:25:32 UTC. PR #2584 merged at 2026-10-20 20:45 UTC with only the author's ACK.
 
 Append entries only. If an entry was rewritten in place, restore the prior entries, then append a
 correction that names the rewritten content; do not rewrite the record again.

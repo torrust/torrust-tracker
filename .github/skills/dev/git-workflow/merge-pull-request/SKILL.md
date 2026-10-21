@@ -3,7 +3,7 @@ name: merge-pull-request
 description: Safely construct, inspect, validate, sign, and optionally push a maintainer GitHub pull-request merge using the repository-local vendored tool. Use when asked to merge a pull request or perform a maintainer merge workflow.
 metadata:
   author: torrust
-  version: "1.1"
+  version: "1.2"
 ---
 
 # Merging a Pull Request
@@ -50,6 +50,23 @@ The full provenance, license, deterministic test boundary, and EPIC #2003 relati
   have the agent rerun the same command while they enter the passphrase directly in the terminal
   prompt. Do not retry until the maintainer chooses, and never request or handle the passphrase
   in chat.
+
+## Merge Readiness
+
+Before showing or running the merge command for a pull request, report these readiness checks to
+the maintainer. The ruleset requires no approvals and the tool only warns about missing ACKs, so
+these checks are repository convention rather than technical enforcement.
+
+- **Copilot review:** the latest Copilot review is on the current head commit, and no actionable
+  review thread is unresolved. Copilot only submits `COMMENTED` reviews, never `APPROVED`, so do
+  not wait for an approval state.
+- **Reviewer ACK:** the other maintainer has commented `ACK <full head commit hash>` on the head
+  commit. This is recommended, not mandatory: the maintainer may waive it. Record a waiver as a
+  durable comment on the pull request before merging, and in the review audit.
+- **Review audit:** the audit record passes `validate-audit-record.py` (see the
+  [`process-pr-review`](../../pr-reviews/process-pr-review/SKILL.md) skill).
+
+An agent never waives a check itself. When one is unmet, state which and ask the maintainer.
 
 ## Prerequisites
 
