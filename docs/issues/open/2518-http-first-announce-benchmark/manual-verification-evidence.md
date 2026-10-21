@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2518-http-first-announce-benchmark/ISSUE.md
-last-updated-utc: "2026-10-21 10:00"
+last-updated-utc: "2026-10-21 13:15"
 ---
 
 # Manual Verification Evidence
@@ -31,9 +31,8 @@ do not invent commands, output, logs, or results.
 - Goal: show that the maintained checks pass on the unchanged benchmark and that each fails under a
   deliberate mutation (AC2, AC3, AC6).
 - Initial state: clean working tree at the commit under test.
-- Status: `IN_PROGRESS`. The `cargo test` half is `DONE`. The unchanged `cargo bench` run is
-  pending: the maintainer asked to be told before any `cargo bench`, to run it when the computer is
-  idle.
+- Status: `DONE`. Both halves ran: `cargo test` (this section) and the unchanged `cargo bench`
+  (V1b below).
 
 #### Steps Performed
 
@@ -119,12 +118,58 @@ end   09:54:24.446
 Every maintained check passed on the unchanged benchmark and failed, naming the benchmark and the
 counted values, under its mutation. M-a also shows that the `RoutineGuard` still fails when the
 timed announce is not awaited, with `iter_custom`. M-e and M-f show that the lag rule accepts a
-correct run and still detects an update. The unchanged `cargo bench` half of M1 is not yet done.
+correct run and still detects an update. The unchanged `cargo bench` half is V1b.
+
+### V1b - M1: unchanged benchmark under `cargo bench`
+
+- Goal: show that the unchanged benchmark passes all assertions in a real run, where millions of
+  iterations send more swarm events than the event bus holds, so the D5 lag rule applies.
+- Status: `DONE`.
+- Date and time (UTC): 2026-10-21 13:06:33-13:06:41. The maintainer asked for the run ("DO it now")
+  while the computer was not idle; load average at the start: 6.62.
+
+```text
+$ cargo bench -p torrust-tracker-http-core --bench http_tracker_core_benchmark   # exit 0
+http_tracker/announce_once/announce_once          time:   [346.71 ns 359.80 ns 375.52 ns]
+http_tracker/first_announce/0                     time:   [441.85 ns 447.32 ns 454.43 ns]
+http_tracker/first_announce/74                    time:   [1.1428 µs 1.1500 µs 1.1571 µs]
+http_tracker/first_announce/1000                  time:   [1.1651 µs 1.1752 µs 1.1853 µs]
+```
+
+No assertion failed. At about 1 µs per announce, one second of measurement is about a million
+iterations per size, so the context sent far more than 65,536 swarm events and the lag rule's
+weaker checks (no update counted, no count above its expected value) ran. This run does not show
+whether the listener dropped any event.
 
 ### V2 - M2: Results are stable and ordered as expected
 
 - Goal: three `cargo bench` runs with the median per swarm size (AC1, AC4).
-- Status: `TODO`. Waiting for the maintainer to run it, or to say the computer is idle.
+- Status: `DONE`.
+- Toolchain: stable Rust 1.99.0 (`b940084d7`), `bench` profile, on the same shared Linux desktop as
+  above; the maintainer was not idling it. Each run was
+  `cargo bench -p torrust-tracker-http-core --bench http_tracker_core_benchmark -- first_announce`,
+  and the median was read from `target/criterion/http_tracker_first_announce/<N>/new/estimates.json`
+  right after the run, before the next one. Times are UTC; `uptime` was recorded at each start.
+  Run 1 includes the compile time of the bench profile.
+
+| Run | Start (UTC) | Load average at start (1/5/15 min) | Median, 0 peers | Median, 74 peers | Median, 1000 peers |
+| --- | ----------- | ---------------------------------- | --------------- | ---------------- | ------------------ |
+| 1   | 13:04:48    | 4.16 / 5.18 / 4.80                 | 432.2 ns        | 1170.2 ns        | 1165.9 ns          |
+| 2   | 13:06:12    | 7.71 / 6.16 / 5.19                 | 469.7 ns        | 1248.0 ns        | 1261.8 ns          |
+| 3   | 13:06:19    | 7.49 / 6.14 / 5.19                 | 432.8 ns        | 1212.5 ns        | 1161.5 ns          |
+
+Run-to-run variation of the median (maximum over minimum): 0 peers 8.7%, 74 peers 6.6%, 1000 peers
+8.6%. Run 3's 0-peer confidence interval was wide (462-507 ns), with a mean of 475 ns against a
+median of 433 ns.
+
+#### Conclusion
+
+AC4 holds: the 74- and 1000-peer results are about 2.7 times the 0-peer result in every run. The
+74- and 1000-peer results are within the run-to-run variation of each other, so swarm size alone,
+beyond a full 74-peer list, does not change the cost; building the peer list does (the second
+reason for D2's sizes). The machine was loaded (load average 4-8 on 32 logical CPUs), so the
+absolute numbers are not a baseline; the ordering and the 74-versus-1000 equality repeated in all
+three runs.
 
 ## Design Review (T1, T2)
 
