@@ -55,25 +55,32 @@ flowchart TD
     UdpInstances --> SharedBan
     Main -->|Ctrl+C| Cancel[JobManager::cancel]
     Cancel --> Manager
-    Manager -->|shared CancellationToken| BanCleanup
+    Manager -->|legacy root token| BanCleanup
     Main -->|wait up to 10 seconds total| Wait[JobManager::wait_for_all]
     Wait --> Manager
 ```
 
 ## Current Ownership Rule
 
-Every spawned task has an explicit owner. `JobManager::spawn` directly creates
-and owns direct component tasks in its `JoinSet`; it does not receive their
-`JoinHandle`s. Components retain ownership of their nested server handles and
-must signal, join, or deliberately abort them before completion. The narrow
-legacy registry retains only the pre-spawned periodic handles that cannot be
-adopted by a `JoinSet` without a wrapper task.
+Every spawned task has an explicit owner. Bootstrap registers each direct
+component in two steps: `JobManager::reserve` issues the component its own
+`CancellationToken`, bootstrap builds the component's runner with it, and
+`JobManager::spawn` creates and owns the component's task in its `JoinSet`, so
+it never receives a `JoinHandle` from the component. A reservation dropped
+without being spawned, for example after a bind failure, is released. Components
+retain ownership of their nested server handles and must signal, join, or
+deliberately abort them before completion. The narrow legacy registry retains
+only the pre-spawned periodic handles that cannot be adopted by a `JoinSet`
+without a wrapper task.
 
-`JobManager::cancel` supplies one shared `CancellationToken` for cooperative
-shutdown. `wait_for_all` applies one common deadline concurrently to direct
-components and retained legacy handles. On expiry it aborts and joins all
-remaining work; direct components use drop-safe cleanup to prevent a nested
-server from becoming detached when the outer component is aborted.
+`JobManager::cancel` requests cooperative shutdown: it cancels every component
+token at once, plus the legacy root token that only legacy jobs use. No
+component token is derived from another, so a later change can cancel components
+at different times (issue #2415). `wait_for_all` applies one common deadline
+concurrently to direct components and retained legacy handles. On expiry it
+aborts and joins all remaining work; direct components use drop-safe cleanup to
+prevent a nested server from becoming detached when the outer component is
+aborted.
 
 The job's ownership follows the lifetime of the **service or data it operates
 on**, not merely the listener that happened to start it. A shared service has
@@ -97,7 +104,7 @@ application-owned `udp_ban_cleanup` job:
   allowed: at least one is configured and the tracker is not in private mode.
 - It registers the cleanup job with `JobManager` before starting UDP listener
   instances.
-- It receives the manager's shared `CancellationToken` and exits cooperatively
+- It receives the manager's legacy root token (`JobManager::legacy_cancellation_token`) and exits cooperatively
   when cancellation is requested.
 - The listener launcher no longer spawns cleanup tasks.
 

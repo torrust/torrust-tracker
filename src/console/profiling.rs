@@ -240,15 +240,17 @@ mod tests {
     async fn it_should_cancel_and_join_jobs_after_the_profiling_duration_elapses() {
         // Arrange
         let mut jobs = JobManager::new();
-        let cancellation_token = jobs.new_cancellation_token();
+        let reservation = jobs.reserve("test-job");
+        let cancellation_token = reservation.cancellation_token();
         let (completed_sender, completed_receiver) = oneshot::channel();
-        jobs.spawn("test-job", async move {
+        jobs.spawn(reservation, async move {
             cancellation_token.cancelled().await;
             completed_sender
                 .send(())
                 .expect("the test waits for the job to complete after cancellation");
             Ok(ComponentCompletion::Cancelled)
-        });
+        })
+        .expect("the reservation was issued by this manager");
 
         // Act
         wait_for_shutdown(jobs, Duration::ZERO).await;

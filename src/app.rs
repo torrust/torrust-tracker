@@ -35,7 +35,7 @@ use torrust_tracker_udp_core::ConnectionIdValidationPolicy;
 use tracing::instrument;
 
 use crate::CurrentClock;
-use crate::bootstrap::jobs::manager::{ComponentCompletion, ComponentResult, JobManager};
+use crate::bootstrap::jobs::manager::{ComponentCompletion, ComponentResult, JobManager, Reservation, SpawnError};
 use crate::bootstrap::jobs::{
     self, activity_metrics_updater, health_check_api, http_tracker, torrent_cleanup, tracker_apis, udp_tracker,
 };
@@ -74,6 +74,11 @@ pub enum Error {
         "Persistent completed statistics were enabled without a persistence container. Configure `[core.database]` or disable the feature."
     )]
     PersistentStatisticsRequirePersistence,
+
+    #[error(
+        "Application bootstrap could not register a component with the job manager. This is a defect in the tracker's startup code; please report it: {source}"
+    )]
+    ComponentRegistration { source: SpawnError },
 }
 
 /// Starts the tracker application.
@@ -167,16 +172,16 @@ async fn start_jobs_with_manager(
     app_container: &Arc<AppContainer>,
     job_manager: &mut JobManager,
 ) -> Result<(), Error> {
-    start_swarm_coordination_registry_event_listener(config, app_container, job_manager);
-    start_tracker_core_in_memory_event_listener(config, app_container, job_manager);
+    start_swarm_coordination_registry_event_listener(config, app_container, job_manager)?;
+    start_tracker_core_in_memory_event_listener(config, app_container, job_manager)?;
     start_tracker_core_persistent_completed_statistics_event_listener(config, app_container, job_manager)?;
-    start_http_core_event_listener(config, app_container, job_manager);
-    start_udp_core_event_listener(config, app_container, job_manager);
+    start_http_core_event_listener(config, app_container, job_manager)?;
+    start_udp_core_event_listener(config, app_container, job_manager)?;
     start_udp_tracker_services(config, app_container, job_manager).await?;
     start_the_http_instances(config, app_container, job_manager).await?;
 
-    start_torrent_cleanup(config, app_container, job_manager);
-    start_peers_inactivity_update(config, app_container, job_manager);
+    start_torrent_cleanup(config, app_container, job_manager)?;
+    start_peers_inactivity_update(config, app_container, job_manager)?;
 
     start_the_http_api(config, app_container, job_manager).await?;
     start_health_check_api(config, app_container, job_manager).await?;
@@ -246,24 +251,28 @@ fn start_swarm_coordination_registry_event_listener(
     config: &Configuration,
     app_container: &Arc<AppContainer>,
     job_manager: &mut JobManager,
-) {
-    if let Some(runner) =
-        jobs::torrent_repository::run_event_listener(config, app_container, job_manager.new_cancellation_token())
-    {
-        job_manager.spawn("swarm_coordination_registry_event_listener", component_runner(runner));
+) -> Result<(), Error> {
+    let reservation = job_manager.reserve("swarm_coordination_registry_event_listener");
+    if let Some(runner) = jobs::torrent_repository::run_event_listener(config, app_container, reservation.cancellation_token()) {
+        spawn_component(job_manager, reservation, component_runner(runner))?;
     }
+
+    Ok(())
 }
 
 fn start_tracker_core_in_memory_event_listener(
     config: &Configuration,
     app_container: &Arc<AppContainer>,
     job_manager: &mut JobManager,
-) {
+) -> Result<(), Error> {
+    let reservation = job_manager.reserve("tracker_core_in_memory_event_listener");
     if let Some(runner) =
-        jobs::tracker_core::run_in_memory_event_listener(config, app_container, job_manager.new_cancellation_token())
+        jobs::tracker_core::run_in_memory_event_listener(config, app_container, reservation.cancellation_token())
     {
-        job_manager.spawn("tracker_core_in_memory_event_listener", component_runner(runner));
+        spawn_component(job_manager, reservation, component_runner(runner))?;
     }
+
+    Ok(())
 }
 
 fn start_tracker_core_persistent_completed_statistics_event_listener(
@@ -271,42 +280,38 @@ fn start_tracker_core_persistent_completed_statistics_event_listener(
     app_container: &Arc<AppContainer>,
     job_manager: &mut JobManager,
 ) -> Result<(), Error> {
+    let reservation = job_manager.reserve("tracker_core_persistent_completed_statistics_event_listener");
     if let Some(runner) = jobs::tracker_core::run_persistent_completed_statistics_event_listener(
         config,
         app_container,
-        job_manager.new_cancellation_token(),
+        reservation.cancellation_token(),
     )
     .map_err(|_| Error::PersistentStatisticsRequirePersistence)?
     {
-        job_manager.spawn(
-            "tracker_core_persistent_completed_statistics_event_listener",
-            component_runner(runner),
-        );
+        spawn_component(job_manager, reservation, component_runner(runner))?;
     }
 
     Ok(())
 }
 
-fn start_http_core_event_listener(config: &Configuration, app_container: &Arc<AppContainer>, job_manager: &mut JobManager) {
-    job_manager.spawn(
-        "http_core_event_listener",
-        component_runner(jobs::http_tracker_core::run_event_listener(
-            config,
-            app_container,
-            job_manager.new_cancellation_token(),
-        )),
-    );
+fn start_http_core_event_listener(
+    config: &Configuration,
+    app_container: &Arc<AppContainer>,
+    job_manager: &mut JobManager,
+) -> Result<(), Error> {
+    let reservation = job_manager.reserve("http_core_event_listener");
+    let runner = jobs::http_tracker_core::run_event_listener(config, app_container, reservation.cancellation_token());
+    spawn_component(job_manager, reservation, component_runner(runner))
 }
 
-fn start_udp_core_event_listener(config: &Configuration, app_container: &Arc<AppContainer>, job_manager: &mut JobManager) {
-    job_manager.spawn(
-        "udp_core_event_listener",
-        component_runner(jobs::udp_tracker_core::run_event_listener(
-            config,
-            app_container,
-            job_manager.new_cancellation_token(),
-        )),
-    );
+fn start_udp_core_event_listener(
+    config: &Configuration,
+    app_container: &Arc<AppContainer>,
+    job_manager: &mut JobManager,
+) -> Result<(), Error> {
+    let reservation = job_manager.reserve("udp_core_event_listener");
+    let runner = jobs::udp_tracker_core::run_event_listener(config, app_container, reservation.cancellation_token());
+    spawn_component(job_manager, reservation, component_runner(runner))
 }
 
 async fn start_udp_tracker_services(
@@ -319,8 +324,8 @@ async fn start_udp_tracker_services(
         return Ok(());
     }
 
-    start_udp_server_stats_event_listener(config, app_container, job_manager);
-    start_udp_server_banning_event_listener(app_container, job_manager);
+    start_udp_server_stats_event_listener(config, app_container, job_manager)?;
+    start_udp_server_banning_event_listener(app_container, job_manager)?;
     // issue: #1453
     start_udp_ban_cleanup_job(config, app_container, job_manager);
     start_the_udp_instances(config, app_container, job_manager).await
@@ -351,36 +356,40 @@ fn start_udp_server_stats_event_listener(
     config: &Configuration,
     app_container: &Arc<AppContainer>,
     job_manager: &mut JobManager,
-) {
-    job_manager.spawn(
-        "udp_server_stats_event_listener",
-        component_runner(jobs::udp_tracker_server::run_stats_event_listener(
-            config,
-            app_container,
-            job_manager.new_cancellation_token(),
-        )),
-    );
+) -> Result<(), Error> {
+    let reservation = job_manager.reserve("udp_server_stats_event_listener");
+    let runner = jobs::udp_tracker_server::run_stats_event_listener(config, app_container, reservation.cancellation_token());
+    spawn_component(job_manager, reservation, component_runner(runner))
 }
 
-fn start_udp_server_banning_event_listener(app_container: &Arc<AppContainer>, job_manager: &mut JobManager) {
-    job_manager.spawn(
-        "udp_server_banning_event_listener",
-        component_runner(jobs::udp_tracker_server::run_banning_event_listener(
-            app_container,
-            job_manager.new_cancellation_token(),
-        )),
-    );
+fn start_udp_server_banning_event_listener(app_container: &Arc<AppContainer>, job_manager: &mut JobManager) -> Result<(), Error> {
+    let reservation = job_manager.reserve("udp_server_banning_event_listener");
+    let runner = jobs::udp_tracker_server::run_banning_event_listener(app_container, reservation.cancellation_token());
+    spawn_component(job_manager, reservation, component_runner(runner))
 }
 
+// issue: #1488
+// A legacy job: it keeps the manager's root token until UDP IP-ban cleanup
+// migrates to a reserved component.
 fn start_udp_ban_cleanup_job(config: &Configuration, app_container: &Arc<AppContainer>, job_manager: &mut JobManager) {
     job_manager.register_legacy(
         "udp_ban_cleanup",
         jobs::udp_tracker_server::start_ban_cleanup_job(
             config.udp_tracker_server.ip_bans_reset_interval_in_secs.get(),
             app_container,
-            job_manager.new_cancellation_token(),
+            job_manager.legacy_cancellation_token(),
         ),
     );
+}
+
+/// Spawns a reserved component, reporting a registration defect as a startup error.
+fn spawn_component<F>(job_manager: &mut JobManager, reservation: Reservation, runner: F) -> Result<(), Error>
+where
+    F: Future<Output = ComponentResult> + Send + 'static,
+{
+    job_manager
+        .spawn(reservation, runner)
+        .map_err(|source| Error::ComponentRegistration { source })
 }
 
 async fn component_runner(runner: impl Future<Output = torrust_tracker_events::shutdown::Completion>) -> ComponentResult {
@@ -424,6 +433,7 @@ async fn start_udp_instance(
                 source,
             })?;
     let udp_tracker_server_container = app_container.udp_tracker_server_container();
+    let reservation = job_manager.reserve(format!("udp_instance_{}_{}", idx, udp_tracker_config.bind_address));
 
     let runner = udp_tracker::start_job(
         udp_tracker_container,
@@ -432,7 +442,7 @@ async fn start_udp_instance(
         RuntimeServiceMetadata::new(configuration_instance_id)
             .with_public_url(udp_tracker_config.public_url.as_ref().map(|url| url.as_url().clone())),
         connection_id_validation,
-        job_manager.new_cancellation_token().child_token(),
+        reservation.cancellation_token(),
     )
     .await
     .map_err(|source| Error::ServiceStartup {
@@ -440,8 +450,7 @@ async fn start_udp_instance(
         source: Box::new(source),
     })?;
 
-    job_manager.spawn(format!("udp_instance_{}_{}", idx, udp_tracker_config.bind_address), runner);
-    Ok(())
+    spawn_component(job_manager, reservation, runner)
 }
 
 const fn connection_id_validation_policy(config: &Configuration) -> ConnectionIdValidationPolicy {
@@ -483,6 +492,7 @@ async fn start_http_instance(
                 service: "HTTP tracker",
                 source,
             })?;
+    let reservation = job_manager.reserve(format!("http_instance_{}_{}", idx, http_tracker_config.bind_address));
 
     if let Some(runner) = http_tracker::start_job(
         http_tracker_container,
@@ -490,14 +500,14 @@ async fn start_http_instance(
         RuntimeServiceMetadata::new(configuration_instance_id)
             .with_public_url(http_tracker_config.public_url.as_ref().map(|url| url.as_url().clone())),
         torrust_tracker_axum_http_server::Version::V1,
-        job_manager.new_cancellation_token().child_token(),
+        reservation.cancellation_token(),
     )
     .await
     .map_err(|source| Error::ServiceStartup {
         service: "HTTP tracker",
         source: Box::new(source),
     })? {
-        job_manager.spawn(format!("http_instance_{}_{}", idx, http_tracker_config.bind_address), runner);
+        spawn_component(job_manager, reservation, runner)?;
     }
     Ok(())
 }
@@ -510,6 +520,7 @@ async fn start_the_http_api(
     if let Some(http_api_config) = &config.http_api {
         let http_api_config = Arc::new(http_api_config.clone());
         let http_api_container = app_container.tracker_http_api_container(&http_api_config);
+        let reservation = job_manager.reserve("http_api");
 
         if let Some(runner) = tracker_apis::start_job(
             http_api_container,
@@ -517,14 +528,14 @@ async fn start_the_http_api(
             RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::RestApi, 0))
                 .with_public_url(http_api_config.public_url.as_ref().map(|url| url.as_url().clone())),
             torrust_tracker_axum_rest_api_server::Version::V1,
-            job_manager.new_cancellation_token().child_token(),
+            reservation.cancellation_token(),
         )
         .await
         .map_err(|source| Error::ServiceStartup {
             service: "tracker API",
             source: Box::new(source),
         })? {
-            job_manager.spawn("http_api", runner);
+            spawn_component(job_manager, reservation, runner)?;
         }
     } else {
         tracing::info!("No API block in configuration");
@@ -532,32 +543,38 @@ async fn start_the_http_api(
     Ok(())
 }
 
-fn start_torrent_cleanup(config: &Configuration, app_container: &Arc<AppContainer>, job_manager: &mut JobManager) {
+fn start_torrent_cleanup(
+    config: &Configuration,
+    app_container: &Arc<AppContainer>,
+    job_manager: &mut JobManager,
+) -> Result<(), Error> {
     if config.core.inactive_peer_cleanup_interval > 0 {
-        job_manager.spawn(
-            "torrent_cleanup",
-            component_runner(torrent_cleanup::run_job(
-                config.core.clone(),
-                app_container.tracker_core_container.torrents_manager.clone(),
-                job_manager.new_cancellation_token(),
-            )),
+        let reservation = job_manager.reserve("torrent_cleanup");
+        let runner = torrent_cleanup::run_job(
+            config.core.clone(),
+            app_container.tracker_core_container.torrents_manager.clone(),
+            reservation.cancellation_token(),
         );
+        spawn_component(job_manager, reservation, component_runner(runner))?;
     }
+
+    Ok(())
 }
 
-fn start_peers_inactivity_update(config: &Configuration, app_container: &Arc<AppContainer>, job_manager: &mut JobManager) {
+fn start_peers_inactivity_update(
+    config: &Configuration,
+    app_container: &Arc<AppContainer>,
+    job_manager: &mut JobManager,
+) -> Result<(), Error> {
     if config.core.tracker_usage_statistics {
-        job_manager.spawn(
-            "peers_inactivity_update",
-            component_runner(activity_metrics_updater::run_job(
-                config,
-                app_container,
-                job_manager.new_cancellation_token(),
-            )),
-        );
+        let reservation = job_manager.reserve("peers_inactivity_update");
+        let runner = activity_metrics_updater::run_job(config, app_container, reservation.cancellation_token());
+        spawn_component(job_manager, reservation, component_runner(runner))?;
     } else {
         tracing::info!("Peers inactivity update job is disabled.");
     }
+
+    Ok(())
 }
 
 async fn start_health_check_api(
@@ -565,10 +582,11 @@ async fn start_health_check_api(
     app_container: &Arc<AppContainer>,
     job_manager: &mut JobManager,
 ) -> Result<(), Error> {
+    let reservation = job_manager.reserve("health_check_api");
     let runner = health_check_api::start_job(
         &config.health_check_api,
         app_container.registar.as_ref().clone(),
-        job_manager.new_cancellation_token().child_token(),
+        reservation.cancellation_token(),
     )
     .await
     .map_err(|source| Error::ServiceStartup {
@@ -576,8 +594,7 @@ async fn start_health_check_api(
         source: Box::new(source),
     })?;
 
-    job_manager.spawn("health_check_api", runner);
-    Ok(())
+    spawn_component(job_manager, reservation, runner)
 }
 
 #[cfg(test)]
@@ -594,8 +611,8 @@ mod tests {
 
     use super::{
         Error, connection_id_validation_policy, load_data_from_database, run_after_setup, should_start_udp_tracker_services,
-        start_health_check_api, start_http_instance, start_peers_inactivity_update, start_the_http_api, start_torrent_cleanup,
-        start_udp_instance,
+        start_health_check_api, start_http_instance, start_jobs_with_manager, start_peers_inactivity_update, start_the_http_api,
+        start_torrent_cleanup, start_udp_instance,
     };
     use crate::bootstrap::app::initialize_global_services;
     use crate::bootstrap::jobs::manager::{JobManager, JobOutcome, JobStatus};
@@ -683,7 +700,8 @@ mod tests {
                 .expect("composition should succeed"),
         );
         let mut job_manager = JobManager::new();
-        start_torrent_cleanup(&configuration, &app_container, &mut job_manager);
+        start_torrent_cleanup(&configuration, &app_container, &mut job_manager)
+            .expect("torrent cleanup should be registered through application bootstrap");
 
         // Act
         job_manager.cancel();
@@ -715,7 +733,8 @@ mod tests {
                 .expect("composition should succeed"),
         );
         let mut job_manager = JobManager::new();
-        start_peers_inactivity_update(&configuration, &app_container, &mut job_manager);
+        start_peers_inactivity_update(&configuration, &app_container, &mut job_manager)
+            .expect("peers inactivity update should be registered through application bootstrap");
 
         // Act
         job_manager.cancel();
@@ -939,6 +958,62 @@ mod tests {
         // Assert
         assert!(result.is_err());
         UdpSocket::bind(udp_address).expect("UDP listener should be released before startup returns");
+    }
+
+    #[tokio::test]
+    async fn it_should_stop_every_started_component_cooperatively_when_the_manager_is_cancelled() {
+        // Arrange
+        let mut configuration = ephemeral_public();
+        configuration.core.tracker_usage_statistics = true;
+        configuration.core.tracker_policy.persistent_torrent_completed_stat = true;
+        configuration.core.inactive_peer_cleanup_interval = 24 * 60 * 60;
+        let udp_bind_address = configuration.udp_trackers.as_ref().expect("test configuration enables UDP")[0].bind_address;
+        let http_bind_address = configuration.http_trackers.as_ref().expect("test configuration enables HTTP")[0].bind_address;
+        initialize_global_services(&configuration);
+        let app_container = Arc::new(
+            AppContainer::initialize(&configuration)
+                .await
+                .expect("composition should succeed"),
+        );
+        let mut job_manager = JobManager::new();
+        start_jobs_with_manager(&configuration, &app_container, &mut job_manager)
+            .await
+            .expect("every component should start through application bootstrap");
+
+        // Act
+        job_manager.cancel();
+        let mut outcomes = job_manager.wait_for_all(Duration::from_secs(5)).await;
+
+        // Assert
+        outcomes.sort_by(|left, right| left.name.cmp(&right.name));
+        let cancelled = |name: String| JobOutcome {
+            name,
+            status: JobStatus::Cancelled,
+        };
+        let mut expected = vec![
+            cancelled("swarm_coordination_registry_event_listener".to_owned()),
+            cancelled("tracker_core_in_memory_event_listener".to_owned()),
+            cancelled("tracker_core_persistent_completed_statistics_event_listener".to_owned()),
+            cancelled("http_core_event_listener".to_owned()),
+            cancelled("udp_core_event_listener".to_owned()),
+            cancelled("udp_server_stats_event_listener".to_owned()),
+            cancelled("udp_server_banning_event_listener".to_owned()),
+            JobOutcome {
+                name: "udp_ban_cleanup".to_owned(),
+                status: JobStatus::Completed,
+            },
+            cancelled(format!("udp_instance_0_{udp_bind_address}")),
+            cancelled(format!("http_instance_0_{http_bind_address}")),
+            cancelled("torrent_cleanup".to_owned()),
+            cancelled("peers_inactivity_update".to_owned()),
+            cancelled("http_api".to_owned()),
+            cancelled("health_check_api".to_owned()),
+        ];
+        expected.sort_by(|left, right| left.name.cmp(&right.name));
+        assert_eq!(
+            outcomes, expected,
+            "every started component must stop through the token `cancel()` cancels; an `Aborted` status names a component that was built with another token"
+        );
     }
 
     fn reserve_udp_address() -> SocketAddr {
