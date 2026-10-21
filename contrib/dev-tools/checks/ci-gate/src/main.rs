@@ -8,10 +8,12 @@
 
 use std::io::{self, IsTerminal, Read, Write};
 use std::process::ExitCode;
-use std::{env, fmt};
+use std::{env, fmt, fs};
 
 use ci_gate::change_detection::{classify, parse_changed_paths};
-use ci_gate::cli::{Command, USAGE, parse_arguments};
+use ci_gate::cli::{Command, GithubVerdictArguments, USAGE, parse_arguments};
+use ci_gate::gh::Gh;
+use ci_gate::github::decide_for_pull_request;
 use ci_gate::verdict::{VerdictInput, decide};
 use serde_json::json;
 
@@ -78,19 +80,13 @@ fn run() -> Result<(), Failure> {
         .collect::<Result<Vec<String>, Failure>>()?;
     let command = parse_arguments(&arguments).map_err(|message| Failure::Usage(format!("{message}. {USAGE}")))?;
 
-    let mut input = Vec::new();
-    io::stdin()
-        .lock()
-        .read_to_end(&mut input)
-        .map_err(|error| Failure::Runtime(format!("cannot read stdin: {error}")))?;
-
     let result = match command {
         Command::Classify(arguments) => {
-            let classification = classify(&parse_changed_paths(&input), &arguments.base_branch);
+            let classification = classify(&parse_changed_paths(&read_stdin()?), &arguments.base_branch);
             serde_json::to_string(&classification)
         }
         Command::Verdict(arguments) => {
-            let verdict_input: VerdictInput = serde_json::from_slice(&input)
+            let verdict_input: VerdictInput = serde_json::from_slice(&read_stdin()?)
                 .map_err(|error| Failure::Runtime(format!("stdin is not a valid verdict input: {error}")))?;
             let verdict = decide(
                 &verdict_input.classification,
@@ -100,9 +96,34 @@ fn run() -> Result<(), Failure> {
             .map_err(Failure::Runtime)?;
             serde_json::to_string(&verdict)
         }
+        Command::GithubVerdict(arguments) => serde_json::to_string(&github_verdict(&arguments)?),
     }
     .map_err(|error| Failure::Runtime(format!("cannot encode the result: {error}")))?;
 
     writeln!(io::stdout().lock(), "{result}")
         .map_err(|error| Failure::Runtime(format!("cannot write the result to stdout: {error}")))
+}
+
+fn read_stdin() -> Result<Vec<u8>, Failure> {
+    let mut input = Vec::new();
+    io::stdin()
+        .lock()
+        .read_to_end(&mut input)
+        .map_err(|error| Failure::Runtime(format!("cannot read stdin: {error}")))?;
+    Ok(input)
+}
+
+fn github_verdict(arguments: &GithubVerdictArguments) -> Result<ci_gate::github::GithubVerdict, Failure> {
+    let classification = fs::read(&arguments.classification_path)
+        .map_err(|error| Failure::Runtime(format!("cannot read `{}`: {error}", arguments.classification_path)))
+        .and_then(|bytes| {
+            serde_json::from_slice(&bytes).map_err(|error| {
+                Failure::Runtime(format!(
+                    "`{}` is not a classification: {error}",
+                    arguments.classification_path
+                ))
+            })
+        })?;
+
+    decide_for_pull_request(&Gh::new(&arguments.gh_program), &arguments.pull_request, &classification).map_err(Failure::Runtime)
 }

@@ -1,13 +1,16 @@
 //! Command-line arguments of the `ci-gate` binary.
 
+use crate::github::PullRequestRef;
+
 /// The usage text carried by a usage error.
-pub const USAGE: &str = "usage: ci-gate classify --base-branch <branch>  (changed paths on stdin, NUL-separated, as `git diff --name-only -z` prints them); ci-gate verdict [--override-actor <login>]  (JSON on stdin: {\"classification\": <the classify output>, \"results\": {<group>: success|failure|cancelled|skipped}})";
+pub const USAGE: &str = "usage: ci-gate classify --base-branch <branch>  (changed paths on stdin, NUL-separated, as `git diff --name-only -z` prints them); ci-gate verdict [--override-actor <login>]  (JSON on stdin: {\"classification\": <the classify output>, \"results\": {<group>: success|failure|cancelled|skipped}}); ci-gate github-verdict --repo <owner/name> --pull-request <number> --head-sha <sha> --classification <file> [--gh <program>]  (reads the results and the override from GitHub through `gh`)";
 
 /// A parsed command.
 #[derive(Debug, Eq, PartialEq)]
 pub enum Command {
     Classify(ClassifyArguments),
     Verdict(VerdictArguments),
+    GithubVerdict(GithubVerdictArguments),
 }
 
 /// The arguments of `classify`.
@@ -24,6 +27,16 @@ pub struct VerdictArguments {
     pub override_actor: Option<String>,
 }
 
+/// The arguments of `github-verdict`.
+#[derive(Debug, Eq, PartialEq)]
+pub struct GithubVerdictArguments {
+    pub pull_request: PullRequestRef,
+    /// The file that holds the output of `classify`.
+    pub classification_path: String,
+    /// The program that calls the GitHub API, `gh` unless a test says otherwise.
+    pub gh_program: String,
+}
+
 /// Parses the arguments that follow the program name.
 ///
 /// # Errors
@@ -36,6 +49,7 @@ pub fn parse_arguments<S: AsRef<str>>(arguments: &[S]) -> Result<Command, String
     match arguments.next() {
         Some("classify") => parse_classify(arguments).map(Command::Classify),
         Some("verdict") => parse_verdict(arguments).map(Command::Verdict),
+        Some("github-verdict") => parse_github_verdict(arguments).map(Command::GithubVerdict),
         Some(other) => Err(format!("unknown subcommand `{other}`")),
         None => Err("missing subcommand".to_string()),
     }
@@ -73,6 +87,42 @@ fn parse_verdict<'a>(mut arguments: impl Iterator<Item = &'a str>) -> Result<Ver
     }
 
     Ok(VerdictArguments { override_actor })
+}
+
+fn parse_github_verdict<'a>(mut arguments: impl Iterator<Item = &'a str>) -> Result<GithubVerdictArguments, String> {
+    let mut repository: Option<&str> = None;
+    let mut number: Option<&str> = None;
+    let mut head_sha: Option<&str> = None;
+    let mut classification_path: Option<&str> = None;
+    let mut gh_program: Option<&str> = None;
+
+    while let Some(argument) = arguments.next() {
+        let (slot, what) = match argument {
+            "--repo" => (&mut repository, "a repository of the form `owner/name`"),
+            "--pull-request" => (&mut number, "a pull request number"),
+            "--head-sha" => (&mut head_sha, "a commit id"),
+            "--classification" => (&mut classification_path, "a file name"),
+            "--gh" => (&mut gh_program, "a program name"),
+            other => return Err(format!("unknown argument `{other}`")),
+        };
+        let value = option_value(&mut arguments, argument, what)?;
+        if slot.replace(value).is_some() {
+            return Err(format!("`{argument}` was given more than once"));
+        }
+    }
+
+    let required = |value: Option<&'a str>, option: &str| value.ok_or_else(|| format!("`{option}` is required"));
+    let repository = required(repository, "--repo")?;
+    let number = required(number, "--pull-request")?;
+    let number: u64 = number
+        .parse()
+        .map_err(|_| format!("`{number}` is not a pull request number"))?;
+
+    Ok(GithubVerdictArguments {
+        pull_request: PullRequestRef::new(repository, number, required(head_sha, "--head-sha")?)?,
+        classification_path: required(classification_path, "--classification")?.to_string(),
+        gh_program: gh_program.unwrap_or("gh").to_string(),
+    })
 }
 
 fn option_value<'a>(arguments: &mut impl Iterator<Item = &'a str>, option: &str, what: &str) -> Result<&'a str, String> {
@@ -155,6 +205,89 @@ mod tests {
         "`--override-actor` was given more than once"
     )]
     fn it_should_reject_invalid_arguments_with_a_message_naming_the_problem(
+        #[case] arguments: &[&str],
+        #[case] expected_message: &str,
+    ) {
+        // Act
+        let parsed = parse_arguments(arguments);
+
+        // Assert
+        assert_eq!(parsed, Err(expected_message.to_string()), "arguments: {arguments:?}");
+    }
+
+    const SHA: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+
+    #[rstest]
+    #[case::the_default_program(
+        &["github-verdict", "--repo", "owner/repo", "--pull-request", "7", "--head-sha", SHA, "--classification", "c.json"],
+        "gh"
+    )]
+    #[case::another_program(
+        &["github-verdict", "--repo", "owner/repo", "--pull-request", "7", "--head-sha", SHA, "--classification", "c.json", "--gh", "/tmp/fake-gh"],
+        "/tmp/fake-gh"
+    )]
+    #[case::in_another_order(
+        &["github-verdict", "--classification", "c.json", "--head-sha", SHA, "--pull-request", "7", "--repo", "owner/repo"],
+        "gh"
+    )]
+    fn it_should_read_the_arguments_of_the_github_verdict_command(#[case] arguments: &[&str], #[case] expected_program: &str) {
+        // Act
+        let parsed = parse_arguments(arguments);
+
+        // Assert
+        assert_eq!(
+            parsed,
+            Ok(Command::GithubVerdict(GithubVerdictArguments {
+                pull_request: PullRequestRef::new("owner/repo", 7, SHA).expect("valid"),
+                classification_path: "c.json".to_string(),
+                gh_program: expected_program.to_string(),
+            })),
+            "arguments: {arguments:?}"
+        );
+    }
+
+    #[rstest]
+    #[case::no_repo(
+        &["github-verdict", "--pull-request", "7", "--head-sha", SHA, "--classification", "c.json"],
+        "`--repo` is required"
+    )]
+    #[case::no_pull_request(
+        &["github-verdict", "--repo", "owner/repo", "--head-sha", SHA, "--classification", "c.json"],
+        "`--pull-request` is required"
+    )]
+    #[case::no_head_sha(
+        &["github-verdict", "--repo", "owner/repo", "--pull-request", "7", "--classification", "c.json"],
+        "`--head-sha` is required"
+    )]
+    #[case::no_classification(
+        &["github-verdict", "--repo", "owner/repo", "--pull-request", "7", "--head-sha", SHA],
+        "`--classification` is required"
+    )]
+    #[case::a_pull_request_that_is_not_a_number(
+        &["github-verdict", "--repo", "owner/repo", "--pull-request", "seven", "--head-sha", SHA, "--classification", "c.json"],
+        "`seven` is not a pull request number"
+    )]
+    #[case::a_repository_that_is_not_owner_and_name(
+        &["github-verdict", "--repo", "repo", "--pull-request", "7", "--head-sha", SHA, "--classification", "c.json"],
+        "`repo` is not a repository of the form `owner/name`"
+    )]
+    #[case::a_short_commit_id(
+        &["github-verdict", "--repo", "owner/repo", "--pull-request", "7", "--head-sha", "abc", "--classification", "c.json"],
+        "`abc` is not a commit id of 40 hexadecimal digits"
+    )]
+    #[case::an_option_given_twice(
+        &["github-verdict", "--repo", "a/b", "--repo", "c/d", "--pull-request", "7", "--head-sha", SHA, "--classification", "c.json"],
+        "`--repo` was given more than once"
+    )]
+    #[case::an_option_without_a_value(
+        &["github-verdict", "--repo", "owner/repo", "--pull-request"],
+        "`--pull-request` needs a pull request number"
+    )]
+    #[case::an_unknown_option(
+        &["github-verdict", "--base-branch", "develop"],
+        "unknown argument `--base-branch`"
+    )]
+    fn it_should_reject_invalid_arguments_of_the_github_verdict_command_naming_the_problem(
         #[case] arguments: &[&str],
         #[case] expected_message: &str,
     ) {

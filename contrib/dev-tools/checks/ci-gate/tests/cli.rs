@@ -297,3 +297,323 @@ fn it_should_write_a_json_runtime_error_and_nothing_on_stdout_when_stdin_is_not_
     let record: Value = serde_json::from_str(&stderr).expect("the diagnostic is one JSON object");
     assert_eq!(record["kind"], "runtime_error");
 }
+
+/// A stand-in for the `gh` program, made of fixtures in a temporary directory. A request for which there is no fixture
+/// fails, as a request that GitHub refuses does.
+#[cfg(unix)]
+struct FakeGh {
+    directory: std::path::PathBuf,
+}
+
+#[cfg(unix)]
+impl FakeGh {
+    fn new(test_name: &str) -> Self {
+        use std::os::unix::fs::PermissionsExt;
+
+        let directory = std::env::temp_dir().join(format!("ci-gate-fake-gh-{}-{test_name}", std::process::id()));
+        std::fs::create_dir_all(&directory).expect("the fixture directory can be created");
+        // `gh api --paginate <path>`: the fixture of a path is the file named after it, with `/`, `?` and `=` as `_`.
+        let script = format!(
+            "#!/bin/sh\nfile=\"{}/$(printf '%s' \"$3\" | tr '/?=' '___')\"\nif [ -f \"$file\" ]; then cat \"$file\"; else echo \"no fixture for $3\" >&2; exit 1; fi\n",
+            directory.display()
+        );
+        let program = directory.join("gh");
+        std::fs::write(&program, script).expect("the fake gh can be written");
+        std::fs::set_permissions(&program, std::fs::Permissions::from_mode(0o755)).expect("the fake gh can be made executable");
+
+        Self { directory }
+    }
+
+    fn program(&self) -> String {
+        self.directory.join("gh").display().to_string()
+    }
+
+    fn respond(&self, path: &str, body: &Value) {
+        let name = path.replace(['/', '?', '='], "_");
+        std::fs::write(self.directory.join(name), body.to_string()).expect("the fixture can be written");
+    }
+
+    /// Answers a path with text as it is, for a response that is not one JSON document.
+    fn respond_with_text(&self, path: &str, text: &str) {
+        let name = path.replace(['/', '?', '='], "_");
+        std::fs::write(self.directory.join(name), text).expect("the fixture can be written");
+    }
+
+    fn write_classification(&self, classification: &Value) -> String {
+        let path = self.directory.join("classification.json");
+        std::fs::write(&path, classification.to_string()).expect("the classification can be written");
+        path.display().to_string()
+    }
+}
+
+#[cfg(unix)]
+impl Drop for FakeGh {
+    fn drop(&mut self) {
+        drop(std::fs::remove_dir_all(&self.directory));
+    }
+}
+
+#[cfg(unix)]
+const SHA: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+
+#[cfg(unix)]
+fn run_github_verdict(gh: &FakeGh, classification_path: &str) -> Output {
+    run_ci_gate(
+        &[
+            "github-verdict",
+            "--repo",
+            "owner/repo",
+            "--pull-request",
+            "7",
+            "--head-sha",
+            SHA,
+            "--classification",
+            classification_path,
+            "--gh",
+            &gh.program(),
+        ],
+        b"",
+    )
+}
+
+#[cfg(unix)]
+fn check_run(id: u64, name: &str, conclusion: &str) -> Value {
+    json!({ "id": id, "name": name, "status": "completed", "conclusion": conclusion, "app": { "slug": "github-actions" } })
+}
+
+#[cfg(unix)]
+fn respond_with_check_runs(gh: &FakeGh, runs: &[Value]) {
+    gh.respond(
+        &format!("repos/owner/repo/commits/{SHA}/check-runs?per_page=100"),
+        &json!({ "total_count": runs.len(), "check_runs": runs }),
+    );
+}
+
+#[cfg(unix)]
+fn respond_with_an_override(gh: &FakeGh, actor: &str, applied_at: &str, first_check_suite_at: &str) {
+    gh.respond(
+        "repos/owner/repo/issues/7/labels?per_page=100",
+        &json!([{ "name": "ci-override" }]),
+    );
+    gh.respond(
+        "repos/owner/repo/issues/7/events?per_page=100",
+        &json!([{ "event": "labeled", "label": { "name": "ci-override" }, "actor": { "login": actor }, "created_at": applied_at }]),
+    );
+    gh.respond(
+        &format!("repos/owner/repo/commits/{SHA}/check-suites?per_page=100"),
+        &json!({ "check_suites": [{ "created_at": first_check_suite_at }] }),
+    );
+    gh.respond(
+        "repos/owner/repo/collaborators/josecelano/permission",
+        &json!({ "permission": "admin" }),
+    );
+}
+
+#[cfg(unix)]
+#[test]
+fn it_should_print_a_passing_verdict_when_the_github_check_runs_show_every_needed_group_succeeded() {
+    // Arrange
+    let gh = FakeGh::new("pass");
+    let classification = gh.write_classification(&classify_output(b"docs/index.md\0"));
+    respond_with_check_runs(&gh, &[check_run(1, "docs-lint", "success")]);
+
+    // Act
+    let output = run_github_verdict(&gh, &classification);
+
+    // Assert
+    assert_succeeded_without_diagnostics(&output);
+    let result = parse_verdict_stdout(&output);
+    assert_eq!(
+        (result["verdict"].clone(), result["override_ignored"].clone()),
+        (json!("pass"), Value::Null)
+    );
+}
+
+#[cfg(unix)]
+#[test]
+fn it_should_exit_with_zero_and_print_a_failing_verdict_when_a_group_failed_and_there_is_no_override() {
+    // Arrange
+    let gh = FakeGh::new("fail");
+    let classification = gh.write_classification(&classify_output(b"packages/persistence-benchmark/note.md\0"));
+    respond_with_check_runs(
+        &gh,
+        &[
+            check_run(1, "docs-lint", "success"),
+            check_run(2, "db-benchmarking", "failure"),
+        ],
+    );
+    gh.respond("repos/owner/repo/issues/7/labels?per_page=100", &json!([]));
+    gh.respond("repos/owner/repo/issues/7/events?per_page=100", &json!([]));
+
+    // Act
+    let output = run_github_verdict(&gh, &classification);
+
+    // Assert
+    assert_succeeded_without_diagnostics(&output);
+    let result = parse_verdict_stdout(&output);
+    assert_eq!(result["verdict"], "fail");
+    assert_eq!(
+        result["explanation"],
+        "needed groups without a success: db-benchmarking (failure)"
+    );
+}
+
+#[cfg(unix)]
+#[test]
+fn it_should_print_a_passing_verdict_naming_the_actor_when_a_maintainer_applied_the_label_after_the_push() {
+    // Arrange
+    let gh = FakeGh::new("override");
+    let classification = gh.write_classification(&classify_output(b"packages/persistence-benchmark/note.md\0"));
+    respond_with_check_runs(
+        &gh,
+        &[
+            check_run(1, "docs-lint", "success"),
+            check_run(2, "db-benchmarking", "failure"),
+        ],
+    );
+    respond_with_an_override(&gh, "josecelano", "2026-10-21T10:49:13Z", "2026-10-21T10:46:06Z");
+
+    // Act
+    let output = run_github_verdict(&gh, &classification);
+
+    // Assert
+    assert_succeeded_without_diagnostics(&output);
+    let result = parse_verdict_stdout(&output);
+    assert_eq!(
+        (result["verdict"].clone(), result["overridden_by"].clone()),
+        (json!("pass"), json!("josecelano"))
+    );
+}
+
+#[cfg(unix)]
+#[test]
+fn it_should_print_a_failing_verdict_with_the_reason_when_the_label_was_applied_before_the_push() {
+    // Arrange
+    let gh = FakeGh::new("stale");
+    let classification = gh.write_classification(&classify_output(b"packages/persistence-benchmark/note.md\0"));
+    respond_with_check_runs(
+        &gh,
+        &[
+            check_run(1, "docs-lint", "success"),
+            check_run(2, "db-benchmarking", "failure"),
+        ],
+    );
+    respond_with_an_override(&gh, "josecelano", "2026-10-21T10:44:46Z", "2026-10-21T10:46:06Z");
+
+    // Act
+    let output = run_github_verdict(&gh, &classification);
+
+    // Assert
+    assert_succeeded_without_diagnostics(&output);
+    let result = parse_verdict_stdout(&output);
+    assert_eq!(result["verdict"], "fail");
+    assert!(
+        result["override_ignored"]
+            .as_str()
+            .is_some_and(|reason| reason.contains("a push revoked it")),
+        "the reason should say that a push revoked the override, but was: {result}"
+    );
+}
+
+#[cfg(unix)]
+#[test]
+fn it_should_write_a_json_runtime_error_and_nothing_on_stdout_when_the_check_runs_cannot_be_read() {
+    // Arrange
+    let gh = FakeGh::new("unreadable");
+    let classification = gh.write_classification(&classify_output(b"docs/index.md\0"));
+
+    // Act
+    let output = run_github_verdict(&gh, &classification);
+
+    // Assert
+    assert_eq!(
+        output.status.code(),
+        Some(1),
+        "a runtime failure exits with code 1, so the gate fails closed"
+    );
+    assert!(
+        output.stdout.is_empty(),
+        "a failed run writes nothing to stdout, but stdout was: {}",
+        String::from_utf8_lossy(&output.stdout)
+    );
+    let record: Value = serde_json::from_slice(&output.stderr).expect("the diagnostic is one JSON object");
+    assert_eq!(record["kind"], "runtime_error");
+    assert!(
+        record["message"]
+            .as_str()
+            .is_some_and(|message| message.contains("cannot read the check runs")),
+        "the message should say what could not be read, but was: {record}"
+    );
+}
+
+#[cfg(unix)]
+#[test]
+fn it_should_write_a_json_runtime_error_when_the_classification_file_does_not_exist() {
+    // Arrange
+    let gh = FakeGh::new("no-classification");
+
+    // Act
+    let output = run_github_verdict(&gh, "/nonexistent/classification.json");
+
+    // Assert
+    assert_eq!(output.status.code(), Some(1));
+    let record: Value = serde_json::from_slice(&output.stderr).expect("the diagnostic is one JSON object");
+    assert!(
+        record["message"]
+            .as_str()
+            .is_some_and(|message| message.contains("/nonexistent/classification.json")),
+        "the message should name the file, but was: {record}"
+    );
+}
+
+#[test]
+fn it_should_write_a_json_usage_error_when_the_repository_is_not_owner_and_name() {
+    // Arrange
+    let arguments = [
+        "github-verdict",
+        "--repo",
+        "repo",
+        "--pull-request",
+        "7",
+        "--head-sha",
+        "a",
+        "--classification",
+        "c.json",
+    ];
+
+    // Act
+    let output = run_ci_gate(&arguments, b"");
+
+    // Assert
+    assert_eq!(output.status.code(), Some(2), "a usage error exits with code 2");
+    assert!(
+        output.stdout.is_empty(),
+        "a failed run writes nothing to stdout, but stdout was: {}",
+        String::from_utf8_lossy(&output.stdout)
+    );
+    let record: Value = serde_json::from_slice(&output.stderr).expect("the diagnostic is one JSON object");
+    assert_eq!(record["kind"], "usage_error");
+}
+
+#[cfg(unix)]
+#[test]
+fn it_should_read_every_page_when_gh_prints_one_json_document_per_page() {
+    // Arrange
+    // `gh api --paginate` prints the pages one after the other, with nothing between them. The second group's
+    // check run is on the second page, so reading only the first page would leave it missing.
+    let gh = FakeGh::new("pages");
+    let classification = gh.write_classification(&classify_output(b"packages/persistence-benchmark/note.md\0"));
+    let first_page = json!({ "check_runs": [check_run(1, "docs-lint", "success")] });
+    let second_page = json!({ "check_runs": [check_run(2, "db-benchmarking", "success")] });
+    gh.respond_with_text(
+        &format!("repos/owner/repo/commits/{SHA}/check-runs?per_page=100"),
+        &format!("{first_page}{second_page}"),
+    );
+
+    // Act
+    let output = run_github_verdict(&gh, &classification);
+
+    // Assert
+    assert_succeeded_without_diagnostics(&output);
+    assert_eq!(parse_verdict_stdout(&output)["verdict"], "pass");
+}
