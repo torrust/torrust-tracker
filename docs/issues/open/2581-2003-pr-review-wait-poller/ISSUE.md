@@ -9,7 +9,7 @@ github-issue: 2581
 spec-path: docs/issues/open/2581-2003-pr-review-wait-poller/ISSUE.md
 branch: "2581-pr-review-wait-poller"
 related-pr: null
-last-updated-utc: "2026-10-20 19:33"
+last-updated-utc: "2026-10-21 07:48"
 semantic-links:
   skill-links:
     - create-issue
@@ -46,8 +46,10 @@ every review round. The maintainers' flow is:
 2. The contributor asks a maintainer (currently `da2ce7`, Cameron Garnham) to review.
 3. The agent processes findings, commits, pushes, comments, and re-requests review from
    the same reviewer. This can repeat for several rounds per reviewer.
-4. The end state is an approving review and a maintainer comment `ACK <commit>` on the
-   latest commit. The agent then prints the maintainer merge command.
+4. The end state meets the merge-readiness checks in the `merge-pull-request` skill: the latest
+   Copilot review is on the head commit with no unresolved actionable thread, and the other
+   maintainer has commented `ACK <commit>` on the head commit (or the maintainer has recorded a
+   waiver). The agent then prints the maintainer merge command.
 
 Polling through an MCP server spends inference tokens on each check. Earlier agents in
 other workspaces wrote ad-hoc bash pollers in `.tmp/` (for example
@@ -105,9 +107,18 @@ Proposed contract (to be confirmed before implementation):
   - the PR is closed or merged.
 - **Timeout**: after the configured wait, exit with a timeout status. The default is 15 minutes.
 - **Poll interval**: configurable per run. The default is 2 minutes (120 seconds).
-- **Exit condition for the review loop**: Copilot has reviewed the latest commit (`COMMENTED`,
-  because Copilot never submits `APPROVED`) and has no unresolved threads on that commit. The
-  loop ends when the maintainer `ACK <commit>` comment on the latest commit is also present.
+- **Exit condition for the review loop**: all of the following hold. Copilot never submits
+  `APPROVED`, so its last review is `COMMENTED`.
+  - Copilot's latest review is on the current head commit.
+  - The PR has no unresolved, actionable review thread anywhere, including threads opened on
+    earlier commits. Count threads over the whole PR, not only those on the latest commit, so
+    unresolved feedback from an earlier round cannot be overlooked. Fetch them with
+    `github-review-threads`, as `process-pr-review` does.
+  - A review-body finding with no thread is not counted by the thread check. The review-loop
+    skill reads each new review body through the audit workflow instead.
+  - The maintainer `ACK <commit>` comment on the head commit is present, or the maintainer has
+    recorded a waiver, as the `merge-pull-request` skill's Merge Readiness section describes.
+
   The poller returns events; the review-loop skill checks this exit condition after each return.
 - **Output**: one JSON object on stdout describing the event. Diagnostic text goes to stderr.
 - **Exit codes**: distinct codes for event, timeout, and error. Exact values are set during implementation.
@@ -152,8 +163,10 @@ Record the implementation completion review in the progress log.
 
 Decided by the maintainer (2026-10-20):
 
-1. **Copilot approval.** Copilot never submits `APPROVED`. Copilot counts as approved when it
-   has reviewed the latest commit with no unresolved threads (see Design, exit condition).
+1. **Copilot approval.** Copilot never submits `APPROVED`. Copilot counts as approved when its
+   latest review is on the head commit and the PR has no unresolved actionable thread (see
+   Design, exit condition). Amended 2026-10-21 after review finding `WAIT-001` on PR #2584:
+   the check covers the whole PR, not only the latest commit.
 2. **Poll interval.** Default 2 minutes, configurable per run.
 3. **Location.** The tool is a self-contained Rust crate inside the skill folder that uses it:
    `.github/skills/dev/pr-reviews/<tool-name>/`. The implementation issue must decide its
@@ -188,3 +201,8 @@ Defaults to confirm during implementation (not blocking this spec):
 - 2026-10-20: Draft created from the investigation above. The maintainer answered the open
   questions: Copilot exit condition, 2-minute default interval, skill-folder location,
   EPIC #2003 link, and task type. Entry written by the AI assistant (Copilot SDK in VS Code).
+- 2026-10-21: Fixed the exit condition after Copilot finding `WAIT-001` on merged PR #2584
+  (`review-finding:pr-2584-wait-001`): unresolved threads are now counted over the whole PR.
+  Aligned the end state and the ACK requirement with the `merge-pull-request` skill's Merge
+  Readiness section (the ACK is recommended and can be waived). Entry written by the AI assistant
+  (Copilot SDK in VS Code).
