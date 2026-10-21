@@ -9,7 +9,7 @@ github-issue: 2606
 spec-path: docs/issues/open/2606-2278-validate-audit-record-merged-fix-subjects/ISSUE.md
 branch: "2606-validate-audit-record-merged-fix-subjects-spec"
 related-pr: null
-last-updated-utc: "2026-10-21 11:52"
+last-updated-utc: "2026-10-21 11:53"
 semantic-links:
   skill-links:
     - create-issue
@@ -138,30 +138,52 @@ Cases (each fails on the current code):
 - a subject present only in `<base>..HEAD` is still accepted (unpushed commit);
 - a `gh` failure while listing commits yields a usage error, not a silent fallback.
 
-The end-to-end recheck is scenario M1 on the real audits.
+The cases are built in the three increments of the Implementation Plan, each with its recorded red
+run and test-design review. The end-to-end recheck is scenarios M1 and M2 on the real audits.
 
 ## Implementation Plan
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                                                     | Notes / Expected Output                                           |
-| --- | ------ | ------------------------------------------------------------------------ | ----------------------------------------------------------------- |
-| T1  | DONE   | Reproduce the failure on the merged audits (M1, M2, red)                 | Reproduced; `manual-verification-evidence.md` sections V1 and V2  |
-| T2  | TODO   | Add the failing unit tests with `git` and `gh` faked                     | Tests fail for the current code                                   |
-| T3  | TODO   | Build the subject set from the three sources                             | Tests pass; `check_row` and the output contract are unchanged     |
-| T4  | TODO   | Update the script help text and the `process-pr-review` skill            | The skill describes the three sources and the `--base` role       |
-| T5  | TODO   | Recheck M1 (green) and validate every existing audit that has a `FIXED` row | Existing audits still pass; any difference is explained in the log |
+Tests follow the [`write-unit-test`](../../../../.github/skills/dev/testing/write-unit-test/SKILL.md) skill
+and are built in three behavior-sized increments. Each increment adds the smallest test for one
+behavior, runs it red against the current code, and keeps that red output. A separate step then makes
+the production change that turns it green. After each increment passes focused validation, record a
+design review in the issue-local `test-design-review.md` before the next increment. The review
+confirms that the test exposes the one causal initial-state difference, that its fixture owns only
+incidental mechanics (the faked `git` and `gh` calls), and that the production Act and the
+independently specified expected result stay visible. It uses the prose-first Arrange-Act-Assert
+comparison: write temporary prose for each section, refactor until the code expresses it, remove
+redundant prose, and keep only irreducible context.
+
+| ID  | Status | Task                                                                                                                | Notes / Expected Output                                                  |
+| --- | ------ | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| T1  | DONE   | Reproduce the failure on the merged audits (M1, M2, red)                                                            | Reproduced; `manual-verification-evidence.md` sections V1 and V2         |
+| T2  | TODO   | Increment 1 test: a subject only in the audited PR's commit list is accepted with an up-to-date base                | Red output kept; design review recorded                                  |
+| T3  | TODO   | Production change: add the audited PR's commits (`gh api .../pulls/<n>/commits`) to the valid subjects              | Increment 1 green; `check_row` and the output contract unchanged         |
+| T4  | TODO   | Increment 2 test: a subject only in a follow-up PR's commit list is accepted                                        | Red output kept; design review recorded                                  |
+| T5  | TODO   | Production change: add the commits of every PR in a `Follow-up PR URL` field                                       | Increment 2 green                                                        |
+| T6  | TODO   | Increment 3 tests: an unknown subject is rejected, a `<base>..HEAD`-only subject is accepted, a `gh` failure exits 2 | The `gh` failure test is red; the other two guard existing behavior      |
+| T7  | TODO   | Production change: report a `gh` failure while listing commits as a usage error                                     | Increment 3 green                                                        |
+| T8  | TODO   | Stop for maintainer review of the test increments                                                                   | Review happens before final verification, the final commit, and the PR  |
+| T9  | TODO   | Update the script help text and the `process-pr-review` skill                                                       | The skill describes the three sources and the role of `--base`           |
+| T10 | TODO   | Recheck M1 and M2 (green) and validate every existing audit that has a `FIXED` row                                  | Existing audits still pass; any difference is explained in the log       |
 
 ## Commit Points
 
-| Task  | Coherent change set                                    | Commit policy                                        |
-| ----- | ------------------------------------------------------ | ---------------------------------------------------- |
-| T2    | New failing test module                                | Commit after the red run is recorded.                |
-| T3    | Subject-set change in the script                       | Commit after focused validation and required review. |
-| T4    | Script help text and skill description                 | Commit after `linter all` passes.                    |
-| T1/T5 | Evidence file entries (kept apart from product change) | Commit after the evidence is recorded.               |
+| Task      | Coherent change set                                                         | Commit policy                                                                                      |
+| --------- | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| T2        | Increment 1 test module, with its design review                             | Commit after the red output is kept and the design review is recorded.                             |
+| T3        | Subject-set change for the audited PR's commits                             | Commit after focused validation and required review, separately from the test.                     |
+| T4        | Increment 2 test and its design review                                      | Commit after the red output is kept and the design review is recorded.                             |
+| T5        | Subject-set change for follow-up PRs                                        | Commit after focused validation, separately from the test.                                         |
+| T6        | Increment 3 tests and their design review                                   | Hold for maintainer review (T8). Do not commit, verify finally, or open a PR before it.            |
+| T7        | `gh` failure reported as a usage error                                      | Commit after T8 and focused validation.                                                            |
+| T9        | Script help text and skill description                                      | Commit after `linter all` passes.                                                                  |
+| T1, T10   | Evidence file entries (kept apart from product changes)                     | Commit after the evidence is recorded.                                                             |
 
-Use Conventional Commits with the `pr-reviews` scope and sign every commit with GPG.
+Use Conventional Commits with the `pr-reviews` scope and sign every commit with GPG. Keep each red
+test run in `test-design-review.md` or the evidence file even after its production step turns it green.
 
 ## Progress Tracking
 
@@ -190,6 +212,11 @@ Use Conventional Commits with the `pr-reviews` scope and sign every commit with 
 - 2026-10-21 11:51 UTC - GitHub Copilot (Claude Sonnet 5.5) - Addressed Copilot finding F1 on PR #2607: created
   `manual-verification-evidence.md` with the reproduction runs made at 11:50 UTC (V1, V2; outcome
   Reproduced), and marked T1 done.
+- 2026-10-21 11:53 UTC - GitHub Copilot (Claude Sonnet 5.5) - Addressed Copilot finding F2 on PR #2607: the
+  Implementation Plan and Commit Points now require `write-unit-test`, three behavior-sized test
+  increments with kept red output, a recorded prose-first Arrange-Act-Assert design review per
+  increment, separate production steps, and a maintainer review stop (T8) before final verification,
+  the last commit, and the PR.
 
 ## Acceptance Criteria
 
