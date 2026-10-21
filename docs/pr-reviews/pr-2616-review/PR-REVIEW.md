@@ -55,6 +55,12 @@ valid and were fixed.
 | F4 | review-finding:pr-2616-f4 | Copilot | Nit (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 | F5 | review-finding:pr-2616-f5 | Copilot | Nit (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
 | F6 | review-finding:pr-2616-f6 | Copilot | Nit (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F7 | review-finding:pr-2616-f7 | Copilot | Minor (inferred) | security | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F8 | review-finding:pr-2616-f8 | Copilot | Nit (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
+
+Copilot's second review, 5602694305 (COMMENTED, 2026-10-21 16:13:22 UTC), read the head "docs(pr-reviews): add the PR
+\#2616 review audit". Its body again only warns about the agentic-review timeout; it has two inline threads, F7 and
+F8. F7 asks for a redaction that the repository's own conventions make unnecessary; F8 was fixed.
 
 ## Finding Details
 
@@ -151,6 +157,42 @@ valid and were fixed.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2616#discussion_r4338937657>
 
+### F7 - The manual evidence records an access token value
+
+- PR number: 2616
+- Source review ID: 5602694305
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2616#discussion_r4339127228>
+- Concern: the embedded tracker configuration contains a literal access token, which could trigger secret scanners
+  or be copied into a real deployment.
+- Solution: no change. The value `MyAccessToken` is the repository's published default development token, used in
+  the default development configuration, the root `src/lib.rs` documentation, the qBittorrent E2E configuration
+  builder and earlier committed evidence (#1348 and other closed issues). The tracker was isolated on loopback and
+  stopped after the run, and the one key created through it expired after an hour. A placeholder would make the
+  recorded commands non-reproducible as run.
+- Current-tree verification: `grep -rln MyAccessToken` over the tracked sources and documents lists
+  `src/lib.rs`, `src/console/ci/qbittorrent_e2e/tracker/config_builder.rs` and several closed-issue documents, and
+  `share/default/config/tracker.development.sqlite3.toml` sets `admin = "MyAccessToken"`.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2616#discussion_r4339203153>
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2616#discussion_r4339203153>
+
+### F8 - The crate-root test helper uses bare `unwrap` calls
+
+- PR number: 2616
+- Source review ID: 5602694305
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2616#discussion_r4339127313>
+- Concern: the panic message of a failed parse in `root_tests` would not say what should have succeeded.
+- Solution: the four `unwrap` calls added in `root_tests` now use `expect` with a short message. The two mutex
+  `unwrap` calls inside `RecordingSender` are older code and unchanged.
+- Current-tree verification: `cargo test -p torrust-tracker-http-core --lib root_tests` passes (8 tests),
+  `cargo clippy -p torrust-tracker-http-core --all-targets --all-features -- -D warnings` is clean, and the diff
+  touches only lines inside `root_tests`.
+- Resolution reference: test(http-core): [#1349] describe the parse failures of the crate-root test helper
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2616#discussion_r4339203580>
+
 ## Processing Log
 
 - 2026-10-21 15:50 UTC - Copilot submitted review 5602395027 with six inline threads. The poll script reported six
@@ -158,6 +200,11 @@ valid and were fixed.
 - 2026-10-21 15:55 UTC - Verified each claim against the current tree, fixed the six findings in three signed
   commits, pushed, replied on each thread with the fixing commit subject and resolved all six. GraphQL data shows 0
   unresolved threads. A re-review was requested from Copilot.
+- 2026-10-21 16:13 UTC - Copilot submitted review 5602694305 with two inline threads (F7 and F8) on the head after
+  the audit commit.
+- 2026-10-21 16:22 UTC - Verified both claims against the current tree: F8 was fixed in a signed commit and F7 was
+  answered with the prescribed `Superseded by F7` reply (the value is the repository's published default
+  development token). Replied on both threads and resolved them. GraphQL data shows 0 unresolved threads.
 
 ## Completion Rules
 
