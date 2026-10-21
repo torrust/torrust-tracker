@@ -3,7 +3,7 @@ doc-type: mutation-evidence
 issue: 1349
 package: torrust-tracker-http-core
 status: completed
-measured-utc: 2026-10-21T15:14:40Z
+measured-utc: 2026-10-21T15:10:55Z
 ---
 
 # HTTP Core Mutation Evidence

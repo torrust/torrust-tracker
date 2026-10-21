@@ -85,7 +85,7 @@ needs a decision outside this issue (the `tcp4`/`tcp6` counters, see below).
    (the draft in [lessons.md](lessons.md)). Until then, any package that adds family counters will copy the
    "peers" comment.
 5. **Mutation runs:** for a package of about a hundred mutants, run the whole package rather than a sample; it took
-   about 14 minutes, and the 44 unviable mutants were explained by 4 reasons.
+   about 11 minutes, and the 44 unviable mutants were explained by 3 reasons.
 6. **`tracker_client`:** `http scrape` should reject an announce URL, or say that it needs the base URL; the wrong URL
    produced a misleading "missing param peer_id".
 

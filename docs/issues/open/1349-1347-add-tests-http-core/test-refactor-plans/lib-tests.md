@@ -21,7 +21,7 @@ Follow the shared [guidance](README.md). This plan covers only `packages/http-co
 - **Unit-only coverage:** 41 / 41 lines (100.00%), counted in the shared `crate::tests` helper module, which every
   service, event and statistics test calls. The production part (the module declarations, the `CurrentClock` alias
   and `HTTP_TRACKER_LOG_TARGET`) has no executable line.
-- **Existing tests:** none in the file. The helpers are used by about 100 tests in other files.
+- **Existing tests:** none in the file. The helpers are used by more than 90 call sites in other files.
 - **Module-owned decisions:** the value of the public constant `HTTP_TRACKER_LOG_TARGET` (`"HTTP TRACKER"`), which
   the listener logs under and which `src/console/ci/e2e/logs_parser.rs` matches through the identical constant of
   `axum-http-server`; and the behavior the shared `RecordingSender` documents: it records an event only when the

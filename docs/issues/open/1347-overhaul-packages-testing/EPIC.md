@@ -6,7 +6,7 @@ epic: null
 github-issue: 1347
 spec-path: docs/issues/open/1347-overhaul-packages-testing/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-21 12:25"
+last-updated-utc: "2026-10-21 15:27"
 semantic-links:
   skill-links:
     - create-issue
@@ -87,7 +87,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | Order | Issue                                             | Local Spec                                                                        | Status | Notes                                                                                                                |
 | ----- | ------------------------------------------------- | --------------------------------------------------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------- |
 | 1     | #1348 - Add tests to the udp-core package         | `docs/issues/closed/1348-1347-add-tests-udp-core/ISSUE.md`                        | DONE   | Every package source file processed through a reviewed per-file plan; unit-only lines 72.49% → 98.04% (includes #2458, #2505, #2517, and #2521); bounded mutation sample and manual verification recorded; merged through PR #2538. |
-| 2     | #1349 - Add tests to the http-core package        | `docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md`                         | IN_PROGRESS | S0 (spec), S1 (inventory, merged through #2558), S2 (the announce service and its error mapping, merged through #2575) and S3 (the scrape service, merged through #2586) and S4 (events and container composition, merged through #2593) and S5 (statistics, merged through #2608) are done; S6 (crate root and wiring, then the final verification) is in progress. Unit-only lines went from 88.88% to 99.27% (interim). Implementation is delivered in several pull-request slices. |
+| 2     | #1349 - Add tests to the http-core package        | `docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md`                         | IN_PROGRESS | S0 (spec), S1 (inventory, merged through #2558), S2 (the announce service and its error mapping, merged through #2575) and S3 (the scrape service, merged through #2586) and S4 (events and container composition, merged through #2593) and S5 (statistics, merged through #2608) are done; S6 (crate root and wiring, then the final verification, mutation run and manual verification) is implemented and awaits its pull request. Unit-only lines went from 88.88% to 99.28%. Implementation is delivered in several pull-request slices. |
 | 3     | #2136 - Add tests to the axum-http-server package | `docs/issues/closed/2136-1347-add-tests-axum-http-server/ISSUE.md`                | DONE   | Added fast package-local response, request-ID, and lifecycle tests; verification and final review evidence recorded. |
 | 4     | #2140 - Review axum-http-server integration tests | `docs/issues/closed/2140-1347-review-axum-http-server-integration-tests/ISSUE.md` | DONE   | Inventory, coverage/domain analysis, and test-design review completed.                                               |
 | 5     | #2149 - Add focused UDP server package tests      | `docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/ISSUE.md`        | DONE   | Focused transport, dispatch, socket, event/error, and overload tests added through reviewed per-file plans; separate coverage scopes, bounded mutation sample, and manual verification recorded; merged via PR #2174. |
@@ -118,7 +118,7 @@ level or determine whether unit coverage is adequate.
 | `torrust-tracker-udp-server`       | [#2149](../../closed/2149-1347-add-focused-udp-server-package-tests/ISSUE.md) | Lines: 96.96%; regions: 95.79%; functions: 97.19% | Lines: 97.85%; regions: 96.64%; functions: 97.63% | Lines: +0.89 pp; regions: +0.85 pp; functions: +0.44 pp | [Coverage evidence](../../closed/2149-1347-add-focused-udp-server-package-tests/coverage-evidence.md) |
 | `torrust-tracker-udp-server`       | [#2283](../../closed/2283-1347-increase-udp-server-package-coverage/ISSUE.md) | Lines: 97.86%; regions: 96.64%; functions: 97.64% | Lines: 98.58%; regions: 97.62%; functions: 98.56% | Lines: +0.72 pp; regions: +0.98 pp; functions: +0.92 pp | [Coverage evidence](../../closed/2283-1347-increase-udp-server-package-coverage/coverage-evidence.md) |
 | `torrust-tracker-udp-core`         | [#1348](../../closed/1348-1347-add-tests-udp-core/ISSUE.md) | Lines: 72.49%; regions: 78.56%; functions: 71.27% | Lines: 98.04%; regions: 98.15%; functions: 97.61% | Lines: +25.55 pp; regions: +19.58 pp; functions: +26.34 pp | [Coverage evidence](../../closed/1348-1347-add-tests-udp-core/coverage-evidence.md) |
-| `torrust-tracker-http-core`        | [#1349](../1349-1347-add-tests-http-core/ISSUE.md) | Lines: 88.88%; regions: 90.41%; functions: 84.29% | Lines: 99.27%; regions: 99.23%; functions: 99.73% (interim, after S5) | Lines: +10.39 pp; regions: +8.82 pp; functions: +15.44 pp (interim) | [Coverage evidence](../1349-1347-add-tests-http-core/coverage-evidence.md) |
+| `torrust-tracker-http-core`        | [#1349](../1349-1347-add-tests-http-core/ISSUE.md) | Lines: 88.88%; regions: 90.41%; functions: 84.29% | Lines: 99.28%; regions: 99.25%; functions: 99.74% | Lines: +10.40 pp; regions: +8.84 pp; functions: +15.45 pp | [Coverage evidence](../1349-1347-add-tests-http-core/coverage-evidence.md) |
 
 ### Unit-Only Coverage
 
@@ -131,7 +131,7 @@ weak unit-only result with aggregate, integration, example, or end-to-end covera
 | `torrust-tracker-udp-server` | [#2149](../../closed/2149-1347-add-focused-udp-server-package-tests/ISSUE.md) | Not measured before #2149 increments | Lines: 96.18%; regions: 95.34%; functions: 94.92% | Not comparable (no unit-only baseline) | [Coverage evidence](../../closed/2149-1347-add-focused-udp-server-package-tests/coverage-evidence.md) |
 | `torrust-tracker-udp-server` | [#2283](../../closed/2283-1347-increase-udp-server-package-coverage/ISSUE.md) | Lines: 96.18%; regions: 95.34%; functions: 94.93% | Lines: 98.18%; regions: 97.04%; functions: 97.70% | Lines: +2.00 pp; regions: +1.70 pp; functions: +2.77 pp | [Coverage evidence](../../closed/2283-1347-increase-udp-server-package-coverage/coverage-evidence.md) |
 | `torrust-tracker-udp-core` | [#1348](../../closed/1348-1347-add-tests-udp-core/ISSUE.md) | Lines: 72.49%; regions: 78.56%; functions: 71.27% | Lines: 98.04%; regions: 98.15%; functions: 97.61% | Lines: +25.55 pp; regions: +19.58 pp; functions: +26.34 pp | [Coverage evidence](../../closed/1348-1347-add-tests-udp-core/coverage-evidence.md) |
-| `torrust-tracker-http-core` | [#1349](../1349-1347-add-tests-http-core/ISSUE.md) | Lines: 88.88%; regions: 90.41%; functions: 84.29% | Lines: 99.27%; regions: 99.23%; functions: 99.73% (interim, after S5) | Lines: +10.39 pp; regions: +8.82 pp; functions: +15.44 pp (interim) | [Coverage evidence](../1349-1347-add-tests-http-core/coverage-evidence.md) |
+| `torrust-tracker-http-core` | [#1349](../1349-1347-add-tests-http-core/ISSUE.md) | Lines: 88.88%; regions: 90.41%; functions: 84.29% | Lines: 99.28%; regions: 99.25%; functions: 99.74% | Lines: +10.40 pp; regions: +8.84 pp; functions: +15.45 pp | [Coverage evidence](../1349-1347-add-tests-http-core/coverage-evidence.md) |
 
 ## Delivery Strategy
 
@@ -296,6 +296,13 @@ For each subissue implementation, the completion policy is:
   the question is carried to the retrospective. Both coverage tables carry the figures.
 - 2026-10-21 12:25 UTC - GitHub Copilot - #1349: the S5 pull request #2608 was merged and S6 (crate root and wiring,
   then T5-T8) started. A clean re-measurement on the new branch reproduced the S5 figures, so the tables are unchanged.
+  (This entry was stamped 12:25 UTC; the commit was made at 13:21 UTC.)
+- 2026-10-21 15:27 UTC - GitHub Copilot - #1349 S6: all 13 files are done and the closing evidence is recorded: a
+  clean final measurement (191 unit tests; lines 99.28%, regions 99.25%, functions 99.74%, the same for the aggregate
+  and unit-only runs), a whole-package mutation run (96 mutants: 50 caught, 1 missed, 1 timeout, 44 unviable), the
+  manual verification M1-M5, `lessons.md` and the retrospective. The independent review of S6 asked for these EPIC
+  tables to carry the final figures, which both now do. The `tcp4`/`tcp6` finding is a draft hand-off that also covers
+  the UDP counters recorded by #1348.
 
 ## Acceptance Criteria
 

@@ -36,7 +36,7 @@ Candidate lessons collected while working on Issue #1349. Promoting any of them 
   policy.
 - **A test double can need its own tests.** `RecordingSender` documents that it records only when the `send` future is
   polled. No service test dropped a future, so a sender recording at call time passed all 183 tests; only the new
-  helper test killed it. Test the helpers about 100 tests rely on, with the mutant that breaks their documented
+  helper test killed it. Test the helpers that more than 90 call sites rely on, with the mutant that breaks their documented
   contract.
 - **A coarse mutant proves little.** The first sender mutant recorded eagerly and again on poll, and failed 27 tests
   by doubling the events; it proved nothing about dropped futures. Make each mutant change one property.

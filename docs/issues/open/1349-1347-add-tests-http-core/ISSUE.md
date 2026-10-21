@@ -9,7 +9,7 @@ github-issue: 1349
 spec-path: docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md
 branch: "1349-1347-add-tests-http-core-final"
 related-pr: null
-last-updated-utc: "2026-10-21 15:18"
+last-updated-utc: "2026-10-21 15:29"
 semantic-links:
   skill-links:
     - create-issue
@@ -315,8 +315,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 | T4 | DONE | Process every source file through the per-file workflow | Every ledger row has a completed plan, recorded coverage result, completed-file review, and signed per-file commit, merged through its slice. All 13 rows are `DONE`; S1-S5 are merged and S6 is this PR. |
 | T5 | DONE | Implement integration-test increments selected by file test plans | None: no plan selected a 3B increment, because the package has no network boundary of its own (see the final test-technique assessment in `coverage-evidence.md`). |
 | T6 | DONE | Perform bounded mutation assessment | `mutation-evidence.md` records the whole-package run (96 mutants: 50 caught, 1 missed, 1 timeout, 44 unviable) and the reason for each unviable mutant. |
-| T7 | TODO | Reconcile evidence and progress state | Ledger, plans, plan index, slice table, coverage evidence, acceptance rows, and both EPIC coverage tables agree. Grep completed records for stray `TODO`/`IN_PROGRESS` labels and stale frontmatter. |
-| T8 | TODO | Complete verification and acceptance review | Automatic checks, manual verification, the final Task Reviewer review, acceptance review, and the retrospective decision are recorded. |
+| T7 | DONE | Reconcile evidence and progress state | Ledger, plans, plan index, slice table, coverage evidence, acceptance rows, and both EPIC coverage tables agree (the S6 independent review found the EPIC tables stale; fixed). The only `IN_PROGRESS` label left is the S6 slice row, until its pull request merges. |
+| T8 | DONE | Complete verification and acceptance review | Automatic checks, manual verification, the final Task Reviewer review (`agent-review-reports.md`), the acceptance review below, and the retrospective (`implementation-retrospective.md`) are recorded. |
 
 The specification frontmatter `status` stays `planned`, and the EPIC #1347 subissue row stays
 `TODO`, until the spec-only PR merges and T1 starts; both then change to `in-progress` and
@@ -481,15 +481,15 @@ lines are the S2 baseline measurement (see [Baseline Coverage](#baseline-coverag
 - [x] Complete module inventory and coverage evidence recorded (T1).
 - [x] Shared plan guidance and the first file test plan created; processing order and slices
       approved (T2-T3).
-- [ ] Every ledger row is `DONE` with its own file test plan, merged through its slice.
-- [ ] Maintainer review after the final test-producing increment.
-- [ ] Automatic verification completed with toolchain-qualified evidence.
-- [ ] Manual verification recorded in `manual-verification-evidence.md`.
-- [ ] Bounded mutation assessment recorded in `mutation-evidence.md`.
-- [ ] Task Reviewer reports for every slice recorded in `agent-review-reports.md`.
-- [ ] Acceptance criteria reviewed after implementation.
-- [ ] Implementation completion review recorded (`implementation-retrospective.md` or a
-      progress-log reason).
+- [x] Every ledger row is `DONE` with its own file test plan, merged through its slice (S6 through the final pull request).
+- [x] Maintainer review after the final test-producing increment (the maintainer approved the completed-file reviews
+      of S6 and the T6-T8 plan on 2026-10-21).
+- [x] Automatic verification completed with toolchain-qualified evidence.
+- [x] Manual verification recorded in `manual-verification-evidence.md`.
+- [x] Bounded mutation assessment recorded in `mutation-evidence.md`.
+- [x] Task Reviewer reports for every slice recorded in `agent-review-reports.md`.
+- [x] Acceptance criteria reviewed after implementation.
+- [x] Implementation completion review recorded (`implementation-retrospective.md`).
 - [ ] Issue closed and spec moved to `docs/issues/closed/`.
 
 ### Progress Log
@@ -767,38 +767,47 @@ lines are the S2 baseline measurement (see [Baseline Coverage](#baseline-coverag
   without an owner; the maintainer chose a draft in addition to the `lessons.md` row, and the recommended mode is
   parallel (no remaining ledger row touches the files). `lessons.md` and `implementation-retrospective.md` were
   written.
+- 2026-10-21 15:29 UTC - GitHub Copilot - The independent Task Reviewer returned `REVIEW FAILED` for S6 and T5-T8 on
+  one blocking finding: the EPIC tables and row still carried the S5 interim figures. It also asked for the AC12
+  note and fixed-wording items; no code or measurement changed. All findings were handled in the commit
+  `docs(issues): [#1349] address the S6 independent review` (see `agent-review-reports.md`); the EPIC tables now
+  read lines 99.28%, regions 99.25% and functions 99.74%, T7 and T8 are `DONE`, and AC1-AC17 are verified in the
+  Acceptance Verification table. Process slips disclosed: the final section of `coverage-evidence.md` was appended
+  with a shell heredoc, and Python replacements were used instead of the edit tool for the slice-table status flips
+  at the S6 start and for the two EPIC table rows; their content was reviewed afterwards. The pre-push checks and the
+  pull request follow.
 
 ## Acceptance Criteria
 
-- [ ] AC1: A complete `packages/http-core/src/` module inventory is recorded with unit-only
+- [x] AC1: A complete `packages/http-core/src/` module inventory is recorded with unit-only
       coverage, property-test candidacy, selected behavior, and an initial hypothesis for every
       source file, plus the final test-technique assessment.
-- [ ] AC2: Every source file has its own file test plan processed through the per-file workflow,
+- [x] AC2: Every source file has its own file test plan processed through the per-file workflow,
       with its resulting unit-only coverage recorded in `coverage-evidence.md`.
-- [ ] AC3: Fresh aggregate/global and unit-only coverage evidence (and integration-only, if a target
+- [x] AC3: Fresh aggregate/global and unit-only coverage evidence (and integration-only, if a target
       is added) is recorded with clean reproducible commands and toolchain-qualified results.
-- [ ] AC4: Selected tests protect package-owned behavior at the narrowest maintainable boundary.
-- [ ] AC5: Any package integration test has a reviewed rationale.
-- [ ] AC6: No-change and deferral decisions enumerate uncovered lines or behavior groups and name
+- [x] AC4: Selected tests protect package-owned behavior at the narrowest maintainable boundary.
+- [x] AC5: Any package integration test has a reviewed rationale.
+- [x] AC6: No-change and deferral decisions enumerate uncovered lines or behavior groups and name
       the owner or reason.
-- [ ] AC7: Test-producing increments record the prose-first AAA review and focused validation in
+- [x] AC7: Test-producing increments record the prose-first AAA review and focused validation in
       their plan before the next file begins.
-- [ ] AC8: Bounded mutation assessment is completed without a score target or CI gate.
-- [ ] AC9: Reconciliation confirms plans, evidence, the slice table, acceptance rows, and EPIC
+- [x] AC8: Bounded mutation assessment is completed without a score target or CI gate.
+- [x] AC9: Reconciliation confirms plans, evidence, the slice table, acceptance rows, and EPIC
       tables agree; the EPIC aggregate and unit-only tables record this package's baseline and
       final measurement.
-- [ ] AC10: Every highest-risk and high objective in Coverage Objectives is protected by a unit test
+- [x] AC10: Every highest-risk and high objective in Coverage Objectives is protected by a unit test
       or has a recorded owner-based reason.
-- [ ] AC11: The work is merged through the planned slices (or their recorded re-slicing), each with
+- [x] AC11: The work is merged through the planned slices (or their recorded re-slicing), each with
       a Task Reviewer report, and only the last PR closes #1349.
-- [ ] AC12: Every finding that needs a production change has a hand-off draft, a progress-log entry,
+- [x] AC12: Every finding that needs a production change has a hand-off draft, a progress-log entry,
       and a `lessons.md` row naming its draft path or issue, and no test pins its reported
       behavior.
-- [ ] AC13: `cargo +nightly fmt --all -- --check` passes.
-- [ ] AC14: `linter all` exits with code `0`.
-- [ ] AC15: `cargo test -p torrust-tracker-http-core` passes.
-- [ ] AC16: Manual verification scenarios are executed and recorded.
-- [ ] AC17: Acceptance criteria are re-reviewed after implementation.
+- [x] AC13: `cargo +nightly fmt --all -- --check` passes.
+- [x] AC14: `linter all` exits with code `0`.
+- [x] AC15: `cargo test -p torrust-tracker-http-core` passes.
+- [x] AC16: Manual verification scenarios are executed and recorded.
+- [x] AC17: Acceptance criteria are re-reviewed after implementation.
 
 ## Verification Plan
 
@@ -843,7 +852,23 @@ owner here before writing it.
 
 | AC ID | Status | Evidence |
 | ----- | ------ | -------- |
-| AC1-AC17 | TODO | Filled in during T8. |
+| AC1 | DONE | Inventory and T1 hypotheses in `coverage-evidence.md`; the final test-technique assessment ("Final Test-Technique Assessment"). |
+| AC2 | DONE | All 13 ledger rows `DONE`; 13 plans in `test-refactor-plans/README.md`; per-file results in `coverage-evidence.md`. |
+| AC3 | DONE | Commands, toolchain (stable Rust 1.99.1, nightly for formatting) and figures in "Final Measurement (T8)"; aggregate equals unit-only (no `tests/` directory); the S6 reviewer reproduced them with a clean run. |
+| AC4 | DONE | 191 unit tests at module boundaries; no test crosses a package boundary. |
+| AC5 | DONE | No package integration test was added; the rationale is the T5 row and the final assessment. |
+| AC6 | DONE | The "22 uncovered lines" table names an owner or reason for each; the wiring-only plans record their conclusions. |
+| AC7 | DONE | Each plan carries its prose-first AAA review and focused validation; one independent review per slice in `agent-review-reports.md`. |
+| AC8 | DONE | `mutation-evidence.md`: the whole-package run, with a reason for every missed, timed-out and unviable mutant, and no score gate. |
+| AC9 | DONE | Reconciled in T7; both EPIC tables carry the final figures. |
+| AC10 | DONE | Every highest-risk and high objective is covered by unit tests with named mutation proofs in its plan, or has a recorded owner (error-mapping wildcard arm, the handler's failure path, the drain's stop condition under #1488). |
+| AC11 | DONE | Seven pull requests: #2546, #2558, #2575, #2586, #2593 and #2608 are merged, each with a Task Reviewer report from S1 on; S6 is the final pull request, with this slice's report, and the only one with `Closes #1349`. |
+| AC12 | DONE | The one finding that needs a decision outside this issue, the `tcp4`/`tcp6` counter meaning, has a draft hand-off (`.tmp/1349-tcp-family-counter-docs/`, git-ignored), a progress-log entry and a `lessons.md` row. By the maintainer's S5 decision (D1, "pin the behavior") the test `it_should_count_by_the_family_of_the_server_binding_and_not_of_the_client` pins the behavior as it is: the finding concerns the documented meaning, and the hand-off names the test as one that must change if the decision changes the behavior. |
+| AC13 | DONE | `cargo +nightly fmt --all -- --check` exits 0 (nightly Rust toolchain). |
+| AC14 | DONE | `linter all` exits 0, as part of every pre-commit run. |
+| AC15 | DONE | `cargo test -p torrust-tracker-http-core`: 191 unit tests and 3 doc tests passed. |
+| AC16 | DONE | `manual-verification-evidence.md` V1-V5. |
+| AC17 | DONE | This table, after the S6 independent review and the fixes it asked for. |
 
 ## Risks and Trade-offs
 

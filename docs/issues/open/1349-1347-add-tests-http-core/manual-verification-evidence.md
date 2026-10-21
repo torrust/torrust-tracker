@@ -139,7 +139,7 @@ it was not counted.
 
 #### Steps Performed
 
-1. 15:02:20.123 - `curl -s -i "http://127.0.0.1:17070/announce?info_hash=%aa...(20 bytes)&peer_id=-qB00000000000000001&port=6881&uploaded=0&downloaded=0&left=0&event=started&compact=0&ip=203.0.113.9"`
+1. 15:02:20.123 - `curl -s -i "http://127.0.0.1:17070/announce?info_hash=%aa%aa%aa%aa%aa%aa%aa%aa%aa%aa%aa%aa%aa%aa%aa%aa%aa%aa%aa%aa&peer_id=-qB00000000000000001&port=6881&uploaded=0&downloaded=0&left=0&event=started&compact=0&ip=203.0.113.9"`
 2. 15:02:25.506 - the same request to `http://127.0.0.1:17071/announce`.
 3. 15:02:25.540 - `curl -s http://127.0.0.1:11212/api/v1/torrent/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa -H "Authorization: Bearer MyAccessToken"`
 
@@ -169,7 +169,9 @@ Step 3:
 
 Met. Disabled: a bencoded failure naming the disabled override (HTTP 200, as the BitTorrent protocol requires).
 Enabled: the stored peer address is the supplied `203.0.113.9:6881`. The torrent has exactly one peer, so the
-rejected request of step 1 stored nothing.
+rejected request of step 1 stored nothing. (In the step 3 JSON, `updated_milliseconds_ago` equals `updated`; the REST
+API documents both fields as deprecated aliases of the absolute `updated_at_ms`, and they are not an `http-core`
+matter.)
 
 ### V4 - Private mode
 
@@ -179,11 +181,11 @@ rejected request of step 1 stored nothing.
 
 #### Steps Performed
 
-1. 15:02:43.284 - announce without a key: `curl -s "http://127.0.0.1:17072/announce?info_hash=%aa...&peer_id=-qB00000000000000001&port=6881&uploaded=0&downloaded=0&left=0&event=started&compact=0"`
-2. Scrape without a key: `curl -s "http://127.0.0.1:17072/scrape?info_hash=%aa..."`
+1. 15:02:43.284 - announce without a key: `curl -s "http://127.0.0.1:17072/announce?info_hash=%aa%aa%aa%aa%aa%aa%aa%aa%aa%aa%aa%aa%aa%aa%aa%aa%aa%aa%aa%aa&peer_id=-qB00000000000000001&port=6881&uploaded=0&downloaded=0&left=0&event=started&compact=0"`
+2. Scrape without a key (run right after step 1; not separately timed): `curl -s "http://127.0.0.1:17072/scrape?info_hash=%aa%aa%aa%aa%aa%aa%aa%aa%aa%aa%aa%aa%aa%aa%aa%aa%aa%aa%aa%aa"`
 3. 15:02:47.665 - `curl -s -X POST http://127.0.0.1:11213/api/v1/key/3600 -H "Authorization: Bearer MyAccessToken"`
 4. 15:02:52.620 - announce with the key: the step 1 request to `/announce/<key>`.
-5. 15:02:52.648 - scrape with the key: `/scrape/<key>?info_hash=%aa...`
+5. 15:02:52.648 - scrape with the key: `/scrape/<key>?info_hash=%aa%aa%aa%aa%aa%aa%aa%aa%aa%aa%aa%aa%aa%aa%aa%aa%aa%aa%aa%aa`
 
 #### Observed Result
 
