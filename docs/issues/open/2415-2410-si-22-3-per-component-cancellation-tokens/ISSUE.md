@@ -9,7 +9,7 @@ github-issue: 2415
 spec-path: docs/issues/open/2415-2410-si-22-3-per-component-cancellation-tokens/ISSUE.md
 branch: "2415-per-component-cancellation-tokens"
 related-pr: null
-last-updated-utc: "2026-10-21 07:22"
+last-updated-utc: "2026-10-21 07:25"
 semantic-links:
   skill-links:
     - create-issue
@@ -169,3 +169,4 @@ assessment, and independent Task Reviewer report.
 - 2026-10-21 07:02 UTC - GitHub Copilot (Claude Opus 5.5) - T6-complete design review: the maintainer approved T6b, T6c, the documentation updates, and the new app-level AC1 test (its prose-first specification was reviewed, then removed from the code). Committed as `refactor(bootstrap): [#2415] give every application component its own reservation token` and `docs(architecture): [#2415] describe per-component cancellation tokens`. Both design-review checkpoints (T6a, and T6 complete) are recorded, sub-EPIC record entry 30 holds the decisions. Next: Task Reviewer, retrospective, pre-push checks. No design change.
 - 2026-10-21 07:20 UTC - GitHub Copilot (Claude Opus 5.5) - Independent Task Reviewer report recorded in `agent-review-reports.md`: REVIEW PASSED (with findings), AC1 to AC4 and `linter all` pass, no design deviation the maintainer had not agreed. Its should-fix findings are addressed: the removal of the duplicate test `it_should_report_cooperatively_cancelled_jobs` is recorded (S1); the release test now checks that a drop leaves other components uncancelled, proven by a mutation the old test missed (S2, evidence V4); the final full suite and an M1 recheck follow with the pre-push checks (S3). Sub-EPIC record entry 30 is restamped 20:53, the minute the maintainer's answer arrived (N1). `implementation-retrospective.md` added. No design change.
 - 2026-10-21 07:22 UTC - GitHub Copilot (Claude Opus 5.5) - S3 closed: on the final code commit the full stable workspace suite passes (77 targets, 3337 passed) and an M1 recheck on a binary built from it matches `develop` (evidence V4). Next: the maintainer's decision on push and the pull request. No design change.
+- 2026-10-21 07:25 UTC - GitHub Copilot (Claude Opus 5.5) - Maintainer decisions before push: push and open the pull request with `Closes #2415`, without rebasing onto the newer `develop` (its new commits touch none of this branch's files); the maintainer's review and merge of the pull request is the acceptance review, as for #2414, so AC1 to AC4 and the linter item are ticked after the merge, in the archive pull request. No design change.
