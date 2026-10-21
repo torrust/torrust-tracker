@@ -6,6 +6,8 @@ last-updated-utc: 2026-10-21 15:05
 
 # Manual Verification Evidence
 
+<!-- cspell:ignore disablede peerslee -->
+
 ## Purpose
 
 Real use of the built tracker against the behavior `torrust-tracker-http-core` owns: HTTP announce and scrape,

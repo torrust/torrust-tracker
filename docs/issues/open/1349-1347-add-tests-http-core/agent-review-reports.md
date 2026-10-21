@@ -304,8 +304,8 @@ semantic-links:
   - LOW (F3): the retrospective said 4 reasons for the unviable mutants (the table has 3) and about 14 minutes for
     the run (it was about 11), and `measured-utc` of the mutation evidence was after the run ended.
   - LOW (F4): V3 and V4 abbreviated the info hash in the recorded commands; two V4 steps carried no time; the
-    `updated_milliseconds_ago` value equal to `updated` deserved a note; `disablede` and `peerslee` entered the
-    dictionary from joined bencode.
+    `updated_milliseconds_ago` value equal to `updated` deserved a note; two fragments of joined bencode entered the
+    project dictionary.
   - LOW (F5): "about 100 tests" for the helpers is 91 call sites; one `lib.rs` test has two reasons to fail; the
     EPIC S6-start entry kept its guessed 12:25 UTC stamp.
   - INFO: the `root_tests` design follows the checklist; the non-address fields of the sample peer are pinned only
@@ -319,3 +319,6 @@ semantic-links:
     deprecated REST fields, and the two dictionary words stay because the evidence keeps the verbatim output; F5 is
     corrected to "more than 90 call sites" and the EPIC entry now carries the correction (the two-reason `lib.rs`
     test is kept: the delegation and the literal address are both its subject).
+  - Later (2026-10-21): Copilot's review of the pull request asked for the two dictionary entries to be scoped to
+    the evidence file; they now live in an inline `cspell:ignore` comment there and `project-words.txt` equals
+    `develop` again (see the audit of the pull request).
