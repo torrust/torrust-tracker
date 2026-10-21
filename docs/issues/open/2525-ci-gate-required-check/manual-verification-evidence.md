@@ -404,6 +404,11 @@ Limits: the sandbox pull request is in the same repository as its base, not a fo
 the token of a pull request from a fork behaves. By the maintainer's decision this is verified on real
 pull requests when T6 lands. The jobs in the sandbox are stubs, and the jobs of the real workflows were
 not exercised. Not tested: reading the results from artifacts, or rerunning the jobs.
+The saved workflow reads the check suites of the head commit with one request and does not paginate it, so
+with more than 100 check suites on a head commit its first-seen time, and with it the stale-override
+decision, could be wrong. It is saved as it ran and was not changed. The adapter of T6a, which replaces it,
+reads every page of every response through `gh api --paginate`, and a test puts the earliest check suite on
+the second page (pull request #2610).
 
 The workflow saved in `evidence/t5-sandbox/` is the sandbox file, with only the comment on its first line
 reworded, as for the files of V8.
