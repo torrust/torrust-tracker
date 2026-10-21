@@ -9,7 +9,7 @@ github-issue: 2618
 spec-path: docs/issues/open/2618-2482-decide-test-support-rules/ISSUE.md
 branch: "2618-2482-decide-test-support-rules-spec"
 related-pr: null
-last-updated-utc: "2026-10-21 19:05"
+last-updated-utc: "2026-10-21 19:09"
 semantic-links:
   skill-links:
     - create-issue
@@ -195,7 +195,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T1 | DONE | D1: run MV1 to MV4 in scratch workspaces and record them | `manual-verification-evidence.md` in this folder: exact commands, manifests, output, toolchain versions (stable, and 1.88.0, the MSRV). A packaging baseline on the real workspace (`cargo package --workspace --no-verify`, read-only). A result that contradicts the EPIC is recorded and raised with the maintainer. Scratch workspaces removed |
 | T2 | DONE | Summarize the evidence for the maintainer: per option, what the verification shows | Short table in the evidence file, sent to the maintainer through `ask_user` with a recommendation |
 | T3 | IN_PROGRESS | D2: write the ADR after the maintainer decides | New file in `docs/adrs/` with a timestamp name, registered in `docs/adrs/index.md`. Criteria; all of O1 to O8 and O1a to O1c with strengths, weaknesses and the reason for each rejection; one rule per pattern A to E; the ownership map; the mechanism for a package's own targets if O1 is chosen. Approved by the maintainer |
-| T4 | TODO | D3: add the DEC entry amending DEC-13 | New entry (DEC-18) at the top of `DECISIONS.md` linking the ADR and correcting the `tracker-core/src/test_helpers.rs` premise; a pointer line on DEC-13 (status line unchanged otherwise) |
+| T4 | DONE | D3: add the DEC entry amending DEC-13 | New entry (DEC-18) at the top of `DECISIONS.md` linking the ADR and correcting the `tracker-core/src/test_helpers.rs` premise; DEC-13's status line extended with a pointer to it |
 | T5 | TODO | D4: write the migration drafts for rows 2 to 8 | Drafts `docs/issues/drafts/2482-<slug>/ISSUE.md` with `epic: 2482`, destination, final order, and the #1488 gating (#2416 for rows 4 and 5, #2449 for row 6, #2450 for row 7). Row 8 only if O1 is chosen. Update the #2482 Subissues table and give each inventory item a destination |
 | T6 | TODO | D5: link the drafts from findings 1 and 2 of the 2026-10-06 coupling report | Links resolve; the 2026-10-17 report is untouched |
 | T7 | TODO | Close out | Update the #2482 checkpoints and acceptance verification; re-review this spec's acceptance criteria; implementation completion review and, if warranted, `implementation-retrospective.md` |
@@ -267,6 +267,9 @@ Append one line per meaningful update.
   `docs/adrs/20261021190318_share_workspace_test_support_through_testing_features.md` and
   registered it in the ADR index. A follow-up probe (evidence V4b) showed that with the self
   dev-dependency `#[cfg(feature = "testing")]` alone gates the module for unit tests too.
+- 2026-10-21 19:09 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 1) - Added DEC-18 to
+  `DECISIONS.md` (amends DEC-13, links the ADR, corrects the `tracker-core/src/test_helpers.rs`
+  premise) and a pointer on DEC-13's status line (task T4).
 
 ## Acceptance Criteria
 
@@ -278,7 +281,7 @@ Append one line per meaningful update.
       rule per pattern A to E; the ownership map; and, if O1 is chosen, the mechanism a
       package's own targets use. The maintainer approved the decision before it was written and
       approved the ADR.
-- [ ] AC3: `DECISIONS.md` has a new entry amending DEC-13 that links the ADR and corrects the
+- [x] AC3: `DECISIONS.md` has a new entry amending DEC-13 that links the ADR and corrects the
       `tracker-core/src/test_helpers.rs` premise; DEC-13 points to it.
 - [ ] AC4: Rows 2 to 8 of the #2482 Subissues table (row 8 only if the ADR chooses O1) are drafts
       under `docs/issues/drafts/2482-<slug>/` with `epic: 2482`, destination, final order and the
@@ -344,7 +347,7 @@ None. The scenarios run as recorded commands.
 | ----- | ---------------------- | -------- |
 | AC1   | DONE                   | [`manual-verification-evidence.md`](manual-verification-evidence.md), V1 to V4 and the packaging baseline; no result contradicts the EPIC; scratch workspaces removed (checked by the implementing agent, not yet by a reviewer) |
 | AC2   | TODO                   |          |
-| AC3   | TODO                   |          |
+| AC3   | DONE                   | DEC-18 in [`DECISIONS.md`](../1669-overhaul-packages/DECISIONS.md) links the ADR and corrects the premise; DEC-13's status line points to it (checked by the implementing agent) |
 | AC4   | TODO                   |          |
 | AC5   | TODO                   |          |
 | AC6   | TODO                   |          |
