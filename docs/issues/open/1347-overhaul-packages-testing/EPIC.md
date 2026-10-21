@@ -6,7 +6,7 @@ epic: null
 github-issue: 1347
 spec-path: docs/issues/open/1347-overhaul-packages-testing/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-21 11:15"
+last-updated-utc: "2026-10-21 12:25"
 semantic-links:
   skill-links:
     - create-issue
@@ -87,7 +87,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | Order | Issue                                             | Local Spec                                                                        | Status | Notes                                                                                                                |
 | ----- | ------------------------------------------------- | --------------------------------------------------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------- |
 | 1     | #1348 - Add tests to the udp-core package         | `docs/issues/closed/1348-1347-add-tests-udp-core/ISSUE.md`                        | DONE   | Every package source file processed through a reviewed per-file plan; unit-only lines 72.49% → 98.04% (includes #2458, #2505, #2517, and #2521); bounded mutation sample and manual verification recorded; merged through PR #2538. |
-| 2     | #1349 - Add tests to the http-core package        | `docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md`                         | IN_PROGRESS | S0 (spec), S1 (inventory, merged through #2558), S2 (the announce service and its error mapping, merged through #2575) and S3 (the scrape service, merged through #2586) and S4 (events and container composition, merged through #2593) are done; S5 (statistics) is implemented and awaits its pull request. Unit-only lines went from 88.88% to 99.27% (interim). Implementation is delivered in several pull-request slices. |
+| 2     | #1349 - Add tests to the http-core package        | `docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md`                         | IN_PROGRESS | S0 (spec), S1 (inventory, merged through #2558), S2 (the announce service and its error mapping, merged through #2575) and S3 (the scrape service, merged through #2586) and S4 (events and container composition, merged through #2593) and S5 (statistics, merged through #2608) are done; S6 (crate root and wiring, then the final verification) is in progress. Unit-only lines went from 88.88% to 99.27% (interim). Implementation is delivered in several pull-request slices. |
 | 3     | #2136 - Add tests to the axum-http-server package | `docs/issues/closed/2136-1347-add-tests-axum-http-server/ISSUE.md`                | DONE   | Added fast package-local response, request-ID, and lifecycle tests; verification and final review evidence recorded. |
 | 4     | #2140 - Review axum-http-server integration tests | `docs/issues/closed/2140-1347-review-axum-http-server-integration-tests/ISSUE.md` | DONE   | Inventory, coverage/domain analysis, and test-design review completed.                                               |
 | 5     | #2149 - Add focused UDP server package tests      | `docs/issues/closed/2149-1347-add-focused-udp-server-package-tests/ISSUE.md`        | DONE   | Focused transport, dispatch, socket, event/error, and overload tests added through reviewed per-file plans; separate coverage scopes, bounded mutation sample, and manual verification recorded; merged via PR #2174. |
@@ -294,6 +294,8 @@ For each subissue implementation, the completion policy is:
   regions 99.23% and functions 99.73% (183 unit tests; totals include the test modules). The `tcp4`/`tcp6`
   counters select on the server binding's family while their comments say "peers"; the test pins the behavior and
   the question is carried to the retrospective. Both coverage tables carry the figures.
+- 2026-10-21 12:25 UTC - GitHub Copilot - #1349: the S5 pull request #2608 was merged and S6 (crate root and wiring,
+  then T5-T8) started. A clean re-measurement on the new branch reproduced the S5 figures, so the tables are unchanged.
 
 ## Acceptance Criteria
 
