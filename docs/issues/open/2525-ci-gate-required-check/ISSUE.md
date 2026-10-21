@@ -9,7 +9,7 @@ github-issue: 2525
 spec-path: docs/issues/open/2525-ci-gate-required-check/ISSUE.md
 branch: "2525-ci-gate-required-check"
 related-pr: null
-last-updated-utc: "2026-10-21 11:23"
+last-updated-utc: "2026-10-21 14:43"
 semantic-links:
   skill-links:
     - create-issue
@@ -483,7 +483,7 @@ Conventional Commits with narrow scopes and sign every commit with GPG.
   it; an error reading the check runs is a runtime error (exit 1, nothing on stdout), and an error reading
   anything the override needs means no override with the reason in `override_ignored`; a failing verdict
   still exits with 0; the repository, commit id, and login are validated because they become part of request
-  paths. 199 unit and 18 command-line tests, 17 of 17 mutants killed, and a manual run on real GitHub data,
+  paths. 200 unit and 18 command-line tests, 18 of 18 mutants killed, and a manual run on real GitHub data,
   including a replay of runs 5 and 7 of the T5 sandbox from the captured responses that gave the same results -
   [`manual-verification-evidence.md`](manual-verification-evidence.md) V11. The current upstream workflows
   have no check runs named after the groups, so on an upstream pull request every needed group is missing; that
@@ -507,6 +507,20 @@ Conventional Commits with narrow scopes and sign every commit with GPG.
   - **Untested on purpose**: the real `gh` program talking to GitHub is exercised only manually (V11),
     because a test needs GitHub and a token. The process spawning and the parse of its output, including
     several pages one after the other, are tested with a stand-in program.
+- 2026-10-21 14:43 UTC - GitHub Copilot - Processed Copilot's review of PR #2610 (four findings, all confirmed). The
+  documentation of `override_ignored` said it is set only when the label is on the pull request, but it is also
+  set when the labels, the events, or the permission could not be read (`docs(ci-gate): [#2525] document every
+  case of the override_ignored field`). A label on the pull request with no event of it being applied was
+  treated as an override that nobody asked for, and nothing was said; it is now reported as ignored, with the
+  reason (`fix(ci-gate): [#2525] explain a label that is on the pull request with no event of it being
+  applied`). The end-to-end override helper still built the permission path from one login: when I made the
+  actor a parameter, my replacement of that line had silently not applied, and the tests passed because every
+  test used that login, so the helper is fixed and the passing-override test uses another login, which failed
+  with the old path (`test(ci-gate): [#2525] build the permission fixture path from the actor in the override
+  helper`). The error of a failed request named `gh api <path>` although the program runs `gh api --paginate
+  <path>` (`fix(ci-gate): [#2525] name the real gh invocation in the error of a failed request`). Now 200 unit
+  and 18 command-line tests, and one more mutant killed -
+  [`manual-verification-evidence.md`](manual-verification-evidence.md) V11.
 
 ## Acceptance Criteria
 
