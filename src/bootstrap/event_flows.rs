@@ -12,6 +12,8 @@
 //! the start order a broadcast channel needs: an event reaches only the
 //! receivers that already existed when it was sent.
 //!
+//! ADR: `docs/adrs/20261021184946_order_shutdown_by_event_flow_and_drain_event_listeners.md`
+//!
 //! issue: #2416
 
 use std::collections::{BTreeMap, BTreeSet};

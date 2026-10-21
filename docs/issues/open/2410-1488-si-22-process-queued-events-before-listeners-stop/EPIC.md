@@ -6,7 +6,7 @@ epic: 1488
 github-issue: 2410
 spec-path: docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-21 18:47"
+last-updated-utc: "2026-10-21 18:50"
 semantic-links:
   skill-links:
     - create-issue
@@ -506,7 +506,9 @@ Alternatives considered:
   without a draft to update. The repository had no documented precedent for
   drafting an ADR inside an issue folder; the maintainer approved this process
   explicitly. If it proves useful, T10 proposes documenting it in the
-  `create-adr` skill.
+  `create-adr` skill. **Done in #2416 T10 (2026-10-21):** the draft moved to
+  [`docs/adrs/20261021184946_order_shutdown_by_event_flow_and_drain_event_listeners.md`](../../../adrs/20261021184946_order_shutdown_by_event_flow_and_drain_event_listeners.md),
+  the cancellation-tree ADR is marked `Superseded by` it, and `docs/adrs/index.md` lists it.
 - **D16 - Diagrams in Mermaid, inspired by C4 but not in C4 notation
   (maintainer and Copilot, 2026-10-01).** The maintainer asked whether a C4
   model would help represent jobs, the services they use, and their concrete
@@ -1901,6 +1903,8 @@ flowchart LR
   linking the glossary in `docs/architecture/glossary.md` (D12). It clarifies
   that one top-level task per component is how components are hosted today,
   not what a component is.
+- ADR created (#2416 T10, 2026-10-21): [Order shutdown by event flow and drain event listeners](../../../adrs/20261021184946_order_shutdown_by_event_flow_and_drain_event_listeners.md),
+  which supersedes the cancellation-tree ADR.
 
 ## Design and Ownership Review
 
@@ -2312,6 +2316,7 @@ avoids duplicating the full workflow in four drafts:
 - 2026-10-21 17:07 UTC - GitHub Copilot (Claude Opus 5.5) - #2416 started (branch `2416-stop-producers-before-listeners`); its row is `IN_PROGRESS`, T7 is `DONE` and T8 `IN_PROGRESS`. T7: window (b) reproduced with controlled late publication on the real swarm bus (red, #2416 evidence V1); the real-binary `race` run is not the red proof. The maintainer approved the `StopBefore` API at the checkpoint before the edges were built (additive `spawn_with`, three `SpawnError` variants, completion tracked at the join in `wait_for_all`). T8 is implemented in the working tree and awaits the design-review checkpoint after T8. No design change beyond that approval; any addition found is recorded as a new record entry after the checkpoint.
 - 2026-10-21 17:09 UTC - GitHub Copilot (Claude Opus 5.5) - #2416 T8 design-review checkpoint passed: the maintainer approved T8 and four additions (public `waiting_components()`, `ComponentId` naming its manager, the HTTP test helper and its `[[test]]` binary, a `BTreeMap` registry), recorded as Design Discussion Record entry 31; `adr-draft.md` sections 3 and 4 and the Chosen Design `JobManager` section are updated in the same change (D14, D15). T8 is `DONE` after its commit.
 - 2026-10-21 18:47 UTC - GitHub Copilot (Claude Opus 5.5) - #2416 T9 implemented and approved by the maintainer: both test environments stop the server first (D20), with record entry 32 for the guard detail. HTTP has a deterministic red/green late-event test; UDP does not (evidence V4). `adr-draft.md` section 8 updated in the same change.
+- 2026-10-21 18:50 UTC - GitHub Copilot (Claude Opus 5.5) - #2416 T10: the ADR draft moved from this folder to `docs/adrs/20261021184946_order_shutdown_by_event_flow_and_drain_event_listeners.md` (D15), the cancellation-tree ADR is marked `Superseded by` it, and `docs/adrs/index.md` lists it. The draft was bare-mentioned as `adr-draft.md` in closed specs and in earlier entries of this record; those are history and are not rewritten, and no link pointed to the draft.
 
 ## Acceptance Criteria
 

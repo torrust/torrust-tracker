@@ -16,6 +16,8 @@
 //! component it waits for has completed. The manager knows nothing about what
 //! the edges mean: bootstrap declares them.
 //!
+//! ADR: `docs/adrs/20261021184946_order_shutdown_by_event_flow_and_drain_event_listeners.md`
+//!
 //! issue: #1586
 //! issue: #2415
 //! issue: #2416
