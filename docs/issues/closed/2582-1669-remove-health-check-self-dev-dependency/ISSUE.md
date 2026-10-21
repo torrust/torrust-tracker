@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: in-progress
+status: done
 priority: p2
 epic: 1669
 github-issue: 2582
-spec-path: docs/issues/open/2582-1669-remove-health-check-self-dev-dependency/ISSUE.md
+spec-path: docs/issues/closed/2582-1669-remove-health-check-self-dev-dependency/ISSUE.md
 branch: "2582-1669-remove-health-check-self-dev-dependency"
 related-pr: 2601
-last-updated-utc: "2026-10-21 10:02"
+last-updated-utc: "2026-10-21 11:25"
 semantic-links:
   skill-links:
     - create-issue
@@ -29,7 +29,7 @@ semantic-links:
 # Issue #2582 - Remove the self dev-dependency that stops the health check API server crate from being packaged
 
 Parent EPIC: #1669 (Overhaul: Packages). Pre-publish sub-issue P1 of the first-publish tracking
-issue #2583 ([`ISSUE.md`](../2583-1669-first-publish-of-workspace-crates/ISSUE.md)).
+issue #2583 ([`ISSUE.md`](../../open/2583-1669-first-publish-of-workspace-crates/ISSUE.md)).
 
 ## Goal
 
@@ -184,8 +184,8 @@ Every commit is a signed Conventional Commit.
 - [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
-- [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Committer verified spec progress is up to date before commit (by the implementing agent, at the archive commit)
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -218,6 +218,14 @@ Every commit is a signed Conventional Commit.
   pre-push hook and the crate tests (evidence V6, "Rerun after rebasing onto develop"). Opened
   [PR #2601](https://github.com/torrust/torrust-tracker/pull/2601) and requested reviews from
   Copilot and `da2ce7`.
+- 2026-10-21 11:18 UTC - GitHub Copilot - PR #2601 merged (merge commit
+  "Merge torrust/torrust-tracker#2601: fix(axum-health-check-api-server): [#2582] remove the self dev-dependency and check workspace packaging");
+  #2582 closed by it. Copilot reviewed and recommended approval; `da2ce7` did not review, so the
+  maintainer merged on his own authority after the posted ACK.
+- 2026-10-21 11:25 UTC - GitHub Copilot - Archived this spec to `docs/issues/closed/` (status `done`) and
+  repaired the live references to it. Two checkpoints are left unchecked on purpose: no one other than
+  the implementing agent validated the acceptance criteria, and no independent reviewer received
+  this folder, so there is no `agent-review-reports.md`.
 
 ## Acceptance Criteria
 
@@ -285,5 +293,5 @@ None.
 ## References
 
 - Parent EPIC: #1669, [`EPIC.md`](../../open/1669-overhaul-packages/EPIC.md)
-- Publish tracking issue: #2583 ([`ISSUE.md`](../2583-1669-first-publish-of-workspace-crates/ISSUE.md))
+- Publish tracking issue: #2583 ([`ISSUE.md`](../../open/2583-1669-first-publish-of-workspace-crates/ISSUE.md))
 - Rename that carried the line over: #1816

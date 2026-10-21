@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2582-1669-remove-health-check-self-dev-dependency/ISSUE.md
-last-updated-utc: 2026-10-21 09:55
+issue-spec: docs/issues/closed/2582-1669-remove-health-check-self-dev-dependency/ISSUE.md
+last-updated-utc: 2026-10-21 11:25
 ---
 
 # Manual Verification Evidence

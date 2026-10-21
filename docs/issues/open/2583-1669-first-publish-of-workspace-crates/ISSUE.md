@@ -9,7 +9,7 @@ github-issue: 2583
 spec-path: docs/issues/open/2583-1669-first-publish-of-workspace-crates/ISSUE.md
 branch: "2583-1669-first-publish-of-workspace-crates-spec"
 related-pr: null
-last-updated-utc: "2026-10-21 07:44"
+last-updated-utc: "2026-10-21 11:25"
 semantic-links:
   skill-links:
     - create-issue
@@ -29,7 +29,7 @@ semantic-links:
     - docs/issues/open/1669-overhaul-packages/EPIC.md
     - docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md
     - docs/issues/open/2576-1669-update-all-package-readmes/ISSUE.md
-    - docs/issues/open/2582-1669-remove-health-check-self-dev-dependency/ISSUE.md
+    - docs/issues/closed/2582-1669-remove-health-check-self-dev-dependency/ISSUE.md
     - docs/issues/closed/2454-1669-mark-public-error-enums-non-exhaustive/error-enum-inventory.md
     - docs/adrs/20260629000000_adopt_independent_package_versioning.md
     - docs/release_process.md
@@ -213,13 +213,13 @@ Status values: `TODO`, `BLOCKED`, `IN_PROGRESS`, `PUBLISHED`, `DEFERRED`.
 | 18 | 5 | `torrust-tracker-udp-server` | client-lib, configuration, core, events, primitives, swarm-coordination-registry, udp-core, udp-protocol | test-helpers | 0.1.0 | #2482 and #1488 may change its public `testing`/`environment` module. | BLOCKED |
 | 19 | 6 | `torrust-tracker-rest-api-runtime-adapter` | configuration, core, http-core, primitives, rest-api-application, rest-api-protocol, swarm-coordination-registry, udp-core, udp-server | - | 0.1.0 | - | BLOCKED |
 | 20 | 7 | `torrust-tracker-axum-rest-api-server` | axum-server, configuration, core, http-core, primitives, rest-api-application, rest-api-client, rest-api-protocol, rest-api-runtime-adapter, swarm-coordination-registry, udp-core, udp-server | rest-api-client, test-helpers | 0.1.0 | #2482 and #1488 may change its public `testing`/`environment` module. | BLOCKED |
-| 21 | 8 | `torrust-tracker-axum-health-check-api-server` | axum-server, configuration, primitives | axum-http-server, axum-rest-api-server, test-helpers, udp-server | 0.1.0 | Cannot be packaged while it dev-depends on itself: sub-issue P1 (#2582). Its four workspace dev-dependencies go first. | BLOCKED |
+| 21 | 8 | `torrust-tracker-axum-health-check-api-server` | axum-server, configuration, primitives | axum-http-server, axum-rest-api-server, test-helpers, udp-server | 0.1.0 | The self dev-dependency is removed (sub-issue P1, #2582, closed). Its four workspace dev-dependencies go first. | BLOCKED |
 
 ### Pre-Publish Sub-Issues
 
 | ID | Crate | Work | Issue | Status |
 | -- | ----- | ---- | ----- | ------ |
-| P1 | `torrust-tracker-axum-health-check-api-server` | Remove the self dev-dependency. Its tests pass without it (checked 2026-10-20: 3 unit and 8 integration tests). | [#2582](../2582-1669-remove-health-check-self-dev-dependency/ISSUE.md) | TODO |
+| P1 | `torrust-tracker-axum-health-check-api-server` | Remove the self dev-dependency. Its tests pass without it (checked 2026-10-20: 3 unit and 8 integration tests). | [#2582](../../closed/2582-1669-remove-health-check-self-dev-dependency/ISSUE.md) | DONE |
 
 ## Per-Crate Publish Procedure
 
@@ -430,7 +430,7 @@ None planned. The crates.io name check is a `curl` loop recorded in the evidence
 - Semver input: #2454
   ([error enum inventory](../../closed/2454-1669-mark-public-error-enums-non-exhaustive/error-enum-inventory.md))
 - Pre-publish sub-issue: #2582
-  ([`ISSUE.md`](../2582-1669-remove-health-check-self-dev-dependency/ISSUE.md))
+  ([`ISSUE.md`](../../closed/2582-1669-remove-health-check-self-dev-dependency/ISSUE.md))
 - Blocks: #2594, the client extraction
   ([`ISSUE.md`](../2594-1669-extract-torrust-tracker-client-to-standalone-repo/ISSUE.md))
 - Procedure: [`docs/release_process.md`](../../../release_process.md#publishing-a-workspace-package);

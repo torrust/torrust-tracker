@@ -5,7 +5,7 @@ semantic-links:
   related-artifacts:
     - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
     - docs/issues/open/2583-1669-first-publish-of-workspace-crates/ISSUE.md
-    - docs/issues/open/2582-1669-remove-health-check-self-dev-dependency/ISSUE.md
+    - docs/issues/closed/2582-1669-remove-health-check-self-dev-dependency/ISSUE.md
 ---
 
 <!-- skill-link: process-pr-review -->
