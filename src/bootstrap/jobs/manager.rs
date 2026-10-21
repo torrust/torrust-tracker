@@ -400,7 +400,11 @@ impl ComponentRegistry {
     }
 
     fn mark_spawned(&mut self, id: ComponentId) {
-        if let Some(component) = self.components.get_mut(&id) {
+        // A reservation is removed only by its own `Drop`, which runs after
+        // this call, and `spawn` has already checked it belongs here.
+        let component = self.components.get_mut(&id);
+        debug_assert!(component.is_some(), "a live reservation must be registered in its manager");
+        if let Some(component) = component {
             component.state = RegistrationState::Spawned;
         }
     }
