@@ -483,7 +483,7 @@ Conventional Commits with narrow scopes and sign every commit with GPG.
   it; an error reading the check runs is a runtime error (exit 1, nothing on stdout), and an error reading
   anything the override needs means no override with the reason in `override_ignored`; a failing verdict
   still exits with 0; the repository, commit id, and login are validated because they become part of request
-  paths. 198 unit and 18 command-line tests, 16 of 16 mutants killed, and a manual run on real GitHub data,
+  paths. 199 unit and 18 command-line tests, 17 of 17 mutants killed, and a manual run on real GitHub data,
   including a replay of runs 5 and 7 of the T5 sandbox from the captured responses that gave the same results -
   [`manual-verification-evidence.md`](manual-verification-evidence.md) V11. The current upstream workflows
   have no check runs named after the groups, so on an upstream pull request every needed group is missing; that

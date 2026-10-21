@@ -436,31 +436,32 @@ GitHub JSON, and only the label response, which is `[{"name": "ci-override"}]`, 
 last row is the contract that T6b and T6c have to meet: nothing calls the adapter yet, so it changes no
 behavior today.
 
-Sixteen mutants of `github.rs` and `gh.rs` were applied one at a time and the whole test suite run for each, with the
+Seventeen mutants of `github.rs` and `gh.rs` were applied one at a time and the whole test suite run for each, with the
 file restored afterwards (`diff` against a saved copy). Six of them did not compile the first time, because
 the workspace's `-D warnings` rejects unused code, so they ran no test; they were rewritten and rerun. All
-sixteen compiled and were killed:
+seventeen compiled and were killed:
 
-| Mutant                                              | Failing tests |
-| --------------------------------------------------- | ------------- |
-| a check run of any application counts               |             1 |
-| a skipped run counts                                |             1 |
-| the oldest run of a group wins                      |             4 |
-| a run that has not completed counts                 |             3 |
-| a cancelled run is a failure                        |             2 |
-| a job name is matched ignoring case                 |             1 |
-| the freshness of the label is not checked           |             4 |
-| a label applied in the second of the push counts    |             1 |
-| the permission `write` may override                 |             2 |
-| the override is looked up when the verdict passes   |             2 |
-| the label need not be on the pull request           |             1 |
-| the earliest `labeled` event is used                |             2 |
-| a permission that cannot be read counts             |             2 |
-| only the first page of a paginated response is read |             1 |
-| a repository that is not `owner/name` is accepted   |             4 |
-| only the first page of the output of `gh` is read   |             1 |
+| Mutant                                                       | Failing tests |
+| ------------------------------------------------------------ | ------------- |
+| a check run of any application counts                        |             1 |
+| a skipped run counts                                         |             1 |
+| the oldest run of a group wins                               |             4 |
+| a run that has not completed counts                          |             3 |
+| a cancelled run is a failure                                 |             2 |
+| a job name is matched ignoring case                          |             1 |
+| the freshness of the label is not checked                    |             4 |
+| a label applied in the second of the push counts             |             1 |
+| the permission `write` may override                          |             2 |
+| the override is looked up when the verdict passes            |             2 |
+| the label need not be on the pull request                    |             1 |
+| the earliest `labeled` event is used                         |             2 |
+| a permission that cannot be read counts                      |             2 |
+| only the first page of a paginated response is read          |             1 |
+| a repository that is not `owner/name` is accepted            |             4 |
+| only the first page of the output of `gh` is read            |             1 |
+| the first listed check suite is used instead of the earliest |             1 |
 
-The final run has 198 unit and 18 command-line tests; `cargo clippy`, `cargo +nightly fmt --check`, the
+The final run has 199 unit and 18 command-line tests; `cargo clippy`, `cargo +nightly fmt --check`, the
 documentation build, and `cargo machete` are clean.
 
 ## Failures and Follow-up
