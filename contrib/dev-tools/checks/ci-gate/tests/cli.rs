@@ -730,6 +730,10 @@ fn it_should_report_the_directory_and_the_cause_when_the_cleanup_fails() {
     let not_a_directory = std::env::temp_dir().join(format!("ci-gate-cleanup-fails-{}", std::process::id()));
     std::fs::write(&not_a_directory, "a file cannot be removed as a directory").expect("the file can be written");
 
+    let cause = std::fs::remove_dir_all(&not_a_directory)
+        .expect_err("removing a file as a directory fails")
+        .to_string();
+
     // Act
     let report = remove_fixture_directory(&not_a_directory);
     std::fs::remove_file(&not_a_directory).expect("the file can be removed");
@@ -739,5 +743,9 @@ fn it_should_report_the_directory_and_the_cause_when_the_cleanup_fails() {
     assert!(
         message.contains(&not_a_directory.display().to_string()),
         "the message must say which directory was left behind: {message}"
+    );
+    assert!(
+        message.contains(&cause),
+        "the message must say why the removal failed (`{cause}`): {message}"
     );
 }
