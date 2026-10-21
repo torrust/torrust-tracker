@@ -387,6 +387,9 @@ What it shows:
   maintainer, and `read` for two users without write access (`da2ce7` on the fork, and `octocat`), so the
   Maintain or Admin check can tell them apart. Not tested: a label applied by a real user without that role,
   because the sandbox had only one account.
+  **Correction (review of PR #2610, F13).** Only `admin` and `read` were observed, so this did not show that
+  Maintain can be told apart: the endpoint's `permission` field is the legacy base role and reports Maintain as
+  `write`. The role is in `role_name`; see V11.
 - **An override does not survive a push, and this works without write access.** Comparing the label's time
   with the creation time of the head commit's first check suite made the override stale after the new push
   although the label stayed on the pull request, and a fresh label after the push counted. The first check
@@ -436,10 +439,11 @@ GitHub JSON, and only the label response, which is `[{"name": "ci-override"}]`, 
 last row is the contract that T6b and T6c have to meet: nothing calls the adapter yet, so it changes no
 behavior today.
 
-Twenty-seven mutants of `github.rs`, `gh.rs`, and the tests' fixture were applied one at a time and the whole test suite run for each, with the
+Thirty-six mutants of `github.rs`, `gh.rs`, and the tests' fixture were applied one at a time and the whole test suite run for each, with the
 file restored afterwards (`diff` against a saved copy). Six of them did not compile the first time, because
 the workspace's `-D warnings` rejects unused code, so they ran no test; they were rewritten and rerun. All
-twenty-seven compiled and were killed:
+thirty-six compiled and were killed. In the fifth review round one mutant script stopped on its own assertion
+because the formatter had wrapped the text it looked for, so it changed nothing and was rewritten and rerun:
 
 | Mutant                                                                          | Failing tests |
 | ------------------------------------------------------------------------------- | ------------- |
@@ -470,11 +474,41 @@ twenty-seven compiled and were killed:
 | a test name with a path separator is allowed into the fake `gh` directory name  |             1 |
 | a failed cleanup of the fake `gh` directory is not reported                     |             1 |
 | a directory that is already gone is reported as a failed cleanup                |             1 |
+| only `admin` may override, so the Maintain role is refused                      |             3 |
+| the legacy permission `write` may override                                      |             2 |
+| a role that starts or ends with `admin` or `maintain` may override              |             1 |
+| every login is safe in a request path                                           |             8 |
+| the empty login is safe in a request path                                       |             2 |
+| a login with a slash is safe in a request path                                  |             1 |
+| an unreadable list of labels is read as no label                                |             1 |
+| an unreadable list of check suites is read as no check suite                    |             1 |
+| the cause is left out of the message of a failed cleanup                        |             1 |
 
 The call from the fixture's `Drop` to the cleanup function is not covered by a test; a mutant that drops the
 message there would survive.
 
-The final run has 209 unit and 23 command-line tests; `cargo clippy`, `cargo +nightly fmt --check`, the
+The role of the actor (F13 of the review of PR #2610). The response of the permission endpoint has a `permission`
+field, which is the legacy base role, and a `role_name` field, which is the role. GitHub's API description says
+that `maintain` is mapped to `write` and `triage` to `read` in `permission`. The real responses of
+`gh api repos/torrust/torrust-tracker/collaborators/<login>/permission`, run on 2026-10-21 and reduced to the
+two fields:
+
+| Collaborator                    | `permission` | `role_name` |
+| ------------------------------- | ------------ | ----------- |
+| `josecelano`                    | `admin`      | `admin`     |
+| `da2ce7`                        | `admin`      | `admin`     |
+| a collaborator with Triage role | `read`       | `triage`    |
+
+The third row shows the mapping for Triage on this repository. No collaborator of it has the Maintain role, so
+that mapping is taken from GitHub's description and is reproduced by the test fixtures, not observed live. The
+adapter before the fix read `permission` and so could not accept `maintain`; the new test of a Maintain-role actor
+failed against it, with fixtures of the real shape.
+
+The check-runs request now sets `filter=all` (F16). On the head commit `74b3000e9` of this pull request the
+request with and without it lists the same 22 runs, with no superseded run of a name, so that commit shows only
+that GitHub accepts the parameter; the fixture tests are what show that the request carries it.
+
+The final run has 226 unit and 23 command-line tests; `cargo clippy`, `cargo +nightly fmt --check`, the
 documentation build, and `cargo machete` are clean.
 
 ## Failures and Follow-up

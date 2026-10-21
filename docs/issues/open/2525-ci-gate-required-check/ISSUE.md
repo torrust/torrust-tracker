@@ -9,7 +9,7 @@ github-issue: 2525
 spec-path: docs/issues/open/2525-ci-gate-required-check/ISSUE.md
 branch: "2525-ci-gate-required-check"
 related-pr: null
-last-updated-utc: "2026-10-21 18:50"
+last-updated-utc: "2026-10-21 19:17"
 semantic-links:
   skill-links:
     - create-issue
@@ -231,8 +231,9 @@ them to the tool, as the ADR requires.
   needed), and rerunning the jobs (costs the runner time that the override is meant to save). Contract:
   the name of each group's job is the group's name.
 - **(b) Who applied the override.** The latest `labeled` event for `ci-override` in the issue events
-  API, while the label is still on the pull request. Its actor is checked with the collaborator permission
-  API, and only `admin` or `maintain` counts; any other result, or an error reading it, means no override.
+  API, while the label is still on the pull request. Its actor is checked with the `role_name` of the collaborator
+  permission API (its `permission` field is the legacy base role and reports Maintain as `write`), and only `admin`
+  or `maintain` counts, a custom role never; any other result, or an error reading it, means no override.
 - **(c) Token and trust.** The gate runs on `pull_request`, never `pull_request_target`, with a token of
   read scopes only (`contents`, `checks`, `issues`, `pull-requests`) and no secrets, so it works the same
   for a pull request from a fork. It builds the tool from a checkout of the base branch, so a pull request
@@ -565,6 +566,18 @@ Conventional Commits with narrow scopes and sign every commit with GPG.
   function from the fixture's `Drop` is not covered by a test: a mutant that ignores the message there would
   survive, and it is a one-line call whose effect is a line on stderr. Now 209 unit and 23 command-line tests -
   [`manual-verification-evidence.md`](manual-verification-evidence.md) V11.
+- 2026-10-21 19:17 UTC - GitHub Copilot - Processed the maintainer-side review of PR #2610 (review 5604832273, nine threads,
+  F13 to F21, `CHANGES_REQUESTED`). F13 was real and Major: the permission endpoint's `permission` field is the
+  legacy base role and reports the Maintain role as `write`, so an override by a Maintain-role actor was always
+  refused, although the module, the T5 design and AC3 say it counts. V10 had observed only `admin` and `read`.
+  The adapter now reads `role_name`, a custom role never counts, and the fixtures have the shape of the real
+  response (`fix(ci-gate): [#2525] read the role of the actor from role_name, not permission`). F16: the
+  check-runs request now sets `filter=all`, which the group results rely on (`fix(ci-gate): [#2525] ask for every
+  check run, not only the latest of each name`). F17: tests for `is_login` and for the unreadable labels and
+  check suites. F20: the cleanup test now asserts the cause. F15, F14, F18, and F19 are fixes to documentation and
+  records, each in its own commit. F21 asks to fold the lint-fix commit into the one it fixes; it is not done,
+  because the repository keeps a mistake and its correction on purpose. Now 226 unit and 23 command-line tests, and
+  nine more mutants killed - [`manual-verification-evidence.md`](manual-verification-evidence.md) V11.
 
 ## Acceptance Criteria
 
