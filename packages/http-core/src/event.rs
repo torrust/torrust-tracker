@@ -197,170 +197,298 @@ pub mod bus {
 }
 
 #[cfg(test)]
-pub mod test {
+mod tests {
+    use std::net::{IpAddr, SocketAddr};
 
-    use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
-
-    use torrust_metrics::label::{LabelSet, LabelValue};
-    use torrust_metrics::label_name;
+    use rstest::rstest;
+    use torrust_metrics::label::LabelSet;
     use torrust_net_primitives::service_binding::{IpFamily, IpType, Protocol, ServiceBinding};
     use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::{RemoteClientAddr, ResolvedIp};
     use torrust_tracker_primitives::peer::Peer;
     use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
 
-    use super::Event;
-    use crate::event::ConnectionContext;
+    use super::{ConnectionContext, Event};
     use crate::tests::sample_info_hash;
 
-    #[must_use]
-    pub fn announce_events_match(event: &Event, expected_event: &Event) -> bool {
-        match (event, expected_event) {
-            (
-                Event::TcpAnnounce {
-                    connection,
-                    info_hash,
-                    announcement,
-                },
-                Event::TcpAnnounce {
-                    connection: expected_connection,
-                    info_hash: expected_info_hash,
-                    announcement: expected_announcement,
-                },
-            ) => {
-                *connection == *expected_connection
-                    && *info_hash == *expected_info_hash
-                    && announcement.peer_id == expected_announcement.peer_id
-                    && announcement.peer_addr == expected_announcement.peer_addr
-                    // Events can't be compared due to the `updated` field.
-                    // The `announcement.uploaded` contains the current time
-                    // when the test is executed.
-                    // todo: mock time
-                    //&& announcement.updated == expected_announcement.updated
-                    && announcement.uploaded == expected_announcement.uploaded
-                    && announcement.downloaded == expected_announcement.downloaded
-                    && announcement.left == expected_announcement.left
-                    && announcement.event == expected_announcement.event
-            }
-            _ => false,
-        }
+    const CLIENT_PORT: u16 = 54_321;
+    const SERVER_PORT: u16 = 7070;
+
+    fn ip(text: &str) -> IpAddr {
+        text.parse().expect("the test IP address should be valid")
     }
 
-    #[test]
-    fn events_should_be_comparable() {
-        let http_test_configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0);
-        let remote_client_ip = IpAddr::V4(Ipv4Addr::LOCALHOST);
-        let info_hash = sample_info_hash();
-
-        let event1 = Event::TcpAnnounce {
-            connection: ConnectionContext::new(
-                http_test_configuration_instance_id,
-                RemoteClientAddr::new(ResolvedIp::FromSocketAddr(remote_client_ip), Some(8080)),
-                ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070)).unwrap(),
-            ),
-            info_hash,
-            announcement: Peer::default(),
-        };
-
-        let event2 = Event::TcpAnnounce {
-            connection: ConnectionContext::new(
-                http_test_configuration_instance_id,
-                RemoteClientAddr::new(
-                    ResolvedIp::FromSocketAddr(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 2))),
-                    Some(8080),
-                ),
-                ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070)).unwrap(),
-            ),
-            info_hash,
-            announcement: Peer::default(),
-        };
-
-        let event1_clone = event1.clone();
-
-        assert_eq!(event1, event1_clone);
-        assert_ne!(event1, event2);
+    fn instance_id() -> ConfigurationInstanceId {
+        ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0)
     }
 
-    #[test]
-    fn connection_context_labels_should_include_the_configured_public_url_only_when_present() {
-        let connection = ConnectionContext::new(
-            ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0),
-            RemoteClientAddr::new(ResolvedIp::FromSocketAddr(IpAddr::V4(Ipv4Addr::LOCALHOST)), Some(8080)),
-            ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 7070)).unwrap(),
+    fn server_binding(bind_ip: &str) -> ServiceBinding {
+        ServiceBinding::new(Protocol::HTTP, SocketAddr::new(ip(bind_ip), SERVER_PORT)).unwrap()
+    }
+
+    /// A context for a client at `client_ip`, behind a server bound to `bind_ip`.
+    fn connection_between(client_ip: &str, bind_ip: &str) -> ConnectionContext {
+        ConnectionContext::new(
+            instance_id(),
+            RemoteClientAddr::new(ResolvedIp::FromSocketAddr(ip(client_ip)), Some(CLIENT_PORT)),
+            server_binding(bind_ip),
         )
-        .with_public_url(Some("https://tracker.example.test/announce".to_string()));
+    }
 
-        let configured_labels = LabelSet::from(connection);
-        let absent_labels = LabelSet::from(ConnectionContext::new(
-            ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0),
-            RemoteClientAddr::new(ResolvedIp::FromSocketAddr(IpAddr::V4(Ipv4Addr::LOCALHOST)), Some(8080)),
-            ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 7070)).unwrap(),
-        ));
-        let public_url_label = label_name!("public_url");
-        let public_url = LabelValue::new("https://tracker.example.test/announce");
+    /// A context for a client at `client_ip`, behind an IPv4 server.
+    fn connection_from(client_ip: &str) -> ConnectionContext {
+        connection_between(client_ip, "127.0.0.1")
+    }
 
-        assert!(configured_labels.contains_pair(&public_url_label, &public_url));
-        assert!(!absent_labels.contains_pair(&public_url_label, &public_url));
+    fn labels(pairs: &[(&str, &str)]) -> LabelSet {
+        LabelSet::from(pairs.to_vec())
+    }
+
+    #[rstest]
+    #[case::direct_ipv4(connection_from("126.0.0.1"), IpFamily::Inet)]
+    #[case::direct_ipv6(connection_from("2001:db8::1"), IpFamily::Inet6)]
+    #[case::ipv4_mapped_ipv6(connection_from("::ffff:192.168.1.1"), IpFamily::Inet6)]
+    #[case::ipv6_loopback(connection_from("::1"), IpFamily::Inet6)]
+    fn it_should_derive_the_client_ip_family_from_the_client_address_not_the_server_binding(
+        #[case] connection: ConnectionContext,
+        #[case] expected_family: IpFamily,
+    ) {
+        // Act
+        let family = connection.client_address_ip_family();
+
+        // Assert: the server is bound to an IPv4 address in every case.
+        assert_eq!(family, expected_family);
     }
 
     #[test]
-    fn client_address_ip_family_should_be_inet_for_ipv4() {
-        let http_test_configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0);
-        let ctx = ConnectionContext::new(
-            http_test_configuration_instance_id,
-            RemoteClientAddr::new(ResolvedIp::FromSocketAddr(IpAddr::V4(Ipv4Addr::LOCALHOST)), Some(8080)),
-            ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070)).unwrap(),
+    fn it_should_derive_the_client_ip_family_from_the_forwarded_address() {
+        // Arrange
+        let connection = ConnectionContext::new(
+            instance_id(),
+            RemoteClientAddr::new(ResolvedIp::FromXForwardedFor(ip("2001:db8::1")), None),
+            server_binding("127.0.0.1"),
         );
 
-        assert_eq!(ctx.client_address_ip_family(), IpFamily::Inet);
+        // Act
+        let family = connection.client_address_ip_family();
+
+        // Assert
+        assert_eq!(family, IpFamily::Inet6);
+    }
+
+    #[rstest]
+    #[case::direct_ipv4(connection_from("126.0.0.1"), IpType::Plain)]
+    #[case::native_ipv6(connection_from("2001:db8::1"), IpType::Plain)]
+    #[case::ipv6_loopback(connection_from("::1"), IpType::Plain)]
+    #[case::ipv4_compatible_ipv6(connection_from("::c0a8:101"), IpType::Plain)]
+    #[case::ipv4_mapped_ipv6(connection_from("::ffff:192.168.1.1"), IpType::V4MappedV6)]
+    fn it_should_derive_the_client_ip_type_from_the_client_address(
+        #[case] connection: ConnectionContext,
+        #[case] expected_type: IpType,
+    ) {
+        // Act
+        let ip_type = connection.client_address_ip_type();
+
+        // Assert
+        assert_eq!(ip_type, expected_type);
+    }
+
+    #[rstest]
+    #[case::ipv4_client_and_server(
+        connection_between("126.0.0.1", "0.0.0.0"),
+        &[
+            ("server_binding_protocol", "http"),
+            ("server_binding_ip", "0.0.0.0"),
+            ("server_binding_address_ip_type", "plain"),
+            ("server_binding_address_ip_family", "inet"),
+            ("server_binding_port", "7070"),
+            ("client_address_ip_family", "inet"),
+            ("client_address_ip_type", "plain"),
+        ]
+    )]
+    #[case::ipv6_client_and_server(
+        connection_between("2001:db8::1", "::1"),
+        &[
+            ("server_binding_protocol", "http"),
+            ("server_binding_ip", "::1"),
+            ("server_binding_address_ip_type", "plain"),
+            ("server_binding_address_ip_family", "inet6"),
+            ("server_binding_port", "7070"),
+            ("client_address_ip_family", "inet6"),
+            ("client_address_ip_type", "plain"),
+        ]
+    )]
+    #[case::ipv4_mapped_client_of_an_ipv4_server(
+        connection_between("::ffff:192.168.1.1", "127.0.0.1"),
+        &[
+            ("server_binding_protocol", "http"),
+            ("server_binding_ip", "127.0.0.1"),
+            ("server_binding_address_ip_type", "plain"),
+            ("server_binding_address_ip_family", "inet"),
+            ("server_binding_port", "7070"),
+            ("client_address_ip_family", "inet6"),
+            ("client_address_ip_type", "v4_mapped_v6"),
+        ]
+    )]
+    #[case::configured_public_url(
+        connection_between("126.0.0.1", "0.0.0.0").with_public_url(Some("https://tracker.example.test/announce".to_string())),
+        &[
+            ("server_binding_protocol", "http"),
+            ("server_binding_ip", "0.0.0.0"),
+            ("server_binding_address_ip_type", "plain"),
+            ("server_binding_address_ip_family", "inet"),
+            ("server_binding_port", "7070"),
+            ("client_address_ip_family", "inet"),
+            ("client_address_ip_type", "plain"),
+            ("public_url", "https://tracker.example.test/announce"),
+        ]
+    )]
+    #[case::https_server_on_another_port(
+        ConnectionContext::new(
+            instance_id(),
+            RemoteClientAddr::new(ResolvedIp::FromSocketAddr(ip("126.0.0.1")), Some(CLIENT_PORT)),
+            ServiceBinding::new(Protocol::HTTPS, SocketAddr::new(ip("0.0.0.0"), 443)).unwrap(),
+        ),
+        &[
+            ("server_binding_protocol", "https"),
+            ("server_binding_ip", "0.0.0.0"),
+            ("server_binding_address_ip_type", "plain"),
+            ("server_binding_address_ip_family", "inet"),
+            ("server_binding_port", "443"),
+            ("client_address_ip_family", "inet"),
+            ("client_address_ip_type", "plain"),
+        ]
+    )]
+    #[case::server_bound_to_an_ipv4_mapped_ipv6_address(
+        connection_between("126.0.0.1", "::ffff:127.0.0.1"),
+        &[
+            ("server_binding_protocol", "http"),
+            ("server_binding_ip", "::ffff:127.0.0.1"),
+            ("server_binding_address_ip_type", "v4_mapped_v6"),
+            ("server_binding_address_ip_family", "inet6"),
+            ("server_binding_port", "7070"),
+            ("client_address_ip_family", "inet"),
+            ("client_address_ip_type", "plain"),
+        ]
+    )]
+    fn it_should_project_a_connection_context_to_exactly_these_metric_labels(
+        #[case] connection: ConnectionContext,
+        #[case] expected_labels: &[(&str, &str)],
+    ) {
+        // Act
+        let label_set = LabelSet::from(connection);
+
+        // Assert: the whole set, so a missing, extra or wrong-valued label fails.
+        assert_eq!(label_set, labels(expected_labels));
+    }
+
+    #[rstest]
+    #[case::configured(Some("https://tracker.example.test/announce"))]
+    #[case::absent(None)]
+    fn it_should_expose_the_public_url_only_when_it_is_configured(#[case] public_url: Option<&str>) {
+        // Arrange
+        let connection = connection_from("126.0.0.1").with_public_url(public_url.map(str::to_string));
+
+        // Act
+        let exposed = connection.public_url();
+
+        // Assert
+        assert_eq!(exposed, public_url);
     }
 
     #[test]
-    fn client_address_ip_family_should_be_inet6_for_ipv6() {
-        let http_test_configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0);
-        let ctx = ConnectionContext::new(
-            http_test_configuration_instance_id,
-            RemoteClientAddr::new(ResolvedIp::FromSocketAddr(IpAddr::V6(Ipv6Addr::LOCALHOST)), Some(8080)),
-            ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070)).unwrap(),
+    fn it_should_expose_the_configuration_instance_id_it_was_created_with() {
+        // Arrange
+        let other_instance_id = ConfigurationInstanceId::new(ServiceRole::HttpTracker, 3);
+        let connection = ConnectionContext::new(
+            other_instance_id,
+            RemoteClientAddr::new(ResolvedIp::FromSocketAddr(ip("126.0.0.1")), Some(CLIENT_PORT)),
+            server_binding("127.0.0.1"),
         );
 
-        assert_eq!(ctx.client_address_ip_family(), IpFamily::Inet6);
+        // Act
+        let exposed = connection.configuration_instance_id();
+
+        // Assert
+        assert_eq!(exposed, other_instance_id);
+    }
+
+    #[rstest]
+    #[case::from_the_socket_address(ResolvedIp::FromSocketAddr(ip("126.0.0.1")), Some(CLIENT_PORT), ip("126.0.0.1"))]
+    #[case::from_x_forwarded_for_without_a_port(ResolvedIp::FromXForwardedFor(ip("203.0.113.195")), None, ip("203.0.113.195"))]
+    fn it_should_expose_the_client_address_and_port(
+        #[case] resolved_ip: ResolvedIp,
+        #[case] port: Option<u16>,
+        #[case] expected_ip: IpAddr,
+    ) {
+        // Arrange
+        let connection = ConnectionContext::new(
+            instance_id(),
+            RemoteClientAddr::new(resolved_ip, port),
+            server_binding("127.0.0.1"),
+        );
+
+        // Act
+        let (client_ip, client_port) = (connection.client_ip_addr(), connection.client_port());
+
+        // Assert
+        assert_eq!((client_ip, client_port), (expected_ip, port));
     }
 
     #[test]
-    fn client_address_ip_type_should_be_plain_for_direct_ipv4() {
-        let http_test_configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0);
-        let ctx = ConnectionContext::new(
-            http_test_configuration_instance_id,
-            RemoteClientAddr::new(ResolvedIp::FromSocketAddr(IpAddr::V4(Ipv4Addr::LOCALHOST)), Some(8080)),
-            ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070)).unwrap(),
-        );
+    fn it_should_expose_the_server_socket_address() {
+        // Arrange
+        let connection = connection_between("126.0.0.1", "0.0.0.0");
 
-        assert_eq!(ctx.client_address_ip_type(), IpType::Plain);
+        // Act
+        let server_socket_addr = connection.server_socket_addr();
+
+        // Assert
+        assert_eq!(server_socket_addr, SocketAddr::new(ip("0.0.0.0"), SERVER_PORT));
+    }
+
+    #[rstest]
+    #[case::another_instance(ConnectionContext::new(
+        ConfigurationInstanceId::new(ServiceRole::HttpTracker, 1),
+        RemoteClientAddr::new(ResolvedIp::FromSocketAddr(ip("126.0.0.1")), Some(CLIENT_PORT)),
+        server_binding("127.0.0.1"),
+    ))]
+    #[case::another_client_address(connection_from("126.0.0.2"))]
+    #[case::another_client_port(ConnectionContext::new(
+        instance_id(),
+        RemoteClientAddr::new(ResolvedIp::FromSocketAddr(ip("126.0.0.1")), Some(CLIENT_PORT + 1)),
+        server_binding("127.0.0.1"),
+    ))]
+    #[case::another_way_of_resolving_the_address(ConnectionContext::new(
+        instance_id(),
+        RemoteClientAddr::new(ResolvedIp::FromXForwardedFor(ip("126.0.0.1")), Some(CLIENT_PORT)),
+        server_binding("127.0.0.1"),
+    ))]
+    #[case::another_server_address(connection_between("126.0.0.1", "127.0.0.2"))]
+    #[case::a_public_url(connection_from("126.0.0.1").with_public_url(Some("https://tracker.example.test/".to_string())))]
+    fn it_should_not_consider_two_connection_contexts_equal_when_any_part_differs(#[case] other: ConnectionContext) {
+        // Arrange
+        let connection = connection_from("126.0.0.1");
+
+        // Act
+        let equal = connection == other;
+
+        // Assert
+        assert!(!equal, "{connection:?} should differ from {other:?}");
     }
 
     #[test]
-    fn client_address_ip_type_should_be_plain_for_native_ipv6() {
-        let http_test_configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0);
-        let ctx = ConnectionContext::new(
-            http_test_configuration_instance_id,
-            RemoteClientAddr::new(ResolvedIp::FromSocketAddr(IpAddr::V6(Ipv6Addr::LOCALHOST)), Some(8080)),
-            ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070)).unwrap(),
-        );
+    fn it_should_consider_a_cloned_event_equal_to_the_original() {
+        // Arrange
+        let event = Event::TcpAnnounce {
+            connection: connection_from("126.0.0.1"),
+            info_hash: sample_info_hash(),
+            announcement: Peer::default(),
+        };
 
-        assert_eq!(ctx.client_address_ip_type(), IpType::Plain);
-    }
+        // Act
+        let cloned = event.clone();
 
-    #[test]
-    fn client_address_ip_type_should_be_v4_mapped_v6_for_ipv4_mapped_ipv6() {
-        let http_test_configuration_instance_id = ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0);
-        let v4_mapped_v6_addr = IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0xffff, 0xc0a8, 0x0101)); // ::ffff:192.168.1.1
-
-        let ctx = ConnectionContext::new(
-            http_test_configuration_instance_id,
-            RemoteClientAddr::new(ResolvedIp::FromSocketAddr(v4_mapped_v6_addr), Some(8080)),
-            ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070)).unwrap(),
-        );
-
-        assert_eq!(ctx.client_address_ip_type(), IpType::V4MappedV6);
+        // Assert
+        assert_eq!(event, cloned);
     }
 }

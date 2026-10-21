@@ -7,9 +7,9 @@ priority: p2
 epic: 1347
 github-issue: 1349
 spec-path: docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md
-branch: "1349-1347-add-tests-http-core-scrape"
-related-pr: 2586
-last-updated-utc: "2026-10-20 17:55"
+branch: "1349-1347-add-tests-http-core-events-container"
+related-pr: 2593
+last-updated-utc: "2026-10-21 07:55"
 semantic-links:
   skill-links:
     - create-issue
@@ -335,8 +335,8 @@ open a PR, get it reviewed, and merge it. The spec-only PR comes first.
 | S0 | This specification and the EPIC registration with the baseline | - | `1349-1347-add-tests-http-core-spec` | #2546 | DONE |
 | S1 | T1-T3: coverage evidence, inventory, shared plan guidance, first plan, approved order | - | `1349-1347-add-tests-http-core-inventory` | #2558 | DONE |
 | S2 | Announce service and its error mapping (ranks 1-2) | 1-2 | `1349-1347-add-tests-http-core-announce` | #2575 | DONE |
-| S3 | Scrape service (rank 3) | 3 | `1349-1347-add-tests-http-core-scrape` | #2586 | IN_PROGRESS |
-| S4 | Events and composition (ranks 4-5) | 4-5 | `1349-1347-add-tests-http-core-events-container` | - | TODO |
+| S3 | Scrape service (rank 3) | 3 | `1349-1347-add-tests-http-core-scrape` | #2586 | DONE |
+| S4 | Events and composition (ranks 4-5) | 4-5 | `1349-1347-add-tests-http-core-events-container` | #2593 | IN_PROGRESS |
 | S5 | Statistics (rank 6) | 6-10 | `1349-1347-add-tests-http-core-statistics` | - | TODO |
 | S6 | Crate root and wiring (rank 7), then T5-T8 | 11-13 | `1349-1347-add-tests-http-core-final` | - | TODO |
 
@@ -453,8 +453,8 @@ lines are the S2 baseline measurement (see [Baseline Coverage](#baseline-coverag
 | 1 | `services/announce.rs` | 1-2 | S2 | 675 / 727 (92.85%) | 8 | Property candidate (peer-IP selection) | DONE | [services-announce-tests.md](test-refactor-plans/services-announce-tests.md) (done; 843 / 851 lines after) |
 | 2 | `services/error_mapping.rs` | 2 | S2 | 0 / 18 (0.00%) | 0 | Test candidate | DONE | [services-error-mapping-tests.md](test-refactor-plans/services-error-mapping-tests.md) (done; 26 / 29 lines after, wildcard arm untestable) |
 | 3 | `services/scrape.rs` | 3 | S3 | 507 / 540 (93.89%) | 8 | Test candidate (error paths) | DONE | [services-scrape-tests.md](test-refactor-plans/services-scrape-tests.md) (done; 533 / 537 lines after) |
-| 4 | `event.rs` | 4 | S4 | 174 / 187 (93.05%) | 7 | Probably small change | PENDING | - |
-| 5 | `container.rs` | 5 | S4 | 0 / 73 (0.00%) | 0 | Test candidate | PENDING | - |
+| 4 | `event.rs` | 4 | S4 | 174 / 187 (93.05%) | 7 | Probably small change | DONE | [event-tests.md](test-refactor-plans/event-tests.md) (done; 135 / 135 lines after) |
+| 5 | `container.rs` | 5 | S4 | 0 / 73 (0.00%) | 0 | Test candidate | DONE | [container-tests.md](test-refactor-plans/container-tests.md) (done; 27 tests, all 73 production lines covered) |
 | 6 | `statistics/event/handler.rs` | 6 | S5 | 158 / 161 (98.14%) | 5 | Probably no change | PENDING | - |
 | 7 | `statistics/event/listener.rs` | 6 | S5 | 133 / 148 (89.86%) | 4 | Lifecycle (#1488) | PENDING | - |
 | 8 | `statistics/metrics.rs` | 6 | S5 | 48 / 57 (84.21%) | 1 | Test candidate | PENDING | - |
@@ -653,6 +653,48 @@ lines are the S2 baseline measurement (see [Baseline Coverage](#baseline-coverag
   (<https://github.com/torrust/torrust-tracker/pull/2586>) was opened with `Related to #1349`. It was
   not rebased onto the latest `develop`, which changed only outside `packages/http-core`;
   `git merge-tree` reports no conflict.
+- 2026-10-20 19:49 UTC - GitHub Copilot - The S3 pull request #2586 was merged (`fefefdd9e`). Copilot
+  reviewed the last head with no open issue, the one cancelled CI job was re-run and passed, and
+  da2ce7 did not reply within the agreed 15 minutes, so the maintainer's ACK was posted on the head.
+  S3 is `DONE`.
+- 2026-10-20 19:50 UTC - GitHub Copilot - S4 started on `1349-1347-add-tests-http-core-events-container`,
+  cut from `develop` at the merge of #2586. `packages/http-core` did not change on `develop` after the
+  S3 head, so the baseline is the final S3 measurement: lines 1,949 / 2,102 (92.72%), regions
+  2,566 / 2,743 (93.55%), functions 233 / 249 (93.57%), 93 unit tests; no re-measurement was needed.
+- 2026-10-20 20:41 UTC - GitHub Copilot - Correction to the 19:50 UTC entry: the claim that
+  `packages/http-core` did not change after the S3 head was wrong. The S3 merge brought #2414, which changed
+  `statistics/event/listener.rs` (production and tests). The S4 baseline was measured again at `fefefdd9e`:
+  lines 2,040 / 2,197 (92.85%), regions 2,664 / 2,845 (93.64%), functions 244 / 260 (93.85%), 95 unit tests
+  (see `coverage-evidence.md`). The S5 listener plan must start from the changed file.
+- 2026-10-20 20:41 UTC - GitHub Copilot - `event.rs` is `DONE` (S4): the maintainer approved R1 and the
+  completed file. The 7 tests are now 27 cases in 10 test functions, the dead `announce_events_match` helper
+  and `pub mod test` are gone, and the four unused accessors are pinned as public API. Coverage of the file
+  is 135 / 135 lines, 184 / 184 regions and 22 / 22 functions; the package has 115 unit tests. Mutations
+  L1-L4 and six extra probes were killed.
+- 2026-10-21 07:00 UTC - GitHub Copilot - `container.rs` is `DONE` (S4): the plan was approved on
+  2026-10-20 at 20:49 UTC with D1 (hand-built tracker-core container) and D2 (test `initialize`), and the
+  maintainer approved the completed file. The file went from 0 to 20 tests and all 73 production lines are
+  covered; the package has 135 unit tests and 97.89% of lines. Mutations M1-M7 and eight extra probes were
+  killed; one survived (the swarm registry's usage-statistics flag in `initialize`, not observable from this
+  package) and is recorded in the plan with its owner.
+- 2026-10-21 07:25 UTC - GitHub Copilot - The independent Task Reviewer passed S4 with four `LOW` findings and
+  no required change: two label-table mutants survived in `event.rs` (the protocol and the address-type
+  labels hard-coded, plus an unvaried port), one expected value was computed with a `match`, three
+  `container.rs` tests had several reasons to fail or a split Act, and the `initialize` panic test used a
+  fixed missing directory. All are fixed in the review-round commit (`event.rs` has 29 cases, `container.rs`
+  23 tests) and the report is in `agent-review-reports.md`. The package has 140 unit tests: lines 2,616 /
+  2,672 (97.90%), regions 3,397 / 3,457 (98.26%), functions 316 / 322 (98.14%). The slice awaits its
+  pre-push checks and pull request.
+- 2026-10-21 07:34 UTC - GitHub Copilot - The pre-push checks passed and the S4 pull request #2593
+  (<https://github.com/torrust/torrust-tracker/pull/2593>) was opened with `Related to #1349`. It was
+  not rebased onto the latest `develop`, which changed only documentation outside `packages/http-core`;
+  `git merge-tree` reports no conflict.
+- 2026-10-21 07:55 UTC - GitHub Copilot - Copilot reviewed the S4 pull request head and raised one finding:
+  the event-delivery test never disabled usage statistics, so a bus gated on that policy would have passed.
+  It is fixed by turning four `container.rs` tests over the policy into tables (the file has 27 tests and the
+  package 144), with three new mutations killed only by the disabled cases. The review is audited in
+  `docs/pr-reviews/pr-2593-review/PR-REVIEW.md`. The package now reads lines 2,536 / 2,592 (97.84%), regions
+  3,264 / 3,324 (98.19%), functions 309 / 315 (98.10%).
 
 ## Acceptance Criteria
 

@@ -231,3 +231,55 @@ Measured on 2026-10-20 at the final S3 commit with the same commands. The packag
 | Functions | 161 / 191 (84.29%) | 198 / 221 (89.59%) | 233 / 249 (93.57%) | +3.98 pp |
 
 Since the original baseline the package gained +3.84 pp of lines, +3.14 pp of regions and +9.28 pp of functions. The totals include the test modules; the per-file mutation proof in each plan is the stronger signal.
+
+### Re-measurement Before Slice S4
+
+The S3 merge (#2586) brought four `develop` commits of #2414 that changed `packages/http-core/`: `fix(http-core): [#2414] drain the statistics listener's queue when it is cancelled`, its helper in `torrust-tracker-events`, a re-export of the default drain timeout, and a test import cleanup. Only `statistics/event/listener.rs` changed, in production code and in tests, so the S4 baseline was measured again at `fefefdd9e` (same commands; the package runs 95 unit tests, 93 at the S3 head).
+
+| Scope | After slice S3 (`1b0176415`) | S4 baseline (`fefefdd9e`) |
+| --- | ---: | ---: |
+| Lines | 1,949 / 2,102 (92.72%) | 2,040 / 2,197 (92.85%) |
+| Regions | 2,566 / 2,743 (93.55%) | 2,664 / 2,845 (93.64%) |
+| Functions | 233 / 249 (93.57%) | 244 / 260 (93.85%) |
+
+| Source module | Lines before → after | Regions before → after | Functions before → after |
+| --- | ---: | ---: | ---: |
+| `statistics/event/listener.rs` | 124 / 144 → 215 / 239 | 177 / 196 → 275 / 298 | 18 / 21 → 29 / 32 |
+
+The inventory rows and gap entries for `statistics/event/listener.rs` above (for example, the `TcpAnnounce` region and the lifecycle entries owned by #1488) predate #2414 and must be re-read against the file before the S5 plan; do not trust their line numbers.
+
+### `event.rs` (slice S4)
+
+Measured on 2026-10-20 on the S4 branch, whose production code is identical to `develop` at the merge of #2586. The plan is [event-tests.md](test-refactor-plans/event-tests.md).
+
+| Scope | Before (S4 baseline) | After |
+| --- | ---: | ---: |
+| `event.rs` lines | 157 / 187 (83.96%) | 135 / 135 (100.00%) |
+| `event.rs` regions | 259 / 294 (88.10%) | 184 / 184 (100.00%) |
+| `event.rs` functions | 15 / 20 (75.00%) | 22 / 22 (100.00%) |
+
+The file's 7 tests are now 29 cases in 10 test functions (27 when the file was first completed; the independent review added two label cases). The 30 uncovered lines before were the four unused accessors (12 lines) and the dead `announce_events_match` helper (18 counted lines, removed with its module); the accessors are now pinned as public API.
+
+### `container.rs` (slice S4)
+
+Measured on 2026-10-21 after the pull-request review round, on the S4 branch, whose production code is identical to `develop` at the merge of #2586. The plan is [container-tests.md](test-refactor-plans/container-tests.md).
+
+| Scope | Before (S4 baseline) | After |
+| --- | ---: | ---: |
+| `container.rs` lines | 0 / 73 (0.00%) | 518 / 520 (99.62%) |
+| `container.rs` regions | 0 / 89 (0.00%) | 675 / 678 (99.56%) |
+| `container.rs` functions | 0 / 5 (0.00%) | 58 / 58 (100.00%) |
+
+The file had no tests. It now has 27, in four modules, one per entry point (20 when first completed; the independent review split three tests and the pull-request review parameterized four over the usage-statistics policy). The counted lines include the new test module; all 73 production lines are covered, and the uncovered regions are `matches!` failure branches in the test module. llvm-cov does not count the body lines of a test that is both an `rstest` table and a `#[tokio::test]`, which is why the counted totals fell by 80 lines when four tests became tables, while the production lines stayed covered. One mutation survived: the swarm registry's usage-statistics flag in `initialize`, which no part of this package can observe (see the plan).
+
+### Package After Slice S4
+
+Measured on 2026-10-21 after the pull-request review round, with the same commands. The package has 144 unit tests (95 at the S4 baseline).
+
+| Scope | Original baseline (`87690b15e`) | After slice S3 | S4 baseline (`fefefdd9e`) | After slice S4 |
+| --- | ---: | ---: | ---: | ---: |
+| Lines | 1,751 / 1,970 (88.88%) | 1,949 / 2,102 (92.72%) | 2,040 / 2,197 (92.85%) | 2,536 / 2,592 (97.84%) |
+| Regions | 2,357 / 2,607 (90.41%) | 2,566 / 2,743 (93.55%) | 2,664 / 2,845 (93.64%) | 3,264 / 3,324 (98.19%) |
+| Functions | 161 / 191 (84.29%) | 233 / 249 (93.57%) | 244 / 260 (93.85%) | 309 / 315 (98.10%) |
+
+Since the original baseline the package gained +8.96 pp of lines, +7.78 pp of regions and +13.81 pp of functions. Most of the S4 line gain is the test module of `container.rs`, which counts toward the totals; the per-file mutation proof in each plan is the stronger signal. The S3 column is not comparable line by line with the S4 baseline because #2414 changed `statistics/event/listener.rs` in between.
