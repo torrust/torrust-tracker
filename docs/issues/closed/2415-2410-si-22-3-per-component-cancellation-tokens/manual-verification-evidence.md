@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2415-2410-si-22-3-per-component-cancellation-tokens/ISSUE.md
-last-updated-utc: "2026-10-21 07:22"
+issue-spec: docs/issues/closed/2415-2410-si-22-3-per-component-cancellation-tokens/ISSUE.md
+last-updated-utc: "2026-10-21 09:23"
 ---
 
 # Manual Verification Evidence

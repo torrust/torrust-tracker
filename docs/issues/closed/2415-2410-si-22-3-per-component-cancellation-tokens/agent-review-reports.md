@@ -2,7 +2,7 @@
 semantic-links:
   related-artifacts:
     - .github/agents/task-reviewer.agent.md
-    - docs/issues/open/2415-2410-si-22-3-per-component-cancellation-tokens/ISSUE.md
+    - docs/issues/closed/2415-2410-si-22-3-per-component-cancellation-tokens/ISSUE.md
 ---
 
 # Agent Review Reports - Give Each Application Component Its Own Cancellation Token

@@ -6,7 +6,7 @@ epic: 1488
 github-issue: 2410
 spec-path: docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-21 08:18"
+last-updated-utc: "2026-10-21 09:23"
 semantic-links:
   skill-links:
     - create-issue
@@ -270,7 +270,7 @@ which keeps the detailed steps for all sub-issues.
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | #2413 - Document event flows and draft the shutdown-order ADR | [ISSUE.md](../../closed/2413-2410-si-22-1-document-event-flows-and-draft-adr/ISSUE.md) | T1, T2 | AC9; ADR draft for AC8 | DONE | Documentation only. |
 | 2 | #2414 - Drain listener queues on shutdown | [ISSUE.md](../../closed/2414-2410-si-22-2-drain-listener-queues-on-shutdown/ISSUE.md) | T3, T4, T5 | AC1, AC3, AC4, AC6, AC11, AC12 | DONE | Addresses window (a), isolated by the control run (500 of 500 persisted, V10 and V11); merged in PR #2578 on 2026-10-20. The 5 s default drain timeout bounds admission and does not drain a full buffer (entry 28); race-run loss attribution remains incomplete. |
-| 3 | #2415 - Give each application component its own cancellation token | [ISSUE.md](../2415-2410-si-22-3-per-component-cancellation-tokens/ISSUE.md) | T6 | AC13 (keeps it; no behavior change) | IN_PROGRESS | Refactor that prepares sub-issue 4. |
+| 3 | #2415 - Give each application component its own cancellation token | [ISSUE.md](../../closed/2415-2410-si-22-3-per-component-cancellation-tokens/ISSUE.md) | T6 | AC13 (keeps it; no behavior change) | DONE | Refactor that prepares sub-issue 4; merged in PR #2591 on 2026-10-21. Every component uses its own reservation token; `cancel()` still cancels all at once. The listener-subscription test for AC13 stays with #2416. |
 | 4 | #2416 - Stop event producers before event listeners | [ISSUE.md](../2416-2410-si-22-4-stop-producers-before-listeners/ISSUE.md) | T7, T8, T9, T10 | AC2, AC5, AC7, AC8, AC10, AC13 | TODO | Closes window (b). T9's prerequisite #2471 is satisfied (merged in PR #2544 on 2026-10-16). |
 
 T0 (the reproduction) is done in this folder: evidence in
@@ -1971,7 +1971,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T3  | TODO   | Red regression test (listener)    | Persistent listener test fails against the cancel-first loop; red output recorded.                                              |
 | T4  | TODO   | Listener drain (first listener)   | Persistent listener drains until empty or timeout, logs counts and leftover warning; tests green. Design-review checkpoint.     |
 | T5  | TODO   | Listener drain (remaining)        | Same policy for the other six listener components; characterization tests replaced.                                             |
-| T6  | TODO   | Per-component tokens (refactor)   | Reservation-based registration; every component uses only its own token. No edges yet: `cancel()` still cancels everything at once. Existing tests green. |
+| T6  | DONE   | Per-component tokens (refactor)   | Reservation-based registration; every component uses only its own token. No edges yet: `cancel()` still cancels everything at once. Existing tests green. |
 | T7  | TODO   | Red regression test (stop order)  | `JobManager` stop-order test fails while edges are stored but not enforced; red output recorded.                                |
 | T8  | TODO   | Stop order                        | `JobManager` enforces edges; `EventFlows` registry; bootstrap declarations per the Chosen Design; tests green.                  |
 | T9  | TODO   | Test environments                 | HTTP and UDP environments stop servers before listeners, keep both guarantees in [Test environments](#test-environments), and gain the late-event test for each (prerequisite #2471 merged in PR #2544). |
@@ -2269,6 +2269,7 @@ avoids duplicating the full workflow in four drafts:
 - 2026-10-21 07:02 UTC - GitHub Copilot (Claude Opus 5.5) - #2415 T6-complete design review passed (the D14 checkpoint after T6): the maintainer approved the caller conversion, the documentation updates, and the app-level AC1 test. T6 is committed; the delivery gates (Task Reviewer, retrospective, pre-push checks) remain before the pull request. No design change beyond record entry 30.
 - 2026-10-21 07:20 UTC - GitHub Copilot (Claude Opus 5.5) - #2415 Task Reviewer report (REVIEW PASSED, with findings) and implementation retrospective recorded in its folder. Record entry 30 is restamped from 20:52 to 20:53, the minute the maintainer's answer arrived, because the 20:52 progress-log entry says the review was still pending (Task Reviewer N1). No design change.
 - 2026-10-21 08:18 UTC - GitHub Copilot (Claude Opus 5.5) - #2415 opened as PR #2591; Copilot review round 1 fixed two implementation details of `JobManager`'s registry (the id counter cannot wrap, and `mark_spawned` asserts its invariant), audit in `docs/pr-reviews/pr-2591-review/PR-REVIEW.md`. No design change.
+- 2026-10-21 09:23 UTC - GitHub Copilot (Claude Sonnet 5.5) - #2415 merged in PR #2591 (2026-10-21 09:19 UTC) and archived to `docs/issues/closed/`; its Subissues row and the T6 plan row are `DONE`. The two design-review checkpoints required by D14 for T6 were held, and record entry 30 holds their decisions. Its Task Reviewer report and implementation retrospective are in the archived folder. #2416 is not started. No design change.
 
 ## Acceptance Criteria
 
