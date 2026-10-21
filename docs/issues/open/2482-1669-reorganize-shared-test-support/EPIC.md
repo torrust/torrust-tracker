@@ -6,7 +6,7 @@ epic: 1669
 github-issue: 2482
 spec-path: docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-21 16:38"
+last-updated-utc: "2026-10-21 19:23"
 semantic-links:
   skill-links:
     - create-issue
@@ -169,20 +169,26 @@ packages. The ADR decides.
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-Only subissue 1 (#2618) is defined. Rows 2 onwards are provisional: one per inventory item, with
-the destination and final split set by subissue 1's ADR and migration plan. They become drafts in
-subissue 1 and GitHub issues one at a time afterwards.
+Only subissue 1 (#2618) is a GitHub issue. Rows 2 to 8 are drafts written by subissue 1 from its
+ADR and migration plan, one per inventory item plus the coupling tool change the ADR requires. They
+become GitHub issues one at a time afterwards.
+
+Execution order, strictly one at a time: 1, 2, 8, 3, then 4, 5, 6 and 7 as their #1488 gates clear
+(#2416 for rows 4 and 5, #2449 for row 6, #2450 for row 7; row 7 also after rows 4 to 6). Row 8
+runs before row 3 because row 3 is the first move to use a `testing` feature. A move that gates an
+environment also enables the feature in the other packages' dev-dependencies that use it, in the
+same pull request.
 
 | Order | Issue | Local Spec | Status | Notes |
 | --- | --- | --- | --- | --- |
 | 1 | #2618 - Decide how packages share test support code | [`docs/issues/open/2618-2482-decide-test-support-rules/ISSUE.md`](../2618-2482-decide-test-support-rules/ISSUE.md) | IN_PROGRESS | Tasks D1 to D5; MV1 to MV4. Blocks every other row. |
-| 2 | #[To be assigned] - Move the `test-helpers` protocol helpers to their consumer | Provisional | TODO | Pattern B; coupling report finding 1. `test-helpers` is published as 3.0.0 with only `configuration` and `random`, so the move alone does not break that API; #2583 decides the bump against the published API. |
-| 3 | #[To be assigned] - Gate `tracker-core`'s test modules and mocks | Provisional | TODO | Patterns C and D. |
-| 4 | #[To be assigned] - Relocate the `udp-server` test environment | Provisional | TODO | Pattern A; includes `examples/udp_only_public_tracker.rs`. After #2416 (its T9 changes this environment). |
-| 5 | #[To be assigned] - Relocate the `axum-http-server` test environment | Provisional | TODO | Pattern A; includes `examples/http_only_public_tracker.rs` and the doc-link-only `configuration` edge. After #2471, which merged on 2026-10-16, and after #2416 (its T9 changes this environment). |
-| 6 | #[To be assigned] - Relocate the `axum-rest-api-server` test environment | Provisional | TODO | Pattern A; six forced edges; also removes the stale `rest-api-core` comment in `src/testing/mod.rs`. After #2449. |
-| 7 | #[To be assigned] - Relocate the `axum-health-check-api-server` test environment | Provisional | TODO | Pattern A. After #2450 and after rows 4 to 6, whose environments its tests use. |
-| 8 | #[To be assigned] - Label optional dependency edges in the coupling tool and diagram | Provisional | TODO | Only if the ADR chooses O1; before the first O1 move merges. |
+| 2 | #[To be assigned] - Move the `test-helpers` protocol helpers to their consumer | [`docs/issues/drafts/2482-move-test-helpers-protocol-helpers/ISSUE.md`](../../drafts/2482-move-test-helpers-protocol-helpers/ISSUE.md) | TODO | Pattern B; ADR rule B; coupling report finding 1. The `http` and `udp` modules move to the root crate's `tests/common/`. `test-helpers` is published as 3.0.0 with only `configuration` and `random`, so the move alone does not break that API; #2583 decides the bump. Runs first (not an O1 move). |
+| 3 | #[To be assigned] - Gate `tracker-core`'s test modules and mocks | [`docs/issues/drafts/2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md`](../../drafts/2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md) | TODO | Patterns C and D; ADR rules C and D. `MockTorrentMetricsStore` is also used by `http-core` and `udp-core`, so their dev-dependencies enable the feature in the same PR. The first O1 move: after row 8. |
+| 4 | #[To be assigned] - Gate the `udp-server` test environment behind a `testing` feature | [`docs/issues/drafts/2482-gate-udp-server-test-environment/ISSUE.md`](../../drafts/2482-gate-udp-server-test-environment/ISSUE.md) | TODO | Pattern A; ADR rule A; includes `examples/udp_only_public_tracker.rs`. After #2416 (its T9 changes this environment). |
+| 5 | #[To be assigned] - Gate the `axum-http-server` test environment behind a `testing` feature | [`docs/issues/drafts/2482-gate-axum-http-server-test-environment/ISSUE.md`](../../drafts/2482-gate-axum-http-server-test-environment/ISSUE.md) | TODO | Pattern A; includes `examples/http_only_public_tracker.rs` and the doc-link-only `configuration` edge. After #2471, which merged on 2026-10-16, and after #2416 (its T9 changes this environment). |
+| 6 | #[To be assigned] - Gate the `axum-rest-api-server` test environment behind a `testing` feature | [`docs/issues/drafts/2482-gate-axum-rest-api-server-test-environment/ISSUE.md`](../../drafts/2482-gate-axum-rest-api-server-test-environment/ISSUE.md) | TODO | Pattern A; six forced edges; also removes the stale `rest-api-core` comment in `src/testing/mod.rs`. After #2449. |
+| 7 | #[To be assigned] - Gate the `axum-health-check-api-server` test environment behind a `testing` feature | [`docs/issues/drafts/2482-gate-axum-health-check-api-server-test-environment/ISSUE.md`](../../drafts/2482-gate-axum-health-check-api-server-test-environment/ISSUE.md) | TODO | Pattern A. After #2450 and after rows 4 to 6, whose environments its tests use. Closes #2482: regenerates the coupling report and checks AC8. |
+| 8 | #[To be assigned] - Label optional and self dependency edges in the coupling tool and diagram | [`docs/issues/drafts/2482-label-optional-and-self-dependency-edges/ISSUE.md`](../../drafts/2482-label-optional-and-self-dependency-edges/ISSUE.md) | TODO | Required: the ADR chose O1. Before row 3, the first O1 move. |
 
 ## Delivery Strategy
 
@@ -296,7 +302,8 @@ affects them.
       #1669 orchestrator's review)
 - [x] Spec-only PR merged into `develop` (PR #2614, merge commit `0126fa3f7`, 2026-10-21)
 - [x] Subissue 1 created and linked in this spec (#2618)
-- [ ] Subissues 2 onwards drafted by subissue 1 and linked in this spec
+- [x] Subissues 2 onwards drafted by subissue 1 and linked in this spec (drafts for rows 2 to 8, in
+      the pull request of #2618; the maintainer's approval is the merge of that pull request)
 - [ ] Subissue statuses kept up to date in the `Subissues` table
 - [ ] For each implemented subissue: automatic checks completed and recorded
 - [ ] For each implemented subissue: manual verification completed and recorded
@@ -389,6 +396,15 @@ Append one line per meaningful update.
   and set row 1 of the Subissues table to IN_PROGRESS. Ticked "Spec-only PR merged into `develop`"
   (true since PR #2614 merged) and "Subissue 1 created and linked in this spec". The Phase 1 plan
   now defers to #2618's spec.
+- 2026-10-21 19:23 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 1) - Subissue 1 (#2618)
+  wrote the migration plan: drafts for rows 2 to 8 under `docs/issues/drafts/2482-<slug>/` (links in
+  the Subissues table), the execution order (1, 2, 8, 3, then 4 to 7 as their #1488 gates clear),
+  and the ADR `docs/adrs/20261021190318_share_workspace_test_support_through_testing_features.md`
+  (O1 with a path-only self dev-dependency for patterns A and D; the maintainer decided it on
+  2026-10-21). Two consequences for this EPIC: row 8 is required (the ADR chose O1) and runs before
+  row 3; and the inventory was corrected: `MockTorrentMetricsStore` is used by `http-core` and
+  `udp-core`, so row 3 also edits those two packages' dev-dependencies. Ticked the checkpoint for
+  the drafts.
 
 ## Acceptance Criteria
 
