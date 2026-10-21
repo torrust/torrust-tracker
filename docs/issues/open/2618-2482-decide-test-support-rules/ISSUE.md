@@ -9,7 +9,7 @@ github-issue: 2618
 spec-path: docs/issues/open/2618-2482-decide-test-support-rules/ISSUE.md
 branch: "2618-2482-decide-test-support-rules-spec"
 related-pr: null
-last-updated-utc: "2026-10-21 18:50"
+last-updated-utc: "2026-10-21 19:05"
 semantic-links:
   skill-links:
     - create-issue
@@ -193,8 +193,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
 | T1 | DONE | D1: run MV1 to MV4 in scratch workspaces and record them | `manual-verification-evidence.md` in this folder: exact commands, manifests, output, toolchain versions (stable, and 1.88.0, the MSRV). A packaging baseline on the real workspace (`cargo package --workspace --no-verify`, read-only). A result that contradicts the EPIC is recorded and raised with the maintainer. Scratch workspaces removed |
-| T2 | TODO | Summarize the evidence for the maintainer: per option, what the verification shows | Short table in the evidence file, sent to the maintainer through `ask_user` with a recommendation |
-| T3 | TODO | D2: write the ADR after the maintainer decides | New file in `docs/adrs/` with a timestamp name, registered in `docs/adrs/index.md`. Criteria; all of O1 to O8 and O1a to O1c with strengths, weaknesses and the reason for each rejection; one rule per pattern A to E; the ownership map; the mechanism for a package's own targets if O1 is chosen. Approved by the maintainer |
+| T2 | DONE | Summarize the evidence for the maintainer: per option, what the verification shows | Short table in the evidence file, sent to the maintainer through `ask_user` with a recommendation |
+| T3 | IN_PROGRESS | D2: write the ADR after the maintainer decides | New file in `docs/adrs/` with a timestamp name, registered in `docs/adrs/index.md`. Criteria; all of O1 to O8 and O1a to O1c with strengths, weaknesses and the reason for each rejection; one rule per pattern A to E; the ownership map; the mechanism for a package's own targets if O1 is chosen. Approved by the maintainer |
 | T4 | TODO | D3: add the DEC entry amending DEC-13 | New entry (DEC-18) at the top of `DECISIONS.md` linking the ADR and correcting the `tracker-core/src/test_helpers.rs` premise; a pointer line on DEC-13 (status line unchanged otherwise) |
 | T5 | TODO | D4: write the migration drafts for rows 2 to 8 | Drafts `docs/issues/drafts/2482-<slug>/ISSUE.md` with `epic: 2482`, destination, final order, and the #1488 gating (#2416 for rows 4 and 5, #2449 for row 6, #2450 for row 7). Row 8 only if O1 is chosen. Update the #2482 Subissues table and give each inventory item a destination |
 | T6 | TODO | D5: link the drafts from findings 1 and 2 of the 2026-10-06 coupling report | Links resolve; the 2026-10-17 report is untouched |
@@ -257,6 +257,16 @@ Append one line per meaningful update.
   features for every target; a doc test cannot use `required-features`; a versioned
   dev-dependency cycle between publishable crates cannot be packaged; Cargo 1.88.0 cannot run
   `cargo package --workspace --no-verify` on this repository.
+- 2026-10-21 19:05 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 1) - Corrected the
+  inventory (commit `docs(issues): [#2618] correct the inventory: http-core and udp-core use a
+  tracker-core mock`): `MockTorrentMetricsStore` is imported by `#[cfg(test)]` modules of four files
+  in `http-core` and `udp-core`, so pattern D is not crate-private, contrary to the inventory's
+  earlier text. Put the evidence and a recommendation before the maintainer (josecelano), who
+  approved the combination (O1 with O1c for patterns A and D, O4 and O3 for B, O5 for C, O3 for E)
+  and the semver stance (the `testing` features are test support outside semver). Wrote the ADR
+  `docs/adrs/20261021190318_share_workspace_test_support_through_testing_features.md` and
+  registered it in the ADR index. A follow-up probe (evidence V4b) showed that with the self
+  dev-dependency `#[cfg(feature = "testing")]` alone gates the module for unit tests too.
 
 ## Acceptance Criteria
 
