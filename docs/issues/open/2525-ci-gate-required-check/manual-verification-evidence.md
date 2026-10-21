@@ -506,9 +506,9 @@ that mapping is taken from GitHub's description and is reproduced by the test fi
 adapter before the fix read `permission` and so could not accept `maintain`; the new test of a Maintain-role actor
 failed against it, with fixtures of the real shape.
 
-The check-runs request now sets `filter=all` (F16). On the head commit `74b3000e9` of this pull request the
-request with and without it lists the same 22 runs, with no superseded run of a name, so that commit shows only
-that GitHub accepts the parameter; the fixture tests are what show that the request carries it.
+The check-runs request now sets `filter=all` (F16). On the head commit of this pull request whose subject is
+`docs(pr-reviews): record the fifth review round in the PR #2610 audit`, the request with and without it lists the
+same 22 runs, with no superseded run of a name, so that commit shows only that GitHub accepts the parameter; the fixture tests are what show that the request carries it.
 
 The final run has 226 unit and 23 command-line tests; `cargo clippy`, `cargo +nightly fmt --check`, the
 documentation build, and `cargo machete` are clean.

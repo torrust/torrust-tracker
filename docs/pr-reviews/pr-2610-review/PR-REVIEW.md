@@ -271,7 +271,7 @@ inline threads, so the bodies add no rows.
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4340837163>
 - Concern: the entry dated 11:23 had its counts replaced in each later round, so it now says `209 unit and 23 command-line tests, 27 of 27 mutants`, while the round entries below it say `Now 200 unit and 18` and so on; at 11:23 neither those tests nor those mutants existed. Restore the 11:23 counts, and let V11 carry the current totals.
 - Solution: the entry says again `198 unit and 18 command-line tests, 16 of 16 mutants killed`, as it did when it was written. The later totals stay in the round entries and in V11.
-- Current-tree verification: the original text was taken from the commit that wrote it, `git show be161e208`.
+- Current-tree verification: the original text was taken from the commit that wrote it, whose subject is `docs(issues): [#2525] record the T6a design decisions and evidence`.
 - Resolution reference: docs(issues): [#2525] restore the counts of the 11:23 progress log entry
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4340990705
@@ -297,7 +297,7 @@ inline threads, so the bodies add no rows.
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4340837185>
 - Concern: the request leaves `filter` at its default, `latest`, but the rules assume that every run of a group job is listed: a later skipped run must not hide an earlier result, and the highest id wins among all runs. If the default omits a superseded run of the same name, that case reads as missing in production while the fixture passes. Add `&filter=all` to the request and the fixture paths.
 - Solution: the request is `check-runs?filter=all&per_page=100` and the fixture paths follow.
-- Current-tree verification: the fixture tests failed before the change. On the real head commit `74b3000e9`, the request with and without the parameter lists the same 22 runs, so it shows only that GitHub accepts the parameter.
+- Current-tree verification: the fixture tests failed before the change. On the real head commit whose subject is `docs(pr-reviews): record the fifth review round in the PR #2610 audit`, the request with and without the parameter lists the same 22 runs, so it shows only that GitHub accepts the parameter.
 - Resolution reference: fix(ci-gate): [#2525] ask for every check run, not only the latest of each name
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4340991334
