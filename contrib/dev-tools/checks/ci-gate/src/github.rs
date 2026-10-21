@@ -101,9 +101,10 @@ pub struct GithubVerdict {
     #[serde(flatten)]
     pub verdict: VerdictResult,
     /// Why an override did not apply, when the verdict failed without it and there is something to say:
-    /// the label is on the pull request but does not count (it is stale, or the actor may not override,
-    /// or no event of it being applied was found), or whether it is there could not be told because the
-    /// labels, the events, or the permission could not be read. It is `None` when there is no label.
+    /// the labels could not be read, so whether the label is there is not known, or the label is on the
+    /// pull request but does not count (it is stale, the actor may not override, no event of it being
+    /// applied was found, or the events, the check suites, or the permission could not be read). It is
+    /// `None` when the labels were read and the label is not among them.
     pub override_ignored: Option<String>,
 }
 
@@ -263,6 +264,10 @@ fn assess_override(api: &dyn GithubApi, pull_request: &PullRequestRef) -> Overri
         Ok(labels) => labels,
         Err(error) => return OverrideAssessment::Ignored(format!("cannot read the labels of the pull request: {error}")),
     };
+    if !labels.iter().any(|label| label.name == OVERRIDE_LABEL) {
+        return OverrideAssessment::NotRequested;
+    }
+
     let events: Vec<Event> = match fetch_list(api, &format!("{base}/issues/{}/events?per_page=100", pull_request.number)) {
         Ok(events) => events,
         Err(error) => return OverrideAssessment::Ignored(format!("cannot read the events of the pull request: {error}")),
@@ -1075,6 +1080,29 @@ mod tests {
                 .is_some_and(|reason| reason.contains("no event of it being applied was found")),
             "a label that was asked for must not be silently ignored: {:?}",
             verdict.override_ignored
+        );
+    }
+
+    #[test]
+    fn it_should_report_no_override_and_ask_nothing_more_when_the_labels_do_not_include_the_label_and_the_events_cannot_be_read()
+    {
+        // Arrange
+        let api = failing_head()
+            .with(LABELS_PATH, vec![json!([{ "name": "bug" }])])
+            .failing(EVENTS_PATH, "HTTP 500");
+
+        // Act
+        let verdict = decide_for_pull_request(&api, &pull_request(), &classification_needing_db_benchmarking()).expect("decided");
+
+        // Assert
+        assert_eq!(
+            (
+                verdict.verdict.verdict,
+                verdict.override_ignored,
+                api.requests().contains(&EVENTS_PATH.to_string())
+            ),
+            (Verdict::Fail, None, false),
+            "with no override label there is nothing to explain, and the events are not needed"
         );
     }
 }
