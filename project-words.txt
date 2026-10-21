@@ -580,6 +580,7 @@ whitespaces
 withf
 wordexp
 worktree
+writeln
 xxxxxxxxxxxxxxxxxxxxd
 yyyyyyyyyyyyyyyyyyyyd
 zerocopy
