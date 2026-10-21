@@ -409,6 +409,8 @@ impl ComponentRegistry {
         }
     }
 
+    // Cancelling a token only wakes the tasks waiting on it; none of them can
+    // re-enter this registry while the lock is held.
     fn cancel_all(&mut self) {
         self.cancelled = true;
         for component in self.components.values() {
@@ -1148,12 +1150,17 @@ mod tests {
         let dropped_reservation = manager.reserve("dropped-component");
         let kept_reservation = manager.reserve("kept-component");
         let dropped_token = dropped_reservation.cancellation_token();
-        drop(dropped_reservation);
 
         // Act
+        drop(dropped_reservation);
+        let kept_token_cancelled_by_the_drop = kept_reservation.cancellation_token().is_cancelled();
         manager.cancel();
 
         // Assert
+        assert!(
+            !kept_token_cancelled_by_the_drop,
+            "dropping one reservation must not cancel another component"
+        );
         assert!(
             !dropped_token.is_cancelled(),
             "a released reservation's token must no longer be held by the manager"
