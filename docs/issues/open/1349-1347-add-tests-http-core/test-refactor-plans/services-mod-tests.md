@@ -51,10 +51,12 @@ one signed commit.
 
 ## Results
 
-Documentation-only change, made on 2026-10-21 at 14:43 UTC. The line now reads "does not depend on the Axum web
-server" (the word `not` is the whole diff). Evidence for the claim: `packages/http-core/Cargo.toml` has no `axum`
-dependency. The file has no executable entry, before or after, so no coverage figure moves; no test was added and
-no named mutation applies.
+Documentation-only change, made on 2026-10-21 at 14:43 UTC: "does depend on the Axum web server" became "does not
+depend". After Copilot's review of the pull request pointed at the grammar of the sentence, the paragraph was
+reworded: "These modules contain logic that is specific to the HTTP tracker. They do not depend on the Axum web
+server and could be reused for other web servers." Evidence for the claim: `packages/http-core/Cargo.toml` has no
+`axum` dependency. The file has no executable entry, before or after, so no coverage figure moves; no test was
+added and no named mutation applies.
 
 ## Approval
 
@@ -65,7 +67,7 @@ conclusion and the documentation correction D1.
 
 - 2026-10-21 13:23 UTC - GitHub Copilot - Created the plan from `services/mod.rs`. No Rust test or production code
   changed. The plan awaits maintainer approval.
-- 2026-10-21 13:3x UTC - Jose Celano - Approved the plan, including D1 (the exact time was not noted).
+- 2026-10-21 between 13:23 and 13:50 UTC - Jose Celano - Approved the plan, including D1 (the exact time was not noted).
 - 2026-10-21 14:43 UTC - GitHub Copilot - R2-R4 done: the comment was corrected and the docs build with
   `-D warnings`.
 - 2026-10-21 14:46 UTC - Jose Celano - Approved the completed file. The plan is `done`.
