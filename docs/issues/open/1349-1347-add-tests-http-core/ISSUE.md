@@ -460,8 +460,8 @@ lines are the S2 baseline measurement (see [Baseline Coverage](#baseline-coverag
 | 8 | `statistics/metrics.rs` | 6 | S5 | 48 / 57 (84.21%) | 1 | Test candidate | DONE | [statistics-metrics-tests.md](test-refactor-plans/statistics-metrics-tests.md) (done; 141 / 141 lines after) |
 | 9 | `statistics/repository.rs` | 6 | S5 | 21 / 24 (87.50%) | 0 (3 doc tests) | Test candidate | DONE | [statistics-repository-tests.md](test-refactor-plans/statistics-repository-tests.md) (done; 108 / 108 lines after) |
 | 10 | `statistics/mod.rs` | 6 | S5 | 8 / 8 (100.00%) | 0 | Probably small change (metric-name contract) | DONE | [statistics-mod-tests.md](test-refactor-plans/statistics-mod-tests.md) (done; 32 / 32 lines after, name and exposition pinned) |
-| 11 | `lib.rs` | 7 | S6 | 27 / 27 (100.00%) | 0 | Test support only | DONE | [lib-tests.md](test-refactor-plans/lib-tests.md) (done; 97 / 97 lines after, log target and `RecordingSender` pinned) |
-| 12 | `services/mod.rs` | 7 | S6 | No executable entries | 0 | Wiring only | DONE | [services-mod-tests.md](test-refactor-plans/services-mod-tests.md) (done; no test, module comment corrected to "does not depend on the Axum web server") |
+| 11 | `lib.rs` | 7 | S6 | 27 / 27 (100.00%; 41 / 41 at the S6 start, after S3 added the shared `RecordingSender`) | 0 | Test support only | DONE | [lib-tests.md](test-refactor-plans/lib-tests.md) (done; 97 / 97 lines after, log target and `RecordingSender` pinned) |
+| 12 | `services/mod.rs` | 7 | S6 | No executable entries | 0 | Wiring only | DONE | [services-mod-tests.md](test-refactor-plans/services-mod-tests.md) (done; no test, module comment corrected to say the modules "do not depend on the Axum web server") |
 | 13 | `statistics/event/mod.rs` | 7 | S6 | No executable entries | 0 | Wiring only | DONE | [statistics-event-mod-tests.md](test-refactor-plans/statistics-event-mod-tests.md) (done; no change) |
 
 ## Progress Tracking

@@ -392,12 +392,12 @@ The 22 uncovered lines are:
 | Location | Lines | Kind | Owner or decision |
 | --- | ---: | --- | --- |
 | `services/error_mapping.rs` 18-20 | 3 | Production | The wildcard arm for an unknown `TrackerCoreError` variant; the enum is `#[non_exhaustive]` with four variants, so no code outside `tracker-core` can build a fifth (error-mapping plan). |
-| `statistics/event/handler.rs` 20 and 25 | 3 | Production | The failed-counter-increase `Err` arm and the debug closure; reachable only with a failing metrics repository or log capture (handler plan). The mutation run records `log_counter_increased` as the one missed mutant. |
+| `statistics/event/handler.rs` 20 and 25 | 3 (summary) / 2 (text) | Production | The failed-counter-increase `Err` arm and the debug closure; reachable only with a failing metrics repository or log capture (handler plan). The mutation run records `log_counter_increased` as the one missed mutant. |
 | `statistics/event/listener.rs` 132 | 1 | Production | The `warn!` argument for an ignored event (listener plan). |
 | `statistics/event/listener.rs` 200 | 1 | Test support | The `Lagged` arm of the scripted test receiver. |
 | `container.rs`, `services/announce.rs`, `services/scrape.rs` test modules | 14 | Test modules | Lines inside test bodies that `llvm-cov` does not count for `rstest` tables combined with `#[tokio::test]` (see the lessons). |
 
-Seven production lines remain uncovered, all with a recorded owner. Mutation evidence: [mutation-evidence.md](mutation-evidence.md).
+Seven production lines remain uncovered, all with a recorded owner. The counts are those of the `llvm-cov` JSON summary; the line-level text report of the same run marks 20 lines instead of 22: it marks lines 20 and 25 of `handler.rs` where the summary counts three, and one line of `container.rs` where the summary counts two; the other files agree. File-level counts can therefore differ from a line listing by a line. Mutation evidence: [mutation-evidence.md](mutation-evidence.md).
 
 ### Final Test-Technique Assessment
 
