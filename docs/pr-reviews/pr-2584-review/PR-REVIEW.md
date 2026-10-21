@@ -133,6 +133,10 @@ deliver findings through GitHub and have no repository-artifact obligation.
   merge gate for PR #2584 in comment
   <https://github.com/torrust/torrust-tracker/pull/2584#issuecomment-6310493858>, created at
   07:25:32 UTC. PR #2584 merged at 2026-10-20 20:45 UTC with only the author's ACK.
+- 2026-10-21 09:34 UTC - PR #2596 merged (`mergedAt` 09:33:59 UTC) with the spec fix for WAIT-001.
+  Changed WAIT-001 from `FOLLOW_UP` to `FIXED`, with the fix commit subject as the resolution
+  reference and #2596 as the follow-up PR. The tracking row, Solution, Current-tree verification,
+  and Follow-up PR URL of the WAIT-001 entry were updated in place; the earlier log entries are unchanged.
 
 Append entries only. If an entry was rewritten in place, restore the prior entries, then append a
 correction that names the rewritten content; do not rewrite the record again.
@@ -153,7 +157,3 @@ correction that names the rewritten content; do not rewrite the record again.
 - Cite a fix by its unique Conventional Commit subject or durable reply URL, never by a branch SHA
   that can change after a rebase.
 - Refresh review threads using GraphQL and confirm that no unresolved actionable thread remains.
-- 2026-10-21 09:34 UTC - PR #2596 merged (`mergedAt` 09:33:59 UTC) with the spec fix for WAIT-001.
-  Changed WAIT-001 from `FOLLOW_UP` to `FIXED`, with the fix commit subject as the resolution
-  reference and #2596 as the follow-up PR. The tracking row, Solution, Current-tree verification,
-  and Follow-up PR URL of the WAIT-001 entry were updated in place; the earlier log entries are unchanged.
