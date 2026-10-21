@@ -40,19 +40,23 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Two reviews were submitted so far, both by Copilot. Each body repeats its inline threads, so the bodies add
+Three reviews were submitted so far, all by Copilot. Each body repeats its inline threads, so the bodies add
 no rows.
 
 - Review 5599040224 read the head whose subject is "docs(issues): [#2525] propose the design of the override
   across runs". It carries two inline threads, F1 and F2.
 - Review 5599861652 read the head whose subject is "docs(pr-reviews): add the PR #2605 review audit". It
   marks F1 and F2 as resolved and carries one inline thread, F3.
+- Review 5600335776 read the head whose subject is "docs(pr-reviews): record the second review round in the PR
+  #2605 audit". It marks F3 as resolved and carries two inline threads, F4 and F5.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2605-f1 | Copilot | Nit (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 | F2 | review-finding:pr-2605-f2 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
-| F3 | review-finding:pr-2605-f3 | Copilot | Minor (inferred) | correctness | ORIGINAL | FOLLOW_UP | RESOLVED |
+| F3 | review-finding:pr-2605-f3 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
+| F4 | review-finding:pr-2605-f4 | Copilot | Nit (inferred) | formatting | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F5 | review-finding:pr-2605-f5 | Copilot | Nit (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -94,14 +98,45 @@ no rows.
 - Solution: the concern is right for that script, but the file is evidence of what ran in the sandbox, so it
   was not changed. The limit is stated in V10, and the code that replaces it, the adapter of T6a in pull
   request 2610, reads every page of every response; no test covered the pagination of the check suites, so
-  that pull request gained one, with the earliest suite on the second page, and the disposition is
-  `FOLLOW_UP` for that test.
+  that pull request gained one, with the earliest suite on the second page. The limit stated in V10 is the fix
+  of this pull request, so the disposition is `FIXED`.
 - Current-tree verification: V10 states the limit and points to the adapter. In the branch of pull request
   2610 the test fails when only the first page, or the first listed suite, is used (two mutants), and
   `cargo test -p ci-gate` passes with 199 unit and 18 command-line tests.
 - Resolution reference: docs(issues): [#2525] record that the saved T5 workflow does not paginate the check suites
-- Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2610>
+- Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4337084993>
+
+### F4 - The review audit's table is said to have a doubled leading pipe
+
+- PR number: 2605
+- Source review ID: 5600335776
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4337308235>
+- Concern: each row of the audit's table is said to start with `||`, which renders an empty first column.
+  Start each row with a single `|`.
+- Solution: no change. No row of the table starts with `||`.
+- Current-tree verification: `grep -c "^||"` on the audit gives 0, every table row starts with a single `|`,
+  as in the earlier audits, and the audit validator parses all three rows then and now. The doubled pipe may
+  come from how a diff shows an added table row, with the diff marker before the first pipe.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4337403647>
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4337403647>
+
+### F5 - The sandbox folder in the log header is ambiguous
+
+- PR number: 2605
+- Source review ID: 5600335776
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4337308336>
+- Concern: the header of `t5-gate-logs.txt` names the saved sandbox files as `t5-sandbox/.`, which is ambiguous
+  from the repository root. Use the full repository-relative path.
+- Solution: the header gives `docs/issues/open/2525-ci-gate-required-check/evidence/t5-sandbox/`. The T4
+  transcript named `t4-sandbox/` the same way and got the same change.
+- Current-tree verification: both transcripts name the full path, and the path exists.
+- Resolution reference: docs(issues): [#2525] give the sandbox folders in the evidence transcripts as repository paths
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4337404053>
 
 ## Processing Log
 
@@ -114,6 +149,11 @@ no rows.
   the saved script; the file is evidence, so the limit was documented, and the missing pagination test of
   the check suites was added in the pull request of the code that replaces it.
 - 2026-10-21 12:59 UTC - Pushed, replied on the thread, and added F3 to this record.
+- 2026-10-21 13:20 UTC - Copilot's third review arrived with two threads, F4 and F5. F5 was confirmed and fixed.
+  F4 does not match the file: no table row starts with a doubled pipe.
+- 2026-10-21 13:29 UTC - Pushed, replied on both threads, and added F4 and F5 to this record. The reply to F4
+  was rewritten into the prescribed form `Superseded by F4: <reason>.`, and F3 was changed from `FOLLOW_UP` to
+  `FIXED`, because the skill gives a follow-up a reply URL as its reference and this finding was fixed here.
 
 ## Completion Rules
 
