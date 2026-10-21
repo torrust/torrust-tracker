@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2415-2410-si-22-3-per-component-cancellation-tokens/ISSUE.md
-last-updated-utc: "2026-10-20 20:59"
+last-updated-utc: "2026-10-21 07:02"
 ---
 
 # Manual Verification Evidence
@@ -76,3 +76,78 @@ meant to change no behavior, so there is no bug red/green pair.
   foreign-reservation test also cancels the issuing manager in its Act, because that is the only way
   to observe that the rejected reservation was released.
 - Result: pass. Every mutation is caught by at least one new test.
+
+### V2 - T6b and T6c: every caller converted, and a guard for AC1
+
+- Goal: show that every component `src/app.rs` registers uses only its reservation token, that the
+  direct `JobManager` users compile against the final API, and that the existing suite still passes.
+- Working-tree state: the T6b and T6c change on top of the T6a commit, uncommitted while these runs
+  happened and then committed as `refactor(bootstrap): [#2415] give every application component its own reservation token`: `src/app.rs`,
+  `src/console/profiling.rs`, and the `manager.rs` tests converted; the `spawn_unreserved` adapter
+  removed; `new_cancellation_token()` renamed `legacy_cancellation_token()`; and the new
+  `app::Error::ComponentRegistration` (sub-EPIC record entry 30).
+- Caller inventory in `src/app.rs` (read with `grep`): 13 `job_manager.reserve(` calls, 13
+  `spawn_component(job_manager, ...)` calls, 13 `reservation.cancellation_token()` uses, no
+  `.child_token()` call, no `new_cancellation_token`, and one `legacy_cancellation_token()` use, by
+  the legacy `udp_ban_cleanup` job. The only `CancellationToken::new()` in the file is in a test that
+  runs one listener without `JobManager`. Listener registration order in `start_jobs_with_manager`
+  is unchanged (AC4): every listener is still reserved, built (which subscribes its receiver), and
+  spawned before any producer.
+- Finding (read from the run, not inferred): before this change no test guarded AC1. With the
+  http-core listener given an unrelated `CancellationToken::new()` instead of its reservation token,
+  `cargo test -p torrust-tracker --lib app::` (16 passed) and `cargo test --test lifecycle-signals`
+  (13 passed) both still passed; each only took about 10 s longer, because the listener was aborted at
+  the shared deadline and `main` discards the outcomes. The gap predates #2415.
+- New test `it_should_stop_every_started_component_cooperatively_when_the_manager_is_cancelled` in
+  `src/app.rs`: a configuration that starts all 14 registrations (seven listeners, both UDP and HTTP
+  tracker instances' first entries, torrent cleanup, peers inactivity update, REST API, health check
+  API, and the legacy ban cleanup) runs `start_jobs_with_manager`, cancels, and expects each direct
+  component to report `Cancelled` and the legacy job `Completed` within a 5 s deadline. It passes in
+  0.03 s. Mutations, each alone and restored from a copy, compiled before reading:
+  - each of the 13 `reservation.cancellation_token()` uses replaced by `CancellationToken::new()`:
+    the test fails in all 13 cases after the 5 s deadline;
+  - `udp_ban_cleanup` given `CancellationToken::new()` instead of the legacy root token: the test
+    fails, and its message names `udp_ban_cleanup` with `status: Aborted`.
+- Commands and outcomes (default toolchain):
+  - `cargo test -p torrust-tracker --tests --benches --examples --all-targets --all-features`: exit 0,
+    14 test targets, 169 passed, 0 failed (before the new app test was added).
+  - `cargo test --test lifecycle-signals`: 13 passed.
+  - `cargo test -q -p torrust-tracker --doc`: pass, including the `Reservation` doctests.
+  - `linter clippy`: exit 0.
+- Result: pass.
+
+### V3 - M1: shutdown unchanged against `develop`, like for like
+
+- Goal: run the real tracker binary with every service, signal it, and compare its shutdown logs and
+  exit code with `develop`.
+- Binaries: `develop` built from `git archive` of the merge `Merge torrust/torrust-tracker#2587:
+  chore(issues): archive closed issue #2414 spec to docs/issues/closed` into `.tmp/m1/develop-src`
+  with its own `CARGO_TARGET_DIR`; the branch built from the V2 working tree. Both with
+  `cargo build --bin torrust-tracker`, default toolchain, `dev` profile (configured as optimized with
+  debug info).
+- Configuration: `share/default/config/tracker.development.sqlite3.toml` with loopback binds on
+  unused ports (UDP 26868 and 26969, HTTP 27070 and 27171, REST API 21212, health check 21313) and a
+  fresh SQLite file per run; persistent completed statistics and usage statistics enabled, so all
+  seven listeners, both periodic jobs, and the legacy ban cleanup start.
+- Steps: a disposable runner in the git-ignored `.tmp/m1/` starts the binary with
+  `--config-toml-path`, waits until `GET /health_check` answers, waits 2 s, sends the signal to the
+  binary's own PID with `kill -s`, waits for it, and records the exit code and the time to exit.
+- Outcomes, 2026-10-20 between 21:09 and 21:10 UTC:
+
+  | Binary | Signal | Exit code | Time to exit | `Job` outcomes | Drain reports | Aborted, `WARN`, `ERROR` |
+  | --- | --- | --- | --- | --- | --- | --- |
+  | `develop` | SIGTERM | 0 | 0.010 s | 15 cancelled, 1 completed | 7 | 0, 0, 0 |
+  | branch | SIGTERM | 0 | 0.010 s | 15 cancelled, 1 completed | 7 | 0, 0, 0 |
+  | `develop` | SIGINT | 0 | 0.010 s | 15 cancelled, 1 completed | 7 | 0, 0, 0 |
+  | branch | SIGINT | 0 | 0.011 s | 15 cancelled, 1 completed | 7 | 0, 0, 0 |
+
+  The 15 cancelled outcomes are the 7 listeners, 2 UDP and 2 HTTP instances, torrent cleanup, peers
+  inactivity update, the REST API, and the health check API; the completed outcome is the legacy
+  `udp_ban_cleanup`. Each run logs `Torrust tracker shutting down (SIGTERM)`
+  or `(SIGINT)` as sent, and `Torrust tracker successfully shutdown.`
+- Comparison: after removing timestamps, run-specific paths, request UUIDs, ephemeral client ports,
+  and durations, the sorted logs of `develop` and the branch are identical for each signal (0
+  differing lines of 230). The order of the job outcomes differs, but it also differs between three
+  SIGTERM runs of the same `develop` binary (three different orders), so it is scheduling, not a
+  change; the spec does not promise identical scheduler timing.
+- Result: pass. The same components stop, cooperatively, with the same exit code.
