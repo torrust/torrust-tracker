@@ -9,7 +9,7 @@ github-issue: 2525
 spec-path: docs/issues/open/2525-ci-gate-required-check/ISSUE.md
 branch: "2525-ci-gate-required-check"
 related-pr: null
-last-updated-utc: "2026-10-21 15:24"
+last-updated-utc: "2026-10-21 15:52"
 semantic-links:
   skill-links:
     - create-issue
@@ -483,7 +483,7 @@ Conventional Commits with narrow scopes and sign every commit with GPG.
   it; an error reading the check runs is a runtime error (exit 1, nothing on stdout), and an error reading
   anything the override needs means no override with the reason in `override_ignored`; a failing verdict
   still exits with 0; the repository, commit id, and login are validated because they become part of request
-  paths. 201 unit and 19 command-line tests, 20 of 20 mutants killed, and a manual run on real GitHub data,
+  paths. 209 unit and 19 command-line tests, 24 of 24 mutants killed, and a manual run on real GitHub data,
   including a replay of runs 5 and 7 of the T5 sandbox from the captured responses that gave the same results -
   [`manual-verification-evidence.md`](manual-verification-evidence.md) V11. The current upstream workflows
   have no check runs named after the groups, so on an upstream pull request every needed group is missing; that
@@ -531,6 +531,18 @@ Conventional Commits with narrow scopes and sign every commit with GPG.
   end-to-end tests was named after the process and the test name, so two fixtures with the same name would share
   files; a counter is added (`test(ci-gate): [#2525] give each fake gh a directory of its own`). Both new tests
   were seen to fail first. Now 201 unit and 19 command-line tests, and two more mutants killed -
+  [`manual-verification-evidence.md`](manual-verification-evidence.md) V11.
+- 2026-10-21 15:52 UTC - GitHub Copilot - Processed Copilot's third review of PR #2610 (three threads, one concern: the
+  end-to-end tests of `github-verdict` exist only on Unix, because the stand-in `gh` is a shell script). I checked
+  what is lost: the pull-request workflows run tests on Linux only, because the Windows and macOS jobs of
+  `os-compatibility.yaml` only run `cargo build`, and the sibling tool `frontmatter-validator` gates its command-line
+  tests the same way, so a cross-platform stand-in would cost a helper binary built with every `cargo build -p
+  ci-gate`, which the cold-build budget of AC6 counts, for no coverage that CI runs today. What the finding does
+  show is that the parsing of the paginated output of `gh` and the failure message were covered only by the
+  Unix tests, so both are now pure functions with unit tests that run everywhere (`refactor(ci-gate): [#2525] test
+  the parsing of the output of gh on every platform`), and the reason for the gating is written next to the
+  stand-in (`docs(ci-gate): [#2525] say why the github-verdict command-line tests are unix-only`). Now 209 unit and
+  19 command-line tests, and four more mutants killed -
   [`manual-verification-evidence.md`](manual-verification-evidence.md) V11.
 
 ## Acceptance Criteria

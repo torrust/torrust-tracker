@@ -436,10 +436,10 @@ GitHub JSON, and only the label response, which is `[{"name": "ci-override"}]`, 
 last row is the contract that T6b and T6c have to meet: nothing calls the adapter yet, so it changes no
 behavior today.
 
-Twenty mutants of `github.rs`, `gh.rs`, and the tests' fixture were applied one at a time and the whole test suite run for each, with the
+Twenty-four mutants of `github.rs`, `gh.rs`, and the tests' fixture were applied one at a time and the whole test suite run for each, with the
 file restored afterwards (`diff` against a saved copy). Six of them did not compile the first time, because
 the workspace's `-D warnings` rejects unused code, so they ran no test; they were rewritten and rerun. All
-twenty compiled and were killed:
+twenty-four compiled and were killed:
 
 | Mutant                                                                          | Failing tests |
 | ------------------------------------------------------------------------------- | ------------- |
@@ -463,8 +463,12 @@ twenty compiled and were killed:
 | a label with no event of it being applied is not an override that was asked for |             1 |
 | the events are read before the labels show that the label is present            |             1 |
 | a fake `gh` directory is named without a counter                                |             1 |
+| only the first page of the output of `gh` is parsed, tested without a process   |             4 |
+| the failure message omits `--paginate`                                          |             1 |
+| the error of a failed request is not limited in length                          |             1 |
+| output of `gh` that is not JSON is accepted as no page                          |             2 |
 
-The final run has 201 unit and 19 command-line tests; `cargo clippy`, `cargo +nightly fmt --check`, the
+The final run has 209 unit and 19 command-line tests; `cargo clippy`, `cargo +nightly fmt --check`, the
 documentation build, and `cargo machete` are clean.
 
 ## Failures and Follow-up
