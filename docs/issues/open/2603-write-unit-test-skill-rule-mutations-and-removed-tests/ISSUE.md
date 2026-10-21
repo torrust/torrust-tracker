@@ -9,7 +9,7 @@ github-issue: 2603
 spec-path: docs/issues/open/2603-write-unit-test-skill-rule-mutations-and-removed-tests/ISSUE.md
 branch: "2603-write-unit-test-skill-rule-mutations-and-removed-tests-spec"
 related-pr: null
-last-updated-utc: "2026-10-21 11:06"
+last-updated-utc: "2026-10-21 11:57"
 semantic-links:
   skill-links:
     - create-issue
@@ -114,9 +114,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status | Task | Notes / Expected Output |
 | --- | ------ | ---- | ----------------------- |
 | T1  | DONE   | Settle the open questions Q1 to Q4 with the maintainer | Each answer is recorded under "Decisions on the Open Questions" and in the progress log; the proposed text needed no change. |
-| T2  | TODO   | Add the per-clause mutation section to the `write-unit-test` skill | A section next to "Prove a Regression Test Guards the Bug", linking to it for the compile check and the evidence rule. |
-| T3  | TODO   | Add the removed-or-merged-test rule to the skill | A short rule, placed where the skill discusses reorganising tests, plus two "Quick Checklist" entries. |
-| T4  | TODO   | Walk the two rules through the #2415 artifacts (M1, M2) | Both scenarios recorded in `manual-verification-evidence.md`. |
+| T2  | DONE   | Add the per-clause mutation section to the `write-unit-test` skill | A section next to "Prove a Regression Test Guards the Bug", linking to it for the compile check and the evidence rule. Committed after the maintainer approved the wording. |
+| T3  | DONE   | Add the removed-or-merged-test rule to the skill | A short section right after the skill's test-inventory section, plus its "Quick Checklist" entry (the row said "two entries"; the Commit Points and AC3 mean one per rule, which is what was done). Committed after the maintainer approved the wording. |
+| T4  | DONE   | Walk the two rules through the #2415 artifacts (M1, M2) | Both scenarios recorded in `manual-verification-evidence.md` (V1, V2). |
 | T5  | TODO   | Validate and review | `linter all`, the frontmatter check, completion review, and the independent Task Reviewer report. |
 
 ## Commit Points
@@ -179,9 +179,9 @@ Checklist entries:
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [ ] (Optional) Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
+- [x] Implementation completed
 - [ ] Automatic verification completed (`linter all`)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
@@ -196,6 +196,9 @@ Checklist entries:
 - 2026-10-21 10:38 UTC - GitHub Copilot (Claude Sonnet 5.5) - The maintainer answered Q1 to Q4 as recommended (one instance is enough for both rules, a new sibling section, no reviewer change, keep the bound) and chose a spec-only pull request first: branch `2603-write-unit-test-skill-rule-mutations-and-removed-tests-spec`, `Related to #2603`. The skill change follows on the reserved branch `2603-write-unit-test-skill-rule-mutations-and-removed-tests`. T1 is `DONE`. No wording change.
 - 2026-10-21 10:41 UTC - GitHub Copilot (Claude Sonnet 5.5) - Opened the spec-only PR #2604 (`Related to #2603`).
 - 2026-10-21 11:06 UTC - GitHub Copilot (Claude Sonnet 5.5) - Copilot's review of PR #2604 has one finding (`review-finding:pr-2604-f1`): the per-clause mutation example named a clause the drop rule does not have. It is fixed in the proposed skill text, and the review is processed in `docs/pr-reviews/pr-2604-review/PR-REVIEW.md` (replied to and resolved, no unresolved thread). The correction changes the example only, not the rules or the maintainer's decisions on Q1 to Q4.
+- 2026-10-21 11:34 UTC - GitHub Copilot (Claude Sonnet 5.5) - PR #2604 merged on 2026-10-21 at 11:32 UTC; issue #2603 stays open. Implementation started on the reserved branch `2603-write-unit-test-skill-rule-mutations-and-removed-tests`, cut from the merged `develop`.
+- 2026-10-21 11:50 UTC - GitHub Copilot (Claude Sonnet 5.5) - T2 and T3 written in the skill and shown to the maintainer, who approved the wording (verdict `approve`, no changes). Two things differ from the agreed text, both disclosed at the review: each new section cites the #2415 observation in one sentence, and the removed-test rule is its own `###` section instead of a paragraph. Committed as `docs(skills): [#2603] ask for a mutation per clause of a rule a test guards` and `docs(skills): [#2603] ask for a record when a refactor removes or merges a test`. The T3 plan row asked for two checklist entries, but the Commit Points and AC3 mean one per rule; one each was added, and the row is corrected. No design change.
+- 2026-10-21 11:57 UTC - GitHub Copilot (Claude Sonnet 5.5) - T4 done: M1 and M2 recorded in `manual-verification-evidence.md` (V1, V2). M2 flags the test the #2415 conversion removed (manager tests 17 to 16, no record in the commit message). M1 yields the mutation the original release test missed, but was not blind as the scenario asked: I wrote the #2415 finding up and knew it, and the mutation outcomes are cited from #2415's evidence, not re-run. Both limits are in V1. Next: pre-push checks, the Task Reviewer report, and the completion review.
 
 ## Acceptance Criteria
 
@@ -220,8 +223,8 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | -- | -------- | ---------------------------- | --------------- | ------ | -------- |
-| M1 | The per-clause rule on the #2415 release rule | Without looking at the Task Reviewer report, apply the new section to the sentence "a dropped unspawned reservation must release its state without cancelling unrelated components" in the #2415 spec. List the clauses and one mutation for each, then compare with the mutations recorded in V1 and V4 of the #2415 evidence. | The clause list contains the negative clause, and its mutation is one that passes the original release test and fails the strengthened one. | TODO | `manual-verification-evidence.md` section V1 |
-| M2 | The removed-test rule on the #2415 conversion | Take the diff of the commit `refactor(bootstrap): [#2415] give every application component its own reservation token` and apply the new rule. List the tests it removes and the record the rule asks for. | The rule flags the removal of `it_should_report_cooperatively_cancelled_jobs` and names the test that replaced it. | TODO | `manual-verification-evidence.md` section V2 |
+| M1 | The per-clause rule on the #2415 release rule | Without looking at the Task Reviewer report, apply the new section to the sentence "a dropped unspawned reservation must release its state without cancelling unrelated components" in the #2415 spec. List the clauses and one mutation for each, then compare with the mutations recorded in V1 and V4 of the #2415 evidence. | The clause list contains the negative clause, and its mutation is one that passes the original release test and fails the strengthened one. | DONE (not blind, see V1) | `manual-verification-evidence.md` section V1 |
+| M2 | The removed-test rule on the #2415 conversion | Take the diff of the commit `refactor(bootstrap): [#2415] give every application component its own reservation token` and apply the new rule. List the tests it removes and the record the rule asks for. | The rule flags the removal of `it_should_report_cooperatively_cancelled_jobs` and names the test that replaced it. | DONE | `manual-verification-evidence.md` section V2 |
 
 Notes:
 
@@ -241,10 +244,10 @@ None planned.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1   | TODO                   |          |
-| AC2   | TODO                   |          |
-| AC3   | TODO                   |          |
-| AC4   | TODO                   |          |
+| AC1   | TODO                   | The section "Prove a Test Guards Each Clause of a Rule" in the skill; evidence V1 |
+| AC2   | TODO                   | The section "Remove or Merge a Test Only With a Record" in the skill; evidence V2 |
+| AC3   | TODO                   | Two entries in the skill's "Quick Checklist" |
+| AC4   | TODO                   | Evidence V1 and V2, with the limits stated in V1 |
 
 ## Decisions on the Open Questions
 
