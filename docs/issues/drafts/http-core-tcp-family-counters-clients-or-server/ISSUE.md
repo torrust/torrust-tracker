@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/http-core-tcp-family-counters-clients-or-server/ISSUE.md
 branch: "{issue-number}-http-core-tcp-family-counters-clients-or-server"
 related-pr: null
-last-updated-utc: "2026-10-21 18:49"
+last-updated-utc: "2026-10-21 18:55"
 semantic-links:
   skill-links:
     - create-issue
@@ -41,11 +41,12 @@ The four getters of `Metrics` in `packages/http-core/src/statistics/metrics.rs`
 (`tcp4_announces_handled`, `tcp4_scrapes_handled`, `tcp6_announces_handled`, `tcp6_scrapes_handled`) are
 documented as "Total number of TCP (HTTP tracker) `announce` requests from IPv4 peers" (and IPv6, and
 `scrape`). They select the samples on the label `server_binding_address_ip_family` (`inet` or `inet6`), which
-`statistics/event/handler.rs` fills from the address the server is **bound to**, not from the client's address.
+`packages/http-core/src/event.rs` sets from the address the server is **bound to** (`statistics/event/handler.rs` passes the connection on), not from the client's address.
 
 Observable consequence: a request whose client address is IPv6 but whose server binding is IPv4 is counted as `tcp4`.
 A native IPv6 connection cannot reach an IPv4-only listener, so this mixed-family case is reachable only in
-reverse-proxy mode (`[http_trackers.network] on_reverse_proxy = true`). In that mode the client address comes from
+reverse-proxy mode (`[http_trackers.network] on_reverse_proxy = true`). A second route is a dual-stack `[::]` binding,
+where IPv4 clients arrive as IPv4-mapped IPv6 addresses (scenario M3, not yet reproduced). In that mode the client address comes from
 `X-Forwarded-For` (`packages/http-protocol/src/v1/services/peer_ip_resolver.rs`), so an IPv6 forwarded address reaches
 the handler over an IPv4 listener.
 The REST API publishes these values as `tcp4_announces_handled`, `tcp6_announces_handled`, and so on
@@ -53,7 +54,10 @@ The REST API publishes these values as `tcp4_announces_handled`, `tcp6_announces
 
 The client family is also classified for IPv4-mapped IPv6 addresses (`::ffff:a.b.c.d`). In
 `packages/http-core/src/event.rs` such an address is classified as `Inet6`, and the handler test `v4_mapped_v6`
-pins that result. Any decision about the client meaning must therefore also decide how mapped addresses count.
+pins that result. Any decision about the client meaning must therefore also decide how mapped addresses count. Two options for T1:
+(a) count a mapped address as IPv4, so `client_address_ip_family` reports `inet` for it; or (b) keep it as IPv6 and
+say so in the docs. Under (b), a client-based selection that only reads `client_address_ip_family` still counts a
+mapped client as `tcp6`, so the docs must describe that exception explicitly.
 
 The event also carries the client's family (label `client_address_ip_family`, added by the #1671 line of work,
 spec `docs/issues/closed/1671-ipv4-ipv6-client-metrics/ISSUE.md`). That spec explains that the server-binding label
@@ -91,7 +95,7 @@ Not applicable.
 
 Follow `.github/skills/dev/debugging/fix-bug/SKILL.md`:
 
-- analysis: confirm the label source in `handler.rs` and the history of the selection;
+- analysis: confirm the label source in `packages/http-core/src/event.rs` (~151–152) and the history of the selection;
 - reproduction: in reverse-proxy mode (`on_reverse_proxy = true`), send an announce with an IPv6 `X-Forwarded-For`
   address to the IPv4 HTTP listener and read the REST API statistics. Recorded in
   `manual-verification-evidence.md` section V1 and classified Reproduced. The wrong-or-intended question depends on T1;
@@ -100,8 +104,8 @@ Follow `.github/skills/dev/debugging/fix-bug/SKILL.md`:
 - regression boundary: the existing unit test in `metrics.rs`, updated, plus a handler-level case;
 - production change per the maintainer's decision; green tests; a final like-for-like recheck.
 
-If the decision is "documentation is wrong", the bug-fix process reduces to a documentation correction with the
-existing test as its guard.
+If the decision is "documentation is wrong", a documentation-only correction is proposed as a reduced process. `fix-bug`
+does not define that exception, so it needs the maintainer's approval (see Open Decisions).
 
 ## Regression Test Strategy
 
@@ -123,13 +127,14 @@ both transports.
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
 | T1 | TODO | Decide the meaning for HTTP and UDP, including IPv4-mapped IPv6 clients (maintainer) | Options: (A) keep server-binding meaning and correct the docs; (B) client meaning via `client_address_ip_family`, with mapped addresses counted as IPv4 or IPv6. Recorded in this spec before T2. |
-| T2 | TODO | Red: add cases R1–R3 that fail against the current code wherever the T1 decision changes behavior | Red before green. Skipped only under the documentation-only exception below. |
+| T2 | TODO | Red: add regression cases R1–R3 that fail against the current code wherever T1 changes behavior | Record the failing test output in `evidence/red-run.txt` before T3 starts. Not skipped unless the maintainer approves the documentation-only option (see Open Decisions). |
 | T3 | TODO | Green: align code, doc comments and REST API docs with T1; update the pinned test and `v4_mapped_v6` | One signed commit per independent change. |
-| T4 | TODO | Re-run manual scenario M2 after the fix and record it in `manual-verification-evidence.md` | Reverse-proxy case reads the new meaning. |
+| T4 | TODO | Green recheck: run the automatic checks in the Verification Plan, then re-run manual scenario M2 after the fix | Record M2 in `manual-verification-evidence.md`. The reverse-proxy case reads the new meaning. |
 
-Documentation-only exception: if T1 keeps the server-binding meaning and the only change is documentation, there is
-no production change and no red test. The existing pinned test stays the guard, and V1 records the behavior that the
-corrected docs must describe. The evidence file must state this exception explicitly.
+Documentation-only option (proposal, not a `fix-bug` rule): if T1 keeps the server-binding meaning and the only change
+is documentation, T2 and T3 would have no production change and no red test. The existing pinned test would stay the
+guard, and V1 would record the behavior that the corrected docs describe. Using it requires the maintainer's explicit
+approval, recorded in the evidence file before use.
 
 ## Commit Points
 
@@ -158,6 +163,7 @@ corrected docs must describe. The evidence file must state this exception explic
 ### Progress Log
 
 - 2026-10-21 18:49 UTC - AI assistant (GitHub Copilot, Copilot SDK in VS Code) - Reproduced the reverse-proxy mixed-family case (IPv6 `X-Forwarded-For` over the IPv4 listener); `tcp4_announces_handled` 0→1, `tcp6` stayed 0; addressed the three Copilot review threads on the draft - `evidence/`, `manual-verification-evidence.md` V1
+- 2026-10-21 18:55 UTC - AI assistant (GitHub Copilot, Copilot SDK in VS Code) - Revised the draft for the second PR #2621 review (F1–F5): label source moved to `event.rs`; mapped-address options and the dual-stack route (M3, not yet reproduced) added; T2 split into red and T3 fix, with T4 as the green recheck; the documentation-only option moved to Open Decisions; required sections completed
 
 ## Acceptance Criteria
 
@@ -175,6 +181,8 @@ Define verification before implementation starts and execute it before closing t
 
 ### Automatic Checks
 
+The commands below run on the default stable toolchain. The pre-commit and pre-push gates also run the nightly checks.
+
 - `cargo test -p torrust-tracker-http-core`
 - `cargo test -p torrust-tracker-udp-core` (UDP counters, when T1 covers them)
 - `linter all`
@@ -188,6 +196,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | --- | --- | --- | --- | --- | --- |
 | M1 | Reverse-proxy mixed family before the fix: IPv6 `X-Forwarded-For` over the IPv4 HTTP listener | Build, run with `on_reverse_proxy = true`, announce with `X-Forwarded-For: 2001:db8::1`, read `/api/v1/stats` | Current behavior recorded (`tcp4` incremented, `tcp6` unchanged) | DONE | `manual-verification-evidence.md` section V1 and `evidence/` |
 | M2 | Same scenario after the T1 change | Repeat M1 on the fixed build | Counter matches the decision in T1 | TODO | `manual-verification-evidence.md` (to be added as V2) |
+| M3 | Dual-stack `[::]` binding: an IPv4 client reaches an inet6 socket | Set `bind_address = "[::]:7070"` on the HTTP tracker, announce over IPv4 to `127.0.0.1`, read `/api/v1/stats` and the labels in the log | Record the observed counters and labels. Today both the binding and the mapped client classify as `inet6`, so M3 does not separate the two meanings until T1 changes mapped handling | TODO | `manual-verification-evidence.md` (to be added as V3) |
 
 Notes:
 
@@ -218,6 +227,21 @@ None planned. The reverse-proxy check is a manual `curl` sequence recorded in th
 - If needed, create `implementation-retrospective.md` from `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this
   issue specification's directory.
 - Independent reviewer results go in `agent-review-reports.md` (see `docs/templates/AGENT-REVIEW-REPORTS.md`).
+
+## Open Decisions (maintainer)
+
+These are not decided in this draft. Each one needs the maintainer's answer before the matching task starts.
+
+- T1 meaning: server binding (option A) or client (option B), for HTTP and UDP.
+- Mapped addresses (`::ffff:a.b.c.d`) under option B: count as IPv4 (a) or keep as IPv6 with documented exception (b).
+- Whether the reproduction in V1 is a defect or expected behavior, given that the pinned test
+  `it_should_count_by_the_family_of_the_server_binding_and_not_of_the_client` encodes the current behavior.
+- Whether the draft must be fully compliant with `fix-bug` before merge, or can merge first as a documentation-only
+  correction.
+- Whether the documentation-only option is acceptable, given that `fix-bug` does not define it.
+- Whether the development token `MyAccessToken` in committed evidence (`evidence/tracker.toml`,
+  `manual-verification-evidence.md`) is acceptable. It matches the repository's own e2e configuration, so it is not a
+  real secret.
 
 ## References
 
