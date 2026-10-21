@@ -40,7 +40,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Seven reviews were submitted so far, six by Copilot and one by the reviewer `da2ce7`. Each body repeats its
+Eight reviews were submitted so far, six by Copilot and two by the reviewer `da2ce7`. Each body repeats its
 inline threads, so the bodies add no rows.
 
 - Review 5599696060 read the head whose subject is "feat(ci-gate): [#2525] add the GitHub adapter of the merge
@@ -64,6 +64,10 @@ inline threads, so the bodies add no rows.
 - Review 5605009491, by Copilot, read the same head, "docs(pr-reviews): record the fifth review round in the PR #2610
   audit", and was submitted at 19:20 UTC, before the previous round was pushed. It marks F12 as resolved and
   carries three inline threads, F22 to F24.
+- Review 5605208219, by `da2ce7`, state `DISMISSED` (GitHub dismissed it when the previous round was pushed), read the
+  head whose subject is "docs(pr-reviews): record the sixth review round in the PR #2610 audit". It finds all of F13 to F20 repaired and withdraws F21. It carries three inline threads,
+  labeled F22 to F24 by the reviewer; they are recorded as F25 to F27 because those labels were already used for the
+  review bot's threads. Each bracket is the reviewer's own.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -91,6 +95,9 @@ inline threads, so the bodies add no rows.
 | F22 | review-finding:pr-2610-f22 | Copilot | Nit (inferred) | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F23 | review-finding:pr-2610-f23 | Copilot | Nit (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
 | F24 | review-finding:pr-2610-f24 | Copilot | Nit (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F25 | review-finding:pr-2610-f25 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F26 | review-finding:pr-2610-f26 | Human | Minor | link-integrity | ORIGINAL | FIXED | RESOLVED |
+| F27 | review-finding:pr-2610-f27 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -406,6 +413,45 @@ inline threads, so the bodies add no rows.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4341247141
 
+### F25 - The record misses the review bot's sixth review, whose threads were resolved with no reply
+
+- PR number: 2610
+- Source review ID: 5605208219
+- Reviewer finding ID: F22
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4341136871>
+- Concern: the review bot's sixth review left three threads that were resolved with no reply and no row, and the paragraph of this record counts six reviews. The Completion Rules say to reply on every resolvable thread before resolving it and to record each finding. None of the three is a defect, so rows with `NO_ACTION`, the replies, and seven reviews in the count would close it.
+- Solution: the rows F22 to F24, the replies on the three threads, and the count of reviews were added by the commit "docs(pr-reviews): record the seventh review round in the PR #2610 audit", pushed after the head that was reviewed. The count is now eight with the reviewer's second review. F23 and F24 are `FIXED` and not `NO_ACTION`, because a small change was made for each.
+- Current-tree verification: the audit validator reports 27 rows and every thread of the pull request has a reply from the author.
+- Resolution reference: docs(pr-reviews): record the seventh review round in the PR #2610 audit
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4341294592
+
+### F26 - Three records cite commit ids of the branch
+
+- PR number: 2610
+- Source review ID: 5605208219
+- Reviewer finding ID: F23
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4341136882>
+- Concern: the check of the `open-pull-request` skill reports two ids of the branch, cited in the audit and in V11. The skill says that no durable reference may cite a commit of the branch by id, and asks for the check before every push that changes an audit or an evidence file. Cite the subjects instead.
+- Solution: the audit (the F14 and F16 verifications) and V11 cite subjects. The reply on F21 cited two ids and was edited to cite subjects. I had not run the check before pushing; it was run for this round. It still prints three ids of commits that exist only on the fork's sandbox branches, in the T5 evidence of the pull request this one is stacked on, which is left for that pull request.
+- Current-tree verification: the check, run from the repository root against the upstream remote, prints only those three ids, each in the file `evidence/t5-gate-logs.txt` or in V10 of the evidence.
+- Resolution reference: docs(pr-reviews): cite commit subjects, not ids, in the PR #2610 audit and V11
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4341295053
+
+### F27 - The step from 198 to 199 tests has no entry
+
+- PR number: 2610
+- Source review ID: 5605208219
+- Reviewer finding ID: F24
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4341136887>
+- Concern: the 11:23 progress log entry says 198 unit tests and 16 of 16 mutants, which is right for that time. The next counted state, 199 tests and 17 mutants, has no entry, so the 14:43 entry's "Now 200 ... and one more mutant killed" reads as 198 to 200 and 16 to 17, while the totals were 200 and 18. A short entry, or "from 199 and 17" in the 14:43 entry, would make the chain add up.
+- Solution: the 14:43 entry says "from 199 unit tests and 17 mutants after the test that the earliest check suite is taken over all pages". A new entry was not written, because an entry written now for a time in the morning would be a backdated record.
+- Current-tree verification: the chain 198 and 16, 199 and 17, 200 and 18 adds up from the commits that changed the counts.
+- Resolution reference: docs(issues): [#2525] show the step from 199 tests and 17 mutants in the 14:43 progress log entry
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4341295317
+
 ## Processing Log
 
 - 2026-10-21 12:33 UTC - Copilot's review arrived with four threads, F1 to F4.
@@ -448,6 +494,13 @@ inline threads, so the bodies add no rows.
   know about. I noticed from the count, 24 threads where 21 were expected, read the three, checked each one, and
   replied on them; they stay resolved because the replies and fixes now answer them. Fixed F23 and F24, declined
   F22 with its evidence, recorded the round in the specification, and added F22 to F24 to this record.
+- 2026-10-21 19:54 UTC - The reviewer `da2ce7` had posted a second review at 19:37 UTC (three threads), which GitHub then
+  marked as dismissed when I pushed. Read the three, checked them, and found two of them to be my own slips: records
+  that cite commit ids of the branch, which the check of the `open-pull-request` skill reports and which I had not
+  run, and a count chain that skipped a step. Fixed F26 and F27 in one signed commit each, answered F25 with the
+  previous round's record, edited my reply on F21 (it cited two ids), pushed, replied on the three threads, and added
+  F25 to F27 to this record. The check still prints three ids of commits of the fork's sandbox branches, in the T5
+  evidence of the pull request this one is stacked on; they are left for that pull request.
 
 ## Completion Rules
 
