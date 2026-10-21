@@ -124,7 +124,7 @@ no rows.
 - Reviewer finding ID: N/A
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4338604801>
 - Concern: `assess_override` fetches the events unconditionally, so a failing events request sets `override_ignored` although the labels, which were read, show that there is no override label. Fetch the labels first, return at once when the label is absent, and add a test of no label and a failing events API expecting `override_ignored` to be `None`.
-- Solution: `assess_override` returns that no override was asked for as soon as the labels do not include the label, and reads the events, check suites, and permission only after that. The documentation of the field says that it is `None` when the labels were read and the label is not among them. This was a defect in the change of the previous round, which had no test for that case.
+- Solution: `assess_override` returns that no override was asked for as soon as the labels do not include the label, and reads the events, check suites, and permission only after that. The documentation of the field says that it is `None` when the labels were read and the label is not among them. The behavior was in the first version of the adapter, not introduced by a later change: finding F1 of the first review pointed at the same unreadable-events case and offered to fix the implementation or to broaden the documentation, the documentation was broadened, and this finding asked for the implementation fix, so the same defect cost a second round. No test covered a label that is absent while the events request fails.
 - Current-tree verification: the test with no label and an events API that fails expects `override_ignored` `None` and no events request: it failed before the fix, and a mutant that reads the events first fails it again. `cargo test -p ci-gate` passes with 201 unit and 19 command-line tests.
 - Resolution reference: fix(ci-gate): [#2525] read the events only when the override label is on the pull request
 - Follow-up PR URL: N/A
@@ -191,7 +191,7 @@ no rows.
   One commit failed on a GPG passphrase timeout and was rerun after the maintainer was asked.
 - 2026-10-21 14:49 UTC - Pushed, replied on the four threads after the push, and started this record.
 - 2026-10-21 15:21 UTC - Copilot's second review arrived with two threads, F5 and F6. Both were confirmed,
-  and F5 was a defect of the first round's change.
+  and F5 was the implementation fix that F1 of the first round had offered as an alternative to the documentation change that was chosen.
 - 2026-10-21 15:27 UTC - Wrote the tests first and saw them fail, fixed each finding in its own signed commit,
   recorded the round in the specification, pushed, replied on both threads, and added F5 and F6 to this record.
 - 2026-10-21 15:47 UTC - Copilot's third review arrived with three threads, F7 to F9, one concern at three lines.
@@ -199,6 +199,10 @@ no rows.
 - 2026-10-21 15:55 UTC - Moved the parsing of the output of gh and the failure message into pure functions with
   portable unit tests, wrote the reason for the gating next to the stand-in, recorded the round in the
   specification, pushed, replied on the three threads, and added F7 to F9 to this record.
+- 2026-10-21 16:36 UTC - While preparing the review retrospective, found that the origin of F5 was recorded wrongly,
+  as a defect of the previous round's change, although the behavior was in the first version of the adapter and
+  F1 had offered the implementation fix; corrected the text of F5 here, in the specification, and in the reply on
+  the thread.
 
 ## Completion Rules
 

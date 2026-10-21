@@ -525,9 +525,10 @@ Conventional Commits with narrow scopes and sign every commit with GPG.
   adapter read the events of the pull request whenever the verdict failed, so a failing events request set
   `override_ignored` on a pull request with no override label at all; it now returns as soon as the labels show
   that the label is absent and reads the events only after that, and the documentation of the field says when it
-  is `None` (`fix(ci-gate): [#2525] read the events only when the override label is on the pull request`). This
-  is a second defect in the code of the previous round's `override_ignored` change, which I wrote without a test
-  for a label that is absent and an events request that fails. The directory of a fake `gh` in the
+  is `None` (`fix(ci-gate): [#2525] read the events only when the override label is on the pull request`). The
+  behavior was in the first version of the adapter: the first review's finding about it offered to fix the
+  implementation or to broaden the documentation, I broadened the documentation, and this finding asked for the
+  implementation fix. No test covered a label that is absent while the events request fails. The directory of a fake `gh` in the
   end-to-end tests was named after the process and the test name, so two fixtures with the same name would share
   files; a counter is added (`test(ci-gate): [#2525] give each fake gh a directory of its own`). Both new tests
   were seen to fail first. Now 201 unit and 19 command-line tests, and two more mutants killed -
