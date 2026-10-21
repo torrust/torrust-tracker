@@ -40,13 +40,16 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Two reviews were submitted so far, both by Copilot. Each body repeats its inline threads, so the bodies add
+Three reviews were submitted so far, all by Copilot. Each body repeats its inline threads, so the bodies add
 no rows.
 
 - Review 5599696060 read the head whose subject is "feat(ci-gate): [#2525] add the GitHub adapter of the merge
   verdict". It carries four inline threads, F1 to F4.
 - Review 5602014129 read the head whose subject is "docs(pr-reviews): add the PR #2610 review audit". It marks
   F1 to F4 as resolved and carries two inline threads, F5 and F6.
+- Review 5602354694 read the head whose subject is "docs(pr-reviews): record the second review round in the PR
+  #2610 audit". It marks F5 and F6 as resolved and carries three inline threads, F7 to F9, which make one point
+  at three lines of the same file, so F8 and F9 are recorded as re-raises of F7.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -56,6 +59,9 @@ no rows.
 | F4 | review-finding:pr-2610-f4 | Copilot | Nit (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
 | F5 | review-finding:pr-2610-f5 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
 | F6 | review-finding:pr-2610-f6 | Copilot | Nit (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
+| F7 | review-finding:pr-2610-f7 | Copilot | Suggestion | testing | ORIGINAL | FIXED | RESOLVED |
+| F8 | review-finding:pr-2610-f8 | Copilot | Suggestion | testing | RE_RAISE_OF:F7 | NO_ACTION | SUPERSEDED |
+| F9 | review-finding:pr-2610-f9 | Copilot | Suggestion | testing | RE_RAISE_OF:F7 | NO_ACTION | SUPERSEDED |
 
 ## Finding Details
 
@@ -137,6 +143,45 @@ no rows.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4338662055>
 
+### F7 - The github-verdict command-line tests exist only on Unix
+
+- PR number: 2610
+- Source review ID: 5602354694
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4338863115>
+- Concern: all `github-verdict` command-line tests and the `FakeGh` harness are gated behind `#[cfg(unix)]`, so the subcommand has no end-to-end coverage on other platforms. If the crate is meant to be portable, or CI runs tests on Windows, rework `FakeGh` to be cross-platform, for example with a helper executable or a `.cmd` wrapper.
+- Solution: no cross-platform stand-in was built, because the pull-request workflows run tests on Linux only (the Windows and macOS jobs of `os-compatibility.yaml` only run `cargo build`), the sibling tool `frontmatter-validator` gates its command-line tests the same way, and a helper binary would be built by every `cargo build -p ci-gate`, which the cold-build budget approved for AC6 counts. The finding did show that the parsing of the paginated output of `gh` and the failure message were covered only by the Unix tests, so both are now pure functions with unit tests that run on every platform, and the reason for the gating is written next to the stand-in.
+- Current-tree verification: the unit tests of `gh.rs` run on every platform (eight new ones), four mutants of the two functions are killed, and `cargo test -p ci-gate` passes with 209 unit and 19 command-line tests. What only the Unix tests still cover is the spawning of the program and the mapping of its exit status.
+- Resolution reference: refactor(ci-gate): [#2525] test the parsing of the output of gh on every platform
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4338932386>
+
+### F8 - The github-verdict command-line tests exist only on Unix (same concern, another line)
+
+- PR number: 2610
+- Source review ID: 5602354694
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4338863184>
+- Concern: all `github-verdict` command-line tests and the `FakeGh` harness are gated behind `#[cfg(unix)]`, so the subcommand has no end-to-end coverage on other platforms. If the crate is meant to be portable, or CI runs tests on Windows, rework `FakeGh` to be cross-platform, for example with a helper executable or a `.cmd` wrapper. It is the concern of F7, raised at another line.
+- Solution: no change, for the reason given for F7.
+- Current-tree verification: the reply of F7 answers it, and the text next to the stand-in covers every use of it.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4338932892>
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4338932892>
+
+### F9 - The github-verdict command-line tests exist only on Unix (same concern, another line)
+
+- PR number: 2610
+- Source review ID: 5602354694
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4338863231>
+- Concern: all `github-verdict` command-line tests and the `FakeGh` harness are gated behind `#[cfg(unix)]`, so the subcommand has no end-to-end coverage on other platforms. If the crate is meant to be portable, or CI runs tests on Windows, rework `FakeGh` to be cross-platform, for example with a helper executable or a `.cmd` wrapper. It is the concern of F7, raised at another line.
+- Solution: no change, for the reason given for F7.
+- Current-tree verification: the reply of F7 answers it, and the text next to the stand-in covers every use of it.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4338933317>
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4338933317>
+
 ## Processing Log
 
 - 2026-10-21 12:33 UTC - Copilot's review arrived with four threads, F1 to F4.
@@ -149,6 +194,11 @@ no rows.
   and F5 was a defect of the first round's change.
 - 2026-10-21 15:27 UTC - Wrote the tests first and saw them fail, fixed each finding in its own signed commit,
   recorded the round in the specification, pushed, replied on both threads, and added F5 and F6 to this record.
+- 2026-10-21 15:47 UTC - Copilot's third review arrived with three threads, F7 to F9, one concern at three lines.
+  Checked what the Unix-only tests lose in CI: nothing, since tests run on Linux only.
+- 2026-10-21 15:55 UTC - Moved the parsing of the output of gh and the failure message into pure functions with
+  portable unit tests, wrote the reason for the gating next to the stand-in, recorded the round in the
+  specification, pushed, replied on the three threads, and added F7 to F9 to this record.
 
 ## Completion Rules
 
