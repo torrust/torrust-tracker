@@ -40,7 +40,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Six reviews were submitted so far, five by Copilot and one by the reviewer `da2ce7`. Each body repeats its
+Seven reviews were submitted so far, six by Copilot and one by the reviewer `da2ce7`. Each body repeats its
 inline threads, so the bodies add no rows.
 
 - Review 5599696060 read the head whose subject is "feat(ci-gate): [#2525] add the GitHub adapter of the merge
@@ -61,6 +61,9 @@ inline threads, so the bodies add no rows.
   was never posted, so its findings are numbered from F13 and re-verified at this head. It carries nine inline
   threads, F13 to F21, each with a severity in its own bracket, and says that all twelve threads of the review bot
   are resolved and repaired by the commits the record names.
+- Review 5605009491, by Copilot, read the same head, "docs(pr-reviews): record the fifth review round in the PR #2610
+  audit", and was submitted at 19:20 UTC, before the previous round was pushed. It marks F12 as resolved and
+  carries three inline threads, F22 to F24.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -85,6 +88,9 @@ inline threads, so the bodies add no rows.
 | F19 | review-finding:pr-2610-f19 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F20 | review-finding:pr-2610-f20 | Human | Nit | testing | ORIGINAL | FIXED | RESOLVED |
 | F21 | review-finding:pr-2610-f21 | Human | Nit | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F22 | review-finding:pr-2610-f22 | Copilot | Nit (inferred) | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F23 | review-finding:pr-2610-f23 | Copilot | Nit (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F24 | review-finding:pr-2610-f24 | Copilot | Nit (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -361,6 +367,45 @@ inline threads, so the bodies add no rows.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4340992984
 
+### F22 - Option::is_none_or can raise the MSRV
+
+- PR number: 2610
+- Source review ID: 5605009491
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4340975363>
+- Concern: `Option::is_none_or` is relatively new and can inadvertently raise the crate's MSRV, so rewrite the condition with an explicit `match` or `if let`.
+- Solution: no change. `Option::is_none_or` is stable since Rust 1.82.0 and the workspace `rust-version` is 1.88, so it cannot raise the MSRV.
+- Current-tree verification: the `stable` attribute in the standard library source of the installed toolchain says `since = "1.82.0"`, and `cargo +1.88.0 check -p ci-gate --all-targets` compiles with the 1.88.0 toolchain.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4341246453>
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4341246453
+
+### F23 - An option of an option is built inside a map
+
+- PR number: 2610
+- Source review ID: 5605009491
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4340975462>
+- Concern: `override_request` builds a `Some(OverrideRequest { ... })` inside a `map`, so the result nests an option inside an option; returning the request from the map and letting `ok_or_else` produce the result would reduce the nesting.
+- Solution: the latest `labeled` event is looked up first and a missing one returns the error through a `let ... else`, so the `Some` is built once, at the return.
+- Current-tree verification: the existing tests pass, and two mutants (the earliest event used, a missing event read as no request) are each killed. `cargo test -p ci-gate` passes with 226 unit and 23 command-line tests.
+- Resolution reference: refactor(ci-gate): [#2525] return the override request without a nested option in a map
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4341246862
+
+### F24 - drop(writeln!(...)) hides the intent to ignore the result
+
+- PR number: 2610
+- Source review ID: 5605009491
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4340975535>
+- Concern: `drop(writeln!(...))` in `Drop` is an unusual pattern and makes it hard to see that the `Result` is ignored on purpose; prefer `let _ = writeln!(...)`.
+- Solution: the pattern stays and a comment at the call says why. `let _ = writeln!(...)` does not compile in this workspace, because the lint group `let_underscore` is denied in `Cargo.toml` and `let_underscore_drop` rejects a `Result` whose error has a destructor; the suggestion was tried and the compiler refused it.
+- Current-tree verification: `cargo clippy -p ci-gate --all-targets -- -D warnings` fails with `non-binding let on a type that has a destructor` for the suggested form, and passes for the current one.
+- Resolution reference: test(ci-gate): [#2525] say why the fixture ignores the write with drop
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4341247141
+
 ## Processing Log
 
 - 2026-10-21 12:33 UTC - Copilot's review arrived with four threads, F1 to F4.
@@ -398,6 +443,11 @@ inline threads, so the bodies add no rows.
   there was behavior, with mutants, and gated on the formatter, clippy, and the tests; two further commits fixed a
   spelling slip of mine and recorded the round in the specification. Declined F21 with the reason. Pushed, replied
   on the nine threads, and added F13 to F21 to this record.
+- 2026-10-21 19:49 UTC - Resolved all threads of the pull request in one bulk call, which also closed three threads of
+  Copilot's sixth review that had arrived at 19:20 UTC and that I had not read: the threads of a review I did not
+  know about. I noticed from the count, 24 threads where 21 were expected, read the three, checked each one, and
+  replied on them; they stay resolved because the replies and fixes now answer them. Fixed F23 and F24, declined
+  F22 with its evidence, recorded the round in the specification, and added F22 to F24 to this record.
 
 ## Completion Rules
 
