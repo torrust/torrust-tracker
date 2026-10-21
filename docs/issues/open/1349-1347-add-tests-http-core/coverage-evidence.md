@@ -363,3 +363,7 @@ Measured on 2026-10-21 on the S6 branch, whose production code in `lib.rs` is id
 | `lib.rs` | 41 / 41 → 97 / 97 | 42 / 42 → 150 / 150 | 8 / 8 → 20 / 20 |
 
 The file keeps no production line to cover; the eight new tests pin the public log target and the shared `RecordingSender` and fixtures that about 100 tests rely on. Package after the file: 191 unit tests, lines 3,030 / 3,052, regions 3,983 / 4,013, functions 384 / 385 (the totals include the test modules).
+
+### `services/mod.rs` and `statistics/event/mod.rs` (slice S6)
+
+Measured on 2026-10-21 on the S6 branch. Neither file has an executable entry, before or after, so no coverage figure moves. The plans are [services-mod-tests.md](test-refactor-plans/services-mod-tests.md) (no test; the module comment now says the services do not depend on the Axum web server, which the package's `Cargo.toml` confirms) and [statistics-event-mod-tests.md](test-refactor-plans/statistics-event-mod-tests.md) (no change). With these two rows, all 13 files of the ledger are processed.

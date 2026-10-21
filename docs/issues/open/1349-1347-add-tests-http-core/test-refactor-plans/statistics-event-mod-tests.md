@@ -3,7 +3,7 @@ doc-type: file-test-plan
 issue: 1349
 package: torrust-tracker-http-core
 target-file: packages/http-core/src/statistics/event/mod.rs
-status: draft
+status: done
 semantic-links:
   related-artifacts:
     - packages/http-core/src/statistics/event/mod.rs
@@ -39,13 +39,26 @@ No test, no documentation change, no integration increment. The conclusion is co
 | --- | --- | --- | --- |
 | R1 | N/A | No existing test. | Recorded in the plan. |
 | R2 | N/A | No behavior to test. | Recorded in the plan. |
-| R3 | TODO | Select an integration increment, or `none`. | `none`. |
-| R4 | TODO | Re-run unit-only coverage; record that the file still has no executable entry. | `coverage-evidence.md`. |
+| R3 | DONE | Select an integration increment, or `none`. | `none`. |
+| R4 | DONE | Re-run unit-only coverage; record that the file still has no executable entry. | `coverage-evidence.md`. |
 
 Gates: this plan needs approval first; the completed file needs the maintainer's completed-file review before its
 one signed commit.
+
+## Results
+
+No-change conclusion. The S6 measurements (2026-10-21, 14:43 UTC) list no executable entry for the file, as at the baseline;
+`git diff` shows no change to the file.
+
+## Approval
+
+Approved by Jose Celano on 2026-10-21 (between 13:23 and 13:50 UTC; the exact time was not noted): the no-change
+conclusion.
 
 ## Progress Log
 
 - 2026-10-21 13:23 UTC - GitHub Copilot - Created the plan from `statistics/event/mod.rs`. No Rust test or
   production code changed. The plan awaits maintainer approval.
+- 2026-10-21 13:3x UTC - Jose Celano - Approved the plan (the exact time was not noted).
+- 2026-10-21 14:45 UTC - GitHub Copilot - R3-R4 done: no integration increment; the file has no executable entry.
+- 2026-10-21 14:46 UTC - Jose Celano - Approved the completed file. The plan is `done`.

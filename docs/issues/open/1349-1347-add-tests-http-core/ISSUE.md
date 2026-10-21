@@ -9,7 +9,7 @@ github-issue: 1349
 spec-path: docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md
 branch: "1349-1347-add-tests-http-core-final"
 related-pr: null
-last-updated-utc: "2026-10-21 14:27"
+last-updated-utc: "2026-10-21 14:46"
 semantic-links:
   skill-links:
     - create-issue
@@ -461,8 +461,8 @@ lines are the S2 baseline measurement (see [Baseline Coverage](#baseline-coverag
 | 9 | `statistics/repository.rs` | 6 | S5 | 21 / 24 (87.50%) | 0 (3 doc tests) | Test candidate | DONE | [statistics-repository-tests.md](test-refactor-plans/statistics-repository-tests.md) (done; 108 / 108 lines after) |
 | 10 | `statistics/mod.rs` | 6 | S5 | 8 / 8 (100.00%) | 0 | Probably small change (metric-name contract) | DONE | [statistics-mod-tests.md](test-refactor-plans/statistics-mod-tests.md) (done; 32 / 32 lines after, name and exposition pinned) |
 | 11 | `lib.rs` | 7 | S6 | 27 / 27 (100.00%) | 0 | Test support only | DONE | [lib-tests.md](test-refactor-plans/lib-tests.md) (done; 97 / 97 lines after, log target and `RecordingSender` pinned) |
-| 12 | `services/mod.rs` | 7 | S6 | No executable entries | 0 | Wiring only | PENDING | - |
-| 13 | `statistics/event/mod.rs` | 7 | S6 | No executable entries | 0 | Wiring only | PENDING | - |
+| 12 | `services/mod.rs` | 7 | S6 | No executable entries | 0 | Wiring only | DONE | [services-mod-tests.md](test-refactor-plans/services-mod-tests.md) (done; no test, module comment corrected to "does not depend on the Axum web server") |
+| 13 | `statistics/event/mod.rs` | 7 | S6 | No executable entries | 0 | Wiring only | DONE | [statistics-event-mod-tests.md](test-refactor-plans/statistics-event-mod-tests.md) (done; no change) |
 
 ## Progress Tracking
 
@@ -752,6 +752,10 @@ lines are the S2 baseline measurement (see [Baseline Coverage](#baseline-coverag
   mutations were killed by the new tests only, including a sender that records at call time instead of on poll,
   which no earlier test noticed. Correction: the S6-start entry above is stamped 12:25 UTC but its commit was made
   at 13:21 UTC (the real time was not read when it was written).
+- 2026-10-21 14:46 UTC - GitHub Copilot - `services/mod.rs` and `statistics/event/mod.rs` are `DONE` (S6), approved
+  by the maintainer: no test for either (wiring only, no executable entry). The module comment of `services/mod.rs`
+  said the services "does depend on the Axum web server" although `http-core` has no Axum dependency; it now says
+  "does not depend". All 13 ledger rows are `DONE`; the independent review, the pre-push checks and T5-T8 remain.
 
 ## Acceptance Criteria
 
