@@ -7,9 +7,9 @@ priority: p2
 epic: 1347
 github-issue: 1349
 spec-path: docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md
-branch: "1349-1347-add-tests-http-core-events-container"
-related-pr: 2593
-last-updated-utc: "2026-10-21 07:55"
+branch: "1349-1347-add-tests-http-core-statistics"
+related-pr: 2608
+last-updated-utc: "2026-10-21 11:18"
 semantic-links:
   skill-links:
     - create-issue
@@ -336,8 +336,8 @@ open a PR, get it reviewed, and merge it. The spec-only PR comes first.
 | S1 | T1-T3: coverage evidence, inventory, shared plan guidance, first plan, approved order | - | `1349-1347-add-tests-http-core-inventory` | #2558 | DONE |
 | S2 | Announce service and its error mapping (ranks 1-2) | 1-2 | `1349-1347-add-tests-http-core-announce` | #2575 | DONE |
 | S3 | Scrape service (rank 3) | 3 | `1349-1347-add-tests-http-core-scrape` | #2586 | DONE |
-| S4 | Events and composition (ranks 4-5) | 4-5 | `1349-1347-add-tests-http-core-events-container` | #2593 | IN_PROGRESS |
-| S5 | Statistics (rank 6) | 6-10 | `1349-1347-add-tests-http-core-statistics` | - | TODO |
+| S4 | Events and composition (ranks 4-5) | 4-5 | `1349-1347-add-tests-http-core-events-container` | #2593 | DONE |
+| S5 | Statistics (rank 6) | 6-10 | `1349-1347-add-tests-http-core-statistics` | #2608 | IN_PROGRESS |
 | S6 | Crate root and wiring (rank 7), then T5-T8 | 11-13 | `1349-1347-add-tests-http-core-final` | - | TODO |
 
 Rules:
@@ -455,11 +455,11 @@ lines are the S2 baseline measurement (see [Baseline Coverage](#baseline-coverag
 | 3 | `services/scrape.rs` | 3 | S3 | 507 / 540 (93.89%) | 8 | Test candidate (error paths) | DONE | [services-scrape-tests.md](test-refactor-plans/services-scrape-tests.md) (done; 533 / 537 lines after) |
 | 4 | `event.rs` | 4 | S4 | 174 / 187 (93.05%) | 7 | Probably small change | DONE | [event-tests.md](test-refactor-plans/event-tests.md) (done; 135 / 135 lines after) |
 | 5 | `container.rs` | 5 | S4 | 0 / 73 (0.00%) | 0 | Test candidate | DONE | [container-tests.md](test-refactor-plans/container-tests.md) (done; 27 tests, all 73 production lines covered) |
-| 6 | `statistics/event/handler.rs` | 6 | S5 | 158 / 161 (98.14%) | 5 | Probably no change | PENDING | - |
-| 7 | `statistics/event/listener.rs` | 6 | S5 | 133 / 148 (89.86%) | 4 | Lifecycle (#1488) | PENDING | - |
-| 8 | `statistics/metrics.rs` | 6 | S5 | 48 / 57 (84.21%) | 1 | Test candidate | PENDING | - |
-| 9 | `statistics/repository.rs` | 6 | S5 | 21 / 24 (87.50%) | 0 (3 doc tests) | Test candidate | PENDING | - |
-| 10 | `statistics/mod.rs` | 6 | S5 | 8 / 8 (100.00%) | 0 | Probably small change (metric-name contract) | PENDING | - |
+| 6 | `statistics/event/handler.rs` | 6 | S5 | 158 / 161 (98.14%) | 5 | Probably no change | DONE | [statistics-handler-tests.md](test-refactor-plans/statistics-handler-tests.md) (done; 10 cases, only the two decided lines uncovered) |
+| 7 | `statistics/event/listener.rs` | 6 | S5 | 133 / 148 (89.86%) | 4 | Lifecycle (#1488) | DONE | [statistics-listener-tests.md](test-refactor-plans/statistics-listener-tests.md) (done; 308 / 310 lines after) |
+| 8 | `statistics/metrics.rs` | 6 | S5 | 48 / 57 (84.21%) | 1 | Test candidate | DONE | [statistics-metrics-tests.md](test-refactor-plans/statistics-metrics-tests.md) (done; 141 / 141 lines after) |
+| 9 | `statistics/repository.rs` | 6 | S5 | 21 / 24 (87.50%) | 0 (3 doc tests) | Test candidate | DONE | [statistics-repository-tests.md](test-refactor-plans/statistics-repository-tests.md) (done; 108 / 108 lines after) |
+| 10 | `statistics/mod.rs` | 6 | S5 | 8 / 8 (100.00%) | 0 | Probably small change (metric-name contract) | DONE | [statistics-mod-tests.md](test-refactor-plans/statistics-mod-tests.md) (done; 32 / 32 lines after, name and exposition pinned) |
 | 11 | `lib.rs` | 7 | S6 | 27 / 27 (100.00%) | 0 | Test support only | PENDING | - |
 | 12 | `services/mod.rs` | 7 | S6 | No executable entries | 0 | Wiring only | PENDING | - |
 | 13 | `statistics/event/mod.rs` | 7 | S6 | No executable entries | 0 | Wiring only | PENDING | - |
@@ -695,6 +695,52 @@ lines are the S2 baseline measurement (see [Baseline Coverage](#baseline-coverag
   package 144), with three new mutations killed only by the disabled cases. The review is audited in
   `docs/pr-reviews/pr-2593-review/PR-REVIEW.md`. The package now reads lines 2,536 / 2,592 (97.84%), regions
   3,264 / 3,324 (98.19%), functions 309 / 315 (98.10%).
+- 2026-10-21 09:27 UTC - GitHub Copilot - The S4 pull request #2593 was merged (`b5ab35ae9`). Copilot had
+  reviewed the last head with no open issue, CI was green, and da2ce7 did not reply within the agreed 15
+  minutes, so the maintainer's ACK was posted on the head. S4 is `DONE`.
+- 2026-10-21 09:30 UTC - GitHub Copilot - S5 started on `1349-1347-add-tests-http-core-statistics`, cut from
+  `develop` at the merge of #2593. `packages/http-core` is identical to the S4 head, so the baseline is the
+  final S4 measurement, re-run on this branch: lines 2,536 / 2,592 (97.84%), regions 3,264 / 3,324 (98.19%),
+  functions 309 / 315 (98.10%), 144 unit tests. The statistics files measure `handler.rs` 158 / 161,
+  `listener.rs` 215 / 239 (it changed after the inventory: #2414 added the drain), `metrics.rs` 48 / 57,
+  `repository.rs` 21 / 24 and `mod.rs` 8 / 8 lines.
+- 2026-10-21 09:42 UTC - GitHub Copilot - `statistics/event/handler.rs` is `DONE` (S5): the plan was approved
+  at 09:34 UTC and the maintainer approved R1 and the completed file. The 5 tests are now 10 cases in 4 test
+  functions; only the two lines the plan decides not to test are uncovered. Mutations H1-H4 and a probe were
+  killed. The package has 149 unit tests: lines 2,521 / 2,577 (97.83%), regions 3,224 / 3,284 (98.17%),
+  functions 314 / 320 (98.12%). The plan notes a question for the `metrics.rs` plan: the `tcp4`/`tcp6` counters
+  select on the server binding's family while their comments say "peers". The S4-merge and S5-start log
+  entries above were missing from the S5-start commit (a parallel edit raced with staging) and ship with this
+  commit.
+- 2026-10-21 09:59 UTC - GitHub Copilot - `statistics/event/listener.rs` is `DONE` (S5): the plan was approved
+  at 09:46 UTC with D1 (test the two public entry points) and the maintainer approved the completed file. The
+  six existing tests are unchanged and eight cases were added: the metrics policy for announce events, every
+  queued event drained after cancellation, and the two entry points. The file is at 308 / 310 lines. Mutations
+  K1-K5 and a probe were killed; the drain mutant that handles only the first event survived all six old
+  tests. The package has 157 unit tests: lines 2,614 / 2,648 (98.72%), regions 3,339 / 3,380 (98.79%),
+  functions 329 / 332 (99.10%).
+- 2026-10-21 10:23 UTC - GitHub Copilot - `statistics/metrics.rs`, `statistics/repository.rs` and
+  `statistics/mod.rs` are `DONE` (S5): the three plans were approved together at 10:03 UTC, with the
+  family-semantics question (D1) answered "pin the behavior": the `tcp4`/`tcp6` getters select on the server
+  binding's family, a test says so, and the "peers" wording of their comments is recorded in the plans with no
+  hand-off. The maintainer approved the three completed files together. They add 17 tests; mutations G1-G5,
+  B1-B4 and D1-D3 were killed, and the metric-name mutation fails only the new tests. The package has 174 unit
+  tests: lines 2,818 / 2,840 (99.23%), regions 3,679 / 3,709 (99.19%), functions 359 / 360 (99.72%). All
+  ledger rows of S5 are `DONE`; the slice awaits the independent review, the pre-push checks and its pull
+  request.
+- 2026-10-21 11:12 UTC - GitHub Copilot - The independent Task Reviewer passed S5 with one `MEDIUM` and four `LOW`
+  findings. The `MEDIUM` was a false claim of mine in three plans: that the recorded sample time and the metric
+  unit could not be observed through the package. `Metrics` is `PartialEq`, so they can, and seven mutants
+  survived (an added 7 seconds in the handler, the listener, the repository and the metrics wrapper, and a wrong
+  unit). All are fixed with whole-value tests and killed, together with a wiring survivor in the spawned listener
+  and an error-swallowing survivor in the repository; the plans carry the corrections. The package has 183 unit
+  tests: lines 2,974 / 2,996 (99.27%), regions 3,875 / 3,905 (99.23%), functions 372 / 373 (99.73%). The reviewer
+  also asks that the `tcp4`/`tcp6` "peers" wording question (the getters select on the server binding's family)
+  be carried into `lessons.md` in the retrospective, so it is not lost.
+- 2026-10-21 11:18 UTC - GitHub Copilot - The pre-push checks passed and the S5 pull request #2608
+  (<https://github.com/torrust/torrust-tracker/pull/2608>) was opened with `Related to #1349`. It was not
+  rebased onto the latest `develop`, which changed only documentation outside `packages/http-core`;
+  `git merge-tree` reports no conflict.
 
 ## Acceptance Criteria
 

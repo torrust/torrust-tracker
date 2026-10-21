@@ -230,3 +230,46 @@ semantic-links:
     EPIC, except the commit message, which stays. After the fixes: 140 unit tests; `event.rs` 135 / 135
     lines; `container.rs` 598 / 600 lines with all 73 production lines covered; package lines 2,616 / 2,672
     (97.90%), regions 3,397 / 3,457 (98.26%), functions 316 / 322 (98.14%).
+
+### 2026-10-21 - Task Reviewer (slice S5)
+
+- Time: the report returned on 2026-10-21 after the `statistics/mod.rs` commit (10:3x UTC) and before the fix
+  commit; the exact time was not recorded.
+- Invocation scope: Slice S5 (ledger rows 6-10: `statistics/event/handler.rs`, `statistics/event/listener.rs`,
+  `statistics/metrics.rs`, `statistics/repository.rs`, `statistics/mod.rs`) of #1349 on branch
+  `1349-1347-add-tests-http-core-statistics`, `b5ab35ae9..HEAD`: the commits `docs(issues): [#1349] record the S4
+  merge and start slice S5` and one commit per file.
+- Inputs: `ISSUE.md`, `coverage-evidence.md`, the five file plans, the plan guidance, the S1-S4 reports, the
+  EPIC, the `write-unit-test` skill and the five changed Rust files.
+- Evidence: production code outside the test modules is byte-identical to `b5ab35ae9` in all five files and no
+  other file under `packages/` or `src/` changed; 174 unit tests, the doc tests and the other test results passed,
+  also 30 repeat runs, 3 runs with `--test-threads=1` and 10 runs pinned to one CPU; nightly `rustfmt`, `clippy -D
+  warnings`, `cargo machete`, `git diff --check` and `linter all` passed; a clean `cargo llvm-cov` run and a
+  worktree at `b5ab35ae9` reproduced every documented figure; H2, K2, K4, G2, B3 and D1 failed only the tests named
+  for them and five further mutants were killed; the ledger, slice table, plan status, progress logs, dates,
+  signatures and the citation check agree.
+- Findings:
+  - MEDIUM (F1): the plans called the stored sample time and the metric unit unobservable, which is false:
+    `Metrics` is `PartialEq`, so a whole-value comparison sees both. Seven mutants survived all 174 tests: `now +
+    7 s` in the handler, the listener, the repository and, twice, the metrics wrapper, and `Unit::Seconds` in
+    `describe_metrics`.
+  - LOW (F2): `run_event_listener` could be given a fresh cancellation token or a zero drain timeout in place of its
+    arguments and every test passed (the unspawned entry point already caught both).
+  - LOW (F3): a mutant that makes the `Closed` arm of the loop return `false` hangs the suite instead of failing it,
+    because the scripted receiver returns `Closed` forever and never yields. Pre-existing pattern.
+  - LOW (F4): swallowing the collection's error in `Repository::increase_counter` survived; the plan's "unreachable"
+    held only from outside the module.
+  - LOW (F5): the concurrency test is deterministic but no mutation can fail it.
+  - INFO: removing `biased;` is killed in about 77% of runs; the unspawned entry-point test had an `if` and two
+    assertions; the handler label tables repeat their eight-label literals (defensible); the `peers` wording
+    question is a likely design question to carry into `lessons.md`; process slips (`sed -i` on three plan status
+    lines, and the S5-start log entries shipped with the handler commit).
+- Verdict: REVIEW PASSED, with F1 and F2 worth fixing before the pull request.
+- Follow-up actions:
+  - Handling (2026-10-21, commit `test(http-core): [#1349] address the S5 independent review`): F1 is fixed with
+    four whole-value tests (handler, listener, metrics twice, repository) and one comparison for the unit, and
+    every survivor is killed; F2 is fixed with a two-case table; F4 is fixed with a test inside the repository
+    module; F3 is recorded in the listener plan as a known limit, F5 is kept as a recorded design check and the
+    unspawned test lost its branch. The INFO items are noted in the plans or the log, and the `peers` question
+    stays open for the retrospective. After the fixes: 183 unit tests, lines 2,974 / 2,996 (99.27%), regions
+    3,875 / 3,905 (99.23%), functions 372 / 373 (99.73%).

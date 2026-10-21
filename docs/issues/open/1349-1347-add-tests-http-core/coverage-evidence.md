@@ -283,3 +283,63 @@ Measured on 2026-10-21 after the pull-request review round, with the same comman
 | Functions | 161 / 191 (84.29%) | 233 / 249 (93.57%) | 244 / 260 (93.85%) | 309 / 315 (98.10%) |
 
 Since the original baseline the package gained +8.96 pp of lines, +7.78 pp of regions and +13.81 pp of functions. Most of the S4 line gain is the test module of `container.rs`, which counts toward the totals; the per-file mutation proof in each plan is the stronger signal. The S3 column is not comparable line by line with the S4 baseline because #2414 changed `statistics/event/listener.rs` in between.
+
+### Baseline Before Slice S5
+
+Measured on 2026-10-21 on the S5 branch at the merge of #2593, whose `packages/http-core` is identical to the S4 head, so the package figures equal the final S4 ones: lines 2,536 / 2,592 (97.84%), regions 3,264 / 3,324 (98.19%), functions 309 / 315 (98.10%), 144 unit tests. The statistics files measured:
+
+| Source module | Lines | Regions | Functions |
+| --- | ---: | ---: | ---: |
+| `statistics/event/handler.rs` | 158 / 161 | 215 / 221 | 16 / 17 |
+| `statistics/event/listener.rs` | 215 / 239 | 275 / 298 | 29 / 32 |
+| `statistics/metrics.rs` | 48 / 57 | 66 / 74 | 8 / 9 |
+| `statistics/repository.rs` | 21 / 24 | 26 / 29 | 5 / 6 |
+| `statistics/mod.rs` | 8 / 8 | 10 / 10 | 1 / 1 |
+
+### `statistics/event/handler.rs` (slice S5)
+
+Measured on 2026-10-21 on the S5 branch, whose production code for this file is identical to `develop` at the merge of #2593. The plan is [statistics-handler-tests.md](test-refactor-plans/statistics-handler-tests.md).
+
+| Scope | Before (S5 baseline) | After |
+| --- | ---: | ---: |
+| `statistics/event/handler.rs` lines | 158 / 161 (98.14%) | 173 / 176 (98.30%) |
+| `statistics/event/handler.rs` regions | 215 / 221 (97.29%) | 202 / 208 (97.12%) |
+| `statistics/event/handler.rs` functions | 16 / 17 (94.12%) | 23 / 24 (95.83%) |
+
+The file's 5 tests are now 11 cases in 5 test functions (10 cases in 4 functions when first completed; the independent review added a test of the recorded time). The production lines were already covered except the two the plan decides not to test: the failed-increase `Err` arm (line 20) and the debug closure (line 25). The figures are those after the review round.
+
+### `statistics/event/listener.rs` (slice S5)
+
+Measured on 2026-10-21 on the S5 branch, whose production code for this file is identical to `develop` at the merge of #2593. The plan is [statistics-listener-tests.md](test-refactor-plans/statistics-listener-tests.md).
+
+| Scope | Before (S5 baseline) | After |
+| --- | ---: | ---: |
+| `statistics/event/listener.rs` lines | 215 / 239 (89.96%) | 354 / 356 (99.44%) |
+| `statistics/event/listener.rs` regions | 275 / 298 (92.28%) | 440 / 444 (99.10%) |
+| `statistics/event/listener.rs` functions | 29 / 32 (90.63%) | 48 / 48 (100.00%) |
+
+The file keeps its 6 tests and gains 11 cases in 6 test functions: the metrics policy for announce events, every queued event drained after cancellation, the two public entry points (`Completion` and the spawned task, with a table that proves the spawned listener receives its token and its drain timeout) and the time an event is recorded at (the last two came from the independent review). All production code is covered except the log argument of the ignored-event `warn!` (line 132); the one other uncovered line is the `Lagged` arm of the test receiver. The figures are those after the review round.
+
+### `statistics/metrics.rs`, `statistics/repository.rs` and `statistics/mod.rs` (slice S5)
+
+Measured on 2026-10-21 on the S5 branch, whose production code for these files is identical to `develop` at the merge of #2593. The plans are [statistics-metrics-tests.md](test-refactor-plans/statistics-metrics-tests.md), [statistics-repository-tests.md](test-refactor-plans/statistics-repository-tests.md) and [statistics-mod-tests.md](test-refactor-plans/statistics-mod-tests.md).
+
+| Source module | Lines before → after | Regions before → after | Functions before → after |
+| --- | ---: | ---: | ---: |
+| `statistics/metrics.rs` | 48 / 57 → 167 / 167 | 66 / 74 → 295 / 295 | 8 / 9 → 21 / 21 |
+| `statistics/repository.rs` | 21 / 24 → 153 / 153 | 26 / 29 → 211 / 211 | 5 / 6 → 25 / 25 |
+| `statistics/mod.rs` | 8 / 8 → 41 / 41 | 10 / 10 → 55 / 55 | 1 / 1 → 5 / 5 |
+
+The figures are those after the review round. The counted lines include the new test modules, so the rises far exceed the production lines they protect; every production line and function of the three files is covered, including the `set_gauge` wrapper and `Repository::default`, which were the uncovered code. The mutation results in each plan are the stronger signal; the metric-name test is the only test that fails when the public series name changes, and the review round added whole-value tests that also pin the recorded time and the metric unit.
+
+### Package After Slice S5
+
+Measured on 2026-10-21 after the independent review round with the same commands. The package has 183 unit tests (144 at the S5 baseline).
+
+| Scope | Original baseline (`87690b15e`) | S5 baseline (`b5ab35ae9`) | After slice S5 |
+| --- | ---: | ---: | ---: |
+| Lines | 1,751 / 1,970 (88.88%) | 2,536 / 2,592 (97.84%) | 2,974 / 2,996 (99.27%) |
+| Regions | 2,357 / 2,607 (90.41%) | 3,264 / 3,324 (98.19%) | 3,875 / 3,905 (99.23%) |
+| Functions | 161 / 191 (84.29%) | 309 / 315 (98.10%) | 372 / 373 (99.73%) |
+
+Since the original baseline the package gained +10.39 pp of lines, +8.82 pp of regions and +15.44 pp of functions. The uncovered production lines of the statistics files are three, all decided in their plans: the failed-increase `Err` arm (line 20) and the debug closure (line 25) of `handler.rs`, and the ignored-event `warn!` argument (line 132) of `listener.rs`; the one other uncovered line (195 of `listener.rs`) is the `Lagged` arm of the test receiver. The totals include the test modules.
