@@ -241,6 +241,105 @@ reversed classification failed before the fix, which is the mutant for this rule
 the verdict has 13 mutants killed in all. The override explanation in the table above was checked against
 the real output of the command and quoted verbatim. The final run has 135 unit and 10 command-line tests.
 
+### V8 - The runner time that the gate adds to a documentation-only pull request (task T4, experiment E1)
+
+- Goal: measure what a gate job costs in runner time on a documentation-only change, in four ways of
+  getting the `ci-gate` binary, next to the real `Docs Lint` job.
+- Initial state: the fork `josecelano/torrust-tracker` (public, Actions enabled, `ubuntu-latest` runners)
+  with a throwaway branch of `develop` at `6fd4bc597` carrying the sandbox workflows in
+  `evidence/t4-sandbox/`, and a branch with one Markdown file added. The change classified as
+  `docs-lint` only, in every variant.
+- Status: `DONE`
+
+One workflow run was started by a push and then rerun with `gh run rerun` until it had 12 attempts. The
+five jobs of an attempt start together, so they see the same runner conditions, and each job is one
+variant, plus a copy of the steps of the real `Docs Lint` job as the reference. A variant includes
+everything it needs, checkout and toolchain setup included, and ends by classifying the diff between the
+base and the branch. Runner time is the job's `completed_at` minus `started_at`, as in
+[`pr-ci-cost-baseline.md`](pr-ci-cost-baseline.md). All 60 jobs succeeded, and the log of each variant
+shows `changed_path_count` 1 and `docs-lint` as the only needed group. The per-job data is in
+[`evidence/t4-gate-cost-runs.csv`](evidence/t4-gate-cost-runs.csv).
+
+| Variant                                                                                         | Attempt 1 | Median of attempts 2 to 12 | Mean of attempts 2 to 12 | Range of attempts 2 to 12 |
+| ----------------------------------------------------------------------------------------------- | --------- | -------------------------- | ------------------------ | ------------------------- |
+| `docs-lint-reference` (the steps of the real `Docs Lint` job)                                   | 3.57      | 1.02                       | 1.47                     | 0.67 to 4.25              |
+| `gate-cold`: toolchain setup, `cargo build --release -p ci-gate`                                | 0.28      | 0.40                       | 0.41                     | 0.27 to 0.67              |
+| `gate-rust-cache`: the same with the Rust cache                                                 | 0.72      | 0.37                       | 0.37                     | 0.23 to 0.60              |
+| `gate-binary-cache`: binary restored from a cache keyed on a hash of the crate and `Cargo.lock` | 0.33      | 0.13                       | 0.15                     | 0.08 to 0.40              |
+| `gate-release-download`: binary downloaded from a release asset                                 | 0.13      | 0.12                       | 0.12                     | 0.10 to 0.17              |
+
+Runner minutes per job. In `gate-binary-cache`, attempt 1 is a cache miss that builds and saves the
+binary, and attempts 2 to 12 are cache hits.
+
+What it shows:
+
+- Building the tool from scratch is cheap: a median of 0.40 minutes, which is the toolchain setup, the
+  compile of `serde`, `serde_json`, and `ci-gate`, and the run. The Rust cache does not help, because
+  there is almost nothing to cache; its first run is slower (0.72) because it saves the cache.
+- A prebuilt binary costs about 0.12 minutes, whether it comes from a cache hit or from a release asset.
+- The reference `Docs Lint` job shows the same slow and fast runs as the baseline: three slow attempts
+  (3.57, 3.27, 4.25) and then about one minute.
+- The gate will need two tool runs, `classify` before the heavy jobs and `verdict` after them, so the cost
+  to a documentation-only head is about twice the figure of one job: roughly 0.8 minutes with a cold build
+  each time, and roughly 0.25 minutes with a prebuilt binary, against a `Docs Lint` baseline of 0.85 minutes
+  (median) per documentation-only head. Passing the binary between the two jobs would save one build,
+  but it was not measured.
+
+Limits: one commit rerun 12 times in a fork, so caches behave as they do for a branch that is pushed
+repeatedly. Across different pull requests a cache hit depends on cache scoping and on when caches are
+evicted, which was not measured. The `gate-binary-cache` key includes `Cargo.lock`, so it misses after
+every dependency update. Only job minutes were measured, not wall-clock time: `classify` would sit on
+the critical path of every pull request, for about 0.4 minutes with a cold build.
+
+### V9 - Whether a later check run named `CI gate` supersedes an earlier one (task T4, experiment E2)
+
+- Goal: find out, with a ruleset that requires the status check `CI gate` and a real merge push, how
+  GitHub treats several check runs of that name for the same head commit.
+- Initial state: two throwaway base branches in the fork, each with a ruleset that requires the status
+  check `CI gate` (Actions app, not strict), the pull request rule of the upstream rulesets, and signed
+  commits. The rulesets and the workflows are in `evidence/t4-sandbox/`. The job named `CI gate` decides
+  from a label: it fails while the label `exp-fail` is set, and passes otherwise.
+- Status: `DONE`
+
+The full output of every observation is in
+[`evidence/t4-check-run-superseding.txt`](evidence/t4-check-run-superseding.txt). Summary:
+
+| Case                                                                      | Check runs for the head commit                                        | Merge state | Merge push                                              |
+| ------------------------------------------------------------------------- | --------------------------------------------------------------------- | ----------- | ------------------------------------------------------- |
+| (b) a pass, then a later failure from a new run (label added)             | success at 09:25, then failure at 09:26                               | `BLOCKED`   | rejected: `Required status check "CI gate" is failing.` |
+| (a) after (b), a pass from a later run (label removed)                    | failure at 09:26, then success at 09:27, with the first success above | `UNSTABLE`  | accepted                                                |
+| (c) two workflows each define `CI gate`; one fails, the other passes      | two failures and two successes, in four check runs                    | `BLOCKED`   | rejected: `Required status check "CI gate" is failing.` |
+| (c, then a) the failing one is removed and runs again, so both pass later | the two earlier failures, and four passes (two new, two earlier)      | `UNSTABLE`  | accepted                                                |
+
+`UNSTABLE` is GitHub's state for required checks that pass while a non-required check, here `Docs Lint`,
+was still running, so it does not block a merge. The `statusCheckRollup` state stays `FAILURE` after the
+later passes, because it still lists the earlier failures, so it cannot be used to decide whether a pull
+request may merge; the ruleset decides, and in the single-workflow cases it followed the later run.
+
+What it shows:
+
+- **The later run wins, in both directions, for the same job of the same workflow.** A later passing run
+  overrides an earlier failing one for the same commit, and a later failing run overrides an earlier
+  passing one. This is what the override needs: a run
+  started by a `labeled` event can turn a failing `CI gate` into a passing one, and the run started by the
+  `unlabeled` event turns it back, with no ruleset change.
+- **Two workflows with the same check name do not combine into a pass.** While one of them was failing,
+  the other's passing run did not help, and the merge was rejected. The gate should therefore be one
+  workflow with one job named `CI gate`, whose runs for label events are in the same workflow as the
+  runs for pushes, so that a later run of that job supersedes an earlier one. Not tested: a later passing run
+  from a different workflow than the failing one; the design avoids needing it.
+- Creating a pull request with a label starts two runs, `opened` and `labeled`, for the same commit.
+- In the fork the default workflow permission is `write`; in `torrust/torrust-tracker` it is `read`
+  (`gh api repos/<owner>/<repo>/actions/permissions/workflow`). The sandbox therefore says nothing about
+  what the default token of upstream can do, which T5 has to take from the documentation of GitHub and
+  verify on real pull requests when T6 lands.
+
+Cleanup, 2026-10-21 at 09:41 to 09:42 UTC: both sandbox rulesets, the six `exp-2525-*` branches, the
+`exp-2525-binary` release and its tag, and the labels `exp-fail` and `exp-second-fail` were deleted from
+the fork, and no pull request is open. Verified afterwards: the fork has only its two tag rulesets, no
+`exp-` branch, no `exp-2525` tag, and no open pull request. Fork pull requests 20 and 21 remain, merged, as
+history of the experiment; the workflow runs remain too.
+
 ## Failures and Follow-up
 
 None.

@@ -1,0 +1,41 @@
+# Sandbox only (#2525 T4). Never merged upstream.
+#
+# Builds the ci-gate binary once and publishes it as a release asset, so the cost
+# experiment can measure "download a prebuilt binary".
+
+name: exp-2525 publish binary
+
+on:
+  push:
+    branches:
+      - "exp-2525-base"
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    name: Publish ci-gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7.0.1
+
+      - name: Setup Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - name: Build ci-gate
+        run: cargo build --release -p ci-gate
+
+      - name: Publish release asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp target/release/ci-gate ci-gate-linux-x86_64
+          gh release delete exp-2525-binary --yes --cleanup-tag || true
+          gh release create exp-2525-binary ci-gate-linux-x86_64 \
+            --title "exp-2525 binary" --notes "Sandbox binary for the #2525 T4 cost experiment."
