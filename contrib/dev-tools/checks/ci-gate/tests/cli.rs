@@ -320,7 +320,19 @@ impl FakeGh {
         // The process id separates test runs, and the counter separates fixtures of one run, whatever their names.
         static NEXT: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
         let unique = NEXT.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-        let directory = std::env::temp_dir().join(format!("ci-gate-fake-gh-{}-{unique}-{test_name}", std::process::id()));
+        // The name only helps to identify a directory, and the directory is removed recursively, so it cannot be allowed
+        // to contain a path separator or `..`.
+        let safe_name: String = test_name
+            .chars()
+            .map(|c| {
+                if c.is_ascii_alphanumeric() || c == '-' || c == '_' {
+                    c
+                } else {
+                    '_'
+                }
+            })
+            .collect();
+        let directory = std::env::temp_dir().join(format!("ci-gate-fake-gh-{}-{unique}-{safe_name}", std::process::id()));
         std::fs::create_dir_all(&directory).expect("the fixture directory can be created");
         // `gh api --paginate <path>`: the fixture of a path is the file named after it, with `/`, `?` and `=` as `_`.
         let script = format!(
@@ -642,5 +654,22 @@ fn it_should_give_each_fake_gh_its_own_directory_even_when_the_test_name_is_the_
     assert_ne!(
         first.directory, second.directory,
         "two fixtures with the same test name must not share files, or tests that reuse a name would collide"
+    );
+}
+
+#[cfg(unix)]
+#[test]
+fn it_should_keep_the_fake_gh_directory_inside_the_temporary_directory_whatever_the_test_name_contains() {
+    // Arrange
+    let name_with_a_separator = "nested/name";
+
+    // Act
+    let gh = FakeGh::new(name_with_a_separator);
+
+    // Assert
+    assert_eq!(
+        gh.directory.parent(),
+        Some(std::env::temp_dir().as_path()),
+        "the directory is removed recursively when the fixture is dropped, so a test name must not be able to choose where it is"
     );
 }
