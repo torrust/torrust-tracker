@@ -8,7 +8,7 @@ Source: pull-request reviews and inline review threads for
 The PR author owns this tracked audit record. Reviewers, including repository review agents,
 deliver findings through GitHub and have no repository-artifact obligation.
 
-- Post-merge workflow approval: N/A
+- Post-merge workflow approval: <https://github.com/torrust/torrust-tracker/pull/2607#issuecomment-6317834429>
 
 ## Status Values
 
@@ -34,6 +34,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F1 | review-finding:pr-2607-f1 | Copilot | Major (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
 | F2 | review-finding:pr-2607-f2 | Copilot | Major (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
 | F3 | review-finding:pr-2607-f3 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
+| F4 | review-finding:pr-2607-f4 | Copilot | Minor (inferred) | documentation | ORIGINAL | FOLLOW_UP | NON_RESOLVABLE |
 
 ## Finding Details
 
@@ -96,11 +97,37 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2607#discussion_r4336497655>
 
+### F4 - The #2606 spec has no completion-review outcome and retrospective policy
+
+- PR number: 2607
+- Source review ID: 5599559014
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2607#pullrequestreview-5599559014>
+- Concern: The spec's checkbox at line 200 requires a completion review, but the spec has no
+  `## Implementation Completion Review` section saying when to create a retrospective or record why
+  none is needed. `.github/skills/dev/planning/create-issue/SKILL.md:129-131` and
+  `docs/templates/ISSUE.md:231-242` require that policy. Copilot listed it as a "previously missed
+  issue" in the review body, without an inline thread, and called it a minor omission. The review was
+  submitted 2026-10-21 12:22 UTC, before PR #2607 merged at 12:58:59 UTC, and was not processed
+  before the merge.
+- Solution: The maintainer approved a follow-up pull request (approval comment above). It adds the
+  section to the #2606 spec and aligns the two completion checkpoints with the template. The row
+  moves to `FIXED` after the follow-up merges.
+- Current-tree verification: `git show torrust/develop:docs/issues/open/2606-2278-validate-audit-record-merged-fix-subjects/ISSUE.md | grep -nE "^## "`
+  at `d730c304a` lists no `Implementation Completion Review` heading, and the only mention of a
+  completion review is the checkbox at line 200. The finding was live at that point.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2607#issuecomment-6317834429>
+- Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2613>
+- Reply URL: N/A
+
 ## Processing Log
 
 - 2026-10-21 12:00 UTC - Processed Copilot review 5598940189 (head a18cd04a7): three findings, F1 to F3.
   Fixed each in its own commit (named above), pushed, replied on each thread, and resolved the three
   threads. A GraphQL refresh then showed 0 unresolved threads, and no pending review exists.
+- 2026-10-21 14:01 UTC - Triaged Copilot review 5599559014, submitted 2026-10-21 12:22 UTC before PR #2607
+  merged at 12:58:59 UTC and not processed before the merge. The maintainer approved a follow-up PR in
+  <https://github.com/torrust/torrust-tracker/pull/2607#issuecomment-6317834429>, created at 13:54:42 UTC. Added F4 as `FOLLOW_UP`, and opened follow-up PR #2613.
 
 Append entries only. If an entry was rewritten in place, restore the prior entries, then append a
 correction that names the rewritten content; do not rewrite the record again.

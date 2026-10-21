@@ -9,7 +9,7 @@ github-issue: 2606
 spec-path: docs/issues/open/2606-2278-validate-audit-record-merged-fix-subjects/ISSUE.md
 branch: "2606-validate-audit-record-merged-fix-subjects-spec"
 related-pr: null
-last-updated-utc: "2026-10-21 11:55"
+last-updated-utc: "2026-10-21 13:56"
 semantic-links:
   skill-links:
     - create-issue
@@ -197,7 +197,8 @@ test run in `test-design-review.md` or the evidence file even after its producti
 - [ ] Automatic verification completed (`linter all`, the new unit tests)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Implementation completion review recorded in the progress log
+- [ ] Implementation completion review recorded: issue-local retrospective created for material discoveries, or the progress log states why none was needed
+- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
@@ -220,6 +221,10 @@ test run in `test-design-review.md` or the evidence file even after its producti
 - 2026-10-21 11:55 UTC - GitHub Copilot (Claude Sonnet 5.5) - Addressed Copilot finding F3 on PR #2607: scenario
   M2 now updates local `develop` separately with `git fetch torrust develop:develop` and keeps
   `HEAD` unchanged between the two runs, so equal results can support AC2.
+- 2026-10-21 13:56 UTC - GitHub Copilot (Claude Sonnet 5.5) - Processed Copilot finding F4 of PR #2607 (review
+  5599559014, submitted before that PR merged): added the Implementation Completion Review section
+  and aligned the two completion checkpoints with `docs/templates/ISSUE.md`. Maintainer approval:
+  <https://github.com/torrust/torrust-tracker/pull/2607#issuecomment-6317834429>.
 
 ## Acceptance Criteria
 
@@ -278,3 +283,22 @@ Notes:
   Closing it needs the Rust migration to resolve the PR's recorded head, which is out of scope.
 - If the script is migrated to Rust before this lands, port the three-source rule instead of the
   current single range.
+
+## Implementation Completion Review
+
+After implementation, compare the result with this specification. Record invalidated assumptions,
+material design changes, unexpected validation findings, and reusable lessons.
+
+- Retrospective: `Not yet assessed`
+- Create `implementation-retrospective.md` from `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md`
+  in this issue's directory when any of these happened:
+  - the `gh api .../pulls/<n>/commits` source proved unusable (for example truncated lists or rate
+    limits) and the three-source design changed;
+  - the fix needed more than the planned change to `branch_subjects` and its call, or the Rust
+    migration became necessary;
+  - the rerun of the existing audits (T10) failed or passed differently than expected;
+  - the work taught a reusable lesson for the review workflow.
+- If none of these happened, add a concise progress-log entry that says why the work had no
+  material discovery.
+- When an independent reviewer receives this folder-style specification, the reviewer records their
+  result in `agent-review-reports.md` using `docs/templates/AGENT-REVIEW-REPORTS.md`.
