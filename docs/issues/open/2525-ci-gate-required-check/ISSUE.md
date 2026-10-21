@@ -9,7 +9,7 @@ github-issue: 2525
 spec-path: docs/issues/open/2525-ci-gate-required-check/ISSUE.md
 branch: "2525-ci-gate-required-check"
 related-pr: null
-last-updated-utc: "2026-10-21 19:47"
+last-updated-utc: "2026-10-21 19:53"
 semantic-links:
   skill-links:
     - create-issue
@@ -589,6 +589,15 @@ Conventional Commits with narrow scopes and sign every commit with GPG.
   killed. F24 asked for `let _ =` instead of `drop(...)`, which the workspace lint `let_underscore_drop` denies; the
   pattern stays and a comment says why (`test(ci-gate): [#2525] say why the fixture ignores the write with drop`).
   Still 226 unit and 23 command-line tests - [`manual-verification-evidence.md`](manual-verification-evidence.md) V11.
+- 2026-10-21 19:53 UTC - GitHub Copilot - Processed the second review of the reviewer `da2ce7` on PR #2610 (review 5605208219, state
+  `DISMISSED` by the later push, three threads; the reviewer labels them F22 to F24, recorded here as F25 to F27 because
+  the record had used those labels). All of round 2 was found repaired, and F21 was withdrawn on the rule against
+  squashing. F25: the record missed the review bot's sixth review; it was recorded and answered in the previous
+  commit of this branch. F26: three records cited commit ids of the branch; I had not run the check of the
+  `open-pull-request` skill before pushing, and the audit, V11, and one of my replies now cite subjects
+  (`docs(pr-reviews): cite commit subjects, not ids, in the PR #2610 audit and V11`). F27: the 14:43 entry now shows
+  the step from 199 tests and 17 mutants (`docs(issues): [#2525] show the step from 199 tests and 17 mutants in the
+  14:43 progress log entry`). No code changed.
 
 ## Acceptance Criteria
 
