@@ -3,7 +3,7 @@ doc-type: file-test-plan
 issue: 1349
 package: torrust-tracker-http-core
 target-file: packages/http-core/src/services/mod.rs
-status: draft
+status: done
 semantic-links:
   related-artifacts:
     - packages/http-core/src/services/mod.rs
@@ -42,14 +42,30 @@ No property candidate, no integration increment.
 | ID | Status | Work | Completion evidence |
 | --- | --- | --- | --- |
 | R1 | N/A | No existing test. | Recorded in the plan. |
-| R2 | TODO | Correct the documentation sentence (D1). No test. | The diff is the comment line only; `cargo doc` and the doc tests pass. |
-| R3 | TODO | Select an integration increment, or `none`. | `none`. |
-| R4 | TODO | Re-run unit-only coverage; record that the file still has no executable entry. | `coverage-evidence.md`. |
+| R2 | DONE | Correct the documentation sentence (D1). No test. | The diff is the one comment line; `cargo +nightly doc` with `-D warnings` and the doc tests pass. |
+| R3 | DONE | Select an integration increment, or `none`. | `none`. |
+| R4 | DONE | Re-run unit-only coverage; record that the file still has no executable entry. | `coverage-evidence.md`. |
 
 Gates: this plan needs approval first; the completed file needs the maintainer's completed-file review before its
 one signed commit.
+
+## Results
+
+Documentation-only change, made on 2026-10-21 at 14:43 UTC. The line now reads "does not depend on the Axum web
+server" (the word `not` is the whole diff). Evidence for the claim: `packages/http-core/Cargo.toml` has no `axum`
+dependency. The file has no executable entry, before or after, so no coverage figure moves; no test was added and
+no named mutation applies.
+
+## Approval
+
+Approved by Jose Celano on 2026-10-21 (between 13:23 and 13:50 UTC; the exact time was not noted): the no-test
+conclusion and the documentation correction D1.
 
 ## Progress Log
 
 - 2026-10-21 13:23 UTC - GitHub Copilot - Created the plan from `services/mod.rs`. No Rust test or production code
   changed. The plan awaits maintainer approval.
+- 2026-10-21 13:3x UTC - Jose Celano - Approved the plan, including D1 (the exact time was not noted).
+- 2026-10-21 14:43 UTC - GitHub Copilot - R2-R4 done: the comment was corrected and the docs build with
+  `-D warnings`.
+- 2026-10-21 14:46 UTC - Jose Celano - Approved the completed file. The plan is `done`.
