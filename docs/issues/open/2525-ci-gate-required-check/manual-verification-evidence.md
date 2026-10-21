@@ -340,6 +340,78 @@ the fork, and no pull request is open. Verified afterwards: the fork has only it
 `exp-` branch, no `exp-2525` tag, and no open pull request. Fork pull requests 20 and 21 remain, merged, as
 history of the experiment; the workflow runs remain too.
 
+### V10 - Cross-run state of the override (task T5)
+
+- Goal: show, with hosted runs, how a `CI gate` job started by a label event can learn the results of the
+  groups, who applied the override label, whether that actor may, and whether the override is still valid
+  after a push, using only a read-only token.
+- Initial state: a throwaway base branch in the fork `josecelano/torrust-tracker` (from `develop` at
+  `4ad183d18`) with one orchestrator workflow, and a ruleset that requires the status check `CI gate`. The
+  workflow and the ruleset are in `evidence/t5-sandbox/`. It declares `permissions` of `contents`, `checks`,
+  `issues`, and `pull-requests`, all `read`, so its token has no write scope. A matrix job named after the
+  group runs a stub for `docs-lint` and `db-benchmarking`, and fails when a marker file exists in the pull
+  request; label events skip these jobs. The `CI gate` job builds `ci-gate` from the base branch, classifies
+  the pull request's files, reads the results and the override from the GitHub API, and decides with
+  `ci-gate verdict`. Fork pull request 22 changes a file under `packages/persistence-benchmark/` (so
+  `docs-lint` and `db-benchmarking` are needed) and carries the marker that makes `db-benchmarking` fail.
+- Status: `DONE`
+
+The log of the `CI gate` job of every run is in
+[`evidence/t5-gate-logs.txt`](evidence/t5-gate-logs.txt). Times are UTC, 2026-10-21.
+
+| Run | Event, at                      | Head        | What the gate read and decided                                                                                                                                                                          | Result                             |
+| --- | ------------------------------ | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- |
+| 1   | `opened`, 10:38                | `270a89e08` | `docs-lint` success, `db-benchmarking` failure. No label. (My script passed an empty override actor, so the tool printed a usage error instead of a failing verdict.)                                   | `CI gate` failed                   |
+| 2   | `labeled` `ci-override`, 10:40 | `270a89e08` | Group jobs skipped. Results read from run 1's check runs. Events API: actor `josecelano`, the same as the event's sender. Role `admin`.                                                                 | pass, `overridden_by` `josecelano` |
+| 3   | `unlabeled`, 10:43             | `270a89e08` | Ran the old workflow (see below), with the same empty-actor error as run 1.                                                                                                                             | `CI gate` failed                   |
+| 4   | `labeled`, 10:44               | `270a89e08` | As run 2.                                                                                                                                                                                               | pass                               |
+| 5   | `synchronize`, 10:46           | `ab8b42e90` | Group jobs ran again and `db-benchmarking` failed. The label is still on the pull request, applied at 10:44:46, but the new head's first check suite was created at 10:46:06, so the override is stale. | fail, `BLOCKED`                    |
+| 6   | `unlabeled`, 10:47             | `ab8b42e90` | No label.                                                                                                                                                                                               | fail                               |
+| 7   | `labeled`, 10:49               | `ab8b42e90` | Applied at 10:49:13, after the first check suite at 10:46:06. Role `admin`.                                                                                                                             | pass                               |
+
+After run 7 the head had three `CI gate` check runs (failure at 10:46, failure at 10:47, success at
+10:49), `db-benchmarking` was still a failing check run, and the merge push at 10:50:47 was accepted
+(merge commit `a4b78b909`), so the later success satisfied the required check as in V9.
+
+What it shows:
+
+- **Reading the results from the checks API works with a read-only token, in every event.** A label run,
+  whose own group jobs are skipped, found the earlier failure of `db-benchmarking` in the check runs of the
+  head commit. A skipped group job leaves a check run with the conclusion `skipped`, and a skipped matrix job
+  is named literally `matrix.group`, so the gate must ignore skipped runs and names that are not groups, or
+  a label run would hide the earlier result. A group job that has not completed counts as missing.
+- **Who applied the label comes from the issue events API.** The latest `labeled` event for the label gives
+  the actor and the time. In label runs it equals the event's sender, but a `synchronize` run has no such
+  field, so the events API is the one source that works for every event.
+- **The collaborator permission API works with the read-only token.** It returned `admin` for the
+  maintainer, and `read` for two users without write access (`da2ce7` on the fork, and `octocat`), so the
+  Maintain or Admin check can tell them apart. Not tested: a label applied by a real user without that role,
+  because the sandbox had only one account.
+- **An override does not survive a push, and this works without write access.** Comparing the label's time
+  with the creation time of the head commit's first check suite made the override stale after the new push
+  although the label stayed on the pull request, and a fresh label after the push counted. The first check
+  suite appeared 4 seconds after the push, so a label applied in that window would count as stale, which
+  fails safe.
+- **A workflow change on the base branch does not reach the label runs of an open pull request until its
+  head changes.** After the base branch got a fix, run 3 still used the old workflow: a pull request keeps
+  the merge ref, and the workflow file in it, that it was last given. This matters when T6 changes the
+  orchestrator while pull requests are open.
+- The gate built the tool from a checkout of the base branch, so the pull request's own changes do not
+  alter the tool that decides.
+
+Limits: the sandbox pull request is in the same repository as its base, not a fork, so it cannot show how
+the token of a pull request from a fork behaves. By the maintainer's decision this is verified on real
+pull requests when T6 lands. The jobs in the sandbox are stubs, and the jobs of the real workflows were
+not exercised. Not tested: reading the results from artifacts, or rerunning the jobs.
+
+Setup note: a fix to the sandbox workflow was pushed to the base branch at about 10:42, after setting the
+sandbox ruleset to `disabled` for the push and back to `active` right after, because the ruleset (like the
+real one) refuses a direct push.
+
+Cleanup, 2026-10-21 at 10:52 UTC: the sandbox ruleset, both `exp-2525-t5-*` branches, and the `ci-override`
+label were deleted from the fork, and verified: only the two tag rulesets remain, no `exp-` branch, no open
+pull request, and none of those labels. Fork pull request 22 remains, merged, as history.
+
 ## Failures and Follow-up
 
 None.

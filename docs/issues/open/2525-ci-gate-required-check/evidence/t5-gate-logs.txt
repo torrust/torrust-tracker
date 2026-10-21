@@ -1,0 +1,90 @@
+T5 sandbox: the 'CI gate' job log of each orchestrator run of fork pull request 22 (josecelano/torrust-tracker),
+2026-10-21. The classification line is printed only for the first run; it is the same in every run.
+Sandbox workflow and ruleset: t5-sandbox/. The token of the gate job has only read scopes: contents, checks, issues, pull-requests.
+
+=== run 1: 39586069094, 2026-10-21T10:38:31Z head=270a89e08
+event action: opened; sender: josecelano; head: 270a89e089bf4db3e0b436ef4fcf32a92a2a0a07
+all check runs for the head commit:
+  copilot-pull-request-reviewer app=github-actions in_progress/null started=2026-10-21T10:38:45Z
+  docs-lint app=github-actions completed/success started=2026-10-21T10:38:34Z
+  db-benchmarking app=github-actions completed/failure started=2026-10-21T10:38:33Z
+labels now: []
+no ci-override label
+{"kind":"usage_error","message":"`--override-actor` needs a login. usage: ci-gate classify --base-branch <branch>  (changed paths on stdin, NUL-separated, as `git diff --name-only -z` prints them); ci-gate verdict [--override-actor <login>]  (JSON on stdin: {\"classification\": <the classify output>, \"results\": {<group>: success|failure|cancelled|skipped}})"}
+{"base_branch":"exp-2525-t5-base","changed_path_count":2,"groups":[{"group":"docs-lint","needed":true,"explanation":"it runs on every pull request"},{"group":"testing","needed":false,"explanation":"ev ...
+
+=== run 2: 39586340205, 2026-10-21T10:40:47Z head=270a89e08
+event action: labeled; sender: josecelano; head: 270a89e089bf4db3e0b436ef4fcf32a92a2a0a07
+all check runs for the head commit:
+  copilot-pull-request-reviewer app=github-actions completed/success started=2026-10-21T10:38:45Z
+  docs-lint app=github-actions completed/success started=2026-10-21T10:38:34Z
+  db-benchmarking app=github-actions completed/failure started=2026-10-21T10:38:33Z
+labels now: ["ci-override"]
+latest labeled event for ci-override: actor=josecelano at=2026-10-21T10:40:45Z (payload sender of this run: josecelano)
+the head commit's first check suite was created at 2026-10-21T10:38:27Z
+permission of josecelano: admin
+the override is valid
+{"verdict":"pass","problems":[{"group":"db-benchmarking","problem":"failure"}],"overridden_by":"josecelano","explanation":"overridden by `josecelano`; needed groups without a success: db-benchmarking (failure)"}
+
+=== run 3: 39586622285, 2026-10-21T10:43:07Z head=270a89e08
+event action: unlabeled; sender: josecelano; head: 270a89e089bf4db3e0b436ef4fcf32a92a2a0a07
+all check runs for the head commit:
+  copilot-pull-request-reviewer app=github-actions completed/success started=2026-10-21T10:38:45Z
+  docs-lint app=github-actions completed/success started=2026-10-21T10:38:34Z
+  db-benchmarking app=github-actions completed/failure started=2026-10-21T10:38:33Z
+labels now: []
+no ci-override label
+{"kind":"usage_error","message":"`--override-actor` needs a login. usage: ci-gate classify --base-branch <branch>  (changed paths on stdin, NUL-separated, as `git diff --name-only -z` prints them); ci-gate verdict [--override-actor <login>]  (JSON on stdin: {\"classification\": <the classify output>, \"results\": {<group>: success|failure|cancelled|skipped}})"}
+
+=== run 4: 39586828491, 2026-10-21T10:44:48Z head=270a89e08
+event action: labeled; sender: josecelano; head: 270a89e089bf4db3e0b436ef4fcf32a92a2a0a07
+all check runs for the head commit:
+  copilot-pull-request-reviewer app=github-actions completed/success started=2026-10-21T10:38:45Z
+  docs-lint app=github-actions completed/success started=2026-10-21T10:38:34Z
+  db-benchmarking app=github-actions completed/failure started=2026-10-21T10:38:33Z
+labels now: ["ci-override"]
+latest labeled event for ci-override: actor=josecelano at=2026-10-21T10:44:46Z (payload sender of this run: josecelano)
+the head commit's first check suite was created at 2026-10-21T10:38:27Z
+permission of josecelano: admin
+the override is valid
+{"verdict":"pass","problems":[{"group":"db-benchmarking","problem":"failure"}],"overridden_by":"josecelano","explanation":"overridden by `josecelano`; needed groups without a success: db-benchmarking (failure)"}
+
+=== run 5: 39587002512, 2026-10-21T10:46:10Z head=ab8b42e90
+event action: synchronize; sender: josecelano; head: ab8b42e90ea02164e1da7df6c83e072022a2205c
+all check runs for the head commit:
+  docs-lint app=github-actions completed/success started=2026-10-21T10:46:13Z
+  db-benchmarking app=github-actions completed/failure started=2026-10-21T10:46:12Z
+labels now: ["ci-override"]
+latest labeled event for ci-override: actor=josecelano at=2026-10-21T10:44:46Z (payload sender of this run: josecelano)
+the head commit's first check suite was created at 2026-10-21T10:46:06Z
+permission of josecelano: admin
+the override is stale: it was applied before the head commit's first check suite
+probe: permission of da2ce7: read
+probe: permission of octocat: read
+{"verdict":"fail","problems":[{"group":"db-benchmarking","problem":"failure"}],"overridden_by":null,"explanation":"needed groups without a success: db-benchmarking (failure)"}
+
+=== run 6: 39587210733, 2026-10-21T10:47:54Z head=ab8b42e90
+event action: unlabeled; sender: josecelano; head: ab8b42e90ea02164e1da7df6c83e072022a2205c
+all check runs for the head commit:
+  docs-lint app=github-actions completed/success started=2026-10-21T10:46:13Z
+  db-benchmarking app=github-actions completed/failure started=2026-10-21T10:46:12Z
+labels now: []
+no ci-override label
+probe: permission of da2ce7: read
+probe: permission of octocat: read
+{"verdict":"fail","problems":[{"group":"db-benchmarking","problem":"failure"}],"overridden_by":null,"explanation":"needed groups without a success: db-benchmarking (failure)"}
+
+=== run 7: 39587372587, 2026-10-21T10:49:15Z head=ab8b42e90
+event action: labeled; sender: josecelano; head: ab8b42e90ea02164e1da7df6c83e072022a2205c
+all check runs for the head commit:
+  docs-lint app=github-actions completed/success started=2026-10-21T10:46:13Z
+  db-benchmarking app=github-actions completed/failure started=2026-10-21T10:46:12Z
+labels now: ["ci-override"]
+latest labeled event for ci-override: actor=josecelano at=2026-10-21T10:49:13Z (payload sender of this run: josecelano)
+the head commit's first check suite was created at 2026-10-21T10:46:06Z
+permission of josecelano: admin
+the override is valid
+probe: permission of da2ce7: read
+probe: permission of octocat: read
+{"verdict":"pass","problems":[{"group":"db-benchmarking","problem":"failure"}],"overridden_by":"josecelano","explanation":"overridden by `josecelano`; needed groups without a success: db-benchmarking (failure)"}
+

@@ -380,6 +380,7 @@ numwant
 nvCFlJCq7fz7Qx6KoKTDiMZvns8l5Kw7
 objcopy
 obra
+octocat
 oldpwd
 oneline
 oneshot
@@ -484,6 +485,7 @@ shellcheck
 signingkey
 skiplist
 slowloris
+slurpfile
 socat
 socketaddr
 sockfd
