@@ -6,7 +6,7 @@ epic: 1669
 github-issue: 2482
 spec-path: docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-21 15:23"
+last-updated-utc: "2026-10-21 16:38"
 semantic-links:
   skill-links:
     - create-issue
@@ -169,13 +169,13 @@ packages. The ADR decides.
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-Only subissue 1 is defined. Rows 2 onwards are provisional: one per inventory item, with the
-destination and final split set by subissue 1's ADR and migration plan. They become drafts in
+Only subissue 1 (#2618) is defined. Rows 2 onwards are provisional: one per inventory item, with
+the destination and final split set by subissue 1's ADR and migration plan. They become drafts in
 subissue 1 and GitHub issues one at a time afterwards.
 
 | Order | Issue | Local Spec | Status | Notes |
 | --- | --- | --- | --- | --- |
-| 1 | #[To be assigned] - Decide how packages share test support code | `docs/issues/drafts/2482-decide-test-support-rules/ISSUE.md` (to be created from the Phase 1 plan below) | TODO | Tasks D1 to D5; MV1 to MV4. Blocks every other row. |
+| 1 | #2618 - Decide how packages share test support code | [`docs/issues/open/2618-2482-decide-test-support-rules/ISSUE.md`](../2618-2482-decide-test-support-rules/ISSUE.md) | IN_PROGRESS | Tasks D1 to D5; MV1 to MV4. Blocks every other row. |
 | 2 | #[To be assigned] - Move the `test-helpers` protocol helpers to their consumer | Provisional | TODO | Pattern B; coupling report finding 1. `test-helpers` is published as 3.0.0 with only `configuration` and `random`, so the move alone does not break that API; #2583 decides the bump against the published API. |
 | 3 | #[To be assigned] - Gate `tracker-core`'s test modules and mocks | Provisional | TODO | Patterns C and D. |
 | 4 | #[To be assigned] - Relocate the `udp-server` test environment | Provisional | TODO | Pattern A; includes `examples/udp_only_public_tracker.rs`. After #2416 (its T9 changes this environment). |
@@ -193,7 +193,8 @@ subissue 1 and GitHub issues one at a time afterwards.
 - Exit criteria: the maintainer has approved the ADR; rows 2 onwards in the table above are
   drafts with their final scope and order.
 
-Plan for subissue 1, kept here until its own spec is created:
+Plan for subissue 1. Its own spec, [#2618](../2618-2482-decide-test-support-rules/ISSUE.md),
+is authoritative where the two differ:
 
 | ID | Task | Notes / Expected Output |
 | --- | --- | --- |
@@ -293,8 +294,8 @@ affects them.
 - [x] Converted from a task to a sub-EPIC of #1669
 - [x] Epic spec reviewed and approved by user/maintainer (josecelano, 2026-10-21, after the
       #1669 orchestrator's review)
-- [ ] Spec-only PR merged into `develop`
-- [ ] Subissue 1 created and linked in this spec
+- [x] Spec-only PR merged into `develop` (PR #2614, merge commit `0126fa3f7`, 2026-10-21)
+- [x] Subissue 1 created and linked in this spec (#2618)
 - [ ] Subissues 2 onwards drafted by subissue 1 and linked in this spec
 - [ ] Subissue statuses kept up to date in the `Subissues` table
 - [ ] For each implemented subissue: automatic checks completed and recorded
@@ -383,6 +384,11 @@ Append one line per meaningful update.
   `http` and `udp` are unreleased. The O4 weakness, row 2, the #2583 related-work row, the
   Semver risk and the inventory now leave the bump to #2583's comparison with the published API
   (PR #2614 review finding F2).
+- 2026-10-21 16:38 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 1) - Created
+  subissue 1 as #2618 after the maintainer (josecelano) approved its spec, linked it under #2482,
+  and set row 1 of the Subissues table to IN_PROGRESS. Ticked "Spec-only PR merged into `develop`"
+  (true since PR #2614 merged) and "Subissue 1 created and linked in this spec". The Phase 1 plan
+  now defers to #2618's spec.
 
 ## Acceptance Criteria
 

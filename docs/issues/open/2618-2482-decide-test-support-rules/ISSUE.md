@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: draft
+status: planned
 priority: p2
 epic: 2482
-github-issue: null
-spec-path: docs/issues/drafts/2482-decide-test-support-rules/ISSUE.md
-branch: "chore/draft-2482-decide-test-support-rules"
+github-issue: 2618
+spec-path: docs/issues/open/2618-2482-decide-test-support-rules/ISSUE.md
+branch: "2618-2482-decide-test-support-rules-spec"
 related-pr: null
-last-updated-utc: "2026-10-21 16:31"
+last-updated-utc: "2026-10-21 16:38"
 semantic-links:
   skill-links:
     - create-issue
@@ -30,11 +30,11 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Decide how packages share test support code
+# Issue #2618 - Decide how packages share test support code
 
 Parent EPIC: #2482 (Reorganize test support code shared between workspace packages), a sub-EPIC
 of #1669 (Overhaul: Packages). This is row 1 of the
-[#2482 Subissues table](../../open/2482-1669-reorganize-shared-test-support/EPIC.md#subissues).
+[#2482 Subissues table](../2482-1669-reorganize-shared-test-support/EPIC.md#subissues).
 It blocks every other row.
 
 ## Goal
@@ -45,13 +45,13 @@ for the other rows of #2482, so no package moves test code before the rules exis
 
 ## Background
 
-[#2482](../../open/2482-1669-reorganize-shared-test-support/EPIC.md) found five test support
+[#2482](../2482-1669-reorganize-shared-test-support/EPIC.md) found five test support
 patterns (A to E) in the workspace, two of which hurt: public `testing` modules that compile test
 infrastructure and nine test-only dependency edges into production builds (pattern A), and a
 shared `test-helpers` crate that has become a coupling hub (pattern B). DEC-13 chose the public
 unconditional module on the premise that `tracker-core/src/test_helpers.rs` was the same pattern;
 that module is `#[cfg(test)]` and private, so the premise was wrong
-(see the [inventory](../../open/2482-1669-reorganize-shared-test-support/test-support-inventory.md)).
+(see the [inventory](../2482-1669-reorganize-shared-test-support/test-support-inventory.md)).
 
 The EPIC lists eight options (O1 to O8) and three ways for a crate's own targets to use its own
 `testing` feature (O1a to O1c). Several of their trade-offs rest on Cargo behaviour that nobody
@@ -94,7 +94,7 @@ Decisions the maintainer already made for #2482 and that bind this subissue:
   `docs/issues/drafts/2482-<slug>/ISSUE.md`, with destination, final order and the EPIC #1488
   gating; update the #2482 Subissues table. Row 8 is drafted only if the ADR chooses O1.
 - D5: link the drafts from findings 1 and 2 of the
-  [2026-10-06 coupling report](../../open/1669-overhaul-packages/workspace-coupling-report-2026-10-06.md).
+  [2026-10-06 coupling report](../1669-overhaul-packages/workspace-coupling-report-2026-10-06.md).
 - Update the #2482 checkpoints, acceptance verification and the inventory (a destination for each
   item) as the work lands.
 
@@ -146,7 +146,7 @@ run.
 
 - Related ADRs: [independent package versioning](../../../adrs/20260629000000_adopt_independent_package_versioning.md)
   (every publishable package stays publishable); DEC-13 in
-  [`DECISIONS.md`](../../open/1669-overhaul-packages/DECISIONS.md) (amended by D3).
+  [`DECISIONS.md`](../1669-overhaul-packages/DECISIONS.md) (amended by D3).
 - ADRs to create: one repository-wide ADR in `docs/adrs/`, "how workspace packages share test
   support code" (D2). It is repository-wide because it binds every package and the
   inter-package dev-dependency edges, so it does not live in a package-local collection.
@@ -220,8 +220,8 @@ Copilot trailer.
 ### Workflow Checkpoints
 
 - [x] Folder-style spec drafted in `docs/issues/drafts/2482-decide-test-support-rules/ISSUE.md`
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created, linked as a sub-issue of #2482, and its number added to this spec
+- [x] Spec reviewed and approved by user/maintainer (josecelano, 2026-10-21, through the session's approval prompt)
+- [x] GitHub issue #2618 created, linked as a sub-issue of #2482, and its number added to this spec
 - [ ] Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, pre-commit and pre-push checks)
@@ -241,6 +241,10 @@ Append one line per meaningful update.
   32 workspace members with 10 `publish = false`; `test-helpers` is a dev-dependency of the same 7
   packages the inventory lists; #2416, #2449, #2450 and #2410 are open; the publish workflow runs
   `cargo test -p <crate> --all-targets --all-features`.
+- 2026-10-21 16:38 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 1) - The maintainer
+  (josecelano) approved the spec. Created issue #2618, linked it as a sub-issue of #2482 (checked
+  with the issue's `parent_issue_url`), moved the spec to
+  `docs/issues/open/2618-2482-decide-test-support-rules/` and updated the #2482 Subissues table.
 
 ## Acceptance Criteria
 
@@ -356,12 +360,12 @@ assumptions, material design changes, unexpected validation findings, and reusab
 
 ## References
 
-- Parent EPIC: [`#2482`](../../open/2482-1669-reorganize-shared-test-support/EPIC.md) (its Phase 1
+- Parent EPIC: [`#2482`](../2482-1669-reorganize-shared-test-support/EPIC.md) (its Phase 1
   plan and verification table are the source of T1 to T6)
-- Inventory: [`test-support-inventory.md`](../../open/2482-1669-reorganize-shared-test-support/test-support-inventory.md)
-- Grandparent EPIC: [`#1669`](../../open/1669-overhaul-packages/EPIC.md)
-- Decision log: DEC-13 in [`DECISIONS.md`](../../open/1669-overhaul-packages/DECISIONS.md)
-- Source findings 1 and 2: [2026-10-06 coupling report](../../open/1669-overhaul-packages/workspace-coupling-report-2026-10-06.md)
+- Inventory: [`test-support-inventory.md`](../2482-1669-reorganize-shared-test-support/test-support-inventory.md)
+- Grandparent EPIC: [`#1669`](../1669-overhaul-packages/EPIC.md)
+- Decision log: DEC-13 in [`DECISIONS.md`](../1669-overhaul-packages/DECISIONS.md)
+- Source findings 1 and 2: [2026-10-06 coupling report](../1669-overhaul-packages/workspace-coupling-report-2026-10-06.md)
 - Packaging check and the self dev-dependency it removed: #2582
   ([spec](../../closed/2582-1669-remove-health-check-self-dev-dependency/ISSUE.md))
 - EPIC #1488 subissues that gate rows 4 to 7: #2416, #2449, #2450
