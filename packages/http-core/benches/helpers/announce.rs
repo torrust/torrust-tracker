@@ -1,12 +1,13 @@
-use std::net::{IpAddr, Ipv4Addr, SocketAddr};
-
-use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
+use torrust_net_primitives::service_binding::ServiceBinding;
 use torrust_tracker_http_core::services::announce::AnnounceService;
 use torrust_tracker_http_protocol::v1::requests::announce::Announce;
 use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::ClientIpSources;
 use torrust_tracker_primitives::AnnounceData;
 
-use crate::helpers::util::{initialize_core_tracker_services, sample_announce_request_for_peer, sample_peer};
+use crate::helpers::util::{
+    announce_service, initialize_core_tracker_services, sample_announce_request_for_peer, sample_peer,
+    sample_server_service_binding,
+};
 
 /// An announce service and request built once, outside the measured loop.
 ///
@@ -32,31 +33,16 @@ pub struct AnnounceBenchmarkContext {
 impl AnnounceBenchmarkContext {
     /// Must be awaited inside the Tokio runtime that runs the benchmark,
     /// because it spawns the statistics event listener on it.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the fixed server address is not a valid HTTP service binding.
     pub async fn new() -> Self {
         let (core_tracker_services, core_http_tracker_services) = initialize_core_tracker_services().await;
 
         let (announce_request, client_ip_sources) = sample_announce_request_for_peer(sample_peer());
 
-        let announce_service = AnnounceService::new(
-            core_tracker_services.core_config,
-            core_tracker_services.announce_handler,
-            core_tracker_services.authentication_service,
-            core_tracker_services.whitelist_authorization,
-            core_http_tracker_services.http_stats_event_sender,
-            core_http_tracker_services.configuration_instance_id,
-        );
-
-        let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070);
-
         Self {
-            announce_service,
+            announce_service: announce_service(core_tracker_services, core_http_tracker_services),
             announce_request,
             client_ip_sources,
-            server_service_binding: ServiceBinding::new(Protocol::HTTP, server_socket_addr).unwrap(),
+            server_service_binding: sample_server_service_binding(),
         }
     }
 
