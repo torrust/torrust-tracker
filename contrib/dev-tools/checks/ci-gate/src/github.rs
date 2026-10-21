@@ -339,17 +339,20 @@ fn override_request(labels: &[Label], events: &[Event]) -> Result<Option<Overrid
         return Ok(None);
     }
 
-    events
+    let latest_applied = events
         .iter()
         .filter(|event| event.kind == "labeled" && event.label.as_ref().is_some_and(|label| label.name == OVERRIDE_LABEL))
-        .max_by(|a, b| a.created_at.cmp(&b.created_at))
-        .map(|event| {
-            Some(OverrideRequest {
-                actor: event.actor.as_ref().map(|user| user.login.clone()),
-                applied_at: event.created_at.clone(),
-            })
-        })
-        .ok_or_else(|| format!("the label `{OVERRIDE_LABEL}` is on the pull request but no event of it being applied was found"))
+        .max_by(|a, b| a.created_at.cmp(&b.created_at));
+    let Some(event) = latest_applied else {
+        return Err(format!(
+            "the label `{OVERRIDE_LABEL}` is on the pull request but no event of it being applied was found"
+        ));
+    };
+
+    Ok(Some(OverrideRequest {
+        actor: event.actor.as_ref().map(|user| user.login.clone()),
+        applied_at: event.created_at.clone(),
+    }))
 }
 
 /// Whether an override applied at `applied_at` still counts, as `Ok`, or why it does not.
