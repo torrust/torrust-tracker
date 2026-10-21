@@ -6,7 +6,7 @@ epic: null
 github-issue: 1669
 spec-path: docs/issues/open/1669-overhaul-packages/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-21 09:51"
+last-updated-utc: "2026-10-21 10:02"
 semantic-links:
   skill-links:
     - create-issue
@@ -1091,6 +1091,7 @@ Previously referenced tools (screenshots from CodeScene already in the issue com
   dev-depends on itself, so `cargo package --workspace --no-verify` packages all 32 members. The
   same command now runs in the new `Workspace Packaging` job of `testing.yaml` and, with
   `--allow-dirty`, in `pre-push.sh` (maintainer decisions in the #2582 spec). Pull request pending.
+- 2026-10-21 10:02 UTC - GitHub Copilot - #2582 implementation is on PR #2601.
 
 ## Acceptance Criteria
 

@@ -8,8 +8,8 @@ epic: 1669
 github-issue: 2582
 spec-path: docs/issues/open/2582-1669-remove-health-check-self-dev-dependency/ISSUE.md
 branch: "2582-1669-remove-health-check-self-dev-dependency"
-related-pr: null
-last-updated-utc: "2026-10-21 09:51"
+related-pr: 2601
+last-updated-utc: "2026-10-21 10:02"
 semantic-links:
   skill-links:
     - create-issue
@@ -214,6 +214,10 @@ Every commit is a signed Conventional Commit.
   pre-push step and its documentation) came from the maintainer's answers recorded before the
   work started. Seven `publish = false` dev-tool crates warn about missing manifest metadata
   when packaged; that is out of scope.
+- 2026-10-21 10:02 UTC - GitHub Copilot - Rebased the branch onto the latest `develop` and reran the
+  pre-push hook and the crate tests (evidence V6, "Rerun after rebasing onto develop"). Opened
+  [PR #2601](https://github.com/torrust/torrust-tracker/pull/2601) and requested reviews from
+  Copilot and `da2ce7`.
 
 ## Acceptance Criteria
 
