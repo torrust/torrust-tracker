@@ -148,9 +148,12 @@ and T3, and the maintainer reviews the final wording before each commit. It is n
 >    that issued it"). A negative clause is the one most often left without a mutation.
 > 2. **One mutation per clause.** For each clause, write a mutation that breaks that clause and
 >    nothing else, and run the tests as described above, including the check that it compiled. A
->    mutation that breaks several clauses at once cannot show which clause a test guards: breaking
->    the clause "does not cancel others" by cancelling every token also breaks the clause "cancels
->    its own token".
+>    mutation that breaks several clauses at once cannot show which clause a test guards. On the rule
+>    "a dropped reservation releases its state without cancelling unrelated components", making a
+>    drop cancel every token breaks both clauses: the released reservation's own token is cancelled,
+>    and so are the others. An assertion on the released token then fails the test and hides that the
+>    other clause has no assertion. Making a drop cancel only the other tokens breaks just the second
+>    clause, and exposes the missing assertion.
 > 3. **Record it.** In the evidence, list each clause, its mutation, and the tests that failed. A
 >    clause with no failing test is a gap in the tests, not a pass.
 > 4. **Bound it.** Apply this to rules stated in a specification, ADR, or acceptance criterion, not
