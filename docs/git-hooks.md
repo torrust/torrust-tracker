@@ -9,8 +9,8 @@ semantic-links:
 # Git Hooks
 
 The repository's pre-commit and pre-push hooks run local validation before Git creates a commit
-or updates a remote branch. The pre-push hook runs nightly checks and the full stable test suite,
-so it can take several minutes.
+or updates a remote branch. The pre-push hook runs nightly checks, the workspace packaging check and the full stable test
+suite, so it can take several minutes.
 
 ## SSH Idle Timeouts During Pushes
 

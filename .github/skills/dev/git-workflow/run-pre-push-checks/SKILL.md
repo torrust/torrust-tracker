@@ -85,7 +85,10 @@ The script runs these steps in order:
 3. `cargo +nightly doc --no-deps --bins --examples ...` - nightly documentation build for binaries and examples
 4. `cargo +nightly doc --no-deps --lib ...` - nightly documentation build for libraries (a separate run avoids
    output filename collisions between a crate's lib and bin targets)
-5. `cargo +stable test --tests --benches --examples --workspace --all-targets --all-features` - all tests
+5. `cargo +stable package --workspace --no-verify --allow-dirty` - checks that every workspace crate can be
+   packaged for crates.io (needs the crates.io index; `--allow-dirty` checks the working tree, as the other
+   steps do, while CI checks the commits)
+6. `cargo +stable test --tests --benches --examples --workspace --all-targets --all-features` - all tests
 
 Steps already covered by pre-commit (machete, linters, doc tests) are intentionally
 omitted — they always run before each commit. E2E tests are excluded because they are
@@ -137,7 +140,8 @@ Because `.tmp/` is workspace-local, clean stale `pre-push-*.log` files periodica
 Check ownership is intentionally split by gate:
 
 - Pre-commit: fast local gate (`cargo machete`, `linter all`, `cargo test --doc --workspace`)
-- Pre-push: nightly toolchain checks + full stable test suite (no duplicates of pre-commit; no E2E)
+- Pre-push: nightly toolchain checks + workspace packaging check + full stable test suite (no duplicates of
+  pre-commit; no E2E)
 - CI: merge authority with full validation and E2E matrix jobs
 
 E2E tests are intentionally excluded from both pre-commit and pre-push. They run only in CI.

@@ -164,6 +164,29 @@ jobs:
         name: Check layer boundary bans
         run: cargo deny check bans
 
+  # issue: #2582
+  # Packages every workspace member so a crate that cannot be published (for example a versioned
+  # dependency that crates.io cannot resolve) fails here instead of at publish time. `--no-verify`
+  # skips building the packaged crates, so the job compiles nothing.
+  workspace-packaging:
+    name: Workspace Packaging
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - id: checkout
+        name: Checkout Repository
+        uses: actions/checkout@v7.0.1
+
+      - id: setup
+        name: Setup Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - id: package
+        name: Package Workspace Crates
+        run: cargo package --workspace --no-verify
+
   docker-e2e:
     # Skip this job when container.yaml is also running for the same event — it builds
     # the same image and runs the same E2E tests. container.yaml triggers on pushes to
