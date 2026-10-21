@@ -375,7 +375,10 @@ fn remove_fixture_directory(directory: &std::path::Path) -> Option<String> {
     match std::fs::remove_dir_all(directory) {
         Ok(()) => None,
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => None,
-        Err(error) => Some(format!("could not remove the fixture directory {}: {error}", directory.display())),
+        Err(error) => Some(format!(
+            "could not remove the fixture directory {}: {error}",
+            directory.display()
+        )),
     }
 }
 
@@ -384,7 +387,7 @@ impl Drop for FakeGh {
     fn drop(&mut self) {
         // Not a panic: a second panic while one is unwinding aborts the test process and hides the first.
         if let Some(message) = remove_fixture_directory(&self.directory) {
-            eprintln!("{message}");
+            drop(writeln!(std::io::stderr(), "{message}"));
         }
     }
 }
@@ -700,7 +703,10 @@ fn it_should_remove_the_directory_and_report_nothing_when_the_cleanup_succeeds()
 
     // Assert
     assert_eq!(report, None, "a successful cleanup has nothing to report");
-    assert!(!directory.exists(), "the cleanup must remove the directory and what it contains");
+    assert!(
+        !directory.exists(),
+        "the cleanup must remove the directory and what it contains"
+    );
 }
 
 #[cfg(unix)]
