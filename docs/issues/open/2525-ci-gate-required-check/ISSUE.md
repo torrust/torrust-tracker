@@ -9,7 +9,7 @@ github-issue: 2525
 spec-path: docs/issues/open/2525-ci-gate-required-check/ISSUE.md
 branch: "2525-ci-gate-required-check"
 related-pr: null
-last-updated-utc: "2026-10-21 12:55"
+last-updated-utc: "2026-10-21 13:23"
 semantic-links:
   skill-links:
     - create-issue
@@ -486,6 +486,11 @@ Conventional Commits with narrow scopes and sign every commit with GPG.
   covered the pagination of the check suites, so PR #2610 gained one that puts the earliest suite on the second
   page and fails when only the first page, or the first listed suite, is used (`test(ci-gate): [#2525] test that
   the earliest check suite is taken over all pages`).
+- 2026-10-21 13:23 UTC - GitHub Copilot - Processed Copilot's third review of PR #2605 (two findings). The evidence
+  transcripts named the folder of the saved sandbox files as `t5-sandbox/` and `t4-sandbox/`, which is ambiguous
+  from the repository root; both now give the full repository path (`docs(issues): [#2525] give the sandbox
+  folders in the evidence transcripts as repository paths`). The other finding said that every row of the
+  review audit's table starts with a doubled pipe; no row does, so no change was made.
 
 ## Acceptance Criteria
 
