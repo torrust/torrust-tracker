@@ -375,7 +375,13 @@ struct ComponentRegistry {
 impl ComponentRegistry {
     fn reserve(&mut self) -> (ComponentId, CancellationToken) {
         let id = ComponentId(self.next_id);
-        self.next_id += 1;
+        // Unreachable in practice: bootstrap reserves a handful of components.
+        // Failing loudly is safer than wrapping, which would reuse an id and
+        // overwrite another component's entry.
+        self.next_id = self
+            .next_id
+            .checked_add(1)
+            .expect("the job manager has issued every possible component id");
 
         let cancellation_token = CancellationToken::new();
         if self.cancelled {
@@ -699,7 +705,8 @@ mod tests {
     use torrust_server_lib::signals::Halted;
 
     use super::{
-        ComponentCompletion, ComponentError, ComponentResult, JobManager, JobOutcome, JobStatus, Reservation, SpawnError,
+        ComponentCompletion, ComponentError, ComponentRegistry, ComponentResult, JobManager, JobOutcome, JobStatus, Reservation,
+        SpawnError,
     };
 
     /// Reserves a component and spawns it with a runner that does not use its token.
@@ -1207,5 +1214,18 @@ mod tests {
             Vec::<JobOutcome>::new(),
             "the manager that rejected the reservation must not supervise its runner"
         );
+    }
+
+    #[test]
+    #[should_panic(expected = "the job manager has issued every possible component id")]
+    fn it_should_refuse_to_issue_a_reused_component_id_when_the_id_space_is_exhausted() {
+        // Arrange
+        let mut registry = ComponentRegistry {
+            next_id: u64::MAX,
+            ..ComponentRegistry::default()
+        };
+
+        // Act
+        let (_id, _token) = registry.reserve();
     }
 }
