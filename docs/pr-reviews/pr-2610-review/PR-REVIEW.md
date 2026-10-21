@@ -40,7 +40,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Four reviews were submitted so far, all by Copilot. Each body repeats its inline threads, so the bodies add
+Five reviews were submitted so far, all by Copilot. Each body repeats its inline threads, so the bodies add
 no rows.
 
 - Review 5599696060 read the head whose subject is "feat(ci-gate): [#2525] add the GitHub adapter of the merge
@@ -53,6 +53,9 @@ no rows.
 - Review 5603061561 read the head whose subject is "docs(pr-reviews): add the PR #2610 review audit", the head
   of the third round. It marks F5 and F6 as resolved and carries two inline threads, F10 and F11, which make one
   point at two lines, so F11 is recorded as a re-raise of F10.
+- Review 5603718492 read the head whose subject is "docs(pr-reviews): record the fourth review round in the PR #2610
+  audit". It marks F10 and F11 as resolved and carries one inline thread, F12, a different property of the same
+  test helper, so it is an original finding.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -67,6 +70,7 @@ no rows.
 | F9 | review-finding:pr-2610-f9 | Copilot | Suggestion | testing | RE_RAISE_OF:F7 | NO_ACTION | SUPERSEDED |
 | F10 | review-finding:pr-2610-f10 | Copilot | Nit (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
 | F11 | review-finding:pr-2610-f11 | Copilot | Nit (inferred) | testing | RE_RAISE_OF:F10 | NO_ACTION | SUPERSEDED |
+| F12 | review-finding:pr-2610-f12 | Copilot | Nit (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -213,6 +217,19 @@ no rows.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4339476470>
 
+### F12 - A failed cleanup of the fake gh directory is dropped without a trace
+
+- PR number: 2610
+- Source review ID: 5603718492
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4339943065>
+- Concern: dropping the result of removing the fixture directory hides a cleanup failure and can leave stray temporary directories that affect later runs. Handle the error, for example by panicking only when the thread is not already panicking, or by writing it on stderr.
+- Solution: the removal is a function that returns a message for any failure except a directory that is already gone, and the fixture writes the message on stderr when it is dropped. It does not panic, because a second panic while a test is unwinding aborts the process and hides the first. Three tests cover a successful cleanup, a directory that is already gone, and a failed cleanup. A second commit fixed the formatting and the lint on stderr output of the first.
+- Current-tree verification: the tests failed to compile before the function existed; a mutant that swallows failures and one that reports a missing directory are each killed by one test. The call from the `Drop` implementation to the function is not covered by a test. `cargo test -p ci-gate` passes with 209 unit and 23 command-line tests.
+- Resolution reference: test(ci-gate): [#2525] report a failed cleanup of a fake gh directory
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4340710055>
+
 ## Processing Log
 
 - 2026-10-21 12:33 UTC - Copilot's review arrived with four threads, F1 to F4.
@@ -238,6 +255,11 @@ no rows.
   Both were confirmed. The test failed first and was mutation-checked.
 - 2026-10-21 16:48 UTC - Fixed it in one signed commit, recorded the round in the specification, pushed, replied on
   both threads, and added F10 and F11 to this record.
+- 2026-10-21 17:34 UTC - Copilot's fifth review arrived with one thread, F12, which I found only when the
+  maintainer said that a thread was still open; the watcher had been stopped. Confirmed it against the tree.
+- 18:54 UTC - Fixed it test-first in two signed commits (the first was committed without running the formatter and
+  clippy, which rejected it), recorded the round in the specification, pushed, replied, and added F12 to this
+  record.
 
 ## Completion Rules
 
