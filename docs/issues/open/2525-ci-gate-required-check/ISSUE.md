@@ -9,7 +9,7 @@ github-issue: 2525
 spec-path: docs/issues/open/2525-ci-gate-required-check/ISSUE.md
 branch: "2525-ci-gate-required-check"
 related-pr: null
-last-updated-utc: "2026-10-21 07:17"
+last-updated-utc: "2026-10-21 07:44"
 semantic-links:
   skill-links:
     - create-issue
@@ -327,6 +327,14 @@ Conventional Commits with narrow scopes and sign every commit with GPG.
   The first collection silently dropped 245 runs because a listing is capped at 1000 results; comparing
   with `total_count` showed it, and per-day queries fixed it. T8(b) remains for when T7 lands. Next: the
   T4 and T5 decision gates, which need a fork sandbox and the maintainer's approval.
+- 2026-10-21 07:44 UTC - GitHub Copilot - Processed Copilot's review of PR #2590 (three findings, all confirmed). The
+  saved data did not say which pull requests the per-pull-request table excludes, so each now has its
+  creation time and a `complete_history` flag, and the table was recomputed from the committed files alone
+  and matched (`docs(issues): [#2525] save the creation time and cohort of each baseline pull request`).
+  I had counted 394 `Docs Lint` runs under 1.5 minutes and 2 in between, where the data has 392 and 4
+  (`docs(issues): [#2525] correct the Docs Lint duration bucket counts in the baseline`). The one-in-nine
+  slow-run rate pooled both classes; for documentation-only pull requests it is 17 of 270 runs, about one
+  in sixteen (`docs(issues): [#2525] give the Docs Lint slow-run rate per class of pull request`).
 
 ## Acceptance Criteria
 
