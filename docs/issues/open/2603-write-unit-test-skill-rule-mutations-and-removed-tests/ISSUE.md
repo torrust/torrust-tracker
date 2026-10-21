@@ -9,7 +9,7 @@ github-issue: 2603
 spec-path: docs/issues/open/2603-write-unit-test-skill-rule-mutations-and-removed-tests/ISSUE.md
 branch: "2603-write-unit-test-skill-rule-mutations-and-removed-tests-spec"
 related-pr: null
-last-updated-utc: "2026-10-21 10:38"
+last-updated-utc: "2026-10-21 11:06"
 semantic-links:
   skill-links:
     - create-issue
@@ -194,6 +194,8 @@ Checklist entries:
 - 2026-10-21 10:05 UTC - GitHub Copilot (Claude Sonnet 5.5) - Drafted from the two proposals in the #2415 implementation retrospective, at the maintainer's request. No GitHub issue exists yet.
 - 2026-10-21 10:37 UTC - GitHub Copilot (Claude Sonnet 5.5) - The maintainer approved the draft. GitHub issue #2603 was created (label `task`), and this spec moved from `docs/issues/drafts/` to `docs/issues/open/2603-write-unit-test-skill-rule-mutations-and-removed-tests/`; `status` is `planned`.
 - 2026-10-21 10:38 UTC - GitHub Copilot (Claude Sonnet 5.5) - The maintainer answered Q1 to Q4 as recommended (one instance is enough for both rules, a new sibling section, no reviewer change, keep the bound) and chose a spec-only pull request first: branch `2603-write-unit-test-skill-rule-mutations-and-removed-tests-spec`, `Related to #2603`. The skill change follows on the reserved branch `2603-write-unit-test-skill-rule-mutations-and-removed-tests`. T1 is `DONE`. No wording change.
+- 2026-10-21 10:41 UTC - GitHub Copilot (Claude Sonnet 5.5) - Opened the spec-only PR #2604 (`Related to #2603`).
+- 2026-10-21 11:06 UTC - GitHub Copilot (Claude Sonnet 5.5) - Copilot's review of PR #2604 has one finding (`review-finding:pr-2604-f1`): the per-clause mutation example named a clause the drop rule does not have. It is fixed in the proposed skill text, and the review is processed in `docs/pr-reviews/pr-2604-review/PR-REVIEW.md` (replied to and resolved, no unresolved thread). The correction changes the example only, not the rules or the maintainer's decisions on Q1 to Q4.
 
 ## Acceptance Criteria
 
