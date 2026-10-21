@@ -312,16 +312,19 @@ drain counts as lost events.
 
 The standalone HTTP and UDP test environments give their servers and their
 listeners independent tokens and one `DropGuard` each. `stop()` sets the order
-explicitly: cancel and join the server, then cancel and join the listeners, and
-disarm both guards. Dropping an environment without `stop()` cancels both
-tokens. Dropping a `CancellationToken` does not cancel it, so each owner that can
-be dropped holds a `DropGuard`. Each token is independent and not derived from
-the other: a parent-child token tree would hide the order in the direction of the
-tree, which the supervisor design rejects. A server failure must not skip the
-listener stage, so `stop()` joins the listeners before it reports any failure.
-Today the HTTP environment has one listener and one `DropGuard`, and the UDP
-environment has three listeners and one `DropGuard` (read from source, not run:
-`packages/axum-http-server/src/testing/environment.rs`,
+explicitly: cancel and join the server, then cancel and join the listeners.
+`stop()` disarms the server guard and cancels that token itself; the listeners
+guard moves into the join and is disarmed only once the server stage has ended,
+so abandoning `stop()` while the server still drains (for example when its
+caller's deadline expires) cannot leave a detached listener. Dropping an
+environment without `stop()` cancels both tokens. Dropping a `CancellationToken`
+does not cancel it, so each owner that can be dropped holds a `DropGuard`. Each
+token is independent and not derived from the other: a parent-child token tree
+would hide the order in the direction of the tree, which the supervisor design
+rejects. A server failure must not skip the listener stage, so `stop()` joins
+the listeners before it reports any failure. The HTTP environment has one
+listener and the UDP environment three, which share one listeners token
+(`packages/axum-http-server/src/testing/environment.rs`,
 `packages/udp-server/src/testing/environment.rs`).
 
 ### 9. What this ADR keeps from the cancellation-tree ADR

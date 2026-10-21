@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2416-2410-si-22-4-stop-producers-before-listeners/ISSUE.md
-last-updated-utc: "2026-10-21 17:09"
+last-updated-utc: "2026-10-21 17:17"
 ---
 
 # Manual Verification Evidence
@@ -117,3 +117,46 @@ so that an unused variable failed under `-D warnings`, and rewritten). `manager`
 | F3 (negative) a producer of one bus does not block consumers of another | any producer blocks every consumer | event_flows: `it_should_accept_a_consumer_of_a_bus_that_has_no_producer_yet` |
 | W the wiring declares every bus of every producer | W1 HTTP without swarm; W2 HTTP without http-core; W3 UDP without swarm; W4 UDP without udp-server; W5 UDP without udp-core; W6 torrent cleanup without swarm; W7 the in-memory listener registered on the wrong bus | app: `it_should_stop_every_started_component_cooperatively_and_each_producer_before_its_listeners_when_the_manager_is_cancelled` for all seven (before the declared-order assertion existed, W1 and W3 survived: the HTTP and UDP instances happened to complete first) |
 | Subscription before publication | the in-memory listener subscribes inside its task | app: `it_should_subscribe_every_started_swarm_listener_before_its_task_runs_or_any_producer_starts` (`got Some(Ok(2))`) |
+
+### V4 - T9: the HTTP and UDP test environments stop the server first
+
+- Goal: show that `stop()` of each environment cancels and joins the server, then the listeners, keeps
+  the join-all failure reporting and both drop-path guarantees, and counts the event of a request that
+  completes while the server drains.
+- Working-tree state: the T9 change in `packages/axum-http-server/src/testing/environment.rs` and
+  `packages/udp-server/src/testing/environment.rs`, uncommitted while these runs happened.
+- Red (HTTP), run on the tree before the T9 change (the T7-T8 commit, environments untouched):
+  `cargo test -p torrust-tracker-axum-http-server --lib it_should_count_the_statistics_event_of_a_request_that_completes_while_stop_drains_the_server`
+  failed with `left: 0, right: 1`: "the announce completed while stop() was draining the server, so its
+  event must be counted before stop() returns". The test sends every header of a `completed` announce
+  but the final blank line, calls `stop()`, waits until the server refuses new connections (the
+  observable sign that it began to shut down), finishes the request, and checks the answer
+  (`HTTP/1.1 200`) before checking the metric, so the failure is the lost event and not an unanswered
+  request. A first probe of this idea printed `stats: 0` on the same tree before the test existed.
+- Green: after the change the same test passes (`tcp4_announces_handled` is 1).
+- Why the UDP late-event test is not a red proof: a UDP request cannot be held in flight while the
+  receive loop drains, so the UDP environment has no deterministic equivalent of the partial HTTP
+  request. `it_should_count_the_statistics_events_of_a_request_answered_just_before_stop` is
+  regression coverage (a request answered before `stop()`, both statistics listeners count it); it also
+  passed under mutation U-M1 below. The order is proven for UDP by the staged-join unit test, which
+  fails under U-M1.
+- Commands and outcomes: `cargo test -p torrust-tracker-axum-http-server -p torrust-tracker-udp-server`:
+  HTTP library 48 passed (11 in the environment module), UDP library 232 passed (12 in the environment
+  module), and the integration and doc tests of both packages pass.
+- Tests added (no test removed or merged): HTTP, the in-flight request test, the staged-order unit test,
+  the abandoned-join unit test, and the drop-stops-the-listener test; UDP, the same four with the
+  answered-request test in place of the in-flight one. The two existing failure-reporting tests keep
+  their purpose and only pass the listener guard to `join_owned_tasks`; they no longer cancel the token
+  before the call, because the function now cancels the listeners itself after the server stage.
+- Design detail applied beyond D20's wording (maintainer approval requested, see record entry 32):
+  `stop()` disarms the server guard, but the listeners guard moves into `join_owned_tasks` and is
+  disarmed after the server stage, so a `stop()` future that is dropped early cancels the listeners.
+
+| Clause | Mutation | Failing tests |
+| --- | --- | --- |
+| The listeners are cancelled only after the server (and its drain controller) finished | H-M1: HTTP, listener cancelled before the server stage | `it_should_cancel_the_event_listener_only_after_the_server_and_its_drain_controller_have_finished`, `it_should_count_the_statistics_event_of_a_request_that_completes_while_stop_drains_the_server` |
+| The same, for the drain controller | H-M5: HTTP, the drain controller is not awaited before the listener is cancelled | `it_should_cancel_the_event_listener_only_after_the_server_and_its_drain_controller_have_finished` |
+| The same, for UDP | U-M1: UDP, listeners cancelled with the receive loop | `it_should_cancel_the_event_listeners_only_after_the_receive_loop_has_finished` |
+| (negative) a server failure does not skip the listener stage | H-M2, U-M2: the listeners are not joined when the first stage failed | `it_should_join_the_event_listener_before_reporting_an_http_server_task_failure`, `it_should_join_every_event_listener_before_reporting_a_receive_loop_failure` |
+| (negative) an abandoned `stop()` leaves no detached listener | H-M4, U-M4: the guard is disarmed when the join starts | `it_should_cancel_the_event_listener_when_the_join_is_abandoned_while_the_server_runs`, `it_should_cancel_the_event_listeners_when_the_join_is_abandoned_while_the_receive_loop_runs` |
+| Dropping the environment cancels the listeners too | H-M3, U-M3: the stored listeners guard guards another token | `it_should_stop_the_event_listener_when_dropped_without_being_stopped` and the tests that call `stop()` (which then hangs until their deadline); UDP the same with `it_should_stop_the_event_listeners_when_dropped_without_being_stopped` |

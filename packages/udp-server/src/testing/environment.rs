@@ -36,13 +36,19 @@ pub struct Stopped {
 /// A test environment whose UDP receive loop and event listeners run on the
 /// token-aware lifecycle.
 ///
+/// The receive loop and the listeners have independent cancellation tokens,
+/// like components of the tracker application: `stop()` cancels the receive
+/// loop and waits for it, and only then cancels the listeners, so that the
+/// events of requests that complete while the loop drains are still processed.
+///
 /// The environment owns every task it started. Dropping it without `stop()`
-/// still cancels them, but does not wait for them.
+/// cancels both tokens, but does not wait for the tasks.
 pub struct Running {
     server: CancellationRunning,
     bind_to: SocketAddr,
     event_listeners: OwnedEventListeners,
-    cancel_on_drop: DropGuard,
+    cancel_server_on_drop: DropGuard,
+    cancel_listeners_on_drop: DropGuard,
 }
 
 /// The three event listeners a running environment owns.
@@ -115,7 +121,8 @@ impl Environment<Stopped> {
     /// Will panic if it cannot start the server.
     #[allow(dead_code)]
     pub async fn start(self) -> Environment<Running> {
-        let cancellation_token = CancellationToken::new();
+        let server_token = CancellationToken::new();
+        let listeners_token = CancellationToken::new();
         let bind_to = self.state.server.state.spawner.bind_to;
         let cookie_lifetime = self.container.udp_tracker_core_container.udp_tracker_config.cookie_lifetime;
 
@@ -135,7 +142,7 @@ impl Environment<Stopped> {
                 RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0)),
                 cookie_lifetime,
                 self.connection_id_validation,
-                cancellation_token.clone(),
+                server_token.clone(),
             )
             .await
             .expect("Failed to start the UDP tracker server");
@@ -143,21 +150,21 @@ impl Environment<Stopped> {
         let event_listeners = OwnedEventListeners {
             core_statistics: torrust_tracker_udp_core::statistics::event::listener::run_event_listener(
                 udp_core_events,
-                cancellation_token.clone(),
+                listeners_token.clone(),
                 &self.container.udp_tracker_core_container.stats_repository,
                 [(ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0), true)].into(),
                 DEFAULT_DRAIN_TIMEOUT,
             ),
             server_statistics: crate::statistics::event::listener::run_event_listener(
                 udp_server_statistics_events,
-                cancellation_token.clone(),
+                listeners_token.clone(),
                 &self.container.udp_tracker_server_container.stats_repository,
                 [(ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0), true)].into(),
                 DEFAULT_DRAIN_TIMEOUT,
             ),
             server_banning: crate::banning::event::listener::run_event_listener(
                 udp_server_banning_events,
-                cancellation_token.clone(),
+                listeners_token.clone(),
                 &self.container.udp_tracker_core_container.ban_service,
                 &self.container.udp_tracker_server_container.banned_ips_publication_order,
                 &self.container.udp_tracker_server_container.stats_repository,
@@ -173,7 +180,8 @@ impl Environment<Stopped> {
                 server,
                 bind_to,
                 event_listeners,
-                cancel_on_drop: cancellation_token.drop_guard(),
+                cancel_server_on_drop: server_token.drop_guard(),
+                cancel_listeners_on_drop: listeners_token.drop_guard(),
             },
         }
     }
@@ -210,11 +218,12 @@ impl Environment<Running> {
 
     /// Stops the test environment and return a stopped environment.
     ///
-    /// It cancels the environment token once, then joins the UDP receive loop
-    /// and the three event listeners. It has no timeout of its own: the receive
-    /// loop's request drain is bounded and the listeners end on cancellation.
-    /// Events still queued in a listener at that moment are discarded, as in
-    /// the tracker application (see #2410).
+    /// It cancels the receive loop token and joins the receive loop, so every
+    /// request it accepted has published its events. Only then it cancels the
+    /// listeners token and joins the three event listeners, which process the
+    /// events still queued for them (see #2410). It has no timeout of its own:
+    /// the receive loop's request drain is bounded and the listeners end on
+    /// cancellation.
     ///
     /// # Panics
     ///
@@ -225,12 +234,13 @@ impl Environment<Running> {
             server,
             bind_to,
             event_listeners,
-            cancel_on_drop,
+            cancel_server_on_drop,
+            cancel_listeners_on_drop,
         } = self.state;
 
-        cancel_on_drop.disarm().cancel();
+        cancel_server_on_drop.disarm().cancel();
 
-        join_owned_tasks(server.task, event_listeners)
+        join_owned_tasks(server.task, cancel_listeners_on_drop, event_listeners)
             .await
             .unwrap_or_else(|failures| panic!("Failed to stop the UDP test environment: {failures}"));
 
@@ -309,14 +319,21 @@ fn initialize_static() {
     torrust_clock::initialize_static();
 }
 
-/// Joins every task a running environment owns and reports all failures at
-/// once, so an early failure never leaves a remaining task detached.
+/// Joins every task a running environment owns, in the order that protects the
+/// events, and reports all failures at once, so an early failure never leaves a
+/// remaining task detached.
+///
+/// The receive loop is joined first. Only then the listeners are cancelled and
+/// joined. The guard stays armed until then, so abandoning this future before
+/// the receive loop ends still cancels the listeners.
 async fn join_owned_tasks(
     receive_loop: JoinHandle<Result<(), io::Error>>,
+    cancel_listeners_on_drop: DropGuard,
     event_listeners: OwnedEventListeners,
 ) -> Result<(), String> {
-    let (receive_loop_result, udp_core_statistics, udp_server_statistics, udp_server_banning) = tokio::join!(
-        receive_loop,
+    let receive_loop_result = receive_loop.await;
+    cancel_listeners_on_drop.disarm().cancel();
+    let (udp_core_statistics, udp_server_statistics, udp_server_banning) = tokio::join!(
         event_listeners.core_statistics,
         event_listeners.server_statistics,
         event_listeners.server_banning,
@@ -537,6 +554,166 @@ mod tests {
         stop_within_deadline(restarted).await;
     }
 
+    /// Lets every other runnable task run: on the test's current-thread runtime a task cannot
+    /// make progress while the test itself runs.
+    async fn let_the_other_tasks_run() {
+        for _ in 0..16 {
+            tokio::task::yield_now().await;
+        }
+    }
+
+    /// Three listener tasks that finish when `token` is cancelled.
+    fn listeners_waiting_for(token: &CancellationToken) -> OwnedEventListeners {
+        let listener = || {
+            let token = token.clone();
+            tokio::spawn(async move { token.cancelled().await })
+        };
+        OwnedEventListeners {
+            core_statistics: listener(),
+            server_statistics: listener(),
+            server_banning: listener(),
+        }
+    }
+
+    #[tokio::test]
+    async fn it_should_count_the_statistics_events_of_a_request_answered_just_before_stop() {
+        // Arrange
+        // A client has received the answer to a connect request, so the receive loop has handled it
+        // and published its events.
+        let environment = start_within_deadline(unstarted_environment().await).await;
+        let container = environment.container.clone();
+        let client = UdpTrackerClient::new(environment.bind_address(), TEST_DEADLINE)
+            .await
+            .expect("a client should reach the UDP tracker");
+        client
+            .send(
+                ConnectRequest {
+                    transaction_id: TransactionId::new(1),
+                }
+                .into(),
+            )
+            .await
+            .expect("the connect request should be sent");
+        client
+            .receive()
+            .await
+            .expect("the UDP tracker should answer the connect request");
+
+        // Act
+        stop_within_deadline(environment).await;
+
+        // Assert
+        // The events of the answered request are counted by both statistics listeners once stop() returns.
+        let connections_handled = container
+            .udp_tracker_core_container
+            .stats_repository
+            .read_metrics(torrust_tracker_udp_core::statistics::metrics::Metrics::udp4_connections_handled)
+            .await;
+        let requests_received = container
+            .udp_tracker_server_container
+            .stats_repository
+            .read_metrics(crate::statistics::metrics::Metrics::udp4_requests_received_total)
+            .await;
+        assert_eq!(
+            connections_handled, 1,
+            "the udp-core listener must have counted the connect request before stop() returned"
+        );
+        assert_eq!(
+            requests_received, 1,
+            "the udp-server listener must have counted the received request before stop() returned"
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_cancel_the_event_listeners_only_after_the_receive_loop_has_finished() {
+        // Arrange
+        // The receive loop finishes only when the test releases it, like a loop that is still draining
+        // its requests. The three listeners wait for their own stop request.
+        let listeners_token = CancellationToken::new();
+        let (release_receive_loop, receive_loop_released) = tokio::sync::oneshot::channel::<()>();
+        let receive_loop = tokio::spawn(async move {
+            let _ = receive_loop_released.await;
+            Ok(())
+        });
+        let event_listeners = listeners_waiting_for(&listeners_token);
+
+        // Act
+        let join = tokio::spawn(join_owned_tasks(
+            receive_loop,
+            listeners_token.clone().drop_guard(),
+            event_listeners,
+        ));
+        let_the_other_tasks_run().await;
+        let cancelled_while_the_receive_loop_runs = listeners_token.is_cancelled();
+        release_receive_loop
+            .send(())
+            .expect("the receive loop is waiting for its release");
+        let result = join.await.expect("joining must not panic");
+
+        // Assert
+        // The listeners are cancelled only once the receive loop finished, and are joined too.
+        assert!(
+            !cancelled_while_the_receive_loop_runs,
+            "the listeners must not be cancelled while the receive loop runs"
+        );
+        assert!(
+            listeners_token.is_cancelled(),
+            "the listeners must be cancelled once the receive loop finished"
+        );
+        assert_eq!(result, Ok(()), "every task finished normally");
+    }
+
+    #[tokio::test]
+    async fn it_should_cancel_the_event_listeners_when_the_join_is_abandoned_while_the_receive_loop_runs() {
+        // Arrange
+        // The receive loop never finishes. The listeners wait for their own stop request.
+        let listeners_token = CancellationToken::new();
+        let receive_loop = tokio::spawn(std::future::pending::<Result<(), io::Error>>());
+        let event_listeners = listeners_waiting_for(&listeners_token);
+
+        // Act
+        // The caller gives up on the join, for example because its own deadline expired.
+        let abandoned = tokio::time::timeout(
+            Duration::from_millis(10),
+            join_owned_tasks(receive_loop, listeners_token.clone().drop_guard(), event_listeners),
+        )
+        .await;
+
+        // Assert
+        // Abandoning the join must not leave the listeners running detached.
+        assert!(abandoned.is_err(), "the join should still be waiting for the receive loop");
+        assert!(
+            listeners_token.is_cancelled(),
+            "dropping the join before the receive loop ends must still cancel the listeners"
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_stop_the_event_listeners_when_dropped_without_being_stopped() {
+        // Arrange
+        let environment = start_within_deadline(unstarted_environment().await).await;
+        let container = environment.container.clone();
+        let holders_while_running = listener_shared_state_holders(&container);
+
+        // Act
+        drop(environment);
+
+        // Assert
+        // Dropping cannot await the listeners, so they stop shortly after. While they run they hold the
+        // shared services, so the holders of those services show whether they stopped.
+        assert!(
+            listener_shared_state_holders(&container).iter().all(|holders| *holders > 1),
+            "the running listeners should hold the shared services: {holders_while_running:?}"
+        );
+        tokio::time::timeout(TEST_DEADLINE, async {
+            while listener_shared_state_holders(&container).iter().any(|holders| *holders > 1) {
+                tokio::time::sleep(Duration::from_millis(10)).await;
+            }
+        })
+        .await
+        .expect("every event listener should stop within the test deadline after the environment is dropped");
+    }
+
     #[tokio::test]
     async fn it_should_join_every_event_listener_before_reporting_a_receive_loop_failure() {
         // Arrange
@@ -559,12 +736,14 @@ mod tests {
             server_statistics: listener_finishing_after_the_receive_loop(),
             server_banning: listener_finishing_after_the_receive_loop(),
         };
-        cancellation_token.cancel();
 
         // Act
-        let result = tokio::time::timeout(TEST_DEADLINE, join_owned_tasks(failed_receive_loop, event_listeners))
-            .await
-            .expect("joining the owned tasks should finish within the test deadline");
+        let result = tokio::time::timeout(
+            TEST_DEADLINE,
+            join_owned_tasks(failed_receive_loop, cancellation_token.drop_guard(), event_listeners),
+        )
+        .await
+        .expect("joining the owned tasks should finish within the test deadline");
 
         // Assert
         let failures = result.expect_err("a failed receive loop should be reported");

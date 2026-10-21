@@ -6,7 +6,7 @@ epic: 1488
 github-issue: 2410
 spec-path: docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-21 17:09"
+last-updated-utc: "2026-10-21 18:47"
 semantic-links:
   skill-links:
     - create-issue
@@ -1558,6 +1558,16 @@ lost. Times are UTC.
     - **`EventFlows` as in the Chosen Design**, with `app::Error::EventFlows`; consumers are
       registered before the runner is spawned, so a rejected registration runs nothing.
     `adr-draft.md` sections 3 and 4 are updated in the same change.
+32. **2026-10-21 18:47 - T9 design review of #2416 (agreed by the maintainer on 2026-10-21).** Evidence:
+    #2416's `manual-verification-evidence.md` V4. D20 says `stop()` disarms both guards. The
+    implementation disarms the server guard in `stop()`, but moves the listeners guard into the join
+    function and disarms it after the server stage, so a `stop()` future that is dropped while the server
+    still drains (for example when its caller's deadline expires) cannot leave detached listeners. The
+    intent of D20 (independent tokens, one `DropGuard` each, the owner enforces the order, a drop cancels
+    both) is unchanged. Also recorded: the HTTP environment has a deterministic red/green late-event test
+    (a request left in flight while `stop()` drains), the UDP environment has none because a UDP request
+    cannot be held in flight, so its late-event test is regression coverage and its order is proven by a
+    staged-join unit test. `adr-draft.md` section 8 is updated in the same change.
 
 ## Chosen Design (D7, D8)
 
@@ -2003,7 +2013,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T6  | DONE   | Per-component tokens (refactor)   | Reservation-based registration; every component uses only its own token. No edges yet: `cancel()` still cancels everything at once. Existing tests green. |
 | T7  | DONE   | Red regression test (stop order)  | `JobManager` stop-order test fails while edges are stored but not enforced; red output recorded.                                |
 | T8  | DONE   | Stop order                        | `JobManager` enforces edges; `EventFlows` registry; bootstrap declarations per the Chosen Design; tests green.                  |
-| T9  | TODO   | Test environments                 | HTTP and UDP environments stop servers before listeners, keep both guarantees in [Test environments](#test-environments), and gain the late-event test for each (prerequisite #2471 merged in PR #2544). |
+| T9  | DONE   | Test environments                 | HTTP and UDP environments stop servers before listeners, keep both guarantees in [Test environments](#test-environments), and gain the late-event test for each (prerequisite #2471 merged in PR #2544). |
 | T10 | TODO   | Docs, verification, recheck       | Jobs doc and glossary updated to the final implementation; ADR draft moved into `docs/adrs/` and the old ADR superseded (D15); diagrams moved to `docs/architecture/` (D16); task inventory and feature docs; automatic checks; T0 recheck; AC review; completion review. |
 
 ### Implementation Steps
@@ -2301,6 +2311,7 @@ avoids duplicating the full workflow in four drafts:
 - 2026-10-21 09:23 UTC - GitHub Copilot (Claude Sonnet 5.5) - #2415 merged in PR #2591 (2026-10-21 09:19 UTC) and archived to `docs/issues/closed/`; its Subissues row and the T6 plan row are `DONE`. The two design-review checkpoints required by D14 for T6 were held, and record entry 30 holds their decisions. Its Task Reviewer report and implementation retrospective are in the archived folder. #2416 is not started. No design change.
 - 2026-10-21 17:07 UTC - GitHub Copilot (Claude Opus 5.5) - #2416 started (branch `2416-stop-producers-before-listeners`); its row is `IN_PROGRESS`, T7 is `DONE` and T8 `IN_PROGRESS`. T7: window (b) reproduced with controlled late publication on the real swarm bus (red, #2416 evidence V1); the real-binary `race` run is not the red proof. The maintainer approved the `StopBefore` API at the checkpoint before the edges were built (additive `spawn_with`, three `SpawnError` variants, completion tracked at the join in `wait_for_all`). T8 is implemented in the working tree and awaits the design-review checkpoint after T8. No design change beyond that approval; any addition found is recorded as a new record entry after the checkpoint.
 - 2026-10-21 17:09 UTC - GitHub Copilot (Claude Opus 5.5) - #2416 T8 design-review checkpoint passed: the maintainer approved T8 and four additions (public `waiting_components()`, `ComponentId` naming its manager, the HTTP test helper and its `[[test]]` binary, a `BTreeMap` registry), recorded as Design Discussion Record entry 31; `adr-draft.md` sections 3 and 4 and the Chosen Design `JobManager` section are updated in the same change (D14, D15). T8 is `DONE` after its commit.
+- 2026-10-21 18:47 UTC - GitHub Copilot (Claude Opus 5.5) - #2416 T9 implemented and approved by the maintainer: both test environments stop the server first (D20), with record entry 32 for the guard detail. HTTP has a deterministic red/green late-event test; UDP does not (evidence V4). `adr-draft.md` section 8 updated in the same change.
 
 ## Acceptance Criteria
 
