@@ -104,3 +104,107 @@ pub(crate) mod tests {
         }
     }
 }
+
+#[cfg(test)]
+mod root_tests {
+    use std::net::SocketAddr;
+
+    use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
+    use torrust_tracker_events::sender::Sender;
+    use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::{RemoteClientAddr, ResolvedIp};
+    use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
+
+    use crate::HTTP_TRACKER_LOG_TARGET;
+    use crate::event::{ConnectionContext, Event};
+    use crate::tests::{RecordingSender, sample_info_hash, sample_peer, sample_peer_using_ipv4, sample_peer_using_ipv6};
+
+    /// Scrape events that differ only by their public URL, so a test can tell them apart.
+    fn scrape_event(public_url: &str) -> Event {
+        let connection = ConnectionContext::new(
+            ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0),
+            RemoteClientAddr::new(
+                ResolvedIp::FromSocketAddr("126.0.0.1".parse().expect("the client IP should be valid")),
+                Some(8080),
+            ),
+            ServiceBinding::new(
+                Protocol::HTTP,
+                SocketAddr::new("127.0.0.1".parse().expect("the server IP should be valid"), 7070),
+            )
+            .expect("an HTTP service binding on a non-zero port should be valid"),
+        )
+        .with_public_url(Some(public_url.to_string()));
+
+        Event::TcpScrape { connection }
+    }
+
+    #[test]
+    fn it_should_log_http_tracker_events_under_the_http_tracker_target() {
+        assert_eq!(HTTP_TRACKER_LOG_TARGET, "HTTP TRACKER");
+    }
+
+    #[test]
+    fn it_should_record_no_event_before_any_event_is_sent() {
+        let sender = RecordingSender::new();
+
+        assert_eq!(sender.events(), vec![]);
+    }
+
+    #[tokio::test]
+    async fn it_should_record_an_event_when_the_send_future_is_polled() {
+        let sender = RecordingSender::new();
+
+        let result = sender.send(scrape_event("http://a.example")).await;
+
+        assert_eq!(result.and_then(Result::ok), Some(1));
+        assert_eq!(sender.events(), vec![scrape_event("http://a.example")]);
+    }
+
+    #[tokio::test]
+    async fn it_should_record_events_in_the_order_they_are_sent() {
+        let sender = RecordingSender::new();
+
+        sender.send(scrape_event("http://a.example")).await;
+        sender.send(scrape_event("http://b.example")).await;
+
+        assert_eq!(
+            sender.events(),
+            vec![scrape_event("http://a.example"), scrape_event("http://b.example")]
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_record_nothing_when_the_send_future_is_dropped_without_being_polled() {
+        let sender = RecordingSender::new();
+
+        drop(sender.send(scrape_event("http://dropped.example")));
+        sender.send(scrape_event("http://polled.example")).await;
+
+        assert_eq!(sender.events(), vec![scrape_event("http://polled.example")]);
+    }
+
+    #[test]
+    fn it_should_sample_a_fixed_info_hash() {
+        assert_eq!(sample_info_hash().to_string(), "3b245504cf5f11bbdbe1201cea6a6bf45aee1bc0"); // DevSkim: ignore DS173237
+    }
+
+    #[test]
+    fn it_should_sample_an_ipv4_peer_that_is_the_default_sample_peer() {
+        assert_eq!(sample_peer_using_ipv4(), sample_peer());
+        assert_eq!(
+            sample_peer().peer_addr,
+            "126.0.0.1:8080"
+                .parse::<SocketAddr>()
+                .expect("the expected address should be valid")
+        );
+    }
+
+    #[test]
+    fn it_should_sample_an_ipv6_peer_that_differs_from_the_ipv4_sample_only_by_its_address() {
+        let mut expected = sample_peer();
+        expected.peer_addr = "[6969:6969:6969:6969:6969:6969:6969:6969]:8080"
+            .parse()
+            .expect("the expected IPv6 address should be valid");
+
+        assert_eq!(sample_peer_using_ipv6(), expected);
+    }
+}

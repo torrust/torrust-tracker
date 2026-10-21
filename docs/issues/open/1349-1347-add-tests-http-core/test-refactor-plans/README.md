@@ -34,6 +34,9 @@ maintainer approves it.
 | 8 | [statistics-metrics-tests.md](statistics-metrics-tests.md) | DONE | Approved 2026-10-21; completed file approved 2026-10-21 |
 | 9 | [statistics-repository-tests.md](statistics-repository-tests.md) | DONE | Approved 2026-10-21; completed file approved 2026-10-21 |
 | 10 | [statistics-mod-tests.md](statistics-mod-tests.md) | DONE | Approved 2026-10-21; completed file approved 2026-10-21 |
+| 11 | [lib-tests.md](lib-tests.md) | DONE | Approved 2026-10-21; completed file approved 2026-10-21 |
+| 12 | [services-mod-tests.md](services-mod-tests.md) | DONE | Approved 2026-10-21; completed file approved 2026-10-21 |
+| 13 | [statistics-event-mod-tests.md](statistics-event-mod-tests.md) | DONE | Approved 2026-10-21; completed file approved 2026-10-21 |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 

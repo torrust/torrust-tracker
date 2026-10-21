@@ -7,9 +7,9 @@ priority: p2
 epic: 1347
 github-issue: 1349
 spec-path: docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md
-branch: "1349-1347-add-tests-http-core-statistics"
-related-pr: 2608
-last-updated-utc: "2026-10-21 11:18"
+branch: "1349-1347-add-tests-http-core-final"
+related-pr: 2616
+last-updated-utc: "2026-10-21 15:33"
 semantic-links:
   skill-links:
     - create-issue
@@ -312,11 +312,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 | T1 | DONE | Create coverage evidence and complete module inventory | `coverage-evidence.md` records the baseline commands and totals from this spec, per-file uncovered regions, property-test candidacy, selected behavior, and initial hypothesis for every `packages/http-core/src/` file. No tests changed. |
 | T2 | DONE | Create shared plan guidance and the first file test plan | `test-refactor-plans/README.md` holds the shared guardrails and the plan index, including the two #1348 testing lessons that apply here: re-check an assumed-unreachable error path against `tracker-core`'s exported store doubles before recording it untestable, and prove an ordering decision (for example, authentication before authorization before client-IP resolution) with an expectation-free double that fails on the first call. The first plan is `services-announce-tests.md`. No tests changed. |
 | T3 | DONE | Review and approve the processing order and slice boundaries | Maintainer approves the ledger order and the pull-request slices; both may change at any time. |
-| T4 | TODO | Process every source file through the per-file workflow | Every ledger row has a completed plan, recorded coverage result, completed-file review, and signed per-file commit, merged through its slice. |
-| T5 | TODO | Implement integration-test increments selected by file test plans | Only if a plan selected a 3B increment; otherwise record why none was needed. |
-| T6 | TODO | Perform bounded mutation assessment | `mutation-evidence.md` records configuration, timeout, scope, outcomes, and the reason for each unviable mutant. |
-| T7 | TODO | Reconcile evidence and progress state | Ledger, plans, plan index, slice table, coverage evidence, acceptance rows, and both EPIC coverage tables agree. Grep completed records for stray `TODO`/`IN_PROGRESS` labels and stale frontmatter. |
-| T8 | TODO | Complete verification and acceptance review | Automatic checks, manual verification, the final Task Reviewer review, acceptance review, and the retrospective decision are recorded. |
+| T4 | DONE | Process every source file through the per-file workflow | Every ledger row has a completed plan, recorded coverage result, completed-file review, and signed per-file commit, merged through its slice. All 13 rows are `DONE`; S1-S5 are merged and S6 is this PR. |
+| T5 | DONE | Implement integration-test increments selected by file test plans | None: no plan selected a 3B increment, because the package has no network boundary of its own (see the final test-technique assessment in `coverage-evidence.md`). |
+| T6 | DONE | Perform bounded mutation assessment | `mutation-evidence.md` records the whole-package run (96 mutants: 50 caught, 1 missed, 1 timeout, 44 unviable) and the reason for each unviable mutant. |
+| T7 | DONE | Reconcile evidence and progress state | Ledger, plans, plan index, slice table, coverage evidence, acceptance rows, and both EPIC coverage tables agree (the S6 independent review found the EPIC tables stale; fixed). The only `IN_PROGRESS` label left is the S6 slice row, until its pull request merges. |
+| T8 | DONE | Complete verification and acceptance review | Automatic checks, manual verification, the final Task Reviewer review (`agent-review-reports.md`), the acceptance review below, and the retrospective (`implementation-retrospective.md`) are recorded. |
 
 The specification frontmatter `status` stays `planned`, and the EPIC #1347 subissue row stays
 `TODO`, until the spec-only PR merges and T1 starts; both then change to `in-progress` and
@@ -337,8 +337,8 @@ open a PR, get it reviewed, and merge it. The spec-only PR comes first.
 | S2 | Announce service and its error mapping (ranks 1-2) | 1-2 | `1349-1347-add-tests-http-core-announce` | #2575 | DONE |
 | S3 | Scrape service (rank 3) | 3 | `1349-1347-add-tests-http-core-scrape` | #2586 | DONE |
 | S4 | Events and composition (ranks 4-5) | 4-5 | `1349-1347-add-tests-http-core-events-container` | #2593 | DONE |
-| S5 | Statistics (rank 6) | 6-10 | `1349-1347-add-tests-http-core-statistics` | #2608 | IN_PROGRESS |
-| S6 | Crate root and wiring (rank 7), then T5-T8 | 11-13 | `1349-1347-add-tests-http-core-final` | - | TODO |
+| S5 | Statistics (rank 6) | 6-10 | `1349-1347-add-tests-http-core-statistics` | #2608 | DONE |
+| S6 | Crate root and wiring (rank 7), then T5-T8 | 11-13 | `1349-1347-add-tests-http-core-final` | #2616 | IN_PROGRESS |
 
 Rules:
 
@@ -460,9 +460,9 @@ lines are the S2 baseline measurement (see [Baseline Coverage](#baseline-coverag
 | 8 | `statistics/metrics.rs` | 6 | S5 | 48 / 57 (84.21%) | 1 | Test candidate | DONE | [statistics-metrics-tests.md](test-refactor-plans/statistics-metrics-tests.md) (done; 141 / 141 lines after) |
 | 9 | `statistics/repository.rs` | 6 | S5 | 21 / 24 (87.50%) | 0 (3 doc tests) | Test candidate | DONE | [statistics-repository-tests.md](test-refactor-plans/statistics-repository-tests.md) (done; 108 / 108 lines after) |
 | 10 | `statistics/mod.rs` | 6 | S5 | 8 / 8 (100.00%) | 0 | Probably small change (metric-name contract) | DONE | [statistics-mod-tests.md](test-refactor-plans/statistics-mod-tests.md) (done; 32 / 32 lines after, name and exposition pinned) |
-| 11 | `lib.rs` | 7 | S6 | 27 / 27 (100.00%) | 0 | Test support only | PENDING | - |
-| 12 | `services/mod.rs` | 7 | S6 | No executable entries | 0 | Wiring only | PENDING | - |
-| 13 | `statistics/event/mod.rs` | 7 | S6 | No executable entries | 0 | Wiring only | PENDING | - |
+| 11 | `lib.rs` | 7 | S6 | 27 / 27 (100.00%; 41 / 41 at the S6 start, after S3 added the shared `RecordingSender`) | 0 | Test support only | DONE | [lib-tests.md](test-refactor-plans/lib-tests.md) (done; 97 / 97 lines after, log target and `RecordingSender` pinned) |
+| 12 | `services/mod.rs` | 7 | S6 | No executable entries | 0 | Wiring only | DONE | [services-mod-tests.md](test-refactor-plans/services-mod-tests.md) (done; no test, module comment corrected to say the modules "do not depend on the Axum web server") |
+| 13 | `statistics/event/mod.rs` | 7 | S6 | No executable entries | 0 | Wiring only | DONE | [statistics-event-mod-tests.md](test-refactor-plans/statistics-event-mod-tests.md) (done; no change) |
 
 ## Progress Tracking
 
@@ -481,15 +481,15 @@ lines are the S2 baseline measurement (see [Baseline Coverage](#baseline-coverag
 - [x] Complete module inventory and coverage evidence recorded (T1).
 - [x] Shared plan guidance and the first file test plan created; processing order and slices
       approved (T2-T3).
-- [ ] Every ledger row is `DONE` with its own file test plan, merged through its slice.
-- [ ] Maintainer review after the final test-producing increment.
-- [ ] Automatic verification completed with toolchain-qualified evidence.
-- [ ] Manual verification recorded in `manual-verification-evidence.md`.
-- [ ] Bounded mutation assessment recorded in `mutation-evidence.md`.
-- [ ] Task Reviewer reports for every slice recorded in `agent-review-reports.md`.
-- [ ] Acceptance criteria reviewed after implementation.
-- [ ] Implementation completion review recorded (`implementation-retrospective.md` or a
-      progress-log reason).
+- [x] Every ledger row is `DONE` with its own file test plan, merged through its slice (S6 through the final pull request).
+- [x] Maintainer review after the final test-producing increment (the maintainer approved the completed-file reviews
+      of S6 and the T6-T8 plan on 2026-10-21).
+- [x] Automatic verification completed with toolchain-qualified evidence.
+- [x] Manual verification recorded in `manual-verification-evidence.md`.
+- [x] Bounded mutation assessment recorded in `mutation-evidence.md`.
+- [x] Task Reviewer reports for every slice recorded in `agent-review-reports.md`.
+- [x] Acceptance criteria reviewed after implementation.
+- [x] Implementation completion review recorded (`implementation-retrospective.md`).
 - [ ] Issue closed and spec moved to `docs/issues/closed/`.
 
 ### Progress Log
@@ -741,38 +741,77 @@ lines are the S2 baseline measurement (see [Baseline Coverage](#baseline-coverag
   (<https://github.com/torrust/torrust-tracker/pull/2608>) was opened with `Related to #1349`. It was not
   rebased onto the latest `develop`, which changed only documentation outside `packages/http-core`;
   `git merge-tree` reports no conflict.
+- 2026-10-21 12:25 UTC - GitHub Copilot - The S5 pull request #2608 was merged at 12:07 UTC (merge commit
+  `889a6dc36`) after Copilot's round 2 was clean and Cameron did not reply within 15 minutes. S6 started on
+  `1349-1347-add-tests-http-core-final`, cut from `889a6dc36`. `packages/http-core` is byte-identical to the S5
+  head (`git diff af69b317c 889a6dc36 -- packages/http-core` is empty), and a clean unit-only measurement
+  reproduced the S5 figures: 183 tests, lines 2,974 / 2,996 (99.27%), regions 3,875 / 3,905 (99.23%), functions
+  372 / 373 (99.73%). `lib.rs` is 41 / 41 lines. Ledger rows 11-13 are next, then T5-T8.
+- 2026-10-21 14:27 UTC - GitHub Copilot - `lib.rs` is `DONE` (S6): the three S6 plans were approved (including the
+  comment correction of `services/mod.rs`), and `lib.rs` gained 8 tests (97 / 97 lines, 150 / 150 regions). All
+  mutations were killed by the new tests only, including a sender that records at call time instead of on poll,
+  which no earlier test noticed. Correction: the S6-start entry above is stamped 12:25 UTC but its commit was made
+  at 13:21 UTC (the real time was not read when it was written).
+- 2026-10-21 14:46 UTC - GitHub Copilot - `services/mod.rs` and `statistics/event/mod.rs` are `DONE` (S6), approved
+  by the maintainer: no test for either (wiring only, no executable entry). The module comment of `services/mod.rs`
+  said the services "does depend on the Axum web server" although `http-core` has no Axum dependency; it now says
+  "does not depend". All 13 ledger rows are `DONE`; the independent review, the pre-push checks and T5-T8 remain.
+- 2026-10-21 15:18 UTC - GitHub Copilot - T5-T8 evidence recorded after the maintainer approved the plan. T5: no
+  integration increment was selected. T6: `cargo-mutants` ran the whole package (96 mutants: 50 caught; 1 missed, the
+  debug log decided in the handler plan; 1 timeout, the listener's drain stop condition and the known #1488 limit;
+  44 unviable, each with a stated reason); a first run was interrupted by the environment during its baseline and
+  was rerun. Manual verification M1-M5 passed against a built tracker (a wrong first scrape URL is recorded in V2).
+  Final measurement: 191 tests, lines 3,030 / 3,052 (99.28%), regions 3,983 / 4,013 (99.25%), functions 384 / 385
+  (99.74%), identical for the aggregate and the unit-only runs. The `tcp4`/`tcp6` finding became a git-ignored draft
+  with a hand-off, `.tmp/1349-tcp-family-counter-docs/`, which also covers the UDP counters that #1348 had recorded
+  without an owner; the maintainer chose a draft in addition to the `lessons.md` row, and the recommended mode is
+  parallel (no remaining ledger row touches the files). `lessons.md` and `implementation-retrospective.md` were
+  written.
+- 2026-10-21 15:29 UTC - GitHub Copilot - The independent Task Reviewer returned `REVIEW FAILED` for S6 and T5-T8 on
+  one blocking finding: the EPIC tables and row still carried the S5 interim figures. It also asked for the AC12
+  note and fixed-wording items; no code or measurement changed. All findings were handled in the commit
+  `docs(issues): [#1349] address the S6 independent review` (see `agent-review-reports.md`); the EPIC tables now
+  read lines 99.28%, regions 99.25% and functions 99.74%, T7 and T8 are `DONE`, and AC1-AC17 are verified in the
+  Acceptance Verification table. Process slips disclosed: the final section of `coverage-evidence.md` was appended
+  with a shell heredoc, and Python replacements were used instead of the edit tool for the slice-table status flips
+  at the S6 start and for the two EPIC table rows; their content was reviewed afterwards. The pre-push checks and the
+  pull request follow.
+- 2026-10-21 15:33 UTC - GitHub Copilot - The pre-push checks passed and the final pull request #2616
+  (<https://github.com/torrust/torrust-tracker/pull/2616>) was opened with `Closes #1349`. It was not rebased onto
+  the latest `develop`, which changed only the `http-core` benches and documentation; `git merge-tree` reports no
+  conflict.
 
 ## Acceptance Criteria
 
-- [ ] AC1: A complete `packages/http-core/src/` module inventory is recorded with unit-only
+- [x] AC1: A complete `packages/http-core/src/` module inventory is recorded with unit-only
       coverage, property-test candidacy, selected behavior, and an initial hypothesis for every
       source file, plus the final test-technique assessment.
-- [ ] AC2: Every source file has its own file test plan processed through the per-file workflow,
+- [x] AC2: Every source file has its own file test plan processed through the per-file workflow,
       with its resulting unit-only coverage recorded in `coverage-evidence.md`.
-- [ ] AC3: Fresh aggregate/global and unit-only coverage evidence (and integration-only, if a target
+- [x] AC3: Fresh aggregate/global and unit-only coverage evidence (and integration-only, if a target
       is added) is recorded with clean reproducible commands and toolchain-qualified results.
-- [ ] AC4: Selected tests protect package-owned behavior at the narrowest maintainable boundary.
-- [ ] AC5: Any package integration test has a reviewed rationale.
-- [ ] AC6: No-change and deferral decisions enumerate uncovered lines or behavior groups and name
+- [x] AC4: Selected tests protect package-owned behavior at the narrowest maintainable boundary.
+- [x] AC5: Any package integration test has a reviewed rationale.
+- [x] AC6: No-change and deferral decisions enumerate uncovered lines or behavior groups and name
       the owner or reason.
-- [ ] AC7: Test-producing increments record the prose-first AAA review and focused validation in
+- [x] AC7: Test-producing increments record the prose-first AAA review and focused validation in
       their plan before the next file begins.
-- [ ] AC8: Bounded mutation assessment is completed without a score target or CI gate.
-- [ ] AC9: Reconciliation confirms plans, evidence, the slice table, acceptance rows, and EPIC
+- [x] AC8: Bounded mutation assessment is completed without a score target or CI gate.
+- [x] AC9: Reconciliation confirms plans, evidence, the slice table, acceptance rows, and EPIC
       tables agree; the EPIC aggregate and unit-only tables record this package's baseline and
       final measurement.
-- [ ] AC10: Every highest-risk and high objective in Coverage Objectives is protected by a unit test
+- [x] AC10: Every highest-risk and high objective in Coverage Objectives is protected by a unit test
       or has a recorded owner-based reason.
-- [ ] AC11: The work is merged through the planned slices (or their recorded re-slicing), each with
+- [x] AC11: The work is merged through the planned slices (or their recorded re-slicing), each with
       a Task Reviewer report, and only the last PR closes #1349.
-- [ ] AC12: Every finding that needs a production change has a hand-off draft, a progress-log entry,
+- [x] AC12: Every finding that needs a production change has a hand-off draft, a progress-log entry,
       and a `lessons.md` row naming its draft path or issue, and no test pins its reported
       behavior.
-- [ ] AC13: `cargo +nightly fmt --all -- --check` passes.
-- [ ] AC14: `linter all` exits with code `0`.
-- [ ] AC15: `cargo test -p torrust-tracker-http-core` passes.
-- [ ] AC16: Manual verification scenarios are executed and recorded.
-- [ ] AC17: Acceptance criteria are re-reviewed after implementation.
+- [x] AC13: `cargo +nightly fmt --all -- --check` passes.
+- [x] AC14: `linter all` exits with code `0`.
+- [x] AC15: `cargo test -p torrust-tracker-http-core` passes.
+- [x] AC16: Manual verification scenarios are executed and recorded.
+- [x] AC17: Acceptance criteria are re-reviewed after implementation.
 
 ## Verification Plan
 
@@ -801,11 +840,11 @@ built from `develop` with every earlier slice merged.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | HTTP announce | Start an isolated public tracker and run `cargo run -p torrust-tracker-client --bin tracker_client -- http announce <url> <hash>`. | Valid bencoded announce response. | TODO | `manual-verification-evidence.md` V1 |
-| M2 | HTTP scrape | Run `cargo run -p torrust-tracker-client --bin tracker_client -- http scrape <url> <hash>` for the announced hash. | Scrape returns the announced torrent. | TODO | `manual-verification-evidence.md` V2 |
-| M3 | Peer IP override policy | With `use_ip_from_query_string = false`, send an announce with `ip=<literal>` using `curl`; repeat with the option `true`, then list the torrent's peers through the REST API. | Disabled: bencoded failure reason naming the disabled override. Enabled: the stored peer uses the supplied IP. | TODO | `manual-verification-evidence.md` V3 |
-| M4 | Private mode | With `private = true`, announce and scrape with `curl` without a key, then with a key created through the REST API. | Announce without a key fails with an authentication failure reason; scrape without a key returns zeroed data; both succeed with the key. | TODO | `manual-verification-evidence.md` V4 |
-| M5 | HTTP core statistics | After M1 and M2, read the REST API statistics. | The TCP4 announce and scrape counters reflect the requests made. | TODO | `manual-verification-evidence.md` V5 |
+| M1 | HTTP announce | Start an isolated public tracker and run `cargo run -p torrust-tracker-client --bin tracker_client -- http announce <url> <hash>`. | Valid bencoded announce response. | DONE | `manual-verification-evidence.md` V1 |
+| M2 | HTTP scrape | Run `cargo run -p torrust-tracker-client --bin tracker_client -- http scrape <url> <hash>` for the announced hash. The `<url>` is the tracker's base URL. | Scrape returns the announced torrent. | DONE | `manual-verification-evidence.md` V2 |
+| M3 | Peer IP override policy | With `use_ip_from_query_string = false`, send an announce with `ip=<literal>` using `curl`; repeat with the option `true`, then list the torrent's peers through the REST API. | Disabled: bencoded failure reason naming the disabled override. Enabled: the stored peer uses the supplied IP. | DONE | `manual-verification-evidence.md` V3 |
+| M4 | Private mode | With `private = true`, announce and scrape with `curl` without a key, then with a key created through the REST API. | Announce without a key fails with an authentication failure reason; scrape without a key returns zeroed data; both succeed with the key. | DONE | `manual-verification-evidence.md` V4 |
+| M5 | HTTP core statistics | After M1 and M2, read the REST API statistics. | The TCP4 announce and scrape counters reflect the requests made. | DONE | `manual-verification-evidence.md` V5 |
 
 ### Disposable Verification Scripts
 
@@ -817,7 +856,23 @@ owner here before writing it.
 
 | AC ID | Status | Evidence |
 | ----- | ------ | -------- |
-| AC1-AC17 | TODO | Filled in during T8. |
+| AC1 | DONE | Inventory and T1 hypotheses in `coverage-evidence.md`; the final test-technique assessment ("Final Test-Technique Assessment"). |
+| AC2 | DONE | All 13 ledger rows `DONE`; 13 plans in `test-refactor-plans/README.md`; per-file results in `coverage-evidence.md`. |
+| AC3 | DONE | Commands, toolchain (stable Rust 1.99.1, nightly for formatting) and figures in "Final Measurement (T8)"; aggregate equals unit-only (no `tests/` directory); the S6 reviewer reproduced them with a clean run. |
+| AC4 | DONE | 191 unit tests at module boundaries; no test crosses a package boundary. |
+| AC5 | DONE | No package integration test was added; the rationale is the T5 row and the final assessment. |
+| AC6 | DONE | The "22 uncovered lines" table names an owner or reason for each; the wiring-only plans record their conclusions. |
+| AC7 | DONE | Each plan carries its prose-first AAA review and focused validation; one independent review per slice in `agent-review-reports.md`. |
+| AC8 | DONE | `mutation-evidence.md`: the whole-package run, with a reason for every missed, timed-out and unviable mutant, and no score gate. |
+| AC9 | DONE | Reconciled in T7; both EPIC tables carry the final figures. |
+| AC10 | DONE | Every highest-risk and high objective is covered by unit tests with named mutation proofs in its plan, or has a recorded owner (error-mapping wildcard arm, the handler's failure path, the drain's stop condition under #1488). |
+| AC11 | DONE | Seven pull requests: #2546, #2558, #2575, #2586, #2593 and #2608 are merged, each with a Task Reviewer report from S1 on; S6 is the final pull request, with this slice's report, and the only one with `Closes #1349`. |
+| AC12 | DONE | The one finding that needs a decision outside this issue, the `tcp4`/`tcp6` counter meaning, has a draft hand-off (`.tmp/1349-tcp-family-counter-docs/`, git-ignored), a progress-log entry and a `lessons.md` row. By the maintainer's S5 decision (D1, "pin the behavior") the test `it_should_count_by_the_family_of_the_server_binding_and_not_of_the_client` pins the behavior as it is: the finding concerns the documented meaning, and the hand-off names the test as one that must change if the decision changes the behavior. |
+| AC13 | DONE | `cargo +nightly fmt --all -- --check` exits 0 (nightly Rust toolchain). |
+| AC14 | DONE | `linter all` exits 0, as part of every pre-commit run. |
+| AC15 | DONE | `cargo test -p torrust-tracker-http-core`: 191 unit tests and 3 doc tests passed. |
+| AC16 | DONE | `manual-verification-evidence.md` V1-V5. |
+| AC17 | DONE | This table, after the S6 independent review and the fixes it asked for. |
 
 ## Risks and Trade-offs
 

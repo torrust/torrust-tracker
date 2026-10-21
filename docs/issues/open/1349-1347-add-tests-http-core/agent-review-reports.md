@@ -273,3 +273,52 @@ semantic-links:
     unspawned test lost its branch. The INFO items are noted in the plans or the log, and the `peers` question
     stays open for the retrospective. After the fixes: 183 unit tests, lines 2,974 / 2,996 (99.27%), regions
     3,875 / 3,905 (99.23%), functions 372 / 373 (99.73%).
+
+### 2026-10-21 - Task Reviewer (slice S6 and tasks T5-T8)
+
+- Time: the report returned on 2026-10-21 at about 15:25 UTC, after the evidence commit
+  `docs(issues): [#1349] record the final measurements, mutation run, manual verification and lessons`.
+- Invocation scope: Slice S6 (ledger rows 11-13: `lib.rs`, `services/mod.rs`, `statistics/event/mod.rs`) and the
+  closing tasks T5-T8 of #1349 on branch `1349-1347-add-tests-http-core-final`, `torrust/develop...HEAD` (merge base
+  `889a6dc36`, the merge of #2608): five commits (the S6 start, the `lib.rs` tests, the `services/mod.rs` comment,
+  the wiring-only conclusions and the final evidence).
+- Inputs: `ISSUE.md`, the #1347 subissue guidelines, `coverage-evidence.md`, `mutation-evidence.md`,
+  `manual-verification-evidence.md`, `lessons.md`, `implementation-retrospective.md`, the three S6 plans, the plan
+  index, the EPIC diff, `project-words.txt`, the raw `cargo-mutants` output, the git-ignored draft hand-off, the
+  manual-verification template, `lib.rs`, `services/mod.rs`, and `gh pr view` for #2538, #2546, #2558, #2575, #2586,
+  #2593 and #2608.
+- Evidence: production code is unchanged except one comment and the appended tests; a clean `cargo llvm-cov` run
+  reproduced 191 tests, lines 3,030 / 3,052, regions 3,983 / 4,013 and functions 384 / 385, with the 22 uncovered lines
+  adding up as 3 + 3 + 1 + 1 + 14; the raw mutation files hold 50, 1, 1 and 44 mutants and the unviable reasons add up
+  as 37 + 3 + 4; three hand-applied mutations (eager recording, the log target, the event order together with the IPv6
+  address) each failed only the tests named for them and were reverted exactly; `cargo +nightly fmt --all --
+  --check`, `cargo test -p torrust-tracker-http-core` (191 unit tests and the doc tests), `git diff --check` and
+  `linter all` passed; all five commits are signed; the PR figures of the retrospective match `gh`; the draft
+  hand-off exists and `lessons.md` names it; the manual evidence follows the template with consistent times and
+  no invented output.
+- Findings:
+  - MEDIUM (F1): the EPIC tables and row still carried the S5 interim figures (99.27%, 99.23%, 99.73%), which T7
+    and AC9 require to be final.
+  - MEDIUM (F2): AC12 says that no test pins a reported behavior, while `metrics.rs` pins the `tcp4`/`tcp6` behavior by
+    the maintainer's S5 decision; the Acceptance Verification row must record that decision.
+  - LOW (F3): the retrospective said 4 reasons for the unviable mutants (the table has 3) and about 14 minutes for
+    the run (it was about 11), and `measured-utc` of the mutation evidence was after the run ended.
+  - LOW (F4): V3 and V4 abbreviated the info hash in the recorded commands; two V4 steps carried no time; the
+    `updated_milliseconds_ago` value equal to `updated` deserved a note; two fragments of joined bencode entered the
+    project dictionary.
+  - LOW (F5): "about 100 tests" for the helpers is 91 call sites; one `lib.rs` test has two reasons to fail; the
+    EPIC S6-start entry kept its guessed 12:25 UTC stamp.
+  - INFO: the `root_tests` design follows the checklist; the non-address fields of the sample peer are pinned only
+    indirectly through 18 service and container tests, which is acceptable.
+- Verdict: REVIEW FAILED (F1 blocking), with no change required in the code or the measurements.
+- Follow-up actions:
+  - Handling (2026-10-21, commit `docs(issues): [#1349] address the S6 independent review`): F1 is fixed (both EPIC
+    tables and the row carry the final figures, with a new log entry); F2 is recorded in the Acceptance Verification
+    row of AC12; F3 is corrected in the retrospective (3 reasons, about 11 minutes) and `measured-utc` is 15:10:55Z;
+    F4 is fixed in the recorded commands, one step now says it was not separately timed, a note explains the
+    deprecated REST fields, and the two dictionary words stay because the evidence keeps the verbatim output; F5 is
+    corrected to "more than 90 call sites" and the EPIC entry now carries the correction (the two-reason `lib.rs`
+    test is kept: the delegation and the literal address are both its subject).
+  - Later (2026-10-21): Copilot's review of the pull request asked for the two dictionary entries to be scoped to
+    the evidence file; they now live in an inline `cspell:ignore` comment there and `project-words.txt` equals
+    `develop` again (see the audit of the pull request).
