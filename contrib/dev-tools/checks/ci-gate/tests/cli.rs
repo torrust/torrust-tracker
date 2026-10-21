@@ -423,7 +423,7 @@ fn check_run(id: u64, name: &str, conclusion: &str) -> Value {
 #[cfg(unix)]
 fn respond_with_check_runs(gh: &FakeGh, runs: &[Value]) {
     gh.respond(
-        &format!("repos/owner/repo/commits/{SHA}/check-runs?per_page=100"),
+        &format!("repos/owner/repo/commits/{SHA}/check-runs?filter=all&per_page=100"),
         &json!({ "total_count": runs.len(), "check_runs": runs }),
     );
 }
@@ -646,7 +646,7 @@ fn it_should_read_every_page_when_gh_prints_one_json_document_per_page() {
     let first_page = json!({ "check_runs": [check_run(1, "docs-lint", "success")] });
     let second_page = json!({ "check_runs": [check_run(2, "db-benchmarking", "success")] });
     gh.respond_with_text(
-        &format!("repos/owner/repo/commits/{SHA}/check-runs?per_page=100"),
+        &format!("repos/owner/repo/commits/{SHA}/check-runs?filter=all&per_page=100"),
         &format!("{first_page}{second_page}"),
     );
 

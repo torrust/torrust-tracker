@@ -181,7 +181,7 @@ pub fn decide_for_pull_request(
     let check_runs: Vec<CheckRun> = fetch_wrapped(
         api,
         &format!(
-            "repos/{}/commits/{}/check-runs?per_page=100",
+            "repos/{}/commits/{}/check-runs?filter=all&per_page=100",
             pull_request.repository, pull_request.head_sha
         ),
         |page: CheckRunsPage| page.check_runs,
@@ -423,7 +423,8 @@ mod tests {
 
     const REPOSITORY: &str = "owner/repo";
     const HEAD_SHA: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-    const CHECK_RUNS_PATH: &str = "repos/owner/repo/commits/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/check-runs?per_page=100";
+    const CHECK_RUNS_PATH: &str =
+        "repos/owner/repo/commits/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/check-runs?filter=all&per_page=100";
     const LABELS_PATH: &str = "repos/owner/repo/issues/7/labels?per_page=100";
     const EVENTS_PATH: &str = "repos/owner/repo/issues/7/events?per_page=100";
     const CHECK_SUITES_PATH: &str = "repos/owner/repo/commits/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/check-suites?per_page=100";
