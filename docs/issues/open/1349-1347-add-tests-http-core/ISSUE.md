@@ -7,9 +7,9 @@ priority: p2
 epic: 1347
 github-issue: 1349
 spec-path: docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md
-branch: "1349-1347-add-tests-http-core-events-container"
-related-pr: 2593
-last-updated-utc: "2026-10-21 07:55"
+branch: "1349-1347-add-tests-http-core-statistics"
+related-pr: null
+last-updated-utc: "2026-10-21 09:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -336,8 +336,8 @@ open a PR, get it reviewed, and merge it. The spec-only PR comes first.
 | S1 | T1-T3: coverage evidence, inventory, shared plan guidance, first plan, approved order | - | `1349-1347-add-tests-http-core-inventory` | #2558 | DONE |
 | S2 | Announce service and its error mapping (ranks 1-2) | 1-2 | `1349-1347-add-tests-http-core-announce` | #2575 | DONE |
 | S3 | Scrape service (rank 3) | 3 | `1349-1347-add-tests-http-core-scrape` | #2586 | DONE |
-| S4 | Events and composition (ranks 4-5) | 4-5 | `1349-1347-add-tests-http-core-events-container` | #2593 | IN_PROGRESS |
-| S5 | Statistics (rank 6) | 6-10 | `1349-1347-add-tests-http-core-statistics` | - | TODO |
+| S4 | Events and composition (ranks 4-5) | 4-5 | `1349-1347-add-tests-http-core-events-container` | #2593 | DONE |
+| S5 | Statistics (rank 6) | 6-10 | `1349-1347-add-tests-http-core-statistics` | - | IN_PROGRESS |
 | S6 | Crate root and wiring (rank 7), then T5-T8 | 11-13 | `1349-1347-add-tests-http-core-final` | - | TODO |
 
 Rules:
