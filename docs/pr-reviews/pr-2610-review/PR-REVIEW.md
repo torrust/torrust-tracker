@@ -257,7 +257,7 @@ no rows.
   both threads, and added F10 and F11 to this record.
 - 2026-10-21 17:34 UTC - Copilot's fifth review arrived with one thread, F12, which I found only when the
   maintainer said that a thread was still open; the watcher had been stopped. Confirmed it against the tree.
-- 18:54 UTC - Fixed it test-first in two signed commits (the first was committed without running the formatter and
+- 2026-10-21 18:54 UTC - Fixed it test-first in two signed commits (the first was committed without running the formatter and
   clippy, which rejected it), recorded the round in the specification, pushed, replied, and added F12 to this
   record.
 
