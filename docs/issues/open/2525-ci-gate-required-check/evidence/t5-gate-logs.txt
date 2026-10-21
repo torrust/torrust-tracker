@@ -3,6 +3,19 @@ T5 sandbox: the 'CI gate' job log of each orchestrator run of fork pull request 
 Sandbox workflow and ruleset: docs/issues/open/2525-ci-gate-required-check/evidence/t5-sandbox/ in this
 repository. The token of the gate job has only read scopes: contents, checks, issues, pull-requests.
 
+Two revisions of the workflow ran. Runs 1 to 4 ran the FIRST revision (sandbox commit fdbecb229, "test(sandbox):
+[#2525] add the T5 orchestrator rehearsal workflow", committed at 10:38 UTC), saved as
+docs/issues/open/2525-ci-gate-required-check/evidence/t5-sandbox/exp-2525-orchestrator-first-revision.yaml.
+Runs 5 to 7 ran the FIXED revision (sandbox commit 471835e64, "test(sandbox): [#2525] fix the empty override
+actor and probe other users' permissions", committed at 10:42 UTC), saved as
+docs/issues/open/2525-ci-gate-required-check/evidence/t5-sandbox/exp-2525-orchestrator.yaml. The logs show which
+revision ran: only the fixed one has the probe step, so only runs 5 to 7 print "probe:" lines.
+The first revision decided whether to pass --override-actor with `[ -s override-actor.txt ]`, which is true for a
+file that holds only a newline, so when there was no label (runs 1 and 3) it passed an empty actor and the tool
+printed a usage error instead of a verdict. The fixed revision tests the content of the file. The two files
+differ in exactly those two places (the probe step and that test) and in the comment on their first line. The
+fork's sandbox branches were deleted afterwards, so the commit ids can no longer be resolved there.
+
 === run 1: 39586069094, 2026-10-21T10:38:31Z head=270a89e08
 event action: opened; sender: josecelano; head: 270a89e089bf4db3e0b436ef4fcf32a92a2a0a07
 all check runs for the head commit:

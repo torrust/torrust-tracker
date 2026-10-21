@@ -364,8 +364,8 @@ The log of the `CI gate` job of every run is in
 | --- | ------------------------------ | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- |
 | 1   | `opened`, 10:38                | `270a89e08` | `docs-lint` success, `db-benchmarking` failure. No label. (My script passed an empty override actor, so the tool printed a usage error instead of a failing verdict.)                                   | `CI gate` failed                   |
 | 2   | `labeled` `ci-override`, 10:40 | `270a89e08` | Group jobs skipped. Results read from run 1's check runs. Events API: actor `josecelano`, the same as the event's sender. Role `admin`.                                                                 | pass, `overridden_by` `josecelano` |
-| 3   | `unlabeled`, 10:43             | `270a89e08` | Ran the old workflow (see below), with the same empty-actor error as run 1.                                                                                                                             | `CI gate` failed                   |
-| 4   | `labeled`, 10:44               | `270a89e08` | As run 2.                                                                                                                                                                                               | pass                               |
+| 3   | `unlabeled`, 10:43             | `270a89e08` | Ran the first revision of the workflow (see below), with the same empty-actor error as run 1.                                                                                                           | `CI gate` failed                   |
+| 4   | `labeled`, 10:44               | `270a89e08` | As run 2, still on the first revision of the workflow.                                                                                                                                                  | pass                               |
 | 5   | `synchronize`, 10:46           | `ab8b42e90` | Group jobs ran again and `db-benchmarking` failed. The label is still on the pull request, applied at 10:44:46, but the new head's first check suite was created at 10:46:06, so the override is stale. | fail, `BLOCKED`                    |
 | 6   | `unlabeled`, 10:47             | `ab8b42e90` | No label.                                                                                                                                                                                               | fail                               |
 | 7   | `labeled`, 10:49               | `ab8b42e90` | Applied at 10:49:13, after the first check suite at 10:46:06. Role `admin`.                                                                                                                             | pass                               |
@@ -394,8 +394,10 @@ What it shows:
   suite appeared 4 seconds after the push, so a label applied in that window would count as stale, which
   fails safe.
 - **A workflow change on the base branch does not reach the label runs of an open pull request until its
-  head changes.** After the base branch got a fix, run 3 still used the old workflow: a pull request keeps
-  the merge ref, and the workflow file in it, that it was last given. This matters when T6 changes the
+  head changes.** After the base branch got a fix at 10:42, runs 3 and 4, at 10:43 and 10:44, still used the
+  first revision of the workflow, and only run 5, after the push that changed the head, used the fixed one: a pull
+  request keeps the merge ref, and the workflow file in it, that it was last given. The logs show it, because
+  only the fixed revision prints `probe:` lines. This matters when T6 changes the
   orchestrator while pull requests are open.
 - The gate built the tool from a checkout of the base branch, so the pull request's own changes do not
   alter the tool that decides.
@@ -410,10 +412,15 @@ decision, could be wrong. It is saved as it ran and was not changed. The adapter
 reads every page of every response through `gh api --paginate`, and a test puts the earliest check suite on
 the second page (pull request #2610).
 
-The workflow saved in `evidence/t5-sandbox/` is the sandbox file, with only the comment on its first line
-reworded, as for the files of V8.
+Two revisions of the sandbox workflow ran, and both are saved in `evidence/t5-sandbox/`: the first revision
+(`exp-2525-orchestrator-first-revision.yaml`, which ran in runs 1 to 4) and the fixed one
+(`exp-2525-orchestrator.yaml`, runs 5 to 7). They differ in the probe step and in the test of the override actor
+file, which the first revision made with `-s`, true for a file that holds only a newline, so it passed an empty
+`--override-actor` when there was no label; the header of
+[`evidence/t5-gate-logs.txt`](evidence/t5-gate-logs.txt) explains how to tell the revisions apart in the logs.
+In both files only the comment on the first line was reworded, as for the files of V8.
 
-Setup note: a fix to the sandbox workflow was pushed to the base branch at about 10:42, after setting the
+Setup note: the fix of the sandbox workflow, the second revision, was pushed to the base branch at about 10:42, after setting the
 sandbox ruleset to `disabled` for the push and back to `active` right after, because the ruleset (like the
 real one) refuses a direct push.
 
