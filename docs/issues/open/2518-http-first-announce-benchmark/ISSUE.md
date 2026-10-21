@@ -9,7 +9,7 @@ github-issue: 2518
 spec-path: docs/issues/open/2518-http-first-announce-benchmark/ISSUE.md
 branch: "2518-http-first-announce-benchmark"
 related-pr: null
-last-updated-utc: "2026-10-21 09:45"
+last-updated-utc: "2026-10-21 10:05"
 semantic-links:
   skill-links:
     - create-issue
@@ -333,8 +333,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                      | Notes / Expected Output                                                                                                                                                                                                                                                                                                                                                                   |
 | --- | ------ | ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | First-announce context with a fixed swarm | A benchmark context that wires the swarm-registry event sender and listener as production does (D4), pre-fills a swarm with `N` peers, and announces a new peer and removes it. Its maintained checks (the `RoutineGuard`, the swarm-size assertion, and the swarm-metrics and response-size assertions of D5) are each seen to fail under a deliberate mutation. Design review recorded. |
-| T2  | TODO   | Benchmark group over the swarm sizes      | The `http_tracker/first_announce/<N>` group, using `iter_custom` as decided in D1; `cargo test --benches` green; `cargo bench` output recorded.                                                                                                                                                                                                                                           |
+| T1  | DONE   | First-announce context with a fixed swarm | A benchmark context that wires the swarm-registry event sender and listener as production does (D4), pre-fills a swarm with `N` peers, and announces a new peer and removes it. Its maintained checks (the `RoutineGuard`, the swarm-size assertion, and the swarm-metrics and response-size assertions of D5) are each seen to fail under a deliberate mutation. Design review recorded. |
+| T2  | IN_PROGRESS | Benchmark group over the swarm sizes      | The `http_tracker/first_announce/<N>` group, using `iter_custom` as decided in D1; `cargo test --benches` green; `cargo bench` output recorded.                                                                                                                                                                                                                                           |
 | T3  | TODO   | Maintainer review of the benchmark        | Stop after T2: the maintainer reviews the benchmark design, the guard evidence, and the first results before documentation and the pull request. Outcome logged in the Progress Log.                                                                                                                                                                                                      |
 | T4  | TODO   | Documentation and completion review       | `docs/benchmarking.md` updated, including replacing the closing sentence of "HTTP announce microbenchmark", which still suggests "a bounded rotating pool of peers" (D1, option E), with a pointer to the new benchmark; manual verification recorded; acceptance criteria reviewed; completion review recorded.                                                                          |
 
@@ -410,22 +410,30 @@ the review in `manual-verification-evidence.md`. All commits are GPG signed Conv
   any `cargo bench` (including M2), because the maintainer prefers to run benchmarks while no other
   task is using the computer, as load changes the results. `cargo test --benches` runs one
   iteration per benchmark and is not a benchmark run.
+- 2026-10-21 10:05 UTC - Copilot - T1 and T2 implemented in two commits
+  (`refactor(http-core)` for the shared helpers, `feat(http-core)` for the context and the group;
+  one commit for T1 and T2 together because the context alone would be dead code under
+  `-D warnings`). The tool name in D5 differs from the spec: the swarm statistics `Repository` has
+  `read_metrics`, not `get_metrics`, and its metric-name constants are private, so the benchmark
+  names the three counters as strings. The mutation runs M-a to M-f of V1 ran in test mode and each
+  check failed as expected. T2 stays `IN_PROGRESS` until the maintainer lets the agent run
+  `cargo bench` (V1's second half and V2); stopped at T3 for the maintainer's review.
 
 ## Acceptance Criteria
 
 - [ ] AC1: `cargo bench -p torrust-tracker-http-core --bench http_tracker_core_benchmark` reports
       one result per swarm size, each timing one `started` announce of a peer that was not in a
       swarm of exactly `N` other peers.
-- [ ] AC2: The swarm has exactly `N` peers after the run; the benchmark asserts this and fails
+- [x] AC2: The swarm has exactly `N` peers after the run; the benchmark asserts this and fails
       under `cargo test --benches` when it does not (shown by a deliberate mutation).
-- [ ] AC3: The new benchmark uses the `RoutineGuard`, and the guard is shown to fail when the
+- [x] AC3: The new benchmark uses the `RoutineGuard`, and the guard is shown to fail when the
       routine is not awaited.
 - [ ] AC4: The results are ordered as the design expects: the 74- and 1000-peer results are above
       the 0-peer result, or the evidence explains why not. The results are compared only with each
       other, never with `announce_once`, which is measured differently (D1).
 - [ ] AC5: `docs/benchmarking.md` lists and explains the benchmark, including what its timing
       includes (the per-iteration clock reads, D1) and why the discarded options were not used.
-- [ ] AC6: After the run, the benchmark asserts from the swarm statistics metrics that every
+- [x] AC6: After the run, the benchmark asserts from the swarm statistics metrics that every
       announce the context made was an insert or a removal, with no updates, applying exact counts
       only under the D5 lag rule, and that the first announce made before measurement returned
       `min(N, 74)` peers (D5). Each assertion is shown to fail under a deliberate mutation, for
@@ -466,11 +474,11 @@ because it measures a one-off question rather than a durable invariant.
 | AC ID | Status (`TODO`/`DONE`) | Evidence                                                    |
 | ----- | ---------------------- | ----------------------------------------------------------- |
 | AC1   | TODO                   | `cargo bench` output, M1, M2                                |
-| AC2   | TODO                   | Swarm-size assertion mutation run                           |
-| AC3   | TODO                   | `RoutineGuard` mutation run                                 |
+| AC2   | DONE                   | Swarm-size assertion mutation run (V1, M-b)                 |
+| AC3   | DONE                   | `RoutineGuard` mutation run (V1, M-a)                       |
 | AC4   | TODO                   | M2                                                          |
 | AC5   | TODO                   | `docs/benchmarking.md` diff                                 |
-| AC6   | TODO                   | Swarm-metrics and response-size assertion mutation runs, M1 |
+| AC6   | DONE                   | Swarm-metrics and response-size mutation runs (V1, M-c to M-f) |
 
 ## Risks and Trade-offs
 
