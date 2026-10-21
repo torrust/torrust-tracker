@@ -444,7 +444,7 @@ fn respond_with_an_override(gh: &FakeGh, actor: &str, applied_at: &str, first_ch
     );
     gh.respond(
         &format!("repos/owner/repo/collaborators/{actor}/permission"),
-        &json!({ "permission": "admin" }),
+        &json!({ "permission": "admin", "role_name": "admin" }),
     );
 }
 

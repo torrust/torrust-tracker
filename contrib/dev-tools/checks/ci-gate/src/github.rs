@@ -9,9 +9,11 @@
 //!   group jobs and must not hide the earlier result, and a run that has not completed is missing.
 //! - **Override.** The label [`OVERRIDE_LABEL`] counts only when it is on the pull request, when the
 //!   actor of its latest `labeled` event has the role `admin` or `maintain`, and when it was applied
-//!   after the head commit's first check suite was created, because a push revokes an override. An
-//!   override that is ignored never fails the command: the verdict is computed without it and the
-//!   reason is printed.
+//!   after the head commit's first check suite was created, because a push revokes an override. The
+//!   role is the `role_name` of the collaborator permission endpoint: its `permission` field is the
+//!   legacy base role and reports Maintain as `write`. A custom role does not count, even when it
+//!   extends one of the two. An override that is ignored never fails the command: the verdict is
+//!   computed without it and the reason is printed.
 //! - **Failure.** Everything is read through the [`GithubApi`] trait, so the rules are tested with
 //!   fixtures. An error reading the check runs is an error of the command, so the gate fails closed. An
 //!   error reading anything the override needs means that there is no override.
@@ -156,9 +158,11 @@ struct CheckSuite {
     created_at: String,
 }
 
+/// The role of a collaborator as the permission endpoint reports it. The endpoint's `permission` field is the legacy base
+/// role (`admin`, `write`, `read`, `none`), which reports the Maintain role as `write`; `role_name` is the role itself.
 #[derive(Deserialize)]
-struct Permission {
-    permission: String,
+struct CollaboratorRole {
+    role_name: String,
 }
 
 /// Decides whether a pull request may merge, from what GitHub says about its head commit.
@@ -295,21 +299,21 @@ fn assess_override(api: &dyn GithubApi, pull_request: &PullRequestRef) -> Overri
         Err(error) => return OverrideAssessment::Ignored(format!("cannot read the check suites of the head commit: {error}")),
     };
 
-    let permission = api
+    let role = api
         .pages(&format!("{base}/collaborators/{actor}/permission"))
         .and_then(|pages| {
             pages
                 .into_iter()
                 .next()
                 .ok_or_else(|| "the response is empty".to_string())
-                .and_then(|page| serde_json::from_value::<Permission>(page).map_err(|error| error.to_string()))
+                .and_then(|page| serde_json::from_value::<CollaboratorRole>(page).map_err(|error| error.to_string()))
         })
-        .map(|permission| permission.permission);
+        .map(|collaborator| collaborator.role_name);
 
     match judge_override(
         &request.applied_at,
         first_check_suite_at.as_deref(),
-        permission.as_deref().map_err(String::as_str),
+        role.as_deref().map_err(String::as_str),
     ) {
         Ok(()) => OverrideAssessment::Applies(actor.to_string()),
         Err(reason) => OverrideAssessment::Ignored(format!("the override by `{actor}` was ignored: {reason}")),
@@ -343,8 +347,9 @@ fn override_request(labels: &[Label], events: &[Event]) -> Result<Option<Overrid
 /// Whether an override applied at `applied_at` still counts, as `Ok`, or why it does not.
 ///
 /// It must have been applied after the head commit's first check suite, which a push creates, and by
-/// someone whose permission is `admin` or `maintain`. A permission that could not be read is an error.
-fn judge_override(applied_at: &str, first_check_suite_at: Option<&str>, permission: Result<&str, &str>) -> Result<(), String> {
+/// someone whose role is `admin` or `maintain`; a custom role does not count, even when it extends one of them. A role
+/// that could not be read is an error.
+fn judge_override(applied_at: &str, first_check_suite_at: Option<&str>, role: Result<&str, &str>) -> Result<(), String> {
     let Some(first_check_suite_at) = first_check_suite_at else {
         return Err(
             "the head commit has no check suite, so it cannot be told whether the label is older than the push".to_string(),
@@ -361,13 +366,10 @@ fn judge_override(applied_at: &str, first_check_suite_at: Option<&str>, permissi
         ));
     }
 
-    match permission {
-        Ok(permission) if OVERRIDE_ROLES.contains(&permission) => Ok(()),
-        Ok(permission) => Err(format!(
-            "the permission `{permission}` is not one of {}",
-            OVERRIDE_ROLES.join(", ")
-        )),
-        Err(error) => Err(format!("cannot read the permission: {error}")),
+    match role {
+        Ok(role) if OVERRIDE_ROLES.contains(&role) => Ok(()),
+        Ok(role) => Err(format!("the role `{role}` is not one of {}", OVERRIDE_ROLES.join(", "))),
+        Err(error) => Err(format!("cannot read the role: {error}")),
     }
 }
 
@@ -501,14 +503,27 @@ mod tests {
         )
     }
 
-    fn api_with_override(api: FakeApi, actor: &str, applied_at: &str, first_check_suite_at: &str, permission: &str) -> FakeApi {
+    /// The `permission` that GitHub reports for a role: the legacy base roles, where Maintain is reported as `write` and
+    /// Triage as `read`, and a custom role as the base role it extends (here, always `write`).
+    fn legacy_permission(role: &str) -> &'static str {
+        match role {
+            "admin" => "admin",
+            "read" | "triage" => "read",
+            _ => "write",
+        }
+    }
+
+    fn api_with_override(api: FakeApi, actor: &str, applied_at: &str, first_check_suite_at: &str, role: &str) -> FakeApi {
         api.with(LABELS_PATH, vec![json!([{ "name": "ci-override" }])])
             .with(EVENTS_PATH, vec![json!([labeled_event(actor, applied_at)])])
             .with(
                 CHECK_SUITES_PATH,
                 vec![json!({ "check_suites": [{ "created_at": first_check_suite_at }] })],
             )
-            .with(&permission_path(actor), vec![json!({ "permission": permission })])
+            .with(
+                &permission_path(actor),
+                vec![json!({ "permission": legacy_permission(role), "role_name": role })],
+            )
     }
 
     #[rstest]
@@ -713,23 +728,35 @@ mod tests {
         Err("a push revoked it")
     )]
     #[case::before_the_push("2026-10-21T10:44:46Z", Some("2026-10-21T10:46:06Z"), Ok("admin"), Err("a push revoked it"))]
-    #[case::write_permission(
+    #[case::write_role(
         "2026-10-21T10:49:13Z",
         Some("2026-10-21T10:46:06Z"),
         Ok("write"),
-        Err("the permission `write` is not one of admin, maintain")
+        Err("the role `write` is not one of admin, maintain")
     )]
-    #[case::read_permission(
+    #[case::read_role(
         "2026-10-21T10:49:13Z",
         Some("2026-10-21T10:46:06Z"),
         Ok("read"),
-        Err("the permission `read` is not one of")
+        Err("the role `read` is not one of")
     )]
-    #[case::permission_that_cannot_be_read(
+    #[case::custom_role_even_when_it_extends_maintain(
+        "2026-10-21T10:49:13Z",
+        Some("2026-10-21T10:46:06Z"),
+        Ok("release-managers"),
+        Err("the role `release-managers` is not one of")
+    )]
+    #[case::custom_role_with_admin_in_its_name(
+        "2026-10-21T10:49:13Z",
+        Some("2026-10-21T10:46:06Z"),
+        Ok("admin-viewer"),
+        Err("the role `admin-viewer` is not one of")
+    )]
+    #[case::role_that_cannot_be_read(
         "2026-10-21T10:49:13Z",
         Some("2026-10-21T10:46:06Z"),
         Err("HTTP 403"),
-        Err("cannot read the permission: HTTP 403")
+        Err("cannot read the role: HTTP 403")
     )]
     #[case::no_check_suite("2026-10-21T10:49:13Z", None, Ok("admin"), Err("has no check suite"))]
     #[case::a_time_that_is_not_in_github_form(
@@ -741,11 +768,11 @@ mod tests {
     fn it_should_judge_whether_an_override_still_counts(
         #[case] applied_at: &str,
         #[case] first_check_suite_at: Option<&str>,
-        #[case] permission: Result<&str, &str>,
+        #[case] role: Result<&str, &str>,
         #[case] expected: Result<(), &str>,
     ) {
         // Act
-        let judgement = judge_override(applied_at, first_check_suite_at, permission);
+        let judgement = judge_override(applied_at, first_check_suite_at, role);
 
         // Assert
         match (&judgement, expected) {
@@ -846,6 +873,62 @@ mod tests {
     }
 
     #[test]
+    fn it_should_pass_naming_the_actor_when_the_actor_has_the_maintain_role_that_github_reports_as_write() {
+        // Arrange
+        let api = api_with_override(
+            failing_head(),
+            "maintainer",
+            "2026-10-21T10:49:13Z",
+            "2026-10-21T10:46:06Z",
+            "maintain",
+        );
+
+        // Act
+        let verdict = decide_for_pull_request(&api, &pull_request(), &classification_needing_db_benchmarking()).expect("decided");
+
+        // Assert
+        assert_eq!(
+            (
+                verdict.verdict.verdict,
+                verdict.verdict.overridden_by,
+                verdict.override_ignored
+            ),
+            (Verdict::Pass, Some("maintainer".to_string()), None),
+            "the permission endpoint reports the Maintain role as `write`, and its `role_name` is the one that tells it apart"
+        );
+    }
+
+    #[test]
+    fn it_should_fail_without_an_override_when_the_response_has_no_role_name() {
+        // Arrange
+        let api = api_with_override(
+            failing_head(),
+            "josecelano",
+            "2026-10-21T10:49:13Z",
+            "2026-10-21T10:46:06Z",
+            "admin",
+        )
+        .with(&permission_path("josecelano"), vec![json!({ "permission": "admin" })]);
+
+        // Act
+        let verdict = decide_for_pull_request(&api, &pull_request(), &classification_needing_db_benchmarking()).expect("decided");
+
+        // Assert
+        assert_eq!(
+            (verdict.verdict.verdict, verdict.verdict.overridden_by),
+            (Verdict::Fail, None)
+        );
+        assert!(
+            verdict
+                .override_ignored
+                .as_deref()
+                .is_some_and(|reason| reason.contains("cannot read the role") && reason.contains("role_name")),
+            "a response without the role must not be read as the legacy permission: {:?}",
+            verdict.override_ignored
+        );
+    }
+
+    #[test]
     fn it_should_fail_and_say_why_when_the_label_was_applied_before_the_push() {
         // Arrange
         let api = api_with_override(
@@ -872,7 +955,7 @@ mod tests {
     }
 
     #[test]
-    fn it_should_fail_and_name_the_permission_when_the_actor_may_not_override() {
+    fn it_should_fail_and_name_the_role_when_the_actor_may_not_override() {
         // Arrange
         let api = api_with_override(
             failing_head(),
@@ -894,14 +977,14 @@ mod tests {
             verdict
                 .override_ignored
                 .as_deref()
-                .is_some_and(|reason| reason.contains("the permission `write`")),
-            "the ignored override should name the permission: {:?}",
+                .is_some_and(|reason| reason.contains("the role `write`")),
+            "the ignored override should name the role: {:?}",
             verdict.override_ignored
         );
     }
 
     #[test]
-    fn it_should_fail_without_an_override_when_the_permission_cannot_be_read() {
+    fn it_should_fail_without_an_override_when_the_role_cannot_be_read() {
         // Arrange
         let api = api_with_override(
             failing_head(),
@@ -924,7 +1007,7 @@ mod tests {
             verdict
                 .override_ignored
                 .as_deref()
-                .is_some_and(|reason| reason.contains("cannot read the permission")),
+                .is_some_and(|reason| reason.contains("cannot read the role")),
             "the error should be explained: {:?}",
             verdict.override_ignored
         );
@@ -1045,7 +1128,10 @@ mod tests {
                     json!({ "check_suites": [{ "created_at": "2026-10-21T10:51:00Z" }, { "created_at": "2026-10-21T10:48:00Z" }] }),
                 ],
             )
-            .with(&permission_path("josecelano"), vec![json!({ "permission": "admin" })]);
+            .with(
+                &permission_path("josecelano"),
+                vec![json!({ "permission": "admin", "role_name": "admin" })],
+            );
 
         // Act
         let verdict = decide_for_pull_request(&api, &pull_request(), &classification_needing_db_benchmarking()).expect("decided");
