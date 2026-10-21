@@ -9,7 +9,7 @@ github-issue: 2603
 spec-path: docs/issues/open/2603-write-unit-test-skill-rule-mutations-and-removed-tests/ISSUE.md
 branch: "2603-write-unit-test-skill-rule-mutations-and-removed-tests"
 related-pr: null
-last-updated-utc: "2026-10-21 12:25"
+last-updated-utc: "2026-10-21 13:54"
 semantic-links:
   skill-links:
     - create-issue
@@ -200,6 +200,7 @@ Checklist entries:
 - 2026-10-21 11:50 UTC - GitHub Copilot (Claude Sonnet 5.5) - T2 and T3 written in the skill and shown to the maintainer, who approved the wording (verdict `approve`, no changes). Two things differ from the agreed text, both disclosed at the review: each new section cites the #2415 observation in one sentence, and the removed-test rule is its own `###` section instead of a paragraph. Committed as `docs(skills): [#2603] ask for a mutation per clause of a rule a test guards` and `docs(skills): [#2603] ask for a record when a refactor removes or merges a test`. The T3 plan row asked for two checklist entries, but the Commit Points and AC3 mean one per rule; one each was added, and the row is corrected. No design change.
 - 2026-10-21 11:57 UTC - GitHub Copilot (Claude Sonnet 5.5) - T4 done: M1 and M2 recorded in `manual-verification-evidence.md` (V1, V2). M2 flags the test the #2415 conversion removed (manager tests 17 to 16, no record in the commit message). M1 yields the mutation the original release test missed, but was not blind as the scenario asked: I wrote the #2415 finding up and knew it, and the mutation outcomes are cited from #2415's evidence, not re-run. Both limits are in V1. Next: pre-push checks, the Task Reviewer report, and the completion review.
 - 2026-10-21 12:25 UTC - GitHub Copilot (Claude Sonnet 5.5) - Independent Task Reviewer report recorded in `agent-review-reports.md`: REVIEW PASSED (with findings), AC1 to AC4 and `linter all` pass, nothing blocks the push. Its findings are addressed: the spec-only-PR checkpoint is ticked (S1), `branch:` names the implementation branch (N1; `related-pr` follows when the pull request is opened), V2 now says its step 4 checks existence only (N2), and the checklist wording stays as the maintainer approved it (N3). Completion review: no separate retrospective, for the reason in the section above. No design change.
+- 2026-10-21 13:54 UTC - GitHub Copilot (Claude Sonnet 5.5) - Maintainer decisions before push: push and open the pull request with `Closes #2603`, without rebasing onto the newer `develop` (its new commits touch neither the skill nor this folder); the maintainer's review and merge of the pull request is the acceptance review, as for #2414 and #2415, so AC1 to AC4 and the `linter all` item are ticked after the merge, in the archive pull request. No design change.
 
 ## Acceptance Criteria
 
