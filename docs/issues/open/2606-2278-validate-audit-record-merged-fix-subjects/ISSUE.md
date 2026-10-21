@@ -9,7 +9,7 @@ github-issue: 2606
 spec-path: docs/issues/open/2606-2278-validate-audit-record-merged-fix-subjects/ISSUE.md
 branch: "2606-validate-audit-record-merged-fix-subjects-spec"
 related-pr: null
-last-updated-utc: "2026-10-21 11:53"
+last-updated-utc: "2026-10-21 11:55"
 semantic-links:
   skill-links:
     - create-issue
@@ -217,6 +217,9 @@ test run in `test-design-review.md` or the evidence file even after its producti
   increments with kept red output, a recorded prose-first Arrange-Act-Assert design review per
   increment, separate production steps, and a maintainer review stop (T8) before final verification,
   the last commit, and the PR.
+- 2026-10-21 11:55 UTC - GitHub Copilot (Claude Sonnet 5.5) - Addressed Copilot finding F3 on PR #2607: scenario
+  M2 now updates local `develop` separately with `git fetch torrust develop:develop` and keeps
+  `HEAD` unchanged between the two runs, so equal results can support AC2.
 
 ## Acceptance Criteria
 
@@ -247,7 +250,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | ID  | Scenario                                         | Human-oriented command/steps                                                                                                                                | Expected Result                                          | Status | Evidence                                     |
 | --- | ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- | ------ | -------------------------------------------- |
 | M1  | Merged audits pass with a current base           | `git fetch torrust develop`, then `validate-audit-record.py --pr-number 2584 --base torrust/develop` and the same for `2599`                                | Red before the fix (4 failures), green after, exit 0     | IN_PROGRESS | Red: `manual-verification-evidence.md` section V1; green: pending |
-| M2  | Result is independent of the local `develop`     | Run M1 with `--base develop` while local `develop` is behind and again after `git pull --ff-only torrust develop`                                          | Same result in both states                               | IN_PROGRESS | Dependency on the base: `manual-verification-evidence.md` section V2; recheck: pending |
+| M2  | Result is independent of the local `develop`     | On the implementation branch, record `git rev-parse HEAD`, `git rev-parse develop`, and `git rev-parse torrust/develop`. Run the M1 command with `--base develop` while local `develop` is behind. Update local `develop` without touching `HEAD` by running `git fetch torrust develop:develop` (it fast-forwards only, and refuses when `develop` is checked out or has diverged), then confirm `git rev-parse develop` equals `torrust/develop` and rerun the same command. Record `git rev-parse HEAD` again after the last run                                          | Same result in both runs, with `HEAD` unchanged                            | IN_PROGRESS | Dependency on the base: `manual-verification-evidence.md` section V2; recheck: pending |
 | M3  | A bogus subject is still rejected                | Copy the PR #2599 audit, change the `Resolution reference` to a subject that exists in no commit, run the validator with `--audit-file`                    | Exit 1 with one `not a commit subject` failure           | TODO   | `manual-verification-evidence.md` section V3 |
 
 Notes:
