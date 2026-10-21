@@ -9,7 +9,7 @@ github-issue: 2525
 spec-path: docs/issues/open/2525-ci-gate-required-check/ISSUE.md
 branch: "2525-ci-gate-required-check"
 related-pr: null
-last-updated-utc: "2026-10-21 16:46"
+last-updated-utc: "2026-10-21 18:50"
 semantic-links:
   skill-links:
     - create-issue
@@ -483,7 +483,7 @@ Conventional Commits with narrow scopes and sign every commit with GPG.
   it; an error reading the check runs is a runtime error (exit 1, nothing on stdout), and an error reading
   anything the override needs means no override with the reason in `override_ignored`; a failing verdict
   still exits with 0; the repository, commit id, and login are validated because they become part of request
-  paths. 209 unit and 20 command-line tests, 25 of 25 mutants killed, and a manual run on real GitHub data,
+  paths. 209 unit and 23 command-line tests, 27 of 27 mutants killed, and a manual run on real GitHub data,
   including a replay of runs 5 and 7 of the T5 sandbox from the captured responses that gave the same results -
   [`manual-verification-evidence.md`](manual-verification-evidence.md) V11. The current upstream workflows
   have no check runs named after the groups, so on an upstream pull request every needed group is missing; that
@@ -554,6 +554,17 @@ Conventional Commits with narrow scopes and sign every commit with GPG.
   the dots is killed. My first attempt at that mutant asserted that the text to replace was there and stopped
   because the formatter had wrapped it, so nothing was silently skipped. Now 209 unit and 20 command-line tests,
   and one more mutant killed - [`manual-verification-evidence.md`](manual-verification-evidence.md) V11.
+- 2026-10-21 18:50 UTC - GitHub Copilot - Processed Copilot's fifth review of PR #2610 (one thread, confirmed). The fixture
+  of the fake `gh` dropped the result of removing its directory, so a failed cleanup left a stray directory with
+  no trace. The removal is now a function that returns a message for any failure except a directory that is already
+  gone, and the fixture writes the message on stderr; it does not panic, because a second panic while one unwinds
+  aborts the test process (`test(ci-gate): [#2525] report a failed cleanup of a fake gh directory`). Three new
+  tests, and two mutants killed. The first commit was made without gating on the formatter and clippy, which
+  rejected it (`eprintln` is denied by `clippy::print_stderr`), and a second commit fixed it
+  (`test(ci-gate): [#2525] write the cleanup failure through writeln and format it`). The call of the
+  function from the fixture's `Drop` is not covered by a test: a mutant that ignores the message there would
+  survive, and it is a one-line call whose effect is a line on stderr. Now 209 unit and 23 command-line tests -
+  [`manual-verification-evidence.md`](manual-verification-evidence.md) V11.
 
 ## Acceptance Criteria
 

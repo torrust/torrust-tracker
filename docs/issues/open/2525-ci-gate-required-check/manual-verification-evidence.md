@@ -436,10 +436,10 @@ GitHub JSON, and only the label response, which is `[{"name": "ci-override"}]`, 
 last row is the contract that T6b and T6c have to meet: nothing calls the adapter yet, so it changes no
 behavior today.
 
-Twenty-five mutants of `github.rs`, `gh.rs`, and the tests' fixture were applied one at a time and the whole test suite run for each, with the
+Twenty-seven mutants of `github.rs`, `gh.rs`, and the tests' fixture were applied one at a time and the whole test suite run for each, with the
 file restored afterwards (`diff` against a saved copy). Six of them did not compile the first time, because
 the workspace's `-D warnings` rejects unused code, so they ran no test; they were rewritten and rerun. All
-twenty-five compiled and were killed:
+twenty-seven compiled and were killed:
 
 | Mutant                                                                          | Failing tests |
 | ------------------------------------------------------------------------------- | ------------- |
@@ -468,8 +468,13 @@ twenty-five compiled and were killed:
 | the error of a failed request is not limited in length                          |             1 |
 | output of `gh` that is not JSON is accepted as no page                          |             2 |
 | a test name with a path separator is allowed into the fake `gh` directory name  |             1 |
+| a failed cleanup of the fake `gh` directory is not reported                     |             1 |
+| a directory that is already gone is reported as a failed cleanup                |             1 |
 
-The final run has 209 unit and 20 command-line tests; `cargo clippy`, `cargo +nightly fmt --check`, the
+The call from the fixture's `Drop` to the cleanup function is not covered by a test; a mutant that drops the
+message there would survive.
+
+The final run has 209 unit and 23 command-line tests; `cargo clippy`, `cargo +nightly fmt --check`, the
 documentation build, and `cargo machete` are clean.
 
 ## Failures and Follow-up
