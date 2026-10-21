@@ -541,7 +541,8 @@ fn it_should_write_a_json_runtime_error_and_nothing_on_stdout_when_the_check_run
     assert!(
         record["message"]
             .as_str()
-            .is_some_and(|message| message.contains("cannot read the check runs")),
+            .is_some_and(|message| message.contains("cannot read the check runs")
+                && message.contains("api --paginate repos/owner/repo/commits/")),
         "the message should say what could not be read, but was: {record}"
     );
 }

@@ -33,7 +33,7 @@ impl GithubApi for Gh {
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
             return Err(format!(
-                "`{} api {path}` failed with {}: {}",
+                "`{} api --paginate {path}` failed with {}: {}",
                 self.program,
                 output.status,
                 stderr.trim().chars().take(300).collect::<String>()
