@@ -6,7 +6,7 @@ epic: null
 github-issue: 1347
 spec-path: docs/issues/open/1347-overhaul-packages-testing/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-21 07:55"
+last-updated-utc: "2026-10-21 09:30"
 semantic-links:
   skill-links:
     - create-issue

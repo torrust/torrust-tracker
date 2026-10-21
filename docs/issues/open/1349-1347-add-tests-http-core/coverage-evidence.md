@@ -283,3 +283,27 @@ Measured on 2026-10-21 after the pull-request review round, with the same comman
 | Functions | 161 / 191 (84.29%) | 233 / 249 (93.57%) | 244 / 260 (93.85%) | 309 / 315 (98.10%) |
 
 Since the original baseline the package gained +8.96 pp of lines, +7.78 pp of regions and +13.81 pp of functions. Most of the S4 line gain is the test module of `container.rs`, which counts toward the totals; the per-file mutation proof in each plan is the stronger signal. The S3 column is not comparable line by line with the S4 baseline because #2414 changed `statistics/event/listener.rs` in between.
+
+### Baseline Before Slice S5
+
+Measured on 2026-10-21 on the S5 branch at the merge of #2593, whose `packages/http-core` is identical to the S4 head, so the package figures equal the final S4 ones: lines 2,536 / 2,592 (97.84%), regions 3,264 / 3,324 (98.19%), functions 309 / 315 (98.10%), 144 unit tests. The statistics files measured:
+
+| Source module | Lines | Regions | Functions |
+| --- | ---: | ---: | ---: |
+| `statistics/event/handler.rs` | 158 / 161 | 215 / 221 | 16 / 17 |
+| `statistics/event/listener.rs` | 215 / 239 | 275 / 298 | 29 / 32 |
+| `statistics/metrics.rs` | 48 / 57 | 66 / 74 | 8 / 9 |
+| `statistics/repository.rs` | 21 / 24 | 26 / 29 | 5 / 6 |
+| `statistics/mod.rs` | 8 / 8 | 10 / 10 | 1 / 1 |
+
+### `statistics/event/handler.rs` (slice S5)
+
+Measured on 2026-10-21 on the S5 branch, whose production code for this file is identical to `develop` at the merge of #2593. The plan is [statistics-handler-tests.md](test-refactor-plans/statistics-handler-tests.md).
+
+| Scope | Before (S5 baseline) | After |
+| --- | ---: | ---: |
+| `statistics/event/handler.rs` lines | 158 / 161 (98.14%) | 143 / 146 (97.95%) |
+| `statistics/event/handler.rs` regions | 215 / 221 (97.29%) | 175 / 181 (96.69%) |
+| `statistics/event/handler.rs` functions | 16 / 17 (94.12%) | 21 / 22 (95.45%) |
+
+The file's 5 tests are now 10 cases in 4 test functions. The counts fall because the new test module is shorter than the old one (the repeated event construction is gone); the production lines were already covered except the two the plan decides not to test: the failed-increase `Err` arm (line 20) and the debug closure (line 25). The package has 149 unit tests (144 at the S5 baseline): lines 2,521 / 2,577 (97.83%), regions 3,224 / 3,284 (98.17%), functions 314 / 320 (98.12%).

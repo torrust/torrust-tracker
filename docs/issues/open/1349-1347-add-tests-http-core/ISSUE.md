@@ -9,7 +9,7 @@ github-issue: 1349
 spec-path: docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md
 branch: "1349-1347-add-tests-http-core-statistics"
 related-pr: null
-last-updated-utc: "2026-10-21 09:30"
+last-updated-utc: "2026-10-21 09:42"
 semantic-links:
   skill-links:
     - create-issue
@@ -455,7 +455,7 @@ lines are the S2 baseline measurement (see [Baseline Coverage](#baseline-coverag
 | 3 | `services/scrape.rs` | 3 | S3 | 507 / 540 (93.89%) | 8 | Test candidate (error paths) | DONE | [services-scrape-tests.md](test-refactor-plans/services-scrape-tests.md) (done; 533 / 537 lines after) |
 | 4 | `event.rs` | 4 | S4 | 174 / 187 (93.05%) | 7 | Probably small change | DONE | [event-tests.md](test-refactor-plans/event-tests.md) (done; 135 / 135 lines after) |
 | 5 | `container.rs` | 5 | S4 | 0 / 73 (0.00%) | 0 | Test candidate | DONE | [container-tests.md](test-refactor-plans/container-tests.md) (done; 27 tests, all 73 production lines covered) |
-| 6 | `statistics/event/handler.rs` | 6 | S5 | 158 / 161 (98.14%) | 5 | Probably no change | PENDING | - |
+| 6 | `statistics/event/handler.rs` | 6 | S5 | 158 / 161 (98.14%) | 5 | Probably no change | DONE | [statistics-handler-tests.md](test-refactor-plans/statistics-handler-tests.md) (done; 10 cases, only the two decided lines uncovered) |
 | 7 | `statistics/event/listener.rs` | 6 | S5 | 133 / 148 (89.86%) | 4 | Lifecycle (#1488) | PENDING | - |
 | 8 | `statistics/metrics.rs` | 6 | S5 | 48 / 57 (84.21%) | 1 | Test candidate | PENDING | - |
 | 9 | `statistics/repository.rs` | 6 | S5 | 21 / 24 (87.50%) | 0 (3 doc tests) | Test candidate | PENDING | - |
@@ -695,6 +695,23 @@ lines are the S2 baseline measurement (see [Baseline Coverage](#baseline-coverag
   package 144), with three new mutations killed only by the disabled cases. The review is audited in
   `docs/pr-reviews/pr-2593-review/PR-REVIEW.md`. The package now reads lines 2,536 / 2,592 (97.84%), regions
   3,264 / 3,324 (98.19%), functions 309 / 315 (98.10%).
+- 2026-10-21 09:27 UTC - GitHub Copilot - The S4 pull request #2593 was merged (`b5ab35ae9`). Copilot had
+  reviewed the last head with no open issue, CI was green, and da2ce7 did not reply within the agreed 15
+  minutes, so the maintainer's ACK was posted on the head. S4 is `DONE`.
+- 2026-10-21 09:30 UTC - GitHub Copilot - S5 started on `1349-1347-add-tests-http-core-statistics`, cut from
+  `develop` at the merge of #2593. `packages/http-core` is identical to the S4 head, so the baseline is the
+  final S4 measurement, re-run on this branch: lines 2,536 / 2,592 (97.84%), regions 3,264 / 3,324 (98.19%),
+  functions 309 / 315 (98.10%), 144 unit tests. The statistics files measure `handler.rs` 158 / 161,
+  `listener.rs` 215 / 239 (it changed after the inventory: #2414 added the drain), `metrics.rs` 48 / 57,
+  `repository.rs` 21 / 24 and `mod.rs` 8 / 8 lines.
+- 2026-10-21 09:42 UTC - GitHub Copilot - `statistics/event/handler.rs` is `DONE` (S5): the plan was approved
+  at 09:34 UTC and the maintainer approved R1 and the completed file. The 5 tests are now 10 cases in 4 test
+  functions; only the two lines the plan decides not to test are uncovered. Mutations H1-H4 and a probe were
+  killed. The package has 149 unit tests: lines 2,521 / 2,577 (97.83%), regions 3,224 / 3,284 (98.17%),
+  functions 314 / 320 (98.12%). The plan notes a question for the `metrics.rs` plan: the `tcp4`/`tcp6` counters
+  select on the server binding's family while their comments say "peers". The S4-merge and S5-start log
+  entries above were missing from the S5-start commit (a parallel edit raced with staging) and ship with this
+  commit.
 
 ## Acceptance Criteria
 
