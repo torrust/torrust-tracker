@@ -57,8 +57,8 @@ database and security workflows when the change needs them.
 
 ### 2.2 Cost per pull request
 
-Only the 87 pull requests created on or after 2026-10-07 are used here, because the other 11 had pushes
-before the window whose runs are not in the data.
+Only the 87 pull requests created on or after 2026-10-07 (`complete_history` in the saved JSON, see
+section 5) are used here, because the other 11 had pushes before the window whose runs are not in the data.
 
 | Class     | Pull requests | Pushed heads per PR (mean) | Mean runner minutes | Median | 90th percentile |  Max |
 | --------- | ------------: | -------------------------: | ------------------: | -----: | --------------: | ---: |
@@ -162,6 +162,12 @@ fixed it. The script now asserts that each day's listing is complete.
 
 To recompute the tables, group the rows of
 [`evidence/pr-ci-runs-2026-10-07-to-2026-10-21.csv`](evidence/pr-ci-runs-2026-10-07-to-2026-10-21.csv)
-by `pr_class` and by `workflow`, and by distinct `head_sha` per `pr`, and sum `job_minutes`. The class and
-the changed groups of each pull request are in
+by `pr_class` and by `workflow`, and by distinct `head_sha` per `pr`, and sum `job_minutes`. The class,
+the changed groups, the creation and merge times of each pull request, and whether its history is complete
+are in
 [`evidence/pr-ci-prs-2026-10-07-to-2026-10-21.json`](evidence/pr-ci-prs-2026-10-07-to-2026-10-21.json).
+
+Table 2.2 uses only the pull requests whose `complete_history` is `true`, which means it was created on
+or after 2026-10-07 00:00 UTC (87 of the 98; the other 11 are the `false` entries). The 90th percentile
+is the value at position `floor(0.9 * n)`, counting from 1, of the pull requests' sorted totals. Applying
+exactly this to the two committed files gives the rows of table 2.2.
