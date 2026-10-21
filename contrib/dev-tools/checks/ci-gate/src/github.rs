@@ -1049,7 +1049,7 @@ mod tests {
 
     #[rstest]
     #[case::ordinary("josecelano", true)]
-    #[case::with_a_hyphen_and_a_digit("octo-cat2", true)]
+    #[case::with_a_hyphen_and_a_digit("some-user2", true)]
     #[case::a_bot("dependabot[bot]", true)]
     #[case::empty("", false)]
     #[case::only_the_bot_suffix("[bot]", false)]
