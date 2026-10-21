@@ -121,6 +121,15 @@ level that can observe everything it asserts without reading other modules.
 A test that passes only because of a collaborator's rule is not a unit test of the module it sits
 in, even when it is deterministic and fast; it fails for reasons the module cannot explain.
 
+### Remove or Merge a Test Only With a Record
+
+In a refactor whose acceptance criterion is that the existing tests still pass, a deleted or merged
+test changes the evidence. Before removing one, name the test that now covers its behavior, or state
+why that behavior is dropped. Record the removal, the replacement, and the new test count in the
+issue's evidence and in the commit message. In #2415 a duplicate manager test was deleted during a
+conversion, taking the count from 17 to 16, and nothing recorded it until the independent reviewer
+found it.
+
 ### Prove a Regression Test Guards the Bug
 
 A regression test is only evidence if it has been seen to fail against the bug it claims to
@@ -528,6 +537,7 @@ establishes a reusable pattern for future tests.
 - [ ] Behaviors were inventoried; each test sits at the lowest level that can observe everything it asserts
 - [ ] For a bug fix: the regression test was seen to fail against the reintroduced bug and its nearest variants, then the production file was restored
 - [ ] For a rule with several clauses (including negative ones): each clause has a mutation that breaks only it, and the failing tests are recorded
+- [ ] For a refactor that removes or merges a test: the replacement and the new test count are recorded in the evidence and the commit message
 - [ ] Assertion messages state the causal facts; the failure output was read once without opening the test
 - [ ] Temporary prose-first AAA specification was compared with the code; redundant prose was removed
 - [ ] No `std::time::SystemTime::now()` in production code — use the `CurrentClock` type alias instead
