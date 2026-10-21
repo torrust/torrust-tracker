@@ -130,8 +130,10 @@ and the scrape helpers added `primitives` on 2026-10-02, taking the crate from o
 dependency (`configuration`) to five. Generic modules and protocol-specific helpers with a single
 consumer share one crate, so every dependent compiles the protocol clients.
 
-`test-helpers` is the only crate in patterns A to D that is already published, so moving its
-`http` and `udp` modules out is a semver-major change; #2583 decides and publishes the bump.
+`test-helpers` is the only crate in patterns A to D that is already published. Its published
+3.0.0 exports only `configuration` and `random`; `logging`, `http` and `udp` are unreleased, so
+moving `http` and `udp` out does not change the published API. #2583 decides the bump by
+comparing the final API with the published one.
 
 ## Pattern C: crate-private test helpers in `src/`
 

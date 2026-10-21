@@ -6,7 +6,7 @@ epic: 1669
 github-issue: 2482
 spec-path: docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-21 15:21"
+last-updated-utc: "2026-10-21 15:23"
 semantic-links:
   skill-links:
     - create-issue
@@ -131,7 +131,7 @@ as a single row and the subissues are tracked here.
 | O1 | `testing` Cargo feature per package: gate the module, make its dependencies optional, consumers enable it from `[dev-dependencies]` | Code stays next to what it tests; nothing ships unless enabled; one compiled copy of the crate, so `src/` unit tests (through `#[cfg(any(test, feature = "testing"))]`) and other packages see the same types | The crate's own `tests/`, `examples/` and doc tests do not get the feature unless one of the mechanisms in the next table is used. `#[cfg(feature = "testing")]` noise. The feature is public semver surface of a published crate. docs.rs and `cargo doc --all-features` publish the test API unless it is hidden. Optional dependencies need `dep:` syntax, or each one creates an implicit feature. Optional dependencies show as normal edges in `cargo metadata`, so the coupling tool and the diagram must label them. It relies on the resolver keeping dev-dependency features out of normal builds (MV1) |
 | O2 | Separate support crate per package (for example `torrust-tracker-udp-server-test-support`) used as a dev-dependency | Production crate has zero test code or dependencies; ownership is explicit; the crate's own `tests/`, `examples/` and other packages use it with a plain `cargo test` | More workspace members. Only the public API is reachable. `src/` unit tests that use it get a second copy of the crate whose types do not match `crate::` types (dev-dependency cycle, MV2). A `publish = false` support crate must be a path-only dev-dependency, or `cargo package` fails, as it did for #2582; packaging then strips it, so the published `.crate`'s tests cannot compile standalone |
 | O3 | `tests/common/` in the consuming package | Simplest; nothing leaves the consumer | Not shareable; duplication when several packages need the same helper |
-| O4 | Generic leaf `test-helpers` keeping only protocol-agnostic helpers (`configuration`, `logging`, `random`) | One home for cross-cutting test utilities; no protocol coupling | Needs a rule to stop protocol helpers creeping back in. Removing the `http` and `udp` modules is a semver-major change to a crate already published as 3.0.0 |
+| O4 | Generic leaf `test-helpers` keeping only protocol-agnostic helpers (`configuration`, `logging`, `random`) | One home for cross-cutting test utilities; no protocol coupling | Needs a rule to stop protocol helpers creeping back in. The published 3.0.0 exports only `configuration` and `random`, so removing the unreleased `http` and `udp` modules is not breaking by itself; whether the next release needs a major bump is #2583's comparison with the published API |
 | O5 | `#[cfg(test)]` and `cfg_attr(test, …)` for helpers and mocks used only inside one crate | No API or dependency cost; already used by `events` | Crate-private: unusable by the crate's own `tests/` and by other packages |
 | O6 | Keep DEC-13 (public module, unconditional) | No work | Keeps both problems; rejected unless the comparison shows otherwise |
 | O7 | Turn the environments into production API: a supported embedded-tracker start API per server crate | Their dependencies become legitimately normal; the examples get a real startup path instead of test infrastructure; no feature or extra crate | The test-only parts (ephemeral ports, readiness waits, teardown, `add_torrent_peer`) become public API to maintain and version. Production startup lives in the root crate's `src/bootstrap/jobs/` and has diverged from the environments, so this adds a second startup path. It keeps `axum-rest-api-server`'s six edges as real runtime coupling instead of removing them |
@@ -176,7 +176,7 @@ subissue 1 and GitHub issues one at a time afterwards.
 | Order | Issue | Local Spec | Status | Notes |
 | --- | --- | --- | --- | --- |
 | 1 | #[To be assigned] - Decide how packages share test support code | `docs/issues/drafts/2482-decide-test-support-rules/ISSUE.md` (to be created from the Phase 1 plan below) | TODO | Tasks D1 to D5; MV1 to MV4. Blocks every other row. |
-| 2 | #[To be assigned] - Move the `test-helpers` protocol helpers to their consumer | Provisional | TODO | Pattern B; coupling report finding 1. A semver-major change to the published `test-helpers` (3.0.0); #2583 publishes the bump. |
+| 2 | #[To be assigned] - Move the `test-helpers` protocol helpers to their consumer | Provisional | TODO | Pattern B; coupling report finding 1. `test-helpers` is published as 3.0.0 with only `configuration` and `random`, so the move alone does not break that API; #2583 decides the bump against the published API. |
 | 3 | #[To be assigned] - Gate `tracker-core`'s test modules and mocks | Provisional | TODO | Patterns C and D. |
 | 4 | #[To be assigned] - Relocate the `udp-server` test environment | Provisional | TODO | Pattern A; includes `examples/udp_only_public_tracker.rs`. After #2416 (its T9 changes this environment). |
 | 5 | #[To be assigned] - Relocate the `axum-http-server` test environment | Provisional | TODO | Pattern A; includes `examples/http_only_public_tracker.rs` and the doc-link-only `configuration` edge. After #2471, which merged on 2026-10-16, and after #2416 (its T9 changes this environment). |
@@ -277,7 +277,7 @@ maintainer's approval), and this folder moves to `docs/issues/closed/`.
 | Issue | Relation |
 | --- | --- |
 | #2576 (package README refresh) | Blocked on this EPIC: the READMEs must describe the final API this EPIC leaves and cover any crate it adds |
-| #2583 (first publish of the unpublished crates) | Its per-crate publish order follows the dependency edges this EPIC removes. Row 2 makes `test-helpers` need a semver-major bump, which #2583 publishes |
+| #2583 (first publish of the unpublished crates) | Its per-crate publish order follows the dependency edges this EPIC removes. Its T4 decides the `test-helpers` bump by comparing the final API with the published 3.0.0 (`configuration` and `random` only) |
 | #2594 (extract the console client) | Blocked on #2583, so it waits on this EPIC too |
 
 This EPIC does not publish anything or change those issues; it reports to #1669 when a change
@@ -376,6 +376,13 @@ Append one line per meaningful update.
   environment (taken from the orchestrator's review, not checked). #2410's child #2416 still
   lists task T9, which changes the HTTP and UDP environments. The "Coordination with EPIC #1488"
   rule, rows 4 and 5 and the long-pole risk now name #2416 (PR #2614 review finding F1).
+- 2026-10-21 15:23 UTC - AI assistant (Copilot SDK in VS Code, #2482 coordinator) - Correction to the 13:59
+  entry, whose O4 con and semver risk treated removing the `test-helpers` `http` and `udp`
+  modules as a semver-major change. The published `torrust-tracker-test-helpers` 3.0.0 (tag
+  `v3.0.0` and the crates.io `.crate`) exports only `configuration` and `random`; `logging`,
+  `http` and `udp` are unreleased. The O4 weakness, row 2, the #2583 related-work row, the
+  Semver risk and the inventory now leave the bump to #2583's comparison with the published API
+  (PR #2614 review finding F2).
 
 ## Acceptance Criteria
 
@@ -433,8 +440,10 @@ Append one line per meaningful update.
   feature is off, and a plain `cargo test -p <package>` still passes. Mitigation: the rule in "How
   we work in this EPIC" and the test-count check in the completion policy.
 - **Semver.** Removing a public module, gating it behind a feature or moving it to another crate
-  breaks `test-helpers`, which is published as 3.0.0; #2583 decides and publishes its bump. The
-  unpublished crates owe nothing, because their first publish (#2583) starts their history.
+  breaks a consumer only if the item is in a published release. The published `test-helpers`
+  3.0.0 exports only `configuration` and `random`; `logging`, `http` and `udp` are unreleased.
+  #2583 decides every bump by comparing the final API with the published one. The unpublished
+  crates owe nothing, because their first publish (#2583) starts their history.
 - A sub-EPIC adds one level of tracking; the Subissues table here and the single row in #1669
   keep it to one place each.
 
