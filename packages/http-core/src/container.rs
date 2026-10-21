@@ -138,7 +138,6 @@ impl HttpTrackerCoreServices {
 
 #[cfg(test)]
 mod tests {
-    use std::env;
     use std::net::{IpAddr, SocketAddr};
     use std::sync::Arc;
 
@@ -462,7 +461,7 @@ mod tests {
         }
 
         #[tokio::test]
-        async fn it_should_not_share_the_event_bus_or_the_statistics_repository_between_two_sets_of_services() {
+        async fn it_should_not_share_the_event_bus_between_two_sets_of_services() {
             // Arrange
             let tracker_core = TrackerCore::new(&Core::default());
             let first = HttpTrackerCoreServices::initialize_from(&tracker_core.container);
@@ -482,6 +481,18 @@ mod tests {
 
             // Assert
             assert_eq!(second_receiver.try_recv(), Err(TryRecvError::Empty));
+        }
+
+        #[test]
+        fn it_should_not_share_the_statistics_repository_between_two_sets_of_services() {
+            // Arrange
+            let tracker_core = TrackerCore::new(&Core::default());
+
+            // Act
+            let first = HttpTrackerCoreServices::initialize_from(&tracker_core.container);
+            let second = HttpTrackerCoreServices::initialize_from(&tracker_core.container);
+
+            // Assert
             assert!(!Arc::ptr_eq(&first.stats_repository, &second.stats_repository));
         }
 
@@ -571,16 +582,19 @@ mod tests {
         #[rstest]
         #[case::behind_a_reverse_proxy(
             configuration::ephemeral_with_reverse_proxy(),
-            ResolvedIp::FromXForwardedFor(ip("203.0.113.195"))
+            ResolvedIp::FromXForwardedFor(ip("203.0.113.195")),
+            ip("203.0.113.195")
         )]
         #[case::not_behind_a_reverse_proxy(
             configuration::ephemeral_without_reverse_proxy(),
-            ResolvedIp::FromSocketAddr(ip("192.0.2.10"))
+            ResolvedIp::FromSocketAddr(ip("192.0.2.10")),
+            ip("192.0.2.10")
         )]
         #[tokio::test]
         async fn it_should_resolve_the_client_of_an_announce_by_the_reverse_proxy_policy_of_the_http_tracker(
             #[case] configuration: Configuration,
             #[case] expected_client: ResolvedIp,
+            #[case] expected_peer_ip: IpAddr,
         ) {
             // Arrange
             let now = freeze_the_clock();
@@ -599,12 +613,9 @@ mod tests {
 
             // Assert
             assert!(result.is_ok(), "the announce should succeed: {result:?}");
-            let resolved_ip = match expected_client {
-                ResolvedIp::FromXForwardedFor(client_ip) | ResolvedIp::FromSocketAddr(client_ip) => client_ip,
-            };
             let expected_event = expected_announce_event(
                 expected_connection(expected_client, None),
-                expected_announcement(resolved_ip, now),
+                expected_announcement(expected_peer_ip, now),
             );
             assert_eq!(fixture.sender.events(), vec![expected_event]);
         }
@@ -761,10 +772,29 @@ mod tests {
         }
 
         #[tokio::test]
-        async fn it_should_authorize_announces_with_the_whitelist_of_the_tracker_core() {
+        async fn it_should_reject_an_announce_of_a_torrent_missing_from_the_whitelist_of_the_tracker_core() {
             // Arrange
             let fixture = Fixture::new(&configuration::ephemeral_listed());
-            let unlisted = fixture.announce(ip("192.0.2.10"), None).await;
+
+            // Act
+            let result = fixture.announce(ip("192.0.2.10"), None).await;
+
+            // Assert
+            assert!(
+                matches!(
+                    result,
+                    Err(HttpAnnounceError::TrackerCoreError {
+                        source: TrackerCoreError::WhitelistError { .. }
+                    })
+                ),
+                "unexpected result: {result:?}"
+            );
+        }
+
+        #[tokio::test]
+        async fn it_should_accept_an_announce_of_a_torrent_added_to_the_whitelist_of_the_tracker_core() {
+            // Arrange
+            let fixture = Fixture::new(&configuration::ephemeral_listed());
             fixture
                 .tracker_core
                 .container
@@ -773,22 +803,10 @@ mod tests {
                 .await;
 
             // Act
-            let listed = fixture.announce(ip("192.0.2.10"), None).await;
+            let result = fixture.announce(ip("192.0.2.10"), None).await;
 
             // Assert
-            assert!(
-                matches!(
-                    unlisted,
-                    Err(HttpAnnounceError::TrackerCoreError {
-                        source: TrackerCoreError::WhitelistError { .. }
-                    })
-                ),
-                "unexpected result for the unlisted torrent: {unlisted:?}"
-            );
-            assert!(
-                listed.is_ok(),
-                "the announce of the listed torrent should succeed: {listed:?}"
-            );
+            assert!(result.is_ok(), "the announce should succeed: {result:?}");
         }
 
         #[tokio::test]
@@ -887,7 +905,22 @@ mod tests {
         use super::*;
 
         #[tokio::test]
-        async fn it_should_compose_a_working_container_over_the_configured_database() {
+        async fn it_should_compose_the_tracker_core_over_the_configured_database_with_the_given_core_configuration() {
+            // Arrange
+            let configuration = configuration::ephemeral_public();
+            let core_config = Arc::new(configuration.core.clone());
+            let http_tracker_config = Arc::new(first_http_tracker_of(&configuration));
+
+            // Act
+            let container = HttpTrackerCoreContainer::initialize(&core_config, &http_tracker_config, instance_id()).await;
+
+            // Assert
+            assert!(container.tracker_core_container.persistence.is_some());
+            assert!(Arc::ptr_eq(&container.tracker_core_container.core_config, &core_config));
+        }
+
+        #[tokio::test]
+        async fn it_should_publish_the_events_of_its_instance_with_the_public_url_to_its_own_event_bus() {
             // Arrange
             let now = freeze_the_clock();
             let public_url = "https://tracker.example.com/";
@@ -895,10 +928,10 @@ mod tests {
             let configuration = with_public_url(configuration::ephemeral_public(), public_url);
             let core_config = Arc::new(configuration.core.clone());
             let http_tracker_config = Arc::new(first_http_tracker_of(&configuration));
-
-            // Act
             let container = HttpTrackerCoreContainer::initialize(&core_config, &http_tracker_config, instance_id()).await;
             let mut receiver = container.event_bus.receiver();
+
+            // Act
             container
                 .announce_service
                 .handle_announce(
@@ -911,14 +944,6 @@ mod tests {
                 .unwrap();
 
             // Assert
-            assert!(container.tracker_core_container.persistence.is_some());
-            assert!(Arc::ptr_eq(&container.tracker_core_container.core_config, &core_config));
-            assert!(
-                container
-                    .tracker_core_container
-                    .in_memory_torrent_repository
-                    .contains(&sample_info_hash())
-            );
             let expected_event = expected_announce_event(
                 expected_connection(ResolvedIp::FromSocketAddr(connection_ip), Some(public_url)),
                 expected_announcement(connection_ip, now),
@@ -929,11 +954,10 @@ mod tests {
         #[tokio::test]
         #[should_panic(expected = "HTTP tracker core initialization requires a configured database or SQLite fallback")]
         async fn it_should_panic_when_the_configured_database_cannot_be_initialized() {
-            // Arrange
+            // Arrange: the parent of the database file is a random name that does not exist.
             let mut configuration = configuration::ephemeral_public();
             configuration.core.database = Some(Database::Sqlite3 {
-                path: env::temp_dir()
-                    .join("torrust-1349-missing-directory")
+                path: configuration::ephemeral_sqlite_database()
                     .join("tracker.sqlite3")
                     .to_string_lossy()
                     .into_owned(),

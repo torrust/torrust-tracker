@@ -183,3 +183,50 @@ semantic-links:
     asserting the data. F3 is recorded in the plan as an equivalent mutant and needs no test. The scrape
     file now has 22 cases and the package 93 unit tests: lines 1,949 / 2,102 (92.72%), regions 2,566 /
     2,743 (93.55%), functions 233 / 249 (93.57%).
+
+### 2026-10-21 - Task Reviewer (slice S4)
+
+- Time: the report returned on 2026-10-21 after the `container.rs` commit (07:01 UTC) and before the fix
+  commit; the exact time was not recorded.
+- Invocation scope: Slice S4 (ledger rows 4 and 5: `event.rs` and `container.rs`) of #1349 on branch
+  `1349-1347-add-tests-http-core-events-container`, `fefefdd9e..HEAD`: the commits `docs(issues): [#1349]
+  record the S3 merge and start slice S4`, `test(http-core): [#1349] pin the event label contract and
+  connection context` and `test(http-core): [#1349] pin how the container composes the HTTP services`.
+- Inputs: `ISSUE.md`, `coverage-evidence.md`, both file plans, the plan guidance, the S1-S3 reports, the
+  EPIC, the `write-unit-test` skill and the two changed Rust files.
+- Evidence: production code before `#[cfg(test)]` in `event.rs` is byte-identical to `fefefdd9e`, and
+  `container.rs` only gains the appended test module; no other file under `packages/` or `src/` changed;
+  135 unit tests, 1 doc test and 2 other tests passed, 12 more parallel runs and one with
+  `--test-threads=1`; nightly `rustfmt`, `clippy -D warnings`, `cargo machete`, `git diff --check` and
+  `linter all` passed; a clean `cargo llvm-cov` run and a worktree at `fefefdd9e` reproduced every
+  documented figure; L2, L4, M3 and M6 failed only the tests named for them, the planned survivor P7
+  survived as documented, and ten new mutants were tried (eight killed); no test pins behavior that looks
+  like a bug; the ledger, slice table, plan status, progress logs and signatures agree.
+- Findings:
+  - LOW (F1): two new mutants survived in the `event.rs` label table: the `server_binding_protocol` label
+    hard-coded to `http` (no case used HTTPS) and the `server_binding_address_ip_type` label hard-coded to
+    `plain` (no case bound the server to an IPv4-mapped IPv6 address). Related INFO: every case used port
+    7070.
+  - LOW (F2): logic in two tests: a `match` over `ResolvedIp` computed the expected address
+    (`it_should_expose_the_client_address_and_port` and the announce reverse-proxy table).
+  - LOW (F3): tests with more than one reason to fail or a split Act: the bus-and-repository
+    independence test, the whitelist test (its first announce ran in Arrange) and the `initialize` test
+    (four concerns). The fresh-repository test compares with `Repository::new()`, which is acceptable
+    because there is no literal for empty metrics.
+  - LOW (F4): the `initialize` panic test used a fixed missing directory under the temp directory, which
+    would stop panicking and could create a file if that directory ever existed.
+  - INFO: the commit `docs(issues): [#1349] record the S3 merge and start slice S4` still states the stale
+    claim that `http-core` did not change after S3 (corrected in the progress log and the coverage
+    evidence; history is not rewritten); the EPIC row for S3 shows the S3-head figure, not the S4
+    baseline; the event plan said "about 31 lines" for the removed helper where 18 counted lines were
+    uncovered; the event plan's measurement time (20:00 UTC) cannot be verified.
+- Verdict: REVIEW PASSED, with no finding required before the pull request.
+- Follow-up actions:
+  - Handling (2026-10-21, commit `test(http-core): [#1349] address the S4 independent review`): F1 is
+    fixed with two label cases (an HTTPS server on port 443 and a server bound to `::ffff:127.0.0.1`),
+    which kill the protocol, address-type and port mutants; F2 is fixed with an explicit `expected_ip`
+    case parameter; F3 is fixed by splitting the three tests (the container now has 23 tests); F4 is fixed
+    by taking the missing directory from a random name. The INFO items are corrected in the plans or the
+    EPIC, except the commit message, which stays. After the fixes: 140 unit tests; `event.rs` 135 / 135
+    lines; `container.rs` 598 / 600 lines with all 73 production lines covered; package lines 2,616 / 2,672
+    (97.90%), regions 3,397 / 3,457 (98.26%), functions 316 / 322 (98.14%).

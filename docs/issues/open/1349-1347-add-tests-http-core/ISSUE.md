@@ -9,7 +9,7 @@ github-issue: 1349
 spec-path: docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md
 branch: "1349-1347-add-tests-http-core-events-container"
 related-pr: null
-last-updated-utc: "2026-10-21 07:00"
+last-updated-utc: "2026-10-21 07:25"
 semantic-links:
   skill-links:
     - create-issue
@@ -454,7 +454,7 @@ lines are the S2 baseline measurement (see [Baseline Coverage](#baseline-coverag
 | 2 | `services/error_mapping.rs` | 2 | S2 | 0 / 18 (0.00%) | 0 | Test candidate | DONE | [services-error-mapping-tests.md](test-refactor-plans/services-error-mapping-tests.md) (done; 26 / 29 lines after, wildcard arm untestable) |
 | 3 | `services/scrape.rs` | 3 | S3 | 507 / 540 (93.89%) | 8 | Test candidate (error paths) | DONE | [services-scrape-tests.md](test-refactor-plans/services-scrape-tests.md) (done; 533 / 537 lines after) |
 | 4 | `event.rs` | 4 | S4 | 174 / 187 (93.05%) | 7 | Probably small change | DONE | [event-tests.md](test-refactor-plans/event-tests.md) (done; 135 / 135 lines after) |
-| 5 | `container.rs` | 5 | S4 | 0 / 73 (0.00%) | 0 | Test candidate | DONE | [container-tests.md](test-refactor-plans/container-tests.md) (done; 20 tests, all 73 production lines covered) |
+| 5 | `container.rs` | 5 | S4 | 0 / 73 (0.00%) | 0 | Test candidate | DONE | [container-tests.md](test-refactor-plans/container-tests.md) (done; 23 tests, all 73 production lines covered) |
 | 6 | `statistics/event/handler.rs` | 6 | S5 | 158 / 161 (98.14%) | 5 | Probably no change | PENDING | - |
 | 7 | `statistics/event/listener.rs` | 6 | S5 | 133 / 148 (89.86%) | 4 | Lifecycle (#1488) | PENDING | - |
 | 8 | `statistics/metrics.rs` | 6 | S5 | 48 / 57 (84.21%) | 1 | Test candidate | PENDING | - |
@@ -677,6 +677,14 @@ lines are the S2 baseline measurement (see [Baseline Coverage](#baseline-coverag
   covered; the package has 135 unit tests and 97.89% of lines. Mutations M1-M7 and eight extra probes were
   killed; one survived (the swarm registry's usage-statistics flag in `initialize`, not observable from this
   package) and is recorded in the plan with its owner.
+- 2026-10-21 07:25 UTC - GitHub Copilot - The independent Task Reviewer passed S4 with four `LOW` findings and
+  no required change: two label-table mutants survived in `event.rs` (the protocol and the address-type
+  labels hard-coded, plus an unvaried port), one expected value was computed with a `match`, three
+  `container.rs` tests had several reasons to fail or a split Act, and the `initialize` panic test used a
+  fixed missing directory. All are fixed in the review-round commit (`event.rs` has 29 cases, `container.rs`
+  23 tests) and the report is in `agent-review-reports.md`. The package has 140 unit tests: lines 2,616 /
+  2,672 (97.90%), regions 3,397 / 3,457 (98.26%), functions 316 / 322 (98.14%). The slice awaits its
+  pre-push checks and pull request.
 
 ## Acceptance Criteria
 

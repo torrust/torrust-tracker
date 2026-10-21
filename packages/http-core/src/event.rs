@@ -342,6 +342,34 @@ mod tests {
             ("public_url", "https://tracker.example.test/announce"),
         ]
     )]
+    #[case::https_server_on_another_port(
+        ConnectionContext::new(
+            instance_id(),
+            RemoteClientAddr::new(ResolvedIp::FromSocketAddr(ip("126.0.0.1")), Some(CLIENT_PORT)),
+            ServiceBinding::new(Protocol::HTTPS, SocketAddr::new(ip("0.0.0.0"), 443)).unwrap(),
+        ),
+        &[
+            ("server_binding_protocol", "https"),
+            ("server_binding_ip", "0.0.0.0"),
+            ("server_binding_address_ip_type", "plain"),
+            ("server_binding_address_ip_family", "inet"),
+            ("server_binding_port", "443"),
+            ("client_address_ip_family", "inet"),
+            ("client_address_ip_type", "plain"),
+        ]
+    )]
+    #[case::server_bound_to_an_ipv4_mapped_ipv6_address(
+        connection_between("126.0.0.1", "::ffff:127.0.0.1"),
+        &[
+            ("server_binding_protocol", "http"),
+            ("server_binding_ip", "::ffff:127.0.0.1"),
+            ("server_binding_address_ip_type", "v4_mapped_v6"),
+            ("server_binding_address_ip_family", "inet6"),
+            ("server_binding_port", "7070"),
+            ("client_address_ip_family", "inet"),
+            ("client_address_ip_type", "plain"),
+        ]
+    )]
     fn it_should_project_a_connection_context_to_exactly_these_metric_labels(
         #[case] connection: ConnectionContext,
         #[case] expected_labels: &[(&str, &str)],
@@ -385,13 +413,14 @@ mod tests {
     }
 
     #[rstest]
-    #[case::from_the_socket_address(ResolvedIp::FromSocketAddr(ip("126.0.0.1")), Some(CLIENT_PORT))]
-    #[case::from_x_forwarded_for_without_a_port(ResolvedIp::FromXForwardedFor(ip("203.0.113.195")), None)]
-    fn it_should_expose_the_client_address_and_port(#[case] resolved_ip: ResolvedIp, #[case] port: Option<u16>) {
+    #[case::from_the_socket_address(ResolvedIp::FromSocketAddr(ip("126.0.0.1")), Some(CLIENT_PORT), ip("126.0.0.1"))]
+    #[case::from_x_forwarded_for_without_a_port(ResolvedIp::FromXForwardedFor(ip("203.0.113.195")), None, ip("203.0.113.195"))]
+    fn it_should_expose_the_client_address_and_port(
+        #[case] resolved_ip: ResolvedIp,
+        #[case] port: Option<u16>,
+        #[case] expected_ip: IpAddr,
+    ) {
         // Arrange
-        let expected_ip = match resolved_ip {
-            ResolvedIp::FromSocketAddr(ip) | ResolvedIp::FromXForwardedFor(ip) => ip,
-        };
         let connection = ConnectionContext::new(
             instance_id(),
             RemoteClientAddr::new(resolved_ip, port),

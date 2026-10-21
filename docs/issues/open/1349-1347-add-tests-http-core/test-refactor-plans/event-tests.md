@@ -94,8 +94,9 @@ the maintainer's completed-file review before its one signed commit.
 
 ## Prose-First AAA Review
 
-The 7 old tests became 27 cases in 10 test functions inside a private `mod tests`. Each reads as: a fixed
-instance id, port and binding protocol (the in-file builders `connection_from` and `connection_between`),
+The 7 old tests became 29 cases in 10 test functions inside a private `mod tests` (27 cases when the file was
+first completed; the independent review added two label cases, see "Independent Review Round"). Each reads as:
+a fixed instance id, port and binding protocol (the in-file builders `connection_from` and `connection_between`),
 one varying address or part, then one whole-value assertion.
 
 | Test | Behavior it states | Cases | Expected value is |
@@ -103,10 +104,10 @@ one varying address or part, then one whole-value assertion.
 | `it_should_derive_the_client_ip_family_from_the_client_address_not_the_server_binding` | The family label follows the client, never the IPv4 server binding. | direct IPv4, direct IPv6, IPv4-mapped IPv6, `::1` | A literal `IpFamily`. |
 | `it_should_derive_the_client_ip_family_from_the_forwarded_address` | An `X-Forwarded-For` address gives the same family. | 1 | A literal `IpFamily`. |
 | `it_should_derive_the_client_ip_type_from_the_client_address` | Only an IPv4-mapped IPv6 address is `V4MappedV6`; native, loopback and IPv4-compatible IPv6 are `Plain`. | 5 | A literal `IpType`. |
-| `it_should_project_a_connection_context_to_exactly_these_metric_labels` | The full label contract: eight labels, `public_url` only when configured. | IPv4, IPv6, IPv4-mapped client of an IPv4 server, configured public URL | A whole literal label set built from strings, not from the production label names. |
+| `it_should_project_a_connection_context_to_exactly_these_metric_labels` | The full label contract: eight labels, `public_url` only when configured. | IPv4, IPv6, IPv4-mapped client of an IPv4 server, configured public URL, HTTPS server on port 443, server bound to an IPv4-mapped IPv6 address | A whole literal label set built from strings, not from the production label names. |
 | `it_should_expose_the_public_url_only_when_it_is_configured` | `public_url()` returns what was set. | configured, absent | The configured string or `None`. |
 | `it_should_expose_the_configuration_instance_id_it_was_created_with` | The accessor returns the id given to `new`. | 1 | A literal id that differs from the helper default. |
-| `it_should_expose_the_client_address_and_port` | `client_ip_addr`, `client_port` and `ClientConnectionContext::port` follow the resolved address. | socket address with a port, `X-Forwarded-For` without one | Literal address and port. |
+| `it_should_expose_the_client_address_and_port` | `client_ip_addr`, `client_port` and `ClientConnectionContext::port` follow the resolved address. | socket address with a port, `X-Forwarded-For` without one | Literal address and port, given as case parameters. |
 | `it_should_expose_the_server_socket_address` | `server_socket_addr` is the binding's address. | 1 | A literal `SocketAddr`. |
 | `it_should_not_consider_two_connection_contexts_equal_when_any_part_differs` | Equality covers the instance id, client address, client port, resolution source, server address and public URL. | 6 | `assert_ne` against the base context. |
 | `it_should_consider_a_cloned_event_equal_to_the_original` | `Clone` and `PartialEq` agree on a whole event. | 1 | The original event. |
@@ -126,9 +127,10 @@ brought in #2414 (listener tests), so the package baseline is not the S3 figure.
 | Package `http-core` | 2,040 / 2,197 (92.85%) | 2,018 / 2,145 (94.08%) | 2,664 / 2,845 (93.64%) | 2,589 / 2,735 (94.66%) | 244 / 260 (93.85%) | 251 / 262 (95.80%) |
 
 Unit tests: 95 before, 115 after. The package line total falls (2,197 to 2,145) because the dead
-`announce_events_match` helper (about 31 lines, uncovered) is removed with its test module, while the four
-unused accessors (lines 80-92 and 125-127) are now covered. Production code before the first `#[cfg(test)]`
-is byte-identical to `HEAD`.
+`announce_events_match` helper (31 lines in the file, 18 of them counted and uncovered) is removed with its
+test module, while the four unused accessors (lines 80-92 and 125-127) are now covered. Production code
+before the first `#[cfg(test)]` is byte-identical to `HEAD`. The figures are those of the file's own commit;
+the review round below changes the case and test counts but not the coverage of `event.rs`.
 
 Named mutations (each reverted; the production diff was checked empty afterwards):
 
@@ -153,6 +155,21 @@ Survivor probes beyond the plan (all killed):
 The probe numbering has no P4: the first form of the `with_public_url` probe (P5) did not compile under the
 workspace lints, so it was redone in a compiling form before it counted.
 
+### Independent Review Round
+
+The independent Task Reviewer (see `agent-review-reports.md`) found two surviving mutants in the label table
+(finding F1) and one test with logic in it (F2). Both are fixed:
+
+| ID | Temporary change | Result before the fix | Result after the fix |
+| --- | --- | --- | --- |
+| L5 | the `server_binding_protocol` label hard-coded to `http` | survived | killed by the HTTPS case |
+| L6 | the `server_binding_address_ip_type` label hard-coded to `plain` | survived | killed by the case with a server bound to `::ffff:127.0.0.1` |
+| L7 | the `server_binding_port` label hard-coded to `7070` | survived (the reviewer's INFO) | killed by the HTTPS case on port 443 |
+
+`it_should_expose_the_client_address_and_port` no longer computes its expected address with a `match`: it is a
+case parameter. The label table now has 6 cases and the file 29 cases; the package has 117 unit tests after
+this round (140 with `container.rs`).
+
 ## Approval
 
 Approved by Jose Celano on 2026-10-20 (19:55 UTC): R1, R2a-R2c, R3 `none` and mutations L1-L4. The four accessors with no repository caller are pinned as public API (R2c), not handed off for removal.
@@ -167,3 +184,8 @@ Approved by Jose Celano on 2026-10-20 (19:55 UTC): R1, R2a-R2c, R3 `none` and mu
   mutations L1-L4 and six extra probes killed, `event.rs` at 135 / 135 lines. The AAA review and the results
   are recorded above. The baseline was re-measured because #2414 changed the listener after S3.
 - 2026-10-20 20:41 UTC - Jose Celano - Approved R1 and the completed file. The plan is `done`.
+- 2026-10-21 07:25 UTC - GitHub Copilot - The independent review found two surviving label mutants (the
+  protocol and address-type labels hard-coded) and one test with a `match` that computes the expected value.
+  The label table gained an HTTPS case on port 443 and a case with a server bound to `::ffff:127.0.0.1`, and
+  the client-address test takes its expected address as a case parameter. The file has 29 cases; see
+  "Independent Review Round" above.

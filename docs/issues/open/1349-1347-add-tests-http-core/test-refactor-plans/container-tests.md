@@ -109,7 +109,8 @@ completed-file review before its one signed commit.
 
 ## Prose-First AAA Review
 
-20 tests (14 cases in 12 functions for `initialize_from_services`) in four nested modules, one per entry point.
+23 tests (15 cases in 13 functions for `initialize_from_services`) in four nested modules, one per entry point;
+20 tests when the file was first completed, before the review round below split three of them.
 Each builds the tracker-core collaborators by hand (`TrackerCore`) and, except the `initialize` tests, a
 `Fixture` whose services publish to a `RecordingSender`. Every test reads as one arrangement, one call
 through the container, and whole-value assertions. No test calls a tracker-core production factory; the tests
@@ -118,7 +119,7 @@ of `initialize` call the function under test.
 | Test | Behavior it states | Cases | Expected value is |
 | --- | --- | --- | --- |
 | `the_http_tracker_core_services::it_should_deliver_the_events_of_the_services_sender_to_the_receivers_of_the_services_event_bus` | The services' sender and bus are one channel, and publication is enabled (#2039). | 1 | The event that was sent, read with `try_recv`. |
-| `...::it_should_not_share_the_event_bus_or_the_statistics_repository_between_two_sets_of_services` | Each call creates its own bus and repository. | 1 | `TryRecvError::Empty` on the other bus; distinct repositories. |
+| `...::it_should_not_share_the_event_bus_between_two_sets_of_services` and `...::it_should_not_share_the_statistics_repository_between_two_sets_of_services` | Each call creates its own bus and its own repository. | 1 each | `TryRecvError::Empty` on the other bus; distinct repositories. |
 | `...::it_should_start_with_a_fresh_statistics_repository` | The repository holds no samples. | 1 | The metrics of a new repository. |
 | `the_container_composed_from_services::it_should_expose_the_collaborators_it_was_composed_from` | The container publishes the exact collaborators it was given. | 1 | `Arc::ptr_eq` on five fields. |
 | `...::it_should_publish_the_announce_event_of_its_instance_with_the_public_url_to_the_services_sender` and `...scrape_event...` | Instance id, public URL and sender reach both services. | 1 each | A whole event with instance id 7 and a configured public URL. |
@@ -126,10 +127,11 @@ of `initialize` call the function under test.
 | `...::it_should_honor_an_ip_in_the_query_string_when_the_http_tracker_is_configured_to_use_it` and `...::it_should_reject_an_ip_in_the_query_string_when_...not_configured_to_use_it` | `use_ip_from_query_string` reaches the announce service. | 1 each | A whole event with the query-string peer address, or `PeerIpOverrideDisabled` and no event. |
 | `...::it_should_reject_an_announce_without_a_key_when_the_tracker_core_is_private` and `...::it_should_zero_a_scrape_without_a_key_when_the_tracker_core_is_private` | The container's core config makes both services private. | 1 each | An authentication error with no peer stored, or zeroed swarm metadata for a swarm that has a seeder. |
 | `...::it_should_authenticate_both_services_with_the_keys_of_the_tracker_core` | Both services use the container's authentication service. | 1 | An accepted announce and one seeder in the scrape. |
-| `...::it_should_authorize_announces_with_the_whitelist_of_the_tracker_core` | The announce service uses the container's whitelist. | 1 | A whitelist error before the torrent is added to the container's whitelist, success after. |
+| `...::it_should_reject_an_announce_of_a_torrent_missing_from_the_whitelist_of_the_tracker_core` and `...::it_should_accept_an_announce_of_a_torrent_added_to_the_whitelist_of_the_tracker_core` | The announce service uses the container's whitelist. | 1 each | A whitelist error for an unlisted torrent; success after the torrent is added to the container's whitelist. |
 | `...::it_should_scrape_the_swarm_that_the_announce_service_registered_in_the_tracker_core` | Both services share the container's torrent repository. | 1 | One seeder; the torrent is in the repository. |
 | `the_container_composed_from_tracker_core::it_should_publish_the_events_of_both_services_to_its_own_event_bus` | `initialize_from_tracker_core` exposes the bus its services publish to. | 1 | The announce event, the scrape event, then an empty receiver. |
-| `the_container_initialized_from_the_core_configuration::it_should_compose_a_working_container_over_the_configured_database` | `initialize` composes persistence, forwards the core config, HTTP config and instance id. | 1 | A whole announce event with instance id 7 and the public URL; persistence present; same core config `Arc`. |
+| `the_container_initialized_from_the_core_configuration::it_should_compose_the_tracker_core_over_the_configured_database_with_the_given_core_configuration` | `initialize` composes persistence and passes the core configuration on. | 1 | Persistence present; the same core config `Arc`. |
+| `...::it_should_publish_the_events_of_its_instance_with_the_public_url_to_its_own_event_bus` | `initialize` forwards the HTTP config and the instance id to the services. | 1 | A whole announce event with instance id 7 and the public URL, read from the container's bus. |
 | `...::it_should_panic_when_the_configured_database_cannot_be_initialized` | The documented `# Panics` contract. | 1 | The message of the `expect`. |
 
 Reading the review against the code: the `rstest` tables vary only the configuration; the expected events are
@@ -193,6 +195,37 @@ Not tested, by decision: the `unwrap_or_default()` fallback to `./storage/tracke
 `initialize` (a relative path would create a database under the working directory), and the unused
 `_tracker_core_container` parameter of `HttpTrackerCoreServices::initialize_from`.
 
+### Independent Review Round
+
+The independent Task Reviewer (see `agent-review-reports.md`) confirmed every figure above and the P7
+survivor, and raised three test-design findings in this file, all fixed:
+
+- F2 (logic in a test): the announce reverse-proxy table no longer computes its expected peer address with a
+  `match`; it is a case parameter.
+- F3 (several reasons to fail, split Act): the bus-and-repository independence test is two tests, the
+  whitelist test is two (an unlisted torrent is rejected; a torrent added to the container's whitelist is
+  accepted, with the add in Arrange), and the `initialize` test is two (composition; forwarding of the HTTP
+  config and instance id). The fresh-repository test stays as it is: it compares with a new repository because
+  empty metrics have no literal.
+- F4 (fixed missing directory): the panic test now takes the missing parent directory from
+  `configuration::ephemeral_sqlite_database()`, a random name, instead of a fixed one.
+
+The splits were checked against the mutations that depend on them: P5 (the whitelist) is killed by the accept
+test and P1 (the HTTP config forwarded without its public URL) by the forwarding test. After the round the file
+has 23 tests and the package 140.
+
+Final measurement after the round (same commands, 2026-10-21 at about 07:20 UTC, with the production code still
+byte-identical to `fefefdd9e`):
+
+| Scope | Lines | Regions | Functions |
+| --- | --- | --- | --- |
+| `container.rs` | 598 / 600 (99.67%) | 808 / 811 (99.63%) | 65 / 65 (100.00%) |
+| Package `http-core` | 2,616 / 2,672 (97.90%) | 3,397 / 3,457 (98.26%) | 316 / 322 (98.14%) |
+
+The counted lines include the 527 counted lines of the test module (834 lines in the file). All 73 production
+lines are still covered; the uncovered regions are three `matches!` failure branches in the test module (their
+line numbers moved when the tests were split, so lines 717 and 780 above are no longer current).
+
 ## Approval
 
 Approved by Jose Celano on 2026-10-20 (20:49 UTC): C1-C6, R3 as the `initialize` integration test, mutations M1-M7, D1 (hand-built tracker-core container) and D2 (test `initialize`, including the `#[should_panic]` test).
@@ -208,3 +241,7 @@ Approved by Jose Celano on 2026-10-20 (20:49 UTC): C1-C6, R3 as the `initialize`
   at 582 / 584 lines with all 73 production lines covered. The AAA review and the results are recorded above.
 - 2026-10-21 07:00 UTC - Jose Celano - Approved the completed file (the reply was recorded at this time, after
   a pause in the session). The plan is `done`.
+- 2026-10-21 07:25 UTC - GitHub Copilot - The independent review found three test-design issues in this file
+  (a `match` in a test, tests with several reasons to fail, and a fixed missing directory) and no
+  production or coverage problem. All are fixed in the review-round commit; the file has 23 tests and 598 / 600
+  lines, and the Independent Review Round section above records the final figures.
