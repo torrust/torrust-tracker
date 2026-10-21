@@ -49,10 +49,10 @@ Scope should reflect the affected package or area (e.g., `tracker-core`, `udp-pr
 | `docs`     | Documentation changes                 | `docs(agents): add root AGENTS.md`                           |
 | `style`    | Code style changes (formatting, etc.) | `style: apply rustfmt to all source files`                   |
 | `refactor` | Code refactoring                      | `refactor(tracker-core): extract peer list to own module`    |
-| `test`     | Adding or updating tests              | `test(http-tracker-core): add announce response tests`       |
+| `test`     | Adding or updating tests              | `test(http-core): add announce response tests`               |
 | `chore`    | Maintenance tasks                     | `chore: update dependencies`                                 |
 | `ci`       | CI/CD related changes                 | `ci: add workflow for container publishing`                  |
-| `perf`     | Performance improvements              | `perf(torrent-repository): switch to dashmap`                |
+| `perf`     | Performance improvements              | `perf(swarm-coordination-registry): switch to dashmap`       |
 
 ## GPG Commit Signing (MANDATORY)
 

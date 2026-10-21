@@ -14,17 +14,23 @@ depend on packages in the same layer or a lower one.
 ┌────────────────────────────────────────────────────────────────┐
 │  Servers (delivery layer)                                      │
 │  axum-http-server  axum-rest-api-server                        │
-│  axum-health-check-api-server  udp-server                      │
+│  axum-health-check-api-server  axum-server  udp-server         │
 ├────────────────────────────────────────────────────────────────┤
 │  Runtime Adapter                                               │
 │  rest-api-runtime-adapter                                      │
+├────────────────────────────────────────────────────────────────┤
+│  Application                                                   │
+│  rest-api-application                                          │
 ├────────────────────────────────────────────────────────────────┤
 │  Core (domain layer)                                           │
 │  http-core  udp-core  tracker-core                             │
 │  swarm-coordination-registry                                   │
 ├────────────────────────────────────────────────────────────────┤
+│  Clients                                                       │
+│  tracker-client  rest-api-client                               │
+├────────────────────────────────────────────────────────────────┤
 │  Protocols                                                     │
-│  http-protocol  udp-protocol                                   │
+│  http-protocol  udp-protocol  rest-api-protocol                │
 ├────────────────────────────────────────────────────────────────┤
 │  Domain / Shared                                               │
 │  configuration  primitives  events                             │
@@ -36,25 +42,32 @@ depend on packages in the same layer or a lower one.
 └────────────────────────────────────────────────────────────────┘
 ```
 
+The benchmarks and developer tools (`e2e-tools`, `persistence-benchmark`,
+`torrent-repository-benchmarking`) are not part of these layers; they are never dependencies of
+another package.
+
 **Key architectural rule**: Servers contain only network I/O logic. All business rules live in
 `*-core` packages. Protocol parsing is isolated in `*-protocol` packages.
 
 See [docs/packages.md](../docs/packages.md) for a full diagram.
 
-## Package Catalog
+## Packages by Layer
+
+The canonical list of packages, with crate names, layers and publish status, is the
+[Package Catalog in the root `AGENTS.md`](../AGENTS.md#-package-catalog).
+[docs/packages.md](../docs/packages.md#package-catalog) groups the packages by architectural role.
+The notes below are the per-layer rules for working in this directory.
 
 ### Servers (`axum-*`, `udp-server`)
 
 Delivery layer — accept network connections, dispatch to core handlers, return responses.
-These packages must not contain business logic.
+These packages must not contain business logic. Each has its entry point in `src/lib.rs`.
 
-| Package                        | Entry point  | Protocol    |
-| ------------------------------ | ------------ | ----------- |
-| `axum-http-server`             | `src/lib.rs` | HTTP BEP 3  |
-| `axum-rest-api-server`         | `src/lib.rs` | REST (JSON) |
-| `axum-health-check-api-server` | `src/lib.rs` | HTTP        |
-| `axum-server`                  | `src/lib.rs` | Axum base   |
-| `udp-server`                   | `src/lib.rs` | UDP BEP 15  |
+### REST API layers (`rest-api-*`)
+
+Contract-first layers: `rest-api-protocol` (wire contract), `rest-api-application` (ports and use
+cases) and `rest-api-runtime-adapter` (the only layer that depends on tracker internals). See the
+[REST API architecture](../docs/packages.md#rest-api-contract-first-architecture).
 
 ### Core (`*-core`)
 
@@ -62,70 +75,51 @@ Domain layer — business rules, request validation, response building. No Axum 
 imports. Each core package exposes a `container` module that wires up its dependencies via
 dependency injection.
 
-| Package                       | Purpose                                                                                                                                    |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `tracker-core`                | Central peer management: announce/scrape handlers, auth, whitelist, database abstraction (SQLite/MySQL drivers in `src/databases/driver/`) |
-| `http-core`                   | HTTP-specific validation and response formatting                                                                                           |
-| `udp-core`                    | UDP connection cookies, crypto, banning logic                                                                                              |
-| `rest-api-runtime-adapter`    | REST API runtime adapter and container wiring (Runtime Adapter layer)                                                                      |
-| `swarm-coordination-registry` | Registry of torrents and their peer swarms                                                                                                 |
+- `tracker-core`: central peer management: announce/scrape handlers, auth, whitelist, and the
+  database abstraction (SQLite, MySQL and PostgreSQL drivers in `src/databases/driver/`).
+- `http-core`: HTTP-specific validation and response formatting.
+- `udp-core`: UDP connection cookies, crypto, banning logic.
+- `swarm-coordination-registry`: registry of torrents and their peer swarms.
 
 ### Protocols (`*-protocol`)
 
-Strict BEP implementations — parse and serialize wire formats only. No tracker logic.
-
-| Package         | BEP    | Handles                                                        |
-| --------------- | ------ | -------------------------------------------------------------- |
-| `http-protocol` | BEP 3  | URL parameter parsing, bencoded responses, compact peer format |
-| `udp-protocol`  | BEP 15 | Message framing, connection IDs, transaction IDs               |
+Parse and serialize wire formats only. No tracker logic. `http-protocol` (BEP 3/23) and
+`udp-protocol` (BEP 15) are strict BEP implementations; `rest-api-protocol` is the REST API
+contract.
 
 ### Domain / Shared
 
-| Package         | Purpose                                                                                                                                                              |
-| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `configuration` | Config file parsing (`share/default/config/`) and env var loading (`TORRUST_TRACKER_CONFIG_TOML`, `TORRUST_TRACKER_CONFIG_TOML_PATH`); versioned under `src/v2_0_0/` |
-| `primitives`    | Core domain types: `InfoHash`, `PeerId`, `Peer`, `SwarmMetadata`                                                                                                     |
-| `events`        | Async event bus (broadcaster / receiver / shutdown) used across packages                                                                                             |
-
-### Extracted (previously part of this workspace)
-
-| Package          | Standalone Repository                                                               | Crate Name               | Description                                                      |
-| ---------------- | ----------------------------------------------------------------------------------- | ------------------------ | ---------------------------------------------------------------- |
-| `clock`          | [torrust/torrust-clock](https://github.com/torrust/torrust-clock)                   | `torrust-clock`          | Deterministic clock abstraction                                  |
-| `located-error`  | [torrust/torrust-located-error](https://github.com/torrust/torrust-located-error)   | `torrust-located-error`  | Diagnostic errors with source locations                          |
-| `metrics`        | [torrust/torrust-metrics](https://github.com/torrust/torrust-metrics)               | `torrust-metrics`        | Prometheus-compatible metrics: counters, gauges, labels, samples |
-| `net-primitives` | [torrust/torrust-net-primitives](https://github.com/torrust/torrust-net-primitives) | `torrust-net-primitives` | Generic networking primitive types (ServiceBinding, Protocol)    |
-| `server-lib`     | [torrust/torrust-server-lib](https://github.com/torrust/torrust-server-lib)         | `torrust-server-lib`     | Shared server library utilities                                  |
-
-### Client Tools
-
-| Package                           | Purpose                                                    |
-| --------------------------------- | ---------------------------------------------------------- |
-| `test-helpers`                    | Mock servers, test data generators, shared test fixtures   |
-| `torrent-repository-benchmarking` | Criterion benchmarks for alternative torrent storage impls |
+- `configuration`: config file parsing (`share/default/config/`) and env var loading
+  (`TORRUST_TRACKER_CONFIG_TOML`, `TORRUST_TRACKER_CONFIG_TOML_PATH`); versioned under
+  `src/v2_0_0/`.
+- `primitives`: core domain types such as `PeerId`, `Peer` and `SwarmMetadata`.
+- `events`: async event bus (broadcaster / receiver / shutdown) used across packages.
 
 ## Naming Conventions
 
-| Prefix / Suffix | Responsibility                            | May depend on                 |
-| --------------- | ----------------------------------------- | ----------------------------- |
-| `axum-*`        | HTTP server components using Axum         | `*-core`, Axum framework      |
-| `*-server`      | Server implementations                    | Corresponding `*-core`        |
-| `*-core`        | Domain logic and business rules           | `*-protocol`, domain packages |
-| `*-protocol`    | BitTorrent protocol parsing/serialization | `primitives`                  |
-| `udp-*`         | UDP-specific implementations              | `tracker-core`                |
-| `http-*`        | HTTP-specific implementations             | `tracker-core`                |
+| Prefix / Suffix | Responsibility                      | May depend on                                                                    |
+| --------------- | ----------------------------------- | -------------------------------------------------------------------------------- |
+| `axum-*`        | HTTP server components using Axum   | `*-core`, Axum framework                                                         |
+| `*-server`      | Server implementations              | Corresponding `*-core`                                                           |
+| `*-core`        | Domain logic and business rules     | `*-protocol`, domain packages                                                    |
+| `*-protocol`    | Wire protocol parsing/serialization | `primitives`                                                                     |
+| `rest-api-*`    | REST API layers (contract-first)    | See [docs/packages.md](../docs/packages.md#rest-api-contract-first-architecture) |
+| `udp-*`         | UDP-specific implementations        | `tracker-core`                                                                   |
+| `http-*`        | HTTP-specific implementations       | `tracker-core`                                                                   |
 
 ## Adding or Modifying a Package
 
 1. Create the directory under `packages/<new-package>/` with a `Cargo.toml` and `src/lib.rs`.
 2. Add the package to the workspace `[members]` in the root `Cargo.toml`.
-3. Follow the naming conventions above.
-4. Each package must have:
+3. Add it to the [Package Catalog in the root `AGENTS.md`](../AGENTS.md#-package-catalog) and to the
+   [`docs/packages.md` catalog](../docs/packages.md#package-catalog).
+4. Follow the naming conventions above.
+5. Each package must have:
    - A crate-level doc comment in `src/lib.rs` explaining its purpose and layer.
    - At minimum one unit test (doc-test acceptable for simple utility crates).
-5. Run `cargo machete` after adding dependencies — unused deps must not be committed.
-6. Run `linter all` before committing.
-7. **Layer boundary enforcement**: `deny.toml` at the workspace root configures `cargo deny check bans` to
+6. Run `cargo machete` after adding dependencies — unused deps must not be committed.
+7. Run `linter all` before committing.
+8. **Layer boundary enforcement**: `deny.toml` at the workspace root configures `cargo deny check bans` to
    prevent cross-layer dependency violations. If you add a dependency on a server-layer or protocol crate
    to a package that isn't listed in that crate's `wrappers` list, the check will fail.
    See [`docs/packages.md`](../docs/packages.md) for the forbidden edge table and

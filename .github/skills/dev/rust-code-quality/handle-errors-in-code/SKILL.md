@@ -65,11 +65,13 @@ return Err("bind failed".into());
 
 ## The `located-error` Package
 
-For errors that benefit from source location tracking, use the `located-error` package:
+For errors that benefit from source location tracking, use the `torrust-located-error` crate. It was
+extracted to [torrust/torrust-located-error](https://github.com/torrust/torrust-located-error) and is a
+crates.io dependency, not a workspace path:
 
 ```toml
 [dependencies]
-torrust-located-error = { version = "3.0.0-develop", path = "../located-error" }
+torrust-located-error = "3.0.0"
 ```
 
 ```rust

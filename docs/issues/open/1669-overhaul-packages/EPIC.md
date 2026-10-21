@@ -6,7 +6,7 @@ epic: null
 github-issue: 1669
 spec-path: docs/issues/open/1669-overhaul-packages/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-20 17:41"
+last-updated-utc: "2026-10-20 20:54"
 semantic-links:
   skill-links:
     - create-issue
@@ -1071,6 +1071,15 @@ Previously referenced tools (screenshots from CodeScene already in the issue com
   both linked as subissues. #2583 publishes the 20 library crates one at a time in dependency order
   after #2482, #2576, #1488 and #1347; its next publish of `configuration` and `primitives` is
   4.0.0, and the tracker release publishes the root crate at 4.0.0.
+- 2026-10-20 20:54 UTC - GitHub Copilot - Synced the package catalogs with `cargo metadata --no-deps` (32
+  members) on branch `chore/sync-package-catalog-with-workspace`, with no GitHub issue by the
+  maintainer's choice. The root `AGENTS.md` catalog is the canonical list: it gained
+  `e2e-tools`, `persistence-benchmark`, `rest-api-application`, `rest-api-protocol` and a table
+  of the seven `contrib/dev-tools/` members, and names `packages/tracker-client` as
+  `torrust-tracker-client-lib`. `docs/packages.md` gained `udp-server` and `e2e-tools`;
+  `packages/AGENTS.md` now links both catalogs instead of keeping a partial copy. The #2576 spec
+  counts are corrected to 32 members and seven `contrib/dev-tools/` members. The
+  catalog-accuracy acceptance criterion is left open because it applies after each change.
 
 ## Acceptance Criteria
 
