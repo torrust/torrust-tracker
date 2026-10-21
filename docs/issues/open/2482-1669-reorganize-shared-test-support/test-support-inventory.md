@@ -2,7 +2,7 @@
 doc-type: research-report
 parent-issue: 2482
 status: completed
-last-updated-utc: 2026-10-08
+last-updated-utc: 2026-10-21
 semantic-links:
   related-artifacts:
     - docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md
@@ -24,6 +24,18 @@ the packages that contain it. Input for issue #2482.
 
 Taken on 2026-10-08 against `develop` at `d1388579b`, over the 31 workspace members reported by
 `cargo metadata --no-deps`.
+
+Refreshed on 2026-10-21 against `develop` at `9f20a89b8` (32 members). Re-checked:
+
+- the consumers of every module below;
+- the nine forced edges;
+- `test-helpers`' 7 dependents and its dependencies;
+- `tracker-core`'s four unconditional `#[automock]` and `mockall` as a normal dependency;
+- the three `pub mod` test declarations.
+
+All are unchanged. Three environment line counts changed (shown below). The new member, `ci-gate`
+(#2525), has only inline `#[cfg(test)]` tests; see
+[Members without shared test support](#members-without-shared-test-support).
 
 ## Method
 
@@ -67,10 +79,10 @@ servers through its own bootstrap jobs in `src/bootstrap/jobs/`.
 
 | Package | Module (lines) | What `Environment` starts | Consumers |
 | --- | --- | --- | --- |
-| `axum-http-server` | `src/testing/environment.rs` (460) | HTTP tracker on `Core` + `HttpTracker` config; `add_torrent_peer`, `base_url` | Own `tests/` (9 files), `examples/http_only_public_tracker.rs`, `axum-health-check-api-server` tests |
+| `axum-http-server` | `src/testing/environment.rs` (484) | HTTP tracker on `Core` + `HttpTracker` config; `add_torrent_peer`, `base_url` | Own `tests/` (9 files), `examples/http_only_public_tracker.rs`, `axum-health-check-api-server` tests |
 | `axum-rest-api-server` | `src/testing/environment.rs` (232) | REST API on the full `Configuration`, wiring the HTTP and UDP cores; `add_torrent_peer`, `get_connection_info` | Own `tests/` (6 files), `axum-health-check-api-server` tests |
-| `udp-server` | `src/testing/environment.rs` (576) | UDP tracker on `Core` + `UdpTracker` config | Own `tests/server/contract.rs`, own `#[cfg(test)]` unit tests (`handlers/mod.rs`, `server/processor.rs`), `examples/udp_only_public_tracker.rs`, `axum-health-check-api-server` tests |
-| `axum-health-check-api-server` | `src/environment.rs` (117) | Health check API on `HealthCheckApi` config and a `Registar` | Own `tests/server/contract.rs` |
+| `udp-server` | `src/testing/environment.rs` (581) | UDP tracker on `Core` + `UdpTracker` config | Own `tests/server/contract.rs`, own `#[cfg(test)]` unit tests (`handlers/mod.rs`, `server/processor.rs`), `examples/udp_only_public_tracker.rs`, `axum-health-check-api-server` tests |
+| `axum-health-check-api-server` | `src/environment.rs` (118) | Health check API on `HealthCheckApi` config and a `Registar` | Own `tests/server/contract.rs` |
 
 Normal dependencies that production source does not use, only the module above:
 
@@ -96,7 +108,8 @@ Other observations:
   test environment. They teach readers to depend on test infrastructure.
 - `axum-rest-api-server/src/testing/mod.rs` still says the UDP dependencies are needed at
   runtime until "the prerequisite decoupling in `rest-api-core`". `rest-api-core` no longer
-  exists (#1938), and production source no longer uses those dependencies.
+  exists (#1938), and production source no longer uses those dependencies. The subissue that
+  moves this environment (#2482 row 6) removes the comment.
 
 ## Pattern B: the shared `test-helpers` crate
 
@@ -116,6 +129,9 @@ The `http` and `udp` modules arrived on 2026-07-29 with `client-lib` and the two
 and the scrape helpers added `primitives` on 2026-10-02, taking the crate from one workspace
 dependency (`configuration`) to five. Generic modules and protocol-specific helpers with a single
 consumer share one crate, so every dependent compiles the protocol clients.
+
+`test-helpers` is the only crate in patterns A to D that is already published, so moving its
+`http` and `udp` modules out is a semver-major change; #2583 decides and publishes the bump.
 
 ## Pattern C: crate-private test helpers in `src/`
 
@@ -161,9 +177,20 @@ tests:
 This is the right place for helpers with one consumer, but Cargo cannot share it with other
 packages.
 
+## Members without shared test support
+
+The method found no shared test support in the members not named above. Two of them are recorded
+here (added 2026-10-21): `ci-gate` is new since 2026-10-08, and `e2e-tools` holds test tooling:
+
+| Member | Test support |
+| --- | --- |
+| `ci-gate` (`contrib/dev-tools/checks/ci-gate`, `publish = false`, added 2026-10-20 by #2525) | Inline `#[cfg(test)]` unit tests and its own `tests/cli.rs`; nothing shared, no test-only normal dependency |
+| `e2e-tools` (`packages/e2e-tools`, `publish = false`) | Three binaries that call the root crate's `console::ci` runners and `console::profiling`; the runner code stays in the root crate (see below) |
+
 ## Related, out of scope
 
 The root crate's CI runners under `src/console/ci/` (E2E and qBittorrent E2E) are test
 infrastructure inside the application crate, and `tempfile` is a normal dependency because of
-them. The root crate is the application, not a library other packages depend on, so it does not
-leak into consumers; it is listed for completeness.
+them. The `e2e-tools` binaries call them. The root crate is the application, not a library other
+packages depend on, so it does not leak into consumers; it is listed for completeness, and the
+EPIC's AC8 scopes it out.
