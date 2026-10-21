@@ -6,7 +6,7 @@ epic: 1669
 github-issue: 2482
 spec-path: docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-21 13:59"
+last-updated-utc: "2026-10-21 14:40"
 semantic-links:
   skill-links:
     - create-issue
@@ -291,7 +291,8 @@ affects them.
 - [x] GitHub issue created and issue number added to this spec
 - [x] Inventory of test support patterns written (D0)
 - [x] Converted from a task to a sub-EPIC of #1669
-- [ ] Epic spec reviewed and approved by user/maintainer
+- [x] Epic spec reviewed and approved by user/maintainer (josecelano, 2026-10-21, after the
+      #1669 orchestrator's review)
 - [ ] Spec-only PR merged into `develop`
 - [ ] Subissue 1 created and linked in this spec
 - [ ] Subissues 2 onwards drafted by subissue 1 and linked in this spec
@@ -349,8 +350,9 @@ Append one line per meaningful update.
   2026-10-16, so the move of the `axum-http-server` test environment (subissue 5) is no longer
   blocked on it. Its spec moved to `docs/issues/closed/`; updated the links and the ordering
   text. #2449 and #2450 are still open.
-- 2026-10-21 13:59 UTC - AI assistant (Copilot SDK in VS Code, #2482 coordinator) - Applied the #1669
-  orchestrator's review of 2026-10-21 with the maintainer's decisions of the same day. Changes:
+- 2026-10-21 13:59 UTC - AI assistant (Copilot SDK in VS Code, #2482 coordinator) - Applied
+  the #1669 orchestrator's review of 2026-10-21 with the maintainer's decisions of the same day.
+  Changes:
   - O1 now records its main weakness: a crate's own `tests/`, `examples/` and doc tests do not
     get its `testing` feature. The three mechanisms O1a to O1c have their own table, and MV4
     checks them. O1 also gains the cons and the pro the review listed.
@@ -366,6 +368,9 @@ Append one line per meaningful update.
     comment.
   - Two corrections to the review, both verified: a path-only self dev-dependency packages fine
     (only #2582's versioned one failed), and the new member is `ci-gate`, not `e2e-tools`.
+- 2026-10-21 14:40 UTC - AI assistant (Copilot SDK in VS Code, #2482 coordinator) - The
+  maintainer (josecelano) approved the corrected spec; ticked the approval checkpoint.
+  Rewrapped the first line of the 13:59 entry to 100 columns (no content change).
 
 ## Acceptance Criteria
 
