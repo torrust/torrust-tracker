@@ -9,7 +9,7 @@ github-issue: 2525
 spec-path: docs/issues/open/2525-ci-gate-required-check/ISSUE.md
 branch: "2525-ci-gate-required-check"
 related-pr: null
-last-updated-utc: "2026-10-21 14:43"
+last-updated-utc: "2026-10-21 15:24"
 semantic-links:
   skill-links:
     - create-issue
@@ -483,7 +483,7 @@ Conventional Commits with narrow scopes and sign every commit with GPG.
   it; an error reading the check runs is a runtime error (exit 1, nothing on stdout), and an error reading
   anything the override needs means no override with the reason in `override_ignored`; a failing verdict
   still exits with 0; the repository, commit id, and login are validated because they become part of request
-  paths. 200 unit and 18 command-line tests, 18 of 18 mutants killed, and a manual run on real GitHub data,
+  paths. 201 unit and 19 command-line tests, 20 of 20 mutants killed, and a manual run on real GitHub data,
   including a replay of runs 5 and 7 of the T5 sandbox from the captured responses that gave the same results -
   [`manual-verification-evidence.md`](manual-verification-evidence.md) V11. The current upstream workflows
   have no check runs named after the groups, so on an upstream pull request every needed group is missing; that
@@ -520,6 +520,17 @@ Conventional Commits with narrow scopes and sign every commit with GPG.
   helper`). The error of a failed request named `gh api <path>` although the program runs `gh api --paginate
   <path>` (`fix(ci-gate): [#2525] name the real gh invocation in the error of a failed request`). Now 200 unit
   and 18 command-line tests, and one more mutant killed -
+  [`manual-verification-evidence.md`](manual-verification-evidence.md) V11.
+- 2026-10-21 15:24 UTC - GitHub Copilot - Processed Copilot's second review of PR #2610 (two findings, both confirmed). The
+  adapter read the events of the pull request whenever the verdict failed, so a failing events request set
+  `override_ignored` on a pull request with no override label at all; it now returns as soon as the labels show
+  that the label is absent and reads the events only after that, and the documentation of the field says when it
+  is `None` (`fix(ci-gate): [#2525] read the events only when the override label is on the pull request`). This
+  is a second defect in the code of the previous round's `override_ignored` change, which I wrote without a test
+  for a label that is absent and an events request that fails. The directory of a fake `gh` in the
+  end-to-end tests was named after the process and the test name, so two fixtures with the same name would share
+  files; a counter is added (`test(ci-gate): [#2525] give each fake gh a directory of its own`). Both new tests
+  were seen to fail first. Now 201 unit and 19 command-line tests, and two more mutants killed -
   [`manual-verification-evidence.md`](manual-verification-evidence.md) V11.
 
 ## Acceptance Criteria
