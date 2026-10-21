@@ -6,7 +6,7 @@ epic: 1488
 github-issue: 2410
 spec-path: docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-21 07:02"
+last-updated-utc: "2026-10-21 07:20"
 semantic-links:
   skill-links:
     - create-issue
@@ -1510,7 +1510,7 @@ lost. Times are UTC.
     - **Observation:** with the yield, a draining listener sees events that producers publish while it
       drains, so a drain under continuous publishing runs until its timeout. That is the policy; it
       was found because a test helper published a probe on every turn (V11).
-30. **2026-10-20 20:52 - T6a design review of #2415 (agreed by the maintainer on
+30. **2026-10-20 20:53 - T6a design review of #2415 (agreed by the maintainer on
     2026-10-20).** Evidence: #2415's `manual-verification-evidence.md` V1. The Chosen Design
     leaves the precise API errors to T6; the review settled them and three details:
     - **`spawn` returns `Result<(), SpawnError>`.** `SpawnError::ForeignReservation` names the
@@ -2267,6 +2267,7 @@ avoids duplicating the full workflow in four drafts:
 - 2026-10-20 20:59 UTC - GitHub Copilot (Claude Opus 5.5) - #2415 T6a design review: the maintainer agreed to the API and decided the reservation errors and two details, recorded as Design Discussion Record entry 30 (`spawn` returns `SpawnError`, which bootstrap propagates; the root-token accessor becomes `legacy_cancellation_token()`; two code commits with a temporary adapter). `adr-draft.md` section 3 is updated in the same change (D14, D15). T6a committed.
 - 2026-10-20 21:16 UTC - GitHub Copilot (Claude Opus 5.5) - #2415 T6b and T6c done in the working tree: every `JobManager` component uses only its reservation token, and `udp_ban_cleanup` keeps the root token. No existing test guarded that a component uses its own token; a new app-level test in `src/app.rs` does (#2415 evidence V2). M1 matches `develop` (V3). The jobs doc, glossary, and task inventory now describe per-component tokens. Awaiting the T6-complete design review. No design change.
 - 2026-10-21 07:02 UTC - GitHub Copilot (Claude Opus 5.5) - #2415 T6-complete design review passed (the D14 checkpoint after T6): the maintainer approved the caller conversion, the documentation updates, and the app-level AC1 test. T6 is committed; the delivery gates (Task Reviewer, retrospective, pre-push checks) remain before the pull request. No design change beyond record entry 30.
+- 2026-10-21 07:20 UTC - GitHub Copilot (Claude Opus 5.5) - #2415 Task Reviewer report (REVIEW PASSED, with findings) and implementation retrospective recorded in its folder. Record entry 30 is restamped from 20:52 to 20:53, the minute the maintainer's answer arrived, because the 20:52 progress-log entry says the review was still pending (Task Reviewer N1). No design change.
 
 ## Acceptance Criteria
 

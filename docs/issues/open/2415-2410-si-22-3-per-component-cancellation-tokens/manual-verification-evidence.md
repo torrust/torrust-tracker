@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2415-2410-si-22-3-per-component-cancellation-tokens/ISSUE.md
-last-updated-utc: "2026-10-21 07:02"
+last-updated-utc: "2026-10-21 07:22"
 ---
 
 # Manual Verification Evidence
@@ -91,8 +91,15 @@ meant to change no behavior, so there is no bug red/green pair.
   `.child_token()` call, no `new_cancellation_token`, and one `legacy_cancellation_token()` use, by
   the legacy `udp_ban_cleanup` job. The only `CancellationToken::new()` in the file is in a test that
   runs one listener without `JobManager`. Listener registration order in `start_jobs_with_manager`
-  is unchanged (AC4): every listener is still reserved, built (which subscribes its receiver), and
-  spawned before any producer.
+  is unchanged (AC4; read from source, not run): every listener is still reserved, built (which
+  subscribes its receiver), and spawned before any producer.
+- Test removed: `it_should_report_cooperatively_cancelled_jobs` in `manager.rs` reserved nothing; it
+  spawned a job that waited for the root token and checked that `cancel()` made it report
+  `Cancelled`. With reservations it became the same test as V1's
+  `it_should_cancel_a_spawned_components_own_token_when_the_manager_is_cancelled`, so it was deleted
+  instead of kept as a duplicate, and the manager tests went from 17 to 16. The legacy root token is
+  still covered by `it_should_stop_components_and_legacy_jobs_once_when_the_manager_is_cancelled_twice`.
+  The Task Reviewer found that this removal was not recorded (S1 in `agent-review-reports.md`).
 - Finding (read from the run, not inferred): before this change no test guarded AC1. With the
   http-core listener given an unrelated `CancellationToken::new()` instead of its reservation token,
   `cargo test -p torrust-tracker --lib app::` (16 passed) and `cargo test --test lifecycle-signals`
@@ -108,6 +115,12 @@ meant to change no behavior, so there is no bug red/green pair.
     the test fails in all 13 cases after the 5 s deadline;
   - `udp_ban_cleanup` given `CancellationToken::new()` instead of the legacy root token: the test
     fails, and its message names `udp_ban_cleanup` with `status: Aborted`.
+- Prose-first Arrange-Act-Assert for that test: the temporary prose named the causal state (every
+  component enabled), the Act (`cancel()` then `wait_for_all`), and the result (every outcome
+  cooperative). Comparing it with the code led to setting the three enabling options explicitly
+  instead of relying on defaults, listing the 14 expected outcomes by name, and an assertion message
+  that says what an `Aborted` entry means. The maintainer reviewed the prose at the T6-complete review;
+  it was then removed from the code.
 - Commands and outcomes (default toolchain):
   - `cargo test -p torrust-tracker --tests --benches --examples --all-targets --all-features`: exit 0,
     14 test targets, 169 passed, 0 failed (before the new app test was added).
@@ -151,3 +164,33 @@ meant to change no behavior, so there is no bug red/green pair.
   SIGTERM runs of the same `develop` binary (three different orders), so it is scheduling, not a
   change; the spec does not promise identical scheduler timing.
 - Result: pass. The same components stop, cooperatively, with the same exit code.
+
+### V4 - Task Reviewer follow-up: the release test and the final checks
+
+- Goal: close the should-fix findings of the Task Reviewer report of 2026-10-21 07:14 UTC
+  (`agent-review-reports.md`).
+- S2, working-tree state: the final commit plus the strengthened test. In
+  `it_should_release_a_dropped_reservation_without_affecting_other_components` the drop moved from
+  Arrange to Act, and the Act records whether the kept component's token was cancelled by the drop,
+  before `cancel()`; the Assert requires it was not.
+- Mutations (default toolchain, `cargo test -q -p torrust-tracker --lib bootstrap::jobs::manager`,
+  restored from a copy after each, compiled before reading):
+
+  | Mutation | Test before the fix (HEAD) | Test after the fix |
+  | --- | --- | --- |
+  | M7: a dropped reservation cancels every registered token, its own included | fails (its own token is cancelled) | fails, plus `it_should_reject_a_reservation_issued_by_another_manager` |
+  | M7b: a dropped reservation cancels every other registered token | passes: the gap | fails with "dropping one reservation must not cancel another component" |
+
+- S3, final checks on the commit `test(bootstrap): [#2415] check that dropping a reservation leaves other components uncancelled`
+  (the last code change on the branch):
+  - `cargo +stable test --tests --benches --examples --workspace --all-targets --all-features`
+    (stable toolchain `rustc 1.99.0`, the pre-push test step): exit 0, 77 test targets, 3337 passed,
+    0 failed, 0 ignored.
+  - M1 recheck with a binary built from that commit (`cargo build --bin torrust-tracker`, `dev`
+    profile) and the V3 configuration and runner, 2026-10-21 between 07:19 and 07:21 UTC, while the test suite
+    above ran on the same machine: SIGTERM and SIGINT both exit 0 in 0.013 s and 0.036 s, with 15
+    cooperative cancellations, 1 completion (`udp_ban_cleanup`), 7 drain reports, no aborts, `WARN`,
+    or `ERROR`, and the signal named correctly. Against the V3 `develop` logs, normalized as in V3,
+    the only differing lines are health-check response `latency_ms` values (4 or 5 against 5 to 8),
+    which V3's normalization did not cover and which the concurrent test suite explains.
+- Result: pass. S2 and S3 are closed.

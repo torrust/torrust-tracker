@@ -9,7 +9,7 @@ github-issue: 2415
 spec-path: docs/issues/open/2415-2410-si-22-3-per-component-cancellation-tokens/ISSUE.md
 branch: "2415-per-component-cancellation-tokens"
 related-pr: null
-last-updated-utc: "2026-10-21 07:02"
+last-updated-utc: "2026-10-21 07:22"
 semantic-links:
   skill-links:
     - create-issue
@@ -20,6 +20,8 @@ semantic-links:
     - src/app.rs
     - src/console/profiling.rs
     - docs/issues/open/2415-2410-si-22-3-per-component-cancellation-tokens/manual-verification-evidence.md
+    - docs/issues/open/2415-2410-si-22-3-per-component-cancellation-tokens/agent-review-reports.md
+    - docs/issues/open/2415-2410-si-22-3-per-component-cancellation-tokens/implementation-retrospective.md
 ---
 
 <!-- skill-link: create-issue -->
@@ -142,6 +144,9 @@ Follow the sub-EPIC's [Shared Delivery Gates](../2410-1488-si-22-process-queued-
 including issue-local manual evidence, acceptance re-review, retrospective
 assessment, and independent Task Reviewer report.
 
+- Task Reviewer report: [agent-review-reports.md](agent-review-reports.md).
+- Retrospective: [implementation-retrospective.md](implementation-retrospective.md).
+
 ## Progress Tracking
 
 ### Workflow Checkpoints
@@ -162,3 +167,5 @@ assessment, and independent Task Reviewer report.
 - 2026-10-20 20:59 UTC - GitHub Copilot (Claude Opus 5.5) - T6a design review: the maintainer approved the API, the lifecycle rules, and the tests, and decided three details the Chosen Design left to T6, recorded as sub-EPIC record entry 30 with `adr-draft.md` section 3 updated: `SpawnError` is propagated by bootstrap as a new `app::Error::ComponentRegistration`; `new_cancellation_token()` is renamed `legacy_cancellation_token()`; and the work lands as two code commits, the API with the temporary `spawn_unreserved` adapter, then the caller conversion that removes it. T6a committed; T6b and T6c are next.
 - 2026-10-20 21:16 UTC - GitHub Copilot (Claude Opus 5.5) - T6b and T6c done in the working tree, not committed: all 13 components reserve and spawn with their own token, the four `.child_token()` calls are gone, `udp_ban_cleanup` uses `legacy_cancellation_token()`, the adapter is removed, and bootstrap propagates `SpawnError` as `app::Error::ComponentRegistration`. Finding: no existing test guarded AC1 (a listener on an unrelated token still passed every test, aborted at the deadline); a new app-level test now does, and fails for each of 14 token mutations (evidence V2). The jobs doc, glossary, and task inventory describe the per-component tokens. M1 matches `develop` for SIGTERM and SIGINT (evidence V3). Full root suite and `lifecycle-signals` pass. Stopped for the T6-complete design review. No design change.
 - 2026-10-21 07:02 UTC - GitHub Copilot (Claude Opus 5.5) - T6-complete design review: the maintainer approved T6b, T6c, the documentation updates, and the new app-level AC1 test (its prose-first specification was reviewed, then removed from the code). Committed as `refactor(bootstrap): [#2415] give every application component its own reservation token` and `docs(architecture): [#2415] describe per-component cancellation tokens`. Both design-review checkpoints (T6a, and T6 complete) are recorded, sub-EPIC record entry 30 holds the decisions. Next: Task Reviewer, retrospective, pre-push checks. No design change.
+- 2026-10-21 07:20 UTC - GitHub Copilot (Claude Opus 5.5) - Independent Task Reviewer report recorded in `agent-review-reports.md`: REVIEW PASSED (with findings), AC1 to AC4 and `linter all` pass, no design deviation the maintainer had not agreed. Its should-fix findings are addressed: the removal of the duplicate test `it_should_report_cooperatively_cancelled_jobs` is recorded (S1); the release test now checks that a drop leaves other components uncancelled, proven by a mutation the old test missed (S2, evidence V4); the final full suite and an M1 recheck follow with the pre-push checks (S3). Sub-EPIC record entry 30 is restamped 20:53, the minute the maintainer's answer arrived (N1). `implementation-retrospective.md` added. No design change.
+- 2026-10-21 07:22 UTC - GitHub Copilot (Claude Opus 5.5) - S3 closed: on the final code commit the full stable workspace suite passes (77 targets, 3337 passed) and an M1 recheck on a binary built from it matches `develop` (evidence V4). Next: the maintainer's decision on push and the pull request. No design change.
