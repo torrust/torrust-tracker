@@ -94,6 +94,7 @@ Copilot's review 5596471839 (submitted 2026-10-21 07:45 UTC, state `COMMENTED`) 
 - 2026-10-21 08:15 UTC - Committed `refactor(bootstrap): [#2415] assert that a spawned reservation is registered` (F3).
 - 2026-10-21 08:16 UTC - Pushed both fixes; the pre-push hook passed.
 - 2026-10-21 08:16 UTC - Replied on the three threads: F1 https://github.com/torrust/torrust-tracker/pull/2591#discussion_r4334523215, F2 https://github.com/torrust/torrust-tracker/pull/2591#discussion_r4334523584, F3 https://github.com/torrust/torrust-tracker/pull/2591#discussion_r4334523848. The threads were not yet resolved at this point.
+- 2026-10-21 08:21 UTC - Resolved the three threads as `josecelano` after `github-review-threads reply-status` confirmed a reply on each (each mutation returned `isResolved: true`). A refreshed GraphQL fetch at 08:21 UTC showed all 3 threads resolved and none unresolved; the F2 thread is now outdated, because the fix changed its line.
 
 ## Completion Rules
 
