@@ -151,6 +151,7 @@ mod tests {
     use std::time::Duration;
 
     use futures::future::BoxFuture;
+    use rstest::rstest;
     use tokio_util::sync::CancellationToken;
     use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
     use torrust_tracker_events::drain::DEFAULT_DRAIN_TIMEOUT;
@@ -159,11 +160,12 @@ mod tests {
     use torrust_tracker_http_protocol::v1::services::peer_ip_resolver::{RemoteClientAddr, ResolvedIp};
     use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
 
-    use super::dispatch_events;
+    use super::{dispatch_events, run_event_listener, run_event_listener_unspawned};
     use crate::event::receiver::Receiver;
     use crate::event::{ConnectionContext, Event};
     use crate::statistics::metrics::Metrics;
     use crate::statistics::repository::Repository;
+    use crate::tests::{sample_info_hash, sample_peer_using_ipv4};
 
     struct ScriptedReceiver {
         results: VecDeque<Result<Event, RecvError>>,
@@ -200,14 +202,50 @@ mod tests {
         }
     }
 
+    fn connection(configuration_instance_id: ConfigurationInstanceId) -> ConnectionContext {
+        ConnectionContext::new(
+            configuration_instance_id,
+            RemoteClientAddr::new(ResolvedIp::FromSocketAddr(IpAddr::V4(Ipv4Addr::LOCALHOST)), Some(8080)),
+            ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070)).unwrap(),
+        )
+    }
+
     fn scrape_event(configuration_instance_id: ConfigurationInstanceId) -> Event {
         Event::TcpScrape {
-            connection: ConnectionContext::new(
-                configuration_instance_id,
-                RemoteClientAddr::new(ResolvedIp::FromSocketAddr(IpAddr::V4(Ipv4Addr::LOCALHOST)), Some(8080)),
-                ServiceBinding::new(Protocol::HTTP, SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 7070)).unwrap(),
-            ),
+            connection: connection(configuration_instance_id),
         }
+    }
+
+    fn announce_event(configuration_instance_id: ConfigurationInstanceId) -> Event {
+        Event::TcpAnnounce {
+            connection: connection(configuration_instance_id),
+            info_hash: sample_info_hash(),
+            announcement: sample_peer_using_ipv4(),
+        }
+    }
+
+    /// The instance whose metrics are enabled in the policy of the tests below.
+    fn enabled_id() -> ConfigurationInstanceId {
+        ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0)
+    }
+
+    /// The instance whose metrics are disabled in the policy of the tests below.
+    fn disabled_id() -> ConfigurationInstanceId {
+        ConfigurationInstanceId::new(ServiceRole::HttpTracker, 1)
+    }
+
+    /// The four public counters: IPv4 announces, IPv4 scrapes, IPv6 announces, IPv6 scrapes.
+    async fn counters(repository: &Repository) -> (u64, u64, u64, u64) {
+        repository
+            .read_metrics(|metrics| {
+                (
+                    metrics.tcp4_announces_handled(),
+                    metrics.tcp4_scrapes_handled(),
+                    metrics.tcp6_announces_handled(),
+                    metrics.tcp6_scrapes_handled(),
+                )
+            })
+            .await
     }
 
     #[tokio::test]
@@ -380,5 +418,117 @@ mod tests {
 
         // Assert
         assert_eq!(repository.read_metrics(Metrics::tcp4_scrapes_handled).await, 1);
+    }
+
+    #[rstest]
+    #[case::announce_from_an_enabled_instance(announce_event(enabled_id()), (1, 0, 0, 0))]
+    #[case::announce_from_a_disabled_instance(announce_event(disabled_id()), (0, 0, 0, 0))]
+    #[case::scrape_from_an_enabled_instance(scrape_event(enabled_id()), (0, 1, 0, 0))]
+    #[case::scrape_from_a_disabled_instance(scrape_event(disabled_id()), (0, 0, 0, 0))]
+    #[tokio::test]
+    async fn it_should_apply_the_metrics_policy_of_the_instance_of_each_event_kind(
+        #[case] event: Event,
+        #[case] expected_counters: (u64, u64, u64, u64),
+    ) {
+        // Arrange
+        let receiver: Receiver = Box::new(ScriptedReceiver::new([Ok(event), Err(RecvError::Closed)]));
+        let repository = Arc::new(Repository::new());
+
+        // Act
+        dispatch_events(
+            receiver,
+            CancellationToken::new(),
+            repository.clone(),
+            [(enabled_id(), true), (disabled_id(), false)].into(),
+            DEFAULT_DRAIN_TIMEOUT,
+        )
+        .await;
+
+        // Assert
+        assert_eq!(counters(&repository).await, expected_counters);
+    }
+
+    #[tokio::test]
+    async fn it_should_handle_every_queued_event_after_cancellation_under_the_metrics_policy() {
+        // Arrange: the token is cancelled before the listener takes any of the three queued events.
+        let receiver: Receiver = Box::new(ScriptedReceiver::new([
+            Ok(scrape_event(enabled_id())),
+            Ok(scrape_event(disabled_id())),
+            Ok(scrape_event(enabled_id())),
+        ]));
+        let cancellation_token = CancellationToken::new();
+        cancellation_token.cancel();
+        let repository = Arc::new(Repository::new());
+
+        // Act
+        let completion = dispatch_events(
+            receiver,
+            cancellation_token,
+            repository.clone(),
+            [(enabled_id(), true), (disabled_id(), false)].into(),
+            DEFAULT_DRAIN_TIMEOUT,
+        )
+        .await;
+
+        // Assert
+        assert_eq!(counters(&repository).await, (0, 2, 0, 0));
+        assert_eq!(completion, Completion::Cancelled);
+    }
+
+    #[rstest]
+    #[case::the_receiver_closes(false, Completion::Completed)]
+    #[case::the_token_is_cancelled(true, Completion::Cancelled)]
+    #[tokio::test]
+    async fn it_should_return_the_completion_that_says_why_the_unspawned_listener_stopped(
+        #[case] cancelled: bool,
+        #[case] expected_completion: Completion,
+    ) {
+        // Arrange
+        let receiver: Receiver = Box::new(ScriptedReceiver::new([
+            Ok(scrape_event(enabled_id())),
+            Err(RecvError::Closed),
+        ]));
+        let cancellation_token = CancellationToken::new();
+        if cancelled {
+            cancellation_token.cancel();
+        }
+        let repository = Arc::new(Repository::new());
+
+        // Act
+        let completion = run_event_listener_unspawned(
+            receiver,
+            cancellation_token,
+            repository.clone(),
+            [(enabled_id(), true)].into(),
+            DEFAULT_DRAIN_TIMEOUT,
+        )
+        .await;
+
+        // Assert: the queued event is counted either way.
+        assert_eq!(completion, expected_completion);
+        assert_eq!(counters(&repository).await, (0, 1, 0, 0));
+    }
+
+    #[tokio::test]
+    async fn it_should_run_the_spawned_listener_until_its_receiver_closes() {
+        // Arrange
+        let receiver: Receiver = Box::new(ScriptedReceiver::new([
+            Ok(scrape_event(enabled_id())),
+            Err(RecvError::Closed),
+        ]));
+        let repository = Arc::new(Repository::new());
+
+        // Act
+        let listener = run_event_listener(
+            receiver,
+            CancellationToken::new(),
+            &repository,
+            [(enabled_id(), true)].into(),
+            DEFAULT_DRAIN_TIMEOUT,
+        );
+        listener.await.expect("the listener task should finish without panicking");
+
+        // Assert
+        assert_eq!(counters(&repository).await, (0, 1, 0, 0));
     }
 }

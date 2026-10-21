@@ -307,3 +307,15 @@ Measured on 2026-10-21 on the S5 branch, whose production code for this file is 
 | `statistics/event/handler.rs` functions | 16 / 17 (94.12%) | 21 / 22 (95.45%) |
 
 The file's 5 tests are now 10 cases in 4 test functions. The counts fall because the new test module is shorter than the old one (the repeated event construction is gone); the production lines were already covered except the two the plan decides not to test: the failed-increase `Err` arm (line 20) and the debug closure (line 25). The package has 149 unit tests (144 at the S5 baseline): lines 2,521 / 2,577 (97.83%), regions 3,224 / 3,284 (98.17%), functions 314 / 320 (98.12%).
+
+### `statistics/event/listener.rs` (slice S5)
+
+Measured on 2026-10-21 on the S5 branch, whose production code for this file is identical to `develop` at the merge of #2593. The plan is [statistics-listener-tests.md](test-refactor-plans/statistics-listener-tests.md).
+
+| Scope | Before (S5 baseline) | After |
+| --- | ---: | ---: |
+| `statistics/event/listener.rs` lines | 215 / 239 (89.96%) | 308 / 310 (99.35%) |
+| `statistics/event/listener.rs` regions | 275 / 298 (92.28%) | 390 / 394 (98.98%) |
+| `statistics/event/listener.rs` functions | 29 / 32 (90.63%) | 44 / 44 (100.00%) |
+
+The file keeps its 6 tests and gains 8 cases in 4 test functions: the metrics policy for announce events, every queued event drained after cancellation, and the two public entry points (`Completion` and the spawned task). All production code is covered except the log argument of the ignored-event `warn!` (line 132); the one other uncovered line is the `Lagged` arm of the test receiver. The package has 157 unit tests: lines 2,614 / 2,648 (98.72%), regions 3,339 / 3,380 (98.79%), functions 329 / 332 (99.10%).

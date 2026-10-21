@@ -9,7 +9,7 @@ github-issue: 1349
 spec-path: docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md
 branch: "1349-1347-add-tests-http-core-statistics"
 related-pr: null
-last-updated-utc: "2026-10-21 09:42"
+last-updated-utc: "2026-10-21 09:59"
 semantic-links:
   skill-links:
     - create-issue
@@ -456,7 +456,7 @@ lines are the S2 baseline measurement (see [Baseline Coverage](#baseline-coverag
 | 4 | `event.rs` | 4 | S4 | 174 / 187 (93.05%) | 7 | Probably small change | DONE | [event-tests.md](test-refactor-plans/event-tests.md) (done; 135 / 135 lines after) |
 | 5 | `container.rs` | 5 | S4 | 0 / 73 (0.00%) | 0 | Test candidate | DONE | [container-tests.md](test-refactor-plans/container-tests.md) (done; 27 tests, all 73 production lines covered) |
 | 6 | `statistics/event/handler.rs` | 6 | S5 | 158 / 161 (98.14%) | 5 | Probably no change | DONE | [statistics-handler-tests.md](test-refactor-plans/statistics-handler-tests.md) (done; 10 cases, only the two decided lines uncovered) |
-| 7 | `statistics/event/listener.rs` | 6 | S5 | 133 / 148 (89.86%) | 4 | Lifecycle (#1488) | PENDING | - |
+| 7 | `statistics/event/listener.rs` | 6 | S5 | 133 / 148 (89.86%) | 4 | Lifecycle (#1488) | DONE | [statistics-listener-tests.md](test-refactor-plans/statistics-listener-tests.md) (done; 308 / 310 lines after) |
 | 8 | `statistics/metrics.rs` | 6 | S5 | 48 / 57 (84.21%) | 1 | Test candidate | PENDING | - |
 | 9 | `statistics/repository.rs` | 6 | S5 | 21 / 24 (87.50%) | 0 (3 doc tests) | Test candidate | PENDING | - |
 | 10 | `statistics/mod.rs` | 6 | S5 | 8 / 8 (100.00%) | 0 | Probably small change (metric-name contract) | PENDING | - |
@@ -712,6 +712,13 @@ lines are the S2 baseline measurement (see [Baseline Coverage](#baseline-coverag
   select on the server binding's family while their comments say "peers". The S4-merge and S5-start log
   entries above were missing from the S5-start commit (a parallel edit raced with staging) and ship with this
   commit.
+- 2026-10-21 09:59 UTC - GitHub Copilot - `statistics/event/listener.rs` is `DONE` (S5): the plan was approved
+  at 09:46 UTC with D1 (test the two public entry points) and the maintainer approved the completed file. The
+  six existing tests are unchanged and eight cases were added: the metrics policy for announce events, every
+  queued event drained after cancellation, and the two entry points. The file is at 308 / 310 lines. Mutations
+  K1-K5 and a probe were killed; the drain mutant that handles only the first event survived all six old
+  tests. The package has 157 unit tests: lines 2,614 / 2,648 (98.72%), regions 3,339 / 3,380 (98.79%),
+  functions 329 / 332 (99.10%).
 
 ## Acceptance Criteria
 
