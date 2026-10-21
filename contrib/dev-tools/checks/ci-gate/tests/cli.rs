@@ -404,7 +404,7 @@ fn respond_with_an_override(gh: &FakeGh, actor: &str, applied_at: &str, first_ch
         &json!({ "check_suites": [{ "created_at": first_check_suite_at }] }),
     );
     gh.respond(
-        "repos/owner/repo/collaborators/josecelano/permission",
+        &format!("repos/owner/repo/collaborators/{actor}/permission"),
         &json!({ "permission": "admin" }),
     );
 }
@@ -471,7 +471,7 @@ fn it_should_print_a_passing_verdict_naming_the_actor_when_a_maintainer_applied_
             check_run(2, "db-benchmarking", "failure"),
         ],
     );
-    respond_with_an_override(&gh, "josecelano", "2026-10-21T10:49:13Z", "2026-10-21T10:46:06Z");
+    respond_with_an_override(&gh, "another-maintainer", "2026-10-21T10:49:13Z", "2026-10-21T10:46:06Z");
 
     // Act
     let output = run_github_verdict(&gh, &classification);
@@ -481,7 +481,7 @@ fn it_should_print_a_passing_verdict_naming_the_actor_when_a_maintainer_applied_
     let result = parse_verdict_stdout(&output);
     assert_eq!(
         (result["verdict"].clone(), result["overridden_by"].clone()),
-        (json!("pass"), json!("josecelano"))
+        (json!("pass"), json!("another-maintainer"))
     );
 }
 
