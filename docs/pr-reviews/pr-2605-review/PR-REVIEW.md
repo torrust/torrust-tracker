@@ -40,7 +40,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Six reviews were submitted so far, all by Copilot. Each body repeats its inline threads, so the bodies add
+Seven reviews were submitted so far, all by Copilot. Each body repeats its inline threads, so the bodies add
 no rows.
 
 - Review 5599040224 read the head whose subject is "docs(issues): [#2525] propose the design of the override
@@ -58,6 +58,9 @@ no rows.
 - Review 5602711782 read the head whose subject is "docs(pr-reviews): record the fifth review round in the PR
   #2605 audit". It marks F7 and F8 as resolved and carries two inline threads: F9, a new finding about the
   saved evidence, and F10, the claim of F4 a fourth time, recorded as a re-raise of it.
+- Review 5603029640 read the head whose subject is "docs(pr-reviews): record the sixth review round in the PR
+  #2605 audit". It marks F9 and F10 as resolved and carries one inline thread, F11, the claim of F4 a fifth time,
+  recorded as a re-raise of it.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -71,6 +74,7 @@ no rows.
 | F8 | review-finding:pr-2605-f8 | Copilot | Nit (inferred) | documentation | RE_RAISE_OF:F4 | NO_ACTION | SUPERSEDED |
 | F9 | review-finding:pr-2605-f9 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 | F10 | review-finding:pr-2605-f10 | Copilot | Nit (inferred) | formatting | RE_RAISE_OF:F4 | NO_ACTION | SUPERSEDED |
+| F11 | review-finding:pr-2605-f11 | Copilot | Nit (inferred) | formatting | RE_RAISE_OF:F4 | NO_ACTION | SUPERSEDED |
 
 ## Finding Details
 
@@ -232,6 +236,25 @@ no rows.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4339194835>
 
+### F11 - The audit's table is said, a fifth time, to have a doubled leading pipe
+
+- PR number: 2605
+- Source review ID: 5603029640
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4339393136>
+- Concern: the rows of the findings table, header and separator included, are said to start with a doubled
+  leading pipe, which renders an empty first column. It is the concern of F4, raised for the fifth time, at
+  line 73.
+- Solution: no change, for the reason given for F4. This entry describes the claim in words and does not quote
+  the characters, to see whether the next review raises it again.
+- Current-tree verification: the file was fetched from the GitHub contents API at the commit that review read
+  (blob `d9528aa39`, commit `5e97f950c`): no line starts with a doubled pipe, the 12 table rows, the header, the
+  separator, and ten findings, begin with a single pipe followed by a space, and line 73 is the row of F10. The
+  audit validator parses all rows.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4339514454>
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4339514454>
+
 ## Processing Log
 
 - 2026-10-21 11:36 UTC - Copilot's review arrived with two threads, F1 and F2. Both were checked against
@@ -260,6 +283,12 @@ no rows.
   time; the file was fetched again from the GitHub contents API and no line starts with a doubled pipe.
 - 2026-10-21 16:21 UTC - Saved the first revision of the workflow, corrected the evidence, recorded the round in
   the specification, pushed, replied on both threads, and added F9 and F10 to this record.
+- 2026-10-21 16:40 UTC - Copilot's seventh review arrived with one thread, F11, the claim of F4 a fifth time. The
+  file was fetched from the GitHub contents API at the commit that review read, and no line starts with a
+  doubled pipe.
+- 2026-10-21 16:52 UTC - Replied `Superseded by F4: <reason>.` on the thread, added F11 to this record, and did
+  not request another review of this pull request: the finding had already been answered with evidence twice
+  and the maintainer was asked whether to resolve such threads without a further review.
 
 ## Completion Rules
 
