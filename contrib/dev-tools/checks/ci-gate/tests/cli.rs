@@ -310,7 +310,10 @@ impl FakeGh {
     fn new(test_name: &str) -> Self {
         use std::os::unix::fs::PermissionsExt;
 
-        let directory = std::env::temp_dir().join(format!("ci-gate-fake-gh-{}-{test_name}", std::process::id()));
+        // The process id separates test runs, and the counter separates fixtures of one run, whatever their names.
+        static NEXT: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+        let unique = NEXT.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+        let directory = std::env::temp_dir().join(format!("ci-gate-fake-gh-{}-{unique}-{test_name}", std::process::id()));
         std::fs::create_dir_all(&directory).expect("the fixture directory can be created");
         // `gh api --paginate <path>`: the fixture of a path is the file named after it, with `/`, `?` and `=` as `_`.
         let script = format!(
@@ -617,4 +620,20 @@ fn it_should_read_every_page_when_gh_prints_one_json_document_per_page() {
     // Assert
     assert_succeeded_without_diagnostics(&output);
     assert_eq!(parse_verdict_stdout(&output)["verdict"], "pass");
+}
+
+#[cfg(unix)]
+#[test]
+fn it_should_give_each_fake_gh_its_own_directory_even_when_the_test_name_is_the_same() {
+    // Arrange
+    let first = FakeGh::new("same-name");
+
+    // Act
+    let second = FakeGh::new("same-name");
+
+    // Assert
+    assert_ne!(
+        first.directory, second.directory,
+        "two fixtures with the same test name must not share files, or tests that reuse a name would collide"
+    );
 }
