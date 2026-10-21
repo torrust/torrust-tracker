@@ -16,7 +16,7 @@ because the scratch workspaces were removed afterwards.
 
 ## Environment and Prerequisites
 
-- Date and time (UTC): 2026-10-21, 17:21 to 18:47.
+- Date and time (UTC): 2026-10-21, 17:21 to 19:02 (V4b ran last).
 - Artifact under test: Cargo itself, on two toolchains:
   - stable: `cargo 1.99.1 (5f94df478 2026-08-27)`, `rustc 1.99.1 (58cf8f9c3 2026-10-13)`;
   - the workspace MSRV: `cargo 1.88.0 (873a06493 2025-05-10)`, `rustc 1.88.0 (6b00bc388
@@ -698,6 +698,53 @@ cargo-machete didn't find any unused dependencies in /tmp/2482-mv/mv4. Good job!
   --with-metadata` does not flag it.
 - The production build is not affected by any mechanism (`build -p X` exits 0 and V1 shows the
   feature is off).
+
+#### V4b - Does O1c need `any(test, ...)` in the gate? (added after the maintainer's decision)
+
+A follow-up probe, run at 19:02 UTC in a standalone package `q` (its own `[workspace]` table,
+removed afterwards), because the ADR's rule for O1c depends on it. The module is gated by the
+feature alone:
+
+```toml
+# Cargo.toml
+[package]
+name = "q"
+version = "0.1.0"
+edition = "2024"
+
+[features]
+testing = []
+
+[dev-dependencies]
+q = { path = ".", features = ["testing"] }
+
+[workspace]
+```
+
+```rust
+// src/lib.rs
+#[cfg(feature = "testing")]
+pub mod testing {
+    pub fn helper() -> u32 {
+        7
+    }
+}
+
+#[cfg(test)]
+mod unit {
+    #[test]
+    fn unit_test_uses_the_module_gated_only_by_the_feature() {
+        assert_eq!(crate::testing::helper(), 7);
+    }
+}
+```
+
+`tests/it.rs` asserts `q::testing::helper() == 7`. Commands, on `+stable` and `+1.88.0`, in this
+order: `cargo $TC test`, `cargo $TC build`. Both toolchains: `cargo test` exited 0 and ran the
+unit test (`unit::unit_test_uses_the_module_gated_only_by_the_feature ... ok`) and `tests/it.rs`
+(`it ... ok`); `cargo build` finished. So with the self dev-dependency the feature is on for the
+crate's own unit tests too, and `#[cfg(feature = "testing")]` alone is enough; the
+`any(test, feature = "testing")` form is needed only without it (O1a).
 
 ## Evidence versus the EPIC
 
