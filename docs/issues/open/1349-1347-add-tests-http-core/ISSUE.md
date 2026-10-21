@@ -9,7 +9,7 @@ github-issue: 1349
 spec-path: docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md
 branch: "1349-1347-add-tests-http-core-events-container"
 related-pr: 2593
-last-updated-utc: "2026-10-21 07:34"
+last-updated-utc: "2026-10-21 07:55"
 semantic-links:
   skill-links:
     - create-issue
@@ -454,7 +454,7 @@ lines are the S2 baseline measurement (see [Baseline Coverage](#baseline-coverag
 | 2 | `services/error_mapping.rs` | 2 | S2 | 0 / 18 (0.00%) | 0 | Test candidate | DONE | [services-error-mapping-tests.md](test-refactor-plans/services-error-mapping-tests.md) (done; 26 / 29 lines after, wildcard arm untestable) |
 | 3 | `services/scrape.rs` | 3 | S3 | 507 / 540 (93.89%) | 8 | Test candidate (error paths) | DONE | [services-scrape-tests.md](test-refactor-plans/services-scrape-tests.md) (done; 533 / 537 lines after) |
 | 4 | `event.rs` | 4 | S4 | 174 / 187 (93.05%) | 7 | Probably small change | DONE | [event-tests.md](test-refactor-plans/event-tests.md) (done; 135 / 135 lines after) |
-| 5 | `container.rs` | 5 | S4 | 0 / 73 (0.00%) | 0 | Test candidate | DONE | [container-tests.md](test-refactor-plans/container-tests.md) (done; 23 tests, all 73 production lines covered) |
+| 5 | `container.rs` | 5 | S4 | 0 / 73 (0.00%) | 0 | Test candidate | DONE | [container-tests.md](test-refactor-plans/container-tests.md) (done; 27 tests, all 73 production lines covered) |
 | 6 | `statistics/event/handler.rs` | 6 | S5 | 158 / 161 (98.14%) | 5 | Probably no change | PENDING | - |
 | 7 | `statistics/event/listener.rs` | 6 | S5 | 133 / 148 (89.86%) | 4 | Lifecycle (#1488) | PENDING | - |
 | 8 | `statistics/metrics.rs` | 6 | S5 | 48 / 57 (84.21%) | 1 | Test candidate | PENDING | - |
@@ -685,6 +685,16 @@ lines are the S2 baseline measurement (see [Baseline Coverage](#baseline-coverag
   23 tests) and the report is in `agent-review-reports.md`. The package has 140 unit tests: lines 2,616 /
   2,672 (97.90%), regions 3,397 / 3,457 (98.26%), functions 316 / 322 (98.14%). The slice awaits its
   pre-push checks and pull request.
+- 2026-10-21 07:34 UTC - GitHub Copilot - The pre-push checks passed and the S4 pull request #2593
+  (<https://github.com/torrust/torrust-tracker/pull/2593>) was opened with `Related to #1349`. It was
+  not rebased onto the latest `develop`, which changed only documentation outside `packages/http-core`;
+  `git merge-tree` reports no conflict.
+- 2026-10-21 07:55 UTC - GitHub Copilot - Copilot reviewed the S4 pull request head and raised one finding:
+  the event-delivery test never disabled usage statistics, so a bus gated on that policy would have passed.
+  It is fixed by turning four `container.rs` tests over the policy into tables (the file has 27 tests and the
+  package 144), with three new mutations killed only by the disabled cases. The review is audited in
+  `docs/pr-reviews/pr-2593-review/PR-REVIEW.md`. The package now reads lines 2,536 / 2,592 (97.84%), regions
+  3,264 / 3,324 (98.19%), functions 309 / 315 (98.10%).
 
 ## Acceptance Criteria
 

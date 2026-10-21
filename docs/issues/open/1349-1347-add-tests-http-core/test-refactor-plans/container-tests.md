@@ -109,8 +109,9 @@ completed-file review before its one signed commit.
 
 ## Prose-First AAA Review
 
-23 tests (15 cases in 13 functions for `initialize_from_services`) in four nested modules, one per entry point;
-20 tests when the file was first completed, before the review round below split three of them.
+27 tests (17 cases in 13 functions for `initialize_from_services`) in four nested modules, one per entry point;
+20 tests when the file was first completed, 23 after the independent review split three of them, and 27 after the
+pull-request review round below parameterized four over the usage-statistics policy.
 Each builds the tracker-core collaborators by hand (`TrackerCore`) and, except the `initialize` tests, a
 `Fixture` whose services publish to a `RecordingSender`. Every test reads as one arrangement, one call
 through the container, and whole-value assertions. No test calls a tracker-core production factory; the tests
@@ -118,18 +119,18 @@ of `initialize` call the function under test.
 
 | Test | Behavior it states | Cases | Expected value is |
 | --- | --- | --- | --- |
-| `the_http_tracker_core_services::it_should_deliver_the_events_of_the_services_sender_to_the_receivers_of_the_services_event_bus` | The services' sender and bus are one channel, and publication is enabled (#2039). | 1 | The event that was sent, read with `try_recv`. |
+| `the_http_tracker_core_services::it_should_deliver_the_events_of_the_services_sender_to_the_receivers_of_the_services_event_bus` | The services' sender and bus are one channel, and publication is enabled whatever the usage-statistics policy (#2039). | 2 (usage statistics enabled, disabled) | The event that was sent, read with `try_recv`. |
 | `...::it_should_not_share_the_event_bus_between_two_sets_of_services` and `...::it_should_not_share_the_statistics_repository_between_two_sets_of_services` | Each call creates its own bus and its own repository. | 1 each | `TryRecvError::Empty` on the other bus; distinct repositories. |
 | `...::it_should_start_with_a_fresh_statistics_repository` | The repository holds no samples. | 1 | The metrics of a new repository. |
 | `the_container_composed_from_services::it_should_expose_the_collaborators_it_was_composed_from` | The container publishes the exact collaborators it was given. | 1 | `Arc::ptr_eq` on five fields. |
-| `...::it_should_publish_the_announce_event_of_its_instance_with_the_public_url_to_the_services_sender` and `...scrape_event...` | Instance id, public URL and sender reach both services. | 1 each | A whole event with instance id 7 and a configured public URL. |
+| `...::it_should_publish_the_announce_event_of_its_instance_with_the_public_url_to_the_services_sender` and `...scrape_event...` | Instance id, public URL and sender reach both services, whatever the usage-statistics policy. | 2 each (usage statistics enabled, disabled) | A whole event with instance id 7 and a configured public URL. |
 | `...::it_should_resolve_the_client_of_an_announce_by_the_reverse_proxy_policy_of_the_http_tracker` and `...of_a_scrape...` | `network.on_reverse_proxy` reaches both services. | 2 each | A whole event whose client is the forwarded or the connection address. |
 | `...::it_should_honor_an_ip_in_the_query_string_when_the_http_tracker_is_configured_to_use_it` and `...::it_should_reject_an_ip_in_the_query_string_when_...not_configured_to_use_it` | `use_ip_from_query_string` reaches the announce service. | 1 each | A whole event with the query-string peer address, or `PeerIpOverrideDisabled` and no event. |
 | `...::it_should_reject_an_announce_without_a_key_when_the_tracker_core_is_private` and `...::it_should_zero_a_scrape_without_a_key_when_the_tracker_core_is_private` | The container's core config makes both services private. | 1 each | An authentication error with no peer stored, or zeroed swarm metadata for a swarm that has a seeder. |
 | `...::it_should_authenticate_both_services_with_the_keys_of_the_tracker_core` | Both services use the container's authentication service. | 1 | An accepted announce and one seeder in the scrape. |
 | `...::it_should_reject_an_announce_of_a_torrent_missing_from_the_whitelist_of_the_tracker_core` and `...::it_should_accept_an_announce_of_a_torrent_added_to_the_whitelist_of_the_tracker_core` | The announce service uses the container's whitelist. | 1 each | A whitelist error for an unlisted torrent; success after the torrent is added to the container's whitelist. |
 | `...::it_should_scrape_the_swarm_that_the_announce_service_registered_in_the_tracker_core` | Both services share the container's torrent repository. | 1 | One seeder; the torrent is in the repository. |
-| `the_container_composed_from_tracker_core::it_should_publish_the_events_of_both_services_to_its_own_event_bus` | `initialize_from_tracker_core` exposes the bus its services publish to. | 1 | The announce event, the scrape event, then an empty receiver. |
+| `the_container_composed_from_tracker_core::it_should_publish_the_events_of_both_services_to_its_own_event_bus` | `initialize_from_tracker_core` exposes the bus its services publish to, whatever the usage-statistics policy. | 2 (usage statistics enabled, disabled) | The announce event, the scrape event, then an empty receiver. |
 | `the_container_initialized_from_the_core_configuration::it_should_compose_the_tracker_core_over_the_configured_database_with_the_given_core_configuration` | `initialize` composes persistence and passes the core configuration on. | 1 | Persistence present; the same core config `Arc`. |
 | `...::it_should_publish_the_events_of_its_instance_with_the_public_url_to_its_own_event_bus` | `initialize` forwards the HTTP config and the instance id to the services. | 1 | A whole announce event with instance id 7 and the public URL, read from the container's bus. |
 | `...::it_should_panic_when_the_configured_database_cannot_be_initialized` | The documented `# Panics` contract. | 1 | The message of the `expect`. |
@@ -226,6 +227,38 @@ The counted lines include the 527 counted lines of the test module (834 lines in
 lines are still covered; the uncovered regions are three `matches!` failure branches in the test module (their
 line numbers moved when the tests were split, so lines 717 and 780 above are no longer current).
 
+### Pull-Request Review Round
+
+Copilot reviewed the pull request head and raised one finding (PR #2593, review 5596527098, recorded in the
+audit `docs/pr-reviews/pr-2593-review/PR-REVIEW.md`): the delivery test ran with `Core::default()`, whose
+`tracker_usage_statistics` is `true`, so it did not distinguish unconditional publication (the #2039 contract) from
+publication gated by that flag. This was a real gap and a survivor the plan had not hunted. It is fixed by
+turning four tests into tables over the usage-statistics policy (the tracker core's and the first HTTP tracker's, both
+set to the same value): the services' delivery test, the announce and scrape publication tests of the container
+composed from services, and the bus test of the container composed from tracker core. Each now has an enabled
+and a disabled case, so the file has 27 tests and the package 144.
+
+New mutations, each reverted:
+
+| ID | Temporary change | Result |
+| --- | --- | --- |
+| Q1 | `HttpTrackerCoreServices::initialize_from` creates the bus with the core's `tracker_usage_statistics` as its sender status | killed by the two disabled cases of the delivery test and the bus test; the enabled cases pass, so the earlier test let it survive |
+| Q2 | the announce service gets the sender only when the HTTP tracker's `tracker_usage_statistics` is true | killed by the disabled cases of the announce publication test and the bus test |
+| Q3 | the same for the scrape service | killed by the disabled cases of the scrape publication test and the bus test |
+
+Final measurement after this round (same commands, 2026-10-21 at about 07:50 UTC, production code still
+byte-identical to `fefefdd9e`):
+
+| Scope | Lines | Regions | Functions |
+| --- | --- | --- | --- |
+| `container.rs` | 518 / 520 (99.62%) | 675 / 678 (99.56%) | 58 / 58 (100.00%) |
+| Package `http-core` | 2,536 / 2,592 (97.84%) | 3,264 / 3,324 (98.19%) | 309 / 315 (98.10%) |
+
+The counted totals fell although tests were added: llvm-cov does not count the body lines of a test that is both an
+`rstest` table and a `#[tokio::test]` (the older reverse-proxy tables were never counted either, while plain
+`#[tokio::test]` bodies are), so converting four tests removed about 80 counted test-module lines. No production line
+lost coverage: all 73 are still covered, and the four tests still run in two cases each.
+
 ## Approval
 
 Approved by Jose Celano on 2026-10-20 (20:49 UTC): C1-C6, R3 as the `initialize` integration test, mutations M1-M7, D1 (hand-built tracker-core container) and D2 (test `initialize`, including the `#[should_panic]` test).
@@ -245,3 +278,7 @@ Approved by Jose Celano on 2026-10-20 (20:49 UTC): C1-C6, R3 as the `initialize`
   (a `match` in a test, tests with several reasons to fail, and a fixed missing directory) and no
   production or coverage problem. All are fixed in the review-round commit; the file has 23 tests and 598 / 600
   lines, and the Independent Review Round section above records the final figures.
+- 2026-10-21 07:55 UTC - GitHub Copilot - Copilot's review of the pull request found that the delivery test
+  did not exercise publication with usage statistics disabled. Four tests are now parameterized over the
+  policy, mutations Q1-Q3 are killed only by the disabled cases, and the file has 27 tests; the Pull-Request
+  Review Round section above records the figures.

@@ -347,6 +347,17 @@ mod tests {
         configuration
     }
 
+    /// Sets the usage-statistics policy of the tracker core and of the first HTTP tracker.
+    fn with_usage_statistics(mut configuration: Configuration, enabled: bool) -> Configuration {
+        configuration.core.tracker_usage_statistics = enabled;
+        configuration
+            .http_trackers
+            .as_mut()
+            .expect("the test configuration should contain an HTTP tracker")[0]
+            .tracker_usage_statistics = enabled;
+        configuration
+    }
+
     fn server_binding() -> ServiceBinding {
         ServiceBinding::new(Protocol::HTTP, SocketAddr::new(ip("127.0.0.1"), 7070)).unwrap()
     }
@@ -438,10 +449,16 @@ mod tests {
     mod the_http_tracker_core_services {
         use super::*;
 
+        #[rstest]
+        #[case::usage_statistics_enabled(true)]
+        #[case::usage_statistics_disabled(false)]
         #[tokio::test]
-        async fn it_should_deliver_the_events_of_the_services_sender_to_the_receivers_of_the_services_event_bus() {
-            // Arrange
-            let tracker_core = TrackerCore::new(&Core::default());
+        async fn it_should_deliver_the_events_of_the_services_sender_to_the_receivers_of_the_services_event_bus(
+            #[case] usage_statistics_enabled: bool,
+        ) {
+            // Arrange: the metrics policy must not suppress publication, so both values must deliver.
+            let configuration = with_usage_statistics(configuration::ephemeral_public(), usage_statistics_enabled);
+            let tracker_core = TrackerCore::new(&configuration.core);
             let services = HttpTrackerCoreServices::initialize_from(&tracker_core.container);
             let mut receiver = services.event_bus.receiver();
             let sender = services
@@ -543,12 +560,21 @@ mod tests {
             ));
         }
 
+        #[rstest]
+        #[case::usage_statistics_enabled(true)]
+        #[case::usage_statistics_disabled(false)]
         #[tokio::test]
-        async fn it_should_publish_the_announce_event_of_its_instance_with_the_public_url_to_the_services_sender() {
+        async fn it_should_publish_the_announce_event_of_its_instance_with_the_public_url_to_the_services_sender(
+            #[case] usage_statistics_enabled: bool,
+        ) {
             // Arrange
             let now = freeze_the_clock();
             let public_url = "https://tracker.example.com/";
-            let fixture = Fixture::new(&with_public_url(configuration::ephemeral_public(), public_url));
+            let configuration = with_usage_statistics(
+                with_public_url(configuration::ephemeral_public(), public_url),
+                usage_statistics_enabled,
+            );
+            let fixture = Fixture::new(&configuration);
             let connection_ip = ip("192.0.2.10");
 
             // Act
@@ -563,11 +589,20 @@ mod tests {
             assert_eq!(fixture.sender.events(), vec![expected_event]);
         }
 
+        #[rstest]
+        #[case::usage_statistics_enabled(true)]
+        #[case::usage_statistics_disabled(false)]
         #[tokio::test]
-        async fn it_should_publish_the_scrape_event_of_its_instance_with_the_public_url_to_the_services_sender() {
+        async fn it_should_publish_the_scrape_event_of_its_instance_with_the_public_url_to_the_services_sender(
+            #[case] usage_statistics_enabled: bool,
+        ) {
             // Arrange
             let public_url = "https://tracker.example.com/";
-            let fixture = Fixture::new(&with_public_url(configuration::ephemeral_public(), public_url));
+            let configuration = with_usage_statistics(
+                with_public_url(configuration::ephemeral_public(), public_url),
+                usage_statistics_enabled,
+            );
+            let fixture = Fixture::new(&configuration);
 
             // Act
             fixture.scraped_metadata(None).await;
@@ -845,13 +880,17 @@ mod tests {
     mod the_container_composed_from_tracker_core {
         use super::*;
 
+        #[rstest]
+        #[case::usage_statistics_enabled(true)]
+        #[case::usage_statistics_disabled(false)]
         #[tokio::test]
-        async fn it_should_publish_the_events_of_both_services_to_its_own_event_bus() {
+        async fn it_should_publish_the_events_of_both_services_to_its_own_event_bus(#[case] usage_statistics_enabled: bool) {
             // Arrange
             let now = freeze_the_clock();
             let connection_ip = ip("192.0.2.10");
-            let tracker_core = TrackerCore::new(&Core::default());
-            let http_tracker_config = Arc::new(first_http_tracker_of(&configuration::ephemeral_public()));
+            let configuration = with_usage_statistics(configuration::ephemeral_public(), usage_statistics_enabled);
+            let tracker_core = TrackerCore::new(&configuration.core);
+            let http_tracker_config = Arc::new(first_http_tracker_of(&configuration));
             let container = HttpTrackerCoreContainer::initialize_from_tracker_core(
                 &tracker_core.container,
                 &http_tracker_config,

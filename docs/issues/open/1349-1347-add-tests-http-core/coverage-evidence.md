@@ -262,24 +262,24 @@ The file's 7 tests are now 29 cases in 10 test functions (27 when the file was f
 
 ### `container.rs` (slice S4)
 
-Measured on 2026-10-21 after the independent review round, on the S4 branch, whose production code is identical to `develop` at the merge of #2586. The plan is [container-tests.md](test-refactor-plans/container-tests.md).
+Measured on 2026-10-21 after the pull-request review round, on the S4 branch, whose production code is identical to `develop` at the merge of #2586. The plan is [container-tests.md](test-refactor-plans/container-tests.md).
 
 | Scope | Before (S4 baseline) | After |
 | --- | ---: | ---: |
-| `container.rs` lines | 0 / 73 (0.00%) | 598 / 600 (99.67%) |
-| `container.rs` regions | 0 / 89 (0.00%) | 808 / 811 (99.63%) |
-| `container.rs` functions | 0 / 5 (0.00%) | 65 / 65 (100.00%) |
+| `container.rs` lines | 0 / 73 (0.00%) | 518 / 520 (99.62%) |
+| `container.rs` regions | 0 / 89 (0.00%) | 675 / 678 (99.56%) |
+| `container.rs` functions | 0 / 5 (0.00%) | 58 / 58 (100.00%) |
 
-The file had no tests. It now has 23, in four modules, one per entry point (20 when first completed; the review round split three tests). The counted lines include the new test module (527 counted lines); all 73 production lines are covered, and the uncovered regions are `matches!` failure branches in the test module. One mutation survived: the swarm registry's usage-statistics flag in `initialize`, which no part of this package can observe (see the plan).
+The file had no tests. It now has 27, in four modules, one per entry point (20 when first completed; the independent review split three tests and the pull-request review parameterized four over the usage-statistics policy). The counted lines include the new test module; all 73 production lines are covered, and the uncovered regions are `matches!` failure branches in the test module. llvm-cov does not count the body lines of a test that is both an `rstest` table and a `#[tokio::test]`, which is why the counted totals fell by 80 lines when four tests became tables, while the production lines stayed covered. One mutation survived: the swarm registry's usage-statistics flag in `initialize`, which no part of this package can observe (see the plan).
 
 ### Package After Slice S4
 
-Measured on 2026-10-21 after the independent review round, with the same commands. The package has 140 unit tests (95 at the S4 baseline).
+Measured on 2026-10-21 after the pull-request review round, with the same commands. The package has 144 unit tests (95 at the S4 baseline).
 
 | Scope | Original baseline (`87690b15e`) | After slice S3 | S4 baseline (`fefefdd9e`) | After slice S4 |
 | --- | ---: | ---: | ---: | ---: |
-| Lines | 1,751 / 1,970 (88.88%) | 1,949 / 2,102 (92.72%) | 2,040 / 2,197 (92.85%) | 2,616 / 2,672 (97.90%) |
-| Regions | 2,357 / 2,607 (90.41%) | 2,566 / 2,743 (93.55%) | 2,664 / 2,845 (93.64%) | 3,397 / 3,457 (98.26%) |
-| Functions | 161 / 191 (84.29%) | 233 / 249 (93.57%) | 244 / 260 (93.85%) | 316 / 322 (98.14%) |
+| Lines | 1,751 / 1,970 (88.88%) | 1,949 / 2,102 (92.72%) | 2,040 / 2,197 (92.85%) | 2,536 / 2,592 (97.84%) |
+| Regions | 2,357 / 2,607 (90.41%) | 2,566 / 2,743 (93.55%) | 2,664 / 2,845 (93.64%) | 3,264 / 3,324 (98.19%) |
+| Functions | 161 / 191 (84.29%) | 233 / 249 (93.57%) | 244 / 260 (93.85%) | 309 / 315 (98.10%) |
 
-Since the original baseline the package gained +9.02 pp of lines, +7.85 pp of regions and +13.85 pp of functions. Most of the S4 line gain is the test module of `container.rs`, which counts toward the totals; the per-file mutation proof in each plan is the stronger signal. The S3 column is not comparable line by line with the S4 baseline because #2414 changed `statistics/event/listener.rs` in between.
+Since the original baseline the package gained +8.96 pp of lines, +7.78 pp of regions and +13.81 pp of functions. Most of the S4 line gain is the test module of `container.rs`, which counts toward the totals; the per-file mutation proof in each plan is the stronger signal. The S3 column is not comparable line by line with the S4 baseline because #2414 changed `statistics/event/listener.rs` in between.
