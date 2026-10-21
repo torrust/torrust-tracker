@@ -40,8 +40,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Five reviews were submitted so far, all by Copilot. Each body repeats its inline threads, so the bodies add
-no rows.
+Six reviews were submitted so far, five by Copilot and one by the reviewer `da2ce7`. Each body repeats its
+inline threads, so the bodies add no rows.
 
 - Review 5599696060 read the head whose subject is "feat(ci-gate): [#2525] add the GitHub adapter of the merge
   verdict". It carries four inline threads, F1 to F4.
@@ -56,6 +56,11 @@ no rows.
 - Review 5603718492 read the head whose subject is "docs(pr-reviews): record the fourth review round in the PR #2610
   audit". It marks F10 and F11 as resolved and carries one inline thread, F12, a different property of the same
   test helper, so it is an original finding.
+- Review 5604832273, by `da2ce7`, state `CHANGES_REQUESTED`, read the head whose subject is "docs(pr-reviews):
+  record the fifth review round in the PR #2610 audit". Its body says that a round computed at the earlier head
+  was never posted, so its findings are numbered from F13 and re-verified at this head. It carries nine inline
+  threads, F13 to F21, each with a severity in its own bracket, and says that all twelve threads of the review bot
+  are resolved and repaired by the commits the record names.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -71,6 +76,15 @@ no rows.
 | F10 | review-finding:pr-2610-f10 | Copilot | Nit (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
 | F11 | review-finding:pr-2610-f11 | Copilot | Nit (inferred) | testing | RE_RAISE_OF:F10 | NO_ACTION | SUPERSEDED |
 | F12 | review-finding:pr-2610-f12 | Copilot | Nit (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
+| F13 | review-finding:pr-2610-f13 | Human | Major | correctness | ORIGINAL | FIXED | RESOLVED |
+| F14 | review-finding:pr-2610-f14 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F15 | review-finding:pr-2610-f15 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F16 | review-finding:pr-2610-f16 | Human | Suggestion | correctness | ORIGINAL | FIXED | RESOLVED |
+| F17 | review-finding:pr-2610-f17 | Human | Suggestion | testing | ORIGINAL | FIXED | RESOLVED |
+| F18 | review-finding:pr-2610-f18 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F19 | review-finding:pr-2610-f19 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F20 | review-finding:pr-2610-f20 | Human | Nit | testing | ORIGINAL | FIXED | RESOLVED |
+| F21 | review-finding:pr-2610-f21 | Human | Nit | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
 
 ## Finding Details
 
@@ -230,6 +244,123 @@ no rows.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4340710055>
 
+### F13 - The permission endpoint never says maintain, so a Maintain-role override is always refused
+
+- PR number: 2610
+- Source review ID: 5604832273
+- Reviewer finding ID: F13
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4340837004>
+- Concern: the adapter reads the `permission` field of the collaborator permission endpoint and accepts only `admin` or `maintain`. GitHub documents that field as the legacy base role (`admin`, `write`, `read`, `none`), with the Maintain role reported as `write`; the role itself is `role_name`. A Maintain-role collaborator is therefore refused, which contradicts the module documentation, the T5 design, and AC3. The test case for `maintain` feeds a value that field does not carry, and the sandbox saw only `admin` and `read`. Read `role_name`, decide how a custom role based on Maintain counts, and use a fixture shaped like the real response.
+- Solution: the adapter reads `role_name`. Only `admin` and `maintain` count and a custom role never does, even when it extends one of them, which fails closed and is a decision the reply asks the reviewer to confirm. The fixtures have the shape of the real response, with both fields, derived from the role by a helper that follows GitHub's documented mapping; a response without `role_name` is refused with a reason. The module documentation, the T5 decision (b) in the specification, and V10 (a correction) and V11 say the same.
+- Current-tree verification: a new test of a Maintain-role actor, with a `permission` of `write`, failed against the old code. Mutants that accept only `admin`, that accept `write`, and that accept any role that starts or ends with the name are each killed (the third survived until a case with `admin` in the name of a custom role was added). The real responses of three collaborators of the repository are in V11; none has the Maintain role, so the mapping of Maintain to `write` is taken from GitHub's description and not observed.
+- Resolution reference: fix(ci-gate): [#2525] read the role of the actor from role_name, not permission
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4340990414
+
+### F14 - The 11:23 progress log entry is rewritten each round
+
+- PR number: 2610
+- Source review ID: 5604832273
+- Reviewer finding ID: F14
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4340837163>
+- Concern: the entry dated 11:23 had its counts replaced in each later round, so it now says `209 unit and 23 command-line tests, 27 of 27 mutants`, while the round entries below it say `Now 200 unit and 18` and so on; at 11:23 neither those tests nor those mutants existed. Restore the 11:23 counts, and let V11 carry the current totals.
+- Solution: the entry says again `198 unit and 18 command-line tests, 16 of 16 mutants killed`, as it did when it was written. The later totals stay in the round entries and in V11.
+- Current-tree verification: the original text was taken from the commit that wrote it, `git show be161e208`.
+- Resolution reference: docs(issues): [#2525] restore the counts of the 11:23 progress log entry
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4340990705
+
+### F15 - The documentation of override_ignored omits four of the reasons the code gives
+
+- PR number: 2610
+- Source review ID: 5604832273
+- Reviewer finding ID: F15
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4340837173>
+- Concern: the documentation lists a stale label, an actor who may not override, no `labeled` event, and unreadable events, check suites, or permission. The code also returns that the actor is not known, that the login is not valid, that the head commit has no check suite, and the not-in-the-form-of reason. The body of an earlier commit says to list every case, and the audit's F1 verification says the documentation matches. Add the four reasons or say the list is not exhaustive.
+- Solution: the documentation is a list of every reason: the labels cannot be read; no `labeled` event was found or the events cannot be read; the actor is not known or not a valid login; the check suites cannot be read or there is none; a time is not in GitHub's form; the label was applied at or before the first check suite; the role cannot be read or is not `admin` or `maintain`.
+- Current-tree verification: each item was matched to a return of `assess_override` and `judge_override`; the documentation build passes with warnings denied.
+- Resolution reference: docs(ci-gate): [#2525] list every reason an override can be ignored
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4340990979
+
+### F16 - Make the check-run request independent of the default filter
+
+- PR number: 2610
+- Source review ID: 5604832273
+- Reviewer finding ID: F16
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4340837185>
+- Concern: the request leaves `filter` at its default, `latest`, but the rules assume that every run of a group job is listed: a later skipped run must not hide an earlier result, and the highest id wins among all runs. If the default omits a superseded run of the same name, that case reads as missing in production while the fixture passes. Add `&filter=all` to the request and the fixture paths.
+- Solution: the request is `check-runs?filter=all&per_page=100` and the fixture paths follow.
+- Current-tree verification: the fixture tests failed before the change. On the real head commit `74b3000e9`, the request with and without the parameter lists the same 22 runs, so it shows only that GitHub accepts the parameter.
+- Resolution reference: fix(ci-gate): [#2525] ask for every check run, not only the latest of each name
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4340991334
+
+### F17 - is_login and two error paths of assess_override have no test
+
+- PR number: 2610
+- Source review ID: 5604832273
+- Reviewer finding ID: F17
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4340837203>
+- Concern: no test calls `is_login` or reaches the branch that refuses a login, and no scenario makes the labels request or the check-suites request fail. Add a rule table for `is_login` and two `.failing(...)` scenarios.
+- Solution: a rule table of ten logins, a scenario with an actor that is not a valid login that also asserts that no request for the role is made, and one scenario each for the failing labels request and the failing check-suites request.
+- Current-tree verification: five mutants are each killed: `is_login` always true, accepting the empty name, accepting a slash, an unreadable list of labels read as no label, and an unreadable list of check suites read as none. `cargo test -p ci-gate` passes with 226 unit and 23 command-line tests.
+- Resolution reference: test(ci-gate): [#2525] cover is_login and the unreadable labels and check suites
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4340991707
+
+### F18 - F7 to F9 carry an inferred severity without (inferred)
+
+- PR number: 2610
+- Source review ID: 5604832273
+- Reviewer finding ID: F18
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4340837222>
+- Concern: the three comments of the review have no severity bracket, so `Suggestion` was derived from free prose, and the Status Values say to append `(inferred)` in that case, as the other rows do.
+- Solution: the rows of F7, F8, and F9 say `Suggestion (inferred)`.
+- Current-tree verification: the audit validator passes.
+- Resolution reference: docs(pr-reviews): mark the severity of F7 to F9 in the PR #2610 audit as inferred
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4340992161
+
+### F19 - The 18:54 log entry has no date, so the validator does not see it
+
+- PR number: 2610
+- Source review ID: 5604832273
+- Reviewer finding ID: F19
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4340837233>
+- Concern: the entry starts with a time and not with a date, so the validator's entry pattern does not match it: it reports one entry fewer than there are and never checks the order of that one.
+- Solution: the entry starts with its date.
+- Current-tree verification: the validator now reports 13 log entries. That it skipped an entry it could not read, instead of reporting it, is a limit of the script, not changed here.
+- Resolution reference: docs(pr-reviews): date the 18:54 log entry of the PR #2610 audit
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4340992445
+
+### F20 - This test's name promises the cause, but it asserts only the directory
+
+- PR number: 2610
+- Source review ID: 5604832273
+- Reviewer finding ID: F20
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4340837246>
+- Concern: the test is named for the directory and the cause, but the assertion checks only that the message contains the path, so a mutant that drops the cause from the message would pass. Assert a known part of the cause, or name the test after what it checks.
+- Solution: the test takes the cause from removing the same file as a directory and asserts that the message contains it.
+- Current-tree verification: a mutant that leaves the cause out of the message is killed. It was run after the commit: the first mutation script stopped on its own assertion because the formatter had wrapped the text, so it changed nothing, and the second run killed it.
+- Resolution reference: test(ci-gate): [#2525] assert the cause in the cleanup failure message
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4340992743
+
+### F21 - The lint-fix commit does not pass the pre-commit gate on its own
+
+- PR number: 2610
+- Source review ID: 5604832273
+- Reviewer finding ID: F21
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4340837258>
+- Concern: the first commit of the round used `eprintln!`, which `clippy::print_stderr` denies, and was not formatted; the body of the next commit says it was committed without gating. The pre-commit verification is mandatory before every commit, so fold the second commit into the first before merge to keep every commit green for bisecting.
+- Solution: no change. The repository's branch rules say not to squash, fix up, or rewrite history to hide steps that were later superseded, and a rewrite would invalidate the commit ids the reviews cite. The mistake and its correction stay as two commits, and the correction's message says what happened.
+- Current-tree verification: the first commit fails and the second passes, as the finding says; the tip of the branch passes the pre-commit and pre-push gates.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4340992984>
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4340992984
+
 ## Processing Log
 
 - 2026-10-21 12:33 UTC - Copilot's review arrived with four threads, F1 to F4.
@@ -260,6 +391,13 @@ no rows.
 - 2026-10-21 18:54 UTC - Fixed it test-first in two signed commits (the first was committed without running the formatter and
   clippy, which rejected it), recorded the round in the specification, pushed, replied, and added F12 to this
   record.
+- 2026-10-21 19:08 UTC - The watcher reported nine threads of the reviewer `da2ce7`, review 5604832273 at 19:07
+  UTC, a review of the pushed head. Read them and checked F13 against the real API and GitHub's description before
+  touching code: it is correct.
+- 2026-10-21 19:22 UTC - Fixed F13, F14, F15, F16, F17, F18, F19, and F20 in one signed commit each, test-first where
+  there was behavior, with mutants, and gated on the formatter, clippy, and the tests; two further commits fixed a
+  spelling slip of mine and recorded the round in the specification. Declined F21 with the reason. Pushed, replied
+  on the nine threads, and added F13 to F21 to this record.
 
 ## Completion Rules
 
