@@ -259,3 +259,27 @@ Measured on 2026-10-20 on the S4 branch, whose production code is identical to `
 | `event.rs` functions | 15 / 20 (75.00%) | 22 / 22 (100.00%) |
 
 The file's 7 tests are now 27 cases in 10 test functions. The 30 uncovered lines before were the four unused accessors (12 lines) and the dead `announce_events_match` helper (removed with its module); the accessors are now pinned as public API. The package has 115 unit tests (95 at the S4 baseline).
+
+### `container.rs` (slice S4)
+
+Measured on 2026-10-20 on the S4 branch, whose production code is identical to `develop` at the merge of #2586. The plan is [container-tests.md](test-refactor-plans/container-tests.md).
+
+| Scope | Before (S4 baseline) | After |
+| --- | ---: | ---: |
+| `container.rs` lines | 0 / 73 (0.00%) | 582 / 584 (99.66%) |
+| `container.rs` regions | 0 / 89 (0.00%) | 774 / 777 (99.61%) |
+| `container.rs` functions | 0 / 5 (0.00%) | 60 / 60 (100.00%) |
+
+The file had no tests. It now has 20, in four modules, one per entry point. The counted lines include the new test module (511 counted lines); all 73 production lines are covered, and the two uncovered lines are the failure branches of two `matches!` assertions. One mutation survived: the swarm registry's usage-statistics flag in `initialize`, which no part of this package can observe (see the plan).
+
+### Package After Slice S4
+
+Measured on 2026-10-20 after the `container.rs` commit with the same commands. The package has 135 unit tests (95 at the S4 baseline).
+
+| Scope | Original baseline (`87690b15e`) | After slice S3 | S4 baseline (`fefefdd9e`) | After slice S4 |
+| --- | ---: | ---: | ---: | ---: |
+| Lines | 1,751 / 1,970 (88.88%) | 1,949 / 2,102 (92.72%) | 2,040 / 2,197 (92.85%) | 2,600 / 2,656 (97.89%) |
+| Regions | 2,357 / 2,607 (90.41%) | 2,566 / 2,743 (93.55%) | 2,664 / 2,845 (93.64%) | 3,363 / 3,423 (98.25%) |
+| Functions | 161 / 191 (84.29%) | 233 / 249 (93.57%) | 244 / 260 (93.85%) | 311 / 317 (98.11%) |
+
+Since the original baseline the package gained +9.01 pp of lines, +7.84 pp of regions and +13.82 pp of functions. Most of the S4 line gain is the test module of `container.rs`, which counts toward the totals; the per-file mutation proof in each plan is the stronger signal. The S3 column is not comparable line by line with the S4 baseline because #2414 changed `statistics/event/listener.rs` in between.

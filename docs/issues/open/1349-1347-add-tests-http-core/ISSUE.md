@@ -9,7 +9,7 @@ github-issue: 1349
 spec-path: docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md
 branch: "1349-1347-add-tests-http-core-events-container"
 related-pr: null
-last-updated-utc: "2026-10-20 20:41"
+last-updated-utc: "2026-10-21 07:00"
 semantic-links:
   skill-links:
     - create-issue
@@ -454,7 +454,7 @@ lines are the S2 baseline measurement (see [Baseline Coverage](#baseline-coverag
 | 2 | `services/error_mapping.rs` | 2 | S2 | 0 / 18 (0.00%) | 0 | Test candidate | DONE | [services-error-mapping-tests.md](test-refactor-plans/services-error-mapping-tests.md) (done; 26 / 29 lines after, wildcard arm untestable) |
 | 3 | `services/scrape.rs` | 3 | S3 | 507 / 540 (93.89%) | 8 | Test candidate (error paths) | DONE | [services-scrape-tests.md](test-refactor-plans/services-scrape-tests.md) (done; 533 / 537 lines after) |
 | 4 | `event.rs` | 4 | S4 | 174 / 187 (93.05%) | 7 | Probably small change | DONE | [event-tests.md](test-refactor-plans/event-tests.md) (done; 135 / 135 lines after) |
-| 5 | `container.rs` | 5 | S4 | 0 / 73 (0.00%) | 0 | Test candidate | PENDING | - |
+| 5 | `container.rs` | 5 | S4 | 0 / 73 (0.00%) | 0 | Test candidate | DONE | [container-tests.md](test-refactor-plans/container-tests.md) (done; 20 tests, all 73 production lines covered) |
 | 6 | `statistics/event/handler.rs` | 6 | S5 | 158 / 161 (98.14%) | 5 | Probably no change | PENDING | - |
 | 7 | `statistics/event/listener.rs` | 6 | S5 | 133 / 148 (89.86%) | 4 | Lifecycle (#1488) | PENDING | - |
 | 8 | `statistics/metrics.rs` | 6 | S5 | 48 / 57 (84.21%) | 1 | Test candidate | PENDING | - |
@@ -671,6 +671,12 @@ lines are the S2 baseline measurement (see [Baseline Coverage](#baseline-coverag
   and `pub mod test` are gone, and the four unused accessors are pinned as public API. Coverage of the file
   is 135 / 135 lines, 184 / 184 regions and 22 / 22 functions; the package has 115 unit tests. Mutations
   L1-L4 and six extra probes were killed.
+- 2026-10-21 07:00 UTC - GitHub Copilot - `container.rs` is `DONE` (S4): the plan was approved on
+  2026-10-20 at 20:49 UTC with D1 (hand-built tracker-core container) and D2 (test `initialize`), and the
+  maintainer approved the completed file. The file went from 0 to 20 tests and all 73 production lines are
+  covered; the package has 135 unit tests and 97.89% of lines. Mutations M1-M7 and eight extra probes were
+  killed; one survived (the swarm registry's usage-statistics flag in `initialize`, not observable from this
+  package) and is recorded in the plan with its owner.
 
 ## Acceptance Criteria
 
