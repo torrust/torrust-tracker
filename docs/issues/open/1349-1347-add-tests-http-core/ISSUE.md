@@ -8,8 +8,8 @@ epic: 1347
 github-issue: 1349
 spec-path: docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md
 branch: "1349-1347-add-tests-http-core-statistics"
-related-pr: null
-last-updated-utc: "2026-10-21 11:12"
+related-pr: 2608
+last-updated-utc: "2026-10-21 11:18"
 semantic-links:
   skill-links:
     - create-issue
@@ -337,7 +337,7 @@ open a PR, get it reviewed, and merge it. The spec-only PR comes first.
 | S2 | Announce service and its error mapping (ranks 1-2) | 1-2 | `1349-1347-add-tests-http-core-announce` | #2575 | DONE |
 | S3 | Scrape service (rank 3) | 3 | `1349-1347-add-tests-http-core-scrape` | #2586 | DONE |
 | S4 | Events and composition (ranks 4-5) | 4-5 | `1349-1347-add-tests-http-core-events-container` | #2593 | DONE |
-| S5 | Statistics (rank 6) | 6-10 | `1349-1347-add-tests-http-core-statistics` | - | IN_PROGRESS |
+| S5 | Statistics (rank 6) | 6-10 | `1349-1347-add-tests-http-core-statistics` | #2608 | IN_PROGRESS |
 | S6 | Crate root and wiring (rank 7), then T5-T8 | 11-13 | `1349-1347-add-tests-http-core-final` | - | TODO |
 
 Rules:
@@ -737,6 +737,10 @@ lines are the S2 baseline measurement (see [Baseline Coverage](#baseline-coverag
   tests: lines 2,974 / 2,996 (99.27%), regions 3,875 / 3,905 (99.23%), functions 372 / 373 (99.73%). The reviewer
   also asks that the `tcp4`/`tcp6` "peers" wording question (the getters select on the server binding's family)
   be carried into `lessons.md` in the retrospective, so it is not lost.
+- 2026-10-21 11:18 UTC - GitHub Copilot - The pre-push checks passed and the S5 pull request #2608
+  (<https://github.com/torrust/torrust-tracker/pull/2608>) was opened with `Related to #1349`. It was not
+  rebased onto the latest `develop`, which changed only documentation outside `packages/http-core`;
+  `git merge-tree` reports no conflict.
 
 ## Acceptance Criteria
 
