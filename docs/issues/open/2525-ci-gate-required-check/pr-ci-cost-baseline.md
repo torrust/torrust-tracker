@@ -90,8 +90,8 @@ Whole window, per run, by class.
 
 `Docs Lint` is the only workflow a documentation-only pull request runs, so it is what the gate's added
 cost will be compared with. Across all 444 `Docs Lint` runs the median is 0.88 minutes and the mean is
-1.2. The runs form two groups: 394 take under 1.5 minutes, and 48 (11%) take 3.0 to 4.9 minutes, 17 of
-them on documentation-only pull requests; only 2 fall in between. The slow runs occur on 7 of the 12
+1.2. The runs form two groups: 392 take under 1.5 minutes, and 48 (11%) take 3.0 to 4.9 minutes; only 4
+fall in between (1.65, 1.78, 2.83 and 2.98 minutes). The slow runs occur on 7 of the 12
 days that have runs. The workflow installs the linter with `cargo install --locked torrust-linting`
 behind a Rust cache, so the slow runs are probably cache misses; this was not confirmed. A documentation-only
 head therefore costs about 0.85 minutes typically, and about 4.5 minutes one time in nine.
