@@ -368,10 +368,24 @@ impl FakeGh {
     }
 }
 
+/// Removes a fixture directory and says what went wrong, if anything. A directory that is already gone is not a
+/// failure.
+#[cfg(unix)]
+fn remove_fixture_directory(directory: &std::path::Path) -> Option<String> {
+    match std::fs::remove_dir_all(directory) {
+        Ok(()) => None,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => None,
+        Err(error) => Some(format!("could not remove the fixture directory {}: {error}", directory.display())),
+    }
+}
+
 #[cfg(unix)]
 impl Drop for FakeGh {
     fn drop(&mut self) {
-        drop(std::fs::remove_dir_all(&self.directory));
+        // Not a panic: a second panic while one is unwinding aborts the test process and hides the first.
+        if let Some(message) = remove_fixture_directory(&self.directory) {
+            eprintln!("{message}");
+        }
     }
 }
 
@@ -671,5 +685,53 @@ fn it_should_keep_the_fake_gh_directory_inside_the_temporary_directory_whatever_
         gh.directory.parent(),
         Some(std::env::temp_dir().as_path()),
         "the directory is removed recursively when the fixture is dropped, so a test name must not be able to choose where it is"
+    );
+}
+
+#[cfg(unix)]
+#[test]
+fn it_should_remove_the_directory_and_report_nothing_when_the_cleanup_succeeds() {
+    // Arrange
+    let directory = std::env::temp_dir().join(format!("ci-gate-cleanup-ok-{}", std::process::id()));
+    std::fs::create_dir_all(directory.join("nested")).expect("the directory can be created");
+
+    // Act
+    let report = remove_fixture_directory(&directory);
+
+    // Assert
+    assert_eq!(report, None, "a successful cleanup has nothing to report");
+    assert!(!directory.exists(), "the cleanup must remove the directory and what it contains");
+}
+
+#[cfg(unix)]
+#[test]
+fn it_should_report_nothing_when_the_directory_to_clean_up_is_already_gone() {
+    // Arrange
+    let directory = std::env::temp_dir().join(format!("ci-gate-cleanup-gone-{}", std::process::id()));
+    assert!(!directory.exists(), "the test needs a directory that does not exist");
+
+    // Act
+    let report = remove_fixture_directory(&directory);
+
+    // Assert
+    assert_eq!(report, None, "a directory that is already gone is not a failed cleanup");
+}
+
+#[cfg(unix)]
+#[test]
+fn it_should_report_the_directory_and_the_cause_when_the_cleanup_fails() {
+    // Arrange
+    let not_a_directory = std::env::temp_dir().join(format!("ci-gate-cleanup-fails-{}", std::process::id()));
+    std::fs::write(&not_a_directory, "a file cannot be removed as a directory").expect("the file can be written");
+
+    // Act
+    let report = remove_fixture_directory(&not_a_directory);
+    std::fs::remove_file(&not_a_directory).expect("the file can be removed");
+
+    // Assert
+    let message = report.expect("a cleanup that fails must be reported, or stray directories go unnoticed");
+    assert!(
+        message.contains(&not_a_directory.display().to_string()),
+        "the message must say which directory was left behind: {message}"
     );
 }
