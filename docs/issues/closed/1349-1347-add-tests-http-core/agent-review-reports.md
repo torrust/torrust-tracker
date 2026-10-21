@@ -2,7 +2,7 @@
 semantic-links:
   related-artifacts:
     - .github/agents/task-reviewer.agent.md
-    - docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md
+    - docs/issues/closed/1349-1347-add-tests-http-core/ISSUE.md
 ---
 
 # Agent Review Reports - Issue #1349 Add Tests to the http-core Package

@@ -7,7 +7,7 @@ status: done
 semantic-links:
   related-artifacts:
     - packages/http-core/src/statistics/event/mod.rs
-    - docs/issues/open/1349-1347-add-tests-http-core/coverage-evidence.md
+    - docs/issues/closed/1349-1347-add-tests-http-core/coverage-evidence.md
 ---
 
 # HTTP Core Statistics Event Module File Test Plan

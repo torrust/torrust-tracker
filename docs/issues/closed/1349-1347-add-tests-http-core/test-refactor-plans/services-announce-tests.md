@@ -9,7 +9,7 @@ semantic-links:
     - packages/http-core/src/services/announce.rs
     - packages/http-core/src/services/error_mapping.rs
     - packages/tracker-core/src/databases/traits/torrent_metrics.rs
-    - docs/issues/open/1349-1347-add-tests-http-core/coverage-evidence.md
+    - docs/issues/closed/1349-1347-add-tests-http-core/coverage-evidence.md
 ---
 
 # HTTP Core Announce Service File Test Plan
