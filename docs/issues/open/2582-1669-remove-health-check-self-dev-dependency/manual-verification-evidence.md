@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2582-1669-remove-health-check-self-dev-dependency/ISSUE.md
-last-updated-utc: 2026-10-21 09:39
+last-updated-utc: 2026-10-21 09:51
 ---
 
 # Manual Verification Evidence
@@ -235,6 +235,99 @@ Fix the errors above before pushing.
 The pre-push step is red for this defect and stops the hook before the full test suite. It ran
 despite the dirty tree, so `--allow-dirty` works as intended. The `.tmp/` log is not kept; the
 relevant lines are above.
+
+### V6 - Green and like-for-like recheck after the fix
+
+- Goal: repeat V1 exactly on the fixed tree (M2), and show the crate's tests, the pre-push step and
+  the CI job green (AC2, AC3, AC4, AC5).
+- Initial state: branch at the commit
+  "fix(axum-health-check-api-server): [#2582] remove the self dev-dependency", which is the last
+  production change; clean tree (`git status --short` printed nothing).
+- Environment: same as V3 locally; the hosted runner as in V4.
+- Status: `DONE` (outcome: **green**)
+
+#### Steps Performed
+
+1. 2026-10-21 09:44:14 UTC `cargo package --workspace --no-verify` (V1's command); exited `0` at
+   09:44:39 UTC.
+2. 09:45:11 UTC `TORRUST_GIT_HOOKS_LOG_DIR=.tmp ./contrib/dev-tools/git/hooks/pre-push.sh`;
+   exited `0` at 09:46:36 UTC.
+3. 09:46:43 UTC `cargo test -p torrust-tracker-axum-health-check-api-server`; exited `0`.
+4. `git push josecelano 2582-1669-remove-health-check-self-dev-dependency` started the fork's
+   `Testing` workflow,
+   [run 39579798653](https://github.com/josecelano/torrust-tracker/actions/runs/39579798653); its
+   `Workspace Packaging` job
+   ([job 119154295112](https://github.com/josecelano/torrust-tracker/actions/runs/39579798653/job/119154295112))
+   ran from 09:48:28 to 09:48:51 UTC on the fix commit and concluded `success`. The log was
+   downloaded as in V4.
+
+#### Observed Result
+
+Step 1: 32 `Packaging` and 32 `Packaged` lines (every workspace member), no error. The health check
+crate now packages:
+
+```text
+   Packaging torrust-tracker-axum-health-check-api-server v0.1.0 (<repo>/packages/axum-health-check-api-server)
+    Updating crates.io index
+    Packaged 18 files, 203.9KiB (54.3KiB compressed)
+```
+
+The output also has seven `warning: manifest has no license, license-file, documentation, homepage
+or repository` (or `no documentation, homepage or repository`) lines. Each precedes the
+`Packaging` line of one of the seven `contrib/dev-tools/` crates (`agent-review-report-contract`,
+`ci-gate`, `clippy-allow-reasons`, `frontmatter-validator`, `github-review-threads`,
+`package-coverage-check`, `workspace-coupling`), which all set `publish = false`. They are
+warnings, not errors, and out of scope.
+
+Step 2:
+
+```text
+Running pre-push checks...
+Note: these checks can take several minutes. If Git reports a closed SSH connection after they pass, see <repository root>/docs/git-hooks.md.
+
+[Step 1/6] Checking format with nightly toolchain ... PASS (0s)
+[Step 2/6] Checking workspace with nightly toolchain ... PASS (1s)
+[Step 3/6] Building documentation with nightly toolchain ... PASS (7s)
+[Step 4/6] Building library documentation with nightly toolchain ... PASS (4s)
+[Step 5/6] Checking that every workspace crate can be packaged ... PASS (37s)
+[Step 6/6] Running all tests ... PASS (36s)
+==========================================
+SUCCESS: All pre-push checks passed! (1m 25s)
+==========================================
+
+You can now safely push your changes.
+```
+
+Step 3:
+
+```text
+     Running unittests src/lib.rs (target/debug/deps/torrust_tracker_axum_health_check_api_server-9fb5f44dbd97c5bb)
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+     Running tests/integration.rs (target/debug/deps/integration-66a0ce008e79654d)
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.04s
+   Doc-tests torrust_tracker_axum_health_check_api_server
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+```
+
+Step 4: 32 `Packaging` lines; the step's excerpt:
+
+```text
+2026-10-21T09:48:40.4198651Z ##[group]Run cargo package --workspace --no-verify
+...
+2026-10-21T09:48:46.6241625Z    Packaging torrust-tracker-axum-health-check-api-server v0.1.0 (/home/runner/work/torrust-tracker/torrust-tracker/packages/axum-health-check-api-server)
+2026-10-21T09:48:46.6355574Z     Updating crates.io index
+2026-10-21T09:48:46.8948976Z     Packaged 18 files, 203.9KiB (54.3KiB compressed)
+...
+2026-10-21T09:48:49.1288330Z    Packaging workspace-coupling v0.1.0 (/home/runner/work/torrust-tracker/torrust-tracker/contrib/dev-tools/analysis/workspace-coupling)
+2026-10-21T09:48:49.1410235Z     Updating crates.io index
+2026-10-21T09:48:49.1499878Z     Packaged 8 files, 45.1KiB (11.8KiB compressed)
+```
+
+#### Conclusion
+
+The V1 symptom is gone: the whole workspace packages, the crate's tests pass, and both new checks
+that were red in V3, V4 and V5 are green. If a later commit changes production code, this recheck is
+repeated and the commit it ran on is named here.
 
 ## Failures and Follow-up
 

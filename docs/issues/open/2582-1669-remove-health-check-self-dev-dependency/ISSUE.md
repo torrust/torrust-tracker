@@ -9,7 +9,7 @@ github-issue: 2582
 spec-path: docs/issues/open/2582-1669-remove-health-check-self-dev-dependency/ISSUE.md
 branch: "2582-1669-remove-health-check-self-dev-dependency"
 related-pr: null
-last-updated-utc: "2026-10-21 09:39"
+last-updated-utc: "2026-10-21 09:51"
 semantic-links:
   skill-links:
     - create-issue
@@ -155,8 +155,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T0 | DONE | Record the maintainer's answers | [Maintainer Decisions](#maintainer-decisions). |
 | T2 | DONE | Add the CI packaging check | Job `workspace-packaging` in `testing.yaml` running `cargo package --workspace --no-verify`; it fails on the unfixed tree (red run, locally and in the fork's CI, recorded in evidence). Red: evidence V3 (local) and V4 (fork CI). |
 | T2b | DONE | Add the pre-push packaging step | `cargo +stable package --workspace --no-verify --allow-dirty` before "Running all tests"; the pre-push step lists in the docs updated; the step fails on the unfixed tree (red run recorded in evidence). Red: evidence V5. |
-| T3 | TODO | Remove the self dev-dependency | One-line manifest change (and `Cargo.lock` if Cargo changes it). |
-| T4 | TODO | Green and recheck | The regression checks and the crate's tests pass; V1 repeated like-for-like and passes; recorded in evidence. |
+| T3 | DONE | Remove the self dev-dependency | One-line manifest change; `Cargo.lock` drops the crate's edge to itself. |
+| T4 | DONE | Green and recheck | The regression checks and the crate's tests pass; V1 repeated like-for-like and passes; recorded in evidence V6. |
 
 ## Commit Points
 
@@ -177,11 +177,11 @@ Every commit is a signed Conventional Commit.
 - [x] Folder-style spec drafted in `docs/issues/drafts/1669-remove-health-check-self-dev-dependency/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, regression check, crate tests, pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, regression check, crate tests, pre-push checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence (by the implementing agent; not yet by a reviewer)
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [ ] Committer verified spec progress is up to date before commit
@@ -207,22 +207,29 @@ Every commit is a signed Conventional Commit.
   `testing.yaml` and the packaging step to `pre-push.sh` (with the documented step lists). Recorded
   the red runs on the unfixed tree: the CI command locally (V3), the job in the fork's CI (V4), and
   the pre-push step with a dirty tree (V5); all fail with the error of V1.
+- 2026-10-21 09:51 UTC - GitHub Copilot - T3 and T4 done. Removed the self dev-dependency (`Cargo.lock`
+  drops the self edge). On the fix commit the V1 command packages all 32 members, the crate's tests
+  pass, the pre-push hook passes, and the fork's `Workspace Packaging` job is green (V6). No
+  retrospective is needed: the work followed the approved plan, and the only additions (the
+  pre-push step and its documentation) came from the maintainer's answers recorded before the
+  work started. Seven `publish = false` dev-tool crates warn about missing manifest metadata
+  when packaged; that is out of scope.
 
 ## Acceptance Criteria
 
-- [ ] AC1: `packages/axum-health-check-api-server/Cargo.toml` has no dependency on its own crate.
-- [ ] AC2: `cargo package --workspace --no-verify` exits `0` on the fixed tree (it exited `101`
+- [x] AC1: `packages/axum-health-check-api-server/Cargo.toml` has no dependency on its own crate.
+- [x] AC2: `cargo package --workspace --no-verify` exits `0` on the fixed tree (it exited `101`
       before the fix, evidence V1).
-- [ ] AC3: `cargo test -p torrust-tracker-axum-health-check-api-server` passes.
-- [ ] AC4: CI runs `cargo package --workspace --no-verify`; the step failed on the unfixed tree and
+- [x] AC3: `cargo test -p torrust-tracker-axum-health-check-api-server` passes.
+- [x] AC4: CI runs `cargo package --workspace --no-verify`; the step failed on the unfixed tree and
       passes on the fixed tree.
-- [ ] AC5: `pre-push.sh` runs `cargo +stable package --workspace --no-verify --allow-dirty` before
+- [x] AC5: `pre-push.sh` runs `cargo +stable package --workspace --no-verify --allow-dirty` before
       the full test suite; the step failed on the unfixed tree and passes on the fixed tree, and
       the documented pre-push step lists name it.
-- [ ] `linter all` exits with code `0`
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
-- [ ] Documentation is updated when behavior/workflow changes
+- [x] `linter all` exits with code `0`
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] Documentation is updated when behavior/workflow changes (the pre-push step lists and gate summaries)
 
 ## Verification Plan
 
@@ -240,7 +247,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | -- | -------- | ---------------------------- | --------------- | ------ | -------- |
 | M1 | Reproduce on the unfixed tree | `cargo package --workspace --no-verify` | Exit `101` at the health check crate | DONE | `manual-verification-evidence.md` section V1 |
-| M2 | Like-for-like recheck after the fix | Same command on the fixed tree | Exit `0`; every member packaged | TODO | `manual-verification-evidence.md` section V3 |
+| M2 | Like-for-like recheck after the fix | Same command on the fixed tree | Exit `0`; every member packaged | DONE | `manual-verification-evidence.md` section V6 |
 
 ### Disposable Verification Scripts
 
@@ -250,11 +257,11 @@ None.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1 | TODO | |
-| AC2 | TODO | |
-| AC3 | TODO | |
-| AC4 | TODO | |
-| AC5 | TODO | |
+| AC1 | DONE | The fix commit removes the line; `grep -n axum-health-check-api-server packages/axum-health-check-api-server/Cargo.toml` finds only the `name`. |
+| AC2 | DONE | Evidence V6 step 1: exit `0`, 32 members packaged (V1 and V3: exit `101`). |
+| AC3 | DONE | Evidence V6 step 3: 3 unit and 8 integration tests pass. |
+| AC4 | DONE | Job `Workspace Packaging` in `testing.yaml`: fork run red on the CI commit (V4), green on the fix commit (V6 step 4). |
+| AC5 | DONE | Red with a dirty tree (V5), green (V6 step 2); listed in the `run-pre-push-checks` and `push-changes` skills. |
 
 ## Risks and Trade-offs
 
@@ -268,7 +275,7 @@ None.
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
+- Retrospective: not needed; see the progress log entry of the implementation's completion.
 - If no retrospective is needed, add a concise progress-log entry explaining why.
 
 ## References
