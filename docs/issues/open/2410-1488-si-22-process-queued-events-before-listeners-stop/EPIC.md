@@ -6,7 +6,7 @@ epic: 1488
 github-issue: 2410
 spec-path: docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-21 18:55"
+last-updated-utc: "2026-10-21 19:23"
 semantic-links:
   skill-links:
     - create-issue
@@ -1832,9 +1832,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T0  | DONE   | Real-artifact reproduction        | Reproduced (V1): control runs isolate window (a); race runs lost about 92% of answered completions. Disposable script `reproduce-lost-completions.sh`. |
 | T1  | DONE   | Producer/consumer inventory       | Every producer, consumer, and listener chain recorded in the shutdown task inventory.                                           |
 | T2  | DONE   | Glossary, jobs doc, ADR draft     | `docs/architecture/glossary.md` created and `docs/application-jobs.md` moved (D12); ADR draft `adr-draft.md` in this folder (D15) covering D1, D7-D9, and D13, written to fully supersede the cancellation-tree ADR (D11). Maintainer approval before code. |
-| T3  | TODO   | Red regression test (listener)    | Persistent listener test fails against the cancel-first loop; red output recorded.                                              |
-| T4  | TODO   | Listener drain (first listener)   | Persistent listener drains until empty or timeout, logs counts and leftover warning; tests green. Design-review checkpoint.     |
-| T5  | TODO   | Listener drain (remaining)        | Same policy for the other six listener components; characterization tests replaced.                                             |
+| T3  | DONE   | Red regression test (listener)    | Persistent listener test fails against the cancel-first loop; red output recorded.                                              |
+| T4  | DONE   | Listener drain (first listener)   | Persistent listener drains until empty or timeout, logs counts and leftover warning; tests green. Design-review checkpoint.     |
+| T5  | DONE   | Listener drain (remaining)        | Same policy for the other six listener components; characterization tests replaced.                                             |
 | T6  | DONE   | Per-component tokens (refactor)   | Reservation-based registration; every component uses only its own token. No edges yet: `cancel()` still cancels everything at once. Existing tests green. |
 | T7  | DONE   | Red regression test (stop order)  | `JobManager` stop-order test fails while edges are stored but not enforced; red output recorded.                                |
 | T8  | DONE   | Stop order                        | `JobManager` enforces edges; `EventFlows` registry; bootstrap declarations per the Chosen Design; tests green.                  |
@@ -2139,6 +2139,7 @@ avoids duplicating the full workflow in four drafts:
 - 2026-10-21 18:47 UTC - GitHub Copilot (Claude Opus 5.5) - #2416 T9 implemented and approved by the maintainer: both test environments stop the server first (D20), with record entry 32 for the guard detail. HTTP has a deterministic red/green late-event test; UDP does not (evidence V4). `adr-draft.md` section 8 updated in the same change.
 - 2026-10-21 18:50 UTC - GitHub Copilot (Claude Opus 5.5) - #2416 T10: the ADR draft moved from this folder to `docs/adrs/20261021184946_order_shutdown_by_event_flow_and_drain_event_listeners.md` (D15), the cancellation-tree ADR is marked `Superseded by` it, and `docs/adrs/index.md` lists it. The draft was bare-mentioned as `adr-draft.md` in closed specs and in earlier entries of this record; those are history and are not rewritten, and no link pointed to the draft.
 - 2026-10-21 18:55 UTC - GitHub Copilot (Claude Opus 5.5) - #2416 T10: the five diagrams (D16) moved to `docs/architecture/events.md` (event data flow, which now also documents the swarm bus, its producers, and its three listeners) and `docs/architecture/application-jobs.md` (supervision tree, startup and shutdown sequences, component boundary), updated to the final implementation; this record keeps links instead of copies. The jobs doc, glossary, task inventory, shutdown feature README, and shutdown architecture examples describe the final implementation.
+- 2026-10-21 19:23 UTC - GitHub Copilot (Claude Opus 5.5) - #2416 pre-push review done: the plan rows T3 to T5 now read `DONE` (they still read `TODO` after #2414 merged; a stale status the Task Reviewer found, not a design change). #2416 evidence counts corrected. No design change.
 
 ## Acceptance Criteria
 

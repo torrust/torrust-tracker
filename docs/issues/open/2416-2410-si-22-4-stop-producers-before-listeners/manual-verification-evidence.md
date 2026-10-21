@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2416-2410-si-22-4-stop-producers-before-listeners/ISSUE.md
-last-updated-utc: "2026-10-21 19:11"
+last-updated-utc: "2026-10-21 19:23"
 ---
 
 # Manual Verification Evidence
@@ -61,7 +61,7 @@ checks, and the M1 to M3 rechecks.
   - `cargo test --lib bootstrap::jobs::manager`: 33 passed: the 18 of V1 (the 17 from before and the V1
     red test, now green) and 15 new.
   - `cargo test --lib app::tests`: 19 passed, including the V1 real-bus test, now green (`left: 2`).
-  - `cargo test --lib`: all root library tests pass (144 in the root crate).
+  - `cargo test --lib`: all root library tests pass (146 in the root crate, counted on the final tree).
   - `cargo test --test persistence-completed-downloads-on-shutdown`: 1 passed. It completes 20 downloads
     over HTTP, shuts the application down through the `JobManager` right after the last answer, and
     reads the `SQLite` database. It is regression coverage of the wiring, not a red proof: it was not
@@ -72,7 +72,7 @@ checks, and the M1 to M3 rechecks.
 - Tests added or changed (no test was removed or merged):
   - `manager.rs`: 16 new tests (the red V1 test among them) for the stop order, the clause tests below, the
     registration errors, and the report of what shutdown cancels and what waits.
-  - `event_flows.rs`: 5 new unit tests.
+  - `event_flows.rs`: 4 new unit tests (a fifth, a near-duplicate of the first, was dropped before the first commit and was never committed).
   - `app.rs`: `it_should_count_a_download_published_during_shutdown_by_a_producer_that_stops_before_the_listener`
     (V1), `it_should_subscribe_every_started_swarm_listener_before_its_task_runs_or_any_producer_starts`
     (new), and the existing
