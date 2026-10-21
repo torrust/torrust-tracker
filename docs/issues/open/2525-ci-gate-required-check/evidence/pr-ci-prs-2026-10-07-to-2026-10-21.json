@@ -1,0 +1,962 @@
+{
+ "2588": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 1,
+  "merged": "2026-10-21T07:08:23Z"
+ },
+ "2587": {
+  "class": "code",
+  "needed": [
+   "docs-lint",
+   "testing",
+   "os-compatibility",
+   "coverage",
+   "container"
+  ],
+  "files": 8,
+  "merged": "2026-10-20T19:56:10Z"
+ },
+ "2586": {
+  "class": "code",
+  "needed": [
+   "docs-lint",
+   "testing",
+   "os-compatibility",
+   "coverage",
+   "container"
+  ],
+  "files": 9,
+  "merged": "2026-10-20T19:49:48Z"
+ },
+ "2585": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 5,
+  "merged": "2026-10-20T19:44:24Z"
+ },
+ "2584": {
+  "class": "code",
+  "needed": [
+   "docs-lint",
+   "testing",
+   "os-compatibility",
+   "coverage",
+   "container"
+  ],
+  "files": 4,
+  "merged": "2026-10-20T20:45:45Z"
+ },
+ "2580": {
+  "class": "code",
+  "needed": [
+   "docs-lint",
+   "testing",
+   "os-compatibility",
+   "coverage",
+   "container"
+  ],
+  "files": 12,
+  "merged": "2026-10-20T19:39:16Z"
+ },
+ "2579": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 2,
+  "merged": "2026-10-20T17:18:50Z"
+ },
+ "2578": {
+  "class": "code",
+  "needed": [
+   "docs-lint",
+   "testing",
+   "os-compatibility",
+   "coverage",
+   "container",
+   "db-compatibility",
+   "db-benchmarking"
+  ],
+  "files": 34,
+  "merged": "2026-10-20T19:28:20Z"
+ },
+ "2577": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 4,
+  "merged": "2026-10-20T16:57:26Z"
+ },
+ "2575": {
+  "class": "code",
+  "needed": [
+   "docs-lint",
+   "testing",
+   "os-compatibility",
+   "coverage",
+   "container"
+  ],
+  "files": 11,
+  "merged": "2026-10-20T16:47:11Z"
+ },
+ "2574": {
+  "class": "code",
+  "needed": [
+   "docs-lint",
+   "testing",
+   "os-compatibility",
+   "coverage",
+   "container"
+  ],
+  "files": 15,
+  "merged": "2026-10-20T16:10:04Z"
+ },
+ "2573": {
+  "class": "code",
+  "needed": [
+   "docs-lint",
+   "testing",
+   "os-compatibility",
+   "coverage",
+   "container"
+  ],
+  "files": 8,
+  "merged": "2026-10-20T15:59:54Z"
+ },
+ "2572": {
+  "class": "code",
+  "needed": [
+   "docs-lint",
+   "testing",
+   "os-compatibility",
+   "coverage",
+   "container",
+   "security-scan"
+  ],
+  "files": 4,
+  "merged": "2026-10-20T13:00:47Z"
+ },
+ "2571": {
+  "class": "code",
+  "needed": [
+   "docs-lint",
+   "testing",
+   "os-compatibility",
+   "coverage",
+   "container"
+  ],
+  "files": 19,
+  "merged": "2026-10-20T12:36:31Z"
+ },
+ "2570": {
+  "class": "code",
+  "needed": [
+   "docs-lint",
+   "testing",
+   "os-compatibility",
+   "coverage",
+   "container"
+  ],
+  "files": 1,
+  "merged": "2026-10-20T11:53:11Z"
+ },
+ "2569": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 9,
+  "merged": "2026-10-20T11:36:08Z"
+ },
+ "2568": {
+  "class": "code",
+  "needed": [
+   "docs-lint",
+   "testing",
+   "os-compatibility",
+   "coverage",
+   "container",
+   "db-compatibility",
+   "db-benchmarking"
+  ],
+  "files": 83,
+  "merged": "2026-10-20T11:46:53Z"
+ },
+ "2564": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 6,
+  "merged": "2026-10-19T16:30:47Z"
+ },
+ "2563": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 5,
+  "merged": "2026-10-19T16:24:27Z"
+ },
+ "2562": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 1,
+  "merged": "2026-10-20T11:22:24Z"
+ },
+ "2561": {
+  "class": "code",
+  "needed": [
+   "docs-lint",
+   "testing",
+   "os-compatibility",
+   "coverage",
+   "container",
+   "db-compatibility",
+   "db-benchmarking"
+  ],
+  "files": 21,
+  "merged": "2026-10-20T12:13:57Z"
+ },
+ "2559": {
+  "class": "code",
+  "needed": [
+   "docs-lint",
+   "testing",
+   "os-compatibility",
+   "coverage",
+   "container"
+  ],
+  "files": 9,
+  "merged": "2026-10-19T15:29:17Z"
+ },
+ "2558": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 7,
+  "merged": "2026-10-20T12:19:34Z"
+ },
+ "2557": {
+  "class": "code",
+  "needed": [
+   "docs-lint",
+   "testing",
+   "os-compatibility",
+   "coverage",
+   "container"
+  ],
+  "files": 9,
+  "merged": "2026-10-17T12:16:51Z"
+ },
+ "2556": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 4,
+  "merged": "2026-10-20T12:04:51Z"
+ },
+ "2555": {
+  "class": "code",
+  "needed": [
+   "docs-lint",
+   "testing",
+   "os-compatibility",
+   "coverage",
+   "container"
+  ],
+  "files": 11,
+  "merged": "2026-10-19T15:42:41Z"
+ },
+ "2554": {
+  "class": "code",
+  "needed": [
+   "docs-lint",
+   "testing",
+   "os-compatibility",
+   "coverage",
+   "container"
+  ],
+  "files": 16,
+  "merged": "2026-10-19T11:11:54Z"
+ },
+ "2553": {
+  "class": "code",
+  "needed": [
+   "docs-lint",
+   "testing",
+   "os-compatibility",
+   "coverage",
+   "container"
+  ],
+  "files": 20,
+  "merged": "2026-10-19T15:18:12Z"
+ },
+ "2552": {
+  "class": "code",
+  "needed": [
+   "docs-lint",
+   "testing",
+   "os-compatibility",
+   "coverage",
+   "container"
+  ],
+  "files": 17,
+  "merged": "2026-10-16T15:39:36Z"
+ },
+ "2551": {
+  "class": "code",
+  "needed": [
+   "docs-lint",
+   "testing",
+   "os-compatibility",
+   "coverage",
+   "container"
+  ],
+  "files": 6,
+  "merged": "2026-10-16T07:43:23Z"
+ },
+ "2550": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 7,
+  "merged": "2026-10-16T15:35:12Z"
+ },
+ "2549": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 1,
+  "merged": "2026-10-19T15:11:26Z"
+ },
+ "2546": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 3,
+  "merged": "2026-10-16T11:35:31Z"
+ },
+ "2545": {
+  "class": "code",
+  "needed": [
+   "docs-lint",
+   "testing",
+   "os-compatibility",
+   "coverage",
+   "container",
+   "db-compatibility",
+   "db-benchmarking"
+  ],
+  "files": 51,
+  "merged": "2026-10-16T15:22:39Z"
+ },
+ "2544": {
+  "class": "code",
+  "needed": [
+   "docs-lint",
+   "testing",
+   "os-compatibility",
+   "coverage",
+   "container"
+  ],
+  "files": 8,
+  "merged": "2026-10-16T06:58:45Z"
+ },
+ "2543": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 1,
+  "merged": "2026-10-15T16:33:34Z"
+ },
+ "2541": {
+  "class": "code",
+  "needed": [
+   "docs-lint",
+   "testing",
+   "os-compatibility",
+   "coverage",
+   "container"
+  ],
+  "files": 34,
+  "merged": "2026-10-15T15:47:16Z"
+ },
+ "2540": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 2,
+  "merged": "2026-10-15T07:39:01Z"
+ },
+ "2539": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 3,
+  "merged": "2026-10-15T07:21:44Z"
+ },
+ "2538": {
+  "class": "code",
+  "needed": [
+   "docs-lint",
+   "testing",
+   "os-compatibility",
+   "coverage",
+   "container"
+  ],
+  "files": 50,
+  "merged": "2026-10-15T15:06:37Z"
+ },
+ "2537": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 5,
+  "merged": "2026-10-15T06:44:22Z"
+ },
+ "2535": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 2,
+  "merged": "2026-10-15T06:51:44Z"
+ },
+ "2534": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 6,
+  "merged": "2026-10-14T16:50:43Z"
+ },
+ "2533": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 1,
+  "merged": "2026-10-14T16:36:48Z"
+ },
+ "2532": {
+  "class": "code",
+  "needed": [
+   "docs-lint",
+   "testing",
+   "os-compatibility",
+   "coverage",
+   "container"
+  ],
+  "files": 16,
+  "merged": "2026-10-14T21:11:25Z"
+ },
+ "2531": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 2,
+  "merged": "2026-10-14T16:09:13Z"
+ },
+ "2530": {
+  "class": "code",
+  "needed": [
+   "docs-lint",
+   "testing",
+   "os-compatibility",
+   "coverage",
+   "container"
+  ],
+  "files": 10,
+  "merged": "2026-10-14T16:28:07Z"
+ },
+ "2529": {
+  "class": "code",
+  "needed": [
+   "docs-lint",
+   "testing",
+   "os-compatibility",
+   "coverage",
+   "container"
+  ],
+  "files": 23,
+  "merged": "2026-10-14T16:22:35Z"
+ },
+ "2528": {
+  "class": "code",
+  "needed": [
+   "docs-lint",
+   "testing",
+   "os-compatibility",
+   "coverage",
+   "container"
+  ],
+  "files": 14,
+  "merged": "2026-10-14T15:21:28Z"
+ },
+ "2527": {
+  "class": "code",
+  "needed": [
+   "docs-lint",
+   "testing",
+   "os-compatibility",
+   "coverage",
+   "container",
+   "db-compatibility",
+   "db-benchmarking"
+  ],
+  "files": 12,
+  "merged": "2026-10-14T15:04:05Z"
+ },
+ "2526": {
+  "class": "code",
+  "needed": [
+   "docs-lint",
+   "testing",
+   "os-compatibility",
+   "coverage",
+   "container"
+  ],
+  "files": 16,
+  "merged": "2026-10-14T12:18:38Z"
+ },
+ "2524": {
+  "class": "code",
+  "needed": [
+   "docs-lint",
+   "testing",
+   "os-compatibility",
+   "coverage",
+   "container"
+  ],
+  "files": 26,
+  "merged": "2026-10-14T14:21:52Z"
+ },
+ "2523": {
+  "class": "code",
+  "needed": [
+   "docs-lint",
+   "testing",
+   "os-compatibility",
+   "coverage",
+   "container"
+  ],
+  "files": 3,
+  "merged": "2026-10-14T08:53:37Z"
+ },
+ "2522": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 3,
+  "merged": "2026-10-14T11:34:35Z"
+ },
+ "2520": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 3,
+  "merged": "2026-10-14T10:46:59Z"
+ },
+ "2519": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 2,
+  "merged": "2026-10-14T10:26:31Z"
+ },
+ "2516": {
+  "class": "code",
+  "needed": [
+   "docs-lint",
+   "testing",
+   "os-compatibility",
+   "coverage",
+   "container"
+  ],
+  "files": 1,
+  "merged": "2026-10-14T08:06:17Z"
+ },
+ "2515": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 5,
+  "merged": "2026-10-14T07:00:52Z"
+ },
+ "2509": {
+  "class": "code",
+  "needed": [
+   "docs-lint",
+   "testing",
+   "os-compatibility",
+   "coverage",
+   "container"
+  ],
+  "files": 14,
+  "merged": "2026-10-14T06:25:01Z"
+ },
+ "2508": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 9,
+  "merged": "2026-10-14T06:42:29Z"
+ },
+ "2506": {
+  "class": "code",
+  "needed": [
+   "docs-lint",
+   "testing",
+   "os-compatibility",
+   "coverage",
+   "container"
+  ],
+  "files": 6,
+  "merged": "2026-10-13T17:50:54Z"
+ },
+ "2504": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 4,
+  "merged": "2026-10-13T15:29:04Z"
+ },
+ "2502": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 2,
+  "merged": "2026-10-13T12:37:26Z"
+ },
+ "2501": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 8,
+  "merged": "2026-10-12T10:09:53Z"
+ },
+ "2500": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 1,
+  "merged": "2026-10-15T17:13:46Z"
+ },
+ "2498": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 21,
+  "merged": "2026-10-08T19:41:58Z"
+ },
+ "2494": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 3,
+  "merged": "2026-10-09T11:09:07Z"
+ },
+ "2492": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 9,
+  "merged": "2026-10-08T17:50:23Z"
+ },
+ "2490": {
+  "class": "code",
+  "needed": [
+   "docs-lint",
+   "testing",
+   "os-compatibility",
+   "coverage",
+   "container",
+   "security-scan"
+  ],
+  "files": 6,
+  "merged": "2026-10-08T16:25:13Z"
+ },
+ "2489": {
+  "class": "code",
+  "needed": [
+   "docs-lint",
+   "testing",
+   "os-compatibility",
+   "coverage",
+   "container"
+  ],
+  "files": 1,
+  "merged": "2026-10-08T15:56:05Z"
+ },
+ "2488": {
+  "class": "code",
+  "needed": [
+   "docs-lint",
+   "testing",
+   "os-compatibility",
+   "coverage",
+   "container"
+  ],
+  "files": 6,
+  "merged": "2026-10-08T14:47:48Z"
+ },
+ "2487": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 2,
+  "merged": "2026-10-08T12:32:23Z"
+ },
+ "2486": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 2,
+  "merged": "2026-10-13T11:29:48Z"
+ },
+ "2485": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 7,
+  "merged": "2026-10-08T11:34:28Z"
+ },
+ "2484": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 8,
+  "merged": "2026-10-08T18:32:23Z"
+ },
+ "2483": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 11,
+  "merged": "2026-10-08T08:52:47Z"
+ },
+ "2481": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 9,
+  "merged": "2026-10-08T09:04:03Z"
+ },
+ "2480": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 3,
+  "merged": "2026-10-08T08:40:42Z"
+ },
+ "2478": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 10,
+  "merged": "2026-10-08T07:02:36Z"
+ },
+ "2476": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 4,
+  "merged": "2026-10-08T06:45:35Z"
+ },
+ "2474": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 3,
+  "merged": "2026-10-08T06:23:39Z"
+ },
+ "2472": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 3,
+  "merged": "2026-10-07T16:27:05Z"
+ },
+ "2470": {
+  "class": "code",
+  "needed": [
+   "docs-lint",
+   "testing",
+   "os-compatibility",
+   "coverage",
+   "container"
+  ],
+  "files": 45,
+  "merged": "2026-10-08T05:34:10Z"
+ },
+ "2469": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 2,
+  "merged": "2026-10-07T13:42:57Z"
+ },
+ "2468": {
+  "class": "code",
+  "needed": [
+   "docs-lint",
+   "testing",
+   "os-compatibility",
+   "coverage",
+   "container"
+  ],
+  "files": 14,
+  "merged": "2026-10-07T15:04:21Z"
+ },
+ "2467": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 4,
+  "merged": "2026-10-07T16:11:41Z"
+ },
+ "2465": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 11,
+  "merged": "2026-10-07T10:47:51Z"
+ },
+ "2462": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 11,
+  "merged": "2026-10-07T14:36:28Z"
+ },
+ "2461": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 6,
+  "merged": "2026-10-07T08:41:15Z"
+ },
+ "2459": {
+  "class": "code",
+  "needed": [
+   "docs-lint",
+   "testing",
+   "os-compatibility",
+   "coverage",
+   "container"
+  ],
+  "files": 8,
+  "merged": "2026-10-07T07:55:50Z"
+ },
+ "2456": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 5,
+  "merged": "2026-10-07T12:50:22Z"
+ },
+ "2438": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 2,
+  "merged": "2026-10-07T09:58:15Z"
+ },
+ "2434": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 6,
+  "merged": "2026-10-10T10:09:16Z"
+ },
+ "2431": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 4,
+  "merged": "2026-10-13T11:56:30Z"
+ },
+ "2430": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 3,
+  "merged": "2026-10-15T15:43:28Z"
+ },
+ "2425": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 4,
+  "merged": "2026-10-13T14:18:41Z"
+ },
+ "2366": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 2,
+  "merged": "2026-10-13T14:50:40Z"
+ },
+ "2187": {
+  "class": "docs-only",
+  "needed": [
+   "docs-lint"
+  ],
+  "files": 3,
+  "merged": "2026-10-13T13:05:48Z"
+ }
+}
