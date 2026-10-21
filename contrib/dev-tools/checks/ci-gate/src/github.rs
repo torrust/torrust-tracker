@@ -1039,6 +1039,114 @@ mod tests {
         );
     }
 
+    #[rstest]
+    #[case::ordinary("josecelano", true)]
+    #[case::with_a_hyphen_and_a_digit("octo-cat2", true)]
+    #[case::a_bot("dependabot[bot]", true)]
+    #[case::empty("", false)]
+    #[case::only_the_bot_suffix("[bot]", false)]
+    #[case::a_path_separator("a/b", false)]
+    #[case::parent_directory("..", false)]
+    #[case::a_query("a?b", false)]
+    #[case::a_space("a b", false)]
+    #[case::a_dot("a.b", false)]
+    fn it_should_accept_only_logins_that_are_safe_in_a_request_path(#[case] login: &str, #[case] expected: bool) {
+        // Act
+        let accepted = is_login(login);
+
+        // Assert
+        assert_eq!(
+            accepted, expected,
+            "`{login}` becomes part of the path of the permission request, so only letters, digits, hyphens and a [bot] suffix are accepted"
+        );
+    }
+
+    #[test]
+    fn it_should_fail_without_asking_for_the_role_when_the_actor_is_not_a_valid_login() {
+        // Arrange
+        let api = api_with_override(
+            failing_head(),
+            "../../orgs/owner",
+            "2026-10-21T10:49:13Z",
+            "2026-10-21T10:46:06Z",
+            "admin",
+        );
+
+        // Act
+        let verdict = decide_for_pull_request(&api, &pull_request(), &classification_needing_db_benchmarking()).expect("decided");
+
+        // Assert
+        assert_eq!(
+            (verdict.verdict.verdict, verdict.verdict.overridden_by),
+            (Verdict::Fail, None)
+        );
+        assert!(
+            verdict
+                .override_ignored
+                .as_deref()
+                .is_some_and(|reason| reason.contains("is not a valid login")),
+            "the actor should be refused by name: {:?}",
+            verdict.override_ignored
+        );
+        assert!(
+            api.requests().iter().all(|path| !path.contains("collaborators")),
+            "a login that is not safe must not be put in a request path: {:?}",
+            api.requests()
+        );
+    }
+
+    #[test]
+    fn it_should_fail_without_an_override_when_the_labels_cannot_be_read() {
+        // Arrange
+        let api = failing_head().failing(LABELS_PATH, "HTTP 500");
+
+        // Act
+        let verdict = decide_for_pull_request(&api, &pull_request(), &classification_needing_db_benchmarking()).expect("decided");
+
+        // Assert
+        assert_eq!(
+            (verdict.verdict.verdict, verdict.verdict.overridden_by),
+            (Verdict::Fail, None)
+        );
+        assert!(
+            verdict
+                .override_ignored
+                .as_deref()
+                .is_some_and(|reason| reason.contains("cannot read the labels")),
+            "the error should be explained: {:?}",
+            verdict.override_ignored
+        );
+    }
+
+    #[test]
+    fn it_should_fail_without_an_override_when_the_check_suites_cannot_be_read() {
+        // Arrange
+        let api = failing_head()
+            .with(LABELS_PATH, vec![json!([{ "name": "ci-override" }])])
+            .with(
+                EVENTS_PATH,
+                vec![json!([labeled_event("josecelano", "2026-10-21T10:49:13Z")])],
+            )
+            .failing(CHECK_SUITES_PATH, "HTTP 500");
+
+        // Act
+        let verdict = decide_for_pull_request(&api, &pull_request(), &classification_needing_db_benchmarking()).expect("decided");
+
+        // Assert
+        assert_eq!(
+            (verdict.verdict.verdict, verdict.verdict.overridden_by),
+            (Verdict::Fail, None)
+        );
+        assert!(
+            verdict
+                .override_ignored
+                .as_deref()
+                .is_some_and(|reason| reason.contains("cannot read the check suites")),
+            "the error should be explained: {:?}",
+            verdict.override_ignored
+        );
+    }
+
     #[test]
     fn it_should_return_an_error_instead_of_a_verdict_when_the_check_runs_cannot_be_read() {
         // Arrange
