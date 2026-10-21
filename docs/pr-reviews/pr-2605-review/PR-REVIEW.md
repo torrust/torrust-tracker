@@ -40,7 +40,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Three reviews were submitted so far, all by Copilot. Each body repeats its inline threads, so the bodies add
+Four reviews were submitted so far, all by Copilot. Each body repeats its inline threads, so the bodies add
 no rows.
 
 - Review 5599040224 read the head whose subject is "docs(issues): [#2525] propose the design of the override
@@ -49,6 +49,9 @@ no rows.
   marks F1 and F2 as resolved and carries one inline thread, F3.
 - Review 5600335776 read the head whose subject is "docs(pr-reviews): record the second review round in the PR
   #2605 audit". It marks F3 as resolved and carries two inline threads, F4 and F5.
+- Review 5601400687 read the head whose subject is "docs(pr-reviews): record the third review round in the PR
+  #2605 audit". It marks F4 and F5 as resolved and carries one inline thread, F6, which asks for the same
+  change as F4 and is recorded as a re-raise of it.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -57,6 +60,7 @@ no rows.
 | F3 | review-finding:pr-2605-f3 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
 | F4 | review-finding:pr-2605-f4 | Copilot | Nit (inferred) | formatting | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F5 | review-finding:pr-2605-f5 | Copilot | Nit (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F6 | review-finding:pr-2605-f6 | Copilot | Nit (inferred) | formatting | RE_RAISE_OF:F4 | NO_ACTION | SUPERSEDED |
 
 ## Finding Details
 
@@ -138,6 +142,22 @@ no rows.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4337404053>
 
+### F6 - The audit's table is again said to have a doubled leading pipe
+
+- PR number: 2605
+- Source review ID: 5601400687
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4338131023>
+- Concern: the rows of the audit's table are said to start with `||`, which renders an empty first column, and
+  should start with a single `|`, header and separator rows included. It is the concern of F4, raised again
+  on line 59.
+- Solution: no change, for the reason given for F4. No row of the table starts with `||`.
+- Current-tree verification: at the head commit `grep -c "^||"` on the audit gives 0, line 59 is the row of F5
+  and begins with a single `|`, as does every other table row, and the audit validator parses all five rows.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4338446820>
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4338446820>
+
 ## Processing Log
 
 - 2026-10-21 11:36 UTC - Copilot's review arrived with two threads, F1 and F2. Both were checked against
@@ -154,6 +174,9 @@ no rows.
 - 2026-10-21 13:29 UTC - Pushed, replied on both threads, and added F4 and F5 to this record. The reply to F4
   was rewritten into the prescribed form `Superseded by F4: <reason>.`, and F3 was changed from `FOLLOW_UP` to
   `FIXED`, because the skill gives a follow-up a reply URL as its reference and this finding was fixed here.
+- 2026-10-21 14:34 UTC - Copilot's fourth review arrived with one thread, F6, the concern of F4 raised again.
+  Checked at the head commit: no row starts with a doubled pipe.
+- 2026-10-21 15:05 UTC - Replied `Superseded by F4: <reason>.` on the thread and added F6 to this record.
 
 ## Completion Rules
 
