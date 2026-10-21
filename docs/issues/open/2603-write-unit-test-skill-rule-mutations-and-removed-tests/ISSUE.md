@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: draft
+status: planned
 priority: p3
 epic: null
-github-issue: null
-spec-path: docs/issues/drafts/write-unit-test-skill-rule-mutations-and-removed-tests/ISSUE.md
-branch: "{issue-number}-write-unit-test-skill-rule-mutations-and-removed-tests"
+github-issue: 2603
+spec-path: docs/issues/open/2603-write-unit-test-skill-rule-mutations-and-removed-tests/ISSUE.md
+branch: "2603-write-unit-test-skill-rule-mutations-and-removed-tests-spec"
 related-pr: null
-last-updated-utc: "2026-10-21 10:05"
+last-updated-utc: "2026-10-21 10:38"
 semantic-links:
   skill-links:
     - create-issue
@@ -23,7 +23,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Teach the `write-unit-test` Skill to Derive Mutations From Each Rule Clause and to Record Removed Tests
+# Issue #2603 - Teach the `write-unit-test` Skill to Derive Mutations From Each Rule Clause and to Record Removed Tests
 
 ## Goal
 
@@ -113,7 +113,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task | Notes / Expected Output |
 | --- | ------ | ---- | ----------------------- |
-| T1  | TODO   | Settle the open questions Q1 to Q4 with the maintainer | Each answer recorded in the progress log; the proposed text below is amended to match. |
+| T1  | DONE   | Settle the open questions Q1 to Q4 with the maintainer | Each answer is recorded under "Decisions on the Open Questions" and in the progress log; the proposed text needed no change. |
 | T2  | TODO   | Add the per-clause mutation section to the `write-unit-test` skill | A section next to "Prove a Regression Test Guards the Bug", linking to it for the compile check and the evidence rule. |
 | T3  | TODO   | Add the removed-or-merged-test rule to the skill | A short rule, placed where the skill discusses reorganising tests, plus two "Quick Checklist" entries. |
 | T4  | TODO   | Walk the two rules through the #2415 artifacts (M1, M2) | Both scenarios recorded in `manual-verification-evidence.md`. |
@@ -130,10 +130,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 Documentation-only work, so the `write-unit-test` test-increment loop does not apply. Sign every
 commit with GPG.
 
-## Proposed Skill Text (Draft, to Be Settled in T1)
+## Proposed Skill Text (Starting Point for T2 and T3)
 
-The wording below is the starting point for T2 and T3, so the maintainer can review it before it
-enters the skill. It is not final.
+The wording below matches the maintainer's decisions on Q1 to Q4. It is the starting point for T2
+and T3, and the maintainer reviews the final wording before each commit. It is not final.
 
 ### Per-clause mutations (T2)
 
@@ -172,9 +172,9 @@ Checklist entries:
 
 ### Workflow Checkpoints
 
-- [x] Folder-style spec drafted in `docs/issues/drafts/write-unit-test-skill-rule-mutations-and-removed-tests/ISSUE.md`
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created and issue number added to this spec
+- [x] Folder-style spec drafted in `docs/issues/drafts/write-unit-test-skill-rule-mutations-and-removed-tests/ISSUE.md`, then moved to `docs/issues/open/2603-write-unit-test-skill-rule-mutations-and-removed-tests/ISSUE.md`
+- [x] Spec reviewed and approved by user/maintainer
+- [x] GitHub issue created and issue number added to this spec
 - [ ] (Optional) Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`)
@@ -189,6 +189,8 @@ Checklist entries:
 ### Progress Log
 
 - 2026-10-21 10:05 UTC - GitHub Copilot (Claude Sonnet 5.5) - Drafted from the two proposals in the #2415 implementation retrospective, at the maintainer's request. No GitHub issue exists yet.
+- 2026-10-21 10:37 UTC - GitHub Copilot (Claude Sonnet 5.5) - The maintainer approved the draft. GitHub issue #2603 was created (label `task`), and this spec moved from `docs/issues/drafts/` to `docs/issues/open/2603-write-unit-test-skill-rule-mutations-and-removed-tests/`; `status` is `planned`.
+- 2026-10-21 10:38 UTC - GitHub Copilot (Claude Sonnet 5.5) - The maintainer answered Q1 to Q4 as recommended (one instance is enough for both rules, a new sibling section, no reviewer change, keep the bound) and chose a spec-only pull request first: branch `2603-write-unit-test-skill-rule-mutations-and-removed-tests-spec`, `Related to #2603`. The skill change follows on the reserved branch `2603-write-unit-test-skill-rule-mutations-and-removed-tests`. T1 is `DONE`. No wording change.
 
 ## Acceptance Criteria
 
@@ -239,22 +241,24 @@ None planned.
 | AC3   | TODO                   |          |
 | AC4   | TODO                   |          |
 
-## Open Questions for the Maintainer
+## Decisions on the Open Questions
+
+The maintainer decided Q1 to Q4 on 2026-10-21, each as recommended.
 
 - **Q1: is one observed instance enough for each rule?** The evidence is #2415 only: one weak
   assertion and one unrecorded removal. Recommendation: yes for the removed-test rule, which costs
   one line of evidence per removal, and yes for the per-clause rule, which extends a section the
-  skill already has. Alternative: wait for a second occurrence.
+  skill already has. Alternative: wait for a second occurrence. **Decision: yes, for both rules.**
 - **Q2: where does the per-clause rule go?** Recommendation: a new sibling section after "Prove a
   Regression Test Guards the Bug", leaving the existing section unchanged. A `git grep` for the
   heading and its anchor on 2026-10-21 found no link to it, so renaming it would also be possible.
-  Alternative: generalize that section in place and rename it.
+  Alternative: generalize that section in place and rename it. **Decision: a new sibling section.**
 - **Q3: should a reviewer check these rules?** The Task Reviewer found both gaps by reading, so the
   skill text alone may be enough. Recommendation: no change to the reviewer in this issue. Alternative:
-  add a line to the `review-task` skill and the Task Reviewer agent, as a follow-up.
+  add a line to the `review-task` skill and the Task Reviewer agent, as a follow-up. **Decision: no reviewer change in this issue.**
 - **Q4: is the "bound it" clause right?** It limits the rule to rules stated in a specification, ADR,
   or acceptance criterion, to avoid turning every test into a mutation exercise. Alternative: no
-  bound, leaving the author to judge.
+  bound, leaving the author to judge. **Decision: keep the bound.**
 
 ## Risks and Trade-offs
 
@@ -284,4 +288,5 @@ material design changes, unexpected validation findings, and reusable lessons.
 - Source: the [implementation retrospective](../../closed/2415-2410-si-22-3-per-component-cancellation-tokens/implementation-retrospective.md)
   of #2415, merged in PR #2591.
 - Skill to change: `.github/skills/dev/testing/write-unit-test/SKILL.md`
+- Issue: #2603
 - Related issues: #2415
