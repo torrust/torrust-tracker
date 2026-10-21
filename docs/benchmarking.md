@@ -498,7 +498,7 @@ times only the `started` announce (Criterion's `iter_custom`), and the peer then
   into one number, so a change to either could not be attributed.
 
 The discarded designs, with their reasons, are in decision D1 of
-[the issue specification](issues/open/2518-http-first-announce-benchmark/ISSUE.md): Criterion's
+[the issue specification](issues/closed/2518-http-first-announce-benchmark/ISSUE.md): Criterion's
 `iter_batched` cannot await an asynchronous removal in its synchronous setup, a new peer on every
 iteration makes the swarm grow, and a rotating pool of peers would measure repeat announces after
 its first pass.

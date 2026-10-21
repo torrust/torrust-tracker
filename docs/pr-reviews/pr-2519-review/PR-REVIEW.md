@@ -5,7 +5,7 @@ semantic-links:
   related-artifacts:
     - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
     - docs/benchmarking.md
-    - docs/issues/open/2518-http-first-announce-benchmark/ISSUE.md
+    - docs/issues/closed/2518-http-first-announce-benchmark/ISSUE.md
 ---
 
 <!-- skill-link: process-pr-review -->

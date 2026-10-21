@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: done
 priority: p3
 epic: null
 github-issue: 2518
-spec-path: docs/issues/open/2518-http-first-announce-benchmark/ISSUE.md
+spec-path: docs/issues/closed/2518-http-first-announce-benchmark/ISSUE.md
 branch: "2518-http-first-announce-benchmark"
-related-pr: null
-last-updated-utc: "2026-10-21 13:40"
+related-pr: 2611
+last-updated-utc: "2026-10-21 15:00"
 semantic-links:
   skill-links:
     - create-issue
@@ -365,11 +365,11 @@ the review in `manual-verification-evidence.md`. All commits are GPG signed Conv
 - [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
-- [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Committer verified spec progress is up to date before commit
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -431,6 +431,10 @@ the review in `manual-verification-evidence.md`. All commits are GPG signed Conv
   was written: the only discoveries (the swarm statistics read API is `read_metrics`, and its metric
   names are private) are recorded above and change no decision. No independent reviewer received
   this folder, so there is no `agent-review-reports.md`.
+- 2026-10-21 15:00 UTC - Copilot - PR #2611 was merged and issue #2518 closed. Archived the
+  specification to `docs/issues/closed/` and repaired the live references to it. The maintainer's
+  review and merge of the PR validated the acceptance criteria; no independent reviewer received
+  this folder, so the `agent-review-reports.md` checkpoint stays unchecked.
 
 ## Acceptance Criteria
 
