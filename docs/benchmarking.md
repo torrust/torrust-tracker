@@ -36,6 +36,7 @@ is the agent workflow for this guide.
 | Service microbenchmark        | Criterion, `packages/udp-core/benches/ban_service_benchmark.rs` ([guide](../packages/udp-core/docs/benchmarking/banning.md))                                                         | `BanService` counter operations                                                                          | Socket I/O, lock contention   | `cargo bench -p torrust-tracker-udp-core --bench ban_service_benchmark`                                     |
 | Handler microbenchmark        | Criterion, `packages/udp-server/benches/udp_tracker_server_benchmark.rs`                                                                                                             | One `handle_scrape` of 74 torrents                                                                       | Socket I/O, the receive loop  | `cargo bench -p torrust-tracker-udp-server`                                                                 |
 | Service microbenchmark        | Criterion, `packages/http-core/benches/http_tracker_core_benchmark.rs`                                                                                                               | One awaited `AnnounceService::handle_announce`, a repeat announce ([why](#http-announce-microbenchmark)) | HTTP parsing, first announces | `cargo bench -p torrust-tracker-http-core`                                                                  |
+| Service microbenchmark        | Criterion, `packages/http-core/benches/http_tracker_core_benchmark.rs`                                                                                                               | A new peer's `handle_announce`, swarms of 0/74/1000 ([why](#http-first-announce-microbenchmark))         | HTTP parsing, repeat announces| `cargo bench -p torrust-tracker-http-core`                                                                  |
 | Data-structure microbenchmark | Criterion, `packages/torrent-repository-benchmarking/`                                                                                                                               | Torrent repository implementations                                                                       | The tracker's other layers    | `cargo bench -p torrust-tracker-torrent-repository-benchmarking`                                            |
 | Example-based microbenchmark  | `packages/swarm-coordination-registry/examples/bench_peers.rs`                                                                                                                       | `Coordinator::peers_excluding`                                                                           | Serialization, I/O            | `cargo run -p torrust-tracker-swarm-coordination-registry --example bench_peers --release`                  |
 | Persistence benchmark         | `packages/persistence-benchmark/` ([README](../packages/persistence-benchmark/README.md)); reports in `packages/tracker-core/docs/benchmarking/`; CI workflow `db-benchmarking.yaml` | Database driver operations                                                                               | In-memory tracker paths       | `cargo run -p torrust-tracker-persistence-benchmark --bin persistence_benchmark_runner -- --driver sqlite3` |
@@ -128,8 +129,8 @@ group.bench_function("connect_once", |b| {
 ### Routine Guard for Async Benchmarks
 
 Comparing with a known cost is a manual check. The async Criterion benchmarks, `udp-core`
-`connect_once` and `http-core` `announce_once`, also carry a guard that fails them when the
-measured routine never runs. Each package keeps a copy of it in
+`connect_once` and `http-core` `announce_once` and `first_announce`, also carry a guard that fails
+them when the measured routine never runs. Each package keeps a copy of it in
 `benches/helpers/routine_guard.rs`:
 
 ```rust
@@ -451,8 +452,63 @@ peer list in the response. This is deliberate:
   an existing peer.
 
 The result is a lower bound on announce cost: it does not include inserting a new peer or building
-a non-empty peer list. A first-announce benchmark would need its own design, for example a
-pre-filled swarm of fixed size and a bounded rotating pool of peers.
+a non-empty peer list. The [first-announce benchmark](#http-first-announce-microbenchmark)
+measures those two.
+
+### HTTP first-announce microbenchmark
+
+Measures one awaited `AnnounceService::handle_announce` with event `started` for a peer that is not
+in the swarm, for swarms of 0, 74, and 1000 other seeders. It includes what the repeat-announce
+benchmark includes, plus inserting the peer, the swarm "peer added" event, and a peer list built
+from the other peers: up to 74, the default `max_peers_per_announce`. Unlike the repeat-announce
+benchmark, the swarm registry sends its events to the swarm statistics listener, wired as in
+production. It does not include HTTP parsing or the Axum server.
+
+```console
+cargo bench -p torrust-tracker-http-core --bench http_tracker_core_benchmark -- first_announce
+```
+
+Example output (shared Linux desktop with a load average of 4-8, issue #2518; the medians of
+three runs varied by 7-9%):
+
+```output
+http_tracker/first_announce/0
+                        time:   [431.73 ns 432.20 ns 432.66 ns]
+http_tracker/first_announce/74
+                        time:   [1.1534 µs 1.1643 µs 1.1740 µs]
+http_tracker/first_announce/1000
+                        time:   [1.1542 µs 1.1650 µs 1.1756 µs]
+```
+
+- **0 peers** is the insert with an empty peer list.
+- **74 peers** returns a full default peer list.
+- **1000 peers** also returns 74 peers, from a larger map, so a result equal to the 74-peer one
+  shows that swarm size alone does not change the cost.
+
+To keep the swarm at exactly the same size however many iterations Criterion runs, each iteration
+times only the `started` announce (Criterion's `iter_custom`), and the peer then leaves with a
+`stopped` announce that is not timed. The result has these limits:
+
+- **It includes two clock reads per iteration,** tens of nanoseconds, a constant in every run, plus
+  the `RoutineGuard`'s counter increment. Compare first-announce results only with each other,
+  never with `announce_once`, whose iterations are timed in bulk.
+- **Part of the removal can leak in.** The statistics events of the `stopped` announce may still be
+  processed by the listener during the next timed announce.
+- **It is not a join-and-leave cycle.** Timing both announces would add an insert and a removal
+  into one number, so a change to either could not be attributed.
+
+The discarded designs, with their reasons, are in decision D1 of
+[the issue specification](issues/open/2518-http-first-announce-benchmark/ISSUE.md): Criterion's
+`iter_batched` cannot await an asynchronous removal in its synchronous setup, a new peer on every
+iteration makes the swarm grow, and a rotating pool of peers would measure repeat announces after
+its first pass.
+
+The benchmark also fails under `cargo test --benches` when it stops measuring first announces: it
+asserts that the swarm still has exactly its pre-filled peers after the run, that the swarm
+statistics counted only inserts and removals and no updates, and that the first announce returned
+`min(N, 74)` peers. The exact counts apply while the run sends no more swarm events than the event
+bus holds (65,536); after a longer run, such as `cargo bench`, only checks that dropped events
+cannot break are applied.
 
 ## Notes
 
