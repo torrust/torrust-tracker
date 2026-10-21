@@ -9,7 +9,7 @@ github-issue: 1349
 spec-path: docs/issues/open/1349-1347-add-tests-http-core/ISSUE.md
 branch: "1349-1347-add-tests-http-core-final"
 related-pr: null
-last-updated-utc: "2026-10-21 14:46"
+last-updated-utc: "2026-10-21 15:18"
 semantic-links:
   skill-links:
     - create-issue
@@ -312,9 +312,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 | T1 | DONE | Create coverage evidence and complete module inventory | `coverage-evidence.md` records the baseline commands and totals from this spec, per-file uncovered regions, property-test candidacy, selected behavior, and initial hypothesis for every `packages/http-core/src/` file. No tests changed. |
 | T2 | DONE | Create shared plan guidance and the first file test plan | `test-refactor-plans/README.md` holds the shared guardrails and the plan index, including the two #1348 testing lessons that apply here: re-check an assumed-unreachable error path against `tracker-core`'s exported store doubles before recording it untestable, and prove an ordering decision (for example, authentication before authorization before client-IP resolution) with an expectation-free double that fails on the first call. The first plan is `services-announce-tests.md`. No tests changed. |
 | T3 | DONE | Review and approve the processing order and slice boundaries | Maintainer approves the ledger order and the pull-request slices; both may change at any time. |
-| T4 | TODO | Process every source file through the per-file workflow | Every ledger row has a completed plan, recorded coverage result, completed-file review, and signed per-file commit, merged through its slice. |
-| T5 | TODO | Implement integration-test increments selected by file test plans | Only if a plan selected a 3B increment; otherwise record why none was needed. |
-| T6 | TODO | Perform bounded mutation assessment | `mutation-evidence.md` records configuration, timeout, scope, outcomes, and the reason for each unviable mutant. |
+| T4 | DONE | Process every source file through the per-file workflow | Every ledger row has a completed plan, recorded coverage result, completed-file review, and signed per-file commit, merged through its slice. All 13 rows are `DONE`; S1-S5 are merged and S6 is this PR. |
+| T5 | DONE | Implement integration-test increments selected by file test plans | None: no plan selected a 3B increment, because the package has no network boundary of its own (see the final test-technique assessment in `coverage-evidence.md`). |
+| T6 | DONE | Perform bounded mutation assessment | `mutation-evidence.md` records the whole-package run (96 mutants: 50 caught, 1 missed, 1 timeout, 44 unviable) and the reason for each unviable mutant. |
 | T7 | TODO | Reconcile evidence and progress state | Ledger, plans, plan index, slice table, coverage evidence, acceptance rows, and both EPIC coverage tables agree. Grep completed records for stray `TODO`/`IN_PROGRESS` labels and stale frontmatter. |
 | T8 | TODO | Complete verification and acceptance review | Automatic checks, manual verification, the final Task Reviewer review, acceptance review, and the retrospective decision are recorded. |
 
@@ -756,6 +756,17 @@ lines are the S2 baseline measurement (see [Baseline Coverage](#baseline-coverag
   by the maintainer: no test for either (wiring only, no executable entry). The module comment of `services/mod.rs`
   said the services "does depend on the Axum web server" although `http-core` has no Axum dependency; it now says
   "does not depend". All 13 ledger rows are `DONE`; the independent review, the pre-push checks and T5-T8 remain.
+- 2026-10-21 15:18 UTC - GitHub Copilot - T5-T8 evidence recorded after the maintainer approved the plan. T5: no
+  integration increment was selected. T6: `cargo-mutants` ran the whole package (96 mutants: 50 caught; 1 missed, the
+  debug log decided in the handler plan; 1 timeout, the listener's drain stop condition and the known #1488 limit;
+  44 unviable, each with a stated reason); a first run was interrupted by the environment during its baseline and
+  was rerun. Manual verification M1-M5 passed against a built tracker (a wrong first scrape URL is recorded in V2).
+  Final measurement: 191 tests, lines 3,030 / 3,052 (99.28%), regions 3,983 / 4,013 (99.25%), functions 384 / 385
+  (99.74%), identical for the aggregate and the unit-only runs. The `tcp4`/`tcp6` finding became a git-ignored draft
+  with a hand-off, `.tmp/1349-tcp-family-counter-docs/`, which also covers the UDP counters that #1348 had recorded
+  without an owner; the maintainer chose a draft in addition to the `lessons.md` row, and the recommended mode is
+  parallel (no remaining ledger row touches the files). `lessons.md` and `implementation-retrospective.md` were
+  written.
 
 ## Acceptance Criteria
 
@@ -816,11 +827,11 @@ built from `develop` with every earlier slice merged.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | HTTP announce | Start an isolated public tracker and run `cargo run -p torrust-tracker-client --bin tracker_client -- http announce <url> <hash>`. | Valid bencoded announce response. | TODO | `manual-verification-evidence.md` V1 |
-| M2 | HTTP scrape | Run `cargo run -p torrust-tracker-client --bin tracker_client -- http scrape <url> <hash>` for the announced hash. | Scrape returns the announced torrent. | TODO | `manual-verification-evidence.md` V2 |
-| M3 | Peer IP override policy | With `use_ip_from_query_string = false`, send an announce with `ip=<literal>` using `curl`; repeat with the option `true`, then list the torrent's peers through the REST API. | Disabled: bencoded failure reason naming the disabled override. Enabled: the stored peer uses the supplied IP. | TODO | `manual-verification-evidence.md` V3 |
-| M4 | Private mode | With `private = true`, announce and scrape with `curl` without a key, then with a key created through the REST API. | Announce without a key fails with an authentication failure reason; scrape without a key returns zeroed data; both succeed with the key. | TODO | `manual-verification-evidence.md` V4 |
-| M5 | HTTP core statistics | After M1 and M2, read the REST API statistics. | The TCP4 announce and scrape counters reflect the requests made. | TODO | `manual-verification-evidence.md` V5 |
+| M1 | HTTP announce | Start an isolated public tracker and run `cargo run -p torrust-tracker-client --bin tracker_client -- http announce <url> <hash>`. | Valid bencoded announce response. | DONE | `manual-verification-evidence.md` V1 |
+| M2 | HTTP scrape | Run `cargo run -p torrust-tracker-client --bin tracker_client -- http scrape <url> <hash>` for the announced hash. The `<url>` is the tracker's base URL. | Scrape returns the announced torrent. | DONE | `manual-verification-evidence.md` V2 |
+| M3 | Peer IP override policy | With `use_ip_from_query_string = false`, send an announce with `ip=<literal>` using `curl`; repeat with the option `true`, then list the torrent's peers through the REST API. | Disabled: bencoded failure reason naming the disabled override. Enabled: the stored peer uses the supplied IP. | DONE | `manual-verification-evidence.md` V3 |
+| M4 | Private mode | With `private = true`, announce and scrape with `curl` without a key, then with a key created through the REST API. | Announce without a key fails with an authentication failure reason; scrape without a key returns zeroed data; both succeed with the key. | DONE | `manual-verification-evidence.md` V4 |
+| M5 | HTTP core statistics | After M1 and M2, read the REST API statistics. | The TCP4 announce and scrape counters reflect the requests made. | DONE | `manual-verification-evidence.md` V5 |
 
 ### Disposable Verification Scripts
 

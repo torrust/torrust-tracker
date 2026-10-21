@@ -217,6 +217,7 @@ debuginfo
 defence
 depgraph
 dfsg
+disablede
 dispositioned
 distroless
 distros
@@ -402,6 +403,7 @@ pathspecs
 peekable
 peerlist
 peersld
+peerslee
 penalise
 pessimize
 pgrep

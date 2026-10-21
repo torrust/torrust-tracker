@@ -367,3 +367,47 @@ The file keeps no production line to cover; the eight new tests pin the public l
 ### `services/mod.rs` and `statistics/event/mod.rs` (slice S6)
 
 Measured on 2026-10-21 on the S6 branch. Neither file has an executable entry, before or after, so no coverage figure moves. The plans are [services-mod-tests.md](test-refactor-plans/services-mod-tests.md) (no test; the module comment now says the services do not depend on the Axum web server, which the package's `Cargo.toml` confirms) and [statistics-event-mod-tests.md](test-refactor-plans/statistics-event-mod-tests.md) (no change). With these two rows, all 13 files of the ledger are processed.
+
+## Final Measurement (T8)
+
+Measured on 2026-10-21 at 15:16 UTC on the S6 branch (stable Rust 1.99.1, `cargo-llvm-cov`), after the last test and the `services/mod.rs` comment correction. Each command ran after `cargo llvm-cov clean --workspace`:
+
+```text
+cargo llvm-cov -p torrust-tracker-http-core --all-features --json --output-path .tmp/1349-coverage/final-aggregate.json
+cargo llvm-cov -p torrust-tracker-http-core --all-features --lib --json --output-path .tmp/1349-coverage/final-unit.json
+```
+
+Both ran the same 191 unit tests. The package has no `tests/` directory, so there is no integration-only report, and the aggregate figures equal the unit-only ones.
+
+| Scope | Original baseline (`87690b15e`) | Final (unit-only and aggregate) | Change |
+| --- | ---: | ---: | ---: |
+| Lines | 1,751 / 1,970 (88.88%) | 3,030 / 3,052 (99.28%) | +10.40 pp |
+| Regions | 2,357 / 2,607 (90.41%) | 3,983 / 4,013 (99.25%) | +8.84 pp |
+| Functions | 161 / 191 (84.29%) | 384 / 385 (99.74%) | +15.45 pp |
+
+The counted totals include the new test modules, so the percentages rise more than the production lines alone; each file's production lines are the better judge, and the per-file plans record them. Tests went from 33 to 191.
+
+The 22 uncovered lines are:
+
+| Location | Lines | Kind | Owner or decision |
+| --- | ---: | --- | --- |
+| `services/error_mapping.rs` 18-20 | 3 | Production | The wildcard arm for an unknown `TrackerCoreError` variant; the enum is `#[non_exhaustive]` with four variants, so no code outside `tracker-core` can build a fifth (error-mapping plan). |
+| `statistics/event/handler.rs` 20 and 25 | 3 | Production | The failed-counter-increase `Err` arm and the debug closure; reachable only with a failing metrics repository or log capture (handler plan). The mutation run records `log_counter_increased` as the one missed mutant. |
+| `statistics/event/listener.rs` 132 | 1 | Production | The `warn!` argument for an ignored event (listener plan). |
+| `statistics/event/listener.rs` 200 | 1 | Test support | The `Lagged` arm of the scripted test receiver. |
+| `container.rs`, `services/announce.rs`, `services/scrape.rs` test modules | 14 | Test modules | Lines inside test bodies that `llvm-cov` does not count for `rstest` tables combined with `#[tokio::test]` (see the lessons). |
+
+Seven production lines remain uncovered, all with a recorded owner. Mutation evidence: [mutation-evidence.md](mutation-evidence.md).
+
+### Final Test-Technique Assessment
+
+| Technique | Outcome |
+| --- | --- |
+| Unit tests | Selected and delivered: all 13 ledger files processed, 191 tests. |
+| Package integration tests | Not needed. No plan selected a 3B increment; the package has no network boundary of its own, so T5 had no work. |
+| Runnable examples | Not needed. The existing doc tests of `statistics/repository.rs` were kept. |
+| Root `tests/` or `packages/e2e-tools/` | Not needed. Real HTTP behavior stays with `axum-http-server` and the root tests; the manual verification (M1-M5) exercised it by hand. |
+| Mutation testing | Done on the whole package (96 mutants; 50 caught, 1 missed, 1 timeout, 44 unviable). |
+| Property-based testing | Not adopted. The announce plan assessed it: two mutants of `select_peer_ip_with_policy` survived the examples and were each fixed with one more example, so no property earned a new dependency. |
+| Fuzzing | Not selected: untrusted parsing belongs to `http-protocol`. |
+| Benchmarks | Out of scope. |
