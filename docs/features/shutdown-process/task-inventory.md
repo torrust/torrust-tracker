@@ -1,7 +1,7 @@
 ---
 doc-type: feature-supporting-analysis
 status: verified
-last-updated-utc: "2026-10-19 17:20"
+last-updated-utc: "2026-10-20 21:08"
 semantic-links:
   related-artifacts:
     - docs/features/shutdown-process/README.md
@@ -31,8 +31,11 @@ and third-party framework internals whose exact task topology is not exposed.
 
 `main()` is the executable signal boundary: it accepts `SIGINT` and, on Unix,
 `SIGTERM`; it then calls `JobManager::cancel()` and awaits all manager-owned
-work under one shared ten-second deadline. The supervisor owns direct
-top-level component futures only. Components own nested tasks and must join or
+work under one shared ten-second deadline. Since issue #2415, every direct
+component gets its own cancellation token from `JobManager::reserve`, not a
+child of a shared root token; `cancel()` cancels all of them, and the legacy
+root token, at once. The supervisor owns direct top-level component futures
+only. Components own nested tasks and must join or
 deliberately abort them before returning; `JobManager` never collects nested
 handles.
 
@@ -50,26 +53,26 @@ torrust-tracker process (Tokio runtime; main)
       │  ├─ seven token-aware event-listener categories [conditional as listed below]
       │  ├─ torrent cleanup [conditional]
       │  ├─ peers inactivity update [conditional]
-      │  ├─ UDP instance [N configured public bindings; component child token]
+      │  ├─ UDP instance [N configured public bindings; own component token]
       │  │  └─ receive loop [component-owned OwnedTask; stops cooperatively on cancellation]
       │  │     └─ request processors [N datagrams; loop-owned JoinSet; 5 s drain; AbortHandle eviction ring]
-      │  ├─ HTTP instance [N configured bindings; component child token]
+      │  ├─ HTTP instance [N configured bindings; own component token]
       │  │  ├─ server task [component-owned TokenAwareServerTask]
       │  │  └─ drain controller [component-owned and joined]
-      │  ├─ REST API [conditional; component child token]
+      │  ├─ REST API [conditional; own component token]
       │  │  ├─ server task [component-owned TokenAwareServerTask]
       │  │  └─ drain controller [component-owned and joined]
-      │  └─ health-check API [always; component child token]
+      │  └─ health-check API [always; own component token]
       │     ├─ server task [component-owned TokenAwareServerTask]
       │     └─ drain controller [component-owned and joined]
       ├─ Legacy registry (pre-spawned periodic jobs, not JoinSet members)
-      │  └─ UDP IP-ban cleanup [conditional; CancellationToken]
+      │  └─ UDP IP-ban cleanup [conditional; legacy root token]
       └─ Axum/Hyper connection and request work [framework-owned]
 ```
 
 ```mermaid
 flowchart TD
-    main["main(): SIGINT / Unix SIGTERM"] --> cancel["JobManager.cancel(): root CancellationToken"]
+    main["main(): SIGINT / Unix SIGTERM"] --> cancel["JobManager.cancel(): every component token and the legacy root token"]
     cancel --> direct["Direct top-level JoinSet components"]
     direct --> listeners["Token-aware event listeners"]
     direct --> cleanup["Torrent cleanup (conditional)"]
@@ -95,39 +98,39 @@ The table is a compact overview. The [detailed inventory](#detailed-inventory)
 below records the exact ownership, cancellation, and completion evidence for
 each row.
 
-| Work                          | Cardinality | Ownership        | Current shutdown         | Roadmap                |
-| ----------------------------- | ----------- | ---------------- | ------------------------ | ---------------------- |
-| Swarm-registry listener       | 0–1         | Direct `JoinSet` | Root token               | —                      |
-| Tracker-core listeners        | 0–2         | Direct `JoinSet` | Root token               | —                      |
-| HTTP-core listener            | 1           | Direct `JoinSet` | Root token               | —                      |
-| UDP-core listener             | 1           | Direct `JoinSet` | Root token               | —                      |
-| UDP-server listeners          | 0–2         | Direct `JoinSet` | Root token               | —                      |
-| UDP instances                 | N bindings  | Direct `JoinSet` | Child token              | SI-14 complete         |
-| UDP request processors        | N datagrams | Component-owned  | Joined, 5 s drain        | SI-15 complete         |
-| HTTP instances                | N bindings  | Direct `JoinSet` | Child token              | SI-11 complete         |
-| REST API                      | 0–1         | Direct `JoinSet` | Child token              | SI-12 complete         |
-| Health-check API              | 1           | Direct `JoinSet` | Child token              | SI-13 complete, SI-21  |
-| HTTP/REST drain controllers   | Per server  | Component-owned  | Child token, 90 s drain  | SI-11, SI-12 complete  |
-| Health-check drain controller | 1           | Component-owned  | Child token, 5 s drain   | SI-13 complete         |
-| Health-check request work     | Per request | Framework-owned  | Request lifetime         | —                      |
-| Torrent cleanup               | 0–1         | Direct `JoinSet` | Root token               | SI-4 complete          |
-| Peers inactivity update       | 0–1         | Direct `JoinSet` | Root token               | SI-5 complete          |
-| UDP IP-ban cleanup            | 0–1         | Legacy registry  | Root token               | Periodic-job migration |
+| Work                          | Cardinality | Ownership        | Current shutdown            | Roadmap                |
+| ----------------------------- | ----------- | ---------------- | --------------------------- | ---------------------- |
+| Swarm-registry listener       | 0–1         | Direct `JoinSet` | Own token                   | —                      |
+| Tracker-core listeners        | 0–2         | Direct `JoinSet` | Own token                   | —                      |
+| HTTP-core listener            | 1           | Direct `JoinSet` | Own token                   | —                      |
+| UDP-core listener             | 1           | Direct `JoinSet` | Own token                   | —                      |
+| UDP-server listeners          | 0–2         | Direct `JoinSet` | Own token                   | —                      |
+| UDP instances                 | N bindings  | Direct `JoinSet` | Own token                   | SI-14 complete         |
+| UDP request processors        | N datagrams | Component-owned  | Joined, 5 s drain           | SI-15 complete         |
+| HTTP instances                | N bindings  | Direct `JoinSet` | Own token                   | SI-11 complete         |
+| REST API                      | 0–1         | Direct `JoinSet` | Own token                   | SI-12 complete         |
+| Health-check API              | 1           | Direct `JoinSet` | Own token                   | SI-13 complete, SI-21  |
+| HTTP/REST drain controllers   | Per server  | Component-owned  | Component token, 90 s drain | SI-11, SI-12 complete  |
+| Health-check drain controller | 1           | Component-owned  | Component token, 5 s drain  | SI-13 complete         |
+| Health-check request work     | Per request | Framework-owned  | Request lifetime            | —                      |
+| Torrent cleanup               | 0–1         | Direct `JoinSet` | Own token                   | SI-4 complete          |
+| Peers inactivity update       | 0–1         | Direct `JoinSet` | Own token                   | SI-5 complete          |
+| UDP IP-ban cleanup            | 0–1         | Legacy registry  | Root token                  | Periodic-job migration |
 
 ## Detailed Inventory
 
 ### Direct `JoinSet` Components
 
 - **Torrent cleanup** — starts when `inactive_peer_cleanup_interval > 0`. Its
-  unspawned runner observes the root token or weak-manager expiry and reports
+  unspawned runner observes its own component token or weak-manager expiry and reports
   cooperative cancellation or normal completion to `JobManager`.
 - **Peers inactivity update** — starts when `tracker_usage_statistics` is
-  enabled. Its unspawned runner observes the root token or weak registry or
+  enabled. Its unspawned runner observes its own component token or weak registry or
   statistics-repository expiry and reports cooperative cancellation or normal
   completion to `JobManager`.
 - **Swarm-registry statistics listener** — starts only when
-  `tracker_usage_statistics` is enabled. Its unspawned runner receives the
-  root token and reports either cooperative cancellation or completion.
+  `tracker_usage_statistics` is enabled. Its unspawned runner receives its
+  own component token and reports either cooperative cancellation or completion.
 - **Tracker-core listeners** — the in-memory listener starts with
   `tracker_usage_statistics`; the persistent completed-statistics listener
   starts when persistent completed statistics are enabled and fails startup if
@@ -139,19 +142,19 @@ each row.
   services are enabled: the tracker is public and the UDP configuration is
   non-empty. Both are token-aware direct components.
 - **UDP instances** — one direct component per enabled UDP binding, each with
-  a child of the `JobManager` root token. The component owns the receive loop
+  its own component token. The component owns the receive loop
   through `OwnedTask`, created before the component future is returned, and
   aborts it if dropped. The loop observes the token between datagrams, drains
   its request processors, and returns `Ok(())`, so the component reports
   cooperative cancellation; a receive error or panic fails the component
   (SI-14, SI-15).
-- **HTTP instances and REST API** — direct components with a child token each.
+- **HTTP instances and REST API** — direct components with their own component token each.
   They own their server task and token-aware drain controller through
   `TokenAwareServerTask` and join both after cancellation or independent
   server completion. There is one HTTP component per configured binding and
   zero or one REST component when `http_api` is configured (SI-11, SI-12).
-- **Health-check API** — an always-present direct component that receives a
-  child of the `JobManager` root token. It owns both the server and its
+- **Health-check API** — an always-present direct component that receives its
+  own component token. It owns both the server and its
   token-aware drain controller through `TokenAwareServerTask`; it joins both
   after cancellation or independent server completion and aborts them if
   dropped. The drain has a 5-second budget (SI-13).
@@ -183,7 +186,7 @@ each row.
 ### Legacy Registry
 
 - **UDP IP-ban cleanup** — starts with UDP services. Its pre-spawned legacy
-  handle observes the root token; the manager waits for it or aborts and joins
+  handle observes the manager's legacy root token; the manager waits for it or aborts and joins
   it at the deadline.
 
 The direct-component count is configuration dependent:
@@ -310,6 +313,10 @@ test at line 654), 14 token sites and 4 `child_token`
 calls. There is one production `Receiver` implementation plus six test
 `ScriptedReceiver` implementations, seven in total. Seven
 `it_should_prioritize_*` tests exist across the six listener files.
+
+Since issue #2415 those 13 sites reserve a component with `JobManager::reserve`
+and spawn it with its own token, no `child_token` call remains, and the only
+use of the root token is the legacy `udp_ban_cleanup` job.
 
 ## Findings and Roadmap Mapping
 

@@ -83,7 +83,8 @@ lists every producer and consumer.
   documents.
 - **Legacy job**: a pre-spawned periodic job registered with
   `JobManager::register_legacy`. `JobManager` keeps its `JoinHandle` outside
-  the `JoinSet` and gives it no token of its own. Today only `udp_ban_cleanup`
+  the `JoinSet` and gives it no token of its own: it uses the manager's legacy
+  root token. Today only `udp_ban_cleanup`
   is one, until it gets its own periodic-job migration.
 - **Owner**: the component or container that is responsible for stopping and
   joining a task. `JobManager` owns the top-level component tasks and the
@@ -97,8 +98,9 @@ lists every producer and consumer.
   zombie processes.
 - **`JobManager`**: the application supervisor in `src/bootstrap/jobs/manager.rs`.
   It owns top-level components only, not their children. It applies the shared
-  deadline, then aborts and joins what remains. **Planned**: it also issues each
-  component's own stop token and enforces the stop order.
+  deadline, then aborts and joins what remains. It issues each top-level
+  component its own stop token through a reservation (`reserve`, then `spawn`)
+  and cancels them all at once. **Planned**: it enforces the stop order.
 - **Composition root** (bootstrap): `src/app.rs` and `src/bootstrap/`, where
   services and components are created and wired. It is the only place that
   knows both producers and consumers, so it is the only place that declares the
