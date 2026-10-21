@@ -102,11 +102,19 @@ impl PullRequestRef {
 pub struct GithubVerdict {
     #[serde(flatten)]
     pub verdict: VerdictResult,
-    /// Why an override did not apply, when the verdict failed without it and there is something to say:
-    /// the labels could not be read, so whether the label is there is not known, or the label is on the
-    /// pull request but does not count (it is stale, the actor may not override, no event of it being
-    /// applied was found, or the events, the check suites, or the permission could not be read). It is
-    /// `None` when the labels were read and the label is not among them.
+    /// Why an override did not apply, when the verdict failed without it and there is something to say.
+    /// The labels could not be read, so whether the label is there is not known; or the label is on the
+    /// pull request but does not count, because:
+    ///
+    /// - no event of it being applied was found, or the events could not be read;
+    /// - the actor who applied it is not known, or is not a valid login;
+    /// - the check suites of the head commit could not be read, or there is none, so it cannot be told
+    ///   whether the label is older than the push;
+    /// - a time is not in the form GitHub writes;
+    /// - it was applied at or before the head commit's first check suite, so a push revoked it;
+    /// - the role of the actor could not be read, or is not `admin` or `maintain`.
+    ///
+    /// It is `None` when the labels were read and the label is not among them.
     pub override_ignored: Option<String>,
 }
 
