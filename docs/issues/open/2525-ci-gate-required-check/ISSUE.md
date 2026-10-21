@@ -9,7 +9,7 @@ github-issue: 2525
 spec-path: docs/issues/open/2525-ci-gate-required-check/ISSUE.md
 branch: "2525-ci-gate-required-check"
 related-pr: null
-last-updated-utc: "2026-10-21 10:31"
+last-updated-utc: "2026-10-21 10:53"
 semantic-links:
   skill-links:
     - create-issue
@@ -134,7 +134,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2  | DONE        | Rust change detection                           | Implemented as the `ci-gate` crate (`contrib/dev-tools/checks/ci-gate`, subcommand `classify`) on branch `2525-ci-gate-change-detection`, approved by the maintainer on 2026-10-20 and committed as `feat(ci-gate): [#2525] add the change-detection tool`. Decisions of 2026-10-20: one crate for T2 and T3; one group per workflow (`docs-lint`, `testing`, `os-compatibility`, `coverage`, `container`, `db-compatibility`, `db-benchmarking`, `security-scan`); changed paths on stdin plus `--base-branch`, so the tool runs no child process and reads no git state; the rules are a typed Rust table that reproduces the filters of the eight pull-request workflows; T3 follows in its own pull request. Output follows the global CLI output contract (one JSON object on stdout, JSON diagnostics on stderr, TTY refusal). 104 unit and 6 command-line tests; 16 of 16 mutants killed; 60 of 60 recent merged pull requests classified exactly as GitHub ran them. Evidence: [`manual-verification-evidence.md`](manual-verification-evidence.md) V1 to V6. |
 | T3  | DONE        | Rust verdict                                    | Implemented as the `verdict` subcommand of the `ci-gate` crate on branch `2525-ci-gate-verdict`; decisions approved by the maintainer on 2026-10-20: one JSON object on stdin, `{"classification": <the classify output>, "results": {<group>: success, failure, cancelled, or skipped}}`; the override is `--override-actor <login>` (the Maintain or Admin role check of AC3 belongs to T5); a decided verdict, passing or failing, is a result, so the tool exits with 0 and the workflow reads `verdict`, while input it cannot decide on (unreadable, or a classification that does not list every group once) exits with 1 and prints nothing, so both fail the gate. A needed group that failed, was cancelled, was skipped, or never reported is a problem; a group that is not needed never counts; an override is recorded only when it overrides a problem. 135 unit and 10 command-line tests, 13 of 13 mutants killed. Evidence: [`manual-verification-evidence.md`](manual-verification-evidence.md) V7.                                                |
 | T4  | DONE        | Decision gate: gate cost and override           | In a fork sandbox like #2507's: measure the runner time the gate adds to a documentation-only PR (tool compile included, with and without caching or a prebuilt binary), and verify that a later successful `CI gate` check run from an override-only run supersedes the earlier failing one for the required check. Sandbox runs DONE on 2026-10-21 ([`manual-verification-evidence.md`](manual-verification-evidence.md) V8 and V9): a cold build of the tool costs a median 0.40 runner minutes per job and a prebuilt binary about 0.12; a later check run supersedes an earlier one in both directions for the same job of a workflow, and two workflows with a job named `CI gate` do not combine into a pass. Approved by the maintainer on 2026-10-21: both gate jobs build the tool cold, and a prebuilt binary is adopted only if a later measurement exceeds the AC6 bound, which is at most 1.0 runner minute added at the median to a documentation-only pushed head (two tool runs). |
-| T5  | TODO        | Decision gate: cross-run state for the override | A `labeled` or `unlabeled` event starts a new workflow run that cannot read the earlier run's `needs` results, and later events do not say who applied an existing label. Define, with a maintainer-approved design: (a) where the gate reads the heavy jobs' results for the head SHA (for example the checks API, persisted artifacts, or rerunning the jobs); (b) where it reads label provenance (for example the issue events API) and how it verifies the actor's Maintain or Admin role; (c) the token permissions this needs on fork pull requests, whose `GITHUB_TOKEN` is read-only, and the trust boundary of each input; (d) whether an override survives a new push (`synchronize`) or applies only to the head SHA it was granted for. Prove it with hosted runs in a sandbox for label added, label removed, and a push after an override. Keep provider queries in a thin adapter so the verdict stays provider-neutral.                                                       |
+| T5  | IN_PROGRESS | Decision gate: cross-run state for the override | A `labeled` or `unlabeled` event starts a new workflow run that cannot read the earlier run's `needs` results, and later events do not say who applied an existing label. Define, with a maintainer-approved design: (a) where the gate reads the heavy jobs' results for the head SHA (for example the checks API, persisted artifacts, or rerunning the jobs); (b) where it reads label provenance (for example the issue events API) and how it verifies the actor's Maintain or Admin role; (c) the token permissions this needs on fork pull requests, whose `GITHUB_TOKEN` is read-only, and the trust boundary of each input; (d) whether an override survives a new push (`synchronize`) or applies only to the head SHA it was granted for. Prove it with hosted runs in a sandbox for label added, label removed, and a push after an override. Keep provider queries in a thin adapter so the verdict stays provider-neutral. Sandbox runs DONE on 2026-10-21 ([`manual-verification-evidence.md`](manual-verification-evidence.md) V10); the proposed design is in "T5 Design Proposal: the Override Across Runs" and awaits the maintainer's approval. |
 | T6  | TODO        | Orchestrating workflow                          | Convert the pull-request triggers of the heavy workflows into `workflow_call` invocations from one orchestrator; keep `push` triggers; final `CI gate` job; `labeled`/`unlabeled` handling that only re-evaluates the verdict. Follow `implement-workflow`. `CI gate` lands reporting but **not required**: no ruleset change in T6. Before T7, observe it on at least one real code PR and one real documentation-only PR (M1, M2 without the required rule) and record both runs.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | T7  | TODO        | Ruleset and documentation                       | Only after T6 is observed on real PRs, and only with explicit maintainer approval: add the required `CI gate` context (Actions app, not strict) to the rulesets. Save the ruleset JSON before and after under `evidence/`, and record the rollback command in `docs/github-rulesets.md`, so a broken gate can be removed in one step without disabling a ruleset. Update `docs/github-rulesets.md`, the `merge-pull-request` override procedure, and `implement-workflow`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | T8  | IN_PROGRESS | Measure                                         | Not done in this issue, so #2525 can close without a waiting period (the same decision as #2507 T7, 2026-10-15). (a) DONE on 2026-10-21: [`pr-ci-cost-baseline.md`](pr-ci-cost-baseline.md) records the "before" runner time per pushed head and per pull request for documentation-only and code pull requests, from every run of the 98 pull requests merged since 7 October, with the raw per-run data under `evidence/`. (b) When T7 lands, draft and create a follow-up measurement issue that compares at least two weeks after T7 with (a), and link it here.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
@@ -213,6 +213,49 @@ observed results with UTC times, and its cleanup in
   `synchronize`, and tying the override to the head commit it was granted for.
 - **Hosted runs** in the sandbox for label added, label removed, and a push after an override. The
   maintainer approves the design before T6 starts.
+
+### T5 Design Proposal: the Override Across Runs
+
+Proposed on 2026-10-21 from the sandbox runs of
+[`manual-verification-evidence.md`](manual-verification-evidence.md) V8 to V10. It becomes the design of
+T6 when the maintainer approves it. The sandbox used `jq` and `gh` in workflow steps only to rehearse; the
+production gate keeps every decision in Rust, so the workflow only fetches raw API responses and passes
+them to the tool, as the ADR requires.
+
+#### Decisions proposed
+
+- **(a) Where the gate reads the results.** From the checks API, for the head commit: the latest run of
+  each group's job that is not skipped, by the Actions app, with a name that is a group name; a job that
+  has not completed is missing. One code path serves every event, push or label, and `needs` only orders
+  the jobs. Not chosen: artifacts of the earlier run (needs more permission and more plumbing, and was not
+  needed), and rerunning the jobs (costs the runner time that the override is meant to save). Contract:
+  the name of each group's job is the group's name.
+- **(b) Who applied the override.** The latest `labeled` event for `ci-override` in the issue events
+  API, while the label is still on the pull request. Its actor is checked with the collaborator permission
+  API, and only `admin` or `maintain` counts; any other result, or an error reading it, means no override.
+- **(c) Token and trust.** The gate runs on `pull_request`, never `pull_request_target`, with a token of
+  read scopes only (`contents`, `checks`, `issues`, `pull-requests`) and no secrets, so it works the same
+  for a pull request from a fork. It builds the tool from a checkout of the base branch, so a pull request
+  cannot change the tool. Trust of each input: the check runs and the events are created by GitHub; the
+  label can be applied by anyone with Triage access, so the role check on the actor is what restricts it; the
+  classification is computed from the pull request's file list, which is the pull request's own content, as
+  it is for the workflow filters today. Residual risk, the same as today: a pull request that edits workflow
+  files changes what its own checks report, and the maintainer who merges reviews those changes.
+- **(d) A push revokes the override.** The override counts only if the label was applied after the head
+  commit's first check suite was created, that is, after that push. The label stays on the pull request but
+  is ignored, and the explanation says it is stale and must be removed and applied again. Not chosen:
+  removing the label on a push, which needs a write token that a pull request from a fork does not have.
+
+#### What T6 must still verify, on real pull requests
+
+- The three API calls, and the label events, with the token of a pull request from a fork, and whether a
+  first-time contributor's run waits for approval, which would hold `CI gate` pending.
+- That a label applied by a user without Maintain or Admin access is ignored, which the sandbox could not
+  test with one account.
+- The names of the group jobs of the real workflows against the contract of (a), and the check runs that
+  skipped jobs leave.
+- What happens to a pull request that is open when the orchestrator changes: its label runs keep the old
+  workflow until its head changes.
 
 ## Commit Points
 
@@ -413,6 +456,16 @@ Conventional Commits with narrow scopes and sign every commit with GPG.
   the two tool runs (the sandbox measured about 0.8 minutes cold and 0.25 with a prebuilt binary). T4 is
   done. Next: T5, the cross-run state of the override, in a new sandbox, with its design approved by the
   maintainer before T6 starts.
+- 2026-10-21 10:53 UTC - GitHub Copilot - T5 sandbox runs done in the fork, then cleaned up (ruleset, branches, label;
+  verified). One orchestrator rehearsal with a read-only token and the real `ci-gate verdict` on a sandbox pull
+  request, in seven runs: a label run reads the earlier results of the groups from the checks API, the actor
+  from the issue events API, and the role from the collaborator permission API, and passes with the override
+  named; a new push makes the override stale although the label stays on the pull request; a label applied
+  after the push counts, and the merge push was accepted. A script error of mine (an empty actor) made two
+  runs fail closed with a usage error instead of a verdict, and another finding is that a workflow change on
+  the base branch does not reach the label runs of an open pull request until its head changes. The design
+  proposed from this is in "T5 Design Proposal: the Override Across Runs", for the maintainer's approval
+  before T6 starts.
 
 ## Acceptance Criteria
 
