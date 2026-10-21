@@ -65,9 +65,9 @@ no rows.
 | F4 | review-finding:pr-2610-f4 | Copilot | Nit (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
 | F5 | review-finding:pr-2610-f5 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
 | F6 | review-finding:pr-2610-f6 | Copilot | Nit (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
-| F7 | review-finding:pr-2610-f7 | Copilot | Suggestion | testing | ORIGINAL | FIXED | RESOLVED |
-| F8 | review-finding:pr-2610-f8 | Copilot | Suggestion | testing | RE_RAISE_OF:F7 | NO_ACTION | SUPERSEDED |
-| F9 | review-finding:pr-2610-f9 | Copilot | Suggestion | testing | RE_RAISE_OF:F7 | NO_ACTION | SUPERSEDED |
+| F7 | review-finding:pr-2610-f7 | Copilot | Suggestion (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
+| F8 | review-finding:pr-2610-f8 | Copilot | Suggestion (inferred) | testing | RE_RAISE_OF:F7 | NO_ACTION | SUPERSEDED |
+| F9 | review-finding:pr-2610-f9 | Copilot | Suggestion (inferred) | testing | RE_RAISE_OF:F7 | NO_ACTION | SUPERSEDED |
 | F10 | review-finding:pr-2610-f10 | Copilot | Nit (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
 | F11 | review-finding:pr-2610-f11 | Copilot | Nit (inferred) | testing | RE_RAISE_OF:F10 | NO_ACTION | SUPERSEDED |
 | F12 | review-finding:pr-2610-f12 | Copilot | Nit (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
