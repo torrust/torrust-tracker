@@ -520,7 +520,9 @@ Conventional Commits with narrow scopes and sign every commit with GPG.
   with the old path (`test(ci-gate): [#2525] build the permission fixture path from the actor in the override
   helper`). The error of a failed request named `gh api <path>` although the program runs `gh api --paginate
   <path>` (`fix(ci-gate): [#2525] name the real gh invocation in the error of a failed request`). Now 200 unit
-  and 18 command-line tests, and one more mutant killed -
+  and 18 command-line tests, and one more mutant killed, from 199 unit tests and 17 mutants after the test that the
+  earliest check suite is taken over all pages (`test(ci-gate): [#2525] test that the earliest check suite is taken
+  over all pages`) -
   [`manual-verification-evidence.md`](manual-verification-evidence.md) V11.
 - 2026-10-21 15:24 UTC - GitHub Copilot - Processed Copilot's second review of PR #2610 (two findings, both confirmed). The
   adapter read the events of the pull request whenever the verdict failed, so a failing events request set
