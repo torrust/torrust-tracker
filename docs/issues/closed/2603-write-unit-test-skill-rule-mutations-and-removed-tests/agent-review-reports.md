@@ -2,7 +2,7 @@
 semantic-links:
   related-artifacts:
     - .github/agents/task-reviewer.agent.md
-    - docs/issues/open/2603-write-unit-test-skill-rule-mutations-and-removed-tests/ISSUE.md
+    - docs/issues/closed/2603-write-unit-test-skill-rule-mutations-and-removed-tests/ISSUE.md
 ---
 
 # Agent Review Reports - Teach the write-unit-test Skill to Derive Mutations From Each Rule Clause and to Record Removed Tests
