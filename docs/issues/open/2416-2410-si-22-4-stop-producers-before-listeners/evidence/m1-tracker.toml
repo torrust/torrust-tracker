@@ -1,0 +1,33 @@
+[metadata]
+app = "torrust-tracker"
+purpose = "configuration"
+schema_version = "3.0.0"
+
+[logging]
+trace_filter = "info"
+trace_style = "full"
+
+[core]
+inactive_peer_cleanup_interval = 3600
+listed = false
+private = false
+
+[core.database]
+driver = "sqlite3"
+path = "./.tmp/m1/tracker.sqlite3"
+
+[core.tracker_policy]
+max_peer_timeout = 3600
+persistent_torrent_completed_stat = true
+remove_peerless_torrents = false
+
+[[http_trackers]]
+bind_address = "127.0.0.1:47270"
+tracker_usage_statistics = true
+
+[[udp_trackers]]
+bind_address = "127.0.0.1:47271"
+tracker_usage_statistics = true
+
+[health_check_api]
+bind_address = "127.0.0.1:47513"

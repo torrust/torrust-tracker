@@ -9,7 +9,7 @@ github-issue: 2416
 spec-path: docs/issues/open/2416-2410-si-22-4-stop-producers-before-listeners/ISSUE.md
 branch: "2416-stop-producers-before-listeners"
 related-pr: null
-last-updated-utc: "2026-10-21 18:47"
+last-updated-utc: "2026-10-21 19:11"
 semantic-links:
   skill-links:
     - create-issue
@@ -105,7 +105,7 @@ items 8 (T7) to 11 (T10).
 | T7 | DONE | Reproduce window (b), then red stop-order test | Controlled late publication proves the lost effect; consumer must remain live while any of two producers runs; red output recorded (evidence V1). |
 | T8 | DONE | Stop order | Edges enforced with waiting and cancellation logs; `EventFlows` with unit tests; `src/app.rs` wired; in-process application test. Design-review checkpoint. Implemented and reviewed (evidence V2, V3; record entry 31). |
 | T9 | DONE | Test environments | HTTP and UDP environments stop servers first, keeping the sub-EPIC's [Test environments](../2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md#test-environments) guarantees (join-all failure reporting; independent server and listener tokens, each with its own `DropGuard`, D20); for each environment, a test that an event from a request completed just before `stop()` is counted. |
-| T10 | TODO | Documentation and verification | ADR moved and old ADR superseded; diagrams moved; `docs/architecture/events.md` gains the swarm bus, its producers, and its three consumers (#2413 T1 finding); docs updated; M1-M3; AC review; completion review for the sub-EPIC. |
+| T10 | IN_PROGRESS | Documentation and verification | ADR moved and old ADR superseded; diagrams moved; `docs/architecture/events.md` gains the swarm bus, its producers, and its three consumers (#2413 T1 finding); docs updated; M1-M3; AC review; completion review for the sub-EPIC. Done: the ADR move, the diagrams and docs, M1-M3 (evidence V5). Pending: the disposable script (maintainer decision), the independent review, the retrospective, and the maintainer's AC review. |
 
 ## Commit Points
 
@@ -165,9 +165,9 @@ with bounded waits and no detached listener on an early server error.
 
 | ID | Scenario | Steps | Expected Result | Status |
 | --- | --- | --- | --- | --- |
-| M1 | Stop-order logs | Run the tracker with HTTP and UDP trackers, SIGTERM during load | Logs show producers completing before listeners are cancelled | TODO |
-| M2 | Recheck `control` | `reproduce-lost-completions.sh control` with the T0 parameters | No loss | TODO |
-| M3 | Recheck `race` | `reproduce-lost-completions.sh race` with the T0 parameters | Counts and observed loss/failure signals recorded under AC3; no unexplained deficit | TODO |
+| M1 | Stop-order logs | Run the tracker with HTTP and UDP trackers, SIGTERM during load | Logs show producers completing before listeners are cancelled | DONE (evidence V5) |
+| M2 | Recheck `control` | `reproduce-lost-completions.sh control` with the T0 parameters | No loss | DONE (evidence V5: 500 of 500 persisted, twice) |
+| M3 | Recheck `race` | `reproduce-lost-completions.sh race` with the T0 parameters | Counts and observed loss/failure signals recorded under AC3; no unexplained deficit | DONE (evidence V5: two runs, no deficit, no lag, no abort, no failure) |
 
 Record evidence in an issue-local `manual-verification-evidence.md`. After
 M3, remove the disposable script from the sub-EPIC folder unless the
@@ -199,6 +199,7 @@ maintainer decides to keep it.
 - 2026-10-21 17:07 UTC - GitHub Copilot (Claude Opus 5.5) - Started on branch `2416-stop-producers-before-listeners` (cut from `torrust/develop` at the merge of PR #2615). T7 done: the controlled late-publication test on the real swarm event bus and the stop-order `JobManager` test were red against a stub that stored the edges and did not enforce them (evidence V1; the real-binary `race` script is not claimed as the proof). The maintainer approved the `StopBefore` API (additive `spawn_with`, three `SpawnError` variants, completion tracked at the join in `wait_for_all`) at the design-review checkpoint before the edges were implemented. T8 implemented in the working tree: edges enforced in `cancel()` and `wait_for_all`, `EventFlows`/`Bus`, `src/app.rs` wired, the application-level and in-process application tests, and a recorded mutation per lifecycle clause (V2, V3). Awaiting the design-review checkpoint after T8.
 - 2026-10-21 17:09 UTC - GitHub Copilot (Claude Opus 5.5) - T8 design-review checkpoint passed; the maintainer approved T8 and four additions (public `waiting_components()`, `ComponentId` naming its manager, the HTTP test helper and its `[[test]]` binary, a `BTreeMap` registry), recorded as sub-EPIC record entry 31. T7-T8 committed (signed) after `linter all`. The recommendation to deliver one PR (D17) stands; the maintainer did not ask for a split. T9 next.
 - 2026-10-21 18:47 UTC - GitHub Copilot (Claude Opus 5.5) - T9 done and approved by the maintainer: HTTP and UDP environments stop the server first; the listeners guard moves into the join (sub-EPIC record entry 32); HTTP late-event test red then green, UDP late-event test is regression coverage (evidence V4). Committed (signed). T10 next.
+- 2026-10-21 19:07 UTC - GitHub Copilot (Claude Opus 5.5) - T10 in progress: the ADR was promoted to `docs/adrs/20261021184946_order_shutdown_by_event_flow_and_drain_event_listeners.md` and the cancellation-tree ADR superseded (separate signed commit); the diagrams and documents were updated (second signed commit); M1 to M3 were run and recorded (evidence V5; the race runs show no deficit and are not the proof of window (b)). The acceptance criteria are not ticked: they await the maintainer's acceptance review. The pre-push script exits 0 (evidence V6). Pending: the disposable script decision, the independent Task Reviewer report, the retrospective.
 
 ## Architectural Decisions
 
@@ -210,10 +211,10 @@ exceptions; do not edit away the superseded ADR's original decision text.
 
 | AC ID | Status | Evidence |
 | --- | --- | --- |
-| AC1-AC2 | TODO | Ordering, failure/deadline, and environment tests |
-| AC3 | TODO | T0 like-for-like rechecks and controlled window-(b) proof |
-| AC4-AC5 | TODO | Final ADR, diagrams, and local link checks |
-| AC6 | TODO | Registry and bootstrap subscription tests; in-flight abort test |
+| AC1-AC2 | READY FOR REVIEW | AC1: V1 (red) and V2 (green): the `JobManager` stop-order test and the real-bus late-publication test; the application test asserts every listener waits for exactly the components that publish on its buses; 16 manager tests, one mutation per lifecycle clause (V3). AC2: V4: HTTP red then green (a request in flight while `stop()` drains), UDP regression plus staged-join tests, nine mutations. |
+| AC3 | READY FOR REVIEW | V5: M2 control, 500 of 500 persisted, twice; M3 race, two runs, answered minus persisted 0, drain counts, no lag, no abort, no failure. The race runs do not prove window (b) (V1 does); no exact per-event attribution is claimed. |
+| AC4-AC5 | READY FOR REVIEW | The ADR `docs/adrs/20261021184946_order_shutdown_by_event_flow_and_drain_event_listeners.md` restates the twelve still-valid points of the cancellation-tree ADR (section 9); that ADR has `- Status: Superseded by`; `docs/adrs/index.md` lists the new ADR. The five diagrams are in `docs/architecture/events.md` and `docs/architecture/application-jobs.md`; the shutdown diagrams they replace in the task inventory and the architecture examples are updated; `linter all` (including the local link and fragment check) exits 0. |
+| AC6 | READY FOR REVIEW | `EventFlows` unit tests (a consumer after a producer is rejected, the consumers of several buses are merged, only started listeners returned); the bootstrap subscription test (the swarm bus delivers to three receivers before any listener task can run, mutation: subscribe inside the task); bus retention: the extended application test sees every listener finish `Cancelled`, not `Completed`, while the container is alive, and `main` holds `_app_container` past `wait_for_all` (read from source, not run); the shared-deadline abort of a consumer cancelled late, which ignores its token (V3, C8 and the busy-consumer test). The ADR states the rules (sections 4, 6, 7). |
 
 ## Implementation Completion Review
 
@@ -221,3 +222,27 @@ Follow the sub-EPIC's [Shared Delivery Gates](../2410-1488-si-22-process-queued-
 This issue also closes the shared design and EPIC acceptance review; record
 what was verified here and link earlier children's evidence rather than
 claiming their tests were rerun without results.
+
+### What was verified in this issue
+
+- Window (b) is closed by the stop order: the controlled red and green pair (V1, V2), the application
+  wiring (V2, V3), the test environments (V4), and the real binary under load (V5 M1: each listener
+  was cancelled after the last producer it waited for completed, and every answered completion was
+  persisted).
+- The documentation describes the implementation: the ADR, the glossary, the jobs doc, the events doc,
+  the task inventory, and the feature documents (commits `docs(adrs)` and `docs(architecture)`).
+- Automatic checks: `linter all`, the package and root tests named in the evidence, and the pre-push
+  script (evidence V6: the pre-push script exits 0 and `cargo test --test lifecycle-signals` passes).
+
+### What this issue did not re-verify
+
+- The listener drain of #2414 and the per-component tokens of #2415 are verified by their own evidence
+  ([#2414](../../closed/2414-2410-si-22-2-drain-listener-queues-on-shutdown/manual-verification-evidence.md),
+  [#2415](../../closed/2415-2410-si-22-3-per-component-cancellation-tokens/manual-verification-evidence.md)),
+  and the inventory and ADR draft of #2413 by
+  [its evidence](../../closed/2413-2410-si-22-1-document-event-flows-and-draft-adr/manual-verification-evidence.md).
+  Here only the real-binary recheck (V5) and the workspace test suite exercised them again.
+- Neither stop order nor drain guarantees lossless persistence under overflow, a failing handler, a
+  panic, or the shared deadline's abort (ADR, Consequences). The exit-result policy (a timeout or an
+  abort exits 1) and the configurable deadlines belong to SI-20.
+- The UDP test environment has no deterministic red proof of the late-event behavior (V4).

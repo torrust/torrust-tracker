@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2416-2410-si-22-4-stop-producers-before-listeners/ISSUE.md
-last-updated-utc: "2026-10-21 17:17"
+last-updated-utc: "2026-10-21 19:11"
 ---
 
 # Manual Verification Evidence
@@ -160,3 +160,114 @@ so that an unused variable failed under `-D warnings`, and rewritten). `manager`
 | (negative) a server failure does not skip the listener stage | H-M2, U-M2: the listeners are not joined when the first stage failed | `it_should_join_the_event_listener_before_reporting_an_http_server_task_failure`, `it_should_join_every_event_listener_before_reporting_a_receive_loop_failure` |
 | (negative) an abandoned `stop()` leaves no detached listener | H-M4, U-M4: the guard is disarmed when the join starts | `it_should_cancel_the_event_listener_when_the_join_is_abandoned_while_the_server_runs`, `it_should_cancel_the_event_listeners_when_the_join_is_abandoned_while_the_receive_loop_runs` |
 | Dropping the environment cancels the listeners too | H-M3, U-M3: the stored listeners guard guards another token | `it_should_stop_the_event_listener_when_dropped_without_being_stopped` and the tests that call `stop()` (which then hangs until their deadline); UDP the same with `it_should_stop_the_event_listeners_when_dropped_without_being_stopped` |
+
+### V5 - T10: M1, M2, M3 on the real binary
+
+- Goal: the `fix-bug` skill's like-for-like recheck of the original symptom (M2 and M3, with the T0
+  script and parameters) and the stop-order logs under load (M1).
+- Initial state: the working tree was clean at the commit
+  `docs(architecture): [#2416] document the stop order, move the diagrams, and add the swarm bus`; the
+  code under test is that of
+  `fix(axum-http-server,udp-server): [#2416] stop the server before the listeners in the test environments`
+  (the commits after it change documentation and module-doc comments only). Built with
+  `cargo build --bin torrust-tracker --bin tracker_client` (the `dev` profile, `opt-level = 1`, as the
+  T0 evidence), `rustc 1.99.1 (58cf8f9c3 2026-10-13)`. Linux 7.0.0-38-generic, 32 CPUs, a shared machine.
+  Times are UTC on 2026-10-21.
+- Status: `DONE`.
+
+#### M2 and M3: the T0 parameters, the sub-EPIC's script
+
+`reproduce-lost-completions.sh` with `PEERS=500` for the control runs and `PEERS=2000 SIGTERM_DELAY=0.5`
+for the race runs. The persistent listener's drain line and the other listeners' lines are in the run
+logs under `.tmp/si22-t0/` (git-ignored); nothing else is retained.
+
+| Run (UTC start) | Mode | Answered `completed` (refused) | Persisted (torrent / global) | Answered minus persisted | Exit status | Persistent listener drain | T0 on `develop` (answered, persisted, lost) |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 19:00:13 | control, `CONTROL_WAIT=1` | 500 (0) | 500 / 500 | 0 | 0 | `processed=196 lost_to_lag=0 outcome="emptied"` | 500, 467, 33 |
+| 19:00:55 | control, `CONTROL_WAIT=10` | 500 (0) | 500 / 500 | 0 | 0 | `processed=0` (the queue was already empty) | 500, 500, 0 |
+| 19:01:46 | race | 813 (1,187) | 813 / 813 | 0 | 0 | `processed=1496 lost_to_lag=0 outcome="emptied"` | 856, 66, 790 |
+| 19:04:46 | race | 889 (1,111) | 889 / 889 | 0 | 0 | `processed=1144 lost_to_lag=0 outcome="emptied"` | 845, 70, 775 |
+
+- Every control completion was persisted within the budget (sub-EPIC AC7). The race runs show no deficit
+  between answered completions and persisted rows.
+- What the race rows do not show: after #2414 the real binary lost nothing in this scenario (the
+  coordinator's check of 2026-10-21 and these runs agree), so they cannot show window (b) as red and do
+  not prove the stop order. The proof is V1. The `drain` counts are events of every type on the bus
+  (the persistent listener also receives the `started` announces' events), so `processed` is not a
+  count of completions, and the table claims no per-event attribution.
+- Observed lag, aborts, and failures: the four logs contain no `lost_to_lag` above 0, no `Aborted`,
+  `Failed`, or `Panicked` job outcome, no `WARN`, and no `ERROR` line (the filter and its output are the
+  commands below). The race runs let the persistent listener drain for about 2.4 and 1.6 seconds, within
+  the 5 second admission budget, and the tracker exited 0.
+- The filter used for the log claims (run per log): `sed 's/\x1b\[[0-9;]*m//g' <log> | grep -E "Event listener drained its queue|Job was aborted|Job reported a failure|Job panicked|^[0-9T:.-]+Z +(WARN|ERROR) |Remaining alive|Requested the job to stop: every|shutting down \(SIGTERM\)|successfully shutdown" | grep -v "request{"`.
+- One extra run, 19:02:31 (race), did not start the tracker: "Tracker startup failed ... Could not start
+  the HTTP tracker listener ... bind address is available". The previous race run had ended 40 seconds
+  earlier on the same port, and `ss` showed no `:47070` socket 90 seconds later. #2414's V10 saw the same
+  after a run and I did not investigate it either (out of scope). Its log shows the startup-failure path of
+  `start_jobs` with the new manager: every listener (none had a producer yet) was asked to stop at once and
+  completed cooperatively, and no component waited for a producer that never started. The run is not
+  counted in the table; the second race run was repeated 90 seconds later.
+
+#### M1: the stop order in the logs, with SIGTERM during a burst
+
+A disposable harness, kept here as evidence like #2414's:
+[`evidence/m1-tracker.toml`](evidence/m1-tracker.toml) (an HTTP tracker, a UDP tracker, the health check,
+persistent completed statistics, SQLite) and [`evidence/run_m1.py`](evidence/run_m1.py). During the run
+the configuration was at `.tmp/m1/tracker.toml`. It starts the tracker, announces `started` for 300 UDP
+and 3,000 HTTP peers, then sends the `completed` announces from 48 worker threads and SIGTERM 0.15 seconds
+into the burst: `UDP_PEERS=300 HTTP_PEERS=3000 SIGTERM_DELAY=0.15 python3 docs/issues/open/2416-2410-si-22-4-stop-producers-before-listeners/evidence/run_m1.py`.
+A first run with the defaults (150 UDP and 500 HTTP peers, SIGTERM at 0.3 s) finished the whole burst
+before SIGTERM, so it showed nothing under load and is not used. A second run failed to start for the port
+reason above and is not used either.
+
+Run at 18:59:37 to 18:59:39 (SIGTERM at 18:59:38.012): tracker exit status 0; completed announces
+answered, UDP 300 of 300 and HTTP 91 of 3,000 (the others were refused after the server stopped
+accepting); persisted rows `(1, '3b24...', 300)`, `(2, '5349...', 91)` and
+`('torrents_downloads_total', 391)`: every answered completion was persisted. No lagged receiver and no
+aborted component.
+
+The shutdown log, reduced to the stop-order lines (colour codes and span prefixes removed, listener
+lines abbreviated; the full order is the order of the lines):
+
+```text
+18:59:38.012234 shutting down (SIGTERM)
+18:59:38.012268 Requested the job to stop: it waits for no other job  job=udp_instance_0_127.0.0.1:47271
+18:59:38.012273 Requested the job to stop: it waits for no other job  job=http_instance_0_127.0.0.1:47270
+18:59:38.012278 Requested the job to stop: it waits for no other job  job=torrent_cleanup
+18:59:38.012281 Requested the job to stop: it waits for no other job  job=peers_inactivity_update
+18:59:38.012300 Requested the job to stop: it waits for no other job  job=health_check_api
+18:59:38.012304 Job will be asked to stop after the jobs it waits for have completed  job=swarm_coordination_registry_event_listener waiting_for=udp_instance_0_127.0.0.1:47271, http_instance_0_127.0.0.1:47270, torrent_cleanup
+         (the same for tracker_core_in_memory_event_listener and tracker_core_persistent_completed_statistics_event_listener)
+18:59:38.012365 Job will be asked to stop after ...  job=http_core_event_listener waiting_for=http_instance_0_127.0.0.1:47270
+18:59:38.012370 Job will be asked to stop after ...  job=udp_core_event_listener waiting_for=udp_instance_0_127.0.0.1:47271
+         (the same for udp_server_stats_event_listener and udp_server_banning_event_listener)
+18:59:38.012325 Remaining alive connections: 18 (89.999999358s remaining)       <- HTTP drain
+18:59:38.012419 Job completed after cooperative cancellation  job=udp_instance_0_127.0.0.1:47271
+18:59:38.012425 Requested the job to stop: every job it waited for has completed  job=udp_core_event_listener last_completed_job=udp_instance_0_127.0.0.1:47271
+         (the same for the two udp-server listeners; each then logs "drained its queue ... processed=0 lost_to_lag=0")
+18:59:39.013437 All connections closed, shutting down server in address 127.0.0.1:47270
+18:59:39.013497 Job completed after cooperative cancellation  job=http_instance_0_127.0.0.1:47270
+18:59:39.013522 Requested the job to stop: every job it waited for has completed  job=swarm_coordination_registry_event_listener last_completed_job=http_instance_0_127.0.0.1:47270
+         (the same for the in-memory listener, the persistent listener, and http_core_event_listener, each then draining with processed=0 lost_to_lag=0)
+18:59:39.013635 Torrust tracker successfully shutdown.
+```
+
+Reading it: every listener that has a producer logged `waiting_for` the producers of its buses at
+SIGTERM, and each "every job it waited for has completed" line follows the `Job completed` line of the
+last producer it waited for. The UDP listeners were released as soon as the UDP instance completed
+(18:59:38.0124), while the HTTP instance was still draining its 18 live connections; the swarm and
+http-core listeners were released a second later (18:59:39.0135), when the HTTP instance completed.
+That second is the window in which HTTP requests could still publish events after SIGTERM; with every
+component cancelled at once, the listeners would have been asked to stop at 18:59:38.012. The log
+proves the order; it does not count how many events the second carried, and the drain lines show
+`processed=0` because the persistent listener kept up while requests were still being answered.
+
+### V6 - Automatic checks before the pull request
+
+- Working tree: clean at `docs(architecture): [#2416] document the stop order, move the diagrams, and add the swarm bus`
+  (the evidence and spec commit that follows changes only documents).
+- `./contrib/dev-tools/git/hooks/pre-push.sh` (with `TORRUST_GIT_HOOKS_LOG_DIR=.tmp`), exit 0, six steps
+  passed: nightly format, nightly workspace check, nightly documentation (binaries and libraries), the
+  workspace packaging check, and the full stable test suite (about one minute of tests).
+- `cargo test --test lifecycle-signals`: 13 passed.
+- `linter all`: exit 0 on every commit (the pre-commit hook ran it).
