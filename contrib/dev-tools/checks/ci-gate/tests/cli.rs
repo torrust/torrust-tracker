@@ -387,6 +387,7 @@ impl Drop for FakeGh {
     fn drop(&mut self) {
         // Not a panic: a second panic while one is unwinding aborts the test process and hides the first.
         if let Some(message) = remove_fixture_directory(&self.directory) {
+            // A failure to write the message is ignored with `drop`, because `let _ =` is denied by `let_underscore_drop`.
             drop(writeln!(std::io::stderr(), "{message}"));
         }
     }
