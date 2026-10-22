@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2618-2482-decide-test-support-rules/ISSUE.md
-last-updated-utc: "2026-10-21 18:50"
+last-updated-utc: "2026-10-22 18:08"
 ---
 
 # Manual Verification Evidence
@@ -16,7 +16,7 @@ because the scratch workspaces were removed afterwards.
 
 ## Environment and Prerequisites
 
-- Date and time (UTC): 2026-10-21, 17:21 to 19:02 (V1 to V4b), and 2026-10-22 at 17:15 (V4c).
+- Date and time (UTC): 2026-10-21, 17:21 to 19:02 (V1 to V4b), and 2026-10-22 at 18:07 (V4c, second run).
 - Artifact under test: Cargo itself, on two toolchains:
   - stable: `cargo 1.99.1 (5f94df478 2026-08-27)`, `rustc 1.99.1 (58cf8f9c3 2026-10-13)`;
   - the workspace MSRV: `cargo 1.88.0 (873a06493 2025-05-10)`, `rustc 1.88.0 (6b00bc388
@@ -747,13 +747,18 @@ unit test (`unit::unit_test_uses_the_module_gated_only_by_the_feature ... ok`) a
 crate's own unit tests too, and `#[cfg(feature = "testing")]` alone is enough; the
 `any(test, feature = "testing")` form is needed only without it (O1a).
 
-#### V4c - A self dev-dependency in production builds versus `--all-targets` (added after the pre-PR review)
+#### V4c - A self dev-dependency in production builds versus test builds (added after the pre-PR review, rerun after PR review)
 
 The review of this work found that V4 did not show, for a crate with a self dev-dependency, that a
 production build leaves the feature off (V1 shows it for a consumer's dev-dependency, and V4's gate
-was `any(test, feature)`, so `build -p X` exiting 0 proved nothing). A third probe, run on
-2026-10-22 at 17:15 UTC in a standalone package `q` (its own `[workspace]` table, removed
-afterwards), uses the `Cargo.toml` of V4b and these two files:
+was `any(test, feature)`, so `build -p X` exiting 0 proved nothing). A first V4c run (2026-10-22 at
+17:15 UTC) had two stale reads, found in the PR review (finding F2): its package had no integration
+test, so `cargo build --tests` and `cargo test --no-run` did not build the binary, and the value
+they showed was the one the previous row left. It was replaced by the run below, on 2026-10-22 at
+18:07 UTC, in a standalone package `q` (its own `[workspace]` table, removed afterwards) that has
+an integration test, with the binaries deleted before each row.
+
+`Cargo.toml` is the one of V4b. The other files:
 
 ```rust
 // src/lib.rs
@@ -767,21 +772,38 @@ fn main() {
 }
 ```
 
-On `+stable` and on `+1.88.0`, in this order, after each command the binary it left in
-`target/debug` or `target/release` was run:
+```rust
+// tests/it.rs
+// The integration test makes Cargo build the package's binary for `CARGO_BIN_EXE_q`.
+#[test]
+fn integration_test_sees_the_feature_and_the_binary_path() {
+    assert!(q::TESTING_ON);
+    assert!(!env!("CARGO_BIN_EXE_q").is_empty());
+}
+```
 
-| Command | `q::TESTING_ON` printed by the binary it left |
+On `+stable` and on `+1.88.0`, in this order, `target/debug/q` and `target/release/q` were deleted
+before each command (`rm -f`), the command ran, and the binary it left, if any, was run. Every
+command exited 0 on both toolchains:
+
+| Command | Binary left, and what it printed |
 | --- | --- |
-| `cargo build` | `false` |
-| `cargo build --release` | `false` |
-| `cargo build --all-targets` | `true` |
-| `cargo build --tests` | `true` |
-| `cargo build` (again) | `false` |
-| `cargo test --no-run` | `false` |
+| `cargo build` | `debug/q`: `q::TESTING_ON = false` |
+| `cargo build --release` | `release/q`: `q::TESTING_ON = false` |
+| `cargo build --all-targets` | `debug/q`: `q::TESTING_ON = true` |
+| `cargo build --tests` | `debug/q`: `q::TESTING_ON = true` |
+| `cargo test --no-run` | `debug/q`: `q::TESTING_ON = true` |
+| `cargo test` | `debug/q`: `q::TESTING_ON = true` |
 
-Both toolchains printed the same values. So with a self dev-dependency, `cargo build` and
-`cargo build --release` leave the feature off, and any invocation that also builds tests, examples
-or benches (`--all-targets`, `--tests`) builds the package's binary with the feature on, without
+A control run with the `tests/` directory moved away, `debug/q` deleted before each command:
+`cargo build --tests` and `cargo test --no-run` exited 0 and built no binary, on both toolchains.
+That is what made the first run's rows stale: Cargo builds a package's binary as an executable for
+`cargo build --tests` and `cargo test` only when an integration test (or bench) needs it, for
+`CARGO_BIN_EXE_<name>`.
+
+So with a self dev-dependency, `cargo build` and `cargo build --release` leave the feature off.
+`cargo build --all-targets` always builds the package's binary with it on, and so do `--tests` and
+`cargo test` when the package has an integration test (the root crate does), without
 `--all-features`. The shipped binary must therefore be built by an invocation of its own, without
 those flags.
 
@@ -804,8 +826,8 @@ the inventory. Four findings from the verification are new and are not in the EP
 1. `cargo test --workspace` hides O1a and O1b gaps whenever another member dev-depends on the
    crate with the feature (V4).
 2. `--all-targets` (and `--tests`, `--examples`) enable dev-dependency features for every target
-   of the invocation, including binaries and without `--all-features`; a production build must be
-   `cargo build` without them (V1, V4c).
+   of the invocation, including binaries (for `--tests`, when the package has an integration test)
+   and without `--all-features`; a production build must be `cargo build` without them (V1, V4c).
 3. Cargo 1.88.0 (the MSRV) cannot run `cargo package --workspace --no-verify` on this repository;
    stable can (V3).
 4. A versioned dev-dependency cycle between two publishable crates cannot be packaged at all, so
@@ -816,7 +838,8 @@ the inventory. Four findings from the verification are new and are not in the EP
 
 No scenario failed. Commands that exited `101` are expected results recorded above, not failures
 of the verification. The first MV3 and MV4 runs were repeated only to add commands, as described
-under Environment.
+under Environment. The first V4c run had two stale reads (its `--tests` and `--no-run` rows); V4c
+was rerun and replaced, as its text says.
 
 ## Cleanup
 
