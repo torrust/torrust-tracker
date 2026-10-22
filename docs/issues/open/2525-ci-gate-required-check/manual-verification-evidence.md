@@ -463,6 +463,28 @@ Cleanup, 2026-10-21 at 10:52 UTC: the sandbox ruleset, both `exp-2525-t5-*` bran
 label were deleted from the fork, and verified: only the two tag rulesets remain, no `exp-` branch, no open
 pull request, and none of those labels. Fork pull request 22 remains, merged, as history.
 
+### V12 - The observations behind the decision of 2026-10-22
+
+- Goal: record the queries and their output behind the observations that the decision cites about a
+  pull-request-specific signal of a push, and the permission responses that V10's correction cites. They were
+  first made while the maintainer's decision was prepared and are re-run here, on 2026-10-22 at about 18:40 UTC,
+  against pull request #2610, which was closed that day, so what is shown is the state at that time.
+- Status: `DONE`
+
+| Query                                                                                                                                                                  | Output                                                                                                  |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| GraphQL `pullRequest(number: 2610) { timelineItems(first: 100, itemTypes: [PULL_REQUEST_COMMIT]) { totalCount nodes { ... on PullRequestCommit { commit { pushedDate } } } } }` | `totalCount` 195; 59 nodes returned; 0 with a `pushedDate` (all null)                                   |
+| `gh api "repos/torrust/torrust-tracker/commits/<head of #2610>/check-suites?per_page=100"`, counting suites with a non-empty `pull_requests`                           | 5 suites; 0 with `pull_requests`                                                                        |
+| `gh api "repos/torrust/torrust-tracker/actions/runs?head_sha=<head of #2610>&per_page=100"`, counting runs with a non-empty `pull_requests`                            | 5 runs, all event `pull_request` from `josecelano/torrust-tracker`; 0 with `pull_requests`              |
+| `gh api repos/torrust/torrust-tracker/issues/2610/timeline --paginate --jq '.[].event'`, counted by type                                                               | 59 `committed`, 25 `deployed`, 13 `reviewed`, 12 `review_requested`, and others; no `head_ref_force_pushed` |
+| `gh api repos/torrust/torrust-tracker/collaborators/<login>/permission --jq '"permission=\(.permission) role_name=\(.role_name)"'` for two administrators and a Triage collaborator | `admin`/`admin`, `admin`/`admin`, and `read`/`triage`                                                   |
+
+What it shows: the commit's push time is not available through GraphQL for this pull request, the check suites and
+workflow runs of a fork pull request carry no link to it, and the permission endpoint reports the Triage role as
+`read`. The effect of a `head_ref_force_pushed` event was **not observed**: no force-push happened on #2610, so the
+statement that it would close only the force-push cases comes from the reviewer, not from a query. The timeline
+returned 59 `committed` events although the GraphQL count is 195, which was not investigated.
+
 ## Failures and Follow-up
 
 None.
