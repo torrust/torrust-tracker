@@ -23,8 +23,8 @@ verification.
 ## Outcome
 
 An ADR with one rule per pattern, DEC-18 amending DEC-13, a verified Cargo evidence file (V1 to
-V4c plus a packaging baseline), and eight migration drafts (rows 2 to 9) ordered 1, 2, 8, 9, 3,
-then 4 to 7 as their #1488 gates clear. The maintainer chose O1 with a path-only self
+V4c plus a packaging baseline), and eight migration drafts (rows 2 to 9) in the fixed sequence 1,
+2, 8, 9, 3, 4, 5, 6, 7 (rows 4 to 7 also wait for their #1488 gates). The maintainer chose O1 with a path-only self
 dev-dependency for the four server environments and the shared mock, O4 and O3 for `test-helpers`,
 O5 for crate-private helpers and O3 for per-package folders. The change set is documentation only.
 

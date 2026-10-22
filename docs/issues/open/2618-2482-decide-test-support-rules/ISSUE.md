@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-review
 priority: p2
 epic: 2482
 github-issue: 2618
 spec-path: docs/issues/open/2618-2482-decide-test-support-rules/ISSUE.md
-branch: "2618-2482-decide-test-support-rules-spec"
-related-pr: null
-last-updated-utc: "2026-10-22 17:29"
+branch: "2618-2482-decide-test-support-rules"
+related-pr: 2624
+last-updated-utc: "2026-10-22 18:10"
 semantic-links:
   skill-links:
     - create-issue
@@ -50,7 +50,8 @@ patterns (A to E) in the workspace, two of which hurt: public `testing` modules 
 infrastructure and nine test-only dependency edges into production builds (pattern A), and a
 shared `test-helpers` crate that has become a coupling hub (pattern B). DEC-13 chose the public
 unconditional module on the premise that `tracker-core/src/test_helpers.rs` was the same pattern;
-that module is `#[cfg(test)]` and private, so the premise was wrong
+that module's content is `#[cfg(test)]` and crate-private (the module is a `pub mod`, empty in a
+non-test build), so the premise was wrong
 (see the [inventory](../2482-1669-reorganize-shared-test-support/test-support-inventory.md)).
 
 The EPIC lists eight options (O1 to O8) and three ways for a crate's own targets to use its own
@@ -224,7 +225,7 @@ Copilot trailer.
 - [x] Spec reviewed and approved by user/maintainer (josecelano, 2026-10-21, through the session's approval prompt)
 - [x] GitHub issue #2618 created, linked as a sub-issue of #2482, and its number added to this spec
 - [x] Spec-only PR merged into `develop` before implementation (PR #2619)
-- [x] Implementation completed
+- [ ] Implementation completed (T3 and AC2 wait for the maintainer's approval of the written ADR; PR #2624)
 - [ ] Automatic verification completed (`linter all`, pre-commit and pre-push checks)
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md` (MV1 to MV4, by the implementing agent)
 - [x] Acceptance criteria reviewed after implementation and updated with evidence (AC2 stays open until the maintainer approves the written ADR)
@@ -292,6 +293,13 @@ Append one line per meaningful update.
   of the written ADR), recorded the two Task Reviewer reviews in `agent-review-reports.md`, and
   wrote `implementation-retrospective.md` because the work found material discoveries (the
   inventory's pattern D error and the container build gap).
+- 2026-10-22 18:10 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 1) - PR #2624 review round
+  1: Copilot raised R1 and da2ce7 raised F1 to F10 (da2ce7 also ACKed the head). Changes in this
+  spec: `status` is `in-review`, `branch` names the implementation branch and `related-pr` is 2624
+  (F6), the "Implementation completed" checkpoint is no longer ticked until the maintainer approves the ADR
+  (F6), and the Background says the `test_helpers.rs` module is a `pub mod` with `#[cfg(test)]`
+  content (F1). The other fixes are in the ADR, DEC-18, the evidence (V4c rerun), the inventory and
+  the drafts; the audit is `docs/pr-reviews/pr-2624-review/PR-REVIEW.md`.
 
 ## Acceptance Criteria
 
