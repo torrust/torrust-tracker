@@ -388,6 +388,13 @@ What it shows:
   maintainer, and `read` for two users without write access (`da2ce7` on the fork, and `octocat`), so the
   Maintain or Admin check can tell them apart. Not tested: a label applied by a real user without that role,
   because the sandbox had only one account.
+  **Correction (review of the T6a pull request, finding F13).** Only `admin` and `read` were observed, so this did
+  not show that Maintain can be told apart: the endpoint's `permission` field is the legacy base role and reports
+  Maintain as `write`, and the Triage role as `read`. The role is in `role_name`. The real responses of
+  `gh api repos/torrust/torrust-tracker/collaborators/<login>/permission` on 2026-10-21 were `admin` and `admin`
+  for two administrators, and `read` and `triage` for a Triage collaborator (`permission`, then `role_name`). No
+  collaborator of the repository has the Maintain role, so its mapping to `write` is GitHub's documented
+  behavior and was not observed.
 - **An override does not survive a push, and this works without write access.** Comparing the label's time
   with the creation time of the head commit's first check suite made the override stale after the new push
   although the label stayed on the pull request, and a fresh label after the push counted. The first check
