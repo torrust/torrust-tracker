@@ -6,7 +6,7 @@ epic: 1669
 github-issue: 2482
 spec-path: docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-22 17:18"
+last-updated-utc: "2026-10-22 17:26"
 semantic-links:
   skill-links:
     - create-issue
@@ -170,7 +170,7 @@ packages. The ADR decides.
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 Only subissue 1 (#2618) is a GitHub issue. Rows 2 to 9 are drafts written by subissue 1 from its
-ADR and migration plan, one per inventory item plus the coupling tool change the ADR requires. They
+ADR and migration plan, one per inventory item that moves, plus the coupling tool change and the container build change the ADR requires. They
 become GitHub issues one at a time afterwards.
 
 Execution order, strictly one at a time, in this fixed sequence: 1, 2, 8, 9, 3, 4, 5, 6, 7. Rows 4
@@ -185,7 +185,7 @@ same pull request.
 | --- | --- | --- | --- | --- |
 | 1 | #2618 - Decide how packages share test support code | [`docs/issues/open/2618-2482-decide-test-support-rules/ISSUE.md`](../2618-2482-decide-test-support-rules/ISSUE.md) | IN_PROGRESS | Tasks D1 to D5; MV1 to MV4. Blocks every other row. |
 | 2 | #[To be assigned] - Move the `test-helpers` protocol helpers to their consumer | [`docs/issues/drafts/2482-move-test-helpers-protocol-helpers/ISSUE.md`](../../drafts/2482-move-test-helpers-protocol-helpers/ISSUE.md) | TODO | Pattern B; ADR rule B; coupling report finding 1. The `http` and `udp` modules move to the root crate's `tests/common/`. `test-helpers` is published as 3.0.0 with only `configuration` and `random`, so the move alone does not break that API; #2583 decides the bump. Runs first (not an O1 move). |
-| 3 | #[To be assigned] - Gate `tracker-core`'s test modules and mocks | [`docs/issues/drafts/2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md`](../../drafts/2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md) | TODO | Patterns C and D; ADR rules C and D. `MockTorrentMetricsStore` is also used by `http-core` and `udp-core`, so their dev-dependencies enable the feature in the same PR. The first O1 move: after row 8. |
+| 3 | #[To be assigned] - Gate `tracker-core`'s test modules and mocks | [`docs/issues/drafts/2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md`](../../drafts/2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md) | TODO | Patterns C and D; ADR rules C and D. `MockTorrentMetricsStore` is also used by `http-core` and `udp-core`, so their dev-dependencies enable the feature in the same PR. The first O1 move: after rows 8 and 9. |
 | 4 | #[To be assigned] - Gate the `udp-server` test environment behind a `testing` feature | [`docs/issues/drafts/2482-gate-udp-server-test-environment/ISSUE.md`](../../drafts/2482-gate-udp-server-test-environment/ISSUE.md) | TODO | Pattern A; ADR rule A; includes `examples/udp_only_public_tracker.rs`. After #2416 (its T9 changes this environment). |
 | 5 | #[To be assigned] - Gate the `axum-http-server` test environment behind a `testing` feature | [`docs/issues/drafts/2482-gate-axum-http-server-test-environment/ISSUE.md`](../../drafts/2482-gate-axum-http-server-test-environment/ISSUE.md) | TODO | Pattern A; includes `examples/http_only_public_tracker.rs` and the doc-link-only `configuration` edge. After #2471, which merged on 2026-10-16, and after #2416 (its T9 changes this environment). |
 | 6 | #[To be assigned] - Gate the `axum-rest-api-server` test environment behind a `testing` feature | [`docs/issues/drafts/2482-gate-axum-rest-api-server-test-environment/ISSUE.md`](../../drafts/2482-gate-axum-rest-api-server-test-environment/ISSUE.md) | TODO | Pattern A; six forced edges; also removes the stale `rest-api-core` comment in `src/testing/mod.rs`. After #2449. |
@@ -198,7 +198,7 @@ same pull request.
 ### Phase 1: Decide
 
 - Outcome: subissue 1 merged. The ADR states one rule per pattern, DEC-13 is amended, and every
-  inventory item has a destination and a draft subissue.
+  inventory item has a destination, and every item that moves has a draft subissue.
 - Exit criteria: the maintainer has approved the ADR; rows 2 onwards in the table above are
   drafts with their final scope and order.
 
@@ -211,7 +211,7 @@ is authoritative where the two differ:
 | D1 | Verify the Cargo rules the options rely on | MV1 to MV4 recorded in subissue 1's `manual-verification-evidence.md` |
 | D2 | Write the ADR: criteria, options, one rule per pattern, and the ownership map for shared test fixtures | ADR approved by the maintainer. It states that the package whose server an environment starts owns that environment. Other packages use only its published test API (O1 or O2) or their own `tests/` code (O3), unless the ADR chooses O7. Under O1 it names the mechanism from O1a to O1c that the package's own targets use |
 | D3 | Amend DEC-13 in `DECISIONS.md`, linking the ADR | New DEC entry |
-| D4 | Write the migration plan as subissue drafts and update the Subissues table | Every inventory item has a destination and a draft |
+| D4 | Write the migration plan as subissue drafts and update the Subissues table | Every inventory item has a destination; every item that moves has a draft |
 | D5 | Link the subissues from findings 1 and 2 of the 2026-10-06 coupling report | Report links resolve; the 2026-10-17 report is not edited |
 
 Manual verification for D1 (scratch Cargo workspaces under `.tmp/`, created and removed by the
@@ -244,7 +244,7 @@ kept):
 
   | Sequencing | Strengths | Weaknesses |
   | --- | --- | --- |
-  | Strictly one subissue at a time (chosen) | One review round at a time. No two PRs edit this spec, the inventory or the coupling report at once. Each subissue starts from the previous one's result | Long: 8 subissues with 2 PRs each, and rows 6 and 7 also wait on #1488. This EPIC blocks #2576, which blocks the end of #1669 (see "Related work in EPIC #1669") |
+  | Strictly one subissue at a time (chosen) | One review round at a time. No two PRs edit this spec, the inventory or the coupling report at once. Each subissue starts from the previous one's result | Long: 9 subissues with 2 PRs each, and rows 4 to 7 also wait on #1488. This EPIC blocks #2576, which blocks the end of #1669 (see "Related work in EPIC #1669") |
   | Rows 2 and 3 alongside the environment moves (rejected) | Shorter: rows 2 and 3 share no source files with rows 4 to 7 or with #1488 | Two open subissues edit this spec and the inventory at once, and the maintainer reviews two at a time. The maintainer rejected it on 2026-10-21 in favour of the one-review-at-a-time rule above |
 
 - **Naming.** Subissue folders are `docs/issues/{drafts,open}/{issue}-2482-{slug}/` (drafts:
