@@ -100,7 +100,7 @@ fn parse_github_verdict<'a>(mut arguments: impl Iterator<Item = &'a str>) -> Res
         let (slot, what) = match argument {
             "--repo" => (&mut repository, "a repository of the form `owner/name`"),
             "--pull-request" => (&mut number, "a pull request number"),
-            "--head-sha" => (&mut head_sha, "a commit id"),
+            "--head-sha" => (&mut head_sha, "a commit id of 40 hexadecimal digits"),
             "--classification" => (&mut classification_path, "a file name"),
             "--gh" => (&mut gh_program, "a program name"),
             other => return Err(format!("unknown argument `{other}`")),
@@ -297,6 +297,10 @@ mod tests {
     #[case::an_option_without_a_value(
         &["github-verdict", "--repo", "owner/repo", "--pull-request"],
         "`--pull-request` needs a pull request number"
+    )]
+    #[case::a_head_commit_id_without_a_value(
+        &["github-verdict", "--repo", "owner/repo", "--pull-request", "7", "--head-sha"],
+        "`--head-sha` needs a commit id of 40 hexadecimal digits"
     )]
     #[case::an_unknown_option(
         &["github-verdict", "--base-branch", "develop"],
