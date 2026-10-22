@@ -40,7 +40,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Eight reviews were submitted so far, six by Copilot and two by the reviewer `da2ce7`. Each body repeats its
+Ten reviews were submitted so far, seven by Copilot and three by the reviewer `da2ce7`. Each body repeats its
 inline threads, so the bodies add no rows.
 
 - Review 5599696060 read the head whose subject is "feat(ci-gate): [#2525] add the GitHub adapter of the merge
@@ -68,6 +68,13 @@ inline threads, so the bodies add no rows.
   head whose subject is "docs(pr-reviews): record the sixth review round in the PR #2610 audit". It finds all of F13 to F20 repaired and withdraws F21. It carries three inline threads,
   labeled F22 to F24 by the reviewer; they are recorded as F25 to F27 because those labels were already used for the
   review bot's threads. Each bracket is the reviewer's own.
+- Review 5605593995, by `da2ce7`, submitted as `APPROVED` and dismissed by GitHub when the next commit was pushed, read the head whose subject is "docs(pr-reviews): record the eighth
+  review round in the PR #2610 audit". It finds F25 to F27 repaired, the sixth review of the review bot answered, and
+  the identifiers and counts consistent, and carries one inline thread, F28. An ACK of that head was posted as an issue
+  comment by the same reviewer, which is not a review and adds no row.
+- Review 5605639306, by Copilot, read the same head and was submitted at 20:14 UTC, four minutes after the approval and
+  after my watcher had ended. It marks the three threads of its sixth review as resolved and carries three inline
+  threads, F29 to F31.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -98,6 +105,10 @@ inline threads, so the bodies add no rows.
 | F25 | review-finding:pr-2610-f25 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F26 | review-finding:pr-2610-f26 | Human | Minor | link-integrity | ORIGINAL | FIXED | RESOLVED |
 | F27 | review-finding:pr-2610-f27 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F28 | review-finding:pr-2610-f28 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F29 | review-finding:pr-2610-f29 | Copilot | Nit (inferred) | documentation | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F30 | review-finding:pr-2610-f30 | Copilot | Nit (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F31 | review-finding:pr-2610-f31 | Copilot | Nit (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -452,6 +463,58 @@ inline threads, so the bodies add no rows.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4341295317
 
+### F28 - The 19:49 entry places the bulk resolve after a review that already reported it
+
+- PR number: 2610
+- Source review ID: 5605593995
+- Reviewer finding ID: F28
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4341443930>
+- Concern: the 19:49 log entry opens by saying that all threads were resolved in one bulk call, which also closed three threads of the review bot's sixth review. The reviewer's own review of 19:37 UTC already reported those threads as resolved with no reply, so the bulk resolve happened before 19:37, after the push at 19:23. Recorded at 19:49, it reads as following that review. Stamp the entry with the time of the resolve, or say "had resolved ... at about 19:2x" in it.
+- Solution: the entry says that at about 19:24 UTC, right after the push at 19:23, the threads had been resolved in one bulk call, and keeps the 19:49 stamp because that is when it was written. The time is approximate: the push is dated by its commit, 19:23:18 UTC, and the resolve followed in the same working session, and GitHub does not give the time of a resolve through the API that was used.
+- Current-tree verification: the audit validator reports 28 rows and checks the order of the entries.
+- Resolution reference: docs(pr-reviews): place the bulk resolve before the review that reported it in the PR #2610 audit
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4345450658
+
+### F29 - The sandbox workflow still checks the permission field for the Maintain role
+
+- PR number: 2610
+- Source review ID: 5605639306
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4341481553>
+- Concern: V10 and V11 say that the permission endpoint's `permission` is the legacy base role and that the role is `role_name`, but the saved sandbox workflow still checks `.permission == maintain`, which can mislead a reader who reproduces the experiment. Either switch it to `.role_name`, or add a comment that `.permission` cannot report `maintain`.
+- Solution: no change. The file is the record of the workflow that ran in the T5 sandbox, saved as it ran, and the transcripts and V10 describe those runs; a change, even a comment, would make it differ from what ran. The sandbox saw only an `admin` and a `read` actor, for which the two fields give the same answers. V10 carries a correction that names the field, and the file belongs to the pull request this one is stacked on.
+- Current-tree verification: V10 holds the correction, and the adapter reads `role_name`.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4345497171>
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4345497171
+
+### F30 - The usage text says sha for a value of 40 hexadecimal digits
+
+- PR number: 2610
+- Source review ID: 5605639306
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4341481657>
+- Concern: the usage text says `--head-sha <sha>`, but the implementation requires exactly 40 hexadecimal digits, and its error message says so; the usage text should show the constraint.
+- Solution: the usage text says `--head-sha <40-hex-commit-id>`, and a test of the usage text pins it.
+- Current-tree verification: the new test failed before the change; `cargo test -p ci-gate` passes with 226 unit and 23 command-line tests.
+- Resolution reference: fix(ci-gate): [#2525] show the form of the head commit id in the usage text
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4345497371
+
+### F31 - override_request checks the labels that its caller has already checked
+
+- PR number: 2610
+- Source review ID: 5605639306
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4341481716>
+- Concern: the label-presence check in `override_request` duplicates the one in `assess_override`, which returns before fetching the events when the label is absent. Remove the `labels` parameter and make the function work on the events only, or return a non-optional request.
+- Solution: `override_request` takes only the events and returns a request, not an option of one. The unit test of the absent label is removed, because that case is no longer a case of the function.
+- Current-tree verification: the case is still covered at the level of the decision: a mutant that stops `assess_override` from checking the label is killed by two tests, and a mutant that uses the earliest event is killed by two more. `cargo test -p ci-gate` passes.
+- Resolution reference: refactor(ci-gate): [#2525] take only the events to find the override request
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4345497581
+
 ## Processing Log
 
 - 2026-10-21 12:33 UTC - Copilot's review arrived with four threads, F1 to F4.
@@ -503,6 +566,16 @@ inline threads, so the bodies add no rows.
   previous round's record, edited my reply on F21 (it cited two ids), pushed, replied on the three threads, and added
   F25 to F27 to this record. The check still prints three ids of commits of the fork's sandbox branches, in the T5
   evidence of the pull request this one is stacked on; they are left for that pull request.
+- 2026-10-22 07:05 UTC - The reviewer `da2ce7` approved the pull request at 2026-10-21 20:10 UTC and posted an ACK of the head, with one
+  open thread, a nit, F28. It was right. Reworded the entry in one signed commit; that commit waited for me to enter
+  the passphrase after a timeout, so it and the push are from the next morning. Replied, and added F28 to this
+  record. The ACK names the head of that time; the branch has moved by documentation commits since.
+- 2026-10-22 07:11 UTC - Found Copilot's seventh review, submitted at 2026-10-21 20:14 UTC after the approval and after my watcher had
+  ended, with three threads that were still open. Read each before acting: F29 declined, because it asks to change the
+  saved record of the T5 run; F30 fixed with a test that failed first; F31 fixed by a refactor whose mutants are
+  killed. Each is in its own signed commit and gated on the formatter, clippy, and both hook scripts. Pushed, replied
+  on the three threads, and added F29 to F31 to this record. The approval of the reviewer `da2ce7` was dismissed by
+  the push of the previous step, so a new ACK is needed for the final head.
 
 ## Completion Rules
 
