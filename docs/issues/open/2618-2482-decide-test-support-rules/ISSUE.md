@@ -9,7 +9,7 @@ github-issue: 2618
 spec-path: docs/issues/open/2618-2482-decide-test-support-rules/ISSUE.md
 branch: "2618-2482-decide-test-support-rules-spec"
 related-pr: null
-last-updated-utc: "2026-10-21 19:26"
+last-updated-utc: "2026-10-22 17:18"
 semantic-links:
   skill-links:
     - create-issue
@@ -102,7 +102,7 @@ Decisions the maintainer already made for #2482 and that bind this subissue:
 
 - Moving, gating or deleting any test support code, and changing any `Cargo.toml`, workflow,
   hook or tool. This subissue changes documentation only.
-- Creating GitHub issues for rows 2 to 8. The next subsessions create them one at a time, after
+- Creating GitHub issues for rows 2 to 9. The next subsessions create them one at a time, after
   the maintainer approves each spec.
 - Editing the 2026-10-17 coupling report, #2583's spec, or any non-#2482 work.
 - Publishing any crate, or deciding any version bump (#2583 decides them).
@@ -196,7 +196,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2 | DONE | Summarize the evidence for the maintainer: per option, what the verification shows | Short table in the evidence file, sent to the maintainer through `ask_user` with a recommendation |
 | T3 | IN_PROGRESS | D2: write the ADR after the maintainer decides | New file in `docs/adrs/` with a timestamp name, registered in `docs/adrs/index.md`. Criteria; all of O1 to O8 and O1a to O1c with strengths, weaknesses and the reason for each rejection; one rule per pattern A to E; the ownership map; the mechanism for a package's own targets if O1 is chosen. Approved by the maintainer |
 | T4 | DONE | D3: add the DEC entry amending DEC-13 | New entry (DEC-18) at the top of `DECISIONS.md` linking the ADR and correcting the `tracker-core/src/test_helpers.rs` premise; DEC-13's status line extended with a pointer to it |
-| T5 | DONE | D4: write the migration drafts for rows 2 to 8 | Drafts `docs/issues/drafts/2482-<slug>/ISSUE.md` with `epic: 2482`, destination, final order, and the #1488 gating (#2416 for rows 4 and 5, #2449 for row 6, #2450 for row 7). Row 8 only if O1 is chosen. Update the #2482 Subissues table and give each inventory item a destination |
+| T5 | DONE | D4: write the migration drafts for rows 2 to 9 (row 9 added on 2026-10-22) | Drafts `docs/issues/drafts/2482-<slug>/ISSUE.md` with `epic: 2482`, destination, final order, and the #1488 gating (#2416 for rows 4 and 5, #2449 for row 6, #2450 for row 7). Row 8 only if O1 is chosen. Update the #2482 Subissues table and give each inventory item a destination |
 | T6 | DONE | D5: link the drafts from findings 1 and 2 of the 2026-10-06 coupling report | Links resolve; the 2026-10-17 report is untouched |
 | T7 | TODO | Close out | Update the #2482 checkpoints and acceptance verification; re-review this spec's acceptance criteria; implementation completion review and, if warranted, `implementation-retrospective.md` |
 
@@ -274,6 +274,17 @@ Append one line per meaningful update.
   migration drafts (rows 2 to 8), set the execution order (1, 2, 8, 3, then 4 to 7 as their #1488
   gates clear; row 8 before row 3 because row 3 is the first O1 move), linked the drafts from the
   EPIC table, the inventory and findings 1 and 2 of the 2026-10-06 report (tasks T5 and T6).
+- 2026-10-22 17:18 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 1) - Pre-PR review by the
+  Task Reviewer agent found a gap: the container image's release binary is built by
+  `cargo nextest archive --tests --all-features --release`, so it would ship every `testing`
+  feature (a self dev-dependency enables the feature in any invocation that also builds tests;
+  evidence V4c). The maintainer (josecelano) decided on 2026-10-22 to build shipped artifacts on
+  their own with explicit features and a CI check, and to drop `--all-features` there. Plan change:
+  added row 9 (draft `2482-build-shipped-artifacts-without-test-features`), executed after row 8
+  and before row 3; added ADR rule A.5 text, DEC-18 trade-off and V4c. Also fixed the review's
+  wording findings: the V3 cycle description and the DEC-13 quote attribution in the ADR, the
+  "every inventory item has a draft" claim (now: a destination for every item, a draft for every
+  item that moves), the ordering text, and a qualifier on "no result contradicts the EPIC".
 
 ## Acceptance Criteria
 
@@ -287,10 +298,10 @@ Append one line per meaningful update.
       approved the ADR.
 - [x] AC3: `DECISIONS.md` has a new entry amending DEC-13 that links the ADR and corrects the
       `tracker-core/src/test_helpers.rs` premise; DEC-13 points to it.
-- [x] AC4: Rows 2 to 8 of the #2482 Subissues table (row 8 only if the ADR chooses O1) are drafts
-      under `docs/issues/drafts/2482-<slug>/` with `epic: 2482`, destination, final order and the
-      #1488 gating; every inventory item has a destination and a draft; no GitHub issue exists
-      for them.
+- [x] AC4: Rows 2 to 9 of the #2482 Subissues table (rows 8 and 9 because the ADR chose O1 and
+      the container build ships the binary) are drafts under `docs/issues/drafts/2482-<slug>/`
+      with `epic: 2482`, destination, final order and the #1488 gating; every inventory item has
+      a destination, and every item that moves has a draft; no GitHub issue exists for them.
 - [x] AC5: Findings 1 and 2 of the 2026-10-06 coupling report link the drafts, the links
       resolve, and the 2026-10-17 report is unchanged.
 - [x] AC6: The change set touches documentation only (plus new terms in `project-words.txt`): no
@@ -352,7 +363,7 @@ None. The scenarios run as recorded commands.
 | AC1   | DONE                   | [`manual-verification-evidence.md`](manual-verification-evidence.md), V1 to V4 and the packaging baseline; no result contradicts the EPIC; scratch workspaces removed (checked by the implementing agent, not yet by a reviewer) |
 | AC2   | TODO                   |          |
 | AC3   | DONE                   | DEC-18 in [`DECISIONS.md`](../1669-overhaul-packages/DECISIONS.md) links the ADR and corrects the premise; DEC-13's status line points to it (checked by the implementing agent) |
-| AC4   | DONE                   | Seven drafts under `docs/issues/drafts/2482-<slug>/` (rows 2 to 8; row 8 because the ADR chose O1) with `epic: 2482`, linked in the EPIC Subissues table and the inventory's destination table; no GitHub issue was created for them (checked by the implementing agent) |
+| AC4   | DONE                   | Eight drafts under `docs/issues/drafts/2482-<slug>/` (rows 2 to 9; rows 8 and 9 because the ADR chose O1 and the container build ships the binary) with `epic: 2482`, linked in the EPIC Subissues table and the inventory's destination table; no GitHub issue was created for them (checked by the implementing agent) |
 | AC5   | DONE                   | Findings 1 and 2 of the 2026-10-06 report link the drafts; `linter lychee` passed; `git diff --name-only` of the branch lists no file of the 2026-10-17 report (checked by the implementing agent) |
 | AC6   | DONE                   | `git diff --stat torrust/develop...HEAD -- ':!docs' ':!project-words.txt'` printed nothing at 19:26 UTC (checked by the implementing agent) |
 
