@@ -40,7 +40,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Nine reviews were submitted so far, seven by Copilot and two by the reviewer `da2ce7`. Each body repeats its inline threads, so the bodies add
+Ten reviews were submitted so far, seven by Copilot and three by the reviewer `da2ce7`. Each body repeats its inline threads, so the bodies add
 no rows.
 
 - Review 5599040224 read the head whose subject is "docs(issues): [#2525] propose the design of the override
@@ -71,6 +71,10 @@ no rows.
   carries five inline threads, which it labels F17, F18, F19, F20, and F22, each with its own severity, and says
   that none blocks. Its F21, in a round that was not posted, was found repaired by the commit that added the
   row of F16, and is not a row.
+- Review 5619454221, by `da2ce7`, read the head whose subject is "docs(pr-reviews): record the third review of the second
+  reviewer in the PR #2605 audit" and was submitted on 2026-10-22 at 19:05 UTC, with an ACK of that head as an issue
+  comment, which adds no row. GitHub shows its state as dismissed. It finds F17 to F22 repaired and carries two inline
+  threads, F23 and F24, both Nits, and says that none blocks.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -95,6 +99,8 @@ no rows.
 | F19 | review-finding:pr-2605-f19 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F20 | review-finding:pr-2605-f20 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F22 | review-finding:pr-2605-f22 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F23 | review-finding:pr-2605-f23 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F24 | review-finding:pr-2605-f24 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -347,7 +353,7 @@ no rows.
 - Reviewer finding ID: F17
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4352159453>
 - Concern: the observations cited for the decision (a null `pushedDate` for the commits queried, empty `pull_requests` lists, the force-push event) have no query or output, here or in the historical copy, and V10's permission responses have no transcript. Record the queries and their output beside the evidence, or say they were not kept.
-- Solution: V12 of the evidence records each query and its output, re-run on 2026-10-22 against the closed pull request, and says that it is the state at that time. It also says what was not observed: no force-push happened on #2610, so the statement about the force-push event is the reviewer's, and the count of commit events in the timeline differs from the GraphQL count, which was not investigated.
+- Solution: V12 of the evidence records each query and its output, re-run on 2026-10-22 against the closed pull request, and says that it is the state at that time. It also says what was not observed: no force-push happened on #2610, so the statement about the force-push event is the reviewer's, and that the GraphQL count of 195 against 59 commits is the known caveat that the type filter is ignored (added after the reviewer's F23).
 - Current-tree verification: the outputs in V12 are those of the commands as they were run.
 - Resolution reference: docs(issues): [#2525] record the queries behind the observations of the decision in V12
 - Follow-up PR URL: N/A
@@ -404,6 +410,32 @@ no rows.
 - Resolution reference: docs(pr-reviews): qualify the claim that every reply followed its push in the retrospective
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4352226929
+
+### F23 - The count of 195 against 59 has a known cause
+
+- PR number: 2605
+- Source review ID: 5619454221
+- Reviewer finding ID: F23
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4352391556>
+- Concern: the 59 against 195 in V12 has a known cause, the caveat in the baseline evidence of #2507 that the GraphQL `totalCount` of a typed timeline query counts every timeline item, so the 59 nodes are every commit of the closed pull request and the table reads as a sample when it is not. Cite the caveat, in place of "which was not investigated".
+- Solution: V12 cites the caveat with a link and says that the 59 nodes are the whole set. The audit's F17 entry was corrected to say the same.
+- Current-tree verification: the explanation was checked before it was used: `commits { totalCount }` of #2610 is 59, and `timelineItems` returns 195 with and without the type filter.
+- Resolution reference: docs(issues): [#2525] explain the count of 195 in V12 with the known caveat
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4352419808
+
+### F24 - The claim of one exception no longer holds
+
+- PR number: 2605
+- Source review ID: 5619454221
+- Reviewer finding ID: F24
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4352391575>
+- Concern: "with one exception" no longer holds, because the reply on F17 cites a commit but was posted on a review tied to the earlier head, and the deployment time that was cited is only a latest bound. State the cause, that a reply posted within seconds of a push can land on the earlier head, in place of a count.
+- Solution: the retrospective states the cause and the two cases, and no time. Before the replies of this round, the head that GitHub reports was polled until it matched the pushed head, and a pause was added.
+- Current-tree verification: the review of each reply names its commit, and the replies of this round are on the head that holds the commits they cite.
+- Resolution reference: docs(pr-reviews): state the cause of a reply landing on the earlier head in the retrospective
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4352420107
 
 ## Processing Log
 
@@ -463,6 +495,12 @@ no rows.
   collected by running the queries again, with their limits stated. F18 was settled by tracking the ADR question as a
   task and not by changing the ADR without the maintainer. Pushed, replied on the five threads, and added F17 to F22 to this
   record. Each fix makes the ACK of that head stale, and the second reviewer is re-requested.
+- 2026-10-22 19:08 UTC - The second reviewer's review of 19:05 UTC and its ACK of the head of that time arrived with two Nits,
+  F23 and F24, both correct. F23: the explanation of the count was checked against the API and the #2507 baseline
+  caveat before it was used. F24: the claim of one exception was replaced by its cause. The replies of this round were
+  posted only after the head that GitHub reports matched the pushed head, and the reviews that hold them name that
+  head. Added F23 and F24 to this record, and the typo of one URL in my first draft of the F24 row was fixed before
+  the commit.
 
 ## Completion Rules
 
