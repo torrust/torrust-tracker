@@ -8,8 +8,8 @@ epic: 2410
 github-issue: 2416
 spec-path: docs/issues/open/2416-2410-si-22-4-stop-producers-before-listeners/ISSUE.md
 branch: "2416-stop-producers-before-listeners"
-related-pr: null
-last-updated-utc: "2026-10-22 17:12"
+related-pr: 2623
+last-updated-utc: "2026-10-22 17:13"
 semantic-links:
   skill-links:
     - create-issue
@@ -204,6 +204,7 @@ maintainer decides to keep it.
 - 2026-10-22 07:05 UTC - GitHub Copilot (Claude Opus 5.5) - Checkpoint (c) answered by the maintainer: keep `reproduce-lost-completions.sh` in the sub-EPIC folder, document the draft-ADR process in the `create-adr` skill (done, its own commit, as D15 asked), and push and open the pull request. Acceptance ticking is still to be decided by the maintainer.
 - 2026-10-22 17:08 UTC - GitHub Copilot (Claude Opus 5.5) - Review round 1 of PR #2623 started: the requested reviewer approved the pushed head and left six findings; the audit is `docs/pr-reviews/pr-2623-review/PR-REVIEW.md`. F2 (a UDP request can be held in flight) is fixed with a new deterministic UDP late-event test and corrected records (evidence V7).
 - 2026-10-22 17:12 UTC - GitHub Copilot (Claude Opus 5.5) - Review round 1, finding F1: the T10 row said the independent review, the retrospective and the script decision were pending, which the entries of 2026-10-21 19:23 and 2026-10-22 07:05 had recorded as done; it now reads `DONE` and leaves only the maintainer's acceptance review. The matching row of the sub-EPIC plan reads `DONE` too.
+- 2026-10-22 17:13 UTC - GitHub Copilot (Claude Opus 5.5) - `related-pr` records PR #2623.
 
 ## Architectural Decisions
 
