@@ -9,7 +9,7 @@ github-issue: 2525
 spec-path: docs/issues/open/2525-ci-gate-required-check/ISSUE.md
 branch: "2525-ci-gate-required-check"
 related-pr: null
-last-updated-utc: "2026-10-22 18:03"
+last-updated-utc: "2026-10-22 18:46"
 semantic-links:
   skill-links:
     - create-issue
@@ -51,8 +51,8 @@ and learned.
 - **What replaces it.** CI checks stay advisory and no status check is required. The maintainer's signed
   ACK that names the head commit, together with the merge flow, is the gate. The merge flow is to show the
   head's CI state before the sign-off and to require a distinct confirmation when it is not all green. That
-  change, and a scheduled audit of the repository rulesets, are tracked in two new issues, which are not
-  created yet.
+  change, and a scheduled audit of the repository rulesets, are tracked in task T9, which creates two new
+  issues after the maintainer approves their text.
 - **Why, in order of weight.**
   1. A label cannot be tied to content cheaply. The review of the T6a adapter (finding F34 of the pull
      request that was not merged) showed that "the label was applied after the head commit's first check
@@ -184,6 +184,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DROPPED`.
 | T6  | DROPPED     | Orchestrating workflow                          | Dropped by the decision of 2026-10-22. T6a, the adapter, was implemented and reviewed in a pull request that is not merged. Original task: Convert the pull-request triggers of the heavy workflows into `workflow_call` invocations from one orchestrator; keep `push` triggers; final `CI gate` job; `labeled`/`unlabeled` handling that only re-evaluates the verdict. Follow `implement-workflow`. `CI gate` lands reporting but **not required**: no ruleset change in T6. Before T7, observe it on at least one real code PR and one real documentation-only PR (M1, M2 without the required rule) and record both runs. Split on 2026-10-21 into three steps, each its own pull request: T6a, the Rust adapter that fetches the raw GitHub API responses and turns them into the verdict input, with the contract for the group job names, the stale-override check, and the role check, and no workflow change; T6b, one workflow converted behind the orchestrator, tried in the fork sandbox first; T6c, the other workflows, one commit each. |
 | T7  | DROPPED     | Ruleset and documentation                       | Dropped by the decision of 2026-10-22. Original task: Only after T6 is observed on real PRs, and only with explicit maintainer approval: add the required `CI gate` context (Actions app, not strict) to the rulesets. Save the ruleset JSON before and after under `evidence/`, and record the rollback command in `docs/github-rulesets.md`, so a broken gate can be removed in one step without disabling a ruleset. Update `docs/github-rulesets.md`, the `merge-pull-request` override procedure, and `implement-workflow`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | T8  | DONE        | Measure                                         | Not done in this issue, so #2525 can close without a waiting period (the same decision as #2507 T7, 2026-10-15). (a) DONE on 2026-10-21: [`pr-ci-cost-baseline.md`](pr-ci-cost-baseline.md) records the "before" runner time per pushed head and per pull request for documentation-only and code pull requests, from every run of the 98 pull requests merged since 7 October, with the raw per-run data under `evidence/`. (b) Dropped by the decision of 2026-10-22: there is no T7 to measure.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| T9  | TODO        | Follow-ups of the decision of 2026-10-22        | (a) After the maintainer approves their text, create the two follow-up issues: the port of the merge tool to Rust, followed by showing the head's CI state before the sign-off with a distinct confirmation when it is not all green and counting an ACK only from a maintainer; and a scheduled audit of the repository rulesets. (b) Settle the T1 ADR, which is partly at odds with the decision (see "What stays" in the decision section): add a dated note that points to it, or supersede it, with the maintainer's approval. (c) Close #2525 and archive this specification, as in step 6 of the delivery sequence. |
 
 ## Delivery Sequence
 
@@ -200,9 +201,9 @@ which checks GitHub requires until step 5.
    requires it. Observe it on real code and documentation-only pull requests.
 5. **Make it required (T7).** Only with explicit maintainer approval. Save the ruleset JSON and
    document the rollback.
-6. **Close.** Create the follow-up measurement issue (T8 b), finish the verification and review
-   checkpoints, close #2525, and archive this specification. Closing does not wait for the
-   measurement window.
+6. **Close.** The follow-up measurement issue of T8(b) is dropped by the decision of 2026-10-22; create the follow-up
+   issues of T9 instead, finish the verification and review checkpoints, close #2525, and archive this
+   specification. Closing does not wait for any measurement window.
 
 ### Sandbox Plan for T4 and T5
 
@@ -628,15 +629,15 @@ files and workflow runs for the 60 latest merged pull requests with the `ci-gate
 
 ### Acceptance Verification
 
-| AC ID | Status (`TODO`/`DONE`) | Evidence                                                                                                                            |
-| ----- | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| AC1   | TODO                   |                                                                                                                                     |
-| AC2   | TODO                   |                                                                                                                                     |
-| AC3   | TODO                   |                                                                                                                                     |
-| AC4   | DONE                   | Unit tests pin each rule, and 60 of 60 recent merged pull requests match what GitHub ran (evidence V3). |
-| AC5   | TODO                   |                                                                                                                                     |
-| AC6   | TODO                   |                                                                                                                                     |
-| AC7   | TODO                   |                                                                                                                                     |
+| AC ID | Status (`TODO`/`DONE`/`DROPPED`) | Evidence                                                                                                                            |
+| ----- | -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| AC1   | DROPPED                          | Dropped by the decision of 2026-10-22.                                                                                              |
+| AC2   | DROPPED                          | Dropped by the decision of 2026-10-22.                                                                                              |
+| AC3   | DROPPED                          | Dropped by the decision of 2026-10-22.                                                                                              |
+| AC4   | DONE                             | Unit tests pin each rule, and 60 of 60 recent merged pull requests match what GitHub ran (evidence V3).                             |
+| AC5   | DROPPED                          | Dropped by the decision of 2026-10-22.                                                                                              |
+| AC6   | DROPPED                          | Dropped by the decision of 2026-10-22.                                                                                              |
+| AC7   | DROPPED                          | Dropped by the decision of 2026-10-22.                                                                                              |
 
 ## Risks and Trade-offs
 

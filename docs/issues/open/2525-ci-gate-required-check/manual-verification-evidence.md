@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2525-ci-gate-required-check/ISSUE.md
-last-updated-utc: 2026-10-20 17:52
+last-updated-utc: 2026-10-22 18:47
 ---
 
 # Manual Verification Evidence
@@ -487,4 +487,5 @@ returned 59 `committed` events although the GraphQL count is 195, which was not 
 
 ## Failures and Follow-up
 
-None.
+The tasks that follow from the decision of 2026-10-22 are in the specification (T9): create the two follow-up
+issues, and settle what to do with the ADR of T1.
