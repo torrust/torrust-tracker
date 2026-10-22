@@ -28,7 +28,8 @@ describes the repeat, and the stored log is the repeat's log.
   `torrust/develop` at the merge base `80c45b606` ("Merge torrust/torrust-tracker#2616"). No product code changed
   on the branch, which adds only documentation.
 - Operating system / environment: Linux, local development build (`cargo build --bin torrust-tracker`,
-  `optimized + debuginfo` profile), tracker run in the foreground from the repository root.
+  `optimized + debuginfo` profile). All commands run from the repository root, and `E` below is the folder of the
+  committed artifacts.
 - Prerequisites and setup performed:
   - Copied the layout of the schema 3.0.0 config into [evidence/tracker.toml](evidence/tracker.toml) and set
     `on_reverse_proxy = true` on the HTTP tracker, which is the only setting that makes the client address come from
@@ -94,16 +95,22 @@ admin = "MyAccessToken"
 1. Start the tracker (run in the foreground, then health check):
 
    ```sh
+   E=docs/issues/drafts/http-core-tcp-family-counters-clients-or-server/evidence
+   mkdir -p .tmp/tcp-family-repro && cp "$E/tracker.toml" .tmp/tcp-family-repro/tracker.toml
    ./target/debug/torrust-tracker --config-toml-path "$PWD/.tmp/tcp-family-repro/tracker.toml"
    curl -s -o /dev/null -w "api:%{http_code}\n" "http://127.0.0.1:1212/api/health_check"
    ```
+
+   The runtime copy exists because the configuration's database path is `./.tmp/tcp-family-repro/sqlite3.db`, inside
+   the git-ignored `.tmp/` folder. `diff "$E/tracker.toml" .tmp/tcp-family-repro/tracker.toml` prints nothing, so the
+   copy is the committed configuration.
 
    Result: `api:200`.
 
 2. Read the baseline statistics and store the raw response:
 
    ```sh
-   curl -s "http://127.0.0.1:1212/api/v1/stats?token=MyAccessToken" > evidence/before.json
+   curl -s "http://127.0.0.1:1212/api/v1/stats?token=MyAccessToken" > "$E/before.json"
    ```
 
 3. Send one announce with an IPv6 client address in the forwarded header:
@@ -111,7 +118,7 @@ admin = "MyAccessToken"
    ```sh
    IH="%01%02%03%04%05%06%07%08%09%0a%0b%0c%0d%0e%0f%10%11%12%13%14"
    PID="-qB0000-123456789012"
-   curl -s -o announce.bin -w "announce:%{http_code}\n" \
+   curl -s -o .tmp/tcp-family-repro/announce.bin -w "announce:%{http_code}\n" \
      -H "X-Forwarded-For: 2001:db8::1" \
      "http://127.0.0.1:7070/announce?info_hash=$IH&peer_id=$PID&port=6881&uploaded=0&downloaded=0&left=0&compact=1&event=started"
    ```
@@ -121,7 +128,7 @@ admin = "MyAccessToken"
 4. Read the statistics again, after the request, and store the raw response:
 
    ```sh
-   curl -s "http://127.0.0.1:1212/api/v1/stats?token=MyAccessToken" > evidence/after.json
+   curl -s "http://127.0.0.1:1212/api/v1/stats?token=MyAccessToken" > "$E/after.json"
    ```
 
 5. Stop the tracker. The repeat ended when the shell session closed and sent the tracker `SIGTERM`; the log ends with
@@ -132,7 +139,7 @@ admin = "MyAccessToken"
 The stored responses are the raw `curl` output. The excerpts below come from this filter, which only selects fields:
 
 ```sh
-jq -c 'with_entries(select(.key|test("^(tcp|udp4_announces|udp6_announces)")))' evidence/before.json evidence/after.json
+jq -c 'with_entries(select(.key|test("^(tcp|udp4_announces|udp6_announces)")))' "$E/before.json" "$E/after.json"
 ```
 
 Baseline (step 2):
