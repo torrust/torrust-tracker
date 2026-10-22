@@ -50,8 +50,9 @@ documents describe the final implementation. Evidence: V1 to V6 and the Task Rev
 - The additions beyond the Chosen Design were agreed and recorded: `spawn_with` beside `spawn`,
   `waiting_components()`, `ComponentId` naming its manager, the HTTP test helper and test binary
   (entry 31), and the listeners guard moving into the join (entry 32).
-- The UDP environment has no deterministic red for the late event: a UDP request cannot be held in
-  flight. The test is regression coverage, and the order is proven by a staged-join unit test.
+- The UDP environment first had no deterministic red for the late event, because I wrote that a UDP
+  request cannot be held in flight. The reviewer showed that the same crate already holds one
+  (`HoldAcceptedRequestsSender`), and review round 1 added the test (evidence V7).
 
 ## Improvements for Future Work
 
@@ -69,6 +70,13 @@ documents describe the final implementation. Evidence: V1 to V6 and the Task Rev
 5. **A bind failure ("Address in use") followed a race run twice** (here and in #2414's V10), more than
    40 seconds after the previous run, with no socket visible in `ss`. I did not investigate it. A
    separate issue could, if the maintainer wants one; this retrospective only records that it recurs.
+
+## Improvements From Review Round 1
+
+1. **Before writing that a test cannot be made, search the crate for an existing hook.** I stopped at
+   "a UDP request cannot be held in flight" without searching `packages/udp-server` for the holding
+   sender its own shutdown tests use. A search for `Hold` or `release` would have found it in a minute
+   (review-finding:pr-2623-f2).
 
 ## Avoiding Overcorrection
 

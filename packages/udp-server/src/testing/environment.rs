@@ -372,8 +372,11 @@ mod tests {
     use std::sync::atomic::{AtomicUsize, Ordering};
     use std::time::Duration;
 
+    use futures::future::BoxFuture;
+    use tokio::sync::{mpsc, watch};
     use tokio_util::sync::CancellationToken;
     use torrust_tracker_client::udp::client::UdpTrackerClient;
+    use torrust_tracker_events::sender::{SendError, Sender};
     use torrust_tracker_test_helpers::configuration;
     use torrust_tracker_udp_protocol::{ConnectRequest, Response, TransactionId};
 
@@ -381,6 +384,8 @@ mod tests {
         ConfigurationConnectionIdValidationPolicy, ConnectionIdValidationPolicy, EnvContainer, OwnedEventListeners, Started,
         UdpTrackerServer, Unstarted, connection_id_validation_policy, join_owned_tasks,
     };
+    use crate::container::UdpTrackerServerContainer;
+    use crate::event::Event;
 
     const TEST_DEADLINE: Duration = Duration::from_secs(10);
 
@@ -554,6 +559,66 @@ mod tests {
         stop_within_deadline(restarted).await;
     }
 
+    /// Wraps the real UDP-server event sender and holds every `UdpRequestAccepted` publication, which a
+    /// request processor makes, until the scenario releases it, so a request stays in flight while the
+    /// environment stops. A released publication reaches the real bus.
+    struct HoldAcceptedRequestsBeforePublishing {
+        real_sender: Arc<dyn Sender<Event = Event>>,
+        held: mpsc::UnboundedSender<()>,
+        release: watch::Receiver<bool>,
+    }
+
+    impl Sender for HoldAcceptedRequestsBeforePublishing {
+        type Event = Event;
+
+        fn send(&self, event: Event) -> BoxFuture<'_, Option<Result<usize, SendError<Event>>>> {
+            let is_accepted = matches!(event, Event::UdpRequestAccepted { .. });
+            let mut release = self.release.clone();
+            if is_accepted {
+                self.held
+                    .send(())
+                    .expect("the held-publication receiver should outlive the scenario");
+            }
+
+            Box::pin(async move {
+                if is_accepted {
+                    // The scenario keeps the release sender alive, so this waits for an explicit release.
+                    let _released = release.wait_for(|released| *released).await;
+                }
+                self.real_sender.send(event).await
+            })
+        }
+    }
+
+    /// An environment whose request processors hold their `UdpRequestAccepted` publication until released.
+    async fn unstarted_environment_holding_accepted_requests(
+        release: watch::Receiver<bool>,
+        held: mpsc::UnboundedSender<()>,
+    ) -> Unstarted {
+        let mut environment = unstarted_environment().await;
+        let original = environment.container.clone();
+        let server_container = &original.udp_tracker_server_container;
+        let real_sender = server_container
+            .event_bus
+            .sender()
+            .expect("the UDP-server event bus is enabled");
+        environment.container = Arc::new(EnvContainer {
+            tracker_core_container: original.tracker_core_container.clone(),
+            udp_tracker_core_container: original.udp_tracker_core_container.clone(),
+            udp_tracker_server_container: Arc::new(UdpTrackerServerContainer {
+                event_bus: server_container.event_bus.clone(),
+                stats_event_sender: Some(Arc::new(HoldAcceptedRequestsBeforePublishing {
+                    real_sender,
+                    held,
+                    release,
+                })),
+                stats_repository: server_container.stats_repository.clone(),
+                banned_ips_publication_order: server_container.banned_ips_publication_order.clone(),
+            }),
+        });
+        environment
+    }
+
     /// Lets every other runnable task run: on the test's current-thread runtime a task cannot
     /// make progress while the test itself runs.
     async fn let_the_other_tasks_run() {
@@ -621,6 +686,56 @@ mod tests {
         assert_eq!(
             requests_received, 1,
             "the udp-server listener must have counted the received request before stop() returned"
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_count_the_statistics_event_of_a_request_that_is_published_while_stop_drains_the_receive_loop() {
+        // Arrange
+        // A client's connect request has reached its request processor, which holds the publication of the
+        // request's `UdpRequestAccepted` event, so the request is still in flight. The environment starts to
+        // stop, which cancels the receive loop, and the receive loop waits for that processor.
+        let (release, release_receiver) = watch::channel(false);
+        let (held, mut held_receiver) = mpsc::unbounded_channel();
+        let environment =
+            start_within_deadline(unstarted_environment_holding_accepted_requests(release_receiver, held).await).await;
+        let container = environment.container.clone();
+        let client = UdpTrackerClient::new(environment.bind_address(), TEST_DEADLINE)
+            .await
+            .expect("a client should reach the UDP tracker");
+        client
+            .send(
+                ConnectRequest {
+                    transaction_id: TransactionId::new(1),
+                }
+                .into(),
+            )
+            .await
+            .expect("the connect request should be sent");
+        tokio::time::timeout(TEST_DEADLINE, held_receiver.recv())
+            .await
+            .expect("the request should reach its processor within the test deadline");
+        let stop = tokio::spawn(environment.stop());
+        let_the_other_tasks_run().await;
+
+        // Act
+        // The processor publishes the event while the receive loop drains, and `stop()` returns afterwards.
+        release.send_replace(true);
+        tokio::time::timeout(TEST_DEADLINE, stop)
+            .await
+            .expect("stop() should finish within the test deadline")
+            .expect("stop() should not panic");
+
+        // Assert
+        // The accepted request, published during the drain, was counted before stop() returned.
+        let accepted = container
+            .udp_tracker_server_container
+            .stats_repository
+            .read_metrics(crate::statistics::metrics::Metrics::udp4_connect_requests_accepted_total)
+            .await;
+        assert_eq!(
+            accepted, 1,
+            "the request was accepted while stop() was draining the receive loop, so its event must be counted before stop() returns"
         );
     }
 

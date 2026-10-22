@@ -9,7 +9,7 @@ github-issue: 2416
 spec-path: docs/issues/open/2416-2410-si-22-4-stop-producers-before-listeners/ISSUE.md
 branch: "2416-stop-producers-before-listeners"
 related-pr: null
-last-updated-utc: "2026-10-22 07:05"
+last-updated-utc: "2026-10-22 17:08"
 semantic-links:
   skill-links:
     - create-issue
@@ -202,6 +202,7 @@ maintainer decides to keep it.
 - 2026-10-21 19:07 UTC - GitHub Copilot (Claude Opus 5.5) - T10 in progress: the ADR was promoted to `docs/adrs/20261021184946_order_shutdown_by_event_flow_and_drain_event_listeners.md` and the cancellation-tree ADR superseded (separate signed commit); the diagrams and documents were updated (second signed commit); M1 to M3 were run and recorded (evidence V5; the race runs show no deficit and are not the proof of window (b)). The acceptance criteria are not ticked: they await the maintainer's acceptance review. The pre-push script exits 0 (evidence V6). Pending: the disposable script decision, the independent Task Reviewer report, the retrospective.
 - 2026-10-21 19:23 UTC - GitHub Copilot (Claude Opus 5.5) - The independent Task Reviewer report (REVIEW PASSED WITH FINDINGS, no blocking finding) and the implementation retrospective are recorded; the should-fix findings (two stale evidence counts, the open retrospective) are addressed. Pending before push: checkpoint (c) with the maintainer, the disposable-script decision, and the push approval.
 - 2026-10-22 07:05 UTC - GitHub Copilot (Claude Opus 5.5) - Checkpoint (c) answered by the maintainer: keep `reproduce-lost-completions.sh` in the sub-EPIC folder, document the draft-ADR process in the `create-adr` skill (done, its own commit, as D15 asked), and push and open the pull request. Acceptance ticking is still to be decided by the maintainer.
+- 2026-10-22 17:08 UTC - GitHub Copilot (Claude Opus 5.5) - Review round 1 of PR #2623 started: the requested reviewer approved the pushed head and left six findings; the audit is `docs/pr-reviews/pr-2623-review/PR-REVIEW.md`. F2 (a UDP request can be held in flight) is fixed with a new deterministic UDP late-event test and corrected records (evidence V7).
 
 ## Architectural Decisions
 
@@ -247,4 +248,4 @@ claiming their tests were rerun without results.
 - Neither stop order nor drain guarantees lossless persistence under overflow, a failing handler, a
   panic, or the shared deadline's abort (ADR, Consequences). The exit-result policy (a timeout or an
   abort exits 1) and the configurable deadlines belong to SI-20.
-- The UDP test environment has no deterministic red proof of the late-event behavior (V4).
+- The UDP environment's deterministic red proof of the late-event behavior came in review round 1 (V7); V4 first said it was not possible (corrected there).

@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2416-2410-si-22-4-stop-producers-before-listeners/ISSUE.md
-last-updated-utc: "2026-10-21 19:23"
+last-updated-utc: "2026-10-22 17:08"
 ---
 
 # Manual Verification Evidence
@@ -134,12 +134,13 @@ so that an unused variable failed under `-D warnings`, and rewritten). `manager`
   (`HTTP/1.1 200`) before checking the metric, so the failure is the lost event and not an unanswered
   request. A first probe of this idea printed `stats: 0` on the same tree before the test existed.
 - Green: after the change the same test passes (`tcp4_announces_handled` is 1).
-- Why the UDP late-event test is not a red proof: a UDP request cannot be held in flight while the
-  receive loop drains, so the UDP environment has no deterministic equivalent of the partial HTTP
-  request. `it_should_count_the_statistics_events_of_a_request_answered_just_before_stop` is
-  regression coverage (a request answered before `stop()`, both statistics listeners count it); it also
-  passed under mutation U-M1 below. The order is proven for UDP by the staged-join unit test, which
-  fails under U-M1.
+- Why `it_should_count_the_statistics_events_of_a_request_answered_just_before_stop` is not a red proof:
+  it is regression coverage (a request answered before `stop()`, both statistics listeners count it) and
+  it also passed under mutation U-M1 below. The order is proven for UDP by the staged-join unit test,
+  which fails under U-M1. **Correction (review-finding:pr-2623-f2):** this bullet first said that a UDP
+  request cannot be held in flight while the receive loop drains, so the UDP environment had no
+  deterministic equivalent of the partial HTTP request. That was wrong: V7 holds a request in flight in
+  the UDP environment and has a deterministic red.
 - Commands and outcomes: `cargo test -p torrust-tracker-axum-http-server -p torrust-tracker-udp-server`:
   HTTP library 48 passed (11 in the environment module), UDP library 232 passed (12 in the environment
   module), and the integration and doc tests of both packages pass.
@@ -271,3 +272,24 @@ proves the order; it does not count how many events the second carried, and the 
   workspace packaging check, and the full stable test suite (about one minute of tests).
 - `cargo test --test lifecycle-signals`: 13 passed.
 - `linter all`: exit 0 on every commit (the pre-commit hook ran it).
+
+### V7 - Review round 1: a deterministic UDP late-event test (review-finding:pr-2623-f2)
+
+- Goal: answer the review finding that a UDP request can be held in flight, as the crate's own
+  `HoldAcceptedRequestsSender` (`packages/udp-server/src/server/launcher.rs`, in the receive-loop shutdown
+  tests) does, so the UDP environment can have a deterministic red like the HTTP one.
+- Test: `it_should_count_the_statistics_event_of_a_request_that_is_published_while_stop_drains_the_receive_loop`
+  in `packages/udp-server/src/testing/environment.rs`. A wrapping sender (`HoldAcceptedRequestsBeforePublishing`)
+  replaces the container's UDP-server event sender, holds each `UdpRequestAccepted` publication, which a request
+  processor makes, until released, and forwards it to the real bus afterwards. The test sends a connect request,
+  waits until its processor holds the publication, starts `stop()`, lets the other tasks run (so `stop()` has
+  cancelled the receive loop and waits for the processor), releases the publication, and checks that
+  `udp4_connect_requests_accepted_total` is 1 after `stop()` returns.
+- Red: with mutation U-M1 (the listeners are cancelled together with the receive loop, as the environment did
+  with one token) `cargo test -p torrust-tracker-udp-server --lib testing::environment` fails
+  `it_should_count_the_statistics_event_of_a_request_that_is_published_while_stop_drains_the_receive_loop` and
+  `it_should_cancel_the_event_listeners_only_after_the_receive_loop_has_finished`. Under mutation U-M3 (the
+  listeners guard guards another token) it fails too, with the tests that call `stop()`. The red run used
+  U-M1 and not the tree before the T9 change, because that tree does not have the wrapper hooks the test needs.
+- Green: on the tree without a mutation the module passes (13 tests), and 15 repeated runs of the test passed.
+- The answered-request test stays as regression coverage; no test was removed or merged.
