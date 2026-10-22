@@ -289,6 +289,11 @@ no rows.
 - 2026-10-21 16:52 UTC - Replied `Superseded by F4: <reason>.` on the thread, added F11 to this record, and did
   not request another review of this pull request: the finding had already been answered with evidence twice
   and the maintainer was asked whether to resolve such threads without a further review.
+- 2026-10-22 18:10 UTC - Correction of two entries above, found by a reviewer and checked against the commit times and the reply
+  times. The 11:53 entry says that the round was pushed, but its last commit was made at 11:54:43 UTC. The 11:56 entry
+  reports the replies and the start of this record, but the replies were posted at 11:58:17 and 11:58:20 UTC and
+  the first commit of this record was made at 12:00:31 UTC. Both entries are left as written, so that the record
+  shows the slip, and this entry gives the true times.
 
 ## Completion Rules
 
