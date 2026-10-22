@@ -83,6 +83,7 @@ no rows.
 | F13 | review-finding:pr-2605-f13 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F14 | review-finding:pr-2605-f14 | Human | Nit | formatting | ORIGINAL | FIXED | RESOLVED |
 | F15 | review-finding:pr-2605-f15 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F16 | review-finding:pr-2605-f16 | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -315,6 +316,19 @@ no rows.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4351878322
 
+### F16 - Half of the retrospective is about another pull request whose audit is not in this tree
+
+- PR number: 2605
+- Source review ID: 5604657954
+- Reviewer finding ID: F16
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4340695920>
+- Concern: the retrospective is half about #2610, whose claims cannot be checked from this tree, and it cites that pull request's audit, which does not exist here. The template places one retrospective in each pull request's review folder, so keep this pull request's part here and move the other part to the other pull request's folder when it lands, with a pointer each way.
+- Solution: partly adopted. The concern is addressed, and the suggested split is not done. Pull request #2610 was closed unmerged by the maintainer's decision of 2026-10-22, so its folder will not land and a retrospective moved there would have no audit beside it. The audit of #2610 is added here as the historical copy `pr-2610-audit-record.md`, not named as an audit and without the `skill-link` marker, because the audit validator checks resolution references against the commits of the branch that holds the record and #2610's commits are not on this one. The retrospective cites that copy, and its figures for #2610 were recomputed from the API and git. The reply offers the split as a further commit if the reviewer prefers it.
+- Current-tree verification: the copy and the retrospective pass the Markdown, spelling, and link checks and the pre-commit gate. The audit validator was run on the copy under its original name, where it fails for the reason given, and that is why it is not stored under that name.
+- Resolution reference: docs(pr-reviews): add the PR #2610 audit as a historical record next to the retrospective
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4352032069
+
 ## Processing Log
 
 - 2026-10-21 11:36 UTC - Copilot's review arrived with two threads, F1 and F2. Both were checked against
@@ -361,6 +375,11 @@ no rows.
   is left to the maintainer. In the same push, the decision of the maintainer on 2026-10-22 to drop the required gate
   and the override is recorded in the specification, V10 has a correction on the permission field, and the rulesets
   document no longer says the gate is planned. These commits make the ACK of the earlier head stale.
+- 2026-10-22 18:28 UTC - Closed pull request #2610 unmerged by the maintainer's confirmation. Answered F16: the concern is addressed by adding
+  the #2610 audit as a historical copy and by recomputing the retrospective's figures from the API and git, and the split is
+  not done, for the reasons in the reply. The retrospective was updated with the final state, the decision, a classification
+  of the 52 findings, and the slips of the later rounds. The second reviewer is re-requested; Copilot is not, because one of
+  its false positives came back five times on this pull request.
 
 ## Completion Rules
 
