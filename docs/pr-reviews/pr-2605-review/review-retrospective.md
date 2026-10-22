@@ -84,9 +84,10 @@ re-raises of the one false positive and most of the small improvements.
 2. Code findings were fixed test-first. Each new test was seen to fail on the old behavior, and the
    fixes were mutation-checked: 43 mutants of the adapter and its fixtures were applied and all were
    killed (V11 of the specification, on the branch of #2610).
-3. The process rules held, with one known gap. Every fix has its own signed commit, every reply was posted after the
-   push command that it describes had returned, and the audit validator passed before every audit commit. It also
-   failed once, on a draft with placeholder reply ids, and that stopped the commit. The gap is that a reply posted
+3. The process rules held, with a known gap and one exception. Every fix but one has its own signed commit; the
+   exception is #2605 F20, whose edit went into the commit of F19 and is recorded in the audit. Every reply was
+   posted after the push command that it describes had returned, and the audit validator passed before every audit
+   commit. The gap is that a reply posted
    within seconds of a push can land on the earlier head: GitHub attaches the reply to the head it had registered,
    and it registers a push some seconds after the command returns. It happened with the replies on #2605 F16 and F17,
    and the commit of the review that holds the reply is the evidence. A pause before the first reply of a round
