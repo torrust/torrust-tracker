@@ -218,9 +218,10 @@ without a wrapper task.
 `JobManager::spawn_with` additionally takes `StopBefore` edges naming the
 components the spawned component must complete before they are asked to stop;
 `spawn` is the same without edges. Edges can only name components reserved
-earlier in the same manager, so the graph has no cycle, and a registration that
-names an unknown, released, foreign, or later component, or that comes after
-`cancel()`, is rejected without leaving state behind.
+earlier in the same manager, so the graph has no cycle. A registration that names
+an unknown, released, foreign, or later component or itself, or that adds edges
+after `cancel()`, is rejected without leaving state behind. A component without
+edges can still be spawned after `cancel()`: it gets a cancelled token.
 
 `JobManager::cancel` requests cooperative shutdown: it cancels the legacy root
 token that only legacy jobs use, and the token of every component that does not
