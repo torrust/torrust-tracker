@@ -180,7 +180,7 @@ no rows.
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4338910344>
 - Concern: the rows of the audit's table are said to start with `||`, which renders an empty first column, on line 63. It is the concern of F4, raised for the third time.
 - Solution: no change, for the reason given for F4. No row of the table starts with `||`.
-- Current-tree verification: the file was fetched from the GitHub contents API at the head of the pull request (blob `1e414fc2a`, head `74d85083b`): `grep -c "^||"` gives 0, and every table row begins with a pipe and a space. The audit validator parses all six rows.
+- Current-tree verification: the file was fetched from the GitHub contents API at the head of the pull request (blob `1e414fc2a`, at the head whose subject is "docs(pr-reviews): record the fourth review round in the PR #2605 audit"): `grep -c "^||"` gives 0, and every table row begins with a pipe and a space. The audit validator parses all six rows.
 - Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4338938099>
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4338938099>
@@ -230,7 +230,7 @@ no rows.
   contradicts the later text of F4, F6, F7, and F8. It is the concern of F4, raised for the fourth time, at line 68.
 - Solution: no change, for the reason given for F4. No row of the table starts with `||`.
 - Current-tree verification: the file was fetched from the GitHub contents API at the head of the pull request
-  (blob `05e3cb88b`, head `330a7aa68`): `grep -c "^||"` gives 0, the 10 table rows, the header, the separator, and
+  (blob `05e3cb88b`, at the head whose subject is "docs(pr-reviews): record the fifth review round in the PR #2605 audit"): `grep -c "^||"` gives 0, the 10 table rows, the header, the separator, and
   eight findings, begin with a single pipe, and line 68 is the row of F8. The audit validator parses all rows.
 - Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4339194835>
 - Follow-up PR URL: N/A
@@ -248,7 +248,7 @@ no rows.
 - Solution: no change, for the reason given for F4. This entry describes the claim in words and does not quote
   the characters, to see whether the next review raises it again.
 - Current-tree verification: the file was fetched from the GitHub contents API at the commit that review read
-  (blob `d9528aa39`, commit `5e97f950c`): no line starts with a doubled pipe, the 12 table rows, the header, the
+  (blob `d9528aa39`, at the commit whose subject is "docs(pr-reviews): record the sixth review round in the PR #2605 audit"): no line starts with a doubled pipe, the 12 table rows, the header, the
   separator, and ten findings, begin with a single pipe followed by a space, and line 73 is the row of F10. The
   audit validator parses all rows.
 - Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4339514454>

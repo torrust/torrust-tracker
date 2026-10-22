@@ -278,10 +278,11 @@ The evidence does not justify the following.
   42, 17, 60, 43, 17, and 17 minutes. #2610: 43, 17, 17, and 43 minutes.
 - Findings, re-raises, and the audit-record count: the tables of the two audits.
 - Commits: `git rev-list --count torrust/develop..josecelano/2525-t5-design` (19 before this document, of
-  which 7 start with `docs(pr-reviews)`) and, for #2610, the commits after the stacking point `7c230e2ec`
-  on `josecelano/2525-ci-gate-github-adapter` (22, of which 5 start with `docs(pr-reviews)`).
+  which 7 start with `docs(pr-reviews)`) and, for #2610, the commits after the stacking point, the commit whose subject is
+  "docs(issues): [#2525] record the approved T5 design and the split of T6", on
+  `josecelano/2525-ci-gate-github-adapter` (22, of which 5 start with `docs(pr-reviews)`).
 - The macOS failure of #2610: the annotation "The job was not acquired by Runner of type hosted even
   after multiple attempts" on check run 119328209761, and the same workflow passing on the earlier head.
-- The origin of #2610 F5: the first adapter commit `5bbed54f2`, whose `assess_override` already reads the
-  events before looking for the label.
+- The origin of #2610 F5: the first adapter commit, whose subject is "feat(ci-gate): [#2525] add the GitHub adapter of the
+  merge verdict" and whose `assess_override` already reads the events before looking for the label.
 - The "Findings by cause" table and the section on the model hypothesis are the author's judgement.
