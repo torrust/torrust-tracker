@@ -40,7 +40,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Eight reviews were submitted so far, seven by Copilot and one by the reviewer `da2ce7`. Each body repeats its inline threads, so the bodies add
+Nine reviews were submitted so far, seven by Copilot and two by the reviewer `da2ce7`. Each body repeats its inline threads, so the bodies add
 no rows.
 
 - Review 5599040224 read the head whose subject is "docs(issues): [#2525] propose the design of the override
@@ -65,6 +65,12 @@ no rows.
   PR #2605 and PR #2610" and was submitted on 2026-10-21 at 18:52 UTC, with an ACK of that head as an issue comment,
   which adds no row. GitHub shows its state as dismissed. It carries five inline threads, F12 to F16, each with the
   reviewer's own severity, and says that none blocks.
+- Review 5619147885, by `da2ce7`, read the head whose subject is "docs(pr-reviews): record the answer to F16 and the
+  closing of PR #2610 in the PR #2605 audit" and was submitted on 2026-10-22 at 18:41 UTC, with an ACK of that head as
+  an issue comment, which adds no row. GitHub shows its state as dismissed. It finds F12 to F16 repaired. It
+  carries five inline threads, which it labels F17, F18, F19, F20, and F22, each with its own severity, and says
+  that none blocks. Its F21, in a round that was not posted, was found repaired by the commit that added the
+  row of F16, and is not a row.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -84,6 +90,11 @@ no rows.
 | F14 | review-finding:pr-2605-f14 | Human | Nit | formatting | ORIGINAL | FIXED | RESOLVED |
 | F15 | review-finding:pr-2605-f15 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F16 | review-finding:pr-2605-f16 | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
+| F17 | review-finding:pr-2605-f17 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F18 | review-finding:pr-2605-f18 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F19 | review-finding:pr-2605-f19 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F20 | review-finding:pr-2605-f20 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F22 | review-finding:pr-2605-f22 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -329,6 +340,71 @@ no rows.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4352032069
 
+### F17 - The API observations behind the decision have no query or output
+
+- PR number: 2605
+- Source review ID: 5619147885
+- Reviewer finding ID: F17
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4352159453>
+- Concern: the observations cited for the decision (a null `pushedDate` for the commits queried, empty `pull_requests` lists, the force-push event) have no query or output, here or in the historical copy, and V10's permission responses have no transcript. Record the queries and their output beside the evidence, or say they were not kept.
+- Solution: V12 of the evidence records each query and its output, re-run on 2026-10-22 against the closed pull request, and says that it is the state at that time. It also says what was not observed: no force-push happened on #2610, so the statement about the force-push event is the reviewer's, and the count of commit events in the timeline differs from the GraphQL count, which was not investigated.
+- Current-tree verification: the outputs in V12 are those of the commands as they were run.
+- Resolution reference: docs(issues): [#2525] record the queries behind the observations of the decision in V12
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4352225517
+
+### F18 - The ADR is more than one bullet at odds with the decision
+
+- PR number: 2605
+- Source review ID: 5619147885
+- Reviewer finding ID: F18
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4352159467>
+- Concern: the decision section says that the ADR has "one bullet" at odds with it, but the ADR also rejects "Leave required checks off and rely on the maintainer" as not scaling, which this decision adopts, and draws consequences from a required check at three more places. Add a dated note to the ADR that points at the decision, or make "whether to supersede it" a tracked task.
+- Solution: the decision section states what the ADR keeps and each way in which it is at odds, with its lines, and the question of annotating or superseding it is task T9. The ADR is not changed in this pull request, without the maintainer's approval.
+- Current-tree verification: the five ADR lines were read before the text was written.
+- Resolution reference: docs(issues): [#2525] state how the T1 ADR is at odds with the decision
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4352225838
+
+### F19 - The follow-ups are tracked nowhere and the closing instructions still describe dropped work
+
+- PR number: 2605
+- Source review ID: 5619147885
+- Reviewer finding ID: F19
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4352159474>
+- Concern: "tracked in two new issues, which are not created yet" tracks them nowhere. Step 6 of the delivery sequence still says to create the T8(b) measurement issue, the acceptance verification table still lists AC1 to AC3 and AC5 to AC7 as `TODO`, no task creates the two new issues or settles the ADR question, and the evidence says "None" for follow-ups.
+- Solution: task T9 covers creating the two issues, settling the ADR, and closing the specification. Step 6 is rewritten, the six rows are `DROPPED`, the decision section points to T9, and the evidence's follow-up section names T9. A dated entry of the progress log that says T8(b) remains was left, because it was true when written.
+- Current-tree verification: a search for T8(b) in the specification finds only dated log entries and the statement of what is dropped.
+- Resolution reference: docs(issues): [#2525] add the follow-up task T9 and mark the dropped criteria and close step
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4352226184
+
+### F20 - The last update of the evidence file is not current
+
+- PR number: 2605
+- Source review ID: 5619147885
+- Reviewer finding ID: F20
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4352159488>
+- Concern: the `last-updated-utc` of the evidence file is 2026-10-20 17:52, although this pull request adds V10 and corrections of later dates; set it to the newest edit.
+- Solution: the field is 2026-10-22 18:47. The edit went into the commit of F19 and not into a commit of its own, because the file edit ran before the commit command; the history was not rewritten to split it.
+- Current-tree verification: the field equals the time of the last edit of the file.
+- Resolution reference: docs(issues): [#2525] add the follow-up task T9 and mark the dropped criteria and close step
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4352226633
+
+### F22 - The retrospective says that every reply followed its push
+
+- PR number: 2605
+- Source review ID: 5619147885
+- Reviewer finding ID: F22
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4352159499>
+- Concern: the claim no longer holds: the F16 reply cites two commits and was posted on a review tied to the earlier head, before those commits reached the pull request. Qualify the sentence or log the exception.
+- Solution: the sentence states the exception. The time at which the commits reached the pull request is taken from the reviewer's capture and was not checked independently.
+- Current-tree verification: the sentence was read after the edit.
+- Resolution reference: docs(pr-reviews): qualify the claim that every reply followed its push in the retrospective
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4352226929
+
 ## Processing Log
 
 - 2026-10-21 11:36 UTC - Copilot's review arrived with two threads, F1 and F2. Both were checked against
@@ -380,6 +456,13 @@ no rows.
   not done, for the reasons in the reply. The retrospective was updated with the final state, the decision, a classification
   of the 52 findings, and the slips of the later rounds. The second reviewer is re-requested; Copilot is not, because one of
   its false positives came back five times on this pull request.
+- 2026-10-22 18:49 UTC - The second reviewer's review of 18:41 UTC and its ACK of the head of that time arrived while the
+  watcher was running, with five non-blocking threads. Checked each against the tree and the sources, and fixed all five
+  in separate signed commits, except that the `last-updated-utc` edit of F20 went into the commit of F19, because the file
+  edit ran before the commit command and the history was not rewritten to split it. F17 needed new evidence, which was
+  collected by running the queries again, with their limits stated. F18 was settled by tracking the ADR question as a
+  task and not by changing the ADR without the maintainer. Pushed, replied on the five threads, and added F17 to F22 to this
+  record. Each fix makes the ACK of that head stale, and the second reviewer is re-requested.
 
 ## Completion Rules
 
