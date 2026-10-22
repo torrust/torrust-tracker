@@ -6,7 +6,7 @@ epic: 1669
 github-issue: 2482
 spec-path: docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-22 17:26"
+last-updated-utc: "2026-10-22 18:39"
 semantic-links:
   skill-links:
     - create-issue
@@ -415,6 +415,11 @@ Append one line per meaningful update.
   (release)"), which would ship every `testing` feature after rows 3 to 7. The maintainer prefers
   explicit features and a CI error to shipping an unintended feature. The execution order is now
   1, 2, 8, 9, 3, 4 to 7, and AC8 names the image.
+- 2026-10-22 18:39 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 1) - Wording change after
+  PR #2624's reviews: the Related decisions paragraph on DEC-13 now says
+  `tracker-core/src/test_helpers.rs` is a `pub mod` whose content is `#[cfg(test)]` and
+  crate-private, not a private module (the earlier text was inaccurate). The inventory has the same
+  correction, plus a note that third-party test-only dependencies are not in its count.
 
 ## Acceptance Criteria
 
