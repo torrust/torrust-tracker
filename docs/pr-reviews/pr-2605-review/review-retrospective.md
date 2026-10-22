@@ -84,9 +84,12 @@ re-raises of the one false positive and most of the small improvements.
 2. Code findings were fixed test-first. Each new test was seen to fail on the old behavior, and the
    fixes were mutation-checked: 43 mutants of the adapter and its fixtures were applied and all were
    killed (V11 of the specification, on the branch of #2610).
-3. The process rules held. Every fix has its own signed commit, every reply followed the push it
+3. The process rules held, with one exception. Every fix has its own signed commit, every reply followed the push it
    describes, and the audit validator passed before every audit commit. It also failed once, on a draft
-   with placeholder reply ids, and that stopped the commit.
+   with placeholder reply ids, and that stopped the commit. The exception is the reply on #2605 F16, posted at
+   18:28:08 UTC on a review tied to the earlier head, before the two commits it cites reached the pull request,
+   which the reviewer's capture shows at 18:28:14 UTC; the push had been made first and the reply followed it
+   by seconds.
 4. Some problems were found by the author before any reviewer raised them: answering #2605 F3 showed
    that no test covered the pagination of the check suites in the adapter, and a test was added to
    #2610 in that round; a failing CI check on #2610 was traced to a macOS runner that was never
