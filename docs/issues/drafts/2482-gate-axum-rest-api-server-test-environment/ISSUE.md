@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2482-gate-axum-rest-api-server-test-environment/ISSUE.md
 branch: "{issue-number}-2482-gate-axum-rest-api-server-test-environment"
 related-pr: null
-last-updated-utc: "2026-10-21 19:16"
+last-updated-utc: "2026-10-22 18:10"
 semantic-links:
   skill-links:
     - create-issue
@@ -61,6 +61,9 @@ why the order does not matter.
 
 ### In Scope
 
+- Audit every normal dependency of the package, workspace or third-party, against the ADR's rule
+  A.2: optional behind `testing` if only the module and `#[cfg(test)]` code use it, a
+  dev-dependency if only `#[cfg(test)]` code uses it.
 - Gate `pub mod testing;` with `#[cfg(feature = "testing")]`; add `testing` (not in `default`)
   enabling the six dependencies with `dep:` syntax, and make them optional. Re-verify before
   editing that production source does not use them (the inventory's check was by `rg`).
@@ -105,7 +108,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T1 | BLOCKED | Record the baseline (after #2449) | `cargo tree -p torrust-tracker-axum-rest-api-server -e normal,features`; test counts of the package and `-p torrust-tracker-axum-health-check-api-server` with and without `--all-features` |
+| T1 | BLOCKED | Record the baseline (after #2449) | `cargo tree -p torrust-tracker-axum-rest-api-server -e normal --depth 1`; test counts of the package and `-p torrust-tracker-axum-health-check-api-server` with and without `--all-features` |
 | T2 | TODO | Gate the module, add the feature, make the six dependencies optional, add the self dev-dependency | Plain `cargo test -p torrust-tracker-axum-rest-api-server` passes |
 | T3 | TODO | Enable the feature in the health check package's dev-dependency | Its tests pass |
 | T4 | TODO | Remove the stale comment; update inventory, diagram and docs | Pattern A row resolved |
@@ -137,11 +140,13 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 - 2026-10-21 19:16 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 1) - Drafted from row 6 of
   the #2482 Subissues table and rule A of the ADR; gated by #2449.
+- 2026-10-22 18:10 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 1) - Changed after PR #2624's review: AC1 and M1 check direct dependencies (`--depth 1`) because five of the six crates stay reachable through `rest-api-runtime-adapter`; added the dependency audit to the scope.
 
 ## Acceptance Criteria
 
-- [ ] AC1: `cargo tree -p torrust-tracker-axum-rest-api-server -e normal,features` shows none of
-      the six forced dependencies unless production code uses them, and `src/testing/` is not
+- [ ] AC1: `cargo tree -p torrust-tracker-axum-rest-api-server -e normal --depth 1` shows none of
+      the six forced crates as a direct dependency unless production code uses them (five stay
+      reachable through `rest-api-runtime-adapter`), and `src/testing/` is not
       compiled without the feature.
 - [ ] AC2: `cargo test -p torrust-tracker-axum-rest-api-server` and
       `-p torrust-tracker-axum-health-check-api-server` pass without `--all-features`, with the
@@ -168,7 +173,7 @@ without `--all-features`, and check the test count.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | The production build has no test-only dependency | `cargo tree -p torrust-tracker-axum-rest-api-server -e normal,features` before and after | The six forced edges are gone | TODO | `manual-verification-evidence.md` V1 |
+| M1 | The production build has no test-only dependency | `cargo tree -p torrust-tracker-axum-rest-api-server -e normal --depth 1` before and after | The six forced direct dependencies are gone (paths through production dependencies remain) | TODO | `manual-verification-evidence.md` V1 |
 | M2 | Plain package tests | `cargo test -p torrust-tracker-axum-rest-api-server` (no `--all-features`) | Test count equals the baseline | TODO | V2 |
 | M3 | The consumer still works | `cargo test -p torrust-tracker-axum-health-check-api-server` | Passes with the baseline count | TODO | V3 |
 

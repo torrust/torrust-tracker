@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2482-gate-axum-health-check-api-server-test-environment/ISSUE.md
 branch: "{issue-number}-2482-gate-axum-health-check-api-server-test-environment"
 related-pr: null
-last-updated-utc: "2026-10-21 19:16"
+last-updated-utc: "2026-10-22 18:10"
 semantic-links:
   skill-links:
     - create-issue
@@ -56,6 +56,9 @@ merge, because its tests use their environments.
 
 ### In Scope
 
+- Audit every normal dependency of the package, workspace or third-party, against the ADR's rule
+  A.2: optional behind `testing` if only the module and `#[cfg(test)]` code use it, a
+  dev-dependency if only `#[cfg(test)]` code uses it.
 - Gate the environment module with `#[cfg(feature = "testing")]`; add `testing` (not in
   `default`) with `dep:torrust-tracker-configuration`, and make that dependency optional (check
   first that no production source or intra-doc link needs it).
@@ -99,7 +102,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T1 | BLOCKED | Record the baseline (after #2450 and rows 4 to 6) | `cargo tree -p torrust-tracker-axum-health-check-api-server -e normal,features`; test count with and without `--all-features` |
+| T1 | BLOCKED | Record the baseline (after #2450 and rows 4 to 6) | `cargo tree -p torrust-tracker-axum-health-check-api-server -e normal --depth 1`; test count with and without `--all-features` |
 | T2 | TODO | Gate the module, add the feature, optional dependency and self dev-dependency | Plain `cargo test -p torrust-tracker-axum-health-check-api-server` passes |
 | T3 | TODO | Update inventory, diagram and docs | Pattern A row resolved |
 | T4 | TODO | Regenerate the coupling report and check AC8 | New dated report; the result recorded in the EPIC |
@@ -131,11 +134,13 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 - 2026-10-21 19:16 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 1) - Drafted from row 7 of
   the #2482 Subissues table and rule A of the ADR; gated by #2450 and rows 4 to 6.
+- 2026-10-22 18:10 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 1) - Changed after PR #2624's review: AC1 and M1 check direct dependencies (`--depth 1`) because `configuration` stays reachable through `axum-server`; added the dependency audit to the scope.
 
 ## Acceptance Criteria
 
-- [ ] AC1: `cargo tree -p torrust-tracker-axum-health-check-api-server -e normal,features` shows no
-      `torrust-tracker-configuration` unless production code uses it, and the environment is not
+- [ ] AC1: `cargo tree -p torrust-tracker-axum-health-check-api-server -e normal --depth 1` shows no
+      direct dependency on `torrust-tracker-configuration` unless production code uses it (it
+      stays reachable through `axum-server`), and the environment is not
       compiled without the feature.
 - [ ] AC2: `cargo test -p torrust-tracker-axum-health-check-api-server` passes without
       `--all-features`, with the baseline test count.
@@ -162,7 +167,7 @@ without `--all-features`, and check the test count.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | The production build has no test-only dependency | `cargo tree -p torrust-tracker-axum-health-check-api-server -e normal,features` before and after | The forced edge is gone | TODO | `manual-verification-evidence.md` V1 |
+| M1 | The production build has no test-only dependency | `cargo tree -p torrust-tracker-axum-health-check-api-server -e normal --depth 1` before and after | The forced direct dependency is gone (paths through production dependencies remain) | TODO | `manual-verification-evidence.md` V1 |
 | M2 | Plain package tests | `cargo test -p torrust-tracker-axum-health-check-api-server` (no `--all-features`) | Test count equals the baseline | TODO | V2 |
 | M3 | AC8 on the whole workspace | Run the coupling tool and read the report and diagrams | No test-only runtime edge | TODO | V3 |
 

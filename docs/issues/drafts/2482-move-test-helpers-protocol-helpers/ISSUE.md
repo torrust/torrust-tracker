@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2482-move-test-helpers-protocol-helpers/ISSUE.md
 branch: "{issue-number}-2482-move-test-helpers-protocol-helpers"
 related-pr: null
-last-updated-utc: "2026-10-21 19:16"
+last-updated-utc: "2026-10-22 18:10"
 semantic-links:
   skill-links:
     - create-issue
@@ -62,7 +62,10 @@ move does not change its published API; #2583 decides any version bump.
   from `test-helpers`.
 - Update `deny.toml`: remove `torrust-tracker-test-helpers` from the `wrappers` lists of
   `torrust-tracker-http-protocol` and `torrust-tracker-udp-protocol`, and add the root crate to the
-  lists if it now depends on a protocol crate directly. Run `cargo deny check bans`.
+  lists if it now depends on a protocol crate directly. `torrust-tracker-client-lib` has no entry
+  today, so add one listing its legitimate dependents, or `test-helpers` could depend on it again
+  unnoticed. Decide whether `tracker-core` and the other domain crates also need entries (they have
+  none, so ADR rule B.1 is only a convention for them). Run `cargo deny check bans`.
 - Update the package descriptions that say `test-helpers` provides "mock servers" (`AGENTS.md`,
   `docs/packages.md`, `packages/AGENTS.md`) and the dependency diagram where it shows the removed
   edges; mark inventory pattern B resolved.
@@ -137,6 +140,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 - 2026-10-21 19:16 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 1) - Drafted from row 2 of
   the #2482 Subissues table and rule B of the ADR.
+- 2026-10-22 18:10 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 1) - Changed after PR #2624's review: the deny.toml scope adds a ban entry for `torrust-tracker-client-lib` (it has none) and asks whether the domain crates need entries.
 
 ## Acceptance Criteria
 
@@ -144,8 +148,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
       `udp-protocol`, `primitives`, `torrust-info-hash`, `torrust-peer-id` or `url`.
 - [ ] AC2: The root crate's tests that used the helpers pass, with the same test count as the
       baseline.
-- [ ] AC3: `cargo deny check bans` passes and `torrust-tracker-test-helpers` is in no protocol
-      crate's `wrappers` list.
+- [ ] AC3: `cargo deny check bans` passes, `torrust-tracker-test-helpers` is in no protocol
+      crate's `wrappers` list, and `torrust-tracker-client-lib` has a ban entry.
 - [ ] AC4: Descriptions and the dependency diagram match; inventory pattern B is marked resolved.
 - [ ] `linter all` exits with code `0`; pre-push checks pass.
 

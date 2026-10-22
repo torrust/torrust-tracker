@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2482-gate-axum-http-server-test-environment/ISSUE.md
 branch: "{issue-number}-2482-gate-axum-http-server-test-environment"
 related-pr: null
-last-updated-utc: "2026-10-21 19:16"
+last-updated-utc: "2026-10-22 18:10"
 semantic-links:
   skill-links:
     - create-issue
@@ -60,6 +60,13 @@ merges, or this spec records why the order does not matter.
 
 ### In Scope
 
+- Audit every normal dependency of the package, workspace or third-party, against the ADR's rule
+  A.2: optional behind `testing` if only the module and `#[cfg(test)]` code use it, a
+  dev-dependency if only `#[cfg(test)]` code uses it. Two third-party crates are candidates: the
+  review of #2618 found `torrust-clock` (used only in `#[cfg(test)]` code and
+  `src/testing/environment.rs`) and `torrust-info-hash` (used only in test modules and
+  `src/testing/environment.rs`). Confirm, then make them optional behind `testing`, or record why
+  they stay.
 - Gate `pub mod testing;` with `#[cfg(feature = "testing")]`; add `testing` (not in `default`)
   with `dep:torrust-tracker-swarm-coordination-registry`, and make that dependency optional.
 - Add the path-only self dev-dependency (no `version`) with `features = ["testing"]`.
@@ -104,7 +111,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T1 | BLOCKED | Record the baseline (after #2416) | `cargo tree -p torrust-tracker-axum-http-server -e normal,features`; test counts of the package and `-p torrust-tracker-axum-health-check-api-server` with and without `--all-features` |
+| T1 | BLOCKED | Record the baseline (after #2416) | `cargo tree -p torrust-tracker-axum-http-server -e normal --depth 1`; test counts of the package and `-p torrust-tracker-axum-health-check-api-server` with and without `--all-features` |
 | T2 | TODO | Gate the module, add the feature, optional dependency and self dev-dependency | Plain `cargo test -p torrust-tracker-axum-http-server` passes; decide the `configuration` edge |
 | T3 | TODO | Enable the feature in the health check package's dev-dependency | Its tests pass |
 | T4 | TODO | Decide and apply the example's status | Example builds; choice recorded |
@@ -138,12 +145,14 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 - 2026-10-21 19:16 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 1) - Drafted from row 5 of
   the #2482 Subissues table and rule A of the ADR; gated by #2416.
+- 2026-10-22 18:10 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 1) - Changed after PR #2624's review: AC1 and M1 check direct dependencies (`--depth 1`); the scope audits third-party normal dependencies and names `torrust-clock` and `torrust-info-hash`.
 
 ## Acceptance Criteria
 
-- [ ] AC1: `cargo tree -p torrust-tracker-axum-http-server -e normal,features` shows no
-      `torrust-tracker-swarm-coordination-registry`, and `src/testing/` is not compiled without
-      the feature.
+- [ ] AC1: `cargo tree -p torrust-tracker-axum-http-server -e normal --depth 1` shows no direct
+      dependency on `torrust-tracker-swarm-coordination-registry` (it stays reachable through
+      `tracker-core`) or, if the audit confirms they are test-only, on `torrust-clock` and
+      `torrust-info-hash`, and `src/testing/` is not compiled without the feature.
 - [ ] AC2: `cargo test -p torrust-tracker-axum-http-server` and
       `-p torrust-tracker-axum-health-check-api-server` pass without `--all-features`, with the
       baseline test counts.
@@ -170,7 +179,7 @@ without `--all-features`, and check the test count.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | The production build has no test-only dependency | `cargo tree -p torrust-tracker-axum-http-server -e normal,features` before and after | The forced edge is gone | TODO | `manual-verification-evidence.md` V1 |
+| M1 | The production build has no test-only dependency | `cargo tree -p torrust-tracker-axum-http-server -e normal --depth 1` before and after | The forced direct dependencies are gone (paths through production dependencies remain) | TODO | `manual-verification-evidence.md` V1 |
 | M2 | Plain package tests | `cargo test -p torrust-tracker-axum-http-server` (no `--all-features`) | Test count equals the baseline | TODO | V2 |
 | M3 | The consumer still works | `cargo test -p torrust-tracker-axum-health-check-api-server` | Passes with the baseline count | TODO | V3 |
 

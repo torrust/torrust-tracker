@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md
 branch: "{issue-number}-2482-gate-tracker-core-test-modules-and-mocks"
 related-pr: null
-last-updated-utc: "2026-10-21 19:16"
+last-updated-utc: "2026-10-22 18:10"
 semantic-links:
   skill-links:
     - create-issue
@@ -62,7 +62,12 @@ Patterns C and D of the inventory:
 - Rule D: add the `testing` feature (not in `default`) with `testing = ["dep:mockall"]`, make
   `mockall` an optional normal dependency, and generate the mocks with
   `#[cfg_attr(feature = "testing", automock)]` on all four traits, keeping the existing
-  lint attributes on `auth_keys.rs` (which cite `automock`) valid.
+  lint attributes on `auth_keys.rs` (which cite `automock`) valid. Gate the other code that
+  depends on `mockall` the same way, or a default build does not compile: the four unconditional
+  `use mockall::automock;` lines in `databases/traits/{whitelist,auth_keys,torrent_metrics,schema}.rs`
+  and the `Mock*` re-exports at `databases/mod.rs` (line 66) and `databases/traits/mod.rs` (line 14).
+- Audit every other normal dependency of the package, workspace or third-party, against the ADR's
+  rule A.2, as the environment moves do.
 - Rule A points 3, 4 and 6 for the feature: a path-only self dev-dependency (no `version`), the
   `[dev-dependencies]` entries `torrust-tracker-core = { ..., features = ["testing"] }` in `http-core`
   and `udp-core`, a comment on the feature saying it is test support outside semver, and no
@@ -104,7 +109,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T1 | TODO | Record the baseline | `cargo tree -p torrust-tracker-core -e normal,features` (shows `mockall`); test counts of `cargo test -p torrust-tracker-core`, `-p torrust-tracker-http-core`, `-p torrust-tracker-udp-core` with `--all-targets --all-features` and without `--all-features` |
+| T1 | TODO | Record the baseline | `cargo tree -p torrust-tracker-core -e normal --depth 1` (shows `mockall`); test counts of `cargo test -p torrust-tracker-core`, `-p torrust-tracker-http-core`, `-p torrust-tracker-udp-core` with `--all-targets --all-features` and without `--all-features` |
 | T2 | TODO | Rule C: make the three helper modules private | Build and tests pass |
 | T3 | TODO | Rule D: gate the four mocks and add the feature, the self dev-dependency and the consumers' entries | Plain `cargo test -p` passes for the three packages |
 | T4 | TODO | Update the inventory, diagram and docs | Patterns C and D marked resolved |
@@ -137,10 +142,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-10-21 19:16 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 1) - Drafted from row 3 of
   the #2482 Subissues table and rules C and D of the ADR. The scope includes the consumers' entries
   because `MockTorrentMetricsStore` is used by `http-core` and `udp-core` (inventory correction).
+- 2026-10-22 18:10 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 1) - Changed after PR #2624's review: AC1 and M1 check direct dependencies (`--depth 1`); the scope names the `use mockall::automock;` lines and the `Mock*` re-exports that must also be gated, and the dependency audit.
 
 ## Acceptance Criteria
 
-- [ ] AC1: `cargo tree -p torrust-tracker-core -e normal,features` shows no `mockall`, and the
+- [ ] AC1: `cargo tree -p torrust-tracker-core -e normal --depth 1` shows no direct dependency on `mockall`, and the
       `Mock*` types and the three helper modules are not in a default build's public API.
 - [ ] AC2: `cargo test -p torrust-tracker-core`, `-p torrust-tracker-http-core` and
       `-p torrust-tracker-udp-core` pass without `--all-features`, and each package's test count
@@ -166,7 +172,7 @@ without `--all-features`, and check the test count.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | The production build has no test dependency | `cargo tree -p torrust-tracker-core -e normal,features` before and after | `mockall` absent after | TODO | `manual-verification-evidence.md` V1 |
+| M1 | The production build has no test dependency | `cargo tree -p torrust-tracker-core -e normal --depth 1` before and after | `mockall` absent after | TODO | `manual-verification-evidence.md` V1 |
 | M2 | Each package's tests run with a plain command | `cargo test -p torrust-tracker-core`, `-p torrust-tracker-http-core`, `-p torrust-tracker-udp-core` (no `--all-features`) | Test counts equal the baseline | TODO | V2 |
 | M3 | A consumer still gets the mock | `cargo test -p torrust-tracker-http-core -- scrape` | The tests that use `MockTorrentMetricsStore` run and pass | TODO | V3 |
 
