@@ -55,7 +55,10 @@ reverse-proxy mode (`[http_trackers.network] on_reverse_proxy = true`). In that 
 the handler over an IPv4 listener; the opposite case (an IPv4 forwarded address over an `inet6` listener) is reachable
 the same way. A dual-stack `[::]` binding is a different situation: an IPv4 client arrives there as an IPv4-mapped IPv6
 address, which `event.rs` classifies as `Inet6` (the decided rule below), so the binding family and the client family
-agree and the two meanings do not diverge. Scenario M3 records what a dual-stack operator sees; it is not yet
+agree and the two meanings do not diverge. UDP behaves the same way: with `ipv6_v6only = false` on Linux a `[::]`
+socket delivers an IPv4 client as `::ffff:a.b.c.d`, which `packages/udp-core/src/event.rs` classifies as `Inet6`
+(and as `V4MappedV6` by type), and with `ipv6_v6only = true` no IPv4 client reaches that socket at all. So UDP has no case
+where the binding family and the client family differ. Scenario M3 records what a dual-stack operator sees; it is not yet
 reproduced.
 The REST API publishes these values as `tcp4_announces_handled`, `tcp6_announces_handled`, and so on
 (`packages/rest-api-runtime-adapter/src/v1/adapters/stats.rs`), so the wording and the numbers are public.
@@ -156,16 +159,18 @@ The causal seams are, per package, the getters that select on the server-binding
 
 The smallest deterministic tests are unit tests that feed one event per case and assert the counter the current
 meaning names (T3), flipped only if T5 changes the meaning. HTTP cases R1–R3 feed events to the HTTP handler; the UDP
-packages get their own cases, listed per package in T3. UDP has no reverse-proxy mode, so its only mixed case is an
-IPv4 client on a dual-stack `inet6` socket, which M4 records.
+packages get their own cases, listed per package in T3. UDP has no case where the binding and client families differ (a
+dual-stack client is a mapped one, so it belongs to R3, and with `ipv6_v6only = true` no IPv4 client reaches the
+socket), so its cases pin the mapped result and the plain cases only.
 
 - R1: IPv6 client on an IPv4 binding (the reverse-proxy case reproduced in V1). HTTP only.
-- R2: IPv4 client on an IPv6 binding (reverse proxy with an IPv4 forwarded address; for UDP, a dual-stack `[::]`
-  listener).
-- R3: IPv4-mapped IPv6 client (`::ffff:192.0.2.1`), decided to count as IPv6. `event.rs` classifies it as `Inet6`.
-  The existing cases named in Background (`ipv4_mapped_ipv6` and
+- R2: IPv4 client on an IPv6 binding (reverse proxy with an IPv4 forwarded address). HTTP only; UDP has no such case.
+- R3: IPv4-mapped IPv6 client (`::ffff:192.0.2.1`), decided to count as IPv6, for HTTP and UDP. `event.rs` classifies it
+  as `Inet6`. The existing cases named in Background (`ipv4_mapped_ipv6` and
   `ipv6_scrape_of_an_ipv4_mapped_client_with_a_public_url_on_another_port`) already pin the HTTP result; T3 cites them
-  and updates them only if T5 changes the meaning.
+  and updates them only if T5 changes the meaning. In `udp-core`, the existing test
+  `it_should_report_a_v4_mapped_v6_ip_type_when_the_client_is_ipv4_mapped_ipv6` pins the type only, so T3 adds a case that
+  pins the family of a mapped UDP client.
 
 ## Implementation Plan
 
@@ -251,7 +256,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | M1 | Reverse-proxy mixed family before the fix: IPv6 `X-Forwarded-For` over the IPv4 HTTP listener | Build, run with `on_reverse_proxy = true`, announce with `X-Forwarded-For: 2001:db8::1`, read `/api/v1/stats` | Current behavior recorded (`tcp4` incremented, `tcp6` unchanged) | DONE | `manual-verification-evidence.md` section V1 and `evidence/` |
 | M2 | Same scenario after a behavior change in T5 (skipped if T4 keeps the current meaning) | Repeat M1 on the fixed build | Counter matches the T4 decision | TODO | `manual-verification-evidence.md` (to be added as V2) |
 | M3 | Dual-stack `[::]` binding: an IPv4 client reaches an inet6 socket | Set `bind_address = "[::]:7070"` on the HTTP tracker, announce over IPv4 to `127.0.0.1`, read `/api/v1/stats` and the labels in the log | Record the observed counters and labels. Both the binding and the mapped client classify as `inet6`, so M3 records what a dual-stack operator sees today; it does not separate the two meanings | TODO | `manual-verification-evidence.md` (to be added as V3) |
-| M4 | UDP dual-stack: an IPv4 client reaches an `inet6` UDP socket (UDP has no reverse-proxy mode) | Set `bind_address = "[::]:6969"` on the UDP tracker, send one announce over IPv4 with `tracker_client`, read `/api/v1/stats` | Record the `udp4_*`/`udp6_*` counters that the REST API reads from `udp-server`. Not yet reproduced | TODO | `manual-verification-evidence.md` (to be added as V4) |
+| M4 | UDP dual-stack: an IPv4 client reaches an `inet6` UDP socket as a mapped address (UDP has no reverse-proxy mode, and the two meanings agree here) | Set `bind_address = "[::]:6969"` on the UDP tracker (default `ipv6_v6only = false` on Linux), send one announce over IPv4 with `tracker_client`, read `/api/v1/stats` | Record the `udp4_*`/`udp6_*` counters that the REST API reads from `udp-server`. It records what a dual-stack operator sees (the mapped case, counted as `udp6`); it cannot tell the two meanings apart. Not yet reproduced | TODO | `manual-verification-evidence.md` (to be added as V4) |
 
 Notes:
 
