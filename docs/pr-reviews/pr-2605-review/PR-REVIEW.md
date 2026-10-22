@@ -40,7 +40,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Seven reviews were submitted so far, all by Copilot. Each body repeats its inline threads, so the bodies add
+Eight reviews were submitted so far, seven by Copilot and one by the reviewer `da2ce7`. Each body repeats its inline threads, so the bodies add
 no rows.
 
 - Review 5599040224 read the head whose subject is "docs(issues): [#2525] propose the design of the override
@@ -61,6 +61,10 @@ no rows.
 - Review 5603029640 read the head whose subject is "docs(pr-reviews): record the sixth review round in the PR
   #2605 audit". It marks F9 and F10 as resolved and carries one inline thread, F11, the claim of F4 a fifth time,
   recorded as a re-raise of it.
+- Review 5604657954, by `da2ce7`, read the head whose subject is "docs(pr-reviews): add the review retrospective for
+  PR #2605 and PR #2610" and was submitted on 2026-10-21 at 18:52 UTC, with an ACK of that head as an issue comment,
+  which adds no row. GitHub shows its state as dismissed. It carries five inline threads, F12 to F16, each with the
+  reviewer's own severity, and says that none blocks.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -75,6 +79,10 @@ no rows.
 | F9 | review-finding:pr-2605-f9 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 | F10 | review-finding:pr-2605-f10 | Copilot | Nit (inferred) | formatting | RE_RAISE_OF:F4 | NO_ACTION | SUPERSEDED |
 | F11 | review-finding:pr-2605-f11 | Copilot | Nit (inferred) | formatting | RE_RAISE_OF:F4 | NO_ACTION | SUPERSEDED |
+| F12 | review-finding:pr-2605-f12 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F13 | review-finding:pr-2605-f13 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F14 | review-finding:pr-2605-f14 | Human | Nit | formatting | ORIGINAL | FIXED | RESOLVED |
+| F15 | review-finding:pr-2605-f15 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -255,6 +263,58 @@ no rows.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4339514454>
 
+### F12 - The saved listings never show the check runs that V10 describes
+
+- PR number: 2605
+- Source review ID: 5604657954
+- Reviewer finding ID: F12
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4340695881>
+- Concern: in none of the seven runs does the saved list of all check runs for the head commit include a `CI gate` run, a skipped run, or a run named `matrix.group`, although V10 describes them. Either the list is not every check run, or the observations come from a source that the evidence does not record; the design rests on which runs the endpoint returns. Record the command and output behind the observations, and say whether the list is filtered.
+- Solution: the saved file had kept only some of the lines of each list, which was an error in saving the evidence. The logs of the seven runs are still on GitHub; each saved list was compared with the real one, every saved line was found in it, and the real lists are restored with a note in the header. V10 records the command and the real output for the head of runs 5 to 7 (15 runs, with three `CI gate` runs and two skipped `matrix.group` runs), and that the same request with `filter=all` returned the same runs.
+- Current-tree verification: the restored lists are the output of `gh run view <run id> --repo josecelano/torrust-tracker --log` for each run, and the V10 listing is the output of the API request on 2026-10-22; both agree with the statements of V10. A rerun of a job inside one check suite was not tested, and V10 says so.
+- Resolution reference: docs(issues): [#2525] restore the full check-run listings of the T5 logs and record the real listing
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4351877097
+
+### F13 - Records cite commits of this branch by id
+
+- PR number: 2605
+- Source review ID: 5604657954
+- Reviewer finding ID: F13
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4340695889>
+- Concern: three lines of this record and one of the retrospective cite commits of this branch by id; the `open-pull-request` check prints them, and the skill says to cite the Conventional Commit subject instead.
+- Solution: each of the four cites the subject now. The check, run in a clone that also holds the other pull request's branch, printed one more, in the retrospective, which is a subject now too. What it still prints are the fork's sandbox commits in the saved T4 and T5 evidence, which do not resolve in a clone without the fork's branches.
+- Current-tree verification: the check prints no commit of this branch.
+- Resolution reference: docs(pr-reviews): cite commit subjects, not ids, in the PR #2605 audit and retrospective
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4351877516
+
+### F14 - The T5 gate logs end with a blank line
+
+- PR number: 2605
+- Source review ID: 5604657954
+- Reviewer finding ID: F14
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4340695905>
+- Concern: the file ends with a blank line, which `git diff --check` reports, and no gate catches it.
+- Solution: the blank line is removed.
+- Current-tree verification: `git diff --check` is clean for the file.
+- Resolution reference: docs(issues): [#2525] drop the blank line at the end of the T5 gate logs
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4351877932
+
+### F15 - Two log entries are stamped before the events they report
+
+- PR number: 2605
+- Source review ID: 5604657954
+- Reviewer finding ID: F15
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4340695913>
+- Concern: the 11:53 entry ends "and pushed" but the round's last commit is later, and the 11:56 entry reports the replies and the start of this record, which are later. Restamp them or append a correction entry.
+- Solution: a correction entry with the true times is appended, and the two entries are left as written, so that the record shows the slip.
+- Current-tree verification: the times were checked against the commit times and the reply times from the API: the last commit at 11:54:43, the replies at 11:58:17 and 11:58:20, and the first commit of this record at 12:00:31 UTC. The validator reports the order of the entries as valid.
+- Resolution reference: docs(pr-reviews): correct the times of two log entries in the PR #2605 audit
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4351878322
+
 ## Processing Log
 
 - 2026-10-21 11:36 UTC - Copilot's review arrived with two threads, F1 and F2. Both were checked against
@@ -294,6 +354,13 @@ no rows.
   reports the replies and the start of this record, but the replies were posted at 11:58:17 and 11:58:20 UTC and
   the first commit of this record was made at 12:00:31 UTC. Both entries are left as written, so that the record
   shows the slip, and this entry gives the true times.
+- 2026-10-22 18:15 UTC - Found a review that I had not seen: the second reviewer's of 2026-10-21 18:52 UTC, with five threads, F12 to
+  F16, and an ACK of the head of that time, because my watchers had covered only the other pull request. Checked each
+  against the evidence. F12 was a real error of mine in saving the logs, shown by comparing them with the logs still on
+  GitHub. Fixed F12 to F15 in one signed commit each. F16 (whether the retrospective should be split by pull request)
+  is left to the maintainer. In the same push, the decision of the maintainer on 2026-10-22 to drop the required gate
+  and the override is recorded in the specification, V10 has a correction on the permission field, and the rulesets
+  document no longer says the gate is planned. These commits make the ACK of the earlier head stale.
 
 ## Completion Rules
 
