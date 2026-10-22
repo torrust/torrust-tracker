@@ -439,10 +439,10 @@ GitHub JSON, and only the label response, which is `[{"name": "ci-override"}]`, 
 last row is the contract that T6b and T6c have to meet: nothing calls the adapter yet, so it changes no
 behavior today.
 
-Thirty-eight mutants of `github.rs`, `gh.rs`, and the tests' fixture were applied one at a time and the whole test suite run for each, with the
+Forty mutants of `github.rs`, `gh.rs`, and the tests' fixture were applied one at a time and the whole test suite run for each, with the
 file restored afterwards (`diff` against a saved copy). Six of them did not compile the first time, because
 the workspace's `-D warnings` rejects unused code, so they ran no test; they were rewritten and rerun. All
-thirty-eight compiled and were killed. In the fifth review round one mutant script stopped on its own assertion
+forty compiled and were killed. In the fifth review round one mutant script stopped on its own assertion
 because the formatter had wrapped the text it looked for, so it changed nothing and was rewritten and rerun:
 
 | Mutant                                                                          | Failing tests |
@@ -485,6 +485,8 @@ because the formatter had wrapped the text it looked for, so it changed nothing 
 | the cause is left out of the message of a failed cleanup                        |             1 |
 | the earliest `labeled` event is used, after the refactor of `override_request`  |             2 |
 | a label with no event of it being applied is read as no request                 |             1 |
+| the label need not be on the pull request, as the caller checks it              |             2 |
+| the earliest `labeled` event is used by the simplified request lookup           |             2 |
 
 The call from the fixture's `Drop` to the cleanup function is not covered by a test; a mutant that drops the
 message there would survive.

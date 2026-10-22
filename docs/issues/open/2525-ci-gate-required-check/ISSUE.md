@@ -9,7 +9,7 @@ github-issue: 2525
 spec-path: docs/issues/open/2525-ci-gate-required-check/ISSUE.md
 branch: "2525-ci-gate-required-check"
 related-pr: null
-last-updated-utc: "2026-10-21 19:53"
+last-updated-utc: "2026-10-22 07:07"
 semantic-links:
   skill-links:
     - create-issue
@@ -598,6 +598,20 @@ Conventional Commits with narrow scopes and sign every commit with GPG.
   (`docs(pr-reviews): cite commit subjects, not ids, in the PR #2610 audit and V11`). F27: the 14:43 entry now shows
   the step from 199 tests and 17 mutants (`docs(issues): [#2525] show the step from 199 tests and 17 mutants in the
   14:43 progress log entry`). No code changed.
+- 2026-10-22 07:05 UTC - GitHub Copilot - The reviewer `da2ce7` approved PR #2610 at 2026-10-21 20:10 UTC (review 5605593995) and
+  posted an ACK of the head at that time, with one open thread: a nit, F28, that a log entry of the audit placed an
+  event after a review that already reported it. It was right and is fixed in the audit
+  (`docs(pr-reviews): place the bulk resolve before the review that reported it in the PR #2610 audit`). No code changed,
+  so the ACK no longer names the head of the branch.
+- 2026-10-22 07:07 UTC - GitHub Copilot - Processed Copilot's seventh review of PR #2610 (three threads, F29 to F31), which had arrived
+  at 2026-10-21 20:14 UTC, after the approval above. F29 asked to change the saved sandbox workflow, which still reads
+  `.permission`; no change, because that file is the record of what ran in T5 and V10 now carries the correction.
+  F30: the usage text said `--head-sha <sha>` for a value that must have 40 hexadecimal digits; it says
+  `<40-hex-commit-id>` now (`fix(ci-gate): [#2525] show the form of the head commit id in the usage text`). F31:
+  `override_request` checked the labels that its caller had already checked; it takes only the events now and returns
+  a request, not an option of one (`refactor(ci-gate): [#2525] take only the events to find the override request`), and
+  a mutant that removes the caller's check is killed by two tests of the caller. Now 226 unit and 23 command-line tests,
+  and two more mutants killed - [`manual-verification-evidence.md`](manual-verification-evidence.md) V11.
 
 ## Acceptance Criteria
 
