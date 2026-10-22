@@ -161,6 +161,25 @@ git push {your-fork-remote} {branch}
 If code comments were added to establish ADR links, include those files in the
 same commit when practical.
 
+## Drafting an ADR Before the Design Is Validated
+
+When an ADR records a design that implementation may still change, draft it inside the folder of
+the issue or EPIC that owns the design instead of merging it in `docs/adrs/` early. This was used
+for the shutdown-order ADR of sub-EPIC #2410 and needs the maintainer's agreement for each use.
+
+1. Write the draft as `adr-draft.md` next to the spec, with the usual ADR structure and a note at
+   the top that it is a draft and where it will move.
+2. Update the draft in the same change as every agreed design change, so it always describes the
+   agreed design. Do not merge a superseding ADR and then supersede it again.
+3. In the last pull request that changes the design, move it with `git mv` into the right ADR
+   collection under a filename generated at that moment (see
+   [Step 1](#step-1-generate-filename)); remove the draft note and fix the relative links; rewrite
+   statements about the code before the decision in the past tense; add `- Status: Superseded by`
+   to every ADR it replaces; and register it in the collection's `index.md`. Do this in its own
+   commit.
+4. Bare mentions of `adr-draft.md` in closed specs and earlier record entries are history; do not
+   rewrite them. Update links, and live references in open documents.
+
 ## Example ADR
 
 For a real example, see
