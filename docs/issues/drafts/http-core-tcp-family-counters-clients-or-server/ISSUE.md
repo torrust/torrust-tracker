@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/http-core-tcp-family-counters-clients-or-server/ISSUE.md
 branch: "{issue-number}-http-core-tcp-family-counters-clients-or-server"
 related-pr: null
-last-updated-utc: "2026-10-22 18:15"
+last-updated-utc: "2026-10-22 18:37"
 semantic-links:
   skill-links:
     - create-issue
@@ -46,7 +46,7 @@ The four getters of `Metrics` in `packages/http-core/src/statistics/metrics.rs`
 (`tcp4_announces_handled`, `tcp4_scrapes_handled`, `tcp6_announces_handled`, `tcp6_scrapes_handled`) are
 documented as "Total number of TCP (HTTP tracker) `announce` requests from IPv4 peers" (and IPv6, and
 `scrape`). They select the samples on the label `server_binding_address_ip_family` (`inet` or `inet6`), which
-`packages/http-core/src/event.rs` sets from the address the server is **bound to** (`statistics/event/handler.rs` passes the connection on), not from the client's address.
+`packages/http-core/src/event.rs` sets from the address the server is **bound to** (`packages/http-core/src/statistics/event/handler.rs` passes the connection on), not from the client's address.
 
 Observable consequence: a request whose client address is IPv6 but whose server binding is IPv4 is counted as `tcp4`.
 A native IPv6 connection cannot reach an IPv4-only listener, so this mixed-family case is reachable only in
@@ -212,6 +212,7 @@ issue and pull requests. This draft's own pull request (#2621) carries only the 
 - 2026-10-21 18:55 UTC - AI assistant (GitHub Copilot, Copilot SDK in VS Code) - Revised the draft for the second PR #2621 review (F1–F5): label source moved to `event.rs`; mapped-address options and the dual-stack route (M3, not yet reproduced) added; T2 split into red and T3 fix, with T4 as the green recheck; the documentation-only option moved to Open Decisions; required sections completed
 - 2026-10-22 18:07 UTC - AI assistant (GitHub Copilot, Copilot SDK in VS Code) - Recorded the maintainer's decisions: mapped client counts as IPv6 (option (b), #1375 and `d4c43bd3a`); docs-first sequence with characterization tests, a re-evaluation and an ADR; no per-client statistics exist. Added the architecture constraints from `events.md` and the shared-services ADR; replanned T1–T6
 - 2026-10-22 18:15 UTC - AI assistant (GitHub Copilot, Copilot SDK in VS Code) - Addressed the second da2ce7 round (review 5605012005, F6–F10): repeated the V1 reproduction and stored the raw responses; per-package UDP cases and scenario M4 added; the mapped-address tests named; V1 time and artifact commit corrected; the Background routes reordered (the first entry's stamp was 18:50, not 18:49)
+- 2026-10-22 18:37 UTC - AI assistant (GitHub Copilot, Copilot SDK in VS Code) - Addressed Copilot's second review (review 5619053291): the evidence commands use explicit repo-relative paths and name the runtime copy of the configuration; the Background path is fully qualified; the development token stays (see `docs/pr-reviews/pr-2621-review/PR-REVIEW.md`)
 
 ## Acceptance Criteria
 
