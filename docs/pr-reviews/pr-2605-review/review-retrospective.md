@@ -234,7 +234,7 @@ request reviews require. The evidence supports a weaker statement and does not s
   for cost, an edit not verified, a helper reviewed one property at a time, and records that disagree with
   the commits.
 - Against reading it as a property of the first model: the same shapes continued after the switch to the
-  second model. The slips of the later rounds, each in the audits, are a first fix committed without the
+  second model. The slips of the later rounds, most in the audits and the rest in the session, are a first fix committed without the
   formatter and `clippy`; a review that arrived while the watchers had ended, twice, and a human approval
   seen a day late; a bulk resolve before reading every thread; a mandatory check skipped; mutation scripts
   that changed nothing, twice, because the formatter had wrapped the text they looked for; and a second
