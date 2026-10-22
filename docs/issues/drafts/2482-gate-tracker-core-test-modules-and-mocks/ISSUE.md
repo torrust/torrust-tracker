@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md
 branch: "{issue-number}-2482-gate-tracker-core-test-modules-and-mocks"
 related-pr: null
-last-updated-utc: "2026-10-22 18:10"
+last-updated-utc: "2026-10-22 18:39"
 semantic-links:
   skill-links:
     - create-issue
@@ -65,7 +65,8 @@ Patterns C and D of the inventory:
   lint attributes on `auth_keys.rs` (which cite `automock`) valid. Gate the other code that
   depends on `mockall` the same way, or a default build does not compile: the four unconditional
   `use mockall::automock;` lines in `databases/traits/{whitelist,auth_keys,torrent_metrics,schema}.rs`
-  and the `Mock*` re-exports at `databases/mod.rs` (line 66) and `databases/traits/mod.rs` (line 14).
+  and the `Mock*` re-exports at `databases/mod.rs` (line 66) and `databases/traits/mod.rs` (lines 11, 13, 14 and
+  15: all four mocks).
 - Audit every other normal dependency of the package, workspace or third-party, against the ADR's
   rule A.2, as the environment moves do.
 - Rule A points 3, 4 and 6 for the feature: a path-only self dev-dependency (no `version`), the
@@ -143,6 +144,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   the #2482 Subissues table and rules C and D of the ADR. The scope includes the consumers' entries
   because `MockTorrentMetricsStore` is used by `http-core` and `udp-core` (inventory correction).
 - 2026-10-22 18:10 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 1) - Changed after PR #2624's review: AC1 and M1 check direct dependencies (`--depth 1`); the scope names the `use mockall::automock;` lines and the `Mock*` re-exports that must also be gated, and the dependency audit.
+- 2026-10-22 18:39 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 1) - Changed after PR #2624's review round 2: the `Mock*` re-exports in `databases/traits/mod.rs` are at lines 11, 13, 14 and 15 (all four mocks), not only line 14.
 
 ## Acceptance Criteria
 
