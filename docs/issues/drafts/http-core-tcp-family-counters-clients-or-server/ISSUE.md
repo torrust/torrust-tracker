@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/http-core-tcp-family-counters-clients-or-server/ISSUE.md
 branch: "{issue-number}-http-core-tcp-family-counters-clients-or-server"
 related-pr: null
-last-updated-utc: "2026-10-22 18:37"
+last-updated-utc: "2026-10-22 18:58"
 semantic-links:
   skill-links:
     - create-issue
@@ -64,12 +64,13 @@ The client family is also classified for IPv4-mapped IPv6 addresses (`::ffff:a.b
 `packages/http-core/src/event.rs` such an address is classified as `Inet6` (case `ipv4_mapped_ipv6` of the
 client-family test in `event.rs`, and case `ipv6_scrape_of_an_ipv4_mapped_client_with_a_public_url_on_another_port` of
 `it_should_count_the_event_in_the_sample_with_exactly_the_connection_labels_and_the_request_kind` in `handler.rs`). Those two
-cases pin that result. **Decided (maintainer, option (b)):** a mapped client stays IPv6, and the docs say so. This matches
-the earlier decision recorded in issue #1375 (commit `d4c43bd3a`), which kept a mapped client out of the IPv4 count
-and exposed it through the separate label `server_binding_address_type` (`plain` | `v4_mapped_v6`). That decision
-does not rule explicitly on the `tcp4`/`tcp6` aggregate, so applying it here is an inference. A client-based selection
-that only reads `client_address_ip_family` therefore still counts a mapped client as `tcp6`, and the docs must
-describe that exception.
+cases pin that result. **Decided (maintainer, option (b)):** a mapped client stays IPv6, and the docs say so. This
+decision rests on the maintainer's choice, not on a precedent in code: issue #1375 (commit `d4c43bd3a`) added only the
+server-side label `server_binding_address_type` (`plain` | `v4_mapped_v6`, computed from the server's binding) and no
+client-side counterpart (`docs/issues/closed/1671-ipv4-ipv6-client-metrics/ISSUE.md`). The client-side label is
+`client_address_ip_type`, which came with #1671. A client-based selection that only reads
+`client_address_ip_family` therefore still counts a mapped client as `tcp6`, and the docs must describe that
+exception.
 
 Constraints from the existing architecture (read before choosing a meaning):
 
@@ -112,7 +113,8 @@ The behavior is pinned by `it_should_count_by_the_family_of_the_server_binding_a
 ## Architectural Decisions
 
 - Related ADRs: `20260727000000_events_are_objective_facts.md` and `20260727180000_shared_services_across_tracker_instances.md`.
-  Issue #1375 (commit `d4c43bd3a`) is the earlier decision on mapped addresses; it is not an ADR.
+  Issue #1375 (commit `d4c43bd3a`) added the server-side label `server_binding_address_type`; it records no
+  client-side decision and is not an ADR.
 - ADRs to create: one, recording which label the aggregate `tcp4`/`tcp6` and `udp4`/`udp6` counters read and why, the
   mapped-address rule, and that no per-client statistics exist. Created in T6 whether or not the behavior changes.
 - Architecture docs to update: `docs/architecture/events.md` (what the family counters mean). The same page still
@@ -169,7 +171,7 @@ IPv4 client on a dual-stack `inet6` socket, which M4 records.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T1 | DONE | Record the maintainer's decisions so far | Mapped client counts as IPv6 (option (b), consistent with #1375). Sequence is docs first, then tests, re-evaluation, optional behavior change, ADR. No per-client statistics exist. |
+| T1 | DONE | Record the maintainer's decisions so far | Mapped client counts as IPv6 (option (b), the maintainer's decision in this review; #1375 does not decide it). Sequence is docs first, then tests, re-evaluation, optional behavior change, ADR. No per-client statistics exist. |
 | T2 | TODO | Correct the doc comments (`metrics.rs` getters, and the `udp-core` and `udp-server` equivalents) and the REST API docs to say the counters follow the server binding, and state the mapped-client rule | Documentation only, no production change. |
 | T3 | TODO | Add characterization tests for what the code does today: R1–R3 in `http-core`, and the per-package UDP cases in `udp-core` (`udp{4,6}_*_handled` by binding family) and `udp-server` (`udp{4,6}_*` by binding family) | Test-only; they pass today. Skip a case that an existing test already pins and cite that test. |
 | T4 | TODO | Re-evaluate (maintainer): is the server-binding meaning the wanted behavior? | Inputs: V1, M3, and the dashboards' use. Outcome recorded in Open Decisions. If "keep", go to T6. |
@@ -210,9 +212,10 @@ issue and pull requests. This draft's own pull request (#2621) carries only the 
 
 - 2026-10-21 18:50 UTC - AI assistant (GitHub Copilot, Copilot SDK in VS Code) - Reproduced the reverse-proxy mixed-family case (IPv6 `X-Forwarded-For` over the IPv4 listener); `tcp4_announces_handled` 0→1, `tcp6` stayed 0; addressed the three Copilot review threads on the draft - `evidence/`, `manual-verification-evidence.md` V1
 - 2026-10-21 18:55 UTC - AI assistant (GitHub Copilot, Copilot SDK in VS Code) - Revised the draft for the second PR #2621 review (F1–F5): label source moved to `event.rs`; mapped-address options and the dual-stack route (M3, not yet reproduced) added; T2 split into red and T3 fix, with T4 as the green recheck; the documentation-only option moved to Open Decisions; required sections completed
-- 2026-10-22 18:07 UTC - AI assistant (GitHub Copilot, Copilot SDK in VS Code) - Recorded the maintainer's decisions: mapped client counts as IPv6 (option (b), #1375 and `d4c43bd3a`); docs-first sequence with characterization tests, a re-evaluation and an ADR; no per-client statistics exist. Added the architecture constraints from `events.md` and the shared-services ADR; replanned T1–T6
+- 2026-10-22 18:07 UTC - AI assistant (GitHub Copilot, Copilot SDK in VS Code) - Recorded the maintainer's decisions: mapped client counts as IPv6 (option (b), the maintainer's decision; a #1375 precedent was cited here and withdrawn, see the 18:58 UTC entry); docs-first sequence with characterization tests, a re-evaluation and an ADR; no per-client statistics exist. Added the architecture constraints from `events.md` and the shared-services ADR; replanned T1–T6
 - 2026-10-22 18:15 UTC - AI assistant (GitHub Copilot, Copilot SDK in VS Code) - Addressed the second da2ce7 round (review 5605012005, F6–F10): repeated the V1 reproduction and stored the raw responses; per-package UDP cases and scenario M4 added; the mapped-address tests named; V1 time and artifact commit corrected; the Background routes reordered (the first entry's stamp was 18:50, not 18:49)
 - 2026-10-22 18:37 UTC - AI assistant (GitHub Copilot, Copilot SDK in VS Code) - Addressed Copilot's second review (review 5619053291): the evidence commands use explicit repo-relative paths and name the runtime copy of the configuration; the Background path is fully qualified; the development token stays (see `docs/pr-reviews/pr-2621-review/PR-REVIEW.md`)
+- 2026-10-22 18:58 UTC - AI assistant (GitHub Copilot, Copilot SDK in VS Code) - Withdrew the #1375 precedent for the mapped-address rule (review 5619336077, F19): `d4c43bd3a` added only the server-side label `server_binding_address_type`, so option (b) rests on the maintainer's decision
 
 ## Acceptance Criteria
 
@@ -287,7 +290,8 @@ None planned. The reverse-proxy check is a manual `curl` sequence recorded in th
 
 Decided:
 
-- Mapped addresses (`::ffff:a.b.c.d`): keep as IPv6 and document it (option (b)), matching #1375.
+- Mapped addresses (`::ffff:a.b.c.d`): keep as IPv6 and document it (option (b)). This is the maintainer's decision;
+  #1375 added only a server-side label and does not decide it.
 - Sequence: documentation first, then characterization tests, then a re-evaluation, then an optional behavior change,
   then the ADR and architecture docs.
 - The documentation-first path is accepted as a reduced `fix-bug` process (no red run while production code is
@@ -307,6 +311,6 @@ Open:
 
 - Found by: #1349 (EPIC #1347 subissue, merged through PR #2616)
 - Pinning test: `it_should_count_by_the_family_of_the_server_binding_and_not_of_the_client`
-- Mapped-address decision: issue #1375 (commit `d4c43bd3a`); origin #1368; dual-stack context #1671
+- Mapped-address context: issue #1375 (commit `d4c43bd3a`, the server-side label only); origin #1368; client-side labels and the dual-stack context #1671
 - Architecture: `docs/architecture/events.md`, `docs/adrs/20260727000000_events_are_objective_facts.md`,
   `docs/adrs/20260727180000_shared_services_across_tracker_instances.md`
