@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2525-ci-gate-required-check/ISSUE.md
-last-updated-utc: 2026-10-22 18:47
+last-updated-utc: 2026-10-22 19:07
 ---
 
 # Manual Verification Evidence
@@ -473,7 +473,7 @@ pull request, and none of those labels. Fork pull request 22 remains, merged, as
 
 | Query                                                                                                                                                                  | Output                                                                                                  |
 | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| GraphQL `pullRequest(number: 2610) { timelineItems(first: 100, itemTypes: [PULL_REQUEST_COMMIT]) { totalCount nodes { ... on PullRequestCommit { commit { pushedDate } } } } }` | `totalCount` 195; 59 nodes returned; 0 with a `pushedDate` (all null)                                   |
+| GraphQL `pullRequest(number: 2610) { timelineItems(first: 100, itemTypes: [PULL_REQUEST_COMMIT]) { totalCount nodes { ... on PullRequestCommit { commit { pushedDate } } } } }` | 59 nodes returned, every commit of the pull request (`commits { totalCount }` is 59); 0 with a `pushedDate` (all null). `totalCount` was 195, which counts all timeline items. |
 | `gh api "repos/torrust/torrust-tracker/commits/<head of #2610>/check-suites?per_page=100"`, counting suites with a non-empty `pull_requests`                           | 5 suites; 0 with `pull_requests`                                                                        |
 | `gh api "repos/torrust/torrust-tracker/actions/runs?head_sha=<head of #2610>&per_page=100"`, counting runs with a non-empty `pull_requests`                            | 5 runs, all event `pull_request` from `josecelano/torrust-tracker`; 0 with `pull_requests`              |
 | `gh api repos/torrust/torrust-tracker/issues/2610/timeline --paginate --jq '.[].event'`, counted by type                                                               | 59 `committed`, 25 `deployed`, 13 `reviewed`, 12 `review_requested`, and others; no `head_ref_force_pushed` |
@@ -482,8 +482,12 @@ pull request, and none of those labels. Fork pull request 22 remains, merged, as
 What it shows: the commit's push time is not available through GraphQL for this pull request, the check suites and
 workflow runs of a fork pull request carry no link to it, and the permission endpoint reports the Triage role as
 `read`. The effect of a `head_ref_force_pushed` event was **not observed**: no force-push happened on #2610, so the
-statement that it would close only the force-push cases comes from the reviewer, not from a query. The timeline
-returned 59 `committed` events although the GraphQL count is 195, which was not investigated.
+statement that it would close only the force-push cases comes from the reviewer, not from a query. The GraphQL
+`totalCount` of 195 against 59 commits is the known caveat that `timelineItems(itemTypes: ...).totalCount` ignores the
+type filter and counts every timeline item, recorded in the
+[baseline evidence of #2507](../../closed/2507-stop-requiring-pull-request-rebases/baseline-evidence.md); the same
+query with and without the filter returned 195 on 2026-10-22, and `commits { totalCount }` returned 59, so the
+59 nodes are the whole set and none had a push date.
 
 ## Failures and Follow-up
 
