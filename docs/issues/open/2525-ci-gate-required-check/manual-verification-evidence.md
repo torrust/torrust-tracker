@@ -374,6 +374,34 @@ After run 7 the head had three `CI gate` check runs (failure at 10:46, failure a
 10:49), `db-benchmarking` was still a failing check run, and the merge push at 10:50:47 was accepted
 (merge commit `a4b78b909`), so the later success satisfied the required check as in V9.
 
+The check runs behind those observations, listed on 2026-10-22 from the real API for the head of runs 5 to 7
+(`gh api --paginate "repos/josecelano/torrust-tracker/commits/ab8b42e90ea02164e1da7df6c83e072022a2205c/check-runs?per_page=100"`,
+reduced to the columns id, name, status, conclusion, start, and app):
+
+```text
+119179518396  matrix.group                      completed  skipped  2026-10-21T10:49:16Z  github-actions
+119179516571  CI gate                           completed  success  2026-10-21T10:49:18Z  github-actions
+119178973907  matrix.group                      completed  skipped  2026-10-21T10:47:55Z  github-actions
+119178972434  CI gate                           completed  failure  2026-10-21T10:47:57Z  github-actions
+119178335798  CI gate                           completed  failure  2026-10-21T10:46:21Z  github-actions
+119178273455  docs-lint                         completed  success  2026-10-21T10:46:13Z  github-actions
+119178273388  db-benchmarking                   completed  failure  2026-10-21T10:46:12Z  github-actions
+119178273128  Persistence Benchmark MySQL       completed  success  2026-10-21T10:46:12Z  github-actions
+119178273001  Docs Lint                         completed  failure  2026-10-21T10:46:12Z  github-actions
+119178272825  Persistence Benchmark PostgreSQL  completed  success  2026-10-21T10:46:12Z  github-actions
+119178272612  Persistence Benchmark SQLite3     completed  success  2026-10-21T10:46:12Z  github-actions
+119178250074  Persistence Benchmark PostgreSQL  completed  success  2026-10-21T10:46:09Z  github-actions
+119178250061  Docs Lint                         completed  failure  2026-10-21T10:46:10Z  github-actions
+119178249956  Persistence Benchmark SQLite3     completed  success  2026-10-21T10:46:09Z  github-actions
+119178249586  Persistence Benchmark MySQL       completed  success  2026-10-21T10:46:09Z  github-actions
+```
+
+It lists 15 runs, with three `CI gate` runs and two skipped `matrix.group` runs. The workflow's own request sets
+no `filter`, as this one, so it used GitHub's default. The same request with `filter=all` returned the same 15
+runs, so for this head the default hid nothing. A rerun of a job inside one check suite was not tested. The
+listings in the logs of the runs are in [`evidence/t5-gate-logs.txt`](evidence/t5-gate-logs.txt), restored in
+full on 2026-10-22, because an earlier copy had kept only some of their lines.
+
 What it shows:
 
 - **Reading the results from the checks API works with a read-only token, in every event.** A label run,

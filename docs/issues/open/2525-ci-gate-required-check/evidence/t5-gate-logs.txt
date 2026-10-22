@@ -1,5 +1,9 @@
 T5 sandbox: the 'CI gate' job log of each orchestrator run of fork pull request 22 (josecelano/torrust-tracker),
 2026-10-21. The classification line is printed only for the first run; it is the same in every run.
+The lists after "all check runs for the head commit:" were restored on 2026-10-22 from the logs of the runs
+(`gh run view <run id> --repo josecelano/torrust-tracker --log`, the lines of the step that reads the checks API):
+an earlier copy of this file had kept only some of the lines of each list, so it showed no `CI gate` run, no skipped
+`matrix.group` run, and no other workflow's runs. Nothing else in the file was changed.
 Sandbox workflow and ruleset: docs/issues/open/2525-ci-gate-required-check/evidence/t5-sandbox/ in this
 repository. The token of the gate job has only read scopes: contents, checks, issues, pull-requests.
 
@@ -20,8 +24,17 @@ fork's sandbox branches were deleted afterwards, so the commit ids can no longer
 event action: opened; sender: josecelano; head: 270a89e089bf4db3e0b436ef4fcf32a92a2a0a07
 all check runs for the head commit:
   copilot-pull-request-reviewer app=github-actions in_progress/null started=2026-10-21T10:38:45Z
+  CI gate app=github-actions in_progress/null started=2026-10-21T10:38:42Z
   docs-lint app=github-actions completed/success started=2026-10-21T10:38:34Z
   db-benchmarking app=github-actions completed/failure started=2026-10-21T10:38:33Z
+  Persistence Benchmark MySQL app=github-actions in_progress/null started=2026-10-21T10:38:33Z
+  Persistence Benchmark PostgreSQL app=github-actions in_progress/null started=2026-10-21T10:38:34Z
+  Persistence Benchmark SQLite3 app=github-actions in_progress/null started=2026-10-21T10:38:33Z
+  Docs Lint app=github-actions in_progress/null started=2026-10-21T10:38:34Z
+  Persistence Benchmark PostgreSQL app=github-actions in_progress/null started=2026-10-21T10:38:30Z
+  Docs Lint app=github-actions in_progress/null started=2026-10-21T10:38:30Z
+  Persistence Benchmark SQLite3 app=github-actions in_progress/null started=2026-10-21T10:38:30Z
+  Persistence Benchmark MySQL app=github-actions in_progress/null started=2026-10-21T10:38:30Z
 labels now: []
 no ci-override label
 {"kind":"usage_error","message":"`--override-actor` needs a login. usage: ci-gate classify --base-branch <branch>  (changed paths on stdin, NUL-separated, as `git diff --name-only -z` prints them); ci-gate verdict [--override-actor <login>]  (JSON on stdin: {\"classification\": <the classify output>, \"results\": {<group>: success|failure|cancelled|skipped}})"}
@@ -30,9 +43,20 @@ no ci-override label
 === run 2: 39586340205, 2026-10-21T10:40:47Z head=270a89e08
 event action: labeled; sender: josecelano; head: 270a89e089bf4db3e0b436ef4fcf32a92a2a0a07
 all check runs for the head commit:
+  matrix.group app=github-actions completed/skipped started=2026-10-21T10:40:47Z
+  CI gate app=github-actions in_progress/null started=2026-10-21T10:40:49Z
   copilot-pull-request-reviewer app=github-actions completed/success started=2026-10-21T10:38:45Z
+  CI gate app=github-actions completed/failure started=2026-10-21T10:38:42Z
   docs-lint app=github-actions completed/success started=2026-10-21T10:38:34Z
   db-benchmarking app=github-actions completed/failure started=2026-10-21T10:38:33Z
+  Persistence Benchmark MySQL app=github-actions in_progress/null started=2026-10-21T10:38:33Z
+  Persistence Benchmark PostgreSQL app=github-actions in_progress/null started=2026-10-21T10:38:34Z
+  Persistence Benchmark SQLite3 app=github-actions in_progress/null started=2026-10-21T10:38:33Z
+  Docs Lint app=github-actions in_progress/null started=2026-10-21T10:38:34Z
+  Persistence Benchmark PostgreSQL app=github-actions in_progress/null started=2026-10-21T10:38:30Z
+  Docs Lint app=github-actions in_progress/null started=2026-10-21T10:38:30Z
+  Persistence Benchmark SQLite3 app=github-actions in_progress/null started=2026-10-21T10:38:30Z
+  Persistence Benchmark MySQL app=github-actions in_progress/null started=2026-10-21T10:38:30Z
 labels now: ["ci-override"]
 latest labeled event for ci-override: actor=josecelano at=2026-10-21T10:40:45Z (payload sender of this run: josecelano)
 the head commit's first check suite was created at 2026-10-21T10:38:27Z
@@ -43,9 +67,22 @@ the override is valid
 === run 3: 39586622285, 2026-10-21T10:43:07Z head=270a89e08
 event action: unlabeled; sender: josecelano; head: 270a89e089bf4db3e0b436ef4fcf32a92a2a0a07
 all check runs for the head commit:
+  matrix.group app=github-actions completed/skipped started=2026-10-21T10:43:07Z
+  CI gate app=github-actions in_progress/null started=2026-10-21T10:43:09Z
+  matrix.group app=github-actions completed/skipped started=2026-10-21T10:40:47Z
+  CI gate app=github-actions completed/success started=2026-10-21T10:40:49Z
   copilot-pull-request-reviewer app=github-actions completed/success started=2026-10-21T10:38:45Z
+  CI gate app=github-actions completed/failure started=2026-10-21T10:38:42Z
   docs-lint app=github-actions completed/success started=2026-10-21T10:38:34Z
   db-benchmarking app=github-actions completed/failure started=2026-10-21T10:38:33Z
+  Persistence Benchmark MySQL app=github-actions completed/success started=2026-10-21T10:38:33Z
+  Persistence Benchmark PostgreSQL app=github-actions completed/success started=2026-10-21T10:38:34Z
+  Persistence Benchmark SQLite3 app=github-actions completed/success started=2026-10-21T10:38:33Z
+  Docs Lint app=github-actions completed/failure started=2026-10-21T10:38:34Z
+  Persistence Benchmark PostgreSQL app=github-actions completed/success started=2026-10-21T10:38:30Z
+  Docs Lint app=github-actions completed/failure started=2026-10-21T10:38:30Z
+  Persistence Benchmark SQLite3 app=github-actions completed/success started=2026-10-21T10:38:30Z
+  Persistence Benchmark MySQL app=github-actions completed/success started=2026-10-21T10:38:30Z
 labels now: []
 no ci-override label
 {"kind":"usage_error","message":"`--override-actor` needs a login. usage: ci-gate classify --base-branch <branch>  (changed paths on stdin, NUL-separated, as `git diff --name-only -z` prints them); ci-gate verdict [--override-actor <login>]  (JSON on stdin: {\"classification\": <the classify output>, \"results\": {<group>: success|failure|cancelled|skipped}})"}
@@ -53,9 +90,24 @@ no ci-override label
 === run 4: 39586828491, 2026-10-21T10:44:48Z head=270a89e08
 event action: labeled; sender: josecelano; head: 270a89e089bf4db3e0b436ef4fcf32a92a2a0a07
 all check runs for the head commit:
+  matrix.group app=github-actions completed/skipped started=2026-10-21T10:44:49Z
+  CI gate app=github-actions in_progress/null started=2026-10-21T10:44:51Z
+  matrix.group app=github-actions completed/skipped started=2026-10-21T10:43:07Z
+  CI gate app=github-actions completed/failure started=2026-10-21T10:43:09Z
+  matrix.group app=github-actions completed/skipped started=2026-10-21T10:40:47Z
+  CI gate app=github-actions completed/success started=2026-10-21T10:40:49Z
   copilot-pull-request-reviewer app=github-actions completed/success started=2026-10-21T10:38:45Z
+  CI gate app=github-actions completed/failure started=2026-10-21T10:38:42Z
   docs-lint app=github-actions completed/success started=2026-10-21T10:38:34Z
   db-benchmarking app=github-actions completed/failure started=2026-10-21T10:38:33Z
+  Persistence Benchmark MySQL app=github-actions completed/success started=2026-10-21T10:38:33Z
+  Persistence Benchmark PostgreSQL app=github-actions completed/success started=2026-10-21T10:38:34Z
+  Persistence Benchmark SQLite3 app=github-actions completed/success started=2026-10-21T10:38:33Z
+  Docs Lint app=github-actions completed/failure started=2026-10-21T10:38:34Z
+  Persistence Benchmark PostgreSQL app=github-actions completed/success started=2026-10-21T10:38:30Z
+  Docs Lint app=github-actions completed/failure started=2026-10-21T10:38:30Z
+  Persistence Benchmark SQLite3 app=github-actions completed/success started=2026-10-21T10:38:30Z
+  Persistence Benchmark MySQL app=github-actions completed/success started=2026-10-21T10:38:30Z
 labels now: ["ci-override"]
 latest labeled event for ci-override: actor=josecelano at=2026-10-21T10:44:46Z (payload sender of this run: josecelano)
 the head commit's first check suite was created at 2026-10-21T10:38:27Z
@@ -66,8 +118,17 @@ the override is valid
 === run 5: 39587002512, 2026-10-21T10:46:10Z head=ab8b42e90
 event action: synchronize; sender: josecelano; head: ab8b42e90ea02164e1da7df6c83e072022a2205c
 all check runs for the head commit:
+  CI gate app=github-actions in_progress/null started=2026-10-21T10:46:21Z
   docs-lint app=github-actions completed/success started=2026-10-21T10:46:13Z
   db-benchmarking app=github-actions completed/failure started=2026-10-21T10:46:12Z
+  Persistence Benchmark MySQL app=github-actions in_progress/null started=2026-10-21T10:46:12Z
+  Docs Lint app=github-actions in_progress/null started=2026-10-21T10:46:12Z
+  Persistence Benchmark PostgreSQL app=github-actions in_progress/null started=2026-10-21T10:46:12Z
+  Persistence Benchmark SQLite3 app=github-actions in_progress/null started=2026-10-21T10:46:12Z
+  Persistence Benchmark PostgreSQL app=github-actions in_progress/null started=2026-10-21T10:46:09Z
+  Docs Lint app=github-actions in_progress/null started=2026-10-21T10:46:10Z
+  Persistence Benchmark SQLite3 app=github-actions in_progress/null started=2026-10-21T10:46:09Z
+  Persistence Benchmark MySQL app=github-actions in_progress/null started=2026-10-21T10:46:09Z
 labels now: ["ci-override"]
 latest labeled event for ci-override: actor=josecelano at=2026-10-21T10:44:46Z (payload sender of this run: josecelano)
 the head commit's first check suite was created at 2026-10-21T10:46:06Z
@@ -80,8 +141,19 @@ probe: permission of octocat: read
 === run 6: 39587210733, 2026-10-21T10:47:54Z head=ab8b42e90
 event action: unlabeled; sender: josecelano; head: ab8b42e90ea02164e1da7df6c83e072022a2205c
 all check runs for the head commit:
+  matrix.group app=github-actions completed/skipped started=2026-10-21T10:47:55Z
+  CI gate app=github-actions in_progress/null started=2026-10-21T10:47:57Z
+  CI gate app=github-actions completed/failure started=2026-10-21T10:46:21Z
   docs-lint app=github-actions completed/success started=2026-10-21T10:46:13Z
   db-benchmarking app=github-actions completed/failure started=2026-10-21T10:46:12Z
+  Persistence Benchmark MySQL app=github-actions in_progress/null started=2026-10-21T10:46:12Z
+  Docs Lint app=github-actions in_progress/null started=2026-10-21T10:46:12Z
+  Persistence Benchmark PostgreSQL app=github-actions in_progress/null started=2026-10-21T10:46:12Z
+  Persistence Benchmark SQLite3 app=github-actions in_progress/null started=2026-10-21T10:46:12Z
+  Persistence Benchmark PostgreSQL app=github-actions in_progress/null started=2026-10-21T10:46:09Z
+  Docs Lint app=github-actions in_progress/null started=2026-10-21T10:46:10Z
+  Persistence Benchmark SQLite3 app=github-actions in_progress/null started=2026-10-21T10:46:09Z
+  Persistence Benchmark MySQL app=github-actions in_progress/null started=2026-10-21T10:46:09Z
 labels now: []
 no ci-override label
 probe: permission of da2ce7: read
@@ -91,8 +163,21 @@ probe: permission of octocat: read
 === run 7: 39587372587, 2026-10-21T10:49:15Z head=ab8b42e90
 event action: labeled; sender: josecelano; head: ab8b42e90ea02164e1da7df6c83e072022a2205c
 all check runs for the head commit:
+  matrix.group app=github-actions completed/skipped started=2026-10-21T10:49:16Z
+  CI gate app=github-actions in_progress/null started=2026-10-21T10:49:18Z
+  matrix.group app=github-actions completed/skipped started=2026-10-21T10:47:55Z
+  CI gate app=github-actions completed/failure started=2026-10-21T10:47:57Z
+  CI gate app=github-actions completed/failure started=2026-10-21T10:46:21Z
   docs-lint app=github-actions completed/success started=2026-10-21T10:46:13Z
   db-benchmarking app=github-actions completed/failure started=2026-10-21T10:46:12Z
+  Persistence Benchmark MySQL app=github-actions in_progress/null started=2026-10-21T10:46:12Z
+  Docs Lint app=github-actions in_progress/null started=2026-10-21T10:46:12Z
+  Persistence Benchmark PostgreSQL app=github-actions completed/success started=2026-10-21T10:46:12Z
+  Persistence Benchmark SQLite3 app=github-actions completed/success started=2026-10-21T10:46:12Z
+  Persistence Benchmark PostgreSQL app=github-actions completed/success started=2026-10-21T10:46:09Z
+  Docs Lint app=github-actions in_progress/null started=2026-10-21T10:46:10Z
+  Persistence Benchmark SQLite3 app=github-actions in_progress/null started=2026-10-21T10:46:09Z
+  Persistence Benchmark MySQL app=github-actions completed/success started=2026-10-21T10:46:09Z
 labels now: ["ci-override"]
 latest labeled event for ci-override: actor=josecelano at=2026-10-21T10:49:13Z (payload sender of this run: josecelano)
 the head commit's first check suite was created at 2026-10-21T10:46:06Z
