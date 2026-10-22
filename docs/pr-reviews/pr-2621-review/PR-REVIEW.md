@@ -40,7 +40,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Three reviews were submitted and all findings are fixed. Copilot's review 5603592801 (COMMENTED,
+Four reviews were submitted and all findings are handled. Copilot's review 5603592801 (COMMENTED,
 2026-10-21 17:24:59 UTC) read the draft at its first commit and has three inline threads, F1 to F3; its body
 carries no further assertion. The maintainer's reviewer `da2ce7` submitted review 5604621746 (DISMISSED,
 2026-10-21 18:49:37 UTC) with five inline threads, which carry the reviewer's own IDs F1 to F5. Those IDs collide
@@ -71,6 +71,16 @@ partly delivered.
 | F12 | review-finding:pr-2621-f12 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F13 | review-finding:pr-2621-f13 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F14 | review-finding:pr-2621-f14 | Human | Nit (inferred) | metadata | RE_RAISE_OF:F8 | FIXED | NON_RESOLVABLE |
+| F15 | review-finding:pr-2621-f15 | Copilot | Minor (inferred) | security | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F16 | review-finding:pr-2621-f16 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
+| F17 | review-finding:pr-2621-f17 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
+| F18 | review-finding:pr-2621-f18 | Copilot | Nit (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+
+Copilot's second review, 5619053291 (COMMENTED, 2026-10-22 18:34:26 UTC), read head `8e38fe7be` and has four inline
+threads (F15 to F18). Its body only warns that the agentic review did not start before the timeout. F15 asks to
+replace the repository's published development token, which the maintainer accepted and which PR #2616 answered
+the same way; F16 and F17 both ask that the evidence commands be runnable as written (two anchors, one concern each);
+F18 asks for a fully qualified path.
 
 ## Finding Details
 
@@ -291,6 +301,69 @@ partly delivered.
 - Follow-up PR URL: N/A
 - Reply URL: N/A
 
+### F15 - A working admin token value is committed in the evidence configuration
+
+- PR number: 2621
+- Source review ID: 5619053291
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4352093629>
+- Concern: `evidence/tracker.toml` embeds `admin = "MyAccessToken"`, which could be reused or copied into a real
+  deployment; Copilot asks for a placeholder or a redaction.
+- Solution: no change. `MyAccessToken` is the repository's published default development token. The tracker ran on
+  loopback and was stopped after the run, and a placeholder would make the recorded commands non-reproducible as
+  run. The maintainer accepted the value for this draft, and PR #2616 answered the same finding the same way.
+- Current-tree verification: `grep -rln MyAccessToken share src` lists
+  `share/default/config/tracker.development.sqlite3.toml`, `src/lib.rs` and
+  `src/console/ci/qbittorrent_e2e/tracker/config_builder.rs`.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4352131428>
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4352131428>
+
+### F16 - The evidence commands write to relative paths that do not land in the committed folder
+
+- PR number: 2621
+- Source review ID: 5619053291
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4352093713>
+- Concern: the file says the commands run from the repository root but writes `evidence/before.json` and
+  `evidence/after.json` relatively, which is not the committed folder.
+- Solution: the commands use a variable `E` for `docs/issues/drafts/http-core-tcp-family-counters-clients-or-server/evidence`
+  and write the responses to `"$E/before.json"` and `"$E/after.json"`; the announce body goes to `.tmp/`.
+- Current-tree verification: `grep -n 'evidence/before.json' manual-verification-evidence.md` finds only the Markdown
+  links; the `curl` and `jq` lines use `"$E/..."`.
+- Resolution reference: docs(issues): make the tcp4/tcp6 reproduction commands runnable from the repository root
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4352131778>
+
+### F17 - The tracker is started from a `.tmp` config although the committed artifact is `evidence/tracker.toml`
+
+- PR number: 2621
+- Source review ID: 5619053291
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4352093789>
+- Concern: the runtime configuration path differs from the committed artifact without explanation.
+- Solution: step 1 copies the committed configuration to `.tmp/tcp-family-repro/` and explains that the database
+  path lives in the git-ignored `.tmp/` folder.
+- Current-tree verification: `diff docs/issues/drafts/http-core-tcp-family-counters-clients-or-server/evidence/tracker.toml
+  .tmp/tcp-family-repro/tracker.toml` prints nothing.
+- Resolution reference: docs(issues): make the tcp4/tcp6 reproduction commands runnable from the repository root
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4352132084>
+
+### F18 - The Background mixes a fully qualified path with a shortened one
+
+- PR number: 2621
+- Source review ID: 5619053291
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4352093876>
+- Concern: `statistics/event/handler.rs` is shortened while the other paths are fully qualified.
+- Solution: the Background cites `packages/http-core/src/statistics/event/handler.rs`.
+- Current-tree verification: `ls packages/http-core/src/statistics/event/handler.rs` succeeds, and the Background
+  line uses that path.
+- Resolution reference: docs(issues): fully qualify the handler path in the tcp4/tcp6 draft
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4352132396>
+
 ## Processing Log
 
 - 2026-10-21 17:24 UTC - Copilot submitted review 5603592801 with three inline threads (F1 to F3).
@@ -304,6 +377,12 @@ partly delivered.
 - 2026-10-22 18:15 UTC - Repeated the V1 reproduction, fixed F9 to F13 in two signed commits, pushed, and replied on
   all thirteen inline threads. GraphQL listed thirteen unresolved threads at that point.
 - 2026-10-22 18:20 UTC - Resolved all thirteen threads after the audit validated; GraphQL data shows 0 unresolved
+  threads.
+- 2026-10-22 18:34 UTC - Copilot submitted review 5619053291 on head `8e38fe7be` with four inline threads (F15 to F18).
+- 2026-10-22 18:38 UTC - Verified each claim against the current tree. Fixed F16 to F18 in two signed commits and
+  pushed; answered F15 with the prescribed `Superseded by F15` reply (the development token is the repository's
+  published default, accepted by the maintainer). Replied on all four threads.
+- 2026-10-22 18:39 UTC - Resolved the four threads after the audit validated; GraphQL data shows 0 unresolved
   threads.
 
 ## Completion Rules
