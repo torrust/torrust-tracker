@@ -40,7 +40,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Ten reviews were submitted so far, seven by Copilot and three by the reviewer `da2ce7`. Each body repeats its
+Eleven reviews were submitted so far, eight by Copilot and three by the reviewer `da2ce7`. Each body repeats its
 inline threads, so the bodies add no rows.
 
 - Review 5599696060 read the head whose subject is "feat(ci-gate): [#2525] add the GitHub adapter of the merge
@@ -75,6 +75,9 @@ inline threads, so the bodies add no rows.
 - Review 5605639306, by Copilot, read the same head and was submitted at 20:14 UTC, four minutes after the approval and
   after my watcher had ended. It marks the three threads of its sixth review as resolved and carries three inline
   threads, F29 to F31.
+- Review 5610658372, by Copilot, read the head whose subject is "docs(pr-reviews): record the approval round and the
+  seventh Copilot review in the PR #2610 audit" and was submitted at 2026-10-22 07:30 UTC. It carries two inline
+  threads, F32 and F33.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -109,6 +112,8 @@ inline threads, so the bodies add no rows.
 | F29 | review-finding:pr-2610-f29 | Copilot | Nit (inferred) | documentation | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F30 | review-finding:pr-2610-f30 | Copilot | Nit (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 | F31 | review-finding:pr-2610-f31 | Copilot | Nit (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F32 | review-finding:pr-2610-f32 | Copilot | Nit (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F33 | review-finding:pr-2610-f33 | Copilot | Nit (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -515,6 +520,32 @@ inline threads, so the bodies add no rows.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4345497581
 
+### F32 - The missing-value error of --head-sha does not give the form of the value
+
+- PR number: 2610
+- Source review ID: 5610658372
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4345646005>
+- Concern: the option is described as just "a commit id" in the error of a missing value, but `PullRequestRef::new` requires exactly 40 hexadecimal digits; describing it so would make that error actionable and consistent with the usage text.
+- Solution: the error says "a commit id of 40 hexadecimal digits". This is the same concern as F30, at the other place that describes the value; F30 fixed the usage text only.
+- Current-tree verification: a new case of the argument tests failed before the change; `cargo test -p ci-gate` passes with 230 unit and 23 command-line tests.
+- Resolution reference: fix(ci-gate): [#2525] say the form of the head commit id when its value is missing
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4345832889
+
+### F33 - An error of gh that is cut to 300 characters does not say so
+
+- PR number: 2610
+- Source review ID: 5610658372
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4345646086>
+- Concern: the message keeps the first 300 characters of stderr without saying that it cut it, so a reader may think it is complete and miss the part that explains the failure. Append a marker when stderr exceeds the limit.
+- Solution: the message ends with a "(truncated)" marker when stderr is longer than 300 characters and is left whole, unmarked, when it fits, exactly at the limit included. The limit is a named constant.
+- Current-tree verification: the test of the cut case failed before the change, and two tests pin the cases that fit. Three mutants (marking at exactly the limit, never marking, always marking) are each killed; one of them did not compile the first time and two scripts changed nothing because the formatter had wrapped the text, so they were rewritten and rerun until each ran the tests.
+- Resolution reference: fix(ci-gate): [#2525] mark an error of gh that was cut to the limit
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4345833163
+
 ## Processing Log
 
 - 2026-10-21 12:33 UTC - Copilot's review arrived with four threads, F1 to F4.
@@ -576,6 +607,11 @@ inline threads, so the bodies add no rows.
   killed. Each is in its own signed commit and gated on the formatter, clippy, and both hook scripts. Pushed, replied
   on the three threads, and added F29 to F31 to this record. The approval of the reviewer `da2ce7` was dismissed by
   the push of the previous step, so a new ACK is needed for the final head.
+- 2026-10-22 07:54 UTC - Copilot's eighth review (07:30 UTC) and no review of the reviewer `da2ce7` arrived within the 18 minutes
+  after the re-request; both watchers ended on Copilot's two threads. Both are valid and small: F32 is the second place
+  that describes the head commit id loosely, which F30 left; F33 is a silent cut. Fixed each test-first in its own signed
+  commit (the signing timed out once and I reran it only after the maintainer agreed), recorded the round in the
+  specification, ran both hook scripts, pushed, replied, and added F32 and F33 to this record.
 
 ## Completion Rules
 
