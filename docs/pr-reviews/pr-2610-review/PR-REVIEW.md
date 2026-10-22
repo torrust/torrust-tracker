@@ -489,11 +489,13 @@ inline threads, so the bodies add no rows.
   there was behavior, with mutants, and gated on the formatter, clippy, and the tests; two further commits fixed a
   spelling slip of mine and recorded the round in the specification. Declined F21 with the reason. Pushed, replied
   on the nine threads, and added F13 to F21 to this record.
-- 2026-10-21 19:49 UTC - Resolved all threads of the pull request in one bulk call, which also closed three threads of
-  Copilot's sixth review that had arrived at 19:20 UTC and that I had not read: the threads of a review I did not
-  know about. I noticed from the count, 24 threads where 21 were expected, read the three, checked each one, and
-  replied on them; they stay resolved because the replies and fixes now answer them. Fixed F23 and F24, declined
-  F22 with its evidence, recorded the round in the specification, and added F22 to F24 to this record.
+- 2026-10-21 19:49 UTC - Recorded the handling of Copilot's sixth review, which had arrived at 19:20 UTC while I
+  worked on the previous round. At about 19:24 UTC, right after pushing that round at 19:23, I had resolved all
+  threads of the pull request in one bulk call, which closed three threads of that review without my reading them:
+  the threads of a review I did not know about. I noticed from the count, 24 threads where 21 were expected, read
+  the three, checked each one, and replied on them; they stay resolved because the replies and fixes now answer
+  them. Fixed F23 and F24, declined F22 with its evidence, recorded the round in the specification, and added F22
+  to F24 to this record.
 - 2026-10-21 19:54 UTC - The reviewer `da2ce7` had posted a second review at 19:37 UTC (three threads), which GitHub then
   marked as dismissed when I pushed. Read the three, checked them, and found two of them to be my own slips: records
   that cite commit ids of the branch, which the check of the `open-pull-request` skill reports and which I had not
