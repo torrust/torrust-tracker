@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/http-core-tcp-family-counters-clients-or-server/ISSUE.md
 branch: "{issue-number}-http-core-tcp-family-counters-clients-or-server"
 related-pr: null
-last-updated-utc: "2026-10-22 19:30"
+last-updated-utc: "2026-10-22 18:15"
 semantic-links:
   skill-links:
     - create-issue
@@ -50,16 +50,21 @@ documented as "Total number of TCP (HTTP tracker) `announce` requests from IPv4 
 
 Observable consequence: a request whose client address is IPv6 but whose server binding is IPv4 is counted as `tcp4`.
 A native IPv6 connection cannot reach an IPv4-only listener, so this mixed-family case is reachable only in
-reverse-proxy mode (`[http_trackers.network] on_reverse_proxy = true`). A second route is a dual-stack `[::]` binding,
-where IPv4 clients arrive as IPv4-mapped IPv6 addresses (scenario M3, not yet reproduced). In that mode the client address comes from
+reverse-proxy mode (`[http_trackers.network] on_reverse_proxy = true`). In that mode the client address comes from
 `X-Forwarded-For` (`packages/http-protocol/src/v1/services/peer_ip_resolver.rs`), so an IPv6 forwarded address reaches
-the handler over an IPv4 listener.
+the handler over an IPv4 listener; the opposite case (an IPv4 forwarded address over an `inet6` listener) is reachable
+the same way. A dual-stack `[::]` binding is a different situation: an IPv4 client arrives there as an IPv4-mapped IPv6
+address, which `event.rs` classifies as `Inet6` (the decided rule below), so the binding family and the client family
+agree and the two meanings do not diverge. Scenario M3 records what a dual-stack operator sees; it is not yet
+reproduced.
 The REST API publishes these values as `tcp4_announces_handled`, `tcp6_announces_handled`, and so on
 (`packages/rest-api-runtime-adapter/src/v1/adapters/stats.rs`), so the wording and the numbers are public.
 
 The client family is also classified for IPv4-mapped IPv6 addresses (`::ffff:a.b.c.d`). In
-`packages/http-core/src/event.rs` such an address is classified as `Inet6`, and the handler test `v4_mapped_v6`
-pins that result. **Decided (maintainer, option (b)):** a mapped client stays IPv6, and the docs say so. This matches
+`packages/http-core/src/event.rs` such an address is classified as `Inet6` (case `ipv4_mapped_ipv6` of the
+client-family test in `event.rs`, and case `ipv6_scrape_of_an_ipv4_mapped_client_with_a_public_url_on_another_port` of
+`it_should_count_the_event_in_the_sample_with_exactly_the_connection_labels_and_the_request_kind` in `handler.rs`). Those two
+cases pin that result. **Decided (maintainer, option (b)):** a mapped client stays IPv6, and the docs say so. This matches
 the earlier decision recorded in issue #1375 (commit `d4c43bd3a`), which kept a mapped client out of the IPv4 count
 and exposed it through the separate label `server_binding_address_type` (`plain` | `v4_mapped_v6`). That decision
 does not rule explicitly on the `tcp4`/`tcp6` aggregate, so applying it here is an inference. A client-based selection
@@ -140,16 +145,25 @@ applies in T5: recorded red run, then fix, then green recheck.
 
 ## Regression Test Strategy
 
-The causal seam is `Metrics::tcp{4,6}_{announces,scrapes}_handled` and the label set built in the handler. The
-smallest deterministic tests are unit tests that feed one event per case and assert the counter the current meaning
-names (T3), flipped only if T5 changes the meaning:
+The causal seams are, per package, the getters that select on the server-binding label:
 
-- R1: IPv6 client on an IPv4 binding (the reverse-proxy case reproduced in V1).
-- R2: IPv4 client on an IPv6 binding (for example a dual-stack `[::]` listener).
-- R3: IPv4-mapped IPv6 client (`::ffff:192.0.2.1`), decided to count as IPv6. `event.rs` classifies it as `Inet6`,
-  and the handler test `v4_mapped_v6` already pins that result.
+- `torrust-tracker-http-core`: `Metrics::tcp{4,6}_{announces,scrapes}_handled` and the label set built in the handler.
+- `torrust-tracker-udp-core`: `udp{4,6}_*_handled` in `packages/udp-core/src/statistics/metrics.rs`.
+- `torrust-tracker-udp-server`: `udp{4,6}_*` in `packages/udp-server/src/statistics/metrics.rs`. The REST API's
+  `udp4_*`/`udp6_*` fields read this one (`packages/rest-api-runtime-adapter/src/v1/adapters/stats.rs`).
 
-Each case covers both the HTTP (`tcp4`/`tcp6`) and the UDP (`udp4`/`udp6`) counters.
+The smallest deterministic tests are unit tests that feed one event per case and assert the counter the current
+meaning names (T3), flipped only if T5 changes the meaning. HTTP cases R1–R3 feed events to the HTTP handler; the UDP
+packages get their own cases, listed per package in T3. UDP has no reverse-proxy mode, so its only mixed case is an
+IPv4 client on a dual-stack `inet6` socket, which M4 records.
+
+- R1: IPv6 client on an IPv4 binding (the reverse-proxy case reproduced in V1). HTTP only.
+- R2: IPv4 client on an IPv6 binding (reverse proxy with an IPv4 forwarded address; for UDP, a dual-stack `[::]`
+  listener).
+- R3: IPv4-mapped IPv6 client (`::ffff:192.0.2.1`), decided to count as IPv6. `event.rs` classifies it as `Inet6`.
+  The existing cases named in Background (`ipv4_mapped_ipv6` and
+  `ipv6_scrape_of_an_ipv4_mapped_client_with_a_public_url_on_another_port`) already pin the HTTP result; T3 cites them
+  and updates them only if T5 changes the meaning.
 
 ## Implementation Plan
 
@@ -157,7 +171,7 @@ Each case covers both the HTTP (`tcp4`/`tcp6`) and the UDP (`udp4`/`udp6`) count
 | --- | --- | --- | --- |
 | T1 | DONE | Record the maintainer's decisions so far | Mapped client counts as IPv6 (option (b), consistent with #1375). Sequence is docs first, then tests, re-evaluation, optional behavior change, ADR. No per-client statistics exist. |
 | T2 | TODO | Correct the doc comments (`metrics.rs` getters, and the `udp-core` and `udp-server` equivalents) and the REST API docs to say the counters follow the server binding, and state the mapped-client rule | Documentation only, no production change. |
-| T3 | TODO | Add characterization tests R1–R3 for HTTP and UDP that describe what the code does today | Test-only; they pass today. Skip a case that an existing test already pins and cite that test. |
+| T3 | TODO | Add characterization tests for what the code does today: R1–R3 in `http-core`, and the per-package UDP cases in `udp-core` (`udp{4,6}_*_handled` by binding family) and `udp-server` (`udp{4,6}_*` by binding family) | Test-only; they pass today. Skip a case that an existing test already pins and cite that test. |
 | T4 | TODO | Re-evaluate (maintainer): is the server-binding meaning the wanted behavior? | Inputs: V1, M3, and the dashboards' use. Outcome recorded in Open Decisions. If "keep", go to T6. |
 | T5 | BLOCKED on T4 | Only if T4 rejects the meaning: red run of the flipped R1–R3 (record `evidence/red-run.txt`), then the fix, then the green recheck with M2 | Three separate tasks, per `fix-bug`. Needs explicit maintainer approval of the production change. |
 | T6 | TODO | Write the ADR and update `docs/architecture/events.md` | Records the final decision, whether or not the behavior changes. Also corrects the stale "Proposed" wording on the metrics-policy filter. |
@@ -194,9 +208,10 @@ issue and pull requests. This draft's own pull request (#2621) carries only the 
 
 ### Progress Log
 
-- 2026-10-21 18:49 UTC - AI assistant (GitHub Copilot, Copilot SDK in VS Code) - Reproduced the reverse-proxy mixed-family case (IPv6 `X-Forwarded-For` over the IPv4 listener); `tcp4_announces_handled` 0→1, `tcp6` stayed 0; addressed the three Copilot review threads on the draft - `evidence/`, `manual-verification-evidence.md` V1
+- 2026-10-21 18:50 UTC - AI assistant (GitHub Copilot, Copilot SDK in VS Code) - Reproduced the reverse-proxy mixed-family case (IPv6 `X-Forwarded-For` over the IPv4 listener); `tcp4_announces_handled` 0→1, `tcp6` stayed 0; addressed the three Copilot review threads on the draft - `evidence/`, `manual-verification-evidence.md` V1
 - 2026-10-21 18:55 UTC - AI assistant (GitHub Copilot, Copilot SDK in VS Code) - Revised the draft for the second PR #2621 review (F1–F5): label source moved to `event.rs`; mapped-address options and the dual-stack route (M3, not yet reproduced) added; T2 split into red and T3 fix, with T4 as the green recheck; the documentation-only option moved to Open Decisions; required sections completed
-- 2026-10-22 19:30 UTC - AI assistant (GitHub Copilot, Copilot SDK in VS Code) - Recorded the maintainer's decisions: mapped client counts as IPv6 (option (b), #1375 and `d4c43bd3a`); docs-first sequence with characterization tests, a re-evaluation and an ADR; no per-client statistics exist. Added the architecture constraints from `events.md` and the shared-services ADR; replanned T1–T6
+- 2026-10-22 18:07 UTC - AI assistant (GitHub Copilot, Copilot SDK in VS Code) - Recorded the maintainer's decisions: mapped client counts as IPv6 (option (b), #1375 and `d4c43bd3a`); docs-first sequence with characterization tests, a re-evaluation and an ADR; no per-client statistics exist. Added the architecture constraints from `events.md` and the shared-services ADR; replanned T1–T6
+- 2026-10-22 18:15 UTC - AI assistant (GitHub Copilot, Copilot SDK in VS Code) - Addressed the second da2ce7 round (review 5605012005, F6–F10): repeated the V1 reproduction and stored the raw responses; per-package UDP cases and scenario M4 added; the mapped-address tests named; V1 time and artifact commit corrected; the Background routes reordered (the first entry's stamp was 18:50, not 18:49)
 
 ## Acceptance Criteria
 
@@ -218,7 +233,8 @@ Define verification before implementation starts and execute it before closing t
 The commands below run on the default stable toolchain. The pre-commit and pre-push gates also run the nightly checks.
 
 - `cargo test -p torrust-tracker-http-core`
-- `cargo test -p torrust-tracker-udp-core` (UDP counters, covered by T2 and T3)
+- `cargo test -p torrust-tracker-udp-core` (UDP core counters, covered by T2 and T3)
+- `cargo test -p torrust-tracker-udp-server` (the UDP counters that the REST API publishes, covered by T2 and T3)
 - `linter all`
 - Pre-push checks (when applicable)
 
@@ -231,6 +247,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | M1 | Reverse-proxy mixed family before the fix: IPv6 `X-Forwarded-For` over the IPv4 HTTP listener | Build, run with `on_reverse_proxy = true`, announce with `X-Forwarded-For: 2001:db8::1`, read `/api/v1/stats` | Current behavior recorded (`tcp4` incremented, `tcp6` unchanged) | DONE | `manual-verification-evidence.md` section V1 and `evidence/` |
 | M2 | Same scenario after a behavior change in T5 (skipped if T4 keeps the current meaning) | Repeat M1 on the fixed build | Counter matches the T4 decision | TODO | `manual-verification-evidence.md` (to be added as V2) |
 | M3 | Dual-stack `[::]` binding: an IPv4 client reaches an inet6 socket | Set `bind_address = "[::]:7070"` on the HTTP tracker, announce over IPv4 to `127.0.0.1`, read `/api/v1/stats` and the labels in the log | Record the observed counters and labels. Both the binding and the mapped client classify as `inet6`, so M3 records what a dual-stack operator sees today; it does not separate the two meanings | TODO | `manual-verification-evidence.md` (to be added as V3) |
+| M4 | UDP dual-stack: an IPv4 client reaches an `inet6` UDP socket (UDP has no reverse-proxy mode) | Set `bind_address = "[::]:6969"` on the UDP tracker, send one announce over IPv4 with `tracker_client`, read `/api/v1/stats` | Record the `udp4_*`/`udp6_*` counters that the REST API reads from `udp-server`. Not yet reproduced | TODO | `manual-verification-evidence.md` (to be added as V4) |
 
 Notes:
 
