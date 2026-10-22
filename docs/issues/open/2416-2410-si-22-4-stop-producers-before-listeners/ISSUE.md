@@ -9,7 +9,7 @@ github-issue: 2416
 spec-path: docs/issues/open/2416-2410-si-22-4-stop-producers-before-listeners/ISSUE.md
 branch: "2416-stop-producers-before-listeners"
 related-pr: null
-last-updated-utc: "2026-10-22 17:08"
+last-updated-utc: "2026-10-22 17:12"
 semantic-links:
   skill-links:
     - create-issue
@@ -105,7 +105,7 @@ items 8 (T7) to 11 (T10).
 | T7 | DONE | Reproduce window (b), then red stop-order test | Controlled late publication proves the lost effect; consumer must remain live while any of two producers runs; red output recorded (evidence V1). |
 | T8 | DONE | Stop order | Edges enforced with waiting and cancellation logs; `EventFlows` with unit tests; `src/app.rs` wired; in-process application test. Design-review checkpoint. Implemented and reviewed (evidence V2, V3; record entry 31). |
 | T9 | DONE | Test environments | HTTP and UDP environments stop servers first, keeping the sub-EPIC's [Test environments](../2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md#test-environments) guarantees (join-all failure reporting; independent server and listener tokens, each with its own `DropGuard`, D20); for each environment, a test that an event from a request completed just before `stop()` is counted. |
-| T10 | IN_PROGRESS | Documentation and verification | ADR moved and old ADR superseded; diagrams moved; `docs/architecture/events.md` gains the swarm bus, its producers, and its three consumers (#2413 T1 finding); docs updated; M1-M3; AC review; completion review for the sub-EPIC. Done: the ADR move, the diagrams and docs, M1-M3 (evidence V5). Pending: the disposable script (maintainer decision), the independent review, the retrospective, and the maintainer's AC review. |
+| T10 | DONE | Documentation and verification | ADR moved and old ADR superseded; diagrams moved; `docs/architecture/events.md` gains the swarm bus, its producers, and its three consumers (#2413 T1 finding); docs updated; M1-M3; AC review; completion review for the sub-EPIC. Done: the ADR move, the diagrams and docs, M1-M3 (evidence V5), the pre-push checks (V6), the independent review and the retrospective, and the maintainer's decision to keep the disposable script. Left for the maintainer: the acceptance-criteria review. |
 
 ## Commit Points
 
@@ -203,6 +203,7 @@ maintainer decides to keep it.
 - 2026-10-21 19:23 UTC - GitHub Copilot (Claude Opus 5.5) - The independent Task Reviewer report (REVIEW PASSED WITH FINDINGS, no blocking finding) and the implementation retrospective are recorded; the should-fix findings (two stale evidence counts, the open retrospective) are addressed. Pending before push: checkpoint (c) with the maintainer, the disposable-script decision, and the push approval.
 - 2026-10-22 07:05 UTC - GitHub Copilot (Claude Opus 5.5) - Checkpoint (c) answered by the maintainer: keep `reproduce-lost-completions.sh` in the sub-EPIC folder, document the draft-ADR process in the `create-adr` skill (done, its own commit, as D15 asked), and push and open the pull request. Acceptance ticking is still to be decided by the maintainer.
 - 2026-10-22 17:08 UTC - GitHub Copilot (Claude Opus 5.5) - Review round 1 of PR #2623 started: the requested reviewer approved the pushed head and left six findings; the audit is `docs/pr-reviews/pr-2623-review/PR-REVIEW.md`. F2 (a UDP request can be held in flight) is fixed with a new deterministic UDP late-event test and corrected records (evidence V7).
+- 2026-10-22 17:12 UTC - GitHub Copilot (Claude Opus 5.5) - Review round 1, finding F1: the T10 row said the independent review, the retrospective and the script decision were pending, which the entries of 2026-10-21 19:23 and 2026-10-22 07:05 had recorded as done; it now reads `DONE` and leaves only the maintainer's acceptance review. The matching row of the sub-EPIC plan reads `DONE` too.
 
 ## Architectural Decisions
 

@@ -6,7 +6,7 @@ epic: 1488
 github-issue: 2410
 spec-path: docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-22 17:10"
+last-updated-utc: "2026-10-22 17:12"
 semantic-links:
   skill-links:
     - create-issue
@@ -1843,7 +1843,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T7  | DONE   | Red regression test (stop order)  | `JobManager` stop-order test fails while edges are stored but not enforced; red output recorded.                                |
 | T8  | DONE   | Stop order                        | `JobManager` enforces edges; `EventFlows` registry; bootstrap declarations per the Chosen Design; tests green.                  |
 | T9  | DONE   | Test environments                 | HTTP and UDP environments stop servers before listeners, keep both guarantees in [Test environments](#test-environments), and gain the late-event test for each (prerequisite #2471 merged in PR #2544). |
-| T10 | TODO   | Docs, verification, recheck       | Jobs doc and glossary updated to the final implementation; ADR draft moved into `docs/adrs/` and the old ADR superseded (D15); diagrams moved to `docs/architecture/` (D16); task inventory and feature docs; automatic checks; T0 recheck; AC review; completion review. |
+| T10 | DONE   | Docs, verification, recheck       | Jobs doc and glossary updated to the final implementation; ADR draft moved into `docs/adrs/` and the old ADR superseded (D15); diagrams moved to `docs/architecture/` (D16); task inventory and feature docs; automatic checks; T0 recheck; AC review; completion review. |
 
 ### Implementation Steps
 
@@ -2147,6 +2147,7 @@ avoids duplicating the full workflow in four drafts:
 - 2026-10-22 07:05 UTC - GitHub Copilot (Claude Opus 5.5) - #2416 checkpoint (c): the maintainer asked to keep `reproduce-lost-completions.sh` here, and approved documenting the draft-ADR process (D15) in the `create-adr` skill, which a separate commit of #2416 did. #2416 is pushed for review. No design change.
 - 2026-10-22 17:08 UTC - GitHub Copilot (Claude Opus 5.5) - #2416 review round 1 (the maintainer-requested review of PR #2623): finding F2 corrected record entry 32 (a UDP request can be held in flight) and added a UDP late-event test (#2416 evidence V7). No design change.
 - 2026-10-22 17:10 UTC - GitHub Copilot (Claude Opus 5.5) - #2416 review round 1, finding F3: the wording "cannot leave detached listeners" in record entry 32 and in the ADR now says what the code guarantees (cancelled, not joined). No design change.
+- 2026-10-22 17:12 UTC - GitHub Copilot (Claude Opus 5.5) - #2416 review round 1, finding F1: the plan row T10 reads `DONE` (it still read `TODO` while the Subissues row said `IN_PROGRESS`); the Subissues row stays `IN_PROGRESS` until the maintainer accepts and merges. No design change.
 
 ## Acceptance Criteria
 
