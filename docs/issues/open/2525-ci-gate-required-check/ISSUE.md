@@ -73,8 +73,15 @@ and learned.
      override code, for a mechanism that the ACK already covers.
 - **What stays.** T1 to T3 (the ADR, `classify`, and `verdict`), the T4 evidence and baseline, and the T5
   evidence about how GitHub behaves are accurate records and stay. The `ci-gate` crate stays with its tests
-  and has no consumer. The T1 ADR has one bullet that says GitHub is asked to require one `CI gate` check;
-  whether to supersede it is a separate decision.
+  and has no consumer. The T1 ADR is partly at odds with this decision and is not changed in this pull request.
+  Its decision, that CI decision logic lives in Rust behind thin, provider-agnostic workflows, stands. But it has
+  GitHub require one `CI gate` check (line 97); it rejects "Leave required checks off and rely on the
+  maintainer" as not scaling with the number of pull requests (line 138), which is the alternative this decision
+  adopts, with the merge flow showing the CI state to answer the reason it gave, that a person must check CI
+  before every merge; and it draws consequences from a required check (a required check ends the cycle of
+  disabling a ruleset, line 150; a reporting-first introduction with a rollback, line 159; a ruleset entry in
+  `docs/github-rulesets.md`, line 170). Whether to annotate the ADR with a dated note that points here or to
+  supersede it is task T9.
 - **What is dropped.** T6, T7, and T8(b); AC1 to AC3 and AC5 to AC7. AC4 stays met.
 - **A lesson.** The label design was questioned only after 36 findings in 13 reviews of the T6a pull
   request. Its threat model, the finding that mattered, was visible from the start of T5. See
