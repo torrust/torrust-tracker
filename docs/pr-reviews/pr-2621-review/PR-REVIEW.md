@@ -46,7 +46,7 @@ carries no further assertion. The maintainer's reviewer `da2ce7` submitted revie
 2026-10-21 18:49:37 UTC) with five inline threads, which carry the reviewer's own IDs F1 to F5. Those IDs collide
 with the audit IDs already given to Copilot's findings, so they are audit F4 to F8 and the reviewer's ID is kept in
 each detail entry. The same reviewer's second review, 5605012005 (DISMISSED, 2026-10-21 19:20:20 UTC), read head
-`6ef5d4635` and has five inline threads (reviewer IDs F6 to F10, audit F9 to F13) and one review-body assertion that
+read the head with the subject `docs(issues): revise tcp4/tcp6 counter draft for review findings F1-F5` and has five inline threads (reviewer IDs F6 to F10, audit F9 to F13) and one review-body assertion that
 a round-1 finding was only partly repaired (audit F14, a re-raise of F8, with no thread).
 
 Both `da2ce7` reviews are DISMISSED because each push dismissed the earlier approval; their threads remain unresolved
@@ -75,8 +75,22 @@ partly delivered.
 | F16 | review-finding:pr-2621-f16 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
 | F17 | review-finding:pr-2621-f17 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
 | F18 | review-finding:pr-2621-f18 | Copilot | Nit (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F19 | review-finding:pr-2621-f19 | Human | Major | correctness | ORIGINAL | FIXED | RESOLVED |
+| F20 | review-finding:pr-2621-f20 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F21 | review-finding:pr-2621-f21 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F22 | review-finding:pr-2621-f22 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F23 | review-finding:pr-2621-f23 | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F24 | review-finding:pr-2621-f24 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F25 | review-finding:pr-2621-f25 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
-Copilot's second review, 5619053291 (COMMENTED, 2026-10-22 18:34:26 UTC), read head `8e38fe7be` and has four inline
+`da2ce7`'s third review, 5619336077 (CHANGES_REQUESTED, 2026-10-22 18:54:57 UTC), has seven inline threads, F19 to F25;
+the reviewer's IDs do not collide with the audit's, so they are kept. F19 is Major and blocks: it shows that the draft
+and the audit cited issue #1375 as precedent for a decision that #1375 does not make. Copilot's third review,
+5619345600 (COMMENTED, 2026-10-22 18:55:46 UTC), recommends approval and has no inline thread or other actionable
+assertion, so it adds no row. The review body of 5619336077 only renumbers its own inline findings and reports checks.
+
+Copilot's second review, 5619053291 (COMMENTED, 2026-10-22 18:34:26 UTC), read the head with the subject
+`docs(pr-reviews): add the PR #2621 review audit` and has four inline
 threads (F15 to F18). Its body only warns that the agentic review did not start before the timeout. F15 asks to
 replace the repository's published development token, which the maintainer accepted and which PR #2616 answered
 the same way; F16 and F17 both ask that the evidence commands be runnable as written (two anchors, one concern each);
@@ -142,9 +156,8 @@ F18 asks for a fully qualified path.
 - Concern: the draft left the mapped-address rule open. It asks for a decision for both transports and a
   regression case.
 - Solution: the maintainer decided that a mapped client stays IPv6 and the docs say so (option (b)). The decision
-  follows issue #1375 (commit `d4c43bd3a`), which exposed mapped clients through the separate label
-  `server_binding_address_type`. That decision does not rule explicitly on the `tcp4`/`tcp6` aggregate, so the draft
-  records the application as an inference.
+  rests on the maintainer's choice. An earlier version of this entry said it followed issue #1375; that was wrong,
+  because commit `d4c43bd3a` added only the server-side label `server_binding_address_type` (see F19).
 - Current-tree verification: `ISSUE.md` Background and Open Decisions record the rule; R3 and T2 carry it.
 - Resolution reference: docs(issues): record tcp4/tcp6 counter decisions and docs-first plan
 - Follow-up PR URL: N/A
@@ -312,9 +325,10 @@ F18 asks for a fully qualified path.
 - Solution: no change. `MyAccessToken` is the repository's published default development token. The tracker ran on
   loopback and was stopped after the run, and a placeholder would make the recorded commands non-reproducible as
   run. The maintainer accepted the value for this draft, and PR #2616 answered the same finding the same way.
-- Current-tree verification: `grep -rln MyAccessToken share src` lists
-  `share/default/config/tracker.development.sqlite3.toml`, `src/lib.rs` and
-  `src/console/ci/qbittorrent_e2e/tracker/config_builder.rs`.
+- Current-tree verification: `grep -rln MyAccessToken share src` prints seven files:
+  `share/default/config/tracker.container.mysql.toml`, `tracker.container.postgresql.toml`,
+  `tracker.container.sqlite3.toml`, `tracker.development.sqlite3.toml` and `tracker.e2e.container.sqlite3.toml` (all
+  under `share/default/config/`), `src/console/ci/qbittorrent_e2e/tracker/config_builder.rs` and `src/lib.rs`.
 - Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4352131428>
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4352131428>
@@ -342,10 +356,12 @@ F18 asks for a fully qualified path.
 - Reviewer finding ID: N/A
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4352093789>
 - Concern: the runtime configuration path differs from the committed artifact without explanation.
-- Solution: step 1 copies the committed configuration to `.tmp/tcp-family-repro/` and explains that the database
-  path lives in the git-ignored `.tmp/` folder.
-- Current-tree verification: `diff docs/issues/drafts/http-core-tcp-family-counters-clients-or-server/evidence/tracker.toml
-  .tmp/tcp-family-repro/tracker.toml` prints nothing.
+- Solution: an earlier version copied the committed configuration to `.tmp/tcp-family-repro/` and gave a reason for the
+  copy that did not hold (see F24). Step 1 now starts the tracker from the committed configuration and explains the
+  real need: the SQLite driver resolves the configured database path against the working directory and does not
+  create the folder, so `mkdir -p .tmp/tcp-family-repro` is required.
+- Current-tree verification: `grep -n 'config-toml-path\|mkdir -p' manual-verification-evidence.md` shows the committed
+  `evidence/tracker.toml` path and the `mkdir -p` line; the commands ran as written in two separate shells (see F23).
 - Resolution reference: docs(issues): make the tcp4/tcp6 reproduction commands runnable from the repository root
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4352132084>
@@ -364,6 +380,121 @@ F18 asks for a fully qualified path.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4352132396>
 
+### F19 - #1375's label describes the server binding, not a mapped client
+
+- PR number: 2621
+- Source review ID: 5619336077
+- Reviewer finding ID: F19
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4352294718>
+- Concern: the draft (and F4's Solution in this audit) said that #1375 kept a mapped client out of the IPv4 count and
+  exposed it through `server_binding_address_type`. That label is computed from the server's binding, and #1671 says
+  #1375 had no client-side counterpart, so the precedent does not exist and a reader would take a server label for a
+  client one.
+- Solution: the draft cites #1375 only as the server-side label, states that option (b) rests on the maintainer's
+  decision, and names `client_address_ip_type` (#1671) as the client-side label. F4's Solution is restated.
+- Current-tree verification: `git show d4c43bd3a` adds `server_binding_address_type` from
+  `connection_context.server.service_binding.bind_address_type()`, and
+  `docs/issues/closed/1671-ipv4-ipv6-client-metrics/ISSUE.md` line 47 says #1375 "did not include a client-side
+  counterpart"; `grep -n 1375 ISSUE.md` lists only the restated mentions.
+- Resolution reference: docs(issues): restate the mapped-address precedent in the tcp4/tcp6 draft
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4352372848>
+
+### F20 - UDP's dual-stack case is the mapped case, not a mixed one
+
+- PR number: 2621
+- Source review ID: 5619336077
+- Reviewer finding ID: F20
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4352294726>
+- Concern: UDP delivers a dual-stack client as a mapped address, so UDP has no case where the binding and client
+  families differ; R2 and M4 treated the dual-stack case as a mixed one.
+- Solution: Background states the UDP behavior, R2 is HTTP only, the UDP dual-stack case is under R3, and M4 says it
+  cannot tell the two meanings apart. T3 adds a case for the family of a mapped UDP client.
+- Current-tree verification: `packages/udp-core/src/event.rs` derives `client_address_ip_family` from
+  `client_socket_addr.ip().into()` and the type `V4MappedV6` from `to_ipv4_mapped()`; the only mapped-client test
+  there pins the type, which `ISSUE.md` now says.
+- Resolution reference: docs(issues): align the UDP dual-stack cases with the mapped-address rule
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4352373131>
+
+### F21 - The audit cites branch commits by id
+
+- PR number: 2621
+- Source review ID: 5619336077
+- Reviewer finding ID: F21
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4352294736>
+- Concern: the audit named the heads that two reviews read by abbreviated commit id; no durable reference may cite a
+  branch commit by id.
+- Solution: the three mentions now use the commit subjects. Two Processing Log lines were edited for this; a
+  correction entry in the log names them.
+- Current-tree verification: a scan of every 7 to 40 character hexadecimal token in the draft folder and the audit
+  against `torrust/develop` leaves only `80c45b606` and `d4c43bd3a`, both on `develop`.
+- Resolution reference: docs(pr-reviews): record the third review round and drop branch commit ids from the PR #2621 audit
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4352373461>
+
+### F22 - Two stamps are later than the commits that carry them
+
+- PR number: 2621
+- Source review ID: 5619336077
+- Reviewer finding ID: F22
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4352294752>
+- Concern: the draft's 18:15 entry and the audit's 18:20 entry postdate their commits, and the evidence file's
+  `last-updated-utc` predates its edit.
+- Solution: the draft's entry reads 18:13 UTC and the evidence stamp was re-stamped. The audit's 18:20 entry is not
+  rewritten because the Processing Log is append-only; a correction entry states that the entry was committed at
+  18:17 UTC.
+- Current-tree verification: `git log --format='%aI %s'` lists the commit carrying the draft's 18:13 entry at
+  18:13:11Z and the commit that carried the audit's resolution entry at 18:17:09Z.
+- Resolution reference: docs(issues): correct the draft's progress-log stamp and record the third review round
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4352373714>
+
+### F23 - Steps 2 to 4 cannot run as written
+
+- PR number: 2621
+- Source review ID: 5619336077
+- Reviewer finding ID: F23
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4352294760>
+- Concern: `E` is set only in step 1's shell, which the foreground tracker holds, so `"$E/before.json"` expands to
+  `/before.json` in the second shell.
+- Solution: step 1 runs in terminal A, steps 2 to 4 in terminal B, and every block that uses `E` sets it.
+- Current-tree verification: I ran step 1 in one shell and steps 2 to 4 in another, as written: health 200,
+  announce 200, `tcp4_announces_handled` 0 to 1, `tcp6` 0, identical to the stored files.
+- Resolution reference: docs(issues): split the reproduction steps by shell and state why the database folder is created
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4352374102>
+
+### F24 - The runtime copy's reason does not explain the copy
+
+- PR number: 2621
+- Source review ID: 5619336077
+- Reviewer finding ID: F24
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4352294767>
+- Concern: the SQLite path resolves against the working directory, so the copy was unnecessary and the `diff` proved
+  nothing; F17's verification could not run on a clean tree.
+- Solution: step 1 starts the tracker from the committed configuration and states the real need (`mkdir -p`); F17's
+  entry is rewritten accordingly.
+- Current-tree verification: `packages/tracker-core/src/databases/driver/sqlite/mod.rs` opens the path with
+  `SqliteConnectOptions::new().filename(db_path).create_if_missing(true)`, and step 1 ran from the committed file in
+  F23's verification.
+- Resolution reference: docs(issues): split the reproduction steps by shell and state why the database folder is created
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4352374432>
+
+### F25 - F15's recorded grep output is three of seven files
+
+- PR number: 2621
+- Source review ID: 5619336077
+- Reviewer finding ID: F25
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4352294774>
+- Concern: the row recorded three of the seven files that the command prints.
+- Solution: F15's verification lists all seven.
+- Current-tree verification: `grep -rln MyAccessToken share src | sort` prints seven paths, all listed in F15.
+- Resolution reference: docs(pr-reviews): record the third review round and drop branch commit ids from the PR #2621 audit
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4352374678>
+
 ## Processing Log
 
 - 2026-10-21 17:24 UTC - Copilot submitted review 5603592801 with three inline threads (F1 to F3).
@@ -378,11 +509,22 @@ F18 asks for a fully qualified path.
   all thirteen inline threads. GraphQL listed thirteen unresolved threads at that point.
 - 2026-10-22 18:20 UTC - Resolved all thirteen threads after the audit validated; GraphQL data shows 0 unresolved
   threads.
-- 2026-10-22 18:34 UTC - Copilot submitted review 5619053291 on head `8e38fe7be` with four inline threads (F15 to F18).
+- 2026-10-22 18:34 UTC - Copilot submitted review 5619053291 on the head with the subject `docs(pr-reviews): add the PR #2621 review audit` with four inline threads (F15 to F18).
 - 2026-10-22 18:38 UTC - Verified each claim against the current tree. Fixed F16 to F18 in two signed commits and
   pushed; answered F15 with the prescribed `Superseded by F15` reply (the development token is the repository's
   published default, accepted by the maintainer). Replied on all four threads.
 - 2026-10-22 18:39 UTC - Resolved the four threads after the audit validated; GraphQL data shows 0 unresolved
+  threads.
+- 2026-10-22 18:54 UTC - `da2ce7` submitted review 5619336077 (CHANGES_REQUESTED) with seven inline threads (F19 to
+  F25). Copilot submitted review 5619345600 at 18:55 UTC, which recommends approval and has no inline thread.
+- 2026-10-22 19:04 UTC - Verified each claim against the current tree and fixed F19 to F24 in four signed commits
+  (F19, F20, F22 and F23 with F24, in the draft folder) plus this audit update for F21 and F25; replied on all seven
+  threads. F19 was a real error of mine: issue #1375 added only a server-side label, so the draft and F4's Solution
+  no longer cite it as precedent.
+- 2026-10-22 19:04 UTC - Correction: the 18:20 UTC entry earlier in this log reports threads resolved, but it shipped in
+  a commit made at 18:17:09Z, so its stamp is wrong. Its text is not rewritten. The 18:34 UTC entry and two head
+  references in the Findings introduction were edited to replace branch commit ids with commit subjects (F21).
+- 2026-10-22 19:05 UTC - Resolved the seven threads after the audit was checked; GraphQL data shows 0 unresolved
   threads.
 
 ## Completion Rules
