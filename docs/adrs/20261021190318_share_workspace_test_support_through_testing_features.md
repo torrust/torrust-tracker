@@ -46,9 +46,10 @@ found five patterns in the workspace (32 members on 2026-10-21):
   `MockTorrentMetricsStore`, is imported by `#[cfg(test)]` modules of `http-core` and `udp-core`.
 - **E. Per-package `tests/common/` folders**, the right place for single-package helpers.
 
-DEC-13 (2026-06-11) put the three server environments in public `src/testing/` modules,
-compiled unconditionally "so that external test packages can import it", on the premise that
-`tracker-core/src/test_helpers.rs` already did the same. That module is `#[cfg(test)]` and private
+DEC-13 (2026-06-11) put the three server environments in public `src/testing/` modules, "importable
+by external test packages", on the premise that `tracker-core/src/test_helpers.rs` already did the
+same. The modules' own documentation adds that each is "exported unconditionally" and "compiled in
+all build profiles". That module is `#[cfg(test)]` and private
 to its crate, so the premise was wrong: pattern A is the only pattern that ships test code and
 test-only dependencies in production builds.
 
@@ -75,7 +76,7 @@ The options below rely on Cargo behaviour that was checked, not assumed, in scra
 stable (cargo 1.99.1) and on the workspace MSRV (cargo 1.88.0). The commands, manifests and output
 are in the
 [manual verification evidence](../issues/open/2618-2482-decide-test-support-rules/manual-verification-evidence.md)
-(V1 to V4b).
+(V1 to V4c).
 
 - A feature enabled only from a consumer's `[dev-dependencies]` is off in `cargo build`,
   `cargo build --workspace` and `cargo build --release`, and on in `cargo test`. `--all-targets`
@@ -85,7 +86,8 @@ are in the
   types as the support crate. (V2)
 - `cargo package` strips a dev-dependency that has no `version`, and keeps one that has: the kept
   one must exist on a registry, which fails for a `publish = false` crate, for the crate itself
-  (#2582) and for two publishable crates that dev-depend on each other. An optional dependency is
+  (#2582) and for a publishable crate that has a versioned dev-dependency on a publishable crate
+  that depends back on it (neither can be packaged first). An optional dependency is
   a normal dependency for packaging: it needs a `version`, and its target must be publishable. (V3)
 - Cargo 1.88.0 cannot run `cargo package --workspace --no-verify` on this repository; stable can,
   and CI and pre-push use stable. (V3)
@@ -95,6 +97,9 @@ are in the
   tests run. `cargo test --workspace` passes either way when another member enables the feature,
   which hides the gap. `required-features` makes `cargo test -p <crate> --all-targets` skip
   `tests/` and `examples/` silently and cannot be put on doc tests. (V4, V4b)
+- With the self dev-dependency, `cargo build` and `cargo build --release` leave the feature off,
+  and `cargo build --all-targets` or `--tests` builds the package's binary with it on, without
+  `--all-features`. (V4c)
 
 ## Agreement
 
@@ -102,6 +107,13 @@ Test support code is shared through a Cargo feature named `testing` on the packa
 and through one generic helper crate for protocol-agnostic helpers. Everything else stays in the
 package that needs it. The maintainer chose this combination on 2026-10-21, after the evidence
 above.
+
+Test support that lives outside a test module is production code: it is compiled into the crate
+and is merely code that other projects' tests use. It must not reach a shipped artifact unless a
+build asks for it. So it sits behind a feature that is off by default, and every build command that
+produces a shipped artifact names its features explicitly instead of enabling all of them. The
+maintainer added the last part on 2026-10-22: he prefers a CI error for a missing required feature
+to a risk of shipping a feature that was not meant for production.
 
 ### Where does a helper go?
 
@@ -137,8 +149,15 @@ This rule covers `axum-http-server`, `axum-rest-api-server`, `udp-server` and
 4. Another package uses the environment only through `[dev-dependencies]`, with
    `features = ["testing"]`. A `[dependencies]` entry never enables `testing`, and production
    code never enables it.
-5. A production or release build uses `cargo build` without `--all-targets`, `--tests`,
-   `--examples` or `--benches`, because those enable dev-dependency features.
+5. **A shipped artifact is built by an invocation of its own**, with `cargo build` (or
+   `cargo install`) and without `--all-targets`, `--tests`, `--examples`, `--benches` and
+   `--all-features`, naming the features it needs. Those flags enable dev-dependency features or
+   every feature, and V1 and V4c show they turn `testing` on in the binary. A check fails the build
+   if a `testing` feature is enabled in a shipped binary's dependency tree. Today the container
+   image's release binary comes from `cargo nextest archive --tests --all-features ... --release`
+   (`Containerfile`, "Build Archive (release)"), which would carry every `testing` feature after
+   rows 3 to 7; subissue 9 of #2482 changes that before the first move. Test builds keep
+   `--tests`, and name the features they need instead of `--all-features` where practical.
 6. The feature is test support, outside the package's semver guarantees. The package says so in
    its `Cargo.toml` (a comment on the feature) and in the module's documentation, and does not list
    `testing` in `[package.metadata.docs.rs]`. Every optional dependency behind `testing` is itself
@@ -223,7 +242,7 @@ public test infrastructure. DEC-18 in the
 
 - The nine test-only dependency edges leave the production builds of the four server packages,
   and `mockall` leaves `tracker-core`'s; the `Mock*` types and the environments leave the public
-  API of a default build.
+  API of a default build, and (once subissue 9 lands) the container image's binary.
 - `test-helpers` loses its protocol and client dependencies, and a guard keeps them out.
 - Each package's targets run with a plain `cargo test -p <package>`, so a contributor does not
   need `--all-features`.
@@ -244,9 +263,14 @@ public test infrastructure. DEC-18 in the
   `udp-server` with `testing` on because `axum-health-check-api-server` enables it. That is
   harmless for tests, and rule A point 5 keeps it out of production builds.
 - The packaging check needs `cargo +stable`; Cargo 1.88.0 cannot run it (V3).
+- The container build must change (subissue 9 of #2482): its test archive and its shipped binary
+  are one `cargo nextest archive --tests --all-features --release` invocation today, and must
+  become two. The cached third-party layers may need rebuilding once.
 
 ### What this ADR does not decide
 
+- The exact Containerfile and CI changes that keep a `testing` feature out of shipped artifacts
+  (subissue 9 of #2482 specifies them).
 - Whether the two examples that start a tracker through an environment keep doing so, are labelled
   test-support demonstrations, or get a production-style startup. The subissues that move
   `udp-server` and `axum-http-server` decide it.

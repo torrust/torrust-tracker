@@ -75,6 +75,9 @@ compilation changes.
 - `cargo metadata` shows optional dependencies as normal edges and the self dev-dependency as a
   dev edge, so the coupling tool and the diagram need a change (subissue 8 of #2482).
 - The packaged `.crate`'s `tests/` and `examples/` need `--features testing`.
+- The container image's release binary is built together with the tests (`--tests --all-features`),
+  which would ship every `testing` feature; the shipped binary must be built on its own with
+  explicit features (subissue 9 of #2482).
 
 ### Supporting artifacts
 
