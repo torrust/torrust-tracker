@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/drafts/http-core-tcp-family-counters-clients-or-server/ISSUE.md
-last-updated-utc: 2026-10-22 18:10
+last-updated-utc: 2026-10-22 19:01
 ---
 
 # Manual Verification Evidence
@@ -92,26 +92,32 @@ admin = "MyAccessToken"
 
 #### Steps Performed
 
-1. Start the tracker (run in the foreground, then health check):
+1. In terminal A, start the tracker in the foreground from the repository root:
+
+   ```sh
+   mkdir -p .tmp/tcp-family-repro
+   ./target/debug/torrust-tracker --config-toml-path "$PWD/docs/issues/drafts/http-core-tcp-family-counters-clients-or-server/evidence/tracker.toml" \
+     > .tmp/tcp-family-repro/run.log 2>&1
+   ```
+
+   The log goes to `.tmp/tcp-family-repro/run.log`; the stored [evidence/tracker.log](evidence/tracker.log) is that file after the run.
+   The `mkdir -p` is needed because the SQLite driver opens the configured path `./.tmp/tcp-family-repro/sqlite3.db`
+   as given, so it resolves against the working directory, and it does not create the folder. The recorded run used a
+   byte-identical working copy of the configuration at `.tmp/tcp-family-repro/tracker.toml` (`diff` printed nothing
+   before the run); passing the committed file gives the same configuration.
+
+   Steps 2 to 4 run in terminal B, from the same repository root. Each block sets `E` itself, because a new shell does
+   not inherit it.
+
+2. Check health, read the baseline statistics and store the raw response:
 
    ```sh
    E=docs/issues/drafts/http-core-tcp-family-counters-clients-or-server/evidence
-   mkdir -p .tmp/tcp-family-repro && cp "$E/tracker.toml" .tmp/tcp-family-repro/tracker.toml
-   ./target/debug/torrust-tracker --config-toml-path "$PWD/.tmp/tcp-family-repro/tracker.toml"
    curl -s -o /dev/null -w "api:%{http_code}\n" "http://127.0.0.1:1212/api/health_check"
-   ```
-
-   The runtime copy exists because the configuration's database path is `./.tmp/tcp-family-repro/sqlite3.db`, inside
-   the git-ignored `.tmp/` folder. `diff "$E/tracker.toml" .tmp/tcp-family-repro/tracker.toml` prints nothing, so the
-   copy is the committed configuration.
-
-   Result: `api:200`.
-
-2. Read the baseline statistics and store the raw response:
-
-   ```sh
    curl -s "http://127.0.0.1:1212/api/v1/stats?token=MyAccessToken" > "$E/before.json"
    ```
+
+   Result: `api:200`.
 
 3. Send one announce with an IPv6 client address in the forwarded header:
 
@@ -128,17 +134,20 @@ admin = "MyAccessToken"
 4. Read the statistics again, after the request, and store the raw response:
 
    ```sh
+   E=docs/issues/drafts/http-core-tcp-family-counters-clients-or-server/evidence
    curl -s "http://127.0.0.1:1212/api/v1/stats?token=MyAccessToken" > "$E/after.json"
    ```
 
-5. Stop the tracker. The repeat ended when the shell session closed and sent the tracker `SIGTERM`; the log ends with
-   "Torrust tracker successfully shutdown." and the ports 7070 and 1212 were free afterwards.
+5. Stop the tracker with Ctrl-C in terminal A. The recorded run instead ended when its shell session closed and sent the
+   tracker `SIGTERM`; the log ends with "Torrust tracker successfully shutdown." and the ports 7070 and 1212 were free
+   afterwards.
 
 #### Observed Result
 
 The stored responses are the raw `curl` output. The excerpts below come from this filter, which only selects fields:
 
 ```sh
+E=docs/issues/drafts/http-core-tcp-family-counters-clients-or-server/evidence
 jq -c 'with_entries(select(.key|test("^(tcp|udp4_announces|udp6_announces)")))' "$E/before.json" "$E/after.json"
 ```
 
