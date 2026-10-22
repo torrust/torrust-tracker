@@ -28,8 +28,8 @@ semantic-links:
 # Issue #[To be assigned] - Gate `tracker-core`'s test modules and mocks
 
 Parent EPIC: #2482 (Reorganize test support code shared between workspace packages), row 3 of its
-Subissues table. Draft written by subissue 1 (#2618). Execution order: after rows 2 and 8. It is
-the first O1 move, so it needs row 8's labels first.
+Subissues table. Draft written by subissue 1 (#2618). Execution order: after rows 2, 8 and 9. It is
+the first O1 move, so it needs row 8's labels and row 9's container build first.
 
 ## Goal
 
