@@ -40,7 +40,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Eleven reviews were submitted so far, eight by Copilot and three by the reviewer `da2ce7`. Each body repeats its
+Thirteen reviews were submitted, nine by Copilot and four by the reviewer `da2ce7`. Each body repeats its
 inline threads, so the bodies add no rows.
 
 - Review 5599696060 read the head whose subject is "feat(ci-gate): [#2525] add the GitHub adapter of the merge
@@ -78,6 +78,14 @@ inline threads, so the bodies add no rows.
 - Review 5610658372, by Copilot, read the head whose subject is "docs(pr-reviews): record the approval round and the
   seventh Copilot review in the PR #2610 audit" and was submitted at 2026-10-22 07:30 UTC. It carries two inline
   threads, F32 and F33.
+- Review 5611102476, by Copilot, read the same head as the next review below, whose subject is "docs(pr-reviews):
+  record the eighth Copilot review in the PR #2610 audit", and was submitted at 2026-10-22 08:11 UTC. It is the only
+  one of the nine Copilot reviews of this pull request that does not say that the full review could not run. It carries one
+  inline thread, F34, which it labels Major and which questions the design that the T5 specification approved.
+- Review 5615929738, by `da2ce7`, state `APPROVED`, read the same head and was submitted at 14:34 UTC. It finds F28 to F33
+  repaired and carries two inline threads, F35 and F36. An ACK of that head was posted as an issue comment by the same
+  reviewer, which adds no row. It calls F34 Major for a gate, not blocking the adapter, which nothing calls, and to be
+  answered before a gate is required.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -114,6 +122,9 @@ inline threads, so the bodies add no rows.
 | F31 | review-finding:pr-2610-f31 | Copilot | Nit (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
 | F32 | review-finding:pr-2610-f32 | Copilot | Nit (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 | F33 | review-finding:pr-2610-f33 | Copilot | Nit (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
+| F34 | review-finding:pr-2610-f34 | Copilot | Major | correctness | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F35 | review-finding:pr-2610-f35 | Human | Minor | documentation | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F36 | review-finding:pr-2610-f36 | Human | Nit | testing | ORIGINAL | NO_ACTION | SUPERSEDED |
 
 ## Finding Details
 
@@ -546,6 +557,45 @@ inline threads, so the bodies add no rows.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4345833163
 
+### F34 - The first suite of a commit does not identify this pull request's latest push
+
+- PR number: 2610
+- Source review ID: 5611102476
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4345983028>
+- Concern: the request for the check suites is scoped to the repository and the commit, not to this pull request's head update. A label applied to head A still counts if the contributor replaces A with a commit B that already had a check suite, and an A to B to A sequence can revive a revoked override. The earliest-suite rule does not enforce its intended guarantee that a push revokes the override; bind freshness to head-update provenance specific to the pull request, with regression cases for an already-checked replacement head and a return to an earlier commit.
+- Solution: no change. On 2026-10-22 the maintainer decided to drop the override, the orchestrator, and the required `CI gate` (decision recorded in the #2525 specification, in the pull request that holds the T5 design), and this pull request is proposed to be closed unmerged. The finding is correct, and it is the reason for the decision. Before answering, the real API was checked for a cheap signal and none was found: `pushedDate` was null for the commits queried, the check suites and workflow runs of a fork pull request carry an empty `pull_requests` list, and a `head_ref_force_pushed` timeline event would close only the force-push cases.
+- Current-tree verification: the finding was reproduced by the second reviewer from the code, and the API checks above were run on this pull request.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4351878650>
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4351878650
+
+### F35 - The documentation promises that a push revokes the override
+
+- PR number: 2610
+- Source review ID: 5615929738
+- Reviewer finding ID: F35
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4349656451>
+- Concern: the module documentation says that the label counts after the head commit's first check suite "because a push revokes an override", and the documentation of `judge_override` says that the first suite is the one a push creates. Both hold only for a commit that the repository has not seen before, so state the limit of the signal in both places, or add the case to the list of what T6 must still verify.
+- Solution: no change. On 2026-10-22 the maintainer decided to drop the override, the orchestrator, and the required `CI gate` (decision recorded in the #2525 specification, in the pull request that holds the T5 design), and this pull request is proposed to be closed unmerged. The finding is correct and would have had to be fixed before a merge.
+- Current-tree verification: agrees with F34.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4351879000>
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4351879000
+
+### F36 - The removed override_request test has no record of its replacement
+
+- PR number: 2610
+- Source review ID: 5615929738
+- Reviewer finding ID: F36
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4349656465>
+- Concern: a refactor removed the unit test of the absent label, and the repository's testing skill asks to name the test that now covers the behavior, in the evidence and in the commit message. Name the two tests of the caller next to the mutant row of V11; the commit message cannot change without a rewrite.
+- Solution: no change. On 2026-10-22 the maintainer decided to drop the override, the orchestrator, and the required `CI gate` (decision recorded in the #2525 specification, in the pull request that holds the T5 design), and this pull request is proposed to be closed unmerged. The two tests that cover the case are named in the reply.
+- Current-tree verification: the mutant that stops the caller from checking the label is killed by the two tests that the reviewer names.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4351879353>
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2610#discussion_r4351879353
+
 ## Processing Log
 
 - 2026-10-21 12:33 UTC - Copilot's review arrived with four threads, F1 to F4.
@@ -612,6 +662,12 @@ inline threads, so the bodies add no rows.
   that describes the head commit id loosely, which F30 left; F33 is a silent cut. Fixed each test-first in its own signed
   commit (the signing timed out once and I reran it only after the maintainer agreed), recorded the round in the
   specification, ran both hook scripts, pushed, replied, and added F32 and F33 to this record.
+- 2026-10-22 18:13 UTC - Found two reviews that I had not seen, because my watchers had ended: Copilot's ninth, at 08:11 UTC, with
+  the Major finding F34, and the second reviewer's approval and ACK at 14:34 UTC, with F35 and F36. I researched the real
+  API for a pull-request-specific signal of a push, found none that is cheap, and brought the choice to the maintainer
+  instead of changing code. The maintainer then decided to drop the override and the required gate, so F34 to F36 are
+  answered by that decision and not fixed here. Replied on the three threads and added F34 to F36 to this record. The
+  maintainer's confirmation to close this pull request is pending, and it carries an approval and an ACK of the head.
 
 ## Completion Rules
 
