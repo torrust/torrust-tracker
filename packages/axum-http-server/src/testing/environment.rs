@@ -640,7 +640,7 @@ mod tests {
         .await;
 
         // Assert
-        // Abandoning the join must not leave the listener running detached.
+        // Abandoning the join must not leave a listener that was never asked to stop. It is cancelled, not joined.
         assert!(abandoned.is_err(), "the join should still be waiting for the server");
         assert!(
             listener_token.is_cancelled(),

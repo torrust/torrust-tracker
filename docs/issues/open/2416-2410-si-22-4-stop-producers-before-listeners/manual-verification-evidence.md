@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2416-2410-si-22-4-stop-producers-before-listeners/ISSUE.md
-last-updated-utc: "2026-10-22 17:08"
+last-updated-utc: "2026-10-22 17:10"
 ---
 
 # Manual Verification Evidence
@@ -159,7 +159,7 @@ so that an unused variable failed under `-D warnings`, and rewritten). `manager`
 | The same, for the drain controller | H-M5: HTTP, the drain controller is not awaited before the listener is cancelled | `it_should_cancel_the_event_listener_only_after_the_server_and_its_drain_controller_have_finished` |
 | The same, for UDP | U-M1: UDP, listeners cancelled with the receive loop | `it_should_cancel_the_event_listeners_only_after_the_receive_loop_has_finished` |
 | (negative) a server failure does not skip the listener stage | H-M2, U-M2: the listeners are not joined when the first stage failed | `it_should_join_the_event_listener_before_reporting_an_http_server_task_failure`, `it_should_join_every_event_listener_before_reporting_a_receive_loop_failure` |
-| (negative) an abandoned `stop()` leaves no detached listener | H-M4, U-M4: the guard is disarmed when the join starts | `it_should_cancel_the_event_listener_when_the_join_is_abandoned_while_the_server_runs`, `it_should_cancel_the_event_listeners_when_the_join_is_abandoned_while_the_receive_loop_runs` |
+| (negative) an abandoned `stop()` leaves no listener that was never asked to stop (the listeners are cancelled, not joined) | H-M4, U-M4: the guard is disarmed when the join starts | `it_should_cancel_the_event_listener_when_the_join_is_abandoned_while_the_server_runs`, `it_should_cancel_the_event_listeners_when_the_join_is_abandoned_while_the_receive_loop_runs` |
 | Dropping the environment cancels the listeners too | H-M3, U-M3: the stored listeners guard guards another token | `it_should_stop_the_event_listener_when_dropped_without_being_stopped` and the tests that call `stop()` (which then hangs until their deadline); UDP the same with `it_should_stop_the_event_listeners_when_dropped_without_being_stopped` |
 
 ### V5 - T10: M1, M2, M3 on the real binary

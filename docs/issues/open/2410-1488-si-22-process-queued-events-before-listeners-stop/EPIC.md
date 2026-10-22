@@ -6,7 +6,7 @@ epic: 1488
 github-issue: 2410
 spec-path: docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-22 17:08"
+last-updated-utc: "2026-10-22 17:10"
 semantic-links:
   skill-links:
     - create-issue
@@ -1564,7 +1564,9 @@ lost. Times are UTC.
     #2416's `manual-verification-evidence.md` V4. D20 says `stop()` disarms both guards. The
     implementation disarms the server guard in `stop()`, but moves the listeners guard into the join
     function and disarms it after the server stage, so a `stop()` future that is dropped while the server
-    still drains (for example when its caller's deadline expires) cannot leave detached listeners. The
+    still drains (for example when its caller's deadline expires) cannot leave listeners that were never
+    asked to stop (the listener tasks are then cancelled but not joined, so they finish their bounded drain
+    unjoined; wording corrected on 2026-10-22, review-finding:pr-2623-f3). The
     intent of D20 (independent tokens, one `DropGuard` each, the owner enforces the order, a drop cancels
     both) is unchanged. Also recorded: the HTTP environment has a deterministic red/green late-event test
     (a request left in flight while `stop()` drains), and the UDP environment's late-event test first was
@@ -2144,6 +2146,7 @@ avoids duplicating the full workflow in four drafts:
 - 2026-10-21 19:23 UTC - GitHub Copilot (Claude Opus 5.5) - #2416 pre-push review done: the plan rows T3 to T5 now read `DONE` (they still read `TODO` after #2414 merged; a stale status the Task Reviewer found, not a design change). #2416 evidence counts corrected. No design change.
 - 2026-10-22 07:05 UTC - GitHub Copilot (Claude Opus 5.5) - #2416 checkpoint (c): the maintainer asked to keep `reproduce-lost-completions.sh` here, and approved documenting the draft-ADR process (D15) in the `create-adr` skill, which a separate commit of #2416 did. #2416 is pushed for review. No design change.
 - 2026-10-22 17:08 UTC - GitHub Copilot (Claude Opus 5.5) - #2416 review round 1 (the maintainer-requested review of PR #2623): finding F2 corrected record entry 32 (a UDP request can be held in flight) and added a UDP late-event test (#2416 evidence V7). No design change.
+- 2026-10-22 17:10 UTC - GitHub Copilot (Claude Opus 5.5) - #2416 review round 1, finding F3: the wording "cannot leave detached listeners" in record entry 32 and in the ADR now says what the code guarantees (cancelled, not joined). No design change.
 
 ## Acceptance Criteria
 

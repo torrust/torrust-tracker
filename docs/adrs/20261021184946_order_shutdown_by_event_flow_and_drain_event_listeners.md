@@ -312,7 +312,9 @@ explicitly: cancel and join the server, then cancel and join the listeners.
 `stop()` disarms the server guard and cancels that token itself; the listeners
 guard moves into the join and is disarmed only once the server stage has ended,
 so abandoning `stop()` while the server still drains (for example when its
-caller's deadline expires) cannot leave a detached listener. Dropping an
+caller's deadline expires) cannot leave a listener that was never asked to stop.
+The listener tasks are then cancelled but not joined: they finish their bounded
+drain unjoined, as when the environment is dropped. Dropping an
 environment without `stop()` cancels both tokens. Dropping a `CancellationToken`
 does not cancel it, so each owner that can be dropped holds a `DropGuard`. Each
 token is independent and not derived from the other: a parent-child token tree
