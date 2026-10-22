@@ -16,7 +16,7 @@ because the scratch workspaces were removed afterwards.
 
 ## Environment and Prerequisites
 
-- Date and time (UTC): 2026-10-21, 17:21 to 19:02 (V4b ran last).
+- Date and time (UTC): 2026-10-21, 17:21 to 19:02 (V1 to V4b), and 2026-10-22 at 17:15 (V4c).
 - Artifact under test: Cargo itself, on two toolchains:
   - stable: `cargo 1.99.1 (5f94df478 2026-08-27)`, `rustc 1.99.1 (58cf8f9c3 2026-10-13)`;
   - the workspace MSRV: `cargo 1.88.0 (873a06493 2025-05-10)`, `rustc 1.88.0 (6b00bc388
@@ -696,8 +696,9 @@ cargo-machete didn't find any unused dependencies in /tmp/2482-mv/mv4. Good job!
   `--features testing` to compile (the `.crate` row), and `cargo metadata` lists a self edge
   (`o1c -> o1c kind=dev`) that the coupling tool and the diagram must skip. `cargo machete
   --with-metadata` does not flag it.
-- The production build is not affected by any mechanism (`build -p X` exits 0 and V1 shows the
-  feature is off).
+- The production build is not affected by any mechanism: V1 shows the feature off for a consumer's
+  dev-dependency, and V4c shows it off for a self dev-dependency, in `cargo build` and
+  `cargo build --release`.
 
 #### V4b - Does O1c need `any(test, ...)` in the gate? (added after the maintainer's decision)
 
@@ -746,6 +747,44 @@ unit test (`unit::unit_test_uses_the_module_gated_only_by_the_feature ... ok`) a
 crate's own unit tests too, and `#[cfg(feature = "testing")]` alone is enough; the
 `any(test, feature = "testing")` form is needed only without it (O1a).
 
+#### V4c - A self dev-dependency in production builds versus `--all-targets` (added after the pre-PR review)
+
+The review of this work found that V4 did not show, for a crate with a self dev-dependency, that a
+production build leaves the feature off (V1 shows it for a consumer's dev-dependency, and V4's gate
+was `any(test, feature)`, so `build -p X` exiting 0 proved nothing). A third probe, run on
+2026-10-22 at 17:15 UTC in a standalone package `q` (its own `[workspace]` table, removed
+afterwards), uses the `Cargo.toml` of V4b and these two files:
+
+```rust
+// src/lib.rs
+pub const TESTING_ON: bool = cfg!(feature = "testing");
+```
+
+```rust
+// src/main.rs
+fn main() {
+    println!("q::TESTING_ON = {}", q::TESTING_ON);
+}
+```
+
+On `+stable` and on `+1.88.0`, in this order, after each command the binary it left in
+`target/debug` or `target/release` was run:
+
+| Command | `q::TESTING_ON` printed by the binary it left |
+| --- | --- |
+| `cargo build` | `false` |
+| `cargo build --release` | `false` |
+| `cargo build --all-targets` | `true` |
+| `cargo build --tests` | `true` |
+| `cargo build` (again) | `false` |
+| `cargo test --no-run` | `false` |
+
+Both toolchains printed the same values. So with a self dev-dependency, `cargo build` and
+`cargo build --release` leave the feature off, and any invocation that also builds tests, examples
+or benches (`--all-targets`, `--tests`) builds the package's binary with the feature on, without
+`--all-features`. The shipped binary must therefore be built by an invocation of its own, without
+those flags.
+
 ## Evidence versus the EPIC
 
 | EPIC statement | Result |
@@ -757,13 +796,16 @@ crate's own unit tests too, and `#[cfg(feature = "testing")]` alone is enough; t
 | O1b: Cargo skips the targets without failing when the feature is off | Confirmed for `--all-targets`; with a doc test that uses the module `cargo test -p` fails on the doc test, and explicit `--test it` is an error (V4) |
 | O2: a `publish = false` support crate must be a path-only dev-dependency | Confirmed (V3). Also: a publishable support crate that depends on the crate under test must also be path-only in the crate's dev-dependencies (V3, `cyc-*`) |
 
-No result contradicts the EPIC. Four findings are new and are not in it:
+No verification result contradicts the EPIC. Separately, while preparing the ADR the inventory's
+claim that only `tracker-core`'s own source uses its mocks was checked against the other packages
+and found wrong (`http-core` and `udp-core` import `MockTorrentMetricsStore`); it was corrected in
+the inventory. Four findings from the verification are new and are not in the EPIC:
 
 1. `cargo test --workspace` hides O1a and O1b gaps whenever another member dev-depends on the
    crate with the feature (V4).
 2. `--all-targets` (and `--tests`, `--examples`) enable dev-dependency features for every target
-   of the invocation, including binaries; a production build must be `cargo build` without them
-   (V1).
+   of the invocation, including binaries and without `--all-features`; a production build must be
+   `cargo build` without them (V1, V4c).
 3. Cargo 1.88.0 (the MSRV) cannot run `cargo package --workspace --no-verify` on this repository;
    stable can (V3).
 4. A versioned dev-dependency cycle between two publishable crates cannot be packaged at all, so
