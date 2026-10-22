@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/drafts/http-core-tcp-family-counters-clients-or-server/ISSUE.md
-last-updated-utc: 2026-10-21 18:50
+last-updated-utc: 2026-10-22 18:10
 ---
 
 # Manual Verification Evidence
@@ -13,14 +13,20 @@ before the fix is decided. This is evidence from commands actually run against t
 
 ## Preserving Verification Artifacts
 
-The tracker configuration, the statistics before and after the request, and the full tracker log are stored in
-[evidence/](evidence/). The configuration is also embedded below.
+The tracker configuration, the raw statistics responses before and after the request
+([evidence/before.json](evidence/before.json), [evidence/after.json](evidence/after.json)), and the full tracker log
+are stored in [evidence/](evidence/). The configuration is also embedded below.
+
+The first run (2026-10-21 18:49 to 18:50 UTC) kept only a filtered copy of the statistics. The run was repeated on
+2026-10-22 to store the raw responses (review finding F6 of PR #2621); the counters were identical. Everything below
+describes the repeat, and the stored log is the repeat's log.
 
 ## Environment and Prerequisites
 
-- Date and time (UTC): 2026-10-21 18:49 to 18:50
-- Artifact under test: `main` at `torrust/develop` as of the draft branch `docs/draft-http-core-tcp-family-counters`
-  (no product code changed for this run).
+- Date and time (UTC): 2026-10-22 18:09:38 (tracker start) to 18:10:01 (shutdown, see `evidence/tracker.log`)
+- Artifact under test: the draft branch `docs/draft-http-core-tcp-family-counters`, whose product code is that of
+  `torrust/develop` at the merge base `80c45b606` ("Merge torrust/torrust-tracker#2616"). No product code changed
+  on the branch, which adds only documentation.
 - Operating system / environment: Linux, local development build (`cargo build --bin torrust-tracker`,
   `optimized + debuginfo` profile), tracker run in the foreground from the repository root.
 - Prerequisites and setup performed:
@@ -80,7 +86,7 @@ admin = "MyAccessToken"
 - Goal: Determine whether an announce whose client address is IPv6 (through `X-Forwarded-For`) is counted under
   `tcp6_announces_handled` or `tcp4_announces_handled`, which is the scenario the spec's Bug-Fix Process describes.
 - Initial state: tracker started with the config above; statistics read before the request
-  ([evidence/before.txt](evidence/before.txt)). `tcp4_announces_handled` and `tcp6_announces_handled` were both 0.
+  ([evidence/before.json](evidence/before.json)). `tcp4_announces_handled` and `tcp6_announces_handled` were both 0.
 - Status: `DONE`
 
 #### Steps Performed
@@ -94,10 +100,10 @@ admin = "MyAccessToken"
 
    Result: `api:200`.
 
-2. Read the baseline statistics:
+2. Read the baseline statistics and store the raw response:
 
    ```sh
-   curl -s "http://127.0.0.1:1212/api/v1/stats?token=MyAccessToken"
+   curl -s "http://127.0.0.1:1212/api/v1/stats?token=MyAccessToken" > evidence/before.json
    ```
 
 3. Send one announce with an IPv6 client address in the forwarded header:
@@ -112,25 +118,36 @@ admin = "MyAccessToken"
 
    Result: `announce:200`. The response body is a bencoded announce response (`d8:completei1e10:incompletei0e8:intervali120e...`).
 
-4. Read the statistics again, after the request ([evidence/after.txt](evidence/after.txt)).
+4. Read the statistics again, after the request, and store the raw response:
 
-5. Stop the tracker with `kill <PID>` and confirm the process is gone.
+   ```sh
+   curl -s "http://127.0.0.1:1212/api/v1/stats?token=MyAccessToken" > evidence/after.json
+   ```
+
+5. Stop the tracker. The repeat ended when the shell session closed and sent the tracker `SIGTERM`; the log ends with
+   "Torrust tracker successfully shutdown." and the ports 7070 and 1212 were free afterwards.
 
 #### Observed Result
 
-Baseline (step 2), only the TCP and the relevant UDP fields are shown:
+The stored responses are the raw `curl` output. The excerpts below come from this filter, which only selects fields:
 
-```text
-{'tcp4_connections_handled': 0, 'tcp4_announces_handled': 0, 'tcp4_scrapes_handled': 0, 'tcp6_connections_handled': 0, 'tcp6_announces_handled': 0, 'tcp6_scrapes_handled': 0}
+```sh
+jq -c 'with_entries(select(.key|test("^(tcp|udp4_announces|udp6_announces)")))' evidence/before.json evidence/after.json
+```
+
+Baseline (step 2):
+
+```json
+{"tcp4_connections_handled":0,"tcp4_announces_handled":0,"tcp4_scrapes_handled":0,"tcp6_connections_handled":0,"tcp6_announces_handled":0,"tcp6_scrapes_handled":0,"udp4_announces_handled":0,"udp6_announces_handled":0}
 ```
 
 After the IPv6 forwarded announce (step 4):
 
-```text
-{'tcp4_connections_handled': 1, 'tcp4_announces_handled': 1, 'tcp4_scrapes_handled': 0, 'tcp6_connections_handled': 0, 'tcp6_announces_handled': 0, 'tcp6_scrapes_handled': 0}
+```json
+{"tcp4_connections_handled":1,"tcp4_announces_handled":1,"tcp4_scrapes_handled":0,"tcp6_connections_handled":0,"tcp6_announces_handled":0,"tcp6_scrapes_handled":0,"udp4_announces_handled":0,"udp6_announces_handled":0}
 ```
 
-The UDP counters are unchanged at 0 (`udp4_*`, `udp6_*`, see [evidence/after.txt](evidence/after.txt)).
+The UDP counters are unchanged at 0 (`udp4_*`, `udp6_*`, see [evidence/after.json](evidence/after.json)).
 
 The tracker log ([evidence/tracker.log](evidence/tracker.log)) records the announce request
 (`request{method=GET uri=/announce?info_hash=...&event=started...}`) and no error. The log does not print the
@@ -157,4 +174,5 @@ reproduction does not depend on that decision: the observed counter value is the
   Remediation: moved the setting under `[http_trackers.network]`. The schema-3 location is
   `packages/configuration/src/v3_0_0/mod.rs` (see the `on_reverse_proxy` examples there). This was a configuration
   error in the run, not a tracker defect.
-- No rerun was needed for the reproduction.
+- Rerun (2026-10-22 18:09 UTC): the first run kept only a filtered copy of the statistics. The repeat stored the raw
+  responses and the complete log; the counters matched the first run (`tcp4_announces_handled` 0 to 1, `tcp6` 0).
