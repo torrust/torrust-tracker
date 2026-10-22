@@ -3,7 +3,7 @@
 use crate::github::PullRequestRef;
 
 /// The usage text carried by a usage error.
-pub const USAGE: &str = "usage: ci-gate classify --base-branch <branch>  (changed paths on stdin, NUL-separated, as `git diff --name-only -z` prints them); ci-gate verdict [--override-actor <login>]  (JSON on stdin: {\"classification\": <the classify output>, \"results\": {<group>: success|failure|cancelled|skipped}}); ci-gate github-verdict --repo <owner/name> --pull-request <number> --head-sha <sha> --classification <file> [--gh <program>]  (reads the results and the override from GitHub through `gh`)";
+pub const USAGE: &str = "usage: ci-gate classify --base-branch <branch>  (changed paths on stdin, NUL-separated, as `git diff --name-only -z` prints them); ci-gate verdict [--override-actor <login>]  (JSON on stdin: {\"classification\": <the classify output>, \"results\": {<group>: success|failure|cancelled|skipped}}); ci-gate github-verdict --repo <owner/name> --pull-request <number> --head-sha <40-hex-commit-id> --classification <file> [--gh <program>]  (reads the results and the override from GitHub through `gh`)";
 
 /// A parsed command.
 #[derive(Debug, Eq, PartialEq)]
@@ -216,6 +216,21 @@ mod tests {
     }
 
     const SHA: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+
+    #[test]
+    fn it_should_tell_in_the_usage_that_the_head_commit_id_has_forty_hexadecimal_digits() {
+        // Arrange
+        let required_form = "--head-sha <40-hex-commit-id>";
+
+        // Act
+        let usage = USAGE;
+
+        // Assert
+        assert!(
+            usage.contains(required_form),
+            "the usage must show the form that `PullRequestRef::new` requires, so a user can correct it without trying: {usage}"
+        );
+    }
 
     #[rstest]
     #[case::the_default_program(
