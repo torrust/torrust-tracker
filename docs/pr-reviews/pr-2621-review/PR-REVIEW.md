@@ -45,7 +45,7 @@ Four reviews were submitted and all findings are handled. Copilot's review 56035
 carries no further assertion. The maintainer's reviewer `da2ce7` submitted review 5604621746 (DISMISSED,
 2026-10-21 18:49:37 UTC) with five inline threads, which carry the reviewer's own IDs F1 to F5. Those IDs collide
 with the audit IDs already given to Copilot's findings, so they are audit F4 to F8 and the reviewer's ID is kept in
-each detail entry. The same reviewer's second review, 5605012005 (DISMISSED, 2026-10-21 19:20:20 UTC), read head
+each detail entry. The same reviewer's second review, 5605012005 (DISMISSED, 2026-10-21 19:20:20 UTC),
 read the head with the subject `docs(issues): revise tcp4/tcp6 counter draft for review findings F1-F5` and has five inline threads (reviewer IDs F6 to F10, audit F9 to F13) and one review-body assertion that
 a round-1 finding was only partly repaired (audit F14, a re-raise of F8, with no thread).
 
@@ -425,8 +425,8 @@ F18 asks for a fully qualified path.
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4352294736>
 - Concern: the audit named the heads that two reviews read by abbreviated commit id; no durable reference may cite a
   branch commit by id.
-- Solution: the three mentions now use the commit subjects. Two Processing Log lines were edited for this; a
-  correction entry in the log names them.
+- Solution: the three mentions now use the commit subjects. One Processing Log entry (18:34 UTC) and two head
+  references in the Findings introduction were edited for this; a correction entry in the log names them.
 - Current-tree verification: a scan of every 7 to 40 character hexadecimal token in the draft folder and the audit
   against `torrust/develop` leaves only `80c45b606` and `d4c43bd3a`, both on `develop`.
 - Resolution reference: docs(pr-reviews): record the third review round and drop branch commit ids from the PR #2621 audit
@@ -443,7 +443,8 @@ F18 asks for a fully qualified path.
   `last-updated-utc` predates its edit.
 - Solution: the draft's entry reads 18:13 UTC and the evidence stamp was re-stamped. The audit's 18:20 entry is not
   rewritten because the Processing Log is append-only; a correction entry states that the entry was committed at
-  18:17 UTC.
+  18:17 UTC. The one in-place edit to a log entry (the 18:34 entry's head reference, which F21 required) is recorded
+  in its own correction entry.
 - Current-tree verification: `git log --format='%aI %s'` lists the commit carrying the draft's 18:13 entry at
   18:13:11Z and the commit that carried the audit's resolution entry at 18:17:09Z.
 - Resolution reference: docs(issues): correct the draft's progress-log stamp and record the third review round
