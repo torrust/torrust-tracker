@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/http-core-tcp-family-counters-clients-or-server/ISSUE.md
 branch: "{issue-number}-http-core-tcp-family-counters-clients-or-server"
 related-pr: null
-last-updated-utc: "2026-10-22 18:58"
+last-updated-utc: "2026-10-22 19:02"
 semantic-links:
   skill-links:
     - create-issue
@@ -218,9 +218,10 @@ issue and pull requests. This draft's own pull request (#2621) carries only the 
 - 2026-10-21 18:50 UTC - AI assistant (GitHub Copilot, Copilot SDK in VS Code) - Reproduced the reverse-proxy mixed-family case (IPv6 `X-Forwarded-For` over the IPv4 listener); `tcp4_announces_handled` 0→1, `tcp6` stayed 0; addressed the three Copilot review threads on the draft - `evidence/`, `manual-verification-evidence.md` V1
 - 2026-10-21 18:55 UTC - AI assistant (GitHub Copilot, Copilot SDK in VS Code) - Revised the draft for the second PR #2621 review (F1–F5): label source moved to `event.rs`; mapped-address options and the dual-stack route (M3, not yet reproduced) added; T2 split into red and T3 fix, with T4 as the green recheck; the documentation-only option moved to Open Decisions; required sections completed
 - 2026-10-22 18:07 UTC - AI assistant (GitHub Copilot, Copilot SDK in VS Code) - Recorded the maintainer's decisions: mapped client counts as IPv6 (option (b), the maintainer's decision; a #1375 precedent was cited here and withdrawn, see the 18:58 UTC entry); docs-first sequence with characterization tests, a re-evaluation and an ADR; no per-client statistics exist. Added the architecture constraints from `events.md` and the shared-services ADR; replanned T1–T6
-- 2026-10-22 18:15 UTC - AI assistant (GitHub Copilot, Copilot SDK in VS Code) - Addressed the second da2ce7 round (review 5605012005, F6–F10): repeated the V1 reproduction and stored the raw responses; per-package UDP cases and scenario M4 added; the mapped-address tests named; V1 time and artifact commit corrected; the Background routes reordered (the first entry's stamp was 18:50, not 18:49)
+- 2026-10-22 18:13 UTC - AI assistant (GitHub Copilot, Copilot SDK in VS Code) - Addressed the second da2ce7 round (review 5605012005, F6–F10): repeated the V1 reproduction and stored the raw responses; per-package UDP cases and scenario M4 added; the mapped-address tests named; V1 time and artifact commit corrected; the Background routes reordered (the first entry's stamp was 18:50, not 18:49)
 - 2026-10-22 18:37 UTC - AI assistant (GitHub Copilot, Copilot SDK in VS Code) - Addressed Copilot's second review (review 5619053291): the evidence commands use explicit repo-relative paths and name the runtime copy of the configuration; the Background path is fully qualified; the development token stays (see `docs/pr-reviews/pr-2621-review/PR-REVIEW.md`)
 - 2026-10-22 18:58 UTC - AI assistant (GitHub Copilot, Copilot SDK in VS Code) - Withdrew the #1375 precedent for the mapped-address rule (review 5619336077, F19): `d4c43bd3a` added only the server-side label `server_binding_address_type`, so option (b) rests on the maintainer's decision
+- 2026-10-22 19:02 UTC - AI assistant (GitHub Copilot, Copilot SDK in VS Code) - Addressed the rest of da2ce7's third round (review 5619336077, F20 to F25): UDP dual-stack cases moved under R3 and M4 reworded (UDP has no case where the binding and client families differ); the reproduction steps split by shell; the 18:15 stamp above corrected to 18:13
 
 ## Acceptance Criteria
 
