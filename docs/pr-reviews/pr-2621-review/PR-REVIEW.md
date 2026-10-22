@@ -82,6 +82,19 @@ partly delivered.
 | F23 | review-finding:pr-2621-f23 | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
 | F24 | review-finding:pr-2621-f24 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F25 | review-finding:pr-2621-f25 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F26 | review-finding:pr-2621-f26 | Human | Nit | formatting | ORIGINAL | FIXED | RESOLVED |
+| F27 | review-finding:pr-2621-f27 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F28 | review-finding:pr-2621-f28 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F29 | review-finding:pr-2621-f29 | Copilot | Nit | documentation | RE_RAISE_OF:F20 | FIXED | RESOLVED |
+
+Copilot's fourth review, 5619691908 (COMMENTED, 2026-10-22 19:24:29 UTC), read the head carrying the third-round audit
+and opened one inline thread. It labels its finding F20, which collides with the audit's F20, so it is audit F29 and
+the reviewer's ID is kept in the detail entry. It re-raises F20: the UDP reworking left acceptance criterion AC2 asking
+for mixed-family cases on both transports.
+
+`da2ce7`'s fourth review, 5619631773 (APPROVED, 2026-10-22 19:19:24 UTC), approves the head and has three non-blocking
+inline threads, F26 to F28, whose IDs are kept. Its body reports the repairs of F19 to F25 and checks, and carries no
+other actionable assertion.
 
 `da2ce7`'s third review, 5619336077 (CHANGES_REQUESTED, 2026-10-22 18:54:57 UTC), has seven inline threads, F19 to F25;
 the reviewer's IDs do not collide with the audit's, so they are kept. F19 is Major and blocks: it shows that the draft
@@ -496,6 +509,70 @@ F18 asks for a fully qualified path.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4352374678>
 
+### F26 - The F21 edit doubled a phrase
+
+- PR number: 2621
+- Source review ID: 5619631773
+- Reviewer finding ID: F26
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4352532013>
+- Concern: the Findings introduction ended one line with "read head" and began the next with "read the head with the
+  subject", so the sentence repeated itself.
+- Solution: the trailing "read head" is dropped.
+- Current-tree verification: `sed -n 46,50p PR-REVIEW.md` shows the line ending "(DISMISSED, 2026-10-21 19:20:20 UTC),"
+  followed by "read the head with the subject".
+- Resolution reference: docs(pr-reviews): fix the doubled phrase and the log-edit account in the PR #2621 audit
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4352752363>
+
+### F27 - The F21 row's account of the log edits disagrees with the log
+
+- PR number: 2621
+- Source review ID: 5619631773
+- Reviewer finding ID: F27
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4352532029>
+- Concern: F21 said two log lines were edited while only the 18:34 entry changed, and F22's append-only reason
+  disagreed with that in-place edit.
+- Solution: F21 now says one log entry and two introduction references were edited, F22 records that this is the one
+  in-place log edit and that it has its own correction entry, and the log gains that entry.
+- Current-tree verification: the F21 Solution, the F22 Solution and the 19:43 correction entry in the Processing Log
+  all name the same single edited entry (18:34 UTC).
+- Resolution reference: docs(pr-reviews): fix the doubled phrase and the log-edit account in the PR #2621 audit
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4352752696>
+
+### F28 - F21 and F25 were reported fixed before the commit that fixes them
+
+- PR number: 2621
+- Source review ID: 5619631773
+- Reviewer finding ID: F28
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4352532038>
+- Concern: the draft's 19:02 progress-log entry listed F20 to F25 as addressed, and the replies for F21 and F25 said
+  FIXED, although the audit commit that fixes them came later. The replies were not re-derived against the pushed
+  tree.
+- Solution: the draft entry lists F20, F22, F23 and F24, and a 19:23 entry records the correction. For this round the
+  fixing commits were pushed before the replies were posted. The replies already posted stay on GitHub.
+- Current-tree verification: `grep -n 'F20, F22, F23 and F24' ISSUE.md` finds the corrected entry.
+- Resolution reference: docs(issues): correct the progress-log entry that listed audit fixes as addressed early
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4352753013>
+
+### F29 - AC2 still asks for mixed-family coverage on both transports
+
+- PR number: 2621
+- Source review ID: 5619691908
+- Reviewer finding ID: F20
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4352581933>
+- Concern: after F20, the regression strategy limits R1 and R2 to HTTP and gives UDP plain-family and mapped-address
+  cases, but AC2 still required mixed-family coverage on both transports, so completion would demand UDP cases the
+  plan excludes.
+- Solution: AC2 names the `http-core` R1–R3 tests and the plain-family and mapped-client cases in `udp-core` and
+  `udp-server`; the Acceptance Verification row matches.
+- Current-tree verification: `grep -n 'AC2' ISSUE.md` shows the criterion and the verification row with the
+  per-package wording, and the regression strategy says UDP has no case where the binding and client families differ.
+- Resolution reference: docs(issues): align acceptance criterion AC2 with the per-package UDP cases
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4352777635>
+
 ## Processing Log
 
 - 2026-10-21 17:24 UTC - Copilot submitted review 5603592801 with three inline threads (F1 to F3).
@@ -527,6 +604,17 @@ F18 asks for a fully qualified path.
   references in the Findings introduction were edited to replace branch commit ids with commit subjects (F21).
 - 2026-10-22 19:05 UTC - Resolved the seven threads after the audit was checked; GraphQL data shows 0 unresolved
   threads.
+- 2026-10-22 19:19 UTC - `da2ce7` approved the head (review 5619631773) with three non-blocking inline threads (F26
+  to F28). Copilot had recommended approval on the previous head and was asked to review the new one.
+- 2026-10-22 19:24 UTC - Copilot submitted review 5619691908 with one inline thread, reviewer ID F20 (audit F29, a
+  re-raise of F20 about acceptance criterion AC2). The 19:20 poll had ended before it arrived.
+- 2026-10-22 19:43 UTC - Verified each claim against the current tree and fixed F26 to F28 in two signed commits
+  (one in the draft folder, one in this audit); pushed them, then replied on the three threads. The F21 and F25
+  replies of the previous round had been posted before their fixing commit was pushed (F28).
+- 2026-10-22 19:43 UTC - Correction: the 18:34 UTC entry in this log was edited in place, to replace its abbreviated
+  head id with the commit subject (F21); that is the only in-place edit to a log entry. The 19:04 entry above names it.
+- 2026-10-22 19:47 UTC - Fixed F29 in one signed commit, pushed it, replied on the thread and resolved it, together
+  with the three threads of review 5619631773 (F26 to F28). GraphQL data shows 0 unresolved threads.
 
 ## Completion Rules
 
