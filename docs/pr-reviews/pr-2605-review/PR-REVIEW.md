@@ -40,7 +40,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Ten reviews were submitted so far, seven by Copilot and three by the reviewer `da2ce7`. Each body repeats its inline threads, so the bodies add
+Eleven reviews were submitted so far, seven by Copilot and four by the reviewer `da2ce7`. Each body repeats its inline threads, so the bodies add
 no rows.
 
 - Review 5599040224 read the head whose subject is "docs(issues): [#2525] propose the design of the override
@@ -75,6 +75,10 @@ no rows.
   reviewer in the PR #2605 audit" and was submitted on 2026-10-22 at 19:05 UTC, with an ACK of that head as an issue
   comment, which adds no row. GitHub shows its state as dismissed. It finds F17 to F22 repaired and carries two inline
   threads, F23 and F24, both Nits, and says that none blocks.
+- Review 5619651796, by `da2ce7`, read the head whose subject is "docs(pr-reviews): record the fourth review of the second
+  reviewer in the PR #2605 audit" and was submitted on 2026-10-22 at 19:21 UTC, with an ACK of that head as an issue
+  comment, which adds no row. GitHub shows its state as dismissed. It finds F23 and F24 repaired and carries one inline
+  thread, F25, a Nit, and says that it does not block.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -101,6 +105,7 @@ no rows.
 | F22 | review-finding:pr-2605-f22 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F23 | review-finding:pr-2605-f23 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F24 | review-finding:pr-2605-f24 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F25 | review-finding:pr-2605-f25 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -437,6 +442,19 @@ no rows.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4352420107
 
+### F25 - The claim that every fix has its own commit does not hold for F20
+
+- PR number: 2605
+- Source review ID: 5619651796
+- Reviewer finding ID: F25
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4352548521>
+- Concern: the retrospective says that every fix has its own signed commit, but the edit of F20 went into the commit of F19, as the audit records. The sentence was rewritten for F24 and kept the claim. Say "every fix but one" and name F20, or drop the claim.
+- Solution: the sentence says "every fix but one" and names F20. The document was then reread for sweeping claims of the same kind, and one more was found and corrected: the slips of the later rounds are "most in the audits and the rest in the session", not "each in the audits". The sentence that the validator failed once was removed by the rewrite, because it also failed on other drafts.
+- Current-tree verification: the commit of F19 holds the F20 edit, and the audit's F20 entry and 18:49 log entry say so.
+- Resolution reference: docs(pr-reviews): say that F20 is the one fix without its own commit in the retrospective
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2605#discussion_r4352751100
+
 ## Processing Log
 
 - 2026-10-21 11:36 UTC - Copilot's review arrived with two threads, F1 and F2. Both were checked against
@@ -501,6 +519,11 @@ no rows.
   posted only after the head that GitHub reports matched the pushed head, and the reviews that hold them name that
   head. Added F23 and F24 to this record, and the typo of one URL in my first draft of the F24 row was fixed before
   the commit.
+- 2026-10-22 19:42 UTC - The second reviewer's review of 19:21 UTC and its ACK of the head of that time arrived with one
+  Nit, F25, correct: a claim that I had kept when I rewrote the sentence for F24. Before fixing it I reread the
+  retrospective for sweeping claims ("every", "each", "all") and corrected one more. The first signed commit of this
+  round failed on a passphrase timeout; I stopped, asked the maintainer, and reran only the same command after the answer.
+  The replies were posted after the head that GitHub reports matched the pushed head.
 
 ## Completion Rules
 
