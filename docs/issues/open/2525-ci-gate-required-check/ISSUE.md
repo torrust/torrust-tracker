@@ -9,7 +9,7 @@ github-issue: 2525
 spec-path: docs/issues/open/2525-ci-gate-required-check/ISSUE.md
 branch: "2525-ci-gate-required-check"
 related-pr: null
-last-updated-utc: "2026-10-22 07:07"
+last-updated-utc: "2026-10-22 07:51"
 semantic-links:
   skill-links:
     - create-issue
@@ -612,6 +612,14 @@ Conventional Commits with narrow scopes and sign every commit with GPG.
   a request, not an option of one (`refactor(ci-gate): [#2525] take only the events to find the override request`), and
   a mutant that removes the caller's check is killed by two tests of the caller. Now 226 unit and 23 command-line tests,
   and two more mutants killed - [`manual-verification-evidence.md`](manual-verification-evidence.md) V11.
+- 2026-10-22 07:51 UTC - GitHub Copilot - Processed Copilot's eighth review of PR #2610 (review 5610658372, two threads, F32 and
+  F33), submitted at 2026-10-22 07:30 UTC. F32: the error of a missing `--head-sha` value still said "a commit id"; it
+  says "a commit id of 40 hexadecimal digits" now (`fix(ci-gate): [#2525] say the form of the head commit id when its
+  value is missing`). F33: an error of `gh` cut to 300 characters did not say so; it ends with a marker when it was cut
+  and not when it fits, exactly at the limit included (`fix(ci-gate): [#2525] mark an error of gh that was cut to the
+  limit`). Both test-first. Of three mutants of the marker, one did not compile and two scripts changed nothing the
+  first time (the formatter had wrapped the text), so I reran them until each ran the tests; all were killed. Now 230
+  unit and 23 command-line tests - [`manual-verification-evidence.md`](manual-verification-evidence.md) V11.
 
 ## Acceptance Criteria
 

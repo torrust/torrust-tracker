@@ -439,10 +439,10 @@ GitHub JSON, and only the label response, which is `[{"name": "ci-override"}]`, 
 last row is the contract that T6b and T6c have to meet: nothing calls the adapter yet, so it changes no
 behavior today.
 
-Forty mutants of `github.rs`, `gh.rs`, and the tests' fixture were applied one at a time and the whole test suite run for each, with the
+Forty-three mutants of `github.rs`, `gh.rs`, and the tests' fixture were applied one at a time and the whole test suite run for each, with the
 file restored afterwards (`diff` against a saved copy). Six of them did not compile the first time, because
 the workspace's `-D warnings` rejects unused code, so they ran no test; they were rewritten and rerun. All
-forty compiled and were killed. In the fifth review round one mutant script stopped on its own assertion
+forty-three compiled and were killed. In the fifth review round one mutant script stopped on its own assertion
 because the formatter had wrapped the text it looked for, so it changed nothing and was rewritten and rerun:
 
 | Mutant                                                                          | Failing tests |
@@ -487,6 +487,9 @@ because the formatter had wrapped the text it looked for, so it changed nothing 
 | a label with no event of it being applied is read as no request                 |             1 |
 | the label need not be on the pull request, as the caller checks it              |             2 |
 | the earliest `labeled` event is used by the simplified request lookup           |             2 |
+| a cut error of `gh` is marked at exactly the limit                              |             1 |
+| a cut error of `gh` is never marked                                             |             1 |
+| an error of `gh` is always marked as cut                                        |             2 |
 
 The call from the fixture's `Drop` to the cleanup function is not covered by a test; a mutant that drops the
 message there would survive.
@@ -512,7 +515,7 @@ The check-runs request now sets `filter=all` (F16). On the head commit of this p
 `docs(pr-reviews): record the fifth review round in the PR #2610 audit`, the request with and without it lists the
 same 22 runs, with no superseded run of a name, so that commit shows only that GitHub accepts the parameter; the fixture tests are what show that the request carries it.
 
-The final run has 226 unit and 23 command-line tests; `cargo clippy`, `cargo +nightly fmt --check`, the
+The final run has 230 unit and 23 command-line tests; `cargo clippy`, `cargo +nightly fmt --check`, the
 documentation build, and `cargo machete` are clean.
 
 ## Failures and Follow-up
