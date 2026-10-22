@@ -284,9 +284,8 @@ fn assess_override(api: &dyn GithubApi, pull_request: &PullRequestRef) -> Overri
         Ok(events) => events,
         Err(error) => return OverrideAssessment::Ignored(format!("cannot read the events of the pull request: {error}")),
     };
-    let request = match override_request(&labels, &events) {
-        Ok(Some(request)) => request,
-        Ok(None) => return OverrideAssessment::NotRequested,
+    let request = match override_request(&events) {
+        Ok(request) => request,
         Err(reason) => return OverrideAssessment::Ignored(reason),
     };
     let Some(actor) = request.actor.as_deref() else {
@@ -328,17 +327,13 @@ fn assess_override(api: &dyn GithubApi, pull_request: &PullRequestRef) -> Overri
     }
 }
 
-/// The latest `labeled` event of the override label, when the label is still on the pull request.
+/// The latest `labeled` event of the override label, for a label that is on the pull request.
 ///
 /// # Errors
 ///
-/// Returns a reason when the label is on the pull request but none of the events says that it was applied,
-/// so that an override that was asked for is not silently ignored.
-fn override_request(labels: &[Label], events: &[Event]) -> Result<Option<OverrideRequest>, String> {
-    if !labels.iter().any(|label| label.name == OVERRIDE_LABEL) {
-        return Ok(None);
-    }
-
+/// Returns a reason when none of the events says that the label was applied, so that an override that was asked
+/// for is not silently ignored.
+fn override_request(events: &[Event]) -> Result<OverrideRequest, String> {
     let latest_applied = events
         .iter()
         .filter(|event| event.kind == "labeled" && event.label.as_ref().is_some_and(|label| label.name == OVERRIDE_LABEL))
@@ -349,10 +344,10 @@ fn override_request(labels: &[Label], events: &[Event]) -> Result<Option<Overrid
         ));
     };
 
-    Ok(Some(OverrideRequest {
+    Ok(OverrideRequest {
         actor: event.actor.as_ref().map(|user| user.login.clone()),
         applied_at: event.created_at.clone(),
-    }))
+    })
 }
 
 /// Whether an override applied at `applied_at` still counts, as `Ok`, or why it does not.
@@ -659,28 +654,8 @@ mod tests {
     }
 
     #[test]
-    fn it_should_find_no_override_request_when_the_label_is_not_on_the_pull_request() {
-        // Arrange
-        let labels = vec![Label { name: "bug".to_string() }];
-        let events =
-            vec![serde_json::from_value::<Event>(labeled_event("maintainer", "2026-10-21T10:00:00Z")).expect("valid event")];
-
-        // Act
-        let request = override_request(&labels, &events);
-
-        // Assert
-        assert!(
-            matches!(request, Ok(None)),
-            "an event about a label that was removed since must not count, and no label is no request"
-        );
-    }
-
-    #[test]
     fn it_should_take_the_actor_and_time_of_the_latest_labeled_event_when_the_label_was_applied_twice() {
         // Arrange
-        let labels = vec![Label {
-            name: OVERRIDE_LABEL.to_string(),
-        }];
         let events: Vec<Event> = vec![
             labeled_event("first", "2026-10-21T10:00:00Z"),
             json!({ "event": "unlabeled", "label": { "name": "ci-override" }, "actor": { "login": "first" }, "created_at": "2026-10-21T10:30:00Z" }),
@@ -692,9 +667,7 @@ mod tests {
         .collect();
 
         // Act
-        let request = override_request(&labels, &events)
-            .expect("the events can be read")
-            .expect("the label is on the pull request");
+        let request = override_request(&events).expect("an event of the label being applied is there");
 
         // Assert
         assert_eq!(
@@ -706,9 +679,6 @@ mod tests {
     #[test]
     fn it_should_find_an_unknown_actor_when_the_latest_labeled_event_has_none() {
         // Arrange
-        let labels = vec![Label {
-            name: OVERRIDE_LABEL.to_string(),
-        }];
         let events: Vec<Event> = vec![
             labeled_event("first", "2026-10-21T10:00:00Z"),
             json!({ "event": "labeled", "label": { "name": "ci-override" }, "actor": null, "created_at": "2026-10-21T11:00:00Z" }),
@@ -718,9 +688,7 @@ mod tests {
         .collect();
 
         // Act
-        let request = override_request(&labels, &events)
-            .expect("the events can be read")
-            .expect("the label is on the pull request");
+        let request = override_request(&events).expect("an event of the label being applied is there");
 
         // Assert
         assert_eq!(
