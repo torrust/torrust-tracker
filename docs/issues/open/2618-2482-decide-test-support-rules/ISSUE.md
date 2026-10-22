@@ -9,7 +9,7 @@ github-issue: 2618
 spec-path: docs/issues/open/2618-2482-decide-test-support-rules/ISSUE.md
 branch: "2618-2482-decide-test-support-rules-spec"
 related-pr: null
-last-updated-utc: "2026-10-22 17:18"
+last-updated-utc: "2026-10-22 17:26"
 semantic-links:
   skill-links:
     - create-issue
@@ -90,9 +90,10 @@ Decisions the maintainer already made for #2482 and that bind this subissue:
   and, if O1 is chosen, the mechanism the package's own targets use. The maintainer approves it
   before it is written (see T3).
 - D3: amend DEC-13 with a new DEC entry that links the ADR and corrects its premise.
-- D4: write the migration plan as drafts for rows 2 to 8 of #2482 under
+- D4: write the migration plan as drafts for rows 2 to 9 of #2482 under
   `docs/issues/drafts/2482-<slug>/ISSUE.md`, with destination, final order and the EPIC #1488
-  gating; update the #2482 Subissues table. Row 8 is drafted only if the ADR chooses O1.
+  gating; update the #2482 Subissues table. Rows 8 and 9 are drafted only because the ADR chose O1
+  (row 9 was added on 2026-10-22).
 - D5: link the drafts from findings 1 and 2 of the
   [2026-10-06 coupling report](../1669-overhaul-packages/workspace-coupling-report-2026-10-06.md).
 - Update the #2482 checkpoints, acceptance verification and the inventory (a destination for each
@@ -138,7 +139,7 @@ run.
 | Run MV1 to MV4 inside the real workspace | 32 members and shipped manifests confound the result and risk leaving edits behind. The scratch workspaces isolate Cargo's behaviour; only the packaging baseline (MV3 baseline) runs read-only on the real workspace |
 | Keep verification scripts in the repository | The scenarios test Cargo, not repository code, and the EPIC records that no script is kept. Verbatim commands and manifests in the evidence file let a reviewer repeat them |
 | One ADR per pattern | The rules interlock: the ownership map and the O1 mechanism cut across patterns A, B and D. The EPIC asks for one ADR with one rule per pattern |
-| Create GitHub issues for rows 2 to 8 in this subissue | The maintainer chose strictly one subissue at a time, and each later scope depends on the approved ADR. Drafts carry the plan until their turn |
+| Create GitHub issues for rows 2 to 9 in this subissue | The maintainer chose strictly one subissue at a time, and each later scope depends on the approved ADR. Drafts carry the plan until their turn |
 | Edit DEC-13 in place | `DECISIONS.md` is a log of decisions. Rewriting an adopted entry hides what was decided and why it changed. A new entry that links the ADR and a one-line pointer on DEC-13 keep both visible |
 | Record only a pass/fail summary of the MV scenarios | A summary cannot be re-checked or compared when Cargo changes. Commands, manifests, output and toolchain versions go into the evidence file |
 
@@ -360,7 +361,7 @@ None. The scenarios run as recorded commands.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1   | DONE                   | [`manual-verification-evidence.md`](manual-verification-evidence.md), V1 to V4 and the packaging baseline; no result contradicts the EPIC; scratch workspaces removed (checked by the implementing agent, not yet by a reviewer) |
+| AC1   | DONE                   | [`manual-verification-evidence.md`](manual-verification-evidence.md), V1 to V4c and the packaging baseline; no verification result contradicts the EPIC (the inventory's pattern D claim was corrected separately); scratch workspaces removed (checked by the implementing agent, not yet by a reviewer) |
 | AC2   | TODO                   |          |
 | AC3   | DONE                   | DEC-18 in [`DECISIONS.md`](../1669-overhaul-packages/DECISIONS.md) links the ADR and corrects the premise; DEC-13's status line points to it (checked by the implementing agent) |
 | AC4   | DONE                   | Eight drafts under `docs/issues/drafts/2482-<slug>/` (rows 2 to 9; rows 8 and 9 because the ADR chose O1 and the container build ships the binary) with `epic: 2482`, linked in the EPIC Subissues table and the inventory's destination table; no GitHub issue was created for them (checked by the implementing agent) |
@@ -379,7 +380,7 @@ None. The scenarios run as recorded commands.
 - **Long pole.** This subissue gates #2576, #2583 and #2594 through #2482, and rows 4 to 7 wait on
   #1488. Mitigation: nothing here waits on #1488; the drafts record the ordering so later rows
   start as soon as their gate clears.
-- **Drafts go stale.** Rows 2 to 8 are not issues until their turn, and #1488 subissues change
+- **Drafts go stale.** Rows 2 to 9 are not issues until their turn, and #1488 subissues change
   the environments in the meantime. Mitigation: each later session re-reads its draft against
   `develop` before asking for approval.
 - **Scope creep into implementation.** A scratch result may tempt a manifest change in the real
