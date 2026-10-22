@@ -43,13 +43,21 @@ impl GithubApi for Gh {
     }
 }
 
+/// The most characters of what `gh` printed on stderr that an error keeps.
+const STDERR_LIMIT: usize = 300;
+
 /// The error of a request that `gh` refused: the invocation as it was run, the status, and the start of what
-/// `gh` printed on stderr.
+/// `gh` printed on stderr, marked when it was cut.
 fn failure_message(program: &str, path: &str, status: &str, stderr: &[u8]) -> String {
-    format!(
-        "`{program} api --paginate {path}` failed with {status}: {}",
-        String::from_utf8_lossy(stderr).trim().chars().take(300).collect::<String>()
-    )
+    let stderr = String::from_utf8_lossy(stderr);
+    let stderr = stderr.trim();
+    let kept: String = stderr.chars().take(STDERR_LIMIT).collect();
+    let cut = if stderr.chars().count() > STDERR_LIMIT {
+        "… (truncated)"
+    } else {
+        ""
+    };
+    format!("`{program} api --paginate {path}` failed with {status}: {kept}{cut}")
 }
 
 /// `--paginate` prints one JSON document per page, one after the other.
@@ -110,9 +118,42 @@ mod tests {
             "the message should name the invocation with --paginate, the status, and the error, but was: {message}"
         );
         assert!(
-            message.len() < 200 + "gh: HTTP 403 ".len() + 300,
+            message.len() < 200 + "gh: HTTP 403 ".len() + 300 + " (truncated)".len(),
             "the part of the error that is kept is limited to 300 characters, but the message has {} bytes",
             message.len()
         );
+    }
+
+    #[test]
+    fn it_should_say_that_the_error_was_cut_when_stderr_is_longer_than_the_limit() {
+        // Arrange
+        let stderr = "x".repeat(301);
+
+        // Act
+        let message = failure_message("gh", "repos/owner/repo/x", "exit status: 1", stderr.as_bytes());
+
+        // Assert
+        assert!(
+            message.ends_with("… (truncated)"),
+            "a reader must not take a cut error for a complete one, but the message was: {message}"
+        );
+    }
+
+    #[rstest]
+    #[case::exactly_at_the_limit(300)]
+    #[case::shorter_than_the_limit(10)]
+    fn it_should_not_say_that_the_error_was_cut_when_stderr_fits_the_limit(#[case] length: usize) {
+        // Arrange
+        let stderr = "x".repeat(length);
+
+        // Act
+        let message = failure_message("gh", "repos/owner/repo/x", "exit status: 1", stderr.as_bytes());
+
+        // Assert
+        assert!(
+            !message.contains("truncated"),
+            "an error that is complete must not be marked as cut, but the message was: {message}"
+        );
+        assert!(message.ends_with(&stderr), "the whole error should be kept: {message}");
     }
 }
