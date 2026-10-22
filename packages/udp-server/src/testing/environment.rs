@@ -700,9 +700,10 @@ mod tests {
 
         // Assert
         // Dropping cannot await the listeners, so they stop shortly after. While they run they hold the
-        // shared services, so the holders of those services show whether they stopped.
+        // shared services, so the holders of those services, counted before the drop, show that they ran,
+        // and counted after it, whether they stopped.
         assert!(
-            listener_shared_state_holders(&container).iter().all(|holders| *holders > 1),
+            holders_while_running.iter().all(|holders| *holders > 1),
             "the running listeners should hold the shared services: {holders_while_running:?}"
         );
         tokio::time::timeout(TEST_DEADLINE, async {
