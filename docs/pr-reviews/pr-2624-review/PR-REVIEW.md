@@ -40,6 +40,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 Round 1 (head: the commit whose subject is "docs(issues): [#2618] record the independent reviews, the retrospective and the close-out", pushed when the PR was opened): Copilot's review 5618588089 (COMMENTED, 2026-10-22 17:56:22 UTC) carries one inline thread, R1, and no independently actionable assertion in its body. da2ce7's review 5618664130 (APPROVED, 2026-10-22 18:02:53 UTC) carries ten inline threads, F1 to F10, and no independently actionable assertion in its body; da2ce7 also posted an `ACK` of that head at 18:02:59 UTC on the same head. The finding IDs are the reviewers' own; none collides with another. Severities are the bracketed labels of the source comments. F3 asks for the same change as R1, so it is a re-raise. The ACK names the head that existed before the fixes, so it is stale after the fix commits.
 
+Round 2: da2ce7's review 5619087813 (APPROVED, 2026-10-22 18:36:52 UTC, on the head that carried the round 1 audit record; GitHub now shows it as dismissed) carries three inline threads, F11 to F13, all labelled Nit, and no independently actionable assertion in its body. Its ACK (18:36:57 UTC) names that head and calls the three findings non-blocking. The IDs continue the first round's and collide with none.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | R1 | review-finding:pr-2624-r1 | Copilot | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -53,6 +55,9 @@ Round 1 (head: the commit whose subject is "docs(issues): [#2618] record the ind
 | F8 | review-finding:pr-2624-f8 | Human | Suggestion | correctness | ORIGINAL | FIXED | RESOLVED |
 | F9 | review-finding:pr-2624-f9 | Human | Suggestion | correctness | ORIGINAL | FIXED | RESOLVED |
 | F10 | review-finding:pr-2624-f10 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F11 | review-finding:pr-2624-f11 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
+| F12 | review-finding:pr-2624-f12 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F13 | review-finding:pr-2624-f13 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -171,7 +176,7 @@ Round 1 (head: the commit whose subject is "docs(issues): [#2618] record the ind
 - Reviewer finding ID: F8
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2624#discussion_r4351780906>
 - Concern: `use mockall::automock;` is unconditional in the four `databases/traits/` files, and the `Mock*` re-exports at `databases/mod.rs:66` and `databases/traits/mod.rs:14` are unconditional, so a default build would not compile.
-- Solution: row 3's scope names the four imports and the two re-exports, and adds the dependency audit.
+- Solution: row 3's scope names the four imports and the two re-exports, and adds the dependency audit. Round 2 (F11) found that `databases/traits/mod.rs` has four re-exports (lines 11, 13, 14 and 15), not one; the draft now names them all.
 - Current-tree verification: `grep -n 'use mockall' packages/tracker-core/src/databases/traits/*.rs` and the two re-export lines; after the fix the row 3 draft names them.
 - Resolution reference: docs(issues): [#2482] check direct dependencies and add the audits to the migration drafts
 - Follow-up PR URL: N/A
@@ -204,12 +209,53 @@ Round 1 (head: the commit whose subject is "docs(issues): [#2618] record the ind
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2624#discussion_r4351924243>
 
+### F11 - The tracker-core draft names only one of the four `Mock*` re-exports in `databases/traits/mod.rs`
+
+- PR number: 2624
+- Source review ID: 5619087813
+- Reviewer finding ID: F11
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2624#discussion_r4352118182>
+- Concern: `databases/traits/mod.rs` re-exports all four mocks, at lines 11, 13, 14 and 15, so naming only line 14 (the round 1 F8) leaves three unconditional and a default build would still fail.
+- Solution: the row 3 draft's scope names lines 11, 13, 14 and 15 (all four mocks) and has a progress log entry; the F8 detail above keeps what was raised in round 1.
+- Current-tree verification: read `databases/traits/mod.rs` lines 9 to 16 and `databases/mod.rs:66`; after the fix `grep -n 'lines 11, 13, 14'` finds the new text in the row 3 draft.
+- Resolution reference: docs(issues): [#2482] name all four Mock re-exports in the tracker-core draft
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2624#discussion_r4352191852>
+
+### F12 - The EPIC and inventory stamps are stale
+
+- PR number: 2624
+- Source review ID: 5619087813
+- Reviewer finding ID: F12
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2624#discussion_r4352118197>
+- Concern: the EPIC's `last-updated-utc` (2026-10-22 17:26) predates the commit that edited its DEC-13 paragraph at 18:12Z, with no log entry, and the inventory's stamp (2026-10-21) predates two edits of 2026-10-22; the round 1 F5 fix missed both files.
+- Solution: both files are restamped (the EPIC with the minute, the inventory with the date, its existing format) and the EPIC has a progress log entry for the wording change.
+- Current-tree verification: `git log --format='%cI %s'` for the two files showed the later edits; after the fix `sed -n 9p` of the EPIC and `sed -n 5p` of the inventory show the new stamps.
+- Resolution reference: docs(issues): [#2482] restamp the EPIC and the inventory and log the DEC-13 wording change
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2624#discussion_r4352192210>
+
+### F13 - "So it adds nothing to a non-test build" overstates the case
+
+- PR number: 2624
+- Source review ID: 5619087813
+- Reviewer finding ID: F13
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2624#discussion_r4352118207>
+- Concern: `pub mod test_helpers;` (`tracker-core/src/lib.rs:132`) still puts an empty public module into a non-test build, which pattern C and rule C correct.
+- Solution: the ADR says "it adds no code or dependency to a non-test build, only an empty public module".
+- Current-tree verification: read `lib.rs:132`; after the fix `grep -n 'only an empty public module'` finds the ADR sentence.
+- Resolution reference: docs(adrs): [#2618] say the test_helpers module adds an empty public module
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2624#discussion_r4352192518>
+
 ## Processing Log
 
 - 2026-10-22 17:56 UTC - Copilot submitted review 5618588089 with one inline thread (R1). GraphQL data at the 17:57 UTC poll: 1 thread, unresolved.
 - 2026-10-22 18:02 UTC - da2ce7 submitted review 5618664130 (APPROVED) with ten inline threads (F1 to F10) and posted an ACK for the then-current head. GraphQL data at the 18:05 UTC poll: 11 threads, 11 unresolved.
 - 2026-10-22 18:17 UTC - Verified each claim against the tree, committed the fixes (commit times 18:08, 18:12, 18:13 and 18:14 UTC), pushed them, and replied on every thread (reply times 18:16:56 to 18:17:16 UTC).
 - 2026-10-22 18:18 UTC - Resolved all 11 threads; the reply check exited 0 before resolving, and a GraphQL query at 18:19 UTC showed 11 threads, 0 unresolved. da2ce7's ACK names the head before the fixes; a new ACK is needed on the head that carries this audit record.
+- 2026-10-22 18:36 UTC - da2ce7 submitted review 5619087813 (APPROVED) with three Nit threads (F11 to F13) and posted an ACK for the head that carried the round 1 audit record. GraphQL data: 14 threads, 3 unresolved.
+- 2026-10-22 18:44 UTC - Verified each claim against the tree, committed the three fixes (commit times 18:40 to 18:41 UTC), pushed them, replied on each thread (reply times 18:44:16 to 18:44:20 UTC) and resolved all three. A GraphQL query at 18:44 UTC showed 14 threads, 0 unresolved. That ACK names the head before these fixes, so a new ACK is needed on the head that carries the round 2 audit record.
 
 ## Completion Rules
 
