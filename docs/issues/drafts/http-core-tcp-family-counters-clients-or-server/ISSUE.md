@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/http-core-tcp-family-counters-clients-or-server/ISSUE.md
 branch: "{issue-number}-http-core-tcp-family-counters-clients-or-server"
 related-pr: null
-last-updated-utc: "2026-10-22 19:23"
+last-updated-utc: "2026-10-22 19:45"
 semantic-links:
   skill-links:
     - create-issue
@@ -223,11 +223,12 @@ issue and pull requests. This draft's own pull request (#2621) carries only the 
 - 2026-10-22 18:58 UTC - AI assistant (GitHub Copilot, Copilot SDK in VS Code) - Withdrew the #1375 precedent for the mapped-address rule (review 5619336077, F19): `d4c43bd3a` added only the server-side label `server_binding_address_type`, so option (b) rests on the maintainer's decision
 - 2026-10-22 19:02 UTC - AI assistant (GitHub Copilot, Copilot SDK in VS Code) - Addressed the rest of da2ce7's third round (review 5619336077, F20, F22, F23 and F24): UDP dual-stack cases moved under R3 and M4 reworded (UDP has no case where the binding and client families differ); the reproduction steps split by shell; the 18:15 stamp above corrected to 18:13
 - 2026-10-22 19:23 UTC - AI assistant (GitHub Copilot, Copilot SDK in VS Code) - Corrected the 19:02 entry above (review 5619336077, F28): it listed F21 and F25, which are audit changes made later in the audit commit, as addressed
+- 2026-10-22 19:45 UTC - AI assistant (GitHub Copilot, Copilot SDK in VS Code) - Aligned acceptance criterion AC2 with the regression strategy (Copilot review 5619691908): `http-core` keeps the mixed-family cases, while the UDP packages have plain-family and mapped-client cases only
 
 ## Acceptance Criteria
 
 - [ ] AC1: Doc comments and REST API documentation describe the same meaning of the `tcp4`/`tcp6` and `udp4`/`udp6` counters as the code, including the mapped-client rule (T2).
-- [ ] AC2: Tests R1–R3 pin the behavior for mixed-family and IPv4-mapped IPv6 requests on both transports (T3).
+- [ ] AC2: Tests pin the behavior (T3): R1–R3 in `http-core` for the mixed-family and IPv4-mapped IPv6 requests, and the plain-family and mapped-client cases in `udp-core` and `udp-server`, which have no mixed-family case.
 - [ ] AC3: The re-evaluation outcome (T4) is recorded, and the ADR and `docs/architecture/events.md` state the final decision (T6).
 - [ ] AC4: Only if T4 changes the behavior: M1 reproduced before the fix, the red run recorded, and M2 re-run after it (T5).
 - [ ] `linter all` exits with code `0`
@@ -275,7 +276,7 @@ None planned. The reverse-proxy check is a manual `curl` sequence recorded in th
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
 | AC1 | TODO | T2 commit |
-| AC2 | TODO | R1–R3 tests (T3 commit) |
+| AC2 | TODO | The `http-core` R1–R3 tests and the `udp-core` and `udp-server` cases (T3 commits) |
 | AC3 | TODO | T4 outcome in Open Decisions; T6 ADR and `events.md` |
 | AC4 | TODO | Only if T4 changes the behavior: M1 (`manual-verification-evidence.md` V1), the red run and M2 |
 
