@@ -9,7 +9,7 @@ github-issue: 2618
 spec-path: docs/issues/open/2618-2482-decide-test-support-rules/ISSUE.md
 branch: "2618-2482-decide-test-support-rules-spec"
 related-pr: null
-last-updated-utc: "2026-10-22 17:26"
+last-updated-utc: "2026-10-22 17:29"
 semantic-links:
   skill-links:
     - create-issue
@@ -199,7 +199,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T4 | DONE | D3: add the DEC entry amending DEC-13 | New entry (DEC-18) at the top of `DECISIONS.md` linking the ADR and correcting the `tracker-core/src/test_helpers.rs` premise; DEC-13's status line extended with a pointer to it |
 | T5 | DONE | D4: write the migration drafts for rows 2 to 9 (row 9 added on 2026-10-22) | Drafts `docs/issues/drafts/2482-<slug>/ISSUE.md` with `epic: 2482`, destination, final order, and the #1488 gating (#2416 for rows 4 and 5, #2449 for row 6, #2450 for row 7). Row 8 only if O1 is chosen. Update the #2482 Subissues table and give each inventory item a destination |
 | T6 | DONE | D5: link the drafts from findings 1 and 2 of the 2026-10-06 coupling report | Links resolve; the 2026-10-17 report is untouched |
-| T7 | TODO | Close out | Update the #2482 checkpoints and acceptance verification; re-review this spec's acceptance criteria; implementation completion review and, if warranted, `implementation-retrospective.md` |
+| T7 | DONE | Close out | Update the #2482 checkpoints and acceptance verification; re-review this spec's acceptance criteria; implementation completion review and, if warranted, `implementation-retrospective.md` |
 
 ## Commit Points
 
@@ -224,12 +224,13 @@ Copilot trailer.
 - [x] Spec reviewed and approved by user/maintainer (josecelano, 2026-10-21, through the session's approval prompt)
 - [x] GitHub issue #2618 created, linked as a sub-issue of #2482, and its number added to this spec
 - [x] Spec-only PR merged into `develop` before implementation (PR #2619)
-- [ ] Implementation completed
+- [x] Implementation completed
 - [ ] Automatic verification completed (`linter all`, pre-commit and pre-push checks)
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md` (MV1 to MV4, by the implementing agent)
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] Acceptance criteria reviewed after implementation and updated with evidence (AC2 stays open until the maintainer approves the written ADR)
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed ([`implementation-retrospective.md`](implementation-retrospective.md))
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` (two Task Reviewer entries)
 - [ ] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
@@ -286,6 +287,11 @@ Append one line per meaningful update.
   wording findings: the V3 cycle description and the DEC-13 quote attribution in the ADR, the
   "every inventory item has a draft" claim (now: a destination for every item, a draft for every
   item that moves), the ordering text, and a qualifier on "no result contradicts the EPIC".
+- 2026-10-22 17:29 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 1) - Close-out (task T7):
+  re-reviewed the acceptance criteria (AC1, AC3 to AC6 hold; AC2 waits for the maintainer's approval
+  of the written ADR), recorded the two Task Reviewer reviews in `agent-review-reports.md`, and
+  wrote `implementation-retrospective.md` because the work found material discoveries (the
+  inventory's pattern D error and the container build gap).
 
 ## Acceptance Criteria
 
@@ -391,7 +397,8 @@ None. The scenarios run as recorded commands.
 After implementation, compare the result with this specification. Record invalidated
 assumptions, material design changes, unexpected validation findings, and reusable lessons.
 
-- Retrospective: `Not yet assessed`
+- Retrospective: created, [`implementation-retrospective.md`](implementation-retrospective.md): the inventory's
+  pattern D error, the container build gap and the plan change that added row 9.
 - If needed, create `implementation-retrospective.md` from the repository template at
   `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this issue specification's directory.
 - If no retrospective is needed, add a concise progress-log entry explaining why the work had no
