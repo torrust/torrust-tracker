@@ -9,7 +9,7 @@ github-issue: 2525
 spec-path: docs/issues/open/2525-ci-gate-required-check/ISSUE.md
 branch: "2525-ci-gate-required-check"
 related-pr: null
-last-updated-utc: "2026-10-21 16:18"
+last-updated-utc: "2026-10-22 18:03"
 semantic-links:
   skill-links:
     - create-issue
@@ -40,6 +40,45 @@ Make GitHub enforce that a pull request's CI passed before it can merge, with on
 `CI gate`, that reports on every pull request (code and documentation-only alike), can be
 overridden per pull request by a maintainer without disabling any ruleset, and whose decisions live
 in a Rust tool behind thin workflows that do not lock the project into GitHub Actions.
+
+## Decision of 2026-10-22: Drop the Required Gate and the Override
+
+The Goal above is the original. On 2026-10-22 the maintainer decided not to build the part of it that is
+left: no required `CI gate`, no `ci-override` label, and no orchestrator. This section supersedes the
+Goal, the Scope, and the tasks it names; the rest of the document is kept as the record of what was tried
+and learned.
+
+- **What replaces it.** CI checks stay advisory and no status check is required. The maintainer's signed
+  ACK that names the head commit, together with the merge flow, is the gate. The merge flow is to show the
+  head's CI state before the sign-off and to require a distinct confirmation when it is not all green. That
+  change, and a scheduled audit of the repository rulesets, are tracked in two new issues, which are not
+  created yet.
+- **Why, in order of weight.**
+  1. A label cannot be tied to content cheaply. The review of the T6a adapter (finding F34 of the pull
+     request that was not merged) showed that "the label was applied after the head commit's first check
+     suite" does not identify this pull request's latest push: an already-checked replacement head, or a
+     return to an earlier head, keeps its old suite. The real API offers no cheap pull-request-specific
+     signal: `pushedDate` was null for the commits queried, the check suites and workflow runs of a fork
+     pull request carry an empty `pull_requests` list, and a `head_ref_force_pushed` timeline event would
+     close only the force-push cases. The maintainer's ACK names the commit hash, so it already has the
+     property that the label lacks.
+  2. The original ruleset failed because it could not be satisfied (renamed checks, workflows skipped by
+     path filters) and was disabled around every merge, which also removed the force-push ban. The
+     force-push ban is now its own ruleset, so disabling a rule can no longer remove it. Failures that a
+     maintainer rightly merges past, such as a flaky image download or a lint that a newer toolchain
+     added, and an urgent security fix, are judgment calls that a required check turns into a ruleset toggle.
+     The slow container workflow and the runner queue, which made fixing and retrying costly, are gone
+     with the self-hosted runner.
+  3. T6 and T7 would convert every pull-request workflow behind an orchestrator and add security-sensitive
+     override code, for a mechanism that the ACK already covers.
+- **What stays.** T1 to T3 (the ADR, `classify`, and `verdict`), the T4 evidence and baseline, and the T5
+  evidence about how GitHub behaves are accurate records and stay. The `ci-gate` crate stays with its tests
+  and has no consumer. The T1 ADR has one bullet that says GitHub is asked to require one `CI gate` check;
+  whether to supersede it is a separate decision.
+- **What is dropped.** T6, T7, and T8(b); AC1 to AC3 and AC5 to AC7. AC4 stays met.
+- **A lesson.** The label design was questioned only after 36 findings in 13 reviews of the T6a pull
+  request. Its threat model, the finding that mattered, was visible from the start of T5. See
+  [`review-retrospective.md`](../../../pr-reviews/pr-2605-review/review-retrospective.md).
 
 ## Background
 
@@ -126,7 +165,7 @@ Not applicable. The Rust tool gets unit tests for classification and verdict rul
 
 ## Implementation Plan
 
-Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
+Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DROPPED`.
 
 | ID  | Status      | Task                                            | Notes / Expected Output                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | --- | ----------- | ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -135,9 +174,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T3  | DONE        | Rust verdict                                    | Implemented as the `verdict` subcommand of the `ci-gate` crate on branch `2525-ci-gate-verdict`; decisions approved by the maintainer on 2026-10-20: one JSON object on stdin, `{"classification": <the classify output>, "results": {<group>: success, failure, cancelled, or skipped}}`; the override is `--override-actor <login>` (the Maintain or Admin role check of AC3 belongs to T5); a decided verdict, passing or failing, is a result, so the tool exits with 0 and the workflow reads `verdict`, while input it cannot decide on (unreadable, or a classification that does not list every group once) exits with 1 and prints nothing, so both fail the gate. A needed group that failed, was cancelled, was skipped, or never reported is a problem; a group that is not needed never counts; an override is recorded only when it overrides a problem. 135 unit and 10 command-line tests, 13 of 13 mutants killed. Evidence: [`manual-verification-evidence.md`](manual-verification-evidence.md) V7.                                                |
 | T4  | DONE        | Decision gate: gate cost and override           | In a fork sandbox like #2507's: measure the runner time the gate adds to a documentation-only PR (tool compile included, with and without caching or a prebuilt binary), and verify that a later successful `CI gate` check run from an override-only run supersedes the earlier failing one for the required check. Sandbox runs DONE on 2026-10-21 ([`manual-verification-evidence.md`](manual-verification-evidence.md) V8 and V9): a cold build of the tool costs a median 0.40 runner minutes per job and a prebuilt binary about 0.12; a later check run supersedes an earlier one in both directions for the same job of a workflow, and two workflows with a job named `CI gate` do not combine into a pass. Approved by the maintainer on 2026-10-21: both gate jobs build the tool cold, and a prebuilt binary is adopted only if a later measurement exceeds the AC6 bound, which is at most 1.0 runner minute added at the median to a documentation-only pushed head (two tool runs). |
 | T5  | DONE        | Decision gate: cross-run state for the override | A `labeled` or `unlabeled` event starts a new workflow run that cannot read the earlier run's `needs` results, and later events do not say who applied an existing label. Define, with a maintainer-approved design: (a) where the gate reads the heavy jobs' results for the head SHA (for example the checks API, persisted artifacts, or rerunning the jobs); (b) where it reads label provenance (for example the issue events API) and how it verifies the actor's Maintain or Admin role; (c) the token permissions this needs on fork pull requests, whose `GITHUB_TOKEN` is read-only, and the trust boundary of each input; (d) whether an override survives a new push (`synchronize`) or applies only to the head SHA it was granted for. Prove it with hosted runs in a sandbox for label added, label removed, and a push after an override. Keep provider queries in a thin adapter so the verdict stays provider-neutral. Sandbox runs DONE on 2026-10-21 ([`manual-verification-evidence.md`](manual-verification-evidence.md) V10); the design is in "T5 Design Proposal: the Override Across Runs", approved by the maintainer on 2026-10-21 as proposed. |
-| T6  | TODO        | Orchestrating workflow                          | Convert the pull-request triggers of the heavy workflows into `workflow_call` invocations from one orchestrator; keep `push` triggers; final `CI gate` job; `labeled`/`unlabeled` handling that only re-evaluates the verdict. Follow `implement-workflow`. `CI gate` lands reporting but **not required**: no ruleset change in T6. Before T7, observe it on at least one real code PR and one real documentation-only PR (M1, M2 without the required rule) and record both runs. Split on 2026-10-21 into three steps, each its own pull request: T6a, the Rust adapter that fetches the raw GitHub API responses and turns them into the verdict input, with the contract for the group job names, the stale-override check, and the role check, and no workflow change; T6b, one workflow converted behind the orchestrator, tried in the fork sandbox first; T6c, the other workflows, one commit each. |
-| T7  | TODO        | Ruleset and documentation                       | Only after T6 is observed on real PRs, and only with explicit maintainer approval: add the required `CI gate` context (Actions app, not strict) to the rulesets. Save the ruleset JSON before and after under `evidence/`, and record the rollback command in `docs/github-rulesets.md`, so a broken gate can be removed in one step without disabling a ruleset. Update `docs/github-rulesets.md`, the `merge-pull-request` override procedure, and `implement-workflow`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| T8  | IN_PROGRESS | Measure                                         | Not done in this issue, so #2525 can close without a waiting period (the same decision as #2507 T7, 2026-10-15). (a) DONE on 2026-10-21: [`pr-ci-cost-baseline.md`](pr-ci-cost-baseline.md) records the "before" runner time per pushed head and per pull request for documentation-only and code pull requests, from every run of the 98 pull requests merged since 7 October, with the raw per-run data under `evidence/`. (b) When T7 lands, draft and create a follow-up measurement issue that compares at least two weeks after T7 with (a), and link it here.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| T6  | DROPPED     | Orchestrating workflow                          | Dropped by the decision of 2026-10-22. T6a, the adapter, was implemented and reviewed in a pull request that is not merged. Original task: Convert the pull-request triggers of the heavy workflows into `workflow_call` invocations from one orchestrator; keep `push` triggers; final `CI gate` job; `labeled`/`unlabeled` handling that only re-evaluates the verdict. Follow `implement-workflow`. `CI gate` lands reporting but **not required**: no ruleset change in T6. Before T7, observe it on at least one real code PR and one real documentation-only PR (M1, M2 without the required rule) and record both runs. Split on 2026-10-21 into three steps, each its own pull request: T6a, the Rust adapter that fetches the raw GitHub API responses and turns them into the verdict input, with the contract for the group job names, the stale-override check, and the role check, and no workflow change; T6b, one workflow converted behind the orchestrator, tried in the fork sandbox first; T6c, the other workflows, one commit each. |
+| T7  | DROPPED     | Ruleset and documentation                       | Dropped by the decision of 2026-10-22. Original task: Only after T6 is observed on real PRs, and only with explicit maintainer approval: add the required `CI gate` context (Actions app, not strict) to the rulesets. Save the ruleset JSON before and after under `evidence/`, and record the rollback command in `docs/github-rulesets.md`, so a broken gate can be removed in one step without disabling a ruleset. Update `docs/github-rulesets.md`, the `merge-pull-request` override procedure, and `implement-workflow`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| T8  | DONE        | Measure                                         | Not done in this issue, so #2525 can close without a waiting period (the same decision as #2507 T7, 2026-10-15). (a) DONE on 2026-10-21: [`pr-ci-cost-baseline.md`](pr-ci-cost-baseline.md) records the "before" runner time per pushed head and per pull request for documentation-only and code pull requests, from every run of the 98 pull requests merged since 7 October, with the raw per-run data under `evidence/`. (b) Dropped by the decision of 2026-10-22: there is no T7 to measure.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 
 ## Delivery Sequence
 
@@ -215,6 +254,9 @@ observed results with UTC times, and its cleanup in
   maintainer approves the design before T6 starts.
 
 ### T5 Design Proposal: the Override Across Runs
+
+Superseded by the decision of 2026-10-22: the override is dropped. The sandbox evidence stays valid as a record
+of how GitHub behaves.
 
 Proposed on 2026-10-21 from the sandbox runs of
 [`manual-verification-evidence.md`](manual-verification-evidence.md) V8 to V10, and approved by the
@@ -500,24 +542,34 @@ Conventional Commits with narrow scopes and sign every commit with GPG.
   first revision of the T5 workflow and say which runs used it`). The other finding repeats, a fourth time, that the
   rows of the review audit's table start with `||`; the file was fetched again from the GitHub contents API and no
   line does.
+- 2026-10-22 18:03 UTC - GitHub Copilot - The maintainer decided to drop the required `CI gate`, the `ci-override` label, and the
+  orchestrator, and to keep CI checks advisory with the signed, commit-named ACK and the merge flow as the gate
+  (section "Decision of 2026-10-22"). The trigger was the review of the T6a adapter: its freshness rule for the label
+  could not be made to identify a pull request's latest push without an API that GitHub does not give, and the
+  maintainer saw that the ACK already has that property. I had researched the API and offered options inside the
+  design; the maintainer questioned the design itself, which I should have done earlier. T6, T7, and T8(b) and the
+  acceptance criteria that depend on them are marked dropped, the T5 design is marked superseded, and
+  `docs/github-rulesets.md` no longer says the gate is planned. The pull request of the adapter is not merged. Two
+  new issues are proposed and not created yet: the port of the merge tool to Rust with the CI-state warning, and a
+  scheduled audit of the rulesets.
 
 ## Acceptance Criteria
 
-- [ ] AC1: Every pull request, code or documentation-only, reports exactly one `CI gate` check.
-- [ ] AC2: GitHub rejects the maintainer merge push while `CI gate` is failing, pending, or missing,
+- [ ] DROPPED (decision of 2026-10-22): AC1: Every pull request, code or documentation-only, reports exactly one `CI gate` check.
+- [ ] DROPPED (decision of 2026-10-22): AC2: GitHub rejects the maintainer merge push while `CI gate` is failing, pending, or missing,
       and accepts it when `CI gate` passes, with no ruleset disabled at any point.
-- [ ] AC3: A maintainer-applied `ci-override` label makes `CI gate` pass without rerunning the heavy
+- [ ] DROPPED (decision of 2026-10-22): AC3: A maintainer-applied `ci-override` label makes `CI gate` pass without rerunning the heavy
       jobs, the explanation names the actor and the overridden failures, and a label from an actor
       without the Maintain or Admin role does not count. The gate reads the earlier results and the
       label provenance from the sources approved in T5, and behaves as T5 decided after a new push.
 - [x] AC4: Change detection selects the same job groups as today's workflow path filters for every
       tested path rule.
-- [ ] AC5: Workflow YAML contains no change classification or verdict logic; both live in the Rust
+- [ ] DROPPED (decision of 2026-10-22): AC5: Workflow YAML contains no change classification or verdict logic; both live in the Rust
       tool with unit tests.
-- [ ] AC6: A documentation-only pull request's CI runner time stays within the bound approved in T4: the
+- [ ] DROPPED (decision of 2026-10-22): AC6: A documentation-only pull request's CI runner time stays within the bound approved in T4: the
       gate adds at most 1.0 runner minute at the median to a pushed head, with its two tool runs, compared
       with the baseline in [`pr-ci-cost-baseline.md`](pr-ci-cost-baseline.md).
-- [ ] AC7: The CI-portability ADR is merged and `docs/github-rulesets.md` lists the `CI gate` rule.
+- [ ] DROPPED (decision of 2026-10-22): AC7: The CI-portability ADR is merged and `docs/github-rulesets.md` lists the `CI gate` rule.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
@@ -580,6 +632,9 @@ files and workflow runs for the 60 latest merged pull requests with the `ci-gate
 | AC7   | TODO                   |                                                                                                                                     |
 
 ## Risks and Trade-offs
+
+The risks below were written for the gate and the override, which are dropped by the decision of 2026-10-22.
+They are kept as the record.
 
 - **Gate cost on documentation-only PRs.** Compiling a Rust tool in every PR can cost minutes and
   erase the #1743 fast path. Mitigation: T4 measures it and chooses caching, a minimal-dependency
