@@ -54,9 +54,9 @@ DEC-13 (2026-06-11) put the three server environments in public `src/testing/` m
 by external test packages", on the premise that `tracker-core/src/test_helpers.rs` already did the
 same. The modules' own documentation adds that each is "exported unconditionally" and "compiled in
 all build profiles". That module is declared `pub mod`, but its content is `#[cfg(test)]` and
-crate-private (`pub(crate) mod tests`), so it adds nothing to a non-test build and the premise was
-wrong: pattern A is the only pattern that ships test code and test-only dependencies in production
-builds.
+crate-private (`pub(crate) mod tests`), so it adds no code or dependency to a non-test build, only an
+empty public module, and the premise was wrong: pattern A is the only pattern that ships test code
+and test-only dependencies in production builds.
 
 Every workspace member without `publish = false` is planned to be published to crates.io (the
 [independent versioning ADR](20260629000000_adopt_independent_package_versioning.md)). Publishability
