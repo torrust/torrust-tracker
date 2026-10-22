@@ -186,4 +186,3 @@ the override is valid
 probe: permission of da2ce7: read
 probe: permission of octocat: read
 {"verdict":"pass","problems":[{"group":"db-benchmarking","problem":"failure"}],"overridden_by":"josecelano","explanation":"overridden by `josecelano`; needed groups without a success: db-benchmarking (failure)"}
-
