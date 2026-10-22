@@ -488,8 +488,9 @@ Append one line per meaningful update.
   ([spec](../../closed/2582-1669-remove-health-check-self-dev-dependency/ISSUE.md))
 - Related decisions: DEC-13 in [`DECISIONS.md`](../1669-overhaul-packages/DECISIONS.md)
   (relocated the environments to public `src/testing/` modules); its premise that
-  `tracker-core/src/test_helpers.rs` was the same pattern does not hold, because that module is
-  `#[cfg(test)]` and private to its crate.
+  `tracker-core/src/test_helpers.rs` was the same pattern does not hold, because that module's
+  content is `#[cfg(test)]` and crate-private (the module itself is a `pub mod`, empty in a non-test
+  build).
 - Related ADRs: [`20260629000000_adopt_independent_package_versioning.md`](../../../adrs/20260629000000_adopt_independent_package_versioning.md)
 - Baseline issue: #2446
 - Shutdown overhaul EPIC: #1488, with subissues that change the environments (#2471 is closed):

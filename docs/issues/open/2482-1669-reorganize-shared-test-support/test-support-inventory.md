@@ -70,9 +70,9 @@ and stops it. All four alias `Environment<Running>` as `Started`; only `axum-htt
 DEC-13 (2026-06-11) moved the three server environments from `src/environment.rs` to
 `src/testing/environment.rs`. Each `testing/mod.rs` says the module is "exported unconditionally
 from `lib.rs` so that external test packages can import it" and "compiled in all build profiles".
-DEC-13 cited `tracker-core/src/test_helpers.rs` as the existing pattern, but that module is
-`#[cfg(test)]`-gated and private to its crate (pattern C), so it never shipped code or
-dependencies to production.
+DEC-13 cited `tracker-core/src/test_helpers.rs` as the existing pattern, but that module's
+content is `#[cfg(test)]`-gated and crate-private (pattern C; the module is a `pub mod`, empty in a
+non-test build), so it never shipped code or dependencies to production.
 
 The production application does not use these environments: the root crate starts the same
 servers through its own bootstrap jobs in `src/bootstrap/jobs/`.
@@ -92,6 +92,12 @@ Normal dependencies that production source does not use, only the module above:
 | `axum-http-server` | `torrust-tracker-swarm-coordination-registry` |
 | `udp-server` | `torrust-tracker-swarm-coordination-registry` |
 | `axum-health-check-api-server` | `torrust-tracker-configuration` |
+
+The table lists workspace dependencies only. Third-party normal dependencies that only test code
+uses are not counted: the review of #2618 found two in `axum-http-server`, `torrust-clock` (used
+only in `#[cfg(test)]` code and `src/testing/environment.rs`) and `torrust-info-hash` (used only in
+test modules and `src/testing/environment.rs`). Each environment move audits every normal
+dependency of its package.
 
 The 2026-10-06 coupling report (finding 2) listed four of `axum-rest-api-server`'s six; this
 inventory adds `tracker-core` and `rest-api-client`, and the health check's `configuration`.

@@ -54,10 +54,11 @@ compilation changes.
 
 ### Why this alternative was adopted
 
-1. **DEC-13's premise was wrong.** `tracker-core/src/test_helpers.rs` is `#[cfg(test)]` and
-   private to its crate, so it never shipped code or dependencies to production. The public
-   unconditional modules were the only pattern that did: nine normal dependency edges used only
-   by test code, and test infrastructure in every build.
+1. **DEC-13's premise was wrong.** `tracker-core/src/test_helpers.rs` is a `pub mod` whose content
+   is `#[cfg(test)]` and crate-private, so it never shipped code or dependencies to production.
+   The public unconditional modules were the only pattern that did: nine normal workspace
+   dependency edges used only by test code (plus third-party crates that each move's audit
+   finds), and test infrastructure in every build.
 2. **The feature removes both costs and keeps the benefits DEC-13 wanted**: other packages still
    import the environment (as a dev-dependency feature), the code stays next to what it tests,
    and there is one compiled copy of the crate, so unit tests see the same types.

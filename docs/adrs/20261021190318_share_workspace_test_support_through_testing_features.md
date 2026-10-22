@@ -34,8 +34,12 @@ found five patterns in the workspace (32 members on 2026-10-21):
 
 - **A. Public `testing`/`environment` modules** in `axum-http-server`, `axum-rest-api-server`,
   `udp-server` and `axum-health-check-api-server`. Each starts a server for tests and is compiled
-  into every build. They force nine normal dependency edges that production code does not use
-  (six in `axum-rest-api-server`, one each in the other three).
+  into every build. They force nine normal workspace dependency edges that production code does not
+  use (six in `axum-rest-api-server`, one each in the other three), counting an intra-doc link as
+  production use, which is the inventory's method. They also force third-party crates that only
+  test code uses: the review of this ADR found `torrust-clock` and `torrust-info-hash` in
+  `axum-http-server`. The first task of each move audits every normal dependency, workspace or
+  third-party.
 - **B. The shared `test-helpers` crate**, a dev-dependency of seven packages. Its `http` and `udp`
   modules have one consumer (the root crate's `tests/common/`) but pull three unpublished protocol
   and client crates into every dependent.
@@ -49,9 +53,10 @@ found five patterns in the workspace (32 members on 2026-10-21):
 DEC-13 (2026-06-11) put the three server environments in public `src/testing/` modules, "importable
 by external test packages", on the premise that `tracker-core/src/test_helpers.rs` already did the
 same. The modules' own documentation adds that each is "exported unconditionally" and "compiled in
-all build profiles". That module is `#[cfg(test)]` and private
-to its crate, so the premise was wrong: pattern A is the only pattern that ships test code and
-test-only dependencies in production builds.
+all build profiles". That module is declared `pub mod`, but its content is `#[cfg(test)]` and
+crate-private (`pub(crate) mod tests`), so it adds nothing to a non-test build and the premise was
+wrong: pattern A is the only pattern that ships test code and test-only dependencies in production
+builds.
 
 Every workspace member without `publish = false` is planned to be published to crates.io (the
 [independent versioning ADR](20260629000000_adopt_independent_package_versioning.md)). Publishability
@@ -93,13 +98,15 @@ are in the
   and CI and pre-push use stable. (V3)
 - With a path-only self dev-dependency, a plain `cargo test -p <crate>` builds and runs the crate's
   unit tests, `tests/`, `examples/` and doc tests with the feature on, and a module gated by
-  `#[cfg(feature = "testing")]` alone is visible to the unit tests. Without it, only the unit
-  tests run. `cargo test --workspace` passes either way when another member enables the feature,
+  `#[cfg(feature = "testing")]` alone is visible to the unit tests. Without it (O1a), a plain
+  `cargo test -p <crate>` fails to compile `tests/` and `examples/` (exit 101); only `--lib`
+  passes, and only with an `any(test, ...)` gate. `cargo test --workspace` passes either way when another member enables the feature,
   which hides the gap. `required-features` makes `cargo test -p <crate> --all-targets` skip
   `tests/` and `examples/` silently and cannot be put on doc tests. (V4, V4b)
-- With the self dev-dependency, `cargo build` and `cargo build --release` leave the feature off,
-  and `cargo build --all-targets` or `--tests` builds the package's binary with it on, without
-  `--all-features`. (V4c)
+- With the self dev-dependency, `cargo build` and `cargo build --release` leave the feature off.
+  `cargo build --all-targets` builds the package's binary with it on, and so do `--tests` and
+  `cargo test` when the package has an integration test (Cargo then builds the binary for
+  `CARGO_BIN_EXE_<name>`), without `--all-features`. (V4c)
 
 ## Agreement
 
@@ -133,8 +140,10 @@ This rule covers `axum-http-server`, `axum-rest-api-server`, `udp-server` and
 
 1. The environment module is compiled only when the package's `testing` feature is on, with
    `#[cfg(feature = "testing")]` on the module declaration. `testing` is never in `default`.
-2. A dependency that only the module uses is `optional = true` and is enabled by
-   `testing = ["dep:<name>", ...]`, so no implicit feature is created.
+2. A normal dependency, workspace or third-party, that only the module and `#[cfg(test)]` code use
+   is `optional = true` and is enabled by `testing = ["dep:<name>", ...]`, so no implicit feature
+   is created. One that only `#[cfg(test)]` code uses becomes a dev-dependency. The first task of
+   each move audits every normal dependency of the package against these two cases.
 3. **The package's own targets use the path-only self dev-dependency (O1c):**
 
    ```toml
@@ -171,8 +180,11 @@ This rule covers `axum-http-server`, `axum-rest-api-server`, `udp-server` and
 2. A protocol-specific helper used by one package goes in that package's `tests/common/`. The
    `http` and `udp` modules, whose only consumer is the root crate's `tests/common/`, move there.
 3. The move also removes `torrust-tracker-test-helpers` from the `wrappers` lists of the HTTP and
-   UDP protocol crates in `deny.toml`, so `cargo deny check bans` rejects the dependency if it
-   returns.
+   UDP protocol crates in `deny.toml`, and adds a ban entry for `torrust-tracker-client-lib`, which
+   has none today, so `cargo deny check bans` rejects those three dependencies if they return. The
+   server crates, `http-core` and `udp-core` already have `wrappers` lists that do not name
+   `test-helpers`. `tracker-core` and the other domain crates have no entry; the move may add
+   some, and until then rule B.1 is a convention for them, not a check.
 
 ### Rule C: crate-private test helpers are private
 
@@ -232,16 +244,17 @@ package's environment.
 DEC-13 chose public unconditional `src/testing/` modules. This ADR keeps the location (the module
 stays in `src/testing/` of the owning package, so other packages can still import it) and replaces
 the unconditional compilation with the `testing` feature. DEC-13's "existing pattern" premise,
-`tracker-core/src/test_helpers.rs`, was a private `#[cfg(test)]` module and not an example of
-public test infrastructure. DEC-18 in the
+`tracker-core/src/test_helpers.rs`, is a `pub mod` whose content is `#[cfg(test)]` and crate-private,
+so it is not an example of public test infrastructure. DEC-18 in the
 [decision log](../issues/open/1669-overhaul-packages/DECISIONS.md) records the amendment.
 
 ### Consequences
 
 **Positive:**
 
-- The nine test-only dependency edges leave the production builds of the four server packages,
-  and `mockall` leaves `tracker-core`'s; the `Mock*` types and the environments leave the public
+- The nine test-only workspace dependency edges, and the third-party crates each move's audit
+  finds, leave the production builds of the four server packages, and `mockall` leaves
+  `tracker-core`'s; the `Mock*` types and the environments leave the public
   API of a default build, and (once subissue 9 lands) the container image's binary.
 - `test-helpers` loses its protocol and client dependencies, and a guard keeps them out.
 - Each package's targets run with a plain `cargo test -p <package>`, so a contributor does not
