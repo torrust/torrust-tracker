@@ -106,6 +106,7 @@ partly delivered.
 | F47 | review-finding:pr-2621-f47 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F48 | review-finding:pr-2621-f48 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F49 | review-finding:pr-2621-f49 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F50 | review-finding:pr-2621-f50 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 `da2ce7`'s sixth review, 5625253400 (submitted APPROVED at 2026-10-23 07:33:29 UTC and DISMISSED at 07:58:08 UTC by the
 next push), approves the head and has four non-blocking inline threads, F34 to F37, whose IDs are kept. Copilot's sixth
@@ -129,6 +130,10 @@ non-blocking inline threads, F46 and F47, whose IDs are kept. Copilot's ninth re
 `da2ce7`'s tenth review, 5626361760 (submitted APPROVED at 2026-10-23 09:25:31 UTC), approves the head and has two
 non-blocking inline threads, F48 and F49, whose IDs are kept. Copilot's tenth review, 5626385257 (COMMENTED, 2026-10-23
 09:27:47 UTC), recommends approval and has no inline thread or other actionable assertion, so it adds no row.
+
+`da2ce7`'s eleventh review, 5627257515 (submitted APPROVED at 2026-10-23 10:54:59 UTC), approves the head and has one
+non-blocking inline thread, F50, whose ID is kept. Copilot's eleventh review, 5627306966 (COMMENTED, 2026-10-23
+11:00:05 UTC), recommends approval and has no inline thread or other actionable assertion, so it adds no row.
 
 `da2ce7`'s fifth review, 5620094757 (submitted APPROVED at 2026-10-22 19:59:20 UTC and DISMISSED at 2026-10-23 07:12:10
 UTC by the push of the commit with the subject `docs(issues): make the dual-stack scenario M3 configuration explicit`),
@@ -904,6 +909,21 @@ F18 asks for a fully qualified path.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4358646267>
 
+### F50 - F44's verification says the log ends with the 08:44 entry
+
+- PR number: 2621
+- Source review ID: 5627257515
+- Reviewer finding ID: F50
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4358766835>
+- Concern: F44's verification said the progress log ends with the 08:44 entry, which stopped holding when a later entry
+  was added.
+- Solution: the verification records the conclusion that the progress log has an entry for the F41 and F43 edits.
+- Current-tree verification: `grep -n "08:44 UTC" ISSUE.md` finds the entry for the F41 and F43 edits, and F44's
+  verification no longer names a position in the log.
+- Resolution reference: docs(pr-reviews): record a conclusion instead of a log position in F44's verification
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4358784822>
+
 ## Processing Log
 
 - 2026-10-21 17:24 UTC - Copilot submitted review 5603592801 with three inline threads (F1 to F3).
@@ -984,6 +1004,10 @@ F18 asks for a fully qualified path.
 - 2026-10-23 10:42 UTC - Verified each claim against the current tree after a GPG-timeout pause. Fixed F48 in one
   signed commit in the draft folder and F49 in one audit commit, pushed them, then replied on both threads and
   resolved them. GraphQL data shows 0 unresolved threads. The push dismissed review 5626361760.
+- 2026-10-23 10:54 UTC - `da2ce7` approved the head (review 5627257515) with one non-blocking inline thread (F50).
+  Copilot submitted review 5627306966 at 11:00 UTC, which recommends approval.
+- 2026-10-23 11:09 UTC - Verified the claim against the current tree. Fixed F50 in one audit commit, pushed it,
+  replied on the thread and resolved it. GraphQL data shows 0 unresolved threads. The push dismissed review 5627257515.
 
 ## Completion Rules
 
