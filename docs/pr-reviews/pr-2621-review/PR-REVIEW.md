@@ -834,7 +834,7 @@ F18 asks for a fully qualified path.
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4357687183>
 - Concern: the evidence file's stamp was refreshed for F43 but the draft's was not for F41, and the progress log had no entry for the change.
 - Solution: the draft's stamp was refreshed to the commit time and a log entry records the F41 and F43 edits and this correction.
-- Current-tree verification: `grep -n "^last-updated-utc" ISSUE.md` prints the refreshed stamp and the progress log ends with the 08:44 UTC entry.
+- Current-tree verification: `grep -n "^last-updated-utc" ISSUE.md` prints the refreshed stamp, and the progress log has an entry for the F41 and F43 edits.
 - Resolution reference: docs(issues): refresh the draft's stamp and log the F41 and F43 edits
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4357733738>
