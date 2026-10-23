@@ -39,7 +39,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Review rounds 1 to 3 of the maintainer-requested review. Round 2 (review 5618477521, source of F7 to F9) and round 3 (review 5625229542, source of F10 and F11) are described in the Processing Log. The Copilot review (review 5610834925, a summary
+Review rounds 1 to 4 of the maintainer-requested review. Round 2 (review 5618477521, source of F7 to F9), round 3 (review 5625229542, source of F10 and F11) and round 4 (review 5630959120, source of F12 and F13, and the Copilot review 5631096012, source of F14) are described in the Processing Log. The Copilot review (review 5610834925, a summary
 that reports no open issues and has no inline thread) holds no independently actionable assertion and
 has no row. The human review 5616192898 (verdict `APPROVED`, an ACK of the pushed head, and the PR
 conversation comment 6343775843) holds the six inline findings below; its body and the ACK comment
@@ -58,6 +58,9 @@ contain no other request. Finding IDs are the reviewer's own.
 | F9 | review-finding:pr-2623-f9 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F10 | review-finding:pr-2623-f10 | Human | Major | maintainability | ORIGINAL | FIXED | RESOLVED |
 | F11 | review-finding:pr-2623-f11 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F12 | review-finding:pr-2623-f12 | Human | Major | documentation | ORIGINAL | FIXED | RESOLVED |
+| F13 | review-finding:pr-2623-f13 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F14 | review-finding:pr-2623-f14 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -204,6 +207,45 @@ contain no other request. Finding IDs are the reviewer's own.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2623#discussion_r4361329680
 
+### F12 - The PR description still makes the two claims the records corrected, and the merge commit would carry them
+
+- PR number: 2623
+- Source review ID: 5630959120
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2623#discussion_r4361533891
+- Concern: The PR body still said that a UDP request cannot be held in flight and that an abandoned `stop()` cannot leave detached listeners, which rounds 1 and 2 had corrected in the records; the merge tool copies the whole body into the merge commit, which cannot be repaired after merge.
+- Solution: Edited the PR body (the fix is outside the repository tree, so the resolution reference is the PR conversation response that states it): the two sentences now say what the tree has, the evidence reference reads V1 to V7, and the Notes paragraph describes both merge commits. Read the whole body for the same mistake rather than only the two sentences.
+- Current-tree verification: `grep -c 'cannot be held in flight\|cannot leave detached'` on `gh pr view 2623 --json body` returns 0; the body contains one closing keyword, `Closes #2416`; the other body claims were read against the branch.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2623#issuecomment-6369658764
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2623#discussion_r4361841049
+
+### F13 - 'instead of rebasing 23 signed commits' counts the merge and the audit commit
+
+- PR number: 2623
+- Source review ID: 5630959120
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2623#discussion_r4361533896
+- Concern: The audit's F10 solution said 23 signed commits, which counts the merge commit and the round-3 audit commit; the branch held 21 commits on the old base when the update was chosen.
+- Solution: The audit now says 21 and notes what the 23 counted.
+- Current-tree verification: `git rev-list --count a843009af..ec8987e08` prints 21; `grep -n 'rebasing 21' docs/pr-reviews/pr-2623-review/PR-REVIEW.md`; `linter all` exit 0.
+- Resolution reference: `docs(pr-reviews): [#2416] state the commit count of the branch when the update was chosen`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2623#discussion_r4361841393
+
+### F14 - Preserve the four recheck logs in the issue's `evidence/` folder and link them
+
+- PR number: 2623
+- Source review ID: 5631096012
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2623#discussion_r4361636784
+- Concern: V5's claims about lag, warnings, failures, and aborts depended on logs stored only under the git-ignored `.tmp/`, against the evidence template's rule on preserving artifacts, so later reviewers could not audit them from the repository.
+- Solution: Retained the logs of the four M2 and M3 runs, the failed start, and the M1 burst run in `evidence/` with the per-run summaries (the colour-stripped logs minus only the per-request `request{` lines, by a stated command; V8 records their hashes) instead of rerunning, because the originals were available. While doing so I found that my earlier no-warning filter also dropped the `request{` lines, so I rechecked the claims on the full logs with no line excluded and recorded the counts in V5.
+- Current-tree verification: `ls docs/issues/open/2416-2410-si-22-4-stop-producers-before-listeners/evidence/`; `grep -c 'request{'` on each retained log is 0; `sha256sum` of the retained logs matches V8; the full-log counts are 0 in V5; `linter all` exit 0.
+- Resolution reference: `docs(issues): [#2416] retain the M1 to M3 recheck logs in the evidence folder`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2623#discussion_r4361841750
+
 ## Processing Log
 
 - 2026-10-22 14:53 UTC - Review 5616192898 (`APPROVED`, six inline findings) and the ACK comment 6343775843 were submitted by the requested reviewer for the pushed head; the Copilot review 5610834925 of 07:47 UTC had no inline thread.
@@ -211,6 +253,7 @@ contain no other request. Finding IDs are the reviewer's own.
 - 2026-10-22 17:18 UTC - Resolved the six threads after the replies and refreshed the GraphQL thread data: zero unresolved threads, all six resolved by the author.
 - 2026-10-23 07:13 UTC - Review round 2: review 5618477521 (`APPROVED`, an ACK of the head after round 1, and three nits F7 to F9) was submitted 2026-10-22 17:47 UTC. Fixed F7, F8, F9 in three signed commits and pushed them; replied to each thread at 07:12 UTC (GitHub `created_at`) after re-deriving its claim from the current tree, then resolved the three threads and refreshed the GraphQL data: zero unresolved threads.
 - 2026-10-23 15:39 UTC - Review round 3: review 5625229542 (`APPROVED` at the head after round 2, with one Major, not blocking, and one nit, F10 and F11) was submitted 2026-10-23 07:30 UTC. Fixed F11 in a signed commit and updated the branch with `develop` for F10 in a signed merge commit (a merge, not a rebase, so the cited commit ids stay valid), pushed both, and corrected the PR body; replied to each thread at 15:39 UTC (GitHub `created_at`) after re-deriving its claim from the current tree, then resolved the two threads and refreshed the GraphQL data: zero unresolved threads.
+- 2026-10-23 16:29 UTC - Review round 4: review 5630959120 (`CHANGES_REQUESTED`, submitted 15:59 UTC, F12 Major blocking and F13 Nit) and the Copilot review 5631096012 (submitted 16:10 UTC, one inline finding, F14) arrived after round 3. At the maintainer's request the branch was also updated with the latest `develop` (GitHub reported it out of date; a clean signed merge commit). Fixed F14 and F13 in signed commits, fixed F12 by editing the PR body and posted the conversation response that states it, pushed the branch (replies after the push), replied to the three threads at 16:28 UTC (GitHub `created_at`) after re-deriving each claim, then resolved them and refreshed the GraphQL data: zero unresolved threads. A first version of the F12 response overstated what had been checked and was corrected in place, with a note in the comment.
 
 Append entries only. If an entry was rewritten in place, restore the prior entries, then append a
 correction that names the rewritten content; do not rewrite the record again.
