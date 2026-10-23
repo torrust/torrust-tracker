@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2416-2410-si-22-4-stop-producers-before-listeners/ISSUE.md
-last-updated-utc: "2026-10-22 17:10"
+last-updated-utc: "2026-10-23 07:10"
 ---
 
 # Manual Verification Evidence
@@ -278,6 +278,11 @@ proves the order; it does not count how many events the second carried, and the 
 - Goal: answer the review finding that a UDP request can be held in flight, as the crate's own
   `HoldAcceptedRequestsSender` (`packages/udp-server/src/server/launcher.rs`, in the receive-loop shutdown
   tests) does, so the UDP environment can have a deterministic red like the HTTP one.
+- Working-tree state: the tree at the commit
+  `test(udp-server): [#2416] assert the pre-drop listener holders in the UDP drop test` plus the uncommitted test
+  below, which was committed as `test(udp-server): [#2416] hold a UDP request in flight to test the late event when stopping`
+  after these runs. The mutations were applied to `packages/udp-server/src/testing/environment.rs` alone
+  and the file was restored after each. `rustc 1.99.1`, the `test` profile, 2026-10-22.
 - Test: `it_should_count_the_statistics_event_of_a_request_that_is_published_while_stop_drains_the_receive_loop`
   in `packages/udp-server/src/testing/environment.rs`. A wrapping sender (`HoldAcceptedRequestsBeforePublishing`)
   replaces the container's UDP-server event sender, holds each `UdpRequestAccepted` publication, which a request
@@ -290,6 +295,11 @@ proves the order; it does not count how many events the second carried, and the 
   `it_should_count_the_statistics_event_of_a_request_that_is_published_while_stop_drains_the_receive_loop` and
   `it_should_cancel_the_event_listeners_only_after_the_receive_loop_has_finished`. Under mutation U-M3 (the
   listeners guard guards another token) it fails too, with the tests that call `stop()`. The red run used
-  U-M1 and not the tree before the T9 change, because that tree does not have the wrapper hooks the test needs.
+  U-M1 and was not run on the tree before the T9 change: U-M1 cancels the listeners together with the
+  receive loop, which reproduces the one-token order of that tree exactly. **Correction
+  (review-finding:pr-2623-f9):** this bullet first said the tree before the T9 change "does not have the
+  wrapper hooks the test needs". That was wrong: the wrapper and its helper need only the container fields
+  and `stop()`, which that tree also has; the real reason is that U-M1 was the cheaper way to reproduce the
+  one-token order, and the test has not been run on that tree.
 - Green: on the tree without a mutation the module passes (13 tests), and 15 repeated runs of the test passed.
 - The answered-request test stays as regression coverage; no test was removed or merged.
