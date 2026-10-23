@@ -9,7 +9,7 @@ github-issue: 2416
 spec-path: docs/issues/open/2416-2410-si-22-4-stop-producers-before-listeners/ISSUE.md
 branch: "2416-stop-producers-before-listeners"
 related-pr: 2623
-last-updated-utc: "2026-10-23 07:10"
+last-updated-utc: "2026-10-23 07:13"
 semantic-links:
   skill-links:
     - create-issue
@@ -208,6 +208,7 @@ maintainer decides to keep it.
 - 2026-10-22 17:18 UTC - GitHub Copilot (Claude Opus 5.5) - Review round 1 of PR #2623 processed: six findings fixed in six signed commits, pushed, replied to and resolved (zero unresolved threads); audit `docs/pr-reviews/pr-2623-review/PR-REVIEW.md`. The reviewer approved the earlier head and acknowledged it; the acceptance-criteria review is still the maintainer's.
 - 2026-10-23 07:09 UTC - GitHub Copilot (Claude Opus 5.5) - Review round 2 of PR #2623, finding F8: the AC2 cell of the Acceptance Verification table now cites V7 (the UDP deterministic red and green) next to V4.
 - 2026-10-23 07:10 UTC - GitHub Copilot (Claude Opus 5.5) - Review round 2 of PR #2623, finding F9: V7 now names the working-tree state it ran on and states the true reason for using mutation U-M1 (it reproduces the one-token order; the test was not run on the tree before the T9 change), correcting the earlier "does not have the wrapper hooks" claim.
+- 2026-10-23 07:13 UTC - GitHub Copilot (Claude Opus 5.5) - Review round 2 of PR #2623 processed: three nits (F7 to F9) fixed in three signed commits, pushed, replied to and resolved (zero unresolved threads); the reviewer's ACK covers the head after round 1. The audit records both rounds.
 
 ## Architectural Decisions
 
