@@ -40,7 +40,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Four reviews were submitted and all findings are handled. Copilot's review 5603592801 (COMMENTED,
+Ten reviews with a body had been submitted when this record was last updated, and all findings are handled. Copilot's review 5603592801 (COMMENTED,
 2026-10-21 17:24:59 UTC) read the draft at its first commit and has three inline threads, F1 to F3; its body
 carries no further assertion. The maintainer's reviewer `da2ce7` submitted review 5604621746 (DISMISSED,
 2026-10-21 18:49:37 UTC) with five inline threads, which carry the reviewer's own IDs F1 to F5. Those IDs collide
@@ -92,7 +92,8 @@ and opened one inline thread. It labels its finding F20, which collides with the
 the reviewer's ID is kept in the detail entry. It re-raises F20: the UDP reworking left acceptance criterion AC2 asking
 for mixed-family cases on both transports.
 
-`da2ce7`'s fourth review, 5619631773 (APPROVED, 2026-10-22 19:19:24 UTC), approves the head and has three non-blocking
+`da2ce7`'s fourth review, 5619631773 (submitted APPROVED at 2026-10-22 19:19:24 UTC and DISMISSED at 19:42:01 UTC by
+the push of the next commit), approves the head and has three non-blocking
 inline threads, F26 to F28, whose IDs are kept. Its body reports the repairs of F19 to F25 and checks, and carries no
 other actionable assertion.
 
@@ -549,8 +550,9 @@ F18 asks for a fully qualified path.
 - Concern: the draft's 19:02 progress-log entry listed F20 to F25 as addressed, and the replies for F21 and F25 said
   FIXED, although the audit commit that fixes them came later. The replies were not re-derived against the pushed
   tree.
-- Solution: the draft entry lists F20, F22, F23 and F24, and a 19:23 entry records the correction. For this round the
-  fixing commits were pushed before the replies were posted. The replies already posted stay on GitHub.
+- Solution: the draft entry lists F20, F22, F23 and F24, and a 19:23 entry records the correction. The F26 to F28
+  replies were posted after the fixing commits were pushed, but the F27 correction entry reached the audit only in the
+  following commit (F30). The replies already posted stay on GitHub.
 - Current-tree verification: `grep -n 'F20, F22, F23 and F24' ISSUE.md` finds the corrected entry.
 - Resolution reference: docs(issues): correct the progress-log entry that listed audit fixes as addressed early
 - Follow-up PR URL: N/A
