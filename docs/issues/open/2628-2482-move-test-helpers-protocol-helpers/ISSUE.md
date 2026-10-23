@@ -68,7 +68,7 @@ move does not change its published API; #2583 decides any version bump.
   `torrust-tracker-udp-server`, `torrust-tracker-axum-http-server` and the console
   `torrust-tracker-client`), or `test-helpers` could depend on it again unnoticed.
   Maintainer decision (2026-10-23): also add entries for `torrust-tracker-core` and the other
-  domain crates `test-helpers` must not depend on (`swarm-coordination-registry`, `events`), so ADR rule B.1 becomes a check. Each entry's `wrappers` lists the
+  domain crates `test-helpers` must not depend on (`swarm-coordination-registry`, `events`), so ADR rule B.1 is checked for those crates and `client-lib`; for the other workspace crates (for example `primitives`, `rest-api-client`) B.1 stays a convention, as rule B.3 already is. Each entry's `wrappers` lists the
   crates that depend on it today, taken from `cargo metadata` during T4, never `test-helpers`.
   Run `cargo deny check bans`.
 - Update the package descriptions that say `test-helpers` provides "mock servers" (`AGENTS.md`,
