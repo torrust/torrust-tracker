@@ -38,7 +38,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Round 1: da2ce7's review 5625548479 (APPROVED, 2026-10-23 08:05:27 UTC, on the opening head, the commit whose subject is "chore(issues): archive closed issue #2618 spec to docs/issues/closed") carries four inline threads, F1 to F4, and no independently actionable assertion in its body; da2ce7 also posted an ACK of that head at 08:05:31 UTC, which is stale after the fix commits. Copilot had not reviewed when this audit started. The finding IDs are the reviewer's own; none collides with another. Severities are the bracketed labels of the source comments.
+Round 1: da2ce7's review 5625548479 (APPROVED, 2026-10-23 08:05:27 UTC, on the opening head, the commit whose subject is "chore(issues): archive closed issue #2618 spec to docs/issues/closed") carries four inline threads, F1 to F4, and no independently actionable assertion in its body; da2ce7 also posted an ACK of that head at 08:05:31 UTC, which is stale after the fix commits. Copilot had not reviewed when this audit started; its review 5625619558 (COMMENTED, 2026-10-23 08:12:49 UTC, on the same opening head) arrived while the fixes were being prepared. It opens no inline thread and its body, which says "No open issues", only summarizes the change, so it raises no independently actionable assertion and adds no row. The finding IDs are the reviewer's own; none collides with another. Severities are the bracketed labels of the source comments.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -46,6 +46,11 @@ Round 1: da2ce7's review 5625548479 (APPROVED, 2026-10-23 08:05:27 UTC, on the o
 | F2 | review-finding:pr-2625-f2 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F3 | review-finding:pr-2625-f3 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F4 | review-finding:pr-2625-f4 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F5 | review-finding:pr-2625-f5 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F6 | review-finding:pr-2625-f6 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F7 | review-finding:pr-2625-f7 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+
+Round 2: da2ce7's review 5625764397 (APPROVED, 2026-10-23 08:27:33 UTC, on the head that carried the round 1 audit record) carries three inline threads, F5 to F7, and no independently actionable assertion in its body; its ACK (08:27:38 UTC) names that head and calls them non-blocking. The IDs continue the first round's and collide with none.
 
 ## Finding Details
 
@@ -102,11 +107,52 @@ Round 1: da2ce7's review 5625548479 (APPROVED, 2026-10-23 08:05:27 UTC, on the o
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2625#discussion_r4357487327>
 
+### F5 - The PR description still says the approval came after the merge
+
+- PR number: 2625
+- Source review ID: 5625764397
+- Reviewer finding ID: F5
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2625#discussion_r4357594411>
+- Concern: the PR description, which the merge tool copies into the merge commit, said "the maintainer approved the written ADR on 2026-10-23, after the merge", while the files say the approval is the merge; the merge commit `bf03425ef` lists the maintainer's ACK of the head under "ACKs for top commit", so the approval came at the merge. The merged files were right, but the description cannot be corrected after the merge.
+- Solution: the description now says the maintainer approved the written ADR by ACKing and merging #2624, and that the ticks land here because nothing may be pushed to a pull request branch after the ACK. This is a change to the pull request description, not to the branch.
+- Current-tree verification: `git log -1 --format=%b bf03425ef` lists `ACK ff44a2bac...` twice; `gh pr view 2625 --json body` contains the new sentence after the edit (updated 08:29:01 UTC).
+- Resolution reference: docs(pr-reviews): add the review bot review and the event times to the PR 2625 audit
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2625#discussion_r4357609931>
+
+### F6 - The record omits the review bot's review 5625619558
+
+- PR number: 2625
+- Source review ID: 5625764397
+- Reviewer finding ID: F6
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2625#discussion_r4357594422>
+- Concern: Copilot's review 5625619558 (COMMENTED, 08:12:49 UTC, on the opening head) opened no thread and says "No open issues", but the audit neither mentioned it nor logged it.
+- Solution: the Findings introduction says the review carries no inline thread and no independently actionable assertion, and the Processing Log has an entry for it.
+- Current-tree verification: `gh api .../reviews/5625619558` shows state COMMENTED, 08:12:49 UTC, the opening head, and `.../comments` returns 0 comments; its body summarizes the change and says "No open issues".
+- Resolution reference: docs(pr-reviews): add the review bot review and the event times to the PR 2625 audit
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2625#discussion_r4357610207>
+
+### F7 - A log entry carries the poll time instead of the event time
+
+- PR number: 2625
+- Source review ID: 5625764397
+- Reviewer finding ID: F7
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2625#discussion_r4357594429>
+- Concern: the first entry is stamped 08:07 for the submission of review 5625548479, which was submitted at 08:05:27 UTC; 08:07 was the poll time.
+- Solution: the Processing Log is append-only, so the entry is not rewritten; a new entry states that the review was submitted at 08:05:27 UTC and the ACK at 08:05:31 UTC, and that 08:07 is the poll time. The new entries are stamped with the time they were written, so the log stays in order.
+- Current-tree verification: `gh api .../reviews` gives 08:05:27Z for review 5625548479 and the issue comment 08:05:31Z.
+- Resolution reference: docs(pr-reviews): add the review bot review and the event times to the PR 2625 audit
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2625#discussion_r4357610482>
+
 ## Processing Log
 
 - 2026-10-23 08:07 UTC - da2ce7 submitted review 5625548479 (APPROVED) with four inline threads (F1 to F4) and an ACK of the opening head. GraphQL data at the 08:07 UTC poll: 4 threads, 4 unresolved.
 - 2026-10-23 08:13 UTC - Verified each claim against the tree, committed the fixes (commit times 08:10 UTC), pushed them, edited the PR body (F4) and replied on every thread (reply times 08:13:32 to 08:13:37 UTC).
 - 2026-10-23 08:14 UTC - Resolved all 4 threads; the reply check exited 0 before resolving, and a GraphQL query at 08:14 UTC showed 4 threads, 0 unresolved. The ACK names the head before the fixes, so a new ACK is needed on the head that carries this audit record.
+- 2026-10-23 08:28 UTC - da2ce7 submitted review 5625764397 (APPROVED) with three threads (F5 to F7) and an ACK of the head that carried the round 1 audit record (review 08:27:33 UTC, ACK 08:27:38 UTC). GraphQL data at the 08:28 UTC poll: 7 threads, 3 unresolved.
+- 2026-10-23 08:35 UTC - Correction to the first Processing Log entry (F7): review 5625548479 was submitted at 08:05:27 UTC and its ACK posted at 08:05:31 UTC; 08:07 UTC was the poll that saw them. Recorded now: Copilot's review 5625619558 (COMMENTED, submitted 08:12:49 UTC, on the opening head) opened no thread and raised no actionable assertion (F6). Edited the pull request description (F5).
 
 ## Completion Rules
 
