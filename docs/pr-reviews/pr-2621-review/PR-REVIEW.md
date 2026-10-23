@@ -97,12 +97,20 @@ partly delivered.
 | F38 | review-finding:pr-2621-f38 | Copilot | Nit (inferred) | link-integrity | RE_RAISE_OF:F32 | FIXED | RESOLVED |
 | F39 | review-finding:pr-2621-f39 | Copilot | Nit (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
 | F40 | review-finding:pr-2621-f40 | Copilot | Nit (inferred) | metadata | ORIGINAL | FIXED | RESOLVED |
+| F41 | review-finding:pr-2621-f41 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F42 | review-finding:pr-2621-f42 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F43 | review-finding:pr-2621-f43 | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
 
 `da2ce7`'s sixth review, 5625253400 (submitted APPROVED at 2026-10-23 07:33:29 UTC and DISMISSED at 07:58:08 UTC by the
 next push), approves the head and has four non-blocking inline threads, F34 to F37, whose IDs are kept. Copilot's sixth
 review, 5625254189 (COMMENTED, 2026-10-23 07:33:35 UTC), has three inline threads without finding IDs, so they are audit
 F38 to F40 in source order. F38 re-raises F32 (the `closed/` path), this time asking for a note instead of a change of
 path.
+
+`da2ce7`'s seventh review, 5625672791 (submitted APPROVED at 2026-10-23 08:18:20 UTC), approves the head and has three
+non-blocking inline threads, F41 to F43, whose IDs are kept. Copilot's seventh review, 5625709928 (COMMENTED, 2026-10-23
+08:22:07 UTC), recommends approval on the same head and has no inline thread or other actionable assertion, so it adds no
+row. The later dismissal of 5625672791 by the next push is recorded in the Processing Log, not here.
 
 `da2ce7`'s fifth review, 5620094757 (submitted APPROVED at 2026-10-22 19:59:20 UTC and DISMISSED at 2026-10-23 07:12:10
 UTC by the push of the commit with the subject `docs(issues): make the dual-stack scenario M3 configuration explicit`),
@@ -759,6 +767,45 @@ F18 asks for a fully qualified path.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4357395458>
 
+### F41 - The branch clause stops being true once this merges
+
+- PR number: 2621
+- Source review ID: 5625672791
+- Reviewer finding ID: F41
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4357523100>
+- Concern: the note said this branch predates the move and still has the specification under `open/`; after the merge the sentence sits on `develop`, which has only `closed/1349-...`.
+- Solution: the sentence says the specification is archived under `closed/` and was under `open/` until PR #2620 archived it, which holds before and after the merge.
+- Current-tree verification: `git ls-tree -d --name-only torrust/develop docs/issues/open/1349-1347-add-tests-http-core` prints nothing, and the same command for `closed/` prints the directory.
+- Resolution reference: docs(issues): word the #1349 specification note so it holds after the merge
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4357572390>
+
+### F42 - Two audit statements do not match the forge or the tree
+
+- PR number: 2621
+- Source review ID: 5625672791
+- Reviewer finding ID: F42
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4357523109>
+- Concern: the audit stated a fixed review count that was already stale, and F40 said that "the template" quotes `last-updated-utc`, although the evidence template does not.
+- Solution: the audit states no count, and F40 says which templates quote the field and records that the original reply was too broad.
+- Current-tree verification: `sed -n 4p docs/templates/MANUAL-VERIFICATION-EVIDENCE.md` prints the unquoted placeholder, while `docs/templates/ISSUE.md` and `docs/templates/EPIC.md` quote it.
+- Resolution reference: docs(pr-reviews): drop the review count and qualify the template claim in the PR #2621 audit
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4357572707>
+
+### F43 - "a working copy of this file" reads as this evidence file
+
+- PR number: 2621
+- Source review ID: 5625672791
+- Reviewer finding ID: F43
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4357523119>
+- Concern: the evidence paragraph said the recorded run read "a working copy of this file", which a reader takes as the evidence file itself.
+- Solution: the paragraph names `evidence/tracker.toml`.
+- Current-tree verification: `grep -n "working copy" manual-verification-evidence.md` shows the named file.
+- Resolution reference: docs(issues): name the configuration file whose working copy the recorded run read
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4357572990>
+
 ## Processing Log
 
 - 2026-10-21 17:24 UTC - Copilot submitted review 5603592801 with three inline threads (F1 to F3).
@@ -819,6 +866,11 @@ F18 asks for a fully qualified path.
   commits in the draft folder and F34 and F36 in one audit commit, pushed them, then replied on all seven threads and
   resolved them. GraphQL data shows 0 unresolved threads. One draft commit failed the spell-check step because a
   chained command hid the pre-commit failure; a following commit fixed it.
+- 2026-10-23 08:18 UTC - `da2ce7` approved the head (review 5625672791) with three non-blocking inline threads (F41 to
+  F43). Copilot submitted review 5625709928 at 08:22 UTC, which recommends approval and has no inline thread.
+- 2026-10-23 08:28 UTC - Verified each claim against the current tree. Fixed F41 and F43 in two signed commits in the
+  draft folder and F42 in one audit commit, pushed them, then replied on the three threads and resolved them. GraphQL
+  data shows 0 unresolved threads. The push dismissed review 5625672791.
 
 ## Completion Rules
 
