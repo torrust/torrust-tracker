@@ -100,6 +100,8 @@ partly delivered.
 | F41 | review-finding:pr-2621-f41 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F42 | review-finding:pr-2621-f42 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F43 | review-finding:pr-2621-f43 | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
+| F44 | review-finding:pr-2621-f44 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F45 | review-finding:pr-2621-f45 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 `da2ce7`'s sixth review, 5625253400 (submitted APPROVED at 2026-10-23 07:33:29 UTC and DISMISSED at 07:58:08 UTC by the
 next push), approves the head and has four non-blocking inline threads, F34 to F37, whose IDs are kept. Copilot's sixth
@@ -111,6 +113,10 @@ path.
 non-blocking inline threads, F41 to F43, whose IDs are kept. Copilot's seventh review, 5625709928 (COMMENTED, 2026-10-23
 08:22:07 UTC), recommends approval on the same head and has no inline thread or other actionable assertion, so it adds no
 row. The later dismissal of 5625672791 by the next push is recorded in the Processing Log, not here.
+
+`da2ce7`'s eighth review, 5625882977 (submitted APPROVED at 2026-10-23 08:39:30 UTC), approves the head and has two
+non-blocking inline threads, F44 and F45, whose IDs are kept. Copilot's eighth review, 5625943553 (COMMENTED, 2026-10-23
+08:45:30 UTC), recommends approval and has no inline thread or other actionable assertion, so it adds no row.
 
 `da2ce7`'s fifth review, 5620094757 (submitted APPROVED at 2026-10-22 19:59:20 UTC and DISMISSED at 2026-10-23 07:12:10
 UTC by the push of the commit with the subject `docs(issues): make the dual-stack scenario M3 configuration explicit`),
@@ -806,6 +812,32 @@ F18 asks for a fully qualified path.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4357572990>
 
+### F44 - The draft's `last-updated-utc` and progress log were not refreshed for the F41 edit
+
+- PR number: 2621
+- Source review ID: 5625882977
+- Reviewer finding ID: F44
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4357687183>
+- Concern: the evidence file's stamp was refreshed for F43 but the draft's was not for F41, and the progress log had no entry for the change.
+- Solution: the draft's stamp was refreshed to the commit time and a log entry records the F41 and F43 edits and this correction.
+- Current-tree verification: `grep -n "^last-updated-utc" ISSUE.md` prints the refreshed stamp and the progress log ends with the 08:44 UTC entry.
+- Resolution reference: docs(issues): refresh the draft's stamp and log the F41 and F43 edits
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4357733738>
+
+### F45 - F40's verification records a value the file no longer has
+
+- PR number: 2621
+- Source review ID: 5625882977
+- Reviewer finding ID: F45
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4357687187>
+- Concern: F40's verification recorded the stamp value 07:57, which the evidence file no longer holds after a later refresh.
+- Solution: the verification no longer records the value and keeps the quoting point.
+- Current-tree verification: `sed -n 4p manual-verification-evidence.md` prints `last-updated-utc:` followed by a quoted value, which is what F40 now says.
+- Resolution reference: docs(pr-reviews): stop recording a stamp value that changes in the PR #2621 audit
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4357734121>
+
 ## Processing Log
 
 - 2026-10-21 17:24 UTC - Copilot submitted review 5603592801 with three inline threads (F1 to F3).
@@ -871,6 +903,11 @@ F18 asks for a fully qualified path.
 - 2026-10-23 08:28 UTC - Verified each claim against the current tree. Fixed F41 and F43 in two signed commits in the
   draft folder and F42 in one audit commit, pushed them, then replied on the three threads and resolved them. GraphQL
   data shows 0 unresolved threads. The push dismissed review 5625672791.
+- 2026-10-23 08:39 UTC - `da2ce7` approved the head (review 5625882977) with two non-blocking inline threads (F44
+  and F45). Copilot submitted review 5625943553 at 08:45 UTC, which recommends approval and has no inline thread.
+- 2026-10-23 08:48 UTC - Verified each claim against the current tree. Fixed F44 in one signed commit in the draft
+  folder and F45 in one audit commit, pushed them, then replied on both threads and resolved them. GraphQL data shows 0
+  unresolved threads. The push dismissed review 5625882977.
 
 ## Completion Rules
 
