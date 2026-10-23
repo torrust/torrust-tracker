@@ -158,10 +158,12 @@ Choose the correct keyword based on what the PR contains:
 
 The keyword closes the issue wherever it appears in the body, including a sentence that only
 mentions it (for example "the link will change to `Closes #N` later"): the merge tool copies the
-whole body into the merge commit. Do not write a closing keyword followed by an issue reference
-anywhere in the body of a PR that must not close that issue. Before creating or editing the body,
-scan it. The pattern covers the reference forms GitHub accepts after a keyword (`#N`,
-`owner/repo#N`, and an issue URL), with or without a colon:
+whole body into the merge commit. A negated mention closes the issue too: PR #2613 said "Does not
+close #2606" and closed #2606 on merge. Do not write a closing keyword followed by an issue
+reference anywhere in the body of a PR that must not close that issue; write "Related to #N" and
+describe the remaining work without the keyword. Before creating or editing the body, scan it.
+The pattern covers the reference forms GitHub accepts after a keyword (`#N`, `owner/repo#N`, and
+an issue URL), with or without a colon:
 
 ```bash
 grep -niE '\b(close[sd]?|fix(e[sd])?|resolve[sd]?):?[[:space:]]+([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+#[0-9]+|#[0-9]+|https://github\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+/issues/[0-9]+)' <body-file>
@@ -213,6 +215,7 @@ When MCP pull request management tools are available, create the PR with:
 - [ ] Head branch is correct
 - [ ] CI workflows started
 - [ ] Issue linked with the correct keyword (`Related to` for spec-only, `Closes` for implementation)
+- [ ] Body scanned with the closing-keyword `grep` from [Issue Linking Rules](#issue-linking-rules); every match is an issue this PR closes
 - [ ] PR body still matches branch diff and commit history after final rebases/edits
 
 Quick body-accuracy verification:
