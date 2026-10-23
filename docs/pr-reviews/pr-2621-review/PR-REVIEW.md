@@ -90,6 +90,19 @@ partly delivered.
 | F31 | review-finding:pr-2621-f31 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F32 | review-finding:pr-2621-f32 | Copilot | Nit | link-integrity | ORIGINAL | NO_ACTION | NON_RESOLVABLE |
 | F33 | review-finding:pr-2621-f33 | Copilot | Nit | testing | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F34 | review-finding:pr-2621-f34 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F35 | review-finding:pr-2621-f35 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F36 | review-finding:pr-2621-f36 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F37 | review-finding:pr-2621-f37 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F38 | review-finding:pr-2621-f38 | Copilot | Nit (inferred) | link-integrity | RE_RAISE_OF:F32 | FIXED | RESOLVED |
+| F39 | review-finding:pr-2621-f39 | Copilot | Nit (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
+| F40 | review-finding:pr-2621-f40 | Copilot | Nit (inferred) | metadata | ORIGINAL | FIXED | RESOLVED |
+
+`da2ce7`'s sixth review, 5625253400 (submitted APPROVED at 2026-10-23 07:33:29 UTC and DISMISSED at 07:58:08 UTC by the
+next push), approves the head and has four non-blocking inline threads, F34 to F37, whose IDs are kept. Copilot's sixth
+review, 5625254189 (COMMENTED, 2026-10-23 07:33:35 UTC), has three inline threads without finding IDs, so they are audit
+F38 to F40 in source order. F38 re-raises F32 (the `closed/` path), this time asking for a note instead of a change of
+path.
 
 `da2ce7`'s fifth review, 5620094757 (submitted APPROVED at 2026-10-22 19:59:20 UTC and DISMISSED at 2026-10-23 07:12:10
 UTC by the push of the commit with the subject `docs(issues): make the dual-stack scenario M3 configuration explicit`),
@@ -655,6 +668,97 @@ F18 asks for a fully qualified path.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2621#issuecomment-6359572112>
 
+### F34 - Review 5620094757 is recorded as APPROVED although it was dismissed
+
+- PR number: 2621
+- Source review ID: 5625253400
+- Reviewer finding ID: F34
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4357193924>
+- Concern: the audit recorded the review as APPROVED; the push of the M3 commit dismissed it at 07:12:10Z, before the audit commits that mention it.
+- Solution: the Findings introduction records it as submitted APPROVED and dismissed at 07:12:10 UTC by that push, as F30 did for 5619631773.
+- Current-tree verification: `gh api repos/torrust/torrust-tracker/issues/2621/timeline` lists the dismissal of 5620094757 at 2026-10-23T07:12:10Z.
+- Resolution reference: docs(pr-reviews): record the dismissal of review 5620094757 and the F30 reply timing in the PR #2621 audit
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4357393697>
+
+### F35 - The F31 progress-log entry is stamped eleven hours before its commit
+
+- PR number: 2621
+- Source review ID: 5625253400
+- Reviewer finding ID: F35
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4357193929>
+- Concern: the draft entry and `last-updated-utc` said 2026-10-22 20:04, but the commit carrying the change was made at 2026-10-23 07:09:01Z.
+- Solution: the entry carries the commit time (07:09 UTC) and says the edit was made at about 20:04 UTC the previous day and committed after a GPG timeout and a restart.
+- Current-tree verification: `git log --format=%aI` for the F31 commit shows 2026-10-23T08:09:01+01:00, and the entry now reads 2026-10-23 07:09 UTC.
+- Resolution reference: docs(issues): stamp the F31 progress-log entry with its commit time
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4357394055>
+
+### F36 - F30's FIXED reply came before its fix was pushed
+
+- PR number: 2621
+- Source review ID: 5625253400
+- Reviewer finding ID: F36
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4357193932>
+- Concern: the F30 reply (07:14:11Z) preceded the push of its fixing commit, contrary to the 07:16 log entry.
+- Solution: the audit appends a correction entry (08:01 UTC) instead of rewriting the append-only entry.
+- Current-tree verification: the F30 reply was created at 2026-10-23T07:14:11Z, the fixing commit was made at 07:14:04Z and its push ended after the reply; the correction entry states this.
+- Resolution reference: docs(pr-reviews): record the dismissal of review 5620094757 and the F30 reply timing in the PR #2621 audit
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4357394321>
+
+### F37 - M3's keys do not name their tables
+
+- PR number: 2621
+- Source review ID: 5625253400
+- Reviewer finding ID: F37
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4357193936>
+- Concern: `trace_filter` belongs in `[logging]` and `on_reverse_proxy` in `[http_trackers.network]`; both HTTP tracker tables reject unknown fields, so a misplaced key fails at startup.
+- Solution: the M3 row names `[[http_trackers]] bind_address`, `[http_trackers.network] on_reverse_proxy` and `[logging] trace_filter`.
+- Current-tree verification: `packages/configuration/src/v3_0_0/logging.rs` declares `trace_filter` in `Logging`, and `http_tracker.rs` and `network.rs` carry `#[serde(deny_unknown_fields)]`.
+- Resolution reference: docs(issues): name the configuration tables of the M3 settings
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4357394637>
+
+### F38 - The `closed/1349-...` path does not exist in the pull request tree (re-raise of F32)
+
+- PR number: 2621
+- Source review ID: 5625254189
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4357194576>
+- Concern: Copilot asks for a durable URL or a note naming both locations of the #1349 specification, because the `closed/` path is absent from the PR tree.
+- Solution: the Background keeps the `closed/` path (its location on `torrust/develop`) and names both locations, saying that this branch predates the move.
+- Current-tree verification: `ls -d docs/issues/open/1349*` finds the `open/` path on the branch, and `git ls-tree -d --name-only torrust/develop docs/issues/closed/1349-1347-add-tests-http-core` finds the `closed/` path.
+- Resolution reference: docs(issues): note both locations of the #1349 specification in the draft
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4357394900>
+
+### F39 - The configuration copy and `diff` in the evidence are not shown by the steps
+
+- PR number: 2621
+- Source review ID: 5625254189
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4357194650>
+- Concern: the evidence paragraph mentions a `.tmp` copy of the configuration and a `diff` check that the documented steps do not produce.
+- Solution: the claim is removed; the paragraph says only that the stored log comes from the 2026-10-22 18:09 UTC run, which read a working copy, and that the configuration printed in the log is the one in effect.
+- Current-tree verification: `grep -n "diff" manual-verification-evidence.md` finds no remaining claim about the copy.
+- Resolution reference: docs(issues): drop the unreproduced configuration copy check from the evidence
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4357395197>
+
+### F40 - The evidence file's `last-updated-utc` is unquoted
+
+- PR number: 2621
+- Source review ID: 5625254189
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4357194694>
+- Concern: an unquoted date-like frontmatter value can be parsed as a timestamp by some tooling; other files quote it.
+- Solution: the value is quoted and refreshed.
+- Current-tree verification: `sed -n 4p manual-verification-evidence.md` prints `last-updated-utc: "2026-10-23 07:57"`; the template and the draft quote the field too.
+- Resolution reference: docs(issues): quote and refresh the evidence file's last-updated stamp
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4357395458>
+
 ## Processing Log
 
 - 2026-10-21 17:24 UTC - Copilot submitted review 5603592801 with three inline threads (F1 to F3).
@@ -705,10 +809,16 @@ F18 asks for a fully qualified path.
   commits, F30 in one audit commit, and answered F32 with a no-action explanation (the path exists on `develop`);
   pushed the commits, then replied on the F30 and F31 threads and in one pull-request comment for F32 and F33, and
   resolved the two threads. GraphQL data shows 0 unresolved threads.
+- 2026-10-23 07:33 UTC - `da2ce7` approved the head (review 5625253400) with four non-blocking inline threads (F34 to
+  F37); Copilot submitted review 5625254189 with three inline threads (F38 to F40).
 - 2026-10-23 08:01 UTC - Correction (F36): the 07:16 entry above says the commits were pushed and then the replies were
   posted. That holds for the F31 reply and the pull-request comment but not for the F30 reply: it was posted at
   07:14:11Z, a few seconds before its fixing commit was pushed (the push finished at about 07:14:13Z). The entry is not
   rewritten.
+- 2026-10-23 08:03 UTC - Verified each claim against the current tree. Fixed F35, F37, F38, F39 and F40 in five signed
+  commits in the draft folder and F34 and F36 in one audit commit, pushed them, then replied on all seven threads and
+  resolved them. GraphQL data shows 0 unresolved threads. One draft commit failed the spell-check step because a
+  chained command hid the pre-commit failure; a following commit fixed it.
 
 ## Completion Rules
 
