@@ -430,6 +430,7 @@ Append one line per meaningful update.
   approval of the written ADR is evidenced by his merge of PR #2624 (`bf03425ef`), as AC2's
   evidence cell now says (the 07:32 entry's parenthesis "the maintainer approved ... the written
   ADR" is corrected by this entry).
+- 2026-10-23 16:23 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 2) - Created issue #2628 (row 2), linked it as a subissue of #2482 and moved its spec to `docs/issues/open/`; row 2 is IN_PROGRESS.
 
 ## Acceptance Criteria
 
@@ -514,4 +515,3 @@ Append one line per meaningful update.
   [#2471](../../closed/2471-1488-fix-http-environment-drop-path/ISSUE.md)
 - Earlier review of this spec: PR #2462 (as a draft task), PR #2484 (spec PR), and the #1669
   orchestrator's review of 2026-10-21 (spec refresh PR)
-- 2026-10-23 16:23 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 2) - Created issue #2628 (row 2), linked it as a subissue of #2482 and moved its spec to `docs/issues/open/`; row 2 is IN_PROGRESS.
