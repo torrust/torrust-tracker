@@ -378,6 +378,7 @@ notnull
 nping
 nquery
 nscd
+numstat
 numwant
 nvCFlJCq7fz7Qx6KoKTDiMZvns8l5Kw7
 objcopy
