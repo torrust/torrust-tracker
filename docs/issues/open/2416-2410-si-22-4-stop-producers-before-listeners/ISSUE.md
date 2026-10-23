@@ -9,7 +9,7 @@ github-issue: 2416
 spec-path: docs/issues/open/2416-2410-si-22-4-stop-producers-before-listeners/ISSUE.md
 branch: "2416-stop-producers-before-listeners"
 related-pr: 2623
-last-updated-utc: "2026-10-23 15:34"
+last-updated-utc: "2026-10-23 15:39"
 semantic-links:
   skill-links:
     - create-issue
@@ -210,6 +210,7 @@ maintainer decides to keep it.
 - 2026-10-23 07:10 UTC - GitHub Copilot (Claude Opus 5.5) - Review round 2 of PR #2623, finding F9: V7 now names the working-tree state it ran on and states the true reason for using mutation U-M1 (it reproduces the one-token order; the test was not run on the tree before the T9 change), correcting the earlier "does not have the wrapper hooks" claim.
 - 2026-10-23 07:13 UTC - GitHub Copilot (Claude Opus 5.5) - Review round 2 of PR #2623 processed: three nits (F7 to F9) fixed in three signed commits, pushed, replied to and resolved (zero unresolved threads); the reviewer's ACK covers the head after round 1. The audit records both rounds.
 - 2026-10-23 15:34 UTC - GitHub Copilot (Claude Opus 5.5) - Review round 3 of PR #2623, finding F11: the AC2 cell said "the answered-request regression tests", but only the UDP environment has one; it now names the UDP test in the singular.
+- 2026-10-23 15:39 UTC - GitHub Copilot (Claude Opus 5.5) - Review round 3 of PR #2623 processed: F10 (the branch conflicted with `develop` in `docs/adrs/index.md`) fixed by a signed merge commit of `develop` keeping both ADR rows, F11 by a signed commit; both pushed, replied to and resolved (zero unresolved threads), and the PR body corrected. The audit records rounds 1 to 3.
 
 ## Architectural Decisions
 

@@ -39,7 +39,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Review round 1 and round 2 of the maintainer-requested review. Round 2 (review 5618477521, source of F7 to F9) is described in the Processing Log. The Copilot review (review 5610834925, a summary
+Review rounds 1 to 3 of the maintainer-requested review. Round 2 (review 5618477521, source of F7 to F9) and round 3 (review 5625229542, source of F10 and F11) are described in the Processing Log. The Copilot review (review 5610834925, a summary
 that reports no open issues and has no inline thread) holds no independently actionable assertion and
 has no row. The human review 5616192898 (verdict `APPROVED`, an ACK of the pushed head, and the PR
 conversation comment 6343775843) holds the six inline findings below; its body and the ACK comment
@@ -56,6 +56,8 @@ contain no other request. Finding IDs are the reviewer's own.
 | F7 | review-finding:pr-2623-f7 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F8 | review-finding:pr-2623-f8 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F9 | review-finding:pr-2623-f9 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F10 | review-finding:pr-2623-f10 | Human | Major | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F11 | review-finding:pr-2623-f11 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -176,12 +178,39 @@ contain no other request. Finding IDs are the reviewer's own.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2623#discussion_r4357053539
 
+### F10 - The branch now conflicts with `develop` in the ADR index, so it must be updated before merge
+
+- PR number: 2623
+- Source review ID: 5625229542
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2623#discussion_r4357175882
+- Concern: `develop` appended the 20261021190318 row after the same 20261016154414 line this branch's 20261021184946 row follows, so `git merge-tree` of the head against `develop` stops on a content conflict in `docs/adrs/index.md`; the `open-pull-request` skill requires an update when the branch conflicts. The PR body's statement that a trial merge is clean no longer held.
+- Solution: Merged `develop` into the branch with one signed merge commit, keeping both rows in timestamp order (this branch's first), instead of rebasing 23 signed commits: the ADR that stopped requiring rebases allows 'otherwise updated' and a merge keeps the ids the review records cite. Corrected the PR body.
+- Current-tree verification: `git merge-tree --write-tree HEAD torrust/develop` exits 0 after the merge; `grep -n '20261016154414\|20261021184946\|20261021190318' docs/adrs/index.md` shows the three rows in order; no conflict markers; `linter all` exit 0.
+- Resolution reference: `chore(merge): [#2416] update the branch with develop and keep both ADR index rows`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2623#discussion_r4361329351
+
+### F11 - 'the answered-request regression tests' counts one test as two
+
+- PR number: 2623
+- Source review ID: 5625229542
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2623#discussion_r4357175892
+- Concern: Only the UDP environment has an answered-request test; the HTTP environment has the in-flight test and no answered-request one, so the plural in the AC2 cell was wrong.
+- Solution: The cell now says 'the UDP answered-request regression test'.
+- Current-tree verification: `grep -n 'UDP answered-request' docs/issues/open/2416-2410-si-22-4-stop-producers-before-listeners/ISSUE.md`; `grep -n 'fn it_should_count_the_statistics_event' packages/*/src/testing/environment.rs` lists one answered-request test (UDP) and the in-flight tests; `linter all` exit 0.
+- Resolution reference: `docs(issues): [#2416] name the UDP answered-request test in the singular in the AC2 evidence`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2623#discussion_r4361329680
+
 ## Processing Log
 
 - 2026-10-22 14:53 UTC - Review 5616192898 (`APPROVED`, six inline findings) and the ACK comment 6343775843 were submitted by the requested reviewer for the pushed head; the Copilot review 5610834925 of 07:47 UTC had no inline thread.
 - 2026-10-22 17:17 UTC - Started audit: fixed F4, F2, F3, F5, F6, F1 in six signed commits (one per finding) and pushed them; posted one reply per thread (17:17 UTC, GitHub `created_at`), each naming the disposition and the commit subject, after re-deriving its claim from the current tree.
 - 2026-10-22 17:18 UTC - Resolved the six threads after the replies and refreshed the GraphQL thread data: zero unresolved threads, all six resolved by the author.
 - 2026-10-23 07:13 UTC - Review round 2: review 5618477521 (`APPROVED`, an ACK of the head after round 1, and three nits F7 to F9) was submitted 2026-10-22 17:47 UTC. Fixed F7, F8, F9 in three signed commits and pushed them; replied to each thread at 07:12 UTC (GitHub `created_at`) after re-deriving its claim from the current tree, then resolved the three threads and refreshed the GraphQL data: zero unresolved threads.
+- 2026-10-23 15:39 UTC - Review round 3: review 5625229542 (`APPROVED` at the head after round 2, with one Major, not blocking, and one nit, F10 and F11) was submitted 2026-10-23 07:30 UTC. Fixed F11 in a signed commit and updated the branch with `develop` for F10 in a signed merge commit (a merge, not a rebase, so the cited commit ids stay valid), pushed both, and corrected the PR body; replied to each thread at 15:39 UTC (GitHub `created_at`) after re-deriving its claim from the current tree, then resolved the two threads and refreshed the GraphQL data: zero unresolved threads.
 
 Append entries only. If an entry was rewritten in place, restore the prior entries, then append a
 correction that names the rewritten content; do not rewrite the record again.
