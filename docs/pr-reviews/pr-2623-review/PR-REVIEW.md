@@ -185,7 +185,7 @@ contain no other request. Finding IDs are the reviewer's own.
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2623#discussion_r4357175882
 - Concern: `develop` appended the 20261021190318 row after the same 20261016154414 line this branch's 20261021184946 row follows, so `git merge-tree` of the head against `develop` stops on a content conflict in `docs/adrs/index.md`; the `open-pull-request` skill requires an update when the branch conflicts. The PR body's statement that a trial merge is clean no longer held.
-- Solution: Merged `develop` into the branch with one signed merge commit, keeping both rows in timestamp order (this branch's first), instead of rebasing 23 signed commits: the ADR that stopped requiring rebases allows 'otherwise updated' and a merge keeps the ids the review records cite. Corrected the PR body.
+- Solution: Merged `develop` into the branch with one signed merge commit, keeping both rows in timestamp order (this branch's first), instead of rebasing 21 signed commits (the count on the old base when the update was chosen; the 23 Cameron counted at the head of round 3 include the merge commit and the audit commit): the ADR that stopped requiring rebases allows 'otherwise updated' and a merge keeps the ids the review records cite. Corrected the PR body.
 - Current-tree verification: `git merge-tree --write-tree HEAD torrust/develop` exits 0 after the merge; `grep -n '20261016154414\|20261021184946\|20261021190318' docs/adrs/index.md` shows the three rows in order; no conflict markers; `linter all` exit 0.
 - Resolution reference: `chore(merge): [#2416] update the branch with develop and keep both ADR index rows`
 - Follow-up PR URL: N/A
