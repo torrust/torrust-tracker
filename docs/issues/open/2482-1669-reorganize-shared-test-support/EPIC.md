@@ -1,12 +1,12 @@
 ---
 schema-version: 1
 doc-type: epic
-status: planned
+status: in-progress
 epic: 1669
 github-issue: 2482
 spec-path: docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-23 07:32"
+last-updated-utc: "2026-10-23 08:07"
 semantic-links:
   skill-links:
     - create-issue
@@ -425,6 +425,11 @@ Append one line per meaningful update.
   archived. Row 1 of the Subissues table is DONE, and EPIC AC2, AC3 and AC5 are ticked with their
   evidence (the maintainer approved the decision and the written ADR). AC1 (the inventory), AC4
   (the other subissues are drafts, not issues yet), AC6, AC7 and AC8 stay open. Next row: 2.
+- 2026-10-23 08:07 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 1) - PR #2625 review round 1:
+  the EPIC `status` is now `in-progress` (row 1 is done and the next row is named); the maintainer's
+  approval of the written ADR is evidenced by his merge of PR #2624 (`bf03425ef`), as AC2's
+  evidence cell now says (the 07:32 entry's parenthesis "the maintainer approved ... the written
+  ADR" is corrected by this entry).
 
 ## Acceptance Criteria
 
@@ -450,7 +455,7 @@ Append one line per meaningful update.
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
 | AC1   | TODO                   |          |
-| AC2   | DONE                   | [`2618` spec](../../closed/2618-2482-decide-test-support-rules/ISSUE.md): ADR `20261021190318` in the ADR index and DEC-18 amending DEC-13; the maintainer approved the decision (2026-10-21) and the written ADR (2026-10-23), PR #2624 |
+| AC2   | DONE                   | [`2618` spec](../../closed/2618-2482-decide-test-support-rules/ISSUE.md): ADR `20261021190318` in the ADR index and DEC-18 amending DEC-13; the maintainer approved the decision (2026-10-21) and the written ADR by merging PR #2624 (merge commit `bf03425ef`, 2026-10-23) |
 | AC3   | DONE                   | [`manual-verification-evidence.md`](../../closed/2618-2482-decide-test-support-rules/manual-verification-evidence.md): MV1 to MV4 plus a packaging baseline and two follow-up probes, on stable and 1.88.0, commands and output recorded (PR #2624) |
 | AC4   | TODO                   |          |
 | AC5   | DONE                   | Execution order 1, 2, 8, 9, 3, 4 to 7 in the Subissues table with the #1488 gates (#2416, #2449, #2450), justified in the ADR and the drafts (PR #2624) |
