@@ -39,7 +39,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Review rounds 1 to 4 of the maintainer-requested review. Round 2 (review 5618477521, source of F7 to F9), round 3 (review 5625229542, source of F10 and F11) and round 4 (review 5630959120, source of F12 and F13, and the Copilot review 5631096012, source of F14) are described in the Processing Log. The Copilot review (review 5610834925, a summary
+Review rounds 1 to 5 of the maintainer-requested review. Round 5 (review 5631621502, source of F15 and F16) is described in the Processing Log. Round 2 (review 5618477521, source of F7 to F9), round 3 (review 5625229542, source of F10 and F11) and round 4 (review 5630959120, source of F12 and F13, and the Copilot review 5631096012, source of F14) are described in the Processing Log. The Copilot review (review 5610834925, a summary
 that reports no open issues and has no inline thread) holds no independently actionable assertion and
 has no row. The human review 5616192898 (verdict `APPROVED`, an ACK of the pushed head, and the PR
 conversation comment 6343775843) holds the six inline findings below; its body and the ACK comment
@@ -61,6 +61,8 @@ contain no other request. Finding IDs are the reviewer's own.
 | F12 | review-finding:pr-2623-f12 | Human | Major | documentation | ORIGINAL | FIXED | RESOLVED |
 | F13 | review-finding:pr-2623-f13 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F14 | review-finding:pr-2623-f14 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F15 | review-finding:pr-2623-f15 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F16 | review-finding:pr-2623-f16 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -246,6 +248,32 @@ contain no other request. Finding IDs are the reviewer's own.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2623#discussion_r4361841750
 
+### F15 - The added clause attributes the count of 23 to the reviewer
+
+- PR number: 2623
+- Source review ID: 5631621502
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2623#discussion_r4362046602
+- Concern: The F13 correction to the F10 solution said the 23 had been counted by the reviewer, but 23 was that entry's own wording, committed in the round-3 audit commit, and the review that pointed out what it counted came after.
+- Solution: The F10 solution now says that the figure of 23 was the entry's own, taken after the merge commit and the round-3 audit commit were added, and names no person. Swept the audit and my replies for the same attribution: my reply on the F13 thread said the same and was edited; nothing else names a person for that figure.
+- Current-tree verification: `git grep -n -e '23 Cameron' -e 'you counted' -- docs` finds nothing; `linter all` exit 0; the F13 thread reply read back from GitHub no longer says 'you counted'.
+- Resolution reference: `docs(pr-reviews): [#2416] attribute the figure of 23 to the audit entry, not to a reviewer`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2623#discussion_r4362201409
+
+### F16 - The PR description cites this file as V1 to V7, but V8 now exists
+
+- PR number: 2623
+- Source review ID: 5631621502
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2623#discussion_r4362046612
+- Concern: The PR body's evidence reference read 'V1 to V7' although V8 (the retained recheck logs) had been added to the evidence file after the body was last edited; the merge tool copies the body into the merge commit.
+- Solution: Edited the PR body (the fix is outside the repository tree, so the resolution reference is the PR conversation response that states it) to read V1 to V8 and to say what V8 holds; read the rest of the body for other references the retention could have made stale and found none.
+- Current-tree verification: `gh pr view 2623 --json body` contains 'V1 to V8' and no 'V1 to V7'; the body contains one closing keyword, `Closes #2416`.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2623#issuecomment-6370391654
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2623#discussion_r4362201670
+
 ## Processing Log
 
 - 2026-10-22 14:53 UTC - Review 5616192898 (`APPROVED`, six inline findings) and the ACK comment 6343775843 were submitted by the requested reviewer for the pushed head; the Copilot review 5610834925 of 07:47 UTC had no inline thread.
@@ -255,6 +283,7 @@ contain no other request. Finding IDs are the reviewer's own.
 - 2026-10-23 15:39 UTC - Review round 3: review 5625229542 (`APPROVED` at the head after round 2, with one Major, not blocking, and one nit, F10 and F11) was submitted 2026-10-23 07:30 UTC. Fixed F11 in a signed commit and updated the branch with `develop` for F10 in a signed merge commit (a merge, not a rebase, so the cited commit ids stay valid), pushed both, and corrected the PR body; replied to each thread at 15:39 UTC (GitHub `created_at`) after re-deriving its claim from the current tree, then resolved the two threads and refreshed the GraphQL data: zero unresolved threads.
 - 2026-10-23 16:29 UTC - Review round 4: review 5630959120 (`CHANGES_REQUESTED`, submitted 15:59 UTC, F12 Major blocking and F13 Nit) and the Copilot review 5631096012 (submitted 16:10 UTC, one inline finding, F14) arrived after round 3. At the maintainer's request the branch was also updated with the latest `develop` (GitHub reported it out of date; a clean signed merge commit). Fixed F14 and F13 in signed commits, fixed F12 by editing the PR body and posted the conversation response that states it, pushed the branch (replies after the push), replied to the three threads at 16:28 UTC (GitHub `created_at`) after re-deriving each claim, then resolved them and refreshed the GraphQL data: zero unresolved threads. A first version of the F12 response overstated what had been checked and was corrected in place, with a note in the comment.
 - 2026-10-23 16:32 UTC - Correction of the F13 detail entry above: its Current-tree verification cited a branch commit by id, which the repository rules forbid (an ids check printed it after the round-4 push); it now names the commit by its subject. The reply on the F13 thread cited the same id and was edited the same way. No other record cites a branch commit id.
+- 2026-10-23 17:07 UTC - Review round 5: review 5631621502 (`APPROVED`, submitted 2026-10-23 16:49 UTC, an ACK of the head after round 4, with two nits F15 and F16) was processed. Fixed F15 in a signed commit and pushed it, edited the PR body for F16 and posted the conversation response that states it; replied to the two threads at 17:06 UTC (GitHub `created_at`), after the push, then resolved them and refreshed the GraphQL data: zero unresolved threads. The reply on the F13 thread that attributed the figure of 23 to the reviewer was edited in the same round. The branch is 2 commits behind `develop` (a dependency update that merges cleanly); it was not updated again because no rule requires it and each update gives the reviewer a new head.
 
 Append entries only. If an entry was rewritten in place, restore the prior entries, then append a
 correction that names the rewritten content; do not rewrite the record again.
