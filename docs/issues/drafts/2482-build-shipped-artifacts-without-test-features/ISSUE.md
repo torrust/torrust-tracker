@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2482-build-shipped-artifacts-without-test-features/ISSUE.md
 branch: "{issue-number}-2482-build-shipped-artifacts-without-test-features"
 related-pr: null
-last-updated-utc: "2026-10-22 17:20"
+last-updated-utc: "2026-10-23 07:32"
 semantic-links:
   skill-links:
     - create-issue
@@ -17,7 +17,7 @@ semantic-links:
   related-artifacts:
     - docs/adrs/20261021190318_share_workspace_test_support_through_testing_features.md
     - docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md
-    - docs/issues/open/2618-2482-decide-test-support-rules/manual-verification-evidence.md
+    - docs/issues/closed/2618-2482-decide-test-support-rules/manual-verification-evidence.md
     - Containerfile
     - .github/workflows/testing.yaml
     - .github/workflows/deployment.yaml
@@ -212,4 +212,4 @@ applies, except that this subissue moves no test code. The workflow changes foll
 ## References
 
 - Parent EPIC: [`#2482`](../../open/2482-1669-reorganize-shared-test-support/EPIC.md); ADR above
-- Verification evidence V1 and V4c: [`manual-verification-evidence.md`](../../open/2618-2482-decide-test-support-rules/manual-verification-evidence.md)
+- Verification evidence V1 and V4c: [`manual-verification-evidence.md`](../../closed/2618-2482-decide-test-support-rules/manual-verification-evidence.md)

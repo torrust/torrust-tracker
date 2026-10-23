@@ -3,9 +3,9 @@ semantic-links:
   skill-links:
     - write-markdown-docs
   related-artifacts:
-    - docs/issues/open/2618-2482-decide-test-support-rules/ISSUE.md
-    - docs/issues/open/2618-2482-decide-test-support-rules/manual-verification-evidence.md
-    - docs/issues/open/2618-2482-decide-test-support-rules/agent-review-reports.md
+    - docs/issues/closed/2618-2482-decide-test-support-rules/ISSUE.md
+    - docs/issues/closed/2618-2482-decide-test-support-rules/manual-verification-evidence.md
+    - docs/issues/closed/2618-2482-decide-test-support-rules/agent-review-reports.md
     - docs/adrs/20261021190318_share_workspace_test_support_through_testing_features.md
 ---
 

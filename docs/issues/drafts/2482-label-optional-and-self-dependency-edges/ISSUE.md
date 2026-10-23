@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2482-label-optional-and-self-dependency-edges/ISSUE.md
 branch: "{issue-number}-2482-label-optional-and-self-dependency-edges"
 related-pr: null
-last-updated-utc: "2026-10-21 19:16"
+last-updated-utc: "2026-10-23 07:32"
 semantic-links:
   skill-links:
     - create-issue
@@ -17,7 +17,7 @@ semantic-links:
   related-artifacts:
     - docs/adrs/20261021190318_share_workspace_test_support_through_testing_features.md
     - docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md
-    - docs/issues/open/2618-2482-decide-test-support-rules/manual-verification-evidence.md
+    - docs/issues/closed/2618-2482-decide-test-support-rules/manual-verification-evidence.md
     - contrib/dev-tools/analysis/workspace-coupling/src/main.rs
     - contrib/dev-tools/analysis/workspace-coupling/src/lib.rs
     - docs/packages.md
@@ -185,4 +185,4 @@ applies; the O1-specific checks do not (this subissue moves no test code).
 ## References
 
 - Parent EPIC: [`#2482`](../../open/2482-1669-reorganize-shared-test-support/EPIC.md); ADR above
-- Verification evidence: [`manual-verification-evidence.md`](../../open/2618-2482-decide-test-support-rules/manual-verification-evidence.md) V1 and V4
+- Verification evidence: [`manual-verification-evidence.md`](../../closed/2618-2482-decide-test-support-rules/manual-verification-evidence.md) V1 and V4
