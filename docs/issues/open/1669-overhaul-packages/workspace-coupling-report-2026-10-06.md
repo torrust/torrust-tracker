@@ -1192,7 +1192,7 @@ now include `torrust-tracker-client-lib`, `torrust-tracker-http-protocol` and
 be published until those crates are, or until the protocol-specific helpers move out. Sub-EPIC: #2482
 ([`2482-1669-reorganize-shared-test-support`](../2482-1669-reorganize-shared-test-support/EPIC.md)).
 Subissue draft:
-[move the `test-helpers` protocol helpers to their consumer](../../drafts/2482-move-test-helpers-protocol-helpers/ISSUE.md).
+[move the `test-helpers` protocol helpers to their consumer](../2628-2482-move-test-helpers-protocol-helpers/ISSUE.md).
 
 #### 2. Server `testing` modules turn test-only edges into runtime dependencies
 
