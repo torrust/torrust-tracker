@@ -9,7 +9,7 @@ github-issue: 2618
 spec-path: docs/issues/closed/2618-2482-decide-test-support-rules/ISSUE.md
 branch: "2618-2482-decide-test-support-rules"
 related-pr: 2624
-last-updated-utc: "2026-10-23 07:32"
+last-updated-utc: "2026-10-23 08:07"
 semantic-links:
   skill-links:
     - create-issue
@@ -232,7 +232,7 @@ Copilot trailer.
 - [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed ([`implementation-retrospective.md`](implementation-retrospective.md))
 - [ ] Reviewer validated acceptance criteria and updated checkboxes (not ticked: da2ce7 ACKed the merged head but did not update this spec's boxes, and the Task Reviewer agent was read-only)
 - [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` (two Task Reviewer entries)
-- [ ] Committer verified spec progress is up to date before commit
+- [ ] Committer verified spec progress is up to date before commit (not ticked: the Committer agent was not used; the author ran pre-commit and checked the spec's ticks against the merged tree)
 - [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/` (issue #2618 closed by the merge of PR #2624; spec archived by the archive PR)
 
 ### Progress Log
@@ -247,7 +247,7 @@ Append one line per meaningful update.
 - 2026-10-21 16:38 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 1) - The maintainer
   (josecelano) approved the spec. Created issue #2618, linked it as a sub-issue of #2482 (checked
   with the issue's `parent_issue_url`), moved the spec to
-  `docs/issues/closed/2618-2482-decide-test-support-rules/` and updated the #2482 Subissues table.
+  `docs/issues/open/2618-2482-decide-test-support-rules/` and updated the #2482 Subissues table.
 - 2026-10-21 17:14 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 1) - Spec-only PR
   #2619 merged into `develop` (merge commit `7963007ee`, taken from GitHub's `mergeCommit`), at the
   head the maintainer ACKed. Copilot reviewed once with no findings; the audit is
@@ -306,6 +306,13 @@ Append one line per meaningful update.
   approved the written ADR, so AC2, T3 and the checkpoints that depended on it are ticked here, in
   the archive pull request, because nothing may be pushed to a pull request branch after the
   maintainer's ACK. Archived the spec to `docs/issues/closed/` and repaired the references.
+- 2026-10-23 08:07 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 1) - PR #2625 review round 1
+  (da2ce7, F1 to F4). Corrections to earlier text, made as a new entry because the log is
+  append-only: the 2026-10-21 16:38 entry says `docs/issues/open/...` again, because that was the
+  path at the time and the archive had rewritten it; the maintainer's approval of the written ADR
+  is evidenced by his merge of PR #2624 (`bf03425ef`), not by an answer in this session that no
+  repository artifact records (the 2026-10-23 07:32 entry's wording is corrected here); the
+  "Committer verified" checkpoint, which stays open, now states its reason.
 
 ## Acceptance Criteria
 
@@ -382,7 +389,7 @@ None. The scenarios run as recorded commands.
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
 | AC1   | DONE                   | [`manual-verification-evidence.md`](manual-verification-evidence.md), V1 to V4c and the packaging baseline; no verification result contradicts the EPIC (the inventory's pattern D claim was corrected separately); scratch workspaces removed (checked by the implementing agent, not yet by a reviewer) |
-| AC2   | DONE                   | The ADR `docs/adrs/20261021190318_share_workspace_test_support_through_testing_features.md` is registered in the ADR index and has every element AC2 lists (checked by the author and, in review, by da2ce7's ACK of the merged head). The maintainer (josecelano) approved the decision before it was written (2026-10-21) and approved the written ADR (2026-10-23, in the answer to the archive question) |
+| AC2   | DONE                   | The ADR `docs/adrs/20261021190318_share_workspace_test_support_through_testing_features.md` is registered in the ADR index and has every element AC2 lists (checked by the author and, in review, by da2ce7's ACK of the merged head). The maintainer (josecelano) approved the decision before it was written (2026-10-21) and approved the written ADR by merging its pull request (PR #2624, merge commit `bf03425ef`, 2026-10-23), which is the durable record; he also said so when asked about this archive |
 | AC3   | DONE                   | DEC-18 in [`DECISIONS.md`](../../open/1669-overhaul-packages/DECISIONS.md) links the ADR and corrects the premise; DEC-13's status line points to it (checked by the implementing agent) |
 | AC4   | DONE                   | Eight drafts under `docs/issues/drafts/2482-<slug>/` (rows 2 to 9; rows 8 and 9 because the ADR chose O1 and the container build ships the binary) with `epic: 2482`, linked in the EPIC Subissues table and the inventory's destination table; no GitHub issue was created for them (checked by the implementing agent) |
 | AC5   | DONE                   | Findings 1 and 2 of the 2026-10-06 report link the drafts; `linter lychee` passed; `git diff --name-only` of the branch lists no file of the 2026-10-17 report (checked by the implementing agent) |
