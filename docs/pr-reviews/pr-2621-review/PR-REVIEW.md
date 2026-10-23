@@ -91,7 +91,9 @@ partly delivered.
 | F32 | review-finding:pr-2621-f32 | Copilot | Nit | link-integrity | ORIGINAL | NO_ACTION | NON_RESOLVABLE |
 | F33 | review-finding:pr-2621-f33 | Copilot | Nit | testing | ORIGINAL | FIXED | NON_RESOLVABLE |
 
-`da2ce7`'s fifth review, 5620094757 (APPROVED, 2026-10-22 19:59:20 UTC), approves the head and has two non-blocking
+`da2ce7`'s fifth review, 5620094757 (submitted APPROVED at 2026-10-22 19:59:20 UTC and DISMISSED at 2026-10-23 07:12:10
+UTC by the push of the commit with the subject `docs(issues): make the dual-stack scenario M3 configuration explicit`),
+approves the head and has two non-blocking
 inline threads, F30 and F31, whose IDs are kept. Copilot's fifth review, 5620148855 (COMMENTED, 2026-10-22 20:04:03
 UTC), recommends approval and opened no inline thread, but its body lists two independently actionable assertions under
 "previously missed issues". It labels them F31 and F30, which collide with da2ce7's, so they are audit F32 (the
@@ -703,6 +705,10 @@ F18 asks for a fully qualified path.
   commits, F30 in one audit commit, and answered F32 with a no-action explanation (the path exists on `develop`);
   pushed the commits, then replied on the F30 and F31 threads and in one pull-request comment for F32 and F33, and
   resolved the two threads. GraphQL data shows 0 unresolved threads.
+- 2026-10-23 08:01 UTC - Correction (F36): the 07:16 entry above says the commits were pushed and then the replies were
+  posted. That holds for the F31 reply and the pull-request comment but not for the F30 reply: it was posted at
+  07:14:11Z, a few seconds before its fixing commit was pushed (the push finished at about 07:14:13Z). The entry is not
+  rewritten.
 
 ## Completion Rules
 
