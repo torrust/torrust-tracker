@@ -105,7 +105,7 @@ jobs:
       - id: cache
         name: Enable Job Cache
         if: runner.environment == 'github-hosted'
-        uses: Swatinem/rust-cache@v2.9.2
+        uses: Swatinem/rust-cache@v2.9.3
 
       # `actions/checkout` cleans the workspace, so keep host-side Cargo builds outside it.
       - id: persistent-target
