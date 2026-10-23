@@ -6,7 +6,7 @@ epic: 1669
 github-issue: 2482
 spec-path: docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-23 08:07"
+last-updated-utc: "2026-10-23 17:23"
 semantic-links:
   skill-links:
     - create-issue
