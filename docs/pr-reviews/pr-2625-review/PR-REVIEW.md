@@ -49,8 +49,12 @@ Round 1: da2ce7's review 5625548479 (APPROVED, 2026-10-23 08:05:27 UTC, on the o
 | F5 | review-finding:pr-2625-f5 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F6 | review-finding:pr-2625-f6 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F7 | review-finding:pr-2625-f7 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F8 | review-finding:pr-2625-f8 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F9 | review-finding:pr-2625-f9 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 Round 2: da2ce7's review 5625764397 (APPROVED, 2026-10-23 08:27:33 UTC, on the head that carried the round 1 audit record) carries three inline threads, F5 to F7, and no independently actionable assertion in its body; its ACK (08:27:38 UTC) names that head and calls them non-blocking. The IDs continue the first round's and collide with none.
+
+Round 3: da2ce7's review 5625983587 (APPROVED, 2026-10-23 08:49:09 UTC, on the head that carried the round 2 resolution entry) carries two inline threads, F8 and F9, both Nits, and no independently actionable assertion in its body; its ACK (08:49:13 UTC) names that head and calls them non-blocking. The IDs continue the earlier rounds' and collide with none.
 
 ## Finding Details
 
@@ -116,7 +120,7 @@ Round 2: da2ce7's review 5625764397 (APPROVED, 2026-10-23 08:27:33 UTC, on the h
 - Concern: the PR description, which the merge tool copies into the merge commit, said "the maintainer approved the written ADR on 2026-10-23, after the merge", while the files say the approval is the merge; the merge commit `bf03425ef` lists the maintainer's ACK of the head under "ACKs for top commit", so the approval came at the merge. The merged files were right, but the description cannot be corrected after the merge.
 - Solution: the description now says the maintainer approved the written ADR by ACKing and merging #2624, and that the ticks land here because nothing may be pushed to a pull request branch after the ACK. This is a change to the pull request description, not to the branch.
 - Current-tree verification: `git log -1 --format=%b bf03425ef` lists `ACK ff44a2bac...` twice; `gh pr view 2625 --json body` contains the new sentence after the edit (updated 08:29:01 UTC).
-- Resolution reference: docs(pr-reviews): add the review bot review and the event times to the PR 2625 audit
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2625#discussion_r4357609931>
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2625#discussion_r4357609931>
 
@@ -146,6 +150,32 @@ Round 2: da2ce7's review 5625764397 (APPROVED, 2026-10-23 08:27:33 UTC, on the h
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2625#discussion_r4357610482>
 
+### F8 - A log entry is stamped later than its own commit
+
+- PR number: 2625
+- Source review ID: 5625983587
+- Reviewer finding ID: F8
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2625#discussion_r4357763728>
+- Concern: the 08:35 entry was written before the commit that contains it (committed 08:31:19 UTC, pushed 08:33:43 UTC), and it logs the pull request description edit without that edit's own time (08:29:01 UTC). I chose the 08:35 stamp instead of reading the clock.
+- Solution: an appended correction entry says the 08:35 entry was written by 08:31 UTC at the latest and that the description was edited at 08:29:01 UTC; the entry itself is not rewritten because the log is append-only.
+- Current-tree verification: `git log --format='%cI %s'` gives the commit time 09:31:19+01:00 (08:31:19 UTC); `gh pr view 2625 --json updatedAt` showed 08:29:01Z after the edit.
+- Resolution reference: docs(pr-reviews): correct the PR 2625 audit stamps and cite the reply for the description fix
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2625#discussion_r4357783663>
+
+### F9 - F5's resolution reference should be the reply URL
+
+- PR number: 2625
+- Source review ID: 5625983587
+- Reviewer finding ID: F9
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2625#discussion_r4357763736>
+- Concern: F5's fix is a pull request description edit, which lives outside the tree, but its resolution reference named an audit commit that only records the fix; the skill says to use the durable URL of the conversation response that states it.
+- Solution: F5's resolution reference is now the reply URL <https://github.com/torrust/torrust-tracker/pull/2625#discussion_r4357609931>.
+- Current-tree verification: `grep -n 'Resolution reference'` of the F5 detail shows the URL; the validator accepts it (it skips references that start with `http`).
+- Resolution reference: docs(pr-reviews): correct the PR 2625 audit stamps and cite the reply for the description fix
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2625#discussion_r4357783971>
+
 ## Processing Log
 
 - 2026-10-23 08:07 UTC - da2ce7 submitted review 5625548479 (APPROVED) with four inline threads (F1 to F4) and an ACK of the opening head. GraphQL data at the 08:07 UTC poll: 4 threads, 4 unresolved.
@@ -154,6 +184,7 @@ Round 2: da2ce7's review 5625764397 (APPROVED, 2026-10-23 08:27:33 UTC, on the h
 - 2026-10-23 08:28 UTC - da2ce7 submitted review 5625764397 (APPROVED) with three threads (F5 to F7) and an ACK of the head that carried the round 1 audit record (review 08:27:33 UTC, ACK 08:27:38 UTC). GraphQL data at the 08:28 UTC poll: 7 threads, 3 unresolved.
 - 2026-10-23 08:35 UTC - Correction to the first Processing Log entry (F7): review 5625548479 was submitted at 08:05:27 UTC and its ACK posted at 08:05:31 UTC; 08:07 UTC was the poll that saw them. Recorded now: Copilot's review 5625619558 (COMMENTED, submitted 08:12:49 UTC, on the opening head) opened no thread and raised no actionable assertion (F6). Edited the pull request description (F5).
 - 2026-10-23 08:37 UTC - Replied on the three round 2 threads (reply times 08:29:34 to 08:29:38 UTC), pushed the audit commit, and resolved F5 to F7; the reply check exited 0 before resolving, and a GraphQL query at 08:33 UTC (before this entry was written) showed 7 threads, 0 unresolved. The ACK names the head before this record's last commit, so a new ACK is needed on the head that carries it.
+- 2026-10-23 08:51 UTC - Corrections after da2ce7's round 3 review 5625983587 (F8, F9). F8: the 08:35 entry's stamp was not taken from the clock; its text was written before the commit whose subject is "docs(pr-reviews): add the review bot review and the event times to the PR 2625 audit" was made at 08:31:19 UTC (pushed 08:33:43 UTC), so it was written by 08:31 UTC at the latest, and the pull request description it mentions was edited at 08:29:01 UTC. The entry is not rewritten, because the log is append-only. F9: F5's resolution reference now is the durable URL of the reply that states the fix, because the fix is a pull request description edit, which lives outside the tree.
 
 ## Completion Rules
 
