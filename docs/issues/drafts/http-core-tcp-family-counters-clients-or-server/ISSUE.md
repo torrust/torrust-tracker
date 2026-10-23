@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/http-core-tcp-family-counters-clients-or-server/ISSUE.md
 branch: "{issue-number}-http-core-tcp-family-counters-clients-or-server"
 related-pr: null
-last-updated-utc: "2026-10-22 19:45"
+last-updated-utc: "2026-10-22 20:04"
 semantic-links:
   skill-links:
     - create-issue
@@ -222,8 +222,9 @@ issue and pull requests. This draft's own pull request (#2621) carries only the 
 - 2026-10-22 18:37 UTC - AI assistant (GitHub Copilot, Copilot SDK in VS Code) - Addressed Copilot's second review (review 5619053291): the evidence commands use explicit repo-relative paths and name the runtime copy of the configuration; the Background path is fully qualified; the development token stays (see `docs/pr-reviews/pr-2621-review/PR-REVIEW.md`)
 - 2026-10-22 18:58 UTC - AI assistant (GitHub Copilot, Copilot SDK in VS Code) - Withdrew the #1375 precedent for the mapped-address rule (review 5619336077, F19): `d4c43bd3a` added only the server-side label `server_binding_address_type`, so option (b) rests on the maintainer's decision
 - 2026-10-22 19:02 UTC - AI assistant (GitHub Copilot, Copilot SDK in VS Code) - Addressed the rest of da2ce7's third round (review 5619336077, F20, F22, F23 and F24): UDP dual-stack cases moved under R3 and M4 reworded (UDP has no case where the binding and client families differ); the reproduction steps split by shell; the 18:15 stamp above corrected to 18:13
-- 2026-10-22 19:23 UTC - AI assistant (GitHub Copilot, Copilot SDK in VS Code) - Corrected the 19:02 entry above (review 5619336077, F28): it listed F21 and F25, which are audit changes made later in the audit commit, as addressed
+- 2026-10-22 19:23 UTC - AI assistant (GitHub Copilot, Copilot SDK in VS Code) - Corrected the 19:02 entry above (review 5619631773, F28): it listed F21 and F25, which are audit changes made later in the audit commit, as addressed
 - 2026-10-22 19:45 UTC - AI assistant (GitHub Copilot, Copilot SDK in VS Code) - Aligned acceptance criterion AC2 with the regression strategy (Copilot review 5619691908): `http-core` keeps the mixed-family cases, while the UDP packages have plain-family and mapped-client cases only
+- 2026-10-22 20:04 UTC - AI assistant (GitHub Copilot, Copilot SDK in VS Code) - Corrected the review ID named in the 19:23 entry above, which now cites review 5619631773 (the review that raised F28) instead of 5619336077 (F31)
 
 ## Acceptance Criteria
 
