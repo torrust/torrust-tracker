@@ -9,7 +9,7 @@ github-issue: 2628
 spec-path: docs/issues/open/2628-2482-move-test-helpers-protocol-helpers/ISSUE.md
 branch: "2628-2482-move-test-helpers-protocol-helpers-spec"
 related-pr: null
-last-updated-utc: "2026-10-23 16:45"
+last-updated-utc: "2026-10-23 16:46"
 semantic-links:
   skill-links:
     - create-issue
@@ -130,7 +130,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ### Workflow Checkpoints
 
-- [x] Folder-style spec drafted in `docs/issues/open/2628-2482-move-test-helpers-protocol-helpers/ISSUE.md`
+- [x] Folder-style spec drafted in `docs/issues/drafts/2482-move-test-helpers-protocol-helpers/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created, linked as a sub-issue of #2482, and its number added to this spec
 - [ ] Spec-only PR merged into `develop` before implementation
