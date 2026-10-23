@@ -86,6 +86,17 @@ partly delivered.
 | F27 | review-finding:pr-2621-f27 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F28 | review-finding:pr-2621-f28 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F29 | review-finding:pr-2621-f29 | Copilot | Nit | documentation | RE_RAISE_OF:F20 | FIXED | RESOLVED |
+| F30 | review-finding:pr-2621-f30 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F31 | review-finding:pr-2621-f31 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F32 | review-finding:pr-2621-f32 | Copilot | Nit | link-integrity | ORIGINAL | NO_ACTION | NON_RESOLVABLE |
+| F33 | review-finding:pr-2621-f33 | Copilot | Nit | testing | ORIGINAL | FIXED | NON_RESOLVABLE |
+
+`da2ce7`'s fifth review, 5620094757 (APPROVED, 2026-10-22 19:59:20 UTC), approves the head and has two non-blocking
+inline threads, F30 and F31, whose IDs are kept. Copilot's fifth review, 5620148855 (COMMENTED, 2026-10-22 20:04:03
+UTC), recommends approval and opened no inline thread, but its body lists two independently actionable assertions under
+"previously missed issues". It labels them F31 and F30, which collide with da2ce7's, so they are audit F32 (the
+`closed/1349-...` path, reviewer ID F31) and F33 (scenario M3's configuration, reviewer ID F30), in the body's order.
+Both are `NON_RESOLVABLE`: there is no thread, so their replies are one consolidated pull-request comment.
 
 Copilot's fourth review, 5619691908 (COMMENTED, 2026-10-22 19:24:29 UTC), read the head carrying the third-round audit
 and opened one inline thread. It labels its finding F20, which collides with the audit's F20, so it is audit F29 and
@@ -575,6 +586,73 @@ F18 asks for a fully qualified path.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4352777635>
 
+### F30 - Three statements about this round disagree with the forge
+
+- PR number: 2621
+- Source review ID: 5620094757
+- Reviewer finding ID: F30
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4352912017>
+- Concern: the audit recorded review 5619631773 as APPROVED although the push of the next commit dismissed it, still
+  said "Four reviews were submitted", and said F28's fixing commits were pushed before the replies although the F27
+  correction entry came later.
+- Solution: the review is recorded as submitted APPROVED and dismissed at 19:42:01 UTC, the count reads ten reviews
+  with a body, and F28's Solution is qualified.
+- Current-tree verification: `gh api repos/torrust/torrust-tracker/issues/2621/timeline` lists the dismissal of
+  5619631773 at 2026-10-22T19:42:01Z, and `gh api repos/torrust/torrust-tracker/pulls/2621/reviews --paginate`
+  lists ten reviews with a non-empty body at the time of the fix.
+- Resolution reference: docs(pr-reviews): correct the review states, the review count and the F28 account in the PR #2621 audit
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4357061829>
+
+### F31 - The 19:23 entry names the review that did not raise F28
+
+- PR number: 2621
+- Source review ID: 5620094757
+- Reviewer finding ID: F31
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4352912034>
+- Concern: the draft's 19:23 progress-log entry cited review 5619336077 for F28, which came from review 5619631773.
+- Solution: the entry cites 5619631773, and a later entry records the correction.
+- Current-tree verification: `grep -n 'review 5619631773, F28' ISSUE.md` finds the corrected entry.
+- Resolution reference: docs(issues): cite the review that raised F28 in the draft's progress log
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4357050056>
+
+### F32 - The `closed/1349-...` path does not exist in this tree
+
+- PR number: 2621
+- Source review ID: 5620148855
+- Reviewer finding ID: F31
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2621#pullrequestreview-5620148855>
+- Concern: the draft's Background cites `docs/issues/closed/1349-1347-add-tests-http-core/`, which the review says is
+  absent; the specification is under `open/`.
+- Solution: no change. The branch is based on `80c45b606`, before the archive pull request, so the path is absent
+  here, but PR #2620 moved the specification to `closed/` on `torrust/develop`. Citing `open/` would be wrong once
+  this pull request merges.
+- Current-tree verification: `ls -d docs/issues/closed/1349* docs/issues/open/1349*` on the branch finds only the
+  `open/` path; `git ls-tree -d --name-only torrust/develop docs/issues/closed/1349-1347-add-tests-http-core` finds
+  the `closed/` path, and `git merge-base --is-ancestor 29e1f7ce3 HEAD` fails because the archive is not in the branch.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2621#issuecomment-6359572112>
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2621#issuecomment-6359572112>
+
+### F33 - Scenario M3's configuration is not explicit
+
+- PR number: 2621
+- Source review ID: 5620148855
+- Reviewer finding ID: F30
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2621#pullrequestreview-5620148855>
+- Concern: starting M3 from V1's configuration leaves `on_reverse_proxy = true`, so the client address would come from
+  `X-Forwarded-For`, and V1's `info` logging omits the counter labels, which are logged at debug level.
+- Solution: M3 specifies its own configuration with a dual-stack bind address, `on_reverse_proxy = false` and
+  `trace_filter = "debug"`.
+- Current-tree verification: `resolve_remote_client_addr` in
+  `packages/http-protocol/src/v1/services/peer_ip_resolver.rs` reads `X-Forwarded-For` only for
+  `ReverseProxyMode::Enabled`, and `packages/http-core/src/statistics/event/handler.rs` logs the labels with
+  `tracing::debug!`; the M3 row of `ISSUE.md` names all three settings.
+- Resolution reference: docs(issues): make the dual-stack scenario M3 configuration explicit
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2621#issuecomment-6359572112>
+
 ## Processing Log
 
 - 2026-10-21 17:24 UTC - Copilot submitted review 5603592801 with three inline threads (F1 to F3).
@@ -617,6 +695,14 @@ F18 asks for a fully qualified path.
   head id with the commit subject (F21); that is the only in-place edit to a log entry. The 19:04 entry above names it.
 - 2026-10-22 19:47 UTC - Fixed F29 in one signed commit, pushed it, replied on the thread and resolved it, together
   with the three threads of review 5619631773 (F26 to F28). GraphQL data shows 0 unresolved threads.
+- 2026-10-22 19:59 UTC - `da2ce7` approved the head (review 5620094757) with two non-blocking inline threads (F30 and
+  F31).
+- 2026-10-22 20:04 UTC - Copilot submitted review 5620148855, which recommends approval and has no inline thread; its
+  body lists two actionable assertions (audit F32 and F33). The session ended before they were processed.
+- 2026-10-23 07:16 UTC - Verified each claim against the current tree after the restart. Fixed F31 and F33 in two signed
+  commits, F30 in one audit commit, and answered F32 with a no-action explanation (the path exists on `develop`);
+  pushed the commits, then replied on the F30 and F31 threads and in one pull-request comment for F32 and F33, and
+  resolved the two threads. GraphQL data shows 0 unresolved threads.
 
 ## Completion Rules
 
