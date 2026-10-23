@@ -141,7 +141,7 @@ Round 2: da2ce7's review 5631788587 (APPROVED, submitted 2026-10-23T17:04:09Z, a
 - Concern: the single round 1 entry misstates the order of fixes, pushes and replies and omits the bot review.
 - Solution: the log is append-only, so a new entry records the actual order, see the 17:26 UTC entry below.
 - Current-tree verification: compared the entry with the review and comment timestamps from the GitHub API.
-- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2629#discussion_r4362373718
+- Resolution reference: docs(pr-reviews): [#2628] audit review round 2 of the spec PR
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2629#discussion_r4362373718>
 
