@@ -121,7 +121,12 @@ non-blocking inline threads, F44 and F45, whose IDs are kept. Copilot's eighth r
 08:45:30 UTC), recommends approval and has no inline thread or other actionable assertion, so it adds no row.
 
 `da2ce7`'s ninth review, 5626118664 (submitted APPROVED at 2026-10-23 09:02:20 UTC), approves the head and has two
-non-blocking inline threads, F46 and F47, whose IDs are kept.
+non-blocking inline threads, F46 and F47, whose IDs are kept. Copilot's ninth review, 5626157979 (COMMENTED, 2026-10-23
+09:06:01 UTC), recommends approval and has no inline thread or other actionable assertion, so it adds no row.
+
+`da2ce7`'s tenth review, 5626361760 (submitted APPROVED at 2026-10-23 09:25:31 UTC), approves the head and has two
+non-blocking inline threads, F48 and F49, whose IDs are kept. Copilot's tenth review, 5626385257 (COMMENTED, 2026-10-23
+09:27:47 UTC), recommends approval and has no inline thread or other actionable assertion, so it adds no row.
 
 `da2ce7`'s fifth review, 5620094757 (submitted APPROVED at 2026-10-22 19:59:20 UTC and DISMISSED at 2026-10-23 07:12:10
 UTC by the push of the commit with the subject `docs(issues): make the dual-stack scenario M3 configuration explicit`),
