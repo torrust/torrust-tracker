@@ -762,7 +762,7 @@ F18 asks for a fully qualified path.
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4357194694>
 - Concern: an unquoted date-like frontmatter value can be parsed as a timestamp by some tooling; other files quote it.
 - Solution: the value is quoted and refreshed.
-- Current-tree verification: `sed -n 4p manual-verification-evidence.md` prints `last-updated-utc: "2026-10-23 07:57"`; the draft and the issue and EPIC templates quote the field. The manual-verification-evidence template does not (`last-updated-utc: YYYY-MM-DD HH:MM` at line 4 of `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`), so the claim in the original reply that "the template" quotes it was too broad (F42).
+- Current-tree verification: `sed -n 4p manual-verification-evidence.md` prints `last-updated-utc:` followed by a quoted value (the value changes with each edit of the file, so it is not recorded here); the draft and the issue and EPIC templates quote the field. The manual-verification-evidence template does not (`last-updated-utc: YYYY-MM-DD HH:MM` at line 4 of `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`), so the claim in the original reply that "the template" quotes it was too broad (F42).
 - Resolution reference: docs(issues): quote and refresh the evidence file's last-updated stamp
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4357395458>
