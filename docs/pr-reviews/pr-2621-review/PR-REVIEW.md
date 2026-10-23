@@ -104,6 +104,8 @@ partly delivered.
 | F45 | review-finding:pr-2621-f45 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F46 | review-finding:pr-2621-f46 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F47 | review-finding:pr-2621-f47 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F48 | review-finding:pr-2621-f48 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F49 | review-finding:pr-2621-f49 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 `da2ce7`'s sixth review, 5625253400 (submitted APPROVED at 2026-10-23 07:33:29 UTC and DISMISSED at 07:58:08 UTC by the
 next push), approves the head and has four non-blocking inline threads, F34 to F37, whose IDs are kept. Copilot's sixth
@@ -876,6 +878,32 @@ F18 asks for a fully qualified path.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4357911961>
 
+### F48 - The 07:58 entry reports F34 and F36 addressed before their commit
+
+- PR number: 2621
+- Source review ID: 5626361760
+- Reviewer finding ID: F48
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4358059094>
+- Concern: the draft entry covered "audit F34 to F40", but F34 and F36 are audit changes made in a later commit.
+- Solution: the entry names F35 and F37 to F40 and says F34 and F36 came after; a new entry records the correction.
+- Current-tree verification: `grep -n "F34 and F36 are audit changes" ISSUE.md` finds the corrected entry.
+- Resolution reference: docs(issues): list only the audit findings the 07:58 log entry had already addressed
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4358646041>
+
+### F49 - The review bot's ninth review is not in the Findings section
+
+- PR number: 2621
+- Source review ID: 5626361760
+- Reviewer finding ID: F49
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4358059105>
+- Concern: the Findings paragraph for the round recorded only the maintainer reviewer's review; the bot's review of that head appeared only in the log.
+- Solution: the Findings section records the bot's ninth and tenth reviews as approving with no inline thread and no row.
+- Current-tree verification: `grep -n "5626157979\|5626385257" PR-REVIEW.md` finds both in the Findings section.
+- Resolution reference: docs(pr-reviews): record the review bot's ninth and tenth reviews in the PR #2621 audit
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4358646267>
+
 ## Processing Log
 
 - 2026-10-21 17:24 UTC - Copilot submitted review 5603592801 with three inline threads (F1 to F3).
@@ -951,6 +979,11 @@ F18 asks for a fully qualified path.
 - 2026-10-23 09:10 UTC - Verified each claim against the current tree. Fixed F46 in one signed commit in the draft
   folder and F47 in one audit commit, pushed them, then replied on both threads and resolved them. GraphQL data shows 0
   unresolved threads. The push dismissed review 5626118664.
+- 2026-10-23 09:25 UTC - `da2ce7` approved the head (review 5626361760) with two non-blocking inline threads (F48
+  and F49). Copilot submitted review 5626385257 at 09:27 UTC, which recommends approval.
+- 2026-10-23 10:42 UTC - Verified each claim against the current tree after a GPG-timeout pause. Fixed F48 in one
+  signed commit in the draft folder and F49 in one audit commit, pushed them, then replied on both threads and
+  resolved them. GraphQL data shows 0 unresolved threads. The push dismissed review 5626361760.
 
 ## Completion Rules
 
