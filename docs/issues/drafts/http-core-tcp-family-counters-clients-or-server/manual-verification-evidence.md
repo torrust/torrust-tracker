@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/drafts/http-core-tcp-family-counters-clients-or-server/ISSUE.md
-last-updated-utc: 2026-10-22 19:01
+last-updated-utc: "2026-10-23 07:57"
 ---
 
 # Manual Verification Evidence
