@@ -3,8 +3,8 @@ semantic-links:
   skill-links:
     - create-adr
   related-artifacts:
-    - docs/issues/open/2618-2482-decide-test-support-rules/ISSUE.md
-    - docs/issues/open/2618-2482-decide-test-support-rules/manual-verification-evidence.md
+    - docs/issues/closed/2618-2482-decide-test-support-rules/ISSUE.md
+    - docs/issues/closed/2618-2482-decide-test-support-rules/manual-verification-evidence.md
     - docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md
     - docs/issues/open/2482-1669-reorganize-shared-test-support/test-support-inventory.md
     - docs/issues/open/1669-overhaul-packages/DECISIONS.md
@@ -80,7 +80,7 @@ production builds.
 The options below rely on Cargo behaviour that was checked, not assumed, in scratch workspaces on
 stable (cargo 1.99.1) and on the workspace MSRV (cargo 1.88.0). The commands, manifests and output
 are in the
-[manual verification evidence](../issues/open/2618-2482-decide-test-support-rules/manual-verification-evidence.md)
+[manual verification evidence](../issues/closed/2618-2482-decide-test-support-rules/manual-verification-evidence.md)
 (V1 to V4c).
 
 - A feature enabled only from a consumer's `[dev-dependencies]` is off in `cargo build`,
@@ -300,8 +300,8 @@ so it is not an example of public test infrastructure. DEC-18 in the
 
 - [#2482 sub-EPIC](../issues/open/2482-1669-reorganize-shared-test-support/EPIC.md) and its
   [inventory](../issues/open/2482-1669-reorganize-shared-test-support/test-support-inventory.md)
-- [#2618 spec](../issues/open/2618-2482-decide-test-support-rules/ISSUE.md) and
-  [manual verification evidence](../issues/open/2618-2482-decide-test-support-rules/manual-verification-evidence.md)
+- [#2618 spec](../issues/closed/2618-2482-decide-test-support-rules/ISSUE.md) and
+  [manual verification evidence](../issues/closed/2618-2482-decide-test-support-rules/manual-verification-evidence.md)
 - DEC-13 and DEC-18 in the [decision log](../issues/open/1669-overhaul-packages/DECISIONS.md)
 - #2582, the packaging failure caused by a self dev-dependency with a `version`
 - [Independent package versioning](20260629000000_adopt_independent_package_versioning.md)

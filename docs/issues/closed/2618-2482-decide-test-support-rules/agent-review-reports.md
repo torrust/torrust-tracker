@@ -3,7 +3,7 @@ semantic-links:
   related-artifacts:
     - .github/agents/task-reviewer.agent.md
     - docs/agents/orchestration.md
-    - docs/issues/open/2618-2482-decide-test-support-rules/ISSUE.md
+    - docs/issues/closed/2618-2482-decide-test-support-rules/ISSUE.md
 ---
 
 # Agent Review Reports - Decide how packages share test support code

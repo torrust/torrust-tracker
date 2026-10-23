@@ -1,12 +1,12 @@
 ---
 schema-version: 1
 doc-type: epic
-status: planned
+status: in-progress
 epic: 1669
 github-issue: 2482
 spec-path: docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-22 18:39"
+last-updated-utc: "2026-10-23 08:07"
 semantic-links:
   skill-links:
     - create-issue
@@ -183,7 +183,7 @@ same pull request.
 
 | Order | Issue | Local Spec | Status | Notes |
 | --- | --- | --- | --- | --- |
-| 1 | #2618 - Decide how packages share test support code | [`docs/issues/open/2618-2482-decide-test-support-rules/ISSUE.md`](../2618-2482-decide-test-support-rules/ISSUE.md) | IN_PROGRESS | Tasks D1 to D5; MV1 to MV4. Blocks every other row. |
+| 1 | #2618 - Decide how packages share test support code | [`docs/issues/closed/2618-2482-decide-test-support-rules/ISSUE.md`](../../closed/2618-2482-decide-test-support-rules/ISSUE.md) | DONE | Tasks D1 to D5; MV1 to MV4. Merged in PR #2624 on 2026-10-23; issue closed. |
 | 2 | #[To be assigned] - Move the `test-helpers` protocol helpers to their consumer | [`docs/issues/drafts/2482-move-test-helpers-protocol-helpers/ISSUE.md`](../../drafts/2482-move-test-helpers-protocol-helpers/ISSUE.md) | TODO | Pattern B; ADR rule B; coupling report finding 1. The `http` and `udp` modules move to the root crate's `tests/common/`. `test-helpers` is published as 3.0.0 with only `configuration` and `random`, so the move alone does not break that API; #2583 decides the bump. Runs first (not an O1 move). |
 | 3 | #[To be assigned] - Gate `tracker-core`'s test modules and mocks | [`docs/issues/drafts/2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md`](../../drafts/2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md) | TODO | Patterns C and D; ADR rules C and D. `MockTorrentMetricsStore` is also used by `http-core` and `udp-core`, so their dev-dependencies enable the feature in the same PR. The first O1 move: after rows 8 and 9. |
 | 4 | #[To be assigned] - Gate the `udp-server` test environment behind a `testing` feature | [`docs/issues/drafts/2482-gate-udp-server-test-environment/ISSUE.md`](../../drafts/2482-gate-udp-server-test-environment/ISSUE.md) | TODO | Pattern A; ADR rule A; includes `examples/udp_only_public_tracker.rs`. After #2416 (its T9 changes this environment). |
@@ -202,7 +202,7 @@ same pull request.
 - Exit criteria: the maintainer has approved the ADR; rows 2 onwards in the table above are
   drafts with their final scope and order.
 
-Plan for subissue 1. Its own spec, [#2618](../2618-2482-decide-test-support-rules/ISSUE.md),
+Plan for subissue 1. Its own spec, [#2618](../../closed/2618-2482-decide-test-support-rules/ISSUE.md),
 is authoritative where the two differ:
 
 | ID | Task | Notes / Expected Output |
@@ -420,16 +420,26 @@ Append one line per meaningful update.
   `tracker-core/src/test_helpers.rs` is a `pub mod` whose content is `#[cfg(test)]` and
   crate-private, not a private module (the earlier text was inaccurate). The inventory has the same
   correction, plus a note that third-party test-only dependencies are not in its count.
+- 2026-10-23 07:32 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 1) - Subissue 1 (#2618) is
+  done: PR #2624 merged on 2026-10-23 (merge commit `bf03425ef`) and #2618 is closed; its spec is
+  archived. Row 1 of the Subissues table is DONE, and EPIC AC2, AC3 and AC5 are ticked with their
+  evidence (the maintainer approved the decision and the written ADR). AC1 (the inventory), AC4
+  (the other subissues are drafts, not issues yet), AC6, AC7 and AC8 stay open. Next row: 2.
+- 2026-10-23 08:07 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 1) - PR #2625 review round 1:
+  the EPIC `status` is now `in-progress` (row 1 is done and the next row is named); the maintainer's
+  approval of the written ADR is evidenced by his merge of PR #2624 (`bf03425ef`), as AC2's
+  evidence cell now says (the 07:32 entry's parenthesis "the maintainer approved ... the written
+  ADR" is corrected by this entry).
 
 ## Acceptance Criteria
 
 - [ ] AC1: The inventory covers every workspace member and every pattern found, with consumers
       and forced dependencies.
-- [ ] AC2: An ADR records the criteria, the options with trade-offs, and one rule per pattern;
+- [x] AC2: An ADR records the criteria, the options with trade-offs, and one rule per pattern;
       the maintainer has approved it, and `DECISIONS.md` amends DEC-13 and links it.
-- [ ] AC3: Each Cargo behaviour the ADR relies on is verified with recorded commands.
+- [x] AC3: Each Cargo behaviour the ADR relies on is verified with recorded commands.
 - [ ] AC4: All required subissues are created and linked, and every inventory item has one.
-- [ ] AC5: Implementation order is explicit and justified, including the ordering with EPIC
+- [x] AC5: Implementation order is explicit and justified, including the ordering with EPIC
       #1488's environment subissues.
 - [ ] AC6: Epic status reflects the actual state of the linked subissues.
 - [ ] AC7: Every completed subissue includes automated and manual verification evidence, a
@@ -445,10 +455,10 @@ Append one line per meaningful update.
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
 | AC1   | TODO                   |          |
-| AC2   | TODO                   |          |
-| AC3   | TODO                   |          |
+| AC2   | DONE                   | [`2618` spec](../../closed/2618-2482-decide-test-support-rules/ISSUE.md): ADR `20261021190318` in the ADR index and DEC-18 amending DEC-13; the maintainer approved the decision (2026-10-21) and the written ADR by merging PR #2624 (merge commit `bf03425ef`, 2026-10-23) |
+| AC3   | DONE                   | [`manual-verification-evidence.md`](../../closed/2618-2482-decide-test-support-rules/manual-verification-evidence.md): MV1 to MV4 plus a packaging baseline and two follow-up probes, on stable and 1.88.0, commands and output recorded (PR #2624) |
 | AC4   | TODO                   |          |
-| AC5   | TODO                   |          |
+| AC5   | DONE                   | Execution order 1, 2, 8, 9, 3, 4 to 7 in the Subissues table with the #1488 gates (#2416, #2449, #2450), justified in the ADR and the drafts (PR #2624) |
 | AC6   | TODO                   |          |
 | AC7   | TODO                   |          |
 | AC8   | TODO                   |          |

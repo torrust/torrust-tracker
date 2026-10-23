@@ -83,7 +83,7 @@ compilation changes.
 ### Supporting artifacts
 
 - `docs/adrs/20261021190318_share_workspace_test_support_through_testing_features.md` — the ADR
-- `docs/issues/open/2618-2482-decide-test-support-rules/manual-verification-evidence.md` — the
+- `docs/issues/closed/2618-2482-decide-test-support-rules/manual-verification-evidence.md` — the
   Cargo behaviour the decision relies on
 - `docs/issues/open/2482-1669-reorganize-shared-test-support/test-support-inventory.md`
 

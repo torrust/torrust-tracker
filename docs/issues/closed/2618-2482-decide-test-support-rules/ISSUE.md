@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-review
+status: done
 priority: p2
 epic: 2482
 github-issue: 2618
-spec-path: docs/issues/open/2618-2482-decide-test-support-rules/ISSUE.md
+spec-path: docs/issues/closed/2618-2482-decide-test-support-rules/ISSUE.md
 branch: "2618-2482-decide-test-support-rules"
 related-pr: 2624
-last-updated-utc: "2026-10-22 18:10"
+last-updated-utc: "2026-10-23 08:07"
 semantic-links:
   skill-links:
     - create-issue
@@ -34,7 +34,7 @@ semantic-links:
 
 Parent EPIC: #2482 (Reorganize test support code shared between workspace packages), a sub-EPIC
 of #1669 (Overhaul: Packages). This is row 1 of the
-[#2482 Subissues table](../2482-1669-reorganize-shared-test-support/EPIC.md#subissues).
+[#2482 Subissues table](../../open/2482-1669-reorganize-shared-test-support/EPIC.md#subissues).
 It blocks every other row.
 
 ## Goal
@@ -45,14 +45,14 @@ for the other rows of #2482, so no package moves test code before the rules exis
 
 ## Background
 
-[#2482](../2482-1669-reorganize-shared-test-support/EPIC.md) found five test support
+[#2482](../../open/2482-1669-reorganize-shared-test-support/EPIC.md) found five test support
 patterns (A to E) in the workspace, two of which hurt: public `testing` modules that compile test
 infrastructure and nine test-only dependency edges into production builds (pattern A), and a
 shared `test-helpers` crate that has become a coupling hub (pattern B). DEC-13 chose the public
 unconditional module on the premise that `tracker-core/src/test_helpers.rs` was the same pattern;
 that module's content is `#[cfg(test)]` and crate-private (the module is a `pub mod`, empty in a
 non-test build), so the premise was wrong
-(see the [inventory](../2482-1669-reorganize-shared-test-support/test-support-inventory.md)).
+(see the [inventory](../../open/2482-1669-reorganize-shared-test-support/test-support-inventory.md)).
 
 The EPIC lists eight options (O1 to O8) and three ways for a crate's own targets to use its own
 `testing` feature (O1a to O1c). Several of their trade-offs rest on Cargo behaviour that nobody
@@ -96,7 +96,7 @@ Decisions the maintainer already made for #2482 and that bind this subissue:
   gating; update the #2482 Subissues table. Rows 8 and 9 are drafted only because the ADR chose O1
   (row 9 was added on 2026-10-22).
 - D5: link the drafts from findings 1 and 2 of the
-  [2026-10-06 coupling report](../1669-overhaul-packages/workspace-coupling-report-2026-10-06.md).
+  [2026-10-06 coupling report](../../open/1669-overhaul-packages/workspace-coupling-report-2026-10-06.md).
 - Update the #2482 checkpoints, acceptance verification and the inventory (a destination for each
   item) as the work lands.
 
@@ -148,7 +148,7 @@ run.
 
 - Related ADRs: [independent package versioning](../../../adrs/20260629000000_adopt_independent_package_versioning.md)
   (every publishable package stays publishable); DEC-13 in
-  [`DECISIONS.md`](../1669-overhaul-packages/DECISIONS.md) (amended by D3).
+  [`DECISIONS.md`](../../open/1669-overhaul-packages/DECISIONS.md) (amended by D3).
 - ADRs to create: one repository-wide ADR in `docs/adrs/`, "how workspace packages share test
   support code" (D2). It is repository-wide because it binds every package and the
   inter-package dev-dependency edges, so it does not live in a package-local collection.
@@ -196,7 +196,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | --- | --- | --- |
 | T1 | DONE | D1: run MV1 to MV4 in scratch workspaces and record them | `manual-verification-evidence.md` in this folder: exact commands, manifests, output, toolchain versions (stable, and 1.88.0, the MSRV). A packaging baseline on the real workspace (`cargo package --workspace --no-verify`, read-only). A result that contradicts the EPIC is recorded and raised with the maintainer. Scratch workspaces removed |
 | T2 | DONE | Summarize the evidence for the maintainer: per option, what the verification shows | Short table in the evidence file, sent to the maintainer through `ask_user` with a recommendation |
-| T3 | IN_PROGRESS | D2: write the ADR after the maintainer decides | New file in `docs/adrs/` with a timestamp name, registered in `docs/adrs/index.md`. Criteria; all of O1 to O8 and O1a to O1c with strengths, weaknesses and the reason for each rejection; one rule per pattern A to E; the ownership map; the mechanism for a package's own targets if O1 is chosen. Approved by the maintainer |
+| T3 | DONE | D2: write the ADR after the maintainer decides | New file in `docs/adrs/` with a timestamp name, registered in `docs/adrs/index.md`. Criteria; all of O1 to O8 and O1a to O1c with strengths, weaknesses and the reason for each rejection; one rule per pattern A to E; the ownership map; the mechanism for a package's own targets if O1 is chosen. Approved by the maintainer |
 | T4 | DONE | D3: add the DEC entry amending DEC-13 | New entry (DEC-18) at the top of `DECISIONS.md` linking the ADR and correcting the `tracker-core/src/test_helpers.rs` premise; DEC-13's status line extended with a pointer to it |
 | T5 | DONE | D4: write the migration drafts for rows 2 to 9 (row 9 added on 2026-10-22) | Drafts `docs/issues/drafts/2482-<slug>/ISSUE.md` with `epic: 2482`, destination, final order, and the #1488 gating (#2416 for rows 4 and 5, #2449 for row 6, #2450 for row 7). Row 8 only if O1 is chosen. Update the #2482 Subissues table and give each inventory item a destination |
 | T6 | DONE | D5: link the drafts from findings 1 and 2 of the 2026-10-06 coupling report | Links resolve; the 2026-10-17 report is untouched |
@@ -225,15 +225,15 @@ Copilot trailer.
 - [x] Spec reviewed and approved by user/maintainer (josecelano, 2026-10-21, through the session's approval prompt)
 - [x] GitHub issue #2618 created, linked as a sub-issue of #2482, and its number added to this spec
 - [x] Spec-only PR merged into `develop` before implementation (PR #2619)
-- [ ] Implementation completed (T3 and AC2 wait for the maintainer's approval of the written ADR; PR #2624)
-- [ ] Automatic verification completed (`linter all`, pre-commit and pre-push checks)
+- [x] Implementation completed (PR #2624)
+- [x] Automatic verification completed (`linter all`, pre-commit and pre-push checks): pre-commit ran before every commit and the pre-push checks passed on each push of PR #2624 (author); Docs Lint was green on the merged head
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md` (MV1 to MV4, by the implementing agent)
 - [x] Acceptance criteria reviewed after implementation and updated with evidence (AC2 stays open until the maintainer approves the written ADR)
 - [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed ([`implementation-retrospective.md`](implementation-retrospective.md))
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
+- [ ] Reviewer validated acceptance criteria and updated checkboxes (not ticked: da2ce7 ACKed the merged head but did not update this spec's boxes, and the Task Reviewer agent was read-only)
 - [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` (two Task Reviewer entries)
-- [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [ ] Committer verified spec progress is up to date before commit (not ticked: the Committer agent was not used; the author ran pre-commit and checked the spec's ticks against the merged tree)
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/` (issue #2618 closed by the merge of PR #2624; spec archived by the archive PR)
 
 ### Progress Log
 
@@ -300,13 +300,26 @@ Append one line per meaningful update.
   (F6), and the Background says the `test_helpers.rs` module is a `pub mod` with `#[cfg(test)]`
   content (F1). The other fixes are in the ADR, DEC-18, the evidence (V4c rerun), the inventory and
   the drafts; the audit is `docs/pr-reviews/pr-2624-review/PR-REVIEW.md`.
+- 2026-10-23 07:32 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 1) - PR #2624 merged on
+  2026-10-23 at 07:22 UTC (merge commit `bf03425ef`, taken from GitHub's `mergeCommit`), at the head
+  da2ce7 ACKed; issue #2618 closed. The maintainer (josecelano) answered on 2026-10-23 that he
+  approved the written ADR, so AC2, T3 and the checkpoints that depended on it are ticked here, in
+  the archive pull request, because nothing may be pushed to a pull request branch after the
+  maintainer's ACK. Archived the spec to `docs/issues/closed/` and repaired the references.
+- 2026-10-23 08:07 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 1) - PR #2625 review round 1
+  (da2ce7, F1 to F4). Corrections to earlier text, made as a new entry because the log is
+  append-only: the 2026-10-21 16:38 entry says `docs/issues/open/...` again, because that was the
+  path at the time and the archive had rewritten it; the maintainer's approval of the written ADR
+  is evidenced by his merge of PR #2624 (`bf03425ef`), not by an answer in this session that no
+  repository artifact records (the 2026-10-23 07:32 entry's wording is corrected here); the
+  "Committer verified" checkpoint, which stays open, now states its reason.
 
 ## Acceptance Criteria
 
 - [x] AC1: `manual-verification-evidence.md` records MV1 to MV4 and the packaging baseline with
       exact commands, manifests, output and toolchain versions; every result that contradicts the
       EPIC is recorded and was raised with the maintainer; scratch workspaces are removed.
-- [ ] AC2: An ADR in `docs/adrs/`, registered in its index, records the criteria; all of O1 to O8
+- [x] AC2: An ADR in `docs/adrs/`, registered in its index, records the criteria; all of O1 to O8
       and O1a to O1c with strengths, weaknesses and the reason each rejected one is rejected; one
       rule per pattern A to E; the ownership map; and, if O1 is chosen, the mechanism a
       package's own targets use. The maintainer approved the decision before it was written and
@@ -321,11 +334,11 @@ Append one line per meaningful update.
       resolve, and the 2026-10-17 report is unchanged.
 - [x] AC6: The change set touches documentation only (plus new terms in `project-words.txt`): no
       `Cargo.toml`, source, workflow, hook or tool changes.
-- [ ] `linter all` exits with code `0`
-- [ ] Pre-push checks pass
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
-- [ ] The #2482 EPIC's checkpoints, Subissues table and acceptance verification (AC2, AC3, AC5)
+- [x] `linter all` exits with code `0`
+- [x] Pre-push checks pass
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] The #2482 EPIC's checkpoints, Subissues table and acceptance verification (AC2, AC3, AC5)
       are updated; AC4 and AC6 of the EPIC stay open until the issues exist and the last
       subissue lands
 
@@ -376,8 +389,8 @@ None. The scenarios run as recorded commands.
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
 | AC1   | DONE                   | [`manual-verification-evidence.md`](manual-verification-evidence.md), V1 to V4c and the packaging baseline; no verification result contradicts the EPIC (the inventory's pattern D claim was corrected separately); scratch workspaces removed (checked by the implementing agent, not yet by a reviewer) |
-| AC2   | TODO                   |          |
-| AC3   | DONE                   | DEC-18 in [`DECISIONS.md`](../1669-overhaul-packages/DECISIONS.md) links the ADR and corrects the premise; DEC-13's status line points to it (checked by the implementing agent) |
+| AC2   | DONE                   | The ADR `docs/adrs/20261021190318_share_workspace_test_support_through_testing_features.md` is registered in the ADR index and has every element AC2 lists (checked by the author and, in review, by da2ce7's ACK of the merged head). The maintainer (josecelano) approved the decision before it was written (2026-10-21) and approved the written ADR by merging its pull request (PR #2624, merge commit `bf03425ef`, 2026-10-23), which is the durable record; he also said so when asked about this archive |
+| AC3   | DONE                   | DEC-18 in [`DECISIONS.md`](../../open/1669-overhaul-packages/DECISIONS.md) links the ADR and corrects the premise; DEC-13's status line points to it (checked by the implementing agent) |
 | AC4   | DONE                   | Eight drafts under `docs/issues/drafts/2482-<slug>/` (rows 2 to 9; rows 8 and 9 because the ADR chose O1 and the container build ships the binary) with `epic: 2482`, linked in the EPIC Subissues table and the inventory's destination table; no GitHub issue was created for them (checked by the implementing agent) |
 | AC5   | DONE                   | Findings 1 and 2 of the 2026-10-06 report link the drafts; `linter lychee` passed; `git diff --name-only` of the branch lists no file of the 2026-10-17 report (checked by the implementing agent) |
 | AC6   | DONE                   | `git diff --stat torrust/develop...HEAD -- ':!docs' ':!project-words.txt'` printed nothing at 19:26 UTC (checked by the implementing agent) |
@@ -416,12 +429,12 @@ assumptions, material design changes, unexpected validation findings, and reusab
 
 ## References
 
-- Parent EPIC: [`#2482`](../2482-1669-reorganize-shared-test-support/EPIC.md) (its Phase 1
+- Parent EPIC: [`#2482`](../../open/2482-1669-reorganize-shared-test-support/EPIC.md) (its Phase 1
   plan and verification table are the source of T1 to T6)
-- Inventory: [`test-support-inventory.md`](../2482-1669-reorganize-shared-test-support/test-support-inventory.md)
-- Grandparent EPIC: [`#1669`](../1669-overhaul-packages/EPIC.md)
-- Decision log: DEC-13 in [`DECISIONS.md`](../1669-overhaul-packages/DECISIONS.md)
-- Source findings 1 and 2: [2026-10-06 coupling report](../1669-overhaul-packages/workspace-coupling-report-2026-10-06.md)
+- Inventory: [`test-support-inventory.md`](../../open/2482-1669-reorganize-shared-test-support/test-support-inventory.md)
+- Grandparent EPIC: [`#1669`](../../open/1669-overhaul-packages/EPIC.md)
+- Decision log: DEC-13 in [`DECISIONS.md`](../../open/1669-overhaul-packages/DECISIONS.md)
+- Source findings 1 and 2: [2026-10-06 coupling report](../../open/1669-overhaul-packages/workspace-coupling-report-2026-10-06.md)
 - Packaging check and the self dev-dependency it removed: #2582
   ([spec](../../closed/2582-1669-remove-health-check-self-dev-dependency/ISSUE.md))
 - EPIC #1488 subissues that gate rows 4 to 7: #2416, #2449, #2450
