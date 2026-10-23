@@ -9,7 +9,7 @@ github-issue: 2416
 spec-path: docs/issues/open/2416-2410-si-22-4-stop-producers-before-listeners/ISSUE.md
 branch: "2416-stop-producers-before-listeners"
 related-pr: 2623
-last-updated-utc: "2026-10-22 17:18"
+last-updated-utc: "2026-10-23 07:09"
 semantic-links:
   skill-links:
     - create-issue
@@ -206,6 +206,7 @@ maintainer decides to keep it.
 - 2026-10-22 17:12 UTC - GitHub Copilot (Claude Opus 5.5) - Review round 1, finding F1: the T10 row said the independent review, the retrospective and the script decision were pending, which the entries of 2026-10-21 19:23 and 2026-10-22 07:05 had recorded as done; it now reads `DONE` and leaves only the maintainer's acceptance review. The matching row of the sub-EPIC plan reads `DONE` too.
 - 2026-10-22 17:13 UTC - GitHub Copilot (Claude Opus 5.5) - `related-pr` records PR #2623.
 - 2026-10-22 17:18 UTC - GitHub Copilot (Claude Opus 5.5) - Review round 1 of PR #2623 processed: six findings fixed in six signed commits, pushed, replied to and resolved (zero unresolved threads); audit `docs/pr-reviews/pr-2623-review/PR-REVIEW.md`. The reviewer approved the earlier head and acknowledged it; the acceptance-criteria review is still the maintainer's.
+- 2026-10-23 07:09 UTC - GitHub Copilot (Claude Opus 5.5) - Review round 2 of PR #2623, finding F8: the AC2 cell of the Acceptance Verification table now cites V7 (the UDP deterministic red and green) next to V4.
 
 ## Architectural Decisions
 
@@ -217,7 +218,7 @@ exceptions; do not edit away the superseded ADR's original decision text.
 
 | AC ID | Status | Evidence |
 | --- | --- | --- |
-| AC1-AC2 | READY FOR REVIEW | AC1: V1 (red) and V2 (green): the `JobManager` stop-order test and the real-bus late-publication test; the application test asserts every listener waits for exactly the components that publish on its buses; 16 manager tests, one mutation per lifecycle clause (V3). AC2: V4: HTTP red then green (a request in flight while `stop()` drains), UDP regression plus staged-join tests, nine mutations. |
+| AC1-AC2 | READY FOR REVIEW | AC1: V1 (red) and V2 (green): the `JobManager` stop-order test and the real-bus late-publication test; the application test asserts every listener waits for exactly the components that publish on its buses; 16 manager tests, one mutation per lifecycle clause (V3). AC2: V4 and V7: HTTP and UDP each red then green (a request held in flight while `stop()` drains; the UDP one added in review round 1), the answered-request regression tests, the staged-join tests, and the mutations of V4. |
 | AC3 | READY FOR REVIEW | V5: M2 control, 500 of 500 persisted, twice; M3 race, two runs, answered minus persisted 0, drain counts, no lag, no abort, no failure. The race runs do not prove window (b) (V1 does); no exact per-event attribution is claimed. |
 | AC4-AC5 | READY FOR REVIEW | The ADR `docs/adrs/20261021184946_order_shutdown_by_event_flow_and_drain_event_listeners.md` restates the twelve still-valid points of the cancellation-tree ADR (section 9); that ADR has `- Status: Superseded by`; `docs/adrs/index.md` lists the new ADR. The five diagrams are in `docs/architecture/events.md` and `docs/architecture/application-jobs.md`; the shutdown diagrams they replace in the task inventory and the architecture examples are updated; `linter all` (including the local link and fragment check) exits 0. |
 | AC6 | READY FOR REVIEW | `EventFlows` unit tests (a consumer after a producer is rejected, the consumers of several buses are merged, only started listeners returned); the bootstrap subscription test (the swarm bus delivers to three receivers before any listener task can run, mutation: subscribe inside the task); bus retention: the extended application test sees every listener finish `Cancelled`, not `Completed`, while the container is alive, and `main` holds `_app_container` past `wait_for_all` (read from source, not run); the shared-deadline abort of a consumer cancelled late, which ignores its token (V3, C8 and the busy-consumer test). The ADR states the rules (sections 4, 6, 7). |
