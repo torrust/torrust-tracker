@@ -1,4 +1,4 @@
-# Sandbox only (#2525 T4, experiment E2, case c). Never merged upstream.
+# Sandbox only (#2525 T4, experiment E2, case c). Stored here as evidence, not as a workflow of this repository.
 #
 # A second workflow that also defines a job named "CI gate". It fails only when the label
 # `exp-second-fail` is set, so a test can see what the required check does when two workflows report

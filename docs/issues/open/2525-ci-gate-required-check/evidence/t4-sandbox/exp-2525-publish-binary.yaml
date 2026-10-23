@@ -1,4 +1,4 @@
-# Sandbox only (#2525 T4). Never merged upstream.
+# Sandbox only (#2525 T4). Stored here as evidence, not as a workflow of this repository.
 #
 # Builds the ci-gate binary once and publishes it as a release asset, so the cost
 # experiment can measure "download a prebuilt binary".

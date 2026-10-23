@@ -21,15 +21,16 @@ configuration to detect a ruleset that was disabled, added, or changed without a
 
 - **Never disable a ruleset to merge a pull request.** A disabled ruleset is easily forgotten: in
   2026 the required-checks ruleset stayed disabled for months and took the force-push ban with it
-  (issue #2507). When a required check blocks a known-good pull request, use the override of that
-  check instead.
+  (issue #2507). No status check is required today, so a failing check never calls for disabling a
+  ruleset: the maintainer decides from the CI state and the ACK (issue #2525).
 - **No ruleset requires branches to be up to date.** Rebasing is recommended but not required
   ([ADR](adrs/20261013161419_stop_requiring_pull_request_rebases.md)); any required-checks rule
   keeps `strict_required_status_checks_policy` set to `false`.
 - **Required checks must report on every pull request.** A skipped workflow reports nothing, and a
-  required check that never reports blocks the merge forever. No status check is required today;
-  a single always-reporting `CI gate` check, overridable by a maintainer label, is planned in issue
-  #2525.
+  required check that never reports blocks the merge forever. No status check is required today, by
+  decision (issue #2525): checks are advisory, and the maintainer's signed ACK that names the head
+  commit, with the merge flow, is the gate. Require a check again only if it reports on every pull
+  request.
 - **Change a ruleset and this document together.** Record the change, and the reason, in the same
   pull request or in the issue that authorized it.
 

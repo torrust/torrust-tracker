@@ -1,0 +1,145 @@
+# Sandbox only (#2525 T5). Stored here as evidence, not as a workflow of this repository.
+#
+# A rehearsal of the orchestrator for the question of T5: how the `CI gate` job of a run started by a
+# label event learns the results of the groups, who applied the override label, and whether the
+# override is still valid. The group jobs are stubs that fail when a marker file exists in the pull
+# request. The gate reads everything it needs from the GitHub API with a read-only token, and the
+# verdict is decided by the real ci-gate tool.
+
+name: exp-2525 orchestrator
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+    branches:
+      - "exp-2525-t5-base"
+
+permissions:
+  contents: read
+  checks: read
+  issues: read
+  pull-requests: read
+
+jobs:
+  groups:
+    # Label events only re-evaluate the verdict: the group jobs do not run again.
+    if: github.event.action != 'labeled' && github.event.action != 'unlabeled'
+    name: ${{ matrix.group }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        group: [docs-lint, db-benchmarking]
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7.0.1
+      - name: Pass or fail from a marker file
+        run: |
+          if [ -e "exp-2525/fail-${{ matrix.group }}.md" ]; then
+            echo "failing on purpose: exp-2525/fail-${{ matrix.group }}.md exists"
+            exit 1
+          fi
+          echo "passing"
+
+  gate:
+    name: CI gate
+    needs: [groups]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+      PR: ${{ github.event.pull_request.number }}
+      HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      BASE_REF: ${{ github.event.pull_request.base.ref }}
+      ACTION: ${{ github.event.action }}
+      SENDER: ${{ github.event.sender.login }}
+    steps:
+      - name: Checkout the base branch, so that the tool never comes from the pull request
+        uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.base.ref }}
+
+      - name: Setup Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - name: Build ci-gate
+        run: cargo build --release -p ci-gate
+
+      - name: Classify the change
+        run: |
+          gh api --paginate "repos/$REPO/pulls/$PR/files" --jq '.[].filename' \
+            | tr '\n' '\0' \
+            | target/release/ci-gate classify --base-branch "$BASE_REF" | tee classification.json
+
+      - name: Read the results of the groups for the head commit from the checks API
+        run: |
+          echo "event action: $ACTION; sender: $SENDER; head: $HEAD_SHA"
+          gh api --paginate "repos/$REPO/commits/$HEAD_SHA/check-runs?per_page=100" --jq '.check_runs[]' | jq -s '.' > check-runs.json
+          echo "all check runs for the head commit:"
+          jq -r '.[]|"  \(.name) app=\(.app.slug) \(.status)/\(.conclusion) started=\(.started_at)"' check-runs.json
+          # The latest run of each group's job that is not skipped (a label event skips the group jobs), and
+          # a job that has not completed counts as missing.
+          jq '
+            map(select(.app.slug == "github-actions"))
+            | map(select(.name as $n | ["docs-lint","testing","os-compatibility","coverage","container","db-compatibility","db-benchmarking","security-scan"] | index($n)))
+            | map(select(.conclusion != "skipped"))
+            | group_by(.name)
+            | map(sort_by(.started_at) | last)
+            | map(select(.status == "completed"))
+            | map({key: .name, value: (if .conclusion == "success" then "success" elif .conclusion == "cancelled" then "cancelled" else "failure" end)})
+            | from_entries' check-runs.json | tee results.json
+
+      - name: Find the override, who applied it, whether they may, and whether it is still valid
+        run: |
+          override_actor=""
+          labels=$(gh api "repos/$REPO/issues/$PR/labels" --jq '[.[].name]')
+          echo "labels now: $labels"
+          if echo "$labels" | jq -e 'index("ci-override")' > /dev/null; then
+            event=$(gh api --paginate "repos/$REPO/issues/$PR/events?per_page=100" \
+              --jq '.[] | select(.event == "labeled" and .label.name == "ci-override") | [.actor.login, .created_at] | @tsv' | tail -1)
+            actor=$(echo "$event" | cut -f1)
+            labeled_at=$(echo "$event" | cut -f2)
+            echo "latest labeled event for ci-override: actor=$actor at=$labeled_at (payload sender of this run: $SENDER)"
+            first_seen=$(gh api "repos/$REPO/commits/$HEAD_SHA/check-suites?per_page=100" --jq '[.check_suites[].created_at] | min')
+            echo "the head commit's first check suite was created at $first_seen"
+            if permission=$(gh api "repos/$REPO/collaborators/$actor/permission" --jq .permission 2> permission.err); then
+              echo "permission of $actor: $permission"
+            else
+              permission=none
+              echo "could not read the permission of $actor: $(cat permission.err)"
+            fi
+            if [[ "$labeled_at" > "$first_seen" ]] && { [ "$permission" = admin ] || [ "$permission" = maintain ]; }; then
+              override_actor="$actor"
+              echo "the override is valid"
+            elif [[ ! "$labeled_at" > "$first_seen" ]]; then
+              echo "the override is stale: it was applied before the head commit's first check suite"
+            else
+              echo "the actor has no maintain or admin permission"
+            fi
+          else
+            echo "no ci-override label"
+          fi
+          echo "$override_actor" > override-actor.txt
+
+      - name: Probe what the read-only token sees of the permission of other users (informational)
+        run: |
+          for user in da2ce7 octocat; do
+            if permission=$(gh api "repos/$REPO/collaborators/$user/permission" --jq '.permission' 2>&1); then
+              echo "probe: permission of $user: $permission"
+            else
+              echo "probe: could not read the permission of $user: $permission"
+            fi
+          done
+
+      - name: Decide with the verdict tool
+        run: |
+          jq -n --slurpfile c classification.json --slurpfile r results.json '{classification: $c[0], results: $r[0]}' > verdict-input.json
+          args=(verdict)
+          if [ -n "$(cat override-actor.txt)" ]; then args+=(--override-actor "$(cat override-actor.txt)"); fi
+          target/release/ci-gate "${args[@]}" < verdict-input.json | tee verdict.json
+          [ "$(jq -r .verdict verdict.json)" = pass ]
