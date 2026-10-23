@@ -40,7 +40,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 Round 1: da2ce7's review 5631559010 (APPROVED, on the opening head, the commit whose subject is "docs(issues): [#2628] specify moving the test-helpers protocol helpers") carries four inline threads, F1 to F4, and an ACK of that head, which is stale after the fix commits. Copilot's review 5631574526 (COMMENTED, same head) says "No open issues" and opens no thread, so it raises no actionable assertion and adds no row. Severities are the labels of the source comments.
 
-Round 2: da2ce7's review 5631788587 (COMMENTED, submitted 2026-10-23T17:04:09Z, after the round 1 fixes and audit) carries three nit threads, F5 to F7, next to an ACK of the head that carried the round 1 audit. Severities are the labels of the source comments.
+Round 2: da2ce7's review 5631788587 (APPROVED, submitted 2026-10-23T17:04:09Z, after the round 1 fixes and audit, dismissed by the 17:25:57Z push) carries three nit threads, F5 to F7, next to an ACK of the head that carried the round 1 audit. Severities are the labels of the source comments.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
