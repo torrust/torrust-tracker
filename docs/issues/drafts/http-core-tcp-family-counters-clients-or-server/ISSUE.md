@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/http-core-tcp-family-counters-clients-or-server/ISSUE.md
 branch: "{issue-number}-http-core-tcp-family-counters-clients-or-server"
 related-pr: null
-last-updated-utc: "2026-10-22 20:04"
+last-updated-utc: "2026-10-23 07:12"
 semantic-links:
   skill-links:
     - create-issue
@@ -225,6 +225,7 @@ issue and pull requests. This draft's own pull request (#2621) carries only the 
 - 2026-10-22 19:23 UTC - AI assistant (GitHub Copilot, Copilot SDK in VS Code) - Corrected the 19:02 entry above (review 5619631773, F28): it listed F21 and F25, which are audit changes made later in the audit commit, as addressed
 - 2026-10-22 19:45 UTC - AI assistant (GitHub Copilot, Copilot SDK in VS Code) - Aligned acceptance criterion AC2 with the regression strategy (Copilot review 5619691908): `http-core` keeps the mixed-family cases, while the UDP packages have plain-family and mapped-client cases only
 - 2026-10-22 20:04 UTC - AI assistant (GitHub Copilot, Copilot SDK in VS Code) - Corrected the review ID named in the 19:23 entry above, which now cites review 5619631773 (the review that raised F28) instead of 5619336077 (F31)
+- 2026-10-23 07:12 UTC - AI assistant (GitHub Copilot, Copilot SDK in VS Code) - Made scenario M3's configuration explicit (Copilot review 5620148855, audit F33): its own configuration with direct-client mode, a dual-stack socket and debug logging
 
 ## Acceptance Criteria
 
@@ -259,7 +260,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | --- | --- | --- | --- | --- | --- |
 | M1 | Reverse-proxy mixed family before the fix: IPv6 `X-Forwarded-For` over the IPv4 HTTP listener | Build, run with `on_reverse_proxy = true`, announce with `X-Forwarded-For: 2001:db8::1`, read `/api/v1/stats` | Current behavior recorded (`tcp4` incremented, `tcp6` unchanged) | DONE | `manual-verification-evidence.md` section V1 and `evidence/` |
 | M2 | Same scenario after a behavior change in T5 (skipped if T4 keeps the current meaning) | Repeat M1 on the fixed build | Counter matches the T4 decision | TODO | `manual-verification-evidence.md` (to be added as V2) |
-| M3 | Dual-stack `[::]` binding: an IPv4 client reaches an inet6 socket | Set `bind_address = "[::]:7070"` on the HTTP tracker, announce over IPv4 to `127.0.0.1`, read `/api/v1/stats` and the labels in the log | Record the observed counters and labels. Both the binding and the mapped client classify as `inet6`, so M3 records what a dual-stack operator sees today; it does not separate the two meanings | TODO | `manual-verification-evidence.md` (to be added as V3) |
+| M3 | Dual-stack `[::]` binding: an IPv4 client reaches an inet6 socket | Use a configuration of its own, not V1's: HTTP tracker `bind_address = "[::]:7070"`, `on_reverse_proxy = false` (the default, so the client address is the socket address, `packages/http-protocol/src/v1/services/peer_ip_resolver.rs`) and `trace_filter = "debug"` (the counter labels are logged at debug level by `packages/http-core/src/statistics/event/handler.rs`). Announce over IPv4 to `127.0.0.1`, read `/api/v1/stats` and the labels in the log | Record the observed counters and labels. Both the binding and the mapped client classify as `inet6`, so M3 records what a dual-stack operator sees today; it does not separate the two meanings | TODO | `manual-verification-evidence.md` (to be added as V3) |
 | M4 | UDP dual-stack: an IPv4 client reaches an `inet6` UDP socket as a mapped address (UDP has no reverse-proxy mode, and the two meanings agree here) | Set `bind_address = "[::]:6969"` on the UDP tracker (default `ipv6_v6only = false` on Linux), send one announce over IPv4 with `tracker_client`, read `/api/v1/stats` | Record the `udp4_*`/`udp6_*` counters that the REST API reads from `udp-server`. It records what a dual-stack operator sees (the mapped case, counted as `udp6`); it cannot tell the two meanings apart. Not yet reproduced | TODO | `manual-verification-evidence.md` (to be added as V4) |
 
 Notes:
