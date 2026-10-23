@@ -102,9 +102,9 @@ admin = "MyAccessToken"
 
    The log goes to `.tmp/tcp-family-repro/run.log`; the stored [evidence/tracker.log](evidence/tracker.log) is that file after the run.
    The `mkdir -p` is needed because the SQLite driver opens the configured path `./.tmp/tcp-family-repro/sqlite3.db`
-   as given, so it resolves against the working directory, and it does not create the folder. The recorded run used a
-   byte-identical working copy of the configuration at `.tmp/tcp-family-repro/tracker.toml` (`diff` printed nothing
-   before the run); passing the committed file gives the same configuration.
+   as given, so it resolves against the working directory, and it does not create the folder. The stored log comes from
+   the 2026-10-22 18:09 UTC run, which read a working copy of this file from `.tmp/`; the configuration printed at the
+   top of the log is the one in effect.
 
    Steps 2 to 4 run in terminal B, from the same repository root. Each block sets `E` itself, because a new shell does
    not inherit it.
