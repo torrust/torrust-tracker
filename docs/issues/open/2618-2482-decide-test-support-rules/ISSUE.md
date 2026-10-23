@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-review
 priority: p2
 epic: 2482
 github-issue: 2618
 spec-path: docs/issues/open/2618-2482-decide-test-support-rules/ISSUE.md
-branch: "2618-2482-decide-test-support-rules-spec"
-related-pr: null
-last-updated-utc: "2026-10-21 16:38"
+branch: "2618-2482-decide-test-support-rules"
+related-pr: 2624
+last-updated-utc: "2026-10-22 18:10"
 semantic-links:
   skill-links:
     - create-issue
@@ -50,7 +50,8 @@ patterns (A to E) in the workspace, two of which hurt: public `testing` modules 
 infrastructure and nine test-only dependency edges into production builds (pattern A), and a
 shared `test-helpers` crate that has become a coupling hub (pattern B). DEC-13 chose the public
 unconditional module on the premise that `tracker-core/src/test_helpers.rs` was the same pattern;
-that module is `#[cfg(test)]` and private, so the premise was wrong
+that module's content is `#[cfg(test)]` and crate-private (the module is a `pub mod`, empty in a
+non-test build), so the premise was wrong
 (see the [inventory](../2482-1669-reorganize-shared-test-support/test-support-inventory.md)).
 
 The EPIC lists eight options (O1 to O8) and three ways for a crate's own targets to use its own
@@ -90,9 +91,10 @@ Decisions the maintainer already made for #2482 and that bind this subissue:
   and, if O1 is chosen, the mechanism the package's own targets use. The maintainer approves it
   before it is written (see T3).
 - D3: amend DEC-13 with a new DEC entry that links the ADR and corrects its premise.
-- D4: write the migration plan as drafts for rows 2 to 8 of #2482 under
+- D4: write the migration plan as drafts for rows 2 to 9 of #2482 under
   `docs/issues/drafts/2482-<slug>/ISSUE.md`, with destination, final order and the EPIC #1488
-  gating; update the #2482 Subissues table. Row 8 is drafted only if the ADR chooses O1.
+  gating; update the #2482 Subissues table. Rows 8 and 9 are drafted only because the ADR chose O1
+  (row 9 was added on 2026-10-22).
 - D5: link the drafts from findings 1 and 2 of the
   [2026-10-06 coupling report](../1669-overhaul-packages/workspace-coupling-report-2026-10-06.md).
 - Update the #2482 checkpoints, acceptance verification and the inventory (a destination for each
@@ -102,7 +104,7 @@ Decisions the maintainer already made for #2482 and that bind this subissue:
 
 - Moving, gating or deleting any test support code, and changing any `Cargo.toml`, workflow,
   hook or tool. This subissue changes documentation only.
-- Creating GitHub issues for rows 2 to 8. The next subsessions create them one at a time, after
+- Creating GitHub issues for rows 2 to 9. The next subsessions create them one at a time, after
   the maintainer approves each spec.
 - Editing the 2026-10-17 coupling report, #2583's spec, or any non-#2482 work.
 - Publishing any crate, or deciding any version bump (#2583 decides them).
@@ -138,7 +140,7 @@ run.
 | Run MV1 to MV4 inside the real workspace | 32 members and shipped manifests confound the result and risk leaving edits behind. The scratch workspaces isolate Cargo's behaviour; only the packaging baseline (MV3 baseline) runs read-only on the real workspace |
 | Keep verification scripts in the repository | The scenarios test Cargo, not repository code, and the EPIC records that no script is kept. Verbatim commands and manifests in the evidence file let a reviewer repeat them |
 | One ADR per pattern | The rules interlock: the ownership map and the O1 mechanism cut across patterns A, B and D. The EPIC asks for one ADR with one rule per pattern |
-| Create GitHub issues for rows 2 to 8 in this subissue | The maintainer chose strictly one subissue at a time, and each later scope depends on the approved ADR. Drafts carry the plan until their turn |
+| Create GitHub issues for rows 2 to 9 in this subissue | The maintainer chose strictly one subissue at a time, and each later scope depends on the approved ADR. Drafts carry the plan until their turn |
 | Edit DEC-13 in place | `DECISIONS.md` is a log of decisions. Rewriting an adopted entry hides what was decided and why it changed. A new entry that links the ADR and a one-line pointer on DEC-13 keep both visible |
 | Record only a pass/fail summary of the MV scenarios | A summary cannot be re-checked or compared when Cargo changes. Commands, manifests, output and toolchain versions go into the evidence file |
 
@@ -192,13 +194,13 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T1 | TODO | D1: run MV1 to MV4 in scratch workspaces and record them | `manual-verification-evidence.md` in this folder: exact commands, manifests, output, toolchain versions (stable, and 1.88.0, the MSRV). A packaging baseline on the real workspace (`cargo package --workspace --no-verify`, read-only). A result that contradicts the EPIC is recorded and raised with the maintainer. Scratch workspaces removed |
-| T2 | TODO | Summarize the evidence for the maintainer: per option, what the verification shows | Short table in the evidence file, sent to the maintainer through `ask_user` with a recommendation |
-| T3 | TODO | D2: write the ADR after the maintainer decides | New file in `docs/adrs/` with a timestamp name, registered in `docs/adrs/index.md`. Criteria; all of O1 to O8 and O1a to O1c with strengths, weaknesses and the reason for each rejection; one rule per pattern A to E; the ownership map; the mechanism for a package's own targets if O1 is chosen. Approved by the maintainer |
-| T4 | TODO | D3: add the DEC entry amending DEC-13 | New entry (DEC-18) at the top of `DECISIONS.md` linking the ADR and correcting the `tracker-core/src/test_helpers.rs` premise; a pointer line on DEC-13 (status line unchanged otherwise) |
-| T5 | TODO | D4: write the migration drafts for rows 2 to 8 | Drafts `docs/issues/drafts/2482-<slug>/ISSUE.md` with `epic: 2482`, destination, final order, and the #1488 gating (#2416 for rows 4 and 5, #2449 for row 6, #2450 for row 7). Row 8 only if O1 is chosen. Update the #2482 Subissues table and give each inventory item a destination |
-| T6 | TODO | D5: link the drafts from findings 1 and 2 of the 2026-10-06 coupling report | Links resolve; the 2026-10-17 report is untouched |
-| T7 | TODO | Close out | Update the #2482 checkpoints and acceptance verification; re-review this spec's acceptance criteria; implementation completion review and, if warranted, `implementation-retrospective.md` |
+| T1 | DONE | D1: run MV1 to MV4 in scratch workspaces and record them | `manual-verification-evidence.md` in this folder: exact commands, manifests, output, toolchain versions (stable, and 1.88.0, the MSRV). A packaging baseline on the real workspace (`cargo package --workspace --no-verify`, read-only). A result that contradicts the EPIC is recorded and raised with the maintainer. Scratch workspaces removed |
+| T2 | DONE | Summarize the evidence for the maintainer: per option, what the verification shows | Short table in the evidence file, sent to the maintainer through `ask_user` with a recommendation |
+| T3 | IN_PROGRESS | D2: write the ADR after the maintainer decides | New file in `docs/adrs/` with a timestamp name, registered in `docs/adrs/index.md`. Criteria; all of O1 to O8 and O1a to O1c with strengths, weaknesses and the reason for each rejection; one rule per pattern A to E; the ownership map; the mechanism for a package's own targets if O1 is chosen. Approved by the maintainer |
+| T4 | DONE | D3: add the DEC entry amending DEC-13 | New entry (DEC-18) at the top of `DECISIONS.md` linking the ADR and correcting the `tracker-core/src/test_helpers.rs` premise; DEC-13's status line extended with a pointer to it |
+| T5 | DONE | D4: write the migration drafts for rows 2 to 9 (row 9 added on 2026-10-22) | Drafts `docs/issues/drafts/2482-<slug>/ISSUE.md` with `epic: 2482`, destination, final order, and the #1488 gating (#2416 for rows 4 and 5, #2449 for row 6, #2450 for row 7). Row 8 only if O1 is chosen. Update the #2482 Subissues table and give each inventory item a destination |
+| T6 | DONE | D5: link the drafts from findings 1 and 2 of the 2026-10-06 coupling report | Links resolve; the 2026-10-17 report is untouched |
+| T7 | DONE | Close out | Update the #2482 checkpoints and acceptance verification; re-review this spec's acceptance criteria; implementation completion review and, if warranted, `implementation-retrospective.md` |
 
 ## Commit Points
 
@@ -222,13 +224,14 @@ Copilot trailer.
 - [x] Folder-style spec drafted in `docs/issues/drafts/2482-decide-test-support-rules/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer (josecelano, 2026-10-21, through the session's approval prompt)
 - [x] GitHub issue #2618 created, linked as a sub-issue of #2482, and its number added to this spec
-- [ ] Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
+- [x] Spec-only PR merged into `develop` before implementation (PR #2619)
+- [ ] Implementation completed (T3 and AC2 wait for the maintainer's approval of the written ADR; PR #2624)
 - [ ] Automatic verification completed (`linter all`, pre-commit and pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md` (MV1 to MV4, by the implementing agent)
+- [x] Acceptance criteria reviewed after implementation and updated with evidence (AC2 stays open until the maintainer approves the written ADR)
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed ([`implementation-retrospective.md`](implementation-retrospective.md))
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` (two Task Reviewer entries)
 - [ ] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
@@ -245,10 +248,62 @@ Append one line per meaningful update.
   (josecelano) approved the spec. Created issue #2618, linked it as a sub-issue of #2482 (checked
   with the issue's `parent_issue_url`), moved the spec to
   `docs/issues/open/2618-2482-decide-test-support-rules/` and updated the #2482 Subissues table.
+- 2026-10-21 17:14 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 1) - Spec-only PR
+  #2619 merged into `develop` (merge commit `7963007ee`, taken from GitHub's `mergeCommit`), at the
+  head the maintainer ACKed. Copilot reviewed once with no findings; the audit is
+  `docs/pr-reviews/pr-2619-review/PR-REVIEW.md`.
+- 2026-10-21 18:50 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 1) - Ran MV1 to MV4 and a
+  read-only packaging baseline in scratch workspaces on stable (cargo 1.99.1) and 1.88.0, and
+  recorded them in `manual-verification-evidence.md`; the scratch workspaces were removed. No
+  result contradicts the EPIC. New findings for the ADR: `cargo test --workspace` hides O1a and
+  O1b gaps when another member enables the feature; `--all-targets` enables dev-dependency
+  features for every target; a doc test cannot use `required-features`; a versioned
+  dev-dependency cycle between publishable crates cannot be packaged; Cargo 1.88.0 cannot run
+  `cargo package --workspace --no-verify` on this repository.
+- 2026-10-21 19:05 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 1) - Corrected the
+  inventory (commit `docs(issues): [#2618] correct the inventory: http-core and udp-core use a
+  tracker-core mock`): `MockTorrentMetricsStore` is imported by `#[cfg(test)]` modules of four files
+  in `http-core` and `udp-core`, so pattern D is not crate-private, contrary to the inventory's
+  earlier text. Put the evidence and a recommendation before the maintainer (josecelano), who
+  approved the combination (O1 with O1c for patterns A and D, O4 and O3 for B, O5 for C, O3 for E)
+  and the semver stance (the `testing` features are test support outside semver). Wrote the ADR
+  `docs/adrs/20261021190318_share_workspace_test_support_through_testing_features.md` and
+  registered it in the ADR index. A follow-up probe (evidence V4b) showed that with the self
+  dev-dependency `#[cfg(feature = "testing")]` alone gates the module for unit tests too.
+- 2026-10-21 19:09 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 1) - Added DEC-18 to
+  `DECISIONS.md` (amends DEC-13, links the ADR, corrects the `tracker-core/src/test_helpers.rs`
+  premise) and a pointer on DEC-13's status line (task T4).
+- 2026-10-21 19:26 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 1) - Wrote the seven
+  migration drafts (rows 2 to 8), set the execution order (1, 2, 8, 3, then 4 to 7 as their #1488
+  gates clear; row 8 before row 3 because row 3 is the first O1 move), linked the drafts from the
+  EPIC table, the inventory and findings 1 and 2 of the 2026-10-06 report (tasks T5 and T6).
+- 2026-10-22 17:18 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 1) - Pre-PR review by the
+  Task Reviewer agent found a gap: the container image's release binary is built by
+  `cargo nextest archive --tests --all-features --release`, so it would ship every `testing`
+  feature (a self dev-dependency enables the feature in any invocation that also builds tests;
+  evidence V4c). The maintainer (josecelano) decided on 2026-10-22 to build shipped artifacts on
+  their own with explicit features and a CI check, and to drop `--all-features` there. Plan change:
+  added row 9 (draft `2482-build-shipped-artifacts-without-test-features`), executed after row 8
+  and before row 3; added ADR rule A.5 text, DEC-18 trade-off and V4c. Also fixed the review's
+  wording findings: the V3 cycle description and the DEC-13 quote attribution in the ADR, the
+  "every inventory item has a draft" claim (now: a destination for every item, a draft for every
+  item that moves), the ordering text, and a qualifier on "no result contradicts the EPIC".
+- 2026-10-22 17:29 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 1) - Close-out (task T7):
+  re-reviewed the acceptance criteria (AC1, AC3 to AC6 hold; AC2 waits for the maintainer's approval
+  of the written ADR), recorded the two Task Reviewer reviews in `agent-review-reports.md`, and
+  wrote `implementation-retrospective.md` because the work found material discoveries (the
+  inventory's pattern D error and the container build gap).
+- 2026-10-22 18:10 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 1) - PR #2624 review round
+  1: Copilot raised R1 and da2ce7 raised F1 to F10 (da2ce7 also ACKed the head). Changes in this
+  spec: `status` is `in-review`, `branch` names the implementation branch and `related-pr` is 2624
+  (F6), the "Implementation completed" checkpoint is no longer ticked until the maintainer approves the ADR
+  (F6), and the Background says the `test_helpers.rs` module is a `pub mod` with `#[cfg(test)]`
+  content (F1). The other fixes are in the ADR, DEC-18, the evidence (V4c rerun), the inventory and
+  the drafts; the audit is `docs/pr-reviews/pr-2624-review/PR-REVIEW.md`.
 
 ## Acceptance Criteria
 
-- [ ] AC1: `manual-verification-evidence.md` records MV1 to MV4 and the packaging baseline with
+- [x] AC1: `manual-verification-evidence.md` records MV1 to MV4 and the packaging baseline with
       exact commands, manifests, output and toolchain versions; every result that contradicts the
       EPIC is recorded and was raised with the maintainer; scratch workspaces are removed.
 - [ ] AC2: An ADR in `docs/adrs/`, registered in its index, records the criteria; all of O1 to O8
@@ -256,15 +311,15 @@ Append one line per meaningful update.
       rule per pattern A to E; the ownership map; and, if O1 is chosen, the mechanism a
       package's own targets use. The maintainer approved the decision before it was written and
       approved the ADR.
-- [ ] AC3: `DECISIONS.md` has a new entry amending DEC-13 that links the ADR and corrects the
+- [x] AC3: `DECISIONS.md` has a new entry amending DEC-13 that links the ADR and corrects the
       `tracker-core/src/test_helpers.rs` premise; DEC-13 points to it.
-- [ ] AC4: Rows 2 to 8 of the #2482 Subissues table (row 8 only if the ADR chooses O1) are drafts
-      under `docs/issues/drafts/2482-<slug>/` with `epic: 2482`, destination, final order and the
-      #1488 gating; every inventory item has a destination and a draft; no GitHub issue exists
-      for them.
-- [ ] AC5: Findings 1 and 2 of the 2026-10-06 coupling report link the drafts, the links
+- [x] AC4: Rows 2 to 9 of the #2482 Subissues table (rows 8 and 9 because the ADR chose O1 and
+      the container build ships the binary) are drafts under `docs/issues/drafts/2482-<slug>/`
+      with `epic: 2482`, destination, final order and the #1488 gating; every inventory item has
+      a destination, and every item that moves has a draft; no GitHub issue exists for them.
+- [x] AC5: Findings 1 and 2 of the 2026-10-06 coupling report link the drafts, the links
       resolve, and the 2026-10-17 report is unchanged.
-- [ ] AC6: The change set touches documentation only (plus new terms in `project-words.txt`): no
+- [x] AC6: The change set touches documentation only (plus new terms in `project-words.txt`): no
       `Cargo.toml`, source, workflow, hook or tool changes.
 - [ ] `linter all` exits with code `0`
 - [ ] Pre-push checks pass
@@ -298,10 +353,10 @@ Dependent steps run one at a time.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| MV1 | Dev-dependency features stay out of normal builds | Scratch workspace with the repository's edition and resolver. Crate A has a `testing` feature gating a module; crate B enables it only from `[dev-dependencies]`. Run `cargo build -p B`, `cargo build --workspace`, `cargo tree -e features -p B`, and `cargo test -p B --no-run` | The feature is off in the normal builds and on when building B's tests | TODO | `manual-verification-evidence.md` section V1 |
-| MV2 | Dev-dependency cycle and type identity | Crate `support` depends on `a`; `a` dev-depends on `support`. Use a `support` type from `a`'s `#[cfg(test)]` code and from `a/tests/` | Records whether unit tests see mismatched types and integration tests do not | TODO | section V2 |
-| MV3 | Publishing with optional and dev dependencies | `cargo publish --dry-run` and `cargo package --workspace --no-verify` on a scratch crate with an optional path dependency, on one with a path-only dev-dependency on a `publish = false` crate, and on one with a versioned dev-dependency on it. Also `cargo package --list` and the packaged `Cargo.toml`. Baseline: `cargo package --workspace --no-verify` on this repository, read-only | Records which forms need the dependency on a registry and which ones packaging strips | TODO | section V3 |
-| MV4 | A crate's own targets using its own `testing` feature | Scratch crate with a `testing` feature and a gated module used from `src/` unit tests (`#[cfg(any(test, feature = "testing"))]`), `tests/`, `examples/` and a doc test. For O1a, O1b and O1c, run `cargo test -p <crate>`, `cargo test -p <crate> --all-features`, `cargo test --doc`, `cargo test --workspace --all-targets` and `cargo package --no-verify` | Per mechanism and target: compiles, runs, is skipped, or fails | TODO | section V4 |
+| MV1 | Dev-dependency features stay out of normal builds | Scratch workspace with the repository's edition and resolver. Crate A has a `testing` feature gating a module; crate B enables it only from `[dev-dependencies]`. Run `cargo build -p B`, `cargo build --workspace`, `cargo tree -e features -p B`, and `cargo test -p B --no-run` | The feature is off in the normal builds and on when building B's tests | DONE | `manual-verification-evidence.md` section V1 |
+| MV2 | Dev-dependency cycle and type identity | Crate `support` depends on `a`; `a` dev-depends on `support`. Use a `support` type from `a`'s `#[cfg(test)]` code and from `a/tests/` | Records whether unit tests see mismatched types and integration tests do not | DONE | section V2 |
+| MV3 | Publishing with optional and dev dependencies | `cargo publish --dry-run` and `cargo package --workspace --no-verify` on a scratch crate with an optional path dependency, on one with a path-only dev-dependency on a `publish = false` crate, and on one with a versioned dev-dependency on it. Also `cargo package --list` and the packaged `Cargo.toml`. Baseline: `cargo package --workspace --no-verify` on this repository, read-only | Records which forms need the dependency on a registry and which ones packaging strips | DONE | section V3 |
+| MV4 | A crate's own targets using its own `testing` feature | Scratch crate with a `testing` feature and a gated module used from `src/` unit tests (`#[cfg(any(test, feature = "testing"))]`), `tests/`, `examples/` and a doc test. For O1a, O1b and O1c, run `cargo test -p <crate>`, `cargo test -p <crate> --all-features`, `cargo test --doc`, `cargo test --workspace --all-targets` and `cargo package --no-verify` | Per mechanism and target: compiles, runs, is skipped, or fails | DONE | section V4 |
 
 Notes:
 
@@ -320,12 +375,12 @@ None. The scenarios run as recorded commands.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1   | TODO                   |          |
+| AC1   | DONE                   | [`manual-verification-evidence.md`](manual-verification-evidence.md), V1 to V4c and the packaging baseline; no verification result contradicts the EPIC (the inventory's pattern D claim was corrected separately); scratch workspaces removed (checked by the implementing agent, not yet by a reviewer) |
 | AC2   | TODO                   |          |
-| AC3   | TODO                   |          |
-| AC4   | TODO                   |          |
-| AC5   | TODO                   |          |
-| AC6   | TODO                   |          |
+| AC3   | DONE                   | DEC-18 in [`DECISIONS.md`](../1669-overhaul-packages/DECISIONS.md) links the ADR and corrects the premise; DEC-13's status line points to it (checked by the implementing agent) |
+| AC4   | DONE                   | Eight drafts under `docs/issues/drafts/2482-<slug>/` (rows 2 to 9; rows 8 and 9 because the ADR chose O1 and the container build ships the binary) with `epic: 2482`, linked in the EPIC Subissues table and the inventory's destination table; no GitHub issue was created for them (checked by the implementing agent) |
+| AC5   | DONE                   | Findings 1 and 2 of the 2026-10-06 report link the drafts; `linter lychee` passed; `git diff --name-only` of the branch lists no file of the 2026-10-17 report (checked by the implementing agent) |
+| AC6   | DONE                   | `git diff --stat torrust/develop...HEAD -- ':!docs' ':!project-words.txt'` printed nothing at 19:26 UTC (checked by the implementing agent) |
 
 ## Risks and Trade-offs
 
@@ -339,7 +394,7 @@ None. The scenarios run as recorded commands.
 - **Long pole.** This subissue gates #2576, #2583 and #2594 through #2482, and rows 4 to 7 wait on
   #1488. Mitigation: nothing here waits on #1488; the drafts record the ordering so later rows
   start as soon as their gate clears.
-- **Drafts go stale.** Rows 2 to 8 are not issues until their turn, and #1488 subissues change
+- **Drafts go stale.** Rows 2 to 9 are not issues until their turn, and #1488 subissues change
   the environments in the meantime. Mitigation: each later session re-reads its draft against
   `develop` before asking for approval.
 - **Scope creep into implementation.** A scratch result may tempt a manifest change in the real
@@ -350,7 +405,8 @@ None. The scenarios run as recorded commands.
 After implementation, compare the result with this specification. Record invalidated
 assumptions, material design changes, unexpected validation findings, and reusable lessons.
 
-- Retrospective: `Not yet assessed`
+- Retrospective: created, [`implementation-retrospective.md`](implementation-retrospective.md): the inventory's
+  pattern D error, the container build gap and the plan change that added row 9.
 - If needed, create `implementation-retrospective.md` from the repository template at
   `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this issue specification's directory.
 - If no retrospective is needed, add a concise progress-log entry explaining why the work had no

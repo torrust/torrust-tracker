@@ -20,6 +20,75 @@ the proposal, the reasoning, and a reference to any supporting artifact.
 
 ---
 
+## DEC-18 — Amend DEC-13: share test support through `testing` features
+
+**Date**: 2026-10-21
+**Status**: Adopted
+**Amends**: DEC-13
+**Related issue**: [#2618](https://github.com/torrust/torrust-tracker/issues/2618)
+(subissue 1 of [#2482](https://github.com/torrust/torrust-tracker/issues/2482))
+
+### Proposal considered
+
+DEC-13 relocated the three server test environments to public `src/testing/` modules, compiled
+unconditionally so that other packages' tests could import them, and cited
+`tracker-core/src/test_helpers.rs` as the existing pattern. Options evaluated in #2482 (full
+comparison in the ADR):
+
+1. **Keep DEC-13** (public unconditional module).
+2. **A `testing` Cargo feature per package**, with three ways for the package's own targets to
+   enable it: the command line only, `required-features`, or a path-only self dev-dependency.
+3. **A support crate per package**, or one workspace-wide support crate.
+4. **Turn the environments into a supported production start API.**
+5. For helpers that are not server environments: a generic `test-helpers` crate, per-package
+   `tests/common/`, or crate-private `#[cfg(test)]` modules.
+
+### Alternative chosen
+
+The `testing` feature with the path-only self dev-dependency for the package's own targets, for
+the four server environments and for the mocks other packages use; a generic `test-helpers`
+(`configuration`, `logging`, `random`); `tests/common/` for single-consumer helpers; private
+`#[cfg(test)]` modules for crate-private helpers. The package whose server an environment starts
+owns it. The module stays in `src/testing/`, so DEC-13's location stays; only its unconditional
+compilation changes.
+
+### Why this alternative was adopted
+
+1. **DEC-13's premise was wrong.** `tracker-core/src/test_helpers.rs` is a `pub mod` whose content
+   is `#[cfg(test)]` and crate-private, so it never shipped code or dependencies to production.
+   The public unconditional modules were the only pattern that did: nine normal workspace
+   dependency edges used only by test code (plus third-party crates that each move's audit
+   finds), and test infrastructure in every build.
+2. **The feature removes both costs and keeps the benefits DEC-13 wanted**: other packages still
+   import the environment (as a dev-dependency feature), the code stays next to what it tests,
+   and there is one compiled copy of the crate, so unit tests see the same types.
+3. **The self dev-dependency is the only mechanism that gives a plain `cargo test -p <package>`
+   every target kind** (unit tests, `tests/`, `examples/`, doc tests). The command-line-only
+   mechanism fails per-package runs and is hidden by feature unification in workspace runs, and
+   `required-features` silently skips targets. Packaging strips a self dev-dependency without a
+   `version` (verified on stable and 1.88.0).
+4. **A support crate gives the crate's unit tests a second copy of the crate** (E0308), and
+   `udp-server`'s unit tests use its environment.
+
+### Trade-offs accepted
+
+- Each `testing` feature is public surface, declared outside semver.
+- `cargo metadata` shows optional dependencies as normal edges and the self dev-dependency as a
+  dev edge, so the coupling tool and the diagram need a change (subissue 8 of #2482).
+- The packaged `.crate`'s `tests/` and `examples/` need `--features testing`.
+- The container image's release binary is built together with the tests (`--tests --all-features`),
+  which would ship every `testing` feature; the shipped binary must be built on its own with
+  explicit features (subissue 9 of #2482).
+
+### Supporting artifacts
+
+- `docs/adrs/20261021190318_share_workspace_test_support_through_testing_features.md` — the ADR
+- `docs/issues/open/2618-2482-decide-test-support-rules/manual-verification-evidence.md` — the
+  Cargo behaviour the decision relies on
+- `docs/issues/open/2482-1669-reorganize-shared-test-support/test-support-inventory.md`
+
+---
+
 ## DEC-16 — Adopt independent package versioning
 
 **Date**: 2026-06-29
@@ -281,7 +350,8 @@ is inherent, not accidental.
 ## DEC-13 — Relocate server test environment infrastructure to `src/testing/`
 
 **Date**: 2026-06-11
-**Status**: Adopted
+**Status**: Adopted, amended by DEC-18 (the modules are no longer compiled unconditionally, and
+the "existing pattern" premise below does not hold)
 
 ### Proposal considered
 
