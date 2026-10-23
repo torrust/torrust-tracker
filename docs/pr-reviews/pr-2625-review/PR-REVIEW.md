@@ -153,6 +153,7 @@ Round 2: da2ce7's review 5625764397 (APPROVED, 2026-10-23 08:27:33 UTC, on the h
 - 2026-10-23 08:14 UTC - Resolved all 4 threads; the reply check exited 0 before resolving, and a GraphQL query at 08:14 UTC showed 4 threads, 0 unresolved. The ACK names the head before the fixes, so a new ACK is needed on the head that carries this audit record.
 - 2026-10-23 08:28 UTC - da2ce7 submitted review 5625764397 (APPROVED) with three threads (F5 to F7) and an ACK of the head that carried the round 1 audit record (review 08:27:33 UTC, ACK 08:27:38 UTC). GraphQL data at the 08:28 UTC poll: 7 threads, 3 unresolved.
 - 2026-10-23 08:35 UTC - Correction to the first Processing Log entry (F7): review 5625548479 was submitted at 08:05:27 UTC and its ACK posted at 08:05:31 UTC; 08:07 UTC was the poll that saw them. Recorded now: Copilot's review 5625619558 (COMMENTED, submitted 08:12:49 UTC, on the opening head) opened no thread and raised no actionable assertion (F6). Edited the pull request description (F5).
+- 2026-10-23 08:37 UTC - Replied on the three round 2 threads (reply times 08:29:34 to 08:29:38 UTC), pushed the audit commit, and resolved F5 to F7; the reply check exited 0 before resolving, and a GraphQL query at 08:33 UTC (before this entry was written) showed 7 threads, 0 unresolved. The ACK names the head before this record's last commit, so a new ACK is needed on the head that carries it.
 
 ## Completion Rules
 
