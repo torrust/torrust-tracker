@@ -40,7 +40,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Ten reviews with a body had been submitted when this record was last updated, and all findings are handled. Copilot's review 5603592801 (COMMENTED,
+The pull request received more than ten reviews with a body, and every finding in them is handled; the review IDs below identify each round, and the count is not repeated here because it grows with every round. Copilot's review 5603592801 (COMMENTED,
 2026-10-21 17:24:59 UTC) read the draft at its first commit and has three inline threads, F1 to F3; its body
 carries no further assertion. The maintainer's reviewer `da2ce7` submitted review 5604621746 (DISMISSED,
 2026-10-21 18:49:37 UTC) with five inline threads, which carry the reviewer's own IDs F1 to F5. Those IDs collide
@@ -754,7 +754,7 @@ F18 asks for a fully qualified path.
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4357194694>
 - Concern: an unquoted date-like frontmatter value can be parsed as a timestamp by some tooling; other files quote it.
 - Solution: the value is quoted and refreshed.
-- Current-tree verification: `sed -n 4p manual-verification-evidence.md` prints `last-updated-utc: "2026-10-23 07:57"`; the template and the draft quote the field too.
+- Current-tree verification: `sed -n 4p manual-verification-evidence.md` prints `last-updated-utc: "2026-10-23 07:57"`; the draft and the issue and EPIC templates quote the field. The manual-verification-evidence template does not (`last-updated-utc: YYYY-MM-DD HH:MM` at line 4 of `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`), so the claim in the original reply that "the template" quotes it was too broad (F42).
 - Resolution reference: docs(issues): quote and refresh the evidence file's last-updated stamp
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4357395458>
