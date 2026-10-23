@@ -1,0 +1,116 @@
+2026-10-21T19:02:31.173870Z  INFO torrust_tracker_configuration::v3_0_0::logging: Logging initialized
+2026-10-21T19:02:31.173906Z  INFO torrust_tracker_lib::bootstrap::app: Configuration:
+{
+  "metadata": {
+    "app": "torrust-tracker",
+    "purpose": "configuration",
+    "schema_version": "3.0.0"
+  },
+  "logging": {
+    "trace_filter": "info",
+    "trace_style": "full"
+  },
+  "core": {
+    "announce_policy": {
+      "interval": 120,
+      "interval_min": 120,
+      "max_peers_per_announce": 74
+    },
+    "database": {
+      "driver": "sqlite3",
+      "path": "/home/josecelano/Documents/git/committer/me/github/torrust/torrust-tracker-agent-02.worktrees/2416-stop-event-producers-listeners/.tmp/si22-t0/20261021T190231Z-race-ZIXcoH/tracker.sqlite3"
+    },
+    "inactive_peer_cleanup_interval": 3600,
+    "listed": false,
+    "private": false,
+    "private_mode": null,
+    "tracker_policy": {
+      "max_peer_timeout": 3600,
+      "persistent_torrent_completed_stat": true,
+      "remove_peerless_torrents": false
+    },
+    "tracker_usage_statistics": true
+  },
+  "udp_trackers": null,
+  "http_trackers": [
+    {
+      "bind_address": "127.0.0.1:47070",
+      "tls_config": null,
+      "tracker_usage_statistics": true,
+      "use_ip_from_query_string": false,
+      "public_url": null,
+      "network": {
+        "external_ip": null,
+        "on_reverse_proxy": false,
+        "ipv6_v6only": false
+      }
+    }
+  ],
+  "udp_tracker_server": {
+    "ip_bans_reset_interval_in_secs": 86400,
+    "max_connection_id_errors_per_ip": 10,
+    "connection_id_validation": "strict"
+  },
+  "http_api": null,
+  "health_check_api": {
+    "bind_address": "127.0.0.1:47313"
+  }
+}
+2026-10-21T19:02:31.179023Z  INFO initialize: METRICS: type="counter" name="swarm_coordination_registry_torrents_added_total" unit=Some(Count) description=Some(MetricDescription("The total number of torrents added."))
+2026-10-21T19:02:31.179057Z  INFO initialize: METRICS: type="counter" name="swarm_coordination_registry_torrents_removed_total" unit=Some(Count) description=Some(MetricDescription("The total number of torrents removed."))
+2026-10-21T19:02:31.179062Z  INFO initialize: METRICS: type="gauge" name="swarm_coordination_registry_torrents_total" unit=Some(Count) description=Some(MetricDescription("The total number of torrents."))
+2026-10-21T19:02:31.179067Z  INFO initialize: METRICS: type="counter" name="swarm_coordination_registry_torrents_downloads_total" unit=Some(Count) description=Some(MetricDescription("The total number of torrent downloads."))
+2026-10-21T19:02:31.179071Z  INFO initialize: METRICS: type="gauge" name="swarm_coordination_registry_torrents_inactive_total" unit=Some(Count) description=Some(MetricDescription("The total number of inactive torrents."))
+2026-10-21T19:02:31.179074Z  INFO initialize: METRICS: type="counter" name="swarm_coordination_registry_peers_added_total" unit=Some(Count) description=Some(MetricDescription("The total number of peers added."))
+2026-10-21T19:02:31.179079Z  INFO initialize: METRICS: type="counter" name="swarm_coordination_registry_peers_removed_total" unit=Some(Count) description=Some(MetricDescription("The total number of peers removed."))
+2026-10-21T19:02:31.179082Z  INFO initialize: METRICS: type="counter" name="swarm_coordination_registry_peers_updated_total" unit=Some(Count) description=Some(MetricDescription("The total number of peers updated."))
+2026-10-21T19:02:31.179093Z  INFO initialize: METRICS: type="gauge" name="swarm_coordination_registry_peer_connections_total" unit=Some(Count) description=Some(MetricDescription("The total number of peer connections (one connection per torrent)."))
+2026-10-21T19:02:31.179096Z  INFO initialize: METRICS: type="gauge" name="swarm_coordination_registry_unique_peers_total" unit=Some(Count) description=Some(MetricDescription("The total number of unique peers."))
+2026-10-21T19:02:31.179100Z  INFO initialize: METRICS: type="gauge" name="swarm_coordination_registry_peers_inactive_total" unit=Some(Count) description=Some(MetricDescription("The total number of inactive peers."))
+2026-10-21T19:02:31.179104Z  INFO initialize: METRICS: type="counter" name="swarm_coordination_registry_peers_completed_state_reverted_total" unit=Some(Count) description=Some(MetricDescription("The total number of peers whose completed state was reverted."))
+2026-10-21T19:02:31.203088Z  INFO initialize: METRICS: type="counter" name="tracker_core_persistent_torrents_downloads_total" unit=Some(Count) description=Some(MetricDescription("Deprecated: use tracker_core_in_session_torrents_downloads_total or tracker_core_persisted_torrents_downloads_total. This counter is process-local unless persisted completed statistics are enabled."))
+2026-10-21T19:02:31.203110Z  INFO initialize: METRICS: type="counter" name="tracker_core_in_session_torrents_downloads_total" unit=Some(Count) description=Some(MetricDescription("The number of torrent downloads completed since this tracker process started."))
+2026-10-21T19:02:31.203115Z  INFO initialize: METRICS: type="counter" name="tracker_core_persisted_torrents_downloads_total" unit=Some(Count) description=Some(MetricDescription("The number of torrent downloads restored from and maintained in persistent storage."))
+2026-10-21T19:02:31.208601Z  INFO initialize: METRICS: type="counter" name="http_tracker_core_requests_received_total" unit=Some(Count) description=Some(MetricDescription("Total number of HTTP requests received"))
+2026-10-21T19:02:31.214117Z  INFO initialize: METRICS: type="counter" name="udp_tracker_core_requests_received_total" unit=Some(Count) description=Some(MetricDescription("Total number of UDP requests received"))
+2026-10-21T19:02:31.219724Z  INFO initialize: METRICS: type="counter" name="udp_tracker_server_requests_aborted_total" unit=Some(Count) description=Some(MetricDescription("Total number of UDP requests aborted"))
+2026-10-21T19:02:31.219737Z  INFO initialize: METRICS: type="counter" name="udp_tracker_server_requests_discarded_total" unit=Some(Count) description=Some(MetricDescription("Total number of UDP requests discarded before processing (e.g. client source port is 0)"))
+2026-10-21T19:02:31.219750Z  INFO initialize: METRICS: type="counter" name="udp_tracker_server_requests_banned_total" unit=Some(Count) description=Some(MetricDescription("Total number of UDP requests banned"))
+2026-10-21T19:02:31.219754Z  INFO initialize: METRICS: type="gauge" name="udp_tracker_server_ips_banned_total" unit=Some(Count) description=Some(MetricDescription("Number of IPs whose connection ID errors exceed the limit (banned unless connection ID validation is disabled)"))
+2026-10-21T19:02:31.219758Z  INFO initialize: METRICS: type="counter" name="udp_tracker_server_connection_id_errors_total" unit=Some(Count) description=Some(MetricDescription("Total number of requests with connection ID errors"))
+2026-10-21T19:02:31.219761Z  INFO initialize: METRICS: type="counter" name="udp_tracker_server_requests_received_total" unit=Some(Count) description=Some(MetricDescription("Total number of UDP requests received"))
+2026-10-21T19:02:31.219764Z  INFO initialize: METRICS: type="counter" name="udp_tracker_server_requests_accepted_total" unit=Some(Count) description=Some(MetricDescription("Total number of UDP requests accepted"))
+2026-10-21T19:02:31.219768Z  INFO initialize: METRICS: type="counter" name="udp_tracker_server_responses_sent_total" unit=Some(Count) description=Some(MetricDescription("Total number of UDP responses sent"))
+2026-10-21T19:02:31.219771Z  INFO initialize: METRICS: type="counter" name="udp_tracker_server_errors_total" unit=Some(Count) description=Some(MetricDescription("Total number of errors processing UDP requests"))
+2026-10-21T19:02:31.219776Z  INFO initialize: METRICS: type="gauge" name="udp_tracker_server_performance_avg_processing_time_ns" unit=Some(Nanoseconds) description=Some(MetricDescription("Average time to process a UDP request in nanoseconds"))
+2026-10-21T19:02:31.219779Z  INFO initialize: METRICS: type="counter" name="udp_tracker_server_performance_avg_processed_requests_total" unit=Some(Count) description=Some(MetricDescription("Total number of UDP requests processed for the average performance metrics"))
+2026-10-21T19:02:31.220041Z  INFO SWARM_COORDINATION_REGISTRY: Starting swarm coordination registry event listener
+2026-10-21T19:02:31.220054Z  INFO TRACKER_CORE: Starting tracker core in-memory statistics event listener
+2026-10-21T19:02:31.220060Z  INFO complete_startup: torrust_tracker_lib::app: No UDP trackers configured
+2026-10-21T19:02:31.220064Z  INFO HTTP TRACKER: Starting HTTP tracker core event listener
+2026-10-21T19:02:31.220069Z  INFO TRACKER_CORE: Starting tracker core persistent completed statistics event listener
+2026-10-21T19:02:31.220073Z  INFO UDP TRACKER: Starting UDP tracker core event listener
+2026-10-21T19:02:31.220077Z  INFO complete_startup:start_job{version=V1 cancellation_token=CancellationToken { is_cancelled: false } service_role="http_tracker" instance_index=0}: torrust_tracker_lib::bootstrap::jobs::http_tracker: Starting HTTP tracker instance bind_address=127.0.0.1:47070 tracker_usage_statistics=true
+2026-10-21T19:02:31.220149Z  INFO complete_startup: torrust_tracker_lib::bootstrap::jobs::manager: Requested the job to stop: it waits for no other job job=swarm_coordination_registry_event_listener
+2026-10-21T19:02:31.220152Z  INFO SWARM_COORDINATION_REGISTRY: Received cancellation request, draining swarm coordination registry event listener.
+2026-10-21T19:02:31.220154Z  INFO complete_startup: torrust_tracker_lib::bootstrap::jobs::manager: Requested the job to stop: it waits for no other job job=tracker_core_in_memory_event_listener
+2026-10-21T19:02:31.220158Z  INFO TRACKER_CORE: Received cancellation request, draining tracker core in-memory statistics event listener.
+2026-10-21T19:02:31.220158Z  INFO SWARM_COORDINATION_REGISTRY: Event listener drained its queue after cancellation listener="swarm_coordination_registry_statistics" outcome="emptied" processed=0 lost_to_lag=0
+2026-10-21T19:02:31.220166Z  INFO TRACKER_CORE: Event listener drained its queue after cancellation listener="tracker_core_in_memory_statistics" outcome="emptied" processed=0 lost_to_lag=0
+2026-10-21T19:02:31.220160Z  INFO complete_startup: torrust_tracker_lib::bootstrap::jobs::manager: Requested the job to stop: it waits for no other job job=tracker_core_persistent_completed_statistics_event_listener
+2026-10-21T19:02:31.220175Z  INFO HTTP TRACKER: Received cancellation request, draining HTTP tracker core event listener.
+2026-10-21T19:02:31.220175Z  INFO UDP TRACKER: Received cancellation request, draining UDP tracker core event listener.
+2026-10-21T19:02:31.220185Z  INFO TRACKER_CORE: Received cancellation request, draining tracker core persistent completed statistics event listener.
+2026-10-21T19:02:31.220182Z  INFO HTTP TRACKER: Event listener drained its queue after cancellation listener="http_tracker_core_statistics" outcome="emptied" processed=0 lost_to_lag=0
+2026-10-21T19:02:31.220187Z  INFO UDP TRACKER: Event listener drained its queue after cancellation listener="udp_tracker_core_statistics" outcome="emptied" processed=0 lost_to_lag=0
+2026-10-21T19:02:31.220176Z  INFO complete_startup: torrust_tracker_lib::bootstrap::jobs::manager: Requested the job to stop: it waits for no other job job=http_core_event_listener
+2026-10-21T19:02:31.220215Z  INFO complete_startup: torrust_tracker_lib::bootstrap::jobs::manager: Requested the job to stop: it waits for no other job job=udp_core_event_listener
+2026-10-21T19:02:31.220197Z  INFO TRACKER_CORE: Event listener drained its queue after cancellation listener="tracker_core_persistent_completed_statistics" outcome="emptied" processed=0 lost_to_lag=0
+2026-10-21T19:02:31.220224Z  INFO complete_startup: torrust_tracker_lib::bootstrap::jobs::manager: Waiting for job to finish under the shared shutdown deadline timeout_seconds=10
+2026-10-21T19:02:31.220235Z  INFO complete_startup: torrust_tracker_lib::bootstrap::jobs::manager: Job completed after cooperative cancellation job=swarm_coordination_registry_event_listener
+2026-10-21T19:02:31.220243Z  INFO complete_startup: torrust_tracker_lib::bootstrap::jobs::manager: Job completed after cooperative cancellation job=tracker_core_in_memory_event_listener
+2026-10-21T19:02:31.220247Z  INFO complete_startup: torrust_tracker_lib::bootstrap::jobs::manager: Job completed after cooperative cancellation job=http_core_event_listener
+2026-10-21T19:02:31.220251Z  INFO complete_startup: torrust_tracker_lib::bootstrap::jobs::manager: Job completed after cooperative cancellation job=udp_core_event_listener
+2026-10-21T19:02:31.220255Z  INFO complete_startup: torrust_tracker_lib::bootstrap::jobs::manager: Job completed after cooperative cancellation job=tracker_core_persistent_completed_statistics_event_listener
+2026-10-21T19:02:31.225082Z ERROR torrust_tracker: Tracker startup failed error=Configured HTTP tracker startup failed. Correct its configuration or make its listener address available: Could not start the HTTP tracker listener. Check that its bind address is available: could not bind HTTP tracker listener: Address already in use (os error 98)
+Tracker startup failed: Configured HTTP tracker startup failed. Correct its configuration or make its listener address available: Could not start the HTTP tracker listener. Check that its bind address is available: could not bind HTTP tracker listener: Address already in use (os error 98)

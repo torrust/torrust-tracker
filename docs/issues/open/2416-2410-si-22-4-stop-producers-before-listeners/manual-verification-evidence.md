@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2416-2410-si-22-4-stop-producers-before-listeners/ISSUE.md
-last-updated-utc: "2026-10-23 07:10"
+last-updated-utc: "2026-10-23 16:22"
 ---
 
 # Manual Verification Evidence
@@ -179,8 +179,14 @@ so that an unused variable failed under `-D warnings`, and rewritten). `manager`
 #### M2 and M3: the T0 parameters, the sub-EPIC's script
 
 `reproduce-lost-completions.sh` with `PEERS=500` for the control runs and `PEERS=2000 SIGTERM_DELAY=0.5`
-for the race runs. The persistent listener's drain line and the other listeners' lines are in the run
-logs under `.tmp/si22-t0/` (git-ignored); nothing else is retained.
+for the race runs. The run logs are retained in the [`evidence/`](evidence/) folder, each run as
+`<run>.tracker.log` and `<run>.summary.txt` (the script's own summary, with its `work_dir=` line removed because
+it was a local absolute path with a random suffix): `m2-control-wait1`, `m2-control-wait10`, `m3-race-1`,
+`m3-race-2`, and the failed start `m3-race-failed-start` below (the run directories were under `.tmp/si22-t0/`,
+which is git-ignored, so the repository copy is the evidence). A retained log is the tracker's stdout and
+stderr with the colour codes removed and **only** the lines that contain `request{` removed, which are the
+thousands of per-request `INFO` lines of the HTTP tracker; every other line is kept (116 to 182 lines each).
+The command was `sed 's/\x1b\[[0-9;]*m//g' tracker.log | grep -v ' request{' > <run>.tracker.log`.
 
 | Run (UTC start) | Mode | Answered `completed` (refused) | Persisted (torrent / global) | Answered minus persisted | Exit status | Persistent listener drain | T0 on `develop` (answered, persisted, lost) |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -197,11 +203,17 @@ logs under `.tmp/si22-t0/` (git-ignored); nothing else is retained.
   (the persistent listener also receives the `started` announces' events), so `processed` is not a
   count of completions, and the table claims no per-event attribution.
 - Observed lag, aborts, and failures: the four logs contain no `lost_to_lag` above 0, no `Aborted`,
-  `Failed`, or `Panicked` job outcome, no `WARN`, and no `ERROR` line (the filter and its output are the
-  commands below). The race runs let the persistent listener drain for about 2.4 and 1.6 seconds, within
+  `Failed`, or `Panicked` job outcome, no `WARN`, and no `ERROR` line. These counts were rechecked on
+  2026-10-23 on the **full** logs, with no line excluded (an earlier filter of this section also dropped
+  the `request{` lines, which could in principle have hidden a warning logged inside a request span), with
+  `grep -cE '^[0-9T:.-]+Z +(WARN|ERROR) '`, `grep -cE 'lost_to_lag=[1-9]'`, `grep -cE 'Job was aborted|Job reported a failure|Job panicked'`,
+  `grep -ci lagged`, `grep -c 'Failed to'` and `grep -ci 'database error'`, each on the colour-stripped log:
+  every count was 0 in the four runs and in the M1 burst run (2,147 lines in each control log, 5,773 and 5,926
+  in the race logs, 6,368 in the burst log). The retained logs hold the same lines minus the `request{` ones, so
+  a reviewer can repeat the counts there and know that only per-request `INFO` lines are missing. The race runs let the persistent listener drain for about 2.4 and 1.6 seconds, within
   the 5 second admission budget, and the tracker exited 0.
 - The filter used for the log claims (run per log): `sed 's/\x1b\[[0-9;]*m//g' <log> | grep -E "Event listener drained its queue|Job was aborted|Job reported a failure|Job panicked|^[0-9T:.-]+Z +(WARN|ERROR) |Remaining alive|Requested the job to stop: every|shutting down \(SIGTERM\)|successfully shutdown" | grep -v "request{"`.
-- One extra run, 19:02:31 (race), did not start the tracker: "Tracker startup failed ... Could not start
+- One extra run, 19:02:31 (race; log `evidence/m3-race-failed-start.tracker.log`), did not start the tracker: "Tracker startup failed ... Could not start
   the HTTP tracker listener ... bind address is available". The previous race run had ended 40 seconds
   earlier on the same port, and `ss` showed no `:47070` socket 90 seconds later. #2414's V10 saw the same
   after a run and I did not investigate it either (out of scope). Its log shows the startup-failure path of
@@ -303,3 +315,16 @@ proves the order; it does not count how many events the second carried, and the 
   one-token order, and the test has not been run on that tree.
 - Green: on the tree without a mutation the module passes (13 tests), and 15 repeated runs of the test passed.
 - The answered-request test stays as regression coverage; no test was removed or merged.
+
+### V8 - Review round 4: the retained recheck logs (Copilot review thread on V5)
+
+- Finding: the V5 claims about lag, warnings, failures and aborts depended on logs that existed only under the
+  git-ignored `.tmp/`, against the "Preserving Verification Artifacts" rule of the evidence template.
+- Action: the logs of the four M2 and M3 runs, of the failed start, and of the M1 burst run are retained in
+  `evidence/` (the M1 one as `m1-burst.tracker.log`), with the per-run summaries, in the form and with the
+  filter described at the top of V5. I did not rerun the scenarios: the original logs were available.
+- Retained files and the first 16 hex digits of their SHA-256, so that a later edit is visible:
+  `m1-burst.tracker.log` `0deef13a104c1ad2`, `m2-control-wait1.tracker.log` `5384a3ecadac08af`,
+  `m2-control-wait10.tracker.log` `fad0a44e4d6eca1e`, `m3-race-1.tracker.log` `6e799e0124a941dc`,
+  `m3-race-2.tracker.log` `f45db69d776a32cb`, `m3-race-failed-start.tracker.log` `dffd0638c0a0d56c`.
+- The check of the same claims on the full logs, without the `request{` filter, is recorded in V5.
