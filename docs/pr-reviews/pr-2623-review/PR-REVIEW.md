@@ -87,7 +87,7 @@ contain no other request. Finding IDs are the reviewer's own.
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2623#discussion_r4349862999
 - Concern: The evidence, record entry 32 and the retrospective said a UDP request cannot be held in flight, so the UDP environment had no deterministic red test; the crate's own `HoldAcceptedRequestsSender` holds accepted requests, so a wrapping sender could give the UDP environment a deterministic red like the HTTP one.
 - Solution: Took the first option: a wrapping sender in the UDP environment tests holds a connect request's `UdpRequestAccepted` publication while `stop()` drains the receive loop and forwards it to the real bus after release; the test checks the accepted-request counter after `stop()` returns. The wrong sentences were corrected in the evidence (V4 with the correction marked, and the new V7), record entry 32, the retrospective (with a lesson about searching the crate for an existing hook) and the spec.
-- Current-tree verification: `cargo test -p torrust-tracker-udp-server --lib testing::environment`: 13 passed, and 15 repeated runs of the new test passed; with mutation U-M1 (listeners cancelled together with the receive loop) the new test and the staged-order test fail, and with U-M3 it fails too (evidence V7); `grep -n 'cannot be held in flight'` finds only the corrections that name the old claim.
+- Current-tree verification: `cargo test -p torrust-tracker-udp-server --lib testing::environment`: 13 passed, and 15 repeated runs of the new test passed; with mutation U-M1 (listeners cancelled together with the receive loop) the new test and the staged-order test fail, and with U-M3 it fails too (evidence V7); `grep -rn 'cannot be held in flight' docs packages src` matches only records that quote the old claim in order to correct it (record entry 32, the retrospective, V4's marked correction, and this audit); none states it as true.
 - Resolution reference: `test(udp-server): [#2416] hold a UDP request in flight to test the late event when stopping`
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2623#discussion_r4351330658
@@ -178,7 +178,7 @@ contain no other request. Finding IDs are the reviewer's own.
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2623#discussion_r4351630263
 - Concern: V7 did not say which tree it ran on, and said the tree before the T9 change "does not have the wrapper hooks the test needs", which is wrong: the wrapper and its helper need only the container fields and `stop()`.
 - Solution: V7 names its working-tree state, says that mutation U-M1 reproduces the one-token order exactly and that the test was not run on the earlier tree, and marks the correction. A search for the old sentence finds no other record.
-- Current-tree verification: `grep -rn 'wrapper hooks' docs packages src` finds only the marked correction; `linter all` exit 0.
+- Current-tree verification: `grep -rn 'wrapper hooks' docs packages src` matches only records that quote the old sentence in order to correct it (the marked correction in V7, the progress-log entry of the correction, and this audit entry); none states it as true; `linter all` exit 0.
 - Resolution reference: `docs(issues): [#2416] name the tree of the UDP red run and give the true reason for mutation U-M1`
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2623#discussion_r4357053539
@@ -256,7 +256,7 @@ contain no other request. Finding IDs are the reviewer's own.
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2623#discussion_r4362046602
 - Concern: The F13 correction to the F10 solution said the 23 had been counted by the reviewer, but 23 was that entry's own wording, committed in the round-3 audit commit, and the review that pointed out what it counted came after.
 - Solution: The F10 solution now says that the figure of 23 was the entry's own, taken after the merge commit and the round-3 audit commit were added, and names no person. Swept the audit and my replies for the same attribution: my reply on the F13 thread said the same and was edited; nothing else names a person for that figure.
-- Current-tree verification: `git grep -n -e '23 Cameron' -e 'you counted' -- docs` finds nothing; `linter all` exit 0; the F13 thread reply read back from GitHub no longer says 'you counted'.
+- Current-tree verification: `git grep -n -E 'you count[e]d' -- docs` prints nothing (the bracket keeps the pattern from matching this line); a search written the same way for the earlier phrase that named a person for the figure prints nothing either, and the phrase is not quoted here so that this entry names no one; the F13 thread reply read back from GitHub no longer attributes the count to the reviewer; `linter all` exit 0.
 - Resolution reference: `docs(pr-reviews): [#2416] attribute the figure of 23 to the audit entry, not to a reviewer`
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2623#discussion_r4362201409
