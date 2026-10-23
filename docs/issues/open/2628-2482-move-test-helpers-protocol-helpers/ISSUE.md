@@ -9,7 +9,7 @@ github-issue: 2628
 spec-path: docs/issues/open/2628-2482-move-test-helpers-protocol-helpers/ISSUE.md
 branch: "2628-2482-move-test-helpers-protocol-helpers-spec"
 related-pr: null
-last-updated-utc: "2026-10-23 16:46"
+last-updated-utc: "2026-10-23 16:49"
 semantic-links:
   skill-links:
     - create-issue
@@ -148,6 +148,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-10-22 18:10 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 1) - Changed after PR #2624's review: the deny.toml scope adds a ban entry for `torrust-tracker-client-lib` (it has none) and asks whether the domain crates need entries.
 - 2026-10-23 15:50 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 2) - Refreshed against `develop` at `64e6783b0`: every fact re-verified (seven dev-dependents; `http.rs` 68 and `udp.rs` 304 lines; root `tests/common/mod.rs` the only consumer; `cargo deny check bans` passes). Made the `deny.toml` scope concrete: the root joins the `udp-protocol` wrappers, and the new `client-lib` entry lists four wrappers.
 - 2026-10-23 16:23 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 2) - Maintainer (josecelano) approved the spec and decided that the `deny.toml` scope also adds ban entries for `torrust-tracker-core`, `swarm-coordination-registry` and `events`. Created issue #2628, linked it as a subissue of #2482 (`parent_issue_url` verified) and moved the spec to `docs/issues/open/`.
+- 2026-10-23 16:49 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 2) - Review round 1 on PR #2629 (da2ce7, four non-blocking findings): fixed the Progress Log placement, the check scope wording, the frontmatter branch/status and the drafted-checkpoint path; see `docs/pr-reviews/pr-2629-review/PR-REVIEW.md`.
 
 ## Acceptance Criteria
 
