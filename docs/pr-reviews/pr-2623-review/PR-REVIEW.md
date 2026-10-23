@@ -39,7 +39,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Review rounds 1 to 5 of the maintainer-requested review. Round 5 (review 5631621502, source of F15 and F16) is described in the Processing Log. Round 2 (review 5618477521, source of F7 to F9), round 3 (review 5625229542, source of F10 and F11) and round 4 (review 5630959120, source of F12 and F13, and the Copilot review 5631096012, source of F14) are described in the Processing Log. The Copilot review (review 5610834925, a summary
+Review rounds 1 to 6 of the maintainer-requested review. Round 6 (review 5631998994, source of F17) and round 5 (review 5631621502, source of F15 and F16) are described in the Processing Log. Round 2 (review 5618477521, source of F7 to F9), round 3 (review 5625229542, source of F10 and F11) and round 4 (review 5630959120, source of F12 and F13, and the Copilot review 5631096012, source of F14) are described in the Processing Log. The Copilot review (review 5610834925, a summary
 that reports no open issues and has no inline thread) holds no independently actionable assertion and
 has no row. The human review 5616192898 (verdict `APPROVED`, an ACK of the pushed head, and the PR
 conversation comment 6343775843) holds the six inline findings below; its body and the ACK comment
@@ -63,6 +63,7 @@ contain no other request. Finding IDs are the reviewer's own.
 | F14 | review-finding:pr-2623-f14 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 | F15 | review-finding:pr-2623-f15 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F16 | review-finding:pr-2623-f16 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F17 | review-finding:pr-2623-f17 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -274,6 +275,19 @@ contain no other request. Finding IDs are the reviewer's own.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2623#discussion_r4362201670
 
+### F17 - The verification says the grep finds nothing, but it finds its own line
+
+- PR number: 2623
+- Source review ID: 5631998994
+- Reviewer finding ID: F17
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2623#discussion_r4362339577
+- Concern: The F15 verification claimed that a search found nothing, but the search quoted its own patterns, so it matched the entry that quoted them, and one of those patterns named a person again.
+- Solution: The F15 verification now quotes only a bracketed pattern that cannot match its own line, and describes the second search without quoting it. The same flaw existed in the verification lines of F2 and F9, which quoted the searched text; both were rewritten the same way (swept the other entries, none else claims a search finds nothing).
+- Current-tree verification: `git grep -n -E 'you count[e]d' -- docs` prints nothing; the F2 and F9 verification lines were re-run as written and print what they say; `linter all` exit 0 and the audit validator exit 0.
+- Resolution reference: `docs(pr-reviews): [#2416] make the audit's verification greps not match their own text`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2623#discussion_r4362553408
+
 ## Processing Log
 
 - 2026-10-22 14:53 UTC - Review 5616192898 (`APPROVED`, six inline findings) and the ACK comment 6343775843 were submitted by the requested reviewer for the pushed head; the Copilot review 5610834925 of 07:47 UTC had no inline thread.
@@ -284,6 +298,8 @@ contain no other request. Finding IDs are the reviewer's own.
 - 2026-10-23 16:29 UTC - Review round 4: review 5630959120 (`CHANGES_REQUESTED`, submitted 15:59 UTC, F12 Major blocking and F13 Nit) and the Copilot review 5631096012 (submitted 16:10 UTC, one inline finding, F14) arrived after round 3. At the maintainer's request the branch was also updated with the latest `develop` (GitHub reported it out of date; a clean signed merge commit). Fixed F14 and F13 in signed commits, fixed F12 by editing the PR body and posted the conversation response that states it, pushed the branch (replies after the push), replied to the three threads at 16:28 UTC (GitHub `created_at`) after re-deriving each claim, then resolved them and refreshed the GraphQL data: zero unresolved threads. A first version of the F12 response overstated what had been checked and was corrected in place, with a note in the comment.
 - 2026-10-23 16:32 UTC - Correction of the F13 detail entry above: its Current-tree verification cited a branch commit by id, which the repository rules forbid (an ids check printed it after the round-4 push); it now names the commit by its subject. The reply on the F13 thread cited the same id and was edited the same way. No other record cites a branch commit id.
 - 2026-10-23 17:07 UTC - Review round 5: review 5631621502 (`APPROVED`, submitted 2026-10-23 16:49 UTC, an ACK of the head after round 4, with two nits F15 and F16) was processed. Fixed F15 in a signed commit and pushed it, edited the PR body for F16 and posted the conversation response that states it; replied to the two threads at 17:06 UTC (GitHub `created_at`), after the push, then resolved them and refreshed the GraphQL data: zero unresolved threads. The reply on the F13 thread that attributed the figure of 23 to the reviewer was edited in the same round. The branch is 2 commits behind `develop` (a dependency update that merges cleanly); it was not updated again because no rule requires it and each update gives the reviewer a new head.
+- 2026-10-23 17:50 UTC - Review round 6: review 5631998994 (`APPROVED`, submitted 2026-10-23 17:22 UTC, an ACK of the head after round 5, with one finding, F17) was processed. Fixed F17, and the same flaw in the F2 and F9 verification lines, in a signed commit and pushed it; replied to the thread at 17:46 UTC (GitHub `created_at`), after the push, then resolved it and refreshed the GraphQL data: zero unresolved threads.
+- 2026-10-23 17:50 UTC - Correction of the model stamps in the progress logs of the spec and of the sub-EPIC: their entries name the author model as Claude Opus 5.5, copied from earlier entries without checking it, and the maintainer states that this session ran Claude Sonnet 5.5. The model of this session was not verifiable from inside it, so the stamps are unverified and the correction is appended to those logs as well. Those logs are not rewritten.
 
 Append entries only. If an entry was rewritten in place, restore the prior entries, then append a
 correction that names the rewritten content; do not rewrite the record again.
