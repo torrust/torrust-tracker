@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-progress
+status: planned
 priority: p2
 epic: 2482
 github-issue: 2628
 spec-path: docs/issues/open/2628-2482-move-test-helpers-protocol-helpers/ISSUE.md
-branch: "2628-2482-move-test-helpers-protocol-helpers"
+branch: "2628-2482-move-test-helpers-protocol-helpers-spec"
 related-pr: null
-last-updated-utc: "2026-10-23 16:23"
+last-updated-utc: "2026-10-23 16:45"
 semantic-links:
   skill-links:
     - create-issue
