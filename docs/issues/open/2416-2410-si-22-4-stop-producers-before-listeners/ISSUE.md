@@ -9,7 +9,7 @@ github-issue: 2416
 spec-path: docs/issues/open/2416-2410-si-22-4-stop-producers-before-listeners/ISSUE.md
 branch: "2416-stop-producers-before-listeners"
 related-pr: 2623
-last-updated-utc: "2026-10-23 07:13"
+last-updated-utc: "2026-10-23 15:34"
 semantic-links:
   skill-links:
     - create-issue
@@ -209,6 +209,7 @@ maintainer decides to keep it.
 - 2026-10-23 07:09 UTC - GitHub Copilot (Claude Opus 5.5) - Review round 2 of PR #2623, finding F8: the AC2 cell of the Acceptance Verification table now cites V7 (the UDP deterministic red and green) next to V4.
 - 2026-10-23 07:10 UTC - GitHub Copilot (Claude Opus 5.5) - Review round 2 of PR #2623, finding F9: V7 now names the working-tree state it ran on and states the true reason for using mutation U-M1 (it reproduces the one-token order; the test was not run on the tree before the T9 change), correcting the earlier "does not have the wrapper hooks" claim.
 - 2026-10-23 07:13 UTC - GitHub Copilot (Claude Opus 5.5) - Review round 2 of PR #2623 processed: three nits (F7 to F9) fixed in three signed commits, pushed, replied to and resolved (zero unresolved threads); the reviewer's ACK covers the head after round 1. The audit records both rounds.
+- 2026-10-23 15:34 UTC - GitHub Copilot (Claude Opus 5.5) - Review round 3 of PR #2623, finding F11: the AC2 cell said "the answered-request regression tests", but only the UDP environment has one; it now names the UDP test in the singular.
 
 ## Architectural Decisions
 
@@ -220,7 +221,7 @@ exceptions; do not edit away the superseded ADR's original decision text.
 
 | AC ID | Status | Evidence |
 | --- | --- | --- |
-| AC1-AC2 | READY FOR REVIEW | AC1: V1 (red) and V2 (green): the `JobManager` stop-order test and the real-bus late-publication test; the application test asserts every listener waits for exactly the components that publish on its buses; 16 manager tests, one mutation per lifecycle clause (V3). AC2: V4 and V7: HTTP and UDP each red then green (a request held in flight while `stop()` drains; the UDP one added in review round 1), the answered-request regression tests, the staged-join tests, and the mutations of V4. |
+| AC1-AC2 | READY FOR REVIEW | AC1: V1 (red) and V2 (green): the `JobManager` stop-order test and the real-bus late-publication test; the application test asserts every listener waits for exactly the components that publish on its buses; 16 manager tests, one mutation per lifecycle clause (V3). AC2: V4 and V7: HTTP and UDP each red then green (a request held in flight while `stop()` drains; the UDP one added in review round 1), the UDP answered-request regression test, the staged-join tests, and the mutations of V4. |
 | AC3 | READY FOR REVIEW | V5: M2 control, 500 of 500 persisted, twice; M3 race, two runs, answered minus persisted 0, drain counts, no lag, no abort, no failure. The race runs do not prove window (b) (V1 does); no exact per-event attribution is claimed. |
 | AC4-AC5 | READY FOR REVIEW | The ADR `docs/adrs/20261021184946_order_shutdown_by_event_flow_and_drain_event_listeners.md` restates the twelve still-valid points of the cancellation-tree ADR (section 9); that ADR has `- Status: Superseded by`; `docs/adrs/index.md` lists the new ADR. The five diagrams are in `docs/architecture/events.md` and `docs/architecture/application-jobs.md`; the shutdown diagrams they replace in the task inventory and the architecture examples are updated; `linter all` (including the local link and fragment check) exits 0. |
 | AC6 | READY FOR REVIEW | `EventFlows` unit tests (a consumer after a producer is rejected, the consumers of several buses are merged, only started listeners returned); the bootstrap subscription test (the swarm bus delivers to three receivers before any listener task can run, mutation: subscribe inside the task); bus retention: the extended application test sees every listener finish `Cancelled`, not `Completed`, while the container is alive, and `main` holds `_app_container` past `wait_for_all` (read from source, not run); the shared-deadline abort of a consumer cancelled late, which ignores its token (V3, C8 and the busy-consumer test). The ADR states the rules (sections 4, 6, 7). |
