@@ -40,7 +40,9 @@ IPv4 or IPv6 server binding.
 ## Background
 
 Found while writing tests for `torrust-tracker-http-core` (#1349, slice S5, plan
-`statistics-metrics-tests.md`). The #1349 spec is archived under `docs/issues/closed/1349-1347-add-tests-http-core/`.
+`statistics-metrics-tests.md`). The #1349 spec is archived under `docs/issues/closed/1349-1347-add-tests-http-core/` on
+`torrust/develop` (moved there by PR #2620); this branch predates that move, so its own tree still has the spec under
+`docs/issues/open/1349-1347-add-tests-http-core/`.
 
 The four getters of `Metrics` in `packages/http-core/src/statistics/metrics.rs`
 (`tcp4_announces_handled`, `tcp4_scrapes_handled`, `tcp6_announces_handled`, `tcp6_scrapes_handled`) are
