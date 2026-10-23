@@ -316,7 +316,8 @@ F18 asks for a fully qualified path.
 - Solution: the draft names the `ipv4_mapped_ipv6` case in `event.rs` and the
   `ipv6_scrape_of_an_ipv4_mapped_client_with_a_public_url_on_another_port` case in `handler.rs`.
 - Current-tree verification: `grep -n 'ipv4_mapped_ipv6\|ipv6_scrape_of_an_ipv4_mapped_client' packages/http-core/src`
-  finds both cases; `v4_mapped_v6` remains in `ISSUE.md` only as the #1375 label value.
+  finds both cases; the draft no longer calls `v4_mapped_v6` a test of `http-core` (it remains as the #1375 label value and
+  as part of a `udp-core` test name, which is a different thing).
 - Resolution reference: docs(issues): cover udp-server, name the mapped-address tests and fix the route wording
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4351900737>
@@ -482,7 +483,8 @@ F18 asks for a fully qualified path.
 - Solution: the three mentions now use the commit subjects. One Processing Log entry (18:34 UTC) and two head
   references in the Findings introduction were edited for this; a correction entry in the log names them.
 - Current-tree verification: a scan of every 7 to 40 character hexadecimal token in the draft folder and the audit
-  against `torrust/develop` leaves only `80c45b606` and `d4c43bd3a`, both on `develop`.
+  against `torrust/develop` leaves only ids that are on `develop`; the list grows when a later entry cites another
+  `develop` commit, so it is not recorded here.
 - Resolution reference: docs(pr-reviews): record the third review round and drop branch commit ids from the PR #2621 audit
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2621#discussion_r4352373461>
