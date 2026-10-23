@@ -2,7 +2,7 @@
 doc-type: research-report
 parent-issue: 2482
 status: completed
-last-updated-utc: 2026-10-21
+last-updated-utc: 2026-10-22
 semantic-links:
   related-artifacts:
     - docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md
@@ -56,7 +56,7 @@ All are unchanged. Three environment line counts changed (shown below). The new 
 | A. Public `testing`/`environment` module | `axum-http-server`, `axum-rest-api-server`, `udp-server`, `axum-health-check-api-server` | Yes, unconditionally | Yes | 9 normal dependency edges used only by these modules; test API in the public API |
 | B. Shared helper crate | `test-helpers` | No (every dependent uses it as a dev-dependency) | Yes, by 7 packages | 3 unpublished crates pulled in by 2 modules with one consumer |
 | C. Crate-private test helpers in `src/` | `tracker-core` | No (`#[cfg(test)]` inside), but declared `pub mod` | No | Empty public modules in the API; not reusable by the crate's own `tests/` |
-| D. Unconditional mocks | `tracker-core` (4 database traits) | Yes | Not used outside the crate | `mockall` is a normal dependency; `Mock*` types in the public API |
+| D. Unconditional mocks | `tracker-core` (4 database traits) | Yes | Partly: `MockTorrentMetricsStore` is used by `http-core` and `udp-core` unit tests; the other three mocks are not | `mockall` is a normal dependency; `Mock*` types in the public API |
 | E. Per-package `tests/` helpers | 7 packages plus the root crate | No | No | None; the expected place for single-package helpers |
 
 ## Pattern A: public `testing` and `environment` modules
@@ -70,9 +70,9 @@ and stops it. All four alias `Environment<Running>` as `Started`; only `axum-htt
 DEC-13 (2026-06-11) moved the three server environments from `src/environment.rs` to
 `src/testing/environment.rs`. Each `testing/mod.rs` says the module is "exported unconditionally
 from `lib.rs` so that external test packages can import it" and "compiled in all build profiles".
-DEC-13 cited `tracker-core/src/test_helpers.rs` as the existing pattern, but that module is
-`#[cfg(test)]`-gated and private to its crate (pattern C), so it never shipped code or
-dependencies to production.
+DEC-13 cited `tracker-core/src/test_helpers.rs` as the existing pattern, but that module's
+content is `#[cfg(test)]`-gated and crate-private (pattern C; the module is a `pub mod`, empty in a
+non-test build), so it never shipped code or dependencies to production.
 
 The production application does not use these environments: the root crate starts the same
 servers through its own bootstrap jobs in `src/bootstrap/jobs/`.
@@ -92,6 +92,12 @@ Normal dependencies that production source does not use, only the module above:
 | `axum-http-server` | `torrust-tracker-swarm-coordination-registry` |
 | `udp-server` | `torrust-tracker-swarm-coordination-registry` |
 | `axum-health-check-api-server` | `torrust-tracker-configuration` |
+
+The table lists workspace dependencies only. Third-party normal dependencies that only test code
+uses are not counted: the review of #2618 found two in `axum-http-server`, `torrust-clock` (used
+only in `#[cfg(test)]` code and `src/testing/environment.rs`) and `torrust-info-hash` (used only in
+test modules and `src/testing/environment.rs`). Each environment move audits every normal
+dependency of its package.
 
 The 2026-10-06 coupling report (finding 2) listed four of `axum-rest-api-server`'s six; this
 inventory adds `tracker-core` and `rest-api-client`, and the health check's `configuration`.
@@ -154,7 +160,15 @@ integration tests, which keep separate fixtures in `tests/common/fixtures.rs`.
 `tracker-core` annotates four database traits with an unconditional `#[automock]`
 (`databases/traits/whitelist.rs`, `auth_keys.rs`, `torrent_metrics.rs`, `schema.rs`). `mockall`
 is therefore a normal dependency (it is also a dev-dependency), and the generated `Mock*` types
-are part of the public API. Only `tracker-core`'s own source uses them.
+are part of the public API. Three of them (`MockWhitelistStore`, `MockAuthKeyStore`,
+`MockSchemaMigrator`) are used only by `tracker-core`'s own source. `MockTorrentMetricsStore` is
+also imported from `torrust_tracker_core::databases` by `#[cfg(test)]` modules of four files in
+two other packages: `http-core` (`services/announce.rs`, `services/scrape.rs`) and `udp-core`
+(`services/announce.rs`, `services/scrape.rs`). So it is shared test support across packages, not
+a crate-private mock, and `#[cfg_attr(test, automock)]` alone would break those four modules.
+
+Corrected on 2026-10-21 by #2618 (the earlier text said only `tracker-core`'s own source uses the
+mocks, which was not checked against the other packages).
 
 `events` does this test-only: `#[cfg_attr(test, automock(…))]` with `mockall` as a
 dev-dependency. `http-core`, `udp-core`, `udp-server` and `swarm-coordination-registry` also keep
@@ -178,6 +192,27 @@ tests:
 
 This is the right place for helpers with one consumer, but Cargo cannot share it with other
 packages.
+
+## Destination of each item
+
+Set by the [ADR](../../../adrs/20261021190318_share_workspace_test_support_through_testing_features.md)
+(rules A to E), and drafted as the subissues of the
+[EPIC](EPIC.md#subissues). The "Status" column is the state of the item, updated by the subissue
+that resolves it.
+
+| Item | Rule and destination | Subissue draft | Status |
+| --- | --- | --- | --- |
+| A. `udp-server` environment (and its example) | Rule A: behind the `testing` feature of `udp-server` | [Row 4](../../drafts/2482-gate-udp-server-test-environment/ISSUE.md) | Open |
+| A. `axum-http-server` environment (and its example) | Rule A: behind the `testing` feature of `axum-http-server` | [Row 5](../../drafts/2482-gate-axum-http-server-test-environment/ISSUE.md) | Open |
+| A. `axum-rest-api-server` environment | Rule A: behind the `testing` feature of `axum-rest-api-server` | [Row 6](../../drafts/2482-gate-axum-rest-api-server-test-environment/ISSUE.md) | Open |
+| A. `axum-health-check-api-server` environment | Rule A: behind the `testing` feature of `axum-health-check-api-server` | [Row 7](../../drafts/2482-gate-axum-health-check-api-server-test-environment/ISSUE.md) | Open |
+| B. `test-helpers` `http` and `udp` modules | Rule B: the root crate's `tests/common/` | [Row 2](../../drafts/2482-move-test-helpers-protocol-helpers/ISSUE.md) | Open |
+| B. `test-helpers` `configuration`, `logging`, `random` | Rule B: stay in `test-helpers` | None | Kept by the ADR |
+| C. `tracker-core` `pub mod` test declarations | Rule C: private `#[cfg(test)] mod` | [Row 3](../../drafts/2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md) | Open |
+| D. `tracker-core` database mocks | Rule D: behind the `testing` feature of `tracker-core` | [Row 3](../../drafts/2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md) | Open |
+| E. Per-package `tests/common/` | Rule E: unchanged | None | Kept by the ADR |
+| Optional and self edges in `cargo metadata` (consequence of rules A and D) | The coupling tool and diagrams label them | [Row 8](../../drafts/2482-label-optional-and-self-dependency-edges/ISSUE.md) | Open |
+| Build commands of shipped artifacts (`Containerfile` builds the release binary with `--tests --all-features`; consequence of rules A and D) | Rule A.5: built on their own with explicit features, plus a check | [Row 9](../../drafts/2482-build-shipped-artifacts-without-test-features/ISSUE.md) | Open |
 
 ## Members without shared test support
 

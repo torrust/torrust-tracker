@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2525-ci-gate-required-check/ISSUE.md
-last-updated-utc: 2026-10-20 17:52
+last-updated-utc: 2026-10-22 19:07
 ---
 
 # Manual Verification Evidence
@@ -258,7 +258,8 @@ everything it needs, checkout and toolchain setup included, and ends by classify
 base and the branch. Runner time is the job's `completed_at` minus `started_at`, as in
 [`pr-ci-cost-baseline.md`](pr-ci-cost-baseline.md). All 60 jobs succeeded, and the log of each variant
 shows `changed_path_count` 1 and `docs-lint` as the only needed group. The per-job data is in
-[`evidence/t4-gate-cost-runs.csv`](evidence/t4-gate-cost-runs.csv).
+[`evidence/t4-gate-cost-runs.csv`](evidence/t4-gate-cost-runs.csv). The workflow files saved in `evidence/t4-sandbox/` are the sandbox files; only the comment on their first line, which said
+they were never merged upstream, was reworded when they were stored here as evidence.
 
 | Variant                                                                                         | Attempt 1 | Median of attempts 2 to 12 | Mean of attempts 2 to 12 | Range of attempts 2 to 12 |
 | ----------------------------------------------------------------------------------------------- | --------- | -------------------------- | ------------------------ | ------------------------- |
@@ -340,6 +341,155 @@ the fork, and no pull request is open. Verified afterwards: the fork has only it
 `exp-` branch, no `exp-2525` tag, and no open pull request. Fork pull requests 20 and 21 remain, merged, as
 history of the experiment; the workflow runs remain too.
 
+### V10 - Cross-run state of the override (task T5)
+
+- Goal: show, with hosted runs, how a `CI gate` job started by a label event can learn the results of the
+  groups, who applied the override label, whether that actor may, and whether the override is still valid
+  after a push, using only a read-only token.
+- Initial state: a throwaway base branch in the fork `josecelano/torrust-tracker` (from `develop` at
+  `4ad183d18`) with one orchestrator workflow, and a ruleset that requires the status check `CI gate`. The
+  workflow and the ruleset are in `evidence/t5-sandbox/`. It declares `permissions` of `contents`, `checks`,
+  `issues`, and `pull-requests`, all `read`, so its token has no write scope. A matrix job named after the
+  group runs a stub for `docs-lint` and `db-benchmarking`, and fails when a marker file exists in the pull
+  request; label events skip these jobs. The `CI gate` job builds `ci-gate` from the base branch, classifies
+  the pull request's files, reads the results and the override from the GitHub API, and decides with
+  `ci-gate verdict`. Fork pull request 22 changes a file under `packages/persistence-benchmark/` (so
+  `docs-lint` and `db-benchmarking` are needed) and carries the marker that makes `db-benchmarking` fail.
+- Status: `DONE`
+
+The log of the `CI gate` job of every run is in
+[`evidence/t5-gate-logs.txt`](evidence/t5-gate-logs.txt). Times are UTC, 2026-10-21.
+
+| Run | Event, at                      | Head        | What the gate read and decided                                                                                                                                                                          | Result                             |
+| --- | ------------------------------ | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- |
+| 1   | `opened`, 10:38                | `270a89e08` | `docs-lint` success, `db-benchmarking` failure. No label. (My script passed an empty override actor, so the tool printed a usage error instead of a failing verdict.)                                   | `CI gate` failed                   |
+| 2   | `labeled` `ci-override`, 10:40 | `270a89e08` | Group jobs skipped. Results read from run 1's check runs. Events API: actor `josecelano`, the same as the event's sender. Role `admin`.                                                                 | pass, `overridden_by` `josecelano` |
+| 3   | `unlabeled`, 10:43             | `270a89e08` | Ran the first revision of the workflow (see below), with the same empty-actor error as run 1.                                                                                                           | `CI gate` failed                   |
+| 4   | `labeled`, 10:44               | `270a89e08` | As run 2, still on the first revision of the workflow.                                                                                                                                                  | pass                               |
+| 5   | `synchronize`, 10:46           | `ab8b42e90` | Group jobs ran again and `db-benchmarking` failed. The label is still on the pull request, applied at 10:44:46, but the new head's first check suite was created at 10:46:06, so the override is stale. | fail, `BLOCKED`                    |
+| 6   | `unlabeled`, 10:47             | `ab8b42e90` | No label.                                                                                                                                                                                               | fail                               |
+| 7   | `labeled`, 10:49               | `ab8b42e90` | Applied at 10:49:13, after the first check suite at 10:46:06. Role `admin`.                                                                                                                             | pass                               |
+
+After run 7 the head had three `CI gate` check runs (failure at 10:46, failure at 10:47, success at
+10:49), `db-benchmarking` was still a failing check run, and the merge push at 10:50:47 was accepted
+(merge commit `a4b78b909`), so the later success satisfied the required check as in V9.
+
+The check runs behind those observations, listed on 2026-10-22 from the real API for the head of runs 5 to 7
+(`gh api --paginate "repos/josecelano/torrust-tracker/commits/ab8b42e90ea02164e1da7df6c83e072022a2205c/check-runs?per_page=100"`,
+reduced to the columns id, name, status, conclusion, start, and app):
+
+```text
+119179518396  matrix.group                      completed  skipped  2026-10-21T10:49:16Z  github-actions
+119179516571  CI gate                           completed  success  2026-10-21T10:49:18Z  github-actions
+119178973907  matrix.group                      completed  skipped  2026-10-21T10:47:55Z  github-actions
+119178972434  CI gate                           completed  failure  2026-10-21T10:47:57Z  github-actions
+119178335798  CI gate                           completed  failure  2026-10-21T10:46:21Z  github-actions
+119178273455  docs-lint                         completed  success  2026-10-21T10:46:13Z  github-actions
+119178273388  db-benchmarking                   completed  failure  2026-10-21T10:46:12Z  github-actions
+119178273128  Persistence Benchmark MySQL       completed  success  2026-10-21T10:46:12Z  github-actions
+119178273001  Docs Lint                         completed  failure  2026-10-21T10:46:12Z  github-actions
+119178272825  Persistence Benchmark PostgreSQL  completed  success  2026-10-21T10:46:12Z  github-actions
+119178272612  Persistence Benchmark SQLite3     completed  success  2026-10-21T10:46:12Z  github-actions
+119178250074  Persistence Benchmark PostgreSQL  completed  success  2026-10-21T10:46:09Z  github-actions
+119178250061  Docs Lint                         completed  failure  2026-10-21T10:46:10Z  github-actions
+119178249956  Persistence Benchmark SQLite3     completed  success  2026-10-21T10:46:09Z  github-actions
+119178249586  Persistence Benchmark MySQL       completed  success  2026-10-21T10:46:09Z  github-actions
+```
+
+It lists 15 runs, with three `CI gate` runs and two skipped `matrix.group` runs. The workflow's own request sets
+no `filter`, as this one, so it used GitHub's default. The same request with `filter=all` returned the same 15
+runs, so for this head the default hid nothing. A rerun of a job inside one check suite was not tested. The
+listings in the logs of the runs are in [`evidence/t5-gate-logs.txt`](evidence/t5-gate-logs.txt), restored in
+full on 2026-10-22, because an earlier copy had kept only some of their lines.
+
+What it shows:
+
+- **Reading the results from the checks API works with a read-only token, in every event.** A label run,
+  whose own group jobs are skipped, found the earlier failure of `db-benchmarking` in the check runs of the
+  head commit. A skipped group job leaves a check run with the conclusion `skipped`, and a skipped matrix job
+  is named literally `matrix.group`, so the gate must ignore skipped runs and names that are not groups, or
+  a label run would hide the earlier result. A group job that has not completed counts as missing.
+- **Who applied the label comes from the issue events API.** The latest `labeled` event for the label gives
+  the actor and the time. In label runs it equals the event's sender, but a `synchronize` run has no such
+  field, so the events API is the one source that works for every event.
+- **The collaborator permission API works with the read-only token.** It returned `admin` for the
+  maintainer, and `read` for two users without write access (`da2ce7` on the fork, and `octocat`), so the
+  Maintain or Admin check can tell them apart. Not tested: a label applied by a real user without that role,
+  because the sandbox had only one account.
+  **Correction (review of the T6a pull request, finding F13).** Only `admin` and `read` were observed, so this did
+  not show that Maintain can be told apart: the endpoint's `permission` field is the legacy base role and reports
+  Maintain as `write`, and the Triage role as `read`. The role is in `role_name`. The real responses of
+  `gh api repos/torrust/torrust-tracker/collaborators/<login>/permission` on 2026-10-21 were `admin` and `admin`
+  for two administrators, and `read` and `triage` for a Triage collaborator (`permission`, then `role_name`). No
+  collaborator of the repository has the Maintain role, so its mapping to `write` is GitHub's documented
+  behavior and was not observed.
+- **An override does not survive a push, and this works without write access.** Comparing the label's time
+  with the creation time of the head commit's first check suite made the override stale after the new push
+  although the label stayed on the pull request, and a fresh label after the push counted. The first check
+  suite appeared 4 seconds after the push, so a label applied in that window would count as stale, which
+  fails safe.
+- **A workflow change on the base branch does not reach the label runs of an open pull request until its
+  head changes.** After the base branch got a fix at 10:42, runs 3 and 4, at 10:43 and 10:44, still used the
+  first revision of the workflow, and only run 5, after the push that changed the head, used the fixed one: a pull
+  request keeps the merge ref, and the workflow file in it, that it was last given. The logs show it, because
+  only the fixed revision prints `probe:` lines. This matters when T6 changes the
+  orchestrator while pull requests are open.
+- The gate built the tool from a checkout of the base branch, so the pull request's own changes do not
+  alter the tool that decides.
+
+Limits: the sandbox pull request is in the same repository as its base, not a fork, so it cannot show how
+the token of a pull request from a fork behaves. By the maintainer's decision this is verified on real
+pull requests when T6 lands. The jobs in the sandbox are stubs, and the jobs of the real workflows were
+not exercised. Not tested: reading the results from artifacts, or rerunning the jobs.
+The saved workflow reads the check suites of the head commit with one request and does not paginate it, so
+with more than 100 check suites on a head commit its first-seen time, and with it the stale-override
+decision, could be wrong. It is saved as it ran and was not changed. The adapter of T6a, which replaces it,
+reads every page of every response through `gh api --paginate`, and a test puts the earliest check suite on
+the second page (pull request #2610).
+
+Two revisions of the sandbox workflow ran, and both are saved in `evidence/t5-sandbox/`: the first revision
+(`exp-2525-orchestrator-first-revision.yaml`, which ran in runs 1 to 4) and the fixed one
+(`exp-2525-orchestrator.yaml`, runs 5 to 7). They differ in the probe step and in the test of the override actor
+file, which the first revision made with `-s`, true for a file that holds only a newline, so it passed an empty
+`--override-actor` when there was no label; the header of
+[`evidence/t5-gate-logs.txt`](evidence/t5-gate-logs.txt) explains how to tell the revisions apart in the logs.
+In both files only the comment on the first line was reworded, as for the files of V8.
+
+Setup note: the fix of the sandbox workflow, the second revision, was pushed to the base branch at about 10:42, after setting the
+sandbox ruleset to `disabled` for the push and back to `active` right after, because the ruleset (like the
+real one) refuses a direct push.
+
+Cleanup, 2026-10-21 at 10:52 UTC: the sandbox ruleset, both `exp-2525-t5-*` branches, and the `ci-override`
+label were deleted from the fork, and verified: only the two tag rulesets remain, no `exp-` branch, no open
+pull request, and none of those labels. Fork pull request 22 remains, merged, as history.
+
+### V12 - The observations behind the decision of 2026-10-22
+
+- Goal: record the queries and their output behind the observations that the decision cites about a
+  pull-request-specific signal of a push, and the permission responses that V10's correction cites. They were
+  first made while the maintainer's decision was prepared and are re-run here, on 2026-10-22 at about 18:40 UTC,
+  against pull request #2610, which was closed that day, so what is shown is the state at that time.
+- Status: `DONE`
+
+| Query                                                                                                                                                                  | Output                                                                                                  |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| GraphQL `pullRequest(number: 2610) { timelineItems(first: 100, itemTypes: [PULL_REQUEST_COMMIT]) { totalCount nodes { ... on PullRequestCommit { commit { pushedDate } } } } }` | 59 nodes returned, every commit of the pull request (`commits { totalCount }` is 59); 0 with a `pushedDate` (all null). `totalCount` was 195, which counts all timeline items. |
+| `gh api "repos/torrust/torrust-tracker/commits/<head of #2610>/check-suites?per_page=100"`, counting suites with a non-empty `pull_requests`                           | 5 suites; 0 with `pull_requests`                                                                        |
+| `gh api "repos/torrust/torrust-tracker/actions/runs?head_sha=<head of #2610>&per_page=100"`, counting runs with a non-empty `pull_requests`                            | 5 runs, all event `pull_request` from `josecelano/torrust-tracker`; 0 with `pull_requests`              |
+| `gh api repos/torrust/torrust-tracker/issues/2610/timeline --paginate --jq '.[].event'`, counted by type                                                               | 59 `committed`, 25 `deployed`, 13 `reviewed`, 12 `review_requested`, and others; no `head_ref_force_pushed` |
+| `gh api repos/torrust/torrust-tracker/collaborators/<login>/permission --jq '"permission=\(.permission) role_name=\(.role_name)"'` for two administrators and a Triage collaborator | `admin`/`admin`, `admin`/`admin`, and `read`/`triage`                                                   |
+
+What it shows: the commit's push time is not available through GraphQL for this pull request, the check suites and
+workflow runs of a fork pull request carry no link to it, and the permission endpoint reports the Triage role as
+`read`. The effect of a `head_ref_force_pushed` event was **not observed**: no force-push happened on #2610, so the
+statement that it would close only the force-push cases comes from the reviewer, not from a query. The GraphQL
+`totalCount` of 195 against 59 commits is the known caveat that `timelineItems(itemTypes: ...).totalCount` ignores the
+type filter and counts every timeline item, recorded in the
+[baseline evidence of #2507](../../closed/2507-stop-requiring-pull-request-rebases/baseline-evidence.md); the same
+query with and without the filter returned 195 on 2026-10-22, and `commits { totalCount }` returned 59, so the
+59 nodes are the whole set and none had a push date.
+
 ## Failures and Follow-up
 
-None.
+The tasks that follow from the decision of 2026-10-22 are in the specification (T9): create the two follow-up
+issues, and settle what to do with the ADR of T1.

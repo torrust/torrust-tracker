@@ -1,4 +1,4 @@
-# Sandbox only (#2525 T4, experiment E2). Never merged upstream.
+# Sandbox only (#2525 T4, experiment E2). Stored here as evidence, not as a workflow of this repository.
 #
 # A job named "CI gate" whose result depends only on the pull request's labels, so a test can produce a
 # failing and a passing check run for the same head commit from different workflow runs, by adding and

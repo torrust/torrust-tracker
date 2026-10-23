@@ -1191,6 +1191,8 @@ now include `torrust-tracker-client-lib`, `torrust-tracker-http-protocol` and
 `torrust-tracker-udp-protocol`, none of which is published. A new `test-helpers` release cannot
 be published until those crates are, or until the protocol-specific helpers move out. Sub-EPIC: #2482
 ([`2482-1669-reorganize-shared-test-support`](../2482-1669-reorganize-shared-test-support/EPIC.md)).
+Subissue draft:
+[move the `test-helpers` protocol helpers to their consumer](../../drafts/2482-move-test-helpers-protocol-helpers/ISSUE.md).
 
 #### 2. Server `testing` modules turn test-only edges into runtime dependencies
 
@@ -1207,6 +1209,12 @@ they compile into release builds. The report now shows the cost of that trade-of
 Gating each `testing` module behind a Cargo feature would make these edges optional. Sub-EPIC #2482
 decides how packages share test support code, with this as one option
 ([`2482-1669-reorganize-shared-test-support`](../2482-1669-reorganize-shared-test-support/EPIC.md)).
+Subissue drafts, one per package:
+[`udp-server`](../../drafts/2482-gate-udp-server-test-environment/ISSUE.md),
+[`axum-http-server`](../../drafts/2482-gate-axum-http-server-test-environment/ISSUE.md),
+[`axum-rest-api-server`](../../drafts/2482-gate-axum-rest-api-server-test-environment/ISSUE.md) and
+[`axum-health-check-api-server`](../../drafts/2482-gate-axum-health-check-api-server-test-environment/ISSUE.md),
+plus [labelling optional and self edges in the coupling tool](../../drafts/2482-label-optional-and-self-dependency-edges/ISSUE.md).
 
 #### 3. The tool misses renamed crates and custom library names
 
