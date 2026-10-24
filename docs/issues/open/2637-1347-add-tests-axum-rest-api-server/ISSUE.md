@@ -8,7 +8,7 @@ epic: 1347
 github-issue: 2637
 spec-path: docs/issues/open/2637-1347-add-tests-axum-rest-api-server/ISSUE.md
 branch: "2637-1347-add-tests-axum-rest-api-server-spec"
-related-pr: null
+related-pr: 2638
 last-updated-utc: "2026-10-24 19:50"
 semantic-links:
   skill-links:
@@ -384,7 +384,7 @@ ledger order inside each slice is still confirmed with the first plan (T3).
 
 | Slice | Content | Ledger rows | Branch | PR | Status |
 | --- | --- | --- | --- | --- | --- |
-| S0 | This specification, the T1 coverage evidence and inventory, and the EPIC registration with the baseline | - | `2637-1347-add-tests-axum-rest-api-server-spec` | TBD | IN_PROGRESS |
+| S0 | This specification, the T1 coverage evidence and inventory, and the EPIC registration with the baseline | - | `2637-1347-add-tests-axum-rest-api-server-spec` | #2638 | IN_PROGRESS |
 | S1 | T2-T3, then authentication and the shared response contract (ranks 1 and 3) | 1, 5 | `2637-1347-add-tests-axum-rest-api-server-auth` | TBD | PENDING |
 | S2 | Route composition, transport layers and the health check (rank 2) | 2-4 | `2637-1347-add-tests-axum-rest-api-server-routes` | TBD | PENDING |
 | S3 | State-changing contexts: auth keys and whitelist (rank 4) | 6-11 | `2637-1347-add-tests-axum-rest-api-server-commands` | TBD | PENDING |
@@ -591,6 +591,7 @@ once. If the slicing changes, the Slice column changes with it.
   #1347; renamed the branch to `2637-1347-add-tests-axum-rest-api-server-spec`, moved the
   specification from `docs/issues/drafts/` to `docs/issues/open/`, and registered the package in
   the EPIC tables.
+- 2026-10-24 20:20 UTC - GitHub Copilot - Opened spec-only PR #2638 (<https://github.com/torrust/torrust-tracker/pull/2638>) with `Related to #2637`.
 
 ## Acceptance Criteria
 
