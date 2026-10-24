@@ -31,7 +31,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 Round 1 comes from review 5632165728 (da2ce7, `CHANGES_REQUESTED`) on the first head of the branch.
 Review 5632190535 (Copilot, `COMMENTED`) holds a summary with no actionable assertion, so it has no
-row. The branch history was rewritten in round 1 (see F1), so the review bodies cite a commit id
+row. Round 2 comes from Copilot review 5632626163 (`COMMENTED`), which has one inline finding (F3).
+The branch history was rewritten in round 1 (see F1), so the round 1 review bodies cite a commit id
 that no longer exists on the branch. That id named the commit with the subject
 `docs(skills): state that a negated closing keyword still closes the issue`.
 
@@ -39,6 +40,7 @@ that no longer exists on the branch. That id named the commit with the subject
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2630-f1 | Human | Blocker | correctness | ORIGINAL | FIXED | RESOLVED |
 | F2 | review-finding:pr-2630-f2 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F3 | review-finding:pr-2630-f3 | Copilot | Nit (inferred) | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -84,6 +86,24 @@ that no longer exists on the branch. That id named the commit with the subject
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2630#discussion_r4362558054>
 
+### F3 - The audit names a branch commit by its id instead of its subject
+
+- PR number: 2630
+- Source review ID: 5632626163
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2630#discussion_r4362832351>
+- Concern: The F1 detail entry cited the verification head by its commit id. The skill requires
+  review audits to cite Conventional Commit subjects, because a history rewrite invalidates an id.
+  The review marked the finding with a low-severity icon and no bracket.
+- Solution: Replaced that id with the commit subject. A search of the audit and the PR body for
+  commit ids found two more, one in the Findings introduction and one in the PR body, and both were
+  replaced with descriptions that name the commit by its subject.
+- Current-tree verification: Searching the audit for 9 to 12 character hex words finds only review,
+  comment and tree ids. Searching the PR body finds none.
+- Resolution reference: docs(pr-reviews): cite commit subjects instead of ids in the PR 2630 audit
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2630#discussion_r4366492105>
+
 ## Processing Log
 
 - 2026-10-23 17:37 UTC - da2ce7 submitted review 5632165728 (`CHANGES_REQUESTED`) with threads
@@ -95,6 +115,10 @@ that no longer exists on the branch. That id named the commit with the subject
 - 2026-10-23 17:46 UTC - Pushed the branch with `--force-with-lease`. The pre-push hooks passed.
 - 2026-10-23 17:46 UTC - Replied to and resolved the F1 thread (reply 4362556930) and the F2
   thread (reply 4362558054).
+- 2026-10-23 18:14 UTC - Copilot submitted review 5632626163 (`COMMENTED`) with thread 4362832351
+  (F3).
+- 2026-10-24 08:09 UTC - Committed the F3 fix.
+- 2026-10-24 08:11 UTC - Replied to and resolved the F3 thread (reply 4366492105).
 
 ## Completion Rules
 
