@@ -42,7 +42,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 Round 1 comes from review 5632165728 (da2ce7, `CHANGES_REQUESTED`) on the first head of the branch.
 Review 5632190535 (Copilot, `COMMENTED`) holds a summary with no actionable assertion, so it has no
 row. Round 2 comes from Copilot review 5632626163 (`COMMENTED`), which has one inline finding (F3).
-Round 3 comes from review 5633175715 (da2ce7, submitted as `CHANGES_REQUESTED`, now `DISMISSED`)
+Round 3 comes from review 5633175715 (da2ce7, submitted as `APPROVED`, now `DISMISSED`)
 with four inline findings. Its reviewer-provided IDs F3 to F6 collide with F3 of this audit, so they
 are recorded as F4 to F7 with the original ID in the detail entry. F4 repeats F3 and is a re-raise.
 Round 4 comes from review 5637566834 (da2ce7, submitted as `APPROVED`, now `DISMISSED`) with three
@@ -355,8 +355,9 @@ that no longer exists on the branch. That id named the commit with the subject
   as `APPROVED` and round 3 as `DISMISSED`, although both reviews are now dismissed.
 - Solution: The introduction names the head round 5 reviewed, names review 5637742895 as the one on
   the head after the round 4 fixes, and gives the submitted and the present state of both reviews.
-- Current-tree verification: The review API lists the commit and the state of each review, and the
-  introduction matches it.
+- Current-tree verification: The timeline's `review_dismissed` events give the submitted state of
+  each dismissed review, and the review API gives its present state and its commit. The
+  introduction matches both.
 - Resolution reference: docs(pr-reviews): correct the round and review statements in the PR 2630 audit
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2630#discussion_r4367619311>
