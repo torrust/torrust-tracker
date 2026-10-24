@@ -85,3 +85,49 @@ As for T2, the red is an error for the missing interface; the behavioral red on 
 
 Green run (T5, after adding follow-up pull requests): `Ran 2 tests ... OK`. On the real PR #2584
 audit with `--base torrust/develop`: `{"status": "ok", "rows": 4, "log_entries": 6, "failures": 0}`.
+
+## T6 - Rejection, Local Range, `gh` Failure, and Follow-up URL Parsing (held for maintainer review)
+
+Tests added to `ValidSubjectsTest`:
+
+- `test_it_should_reject_a_subject_found_in_no_source` (guards existing behavior; AC3)
+- `test_it_should_accept_a_subject_found_only_in_the_local_range_of_unpushed_commits` (guards existing behavior)
+- `test_it_should_exit_with_a_usage_error_naming_the_endpoint_when_listing_commits_fails` (red; AC4)
+
+Tests added to the new `PullsToCheckTest` (beyond the spec's case list; they pin the follow-up
+parsing decision recorded in Design and Ownership Review, and guard the T5 behavior):
+
+- `test_it_should_fetch_a_follow_up_from_the_repository_named_in_its_url`
+- `test_it_should_ignore_empty_follow_ups_and_fetch_a_repeated_follow_up_once`
+
+Fixture change: `fake_git_and_gh` takes `failing_endpoints`, the one incidental mechanic needed to
+make a `gh api` call exit non-zero.
+
+Prose-first comparison:
+
+- **No source.** Arrange: the local range and the audited pull request each hold a commit, neither
+  with the cited subject. Act: ask for the valid subjects. Assert: the subject is not among them.
+  The cited subject is a literal that appears only in the assertion, so its absence is the causal
+  state.
+- **Local range.** Arrange: the pull request's commit list is empty and one subject is only in
+  `git log <base>..HEAD` (an unpushed fix). Act: ask for the valid subjects. Assert: the subject is
+  among them.
+- **`gh` failure.** Arrange: the commits endpoint of the audited pull request fails. Act: ask for
+  the valid subjects, capturing stderr. Assert: the process exits with code 2 and stderr names the
+  failing endpoint. The endpoint is computed by the test's own `commits_endpoint`, independent of
+  production code.
+- **Follow-up parsing.** Arrange: the audit text holds the `Follow-up PR URL` lines. Act:
+  `pulls_to_check`. Assert: the exact list of pull requests. The URL literals and expected tuples
+  are inline.
+
+Red run (T6 tests against the T5 production code; the first run of the new tests):
+
+```text
+ERROR: test_it_should_exit_with_a_usage_error_naming_the_endpoint_when_listing_commits_fails
+subprocess.CalledProcessError: Command '['gh', 'api', 'repos/torrust/torrust-tracker/pulls/2584/commits', '--paginate']' returned non-zero exit status 1.
+Ran 7 tests in 0.002s
+FAILED (errors=1)
+```
+
+The six other tests pass because they guard behavior that already exists; only the `gh` failure test
+is red, as the Implementation Plan expects.
