@@ -118,7 +118,7 @@ mod api {
 
         let registar = service.registar.clone();
 
-        service.server.stop().await.expect("it should stop udp server");
+        let _stopped = service.stop().await;
 
         {
             let config = configuration.health_check_api.clone();
