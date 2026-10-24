@@ -45,6 +45,9 @@ row. Round 2 comes from Copilot review 5632626163 (`COMMENTED`), which has one i
 Round 3 comes from review 5633175715 (da2ce7, listed by GitHub as `DISMISSED`) with four inline
 findings. Its reviewer-provided IDs F3 to F6 collide with F3 of this audit, so they are recorded as
 F4 to F7 with the original ID in the detail entry. F4 repeats F3 and is a re-raise.
+Round 4 comes from review 5637566834 (da2ce7, `APPROVED`) with three inline findings, F8 to F10. Its
+IDs do not collide with the audit, so they are kept. Copilot review 5637532312 (`COMMENTED`) is a
+summary with no inline thread, so it has no row.
 The branch history was rewritten in round 1 (see F1), so the round 1 review bodies cite a commit id
 that no longer exists on the branch. That id named the commit with the subject
 `docs(skills): state that a negated closing keyword still closes the issue`.
@@ -58,6 +61,9 @@ that no longer exists on the branch. That id named the commit with the subject
 | F5 | review-finding:pr-2630-f5 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F6 | review-finding:pr-2630-f6 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F7 | review-finding:pr-2630-f7 | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
+| F8 | review-finding:pr-2630-f8 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F9 | review-finding:pr-2630-f9 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F10 | review-finding:pr-2630-f10 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -187,6 +193,56 @@ that no longer exists on the branch. That id named the commit with the subject
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2630#discussion_r4366525665>
 
+### F8 - The rule sentence does not name the title
+
+- PR number: 2630
+- Source review ID: 5637566834
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2630#discussion_r4366565812>
+- Concern: The merge tool writes the title after the pull request reference in the merge commit
+  subject, and the rule sentence still named only the body and the commit messages, so the title
+  paragraph below it was a second rule. The description said the title "is the subject".
+- Solution: The rule sentence now names the title and the scan before creating or editing it. The
+  title paragraph says the merge commit subject carries the title. The description says the same.
+- Current-tree verification: Read the rule sentence, the title paragraph and the description after
+  the change. `linter all` exits 0.
+- Resolution reference: docs(skills): name the title in the closing keyword rule sentence
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2630#discussion_r4366609403>
+
+### F9 - The audit and the reply say the rule paragraph names the title
+
+- PR number: 2630
+- Source review ID: 5637566834
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2630#discussion_r4366565816>
+- Concern: The F7 entry said the rule paragraph names the title, but the title was in a new
+  paragraph below the commit-message block.
+- Solution: The F7 entry now states what that commit changed and that F8 corrected the rule
+  sentence.
+- Current-tree verification: Read the F7 entry and the skill. The rule sentence names the title after
+  the F8 fix.
+- Resolution reference: docs(pr-reviews): say where the PR 2630 skill change names the title
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2630#discussion_r4366609531>
+
+### F10 - The conversation response cited for F5 calls the finding by the reviewer's id
+
+- PR number: 2630
+- Source review ID: 5637566834
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2630#discussion_r4366565823>
+- Concern: The response opened with "finding F4", the reviewer's id, which is a different finding in
+  this audit, so a reader following the F5 resolution reference landed on another id.
+- Solution: Edited the response so that it names both ids for every finding it mentions and says it
+  was edited. The fix is outside the repository tree, so the resolution reference is the edited
+  response.
+- Current-tree verification: Read the edited comment through the API (last edited at 2026-10-24
+  08:56 UTC). It names both ids for each finding.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2630#issuecomment-6381971943>
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2630#discussion_r4366609614>
+
 ## Processing Log
 
 - 2026-10-23 17:37 UTC - da2ce7 submitted review 5632165728 (`CHANGES_REQUESTED`) with threads
@@ -210,6 +266,16 @@ that no longer exists on the branch. That id named the commit with the subject
   description.
 - 2026-10-24 08:25 UTC - Replied to and resolved the F4 thread (reply 4366525341), the F5 thread
   (reply 4366525435), the F6 thread (reply 4366525530) and the F7 thread (reply 4366525665).
+- 2026-10-24 08:32 UTC - Copilot submitted review 5637532312 (`COMMENTED`), a summary with no inline
+  thread.
+- 2026-10-24 08:42 UTC - da2ce7 submitted review 5637566834 (`APPROVED`) with threads 4366565812
+  (F8), 4366565816 (F9) and 4366565823 (F10), and an ACK comment on the head that carried the
+  round 3 audit.
+- 2026-10-24 08:55 UTC - Committed the F8 fix.
+- 2026-10-24 08:56 UTC - Committed the F9 fix, and edited the conversation response 6381971943 for
+  F10.
+- 2026-10-24 08:58 UTC - Replied to and resolved the F8 thread (reply 4366609403), the F9 thread
+  (reply 4366609531) and the F10 thread (reply 4366609614).
 
 ## Completion Rules
 
