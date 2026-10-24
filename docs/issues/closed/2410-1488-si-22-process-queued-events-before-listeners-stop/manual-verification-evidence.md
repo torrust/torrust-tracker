@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
-last-updated-utc: "2026-10-19 15:50"
+issue-spec: docs/issues/closed/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
+last-updated-utc: "2026-10-24 15:36"
 ---
 
 # Manual Verification Evidence

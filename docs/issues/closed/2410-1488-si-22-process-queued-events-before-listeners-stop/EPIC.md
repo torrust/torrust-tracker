@@ -1,12 +1,12 @@
 ---
 schema-version: 1
 doc-type: epic
-status: planned
+status: done
 epic: 1488
 github-issue: 2410
-spec-path: docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
+spec-path: docs/issues/closed/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-24 12:21"
+last-updated-utc: "2026-10-24 15:36"
 semantic-links:
   skill-links:
     - create-issue
@@ -28,6 +28,9 @@ semantic-links:
     - packages/axum-http-server/src/testing/environment.rs
     - packages/udp-server/src/testing/environment.rs
     - docs/adrs/20260902074438_adopt_supervised_cancellation_tree_for_shutdown.md
+    - docs/adrs/20261021184946_order_shutdown_by_event_flow_and_drain_event_listeners.md
+    - docs/architecture/glossary.md
+    - src/bootstrap/event_flows.rs
     - docs/features/shutdown-process/task-inventory.md
     - docs/issues/closed/2412-1488-si-16-migrate-standalone-http-environment/ISSUE.md
     - docs/issues/closed/2448-1488-si-17-migrate-standalone-udp-environment/ISSUE.md
@@ -2065,16 +2068,16 @@ avoids duplicating the full workflow in four drafts:
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec (#2410; sub-issues #2413 to #2416)
 - [x] Spec-only PR merged into `develop` before implementation (#2421)
-- [ ] Every design change found during implementation was agreed with the maintainer and recorded (D14)
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
-- [ ] Manual verification and final recheck recorded in `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md`
-- [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Every design change found during implementation was agreed with the maintainer and recorded (D14): record entries 28 to 32, each agreed at a design review
+- [x] Implementation completed (#2413 to #2416, all merged)
+- [x] Automatic verification completed (`linter all`, relevant tests, and pre-push checks): recorded per sub-issue; see the Acceptance Verification table
+- [x] Manual verification and final recheck recorded in `manual-verification-evidence.md` (V0, V1 here; the M2 and M3 rechecks are in the sub-issues' evidence files, linked from the Manual Verification Scenarios table)
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded
+- [x] Reviewer validated acceptance criteria and updated checkboxes (the maintainer's review and merge of the close-out PR are the acceptance review, as for #2414 to #2416)
+- [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` (the four sub-issues' reports are in their folders; this folder holds the close-out review)
+- [x] Committer verified spec progress is up to date before commit (re-verified by the close-out review, before the commit)
+- [x] Spec moved from `docs/issues/open/` to `docs/issues/closed/` in the close-out PR; the issue closes when that PR merges (it carries `Closes #2410`)
 
 ### Progress Log
 
@@ -2150,58 +2153,59 @@ avoids duplicating the full workflow in four drafts:
 - 2026-10-22 17:12 UTC - GitHub Copilot (Claude Opus 5.5) - #2416 review round 1, finding F1: the plan row T10 reads `DONE` (it still read `TODO` while the Subissues row said `IN_PROGRESS`); the Subissues row stays `IN_PROGRESS` until the maintainer accepts and merges. No design change.
 - 2026-10-23 17:50 UTC - GitHub Copilot (model not verifiable from the session; the maintainer states Claude Sonnet 5.5) - Correction of the model stamps in this log: the entries of the #2416 work that name `Claude Opus 5.5` copied that name from earlier entries without checking it, and the maintainer states that the session ran Claude Sonnet 5.5. The earlier entries are not rewritten; read them as `model unverified`. Appended in the same round as review round 6 of PR #2623 (finding F17), recorded in the audit `docs/pr-reviews/pr-2623-review/PR-REVIEW.md`.
 - 2026-10-24 12:21 UTC - GitHub Copilot (model not verifiable from the session; the maintainer states Claude Sonnet 5.5) - #2416 merged in PR #2623 (2026-10-24 12:19 UTC) and archived to `docs/issues/closed/`; its Subissues row is `DONE` and links the archived spec. All four sub-issues (#2413, #2414, #2415, #2416) are now `DONE`. This sub-EPIC is not closed or archived here and the #1488 roadmap is not edited: the coordinator runs the sub-EPIC completion with the maintainer.
+- 2026-10-24 15:36 UTC - GitHub Copilot (Claude Sonnet 5.5, the model the session runtime names; not otherwise verifiable) - Sub-EPIC close-out by the coordinator session, on the maintainer's instruction. After #2416 merged, a coordinator check found the sub-EPIC itself still open: #2410 open on GitHub, 13 acceptance criteria and 10 workflow checkpoints unticked, and the completion review unassessed. The coordinator checked each criterion against the tree and the four sub-issues' evidence (the Acceptance Verification table cites the artifact for each; the claims read from source and not run are marked), set the manual-verification rows M2 and M3 to `DONE` with their evidence, filled the Implementation Completion Review, and moved this folder to `docs/issues/closed/` with every live link repaired. The criteria and checkpoints are ticked in this PR in advance of the merge, as in #2557 for EPIC #2243; the maintainer's review and merge are the acceptance review, as for #2414 to #2416. The #1488 roadmap row for this sub-EPIC is set to `Done` in the same PR, and the PR carries `Closes #2410`. No design change.
 
 ## Acceptance Criteria
 
-- [ ] AC1: A listener cancelled with a finite backlog that fits its budgets,
+- [x] AC1: A listener cancelled with a finite backlog that fits its budgets,
   without lag or handler failure, processes every queued event and returns
   `Cancelled` (all seven components). Timeout and failure paths are separate.
-- [ ] AC2: No listener component is cancelled before every event-producing
+- [x] AC2: No listener component is cancelled before every event-producing
       component has completed or the shared deadline has expired.
-- [ ] AC3: Each listener logs how many events it processed after
+- [x] AC3: Each listener logs how many events it processed after
       cancellation. When its drain timeout expires with events left, it logs
       a warning naming the listener and the leftover count when known.
-- [ ] AC4: The ADR records measured drain admission budgets and shared-deadline
+- [x] AC4: The ADR records measured drain admission budgets and shared-deadline
   escalation. A handler may cross its admission timeout; a slow producer
   can exhaust the shared budget. Both paths have deterministic tests and
   bounded test waits, not an unconditional guarantee of drain time.
-- [ ] AC5: The HTTP and UDP test environments stop producers before listeners.
-- [ ] AC6: The seven cancel-priority characterization tests listed in T5
+- [x] AC5: The HTTP and UDP test environments stop producers before listeners.
+- [x] AC6: The seven cancel-priority characterization tests listed in T5
       (`it_should_prioritize_*`) are replaced by tests asserting the new policy.
-- [ ] AC7: T0 is rerun like-for-like. The control workload drains fully within
+- [x] AC7: T0 is rerun like-for-like. The control workload drains fully within
   the measured budgets. Race results record persisted counts, lag, queued
   leftovers, failures, and aborts without claiming exact per-event loss
   attribution; an unexplained deficit blocks acceptance.
-- [ ] AC8: The ADR draft is moved from this folder into `docs/adrs/` (D15),
+- [x] AC8: The ADR draft is moved from this folder into `docs/adrs/` (D15),
       restates every still-valid point of the cancellation-tree ADR, and that
       ADR carries `Status: Superseded by` the new ADR (D11).
-- [ ] AC9: The glossary lives in `docs/architecture/glossary.md`, the jobs doc
+- [x] AC9: The glossary lives in `docs/architecture/glossary.md`, the jobs doc
       in `docs/architecture/application-jobs.md`, all links to the moved file
       are updated, and the ADR and this spec link to the glossary (D12).
-- [ ] AC10: The five diagrams describe the final implementation and live in
+- [x] AC10: The five diagrams describe the final implementation and live in
       stable documents under `docs/architecture/`; the existing shutdown
       diagrams they replace are updated or removed (D16).
-- [ ] AC11: A maintained package-level integration test in
+- [x] AC11: A maintained package-level integration test in
       `packages/tracker-core/tests/` sends N completions through the real
       event bus, persistent listener, and SQLite database, stops the
       listeners, and asserts that all N are persisted. It is proven red
       against the cancel-first loop and green after the fix (Regression Test
       Strategy, option 1).
-- [ ] AC12: A listener's drain checks its timeout only between events; a
+- [x] AC12: A listener's drain checks its timeout only between events; a
       slow handler crossing that timeout completes before the next receive.
       A separate test covers shared-deadline abort with a handler still in
       progress, reported as an unknown outcome rather than an exact loss count.
-- [ ] AC13: Event buses remain owned through listener shutdown, and every
+- [x] AC13: Event buses remain owned through listener shutdown, and every
       enabled listener's receiver is created before any producer of its bus starts.
       The startup order is enforced by `EventFlows` (a consumer registered
       after a producer is rejected). In addition to registry unit tests, a
       bootstrap collaboration test proves actual subscription before the first
       publication, since registration alone is not subscription (entry 27).
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
-- [ ] Manual verification and recheck are documented in `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
-- [ ] Documentation is updated (task inventory, feature docs, ADR)
+- [x] `linter all` exits with code `0`
+- [x] Relevant tests pass
+- [x] Manual verification and recheck are documented in `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] Documentation is updated (task inventory, feature docs, ADR)
 
 ## Verification Plan
 
@@ -2225,10 +2229,11 @@ avoids duplicating the full workflow in four drafts:
   signals, concurrent HTTP load, and direct database inspection. The
   maintained red proofs live at unit seams (the race is timing-dependent); the
   script reproduces the operator-visible symptom and is rerun for M3.
-- **Owner and removal**: kept until M3 (the like-for-like recheck after the
-  fix) is recorded, then removed in T10 unless the maintainer decides to keep
-  it as a documented tool. Its scenarios are promoted to maintained tests as
-  described in the Regression Test Strategy (options 1 and 2).
+- **Owner and removal**: the maintainer decided at #2416's checkpoint (c) to
+  keep the script (progress log, 2026-10-22 07:05 UTC); it stays in this
+  folder, archived with the spec. Its scenarios are also promoted to
+  maintained tests, as described in the Regression Test Strategy (options 1
+  and 2).
 
 ### Manual Verification Scenarios
 
@@ -2238,26 +2243,26 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | --- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- | ------ | -------------------------------------------- |
 | M0  | Seam evidence                  | `cargo test -p torrust-tracker-core --lib prioritize_a_pre_cancelled_token`                                                     | Tests pass, showing a ready event is not handled once cancelled.     | DONE   | `manual-verification-evidence.md` section V0 |
 | M1  | Reproduce lost completion      | `reproduce-lost-completions.sh control` (also with `CONTROL_WAIT=10`) and `race`; restart on the race database and scrape; query SQLite. | Before fix: persisted counts lower than answered completions.         | DONE   | `manual-verification-evidence.md` section V1 |
-| M2  | Shutdown drain logs            | Run the tracker, generate announces, SIGTERM; inspect listener logs.                                                            | Each listener logs its drain count; producers stop before listeners. | TODO   | `manual-verification-evidence.md` section V2 |
-| M3  | Recheck lost completion        | Rerun the M1 `control` and `race` runs with the same parameters after the fix.                                                  | No control deficit; race counts and all observed loss/failure signals recorded under AC7, including unknown in-progress outcomes. | TODO   | `manual-verification-evidence.md` section V3 |
+| M2  | Shutdown drain logs            | Run the tracker, generate announces, SIGTERM; inspect listener logs.                                                            | Each listener logs its drain count; producers stop before listeners. | DONE   | #2414 V10 (drain counts and the cut-short warning on the real binary) and #2416 V5 (stop-order logs, M1) |
+| M3  | Recheck lost completion        | Rerun the M1 `control` and `race` runs with the same parameters after the fix.                                                  | No control deficit; race counts and all observed loss/failure signals recorded under AC7, including unknown in-progress outcomes. | DONE   | #2414 V10 (control 500 of 500) and #2416 V5 (M2 control twice, M3 race twice, after the final production change); recorded in the sub-issues' `manual-verification-evidence.md` files |
 
 ### Acceptance Verification
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1   | TODO                   |          |
-| AC2   | TODO                   |          |
-| AC3   | TODO                   |          |
-| AC4   | TODO                   |          |
-| AC5   | TODO                   |          |
-| AC6   | TODO                   |          |
-| AC7   | TODO                   |          |
-| AC8   | TODO                   |          |
-| AC9   | TODO                   |          |
-| AC10  | TODO                   |          |
-| AC11  | TODO                   |          |
-| AC12  | TODO                   |          |
-| AC13  | TODO                   |          |
+| AC1   | DONE | All seven listener components drain a queued event and return `Cancelled`, one test per listener, mutation-checked ([#2414 V7 and V9](../2414-2410-si-22-2-drain-listener-queues-on-shutdown/manual-verification-evidence.md)); real binary V10. Qualification kept from #2414: a backlog larger than the drain clears is cut short and reported. |
+| AC2   | DONE | #2416 V1 (red) and V2 (green): the `JobManager` stop-order test and the real-bus late-publication test; the application test asserts every listener waits for exactly the components that publish on its buses; one mutation per lifecycle clause (V3). The tree has 33 `it_should_*` tests in `src/bootstrap/jobs/manager.rs` (counted from source on 2026-10-24, not run here). |
+| AC3   | DONE | The `log_drain_report!` fields for all seven listeners, and the warning with the listener name and the counts when a drain timed out (#2414 V8 and V10). Counts are events, not completions (record entry 28). |
+| AC4   | DONE, with a qualification | ADR section 7 records the `release` measurement of a full 65,536-event buffer (12 to 14 s on tmpfs, 158 to 188 s on NVMe, so it cannot drain within the 10 s shared deadline) and the 5 s admission default. That default is a policy choice the maintainer agreed (entry 28), not a value derived from the measurement. Both escalation paths have deterministic tests with bounded waits: the slow-handler test at the helper (#2414 V5) and the shared-deadline aborts in `manager.rs` (`it_should_abort_a_consumer_busy_in_a_handler_at_the_shared_deadline_even_when_it_was_cancelled_late`, #2416 V3). |
+| AC5   | DONE, with a qualification | #2416 V4 and V7: the HTTP environment red then green on the tree before the change, and the UDP environment green with its red shown by mutation U-M1, not run on the pre-change tree (V7 says so); a request held in flight while `stop()` drains, staged-join tests, and a drop without `stop()` that cancels both tokens (D20, entry 32). |
+| AC6   | DONE | `rg 'fn it_should_prioritize'` over `packages` and `src` finds nothing (2026-10-24); the replacements are in #2414 V3, V7, V9. |
+| AC7   | DONE | T0 rerun like-for-like: control 500 of 500 persisted (T0: 467) in #2414 V10 and again twice in #2416 V5; race, two runs, answered minus persisted 0, with drain counts and no lag, abort, or failure. The race runs do not prove window (b) (#2416 V1 does) and no exact per-event attribution is claimed. |
+| AC8   | DONE | `docs/adrs/20261021184946_order_shutdown_by_event_flow_and_drain_event_listeners.md` restates the still-valid points of the cancellation-tree ADR (its section 9); that ADR carries `- Status: Superseded by [...]`; `docs/adrs/index.md` lists the new ADR; no `adr-draft.md` remains in this folder. |
+| AC9   | DONE | `docs/architecture/glossary.md` and `docs/architecture/application-jobs.md` exist; this spec and the ADR link to the glossary ([#2413](../2413-2410-si-22-1-document-event-flows-and-draft-adr/ISSUE.md) AC2). |
+| AC10  | DONE | The five diagrams live in `docs/architecture/events.md` (event data flow) and `docs/architecture/application-jobs.md` (supervision tree, both sequences, component boundary); the shutdown diagrams in `docs/features/shutdown-process/` are updated (#2416 AC4 and AC5 evidence). |
+| AC11  | DONE | `it_should_persist_every_completed_download_queued_before_the_persistent_listener_is_cancelled` in `packages/tracker-core/tests/integration.rs`: red on the cancel-first loop (#2414 V4), green after the fix (V7), with a passing uncancelled control. |
+| AC12  | DONE | Between-events rule: `it_should_finish_a_slow_handler_that_crosses_the_timeout_before_stopping` and its mutation (#2414 V5), tested at the shared helper, which owns the rule for all seven listeners. Shared-deadline abort with a handler in progress: the two `manager.rs` tests named under AC4, reported as an unknown outcome, not a loss count. |
+| AC13  | DONE | `EventFlows` unit tests in `src/bootstrap/event_flows.rs` (a late consumer is rejected, consumers of several buses are merged, only started listeners are returned); the bootstrap subscription test (the swarm bus has three receivers before any listener task can run; mutation: subscribe inside the task); bus retention through the application-level test and `main` holding `_app_container` past `wait_for_all` (read from source, not run). #2415 AC4 and #2416 AC6 evidence. |
 
 ## Dependencies
 
@@ -2298,14 +2303,39 @@ characterization tests come back from history. No data format changes.
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
-- Create `implementation-retrospective.md` from
-  `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` if the work produces
-  reusable lessons; otherwise record why not in the progress log.
+- Outcome: all four sub-issues merged and archived (#2413 in PR #2553, #2414 in
+  PR #2578, #2415 in PR #2591, #2416 in PR #2623). Both loss windows are closed
+  and each has a maintained red-then-green test: window (a) by the listener
+  drain, window (b) by the stop order. The ADR is promoted and the
+  cancellation-tree ADR is superseded.
+- Real-binary recheck (like for like with T0): the control workload persists
+  every answered completion (500 of 500; T0: 467) and both race runs persist
+  everything they answered (T0 lost about 92%). The race runs do not prove
+  window (b), so that proof is the controlled test of #2416 V1.
+- Known limits, recorded in the acceptance rows and not hidden: a backlog
+  larger than the 5 s admission budget is cut short and reported (D18, batched
+  persistence is #2418); the drain timeout is an admission budget, not a
+  handler deadline, and a shared-deadline abort leaves an in-progress outcome
+  unknown; bus retention through listener join is read from source, not run.
+- Independent review: each sub-issue has its own Task Reviewer report and
+  retrospective in its archived folder. The coordinator's close-out review of
+  this record against the tree is in
+  [agent-review-reports.md](agent-review-reports.md).
+- Retrospective: no sub-EPIC-level `implementation-retrospective.md`. The four
+  sub-issue retrospectives hold the lessons of the code and review work, and
+  the sub-EPIC itself added only coordination. One process lesson belongs
+  here: a sub-EPIC's close-out (acceptance table, checkpoints, archive, `Closes`)
+  is a task of the session that owns the sub-EPIC and must be in its plan; it was
+  first left out of the last sub-issue's handoff and found by the coordinator's
+  check after #2416 merged.
+- Follow-ups, not blockers: #2418 (batch persisted download writes) and the
+  spam and abuse EPIC #2411 stay open. #2406 (scrape of persisted counts) and
+  #2417 (HTTP scrape limit) are closed.
 
 ## References
 
 - Parent EPIC: #1488
 - Related issues: #1405 (listener cancellation tokens), #2132 (SI-1), #2283
-  (listener test review)
-- Related ADR: `docs/adrs/20260902074438_adopt_supervised_cancellation_tree_for_shutdown.md`
+  (listener test review), #2406, #2411, #2417, #2418
+- Related ADRs: `docs/adrs/20260902074438_adopt_supervised_cancellation_tree_for_shutdown.md`
+  (superseded) and `docs/adrs/20261021184946_order_shutdown_by_event_flow_and_drain_event_listeners.md`

@@ -7,7 +7,7 @@ semantic-links:
     - docs/issues/closed/2415-2410-si-22-3-per-component-cancellation-tokens/ISSUE.md
     - docs/issues/closed/2415-2410-si-22-3-per-component-cancellation-tokens/manual-verification-evidence.md
     - docs/issues/closed/2415-2410-si-22-3-per-component-cancellation-tokens/agent-review-reports.md
-    - docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
+    - docs/issues/closed/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
 ---
 
 # Implementation Retrospective — Give Each Application Component Its Own Cancellation Token

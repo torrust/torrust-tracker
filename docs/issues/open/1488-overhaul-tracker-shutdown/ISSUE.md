@@ -6,7 +6,7 @@ epic: null
 github-issue: 1488
 spec-path: docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-19 17:08"
+last-updated-utc: "2026-10-24 15:36"
 semantic-links:
   skill-links:
     - create-issue
@@ -85,7 +85,7 @@ status as of 2026-10-07.
    logs exist, but the supervisor has no concurrent aggregate outcomes or
    complete component-level drain progress. **Status: partly fixed**: #1586
    added concurrent named outcomes, and the migrated components log their
-   drains; listener drain logs come with SI-22.
+   drains; listener drain logs were added by SI-22 (#2414).
 8. **Double-signal on Ctrl+C** — both `main.rs` and each server's
    `global_shutdown_signal()` catch the same signal, creating a potential race.
    **Status: fixed in the application**: production servers use the token
@@ -97,8 +97,9 @@ status as of 2026-10-07.
    requested, even with events still queued, and servers that are still
    draining keep emitting events after the listeners have stopped. Persisted
    completed-download counts can be lost. This predates the cancellation-token
-   refactor (#1405 changed the trigger, not the policy). **Status: open**
-   (SI-22).
+   refactor (#1405 changed the trigger, not the policy). **Status: fixed**
+   (SI-22, sub-EPIC #2410): listeners drain their queues within an admission
+   budget and are stopped after the components that publish to them.
 
 ## The Contracts Being Implemented
 
@@ -122,10 +123,11 @@ kill -9 <pid>            # SIGKILL — force kill ❌
 
 Before SI-1, `SIGTERM` reached the server libraries but bypassed `main`, so
 only the servers stopped. Adding the `SIGTERM` handler in `main.rs` was the
-single most impactful change in this EPIC. What remains of the contract is
-owned by later sub-issues: ordered listener draining with explicit timeout and
-failure reporting, not an unconditional zero-loss guarantee (SI-22); the shutdown
-budget fits the orchestrator's grace period and the exit code reports the
+single most impactful change in this EPIC. SI-22 later added ordered listener
+draining with an explicit admission timeout and failure reporting, not an
+unconditional zero-loss guarantee. What remains of the contract is owned by
+later sub-issues: the shutdown budget fits the orchestrator's grace period and
+the exit code reports the
 outcome (SI-20), and the health check reports not ready during shutdown
 (SI-21).
 
@@ -205,7 +207,7 @@ deterministic tests, and manual evidence.
 | 12       | #2412 | [Migrate standalone HTTP environment/example](../../closed/2412-1488-si-16-migrate-standalone-http-environment/ISSUE.md) | Done       | One supported standalone HTTP consumer migration; the token-aware drain now force-closes at its deadline (#2439). |
 | 13       | #2448 | [Migrate standalone UDP environment/example](../../closed/2448-1488-si-17-migrate-standalone-udp-environment/ISSUE.md) | Done       | SI-17. One supported standalone UDP consumer migration; a dropped environment now releases its socket (#2459). |
 | 14       | #2471 | [Stop the HTTP test environment when dropped without `stop()`](../../closed/2471-1488-fix-http-environment-drop-path/ISSUE.md) | Done       | Bug. Gap found on 2026-10-07: a dropped HTTP test environment keeps its server running, before and after SI-16 (checked on the tree before SI-16). Hold the token as a `DropGuard`, as #2459 did for UDP. Merged in PR #2544 on 2026-10-16. |
-| 15       | #2410 | [Process queued events before listeners stop](../2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md) | In progress | Bug, sub-EPIC (SI-22) with four sub-issues, #2413 to #2416 (docs and ADR draft; listener drain; per-component tokens; stop order): stop event producers before consumers; listeners process queued events within the deadline. #2413 is done (PR #2553). |
+| 15       | #2410 | [Process queued events before listeners stop](../../closed/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md) | Done | Bug, sub-EPIC (SI-22) with four sub-issues, #2413 to #2416 (docs and ADR draft; listener drain; per-component tokens; stop order): event producers stop before consumers; listeners process queued events within an admission budget. Merged in PRs #2553, #2578, #2591, and #2623, closed by the close-out PR. |
 | 16       | #2449 | [Migrate REST API test environment](../2449-1488-si-23-migrate-rest-api-test-environment/ISSUE.md) | Planned    | SI-23. One test environment migration; found while refreshing SI-17 (2026-10-06). May run alongside SI-22 (no dependency on it). |
 | 17       | #2450 | [Migrate health-check API test environment](../2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md) | Planned    | SI-24. One test environment migration; found while refreshing SI-17 (2026-10-06). May run alongside SI-22 (no dependency on it). |
 | 18       | SI-18 | [Deprecate legacy shutdown API](../../drafts/1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md)                           | Draft      | Compatibility-preserving source deprecation only.                                                    |

@@ -9,14 +9,14 @@ github-issue: 2414
 spec-path: docs/issues/closed/2414-2410-si-22-2-drain-listener-queues-on-shutdown/ISSUE.md
 branch: "2414-drain-listener-queues-on-shutdown"
 related-pr: 2578
-last-updated-utc: "2026-10-20 19:30"
+last-updated-utc: "2026-10-24 15:36"
 semantic-links:
   skill-links:
     - create-issue
     - fix-bug
     - write-unit-test
   related-artifacts:
-    - docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
+    - docs/issues/closed/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
     - packages/events/src/receiver.rs
     - packages/events/src/broadcaster.rs
     - packages/tracker-core/src/statistics/event/listener.rs
@@ -32,7 +32,7 @@ semantic-links:
 
 # Issue #2414 - Drain Listener Queues on Shutdown
 
-Parent: [EPIC #2410 - Process queued events before event listeners stop](../../open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md),
+Parent: [EPIC #2410 - Process queued events before event listeners stop](../../closed/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md),
 under EPIC #1488.
 
 > Sub-issue 2 of 4 (SI-22 tasks T3 to T5). Closes loss window (a), where the
@@ -52,7 +52,7 @@ tracker shuts down, a listener with a queue of events stops at once and the
 queue is thrown away. The reproduction lost about 92% of answered
 `completed` announces, consistent with this backlog loss but without exact
 per-window attribution (sub-EPIC
-[manual-verification-evidence.md](../../open/2410-1488-si-22-process-queued-events-before-listeners-stop/manual-verification-evidence.md), V1).
+[manual-verification-evidence.md](../../closed/2410-1488-si-22-process-queued-events-before-listeners-stop/manual-verification-evidence.md), V1).
 
 ## Scope
 
@@ -77,7 +77,7 @@ per-window attribution (sub-EPIC
 ## Design and Ownership Review
 
 See the sub-EPIC's
-[Design and Ownership Review](../../open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md#design-and-ownership-review).
+[Design and Ownership Review](../../closed/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md#design-and-ownership-review).
 In this issue: each listener owns its drain. Its timeout stops admission of
 another event, not an in-progress handler. The shared shutdown deadline can
 abort that handler; its outcome may then be unknown. A design-review
@@ -93,7 +93,7 @@ red tests (T3), the fix (T4, T5), and the recheck of the `control` scenario
 ## Regression Test Strategy
 
 Sub-EPIC
-[Regression Test Strategy](../../open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md#regression-test-strategy):
+[Regression Test Strategy](../../closed/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md#regression-test-strategy):
 unit tests at each dispatch function (pre-cancelled token plus ready events),
 a paused-time timeout test, and option 1, the package-level integration test
 with a deterministic red.
@@ -101,7 +101,7 @@ with a deterministic red.
 ## Implementation Plan
 
 Detailed steps: sub-EPIC
-[Implementation Steps](../../open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md#implementation-steps),
+[Implementation Steps](../../closed/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md#implementation-steps),
 items 4 (T3), 5 (T4), and 6 (T5).
 
 **Revalidate before starting.** This plan was written on 2026-10-02. Two pull
@@ -224,7 +224,7 @@ to a root ADR here; sub-issue 4 owns that step.
 
 ## Implementation Completion Review
 
-Follow the sub-EPIC's [Shared Delivery Gates](../../open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md#shared-delivery-gates),
+Follow the sub-EPIC's [Shared Delivery Gates](../../closed/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md#shared-delivery-gates),
 including local manual evidence, acceptance re-review, retrospective assessment,
 and independent Task Reviewer report.
 

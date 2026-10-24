@@ -9,7 +9,7 @@ github-issue: 2412
 spec-path: docs/issues/closed/2412-1488-si-16-migrate-standalone-http-environment/ISSUE.md
 branch: "2412-migrate-standalone-http-environment"
 related-pr: 2439
-last-updated-utc: "2026-10-06 09:03"
+last-updated-utc: "2026-10-24 15:36"
 semantic-links:
   skill-links:
     - create-issue
@@ -30,7 +30,7 @@ semantic-links:
     - docs/issues/drafts/1488-si-3-fix-environment-stop/ISSUE.md
     - docs/issues/drafts/1488-si-17-migrate-standalone-udp-environment/ISSUE.md
     - docs/issues/drafts/1488-si-20-configure-shutdown-policy/ISSUE.md
-    - docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
+    - docs/issues/closed/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
     - docs/issues/closed/2234-1488-si-2-remove-global-shutdown-signal/ISSUE.md
     - docs/issues/closed/2289-1488-si-11-migrate-http-tracker-token-lifecycle/ISSUE.md
     - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md

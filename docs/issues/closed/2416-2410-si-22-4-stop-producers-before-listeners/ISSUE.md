@@ -9,7 +9,7 @@ github-issue: 2416
 spec-path: docs/issues/closed/2416-2410-si-22-4-stop-producers-before-listeners/ISSUE.md
 branch: "2416-stop-producers-before-listeners"
 related-pr: 2623
-last-updated-utc: "2026-10-24 12:20"
+last-updated-utc: "2026-10-24 15:36"
 semantic-links:
   skill-links:
     - create-issue
@@ -17,7 +17,7 @@ semantic-links:
     - write-unit-test
     - create-adr
   related-artifacts:
-    - docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
+    - docs/issues/closed/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
     - src/bootstrap/jobs/manager.rs
     - src/app.rs
     - packages/axum-http-server/src/testing/environment.rs
@@ -29,7 +29,7 @@ semantic-links:
 
 # Issue #2416 - Stop Event Producers Before Event Listeners
 
-Parent: [EPIC #2410 - Process queued events before event listeners stop](../../open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md),
+Parent: [EPIC #2410 - Process queued events before event listeners stop](../../closed/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md),
 under EPIC #1488.
 
 > Sub-issue 4 of 4 (SI-22 tasks T7 to T10). Closes loss window (b) and
@@ -74,8 +74,8 @@ process them.
 ## Design and Ownership Review
 
 See the sub-EPIC's
-[Design and Ownership Review](../../open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md#design-and-ownership-review)
-and [Chosen Design](../../open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md#chosen-design-d7-d8).
+[Design and Ownership Review](../../closed/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md#design-and-ownership-review)
+and [Chosen Design](../../closed/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md#chosen-design-d7-d8).
 Design-review checkpoint after T8.
 
 ## Bug-Fix Process
@@ -90,21 +90,21 @@ T9), rerun both, and recheck the real-binary `race` scenario (M3).
 ## Regression Test Strategy
 
 Sub-EPIC
-[Regression Test Strategy](../../open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md#regression-test-strategy):
+[Regression Test Strategy](../../closed/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md#regression-test-strategy):
 a `JobManager` unit test with fake components (red while edges are stored
 but not enforced), and option 2, the in-process application test.
 
 ## Implementation Plan
 
 Detailed steps: sub-EPIC
-[Implementation Steps](../../open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md#implementation-steps),
+[Implementation Steps](../../closed/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md#implementation-steps),
 items 8 (T7) to 11 (T10).
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
 | T7 | DONE | Reproduce window (b), then red stop-order test | Controlled late publication proves the lost effect; consumer must remain live while any of two producers runs; red output recorded (evidence V1). |
 | T8 | DONE | Stop order | Edges enforced with waiting and cancellation logs; `EventFlows` with unit tests; `src/app.rs` wired; in-process application test. Design-review checkpoint. Implemented and reviewed (evidence V2, V3; record entry 31). |
-| T9 | DONE | Test environments | HTTP and UDP environments stop servers first, keeping the sub-EPIC's [Test environments](../../open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md#test-environments) guarantees (join-all failure reporting; independent server and listener tokens, each with its own `DropGuard`, D20); for each environment, a test that an event from a request completed just before `stop()` is counted. |
+| T9 | DONE | Test environments | HTTP and UDP environments stop servers first, keeping the sub-EPIC's [Test environments](../../closed/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md#test-environments) guarantees (join-all failure reporting; independent server and listener tokens, each with its own `DropGuard`, D20); for each environment, a test that an event from a request completed just before `stop()` is counted. |
 | T10 | DONE | Documentation and verification | ADR moved and old ADR superseded; diagrams moved; `docs/architecture/events.md` gains the swarm bus, its producers, and its three consumers (#2413 T1 finding); docs updated; M1-M3; AC review; completion review for the sub-EPIC. Done: the ADR move, the diagrams and docs, M1-M3 (evidence V5), the pre-push checks (V6), the independent review and the retrospective, and the maintainer's decision to keep the disposable script. Left for the maintainer: the acceptance-criteria review. |
 
 ## Commit Points
@@ -237,7 +237,7 @@ exceptions; do not edit away the superseded ADR's original decision text.
 
 ## Implementation Completion Review
 
-Follow the sub-EPIC's [Shared Delivery Gates](../../open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md#shared-delivery-gates).
+Follow the sub-EPIC's [Shared Delivery Gates](../../closed/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md#shared-delivery-gates).
 This issue also closes the shared design and EPIC acceptance review; record
 what was verified here and link earlier children's evidence rather than
 claiming their tests were rerun without results.
