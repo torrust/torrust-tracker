@@ -52,6 +52,20 @@ class ValidSubjectsTest(unittest.TestCase):
 
         self.assertIn(fix_subject, subjects)
 
+    def test_it_should_accept_a_subject_found_only_in_a_follow_up_pull_requests_commits(self):
+        fix_subject = "docs(pr-reviews): move the WAIT-001 closure entry"
+        follow_up_pull = ("torrust", "torrust-tracker", 2596)
+        audit = "- Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2596>\n"
+        commits = {
+            commits_endpoint(AUDITED_PULL): [],
+            commits_endpoint(follow_up_pull): [fix_subject],
+        }
+
+        with fake_git_and_gh(git_subjects=[], pull_commits=commits):
+            subjects = validate.valid_subjects(UP_TO_DATE_BASE, validate.pulls_to_check(audit, AUDITED_PULL))
+
+        self.assertIn(fix_subject, subjects)
+
 
 if __name__ == "__main__":
     unittest.main()

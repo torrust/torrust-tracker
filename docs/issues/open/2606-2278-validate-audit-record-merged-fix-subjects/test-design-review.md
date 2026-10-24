@@ -51,3 +51,34 @@ section V1.
 Green run (T3, after adding the audited pull request's commits): `Ran 1 test ... OK`. On the real
 audits with `--base torrust/develop`, PR #2599 now passes and PR #2584 fails only WAIT-001, whose
 fix merged in PR #2596 (T4 and T5 cover that case).
+
+## T4 - A Subject Only in a Follow-up Pull Request's Commits Is Accepted
+
+Test added: `ValidSubjectsTest.test_it_should_accept_a_subject_found_only_in_a_follow_up_pull_requests_commits`
+
+Interface added by this increment: `pulls_to_check(audit_text, audited)` returns the audited pull
+request followed by every pull request named in a `Follow-up PR URL` field of the audit text.
+
+Prose-first comparison:
+
+- Arrange: the audited pull request has no commit with the fix; the audit records PR #2596 in a
+  `Follow-up PR URL` field; PR #2596's commit list holds the fix subject; the local range is empty.
+- Act: collect the pull requests to check from the audit text, then ask for their valid subjects.
+- Assert: the fix subject is among them.
+
+The causal difference is where the subject lives: only the follow-up's commit list, reachable only
+through the audit's `Follow-up PR URL` line. Both appear inline (`audit`, `commits`), so the reader
+sees why the subject is expected. The two-step Act (`pulls_to_check` then `valid_subjects`) mirrors
+`main`; it is shown rather than hidden in a helper. The expected subject is a literal.
+
+Red run (before the production change):
+
+```text
+ERROR: test_it_should_accept_a_subject_found_only_in_a_follow_up_pull_requests_commits
+AttributeError: module 'validate_audit_record' has no attribute 'pulls_to_check'
+Ran 2 tests in 0.001s
+FAILED (errors=1)
+```
+
+As for T2, the red is an error for the missing interface; the behavioral red on the real audit
+(WAIT-001 fails with `--base torrust/develop`) is recorded in the T3 green run above.
