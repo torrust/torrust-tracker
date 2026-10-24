@@ -1,6 +1,6 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2416-2410-si-22-4-stop-producers-before-listeners/ISSUE.md
+issue-spec: docs/issues/closed/2416-2410-si-22-4-stop-producers-before-listeners/ISSUE.md
 last-updated-utc: "2026-10-23 16:22"
 ---
 
@@ -228,7 +228,7 @@ A disposable harness, kept here as evidence like #2414's:
 persistent completed statistics, SQLite) and [`evidence/run_m1.py`](evidence/run_m1.py). During the run
 the configuration was at `.tmp/m1/tracker.toml`. It starts the tracker, announces `started` for 300 UDP
 and 3,000 HTTP peers, then sends the `completed` announces from 48 worker threads and SIGTERM 0.15 seconds
-into the burst: `UDP_PEERS=300 HTTP_PEERS=3000 SIGTERM_DELAY=0.15 python3 docs/issues/open/2416-2410-si-22-4-stop-producers-before-listeners/evidence/run_m1.py`.
+into the burst: `UDP_PEERS=300 HTTP_PEERS=3000 SIGTERM_DELAY=0.15 python3 docs/issues/closed/2416-2410-si-22-4-stop-producers-before-listeners/evidence/run_m1.py`.
 A first run with the defaults (150 UDP and 500 HTTP peers, SIGTERM at 0.3 s) finished the whole burst
 before SIGTERM, so it showed nothing under load and is not used. A second run failed to start for the port
 reason above and is not used either.

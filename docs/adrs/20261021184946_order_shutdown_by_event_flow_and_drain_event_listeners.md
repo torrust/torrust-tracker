@@ -483,6 +483,6 @@ produces the same stop-before edges.
 - Issues #2414, #2415, and #2416: the implementation, in
   [#2414](../issues/closed/2414-2410-si-22-2-drain-listener-queues-on-shutdown/ISSUE.md),
   [#2415](../issues/closed/2415-2410-si-22-3-per-component-cancellation-tokens/ISSUE.md), and
-  [#2416](../issues/open/2416-2410-si-22-4-stop-producers-before-listeners/ISSUE.md)
+  [#2416](../issues/closed/2416-2410-si-22-4-stop-producers-before-listeners/ISSUE.md)
 - Issue #2418: batched persisted download writes
 - Issue #1669: extraction of the `bittorrent-*` packages
