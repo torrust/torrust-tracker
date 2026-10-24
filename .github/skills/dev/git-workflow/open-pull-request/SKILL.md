@@ -158,13 +158,38 @@ Choose the correct keyword based on what the PR contains:
 
 The keyword closes the issue wherever it appears in the body, including a sentence that only
 mentions it (for example "the link will change to `Closes #N` later"): the merge tool copies the
-whole body into the merge commit. Do not write a closing keyword followed by an issue reference
-anywhere in the body of a PR that must not close that issue. Before creating or editing the body,
-scan it. The pattern covers the reference forms GitHub accepts after a keyword (`#N`,
-`owner/repo#N`, and an issue URL), with or without a colon:
+whole body into the merge commit. The branch commit messages land on `develop` too, and GitHub acts
+on a keyword in any of them. A negated mention closes the issue too: the body of PR #2613 said "Does
+not close #2606" and closed #2606 on merge. Do not write a closing keyword followed by an issue
+reference anywhere in the title, the body or a commit message of a PR that must not close that issue;
+write "Related to #N" and describe the remaining work without the keyword. Before creating or editing
+the title or body, and before pushing commits, scan them. The pattern covers the reference forms
+GitHub accepts after a keyword (`#N`, `owner/repo#N`, and an issue URL), with or without a colon. It
+guards the keyword with `(^|[^[:alnum:]_])` instead of `\b`, because `\b` is not portable across
+`grep -E` implementations. Define it once and reuse it:
 
 ```bash
-grep -niE '\b(close[sd]?|fix(e[sd])?|resolve[sd]?):?[[:space:]]+([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+#[0-9]+|#[0-9]+|https://github\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+/issues/[0-9]+)' <body-file>
+PATTERN='(^|[^[:alnum:]_])(close[sd]?|fix(e[sd])?|resolve[sd]?):?[[:space:]]+([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+#[0-9]+|#[0-9]+|https://github\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+/issues/[0-9]+)'
+grep -niE "$PATTERN" <body-file>
+```
+
+Commit messages are wrapped, so a line-based `grep` misses a keyword whose reference wraps to the
+next line. Fold the newlines before scanning the messages, and print the matches with `-o`, because
+the folded input is a single line. The `--COMMIT--` line keeps the messages apart, so a keyword that
+ends one message cannot match a reference that starts the next:
+
+```bash
+git log --format='%B%n--COMMIT--' <upstream-remote>/develop..HEAD | tr '\n' ' ' | grep -oiE "$PATTERN"
+```
+
+A commit message that matches cannot be fixed after the merge. Reword it before the merge, using the
+history-rewrite rules in the repository instructions.
+
+The merge commit subject carries the PR title (`Merge <ref>: <title>`), so a title that pairs a
+keyword with an issue closes it the same way. Scan the title with the same pattern:
+
+```bash
+gh pr view <pr-number> --json title --jq .title | grep -niE "$PATTERN"
 ```
 
 ### Identifying the PR type
@@ -213,6 +238,7 @@ When MCP pull request management tools are available, create the PR with:
 - [ ] Head branch is correct
 - [ ] CI workflows started
 - [ ] Issue linked with the correct keyword (`Related to` for spec-only, `Closes` for implementation)
+- [ ] Title, body and branch commit messages scanned with the closing-keyword commands from [Issue Linking Rules](#issue-linking-rules); every match is an issue this PR closes
 - [ ] PR body still matches branch diff and commit history after final rebases/edits
 
 Quick body-accuracy verification:
