@@ -55,7 +55,9 @@ review says Copilot could not run its full agentic review before the timeout. Co
 open, so it has no row. Round 6 comes from review 5638563262 (da2ce7, submitted as `APPROVED`, now
 `DISMISSED`) on the head after the round 5 fixes, with four inline findings, F14 to F17. Its IDs do
 not collide with the audit, so they are kept. Copilot review 5638250321 (`COMMENTED`) on the same
-head has no open finding, so it has no row.
+head has no open finding, so it has no row. Round 7 comes from review 5638895941 (da2ce7, `APPROVED`)
+on the head after the round 6 fixes, with three inline findings, F18 to F20. Its IDs do not collide
+with the audit, so they are kept.
 The branch history was rewritten in round 1 (see F1), so the round 1 review bodies cite a commit id
 that no longer exists on the branch. That id named the commit with the subject
 `docs(skills): state that a negated closing keyword still closes the issue`.
@@ -79,6 +81,9 @@ that no longer exists on the branch. That id named the commit with the subject
 | F15 | review-finding:pr-2630-f15 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F16 | review-finding:pr-2630-f16 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F17 | review-finding:pr-2630-f17 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F18 | review-finding:pr-2630-f18 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F19 | review-finding:pr-2630-f19 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F20 | review-finding:pr-2630-f20 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -378,6 +383,56 @@ that no longer exists on the branch. That id named the commit with the subject
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2630#discussion_r4367619433>
 
+### F18 - Round 3 was submitted as an approval, not as a change request
+
+- PR number: 2630
+- Source review ID: 5638895941
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2630#discussion_r4367677340>
+- Concern: The introduction gave review 5633175715 as submitted as `CHANGES_REQUESTED`, but it was
+  submitted as an approval. The F16 verification cited the review API, which lists a dismissed
+  review only as `DISMISSED`, so it could not show the submitted state.
+- Solution: The introduction now gives round 3 as submitted as `APPROVED` and now `DISMISSED`. The
+  F16 verification names the timeline `review_dismissed` events as the source of the submitted state.
+- Current-tree verification: The timeline `review_dismissed` event of 2026-10-24 08:11 UTC records
+  `approved` for review 5633175715, and only review 5632165728 was submitted as `CHANGES_REQUESTED`.
+- Resolution reference: docs(pr-reviews): give round 3 its submitted approved state in the PR 2630 audit
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2630#discussion_r4367876318>
+
+### F19 - Round 6 is dismissed too
+
+- PR number: 2630
+- Source review ID: 5638895941
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2630#discussion_r4367677342>
+- Concern: The introduction gave review 5638563262 only as `APPROVED`, although it had been dismissed
+  before that sentence was written, and rounds 3 and 4 gave both states.
+- Solution: The introduction now gives round 6 as submitted as `APPROVED` and now `DISMISSED`.
+- Current-tree verification: The timeline `review_dismissed` event of 2026-10-24 15:44 UTC records
+  `approved` for review 5638563262, and the review API lists it as `DISMISSED`. I read all three
+  dismissal events and the present state of each review before editing.
+- Resolution reference: docs(pr-reviews): give round 6 its dismissed state in the PR 2630 audit
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2630#discussion_r4367876448>
+
+### F20 - A log entry was inserted instead of appended
+
+- PR number: 2630
+- Source review ID: 5638895941
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2630#discussion_r4367677346>
+- Concern: A round 6 commit inserted the entry for review 5637742895 between two earlier entries,
+  with the review's submission time, so it read as if it had been logged in sequence. The template
+  asks for an append-only Processing Log.
+- Solution: Removed the inserted entry and appended a correction entry that names the earlier
+  placement and records the review, as the skill prescribes for a log that was rewritten in place.
+- Current-tree verification: The audit validator reports 0 failures, so the entries are in
+  chronological order, and the review appears once in the log, in the correction entry.
+- Resolution reference: docs(pr-reviews): keep the PR 2630 processing log append-only
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2630#discussion_r4367876561>
+
 ## Processing Log
 
 - 2026-10-23 17:37 UTC - da2ce7 submitted review 5632165728 (`CHANGES_REQUESTED`) with threads
@@ -434,6 +489,12 @@ that no longer exists on the branch. That id named the commit with the subject
   new thread that lists F11 to F13 as open) between the 09:10 and 12:10 entries. This commit removes
   that entry from the middle of the log and records the review here, so the log stays append-only.
   The introduction has named the review since round 6.
+- 2026-10-24 17:23 UTC - Recorded round 7. da2ce7 submitted review 5638895941 (`APPROVED`) at 16:07
+  UTC with threads 4367677340 (F18), 4367677342 (F19) and 4367677346 (F20), and an ACK comment on the
+  head that carried the round 6 audit. The F18 fix was committed at 17:15 UTC, the F19 fix at 17:17
+  UTC and the F20 fix at 17:19 UTC. The F18, F19 and F20 threads were replied to and resolved at
+  17:21 UTC (replies 4367876318, 4367876448 and 4367876561). These events are logged together
+  because the log is append-only and the correction entry above was stamped 17:18 UTC.
 
 ## Completion Rules
 
