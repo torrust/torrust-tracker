@@ -9,7 +9,7 @@ github-issue: 2637
 spec-path: docs/issues/open/2637-1347-add-tests-axum-rest-api-server/ISSUE.md
 branch: "2637-1347-add-tests-axum-rest-api-server-spec"
 related-pr: 2638
-last-updated-utc: "2026-10-24 19:50"
+last-updated-utc: "2026-10-24 20:53"
 semantic-links:
   skill-links:
     - create-issue
@@ -583,7 +583,7 @@ once. If the slicing changes, the Slice column changes with it.
 
 ### Progress Log
 
-- 2026-10-24 19:50 UTC - GitHub Copilot - Replaced the outdated draft with this specification on
+- 2026-10-24 19:59 UTC - GitHub Copilot - Replaced the outdated draft with this specification on
   branch `2637-1347-add-tests-axum-rest-api-server-spec`, using #1348 and #1349 as the
   templates. Measured a clean baseline at `abce11ec8` (6 unit and 58 integration tests; unit-only
   lines 40.24%, aggregate lines 85.31%, integration-only lines 74.39%, all filtered to
@@ -591,14 +591,21 @@ once. If the slicing changes, the Slice column changes with it.
   `coverage-evidence.md` (T1). The coordinator's rough figures (15% and 32%) were the unfiltered
   workspace `TOTAL`, not package figures. Proposed seven slices (S0-S6) and the findings
   procedure. No tests or production code changed.
-- 2026-10-24 20:00 UTC - Jose Celano - Approved the specification and the seven slices (S0-S6) as
+- 2026-10-24 19:57 UTC - Jose Celano - Approved the specification and the seven slices (S0-S6) as
   proposed, with the T1 evidence delivered in the spec-only PR (S0), `src/testing/` out of scope,
   the legacy `Halted` path left to #1488, and dev-dependencies allowed when a plan justifies them.
-- 2026-10-24 20:05 UTC - GitHub Copilot - Created GitHub issue #2637 and linked it as a subissue of
+- 2026-10-24 19:57 UTC - GitHub Copilot - Created GitHub issue #2637 (19:57:14 UTC) and linked it as a subissue of
   #1347; renamed the branch to `2637-1347-add-tests-axum-rest-api-server-spec`, moved the
   specification from `docs/issues/drafts/` to `docs/issues/open/`, and registered the package in
   the EPIC tables.
-- 2026-10-24 20:20 UTC - GitHub Copilot - Opened spec-only PR #2638 (<https://github.com/torrust/torrust-tracker/pull/2638>) with `Related to #2637`.
+- 2026-10-24 20:00 UTC - GitHub Copilot - Opened spec-only PR #2638 (<https://github.com/torrust/torrust-tracker/pull/2638>) with `Related to #2637`.
+- 2026-10-24 20:24 UTC - GitHub Copilot - Processed the Copilot review of #2638 (F1 to F4, submitted
+  20:18 UTC): TLS key, capability gating, slice versus ledger order, and the refactor gate were fixed
+  in four commits, rebased onto `develop`, replied to and resolved; the audit is
+  `docs/pr-reviews/pr-2638-review/PR-REVIEW.md`.
+- 2026-10-24 20:45 UTC - Jose Celano - Merged spec-only PR #2638 into `develop`. Cameron's (da2ce7)
+  review, posted at 20:39 UTC with findings F5 to F9, had not been processed when it merged; the
+  maintainer chose to fold those fixes into the S1 branch (see the audit record).
 
 ## Acceptance Criteria
 

@@ -6,7 +6,7 @@ epic: null
 github-issue: 1347
 spec-path: docs/issues/open/1347-overhaul-packages-testing/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-24 20:10"
+last-updated-utc: "2026-10-24 20:53"
 semantic-links:
   skill-links:
     - create-issue
@@ -305,7 +305,7 @@ For each subissue implementation, the completion policy is:
   manual verification M1-M5, `lessons.md` and the retrospective. The independent review of S6 asked for these EPIC
   tables to carry the final figures, which both now do. The `tcp4`/`tcp6` finding is a draft hand-off that also covers
   the UDP counters recorded by #1348.
-- 2026-10-24 20:10 UTC - GitHub Copilot - Created #2637 (`axum-rest-api-server`) from the outdated draft
+- 2026-10-24 19:59 UTC - GitHub Copilot - Created #2637 (`axum-rest-api-server`) from the outdated draft
   and linked it under this EPIC. Clean baseline at `abce11ec8`, filtered to the package source: unit-only
   lines 40.24%, regions 42.65%, functions 24.16% (6 unit tests); aggregate lines 85.31%, regions 80.99%,
   functions 79.19% (plus 58 integration tests; integration-only lines 74.39%). Delivered in slices S0-S6;
