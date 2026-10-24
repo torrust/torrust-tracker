@@ -267,8 +267,13 @@ python3 .github/skills/dev/pr-reviews/process-pr-review/scripts/validate-audit-r
 
 It fetches review comments with `gh` unless `--comments-file` is given. It merges the repo-level
 comment listing with each review's own comment listing, because a reply can be visible on its review
-before it appears in the repo-level listing. It compares commit
-subjects against `<base>..HEAD` (`--base` defaults to `develop`). It checks every row whose finding
+before it appears in the repo-level listing. It accepts a `Resolution reference` commit subject
+from three sources: the commits of the audited pull request, the commits of every pull request in
+a `Follow-up PR URL` field (both fetched with `gh api repos/<owner>/<repo>/pulls/<n>/commits`,
+which works after merge), and `<base>..HEAD` for commits not pushed yet (`--base` defaults to
+`develop`). Because the pull-request commit lists decide for pushed fixes, the result does not
+depend on how recent a local `develop` is. A failed commit listing exits 2 and names the endpoint;
+it never falls back to `<base>..HEAD`. It checks every row whose finding
 ID is audit-local (`F1`) or reviewer-provided (`OPS-001`: uppercase letters and digits in
 hyphen-separated groups). It fails when:
 
@@ -278,7 +283,7 @@ hyphen-separated groups). It fails when:
 - a row's `Source review ID` does not match the review that owns its `Source URL`;
 - a discussion-anchored row cites zero or several reply URLs, cites a reply that does not exist,
   or cites a reply posted on a different thread than its source comment;
-- a `Resolution reference` names a commit subject that is not on the branch;
+- a `Resolution reference` names a commit subject that is in none of those three sources;
 - a row's `Severity` differs from the `[Severity]` bracket of its source comment; or
 - Processing Log entries are not in chronological order.
 

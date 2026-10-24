@@ -15,7 +15,8 @@ audit-local (F1) or reviewer-provided (OPS-001):
   - every review-anchored row's Source review ID equals the review in its Source URL
   - every discussion-anchored row cites exactly one Reply URL, and that reply is
     posted on the row's own source thread (in_reply_to_id == source comment id)
-  - every Resolution reference commit subject exists in <base>..HEAD
+  - every Resolution reference commit subject exists in <base>..HEAD, in the audited pull
+    request's commits, or in the commits of a pull request named in a Follow-up PR URL field
   - every row's Severity equals the [Severity] bracket of its source comment
     (qualifiers after the severity word, such as "(inferred)", are ignored)
   - Processing Log entries are in chronological order
@@ -26,14 +27,15 @@ Options:
   --comments-file <path>   REST review-comments JSON; fetched with gh when omitted
   --owner <owner>          Repository owner (default: torrust)
   --repo <repo>            Repository name (default: torrust-tracker)
-  --base <ref>             Base ref for commit-subject lookup (default: develop)
+  --base <ref>             Base ref for the local <base>..HEAD range of unpushed commits (default: develop)
   -h, --help               Show this help
 
 Output:
   - One JSON summary line to stdout:
       {"status":"ok"|"failed","rows":N,"log_entries":N,"failures":N}
   - One failure per line to stderr
-  - Exit 0 when consistent, 1 on any failure, 2 on usage error
+  - Exit 0 when consistent, 1 on any failure, 2 on usage error (including a failed `gh api` call
+    that lists pull-request commits)
 """
 
 import argparse
@@ -109,11 +111,40 @@ def load_comments(args: argparse.Namespace) -> dict[int, dict]:
     return {c["id"]: c for c in comments}
 
 
-def branch_subjects(base: str) -> set[str]:
+FOLLOW_UP_RE = re.compile(r"^- Follow-up PR URL: (.*)$", re.M)
+PULL_URL_RE = re.compile(r"github\.com/([^/\s]+)/([^/\s]+)/pull/(\d+)")
+
+
+def pulls_to_check(text: str, audited: tuple[str, str, int]) -> list[tuple[str, str, int]]:
+    """Return the audited pull request followed by every distinct pull request named as a follow-up."""
+    pulls = [audited]
+    for line in FOLLOW_UP_RE.findall(text):
+        for owner, repo, number in PULL_URL_RE.findall(line):
+            pull = (owner, repo, int(number))
+            if pull not in pulls:
+                pulls.append(pull)
+    return pulls
+
+
+def valid_subjects(base: str, pulls: list[tuple[str, str, int]]) -> set[str]:
+    """Return the commit subjects a resolution reference may cite.
+
+    A merged fix is no longer in <base>..HEAD, so the commit lists of the given pull requests
+    (owner, repo, number) are the authoritative source; the local range only adds unpushed commits.
+    """
     out = subprocess.run(
         ["git", "log", "--format=%s", f"{base}..HEAD"], capture_output=True, text=True, check=True
     ).stdout
-    return set(out.splitlines())
+    subjects = set(out.splitlines())
+    for owner, repo, number in pulls:
+        endpoint = f"repos/{owner}/{repo}/pulls/{number}/commits"
+        try:
+            commits = gh_paginated(endpoint)
+        except subprocess.CalledProcessError as error:
+            print(f"Error: gh api {endpoint} failed: {(error.stderr or '').strip()}", file=sys.stderr)
+            sys.exit(2)
+        subjects.update(commit["commit"]["message"].split("\n", 1)[0] for commit in commits)
+    return subjects
 
 
 def field(body: str, name: str) -> str | None:
@@ -185,7 +216,7 @@ def main() -> int:
         return 2
     text = audit_path.read_text()
     comments = load_comments(args)
-    subjects = branch_subjects(args.base)
+    subjects = valid_subjects(args.base, pulls_to_check(text, (args.owner, args.repo, args.pr_number)))
 
     failures: list[str] = []
 
