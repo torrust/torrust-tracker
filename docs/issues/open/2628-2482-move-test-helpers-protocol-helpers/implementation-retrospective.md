@@ -10,9 +10,6 @@ semantic-links:
 
 # Implementation Retrospective - Move the `test-helpers` protocol helpers to their consumer
 
-> Create this concrete artifact only as lowercase
-> `implementation-retrospective.md` inside a folder-style issue specification.
-
 ## Purpose
 
 Record evidence-based process improvements discovered while implementing issue #2628 (subissue 2
