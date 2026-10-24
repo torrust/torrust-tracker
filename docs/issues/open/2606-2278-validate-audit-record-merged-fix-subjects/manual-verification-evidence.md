@@ -117,8 +117,9 @@ rerun of the existing audits (T10) follow.
 
 ## Final Recheck (After the Fix)
 
-Artifact under test: the fixed script at commit `c888ca0ff` (`HEAD` of branch
-`2606-validate-audit-record-merged-fix-subjects`). Python 3.14.4, `gh version 2.76.2 (2025-07-30)`.
+Artifact under test: the fixed script at the commit
+`docs(pr-reviews): [#2606] describe the three commit-subject sources of validate-audit-record`
+(`HEAD` of branch `2606-validate-audit-record-merged-fix-subjects`). Python 3.14.4, `gh version 2.76.2 (2025-07-30)`.
 All runs on 2026-10-24 UTC, one after another. `torrust/develop` was `abce11ec8` (after
 `git fetch torrust develop`).
 
@@ -138,7 +139,7 @@ its `Follow-up PR URL` field.
 
 ### V2 (recheck) - Result is independent of the local `develop`
 
-`HEAD` was `c888ca0ff9f57211ee8a0c44540de61f07328612` before, between, and after the runs (19:54:57 to
+`HEAD` (the commit named above) was unchanged before, between, and after the runs (19:54:57 to
 19:55:16 UTC). Local `develop` was `954c5611e33230a699bd2da9e24d489d406669fa` (stale) while
 `torrust/develop` was `abce11ec8a510010e2b69a5f77f0bc005b8541dc`.
 
