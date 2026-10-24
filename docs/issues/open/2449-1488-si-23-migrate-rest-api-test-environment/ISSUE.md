@@ -8,8 +8,8 @@ epic: 1488
 github-issue: 2449
 spec-path: docs/issues/open/2449-1488-si-23-migrate-rest-api-test-environment/ISSUE.md
 branch: "2449-migrate-rest-api-test-environment"
-related-pr: null
-last-updated-utc: "2026-10-24 20:50"
+related-pr: 2643
+last-updated-utc: "2026-10-24 20:54"
 semantic-links:
   skill-links:
     - create-issue
@@ -221,6 +221,7 @@ before maintainer review and commit. Sign every commit with GPG.
 - 2026-10-24 20:33 UTC - GitHub Copilot - The first independent review (Task Reviewer) returned REVIEW FAILED on a missing prose-first Arrange-Act-Assert record and an unresolved completion review; the code and the acceptance criteria were found correct. Remediated without a production change: the prose-first record is `manual-verification-evidence.md` V4, `implementation-retrospective.md` was created because the work added a test and changed a helper's signature beyond the plan, and `task-inventory.md` was re-wrapped. `linter all` and the pre-push checks pass (V5). A second review round follows.
 - 2026-10-24 20:40 UTC - GitHub Copilot - The second independent review round (Task Reviewer) returned REVIEW PASSED and validated AC1 to AC7 against the code and the evidence; it superseded the first round's REVIEW FAILED (both are in `agent-review-reports.md`). The AC rows stay TODO with their evidence pointers: the maintainer decides when to tick them. No production change followed the first round, so V0 to V5 describe the final code.
 - 2026-10-24 20:50 UTC - GitHub Copilot - The maintainer asked for the acceptance criteria to be ticked after the second review round validated them: AC1 to AC7 and the verification rows are ticked, with the evidence pointers kept. No code change.
+- 2026-10-24 20:54 UTC - GitHub Copilot - Rebased onto the current `torrust/develop` (a dependency update and an unrelated spec had landed), pushed, and opened PR #2643. The package tests pass again after the rebase. No code change.
 
 ## Acceptance Criteria
 
