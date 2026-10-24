@@ -137,7 +137,7 @@ Ranked from most to least critical. The ranking drives the ledger processing ord
 | Rank | Responsibility | Source modules | Why it matters |
 | ---: | --- | --- | --- |
 | 1 | Token authentication | `v1/middlewares/auth.rs` | Decides who may call a management API that can add keys and whitelist entries. A wrong precedence, a lenient scheme match, or a comparison that depends on token content weakens it (security record `2026-09-04_rest-api-token-timing.md`). |
-| 2 | Route composition and transport layers | `v1/routes.rs`, `routes.rs`, `v1/context/health_check/handlers.rs` | Which routes exist for a configuration (key routes only when `private`, whitelist routes only when `listed`), that the health check is outside the authentication layer, the request timeout, and the request-id header. |
+| 2 | Route composition and transport layers | `v1/routes.rs`, `routes.rs`, `v1/context/health_check/handlers.rs` | Capability gating: the auth-key and whitelist routes are always registered, and `v1/routes.rs` passes their handlers a service only when `private` (or `listed`) is set and persistence exists, otherwise authenticated requests get `409`; that the health check is outside the authentication layer, the request timeout, and the request-id header. |
 | 3 | Shared response contract | `v1/responses.rs` | One status, `content-type` and body for every success and error, including the legacy `Unhandled rejection: ...` body kept for backward compatibility. Clients and `rest-api-client` depend on it. |
 | 4 | State-changing contexts | `v1/context/auth_key/*`, `v1/context/whitelist/*` | Map every `AuthKeyError` and `WhitelistError` outcome to the right status and message, reject invalid input, and answer `409` when the capability is off. |
 | 5 | Read-only contexts | `v1/context/torrent/*`, `v1/context/stats/*` | Query parsing (pagination, info-hash lists, `format`), the not-known response, and the Prometheus text of `/stats` and `/metrics`. |
@@ -154,8 +154,8 @@ EPIC #1347 sets qualitative, risk-based objectives rather than a numeric target.
    token, a valid token, and the equivalence of the constant-time comparison to plain membership
    for arbitrary tokens. Each package-owned branch has a direct unit test or a recorded owner-based
    reason.
-2. **High** - route composition and the response contract: the `private` and `listed` gating of
-   routes, the health check outside authentication, the `408` timeout, and the status, header and
+2. **High** - route composition and the response contract: the `private` and `listed` capability
+   gating (service present or absent, hence the `409`), the health check outside authentication, the `408` timeout, and the status, header and
    body of every shared response; and the handlers' mapping of every service outcome (including
    each `AuthKeyError` arm, invalid info hashes and the disabled `409`) to a response.
 3. **Medium** - query parsing for the read-only contexts and the Prometheus text; server startup
@@ -260,7 +260,8 @@ is:
 ## Design and Ownership Review
 
 This package owns the HTTP-specific decisions of the management API: which token source wins,
-which routes exist for a configuration, which status, header and body each outcome produces, how
+which capabilities are enabled for a configuration (the key and whitelist routes are always
+registered; the service decides the `409`), which status, header and body each outcome produces, how
 query parameters are parsed, and how the server starts, listens and stops. The use-case, port,
 adapter and DTO behavior belongs to the other `rest-api-*` packages and `tracker-core`.
 
@@ -368,7 +369,7 @@ pull request.
   example, authentication before the handler runs).
 - Assert whole values against literals: statuses, header values, JSON and Prometheus text written
   as literals make a mutant that changes any part fail (#1349).
-- Table-test the policy, not one setting: the route gating over `private` and `listed`, the
+- Table-test the policy, not one setting: the capability gating over `private` and `listed`, the
   `AuthKeyError` arms, and the `format` values (#1349).
 - Test a helper that many tests rely on (a port fake) against the mutant that breaks its documented
   contract.
@@ -700,7 +701,7 @@ here before writing it.
 - The `rest-api-*` ports make handlers easy to test, but a hand-written port fake becomes a test
   double that many tests depend on; mitigate by testing the fake against the mutant that breaks
   its contract (#1349 lesson) and by keeping one fake per port.
-- Router-level unit tests (for the middleware and route gating) need a container or a minimal
+- Router-level unit tests (for the middleware and capability gating) need a container or a minimal
   router; mitigate by building only what each test needs and not reusing `testing::environment`,
   which #2482 and #2449 will change.
 - #2449, #2482 and #1488 change `server.rs`, `testing/` and Cargo features while this work runs;
