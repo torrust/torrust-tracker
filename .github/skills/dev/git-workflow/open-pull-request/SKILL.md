@@ -161,10 +161,10 @@ mentions it (for example "the link will change to `Closes #N` later"): the merge
 whole body into the merge commit. The branch commit messages land on `develop` too, and GitHub acts
 on a keyword in any of them. A negated mention closes the issue too: the body of PR #2613 said "Does
 not close #2606" and closed #2606 on merge. Do not write a closing keyword followed by an issue
-reference anywhere in the body or in a commit message of a PR that must not close that issue; write
-"Related to #N" and describe the remaining work without the keyword. Before creating or editing the
-body, and before pushing commits, scan them. The pattern covers the reference forms GitHub accepts
-after a keyword (`#N`, `owner/repo#N`, and an issue URL), with or without a colon:
+reference anywhere in the title, the body or a commit message of a PR that must not close that issue;
+write "Related to #N" and describe the remaining work without the keyword. Before creating or editing
+the title or body, and before pushing commits, scan them. The pattern covers the reference forms
+GitHub accepts after a keyword (`#N`, `owner/repo#N`, and an issue URL), with or without a colon:
 
 ```bash
 grep -niE '\b(close[sd]?|fix(e[sd])?|resolve[sd]?):?[[:space:]]+([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+#[0-9]+|#[0-9]+|https://github\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+/issues/[0-9]+)' <body-file>
@@ -181,9 +181,10 @@ git log --format=%B <upstream-remote>/develop..HEAD | tr '\n' ' ' | grep -oiE '\
 A commit message that matches cannot be fixed after the merge. Reword it before the merge, using the
 history-rewrite rules in the repository instructions.
 
-The merge commit subject is the PR title, so a title that pairs a keyword with an issue closes it the
-same way. Scan the title with the same pattern as the body, for example by piping
-`gh pr view <pr-number> --json title --jq .title` into the first command in place of `<body-file>`.
+The merge commit subject carries the PR title (`Merge <ref>: <title>`), so a title that pairs a
+keyword with an issue closes it the same way. Scan the title with the same pattern as the body, for
+example by piping `gh pr view <pr-number> --json title --jq .title` into the first command in place
+of `<body-file>`.
 
 ### Identifying the PR type
 
