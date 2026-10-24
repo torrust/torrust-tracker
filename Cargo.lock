@@ -4938,16 +4938,20 @@ dependencies = [
  "tokio",
  "tokio-util",
  "torrust-clock",
+ "torrust-info-hash",
  "torrust-net-primitives",
+ "torrust-peer-id",
  "torrust-server-lib",
  "torrust-tracker-axum-health-check-api-server",
  "torrust-tracker-axum-http-server",
  "torrust-tracker-axum-rest-api-server",
  "torrust-tracker-axum-server",
+ "torrust-tracker-client-lib",
  "torrust-tracker-configuration",
  "torrust-tracker-core",
  "torrust-tracker-events",
  "torrust-tracker-http-core",
+ "torrust-tracker-http-protocol",
  "torrust-tracker-primitives",
  "torrust-tracker-rest-api-client",
  "torrust-tracker-rest-api-protocol",
@@ -5370,16 +5374,13 @@ name = "torrust-tracker-test-helpers"
 version = "3.0.0"
 dependencies = [
  "rand 0.10.3",
- "torrust-info-hash",
  "torrust-peer-id",
  "torrust-tracker-client-lib",
  "torrust-tracker-configuration",
- "torrust-tracker-http-protocol",
  "torrust-tracker-primitives",
  "torrust-tracker-udp-protocol",
  "tracing",
  "tracing-subscriber",
- "url",
 ]
 
 [[package]]

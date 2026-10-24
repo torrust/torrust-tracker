@@ -15,6 +15,7 @@
 //! See `docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md`
 //! for the full decision record.
 mod configuration;
+mod http_requests;
 mod statistics;
 mod workspace;
 
@@ -25,14 +26,13 @@ mod workspace;
 #[allow(unused_imports)]
 pub use configuration::PortZeroMetricsPolicyConfiguration;
 #[allow(unused_imports)]
+pub use http_requests::{http_announce, http_complete_download, http_scrape};
+#[allow(unused_imports)]
 pub use statistics::{PartialGlobalStatistics, get_tracker_statistics};
 #[allow(unused_imports)]
-pub use torrust_tracker_test_helpers::{
-    http::{http_announce, http_complete_download, http_scrape},
-    udp::{
-        send_invalid_connection_id_announce, send_invalid_connection_ids_across_listeners_until_banned,
-        send_invalid_connection_ids_until_banned, udp_announce, udp_complete_download, udp_scrape,
-    },
+pub use torrust_tracker_test_helpers::udp::{
+    send_invalid_connection_id_announce, send_invalid_connection_ids_across_listeners_until_banned,
+    send_invalid_connection_ids_until_banned, udp_announce, udp_complete_download, udp_scrape,
 };
 #[allow(unused_imports)]
 pub use workspace::{
