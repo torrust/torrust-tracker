@@ -368,8 +368,9 @@ use of the root token is the legacy `udp_ban_cleanup` job.
    outcomes in one log summary. Making the drain deadline configurable is SI-20.
 8. The standalone HTTP and UDP examples stop on SIGINT or Unix SIGTERM at
    their own `main`, and their test environments cancel and join every owned
-   task (SI-16, #2412; SI-17, #2448), as does the REST API one (SI-23, #2449). Final process outcome-to-exit-code and
-   configured-deadline policy is SI-20.
+   task (SI-16, #2412; SI-17, #2448), as does the REST API one (SI-23,
+   #2449). Final process outcome-to-exit-code and configured-deadline policy
+   is SI-20.
 
 No implementation evidence identified a missing independently releasable
 shutdown slice. The [EPIC #1488 roadmap][issue-1488] records SI-5 as complete.

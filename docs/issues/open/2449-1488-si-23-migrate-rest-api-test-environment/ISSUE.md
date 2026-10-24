@@ -9,7 +9,7 @@ github-issue: 2449
 spec-path: docs/issues/open/2449-1488-si-23-migrate-rest-api-test-environment/ISSUE.md
 branch: "2449-migrate-rest-api-test-environment"
 related-pr: null
-last-updated-utc: "2026-10-24 20:24"
+last-updated-utc: "2026-10-24 20:33"
 semantic-links:
   skill-links:
     - create-issue
@@ -200,10 +200,10 @@ before maintainer review and commit. Sign every commit with GPG.
 - [x] GitHub issue created and issue number added to this spec (#2449)
 - [x] Spec-only PR merged into `develop` before implementation (#2635)
 - [x] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
+- [x] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md`
 - [ ] Committer verified spec progress is up to date before commit
@@ -218,6 +218,7 @@ before maintainer review and commit. Sign every commit with GPG.
 - 2026-10-15 20:33 UTC - GitHub Copilot - `review-finding:pr-2544-f14`: the code answers the open question. The REST API server spawns the same `graceful_shutdown` task as HTTP, so its legacy drop does not stop the server either (read from source, not run). The drop-path note says so.
 - 2026-10-24 19:34 UTC - GitHub Copilot - Refreshed after sub-EPIC #2410 (SI-22) closed, which rewrote the HTTP and UDP test environments (#2416) after this spec was written. Re-checked against `develop`: the 58 `stop()` calls, the 90 s drain, and the single `service.server.stop()` consumer still hold, and the environment's `start()` spawns only the server. The Related ADRs now name the new ADR that supersedes the cancellation-tree ADR, and the Design and Ownership Review says this environment keeps one token and one `DropGuard` because it owns no listener, so it must not copy the two-token shape of the HTTP and UDP environments. No task, acceptance criterion, or scope change.
 - 2026-10-24 20:24 UTC - GitHub Copilot - Implemented T0 to T3. The T1 design review was approved by the maintainer (generic `E: Display` in `join_owned_tasks`, the added `stop()` panic test, removal of the public `server` field). Acceptance criteria stay TODO until a reviewer validates them. Verification so far is in `manual-verification-evidence.md`; the independent review and the pre-push checks are still to run. No retrospective yet: the work followed the plan, apart from the extra `stop()` panic test the design review approved and the spec now records; to be reconsidered after the independent review.
+- 2026-10-24 20:33 UTC - GitHub Copilot - The first independent review (Task Reviewer) returned REVIEW FAILED on a missing prose-first Arrange-Act-Assert record and an unresolved completion review; the code and the acceptance criteria were found correct. Remediated without a production change: the prose-first record is `manual-verification-evidence.md` V4, `implementation-retrospective.md` was created because the work added a test and changed a helper's signature beyond the plan, and `task-inventory.md` was re-wrapped. `linter all` and the pre-push checks pass (V5). A second review round follows.
 
 ## Acceptance Criteria
 
@@ -299,7 +300,7 @@ available.
 
 ## Implementation Completion Review
 
-- Retrospective: `TODO`
+- Retrospective: `implementation-retrospective.md`
 - If needed, create `implementation-retrospective.md` from
   `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this directory;
   otherwise add a progress-log entry explaining why it was not needed.

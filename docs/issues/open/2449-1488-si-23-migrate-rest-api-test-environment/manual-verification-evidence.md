@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2449-1488-si-23-migrate-rest-api-test-environment/ISSUE.md
-last-updated-utc: "2026-10-24 20:24"
+last-updated-utc: "2026-10-24 20:33"
 ---
 
 # Manual Verification Evidence
@@ -143,6 +143,64 @@ by E, s6 by E and F, s7 by F, s8 by B, E, F and G.
 The full output of the matrix run is not stored; the table is the record. The
 failing-test names above are copied from the runner's output.
 
+## V4 - Prose-first Arrange-Act-Assert comparison of the eight tests
+
+- Goal: record the comparison `write-unit-test` requires for new tests.
+- Status: `DONE`
+
+I did not write the temporary prose before the code: the first six tests copy
+the structure of the HTTP environment tests, and the independent review
+(`agent-review-reports.md`, finding F1) caught the missing record. I wrote the
+prose below afterwards and compared it with the code in `environment.rs`; it
+matched, so no test body changed. The tests are in the `tests` module of
+`packages/axum-rest-api-server/src/testing/environment.rs`.
+
+| Test | Arrange (state) | Act | Assert (independent result) |
+| ---- | --------------- | --- | --------------------------- |
+| s1 | A running environment on an ephemeral port. | `stop()` runs in a spawned task under the test deadline. | The task did not panic: both tasks joined with no failure. |
+| s2 | A running environment; its address read before the stop. | `stop()` under the test deadline. | `TcpListener::bind` on that address succeeds at once, so the binding was released when `stop()` returned. |
+| s3 | A running environment; its address read before the drop. | `drop(environment)`, with no `stop()`. | Polling `TcpListener::bind` succeeds within the test deadline. The poll is bounded and the wait is irreducible: a drop cannot await the server task. |
+| s4 | An environment started, stopped, and held as unstarted. | `start()` again under the test deadline. | `GET /api/health_check` answers 200 on the restarted address. |
+| s5 | A server task that panics, and a drain controller that finishes one yield after it. | `join_owned_tasks` under the test deadline. | The failure names the server task join, and the controller had finished before the failure was reported. |
+| s6 | A server task that returns an error, and a controller that reports `TimedOut`. | `join_owned_tasks`. | The failure text is exactly the server-error message, a semicolon, and the drain-timeout message. |
+| s7 | A server task that returns normally, and a controller that reports `TimedOut`. | `join_owned_tasks`. | The failure text is exactly `REST API drain controller timed out`. |
+| s8 | A `Running` state built by hand: a server task that panics, a controller that reports `TimedOut`. | `stop()` in a spawned task under the test deadline. | The panic message names both the server task and the drain timeout. |
+
+Review notes on the test-design smells, recorded after the independent review:
+
+- Review finding F2 (the Act of s1, s2, and s4 sits inside `start_within_deadline`
+  and `stop_within_deadline`): kept. The helpers add only the test deadline to
+  one `start()` or `stop()` call, as the HTTP environment tests do, and the
+  spec requires every start and stop to be bounded. The production call stays
+  the only thing each helper does, and s5 to s8 show the Act in the body.
+- Review finding F3 (a deadline expiry and a `stop()` failure give the same s1
+  assertion message): kept. The deadline helper panics first with its own
+  message, `stop() should finish within the test deadline: Elapsed(())`; the
+  mutation A run printed it above the s1 assertion message.
+- Review finding F4 (polling in s3): accepted, as the spec requires polling
+  within a bounded deadline, as #2471's test does.
+
+## V5 - Automatic checks after the last production change
+
+- Goal: run `linter all` and the pre-push checks on the finished code.
+- Status: `DONE`
+
+The last production change is the commit `refactor(axum-rest-api-server): [#2449] migrate the REST API test environment to the token lifecycle`;
+no later commit touches a `.rs` file (the later commits are documentation).
+
+- `linter all` exited 0 at 20:24 UTC on the commit
+  `docs(issues): [#2449] record the SI-23 baseline, mutation proofs, and manual verification`
+  (before it was created; the staged files were Markdown only).
+- `TORRUST_GIT_HOOKS_LOG_DIR=.tmp ./contrib/dev-tools/git/hooks/pre-push.sh`
+  ran from 20:30:42 to 20:33:05 UTC with the working tree at
+  `docs(issues): [#2449] record the SI-23 baseline, mutation proofs, and manual verification`
+  and exited 0 ("All pre-push checks passed! (2m 23s)"). Its six steps all
+  passed: nightly format check, nightly workspace check, nightly docs, nightly
+  library docs, packaging of every workspace crate, and all tests (stable
+  toolchain for the tests; nightly toolchain for steps 1 to 4).
+- The commit hook ran `cargo test --doc --workspace` and the other pre-commit
+  checks on every commit and reported no failure.
+
 ## Failures and Follow-up
 
 - The first run of mutation H did not compile: the `stop()` panic test builds a
@@ -152,5 +210,7 @@ failing-test names above are copied from the runner's output.
 - A first draft of the matrix runner corrupted its multi-line mutation strings
   through an indentation hack; it aborted with an assertion before running
   mutation B, and the runner was rewritten.
-- Pre-push checks: see `agent-review-reports.md` and the progress log for the
-  run after the review.
+- The independent review failed the first round on a missing prose-first
+  record (V4) and an unresolved completion review; both were remediated
+  without any production change, so V0 to V3 and V5 still describe the final
+  code.
