@@ -413,8 +413,6 @@ that no longer exists on the branch. That id named the commit with the subject
   (reply 4366609531) and the F10 thread (reply 4366609614).
 - 2026-10-24 09:10 UTC - Copilot submitted review 5637658378 (`COMMENTED`) with threads 4366639415
   (F11), 4366639440 (F12) and 4366639459 (F13).
-- 2026-10-24 09:26 UTC - Copilot submitted review 5637742895 (`COMMENTED`), a summary with no new
-  thread that lists F11 to F13 as open.
 - 2026-10-24 12:10 UTC - Committed the F11, F12 and F13 fix in one commit, because the three findings
   change the same command block.
 - 2026-10-24 12:13 UTC - Replied to and resolved the F11 thread (reply 4367080421), the F12 thread
@@ -431,6 +429,11 @@ that no longer exists on the branch. That id named the commit with the subject
   description.
 - 2026-10-24 15:45 UTC - Replied to and resolved the F14 thread (reply 4367619090), the F15 thread
   (reply 4367619186), the F16 thread (reply 4367619311) and the F17 thread (reply 4367619433).
+- 2026-10-24 17:18 UTC - Corrected the placement of an earlier entry. A round 6 commit inserted an
+  entry for Copilot review 5637742895 (`COMMENTED`, submitted 2026-10-24 09:26 UTC, a summary with no
+  new thread that lists F11 to F13 as open) between the 09:10 and 12:10 entries. This commit removes
+  that entry from the middle of the log and records the review here, so the log stays append-only.
+  The introduction has named the review since round 6.
 
 ## Completion Rules
 
