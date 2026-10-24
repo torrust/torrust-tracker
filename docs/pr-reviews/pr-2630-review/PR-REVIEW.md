@@ -47,7 +47,9 @@ findings. Its reviewer-provided IDs F3 to F6 collide with F3 of this audit, so t
 F4 to F7 with the original ID in the detail entry. F4 repeats F3 and is a re-raise.
 Round 4 comes from review 5637566834 (da2ce7, `APPROVED`) with three inline findings, F8 to F10. Its
 IDs do not collide with the audit, so they are kept. Copilot review 5637532312 (`COMMENTED`) is a
-summary with no inline thread, so it has no row.
+summary with no inline thread, so it has no row. Round 5 comes from Copilot review 5637658378
+(`COMMENTED`) on the head after round 4, with three inline findings, F11 to F13. A warning at the top
+of that review says Copilot could not run its full agentic review before the timeout.
 The branch history was rewritten in round 1 (see F1), so the round 1 review bodies cite a commit id
 that no longer exists on the branch. That id named the commit with the subject
 `docs(skills): state that a negated closing keyword still closes the issue`.
@@ -64,6 +66,9 @@ that no longer exists on the branch. That id named the commit with the subject
 | F8 | review-finding:pr-2630-f8 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F9 | review-finding:pr-2630-f9 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F10 | review-finding:pr-2630-f10 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F11 | review-finding:pr-2630-f11 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
+| F12 | review-finding:pr-2630-f12 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
+| F13 | review-finding:pr-2630-f13 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -243,6 +248,61 @@ that no longer exists on the branch. That id named the commit with the subject
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2630#discussion_r4366609614>
 
+### F11 - The scan pattern uses a word boundary that is not portable
+
+- PR number: 2630
+- Source review ID: 5637658378
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2630#discussion_r4366639415>
+- Concern: The pattern began with `\b` under `grep -E`, which some implementations, such as BSD and
+  macOS `grep`, may handle differently, so the documented scan could miss matches. The review gave
+  the severity as Medium with an icon and no bracket.
+- Solution: Replaced `\b` with the explicit boundary `(^|[^[:alnum:]_])` and stated the reason in the
+  skill. The class name `alnum` was added to `project-words.txt` because the spell checker rejected
+  it.
+- Current-tree verification: Loaded the pattern from the skill and ran 13 cases. It matched the
+  plain, negated, past tense, `owner/repo#N`, URL, colon and wrapped forms, and it did not match
+  `Related to`, `closure`, `closing`, a word between the keyword and the reference, or a prefixed
+  word. It was not run on BSD or macOS `grep`, so portability rests on the pattern using only POSIX
+  constructs.
+- Resolution reference: docs(skills): make the closing keyword scan portable and commit-safe
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2630#discussion_r4367080421>
+
+### F12 - Folding all commit messages can match across two commits
+
+- PR number: 2630
+- Source review ID: 5637658378
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2630#discussion_r4366639440>
+- Concern: Folding the newlines of all messages into one line removed the commit boundaries, so a
+  keyword ending one message could match a reference starting the next, a false positive.
+- Solution: The command now prints a `--COMMIT--` line after each message, so the pattern cannot
+  match across two messages.
+- Current-tree verification: For a message ending in `close` followed by a message starting with a
+  reference, the command printed nothing with the separator and printed a match without it. The
+  branch messages printed nothing, and the old bad message still printed its two matches.
+- Resolution reference: docs(skills): make the closing keyword scan portable and commit-safe
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2630#discussion_r4367080570>
+
+### F13 - The title scan instruction is not a valid command
+
+- PR number: 2630
+- Source review ID: 5637658378
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2630#discussion_r4366639459>
+- Concern: The skill told readers to pipe the title into the first command in place of
+  `<body-file>`, which is not a valid command, so readers could skip the title scan. Review round 3
+  and round 4 did not report it.
+- Solution: Replaced the sentence with a command that runs, and defined the pattern once in a
+  `PATTERN=` line that the body, commit and title commands reuse.
+- Current-tree verification: With the pattern loaded from the skill, the title command printed
+  nothing for this PR and matched a sample title that pairs a keyword with an issue.
+- Resolution reference: docs(skills): make the closing keyword scan portable and commit-safe
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2630#discussion_r4367080665>
+
 ## Processing Log
 
 - 2026-10-23 17:37 UTC - da2ce7 submitted review 5632165728 (`CHANGES_REQUESTED`) with threads
@@ -276,6 +336,12 @@ that no longer exists on the branch. That id named the commit with the subject
   F10.
 - 2026-10-24 08:58 UTC - Replied to and resolved the F8 thread (reply 4366609403), the F9 thread
   (reply 4366609531) and the F10 thread (reply 4366609614).
+- 2026-10-24 09:10 UTC - Copilot submitted review 5637658378 (`COMMENTED`) with threads 4366639415
+  (F11), 4366639440 (F12) and 4366639459 (F13).
+- 2026-10-24 12:10 UTC - Committed the F11, F12 and F13 fix in one commit, because the three findings
+  change the same command block.
+- 2026-10-24 12:13 UTC - Replied to and resolved the F11 thread (reply 4367080421), the F12 thread
+  (reply 4367080570) and the F13 thread (reply 4367080665).
 
 ## Completion Rules
 
