@@ -52,7 +52,10 @@ Copilot review 5637658378 (`COMMENTED`) on the head that round 4 reviewed, reque
 round 4 fixes were pushed, with three inline findings, F11 to F13. A warning at the top of that
 review says Copilot could not run its full agentic review before the timeout. Copilot review
 5637742895 (`COMMENTED`), on the head after the round 4 fixes, is a summary that lists F11 to F13 as
-open, so it has no row.
+open, so it has no row. Round 6 comes from review 5638563262 (da2ce7, `APPROVED`) on the head after
+the round 5 fixes, with four inline findings, F14 to F17. Its IDs do not collide with the audit, so
+they are kept. Copilot review 5638250321 (`COMMENTED`) on the same head has no open finding, so it
+has no row.
 The branch history was rewritten in round 1 (see F1), so the round 1 review bodies cite a commit id
 that no longer exists on the branch. That id named the commit with the subject
 `docs(skills): state that a negated closing keyword still closes the issue`.
@@ -72,6 +75,10 @@ that no longer exists on the branch. That id named the commit with the subject
 | F11 | review-finding:pr-2630-f11 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
 | F12 | review-finding:pr-2630-f12 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
 | F13 | review-finding:pr-2630-f13 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F14 | review-finding:pr-2630-f14 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F15 | review-finding:pr-2630-f15 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F16 | review-finding:pr-2630-f16 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F17 | review-finding:pr-2630-f17 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -306,6 +313,70 @@ that no longer exists on the branch. That id named the commit with the subject
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2630#discussion_r4367080665>
 
+### F14 - The audit omits Copilot's summary review 5637742895
+
+- PR number: 2630
+- Source review ID: 5638563262
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2630#discussion_r4367387635>
+- Concern: Copilot review 5637742895 is a summary that re-lists F11 to F13 as open and has no new
+  thread. The audit named the earlier summary 5637532312 but not this one, although it came before
+  the head the reviewer checked.
+- Solution: Added a sentence to the introduction and a log entry. The review needs no row.
+- Current-tree verification: The introduction and the Processing Log name review 5637742895. The
+  audit validator reports 0 failures.
+- Resolution reference: docs(pr-reviews): record the Copilot summary review 5637742895 in the PR 2630 audit
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2630#discussion_r4367619090>
+
+### F15 - Round 3 could not have reported the title scan sentence
+
+- PR number: 2630
+- Source review ID: 5638563262
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2630#discussion_r4367387641>
+- Concern: The F13 Concern said rounds 3 and 4 did not report the sentence, but the sentence reached
+  the branch after round 3's review.
+- Solution: The F13 Concern now says that round 4 did not report it and that round 3 could not have.
+- Current-tree verification: The review API gives review 5633175715 a commit before the sentence and
+  review 5637566834 a commit after it.
+- Resolution reference: docs(pr-reviews): correct the round and review statements in the PR 2630 audit
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2630#discussion_r4367619186>
+
+### F16 - Round 5 is on the head round 4 reviewed, and two review states are stale
+
+- PR number: 2630
+- Source review ID: 5638563262
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2630#discussion_r4367387646>
+- Concern: The introduction said review 5637658378 was on the head after round 4, but it was on the
+  head round 4 reviewed and was requested before the round 4 fixes were pushed. It also gave round 4
+  as `APPROVED` and round 3 as `DISMISSED`, although both reviews are now dismissed.
+- Solution: The introduction names the head round 5 reviewed, names review 5637742895 as the one on
+  the head after the round 4 fixes, and gives the submitted and the present state of both reviews.
+- Current-tree verification: The review API lists the commit and the state of each review, and the
+  introduction matches it.
+- Resolution reference: docs(pr-reviews): correct the round and review statements in the PR 2630 audit
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2630#discussion_r4367619311>
+
+### F17 - The description does not name the dictionary entry
+
+- PR number: 2630
+- Source review ID: 5638563262
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2630#discussion_r4367387650>
+- Concern: The description said the PR changes skill documentation and the audit only, but
+  `project-words.txt` also gains `alnum`, and the description goes into the merge commit.
+- Solution: Edited the description to name the dictionary entry. The fix is outside the repository
+  tree, so the resolution reference is the conversation response that states it.
+- Current-tree verification: The edited description names the entry, prints no match for the skill's
+  closing-keyword scan and cites no commit id.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2630#issuecomment-6386192343>
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2630#discussion_r4367619433>
+
 ## Processing Log
 
 - 2026-10-23 17:37 UTC - da2ce7 submitted review 5632165728 (`CHANGES_REQUESTED`) with threads
@@ -347,6 +418,18 @@ that no longer exists on the branch. That id named the commit with the subject
   change the same command block.
 - 2026-10-24 12:13 UTC - Replied to and resolved the F11 thread (reply 4367080421), the F12 thread
   (reply 4367080570) and the F13 thread (reply 4367080665).
+- 2026-10-24 12:34 UTC - Copilot submitted review 5638250321 (`COMMENTED`), a summary with no open
+  finding.
+- 2026-10-24 14:16 UTC - da2ce7 submitted review 5638563262 (`APPROVED`) with threads 4367387635
+  (F14), 4367387641 (F15), 4367387646 (F16) and 4367387650 (F17), and an ACK comment on the head
+  that carried the round 5 audit.
+- 2026-10-24 15:40 UTC - Committed the F15 and F16 fix in one commit, because both correct
+  statements about the reviews in the audit.
+- 2026-10-24 15:42 UTC - Committed the F14 fix.
+- 2026-10-24 15:44 UTC - Posted the conversation response 6386192343 for F17, after editing the
+  description.
+- 2026-10-24 15:45 UTC - Replied to and resolved the F14 thread (reply 4367619090), the F15 thread
+  (reply 4367619186), the F16 thread (reply 4367619311) and the F17 thread (reply 4367619433).
 
 ## Completion Rules
 
