@@ -490,7 +490,7 @@ starting the file, never in advance. The plan is about 40 lines with these secti
 | Step | Action | Gate before continuing |
 | --- | --- | --- |
 | 0 | Set the ledger row to `IN_PROGRESS`; create the plan with sections 1-4. | Maintainer approval of the plan. |
-| 1 | R1: refactor current tests if section 2 said `refactor`. Run focused tests, `cargo +nightly fmt --all -- --check`, `git diff --check`. Prose-first AAA review. | Maintainer review of the refactor result; skipped when section 2 said `clean`. |
+| 1 | R1: refactor current tests if section 2 said `refactor`. Run focused tests, `cargo +nightly fmt --all -- --check`, `git diff --check`. Prose-first AAA review. | Self-review by default; the maintainer reviews the result at step 5. A plan that records a specific risk may add an intermediate maintainer stop here. Skipped when section 2 said `clean`. |
 | 2 | R2: add the approved unit tests. Same validation plus the test-smell and prose-first AAA review, recorded in section 6. | Self-review; covered by step 5. |
 | 3 | R3: record any selected 3B increment in the plan and T5 queue. | None. |
 | 4 | R4: re-run unit-only coverage; record before/after in the plan and `coverage-evidence.md`. | None. |
