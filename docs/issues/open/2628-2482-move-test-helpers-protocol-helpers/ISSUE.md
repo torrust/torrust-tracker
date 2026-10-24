@@ -9,7 +9,7 @@ github-issue: 2628
 spec-path: docs/issues/open/2628-2482-move-test-helpers-protocol-helpers/ISSUE.md
 branch: "2628-2482-move-test-helpers-protocol-helpers-spec"
 related-pr: null
-last-updated-utc: "2026-10-23 17:22"
+last-updated-utc: "2026-10-24 17:15"
 semantic-links:
   skill-links:
     - create-issue
@@ -42,8 +42,8 @@ requires.
 
 ## Background
 
-`test-helpers` is a dev-dependency of seven packages. Its `http` module (68 lines: `http_announce`,
-`http_scrape`) and `udp` module (304 lines: `udp_announce`, `udp_scrape`, `udp_complete_download`
+`test-helpers` is a dev-dependency of seven packages. Its `http` module (92 lines: `http_announce`,
+`http_complete_download`, `http_scrape`) and `udp` module (304 lines: `udp_announce`, `udp_scrape`, `udp_complete_download`
 and three `send_invalid_connection_id*` helpers) have one consumer, the root crate's
 `tests/common/mod.rs`, and pull `client-lib`, `http-protocol`, `udp-protocol`, `primitives`,
 `torrust-info-hash`, `torrust-peer-id` and `url` into every dependent. This is finding 1 of the
@@ -149,6 +149,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-10-23 15:50 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 2) - Refreshed against `develop` at `64e6783b0`: every fact re-verified (seven dev-dependents; `http.rs` 68 and `udp.rs` 304 lines; root `tests/common/mod.rs` the only consumer; `cargo deny check bans` passes). Made the `deny.toml` scope concrete: the root joins the `udp-protocol` wrappers, and the new `client-lib` entry lists four wrappers.
 - 2026-10-23 16:23 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 2) - Maintainer (josecelano) approved the spec and decided that the `deny.toml` scope also adds ban entries for `torrust-tracker-core`, `swarm-coordination-registry` and `events`. Created issue #2628, linked it as a subissue of #2482 (`parent_issue_url` verified) and moved the spec to `docs/issues/open/`.
 - 2026-10-23 16:49 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 2) - Review round 1 on PR #2629 (da2ce7, four non-blocking findings): fixed the Progress Log placement, the check scope wording, the frontmatter branch/status and the drafted-checkpoint path; see `docs/pr-reviews/pr-2629-review/PR-REVIEW.md`.
+- 2026-10-24 17:15 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 2) - Review round 6 on PR #2629 (da2ce7, finding F14): refreshed the Background against `develop` at `8f8b4d714`. #2623 added the public helper `http_complete_download`, so `http.rs` is 92 lines (`http_announce`, `http_complete_download`, `http_scrape`) and T2 moves all three; the other facts still hold (seven dev-dependents, `udp.rs` 304 lines, the root `tests/common/mod.rs` as the only consumer).
 
 ## Acceptance Criteria
 
