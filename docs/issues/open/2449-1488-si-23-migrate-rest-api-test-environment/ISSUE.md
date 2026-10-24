@@ -9,7 +9,7 @@ github-issue: 2449
 spec-path: docs/issues/open/2449-1488-si-23-migrate-rest-api-test-environment/ISSUE.md
 branch: "2449-migrate-rest-api-test-environment"
 related-pr: null
-last-updated-utc: "2026-10-24 20:40"
+last-updated-utc: "2026-10-24 20:50"
 semantic-links:
   skill-links:
     - create-issue
@@ -204,7 +204,7 @@ before maintainer review and commit. Sign every commit with GPG.
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Reviewer validated acceptance criteria and updated checkboxes
 - [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md`
 - [x] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
@@ -220,25 +220,26 @@ before maintainer review and commit. Sign every commit with GPG.
 - 2026-10-24 20:24 UTC - GitHub Copilot - Implemented T0 to T3. The T1 design review was approved by the maintainer (generic `E: Display` in `join_owned_tasks`, the added `stop()` panic test, removal of the public `server` field). Acceptance criteria stay TODO until a reviewer validates them. Verification so far is in `manual-verification-evidence.md`; the independent review and the pre-push checks are still to run. No retrospective yet: the work followed the plan, apart from the extra `stop()` panic test the design review approved and the spec now records; to be reconsidered after the independent review.
 - 2026-10-24 20:33 UTC - GitHub Copilot - The first independent review (Task Reviewer) returned REVIEW FAILED on a missing prose-first Arrange-Act-Assert record and an unresolved completion review; the code and the acceptance criteria were found correct. Remediated without a production change: the prose-first record is `manual-verification-evidence.md` V4, `implementation-retrospective.md` was created because the work added a test and changed a helper's signature beyond the plan, and `task-inventory.md` was re-wrapped. `linter all` and the pre-push checks pass (V5). A second review round follows.
 - 2026-10-24 20:40 UTC - GitHub Copilot - The second independent review round (Task Reviewer) returned REVIEW PASSED and validated AC1 to AC7 against the code and the evidence; it superseded the first round's REVIEW FAILED (both are in `agent-review-reports.md`). The AC rows stay TODO with their evidence pointers: the maintainer decides when to tick them. No production change followed the first round, so V0 to V5 describe the final code.
+- 2026-10-24 20:50 UTC - GitHub Copilot - The maintainer asked for the acceptance criteria to be ticked after the second review round validated them: AC1 to AC7 and the verification rows are ticked, with the evidence pointers kept. No code change.
 
 ## Acceptance Criteria
 
-- [ ] AC1: `Environment` starts the REST API server through
+- [x] AC1: `Environment` starts the REST API server through
       `start_with_cancellation`.
-- [ ] AC2: `Environment::stop()` cancels the token and joins the server task
+- [x] AC2: `Environment::stop()` cancels the token and joins the server task
       and the drain controller.
-- [ ] AC3: `stop()` panics naming each failing task, after joining both, and
+- [x] AC3: `stop()` panics naming each failing task, after joining both, and
       keeps its current signature.
-- [ ] AC4: A stopped environment can be started again and serves requests.
-- [ ] AC5: The health-check API contract tests pass without using the REST API
+- [x] AC4: A stopped environment can be started again and serves requests.
+- [x] AC5: The health-check API contract tests pass without using the REST API
       environment's `server` field.
-- [ ] AC6: The shutdown task inventory reflects the migration.
-- [ ] AC7: Dropping a running environment without `stop()` releases its
+- [x] AC6: The shutdown task inventory reflects the migration.
+- [x] AC7: Dropping a running environment without `stop()` releases its
       binding within the test deadline.
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] `linter all` exits with code `0`
+- [x] Relevant tests pass
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
 
 ## Verification Plan
 
@@ -271,13 +272,13 @@ Notes:
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1   | TODO                   | M1 in `manual-verification-evidence.md` V1: the environment calls only `ApiServer::new` and `start_with_cancellation`. |
-| AC2   | TODO                   | `it_should_stop_without_a_failure_...` and `it_should_release_the_rest_api_binding_when_stopped`; mutations A and B (V3). |
-| AC3   | TODO                   | `it_should_panic_naming_each_failing_task_...` and the `join_owned_tasks` tests; mutations E, F, G (V3). Signature unchanged. |
-| AC4   | TODO                   | `it_should_serve_requests_after_being_stopped_and_started_again`; mutation C (V3). |
-| AC5   | TODO                   | `packages/axum-health-check-api-server/tests/server/contract.rs` calls `service.stop()`; 8 integration tests pass (V2). |
-| AC6   | TODO                   | `docs/features/shutdown-process/task-inventory.md`, commit `docs(shutdown): [#2449] record the migrated REST API test environment in the task inventory`. |
-| AC7   | TODO                   | `it_should_release_the_rest_api_binding_when_dropped_without_being_stopped`; mutation H isolates it (V3). |
+| AC1   | DONE                   | M1 in `manual-verification-evidence.md` V1: the environment calls only `ApiServer::new` and `start_with_cancellation`. |
+| AC2   | DONE                   | `it_should_stop_without_a_failure_...` and `it_should_release_the_rest_api_binding_when_stopped`; mutations A and B (V3). |
+| AC3   | DONE                   | `it_should_panic_naming_each_failing_task_...` and the `join_owned_tasks` tests; mutations E, F, G (V3). Signature unchanged. |
+| AC4   | DONE                   | `it_should_serve_requests_after_being_stopped_and_started_again`; mutation C (V3). |
+| AC5   | DONE                   | `packages/axum-health-check-api-server/tests/server/contract.rs` calls `service.stop()`; 8 integration tests pass (V2). |
+| AC6   | DONE                   | `docs/features/shutdown-process/task-inventory.md`, commit `docs(shutdown): [#2449] record the migrated REST API test environment in the task inventory`. |
+| AC7   | DONE                   | `it_should_release_the_rest_api_binding_when_dropped_without_being_stopped`; mutation H isolates it (V3). |
 
 ## Dependencies
 
