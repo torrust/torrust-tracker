@@ -42,14 +42,15 @@ deliver findings through GitHub and have no repository-artifact obligation.
 Round 1 comes from review 5632165728 (da2ce7, `CHANGES_REQUESTED`) on the first head of the branch.
 Review 5632190535 (Copilot, `COMMENTED`) holds a summary with no actionable assertion, so it has no
 row. Round 2 comes from Copilot review 5632626163 (`COMMENTED`), which has one inline finding (F3).
-Round 3 comes from review 5633175715 (da2ce7, listed by GitHub as `DISMISSED`) with four inline
-findings. Its reviewer-provided IDs F3 to F6 collide with F3 of this audit, so they are recorded as
-F4 to F7 with the original ID in the detail entry. F4 repeats F3 and is a re-raise.
-Round 4 comes from review 5637566834 (da2ce7, `APPROVED`) with three inline findings, F8 to F10. Its
-IDs do not collide with the audit, so they are kept. Copilot review 5637532312 (`COMMENTED`) is a
-summary with no inline thread, so it has no row. Round 5 comes from Copilot review 5637658378
-(`COMMENTED`) on the head after round 4, with three inline findings, F11 to F13. A warning at the top
-of that review says Copilot could not run its full agentic review before the timeout.
+Round 3 comes from review 5633175715 (da2ce7, submitted as `CHANGES_REQUESTED`, now `DISMISSED`)
+with four inline findings. Its reviewer-provided IDs F3 to F6 collide with F3 of this audit, so they
+are recorded as F4 to F7 with the original ID in the detail entry. F4 repeats F3 and is a re-raise.
+Round 4 comes from review 5637566834 (da2ce7, submitted as `APPROVED`, now `DISMISSED`) with three
+inline findings, F8 to F10. Its IDs do not collide with the audit, so they are kept. Copilot review
+5637532312 (`COMMENTED`) is a summary with no inline thread, so it has no row. Round 5 comes from
+Copilot review 5637658378 (`COMMENTED`) on the head that round 4 reviewed, requested before the
+round 4 fixes were pushed, with three inline findings, F11 to F13. A warning at the top of that
+review says Copilot could not run its full agentic review before the timeout.
 The branch history was rewritten in round 1 (see F1), so the round 1 review bodies cite a commit id
 that no longer exists on the branch. That id named the commit with the subject
 `docs(skills): state that a negated closing keyword still closes the issue`.
@@ -293,8 +294,8 @@ that no longer exists on the branch. That id named the commit with the subject
 - Reviewer finding ID: N/A
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2630#discussion_r4366639459>
 - Concern: The skill told readers to pipe the title into the first command in place of
-  `<body-file>`, which is not a valid command, so readers could skip the title scan. Review round 3
-  and round 4 did not report it.
+  `<body-file>`, which is not a valid command, so readers could skip the title scan. Round 4 did not
+  report it. Round 3 could not have, because the sentence came after that review.
 - Solution: Replaced the sentence with a command that runs, and defined the pattern once in a
   `PATTERN=` line that the body, commit and title commands reuse.
 - Current-tree verification: With the pattern loaded from the skill, the title command printed
