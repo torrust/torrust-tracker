@@ -42,6 +42,9 @@ deliver findings through GitHub and have no repository-artifact obligation.
 Round 1 comes from review 5632165728 (da2ce7, `CHANGES_REQUESTED`) on the first head of the branch.
 Review 5632190535 (Copilot, `COMMENTED`) holds a summary with no actionable assertion, so it has no
 row. Round 2 comes from Copilot review 5632626163 (`COMMENTED`), which has one inline finding (F3).
+Round 3 comes from review 5633175715 (da2ce7, listed by GitHub as `DISMISSED`) with four inline
+findings. Its reviewer-provided IDs F3 to F6 collide with F3 of this audit, so they are recorded as
+F4 to F7 with the original ID in the detail entry. F4 repeats F3 and is a re-raise.
 The branch history was rewritten in round 1 (see F1), so the round 1 review bodies cite a commit id
 that no longer exists on the branch. That id named the commit with the subject
 `docs(skills): state that a negated closing keyword still closes the issue`.
@@ -51,6 +54,10 @@ that no longer exists on the branch. That id named the commit with the subject
 | F1 | review-finding:pr-2630-f1 | Human | Blocker | correctness | ORIGINAL | FIXED | RESOLVED |
 | F2 | review-finding:pr-2630-f2 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F3 | review-finding:pr-2630-f3 | Copilot | Nit (inferred) | metadata | ORIGINAL | FIXED | RESOLVED |
+| F4 | review-finding:pr-2630-f4 | Human | Minor | metadata | RE_RAISE_OF:F3 | FIXED | RESOLVED |
+| F5 | review-finding:pr-2630-f5 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F6 | review-finding:pr-2630-f6 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F7 | review-finding:pr-2630-f7 | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -114,6 +121,71 @@ that no longer exists on the branch. That id named the commit with the subject
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2630#discussion_r4366492105>
 
+### F4 - The audit verification cites a branch commit by its id (re-raise of F3)
+
+- PR number: 2630
+- Source review ID: 5633175715
+- Reviewer finding ID: F3
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2630#discussion_r4363238973>
+- Concern: The F1 verification named a branch commit by its id, which the `open-pull-request`
+  commit-id check prints. This is the change F3 asked for, raised on a head that still carried it.
+- Solution: Fixed by the F3 change before this review was processed. The reply says so and cites that
+  commit subject.
+- Current-tree verification: Searching the audit for 9 to 12 character hex words finds only review,
+  comment and tree ids.
+- Resolution reference: docs(pr-reviews): cite commit subjects instead of ids in the PR 2630 audit
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2630#discussion_r4366525341>
+
+### F5 - The description's Changes list omits the commit-message scan
+
+- PR number: 2630
+- Source review ID: 5633175715
+- Reviewer finding ID: F4
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2630#discussion_r4363239000>
+- Concern: The PR description listed only the negation sentence and the body scan, while the branch
+  also adds the commit-message scan, and the merge commit copies the description.
+- Solution: Edited the description. Its Changes section now lists the commit-message scan, the title
+  scan, the post-creation checklist scan and the review audit. The fix is outside the repository
+  tree, so the resolution reference is the conversation response that states it.
+- Current-tree verification: The edited description printed no match for the skill's closing-keyword
+  scan and cites no commit id.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2630#issuecomment-6381971943>
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2630#discussion_r4366525435>
+
+### F6 - Reviewer finding ID should be N/A and the template frontmatter is missing
+
+- PR number: 2630
+- Source review ID: 5633175715
+- Reviewer finding ID: F5
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2630#discussion_r4363239013>
+- Concern: The first two findings recorded the reviewer's own ID, although no ID was reassigned, and
+  the audit dropped the frontmatter and the skill-link comment of the template.
+- Solution: Set `Reviewer finding ID` to N/A in F1 and F2, and added the template frontmatter and the
+  skill-link comment.
+- Current-tree verification: The audit validator reports 0 failures and `linter all` exits 0, which
+  includes the frontmatter check.
+- Resolution reference: docs(pr-reviews): align the PR 2630 audit with the review template
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2630#discussion_r4366525530>
+
+### F7 - The merge commit also carries the PR title
+
+- PR number: 2630
+- Source review ID: 5633175715
+- Reviewer finding ID: F6
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2630#discussion_r4363239023>
+- Concern: The merge commit subject is the PR title, and no scan covered it, so a title pairing a
+  keyword with an issue would close it.
+- Solution: The skill names the title next to the body and the commit messages in the rule
+  paragraph and the checklist line, and gives the way to scan it.
+- Current-tree verification: `gh pr view 2630 --json title --jq .title` piped into the skill pattern
+  prints nothing for this PR. A sample title that pairs a keyword with an issue matches.
+- Resolution reference: docs(skills): scan the pull request title for closing keywords
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2630#discussion_r4366525665>
+
 ## Processing Log
 
 - 2026-10-23 17:37 UTC - da2ce7 submitted review 5632165728 (`CHANGES_REQUESTED`) with threads
@@ -127,8 +199,16 @@ that no longer exists on the branch. That id named the commit with the subject
   thread (reply 4362558054).
 - 2026-10-23 18:14 UTC - Copilot submitted review 5632626163 (`COMMENTED`) with thread 4362832351
   (F3).
+- 2026-10-23 19:01 UTC - da2ce7 submitted review 5633175715 with threads 4363238973 (F4),
+  4363239000 (F5), 4363239013 (F6) and 4363239023 (F7), and an ACK comment on the earlier head.
 - 2026-10-24 08:09 UTC - Committed the F3 fix.
 - 2026-10-24 08:11 UTC - Replied to and resolved the F3 thread (reply 4366492105).
+- 2026-10-24 08:21 UTC - Committed the F7 fix.
+- 2026-10-24 08:22 UTC - Committed the F6 fix.
+- 2026-10-24 08:25 UTC - Posted the conversation response 6381971943 for F5, after editing the
+  description.
+- 2026-10-24 08:25 UTC - Replied to and resolved the F4 thread (reply 4366525341), the F5 thread
+  (reply 4366525435), the F6 thread (reply 4366525530) and the F7 thread (reply 4366525665).
 
 ## Completion Rules
 
