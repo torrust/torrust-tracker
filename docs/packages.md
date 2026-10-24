@@ -254,7 +254,7 @@ and the console and developer-tool members are in the canonical
 | `primitives`                         | Domain-specific types                | PeerId, Peer, SwarmMetadata                                          |
 | `events`                             | Async event bus                      | Inter-package communication                                          |
 | **Utilities**                        |                                      |                                                                      |
-| `test-helpers`                       | Testing utilities                    | Mock servers, Test data generation                                   |
+| `test-helpers`                       | Testing utilities                    | Test configurations, logging, random data                            |
 | **Client Tools**                     |                                      |                                                                      |
 | `tracker-client` (`packages/`)       | Tracker client library               | Generic tracker client library                                       |
 | `rest-api-client`                    | API client library                   | REST API integration                                                 |

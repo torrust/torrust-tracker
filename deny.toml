@@ -64,11 +64,10 @@ deny = [
     "torrust-tracker-axum-http-server",
     "torrust-tracker-client-lib",
     "torrust-tracker-http-core",
-    "torrust-tracker-test-helpers",
   ] },
   { crate = "torrust-tracker-udp-protocol", wrappers = [
+    "torrust-tracker",
     "torrust-tracker-client-lib",
-    "torrust-tracker-test-helpers",
     "torrust-tracker-udp-core",
     "torrust-tracker-udp-server",
   ] },
@@ -93,6 +92,43 @@ deny = [
     "torrust-tracker",
     "torrust-tracker-axum-rest-api-server",
     "torrust-tracker-rest-api-runtime-adapter",
+    "torrust-tracker-udp-server",
+  ] },
+
+  # Crates that `torrust-tracker-test-helpers` must not depend on (ADR 20261021190318, rule B.1):
+  # it stays a generic leaf crate, so a protocol or domain dependency is a ban violation. The
+  # wrappers are the crates that depend on each crate today in the graph `cargo deny` checks, which
+  # is rooted at the root crate; never add `test-helpers`.
+  { crate = "torrust-tracker-client-lib", wrappers = [
+    "torrust-tracker",
+    "torrust-tracker-axum-http-server",
+    "torrust-tracker-udp-server",
+  ] },
+  { crate = "torrust-tracker-core", wrappers = [
+    "torrust-tracker",
+    "torrust-tracker-axum-http-server",
+    "torrust-tracker-axum-rest-api-server",
+    "torrust-tracker-http-core",
+    "torrust-tracker-rest-api-runtime-adapter",
+    "torrust-tracker-udp-core",
+    "torrust-tracker-udp-server",
+  ] },
+  { crate = "torrust-tracker-events", wrappers = [
+    "torrust-tracker",
+    "torrust-tracker-core",
+    "torrust-tracker-http-core",
+    "torrust-tracker-swarm-coordination-registry",
+    "torrust-tracker-udp-core",
+    "torrust-tracker-udp-server",
+  ] },
+  { crate = "torrust-tracker-swarm-coordination-registry", wrappers = [
+    "torrust-tracker",
+    "torrust-tracker-axum-http-server",
+    "torrust-tracker-axum-rest-api-server",
+    "torrust-tracker-core",
+    "torrust-tracker-http-core",
+    "torrust-tracker-rest-api-runtime-adapter",
+    "torrust-tracker-udp-core",
     "torrust-tracker-udp-server",
   ] },
 ]
