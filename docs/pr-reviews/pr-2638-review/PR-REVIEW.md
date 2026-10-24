@@ -107,6 +107,7 @@ reviewer IDs F1 to F4 do not collide with an existing audit ID and are kept.
 - 2026-10-24 20:18 UTC - Copilot review `5639798194` submitted with four inline findings. No review from the maintainer da2ce7 existed at this point.
 - 2026-10-24 20:23 UTC - Started audit; fixed F1, F4, F2 and F3 in one signed commit each, rebased the branch onto `torrust/develop` and pushed it with `--force-with-lease` (the commit subjects, not ids, are cited above).
 - 2026-10-24 20:24 UTC - Replied to the four threads (reply times 20:24:17 to 20:24:24 UTC) and resolved them; each resolve mutation returned `isResolved: true`.
+- 2026-10-24 20:53 UTC - Correction to the 20:18 UTC entry: it called da2ce7 "the maintainer", but da2ce7 is the requested reviewer (the maintainer is the PR author, josecelano), as da2ce7's finding F9 states. The 20:18 UTC entry is left as written.
 
 ## Completion Rules
 
