@@ -178,8 +178,9 @@ that no longer exists on the branch. That id named the commit with the subject
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2630#discussion_r4363239023>
 - Concern: The merge commit subject is the PR title, and no scan covered it, so a title pairing a
   keyword with an issue would close it.
-- Solution: The skill names the title next to the body and the commit messages in the rule
-  paragraph and the checklist line, and gives the way to scan it.
+- Solution: The skill gained a paragraph below the commit-message block that says the merge commit
+  subject carries the title and how to scan it, and the checklist line now names the title. The rule
+  paragraph itself did not name the title in that commit, which F8 later corrected.
 - Current-tree verification: `gh pr view 2630 --json title --jq .title` piped into the skill pattern
   prints nothing for this PR. A sample title that pairs a keyword with an issue matches.
 - Resolution reference: docs(skills): scan the pull request title for closing keywords
