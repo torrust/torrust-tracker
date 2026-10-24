@@ -10,7 +10,7 @@ last-updated-utc: 2026-10-21 11:51
 
 Record real verification of the `validate-audit-record.py` defect. This file holds the initial
 reproduction (V1, V2), recorded before the specification review as the `fix-bug` skill requires.
-The final like-for-like recheck is added at implementation time and is still pending.
+The final like-for-like recheck, V3, and the rerun of the existing audits are in the last section.
 
 ## Environment and Prerequisites
 
@@ -112,5 +112,83 @@ ref, not on the audit. The default `--base develop` passes here only because the
 
 ## Failures and Follow-up
 
-No failed or blocked process. Pending: the final like-for-like recheck of V1 and V2 after the fix, and
-the V3 scenario (rejection of a subject that exists in no commit).
+No failed or blocked process in V1 and V2. The final recheck of V1 and V2, the V3 scenario, and the
+rerun of the existing audits (T10) follow.
+
+## Final Recheck (After the Fix)
+
+Artifact under test: the fixed script at commit `c888ca0ff` (`HEAD` of branch
+`2606-validate-audit-record-merged-fix-subjects`). Python 3.14.4, `gh version 2.76.2 (2025-07-30)`.
+All runs on 2026-10-24 UTC, one after another. `torrust/develop` was `abce11ec8` (after
+`git fetch torrust develop`).
+
+### V1 (recheck) - Merged audits pass with an up-to-date base
+
+Same commands as V1, same `--base torrust/develop`. Started 19:54 UTC.
+
+```text
+$ ... --pr-number 2584 --base torrust/develop
+{"status": "ok", "rows": 4, "log_entries": 6, "failures": 0}   exit=0
+$ ... --pr-number 2599 --base torrust/develop
+{"status": "ok", "rows": 1, "log_entries": 1, "failures": 0}   exit=0
+```
+
+Outcome: **Green**. The 4 failures of V1 are gone (M1, AC1). WAIT-001 passes through PR #2596, named in
+its `Follow-up PR URL` field.
+
+### V2 (recheck) - Result is independent of the local `develop`
+
+`HEAD` was `c888ca0ff9f57211ee8a0c44540de61f07328612` before, between, and after the runs (19:54:57 to
+19:55:16 UTC). Local `develop` was `954c5611e33230a699bd2da9e24d489d406669fa` (stale) while
+`torrust/develop` was `abce11ec8a510010e2b69a5f77f0bc005b8541dc`.
+
+1. `--base develop` with the stale local `develop`: PR #2584 and PR #2599 both `"status": "ok"`.
+2. `git fetch torrust develop:develop` fast-forwarded local `develop` to `abce11ec8`, equal to
+   `torrust/develop`.
+3. The same two `--base develop` commands: both `"status": "ok"`, identical summaries.
+
+Outcome: **Green**. Same result with a stale and a current local `develop`, `HEAD` unchanged (M2, AC2).
+Side effect: the maintainer's local `develop` branch is now at `abce11ec8`.
+
+### V3 - A bogus subject is still rejected
+
+Goal: a `Resolution reference` that exists in no commit still fails. Steps: copied
+`docs/pr-reviews/pr-2599-review/PR-REVIEW.md` to a temporary file, changed the `Resolution reference`
+of AUDIT-001 to `fix(none): this subject exists in no commit`, ran (19:55 UTC):
+
+```text
+$ ... --pr-number 2599 --base torrust/develop --audit-file <copy>
+AUDIT-001: resolution reference not a commit subject on branch: fix(none): this subject exists in no commit
+{"status": "failed", "rows": 1, "log_entries": 1, "failures": 1}
+exit=1
+```
+
+Outcome: **Green**. Exactly one `not a commit subject` failure (M3, AC3). The temporary copy was deleted.
+
+### T10 - Existing audits with a `FIXED` row
+
+Ran the fixed script with `--base torrust/develop` on all 157 audits under `docs/pr-reviews/` that
+contain `FIXED` (started 19:55 UTC): 146 report `"status": "ok"`, 11 report `"failed"`:
+PR #2232, #2235, #2236, #2237, #2239, #2249, #2252, #2259, #2269, #2272, and #2461.
+
+To tell whether the change caused them, the unmodified script from `torrust/develop` ran on the same
+11 audits with the same base. All 11 failed there too, with more `not a commit subject` failures
+(for example #2269: 29 before, 2 after; #2461: 19 before, 0 after). No audit passes with the old
+script and fails with the new one.
+
+The remaining `not a commit subject` failures are in four audits and are audit content, not the
+defect: their `Resolution reference` fields hold prose (`Superseded by F2 reply`,
+`This audit update.`, `Follow-up documented in ...`) or a subject with a trailing backtick and comma
+(#2272 `DOC-2` and `F7`). The other failures in the 11 audits are unrelated rules (review ID, reply
+URL count) and were not touched. Repairing those historical audits is out of scope.
+
+Outcome: existing audits do not regress.
+
+### AC4 - `gh` failure exits 2 (observed during T10)
+
+While re-running PR #2236 for the comparison, GitHub returned a transient `HTTP 502` for the commits
+endpoint. The fixed script printed
+`Error: gh api repos/torrust/torrust-tracker/pulls/2236/commits failed: gh: Server Error (HTTP 502)`
+and did not fall back to `<base>..HEAD`. The next two runs succeeded. The unit test
+`test_it_should_exit_with_a_usage_error_naming_the_endpoint_when_listing_commits_fails` covers it
+deterministically.
