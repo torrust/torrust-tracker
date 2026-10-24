@@ -8,7 +8,7 @@ epic: null
 github-issue: 2525
 spec-path: docs/issues/closed/2525-ci-gate-required-check/ISSUE.md
 branch: "2525-ci-gate-required-check"
-related-pr: null
+related-pr: 2642
 last-updated-utc: "2026-10-24 20:31"
 semantic-links:
   skill-links:
