@@ -144,6 +144,7 @@ agentskills
 alekitto
 alives
 alloca
+alnum
 analyse
 analysed
 appuser
