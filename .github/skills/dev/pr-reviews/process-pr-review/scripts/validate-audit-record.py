@@ -109,6 +109,21 @@ def load_comments(args: argparse.Namespace) -> dict[int, dict]:
     return {c["id"]: c for c in comments}
 
 
+FOLLOW_UP_RE = re.compile(r"^- Follow-up PR URL: (.*)$", re.M)
+PULL_URL_RE = re.compile(r"github\.com/([^/\s]+)/([^/\s]+)/pull/(\d+)")
+
+
+def pulls_to_check(text: str, audited: tuple[str, str, int]) -> list[tuple[str, str, int]]:
+    """Return the audited pull request followed by every distinct pull request named as a follow-up."""
+    pulls = [audited]
+    for line in FOLLOW_UP_RE.findall(text):
+        for owner, repo, number in PULL_URL_RE.findall(line):
+            pull = (owner, repo, int(number))
+            if pull not in pulls:
+                pulls.append(pull)
+    return pulls
+
+
 def valid_subjects(base: str, pulls: list[tuple[str, str, int]]) -> set[str]:
     """Return the commit subjects a resolution reference may cite.
 
@@ -194,7 +209,7 @@ def main() -> int:
         return 2
     text = audit_path.read_text()
     comments = load_comments(args)
-    subjects = valid_subjects(args.base, [(args.owner, args.repo, args.pr_number)])
+    subjects = valid_subjects(args.base, pulls_to_check(text, (args.owner, args.repo, args.pr_number)))
 
     failures: list[str] = []
 

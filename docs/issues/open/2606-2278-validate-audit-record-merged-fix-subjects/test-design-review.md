@@ -82,3 +82,6 @@ FAILED (errors=1)
 
 As for T2, the red is an error for the missing interface; the behavioral red on the real audit
 (WAIT-001 fails with `--base torrust/develop`) is recorded in the T3 green run above.
+
+Green run (T5, after adding follow-up pull requests): `Ran 2 tests ... OK`. On the real PR #2584
+audit with `--base torrust/develop`: `{"status": "ok", "rows": 4, "log_entries": 6, "failures": 0}`.
