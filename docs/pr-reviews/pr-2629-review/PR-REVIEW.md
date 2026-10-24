@@ -46,6 +46,8 @@ Round 3: da2ce7's review 5632201391 (APPROVED, submitted 2026-10-23T17:40:24Z, o
 
 Round 4: da2ce7's review 5633236549 (APPROVED, submitted 2026-10-23T19:07:54Z, on the head that carried the round 3 audit, dismissed by the 2026-10-24T08:13:53Z push of the F11 fix) carries one nit thread, F11, about this audit record, next to an ACK of that head. Severities are the labels of the source comments.
 
+Round 5: da2ce7's review 5637522963 (APPROVED, submitted 2026-10-24T08:28:21Z, on the head that carried the round 4 audit, dismissed by the 2026-10-24T12:20:39Z push of the F12 fix) carries one nit thread, F12, about this audit record, next to an ACK of that head. Severities are the labels of the source comments.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2629-f1 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
@@ -59,6 +61,7 @@ Round 4: da2ce7's review 5633236549 (APPROVED, submitted 2026-10-23T19:07:54Z, o
 | F9 | review-finding:pr-2629-f9 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F10 | review-finding:pr-2629-f10 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F11 | review-finding:pr-2629-f11 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F12 | review-finding:pr-2629-f12 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -205,6 +208,19 @@ Round 4: da2ce7's review 5633236549 (APPROVED, submitted 2026-10-23T19:07:54Z, o
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2629#discussion_r4366497200>
 
+### F12 - Round 4 entry has the F11 reply and push in the wrong order
+
+- PR number: 2629
+- Source review ID: 5637522963
+- Reviewer finding ID: F12
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2629#discussion_r4366531797>
+- Concern: the 08:15 entry says the F11 fix was pushed and then replied to, but the reply (08:13:52Z) came one second before the push (08:13:53Z).
+- Solution: the log is append-only, so a new correction entry records the real order.
+- Current-tree verification: compared the entry with the reply timestamp and the timeline `review_dismissed` event.
+- Resolution reference: docs(pr-reviews): [#2628] correct the F11 reply and push order in the audit log
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2629#discussion_r4367098194>
+
 ## Processing Log
 
 - 2026-10-23 16:49 UTC - Started audit. da2ce7 reviewed at 16:44 UTC (4 threads, F1 to F4). Verified each claim, committed one fix each, rebased onto `develop`, pushed and replied on every thread; resolved all 4 threads at 16:48 UTC (GraphQL showed 0 unresolved). The ACK names the head before the fixes, so a new ACK is needed on the head that carries this audit record.
@@ -213,6 +229,7 @@ Round 4: da2ce7's review 5633236549 (APPROVED, submitted 2026-10-23T19:07:54Z, o
 - 2026-10-23 18:02 UTC - Round 3. da2ce7's review 5632201391 (17:40:24Z) raised F8 to F10 about this audit record. Verified each claim against the timeline and the file, committed one fix each (F9, F10, F8 in that order), pushed the three together, replied on each thread and resolved all three (GraphQL showed 0 unresolved afterwards); this audit commit records it. A new ACK is needed on the head that carries it.
 - 2026-10-24 08:15 UTC - Round 4. da2ce7's review 5633236549 (2026-10-23T19:07:54Z) raised F11 about this audit record. Verified both claims against the timeline and the file, committed one fix, pushed, replied and resolved the thread (GraphQL showed 0 unresolved afterwards); this audit commit records it. A new ACK is needed on the head that carries it.
 - 2026-10-24 12:18 UTC - Correction of the 08:15 entry, from the GitHub timeline and reply timestamps. That entry says the F11 fix was committed, pushed, replied to and resolved in that order; the F11 reply (08:13:52Z, on the head `f7610cbf9`) came one second before the push of the fix commit (08:13:53Z, which dismissed review 5633236549). The fix commit itself was made at 08:11:47Z.
+- 2026-10-24 12:22 UTC - Round 5. da2ce7's review 5637522963 (2026-10-24T08:28:21Z) raised F12 about this audit record. Verified the claim against the timeline and reply timestamps and committed one fix (12:18:41Z). The push dismissed the review at 12:20:39Z, the reply followed at 12:20:59Z and the thread was then resolved (GraphQL showed 0 unresolved); this audit commit records it. A new ACK is needed on the head that carries it.
 
 ## Completion Rules
 
