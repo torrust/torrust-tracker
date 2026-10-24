@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: feature
-status: planned
+status: done
 priority: p2
 epic: null
 github-issue: 2525
-spec-path: docs/issues/open/2525-ci-gate-required-check/ISSUE.md
+spec-path: docs/issues/closed/2525-ci-gate-required-check/ISSUE.md
 branch: "2525-ci-gate-required-check"
-related-pr: null
-last-updated-utc: "2026-10-22 18:46"
+related-pr: 2642
+last-updated-utc: "2026-10-24 20:31"
 semantic-links:
   skill-links:
     - create-issue
@@ -18,7 +18,8 @@ semantic-links:
     - add-workspace-member
   related-artifacts:
     - docs/github-rulesets.md
-    - docs/issues/open/2525-ci-gate-required-check/manual-verification-evidence.md
+    - docs/issues/closed/2525-ci-gate-required-check/manual-verification-evidence.md
+    - docs/issues/closed/2525-ci-gate-required-check/agent-review-reports.md
     - docs/adrs/20261013161419_stop_requiring_pull_request_rebases.md
     - .github/workflows/testing.yaml
     - .github/workflows/os-compatibility.yaml
@@ -51,8 +52,8 @@ and learned.
 - **What replaces it.** CI checks stay advisory and no status check is required. The maintainer's signed
   ACK that names the head commit, together with the merge flow, is the gate. The merge flow is to show the
   head's CI state before the sign-off and to require a distinct confirmation when it is not all green. That
-  change, and a scheduled audit of the repository rulesets, are tracked in task T9, which creates two new
-  issues after the maintainer approves their text.
+  change, and a scheduled audit of the repository rulesets, are tracked in task T9. On 2026-10-24 they became
+  EPIC #2640 and issue #2639, both low priority and not implemented by this issue.
 - **Why, in order of weight.**
   1. A label cannot be tied to content cheaply. The review of the T6a adapter (finding F34 of the pull
      request that was not merged) showed that "the label was applied after the head commit's first check
@@ -73,15 +74,15 @@ and learned.
      override code, for a mechanism that the ACK already covers.
 - **What stays.** T1 to T3 (the ADR, `classify`, and `verdict`), the T4 evidence and baseline, and the T5
   evidence about how GitHub behaves are accurate records and stay. The `ci-gate` crate stays with its tests
-  and has no consumer. The T1 ADR is partly at odds with this decision and is not changed in this pull request.
+  and has no consumer. The T1 ADR is partly at odds with this decision. On 2026-10-24 it was annotated, not rewritten (see below). The line numbers that follow are those of the ADR before the note was added.
   Its decision, that CI decision logic lives in Rust behind thin, provider-agnostic workflows, stands. But it has
   GitHub require one `CI gate` check (line 97); it rejects "Leave required checks off and rely on the
   maintainer" as not scaling with the number of pull requests (line 138), which is the alternative this decision
   adopts, with the merge flow showing the CI state to answer the reason it gave, that a person must check CI
   before every merge; and it draws consequences from a required check (a required check ends the cycle of
   disabling a ruleset, line 150; a reporting-first introduction with a rollback, line 159; a ruleset entry in
-  `docs/github-rulesets.md`, line 170). Whether to annotate the ADR with a dated note that points here or to
-  supersede it is task T9.
+  `docs/github-rulesets.md`, line 170). The ADR now has a `Status: Partly superseded` header and a dated note that points here, and its text is
+  unchanged (task T9).
 - **What is dropped.** T6, T7, and T8(b); AC1 to AC3 and AC5 to AC7. AC4 stays met.
 - **A lesson.** The label design was questioned only after 36 findings in 13 reviews of the T6a pull
   request. Its threat model, the finding that mattered, was visible from the start of T5. See
@@ -184,7 +185,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DROPPED`.
 | T6  | DROPPED     | Orchestrating workflow                          | Dropped by the decision of 2026-10-22. T6a, the adapter, was implemented and reviewed in a pull request that is not merged. Original task: Convert the pull-request triggers of the heavy workflows into `workflow_call` invocations from one orchestrator; keep `push` triggers; final `CI gate` job; `labeled`/`unlabeled` handling that only re-evaluates the verdict. Follow `implement-workflow`. `CI gate` lands reporting but **not required**: no ruleset change in T6. Before T7, observe it on at least one real code PR and one real documentation-only PR (M1, M2 without the required rule) and record both runs. Split on 2026-10-21 into three steps, each its own pull request: T6a, the Rust adapter that fetches the raw GitHub API responses and turns them into the verdict input, with the contract for the group job names, the stale-override check, and the role check, and no workflow change; T6b, one workflow converted behind the orchestrator, tried in the fork sandbox first; T6c, the other workflows, one commit each. |
 | T7  | DROPPED     | Ruleset and documentation                       | Dropped by the decision of 2026-10-22. Original task: Only after T6 is observed on real PRs, and only with explicit maintainer approval: add the required `CI gate` context (Actions app, not strict) to the rulesets. Save the ruleset JSON before and after under `evidence/`, and record the rollback command in `docs/github-rulesets.md`, so a broken gate can be removed in one step without disabling a ruleset. Update `docs/github-rulesets.md`, the `merge-pull-request` override procedure, and `implement-workflow`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | T8  | DONE        | Measure                                         | Not done in this issue, so #2525 can close without a waiting period (the same decision as #2507 T7, 2026-10-15). (a) DONE on 2026-10-21: [`pr-ci-cost-baseline.md`](pr-ci-cost-baseline.md) records the "before" runner time per pushed head and per pull request for documentation-only and code pull requests, from every run of the 98 pull requests merged since 7 October, with the raw per-run data under `evidence/`. (b) Dropped by the decision of 2026-10-22: there is no T7 to measure.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| T9  | TODO        | Follow-ups of the decision of 2026-10-22        | (a) After the maintainer approves their text, create the two follow-up issues: the port of the merge tool to Rust, followed by showing the head's CI state before the sign-off with a distinct confirmation when it is not all green and counting an ACK only from a maintainer; and a scheduled audit of the repository rulesets. (b) Settle the T1 ADR, which is partly at odds with the decision (see "What stays" in the decision section): add a dated note that points to it, or supersede it, with the maintainer's approval. (c) Close #2525 and archive this specification, as in step 6 of the delivery sequence. |
+| T9  | DONE        | Follow-ups of the decision of 2026-10-22        | (a) DONE on 2026-10-24: the merge-tool work became EPIC #2640, "Port the maintainer merge tool to Rust", whose subissue 7 shows the head's CI state before the sign-off and whose subissue 8 hardens the ACK rules (counting an ACK only from a maintainer is one candidate); the scheduled audit of the repository rulesets became issue #2639. Both are low priority and neither is implemented by this issue. (b) DONE on 2026-10-24: the T1 ADR carries a `Status: Partly superseded` header and a dated note that points to the decision section, and its index row says so; the ADR text is kept unchanged as the record. (c) DONE: this specification is archived, and #2525 is closed when the close-out pull request merges, through its closing keyword. |
 
 ## Delivery Sequence
 
@@ -331,16 +332,16 @@ Conventional Commits with narrow scopes and sign every commit with GPG.
 - [x] Folder-style spec drafted in `docs/issues/drafts/ci-gate-required-check/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, the tool's tests, and pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
-- [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, the tool's tests, and pre-push checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
+- [x] Committer verified spec progress is up to date before commit
+- [x] Issue closed (by the close-out pull request, when it merges) and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -560,6 +561,7 @@ Conventional Commits with narrow scopes and sign every commit with GPG.
   `docs/github-rulesets.md` no longer says the gate is planned. The pull request of the adapter is not merged. Two
   new issues are proposed and not created yet: the port of the merge tool to Rust with the CI-state warning, and a
   scheduled audit of the rulesets.
+- 2026-10-24 20:31 UTC - GitHub Copilot - Closed out the issue without implementing the follow-ups, as the maintainer decided they are not a priority. The merge-tool follow-up already existed as a draft EPIC in another session; it was taken over, the maintainer decided that its cutover to the Rust tool comes before its refactor and that Python is removed only after the refactor, and it was created as EPIC #2640. The ruleset audit was drafted and created as #2639. Both specifications were added under `docs/issues/open/`. The T1 ADR got a `Status: Partly superseded` header and a dated note, and its index row was annotated. T9 is DONE, the workflow checkpoints and the final acceptance-criteria checkboxes are ticked, the dropped manual scenarios M1 to M7 are marked DROPPED, and the completion review states why no implementation retrospective was written. `cargo test -p ci-gate` passes (135 unit and 10 command-line tests). The specification was archived to `docs/issues/closed/` and the live references to its former path were repaired in the ADR, the closed #2507 specification, and the issue-local evidence; the pull-request review records keep the path they had at the time. The `ci-gate` crate stays in the workspace with its tests and has no consumer. The independent Task Reviewer reviewed the close-out twice, `REVIEW FAILED` and then `REVIEW PASSED` after the fixes, recorded in [`agent-review-reports.md`](agent-review-reports.md).
 
 ## Acceptance Criteria
 
@@ -578,11 +580,11 @@ Conventional Commits with narrow scopes and sign every commit with GPG.
       gate adds at most 1.0 runner minute at the median to a pushed head, with its two tool runs, compared
       with the baseline in [`pr-ci-cost-baseline.md`](pr-ci-cost-baseline.md).
 - [ ] DROPPED (decision of 2026-10-22): AC7: The CI-portability ADR is merged and `docs/github-rulesets.md` lists the `CI gate` rule.
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
-- [ ] Documentation is updated when behavior/workflow changes
+- [x] `linter all` exits with code `0`
+- [x] Relevant tests pass
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] Documentation is updated when behavior/workflow changes
 
 ## Verification Plan
 
@@ -595,22 +597,23 @@ Conventional Commits with narrow scopes and sign every commit with GPG.
 
 ### Manual Verification Scenarios
 
-Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
+Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`, `DROPPED`.
 
 | ID  | Scenario                          | Human-oriented command/steps                                                            | Expected Result                                                           | Status | Evidence                                     |
 | --- | --------------------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- | ------ | -------------------------------------------- |
-| M1  | Documentation-only PR             | Open a Markdown-only PR and read its checks.                                            | Heavy jobs skipped; `CI gate` passes; merge tool push accepted.           | TODO   | `manual-verification-evidence.md` section V1 |
-| M2  | Code PR                           | Open a PR changing Rust code.                                                           | Needed groups run; `CI gate` passes after them; push accepted.            | TODO   | `manual-verification-evidence.md` section V2 |
-| M3  | Failing PR is blocked             | Merge-tool push for a PR with a failing needed job.                                     | `GH013` naming the failing `CI gate`; gate output names the failed group. | TODO   | `manual-verification-evidence.md` section V3 |
-| M4  | Maintainer override               | Add `ci-override` to the M3 PR as a maintainer, then push the merge.                    | `CI gate` passes naming the actor; heavy jobs not rerun; push accepted.   | TODO   | `manual-verification-evidence.md` section V4 |
-| M5  | Override by an unauthorized actor | In the sandbox, have an account with the Triage role add the label.                     | `CI gate` stays failing.                                                  | TODO   | `manual-verification-evidence.md` section V5 |
-| M6  | Override removed                  | Remove `ci-override` from the M4 PR.                                                    | `CI gate` fails again, naming the failed group.                           | TODO   | `manual-verification-evidence.md` section V6 |
-| M7  | Push after an override            | Push a new commit to the M4 PR while the label is present.                              | `CI gate` follows the T5 decision for a new head SHA.                     | TODO   | `manual-verification-evidence.md` section V7 |
+| M1  | Documentation-only PR             | Open a Markdown-only PR and read its checks.                                            | Heavy jobs skipped; `CI gate` passes; merge tool push accepted.           | DROPPED   | n/a (dropped)                                |
+| M2  | Code PR                           | Open a PR changing Rust code.                                                           | Needed groups run; `CI gate` passes after them; push accepted.            | DROPPED   | n/a (dropped)                                |
+| M3  | Failing PR is blocked             | Merge-tool push for a PR with a failing needed job.                                     | `GH013` naming the failing `CI gate`; gate output names the failed group. | DROPPED   | n/a (dropped)                                |
+| M4  | Maintainer override               | Add `ci-override` to the M3 PR as a maintainer, then push the merge.                    | `CI gate` passes naming the actor; heavy jobs not rerun; push accepted.   | DROPPED   | n/a (dropped)                                |
+| M5  | Override by an unauthorized actor | In the sandbox, have an account with the Triage role add the label.                     | `CI gate` stays failing.                                                  | DROPPED   | n/a (dropped)                                |
+| M6  | Override removed                  | Remove `ci-override` from the M4 PR.                                                    | `CI gate` fails again, naming the failed group.                           | DROPPED   | n/a (dropped)                                |
+| M7  | Push after an override            | Push a new commit to the M4 PR while the label is present.                              | `CI gate` follows the T5 decision for a new head SHA.                     | DROPPED   | n/a (dropped)                                |
 | M8  | TTY refusal                       | Run `ci-gate classify --base-branch develop` with stdout on a terminal (`script -qec`). | `tty_refusal` record on stderr, exit 2, nothing on stdout.                | DONE   | `manual-verification-evidence.md` section V1 |
 | M9  | Differential check vs real runs   | Compare the tool's groups with the workflows GitHub ran for the 60 latest merged PRs.   | Every pull request matches.                                               | DONE   | `manual-verification-evidence.md` section V3 |
 
 Notes:
 
+- M1 to M7 are dropped by the decision of 2026-10-22: they verify the gate and the override, which were not built. The scenarios that were executed are recorded in `manual-verification-evidence.md` as V1 to V7 (the Rust tool) and V8 to V10 (the T4 and T5 sandbox), with V12 recording the observations behind the decision of 2026-10-22.
 - M3 to M5 run in a fork sandbox like #2507's unless a real PR provides the situation.
 - Create `manual-verification-evidence.md` from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`.
 
@@ -662,10 +665,11 @@ They are kept as the record.
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
-- If needed, create `implementation-retrospective.md` from
-  `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this directory.
-- If no retrospective is needed, add a concise progress-log entry explaining why.
+- Retrospective: no `implementation-retrospective.md` was created. The material lesson, that the label design
+  was questioned only after 36 findings in 13 reviews although its threat model was visible from the start of T5,
+  is already written in [`review-retrospective.md`](../../../pr-reviews/pr-2605-review/review-retrospective.md)
+  and in the decision section above. The other material change, that three of the original goals were dropped,
+  is the decision of 2026-10-22. Nothing else in the work invalidated an assumption.
 - When an independent reviewer receives this folder-style specification, it records its result in
   `agent-review-reports.md` using `docs/templates/AGENT-REVIEW-REPORTS.md`.
 

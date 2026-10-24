@@ -135,6 +135,7 @@ Xunlei
 Zeroizing
 abdurazzoqovjavohir
 acgnxtracker
+acks
 actix
 addext
 adduser
@@ -204,6 +205,7 @@ containerignore
 conv
 creds
 curr
+cutover
 cvar
 cves
 cyclomatic
@@ -268,6 +270,7 @@ gecos
 getaddrinfo
 gethostbyname
 ghac
+ghdata
 ghtoken
 githubmerge
 gpgsign
