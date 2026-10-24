@@ -141,6 +141,13 @@ consumer share one crate, so every dependent compiles the protocol clients.
 moving `http` and `udp` out does not change the published API. #2583 decides the bump by
 comparing the final API with the published one.
 
+**Resolved by #2628.** The `http` and `udp` modules moved to the root crate's `tests/common/`
+(`http_requests.rs` and `udp_requests.rs`), and the tables above describe the state before the move.
+`test-helpers` now holds `configuration`, `logging` and `random`, and depends only on `rand`,
+`configuration`, `tracing` and `tracing-subscriber`. `deny.toml` bans `client-lib`,
+`tracker-core`, `swarm-coordination-registry` and `events` for any crate outside their listed
+dependents, so `test-helpers` cannot depend on them unnoticed.
+
 ## Pattern C: crate-private test helpers in `src/`
 
 | Package | Declaration | Content |
@@ -206,7 +213,7 @@ that resolves it.
 | A. `axum-http-server` environment (and its example) | Rule A: behind the `testing` feature of `axum-http-server` | [Row 5](../../drafts/2482-gate-axum-http-server-test-environment/ISSUE.md) | Open |
 | A. `axum-rest-api-server` environment | Rule A: behind the `testing` feature of `axum-rest-api-server` | [Row 6](../../drafts/2482-gate-axum-rest-api-server-test-environment/ISSUE.md) | Open |
 | A. `axum-health-check-api-server` environment | Rule A: behind the `testing` feature of `axum-health-check-api-server` | [Row 7](../../drafts/2482-gate-axum-health-check-api-server-test-environment/ISSUE.md) | Open |
-| B. `test-helpers` `http` and `udp` modules | Rule B: the root crate's `tests/common/` | [Row 2](../2628-2482-move-test-helpers-protocol-helpers/ISSUE.md) | Open |
+| B. `test-helpers` `http` and `udp` modules | Rule B: the root crate's `tests/common/` | [Row 2](../2628-2482-move-test-helpers-protocol-helpers/ISSUE.md) | Resolved by #2628 |
 | B. `test-helpers` `configuration`, `logging`, `random` | Rule B: stay in `test-helpers` | None | Kept by the ADR |
 | C. `tracker-core` `pub mod` test declarations | Rule C: private `#[cfg(test)] mod` | [Row 3](../../drafts/2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md) | Open |
 | D. `tracker-core` database mocks | Rule D: behind the `testing` feature of `tracker-core` | [Row 3](../../drafts/2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md) | Open |
