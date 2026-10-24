@@ -297,7 +297,7 @@ contain no other request. Finding IDs are the reviewer's own.
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2623#discussion_r4363271845
 - Concern: The F17 detail entry recorded the reviewer's own ID as the Reviewer finding ID, while the skill says to record the original ID only when it was reassigned and the other sixteen entries use N/A.
 - Solution: Changed the field of the F17 entry to N/A. Swept the other entries for the same field: none else records an ID.
-- Current-tree verification: `grep -n 'Reviewer finding ID:' docs/pr-reviews/pr-2623-review/PR-REVIEW.md | grep -vc 'N/A'` prints 0; the audit validator exit 0; `linter all` exit 0.
+- Current-tree verification: `grep -n '^- Reviewer finding ID:' docs/pr-reviews/pr-2623-review/PR-REVIEW.md | grep -vc 'N/A'` prints 0 (the pattern is anchored to the start of a field line, so the headings and verification lines that quote the field do not match it); the audit validator exit 0; `linter all` exit 0.
 - Resolution reference: `docs(pr-reviews): [#2416] record N/A as the reviewer finding ID of the F17 entry`
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2623#discussion_r4366495235
