@@ -52,10 +52,10 @@ Copilot review 5637658378 (`COMMENTED`) on the head that round 4 reviewed, reque
 round 4 fixes were pushed, with three inline findings, F11 to F13. A warning at the top of that
 review says Copilot could not run its full agentic review before the timeout. Copilot review
 5637742895 (`COMMENTED`), on the head after the round 4 fixes, is a summary that lists F11 to F13 as
-open, so it has no row. Round 6 comes from review 5638563262 (da2ce7, `APPROVED`) on the head after
-the round 5 fixes, with four inline findings, F14 to F17. Its IDs do not collide with the audit, so
-they are kept. Copilot review 5638250321 (`COMMENTED`) on the same head has no open finding, so it
-has no row.
+open, so it has no row. Round 6 comes from review 5638563262 (da2ce7, submitted as `APPROVED`, now
+`DISMISSED`) on the head after the round 5 fixes, with four inline findings, F14 to F17. Its IDs do
+not collide with the audit, so they are kept. Copilot review 5638250321 (`COMMENTED`) on the same
+head has no open finding, so it has no row.
 The branch history was rewritten in round 1 (see F1), so the round 1 review bodies cite a commit id
 that no longer exists on the branch. That id named the commit with the subject
 `docs(skills): state that a negated closing keyword still closes the issue`.
