@@ -452,7 +452,9 @@ work resumes. It is not the findings hand-off, which is defined in
 ## Per-File Workflow
 
 T4 applies this workflow to every Rust source file in `packages/axum-rest-api-server/src/`, one file
-at a time, in ledger order. Only one file may be `IN_PROGRESS`.
+at a time. The slice order of the [Pull-Request Slices](#pull-request-slices) takes precedence: a slice
+starts only after the previous one merged, and the ledger order applies within a slice (so rows 1 and 5
+are processed in S1, and rows 2-4 in S2). Only one file may be `IN_PROGRESS`.
 
 ### The File Test Plan
 
@@ -509,7 +511,8 @@ port fake or a minimal router suffices.
 
 States: `PENDING` (no plan yet), `IN_PROGRESS`, `BLOCKED` (paused by a finding; the notes name it),
 `DONE`, `REMOVED` (the file no longer exists; the row keeps the history). Rows follow
-[Key Package Responsibilities](#key-package-responsibilities), most critical first. Unit-only lines
+[Key Package Responsibilities](#key-package-responsibilities), most critical first; the slice order
+decides which rows are processed first (see the [Per-File Workflow](#per-file-workflow)). Unit-only lines
 are the baseline measurement at `abce11ec8` (see [Baseline Coverage](#baseline-coverage)); the
 declaration-only rows have no executable entries.
 
