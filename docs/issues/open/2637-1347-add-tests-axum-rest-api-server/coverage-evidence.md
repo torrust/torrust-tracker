@@ -112,7 +112,8 @@ Unit-only uncovered lines from `cargo llvm-cov report --show-missing-lines`, gro
 | `v1/routes.rs` | 26-33 | Building the auth-key service in private mode with persistence | 3A with a container built from a private configuration |
 | `v1/routes.rs` | 56-63 | Building the whitelist service in listed mode with persistence | 3A with a container built from a listed configuration |
 | `routes.rs` | 67-79, 87-102, 111-113 | The request-log closure and the response-log closure with its server-error and non-error arms (they run only when a request is served) | 3A through a request on the router; the logged content is observability |
-| `routes.rs` | 122-129, 136 | The failure-log closure and the timeout error handler that answers `408` | 3A for the `408` timeout (a slow handler); logging for the failure closure |
+| `routes.rs` | 122-129, 136 | The failure-log closure (`on_failure`; line 136 closes it) | logging (observability only) |
+| `routes.rs` | 144 (not listed by the unit-only report) | The `HandleErrorLayer` closure that answers `408` after a timeout. The line itself runs when the router is built, so the report counts it as covered, but the closure body runs only when a request times out. | 3A with a slow handler and a short timeout, if the timeout can be injected; otherwise record the reason |
 | `v1/context/health_check/handlers.rs` | 8-10 | The health-check response | 3A |
 | `v1/responses.rs` | 41-99 | Every shared response builder | 3A (pure functions) |
 | `v1/context/auth_key/handlers.rs` | 30-155 | The four handlers: service absent, each `AuthKeyError` arm, and success | 3A with a fake `AuthKeyPort` |
