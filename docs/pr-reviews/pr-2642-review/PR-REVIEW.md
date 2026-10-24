@@ -39,9 +39,12 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-One review was submitted so far, by the reviewer `da2ce7`, with the verdict `APPROVED` and a comment that
-acknowledges the head `324418bbd`. Its body repeats its three inline threads, F1 to F3, so the body adds no
-rows. No review by Copilot had been submitted when this record was written.
+Two reviews were submitted so far. The review of `da2ce7` (5639972660) read the head `324418bbd`, carried the
+verdict `APPROVED` and three inline threads, F1 to F3, and came with a comment that acknowledges the same
+head. Its body repeats the inline threads, so the body adds no rows. GitHub marked that approval `DISMISSED`
+after the fixes were pushed. The review of `copilot-pull-request-reviewer` (5639997683) read the same head and
+was submitted at 2026-10-24 20:58 UTC, before this record was written. It reports no open issues and contains
+only a summary of the changes and a recommendation to approve, so it adds no rows.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -121,6 +124,10 @@ rows. No review by Copilot had been submitted when this record was written.
 - 2026-10-24 20:58 UTC - Fixed each finding in its own signed commit, in the order F1, F2, F3.
 - 2026-10-24 21:02 UTC - Replied on the three threads after pushing the fixes, and corrected the description
   of the pull request.
+- 2026-10-24 21:08 UTC - Resolved the three threads, after the audit was committed and pushed, and refreshed the
+  thread data: no unresolved thread remains. While doing so, found the review of Copilot, which had arrived at
+  20:58 UTC with no finding. The Findings introduction written at 21:03 UTC said that no Copilot review had
+  been submitted, which was wrong; it was corrected in this commit.
 
 ## Completion Rules
 
