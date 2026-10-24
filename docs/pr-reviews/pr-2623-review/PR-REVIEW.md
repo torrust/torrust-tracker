@@ -279,7 +279,7 @@ contain no other request. Finding IDs are the reviewer's own.
 
 - PR number: 2623
 - Source review ID: 5631998994
-- Reviewer finding ID: F17
+- Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2623#discussion_r4362339577
 - Concern: The F15 verification claimed that a search found nothing, but the search quoted its own patterns, so it matched the entry that quoted them, and one of those patterns named a person again.
 - Solution: The F15 verification now quotes only a bracketed pattern that cannot match its own line, and describes the second search without quoting it. The same flaw existed in the verification lines of F2 and F9, which quoted the searched text; both were rewritten the same way (swept the other entries, none else claims a search finds nothing).
