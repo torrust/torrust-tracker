@@ -9,7 +9,7 @@ github-issue: 2416
 spec-path: docs/issues/open/2416-2410-si-22-4-stop-producers-before-listeners/ISSUE.md
 branch: "2416-stop-producers-before-listeners"
 related-pr: 2623
-last-updated-utc: "2026-10-24 08:13"
+last-updated-utc: "2026-10-24 08:34"
 semantic-links:
   skill-links:
     - create-issue
@@ -216,6 +216,7 @@ maintainer decides to keep it.
 - 2026-10-23 17:50 UTC - GitHub Copilot (model not verifiable from the session; the maintainer states Claude Sonnet 5.5) - Correction of the model stamps in this log: the entries of the #2416 work that name `Claude Opus 5.5` copied that name from earlier entries without checking it, and the maintainer states that the session ran Claude Sonnet 5.5. The earlier entries are not rewritten; read them as `model unverified`. Appended in the same round as review round 6 of PR #2623 (finding F17), recorded in the audit `docs/pr-reviews/pr-2623-review/PR-REVIEW.md`.
 - 2026-10-23 17:54 UTC - GitHub Copilot (model not verifiable from the session; the maintainer states Claude Sonnet 5.5) - Review round 6 of PR #2623 processed (F17, the audit row is committed) and the PR review retrospective written at `docs/pr-reviews/pr-2623-review/review-retrospective.md` at the maintainer's request: 17 findings, 8 of them in the text of the fix to an earlier finding; the improvements are `PROPOSED` and none is applied here.
 - 2026-10-24 08:13 UTC - GitHub Copilot (model not verifiable from the session; the maintainer states Claude Sonnet 5.5) - Review round 7 of PR #2623 processed: one nit (F18, a reviewer finding ID that should read N/A in the F17 audit entry) fixed, replied and resolved; the audit row is recorded.
+- 2026-10-24 08:34 UTC - GitHub Copilot (model not verifiable from the session; the maintainer states Claude Sonnet 5.5) - Review round 8 of PR #2623 processed: one finding (F19, the F18 verification matched its own heading) fixed, replied and resolved; the audit row is recorded.
 
 ## Architectural Decisions
 

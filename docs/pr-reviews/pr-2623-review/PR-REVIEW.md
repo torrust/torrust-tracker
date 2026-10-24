@@ -39,7 +39,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Review rounds 1 to 7 of the maintainer-requested review. Round 7 (review 5633217676, source of F18), round 6 (review 5631998994, source of F17) and round 5 (review 5631621502, source of F15 and F16) are described in the Processing Log. Round 2 (review 5618477521, source of F7 to F9), round 3 (review 5625229542, source of F10 and F11) and round 4 (review 5630959120, source of F12 and F13, and the Copilot review 5631096012, source of F14) are described in the Processing Log. The Copilot review (review 5610834925, a summary
+Review rounds 1 to 8 of the maintainer-requested review. Round 8 (review 5637524522, source of F19), round 7 (review 5633217676, source of F18), round 6 (review 5631998994, source of F17) and round 5 (review 5631621502, source of F15 and F16) are described in the Processing Log. Round 2 (review 5618477521, source of F7 to F9), round 3 (review 5625229542, source of F10 and F11) and round 4 (review 5630959120, source of F12 and F13, and the Copilot review 5631096012, source of F14) are described in the Processing Log. The Copilot review (review 5610834925, a summary
 that reports no open issues and has no inline thread) holds no independently actionable assertion and
 has no row. The human review 5616192898 (verdict `APPROVED`, an ACK of the pushed head, and the PR
 conversation comment 6343775843) holds the six inline findings below; its body and the ACK comment
@@ -65,6 +65,7 @@ contain no other request. Finding IDs are the reviewer's own.
 | F16 | review-finding:pr-2623-f16 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F17 | review-finding:pr-2623-f17 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F18 | review-finding:pr-2623-f18 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F19 | review-finding:pr-2623-f19 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -302,6 +303,19 @@ contain no other request. Finding IDs are the reviewer's own.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2623#discussion_r4366495235
 
+### F19 - The F18 pipeline prints 1 at this head, not 0
+
+- PR number: 2623
+- Source review ID: 5637524522
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2623#discussion_r4366533111
+- Concern: The F18 verification said an unanchored search for the field name, filtered for N/A, prints 0, but the F18 heading that the same commit added quotes the old field and matches it, so the count was 0 at the pushed fix commit and 1 at the head that carried the entry.
+- Solution: Anchored the F18 pattern to the start of a field line, so headings and verification lines that quote the field do not match, and measured it after writing the line. Swept the other quoted searches that state a count or an empty result: those of F6, F12 and F14 run against the ADR, the PR body and the retained logs, none of which contains the audit; F2 and F9 list the records they match.
+- Current-tree verification: `grep -n '^- Reviewer finding ID:' docs/pr-reviews/pr-2623-review/PR-REVIEW.md | grep -vc 'N/A'` prints 0 with this entry written; the audit validator exit 0; `linter all` exit 0.
+- Resolution reference: `docs(pr-reviews): [#2416] anchor the F18 verification so it does not match its own entry`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2623#discussion_r4366544198
+
 ## Processing Log
 
 - 2026-10-22 14:53 UTC - Review 5616192898 (`APPROVED`, six inline findings) and the ACK comment 6343775843 were submitted by the requested reviewer for the pushed head; the Copilot review 5610834925 of 07:47 UTC had no inline thread.
@@ -315,6 +329,7 @@ contain no other request. Finding IDs are the reviewer's own.
 - 2026-10-23 17:50 UTC - Review round 6: review 5631998994 (`APPROVED`, submitted 2026-10-23 17:22 UTC, an ACK of the head after round 5, with one finding, F17) was processed. Fixed F17, and the same flaw in the F2 and F9 verification lines, in a signed commit and pushed it; replied to the thread at 17:46 UTC (GitHub `created_at`), after the push, then resolved it and refreshed the GraphQL data: zero unresolved threads.
 - 2026-10-23 17:50 UTC - Correction of the model stamps in the progress logs of the spec and of the sub-EPIC: their entries name the author model as Claude Opus 5.5, copied from earlier entries without checking it, and the maintainer states that this session ran Claude Sonnet 5.5. The model of this session was not verifiable from inside it, so the stamps are unverified and the correction is appended to those logs as well. Those logs are not rewritten.
 - 2026-10-24 08:13 UTC - Review round 7: review 5633217676 (`APPROVED`, submitted 2026-10-23 19:06 UTC, an ACK of the head after the round 6 audit and the retrospective, with one nit, F18) was processed. Fixed F18 in a signed commit and pushed it (2026-10-24 08:12 UTC); replied to the thread at 08:12 UTC (GitHub `created_at`), after the push, then resolved it: zero unresolved threads. The reviewer's account has no other finding on the retrospective, whose figures he recomputed.
+- 2026-10-24 08:34 UTC - Review round 8: review 5637524522 (`APPROVED`, submitted 2026-10-24 08:30 UTC, an ACK of the head after round 7, with one finding, F19) was processed. Fixed F19 in a signed commit and pushed it (08:33 UTC); replied to the thread at 08:33 UTC (GitHub `created_at`), after the push, then resolved it: zero unresolved threads. The reply was edited twice, the last edit at 08:34 UTC (GitHub `updated_at`), to correct its sweep claim (it first said the other searches state no count, and named F3 for the ADR search, which is F6's); the edit is stated in the reply.
 
 Append entries only. If an entry was rewritten in place, restore the prior entries, then append a
 correction that names the rewritten content; do not rewrite the record again.
