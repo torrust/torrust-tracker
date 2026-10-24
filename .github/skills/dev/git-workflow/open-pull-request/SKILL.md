@@ -181,6 +181,10 @@ git log --format=%B <upstream-remote>/develop..HEAD | tr '\n' ' ' | grep -oiE '\
 A commit message that matches cannot be fixed after the merge. Reword it before the merge, using the
 history-rewrite rules in the repository instructions.
 
+The merge commit subject is the PR title, so a title that pairs a keyword with an issue closes it the
+same way. Scan the title with the same pattern as the body, for example by piping
+`gh pr view <pr-number> --json title --jq .title` into the first command in place of `<body-file>`.
+
 ### Identifying the PR type
 
 Before writing the PR body, check the diff:
@@ -227,7 +231,7 @@ When MCP pull request management tools are available, create the PR with:
 - [ ] Head branch is correct
 - [ ] CI workflows started
 - [ ] Issue linked with the correct keyword (`Related to` for spec-only, `Closes` for implementation)
-- [ ] Body and branch commit messages scanned with the closing-keyword commands from [Issue Linking Rules](#issue-linking-rules); every match is an issue this PR closes
+- [ ] Title, body and branch commit messages scanned with the closing-keyword commands from [Issue Linking Rules](#issue-linking-rules); every match is an issue this PR closes
 - [ ] PR body still matches branch diff and commit history after final rebases/edits
 
 Quick body-accuracy verification:
