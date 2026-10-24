@@ -1,3 +1,13 @@
+---
+semantic-links:
+  skill-links:
+    - process-pr-review
+  related-artifacts:
+    - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
+---
+
+<!-- skill-link: process-pr-review -->
+
 # PR #2630 Review Audit
 
 Source: pull-request reviews and inline review threads for
@@ -48,7 +58,7 @@ that no longer exists on the branch. That id named the commit with the subject
 
 - PR number: 2630
 - Source review ID: 5632165728
-- Reviewer finding ID: F1
+- Reviewer finding ID: N/A
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2630#discussion_r4362473538>
 - Concern: The message of the commit with the subject
   `docs(skills): state that a negated closing keyword still closes the issue` contained two
@@ -71,7 +81,7 @@ that no longer exists on the branch. That id named the commit with the subject
 
 - PR number: 2630
 - Source review ID: 5632165728
-- Reviewer finding ID: F2
+- Reviewer finding ID: N/A
 - Source URL: <https://github.com/torrust/torrust-tracker/pull/2630#discussion_r4362473557>
 - Concern: The rule paragraph and the checklist line named only the PR body, although commit
   messages reach develop and reproduce the same accident. A line-based `grep` also misses a keyword
