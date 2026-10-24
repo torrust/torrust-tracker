@@ -9,7 +9,7 @@ github-issue: 2628
 spec-path: docs/issues/open/2628-2482-move-test-helpers-protocol-helpers/ISSUE.md
 branch: "2628-2482-move-test-helpers-protocol-helpers"
 related-pr: 2636
-last-updated-utc: "2026-10-24 19:41"
+last-updated-utc: "2026-10-24 20:02"
 semantic-links:
   skill-links:
     - create-issue
@@ -155,10 +155,11 @@ holds the four new ban entries. See the retrospective.
 - 2026-10-23 16:49 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 2) - Review round 1 on PR #2629 (da2ce7, four non-blocking findings): fixed the Progress Log placement, the check scope wording, the frontmatter branch/status and the drafted-checkpoint path; see `docs/pr-reviews/pr-2629-review/PR-REVIEW.md`.
 - 2026-10-24 17:15 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 2) - Review round 6 on PR #2629 (da2ce7, finding F14): refreshed the Background against `develop` at `8f8b4d714`. #2623 added the public helper `http_complete_download`, so `http.rs` is 92 lines (`http_announce`, `http_complete_download`, `http_scrape`) and T2 moves all three; the other facts still hold (seven dev-dependents, `udp.rs` 304 lines, the root `tests/common/mod.rs` as the only consumer).
 - 2026-10-24 19:37 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 2) - Implemented on branch `2628-2482-move-test-helpers-protocol-helpers` after PR #2629 merged: the `http` and `udp` helpers moved to `tests/common/http_requests.rs` and `udp_requests.rs`, `test-helpers` now depends only on `rand`, `configuration`, `tracing` and `tracing-subscriber`, `deny.toml` gained entries for `client-lib`, `tracker-core`, `swarm-coordination-registry` and `events`, and the descriptions and inventory were updated. Baseline and final: 15 binaries, 194 root tests passed; pre-push passed. Evidence: `manual-verification-evidence.md`; lessons: `implementation-retrospective.md`.
+- 2026-10-24 20:02 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 2) - Review round 1 on PR #2636 (Copilot finding on AC1): AC1 now says "no direct dependency", which is what V1 checks with `cargo tree --depth 1`; `primitives` stays reachable through `configuration`, which rule B.1 allows.
 
 ## Acceptance Criteria
 
-- [x] AC1: `torrust-tracker-test-helpers` has no dependency on `client-lib`, `http-protocol`,
+- [x] AC1: `torrust-tracker-test-helpers` has no direct dependency on `client-lib`, `http-protocol`,
       `udp-protocol`, `primitives`, `torrust-info-hash`, `torrust-peer-id` or `url`.
 - [x] AC2: The root crate's tests that used the helpers pass, with the same test count as the
       baseline.
