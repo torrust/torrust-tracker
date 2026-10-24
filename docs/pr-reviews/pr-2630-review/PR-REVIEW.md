@@ -31,8 +31,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 Round 1 comes from review 5632165728 (da2ce7, `CHANGES_REQUESTED`) on the first head of the branch.
 Review 5632190535 (Copilot, `COMMENTED`) holds a summary with no actionable assertion, so it has no
-row. The branch history was rewritten in round 1 (see F1), so the review bodies cite the old commit
-id `f02d9fb57`, which is the commit with the subject
+row. The branch history was rewritten in round 1 (see F1), so the review bodies cite a commit id
+that no longer exists on the branch. That id named the commit with the subject
 `docs(skills): state that a negated closing keyword still closes the issue`.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
@@ -57,7 +57,8 @@ id `f02d9fb57`, which is the commit with the subject
   subject. The new message has no issue reference next to a keyword. The tree is unchanged. The
   history was rewritten, so the branch was pushed with `--force-with-lease`.
 - Current-tree verification: The scan `git log --format=%B torrust/develop..HEAD | tr '\n' ' ' |
-  grep -oiE <skill pattern>` prints nothing on head `dceefc80e` (exit 1). The same command prints
+  grep -oiE <skill pattern>` prints nothing on the head with the subject
+  `docs(skills): scan branch commit messages for closing keywords` (exit 1). The same command prints
   the two matches for the old message. Both commits have tree `a5b4a1969cc5`. The PR body scan also
   prints nothing.
 - Resolution reference: docs(skills): state that a negated closing keyword still closes the issue
