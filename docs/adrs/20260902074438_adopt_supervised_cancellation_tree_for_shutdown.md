@@ -14,6 +14,8 @@ semantic-links:
 
 # Adopt a Supervised Cancellation Tree for Shutdown
 
+- Status: Superseded by [Order shutdown by event flow and drain event listeners](20261021184946_order_shutdown_by_event_flow_and_drain_event_listeners.md)
+
 ## Description
 
 Tracker shutdown currently combines root-level `SIGINT` handling, direct

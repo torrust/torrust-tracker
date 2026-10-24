@@ -1,0 +1,7 @@
+mode=race peers=2000 concurrency=64 sigterm_delay=0.5 control_wait=1
+tracker_exit_status=0
+started_ok=2000
+completed_ok=813 completed_failed=1187
+persisted_torrent_completed=813
+persisted_global_downloads=813
+answered_minus_persisted=0

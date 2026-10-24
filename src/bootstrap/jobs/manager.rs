@@ -9,12 +9,23 @@
 //! cancellation, waits under one shared deadline, then aborts and joins any
 //! remaining direct components.
 //!
+//! A component can be spawned with [`StopBefore`] edges naming the components
+//! that must not be asked to stop until it has completed. [`JobManager::cancel`]
+//! asks to stop only the components that wait for nobody, and
+//! [`JobManager::wait_for_all`] asks each of the others as soon as the last
+//! component it waits for has completed. The manager knows nothing about what
+//! the edges mean: bootstrap declares them.
+//!
+//! ADR: `docs/adrs/20261021184946_order_shutdown_by_event_flow_and_drain_event_listeners.md`
+//!
 //! issue: #1586
 //! issue: #2415
+//! issue: #2416
 
-use std::collections::HashMap;
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::future::Future;
 use std::pin::Pin;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 use std::task::{Context, Poll};
 use std::time::Duration;
@@ -278,8 +289,14 @@ struct LegacyJob {
 }
 
 /// Identifies a top-level component reserved in one [`JobManager`].
+///
+/// Ids of one manager are ordered by reservation. An id also names its
+/// manager, so another manager can tell that it did not issue it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct ComponentId(u64);
+pub struct ComponentId {
+    manager: u64,
+    index: u64,
+}
 
 /// The right to spawn one top-level component in the [`JobManager`] that
 /// issued it.
@@ -342,6 +359,10 @@ impl Drop for Reservation {
 }
 
 /// Errors returned when a reserved component cannot be spawned.
+///
+/// Whatever the error, the runner is dropped without being polled and the
+/// reservation is released: the manager holds no edge and no token for the
+/// rejected component.
 #[derive(Debug, PartialEq, Eq, thiserror::Error)]
 #[non_exhaustive]
 pub enum SpawnError {
@@ -349,32 +370,106 @@ pub enum SpawnError {
         "Component '{component}' was reserved by another `JobManager`, so this manager cannot spawn it. Spawn it with the manager whose `reserve` issued the reservation."
     )]
     ForeignReservation { component: String },
+
+    #[error(
+        "Component '{component}' cannot stop before {target:?}, because this manager has no such component. The id belongs to another `JobManager`, was never issued, or its reservation was dropped without being spawned. Pass only ids of components reserved and kept by this manager."
+    )]
+    UnknownStopBeforeTarget { component: String, target: ComponentId },
+
+    #[error(
+        "Component '{component}' cannot stop before {target:?}, because it was not reserved before '{component}'. A component may only stop before components reserved earlier, which keeps the stop order free of cycles. Reserve the component that stops last first."
+    )]
+    StopBeforeTargetNotEarlier { component: String, target: ComponentId },
+
+    #[error(
+        "Component '{component}' cannot be given stop-before edges, because shutdown has already been requested and the components it would stop before may already be cancelled. Register every component and its edges before calling `cancel`."
+    )]
+    ShutdownRequested { component: String },
+}
+
+/// The components that a spawned component stops before.
+///
+/// Each target is cancelled only after the spawned component has completed,
+/// once shutdown has been requested. A target is the id of a component
+/// reserved earlier in the same manager. Targets that no component waits for
+/// are cancelled by [`JobManager::cancel`], as before.
+///
+/// ```no_run
+/// # use torrust_tracker_lib::bootstrap::jobs::manager::{ComponentCompletion, JobManager, StopBefore};
+/// let mut manager = JobManager::new();
+/// let consumer = manager.reserve("consumer");
+/// let consumer_id = consumer.id();
+/// let _ = manager.spawn(consumer, async { Ok(ComponentCompletion::Completed) });
+/// let producer = manager.reserve("producer");
+/// let _ = manager.spawn_with(producer, StopBefore(&[consumer_id]), async { Ok(ComponentCompletion::Completed) });
+/// ```
+#[derive(Debug, Clone, Copy)]
+pub struct StopBefore<'a>(pub &'a [ComponentId]);
+
+impl StopBefore<'_> {
+    /// No edges: the component waits for nobody and is waited for by nobody.
+    pub const NONE: Self = StopBefore(&[]);
 }
 
 #[derive(Debug, PartialEq, Eq)]
 enum RegistrationState {
     Reserved,
     Spawned,
+    Finished,
 }
 
 #[derive(Debug)]
 struct RegisteredComponent {
+    name: String,
     cancellation_token: CancellationToken,
     state: RegistrationState,
+    /// Components that must finish before this one is cancelled by the ordered shutdown.
+    unfinished_predecessors: BTreeSet<ComponentId>,
+}
+
+/// What the manager decided for its components when shutdown was requested.
+#[derive(Debug, Default, PartialEq, Eq)]
+struct ShutdownPlan {
+    cancelled: Vec<String>,
+    waiting: Vec<WaitingComponent>,
+}
+
+/// A component that is not asked to stop until the components it waits for have completed.
+#[derive(Debug, PartialEq, Eq)]
+pub struct WaitingComponent {
+    pub name: String,
+    pub waiting_for: Vec<String>,
 }
 
 /// The component tokens a manager has issued, shared with its reservations so
 /// a dropped reservation can release itself.
-#[derive(Debug, Default)]
+#[derive(Debug)]
 struct ComponentRegistry {
+    manager_id: u64,
     next_id: u64,
     cancelled: bool,
-    components: HashMap<ComponentId, RegisteredComponent>,
+    components: BTreeMap<ComponentId, RegisteredComponent>,
+}
+
+impl Default for ComponentRegistry {
+    fn default() -> Self {
+        static NEXT_MANAGER_ID: AtomicU64 = AtomicU64::new(0);
+
+        Self {
+            manager_id: NEXT_MANAGER_ID.fetch_add(1, Ordering::Relaxed),
+            next_id: 0,
+            cancelled: false,
+            components: BTreeMap::new(),
+        }
+    }
 }
 
 impl ComponentRegistry {
-    fn reserve(&mut self) -> (ComponentId, CancellationToken) {
-        let id = ComponentId(self.next_id);
+    fn reserve(&mut self, name: &str) -> (ComponentId, CancellationToken) {
+        let id = ComponentId {
+            manager: self.manager_id,
+            index: self.next_id,
+        };
         // Unreachable in practice: bootstrap reserves a handful of components.
         // Failing loudly is safer than wrapping, which would reuse an id and
         // overwrite another component's entry.
@@ -391,8 +486,10 @@ impl ComponentRegistry {
         self.components.insert(
             id,
             RegisteredComponent {
+                name: name.to_owned(),
                 cancellation_token: cancellation_token.clone(),
                 state: RegistrationState::Reserved,
+                unfinished_predecessors: BTreeSet::new(),
             },
         );
 
@@ -419,13 +516,105 @@ impl ComponentRegistry {
         }
     }
 
-    // Cancelling a token only wakes the tasks waiting on it; none of them can
-    // re-enter this registry while the lock is held.
-    fn cancel_all(&mut self) {
-        self.cancelled = true;
-        for component in self.components.values() {
-            component.cancellation_token.cancel();
+    /// Records that `id` stops before every target, or records nothing.
+    fn add_stop_before(&mut self, id: ComponentId, targets: &[ComponentId]) -> Result<(), SpawnError> {
+        if targets.is_empty() {
+            return Ok(());
         }
+
+        let component = self.component_name(id);
+        for &target in targets {
+            if target.manager != self.manager_id || !self.components.contains_key(&target) {
+                return Err(SpawnError::UnknownStopBeforeTarget { component, target });
+            }
+            if target >= id {
+                return Err(SpawnError::StopBeforeTargetNotEarlier { component, target });
+            }
+        }
+        if self.cancelled {
+            return Err(SpawnError::ShutdownRequested { component });
+        }
+
+        for target in targets {
+            if let Some(successor) = self.components.get_mut(target) {
+                successor.unfinished_predecessors.insert(id);
+            }
+        }
+
+        Ok(())
+    }
+
+    fn component_name(&self, id: ComponentId) -> String {
+        self.components
+            .get(&id)
+            .map_or_else(String::new, |component| component.name.clone())
+    }
+
+    /// Requests the ordered shutdown: cancels every component that waits for
+    /// nobody, and reports which components wait for which.
+    ///
+    /// Cancelling a token only wakes the tasks waiting on it; none of them can
+    /// re-enter this registry while the lock is held. Returns `None` when
+    /// shutdown was already requested.
+    fn request_shutdown(&mut self) -> Option<ShutdownPlan> {
+        if self.cancelled {
+            return None;
+        }
+        self.cancelled = true;
+
+        let mut plan = ShutdownPlan::default();
+        for component in self.components.values() {
+            if component.unfinished_predecessors.is_empty() {
+                component.cancellation_token.cancel();
+                plan.cancelled.push(component.name.clone());
+            } else {
+                plan.waiting.push(WaitingComponent {
+                    name: component.name.clone(),
+                    waiting_for: self.names_of(&component.unfinished_predecessors),
+                });
+            }
+        }
+
+        Some(plan)
+    }
+
+    /// Records that a component completed, and, once shutdown was requested,
+    /// cancels the components that were waiting only for it and the others
+    /// that have completed. Returns the names it cancelled.
+    fn mark_finished(&mut self, id: ComponentId) -> Vec<String> {
+        if let Some(component) = self.components.get_mut(&id) {
+            component.state = RegistrationState::Finished;
+        }
+
+        let mut cancelled = Vec::new();
+        for component in self.components.values_mut() {
+            if component.unfinished_predecessors.remove(&id)
+                && component.unfinished_predecessors.is_empty()
+                && self.cancelled
+                && component.state != RegistrationState::Finished
+            {
+                component.cancellation_token.cancel();
+                cancelled.push(component.name.clone());
+            }
+        }
+
+        cancelled
+    }
+
+    /// The spawned components that have not completed and still wait for others.
+    fn waiting_components(&self) -> Vec<WaitingComponent> {
+        self.components
+            .values()
+            .filter(|component| component.state == RegistrationState::Spawned && !component.unfinished_predecessors.is_empty())
+            .map(|component| WaitingComponent {
+                name: component.name.clone(),
+                waiting_for: self.names_of(&component.unfinished_predecessors),
+            })
+            .collect()
+    }
+
+    fn names_of(&self, ids: &BTreeSet<ComponentId>) -> Vec<String> {
+        ids.iter().map(|id| self.component_name(*id)).collect()
     }
 }
 
@@ -436,11 +625,19 @@ fn lock(registry: &Mutex<ComponentRegistry>) -> MutexGuard<'_, ComponentRegistry
     registry.lock().unwrap_or_else(PoisonError::into_inner)
 }
 
+/// The component a running task belongs to, kept to name its outcome and to
+/// release the components that wait for it.
+#[derive(Debug)]
+struct JobIdentity {
+    id: ComponentId,
+    name: String,
+}
+
 /// Manages direct, named top-level component tasks.
 #[derive(Debug, Default)]
 pub struct JobManager {
     jobs: JoinSet<ComponentResult>,
-    job_names: HashMap<Id, String>,
+    job_names: HashMap<Id, JobIdentity>,
     legacy_jobs: Vec<LegacyJob>,
     registry: Arc<Mutex<ComponentRegistry>>,
     cancellation_token: CancellationToken,
@@ -467,11 +664,12 @@ impl JobManager {
     where
         N: Into<String>,
     {
-        let (id, cancellation_token) = lock(&self.registry).reserve();
+        let name = name.into();
+        let (id, cancellation_token) = lock(&self.registry).reserve(&name);
 
         Reservation {
             id,
-            name: name.into(),
+            name,
             cancellation_token,
             registry: Arc::clone(&self.registry),
         }
@@ -493,15 +691,45 @@ impl JobManager {
     where
         F: Future<Output = ComponentResult> + Send + 'static,
     {
+        self.spawn_with(reservation, StopBefore::NONE, future)
+    }
+
+    /// Spawns a reserved top-level component that stops before the `stop_before` components.
+    ///
+    /// Once shutdown is requested, each target is cancelled only after this
+    /// component has completed (in any state, including failure or panic) and
+    /// after every other component that stops before it has completed too.
+    ///
+    /// # Errors
+    ///
+    /// Returns the errors of [`Self::spawn`], and also:
+    ///
+    /// - [`SpawnError::UnknownStopBeforeTarget`] when a target is not a component of this manager.
+    /// - [`SpawnError::StopBeforeTargetNotEarlier`] when a target is this component or was reserved after it.
+    /// - [`SpawnError::ShutdownRequested`] when [`Self::cancel`] was already called.
+    pub fn spawn_with<F>(&mut self, reservation: Reservation, stop_before: StopBefore<'_>, future: F) -> Result<(), SpawnError>
+    where
+        F: Future<Output = ComponentResult> + Send + 'static,
+    {
         if !Arc::ptr_eq(&reservation.registry, &self.registry) {
             return Err(SpawnError::ForeignReservation {
                 component: reservation.name.clone(),
             });
         }
 
-        lock(&self.registry).mark_spawned(reservation.id);
+        {
+            let mut registry = lock(&self.registry);
+            registry.add_stop_before(reservation.id, stop_before.0)?;
+            registry.mark_spawned(reservation.id);
+        }
         let abort_handle = self.jobs.spawn(future);
-        self.job_names.insert(abort_handle.id(), reservation.name.clone());
+        self.job_names.insert(
+            abort_handle.id(),
+            JobIdentity {
+                id: reservation.id,
+                name: reservation.name.clone(),
+            },
+        );
 
         // Consumed so it cannot be spawned twice. Its drop finds the component
         // spawned and keeps its token registered for `cancel()`.
@@ -536,22 +764,43 @@ impl JobManager {
         self.cancellation_token.clone()
     }
 
-    /// Signals cooperative cancellation to every component.
+    /// Requests the ordered shutdown.
     ///
     /// It cancels the legacy root token and the token of every reserved or
-    /// spawned component. A reservation issued afterwards gets a cancelled
-    /// token. Calling it again has no further effect.
+    /// spawned component that does not wait for another component. A
+    /// component that must wait for others (see [`StopBefore`]) is cancelled by
+    /// [`Self::wait_for_all`] once the last of them has completed; the logs name
+    /// what each one waits for. A reservation issued afterwards gets a
+    /// cancelled token. Calling it again has no further effect.
     pub fn cancel(&self) {
         self.cancellation_token.cancel();
-        lock(&self.registry).cancel_all();
+        let plan = lock(&self.registry).request_shutdown();
+        if let Some(plan) = plan {
+            log_shutdown_plan(&plan);
+        }
+    }
+
+    /// The spawned components that wait for other components before they are asked to stop,
+    /// with the names of the components they wait for, in reservation order.
+    ///
+    /// It reflects the edges declared with [`StopBefore`], minus the components that have
+    /// completed.
+    #[must_use]
+    pub fn waiting_components(&self) -> Vec<WaitingComponent> {
+        lock(&self.registry).waiting_components()
     }
 
     /// Waits for all component tasks under one shared deadline.
     ///
+    /// Each time a component completes, in any state, and shutdown was
+    /// requested, it cancels the components that were waiting only for it.
+    /// Completion alone never cancels anything before [`Self::cancel`].
+    ///
     /// The deadline also applies to the narrowly scoped legacy compatibility
     /// jobs. When it expires, every remaining task is aborted and joined before
-    /// this method returns. Components own the cleanup of their own children
-    /// before completing.
+    /// this method returns, including components that were never asked to stop
+    /// because the components they wait for had not completed. Components own
+    /// the cleanup of their own children before completing.
     pub async fn wait_for_all(mut self, grace_period: Duration) -> Vec<JobOutcome> {
         let mut outcomes = Vec::new();
         let deadline = Instant::now() + grace_period;
@@ -562,6 +811,7 @@ impl JobManager {
         let completed_before_deadline = self.collect_jobs_before_deadline(deadline, &mut outcomes).await;
 
         if !completed_before_deadline {
+            log_components_never_asked_to_stop(&self.waiting_components());
             warn!(
                 timeout_seconds = grace_period.as_secs(),
                 "Job shutdown deadline expired; aborting remaining jobs"
@@ -578,7 +828,12 @@ impl JobManager {
                 tokio::select! {
                     result = self.jobs.join_next_with_id(), if !self.jobs.is_empty() => {
                         if let Some(result) = result {
-                            outcomes.push(outcome(result, &mut self.job_names, false));
+                            let (outcome, finished) = outcome(result, &mut self.job_names, false);
+                            if let Some(finished) = finished {
+                                let released = lock(&self.registry).mark_finished(finished);
+                                log_released_components(&outcome.name, &released);
+                            }
+                            outcomes.push(outcome);
                         }
                     }
                     (index, result) = wait_for_legacy_completion(&mut self.legacy_jobs), if !self.legacy_jobs.is_empty() => {
@@ -599,7 +854,7 @@ impl JobManager {
         }
 
         while let Some(result) = self.jobs.join_next_with_id().await {
-            outcomes.push(outcome(result, &mut self.job_names, true));
+            outcomes.push(outcome(result, &mut self.job_names, true).0);
         }
 
         while let Some(mut job) = self.legacy_jobs.pop() {
@@ -611,9 +866,9 @@ impl JobManager {
 
 fn outcome(
     result: Result<(Id, ComponentResult), JoinError>,
-    job_names: &mut HashMap<Id, String>,
+    job_names: &mut HashMap<Id, JobIdentity>,
     aborted_after_deadline: bool,
-) -> JobOutcome {
+) -> (JobOutcome, Option<ComponentId>) {
     let (id, status) = match result {
         Ok((id, Ok(ComponentCompletion::Completed))) => (id, JobStatus::Completed),
         Ok((id, Ok(ComponentCompletion::Cancelled))) => (id, JobStatus::Cancelled),
@@ -624,9 +879,12 @@ fn outcome(
             (id, status)
         }
     };
-    let name = job_names.remove(&id).unwrap_or_else(|| format!("unknown-job-{id}"));
+    let (name, component_id) = job_names.remove(&id).map_or_else(
+        || (format!("unknown-job-{id}"), None),
+        |identity| (identity.name, Some(identity.id)),
+    );
     log_outcome(&name, &status);
-    JobOutcome { name, status }
+    (JobOutcome { name, status }, component_id)
 }
 
 async fn wait_for_legacy_completion(legacy_jobs: &mut [LegacyJob]) -> (usize, Result<(), JoinError>) {
@@ -672,6 +930,39 @@ fn log_outcome(name: &str, status: &JobStatus) {
     }
 }
 
+fn log_shutdown_plan(plan: &ShutdownPlan) {
+    for name in &plan.cancelled {
+        info!(job = %name, "Requested the job to stop: it waits for no other job");
+    }
+    for waiting in &plan.waiting {
+        info!(
+            job = %waiting.name,
+            waiting_for = %waiting.waiting_for.join(", "),
+            "Job will be asked to stop after the jobs it waits for have completed"
+        );
+    }
+}
+
+fn log_released_components(completed_job: &str, cancelled: &[String]) {
+    for name in cancelled {
+        info!(
+            job = %name,
+            last_completed_job = %completed_job,
+            "Requested the job to stop: every job it waited for has completed"
+        );
+    }
+}
+
+fn log_components_never_asked_to_stop(waiting: &[WaitingComponent]) {
+    for component in waiting {
+        warn!(
+            job = %component.name,
+            waiting_for = %component.waiting_for.join(", "),
+            "Job was never asked to stop because the jobs it waits for had not completed"
+        );
+    }
+}
+
 fn log_completed(name: &str) {
     info!(job = %name, "Job completed");
 }
@@ -705,12 +996,13 @@ mod tests {
     use std::future::Future;
 
     use tokio::sync::oneshot;
-    use tokio::time::{Duration, timeout};
+    use tokio::time::{Duration, sleep, timeout};
+    use tokio_util::sync::CancellationToken;
     use torrust_server_lib::signals::Halted;
 
     use super::{
-        ComponentCompletion, ComponentError, ComponentRegistry, ComponentResult, JobManager, JobOutcome, JobStatus, Reservation,
-        SpawnError,
+        ComponentCompletion, ComponentError, ComponentId, ComponentRegistry, ComponentResult, JobManager, JobOutcome, JobStatus,
+        Reservation, ShutdownPlan, SpawnError, StopBefore, WaitingComponent, lock,
     };
 
     /// Reserves a component and spawns it with a runner that does not use its token.
@@ -1220,6 +1512,555 @@ mod tests {
         );
     }
 
+    // Stop order (issue #2416).
+
+    /// Spawns a producer that stops before `consumers` and completes only when the returned sender is used.
+    ///
+    /// It ignores its own token, like a server that is still draining its requests after shutdown began.
+    fn spawn_producer_released_by_the_test(
+        manager: &mut JobManager,
+        name: &str,
+        consumers: &[ComponentId],
+    ) -> oneshot::Sender<()> {
+        let reservation = manager.reserve(name);
+        let (release, released) = oneshot::channel();
+        manager
+            .spawn_with(reservation, StopBefore(consumers), async move {
+                let _ = released.await;
+                Ok(ComponentCompletion::Completed)
+            })
+            .expect("the consumer was reserved by this manager before the producer");
+        release
+    }
+
+    /// Lets every runnable task run: with paused time the clock only advances once all of them are idle.
+    async fn let_the_manager_react() {
+        sleep(Duration::from_millis(1)).await;
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn it_should_cancel_a_consumer_only_after_every_producer_that_stops_before_it_has_completed() {
+        // Arrange
+        // A consumer waits for its own stop request. Two producers stop before it, and each keeps
+        // running until the test releases it, like servers still answering requests during shutdown.
+        let mut manager = JobManager::new();
+        let consumer = manager.reserve("consumer");
+        let consumer_id = consumer.id();
+        let consumer_token = consumer.cancellation_token();
+        spawn_component_stopping_on_its_own_token(&mut manager, consumer);
+        let release_first = spawn_producer_released_by_the_test(&mut manager, "first-producer", &[consumer_id]);
+        let release_second = spawn_producer_released_by_the_test(&mut manager, "second-producer", &[consumer_id]);
+
+        // Act
+        // Shutdown starts while both producers run. Then the first producer completes, and then the second.
+        manager.cancel();
+        let shutdown = tokio::spawn(manager.wait_for_all(Duration::from_secs(5)));
+        let_the_manager_react().await;
+        let cancelled_while_both_producers_run = consumer_token.is_cancelled();
+        release_first.send(()).expect("the first producer is waiting for its release");
+        let_the_manager_react().await;
+        let cancelled_while_one_producer_runs = consumer_token.is_cancelled();
+        release_second
+            .send(())
+            .expect("the second producer is waiting for its release");
+        let_the_manager_react().await;
+        let cancelled_after_both_producers_completed = consumer_token.is_cancelled();
+        let outcomes = shutdown.await.expect("the shutdown task must not panic");
+
+        // Assert
+        // The consumer is cancelled only once both producers have completed, and it stops last.
+        assert!(
+            !cancelled_while_both_producers_run,
+            "the consumer must keep running while both producers run, after cancel()"
+        );
+        assert!(
+            !cancelled_while_one_producer_runs,
+            "the consumer must keep running while one of its two producers still runs"
+        );
+        assert!(
+            cancelled_after_both_producers_completed,
+            "the consumer must be cancelled once both producers have completed"
+        );
+        assert_eq!(
+            outcomes,
+            vec![
+                JobOutcome {
+                    name: "first-producer".to_owned(),
+                    status: JobStatus::Completed,
+                },
+                JobOutcome {
+                    name: "second-producer".to_owned(),
+                    status: JobStatus::Completed,
+                },
+                JobOutcome {
+                    name: "consumer".to_owned(),
+                    status: JobStatus::Cancelled,
+                },
+            ]
+        );
+    }
+
+    /// Spawns a consumer that runs until its own token is cancelled, and returns its id and token.
+    fn spawn_consumer(manager: &mut JobManager, name: &str) -> (ComponentId, CancellationToken) {
+        let reservation = manager.reserve(name);
+        let id = reservation.id();
+        let token = reservation.cancellation_token();
+        spawn_component_stopping_on_its_own_token(manager, reservation);
+        (id, token)
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn it_should_cancel_a_component_that_waits_for_nobody_at_once_while_another_waits_for_its_producer() {
+        // Arrange
+        // A consumer has a producer that keeps running. An unrelated component has no edges.
+        let mut manager = JobManager::new();
+        let (consumer_id, consumer_token) = spawn_consumer(&mut manager, "consumer");
+        let (_unrelated_id, unrelated_token) = spawn_consumer(&mut manager, "unrelated");
+        let _release_producer = spawn_producer_released_by_the_test(&mut manager, "producer", &[consumer_id]);
+
+        // Act
+        manager.cancel();
+
+        // Assert
+        // The ordered shutdown does not delay a component that nobody stops before.
+        assert!(
+            unrelated_token.is_cancelled(),
+            "cancel() must cancel a component that waits for nobody at once"
+        );
+        assert!(
+            !consumer_token.is_cancelled(),
+            "cancel() must not cancel the consumer while its producer runs"
+        );
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn it_should_cancel_each_consumer_when_the_producers_that_stop_before_it_have_completed() {
+        // Arrange
+        // Producer P stops before consumers A and B. Producer Q stops before B only, and keeps running.
+        let mut manager = JobManager::new();
+        let (a_id, a_token) = spawn_consumer(&mut manager, "consumer-a");
+        let (b_id, b_token) = spawn_consumer(&mut manager, "consumer-b");
+        let release_p = spawn_producer_released_by_the_test(&mut manager, "producer-p", &[a_id, b_id]);
+        let _release_q = spawn_producer_released_by_the_test(&mut manager, "producer-q", &[b_id]);
+        manager.cancel();
+        let _shutdown = tokio::spawn(manager.wait_for_all(Duration::from_secs(5)));
+
+        // Act
+        release_p.send(()).expect("producer P is waiting for its release");
+        let_the_manager_react().await;
+
+        // Assert
+        // A waited only for P, so it is cancelled. B still waits for Q.
+        assert!(
+            a_token.is_cancelled(),
+            "a consumer must be cancelled when every producer that stops before it has completed, even while other producers run"
+        );
+        assert!(
+            !b_token.is_cancelled(),
+            "a consumer must not be cancelled while one of its producers still runs"
+        );
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn it_should_not_cancel_a_consumer_when_its_producers_complete_before_shutdown_is_requested() {
+        // Arrange
+        // A consumer waits for a producer that completes while no shutdown was requested.
+        let mut manager = JobManager::new();
+        let (consumer_id, consumer_token) = spawn_consumer(&mut manager, "consumer");
+        let release_producer = spawn_producer_released_by_the_test(&mut manager, "producer", &[consumer_id]);
+        let shutdown = tokio::spawn(manager.wait_for_all(Duration::from_secs(5)));
+
+        // Act
+        release_producer.send(()).expect("the producer is waiting for its release");
+        let_the_manager_react().await;
+        let cancelled_by_the_completion = consumer_token.is_cancelled();
+        let outcomes = shutdown.await.expect("the shutdown task must not panic");
+
+        // Assert
+        // Only a requested shutdown asks components to stop: the consumer runs until the deadline aborts it.
+        assert!(
+            !cancelled_by_the_completion,
+            "a producer completing must not cancel a consumer before cancel() was called"
+        );
+        assert_eq!(
+            outcomes,
+            vec![
+                JobOutcome {
+                    name: "producer".to_owned(),
+                    status: JobStatus::Completed,
+                },
+                JobOutcome {
+                    name: "consumer".to_owned(),
+                    status: JobStatus::Aborted,
+                },
+            ]
+        );
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn it_should_cancel_a_consumer_whose_producer_completed_before_shutdown_was_requested() {
+        // Arrange
+        // The producer completes on its own, and the manager has not yet observed it when cancel() is called.
+        let mut manager = JobManager::new();
+        let (consumer_id, _consumer_token) = spawn_consumer(&mut manager, "consumer");
+        let release_producer = spawn_producer_released_by_the_test(&mut manager, "producer", &[consumer_id]);
+        release_producer.send(()).expect("the producer is waiting for its release");
+        let_the_manager_react().await;
+
+        // Act
+        manager.cancel();
+        let outcomes = manager.wait_for_all(Duration::from_secs(5)).await;
+
+        // Assert
+        // The finished producer does not hold its consumer back: it stops cooperatively, not by abort.
+        assert_eq!(
+            outcomes,
+            vec![
+                JobOutcome {
+                    name: "producer".to_owned(),
+                    status: JobStatus::Completed,
+                },
+                JobOutcome {
+                    name: "consumer".to_owned(),
+                    status: JobStatus::Cancelled,
+                },
+            ]
+        );
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn it_should_cancel_a_consumer_when_its_producer_fails_and_keep_the_failure_visible() {
+        // Arrange
+        let mut manager = JobManager::new();
+        let (consumer_id, _consumer_token) = spawn_consumer(&mut manager, "consumer");
+        let reservation = manager.reserve("failing-producer");
+        manager
+            .spawn_with(reservation, StopBefore(&[consumer_id]), async {
+                Err(ComponentError::new("socket lost"))
+            })
+            .expect("the consumer was reserved before the producer");
+
+        // Act
+        manager.cancel();
+        let outcomes = manager.wait_for_all(Duration::from_secs(5)).await;
+
+        // Assert
+        assert_eq!(
+            outcomes,
+            vec![
+                JobOutcome {
+                    name: "failing-producer".to_owned(),
+                    status: JobStatus::Failed(ComponentError::new("socket lost")),
+                },
+                JobOutcome {
+                    name: "consumer".to_owned(),
+                    status: JobStatus::Cancelled,
+                },
+            ]
+        );
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn it_should_cancel_a_consumer_when_its_producer_panics_and_keep_the_panic_visible() {
+        // Arrange
+        let mut manager = JobManager::new();
+        let (consumer_id, _consumer_token) = spawn_consumer(&mut manager, "consumer");
+        let reservation = manager.reserve("panicking-producer");
+        manager
+            .spawn_with(reservation, StopBefore(&[consumer_id]), async { panic!("producer defect") })
+            .expect("the consumer was reserved before the producer");
+
+        // Act
+        manager.cancel();
+        let outcomes = manager.wait_for_all(Duration::from_secs(5)).await;
+
+        // Assert
+        assert_eq!(
+            outcomes,
+            vec![
+                JobOutcome {
+                    name: "panicking-producer".to_owned(),
+                    status: JobStatus::Panicked("producer defect".to_owned()),
+                },
+                JobOutcome {
+                    name: "consumer".to_owned(),
+                    status: JobStatus::Cancelled,
+                },
+            ]
+        );
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn it_should_abort_and_name_a_consumer_that_was_never_asked_to_stop_when_the_deadline_expires() {
+        // Arrange
+        // The producer never completes, so the consumer is never cancelled.
+        let mut manager = JobManager::new();
+        let (consumer_id, consumer_token) = spawn_consumer(&mut manager, "consumer");
+        let _release_producer = spawn_producer_released_by_the_test(&mut manager, "producer", &[consumer_id]);
+        manager.cancel();
+
+        // Act
+        let outcomes = manager.wait_for_all(Duration::from_secs(5)).await;
+
+        // Assert
+        // The shared deadline aborts and joins both components, and each outcome keeps its name.
+        assert!(
+            !consumer_token.is_cancelled(),
+            "the consumer must not be cancelled while its producer has not completed"
+        );
+        assert_eq!(outcomes.len(), 2, "both components must be joined");
+        assert!(
+            outcomes.iter().all(|outcome| outcome.status == JobStatus::Aborted),
+            "both components must be reported as aborted: {outcomes:?}"
+        );
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn it_should_abort_a_consumer_busy_in_a_handler_at_the_shared_deadline_even_when_it_was_cancelled_late() {
+        // Arrange
+        // The consumer ignores its stop request, like a listener stuck in a handler. Its producer completes
+        // 2 seconds after shutdown began, so the consumer is cancelled with 3 of the 5 seconds left.
+        let mut manager = JobManager::new();
+        let consumer = manager.reserve("busy-consumer");
+        let consumer_id = consumer.id();
+        manager
+            .spawn(consumer, std::future::pending::<ComponentResult>())
+            .expect("the reservation was issued by this manager");
+        let release_producer = spawn_producer_released_by_the_test(&mut manager, "producer", &[consumer_id]);
+        let started = tokio::time::Instant::now();
+
+        // Act
+        manager.cancel();
+        let shutdown = tokio::spawn(manager.wait_for_all(Duration::from_secs(5)));
+        sleep(Duration::from_secs(2)).await;
+        release_producer.send(()).expect("the producer is waiting for its release");
+        let outcomes = shutdown.await.expect("the shutdown task must not panic");
+
+        // Assert
+        // The deadline runs from the start of the wait, not from the consumer's cancellation, and the
+        // busy consumer is aborted, joined and named.
+        assert_eq!(
+            started.elapsed(),
+            Duration::from_secs(5),
+            "the shared deadline must not restart"
+        );
+        assert_eq!(
+            outcomes,
+            vec![
+                JobOutcome {
+                    name: "producer".to_owned(),
+                    status: JobStatus::Completed,
+                },
+                JobOutcome {
+                    name: "busy-consumer".to_owned(),
+                    status: JobStatus::Aborted,
+                },
+            ]
+        );
+    }
+
+    #[test]
+    fn it_should_reject_a_stop_before_target_issued_by_another_manager() {
+        // Arrange
+        let mut other_manager = JobManager::new();
+        let foreign = other_manager.reserve("foreign-component");
+        let foreign_id = foreign.id();
+        let mut manager = JobManager::new();
+        let producer = manager.reserve("producer");
+
+        // Act
+        let result = manager.spawn_with(producer, StopBefore(&[foreign_id]), async {
+            Ok(ComponentCompletion::Completed)
+        });
+
+        // Assert
+        assert_eq!(
+            result,
+            Err(SpawnError::UnknownStopBeforeTarget {
+                component: "producer".to_owned(),
+                target: foreign_id,
+            })
+        );
+    }
+
+    #[test]
+    fn it_should_reject_a_stop_before_target_whose_reservation_was_dropped() {
+        // Arrange
+        let mut manager = JobManager::new();
+        let dropped = manager.reserve("dropped-consumer");
+        let dropped_id = dropped.id();
+        drop(dropped);
+        let producer = manager.reserve("producer");
+
+        // Act
+        let result = manager.spawn_with(producer, StopBefore(&[dropped_id]), async {
+            Ok(ComponentCompletion::Completed)
+        });
+
+        // Assert
+        assert_eq!(
+            result,
+            Err(SpawnError::UnknownStopBeforeTarget {
+                component: "producer".to_owned(),
+                target: dropped_id,
+            })
+        );
+    }
+
+    #[test]
+    fn it_should_reject_a_stop_before_target_reserved_after_the_component() {
+        // Arrange
+        let mut manager = JobManager::new();
+        let producer = manager.reserve("producer");
+        let later = manager.reserve("later-component");
+        let later_id = later.id();
+
+        // Act
+        let result = manager.spawn_with(producer, StopBefore(&[later_id]), async {
+            Ok(ComponentCompletion::Completed)
+        });
+
+        // Assert
+        assert_eq!(
+            result,
+            Err(SpawnError::StopBeforeTargetNotEarlier {
+                component: "producer".to_owned(),
+                target: later_id,
+            })
+        );
+    }
+
+    #[test]
+    fn it_should_reject_a_component_that_stops_before_itself() {
+        // Arrange
+        let mut manager = JobManager::new();
+        let producer = manager.reserve("producer");
+        let own_id = producer.id();
+
+        // Act
+        let result = manager.spawn_with(producer, StopBefore(&[own_id]), async { Ok(ComponentCompletion::Completed) });
+
+        // Assert
+        assert_eq!(
+            result,
+            Err(SpawnError::StopBeforeTargetNotEarlier {
+                component: "producer".to_owned(),
+                target: own_id,
+            })
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_reject_stop_before_edges_after_shutdown_was_requested() {
+        // Arrange
+        let mut manager = JobManager::new();
+        let (consumer_id, _consumer_token) = spawn_consumer(&mut manager, "consumer");
+        manager.cancel();
+        let late_producer = manager.reserve("late-producer");
+
+        // Act
+        let result = manager.spawn_with(late_producer, StopBefore(&[consumer_id]), async {
+            Ok(ComponentCompletion::Completed)
+        });
+
+        // Assert
+        assert_eq!(
+            result,
+            Err(SpawnError::ShutdownRequested {
+                component: "late-producer".to_owned(),
+            })
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_leave_no_edge_and_no_running_component_when_a_spawn_with_edges_is_rejected() {
+        // Arrange
+        // The first target is valid and the second was issued by another manager.
+        let mut other_manager = JobManager::new();
+        let foreign_id = other_manager.reserve("foreign-component").id();
+        let mut manager = JobManager::new();
+        let (consumer_id, consumer_token) = spawn_consumer(&mut manager, "consumer");
+        let producer = manager.reserve("rejected-producer");
+        let producer_token = producer.cancellation_token();
+        let (ran_sender, ran_receiver) = oneshot::channel::<()>();
+
+        // Act
+        let result = manager.spawn_with(producer, StopBefore(&[consumer_id, foreign_id]), async move {
+            let _ = ran_sender.send(());
+            Ok(ComponentCompletion::Completed)
+        });
+        manager.cancel();
+        let consumer_cancelled_without_the_rejected_producer = consumer_token.is_cancelled();
+
+        // Assert
+        // A rejected registration is atomic: the valid target keeps no edge, the runner never runs,
+        // and the reservation is released.
+        assert!(result.is_err(), "the foreign target must reject the registration");
+        assert!(
+            consumer_cancelled_without_the_rejected_producer,
+            "a rejected spawn must not leave an edge that holds the valid target back"
+        );
+        assert!(
+            ran_receiver.await.is_err(),
+            "the runner of a rejected spawn must be dropped without running"
+        );
+        assert!(
+            !producer_token.is_cancelled(),
+            "a rejected reservation must be released, so cancel() does not reach its token"
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_report_which_components_the_shutdown_cancels_and_which_wait() {
+        // Arrange
+        let mut manager = JobManager::new();
+        let consumer = manager.reserve("consumer");
+        let consumer_id = consumer.id();
+        let unrelated = manager.reserve("unrelated");
+        let first = manager.reserve("first-producer");
+        let second = manager.reserve("second-producer");
+        manager
+            .spawn(consumer, async { Ok(ComponentCompletion::Completed) })
+            .expect("the reservation was issued by this manager");
+        manager
+            .spawn(unrelated, async { Ok(ComponentCompletion::Completed) })
+            .expect("the reservation was issued by this manager");
+        manager
+            .spawn_with(first, StopBefore(&[consumer_id]), async {
+                Ok(ComponentCompletion::Completed)
+            })
+            .expect("the consumer was reserved before the producer");
+        manager
+            .spawn_with(second, StopBefore(&[consumer_id]), async {
+                Ok(ComponentCompletion::Completed)
+            })
+            .expect("the consumer was reserved before the producer");
+
+        // Act
+        let plan = lock(&manager.registry).request_shutdown();
+
+        // Assert
+        assert_eq!(
+            plan,
+            Some(ShutdownPlan {
+                cancelled: vec![
+                    "unrelated".to_owned(),
+                    "first-producer".to_owned(),
+                    "second-producer".to_owned()
+                ],
+                waiting: vec![WaitingComponent {
+                    name: "consumer".to_owned(),
+                    waiting_for: vec!["first-producer".to_owned(), "second-producer".to_owned()],
+                }],
+            })
+        );
+        assert_eq!(
+            lock(&manager.registry).request_shutdown(),
+            None,
+            "a second request must not report the same decisions again"
+        );
+    }
+
     #[test]
     #[should_panic(expected = "the job manager has issued every possible component id")]
     fn it_should_refuse_to_issue_a_reused_component_id_when_the_id_space_is_exhausted() {
@@ -1230,6 +2071,6 @@ mod tests {
         };
 
         // Act
-        let (_id, _token) = registry.reserve();
+        let (_id, _token) = registry.reserve("component");
     }
 }

@@ -3,7 +3,7 @@
 use std::time::Duration;
 
 use torrust_tracker_client::http::client::Client;
-use torrust_tracker_http_protocol::v1::requests::announce::{Announce, Event, PeerIp};
+use torrust_tracker_http_protocol::v1::requests::announce::{Announce, Event, NumberOfBytes, PeerIp};
 use torrust_tracker_http_protocol::v1::requests::scrape_builder;
 use torrust_tracker_http_protocol::v1::responses::scrape;
 use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
@@ -15,6 +15,30 @@ use url::Url;
 ///
 /// Panics if the client cannot build, send, or receive.
 pub async fn http_announce(tracker_url: &Url, info_hash: &[u8; 20], peer_id: &[u8; 20], port: u16) {
+    announce_event(tracker_url, info_hash, peer_id, port, Event::Started, None).await;
+}
+
+/// Sends the HTTP announces of a peer that starts and then completes a download.
+///
+/// It returns after the tracker answered the `completed` announce, so the
+/// tracker has published the completed-download event on its event bus by then.
+///
+/// # Panics
+///
+/// Panics if the client cannot build, send, or receive.
+pub async fn http_complete_download(tracker_url: &Url, info_hash: &[u8; 20], peer_id: &[u8; 20], port: u16) {
+    announce_event(tracker_url, info_hash, peer_id, port, Event::Started, Some(1)).await;
+    announce_event(tracker_url, info_hash, peer_id, port, Event::Completed, Some(0)).await;
+}
+
+async fn announce_event(
+    tracker_url: &Url,
+    info_hash: &[u8; 20],
+    peer_id: &[u8; 20],
+    port: u16,
+    event: Event,
+    bytes_left: Option<i64>,
+) {
     let client = Client::new(tracker_url.clone(), Duration::from_secs(5)).expect("failed to create HTTP client");
 
     let query = Announce {
@@ -24,8 +48,8 @@ pub async fn http_announce(tracker_url: &Url, info_hash: &[u8; 20], peer_id: &[u
         ip: PeerIp::Absent,
         downloaded: None,
         uploaded: None,
-        left: None,
-        event: Some(Event::Started),
+        left: bytes_left.map(NumberOfBytes::new),
+        event: Some(event),
         compact: None,
         numwant: None,
     };

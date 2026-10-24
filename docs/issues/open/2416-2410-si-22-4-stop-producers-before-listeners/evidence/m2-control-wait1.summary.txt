@@ -1,0 +1,7 @@
+mode=control peers=500 concurrency=64 sigterm_delay=0.05 control_wait=1
+tracker_exit_status=0
+started_ok=500
+completed_ok=500 completed_failed=0
+persisted_torrent_completed=500
+persisted_global_downloads=500
+answered_minus_persisted=0

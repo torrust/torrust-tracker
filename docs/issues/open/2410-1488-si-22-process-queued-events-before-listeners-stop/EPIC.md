@@ -6,7 +6,7 @@ epic: 1488
 github-issue: 2410
 spec-path: docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-21 09:23"
+last-updated-utc: "2026-10-23 17:50"
 semantic-links:
   skill-links:
     - create-issue
@@ -271,7 +271,7 @@ which keeps the detailed steps for all sub-issues.
 | 1 | #2413 - Document event flows and draft the shutdown-order ADR | [ISSUE.md](../../closed/2413-2410-si-22-1-document-event-flows-and-draft-adr/ISSUE.md) | T1, T2 | AC9; ADR draft for AC8 | DONE | Documentation only. |
 | 2 | #2414 - Drain listener queues on shutdown | [ISSUE.md](../../closed/2414-2410-si-22-2-drain-listener-queues-on-shutdown/ISSUE.md) | T3, T4, T5 | AC1, AC3, AC4, AC6, AC11, AC12 | DONE | Addresses window (a), isolated by the control run (500 of 500 persisted, V10 and V11); merged in PR #2578 on 2026-10-20. The 5 s default drain timeout bounds admission and does not drain a full buffer (entry 28); race-run loss attribution remains incomplete. |
 | 3 | #2415 - Give each application component its own cancellation token | [ISSUE.md](../../closed/2415-2410-si-22-3-per-component-cancellation-tokens/ISSUE.md) | T6 | AC13 (keeps it; no behavior change) | DONE | Refactor that prepares sub-issue 4; merged in PR #2591 on 2026-10-21. Every component uses its own reservation token; `cancel()` still cancels all at once. The listener-subscription test for AC13 stays with #2416. |
-| 4 | #2416 - Stop event producers before event listeners | [ISSUE.md](../2416-2410-si-22-4-stop-producers-before-listeners/ISSUE.md) | T7, T8, T9, T10 | AC2, AC5, AC7, AC8, AC10, AC13 | TODO | Closes window (b). T9's prerequisite #2471 is satisfied (merged in PR #2544 on 2026-10-16). |
+| 4 | #2416 - Stop event producers before event listeners | [ISSUE.md](../2416-2410-si-22-4-stop-producers-before-listeners/ISSUE.md) | T7, T8, T9, T10 | AC2, AC5, AC7, AC8, AC10, AC13 | IN_PROGRESS | Closes window (b). T9's prerequisite #2471 is satisfied (merged in PR #2544 on 2026-10-16). |
 
 T0 (the reproduction) is done in this folder: evidence in
 [manual-verification-evidence.md](manual-verification-evidence.md) and the
@@ -506,7 +506,9 @@ Alternatives considered:
   without a draft to update. The repository had no documented precedent for
   drafting an ADR inside an issue folder; the maintainer approved this process
   explicitly. If it proves useful, T10 proposes documenting it in the
-  `create-adr` skill.
+  `create-adr` skill. **Done in #2416 T10 (2026-10-21):** the draft moved to
+  [`docs/adrs/20261021184946_order_shutdown_by_event_flow_and_drain_event_listeners.md`](../../../adrs/20261021184946_order_shutdown_by_event_flow_and_drain_event_listeners.md),
+  the cancellation-tree ADR is marked `Superseded by` it, and `docs/adrs/index.md` lists it.
 - **D16 - Diagrams in Mermaid, inspired by C4 but not in C4 notation
   (maintainer and Copilot, 2026-10-01).** The maintainer asked whether a C4
   model would help represent jobs, the services they use, and their concrete
@@ -1530,6 +1532,48 @@ lost. Times are UTC.
       #2415 Commit Points, which allow a split with a compiling adapter.
     Also agreed: the API, the lifecycle rules, and the seven reservation tests as implemented.
     `StopBefore` is not added before T7. `adr-draft.md` section 3 is updated in the same change.
+31. **2026-10-21 17:09 - T7 and T8 design review of #2416 (agreed by the maintainer on
+    2026-10-21).** Evidence: #2416's `manual-verification-evidence.md` V1 to V3. The Chosen Design
+    leaves the precise API of the edges to T8; the maintainer approved it at the checkpoint before the
+    edges were built (V1: the controlled late-publication tests were red against a stub that stored
+    the edges and did not enforce them) and again after T8:
+    - **`spawn_with(reservation, StopBefore(&ids), runner)` is additive.** `spawn(reservation, runner)`
+      stays and means "no edges", so the 13 existing callers and #2415's API are untouched. The
+      alternative, a third argument on `spawn`, was rejected for the churn. `StopBefore` borrows a
+      slice of `ComponentId`.
+    - **Three new `SpawnError` variants** (`#[non_exhaustive]`, each leaves no edge and no running
+      runner and releases the reservation): `UnknownStopBeforeTarget` (an id that is not a component
+      of this manager: another manager's, a released reservation, never issued),
+      `StopBeforeTargetNotEarlier` (the component itself or one reserved after it, which keeps the
+      graph acyclic), and `ShutdownRequested` (edges after `cancel()`). Bootstrap propagates them
+      through `app::Error::ComponentRegistration`. `ComponentId` names its manager (a process-wide
+      counter), so a foreign id is detected instead of being read as a local index.
+    - **Completion is tracked where the task is joined, in `wait_for_all`.** A failed, panicked,
+      cancelled or completed component all release their dependents. Because `wait_for_all` consumes
+      the manager and `cancel()` precedes it, a producer that finished before `cancel()` is accounted
+      for at the first join and cannot hold its consumer back. The alternative, a drop guard inside
+      each task, was rejected: it adds machinery inside every task for no behavior the join does not
+      give.
+    - **`JobManager::waiting_components()` is public** (and `WaitingComponent`): which components
+      wait for which. The application test asserts the declared stop order with it, because the
+      completion order alone is timing-dependent (mutations W1 and W3 survived without it).
+    - **`EventFlows` as in the Chosen Design**, with `app::Error::EventFlows`; consumers are
+      registered before the runner is spawned, so a rejected registration runs nothing.
+    `adr-draft.md` sections 3 and 4 are updated in the same change.
+32. **2026-10-21 18:47 - T9 design review of #2416 (agreed by the maintainer on 2026-10-21).** Evidence:
+    #2416's `manual-verification-evidence.md` V4. D20 says `stop()` disarms both guards. The
+    implementation disarms the server guard in `stop()`, but moves the listeners guard into the join
+    function and disarms it after the server stage, so a `stop()` future that is dropped while the server
+    still drains (for example when its caller's deadline expires) cannot leave listeners that were never
+    asked to stop (the listener tasks are then cancelled but not joined, so they finish their bounded drain
+    unjoined; wording corrected on 2026-10-22, review-finding:pr-2623-f3). The
+    intent of D20 (independent tokens, one `DropGuard` each, the owner enforces the order, a drop cancels
+    both) is unchanged. Also recorded: the HTTP environment has a deterministic red/green late-event test
+    (a request left in flight while `stop()` drains), and the UDP environment's late-event test first was
+    regression coverage with its order proven by a staged-join unit test, on the claim that a UDP request
+    cannot be held in flight. **Correction of 2026-10-22, review-finding:pr-2623-f2:** that claim was wrong, the
+    crate's own shutdown tests hold one, and review round 1 added a deterministic red and green test for
+    UDP (#2416 evidence V7). `adr-draft.md` section 8 is updated in the same change.
 
 ## Chosen Design (D7, D8)
 
@@ -1541,8 +1585,9 @@ lost. Times are UTC.
   producers' cancellation would also cancel. Bootstrap builds the runner with
   the reservation's token; server components bind their socket at this point,
   as they do today.
-- `spawn(reservation, runner, StopBefore(ids))` registers the runner and its
-  stop-before edges. The ids can only come from earlier reservations, so
+- `spawn_with(reservation, StopBefore(&ids), runner)` registers the runner and its
+  stop-before edges (`spawn(reservation, runner)` is the same without edges;
+  record entry 31). The ids can only come from earlier reservations, so
   every edge points backwards and the graph cannot have a cycle. A
   reservation dropped without being spawned (for example after a bind
   failure) is released, so no component waits for it.
@@ -1646,196 +1691,17 @@ SI-17 established (refresh of 2026-10-07):
 
 ## Diagrams (D16)
 
-Drawn from the code on 2026-10-01; T1 revalidates them, and every agreed
-design change (D14) updates them. They move to `docs/architecture/` in T10.
+The five diagrams were drawn from the code on 2026-10-01 and moved to stable
+documents in #2416 T10, updated to the final implementation (the startup
+sequence now shows `add_consumer` before `spawn`, and producers use
+`spawn_with`). The stable documents are their single source from now on:
 
-### 1. Event data flow
-
-Which components publish on which bus, through which shared services, and
-which listeners consume each bus. The stop-before edges in diagram 2 follow
-from it: every producer of a bus stops before every consumer of that bus.
-
-```mermaid
-flowchart LR
-    subgraph Producers["Producer components"]
-        HTTP["HTTP tracker instance (xN)"]
-        UDP["UDP tracker instance (xM)"]
-        CLEAN["Torrent cleanup"]
-    end
-    subgraph Services["Shared services (hold bus senders)"]
-        HCS["http-core announce and scrape services"]
-        TCS["tracker-core services and swarm registry"]
-        UCS["UdpTrackerCoreServices"]
-        USS["UdpTrackerServerServices"]
-    end
-    subgraph Buses["Event buses"]
-        BH(("http-core"))
-        BS(("swarm"))
-        BUC(("udp-core"))
-        BUS(("udp-server"))
-    end
-    subgraph Listeners["Consumer components (listeners)"]
-        LH["http-core listener"]
-        LS["swarm listener (if tracker_usage_statistics)"]
-        LTI["tracker-core in-memory listener (if tracker_usage_statistics)"]
-        LTP["tracker-core persistent listener (if persistent_torrent_completed_stat)"]
-        LUC["udp-core listener"]
-        udpServerStats["udp-server statistics listener"]
-        udpServerBanning["udp-server banning listener"]
-    end
-    HTTP --> HCS --> BH
-    HTTP --> TCS
-    UDP --> UCS --> BUC
-    UDP --> USS --> BUS
-    UDP --> TCS
-    CLEAN --> TCS --> BS
-    BH --> LH
-    BS --> LS & LTI & LTP
-    BUC --> LUC
-    BUS --> udpServerStats & udpServerBanning
-```
-
-The two UDP-server listeners start only when UDP trackers start. The udp-core
-listener starts unconditionally, like the http-core listener.
-
-### 2. Supervision tree and stop-before edges (after SI-22)
-
-Solid arrows are ownership: `JobManager` owns the top-level components, and
-each component owns and joins its child tasks. Dashed arrows are the
-stop-before edges that `EventFlows` derives. Components without edges stop
-as soon as shutdown starts.
-
-```mermaid
-flowchart TD
-    JM["JobManager (supervisor)"]
-    subgraph TopLevel["Top-level components (each with its own token)"]
-        HTTP["HTTP tracker instance (xN)"]
-        UDP["UDP tracker instance (xM)"]
-        CLEAN["Torrent cleanup"]
-        LH["http-core listener"]
-        LSW["swarm-bus listeners (up to 3)"]
-        LUC["udp-core listener"]
-        LUS["udp-server listeners (2)"]
-        REST["REST API"]
-        HEALTH["Health-check API"]
-        METRICS["Activity metrics updater"]
-        BAN["udp_ban_cleanup (legacy, root token)"]
-    end
-    JM --> HTTP & UDP & CLEAN & LH & LSW & LUC & LUS & REST & HEALTH & METRICS & BAN
-    HTTP --> httpTasks["server task + drain controller"]
-    UDP --> udpTasks["receive loop + request processors"]
-    REST --> restTasks["server task + drain controller"]
-    HEALTH --> healthTasks["server task + drain controller"]
-    HTTP -. "stops before" .-> LH
-    HTTP -. "stops before" .-> LSW
-    UDP -. "stops before" .-> LUC
-    UDP -. "stops before" .-> LUS
-    UDP -. "stops before" .-> LSW
-    CLEAN -. "stops before" .-> LSW
-```
-
-### 3. Shutdown sequence (after SI-22)
-
-A listener is cancelled as soon as every producer of its buses has completed;
-for example, the UDP listeners can stop while an HTTP drain is still running.
-
-```mermaid
-sequenceDiagram
-    participant Operator
-    participant Main as main()
-    participant JM as JobManager
-    participant Prod as Producers (HTTP, UDP, torrent cleanup)
-    participant Other as Components without edges
-    participant Lis as Event listeners
-    Operator->>Main: SIGTERM or SIGINT
-    Main->>JM: cancel()
-    JM->>Prod: cancel (no predecessors)
-    JM->>Other: cancel (no predecessors)
-    Note over Prod: Drain in-flight requests and keep publishing events
-    Prod-->>JM: completed
-    Other-->>JM: completed
-    JM->>Lis: cancel each listener once all its producers have completed
-    Note over Lis: try_recv until Empty or the drain timeout, then log counts
-    Lis-->>JM: Cancelled, with processed, lagged, and leftover counts
-    alt shared deadline expires first
-        JM->>Lis: abort and join what remains
-    end
-    JM-->>Main: named outcomes
-    Main-->>Operator: process exits
-```
-
-### 4. Startup sequence (after SI-22)
-
-The instantiation tree in time order, and the mirror of diagram 3. The
-construction phase builds services through constructors, in dependency order,
-with no lifecycle. The execution phase registers components: every listener
-first, so no event is published before its consumer exists, then the
-producers. Shutdown stops them in reverse.
-
-```mermaid
-sequenceDiagram
-    participant Main as main()
-    participant Boot as bootstrap
-    participant AC as AppContainer
-    participant JM as JobManager
-    participant Flows as EventFlows
-    Main->>Boot: setup
-    Boot->>AC: initialize()
-    Note over AC: Construction phase: package containers create the event buses and the shared services that hold their senders
-    Main->>Boot: start_jobs()
-    loop each started listener
-        Boot->>JM: reserve(name)
-        JM-->>Boot: id and own token
-        Boot->>AC: take a receiver from the listener's bus
-        Boot->>JM: spawn(reservation, listener runner)
-        Boot->>Flows: add_consumer(bus, id)
-    end
-    loop each producer (HTTP and UDP instances, torrent cleanup)
-        Boot->>JM: reserve(name)
-        JM-->>Boot: id and own token
-        Boot->>AC: get the shared services (servers bind their socket)
-        Boot->>Flows: consumers_of(buses)
-        Flows-->>Boot: consumer ids
-        Boot->>JM: spawn(reservation, runner, StopBefore(consumer ids))
-    end
-    Note over Boot,JM: REST API, health check, activity metrics, and udp_ban_cleanup register without edges
-    Boot-->>Main: JobManager
-```
-
-### 5. Boundary of one component
-
-Diagram 2 shows every component; this one zooms into one, an HTTP tracker
-instance, to show where a component ends (D8). Everything inside the box
-stops on the component's one token and is joined before the component reports
-its outcome. Everything outside is shared: the component only uses it, and
-never stops it.
-
-```mermaid
-flowchart LR
-    JM["JobManager"]
-    subgraph Component["Boundary of one top-level component: an HTTP tracker instance"]
-        direction TB
-        Token["own cancellation token"]
-        Runner["component runner (top-level task)"]
-        Server["server task"]
-        Drain["drain controller"]
-        Token --> Runner
-        Runner -->|owns and joins| Server
-        Runner -->|owns and joins| Drain
-    end
-    subgraph Shared["Shared: outside every component, no lifecycle"]
-        direction TB
-        HCont["HTTP instance container"]
-        HCS["http-core services"]
-        TCS["tracker-core services and swarm registry"]
-        Buses(("http-core and swarm buses"))
-    end
-    JM -->|issues| Token
-    JM -->|owns and joins| Runner
-    Server -. uses .-> HCont
-    HCont -. holds .-> HCS & TCS
-    HCS & TCS -. publish on .-> Buses
-```
+1. Event data flow: [Events Architecture](../../../architecture/events.md#event-data-flow-and-shutdown-order).
+2. Supervision tree and stop-before edges:
+   [Application Jobs](../../../architecture/application-jobs.md#supervision-tree-and-stop-order).
+3. Shutdown sequence: [Application Jobs](../../../architecture/application-jobs.md#shutdown-sequence).
+4. Startup sequence: [Application Jobs](../../../architecture/application-jobs.md#startup-sequence).
+5. Boundary of one component: [Application Jobs](../../../architecture/application-jobs.md#boundary-of-one-component).
 
 ## Architectural Decisions
 
@@ -1862,6 +1728,8 @@ flowchart LR
   linking the glossary in `docs/architecture/glossary.md` (D12). It clarifies
   that one top-level task per component is how components are hosted today,
   not what a component is.
+- ADR created (#2416 T10, 2026-10-21): [Order shutdown by event flow and drain event listeners](../../../adrs/20261021184946_order_shutdown_by_event_flow_and_drain_event_listeners.md),
+  which supersedes the cancellation-tree ADR.
 
 ## Design and Ownership Review
 
@@ -1968,14 +1836,14 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T0  | DONE   | Real-artifact reproduction        | Reproduced (V1): control runs isolate window (a); race runs lost about 92% of answered completions. Disposable script `reproduce-lost-completions.sh`. |
 | T1  | DONE   | Producer/consumer inventory       | Every producer, consumer, and listener chain recorded in the shutdown task inventory.                                           |
 | T2  | DONE   | Glossary, jobs doc, ADR draft     | `docs/architecture/glossary.md` created and `docs/application-jobs.md` moved (D12); ADR draft `adr-draft.md` in this folder (D15) covering D1, D7-D9, and D13, written to fully supersede the cancellation-tree ADR (D11). Maintainer approval before code. |
-| T3  | TODO   | Red regression test (listener)    | Persistent listener test fails against the cancel-first loop; red output recorded.                                              |
-| T4  | TODO   | Listener drain (first listener)   | Persistent listener drains until empty or timeout, logs counts and leftover warning; tests green. Design-review checkpoint.     |
-| T5  | TODO   | Listener drain (remaining)        | Same policy for the other six listener components; characterization tests replaced.                                             |
+| T3  | DONE   | Red regression test (listener)    | Persistent listener test fails against the cancel-first loop; red output recorded.                                              |
+| T4  | DONE   | Listener drain (first listener)   | Persistent listener drains until empty or timeout, logs counts and leftover warning; tests green. Design-review checkpoint.     |
+| T5  | DONE   | Listener drain (remaining)        | Same policy for the other six listener components; characterization tests replaced.                                             |
 | T6  | DONE   | Per-component tokens (refactor)   | Reservation-based registration; every component uses only its own token. No edges yet: `cancel()` still cancels everything at once. Existing tests green. |
-| T7  | TODO   | Red regression test (stop order)  | `JobManager` stop-order test fails while edges are stored but not enforced; red output recorded.                                |
-| T8  | TODO   | Stop order                        | `JobManager` enforces edges; `EventFlows` registry; bootstrap declarations per the Chosen Design; tests green.                  |
-| T9  | TODO   | Test environments                 | HTTP and UDP environments stop servers before listeners, keep both guarantees in [Test environments](#test-environments), and gain the late-event test for each (prerequisite #2471 merged in PR #2544). |
-| T10 | TODO   | Docs, verification, recheck       | Jobs doc and glossary updated to the final implementation; ADR draft moved into `docs/adrs/` and the old ADR superseded (D15); diagrams moved to `docs/architecture/` (D16); task inventory and feature docs; automatic checks; T0 recheck; AC review; completion review. |
+| T7  | DONE   | Red regression test (stop order)  | `JobManager` stop-order test fails while edges are stored but not enforced; red output recorded.                                |
+| T8  | DONE   | Stop order                        | `JobManager` enforces edges; `EventFlows` registry; bootstrap declarations per the Chosen Design; tests green.                  |
+| T9  | DONE   | Test environments                 | HTTP and UDP environments stop servers before listeners, keep both guarantees in [Test environments](#test-environments), and gain the late-event test for each (prerequisite #2471 merged in PR #2544). |
+| T10 | DONE   | Docs, verification, recheck       | Jobs doc and glossary updated to the final implementation; ADR draft moved into `docs/adrs/` and the old ADR superseded (D15); diagrams moved to `docs/architecture/` (D16); task inventory and feature docs; automatic checks; T0 recheck; AC review; completion review. |
 
 ### Implementation Steps
 
@@ -2270,6 +2138,17 @@ avoids duplicating the full workflow in four drafts:
 - 2026-10-21 07:20 UTC - GitHub Copilot (Claude Opus 5.5) - #2415 Task Reviewer report (REVIEW PASSED, with findings) and implementation retrospective recorded in its folder. Record entry 30 is restamped from 20:52 to 20:53, the minute the maintainer's answer arrived, because the 20:52 progress-log entry says the review was still pending (Task Reviewer N1). No design change.
 - 2026-10-21 08:18 UTC - GitHub Copilot (Claude Opus 5.5) - #2415 opened as PR #2591; Copilot review round 1 fixed two implementation details of `JobManager`'s registry (the id counter cannot wrap, and `mark_spawned` asserts its invariant), audit in `docs/pr-reviews/pr-2591-review/PR-REVIEW.md`. No design change.
 - 2026-10-21 09:23 UTC - GitHub Copilot (Claude Sonnet 5.5) - #2415 merged in PR #2591 (2026-10-21 09:19 UTC) and archived to `docs/issues/closed/`; its Subissues row and the T6 plan row are `DONE`. The two design-review checkpoints required by D14 for T6 were held, and record entry 30 holds their decisions. Its Task Reviewer report and implementation retrospective are in the archived folder. #2416 is not started. No design change.
+- 2026-10-21 17:07 UTC - GitHub Copilot (Claude Opus 5.5) - #2416 started (branch `2416-stop-producers-before-listeners`); its row is `IN_PROGRESS`, T7 is `DONE` and T8 `IN_PROGRESS`. T7: window (b) reproduced with controlled late publication on the real swarm bus (red, #2416 evidence V1); the real-binary `race` run is not the red proof. The maintainer approved the `StopBefore` API at the checkpoint before the edges were built (additive `spawn_with`, three `SpawnError` variants, completion tracked at the join in `wait_for_all`). T8 is implemented in the working tree and awaits the design-review checkpoint after T8. No design change beyond that approval; any addition found is recorded as a new record entry after the checkpoint.
+- 2026-10-21 17:09 UTC - GitHub Copilot (Claude Opus 5.5) - #2416 T8 design-review checkpoint passed: the maintainer approved T8 and four additions (public `waiting_components()`, `ComponentId` naming its manager, the HTTP test helper and its `[[test]]` binary, a `BTreeMap` registry), recorded as Design Discussion Record entry 31; `adr-draft.md` sections 3 and 4 and the Chosen Design `JobManager` section are updated in the same change (D14, D15). T8 is `DONE` after its commit.
+- 2026-10-21 18:47 UTC - GitHub Copilot (Claude Opus 5.5) - #2416 T9 implemented and approved by the maintainer: both test environments stop the server first (D20), with record entry 32 for the guard detail. HTTP has a deterministic red/green late-event test; UDP does not (evidence V4). `adr-draft.md` section 8 updated in the same change.
+- 2026-10-21 18:50 UTC - GitHub Copilot (Claude Opus 5.5) - #2416 T10: the ADR draft moved from this folder to `docs/adrs/20261021184946_order_shutdown_by_event_flow_and_drain_event_listeners.md` (D15), the cancellation-tree ADR is marked `Superseded by` it, and `docs/adrs/index.md` lists it. The draft was bare-mentioned as `adr-draft.md` in closed specs and in earlier entries of this record; those are history and are not rewritten, and no link pointed to the draft.
+- 2026-10-21 18:55 UTC - GitHub Copilot (Claude Opus 5.5) - #2416 T10: the five diagrams (D16) moved to `docs/architecture/events.md` (event data flow, which now also documents the swarm bus, its producers, and its three listeners) and `docs/architecture/application-jobs.md` (supervision tree, startup and shutdown sequences, component boundary), updated to the final implementation; this record keeps links instead of copies. The jobs doc, glossary, task inventory, shutdown feature README, and shutdown architecture examples describe the final implementation.
+- 2026-10-21 19:23 UTC - GitHub Copilot (Claude Opus 5.5) - #2416 pre-push review done: the plan rows T3 to T5 now read `DONE` (they still read `TODO` after #2414 merged; a stale status the Task Reviewer found, not a design change). #2416 evidence counts corrected. No design change.
+- 2026-10-22 07:05 UTC - GitHub Copilot (Claude Opus 5.5) - #2416 checkpoint (c): the maintainer asked to keep `reproduce-lost-completions.sh` here, and approved documenting the draft-ADR process (D15) in the `create-adr` skill, which a separate commit of #2416 did. #2416 is pushed for review. No design change.
+- 2026-10-22 17:08 UTC - GitHub Copilot (Claude Opus 5.5) - #2416 review round 1 (the maintainer-requested review of PR #2623): finding F2 corrected record entry 32 (a UDP request can be held in flight) and added a UDP late-event test (#2416 evidence V7). No design change.
+- 2026-10-22 17:10 UTC - GitHub Copilot (Claude Opus 5.5) - #2416 review round 1, finding F3: the wording "cannot leave detached listeners" in record entry 32 and in the ADR now says what the code guarantees (cancelled, not joined). No design change.
+- 2026-10-22 17:12 UTC - GitHub Copilot (Claude Opus 5.5) - #2416 review round 1, finding F1: the plan row T10 reads `DONE` (it still read `TODO` while the Subissues row said `IN_PROGRESS`); the Subissues row stays `IN_PROGRESS` until the maintainer accepts and merges. No design change.
+- 2026-10-23 17:50 UTC - GitHub Copilot (model not verifiable from the session; the maintainer states Claude Sonnet 5.5) - Correction of the model stamps in this log: the entries of the #2416 work that name `Claude Opus 5.5` copied that name from earlier entries without checking it, and the maintainer states that the session ran Claude Sonnet 5.5. The earlier entries are not rewritten; read them as `model unverified`. Appended in the same round as review round 6 of PR #2623 (finding F17), recorded in the audit `docs/pr-reviews/pr-2623-review/PR-REVIEW.md`.
 
 ## Acceptance Criteria
 

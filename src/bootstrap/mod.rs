@@ -7,5 +7,6 @@
 //! For example, you can have more than one UDP and HTTP tracker, each server is executed like a independent job.
 pub mod app;
 pub mod config;
+pub mod event_flows;
 pub mod jobs;
 pub mod persistence;

@@ -27,12 +27,18 @@ pub struct Stopped {
 /// A test environment whose HTTP tracker and statistics event listener run
 /// on the token-aware lifecycle. The environment owns every task it started.
 ///
-/// Dropping it without `stop()` requests cancellation, and the server shuts
+/// The server and the listener have independent cancellation tokens, like
+/// components of the tracker application: `stop()` cancels the server and waits
+/// for it, and only then cancels the listener, so that the events of requests
+/// that complete while the server drains are still processed.
+///
+/// Dropping it without `stop()` cancels both tokens, and the server shuts
 /// down once it observes it, so the binding is released shortly after the drop.
 pub struct Running {
     server: CancellationRunning,
     event_listener_job: JoinHandle<()>,
-    cancel_on_drop: DropGuard,
+    cancel_server_on_drop: DropGuard,
+    cancel_listener_on_drop: DropGuard,
 }
 
 pub struct Environment<S> {
@@ -104,7 +110,8 @@ impl Environment<Stopped> {
     /// Panics if the HTTP tracker server fails to start or register with the
     /// test registry.
     pub async fn start_with_health_check(self, health_check: FnSpawnServiceHeathCheck) -> Environment<Running> {
-        let cancellation_token = CancellationToken::new();
+        let server_token = CancellationToken::new();
+        let listener_token = CancellationToken::new();
 
         // Subscribe before the server can publish, but spawn the listener only after a successful start,
         // so a failed start leaves no detached task behind.
@@ -117,7 +124,7 @@ impl Environment<Stopped> {
                 self.container.http_tracker_core_container.clone(),
                 self.registar.give_form(),
                 RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0)),
-                cancellation_token.clone(),
+                server_token.clone(),
                 health_check,
             )
             .await
@@ -125,7 +132,7 @@ impl Environment<Stopped> {
 
         let event_listener_job = run_event_listener(
             event_receiver,
-            cancellation_token.clone(),
+            listener_token.clone(),
             &self.container.http_tracker_core_container.stats_repository,
             [(ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0), true)].into(),
             DEFAULT_DRAIN_TIMEOUT,
@@ -137,7 +144,8 @@ impl Environment<Stopped> {
             state: Running {
                 server,
                 event_listener_job,
-                cancel_on_drop: cancellation_token.drop_guard(),
+                cancel_server_on_drop: server_token.drop_guard(),
+                cancel_listener_on_drop: listener_token.drop_guard(),
             },
         }
     }
@@ -153,10 +161,11 @@ impl Environment<Running> {
 
     /// Stops the test environment and return a stopped environment.
     ///
-    /// It cancels the environment token once, then joins the HTTP server task,
-    /// its drain controller, and the statistics event listener. Events still
-    /// queued in the listener at that moment are discarded, as in the tracker
-    /// application (see #2410).
+    /// It cancels the server token and joins the HTTP server task and its drain
+    /// controller, so every request the server accepted has published its
+    /// events. Only then it cancels the listener token and joins the statistics
+    /// event listener, which processes the events still queued for it (see
+    /// #2410).
     ///
     /// # Panics
     ///
@@ -171,12 +180,13 @@ impl Environment<Running> {
                     ..
                 },
             event_listener_job,
-            cancel_on_drop,
+            cancel_server_on_drop,
+            cancel_listener_on_drop,
         } = self.state;
 
-        cancel_on_drop.disarm().cancel();
+        cancel_server_on_drop.disarm().cancel();
 
-        let launcher = join_owned_tasks(task, shutdown_controller, event_listener_job)
+        let launcher = join_owned_tasks(task, shutdown_controller, cancel_listener_on_drop, event_listener_job)
             .await
             .unwrap_or_else(|failures| panic!("Failed to stop the HTTP test environment: {failures}"));
 
@@ -249,14 +259,23 @@ fn initialize_static() {
     torrust_clock::initialize_static();
 }
 
-/// Joins every task a running environment owns and reports all failures at
-/// once, so an early failure never leaves a remaining task detached.
+/// Joins every task a running environment owns, in the order that protects the
+/// events, and reports all failures at once, so an early failure never leaves a
+/// remaining task detached.
+///
+/// The server and its drain controller are joined first. Only then the
+/// listener is cancelled and joined. The guard stays armed until then, so
+/// abandoning this future before the server stage ends still cancels the
+/// listener.
 async fn join_owned_tasks(
     server_task: JoinHandle<Launcher>,
     drain_controller: JoinHandle<GracefulShutdownOutcome>,
+    cancel_listener_on_drop: DropGuard,
     event_listener: JoinHandle<()>,
 ) -> Result<Launcher, String> {
-    let (server_result, drain_result, listener_result) = tokio::join!(server_task, drain_controller, event_listener);
+    let (server_result, drain_result) = tokio::join!(server_task, drain_controller);
+    cancel_listener_on_drop.disarm().cancel();
+    let listener_result = event_listener.await;
 
     let mut failures = Vec::new();
 
@@ -287,6 +306,7 @@ mod tests {
     use std::sync::atomic::{AtomicBool, Ordering};
     use std::time::Duration;
 
+    use tokio::io::{AsyncReadExt, AsyncWriteExt};
     use tokio_util::sync::CancellationToken;
     use torrust_tracker_axum_server::signals::GracefulShutdownOutcome;
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
@@ -438,12 +458,16 @@ mod tests {
                 listener_finished.store(true, Ordering::SeqCst);
             }
         });
-        cancellation_token.cancel();
 
         // Act
         let result = tokio::time::timeout(
             TEST_DEADLINE,
-            join_owned_tasks(failed_server_task, drained_controller, event_listener),
+            join_owned_tasks(
+                failed_server_task,
+                drained_controller,
+                cancellation_token.drop_guard(),
+                event_listener,
+            ),
         )
         .await
         .expect("joining the owned tasks should finish within the test deadline");
@@ -462,6 +486,194 @@ mod tests {
         );
     }
 
+    /// An announce request whose header block is not terminated yet: the server keeps the connection
+    /// open and waits for the rest, so the request is still in flight while the environment stops.
+    const UNFINISHED_COMPLETED_ANNOUNCE: &[u8] = b"GET /announce?info_hash=%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%01&peer_id=-qB00000000000000001&port=17548&uploaded=0&downloaded=0&left=0&event=completed HTTP/1.1\r\nHost: 127.0.0.1\r\n";
+
+    /// Waits until the server no longer accepts connections, which only happens once it started to shut down.
+    async fn wait_until_the_server_refuses_new_connections(address: SocketAddr) {
+        tokio::time::timeout(TEST_DEADLINE, async {
+            while tokio::net::TcpStream::connect(address).await.is_ok() {
+                tokio::time::sleep(Duration::from_millis(10)).await;
+            }
+        })
+        .await
+        .expect("the server should stop accepting connections once stop() asked it to shut down");
+    }
+
+    #[tokio::test]
+    async fn it_should_count_the_statistics_event_of_a_request_that_completes_while_stop_drains_the_server() {
+        // Arrange
+        // A client has sent every header of a `completed` announce except the final blank line, so the
+        // request is still in flight. The environment starts to stop, and the server keeps the connection
+        // open while it drains.
+        let environment = start_within_deadline(unstarted_environment().await).await;
+        let address = *environment.bind_address();
+        let container = environment.container.clone();
+        let mut client = tokio::net::TcpStream::connect(address)
+            .await
+            .expect("the running server should accept the client");
+        client
+            .write_all(UNFINISHED_COMPLETED_ANNOUNCE)
+            .await
+            .expect("the client should send the first part of the request");
+        let stop = tokio::spawn(environment.stop());
+        wait_until_the_server_refuses_new_connections(address).await;
+
+        // Act
+        // The client finishes the request while the server is draining, and `stop()` returns afterwards.
+        client
+            .write_all(b"\r\n")
+            .await
+            .expect("the draining server should still read the rest of the request");
+        let mut response = [0_u8; 12];
+        client
+            .read_exact(&mut response)
+            .await
+            .expect("the draining server should answer the request");
+        tokio::time::timeout(TEST_DEADLINE, stop)
+            .await
+            .expect("stop() should finish within the test deadline")
+            .expect("stop() should not panic");
+
+        // Assert
+        // The announce was answered, and its event, published during the drain, was counted before stop() returned.
+        assert_eq!(&response, b"HTTP/1.1 200", "the in-flight announce should be answered");
+        let counted = container
+            .http_tracker_core_container
+            .stats_repository
+            .read_metrics(torrust_tracker_http_core::statistics::metrics::Metrics::tcp4_announces_handled)
+            .await;
+        assert_eq!(
+            counted, 1,
+            "the announce completed while stop() was draining the server, so its event must be counted before stop() returns"
+        );
+    }
+
+    /// Lets every other runnable task run: on the test's current-thread runtime a task cannot
+    /// make progress while the test itself runs.
+    async fn let_the_other_tasks_run() {
+        for _ in 0..16 {
+            tokio::task::yield_now().await;
+        }
+    }
+
+    #[tokio::test]
+    async fn it_should_cancel_the_event_listener_only_after_the_server_and_its_drain_controller_have_finished() {
+        // Arrange
+        // The server task and its drain controller each finish only when the test releases them, like a
+        // server that is still answering requests. The listener waits for its own stop request.
+        let listener_token = CancellationToken::new();
+        let (release_server, server_released) = tokio::sync::oneshot::channel::<()>();
+        let (release_controller, controller_released) = tokio::sync::oneshot::channel::<()>();
+        let server_task = tokio::spawn(async move {
+            let _ = server_released.await;
+            Launcher::new(SocketAddr::from(([127, 0, 0, 1], 0)), None, false)
+        });
+        let drain_controller = tokio::spawn(async move {
+            let _ = controller_released.await;
+            GracefulShutdownOutcome::Drained
+        });
+        let event_listener = tokio::spawn({
+            let listener_token = listener_token.clone();
+            async move { listener_token.cancelled().await }
+        });
+
+        // Act
+        // The environment joins its tasks; the server finishes first, and then its drain controller.
+        let join = tokio::spawn(join_owned_tasks(
+            server_task,
+            drain_controller,
+            listener_token.clone().drop_guard(),
+            event_listener,
+        ));
+        let_the_other_tasks_run().await;
+        let cancelled_while_the_server_runs = listener_token.is_cancelled();
+        release_server.send(()).expect("the server task is waiting for its release");
+        let_the_other_tasks_run().await;
+        let cancelled_while_the_controller_runs = listener_token.is_cancelled();
+        release_controller
+            .send(())
+            .expect("the drain controller is waiting for its release");
+        let result = join.await.expect("joining must not panic");
+
+        // Assert
+        // The listener is cancelled only once both server-side tasks have finished, and is joined too.
+        assert!(
+            !cancelled_while_the_server_runs,
+            "the listener must not be cancelled while the server runs"
+        );
+        assert!(
+            !cancelled_while_the_controller_runs,
+            "the listener must not be cancelled while the drain controller runs"
+        );
+        assert!(
+            listener_token.is_cancelled(),
+            "the listener must be cancelled once the server and its drain controller finished"
+        );
+        assert!(result.is_ok(), "every task finished normally: {result:?}");
+    }
+
+    #[tokio::test]
+    async fn it_should_cancel_the_event_listener_when_the_join_is_abandoned_while_the_server_runs() {
+        // Arrange
+        // The server task never finishes. The listener waits for its own stop request.
+        let listener_token = CancellationToken::new();
+        let server_task = tokio::spawn(std::future::pending::<Launcher>());
+        let drain_controller = tokio::spawn(std::future::pending::<GracefulShutdownOutcome>());
+        let event_listener = tokio::spawn({
+            let listener_token = listener_token.clone();
+            async move { listener_token.cancelled().await }
+        });
+
+        // Act
+        // The caller gives up on the join, for example because its own deadline expired.
+        let abandoned = tokio::time::timeout(
+            Duration::from_millis(10),
+            join_owned_tasks(
+                server_task,
+                drain_controller,
+                listener_token.clone().drop_guard(),
+                event_listener,
+            ),
+        )
+        .await;
+
+        // Assert
+        // Abandoning the join must not leave a listener that was never asked to stop. It is cancelled, not joined.
+        assert!(abandoned.is_err(), "the join should still be waiting for the server");
+        assert!(
+            listener_token.is_cancelled(),
+            "dropping the join before the server stage ends must still cancel the listener"
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_stop_the_event_listener_when_dropped_without_being_stopped() {
+        // Arrange
+        let environment = start_within_deadline(unstarted_environment().await).await;
+        let container = environment.container.clone();
+        let holders_while_running = Arc::strong_count(&container.http_tracker_core_container.stats_repository);
+
+        // Act
+        drop(environment);
+
+        // Assert
+        // Dropping cannot await the listener, so it stops shortly after. While it runs it holds the
+        // statistics repository, so the repository's holders show whether it stopped.
+        assert!(
+            holders_while_running > 1,
+            "the running listener should hold the statistics repository"
+        );
+        tokio::time::timeout(TEST_DEADLINE, async {
+            while Arc::strong_count(&container.http_tracker_core_container.stats_repository) > 1 {
+                tokio::time::sleep(Duration::from_millis(10)).await;
+            }
+        })
+        .await
+        .expect("the event listener should stop within the test deadline after the environment is dropped");
+    }
+
     #[tokio::test]
     async fn it_should_report_a_drain_timeout_even_when_every_task_joins() {
         // Arrange
@@ -472,7 +684,12 @@ mod tests {
         // Act
         let result = tokio::time::timeout(
             TEST_DEADLINE,
-            join_owned_tasks(finished_server_task, timed_out_controller, finished_event_listener),
+            join_owned_tasks(
+                finished_server_task,
+                timed_out_controller,
+                CancellationToken::new().drop_guard(),
+                finished_event_listener,
+            ),
         )
         .await
         .expect("joining the owned tasks should finish within the test deadline");

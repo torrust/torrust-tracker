@@ -21,15 +21,11 @@ semantic-links:
 
 # Order Shutdown by Event Flow and Drain Event Listeners
 
-> **Draft (D15).** This file stays in the sub-EPIC folder until the design is
-> validated by the implementation. Every agreed design change (D14) updates it
-> in the same change. The last pull request that changes the design moves it to
-> `docs/adrs/` under a `create-adr` filename generated at that moment, adds
-> `- Status: Superseded by [...]` to the cancellation-tree ADR, and registers it
-> in `docs/adrs/index.md`. Until then it is not an accepted decision.
->
 > Statements marked **read from source, not run** come from reading the code
-> and the dependency source on 2026-10-16; no program was executed for them.
+> and the dependency source on 2026-10-16 and 2026-10-21; no program was
+> executed for them. The stop order and the listener drain were implemented
+> and verified by sub-EPIC #2410 (issues #2414 to #2416); its design record
+> holds the decisions D1 to D20, the discussion record, and the evidence.
 
 ## Scope
 
@@ -39,12 +35,12 @@ application bootstrap (`src/app.rs`, `src/bootstrap/`), the supervisor
 event buses with their seven listeners in the `swarm-coordination-registry`,
 `tracker-core`, `http-core`, `udp-core`, and `udp-server` packages. The
 decision lives in no single package. Terms are defined in the
-[glossary](../../../architecture/glossary.md); the bus topology is in
-[`events.md`](../../../architecture/events.md) and the
-[task inventory](../../../features/shutdown-process/task-inventory.md#event-producer-consumer-inventory).
+[glossary](../architecture/glossary.md); the bus topology is in
+[`events.md`](../architecture/events.md) and the
+[task inventory](../features/shutdown-process/task-inventory.md#event-producer-consumer-inventory).
 
 This ADR fully supersedes
-[Adopt a supervised cancellation tree for shutdown](../../../adrs/20260902074438_adopt_supervised_cancellation_tree_for_shutdown.md)
+[Adopt a supervised cancellation tree for shutdown](20260902074438_adopt_supervised_cancellation_tree_for_shutdown.md)
 (D11). A partial supersession of its points 2 and 3 would force readers to merge
 two documents, so this one restates everything that remains valid.
 
@@ -53,15 +49,15 @@ two documents, so this one restates everything that remains valid.
 The tracker publishes domain events (announce handled, peer download
 completed, and so on) on four in-process broadcast channels. Seven listener
 components consume them to update statistics, to persist completed-download
-counts, and to ban clients. On shutdown, `JobManager::cancel` cancels one root
-token and every component sees it at once (read from source, not run:
-`src/bootstrap/jobs/manager.rs`).
+counts, and to ban clients. Before this decision, on shutdown
+`JobManager::cancel` cancelled one root token and every component saw it at once
+(read from source, not run: `src/bootstrap/jobs/manager.rs`).
 
-Each listener runs a `tokio::select!` marked `biased` with the cancellation
-branch first, and the event handler runs in the body of the `recv` branch (read
-from source, not run: all seven listener loops). Once the token is cancelled the
-cancellation branch always wins, so the listener returns even when events are
-queued. Two loss windows follow:
+Before this decision, each listener ran a `tokio::select!` marked `biased` with
+the cancellation branch first, and the event handler ran in the body of the
+`recv` branch (read from source, not run: all seven listener loops). Once the
+token was cancelled the cancellation branch always won, so the listener returned
+even when events were queued. Two loss windows followed:
 
 - **Window (a)**: events already queued when a listener stops are dropped.
 - **Window (b)**: events published after every consumer of their bus has
@@ -75,7 +71,7 @@ observable decision. The reproduction on the real binary (V1 in the sub-EPIC)
 measured about 92% of answered `completed` announces missing from the database
 when SIGTERM arrived during a burst.
 
-Facts that constrain the design:
+Facts that constrained the design:
 
 - A Tokio broadcast channel delivers an event only to receivers that existed
   when it was sent. Each bus buffers up to 65,536 events (`CHANNEL_CAPACITY`);
@@ -85,14 +81,14 @@ Facts that constrain the design:
   `main` holds the application container until after
   `jobs.wait_for_all(...)` (read from source, not run: `src/main.rs`). A
   consumer needs its own stop request.
-- `start_jobs_with_manager` already starts every listener before any producer
-  (read from source, not run: `src/app.rs`). The order exists only as the
-  order of lines, and shutdown ignores it.
+- `start_jobs_with_manager` already started every listener before any producer
+  (read from source, not run: `src/app.rs`). The order existed only as the
+  order of lines, and shutdown ignored it.
 - Producers are the HTTP and UDP tracker instances and the torrent cleanup job,
   which publishes `PeerRemoved` and `TorrentRemoved` on the swarm bus through
   the swarm registry. Every publish site awaits `send` inline; none sends from a
   detached task (read from source, not run).
-- The `Receiver` trait in `packages/events/src/receiver.rs` exposes only an
+- The `Receiver` trait in `packages/events/src/receiver.rs` exposed only an
   async `recv`.
 - `main` gives `JobManager::wait_for_all` a 10-second shared deadline, while
   the HTTP drain timeout is 90 seconds and the UDP request drain is 5 seconds
@@ -107,7 +103,7 @@ composition root, from facts about event buses.
 
 ### 1. Components, services, and tasks, and the boundary rule
 
-The terms are those of the [glossary](../../../architecture/glossary.md). A
+The terms are those of the [glossary](../architecture/glossary.md). A
 **service** is a Rust value with constructor dependencies and no lifecycle. A
 **component** runs until asked to stop, drains, and reports one outcome. A
 **task** is where code executes. A token targets components, never tasks: it
@@ -139,20 +135,27 @@ the superseded ADR: the root token stops being the only source of tokens.
   `CancellationToken`, not derived from a shared root token. A consumer
   registered before its producers must not hold a child of a token that its
   producers' cancellation would also cancel.
-- `spawn(reservation, runner, StopBefore(ids))` registers the runner and its
-  edges. Ids come only from earlier reservations, so every edge points
-  backwards and the graph has no cycle. A reservation dropped without being
-  spawned (for example after a bind failure) is released, and no component waits
-  for it.
+- `spawn_with(reservation, StopBefore(&ids), runner)` registers the runner and its
+  edges; `spawn(reservation, runner)` is the same without edges. The component
+  being spawned stops before every id in `StopBefore`. Ids come only from
+  earlier reservations of the same manager (an id names its manager and is
+  ordered by reservation), so every edge points backwards and the graph has no
+  cycle. A reservation dropped without being spawned (for example after a bind
+  failure) is released, and no component waits for it.
 - `cancel()` cancels every component with no unfinished predecessor, plus the
-  legacy root token.
+  legacy root token. It is idempotent.
 - `wait_for_all(deadline)` keeps one shared deadline, then aborts and joins what
-  remains, with named outcomes. After shutdown is requested, each completion
-  cancels the components whose predecessors have all finished. A failed or
-  panicked predecessor releases its dependents once its owned work has stopped,
-  and its failure outcome stays visible. Completion before shutdown never
-  cancels a consumer by itself. Logs say what a component waits for and when it
-  is cancelled.
+  remains, with named outcomes. A component is finished when its task has been
+  joined there. After shutdown is requested, each completion cancels the
+  components whose predecessors have all finished; a predecessor that finished
+  before `cancel()` is accounted for at the first join. A failed or panicked
+  predecessor releases its dependents once its owned work has stopped, and its
+  failure outcome stays visible. Completion before shutdown never cancels a
+  consumer by itself. At the deadline every component left, including consumers
+  that were never asked to stop, is aborted and joined, and the log names what
+  each was still waiting for. `cancel()` logs, per component, that it was asked
+  to stop or what it waits for; each release logs which completion released it.
+  `waiting_components()` returns the same waiting relation for inspection.
 - `register_legacy` keeps today's behavior (the root token, no edges) until
   `udp_ban_cleanup` migrates. The root token is reached only through
   `legacy_cancellation_token()`, so a component cannot pick it up by accident.
@@ -161,10 +164,14 @@ the superseded ADR: the root token stops being the only source of tokens.
   otherwise, and bootstrap propagates that error as a startup failure.
 - Registration must not lose a stop request that was already issued: cancellation
   before `reserve`, between `reserve` and `spawn`, and repeated cancellation are
-  covered. Foreign or released ids and edges added after ordered shutdown starts
-  are rejected, so no live producer appears behind an already-cancelled
-  consumer. The precise API errors are reviewed in the implementing issues,
-  without widening this design.
+  covered. `spawn_with` rejects, with a `SpawnError` that leaves no edge and no
+  running runner and releases the reservation: an id that is not a component of
+  this manager (another manager's, a released reservation, never issued)
+  (`UnknownStopBeforeTarget`), an id that is the component itself or was reserved
+  after it (`StopBeforeTargetNotEarlier`), and any edge once `cancel()` was
+  called (`ShutdownRequested`), so no live producer appears behind an
+  already-cancelled consumer. Bootstrap propagates these errors as startup
+  failures.
 
 ### 4. Per-bus declarations in a bootstrap registry (`EventFlows`)
 
@@ -189,9 +196,9 @@ impl EventFlows {
 | http-core listener                                                 | `add_consumer(Bus::HttpCore, ...)`                         |
 | udp-core listener                                                  | `add_consumer(Bus::UdpCore, ...)`, starts unconditionally  |
 | udp-server statistics and banning listeners                        | `add_consumer(Bus::UdpServer, ...)`, when UDP starts       |
-| HTTP tracker instance                                              | `StopBefore(consumers_of(&[HttpCore, Swarm]))`             |
-| UDP tracker instance                                               | `StopBefore(consumers_of(&[UdpCore, UdpServer, Swarm]))`   |
-| Torrent cleanup                                                    | `StopBefore(consumers_of(&[Swarm]))`                       |
+| HTTP tracker instance                                              | `spawn_with(.., StopBefore(&consumers_of(&[HttpCore, Swarm])), ..)` |
+| UDP tracker instance                                               | `spawn_with(.., StopBefore(&consumers_of(&[UdpCore, UdpServer, Swarm])), ..)` |
+| Torrent cleanup                                                    | `spawn_with(.., StopBefore(&consumers_of(&[Swarm])), ..)`  |
 | REST API, health-check API, activity metrics, `udp_ban_cleanup`    | No edges                                                   |
 
 `consumers_of` takes the buses a component publishes on, directly or through
@@ -301,16 +308,21 @@ drain counts as lost events.
 
 The standalone HTTP and UDP test environments give their servers and their
 listeners independent tokens and one `DropGuard` each. `stop()` sets the order
-explicitly: cancel and join the server, then cancel and join the listeners, and
-disarm both guards. Dropping an environment without `stop()` cancels both
-tokens. Dropping a `CancellationToken` does not cancel it, so each owner that can
-be dropped holds a `DropGuard`. Each token is independent and not derived from
-the other: a parent-child token tree would hide the order in the direction of the
-tree, which the supervisor design rejects. A server failure must not skip the
-listener stage, so `stop()` joins the listeners before it reports any failure.
-Today the HTTP environment has one listener and one `DropGuard`, and the UDP
-environment has three listeners and one `DropGuard` (read from source, not run:
-`packages/axum-http-server/src/testing/environment.rs`,
+explicitly: cancel and join the server, then cancel and join the listeners.
+`stop()` disarms the server guard and cancels that token itself; the listeners
+guard moves into the join and is disarmed only once the server stage has ended,
+so abandoning `stop()` while the server still drains (for example when its
+caller's deadline expires) cannot leave a listener that was never asked to stop.
+The listener tasks are then cancelled but not joined: they finish their bounded
+drain unjoined, as when the environment is dropped. Dropping an
+environment without `stop()` cancels both tokens. Dropping a `CancellationToken`
+does not cancel it, so each owner that can be dropped holds a `DropGuard`. Each
+token is independent and not derived from the other: a parent-child token tree
+would hide the order in the direction of the tree, which the supervisor design
+rejects. A server failure must not skip the listener stage, so `stop()` joins
+the listeners before it reports any failure. The HTTP environment has one
+listener and the UDP environment three, which share one listeners token
+(`packages/axum-http-server/src/testing/environment.rs`,
 `packages/udp-server/src/testing/environment.rs`).
 
 ### 9. What this ADR keeps from the cancellation-tree ADR
@@ -350,8 +362,8 @@ history:
 7. A supervisor deadline applies concurrently across top-level components, not
    sequentially as a per-job budget.
 8. Shared lifecycle APIs follow add, migrate consumers, deprecate, remove. The
-   `JobManager` changes of section 3 apply this: `reserve` and the edge-aware
-   `spawn` arrive beside today's `spawn`, components migrate one by one, and
+   `JobManager` changes of section 3 apply this: `reserve` and `spawn_with` arrive
+   beside the previous `spawn`, components migrate one by one, and
    `register_legacy` stays until `udp_ban_cleanup` migrates.
 9. Each migration includes deterministic token and lifecycle tests. OS-signal
    and container behavior remain executable-level integration evidence.
@@ -359,9 +371,10 @@ history:
     ADR also required revalidating it before issue #1588 closed; that condition
     lapsed because the issue is closed, and the revisit-on-change rule is the
     part that stays.
-11. The architecture is implemented progressively, by EPIC #1488 and sub-EPIC
-    #2410. This ADR does not claim that the current implementation already
-    satisfies it.
+11. The architecture is implemented progressively, by EPIC #1488. Sub-EPIC #2410
+    implements the stop order and the listener drain of this ADR. This ADR does
+    not claim that the rest of the cancellation-tree architecture (the aligned
+    budgets of SI-20 and the exit-result policy) is implemented yet.
 12. The old ADR's rejected alternatives stay rejected:
 
     - supervisor-owned raw `Halted` senders, because transport-specific channels
@@ -441,22 +454,35 @@ produces the same stop-before edges.
   declaration.
 - Bootstrap threads `&mut EventFlows` through the `start_*` functions that
   register components.
-- The cancellation-tree ADR becomes history at the move into `docs/adrs/`.
+- The cancellation-tree ADR is marked as superseded by this ADR and stays as history.
+
+## Affected Code
+
+- [`src/bootstrap/jobs/manager.rs`](../../src/bootstrap/jobs/manager.rs): reservations, `StopBefore` edges, and the ordered shutdown
+- [`src/bootstrap/event_flows.rs`](../../src/bootstrap/event_flows.rs): `Bus` and `EventFlows`
+- [`src/app.rs`](../../src/app.rs): the declarations of consumers and producers
+- [`packages/events/src/drain.rs`](../../packages/events/src/drain.rs): the shared listener drain
+- [`packages/axum-http-server/src/testing/environment.rs`](../../packages/axum-http-server/src/testing/environment.rs) and
+  [`packages/udp-server/src/testing/environment.rs`](../../packages/udp-server/src/testing/environment.rs): the test environments
 
 ## Date
 
-2026-10-16 (draft)
+2026-10-21
 
 ## References
 
-- EPIC #1488: [Overhaul Tracker Shutdown](../../open/1488-overhaul-tracker-shutdown/ISSUE.md)
-- Sub-EPIC #2410: [EPIC.md](EPIC.md), the design record with decisions D1 to D20, the discussion record, and the diagrams
-- Issue #2413: [SI-22.1 spec](../../closed/2413-2410-si-22-1-document-event-flows-and-draft-adr/ISSUE.md)
-- [Runtime architecture glossary](../../../architecture/glossary.md)
-- [Events architecture](../../../architecture/events.md)
-- [Application jobs and task ownership](../../../architecture/application-jobs.md)
-- [Shutdown task inventory](../../../features/shutdown-process/task-inventory.md)
-- ADR: [Adopt a supervised cancellation tree for shutdown](../../../adrs/20260902074438_adopt_supervised_cancellation_tree_for_shutdown.md) (superseded by this ADR when it moves into `docs/adrs/`)
-- ADR: [Events are objective facts](../../../adrs/20260727000000_events_are_objective_facts.md)
+- EPIC #1488: [Overhaul Tracker Shutdown](../issues/open/1488-overhaul-tracker-shutdown/ISSUE.md)
+- Sub-EPIC #2410: [EPIC.md](../issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md), the design record with decisions D1 to D20 and the discussion record (the diagrams are in the [events](../architecture/events.md) and [application jobs](../architecture/application-jobs.md) architecture documents)
+- Issue #2413: [SI-22.1 spec](../issues/closed/2413-2410-si-22-1-document-event-flows-and-draft-adr/ISSUE.md)
+- [Runtime architecture glossary](../architecture/glossary.md)
+- [Events architecture](../architecture/events.md)
+- [Application jobs and task ownership](../architecture/application-jobs.md)
+- [Shutdown task inventory](../features/shutdown-process/task-inventory.md)
+- ADR: [Adopt a supervised cancellation tree for shutdown](20260902074438_adopt_supervised_cancellation_tree_for_shutdown.md) (superseded by this ADR)
+- ADR: [Events are objective facts](20260727000000_events_are_objective_facts.md)
+- Issues #2414, #2415, and #2416: the implementation, in
+  [#2414](../issues/closed/2414-2410-si-22-2-drain-listener-queues-on-shutdown/ISSUE.md),
+  [#2415](../issues/closed/2415-2410-si-22-3-per-component-cancellation-tokens/ISSUE.md), and
+  [#2416](../issues/open/2416-2410-si-22-4-stop-producers-before-listeners/ISSUE.md)
 - Issue #2418: batched persisted download writes
 - Issue #1669: extraction of the `bittorrent-*` packages

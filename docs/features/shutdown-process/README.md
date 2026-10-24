@@ -1,7 +1,7 @@
 ---
 doc-type: feature
 status: draft
-last-updated-utc: "2026-10-05 12:38"
+last-updated-utc: "2026-10-21 18:55"
 semantic-links:
   related-artifacts:
     - docs/analysis/20260716-shutdown-process/README.md
@@ -108,10 +108,12 @@ The tracker uses a **supervised cancellation tree**:
 
 - executable entry points translate OS signals into an in-process shutdown
   request;
-- `JobManager` supervises named top-level tasks, initiates root-token
-  cancellation, and aggregates their completion outcomes;
-- each long-running component receives a child `CancellationToken` and owns
-  the graceful shutdown and joining of every task it spawns;
+- `JobManager` supervises named top-level tasks, issues each its own
+  `CancellationToken`, requests their cancellation in a declared order (an event
+  listener is cancelled only after the components that publish to its buses have
+  completed), and aggregates their completion outcomes;
+- each long-running component owns the graceful shutdown and joining of every
+  task it spawns;
 - server libraries expose deterministic in-process lifecycle operations, but
   do not subscribe to OS signals.
 
@@ -122,7 +124,12 @@ alternatives, migration constraints, and decisions intentionally deferred to
 Q3–Q5.
 
 The durable repository-wide decision and its alternatives are recorded in the
-[supervised cancellation-tree ADR](../../adrs/20260902074438_adopt_supervised_cancellation_tree_for_shutdown.md).
+[supervised cancellation-tree ADR](../../adrs/20260902074438_adopt_supervised_cancellation_tree_for_shutdown.md),
+which the [shutdown-order ADR](../../adrs/20261021184946_order_shutdown_by_event_flow_and_drain_event_listeners.md)
+supersedes: it keeps every still-valid point and adds per-component tokens, the
+stop order of event producers and listeners, and the listener drain. The current
+supervision tree and the startup and shutdown sequences are in
+[Application Jobs](../../architecture/application-jobs.md).
 
 ### Outcome and Deadline Policy
 

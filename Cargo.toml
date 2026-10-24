@@ -51,6 +51,10 @@ name = "lifecycle-signals"
 path = "tests/lifecycle/signals.rs"
 
 [[test]]
+name = "persistence-completed-downloads-on-shutdown"
+path = "tests/persistence/completed_downloads_on_shutdown.rs"
+
+[[test]]
 name = "persistence-scrape-after-restart"
 path = "tests/persistence/scrape_after_restart.rs"
 
