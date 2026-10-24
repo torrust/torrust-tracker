@@ -135,8 +135,13 @@ def valid_subjects(base: str, pulls: list[tuple[str, str, int]]) -> set[str]:
     ).stdout
     subjects = set(out.splitlines())
     for owner, repo, number in pulls:
-        for commit in gh_paginated(f"repos/{owner}/{repo}/pulls/{number}/commits"):
-            subjects.add(commit["commit"]["message"].split("\n", 1)[0])
+        endpoint = f"repos/{owner}/{repo}/pulls/{number}/commits"
+        try:
+            commits = gh_paginated(endpoint)
+        except subprocess.CalledProcessError as error:
+            print(f"Error: gh api {endpoint} failed: {(error.stderr or '').strip()}", file=sys.stderr)
+            sys.exit(2)
+        subjects.update(commit["commit"]["message"].split("\n", 1)[0] for commit in commits)
     return subjects
 
 
