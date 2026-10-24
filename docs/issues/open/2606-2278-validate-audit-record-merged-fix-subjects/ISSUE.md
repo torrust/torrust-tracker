@@ -9,7 +9,7 @@ github-issue: 2606
 spec-path: docs/issues/open/2606-2278-validate-audit-record-merged-fix-subjects/ISSUE.md
 branch: "2606-validate-audit-record-merged-fix-subjects"
 related-pr: null
-last-updated-utc: "2026-10-24 20:30"
+last-updated-utc: "2026-10-24 20:27"
 semantic-links:
   skill-links:
     - create-issue
@@ -239,7 +239,7 @@ test run in `test-design-review.md` or the evidence file even after its producti
   branch) and ran T10. The maintainer reviewed the T2 to T6 tests (T8) and approved them. Evidence is in
   `manual-verification-evidence.md` and `test-design-review.md`. Added two `pulls_to_check`
   tests beyond the planned case list to pin the follow-up URL parsing decision.
-- 2026-10-24 20:30 UTC - GitHub Copilot - Implementation completion review: no retrospective
+- 2026-10-24 20:27 UTC - GitHub Copilot - Implementation completion review: no retrospective
   was needed. The `gh api .../pulls/<n>/commits` source worked, including after merge; the change
   stayed inside the subject-set function and its call (plus one small `pulls_to_check` function);
   T10 matched the expectation that no audit regresses (11 of 157 audits with a `FIXED` row fail
