@@ -15,7 +15,8 @@ audit-local (F1) or reviewer-provided (OPS-001):
   - every review-anchored row's Source review ID equals the review in its Source URL
   - every discussion-anchored row cites exactly one Reply URL, and that reply is
     posted on the row's own source thread (in_reply_to_id == source comment id)
-  - every Resolution reference commit subject exists in <base>..HEAD
+  - every Resolution reference commit subject exists in <base>..HEAD, in the audited pull
+    request's commits, or in the commits of a pull request named in a Follow-up PR URL field
   - every row's Severity equals the [Severity] bracket of its source comment
     (qualifiers after the severity word, such as "(inferred)", are ignored)
   - Processing Log entries are in chronological order
@@ -26,14 +27,15 @@ Options:
   --comments-file <path>   REST review-comments JSON; fetched with gh when omitted
   --owner <owner>          Repository owner (default: torrust)
   --repo <repo>            Repository name (default: torrust-tracker)
-  --base <ref>             Base ref for commit-subject lookup (default: develop)
+  --base <ref>             Base ref for the local <base>..HEAD range of unpushed commits (default: develop)
   -h, --help               Show this help
 
 Output:
   - One JSON summary line to stdout:
       {"status":"ok"|"failed","rows":N,"log_entries":N,"failures":N}
   - One failure per line to stderr
-  - Exit 0 when consistent, 1 on any failure, 2 on usage error
+  - Exit 0 when consistent, 1 on any failure, 2 on usage error (including a failed `gh api` call
+    that lists pull-request commits)
 """
 
 import argparse
