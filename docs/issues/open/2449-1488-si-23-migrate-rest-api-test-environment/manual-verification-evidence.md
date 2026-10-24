@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2449-1488-si-23-migrate-rest-api-test-environment/ISSUE.md
-last-updated-utc: "2026-10-24 20:33"
+last-updated-utc: "2026-10-24 20:40"
 ---
 
 # Manual Verification Evidence

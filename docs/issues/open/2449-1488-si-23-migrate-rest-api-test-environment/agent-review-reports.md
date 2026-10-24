@@ -106,3 +106,86 @@ semantic-links:
     findings are handled.
   - Run `linter all` and the pre-push checks, record them, and tick the matching checkpoints.
   - Re-run this review after remediation; then commit with the report.
+
+### 2026-10-24 20:38 UTC - Task Reviewer
+
+- Invocation scope: second-round pre-PR review of branch `2449-migrate-rest-api-test-environment`
+  against `torrust/develop`, after the remediation commit
+  `docs(issues): [#2449] record the first review round, the retrospective, and the prose-first record`.
+  This entry supersedes the conclusion `REVIEW FAILED` of the `2026-10-24 20:30 UTC` entry: it re-checks
+  F1, F5, the completion review, evidence V5, and mutations H and G, and re-validates AC1-AC7.
+- Inputs: `ISSUE.md`, `manual-verification-evidence.md` (V3 to V5), `implementation-retrospective.md`,
+  `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md`, `docs/features/shutdown-process/task-inventory.md`,
+  `packages/axum-rest-api-server/src/testing/environment.rs`, `git log` and `git diff torrust/develop...HEAD`,
+  the `write-unit-test` skill (prose-first Arrange-Act-Assert section).
+- Evidence (stable `rustc 1.99.1`, `cargo 1.99.1`; the working tree was clean at the start and at the end):
+  - `git log --stat torrust/develop..HEAD -- '*.rs'` lists `.rs` changes only in
+    `refactor(axum-rest-api-server): [#2449] migrate the REST API test environment to the token lifecycle`
+    (`environment.rs` and the health-check `contract.rs`); the later commits are documentation, so V3 and V5
+    describe the final code. `git diff torrust/develop...HEAD` touches 7 files and not `Cargo.lock` (a
+    two-dot diff shows a lockfile dependency difference only because `develop` moved on).
+  - `cargo test -p torrust-tracker-axum-rest-api-server -p torrust-tracker-axum-health-check-api-server`:
+    health-check 3 + 8, REST API lib 14, REST API integration 58 (2.33 s), all passed.
+  - `linter all`: exit 0 (markdown, lychee, yaml, toml, cspell, clippy, rustfmt, shellcheck).
+  - Mutation H (`Running` holds a plain `CancellationToken`, `stop()` still cancels it, the `stop()` panic
+    test's hand-built `Running` adapted, the unused import removed because the crate denies warnings): only
+    `it_should_release_the_rest_api_binding_when_dropped_without_being_stopped` failed (10 s deadline), 7 passed.
+    The first attempt did not compile (unused import) and was discarded, as the evidence file warns.
+  - Mutation G (`stop()` swallows the failures): only
+    `it_should_panic_naming_each_failing_task_when_stopped_with_failed_tasks` failed, 7 passed.
+    After each mutation `git checkout -- <file>` and `git diff --quiet HEAD` exited 0.
+  - V4 compared with `environment.rs` test by test: s1 to s8 Arrange, Act and Assert prose match the code
+    (s1 spawned `stop()` and `is_ok()`; s2 and s3 bind the address read before the stop or drop; s4 restart
+    and `GET /api/health_check` 200; s5 panicking server task and a controller finishing one yield later;
+    s6 exact `...server error; ...drain timeout` text; s7 exact drain-timeout text; s8 hand-built `Running`
+    and the panic message naming both tasks). No mismatch.
+  - `task-inventory.md` conclusion 8 is wrapped near 80 characters; no line of the paragraph is long.
+  - A grep for 7 or more hexadecimal characters over the issue folder finds only the `rustc` version hash in
+    `manual-verification-evidence.md:23`; no PR-branch commit id appears.
+  - `last-updated-utc` of `ISSUE.md` and of the evidence file is `2026-10-24 20:33`, equal to the newest
+    progress-log entry and earlier than the carrying commit (20:35 UTC).
+- Findings:
+  - **F1 (was blocking) - resolved.** `manual-verification-evidence.md` V4 holds the eight-row prose-first
+    table and it matches the code. The record states honestly that it was written after the code and after the
+    first review, and `implementation-retrospective.md` lists "write the prose while writing the tests" as an
+    improvement. The skill asks for the record before maintainer review and commit; that ordering was missed
+    and is disclosed, not hidden. Accepted, since the comparison now exists and changed no test body.
+  - **F2 (was low) - resolved.** V4 states why `start_within_deadline` and `stop_within_deadline` stay: they
+    add only the test deadline to one production call; s5 to s8 show the Act in the body. Sound.
+  - **F3 (was low) - resolved.** The rationale holds from the code: the deadline `expect` panics inside the
+    spawned task first with its own message. The claim that the mutation A run printed that message is read
+    from the evidence file, not re-run here.
+  - **F4 (was info) - accepted.** The bounded poll of s3 is required by the spec (T1 list).
+  - **F5 (was low) - resolved.** `task-inventory.md` conclusion 8 is re-wrapped.
+  - **F8 (info, cosmetic) - V4 s4 row omits the final cleanup.** The test ends with `stop_within_deadline(restarted)`
+    after the assertion; the Arrange/Act/Assert prose does not mention it. It is not part of the specified
+    behaviour; no action needed.
+- Acceptance criteria:
+  - AC1 PASS (V1; `start()` calls `ApiServer::new` and `start_with_cancellation` only).
+  - AC2 PASS (s1, s2; mutations A, B and the re-run H and G confirm the tests guard their clause).
+  - AC3 PASS (s8 plus the `join_owned_tasks` tests; mutation G re-run; signature unchanged).
+  - AC4 PASS (s4; mutation C in V3).
+  - AC5 PASS (`contract.rs` uses `service.stop()`; 8 integration tests re-run and pass).
+  - AC6 PASS (task-inventory table row, conclusions 4 and 8).
+  - AC7 PASS (s3; mutation H isolates it, re-run here).
+  - `linter all` PASS, relevant tests PASS, manual scenarios M1 and M2 PASS (V1, V2 run against the finished
+    artifact; no `.rs` change since).
+- Spec hygiene: the checkpoints ticked are those completed (automatic verification, manual verification,
+  completion review); "Acceptance criteria reviewed", "Reviewer validated", "Independent reviewer reports",
+  "Committer verified", and "Issue closed" are correctly unticked. The AC rows and the matching checklist
+  items stay `TODO` with evidence pointers; this reviewer was told not to edit existing files, so the caller
+  ticks them with this report. Claims that were not run are marked ("read from source, not run" in the spec;
+  "no profile was taken" in V2).
+- Completion review: `implementation-retrospective.md` follows the template sections, and its claims are
+  true against the code (the added `stop()` panic test, the generic `E: Display` because `RuntimeError` has a
+  private field, the D and H mutation pitfalls, the evidence pointers) and against the progress log (the
+  maintainer's design-review approval). The overcorrection section is reasonable. The completion review is
+  resolved.
+- Verdict: REVIEW PASSED
+- Follow-up actions:
+  - Caller: tick the AC rows (`TODO` to `DONE`), the four AC-related checklist items that this review
+    verified, and the "Acceptance criteria reviewed", "Reviewer validated" and "Independent reviewer reports"
+    checkpoints in `ISSUE.md`, and update `last-updated-utc` and the progress log, then commit them with this
+    report through the Committer.
+  - Run the pre-push checks again only if a commit after the one that carries this report touches a
+    `.rs` or manifest file.
