@@ -10,7 +10,7 @@ semantic-links:
     - docs/adrs/20260727000000_events_are_objective_facts.md
     - docs/adrs/20260902074438_adopt_supervised_cancellation_tree_for_shutdown.md
     - docs/adrs/20261021184946_order_shutdown_by_event_flow_and_drain_event_listeners.md
-    - docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
+    - docs/issues/closed/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
     - issue #2410
     - issue #2413
     - src/app.rs

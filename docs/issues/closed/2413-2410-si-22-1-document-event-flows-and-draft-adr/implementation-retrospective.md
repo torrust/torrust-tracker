@@ -7,7 +7,7 @@ semantic-links:
     - docs/issues/closed/2413-2410-si-22-1-document-event-flows-and-draft-adr/agent-review-reports.md
     - docs/issues/closed/2413-2410-si-22-1-document-event-flows-and-draft-adr/manual-verification-evidence.md
     - docs/pr-reviews/pr-2553-review/review-retrospective.md
-    - docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
+    - docs/issues/closed/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
 ---
 
 # Implementation Retrospective — Document Event Flows and Draft the Shutdown-Order ADR
@@ -128,7 +128,7 @@ request that also carries this document.
   maintainer decisions
 - [PR review retrospective](../../../pr-reviews/pr-2553-review/review-retrospective.md) and
   [PR review audit](../../../pr-reviews/pr-2553-review/PR-REVIEW.md)
-- Sub-EPIC [`EPIC.md`](../../open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md):
+- Sub-EPIC [`EPIC.md`](../../closed/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md):
   record entry 27, "D Versus F", Shared Delivery Gates
 - PR #2553 and its merge commit
   `Merge torrust/torrust-tracker#2553: docs(shutdown): [#2413] document event flows and draft the shutdown-order ADR`

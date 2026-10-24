@@ -9,7 +9,7 @@ github-issue: 2418
 spec-path: docs/issues/open/2418-batch-persisted-download-writes/ISSUE.md
 branch: "2410-process-queued-events-before-listeners-stop-spec"
 related-pr: null
-last-updated-utc: "2026-10-02 18:45"
+last-updated-utc: "2026-10-24 15:36"
 semantic-links:
   skill-links:
     - create-issue
@@ -83,7 +83,7 @@ To decide during implementation:
 
 ## Architectural Decisions
 
-- Related ADRs: the SI-22 ADR on listener draining (draft in the SI-22 folder).
+- Related ADRs: [Order shutdown by event flow and drain event listeners](../../../adrs/20261021184946_order_shutdown_by_event_flow_and_drain_event_listeners.md) (SI-22, listener draining).
 - ADRs to create: none known.
 
 ## Design and Ownership Review
@@ -186,6 +186,7 @@ and logs in issue-local `manual-verification-evidence.md`.
 
 - SI-22 D18 authorizes this separate improvement after #1488, not as part of
   the shutdown bug fix. Release results and final batch policy remain pending.
+- 2026-10-24 15:36 UTC - GitHub Copilot (Claude Sonnet 5.5, the model the session runtime names; not otherwise verifiable) - The SI-22 ADR is promoted to `docs/adrs/`; the Architectural Decisions pointer now links it. No other change.
 
 ## Implementation Completion Review
 

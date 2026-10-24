@@ -9,13 +9,13 @@ github-issue: 2415
 spec-path: docs/issues/closed/2415-2410-si-22-3-per-component-cancellation-tokens/ISSUE.md
 branch: "2415-per-component-cancellation-tokens"
 related-pr: 2591
-last-updated-utc: "2026-10-21 09:23"
+last-updated-utc: "2026-10-24 15:36"
 semantic-links:
   skill-links:
     - create-issue
     - write-unit-test
   related-artifacts:
-    - docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
+    - docs/issues/closed/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
     - src/bootstrap/jobs/manager.rs
     - src/app.rs
     - src/console/profiling.rs

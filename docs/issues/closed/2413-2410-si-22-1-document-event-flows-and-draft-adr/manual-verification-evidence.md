@@ -1,14 +1,14 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/closed/2413-2410-si-22-1-document-event-flows-and-draft-adr/ISSUE.md
-last-updated-utc: "2026-10-19 15:50"
+last-updated-utc: "2026-10-24 15:36"
 ---
 
 # Manual Verification Evidence
 
 ## Purpose
 
-Record the verification of #2413 (SI-22.1), a documentation-only task. The reproduction of the bug the sub-EPIC fixes is in the sub-EPIC's [manual-verification-evidence.md](../../open/2410-1488-si-22-process-queued-events-before-listeners-stop/manual-verification-evidence.md), the EPIC baseline; this file does not repeat it.
+Record the verification of #2413 (SI-22.1), a documentation-only task. The reproduction of the bug the sub-EPIC fixes is in the sub-EPIC's [manual-verification-evidence.md](../../closed/2410-1488-si-22-process-queued-events-before-listeners-stop/manual-verification-evidence.md), the EPIC baseline; this file does not repeat it.
 
 ## Non-applicability of executable-boundary verification
 

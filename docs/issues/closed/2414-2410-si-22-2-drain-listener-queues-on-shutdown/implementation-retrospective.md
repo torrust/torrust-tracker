@@ -6,7 +6,7 @@ semantic-links:
     - docs/issues/closed/2414-2410-si-22-2-drain-listener-queues-on-shutdown/ISSUE.md
     - docs/issues/closed/2414-2410-si-22-2-drain-listener-queues-on-shutdown/manual-verification-evidence.md
     - docs/issues/closed/2414-2410-si-22-2-drain-listener-queues-on-shutdown/agent-review-reports.md
-    - docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
+    - docs/issues/closed/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
 ---
 
 # Implementation Retrospective — Drain Listener Queues on Shutdown
@@ -118,6 +118,6 @@ between events and tolerates a huge timeout, and the 5 s default is named in `pa
 - [Issue specification](ISSUE.md): the tasks, the acceptance criteria, and the progress log
 - [Manual verification evidence](manual-verification-evidence.md): V1 to V11
 - [Agent review reports](agent-review-reports.md): the Task Reviewer report before push
-- Sub-EPIC [`EPIC.md`](../../open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md): Design Discussion Record
+- Sub-EPIC [`EPIC.md`](../../closed/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md): Design Discussion Record
   entries 27 to 29, D9, D13, and D14
 - The PR for issue #2414: the code commits cited by their Conventional Commit subjects in the evidence

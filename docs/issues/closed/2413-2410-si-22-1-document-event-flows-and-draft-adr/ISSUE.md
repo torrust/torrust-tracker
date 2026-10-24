@@ -9,14 +9,14 @@ github-issue: 2413
 spec-path: docs/issues/closed/2413-2410-si-22-1-document-event-flows-and-draft-adr/ISSUE.md
 branch: "2413-document-event-flows-and-draft-adr"
 related-pr: 2553
-last-updated-utc: "2026-10-19 19:09"
+last-updated-utc: "2026-10-24 15:36"
 semantic-links:
   skill-links:
     - create-issue
     - create-adr
     - write-markdown-docs
   related-artifacts:
-    - docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
+    - docs/issues/closed/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
     - docs/architecture/application-jobs.md
     - docs/features/shutdown-process/task-inventory.md
     - docs/adrs/20260902074438_adopt_supervised_cancellation_tree_for_shutdown.md
@@ -26,7 +26,7 @@ semantic-links:
 
 # Issue #2413 - Document Event Flows and Draft the Shutdown-Order ADR
 
-Parent: [EPIC #2410 - Process queued events before event listeners stop](../../open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md),
+Parent: [EPIC #2410 - Process queued events before event listeners stop](../../closed/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md),
 under EPIC #1488.
 
 > Sub-issue 1 of 4 (SI-22 tasks T1 and T2). Documentation only; no code
@@ -65,7 +65,7 @@ reviews can point to them.
 ## Implementation Plan
 
 Detailed steps: sub-EPIC
-[Implementation Steps](../../open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md#implementation-steps),
+[Implementation Steps](../../closed/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md#implementation-steps),
 items 2 (T1) and 3 (T2). Revalidate paths before starting.
 
 | ID | Status | Task | Notes / Expected Output |
@@ -160,7 +160,7 @@ the glossary and moved jobs document; no runtime behavior changes here.
 
 ## Implementation Completion Review
 
-Follow the sub-EPIC's [Shared Delivery Gates](../../open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md#shared-delivery-gates),
+Follow the sub-EPIC's [Shared Delivery Gates](../../closed/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md#shared-delivery-gates),
 including local manual evidence for the source review, acceptance re-review,
 retrospective assessment, and independent Task Reviewer report. Required
 pre-push checks still apply to this documentation-only PR.
