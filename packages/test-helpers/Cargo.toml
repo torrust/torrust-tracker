@@ -19,10 +19,6 @@ workspace = true
 
 [dependencies]
 rand = "0"
-torrust-tracker-client-lib = { version = "0.1.0", path = "../tracker-client" }
 torrust-tracker-configuration = { version = "3.0.0", path = "../configuration" }
-torrust-tracker-primitives = { version = "3.0.0", path = "../primitives" }
-torrust-tracker-udp-protocol = { version = "0.1.0", path = "../udp-protocol" }
-torrust-peer-id = "0.1.0"
 tracing = "0"
 tracing-subscriber = { version = "0", features = [ "json" ] }

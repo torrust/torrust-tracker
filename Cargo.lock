@@ -4959,6 +4959,7 @@ dependencies = [
  "torrust-tracker-swarm-coordination-registry",
  "torrust-tracker-test-helpers",
  "torrust-tracker-udp-core",
+ "torrust-tracker-udp-protocol",
  "torrust-tracker-udp-server",
  "tracing",
  "tracing-subscriber",
@@ -5374,11 +5375,7 @@ name = "torrust-tracker-test-helpers"
 version = "3.0.0"
 dependencies = [
  "rand 0.10.3",
- "torrust-peer-id",
- "torrust-tracker-client-lib",
  "torrust-tracker-configuration",
- "torrust-tracker-primitives",
- "torrust-tracker-udp-protocol",
  "tracing",
  "tracing-subscriber",
 ]

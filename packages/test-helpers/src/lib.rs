@@ -4,4 +4,3 @@
 pub mod configuration;
 pub mod logging;
 pub mod random;
-pub mod udp;

@@ -125,6 +125,7 @@ torrust-peer-id = "0.1.0"
 torrust-tracker-client-lib = { version = "0.1.0", path = "packages/tracker-client" }
 torrust-tracker-http-protocol = { version = "0.1.0", path = "packages/http-protocol" }
 torrust-tracker-test-helpers = { version = "3.0.0", path = "packages/test-helpers" }
+torrust-tracker-udp-protocol = { version = "0.1.0", path = "packages/udp-protocol" }
 url = { version = "2", features = [ "serde" ] }
 
 [target.'cfg(unix)'.dev-dependencies]

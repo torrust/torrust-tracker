@@ -17,6 +17,7 @@
 mod configuration;
 mod http_requests;
 mod statistics;
+mod udp_requests;
 mod workspace;
 
 // Each integration-test binary compiles this module independently. Not all
@@ -30,7 +31,7 @@ pub use http_requests::{http_announce, http_complete_download, http_scrape};
 #[allow(unused_imports)]
 pub use statistics::{PartialGlobalStatistics, get_tracker_statistics};
 #[allow(unused_imports)]
-pub use torrust_tracker_test_helpers::udp::{
+pub use udp_requests::{
     send_invalid_connection_id_announce, send_invalid_connection_ids_across_listeners_until_banned,
     send_invalid_connection_ids_until_banned, udp_announce, udp_complete_download, udp_scrape,
 };

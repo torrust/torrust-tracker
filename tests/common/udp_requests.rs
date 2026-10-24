@@ -1,5 +1,10 @@
 //! UDP tracker test helpers.
 
+#![allow(
+    dead_code,
+    reason = "each integration-test binary compiles this module and calls only some helpers"
+)]
+
 use std::net::SocketAddr;
 use std::num::NonZeroU16;
 use std::time::Duration;
