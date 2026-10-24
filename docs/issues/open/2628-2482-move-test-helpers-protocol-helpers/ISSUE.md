@@ -8,8 +8,8 @@ epic: 2482
 github-issue: 2628
 spec-path: docs/issues/open/2628-2482-move-test-helpers-protocol-helpers/ISSUE.md
 branch: "2628-2482-move-test-helpers-protocol-helpers"
-related-pr: null
-last-updated-utc: "2026-10-24 19:37"
+related-pr: 2636
+last-updated-utc: "2026-10-24 19:41"
 semantic-links:
   skill-links:
     - create-issue
