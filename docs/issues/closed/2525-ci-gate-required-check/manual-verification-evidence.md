@@ -1,6 +1,6 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2525-ci-gate-required-check/ISSUE.md
+issue-spec: docs/issues/closed/2525-ci-gate-required-check/ISSUE.md
 last-updated-utc: 2026-10-22 19:07
 ---
 

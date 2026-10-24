@@ -2,7 +2,7 @@
 semantic-links:
   related-artifacts:
     - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
-    - docs/issues/open/2525-ci-gate-required-check/ISSUE.md
+    - docs/issues/closed/2525-ci-gate-required-check/ISSUE.md
     - docs/pr-reviews/pr-2605-review/review-retrospective.md
 ---
 
@@ -12,7 +12,7 @@ Source: pull-request reviews and inline review threads for <https://github.com/t
 
 Pull request #2610 was closed unmerged on 2026-10-22, by the maintainer's decision to drop the override that it
 implemented (see the "Decision of 2026-10-22" section of the
-[#2525 specification](../../issues/open/2525-ci-gate-required-check/ISSUE.md)). This record was copied from its
+[#2525 specification](../../issues/closed/2525-ci-gate-required-check/ISSUE.md)). This record was copied from its
 branch, `2525-ci-gate-github-adapter` of the fork `josecelano/torrust-tracker`, which holds the code it names, into
 pull request #2605, so that the claims of the [retrospective](review-retrospective.md) about this
 pull request can be checked from `develop`. The last entry of the processing log was added in the copy.

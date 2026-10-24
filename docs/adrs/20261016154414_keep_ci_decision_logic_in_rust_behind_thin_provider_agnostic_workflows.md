@@ -4,7 +4,7 @@ semantic-links:
     - create-adr
     - implement-workflow
   related-artifacts:
-    - docs/issues/open/2525-ci-gate-required-check/ISSUE.md
+    - docs/issues/closed/2525-ci-gate-required-check/ISSUE.md
     - docs/github-rulesets.md
     - docs/adrs/20261013161419_stop_requiring_pull_request_rebases.md
     - docs/adrs/20260519000000_define_global_cli_output_contract.md
@@ -18,6 +18,23 @@ semantic-links:
 <!-- skill-link: create-adr -->
 
 # Keep CI Decision Logic in Rust Behind Thin, Provider-Agnostic Workflows
+
+- Status: Partly superseded on 2026-10-22 by the maintainer's decision in issue #2525 (see the note below)
+
+> **Note of 2026-10-24.** The decision that CI decision logic lives in Rust tools with provider-neutral
+> inputs behind thin workflows stands, and so do the `classify` and `verdict` subcommands of the `ci-gate`
+> crate, which has no consumer; the override input of `verdict` has none either. The part of this ADR that has GitHub require one always-reporting `CI gate` check was not built.
+> On 2026-10-22 the maintainer decided to keep CI checks advisory with no required status check, and to
+> treat the maintainer's signed ACK that names the head commit, together with the merge flow, as the gate.
+> That decision also drops the `ci-override` label and the orchestrating workflow, and with them the
+> consequences this ADR draws from a required check: ending the cycle of disabling a ruleset, introducing the
+> check reporting-first with a rollback, and a ruleset entry in `docs/github-rulesets.md`. It adopts the
+> alternative "Leave required checks off and rely on the maintainer", which this ADR rejects as not scaling
+> with the number of pull requests; the merge flow is to show the head's CI state before the sign-off (EPIC
+> #2640) to answer the reason this ADR gave, that a person must check CI before every merge. The reasons are
+> in the "Decision of 2026-10-22" section of the #2525 specification
+> ([`docs/issues/closed/2525-ci-gate-required-check/ISSUE.md`](../issues/closed/2525-ci-gate-required-check/ISSUE.md)).
+> The text below is kept unchanged as the record of the original decision.
 
 ## Scope
 
@@ -175,7 +192,7 @@ Negative, with the mitigation:
 
 ## References
 
-- Issue #2525: [specification](../issues/open/2525-ci-gate-required-check/ISSUE.md)
+- Issue #2525: [specification](../issues/closed/2525-ci-gate-required-check/ISSUE.md)
 - Issue #2507: the sandbox evidence that required checks are enforced on the maintainer merge push
   and that a skipped workflow blocks a required check forever
 - Issue #1743: the documentation-only CI fast path

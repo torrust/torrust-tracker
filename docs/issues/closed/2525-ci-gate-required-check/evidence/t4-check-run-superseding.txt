@@ -1,7 +1,7 @@
 T4 experiment E2: does a later check run named "CI gate" supersede an earlier one?
 Sandbox: josecelano/torrust-tracker (a fork), 2026-10-21. Pull requests 20 and 21 of the fork.
 The outputs below are copied as the observation helper and git printed them. Sandbox workflows and
-rulesets are in docs/issues/open/2525-ci-gate-required-check/evidence/t4-sandbox/ in this repository. In every case the ruleset requires the status check "CI gate" (Actions app,
+rulesets are in docs/issues/closed/2525-ci-gate-required-check/evidence/t4-sandbox/ in this repository. In every case the ruleset requires the status check "CI gate" (Actions app,
 not strict), and the merge is a signed merge commit built the way github-merge.py builds it and pushed
 directly to the base branch.
 
