@@ -109,11 +109,20 @@ def load_comments(args: argparse.Namespace) -> dict[int, dict]:
     return {c["id"]: c for c in comments}
 
 
-def branch_subjects(base: str) -> set[str]:
+def valid_subjects(base: str, pulls: list[tuple[str, str, int]]) -> set[str]:
+    """Return the commit subjects a resolution reference may cite.
+
+    A merged fix is no longer in <base>..HEAD, so the commit lists of the given pull requests
+    (owner, repo, number) are the authoritative source; the local range only adds unpushed commits.
+    """
     out = subprocess.run(
         ["git", "log", "--format=%s", f"{base}..HEAD"], capture_output=True, text=True, check=True
     ).stdout
-    return set(out.splitlines())
+    subjects = set(out.splitlines())
+    for owner, repo, number in pulls:
+        for commit in gh_paginated(f"repos/{owner}/{repo}/pulls/{number}/commits"):
+            subjects.add(commit["commit"]["message"].split("\n", 1)[0])
+    return subjects
 
 
 def field(body: str, name: str) -> str | None:
@@ -185,7 +194,7 @@ def main() -> int:
         return 2
     text = audit_path.read_text()
     comments = load_comments(args)
-    subjects = branch_subjects(args.base)
+    subjects = valid_subjects(args.base, [(args.owner, args.repo, args.pr_number)])
 
     failures: list[str] = []
 

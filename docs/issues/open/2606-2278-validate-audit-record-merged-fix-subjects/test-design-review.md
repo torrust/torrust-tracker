@@ -47,3 +47,7 @@ FAILED (errors=1)
 The red is an error for the missing interface: the current code has no function that takes a pull
 request. The behavioral red on the real audits (4 failures) is in `manual-verification-evidence.md`
 section V1.
+
+Green run (T3, after adding the audited pull request's commits): `Ran 1 test ... OK`. On the real
+audits with `--base torrust/develop`, PR #2599 now passes and PR #2584 fails only WAIT-001, whose
+fix merged in PR #2596 (T4 and T5 cover that case).
