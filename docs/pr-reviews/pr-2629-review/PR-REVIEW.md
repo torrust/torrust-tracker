@@ -42,7 +42,7 @@ Round 1: da2ce7's review 5631559010 (APPROVED, on the opening head, the commit w
 
 Round 2: da2ce7's review 5631788587 (APPROVED, submitted 2026-10-23T17:04:09Z, after the round 1 fixes and audit, dismissed by the 17:25:57Z push) carries three nit threads, F5 to F7, next to an ACK of the head that carried the round 1 audit. Severities are the labels of the source comments.
 
-Round 3: da2ce7's review 5632201391 (submitted 2026-10-23T17:40:24Z, on the head that carried the round 2 audit, dismissed by the push of the F8 to F10 fixes) carries three nit threads, F8 to F10, about this audit record, next to an ACK of that head. Severities are the labels of the source comments.
+Round 3: da2ce7's review 5632201391 (APPROVED, submitted 2026-10-23T17:40:24Z, on the head that carried the round 2 audit, dismissed by the 18:02:11Z push of the F8 to F10 fixes) carries three nit threads, F8 to F10, about this audit record, next to an ACK of that head. Severities are the labels of the source comments.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -194,7 +194,6 @@ Round 3: da2ce7's review 5632201391 (submitted 2026-10-23T17:40:24Z, on the head
 - 2026-10-23 16:49 UTC - Started audit. da2ce7 reviewed at 16:44 UTC (4 threads, F1 to F4). Verified each claim, committed one fix each, rebased onto `develop`, pushed and replied on every thread; resolved all 4 threads at 16:48 UTC (GraphQL showed 0 unresolved). The ACK names the head before the fixes, so a new ACK is needed on the head that carries this audit record.
 - 2026-10-23 17:27 UTC - Correction of the entry above, from the GitHub API timestamps. da2ce7's review 5631559010 was submitted at 16:43:57Z and Copilot's review 5631574526 at 16:45:24Z. The reply on F1 was posted at 16:48:23Z, one second before the force-push at 16:48:24Z, and the replies on F2 to F4 at 16:48:25Z to 16:48:29Z, after it. Round 2: da2ce7's review 5631788587 (17:04:09Z) raised F5 to F7; each got its own fix commit, a plain push, a reply (17:25:56Z to 17:26:00Z) and was then resolved; this audit commit records it. A new ACK is needed on the head that carries it.
 - 2026-10-23 17:59 UTC - Second correction, from the GitHub timeline and reply timestamps; the 17:27 entry above is stamped later than its commit (17:26:45Z) and misstates the round 2 order. Round 2 order: the F5 and F6 fix commits (17:23:02Z, 17:24:12Z) were pushed together at 17:25:57Z, which dismissed da2ce7's approval 5631788587; the F5 reply (17:25:56Z) came one second before that push and the F6 reply (17:25:58Z) after it; the F7 reply (17:26:00Z) came 45 seconds before its own fix commit (17:26:45Z), which was pushed before the 17:28:43Z re-request of da2ce7.
-
 - 2026-10-23 18:02 UTC - Round 3. da2ce7's review 5632201391 (17:40:24Z) raised F8 to F10 about this audit record. Verified each claim against the timeline and the file, committed one fix each (F9, F10, F8 in that order), pushed the three together, replied on each thread and resolved all three (GraphQL showed 0 unresolved afterwards); this audit commit records it. A new ACK is needed on the head that carries it.
 
 ## Completion Rules
