@@ -7,9 +7,9 @@ priority: p3
 epic: 2278
 github-issue: 2606
 spec-path: docs/issues/open/2606-2278-validate-audit-record-merged-fix-subjects/ISSUE.md
-branch: "2606-validate-audit-record-merged-fix-subjects-spec"
+branch: "2606-validate-audit-record-merged-fix-subjects"
 related-pr: null
-last-updated-utc: "2026-10-21 13:56"
+last-updated-utc: "2026-10-24 19:45"
 semantic-links:
   skill-links:
     - create-issue
@@ -104,6 +104,10 @@ The script runs short synchronous child processes (`git`, `gh`) and holds no res
 
 - **Narrow interface:** one function returns the set of valid subjects given the base ref, the
   audited PR number, and the follow-up PR numbers. `check_row` keeps receiving a plain set.
+- **Follow-up PR URL parsing:** extract every `https://github.com/<owner>/<repo>/pull/<n>` URL from
+  the field of each row. A URL names its own repository, so commits are fetched from the owner and
+  repository in the URL, not only from `--owner` and `--repo`. `N/A`, `NA`, and an empty field
+  contribute nothing. Each distinct pull request is fetched once.
 - **Failure path:** a `gh` failure while listing commits is a usage error (exit 2) with the
   failing endpoint on stderr. It must not silently fall back to `<base>..HEAD`, because that
   would hide the defect this issue fixes.
@@ -225,6 +229,12 @@ test run in `test-design-review.md` or the evidence file even after its producti
   5599559014, submitted before that PR merged): added the Implementation Completion Review section
   and aligned the two completion checkpoints with `docs/templates/ISSUE.md`. Maintainer approval:
   <https://github.com/torrust/torrust-tracker/pull/2607#issuecomment-6317834429>.
+- 2026-10-24 19:45 UTC - GitHub Copilot - Started implementation on branch
+  `2606-validate-audit-record-merged-fix-subjects`, cut from `torrust/develop` at `abce11ec8`.
+  Maintainer decisions before implementing: keep the T8 stop for review of the test increments
+  (T2 to T6) before T7, final verification, and the PR; produce `test-design-review.md` as
+  specified; commit as the plan's Commit Points describe, with GPG signing; parse follow-up
+  pull requests as recorded in Design and Ownership Review.
 
 ## Acceptance Criteria
 
