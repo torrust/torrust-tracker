@@ -9,7 +9,7 @@ github-issue: 2450
 spec-path: docs/issues/open/2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md
 branch: "2450-migrate-health-check-api-test-environment"
 related-pr: null
-last-updated-utc: "2026-10-15 20:33"
+last-updated-utc: "2026-10-24 19:34"
 semantic-links:
   skill-links:
     - create-issue
@@ -20,8 +20,10 @@ semantic-links:
     - packages/axum-health-check-api-server/tests/server/contract.rs
     - packages/axum-server/src/signals.rs
     - src/bootstrap/jobs/health_check_api.rs
+    - docs/adrs/20261021184946_order_shutdown_by_event_flow_and_drain_event_listeners.md
     - docs/issues/closed/2324-1488-si-13-migrate-health-check-api-token-lifecycle/ISSUE.md
     - docs/issues/closed/2412-1488-si-16-migrate-standalone-http-environment/ISSUE.md
+    - docs/issues/closed/2471-1488-fix-http-environment-drop-path/ISSUE.md
     - docs/issues/open/2449-1488-si-23-migrate-rest-api-test-environment/ISSUE.md
     - docs/issues/drafts/1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md
     - docs/issues/drafts/1488-si-19-remove-legacy-shutdown-api/ISSUE.md
@@ -110,7 +112,11 @@ and is not in the EPIC roadmap:
 ## Architectural Decisions
 
 - Related ADRs:
+  [Order shutdown by event flow and drain event listeners](../../../adrs/20261021184946_order_shutdown_by_event_flow_and_drain_event_listeners.md),
+  which supersedes
   [Adopt a supervised cancellation tree for shutdown](../../../adrs/20260902074438_adopt_supervised_cancellation_tree_for_shutdown.md).
+  Its "Test environments" section applies to this environment only where a
+  listener exists; see the token-shape point in the next section.
 - ADRs to create: none known.
 
 ## Design and Ownership Review
@@ -118,6 +124,12 @@ and is not in the EPIC roadmap:
 - **Owner**: `Environment<Running>` owns the server task, the drain controller,
   and the token that stops them. It does not own the services in its
   `registar`.
+- **Token shape**: this environment owns no event listener (Background, fact
+  5), so it keeps one token and one `DropGuard`. The two
+  independent tokens of the HTTP and UDP environments (sub-EPIC #2410, D20;
+  ADR "Test environments") exist to stop a server before the listeners of its
+  buses, and there is no listener stage here. Do not copy their two-token
+  shape. If a listener is ever added, follow that ADR section.
 - **Normal path**: `stop()` cancels the token, joins both tasks, and returns
   `Environment<Stopped>`; the binding is released when it returns.
 - **Failure path**: join both tasks before returning an error (D1).
@@ -205,6 +217,7 @@ before maintainer review and commit. Sign every commit with GPG.
 - 2026-10-07 13:05 UTC - GitHub Copilot - The drop path is no longer "unchanged": a token migration loses the halt sender's stop-on-drop, as SI-16 did (#2471). Added the `DropGuard` requirement, a T1 drop test, and AC7.
 - 2026-10-15 19:38 UTC - GitHub Copilot - Corrected the drop-path note after `review-finding:pr-2544-f5`: the HTTP environment never stopped on drop, before or after SI-16, so the note no longer says SI-16 lost the behavior or that the legacy halt sender stops its server on drop. The `DropGuard` requirement and AC7 stand.
 - 2026-10-15 20:33 UTC - GitHub Copilot - `review-finding:pr-2544-f14`: the code answers the open question. The health-check API server spawns the same `graceful_shutdown` task as HTTP, so its legacy drop does not stop the server either (read from source, not run). The drop-path note says so.
+- 2026-10-24 19:34 UTC - GitHub Copilot - Refreshed after sub-EPIC #2410 (SI-22) closed, which rewrote the HTTP and UDP test environments (#2416) after this spec was written. Re-checked against `develop`: the 8 `env.stop()` calls, the 8 `state.binding` reads, and the 5 s drain still hold, and the environment's `start()` spawns only the server. The Related ADRs now name the new ADR that supersedes the cancellation-tree ADR, and the Design and Ownership Review says this environment keeps one token and one `DropGuard` because it owns no listener, so it must not copy the two-token shape of the HTTP and UDP environments. No task, acceptance criterion, or scope change.
 
 ## Acceptance Criteria
 
