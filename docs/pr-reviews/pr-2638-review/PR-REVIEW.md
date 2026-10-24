@@ -17,7 +17,7 @@ Source: pull-request reviews and inline review threads for <https://github.com/t
 The PR author owns this tracked audit record. Reviewers, including repository review agents,
 deliver findings through GitHub and have no repository-artifact obligation.
 
-- Post-merge workflow approval: N/A
+- Post-merge workflow approval: the maintainer (josecelano) approved, in the agent chat and before the first fix commit at 20:49 UTC on 2026-10-24, the disposition "fold into the S1 branch as separate docs commits, then audit-only update" for da2ce7's findings F5 to F9, which were submitted at 20:39 UTC and not yet processed when the pull request merged at 20:45 UTC. Chat-only approval is insufficient as long-term evidence, so the maintainer asked to record it in the S1 implementation pull request in a separate commit. The durable comment URL is added here once that pull request exists (retrospective record: the approval time is the chat time above, and the comment's creation time will be recorded with its URL).
 
 ## Status Values
 
