@@ -5,9 +5,9 @@ semantic-links:
     - write-unit-test
     - fix-bug
   related-artifacts:
-    - docs/issues/open/2416-2410-si-22-4-stop-producers-before-listeners/ISSUE.md
-    - docs/issues/open/2416-2410-si-22-4-stop-producers-before-listeners/manual-verification-evidence.md
-    - docs/issues/open/2416-2410-si-22-4-stop-producers-before-listeners/agent-review-reports.md
+    - docs/issues/closed/2416-2410-si-22-4-stop-producers-before-listeners/ISSUE.md
+    - docs/issues/closed/2416-2410-si-22-4-stop-producers-before-listeners/manual-verification-evidence.md
+    - docs/issues/closed/2416-2410-si-22-4-stop-producers-before-listeners/agent-review-reports.md
     - docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
 ---
 
@@ -91,7 +91,7 @@ documents describe the final implementation. Evidence: V1 to V6 and the Task Rev
 
 - [Issue specification](ISSUE.md), [manual verification evidence](manual-verification-evidence.md)
   (V1 to V6), and [agent review reports](agent-review-reports.md).
-- Sub-EPIC [`EPIC.md`](../2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md): record
+- Sub-EPIC [`EPIC.md`](../../open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md): record
   entries 31 and 32.
 - The code commits, cited by their Conventional Commit subjects:
   `fix(bootstrap): [#2416] stop event producers before event listeners` and

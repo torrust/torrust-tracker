@@ -6,7 +6,7 @@ epic: 1488
 github-issue: 2410
 spec-path: docs/issues/open/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-23 17:50"
+last-updated-utc: "2026-10-24 12:21"
 semantic-links:
   skill-links:
     - create-issue
@@ -271,7 +271,7 @@ which keeps the detailed steps for all sub-issues.
 | 1 | #2413 - Document event flows and draft the shutdown-order ADR | [ISSUE.md](../../closed/2413-2410-si-22-1-document-event-flows-and-draft-adr/ISSUE.md) | T1, T2 | AC9; ADR draft for AC8 | DONE | Documentation only. |
 | 2 | #2414 - Drain listener queues on shutdown | [ISSUE.md](../../closed/2414-2410-si-22-2-drain-listener-queues-on-shutdown/ISSUE.md) | T3, T4, T5 | AC1, AC3, AC4, AC6, AC11, AC12 | DONE | Addresses window (a), isolated by the control run (500 of 500 persisted, V10 and V11); merged in PR #2578 on 2026-10-20. The 5 s default drain timeout bounds admission and does not drain a full buffer (entry 28); race-run loss attribution remains incomplete. |
 | 3 | #2415 - Give each application component its own cancellation token | [ISSUE.md](../../closed/2415-2410-si-22-3-per-component-cancellation-tokens/ISSUE.md) | T6 | AC13 (keeps it; no behavior change) | DONE | Refactor that prepares sub-issue 4; merged in PR #2591 on 2026-10-21. Every component uses its own reservation token; `cancel()` still cancels all at once. The listener-subscription test for AC13 stays with #2416. |
-| 4 | #2416 - Stop event producers before event listeners | [ISSUE.md](../2416-2410-si-22-4-stop-producers-before-listeners/ISSUE.md) | T7, T8, T9, T10 | AC2, AC5, AC7, AC8, AC10, AC13 | IN_PROGRESS | Closes window (b). T9's prerequisite #2471 is satisfied (merged in PR #2544 on 2026-10-16). |
+| 4 | #2416 - Stop event producers before event listeners | [ISSUE.md](../../closed/2416-2410-si-22-4-stop-producers-before-listeners/ISSUE.md) | T7, T8, T9, T10 | AC2, AC5, AC7, AC8, AC10, AC13 | DONE | Closes window (b). T9's prerequisite #2471 is satisfied (merged in PR #2544 on 2026-10-16). |
 
 T0 (the reproduction) is done in this folder: evidence in
 [manual-verification-evidence.md](manual-verification-evidence.md) and the
@@ -2149,6 +2149,7 @@ avoids duplicating the full workflow in four drafts:
 - 2026-10-22 17:10 UTC - GitHub Copilot (Claude Opus 5.5) - #2416 review round 1, finding F3: the wording "cannot leave detached listeners" in record entry 32 and in the ADR now says what the code guarantees (cancelled, not joined). No design change.
 - 2026-10-22 17:12 UTC - GitHub Copilot (Claude Opus 5.5) - #2416 review round 1, finding F1: the plan row T10 reads `DONE` (it still read `TODO` while the Subissues row said `IN_PROGRESS`); the Subissues row stays `IN_PROGRESS` until the maintainer accepts and merges. No design change.
 - 2026-10-23 17:50 UTC - GitHub Copilot (model not verifiable from the session; the maintainer states Claude Sonnet 5.5) - Correction of the model stamps in this log: the entries of the #2416 work that name `Claude Opus 5.5` copied that name from earlier entries without checking it, and the maintainer states that the session ran Claude Sonnet 5.5. The earlier entries are not rewritten; read them as `model unverified`. Appended in the same round as review round 6 of PR #2623 (finding F17), recorded in the audit `docs/pr-reviews/pr-2623-review/PR-REVIEW.md`.
+- 2026-10-24 12:21 UTC - GitHub Copilot (model not verifiable from the session; the maintainer states Claude Sonnet 5.5) - #2416 merged in PR #2623 (2026-10-24 12:19 UTC) and archived to `docs/issues/closed/`; its Subissues row is `DONE` and links the archived spec. All four sub-issues (#2413, #2414, #2415, #2416) are now `DONE`. This sub-EPIC is not closed or archived here and the #1488 roadmap is not edited: the coordinator runs the sub-EPIC completion with the maintainer.
 
 ## Acceptance Criteria
 

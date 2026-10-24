@@ -4,7 +4,7 @@ semantic-links:
     - process-pr-review
   related-artifacts:
     - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
-    - docs/issues/open/2416-2410-si-22-4-stop-producers-before-listeners/ISSUE.md
+    - docs/issues/closed/2416-2410-si-22-4-stop-producers-before-listeners/ISSUE.md
 ---
 
 <!-- skill-link: process-pr-review -->
