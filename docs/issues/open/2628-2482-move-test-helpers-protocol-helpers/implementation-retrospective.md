@@ -52,8 +52,14 @@ their dependents, and the new bans were shown to fire. Evidence:
 3. **The moved helpers raised `dead_code`.** In `test-helpers` they were `pub`, so no binary
    warned. In a private test module each integration-test binary compiles its own copy and uses
    only some helpers, which fails the workspace's `-D warnings`. Each moved file carries a
-   module-level `#![allow(dead_code, reason = ...)]`; the existing `tests/common/` modules use
-   per-item `#[allow(dead_code)]` for the same cause.
+   module-level `#![allow(dead_code, reason = ...)]`. This departs on purpose from the rule of the
+   closed #2238 spec (`docs/issues/closed/2238-refactor-native-tracker-test-fixture/ISSUE.md`):
+   module-level allows only where a whole module is unused by one binary, item-level elsewhere. Most
+   binaries leave one of the two modules wholly unused (the banning tests use no `http` helper, the
+   completed-downloads persistence test no `udp` helper, `scaffold` neither), and the item-level form would need an
+   allow on all 16 functions of the two files, because each private helper becomes dead when its
+   public callers do. The existing `tests/common/configuration.rs` and `native_tracker/` keep their
+   item-level allows, which this change leaves as they are.
 4. **`develop` moved under the spec.** #2623 added `http_complete_download` after the spec was
    refreshed; the reviewer found it in the spec PR. No code was affected, because the move carries
    whatever the module holds.
