@@ -6,7 +6,7 @@ epic: 1669
 github-issue: 2482
 spec-path: docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-23 08:07"
+last-updated-utc: "2026-10-23 17:23"
 semantic-links:
   skill-links:
     - create-issue
@@ -184,7 +184,7 @@ same pull request.
 | Order | Issue | Local Spec | Status | Notes |
 | --- | --- | --- | --- | --- |
 | 1 | #2618 - Decide how packages share test support code | [`docs/issues/closed/2618-2482-decide-test-support-rules/ISSUE.md`](../../closed/2618-2482-decide-test-support-rules/ISSUE.md) | DONE | Tasks D1 to D5; MV1 to MV4. Merged in PR #2624 on 2026-10-23; issue closed. |
-| 2 | #[To be assigned] - Move the `test-helpers` protocol helpers to their consumer | [`docs/issues/drafts/2482-move-test-helpers-protocol-helpers/ISSUE.md`](../../drafts/2482-move-test-helpers-protocol-helpers/ISSUE.md) | TODO | Pattern B; ADR rule B; coupling report finding 1. The `http` and `udp` modules move to the root crate's `tests/common/`. `test-helpers` is published as 3.0.0 with only `configuration` and `random`, so the move alone does not break that API; #2583 decides the bump. Runs first (not an O1 move). |
+| 2 | #2628 - Move the `test-helpers` protocol helpers to their consumer | [`docs/issues/open/2628-2482-move-test-helpers-protocol-helpers/ISSUE.md`](../2628-2482-move-test-helpers-protocol-helpers/ISSUE.md) | IN_PROGRESS | Pattern B; ADR rule B; coupling report finding 1. The `http` and `udp` modules move to the root crate's `tests/common/`. `test-helpers` is published as 3.0.0 with only `configuration` and `random`, so the move alone does not break that API; #2583 decides the bump. Runs first (not an O1 move). |
 | 3 | #[To be assigned] - Gate `tracker-core`'s test modules and mocks | [`docs/issues/drafts/2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md`](../../drafts/2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md) | TODO | Patterns C and D; ADR rules C and D. `MockTorrentMetricsStore` is also used by `http-core` and `udp-core`, so their dev-dependencies enable the feature in the same PR. The first O1 move: after rows 8 and 9. |
 | 4 | #[To be assigned] - Gate the `udp-server` test environment behind a `testing` feature | [`docs/issues/drafts/2482-gate-udp-server-test-environment/ISSUE.md`](../../drafts/2482-gate-udp-server-test-environment/ISSUE.md) | TODO | Pattern A; ADR rule A; includes `examples/udp_only_public_tracker.rs`. After #2416 (its T9 changes this environment). |
 | 5 | #[To be assigned] - Gate the `axum-http-server` test environment behind a `testing` feature | [`docs/issues/drafts/2482-gate-axum-http-server-test-environment/ISSUE.md`](../../drafts/2482-gate-axum-http-server-test-environment/ISSUE.md) | TODO | Pattern A; includes `examples/http_only_public_tracker.rs` and the doc-link-only `configuration` edge. After #2471, which merged on 2026-10-16, and after #2416 (its T9 changes this environment). |
@@ -430,6 +430,7 @@ Append one line per meaningful update.
   approval of the written ADR is evidenced by his merge of PR #2624 (`bf03425ef`), as AC2's
   evidence cell now says (the 07:32 entry's parenthesis "the maintainer approved ... the written
   ADR" is corrected by this entry).
+- 2026-10-23 16:23 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 2) - Created issue #2628 (row 2), linked it as a subissue of #2482 and moved its spec to `docs/issues/open/`; row 2 is IN_PROGRESS.
 
 ## Acceptance Criteria
 

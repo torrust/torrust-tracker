@@ -2,7 +2,7 @@
 doc-type: research-report
 parent-issue: 2482
 status: completed
-last-updated-utc: 2026-10-22
+last-updated-utc: 2026-10-24
 semantic-links:
   related-artifacts:
     - docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md
@@ -128,7 +128,7 @@ Other observations:
 | `configuration` (220) | Ephemeral test configurations | All 7 dependents (unit tests, integration tests, benches) | `configuration` |
 | `logging` (156) | Test tracing setup and log capture | Tests of the 4 server packages | `configuration`, `tracing`, `tracing-subscriber` |
 | `random` (10) | Random strings | The `configuration` module | `rand` |
-| `http` (68) | `http_announce`, `http_scrape` | Root `tests/common/mod.rs` only | `client-lib`, `http-protocol`, `primitives`, `torrust-info-hash`, `torrust-peer-id`, `url` |
+| `http` (92) | `http_announce`, `http_complete_download`, `http_scrape` | Root `tests/common/mod.rs` only | `client-lib`, `http-protocol`, `primitives`, `torrust-info-hash`, `torrust-peer-id`, `url` |
 | `udp` (304) | `udp_announce`, `udp_scrape`, `udp_complete_download`, three `send_invalid_connection_id*` helpers | Root `tests/common/mod.rs` only | `client-lib`, `udp-protocol`, `primitives`, `torrust-peer-id` |
 
 The `http` and `udp` modules arrived on 2026-07-29 with `client-lib` and the two protocol crates,
@@ -206,7 +206,7 @@ that resolves it.
 | A. `axum-http-server` environment (and its example) | Rule A: behind the `testing` feature of `axum-http-server` | [Row 5](../../drafts/2482-gate-axum-http-server-test-environment/ISSUE.md) | Open |
 | A. `axum-rest-api-server` environment | Rule A: behind the `testing` feature of `axum-rest-api-server` | [Row 6](../../drafts/2482-gate-axum-rest-api-server-test-environment/ISSUE.md) | Open |
 | A. `axum-health-check-api-server` environment | Rule A: behind the `testing` feature of `axum-health-check-api-server` | [Row 7](../../drafts/2482-gate-axum-health-check-api-server-test-environment/ISSUE.md) | Open |
-| B. `test-helpers` `http` and `udp` modules | Rule B: the root crate's `tests/common/` | [Row 2](../../drafts/2482-move-test-helpers-protocol-helpers/ISSUE.md) | Open |
+| B. `test-helpers` `http` and `udp` modules | Rule B: the root crate's `tests/common/` | [Row 2](../2628-2482-move-test-helpers-protocol-helpers/ISSUE.md) | Open |
 | B. `test-helpers` `configuration`, `logging`, `random` | Rule B: stay in `test-helpers` | None | Kept by the ADR |
 | C. `tracker-core` `pub mod` test declarations | Rule C: private `#[cfg(test)] mod` | [Row 3](../../drafts/2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md) | Open |
 | D. `tracker-core` database mocks | Rule D: behind the `testing` feature of `tracker-core` | [Row 3](../../drafts/2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md) | Open |
