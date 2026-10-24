@@ -50,7 +50,9 @@ inline findings, F8 to F10. Its IDs do not collide with the audit, so they are k
 5637532312 (`COMMENTED`) is a summary with no inline thread, so it has no row. Round 5 comes from
 Copilot review 5637658378 (`COMMENTED`) on the head that round 4 reviewed, requested before the
 round 4 fixes were pushed, with three inline findings, F11 to F13. A warning at the top of that
-review says Copilot could not run its full agentic review before the timeout.
+review says Copilot could not run its full agentic review before the timeout. Copilot review
+5637742895 (`COMMENTED`), on the head after the round 4 fixes, is a summary that lists F11 to F13 as
+open, so it has no row.
 The branch history was rewritten in round 1 (see F1), so the round 1 review bodies cite a commit id
 that no longer exists on the branch. That id named the commit with the subject
 `docs(skills): state that a negated closing keyword still closes the issue`.
@@ -339,6 +341,8 @@ that no longer exists on the branch. That id named the commit with the subject
   (reply 4366609531) and the F10 thread (reply 4366609614).
 - 2026-10-24 09:10 UTC - Copilot submitted review 5637658378 (`COMMENTED`) with threads 4366639415
   (F11), 4366639440 (F12) and 4366639459 (F13).
+- 2026-10-24 09:26 UTC - Copilot submitted review 5637742895 (`COMMENTED`), a summary with no new
+  thread that lists F11 to F13 as open.
 - 2026-10-24 12:10 UTC - Committed the F11, F12 and F13 fix in one commit, because the three findings
   change the same command block.
 - 2026-10-24 12:13 UTC - Replied to and resolved the F11 thread (reply 4367080421), the F12 thread
