@@ -39,7 +39,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Review rounds 1 to 8 of the maintainer-requested review. Round 8 (review 5637524522, source of F19), round 7 (review 5633217676, source of F18), round 6 (review 5631998994, source of F17) and round 5 (review 5631621502, source of F15 and F16) are described in the Processing Log. Round 2 (review 5618477521, source of F7 to F9), round 3 (review 5625229542, source of F10 and F11) and round 4 (review 5630959120, source of F12 and F13, and the Copilot review 5631096012, source of F14) are described in the Processing Log. The Copilot review (review 5610834925, a summary
+Review rounds 1 to 9 of the maintainer-requested review. Round 9 (review 5637591133, source of F20 and F21), round 8 (review 5637524522, source of F19), round 7 (review 5633217676, source of F18), round 6 (review 5631998994, source of F17) and round 5 (review 5631621502, source of F15 and F16) are described in the Processing Log. Round 2 (review 5618477521, source of F7 to F9), round 3 (review 5625229542, source of F10 and F11) and round 4 (review 5630959120, source of F12 and F13, and the Copilot review 5631096012, source of F14) are described in the Processing Log. The Copilot review (review 5610834925, a summary
 that reports no open issues and has no inline thread) holds no independently actionable assertion and
 has no row. The human review 5616192898 (verdict `APPROVED`, an ACK of the pushed head, and the PR
 conversation comment 6343775843) holds the six inline findings below; its body and the ACK comment
@@ -66,6 +66,8 @@ contain no other request. Finding IDs are the reviewer's own.
 | F17 | review-finding:pr-2623-f17 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F18 | review-finding:pr-2623-f18 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F19 | review-finding:pr-2623-f19 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F20 | review-finding:pr-2623-f20 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F21 | review-finding:pr-2623-f21 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -316,6 +318,32 @@ contain no other request. Finding IDs are the reviewer's own.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2623#discussion_r4366544198
 
+### F20 - The review was submitted at 08:29, not 08:30
+
+- PR number: 2623
+- Source review ID: 5637591133
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2623#discussion_r4366586480
+- Concern: The round 8 Processing Log entry gave 08:30 UTC as the submission time of review 5637524522; GitHub records 08:29:05.
+- Solution: Appended a correction entry to the Processing Log that names the round 8 entry and gives 08:29; the entry itself is not rewritten, as the log rules require. Compared the stated submission time of every other round in the audit with `submitted_at` of its review.
+- Current-tree verification: `gh api repos/torrust/torrust-tracker/pulls/2623/reviews` gives `submitted_at` 2026-10-24T08:29:05Z for review 5637524522; the review times stated in the other entries that give one agree with their reviews' `submitted_at` to the minute (compared by reading the two lists side by side, not by a script); the audit validator exit 0.
+- Resolution reference: `docs(pr-reviews): [#2416] correct the round 8 log entry's review time and edit count`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2623#discussion_r4366603197
+
+### F21 - 'Edited twice' and the reply's 'Edited once' disagree
+
+- PR number: 2623
+- Source review ID: 5637591133
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2623#discussion_r4366586487
+- Concern: The round 8 log entry said the F19 reply was edited twice and that the reply states it, while the reply said 'Edited once'; the REST data carries no edit history.
+- Solution: The sequence of edits comes from my own calls: two edits at about 08:33 to 08:34 UTC and a third at 08:52 UTC that replaced the note with a pointer to the log. The appended correction states three edits, and the reply no longer counts its own edits, so the two agree.
+- Current-tree verification: the reply as read back from GitHub carries no count of its edits and points to the Processing Log; its `updated_at` is 2026-10-24T08:52:36Z; the correction entry gives the same time; the audit validator exit 0.
+- Resolution reference: `docs(pr-reviews): [#2416] correct the round 8 log entry's review time and edit count`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2623#discussion_r4366603312
+
 ## Processing Log
 
 - 2026-10-22 14:53 UTC - Review 5616192898 (`APPROVED`, six inline findings) and the ACK comment 6343775843 were submitted by the requested reviewer for the pushed head; the Copilot review 5610834925 of 07:47 UTC had no inline thread.
@@ -331,6 +359,7 @@ contain no other request. Finding IDs are the reviewer's own.
 - 2026-10-24 08:13 UTC - Review round 7: review 5633217676 (`APPROVED`, submitted 2026-10-23 19:06 UTC, an ACK of the head after the round 6 audit and the retrospective, with one nit, F18) was processed. Fixed F18 in a signed commit and pushed it (2026-10-24 08:12 UTC); replied to the thread at 08:12 UTC (GitHub `created_at`), after the push, then resolved it: zero unresolved threads. The reviewer's account has no other finding on the retrospective, whose figures he recomputed.
 - 2026-10-24 08:34 UTC - Review round 8: review 5637524522 (`APPROVED`, submitted 2026-10-24 08:30 UTC, an ACK of the head after round 7, with one finding, F19) was processed. Fixed F19 in a signed commit and pushed it (08:33 UTC); replied to the thread at 08:33 UTC (GitHub `created_at`), after the push, then resolved it: zero unresolved threads. The reply was edited twice, the last edit at 08:34 UTC (GitHub `updated_at`), to correct its sweep claim (it first said the other searches state no count, and named F3 for the ADR search, which is F6's); the edit is stated in the reply.
 - 2026-10-24 08:52 UTC - Correction of the round 8 entry above, which is not rewritten. Review 5637524522 was submitted at 2026-10-24 08:29 UTC (GitHub `submitted_at` 08:29:05), not 08:30. The reply on the F19 thread was edited three times, not two: two edits at about 08:33 to 08:34 UTC (the last has `updated_at` 08:34:06), which corrected its sweep claim and the finding named for the ADR search, and a third at 08:52 UTC (`updated_at` 08:52:36) that replaced its note 'Edited once' with a pointer to this log. The entry's 'last edit at 08:34 UTC' held until that third edit. The review times of the other rounds in this log were re-compared with GitHub `submitted_at` for each review and agree to the minute.
+- 2026-10-24 08:56 UTC - Review round 9: review 5637591133 (`APPROVED`, submitted 2026-10-24 08:50 UTC, `submitted_at` 08:50:21, an ACK of the head after round 8, with two nits, F20 and F21) was processed. Fixed both in one signed commit that appends a correction to this log, and pushed it (08:55 UTC); replied to the two threads at 08:56 UTC (GitHub `created_at`), after the push, then resolved them: zero unresolved threads.
 
 Append entries only. If an entry was rewritten in place, restore the prior entries, then append a
 correction that names the rewritten content; do not rewrite the record again.
