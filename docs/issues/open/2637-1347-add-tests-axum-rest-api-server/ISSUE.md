@@ -269,6 +269,9 @@ Questions the file plans must answer, because the answer may be a finding rather
 - A non-UTF-8 `Authorization` header is read as "no header" (`.to_str().ok()`), so a valid `token`
   query parameter then authenticates the request even though the header "takes precedence". Is that
   intended? (`v1/middlewares/auth.rs`.)
+- The crate documentation in `lib.rs` spells the section `tsl_config` in three places, but the v3 `HttpApi`
+  key is `tls_config` and the type denies unknown fields, so the documented snippet does not parse.
+  It is a documentation correction for the `lib.rs` plan (S6), not a production change.
 - Authentication failures answer `500` with a legacy body. The module documentation says so; the
   plan decides whether the tests pin it as the documented backward-compatible contract.
 - The authentication layer is added before the health-check route, so the health check is
@@ -660,7 +663,7 @@ built from `develop` with every earlier slice merged, following the `use-rest-ap
 | M2 | Token sources and precedence | `curl` `/api/v1/stats` with a valid `Authorization: Bearer` header and an invalid `token` query, then an invalid header and a valid query, then a header without the `Bearer` scheme prefix. | The header token decides when both are present; a header with another scheme is rejected. | TODO | `manual-verification-evidence.md` V2 |
 | M3 | Configuration-gated contexts | With the default (public, unlisted) configuration, `POST` an auth key and a whitelist entry; repeat with `private = true` and with `listed = true`, using `curl`. | `409` with the disabled reason in the default mode; the key and whitelist operations succeed in their modes. | TODO | `manual-verification-evidence.md` V3 |
 | M4 | Statistics formats | `curl` `/api/v1/stats` and `/api/v1/metrics` with `format=json` and `format=prometheus`. | JSON and Prometheus text bodies with the documented fields. | TODO | `manual-verification-evidence.md` V4 |
-| M5 | TLS and graceful shutdown | Start the tracker with a self-signed certificate in `[http_api.tsl_config]`, `curl --insecure https://...`, then stop it with `SIGINT`. | The API answers over HTTPS and the process exits cleanly. | TODO | `manual-verification-evidence.md` V5 |
+| M5 | TLS and graceful shutdown | Start the tracker with a self-signed certificate in `[http_api.tls_config]`, `curl --insecure https://...`, then stop it with `SIGINT`. | The API answers over HTTPS and the process exits cleanly. | TODO | `manual-verification-evidence.md` V5 |
 
 ### Disposable Verification Scripts
 
