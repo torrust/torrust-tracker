@@ -520,7 +520,7 @@ The `test-helpers` workspace package provides shared test utilities.
 torrust-tracker-test-helpers = { workspace = true }
 ```
 
-Check the package for available mock servers, fixture generators, and utility types.
+Check the package for test configurations, logging and random data; a protocol helper with one consumer lives in that consumer's `tests/common/`.
 
 ## Reusable Refactoring Patterns
 

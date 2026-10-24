@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-review
 priority: p2
 epic: 2482
 github-issue: 2628
 spec-path: docs/issues/open/2628-2482-move-test-helpers-protocol-helpers/ISSUE.md
-branch: "2628-2482-move-test-helpers-protocol-helpers-spec"
-related-pr: null
-last-updated-utc: "2026-10-24 17:15"
+branch: "2628-2482-move-test-helpers-protocol-helpers"
+related-pr: 2636
+last-updated-utc: "2026-10-24 20:02"
 semantic-links:
   skill-links:
     - create-issue
@@ -111,11 +111,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T1 | TODO | Record the baseline | `cargo test -p torrust-tracker --tests` counts, `cargo tree -p torrust-tracker-test-helpers -e normal`, `cargo deny check bans` result |
-| T2 | TODO | Move `http` helpers to `tests/common/` | Root tests that call them still pass |
-| T3 | TODO | Move `udp` helpers to `tests/common/` | Same |
-| T4 | TODO | Prune `test-helpers`' dependencies and update `deny.toml` | `test-helpers` depends only on `rand`, `configuration`, `tracing`, `tracing-subscriber`; `cargo machete` and `cargo deny check bans` pass |
-| T5 | TODO | Update docs, diagram and inventory | Descriptions match; inventory pattern B marked resolved |
+| T1 | DONE | Record the baseline | `cargo test -p torrust-tracker --tests` counts, `cargo tree -p torrust-tracker-test-helpers -e normal`, `cargo deny check bans` result. Baseline: 15 binaries, 194 tests; 11 direct dependencies; `bans ok` with two unmatched-wrapper warnings. See evidence V1 to V3. |
+| T2 | DONE | Move `http` helpers to `tests/common/` | `http_requests.rs`; root tests pass (194). The commit also drops the `test-helpers` dependencies only `http` used (see Commit Points). |
+| T3 | DONE | Move `udp` helpers to `tests/common/` | `udp_requests.rs`; same results. The commit also drops the dependencies only `udp` used and changes the protocol crates' `deny.toml` wrappers. |
+| T4 | DONE | Prune `test-helpers`' dependencies and update `deny.toml` | `test-helpers` depends only on `rand`, `configuration`, `tracing`, `tracing-subscriber`; `cargo machete` and `cargo deny check bans` pass. T4's own commit adds the four ban entries. |
+| T5 | DONE | Update docs, diagram and inventory | Descriptions match in `AGENTS.md`, `docs/packages.md`, `packages/AGENTS.md` and `docs/testing.md`; the `packages/AGENTS.md` diagram shows layers, not dependency edges, so it needed no change; inventory pattern B marked resolved. |
 
 ## Commit Points
 
@@ -126,6 +126,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T4 | `test-helpers` manifest and `deny.toml` | Commit after `cargo deny check bans` and `cargo machete` pass. |
 | T5 | Docs, diagram, inventory | One commit. |
 
+The pre-commit gate runs `cargo machete` and `cargo deny check bans` on every commit, so the T2 and T3
+commits also carry the manifest and `deny.toml` changes their move makes necessary; the T4 commit
+holds the four new ban entries. See the retrospective.
+
 ## Progress Tracking
 
 ### Workflow Checkpoints
@@ -133,12 +137,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Folder-style spec drafted in `docs/issues/drafts/2482-move-test-helpers-protocol-helpers/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created, linked as a sub-issue of #2482, and its number added to this spec
-- [ ] Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
+- [x] Spec-only PR merged into `develop` before implementation
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
@@ -150,18 +154,20 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-10-23 16:23 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 2) - Maintainer (josecelano) approved the spec and decided that the `deny.toml` scope also adds ban entries for `torrust-tracker-core`, `swarm-coordination-registry` and `events`. Created issue #2628, linked it as a subissue of #2482 (`parent_issue_url` verified) and moved the spec to `docs/issues/open/`.
 - 2026-10-23 16:49 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 2) - Review round 1 on PR #2629 (da2ce7, four non-blocking findings): fixed the Progress Log placement, the check scope wording, the frontmatter branch/status and the drafted-checkpoint path; see `docs/pr-reviews/pr-2629-review/PR-REVIEW.md`.
 - 2026-10-24 17:15 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 2) - Review round 6 on PR #2629 (da2ce7, finding F14): refreshed the Background against `develop` at `8f8b4d714`. #2623 added the public helper `http_complete_download`, so `http.rs` is 92 lines (`http_announce`, `http_complete_download`, `http_scrape`) and T2 moves all three; the other facts still hold (seven dev-dependents, `udp.rs` 304 lines, the root `tests/common/mod.rs` as the only consumer).
+- 2026-10-24 19:37 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 2) - Implemented on branch `2628-2482-move-test-helpers-protocol-helpers` after PR #2629 merged: the `http` and `udp` helpers moved to `tests/common/http_requests.rs` and `udp_requests.rs`, `test-helpers` now depends only on `rand`, `configuration`, `tracing` and `tracing-subscriber`, `deny.toml` gained entries for `client-lib`, `tracker-core`, `swarm-coordination-registry` and `events`, and the descriptions and inventory were updated. Baseline and final: 15 binaries, 194 root tests passed; pre-push passed. Evidence: `manual-verification-evidence.md`; lessons: `implementation-retrospective.md`.
+- 2026-10-24 20:02 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 2) - Review round 1 on PR #2636 (Copilot finding on AC1): AC1 now says "no direct dependency", which is what V1 checks with `cargo tree --depth 1`; `primitives` stays reachable through `configuration`, which rule B.1 allows.
 
 ## Acceptance Criteria
 
-- [ ] AC1: `torrust-tracker-test-helpers` has no dependency on `client-lib`, `http-protocol`,
+- [x] AC1: `torrust-tracker-test-helpers` has no direct dependency on `client-lib`, `http-protocol`,
       `udp-protocol`, `primitives`, `torrust-info-hash`, `torrust-peer-id` or `url`.
-- [ ] AC2: The root crate's tests that used the helpers pass, with the same test count as the
+- [x] AC2: The root crate's tests that used the helpers pass, with the same test count as the
       baseline.
-- [ ] AC3: `cargo deny check bans` passes, `torrust-tracker-test-helpers` is in no protocol
+- [x] AC3: `cargo deny check bans` passes, `torrust-tracker-test-helpers` is in no protocol
       crate's `wrappers` list, and `torrust-tracker-client-lib`, `torrust-tracker-core`,
       `swarm-coordination-registry` and `events` have ban entries that do not name `test-helpers`.
-- [ ] AC4: Descriptions and the dependency diagram match; inventory pattern B is marked resolved.
-- [ ] `linter all` exits with code `0`; pre-push checks pass.
+- [x] AC4: Descriptions and the dependency diagram match; inventory pattern B is marked resolved.
+- [x] `linter all` exits with code `0`; pre-push checks pass.
 
 ## Verification Plan
 
@@ -177,17 +183,17 @@ applies. This move is not an O1 move, so the without-feature check does not appl
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | `test-helpers` has no protocol dependency | `cargo tree -p torrust-tracker-test-helpers -e normal` before and after | After: only `rand`, `configuration`, `tracing`, `tracing-subscriber` and their transitive crates | TODO | `manual-verification-evidence.md` V1 |
-| M2 | The root tests keep running | `cargo test -p torrust-tracker --tests` before and after | Same number of tests, all pass | TODO | V2 |
+| M1 | `test-helpers` has no protocol dependency | `cargo tree -p torrust-tracker-test-helpers -e normal` before and after | After: only `rand`, `configuration`, `tracing`, `tracing-subscriber` and their transitive crates | DONE | `manual-verification-evidence.md` V1 |
+| M2 | The root tests keep running | `cargo test -p torrust-tracker --tests` before and after | Same number of tests, all pass | DONE | V2 |
 
 ### Acceptance Verification
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1   | TODO                   |          |
-| AC2   | TODO                   |          |
-| AC3   | TODO                   |          |
-| AC4   | TODO                   |          |
+| AC1   | DONE                   | [`manual-verification-evidence.md`](manual-verification-evidence.md) V1: `cargo tree -p torrust-tracker-test-helpers -e normal --depth 1` lists only `rand`, `configuration`, `tracing`, `tracing-subscriber` (direct dependencies; `primitives` stays reachable through `configuration`, allowed by rule B.1); `cargo machete --with-metadata` clean (run by the implementing agent) |
+| AC2   | DONE                   | V2: 15 binaries, 194 tests, per-binary results identical to the baseline; the pre-push full test suite passed (run by the implementing agent) |
+| AC3   | DONE                   | V3: `cargo deny check bans` passes on the real tree and fails when `test-helpers` depends on each of the four banned crates; `test-helpers` is in no `wrappers` list (checked by the implementing agent: `grep -n test-helpers deny.toml` prints only the two comment lines of the new section) |
+| AC4   | DONE                   | The four descriptions and inventory pattern B are updated in the T5 commit; `linter all` (markdown links) passed in the pre-commit gate (checked by the implementing agent) |
 
 ## Risks and Trade-offs
 
@@ -198,7 +204,9 @@ applies. This move is not an O1 move, so the without-feature check does not appl
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
+- Retrospective: created, [`implementation-retrospective.md`](implementation-retrospective.md): the commit points that the pre-commit gate
+  merged into the move commits, the `deny.toml` wrapper lists that must follow the root crate's graph, the `dead_code`
+  allowance and the ambiguity of "no dependency" in AC1.
 - If no retrospective is needed, add a progress-log entry saying why.
 
 ## References

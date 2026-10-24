@@ -139,7 +139,7 @@ TORRUST_TRACKER_CORE_RUN_MYSQL_DRIVER_TEST=true cargo test -p torrust-tracker-co
 ```
 
 Use `clock::Stopped` (from the [`torrust-clock`](https://crates.io/crates/torrust-clock) crate) in unit tests that need deterministic time.
-Use `test-helpers` for mock tracker servers in integration tests.
+Use `test-helpers` for generic test configurations, logging and random data. A protocol helper with one consumer belongs in that consumer's `tests/common/` (rule B of the [test support ADR](../docs/adrs/20261021190318_share_workspace_test_support_through_testing_features.md)).
 
 ## Key Dependency Notes
 

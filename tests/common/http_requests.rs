@@ -1,5 +1,10 @@
 //! HTTP tracker test helpers.
 
+#![allow(
+    dead_code,
+    reason = "each integration-test binary compiles this module and calls only some helpers"
+)]
+
 use std::time::Duration;
 
 use torrust_tracker_client::http::client::Client;

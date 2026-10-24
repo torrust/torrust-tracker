@@ -84,7 +84,7 @@ package's `Cargo.toml` holds its version. Rows marked _(unpublished)_ set `publi
 | `rest-api-protocol`               | `torrust-tracker-rest-api-protocol`               | REST API protocol    | REST API wire contract (DTOs, error schemas)            |
 | `rest-api-runtime-adapter`        | `torrust-tracker-rest-api-runtime-adapter`        | runtime adapter      | REST API runtime adapter and container wiring           |
 | `swarm-coordination-registry`     | `torrust-tracker-swarm-coordination-registry`     | domain               | Torrent/peer coordination registry                      |
-| `test-helpers`                    | `torrust-tracker-test-helpers`                    | utilities            | Mock servers, test data generation                      |
+| `test-helpers`                    | `torrust-tracker-test-helpers`                    | utilities            | Test configurations, logging, random data               |
 | `torrent-repository-benchmarking` | `torrust-tracker-torrent-repository-benchmarking` | benchmarking         | Torrent storage benchmarks _(unpublished)_              |
 | `tracker-client`                  | `torrust-tracker-client-lib`                      | client tools         | Generic UDP and HTTP tracker client library             |
 | `tracker-core`                    | `torrust-tracker-core`                            | `*-core`             | Central tracker peer-management logic                   |
