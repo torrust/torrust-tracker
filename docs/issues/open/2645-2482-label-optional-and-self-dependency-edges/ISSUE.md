@@ -8,8 +8,8 @@ epic: 2482
 github-issue: 2645
 spec-path: docs/issues/open/2645-2482-label-optional-and-self-dependency-edges/ISSUE.md
 branch: "2645-2482-label-optional-and-self-dependency-edges"
-related-pr: null
-last-updated-utc: "2026-10-25 08:15"
+related-pr: 2648
+last-updated-utc: "2026-10-25 08:17"
 semantic-links:
   skill-links:
     - create-issue
