@@ -1,3 +1,7 @@
 # Preserve byte-identical external source snapshots, including upstream whitespace.
 docs/external-snapshots/**/LICENSE.md -text -whitespace
 docs/external-snapshots/**/SPEC.md -text -whitespace
+
+# Intended binary assets are exempt from the tracked-file UTF-8 check.
+*.png binary
+*.torrent binary
