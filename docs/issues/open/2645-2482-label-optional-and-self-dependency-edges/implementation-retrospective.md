@@ -38,10 +38,17 @@ and the hand-made `features` table in the test did not contain the implicit feat
 that Cargo adds. Running `cargo metadata` on a real scratch workspace, to record the evidence,
 showed it. A fix and two tests with the real table shape followed.
 
+Copilot's review of PR #2648 then found a second gap of the same kind: the tool looked only at the
+features that list the dependency, so `default = ["testing"]` with `testing = ["dep:c"]` still
+showed `optional (testing)` although a default build enables the dependency. The tool now follows
+feature references, with a stop on cycles. The spec said "enabled only by `testing`" without saying
+what "enabled by" means for a feature that another feature enables.
+
 ## Root Cause
 
 The test fixtures were written from the spec's description of the metadata, not from the output of
-`cargo metadata`. The spec's Background quoted the dependency lines of the ADR evidence but not the
+`cargo metadata`, and the spec defined "enabled by a feature" only for a feature that lists the
+dependency. The spec's Background quoted the dependency lines of the ADR evidence but not the
 `features` table, which was the new input.
 
 ## Improvements for Future Work
@@ -50,7 +57,10 @@ The test fixtures were written from the spec's description of the metadata, not 
    syntax variant into the test fixture (or record it in the spec) before writing the test.
 2. Run the tool on a scratch workspace for each syntax variant the ADR allows, not only the one
    the evidence used. The rows 3 to 7 that add `testing` features should expect both
-   `testing = ["dep:c"]` and `testing = ["c"]` in manifests.
+   `testing = ["dep:c"]` and `testing = ["c"]` in manifests, and a `default` feature that
+   includes `testing` must be treated as a runtime edge.
+3. When a spec defines a label by a condition on a graph (here, features enabling features), say
+   whether the condition is direct or transitive.
 
 ## Avoiding Overcorrection
 
@@ -60,6 +70,8 @@ and the real-shape fixtures of the new tests are enough.
 ## Evidence
 
 - [`ISSUE.md`](ISSUE.md) and [`manual-verification-evidence.md`](manual-verification-evidence.md)
-- Commits `feat(workspace-coupling): [#2645] label optional edges and skip self edges` and
-  `fix(workspace-coupling): [#2645] ignore the implicit feature of an optional dependency`
-- Spec PR #2646: no review findings, so no audit record exists.
+- Commits `feat(workspace-coupling): [#2645] label optional edges and skip self edges`,
+  `fix(workspace-coupling): [#2645] ignore the implicit feature of an optional dependency` and
+  `fix(workspace-coupling): [#2645] follow feature references when labelling an optional edge`
+- Spec PR #2646: no review findings, so no audit record exists. Implementation PR #2648 review
+  audit: [`PR-REVIEW.md`](../../../pr-reviews/pr-2648-review/PR-REVIEW.md)

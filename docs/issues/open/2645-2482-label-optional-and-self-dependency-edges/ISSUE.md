@@ -9,7 +9,7 @@ github-issue: 2645
 spec-path: docs/issues/open/2645-2482-label-optional-and-self-dependency-edges/ISSUE.md
 branch: "2645-2482-label-optional-and-self-dependency-edges"
 related-pr: 2648
-last-updated-utc: "2026-10-25 08:17"
+last-updated-utc: "2026-10-25 14:36"
 semantic-links:
   skill-links:
     - create-issue
@@ -142,6 +142,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   the #2482 Subissues table; the ADR chose O1, so the row is required.
 - 2026-10-25 06:55 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 8) - Refreshed against `develop`, pointed the diagram to `docs/media/packages/dependencies-workspace-packages.md`, created #2645, linked it under #2482 and moved the spec to `open/`. The maintainer approved the spec.
 - 2026-10-25 08:15 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 8) - Implemented T1 to T5 after the spec PR #2646 merged: the tool labels optional edges and skips self edges, the legend and diagram note explain it, the evidence and a retrospective are recorded (the retrospective is needed: the first version mislabelled the `testing = ["c"]` shorthand). AC2 is read as "never labelled `normal`", because the tool has no runtime-edge counter (see the completion review).
+- 2026-10-25 14:36 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 8) - Opened PR #2648. Its Copilot review found that the tool ignored feature chains (a `default` feature that includes `testing`); fixed with five more tests, and the completion review, evidence and retrospective now describe the transitive search (audit: `docs/pr-reviews/pr-2648-review/PR-REVIEW.md`).
 
 ## Acceptance Criteria
 
@@ -177,7 +178,7 @@ applies; the O1-specific checks do not (this subissue moves no test code).
 | AC1   | DONE                   | `tests/edge_labels.rs` (two self-edge tests); V1: `o1c` has no entry and is a leaf |
 | AC2   | DONE                   | `tests/edge_labels.rs` (the `optional (testing)` tests, including the `dep:` and implicit-feature syntax and a rename); V1: `a` -> `c` is `optional (testing)`, `b` -> `c` stays `normal` |
 | AC3   | DONE                   | The legend lines in `src/main.rs` (V2 diff) and the note in `docs/media/packages/dependencies-workspace-packages.md`; no `optional (testing)` edge exists, so none is drawn |
-| AC4   | DONE                   | V3: `cargo test -p workspace-coupling`, 35 tests pass; 14 of the 15 new ones failed to compile before the change and the two implicit-feature ones failed before the fix |
+| AC4   | DONE                   | V3: `cargo test -p workspace-coupling`, 40 tests pass; 14 of the 20 new ones failed to compile before the change, the two implicit-feature ones failed before the first fix and four of the five transitive-feature ones before the second |
 
 ## Risks and Trade-offs
 
@@ -201,13 +202,17 @@ maintainer reviews it in the pull request.
   only a per-package "Workspace deps" total that already includes dev and build edges. An
   `optional (testing)` edge is therefore never labelled `normal` and sorts after the normal edges;
   the total is unchanged. If row 7 wants a runtime-only count it must add one.
-- Known limits: a feature entry `dep:c` or `c` or `c/feature` enables the dependency; the weak form
-  `c?/feature` does not. The implicit feature Cargo adds for an optional dependency
-  (`c = ["dep:c"]`) is ignored, so a dependency only that feature enables is labelled `optional`.
-  The legend lines were committed with the tool change rather than with the diagram note.
+- Known limits: a feature entry `dep:c` or `c/feature` enables the dependency, and so does a feature
+  that lists an enabling feature (a chain such as `default` -> `testing` -> `dep:c`; the search
+  stops on cycles). The weak form `c?/feature` does not enable it. The implicit feature Cargo adds
+  for an optional dependency (`c = ["dep:c"]`) takes part in the search but is not shown, so a
+  dependency only that feature enables is labelled `optional`. A label lists every feature that
+  enables the dependency, so `optional (default, testing)` is not test-only. The tool does not check
+  which features a build enables; the label describes the features table only. The legend lines were
+  committed with the tool change rather than with the diagram note.
 - Retrospective: created, [`implementation-retrospective.md`](implementation-retrospective.md): the
-  first version mislabelled the `testing = ["c"]` shorthand because the test fixtures lacked the
-  implicit feature Cargo adds to the real metadata.
+  first version mislabelled the `testing = ["c"]` shorthand, and the second ignored feature
+  references, because the test fixtures were not built from the real metadata and its variants.
 
 ## References
 

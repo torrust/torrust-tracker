@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2645-2482-label-optional-and-self-dependency-edges/ISSUE.md
-last-updated-utc: "2026-10-25 08:15"
+last-updated-utc: "2026-10-25 14:36"
 ---
 
 # Manual Verification Evidence
@@ -131,6 +131,26 @@ Workspace deps: 1
 #### `y` [optional (testing)]
 ```
 
+#### Third run: a default feature that enables `testing`
+
+Review finding F1 of PR #2648 (Copilot): a dependency a default build enables is not test-only. In
+a scratch workspace with `default = ["testing"]` and `testing = ["y"]` the metadata is:
+
+```text
+x {'default': ['testing'], 'testing': ['y'], 'y': ['dep:y']}
+y {}
+```
+
+The tool, which up to that point followed no feature references, printed `optional (testing)`. The
+fix is the commit `fix(workspace-coupling): [#2645] follow feature references when labelling an optional edge`.
+At 08:34:49 UTC the new tool printed:
+
+```text
+### `x`
+Workspace deps: 1
+#### `y` [optional (default, testing)]
+```
+
 ### V2 - The tool still reads this workspace (M2)
 
 - Goal: show that the tool still reads this repository and that nothing but the legend changes,
@@ -148,7 +168,7 @@ Workspace deps: 1
 ```text
 $ diff /tmp/2645-repo-old.md /tmp/2645-repo-new.md
 14a15,16
-> - **Optional dep** (`optional (FEATURE)`) — a normal dependency that only the named feature enables.
+> - **Optional dep** (`optional (FEATURES)`) — a normal dependency that the listed features enable, directly or through other features.
 >   `optional (testing)` is a test-only edge, not a runtime edge; `optional` means no feature enables it.
 16a19
 > - A package's own dev-dependency on itself (used to enable its `testing` feature) is not listed.
@@ -165,9 +185,10 @@ The only difference is the three added legend lines. No edge, count or leaf chan
 - Goal: the tool's own tests pass.
 - Status: `DONE`
 
-`cargo test -p workspace-coupling`: `tests/edge_labels.rs` 15 passed (14 failed to compile before
+`cargo test -p workspace-coupling`: `tests/edge_labels.rs` 20 passed (14 failed to compile before
 the change: `workspace_dependencies` and `edge_kind` did not exist; the two implicit-feature tests
-failed before the fix), `tests/parse_imports.rs` 9 passed, `tests/resolve_module_name.rs` 11 passed.
+failed before the first fix and four of the five transitive-feature tests before the second),
+`tests/parse_imports.rs` 9 passed, `tests/resolve_module_name.rs` 11 passed.
 The pre-commit gate (including `cargo machete --with-metadata`, `cargo deny check bans` and
 `linter all`) passed on each commit, and the pre-push script (`pre-push.sh`, 6 steps) passed.
 
@@ -177,6 +198,6 @@ The pre-commit gate (including `cargo machete --with-metadata`, `cargo deny chec
 | --- | --- | --- | --- |
 | V1 | Scratch workspace labels (M1) | DONE | Labels and self-edge skip as specified |
 | V2 | This repository (M2) | DONE | Only the legend differs |
-| V3 | Tool tests | DONE | 35 tests pass |
+| V3 | Tool tests | DONE | 40 tests pass |
 
 Validated by the AI assistant that ran the commands; the maintainer reviews it in the pull request.
