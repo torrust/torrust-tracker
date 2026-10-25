@@ -184,7 +184,7 @@ fn write_header(out: &mut String, total: usize, timestamp: &str) {
     writeln!(out, "- **Normal dep** — required for compilation of the library/binary.").unwrap();
     writeln!(
         out,
-        "- **Optional dep** (`optional (FEATURE)`) — a normal dependency that only the named feature enables."
+        "- **Optional dep** (`optional (FEATURES)`) — a normal dependency that the listed features enable, directly or through other features."
     )
     .unwrap();
     writeln!(
