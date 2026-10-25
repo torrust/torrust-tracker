@@ -26,5 +26,8 @@ when adding or materially changing a workflow.
 integration tests on every push and pull request, including documentation-only changes.
 The portable check requires Git and Python 3, both provided by the Ubuntu runner.
 It validates index contents as UTF-8, except paths explicitly marked `binary` in
-the staged `.gitattributes`, symbolic links, and submodules. `-text` alone is not
+the indexed `.gitattributes`, symbolic links, and submodules. Attribute lookup preserves
+Git's built-in macros but ignores local `info/attributes`, global `core.attributesFile`,
+and system attributes through an isolated temporary Git directory; existing configuration
+is never modified. `-text` alone is not
 an exemption. Run the same command locally; no CI-specific environment is needed.

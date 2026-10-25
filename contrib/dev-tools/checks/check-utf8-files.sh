@@ -26,15 +26,38 @@ fi
 
 exec python3 - "${PROJECT_ROOT}" <<'PY'
 import io
+import os
 import subprocess
 import sys
+import tempfile
 
 
-def git(*args, data=None):
+def git(*args, data=None, env=None):
     return subprocess.run(
         ["git", "-C", sys.argv[1], *args], input=data,
-        stdout=subprocess.PIPE, check=True,
+        stdout=subprocess.PIPE, check=True, env=env,
     ).stdout
+
+
+def indexed_attributes(paths):
+    # --cached alone still reads info/attributes and global/system attributes.
+    # A template-free temporary Git directory has no info/attributes, including
+    # when the real checkout is a linked worktree or a submodule. Share only its
+    # index and object store (including alternates), never its configuration.
+    index = os.fsdecode(git("rev-parse", "--path-format=absolute", "--git-path", "index")[:-1])
+    objects = os.fsdecode(git("rev-parse", "--path-format=absolute", "--git-path", "objects")[:-1])
+    object_format = git("rev-parse", "--show-object-format").decode().strip()
+    env = {key: value for key, value in os.environ.items() if not key.startswith("GIT_")}
+    env.update(GIT_CONFIG_NOSYSTEM="1", GIT_CONFIG_GLOBAL=os.devnull, GIT_ATTR_NOSYSTEM="1")
+    with tempfile.TemporaryDirectory(prefix="check-utf8-attributes-") as directory:
+        git("init", "--bare", "--quiet", "--template=", f"--object-format={object_format}", directory, env=env)
+        env.update(GIT_DIR=directory, GIT_WORK_TREE=sys.argv[1], GIT_INDEX_FILE=index, GIT_OBJECT_DIRECTORY=objects)
+        if "GIT_ALTERNATE_OBJECT_DIRECTORIES" in os.environ:
+            env["GIT_ALTERNATE_OBJECT_DIRECTORIES"] = os.environ["GIT_ALTERNATE_OBJECT_DIRECTORIES"]
+        # Keep Git's built-in macros and indexed declarations, but neither the
+        # user attributes file nor injected Git configuration/environment.
+        return git("-c", f"core.attributesFile={os.devnull}", "check-attr", "--cached",
+                   "-z", "binary", "--stdin", data=paths, env=env)
 
 
 def check():
@@ -49,7 +72,7 @@ def check():
         entries.append((mode, oid, path))
 
     paths = b"".join(path + b"\0" for _, _, path in entries)
-    fields = git("check-attr", "--cached", "-z", "binary", "--stdin", data=paths).split(b"\0")
+    fields = indexed_attributes(paths).split(b"\0")
     attributes = dict(zip(fields[0:-1:3], fields[2:-1:3]))
     regular = [
         (oid, path) for mode, oid, path in entries

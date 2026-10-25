@@ -222,6 +222,7 @@ dbname
 debuginfo
 defence
 depgraph
+devnull
 devpriv
 dfsg
 dispositioned
@@ -268,6 +269,7 @@ fract
 frontmatter
 frontmattered
 fscanf
+fsdecode
 gecos
 getaddrinfo
 gethostbyname
@@ -508,6 +510,7 @@ srcset
 sscanf
 stabilised
 stackoverflow
+startswith
 staticlib
 strfmon
 subissue
@@ -593,6 +596,7 @@ whitespaces
 withf
 wordexp
 worktree
+worktrees
 writeln
 xxxxxxxxxxxxxxxxxxxxd
 yyyyyyyyyyyyyyyyyyyyd

@@ -16,7 +16,11 @@ suite, so it can take several minutes.
 
 Pre-commit runs `./contrib/dev-tools/checks/check-utf8-files.sh` after the project dictionary
 formatter. It requires Git and Python 3 on `PATH` and checks all regular files in the index,
-using staged contents and staged attributes. Untracked files, symbolic links, and submodules
+using staged contents and only indexed `.gitattributes` declarations plus Git's built-in macros.
+Local `info/attributes`, global `core.attributesFile`, and system attributes are ignored without
+changing any existing configuration. Attribute lookup uses a temporary Git directory sharing
+the checkout's index and object store, including in linked worktrees and submodule checkouts.
+Untracked files, symbolic links, and submodules
 are excluded. Pre-push does not repeat this fast check; CI runs it on every change.
 
 Text must decode as UTF-8. For an intended binary asset, add a deliberate type pattern such
