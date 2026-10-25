@@ -21,3 +21,26 @@ lcov.info
 perf.data*
 repomix-output.xml
 rustc-ice-*.txt
+
+# Python bytecode, which every interpreter run regenerates
+__pycache__/
+*.py[cod]
+
+# Bytecode and native binaries of other toolchains (Cargo keeps its own in /target)
+*.class
+*.bc
+*.wasm
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.so.[0-9]*
+*.dylib
+*.dll
+*.exe
+*.pdb
+*.dSYM/
+
+# Core dumps named with a process id
+core.[0-9]*
