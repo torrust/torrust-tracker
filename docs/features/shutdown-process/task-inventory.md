@@ -1,7 +1,7 @@
 ---
 doc-type: feature-supporting-analysis
 status: verified
-last-updated-utc: "2026-10-21 18:52"
+last-updated-utc: "2026-10-24 20:19"
 semantic-links:
   related-artifacts:
     - docs/features/shutdown-process/README.md
@@ -303,7 +303,8 @@ themselves.
 | --- | --- | --- |
 | HTTP tracker (`packages/axum-http-server/src/testing/environment.rs`) | One: the HTTP-core statistics listener | Subscribes before the server starts; spawns the listener after a successful start; the `Running` state holds a `DropGuard` for the server token and another for the listener token (`cancel_server_on_drop`, `cancel_listener_on_drop`). `stop()` cancels and joins the server and its drain controller, then the listener (issue #2416). |
 | UDP tracker (`packages/udp-server/src/testing/environment.rs`) | Three: UDP-core statistics, UDP-server statistics, and UDP-server banning | Subscribes all three receivers before the server starts; the `Running` state holds a `DropGuard` for the receive-loop token and another for the one token of the three listeners (`cancel_server_on_drop`, `cancel_listeners_on_drop`). `stop()` cancels and joins the receive loop, then the listeners (issue #2416). |
-| REST API and health-check API | None | These environments run no event listener. |
+| REST API (`packages/axum-rest-api-server/src/testing/environment.rs`) | None | Runs no event listener, so it keeps one token: the `Running` state holds the server task, its drain controller, and one `DropGuard` (`cancel_server_on_drop`). `stop()` cancels the token and joins both tasks, then panics naming each failing task (issue #2449). |
+| Health-check API | None | This environment runs no event listener. |
 
 Neither tracker environment runs a swarm-bus listener, although announce
 requests can publish on that bus; no listener consumes those events there.
@@ -352,9 +353,10 @@ use of the root token is the legacy `udp_ban_cleanup` job.
 4. The production tracker no longer uses private `Halted` channels or
    library-level OS signals for any server component. The HTTP and UDP test
    environments and examples use the token-aware path after SI-16 (#2412)
-   and SI-17 (#2448). The legacy `Halted` APIs remain for the REST API and
-   health-check API test environments (SI-23, SI-24) and other legacy callers
-   until deprecation and removal in SI-18 and SI-19.
+   and SI-17 (#2448), and the REST API test environment does after SI-23
+   (#2449). The legacy `Halted` APIs remain for the health-check API test
+   environment (SI-24) and other legacy callers until deprecation and removal
+   in SI-18 and SI-19.
    The legacy UDP launcher is now an adapter over
    the token-aware receive loop, so it can no longer panic or detach it.
 5. HTTP, REST, and health-check drain controllers are component-owned and
@@ -366,8 +368,9 @@ use of the root token is the legacy `udp_ban_cleanup` job.
    outcomes in one log summary. Making the drain deadline configurable is SI-20.
 8. The standalone HTTP and UDP examples stop on SIGINT or Unix SIGTERM at
    their own `main`, and their test environments cancel and join every owned
-   task (SI-16, #2412; SI-17, #2448). Final process outcome-to-exit-code and
-   configured-deadline policy is SI-20.
+   task (SI-16, #2412; SI-17, #2448), as does the REST API one (SI-23,
+   #2449). Final process outcome-to-exit-code and configured-deadline policy
+   is SI-20.
 
 No implementation evidence identified a missing independently releasable
 shutdown slice. The [EPIC #1488 roadmap][issue-1488] records SI-5 as complete.

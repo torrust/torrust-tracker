@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p2
 epic: 1488
 github-issue: 2449
 spec-path: docs/issues/open/2449-1488-si-23-migrate-rest-api-test-environment/ISSUE.md
 branch: "2449-migrate-rest-api-test-environment"
-related-pr: null
-last-updated-utc: "2026-10-24 19:34"
+related-pr: 2643
+last-updated-utc: "2026-10-24 20:54"
 semantic-links:
   skill-links:
     - create-issue
@@ -158,11 +158,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                | Notes / Expected Output                                                                  |
 | --- | ------ | ----------------------------------- | ---------------------------------------------------------------------------------------- |
-| T0  | TODO   | Record baseline                     | Package test results and counts.                                                         |
-| T1  | TODO   | Migrate `Environment` start/stop    | D1-D4, with the T1 tests below, each mutation-proven.                                    |
-| T2  | TODO   | Migrate the direct field consumer   | Health-check API contract test uses `Environment::stop()`.                               |
-| T3  | TODO   | Documentation                       | Task inventory records the migrated REST API test environment.                          |
-| T4  | TODO   | Verification and completion review  | Automatic checks, manual scenario, AC review, pre-push checks, independent review.      |
+| T0  | DONE   | Record baseline                     | Package test results and counts: `manual-verification-evidence.md` V0.                   |
+| T1  | DONE   | Migrate `Environment` start/stop    | D1-D4, with the T1 tests below, each mutation-proven (`manual-verification-evidence.md` V3). Design review approved by the maintainer. |
+| T2  | DONE   | Migrate the direct field consumer   | Health-check API contract test uses `Environment::stop()`.                               |
+| T3  | DONE   | Documentation                       | Task inventory records the migrated REST API test environment.                          |
+| T4  | IN_PROGRESS | Verification and completion review | Automatic checks, manual scenario, AC review, pre-push checks, independent review. |
 
 T1 tests (use the `write-unit-test` skill, every wait bounded):
 
@@ -172,6 +172,11 @@ T1 tests (use the `write-unit-test` skill, every wait bounded):
 - A drain timeout is reported after both tasks join.
 - Dropping a running environment without `stop()` releases the binding
   (poll `TcpListener::bind` within a bounded deadline, as #2471's test does).
+
+Added during T1, with the maintainer's approval at the design review:
+`stop()` panics naming each failing task, after joining both (guards D1; a
+mutation that swallowed the failures went undetected without it), and a drain
+timeout and a server error are reported together.
 
 ## Commit Points
 
@@ -193,15 +198,15 @@ before maintainer review and commit. Sign every commit with GPG.
 - [x] Folder-style spec drafted (moved to `docs/issues/open/2449-1488-si-23-migrate-rest-api-test-environment/ISSUE.md`)
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec (#2449)
-- [ ] Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md`
-- [ ] Committer verified spec progress is up to date before commit
+- [x] Spec-only PR merged into `develop` before implementation (#2635)
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md`
+- [x] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
@@ -212,25 +217,30 @@ before maintainer review and commit. Sign every commit with GPG.
 - 2026-10-15 19:38 UTC - GitHub Copilot - Corrected the drop-path note after `review-finding:pr-2544-f5`: the HTTP environment never stopped on drop, before or after SI-16, so the note no longer says SI-16 lost the behavior or that the legacy halt sender stops its server on drop. The `DropGuard` requirement and AC7 stand.
 - 2026-10-15 20:33 UTC - GitHub Copilot - `review-finding:pr-2544-f14`: the code answers the open question. The REST API server spawns the same `graceful_shutdown` task as HTTP, so its legacy drop does not stop the server either (read from source, not run). The drop-path note says so.
 - 2026-10-24 19:34 UTC - GitHub Copilot - Refreshed after sub-EPIC #2410 (SI-22) closed, which rewrote the HTTP and UDP test environments (#2416) after this spec was written. Re-checked against `develop`: the 58 `stop()` calls, the 90 s drain, and the single `service.server.stop()` consumer still hold, and the environment's `start()` spawns only the server. The Related ADRs now name the new ADR that supersedes the cancellation-tree ADR, and the Design and Ownership Review says this environment keeps one token and one `DropGuard` because it owns no listener, so it must not copy the two-token shape of the HTTP and UDP environments. No task, acceptance criterion, or scope change.
+- 2026-10-24 20:24 UTC - GitHub Copilot - Implemented T0 to T3. The T1 design review was approved by the maintainer (generic `E: Display` in `join_owned_tasks`, the added `stop()` panic test, removal of the public `server` field). Acceptance criteria stay TODO until a reviewer validates them. Verification so far is in `manual-verification-evidence.md`; the independent review and the pre-push checks are still to run. No retrospective yet: the work followed the plan, apart from the extra `stop()` panic test the design review approved and the spec now records; to be reconsidered after the independent review.
+- 2026-10-24 20:33 UTC - GitHub Copilot - The first independent review (Task Reviewer) returned REVIEW FAILED on a missing prose-first Arrange-Act-Assert record and an unresolved completion review; the code and the acceptance criteria were found correct. Remediated without a production change: the prose-first record is `manual-verification-evidence.md` V4, `implementation-retrospective.md` was created because the work added a test and changed a helper's signature beyond the plan, and `task-inventory.md` was re-wrapped. `linter all` and the pre-push checks pass (V5). A second review round follows.
+- 2026-10-24 20:40 UTC - GitHub Copilot - The second independent review round (Task Reviewer) returned REVIEW PASSED and validated AC1 to AC7 against the code and the evidence; it superseded the first round's REVIEW FAILED (both are in `agent-review-reports.md`). The AC rows stay TODO with their evidence pointers: the maintainer decides when to tick them. No production change followed the first round, so V0 to V5 describe the final code.
+- 2026-10-24 20:50 UTC - GitHub Copilot - The maintainer asked for the acceptance criteria to be ticked after the second review round validated them: AC1 to AC7 and the verification rows are ticked, with the evidence pointers kept. No code change.
+- 2026-10-24 20:54 UTC - GitHub Copilot - Rebased onto the current `torrust/develop` (a dependency update and an unrelated spec had landed), pushed, and opened PR #2643. The package tests pass again after the rebase. No code change.
 
 ## Acceptance Criteria
 
-- [ ] AC1: `Environment` starts the REST API server through
+- [x] AC1: `Environment` starts the REST API server through
       `start_with_cancellation`.
-- [ ] AC2: `Environment::stop()` cancels the token and joins the server task
+- [x] AC2: `Environment::stop()` cancels the token and joins the server task
       and the drain controller.
-- [ ] AC3: `stop()` panics naming each failing task, after joining both, and
+- [x] AC3: `stop()` panics naming each failing task, after joining both, and
       keeps its current signature.
-- [ ] AC4: A stopped environment can be started again and serves requests.
-- [ ] AC5: The health-check API contract tests pass without using the REST API
+- [x] AC4: A stopped environment can be started again and serves requests.
+- [x] AC5: The health-check API contract tests pass without using the REST API
       environment's `server` field.
-- [ ] AC6: The shutdown task inventory reflects the migration.
-- [ ] AC7: Dropping a running environment without `stop()` releases its
+- [x] AC6: The shutdown task inventory reflects the migration.
+- [x] AC7: Dropping a running environment without `stop()` releases its
       binding within the test deadline.
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] `linter all` exits with code `0`
+- [x] Relevant tests pass
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
 
 ## Verification Plan
 
@@ -249,8 +259,8 @@ The package has no example binary, so there is no signal scenario.
 
 | ID  | Scenario                     | Human-oriented command/steps                                                     | Expected Result                                                     | Status | Evidence                                     |
 | --- | ---------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------- | ------ | -------------------------------------------- |
-| M1  | No legacy stop in the env    | Read the final `environment.rs`; list every `ApiServer` method it calls.         | Only `start_with_cancellation`; no legacy `start` or `stop`.        | TODO   | `manual-verification-evidence.md` section V1 |
-| M2  | Suite timing                 | Run the REST API package tests before and after; record wall time.              | Comparable time; any slowdown explained (SI-16 saw ~1 s per stop). | TODO   | `manual-verification-evidence.md` section V2 |
+| M1  | No legacy stop in the env    | Read the final `environment.rs`; list every `ApiServer` method it calls.         | Only `start_with_cancellation`; no legacy `start` or `stop`.        | DONE   | `manual-verification-evidence.md` section V1 |
+| M2  | Suite timing                 | Run the REST API package tests before and after; record wall time.              | Comparable time; any slowdown explained (SI-16 saw ~1 s per stop). | DONE   | `manual-verification-evidence.md` section V2 |
 
 Notes:
 
@@ -263,13 +273,13 @@ Notes:
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1   | TODO                   |          |
-| AC2   | TODO                   |          |
-| AC3   | TODO                   |          |
-| AC4   | TODO                   |          |
-| AC5   | TODO                   |          |
-| AC6   | TODO                   |          |
-| AC7   | TODO                   |          |
+| AC1   | DONE                   | M1 in `manual-verification-evidence.md` V1: the environment calls only `ApiServer::new` and `start_with_cancellation`. |
+| AC2   | DONE                   | `it_should_stop_without_a_failure_...` and `it_should_release_the_rest_api_binding_when_stopped`; mutations A and B (V3). |
+| AC3   | DONE                   | `it_should_panic_naming_each_failing_task_...` and the `join_owned_tasks` tests; mutations E, F, G (V3). Signature unchanged. |
+| AC4   | DONE                   | `it_should_serve_requests_after_being_stopped_and_started_again`; mutation C (V3). |
+| AC5   | DONE                   | `packages/axum-health-check-api-server/tests/server/contract.rs` calls `service.stop()`; 8 integration tests pass (V2). |
+| AC6   | DONE                   | `docs/features/shutdown-process/task-inventory.md`, commit `docs(shutdown): [#2449] record the migrated REST API test environment in the task inventory`. |
+| AC7   | DONE                   | `it_should_release_the_rest_api_binding_when_dropped_without_being_stopped`; mutation H isolates it (V3). |
 
 ## Dependencies
 
@@ -293,7 +303,7 @@ available.
 
 ## Implementation Completion Review
 
-- Retrospective: `TODO`
+- Retrospective: `implementation-retrospective.md`
 - If needed, create `implementation-retrospective.md` from
   `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this directory;
   otherwise add a progress-log entry explaining why it was not needed.
