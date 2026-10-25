@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2628-2482-move-test-helpers-protocol-helpers/ISSUE.md
-last-updated-utc: "2026-10-24 19:37"
+issue-spec: docs/issues/closed/2628-2482-move-test-helpers-protocol-helpers/ISSUE.md
+last-updated-utc: "2026-10-25 06:20"
 ---
 
 # Manual Verification Evidence
