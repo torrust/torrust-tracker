@@ -4,15 +4,15 @@ The lists after "all check runs for the head commit:" were restored on 2026-10-2
 (`gh run view <run id> --repo josecelano/torrust-tracker --log`, the lines of the step that reads the checks API):
 an earlier copy of this file had kept only some of the lines of each list, so it showed no `CI gate` run, no skipped
 `matrix.group` run, and no other workflow's runs. Nothing else in the file was changed.
-Sandbox workflow and ruleset: docs/issues/open/2525-ci-gate-required-check/evidence/t5-sandbox/ in this
+Sandbox workflow and ruleset: docs/issues/closed/2525-ci-gate-required-check/evidence/t5-sandbox/ in this
 repository. The token of the gate job has only read scopes: contents, checks, issues, pull-requests.
 
 Two revisions of the workflow ran. Runs 1 to 4 ran the FIRST revision (sandbox commit fdbecb229, "test(sandbox):
 [#2525] add the T5 orchestrator rehearsal workflow", committed at 10:38 UTC), saved as
-docs/issues/open/2525-ci-gate-required-check/evidence/t5-sandbox/exp-2525-orchestrator-first-revision.yaml.
+docs/issues/closed/2525-ci-gate-required-check/evidence/t5-sandbox/exp-2525-orchestrator-first-revision.yaml.
 Runs 5 to 7 ran the FIXED revision (sandbox commit 471835e64, "test(sandbox): [#2525] fix the empty override
 actor and probe other users' permissions", committed at 10:42 UTC), saved as
-docs/issues/open/2525-ci-gate-required-check/evidence/t5-sandbox/exp-2525-orchestrator.yaml. The logs show which
+docs/issues/closed/2525-ci-gate-required-check/evidence/t5-sandbox/exp-2525-orchestrator.yaml. The logs show which
 revision ran: only the fixed one has the probe step, so only runs 5 to 7 print "probe:" lines.
 The first revision decided whether to pass --override-actor with `[ -s override-actor.txt ]`, which is true for a
 file that holds only a newline, so when there was no label (runs 1 and 3) it passed an empty actor and the tool
