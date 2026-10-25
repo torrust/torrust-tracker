@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: draft
+status: planned
 priority: p2
 epic: 2482
-github-issue: null
-spec-path: docs/issues/drafts/2482-label-optional-and-self-dependency-edges/ISSUE.md
-branch: "{issue-number}-2482-label-optional-and-self-dependency-edges"
+github-issue: 2645
+spec-path: docs/issues/open/2645-2482-label-optional-and-self-dependency-edges/ISSUE.md
+branch: "2645-2482-label-optional-and-self-dependency-edges"
 related-pr: null
-last-updated-utc: "2026-10-23 07:32"
+last-updated-utc: "2026-10-25 06:59"
 semantic-links:
   skill-links:
     - create-issue
@@ -20,13 +20,12 @@ semantic-links:
     - docs/issues/closed/2618-2482-decide-test-support-rules/manual-verification-evidence.md
     - contrib/dev-tools/analysis/workspace-coupling/src/main.rs
     - contrib/dev-tools/analysis/workspace-coupling/src/lib.rs
-    - docs/packages.md
-    - packages/AGENTS.md
+    - docs/media/packages/dependencies-workspace-packages.md
 ---
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Label optional and self dependency edges in the coupling tool and diagram
+# Issue #2645 - Label optional and self dependency edges in the coupling tool and diagram
 
 Parent EPIC: #2482 (Reorganize test support code shared between workspace packages), row 8 of its
 Subissues table. Draft written by subissue 1 (#2618). Execution order: after row 2 and before row
@@ -59,14 +58,22 @@ test-only edges as runtime edges, so #2482's AC8 cannot be checked.
 
 ### In Scope
 
-- The tool reads `optional` and the features that enable each dependency from `cargo metadata`, and
-  labels a normal dependency that only the `testing` feature enables as `optional (testing)`, so it
-  is not counted as a runtime edge. Other optional dependencies are labelled `optional (<feature>)`.
-- The tool skips a self edge (a package depending on itself).
+- The tool reads each dependency's `optional` field and each package's `features` table from `cargo
+  metadata` (the dependency's own `features` list names what the consumer enables, not what enables
+  the dependency, so the table is the source). A normal dependency that is optional and enabled only
+  by the `testing` feature (`testing = ["dep:c"]` or `["c"]`) is labelled `optional (testing)` and is
+  not counted as a runtime edge. Another optional dependency is labelled `optional (<feature>)`
+  (several features are joined with a comma and a space); an optional dependency no feature enables is labelled
+  `optional`.
+- The tool skips a self edge (a package depending on itself) everywhere: details, leaf detection and
+  the workspace dependency counts.
 - A unit test per case, written test-first with the `write-unit-test` skill, using small
   `cargo metadata`-shaped fixtures.
-- The legend in the report ("How to read this report") and the dependency diagrams in
-  `docs/packages.md` and `packages/AGENTS.md` explain the labels.
+- The legend in the report ("How to read this report") and the hand-maintained dependency diagram
+  `docs/media/packages/dependencies-workspace-packages.md` (which draws direct normal edges only)
+  explain the labels: an `optional (testing)` edge is not drawn as a normal edge, and the diagram
+  note says so. `docs/packages.md` and `packages/AGENTS.md` hold layer diagrams without dependency
+  edges, so they need no change.
 
 ### Out of Scope
 
@@ -103,7 +110,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T1 | TODO | Test: a self edge is skipped | Fails first, then passes |
 | T2 | TODO | Test: an optional dependency enabled only by `testing` is labelled `optional (testing)` | Same |
 | T3 | TODO | Test: another optional dependency is labelled `optional (<feature>)`; a required normal one is unchanged | Same |
-| T4 | TODO | Update the report legend and the diagrams | Legend and diagrams explain the labels |
+| T4 | TODO | Update the report legend and `docs/media/packages/dependencies-workspace-packages.md` | Legend and diagram note explain the labels |
 | T5 | TODO | Run the tool on the workspace and review the output | The regenerated output is attached to the evidence, not committed as a dated report |
 
 ## Commit Points
@@ -118,9 +125,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ### Workflow Checkpoints
 
-- [ ] Folder-style spec drafted in `docs/issues/drafts/2482-label-optional-and-self-dependency-edges/ISSUE.md`
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created, linked as a sub-issue of #2482, and its number added to this spec
+- [x] Folder-style spec drafted in `docs/issues/open/2645-2482-label-optional-and-self-dependency-edges/ISSUE.md`
+- [x] Spec reviewed and approved by user/maintainer (approved by the maintainer through `ask_user` on 2026-10-25)
+- [x] GitHub issue created, linked as a sub-issue of #2482 (`parent_issue_url` verified), and its number added to this spec
 - [ ] Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
@@ -133,6 +140,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 - 2026-10-21 19:16 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 1) - Drafted from row 8 of
   the #2482 Subissues table; the ADR chose O1, so the row is required.
+- 2026-10-25 06:55 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 8) - Refreshed against `develop`, pointed the diagram to `docs/media/packages/dependencies-workspace-packages.md`, created #2645, linked it under #2482 and moved the spec to `open/`. The maintainer approved the spec.
 
 ## Acceptance Criteria
 
@@ -140,8 +148,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [ ] AC2: An edge enabled only by a package's `testing` feature carries the label
       `optional (testing)` and is not counted as a runtime edge; a required normal edge is
       unchanged.
-- [ ] AC3: The report legend and the diagrams in `docs/packages.md` and `packages/AGENTS.md`
-      describe the labels.
+- [ ] AC3: The report legend and `docs/media/packages/dependencies-workspace-packages.md` describe
+      the labels and draw no `optional (testing)` edge as a normal edge.
 - [ ] AC4: The tool's own tests cover each case; `cargo test -p workspace-coupling` passes.
 - [ ] `linter all` exits with code `0`; pre-push checks pass.
 
@@ -159,7 +167,7 @@ applies; the O1-specific checks do not (this subissue moves no test code).
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
 | M1 | The tool labels a scratch workspace | Run the tool on a scratch workspace shaped like the evidence's V1 and V4 workspaces (optional dependency behind `testing`, a self dev-dependency) | `optional (testing)` labels, no self edge | TODO | `manual-verification-evidence.md` V1 |
-| M2 | The tool still reads this workspace | Run it on the repository | Output generated; no new label appears before rows 3 to 7 land | TODO | V2 |
+| M2 | The tool still reads this workspace | Run it on the repository | Output generated; no new label appears before rows 3 to 7 land (verified on `develop`: no workspace optional or self edge exists today) | TODO | V2 |
 
 ### Acceptance Verification
 
