@@ -17,6 +17,13 @@ two external crates, so no workspace manifest declares it. See the
 [2026-10-06 coupling report](../../issues/open/1669-overhaul-packages/workspace-coupling-report-2026-10-06.md)
 for the items each edge imports.
 
+An edge that exists only for a package's `testing` feature (an optional normal dependency that only
+`testing` enables, labelled `optional (testing)` by the
+[workspace-coupling tool](../../../contrib/dev-tools/analysis/workspace-coupling/src/main.rs)) is test-only,
+not a runtime edge, so it is not drawn in this diagram. A package's dev-dependency on itself, which
+enables its own `testing` feature for its tests, is not drawn either. No such edge exists in the
+workspace yet.
+
 ```mermaid
 flowchart TB
     subgraph app["Application"]
