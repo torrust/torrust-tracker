@@ -9,7 +9,7 @@ github-issue: 2637
 spec-path: docs/issues/open/2637-1347-add-tests-axum-rest-api-server/ISSUE.md
 branch: "2637-1347-add-tests-axum-rest-api-server-auth"
 related-pr: null
-last-updated-utc: "2026-10-25 06:16"
+last-updated-utc: "2026-10-25 06:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -620,6 +620,12 @@ once. If the slicing changes, the Slice column changes with it.
   as dev-dependencies, pinning the `400` for a duplicate `token`, and no property test for
   `authenticate`; asked to hand the non-UTF-8 header behavior off as a finding and stop. The plan
   still needs explicit approval.
+- 2026-10-25 06:30 UTC - GitHub Copilot - Finding handed off: the non-UTF-8 `Authorization` header
+  behavior. Wrote the draft bug specification `docs/issues/drafts/rest-api-auth-ignores-unreadable-authorization-header/`
+  on branch `chore/draft-rest-api-unreadable-authorization-header` and a git-ignored hand-off in
+  `.tmp/2637-auth-unreadable-header/`; added `lessons.md`. The auth plan leaves the case untested with the
+  finding as owner. Stopped for the maintainer to choose between pausing S1 and continuing in parallel; the fix
+  edits the same file as ledger row 1.
 
 ## Acceptance Criteria
 
