@@ -124,6 +124,9 @@ impl Package {
 
         self.features
             .iter()
+            // Cargo adds the implicit feature `key = ["dep:key"]` for an optional dependency; it is the
+            // dependency itself, not a feature of this package that enables it.
+            .filter(|(feature, enables)| !(feature.as_str() == key && enables.as_slice() == [explicit.as_str()]))
             .filter(|(_, enables)| {
                 enables
                     .iter()

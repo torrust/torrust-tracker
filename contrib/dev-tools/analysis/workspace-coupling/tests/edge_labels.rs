@@ -63,9 +63,17 @@ fn it_should_label_an_optional_dependency_enabled_only_by_the_testing_feature_as
 
 #[test]
 fn it_should_label_an_optional_dependency_enabled_by_the_implicit_feature_syntax_as_optional_testing() {
-    let a = package("a", &[dep("c", None, true)], &json!({ "c": [], "testing": ["c"] }));
+    // Cargo adds the implicit feature `c = ["dep:c"]` for an optional dependency.
+    let a = package("a", &[dep("c", None, true)], &json!({ "c": ["dep:c"], "testing": ["c"] }));
 
     assert_eq!(label_of(&a, "c"), "optional (testing)");
+}
+
+#[test]
+fn it_should_label_an_optional_dependency_that_only_its_implicit_feature_enables_as_optional() {
+    let a = package("a", &[dep("c", None, true)], &json!({ "c": ["dep:c"], "testing": [] }));
+
+    assert_eq!(label_of(&a, "c"), "optional");
 }
 
 #[test]
