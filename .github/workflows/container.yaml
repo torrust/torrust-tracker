@@ -230,6 +230,7 @@ jobs:
         with:
           images: |
             "${{ secrets.DOCKER_HUB_USERNAME }}/${{secrets.DOCKER_HUB_REPOSITORY_NAME }}"
+          platforms: linux/amd64,linux/arm64
           tags: |
             type=ref,event=branch
 
@@ -240,9 +241,15 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
+      - id: setup-qemu
+        name: Set Up QEMU
+        uses: docker/setup-qemu-action@v4.4.0
+
       - id: setup
-        name: Setup Toolchain
+        name: Setup Buildx
         uses: docker/setup-buildx-action@v4.4.1
+        with:
+          driver: docker-container
 
       - name: Build and push
         uses: docker/build-push-action@v7.4.0
@@ -252,6 +259,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           target: release
+          platforms: linux/amd64,linux/arm64
           # No GHA cache: a cache scope is a key name, not a producer identity, so a job holding a
           # develop cache token could write any scope a publish build reads. See ADR
           # 20260926142648_adopt_self_hosted_hetzner_runner_for_container_tests.md.
@@ -274,6 +282,7 @@ jobs:
         with:
           images: |
             "${{ secrets.DOCKER_HUB_USERNAME }}/${{secrets.DOCKER_HUB_REPOSITORY_NAME }}"
+          platforms: linux/amd64,linux/arm64
           tags: |
             # Release branches use v<semver>; published image tags use unprefixed SemVer.
             # metadata-action publishes moving major/minor and latest tags only for stable releases.
@@ -288,9 +297,15 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
+      - id: setup-qemu
+        name: Set Up QEMU
+        uses: docker/setup-qemu-action@v4.4.0
+
       - id: setup
-        name: Setup Toolchain
+        name: Setup Buildx
         uses: docker/setup-buildx-action@v4.4.1
+        with:
+          driver: docker-container
 
       - name: Build and push
         uses: docker/build-push-action@v7.4.0
@@ -300,4 +315,5 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           target: release
+          platforms: linux/amd64,linux/arm64
           # No GHA cache, for the same reason as publish_development above.
