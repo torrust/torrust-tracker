@@ -6,7 +6,7 @@ epic: 1669
 github-issue: 2482
 spec-path: docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-25 06:20"
+last-updated-utc: "2026-10-25 06:59"
 semantic-links:
   skill-links:
     - create-issue
@@ -190,7 +190,7 @@ same pull request.
 | 5 | #[To be assigned] - Gate the `axum-http-server` test environment behind a `testing` feature | [`docs/issues/drafts/2482-gate-axum-http-server-test-environment/ISSUE.md`](../../drafts/2482-gate-axum-http-server-test-environment/ISSUE.md) | TODO | Pattern A; includes `examples/http_only_public_tracker.rs` and the doc-link-only `configuration` edge. After #2471, which merged on 2026-10-16, and after #2416 (its T9 changes this environment). |
 | 6 | #[To be assigned] - Gate the `axum-rest-api-server` test environment behind a `testing` feature | [`docs/issues/drafts/2482-gate-axum-rest-api-server-test-environment/ISSUE.md`](../../drafts/2482-gate-axum-rest-api-server-test-environment/ISSUE.md) | TODO | Pattern A; six forced edges; also removes the stale `rest-api-core` comment in `src/testing/mod.rs`. After #2449. |
 | 7 | #[To be assigned] - Gate the `axum-health-check-api-server` test environment behind a `testing` feature | [`docs/issues/drafts/2482-gate-axum-health-check-api-server-test-environment/ISSUE.md`](../../drafts/2482-gate-axum-health-check-api-server-test-environment/ISSUE.md) | TODO | Pattern A. After #2450 and after rows 4 to 6, whose environments its tests use. Closes #2482: regenerates the coupling report and checks AC8. |
-| 8 | #[To be assigned] - Label optional and self dependency edges in the coupling tool and diagram | [`docs/issues/drafts/2482-label-optional-and-self-dependency-edges/ISSUE.md`](../../drafts/2482-label-optional-and-self-dependency-edges/ISSUE.md) | TODO | Required: the ADR chose O1. Before row 3, the first O1 move. |
+| 8 | #2645 - Label optional and self dependency edges in the coupling tool and diagram | [`docs/issues/open/2645-2482-label-optional-and-self-dependency-edges/ISSUE.md`](../2645-2482-label-optional-and-self-dependency-edges/ISSUE.md) | IN_PROGRESS | Required: the ADR chose O1. Before row 3, the first O1 move. |
 | 9 | #[To be assigned] - Build the shipped container binary without test features | [`docs/issues/drafts/2482-build-shipped-artifacts-without-test-features/ISSUE.md`](../../drafts/2482-build-shipped-artifacts-without-test-features/ISSUE.md) | TODO | Required by the ADR (rule A.5): the release image's binary comes from `cargo nextest archive --tests --all-features --release`, which would ship every `testing` feature. Builds shipped binaries on their own with explicit features and adds a CI check. After row 8, before row 3. |
 
 ## Delivery Strategy
@@ -432,6 +432,7 @@ Append one line per meaningful update.
   ADR" is corrected by this entry).
 - 2026-10-23 16:23 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 2) - Created issue #2628 (row 2), linked it as a subissue of #2482 and moved its spec to `docs/issues/open/`; row 2 is IN_PROGRESS.
 - 2026-10-25 06:20 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 2) - Subissue 2 (#2628) is done: PR #2636 merged on 2026-10-24 (merge commit `722f2b5b2`) and #2628 is closed; its spec is archived. Row 2 of the Subissues table is DONE. `torrust-tracker-test-helpers` now depends directly only on `rand`, `configuration`, `tracing` and `tracing-subscriber`, and `deny.toml` bans `client-lib`, `tracker-core`, `swarm-coordination-registry` and `events` for it. No EPIC acceptance criterion or checkpoint became true with this row alone: AC4 (rows 3 to 9 are still drafts), AC6, AC7 and AC8 stay open, and the per-subissue checkpoints cover every subissue. Next row: 8.
+- 2026-10-25 06:55 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 8) - Created #2645 for row 8, linked it as a sub-issue of #2482 and moved its refreshed spec to `docs/issues/open/2645-2482-label-optional-and-self-dependency-edges/ISSUE.md`; the maintainer approved the spec. Row 8 is IN_PROGRESS.
 
 ## Acceptance Criteria
 

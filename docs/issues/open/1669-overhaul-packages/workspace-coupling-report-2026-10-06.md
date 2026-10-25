@@ -1214,7 +1214,7 @@ Subissue drafts, one per package:
 [`axum-http-server`](../../drafts/2482-gate-axum-http-server-test-environment/ISSUE.md),
 [`axum-rest-api-server`](../../drafts/2482-gate-axum-rest-api-server-test-environment/ISSUE.md) and
 [`axum-health-check-api-server`](../../drafts/2482-gate-axum-health-check-api-server-test-environment/ISSUE.md),
-plus [labelling optional and self edges in the coupling tool](../../drafts/2482-label-optional-and-self-dependency-edges/ISSUE.md).
+plus [labelling optional and self edges in the coupling tool](../2645-2482-label-optional-and-self-dependency-edges/ISSUE.md).
 
 #### 3. The tool misses renamed crates and custom library names
 
