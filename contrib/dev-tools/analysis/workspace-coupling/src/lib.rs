@@ -1,6 +1,7 @@
 //! Import parsing and module-name resolution utilities for the workspace coupling report.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet, HashSet};
+use std::fmt;
 
 use serde::Deserialize;
 use syn::visit::{self, Visit};
@@ -23,6 +24,9 @@ pub struct Package {
     pub dependencies: Vec<Dep>,
     #[serde(default)]
     pub targets: Vec<Target>,
+    /// The `[features]` table: each feature with the items it enables.
+    #[serde(default)]
+    pub features: BTreeMap<String, Vec<String>>,
 }
 
 /// A dependency declaration of a package in `cargo metadata`.
@@ -34,6 +38,9 @@ pub struct Dep {
     /// The key used in `Cargo.toml` when the dependency is renamed with `package = "..."`.
     #[serde(default)]
     pub rename: Option<String>,
+    /// Whether the dependency is declared with `optional = true`.
+    #[serde(default)]
+    pub optional: bool,
 }
 
 /// A build target of a package in `cargo metadata`.
@@ -59,7 +66,73 @@ pub fn resolve_module_name(dep: &Dep, dep_package: Option<&Package>) -> String {
     name.replace('-', "_")
 }
 
+/// How a package depends on another one. The variants are declared in report order.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub enum EdgeKind {
+    /// A required normal dependency.
+    Normal,
+    /// An optional normal dependency with the sorted features that enable it, possibly none.
+    Optional(Vec<String>),
+    Dev,
+    Build,
+}
+
+impl fmt::Display for EdgeKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Normal => f.write_str("normal"),
+            Self::Optional(features) if features.is_empty() => f.write_str("optional"),
+            Self::Optional(features) => write!(f, "optional ({})", features.join(", ")),
+            Self::Dev => f.write_str("dev"),
+            Self::Build => f.write_str("build"),
+        }
+    }
+}
+
 impl Package {
+    /// The dependencies of this package on other workspace packages, without a dependency on itself.
+    ///
+    /// A package depends on itself through the path-only self dev-dependency that enables its own
+    /// `testing` feature for its tests. That is not coupling to another package.
+    #[must_use]
+    pub fn workspace_dependencies(&self, ws_names: &HashSet<&str>) -> Vec<&Dep> {
+        self.dependencies
+            .iter()
+            .filter(|dep| dep.name != self.name && ws_names.contains(dep.name.as_str()))
+            .collect()
+    }
+
+    /// Classifies how this package depends on `dep`.
+    ///
+    /// An optional normal dependency lists the features of this package that enable it. The
+    /// `optional` field of the dependency is not enough because it does not say what enables it.
+    #[must_use]
+    pub fn edge_kind(&self, dep: &Dep) -> EdgeKind {
+        match dep.kind.as_deref() {
+            Some("dev") => EdgeKind::Dev,
+            Some("build") => EdgeKind::Build,
+            _ if dep.optional => EdgeKind::Optional(self.features_enabling(dep)),
+            _ => EdgeKind::Normal,
+        }
+    }
+
+    /// The sorted names of the features that enable the optional dependency `dep`.
+    fn features_enabling(&self, dep: &Dep) -> Vec<String> {
+        let key = dep.rename.as_deref().unwrap_or(&dep.name);
+        let explicit = format!("dep:{key}");
+        let with_feature = format!("{key}/");
+
+        self.features
+            .iter()
+            .filter(|(_, enables)| {
+                enables
+                    .iter()
+                    .any(|item| item == key || *item == explicit || item.starts_with(&with_feature))
+            })
+            .map(|(feature, _)| feature.clone())
+            .collect()
+    }
+
     /// The name of the target other crates import: the first library, `rlib`, `dylib` or
     /// procedural macro target.
     fn library_target_name(&self) -> Option<&str> {
