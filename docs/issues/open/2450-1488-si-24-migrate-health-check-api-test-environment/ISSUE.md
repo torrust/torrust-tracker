@@ -9,7 +9,7 @@ github-issue: 2450
 spec-path: docs/issues/open/2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md
 branch: "2450-migrate-health-check-api-test-environment"
 related-pr: null
-last-updated-utc: "2026-10-24 19:34"
+last-updated-utc: "2026-10-25 08:09"
 semantic-links:
   skill-links:
     - create-issue
@@ -24,7 +24,7 @@ semantic-links:
     - docs/issues/closed/2324-1488-si-13-migrate-health-check-api-token-lifecycle/ISSUE.md
     - docs/issues/closed/2412-1488-si-16-migrate-standalone-http-environment/ISSUE.md
     - docs/issues/closed/2471-1488-fix-http-environment-drop-path/ISSUE.md
-    - docs/issues/open/2449-1488-si-23-migrate-rest-api-test-environment/ISSUE.md
+    - docs/issues/closed/2449-1488-si-23-migrate-rest-api-test-environment/ISSUE.md
     - docs/issues/drafts/1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md
     - docs/issues/drafts/1488-si-19-remove-legacy-shutdown-api/ISSUE.md
     - docs/issues/drafts/1488-si-21-mark-health-unhealthy-during-shutdown/ISSUE.md

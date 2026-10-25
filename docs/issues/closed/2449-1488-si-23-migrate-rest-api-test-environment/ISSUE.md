@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-progress
+status: done
 priority: p2
 epic: 1488
 github-issue: 2449
-spec-path: docs/issues/open/2449-1488-si-23-migrate-rest-api-test-environment/ISSUE.md
+spec-path: docs/issues/closed/2449-1488-si-23-migrate-rest-api-test-environment/ISSUE.md
 branch: "2449-migrate-rest-api-test-environment"
 related-pr: 2643
-last-updated-utc: "2026-10-24 20:54"
+last-updated-utc: "2026-10-25 08:09"
 semantic-links:
   skill-links:
     - create-issue
@@ -207,7 +207,7 @@ before maintainer review and commit. Sign every commit with GPG.
 - [x] Reviewer validated acceptance criteria and updated checkboxes
 - [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md`
 - [x] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -222,6 +222,7 @@ before maintainer review and commit. Sign every commit with GPG.
 - 2026-10-24 20:40 UTC - GitHub Copilot - The second independent review round (Task Reviewer) returned REVIEW PASSED and validated AC1 to AC7 against the code and the evidence; it superseded the first round's REVIEW FAILED (both are in `agent-review-reports.md`). The AC rows stay TODO with their evidence pointers: the maintainer decides when to tick them. No production change followed the first round, so V0 to V5 describe the final code.
 - 2026-10-24 20:50 UTC - GitHub Copilot - The maintainer asked for the acceptance criteria to be ticked after the second review round validated them: AC1 to AC7 and the verification rows are ticked, with the evidence pointers kept. No code change.
 - 2026-10-24 20:54 UTC - GitHub Copilot - Rebased onto the current `torrust/develop` (a dependency update and an unrelated spec had landed), pushed, and opened PR #2643. The package tests pass again after the rebase. No code change.
+- 2026-10-25 08:09 UTC - GitHub Copilot - PR #2643 merged on 2026-10-25 and #2449 is closed on GitHub. Archived this spec to `docs/issues/closed/` and marked roadmap row 16 of EPIC #1488 Done. The review of PR #2643 left two Nit findings that were unprocessed at merge; the maintainer declined them and they are recorded as `NO_ACTION` in `docs/pr-reviews/pr-2643-review/PR-REVIEW.md`, so this spec keeps the retrospective pointer to V0 to V4 and the earlier inventory stamp. The earlier checkpoint line that names the old `docs/issues/open/` path is left as the record of where the spec lived then.
 
 ## Acceptance Criteria
 

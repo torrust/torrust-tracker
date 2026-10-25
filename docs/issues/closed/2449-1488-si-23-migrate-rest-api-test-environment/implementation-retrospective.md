@@ -77,6 +77,6 @@ code worth sharing.
 
 ## Evidence
 
-- `docs/issues/open/2449-1488-si-23-migrate-rest-api-test-environment/ISSUE.md`
+- `docs/issues/closed/2449-1488-si-23-migrate-rest-api-test-environment/ISSUE.md`
 - `manual-verification-evidence.md` V3 (mutations G, D, H) and V4.
 - `agent-review-reports.md` (findings F1 to F5).

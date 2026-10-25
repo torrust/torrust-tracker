@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2482-gate-axum-rest-api-server-test-environment/ISSUE.md
 branch: "{issue-number}-2482-gate-axum-rest-api-server-test-environment"
 related-pr: null
-last-updated-utc: "2026-10-22 18:10"
+last-updated-utc: "2026-10-25 08:09"
 semantic-links:
   skill-links:
     - create-issue
@@ -17,7 +17,7 @@ semantic-links:
     - docs/adrs/20261021190318_share_workspace_test_support_through_testing_features.md
     - docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md
     - docs/issues/open/2482-1669-reorganize-shared-test-support/test-support-inventory.md
-    - docs/issues/open/2449-1488-si-23-migrate-rest-api-test-environment/ISSUE.md
+    - docs/issues/closed/2449-1488-si-23-migrate-rest-api-test-environment/ISSUE.md
     - packages/axum-rest-api-server/src/testing/environment.rs
     - packages/axum-rest-api-server/src/testing/mod.rs
     - packages/axum-health-check-api-server/Cargo.toml
@@ -202,4 +202,4 @@ without `--all-features`, and check the test count.
 
 - Parent EPIC: [`#2482`](../../open/2482-1669-reorganize-shared-test-support/EPIC.md); ADR above
 - Inventory pattern A; EPIC #1488 subissue
-  [#2449](../../open/2449-1488-si-23-migrate-rest-api-test-environment/ISSUE.md)
+  [#2449](../../closed/2449-1488-si-23-migrate-rest-api-test-environment/ISSUE.md)
