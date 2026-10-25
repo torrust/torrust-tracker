@@ -6,7 +6,7 @@ epic: null
 github-issue: 1488
 spec-path: docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-24 15:36"
+last-updated-utc: "2026-10-25 08:09"
 semantic-links:
   skill-links:
     - create-issue
@@ -65,9 +65,9 @@ status as of 2026-10-07.
    wrappers currently bridge the manager token to `Halted`, leaving two normal
    cancellation layers; periodic jobs still ignore `JobManager` cancellation.
    **Status: fixed in the application** (sequences 3 to 11) and in the
-   standalone HTTP and UDP environments (SI-16 and SI-17); the REST API and
-   health-check API test environments still use `Halted` until SI-23 and
-   SI-24, and the legacy API is removed by SI-18 and SI-19.
+   standalone HTTP, UDP, and REST API environments (SI-16, SI-17, and SI-23); the
+   health-check API test environment still uses `Halted` until SI-24, and the
+   legacy API is removed by SI-18 and SI-19.
 3. **Torrent cleanup and activity metrics ignore `CancellationToken`** — they
    listen for `ctrl_c` directly instead of using the shared token.
    **Status: fixed** by SI-4 (#2169) and #2221.
@@ -89,9 +89,9 @@ status as of 2026-10-07.
 8. **Double-signal on Ctrl+C** — both `main.rs` and each server's
    `global_shutdown_signal()` catch the same signal, creating a potential race.
    **Status: fixed in the application**: production servers use the token
-   lifecycle; only the legacy stop paths of the REST API and health-check
-   API test environments still observe the OS signal, until SI-23 and SI-24
-   migrate them; SI-19 removes the legacy API.
+   lifecycle; only the legacy stop path of the health-check API test
+   environment still observes the OS signal, until SI-24 migrates it; SI-19
+   removes the legacy API.
 9. **Event listeners drop events on shutdown** — found on 2026-10-01, after
    the original analysis. Every event listener stops as soon as cancellation is
    requested, even with events still queued, and servers that are still
@@ -208,7 +208,7 @@ deterministic tests, and manual evidence.
 | 13       | #2448 | [Migrate standalone UDP environment/example](../../closed/2448-1488-si-17-migrate-standalone-udp-environment/ISSUE.md) | Done       | SI-17. One supported standalone UDP consumer migration; a dropped environment now releases its socket (#2459). |
 | 14       | #2471 | [Stop the HTTP test environment when dropped without `stop()`](../../closed/2471-1488-fix-http-environment-drop-path/ISSUE.md) | Done       | Bug. Gap found on 2026-10-07: a dropped HTTP test environment keeps its server running, before and after SI-16 (checked on the tree before SI-16). Hold the token as a `DropGuard`, as #2459 did for UDP. Merged in PR #2544 on 2026-10-16. |
 | 15       | #2410 | [Process queued events before listeners stop](../../closed/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md) | Done | Bug, sub-EPIC (SI-22) with four sub-issues, #2413 to #2416 (docs and ADR draft; listener drain; per-component tokens; stop order): event producers stop before consumers; listeners process queued events within an admission budget. Merged in PRs #2553, #2578, #2591, and #2623, closed by the close-out PR. |
-| 16       | #2449 | [Migrate REST API test environment](../2449-1488-si-23-migrate-rest-api-test-environment/ISSUE.md) | Planned    | SI-23. One test environment migration; found while refreshing SI-17 (2026-10-06). May run alongside SI-22 (no dependency on it). |
+| 16       | #2449 | [Migrate REST API test environment](../../closed/2449-1488-si-23-migrate-rest-api-test-environment/ISSUE.md) | Done       | SI-23. One test environment migration; found while refreshing SI-17 (2026-10-06). Merged in PR #2643 on 2026-10-25; one token and one `DropGuard`, because the environment owns no listener. |
 | 17       | #2450 | [Migrate health-check API test environment](../2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md) | Planned    | SI-24. One test environment migration; found while refreshing SI-17 (2026-10-06). May run alongside SI-22 (no dependency on it). |
 | 18       | SI-18 | [Deprecate legacy shutdown API](../../drafts/1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md)                           | Draft      | Compatibility-preserving source deprecation only.                                                    |
 | 19       | SI-19 | [Remove legacy shutdown API and library OS signals](../../drafts/1488-si-19-remove-legacy-shutdown-api/ISSUE.md)          | Draft      | Breaking release after migration, deprecation, and compatibility gates.                              |
