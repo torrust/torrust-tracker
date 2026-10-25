@@ -106,6 +106,61 @@ fn it_should_not_label_the_dependency_as_testing_only_when_another_feature_also_
 }
 
 #[test]
+fn it_should_not_label_the_dependency_as_testing_only_when_the_default_feature_enables_testing() {
+    let a = package(
+        "a",
+        &[dep("c", None, true)],
+        &json!({ "default": ["testing"], "testing": ["dep:c"] }),
+    );
+
+    assert_eq!(label_of(&a, "c"), "optional (default, testing)");
+}
+
+#[test]
+fn it_should_follow_a_chain_of_feature_aliases_to_the_dependency() {
+    let a = package(
+        "a",
+        &[dep("c", None, true)],
+        &json!({ "default": ["tools"], "tools": ["extras"], "extras": ["testing"], "testing": ["dep:c"] }),
+    );
+
+    assert_eq!(label_of(&a, "c"), "optional (default, extras, testing, tools)");
+}
+
+#[test]
+fn it_should_follow_the_implicit_feature_of_the_dependency_through_an_alias() {
+    let a = package(
+        "a",
+        &[dep("c", None, true)],
+        &json!({ "c": ["dep:c"], "default": ["testing"], "testing": ["c"] }),
+    );
+
+    assert_eq!(label_of(&a, "c"), "optional (default, testing)");
+}
+
+#[test]
+fn it_should_terminate_when_features_enable_each_other() {
+    let a = package(
+        "a",
+        &[dep("c", None, true)],
+        &json!({ "testing": ["dep:c", "extras"], "extras": ["testing"] }),
+    );
+
+    assert_eq!(label_of(&a, "c"), "optional (extras, testing)");
+}
+
+#[test]
+fn it_should_not_follow_a_feature_that_only_enables_a_feature_of_another_dependency() {
+    let a = package(
+        "a",
+        &[dep("c", None, true)],
+        &json!({ "testing": ["dep:c"], "extras": ["other/testing", "other?/testing"] }),
+    );
+
+    assert_eq!(label_of(&a, "c"), "optional (testing)");
+}
+
+#[test]
 fn it_should_label_an_optional_dependency_that_no_feature_enables_as_optional() {
     let a = package("a", &[dep("c", None, true)], &json!({ "testing": [] }));
 

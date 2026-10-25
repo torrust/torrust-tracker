@@ -116,24 +116,42 @@ impl Package {
         }
     }
 
-    /// The sorted names of the features that enable the optional dependency `dep`.
+    /// The sorted names of the features that enable the optional dependency `dep`, directly or
+    /// through other features (for example `default = ["testing"]` with `testing = ["dep:c"]`).
     fn features_enabling(&self, dep: &Dep) -> Vec<String> {
         let key = dep.rename.as_deref().unwrap_or(&dep.name);
         let explicit = format!("dep:{key}");
         let with_feature = format!("{key}/");
 
-        self.features
+        let mut enabling: BTreeSet<&str> = self
+            .features
             .iter()
-            // Cargo adds the implicit feature `key = ["dep:key"]` for an optional dependency; it is the
-            // dependency itself, not a feature of this package that enables it.
-            .filter(|(feature, enables)| !(feature.as_str() == key && enables.as_slice() == [explicit.as_str()]))
-            .filter(|(_, enables)| {
-                enables
-                    .iter()
-                    .any(|item| item == key || *item == explicit || item.starts_with(&with_feature))
-            })
-            .map(|(feature, _)| feature.clone())
-            .collect()
+            .filter(|(_, items)| items.iter().any(|item| *item == explicit || item.starts_with(&with_feature)))
+            .map(|(feature, _)| feature.as_str())
+            .collect();
+
+        // A feature that lists an enabling feature enables the dependency too; each round adds the
+        // features one step further up, and the loop ends when a round adds none, so a cycle is safe.
+        loop {
+            let one_step_up: Vec<&str> = self
+                .features
+                .iter()
+                .filter(|(feature, items)| {
+                    !enabling.contains(feature.as_str()) && items.iter().any(|item| enabling.contains(item.as_str()))
+                })
+                .map(|(feature, _)| feature.as_str())
+                .collect();
+
+            if one_step_up.is_empty() {
+                break;
+            }
+            enabling.extend(one_step_up);
+        }
+
+        // Cargo adds the implicit feature `key = ["dep:key"]` for an optional dependency. It is the
+        // dependency itself, so it takes part in the search above but is not shown.
+        enabling.remove(key);
+        enabling.into_iter().map(str::to_owned).collect()
     }
 
     /// The name of the target other crates import: the first library, `rlib`, `dylib` or
