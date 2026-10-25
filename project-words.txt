@@ -162,6 +162,7 @@ autoremove
 backlink
 backlinks
 backpressure
+backslashreplace
 bdecode
 behaviour
 behavioural
@@ -179,6 +180,7 @@ bottlenecked
 bufs
 buildid
 byteorder
+cacheinfo
 callgrind
 callsites
 camino
@@ -273,6 +275,7 @@ ghac
 ghdata
 ghtoken
 githubmerge
+gitlink
 gpgsign
 gzprintf
 gzvprintf

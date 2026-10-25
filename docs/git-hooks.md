@@ -12,6 +12,26 @@ The repository's pre-commit and pre-push hooks run local validation before Git c
 or updates a remote branch. The pre-push hook runs nightly checks, the workspace packaging check and the full stable test
 suite, so it can take several minutes.
 
+## Tracked File Encoding
+
+Pre-commit runs `./contrib/dev-tools/checks/check-utf8-files.sh` after the project dictionary
+formatter. It requires Git and Python 3 on `PATH` and checks all regular files in the index,
+using staged contents and staged attributes. Untracked files, symbolic links, and submodules
+are excluded. Pre-push does not repeat this fast check; CI runs it on every change.
+
+Text must decode as UTF-8. For an intended binary asset, add a deliberate type pattern such
+as `*.png binary` to `.gitattributes` and stage it with the asset. `-text` alone does not exempt
+a file. Failures name each path and the zero-based byte offset of its first invalid sequence.
+The command takes no options, works from any checkout directory, and prints checked/skipped
+counts on success. Exit codes are 0 for success, 1 for invalid UTF-8, and 2 for usage or Git
+errors. File names are passed without delimiter ambiguity but their encoding is not validated.
+
+Run its integration tests with:
+
+```sh
+bash contrib/dev-tools/checks/tests/test-check-utf8-files.sh
+```
+
 ## SSH Idle Timeouts During Pushes
 
 Git can open its SSH connection to the remote before it runs the pre-push hook. If an SSH route

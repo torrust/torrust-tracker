@@ -63,19 +63,21 @@ The script runs these steps in order:
 
 1. `./contrib/dev-tools/checks/format-project-words.sh` - formats `project-words.txt` with
    `LC_ALL=C sort -u`
-2. `cargo run --quiet --package clippy-allow-reasons -- --staged` - prospective native-reason
+2. `./contrib/dev-tools/checks/check-utf8-files.sh` - checks index contents as UTF-8, except
+   declared binary assets, symbolic links, and submodules; requires Git and Python 3
+3. `cargo run --quiet --package clippy-allow-reasons -- --staged` - prospective native-reason
    check for changed staged Clippy allow attributes. The command resolves the first available
    base reference from `origin/develop`, `upstream/develop`, `torrust/develop`, or local `develop`.
-3. `cargo run --quiet --package frontmatter-validator --bin frontmatter-validator -- --staged` -
+4. `cargo run --quiet --package frontmatter-validator --bin frontmatter-validator -- --staged` -
    read-only v1 frontmatter check of the staged content of staged Markdown files. A staged edit
    to a draft or open issue spec without v1 frontmatter fails with `legacy-shape`. See
    `contrib/dev-tools/checks/frontmatter-validator/README.md` for the migration checklist.
-4. `cargo machete --with-metadata` - unused dependency check
-5. `cargo deny check bans` - workspace layer-boundary dependency check
-6. `cargo +nightly fmt --all -- --check` - nightly Rust formatting check
-7. `linter all` - all linters (markdown, lychee local links, YAML, TOML, clippy, rustfmt, shellcheck, cspell)
-8. `./contrib/dev-tools/checks/lint-containerfile.sh` - hadolint check of the `Containerfile`
-9. `cargo test --doc --workspace` - documentation tests
+5. `cargo machete --with-metadata` - unused dependency check
+6. `cargo deny check bans` - workspace layer-boundary dependency check
+7. `cargo +nightly fmt --all -- --check` - nightly Rust formatting check
+8. `linter all` - all linters (markdown, lychee local links, YAML, TOML, clippy, rustfmt, shellcheck, cspell)
+9. `./contrib/dev-tools/checks/lint-containerfile.sh` - hadolint check of the `Containerfile`
+10. `cargo test --doc --workspace` - documentation tests
 
 If the formatter changes the dictionary, the hook exits non-zero before the verification steps.
 Stage `project-words.txt` and retry the commit. Run the formatter independently with:
@@ -141,7 +143,7 @@ Because `.tmp/` is workspace-local, clean stale `pre-commit-*.log` files periodi
 
 Check ownership is intentionally split by gate:
 
-- Pre-commit: fast local gate (the nine ordered checks above, including staged frontmatter,
+- Pre-commit: fast local gate (the ten ordered checks above, including staged frontmatter,
   dependency, formatting, lint, Containerfile, and documentation-test checks)
 - Pre-push: nightly toolchain checks + workspace packaging check + full stable test suite (no duplicates of
   pre-commit; no E2E)

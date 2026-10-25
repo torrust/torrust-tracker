@@ -50,6 +50,7 @@ ensure_cargo_on_path
 
 declare -a STEPS=(
     "Formatting project dictionary|./contrib/dev-tools/checks/format-project-words.sh"
+    "Checking tracked files are UTF-8|./contrib/dev-tools/checks/check-utf8-files.sh"
     "Checking documented Clippy allows|cargo run --quiet --package clippy-allow-reasons -- --staged"
     "Checking staged Markdown frontmatter|cargo run --quiet --package frontmatter-validator --bin frontmatter-validator -- --staged"
     "Checking for unused dependencies (cargo machete --with-metadata)|cargo machete --with-metadata"

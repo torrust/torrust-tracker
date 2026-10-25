@@ -19,3 +19,12 @@ when adding or materially changing a workflow.
   repository behavior in tested tools with portable command-line contracts.
 - Validate workflow edits with `linter yaml` and `git diff --check`, then obtain
   hosted evidence for provider-only behavior.
+
+## Tracked File Encoding
+
+`docs-lint.yaml` runs `contrib/dev-tools/checks/check-utf8-files.sh` and its shell
+integration tests on every push and pull request, including documentation-only changes.
+The portable check requires Git and Python 3, both provided by the Ubuntu runner.
+It validates index contents as UTF-8, except paths explicitly marked `binary` in
+the staged `.gitattributes`, symbolic links, and submodules. `-text` alone is not
+an exemption. Run the same command locally; no CI-specific environment is needed.

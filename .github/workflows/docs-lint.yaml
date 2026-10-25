@@ -35,6 +35,15 @@ jobs:
         name: Checkout Repository
         uses: actions/checkout@v7.0.1
 
+      # Run on every change, including documentation-only pull requests.
+      - id: check-utf8
+        name: Check Tracked Files Are UTF-8
+        run: ./contrib/dev-tools/checks/check-utf8-files.sh
+
+      - id: test-check-utf8
+        name: Test UTF-8 Check
+        run: bash contrib/dev-tools/checks/tests/test-check-utf8-files.sh
+
       - id: setup
         name: Setup Toolchain
         uses: dtolnay/rust-toolchain@stable
