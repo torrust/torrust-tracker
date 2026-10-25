@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-review
+status: done
 priority: p2
 epic: 2482
 github-issue: 2628
-spec-path: docs/issues/open/2628-2482-move-test-helpers-protocol-helpers/ISSUE.md
+spec-path: docs/issues/closed/2628-2482-move-test-helpers-protocol-helpers/ISSUE.md
 branch: "2628-2482-move-test-helpers-protocol-helpers"
 related-pr: 2636
-last-updated-utc: "2026-10-24 20:02"
+last-updated-utc: "2026-10-25 06:20"
 semantic-links:
   skill-links:
     - create-issue
@@ -143,7 +143,7 @@ holds the four new ban entries. See the retrospective.
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -156,6 +156,7 @@ holds the four new ban entries. See the retrospective.
 - 2026-10-24 17:15 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 2) - Review round 6 on PR #2629 (da2ce7, finding F14): refreshed the Background against `develop` at `8f8b4d714`. #2623 added the public helper `http_complete_download`, so `http.rs` is 92 lines (`http_announce`, `http_complete_download`, `http_scrape`) and T2 moves all three; the other facts still hold (seven dev-dependents, `udp.rs` 304 lines, the root `tests/common/mod.rs` as the only consumer).
 - 2026-10-24 19:37 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 2) - Implemented on branch `2628-2482-move-test-helpers-protocol-helpers` after PR #2629 merged: the `http` and `udp` helpers moved to `tests/common/http_requests.rs` and `udp_requests.rs`, `test-helpers` now depends only on `rand`, `configuration`, `tracing` and `tracing-subscriber`, `deny.toml` gained entries for `client-lib`, `tracker-core`, `swarm-coordination-registry` and `events`, and the descriptions and inventory were updated. Baseline and final: 15 binaries, 194 root tests passed; pre-push passed. Evidence: `manual-verification-evidence.md`; lessons: `implementation-retrospective.md`.
 - 2026-10-24 20:02 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 2) - Review round 1 on PR #2636 (Copilot finding on AC1): AC1 now says "no direct dependency", which is what V1 checks with `cargo tree --depth 1`; `primitives` stays reachable through `configuration`, which rule B.1 allows.
+- 2026-10-25 06:20 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 2) - Archived. PR #2636 merged on 2026-10-24 (merge commit `722f2b5b2`) and issue #2628 is closed; the spec moved to `docs/issues/closed/` with its evidence and retrospective. EPIC row 2 is DONE; no EPIC checkpoint or acceptance criterion became true with this row alone.
 
 ## Acceptance Criteria
 

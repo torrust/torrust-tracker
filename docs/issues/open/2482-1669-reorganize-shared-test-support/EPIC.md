@@ -6,7 +6,7 @@ epic: 1669
 github-issue: 2482
 spec-path: docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-23 17:23"
+last-updated-utc: "2026-10-25 06:20"
 semantic-links:
   skill-links:
     - create-issue
@@ -169,7 +169,7 @@ packages. The ADR decides.
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-Only subissue 1 (#2618) is a GitHub issue. Rows 2 to 9 are drafts written by subissue 1 from its
+Subissues 1 (#2618) and 2 (#2628) are GitHub issues. Rows 3 to 9 are drafts written by subissue 1 from its
 ADR and migration plan, one per inventory item that moves, plus the coupling tool change and the container build change the ADR requires. They
 become GitHub issues one at a time afterwards.
 
@@ -184,7 +184,7 @@ same pull request.
 | Order | Issue | Local Spec | Status | Notes |
 | --- | --- | --- | --- | --- |
 | 1 | #2618 - Decide how packages share test support code | [`docs/issues/closed/2618-2482-decide-test-support-rules/ISSUE.md`](../../closed/2618-2482-decide-test-support-rules/ISSUE.md) | DONE | Tasks D1 to D5; MV1 to MV4. Merged in PR #2624 on 2026-10-23; issue closed. |
-| 2 | #2628 - Move the `test-helpers` protocol helpers to their consumer | [`docs/issues/open/2628-2482-move-test-helpers-protocol-helpers/ISSUE.md`](../2628-2482-move-test-helpers-protocol-helpers/ISSUE.md) | IN_PROGRESS | Pattern B; ADR rule B; coupling report finding 1. The `http` and `udp` modules move to the root crate's `tests/common/`. `test-helpers` is published as 3.0.0 with only `configuration` and `random`, so the move alone does not break that API; #2583 decides the bump. Runs first (not an O1 move). |
+| 2 | #2628 - Move the `test-helpers` protocol helpers to their consumer | [`docs/issues/closed/2628-2482-move-test-helpers-protocol-helpers/ISSUE.md`](../../closed/2628-2482-move-test-helpers-protocol-helpers/ISSUE.md) | DONE | Pattern B; ADR rule B; coupling report finding 1. The `http` and `udp` modules move to the root crate's `tests/common/`. `test-helpers` is published as 3.0.0 with only `configuration` and `random`, so the move alone does not break that API; #2583 decides the bump. Runs first (not an O1 move). Merged in PR #2636 on 2026-10-24; issue closed. |
 | 3 | #[To be assigned] - Gate `tracker-core`'s test modules and mocks | [`docs/issues/drafts/2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md`](../../drafts/2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md) | TODO | Patterns C and D; ADR rules C and D. `MockTorrentMetricsStore` is also used by `http-core` and `udp-core`, so their dev-dependencies enable the feature in the same PR. The first O1 move: after rows 8 and 9. |
 | 4 | #[To be assigned] - Gate the `udp-server` test environment behind a `testing` feature | [`docs/issues/drafts/2482-gate-udp-server-test-environment/ISSUE.md`](../../drafts/2482-gate-udp-server-test-environment/ISSUE.md) | TODO | Pattern A; ADR rule A; includes `examples/udp_only_public_tracker.rs`. After #2416 (its T9 changes this environment). |
 | 5 | #[To be assigned] - Gate the `axum-http-server` test environment behind a `testing` feature | [`docs/issues/drafts/2482-gate-axum-http-server-test-environment/ISSUE.md`](../../drafts/2482-gate-axum-http-server-test-environment/ISSUE.md) | TODO | Pattern A; includes `examples/http_only_public_tracker.rs` and the doc-link-only `configuration` edge. After #2471, which merged on 2026-10-16, and after #2416 (its T9 changes this environment). |
@@ -431,6 +431,7 @@ Append one line per meaningful update.
   evidence cell now says (the 07:32 entry's parenthesis "the maintainer approved ... the written
   ADR" is corrected by this entry).
 - 2026-10-23 16:23 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 2) - Created issue #2628 (row 2), linked it as a subissue of #2482 and moved its spec to `docs/issues/open/`; row 2 is IN_PROGRESS.
+- 2026-10-25 06:20 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 2) - Subissue 2 (#2628) is done: PR #2636 merged on 2026-10-24 (merge commit `722f2b5b2`) and #2628 is closed; its spec is archived. Row 2 of the Subissues table is DONE. `torrust-tracker-test-helpers` now depends directly only on `rand`, `configuration`, `tracing` and `tracing-subscriber`, and `deny.toml` bans `client-lib`, `tracker-core`, `swarm-coordination-registry` and `events` for it. No EPIC acceptance criterion or checkpoint became true with this row alone: AC4 (rows 3 to 9 are still drafts), AC6, AC7 and AC8 stay open, and the per-subissue checkpoints cover every subissue. Next row: 8.
 
 ## Acceptance Criteria
 
