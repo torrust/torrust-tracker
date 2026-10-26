@@ -56,6 +56,10 @@ pub enum Error {
 /// compatibility path for consumers using [`Halted`].
 pub struct CancellationRunning {
     pub local_addr: SocketAddr,
+    /// The binding this server registered in the `registar`. A caller that
+    /// stops the server and wants the registry to forget it passes this
+    /// binding to `Registar::deregister`.
+    pub service_binding: ServiceBinding,
     pub task: JoinHandle<Result<(), std::io::Error>>,
     pub shutdown_controller: JoinHandle<GracefulShutdownOutcome>,
 }
@@ -177,7 +181,7 @@ pub async fn start_with_cancellation(
 
     if let Err(source) = registar
         .give_form()
-        .register(ServiceRegistration::new(service_binding, metadata, None))
+        .register(ServiceRegistration::new(service_binding.clone(), metadata, None))
         .await
     {
         cancellation_token.cancel();
@@ -192,6 +196,7 @@ pub async fn start_with_cancellation(
 
     Ok(CancellationRunning {
         local_addr,
+        service_binding,
         task,
         shutdown_controller,
     })

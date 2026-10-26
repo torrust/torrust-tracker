@@ -31,7 +31,8 @@ pub struct Stopped {
 /// The environment owns no event listener, so one token stops everything it
 /// started. Dropping it without `stop()` cancels that token, and the server
 /// shuts down once it observes it, so the binding is released shortly after
-/// the drop.
+/// the drop. A drop cannot await the registry lock, so only `stop()` removes
+/// the environment's registration from the `registar`.
 pub struct Running {
     server: CancellationRunning,
     bind_to: SocketAddr,
@@ -55,18 +56,14 @@ impl Environment<Stopped> {
     }
 
     /// Starts the test environment with a fresh cancellation token, so a
-    /// stopped environment can be started again.
+    /// stopped environment can be started again, also on a fixed port.
     ///
     /// Starting registers the health check API in the environment's
-    /// `registar`, and the `Registar` has no way to remove a registration, so
-    /// `stop()` leaves it there. A restart therefore works only when the
-    /// configuration binds an ephemeral port (`:0`), which gives the restarted
-    /// server a new binding. A fixed port registers the same binding twice.
+    /// `registar`; `stop()` removes that registration again.
     ///
     /// # Panics
     ///
-    /// Will panic if the server cannot be started, including a restart on a
-    /// fixed port whose binding is still registered.
+    /// Will panic if the server cannot be started.
     pub async fn start(self) -> Environment<Running> {
         let cancellation_token = CancellationToken::new();
 
@@ -103,19 +100,22 @@ impl Environment<Running> {
 
     /// Stops the test environment and returns a stopped environment.
     ///
-    /// It cancels the token and joins the server task and its drain
-    /// controller.
+    /// It cancels the token, joins the server task and its drain controller,
+    /// and removes the environment's own registration from the `registar`,
+    /// leaving the services of other owners in place.
     ///
     /// # Errors
     ///
-    /// Will return an error, after both tasks have been joined, if either task
-    /// failed or the drain timed out. The message names each failing task.
+    /// Will return an error, after both tasks have been joined and the
+    /// registration removed, if either task failed or the drain timed out. The
+    /// message names each failing task.
     pub async fn stop(self) -> Result<Environment<Stopped>, Error> {
         let Running {
             server:
                 CancellationRunning {
                     task,
                     shutdown_controller,
+                    service_binding,
                     ..
                 },
             bind_to,
@@ -124,7 +124,9 @@ impl Environment<Running> {
 
         cancel_server_on_drop.disarm().cancel();
 
-        join_owned_tasks(task, shutdown_controller).await.map_err(Error::Error)?;
+        let joined = join_owned_tasks(task, shutdown_controller).await;
+        self.registar.deregister(&service_binding).await;
+        joined.map_err(Error::Error)?;
 
         Ok(Environment {
             registar: self.registar,
@@ -170,9 +172,11 @@ mod tests {
     use std::time::Duration;
 
     use tokio_util::sync::CancellationToken;
-    use torrust_server_lib::registar::Registar;
+    use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
+    use torrust_server_lib::registar::{Registar, ServiceRegistration};
     use torrust_tracker_axum_server::signals::GracefulShutdownOutcome;
     use torrust_tracker_configuration::v3_0_0::health_check_api::HealthCheckApi;
+    use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
 
     use super::{Environment, Error, Running, Started, Unstarted, join_owned_tasks};
     use crate::server::CancellationRunning;
@@ -271,8 +275,7 @@ mod tests {
     }
 
     #[tokio::test]
-    #[should_panic(expected = "DuplicateBinding")]
-    async fn it_should_not_start_again_on_a_fixed_port_while_the_registar_keeps_the_previous_registration() {
+    async fn it_should_serve_requests_after_being_stopped_and_started_again_on_a_fixed_port() {
         // Arrange
         let fixed_address = {
             let probe = TcpListener::bind("127.0.0.1:0").unwrap();
@@ -285,8 +288,59 @@ mod tests {
             .await
             .expect("the first stop should succeed");
 
-        // Act: the registar keeps the first run's registration of the same binding, so this start panics.
-        let _restarted = start_within_deadline(stopped).await;
+        // Act
+        let restarted = start_within_deadline(stopped).await;
+
+        // Assert
+        assert_eq!(restarted.bind_address(), fixed_address);
+        let status = tokio::time::timeout(
+            TEST_DEADLINE,
+            reqwest::get(format!("http://{fixed_address}/health_check")), // DevSkim: ignore DS137138
+        )
+        .await
+        .expect("the health check should answer within the test deadline")
+        .expect("the restarted health check API server should accept the request")
+        .status();
+        assert_eq!(status, reqwest::StatusCode::OK);
+
+        stop_within_deadline(restarted).await.expect("the second stop should succeed");
+    }
+
+    #[tokio::test]
+    async fn it_should_remove_only_its_own_registration_from_the_registar_when_stopped() {
+        // Arrange
+        let other_service_binding = ServiceBinding::new(Protocol::UDP, "127.0.0.1:6969".parse().unwrap()).unwrap();
+        let registar = Registar::default();
+        registar
+            .give_form()
+            .register(ServiceRegistration::new(
+                other_service_binding.clone(),
+                RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0)),
+                None,
+            ))
+            .await
+            .expect("the other service should register");
+        let config = HealthCheckApi {
+            bind_address: "127.0.0.1:0".parse().unwrap(),
+        };
+        let environment = start_within_deadline(Unstarted::new(&Arc::new(config), registar.clone())).await;
+        assert_eq!(
+            registar.services().await.len(),
+            2,
+            "the environment should register its service"
+        );
+
+        // Act
+        let _stopped = stop_within_deadline(environment).await.expect("stop() should succeed");
+
+        // Assert
+        let remaining: Vec<_> = registar
+            .services()
+            .await
+            .into_iter()
+            .map(|service| service.service_binding().clone())
+            .collect();
+        assert_eq!(remaining, [other_service_binding]);
     }
 
     #[tokio::test]
@@ -351,6 +405,7 @@ mod tests {
             state: Running {
                 server: CancellationRunning {
                     local_addr: "127.0.0.1:0".parse().unwrap(),
+                    service_binding: ServiceBinding::new(Protocol::HTTP, "127.0.0.1:1212".parse().unwrap()).unwrap(),
                     task: tokio::spawn(async { panic!("simulated health check API server task failure") }),
                     shutdown_controller: tokio::spawn(async { GracefulShutdownOutcome::TimedOut }),
                 },
@@ -369,6 +424,45 @@ mod tests {
         assert!(
             message.contains("health check API server task failed to join") && message.contains("drain controller timed out"),
             "the error should name both failing tasks, but said: {message}"
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_remove_its_registration_even_when_stopped_with_a_failed_task() {
+        // Arrange
+        let service_binding = ServiceBinding::new(Protocol::HTTP, "127.0.0.1:1212".parse().unwrap()).unwrap();
+        let registar = Registar::default();
+        registar
+            .give_form()
+            .register(ServiceRegistration::new(
+                service_binding.clone(),
+                RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::HealthCheckApi, 0)),
+                None,
+            ))
+            .await
+            .expect("the environment's service should register");
+        let environment: Started = Environment {
+            registar: registar.clone(),
+            state: Running {
+                server: CancellationRunning {
+                    local_addr: "127.0.0.1:0".parse().unwrap(),
+                    service_binding,
+                    task: tokio::spawn(async { panic!("simulated health check API server task failure") }),
+                    shutdown_controller: tokio::spawn(async { GracefulShutdownOutcome::Drained }),
+                },
+                bind_to: "127.0.0.1:0".parse().unwrap(),
+                cancel_server_on_drop: CancellationToken::new().drop_guard(),
+            },
+        };
+
+        // Act
+        let result = stop_within_deadline(environment).await;
+
+        // Assert
+        assert!(result.is_err(), "stop() should return an error when a task failed");
+        assert!(
+            registar.services().await.is_empty(),
+            "stop() should remove the registration although a task failed"
         );
     }
 
