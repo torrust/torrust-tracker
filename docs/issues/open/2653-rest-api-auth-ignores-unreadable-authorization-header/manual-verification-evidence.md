@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2653-rest-api-auth-ignores-unreadable-authorization-header/ISSUE.md
-last-updated-utc: "2026-10-26 12:42"
+last-updated-utc: "2026-10-26 13:20"
 ---
 
 # Manual Verification Evidence
@@ -102,6 +102,102 @@ without the query token it gets `unauthorized` (the "missing token" answer), not
 P5 to P7 are the controls and behave as documented. After the fix, P1 and P4 are expected to answer
 `500` with `unknown token provided`. The same commands will be repeated as V2.
 
+## Regression Test
+
+### R1 - Unit test of the `auth` middleware
+
+- Boundary: a `#[tokio::test]` in the existing test module of
+  `packages/axum-rest-api-server/src/v1/middlewares/auth.rs`. It builds a minimal `Router` with one route,
+  applies `auth` as a layer, and sends one request through `tower::ServiceExt::oneshot`. This is the smallest
+  deterministic boundary: the decision is made inside the middleware and needs no socket. The existing contract
+  tests of the package start a real server, and none sends a non-ASCII header.
+- Test: `it_rejects_an_unreadable_authorization_header_even_with_a_valid_token_query`. The request carries a
+  valid `token` query (`api-token-12345`) and the header value `Bearer \xff`; the expected result is `500` and the
+  body `Unhandled rejection: Err { reason: "unknown token provided" }`, which is the body the route handler could
+  not produce.
+- Prose-first Arrange-Act-Assert review (the prose was removed once the code expressed it):
+  - Arrange: the middleware guards a route and the tracker accepts `api-token-12345`; the request has a valid
+    `?token` and an `Authorization` value that is not readable text. Both causal inputs, the byte `\xff` and
+    the valid query, are literal in the test.
+  - Act: send that request through the router.
+  - Assert: the status is `500` and the body is the `unknown token provided` rejection, so the handler did not
+    run. The expected values are written literally, not derived from production code.
+- Dev-dependency: `tower` with the `util` feature, needed for `oneshot`; `cargo machete --with-metadata` found no
+  unused dependency.
+
+#### Red (before the fix)
+
+Run with the stable Rust toolchain on the commit
+`test(axum-rest-api-server): [#2653] reject an unreadable Authorization header`, which still has the original
+`extract_bearer_token_from_header`:
+
+```text
+$ cargo test -p torrust-tracker-axum-rest-api-server --lib v1::middlewares::auth
+running 4 tests
+test v1::middlewares::auth::tests::it_authenticates_a_configured_token ... ok
+test v1::middlewares::auth::tests::it_authenticates_each_configured_token ... ok
+test v1::middlewares::auth::tests::it_rejects_tokens_that_differ_at_any_position_or_length ... ok
+test v1::middlewares::auth::tests::it_rejects_an_unreadable_authorization_header_even_with_a_valid_token_query ... FAILED
+
+thread '...it_rejects_an_unreadable_authorization_header_even_with_a_valid_token_query' panicked at packages/axum-rest-api-server/src/v1/middlewares/auth.rs:221:9:
+assertion `left == right` failed
+  left: 200
+ right: 500
+
+test result: FAILED. 3 passed; 1 failed; 0 ignored; 0 measured; 11 filtered out; finished in 0.00s
+```
+
+#### Green (after the fix)
+
+Run with the stable Rust toolchain on the commit
+`fix(axum-rest-api-server): [#2653] reject an unreadable Authorization header`:
+
+```text
+$ cargo test -p torrust-tracker-axum-rest-api-server
+test v1::middlewares::auth::tests::it_rejects_an_unreadable_authorization_header_even_with_a_valid_token_query ... ok
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.08s
+test result: ok. 58 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.31s
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+```
+
+`cargo +nightly fmt --all -- --check` (nightly Rust toolchain) and `cargo clippy -p
+torrust-tracker-axum-rest-api-server --all-targets` (stable) passed on the same code.
+
+### V2 - Like-for-like recheck on the real tracker after the fix
+
+- Goal: repeat the seven probes of V1 against a tracker built after the last production change.
+- Initial state: a freshly started tracker with the V1 configuration, recreated verbatim from the V1 section.
+- Status: `DONE`
+- Artifact under test: the `torrust-tracker` debug binary built with `cargo build --bin torrust-tracker` on the
+  commit `fix(axum-rest-api-server): [#2653] reject an unreadable Authorization header`; `git status --short`
+  printed nothing before the build.
+
+#### Steps Performed
+
+The tracker was started at 13:19:28 UTC with `./target/debug/torrust-tracker --config-toml-path
+.tmp/2653-tracker.toml`, and `ss -tlnp | grep 12653` showed it listening. The same seven probes of V1 ran one after
+another, from 13:19:42.495 (P1) to 13:19:42.561 (P7), with the same commands and the same header bytes. The
+tracker was stopped with `kill` on its process id at about 13:19:47 UTC; `ss -tlnp | grep -c 12653` then printed
+`0`.
+
+#### Observed Result
+
+```text
+P1 HTTP 500   Unhandled rejection: Err { reason: "unknown token provided" }
+P2 HTTP 500   Unhandled rejection: Err { reason: "unknown token provided" }
+P3 HTTP 500   Unhandled rejection: Err { reason: "unknown token provided" }
+P4 HTTP 500   Unhandled rejection: Err { reason: "unknown token provided" }
+P5 HTTP 200   {"torrents":0,"seeders":0,"completed":0,"completed_in_session":0,"completed_persisted":0,...
+P6 HTTP 200   {"torrents":0,"seeders":0,"completed":0,"completed_in_session":0,"completed_persisted":0,...
+P7 HTTP 500   Unhandled rejection: Err { reason: "unauthorized" }
+```
+
+#### Conclusion
+
+The symptom is gone. P1 (unreadable header with a valid `?token`) changed from `200` to `500 unknown token
+provided`, and P4 (unreadable header alone) changed from `unauthorized` to `unknown token provided`, so the header is
+no longer treated as absent. P2, P3 and the controls P5 to P7 answer exactly as in V1.
+
 ## Failures and Follow-up
 
-None. V2, the like-for-like recheck after the fix, is pending.
+None.

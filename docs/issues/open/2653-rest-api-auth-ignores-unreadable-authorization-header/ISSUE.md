@@ -9,7 +9,7 @@ github-issue: 2653
 spec-path: docs/issues/open/2653-rest-api-auth-ignores-unreadable-authorization-header/ISSUE.md
 branch: "2653-rest-api-auth-ignores-unreadable-authorization-header-spec"
 related-pr: 2654
-last-updated-utc: "2026-10-26 12:42"
+last-updated-utc: "2026-10-26 13:20"
 semantic-links:
   skill-links:
     - create-issue
@@ -128,9 +128,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | --- | --- | --- |
 | T1 | DONE | Maintainer decides the intended behavior | Reject; see the Decision section. |
 | T2 | DONE | Reproduce on the real tracker | `manual-verification-evidence.md` V1: Reproduced. |
-| T3 | TODO | Add the failing regression test (red) | Test fails for the current behavior (`200` instead of `500 unknown token provided`). |
-| T4 | TODO | Fix `extract_bearer_token_from_header` and the documentation | Test passes (green). |
-| T5 | TODO | Final like-for-like recheck and verification | `manual-verification-evidence.md` V2; `linter all`; package tests. |
+| T3 | DONE | Add the failing regression test (red) | Red: `200` instead of `500 unknown token provided`; see `manual-verification-evidence.md` R1. |
+| T4 | DONE | Fix `extract_bearer_token_from_header` and the documentation | Green: package tests pass; see R1. |
+| T5 | DONE | Final like-for-like recheck and verification | `manual-verification-evidence.md` V2; `linter all`; package tests. |
 
 ## Commit Points
 
@@ -149,10 +149,10 @@ Use Conventional Commit messages (`fix(axum-rest-api-server): ...`) and sign eve
 - [x] Folder-style spec drafted in `docs/issues/open/2653-rest-api-auth-ignores-unreadable-authorization-header/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
@@ -167,15 +167,18 @@ Use Conventional Commit messages (`fix(axum-rest-api-server): ...`) and sign eve
 - 2026-10-26 12:42 UTC - GitHub Copilot - Reproduced the bug on the real tracker (outcome **Reproduced**) and
   recorded it in `manual-verification-evidence.md` V1, in response to the pull-request review finding F1 of #2654.
   T2 and M1 are done.
+- 2026-10-26 13:20 UTC - GitHub Copilot - The specification PR #2654 merged at 13:01 UTC. Added the regression test
+  (red), fixed `extract_bearer_token_from_header` (green), repeated the real-tracker probes (V2) and ran
+  `linter all` (exit 0). T3 to T5 are done.
 
 ## Acceptance Criteria
 
-- [ ] AC1: The behavior for an unreadable `Authorization` header is decided and documented in `auth.rs`.
-- [ ] AC2: A unit test protects the decided behavior and fails for the opposite behavior.
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] AC1: The behavior for an unreadable `Authorization` header is decided and documented in `auth.rs`.
+- [x] AC2: A unit test protects the decided behavior and fails for the opposite behavior.
+- [x] `linter all` exits with code `0`
+- [x] Relevant tests pass
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
 
 ## Verification Plan
 
@@ -190,7 +193,7 @@ Use Conventional Commit messages (`fix(axum-rest-api-server): ...`) and sign eve
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
 | M1 | Reproduce on the real tracker | Start an isolated tracker; `curl -H $'Authorization: Bearer \xff' 'http://127.0.0.1:1212/api/v1/stats?token=<valid>'` and with `Authorization: Basic x`. | Before the fix: `200` for the unreadable header, `500` for the other scheme. | DONE | `manual-verification-evidence.md` V1 |
-| M2 | Like-for-like recheck | Repeat M1 after the fix. | The decided behavior. | TODO | `manual-verification-evidence.md` V2 |
+| M2 | Like-for-like recheck | Repeat M1 after the fix. | The decided behavior. | DONE | `manual-verification-evidence.md` V2 |
 
 ### Disposable Verification Scripts
 
@@ -200,8 +203,8 @@ None planned.
 
 | AC ID | Status | Evidence |
 | ----- | ------ | -------- |
-| AC1 | TODO | The documentation diff and the decision record. |
-| AC2 | TODO | Red and green test output. |
+| AC1 | DONE | The module documentation of `auth.rs` and the Decision section; `manual-verification-evidence.md` V2. |
+| AC2 | DONE | Red and green test output in `manual-verification-evidence.md` R1. |
 
 ## Risks and Trade-offs
 
@@ -212,7 +215,8 @@ None planned.
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
+- Retrospective: not needed. The fix matched the plan: one function and its module documentation changed, no
+  design deviation, and no reusable lesson beyond the existing fix-bug workflow.
 
 ## References
 
