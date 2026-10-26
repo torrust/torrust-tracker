@@ -9,7 +9,7 @@ github-issue: 2637
 spec-path: docs/issues/open/2637-1347-add-tests-axum-rest-api-server/ISSUE.md
 branch: "2637-1347-add-tests-axum-rest-api-server-auth"
 related-pr: null
-last-updated-utc: "2026-10-26 17:55"
+last-updated-utc: "2026-10-26 18:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -532,7 +532,7 @@ declaration-only rows have no executable entries.
 
 | Order | Source module | Rank | Slice | Unit-only lines | Tests | Initial hypothesis | State | Plan |
 | ---: | --- | ---: | --- | ---: | ---: | --- | --- | --- |
-| 1 | `v1/middlewares/auth.rs` | 1 | S1 | 71 / 103 (68.93%) | 4 | Property candidate | IN_PROGRESS | [v1-middlewares-auth-tests.md](test-refactor-plans/v1-middlewares-auth-tests.md) (proposed; property test declined; the finding is fixed by #2653) |
+| 1 | `v1/middlewares/auth.rs` | 1 | S1 | 71 / 103 (68.93%) | 4 | Property candidate | DONE | [v1-middlewares-auth-tests.md](test-refactor-plans/v1-middlewares-auth-tests.md) (done; 142 / 142 lines after, 27 test cases, 8 mutants killed, property test declined) |
 | 2 | `v1/routes.rs` | 2 | S2 | 27 / 45 (60.00%) | 0 | Test candidate | PENDING | - |
 | 3 | `routes.rs` | 2 | S2 | 58 / 67 (86.57%) | 0 | Test candidate | PENDING | - |
 | 4 | `v1/context/health_check/handlers.rs` | 2 | S2 | 4 / 4 (100.00%) | 0 | Test candidate (small) | PENDING | - |
@@ -648,6 +648,10 @@ once. If the slicing changes, the Slice column changes with it.
   middleware is now 71 / 103 lines. Updated the S1 baseline, the ledger, the evidence, the EPIC tables
   and the auth plan (the unreadable-header case is already tested; `tower` `util` is already a
   dev-dependency). S1 resumes; the plan still needs the maintainer's approval.
+- 2026-10-26 18:30 UTC - GitHub Copilot - S1 row 1: `v1/middlewares/auth.rs` is done. Unit-only lines 71 / 103
+  (68.93%) to 142 / 142 (100.00%) (the counts include the test module), 27 test cases, eight named mutations
+  killed, `rstest` 0.28.0 added as a dev-dependency. The maintainer approved the plan (2026-10-26, after the
+  #2653 update) and the completed file (18:26 UTC).
 
 ## Acceptance Criteria
 

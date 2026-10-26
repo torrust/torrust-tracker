@@ -189,69 +189,235 @@ pub fn unknown_auth_data_provided_response() -> Response {
 #[cfg(test)]
 mod tests {
     use std::sync::Arc;
+    use std::sync::atomic::{AtomicBool, Ordering};
 
     use axum::body::{Body, to_bytes};
-    use axum::http::header::AUTHORIZATION;
+    use axum::http::header::{AUTHORIZATION, CONTENT_TYPE};
     use axum::http::{HeaderValue, Request, StatusCode};
     use axum::routing::get;
     use axum::{Router, middleware};
+    use rstest::rstest;
     use secrecy::SecretString;
     use torrust_tracker_configuration::v3_0_0::tracker_api::AccessTokens;
     use tower::ServiceExt;
 
     use super::{State, auth, authenticate};
 
-    #[tokio::test]
-    async fn it_rejects_an_unreadable_authorization_header_even_with_a_valid_token_query() {
-        let state = State {
-            access_tokens: Arc::new(access_tokens()),
-        };
-        let app = Router::new()
-            .route("/", get(|| async { "handler ran" }))
-            .layer(middleware::from_fn_with_state(state, auth));
-        let unreadable_header = HeaderValue::from_bytes(b"Bearer \xff").expect("the bytes are a valid header value");
-        let request = Request::builder()
-            .uri("/?token=api-token-12345")
-            .header(AUTHORIZATION, unreadable_header)
-            .body(Body::empty())
-            .expect("the request is well formed");
+    const FIRST_TOKEN: &str = "api-token-12345";
+    const SECOND_TOKEN: &str = "other-token-678";
 
-        let response = app.oneshot(request).await.expect("the router never fails");
-
-        assert_eq!(response.status(), StatusCode::INTERNAL_SERVER_ERROR);
-        let body = to_bytes(response.into_body(), usize::MAX)
-            .await
-            .expect("the body is readable");
-        assert_eq!(body, r#"Unhandled rejection: Err { reason: "unknown token provided" }"#);
-    }
-
-    #[test]
-    fn it_authenticates_a_configured_token() {
-        let access_tokens = access_tokens();
-
-        assert!(authenticate("api-token-12345", &access_tokens));
-    }
-
-    #[test]
-    fn it_rejects_tokens_that_differ_at_any_position_or_length() {
-        let access_tokens = access_tokens();
-
-        for token in ["xpi-token-12345", "api-token-1234x", "api-token-1234", "api-token-123456", ""] {
-            assert!(!authenticate(token, &access_tokens));
-        }
-    }
-
-    #[test]
-    fn it_authenticates_each_configured_token() {
-        let access_tokens = access_tokens();
-
-        assert!(authenticate("other-token-678", &access_tokens));
+    /// What a client sees after the request crossed the authentication middleware, and whether the
+    /// handler behind it ran.
+    #[derive(Debug, PartialEq, Eq)]
+    struct Sent {
+        status: StatusCode,
+        content_type: Option<String>,
+        body: String,
+        handler_ran: bool,
     }
 
     fn access_tokens() -> AccessTokens {
         AccessTokens::from([
-            ("first".to_string(), SecretString::from("api-token-12345")),
-            ("second".to_string(), SecretString::from("other-token-678")),
+            ("first".to_string(), SecretString::from(FIRST_TOKEN)),
+            ("second".to_string(), SecretString::from(SECOND_TOKEN)),
         ])
+    }
+
+    fn request(authorization: Option<&str>, uri: &str) -> Request<Body> {
+        let authorization = authorization.map(|value| HeaderValue::from_str(value).expect("the test header value is valid"));
+
+        request_with_header(authorization, uri)
+    }
+
+    fn request_with_header(authorization: Option<HeaderValue>, uri: &str) -> Request<Body> {
+        let mut request = Request::builder().uri(uri);
+        if let Some(authorization) = authorization {
+            request = request.header(AUTHORIZATION, authorization);
+        }
+        request.body(Body::empty()).expect("the request is well formed")
+    }
+
+    async fn send(request: Request<Body>) -> Sent {
+        let handler_ran = Arc::new(AtomicBool::new(false));
+        let handler_ran_by_handler = handler_ran.clone();
+        let state = State {
+            access_tokens: Arc::new(access_tokens()),
+        };
+        let app = Router::new()
+            .route(
+                "/",
+                get(move || async move {
+                    handler_ran_by_handler.store(true, Ordering::SeqCst);
+                    "handler ran"
+                }),
+            )
+            .layer(middleware::from_fn_with_state(state, auth));
+
+        let response = app.oneshot(request).await.expect("the router never fails");
+
+        let status = response.status();
+        let content_type = response
+            .headers()
+            .get(CONTENT_TYPE)
+            .map(|value| value.to_str().expect("the content type is text").to_string());
+        let body = to_bytes(response.into_body(), usize::MAX)
+            .await
+            .expect("the body is readable");
+
+        Sent {
+            status,
+            content_type,
+            body: String::from_utf8(body.to_vec()).expect("the body is text"),
+            handler_ran: handler_ran.load(Ordering::SeqCst),
+        }
+    }
+
+    #[rstest]
+    #[case::the_token_in_the_header(Some("Bearer api-token-12345"), "/")]
+    #[case::the_other_configured_token_in_the_header(Some("Bearer other-token-678"), "/")]
+    #[case::the_token_in_the_query(None, "/?token=api-token-12345")]
+    #[case::the_token_in_the_query_at_any_position(None, "/?format=json&token=api-token-12345&limit=1")]
+    #[case::a_valid_header_and_an_invalid_query_token(Some("Bearer api-token-12345"), "/?token=wrong-token")]
+    #[tokio::test]
+    async fn it_should_let_the_request_reach_the_handler_when_a_configured_token_is_provided(
+        #[case] authorization: Option<&str>,
+        #[case] uri: &str,
+    ) {
+        let request = request(authorization, uri);
+
+        let sent = send(request).await;
+
+        assert_eq!(
+            sent,
+            Sent {
+                status: StatusCode::OK,
+                content_type: Some("text/plain; charset=utf-8".to_string()),
+                body: "handler ran".to_string(),
+                handler_ran: true,
+            }
+        );
+    }
+
+    #[rstest]
+    #[case::an_invalid_token_in_the_header(Some("Bearer wrong-token"), "/")]
+    #[case::an_invalid_token_in_the_query(None, "/?token=wrong-token")]
+    #[case::an_empty_token_in_the_query(None, "/?token=")]
+    #[case::an_invalid_header_even_with_a_valid_query_token(Some("Bearer wrong-token"), "/?token=api-token-12345")]
+    #[case::the_bearer_scheme_without_a_token(Some("Bearer"), "/")]
+    #[case::the_bearer_scheme_followed_by_a_space_and_no_token(Some("Bearer "), "/")]
+    #[tokio::test]
+    async fn it_should_reject_the_request_as_token_not_valid_when_the_provided_token_is_not_a_configured_one(
+        #[case] authorization: Option<&str>,
+        #[case] uri: &str,
+    ) {
+        let request = request(authorization, uri);
+
+        let sent = send(request).await;
+
+        assert_eq!(
+            sent,
+            Sent {
+                status: StatusCode::INTERNAL_SERVER_ERROR,
+                content_type: Some("text/plain; charset=utf-8".to_string()),
+                body: r#"Unhandled rejection: Err { reason: "token not valid" }"#.to_string(),
+                handler_ran: false,
+            }
+        );
+    }
+
+    #[rstest]
+    #[case::another_scheme(Some("Basic api-token-12345"), "/")]
+    #[case::a_lower_case_bearer_scheme(Some("bearer api-token-12345"), "/")]
+    #[case::the_scheme_glued_to_the_token(Some("Bearer-api-token-12345"), "/")]
+    #[case::an_empty_header(Some(""), "/")]
+    #[case::another_scheme_even_with_a_valid_query_token(Some("Basic api-token-12345"), "/?token=api-token-12345")]
+    #[tokio::test]
+    async fn it_should_reject_the_request_as_unknown_token_provided_when_the_header_is_not_a_bearer_credential(
+        #[case] authorization: Option<&str>,
+        #[case] uri: &str,
+    ) {
+        let request = request(authorization, uri);
+
+        let sent = send(request).await;
+
+        assert_eq!(
+            sent,
+            Sent {
+                status: StatusCode::INTERNAL_SERVER_ERROR,
+                content_type: Some("text/plain; charset=utf-8".to_string()),
+                body: r#"Unhandled rejection: Err { reason: "unknown token provided" }"#.to_string(),
+                handler_ran: false,
+            }
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_reject_an_unreadable_authorization_header_even_with_a_valid_token_query() {
+        let unreadable_header = HeaderValue::from_bytes(b"Bearer \xff").expect("the bytes are a valid header value");
+        let request = request_with_header(Some(unreadable_header), "/?token=api-token-12345");
+
+        let sent = send(request).await;
+
+        assert_eq!(
+            sent,
+            Sent {
+                status: StatusCode::INTERNAL_SERVER_ERROR,
+                content_type: Some("text/plain; charset=utf-8".to_string()),
+                body: r#"Unhandled rejection: Err { reason: "unknown token provided" }"#.to_string(),
+                handler_ran: false,
+            }
+        );
+    }
+
+    #[rstest]
+    #[case::no_query("/")]
+    #[case::a_query_without_a_token("/?format=json")]
+    #[tokio::test]
+    async fn it_should_reject_the_request_as_unauthorized_when_no_token_is_provided(#[case] uri: &str) {
+        let request = request(None, uri);
+
+        let sent = send(request).await;
+
+        assert_eq!(
+            sent,
+            Sent {
+                status: StatusCode::INTERNAL_SERVER_ERROR,
+                content_type: Some("text/plain; charset=utf-8".to_string()),
+                body: r#"Unhandled rejection: Err { reason: "unauthorized" }"#.to_string(),
+                handler_ran: false,
+            }
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_reject_a_duplicated_token_query_parameter_before_authenticating() {
+        let request = request(None, "/?token=api-token-12345&token=api-token-12345");
+
+        let sent = send(request).await;
+
+        // The text of a query rejection belongs to Axum; the package owns that the handler does not run.
+        assert_eq!(sent.status, StatusCode::BAD_REQUEST);
+        assert!(!sent.handler_ran);
+    }
+
+    #[rstest]
+    #[case::the_first_configured_token(FIRST_TOKEN)]
+    #[case::the_second_configured_token(SECOND_TOKEN)]
+    fn it_should_authenticate_a_configured_token(#[case] token: &str) {
+        let access_tokens = access_tokens();
+
+        assert!(authenticate(token, &access_tokens));
+    }
+
+    #[rstest]
+    #[case::a_different_first_character("xpi-token-12345")]
+    #[case::a_different_last_character("api-token-1234x")]
+    #[case::a_shorter_token("api-token-1234")]
+    #[case::a_longer_token("api-token-123456")]
+    #[case::an_empty_token("")]
+    fn it_should_not_authenticate_a_token_that_is_not_a_configured_one(#[case] token: &str) {
+        let access_tokens = access_tokens();
+
+        assert!(!authenticate(token, &access_tokens));
     }
 }

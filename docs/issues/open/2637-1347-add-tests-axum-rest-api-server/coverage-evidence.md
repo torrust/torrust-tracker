@@ -193,3 +193,7 @@ EPIC #1347 requires every package subissue to assess each test level. T1 records
 ## Per-File Results
 
 Added by each slice as its files complete.
+
+### `v1/middlewares/auth.rs` (slice S1)
+
+Unit-only (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): lines 71 / 103 (68.93%) before, 142 / 142 (100.00%) after; regions 124 / 179 before, 223 / 223 after; functions 13 / 17 before, 22 / 22 after. The counts include the in-file test module. 27 test cases replace the four tests; eight named mutations are killed (see [the plan](test-refactor-plans/v1-middlewares-auth-tests.md)).

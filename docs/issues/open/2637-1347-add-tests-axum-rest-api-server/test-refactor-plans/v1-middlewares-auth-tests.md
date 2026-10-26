@@ -3,7 +3,7 @@ doc-type: file-test-plan
 issue: 2637
 package: torrust-tracker-axum-rest-api-server
 target-file: packages/axum-rest-api-server/src/v1/middlewares/auth.rs
-status: proposed
+status: done
 semantic-links:
   related-artifacts:
     - packages/axum-rest-api-server/src/v1/middlewares/auth.rs
@@ -91,10 +91,10 @@ configured tokens. A `quickcheck` model would add a dependency for the same kill
 
 | ID | Status | Work | Completion evidence |
 | --- | --- | --- | --- |
-| R1 | TODO | Rename the three tests to `it_should_*` and turn them into two `rstest` tables; add the `rstest` dev-dependency. | Focused tests, `cargo +nightly fmt --all -- --check`, `git diff --check`, `cargo machete --with-metadata`, prose-first AAA review. |
-| R2 | TODO | Add the middleware tests above with a minimal router and a recording handler (the `tower` `util` dev-dependency exists). | Same validation plus the named mutations. |
-| R3 | TODO | Integration increment: `none` expected (the nine integration tests are retained). | The package has no boundary to add here. |
-| R4 | TODO | Re-run unit-only coverage; record before and after. | Results below and `coverage-evidence.md`. |
+| R1 | DONE | Rename the three tests to `it_should_*` and turn them into two `rstest` tables; add the `rstest` dev-dependency. | Focused tests, `cargo +nightly fmt --all -- --check`, `git diff --check`, `cargo machete --with-metadata`, prose-first AAA review. |
+| R2 | DONE | Add the middleware tests above with a minimal router and a recording handler (the `tower` `util` dev-dependency exists). | Same validation plus the named mutations. |
+| R3 | DONE | Integration increment: `none` (the nine integration tests are retained). | The middleware is reachable in-process; no boundary was missing. |
+| R4 | DONE | Re-run unit-only coverage; record before and after. | Results below and `coverage-evidence.md`. |
 
 ## Named Mutations
 
@@ -114,11 +114,40 @@ the result in Results.
 
 ## Prose-First AAA Review
 
-To be written for every added or changed test before the completed-file review.
+Temporary prose, written before comparing with the code.
+
+| Test (cases) | Arrange prose | Act prose | Assert prose | Outcome |
+| --- | --- | --- | --- | --- |
+| `it_should_let_the_request_reach_the_handler_when_a_configured_token_is_provided` (5 cases) | A request carrying the token in the header, the query, both with one invalid, or the other configured token. | Send it through the middleware in front of a recording handler. | `200`, the handler's text, and the handler ran. | The case names state the one varying input; `request` and `send` hide only mechanics. Kept. |
+| `it_should_reject_the_request_as_token_not_valid_when_...` (6 cases) | A request whose effective token is invalid, empty, or `Bearer` alone, including an invalid header with a valid query. | Same. | `500`, text content type, the `token not valid` body, handler did not run. | The whole client-visible value is a literal in the test; the recording handler proves the order. Kept. |
+| `it_should_reject_the_request_as_unknown_token_provided_when_...` (5 cases) | A header that is not `Bearer <token>`: another scheme, lower case, glued, empty, or another scheme with a valid query. | Same. | `500`, the `unknown token provided` body, handler did not run. | Kept. |
+| `it_should_reject_an_unreadable_authorization_header_even_with_a_valid_token_query` | A header with a non-ASCII byte and a valid query token. | Same. | As above (the #2653 behavior). | Renamed and moved onto the shared helper; the bytes are built in the test. Kept. |
+| `it_should_reject_the_request_as_unauthorized_when_no_token_is_provided` (2 cases) | No header and no `token`, with and without another query parameter. | Same. | `500`, the `unauthorized` body, handler did not run. | Kept. |
+| `it_should_reject_a_duplicated_token_query_parameter_before_authenticating` | A query with `token` twice and a valid token. | Same. | `400` and the handler did not run; the text is Axum's and is not asserted. | The one assertion about a collaborator's text is deliberately left out. Kept. |
+| `it_should_authenticate_a_configured_token` (2) and `it_should_not_authenticate_a_token_that_is_not_a_configured_one` (5) | One token per case against the two configured tokens. | `authenticate`. | `true` or `false`. | Replaces the loop and the two single-token tests; a failure now names its case. Kept. |
 
 ## Results
 
-Pending.
+- **Unit-only coverage** (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): `v1/middlewares/auth.rs`
+  71 / 103 lines (68.93%) before; 142 / 142 lines (100.00%), 223 / 223 regions and 22 / 22 functions after. The
+  counts include the test module. No production line of the file is uncovered. The whole package (S1 start
+  `0b4b2d0d3`, before `v1/responses.rs`): 38 unit tests.
+- **Tests:** the four existing tests became 27 test cases: six `rstest` tables (5, 6, 5, 2, 2 and 5 cases) and two
+  single tests. No integration test was added or changed.
+- **Mutations** (each applied alone, run with `cargo test -p torrust-tracker-axum-rest-api-server --lib
+  v1::middlewares::auth`, stable toolchain, then reverted; the file was byte-identical to the tested one
+  afterwards): M1 killed by 2 cases (header-wins), M2 by the accepted-token cases, M3 by the four invalid-token
+  cases, M4 by `the_bearer_scheme_without_a_token`, M5 by `the_scheme_glued_to_the_token`, M6 by the invalid-token
+  and unreadable-header cases, M7 by the six invalid-token cases (and the reason cases), M8 by the
+  unreadable-header test. Every named mutation is killed. M1 used `drop(...)` and M7 `drop(...)` so the mutants
+  compile under `unused = "deny"`.
+- **Validation:** `cargo +nightly fmt --all -- --check` (nightly Rust toolchain) passes; `cargo clippy -p
+  torrust-tracker-axum-rest-api-server --all-targets` (stable) passes after replacing a wrapped-`Option` helper
+  flagged by `clippy::unnecessary_wraps`; `cargo machete --with-metadata` passes; `git diff --check` is clean.
+- **Dependency:** `rstest = { version = "0.28.0", default-features = false }` (the latest stable version;
+  `http-core` uses the default features, this package needs neither `async-timeout` nor `crate-name`).
+- **Review outcome:** the maintainer approved the completed file on 2026-10-26, including leaving the text of
+  Axum's duplicate-query `400` not asserted.
 
 ## Maintainer Decisions
 
