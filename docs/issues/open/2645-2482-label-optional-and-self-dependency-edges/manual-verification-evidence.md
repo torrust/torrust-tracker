@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2645-2482-label-optional-and-self-dependency-edges/ISSUE.md
-last-updated-utc: "2026-10-26 07:18"
+last-updated-utc: "2026-10-26 12:37"
 ---
 
 # Manual Verification Evidence
@@ -17,8 +17,8 @@ Every output below is the real output of the command shown; the repository path 
 
 - Date and time (UTC): the runs are dated one by one. 2026-10-25: V1 at 08:10:01, the second run at
   08:12:15, the third run at 08:34:49. 2026-10-26: the re-run V4 and the V2 diff at 07:16.
-- Tree each run used (the runs of 2026-10-25 happened before the commit of the change they test,
-  so they used the working tree, not a commit):
+- Tree each run used (the second and third runs of 2026-10-25 happened before the commit of the change
+  they test, so they used the working tree, not a commit; V1 ran after its commit):
   - V1: the tree of the commit `feat(workspace-coupling): [#2645] label optional edges and skip self edges`.
   - Second run: the working tree after that commit, with the fix of the commit
     `fix(workspace-coupling): [#2645] ignore the implicit feature of an optional dependency` not yet committed.
