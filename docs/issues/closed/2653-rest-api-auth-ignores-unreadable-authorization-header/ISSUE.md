@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: planned
+status: done
 priority: p3
 epic: null
 github-issue: 2653
-spec-path: docs/issues/open/2653-rest-api-auth-ignores-unreadable-authorization-header/ISSUE.md
+spec-path: docs/issues/closed/2653-rest-api-auth-ignores-unreadable-authorization-header/ISSUE.md
 branch: "2653-rest-api-auth-ignores-unreadable-authorization-header-spec"
 related-pr: 2654
-last-updated-utc: "2026-10-26 13:20"
+last-updated-utc: "2026-10-26 17:08"
 semantic-links:
   skill-links:
     - create-issue
@@ -18,7 +18,7 @@ semantic-links:
     - .github/skills/dev/debugging/fix-bug/SKILL.md
     - .github/skills/dev/planning/create-issue/SKILL.md
     - docs/issues/open/2637-1347-add-tests-axum-rest-api-server/ISSUE.md
-    - docs/issues/open/2653-rest-api-auth-ignores-unreadable-authorization-header/manual-verification-evidence.md
+    - docs/issues/closed/2653-rest-api-auth-ignores-unreadable-authorization-header/manual-verification-evidence.md
     - docs/security/analysis/reports/2026-09-04_rest-api-token-timing.md
     - packages/axum-rest-api-server/src/v1/middlewares/auth.rs
 ---
@@ -146,14 +146,14 @@ Use Conventional Commit messages (`fix(axum-rest-api-server): ...`) and sign eve
 
 ### Workflow Checkpoints
 
-- [x] Folder-style spec drafted in `docs/issues/open/2653-rest-api-auth-ignores-unreadable-authorization-header/ISSUE.md`
+- [x] Folder-style spec drafted in `docs/issues/closed/2653-rest-api-auth-ignores-unreadable-authorization-header/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [x] Implementation completed
 - [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -170,6 +170,8 @@ Use Conventional Commit messages (`fix(axum-rest-api-server): ...`) and sign eve
 - 2026-10-26 13:20 UTC - GitHub Copilot - The specification PR #2654 merged at 13:01 UTC. Added the regression test
   (red), fixed `extract_bearer_token_from_header` (green), repeated the real-tracker probes (V2) and ran
   `linter all` (exit 0). T3 to T5 are done.
+- 2026-10-26 17:08 UTC - GitHub Copilot - The fix PR #2656 merged at 16:50 UTC and closed issue #2653 at 16:50 UTC.
+  Archived this specification to `docs/issues/closed/` with `status: done`.
 
 ## Acceptance Criteria
 
