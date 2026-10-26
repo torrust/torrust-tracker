@@ -1,7 +1,7 @@
 ---
 doc-type: feature-supporting-analysis
 status: verified
-last-updated-utc: "2026-10-26 07:30"
+last-updated-utc: "2026-10-26 16:23"
 semantic-links:
   related-artifacts:
     - docs/features/shutdown-process/README.md
@@ -304,7 +304,7 @@ themselves.
 | HTTP tracker (`packages/axum-http-server/src/testing/environment.rs`) | One: the HTTP-core statistics listener | Subscribes before the server starts; spawns the listener after a successful start; the `Running` state holds a `DropGuard` for the server token and another for the listener token (`cancel_server_on_drop`, `cancel_listener_on_drop`). `stop()` cancels and joins the server and its drain controller, then the listener (issue #2416). |
 | UDP tracker (`packages/udp-server/src/testing/environment.rs`) | Three: UDP-core statistics, UDP-server statistics, and UDP-server banning | Subscribes all three receivers before the server starts; the `Running` state holds a `DropGuard` for the receive-loop token and another for the one token of the three listeners (`cancel_server_on_drop`, `cancel_listeners_on_drop`). `stop()` cancels and joins the receive loop, then the listeners (issue #2416). |
 | REST API (`packages/axum-rest-api-server/src/testing/environment.rs`) | None | Runs no event listener, so it keeps one token: the `Running` state holds the server task, its drain controller, and one `DropGuard` (`cancel_server_on_drop`). `stop()` cancels the token and joins both tasks, then panics naming each failing task (issue #2449). |
-| Health-check API (`packages/axum-health-check-api-server/src/environment.rs`) | None | Runs no event listener, so it keeps one token: the private `Running` state holds the server task, its drain controller, and one `DropGuard` (`cancel_server_on_drop`). `stop()` cancels the token and joins both tasks, then returns an error naming each failing task (issue #2450). |
+| Health-check API (`packages/axum-health-check-api-server/src/environment.rs`) | None | Runs no event listener, so it keeps one token: the private `Running` state holds the server task, its drain controller, and one `DropGuard` (`cancel_server_on_drop`). `stop()` cancels the token and joins both tasks, removes its own registration from the `registar` with `Registar::deregister` (so it starts again on a fixed port and other owners' services stay registered), then returns an error naming each failing task (issue #2450). A bare drop cannot await the registry lock, so it leaves the registration in place. |
 
 Neither tracker environment runs a swarm-bus listener, although announce
 requests can publish on that bus; no listener consumes those events there.

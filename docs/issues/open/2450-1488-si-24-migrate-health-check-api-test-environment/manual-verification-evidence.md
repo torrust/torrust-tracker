@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md
-last-updated-utc: "2026-10-26 12:42"
+last-updated-utc: "2026-10-26 16:23"
 ---
 
 # Manual Verification Evidence
@@ -105,41 +105,74 @@ No prose had to be kept beyond the three section markers.
 ## V6: Automatic checks after the last production change
 
 The last production change is the commit
+`fix(axum-health-check-api-server): [#2450] deregister the health-check test environment on stop`
+(V7). Earlier last changes were
 `test(axum-health-check-api-server): [#2450] document and pin the fixed-port restart limitation`
-(V7). It supersedes the earlier last change, `test(axum-health-check-api-server): [#2450] assert the stop result in the binding-release test`,
-after which these commands were first run with 11 lib tests. Run on the tree after the last change (rustc 1.99.1):
+and, before it, `test(axum-health-check-api-server): [#2450] assert the stop result in the binding-release test`;
+the commands below were run again after this one. Toolchain: rustc 1.99.1, with
+`torrust-server-lib` 0.4.0 from crates.io (the tree after the commit
+`chore(deps): [#2450] bump torrust-server-lib to 0.4.0`).
 
 | Command                                                                                     | Result                                                |
 | ------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| `cargo test -p torrust-tracker-axum-health-check-api-server`                                | 12 lib passed (1.00 s), 8 integration passed (3.04 s) |
+| `cargo test -p torrust-tracker-axum-health-check-api-server`                                | 14 lib passed (1.00 s), 8 integration passed (3.04 s) |
 | `cargo clippy -p torrust-tracker-axum-health-check-api-server --all-targets -- -D warnings` | no warnings                                           |
 | `cargo check --workspace --all-targets --all-features`                                      | no errors                                             |
 | `cargo +nightly fmt --check`                                                                | clean                                                 |
-| `linter all`                                                                                | exit 0 (12:41 UTC)                                    |
+| `linter all`                                                                                | exit 0 (16:23 UTC)                              |
 
-The pre-commit hook passed on the commit above.
+The pre-commit hook passed on each commit.
 
-## V7: Fixed-port restart (`review-finding:pr-2652-f1`)
+## V7: Fixed-port restart (`review-finding:pr-2652-f1`, `review-finding:pr-2652-f2`)
 
 Copilot's review of #2652 reported that a stop-then-start on a fixed port
-panics. A red test reproduced it before any change:
-`cargo test -p torrust-tracker-axum-health-check-api-server --lib fixed_port`
-failed with `Registration { source: DuplicateBinding(...) }` raised by `start()`.
+panics, and da2ce7 re-raised it as `review-finding:pr-2652-f2`, asking for a
+fix instead of a documented limitation.
 
-Cause (read from source, not run beyond the red test): the legacy `server::start`
+Red test, before any change: a stop-then-start on a fixed port, with a port
+picked by binding `127.0.0.1:0` and dropping the listener, failed with
+`Registration { source: DuplicateBinding(...) }` raised by `start()`.
+
+Cause (read from source, confirmed by the red test): the legacy `server::start`
 never registered the service in the `registar`; `server::start_with_cancellation`
-does (spec D4), and `stop()` cannot remove the registration because
+does (spec D4), and `stop()` could not remove the registration because
 `torrust-server-lib` 0.3.0's `Registar` has no remove operation. Restart on an
-ephemeral port (`:0`), which the existing restart test covers, binds a new
+ephemeral port (`:0`), which the earlier restart test covers, binds a new
 address and is unaffected.
 
-Decision (the maintainer chose it): document the limitation and pin it, and file
-a follow-up to give the `Registar` a removal operation. The commit
-`test(axum-health-check-api-server): [#2450] document and pin the fixed-port restart limitation`
-documents it on `Environment::start()` and adds
-`it_should_not_start_again_on_a_fixed_port_while_the_registar_keeps_the_previous_registration`
-(`#[should_panic(expected = "DuplicateBinding")]`). Lib tests rose from 11 to 12.
+First decision, superseded: the maintainer chose to document the limitation and
+pin it with a `should_panic` test, in
+`test(axum-health-check-api-server): [#2450] document and pin the fixed-port restart limitation`.
+That was made before it was known that the registry could be fixed cheaply,
+and da2ce7's re-raise asked for the fix. The final change replaces it.
 
-Mutation proof: with the test's configuration changed to bind `127.0.0.1:0`, the
-test failed with `test did not panic as expected`; the file was restored from
-`HEAD` and `cmp` confirmed the restore.
+Final decision (the maintainer chose it): add an additive
+`Registar::deregister(&ServiceBinding)` to `torrust-server-lib`
+(torrust/torrust-server-lib#2, merged, published as 0.4.0), bump it in the
+tracker, and make `stop()` remove the environment's own binding. Registry
+keyed by binding only: it removes only the binding the environment registered,
+and keeps the services of other owners. A receipt-returning `register` was
+rejected as a breaking change to about eight production call sites in four
+packages (counted from `grep -rn "\.register("` over `src` and `packages/*/src`).
+
+Tests (in `environment::tests`), red before the change and green after:
+
+- `it_should_serve_requests_after_being_stopped_and_started_again_on_a_fixed_port`
+  (replaces the `should_panic` test; green restart on a nonzero port).
+- `it_should_remove_only_its_own_registration_from_the_registar_when_stopped`
+  (the registry holds the caller's other service and only that one afterwards).
+- `it_should_remove_its_registration_even_when_stopped_with_a_failed_task`.
+
+Mutation proofs (each restored from a copy and checked with `cmp`):
+
+| ID  | Mutation in `stop()`                                      | Result                                                  |
+| --- | --------------------------------------------------------- | ------------------------------------------------------- |
+| M-A | remove the `deregister` call                              | 3 failed: the three tests above                          |
+| M-B | deregister only after the join result was checked with `?` | 1 failed: the failed-task test; the other 13 passed      |
+
+In `torrust-server-lib`, the test that keeps the other registrations failed
+when the removal cleared the whole map, and passed after the restore (`cmp`).
+
+Not covered: a bare `drop` of a running environment cannot deregister, because it
+cannot await the registry lock; a fixed-port restart after a bare drop still
+fails (read from source, not run). The spec states it in "Risks and Trade-offs".
