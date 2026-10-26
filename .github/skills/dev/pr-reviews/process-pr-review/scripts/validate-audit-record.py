@@ -24,7 +24,8 @@ audit-local (F1) or reviewer-provided (OPS-001):
 Options:
   --pr-number <number>     Pull request number (required)
   --audit-file <path>      Audit record (default: docs/pr-reviews/pr-<N>-review/PR-REVIEW.md)
-  --comments-file <path>   REST review-comments JSON; fetched with gh when omitted
+  --comments-file <path>   REST review-comments JSON; fetched with gh when omitted. Commits are
+                           still fetched with gh, so gh is needed in both modes
   --owner <owner>          Repository owner (default: torrust)
   --repo <repo>            Repository name (default: torrust-tracker)
   --base <ref>             Base ref for the local <base>..HEAD range of unpushed commits (default: develop)
@@ -140,8 +141,9 @@ def valid_subjects(base: str, pulls: list[tuple[str, str, int]]) -> set[str]:
         endpoint = f"repos/{owner}/{repo}/pulls/{number}/commits"
         try:
             commits = gh_paginated(endpoint)
-        except subprocess.CalledProcessError as error:
-            print(f"Error: gh api {endpoint} failed: {(error.stderr or '').strip()}", file=sys.stderr)
+        except (subprocess.CalledProcessError, OSError) as error:
+            detail = (getattr(error, "stderr", None) or str(error)).strip()
+            print(f"Error: gh api {endpoint} failed: {detail}", file=sys.stderr)
             sys.exit(2)
         subjects.update(commit["commit"]["message"].split("\n", 1)[0] for commit in commits)
     return subjects
@@ -204,7 +206,10 @@ def check_row(fid: str, severity: str, body: str, comments: dict[int, dict], sub
         if not ref or ref.startswith("http"):
             continue
         if ref not in subjects:
-            failures.append(f"{fid}: resolution reference not a commit subject on branch: {ref}")
+            failures.append(
+                f"{fid}: resolution reference not a commit subject of the audited pull request, "
+                f"its follow-ups, or the local range: {ref}"
+            )
     return failures
 
 
