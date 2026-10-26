@@ -57,9 +57,16 @@ impl Environment<Stopped> {
     /// Starts the test environment with a fresh cancellation token, so a
     /// stopped environment can be started again.
     ///
+    /// Starting registers the health check API in the environment's
+    /// `registar`, and the `Registar` has no way to remove a registration, so
+    /// `stop()` leaves it there. A restart therefore works only when the
+    /// configuration binds an ephemeral port (`:0`), which gives the restarted
+    /// server a new binding. A fixed port registers the same binding twice.
+    ///
     /// # Panics
     ///
-    /// Will panic if the server cannot be started.
+    /// Will panic if the server cannot be started, including a restart on a
+    /// fixed port whose binding is still registered.
     pub async fn start(self) -> Environment<Running> {
         let cancellation_token = CancellationToken::new();
 
@@ -261,6 +268,25 @@ mod tests {
         assert_eq!(status, reqwest::StatusCode::OK);
 
         stop_within_deadline(restarted).await.expect("the second stop should succeed");
+    }
+
+    #[tokio::test]
+    #[should_panic(expected = "DuplicateBinding")]
+    async fn it_should_not_start_again_on_a_fixed_port_while_the_registar_keeps_the_previous_registration() {
+        // Arrange
+        let fixed_address = {
+            let probe = TcpListener::bind("127.0.0.1:0").unwrap();
+            probe.local_addr().unwrap()
+        };
+        let config = HealthCheckApi {
+            bind_address: fixed_address,
+        };
+        let stopped = stop_within_deadline(start_within_deadline(Unstarted::new(&Arc::new(config), Registar::default())).await)
+            .await
+            .expect("the first stop should succeed");
+
+        // Act: the registar keeps the first run's registration of the same binding, so this start panics.
+        let _restarted = start_within_deadline(stopped).await;
     }
 
     #[tokio::test]
