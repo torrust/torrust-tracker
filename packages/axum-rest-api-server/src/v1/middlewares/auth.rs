@@ -187,10 +187,42 @@ pub fn unknown_auth_data_provided_response() -> Response {
 
 #[cfg(test)]
 mod tests {
+    use std::sync::Arc;
+
+    use axum::body::{Body, to_bytes};
+    use axum::http::header::AUTHORIZATION;
+    use axum::http::{HeaderValue, Request, StatusCode};
+    use axum::routing::get;
+    use axum::{Router, middleware};
     use secrecy::SecretString;
     use torrust_tracker_configuration::v3_0_0::tracker_api::AccessTokens;
+    use tower::ServiceExt;
 
-    use super::authenticate;
+    use super::{State, auth, authenticate};
+
+    #[tokio::test]
+    async fn it_rejects_an_unreadable_authorization_header_even_with_a_valid_token_query() {
+        let state = State {
+            access_tokens: Arc::new(access_tokens()),
+        };
+        let app = Router::new()
+            .route("/", get(|| async { "handler ran" }))
+            .layer(middleware::from_fn_with_state(state, auth));
+        let unreadable_header = HeaderValue::from_bytes(b"Bearer \xff").expect("the bytes are a valid header value");
+        let request = Request::builder()
+            .uri("/?token=api-token-12345")
+            .header(AUTHORIZATION, unreadable_header)
+            .body(Body::empty())
+            .expect("the request is well formed");
+
+        let response = app.oneshot(request).await.expect("the router never fails");
+
+        assert_eq!(response.status(), StatusCode::INTERNAL_SERVER_ERROR);
+        let body = to_bytes(response.into_body(), usize::MAX)
+            .await
+            .expect("the body is readable");
+        assert_eq!(body, r#"Unhandled rejection: Err { reason: "unknown token provided" }"#);
+    }
 
     #[test]
     fn it_authenticates_a_configured_token() {
