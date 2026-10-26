@@ -39,8 +39,9 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-One review was submitted so far: the review of `copilot-pull-request-reviewer` (5642274652) on the first
-head. Its body repeats its single inline thread, F1, so the body adds no row.
+One review was submitted so far: the review of `copilot-pull-request-reviewer` (5642274652) on the head
+whose subject is `docs(issues): [#2645] link the implementation pull request in the spec`. Its body
+repeats its single inline thread, F1, so the body adds no row.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
