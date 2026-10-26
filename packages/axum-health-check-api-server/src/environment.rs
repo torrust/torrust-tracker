@@ -213,7 +213,7 @@ mod tests {
         let binding = environment.bind_address();
 
         // Act
-        let _stopped = stop_within_deadline(environment).await;
+        let _stopped = stop_within_deadline(environment).await.expect("stop() should succeed");
 
         // Assert
         TcpListener::bind(binding).expect("the health check API binding should be free as soon as stop() returns");
