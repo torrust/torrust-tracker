@@ -9,7 +9,7 @@ github-issue: 2645
 spec-path: docs/issues/open/2645-2482-label-optional-and-self-dependency-edges/ISSUE.md
 branch: "2645-2482-label-optional-and-self-dependency-edges"
 related-pr: 2648
-last-updated-utc: "2026-10-25 14:36"
+last-updated-utc: "2026-10-26 07:14"
 semantic-links:
   skill-links:
     - create-issue
@@ -205,8 +205,10 @@ maintainer reviews it in the pull request.
 - Known limits: a feature entry `dep:c` or `c/feature` enables the dependency, and so does a feature
   that lists an enabling feature (a chain such as `default` -> `testing` -> `dep:c`; the search
   stops on cycles). The weak form `c?/feature` does not enable it. The implicit feature Cargo adds
-  for an optional dependency (`c = ["dep:c"]`) takes part in the search but is not shown, so a
-  dependency only that feature enables is labelled `optional`. A label lists every feature that
+  for an optional dependency (`c = ["dep:c"]`, only when no other feature names `dep:c`) takes part
+  in the search but is not shown, so a dependency only that feature enables is labelled `optional`.
+  A feature named like the dependency that enables more, that sits beside another `dep:c`, or that
+  is `default`, is written in the manifest and stays in the label. A label lists every feature that
   enables the dependency, so `optional (default, testing)` is not test-only. The tool does not check
   which features a build enables; the label describes the features table only. The legend lines were
   committed with the tool change rather than with the diagram note.

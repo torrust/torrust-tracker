@@ -70,6 +70,33 @@ fn it_should_label_an_optional_dependency_enabled_by_the_implicit_feature_syntax
 }
 
 #[test]
+fn it_should_keep_an_explicit_feature_named_like_the_dependency_when_it_enables_more_than_the_dependency() {
+    let a = package(
+        "a",
+        &[dep("c", None, true)],
+        &json!({ "c": ["dep:c", "extras"], "extras": [], "testing": ["dep:c"] }),
+    );
+
+    assert_eq!(label_of(&a, "c"), "optional (c, testing)");
+}
+
+#[test]
+fn it_should_keep_an_explicit_feature_named_like_the_dependency_when_another_feature_names_the_dependency() {
+    // Cargo adds no implicit feature when a feature uses `dep:c`, so this `c` is written in the manifest.
+    let a = package("a", &[dep("c", None, true)], &json!({ "c": ["dep:c"], "testing": ["dep:c"] }));
+
+    assert_eq!(label_of(&a, "c"), "optional (c, testing)");
+}
+
+#[test]
+fn it_should_always_keep_the_default_feature_in_the_label() {
+    let renamed = json!({ "name": "c", "kind": null, "optional": true, "rename": "default" });
+    let a = package("a", &[renamed], &json!({ "default": ["dep:default"] }));
+
+    assert_eq!(label_of(&a, "c"), "optional (default)");
+}
+
+#[test]
 fn it_should_label_an_optional_dependency_that_only_its_implicit_feature_enables_as_optional() {
     let a = package("a", &[dep("c", None, true)], &json!({ "c": ["dep:c"], "testing": [] }));
 

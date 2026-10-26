@@ -148,9 +148,22 @@ impl Package {
             enabling.extend(one_step_up);
         }
 
-        // Cargo adds the implicit feature `key = ["dep:key"]` for an optional dependency. It is the
-        // dependency itself, so it takes part in the search above but is not shown.
-        enabling.remove(key);
+        // Cargo adds the implicit feature `key = ["dep:key"]` for an optional dependency that no other
+        // feature names with `dep:`. It is the dependency itself, so it takes part in the search above
+        // but is not shown. A feature of that name that enables more, that exists beside another
+        // `dep:key`, or that is `default`, is written in the manifest and stays in the label.
+        let is_implicit_feature = key != "default"
+            && self
+                .features
+                .get(key)
+                .is_some_and(|items| items.as_slice() == [explicit.as_str()])
+            && !self
+                .features
+                .iter()
+                .any(|(feature, items)| feature != key && items.contains(&explicit));
+        if is_implicit_feature {
+            enabling.remove(key);
+        }
         enabling.into_iter().map(str::to_owned).collect()
     }
 
