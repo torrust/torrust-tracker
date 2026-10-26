@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2606-2278-validate-audit-record-merged-fix-subjects/ISSUE.md
-last-updated-utc: 2026-10-21 11:51
+issue-spec: docs/issues/closed/2606-2278-validate-audit-record-merged-fix-subjects/ISSUE.md
+last-updated-utc: 2026-10-26 08:30
 ---
 
 # Manual Verification Evidence
