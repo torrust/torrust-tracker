@@ -9,7 +9,7 @@ github-issue: 2450
 spec-path: docs/issues/open/2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md
 branch: "2450-migrate-health-check-api-test-environment"
 related-pr: null
-last-updated-utc: "2026-10-25 08:09"
+last-updated-utc: "2026-10-26 07:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -218,6 +218,7 @@ before maintainer review and commit. Sign every commit with GPG.
 - 2026-10-15 19:38 UTC - GitHub Copilot - Corrected the drop-path note after `review-finding:pr-2544-f5`: the HTTP environment never stopped on drop, before or after SI-16, so the note no longer says SI-16 lost the behavior or that the legacy halt sender stops its server on drop. The `DropGuard` requirement and AC7 stand.
 - 2026-10-15 20:33 UTC - GitHub Copilot - `review-finding:pr-2544-f14`: the code answers the open question. The health-check API server spawns the same `graceful_shutdown` task as HTTP, so its legacy drop does not stop the server either (read from source, not run). The drop-path note says so.
 - 2026-10-24 19:34 UTC - GitHub Copilot - Refreshed after sub-EPIC #2410 (SI-22) closed, which rewrote the HTTP and UDP test environments (#2416) after this spec was written. Re-checked against `develop`: the 8 `env.stop()` calls, the 8 `state.binding` reads, and the 5 s drain still hold, and the environment's `start()` spawns only the server. The Related ADRs now name the new ADR that supersedes the cancellation-tree ADR, and the Design and Ownership Review says this environment keeps one token and one `DropGuard` because it owns no listener, so it must not copy the two-token shape of the HTTP and UDP environments. No task, acceptance criterion, or scope change.
+- 2026-10-26 07:16 UTC - GitHub Copilot - T0 baseline and T1 implemented (token start, one `DropGuard`, private `state`, `bind_address()`, joined `stop()` errors) with 8 new tests, mutation-proven in `manual-verification-evidence.md`; the 8 contract reads were moved early so the tree compiles. Stopped for the design review.
 
 ## Acceptance Criteria
 
@@ -254,8 +255,8 @@ The package has no example binary, so there is no signal scenario.
 
 | ID  | Scenario                  | Human-oriented command/steps                                               | Expected Result                                                 | Status | Evidence                                     |
 | --- | ------------------------- | -------------------------------------------------------------------------- | --------------------------------------------------------------- | ------ | -------------------------------------------- |
-| M1  | No legacy stop in the env | Read the final `environment.rs`; list every `server` function it calls.    | Only `start_with_cancellation`; no `signals::Halted` or `signals::Started` channel. | TODO   | `manual-verification-evidence.md` section V1 |
-| M2  | Suite timing              | Run the package tests before and after; record wall time.                 | Comparable time; any slowdown explained.                        | TODO   | `manual-verification-evidence.md` section V2 |
+| M1  | No legacy stop in the env | Read the final `environment.rs`; list every `server` function it calls.    | Only `start_with_cancellation`; no `signals::Halted` or `signals::Started` channel. | TODO   | `manual-verification-evidence.md` section V3 |
+| M2  | Suite timing              | Run the package tests before and after; record wall time.                 | Comparable time; any slowdown explained.                        | TODO   | `manual-verification-evidence.md` section V4 |
 
 Notes:
 
