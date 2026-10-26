@@ -21,3 +21,4 @@ lcov.info
 perf.data*
 repomix-output.xml
 rustc-ice-*.txt
+__pycache__/
