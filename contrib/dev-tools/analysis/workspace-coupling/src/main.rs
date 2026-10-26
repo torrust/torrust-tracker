@@ -25,7 +25,7 @@ use std::process::{Command, ExitCode};
 
 use serde::Serialize;
 use walkdir::WalkDir;
-use workspace_coupling::{Dep, Metadata, Package, resolve_module_name, try_parse_imports_from_source};
+use workspace_coupling::{Dep, EdgeKind, Metadata, Package, resolve_module_name, try_parse_imports_from_source};
 
 const EXIT_RUNTIME_FAILURE: u8 = 1;
 const EXIT_USAGE_ERROR: u8 = 2;
@@ -98,22 +98,6 @@ fn failure(message: &str, detail: String, exit_code: u8) -> ExitCode {
     }
 
     ExitCode::from(exit_code)
-}
-
-fn dep_kind_label(kind: Option<&str>) -> &'static str {
-    match kind {
-        Some("dev") => "dev",
-        Some("build") => "build",
-        _ => "normal",
-    }
-}
-
-fn dep_kind_order(kind: Option<&str>) -> u8 {
-    match kind {
-        Some("dev") => 1,
-        Some("build") => 2,
-        _ => 0,
-    }
 }
 
 struct ScanResult {
@@ -198,8 +182,23 @@ fn write_header(out: &mut String, total: usize, timestamp: &str) {
     .unwrap();
     writeln!(out).unwrap();
     writeln!(out, "- **Normal dep** — required for compilation of the library/binary.").unwrap();
+    writeln!(
+        out,
+        "- **Optional dep** (`optional (FEATURES)`) — a normal dependency that the listed features enable, directly or through other features."
+    )
+    .unwrap();
+    writeln!(
+        out,
+        "  `optional (testing)` is a test-only edge, not a runtime edge; `optional` means no feature other than the dependency's own implicit one enables it."
+    )
+    .unwrap();
     writeln!(out, "- **Dev dep** — required only in tests and benchmarks.").unwrap();
     writeln!(out, "- **Build dep** — required only in `build.rs`.").unwrap();
+    writeln!(
+        out,
+        "- A package's own dev-dependency on itself (used to enable its `testing` feature) is not listed."
+    )
+    .unwrap();
     writeln!(out).unwrap();
     writeln!(
         out,
@@ -249,7 +248,7 @@ fn write_leaves(out: &mut String, meta: &Metadata, ws_ids: &HashSet<&str>, ws_na
         if !ws_ids.contains(pkg.id.as_str()) {
             continue;
         }
-        let ws_dep_count = pkg.dependencies.iter().filter(|d| ws_names.contains(d.name.as_str())).count();
+        let ws_dep_count = pkg.workspace_dependencies(ws_names).len();
         if ws_dep_count == 0 {
             leaf_names.insert(&pkg.name);
         }
@@ -268,8 +267,13 @@ fn write_leaves(out: &mut String, meta: &Metadata, ws_ids: &HashSet<&str>, ws_na
     writeln!(out).unwrap();
 }
 
-fn write_dep_section(out: &mut String, dep: &Dep, dep_package: Option<&Package>, scan_dirs: &[&Path]) -> Result<(), String> {
-    let kind = dep_kind_label(dep.kind.as_deref());
+fn write_dep_section(
+    out: &mut String,
+    dep: &Dep,
+    kind: &EdgeKind,
+    dep_package: Option<&Package>,
+    scan_dirs: &[&Path],
+) -> Result<(), String> {
     writeln!(out, "#### `{}` [{kind}]", dep.name).unwrap();
     writeln!(out).unwrap();
 
@@ -322,29 +326,25 @@ fn write_coupling_details(
         let benches_dir = manifest_dir.join("benches");
         let scan_dirs = [src_dir.as_path(), tests_dir.as_path(), benches_dir.as_path()];
 
-        let mut ws_deps: Vec<&Dep> = pkg
-            .dependencies
-            .iter()
-            .filter(|d| ws_names.contains(d.name.as_str()))
+        let mut ws_deps: Vec<(EdgeKind, &Dep)> = pkg
+            .workspace_dependencies(ws_names)
+            .into_iter()
+            .map(|dep| (pkg.edge_kind(dep), dep))
             .collect();
 
         if ws_deps.is_empty() {
             continue;
         }
 
-        ws_deps.sort_by(|a, b| {
-            dep_kind_order(a.kind.as_deref())
-                .cmp(&dep_kind_order(b.kind.as_deref()))
-                .then(a.name.cmp(&b.name))
-        });
+        ws_deps.sort_by(|(a_kind, a), (b_kind, b)| a_kind.cmp(b_kind).then(a.name.cmp(&b.name)));
 
         writeln!(out, "### `{}`", pkg.name).unwrap();
         writeln!(out).unwrap();
         writeln!(out, "Workspace deps: {}", ws_deps.len()).unwrap();
         writeln!(out).unwrap();
 
-        for dep in ws_deps {
-            write_dep_section(out, dep, packages_by_name.get(dep.name.as_str()).copied(), &scan_dirs)?;
+        for (kind, dep) in &ws_deps {
+            write_dep_section(out, dep, kind, packages_by_name.get(dep.name.as_str()).copied(), &scan_dirs)?;
         }
     }
 
