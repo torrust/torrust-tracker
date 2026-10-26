@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2645-2482-label-optional-and-self-dependency-edges/ISSUE.md
-last-updated-utc: "2026-10-25 14:36"
+last-updated-utc: "2026-10-26 07:17"
 ---
 
 # Manual Verification Evidence
@@ -111,7 +111,12 @@ in the details, the counts and the leaf detection. M1 holds (AC1, AC2).
 #### Second run: the implicit feature syntax
 
 The first run used `testing = ["dep:c"]`. Cargo also accepts `testing = ["y"]` for an optional
-dependency `y`, and then adds the implicit feature `y = ["dep:y"]` to the features table:
+dependency `y`, and then adds the implicit feature `y = ["dep:y"]` to the features table. This holds
+at edition 2024, the edition of every workspace member: the scratch workspace below declared
+`edition = "2024"` and `cargo 1.99.1` (`rustc 1.99.1`) accepted the manifest and printed the
+implicit feature (the edition is also in the `cargo metadata` output; V4 shows it per package).
+A reviewer expected edition 2024 to create no implicit feature; this run shows it still does, so the
+implicit-feature handling is not limited to older editions.
 
 ```text
 $ cargo metadata --no-deps --format-version 1   # scratch workspace of x (optional y, testing = ["y"]) and y

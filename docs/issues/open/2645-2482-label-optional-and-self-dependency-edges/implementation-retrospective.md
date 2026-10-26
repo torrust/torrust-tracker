@@ -44,6 +44,12 @@ showed `optional (testing)` although a default build enables the dependency. The
 feature references, with a stop on cycles. The spec said "enabled only by `testing`" without saying
 what "enabled by" means for a feature that another feature enables.
 
+The fix for that gap hid every feature named like the dependency, not only the one Cargo generates.
+A second review round (Copilot and da2ce7) showed that an explicit `c = ["dep:c", "extras"]` beside
+`testing = ["dep:c"]` then read `optional (testing)`, the test-only label, although `--features c`
+enables the dependency in a normal build. The tool now drops a same-name feature only in the shape
+Cargo generates.
+
 ## Root Cause
 
 The test fixtures were written from the spec's description of the metadata, not from the output of
@@ -56,11 +62,15 @@ dependency. The spec's Background quoted the dependency lines of the ADR evidenc
 1. When a tool starts to read a new part of `cargo metadata`, copy the real JSON for each
    syntax variant into the test fixture (or record it in the spec) before writing the test.
 2. Run the tool on a scratch workspace for each syntax variant the ADR allows, not only the one
-   the evidence used. The rows 3 to 7 that add `testing` features should expect both
-   `testing = ["dep:c"]` and `testing = ["c"]` in manifests, and a `default` feature that
-   includes `testing` must be treated as a runtime edge.
+   the evidence used. Cargo 1.99.1 still accepts both `testing = ["dep:c"]` and `testing = ["c"]`
+   at edition 2024 (the second adds the implicit feature `c = ["dep:c"]`), so the rows 3 to 7 that
+   add `testing` features may meet either, and a `default` feature that includes `testing` must be
+   treated as a runtime edge.
 3. When a spec defines a label by a condition on a graph (here, features enabling features), say
    whether the condition is direct or transitive.
+4. When a tool hides a name because Cargo generates it, write down the exact rule that makes the
+   name generated (here: the feature is exactly `["dep:key"]`, no other feature names `dep:key`) and
+   test the look-alike that the manifest can write.
 
 ## Avoiding Overcorrection
 
