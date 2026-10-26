@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: in-progress
+status: done
 priority: p3
 epic: 2278
 github-issue: 2606
-spec-path: docs/issues/open/2606-2278-validate-audit-record-merged-fix-subjects/ISSUE.md
+spec-path: docs/issues/closed/2606-2278-validate-audit-record-merged-fix-subjects/ISSUE.md
 branch: "2606-validate-audit-record-merged-fix-subjects"
-related-pr: null
-last-updated-utc: "2026-10-24 20:27"
+related-pr: 2641
+last-updated-utc: "2026-10-26 08:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -203,7 +203,7 @@ test run in `test-design-review.md` or the evidence file even after its producti
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Implementation completion review recorded: issue-local retrospective created for material discoveries, or the progress log states why none was needed
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -245,6 +245,10 @@ test run in `test-design-review.md` or the evidence file even after its producti
   T10 matched the expectation that no audit regresses (11 of 157 audits with a `FIXED` row fail
   both before and after, for reasons in their own content). A transient GitHub HTTP 502 seen during
   T10 produced the designed exit 2 with the endpoint named.
+- 2026-10-26 08:30 UTC - GitHub Copilot - PR #2641 merged on 2026-10-25 and issue #2606 closed.
+  Archived this specification to `docs/issues/closed/` and set `status: done` and `related-pr: 2641`.
+  The independent-reviewer checkpoint stays unchecked: the review findings F1 to F6 submitted on
+  PR #2641 are not yet processed (see that pull request).
 
 ## Acceptance Criteria
 
