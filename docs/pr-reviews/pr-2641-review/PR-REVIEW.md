@@ -32,17 +32,17 @@ deliver findings through GitHub and have no repository-artifact obligation.
 Review 5640012066 (maintainer da2ce7, submitted 2026-10-24 21:01 UTC) was submitted before the
 pull request merged on 2026-10-25 06:25 UTC and was still unprocessed at merge, so its findings
 follow the post-merge workflow. The other review, Copilot's review 5639975679, has no actionable
-finding and no row. Every disposition stays `FOLLOW_UP` and every thread `OPEN` until the follow-up
-pull request merges.
+finding and no row. The dispositions were `FOLLOW_UP` and the threads `OPEN` until the follow-up
+pull request merged; the Processing Log records the move to `FIXED`/`RESOLVED`.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
-| F1 | review-finding:pr-2641-f1 | Human | Minor | correctness | ORIGINAL | FOLLOW_UP | OPEN |
-| F2 | review-finding:pr-2641-f2 | Human | Major | maintainability | ORIGINAL | FOLLOW_UP | OPEN |
-| F3 | review-finding:pr-2641-f3 | Human | Minor | testing | ORIGINAL | FOLLOW_UP | OPEN |
-| F4 | review-finding:pr-2641-f4 | Human | Nit | documentation | ORIGINAL | FOLLOW_UP | OPEN |
-| F5 | review-finding:pr-2641-f5 | Human | Nit | documentation | ORIGINAL | FOLLOW_UP | OPEN |
-| F6 | review-finding:pr-2641-f6 | Human | Nit | documentation | ORIGINAL | FOLLOW_UP | OPEN |
+| F1 | review-finding:pr-2641-f1 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F2 | review-finding:pr-2641-f2 | Human | Major | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F3 | review-finding:pr-2641-f3 | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F4 | review-finding:pr-2641-f4 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F5 | review-finding:pr-2641-f5 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F6 | review-finding:pr-2641-f6 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -55,7 +55,7 @@ pull request merges.
 - Concern: Every run now calls `gh` for commit lists, and only `CalledProcessError` was caught, so a missing `gh` raised `FileNotFoundError` (exit 1, the audit-failure code) and a `--comments-file` run was no longer offline.
 - Solution: `valid_subjects` also catches `OSError` and exits 2 naming the endpoint; the `--comments-file` help text, the skill and the spec's Risks line say `gh` is needed for commits. The optional captured commit list was not added.
 - Current-tree verification: `python3 -m unittest discover -s .github/skills/dev/pr-reviews/process-pr-review/scripts` passes 9 tests on the follow-up branch; `test_it_should_exit_with_a_usage_error_when_gh_is_not_installed` was red before the change.
-- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2641#discussion_r4379352574>
+- Resolution reference: fix(pr-reviews): exit 2 when gh is missing and name the three sources in the failure text
 - Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2657>
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2641#discussion_r4379352574>
 
@@ -68,7 +68,7 @@ pull request merges.
 - Concern: `scripts/__pycache__/*.pyc` were committed and no `.gitignore` rule covered them.
 - Solution: Removed both files from the index and added `__pycache__/` to `.gitignore`. The blobs remain in the history of `develop`.
 - Current-tree verification: On the follow-up branch `git ls-files | grep -c '\.pyc$'` prints 0, `git check-ignore -v` matches `.gitignore:24:__pycache__/`, and running the unit tests leaves `git status --short` empty.
-- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2641#discussion_r4379353028>
+- Resolution reference: chore(pr-reviews): untrack Python bytecode and ignore __pycache__
 - Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2657>
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2641#discussion_r4379353028>
 
@@ -81,7 +81,7 @@ pull request merges.
 - Concern: The "no source" test asserted that a literal the test never supplied was absent from the set, so it could not fail, and no test called `check_row`, where rejection happens.
 - Solution: Replaced it with `CheckRowTest`: an exact match passes and three near-misses (other case, prefix, suffix) each yield one `not a commit subject` failure.
 - Current-tree verification: The 9 tests pass on the follow-up branch. I did not mutate `check_row` to watch them fail.
-- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2641#discussion_r4379353391>
+- Resolution reference: test(pr-reviews): pin near-miss rejection in check_row and a missing gh as a usage error
 - Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2657>
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2641#discussion_r4379353391>
 
@@ -94,7 +94,7 @@ pull request merges.
 - Concern: The `check_row` failure text did not match the three accepted sources named by the skill.
 - Solution: The text now reads `resolution reference not a commit subject of the audited pull request, its follow-ups, or the local range: <ref>`, keeping "not a commit subject".
 - Current-tree verification: `grep -n "not a commit subject" validate-audit-record.py` shows the new text on the follow-up branch; `CheckRowTest` asserts on "not a commit subject".
-- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2641#discussion_r4379353990>
+- Resolution reference: fix(pr-reviews): exit 2 when gh is missing and name the three sources in the failure text
 - Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2657>
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2641#discussion_r4379353990>
 
@@ -107,7 +107,7 @@ pull request merges.
 - Concern: The completion review, the recheck status, the "fails on the current code" sentence, the evidence file's `last-updated-utc` and `related-pr` still described the state before completion.
 - Solution: Corrected each in the archived spec and evidence file; `related-pr` and the first `last-updated-utc` were already set by the archive pull request.
 - Current-tree verification: Read the changed lines under `docs/issues/closed/2606-2278-validate-audit-record-merged-fix-subjects/` on the follow-up branch.
-- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2641#discussion_r4379354473>
+- Resolution reference: docs(issues): [#2606] correct stale records and the audit count in the closed spec
 - Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2657>
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2641#discussion_r4379354473>
 
@@ -120,7 +120,7 @@ pull request merges.
 - Concern: The spec and evidence called the 157 files that contain the word `FIXED` "audits with a `FIXED` row".
 - Solution: Reworded both to say what was counted and cited the reviewer's 148 files with a `FIXED` row. I did not recount at the reviewer's head; a rough recount on today's `develop` gave different numbers (151 and 163), so no figure of mine was substituted.
 - Current-tree verification: Read the changed sentences in the archived spec and evidence file on the follow-up branch.
-- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2641#discussion_r4379354878>
+- Resolution reference: docs(issues): [#2606] correct stale records and the audit count in the closed spec
 - Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2657>
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2641#discussion_r4379354878>
 
@@ -128,6 +128,8 @@ pull request merges.
 
 - 2026-10-26 15:44 UTC - Read-only triage: the review was submitted before the merge and unprocessed at merge. The maintainer approved the follow-up in chat at 15:43 UTC; the durable approval comment was created at 15:44 UTC.
 - 2026-10-26 15:51 UTC - Opened the follow-up pull request and replied on the six threads with disposition `FOLLOW_UP`.
+- 2026-10-26 17:59 UTC - The follow-up pull request #2657 merged as merge commit `54eabcbf4`.
+- 2026-10-26 18:03 UTC - Posted the consolidated response <https://github.com/torrust/torrust-tracker/pull/2641#issuecomment-6423596161>, resolved the six threads, and moved all six rows to `FIXED`/`RESOLVED`. The Resolution references are now the commit subjects; the follow-up pull request stays in each Follow-up PR URL and the earlier thread reply in each Reply URL.
 
 ## Completion Rules
 
