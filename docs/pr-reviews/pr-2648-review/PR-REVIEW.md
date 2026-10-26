@@ -39,7 +39,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Three reviews were submitted so far. The review of `copilot-pull-request-reviewer` (5642274652) read the head
+Five reviews were submitted so far. The review of `copilot-pull-request-reviewer` (5642274652) read the head
 whose subject is `docs(issues): [#2645] link the implementation pull request in the spec`; its body
 repeats its single inline thread, F1, so the body adds no row. A second review of the same account
 (5643781107) and the review of `da2ce7` (5644687426, verdict `CHANGES_REQUESTED`) read the head whose
@@ -48,7 +48,14 @@ The body of the second review repeats its thread, F2. The body of the `da2ce7` r
 inline threads and adds a long account of what was checked and what passed, which holds no further
 actionable assertion, so it adds no row. `da2ce7` numbered his threads F2 to F6, which collide with this
 record's numbering, so the table maps them: his F2 is F3 here, and so on, and each detail names the
-reviewer's own ID.
+reviewer's own ID. Two further reviews followed on the head whose subject is
+`docs(pr-reviews): [#2645] record the second review round of PR 2648`: the review of
+`copilot-pull-request-reviewer` (5648804588), which recommends approval with no open issue and adds no row,
+and the review of `da2ce7` (5650797924, verdict `APPROVED`, with an `ACK` comment of the same head,
+<https://github.com/torrust/torrust-tracker/pull/2648#issuecomment-6414098722>). The latter carries two inline
+nit threads, which keep his IDs F8 and F9 here (no collision); its body repeats them and reports the checks, so
+the body adds no row. The maintainer authorized pushing after that `ACK` to fix the two nits, through the
+review session, so this record is not a GitHub artifact for that authorization.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -59,6 +66,8 @@ reviewer's own ID.
 | F5 | review-finding:pr-2648-f5 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F6 | review-finding:pr-2648-f6 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F7 | review-finding:pr-2648-f7 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F8 | review-finding:pr-2648-f8 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F9 | review-finding:pr-2648-f9 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -197,6 +206,41 @@ reviewer's own ID.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2648#discussion_r4374812424>
 
+### F8 - Append an event-time correction for the resolution claim
+
+- PR number: 2648
+- Source review ID: 5650797924
+- Reviewer finding ID: F8
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2648#discussion_r4376355235>
+- Concern: the 07:22 UTC Processing Log entry says the threads were resolved after the record was committed and
+  pushed, but the commit carrying it is dated 07:23:00 UTC, so that sequence cannot belong to 07:22. The
+  reviewer asked for an appended correction, using a measured resolution time if available, otherwise stating
+  the final state without claiming the chronology.
+- Solution: the finding was right. A correction entry was appended; the earlier entry is kept. No resolution
+  time was measured, so the correction says that and gives the observed final state.
+- Current-tree verification: the Processing Log of this record holds the 07:22 entry unchanged and the
+  correction entry after it.
+- Resolution reference: docs(pr-reviews): [#2645] correct the chronology of the resolution claim in the audit log
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2648#discussion_r4377291288>
+
+### F9 - Restrict the pre-commit explanation to the runs it fits
+
+- PR number: 2648
+- Source review ID: 5650797924
+- Reviewer finding ID: F9
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2648#discussion_r4376355244>
+- Concern: the evidence said the runs of 2026-10-25 happened before the commits of the changes they tested, but
+  V1 ran at 08:10:01 UTC, after its implementation commit (08:08:46 UTC); only the second and third runs
+  precede their fixes.
+- Solution: the finding was right (commit times read from `git log`). The note now covers only the second and
+  third runs and says that V1 ran after its commit.
+- Current-tree verification: `git log` shows the feature commit at 2026-10-25T08:08:46Z; the environment
+  section of the evidence carries the restricted note.
+- Resolution reference: docs(issues): [#2645] restrict the working-tree note to the runs that preceded their commits
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2648#discussion_r4377291671>
+
 ## Processing Log
 
 - 2026-10-25 14:36 UTC - The review of `copilot-pull-request-reviewer` arrived with one inline thread, F1. It was
@@ -213,6 +257,11 @@ reviewer's own ID.
   cannot belong to 07:22. The record was committed at 07:23:00 UTC, then pushed, and the six threads were resolved
   after the push; the times of the pushes and of the resolutions were not measured. The final resolved state of
   the threads was observed afterwards, in a refresh of the thread data, without a measured event time.
+- 2026-10-26 12:40 UTC - The `ACK` of `da2ce7` on the head dated 07:23:00 UTC arrived with two non-blocking nit
+  threads, F8 and F9, and an approval review of Copilot with no finding. Both nits were checked against the tree
+  and `git log` and confirmed. The maintainer authorized pushing after the `ACK`. Fixed each in its own signed
+  commit and pushed; replied on both threads after the push. The threads are resolved after this record is
+  committed and pushed, and da2ce7 is asked to review again, since the `ACK` covered the previous head.
 
 ## Completion Rules
 
