@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md
-last-updated-utc: "2026-10-26 07:30"
+last-updated-utc: "2026-10-26 07:32"
 ---
 
 # Manual Verification Evidence
@@ -77,3 +77,40 @@ The integration suite time is identical. The baseline total included a 31 s
 cold build, so it is not comparable with the warm total. The lib tests rose from
 3 to 11 because of the added `environment::tests`; the existing tests are not
 slower.
+
+## V5: Prose-first Arrange-Act-Assert comparison for the eight new tests
+
+Each test's `// Arrange`, `// Act` and `// Assert` sections were written as
+prose first, then compared with the code. Result per test:
+
+- Stop without a failure: Arrange starts the environment; Act is
+  `stop_within_deadline(environment)`; Assert is that the result is `Ok`. The
+  deadline wrapper is irreducible, because a hung `stop()` must fail the test
+  instead of hanging it. It is named for what it does and is the visible Act.
+- Release the binding when stopped, and restart after stop: same wrapper, same
+  reasoning. The binding assertion rebinds the released address directly.
+- Release the binding when dropped: Act is `drop(environment)`; the assertion
+  polls a bounded rebind (spec T1 list, drop path of #2471).
+- Join the drain controller before reporting a server failure, report a server
+  error and a drain timeout together, the error names each failing task, a
+  drain timeout is reported even when both tasks join: Arrange builds the
+  failing task handles, Act calls `join_owned_tasks` (or `stop()`), Assert
+  reads the returned error text. No assertion is derived through production
+  code.
+
+No prose had to be kept beyond the three section markers.
+
+## V6: Automatic checks after the last production change
+
+The last production change is the commit
+`refactor(axum-health-check-api-server): [#2450] migrate the health-check API test environment to the token lifecycle`.
+Run on the tree after it (rustc 1.99.1):
+
+| Command                                                                                          | Result                                      |
+| ------------------------------------------------------------------------------------------------ | ------------------------------------------- |
+| `cargo test -p torrust-tracker-axum-health-check-api-server`                                     | 11 lib passed (1.00 s), 8 integration passed (3.04 s) |
+| `cargo clippy -p torrust-tracker-axum-health-check-api-server --all-targets -- -D warnings`      | no warnings                                 |
+| `cargo check --workspace --all-targets --all-features`                                           | no errors                                   |
+| `cargo +nightly fmt --check`                                                                     | clean                                       |
+
+`linter all` and the pre-commit hook passed on each commit.
