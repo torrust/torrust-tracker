@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2653-rest-api-auth-ignores-unreadable-authorization-header/ISSUE.md
-last-updated-utc: "2026-10-26 13:20"
+issue-spec: docs/issues/closed/2653-rest-api-auth-ignores-unreadable-authorization-header/ISSUE.md
+last-updated-utc: "2026-10-26 17:08"
 ---
 
 # Manual Verification Evidence
