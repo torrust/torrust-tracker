@@ -8,8 +8,8 @@ epic: null
 github-issue: 2653
 spec-path: docs/issues/open/2653-rest-api-auth-ignores-unreadable-authorization-header/ISSUE.md
 branch: "2653-rest-api-auth-ignores-unreadable-authorization-header-spec"
-related-pr: null
-last-updated-utc: "2026-10-26 08:35"
+related-pr: 2654
+last-updated-utc: "2026-10-26 12:42"
 semantic-links:
   skill-links:
     - create-issue
@@ -18,6 +18,7 @@ semantic-links:
     - .github/skills/dev/debugging/fix-bug/SKILL.md
     - .github/skills/dev/planning/create-issue/SKILL.md
     - docs/issues/open/2637-1347-add-tests-axum-rest-api-server/ISSUE.md
+    - docs/issues/open/2653-rest-api-auth-ignores-unreadable-authorization-header/manual-verification-evidence.md
     - docs/security/analysis/reports/2026-09-04_rest-api-token-timing.md
     - packages/axum-rest-api-server/src/v1/middlewares/auth.rs
 ---
@@ -44,7 +45,8 @@ present. `extract_bearer_token_from_header` reads the header with
 parameter.
 
 Observed behavior (a throwaway in-process test of the middleware with token `tok`, reverted; not a
-maintained test):
+maintained test). The same behavior was then reproduced on the real tracker; see V1 in
+`manual-verification-evidence.md`:
 
 | Request | Result |
 | --- | --- |
@@ -104,7 +106,9 @@ Follow `.github/skills/dev/debugging/fix-bug/SKILL.md`:
 2. **Reproduction on the real artifact.** Start an isolated tracker (see the `run-tracker-locally` skill) and
    run `curl -H $'Authorization: Bearer \xff' 'http://127.0.0.1:1212/api/v1/stats?token=<valid>'`, then the same
    request with `Authorization: Basic x`. Record both in the issue-local `manual-verification-evidence.md`. If the
-   real artifact cannot be used, record the attempted commands and the blocking constraint.
+   real artifact cannot be used, record the attempted commands and the blocking constraint. This was done while
+   drafting, as the skill requires before review: V1 of `manual-verification-evidence.md` records outcome
+   **Reproduced** (an unreadable header with a valid `?token` answered `200`).
 3. **Regression-test boundary.** A unit test of the middleware through a minimal router.
 4. **Red evidence**, **fix**, **green evidence**, and a **like-for-like recheck** with the same `curl` commands.
 
@@ -123,7 +127,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
 | T1 | DONE | Maintainer decides the intended behavior | Reject; see the Decision section. |
-| T2 | TODO | Reproduce on the real tracker | `manual-verification-evidence.md` V1. |
+| T2 | DONE | Reproduce on the real tracker | `manual-verification-evidence.md` V1: Reproduced. |
 | T3 | TODO | Add the failing regression test (red) | Test fails for the current behavior (`200` instead of `500 unknown token provided`). |
 | T4 | TODO | Fix `extract_bearer_token_from_header` and the documentation | Test passes (green). |
 | T5 | TODO | Final like-for-like recheck and verification | `manual-verification-evidence.md` V2; `linter all`; package tests. |
@@ -160,6 +164,9 @@ Use Conventional Commit messages (`fix(axum-rest-api-server): ...`) and sign eve
   exists). The maintainer decided to reject an unreadable header, with no parent EPIC, priority `p3`, and a
   spec-only PR first. Recorded the rationale: the `token` query parameter is legacy and planned for removal.
 - 2026-10-26 08:35 UTC - GitHub Copilot - Created GitHub issue #2653 and moved the spec to `docs/issues/open/`.
+- 2026-10-26 12:42 UTC - GitHub Copilot - Reproduced the bug on the real tracker (outcome **Reproduced**) and
+  recorded it in `manual-verification-evidence.md` V1, in response to the pull-request review finding F1 of #2654.
+  T2 and M1 are done.
 
 ## Acceptance Criteria
 
@@ -182,7 +189,7 @@ Use Conventional Commit messages (`fix(axum-rest-api-server): ...`) and sign eve
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | Reproduce on the real tracker | Start an isolated tracker; `curl -H $'Authorization: Bearer \xff' 'http://127.0.0.1:1212/api/v1/stats?token=<valid>'` and with `Authorization: Basic x`. | Before the fix: `200` for the unreadable header, `500` for the other scheme. | TODO | `manual-verification-evidence.md` V1 |
+| M1 | Reproduce on the real tracker | Start an isolated tracker; `curl -H $'Authorization: Bearer \xff' 'http://127.0.0.1:1212/api/v1/stats?token=<valid>'` and with `Authorization: Basic x`. | Before the fix: `200` for the unreadable header, `500` for the other scheme. | DONE | `manual-verification-evidence.md` V1 |
 | M2 | Like-for-like recheck | Repeat M1 after the fix. | The decided behavior. | TODO | `manual-verification-evidence.md` V2 |
 
 ### Disposable Verification Scripts
