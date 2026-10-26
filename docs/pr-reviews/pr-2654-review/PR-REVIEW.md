@@ -44,7 +44,7 @@ and had submitted no review on this pull request when this round was processed.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
-| F1 | review-finding:pr-2654-f1 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | OPEN |
+| F1 | review-finding:pr-2654-f1 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -66,6 +66,7 @@ and had submitted no review on this pull request when this round was processed.
 - 2026-10-26 08:42 UTC - Copilot review `5649374266` submitted with one inline finding. The maintainer da2ce7 had submitted no review on this pull request.
 - 2026-10-26 12:43 UTC - Reproduced the bug on the real tracker and committed the evidence as F1's fix; pushed it to the branch.
 - 2026-10-26 12:45 UTC - Replied to the F1 thread (reply created 12:45:58 UTC).
+- 2026-10-26 12:49 UTC - Validated the audit (`validate-audit-record.py` exited 0), committed and pushed it, then resolved the F1 thread; the resolve mutation returned `isResolved: true`.
 
 ## Completion Rules
 
