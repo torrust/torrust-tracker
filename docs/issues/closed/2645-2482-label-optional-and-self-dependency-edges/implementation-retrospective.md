@@ -3,8 +3,8 @@ semantic-links:
   skill-links:
     - write-markdown-docs
   related-artifacts:
-    - docs/issues/open/2645-2482-label-optional-and-self-dependency-edges/ISSUE.md
-    - docs/issues/open/2645-2482-label-optional-and-self-dependency-edges/manual-verification-evidence.md
+    - docs/issues/closed/2645-2482-label-optional-and-self-dependency-edges/ISSUE.md
+    - docs/issues/closed/2645-2482-label-optional-and-self-dependency-edges/manual-verification-evidence.md
     - docs/adrs/20261021190318_share_workspace_test_support_through_testing_features.md
 ---
 

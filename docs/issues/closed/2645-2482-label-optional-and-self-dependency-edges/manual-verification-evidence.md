@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2645-2482-label-optional-and-self-dependency-edges/ISSUE.md
-last-updated-utc: "2026-10-26 12:37"
+issue-spec: docs/issues/closed/2645-2482-label-optional-and-self-dependency-edges/ISSUE.md
+last-updated-utc: "2026-10-26 17:34"
 ---
 
 # Manual Verification Evidence
