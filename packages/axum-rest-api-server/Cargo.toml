@@ -56,5 +56,6 @@ url = "2"
 [dev-dependencies]
 torrust-tracker-rest-api-client = { version = "0.1.0", path = "../rest-api-client" }
 torrust-tracker-test-helpers = { version = "3.0.0", path = "../test-helpers" }
+tower = { version = "0", features = [ "util" ] }
 url = { version = "2", features = [ "serde" ] }
 uuid = { version = "1", features = [ "v4" ] }
