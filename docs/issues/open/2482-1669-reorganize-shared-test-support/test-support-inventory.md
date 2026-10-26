@@ -2,7 +2,7 @@
 doc-type: research-report
 parent-issue: 2482
 status: completed
-last-updated-utc: 2026-10-25
+last-updated-utc: 2026-10-26
 semantic-links:
   related-artifacts:
     - docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md
