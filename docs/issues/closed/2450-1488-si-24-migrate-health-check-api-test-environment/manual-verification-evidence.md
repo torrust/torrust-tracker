@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md
-last-updated-utc: "2026-10-26 16:31"
+issue-spec: docs/issues/closed/2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md
+last-updated-utc: "2026-10-26 19:50"
 ---
 
 # Manual Verification Evidence

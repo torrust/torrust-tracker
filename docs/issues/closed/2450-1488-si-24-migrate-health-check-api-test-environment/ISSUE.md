@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: done
 priority: p2
 epic: 1488
 github-issue: 2450
-spec-path: docs/issues/open/2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md
+spec-path: docs/issues/closed/2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md
 branch: "2450-migrate-health-check-api-test-environment"
 related-pr: 2652
-last-updated-utc: "2026-10-26 16:31"
+last-updated-utc: "2026-10-26 19:50"
 semantic-links:
   skill-links:
     - create-issue
@@ -186,8 +186,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T1  | DONE   | Migrate `Environment` start/stop    | D1-D5, with the T1 tests below, each mutation-proven.                               |
 | T2  | DONE   | Migrate the field reads             | Contract tests use `bind_address()`.                                                |
 | T3  | DONE   | Documentation                       | Task inventory records the migrated health-check API environment.                  |
-| T4  | IN_PROGRESS | Verification and completion review  | Automatic checks, manual scenario, AC review, pre-push checks, independent review. |
-| T5  | IN_PROGRESS | Review round on #2652               | `stop()` deregisters (D6), the F3 correction, the audit; a new independent review on the final tree. |
+| T4  | DONE        | Verification and completion review  | Automatic checks, manual scenario, AC review, pre-push checks, independent review. |
+| T5  | DONE        | Review round on #2652               | `stop()` deregisters (D6), the F3 correction, the audit; a new independent review on the final tree. |
 
 T1 tests (use the `write-unit-test` skill, every wait bounded):
 
@@ -230,7 +230,7 @@ before maintainer review and commit. Sign every commit with GPG.
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md`
 - [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -246,6 +246,7 @@ before maintainer review and commit. Sign every commit with GPG.
 - 2026-10-26 12:42 UTC - GitHub Copilot - Copilot's review of #2652 (`review-finding:pr-2652-f1`) found that a fixed-port stop-then-start panics, because the token-aware start registers the service and the `Registar` cannot remove it. This corrects the 07:38 entry: the discovery is material, so `implementation-retrospective.md` is added. The maintainer chose to document and pin the limitation and file a follow-up; recorded in V7, with V6 re-run after the new last production change. The acceptance criteria stay TODO.
 - 2026-10-26 16:24 UTC - GitHub Copilot - Review round on #2652 (`review-finding:pr-2652-f1`, `-f2`, `-f3`). This reverses the 12:42 UTC decision to document the fixed-port limitation: da2ce7 re-raised the finding as a Major (`-f2`) and asked for the fix, and measuring the cost showed a small additive registry method was enough. The maintainer chose to fix it in this PR (route R1) with `Registar::deregister`. Opened torrust/torrust-server-lib#2 at 16:04 UTC (CI green, merged 16:19 UTC), published `torrust-server-lib` 0.4.0, bumped it here, and made `stop()` deregister its own binding (D6, AC8), also when a task failed, with a green fixed-port restart test replacing the `should_panic` pin. The earlier independent review entry is corrected in `agent-review-reports.md` (`-f3`). V6 and V7 and the retrospective are rewritten to the final state. A new independent review on the final tree and the audit follow. The acceptance criteria stay TODO.
 - 2026-10-26 16:31 UTC - GitHub Copilot - A new independent Task Reviewer ran on the final tree and returned REVIEW FAILED for one documentation blocker (V5 lacked the prose-first comparison of the three tests added in this round) and six low findings, with no production defect; recorded in `agent-review-reports.md`. Fixed: V5 now covers the eleven environment tests, the production call-site count is corrected from eight to seven, V4 is labelled as measured at T1, `related-pr` is set, and the dropped-`stop()` risk is stated. The acceptance criteria stay TODO.
+- 2026-10-26 19:50 UTC - GitHub Copilot - PR #2652 merged on 2026-10-26 at 19:34 UTC by the maintainer, and #2450 is closed. The maintainer merged without waiting for the re-requested review of da2ce7, whose earlier findings F2 and F3 were fixed and their threads resolved. Archived this spec to `docs/issues/closed/`: `status: done`, `spec-path` and `issue-spec` updated, T4 and T5 marked DONE, the roadmap row 17 of EPIC #1488 marked Done, and every live link to the old `docs/issues/open/` path repaired. The acceptance criteria and the checkpoints for AC review, reviewer validation and committer verification stay unticked: the maintainer has not told the author to tick them.
 
 ## Acceptance Criteria
 
