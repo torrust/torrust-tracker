@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md
-last-updated-utc: "2026-10-26 16:23"
+last-updated-utc: "2026-10-26 16:31"
 ---
 
 # Manual Verification Evidence
@@ -66,7 +66,10 @@ Restart address (read from source, not run): the legacy `stop()` also returned
 the configured `bind_to`, so a restart on a `:0` configuration binds a fresh
 ephemeral port both before and after this change. The behaviour is unchanged.
 
-## V4: Suite timing (spec M2)
+## V4: Suite timing (spec M2), measured at the T1 tree
+
+Measured once, on the tree after T1 (11 lib tests). Not re-run on the final tree, which
+has 14 lib tests; the integration suite is unchanged.
 
 Toolchain: rustc 1.99.1 (58cf8f9c3 2026-10-13), warm build.
 
@@ -80,10 +83,15 @@ cold build, so it is not comparable with the warm total. The lib tests rose from
 3 to 11 because of the added `environment::tests`; the existing tests are not
 slower.
 
-## V5: Prose-first Arrange-Act-Assert comparison for the eight new tests
+## V5: Prose-first Arrange-Act-Assert comparison for the eleven environment tests
 
 Each test's `// Arrange`, `// Act` and `// Assert` sections were written as
-prose first, then compared with the code. Result per test:
+prose first, then compared with the code. The first eight tests were compared
+at T1. The last three were added after the review of #2652 and had no recorded
+comparison; the independent review asked for one (finding F1 of the final Task
+Reviewer entry in `agent-review-reports.md`), so their prose was written afterwards
+from each test's purpose and then compared with the committed code. Result
+per test:
 
 - Stop without a failure: Arrange starts the environment; Act is
   `stop_within_deadline(environment)`; Assert is that the result is `Ok`. The
@@ -99,6 +107,33 @@ prose first, then compared with the code. Result per test:
   failing task handles, Act calls `join_owned_tasks` (or `stop()`), Assert
   reads the returned error text. No assertion is derived through production
   code.
+- Start again on a fixed port: prose is "start an environment on a free
+  nonzero address, stop it, start it again; it listens on the same address and
+  answers 200". The code agrees: Arrange picks the address by binding `:0` and
+  dropping the listener (the only way to get a free nonzero port), then starts
+  and stops; Act is `start_within_deadline(stopped)`; Assert compares
+  `bind_address()` with the chosen address and reads the HTTP status. The
+  expected address and status are literals of the scenario, not derived from
+  production code. The deadline wrapper is irreducible, as above.
+- Remove only its own registration when stopped: prose is "a registry already
+  holds another owner's service; start an environment on it; stop it; only the
+  other owner's service remains". The code agrees: Arrange registers a UDP
+  service and starts the environment; Act is `stop_within_deadline(environment)`;
+  Assert compares the remaining bindings with the other owner's binding. The
+  `assert_eq!(len, 2)` between Arrange and Act is a precondition so the test
+  cannot pass with an environment that never registered.
+- Remove its registration even when stopped with a failed task: prose is "an
+  environment whose server task panicked and whose registration is in the
+  registry; stop it; stop reports an error, and the registry is empty". The
+  code agrees: Arrange builds `Running` by struct literal with a panicking
+  server task (a real server cannot be made to fail on demand) and registers the
+  same binding; Act is `stop_within_deadline(environment)`; Assert reads
+  `result.is_err()` and `registar.services()`.
+- Release the binding when stopped (changed in
+  `test(axum-health-check-api-server): [#2450] assert the stop result in the binding-release test`):
+  Act is `stop_within_deadline(environment).await.expect("stop() should
+  succeed")`, so a failing stop fails the test with its own message before the
+  rebind assertion.
 
 No prose had to be kept beyond the three section markers.
 
@@ -119,7 +154,7 @@ the commands below were run again after this one. Toolchain: rustc 1.99.1, with
 | `cargo clippy -p torrust-tracker-axum-health-check-api-server --all-targets -- -D warnings` | no warnings                                           |
 | `cargo check --workspace --all-targets --all-features`                                      | no errors                                             |
 | `cargo +nightly fmt --check`                                                                | clean                                                 |
-| `linter all`                                                                                | exit 0 (16:23 UTC)                              |
+| `linter all`                                                                                | exit 0 (16:31 UTC)                              |
 
 The pre-commit hook passed on each commit.
 
@@ -152,8 +187,9 @@ Final decision (the maintainer chose it): add an additive
 tracker, and make `stop()` remove the environment's own binding. Registry
 keyed by binding only: it removes only the binding the environment registered,
 and keeps the services of other owners. A receipt-returning `register` was
-rejected as a breaking change to about eight production call sites in four
-packages (counted from `grep -rn "\.register("` over `src` and `packages/*/src`).
+rejected as a breaking change to seven production call sites in four
+packages (counted with `grep -rn "\.register(" --include=*.rs src packages/*/src`, excluding
+each file's `#[cfg(test)]` module; an earlier count of eight in this record was wrong).
 
 Tests (in `environment::tests`), red before the change and green after:
 

@@ -74,7 +74,7 @@ its size was measured: counting the `register` call sites and reading
 ## Avoiding Overcorrection
 
 The evidence does not justify the receipt-returning `register` (a breaking
-change to about eight production call sites for no present need), shutdown-time
+change to seven production call sites for no present need), shutdown-time
 deregistration for real services (the maintainer decided shutdown stays decoupled
 from registration for now), or a rule that every test environment must support a
 restart after a bare drop.

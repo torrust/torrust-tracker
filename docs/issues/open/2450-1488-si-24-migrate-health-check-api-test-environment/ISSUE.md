@@ -8,8 +8,8 @@ epic: 1488
 github-issue: 2450
 spec-path: docs/issues/open/2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md
 branch: "2450-migrate-health-check-api-test-environment"
-related-pr: null
-last-updated-utc: "2026-10-26 16:23"
+related-pr: 2652
+last-updated-utc: "2026-10-26 16:31"
 semantic-links:
   skill-links:
     - create-issue
@@ -245,6 +245,7 @@ before maintainer review and commit. Sign every commit with GPG.
 - 2026-10-26 07:38 UTC - GitHub Copilot - Independent Task Reviewer passed with five non-blocking findings (F1-F5), all resolved and recorded in `agent-review-reports.md`. No retrospective: no discovery changed the design or the spec; the mutation that did not compile is explained in V2. Acceptance criteria stay TODO until the maintainer says to tick them.
 - 2026-10-26 12:42 UTC - GitHub Copilot - Copilot's review of #2652 (`review-finding:pr-2652-f1`) found that a fixed-port stop-then-start panics, because the token-aware start registers the service and the `Registar` cannot remove it. This corrects the 07:38 entry: the discovery is material, so `implementation-retrospective.md` is added. The maintainer chose to document and pin the limitation and file a follow-up; recorded in V7, with V6 re-run after the new last production change. The acceptance criteria stay TODO.
 - 2026-10-26 16:24 UTC - GitHub Copilot - Review round on #2652 (`review-finding:pr-2652-f1`, `-f2`, `-f3`). This reverses the 12:42 UTC decision to document the fixed-port limitation: da2ce7 re-raised the finding as a Major (`-f2`) and asked for the fix, and measuring the cost showed a small additive registry method was enough. The maintainer chose to fix it in this PR (route R1) with `Registar::deregister`. Opened torrust/torrust-server-lib#2 at 16:04 UTC (CI green, merged 16:19 UTC), published `torrust-server-lib` 0.4.0, bumped it here, and made `stop()` deregister its own binding (D6, AC8), also when a task failed, with a green fixed-port restart test replacing the `should_panic` pin. The earlier independent review entry is corrected in `agent-review-reports.md` (`-f3`). V6 and V7 and the retrospective are rewritten to the final state. A new independent review on the final tree and the audit follow. The acceptance criteria stay TODO.
+- 2026-10-26 16:31 UTC - GitHub Copilot - A new independent Task Reviewer ran on the final tree and returned REVIEW FAILED for one documentation blocker (V5 lacked the prose-first comparison of the three tests added in this round) and six low findings, with no production defect; recorded in `agent-review-reports.md`. Fixed: V5 now covers the eleven environment tests, the production call-site count is corrected from eight to seven, V4 is labelled as measured at T1, `related-pr` is set, and the dropped-`stop()` risk is stated. The acceptance criteria stay TODO.
 
 ## Acceptance Criteria
 
@@ -327,6 +328,9 @@ Notes:
   `stop()` releases the binding but cannot await the registry lock, so the
   entry stays in the `registar`. A fixed-port restart after a bare drop still
   fails; only `stop()` is restart-safe. Callers that restart must call `stop()`.
+  The same holds if the `stop()` future is dropped after it cancelled the token
+  and before it deregistered, for example by a caller's timeout (read from
+  source, not run).
 - **`deregister` removes by binding.** The registry is keyed by binding only,
   so `Registar::deregister` removes whichever registration holds it. The
   environment passes only the binding it registered.
