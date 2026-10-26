@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: done
 priority: p2
 epic: 2482
 github-issue: 2645
-spec-path: docs/issues/open/2645-2482-label-optional-and-self-dependency-edges/ISSUE.md
+spec-path: docs/issues/closed/2645-2482-label-optional-and-self-dependency-edges/ISSUE.md
 branch: "2645-2482-label-optional-and-self-dependency-edges"
 related-pr: 2648
-last-updated-utc: "2026-10-26 12:40"
+last-updated-utc: "2026-10-26 17:34"
 semantic-links:
   skill-links:
     - create-issue
@@ -134,7 +134,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -145,6 +145,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-10-25 14:36 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 8) - Opened PR #2648. Its Copilot review found that the tool ignored feature chains (a `default` feature that includes `testing`); fixed with five more tests, and the completion review, evidence and retrospective now describe the transitive search (audit: `docs/pr-reviews/pr-2648-review/PR-REVIEW.md`).
 - 2026-10-26 07:22 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 8) - Second review round on PR #2648 (Copilot and da2ce7): an explicit feature named like the dependency was hidden from the label, so it could read `optional (testing)`; fixed with an exact-shape guard and three tests, the legend wording, the evidence (edition, tree and time of each run, a clean re-run) and the audit wording were corrected. 43 tests pass.
 - 2026-10-26 12:40 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 8) - da2ce7 approved PR #2648 with two chronology nits (the audit log and the evidence's working-tree note); the maintainer authorized a push after the ACK, both nits were fixed and the audit records them (F8, F9).
+- 2026-10-26 17:34 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 8) - PR #2648 merged on 2026-10-26 (merge commit `f4b221095`) and #2645 is closed. Archived the spec to `docs/issues/closed/` at the maintainer's request: `status: done`, `spec-path` and the supplementary files' paths updated, live links in the #2482 EPIC and inventory, the 2026-10-06 coupling report and the PR 2648 audit repaired. The checkpoint that names the `open/` path of the drafted spec keeps it, as it recorded the path of its time.
 
 ## Acceptance Criteria
 
