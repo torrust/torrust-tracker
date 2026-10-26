@@ -18,16 +18,17 @@ Follow the shared [guidance](README.md). This plan covers only
 
 ## Current State
 
-- **Unit-only coverage:** 27 / 83 lines (32.53%), 51 / 132 regions, 6 / 14 functions
-  ([coverage evidence](../coverage-evidence.md), `abce11ec8`; the package and its collaborators are
-  unchanged on `develop` at the start of S1 apart from a `Cargo.lock` patch bump).
-- **Existing tests:** three unit tests of `authenticate`, the constant-time comparison. The nine
+- **Unit-only coverage:** 71 / 103 lines (68.93%), 124 / 179 regions, 13 / 17 functions
+  ([coverage evidence](../coverage-evidence.md#re-measurement-before-slice-s1), `0b4b2d0d3`). It was 27 / 83
+  before #2653, which rewrote `extract_bearer_token_from_header` and added a middleware test.
+- **Existing tests:** four unit tests: three of `authenticate`, the constant-time comparison, and the one added
+  by #2653 for an unreadable `Authorization` header sent with a valid `token` query. The nine
   integration tests in `tests/server/v1/contract/authentication.rs` cover the middleware through a
   real server and are retained.
 - **Module-owned decisions:** which token source wins (header over query), the shape of an accepted
   `Authorization` value (`Bearer <token>`, `Bearer` alone as an empty token, anything else rejected),
-  which of the three failures answers, that a failure never reaches the handler, and that every
-  configured token is compared without early exit.
+  which of the three failures answers, that an unreadable header is rejected (fixed by #2653), that a
+  failure never reaches the handler, and that every configured token is compared without early exit.
 - **T1 hypothesis:** property candidate.
 
 ## Current Tests Review
@@ -37,19 +38,21 @@ Follow the shared [guidance](README.md). This plan covers only
 | `it_authenticates_a_configured_token` | Name lacks `should`; Act and Assert are one line, otherwise clean. | refactor (rename) |
 | `it_rejects_tokens_that_differ_at_any_position_or_length` | A loop with the assertion inside: a failure does not name the token, and one test has five reasons to fail. | refactor (an `rstest` table, one case per token) |
 | `it_authenticates_each_configured_token` | Name lacks `should`; covers only the second token, the first is covered by the first test. | refactor (rename; fold into one table of accepted tokens) |
+| `it_rejects_an_unreadable_authorization_header_even_with_a_valid_token_query` (#2653) | Name lacks `should`; the router and the request are built inline and the response is read inline, which every R2 case repeats. The Act and the literal body assertion are visible. | refactor (rename; reuse the helper that R2 extracts for building the router and calling it) |
 
-R1 therefore renames the tests to `it_should_*` and turns the two loops and the pair of accepted-token
-tests into two `rstest` tables. It needs `rstest` as a dev-dependency (see Dependencies).
+R1 therefore renames the tests to `it_should_*` and turns the loop and the pair of accepted-token tests into
+two `rstest` tables; the #2653 test keeps its behavior and moves onto the shared helper once R2 extracts it. It
+needs `rstest` as a dev-dependency (see Dependencies).
 
 ## Coverage And Decision Analysis
 
 | Behavior group (lines at `abce11ec8`) | Classification | Decision |
 | --- | --- | --- |
-| `auth` token sources, precedence and the three exits (73-100) | 3A unit | R2: call the middleware through a minimal `Router` with a fixed `State` and a handler that answers `reached`, with `tower::ServiceExt::oneshot`. Cases below. |
-| `extract_bearer_token_from_header` (102-127): absent, `Bearer` alone, wrong scheme, valid | 3A unit | Same router tests; the function is private and its outcomes are observable as the three failures. |
-| `AuthError` to response and the three failure responses (141-147, 169-177, 184-186) | 3A unit | Covered by the failure cases; each case asserts status, `content-type` and body as literals. |
+| `auth` token sources, precedence and the three exits (lines 82-101 at `0b4b2d0d3`) | 3A unit | R2: call the middleware through a minimal `Router` with a fixed `State` and a handler that answers `reached`, with `tower::ServiceExt::oneshot`. Cases below. |
+| `extract_bearer_token_from_header` (108-127): absent, `Bearer` alone, wrong scheme, valid | 3A unit | Same router tests; the function is private and its outcomes are observable as the three failures. |
+| `AuthError` to response and the three failure responses (144-145, 170-178) | 3A unit | Covered by the failure cases; each case asserts status, `content-type` and body as literals. |
 | Query rejection before authentication (duplicate `token`) | 3A unit | One case: `?token=a&token=b` answers `400` with Axum's text, without reaching the handler. The package owns the order (the `Query` extractor runs first); the text is Axum's. |
-| Non-UTF-8 `Authorization` value | **Finding** | The value is treated as absent (`to_str().ok()`), so a valid `token` query then authenticates, while a non-Bearer scheme is rejected. Handed off through the findings procedure (draft `docs/issues/drafts/rest-api-auth-ignores-unreadable-authorization-header/`); no test pins it, and its lines (the `.to_str().ok()` fallback) stay uncovered with the finding as owner until the maintainer decides. See Maintainer Decisions. |
+| Non-UTF-8 `Authorization` value | 3A unit, already covered | Handed off as #2653 and fixed (rejected as `unknown token provided`, merged through #2656). The existing #2653 test covers it; R1 keeps it as a case of the same table. |
 
 ### Cases For R2 (one `rstest` table per outcome, literal expectations)
 
@@ -63,6 +66,7 @@ tests into two `rstest` tables. It needs `rstest` as a dev-dependency (see Depen
 | `token not valid` (header wins) | `Bearer <invalid>` | `token=<valid>` | same |
 | `token not valid` (empty token) | `Bearer` and `Bearer` followed by a space | none | same |
 | `unknown token provided` | `Basic <valid>`, `bearer <valid>` (lower case), `Bearer<valid>` | none | same shape, `reason: "unknown token provided"` |
+| `unknown token provided` (unreadable header, #2653) | `Bearer` followed by a non-ASCII byte | `token=<valid>` | same shape (existing test, moved onto the helper) |
 | `unauthorized` | none | none | same shape, `reason: "unauthorized"` |
 | `400` before authentication | none | `token=<valid>&token=<valid>` | `400`, Axum's text |
 
@@ -80,7 +84,7 @@ configured tokens. A `quickcheck` model would add a dependency for the same kill
 ## Dependencies
 
 - `rstest` (dev-dependency, approved 2026-10-24; latest stable `0.28.0` as in `http-core`): tables over tokens and headers.
-- `tower` with the `util` feature (dev-dependency, as `axum-http-server` declares it): `oneshot`.
+- `tower` with the `util` feature: already a dev-dependency since #2653; nothing to add.
 - No `quickcheck` (property decision above).
 
 ## Steps
@@ -88,7 +92,7 @@ configured tokens. A `quickcheck` model would add a dependency for the same kill
 | ID | Status | Work | Completion evidence |
 | --- | --- | --- | --- |
 | R1 | TODO | Rename the three tests to `it_should_*` and turn them into two `rstest` tables; add the `rstest` dev-dependency. | Focused tests, `cargo +nightly fmt --all -- --check`, `git diff --check`, `cargo machete --with-metadata`, prose-first AAA review. |
-| R2 | TODO | Add the middleware tests above with a minimal router and a recording handler; add the `tower` `util` dev-dependency. | Same validation plus the named mutations. |
+| R2 | TODO | Add the middleware tests above with a minimal router and a recording handler (the `tower` `util` dev-dependency exists). | Same validation plus the named mutations. |
 | R3 | TODO | Integration increment: `none` expected (the nine integration tests are retained). | The package has no boundary to add here. |
 | R4 | TODO | Re-run unit-only coverage; record before and after. | Results below and `coverage-evidence.md`. |
 
@@ -106,6 +110,7 @@ the result in Results.
 | M5 | `extract_bearer_token_from_header` | `starts_with("Bearer ")` to `starts_with("Bearer")`. | `Bearer<valid>` case |
 | M6 | `AuthError::into_response` | Swap the `TokenNotValid` and `UnknownTokenProvided` arms. | the two reasons |
 | M7 | `auth` | Return the handler's response after a failed authentication (call `next` anyway). | the recording handler |
+| M8 | `extract_bearer_token_from_header` | Restore the #2653 behavior: map an unreadable value to "no header" (`Ok(None)`). | the unreadable-header case |
 
 ## Prose-First AAA Review
 
@@ -118,10 +123,16 @@ Pending.
 ## Maintainer Decisions
 
 Recorded on 2026-10-24 after the first plan review; the plan itself still needs the maintainer's explicit
-approval before any test change (step 0 gate).
+approval before any test change (step 0 gate), which is requested again after the 2026-10-26 update.
 
-1. **Non-UTF-8 `Authorization` header with a valid `token` query:** hand it off as a finding and stop for the
-   maintainer to decide. Not tested here; see the draft bug spec named in the analysis table.
+1. **Non-UTF-8 `Authorization` header with a valid `token` query:** handed off as a finding; resolved by #2653
+   (rejected as `unknown token provided`), which also added its test.
 2. **Duplicate `token` query parameter:** pin the `400` (the `400` case above stays in R2).
 3. **Property test for `authenticate`:** none; examples are enough.
-4. **Dev-dependencies:** `rstest` 0.28.0 and `tower` with the `util` feature are approved.
+4. **Dev-dependencies:** `rstest` 0.28.0 is approved; `tower` with `util` is already present.
+
+## Update 2026-10-26
+
+Issues #2653 and #2449 merged. The branch was rebased onto `develop` at `0b4b2d0d3`, the package was measured again
+(see the evidence), and this plan was adjusted: current state, the existing-test review (a fourth test), the
+unreadable-header case (covered), the dependency list (only `rstest` is new) and mutation M8.

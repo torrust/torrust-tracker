@@ -25,7 +25,7 @@ approves it. A group of declaration-only files may share one plan.
 
 | Plan sequence | Plan | State | Result |
 | ---: | --- | --- | --- |
-| 1 | [v1-middlewares-auth-tests.md](v1-middlewares-auth-tests.md) | PROPOSED | Feedback recorded 2026-10-24; awaiting approval, with the non-UTF-8 header finding open |
+| 1 | [v1-middlewares-auth-tests.md](v1-middlewares-auth-tests.md) | PROPOSED | Updated 2026-10-26 after #2653 and #2449 merged; awaiting approval |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 

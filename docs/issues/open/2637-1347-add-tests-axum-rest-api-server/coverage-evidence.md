@@ -2,8 +2,8 @@
 doc-type: coverage-evidence
 issue: 2637
 package: torrust-tracker-axum-rest-api-server
-measured-commit: abce11ec8
-measured-utc: 2026-10-24T19:50:00Z
+measured-commit: 0b4b2d0d3
+measured-utc: 2026-10-26T17:50:00Z
 ---
 
 # Axum REST API Server Coverage Evidence
@@ -59,6 +59,40 @@ Integration-only (`--test integration`) coverage informs ownership decisions and
 | 645 / 867 (74.39%) | 897 / 1,297 (69.16%) | 99 / 135 (73.33%) |
 
 The 58 integration tests start a real server through `src/testing/environment.rs` and call it over HTTP with `torrust-tracker-rest-api-client`. They protect the wire contract, but they cover the handlers, responses, and the authentication middleware only through the full network stack. The unit-only column is the gap this issue closes.
+
+## Re-Measurement Before Slice S1
+
+`packages/axum-rest-api-server/` changed on `develop` after `abce11ec8`, so the package was measured again at `0b4b2d0d3` before any S1 test change (same commands, stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`; clean workspace before each report). Two merged changes explain the difference:
+
+- `refactor(axum-rest-api-server): [#2449] migrate the REST API test environment to the token lifecycle` added 8 unit tests inside `src/testing/environment.rs` (371 changed lines). They start the real router, so unit-only coverage of `routes.rs`, `v1/routes.rs`, `v1/responses.rs` and the health check rose without a package-owned unit test of those files; this is incidental coverage through test support, not a behavior contract.
+- `fix(axum-rest-api-server): [#2653] reject an unreadable Authorization header` (merged through #2656) changed `v1/middlewares/auth.rs` and added the first middleware test.
+
+The package now has 15 unit tests (3 in `server.rs`, 4 in `v1/middlewares/auth.rs`, 8 in `testing/environment.rs`) and the same 58 integration tests. The figures below replace the baseline tables above for slice work; the EPIC #1347 tables and the specification carry them. The measurement before this one is kept above as history.
+
+| Scope | Tests | Lines | Regions | Functions |
+| --- | ---: | ---: | ---: | ---: |
+| Aggregate (all selected test targets) | 15 unit + 58 integration | 1,091 / 1,240 (87.98%) | 1,618 / 1,924 (84.10%) | 156 / 187 (83.42%) |
+| Unit-only (`--lib`) | 15 unit | 792 / 1,240 (63.87%) | 1,231 / 1,924 (63.98%) | 96 / 187 (51.34%) |
+| Integration-only (`--test integration`) | 58 integration | 674 / 908 (74.23%) | 941 / 1,352 (69.60%) | 97 / 137 (70.80%) |
+
+The unit-only gain is mostly test support: `src/testing/environment.rs` alone is 301 of its 332 lines (the file is out of scope and its test module is counted). Excluding it, the unit-only lines are 491 / 908 (54.07%); judge the S1 slice by the production lines of its files, not by the total.
+
+Per-file unit-only lines for the rows that changed (all other files have the counts in the inventory):
+
+| Source module | Unit-only lines before | Unit-only lines now | Integration-only lines now | Aggregate lines now |
+| --- | ---: | ---: | ---: | ---: |
+| `v1/middlewares/auth.rs` | 27 / 83 (32.53%) | 71 / 103 (68.93%) | 54 / 60 | 98 / 103 |
+| `v1/responses.rs` | 0 / 40 (0.00%) | 8 / 40 (20.00%) | 40 / 40 | 40 / 40 |
+| `routes.rs` | 31 / 67 (46.27%) | 58 / 67 (86.57%) | 61 / 67 | 62 / 67 |
+| `v1/context/health_check/handlers.rs` | 0 / 4 (0.00%) | 4 / 4 (100.00%) | 4 / 4 | 4 / 4 |
+| `testing/environment.rs` (out of scope) | 0 / 126 (0.00%) | 301 / 332 (90.66%) | 156 / 171 | 325 / 332 |
+
+Unit-only uncovered lines of the S1 files at `0b4b2d0d3`:
+
+- `v1/middlewares/auth.rs`: 82, 86, 88-94, 97-99, 101 (the token sources, precedence and the missing and invalid exits of `auth`), 108, 115, 117-118, 120, 122-123, 125-127 (the `Bearer`, empty-token and wrong-scheme paths of the header extraction), 144-145 and 170-172, 176-178 (the `AuthError` conversions and two of the three failure responses). The unreadable-header rejection is covered by the #2653 test.
+- `v1/responses.rs`: 41-48, 53-57, 60-62, 65-72 and 80-87, that is the success, invalid info-hash, invalid key, bad-request and disabled responses (the `409` builder); only the unhandled-rejection response runs.
+
+The inventory rows above keep their original (pre-S1) unit-only columns; the "Per-File Results" section records each file after its slice.
 
 ## Module Inventory And T1 Hypotheses
 

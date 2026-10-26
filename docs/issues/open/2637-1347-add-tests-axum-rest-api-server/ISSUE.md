@@ -9,7 +9,7 @@ github-issue: 2637
 spec-path: docs/issues/open/2637-1347-add-tests-axum-rest-api-server/ISSUE.md
 branch: "2637-1347-add-tests-axum-rest-api-server-auth"
 related-pr: null
-last-updated-utc: "2026-10-25 06:30"
+last-updated-utc: "2026-10-26 17:55"
 semantic-links:
   skill-links:
     - create-issue
@@ -126,9 +126,23 @@ four `*/handlers.rs` with logic, the `*/responses.rs` files and
 not accept coverage from another package, an integration test, or an end-to-end test as evidence
 that a feasible package-owned unit seam is protected.
 
-`packages/axum-rest-api-server/` can change on `develop` before and during the work (#2449, #2482
-and #1488 touch it), so each slice re-measures the package at its start and records the baseline
-difference, as #1349 did.
+`packages/axum-rest-api-server/` changed on `develop` after this baseline (#2449 and #2653, below), so
+the package was re-measured at `0b4b2d0d3` before S1; it can change again (#2482 and #1488 touch it),
+so each slice re-measures it at its start and records the baseline difference, as #1349 did.
+
+**S1 baseline (`0b4b2d0d3`)** supersedes the table above for slice work (the table is kept as history):
+
+| Scope | Tests | Lines | Regions | Functions |
+| --- | ---: | ---: | ---: | ---: |
+| Aggregate (all selected test targets) | 15 unit + 58 integration | 1,091 / 1,240 (87.98%) | 1,618 / 1,924 (84.10%) | 156 / 187 (83.42%) |
+| Unit-only (`--lib`) | 15 unit | 792 / 1,240 (63.87%) | 1,231 / 1,924 (63.98%) | 96 / 187 (51.34%) |
+| Integration-only (`--test integration`) | 58 integration | 674 / 908 (74.23%) | 941 / 1,352 (69.60%) | 97 / 137 (70.80%) |
+
+The unit-only rise is mostly out-of-scope test support: #2449 added 8 unit tests to
+`src/testing/environment.rs` that run the real router, and #2653 added the first middleware test
+and rejected an unreadable `Authorization` header. Excluding `src/testing/environment.rs`, unit-only lines
+are 491 / 908 (54.07%). [coverage-evidence.md](coverage-evidence.md#re-measurement-before-slice-s1)
+has the per-file differences.
 
 ## Key Package Responsibilities
 
@@ -267,9 +281,9 @@ adapter and DTO behavior belongs to the other `rest-api-*` packages and `tracker
 
 Questions the file plans must answer, because the answer may be a finding rather than a test:
 
-- A non-UTF-8 `Authorization` header is read as "no header" (`.to_str().ok()`), so a valid `token`
-  query parameter then authenticates the request even though the header "takes precedence". Is that
-  intended? (`v1/middlewares/auth.rs`.)
+- A non-UTF-8 `Authorization` header was read as "no header", so a valid `token` query authenticated
+  the request. Handed off as #2653 and fixed (rejected as `unknown token provided`, merged through
+  #2656); the first middleware test of #2653 pins it.
 - The crate documentation in `lib.rs` spells the section `tsl_config` in three places, but the v3 `HttpApi`
   key is `tls_config` and the type denies unknown fields, so the documented snippet does not parse.
   It is a documentation correction for the `lib.rs` plan (S6), not a production change.
@@ -513,16 +527,16 @@ States: `PENDING` (no plan yet), `IN_PROGRESS`, `BLOCKED` (paused by a finding; 
 `DONE`, `REMOVED` (the file no longer exists; the row keeps the history). Rows follow
 [Key Package Responsibilities](#key-package-responsibilities), most critical first; the slice order
 decides which rows are processed first (see the [Per-File Workflow](#per-file-workflow)). Unit-only lines
-are the baseline measurement at `abce11ec8` (see [Baseline Coverage](#baseline-coverage)); the
+are the S1 baseline measurement at `0b4b2d0d3` (see [Baseline Coverage](#baseline-coverage)); the
 declaration-only rows have no executable entries.
 
 | Order | Source module | Rank | Slice | Unit-only lines | Tests | Initial hypothesis | State | Plan |
 | ---: | --- | ---: | --- | ---: | ---: | --- | --- | --- |
-| 1 | `v1/middlewares/auth.rs` | 1 | S1 | 27 / 83 (32.53%) | 3 | Property candidate | IN_PROGRESS | [v1-middlewares-auth-tests.md](test-refactor-plans/v1-middlewares-auth-tests.md) (proposed; property test declined, one finding handed off) |
+| 1 | `v1/middlewares/auth.rs` | 1 | S1 | 71 / 103 (68.93%) | 4 | Property candidate | IN_PROGRESS | [v1-middlewares-auth-tests.md](test-refactor-plans/v1-middlewares-auth-tests.md) (proposed; property test declined; the finding is fixed by #2653) |
 | 2 | `v1/routes.rs` | 2 | S2 | 27 / 45 (60.00%) | 0 | Test candidate | PENDING | - |
-| 3 | `routes.rs` | 2 | S2 | 31 / 67 (46.27%) | 0 | Test candidate | PENDING | - |
-| 4 | `v1/context/health_check/handlers.rs` | 2 | S2 | 0 / 4 (0.00%) | 0 | Test candidate (small) | PENDING | - |
-| 5 | `v1/responses.rs` | 3 | S1 | 0 / 40 (0.00%) | 0 | Test candidate | PENDING | - |
+| 3 | `routes.rs` | 2 | S2 | 58 / 67 (86.57%) | 0 | Test candidate | PENDING | - |
+| 4 | `v1/context/health_check/handlers.rs` | 2 | S2 | 4 / 4 (100.00%) | 0 | Test candidate (small) | PENDING | - |
+| 5 | `v1/responses.rs` | 3 | S1 | 8 / 40 (20.00%) | 0 | Test candidate | PENDING | - |
 | 6 | `v1/context/auth_key/handlers.rs` | 4 | S3 | 0 / 56 (0.00%) | 0 | Test candidate | PENDING | - |
 | 7 | `v1/context/auth_key/responses.rs` | 4 | S3 | 0 / 26 (0.00%) | 0 | Test candidate | PENDING | - |
 | 8 | `v1/context/auth_key/routes.rs` | 4 | S3 | 16 / 16 (100.00%) | 0 | Probably no change | PENDING | - |
@@ -536,7 +550,7 @@ declaration-only rows have no executable entries.
 | 16 | `v1/context/stats/responses.rs` | 5 | S4 | 0 / 45 (0.00%) | 0 | Test candidate | PENDING | - |
 | 17 | `v1/context/stats/routes.rs` | 5 | S4 | 9 / 9 (100.00%) | 0 | Probably no change | PENDING | - |
 | 18 | `server.rs` | 6 | S5 | 275 / 349 (78.80%) | 3 | Test candidate (TLS, errors, `check_fn`); legacy path owned by #1488 | PENDING | - |
-| 19 | `testing/environment.rs` | 7 | S6 | 0 / 126 (0.00%) | 0 | Out of scope (test support; #2482, #2449) | PENDING | - |
+| 19 | `testing/environment.rs` | 7 | S6 | 301 / 332 (90.66%) | 8 | Out of scope (test support; #2482, #2449) | PENDING | - |
 | 20 | `testing/mod.rs` | 7 | S6 | No executable entries | 0 | Out of scope (test support) | PENDING | - |
 | 21 | `lib.rs` | 8 | S6 | No executable entries | 0 | Wiring only | PENDING | - |
 | 22 | `v1/mod.rs` | 8 | S6 | No executable entries | 0 | Wiring only | PENDING | - |
@@ -626,6 +640,14 @@ once. If the slicing changes, the Slice column changes with it.
   `.tmp/2637-auth-unreadable-header/`; added `lessons.md`. The auth plan leaves the case untested with the
   finding as owner. Stopped for the maintainer to choose between pausing S1 and continuing in parallel; the fix
   edits the same file as ledger row 1.
+- 2026-10-26 17:50 UTC - GitHub Copilot - The finding was fixed and merged as #2653 (PR #2656; spec
+  archived in `docs/issues/closed/2653-rest-api-auth-ignores-unreadable-authorization-header/`), and #2449
+  (the REST API test environment) merged too. Rebased the S1 branch onto `develop` at `0b4b2d0d3` and
+  re-measured the package: unit-only lines 40.24% to 63.87% (15 unit tests), aggregate 85.31% to
+  87.98%, integration-only 74.23%; the rise is mostly #2449's test-environment unit tests. The auth
+  middleware is now 71 / 103 lines. Updated the S1 baseline, the ledger, the evidence, the EPIC tables
+  and the auth plan (the unreadable-header case is already tested; `tower` `util` is already a
+  dev-dependency). S1 resumes; the plan still needs the maintainer's approval.
 
 ## Acceptance Criteria
 
