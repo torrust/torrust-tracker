@@ -37,7 +37,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: Enable Rust cache
-        uses: Swatinem/rust-cache@v2.9.2
+        uses: Swatinem/rust-cache@v2.9.3
 
       - name: Build workspace
         run: cargo build --workspace
