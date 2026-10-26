@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2645-2482-label-optional-and-self-dependency-edges/ISSUE.md
-last-updated-utc: "2026-10-26 07:17"
+last-updated-utc: "2026-10-26 07:18"
 ---
 
 # Manual Verification Evidence
@@ -15,10 +15,21 @@ Every output below is the real output of the command shown; the repository path 
 
 ## Environment and Prerequisites
 
-- Date and time (UTC): 2026-10-25, 08:09 to 08:10.
-- Artifact under test: the implementation branch of this issue after the commit whose subject is
-  `feat(workspace-coupling): [#2645] label optional edges and skip self edges`; the baseline is the
-  tool built from the tip of `develop` after the merge of PR #2646.
+- Date and time (UTC): the runs are dated one by one. 2026-10-25: V1 at 08:10:01, the second run at
+  08:12:15, the third run at 08:34:49. 2026-10-26: the re-run V4 and the V2 diff at 07:16.
+- Tree each run used (the runs of 2026-10-25 happened before the commit of the change they test,
+  so they used the working tree, not a commit):
+  - V1: the tree of the commit `feat(workspace-coupling): [#2645] label optional edges and skip self edges`.
+  - Second run: the working tree after that commit, with the fix of the commit
+    `fix(workspace-coupling): [#2645] ignore the implicit feature of an optional dependency` not yet committed.
+  - Third run: the working tree after the second fix, with the fix of the commit
+    `fix(workspace-coupling): [#2645] follow feature references when labelling an optional edge` not yet committed.
+  - V2: re-run on 2026-10-26 at 07:16 on a clean checkout at the commit
+    `docs(workspace-coupling): [#2645] say what a bare optional label means in the report legend`;
+    the 2026-10-25 run printed the earlier legend wording, which that commit replaced.
+  - V4: the same clean checkout.
+- Artifact under test: the implementation branch of this issue; the baseline is the tool built from
+  the merge of PR #2646 (the base of the branch).
 - Operating system / environment: Linux developer workstation; `cargo`/`rustc` 1.99 stable.
 - Prerequisites and setup performed: the scratch workspace of V1 under `/tmp/2645-mv`, and a second
   checkout of `develop` (`git worktree add --detach /tmp/2645-base torrust/develop`, built with
@@ -174,7 +185,7 @@ Workspace deps: 1
 $ diff /tmp/2645-repo-old.md /tmp/2645-repo-new.md
 14a15,16
 > - **Optional dep** (`optional (FEATURES)`) — a normal dependency that the listed features enable, directly or through other features.
->   `optional (testing)` is a test-only edge, not a runtime edge; `optional` means no feature enables it.
+>   `optional (testing)` is a test-only edge, not a runtime edge; `optional` means no feature other than the dependency's own implicit one enables it.
 16a19
 > - A package's own dev-dependency on itself (used to enable its `testing` feature) is not listed.
 ```
@@ -190,12 +201,65 @@ The only difference is the three added legend lines. No edge, count or leaf chan
 - Goal: the tool's own tests pass.
 - Status: `DONE`
 
-`cargo test -p workspace-coupling`: `tests/edge_labels.rs` 20 passed (14 failed to compile before
+`cargo test -p workspace-coupling`: `tests/edge_labels.rs` 23 passed (14 failed to compile before
 the change: `workspace_dependencies` and `edge_kind` did not exist; the two implicit-feature tests
-failed before the first fix and four of the five transitive-feature tests before the second),
-`tests/parse_imports.rs` 9 passed, `tests/resolve_module_name.rs` 11 passed.
+failed before the first fix, four of the five transitive-feature tests before the second, and three
+of the three same-name feature tests before the third), `tests/parse_imports.rs` 9 passed,
+`tests/resolve_module_name.rs` 11 passed.
 The pre-commit gate (including `cargo machete --with-metadata`, `cargo deny check bans` and
 `linter all`) passed on each commit, and the pre-push script (`pre-push.sh`, 6 steps) passed.
+
+### V4 - Re-run of every scratch case on a clean tree (M1, M2)
+
+- Goal: make the record checkable: one scratch workspace with every case, the base tool and the new
+  tool on the same input, on the clean tree named in the environment section.
+- Initial state: `/tmp/2645-mv` with `edition = "2024"` for every member (`cargo 1.99.1`): `a`, `b`,
+  `c`, `d`, `o1c` as in V1, plus `y` and three dependents of it. `e`: `testing = ["y"]`. `f`:
+  `default = ["testing"]` and `testing = ["y"]`. `g`: `y = ["dep:y", "extras"]`, `extras = []` and
+  `testing = ["dep:y"]`.
+- Status: `DONE`
+
+At 07:16:21 UTC, `cargo metadata --format-version 1 --no-deps` reduced to the edition, the features
+and the dependencies, then the base tool and the new tool, each writing a report under `/tmp`:
+
+```text
+a edition 2024 features {'extras': ['dep:d'], 'testing': ['dep:c']}
+   -> c kind= None optional= True
+   -> d kind= None optional= True
+b edition 2024 features {}
+   -> c kind= None optional= False
+   -> a kind= dev optional= False
+o1c edition 2024 features {'testing': []}
+   -> o1c kind= dev optional= False
+e edition 2024 features {'testing': ['y'], 'y': ['dep:y']}
+   -> y kind= None optional= True
+f edition 2024 features {'default': ['testing'], 'testing': ['y'], 'y': ['dep:y']}
+   -> y kind= None optional= True
+g edition 2024 features {'extras': [], 'testing': ['dep:y'], 'y': ['dep:y', 'extras']}
+   -> y kind= None optional= True
+```
+
+Headings of the base tool's report (one dependency per line, `c`, `d` and `y` have none):
+
+```text
+leaves: c, d, y
+a: c [normal], d [normal]      b: c [normal], a [dev]      e: y [normal]
+f: y [normal]                  g: y [normal]               o1c: o1c [dev]
+```
+
+Headings of the new tool's report:
+
+```text
+leaves: c, d, o1c, y
+a: d [optional (extras)], c [optional (testing)]      b: c [normal], a [dev]
+e: y [optional (testing)]                             f: y [optional (default, testing)]
+g: y [optional (testing, y)]
+```
+
+Conclusion: the shorthand of `e` and the explicit `dep:` form of `a` give the test-only label, the
+`default` chain of `f` does not, and the explicit same-name feature `y` of `g` stays in the label,
+so `g` is not shown as test-only. The self edge of `o1c` is gone and `o1c` is a leaf. Edition 2024
+manifests produced all of these cases, so none is limited to older editions.
 
 ## Summary
 
@@ -203,6 +267,7 @@ The pre-commit gate (including `cargo machete --with-metadata`, `cargo deny chec
 | --- | --- | --- | --- |
 | V1 | Scratch workspace labels (M1) | DONE | Labels and self-edge skip as specified |
 | V2 | This repository (M2) | DONE | Only the legend differs |
-| V3 | Tool tests | DONE | 40 tests pass |
+| V3 | Tool tests | DONE | 43 tests pass |
+| V4 | Re-run of every scratch case on a clean tree | DONE | Labels as specified, including `g` and `f` |
 
 Validated by the AI assistant that ran the commands; the maintainer reviews it in the pull request.

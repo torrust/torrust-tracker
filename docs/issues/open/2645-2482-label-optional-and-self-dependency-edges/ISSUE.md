@@ -9,7 +9,7 @@ github-issue: 2645
 spec-path: docs/issues/open/2645-2482-label-optional-and-self-dependency-edges/ISSUE.md
 branch: "2645-2482-label-optional-and-self-dependency-edges"
 related-pr: 2648
-last-updated-utc: "2026-10-26 07:14"
+last-updated-utc: "2026-10-26 07:18"
 semantic-links:
   skill-links:
     - create-issue
@@ -178,7 +178,7 @@ applies; the O1-specific checks do not (this subissue moves no test code).
 | AC1   | DONE                   | `tests/edge_labels.rs` (two self-edge tests); V1: `o1c` has no entry and is a leaf |
 | AC2   | DONE                   | `tests/edge_labels.rs` (the `optional (testing)` tests, including the `dep:` and implicit-feature syntax and a rename); V1: `a` -> `c` is `optional (testing)`, `b` -> `c` stays `normal` |
 | AC3   | DONE                   | The legend lines in `src/main.rs` (V2 diff) and the note in `docs/media/packages/dependencies-workspace-packages.md`; no `optional (testing)` edge exists, so none is drawn |
-| AC4   | DONE                   | V3: `cargo test -p workspace-coupling`, 40 tests pass; 14 of the 20 new ones failed to compile before the change, the two implicit-feature ones failed before the first fix and four of the five transitive-feature ones before the second |
+| AC4   | DONE                   | V3: `cargo test -p workspace-coupling`, 43 tests pass; 14 of the 23 new ones failed to compile before the change, the two implicit-feature ones failed before the first fix, four of the five transitive-feature ones before the second and the three same-name ones before the third |
 
 ## Risks and Trade-offs
 
