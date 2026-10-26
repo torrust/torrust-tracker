@@ -39,13 +39,26 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-One review was submitted so far: the review of `copilot-pull-request-reviewer` (5642274652) on the head
-whose subject is `docs(issues): [#2645] link the implementation pull request in the spec`. Its body
-repeats its single inline thread, F1, so the body adds no row.
+Three reviews were submitted so far. The review of `copilot-pull-request-reviewer` (5642274652) read the head
+whose subject is `docs(issues): [#2645] link the implementation pull request in the spec`; its body
+repeats its single inline thread, F1, so the body adds no row. A second review of the same account
+(5643781107) and the review of `da2ce7` (5644687426, verdict `CHANGES_REQUESTED`) read the head whose
+subject is `docs(issues): [#2645] record the transitive feature fix and the PR 2648 review audit`.
+The body of the second review repeats its thread, F2. The body of the `da2ce7` review repeats its five
+inline threads and adds a long account of what was checked and what passed, which holds no further
+actionable assertion, so it adds no row. `da2ce7` numbered his threads F2 to F6, which collide with this
+record's numbering, so the table maps them: his F2 is F3 here, and so on, and each detail names the
+reviewer's own ID.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2648-f1 | Copilot | Major | correctness | ORIGINAL | FIXED | RESOLVED |
+| F2 | review-finding:pr-2648-f2 | Copilot | Major | correctness | ORIGINAL | FIXED | RESOLVED |
+| F3 | review-finding:pr-2648-f3 | Human | Major | correctness | RE_RAISE_OF:F2 | FIXED | RESOLVED |
+| F4 | review-finding:pr-2648-f4 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F5 | review-finding:pr-2648-f5 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F6 | review-finding:pr-2648-f6 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F7 | review-finding:pr-2648-f7 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -75,11 +88,126 @@ repeats its single inline thread, F1, so the body adds no row.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2648#discussion_r4371184732>
 
+### F2 - Preserve explicit features that share the dependency key
+
+- PR number: 2648
+- Source review ID: 5643781107
+- Reviewer finding ID: R2
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2648#discussion_r4371273086>
+- Concern: the label dropped every feature named like the dependency, so with `c = ["dep:c", "extras"]`,
+  `extras = []` and `testing = ["dep:c"]` it read `optional (testing)`, and a dependency renamed to
+  `default` lost its default-build activation from the label. The reviewer asked to drop only the implicit
+  singleton shape, to always keep `default`, and to add tests for explicit same-name features and renamed
+  dependencies.
+- Solution: the finding was right. The tool now drops a same-name feature only when it is exactly
+  `["dep:key"]`, no other feature names `dep:key` and the name is not `default`. Three tests were added
+  (explicit feature that enables more, explicit feature beside another `dep:key`, dependency renamed to
+  `default`); all three failed before the fix. The spec's Known limits describe the rule.
+- Current-tree verification: the three new tests failed on the previous head and pass now, and the V4 run
+  of the evidence prints `optional (testing, y)` for the explicit case.
+- Resolution reference: fix(workspace-coupling): [#2645] keep explicit features named like the dependency in the label
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2648#discussion_r4374811670>
+
+### F3 - This removes every feature named like the dependency key, not only Cargo's implicit one
+
+- PR number: 2648
+- Source review ID: 5644687426
+- Reviewer finding ID: F2
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2648#discussion_r4371941792>
+- Concern: the same defect as F2, traced at the same head, raised by `da2ce7` after F2 and mapped to it
+  before acting. He also pointed out that the code comment and the spec call the removal Cargo's implicit
+  feature, which misleads a reader, and proposed to restore the exact-shape guard only below edition 2024,
+  with a test built from 2024 metadata.
+- Solution: fixed by the same commit as F2, which restores the exact-shape guard and tests the explicit
+  same-name feature; the comment and the spec now state the rule. The edition limit was not adopted: Cargo
+  1.99.1 at edition 2024 still adds the implicit feature (see F4), so the guard applies at every edition.
+  The guard also requires that no other feature names `dep:key`, since Cargo adds no implicit feature then.
+- Current-tree verification: same as F2.
+- Resolution reference: fix(workspace-coupling): [#2645] keep explicit features named like the dependency in the label
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2648#discussion_r4374811828>
+
+### F4 - The guidance describes pre-2024 manifests
+
+- PR number: 2648
+- Source review ID: 5644687426
+- Reviewer finding ID: F3
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2648#discussion_r4371941799>
+- Concern: the retrospective guidance and the evidence's "Cargo also accepts `testing = ["y"]` ... and then
+  adds the implicit feature" describe pre-2024 manifests; the reviewer stated from the edition rules that
+  edition 2024 creates no implicit feature and rejects the bare form, and asked to tell rows 3 to 7 to write
+  `testing = ["dep:c"]` and to name the scratch workspace's edition.
+- Solution: the premise was checked and does not hold for Cargo 1.99.1: a scratch workspace with
+  `edition = "2024"` accepts `testing = ["y"]` and `cargo metadata` prints `y = ["dep:y"]`. The evidence
+  now names the edition and the Cargo version and prints the edition per package (V4), and the retrospective
+  says either syntax may appear. The advice to write only `dep:c` was not adopted, since the tool must
+  handle both forms.
+- Current-tree verification: V4 of the evidence, run on a clean checkout, prints `edition 2024` and the
+  implicit feature for the packages `e` and `f`.
+- Resolution reference: docs(issues): [#2645] state that edition 2024 still adds the implicit feature
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2648#discussion_r4374811995>
+
+### F5 - "optional means no feature enables it" overstates the label
+
+- PR number: 2648
+- Source review ID: 5644687426
+- Reviewer finding ID: F4
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2648#discussion_r4371941802>
+- Concern: a bare `optional` is also printed when only a feature named after the dependency enables it, so
+  the legend's "no feature enables it" is inaccurate; "no other feature" would be.
+- Solution: the legend now says `optional` means no feature other than the dependency's own implicit one
+  enables it.
+- Current-tree verification: the V2 diff of the evidence shows the new legend line, and the report the tool
+  prints for this repository contains it.
+- Resolution reference: docs(workspace-coupling): [#2645] say what a bare optional label means in the report legend
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2648#discussion_r4374812137>
+
+### F6 - "on the first head" is not accurate
+
+- PR number: 2648
+- Source review ID: 5644687426
+- Reviewer finding ID: F5
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2648#discussion_r4371941806>
+- Concern: this audit said review 5642274652 was on the first head, but it read the head that records
+  `related-pr: 2648`, committed after the pull request opened.
+- Solution: the audit names that head by its subject.
+- Current-tree verification: the Findings introduction of this record names
+  `docs(issues): [#2645] link the implementation pull request in the spec`.
+- Resolution reference: docs(pr-reviews): [#2645] name the head the first review read by its subject
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2648#discussion_r4374812290>
+
+### F7 - The environment line lags the runs the evidence records
+
+- PR number: 2648
+- Source review ID: 5644687426
+- Reviewer finding ID: F6
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2648#discussion_r4371941815>
+- Concern: the evidence's environment line said the runs took place from 08:09 to 08:10, but the file also
+  records runs at 08:12:15 and 08:34:49, and the V2 legend lines came from a later commit; the record did not
+  say which tree each run used.
+- Solution: the environment section lists each run with its UTC time and tree (the working tree before the
+  commit of the change, or a commit), and V4 re-runs every scratch case on a clean checkout, with the V2 diff
+  re-taken at the same time.
+- Current-tree verification: the environment section and V4 of the evidence.
+- Resolution reference: docs(issues): [#2645] state the tree and time of every manual verification run
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2648#discussion_r4374812424>
+
 ## Processing Log
 
 - 2026-10-25 14:36 UTC - The review of `copilot-pull-request-reviewer` arrived with one inline thread, F1. It was
   reproduced against the tree and confirmed. Fixed in its own signed commit, then replied on the thread
   after pushing the fix, and resolved the thread.
+- 2026-10-26 07:22 UTC - The second review of Copilot (thread F2) and the review of `da2ce7` (five threads,
+  F3 to F7 here) arrived. All six were checked against the tree; F2 and F3 are the same defect, and the
+  premise of F4 (edition 2024 creates no implicit feature) was tested and does not hold for Cargo 1.99.1,
+  so that thread was answered with the evidence and the documentation fix, not the proposed code limit.
+  Fixed each independent finding in its own signed commit (F2 and F3 together), replied on the six threads
+  after pushing, and resolved them after this record was committed and pushed.
 
 ## Completion Rules
 

@@ -9,7 +9,7 @@ github-issue: 2645
 spec-path: docs/issues/open/2645-2482-label-optional-and-self-dependency-edges/ISSUE.md
 branch: "2645-2482-label-optional-and-self-dependency-edges"
 related-pr: 2648
-last-updated-utc: "2026-10-26 07:18"
+last-updated-utc: "2026-10-26 07:22"
 semantic-links:
   skill-links:
     - create-issue
@@ -143,6 +143,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-10-25 06:55 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 8) - Refreshed against `develop`, pointed the diagram to `docs/media/packages/dependencies-workspace-packages.md`, created #2645, linked it under #2482 and moved the spec to `open/`. The maintainer approved the spec.
 - 2026-10-25 08:15 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 8) - Implemented T1 to T5 after the spec PR #2646 merged: the tool labels optional edges and skips self edges, the legend and diagram note explain it, the evidence and a retrospective are recorded (the retrospective is needed: the first version mislabelled the `testing = ["c"]` shorthand). AC2 is read as "never labelled `normal`", because the tool has no runtime-edge counter (see the completion review).
 - 2026-10-25 14:36 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 8) - Opened PR #2648. Its Copilot review found that the tool ignored feature chains (a `default` feature that includes `testing`); fixed with five more tests, and the completion review, evidence and retrospective now describe the transitive search (audit: `docs/pr-reviews/pr-2648-review/PR-REVIEW.md`).
+- 2026-10-26 07:22 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 8) - Second review round on PR #2648 (Copilot and da2ce7): an explicit feature named like the dependency was hidden from the label, so it could read `optional (testing)`; fixed with an exact-shape guard and three tests, the legend wording, the evidence (edition, tree and time of each run, a clean re-run) and the audit wording were corrected. 43 tests pass.
 
 ## Acceptance Criteria
 
