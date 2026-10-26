@@ -244,6 +244,8 @@ jobs:
       - id: setup-qemu
         name: Set Up QEMU
         uses: docker/setup-qemu-action@v4.4.0
+        with:
+          cache-image: false
 
       - id: setup
         name: Setup Buildx
