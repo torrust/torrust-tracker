@@ -9,7 +9,7 @@ github-issue: 2606
 spec-path: docs/issues/closed/2606-2278-validate-audit-record-merged-fix-subjects/ISSUE.md
 branch: "2606-validate-audit-record-merged-fix-subjects"
 related-pr: 2641
-last-updated-utc: "2026-10-26 08:30"
+last-updated-utc: "2026-10-26 15:47"
 semantic-links:
   skill-links:
     - create-issue
@@ -123,7 +123,8 @@ Follows [`fix-bug`](../../../../.github/skills/dev/debugging/fix-bug/SKILL.md):
 - analysis: the defect and hypothesis are in Background;
 - real-artifact reproduction: **Reproduced** on 2026-10-21 against the merged audits of PR #2584 and
   PR #2599 (scenarios M1 and M2). Commands, runtime versions, ref states, and output are in
-  `manual-verification-evidence.md` sections V1 and V2. The final green recheck is pending;
+  `manual-verification-evidence.md` sections V1 and V2. The final green recheck was recorded in
+  that file on 2026-10-24;
 - regression-test boundary: a unit test at the subject-set function (see below);
 - red test evidence, production fix, green evidence, and a like-for-like recheck of M1.
 
@@ -134,7 +135,8 @@ subject set with `git` and `gh` faked at the process boundary. Following the rep
 precedent of `contrib/dev-tools/git/tests/test-github-merge-symlinks.py`, it uses only the
 standard library.
 
-Cases (each fails on the current code):
+Cases (the first three and the `gh` failure case fail on the code before the fix; the unknown-subject
+and `<base>..HEAD` cases guard existing behavior, as the T6 row says):
 
 - a subject present only in the audited PR's commit list is accepted with an up-to-date base;
 - a subject present only in a follow-up PR's commit list is accepted;
@@ -242,13 +244,18 @@ test run in `test-design-review.md` or the evidence file even after its producti
 - 2026-10-24 20:27 UTC - GitHub Copilot - Implementation completion review: no retrospective
   was needed. The `gh api .../pulls/<n>/commits` source worked, including after merge; the change
   stayed inside the subject-set function and its call (plus one small `pulls_to_check` function);
-  T10 matched the expectation that no audit regresses (11 of 157 audits with a `FIXED` row fail
-  both before and after, for reasons in their own content). A transient GitHub HTTP 502 seen during
+  T10 matched the expectation that no audit regresses (11 of the 157 `PR-REVIEW.md` files that
+  contain the word `FIXED` fail both before and after, for reasons in their own content; the
+  reviewer of PR #2641 counted 148 audit files with a `FIXED` row, because some files hold the word
+  only in their copied Status Values). A transient GitHub HTTP 502 seen during
   T10 produced the designed exit 2 with the endpoint named.
 - 2026-10-26 08:30 UTC - GitHub Copilot - PR #2641 merged on 2026-10-25 and issue #2606 closed.
   Archived this specification to `docs/issues/closed/` and set `status: done` and `related-pr: 2641`.
   The independent-reviewer checkpoint stays unchecked: the review findings F1 to F6 submitted on
   PR #2641 are not yet processed (see that pull request).
+- 2026-10-26 15:47 UTC - GitHub Copilot - Corrected the stale statements, the recheck counts and the
+  Risks line named by review findings F5, F6 and F1 of PR #2641, in the follow-up pull request for
+  that review.
 
 ## Acceptance Criteria
 
@@ -302,7 +309,9 @@ Notes:
 ## Risks and Trade-offs
 
 - A `gh` rate limit or outage now blocks validation, because the commit lists come from GitHub.
-  The validator already needs `gh` for review comments, so no new dependency appears.
+  The validator already needs `gh` for review comments, so no new dependency appears, except that a
+  run with `--comments-file` was offline before and now also needs `gh` for the commit lists
+  (review finding F1 of PR #2641).
 - Accepting `<base>..HEAD` keeps a small false-pass window (see Design and Ownership Review).
   Closing it needs the Rust migration to resolve the PR's recorded head, which is out of scope.
 - If the script is migrated to Rust before this lands, port the three-source rule instead of the
@@ -313,7 +322,7 @@ Notes:
 After implementation, compare the result with this specification. Record invalidated assumptions,
 material design changes, unexpected validation findings, and reusable lessons.
 
-- Retrospective: `Not yet assessed`
+- Retrospective: `Not needed`; see the 2026-10-24 20:27 UTC progress-log entry for why.
 - Create `implementation-retrospective.md` from `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md`
   in this issue's directory when any of these happened:
   - the `gh api .../pulls/<n>/commits` source proved unusable (for example truncated lists or rate
