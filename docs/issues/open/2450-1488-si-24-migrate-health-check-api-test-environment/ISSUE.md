@@ -9,7 +9,7 @@ github-issue: 2450
 spec-path: docs/issues/open/2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md
 branch: "2450-migrate-health-check-api-test-environment"
 related-pr: null
-last-updated-utc: "2026-10-26 07:38"
+last-updated-utc: "2026-10-26 12:42"
 semantic-links:
   skill-links:
     - create-issue
@@ -174,7 +174,9 @@ T1 tests (use the `write-unit-test` skill, every wait bounded):
 
 - `stop()` joins the server and the drain controller without an error.
 - `stop()` releases the binding: the same address binds right after `stop()`.
-- Stop-then-start serves the health check on the restarted environment.
+- Stop-then-start serves the health check on the restarted environment, on an
+  ephemeral port. A fixed-port restart is a documented limitation
+  (`review-finding:pr-2652-f1`, evidence V7).
 - A drain timeout is returned as an error after both tasks join.
 - Dropping a running environment without `stop()` releases the binding
   (poll `TcpListener::bind` within a bounded deadline, as #2471's test does).
@@ -221,6 +223,7 @@ before maintainer review and commit. Sign every commit with GPG.
 - 2026-10-26 07:16 UTC - GitHub Copilot - T0 baseline and T1 implemented (token start, one `DropGuard`, private `state`, `bind_address()`, joined `stop()` errors) with 8 new tests, mutation-proven in `manual-verification-evidence.md`; the 8 contract reads were moved early so the tree compiles. Stopped for the design review.
 - 2026-10-26 07:33 UTC - GitHub Copilot - Design review approved by the maintainer. Committed the code, the T0/T1 evidence and the task inventory update (T2 reads moved with T1, T3 done). Added V5 (prose-first Arrange-Act-Assert record) and V6 (automatic checks after the last production change) to `manual-verification-evidence.md`. Independent review next.
 - 2026-10-26 07:38 UTC - GitHub Copilot - Independent Task Reviewer passed with five non-blocking findings (F1-F5), all resolved and recorded in `agent-review-reports.md`. No retrospective: no discovery changed the design or the spec; the mutation that did not compile is explained in V2. Acceptance criteria stay TODO until the maintainer says to tick them.
+- 2026-10-26 12:42 UTC - GitHub Copilot - Copilot's review of #2652 (`review-finding:pr-2652-f1`) found that a fixed-port stop-then-start panics, because the token-aware start registers the service and the `Registar` cannot remove it. This corrects the 07:38 entry: the discovery is material, so `implementation-retrospective.md` is added. The maintainer chose to document and pin the limitation and file a follow-up; recorded in V7, with V6 re-run after the new last production change. The acceptance criteria stay TODO.
 
 ## Acceptance Criteria
 

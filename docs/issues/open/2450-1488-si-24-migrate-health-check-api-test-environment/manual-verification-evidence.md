@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md
-last-updated-utc: "2026-10-26 07:38"
+last-updated-utc: "2026-10-26 12:42"
 ---
 
 # Manual Verification Evidence
@@ -105,14 +105,41 @@ No prose had to be kept beyond the three section markers.
 ## V6: Automatic checks after the last production change
 
 The last production change is the commit
-`test(axum-health-check-api-server): [#2450] assert the stop result in the binding-release test`.
-Run on the tree after it (rustc 1.99.1):
+`test(axum-health-check-api-server): [#2450] document and pin the fixed-port restart limitation`
+(V7). It supersedes the earlier last change, `test(axum-health-check-api-server): [#2450] assert the stop result in the binding-release test`,
+after which these commands were first run with 11 lib tests. Run on the tree after the last change (rustc 1.99.1):
 
-| Command                                                                                          | Result                                      |
-| ------------------------------------------------------------------------------------------------ | ------------------------------------------- |
-| `cargo test -p torrust-tracker-axum-health-check-api-server`                                     | 11 lib passed (1.00 s), 8 integration passed (3.04 s) |
-| `cargo clippy -p torrust-tracker-axum-health-check-api-server --all-targets -- -D warnings`      | no warnings                                 |
-| `cargo check --workspace --all-targets --all-features`                                           | no errors                                   |
-| `cargo +nightly fmt --check`                                                                     | clean                                       |
+| Command                                                                                     | Result                                                |
+| ------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| `cargo test -p torrust-tracker-axum-health-check-api-server`                                | 12 lib passed (1.00 s), 8 integration passed (3.04 s) |
+| `cargo clippy -p torrust-tracker-axum-health-check-api-server --all-targets -- -D warnings` | no warnings                                           |
+| `cargo check --workspace --all-targets --all-features`                                      | no errors                                             |
+| `cargo +nightly fmt --check`                                                                | clean                                                 |
+| `linter all`                                                                                | exit 0 (12:41 UTC)                                    |
 
-`linter all` exited 0 on this tree (07:35 UTC), before the commit above; the pre-commit hook passed on that commit.
+The pre-commit hook passed on the commit above.
+
+## V7: Fixed-port restart (`review-finding:pr-2652-f1`)
+
+Copilot's review of #2652 reported that a stop-then-start on a fixed port
+panics. A red test reproduced it before any change:
+`cargo test -p torrust-tracker-axum-health-check-api-server --lib fixed_port`
+failed with `Registration { source: DuplicateBinding(...) }` raised by `start()`.
+
+Cause (read from source, not run beyond the red test): the legacy `server::start`
+never registered the service in the `registar`; `server::start_with_cancellation`
+does (spec D4), and `stop()` cannot remove the registration because
+`torrust-server-lib` 0.3.0's `Registar` has no remove operation. Restart on an
+ephemeral port (`:0`), which the existing restart test covers, binds a new
+address and is unaffected.
+
+Decision (the maintainer chose it): document the limitation and pin it, and file
+a follow-up to give the `Registar` a removal operation. The commit
+`test(axum-health-check-api-server): [#2450] document and pin the fixed-port restart limitation`
+documents it on `Environment::start()` and adds
+`it_should_not_start_again_on_a_fixed_port_while_the_registar_keeps_the_previous_registration`
+(`#[should_panic(expected = "DuplicateBinding")]`). Lib tests rose from 11 to 12.
+
+Mutation proof: with the test's configuration changed to bind `127.0.0.1:0`, the
+test failed with `test did not panic as expected`; the file was restored from
+`HEAD` and `cmp` confirmed the restore.
