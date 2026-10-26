@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md
-last-updated-utc: "2026-10-26 07:32"
+last-updated-utc: "2026-10-26 07:38"
 ---
 
 # Manual Verification Evidence
@@ -38,10 +38,12 @@ Times are UTC on 2026-10-26.
 
 | #   | Time         | Mutation                                                              | Result                                                                                                                         |
 | --- | ------------ | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| M1  | 07:14:40.635 | `stop()` disarms the guard but never cancels (`mem::forget(disarm())`) | 3 failed: stop without failure, binding released on stop, stop-then-start serves (10 s bounded wait)                          |
+| M1  | 07:14 | `stop()` disarms the guard but never cancels (`mem::forget(disarm())`) | 3 failed: stop without failure, binding released on stop, stop-then-start serves (10 s bounded wait)                          |
 | M2  | 07:14 | Drop guard bound to an unrelated token                                | 4 failed: drop releases binding, stop without failure, binding released on stop, stop-then-start serves                        |
 | M4  | 07:14 | Drain `TimedOut` no longer reported                                   | 3 failed: server error plus drain timeout together, error naming each failing task, drain timeout when both tasks join        |
 | M5  | 07:14 | Sequential join with early return on server failure                   | 2 failed: joins the drain controller before reporting a server failure, error naming each failing task                         |
+
+M3 is absent on purpose: the planned mutation (`let _ = guard.disarm();`) does not compile, because `disarm()` returns a `CancellationToken` that must be used, so it was dropped and the numbering kept. The failure counts and the 1 s to 10 s timings in the table were read from the runs of 2026-10-26 and were not re-run for this record.
 
 Restore proof: after each run `cmp src/environment.rs /tmp/env.orig` printed
 nothing (the run printed `restored-ok` / `restored-cmp-ok`), and the original
@@ -103,7 +105,7 @@ No prose had to be kept beyond the three section markers.
 ## V6: Automatic checks after the last production change
 
 The last production change is the commit
-`refactor(axum-health-check-api-server): [#2450] migrate the health-check API test environment to the token lifecycle`.
+`test(axum-health-check-api-server): [#2450] assert the stop result in the binding-release test`.
 Run on the tree after it (rustc 1.99.1):
 
 | Command                                                                                          | Result                                      |
@@ -113,4 +115,4 @@ Run on the tree after it (rustc 1.99.1):
 | `cargo check --workspace --all-targets --all-features`                                           | no errors                                   |
 | `cargo +nightly fmt --check`                                                                     | clean                                       |
 
-`linter all` and the pre-commit hook passed on each commit.
+`linter all` exited 0 on this tree (07:35 UTC), before the commit above; the pre-commit hook passed on that commit.

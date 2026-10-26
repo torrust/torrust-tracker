@@ -9,7 +9,7 @@ github-issue: 2450
 spec-path: docs/issues/open/2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md
 branch: "2450-migrate-health-check-api-test-environment"
 related-pr: null
-last-updated-utc: "2026-10-26 07:33"
+last-updated-utc: "2026-10-26 07:38"
 semantic-links:
   skill-links:
     - create-issue
@@ -164,11 +164,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                | Notes / Expected Output                                                             |
 | --- | ------ | ----------------------------------- | ----------------------------------------------------------------------------------- |
-| T0  | TODO   | Record baseline                     | Package test results.                                                               |
-| T1  | TODO   | Migrate `Environment` start/stop    | D1-D5, with the T1 tests below, each mutation-proven.                               |
-| T2  | TODO   | Migrate the field reads             | Contract tests use `bind_address()`.                                                |
-| T3  | TODO   | Documentation                       | Task inventory records the migrated health-check API environment.                  |
-| T4  | TODO   | Verification and completion review  | Automatic checks, manual scenario, AC review, pre-push checks, independent review. |
+| T0  | DONE   | Record baseline                     | Package test results.                                                               |
+| T1  | DONE   | Migrate `Environment` start/stop    | D1-D5, with the T1 tests below, each mutation-proven.                               |
+| T2  | DONE   | Migrate the field reads             | Contract tests use `bind_address()`.                                                |
+| T3  | DONE   | Documentation                       | Task inventory records the migrated health-check API environment.                  |
+| T4  | IN_PROGRESS | Verification and completion review  | Automatic checks, manual scenario, AC review, pre-push checks, independent review. |
 
 T1 tests (use the `write-unit-test` skill, every wait bounded):
 
@@ -201,12 +201,12 @@ before maintainer review and commit. Sign every commit with GPG.
 - [x] GitHub issue created and issue number added to this spec (#2450)
 - [x] Spec-only PR merged into `develop` before implementation
 - [x] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
+- [x] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md`
+- [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md`
 - [ ] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
@@ -220,6 +220,7 @@ before maintainer review and commit. Sign every commit with GPG.
 - 2026-10-24 19:34 UTC - GitHub Copilot - Refreshed after sub-EPIC #2410 (SI-22) closed, which rewrote the HTTP and UDP test environments (#2416) after this spec was written. Re-checked against `develop`: the 8 `env.stop()` calls, the 8 `state.binding` reads, and the 5 s drain still hold, and the environment's `start()` spawns only the server. The Related ADRs now name the new ADR that supersedes the cancellation-tree ADR, and the Design and Ownership Review says this environment keeps one token and one `DropGuard` because it owns no listener, so it must not copy the two-token shape of the HTTP and UDP environments. No task, acceptance criterion, or scope change.
 - 2026-10-26 07:16 UTC - GitHub Copilot - T0 baseline and T1 implemented (token start, one `DropGuard`, private `state`, `bind_address()`, joined `stop()` errors) with 8 new tests, mutation-proven in `manual-verification-evidence.md`; the 8 contract reads were moved early so the tree compiles. Stopped for the design review.
 - 2026-10-26 07:33 UTC - GitHub Copilot - Design review approved by the maintainer. Committed the code, the T0/T1 evidence and the task inventory update (T2 reads moved with T1, T3 done). Added V5 (prose-first Arrange-Act-Assert record) and V6 (automatic checks after the last production change) to `manual-verification-evidence.md`. Independent review next.
+- 2026-10-26 07:38 UTC - GitHub Copilot - Independent Task Reviewer passed with five non-blocking findings (F1-F5), all resolved and recorded in `agent-review-reports.md`. No retrospective: no discovery changed the design or the spec; the mutation that did not compile is explained in V2. Acceptance criteria stay TODO until the maintainer says to tick them.
 
 ## Acceptance Criteria
 
@@ -256,8 +257,8 @@ The package has no example binary, so there is no signal scenario.
 
 | ID  | Scenario                  | Human-oriented command/steps                                               | Expected Result                                                 | Status | Evidence                                     |
 | --- | ------------------------- | -------------------------------------------------------------------------- | --------------------------------------------------------------- | ------ | -------------------------------------------- |
-| M1  | No legacy stop in the env | Read the final `environment.rs`; list every `server` function it calls.    | Only `start_with_cancellation`; no `signals::Halted` or `signals::Started` channel. | TODO   | `manual-verification-evidence.md` section V3 |
-| M2  | Suite timing              | Run the package tests before and after; record wall time.                 | Comparable time; any slowdown explained.                        | TODO   | `manual-verification-evidence.md` section V4 |
+| M1  | No legacy stop in the env | Read the final `environment.rs`; list every `server` function it calls.    | Only `start_with_cancellation`; no `signals::Halted` or `signals::Started` channel. | DONE   | `manual-verification-evidence.md` section V3 |
+| M2  | Suite timing              | Run the package tests before and after; record wall time.                 | Comparable time; any slowdown explained.                        | DONE   | `manual-verification-evidence.md` section V4 |
 
 Notes:
 
@@ -300,7 +301,7 @@ available.
 
 ## Implementation Completion Review
 
-- Retrospective: `TODO`
+- Retrospective: not needed; see the 2026-10-26 07:38 progress-log entry
 - If needed, create `implementation-retrospective.md` from
   `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this directory;
   otherwise add a progress-log entry explaining why it was not needed.
