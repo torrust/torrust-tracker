@@ -536,7 +536,7 @@ declaration-only rows have no executable entries.
 | 2 | `v1/routes.rs` | 2 | S2 | 27 / 45 (60.00%) | 0 | Test candidate | PENDING | - |
 | 3 | `routes.rs` | 2 | S2 | 58 / 67 (86.57%) | 0 | Test candidate | PENDING | - |
 | 4 | `v1/context/health_check/handlers.rs` | 2 | S2 | 4 / 4 (100.00%) | 0 | Test candidate (small) | PENDING | - |
-| 5 | `v1/responses.rs` | 3 | S1 | 8 / 40 (20.00%) | 0 | Test candidate | PENDING | - |
+| 5 | `v1/responses.rs` | 3 | S1 | 8 / 40 (20.00%) | 0 | Test candidate | IN_PROGRESS | [v1-responses-tests.md](test-refactor-plans/v1-responses-tests.md) (proposed) |
 | 6 | `v1/context/auth_key/handlers.rs` | 4 | S3 | 0 / 56 (0.00%) | 0 | Test candidate | PENDING | - |
 | 7 | `v1/context/auth_key/responses.rs` | 4 | S3 | 0 / 26 (0.00%) | 0 | Test candidate | PENDING | - |
 | 8 | `v1/context/auth_key/routes.rs` | 4 | S3 | 16 / 16 (100.00%) | 0 | Probably no change | PENDING | - |
