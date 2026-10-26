@@ -13,7 +13,7 @@ async fn health_check_endpoint_should_return_status_ok_when_there_is_no_services
 
     let env = Started::new(&configuration.health_check_api.into(), Registar::default()).await;
 
-    let response = get(&format!("http://{}/health_check", env.state.binding)).await; // DevSkim: ignore DS137138
+    let response = get(&format!("http://{}/health_check", env.bind_address())).await; // DevSkim: ignore DS137138
 
     assert_eq!(response.status(), 200);
     assert_eq!(response.headers().get("content-type").unwrap(), "application/json");
@@ -65,7 +65,7 @@ mod api {
             let config = configuration.health_check_api.clone();
             let env = Started::new(&config.into(), registar).await;
 
-            let response = get(&format!("http://{}/health_check", env.state.binding)).await; // DevSkim: ignore DS137138
+            let response = get(&format!("http://{}/health_check", env.bind_address())).await; // DevSkim: ignore DS137138
 
             assert_eq!(response.status(), 200);
             assert_eq!(response.headers().get("content-type").unwrap(), "application/json");
@@ -124,7 +124,7 @@ mod api {
             let config = configuration.health_check_api.clone();
             let env = Started::new(&config.into(), registar).await;
 
-            let response = get(&format!("http://{}/health_check", env.state.binding)).await; // DevSkim: ignore DS137138
+            let response = get(&format!("http://{}/health_check", env.bind_address())).await; // DevSkim: ignore DS137138
 
             assert_eq!(response.status(), 200);
             assert_eq!(response.headers().get("content-type").unwrap(), "application/json");
@@ -199,7 +199,7 @@ mod http {
             let config = configuration.health_check_api.clone();
             let env = Started::new(&config.into(), registar).await;
 
-            let response = get(&format!("http://{}/health_check", env.state.binding)).await; // DevSkim: ignore DS137138
+            let response = get(&format!("http://{}/health_check", env.bind_address())).await; // DevSkim: ignore DS137138
 
             assert_eq!(response.status(), 200);
             assert_eq!(response.headers().get("content-type").unwrap(), "application/json");
@@ -265,7 +265,7 @@ mod http {
             let config = configuration.health_check_api.clone();
             let env = Started::new(&config.into(), registar).await;
 
-            let response = get(&format!("http://{}/health_check", env.state.binding)).await; // DevSkim: ignore DS137138
+            let response = get(&format!("http://{}/health_check", env.bind_address())).await; // DevSkim: ignore DS137138
             let report: Report = response.json().await.expect("health report should deserialize");
             let details = report
                 .details
@@ -315,7 +315,7 @@ mod http {
             let config = configuration.health_check_api.clone();
             let env = Started::new(&config.into(), registar).await;
 
-            let response = get(&format!("http://{}/health_check", env.state.binding)).await; // DevSkim: ignore DS137138
+            let response = get(&format!("http://{}/health_check", env.bind_address())).await; // DevSkim: ignore DS137138
 
             assert_eq!(response.status(), 200);
             assert_eq!(response.headers().get("content-type").unwrap(), "application/json");
@@ -374,7 +374,7 @@ mod udp {
             let config = configuration.health_check_api.clone();
             let env = Started::new(&config.into(), registar).await;
 
-            let response = get(&format!("http://{}/health_check", env.state.binding)).await; // DevSkim: ignore DS137138
+            let response = get(&format!("http://{}/health_check", env.bind_address())).await; // DevSkim: ignore DS137138
 
             assert_eq!(response.status(), 200);
             assert_eq!(response.headers().get("content-type").unwrap(), "application/json");
@@ -428,7 +428,7 @@ mod udp {
             let config = configuration.health_check_api.clone();
             let env = Started::new(&config.into(), registar).await;
 
-            let response = get(&format!("http://{}/health_check", env.state.binding)).await; // DevSkim: ignore DS137138
+            let response = get(&format!("http://{}/health_check", env.bind_address())).await; // DevSkim: ignore DS137138
 
             assert_eq!(response.status(), 200);
             assert_eq!(response.headers().get("content-type").unwrap(), "application/json");
