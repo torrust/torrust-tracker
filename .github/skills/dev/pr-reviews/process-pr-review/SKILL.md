@@ -265,7 +265,8 @@ python3 .github/skills/dev/pr-reviews/process-pr-review/scripts/validate-audit-r
   --pr-number <PR_NUMBER>
 ```
 
-It fetches review comments with `gh` unless `--comments-file` is given. It merges the repo-level
+It fetches review comments with `gh` unless `--comments-file` is given; it always needs `gh` to list
+pull-request commits, so a run is not offline even with `--comments-file`. It merges the repo-level
 comment listing with each review's own comment listing, because a reply can be visible on its review
 before it appears in the repo-level listing. It accepts a `Resolution reference` commit subject
 from three sources: the commits of the audited pull request, the commits of every pull request in

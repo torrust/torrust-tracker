@@ -30,13 +30,18 @@ def commits_endpoint(pull: tuple[str, str, int]) -> str:
 
 @contextlib.contextmanager
 def fake_git_and_gh(
-    git_subjects: list[str], pull_commits: dict[str, list[str]], failing_endpoints: frozenset[str] = frozenset()
+    git_subjects: list[str],
+    pull_commits: dict[str, list[str]],
+    failing_endpoints: frozenset[str] = frozenset(),
+    gh_installed: bool = True,
 ):
     """Fake `git log <base>..HEAD` and `gh api <endpoint> --paginate`, keyed by commits endpoint."""
 
     def run(argv, **kwargs):
         if argv[:2] == ["git", "log"]:
             return subprocess.CompletedProcess(argv, 0, stdout="\n".join(git_subjects), stderr="")
+        if not gh_installed:
+            raise FileNotFoundError(2, "No such file or directory", "gh")
         endpoint = argv[2]
         if endpoint in failing_endpoints:
             raise subprocess.CalledProcessError(1, argv, stderr="HTTP 502")
@@ -71,14 +76,6 @@ class ValidSubjectsTest(unittest.TestCase):
 
         self.assertIn(fix_subject, subjects)
 
-    def test_it_should_reject_a_subject_found_in_no_source(self):
-        audited_commits = {commits_endpoint(AUDITED_PULL): ["feat: an audited commit"]}
-
-        with fake_git_and_gh(git_subjects=["feat: an unpushed commit"], pull_commits=audited_commits):
-            subjects = validate.valid_subjects(UP_TO_DATE_BASE, [AUDITED_PULL])
-
-        self.assertNotIn("fix: a subject that exists in no commit", subjects)
-
     def test_it_should_accept_a_subject_found_only_in_the_local_range_of_unpushed_commits(self):
         unpushed_subject = "docs(pr-reviews): fix not pushed yet"
         audited_commits = {commits_endpoint(AUDITED_PULL): []}
@@ -97,6 +94,45 @@ class ValidSubjectsTest(unittest.TestCase):
 
         self.assertEqual(2, raised.exception.code)
         self.assertIn(endpoint, stderr.getvalue())
+
+    def test_it_should_exit_with_a_usage_error_when_gh_is_not_installed(self):
+        with fake_git_and_gh(git_subjects=[], pull_commits={}, gh_installed=False):
+            with contextlib.redirect_stderr(io.StringIO()) as stderr, self.assertRaises(SystemExit) as raised:
+                validate.valid_subjects(UP_TO_DATE_BASE, [AUDITED_PULL])
+
+        self.assertEqual(2, raised.exception.code)
+        self.assertIn(commits_endpoint(AUDITED_PULL), stderr.getvalue())
+
+
+class CheckRowTest(unittest.TestCase):
+    KNOWN_SUBJECT = "fix(pr-reviews): accept fix subjects from the audited PR's commits"
+
+    @staticmethod
+    def detail_citing(resolution_reference: str) -> str:
+        return (
+            "- Source URL: https://github.com/torrust/torrust-tracker/pull/1#pullrequestreview-5\n"
+            "- Source review ID: 5\n"
+            f"- Resolution reference: {resolution_reference}\n"
+        )
+
+    def test_it_should_accept_a_resolution_reference_equal_to_a_known_subject(self):
+        failures = validate.check_row("F1", "Minor", self.detail_citing(self.KNOWN_SUBJECT), {}, {self.KNOWN_SUBJECT})
+
+        self.assertEqual([], failures)
+
+    def test_it_should_reject_a_resolution_reference_that_only_nearly_matches_a_known_subject(self):
+        near_misses = {
+            "other case": self.KNOWN_SUBJECT.upper(),
+            "prefix": self.KNOWN_SUBJECT[:-1],
+            "suffix": self.KNOWN_SUBJECT + " again",
+        }
+
+        for name, reference in near_misses.items():
+            with self.subTest(name):
+                failures = validate.check_row("F1", "Minor", self.detail_citing(reference), {}, {self.KNOWN_SUBJECT})
+
+                self.assertEqual(1, len(failures))
+                self.assertIn("not a commit subject", failures[0])
 
 
 class PullsToCheckTest(unittest.TestCase):

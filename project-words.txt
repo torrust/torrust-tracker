@@ -427,6 +427,7 @@ proot
 proto
 pullrequestreview
 pushmirrors
+pycache
 pythondontwritebytecode
 qbittorrent
 quickcheck

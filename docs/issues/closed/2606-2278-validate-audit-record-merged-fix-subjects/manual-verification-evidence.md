@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/closed/2606-2278-validate-audit-record-merged-fix-subjects/ISSUE.md
-last-updated-utc: 2026-10-26 08:30
+last-updated-utc: 2026-10-26 15:47
 ---
 
 # Manual Verification Evidence
@@ -43,7 +43,7 @@ All steps ran one at a time, in the order below, and each finished before the ne
   `docs(issues): clarify manual runs and folder prefix in #2581 spec`,
   `docs(issues): [#2581] count unresolved threads over the whole PR in the poller exit condition`,
   and `docs(pr-reviews): move the WAIT-001 closure entry into the Processing Log`.
-- Status: `DONE` (reproduction). The final green recheck is pending.
+- Status: `DONE` (reproduction). The final green recheck is in the last section of this file.
 
 #### Steps Performed
 
@@ -168,8 +168,11 @@ Outcome: **Green**. Exactly one `not a commit subject` failure (M3, AC3). The te
 
 ### T10 - Existing audits with a `FIXED` row
 
-Ran the fixed script with `--base torrust/develop` on all 157 audits under `docs/pr-reviews/` that
-contain `FIXED` (started 19:55 UTC): 146 report `"status": "ok"`, 11 report `"failed"`:
+Ran the fixed script with `--base torrust/develop` on the 157 `PR-REVIEW.md` files under
+`docs/pr-reviews/` that contain the word `FIXED` (started 19:55 UTC). The count is of files with the
+word, not of audits with a `FIXED` table row: some files hold it only in their copied Status Values,
+and the reviewer of PR #2641 counted 148 files with a `FIXED` row, which I did not recount. The rerun
+covers all 157: 146 report `"status": "ok"`, 11 report `"failed"`:
 PR #2232, #2235, #2236, #2237, #2239, #2249, #2252, #2259, #2269, #2272, and #2461.
 
 To tell whether the change caused them, the unmodified script from `torrust/develop` ran on the same
