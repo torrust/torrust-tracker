@@ -105,7 +105,7 @@ jobs:
       - id: cache
         name: Enable Job Cache
         if: runner.environment == 'github-hosted'
-        uses: Swatinem/rust-cache@v2.9.2
+        uses: Swatinem/rust-cache@v2.9.3
 
       # `actions/checkout` cleans the workspace, so keep host-side Cargo builds outside it.
       - id: persistent-target
@@ -235,7 +235,7 @@ jobs:
 
       - id: login
         name: Login to Docker Hub
-        uses: docker/login-action@v4.6.0
+        uses: docker/login-action@v4.7.0
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
@@ -283,7 +283,7 @@ jobs:
 
       - id: login
         name: Login to Docker Hub
-        uses: docker/login-action@v4.6.0
+        uses: docker/login-action@v4.7.0
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}

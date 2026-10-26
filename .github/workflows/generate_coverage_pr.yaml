@@ -88,7 +88,7 @@ jobs:
 
       - id: tools
         name: Install Tools
-        uses: taiki-e/install-action@v2.87.29
+        uses: taiki-e/install-action@v2.87.32
         with:
           tool: cargo-llvm-cov
 
@@ -181,11 +181,11 @@ jobs:
 
       - id: cache
         name: Enable Workflow Cache
-        uses: Swatinem/rust-cache@v2.9.2
+        uses: Swatinem/rust-cache@v2.9.3
 
       - id: tools
         name: Install Tools
-        uses: taiki-e/install-action@v2.87.29
+        uses: taiki-e/install-action@v2.87.32
         with:
           tool: grcov,cargo-llvm-cov
 
