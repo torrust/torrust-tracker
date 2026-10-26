@@ -40,7 +40,9 @@
 //! protect the token from being intercepted.
 //!
 //! NOTICE: If both the `Authorization` header and the `token` GET param are
-//! provided, the `Authorization` header will be used.
+//! provided, the `Authorization` header will be used. An `Authorization` header
+//! that is not readable text (not visible ASCII) is rejected like any other
+//! invalid header; it never falls back to the `token` GET param.
 use std::sync::Arc;
 
 use axum::extract::{self};
@@ -102,28 +104,27 @@ pub async fn auth(
 fn extract_bearer_token_from_header(request: &Request<axum::body::Body>) -> Result<Option<String>, AuthError> {
     let headers = request.headers();
 
-    let header_value = headers
-        .get(axum::http::header::AUTHORIZATION)
-        .and_then(|header_value| header_value.to_str().ok());
+    let Some(header_value) = headers.get(axum::http::header::AUTHORIZATION) else {
+        return Ok(None);
+    };
 
-    match header_value {
-        None => Ok(None),
-        Some(header_value) => {
-            if header_value == AUTH_BEARER_TOKEN_HEADER_PREFIX {
-                // Empty token
-                return Ok(Some(String::new()));
-            }
+    // A value that is not visible ASCII is a malformed header, not an absent one: treating it as absent would
+    // fall back to the `token` query parameter.
+    let header_value = header_value.to_str().map_err(|_| AuthError::UnknownTokenProvided)?;
 
-            if !header_value.starts_with(&format!("{AUTH_BEARER_TOKEN_HEADER_PREFIX} ")) {
-                // Invalid token type. Missing "Bearer" prefix.
-                return Err(AuthError::UnknownTokenProvided);
-            }
-
-            Ok(header_value
-                .strip_prefix(&format!("{AUTH_BEARER_TOKEN_HEADER_PREFIX} "))
-                .map(std::string::ToString::to_string))
-        }
+    if header_value == AUTH_BEARER_TOKEN_HEADER_PREFIX {
+        // Empty token
+        return Ok(Some(String::new()));
     }
+
+    if !header_value.starts_with(&format!("{AUTH_BEARER_TOKEN_HEADER_PREFIX} ")) {
+        // Invalid token type. Missing "Bearer" prefix.
+        return Err(AuthError::UnknownTokenProvided);
+    }
+
+    Ok(header_value
+        .strip_prefix(&format!("{AUTH_BEARER_TOKEN_HEADER_PREFIX} "))
+        .map(std::string::ToString::to_string))
 }
 
 enum AuthError {
