@@ -189,7 +189,7 @@ fn write_header(out: &mut String, total: usize, timestamp: &str) {
     .unwrap();
     writeln!(
         out,
-        "  `optional (testing)` is a test-only edge, not a runtime edge; `optional` means no feature enables it."
+        "  `optional (testing)` is a test-only edge, not a runtime edge; `optional` means no feature other than the dependency's own implicit one enables it."
     )
     .unwrap();
     writeln!(out, "- **Dev dep** — required only in tests and benchmarks.").unwrap();
