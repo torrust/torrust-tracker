@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/2482-gate-axum-health-check-api-server-test-environment/ISSUE.md
 branch: "{issue-number}-2482-gate-axum-health-check-api-server-test-environment"
 related-pr: null
-last-updated-utc: "2026-10-22 18:10"
+last-updated-utc: "2026-10-26 19:50"
 semantic-links:
   skill-links:
     - create-issue
@@ -17,7 +17,7 @@ semantic-links:
     - docs/adrs/20261021190318_share_workspace_test_support_through_testing_features.md
     - docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md
     - docs/issues/open/2482-1669-reorganize-shared-test-support/test-support-inventory.md
-    - docs/issues/open/2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md
+    - docs/issues/closed/2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md
     - docs/issues/open/1669-overhaul-packages/workspace-coupling-report-2026-10-06.md
     - packages/axum-health-check-api-server/src/environment.rs
 ---
@@ -197,4 +197,4 @@ without `--all-features`, and check the test count.
 
 - Parent EPIC: [`#2482`](../../open/2482-1669-reorganize-shared-test-support/EPIC.md); ADR above
 - Inventory pattern A; EPIC #1488 subissue
-  [#2450](../../open/2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md)
+  [#2450](../../closed/2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md)

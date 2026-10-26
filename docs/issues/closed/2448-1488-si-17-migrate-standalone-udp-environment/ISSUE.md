@@ -9,7 +9,7 @@ github-issue: 2448
 spec-path: docs/issues/closed/2448-1488-si-17-migrate-standalone-udp-environment/ISSUE.md
 branch: "2448-migrate-standalone-udp-environment"
 related-pr: 2459
-last-updated-utc: "2026-10-25 08:09"
+last-updated-utc: "2026-10-26 19:50"
 semantic-links:
   skill-links:
     - create-issue
@@ -31,7 +31,7 @@ semantic-links:
     - docs/issues/closed/2342-1488-si-14-migrate-udp-receive-reset-token-lifecycle/ISSUE.md
     - docs/issues/closed/2370-1488-si-15-define-udp-active-request-policy/ISSUE.md
     - docs/issues/closed/2449-1488-si-23-migrate-rest-api-test-environment/ISSUE.md
-    - docs/issues/open/2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md
+    - docs/issues/closed/2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md
     - docs/issues/closed/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
     - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
 ---
@@ -360,7 +360,7 @@ Notes:
   health-check API environments stop through the legacy path. Found while
   refreshing this spec; the maintainer chose one item each:
   [SI-23](../2449-1488-si-23-migrate-rest-api-test-environment/ISSUE.md) (#2449) and
-  [SI-24](../../open/2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md) (#2450).
+  [SI-24](../2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md) (#2450).
 
 ## Rollback
 

@@ -6,7 +6,7 @@ epic: 1669
 github-issue: 2482
 spec-path: docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-26 17:35"
+last-updated-utc: "2026-10-26 19:50"
 semantic-links:
   skill-links:
     - create-issue
@@ -512,9 +512,9 @@ Append one line per meaningful update.
   build).
 - Related ADRs: [`20260629000000_adopt_independent_package_versioning.md`](../../../adrs/20260629000000_adopt_independent_package_versioning.md)
 - Baseline issue: #2446
-- Shutdown overhaul EPIC: #1488, with subissues that change the environments (#2449 and #2471 are closed):
+- Shutdown overhaul EPIC: #1488, with subissues that change the environments (#2449, #2450 and #2471 are closed):
   [#2449](../../closed/2449-1488-si-23-migrate-rest-api-test-environment/ISSUE.md),
-  [#2450](../2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md) and
+  [#2450](../../closed/2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md) and
   [#2471](../../closed/2471-1488-fix-http-environment-drop-path/ISSUE.md)
 - Earlier review of this spec: PR #2462 (as a draft task), PR #2484 (spec PR), and the #1669
   orchestrator's review of 2026-10-21 (spec refresh PR)

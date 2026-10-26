@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: done
 priority: p2
 epic: 1488
 github-issue: 2450
-spec-path: docs/issues/open/2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md
+spec-path: docs/issues/closed/2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md
 branch: "2450-migrate-health-check-api-test-environment"
 related-pr: 2652
-last-updated-utc: "2026-10-26 16:31"
+last-updated-utc: "2026-10-26 20:04"
 semantic-links:
   skill-links:
     - create-issue
@@ -186,8 +186,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T1  | DONE   | Migrate `Environment` start/stop    | D1-D5, with the T1 tests below, each mutation-proven.                               |
 | T2  | DONE   | Migrate the field reads             | Contract tests use `bind_address()`.                                                |
 | T3  | DONE   | Documentation                       | Task inventory records the migrated health-check API environment.                  |
-| T4  | IN_PROGRESS | Verification and completion review  | Automatic checks, manual scenario, AC review, pre-push checks, independent review. |
-| T5  | IN_PROGRESS | Review round on #2652               | `stop()` deregisters (D6), the F3 correction, the audit; a new independent review on the final tree. |
+| T4  | DONE        | Verification and completion review  | Automatic checks, manual scenario, AC review, pre-push checks, independent review. |
+| T5  | DONE        | Review round on #2652               | `stop()` deregisters (D6), the F3 correction, the audit; a new independent review on the final tree. |
 
 T1 tests (use the `write-unit-test` skill, every wait bounded):
 
@@ -225,12 +225,12 @@ before maintainer review and commit. Sign every commit with GPG.
 - [x] Implementation completed
 - [x] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Reviewer validated acceptance criteria and updated checkboxes
 - [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md`
-- [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Committer verified spec progress is up to date before commit
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -246,28 +246,30 @@ before maintainer review and commit. Sign every commit with GPG.
 - 2026-10-26 12:42 UTC - GitHub Copilot - Copilot's review of #2652 (`review-finding:pr-2652-f1`) found that a fixed-port stop-then-start panics, because the token-aware start registers the service and the `Registar` cannot remove it. This corrects the 07:38 entry: the discovery is material, so `implementation-retrospective.md` is added. The maintainer chose to document and pin the limitation and file a follow-up; recorded in V7, with V6 re-run after the new last production change. The acceptance criteria stay TODO.
 - 2026-10-26 16:24 UTC - GitHub Copilot - Review round on #2652 (`review-finding:pr-2652-f1`, `-f2`, `-f3`). This reverses the 12:42 UTC decision to document the fixed-port limitation: da2ce7 re-raised the finding as a Major (`-f2`) and asked for the fix, and measuring the cost showed a small additive registry method was enough. The maintainer chose to fix it in this PR (route R1) with `Registar::deregister`. Opened torrust/torrust-server-lib#2 at 16:04 UTC (CI green, merged 16:19 UTC), published `torrust-server-lib` 0.4.0, bumped it here, and made `stop()` deregister its own binding (D6, AC8), also when a task failed, with a green fixed-port restart test replacing the `should_panic` pin. The earlier independent review entry is corrected in `agent-review-reports.md` (`-f3`). V6 and V7 and the retrospective are rewritten to the final state. A new independent review on the final tree and the audit follow. The acceptance criteria stay TODO.
 - 2026-10-26 16:31 UTC - GitHub Copilot - A new independent Task Reviewer ran on the final tree and returned REVIEW FAILED for one documentation blocker (V5 lacked the prose-first comparison of the three tests added in this round) and six low findings, with no production defect; recorded in `agent-review-reports.md`. Fixed: V5 now covers the eleven environment tests, the production call-site count is corrected from eight to seven, V4 is labelled as measured at T1, `related-pr` is set, and the dropped-`stop()` risk is stated. The acceptance criteria stay TODO.
+- 2026-10-26 19:50 UTC - GitHub Copilot - PR #2652 merged on 2026-10-26 at 19:34 UTC by the maintainer, and #2450 is closed. The maintainer merged without waiting for the re-requested review of da2ce7, whose earlier findings F2 and F3 were fixed and their threads resolved. Archived this spec to `docs/issues/closed/`: `status: done`, `spec-path` and `issue-spec` updated, T4 and T5 marked DONE, the roadmap row 17 of EPIC #1488 marked Done, and every live link to the old `docs/issues/open/` path repaired. The acceptance criteria and the checkpoints for AC review, reviewer validation and committer verification stay unticked: the maintainer has not told the author to tick them.
+- 2026-10-26 20:04 UTC - GitHub Copilot - The maintainer told the author to tick the acceptance criteria. This corrects the 19:50 UTC entry, which said they stay unticked: AC1 to AC8, the definition-of-done items and the checkpoints for AC review, reviewer validation and committer verification are now ticked, each AC row has its evidence pointer, and the evidence is the final-tree review in `agent-review-reports.md` and `manual-verification-evidence.md` (V0 to V7).
 
 ## Acceptance Criteria
 
-- [ ] AC1: `Environment` starts the health-check API through
+- [x] AC1: `Environment` starts the health-check API through
       `start_with_cancellation`.
-- [ ] AC2: `Environment::stop()` cancels the token and joins the server task
+- [x] AC2: `Environment::stop()` cancels the token and joins the server task
       and the drain controller.
-- [ ] AC3: `stop()` returns an error naming each failing task, after joining
+- [x] AC3: `stop()` returns an error naming each failing task, after joining
       both, and keeps its current signature (D1).
-- [ ] AC4: A stopped environment can be started again, on an ephemeral or a
+- [x] AC4: A stopped environment can be started again, on an ephemeral or a
       fixed port, and serves the health check.
-- [ ] AC5: No caller reads the environment's running state directly.
-- [ ] AC6: The shutdown task inventory reflects the migration.
-- [ ] AC7: Dropping a running environment without `stop()` releases its
+- [x] AC5: No caller reads the environment's running state directly.
+- [x] AC6: The shutdown task inventory reflects the migration.
+- [x] AC7: Dropping a running environment without `stop()` releases its
       binding within the test deadline.
-- [ ] AC8: `stop()` removes the environment's own registration from the
+- [x] AC8: `stop()` removes the environment's own registration from the
       `registar`, also when a task failed, and keeps the services of other
       owners (D6).
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] `linter all` exits with code `0`
+- [x] Relevant tests pass
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
 
 ## Verification Plan
 
@@ -299,14 +301,14 @@ Notes:
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1   | TODO                   |          |
-| AC2   | TODO                   |          |
-| AC3   | TODO                   |          |
-| AC4   | TODO                   |          |
-| AC5   | TODO                   |          |
-| AC6   | TODO                   |          |
-| AC7   | TODO                   |          |
-| AC8   | TODO                   |          |
+| AC1   | DONE                   | `environment.rs` `start()` calls `server::start_with_cancellation`; no `Halted` in the module (evidence V3). Final review: `agent-review-reports.md`, entry 16:32 UTC. |
+| AC2   | DONE                   | Tests `it_should_stop_without_a_failure_when_the_server_and_its_drain_controller_finish_through_cancellation` and `it_should_release_the_health_check_api_binding_when_stopped`; mutation M1 (evidence V2). |
+| AC3   | DONE                   | Join and error tests in `environment::tests` (V1, V2); signature unchanged; `contract.rs` callers unchanged. |
+| AC4   | DONE                   | `it_should_serve_requests_after_being_stopped_and_started_again` (port 0) and `it_should_serve_requests_after_being_stopped_and_started_again_on_a_fixed_port` (evidence V7). |
+| AC5   | DONE                   | No `state.binding` or `env.state` read in `tests/`; `state` and `Running` are private; callers use `bind_address()` (evidence V0 and V1). |
+| AC6   | DONE                   | `docs/features/shutdown-process/task-inventory.md`, health-check row of the test environments table. |
+| AC7   | DONE                   | `it_should_release_the_health_check_api_binding_when_dropped_without_being_stopped` (evidence V2). |
+| AC8   | DONE                   | `it_should_remove_only_its_own_registration_from_the_registar_when_stopped` and `it_should_remove_its_registration_even_when_stopped_with_a_failed_task`; mutations M-A and M-B (evidence V7). |
 
 ## Dependencies
 
