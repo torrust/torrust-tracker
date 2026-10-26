@@ -9,7 +9,7 @@ github-issue: 2606
 spec-path: docs/issues/closed/2606-2278-validate-audit-record-merged-fix-subjects/ISSUE.md
 branch: "2606-validate-audit-record-merged-fix-subjects"
 related-pr: 2641
-last-updated-utc: "2026-10-26 15:47"
+last-updated-utc: "2026-10-26 17:10"
 semantic-links:
   skill-links:
     - create-issue
@@ -135,7 +135,7 @@ subject set with `git` and `gh` faked at the process boundary. Following the rep
 precedent of `contrib/dev-tools/git/tests/test-github-merge-symlinks.py`, it uses only the
 standard library.
 
-Cases (the first three and the `gh` failure case fail on the code before the fix; the unknown-subject
+Cases (the first two and the `gh` failure case fail on the code before the fix; the unknown-subject
 and `<base>..HEAD` cases guard existing behavior, as the T6 row says):
 
 - a subject present only in the audited PR's commit list is accepted with an up-to-date base;
