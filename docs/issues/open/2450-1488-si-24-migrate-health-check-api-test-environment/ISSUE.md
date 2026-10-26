@@ -8,8 +8,8 @@ epic: 1488
 github-issue: 2450
 spec-path: docs/issues/open/2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md
 branch: "2450-migrate-health-check-api-test-environment"
-related-pr: null
-last-updated-utc: "2026-10-25 08:09"
+related-pr: 2652
+last-updated-utc: "2026-10-26 16:31"
 semantic-links:
   skill-links:
     - create-issue
@@ -72,6 +72,12 @@ and is not in the EPIC roadmap:
 5. **No owned listeners, no example.** No event listener, no example binary.
 6. **The drain is bounded.** The shared helper force-closes at the 5 s
    `HEALTH_CHECK_API_GRACEFUL_DRAIN_TIMEOUT` deadline (SI-16 D7).
+7. **Registration side effect.** The legacy `server::start` never registered the
+   service in the `registar`; `start_with_cancellation` does. `Registar` in
+   `torrust-server-lib` 0.3.0 had no way to remove a registration, so a
+   stop-then-start on a fixed port registered the same binding twice and
+   panicked (found in the review of #2652, `review-finding:pr-2652-f1`). Version
+   0.4.0 adds `Registar::deregister`.
 
 ## Scope
 
@@ -81,6 +87,8 @@ and is not in the EPIC roadmap:
   with a fresh token per start.
 - Give the environment a `bind_address()` accessor and migrate the 8
   `env.state.binding` reads to it.
+- Remove the environment's own registration from the `registar` in `stop()`,
+  which needs `torrust-server-lib` 0.4.0 (`Registar::deregister`).
 - Deterministic tests for the new `stop()` guarantees.
 - Update the shutdown task inventory.
 
@@ -108,6 +116,16 @@ and is not in the EPIC roadmap:
   `RuntimeServiceMetadata`; use the health-check API role with instance 0, as
   the application does.
 - **D5 - No outer stop timeout.** The drain helper bounds the stop (fact 6).
+- **D6 - `stop()` removes its own registration.** After joining both tasks, and
+  also when a task failed, `stop()` calls `Registar::deregister` with the
+  binding the server registered (`CancellationRunning::service_binding`). It
+  removes only that binding, so the services of other owners stay registered
+  and a restart on a fixed port works. Added after the review of #2652
+  (`review-finding:pr-2652-f1`, `review-finding:pr-2652-f2`). A bare drop cannot
+  await the registry lock, so only `stop()` removes it. Rejected: returning a
+  fresh `Registar` on stop (as the REST environment does), which would discard
+  the caller's services; and a receipt-returning `register` that removes only
+  its own entry, a breaking change to every call site for no present need.
 
 ## Architectural Decisions
 
@@ -164,17 +182,21 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                | Notes / Expected Output                                                             |
 | --- | ------ | ----------------------------------- | ----------------------------------------------------------------------------------- |
-| T0  | TODO   | Record baseline                     | Package test results.                                                               |
-| T1  | TODO   | Migrate `Environment` start/stop    | D1-D5, with the T1 tests below, each mutation-proven.                               |
-| T2  | TODO   | Migrate the field reads             | Contract tests use `bind_address()`.                                                |
-| T3  | TODO   | Documentation                       | Task inventory records the migrated health-check API environment.                  |
-| T4  | TODO   | Verification and completion review  | Automatic checks, manual scenario, AC review, pre-push checks, independent review. |
+| T0  | DONE   | Record baseline                     | Package test results.                                                               |
+| T1  | DONE   | Migrate `Environment` start/stop    | D1-D5, with the T1 tests below, each mutation-proven.                               |
+| T2  | DONE   | Migrate the field reads             | Contract tests use `bind_address()`.                                                |
+| T3  | DONE   | Documentation                       | Task inventory records the migrated health-check API environment.                  |
+| T4  | IN_PROGRESS | Verification and completion review  | Automatic checks, manual scenario, AC review, pre-push checks, independent review. |
+| T5  | IN_PROGRESS | Review round on #2652               | `stop()` deregisters (D6), the F3 correction, the audit; a new independent review on the final tree. |
 
 T1 tests (use the `write-unit-test` skill, every wait bounded):
 
 - `stop()` joins the server and the drain controller without an error.
 - `stop()` releases the binding: the same address binds right after `stop()`.
-- Stop-then-start serves the health check on the restarted environment.
+- Stop-then-start serves the health check on the restarted environment, on an
+  ephemeral port and on a fixed port.
+- `stop()` removes the environment's own registration, also when a task
+  failed, and leaves the services of other owners registered.
 - A drain timeout is returned as an error after both tasks join.
 - Dropping a running environment without `stop()` releases the binding
   (poll `TcpListener::bind` within a bounded deadline, as #2471's test does).
@@ -199,14 +221,14 @@ before maintainer review and commit. Sign every commit with GPG.
 - [x] Folder-style spec drafted (moved to `docs/issues/open/2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md`)
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec (#2450)
-- [ ] Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Spec-only PR merged into `develop` before implementation
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md`
+- [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md`
 - [ ] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
@@ -218,6 +240,12 @@ before maintainer review and commit. Sign every commit with GPG.
 - 2026-10-15 19:38 UTC - GitHub Copilot - Corrected the drop-path note after `review-finding:pr-2544-f5`: the HTTP environment never stopped on drop, before or after SI-16, so the note no longer says SI-16 lost the behavior or that the legacy halt sender stops its server on drop. The `DropGuard` requirement and AC7 stand.
 - 2026-10-15 20:33 UTC - GitHub Copilot - `review-finding:pr-2544-f14`: the code answers the open question. The health-check API server spawns the same `graceful_shutdown` task as HTTP, so its legacy drop does not stop the server either (read from source, not run). The drop-path note says so.
 - 2026-10-24 19:34 UTC - GitHub Copilot - Refreshed after sub-EPIC #2410 (SI-22) closed, which rewrote the HTTP and UDP test environments (#2416) after this spec was written. Re-checked against `develop`: the 8 `env.stop()` calls, the 8 `state.binding` reads, and the 5 s drain still hold, and the environment's `start()` spawns only the server. The Related ADRs now name the new ADR that supersedes the cancellation-tree ADR, and the Design and Ownership Review says this environment keeps one token and one `DropGuard` because it owns no listener, so it must not copy the two-token shape of the HTTP and UDP environments. No task, acceptance criterion, or scope change.
+- 2026-10-26 07:16 UTC - GitHub Copilot - T0 baseline and T1 implemented (token start, one `DropGuard`, private `state`, `bind_address()`, joined `stop()` errors) with 8 new tests, mutation-proven in `manual-verification-evidence.md`; the 8 contract reads were moved early so the tree compiles. Stopped for the design review.
+- 2026-10-26 07:33 UTC - GitHub Copilot - Design review approved by the maintainer. Committed the code, the T0/T1 evidence and the task inventory update (T2 reads moved with T1, T3 done). Added V5 (prose-first Arrange-Act-Assert record) and V6 (automatic checks after the last production change) to `manual-verification-evidence.md`. Independent review next.
+- 2026-10-26 07:38 UTC - GitHub Copilot - Independent Task Reviewer passed with five non-blocking findings (F1-F5), all resolved and recorded in `agent-review-reports.md`. No retrospective: no discovery changed the design or the spec; the mutation that did not compile is explained in V2. Acceptance criteria stay TODO until the maintainer says to tick them.
+- 2026-10-26 12:42 UTC - GitHub Copilot - Copilot's review of #2652 (`review-finding:pr-2652-f1`) found that a fixed-port stop-then-start panics, because the token-aware start registers the service and the `Registar` cannot remove it. This corrects the 07:38 entry: the discovery is material, so `implementation-retrospective.md` is added. The maintainer chose to document and pin the limitation and file a follow-up; recorded in V7, with V6 re-run after the new last production change. The acceptance criteria stay TODO.
+- 2026-10-26 16:24 UTC - GitHub Copilot - Review round on #2652 (`review-finding:pr-2652-f1`, `-f2`, `-f3`). This reverses the 12:42 UTC decision to document the fixed-port limitation: da2ce7 re-raised the finding as a Major (`-f2`) and asked for the fix, and measuring the cost showed a small additive registry method was enough. The maintainer chose to fix it in this PR (route R1) with `Registar::deregister`. Opened torrust/torrust-server-lib#2 at 16:04 UTC (CI green, merged 16:19 UTC), published `torrust-server-lib` 0.4.0, bumped it here, and made `stop()` deregister its own binding (D6, AC8), also when a task failed, with a green fixed-port restart test replacing the `should_panic` pin. The earlier independent review entry is corrected in `agent-review-reports.md` (`-f3`). V6 and V7 and the retrospective are rewritten to the final state. A new independent review on the final tree and the audit follow. The acceptance criteria stay TODO.
+- 2026-10-26 16:31 UTC - GitHub Copilot - A new independent Task Reviewer ran on the final tree and returned REVIEW FAILED for one documentation blocker (V5 lacked the prose-first comparison of the three tests added in this round) and six low findings, with no production defect; recorded in `agent-review-reports.md`. Fixed: V5 now covers the eleven environment tests, the production call-site count is corrected from eight to seven, V4 is labelled as measured at T1, `related-pr` is set, and the dropped-`stop()` risk is stated. The acceptance criteria stay TODO.
 
 ## Acceptance Criteria
 
@@ -227,12 +255,15 @@ before maintainer review and commit. Sign every commit with GPG.
       and the drain controller.
 - [ ] AC3: `stop()` returns an error naming each failing task, after joining
       both, and keeps its current signature (D1).
-- [ ] AC4: A stopped environment can be started again and serves the health
-      check.
+- [ ] AC4: A stopped environment can be started again, on an ephemeral or a
+      fixed port, and serves the health check.
 - [ ] AC5: No caller reads the environment's running state directly.
 - [ ] AC6: The shutdown task inventory reflects the migration.
 - [ ] AC7: Dropping a running environment without `stop()` releases its
       binding within the test deadline.
+- [ ] AC8: `stop()` removes the environment's own registration from the
+      `registar`, also when a task failed, and keeps the services of other
+      owners (D6).
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
@@ -254,8 +285,8 @@ The package has no example binary, so there is no signal scenario.
 
 | ID  | Scenario                  | Human-oriented command/steps                                               | Expected Result                                                 | Status | Evidence                                     |
 | --- | ------------------------- | -------------------------------------------------------------------------- | --------------------------------------------------------------- | ------ | -------------------------------------------- |
-| M1  | No legacy stop in the env | Read the final `environment.rs`; list every `server` function it calls.    | Only `start_with_cancellation`; no `signals::Halted` or `signals::Started` channel. | TODO   | `manual-verification-evidence.md` section V1 |
-| M2  | Suite timing              | Run the package tests before and after; record wall time.                 | Comparable time; any slowdown explained.                        | TODO   | `manual-verification-evidence.md` section V2 |
+| M1  | No legacy stop in the env | Read the final `environment.rs`; list every `server` function it calls.    | Only `start_with_cancellation`; no `signals::Halted` or `signals::Started` channel. | DONE   | `manual-verification-evidence.md` section V3 |
+| M2  | Suite timing              | Run the package tests before and after; record wall time.                 | Comparable time; any slowdown explained.                        | DONE   | `manual-verification-evidence.md` section V4 |
 
 Notes:
 
@@ -275,11 +306,14 @@ Notes:
 | AC5   | TODO                   |          |
 | AC6   | TODO                   |          |
 | AC7   | TODO                   |          |
+| AC8   | TODO                   |          |
 
 ## Dependencies
 
 - Done: SI-13 (#2324) token-aware health-check API lifecycle; SI-16 (#2412) as
   the reference migration and the bounded drain helper.
+- Done: `torrust-server-lib` 0.4.0 with `Registar::deregister`
+  (torrust/torrust-server-lib#2), which D6 uses.
 - Best after SI-17 and SI-23: the contract tests also stop UDP and REST API
   environments, so migrating those first keeps this diff to the health-check
   environment.
@@ -290,15 +324,29 @@ Notes:
 - **Public API change.** `Running` and the `state` field are public in a
   non-`testing` module; external users of them break. The module is test
   support, so the risk is low; SI-19 is the breaking release anyway.
+- **Bare drop keeps the registration.** Dropping a running environment without
+  `stop()` releases the binding but cannot await the registry lock, so the
+  entry stays in the `registar`. A fixed-port restart after a bare drop still
+  fails; only `stop()` is restart-safe. Callers that restart must call `stop()`.
+  The same holds if the `stop()` future is dropped after it cancelled the token
+  and before it deregistered, for example by a caller's timeout (read from
+  source, not run).
+- **`deregister` removes by binding.** The registry is keyed by binding only,
+  so `Registar::deregister` removes whichever registration holds it. The
+  environment passes only the binding it registered.
 
 ## Rollback
 
 Revert the environment and field-read commits; the legacy path is still
-available.
+available. To keep the migration but drop the registry cleanup, revert only the
+`stop()` deregistration commit; the `torrust-server-lib` 0.4.0 bump is harmless
+(it only adds a method).
 
 ## Implementation Completion Review
 
-- Retrospective: `TODO`
+- Retrospective: `implementation-retrospective.md`, added after the review of
+  #2652 found the fixed-port restart problem (progress-log entry of
+  2026-10-26 12:42 UTC and the later entries)
 - If needed, create `implementation-retrospective.md` from
   `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this directory;
   otherwise add a progress-log entry explaining why it was not needed.
