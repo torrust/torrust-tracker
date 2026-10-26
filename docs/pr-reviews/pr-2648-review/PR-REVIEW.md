@@ -208,6 +208,11 @@ reviewer's own ID.
   so that thread was answered with the evidence and the documentation fix, not the proposed code limit.
   Fixed each independent finding in its own signed commit (F2 and F3 together), replied on the six threads
   after pushing, and resolved them after this record was committed and pushed.
+- 2026-10-26 12:37 UTC - Correction to the 07:22 UTC entry, which said that the threads were resolved after this
+  record was committed and pushed: the commit that carries that entry is dated 07:23:00 UTC, so the sequence
+  cannot belong to 07:22. The record was committed at 07:23:00 UTC, then pushed, and the six threads were resolved
+  after the push; the times of the pushes and of the resolutions were not measured. The final resolved state of
+  the threads was observed afterwards, in a refresh of the thread data, without a measured event time.
 
 ## Completion Rules
 
