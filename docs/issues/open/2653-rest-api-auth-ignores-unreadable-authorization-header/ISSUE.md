@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: draft
+status: planned
 priority: p3
 epic: null
-github-issue: null
-spec-path: docs/issues/drafts/rest-api-auth-ignores-unreadable-authorization-header/ISSUE.md
-branch: "{issue-number}-rest-api-auth-ignores-unreadable-authorization-header"
+github-issue: 2653
+spec-path: docs/issues/open/2653-rest-api-auth-ignores-unreadable-authorization-header/ISSUE.md
+branch: "2653-rest-api-auth-ignores-unreadable-authorization-header-spec"
 related-pr: null
-last-updated-utc: "2026-10-25 06:30"
+last-updated-utc: "2026-10-26 08:35"
 semantic-links:
   skill-links:
     - create-issue
@@ -24,15 +24,15 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - REST API authentication ignores an unreadable `Authorization` header
+# Issue #2653 - REST API authentication ignores an unreadable `Authorization` header
 
 Found while planning the authentication middleware tests of #2637 (EPIC #1347). Not part of an EPIC; the
 maintainer decides whether to attach it to one.
 
 ## Goal
 
-Decide, and then make consistent and tested, how the REST API authentication middleware treats an
-`Authorization` header whose value is not readable text (not visible ASCII).
+Reject an `Authorization` header whose value is not readable text (not visible ASCII), consistently with other
+invalid headers, and protect that behavior with a test.
 
 ## Background
 
@@ -59,13 +59,23 @@ The concern is consistency and the documented contract ("the `Authorization` hea
 are provided), not a bypass: the query token must still be valid, and a request without a valid token is
 rejected in every case observed.
 
+The `token` query parameter is a legacy authentication method that the maintainer plans to remove in version 2
+of the API. A URL travels in clear text over plain HTTP and is often written to access logs and proxies, so a
+token in a URL is easier to leak than one in a header. An unreadable `Authorization` header should therefore
+not fall back to that weaker path.
+
+## Decision
+
+The maintainer decided to **reject** an unreadable `Authorization` header: the middleware answers
+`unknown token provided`, like any other non-`Bearer` value, and never falls back to the `token` query parameter.
+This matches the documented precedence of the header and does not extend the legacy query-token path.
+
 ## Scope
 
 ### In Scope
 
-- Decide the intended behavior (see Open Decisions).
-- Make `extract_bearer_token_from_header` implement the decision.
-- Add a unit test of the middleware for the decided behavior, in the in-file test module that #2637 creates.
+- Make `extract_bearer_token_from_header` reject an unreadable `Authorization` header with `AuthError::UnknownTokenProvided`.
+- Add a unit test of the middleware for the decided behavior, in the existing test module of `auth.rs`.
 - Update the module documentation of `auth.rs` if the contract text changes.
 
 ### Out of Scope
@@ -112,9 +122,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T1 | TODO | Maintainer decides the intended behavior | Resolves the Open Decisions below. |
+| T1 | DONE | Maintainer decides the intended behavior | Reject; see the Decision section. |
 | T2 | TODO | Reproduce on the real tracker | `manual-verification-evidence.md` V1. |
-| T3 | TODO | Add the failing regression test (red) | Test fails for the current behavior if the decision is to reject. |
+| T3 | TODO | Add the failing regression test (red) | Test fails for the current behavior (`200` instead of `500 unknown token provided`). |
 | T4 | TODO | Fix `extract_bearer_token_from_header` and the documentation | Test passes (green). |
 | T5 | TODO | Final like-for-like recheck and verification | `manual-verification-evidence.md` V2; `linter all`; package tests. |
 
@@ -132,9 +142,9 @@ Use Conventional Commit messages (`fix(axum-rest-api-server): ...`) and sign eve
 
 ### Workflow Checkpoints
 
-- [x] Folder-style spec drafted in `docs/issues/drafts/rest-api-auth-ignores-unreadable-authorization-header/ISSUE.md`
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created and issue number added to this spec
+- [x] Folder-style spec drafted in `docs/issues/open/2653-rest-api-auth-ignores-unreadable-authorization-header/ISSUE.md`
+- [x] Spec reviewed and approved by user/maintainer
+- [x] GitHub issue created and issue number added to this spec
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
@@ -146,6 +156,10 @@ Use Conventional Commit messages (`fix(axum-rest-api-server): ...`) and sign eve
 - 2026-10-25 06:30 UTC - GitHub Copilot - Drafted this specification from the #2637 S1 plan review. The
   maintainer asked for a hand-off and a stop. The conflicting remaining work is the #2637 plan for
   `v1/middlewares/auth.rs`.
+- 2026-10-26 08:30 UTC - GitHub Copilot - Reviewed the draft. Corrected the test-module wording (the module already
+  exists). The maintainer decided to reject an unreadable header, with no parent EPIC, priority `p3`, and a
+  spec-only PR first. Recorded the rationale: the `token` query parameter is legacy and planned for removal.
+- 2026-10-26 08:35 UTC - GitHub Copilot - Created GitHub issue #2653 and moved the spec to `docs/issues/open/`.
 
 ## Acceptance Criteria
 
@@ -186,19 +200,12 @@ None planned.
 
 - Rejecting an unreadable header could break a client that sends a corrupted header and relies on the query
   token; such a client is already outside the documented contract, and the change is visible only to it.
-- Keeping the behavior means documenting that an unreadable header is ignored, which is a less strict contract.
+- The alternative, keeping and documenting the behavior, was rejected: it would leave a less strict contract
+  and extend the legacy query-token path.
 
 ## Implementation Completion Review
 
 - Retrospective: `Not yet assessed`
-
-## Open Decisions (maintainer)
-
-1. **Intended behavior.** Choose one:
-   - **Reject.** Treat an unreadable header like another scheme and answer `unknown token provided`
-     (consistent with `Basic <token>` and `bearer <token>`, and with "the header takes precedence").
-   - **Keep and document.** Ignore an unreadable header and say so in the module documentation.
-2. **Parent and priority.** Attach to an EPIC or leave it without a parent; confirm priority `p3`.
 
 ## References
 
