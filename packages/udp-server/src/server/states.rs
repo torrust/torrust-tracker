@@ -175,7 +175,8 @@ impl Server<Stopped> {
     /// has no launcher task. It registers the service and, if registration
     /// fails, cancels `cancellation_token`, stops the receive loop, and
     /// releases the socket before returning. Otherwise the caller owns the
-    /// returned receive-loop task.
+    /// returned receive-loop task. After `cancellation_token` is cancelled the
+    /// receive loop gives accepted requests at most `request_drain_deadline` to finish.
     ///
     /// # Errors
     ///
@@ -200,6 +201,7 @@ impl Server<Stopped> {
         metadata: RuntimeServiceMetadata,
         cookie_lifetime: Duration,
         connection_id_validation: ConnectionIdValidationPolicy,
+        request_drain_deadline: Duration,
         cancellation_token: CancellationToken,
     ) -> Result<CancellationRunning, UdpError> {
         let bound_socket = BoundSocket::bind(
@@ -219,6 +221,7 @@ impl Server<Stopped> {
             cookie_lifetime,
             connection_id_validation,
             cancellation_token.clone(),
+            request_drain_deadline,
         );
         let receive_loop = OwnedReceiveLoop::new(task);
 

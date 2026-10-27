@@ -256,6 +256,7 @@ mod tests {
         use tokio_util::sync::CancellationToken;
         use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
         use torrust_server_lib::registar::{Registar, RegistrationError, ServiceRegistration};
+        use torrust_tracker_configuration::v3_0_0::shutdown::Shutdown;
         use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
         use torrust_tracker_test_helpers::configuration::ephemeral_public;
         use torrust_tracker_udp_core::ConnectionIdValidationPolicy;
@@ -324,6 +325,7 @@ mod tests {
                         udp_tracker_metadata(),
                         self.cookie_lifetime,
                         ConnectionIdValidationPolicy::Strict,
+                        Shutdown::default().udp_request_drain_in_secs.as_duration(),
                         cancellation_token,
                     )
                     .await

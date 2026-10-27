@@ -509,6 +509,11 @@ async fn start_udp_instance(
             .with_public_url(udp_tracker_config.public_url.as_ref().map(|url| url.as_url().clone())),
         connection_id_validation,
         reservation.cancellation_token(),
+        app_container
+            .application_config
+            .shutdown
+            .udp_request_drain_in_secs
+            .as_duration(),
     )
     .await
     .map_err(|source| Error::ServiceStartup {

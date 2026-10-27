@@ -7,6 +7,7 @@
 //! > on different ports. Refer to the [configuration documentation](https://docs.rs/torrust-tracker-configuration)
 //! > for the configuration options.
 use std::sync::Arc;
+use std::time::Duration;
 
 use tokio_util::sync::CancellationToken;
 use torrust_server_lib::registar::ServiceRegistrationForm;
@@ -56,6 +57,7 @@ pub async fn start_job(
     metadata: RuntimeServiceMetadata,
     connection_id_validation: ConnectionIdValidationPolicy,
     cancellation_token: CancellationToken,
+    request_drain_deadline: Duration,
 ) -> Result<impl Future<Output = ComponentResult> + Send + 'static, Error> {
     let bind_to = udp_tracker_core_container.udp_tracker_config.bind_address;
     let cookie_lifetime = udp_tracker_core_container.udp_tracker_config.cookie_lifetime;
@@ -74,6 +76,7 @@ pub async fn start_job(
             metadata,
             cookie_lifetime,
             connection_id_validation,
+            request_drain_deadline,
             cancellation_token,
         )
         .await
@@ -227,6 +230,7 @@ mod tests {
             RuntimeServiceMetadata::new(configuration_instance_id),
             ConnectionIdValidationPolicy::Strict,
             CancellationToken::new(),
+            configuration.application.shutdown.udp_request_drain_in_secs.as_duration(),
         )
         .await
         .expect("the UDP tracker component should start");
