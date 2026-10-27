@@ -1,8 +1,12 @@
 use std::path::PathBuf;
+use std::process::ExitCode;
 use std::time::Duration;
 
 use clap::Parser;
 use torrust_tracker_lib::app;
+use torrust_tracker_lib::bootstrap::jobs::manager::{
+    EXIT_CODE_GRACEFUL_SHUTDOWN, JobOutcome, incomplete_components, shutdown_exit_code,
+};
 
 /// Command-line arguments accepted by the tracker executable.
 #[derive(Debug, Parser)]
@@ -23,7 +27,7 @@ fn parse_non_empty_path(value: &str) -> Result<PathBuf, String> {
 }
 
 #[tokio::main]
-async fn main() {
+async fn main() -> ExitCode {
     let cli = Cli::parse();
 
     match app::start_with_explicit_config_toml_path(cli.config_toml_path).await {
@@ -34,16 +38,34 @@ async fn main() {
 
             jobs.cancel();
 
-            jobs.wait_for_all(Duration::from_secs(10)).await;
+            let outcomes = jobs.wait_for_all(Duration::from_secs(10)).await;
 
-            tracing::info!("Torrust tracker successfully shutdown.");
+            report_shutdown(&outcomes)
         }
         Err(error) => {
             tracing::error!(%error, "Tracker startup failed");
             report_startup_failure(&error);
-            std::process::exit(1);
+            ExitCode::FAILURE
         }
     }
+}
+
+/// Logs the result of a shutdown and returns the process exit code for it.
+///
+/// The success message appears only when every component stopped gracefully.
+fn report_shutdown(outcomes: &[JobOutcome]) -> ExitCode {
+    let exit_code = shutdown_exit_code(outcomes);
+
+    if exit_code == EXIT_CODE_GRACEFUL_SHUTDOWN {
+        tracing::info!("Torrust tracker successfully shutdown.");
+    } else {
+        tracing::error!(
+            incomplete_components = %incomplete_components(outcomes).join(", "),
+            "Torrust tracker shutdown was incomplete: a component failed, panicked, or was aborted at the shutdown deadline."
+        );
+    }
+
+    ExitCode::from(exit_code)
 }
 
 /// Waits until the process receives a supported shutdown signal.

@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2668-1488-si-20-configure-shutdown-policy/ISSUE.md
-last-updated-utc: "2026-10-27 12:31"
+last-updated-utc: "2026-10-27 12:37"
 ---
 
 # Manual Verification Evidence
@@ -241,6 +241,48 @@ test result: FAILED. 2 passed; 3 failed; 0 ignored; 0 measured; 146 filtered out
 #### Conclusion
 
 The three tests for `Failed`, `Panicked`, and `Aborted` are red for the reason of the defect (`left: 0`, `right: 1`). The two graceful cases pass on purpose: they pin the behavior that must not change. T3b makes the three pass and records the green run.
+
+### T3b - Fix: the process exit code follows the shutdown outcomes
+
+- Goal: make the three red tests of T3a pass, prove the new tests guard each clause, and record the green run.
+- Status: `DONE`. The executable-boundary recheck of V1 (B1 to B4) is T8's job and has not run yet.
+- Toolchain: stable Rust 1.99.1 (nightly Rust toolchain for the formatter check).
+
+#### Change
+
+`JobStatus::is_graceful` (`Completed` and `Cancelled`), `shutdown_exit_code` (`0` only when every outcome is graceful, otherwise `1`), and `incomplete_components` in `src/bootstrap/jobs/manager.rs`. `src/main.rs` now returns `std::process::ExitCode`: the success message is logged only on exit code `0`, an incomplete shutdown logs an error line that names the incomplete components, and a startup failure returns `ExitCode::FAILURE` instead of calling `std::process::exit(1)`. The 10 s deadline is unchanged here; T4 replaces it.
+
+#### Green run
+
+`cargo test --lib -p torrust-tracker bootstrap::jobs::manager` (stable toolchain, 12:32 UTC): 39 passed, 0 failed, including the three tests that were red in T3a and the new `it_should_name_only_the_components_whose_shutdown_was_not_graceful_in_outcome_order`.
+
+#### Mutation proofs
+
+Each row: apply one mutation with the edit tool, run the manager tests (stable toolchain), read the output (`could_not_compile=0` in every run), then restore the saved file and prove it with `cmp`.
+
+| Id | Clause guarded | Mutation | Tests that failed |
+| -- | -------------- | -------- | ----------------- |
+| S1 | Exit `0` only when every component is graceful | `all` becomes `any` | `it_should_exit_with_the_graceful_code_when_there_are_no_outcomes`, `..._when_a_component_failed`, `..._when_a_component_panicked`, `..._when_a_component_was_aborted_at_the_deadline` (4) |
+| S2 | `Cancelled` is graceful | `is_graceful` without `Cancelled` | `it_should_exit_with_the_graceful_code_when_every_component_completed_or_was_cancelled`, `it_should_name_only_the_components_whose_shutdown_was_not_graceful_in_outcome_order` (2) |
+| S3 | `Completed` is graceful | `is_graceful` without `Completed` | the same two tests (2) |
+| S4 | No outcomes is graceful | `!outcomes.is_empty() &&` added | `it_should_exit_with_the_graceful_code_when_there_are_no_outcomes` (1) |
+| S5 | Only incomplete components are named | filter inverted | `it_should_name_only_the_components_whose_shutdown_was_not_graceful_in_outcome_order` (1) |
+| S6 | Names are in outcome order | `.rev()` added | the same test (1) |
+
+After the last run `cmp .tmp/orig/manager.rs src/bootstrap/jobs/manager.rs` printed "identical", and `git diff --stat -- src` listed only `src/bootstrap/jobs/manager.rs` and `src/main.rs`.
+
+A process mistake, recorded: the first S1 attempt was issued as one parallel batch with the creation of the mutation script and the backup of `manager.rs`. The mutation edit landed before the backup, so the backup held the mutated file, and the run failed because the script did not exist yet. I discarded it, restored the intended line by hand, recompiled and ran the 39 tests green, took the backup again, and ran S1 to S6 one step at a time. This is the second time in this issue that dependent steps were batched (the first was B2 and B3 of T2).
+
+#### Not covered by a unit test
+
+`report_shutdown` in `src/main.rs` (the success message only on exit `0`, the error line otherwise) and the conversion to `ExitCode` are in the binary and have no unit test. They are covered by the native-binary tests of T6 and by the recheck of V1 in T8, which check the exit status and the log of the real binary.
+
+#### Automatic checks on the finished T3b code (12:36 UTC)
+
+- `cargo +nightly fmt --all -- --check` (nightly Rust toolchain): exit 0.
+- `linter all`: exit 0.
+- `cargo test --tests --benches --examples --workspace --all-targets --all-features` (stable Rust toolchain): exit 0, 3,540 passed, 0 failed.
+- `cargo test --doc --workspace` (stable Rust toolchain): exit 0.
 
 ## Failures and Follow-up
 

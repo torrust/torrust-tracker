@@ -94,11 +94,33 @@ pub const EXIT_CODE_GRACEFUL_SHUTDOWN: u8 = 0;
 /// Process exit code of a shutdown in which a component failed, panicked, or was aborted.
 pub const EXIT_CODE_INCOMPLETE_SHUTDOWN: u8 = 1;
 
+impl JobStatus {
+    /// Whether the component stopped on request without a failure, a panic, or an abort.
+    #[must_use]
+    pub const fn is_graceful(&self) -> bool {
+        matches!(self, Self::Completed | Self::Cancelled)
+    }
+}
+
 /// Maps the outcomes of a shutdown to the process exit code (Q3 of
-/// `docs/features/shutdown-process/questions.md`).
+/// `docs/features/shutdown-process/questions.md`): `0` only when every component was graceful.
 #[must_use]
-pub const fn shutdown_exit_code(_outcomes: &[JobOutcome]) -> u8 {
-    EXIT_CODE_GRACEFUL_SHUTDOWN
+pub fn shutdown_exit_code(outcomes: &[JobOutcome]) -> u8 {
+    if outcomes.iter().all(|outcome| outcome.status.is_graceful()) {
+        EXIT_CODE_GRACEFUL_SHUTDOWN
+    } else {
+        EXIT_CODE_INCOMPLETE_SHUTDOWN
+    }
+}
+
+/// The names of the components whose shutdown was not graceful, in outcome order.
+#[must_use]
+pub fn incomplete_components(outcomes: &[JobOutcome]) -> Vec<&str> {
+    outcomes
+        .iter()
+        .filter(|outcome| !outcome.status.is_graceful())
+        .map(|outcome| outcome.name.as_str())
+        .collect()
 }
 
 /// Delivers a normal halt signal when its component is dropped.
@@ -1016,7 +1038,7 @@ mod tests {
     use super::{
         ComponentCompletion, ComponentError, ComponentId, ComponentRegistry, ComponentResult, EXIT_CODE_GRACEFUL_SHUTDOWN,
         EXIT_CODE_INCOMPLETE_SHUTDOWN, JobManager, JobOutcome, JobStatus, Reservation, ShutdownPlan, SpawnError, StopBefore,
-        WaitingComponent, lock, shutdown_exit_code,
+        WaitingComponent, incomplete_components, lock, shutdown_exit_code,
     };
 
     fn named_outcome(name: &str, status: JobStatus) -> JobOutcome {
@@ -2162,6 +2184,26 @@ mod tests {
             exit_code, EXIT_CODE_INCOMPLETE_SHUTDOWN,
             "a Panicked outcome must not exit with the graceful code"
         );
+    }
+
+    #[test]
+    fn it_should_name_only_the_components_whose_shutdown_was_not_graceful_in_outcome_order() {
+        // Arrange
+        let outcomes = vec![
+            named_outcome("http_api", JobStatus::Completed),
+            named_outcome(
+                "http_instance_0",
+                JobStatus::Failed(ComponentError::new("graceful drain timed out")),
+            ),
+            named_outcome("udp_instance_0", JobStatus::Cancelled),
+            named_outcome("peers_inactivity_update", JobStatus::Aborted),
+        ];
+
+        // Act
+        let incomplete = incomplete_components(&outcomes);
+
+        // Assert
+        assert_eq!(incomplete, vec!["http_instance_0", "peers_inactivity_update"]);
     }
 
     #[test]
