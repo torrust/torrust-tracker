@@ -8,8 +8,8 @@ epic: 1488
 github-issue: 2668
 spec-path: docs/issues/open/2668-1488-si-20-configure-shutdown-policy/ISSUE.md
 branch: "2668-configure-shutdown-policy-spec"
-related-pr: null
-last-updated-utc: "2026-10-27 07:46"
+related-pr: 2669
+last-updated-utc: "2026-10-27 08:35"
 semantic-links:
   skill-links:
     - create-issue
@@ -467,6 +467,7 @@ Sign every commit with GPG. Any new error enum follows the `handle-errors-in-cod
 - 2026-10-27 07:38 UTC - GitHub Copilot - The maintainer did not approve the top-level `[shutdown]` section: too specific, and he asked for a generic application-level section with sub-sections. Read the architecture documents, ADRs, the configuration EPIC, and the source for other application-level values; added "Configuration Placement" (documents, candidate inventory, options P1 to P3), changed the schema to `[application.shutdown]`, added D10, and extended the documentation scope (architecture guide, glossary, `drain.rs` docs).
 - 2026-10-27 07:44 UTC - GitHub Copilot - The maintainer approved the specification with D1 = B, D2 = P2, and the name `application`, and asked for the list of candidate names with pros and cons (added to "Configuration Placement", including `main`). The GitHub issue is created next.
 - 2026-10-27 07:46 UTC - GitHub Copilot - Created GitHub issue #2668 (label `task`), linked it as a sub-issue of #1488 (checked: `parent_issue_url` is #1488), moved the spec from `docs/issues/drafts/1488-si-20-configure-shutdown-policy/` to this folder on branch `2668-configure-shutdown-policy-spec`, removed the skeleton `verification.md`, and updated the links to the old draft path (EPIC roadmap row 20, SI-8, and three closed specs).
+- 2026-10-27 08:35 UTC - GitHub Copilot - Opened the spec-only PR #2669 (`Related to #2668`, no closing keyword); its Docs Lint check passed. The maintainer asked for `related-pr` to record it, so this entry and the frontmatter field are the second commit of the PR.
 
 ## Open Decisions for the Maintainer
 
