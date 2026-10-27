@@ -664,6 +664,7 @@ async fn start_health_check_api(
         &config.health_check_api,
         app_container.registar.as_ref().clone(),
         reservation.cancellation_token(),
+        config.application.shutdown.http_drain_in_secs.as_duration(),
     )
     .await
     .map_err(|source| Error::ServiceStartup {
