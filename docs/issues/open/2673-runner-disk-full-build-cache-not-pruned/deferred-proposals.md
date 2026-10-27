@@ -65,6 +65,14 @@ Restart `docker.service` every night when no job runs, regardless of disk usage.
 
 The 301 GB disk was full at a 253 GB cache. A larger disk only delays the failure if build state keeps leaking. Choose it only after R1 or R2 bound the leak.
 
+### R5. Keep new jobs out while Docker restarts
+
+Copilot finding F1 on pull request 2675 (recorded in `docs/pr-reviews/pr-2675-review/PR-REVIEW.md`, reference `review-finding:pr-2675-f1`) points out that the cleanup script checks for a running job with `pgrep -x Runner.Worker` and then restarts `docker.service`, but the runner stays online in between. A job that starts after the check, or during the restart, can lose its containers or fail to reach Docker. The maintainer declined to fix it for now.
+
+Why it is accepted: the restart only runs at 04:00 UTC and only when the disk is still at or above 70% after the prune. The disk measured 42% with a 100 GB cache and 51% with a 127 GB cache on 2026-10-27, so 70% needs a cache of roughly 190 GB left after the prune, which is the stuck state of the incident. The cost of a hit is one failed check that is re-run.
+
+The design, if it is ever needed: the cleanup script takes an exclusive `flock` on a lock file (for example `/run/docker-ci-prune.lock`) before the idle check and holds it through the restart, the readiness wait, and the second prune. The runner runs a short hook at the start of every job (`ACTIONS_RUNNER_HOOK_JOB_STARTED` in the runner's `.env`) that waits on that lock with `flock -s` and a timeout, so a job that arrives during recovery pauses before its first Docker call and then continues. The hook must fail open: a missing lock file or a timeout lets the job run, because a broken hook would otherwise stop every job on the runner. It needs a regression test with a real `flock` in which a job arrives after the idle check, a change to the runner's `.env`, a restart of the runner service while it is idle, and a check with a real job that it waits at job start. The assumption to verify first is that the hook runs before the job's first Docker call. Stopping the runner service instead does not work, because stopping a systemd service kills a job that is already running.
+
 ## Suggested Order and Triggers
 
 1. Run P5 on a fixed cadence now; it costs nothing.
@@ -72,3 +80,4 @@ The 301 GB disk was full at a 253 GB cache. A larger disk only delays the failur
 3. Implement P4 together with P1 if developers keep losing time to the cryptic `No space left on device`.
 4. Do R1 before any larger prevention work (R2, R3, R4); it decides which of them is needed.
 5. Consider P2 or P3 only if the host can fail without a visible effect on checks, and only after deciding how to treat the secret.
+6. Implement R5 if a check is ever found to have failed because a recovery restart started under it. The journal of `docker-ci-prune.service` shows when a restart ran.

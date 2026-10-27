@@ -413,6 +413,13 @@ build cache to 120 GiB, and restarts Docker when that cannot keep the disk below
 earlier, run the timer's service: `systemctl start docker-ci-prune.service`. Run it while the runner
 is idle: the prune only removes cache that no build is using, and the restart stops containers.
 
+Known limitation: the script checks for a running job and then restarts Docker, but the runner keeps
+accepting jobs in between, so a job that starts during the restart can fail and should be re-run. The
+restart only runs at 04:00 UTC and only when the disk is still at or above 70% after the prune, which
+is the stuck state of [issue 2673](https://github.com/torrust/torrust-tracker/issues/2673). A fix that
+holds a lock and makes jobs wait at their start is described as R5 in
+[deferred-proposals.md](issues/open/2673-runner-disk-full-build-cache-not-pruned/deferred-proposals.md).
+
 The host-side Cargo target directories under `/home/runner/.cache/torrust-tracker/` are not pruned
 automatically. The directory is reused by every job, and it measured 23 GB on 2026-10-27, thirty days
 after it was created. Deleting it costs the next job a full Cargo rebuild, so it is only a last
