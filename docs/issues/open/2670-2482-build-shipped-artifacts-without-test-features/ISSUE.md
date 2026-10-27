@@ -9,7 +9,7 @@ github-issue: 2670
 spec-path: docs/issues/open/2670-2482-build-shipped-artifacts-without-test-features/ISSUE.md
 branch: "2670-2482-build-shipped-artifacts-without-test-features"
 related-pr: null
-last-updated-utc: "2026-10-27 09:04"
+last-updated-utc: "2026-10-27 09:05"
 semantic-links:
   skill-links:
     - create-issue
@@ -266,11 +266,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T1 | TODO | Re-verify the audit table against `develop`; record a baseline: test count of the image's `test` stage and cold and warm build times | Table and baseline in the evidence |
+| T1 | TODO | Re-verify the audit table against `develop`; record a baseline: the list and count of the tests the image's `test` stage runs, and cold and warm build times | Table and baseline in the evidence; the list lets the later comparison show that every baseline test is still present |
 | T2 | TODO | Add `TORRUST_TRACKER_BINARY` to `tracker_binary()`, test first | Unit tests for the resolution order; default behaviour unchanged |
 | T3 | TODO | Create the check crate, test first | Parser tests from real `cargo tree` output; scratch-workspace red and green tests; registered as a workspace member and admitted in `.dockerignore`; `cargo machete` and `cargo deny` pass |
 | T4 | TODO | Add the check as a job in `testing.yaml` | Job runs the check for `torrust-tracker`; follows `implement-workflow` |
-| T5 | TODO | Add the shipped cook and build stages for the release and debug images; point `test` and `test_debug` at the shipped binary; take `/app/bin` from it | Both targets build; the test count equals the baseline; times recorded |
+| T5 | TODO | Add the shipped cook and build stages for the release and debug images; point `test` and `test_debug` at the shipped binary; take `/app/bin` from it | Both targets build; every baseline test is still present and passing, and the delta for new tests (T2 adds some, compiled into the targets that include `tests/common/native_tracker`) is recorded; times recorded |
 | T6 | TODO | Amend ADR 20260603; update `docs/containers.md` | Docs describe the two builds, the override variable and the check |
 
 ## Commit Points
@@ -315,6 +315,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   approved the spec, including the `cargo tree` refinement of D3. Created issue #2670, linked it as
   a sub-issue of #2482 (`parent_issue_url` verified) and moved the spec to `docs/issues/open/`.
 - 2026-10-27 09:04 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 9) - PR #2671 review round 1, F1: the Regression Test Strategy and the Commit Points now require the recorded prose-first Arrange-Act-Assert test-design review after each test increment and the maintainer-review stop after the final increment of T2 and of T3.
+- 2026-10-27 09:05 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 9) - PR #2671 review round 1, F2: T1 now records the list and count of the baseline tests, and T5, AC2 and M2 require every baseline test to remain present and passing with the delta for new tests recorded, instead of an equal count (T2's tests are compiled into the targets that include `tests/common/native_tracker`).
 
 ## Acceptance Criteria
 
@@ -322,8 +323,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
       table), and none of the shipped-artifact builds uses `--all-features`, `--all-targets`,
       `--tests`, `--examples` or `--benches`.
 - [ ] AC2: The image's shipped binaries are built by `cargo build` invocations of their own with
-      explicit features; the `test` and `test_debug` stages still run the nextest archive with the
-      same test count as the baseline, and run the native-tracker tests against the shipped binary.
+      explicit features; the `test` and `test_debug` stages still run the nextest archive, every
+      baseline test (T1) is still present and passing, the delta for new tests is recorded, and
+      the native-tracker tests run against the shipped binary.
 - [ ] AC3: The check fails when a workspace `testing` feature is enabled in a shipped package's
       normal or build dependency tree (shown by an automated scratch-workspace test), passes when
       only a dev-dependency enables it, and passes on the real workspace; the `testing.yaml` job
@@ -348,8 +350,8 @@ applies, except that this subissue moves no test code. The workflow changes foll
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | Baseline before the change | Build the `release` and `debug` targets of `develop`'s `Containerfile` (`docker build --target release .`) and record the `test` stage's test count and the cold and warm times | Numbers recorded | TODO | `manual-verification-evidence.md` V1 |
-| M2 | The image builds and its tests run | Build both targets after the change | Both build; the test count equals the baseline; times recorded | TODO | V2 |
+| M1 | Baseline before the change | Build the `release` and `debug` targets of `develop`'s `Containerfile` (`docker build --target release .`) and record the `test` stage's test list and count and the cold and warm times | Numbers recorded | TODO | `manual-verification-evidence.md` V1 |
+| M2 | The image builds and its tests run | Build both targets after the change | Both build; every baseline test is still present and passing; the delta for new tests is recorded (the count may rise by the tests T2 adds); times recorded | TODO | V2 |
 | M3 | The override is honoured | In the `test` stage, point `TORRUST_TRACKER_BINARY` at a missing file, build, then restore it | The native-tracker tests fail with the missing path (red), then pass (green) | TODO | V3 |
 | M4 | The shipped binary has no `testing` feature | `cargo run -p shipped-features-check -- --package torrust-tracker` and `cargo tree -p torrust-tracker -e normal,build -f "{p} {f}"` | Passes; no `testing` feature (vacuous today, since none exists) | TODO | V4 |
 | M5 | The check fails when it should | Run the scratch-workspace red case (a shipped package enabling a `testing` feature through a normal dependency) | The check fails and names the package and feature | TODO | V5 |
