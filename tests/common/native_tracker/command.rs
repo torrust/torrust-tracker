@@ -226,6 +226,7 @@ pub(super) fn tracker_binary() -> PathBuf {
 
 fn resolve_tracker_binary(variable: impl Fn(&str) -> Option<OsString>, compiled: PathBuf) -> PathBuf {
     variable(SHIPPED_BINARY_VARIABLE)
+        .filter(|path| !path.is_empty())
         .or_else(|| variable("NEXTEST_BIN_EXE_torrust-tracker"))
         .or_else(|| variable("CARGO_BIN_EXE_torrust-tracker"))
         .map_or(compiled, PathBuf::from)
@@ -270,6 +271,21 @@ mod tests {
         let variables = [
             ("NEXTEST_BIN_EXE_torrust-tracker", "/nextest/torrust-tracker"),
             ("CARGO_BIN_EXE_torrust-tracker", "/cargo/torrust-tracker"),
+        ];
+
+        // Act
+        let binary = resolve_tracker_binary(lookup_in(&variables), PathBuf::from("/compiled/torrust-tracker"));
+
+        // Assert
+        assert_eq!(binary, PathBuf::from("/nextest/torrust-tracker"));
+    }
+
+    #[test]
+    fn it_should_ignore_a_shipped_binary_override_that_is_empty() {
+        // Arrange: the override is set to the empty string, as `TORRUST_TRACKER_BINARY= cargo test` does.
+        let variables = [
+            ("TORRUST_TRACKER_BINARY", ""),
+            ("NEXTEST_BIN_EXE_torrust-tracker", "/nextest/torrust-tracker"),
         ];
 
         // Act
