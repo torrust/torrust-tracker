@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2668-1488-si-20-configure-shutdown-policy/ISSUE.md
-last-updated-utc: "2026-10-27 15:03"
+last-updated-utc: "2026-10-27 20:15"
 ---
 
 # Manual Verification Evidence
@@ -540,7 +540,38 @@ Two root ADRs, registered in `docs/adrs/index.md`: the placement rule for `[appl
 - `cargo test --tests --benches --examples --workspace --all-targets --all-features` (stable Rust toolchain): exit 0, 3,576 passed, 0 failed.
 - `cargo test --doc --workspace` (stable Rust toolchain): exit 0.
 
-## Failures and Follow-up
+### D5 follow-up - Cohesion and coupling review of the injected budgets
+
+- Status: `DONE`. Commit (by subject): `refactor(configuration): read each shutdown budget through a named accessor`. Toolchain: stable Rust 1.99.1 (nightly Rust toolchain for the formatter check).
+
+#### What was reviewed (read from source, not run)
+
+- **Who reads the settings.** Only the composition root and the bootstrap job starters read `[application.shutdown]`: `src/main.rs` and `src/app.rs` (the deadline; the HTTP and UDP drains), `src/bootstrap/jobs/mod.rs` (the listener drain through one helper), and `AppContainer.application_config`. The four server crates receive plain `Duration` values and never see the configuration type in production code; only their test environments use `Shutdown::default()`.
+- **Coupling.** The four server crates already depended on `torrust-tracker-configuration`, so D5 added no dependency. A consumer needs no knowledge of the chain rule or the newtype.
+- **Cohesion.** The chain rule and the bounds live in one place, `Shutdown::validate` and `ShutdownBudgetInSecs`; the supervisor deadline is read twice (`main` and the cleanup after a failed start) from the same container.
+
+#### Findings
+
+1. **Repeated key-and-conversion at 31 call sites** (`shutdown.http_drain_in_secs.as_duration()`): each caller named the storage key and the conversion, so a rename of a key or a change of the unit would touch every site, and a caller could take the wrong key without the compiler noticing. **Changed:** `Shutdown::deadline`, `http_drain`, `udp_request_drain` and `event_listener_drain` return a `Duration`; every call site uses them. One new test (`it_should_expose_each_budget_as_a_duration_under_its_own_name`, four distinct values) guards the mapping; swapping two accessors makes it fail (`could_not_compile=0`, `cmp` identical after the restore). The workspace suite went from 3,576 to 3,577 passed.
+2. **The two reads of the deadline** (`main` and `start_jobs`) take it from different holders (`app_container` in both after the refactor). Left as it is: both now use the container.
+3. **`Shutdown::default()` in four test environments and one legacy path.** Left as it is: they are standalone fixtures or code that SI-19 deletes (recorded in T5). A shared "test environment" constant would add a package dependency for no behavior.
+4. **The REST API and health check share `http_drain_in_secs`.** Left as it is (D3). If a deployment needs different drains, a second key is a backward-compatible addition.
+5. **`event_listener_drain_timeout(config)` takes the whole `Configuration`**, although a listener needs one `Duration`. It is a root-crate helper used by five bootstrap files with a `config` parameter they already have; narrowing it would change the signatures of the listener starters. Left as it is; the source-level guard of T4 protects its use.
+
+#### Re-proof of the wiring on the new path
+
+Because the call sites changed, two executable-boundary mutations were repeated on the new accessors, one at a time, with `cmp` after each restore: passing `Shutdown::default().http_drain()` to the HTTP tracker in `src/app.rs` fails the two held-connection tests (run time 5.07 s); a fixed 10 s in the cleanup after a failed start fails the failed-start test.
+
+#### Automatic checks on the finished refactor
+
+- `cargo +nightly fmt --all -- --check` (nightly Rust toolchain): exit 0.
+- `linter all`: exit 0.
+- `cargo test --tests --benches --examples --workspace --all-targets --all-features` (stable Rust toolchain): exit 0, 3,577 passed, 0 failed.
+- `cargo test --doc --workspace` (stable Rust toolchain): exit 0.
+
+#### Process note, recorded
+
+- A combined gate command (format check, linter, workspace tests and doc tests in one call) was interrupted; I reran it in two steps and used only those results.
 
 - Two discarded attempts at 08:46 (`partial-header` and `api-body`) failed at startup with `Address already in use (os error 98)`: sockets of the previous run were still in TIME_WAIT. Both exited with status `1` before the tracker started and are not part of V1. The script now waits until the three ports have no socket before it starts; A3 and A4 are the reruns.
 - The first clean-stop run (hold `none`, SIGTERM, about 08:45) wrote a log that a later run overwrote. C1 and C2 replace it as the control.
