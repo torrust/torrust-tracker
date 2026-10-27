@@ -136,8 +136,8 @@ Temporary prose, written before comparing with the code.
   single tests. No integration test was added or changed.
 - **Mutations** (each applied alone, run with `cargo test -p torrust-tracker-axum-rest-api-server --lib
   v1::middlewares::auth`, stable toolchain, then reverted; the file was byte-identical to the tested one
-  afterwards): M1 killed by 2 cases (header-wins), M2 by the accepted-token cases, M3 by the four invalid-token
-  cases, M4 by `the_bearer_scheme_without_a_token`, M5 by `the_scheme_glued_to_the_token`, M6 by the invalid-token
+  afterwards): M1 killed by 2 cases (header-wins), M2 by the accepted-token cases, M3 by the eleven invalid-token
+  cases (five `authenticate` cases and six token-not-valid request cases), M4 by `the_bearer_scheme_without_a_token`, M5 by `the_scheme_glued_to_the_token`, M6 by the invalid-token
   and unreadable-header cases, M7 by the six invalid-token cases (and the reason cases), M8 by the
   unreadable-header test. Every named mutation is killed. M1 used `drop(...)` and M7 `drop(...)` so the mutants
   compile under `unused = "deny"`.
@@ -151,8 +151,8 @@ Temporary prose, written before comparing with the code.
 
 ## Maintainer Decisions
 
-Recorded on 2026-10-24 after the first plan review; the plan itself still needs the maintainer's explicit
-approval before any test change (step 0 gate), which is requested again after the 2026-10-26 update.
+Recorded on 2026-10-24 after the first plan review. The maintainer approved the plan (step 0 gate) on
+2026-10-26, after the update below.
 
 1. **Non-UTF-8 `Authorization` header with a valid `token` query:** handed off as a finding; resolved by #2653
    (rejected as `unknown token provided`), which also added its test.
