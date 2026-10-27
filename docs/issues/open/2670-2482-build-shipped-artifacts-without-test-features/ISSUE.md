@@ -9,7 +9,7 @@ github-issue: 2670
 spec-path: docs/issues/open/2670-2482-build-shipped-artifacts-without-test-features/ISSUE.md
 branch: "2670-2482-build-shipped-artifacts-without-test-features"
 related-pr: null
-last-updated-utc: "2026-10-27 14:55"
+last-updated-utc: "2026-10-27 14:57"
 semantic-links:
   skill-links:
     - create-issue
@@ -269,7 +269,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T1 | DONE | Re-verify the audit table against `develop`; record a baseline: the list and count of the tests the image's `test` stage runs, and cold and warm build times | Table and baseline in the evidence (V0, V1); the list lets the later comparison show that every baseline test is still present |
 | T2 | DONE | Add `TORRUST_TRACKER_BINARY` to `tracker_binary()`, test first | Unit tests for the resolution order; default behaviour unchanged |
 | T3 | DONE | Create the check crate, test first | Parser tests from real `cargo tree` output; scratch-workspace red and green tests; registered as a workspace member and admitted in `.dockerignore`; `cargo machete` and `cargo deny` pass |
-| T4 | TODO | Add the check as a job in `testing.yaml` | Job runs the check for `torrust-tracker`; follows `implement-workflow` |
+| T4 | IN_PROGRESS | Add the check as a job in `testing.yaml` | Job runs the check for `torrust-tracker`; follows `implement-workflow` |
 | T5 | TODO | Add the shipped cook and build stages for the release and debug images; point `test` and `test_debug` at the shipped binary; take `/app/bin` from it | Both targets build; every baseline test is still present and passing, and the delta for new tests (T2 adds some, compiled into the targets that include `tests/common/native_tracker`) is recorded; times recorded |
 | T6 | TODO | Amend ADR 20260603; update `docs/containers.md` | Docs describe the two builds, the override variable and the check |
 
@@ -320,6 +320,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-10-27 12:43 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 9) - Started the implementation. T1 is done: the audit table still holds on `develop` after PR #2671 (V0), and the baseline is 1531 tests in 40 binaries with a cold `release` build of 4 min 59 s, a cold `debug` build of 1 min 55 s and a warm `release` rebuild of 2 min 53 s (V1, list in `baseline-test-list.txt`).
 - 2026-10-27 12:44 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 9) - T2 is done: `tracker_binary()` reads `TORRUST_TRACKER_BINARY` before the nextest and Cargo variables, with three unit tests (red with the override discarded, green on the `lifecycle-signals` and `cli-configuration` targets). The test-design review is recorded in the evidence; the maintainer (josecelano) reviewed the increment and approved it through `ask_user` before the commit.
 - 2026-10-27 14:55 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 9) - T3 is done: the `shipped-features-check` crate parses `cargo tree -e normal,build` output and fails on a workspace `testing` feature in a shipped package's tree (9 parser tests and 7 scratch-workspace tests, each red before green, two mutations for the negative tests). The real workspace passes vacuously (M4) and the scratch fixture fails and passes as it should (M5). The crate is a workspace member but not a default member, is admitted in `.dockerignore`, and is listed in the `AGENTS.md` catalogue and the CLI output contract ADR. The maintainer (josecelano) reviewed the increments and approved them through `ask_user` before the commit.
+- 2026-10-27 14:57 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 9) - Added the `Shipped Features` job to `testing.yaml` (T4), which runs `cargo run --package shipped-features-check -- --package torrust-tracker`; `linter yaml` and `git diff --check` pass and the same command passes locally (V4). The spec's commit point asks for the job to pass in a fork or pull request first, but the implementation pull request is the first hosted run, so T4 stays IN_PROGRESS and M6 stays TODO until that run is recorded.
 
 ## Acceptance Criteria
 
