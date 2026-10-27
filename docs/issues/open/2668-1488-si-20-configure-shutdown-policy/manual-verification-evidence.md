@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2668-1488-si-20-configure-shutdown-policy/ISSUE.md
-last-updated-utc: "2026-10-27 12:48"
+last-updated-utc: "2026-10-27 13:07"
 ---
 
 # Manual Verification Evidence
@@ -349,7 +349,72 @@ The two deadline call sites (`main` and the cleanup in `start_jobs`) have no uni
 - `cargo test --tests --benches --examples --workspace --all-targets --all-features` (stable Rust toolchain): exit 0, 3,544 passed, 0 failed.
 - `cargo test --doc --workspace` (stable Rust toolchain): exit 0.
 
-## Failures and Follow-up
+### T5 - Deliver the HTTP drain (H) and the UDP request drain (U)
+
+- Goal: the configured `H` reaches the HTTP tracker, REST API and health-check drains, the configured `U` reaches the UDP request drain, no server crate keeps its own constant, and each new test fails when its behavior is removed.
+- Status: `DONE` for the code and the unit tests. The proof that the real binary applies the configured values (a held connection ends the drain at `http_drain_in_secs`, not at 15 s) is T6's and T8's.
+- Toolchain: stable Rust 1.99.1 (nightly Rust toolchain for the formatter check).
+- Commits (cited by subject): `fix(axum-server): bound the drain timeout so an oversized value cannot overflow the clock`, `feat(axum-http-server): apply the configured drain timeout to the HTTP tracker`, `feat(axum-rest-api-server): apply the configured drain timeout to the REST API`, `feat(axum-health-check-api-server): apply the configured drain timeout to the health check API`, `feat(udp-server): apply the configured request drain deadline to the UDP tracker`.
+
+#### Design (maintainer decision D5: inject top to bottom)
+
+- HTTP: `Launcher` has a new field `drain_timeout: Duration` (a required `new` argument). `start_token_aware_runtime` hands it to the drain helper. `HTTP_GRACEFUL_DRAIN_TIMEOUT` (90 s) is removed.
+- REST API: `Launcher` has the same private field and the same use. `API_GRACEFUL_DRAIN_TIMEOUT` (90 s) is removed. The bootstrap `start_v1` now takes a `Launcher` instead of the socket and the TLS configuration, which keeps it within the argument limit.
+- Health check: `start_with_cancellation` has a new `drain_timeout` argument. `HEALTH_CHECK_API_GRACEFUL_DRAIN_TIMEOUT` (5 s) is removed. It follows `http_drain_in_secs`, so its default goes from 5 s to 15 s.
+- UDP: `Server::start_with_cancellation` has a new `request_drain_deadline` argument and `Launcher::start_receive_loop` takes it, so `REQUEST_DRAIN_DEADLINE` (5 s) and the wrapper that supplied it are removed. The legacy launcher path (`run_with_graceful_shutdown`, removed by SI-19) uses `Shutdown::default()`, a public default where injection would only add churn to code that is about to be deleted.
+- Composition root: `src/app.rs` passes `http_drain_in_secs` to the HTTP tracker, the REST API and the health check, and `udp_request_drain_in_secs` to every UDP tracker. The standalone test environments pass `Shutdown::default()` values. The examples use those environments and compile unchanged (`cargo build --workspace --all-targets --all-features`: exit 0).
+- Drain helper: a timeout above one year is shortened to one year. `Instant + Duration` panics when the sum does not fit, and the helper now takes any `Duration` (the configuration bound of 3,600 s protects only the composition root).
+- Package versions are not bumped: the packages are at 0.1.0 and the earlier steps of the EPIC changed the same signatures without a bump; the independent-versioning ADR bumps at release.
+
+#### Tests added by T5 (4) and one test fixture rewired
+
+`server::tests::it_should_time_out_the_drain_after_the_configured_drain_timeout_when_a_connection_stays_open` in each of `axum-http-server`, `axum-rest-api-server` and `axum-health-check-api-server`, and `signals::tests::it_should_return_drained_without_panicking_when_the_drain_timeout_is_too_large_for_the_clock` in `axum-server`. The workspace suite went from 3,544 to 3,548 passed.
+
+The three server tests use real time (a 300 ms drain timeout against a 5 s bound) instead of paused time: these crates do not enable the tokio `test-util` feature, and the point is an end-to-end drain over a real socket. They cannot be flaky on the happy path, because the drain ends by the timer, and they are bounded by `tokio::time::timeout`.
+
+UDP has no new test. Its receive-loop shutdown scenarios (`ReceiveLoopHoldingRequests`, 100 ms deadline) used to start the receive loop directly through `Launcher::start_receive_loop_with_request_drain_deadline`; they now start through the public `Server::start_with_cancellation`, so every scenario also guards that the public start carries the deadline to the loop. No test was removed or merged (233 tests in `torrust-tracker-udp-server` before and after).
+
+#### Prose-first comparison
+
+| Test | Arrange | Act | Assert |
+| ---- | ------- | --- | ------ |
+| server drain (three crates) | A server whose launcher has a 300 ms drain timeout, one connection that sent only part of a request header, and a completed second request that proves the first connection was accepted. | Cancel the token and wait up to 5 s for the drain controller. | The outcome is `TimedOut`; the failure message names the 300 ms timeout. |
+| oversized timeout | A drain helper with no open connection and `Duration::MAX` as the drain timeout. | Cancel the token. | The helper returns `Drained` within a second of paused time and does not panic. |
+
+The comparison led to one change: the first version of the server tests did not wait for the held connection to be accepted, so a cancellation could arrive before the server knew about it and the drain would end as `Drained`. The second request fixes that, because the server accepts connections in order.
+
+#### Mutation proofs
+
+Each row: back up the file, apply one mutation with the edit tool, run `cargo test` (stable toolchain), read the output, restore, and prove the restore with `cmp`. `could_not_compile=0` for every result row.
+
+| Id | Clause guarded | Mutation | Tests that failed |
+| -- | -------------- | -------- | ----------------- |
+| H1 | The HTTP server drains for the launcher's timeout | `start_token_aware_runtime` uses 90 s whatever the launcher holds | the HTTP drain test (1): "the drain should end by the configured timeout, not the default one: Elapsed" |
+| R1 | The REST API drains for the launcher's timeout | the same change in the REST API | the REST drain test (1) |
+| C1 | The health check drains for the given timeout | the drain helper receives 90 s | the health-check drain test (1) |
+| U1 | The public UDP start carries the deadline to the receive loop | `request_drain_deadline.max(90 s)` in `start_with_cancellation` | `it_should_not_return_while_processors_orphaned_by_the_request_ring_are_still_running` (1); the run took 5.19 s, which is the test's own bound |
+| S0 | (rejected) the helper does not shorten an oversized timeout | the bound was replaced by an expression that left `MAX_DRAIN_TIMEOUT` unused | Not a result: the compiler rejected it (`could_not_compile=1`), so no test ran. |
+| S1 | The helper shortens an oversized timeout | the bound was replaced by `max(MAX_DRAIN_TIMEOUT.min(0))`, which keeps `Duration::MAX` | the oversized-timeout test (1): the tokio `Instant` overflow panic |
+
+After the last run `cmp` printed "identical" for every file and `git status --short` listed only the intended changes. U1 is weaker than the others in one way: with the default 5 s instead of 90 s the orphaned-processors scenario would end near its own 5 s bound, so only a clearly larger value is caught reliably. The 90 s mutation is the realistic regression (the old constants were 90 s and 5 s; reverting UDP to 5 s is what T8's real-binary check covers).
+
+#### Not covered by a unit test, and where it is covered
+
+The composition-root lines in `src/app.rs` (which key goes to which crate) have no unit test: the drain budgets are observable only as the time a held connection or request keeps the shutdown waiting. T6 and T8 run the real binary with distinct values for `http_drain_in_secs` and `udp_request_drain_in_secs` and check the timing, which is also the only check that the REST API and the health check receive `http_drain_in_secs` and not another key.
+
+#### Process notes, recorded
+
+- One multi-line edit of `src/bootstrap/jobs/http_tracker.rs` was done with a throwaway Python script instead of the edit tool. The compiler and the diff checked it.
+- One edit replaced a block and left out three import lines in its replacement; the next edit restored them and `git diff` showed the intended diff only.
+- Mutation S0 did not compile (an unused constant); it was caught by the `could_not_compile` count and redone.
+- The four app.rs hunks were split across the five commits with `git add -p`, so each crate's commit holds only its own caller change.
+
+#### Automatic checks on the finished T5 code (13:03 UTC)
+
+- `cargo +nightly fmt --all -- --check` (nightly Rust toolchain): exit 0.
+- `linter all`: exit 0.
+- `cargo test --tests --benches --examples --workspace --all-targets --all-features` (stable Rust toolchain): exit 0, 3,548 passed, 0 failed.
+- `cargo test --doc --workspace` (stable Rust toolchain): exit 0, 50 passed.
 
 - Two discarded attempts at 08:46 (`partial-header` and `api-body`) failed at startup with `Address already in use (os error 98)`: sockets of the previous run were still in TIME_WAIT. Both exited with status `1` before the tracker started and are not part of V1. The script now waits until the three ports have no socket before it starts; A3 and A4 are the reruns.
 - The first clean-stop run (hold `none`, SIGTERM, about 08:45) wrote a log that a later run overwrote. C1 and C2 replace it as the control.
