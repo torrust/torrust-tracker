@@ -6,7 +6,7 @@ epic: 1669
 github-issue: 2482
 spec-path: docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-26 19:50"
+last-updated-utc: "2026-10-27 08:43"
 semantic-links:
   skill-links:
     - create-issue
@@ -169,7 +169,7 @@ packages. The ADR decides.
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-Subissues 1 (#2618) and 2 (#2628) are GitHub issues. Rows 3 to 9 are drafts written by subissue 1 from its
+Subissues 1 (#2618), 2 (#2628), 8 (#2645) and 9 (#2670) are GitHub issues. Rows 3 to 7 are drafts written by subissue 1 from its
 ADR and migration plan, one per inventory item that moves, plus the coupling tool change and the container build change the ADR requires. They
 become GitHub issues one at a time afterwards.
 
@@ -191,7 +191,7 @@ same pull request.
 | 6 | #[To be assigned] - Gate the `axum-rest-api-server` test environment behind a `testing` feature | [`docs/issues/drafts/2482-gate-axum-rest-api-server-test-environment/ISSUE.md`](../../drafts/2482-gate-axum-rest-api-server-test-environment/ISSUE.md) | TODO | Pattern A; six forced edges; also removes the stale `rest-api-core` comment in `src/testing/mod.rs`. After #2449. |
 | 7 | #[To be assigned] - Gate the `axum-health-check-api-server` test environment behind a `testing` feature | [`docs/issues/drafts/2482-gate-axum-health-check-api-server-test-environment/ISSUE.md`](../../drafts/2482-gate-axum-health-check-api-server-test-environment/ISSUE.md) | TODO | Pattern A. After #2450 and after rows 4 to 6, whose environments its tests use. Closes #2482: regenerates the coupling report and checks AC8. |
 | 8 | #2645 - Label optional and self dependency edges in the coupling tool and diagram | [`docs/issues/closed/2645-2482-label-optional-and-self-dependency-edges/ISSUE.md`](../../closed/2645-2482-label-optional-and-self-dependency-edges/ISSUE.md) | DONE | Required: the ADR chose O1. Before row 3, the first O1 move. Merged in PR #2648 on 2026-10-26; issue closed. The tool labels `optional (<features>)` (a `default` chain that includes `testing` is a runtime edge) and skips self edges; it has no runtime-edge counter, which row 7 adds if it needs one. |
-| 9 | #[To be assigned] - Build the shipped container binary without test features | [`docs/issues/drafts/2482-build-shipped-artifacts-without-test-features/ISSUE.md`](../../drafts/2482-build-shipped-artifacts-without-test-features/ISSUE.md) | TODO | Required by the ADR (rule A.5): the release image's binary comes from `cargo nextest archive --tests --all-features --release`, which would ship every `testing` feature. Builds shipped binaries on their own with explicit features and adds a CI check. After row 8, before row 3. |
+| 9 | #2670 - Build the shipped container binary without test features | [`docs/issues/open/2670-2482-build-shipped-artifacts-without-test-features/ISSUE.md`](../2670-2482-build-shipped-artifacts-without-test-features/ISSUE.md) | IN_PROGRESS | Required by the ADR (rule A.5): the release image's binary comes from `cargo nextest archive --tests --all-features --release`, which would ship every `testing` feature. Builds shipped binaries on their own with explicit features and adds a CI check. After row 8, before row 3. |
 
 ## Delivery Strategy
 
@@ -434,6 +434,7 @@ Append one line per meaningful update.
 - 2026-10-25 06:20 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 2) - Subissue 2 (#2628) is done: PR #2636 merged on 2026-10-24 (merge commit `722f2b5b2`) and #2628 is closed; its spec is archived. Row 2 of the Subissues table is DONE. `torrust-tracker-test-helpers` now depends directly only on `rand`, `configuration`, `tracing` and `tracing-subscriber`, and `deny.toml` bans `client-lib`, `tracker-core`, `swarm-coordination-registry` and `events` for it. No EPIC acceptance criterion or checkpoint became true with this row alone: AC4 (rows 3 to 9 are still drafts), AC6, AC7 and AC8 stay open, and the per-subissue checkpoints cover every subissue. Next row: 8.
 - 2026-10-25 06:55 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 8) - Created #2645 for row 8, linked it as a sub-issue of #2482 and moved its refreshed spec to `docs/issues/open/2645-2482-label-optional-and-self-dependency-edges/ISSUE.md`; the maintainer approved the spec. Row 8 is IN_PROGRESS.
 - 2026-10-26 17:35 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 8) - Subissue 8 (#2645) is done: PR #2648 merged on 2026-10-26 (merge commit `f4b221095`) and #2645 is closed; its spec is archived. Row 8 of the Subissues table is DONE. The coupling tool labels an optional normal dependency `optional (<features>)` with every feature that enables it, directly or through other features, so a `default` chain that includes `testing` is not test-only, and skips self edges. The tool has no runtime-edge counter and the coupling report was not regenerated; row 7 does both if AC8 needs them. Next: row 9.
+- 2026-10-27 08:43 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 9) - Created issue #2670 for row 9 after the maintainer approved its refreshed spec, linked it as a sub-issue of #2482 (`parent_issue_url` verified) and moved the spec to `docs/issues/open/`; row 9 is IN_PROGRESS. The design: two builds, the native-tracker container tests run against the shipped binary through `TORRUST_TRACKER_BINARY`, and a Rust check over `cargo tree -e normal,build` run as a `testing.yaml` job (`cargo metadata` is not usable: it counts dev-dependency features). Updated the Subissues intro sentence, which still listed rows 8 and 9 as drafts.
 
 ## Acceptance Criteria
 
