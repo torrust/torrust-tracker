@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2668-1488-si-20-configure-shutdown-policy/ISSUE.md
-last-updated-utc: "2026-10-27 11:27"
+last-updated-utc: "2026-10-27 12:31"
 ---
 
 # Manual Verification Evidence
@@ -210,6 +210,37 @@ A process mistake, recorded: B2 and B3 were first issued in the same batch as th
 #### Conclusion
 
 The 25 tests are each proven to fail when the behavior they guard is removed. Two gaps found by surviving mutations (J, L) were closed with new tests and re-proven.
+
+### T3a - Red regression test for the exit code of a failed or aborted shutdown
+
+- Goal: show that the maintained regression test fails against the behavior of V1 (exit `0` whatever the outcomes) before the fix exists.
+- Status: `DONE`
+- Toolchain: stable Rust 1.99.1.
+
+#### Boundary
+
+`shutdown_exit_code(&[JobOutcome]) -> u8` in `src/bootstrap/jobs/manager.rs` is a pure function and the causal seam: `main` discards the outcomes today, so nothing decides the exit code. The tests need no OS signal and no network. The function returns `u8` because `std::process::ExitCode` cannot be compared in a test; `main` converts it with `ExitCode::from`.
+
+#### Steps and observed result
+
+1. Added the function returning `EXIT_CODE_GRACEFUL_SHUTDOWN` (0) for every input, which is the current behavior of `main`, and five tests: no outcomes, only `Completed` and `Cancelled`, a `Failed`, a `Panicked`, and an `Aborted` outcome (each next to a `Completed` one).
+2. Ran `cargo test --lib -p torrust-tracker it_should_exit_with` (stable toolchain, 12:29:49 UTC). The code compiled; the output has no compile error.
+
+```text
+test bootstrap::jobs::manager::tests::it_should_exit_with_the_graceful_code_when_there_are_no_outcomes ... ok
+test bootstrap::jobs::manager::tests::it_should_exit_with_the_graceful_code_when_every_component_completed_or_was_cancelled ... ok
+test bootstrap::jobs::manager::tests::it_should_exit_with_the_incomplete_code_when_a_component_failed ... FAILED
+test bootstrap::jobs::manager::tests::it_should_exit_with_the_incomplete_code_when_a_component_was_aborted_at_the_deadline ... FAILED
+test bootstrap::jobs::manager::tests::it_should_exit_with_the_incomplete_code_when_a_component_panicked ... FAILED
+assertion `left == right` failed: a Failed outcome (for example a reached drain budget) must not exit with the graceful code
+  left: 0
+ right: 1
+test result: FAILED. 2 passed; 3 failed; 0 ignored; 0 measured; 146 filtered out; finished in 0.00s
+```
+
+#### Conclusion
+
+The three tests for `Failed`, `Panicked`, and `Aborted` are red for the reason of the defect (`left: 0`, `right: 1`). The two graceful cases pass on purpose: they pin the behavior that must not change. T3b makes the three pass and records the green run.
 
 ## Failures and Follow-up
 
