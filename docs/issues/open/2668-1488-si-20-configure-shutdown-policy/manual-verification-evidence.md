@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2668-1488-si-20-configure-shutdown-policy/ISSUE.md
-last-updated-utc: "2026-10-27 20:15"
+last-updated-utc: "2026-10-27 20:40"
 ---
 
 # Manual Verification Evidence
@@ -133,6 +133,107 @@ The defect is real and reproduced for both signals: a component aborted at the d
 - Red before the fix: T3 first adds the function returning the current behavior (always success) with the parameterized test, runs the test red for the `Failed`, `Panicked`, and `Aborted` cases, records the failing output here, then implements the mapping and records the green output. If red-first proves impractical, the mutate-then-restore method of the `write-unit-test` skill applies and a `cmp` proves the restore.
 - Executable boundary (T6): native-binary tests in `tests/lifecycle/` for a clean stop (`0`) and for a drain budget reached (`1`), using a held partial-header connection and a configured drain shorter than the 5 s header timeout (see M3).
 - Final like-for-like recheck (T8): after the last production change, rebuild, re-apply the same temporary patch to the fixed tree (not committed), and rerun B1 to B4. Expected: exit status `1` and no "successfully shutdown" message; the control C1 and C2 stay at `0`. Name the commit subject the recheck ran on.
+
+### V2 to V8 - Manual verification of the finished change
+
+- Goal: on the real binary and the real image, check the configured defaults, the drain budget, the invalid configurations, the exit code after a failed or aborted shutdown, and the deployment contract (Docker, systemd), with SIGTERM and SIGINT where the signal matters.
+- Status: `DONE`, except Podman, which is `not run` (not installed).
+- Artifact under test: the branch head after the last production change, whose commit subject is `refactor(configuration): read each shutdown budget through a named accessor`. Every later commit changes only documentation and evidence. Debug build of `torrust-tracker` (193,169,328 bytes) and a release image built from `Containerfile` (`docker build --target release`).
+- Environment: Linux 7.0.0-38-generic, stable Rust 1.99.1, Docker 28.3.3, systemd user manager (`systemd-run --user`), no Podman. Date 2026-10-27, runs between 20:17 and 20:37 UTC.
+- Method: the script `evidence/hold-and-stop.sh` of V1 starts the binary directly, so the signalled PID is the tracker binary, and prints the exit status and the seconds to the exit. Scratch configurations were written under `.tmp/si20/` (git-ignored) as the baseline of V1 plus an `[application.shutdown]` block. Each run ran alone, after the previous one finished.
+
+#### V2 (M2) - Defaults, clean stop: pass
+
+`baseline.toml` with no `[application]` section, SIGTERM then SIGINT, no held connection.
+
+| Signal  | Exit status | Seconds to exit | Listening ports left (17070, 11212, 11313) |
+| ------- | ----------- | --------------- | ------------------------------------------ |
+| SIGTERM | 0           | 0.0             | 0                                          |
+| SIGINT  | 0           | 0.0             | 0                                          |
+
+The log shows `Waiting for job to finish under the shared shutdown deadline timeout_seconds=25`, three drains with `drain_timeout=15s` (the HTTP tracker, the REST API and the health check, which proves that all three receive `http_drain_in_secs`), `All connections closed`, and `Torrust tracker successfully shutdown.` The configuration dump printed the defaults 25, 15, 5, 5.
+
+#### V3 (M3) - Configured budgets, drain budget reached: pass
+
+`[application.shutdown]` with `deadline_in_secs = 5`, `http_drain_in_secs = 2`, `udp_request_drain_in_secs = 1`, `event_listener_drain_in_secs = 1`, a `partial-header` connection held on the HTTP tracker.
+
+| Signal  | Exit status | Seconds to exit |
+| ------- | ----------- | --------------- |
+| SIGTERM | 1           | 2.0             |
+| SIGINT  | 1           | 2.0             |
+
+Both logs, in order: `Waiting for job to finish under the shared shutdown deadline timeout_seconds=5`; `Shutdown timeout of 2s reached in address 127.0.0.1:17070 with 1 active connections. Forcing shutdown.`; `Job reported a failure job=http_instance_0_127.0.0.1:17070 error=HTTP tracker graceful drain timed out`; every listener `Job completed after cooperative cancellation`; `ERROR ... Torrust tracker shutdown was incomplete ... incomplete_components=http_instance_0_127.0.0.1:17070`. There is no success line. The specification expected about 3 s; the run took 2.0 s because the listeners had nothing queued and finished at once, so the stop took the HTTP drain alone and not `max(H, U) + L`. The chain rule is a bound, not a prediction.
+
+#### V4 (M4) - Invalid configuration: pass
+
+Each started with `timeout 20 ./target/debug/torrust-tracker -c <file>`; none printed a `Started on` line, so no listener bound.
+
+| Config | Setting | Exit | Message (shortened) |
+| ------ | ------- | ---- | ------------------- |
+| m4a | `deadline_in_secs = 0` | 1 | `A shutdown budget must be between 1 and 3600 seconds, but 0 was configured. Use a whole number of seconds within that range.` for key `default.application.shutdown.deadline_in_secs` |
+| m4b | `http_drain_in_secs = 3601` | 1 | the same message with `3601` |
+| m4c | unknown key `drain_in_secs = 5` | 1 | `unknown field: found drain_in_secs, expected one of deadline_in_secs, http_drain_in_secs, udp_request_drain_in_secs, event_listener_drain_in_secs` |
+| m4d | `http_drain_in_secs = 20` | 1 | `application.shutdown.http_drain_in_secs (20 s) plus application.shutdown.event_listener_drain_in_secs (5 s) must be less than application.shutdown.deadline_in_secs (25 s): event listeners are stopped only after the HTTP and UDP servers finish draining, so both stages must fit in the deadline. Lower the drain budgets or raise the deadline (and the external stop timeout of your container runtime or service manager with it).` |
+| m4e | `udp_request_drain_in_secs = 21` | 1 | the same message naming `udp_request_drain_in_secs (21 s)` |
+| m4f | `http_drain_in_secs = 19` (accepted boundary, `19 + 5 = 24 < 25`) | 0 after SIGTERM | started, `timeout_seconds=25`, `successfully shutdown` |
+
+#### V5 (M5) - Failed and aborted outcomes at the executable boundary: pass
+
+The like-for-like recheck of V1 on the fixed tree. The saved temporary patch no longer compiled (it used a `Duration` import that the production code no longer needs, because the hard-coded 10 s is gone), so its `Duration` was written as `std::time::Duration`; nothing else differs from the V1 patch. The patch was applied to `src/app.rs`, built (193,134,096 bytes), run, and reverted. `baseline.toml`, hold `none`, default deadline 25 s.
+
+| Run | `SI20_REPRO_FAULT` | Signal  | Exit status | Seconds to exit | Log |
+| --- | ------------------ | ------- | ----------- | --------------- | --- |
+| B1  | `slow-stop`        | SIGTERM | 1           | 25.0            | `Job shutdown deadline expired; aborting remaining jobs timeout_seconds=25`, `Job was aborted after the shutdown deadline job=peers_inactivity_update`, `ERROR ... shutdown was incomplete ... incomplete_components=peers_inactivity_update` |
+| B2  | `slow-stop`        | SIGINT  | 1           | 25.0            | the same |
+| B3  | `fail-stop`        | SIGTERM | 1           | 0.0             | `Job reported a failure job=peers_inactivity_update error=temporary injected failure`, then the same `ERROR` line |
+| B4  | `fail-stop`        | SIGINT  | 1           | 0.0             | the same |
+
+None of the four logs contains `Torrust tracker successfully shutdown.` V1 recorded exit `0`, a success line and a 10 s wait for the same four runs. The unpatched control is V2 (the same binary size, exit `0`, success line). Revert proof: `git checkout -- src/app.rs`, then `cmp` against the saved clean copy and `git show HEAD:src/app.rs | cmp - src/app.rs` both printed "identical", `git status --short` printed nothing, and the binary was rebuilt (193,169,328 bytes again).
+
+D9 (does returning from `main` hang?): in B1 and B2 the process ended 25.0 s after the signal, the supervisor deadline, with one component aborted, so dropping the runtime added no measurable delay. This does not cover a blocking task that cannot be aborted; no component of the tracker uses one, but no test forces it.
+
+#### V6 (M6) - Docker with a sufficient grace period: pass
+
+Release image from `docker build --target release` (`Containerfile`, this branch). `docker run -d --stop-timeout 35 -e TORRUST_TRACKER_CONFIG_OVERRIDE_APPLICATION__SHUTDOWN__HTTP_DRAIN_IN_SECS=3 -p 127.0.0.1:27070:7070/tcp`; the container became healthy, and the command line of process 1 read `/usr/bin/torrust-tracker`, so SIGTERM reaches the tracker as PID 1.
+
+| Case | Exit code | `docker stop` took | Log |
+| ---- | --------- | ------------------ | --- |
+| `partial-header` connection held on the published HTTP port | 1 | 3.2 s | `Torrust tracker shutting down (SIGTERM)`, `drain_timeout=3s` on all drains (the override reached the tracker), `Shutdown timeout of 3s reached in address 0.0.0.0:7070 with 1 active connections. Forcing shutdown.`, `HTTP tracker graceful drain timed out`, `shutdown was incomplete ... incomplete_components=http_instance_0_0.0.0.0:7070` |
+| no held connection | 0 | 0.1 s | `successfully shutdown.` |
+
+#### V7 (M7) - Docker with the default 10 s: pass
+
+A network client cannot keep the default tracker alive for 10 s (V1), so an image was built from a patched copy of the tree (the V5 patch with `SI20_REPRO_FAULT=slow-stop` passed with `docker run -e`), never committed; the tree was reverted and proven identical to `HEAD` before anything else ran.
+
+| `docker stop` setting | Exit code | Time | Log |
+| --------------------- | --------- | ---- | --- |
+| default (10 s) | 137 | 10.1 s | `shutting down (SIGTERM)`, `Waiting ... timeout_seconds=25`, drains; no completion line: the process was killed |
+| `--stop-timeout 35` | 1 | 25.1 s | `Job was aborted after the shutdown deadline job=peers_inactivity_update`, `shutdown was incomplete` |
+
+This demonstrates the documented insufficiency of the default and the contract that 35 s is enough for the default deadline.
+
+#### V8 (M8) - systemd and Podman
+
+`systemd-run --user --property=TimeoutStopSec=35` with the real binary, then `systemctl --user stop`.
+
+| Case | Journal | Time |
+| ---- | ------- | ---- |
+| clean | `successfully shutdown.`; unit `Result=success`, `ExecMainStatus=0` | immediate |
+| `partial-header` connection held, the V3 budgets | `Main process exited, code=exited, status=1/FAILURE` and `Failed with result 'exit-code'` | 2.0 s |
+
+For the failed case a `systemctl show` after the stop read the defaults of the collected transient unit, so the journal lines above are the evidence. This confirms that a requested stop which ends with exit code 1 marks the unit failed. Podman: `not run`, it is not installed on this machine.
+
+#### Acceptance evidence from the source (AC7)
+
+`grep -rn "process::exit"` over `src`, `packages`, `console` and `contrib` found it only in `src/bin/http_health_check.rs`, `console/tracker-client/src/bin/*.rs` and a developer tool: separate command-line binaries. No tracker component and not `src/main.rs` calls it.
+
+#### Cleanup
+
+The test containers, the two images built for V6 and V7, the transient systemd units and the scratch files were removed or left under the git-ignored `.tmp/`; no tracker process remained. The disposable script and `baseline.toml` are still in `evidence/` and are removed by T9.
+
+#### Process note, recorded
+
+- The scratch configurations of V4 were generated with a short Python script instead of the file tools; they are git-ignored scratch files, not repository content.
 
 ### T2 - `[application.shutdown]` configuration section: tests, prose-first review, mutation proofs
 
@@ -575,4 +676,4 @@ Because the call sites changed, two executable-boundary mutations were repeated 
 
 - Two discarded attempts at 08:46 (`partial-header` and `api-body`) failed at startup with `Address already in use (os error 98)`: sockets of the previous run were still in TIME_WAIT. Both exited with status `1` before the tracker started and are not part of V1. The script now waits until the three ports have no socket before it starts; A3 and A4 are the reruns.
 - The first clean-stop run (hold `none`, SIGTERM, about 08:45) wrote a log that a later run overwrote. C1 and C2 replace it as the control.
-- Not yet run: M2 to M8 of the specification (they depend on the implementation).
+- M2 to M8 of the specification ran at 20:17 to 20:37 UTC on the finished change and are recorded as V2 to V8 above. The only part not run is Podman (not installed), in V8.
