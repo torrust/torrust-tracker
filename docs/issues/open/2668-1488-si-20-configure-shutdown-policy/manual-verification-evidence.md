@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2668-1488-si-20-configure-shutdown-policy/ISSUE.md
-last-updated-utc: "2026-10-27 14:47"
+last-updated-utc: "2026-10-27 15:03"
 ---
 
 # Manual Verification Evidence
@@ -487,6 +487,60 @@ The UDP request drain and the listener drain have no timing test at the executab
 - `linter all`: exit 0.
 - `cargo test --tests --benches --examples --workspace --all-targets --all-features` (stable Rust toolchain): exit 0, 3,575 passed, 0 failed.
 - `cargo test --doc --workspace` (stable Rust toolchain): exit 0.
+
+### T7 - Templates and documentation
+
+- Goal: the shipped templates carry the settings, and every document the new configuration makes stale says what the code does.
+- Status: `DONE`. Commits (by subject): `feat(configuration): state the default shutdown budgets in the shipped templates`, `chore(compose): give the E2E tracker service the documented stop grace period`, `docs(containers): document the shutdown settings and the stop timeout for #2668`, `docs(adrs): add the application section and shutdown budget decisions of #2668`, `docs(shutdown): update the statements that the configured shutdown budgets make stale`, `docs(shutdown-process): amend Q4 with the chain rule and the new HTTP drain default`.
+- Toolchain: stable Rust 1.99.1 (nightly Rust toolchain for the formatter check), Docker 28.3.3 for the Compose validation.
+
+#### Test added by T7 (1) and its mutation proofs
+
+`bootstrap::config::tests::it_should_state_the_default_shutdown_budgets_in_the_container_and_development_templates` reads the four container templates and the development template, requires the text `[application.shutdown]`, and requires the loaded values to equal `Shutdown::default()`. A template that omitted the block would also load, which is why the text is checked. The workspace suite went from 3,575 to 3,576 passed.
+
+| Prose | Arrange | Act | Assert |
+| ----- | ------- | --- | ------ |
+| Each template shows operators the shutdown settings. | The five template files. | Read each file and load it as a configuration. | The file states the block, and its values equal the defaults. |
+
+| Id | Clause guarded | Mutation | Tests that failed |
+| -- | -------------- | -------- | ----------------- |
+| T1 | The values equal the defaults | `tracker.container.sqlite3.toml` sets `http_drain_in_secs = 16` (a valid value, so it loads) | the template test (1), naming the file |
+| T2 | The template states the block | the block removed from the same file | the template test (1), naming the file |
+
+`cargo test` ran on the stable toolchain, `could_not_compile=0` for both rows, and `cmp` printed "identical" after each restore. (One attempted T2 edit passed the same text twice and changed nothing; it was redone.)
+
+#### Documents changed, and what was stale
+
+- `docs/containers.md`: a new section "Stopping the Tracker" (keys, defaults, the chain rule, the environment override form, exit codes `0`, `1`, `137`, the deployment table for Docker, Podman, Compose, Kubernetes and systemd with 30 s minimum and 35 s recommended, the plain statement about Docker's 10 s default, and the rule not to add `1` to `SuccessExitStatus`).
+- `docs/architecture/application-jobs.md` ("one ten-second process-wide grace period"), `docs/architecture/tracker-instance-architecture.md` (the sentence that shutdown policy was not yet part of the schema), `docs/architecture/glossary.md` (the 90-second and 5-second drain timeouts, "10 seconds today", "a later issue (SI-20) aligns").
+- `docs/features/shutdown-process/README.md`: the "Outcome and Deadline Policy" numbers (20 s became 15 s, the listener budget and the chain rule were added) and the "Shutdown Deadline Policy" section ("SI-20 will add"). The "Problems" list at the top describes the situation before the EPIC and was left as history.
+- `docs/features/shutdown-process/questions.md`: an amendment to Q4's "Actions Taken" (the decision text stays as approved), and the link in Q9 to this evidence file. Q9's link names the open path; the archive step repairs it.
+- `packages/events/src/drain.rs`: the `DEFAULT_DRAIN_TIMEOUT` documentation (it said the default was "below the 10-second shared shutdown deadline" and "until it becomes configuration").
+- `packages/configuration/docs/migrate-v2-to-v3.md`: a quick-reference row, "Step 11" with the changed defaults and the exit-code change, and a checklist entry. The configuration module documentation (section list and default TOML) was already updated by T2.
+- Left as history, on purpose: the "10-second shared deadline" statements of the accepted shutdown-order ADR describe the code at the time of that decision.
+
+#### Review of the repository's own Compose files
+
+The only Compose files are the three qBittorrent E2E stacks (SQLite, MySQL, PostgreSQL). They stopped the tracker service with Docker's 10 s default. Each tracker service now sets `stop_grace_period: 35s`. `docker compose config` (Docker 28.3.3, dummy values for the required variables) accepts the three files and prints `stop_grace_period: 35s`. The E2E stacks themselves were not run here; they run in CI. No Compose file keeps a tracker service on the 10 s default.
+
+#### ADRs
+
+Two root ADRs, registered in `docs/adrs/index.md`: the placement rule for `[application.<topic>]` and the budget model. The maintainer raised no objection to D2, D7 and D10 in his review of the specification.
+
+#### Process notes, recorded
+
+- An empty placeholder file was created with a shell heredoc (and deleted at once) while I tested that `.tmp` is writable; the tool rules require the file tools.
+- A replacement of an import block dropped lines it should have kept twice: in the test imports of `packages/axum-http-server/src/server.rs` (T5, three lines) and in `src/bootstrap/config.rs` (here, the `use super::...` line); `git diff` showed it both times and it was restored before any commit.
+- The T5 documentation commit deleted the heading `## Failures and Follow-up` of this file by mistake (a replacement left it out), which left the three bullets below under the T6 section. Found while writing this section; the heading is restored in the commit that records T7.
+
+#### Automatic checks on the finished T7 code (15:01 UTC)
+
+- `cargo +nightly fmt --all -- --check` (nightly Rust toolchain): exit 0.
+- `linter all`: exit 0.
+- `cargo test --tests --benches --examples --workspace --all-targets --all-features` (stable Rust toolchain): exit 0, 3,576 passed, 0 failed.
+- `cargo test --doc --workspace` (stable Rust toolchain): exit 0.
+
+## Failures and Follow-up
 
 - Two discarded attempts at 08:46 (`partial-header` and `api-body`) failed at startup with `Address already in use (os error 98)`: sockets of the previous run were still in TIME_WAIT. Both exited with status `1` before the tracker started and are not part of V1. The script now waits until the three ports have no socket before it starts; A3 and A4 are the reruns.
 - The first clean-stop run (hold `none`, SIGTERM, about 08:45) wrote a log that a later run overwrote. C1 and C2 replace it as the control.
