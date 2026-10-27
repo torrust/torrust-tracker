@@ -201,3 +201,15 @@ Unit-only (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): lines 
 ### `v1/responses.rs` (slice S1)
 
 Unit-only (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): lines 8 / 40 (20.00%) before, 66 / 66 (100.00%) after; regions 6 / 31 before, 69 / 69 after; functions 1 / 6 before, 10 / 10 after. The counts include the in-file test module. Eight test cases; eight named mutations killed (see [the plan](test-refactor-plans/v1-responses-tests.md)).
+
+### Slice S1 Measurement
+
+After both S1 files (`v1/middlewares/auth.rs` and `v1/responses.rs`), on the S1 branch rebased onto `develop` (the only package change since the S1 baseline is a `torrust-server-lib` 0.4.0 bump); stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, a clean workspace before each report, the commands of the Measurement Scope section:
+
+| Scope | Tests | Lines | Regions | Functions |
+| --- | ---: | ---: | ---: | ---: |
+| Aggregate (all selected test targets) | 46 unit + 58 integration | 1,161 / 1,305 (88.97%) | 1,710 / 2,006 (85.24%) | 167 / 196 (85.20%) |
+| Unit-only (`--lib`) | 46 unit | 921 / 1,305 (70.57%) | 1,393 / 2,006 (69.44%) | 114 / 196 (58.16%) |
+| Integration-only (`--test integration`) | 58 integration | 674 / 908 (74.23%) | 941 / 1,352 (69.60%) | 97 / 137 (70.80%) |
+
+Unit-only lines move 792 / 1,240 (63.87%) at the S1 baseline to 921 / 1,305 (70.57%). Both files count their new test modules, so the denominator grew by 65 lines; the production lines of the two files are now fully covered by unit tests. The integration-only figure is unchanged because the integration binary does not compile the in-file test modules.

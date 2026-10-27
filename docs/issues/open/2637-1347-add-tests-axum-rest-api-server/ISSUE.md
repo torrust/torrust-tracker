@@ -9,7 +9,7 @@ github-issue: 2637
 spec-path: docs/issues/open/2637-1347-add-tests-axum-rest-api-server/ISSUE.md
 branch: "2637-1347-add-tests-axum-rest-api-server-auth"
 related-pr: null
-last-updated-utc: "2026-10-26 18:30"
+last-updated-utc: "2026-10-27 07:40"
 semantic-links:
   skill-links:
     - create-issue
@@ -403,7 +403,7 @@ ledger order inside each slice is still confirmed with the first plan (T3).
 | Slice | Content | Ledger rows | Branch | PR | Status |
 | --- | --- | --- | --- | --- | --- |
 | S0 | This specification, the T1 coverage evidence and inventory, and the EPIC registration with the baseline | - | `2637-1347-add-tests-axum-rest-api-server-spec` | #2638 | DONE |
-| S1 | T2-T3, then authentication and the shared response contract (ranks 1 and 3) | 1, 5 | `2637-1347-add-tests-axum-rest-api-server-auth` | TBD | IN_PROGRESS |
+| S1 | T2-T3, then authentication and the shared response contract (ranks 1 and 3) | 1, 5 | `2637-1347-add-tests-axum-rest-api-server-auth` | TBD | IN_PROGRESS (PR open next) |
 | S2 | Route composition, transport layers and the health check (rank 2) | 2-4 | `2637-1347-add-tests-axum-rest-api-server-routes` | TBD | PENDING |
 | S3 | State-changing contexts: auth keys and whitelist (rank 4) | 6-11 | `2637-1347-add-tests-axum-rest-api-server-commands` | TBD | PENDING |
 | S4 | Read-only contexts: torrents and statistics (rank 5) | 12-17 | `2637-1347-add-tests-axum-rest-api-server-queries` | TBD | PENDING |
@@ -652,6 +652,11 @@ once. If the slicing changes, the Slice column changes with it.
   (68.93%) to 142 / 142 (100.00%) (the counts include the test module), 27 test cases, eight named mutations
   killed, `rstest` 0.28.0 added as a dev-dependency. The maintainer approved the plan (2026-10-26, after the
   #2653 update) and the completed file (18:26 UTC).
+- 2026-10-27 07:40 UTC - GitHub Copilot - S1 close: both rows are `DONE` (`v1/middlewares/auth.rs` 142 / 142 and
+  `v1/responses.rs` 66 / 66 unit-only lines). The maintainer approved the second plan (2026-10-26) and the completed
+  file (2026-10-27). Rebased onto `develop` (only a `torrust-server-lib` bump touched the package) and measured
+  again: unit-only lines 921 / 1,305 (70.57%), aggregate 1,161 / 1,305 (88.97%), integration-only 674 / 908
+  (74.23%); 46 unit tests. Updated the EPIC "Latest" values.
 
 ## Acceptance Criteria
 
