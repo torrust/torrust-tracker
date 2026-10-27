@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2673-runner-disk-full-build-cache-not-pruned/ISSUE.md
-last-updated-utc: 2026-10-27 10:15
+last-updated-utc: 2026-10-27 10:30
 ---
 
 # Manual Verification Evidence
@@ -123,7 +123,7 @@ The wrong outcome was observed: `/` is 100% full, the build cache is 253.6 GB wi
 
 - Goal: confirm or reject the hypothesis that the four long-running containers pin the cache, and find what does.
 - Initial state: the runner state recorded in V1, unchanged; read-only commands only for the analysis steps.
-- Status: `IN_PROGRESS` (the pinned state is identified; how a cancelled job leaves it is not reproduced)
+- Status: `BLOCKED` for the trigger: the pinned state is identified, but reproducing how a cancelled job leaves it on the runner's stack needs a test build on the production runner, which the maintainer did not approve. Deferred to R1 in [deferred-proposals.md](deferred-proposals.md).
 - Reproduction outcome for the leak trigger: **Infeasible on the runner** (no free disk and a production host), with a negative local substitute.
 
 #### Steps Performed
@@ -173,26 +173,6 @@ after cancel:  18 records, 224.7 MB, 0 in use, all reclaimable
 - What pins the cache is 117 leaf records that BuildKit inside dockerd still considers in use, each backed by an Active snapshot that no maintained job owns. All 487 records descend from them, so none can be pruned.
 - Creation dates of the leaves and the heavy cancellation days of 2026-10-14 and 2026-10-19 to 2026-10-23 point at cancelled builds as the trigger, but that is a correlation. The local experiment did **not** reproduce it: on Docker 28.3.3 with overlay2 a cancelled build left nothing in use. The runner uses a different stack (Docker 29.8.1, containerd snapshotter, BuildKit 0.33.0, `docker/build-push-action` with `load: true`, multi-stage `cargo chef` builds), so the negative result is not a like-for-like refutation. Reproducing the trigger on the runner stack is still open.
 
-### V3 - Like-for-like recheck after the fix
-
-- Goal: repeat V1 after the last production change, and after three daily prune runs.
-- Initial state: to be recorded when run. Name the commit under test by its Conventional Commit subject.
-- Status: `TODO`
-
-#### Steps Performed
-
-To be recorded when executed.
-
-#### Observed Result
-
-```text
-Not yet run.
-```
-
-#### Conclusion
-
-Pending.
-
 ### V4 - Recover the runner (T2)
 
 - Goal: free the disk and make the build cache reclaimable again, with the maintainer's explicit approval for each step.
@@ -224,6 +204,84 @@ The prune in step 4 reported `Total: 0B` for the build cache. That is expected: 
 #### Conclusion
 
 The disk is recovered: 42% used with 170 GB free, and the cache is reclaimable again. Removing the containers (step 2) changed nothing in the cache. Restarting dockerd (step 3) released the pinned state: the 117 Active snapshots disappeared, the build cache fell by 153.6 GB (253.6 GB to 100 GB), and `df` used space fell by 144 GiB, all without any prune. That identifies the pinned state as orphaned references that BuildKit inside dockerd holds until the daemon restarts. This restores service only; it does not stop the state from accumulating again.
+
+### V5 - Regression test red, then green (T3, T4, T5)
+
+- Goal: prove the maintained shell test fails against the old cleanup behavior and passes against the fix.
+- Initial state: the repository at `docs(issues): [#2673] record the runner diagnosis and recovery evidence`.
+- Status: `DONE`
+- Toolchain: GNU bash 5.3.9 on Linux, ShellCheck 0.11.0 through `linter all`. No Rust toolchain is involved.
+
+#### Steps Performed
+
+1. Committed `docker-ci-prune.sh` with exactly the behavior of the old systemd unit (four prune commands, no restart, no exit status check) together with `tests/test-docker-ci-prune.sh`: `test(self-hosted-runner): [#2673] add failing tests for the runner Docker cleanup`.
+2. Ran `bash contrib/dev-tools/self-hosted-runner/tests/test-docker-ci-prune.sh` against that script (about 10:23 UTC).
+3. Committed the fix: `fix(self-hosted-runner): [#2673] restart dockerd when the daily prune cannot free the disk`.
+4. Re-ran the same command (green), then mutated the script without staging it and restored it: removed the idle guard (`if job_is_running` replaced by `if false`), then removed the `wait_for_docker` call, restoring the file after each (checked with `sha256sum`: the first 16 hex digits were `291f070a703883c6` before and after).
+
+#### Observed Result
+
+Red, against the old behavior (step 2), 3 pass and 5 fail:
+
+```text
+FAIL it_should_fail_when_usage_is_above_the_failure_threshold_and_a_job_prevents_the_restart
+FAIL it_should_fail_when_usage_stays_above_the_failure_threshold_after_the_restart
+FAIL it_should_fail_without_pruning_again_when_docker_does_not_come_back_after_the_restart
+FAIL it_should_restart_docker_and_prune_again_when_usage_stays_high_and_no_job_is_running
+FAIL it_should_wait_for_docker_before_pruning_again_after_the_restart
+PASS it_should_not_restart_docker_when_disk_usage_is_below_the_restart_threshold
+PASS it_should_not_restart_docker_while_a_job_is_running
+PASS it_should_prune_build_cache_containers_images_and_volumes_when_disk_usage_is_low
+Expected exit status to be "1", got "0".
+Expected command not run: systemctl restart docker.service
+5 test(s) failed.
+```
+
+Green, against the fix (step 4, 10:28 UTC), 8 pass:
+
+```text
+PASS it_should_fail_when_usage_is_above_the_failure_threshold_and_a_job_prevents_the_restart
+PASS it_should_fail_when_usage_stays_above_the_failure_threshold_after_the_restart
+PASS it_should_fail_without_pruning_again_when_docker_does_not_come_back_after_the_restart
+PASS it_should_not_restart_docker_when_disk_usage_is_below_the_restart_threshold
+PASS it_should_not_restart_docker_while_a_job_is_running
+PASS it_should_prune_build_cache_containers_images_and_volumes_when_disk_usage_is_low
+PASS it_should_restart_docker_and_prune_again_when_usage_stays_high_and_no_job_is_running
+PASS it_should_wait_for_docker_before_pruning_again_after_the_restart
+```
+
+Mutations (step 4):
+
+```text
+guard always false:        FAIL it_should_fail_when_usage_is_above_the_failure_threshold_and_a_job_prevents_the_restart
+                           FAIL it_should_not_restart_docker_while_a_job_is_running   (2 tests failed)
+no readiness wait:         FAIL it_should_fail_without_pruning_again_when_docker_does_not_come_back_after_the_restart
+                           FAIL it_should_wait_for_docker_before_pruning_again_after_the_restart   (2 tests failed)
+```
+
+#### Conclusion
+
+The test fails for the missing restart, readiness wait, and failure exit status, and passes with them; both guard tests fail when the guard they protect is removed. The stubs cannot show that a real Docker restart releases the pinned state; that was observed on the runner in V4 and is rechecked in V6. The test is not run by the pre-commit hook or CI; it is run manually, as the existing shell tests in `contrib/dev-tools/checks/tests/` are.
+
+### V6 - Deploy the script and recheck on the runner (T7)
+
+- Goal: install the script, run it once under systemd, and watch the first scheduled runs.
+- Initial state: to be recorded when run. Name the commit under test by its Conventional Commit subject.
+- Status: `TODO`
+
+#### Steps Performed
+
+To be recorded when executed, with the maintainer's explicit approval and only while the runner is idle.
+
+#### Observed Result
+
+```text
+Not yet run.
+```
+
+#### Conclusion
+
+Pending.
 
 ## Failures and Follow-up
 
