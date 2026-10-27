@@ -9,7 +9,7 @@ github-issue: 2370
 spec-path: docs/issues/closed/2370-1488-si-15-define-udp-active-request-policy/ISSUE.md
 branch: "2370-1488-si-15-define-udp-active-request-policy"
 related-pr: 2382
-last-updated-utc: "2026-09-30 12:24"
+last-updated-utc: "2026-10-27 07:46"
 semantic-links:
   skill-links:
     - create-issue
@@ -31,7 +31,7 @@ semantic-links:
     - docs/features/shutdown-process/task-inventory.md
     - docs/issues/closed/2342-1488-si-14-migrate-udp-receive-reset-token-lifecycle/ISSUE.md
     - docs/issues/drafts/1488-si-9-improve-udp-shutdown/ISSUE.md
-    - docs/issues/drafts/1488-si-20-configure-shutdown-policy/ISSUE.md
+    - docs/issues/open/2668-1488-si-20-configure-shutdown-policy/ISSUE.md
     - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
 ---
 

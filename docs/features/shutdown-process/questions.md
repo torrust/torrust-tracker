@@ -1,7 +1,7 @@
 ---
 doc-type: questions
 status: resolved
-last-updated-utc: 2026-09-01
+last-updated-utc: 2026-10-27
 semantic-links:
   related-artifacts:
     - docs/features/shutdown-process/README.md
@@ -919,7 +919,9 @@ component outcomes, and the final process result. Docker/Podman's default
 it is not a passing graceful-drain target.
 
 After implementation, record the raw command output and logs in SI-20's
-`verification.md`, then add the observed behavior to the shutdown analysis.
+`manual-verification-evidence.md` (the original `verification.md` skeleton was
+replaced by the evidence template), then add the observed behavior to the
+shutdown analysis.
 
 ### Actions Taken
 
