@@ -6,7 +6,7 @@ epic: null
 github-issue: 1488
 spec-path: docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-26 19:50"
+last-updated-utc: "2026-10-27 07:46"
 semantic-links:
   skill-links:
     - create-issue
@@ -210,7 +210,7 @@ deterministic tests, and manual evidence.
 | 17       | #2450 | [Migrate health-check API test environment](../../closed/2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md) | Done       | SI-24. One test environment migration; found while refreshing SI-17 (2026-10-06). Merged in PR #2652 on 2026-10-26; one token and one `DropGuard`, because the environment owns no listener. Review found that a fixed-port restart panicked because the registry could not remove a registration, so `torrust-server-lib` 0.4.0 added `Registar::deregister` and `stop()` removes its own binding. |
 | 18       | SI-18 | [Deprecate legacy shutdown API](../../drafts/1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md)                           | Draft      | Compatibility-preserving source deprecation only.                                                    |
 | 19       | SI-19 | [Remove legacy shutdown API and library OS signals](../../drafts/1488-si-19-remove-legacy-shutdown-api/ISSUE.md)          | Draft      | Breaking release after migration, deprecation, and compatibility gates.                              |
-| 20       | SI-20 | [Configure shutdown policy and deployment contract](../../drafts/1488-si-20-configure-shutdown-policy/ISSUE.md)           | Draft      | Apply approved Q3/Q4 outcomes, budgets, configuration, and deployment guidance.                      |
+| 20       | #2668 | [Configure shutdown policy and deployment contract](../2668-1488-si-20-configure-shutdown-policy/ISSUE.md)               | Planned    | Apply approved Q3/Q4 outcomes, budgets, configuration, and deployment guidance.                      |
 | 21       | SI-21 | [Mark health check unhealthy during shutdown](../../drafts/1488-si-21-mark-health-unhealthy-during-shutdown/ISSUE.md)     | Draft      | Set readiness to not ready before root cancellation and component drain.                             |
 | —        | SI-3  | [Combined standalone environment migration](../../drafts/1488-si-3-fix-environment-stop/ISSUE.md)                         | Superseded | Replaced by SI-16 and SI-17. Do not implement.                                                       |
 | —        | SI-6  | [Concurrent supervisor outcomes](../../drafts/1488-si-6-align-grace-periods/ISSUE.md)                                     | Superseded | Replaced by existing issue #1586. Do not implement separately.                                       |
