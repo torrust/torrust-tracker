@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2673-runner-disk-full-build-cache-not-pruned/ISSUE.md
-last-updated-utc: 2026-10-27 10:57
+last-updated-utc: 2026-10-27 11:45
 ---
 
 # Manual Verification Evidence
@@ -277,6 +277,7 @@ All on 2026-10-27 UTC, with the maintainer's approval in chat ("Deploy now from 
 2. 10:54:49 `scp contrib/dev-tools/self-hosted-runner/docker-ci-prune.sh torrust-runner-01:/usr/local/sbin/docker-ci-prune`, then `chmod 0755` and `sha256sum` on both sides.
 3. 10:54:56 Ran the unit-writing `printf` command from `docs/self-hosted-runner.md` setup step 10 (extracted from the document, so the document was exercised), then `systemctl daemon-reload` and `systemd-analyze verify`.
 4. 10:55:03 `systemctl start docker-ci-prune.service`, then `journalctl -u docker-ci-prune.service`, `df`, `docker system df`, `systemctl is-failed`.
+5. Restart-path test, approved by the maintainer after the pull request check of the other pull request passed. At 11:41 UTC, with `busy: false` from the GitHub API, no `Runner.Worker` process, no container, and no queued or running Test job (a GitHub-hosted publish job was still running), ran `DOCKER_CI_PRUNE_RESTART_ABOVE_PERCENT=40 /usr/local/sbin/docker-ci-prune` once, directly and not under systemd. The disk was at 59%, so the lowered 40% threshold forced the restart branch.
 
 #### Observed Result
 
@@ -296,11 +297,29 @@ systemctl is-failed docker-ci-prune.service: inactive (it prints "failed" after 
 next scheduled run: Wed 2026-10-28 04:00:00 UTC
 ```
 
-Check that checks work again: the `Test (Docker) (release)` job of the pull request for this issue's branch ran on `torrust-runner-01` from 10:41:43 to 10:54:29 UTC and succeeded, with the disk at 49% and the cache at 121 GB.
+Restart-path test (step 5), 11:41:43 to 11:42:02 UTC, script output trimmed:
+
+```text
+before:  /dev/sda1 301G, 168G used, 121G free, 59%; Build Cache 258 records, 149.9GB, 149.6GB reclaimable; docker.service up since 10:10:59
+first prune, build cache:   7 records listed, Total: 22.69GB freed
+Disk usage after the prune: 51%.
+Disk usage is still above 40% after the prune; restarting docker.service to release orphaned build state.
+second prune, build cache:  Total: 0B
+Disk usage after the restart and a second prune: 51%.
+script exit=0
+after:   /dev/sda1 301G, 147G used, 142G free, 51%; Build Cache 251 records, 127.2GB, 0 active, 127GB reclaimable
+         docker.service up since 11:42:01 (NRestarts=0); docker, containerd and the runner service active; runner online and not busy
+         daemon log: Processing signal 'terminated' 11:42:00, Docker daemon start 11:42:01, Completed buildkit initialization 11:42:01
+         ctr -n moby snapshots ls: 16 Active, 267 Committed
+```
+
+The restart in this test was not needed to free space: the first prune already freed 22.69 GB, because on this run no build state was pinned. The 16 Active snapshots after the restart were not investigated; Docker reports 0 cache records in use and all 127 GB reclaimable, so they do not block the prune. The second prune freed 0 B with the cache at 127.2 GB, above the 120GB argument: the same overshoot as the 128.8 GB the setup guide records for this prune, not a new finding.
+
+Check that checks work again: the `Test (Docker) (release)` job of the pull request for this issue's branch ran on `torrust-runner-01` from 10:41:43 to 10:54:29 UTC and succeeded, with the disk at 49% and the cache at 121 GB. The job that failed earlier, on the pull request whose run 40471601395 failed during the full-disk period, was re-run by the maintainer (attempt 4) and `Test (Docker) (release)` succeeded on `torrust-runner-01` from 11:09:44 to 11:26:31 UTC.
 
 #### Conclusion
 
-Deployed and working for the no-restart path: the prune ran, the disk is 49%, and the unit succeeded. Not yet shown on the runner: the restart path (the disk was below the 70% threshold, so it did not run) and three consecutive scheduled daily runs. The first scheduled run is 2026-10-28 04:00 UTC. Record them here, or run a controlled check of the restart path with a lowered `DOCKER_CI_PRUNE_RESTART_ABOVE_PERCENT` on an idle runner with the maintainer's approval.
+Deployed and working. The no-restart path ran under systemd (disk 49%, unit succeeded). The restart path ran once on the real runner through a controlled test with a lowered threshold: the script restarted `docker.service`, waited for it, pruned again, and exited 0, and Docker, containerd, and the runner service came back. Two things are still not shown: the restart path triggered by the real 70% threshold under systemd (the test ran the script directly), and three consecutive scheduled daily runs. The first scheduled run is 2026-10-28 04:00 UTC; record them here.
 
 ## Failures and Follow-up
 
