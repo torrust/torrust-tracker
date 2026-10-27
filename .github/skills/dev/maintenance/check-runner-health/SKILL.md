@@ -63,7 +63,7 @@ marked local on your own machine, not through `$S`.
 | Agent, OS, uptime     | `/home/runner/actions-runner/bin/Runner.Listener --version; . /etc/os-release; echo $PRETTY_NAME; uname -r; uptime; ls /var/run/reboot-required`        |
 | CPU now               | `nproc; cat /proc/loadavg; top -b -n1 \| head -5; vmstat 1 5`                                                                                            |
 | CPU per day           | For each `sa<DD>` in `/var/log/sysstat`: `sar -u -f /var/log/sysstat/sa<DD>` and `sar -q -f ...` (average idle, minimum idle, peak `ldavg-5`)            |
-| Memory, swap, OOM     | `free -h; swapon --show; journalctl -k --since "30 days ago" \| grep -c "Killed process"`                                                                |
+| Memory, swap, OOM     | `free -h; swapon --show; journalctl _TRANSPORT=kernel --since "30 days ago" \| grep -c "Killed process"` (not `journalctl -k`: it implies the current boot only, so after a reboot it hides earlier kills and can print a false zero) |
 | Disk                  | `df -h /; df -i /; docker system df; du -xh --max-depth=1 / \| sort -rh \| head; du -sh /home/runner/.cache/torrust-tracker/*`                           |
 | Cache records         | `docker buildx du \| tail -3`; `docker system df -v \| sed -n '/Build cache usage/,$p'` (a `*` after a cache id means in use; count them); `ctr -n moby snapshots ls \| awk 'NR>1{print $3}' \| sort \| uniq -c` |
 | Held containers       | `docker ps -a --format '{{.ID}} {{.Image}} {{.Names}} {{.Status}} {{.CreatedAt}}'`; `docker image ls -a`                                                 |
