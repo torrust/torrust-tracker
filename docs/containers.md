@@ -343,6 +343,79 @@ curl -sI https://http1.torrust-tracker-demo.com/announce | grep -i alt-svc
 
 Expected for step 2: the response status line starts with `HTTP/3 200`.
 
+### Stopping the Tracker
+
+The tracker stops when it receives `SIGTERM` or `SIGINT`. The image runs it as the container's first
+process (the entry script replaces itself with the tracker), so `docker stop`, `podman stop`, a
+Kubernetes pod deletion, and `systemctl stop` all reach it.
+
+The tracker finishes in two stages, each with its own time budget, inside one process deadline. All
+four values are in the `[application.shutdown]` table of the configuration file. The shipped
+templates state the defaults:
+
+| Key                            | Default | What it limits                                                                                    |
+| ------------------------------ | ------- | ------------------------------------------------------------------------------------------------- |
+| `deadline_in_secs`             | 25 s    | The whole stop. A component that has not finished by then is aborted.                             |
+| `http_drain_in_secs`           | 15 s    | How long the HTTP tracker, the REST API, and the health check API wait for open connections.       |
+| `udp_request_drain_in_secs`    | 5 s     | How long the UDP tracker waits for the requests it has already accepted.                          |
+| `event_listener_drain_in_secs` | 5 s     | How long each statistics, banning, and cleanup listener keeps processing events after its producers stopped. |
+
+Every value is a whole number from 1 to 3600. The servers stop first and the listeners second, so the
+tracker refuses to start unless `max(http_drain_in_secs, udp_request_drain_in_secs) +
+event_listener_drain_in_secs` is below `deadline_in_secs`. With the defaults that is 15 + 5 = 20, below
+25. Set a value for one run with an environment variable, for example
+`--env TORRUST_TRACKER_CONFIG_OVERRIDE_APPLICATION__SHUTDOWN__HTTP_DRAIN_IN_SECS=10`.
+
+The exit code tells whether the stop was complete:
+
+| Exit code | Meaning                                                                                                          |
+| --------- | ---------------------------------------------------------------------------------------------------------------- |
+| `0`       | Every component finished, or was cancelled, within the deadline.                                                  |
+| `1`       | A component failed, panicked, or was aborted at the deadline, or the tracker could not start. The log names it.   |
+| `137`     | The container runtime sent `SIGKILL` before the tracker finished. The tracker did not exit by itself.            |
+
+#### Give the tracker enough time to stop
+
+The container runtime must wait longer than the tracker's deadline before it sends `SIGKILL`: at least
+`deadline_in_secs` plus 5 s. For the defaults that is **30 s at least, and 35 s is recommended**. Docker
+and Podman wait only 10 s by default, which is shorter than the default deadline, so a tracker that is
+still draining is killed and the container exits with `137`. Set the time explicitly:
+
+| Runtime         | Setting                                              | Minimum | Recommended |
+| --------------- | ---------------------------------------------------- | ------- | ----------- |
+| Docker, Podman  | `run --stop-timeout`, or `stop --time`               | 30 s    | 35 s        |
+| Docker Compose  | `stop_grace_period`                                  | 30s     | 35s         |
+| Kubernetes      | `terminationGracePeriodSeconds`                      | 30      | 35          |
+| systemd         | `TimeoutStopSec`                                     | 30      | 35          |
+
+```sh
+docker run --stop-timeout 35 --publish 0.0.0.0:7070:7070/tcp torrust/tracker:latest
+```
+
+```yaml
+services:
+  tracker:
+    image: torrust/tracker:latest
+    stop_grace_period: 35s
+```
+
+```yaml
+spec:
+  terminationGracePeriodSeconds: 35
+```
+
+```ini
+[Service]
+TimeoutStopSec=35
+```
+
+If you raise `deadline_in_secs`, raise the runtime value by the same amount. If you lower it, the
+runtime value can stay as it is.
+
+A requested stop that ends with exit code `1` leaves a systemd unit in the `failed` state. That is
+intended: the stop was not clean. Do not add `1` to `SuccessExitStatus` to hide it; read the log for
+the component named as incomplete instead.
+
 ### Host-mapped Volumes
 
 By default the container will use install volumes for `/var/lib/torrust/tracker`, `/var/log/torrust/tracker`, and `/etc/torrust/tracker`, however for better administration it good to make these volumes host-mapped.
