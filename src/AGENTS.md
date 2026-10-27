@@ -49,8 +49,9 @@ main()
                  └─ start_health_check_api         ← always started
 ```
 
-Shutdown (`main`): receives `Ctrl-C` → calls `jobs.cancel()` (fires the `CancellationToken`) →
-waits up to 10 seconds for all direct component tasks to complete.
+Shutdown (`main`): receives `Ctrl-C` or `SIGTERM` → calls `jobs.cancel()` (fires the `CancellationToken`) →
+waits up to `application.shutdown.deadline_in_secs` (25 seconds by default) for all direct component
+tasks to complete → exits `0` only when every outcome is completed or cancelled, otherwise `1`.
 
 ## `AppContainer`
 

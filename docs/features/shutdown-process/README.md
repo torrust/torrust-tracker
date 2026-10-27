@@ -1,7 +1,7 @@
 ---
 doc-type: feature
 status: draft
-last-updated-utc: "2026-10-21 18:55"
+last-updated-utc: "2026-10-27 14:59"
 semantic-links:
   related-artifacts:
     - docs/analysis/20260716-shutdown-process/README.md
