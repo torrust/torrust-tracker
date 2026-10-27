@@ -24,7 +24,6 @@
 use std::future::Future;
 use std::path::PathBuf;
 use std::sync::Arc;
-use std::time::Duration;
 
 use torrust_clock::clock::Time;
 use torrust_tracker_configuration::v3_0_0::Configuration;
@@ -166,7 +165,9 @@ async fn start_jobs(config: &Configuration, app_container: &Arc<AppContainer>) -
 
     if let Err(error) = start_jobs_with_manager(config, app_container, &mut job_manager).await {
         job_manager.cancel();
-        job_manager.wait_for_all(Duration::from_secs(10)).await;
+        job_manager
+            .wait_for_all(config.application.shutdown.deadline_in_secs.as_duration())
+            .await;
         return Err(error);
     }
 
@@ -340,7 +341,7 @@ async fn start_udp_tracker_services(
     }
 
     start_udp_server_stats_event_listener(config, app_container, job_manager, flows)?;
-    start_udp_server_banning_event_listener(app_container, job_manager, flows)?;
+    start_udp_server_banning_event_listener(config, app_container, job_manager, flows)?;
     // issue: #1453
     start_udp_ban_cleanup_job(config, app_container, job_manager);
     start_the_udp_instances(config, app_container, job_manager, flows).await
@@ -379,12 +380,13 @@ fn start_udp_server_stats_event_listener(
 }
 
 fn start_udp_server_banning_event_listener(
+    config: &Configuration,
     app_container: &Arc<AppContainer>,
     job_manager: &mut JobManager,
     flows: &mut EventFlows,
 ) -> Result<(), Error> {
     let reservation = job_manager.reserve("udp_server_banning_event_listener");
-    let runner = jobs::udp_tracker_server::run_banning_event_listener(app_container, reservation.cancellation_token());
+    let runner = jobs::udp_tracker_server::run_banning_event_listener(config, app_container, reservation.cancellation_token());
     spawn_listener(job_manager, flows, Bus::UdpServer, reservation, component_runner(runner))
 }
 

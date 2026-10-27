@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2668-1488-si-20-configure-shutdown-policy/ISSUE.md
-last-updated-utc: "2026-10-27 12:37"
+last-updated-utc: "2026-10-27 12:48"
 ---
 
 # Manual Verification Evidence
@@ -282,6 +282,71 @@ A process mistake, recorded: the first S1 attempt was issued as one parallel bat
 - `cargo +nightly fmt --all -- --check` (nightly Rust toolchain): exit 0.
 - `linter all`: exit 0.
 - `cargo test --tests --benches --examples --workspace --all-targets --all-features` (stable Rust toolchain): exit 0, 3,540 passed, 0 failed.
+- `cargo test --doc --workspace` (stable Rust toolchain): exit 0.
+
+### T4 - Deliver the process deadline (P) and the listener drain (L)
+
+- Goal: the configured deadline reaches `main` and the startup-failure cleanup, the configured listener drain reaches all seven listeners, and each new test fails when its behavior is removed.
+- Status: `DONE` for the code and the unit tests. The executable-boundary proof that the configured deadline is the one the supervisor applies (the `timeout_seconds` of the `Waiting for job to finish under the shared shutdown deadline` log line) is T6's and T8's.
+- Toolchain: stable Rust 1.99.1 (nightly Rust toolchain for the formatter check).
+
+#### Design (maintainer decision D5: inject top to bottom)
+
+- `ShutdownBudgetInSecs::as_duration` in the configuration package, so a callee receives a plain `Duration`.
+- `AppContainer` carries `application_config` (an `Arc<Application>` built from the `Configuration` it is initialized from). `main` reads the deadline from it, and `start_jobs` reads it from `config` in the cleanup after a failed startup. No hard-coded 10 s remains in `src/main.rs` or `src/app.rs`.
+- `event_listener_drain_timeout(&Configuration) -> Duration` in `src/bootstrap/jobs/mod.rs`; the five bootstrap files call it for the seven listeners. `run_banning_event_listener` gained a `config` parameter like its siblings, and `run_event_listener` of the HTTP core, UDP core and UDP server statistics sites now use theirs (they took an unused `_config`).
+
+#### Tests added by T4 (4)
+
+`v3_0_0::shutdown::tests::it_should_convert_a_budget_to_a_duration_of_whole_seconds`, `container::tests::it_should_keep_the_configured_shutdown_budgets_of_the_configuration_it_was_initialized_from`, `bootstrap::jobs::tests::it_should_use_the_configured_event_listener_drain_budget_and_not_the_default`, and `bootstrap::jobs::tests::it_should_not_leave_a_listener_site_on_the_default_drain_timeout`. The workspace suite went from 3,540 to 3,544 passed.
+
+The last test is a source-level check and the reason is recorded here: the drain timeout of a listener has no observable seam in a unit test, because it matters only when a handler is slower than the timeout and the real handlers of these listeners are fast (under a paused clock the drain loop yields after every event and never lets the clock advance). Instead of testing a value no seam can show, the test reads the five bootstrap files with `include_str!` and requires, per file, that `event_listener_drain_timeout(config),` appears once per listener it starts (1, 1, 2, 1, 2) and that `DEFAULT_DRAIN_TIMEOUT` does not appear. It was red against the unchanged sites (all five files named) before they were changed.
+
+#### Prose-first comparison
+
+| Test | Arrange | Act | Assert |
+| ---- | ------- | --- | ------ |
+| `as_duration` | A budget of 7 s. | `as_duration()`. | Exactly `Duration::from_secs(7)`. |
+| container | A `Configuration` whose deadline is 40 s (the default is 25 s). | `AppContainer::initialize`. | The container's `application_config` deadline is 40 s. |
+| helper | A `Configuration` whose listener drain is 7 s (the default is 5 s). | `event_listener_drain_timeout`. | 7 s, not 5 s. |
+| site guard | The sources of the five bootstrap files and the number of listeners each starts. | Count the helper calls used as an argument and search for the default constant. | No file is named in the failure list. |
+
+The comparison led to no change except the guard: its first version (the file mentions the helper) is the one that let mutation T2b survive.
+
+#### Mutation proofs
+
+Each row: back up the file, apply one mutation with the edit tool, run `cargo test` (stable toolchain), read the output, restore, and prove the restore with `cmp`. `could_not_compile=0` for every row below.
+
+| Id | Clause guarded | Mutation | Tests that failed |
+| -- | -------------- | -------- | ----------------- |
+| T1 | The helper returns the configured drain | The helper ignores the configuration and returns 5 s | `it_should_use_the_configured_event_listener_drain_budget_and_not_the_default` (1) |
+| T2 | (rejected) a site uses a literal | The site's call was removed | Not a result: the compiler rejected it (unused import), so no test ran. |
+| T2b | Every site passes the helper's result | `torrent_repository.rs` calls the helper, discards the result, and passes `5 s` | **Survived** with the first guard (155 passed, 0 failed). The guard was strengthened to count the call as an argument, per file. |
+| T2c | same | the same change in `torrent_repository.rs` | `it_should_not_leave_a_listener_site_on_the_default_drain_timeout` (1), file named |
+| T2d | Both listeners of `tracker_core.rs` | the same change on the in-memory listener only | the same test (1) |
+| T2e | Both listeners of `udp_tracker_server.rs` | the same change on the banning listener only | the same test (1) |
+| T2f | `http_tracker_core.rs` | the same change | the same test (1) |
+| T2g | `udp_tracker_core.rs` | the same change | the same test (1) |
+| T2h | No site passes the default constant | `torrent_repository.rs` passes `DEFAULT_DRAIN_TIMEOUT` | the same test (1) |
+| T3 | The container keeps the configured settings | `Application::default()` instead of the configuration's | `it_should_keep_the_configured_shutdown_budgets_of_the_configuration_it_was_initialized_from` (1) |
+| T4 | `as_duration` returns whole seconds | `from_millis` | `it_should_convert_a_budget_to_a_duration_of_whole_seconds` (1) |
+
+After the last run `cmp` printed "identical" for every file and `git status --short` listed only the intended changes.
+
+#### Not covered by a unit test, and where it is covered
+
+The two deadline call sites (`main` and the cleanup in `start_jobs`) have no unit test: the deadline is observable only as the time a stuck component takes to be aborted, and a unit test cannot make a real component stuck. The supervisor logs the deadline it applies (`timeout_seconds`), so the native-binary tests of T6 assert that line for a configured deadline on a clean stop and on a failed startup, and T8 repeats it on the final code.
+
+#### Process notes, recorded
+
+- Two batches of dependent tool calls ran in parallel again (a restore with the next edit, and the creation of a script with its first use). In both the edit hit the wrong file state; the first changed nothing, the second rejected mutation T2 and was redone one step at a time. This is the third occurrence in this issue.
+- One unused import was removed from `src/main.rs` with `sed -i` instead of the edit tool; the compiler checked the result.
+
+#### Automatic checks on the finished T4 code (12:46 UTC)
+
+- `cargo +nightly fmt --all -- --check` (nightly Rust toolchain): exit 0.
+- `linter all`: exit 0.
+- `cargo test --tests --benches --examples --workspace --all-targets --all-features` (stable Rust toolchain): exit 0, 3,544 passed, 0 failed.
 - `cargo test --doc --workspace` (stable Rust toolchain): exit 0.
 
 ## Failures and Follow-up

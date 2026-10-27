@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use torrust_server_lib::registar::Registar;
 use torrust_tracker_configuration::v3_0_0::Configuration;
+use torrust_tracker_configuration::v3_0_0::application::Application;
 use torrust_tracker_configuration::v3_0_0::tracker_api::HttpApi;
 use torrust_tracker_core::container::TrackerCoreContainer;
 use torrust_tracker_http_core::container::{HttpTrackerCoreContainer, HttpTrackerCoreServices};
@@ -29,6 +30,7 @@ pub enum Error {
 pub struct AppContainer {
     // Configuration
     pub http_api_config: Arc<Option<HttpApi>>,
+    pub application_config: Arc<Application>,
 
     // Registar
     pub registar: Arc<Registar<torrust_tracker_primitives::RuntimeServiceMetadata>>,
@@ -62,6 +64,8 @@ impl AppContainer {
         let core_config = Arc::new(configuration.core.clone());
 
         let http_api_config = Arc::new(configuration.http_api.clone());
+
+        let application_config = Arc::new(configuration.application.clone());
 
         // Registar
 
@@ -110,8 +114,7 @@ impl AppContainer {
         Ok(Self {
             // Configuration
             http_api_config,
-
-            // Registar
+            application_config,
             registar,
 
             // Swarm Coordination Registry Container
@@ -234,7 +237,10 @@ impl AppContainer {
 
 #[cfg(test)]
 mod tests {
+    use std::time::Duration;
+
     use torrust_tracker_configuration::v3_0_0::Configuration;
+    use torrust_tracker_configuration::v3_0_0::shutdown::ShutdownBudgetInSecs;
 
     use super::{AppContainer, Error};
 
@@ -251,6 +257,25 @@ mod tests {
 
         // Assert
         assert!(container.tracker_core_container.persistence.is_none());
+    }
+
+    #[tokio::test]
+    async fn it_should_keep_the_configured_shutdown_budgets_of_the_configuration_it_was_initialized_from() {
+        // Arrange
+        let mut configuration = Configuration::default();
+        configuration.application.shutdown.deadline_in_secs = ShutdownBudgetInSecs::new(40).expect("40 s is within the range");
+
+        // Act
+        let container = AppContainer::initialize(&configuration)
+            .await
+            .expect("composition should succeed");
+
+        // Assert
+        assert_eq!(
+            container.application_config.shutdown.deadline_in_secs.as_duration(),
+            Duration::from_secs(40),
+            "the deadline configured for the shutdown, not the default of 25 s"
+        );
     }
 
     #[tokio::test]

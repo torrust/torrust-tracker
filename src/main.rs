@@ -1,6 +1,5 @@
 use std::path::PathBuf;
 use std::process::ExitCode;
-use std::time::Duration;
 
 use clap::Parser;
 use torrust_tracker_lib::app;
@@ -31,14 +30,16 @@ async fn main() -> ExitCode {
     let cli = Cli::parse();
 
     match app::start_with_explicit_config_toml_path(cli.config_toml_path).await {
-        Ok((_app_container, jobs)) => {
+        Ok((app_container, jobs)) => {
             let shutdown_signal = wait_for_shutdown_signal().await;
 
             tracing::info!("Torrust tracker shutting down ({shutdown_signal}) ...");
 
             jobs.cancel();
 
-            let outcomes = jobs.wait_for_all(Duration::from_secs(10)).await;
+            let outcomes = jobs
+                .wait_for_all(app_container.application_config.shutdown.deadline_in_secs.as_duration())
+                .await;
 
             report_shutdown(&outcomes)
         }

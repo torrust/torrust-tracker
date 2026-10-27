@@ -2,9 +2,9 @@ use std::sync::Arc;
 
 use tokio_util::sync::CancellationToken;
 use torrust_tracker_configuration::v3_0_0::Configuration;
-use torrust_tracker_events::drain::DEFAULT_DRAIN_TIMEOUT;
 use torrust_tracker_events::shutdown::Completion;
 
+use crate::bootstrap::jobs::event_listener_drain_timeout;
 use crate::container::AppContainer;
 
 /// Errors encountered while starting tracker-core background jobs.
@@ -27,7 +27,7 @@ pub fn run_in_memory_event_listener(
             app_container.swarm_coordination_registry_container.event_bus.receiver(),
             cancellation_token,
             app_container.tracker_core_container.stats_repository.clone(),
-            DEFAULT_DRAIN_TIMEOUT,
+            event_listener_drain_timeout(config),
         )
     })
 }
@@ -58,7 +58,7 @@ pub fn run_persistent_completed_statistics_event_listener(
             cancellation_token,
             persistence.db_downloads_metric_repository.clone(),
             app_container.tracker_core_container.stats_repository.clone(),
-            DEFAULT_DRAIN_TIMEOUT,
+            event_listener_drain_timeout(config),
         ),
     ))
 }

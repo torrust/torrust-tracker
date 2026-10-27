@@ -14,6 +14,8 @@
 //!
 //! The tracker cannot check the external stop timeout of Docker, systemd or Kubernetes. That timeout
 //! must be at least five seconds longer than `deadline_in_secs`; see `docs/containers.md`.
+use std::time::Duration;
+
 use serde::{Deserialize, Deserializer, Serialize, Serializer, de};
 use thiserror::Error;
 
@@ -65,6 +67,13 @@ impl ShutdownBudgetInSecs {
     #[must_use]
     pub const fn get(self) -> u64 {
         self.0
+    }
+
+    /// Returns the validated budget as a [`Duration`], so a component that applies it needs no
+    /// knowledge of this configuration type.
+    #[must_use]
+    pub const fn as_duration(self) -> Duration {
+        Duration::from_secs(self.0)
     }
 }
 
@@ -305,6 +314,18 @@ mod tests {
                 "`{omitted_key}` is omitted, so it should take its default"
             );
         }
+    }
+
+    #[test]
+    fn it_should_convert_a_budget_to_a_duration_of_whole_seconds() {
+        // Arrange
+        let budget = ShutdownBudgetInSecs::new(7).expect("7 s is within the supported range");
+
+        // Act
+        let duration = budget.as_duration();
+
+        // Assert
+        assert_eq!(duration, std::time::Duration::from_secs(7), "7 configured seconds");
     }
 
     #[test]

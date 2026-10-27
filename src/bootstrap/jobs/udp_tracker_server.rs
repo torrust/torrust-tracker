@@ -7,7 +7,6 @@ use tokio::time::interval;
 use tokio_util::sync::CancellationToken;
 use torrust_clock::clock::Time as _;
 use torrust_tracker_configuration::v3_0_0::Configuration;
-use torrust_tracker_events::drain::DEFAULT_DRAIN_TIMEOUT;
 use torrust_tracker_events::shutdown::Completion;
 use torrust_tracker_udp_core::UDP_TRACKER_LOG_TARGET;
 use torrust_tracker_udp_core::services::banning::BanService;
@@ -15,6 +14,7 @@ use torrust_tracker_udp_server::banning::{PublicationOrder, reset_bans};
 use torrust_tracker_udp_server::statistics::repository::Repository;
 
 use crate::CurrentClock;
+use crate::bootstrap::jobs::event_listener_drain_timeout;
 use crate::container::AppContainer;
 
 /// Returns an unspawned statistics listener for application-level supervision.
@@ -23,7 +23,7 @@ use crate::container::AppContainer;
 // policy. It must not control event publication, because banning consumes the
 // same stream independently.
 pub fn run_stats_event_listener(
-    _config: &Configuration,
+    config: &Configuration,
     app_container: &Arc<AppContainer>,
     cancellation_token: CancellationToken,
 ) -> impl Future<Output = Completion> + Send + 'static {
@@ -37,7 +37,7 @@ pub fn run_stats_event_listener(
         cancellation_token,
         app_container.udp_tracker_server_container.stats_repository.clone(),
         metrics_policy,
-        DEFAULT_DRAIN_TIMEOUT,
+        event_listener_drain_timeout(config),
     )
 }
 
@@ -46,6 +46,7 @@ pub fn run_stats_event_listener(
 // Banning intentionally receives every UDP-server fact; it never applies the
 // per-listener metrics policy used by `run_stats_event_listener`.
 pub fn run_banning_event_listener(
+    config: &Configuration,
     app_container: &Arc<AppContainer>,
     cancellation_token: CancellationToken,
 ) -> impl Future<Output = Completion> + Send + 'static {
@@ -58,7 +59,7 @@ pub fn run_banning_event_listener(
             .banned_ips_publication_order
             .clone(),
         app_container.udp_tracker_server_container.stats_repository.clone(),
-        DEFAULT_DRAIN_TIMEOUT,
+        event_listener_drain_timeout(config),
     )
 }
 
