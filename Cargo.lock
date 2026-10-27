@@ -4043,6 +4043,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "shipped-features-check"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "tempfile",
+]
+
+[[package]]
 name = "shlex"
 version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"

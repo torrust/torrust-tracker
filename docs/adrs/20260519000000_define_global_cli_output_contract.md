@@ -76,6 +76,7 @@ All diagnostics go to stderr via the tracing subscriber or direct JSON stderr wr
 | `tracker_client`         | `stdout-result-data` | Announce/scrape results as JSON; monitor progress as NDJSON on stderr |
 | `clippy-allow-reasons`   | `no-stdout-result`   | Prospective repository check; pass/fail via exit code                 |
 | `frontmatter-validator`  | `no-stdout-result`   | Markdown frontmatter check; NDJSON diagnostics on stderr              |
+| `shipped-features-check` | `no-stdout-result`   | Shipped-binary feature check; NDJSON diagnostics on stderr            |
 | `github-review-threads`  | `stdout-result-data` | GitHub CLI review-thread results and JSON diagnostics                 |
 | `ci-gate`                | `stdout-result-data` | Needed job groups or the merge verdict as JSON; JSON diagnostics      |
 

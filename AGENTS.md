@@ -118,6 +118,7 @@ package's `Cargo.toml` holds its version. Rows marked _(unpublished)_ set `publi
 | `checks/clippy-allow-reasons`         | `clippy-allow-reasons`         | Validates documented Clippy allow attributes               |
 | `checks/frontmatter-validator`        | `frontmatter-validator`        | Validates Markdown frontmatter                             |
 | `checks/package-coverage-check`       | `package-coverage-check`       | Checks changed workspace packages for coverage regressions |
+| `checks/shipped-features-check`       | `shipped-features-check`       | Fails if a `testing` feature reaches a shipped binary      |
 | `github/github-review-threads`        | `github-review-threads`        | Fetches pull-request review threads through the GitHub CLI |
 
 **Community contributions** (under `contrib/`):
