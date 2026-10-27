@@ -9,7 +9,7 @@ github-issue: 2673
 spec-path: docs/issues/open/2673-runner-disk-full-build-cache-not-pruned/ISSUE.md
 branch: "2673-runner-disk-full-build-cache-not-pruned-spec"
 related-pr: null
-last-updated-utc: "2026-10-27 09:50"
+last-updated-utc: "2026-10-27 10:15"
 semantic-links:
   skill-links:
     - create-issue
@@ -23,7 +23,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-<!-- cspell:ignore journalctl retag -->
+<!-- cspell:ignore journalctl moby retag -->
 
 # Issue #2673 - Self-hosted runner disk fills because the daily prune cannot free the Docker build cache
 
@@ -48,11 +48,13 @@ Contract violated: the setup guide states that the daily prune trims the cache t
 
 Impact: container tests, and on `develop` the development-image publish, cannot complete on the runner. Until the disk is freed, every pull request that needs `Test (Docker)` fails or waits.
 
-### Local hypothesis (not proven)
+### Cause (revised after T1 and T2; the leak trigger is still unproven)
 
-Four containers started from `torrust-tracker:local` images have run for 4 to 12 days (started 2026-10-14, 10-16, 10-20, and 10-22) and all show healthy. Their image ids no longer appear in `docker image ls -a`, because newer builds retag `torrust-tracker:local`. The containerd snapshotter reports 121 Active snapshots. The prune freed less each time one of these containers was started, so they probably keep build-cache layers in use. They were most likely orphaned when an E2E run was cancelled or killed, but the origin is not confirmed. An alternative explanation, such as leaked build leases from cancelled builds, is not ruled out. The diagnosis task decides between them with evidence.
+The first draft of this specification guessed that four orphaned `torrust-tracker:local` containers pinned the cache. T1 and T2 rejected that: removing them changed nothing, and their image chains are about 28 small layers each. What pins the cache is 117 leaf records, each backed by an Active snapshot, that BuildKit inside dockerd still treats as in use although no job owns them. All 487 records descend from them, so the prune cannot remove any. Restarting `docker.service` released them (cache 253.6 GB to 100 GB, `/` from 100% to 42% used), so the pinned state lives in the daemon until it restarts; see [manual-verification-evidence.md](manual-verification-evidence.md) sections V2 and V4.
 
-A second, smaller gap: the host-side Cargo target cache (23 GB under `/home/runner/.cache/torrust-tracker/`) has no automatic cleanup.
+Still a hypothesis: the trigger is a cancelled or killed build. Evidence for it is a correlation (551 `context canceled` Solve errors since 2026-10-01, leaves created mostly on heavy-cancellation days, dockerd up 32 days). A cancelled build on a desktop with Docker 28.3.3, overlay2, and BuildKit 0.23.2 did not reproduce it; the runner uses Docker 29.8.1, the containerd snapshotter, and BuildKit 0.33.0.
+
+A second, smaller gap: the host-side Cargo target cache (23 GB under `/home/runner/.cache/torrust-tracker/`) has no automatic cleanup. It was deleted once during T2, and the next job rebuilds it.
 
 ## Scope
 
@@ -81,7 +83,7 @@ A second, smaller gap: the host-side Cargo target cache (23 GB under `/home/runn
 
 Applies, because the likely fix concerns resource cleanup for child processes (containers) started by CI jobs, including when a job is cancelled.
 
-- Responsibility and ownership map: to be written when the diagnosis names the owner of the leaked containers (a workflow step, the `qbittorrent_e2e_runner` or `e2e_tests_runner` binaries in `packages/e2e-tools`, or a test script). The owner of a container is the component that starts it and must remove it on the normal, failure, and cancellation paths.
+- Responsibility and ownership map: the pinned state is held by BuildKit inside dockerd, not by a workflow step or a Rust runner (T1). What is still open is which component should guarantee it is released when a job is cancelled or killed: the workflow (a cleanup step that runs on cancellation), a host-side janitor that restarts `docker.service` when the runner is idle, or an upstream fix. That decision is made before T3.
 - Lifetime invariants: a job leaves no running container and no unreleased build state after it ends, however it ends. A janitor on the host is a safety net, not the owner.
 - Deadlines: any cleanup step added to a workflow or a script bounds every await with an explicit timeout so cleanup cannot hang a job.
 - Design-review checkpoint: after the first passing vertical slice of the fix, review ownership before adding more cleanup paths.
@@ -113,8 +115,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                                                                                  | Notes / Expected Output                                                                                                                                       |
 | --- | ------ | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Diagnose what pins the build cache and reproduce the leak in a controlled way                         | Read-only evidence that names the owner of the held state, and a reproduction of how a cancelled job leaves it. Updates the hypothesis section.                |
-| T2  | TODO   | Restore free disk space on the runner, with the maintainer's approval for each step                   | `/` is below 70% used and a manual run of the prune frees the cache toward 120 GiB. The state before and after is recorded. No job is running during the change. |
+| T1  | IN_PROGRESS | Diagnose what pins the build cache and reproduce the leak in a controlled way                    | Done: the pinned state is named (117 leaf records with Active snapshots held by BuildKit in dockerd) and the four-container hypothesis is rejected. Open: reproduce how a cancelled job leaves it, on the runner's Docker stack. |
+| T2  | DONE   | Restore free disk space on the runner, with the maintainer's approval for each step                   | Done 2026-10-27 10:10 to 10:11 UTC: `/` from 100% to 42% used, build cache 253.6 GB to 100 GB with 0 in use. States recorded in V4. No job was running. |
 | T3  | TODO   | Select the regression-test boundary and write the maintained test                                     | Boundary rationale recorded. The test fails against the current behavior (red) and the failing output is recorded.                                           |
 | T4  | TODO   | Fix the cause of the leaked state                                                                     | Containers or build state of a cancelled or failed job are removed by their owner. The smallest production change.                                           |
 | T5  | TODO   | Make the cleanup observable and cover the host Cargo target cache                                     | A check that reports a prune freeing 0 B above target and a disk above 85%, and a documented policy or prune for the Cargo target cache.                    |
@@ -157,6 +159,7 @@ T2 and T7 change the runner, not the repository; their results are recorded as e
 
 - 2026-10-27 09:45 UTC - GitHub Copilot (Claude Opus 5.5) - Drafted the specification from the first runner health report and recorded the symptom reproduction - [manual-verification-evidence.md](manual-verification-evidence.md)
 - 2026-10-27 09:50 UTC - GitHub Copilot (Claude Opus 5.5) - Maintainer approved the draft as a standalone issue (no parent EPIC) with a spec-only PR first; created GitHub issue 2673 and moved the specification to `docs/issues/open/`
+- 2026-10-27 10:12 UTC - GitHub Copilot (Claude Opus 5.5) - T1 diagnosis rejected the four-container hypothesis and named the pinned state; T2 recovered the runner with the maintainer's approval (`/` 100% to 42%, cache 253.6 GB to 100 GB, restart of `docker.service` released the pinned state); the leak trigger and the fix design remain open - [manual-verification-evidence.md](manual-verification-evidence.md)
 
 ## Acceptance Criteria
 
@@ -188,8 +191,9 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | ID  | Scenario                                                       | Human-oriented command/steps                                                                                                                                  | Expected Result                                                                          | Status | Evidence                                     |
 | --- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ------ | -------------------------------------------- |
 | M1  | Reproduce the symptom: full disk and a prune that frees nothing | On `torrust-runner-01`: `df -h /`, `docker system df`, `docker ps -a`, and `journalctl -u docker-ci-prune.service`; `gh run list` for failed container runs | `/` is full, the cache is not reclaimable, and the prune frees 0 B                       | DONE   | `manual-verification-evidence.md` section V1 |
-| M2  | Reproduce the leak: cancel a container job and look for leftovers | Cancel a running `Test (Docker)` job, then `docker ps -a` and `docker buildx du` on the runner                                                              | A container or build state remains after cancellation (confirms the hypothesis)          | TODO   | `manual-verification-evidence.md` section V2 |
+| M2  | Find what pins the cache and reproduce the leak: cancel a container build and look for in-use state | Offline analysis of `docker buildx du --verbose` and `ctr -n moby snapshots ls`; cancel a build mid-step and compare `docker system df -v` before and after | The pinned state is named, and a cancelled build on the runner's stack leaves in-use state (confirms the trigger) | IN_PROGRESS | `manual-verification-evidence.md` section V2 (state named; local substitute negative; runner-stack reproduction open) |
 | M3  | Like-for-like recheck after the fix                            | Repeat M1 and M2 after the last production change; wait for three daily prune runs                                                                            | The cancelled job leaves nothing; the prune frees space; the disk stays below 85%        | TODO   | `manual-verification-evidence.md` section V3 |
+| M4  | Recover the runner with the maintainer's approval (T2)         | While the runner is idle: delete the host Cargo target cache, remove the four containers, `systemctl restart docker.service`, `systemctl start docker-ci-prune.service` | `/` is below 70% used and the build cache is reclaimable                                 | DONE   | `manual-verification-evidence.md` section V4 |
 
 Notes:
 
