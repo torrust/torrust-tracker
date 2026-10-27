@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2670-2482-build-shipped-artifacts-without-test-features/ISSUE.md
-last-updated-utc: "2026-10-27 20:14"
+last-updated-utc: "2026-10-27 21:00"
 ---
 
 # Manual Verification Evidence
@@ -277,3 +277,57 @@ corrects it.
 
 Green: with the variable set to the shipped binary (the committed `Containerfile`), V2's `test` stage runs
 1537 tests and all pass.
+
+## V2b - The final image on the final tree (task T5, review finding 7)
+
+Tree: the branch after the rebase onto `develop` and after the fixes of the pre-PR review below. Commands:
+
+```bash
+docker build --progress=plain --target release --tag r9-final:release --file Containerfile .
+docker build --target build_shipped --tag r9-final:build-shipped --file Containerfile .
+# copy the binaries out of the final image and out of the build_shipped stage with `docker create` and `docker cp`
+sha256sum image-* stage-*
+docker run -d --name r9-health -e USER_ID=$(id -u) -v <lib>:/var/lib/torrust/tracker \
+  -v <log>:/var/log/torrust/tracker -v <etc>:/etc/torrust/tracker r9-final:release
+docker inspect --format '{{.State.Health.Status}}' r9-health
+```
+
+```text
+#48 0.203     Starting 1539 tests across 40 binaries
+#48 10.99      Summary [  10.792s] 1539 tests run: 1539 passed, 0 skipped
+
+12a7bb377d719976d141521060f4499fa0940ac9ad2eff352759913cc8218c17  image-http_health_check
+68396f9f62c08e59a5e5878fcd04c4d4d301e976199816f393624abda4ce0a11  image-torrust-tracker
+12a7bb377d719976d141521060f4499fa0940ac9ad2eff352759913cc8218c17  stage-http_health_check
+68396f9f62c08e59a5e5878fcd04c4d4d301e976199816f393624abda4ce0a11  stage-torrust-tracker
+
+t+5s health=starting
+t+10s health=healthy
+running=true exit=0
+```
+
+The test count is the 1531 of V1 plus the 8 tests this subissue adds (the 3 tests of T2 and the empty-override test, each
+compiled into two test binaries). The binaries in the final image are byte-identical to the ones the `build_shipped`
+stage built, so the image ships the build without test features, and the image's HEALTHCHECK passes with the shipped
+`http_health_check`.
+
+## Pre-PR review (independent Task Reviewer)
+
+Verdict: PASS WITH FINDINGS, no blocking defect. The reviewer ran the check crate's tests, clippy, `linter all`, and a
+full `docker build --target release` (1537 tests passed, the container healthy). Findings and what was done:
+
+| # | Finding | Severity | Disposition |
+| --- | --- | --- | --- |
+| 1 | AC3, T4 and M6 need the hosted run; completion review and retrospective missing | Medium (process) | The spec already left them open; the hosted run is recorded after the pull request's first run, and the completion review and retrospective are written in this subissue |
+| 2 | The check passed silently when `cargo tree` output stopped parsing as workspace packages | Low | Fixed: `has_workspace_package` and a runtime error unless the shipped package is listed as a workspace package; test red (exit 0) then green (exit 1) |
+| 3 | `split_once('\|')` mis-read a checkout path that contains `\|` | Low | Fixed: `rsplit_once`; unit test red then green |
+| 4 | No scratch case for a renamed dependency or a feature that implies `testing` | Low | Two CLI tests added; both passed at once, so they pin existing behaviour. A `default = ["testing"]` case was not added: it would put the feature in every scratch test, and the chained feature exercises the same Cargo resolution |
+| 5 | An empty `TORRUST_TRACKER_BINARY` spawned an empty path | Low | Fixed: the empty value is ignored; unit test red (`left: ""`) then green |
+| 6 | The workflow and the `Containerfile` can drift (D4) | Low | Accepted as decided in D4: comments in both files name each other. A lint comparing them is possible follow-up work |
+| 7 | No evidence on the final image | Low | V2b above |
+| 8 | Branch behind `develop` | Low | Rebased; none of the changed files had changed on `develop` |
+
+The maintainer (josecelano) reviewed the test increments of findings 2 to 5 and approved them through `ask_user` before
+their commits. Results after the fixes: `cargo test -p shipped-features-check` reports 13 unit and 10 CLI tests passing,
+`cargo clippy -p shipped-features-check --all-targets -- -D warnings` reports nothing, and the check still passes on the
+real workspace.

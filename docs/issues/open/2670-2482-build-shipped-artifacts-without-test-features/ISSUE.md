@@ -9,7 +9,7 @@ github-issue: 2670
 spec-path: docs/issues/open/2670-2482-build-shipped-artifacts-without-test-features/ISSUE.md
 branch: "2670-2482-build-shipped-artifacts-without-test-features"
 related-pr: null
-last-updated-utc: "2026-10-27 20:14"
+last-updated-utc: "2026-10-27 21:00"
 semantic-links:
   skill-links:
     - create-issue
@@ -291,12 +291,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Folder-style spec drafted in `docs/issues/open/2670-2482-build-shipped-artifacts-without-test-features/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer (approved by the maintainer through `ask_user` and chat on 2026-10-27, including the `cargo tree` refinement of D3)
 - [x] GitHub issue created, linked as a sub-issue of #2482 (`parent_issue_url` verified), and its number added to this spec
-- [ ] Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
+- [x] Spec-only PR merged into `develop` before implementation (PR #2671)
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all` through the pre-commit gate on every commit, `cargo test` of the check crate and the native-tracker targets, and the full pre-push suite on 2026-10-27)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
+- [x] Evidence-based implementation completion review recorded (retrospective created)
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
@@ -323,6 +323,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-10-27 14:57 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 9) - Added the `Shipped Features` job to `testing.yaml` (T4), which runs `cargo run --package shipped-features-check -- --package torrust-tracker`; `linter yaml` and `git diff --check` pass and the same command passes locally (V4). The spec's commit point asks for the job to pass in a fork or pull request first, but the implementation pull request is the first hosted run, so T4 stays IN_PROGRESS and M6 stays TODO until that run is recorded.
 - 2026-10-27 20:13 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 9) - T5 is done: the `Containerfile` has shipped cook and build stages for the release and debug images (`cargo build` without test flags or features), the `test` stages run the native-tracker tests against the shipped binary through `TORRUST_TRACKER_BINARY`, and `/app/bin` takes the shipped binaries. Both targets build; 0 of the 1531 baseline tests are missing and 6 were added (T2's tests); cold builds cost +17 s (release) and +18 s (debug) and the warm release rebuild +8 s (V2). The override is honoured: pointing it at a missing file fails the native-tracker tests (V3). An interrupted warm run and a fully cached rerun were discarded and the warm run repeated with a different change.
 - 2026-10-27 20:14 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 9) - T6 is done: `docs/containers.md` describes the test build, the shipped build, `TORRUST_TRACKER_BINARY` and the check, and ADR 20260603 carries an amendment note that narrows its "exact binary" claim. Ticked AC1, AC2 and AC4 (validated by the AI assistant against V0 to V3). AC3 stays open until the `Shipped Features` job has run on the implementation pull request (M6).
+- 2026-10-27 21:00 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 9) - The independent Task Reviewer's pre-PR review (PASS WITH FINDINGS, no blocking defect) led to three fixes: the check now fails when `cargo tree` output does not list the shipped package as a workspace package, it reads a checkout path that contains the separator, and an empty `TORRUST_TRACKER_BINARY` is ignored; the maintainer approved the test increments through `ask_user`. Rebased onto `develop`, rebuilt the final image (1539 tests, binaries identical to the `build_shipped` stage, healthy; V2b) and ran the full pre-push suite. Wrote the implementation completion review and the retrospective. M6 and AC3 stay open until the `Shipped Features` job has run on the pull request.
 
 ## Acceptance Criteria
 
@@ -413,8 +414,28 @@ reports `testing`, so it would flag a build that does not have the feature.
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
-- If no retrospective is needed, add a progress-log entry saying why.
+Reviewed by the AI assistant against the acceptance criteria and the evidence on 2026-10-27, after an
+independent Task Reviewer pre-PR review (evidence, "Pre-PR review"); the maintainer reviews it in the pull
+request.
+
+- Scope: the change is in `Containerfile` (shipped cook and build stages, test stages), `tests/common/native_tracker/`
+  (the override), the new `contrib/dev-tools/checks/shipped-features-check` crate (registered in `Cargo.toml` and
+  `.dockerignore`, listed in `AGENTS.md` and the CLI output contract ADR), the `Shipped Features` job of
+  `testing.yaml`, `docs/containers.md` and the amendment note of ADR 20260603. No test support code moved, no
+  `testing` feature was added and the test archives keep `--all-features` (D5).
+- Design: the shipped binaries come from `build_shipped` stages stacked on the third-party test cooks (D6); the
+  measured cost is +17 s (release) and +18 s (debug) cold and +8 s on a warm rebuild. The check reads
+  `cargo tree -e normal,build` because `cargo metadata` counts dev-dependency features (D3). It follows the global
+  CLI output contract.
+- Known limits: the check covers workspace packages only (third-party features are outside it) and only the
+  features `cargo build -p torrust-tracker` enables on the host, so target-specific dependencies of another
+  platform are not seen. The job names the shipped package, and the `Containerfile` names it too; only two comments
+  keep them in step (D4, review finding 6). The shipped build names no feature today. `AC3` is open until the
+  `Shipped Features` job has run on the pull request (M6); the check passes vacuously on the real workspace because
+  no `testing` feature exists yet, and the scratch tests prove it fails when one reaches a shipped package.
+- Retrospective: created, [`implementation-retrospective.md`](implementation-retrospective.md): `cargo metadata`
+  proved unusable for the check, and the independent review found that the check could pass on output it could not
+  read.
 
 ## References
 
