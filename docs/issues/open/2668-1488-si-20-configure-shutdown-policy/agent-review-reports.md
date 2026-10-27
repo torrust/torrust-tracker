@@ -35,3 +35,19 @@ semantic-links:
 - Follow-up actions:
   - Author: write the retrospective and the completion-review line (B1); record the real-binary `U` check (M1); fix m1 to m5 and m8; add the clamp gap (m9) to the retrospective; widen the Rollback text (AC11); then request a re-review entry.
   - Maintainer: decide whether the evidence suffices for AC5 and whether the wrapper-style native tests (m6) are acceptable.
+
+### 2026-10-27 21:08 UTC - Task Reviewer (independent re-review, read-only)
+
+- Invocation scope: the findings of the first entry above (B1, M1, m1 to m9, AC11) after the author's fix commits (`refactor(bootstrap): restore the Registar comment in the AppContainer literal`, `docs(src): state the configured shutdown deadline and exit code in the entry-point guide`, `docs(issues): record the independent review, V9 and the retrospective for #2668`), plus new stale statements, stamps, commit-id citations and the retrospective's accuracy. The first entry's `REVIEW FAILED` is the conclusion this entry follows up.
+- Inputs: the current tree, the three commits, the specification, the evidence file, the retrospective and the template.
+- Evidence: `linter all` once (passed). No cargo command was run. Stamps of `ISSUE.md` and the evidence file are `21:05`, equal to the newest progress-log entry and not after the last commit that touched them (21:05:21Z); the README stamp is `14:59`. No PR-branch commit ids are cited (the ids found belong to `torrust/develop`). The retrospective has every template section in order and its claims match the evidence (two surviving T2 mutations, the `Duration::MAX` clamp test and clamp, five batching slips, the deleted heading).
+- Findings:
+  - B1, M1, m1, m2, m3, m4, m5, m8 and AC11 resolved with file evidence (M1 as evidence: V9; the test gap for `U` and `L` is left to the maintainer and recorded).
+  - m6 (wrapper-style native tests), m7 (source-text guard test) and m9 (`JobManager::wait_for_all` adds to the clock unchecked, `src/bootstrap/jobs/manager.rs`) honestly left open for the maintainer.
+  - Nit N1: the T2 evidence section says "25 new tests" without the final count; the author added the final count of 27 in a follow-up edit.
+  - Nit N2: the retrospective does not name m6 and m7 in the same words; the first entry already records them.
+  - No blocker or major findings. No acceptance criterion was ticked by the reviewer or the author.
+- Verdict: REVIEW PASSED
+- Follow-up actions:
+  - Maintainer: decide AC5 (test or evidence for `U` and `L`), accept or request changes on the wrapper-style native tests (m6), and tick the acceptance criteria he is satisfied with.
+  - Author: none before the pull request.

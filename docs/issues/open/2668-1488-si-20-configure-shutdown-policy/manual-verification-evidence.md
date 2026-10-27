@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2668-1488-si-20-configure-shutdown-policy/ISSUE.md
-last-updated-utc: "2026-10-27 21:05"
+last-updated-utc: "2026-10-27 21:09"
 ---
 
 # Manual Verification Evidence
@@ -252,7 +252,7 @@ The test containers, the two images built for V6 and V7, the transient systemd u
 
 #### Tests added by T2
 
-`cargo test -p torrust-tracker-configuration` (stable toolchain) passed 129 tests on `develop` before the change and passes 154 after it: 25 new tests.
+`cargo test -p torrust-tracker-configuration` (stable toolchain) passed 129 tests on `develop` before the change and passes 154 after it: 25 new tests at T2 (27 in the final tree: T4 and the D5 follow-up added one each).
 
 - `packages/configuration/src/v3_0_0/shutdown.rs` (15): `it_should_default_to_the_documented_budgets`, `it_should_accept_the_default_budgets_as_consistent`, `it_should_use_the_defaults_for_every_omitted_key`, `it_should_default_each_key_that_is_omitted_while_the_other_keys_are_set`, `it_should_round_trip_through_toml`, `it_should_accept_a_budget_at_each_end_of_the_supported_range`, `it_should_reject_a_zero_budget_with_the_supported_range_in_the_message`, `it_should_reject_a_budget_above_the_maximum`, `it_should_reject_a_zero_budget_during_deserialization`, `it_should_reject_an_unknown_key`, `it_should_accept_a_chain_that_is_one_second_below_the_deadline`, `it_should_reject_a_chain_that_equals_the_deadline_naming_the_http_drain`, `it_should_name_the_udp_request_drain_when_it_is_the_longer_server_drain`, `it_should_name_the_http_drain_when_both_server_drains_are_equal`, `it_should_tell_the_operator_which_keys_and_values_to_change`.
 - `packages/configuration/src/v3_0_0/application.rs` (2): `it_should_use_the_default_shutdown_budgets_when_the_table_is_omitted`, `it_should_reject_an_unknown_key`.
