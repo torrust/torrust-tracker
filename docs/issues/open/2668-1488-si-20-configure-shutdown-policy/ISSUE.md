@@ -9,7 +9,7 @@ github-issue: 2668
 spec-path: docs/issues/open/2668-1488-si-20-configure-shutdown-policy/ISSUE.md
 branch: "2668-configure-shutdown-policy-spec"
 related-pr: 2669
-last-updated-utc: "2026-10-27 09:02"
+last-updated-utc: "2026-10-27 09:04"
 semantic-links:
   skill-links:
     - create-issue
@@ -449,7 +449,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T3b | TODO   | Fix: outcome-to-exit mapping          | Implement the mapping, `main` returns `ExitCode`, success log only on `0`, failing outcomes logged by name; record the green run.                                                                              |
 | T4  | TODO   | Deliver `P` and `L`                   | Configured `P` in `main` and in the startup-failure cleanup; `L` into the seven listener constructors; tests that a configured value, not the default, reaches each consumer.                                  |
 | T5  | TODO   | Deliver `H` and `U`                   | Additive options on the HTTP, REST API, health-check, and UDP server crates; defaults retained as named constants; paused-time tests per crate.                                                                |
-| T6  | TODO   | Native-binary tests                   | In `tests/lifecycle/`: exit `0` on a clean stop, exit `1` with a held-open connection under small configured budgets, invalid configuration rejected before any service starts; SIGTERM and SIGINT.            |
+| T6  | TODO   | Native-binary tests                   | In `tests/lifecycle/`, each file registered as a `[[test]]` target in `Cargo.toml` like `lifecycle-signals`: exit `0` on a clean stop, exit `1` with a held-open connection under small configured budgets, invalid configuration rejected before any service starts; SIGTERM and SIGINT. |
 | T7  | TODO   | Fixtures and documentation            | `share/default/config/` fixtures, `docs/containers.md`, feature README, `application-jobs.md`, `tracker-instance-architecture.md`, glossary, `drain.rs` docs, configuration module docs and migration note, Q4 amendment, Q9 pointer, and the ADRs D7 approves. |
 | T8  | TODO   | Manual verification evidence          | `manual-verification-evidence.md`: V2 to V8 below, plus the like-for-like recheck of V1 (B1 to B4), run after the last production change, naming the commit subject they ran on.                              |
 | T9  | TODO   | Independent review and completion     | `review-task` review recorded in `agent-review-reports.md`; acceptance criteria re-reviewed; retrospective or a progress-log line saying why none.                                                           |
@@ -500,6 +500,7 @@ Sign every commit with GPG. Any new error enum follows the `handle-errors-in-cod
 - 2026-10-27 07:46 UTC - GitHub Copilot - Created GitHub issue #2668 (label `task`), linked it as a sub-issue of #1488 (checked: `parent_issue_url` is #1488), moved the spec from `docs/issues/drafts/1488-si-20-configure-shutdown-policy/` to this folder on branch `2668-configure-shutdown-policy-spec`, removed the skeleton `verification.md`, and updated the links to the old draft path (EPIC roadmap row 20, SI-8, and three closed specs).
 - 2026-10-27 08:35 UTC - GitHub Copilot - Opened the spec-only PR #2669 (`Related to #2668`, no closing keyword); its Docs Lint check passed. The maintainer asked for `related-pr` to record it, so this entry and the frontmatter field are the second commit of the PR.
 - 2026-10-27 09:02 UTC - GitHub Copilot - `review-finding:pr-2669-f1` (Copilot review, finding R2): reproduced the false-success exit code on the real binary before review and recorded it as V1 in `manual-verification-evidence.md` (Reproduced with a temporary fault-injection patch; four network attempts on the unmodified binary did not fail a component). Replaced the "Not applicable" bug sections with the workflow link, regression boundary and recheck plan, split T3 into T3a (red) and T3b (fix), marked T1 done, rewrote M1 and M5, and recorded the disposable script. The type stays `task`; whether to relabel it `bug` is a maintainer decision.
+- 2026-10-27 09:04 UTC - GitHub Copilot - `review-finding:pr-2669-f2` (Copilot review, finding R3): replaced the nonexistent `integration` test target in the Automatic Checks with the registered `lifecycle-signals` target, and made T6 register its new files as `[[test]]` targets. Rechecked every other command in the specification: `cargo test -p torrust-tracker-configuration --no-run` builds and `contrib/dev-tools/git/hooks/pre-push.sh` exists.
 
 ## Open Decisions for the Maintainer
 
@@ -544,7 +545,7 @@ Status on 2026-10-27: the maintainer chose D1 = B, D2 = P2 (`[application.shutdo
 - `linter all`
 - `cargo test -p torrust-tracker-configuration` on the stable Rust toolchain
 - `cargo test --doc --workspace` and `cargo test --tests --benches --examples --workspace --all-targets --all-features` on the stable Rust toolchain
-- `cargo test --test integration` on the stable Rust toolchain (includes the native-binary lifecycle tests)
+- `cargo test --test lifecycle-signals` on the stable Rust toolchain: the existing native-binary lifecycle target (`tests/lifecycle/signals.rs`, registered in the root `Cargo.toml`). T6 adds its files next to it and registers each as its own `[[test]]` target, because Cargo does not discover files in subdirectories of `tests/`; each new target is then run with `cargo test --test <target-name>`.
 - `./contrib/dev-tools/git/hooks/pre-push.sh` before pushing
 - Performance: not applicable. The values are read once at startup and used only on the shutdown path; no request-path code changes, so no benchmark is required. The spec records this and the implementation review confirms it.
 
