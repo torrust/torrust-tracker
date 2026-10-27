@@ -1,14 +1,14 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2668-1488-si-20-configure-shutdown-policy/ISSUE.md
-last-updated-utc: "2026-10-27 20:52"
+last-updated-utc: "2026-10-27 21:05"
 ---
 
 # Manual Verification Evidence
 
 ## Purpose
 
-Record real, human-oriented verification of the completed behavior. This is evidence from commands or interactions actually performed against the artifact. This file currently holds only the pre-review reproduction of the defect that this issue corrects (process exit code `0` after a failed or aborted shutdown); the remaining scenarios (M2 to M8) are recorded here when they run.
+Record real, human-oriented verification of the completed behavior. This is evidence from commands or interactions actually performed against the artifact. This file holds the pre-review reproduction of the defect that this issue corrects (process exit code `0` after a failed or aborted shutdown), the evidence of each implementation task, and the manual runs of the finished change (V2 to V9).
 
 ## Preserving Verification Artifacts
 
@@ -17,7 +17,7 @@ The tracker configuration (`baseline.toml`) and the script (`hold-and-stop.sh`) 
 ## Environment and Prerequisites
 
 - Date and time (UTC): 2026-10-27, runs between 08:45 and 08:58.
-- Artifact under test: the tracker at `develop` merge `72fbeacc1` ("Merge torrust/torrust-tracker#2666: chore: update dependencies"), which is an ancestor of the branch head. The branch changes only documentation, so `src/`, `packages/`, `Cargo.toml`, and `Cargo.lock` equal `torrust/develop` (`git diff --stat torrust/develop HEAD -- src packages Cargo.toml Cargo.lock` printed nothing). Debug build with `cargo build --bin torrust-tracker`.
+- Artifact under test: the tracker at `develop` merge `72fbeacc1` ("Merge torrust/torrust-tracker#2666: chore: update dependencies"), which is an ancestor of the branch head. At the time of V1 the branch changed only documentation, so `src/`, `packages/`, `Cargo.toml`, and `Cargo.lock` equal `torrust/develop` (`git diff --stat torrust/develop HEAD -- src packages Cargo.toml Cargo.lock` printed nothing); the implementation commits came later. Debug build with `cargo build --bin torrust-tracker`.
 - Operating system / environment: Linux 7.0.0-38-generic, `rustc 1.99.1 (58cf8f9c3 2026-10-13)` (stable toolchain), bash, no container.
 - Prerequisites and setup performed: `evidence/baseline.toml` (HTTP tracker on `127.0.0.1:17070`, REST API on `127.0.0.1:11212`, health check on `127.0.0.1:11313`, no database); `mkdir -p .tmp/si20`; the script starts `./target/debug/torrust-tracker` directly, so the signalled PID is the tracker binary and not a `cargo run` launcher.
 
@@ -223,13 +223,22 @@ This demonstrates the documented insufficiency of the default and the contract t
 
 For the failed case a `systemctl show` after the stop read the defaults of the collected transient unit, so the journal lines above are the evidence. This confirms that a requested stop which ends with exit code 1 marks the unit failed. Podman: `not run`, it is not installed on this machine.
 
+#### V9 - Real-binary check of the UDP drain and the HTTP-family drain with distinct values (added after the independent review)
+
+The independent review found that no maintained test guards which key `src/app.rs` passes to the UDP tracker (`udp_request_drain_in_secs`), so a swap with `http_drain_in_secs` would pass every test. V2 to V8 used a configuration without a UDP tracker. This run uses one, with four distinct budgets, so a swapped key shows in the log.
+
+- Configuration (scratch file, git-ignored): the V2 baseline plus `[[udp_trackers]] bind_address = "127.0.0.1:16969"` and `[application.shutdown]` with `deadline_in_secs = 20`, `http_drain_in_secs = 6`, `udp_request_drain_in_secs = 3`, `event_listener_drain_in_secs = 2` (`max(6, 3) + 2 = 8 < 20`).
+- Artifact: the debug binary built before the review; the only source change since is a comment restored in `src/container.rs`.
+- Result, SIGTERM and SIGINT (the PID of the tracker binary, found with `pgrep -x`): the log of each shows `request_drain_deadline=3s` on the UDP tracker start (8 spans), `drain_timeout=6s` on the HTTP tracker, REST API and health check drains (19 spans), `timeout_seconds=20`, `Torrust tracker shutting down (SIGTERM)` or `(SIGINT)`, and `Torrust tracker successfully shutdown.`; no `incomplete` line, and no tracker process remained. The exit status was not captured in this run (the tracker was started as a background shell job and signalled from a second command); the success line is only logged on exit code 0 in this code path.
+- Not covered: `event_listener_drain_in_secs`. The listener drain value is not logged, and it matters only when a handler is slower than the budget, so no executable-boundary check can show it. It is guarded by the unit test of the helper and the source-level guard of T4.
+
 #### Acceptance evidence from the source (AC7)
 
 `grep -rn "process::exit"` over `src`, `packages`, `console` and `contrib` found it only in `src/bin/http_health_check.rs`, `console/tracker-client/src/bin/*.rs` and a developer tool: separate command-line binaries. No tracker component and not `src/main.rs` calls it.
 
 #### Cleanup
 
-The test containers, the two images built for V6 and V7, the transient systemd units and the scratch files were removed or left under the git-ignored `.tmp/`; no tracker process remained. The disposable script and `baseline.toml` are still in `evidence/` and are removed by T9.
+The test containers, the two images built for V6 and V7, the transient systemd units and the scratch files were removed or left under the git-ignored `.tmp/`; no tracker process remained. The disposable script and `baseline.toml` were removed in T9 after V2 to V9 had used them.
 
 #### Process note, recorded
 
