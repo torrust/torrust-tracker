@@ -9,7 +9,7 @@ github-issue: 2668
 spec-path: docs/issues/open/2668-1488-si-20-configure-shutdown-policy/ISSUE.md
 branch: "2668-configure-shutdown-policy-spec"
 related-pr: 2669
-last-updated-utc: "2026-10-27 08:35"
+last-updated-utc: "2026-10-27 09:02"
 semantic-links:
   skill-links:
     - create-issue
@@ -112,6 +112,16 @@ implementation task records a runtime baseline.
 | The legacy `graceful_shutdown` keeps 90 s and 95 s constants. SI-19 removes it.                              | `packages/axum-server/src/signals.rs`                                                                                   |
 | The container entry script ends with `exec /bin/su-exec torrust "$@"`, so the tracker replaces the shell.    | `share/container/entry_script_sh`                                                                                       |
 | `docs/containers.md` does not mention a stop or grace period at all.                                         | `docs/containers.md`                                                                                                    |
+
+### The defect in plain terms
+
+This task also corrects one defect, so a reviewer can follow it without reading the code:
+
+1. The operator sends SIGTERM or SIGINT. `src/main.rs` asks the supervisor to stop every component and waits at most 10 s for them.
+2. Some component may fail, or may still be running at the deadline and be aborted. The supervisor records that as a named outcome (`Failed`, `Panicked`, or `Aborted`) and logs it as a warning.
+3. `main` discards the returned outcomes, logs "Torrust tracker successfully shutdown.", and returns, so the process exits with code `0`.
+
+Q3 of `docs/features/shutdown-process/questions.md` requires exit code `1` in step 2, and the shutdown-order ADR repeats it. The impact: Docker, systemd, Kubernetes, CI, and scripts read exit code `0` as a clean stop although a component failed or was cut off, and the success line in the log says the same. The wrong outcome was observed on the real binary with one component made to fail or outlast the deadline by a temporary patch (V1 of `manual-verification-evidence.md`, classified Reproduced with that patch). Four network attempts on the unmodified binary did not produce a failed or aborted shutdown, so the specification does not claim a reproduction without the patch.
 
 ### Budget model
 
@@ -399,14 +409,33 @@ This task touches shutdown timing and process exit, so these concerns apply.
 
 ## Bug-Fix Process
 
-Not applicable as a bug fix, but one defect is corrected on the way and is handled test-first:
-exit code `0` after a failed or aborted shutdown. T1 records the runtime baseline, and the
-exit-code tests are written red before the mapping exists.
+The work is mainly a configuration task (`issue-type: task`), but one part of it is substantively a
+bug: exit code `0` after a failed or aborted shutdown. That part follows
+[fix-bug](../../../../.github/skills/dev/debugging/fix-bug/SKILL.md):
+
+| Step                                | Status                                                                                                                                                                                                                       |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Analysis and hypothesis             | Done. `main` discards the supervisor outcomes and always logs success (`src/main.rs`, read from source). Hypothesis: a failed or aborted component still gives exit `0`.                                                      |
+| Real-artifact reproduction          | Done before review: **Reproduced, with a temporary fault-injection patch** (V1 in [manual-verification-evidence.md](manual-verification-evidence.md)). Exit `0` and the success message for an aborted component and for a failed one, with SIGTERM and SIGINT. Four network attempts on the unmodified binary did not fail a component, and the evidence says so. |
+| Regression-test boundary            | A unit test of a pure outcome-to-exit-code function, one case per `JobStatus` (T3a). Native-binary tests in `tests/lifecycle/` cover the executable boundary (T6).                                                            |
+| Red test before the fix             | T3a adds the function with the current behavior (always success) and the test, runs it red, and records the output in the evidence file.                                                                                      |
+| Fix                                 | T3b implements the mapping and makes `main` return it.                                                                                                                                                                       |
+| Green test and like-for-like recheck | T3b records the green run. T8 reruns V1's runs B1 to B4 after the last production change, with the same temporary patch re-applied (not committed), expecting exit `1`, and names the commit subject it ran on.                |
 
 ## Regression Test Strategy
 
-Not applicable beyond the red-first tests above. Each new test is mutation-proven: show it fails
-when the guarded behavior is removed, then restore the code and prove the restore with `cmp`.
+- **Selected boundary**: a unit test of the pure function that maps `Vec<JobOutcome>` to the exit code
+  (parameterized, one case per `JobStatus`, plus an empty outcome list and a mix of outcomes). It is
+  the smallest deterministic maintained test at the causal seam: `main` discards the outcomes
+  today, and the test needs no OS signal and no network.
+- **Why not only a higher boundary**: a native-binary test cannot make a component fail or outlast
+  the deadline deterministically (V1, A1 to A4), so it covers the executable boundary (a clean stop
+  and a reached drain budget) and not every outcome. The unit test covers every outcome.
+- **Red evidence**: T3a records the failing run against the always-success function. If that proves
+  impractical, the mutate-then-restore method of the `write-unit-test` skill applies: reintroduce
+  the always-success mapping, observe the test fail, restore, and prove the restore with `cmp`.
+- **Every other new test** is mutation-proven the same way: show it fails when the guarded behavior
+  is removed, then restore the code and prove the restore with `cmp`.
 
 ## Implementation Plan
 
@@ -414,23 +443,25 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                  | Notes / Expected Output                                                                                                                                                                                      |
 | --- | ------ | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| T1  | TODO   | Record the runtime baseline           | On unmodified code: SIGTERM and SIGINT to the real binary PID with a held-open HTTP connection; record exit code (expected `0`), timing, and the success log despite the aborted component. Evidence only.    |
+| T1  | DONE   | Pre-review reproduction                | Done before review and recorded as V1 in `manual-verification-evidence.md`: Reproduced with a temporary fault-injection patch; four network attempts on the unmodified binary did not fail a component. Rerun only if production code under `src/` changes on `develop` before T3a starts. |
 | T2  | TODO   | `[application.shutdown]` configuration section | `application.rs` (and `shutdown.rs`) with newtypes, defaults, `Validator` rule, error variant, module docs, unit tests (defaults, TOML and environment overrides, zero, over-max, chain violation, boundary, unknown key). **Then stop for the design review (D5).** |
-| T3  | TODO   | Outcome-to-exit mapping               | Pure function, red-first parameterized tests per `JobStatus`, `main` returns `ExitCode`, success log only on `0`, failing outcomes logged by name.                                                           |
+| T3a | TODO   | Regression test, red                  | Pure outcome-to-exit-code function returning the current behavior (always success) and a parameterized test per `JobStatus`; the recorded red run fails for `Failed`, `Panicked`, and `Aborted`.               |
+| T3b | TODO   | Fix: outcome-to-exit mapping          | Implement the mapping, `main` returns `ExitCode`, success log only on `0`, failing outcomes logged by name; record the green run.                                                                              |
 | T4  | TODO   | Deliver `P` and `L`                   | Configured `P` in `main` and in the startup-failure cleanup; `L` into the seven listener constructors; tests that a configured value, not the default, reaches each consumer.                                  |
 | T5  | TODO   | Deliver `H` and `U`                   | Additive options on the HTTP, REST API, health-check, and UDP server crates; defaults retained as named constants; paused-time tests per crate.                                                                |
 | T6  | TODO   | Native-binary tests                   | In `tests/lifecycle/`: exit `0` on a clean stop, exit `1` with a held-open connection under small configured budgets, invalid configuration rejected before any service starts; SIGTERM and SIGINT.            |
 | T7  | TODO   | Fixtures and documentation            | `share/default/config/` fixtures, `docs/containers.md`, feature README, `application-jobs.md`, `tracker-instance-architecture.md`, glossary, `drain.rs` docs, configuration module docs and migration note, Q4 amendment, Q9 pointer, and the ADRs D7 approves. |
-| T8  | TODO   | Manual verification evidence          | `manual-verification-evidence.md`: V1 to V8 below, run after the last production change, naming the commit subject they ran on.                                                                              |
+| T8  | TODO   | Manual verification evidence          | `manual-verification-evidence.md`: V2 to V8 below, plus the like-for-like recheck of V1 (B1 to B4), run after the last production change, naming the commit subject they ran on.                              |
 | T9  | TODO   | Independent review and completion     | `review-task` review recorded in `agent-review-reports.md`; acceptance criteria re-reviewed; retrospective or a progress-log line saying why none.                                                           |
 
 ## Commit Points
 
 | Task | Coherent change set                                                                         | Commit policy                                        |
 | ---- | ------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
-| T1   | Baseline evidence file section only                                                         | Commit with the evidence skeleton.                   |
+| T1   | Evidence only: `manual-verification-evidence.md` and `evidence/` (script and configuration)  | Committed with this specification.                   |
 | T2   | New `application.rs` and `shutdown.rs`, `Configuration` field, default, validator rule, tests, module docs | Commit after focused validation; stop for review.    |
-| T3   | Mapping function, its tests, `main` change                                                  | Commit after focused validation and required review. |
+| T3a  | The function, its parameterized test, and the recorded red run                              | Commit after the red run is recorded.                |
+| T3b  | The mapping, `main` change, and the recorded green run                                      | Commit after focused validation and required review. |
 | T4   | `P` and `L` delivery with tests                                                             | Commit after focused validation and required review. |
 | T5   | One commit per server crate (HTTP, REST API, health check, UDP) with its tests              | Commit after focused validation and required review. |
 | T6   | Native-binary tests                                                                         | Commit after focused validation and required review. |
@@ -468,6 +499,7 @@ Sign every commit with GPG. Any new error enum follows the `handle-errors-in-cod
 - 2026-10-27 07:44 UTC - GitHub Copilot - The maintainer approved the specification with D1 = B, D2 = P2, and the name `application`, and asked for the list of candidate names with pros and cons (added to "Configuration Placement", including `main`). The GitHub issue is created next.
 - 2026-10-27 07:46 UTC - GitHub Copilot - Created GitHub issue #2668 (label `task`), linked it as a sub-issue of #1488 (checked: `parent_issue_url` is #1488), moved the spec from `docs/issues/drafts/1488-si-20-configure-shutdown-policy/` to this folder on branch `2668-configure-shutdown-policy-spec`, removed the skeleton `verification.md`, and updated the links to the old draft path (EPIC roadmap row 20, SI-8, and three closed specs).
 - 2026-10-27 08:35 UTC - GitHub Copilot - Opened the spec-only PR #2669 (`Related to #2668`, no closing keyword); its Docs Lint check passed. The maintainer asked for `related-pr` to record it, so this entry and the frontmatter field are the second commit of the PR.
+- 2026-10-27 09:02 UTC - GitHub Copilot - `review-finding:pr-2669-f1` (Copilot review, finding R2): reproduced the false-success exit code on the real binary before review and recorded it as V1 in `manual-verification-evidence.md` (Reproduced with a temporary fault-injection patch; four network attempts on the unmodified binary did not fail a component). Replaced the "Not applicable" bug sections with the workflow link, regression boundary and recheck plan, split T3 into T3a (red) and T3b (fix), marked T1 done, rewrote M1 and M5, and recorded the disposable script. The type stays `task`; whether to relabel it `bug` is a maintainer decision.
 
 ## Open Decisions for the Maintainer
 
@@ -524,11 +556,11 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario                                                       | Human-oriented command/steps                                                                                                                                                  | Expected Result                                                                                                  | Status | Evidence                                      |
 | -- | -------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ------ | --------------------------------------------- |
-| M1 | Baseline on unmodified code (before T2)                        | Start the tracker with an HTTP tracker, hold a request open, `kill -TERM <pid>`, then repeat with `kill -INT`.                                                                | Exit `0` and the success log although the component was aborted at 10 s.                                         | TODO   | `manual-verification-evidence.md` section V1  |
+| M1 | Pre-review reproduction of exit `0` after a failed or aborted shutdown | Unmodified binary: SIGTERM with held connections (A1 to A4). Then the temporary fault-injection patch with `SI20_REPRO_FAULT=slow-stop` and `fail-stop`, SIGTERM and SIGINT (B1 to B4), using `evidence/hold-and-stop.sh`. | Unmodified: exit `0`, no component failed. Patched: exit `0` and the success log although a component was aborted or failed (the defect). | DONE   | `manual-verification-evidence.md` section V1  |
 | M2 | Defaults, clean stop                                           | Start with no `[application]` section, `kill -TERM <pid>` and `kill -INT <pid>`.                                                                                              | Exit `0`, success log, all outcomes named and completed, listener ports released.                              | TODO   | section V2                                    |
 | M3 | Configured budgets, drain budget reached                       | Config with `deadline_in_secs = 5`, `http_drain_in_secs = 2`, `event_listener_drain_in_secs = 1` under `[application.shutdown]`; hold a request open; SIGTERM, then SIGINT.  | Exit `1`, the HTTP component named as failed, no success log, total time about the drain budget plus listener stage. | TODO   | section V3                                    |
 | M4 | Invalid configuration                                          | Start with a zero value, an over-max value, an unknown key, and `http_drain_in_secs + event_listener_drain_in_secs >= deadline_in_secs`.                                      | Each exits `1` before any listener binds, naming the keys and what to change.                                   | TODO   | section V4                                    |
-| M5 | Deadline abort mapping                                         | Not producible deterministically with the real binary; covered by T3 unit tests of `Aborted`. Record why and the attempted approach.                                           | Reasoned non-applicability at the executable boundary, unit-test evidence instead.                              | TODO   | section V5                                    |
+| M5 | Failed and aborted outcomes at the executable boundary         | The like-for-like recheck of M1 on the fixed tree: re-apply the same temporary patch (not committed), run `slow-stop` and `fail-stop` with SIGTERM and SIGINT, then revert and prove the revert with `cmp`. | Exit `1`, the abort or failure logged by name, no "successfully shutdown" line; the unpatched control stays at exit `0`. | TODO   | section V5                                    |
 | M6 | Docker with a sufficient grace period                          | Build the image, `docker run --stop-timeout 35` with the drain budget set through `TORRUST_TRACKER_CONFIG_OVERRIDE_APPLICATION__SHUTDOWN__HTTP_DRAIN_IN_SECS`, hold a request open, `docker stop`; inspect the exit code and logs. | The override reaches the tracker (logged configuration); exit `1` for the held request (drain budget reached) and `0` for a clean stop; SIGTERM reaches the tracker as PID 1. | TODO   | section V6                                    |
 | M7 | Docker with the default 10 s                                   | Same image, held request, `docker stop` with the default time.                                                                                                                | Exit `137` (SIGKILL) while the tracker still drains, demonstrating the documented insufficiency.                | TODO   | section V7                                    |
 | M8 | systemd and Podman                                             | `systemd-run --user` with `TimeoutStopSec=35` and `systemctl --user stop`; Podman if installed (it is not installed on the author's machine, so record "not run").            | Unit result matches the exit code; Podman recorded honestly as not run, or run.                                  | TODO   | section V8                                    |
@@ -546,8 +578,19 @@ Notes:
 
 ### Disposable Verification Scripts
 
-None planned. A held-open-connection helper for the manual scenarios may be a few lines of
-shell; if it grows, promote it to a Rust test in `tests/lifecycle/` and keep no script.
+One script exists, created for V1 and reused by M3, M5, and M6 where it fits:
+
+- **Path**: `evidence/hold-and-stop.sh`, with its configuration `evidence/baseline.toml`.
+- **What it verifies**: it starts the real tracker binary, holds one connection open (idle, partial
+  header, or an unfinished request body), sends SIGTERM or SIGINT to the binary PID, and prints the
+  exit status and the seconds to the exit. It makes no assertion; a person reads the output.
+- **Why a script and not a maintained Rust test**: the evidence needs a real binary, real signals,
+  and a person's reading of the logs for one-off scenarios, several of which need a temporary
+  patch that must never be committed. The durable behavior (clean stop and drain budget reached)
+  is promoted to Rust tests in `tests/lifecycle/` by T6.
+- **Language**: bash, not Python, so the Python rule does not apply.
+- **Removal owner**: the author of T6 removes the script and its configuration when the Rust tests
+  cover the same scenarios, and records the removal in the progress log; T9 checks it.
 
 ### Acceptance Verification
 
