@@ -370,6 +370,8 @@ reports `runner_name` `torrust-runner-01` and passes.
 - Cleanup: `systemctl is-failed docker-ci-prune.service` (`failed` means the disk stayed at or above
   85%; `systemctl --failed` lists every failed unit, including unrelated ones) and
   `journalctl -u docker-ci-prune.service --since "3 days ago"`.
+- Periodic check: the [health reports](self-hosted-runner-reports/README.md), produced with the
+  `check-runner-health` skill, record CPU, disk space, and whether the daily prune frees space.
 
 ### When the Runner Is Offline
 
