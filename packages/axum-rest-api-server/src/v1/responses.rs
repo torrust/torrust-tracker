@@ -97,3 +97,97 @@ pub fn unhandled_rejection_response(reason: String) -> Response {
     )
         .into_response()
 }
+
+#[cfg(test)]
+mod tests {
+    use axum::body::to_bytes;
+    use axum::http::StatusCode;
+    use axum::http::header::CONTENT_TYPE;
+    use axum::response::Response;
+    use rstest::rstest;
+
+    use super::{
+        bad_request_response, disabled_by_configuration_response, invalid_auth_key_param_response,
+        invalid_info_hash_param_response, ok_response, unhandled_rejection_response,
+    };
+
+    const JSON: &str = "application/json";
+    const TEXT: &str = "text/plain; charset=utf-8";
+
+    /// The parts of a response that clients depend on: status, content type and body.
+    async fn sent(response: Response) -> (StatusCode, String, String) {
+        let status = response.status();
+        let content_type = response
+            .headers()
+            .get(CONTENT_TYPE)
+            .expect("the response has a content type")
+            .to_str()
+            .expect("the content type is text")
+            .to_string();
+        let body = to_bytes(response.into_body(), usize::MAX)
+            .await
+            .expect("the body is readable");
+
+        (
+            status,
+            content_type,
+            String::from_utf8(body.to_vec()).expect("the body is text"),
+        )
+    }
+
+    #[tokio::test]
+    async fn it_should_answer_ok_with_a_json_status_ok_body() {
+        let response = ok_response();
+
+        let observed = sent(response).await;
+
+        assert_eq!(observed, (StatusCode::OK, JSON.to_string(), r#"{"status":"ok"}"#.to_string()));
+    }
+
+    #[rstest]
+    #[case::an_invalid_info_hash(
+        invalid_info_hash_param_response("abc"),
+        r#"Invalid URL: invalid infohash param: string "abc", expected a 40 character long string"#
+    )]
+    #[case::an_invalid_auth_key(invalid_auth_key_param_response("bad-key"), r#"Invalid auth key id param "bad-key""#)]
+    #[case::a_custom_message(bad_request_response("custom"), "custom")]
+    #[tokio::test]
+    async fn it_should_answer_a_bad_request_with_the_message_as_plain_text(#[case] response: Response, #[case] message: &str) {
+        let observed = sent(response).await;
+
+        assert_eq!(observed, (StatusCode::BAD_REQUEST, TEXT.to_string(), message.to_string()));
+    }
+
+    #[rstest]
+    #[case::a_plain_reason("capability is off", r#"{"status":"err","reason":"capability is off"}"#)]
+    #[case::a_reason_with_quotes(r#"say "no""#, r#"{"status":"err","reason":"say \"no\""}"#)]
+    #[tokio::test]
+    async fn it_should_answer_conflict_with_the_reason_in_a_json_error_body_when_a_capability_is_disabled(
+        #[case] reason: &str,
+        #[case] body: &str,
+    ) {
+        let response = disabled_by_configuration_response(reason);
+
+        let observed = sent(response).await;
+
+        assert_eq!(observed, (StatusCode::CONFLICT, JSON.to_string(), body.to_string()));
+    }
+
+    #[rstest]
+    #[case::a_plain_reason("failed", r#"Unhandled rejection: Err { reason: "failed" }"#)]
+    #[case::a_reason_with_quotes(r#"say "no""#, r#"Unhandled rejection: Err { reason: "say \"no\"" }"#)]
+    #[tokio::test]
+    async fn it_should_answer_an_internal_server_error_with_the_legacy_debug_text_of_the_reason(
+        #[case] reason: &str,
+        #[case] body: &str,
+    ) {
+        let response = unhandled_rejection_response(reason.to_string());
+
+        let observed = sent(response).await;
+
+        assert_eq!(
+            observed,
+            (StatusCode::INTERNAL_SERVER_ERROR, TEXT.to_string(), body.to_string())
+        );
+    }
+}

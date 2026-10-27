@@ -54,6 +54,7 @@ tracing = "0"
 url = "2"
 
 [dev-dependencies]
+rstest = { version = "0.28.0", default-features = false }
 torrust-tracker-rest-api-client = { version = "0.1.0", path = "../rest-api-client" }
 torrust-tracker-test-helpers = { version = "3.0.0", path = "../test-helpers" }
 tower = { version = "0", features = [ "util" ] }

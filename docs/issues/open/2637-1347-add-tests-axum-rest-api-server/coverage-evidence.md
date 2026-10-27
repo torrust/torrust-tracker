@@ -2,8 +2,8 @@
 doc-type: coverage-evidence
 issue: 2637
 package: torrust-tracker-axum-rest-api-server
-measured-commit: abce11ec8
-measured-utc: 2026-10-24T19:50:00Z
+measured-commit: 0b4b2d0d3
+measured-utc: 2026-10-26T17:50:00Z
 ---
 
 # Axum REST API Server Coverage Evidence
@@ -60,6 +60,40 @@ Integration-only (`--test integration`) coverage informs ownership decisions and
 
 The 58 integration tests start a real server through `src/testing/environment.rs` and call it over HTTP with `torrust-tracker-rest-api-client`. They protect the wire contract, but they cover the handlers, responses, and the authentication middleware only through the full network stack. The unit-only column is the gap this issue closes.
 
+## Re-Measurement Before Slice S1
+
+`packages/axum-rest-api-server/` changed on `develop` after `abce11ec8`, so the package was measured again at `0b4b2d0d3` before any S1 test change (same commands, stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`; clean workspace before each report). Two merged changes explain the difference:
+
+- `refactor(axum-rest-api-server): [#2449] migrate the REST API test environment to the token lifecycle` added 8 unit tests inside `src/testing/environment.rs` (371 changed lines). They start the real router, so unit-only coverage of `routes.rs`, `v1/routes.rs`, `v1/responses.rs` and the health check rose without a package-owned unit test of those files; this is incidental coverage through test support, not a behavior contract.
+- `fix(axum-rest-api-server): [#2653] reject an unreadable Authorization header` (merged through #2656) changed `v1/middlewares/auth.rs` and added the first middleware test.
+
+The package now has 15 unit tests (3 in `server.rs`, 4 in `v1/middlewares/auth.rs`, 8 in `testing/environment.rs`) and the same 58 integration tests. The figures below replace the baseline tables above for slice work; the EPIC #1347 tables and the specification carry them. The measurement before this one is kept above as history.
+
+| Scope | Tests | Lines | Regions | Functions |
+| --- | ---: | ---: | ---: | ---: |
+| Aggregate (all selected test targets) | 15 unit + 58 integration | 1,091 / 1,240 (87.98%) | 1,618 / 1,924 (84.10%) | 156 / 187 (83.42%) |
+| Unit-only (`--lib`) | 15 unit | 792 / 1,240 (63.87%) | 1,231 / 1,924 (63.98%) | 96 / 187 (51.34%) |
+| Integration-only (`--test integration`) | 58 integration | 674 / 908 (74.23%) | 941 / 1,352 (69.60%) | 97 / 137 (70.80%) |
+
+The unit-only gain is mostly test support: `src/testing/environment.rs` alone is 301 of its 332 lines (the file is out of scope and its test module is counted). Excluding it, the unit-only lines are 491 / 908 (54.07%); judge the S1 slice by the production lines of its files, not by the total.
+
+Per-file unit-only lines for the rows that changed (all other files have the counts in the inventory):
+
+| Source module | Unit-only lines before | Unit-only lines now | Integration-only lines now | Aggregate lines now |
+| --- | ---: | ---: | ---: | ---: |
+| `v1/middlewares/auth.rs` | 27 / 83 (32.53%) | 71 / 103 (68.93%) | 54 / 60 | 98 / 103 |
+| `v1/responses.rs` | 0 / 40 (0.00%) | 8 / 40 (20.00%) | 40 / 40 | 40 / 40 |
+| `routes.rs` | 31 / 67 (46.27%) | 58 / 67 (86.57%) | 61 / 67 | 62 / 67 |
+| `v1/context/health_check/handlers.rs` | 0 / 4 (0.00%) | 4 / 4 (100.00%) | 4 / 4 | 4 / 4 |
+| `testing/environment.rs` (out of scope) | 0 / 126 (0.00%) | 301 / 332 (90.66%) | 156 / 171 | 325 / 332 |
+
+Unit-only uncovered lines of the S1 files at `0b4b2d0d3`:
+
+- `v1/middlewares/auth.rs`: 82, 86, 88-94, 97-99, 101 (the token sources, precedence and the missing and invalid exits of `auth`), 108, 115, 117-118, 120, 122-123, 125-127 (the `Bearer`, empty-token and wrong-scheme paths of the header extraction), 144-145 and 170-172, 176-178 (the `AuthError` conversions and two of the three failure responses). The unreadable-header rejection is covered by the #2653 test.
+- `v1/responses.rs`: 41-48, 53-57, 60-62, 65-72 and 80-87, that is the success, invalid info-hash, invalid key, bad-request and disabled responses (the `409` builder); only the unhandled-rejection response runs.
+
+The inventory rows above keep their original (pre-S1) unit-only columns; the "Per-File Results" section records each file after its slice.
+
 ## Module Inventory And T1 Hypotheses
 
 Every one of the 31 `.rs` files under `packages/axum-rest-api-server/src/` (`git ls-files`) appears exactly once, in processing order. The test count is the number of `#[test]` and `#[tokio::test]` functions in the file. Unit-only, integration-only and aggregate columns are line counts. The T1 hypothesis determines processing order but is not a terminal decision: every file still receives its own file test plan, and only that plan can conclude no test change. A property candidate must be assessed by the plan; it does not require a property-testing dependency.
@@ -69,7 +103,7 @@ Every one of the 31 `.rs` files under `packages/axum-rest-api-server/src/` (`git
 | 1 | `v1/middlewares/auth.rs` | 3 | 27 / 83 (32.53%) | 51 / 132 | 6 / 14 | 58 / 64 (90.63%) | 77 / 83 (92.77%) | Yes: `authenticate` is equivalent to "the token equals some configured token" for arbitrary tokens and token sets (the constant-time fold must keep that meaning); the bearer-header extraction as a parse of `Bearer <token>` | Token sources and precedence (header over query), the empty token, a header without the `Bearer` scheme prefix, the missing-token case, the three failure responses, and the constant-time comparison (security record `docs/security/analysis/reports/2026-09-04_rest-api-token-timing.md`). Only `authenticate` has unit tests today. | Property candidate |
 | 2 | `v1/routes.rs` | 0 | 27 / 45 (60.00%) | 51 / 73 | 1 / 3 | 45 / 45 (100.00%) | 45 / 45 (100.00%) | No | Capability gating: the auth-key and whitelist routes are always registered, and each handler receives its service only when `core.private` (respectively `core.listed`) is set and persistence exists, otherwise it answers `409`; the torrent and stats services are always present. Collaborator adapters and use cases are owned by `rest-api-runtime-adapter` and `rest-api-application`. | Test candidate |
 | 3 | `routes.rs` | 0 | 31 / 67 (46.27%) | 57 / 117 | 1 / 8 | 61 / 67 (91.04%) | 61 / 67 (91.04%) | No | Router composition: the authentication layer protects `/api/v1` routes but not `/api/health_check`, the request-id header is set and propagated, the request timeout answers `408`, and the structured request, response and failure log events. Logging is observability; the layer order and the timeout are package-owned decisions. | Test candidate |
-| 4 | `v1/context/health_check/handlers.rs` | 1 (integration) | 0 / 4 (0.00%) | 0 / 4 | 0 / 2 | 4 / 4 (100.00%) | 4 / 4 (100.00%) | No | The unauthenticated health-check response body and status. | Test candidate (small) |
+| 4 | `v1/context/health_check/handlers.rs` | 0 (1 integration) | 0 / 4 (0.00%) | 0 / 4 | 0 / 2 | 4 / 4 (100.00%) | 4 / 4 (100.00%) | No | The unauthenticated health-check response body and status. | Test candidate (small) |
 | 5 | `v1/responses.rs` | 0 | 0 / 40 (0.00%) | 0 / 31 | 0 / 6 | 40 / 40 (100.00%) | 40 / 40 (100.00%) | No | The shared response contract of every context: status, `content-type` and body of the success, `400`, `409` and `500` responses, including the legacy `Unhandled rejection: Err { reason: ... }` debug body kept for backward compatibility. | Test candidate |
 | 6 | `v1/context/auth_key/handlers.rs` | 0 (18 integration) | 0 / 56 (0.00%) | 0 / 83 | 0 / 11 | 48 / 56 (85.71%) | 48 / 56 (85.71%) | No | The mapping of each `AuthKeyError` variant to a response for add, generate, delete and reload, the disabled response when the service is absent, and path and body extraction. Key validity, duration limits and persistence are owned by `tracker-core`, `rest-api-application` and `rest-api-runtime-adapter`. | Test candidate |
 | 7 | `v1/context/auth_key/responses.rs` | 0 | 0 / 26 (0.00%) | 0 / 30 | 0 / 7 | 23 / 26 (88.46%) | 23 / 26 (88.46%) | No | The key resource response and the four `500` failure messages. | Test candidate |
@@ -112,7 +146,8 @@ Unit-only uncovered lines from `cargo llvm-cov report --show-missing-lines`, gro
 | `v1/routes.rs` | 26-33 | Building the auth-key service in private mode with persistence | 3A with a container built from a private configuration |
 | `v1/routes.rs` | 56-63 | Building the whitelist service in listed mode with persistence | 3A with a container built from a listed configuration |
 | `routes.rs` | 67-79, 87-102, 111-113 | The request-log closure and the response-log closure with its server-error and non-error arms (they run only when a request is served) | 3A through a request on the router; the logged content is observability |
-| `routes.rs` | 122-129, 136 | The failure-log closure and the timeout error handler that answers `408` | 3A for the `408` timeout (a slow handler); logging for the failure closure |
+| `routes.rs` | 122-129, 136 | The failure-log closure (`on_failure`; line 136 closes it) | logging (observability only) |
+| `routes.rs` | 144 (not listed by the unit-only report) | The `HandleErrorLayer` closure that answers `408` after a timeout. The line itself runs when the router is built, so the report counts it as covered, but the closure body runs only when a request times out. | 3A with a slow handler and a short timeout, if the timeout can be injected; otherwise record the reason |
 | `v1/context/health_check/handlers.rs` | 8-10 | The health-check response | 3A |
 | `v1/responses.rs` | 41-99 | Every shared response builder | 3A (pure functions) |
 | `v1/context/auth_key/handlers.rs` | 30-155 | The four handlers: service absent, each `AuthKeyError` arm, and success | 3A with a fake `AuthKeyPort` |
@@ -151,10 +186,30 @@ EPIC #1347 requires every package subissue to assess each test level. T1 records
 | Runnable examples | Not applicable. The package has no `examples/` and its crate documentation consists of `toml`, `bash`, `json` and `console` blocks that are not Rust. |
 | Root `tests/` or `packages/e2e-tools/` | Not selected. Their coverage of the REST API is exercised through the same endpoints and is not evidence for a package-owned unit seam. |
 | Mutation testing | Selected as a bounded whole-package run in T6 (the package has few functions), with `RUSTFLAGS="--cap-lints=warn"` and a stated reason for every missed, timed-out and unviable mutant (#1348, #1349 lessons). |
-| Property-based testing | Assessed per seam. Candidates: `authenticate` against a model (any token set, any token), the bearer-header extraction, and weakly `parse_info_hashes`. A property is kept only if it protects state that examples miss; if kept, `quickcheck` is added as a dev-dependency following the `add-rust-dependency` skill, as in #1348. Discrete branch policy (the `AuthKeyError` arms, the route gating by configuration) is better served by `rstest` tables. |
+| Property-based testing | Assessed per seam. Candidates: `authenticate` against a model (any token set, any token), the bearer-header extraction, and weakly `parse_info_hashes`. A property is kept only if it protects state that examples miss; if kept, `quickcheck` is added as a dev-dependency following the `add-rust-dependency` skill, as in #1348. Discrete branch policy (the `AuthKeyError` arms, the capability gating by configuration) is better served by `rstest` tables. |
 | Fuzzing | Not selected. Untrusted input reaches this package as header values, query strings and path segments already parsed by Axum and serde; the package-owned parsers are small and covered by properties and examples. Record as deferred if the authentication plan finds a reason. |
 | Benchmarks | Out of scope. The package has none and benchmarks are not tests of correctness. |
 
 ## Per-File Results
 
 Added by each slice as its files complete.
+
+### `v1/middlewares/auth.rs` (slice S1)
+
+Unit-only (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): lines 71 / 103 (68.93%) before, 142 / 142 (100.00%) after; regions 124 / 179 before, 223 / 223 after; functions 13 / 17 before, 22 / 22 after. The counts include the in-file test module. 27 test cases replace the four tests; eight named mutations are killed (see [the plan](test-refactor-plans/v1-middlewares-auth-tests.md)).
+
+### `v1/responses.rs` (slice S1)
+
+Unit-only (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): lines 8 / 40 (20.00%) before, 66 / 66 (100.00%) after; regions 6 / 31 before, 69 / 69 after; functions 1 / 6 before, 10 / 10 after. The counts include the in-file test module. Eight test cases; eight named mutations killed (see [the plan](test-refactor-plans/v1-responses-tests.md)).
+
+### Slice S1 Measurement
+
+After both S1 files (`v1/middlewares/auth.rs` and `v1/responses.rs`), on the S1 branch rebased onto `develop` (the only package change since the S1 baseline is a `torrust-server-lib` 0.4.0 bump); stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, a clean workspace before each report, the commands of the Measurement Scope section:
+
+| Scope | Tests | Lines | Regions | Functions |
+| --- | ---: | ---: | ---: | ---: |
+| Aggregate (all selected test targets) | 46 unit + 58 integration | 1,161 / 1,305 (88.97%) | 1,710 / 2,006 (85.24%) | 167 / 196 (85.20%) |
+| Unit-only (`--lib`) | 46 unit | 921 / 1,305 (70.57%) | 1,393 / 2,006 (69.44%) | 114 / 196 (58.16%) |
+| Integration-only (`--test integration`) | 58 integration | 674 / 908 (74.23%) | 941 / 1,352 (69.60%) | 97 / 137 (70.80%) |
+
+Unit-only lines move 792 / 1,240 (63.87%) at the S1 baseline to 921 / 1,305 (70.57%). Both files count their new test modules, so the denominator grew by 65 lines; the production lines of the two files are now fully covered by unit tests. The integration-only figure is unchanged because the integration binary does not compile the in-file test modules.

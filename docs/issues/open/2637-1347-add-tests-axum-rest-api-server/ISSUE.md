@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p2
 epic: 1347
 github-issue: 2637
 spec-path: docs/issues/open/2637-1347-add-tests-axum-rest-api-server/ISSUE.md
-branch: "2637-1347-add-tests-axum-rest-api-server-spec"
-related-pr: 2638
-last-updated-utc: "2026-10-24 19:50"
+branch: "2637-1347-add-tests-axum-rest-api-server-auth"
+related-pr: 2667
+last-updated-utc: "2026-10-27 08:07"
 semantic-links:
   skill-links:
     - create-issue
@@ -126,9 +126,23 @@ four `*/handlers.rs` with logic, the `*/responses.rs` files and
 not accept coverage from another package, an integration test, or an end-to-end test as evidence
 that a feasible package-owned unit seam is protected.
 
-`packages/axum-rest-api-server/` can change on `develop` before and during the work (#2449, #2482
-and #1488 touch it), so each slice re-measures the package at its start and records the baseline
-difference, as #1349 did.
+`packages/axum-rest-api-server/` changed on `develop` after this baseline (#2449 and #2653, below), so
+the package was re-measured at `0b4b2d0d3` before S1; it can change again (#2482 and #1488 touch it),
+so each slice re-measures it at its start and records the baseline difference, as #1349 did.
+
+**S1 baseline (`0b4b2d0d3`)** supersedes the table above for slice work (the table is kept as history):
+
+| Scope | Tests | Lines | Regions | Functions |
+| --- | ---: | ---: | ---: | ---: |
+| Aggregate (all selected test targets) | 15 unit + 58 integration | 1,091 / 1,240 (87.98%) | 1,618 / 1,924 (84.10%) | 156 / 187 (83.42%) |
+| Unit-only (`--lib`) | 15 unit | 792 / 1,240 (63.87%) | 1,231 / 1,924 (63.98%) | 96 / 187 (51.34%) |
+| Integration-only (`--test integration`) | 58 integration | 674 / 908 (74.23%) | 941 / 1,352 (69.60%) | 97 / 137 (70.80%) |
+
+The unit-only rise is mostly out-of-scope test support: #2449 added 8 unit tests to
+`src/testing/environment.rs` that run the real router, and #2653 added the first middleware test
+and rejected an unreadable `Authorization` header. Excluding `src/testing/environment.rs`, unit-only lines
+are 491 / 908 (54.07%). [coverage-evidence.md](coverage-evidence.md#re-measurement-before-slice-s1)
+has the per-file differences.
 
 ## Key Package Responsibilities
 
@@ -267,9 +281,9 @@ adapter and DTO behavior belongs to the other `rest-api-*` packages and `tracker
 
 Questions the file plans must answer, because the answer may be a finding rather than a test:
 
-- A non-UTF-8 `Authorization` header is read as "no header" (`.to_str().ok()`), so a valid `token`
-  query parameter then authenticates the request even though the header "takes precedence". Is that
-  intended? (`v1/middlewares/auth.rs`.)
+- A non-UTF-8 `Authorization` header was read as "no header", so a valid `token` query authenticated
+  the request. Handed off as #2653 and fixed (rejected as `unknown token provided`, merged through
+  #2656); the first middleware test of #2653 pins it.
 - The crate documentation in `lib.rs` spells the section `tsl_config` in three places, but the v3 `HttpApi`
   key is `tls_config` and the type denies unknown fields, so the documented snippet does not parse.
   It is a documentation correction for the `lib.rs` plan (S6), not a production change.
@@ -344,8 +358,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 | ID | Status | Task | Notes / Expected Output |
 | --- | ------ | ---- | ----------------------- |
 | T1 | DONE | Create coverage evidence and complete module inventory | [coverage-evidence.md](coverage-evidence.md) records the baseline commands and totals from this spec, per-file uncovered groups, property-test candidacy, selected behavior, and an initial hypothesis for every `packages/axum-rest-api-server/src/` file. Delivered with this specification (S0). No tests changed. |
-| T2 | TODO | Create shared plan guidance and the first file test plan | `test-refactor-plans/README.md` holds the shared guardrails and the plan index, including the #1348 and #1349 testing lessons that apply here (see [lessons carried](#lessons-carried-from-1348-and-1349)). The first plan is `v1-middlewares-auth-tests.md`. No tests changed. |
-| T3 | TODO | Review and approve the processing order and slice boundaries | Maintainer approves the ledger order and the pull-request slices; both may change at any time. |
+| T2 | DONE | Create shared plan guidance and the first file test plan | `test-refactor-plans/README.md` holds the shared guardrails and the plan index, including the #1348 and #1349 testing lessons that apply here (see [lessons carried](#lessons-carried-from-1348-and-1349)). The first plan is `v1-middlewares-auth-tests.md`. No tests changed. |
+| T3 | DONE | Review and approve the processing order and slice boundaries | Maintainer approves the ledger order and the pull-request slices; both may change at any time. |
 | T4 | TODO | Process every source file through the per-file workflow | Every ledger row has a completed plan (or a shared declaration-only plan), recorded coverage result, completed-file review, and signed per-file commit, merged through its slice. |
 | T5 | TODO | Implement integration-test increments selected by file test plans | None expected; a plan may select one (TLS startup is the likely candidate). |
 | T6 | TODO | Perform bounded mutation assessment | `mutation-evidence.md` records the run, the survivors and the reason for each unviable mutant. |
@@ -388,8 +402,8 @@ ledger order inside each slice is still confirmed with the first plan (T3).
 
 | Slice | Content | Ledger rows | Branch | PR | Status |
 | --- | --- | --- | --- | --- | --- |
-| S0 | This specification, the T1 coverage evidence and inventory, and the EPIC registration with the baseline | - | `2637-1347-add-tests-axum-rest-api-server-spec` | #2638 | IN_PROGRESS |
-| S1 | T2-T3, then authentication and the shared response contract (ranks 1 and 3) | 1, 5 | `2637-1347-add-tests-axum-rest-api-server-auth` | TBD | PENDING |
+| S0 | This specification, the T1 coverage evidence and inventory, and the EPIC registration with the baseline | - | `2637-1347-add-tests-axum-rest-api-server-spec` | #2638 | DONE |
+| S1 | T2-T3, then authentication and the shared response contract (ranks 1 and 3) | 1, 5 | `2637-1347-add-tests-axum-rest-api-server-auth` | #2667 | IN_PROGRESS |
 | S2 | Route composition, transport layers and the health check (rank 2) | 2-4 | `2637-1347-add-tests-axum-rest-api-server-routes` | TBD | PENDING |
 | S3 | State-changing contexts: auth keys and whitelist (rank 4) | 6-11 | `2637-1347-add-tests-axum-rest-api-server-commands` | TBD | PENDING |
 | S4 | Read-only contexts: torrents and statistics (rank 5) | 12-17 | `2637-1347-add-tests-axum-rest-api-server-queries` | TBD | PENDING |
@@ -513,16 +527,16 @@ States: `PENDING` (no plan yet), `IN_PROGRESS`, `BLOCKED` (paused by a finding; 
 `DONE`, `REMOVED` (the file no longer exists; the row keeps the history). Rows follow
 [Key Package Responsibilities](#key-package-responsibilities), most critical first; the slice order
 decides which rows are processed first (see the [Per-File Workflow](#per-file-workflow)). Unit-only lines
-are the baseline measurement at `abce11ec8` (see [Baseline Coverage](#baseline-coverage)); the
+are the S1 baseline measurement at `0b4b2d0d3` (see [Baseline Coverage](#baseline-coverage)); the
 declaration-only rows have no executable entries.
 
 | Order | Source module | Rank | Slice | Unit-only lines | Tests | Initial hypothesis | State | Plan |
 | ---: | --- | ---: | --- | ---: | ---: | --- | --- | --- |
-| 1 | `v1/middlewares/auth.rs` | 1 | S1 | 27 / 83 (32.53%) | 3 | Property candidate | PENDING | - |
+| 1 | `v1/middlewares/auth.rs` | 1 | S1 | 71 / 103 (68.93%) | 4 | Property candidate | DONE | [v1-middlewares-auth-tests.md](test-refactor-plans/v1-middlewares-auth-tests.md) (done; 142 / 142 lines after, 27 test cases, 8 mutants killed, property test declined) |
 | 2 | `v1/routes.rs` | 2 | S2 | 27 / 45 (60.00%) | 0 | Test candidate | PENDING | - |
-| 3 | `routes.rs` | 2 | S2 | 31 / 67 (46.27%) | 0 | Test candidate | PENDING | - |
-| 4 | `v1/context/health_check/handlers.rs` | 2 | S2 | 0 / 4 (0.00%) | 0 | Test candidate (small) | PENDING | - |
-| 5 | `v1/responses.rs` | 3 | S1 | 0 / 40 (0.00%) | 0 | Test candidate | PENDING | - |
+| 3 | `routes.rs` | 2 | S2 | 58 / 67 (86.57%) | 0 | Test candidate | PENDING | - |
+| 4 | `v1/context/health_check/handlers.rs` | 2 | S2 | 4 / 4 (100.00%) | 0 | Test candidate (small) | PENDING | - |
+| 5 | `v1/responses.rs` | 3 | S1 | 8 / 40 (20.00%) | 0 | Test candidate | DONE | [v1-responses-tests.md](test-refactor-plans/v1-responses-tests.md) (done; 66 / 66 lines after, 8 test cases, 8 mutants killed) |
 | 6 | `v1/context/auth_key/handlers.rs` | 4 | S3 | 0 / 56 (0.00%) | 0 | Test candidate | PENDING | - |
 | 7 | `v1/context/auth_key/responses.rs` | 4 | S3 | 0 / 26 (0.00%) | 0 | Test candidate | PENDING | - |
 | 8 | `v1/context/auth_key/routes.rs` | 4 | S3 | 16 / 16 (100.00%) | 0 | Probably no change | PENDING | - |
@@ -536,7 +550,7 @@ declaration-only rows have no executable entries.
 | 16 | `v1/context/stats/responses.rs` | 5 | S4 | 0 / 45 (0.00%) | 0 | Test candidate | PENDING | - |
 | 17 | `v1/context/stats/routes.rs` | 5 | S4 | 9 / 9 (100.00%) | 0 | Probably no change | PENDING | - |
 | 18 | `server.rs` | 6 | S5 | 275 / 349 (78.80%) | 3 | Test candidate (TLS, errors, `check_fn`); legacy path owned by #1488 | PENDING | - |
-| 19 | `testing/environment.rs` | 7 | S6 | 0 / 126 (0.00%) | 0 | Out of scope (test support; #2482, #2449) | PENDING | - |
+| 19 | `testing/environment.rs` | 7 | S6 | 301 / 332 (90.66%) | 8 | Out of scope (test support; #2482, #2449) | PENDING | - |
 | 20 | `testing/mod.rs` | 7 | S6 | No executable entries | 0 | Out of scope (test support) | PENDING | - |
 | 21 | `lib.rs` | 8 | S6 | No executable entries | 0 | Wiring only | PENDING | - |
 | 22 | `v1/mod.rs` | 8 | S6 | No executable entries | 0 | Wiring only | PENDING | - |
@@ -569,8 +583,8 @@ once. If the slicing changes, the Slice column changes with it.
 - [x] Specification and the proposed slicing reviewed and approved by the maintainer (2026-10-24).
 - [x] GitHub issue #2637 created and linked as a subissue of #1347.
 - [ ] Spec-only PR (S0) merged into `develop` before implementation.
-- [ ] Shared plan guidance and the first file test plan created; processing order and slices
-      approved (T2-T3).
+- [ ] Shared plan guidance and the first file test plan created (T2, done); processing order and slices
+      approved (T3).
 - [ ] Every ledger row is `DONE` with its own file test plan, merged through its slice.
 - [ ] Maintainer review after the final test-producing increment.
 - [ ] Automatic verification completed with toolchain-qualified evidence.
@@ -583,7 +597,7 @@ once. If the slicing changes, the Slice column changes with it.
 
 ### Progress Log
 
-- 2026-10-24 19:50 UTC - GitHub Copilot - Replaced the outdated draft with this specification on
+- 2026-10-24 19:59 UTC - GitHub Copilot - Replaced the outdated draft with this specification on
   branch `2637-1347-add-tests-axum-rest-api-server-spec`, using #1348 and #1349 as the
   templates. Measured a clean baseline at `abce11ec8` (6 unit and 58 integration tests; unit-only
   lines 40.24%, aggregate lines 85.31%, integration-only lines 74.39%, all filtered to
@@ -591,14 +605,59 @@ once. If the slicing changes, the Slice column changes with it.
   `coverage-evidence.md` (T1). The coordinator's rough figures (15% and 32%) were the unfiltered
   workspace `TOTAL`, not package figures. Proposed seven slices (S0-S6) and the findings
   procedure. No tests or production code changed.
-- 2026-10-24 20:00 UTC - Jose Celano - Approved the specification and the seven slices (S0-S6) as
+- 2026-10-24 19:57 UTC - Jose Celano - Approved the specification and the seven slices (S0-S6) as
   proposed, with the T1 evidence delivered in the spec-only PR (S0), `src/testing/` out of scope,
   the legacy `Halted` path left to #1488, and dev-dependencies allowed when a plan justifies them.
-- 2026-10-24 20:05 UTC - GitHub Copilot - Created GitHub issue #2637 and linked it as a subissue of
+- 2026-10-24 19:57 UTC - GitHub Copilot - Created GitHub issue #2637 (19:57:14 UTC) and linked it as a subissue of
   #1347; renamed the branch to `2637-1347-add-tests-axum-rest-api-server-spec`, moved the
   specification from `docs/issues/drafts/` to `docs/issues/open/`, and registered the package in
   the EPIC tables.
-- 2026-10-24 20:20 UTC - GitHub Copilot - Opened spec-only PR #2638 (<https://github.com/torrust/torrust-tracker/pull/2638>) with `Related to #2637`.
+- 2026-10-24 20:00 UTC - GitHub Copilot - Opened spec-only PR #2638 (<https://github.com/torrust/torrust-tracker/pull/2638>) with `Related to #2637`.
+- 2026-10-24 20:24 UTC - GitHub Copilot - Processed the Copilot review of #2638 (F1 to F4, submitted
+  20:18 UTC): TLS key, capability gating, slice versus ledger order, and the refactor gate were fixed
+  in four commits, rebased onto `develop`, replied to and resolved; the audit is
+  `docs/pr-reviews/pr-2638-review/PR-REVIEW.md`.
+- 2026-10-24 20:45 UTC - Jose Celano - Merged spec-only PR #2638 into `develop`. Cameron's (da2ce7)
+  review, posted at 20:39 UTC with findings F5 to F9, had not been processed when it merged; the
+  maintainer chose to fold those fixes into the S1 branch (see the audit record).
+- 2026-10-24 20:53 UTC - GitHub Copilot - Started S1 on branch
+  `2637-1347-add-tests-axum-rest-api-server-auth` from `develop` at the merge of #2638. The package
+  and its `rest-api-*`, `axum-server` and `configuration` collaborators are unchanged since
+  `abce11ec8` (only a `Cargo.lock` patch bump), so the baseline stands. Folded da2ce7's late findings
+  F5 to F9 of #2638 into this branch in separate commits, as the maintainer approved; the audit
+  update follows once the S1 pull request exists. Set this specification to `in-progress`.
+- 2026-10-24 20:57 UTC - GitHub Copilot - T2: drafted the shared plan guidance and the first plan
+  (`v1/middlewares/auth.rs`). A throwaway probe (reverted) showed that a non-UTF-8 `Authorization`
+  header with a valid `token` query authenticates, a duplicate `token` answers `400`, and a lower-case
+  `bearer` scheme is rejected.
+- 2026-10-25 06:15 UTC - Jose Celano - Reviewed the first plan: approved `rstest` and `tower` (`util`)
+  as dev-dependencies, pinning the `400` for a duplicate `token`, and no property test for
+  `authenticate`; asked to hand the non-UTF-8 header behavior off as a finding and stop. The plan
+  still needs explicit approval.
+- 2026-10-25 06:30 UTC - GitHub Copilot - Finding handed off: the non-UTF-8 `Authorization` header
+  behavior. Wrote the draft bug specification `docs/issues/drafts/rest-api-auth-ignores-unreadable-authorization-header/`
+  on branch `chore/draft-rest-api-unreadable-authorization-header` and a git-ignored hand-off in
+  `.tmp/2637-auth-unreadable-header/`; added `lessons.md`. The auth plan leaves the case untested with the
+  finding as owner. Stopped for the maintainer to choose between pausing S1 and continuing in parallel; the fix
+  edits the same file as ledger row 1.
+- 2026-10-26 17:50 UTC - GitHub Copilot - The finding was fixed and merged as #2653 (PR #2656; spec
+  archived in `docs/issues/closed/2653-rest-api-auth-ignores-unreadable-authorization-header/`), and #2449
+  (the REST API test environment) merged too. Rebased the S1 branch onto `develop` at `0b4b2d0d3` and
+  re-measured the package: unit-only lines 40.24% to 63.87% (15 unit tests), aggregate 85.31% to
+  87.98%, integration-only 74.23%; the rise is mostly #2449's test-environment unit tests. The auth
+  middleware is now 71 / 103 lines. Updated the S1 baseline, the ledger, the evidence, the EPIC tables
+  and the auth plan (the unreadable-header case is already tested; `tower` `util` is already a
+  dev-dependency). S1 resumes; the plan still needs the maintainer's approval.
+- 2026-10-26 18:30 UTC - GitHub Copilot - S1 row 1: `v1/middlewares/auth.rs` is done. Unit-only lines 71 / 103
+  (68.93%) to 142 / 142 (100.00%) (the counts include the test module), 27 test cases, eight named mutations
+  killed, `rstest` 0.28.0 added as a dev-dependency. The maintainer approved the plan (2026-10-26, after the
+  #2653 update) and the completed file (18:26 UTC).
+- 2026-10-27 07:16 UTC - GitHub Copilot - S1 close: both rows are `DONE` (`v1/middlewares/auth.rs` 142 / 142 and
+  `v1/responses.rs` 66 / 66 unit-only lines). The maintainer approved the second plan (2026-10-26) and the completed
+  file (2026-10-27). Rebased onto `develop` (only a `torrust-server-lib` bump touched the package) and measured
+  again: unit-only lines 921 / 1,305 (70.57%), aggregate 1,161 / 1,305 (88.97%), integration-only 674 / 908
+  (74.23%); 46 unit tests. Updated the EPIC "Latest" values.
+- 2026-10-27 08:07 UTC - GitHub Copilot - Recorded S1 pull request #2667 (<https://github.com/torrust/torrust-tracker/pull/2667>) with `Related to #2637`, opened at 07:32 UTC after both independent reviews; recorded its number in the frontmatter and the slice table after Copilot's review (finding F1 of the PR #2667 audit).
 
 ## Acceptance Criteria
 

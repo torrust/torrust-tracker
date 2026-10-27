@@ -6,7 +6,7 @@ epic: null
 github-issue: 1347
 spec-path: docs/issues/open/1347-overhaul-packages-testing/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-24 20:10"
+last-updated-utc: "2026-10-27 08:07"
 semantic-links:
   skill-links:
     - create-issue
@@ -95,7 +95,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | 7     | #2283 - Increase UDP server package coverage      | `docs/issues/closed/2283-1347-increase-udp-server-package-coverage/ISSUE.md`      | DONE   | Every package source file processed through a reviewed per-file plan; unit-only lines 96.18% → 98.18%; bounded mutation sample and manual verification recorded; merged via PR #2381. |
 | 8     | #2301 - Review package coverage rollout           | `docs/issues/open/2301-1347-review-package-coverage-rollout/ISSUE.md`             | TODO   | After the EPIC completes, review real rollout evidence before retaining, revising, or proposing a required coverage check. |
 | 9     | #2361 - Keep the report-only package coverage summary from failing on a discovery failure | `docs/issues/open/2361-1347-package-coverage-summary-discovery-failure/ISSUE.md` | TODO | Bug follow-up of #2347 (`review-finding:pr-2293-f1`): the #2222 summary check goes red with a JSON parse error when discovery fails. |
-| 10    | #2637 - Add tests to the axum-rest-api-server package | `docs/issues/open/2637-1347-add-tests-axum-rest-api-server/ISSUE.md` | TODO | Spec-only PR carries the specification and the T1 baseline and inventory; delivered in slices S1-S6 after it merges. Replaces the former draft that was misfiled under #1349. |
+| 10    | #2637 - Add tests to the axum-rest-api-server package | `docs/issues/open/2637-1347-add-tests-axum-rest-api-server/ISSUE.md` | IN_PROGRESS | S0 (spec and T1 baseline) merged through #2638; S1 (authentication and shared responses) is in review in #2667; slices S2-S6 follow. Replaces the former draft that was misfiled under #1349. |
 | 11    | Additional package-testing subissues              | Create a folder-style spec when a concrete package need is identified             | TODO   | Permitted but not required upfront; retain scope in this EPIC.                                                       |
 
 ## Package Coverage Tracking
@@ -119,7 +119,7 @@ level or determine whether unit coverage is adequate.
 | `torrust-tracker-udp-server`       | [#2283](../../closed/2283-1347-increase-udp-server-package-coverage/ISSUE.md) | Lines: 97.86%; regions: 96.64%; functions: 97.64% | Lines: 98.58%; regions: 97.62%; functions: 98.56% | Lines: +0.72 pp; regions: +0.98 pp; functions: +0.92 pp | [Coverage evidence](../../closed/2283-1347-increase-udp-server-package-coverage/coverage-evidence.md) |
 | `torrust-tracker-udp-core`         | [#1348](../../closed/1348-1347-add-tests-udp-core/ISSUE.md) | Lines: 72.49%; regions: 78.56%; functions: 71.27% | Lines: 98.04%; regions: 98.15%; functions: 97.61% | Lines: +25.55 pp; regions: +19.58 pp; functions: +26.34 pp | [Coverage evidence](../../closed/1348-1347-add-tests-udp-core/coverage-evidence.md) |
 | `torrust-tracker-http-core`        | [#1349](../../closed/1349-1347-add-tests-http-core/ISSUE.md) | Lines: 88.88%; regions: 90.41%; functions: 84.29% | Lines: 99.28%; regions: 99.25%; functions: 99.74% | Lines: +10.40 pp; regions: +8.84 pp; functions: +15.45 pp | [Coverage evidence](../../closed/1349-1347-add-tests-http-core/coverage-evidence.md) |
-| `torrust-tracker-axum-rest-api-server` | [#2637](../2637-1347-add-tests-axum-rest-api-server/ISSUE.md) | Lines: 85.31%; regions: 80.99%; functions: 79.19% | Not measured yet | Not comparable yet | [Coverage evidence](../2637-1347-add-tests-axum-rest-api-server/coverage-evidence.md) |
+| `torrust-tracker-axum-rest-api-server` | [#2637](../2637-1347-add-tests-axum-rest-api-server/ISSUE.md) | Lines: 87.98%; regions: 84.10%; functions: 83.42% | Lines: 88.97%; regions: 85.24%; functions: 85.20% | Lines: +0.99 pp; regions: +1.14 pp; functions: +1.78 pp | [Coverage evidence](../2637-1347-add-tests-axum-rest-api-server/coverage-evidence.md) |
 
 ### Unit-Only Coverage
 
@@ -133,7 +133,7 @@ weak unit-only result with aggregate, integration, example, or end-to-end covera
 | `torrust-tracker-udp-server` | [#2283](../../closed/2283-1347-increase-udp-server-package-coverage/ISSUE.md) | Lines: 96.18%; regions: 95.34%; functions: 94.93% | Lines: 98.18%; regions: 97.04%; functions: 97.70% | Lines: +2.00 pp; regions: +1.70 pp; functions: +2.77 pp | [Coverage evidence](../../closed/2283-1347-increase-udp-server-package-coverage/coverage-evidence.md) |
 | `torrust-tracker-udp-core` | [#1348](../../closed/1348-1347-add-tests-udp-core/ISSUE.md) | Lines: 72.49%; regions: 78.56%; functions: 71.27% | Lines: 98.04%; regions: 98.15%; functions: 97.61% | Lines: +25.55 pp; regions: +19.58 pp; functions: +26.34 pp | [Coverage evidence](../../closed/1348-1347-add-tests-udp-core/coverage-evidence.md) |
 | `torrust-tracker-http-core` | [#1349](../../closed/1349-1347-add-tests-http-core/ISSUE.md) | Lines: 88.88%; regions: 90.41%; functions: 84.29% | Lines: 99.28%; regions: 99.25%; functions: 99.74% | Lines: +10.40 pp; regions: +8.84 pp; functions: +15.45 pp | [Coverage evidence](../../closed/1349-1347-add-tests-http-core/coverage-evidence.md) |
-| `torrust-tracker-axum-rest-api-server` | [#2637](../2637-1347-add-tests-axum-rest-api-server/ISSUE.md) | Lines: 40.24%; regions: 42.65%; functions: 24.16% | Not measured yet | Not comparable yet | [Coverage evidence](../2637-1347-add-tests-axum-rest-api-server/coverage-evidence.md) |
+| `torrust-tracker-axum-rest-api-server` | [#2637](../2637-1347-add-tests-axum-rest-api-server/ISSUE.md) | Lines: 63.87%; regions: 63.98%; functions: 51.34% | Lines: 70.57%; regions: 69.44%; functions: 58.16% | Lines: +6.70 pp; regions: +5.46 pp; functions: +6.82 pp | [Coverage evidence](../2637-1347-add-tests-axum-rest-api-server/coverage-evidence.md) |
 
 ## Delivery Strategy
 
@@ -305,11 +305,20 @@ For each subissue implementation, the completion policy is:
   manual verification M1-M5, `lessons.md` and the retrospective. The independent review of S6 asked for these EPIC
   tables to carry the final figures, which both now do. The `tcp4`/`tcp6` finding is a draft hand-off that also covers
   the UDP counters recorded by #1348.
-- 2026-10-24 20:10 UTC - GitHub Copilot - Created #2637 (`axum-rest-api-server`) from the outdated draft
+- 2026-10-24 19:59 UTC - GitHub Copilot - Created #2637 (`axum-rest-api-server`) from the outdated draft
   and linked it under this EPIC. Clean baseline at `abce11ec8`, filtered to the package source: unit-only
   lines 40.24%, regions 42.65%, functions 24.16% (6 unit tests); aggregate lines 85.31%, regions 80.99%,
   functions 79.19% (plus 58 integration tests; integration-only lines 74.39%). Delivered in slices S0-S6;
   the row stays `TODO` until the first implementation slice starts.
+- 2026-10-26 17:50 UTC - GitHub Copilot - #2637 (`axum-rest-api-server`) S1: `develop` changed the package after the
+  spec baseline (#2449 test-environment unit tests; #2653, merged through #2656, the unreadable `Authorization`
+  header fix and its test), so it was measured again at `0b4b2d0d3`. Both baseline rows now read: aggregate lines
+  87.98%, regions 84.10%, functions 83.42% (15 unit and 58 integration tests); unit-only lines 63.87%, regions
+  63.98%, functions 51.34%. Most of the unit-only rise is out-of-scope test support
+  (`src/testing/environment.rs`); the issue-local evidence has the per-file detail.
+- 2026-10-27 07:16 UTC - GitHub Copilot - #2637 S1 (authentication and shared responses) finished: unit-only lines
+  63.87% to 70.57% (46 unit tests), aggregate 87.98% to 88.97%; both tables carry the interim figures against the
+  S1 baseline until the final measurement.
 
 ## Acceptance Criteria
 
