@@ -9,7 +9,7 @@ github-issue: 2670
 spec-path: docs/issues/open/2670-2482-build-shipped-artifacts-without-test-features/ISSUE.md
 branch: "2670-2482-build-shipped-artifacts-without-test-features"
 related-pr: null
-last-updated-utc: "2026-10-27 09:05"
+last-updated-utc: "2026-10-27 09:06"
 semantic-links:
   skill-links:
     - create-issue
@@ -316,6 +316,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   a sub-issue of #2482 (`parent_issue_url` verified) and moved the spec to `docs/issues/open/`.
 - 2026-10-27 09:04 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 9) - PR #2671 review round 1, F1: the Regression Test Strategy and the Commit Points now require the recorded prose-first Arrange-Act-Assert test-design review after each test increment and the maintainer-review stop after the final increment of T2 and of T3.
 - 2026-10-27 09:05 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 9) - PR #2671 review round 1, F2: T1 now records the list and count of the baseline tests, and T5, AC2 and M2 require every baseline test to remain present and passing with the delta for new tests recorded, instead of an equal count (T2's tests are compiled into the targets that include `tests/common/native_tracker`).
+- 2026-10-27 09:06 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 9) - PR #2671 review round 1, F3: scenario M1 now builds both targets with `--file Containerfile`, as `docs/containers.md` does, because the repository root has no `Dockerfile`.
 
 ## Acceptance Criteria
 
@@ -350,7 +351,7 @@ applies, except that this subissue moves no test code. The workflow changes foll
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | Baseline before the change | Build the `release` and `debug` targets of `develop`'s `Containerfile` (`docker build --target release .`) and record the `test` stage's test list and count and the cold and warm times | Numbers recorded | TODO | `manual-verification-evidence.md` V1 |
+| M1 | Baseline before the change | Build the `release` and `debug` targets of `develop`'s `Containerfile` (`docker build --target release --tag torrust-tracker:release --file Containerfile .` and the same with `--target debug --tag torrust-tracker:debug`) and record the `test` stage's test list and count and the cold and warm times | Numbers recorded | TODO | `manual-verification-evidence.md` V1 |
 | M2 | The image builds and its tests run | Build both targets after the change | Both build; every baseline test is still present and passing; the delta for new tests is recorded (the count may rise by the tests T2 adds); times recorded | TODO | V2 |
 | M3 | The override is honoured | In the `test` stage, point `TORRUST_TRACKER_BINARY` at a missing file, build, then restore it | The native-tracker tests fail with the missing path (red), then pass (green) | TODO | V3 |
 | M4 | The shipped binary has no `testing` feature | `cargo run -p shipped-features-check -- --package torrust-tracker` and `cargo tree -p torrust-tracker -e normal,build -f "{p} {f}"` | Passes; no `testing` feature (vacuous today, since none exists) | TODO | V4 |
