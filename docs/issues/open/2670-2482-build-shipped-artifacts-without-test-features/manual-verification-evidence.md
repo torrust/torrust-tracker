@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2670-2482-build-shipped-artifacts-without-test-features/ISSUE.md
-last-updated-utc: "2026-10-27 12:43"
+last-updated-utc: "2026-10-27 12:44"
 ---
 
 # Manual Verification Evidence
@@ -73,3 +73,32 @@ docker build --progress=plain --target release --tag r9-baseline:release --file 
 
 The `release` test list, sorted, is in [`baseline-test-list.txt`](baseline-test-list.txt) (1531 lines, one
 `<binary> <test>` per line). The later comparison checks that every line is still present.
+
+## T2 - Test-design review of the `TORRUST_TRACKER_BINARY` tests
+
+Change: `tracker_binary()` in `tests/common/native_tracker/command.rs` delegates to
+`resolve_tracker_binary(variable, compiled)`, which reads `TORRUST_TRACKER_BINARY`, then
+`NEXTEST_BIN_EXE_torrust-tracker`, then `CARGO_BIN_EXE_torrust-tracker`, then the path compiled into the test.
+The three unit tests pass the variables as a slice of pairs, so no test touches the process environment.
+
+Prose-first Arrange-Act-Assert comparison, written before the code was refactored to express it:
+
+| Test | Arrange (the one causal initial-state difference) | Act | Assert (independently specified result) |
+| --- | --- | --- | --- |
+| `it_should_run_the_binary_named_by_the_shipped_binary_override_before_the_one_nextest_or_cargo_built` | The override variable is set alongside the nextest and Cargo variables | Resolve the binary | The override's path wins |
+| `it_should_run_the_binary_nextest_built_when_no_override_is_set` | Only the nextest and Cargo variables are set | Resolve the binary | The nextest path wins (today's behaviour is unchanged) |
+| `it_should_run_the_binary_compiled_into_the_test_when_no_variable_is_set` | No variable is set | Resolve the binary | The compiled-in path is returned |
+
+Review result: each test differs from the previous one by exactly one fact (the override present, then
+absent with the nextest variable present, then every variable absent). The fixture is the `lookup_in` helper,
+which only turns a slice of pairs into a lookup function (incidental mechanics). The production Act
+(`resolve_tracker_binary`) and the expected path stay visible in each test. The helper is used by all three
+tests and hides no decision. No redundant prose was left in the code.
+
+Red and green runs (Cargo 1.99.1, `cargo test -p torrust-tracker --test lifecycle-signals it_should_run_the_binary`):
+
+- Red: with the override read but its value discarded (`variable(SHIPPED_BINARY_VARIABLE).filter(|_| false)`,
+  a scratch change that was reverted), the override test fails with `left: "/nextest/torrust-tracker"`,
+  `right: "/shipped/torrust-tracker"` and the other two pass: `2 passed; 1 failed`.
+- Green: with the change, `lifecycle-signals` reports `16 passed` and `cli-configuration` reports
+  `21 passed`. The three new tests compile into both targets, so the image's test count rises by 6.

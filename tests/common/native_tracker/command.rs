@@ -2,6 +2,7 @@
 //!
 //! This module does not own child processes or make running or failed-start lifecycle decisions.
 
+use std::ffi::OsString;
 use std::net::SocketAddr;
 use std::path::{Path, PathBuf};
 use std::process::Stdio;
@@ -209,19 +210,86 @@ fn write_configuration_at(config_path: &Path, storage_path: &Path, health_check_
     std::fs::write(config_path, config).expect("write tracker configuration");
 }
 
+/// Environment variable naming the tracker executable to run instead of the one Cargo built.
+///
+/// The container's `test` stages set it to the separately built shipped binary, so the black-box
+/// tests exercise the executable the image ships. It is read before the variables nextest and Cargo
+/// set, which cannot carry an override.
+const SHIPPED_BINARY_VARIABLE: &str = "TORRUST_TRACKER_BINARY";
+
 pub(super) fn tracker_binary() -> PathBuf {
-    std::env::var_os("NEXTEST_BIN_EXE_torrust-tracker")
-        .or_else(|| std::env::var_os("CARGO_BIN_EXE_torrust-tracker"))
-        .map_or_else(|| PathBuf::from(env!("CARGO_BIN_EXE_torrust-tracker")), PathBuf::from)
+    resolve_tracker_binary(
+        |name| std::env::var_os(name),
+        PathBuf::from(env!("CARGO_BIN_EXE_torrust-tracker")),
+    )
+}
+
+fn resolve_tracker_binary(variable: impl Fn(&str) -> Option<OsString>, compiled: PathBuf) -> PathBuf {
+    variable(SHIPPED_BINARY_VARIABLE)
+        .or_else(|| variable("NEXTEST_BIN_EXE_torrust-tracker"))
+        .or_else(|| variable("CARGO_BIN_EXE_torrust-tracker"))
+        .map_or(compiled, PathBuf::from)
 }
 
 #[cfg(test)]
 mod tests {
     use std::ffi::{OsStr, OsString};
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
-    use std::path::Path;
+    use std::path::{Path, PathBuf};
 
-    use super::{tracker_command, write_configuration};
+    use super::{resolve_tracker_binary, tracker_command, write_configuration};
+
+    fn lookup_in<'a>(variables: &'a [(&'a str, &'a str)]) -> impl Fn(&str) -> Option<OsString> + 'a {
+        move |name| {
+            variables
+                .iter()
+                .find(|(variable, _)| *variable == name)
+                .map(|(_, value)| OsString::from(*value))
+        }
+    }
+
+    #[test]
+    fn it_should_run_the_binary_named_by_the_shipped_binary_override_before_the_one_nextest_or_cargo_built() {
+        // Arrange
+        let variables = [
+            ("TORRUST_TRACKER_BINARY", "/shipped/torrust-tracker"),
+            ("NEXTEST_BIN_EXE_torrust-tracker", "/nextest/torrust-tracker"),
+            ("CARGO_BIN_EXE_torrust-tracker", "/cargo/torrust-tracker"),
+        ];
+
+        // Act
+        let binary = resolve_tracker_binary(lookup_in(&variables), PathBuf::from("/compiled/torrust-tracker"));
+
+        // Assert
+        assert_eq!(binary, PathBuf::from("/shipped/torrust-tracker"));
+    }
+
+    #[test]
+    fn it_should_run_the_binary_nextest_built_when_no_override_is_set() {
+        // Arrange
+        let variables = [
+            ("NEXTEST_BIN_EXE_torrust-tracker", "/nextest/torrust-tracker"),
+            ("CARGO_BIN_EXE_torrust-tracker", "/cargo/torrust-tracker"),
+        ];
+
+        // Act
+        let binary = resolve_tracker_binary(lookup_in(&variables), PathBuf::from("/compiled/torrust-tracker"));
+
+        // Assert
+        assert_eq!(binary, PathBuf::from("/nextest/torrust-tracker"));
+    }
+
+    #[test]
+    fn it_should_run_the_binary_compiled_into_the_test_when_no_variable_is_set() {
+        // Arrange
+        let variables: [(&str, &str); 0] = [];
+
+        // Act
+        let binary = resolve_tracker_binary(lookup_in(&variables), PathBuf::from("/compiled/torrust-tracker"));
+
+        // Assert
+        assert_eq!(binary, PathBuf::from("/compiled/torrust-tracker"));
+    }
 
     #[test]
     fn it_should_select_its_configuration_with_the_cli_and_remove_legacy_base_source_variables() {

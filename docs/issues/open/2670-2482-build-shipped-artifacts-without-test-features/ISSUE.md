@@ -9,7 +9,7 @@ github-issue: 2670
 spec-path: docs/issues/open/2670-2482-build-shipped-artifacts-without-test-features/ISSUE.md
 branch: "2670-2482-build-shipped-artifacts-without-test-features"
 related-pr: null
-last-updated-utc: "2026-10-27 12:43"
+last-updated-utc: "2026-10-27 12:44"
 semantic-links:
   skill-links:
     - create-issue
@@ -267,7 +267,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
 | T1 | DONE | Re-verify the audit table against `develop`; record a baseline: the list and count of the tests the image's `test` stage runs, and cold and warm build times | Table and baseline in the evidence (V0, V1); the list lets the later comparison show that every baseline test is still present |
-| T2 | TODO | Add `TORRUST_TRACKER_BINARY` to `tracker_binary()`, test first | Unit tests for the resolution order; default behaviour unchanged |
+| T2 | DONE | Add `TORRUST_TRACKER_BINARY` to `tracker_binary()`, test first | Unit tests for the resolution order; default behaviour unchanged |
 | T3 | TODO | Create the check crate, test first | Parser tests from real `cargo tree` output; scratch-workspace red and green tests; registered as a workspace member and admitted in `.dockerignore`; `cargo machete` and `cargo deny` pass |
 | T4 | TODO | Add the check as a job in `testing.yaml` | Job runs the check for `torrust-tracker`; follows `implement-workflow` |
 | T5 | TODO | Add the shipped cook and build stages for the release and debug images; point `test` and `test_debug` at the shipped binary; take `/app/bin` from it | Both targets build; every baseline test is still present and passing, and the delta for new tests (T2 adds some, compiled into the targets that include `tests/common/native_tracker`) is recorded; times recorded |
@@ -318,6 +318,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-10-27 09:05 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 9) - PR #2671 review round 1, F2: T1 now records the list and count of the baseline tests, and T5, AC2 and M2 require every baseline test to remain present and passing with the delta for new tests recorded, instead of an equal count (T2's tests are compiled into the targets that include `tests/common/native_tracker`).
 - 2026-10-27 09:06 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 9) - PR #2671 review round 1, F3: scenario M1 now builds both targets with `--file Containerfile`, as `docs/containers.md` does, because the repository root has no `Dockerfile`.
 - 2026-10-27 12:43 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 9) - Started the implementation. T1 is done: the audit table still holds on `develop` after PR #2671 (V0), and the baseline is 1531 tests in 40 binaries with a cold `release` build of 4 min 59 s, a cold `debug` build of 1 min 55 s and a warm `release` rebuild of 2 min 53 s (V1, list in `baseline-test-list.txt`).
+- 2026-10-27 12:44 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 9) - T2 is done: `tracker_binary()` reads `TORRUST_TRACKER_BINARY` before the nextest and Cargo variables, with three unit tests (red with the override discarded, green on the `lifecycle-signals` and `cli-configuration` targets). The test-design review is recorded in the evidence; the maintainer (josecelano) reviewed the increment and approved it through `ask_user` before the commit.
 
 ## Acceptance Criteria
 
