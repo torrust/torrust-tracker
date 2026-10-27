@@ -47,6 +47,10 @@ name = "banning-udp-shared-connection-id-error-limit-reverse-order"
 path = "tests/banning/udp_shared_connection_id_error_limit_reverse_order.rs"
 
 [[test]]
+name = "lifecycle-shutdown-policy"
+path = "tests/lifecycle/shutdown_policy.rs"
+
+[[test]]
 name = "lifecycle-signals"
 path = "tests/lifecycle/signals.rs"
 

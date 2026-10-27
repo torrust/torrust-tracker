@@ -18,7 +18,7 @@ pub mod configuration {
     //!
     //! It must not expose workspace construction or child lifecycle implementation.
 
-    pub use super::command::NativeTrackerConfigurationSources;
+    pub use super::command::{NativeTrackerConfigurationSources, NativeTrackerShutdownBudgets};
 }
 
 use std::net::SocketAddr;
@@ -33,13 +33,49 @@ use tokio::sync::oneshot;
 use torrust_tracker_axum_health_check_api_server::resources::Status;
 
 use self::command::{NativeTrackerConfigurationSources, NativeTrackerWorkspace, tracker_command};
-use self::health::{HealthCheckClient, HealthCheckProbe, HealthCheckProbeError, parse_health_check_address};
+use self::health::{
+    HealthCheckClient, HealthCheckProbe, HealthCheckProbeError, parse_health_check_address, parse_started_address,
+};
 use self::output::TrackerOutputCapture;
 
 const STARTUP_DEADLINE: Duration = Duration::from_secs(10);
 const SHUTDOWN_DEADLINE: Duration = Duration::from_secs(30);
 const RETRY_INTERVAL: Duration = Duration::from_millis(50);
 const SIGNAL_HANDLERS_READY_MESSAGE: &str = "Tracker shutdown signal handlers installed.";
+
+/// How a tracker child ended: its exit status and everything it wrote to stdout and stderr.
+pub struct NativeTrackerExit {
+    pub status: std::process::ExitStatus,
+    pub output: String,
+}
+
+impl NativeTrackerExit {
+    /// The output without the ANSI color escapes that the tracker's log formatter writes around
+    /// field names, so assertions can match `name=value`.
+    // Only the shutdown-policy binary matches log fields.
+    #[allow(dead_code)]
+    pub fn plain_output(&self) -> String {
+        strip_ansi_escapes(&self.output)
+    }
+}
+
+fn strip_ansi_escapes(text: &str) -> String {
+    let mut plain = String::with_capacity(text.len());
+    let mut characters = text.chars();
+    while let Some(character) = characters.next() {
+        if character == '\u{1b}' {
+            // A color sequence is ESC, `[`, parameters, and a final letter such as `m`.
+            for skipped in characters.by_ref() {
+                if skipped.is_ascii_alphabetic() {
+                    break;
+                }
+            }
+        } else {
+            plain.push(character);
+        }
+    }
+    plain
+}
 
 /// A running tracker executable isolated in a temporary workspace.
 pub struct NativeTracker {
@@ -78,6 +114,7 @@ impl NativeTracker {
             workspace.environment_configuration_path(),
             workspace.environment_configuration_toml(),
             workspace.health_check_api_bind_address_override(),
+            workspace.shutdown_budgets(),
         );
 
         let mut child = command.spawn().expect("spawn tracker executable");
@@ -120,11 +157,25 @@ impl NativeTracker {
     }
 
     /// Returns the health-check address discovered while waiting for readiness.
+    // The shutdown-policy binary reaches the HTTP tracker, not the health-check endpoint.
+    #[allow(dead_code)]
     pub fn health_check_address(&self) -> Result<SocketAddr, String> {
         self.health_check_client
             .as_ref()
             .map(|client| client.address)
             .ok_or_else(|| Self::failure_message_sync("tracker health-check address is unavailable before readiness"))
+    }
+
+    /// Returns the address the HTTP tracker logged as started, once it has logged it.
+    // Only the shutdown-policy binary holds connections open on the HTTP tracker.
+    #[allow(dead_code)]
+    pub async fn http_tracker_address(&self) -> Result<SocketAddr, String> {
+        self.output_ref()
+            .contents()
+            .await
+            .lines()
+            .find_map(|line| parse_started_address(line, "HTTP TRACKER"))
+            .ok_or_else(|| Self::failure_message_sync("the HTTP tracker has not logged its address"))
     }
 
     /// Returns the CLI-selected configuration path owned by this fixture.
@@ -147,8 +198,24 @@ impl NativeTracker {
             .ok_or_else(|| Self::failure_message_sync("tracker workspace is unavailable after shutdown"))
     }
 
-    /// Waits for a graceful exit, force-killing and reaping only after its deadline.
-    pub async fn shutdown(mut self) -> Result<String, String> {
+    /// Waits for an exit with status `0`, force-killing and reaping only after its deadline.
+    pub async fn shutdown(self) -> Result<String, String> {
+        let exit = self.wait_for_exit().await?;
+        if exit.status.success() {
+            Ok(exit.output)
+        } else {
+            Err(format!(
+                "tracker exited with {}\ntracker output:\n{}",
+                exit.status, exit.output
+            ))
+        }
+    }
+
+    /// Waits for the child to exit, by itself or after a signal, and returns its exit status and
+    /// output. The child is force-killed and reaped only after the fixture's shutdown deadline.
+    // Only the shutdown-policy binary inspects non-zero exit statuses.
+    #[allow(dead_code)]
+    pub async fn wait_for_exit(mut self) -> Result<NativeTrackerExit, String> {
         let mut child = self.child.take().expect("tracker child must be available before shutdown");
         let exit_result = match tokio::time::timeout(SHUTDOWN_DEADLINE, child.wait()).await {
             Ok(Ok(status)) => Ok(status),
@@ -174,7 +241,10 @@ impl NativeTracker {
         output_capture.wait_for_readers().await;
         let output = output_capture.contents().await;
         exit_result
-            .map(|_| output.clone())
+            .map(|status| NativeTrackerExit {
+                status,
+                output: output.clone(),
+            })
             .map_err(|message| format!("{message}\ntracker output:\n{output}"))
     }
 
@@ -337,5 +407,33 @@ impl Drop for NativeTracker {
                 drop(cleanup_complete.send(cleanup_result.map_err(|message| format!("{message}\ntracker output:\n{output}"))));
             }
         }));
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::strip_ansi_escapes;
+
+    #[test]
+    fn it_should_remove_the_color_escapes_around_a_logged_field() {
+        // Arrange
+        // The formatter writes italic on, reset, dim on, `=`, and reset around a field name and value.
+        let line = [
+            "Waiting ",
+            "\u{1b}[3m",
+            "timeout_seconds",
+            "\u{1b}[0m",
+            "\u{1b}[2m",
+            "=",
+            "\u{1b}[0m",
+            "25",
+        ]
+        .concat();
+
+        // Act
+        let plain = strip_ansi_escapes(&line);
+
+        // Assert
+        assert_eq!(plain, "Waiting timeout_seconds=25");
     }
 }

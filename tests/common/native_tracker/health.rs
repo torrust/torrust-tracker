@@ -1,4 +1,4 @@
-//! Probes and parses tracker health-check endpoints without owning process or I/O task resources.
+//! Probes and parses tracker endpoint logs without owning process or I/O task resources.
 //!
 //! Readiness policy and deadlines remain with the running tracker lifecycle.
 
@@ -6,7 +6,7 @@ use std::net::SocketAddr;
 
 use torrust_tracker_axum_health_check_api_server::resources::Report;
 
-const HEALTH_CHECK_STARTUP_PREFIX: &str = "Started on: http://";
+const STARTED_ON_PREFIX: &str = "Started on: http://";
 const HEALTH_CHECK_LOG_TARGET: &str = "HEALTH CHECK API";
 
 /// A deadline-bounded client for the tracker health-check endpoint.
@@ -57,16 +57,36 @@ pub(super) enum HealthCheckProbeError {
 }
 
 pub(super) fn parse_health_check_address(line: &str) -> Option<SocketAddr> {
-    if !line.contains(HEALTH_CHECK_LOG_TARGET) {
+    parse_started_address(line, HEALTH_CHECK_LOG_TARGET)
+}
+
+/// Extracts the address a service logged as `Started on: http://<address>` under `log_target`.
+pub(super) fn parse_started_address(line: &str, log_target: &str) -> Option<SocketAddr> {
+    if !line.contains(log_target) {
         return None;
     }
-    let address = line.split_once(HEALTH_CHECK_STARTUP_PREFIX)?.1;
+    let address = line.split_once(STARTED_ON_PREFIX)?.1;
     address.parse().ok()
 }
 
 #[cfg(test)]
 mod tests {
-    use super::parse_health_check_address;
+    use super::{parse_health_check_address, parse_started_address};
+
+    #[test]
+    fn it_should_extract_the_assigned_address_of_the_service_named_by_the_log_target() {
+        // Arrange
+        let line = "2026-09-02T10:20:22Z  INFO HTTP TRACKER: Started on: http://127.0.0.1:43210";
+
+        // Act
+        let address = parse_started_address(line, "HTTP TRACKER");
+
+        // Assert
+        assert_eq!(
+            address.expect("HTTP tracker address should parse").to_string(),
+            "127.0.0.1:43210"
+        );
+    }
 
     #[test]
     fn it_should_extract_the_assigned_health_check_address_from_its_startup_log() {
