@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2668-1488-si-20-configure-shutdown-policy/ISSUE.md
-last-updated-utc: "2026-10-27 13:07"
+last-updated-utc: "2026-10-27 14:47"
 ---
 
 # Manual Verification Evidence
@@ -370,7 +370,7 @@ The two deadline call sites (`main` and the cleanup in `start_jobs`) have no uni
 
 `server::tests::it_should_time_out_the_drain_after_the_configured_drain_timeout_when_a_connection_stays_open` in each of `axum-http-server`, `axum-rest-api-server` and `axum-health-check-api-server`, and `signals::tests::it_should_return_drained_without_panicking_when_the_drain_timeout_is_too_large_for_the_clock` in `axum-server`. The workspace suite went from 3,544 to 3,548 passed.
 
-The three server tests use real time (a 300 ms drain timeout against a 5 s bound) instead of paused time: these crates do not enable the tokio `test-util` feature, and the point is an end-to-end drain over a real socket. They cannot be flaky on the happy path, because the drain ends by the timer, and they are bounded by `tokio::time::timeout`.
+The three server tests use real time (a 300 ms drain timeout against a 5 s bound) instead of paused time: these crates do not enable the tokio `test-util` feature, and the point is an end-to-end drain over a real socket. They cannot be flaky on the happy path, because the drain ends by the timer, and the drain wait and the acceptance probe are bounded by `tokio::time::timeout` (the probe only after the commit `test(shutdown): bound the held-connection probe of the drain tests`, see the T6 process notes).
 
 UDP has no new test. Its receive-loop shutdown scenarios (`ReceiveLoopHoldingRequests`, 100 ms deadline) used to start the receive loop directly through `Launcher::start_receive_loop_with_request_drain_deadline`; they now start through the public `Server::start_with_cancellation`, so every scenario also guards that the public start carries the deadline to the loop. No test was removed or merged (233 tests in `torrust-tracker-udp-server` before and after).
 
@@ -415,6 +415,78 @@ The composition-root lines in `src/app.rs` (which key goes to which crate) have 
 - `linter all`: exit 0.
 - `cargo test --tests --benches --examples --workspace --all-targets --all-features` (stable Rust toolchain): exit 0, 3,548 passed, 0 failed.
 - `cargo test --doc --workspace` (stable Rust toolchain): exit 0, 50 passed.
+
+### T6 - Native-binary tests of the shutdown policy
+
+- Goal: the real binary, signalled at its exact PID, exits `0` on a clean stop and `1` when a component fails, applies the configured process deadline and HTTP drain, and rejects invalid budgets before any service starts, for SIGTERM and SIGINT where the signal matters.
+- Status: `DONE`. The tests are Rust integration tests in `tests/lifecycle/shutdown_policy.rs`, registered as the `lifecycle-shutdown-policy` target in `Cargo.toml`.
+- Toolchain: stable Rust 1.99.1 (nightly Rust toolchain for the formatter check). Commit (by subject): `test(lifecycle): add native-binary tests for the shutdown policy of #2668`.
+
+#### Tests added by T6 (9 in the target, plus 3 fixture tests)
+
+`it_should_exit_with_code_zero_when_sigterm_stops_a_tracker_with_no_open_connections`, `it_should_exit_with_code_zero_when_sigint_stops_a_tracker_with_no_open_connections` (both also assert the default `timeout_seconds=25`), `it_should_apply_the_configured_process_deadline_when_the_tracker_stops` (`timeout_seconds=7`), `it_should_exit_with_code_one_when_a_connection_held_open_outlasts_the_http_drain_after_sigterm` and `..._after_sigint`, `it_should_exit_with_code_one_and_apply_the_configured_deadline_when_a_service_fails_to_start`, `it_should_reject_a_zero_process_deadline_before_any_service_starts`, `it_should_reject_budgets_whose_drains_do_not_fit_in_the_process_deadline_before_any_service_starts`, and `it_should_accept_budgets_whose_drains_leave_one_second_of_slack_in_the_process_deadline`.
+
+The fixture tests are `it_should_set_one_child_only_override_per_shutdown_budget`, `it_should_extract_the_assigned_address_of_the_service_named_by_the_log_target` and `it_should_remove_the_color_escapes_around_a_logged_field`. The shared fixture is compiled into three test binaries, so the workspace suite went from 3,548 to 3,575 passed: 21 tests in the new target (9 above, the 3 fixture tests, and 9 that already existed in the shared fixture) and 3 fixture tests in each of the other two binaries.
+
+The fixture changed as follows: `NativeTrackerShutdownBudgets` and `NativeTrackerConfigurationSources::with_shutdown_budgets` pass the four budgets through the `TORRUST_TRACKER_CONFIG_OVERRIDE_APPLICATION__SHUTDOWN__*` variables (which also removes inherited ones); `NativeTracker::wait_for_exit` returns the exit status and the output (a tracker that exits by itself, like a rejected configuration, needs it); `http_tracker_address` reads the address the HTTP tracker logged; `plain_output` removes the color escapes. `shutdown()` now fails unless the exit status is `0`. **It ignored the status before**, so the existing lifecycle tests would have passed on an exit code of `1`; with the new exit-code contract that was a hole in the shared fixture.
+
+Every wait is bounded: 10 s for readiness and 30 s for the exit in the fixture, and 5 s for the probe that proves the held connection was accepted. The target runs in about 2 s.
+
+#### Deviations from the specification, recorded
+
+- The "drain budget reached" scenario uses `deadline_in_secs = 10`, not the 5 of manual scenario M3. With a deadline equal to the 5 s header-read timeout of the held connection, a tracker that ignored the configured 2 s drain could still exit `1` by reaching the deadline, so the test would not tell the two causes apart. At 10 s the unconfigured tracker stops cleanly at about 5 s, and only the configured 2 s drain gives exit `1`. The chain rule still holds (`max(2, 1) + 1 = 3 < 10`). The manual scenario M3 keeps its values; there a person reads the log.
+- The unknown-key and the 3,601 s rejections of M4 are not repeated at the executable boundary: they are rejected by the configuration loader, which the unit tests of T2 cover, and the executable boundary adds the exit code and the message for one range error (zero) and one chain error.
+
+#### Findings while running, both test-side
+
+- The tracker writes color escapes around a log field: the field name and the `=` each sit between an escape and a reset, so `contains("timeout_seconds=25")` failed on the first run. `plain_output` strips the escapes.
+- An override from the environment names the key in upper case in the error (`APPLICATION.SHUTDOWN.DEADLINE_IN_SECS`), so the key assertions compare lower-cased text. The error for the zero deadline reads in full: "A shutdown budget must be between 1 and 3600 seconds, but 0 was configured. Use a whole number of seconds within that range."
+- The first run failed 6 of 19 tests for those two reasons only; the exit codes were already right.
+
+#### Prose-first comparison
+
+| Test | Arrange | Act | Assert |
+| ---- | ------- | --- | ------ |
+| clean stop (SIGTERM, SIGINT) | A ready tracker with no shutdown settings and no open connection. | Send the signal to its PID and wait for the exit. | Exit code `0`, the success log, and the supervisor wait of 25 s. |
+| configured deadline | A ready tracker whose deadline is 7 s. | SIGTERM and wait for the exit. | Exit code `0` and a supervisor wait of 7 s. |
+| held connection (SIGTERM, SIGINT) | A ready tracker with a 10 s deadline and a 2 s HTTP drain, and a connection that sent only part of a header, proven accepted by a second request. | Send the signal and wait for the exit. | Exit code `1`, the incomplete-shutdown error, no success log, a supervisor wait of 10 s. |
+| failed start | A tracker whose health-check port is taken, with a 7 s deadline. | Wait for the exit without a signal. | Exit code `1` and a cleanup wait of 7 s. |
+| rejected budgets (two) | A tracker with a zero deadline, then with `20 + 5 >= 25`. | Wait for the exit without a signal. | Exit code `1`, the key named, and no `Started on:` line. |
+| accepted boundary | A tracker with `19 + 5 = 24 < 25`. | SIGTERM and wait for the exit. | Exit code `0` and the success log. |
+
+The comparison led to the 10 s deadline above and to moving the key assertions to lower case.
+
+#### Mutation proofs
+
+Each row: back up the file, apply one mutation with the edit tool, run `cargo test --test lifecycle-shutdown-policy` (stable toolchain), read the output, restore, and prove the restore with `cmp`. `could_not_compile=0` for every row.
+
+| Id | Clause guarded | Mutation | Tests that failed |
+| -- | -------------- | -------- | ----------------- |
+| E1 | The exit code follows the outcomes | `report_shutdown` returns `ExitCode::from(exit_code & 0)` | the two held-connection tests (2) |
+| E2 | `main` applies the configured deadline | `main` waits a fixed 10 s | the two clean-stop tests (default 25 s) and the configured-deadline test (7 s) (3); the held-connection tests still pass because their configured deadline is 10 s, so they do not guard this clause |
+| E3 | The HTTP tracker receives the configured drain | `src/app.rs` passes `Shutdown::default()`'s 15 s to the HTTP tracker | the two held-connection tests (2); the run took 5.07 s, the header timeout that now ends the connection first |
+| E4 | The startup chain rule runs | `Configuration::validate` skips the application validation | the chain-rule test (1) after 30 s, when the fixture force-killed the tracker that had started; the zero-deadline test passes, because that range is checked when the value is parsed |
+| E5 | The cleanup after a failed start applies the configured deadline | `start_jobs` waits a fixed 10 s | the failed-start test (1) |
+
+After the last run `cmp` printed "identical" for every file and `git status --short` listed only the intended changes. Two clauses have no mutation of their own: "before any service starts" (the `Started on:` absence in the two rejection tests; the runs that pass show `Started on:` lines in the output of a started tracker, so the assertion can fail, but no mutation moves the validation after the listeners), and the SIGINT variant of the failed exit, which differs from SIGTERM only in the signal and shares the helper.
+
+#### Not covered by a native-binary test, and where it is covered
+
+The UDP request drain and the listener drain have no timing test at the executable boundary: neither has a connection a client can hold open on the fixture's configuration (it has no UDP tracker). T5 proves the UDP deadline through the public start in a unit scenario, and T4 guards the listener helper and its call sites at source level. The REST API and the health check receive `http_drain_in_secs` in `src/app.rs`; the real-binary check that they do (distinct values, a held connection on each) is T8.
+
+#### Process notes, recorded
+
+- Two batches of dependent tool calls ran in parallel again: the creation of the test file and its `Cargo.toml` registration with the first `cargo test` (the target was not found), and a batch of edits with a `cargo test` (a rerun on its own confirmed the result). No result below comes from either batch. This is the fourth and fifth occurrence in this issue.
+- `linter all` found four problems in the first version (a misspelling caused by an escape sequence written next to a word in a string, test code placed before items, a field-postfix lint that is allowed with a reason because the fields mirror the configuration keys, and an `if let` that `map_or` expresses); all were fixed in the code, not by a dictionary change.
+- Reviewing my own tests against the "every wait bounded" rule, I found that the probe confirming the held connection was accepted (`reqwest::get`) had no timeout in the three T5 drain tests and in the lifecycle helper. The commit `test(shutdown): bound the held-connection probe of the drain tests` gives each a five-second bound; the earlier commits are kept as they are.
+- The disposable script `evidence/hold-and-stop.sh` and `evidence/baseline.toml` are **not removed yet**: the Rust tests cover the held-connection exit codes (M3, V1 controls), but not the fault-injection runs of M5 (they need a temporary patch that is never committed), nor Docker (M6 and M7). T8 still needs them; T9 removes them.
+
+#### Automatic checks on the finished T6 code (14:47 UTC, after the commit that bounds the probes)
+
+- `cargo +nightly fmt --all -- --check` (nightly Rust toolchain): exit 0.
+- `linter all`: exit 0.
+- `cargo test --tests --benches --examples --workspace --all-targets --all-features` (stable Rust toolchain): exit 0, 3,575 passed, 0 failed.
+- `cargo test --doc --workspace` (stable Rust toolchain): exit 0.
 
 - Two discarded attempts at 08:46 (`partial-header` and `api-body`) failed at startup with `Address already in use (os error 98)`: sockets of the previous run were still in TIME_WAIT. Both exited with status `1` before the tracker started and are not part of V1. The script now waits until the three ports have no socket before it starts; A3 and A4 are the reruns.
 - The first clean-stop run (hold `none`, SIGTERM, about 08:45) wrote a log that a later run overwrote. C1 and C2 replace it as the control.
