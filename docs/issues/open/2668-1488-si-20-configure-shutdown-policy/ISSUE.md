@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p2
 epic: 1488
 github-issue: 2668
 spec-path: docs/issues/open/2668-1488-si-20-configure-shutdown-policy/ISSUE.md
-branch: "2668-configure-shutdown-policy-spec"
-related-pr: 2669
-last-updated-utc: "2026-10-27 09:06"
+branch: "2668-configure-shutdown-policy"
+related-pr: null
+last-updated-utc: "2026-10-27 11:27"
 semantic-links:
   skill-links:
     - create-issue
@@ -447,7 +447,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status | Task                                  | Notes / Expected Output                                                                                                                                                                                      |
 | --- | ------ | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | T1  | DONE   | Pre-review reproduction                | Done before review and recorded as V1 in `manual-verification-evidence.md`: Reproduced with a temporary fault-injection patch; four network attempts on the unmodified binary did not fail a component. Rerun only if production code under `src/` changes on `develop` before T3a starts. |
-| T2  | TODO   | `[application.shutdown]` configuration section | `application.rs` (and `shutdown.rs`) with newtypes, defaults, `Validator` rule, error variant, module docs, unit tests (defaults, TOML and environment overrides, zero, over-max, chain violation, boundary, unknown key). **Then stop for the design review (D5).** |
+| T2  | DONE   | `[application.shutdown]` configuration section | `application.rs` and `shutdown.rs` with the validated `ShutdownBudgetInSecs` newtype (1 to 3600 s), defaults 25 / 15 / 5 / 5, the `Validator` chain rule with its error variant, module docs, and 25 new unit tests, each mutation-proven (see "T2" in `manual-verification-evidence.md`). **Stopped for the design review (D5) before any wiring into the supervisor.** |
 | T3a | TODO   | Regression test, red                  | Pure outcome-to-exit-code function returning the current behavior (always success) and a parameterized test per `JobStatus`; the recorded red run fails for `Failed`, `Panicked`, and `Aborted`.               |
 | T3b | TODO   | Fix: outcome-to-exit mapping          | Implement the mapping, `main` returns `ExitCode`, success log only on `0`, failing outcomes logged by name; record the green run.                                                                              |
 | T4  | TODO   | Deliver `P` and `L`                   | Configured `P` in `main` and in the startup-failure cleanup; `L` into the seven listener constructors; tests that a configured value, not the default, reaches each consumer.                                  |
@@ -483,7 +483,7 @@ Sign every commit with GPG. Any new error enum follows the `handle-errors-in-cod
 - [x] Folder-style spec drafted (moved to `docs/issues/open/2668-1488-si-20-configure-shutdown-policy/ISSUE.md`)
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec (#2668)
-- [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
+- [x] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
@@ -505,6 +505,7 @@ Sign every commit with GPG. Any new error enum follows the `handle-errors-in-cod
 - 2026-10-27 09:02 UTC - GitHub Copilot - `review-finding:pr-2669-f1` (Copilot review, finding R2): reproduced the false-success exit code on the real binary before review and recorded it as V1 in `manual-verification-evidence.md` (Reproduced with a temporary fault-injection patch; four network attempts on the unmodified binary did not fail a component). Replaced the "Not applicable" bug sections with the workflow link, regression boundary and recheck plan, split T3 into T3a (red) and T3b (fix), marked T1 done, rewrote M1 and M5, and recorded the disposable script. The type stays `task`; whether to relabel it `bug` is a maintainer decision.
 - 2026-10-27 09:04 UTC - GitHub Copilot - `review-finding:pr-2669-f2` (Copilot review, finding R3): replaced the nonexistent `integration` test target in the Automatic Checks with the registered `lifecycle-signals` target, and made T6 register its new files as `[[test]]` targets. Rechecked every other command in the specification: `cargo test -p torrust-tracker-configuration --no-run` builds and `contrib/dev-tools/git/hooks/pre-push.sh` exists.
 - 2026-10-27 09:06 UTC - GitHub Copilot - `review-finding:pr-2669-f3` (Copilot review, finding R1): M3 left the UDP drain at its 5 s default, so `max(2, 5) + 1 = 6 >= 5` and startup would reject it; M3 now sets `udp_request_drain_in_secs = 1` (`max(2, 1) + 1 = 3 < 5`). Rechecked every worked example against `max(H, U) + L < P`: M2 (defaults, 20 < 25), M4 (now six explicit configurations with the arithmetic, one accepted boundary), M6 (HTTP drain 3, `max(3, 5) + 5 = 10 < 25`), M7 (defaults, 20 < 25), T6 (the M3 budgets), and the `DEADLINE_IN_SECS=30` override example (20 < 30) all hold. Found while doing it, from the V1 attempts: a held request ends within about 5 s on its own, so M6 and M7 could not show what they claimed with the budgets they had; M6 now uses a 3 s drain, and M7 uses the temporary fault-injection patch.
+- 2026-10-27 11:27 UTC - GitHub Copilot - PR #2669 (the spec-only PR) was merged by the maintainer at 10:57 UTC; implementation started on branch `2668-configure-shutdown-policy` from `torrust/develop`. T1 needs no rerun: `src/`, `packages/`, `tests/`, and the manifests are unchanged on `develop` since the V1 base. T2 done in `packages/configuration`: `[application.shutdown]` with `deadline_in_secs` 25, `http_drain_in_secs` 15, `udp_request_drain_in_secs` 5, `event_listener_drain_in_secs` 5; one shared `ShutdownBudgetInSecs` newtype (1 to 3600 s) instead of newtypes built on `AtLeastU64`, because `AtLeastU64` has no upper bound and one invariant serves all four keys; the chain rule `max(H, U) + L < P` as a `SemanticValidationError` variant reached through `Configuration::validate`; the four tests that pin the default TOML were updated. 25 new tests (129 to 154 in the package), each mutation-proven; two surviving mutations found gaps and were closed with new tests (evidence section "T2"). Nothing is wired into the supervisor or the servers yet. Stopping here for the design review of D5 (how `P`, `H`, `U`, and `L` reach their consumers) with the maintainer.
 
 ## Open Decisions for the Maintainer
 

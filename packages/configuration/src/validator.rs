@@ -13,6 +13,17 @@ use thiserror::Error;
 pub enum SemanticValidationError {
     #[error("Private mode section in configuration can only be included when the tracker is running in private mode.")]
     UselessPrivateModeSection,
+
+    #[error(
+        "application.shutdown.{slowest_drain_key} ({slowest_drain_in_secs} s) plus application.shutdown.event_listener_drain_in_secs ({event_listener_drain_in_secs} s) must be less than application.shutdown.deadline_in_secs ({deadline_in_secs} s): event listeners are stopped only after the HTTP and UDP servers finish draining, so both stages must fit in the deadline. Lower the drain budgets or raise the deadline (and the external stop timeout of your container runtime or service manager with it)."
+    )]
+    ShutdownBudgetsExceedDeadline {
+        /// Key of the longer of the two server drain budgets.
+        slowest_drain_key: &'static str,
+        slowest_drain_in_secs: u64,
+        event_listener_drain_in_secs: u64,
+        deadline_in_secs: u64,
+    },
 }
 
 pub trait Validator {

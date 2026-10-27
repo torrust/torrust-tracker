@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2668-1488-si-20-configure-shutdown-policy/ISSUE.md
-last-updated-utc: "2026-10-27 09:02"
+last-updated-utc: "2026-10-27 11:27"
 ---
 
 # Manual Verification Evidence
@@ -133,6 +133,83 @@ The defect is real and reproduced for both signals: a component aborted at the d
 - Red before the fix: T3 first adds the function returning the current behavior (always success) with the parameterized test, runs the test red for the `Failed`, `Panicked`, and `Aborted` cases, records the failing output here, then implements the mapping and records the green output. If red-first proves impractical, the mutate-then-restore method of the `write-unit-test` skill applies and a `cmp` proves the restore.
 - Executable boundary (T6): native-binary tests in `tests/lifecycle/` for a clean stop (`0`) and for a drain budget reached (`1`), using a held partial-header connection and a configured drain shorter than the 5 s header timeout (see M3).
 - Final like-for-like recheck (T8): after the last production change, rebuild, re-apply the same temporary patch to the fixed tree (not committed), and rerun B1 to B4. Expected: exit status `1` and no "successfully shutdown" message; the control C1 and C2 stay at `0`. Name the commit subject the recheck ran on.
+
+### T2 - `[application.shutdown]` configuration section: tests, prose-first review, mutation proofs
+
+- Goal: record that the 25 tests added by T2 describe the behavior they guard, and that each of them fails when that behavior is removed.
+- Status: `DONE`
+- Toolchain: stable Rust 1.99.1 for every `cargo test` run below, and the nightly Rust toolchain for `cargo +nightly fmt --all -- --check`.
+
+#### Tests added by T2
+
+`cargo test -p torrust-tracker-configuration` (stable toolchain) passed 129 tests on `develop` before the change and passes 154 after it: 25 new tests.
+
+- `packages/configuration/src/v3_0_0/shutdown.rs` (15): `it_should_default_to_the_documented_budgets`, `it_should_accept_the_default_budgets_as_consistent`, `it_should_use_the_defaults_for_every_omitted_key`, `it_should_default_each_key_that_is_omitted_while_the_other_keys_are_set`, `it_should_round_trip_through_toml`, `it_should_accept_a_budget_at_each_end_of_the_supported_range`, `it_should_reject_a_zero_budget_with_the_supported_range_in_the_message`, `it_should_reject_a_budget_above_the_maximum`, `it_should_reject_a_zero_budget_during_deserialization`, `it_should_reject_an_unknown_key`, `it_should_accept_a_chain_that_is_one_second_below_the_deadline`, `it_should_reject_a_chain_that_equals_the_deadline_naming_the_http_drain`, `it_should_name_the_udp_request_drain_when_it_is_the_longer_server_drain`, `it_should_name_the_http_drain_when_both_server_drains_are_equal`, `it_should_tell_the_operator_which_keys_and_values_to_change`.
+- `packages/configuration/src/v3_0_0/application.rs` (2): `it_should_use_the_default_shutdown_budgets_when_the_table_is_omitted`, `it_should_reject_an_unknown_key`.
+- `packages/configuration/src/v3_0_0/mod.rs` (8): `configuration_should_use_the_default_shutdown_budgets_when_the_application_table_is_omitted`, `configuration_should_keep_the_default_budgets_that_the_shutdown_table_omits`, `configuration_should_allow_to_override_the_shutdown_deadline_with_an_env_var`, `configuration_should_name_the_key_when_a_shutdown_budget_is_zero`, `configuration_should_reject_an_unknown_key_in_the_shutdown_table`, `configuration_should_use_the_default_application_settings_when_deserialized_without_the_application_table`, `configuration_validation_should_reject_shutdown_budgets_that_exceed_the_deadline`, `configuration_validation_should_accept_the_default_configuration`.
+
+The four tests that pin the serialized default configuration (`configuration_should_have_default_values`, `configuration_should_be_saved_in_a_toml_config_file`, and the two `..._only_the_mandatory_options_are_provided...` tests) were updated with the new `[application.shutdown]` table; no test was removed or merged.
+
+#### Prose-first Arrange-Act-Assert comparison
+
+The temporary prose was written per test group after the tests existed (it was not kept in the source) and compared with the code. The comparison led to no change. The one test added afterwards, which omits each key in turn, came from the surviving mutation J below, and its loop is kept because its failure message names the omitted key.
+
+| Tests | Arrange (causal state) | Act | Assert (independently specified result) |
+| ----- | ---------------------- | --- | --------------------------------------- |
+| defaults, partial tables, omitted keys | A `Shutdown` with no keys, or with some keys set to values that differ from every default. | Build it with `Shutdown::default()` or `toml::from_str`. | The four budgets equal the literals 25, 15, 5, 5 for the omitted keys, and the set keys keep their values. |
+| range (accept at both ends, zero, above the maximum, zero in TOML) | A value of 0, 1, 3600, or 3601. | `ShutdownBudgetInSecs::new` or deserialization. | Accepted values read back unchanged; rejected ones return the error whose message gives the range 1 to 3600 and whose `value` is the rejected one. |
+| chain rule (below, equal, UDP longer, tie, message) | Four budgets chosen so that `max(H, U) + L` is 24, 25, 26, or tied against the deadline 25. | `Shutdown::validate`. | Accepted below the deadline; otherwise the error names the longer drain's key (the HTTP key on a tie) with the four values; the message names the three keys and the advice. |
+| unknown keys, round trip, serialization | A misspelled key, or a table with distinct values. | `toml::from_str` and `toml::to_string`. | The misspelled key is rejected; the round trip returns the same budgets. |
+| `Configuration`-level tests | A configuration text with or without `[application.shutdown]`, one key from an environment variable, or a `Configuration` built in code. | `Configuration::load`, `toml::Table::try_into`, or `Configuration::validate`. | The loaded values, the key and range named in the load error, the default section when the table is absent, and the chain rule reached through `Configuration::validate`. |
+
+Smell review: the `shutdown_with` helper names one complete action (build a `Shutdown` from four budgets) and hides only TOML formatting; every budget that selects a result stays visible in the test body. Expected defaults are literals, not read from `Shutdown::default()`.
+
+#### Mutation proofs
+
+Each row was run alone, in this order: restore the saved originals and prove the restore with `cmp`, apply one mutation with the edit tool, run `cargo test -p torrust-tracker-configuration` (stable toolchain), read the output. Every run reported `could_not_compile=0`, so each failure is a test failure and not a rejected mutation. Runs were between 11:15 and 11:24 UTC. After the last run `cmp` printed nothing for `shutdown.rs`, `application.rs`, `mod.rs`, and `validator.rs` against the saved originals, and `git status` listed only the intended changes.
+
+| Id | Clause guarded | Mutation | Tests that failed |
+| -- | -------------- | -------- | ----------------- |
+| A | A zero budget is rejected | Drop the lower bound check | `it_should_reject_a_zero_budget_with_the_supported_range_in_the_message`, `it_should_reject_a_zero_budget_during_deserialization`, `configuration_should_name_the_key_when_a_shutdown_budget_is_zero` (3) |
+| B | A budget above the maximum is rejected | Drop the upper bound check | `it_should_reject_a_budget_above_the_maximum` (1) |
+| B2 | The maximum itself is accepted | `value > MAXIMUM` becomes `value >= MAXIMUM` | `it_should_accept_a_budget_at_each_end_of_the_supported_range` (1) |
+| B3 | The minimum itself is accepted | `value < MINIMUM` becomes `value < MINIMUM + 1` | `it_should_accept_a_budget_at_each_end_of_the_supported_range` (1) |
+| C | The chain rule rejects an impossible configuration | The rejecting condition never holds | 5: the three chain-rule tests that expect an error, `it_should_tell_the_operator_which_keys_and_values_to_change`, `configuration_validation_should_reject_shutdown_budgets_that_exceed_the_deadline` |
+| D | A chain equal to the deadline is rejected (strict `<`) | `>=` becomes `>` | 4: `it_should_name_the_http_drain_when_both_server_drains_are_equal`, `it_should_reject_a_chain_that_equals_the_deadline_naming_the_http_drain`, `it_should_tell_the_operator_which_keys_and_values_to_change`, `configuration_validation_should_reject_shutdown_budgets_that_exceed_the_deadline` |
+| D2 | A chain below the deadline is accepted | Add 1 to the sum | `it_should_accept_a_chain_that_is_one_second_below_the_deadline` (1) |
+| E | The UDP drain counts in the chain | The UDP branch of the comparison never applies | `it_should_name_the_udp_request_drain_when_it_is_the_longer_server_drain` (1) |
+| F | On a tie the HTTP key is named | `>` becomes `>=` in the choice of the longer drain | `it_should_name_the_http_drain_when_both_server_drains_are_equal` (1) |
+| G | `Configuration::validate` reaches the application section | `Configuration::validate` returns `Ok(())` after the core check | `configuration_validation_should_reject_shutdown_budgets_that_exceed_the_deadline` (1) |
+| G2 | `Application::validate` reaches the shutdown table | `Application::validate` returns `Ok(())` | `configuration_validation_should_reject_shutdown_budgets_that_exceed_the_deadline` (1) |
+| H | The default HTTP drain is 15 s | The default is 20 | 8, among them `it_should_default_to_the_documented_budgets` and `it_should_accept_the_default_budgets_as_consistent` |
+| I | `Shutdown` rejects an unknown key | Remove `deny_unknown_fields` from `Shutdown` | `it_should_reject_an_unknown_key` (shutdown.rs) and `configuration_should_reject_an_unknown_key_in_the_shutdown_table` (2) |
+| I2 | `Application` rejects an unknown key | Remove `deny_unknown_fields` from `Application` | `it_should_reject_an_unknown_key` (application.rs) (1) |
+| J | Each shutdown key is optional | Remove the serde default of `deadline_in_secs` | **Survived**: 152 passed, 0 failed. The existing omitted-key tests always supplied the deadline. Added `it_should_default_each_key_that_is_omitted_while_the_other_keys_are_set`. |
+| J rerun | same | same | `it_should_default_each_key_that_is_omitted_while_the_other_keys_are_set`, with the message ``missing field `deadline_in_secs` `` (1) |
+| K | The `shutdown` table is optional in `[application]` | Remove `#[serde(default)]` from `Application::shutdown` | `it_should_use_the_default_shutdown_budgets_when_the_table_is_omitted` (application.rs) (1) |
+| L | A directly deserialized `Configuration` may omit `[application]` | Remove `#[serde(default)]` from `Configuration::application` | **Survived**: 153 passed, 0 failed. `Configuration::load` merges the defaults itself, so only direct deserialization depends on the attribute. Added `configuration_should_use_the_default_application_settings_when_deserialized_without_the_application_table`. |
+| L rerun | same | same | that test (1) |
+| M | A budget serializes as its value | Serialize `value + 1` | 9, among them `it_should_round_trip_through_toml` |
+| N | The validation message tells the operator what to change | Replace the advice sentence | `it_should_tell_the_operator_which_keys_and_values_to_change` (1) |
+| O | The key names are the documented ones (and so the environment variable path) | Rename `deadline_in_secs` with `#[serde(rename = "deadline")]` | 17, among them `configuration_should_allow_to_override_the_shutdown_deadline_with_an_env_var` |
+| P | The range error reports the rejected value | `value: 0` | `it_should_reject_a_budget_above_the_maximum` (1) |
+| Q | The default configuration carries the documented section | `Configuration::default()` uses a 99 s deadline | 6, among them `configuration_should_use_the_default_shutdown_budgets_when_the_application_table_is_omitted` |
+| R | The default UDP drain is 5 s | The default is 6 | 8, among them `configuration_should_keep_the_default_budgets_that_the_shutdown_table_omits` |
+
+Every one of the 25 new tests failed at least once: the first 15 are covered by rows A to R (for example the shutdown.rs tests by A, B, B2, B3, C, D, D2, E, F, H, I, J rerun, M, N, O, P), the two application.rs tests by K and I2, and the eight `Configuration`-level tests by Q, R, O, A, I, L rerun, C, and H.
+
+A process mistake, recorded: B2 and B3 were first issued in the same batch as the restore that preceded them. Their edit failed to match (the file was still in the state of B), and their "failures" were B's. Both were discarded and rerun one step at a time; the table shows the valid reruns.
+
+#### Automatic checks run on the finished T2 code (11:25 UTC)
+
+- `cargo +nightly fmt --all -- --check` (nightly Rust toolchain): exit 0.
+- `linter all`: exit 0.
+- `cargo test --tests --benches --examples --workspace --all-targets --all-features` (stable Rust toolchain): exit 0, 3,534 tests passed, 0 failed.
+- `cargo test --doc --workspace` (stable Rust toolchain): exit 0.
+
+#### Conclusion
+
+The 25 tests are each proven to fail when the behavior they guard is removed. Two gaps found by surviving mutations (J, L) were closed with new tests and re-proven.
 
 ## Failures and Follow-up
 

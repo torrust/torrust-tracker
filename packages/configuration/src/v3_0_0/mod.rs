@@ -37,6 +37,9 @@
 //! Please refer to the documentation of each structure for more information
 //! about each section.
 //!
+//! - [`Application configuration`](crate::v3_0_0::application::Application) (the process-wide
+//!   `[application]` table, with the `[application.shutdown]` budgets in
+//!   [`Shutdown`](crate::v3_0_0::shutdown::Shutdown))
 //! - [`Core configuration`](crate::v3_0_0::Configuration)
 //! - [`HTTP API configuration`](crate::v3_0_0::tracker_api::HttpApi)
 //! - [`HTTP Tracker configuration`](crate::v3_0_0::http_tracker::HttpTracker)
@@ -216,6 +219,12 @@
 //! trace_filter = "info"
 //! trace_style = "full"
 //!
+//! [application.shutdown]
+//! deadline_in_secs = 25
+//! http_drain_in_secs = 15
+//! udp_request_drain_in_secs = 5
+//! event_listener_drain_in_secs = 5
+//!
 //! [core]
 //! inactive_peer_cleanup_interval = 600
 //! listed = false
@@ -247,6 +256,7 @@
 //!```
 // ── Top-level configuration section structs ───────────────────────────────────
 // One module per TOML section; each maps directly to a key in `Configuration`.
+pub mod application;
 pub mod core;
 pub mod health_check_api;
 pub mod http_tracker;
@@ -261,6 +271,7 @@ pub mod udp_tracker_server;
 // (e.g. `[http_trackers.tls_config]`, `[http_trackers.network]`).
 pub mod database;
 pub mod network;
+pub mod shutdown;
 pub mod tls;
 
 // ── Value newtypes ────────────────────────────────────────────────────────────
@@ -275,6 +286,7 @@ use figment::providers::{Env, Format, Serialized, Toml};
 use logging::Logging;
 use serde::{Deserialize, Serialize};
 
+use self::application::Application;
 use self::core::Core;
 use self::health_check_api::HealthCheckApi;
 use self::http_tracker::HttpTracker;
@@ -302,6 +314,10 @@ pub struct Configuration {
 
     /// Logging configuration
     pub logging: Logging,
+
+    /// Process-wide application settings, such as the shutdown budgets.
+    #[serde(default)]
+    pub application: Application,
 
     /// Core configuration.
     pub core: Core,
@@ -332,6 +348,7 @@ impl Default for Configuration {
         Self {
             metadata: Metadata::with_schema_version(Version::new(VERSION_3_0_0)),
             logging: Logging::default(),
+            application: Application::default(),
             core: Core::default(),
             udp_trackers: None,
             http_trackers: None,
@@ -517,7 +534,8 @@ impl Configuration {
 
 impl Validator for Configuration {
     fn validate(&self) -> Result<(), SemanticValidationError> {
-        self.core.validate()
+        self.core.validate()?;
+        self.application.validate()
     }
 }
 
@@ -531,12 +549,15 @@ mod tests {
 
     use crate::Info;
     use crate::v3_0_0::Configuration;
+    use crate::v3_0_0::application::Application;
     use crate::v3_0_0::database::{ConnectionInfo, Database};
     use crate::v3_0_0::http_tracker::HttpTracker;
     use crate::v3_0_0::logging::TraceStyle;
     use crate::v3_0_0::network::ExternalIp;
+    use crate::v3_0_0::shutdown::{Shutdown, ShutdownBudgetInSecs};
     use crate::v3_0_0::tracker_api::HttpApi;
     use crate::v3_0_0::udp_tracker::UdpTracker;
+    use crate::validator::{SemanticValidationError, Validator};
 
     #[cfg(test)]
     fn default_config_toml() -> String {
@@ -548,6 +569,12 @@ mod tests {
                                 [logging]
                                 trace_filter = "info"
                                 trace_style = "full"
+
+                                [application.shutdown]
+                                deadline_in_secs = 25
+                                http_drain_in_secs = 15
+                                udp_request_drain_in_secs = 5
+                                event_listener_drain_in_secs = 5
 
                                 [core]
                                 inactive_peer_cleanup_interval = 600
@@ -581,7 +608,13 @@ mod tests {
 
     #[cfg(test)]
     fn default_persisted_config_toml() -> String {
-        r#"[core]
+        r#"[application.shutdown]
+                                deadline_in_secs = 25
+                                event_listener_drain_in_secs = 5
+                                http_drain_in_secs = 15
+                                udp_request_drain_in_secs = 5
+
+                                [core]
                                 inactive_peer_cleanup_interval = 600
                                 listed = false
                                 private = false
@@ -789,6 +822,192 @@ mod tests {
 
             Ok(())
         });
+    }
+
+    fn mandatory_options_toml_with(extra: &str) -> Info {
+        Info {
+            config_toml: Some(format!(
+                "[metadata]\nschema_version = \"3.0.0\"\n\n[logging]\ntrace_filter = \"info\"\n\n[core]\nlisted = false\nprivate = false\n\n{extra}"
+            )),
+            config_toml_path: String::new(),
+            explicit_config_toml_path: None,
+        }
+    }
+
+    #[test]
+    #[allow(
+        clippy::result_large_err,
+        reason = "figment::Jail::expect_with requires the framework Result callback type"
+    )]
+    fn configuration_should_use_the_default_shutdown_budgets_when_the_application_table_is_omitted() {
+        figment::Jail::expect_with(|_jail| {
+            // Arrange
+            let info = mandatory_options_toml_with("");
+
+            // Act
+            let configuration = Configuration::load(&info).expect("configuration should load");
+
+            // Assert
+            assert_eq!(configuration.application.shutdown, Shutdown::default());
+
+            Ok(())
+        });
+    }
+
+    #[test]
+    #[allow(
+        clippy::result_large_err,
+        reason = "figment::Jail::expect_with requires the framework Result callback type"
+    )]
+    fn configuration_should_keep_the_default_budgets_that_the_shutdown_table_omits() {
+        figment::Jail::expect_with(|_jail| {
+            // Arrange
+            let info = mandatory_options_toml_with("[application.shutdown]\ndeadline_in_secs = 40\nhttp_drain_in_secs = 30");
+
+            // Act
+            let shutdown = Configuration::load(&info)
+                .expect("configuration should load")
+                .application
+                .shutdown;
+
+            // Assert
+            assert_eq!(
+                (
+                    shutdown.deadline_in_secs.get(),
+                    shutdown.http_drain_in_secs.get(),
+                    shutdown.udp_request_drain_in_secs.get(),
+                    shutdown.event_listener_drain_in_secs.get()
+                ),
+                (40, 30, 5, 5),
+                "the configured deadline and HTTP drain, and the default UDP and listener drains"
+            );
+
+            Ok(())
+        });
+    }
+
+    #[test]
+    #[allow(
+        clippy::result_large_err,
+        reason = "figment::Jail::expect_with requires the framework Result callback type"
+    )]
+    fn configuration_should_allow_to_override_the_shutdown_deadline_with_an_env_var() {
+        figment::Jail::expect_with(|jail| {
+            // Arrange
+            jail.set_env(
+                "TORRUST_TRACKER_CONFIG_OVERRIDE_APPLICATION__SHUTDOWN__DEADLINE_IN_SECS",
+                "30",
+            );
+            let info = mandatory_options_toml_with("");
+
+            // Act
+            let shutdown = Configuration::load(&info)
+                .expect("configuration should load")
+                .application
+                .shutdown;
+
+            // Assert
+            assert_eq!(shutdown.deadline_in_secs.get(), 30);
+
+            Ok(())
+        });
+    }
+
+    #[test]
+    #[allow(
+        clippy::result_large_err,
+        reason = "figment::Jail::expect_with requires the framework Result callback type"
+    )]
+    fn configuration_should_name_the_key_when_a_shutdown_budget_is_zero() {
+        figment::Jail::expect_with(|_jail| {
+            // Arrange
+            let info = mandatory_options_toml_with("[application.shutdown]\ndeadline_in_secs = 0");
+
+            // Act
+            let error = Configuration::load(&info)
+                .expect_err("a zero deadline must be rejected")
+                .to_string();
+
+            // Assert
+            assert!(
+                error.contains("deadline_in_secs") && error.contains("between 1 and 3600 seconds"),
+                "the load error should name the key and the supported range: {error}"
+            );
+
+            Ok(())
+        });
+    }
+
+    #[test]
+    #[allow(
+        clippy::result_large_err,
+        reason = "figment::Jail::expect_with requires the framework Result callback type"
+    )]
+    fn configuration_should_reject_an_unknown_key_in_the_shutdown_table() {
+        figment::Jail::expect_with(|_jail| {
+            // Arrange
+            let info = mandatory_options_toml_with("[application.shutdown]\ndrain_in_secs = 5");
+
+            // Act
+            let result = Configuration::load(&info);
+
+            // Assert
+            assert!(result.is_err(), "a key that is not a shutdown budget must be rejected");
+
+            Ok(())
+        });
+    }
+
+    #[test]
+    fn configuration_should_use_the_default_application_settings_when_deserialized_without_the_application_table() {
+        // Arrange
+        let mut table = toml::Table::try_from(Configuration::default()).expect("the default configuration should serialize");
+        table
+            .remove("application")
+            .expect("the default configuration serializes an application table");
+
+        // Act
+        let configuration: Configuration = table
+            .try_into()
+            .expect("a configuration without an application table should deserialize");
+
+        // Assert
+        assert_eq!(configuration.application, Application::default());
+    }
+
+    #[test]
+    fn configuration_validation_should_reject_shutdown_budgets_that_exceed_the_deadline() {
+        // Arrange
+        let mut configuration = Configuration::default();
+        configuration.application.shutdown.http_drain_in_secs =
+            ShutdownBudgetInSecs::new(20).expect("20 s is within the supported range");
+
+        // Act
+        let result = configuration.validate();
+
+        // Assert
+        assert!(
+            matches!(
+                result,
+                Err(SemanticValidationError::ShutdownBudgetsExceedDeadline {
+                    slowest_drain_key: "http_drain_in_secs",
+                    ..
+                })
+            ),
+            "20 + 5 is not below the default deadline of 25: {result:?}"
+        );
+    }
+
+    #[test]
+    fn configuration_validation_should_accept_the_default_configuration() {
+        // Arrange
+        let configuration = Configuration::default();
+
+        // Act
+        let result = configuration.validate();
+
+        // Assert
+        assert!(result.is_ok(), "{result:?}");
     }
 
     #[test]
