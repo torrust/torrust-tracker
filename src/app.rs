@@ -604,6 +604,7 @@ async fn start_the_http_api(
                 .with_public_url(http_api_config.public_url.as_ref().map(|url| url.as_url().clone())),
             torrust_tracker_axum_rest_api_server::Version::V1,
             reservation.cancellation_token(),
+            config.application.shutdown.http_drain_in_secs.as_duration(),
         )
         .await
         .map_err(|source| Error::ServiceStartup {

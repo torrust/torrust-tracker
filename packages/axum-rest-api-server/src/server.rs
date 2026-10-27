@@ -50,8 +50,6 @@ use tracing::{Level, instrument};
 use super::routes::router;
 use crate::API_LOG_TARGET;
 
-const API_GRACEFUL_DRAIN_TIMEOUT: Duration = Duration::from_secs(90);
-
 /// Errors that can occur when starting or stopping the API server.
 #[derive(Debug, Error)]
 #[non_exhaustive]
@@ -277,6 +275,7 @@ fn start_token_aware_runtime(
     cancellation_token: CancellationToken,
 ) -> Result<(CancellationRunning, ServiceBinding), Error> {
     let socket = std::net::TcpListener::bind(launcher.bind_to).map_err(|source| Error::Bind { source })?;
+    let drain_timeout = launcher.drain_timeout;
     socket.set_nonblocking(true).map_err(|source| Error::Listener { source })?;
     let local_addr = socket.local_addr().map_err(|source| Error::Listener { source })?;
     let handle = Handle::new();
@@ -334,7 +333,7 @@ fn start_token_aware_runtime(
         cancellation_token,
         format!("Shutting down tracker API server on socket address: {local_addr}"),
         local_addr,
-        API_GRACEFUL_DRAIN_TIMEOUT,
+        drain_timeout,
     ));
 
     Ok((
@@ -403,6 +402,9 @@ pub fn check_fn(service_binding: &ServiceBinding) -> ServiceHealthCheckJob {
 pub struct Launcher {
     bind_to: SocketAddr,
     tls: Option<RustlsConfig>,
+    /// How long the server waits for open connections to finish after its cancellation token is
+    /// cancelled, before it closes them.
+    drain_timeout: Duration,
 }
 
 impl std::fmt::Display for Launcher {
@@ -568,7 +570,11 @@ mod tests {
 
         let access_tokens = Arc::new(http_api_config.access_tokens.clone());
 
-        let stopped = ApiServer::new(Launcher::new(bind_to, tls));
+        let stopped = ApiServer::new(Launcher::new(
+            bind_to,
+            tls,
+            cfg.application.shutdown.http_drain_in_secs.as_duration(),
+        ));
 
         let register = &Registar::<RuntimeServiceMetadata>::default();
 
@@ -595,16 +601,20 @@ mod tests {
         initialize_global_services(&configuration);
         let http_api_config = configuration.http_api.as_ref().expect("missing HTTP API configuration");
         let cancellation_token = CancellationToken::new();
-        let running = ApiServer::new(Launcher::new(http_api_config.bind_address, None))
-            .start_with_cancellation(
-                api_container(&configuration).await,
-                Registar::default().give_form(),
-                RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::RestApi, 0)),
-                Arc::new(http_api_config.access_tokens.clone()),
-                cancellation_token.clone(),
-            )
-            .await
-            .expect("the token-aware REST API should start");
+        let running = ApiServer::new(Launcher::new(
+            http_api_config.bind_address,
+            None,
+            configuration.application.shutdown.http_drain_in_secs.as_duration(),
+        ))
+        .start_with_cancellation(
+            api_container(&configuration).await,
+            Registar::default().give_form(),
+            RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::RestApi, 0)),
+            Arc::new(http_api_config.access_tokens.clone()),
+            cancellation_token.clone(),
+        )
+        .await
+        .expect("the token-aware REST API should start");
 
         // Act
         cancellation_token.cancel();
@@ -621,6 +631,50 @@ mod tests {
         // Assert
         assert_eq!(launcher.bind_to, http_api_config.bind_address);
         assert_eq!(drain_outcome, GracefulShutdownOutcome::Drained);
+    }
+
+    #[tokio::test]
+    async fn it_should_time_out_the_drain_after_the_configured_drain_timeout_when_a_connection_stays_open() {
+        // Arrange
+        // The launcher is configured with a 300 ms drain timeout, far below the 15 s default. A client
+        // opens a connection and sends only part of a request header, so the server keeps waiting for
+        // it. A second request that completes proves the server has accepted the first connection.
+        let configured_drain_timeout = Duration::from_millis(300);
+        let configuration = Arc::new(ephemeral_public());
+        initialize_global_services(&configuration);
+        let http_api_config = configuration.http_api.as_ref().expect("missing HTTP API configuration");
+        let cancellation_token = CancellationToken::new();
+        let running = ApiServer::new(Launcher::new(http_api_config.bind_address, None, configured_drain_timeout))
+            .start_with_cancellation(
+                api_container(&configuration).await,
+                Registar::default().give_form(),
+                RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::RestApi, 0)),
+                Arc::new(http_api_config.access_tokens.clone()),
+                cancellation_token.clone(),
+            )
+            .await
+            .expect("the token-aware REST API should start");
+        let mut held_connection = std::net::TcpStream::connect(running.local_addr).expect("open the connection to hold");
+        std::io::Write::write_all(&mut held_connection, b"GET /api/health_check HTTP/1.1\r\nHost: tracker\r\n")
+            .expect("send a partial request header");
+        reqwest::get(format!("http://{}/api/health_check", running.local_addr))
+            .await
+            .expect("the server should answer once it has accepted the held connection");
+
+        // Act
+        cancellation_token.cancel();
+        let drain_outcome = tokio::time::timeout(TEST_COMPLETION_TIMEOUT, running.shutdown_controller)
+            .await
+            .expect("the drain should end by the configured timeout, not the default one")
+            .expect("the REST API drain controller should not panic");
+
+        // Assert
+        assert_eq!(
+            drain_outcome,
+            GracefulShutdownOutcome::TimedOut,
+            "a connection held open past the {configured_drain_timeout:?} drain timeout should end the drain as timed out"
+        );
+        drop(held_connection);
     }
 
     #[tokio::test]
@@ -652,15 +706,19 @@ mod tests {
         let http_api_config = configuration.http_api.as_ref().expect("missing HTTP API configuration");
 
         // Act
-        let result = ApiServer::new(Launcher::new(bind_to, None))
-            .start_with_cancellation(
-                api_container(&configuration).await,
-                registar.give_form(),
-                RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::RestApi, 0)),
-                Arc::new(http_api_config.access_tokens.clone()),
-                CancellationToken::new(),
-            )
-            .await;
+        let result = ApiServer::new(Launcher::new(
+            bind_to,
+            None,
+            configuration.application.shutdown.http_drain_in_secs.as_duration(),
+        ))
+        .start_with_cancellation(
+            api_container(&configuration).await,
+            registar.give_form(),
+            RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::RestApi, 0)),
+            Arc::new(http_api_config.access_tokens.clone()),
+            CancellationToken::new(),
+        )
+        .await;
 
         // Assert
         let binding = match result {
