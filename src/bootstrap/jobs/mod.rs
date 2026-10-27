@@ -30,7 +30,7 @@ use torrust_tracker_configuration::v3_0_0::Configuration;
 /// serves all of them.
 #[must_use]
 pub const fn event_listener_drain_timeout(config: &Configuration) -> Duration {
-    config.application.shutdown.event_listener_drain_in_secs.as_duration()
+    config.application.shutdown.event_listener_drain()
 }
 
 #[cfg(test)]

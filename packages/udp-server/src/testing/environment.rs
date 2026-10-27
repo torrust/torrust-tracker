@@ -143,7 +143,7 @@ impl Environment<Stopped> {
                 RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0)),
                 cookie_lifetime,
                 self.connection_id_validation,
-                Shutdown::default().udp_request_drain_in_secs.as_duration(),
+                Shutdown::default().udp_request_drain(),
                 server_token.clone(),
             )
             .await

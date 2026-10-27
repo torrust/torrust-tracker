@@ -186,7 +186,7 @@ mod tests {
             &config,
             Registar::default(),
             CancellationToken::new(),
-            Shutdown::default().http_drain_in_secs.as_duration(),
+            Shutdown::default().http_drain(),
         )
         .await
         .expect("the health check API component should start");

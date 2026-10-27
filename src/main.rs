@@ -37,9 +37,7 @@ async fn main() -> ExitCode {
 
             jobs.cancel();
 
-            let outcomes = jobs
-                .wait_for_all(app_container.application_config.shutdown.deadline_in_secs.as_duration())
-                .await;
+            let outcomes = jobs.wait_for_all(app_container.application_config.shutdown.deadline()).await;
 
             report_shutdown(&outcomes)
         }

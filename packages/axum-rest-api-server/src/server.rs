@@ -570,11 +570,7 @@ mod tests {
 
         let access_tokens = Arc::new(http_api_config.access_tokens.clone());
 
-        let stopped = ApiServer::new(Launcher::new(
-            bind_to,
-            tls,
-            cfg.application.shutdown.http_drain_in_secs.as_duration(),
-        ));
+        let stopped = ApiServer::new(Launcher::new(bind_to, tls, cfg.application.shutdown.http_drain()));
 
         let register = &Registar::<RuntimeServiceMetadata>::default();
 
@@ -604,7 +600,7 @@ mod tests {
         let running = ApiServer::new(Launcher::new(
             http_api_config.bind_address,
             None,
-            configuration.application.shutdown.http_drain_in_secs.as_duration(),
+            configuration.application.shutdown.http_drain(),
         ))
         .start_with_cancellation(
             api_container(&configuration).await,
@@ -710,19 +706,15 @@ mod tests {
         let http_api_config = configuration.http_api.as_ref().expect("missing HTTP API configuration");
 
         // Act
-        let result = ApiServer::new(Launcher::new(
-            bind_to,
-            None,
-            configuration.application.shutdown.http_drain_in_secs.as_duration(),
-        ))
-        .start_with_cancellation(
-            api_container(&configuration).await,
-            registar.give_form(),
-            RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::RestApi, 0)),
-            Arc::new(http_api_config.access_tokens.clone()),
-            CancellationToken::new(),
-        )
-        .await;
+        let result = ApiServer::new(Launcher::new(bind_to, None, configuration.application.shutdown.http_drain()))
+            .start_with_cancellation(
+                api_container(&configuration).await,
+                registar.give_form(),
+                RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::RestApi, 0)),
+                Arc::new(http_api_config.access_tokens.clone()),
+                CancellationToken::new(),
+            )
+            .await;
 
         // Assert
         let binding = match result {

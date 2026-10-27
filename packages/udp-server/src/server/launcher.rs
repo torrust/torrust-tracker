@@ -214,7 +214,7 @@ impl Launcher {
             connection_id_validation,
             cancellation_token.clone(),
             // The legacy launcher path takes no shutdown settings; SI-19 removes it.
-            Shutdown::default().udp_request_drain_in_secs.as_duration(),
+            Shutdown::default().udp_request_drain(),
         );
         let mut receive_loop = OwnedReceiveLoop::new(task);
 

@@ -184,6 +184,30 @@ impl Shutdown {
         ShutdownBudgetInSecs::new(Self::DEFAULT_EVENT_LISTENER_DRAIN_IN_SECS)
             .expect("the default event listener drain budget must be within the supported range")
     }
+
+    /// The process shutdown deadline as a [`Duration`], for the component that applies it.
+    #[must_use]
+    pub const fn deadline(&self) -> Duration {
+        self.deadline_in_secs.as_duration()
+    }
+
+    /// The HTTP, REST API and health check drain budget as a [`Duration`].
+    #[must_use]
+    pub const fn http_drain(&self) -> Duration {
+        self.http_drain_in_secs.as_duration()
+    }
+
+    /// The UDP accepted-request drain budget as a [`Duration`].
+    #[must_use]
+    pub const fn udp_request_drain(&self) -> Duration {
+        self.udp_request_drain_in_secs.as_duration()
+    }
+
+    /// The event listener drain budget as a [`Duration`].
+    #[must_use]
+    pub const fn event_listener_drain(&self) -> Duration {
+        self.event_listener_drain_in_secs.as_duration()
+    }
 }
 
 impl Validator for Shutdown {
@@ -326,6 +350,29 @@ mod tests {
 
         // Assert
         assert_eq!(duration, std::time::Duration::from_secs(7), "7 configured seconds");
+    }
+
+    #[test]
+    fn it_should_expose_each_budget_as_a_duration_under_its_own_name() {
+        // Arrange
+        // Four different values, so an accessor that returns another budget's value is visible.
+        let shutdown = shutdown_with(40, 30, 20, 10);
+
+        // Act
+        let durations = (
+            shutdown.deadline(),
+            shutdown.http_drain(),
+            shutdown.udp_request_drain(),
+            shutdown.event_listener_drain(),
+        );
+
+        // Assert
+        let seconds = std::time::Duration::from_secs;
+        assert_eq!(
+            durations,
+            (seconds(40), seconds(30), seconds(20), seconds(10)),
+            "deadline, HTTP drain, UDP request drain, and event listener drain, in that order"
+        );
     }
 
     #[test]

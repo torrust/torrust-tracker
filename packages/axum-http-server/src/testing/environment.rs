@@ -82,7 +82,7 @@ impl Environment<Stopped> {
             bind_to,
             tls,
             container.http_tracker_core_container.http_tracker_config.network.ipv6_v6only,
-            Shutdown::default().http_drain_in_secs.as_duration(),
+            Shutdown::default().http_drain(),
         ));
 
         Self {
@@ -575,7 +575,7 @@ mod tests {
                 SocketAddr::from(([127, 0, 0, 1], 0)),
                 None,
                 false,
-                Shutdown::default().http_drain_in_secs.as_duration(),
+                Shutdown::default().http_drain(),
             )
         });
         let drain_controller = tokio::spawn(async move {
@@ -690,7 +690,7 @@ mod tests {
                 SocketAddr::from(([127, 0, 0, 1], 0)),
                 None,
                 false,
-                Shutdown::default().http_drain_in_secs.as_duration(),
+                Shutdown::default().http_drain(),
             )
         });
         let timed_out_controller = tokio::spawn(async { GracefulShutdownOutcome::TimedOut });

@@ -272,7 +272,7 @@ mod tests {
 
         // Assert
         assert_eq!(
-            container.application_config.shutdown.deadline_in_secs.as_duration(),
+            container.application_config.shutdown.deadline(),
             Duration::from_secs(40),
             "the deadline configured for the shutdown, not the default of 25 s"
         );

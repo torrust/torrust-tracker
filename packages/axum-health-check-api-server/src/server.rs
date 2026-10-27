@@ -278,7 +278,7 @@ mod tests {
     const TEST_COMPLETION_TIMEOUT: Duration = Duration::from_secs(5);
 
     fn default_drain_timeout() -> Duration {
-        Shutdown::default().http_drain_in_secs.as_duration()
+        Shutdown::default().http_drain()
     }
 
     fn any_available_port() -> SocketAddr {

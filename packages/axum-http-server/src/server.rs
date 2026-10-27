@@ -745,7 +745,7 @@ mod tests {
                 self.bind_to,
                 None,
                 http_tracker_config.network.ipv6_v6only,
-                Shutdown::default().http_drain_in_secs.as_duration(),
+                Shutdown::default().http_drain(),
             )
         }
 
@@ -804,7 +804,7 @@ mod tests {
                 self.bind_to,
                 tls,
                 http_tracker_config.network.ipv6_v6only,
-                Shutdown::default().http_drain_in_secs.as_duration(),
+                Shutdown::default().http_drain(),
             )
         }
 

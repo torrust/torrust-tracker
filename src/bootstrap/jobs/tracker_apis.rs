@@ -277,7 +277,7 @@ mod tests {
             )),
             version,
             CancellationToken::new(),
-            cfg.application.shutdown.http_drain_in_secs.as_duration(),
+            cfg.application.shutdown.http_drain(),
         )
         .await
         .expect("it should be able to start the tracker API");

@@ -252,7 +252,7 @@ mod tests {
             RuntimeServiceMetadata::new(configuration_instance_id),
             version,
             cancellation_token.clone(),
-            cfg.application.shutdown.http_drain_in_secs.as_duration(),
+            cfg.application.shutdown.http_drain(),
         )
         .await
         .expect("it should be able to start the HTTP tracker")
@@ -354,7 +354,7 @@ mod tests {
             RuntimeServiceMetadata::new(instance_id),
             Version::V1,
             CancellationToken::new(),
-            configuration.application.shutdown.http_drain_in_secs.as_duration(),
+            configuration.application.shutdown.http_drain(),
         )
         .await;
 
@@ -383,7 +383,7 @@ mod tests {
             RuntimeServiceMetadata::new(instance_id),
             Version::V1,
             CancellationToken::new(),
-            configuration.application.shutdown.http_drain_in_secs.as_duration(),
+            configuration.application.shutdown.http_drain(),
         )
         .await;
 

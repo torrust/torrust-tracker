@@ -166,7 +166,7 @@ async fn start_jobs(config: &Configuration, app_container: &Arc<AppContainer>) -
     if let Err(error) = start_jobs_with_manager(config, app_container, &mut job_manager).await {
         job_manager.cancel();
         job_manager
-            .wait_for_all(config.application.shutdown.deadline_in_secs.as_duration())
+            .wait_for_all(app_container.application_config.shutdown.deadline())
             .await;
         return Err(error);
     }
@@ -509,11 +509,7 @@ async fn start_udp_instance(
             .with_public_url(udp_tracker_config.public_url.as_ref().map(|url| url.as_url().clone())),
         connection_id_validation,
         reservation.cancellation_token(),
-        app_container
-            .application_config
-            .shutdown
-            .udp_request_drain_in_secs
-            .as_duration(),
+        app_container.application_config.shutdown.udp_request_drain(),
     )
     .await
     .map_err(|source| Error::ServiceStartup {
@@ -580,7 +576,7 @@ async fn start_http_instance(
             .with_public_url(http_tracker_config.public_url.as_ref().map(|url| url.as_url().clone())),
         torrust_tracker_axum_http_server::Version::V1,
         reservation.cancellation_token(),
-        app_container.application_config.shutdown.http_drain_in_secs.as_duration(),
+        app_container.application_config.shutdown.http_drain(),
     )
     .await
     .map_err(|source| Error::ServiceStartup {
@@ -609,7 +605,7 @@ async fn start_the_http_api(
                 .with_public_url(http_api_config.public_url.as_ref().map(|url| url.as_url().clone())),
             torrust_tracker_axum_rest_api_server::Version::V1,
             reservation.cancellation_token(),
-            config.application.shutdown.http_drain_in_secs.as_duration(),
+            app_container.application_config.shutdown.http_drain(),
         )
         .await
         .map_err(|source| Error::ServiceStartup {
@@ -669,7 +665,7 @@ async fn start_health_check_api(
         &config.health_check_api,
         app_container.registar.as_ref().clone(),
         reservation.cancellation_token(),
-        config.application.shutdown.http_drain_in_secs.as_duration(),
+        app_container.application_config.shutdown.http_drain(),
     )
     .await
     .map_err(|source| Error::ServiceStartup {

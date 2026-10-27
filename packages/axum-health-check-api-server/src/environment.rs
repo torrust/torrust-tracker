@@ -73,7 +73,7 @@ impl Environment<Stopped> {
             self.registar.clone(),
             RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::HealthCheckApi, 0)),
             cancellation_token.clone(),
-            Shutdown::default().http_drain_in_secs.as_duration(),
+            Shutdown::default().http_drain(),
         )
         .await
         .expect("it should start the health check service");

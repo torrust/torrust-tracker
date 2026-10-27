@@ -325,7 +325,7 @@ mod tests {
                         udp_tracker_metadata(),
                         self.cookie_lifetime,
                         ConnectionIdValidationPolicy::Strict,
-                        Shutdown::default().udp_request_drain_in_secs.as_duration(),
+                        Shutdown::default().udp_request_drain(),
                         cancellation_token,
                     )
                     .await

@@ -77,11 +77,7 @@ impl Environment<Stopped> {
             None
         };
 
-        let server = ApiServer::new(Launcher::new(
-            bind_to,
-            tls,
-            configuration.application.shutdown.http_drain_in_secs.as_duration(),
-        ));
+        let server = ApiServer::new(Launcher::new(bind_to, tls, configuration.application.shutdown.http_drain()));
 
         Self {
             container,
@@ -356,11 +352,7 @@ mod tests {
     }
 
     fn a_launcher() -> Launcher {
-        Launcher::new(
-            SocketAddr::from(([127, 0, 0, 1], 0)),
-            None,
-            Shutdown::default().http_drain_in_secs.as_duration(),
-        )
+        Launcher::new(SocketAddr::from(([127, 0, 0, 1], 0)), None, Shutdown::default().http_drain())
     }
 
     #[tokio::test]
