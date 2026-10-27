@@ -8,8 +8,8 @@ epic: 1347
 github-issue: 2637
 spec-path: docs/issues/open/2637-1347-add-tests-axum-rest-api-server/ISSUE.md
 branch: "2637-1347-add-tests-axum-rest-api-server-auth"
-related-pr: null
-last-updated-utc: "2026-10-27 07:25"
+related-pr: 2667
+last-updated-utc: "2026-10-27 08:07"
 semantic-links:
   skill-links:
     - create-issue
@@ -403,7 +403,7 @@ ledger order inside each slice is still confirmed with the first plan (T3).
 | Slice | Content | Ledger rows | Branch | PR | Status |
 | --- | --- | --- | --- | --- | --- |
 | S0 | This specification, the T1 coverage evidence and inventory, and the EPIC registration with the baseline | - | `2637-1347-add-tests-axum-rest-api-server-spec` | #2638 | DONE |
-| S1 | T2-T3, then authentication and the shared response contract (ranks 1 and 3) | 1, 5 | `2637-1347-add-tests-axum-rest-api-server-auth` | TBD | IN_PROGRESS |
+| S1 | T2-T3, then authentication and the shared response contract (ranks 1 and 3) | 1, 5 | `2637-1347-add-tests-axum-rest-api-server-auth` | #2667 | IN_PROGRESS |
 | S2 | Route composition, transport layers and the health check (rank 2) | 2-4 | `2637-1347-add-tests-axum-rest-api-server-routes` | TBD | PENDING |
 | S3 | State-changing contexts: auth keys and whitelist (rank 4) | 6-11 | `2637-1347-add-tests-axum-rest-api-server-commands` | TBD | PENDING |
 | S4 | Read-only contexts: torrents and statistics (rank 5) | 12-17 | `2637-1347-add-tests-axum-rest-api-server-queries` | TBD | PENDING |
@@ -657,6 +657,7 @@ once. If the slicing changes, the Slice column changes with it.
   file (2026-10-27). Rebased onto `develop` (only a `torrust-server-lib` bump touched the package) and measured
   again: unit-only lines 921 / 1,305 (70.57%), aggregate 1,161 / 1,305 (88.97%), integration-only 674 / 908
   (74.23%); 46 unit tests. Updated the EPIC "Latest" values.
+- 2026-10-27 08:07 UTC - GitHub Copilot - Recorded S1 pull request #2667 (<https://github.com/torrust/torrust-tracker/pull/2667>) with `Related to #2637`, opened at 07:32 UTC after both independent reviews; recorded its number in the frontmatter and the slice table after Copilot's review (finding F1 of the PR #2667 audit).
 
 ## Acceptance Criteria
 
