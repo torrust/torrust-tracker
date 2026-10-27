@@ -1,12 +1,12 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2673-runner-disk-full-build-cache-not-pruned/ISSUE.md
-last-updated-utc: 2026-10-27 09:50
+last-updated-utc: 2026-10-27 11:45
 ---
 
 # Manual Verification Evidence
 
-<!-- cspell:ignore ardinghelli inodes journalctl keldysh moby overlayfs -->
+<!-- cspell:ignore ardinghelli fsverity inodes journalctl keldysh moby overlayfs rwxr -->
 
 ## Purpose
 
@@ -119,46 +119,211 @@ The timer itself: `docker-ci-prune.service` last ran 2026-10-27 04:00:10 UTC wit
 
 The wrong outcome was observed: `/` is 100% full, the build cache is 253.6 GB with 0 B reclaimable, the prune freed 0 B on three consecutive days, and container jobs on the runner failed after the disk filled. The prune is not failing; it simply cannot reclaim the cache. Why it cannot is the open question for T1.
 
-### V2 - Reproduce the leak: cancel a container job and look for leftovers
+### V2 - Find what pins the cache, and try to reproduce the leak (T1)
 
-- Goal: confirm or reject the hypothesis that a cancelled job leaves a container or build state behind.
-- Initial state: to be recorded when run.
-- Status: `TODO`
+- Goal: confirm or reject the hypothesis that the four long-running containers pin the cache, and find what does.
+- Initial state: the runner state recorded in V1, unchanged; read-only commands only for the analysis steps.
+- Status: `BLOCKED` for the trigger: the pinned state is identified, but reproducing how a cancelled job leaves it on the runner's stack needs a test build on the production runner, which the maintainer did not approve. Deferred to R1 in [deferred-proposals.md](deferred-proposals.md).
+- Reproduction outcome for the leak trigger: **Infeasible on the runner** (no free disk and a production host), with a negative local substitute.
 
 #### Steps Performed
 
-To be recorded when executed. Only run while the runner is idle and with the maintainer's approval.
+1. Between about 10:05 and 10:07 UTC on 2026-10-27, copied `docker buildx du --verbose`, `ctr -n moby snapshots ls`, `ctr -n moby leases ls`, `ctr -n moby containers ls`, and `docker system df -v` output from the runner into a local git-ignored folder, and analyzed it offline with a short Python script (not kept).
+2. Read the daemon journal: `journalctl -u docker --since 2026-10-01`, counting `/moby.buildkit.v1.Control/Solve` errors by day and by `desc =` text.
+3. Counted Container workflow runs per day and conclusion with `gh run list --workflow container.yaml`.
+4. Local substitute experiment on the maintainer's desktop (Docker 28.3.3, overlay2, BuildKit 0.23.2, buildx 0.26.1; not the runner's stack): `timeout -s INT -k 8 45 docker buildx build --load -f Containerfile .` on a three-step image whose last `RUN` writes 64 MB and sleeps 600 s, so the build is cancelled mid-step. Compared `docker buildx du` and the in-use asterisks of `docker system df -v` before and after.
 
 #### Observed Result
 
+Build-cache graph (step 1), 2026-10-27 about 10:05 UTC:
+
 ```text
-Not yet run.
+487 build-cache records, 253.6 GB; none reclaimable; no record has "Mutable: true" or "Shared: true"
+117 leaf records (no child), all with Usage count 0 and no "Last used"; every one of the 487 records is an ancestor-or-self of a leaf
+82 records larger than 1 GB, 187.6 GB in total; the largest leaves are 2.2 to 3.0 GB (intermediate build stages, not the 260 MB final image)
+docker system df -v: all 487 records marked "*" (in use)
+ctr -n moby snapshots ls: 121 Active and 500 Committed (the 500 include 9 base layers with no parent); the 4 containers account for the 4 extra Active snapshots, leaving 117 Active after their removal
+```
+
+Leaf records by creation day (all still pinned): 09-27 1, 09-29 2, 10-02 2, 10-03 4, 10-05 2, 10-06 2, 10-07 4, 10-08 4, 10-13 3, 10-14 12, 10-15 5, 10-16 7, 10-19 12, 10-20 4, 10-21 12, 10-22 9, 10-23 14, 10-24 4, 10-25 3, 10-26 4, 10-27 7.
+
+The four containers (step 1): each has its own 28-layer image chain plus an Active snapshot, from a 260 MB image, so together they cannot hold 253 GB. The 121 Active snapshots at that time were the 117 above plus the 4 container snapshots.
+
+Daemon journal (step 2), since 2026-10-01:
+
+```text
+553 level=error msg=/moby.buildkit.v1.Control/Solve   (551 with "desc = context canceled")
+439 level=error msg=/moby.buildkit.v1.frontend.LLBBridge/StatFile
+dockerd had run for 32 days without a restart
+```
+
+Container workflow runs (step 3), conclusion per day: 2026-10-23 13 cancelled and 16 success; 2026-10-24 11 cancelled and 16 success; 2026-10-25 3 cancelled and 9 success; 2026-10-26 5 cancelled and 19 success.
+
+Local substitute experiment (step 4), 2026-10-27 10:08 to 10:10 UTC:
+
+```text
+before:        14 records, 157.6 MB, 0 in use
+build:         step 7 CANCELED, "ERROR: failed to build: failed to solve: Canceled: context canceled", client exit 137
+after cancel:  18 records, 224.7 MB, 0 in use, all reclaimable
 ```
 
 #### Conclusion
 
-Pending.
+- The hypothesis that the four containers pin the cache is **rejected**. Removing them (V4) left the cache unchanged at 253.6 GB with 0 B reclaimable, and their image chains are far too small.
+- What pins the cache is 117 leaf records that BuildKit inside dockerd still considers in use, each backed by an Active snapshot that no maintained job owns. All 487 records descend from them, so none can be pruned.
+- Creation dates of the leaves and the heavy cancellation days of 2026-10-14 and 2026-10-19 to 2026-10-23 point at cancelled builds as the trigger, but that is a correlation. The local experiment did **not** reproduce it: on Docker 28.3.3 with overlay2 a cancelled build left nothing in use. The runner uses a different stack (Docker 29.8.1, containerd snapshotter, BuildKit 0.33.0, `docker/build-push-action` with `load: true`, multi-stage `cargo chef` builds), so the negative result is not a like-for-like refutation. Reproducing the trigger on the runner stack is still open.
 
-### V3 - Like-for-like recheck after the fix
+### V4 - Recover the runner (T2)
 
-- Goal: repeat V1 and V2 after the last production change, and after three daily prune runs.
-- Initial state: to be recorded when run. Name the commit under test by its Conventional Commit subject.
-- Status: `TODO`
+- Goal: free the disk and make the build cache reclaimable again, with the maintainer's explicit approval for each step.
+- Initial state: the state in V1. Before each step the GitHub API reported `torrust-runner-01` `online` and `busy: false`, and no Container or Testing run was queued or in progress. Other jobs had run on the runner at about 09:17 and 09:23 UTC, so the check was repeated before every step.
+- Status: `DONE`
 
 #### Steps Performed
 
-To be recorded when executed.
+The maintainer approved, in chat, steps 1 to 4 including the dockerd restart. All on 2026-10-27 UTC:
+
+1. 10:10:19 `rm -rf /home/runner/.cache/torrust-tracker/container-target` (the documented cleanup of the host Cargo target cache).
+2. 10:10:28 `docker stop -t 20` and `docker rm` of the four `torrust-tracker:local` containers.
+3. 10:10:58 `systemctl restart docker.service` (live restore is disabled, so it stops running containers; none remained).
+4. 10:11:37 `systemctl start docker-ci-prune.service`.
 
 #### Observed Result
 
 ```text
-Not yet run.
+                          df / (used, avail, use%)   docker system df: Build Cache (total, active, reclaimable)
+before (10:10:09)         288G, 49M,  100%           487, 487, 253.6GB, 0B
+after step 1 (10:10:21)   265G, 23G,   93%           unchanged
+after step 2 (10:10:46)   263G, 26G,   92%           487, 487, 253.6GB, 0B   (117 Active snapshots left)
+after step 3 (10:11:27)   119G, 170G,  42%           137, 0, 100GB, 100GB    (no Active snapshots; 198 Committed)
+after step 4 (10:11:38)   119G, 170G,  42%           137, 0, 100GB, 100GB
+```
+
+The prune in step 4 reported `Total: 0B` for the build cache. That is expected: the cache, 100 GB, is under the 120 GB `--max-used-space` target. Docker, containerd, and the runner service were `active` after the restart, GitHub reported the runner `online` and not busy, and the daemon log shows `Initializing buildkit` at 10:10:59 and `Completed buildkit initialization` at 10:10:59, with no errors apart from an unrelated fsverity warning. `docker.service` had consumed 6 h 36 min CPU and a 1.9 GB memory peak over 32 days.
+
+#### Conclusion
+
+The disk is recovered: 42% used with 170 GB free, and the cache is reclaimable again. Removing the containers (step 2) changed nothing in the cache. Restarting dockerd (step 3) released the pinned state: the 117 Active snapshots disappeared, the build cache fell by 153.6 GB (253.6 GB to 100 GB), and `df` used space fell by 144 GiB, all without any prune. That identifies the pinned state as orphaned references that BuildKit inside dockerd holds until the daemon restarts. This restores service only; it does not stop the state from accumulating again.
+
+### V5 - Regression test red, then green (T3, T4, T5)
+
+- Goal: prove the maintained shell test fails against the old cleanup behavior and passes against the fix.
+- Initial state: the repository at `docs(issues): [#2673] record the runner diagnosis and recovery evidence`.
+- Status: `DONE`
+- Toolchain: GNU bash 5.3.9 on Linux, ShellCheck 0.11.0 through `linter all`. No Rust toolchain is involved.
+
+#### Steps Performed
+
+1. Committed `docker-ci-prune.sh` with exactly the behavior of the old systemd unit (four prune commands, no restart, no exit status check) together with `tests/test-docker-ci-prune.sh`: `test(self-hosted-runner): [#2673] add failing tests for the runner Docker cleanup`.
+2. Ran `bash contrib/dev-tools/self-hosted-runner/tests/test-docker-ci-prune.sh` against that script (about 10:23 UTC).
+3. Committed the fix: `fix(self-hosted-runner): [#2673] restart dockerd when the daily prune cannot free the disk`.
+4. Re-ran the same command (green), then mutated the script without staging it and restored it: removed the idle guard (`if job_is_running` replaced by `if false`), then removed the `wait_for_docker` call, restoring the file after each (checked with `sha256sum`: the first 16 hex digits were `291f070a703883c6` before and after).
+
+#### Observed Result
+
+Red, against the old behavior (step 2), 3 pass and 5 fail:
+
+```text
+FAIL it_should_fail_when_usage_is_above_the_failure_threshold_and_a_job_prevents_the_restart
+FAIL it_should_fail_when_usage_stays_above_the_failure_threshold_after_the_restart
+FAIL it_should_fail_without_pruning_again_when_docker_does_not_come_back_after_the_restart
+FAIL it_should_restart_docker_and_prune_again_when_usage_stays_high_and_no_job_is_running
+FAIL it_should_wait_for_docker_before_pruning_again_after_the_restart
+PASS it_should_not_restart_docker_when_disk_usage_is_below_the_restart_threshold
+PASS it_should_not_restart_docker_while_a_job_is_running
+PASS it_should_prune_build_cache_containers_images_and_volumes_when_disk_usage_is_low
+Expected exit status to be "1", got "0".
+Expected command not run: systemctl restart docker.service
+5 test(s) failed.
+```
+
+Green, against the fix (step 4, 10:28 UTC), 8 pass:
+
+```text
+PASS it_should_fail_when_usage_is_above_the_failure_threshold_and_a_job_prevents_the_restart
+PASS it_should_fail_when_usage_stays_above_the_failure_threshold_after_the_restart
+PASS it_should_fail_without_pruning_again_when_docker_does_not_come_back_after_the_restart
+PASS it_should_not_restart_docker_when_disk_usage_is_below_the_restart_threshold
+PASS it_should_not_restart_docker_while_a_job_is_running
+PASS it_should_prune_build_cache_containers_images_and_volumes_when_disk_usage_is_low
+PASS it_should_restart_docker_and_prune_again_when_usage_stays_high_and_no_job_is_running
+PASS it_should_wait_for_docker_before_pruning_again_after_the_restart
+```
+
+Mutations (step 4):
+
+```text
+guard always false:        FAIL it_should_fail_when_usage_is_above_the_failure_threshold_and_a_job_prevents_the_restart
+                           FAIL it_should_not_restart_docker_while_a_job_is_running   (2 tests failed)
+no readiness wait:         FAIL it_should_fail_without_pruning_again_when_docker_does_not_come_back_after_the_restart
+                           FAIL it_should_wait_for_docker_before_pruning_again_after_the_restart   (2 tests failed)
 ```
 
 #### Conclusion
 
-Pending.
+The test fails for the missing restart, readiness wait, and failure exit status, and passes with them; both guard tests fail when the guard they protect is removed. The stubs cannot show that a real Docker restart releases the pinned state; that was observed on the runner in V4 and is rechecked in V6. The test is not run by the pre-commit hook or CI; it is run manually, as the existing shell tests in `contrib/dev-tools/checks/tests/` are.
+
+### V6 - Deploy the script and recheck on the runner (T7)
+
+- Goal: install the script, run it once under systemd, and watch the first scheduled runs.
+- Initial state: the runner idle (GitHub API `busy: false` and no `Runner.Worker` process, checked before every step), `/` at 49% used, build cache 121.1 GB. Artifact under test: the script from the branch commit `docs(issues): [#2673] update the specification and evidence for the cleanup fix` (the script itself last changed in `chore(self-hosted-runner): [#2673] fix the spelling check in the cleanup script`), installed before that branch was merged.
+- Status: `IN_PROGRESS` (deployed and run once by hand; the three scheduled runs are pending)
+
+#### Steps Performed
+
+All on 2026-10-27 UTC, with the maintainer's approval in chat ("Deploy now from the branch, once the runner is idle").
+
+1. 10:54:43 Saved the old unit: `cp -p /etc/systemd/system/docker-ci-prune.service /root/docker-ci-prune.service.before-2673` (the old unit had four `ExecStart=/usr/bin/docker ... prune` lines).
+2. 10:54:49 `scp contrib/dev-tools/self-hosted-runner/docker-ci-prune.sh torrust-runner-01:/usr/local/sbin/docker-ci-prune`, then `chmod 0755` and `sha256sum` on both sides.
+3. 10:54:56 Ran the unit-writing `printf` command from `docs/self-hosted-runner.md` setup step 10 (extracted from the document, so the document was exercised), then `systemctl daemon-reload` and `systemd-analyze verify`.
+4. 10:55:03 `systemctl start docker-ci-prune.service`, then `journalctl -u docker-ci-prune.service`, `df`, `docker system df`, `systemctl is-failed`.
+5. Restart-path test, approved by the maintainer after the pull request check of the other pull request passed. At 11:41 UTC, with `busy: false` from the GitHub API, no `Runner.Worker` process, no container, and no queued or running Test job (a GitHub-hosted publish job was still running), ran `DOCKER_CI_PRUNE_RESTART_ABOVE_PERCENT=40 /usr/local/sbin/docker-ci-prune` once, directly and not under systemd. The disk was at 59%, so the lowered 40% threshold forced the restart branch.
+
+#### Observed Result
+
+```text
+sha256 (repo and runner): c2af7c81ca8a1811200612c8c89d0390fcd739c4a3d0e8700811ba566414542f
+/usr/local/sbin/docker-ci-prune: -rwxr-xr-x root root 2911 bytes; bash -n: syntax-ok
+systemd-analyze verify: verify-ok (two unrelated xfs_scrub warnings)
+unit now: Type=oneshot, TimeoutStartSec=1h, ExecStart=/usr/local/sbin/docker-ci-prune
+
+systemctl start docker-ci-prune.service: exit 0, Result=success, ExecMainStatus=0
+journal (trimmed): Total: 0B (build cache) / Total reclaimed space: 0B (containers) / 0B (images)
+                   / 99.57kB (3 anonymous volumes deleted)
+                   Disk usage after the prune: 49%.
+                   docker-ci-prune.service: Deactivated successfully.
+before and after:  /dev/sda1 301G, 141G used, 147G free, 49%; Build Cache 206 records, 121.1GB, 120.8GB reclaimable
+systemctl is-failed docker-ci-prune.service: inactive (it prints "failed" after a failed run)
+next scheduled run: Wed 2026-10-28 04:00:00 UTC
+```
+
+Restart-path test (step 5), 11:41:43 to 11:42:02 UTC, script output trimmed:
+
+```text
+before:  /dev/sda1 301G, 168G used, 121G free, 59%; Build Cache 258 records, 149.9GB, 149.6GB reclaimable; docker.service up since 10:10:59
+first prune, build cache:   7 records listed, Total: 22.69GB freed
+Disk usage after the prune: 51%.
+Disk usage is still above 40% after the prune; restarting docker.service to release orphaned build state.
+second prune, build cache:  Total: 0B
+Disk usage after the restart and a second prune: 51%.
+script exit=0
+after:   /dev/sda1 301G, 147G used, 142G free, 51%; Build Cache 251 records, 127.2GB, 0 active, 127GB reclaimable
+         docker.service up since 11:42:01 (NRestarts=0); docker, containerd and the runner service active; runner online and not busy
+         daemon log: Processing signal 'terminated' 11:42:00, Docker daemon start 11:42:01, Completed buildkit initialization 11:42:01
+         ctr -n moby snapshots ls: 16 Active, 267 Committed
+```
+
+The restart in this test was not needed to free space: the first prune already freed 22.69 GB, because on this run no build state was pinned. The 16 Active snapshots after the restart were not investigated; Docker reports 0 cache records in use and all 127 GB reclaimable, so they do not block the prune. The second prune freed 0 B with the cache at 127.2 GB, above the 120GB argument: the same overshoot as the 128.8 GB the setup guide records for this prune, not a new finding.
+
+Check that checks work again: the `Test (Docker) (release)` job of the pull request for this issue's branch ran on `torrust-runner-01` from 10:41:43 to 10:54:29 UTC and succeeded, with the disk at 49% and the cache at 121 GB. The job that failed earlier, on the pull request whose run 40471601395 failed during the full-disk period, was re-run by the maintainer (attempt 4) and `Test (Docker) (release)` succeeded on `torrust-runner-01` from 11:09:44 to 11:26:31 UTC.
+
+#### Conclusion
+
+Deployed and working. The no-restart path ran under systemd (disk 49%, unit succeeded). The restart path ran once on the real runner through a controlled test with a lowered threshold: the script restarted `docker.service`, waited for it, pruned again, and exited 0, and Docker, containerd, and the runner service came back. Two things are still not shown: the restart path triggered by the real 70% threshold under systemd (the test ran the script directly), and three consecutive scheduled daily runs. The first scheduled run is 2026-10-28 04:00 UTC; record them here.
 
 ## Failures and Follow-up
 
-None recorded at drafting time. One note from the collection: an earlier chat summary read the container-prune `Total reclaimed space: 0B` lines as the build-cache result. The table above uses the `docker[<pid>]: Total:` lines, which are the build-cache prune, and the health report was written from those.
+- An earlier chat summary read the container-prune `Total reclaimed space: 0B` lines as the build-cache result. V1 uses the `docker[<pid>]: Total:` lines, which are the build-cache prune, and the health report was written from those.
+- The four-container hypothesis recorded in the first draft of this specification and in the first health report was wrong. The health report is not edited because reports are immutable; the next report states the corrected cause.
+- A permission gate denied two batched collection commands (the cause was not identified) and, later, one local Docker command. The collection commands were re-run one at a time, and the local Docker commands ran after the maintainer approved the local experiment.
+- Not yet known: what makes a build leave an Active snapshot behind (V2), and how fast the state accumulates again. Both are inputs to T3 to T5.
