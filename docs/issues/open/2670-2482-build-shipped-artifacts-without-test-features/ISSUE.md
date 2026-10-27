@@ -9,7 +9,7 @@ github-issue: 2670
 spec-path: docs/issues/open/2670-2482-build-shipped-artifacts-without-test-features/ISSUE.md
 branch: "2670-2482-build-shipped-artifacts-without-test-features"
 related-pr: null
-last-updated-utc: "2026-10-27 08:43"
+last-updated-utc: "2026-10-27 09:04"
 semantic-links:
   skill-links:
     - create-issue
@@ -242,6 +242,24 @@ The check and the override are new logic and get tests first (`write-unit-test`)
 the red and green cases, and unit tests for the binary resolution order. The container build and
 its test stage are the regression suite for everything else.
 
+Test development follows the progressive loop of the `write-unit-test` and `create-issue` skills:
+
+- Each test increment is the smallest behaviour-focused one (a resolution-order case; a parser
+  case; the red or green scratch-workspace case).
+- After an increment passes its focused validation, and before the next increment or its commit, the
+  author performs and records a test-design review: the test exposes the one causal initial-state
+  difference, its fixture owns only incidental mechanics, and the production Act and the
+  independently specified expected result stay visible. The review uses the prose-first
+  Arrange-Act-Assert comparison: write temporary prose for each section, refactor until the code
+  expresses it, remove redundant prose, and record the result in
+  `manual-verification-evidence.md`.
+- The review is completed for every test-producing task (T2 and T3) before the next one starts.
+- After the final test increment of each test-producing task (T2, then T3), work stops for the
+  maintainer's review before final verification, the commit that lands the task, or the
+  implementation pull request.
+- The independent Task Reviewer makes the final pre-PR review of the completed issue, not a review
+  of each subtask.
+
 ## Implementation Plan
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
@@ -260,8 +278,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | Task | Coherent change set | Commit policy |
 | --- | --- | --- |
 | T1 | Audit and baseline evidence | One commit. |
-| T2 | Override and its tests | Commit after the unit tests pass. |
-| T3 | The check crate, its registration and tests | Commit after the red and green tests behave as expected. |
+| T2 | Override and its tests | Commit after the unit tests pass, the test-design review is recorded and the maintainer has reviewed T2's test increments. |
+| T3 | The check crate, its registration and tests | Commit after the red and green tests behave as expected, the test-design review is recorded and the maintainer has reviewed T3's test increments. |
 | T4 | Workflow job | Commit after the job passes in the fork or the pull request. |
 | T5 | `Containerfile` stages | Commit after a local image build succeeds for both targets. |
 | T6 | Docs and ADR note | One commit. |
@@ -296,6 +314,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-10-27 08:43 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 9) - The maintainer
   approved the spec, including the `cargo tree` refinement of D3. Created issue #2670, linked it as
   a sub-issue of #2482 (`parent_issue_url` verified) and moved the spec to `docs/issues/open/`.
+- 2026-10-27 09:04 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 9) - PR #2671 review round 1, F1: the Regression Test Strategy and the Commit Points now require the recorded prose-first Arrange-Act-Assert test-design review after each test increment and the maintainer-review stop after the final increment of T2 and of T3.
 
 ## Acceptance Criteria
 
