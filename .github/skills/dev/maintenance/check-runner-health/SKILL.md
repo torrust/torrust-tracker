@@ -53,28 +53,37 @@ Run each as `$S '<command>'`, except the commands marked local.
 | CPU per day           | For each `sa<DD>` in `/var/log/sysstat`: `sar -u -f /var/log/sysstat/sa<DD>` and `sar -q -f ...` (average idle, minimum idle, peak `ldavg-5`)            |
 | Memory, swap, OOM     | `free -h; swapon --show; journalctl -k --since "30 days ago" \| grep -c "Killed process"`                                                                |
 | Disk                  | `df -h /; df -i /; docker system df; du -xh --max-depth=1 / \| sort -rh \| head; du -sh /home/runner/.cache/torrust-tracker/*`                           |
-| Cache records         | `docker buildx du \| tail -3`; `ctr -n moby snapshots ls \| awk 'NR>1{print $3}' \| sort \| uniq -c`                                                     |
+| Cache records         | `docker buildx du \| tail -3`; `docker system df -v \| sed -n '/Build cache usage/,$p'` (a `*` after a cache id means in use; count them); `ctr -n moby snapshots ls \| awk 'NR>1{print $3}' \| sort \| uniq -c` |
 | Held containers       | `docker ps -a --format '{{.ID}} {{.Image}} {{.Names}} {{.Status}} {{.CreatedAt}}'`; `docker image ls -a`                                                 |
 | Disk-full evidence    | `journalctl --since "7 days ago" \| grep -ci "no space left"` and the date of the first match                                                            |
-| Cleanup timer         | `systemctl status docker-ci-prune.timer docker-ci-prune.service --no-pager`                                                                              |
+| Cleanup timer         | `systemctl status docker-ci-prune.timer docker-ci-prune.service --no-pager`; `systemctl is-failed docker-ci-prune.service` (check by name, `systemctl --failed` lists unrelated units); `systemctl show docker.service -p ActiveEnterTimestamp` (a recent start means Docker was restarted) |
 | Bytes freed per run   | `journalctl -u docker-ci-prune.service --since "30 days ago" -o short-iso \| grep -E 'docker\[[0-9]+\]: Total:' \| awk '{print substr($1,1,10), $NF}'`    |
 | CI impact             | Local: `gh run list --repo torrust/torrust-tracker --workflow container.yaml --limit 15`, then `gh api repos/torrust/torrust-tracker/actions/runs/<id>/jobs` for `runner_name`, step conclusions, and times |
 
 The prune service writes four commands to the journal. Only the lines that start with
 `docker[<pid>]: Total:` are the **build cache** prune; `Total reclaimed space:` lines belong to the
-container, image, and volume prunes. Do not mix them up.
+container, image, and volume prunes. Do not mix them up. Runs of the cleanup script (installed by
+issue 2673) also log `docker-ci-prune[<pid>]: Disk usage after the prune: N%` and, when it restarts
+Docker, a line that says so.
 
-Healthy reference points (from the setup guide): the build cache trim target is 120 GiB, the cache
-grows past it between daily runs, and the disk is expected to absorb that. Treat these as WARN: disk
-above 85%, a prune that frees 0 B for two days while the cache is above target, a container up for
-more than a day, and a pending reboot. Treat a full disk or failing runner jobs as CRITICAL.
+Reference points (from the setup guide): the build cache trim target is 120 GiB and the prune
+overshoots it somewhat, so about 125 to 130 GB is normal. Treat these as WARN: disk at or above 70%,
+a prune that frees 0 B for two days while the cache is far above target, a container up for more than
+a day, and a pending reboot. Treat these as CRITICAL: disk at or above 85%, a failed
+`docker-ci-prune.service`, a cache of hundreds of GB with every record starred in `docker system df -v`
+and 0 B reclaimable (the stuck state of the 2026-10-27 incident), and failing runner jobs.
+
+The jobs list of a run shows only the latest attempt of a re-run. When you need the first attempt of a
+failed job, read `gh api repos/torrust/torrust-tracker/actions/runs/<id>/attempts/<n>/jobs`.
 
 ## 3. Write the Report
 
 1. Copy the skeleton from [RUNNER-HEALTH-REPORT.md](../../../../../docs/templates/RUNNER-HEALTH-REPORT.md) to
    `docs/self-hosted-runner-reports/<YYYYMMDD-HHMMSS>-runner-report.md` (UTC time of the first
    measurement).
-2. Fill every section with measured values. Compare with the previous report in the folder.
+2. Fill every section with measured values. Compare with the previous report in the folder, as a
+   table of the same measures. When the previous report named a wrong cause, do not edit it (reports
+   are snapshots); state the correction in the new report.
 3. Add a row, newest first, to the table in
    [docs/self-hosted-runner-reports/README.md](../../../../../docs/self-hosted-runner-reports/README.md).
 4. Avoid `#<number>` text in Markdown (see the `write-markdown-docs` skill); write run ids and issue

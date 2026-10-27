@@ -92,5 +92,7 @@ cleanup is missing for a growing directory.>
 
 ## Comparison with the Previous Report
 
-<Link the previous report and list what changed. Write "first report" when none exists.>
+<Link the previous report and give a table of measure, previous value, current value, and change.
+List corrections to conclusions of the previous report, which is not edited. Write "first report"
+when none exists.>
 ````
