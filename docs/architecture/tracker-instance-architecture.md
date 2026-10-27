@@ -75,11 +75,14 @@ objects.
 | HTTP, UDP-core, and UDP-server event paths and aggregate statistics repositories | Events describe application facts and feed aggregate observability; metrics policy is applied by consumers. See [events.md](events.md).        |
 | Runtime service registry and application jobs                                    | The application tracks the started services and owns jobs according to service lifetime. See [application-jobs.md](application-jobs.md). |
 
-The current runtime consumes the configuration v3 model. Shutdown policy is not
-yet part of that schema; when it is introduced, process-wide policy belongs in
-an application-level v3 configuration section, while component-specific budgets
-remain owned by their lifecycle contracts. The shared-process topology itself is
-independent of that future shutdown-policy configuration.
+The current runtime consumes the configuration v3 model. Its optional
+`[application]` section holds process-wide policy; `[application.shutdown]`
+holds the shutdown budgets (the process deadline and the drain budgets of the
+HTTP-family servers, the UDP tracker, and the event listeners). The
+composition root injects each value into the component that applies it, and
+the [placement ADR](../adrs/20261027145429_place_process_wide_settings_in_the_application_configuration_section.md)
+states what belongs in the section. The shared-process topology itself is
+independent of the shutdown policy.
 
 ## Listener-Owned Concerns
 

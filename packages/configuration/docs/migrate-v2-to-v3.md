@@ -1,6 +1,6 @@
 ---
 doc-type: guide
-last-updated-utc: 2026-08-26
+last-updated-utc: 2026-10-27
 ---
 
 # Migrating from Configuration v2.0.0 to v3.0.0
@@ -30,6 +30,7 @@ configuration before loading it with the active runtime.
 | Flat `[core.database]`       | Database enum with per-driver config                             | #1490    | DONE   |
 | No announce `ip` opt-in      | Per-HTTP-tracker `use_ip_from_query_string`                      | #1987    | Active |
 | Unbounded announce interval  | `[core.announce_policy] interval` / `interval_min` ≤ `2147483647` | #2466    | Active |
+| Fixed shutdown timings       | Optional `[application.shutdown]` budgets                        | #2668    | Active |
 
 ## Practical migration sequence
 
@@ -380,6 +381,36 @@ interval_min = 120
 
 The error names the rejected value, the limit, and the configuration key.
 
+## Step 12: Review the shutdown budgets (new, optional)
+
+**Issue**: #2668 — Configure shutdown policy and deployment contract
+
+V3 adds an optional `[application.shutdown]` table. A v2 file has no equivalent
+and needs no change: every key is optional and the defaults below apply. They
+differ from the values the tracker used before, so review them if your
+deployment stops the tracker with a short grace period or serves slow clients.
+
+```toml
+[application.shutdown]
+deadline_in_secs = 25
+http_drain_in_secs = 15
+udp_request_drain_in_secs = 5
+event_listener_drain_in_secs = 5
+```
+
+| Behavior          | Before                                                                | With the defaults                                              |
+| ----------------- | --------------------------------------------------------------------- | -------------------------------------------------------------- |
+| Process deadline  | 10 seconds, fixed                                                     | 25 seconds                                                     |
+| HTTP and REST API | Connections drained for up to 90 seconds                              | 15 seconds                                                     |
+| Health check API  | Connections drained for up to 5 seconds                               | 15 seconds, shared with the HTTP drain                         |
+| Exit code         | `0` after any shutdown, also when a component failed or was aborted    | `0` only after a complete stop, otherwise `1`                  |
+
+Every value is a whole number of seconds from 1 to 3600. The tracker refuses to
+start unless `max(http_drain_in_secs, udp_request_drain_in_secs) +
+event_listener_drain_in_secs` is below `deadline_in_secs`. The container
+runtime must wait at least `deadline_in_secs` plus 5 seconds before it sends
+`SIGKILL`; see [Stopping the Tracker](../../../docs/containers.md#stopping-the-tracker).
+
 ## Complete representative v3 configuration
 
 This configuration shows a direct TLS HTTP tracker, one UDP listener, an HTTP
@@ -475,6 +506,7 @@ Use this checklist to verify your configuration is ready for v3:
 - [ ] `ip_bans_reset_interval_in_secs` reviewed in `[udp_tracker_server]` (optional, defaults to `86400`)
 - [ ] `use_ip_from_query_string` left disabled unless client-supplied peer IPs are trusted
 - [ ] `interval` and `interval_min` in `[core.announce_policy]` are at most `2147483647`
+- [ ] `[application.shutdown]` budgets reviewed (optional; the container runtime waits at least `deadline_in_secs` plus 5 seconds)
 - [ ] Network database URLs replaced with component fields; database passwords are non-empty
 - [ ] Explicit SQLite configuration retained during the fixed-SQLite bridge period
 
