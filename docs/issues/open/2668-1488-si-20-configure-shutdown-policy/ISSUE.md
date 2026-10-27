@@ -9,7 +9,7 @@ github-issue: 2668
 spec-path: docs/issues/open/2668-1488-si-20-configure-shutdown-policy/ISSUE.md
 branch: "2668-configure-shutdown-policy"
 related-pr: null
-last-updated-utc: "2026-10-27 11:27"
+last-updated-utc: "2026-10-27 12:28"
 semantic-links:
   skill-links:
     - create-issue
@@ -289,10 +289,13 @@ contract below states the external rule instead.
 | `U`   | The UDP receive loop's accepted-request drain (`start_receive_loop`).                                             |
 | `L`   | The seven listener constructors, all given the same value (their `drain_timeout` parameter already exists).       |
 
-How `P` reaches `main` and how `H` and `U` reach the server crates is decided at the design
-review checkpoint (D5); the contract above does not depend on it. Package public APIs change
-additively where possible: the current constants stay as named defaults so the test
-environments and examples keep their behavior.
+The maintainer decided D5 at the T2 design review: **inject top to bottom**. The value is
+configuration, so it is passed from the composition root to whoever applies it, and the signatures
+change where needed (version 3.0.0 of the configuration package is not published, and the server
+crates are `0.1.0`). A callee that needs only a value takes that value, a `Duration`, not the
+`Shutdown` section, which keeps the coupling low. A public constant for the default exists only
+where injection would add a dependency that the callee should not have. The design is
+re-evaluated for cohesion and coupling after T7, before the pull request (see the Progress Log).
 
 ## Exit-Result Contract
 
@@ -451,7 +454,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T3a | TODO   | Regression test, red                  | Pure outcome-to-exit-code function returning the current behavior (always success) and a parameterized test per `JobStatus`; the recorded red run fails for `Failed`, `Panicked`, and `Aborted`.               |
 | T3b | TODO   | Fix: outcome-to-exit mapping          | Implement the mapping, `main` returns `ExitCode`, success log only on `0`, failing outcomes logged by name; record the green run.                                                                              |
 | T4  | TODO   | Deliver `P` and `L`                   | Configured `P` in `main` and in the startup-failure cleanup; `L` into the seven listener constructors; tests that a configured value, not the default, reaches each consumer.                                  |
-| T5  | TODO   | Deliver `H` and `U`                   | Additive options on the HTTP, REST API, health-check, and UDP server crates; defaults retained as named constants; paused-time tests per crate.                                                                |
+| T5  | TODO   | Deliver `H` and `U`                   | Inject a `Duration` from the composition root into the HTTP, REST API, health-check, and UDP server crates; the standalone test environments and examples receive the value too, so no second set of defaults remains (D5). Paused-time tests per crate show that the configured value, not a constant, applies. |
 | T6  | TODO   | Native-binary tests                   | In `tests/lifecycle/`, each file registered as a `[[test]]` target in `Cargo.toml` like `lifecycle-signals`: exit `0` on a clean stop, exit `1` with a held `partial-header` connection under the M3 budgets (`deadline_in_secs = 5`, `http_drain_in_secs = 2`, `udp_request_drain_in_secs = 1`, `event_listener_drain_in_secs = 1`), invalid configuration rejected before any service starts; SIGTERM and SIGINT. |
 | T7  | TODO   | Fixtures and documentation            | `share/default/config/` fixtures, `docs/containers.md`, feature README, `application-jobs.md`, `tracker-instance-architecture.md`, glossary, `drain.rs` docs, configuration module docs and migration note, Q4 amendment, Q9 pointer, and the ADRs D7 approves. |
 | T8  | TODO   | Manual verification evidence          | `manual-verification-evidence.md`: V2 to V8 below, plus the like-for-like recheck of V1 (B1 to B4), run after the last production change, naming the commit subject they ran on.                              |
@@ -506,6 +509,7 @@ Sign every commit with GPG. Any new error enum follows the `handle-errors-in-cod
 - 2026-10-27 09:04 UTC - GitHub Copilot - `review-finding:pr-2669-f2` (Copilot review, finding R3): replaced the nonexistent `integration` test target in the Automatic Checks with the registered `lifecycle-signals` target, and made T6 register its new files as `[[test]]` targets. Rechecked every other command in the specification: `cargo test -p torrust-tracker-configuration --no-run` builds and `contrib/dev-tools/git/hooks/pre-push.sh` exists.
 - 2026-10-27 09:06 UTC - GitHub Copilot - `review-finding:pr-2669-f3` (Copilot review, finding R1): M3 left the UDP drain at its 5 s default, so `max(2, 5) + 1 = 6 >= 5` and startup would reject it; M3 now sets `udp_request_drain_in_secs = 1` (`max(2, 1) + 1 = 3 < 5`). Rechecked every worked example against `max(H, U) + L < P`: M2 (defaults, 20 < 25), M4 (now six explicit configurations with the arithmetic, one accepted boundary), M6 (HTTP drain 3, `max(3, 5) + 5 = 10 < 25`), M7 (defaults, 20 < 25), T6 (the M3 budgets), and the `DEADLINE_IN_SECS=30` override example (20 < 30) all hold. Found while doing it, from the V1 attempts: a held request ends within about 5 s on its own, so M6 and M7 could not show what they claimed with the budgets they had; M6 now uses a 3 s drain, and M7 uses the temporary fault-injection patch.
 - 2026-10-27 11:27 UTC - GitHub Copilot - PR #2669 (the spec-only PR) was merged by the maintainer at 10:57 UTC; implementation started on branch `2668-configure-shutdown-policy` from `torrust/develop`. T1 needs no rerun: `src/`, `packages/`, `tests/`, and the manifests are unchanged on `develop` since the V1 base. T2 done in `packages/configuration`: `[application.shutdown]` with `deadline_in_secs` 25, `http_drain_in_secs` 15, `udp_request_drain_in_secs` 5, `event_listener_drain_in_secs` 5; one shared `ShutdownBudgetInSecs` newtype (1 to 3600 s) instead of newtypes built on `AtLeastU64`, because `AtLeastU64` has no upper bound and one invariant serves all four keys; the chain rule `max(H, U) + L < P` as a `SemanticValidationError` variant reached through `Configuration::validate`; the four tests that pin the default TOML were updated. 25 new tests (129 to 154 in the package), each mutation-proven; two surviving mutations found gaps and were closed with new tests (evidence section "T2"). Nothing is wired into the supervisor or the servers yet. Stopping here for the design review of D5 (how `P`, `H`, `U`, and `L` reach their consumers) with the maintainer.
+- 2026-10-27 12:28 UTC - GitHub Copilot - The maintainer decided D5: inject the values top to bottom instead of keeping separate constants in the server crates, change signatures where needed because configuration 3.0.0 is not published, pass a plain `Duration` where the callee needs only a value, and use a public default constant only where injection would add an unwanted dependency. Then implement, and re-evaluate cohesion and coupling at the end. The recorded spec text ("Where each value goes", T5, D5) was updated to match. The design proposed earlier (`AppContainer` holds the settings, additive builders with kept constants) is superseded by this decision.
 
 ## Open Decisions for the Maintainer
 
@@ -517,7 +521,7 @@ Status on 2026-10-27: the maintainer chose D1 = B, D2 = P2 (`[application.shutdo
 | D2  | Where the shutdown settings live                  | **P2**: `[application.shutdown]`, all four values together, so the chain rule is checkable in one place; the event buses are created by the composition root, so the listener budget is application-level too. Rejected: P1 top-level `[shutdown]` (too specific); P3 per-service budgets (scatters the contract, no demonstrated need). See "Configuration Placement". |
 | D3  | Health-check drain                                | Share `http_drain_in_secs` as Q4 says. This raises its current 5 s to 15 s; the drain only waits while a connection stays open, so a normal stop is unchanged.                                          |
 | D4  | Key names and bounds                              | `_in_secs` keys, each 1 s to 3600 s, as value invariants. 3600 s is a conservative ceiling that also avoids the unchecked `Instant` addition; revisit if an operator needs more.                          |
-| D5  | How `P`, `H`, and `U` reach their consumers       | Decide at the T2 design review, with the schema in hand: either `JobManager` carries the deadline, or `app::start` returns it. Server crates take a `Duration` through an additive option.                |
+| D5  | How `P`, `H`, `U`, and `L` reach their consumers  | **Decided by the maintainer on 2026-10-27: inject top to bottom**, changing signatures where needed, passing a `Duration` where the callee needs only a value, and adding a public default constant only where injection would add an unwanted dependency. Rejected: a `JobManager` that owns the deadline, additive builders with separate crate defaults, and a new struct returned by `app::start`. Re-evaluate cohesion and coupling after T7. |
 | D6  | Scope of "no component calls `process::exit`"     | Verify by source search recorded in the evidence. A `disallowed-methods` Clippy rule is a possible later guard but needs allows in the binaries and console crates, so not in this task.                  |
 | D7  | Record the decisions                              | Amend Q4 (Actions Taken addendum) and add two short root ADRs: the `[application]` placement rule (lasting convention for later contributors) and the budget model (lasting validation contract).         |
 | D8  | Schema version                                    | Keep `3.0.0`; the new section is optional and `develop` is `3.0.0-develop`. Per-package version bumps follow the independent-versioning ADR at implementation time.                                       |
