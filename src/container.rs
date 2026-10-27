@@ -115,6 +115,8 @@ impl AppContainer {
             // Configuration
             http_api_config,
             application_config,
+
+            // Registar
             registar,
 
             // Swarm Coordination Registry Container
