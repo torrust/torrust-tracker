@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2670-2482-build-shipped-artifacts-without-test-features/ISSUE.md
-last-updated-utc: "2026-10-27 14:57"
+last-updated-utc: "2026-10-27 20:13"
 ---
 
 # Manual Verification Evidence
@@ -217,3 +217,63 @@ a v0.1.0 (~/.cache/r9-2670/fx-dev/a)|
 ```
 
 The same scratch cases run automatically in `tests/cli.rs` on every CI run.
+
+## V2 - The image builds and its tests run after the change (scenario M2, task T5)
+
+Tree: the working tree after the `Containerfile` change of task T5 (the stages "Cook Third-party Shipped",
+"Cook Shipped" and "Build Shipped", for the release and debug images), before its commit. Commands, as in V1:
+
+```bash
+docker build --no-cache --progress=plain --target release --tag r9-after:release --file Containerfile .
+docker build --no-cache --progress=plain --target debug --tag r9-after:debug --file Containerfile .
+# one line appended to src/lib.rs (then reverted), a rebuild with the layer cache kept
+docker build --progress=plain --target release --tag r9-after:release --file Containerfile .
+```
+
+| Build | Started (UTC) | Wall time | Baseline (V1) | Difference | Tests run by the `test` stage |
+| --- | --- | --- | --- | --- | --- |
+| `release`, cold (`--no-cache`) | 2026-10-27 14:59:31 | 5 min 16 s | 4 min 59 s | +17 s | 1537 passed, 0 skipped, 40 binaries |
+| `debug`, cold (`--no-cache`) | 2026-10-27 15:06:54 | 2 min 13 s | 1 min 55 s | +18 s | 1537 passed, 0 skipped, 40 binaries |
+| `release`, warm (one source line changed) | 2026-10-27 19:50:47 | 3 min 01 s | 2 min 53 s | +8 s | 1537 passed, 0 skipped, 40 binaries |
+
+The first warm run was interrupted and a rerun with the same change took 2 s because the layers were cached, so
+neither is used; the row above is a run with a line that differs from both.
+
+Test comparison with the baseline (the sorted `release` lists, `LC_ALL=C comm`): 1531 baseline tests, 1537 after
+the change, **0 baseline tests missing, 6 added**. The six are the three tests of T2 compiled into each of the
+`cli-configuration` and `lifecycle-signals` binaries, as the spec predicted:
+
+```text
+torrust-tracker::cli-configuration native_tracker::command::tests::it_should_run_the_binary_compiled_into_the_test_when_no_variable_is_set
+torrust-tracker::cli-configuration native_tracker::command::tests::it_should_run_the_binary_named_by_the_shipped_binary_override_before_the_one_nextest_or_cargo_built
+torrust-tracker::cli-configuration native_tracker::command::tests::it_should_run_the_binary_nextest_built_when_no_override_is_set
+torrust-tracker::lifecycle-signals native_tracker::command::tests::it_should_run_the_binary_compiled_into_the_test_when_no_variable_is_set
+torrust-tracker::lifecycle-signals native_tracker::command::tests::it_should_run_the_binary_named_by_the_shipped_binary_override_before_the_one_nextest_or_cargo_built
+torrust-tracker::lifecycle-signals native_tracker::command::tests::it_should_run_the_binary_nextest_built_when_no_override_is_set
+```
+
+The shipped binaries come from their own invocations. The build log of the `release` image shows the stages
+`dependencies_shipped_thirdparty` and `dependencies_shipped` running
+`cargo chef cook --release --package torrust-tracker --bins`, and `build_shipped` running
+`cargo build --release --package torrust-tracker --bins`, none with `--tests`, `--all-features` or a feature
+list. The cook layers stack on the third-party test cooks, and the cold-build cost of the extra layers is the
+17 s and 18 s above.
+
+## V3 - The override is honoured (scenario M3)
+
+Red: a copy of the `Containerfile` in which the `test` stage sets `TORRUST_TRACKER_BINARY=/app/bin/does-not-exist`
+(a scratch change, not committed), built with `docker build --progress=plain --target test --file <copy> .`:
+
+```text
+exit 1
+#43 0.287     spawn Cargo-built tracker executable: Os { code: 2, kind: NotFound, message: "No such file or directory" }
+#43 2.367      Summary [   2.170s] 162/1537 tests run: 155 passed, 7 failed, 0 skipped
+```
+
+The native-tracker tests fail because the variable points at a missing file, which shows that they now run the
+binary the variable names and not the one Cargo built. The message said "Cargo-built" because the spawn message
+predates the override; the commit `test(tracker): [#2670] stop calling the spawned tracker executable Cargo-built`
+corrects it.
+
+Green: with the variable set to the shipped binary (the committed `Containerfile`), V2's `test` stage runs
+1537 tests and all pass.

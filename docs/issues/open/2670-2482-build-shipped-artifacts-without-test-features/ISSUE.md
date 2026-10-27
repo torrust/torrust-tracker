@@ -9,7 +9,7 @@ github-issue: 2670
 spec-path: docs/issues/open/2670-2482-build-shipped-artifacts-without-test-features/ISSUE.md
 branch: "2670-2482-build-shipped-artifacts-without-test-features"
 related-pr: null
-last-updated-utc: "2026-10-27 14:57"
+last-updated-utc: "2026-10-27 20:13"
 semantic-links:
   skill-links:
     - create-issue
@@ -270,7 +270,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2 | DONE | Add `TORRUST_TRACKER_BINARY` to `tracker_binary()`, test first | Unit tests for the resolution order; default behaviour unchanged |
 | T3 | DONE | Create the check crate, test first | Parser tests from real `cargo tree` output; scratch-workspace red and green tests; registered as a workspace member and admitted in `.dockerignore`; `cargo machete` and `cargo deny` pass |
 | T4 | IN_PROGRESS | Add the check as a job in `testing.yaml` | Job runs the check for `torrust-tracker`; follows `implement-workflow` |
-| T5 | TODO | Add the shipped cook and build stages for the release and debug images; point `test` and `test_debug` at the shipped binary; take `/app/bin` from it | Both targets build; every baseline test is still present and passing, and the delta for new tests (T2 adds some, compiled into the targets that include `tests/common/native_tracker`) is recorded; times recorded |
+| T5 | DONE | Add the shipped cook and build stages for the release and debug images; point `test` and `test_debug` at the shipped binary; take `/app/bin` from it | Both targets build; every baseline test is still present and passing, and the delta for new tests (T2 adds some, compiled into the targets that include `tests/common/native_tracker`) is recorded; times recorded |
 | T6 | TODO | Amend ADR 20260603; update `docs/containers.md` | Docs describe the two builds, the override variable and the check |
 
 ## Commit Points
@@ -321,6 +321,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-10-27 12:44 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 9) - T2 is done: `tracker_binary()` reads `TORRUST_TRACKER_BINARY` before the nextest and Cargo variables, with three unit tests (red with the override discarded, green on the `lifecycle-signals` and `cli-configuration` targets). The test-design review is recorded in the evidence; the maintainer (josecelano) reviewed the increment and approved it through `ask_user` before the commit.
 - 2026-10-27 14:55 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 9) - T3 is done: the `shipped-features-check` crate parses `cargo tree -e normal,build` output and fails on a workspace `testing` feature in a shipped package's tree (9 parser tests and 7 scratch-workspace tests, each red before green, two mutations for the negative tests). The real workspace passes vacuously (M4) and the scratch fixture fails and passes as it should (M5). The crate is a workspace member but not a default member, is admitted in `.dockerignore`, and is listed in the `AGENTS.md` catalogue and the CLI output contract ADR. The maintainer (josecelano) reviewed the increments and approved them through `ask_user` before the commit.
 - 2026-10-27 14:57 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 9) - Added the `Shipped Features` job to `testing.yaml` (T4), which runs `cargo run --package shipped-features-check -- --package torrust-tracker`; `linter yaml` and `git diff --check` pass and the same command passes locally (V4). The spec's commit point asks for the job to pass in a fork or pull request first, but the implementation pull request is the first hosted run, so T4 stays IN_PROGRESS and M6 stays TODO until that run is recorded.
+- 2026-10-27 20:13 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 9) - T5 is done: the `Containerfile` has shipped cook and build stages for the release and debug images (`cargo build` without test flags or features), the `test` stages run the native-tracker tests against the shipped binary through `TORRUST_TRACKER_BINARY`, and `/app/bin` takes the shipped binaries. Both targets build; 0 of the 1531 baseline tests are missing and 6 were added (T2's tests); cold builds cost +17 s (release) and +18 s (debug) and the warm release rebuild +8 s (V2). The override is honoured: pointing it at a missing file fails the native-tracker tests (V3). An interrupted warm run and a fully cached rerun were discarded and the warm run repeated with a different change.
 
 ## Acceptance Criteria
 
@@ -356,8 +357,8 @@ applies, except that this subissue moves no test code. The workflow changes foll
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
 | M1 | Baseline before the change | Build the `release` and `debug` targets of `develop`'s `Containerfile` (`docker build --target release --tag torrust-tracker:release --file Containerfile .` and the same with `--target debug --tag torrust-tracker:debug`) and record the `test` stage's test list and count and the cold and warm times | Numbers recorded | DONE | `manual-verification-evidence.md` V1 |
-| M2 | The image builds and its tests run | Build both targets after the change | Both build; every baseline test is still present and passing; the delta for new tests is recorded (the count may rise by the tests T2 adds); times recorded | TODO | V2 |
-| M3 | The override is honoured | In the `test` stage, point `TORRUST_TRACKER_BINARY` at a missing file, build, then restore it | The native-tracker tests fail with the missing path (red), then pass (green) | TODO | V3 |
+| M2 | The image builds and its tests run | Build both targets after the change | Both build; every baseline test is still present and passing; the delta for new tests is recorded (the count may rise by the tests T2 adds); times recorded | DONE | V2 |
+| M3 | The override is honoured | In the `test` stage, point `TORRUST_TRACKER_BINARY` at a missing file, build, then restore it | The native-tracker tests fail with the missing path (red), then pass (green) | DONE | V3 |
 | M4 | The shipped binary has no `testing` feature | `cargo run -p shipped-features-check -- --package torrust-tracker` and `cargo tree -p torrust-tracker -e normal,build -f "{p} {f}"` | Passes; no `testing` feature (vacuous today, since none exists) | DONE | V4 |
 | M5 | The check fails when it should | Run the scratch-workspace red case (a shipped package enabling a `testing` feature through a normal dependency) | The check fails and names the package and feature | DONE | V5 |
 | M6 | The workflow job runs | Open the pull request and read the `testing.yaml` job result | The job is green on the real workspace | TODO | V6 |
