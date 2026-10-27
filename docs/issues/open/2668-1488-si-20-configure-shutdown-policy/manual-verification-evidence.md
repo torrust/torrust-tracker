@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2668-1488-si-20-configure-shutdown-policy/ISSUE.md
-last-updated-utc: "2026-10-27 20:40"
+last-updated-utc: "2026-10-27 20:52"
 ---
 
 # Manual Verification Evidence
@@ -12,7 +12,7 @@ Record real, human-oriented verification of the completed behavior. This is evid
 
 ## Preserving Verification Artifacts
 
-The tracker configuration and the script used are in [`evidence/`](evidence/) (`baseline.toml`, `hold-and-stop.sh`). The temporary fault-injection patch is embedded verbatim in V1. Full run logs stayed under the git-ignored `.tmp/si20/`; the relevant lines of every run are copied into this file.
+The tracker configuration (`baseline.toml`) and the script (`hold-and-stop.sh`) that V1 to V8 used were removed after use (see the process notes of T6 and the progress log); the V1 baseline is the HTTP tracker on `127.0.0.1:17070`, the REST API on `127.0.0.1:11212` and the health check on `127.0.0.1:11313` with no database, and the scripted steps are described in each section. The temporary fault-injection patch is embedded verbatim in V1 (V5 records its one-word adjustment). Full run logs stayed under the git-ignored `.tmp/si20/`; the relevant lines of every run are copied into this file.
 
 ## Environment and Prerequisites
 
@@ -580,7 +580,7 @@ The UDP request drain and the listener drain have no timing test at the executab
 - Two batches of dependent tool calls ran in parallel again: the creation of the test file and its `Cargo.toml` registration with the first `cargo test` (the target was not found), and a batch of edits with a `cargo test` (a rerun on its own confirmed the result). No result below comes from either batch. This is the fourth and fifth occurrence in this issue.
 - `linter all` found four problems in the first version (a misspelling caused by an escape sequence written next to a word in a string, test code placed before items, a field-postfix lint that is allowed with a reason because the fields mirror the configuration keys, and an `if let` that `map_or` expresses); all were fixed in the code, not by a dictionary change.
 - Reviewing my own tests against the "every wait bounded" rule, I found that the probe confirming the held connection was accepted (`reqwest::get`) had no timeout in the three T5 drain tests and in the lifecycle helper. The commit `test(shutdown): bound the held-connection probe of the drain tests` gives each a five-second bound; the earlier commits are kept as they are.
-- The disposable script `evidence/hold-and-stop.sh` and `evidence/baseline.toml` are **not removed yet**: the Rust tests cover the held-connection exit codes (M3, V1 controls), but not the fault-injection runs of M5 (they need a temporary patch that is never committed), nor Docker (M6 and M7). T8 still needs them; T9 removes them.
+- The disposable script `evidence/hold-and-stop.sh` and `evidence/baseline.toml` were used by V1 to V8 and then **removed** in the T9 commit `chore(issues): remove the disposable verification script of #2668`. The held-connection and exit-code scenarios are covered by the Rust target `lifecycle-shutdown-policy`; the fault-injection runs and the Docker and systemd runs are one-off manual evidence that needed the script and a temporary patch that is never committed.
 
 #### Automatic checks on the finished T6 code (14:47 UTC, after the commit that bounds the probes)
 

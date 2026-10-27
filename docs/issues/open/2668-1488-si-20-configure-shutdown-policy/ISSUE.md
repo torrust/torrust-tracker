@@ -9,7 +9,7 @@ github-issue: 2668
 spec-path: docs/issues/open/2668-1488-si-20-configure-shutdown-policy/ISSUE.md
 branch: "2668-configure-shutdown-policy"
 related-pr: null
-last-updated-utc: "2026-10-27 20:40"
+last-updated-utc: "2026-10-27 20:52"
 semantic-links:
   skill-links:
     - create-issue
@@ -518,6 +518,7 @@ Sign every commit with GPG. Any new error enum follows the `handle-errors-in-cod
 - 2026-10-27 15:03 UTC - GitHub Copilot - T7 done: the container and development templates state the default `[application.shutdown]` block and a test pins them to the defaults (mutation-proven twice); `docs/containers.md` gained "Stopping the Tracker" with the deployment contract; the three E2E Compose files set `stop_grace_period: 35s` (validated with `docker compose config`, the stacks run in CI); the architecture documents, glossary, feature README, `drain.rs` documentation and the v2 to v3 migration guide were updated; Q4 is amended and Q9 points to the evidence file (its link names the open path, which the archive step repairs); two root ADRs were added and registered (placement rule, budget model). While writing the evidence I found that the T5 documentation commit had deleted the heading `## Failures and Follow-up`; it is restored here. The workspace suite passes (3,576 tests). Next: re-evaluate the design for cohesion and coupling (D5), then T8.
 - 2026-10-27 20:15 UTC - GitHub Copilot - D5 follow-up done (cohesion and coupling review, evidence section "D5 follow-up"): the server crates receive plain durations and no consumer needs the configuration type; one finding led to a change, `Shutdown::deadline`, `http_drain`, `udp_request_drain` and `event_listener_drain` replace the key-and-conversion spelled at 31 call sites (one mutation-proven test; two executable-boundary mutations repeated on the new path). Four findings were left as they are, with reasons. The workspace suite passes (3,577 tests). Next: T8, the manual verification V2 to V8 and the V1 recheck, which must run after the last production change.
 - 2026-10-27 20:40 UTC - GitHub Copilot - T8 done: M2 to M8 ran on the finished change (last production commit `refactor(configuration): read each shutdown budget through a named accessor`) and are recorded as V2 to V8. Defaults: exit `0`, `timeout_seconds=25`, three drains of 15 s. Budgets 5/2/1/1 with a held connection: exit `1` in 2.0 s on SIGTERM and SIGINT, HTTP component named, no success line (the stop took the HTTP drain alone, not the 3 s the chain bound allows). Five invalid configurations rejected before any listener bound, each naming the key; the boundary `19 + 5` accepted. V1 recheck on the fixed tree: `slow-stop` and `fail-stop` with SIGTERM and SIGINT all exit `1` and name the component, where V1 recorded `0`; the temporary patch needed `std::time::Duration` because the hard-coded 10 s is gone, was reverted and proven identical to `HEAD`. Docker release image: `--stop-timeout 35` and a 3 s override give exit `1` in 3.2 s with a held connection and `0` clean; the patched image gives `137` at 10.1 s with the default and `1` at 25.1 s with 35 s. systemd: clean `Result=success`, held connection `status=1/FAILURE`. Podman not run. AC7 source search found `process::exit` only in separate CLI binaries. Next: T9 (independent review, script removal, acceptance review, retrospective decision).
+- 2026-10-27 20:52 UTC - GitHub Copilot - T9 started: the disposable script `evidence/hold-and-stop.sh` and `evidence/baseline.toml` were removed after V2 to V8 had used them (the Rust target `lifecycle-shutdown-policy` covers the held-connection exit codes; the fault-injection, Docker and systemd runs are one-off evidence). Next: the independent `review-task` review.
 
 ## Open Decisions for the Maintainer
 
@@ -611,7 +612,8 @@ One script exists, created for V1 and reused by M3, M5, and M6 where it fits:
   cover the same scenarios, and records the removal in the progress log; T9 checks it. T6 did not
   remove them: the Rust tests cover the held-connection exit codes, but M5 (fault injection with a
   patch that is never committed) and M6 and M7 (Docker) still use the script, so the T9 author
-  removes it after T8 and records the removal.
+  removes it after T8 and records the removal. **Done in T9**: the script and `baseline.toml` were
+  removed after V2 to V8 had used them (progress log, 2026-10-27).
 
 ### Acceptance Verification
 
