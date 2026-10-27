@@ -42,7 +42,19 @@ Close it at the end: `ssh -O exit -o ControlPath=/tmp/ssh-runner-%C torrust-runn
 
 ## 2. Collect
 
-Run each as `$S '<command>'`, except the commands marked local.
+Send the commands to the runner through a quoted heredoc, so single quotes, `$`, and parentheses reach
+the runner unchanged and nothing needs shell-level escaping. Wrapping a command in `$S '...'` breaks
+every command that contains a single quote, such as the `awk` ones.
+
+```bash
+$S bash -s <<'EOF'
+df -h /
+journalctl -u docker-ci-prune.service --since "3 days ago" -o short-iso | awk '{print substr($1,1,10), $NF}'
+EOF
+```
+
+In the table, `\|` is Markdown escaping for a pipe; write a plain `|` in the command. Run the commands
+marked local on your own machine, not through `$S`.
 
 | Question              | Command                                                                                                                                                  |
 | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -57,13 +69,13 @@ Run each as `$S '<command>'`, except the commands marked local.
 | Held containers       | `docker ps -a --format '{{.ID}} {{.Image}} {{.Names}} {{.Status}} {{.CreatedAt}}'`; `docker image ls -a`                                                 |
 | Disk-full evidence    | `journalctl --since "7 days ago" \| grep -ci "no space left"` and the date of the first match                                                            |
 | Cleanup timer         | `systemctl status docker-ci-prune.timer docker-ci-prune.service --no-pager`; `systemctl is-failed docker-ci-prune.service` (check by name, `systemctl --failed` lists unrelated units); `systemctl show docker.service -p ActiveEnterTimestamp` (a recent start means Docker was restarted) |
-| Bytes freed per run   | `journalctl -u docker-ci-prune.service --since "30 days ago" -o short-iso \| grep -E 'docker\[[0-9]+\]: Total:' \| awk '{print substr($1,1,10), $NF}'`    |
+| Bytes freed per run   | `journalctl -u docker-ci-prune.service --since "30 days ago" -o short-iso \| grep -E 'docker(-ci-prune)?\[[0-9]+\]: Total:' \| awk '{print substr($1,1,10), $NF}'` |
 | CI impact             | Local: `gh run list --repo torrust/torrust-tracker --workflow container.yaml --limit 15`, then `gh api repos/torrust/torrust-tracker/actions/runs/<id>/jobs` for `runner_name`, step conclusions, and times |
 
-The prune service writes four commands to the journal. Only the lines that start with
-`docker[<pid>]: Total:` are the **build cache** prune; `Total reclaimed space:` lines belong to the
-container, image, and volume prunes. Do not mix them up. Runs of the cleanup script (installed by
-issue 2673) also log `docker-ci-prune[<pid>]: Disk usage after the prune: N%` and, when it restarts
+The prune service writes four commands to the journal. The build cache prune prints a line that
+starts with `Total:` (logged as `docker[<pid>]` by the old unit or `docker-ci-prune[<pid>]` by the
+script from issue 2673); the container, image, and volume prunes print `Total reclaimed space:`
+instead. Do not mix them up. Runs of the cleanup script also log `docker-ci-prune[<pid>]: Disk usage after the prune: N%` and, when it restarts
 Docker, a line that says so.
 
 Reference points (from the setup guide): the build cache trim target is 120 GiB and the prune
