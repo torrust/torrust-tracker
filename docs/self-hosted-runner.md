@@ -277,18 +277,34 @@ server# swapon --show
 
 ### 10. Prune Docker Storage Daily
 
-The jobs keep Docker layers and BuildKit cache mounts on local disk. A daily timer trims the build
-cache to 120 GiB (`docker system df` shows about 128.8 GB) and removes stale containers, images,
-and anonymous volumes; in-use cache and running containers are never removed. The trim runs once
-a day, so on busy days the cache grows well past it before the next run: on 2026-09-30 it reached
-187.6 GB (71% of the disk) by 10:30 UTC. The disk is sized to absorb that.
+The jobs keep Docker layers and BuildKit cache mounts on local disk. A daily timer runs
+[docker-ci-prune.sh](../contrib/dev-tools/self-hosted-runner/docker-ci-prune.sh), which trims the build
+cache to 120 GiB (`docker system df` shows about 128.8 GB) and removes stale containers, images, and
+anonymous volumes; in-use cache and running containers are never removed. The trim runs once a day,
+so on busy days the cache grows well past it before the next run: on 2026-09-30 it reached 187.6 GB
+(71% of the disk) by 10:30 UTC.
+
+The trim can fail without any error. On 2026-10-27 the disk was full and the prune had freed nothing
+for three days: BuildKit inside dockerd held references to 117 build results that no job owned, so
+all 253.6 GB of cache counted as in use, and only restarting `docker.service` released it (see
+[issue 2673](https://github.com/torrust/torrust-tracker/issues/2673)). The script therefore restarts
+`docker.service` and prunes again when the disk is still above 70% after the prune and no job is
+running (it looks for a `Runner.Worker` process), and it exits with an error when the disk is at or
+above 85%, so `systemctl --failed` lists `docker-ci-prune.service`. The restart stops running
+containers because Docker's live restore is off, which is why it waits for an idle runner. The
+trigger that leaves the state behind is not proven; a cancelled build is the suspect.
 
 ```bash
-server# printf '%s\n' '[Unit]' 'Description=Prune Docker build cache and unused objects for the CI runner' '' '[Service]' 'Type=oneshot' 'ExecStart=/usr/bin/docker builder prune --force --max-used-space 120GB' 'ExecStart=/usr/bin/docker container prune --force --filter until=24h' 'ExecStart=/usr/bin/docker image prune --force --filter until=168h' 'ExecStart=/usr/bin/docker volume prune --force' > /etc/systemd/system/docker-ci-prune.service
+desktop$ scp contrib/dev-tools/self-hosted-runner/docker-ci-prune.sh torrust-runner-01:/usr/local/sbin/docker-ci-prune
+server# chmod 0755 /usr/local/sbin/docker-ci-prune
+server# printf '%s\n' '[Unit]' 'Description=Prune Docker build cache and unused objects for the CI runner' '' '[Service]' 'Type=oneshot' 'TimeoutStartSec=1h' 'ExecStart=/usr/local/sbin/docker-ci-prune' > /etc/systemd/system/docker-ci-prune.service
 server# printf '%s\n' '[Unit]' 'Description=Daily Docker prune for the CI runner' '' '[Timer]' 'OnCalendar=*-*-* 04:00:00 UTC' 'Persistent=true' '' '[Install]' 'WantedBy=timers.target' > /etc/systemd/system/docker-ci-prune.timer
 server# systemctl daemon-reload && systemctl enable --now docker-ci-prune.timer
 server# systemctl start docker-ci-prune.service && systemctl list-timers docker-ci-prune.timer
 ```
+
+Run the script from the commit you deploy, and copy it again after every change to it. The script has
+tests: `bash contrib/dev-tools/self-hosted-runner/tests/test-docker-ci-prune.sh`.
 
 ### 11. Install and Register the Runner Agent
 
@@ -351,6 +367,8 @@ reports `runner_name` `torrust-runner-01` and passes.
 - Service: `systemctl status actions.runner.torrust-torrust-tracker.torrust-runner-01.service`.
 - Out-of-memory kills: `journalctl -k | grep "Killed process"`.
 - Disk and cache: `df -h /` and `docker system df`.
+- Cleanup: `systemctl --failed` (a failed `docker-ci-prune.service` means the disk stayed at or above
+  85%) and `journalctl -u docker-ci-prune.service --since "3 days ago"`.
 
 ### When the Runner Is Offline
 
@@ -368,14 +386,38 @@ publish jobs wait for `test`, so nothing is published until the job runs.
    An open PR picks up the fallback only after it is rebased onto it: a re-run keeps the workflow
    file of its original commit.
 
+### When the Disk Is Full
+
+Symptom: container jobs on the runner fail within seconds, `journalctl` shows `No space left on
+device`, and `df -h /` shows 100%. The daily prune can no longer free the Docker build cache; this
+happened on 2026-10-27 ([issue 2673](https://github.com/torrust/torrust-tracker/issues/2673)).
+
+1. Do not change anything while a job runs. Check the runner is idle:
+   `gh api repos/torrust/torrust-tracker/actions/runners -q '.runners[].busy'` prints `false`.
+2. Look before acting: `docker system df`, `docker buildx du | tail -2`, and
+   `docker system df -v | sed -n '/Build cache usage/,$p' | head`. A `*` after a cache id means Docker
+   counts that record as in use. A cache of hundreds of GB with `Reclaimable: 0B` and every record
+   starred is the stuck state.
+3. Restart Docker to release it: `systemctl restart docker.service`. This stops running containers
+   (live restore is off). Then run `systemctl start docker-ci-prune.service`. On 2026-10-27 the restart
+   alone freed 150 GB.
+4. If the disk is still full, delete the host Cargo target cache as described in "Cache Cleanup".
+5. Re-run the failed pull-request checks from each pull request's latest run, as in "When the Runner
+   Is Offline".
+
 ### Cache Cleanup
 
-The daily prune timer ("Prune Docker Storage Daily") trims the Docker build cache to 120 GiB once
-a day. To trim it earlier, run the timer's service: `systemctl start docker-ci-prune.service`. It
-only removes cache that no build is using, but run it while the runner is idle. The host-side
-Cargo target directories under `/home/runner/.cache/torrust-tracker/` are not pruned; if they grow
-too large, delete them (`rm -rf /home/runner/.cache/torrust-tracker/*-target`) while no job is
-running. The next job rebuilds them.
+The daily prune timer ("Prune Docker Storage Daily") runs `docker-ci-prune`, which trims the Docker
+build cache to 120 GiB, and restarts Docker when that cannot keep the disk below 70%. To run it
+earlier, run the timer's service: `systemctl start docker-ci-prune.service`. Run it while the runner
+is idle: the prune only removes cache that no build is using, and the restart stops containers.
+
+The host-side Cargo target directories under `/home/runner/.cache/torrust-tracker/` are not pruned
+automatically. The directory is reused by every job, and it measured 23 GB on 2026-10-27, thirty days
+after it was created. Deleting it costs the next job a full Cargo rebuild, so it is only a last
+resort: if the disk stays at or above 85% after the restart, the prune unit fails, and then you delete
+it (`rm -rf /home/runner/.cache/torrust-tracker/*-target`) while no job is running. Check its size
+with the disk commands in "Check the Runner" on each periodic check.
 
 ### Runner Agent Updates
 
