@@ -29,7 +29,7 @@ impl Scratch {
         write(
             root,
             "a/Cargo.toml",
-            &package("a", "[features]\ntesting = []\ninternal = []\n"),
+            &package("a", "[features]\ntesting = []\ninternal = []\nchained = [\"testing\"]\n"),
         );
         write(root, "a/src/lib.rs", "pub fn a() {}\n");
         write(
@@ -167,6 +167,63 @@ fn it_should_check_the_feature_named_by_the_forbidden_feature_option() {
         of_kind(&diagnostics(&named_feature), "validation_error")[0]["feature"],
         "internal"
     );
+}
+
+#[test]
+fn it_should_fail_when_the_shipped_package_enables_the_testing_feature_through_a_renamed_dependency() {
+    // Arrange: `b` depends on `a` under another name, with `testing` on.
+    let scratch = Scratch::new(
+        "[dependencies]\nrenamed = { package = \"a\", path = \"../a\", features = [\"testing\"] }\n",
+        "",
+    );
+
+    // Act
+    let output = scratch.run(&["--package", "b"]);
+
+    // Assert
+    assert_eq!(output.status.code(), Some(1));
+    assert_eq!(of_kind(&diagnostics(&output), "validation_error")[0]["package"], "a");
+}
+
+#[test]
+fn it_should_fail_when_the_shipped_package_enables_a_feature_that_implies_the_testing_feature() {
+    // Arrange: `a`'s `chained` feature turns on its `testing` feature, and `b` enables only `chained`.
+    let scratch = Scratch::new("[dependencies]\na = { path = \"../a\", features = [\"chained\"] }\n", "");
+
+    // Act
+    let output = scratch.run(&["--package", "b"]);
+
+    // Assert
+    assert_eq!(output.status.code(), Some(1));
+    assert_eq!(of_kind(&diagnostics(&output), "validation_error")[0]["feature"], "testing");
+}
+
+#[cfg(unix)]
+#[test]
+fn it_should_report_a_runtime_error_when_the_shipped_package_is_not_in_the_cargo_tree_output() {
+    // Arrange: a `cargo` whose `tree` prints a line in a format the check does not read as a workspace package, as if
+    // a new Cargo version printed paths differently. Passing the check on that output would hide a real violation.
+    use std::os::unix::fs::PermissionsExt as _;
+
+    let scratch = Scratch::new("", "");
+    let fake_cargo = scratch.directory.path().join("fake-cargo");
+    write(scratch.directory.path(), "fake-cargo", "#!/bin/sh\necho 'b v0.1.0|testing'\n");
+    fs::set_permissions(&fake_cargo, fs::Permissions::from_mode(0o755)).expect("make the fake cargo executable");
+
+    // Act
+    let output = Command::new(env!("CARGO_BIN_EXE_shipped-features-check"))
+        .args(["--package", "b"])
+        .env("CARGO", &fake_cargo)
+        .current_dir(scratch.directory.path())
+        .output()
+        .expect("run shipped-features-check");
+
+    // Assert
+    assert_eq!(output.status.code(), Some(1));
+    assert_eq!(output.stdout, b"");
+    let records = diagnostics(&output);
+    assert_eq!(records[0]["kind"], "runtime_error");
+    assert!(records[0]["message"].as_str().unwrap().contains("`b`"));
 }
 
 #[test]

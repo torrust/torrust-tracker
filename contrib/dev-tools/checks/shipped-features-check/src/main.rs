@@ -10,7 +10,7 @@ use std::io::{self, Write};
 use std::process::{Command, ExitCode};
 
 use serde::Serialize;
-use shipped_features_check::workspace_packages_with_feature;
+use shipped_features_check::{has_workspace_package, workspace_packages_with_feature};
 
 const EXIT_FAILURE: u8 = 1;
 const EXIT_USAGE_ERROR: u8 = 2;
@@ -84,6 +84,12 @@ fn check() -> Result<Vec<Record>, Failure> {
 
     for package in &arguments.packages {
         let tree = cargo_tree(package, arguments.features.as_deref()).map_err(Failure::Runtime)?;
+        if !has_workspace_package(&tree, package) {
+            return Err(Failure::Runtime(format!(
+                "`cargo tree --package {package}` did not list `{package}` as a workspace package, so the check cannot \
+                 tell whether a feature reaches it; the format of the `cargo tree` output may have changed"
+            )));
+        }
         let violations = workspace_packages_with_feature(&tree, &arguments.forbidden_feature);
 
         if violations.is_empty() {

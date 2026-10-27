@@ -28,7 +28,7 @@ pub fn workspace_packages_with_feature(tree: &str, feature: &str) -> Vec<Violati
     let violations: BTreeSet<Violation> = tree
         .lines()
         .filter_map(|line| {
-            let (package, features) = line.split_once('|')?;
+            let (package, features) = line.rsplit_once('|')?;
             let (name, version, location) = split_package(package)?;
             (is_local_path(location) && has_feature(features, feature)).then(|| Violation {
                 package: name.to_owned(),
@@ -39,6 +39,17 @@ pub fn workspace_packages_with_feature(tree: &str, feature: &str) -> Vec<Violati
         .collect();
 
     violations.into_iter().collect()
+}
+
+/// Whether `tree` has a workspace package called `name`, so a caller can tell a clean tree from one it
+/// could not read: if `cargo tree` changed how it prints a path, no line would parse as a workspace package.
+#[must_use]
+pub fn has_workspace_package(tree: &str, name: &str) -> bool {
+    tree.lines().any(|line| {
+        line.rsplit_once('|')
+            .and_then(|(package, _)| split_package(package))
+            .is_some_and(|(package_name, _, location)| package_name == name && is_local_path(location))
+    })
 }
 
 /// Splits `<name> v<version>[ (<location>)][ (proc-macro)]` into its name, version and location.
@@ -76,7 +87,7 @@ fn has_feature(features: &str, feature: &str) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use super::{Violation, workspace_packages_with_feature};
+    use super::{Violation, has_workspace_package, workspace_packages_with_feature};
 
     // Output of `cargo tree -p b -e normal,build --prefix none -f "{p}|{f}"` on a scratch workspace where
     // `b` depends on `a` and on `c`, and only `c` enables `a`'s `testing` feature.
@@ -199,6 +210,52 @@ proc-macro2 v1.0.107|default,proc-macro (*)
 
         // Assert
         assert_eq!(violations, vec![violation("macros", "v0.1.0")]);
+    }
+
+    #[test]
+    fn it_should_read_a_workspace_path_that_contains_a_pipe() {
+        // Arrange: a checkout whose directory name contains the `|` that separates the package from its features.
+        let tree = "a v0.1.0 (/home/some|user/a)|testing\n";
+
+        // Act
+        let violations = workspace_packages_with_feature(tree, "testing");
+
+        // Assert
+        assert_eq!(violations, vec![violation("a", "v0.1.0")]);
+    }
+
+    #[test]
+    fn it_should_find_a_workspace_package_by_name_in_the_tree() {
+        // Arrange: the shipped package `b` is the root line of a tree whose other packages are not it.
+
+        // Act
+        let found = has_workspace_package(TRANSITIVE_TREE, "b");
+
+        // Assert
+        assert!(found);
+    }
+
+    #[test]
+    fn it_should_not_find_a_package_that_is_absent_from_the_tree() {
+        // Arrange: the tree has the workspace packages `a`, `b` and `c`.
+
+        // Act
+        let found = has_workspace_package(TRANSITIVE_TREE, "missing");
+
+        // Assert
+        assert!(!found);
+    }
+
+    #[test]
+    fn it_should_not_find_a_package_whose_line_has_no_local_path() {
+        // Arrange: the tree's root line is not in the format of a workspace package, as if `cargo tree` changed it.
+        let tree = "b v0.1.0|\na v0.1.0 (/scratch/a)|\n";
+
+        // Act
+        let found = has_workspace_package(tree, "b");
+
+        // Assert
+        assert!(!found);
     }
 
     #[test]
