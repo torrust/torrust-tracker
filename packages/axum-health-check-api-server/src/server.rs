@@ -396,9 +396,13 @@ mod tests {
         let mut held_connection = std::net::TcpStream::connect(running.local_addr).expect("open the connection to hold");
         std::io::Write::write_all(&mut held_connection, b"GET /health_check HTTP/1.1\r\nHost: tracker\r\n")
             .expect("send a partial request header");
-        reqwest::get(format!("http://{}/health_check", running.local_addr))
-            .await
-            .expect("the server should answer once it has accepted the held connection");
+        tokio::time::timeout(
+            TEST_COMPLETION_TIMEOUT,
+            reqwest::get(format!("http://{}/health_check", running.local_addr)),
+        )
+        .await
+        .expect("the server should answer within the test deadline")
+        .expect("the server should answer once it has accepted the held connection");
 
         // Act
         cancellation_token.cancel();

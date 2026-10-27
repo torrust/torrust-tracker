@@ -71,9 +71,13 @@ async fn hold_partial_request_open(tracker: &NativeTracker) -> TcpStream {
     held_connection
         .write_all(b"GET /health_check HTTP/1.1\r\nHost: tracker\r\n")
         .expect("send a partial request header");
-    reqwest::get(format!("http://{address}/health_check")) // DevSkim: ignore DS137138
-        .await
-        .expect("the HTTP tracker should answer once it has accepted the held connection");
+    tokio::time::timeout(
+        std::time::Duration::from_secs(5),
+        reqwest::get(format!("http://{address}/health_check")), // DevSkim: ignore DS137138
+    )
+    .await
+    .expect("the HTTP tracker should answer within five seconds")
+    .expect("the HTTP tracker should answer once it has accepted the held connection");
     held_connection
 }
 
