@@ -139,9 +139,9 @@ mod tests {
     async fn it_should_answer_ok_with_a_json_status_ok_body() {
         let response = ok_response();
 
-        let sent = sent(response).await;
+        let observed = sent(response).await;
 
-        assert_eq!(sent, (StatusCode::OK, JSON.to_string(), r#"{"status":"ok"}"#.to_string()));
+        assert_eq!(observed, (StatusCode::OK, JSON.to_string(), r#"{"status":"ok"}"#.to_string()));
     }
 
     #[rstest]
@@ -153,9 +153,9 @@ mod tests {
     #[case::a_custom_message(bad_request_response("custom"), "custom")]
     #[tokio::test]
     async fn it_should_answer_a_bad_request_with_the_message_as_plain_text(#[case] response: Response, #[case] message: &str) {
-        let sent = sent(response).await;
+        let observed = sent(response).await;
 
-        assert_eq!(sent, (StatusCode::BAD_REQUEST, TEXT.to_string(), message.to_string()));
+        assert_eq!(observed, (StatusCode::BAD_REQUEST, TEXT.to_string(), message.to_string()));
     }
 
     #[rstest]
@@ -168,9 +168,9 @@ mod tests {
     ) {
         let response = disabled_by_configuration_response(reason);
 
-        let sent = sent(response).await;
+        let observed = sent(response).await;
 
-        assert_eq!(sent, (StatusCode::CONFLICT, JSON.to_string(), body.to_string()));
+        assert_eq!(observed, (StatusCode::CONFLICT, JSON.to_string(), body.to_string()));
     }
 
     #[rstest]
@@ -183,8 +183,11 @@ mod tests {
     ) {
         let response = unhandled_rejection_response(reason.to_string());
 
-        let sent = sent(response).await;
+        let observed = sent(response).await;
 
-        assert_eq!(sent, (StatusCode::INTERNAL_SERVER_ERROR, TEXT.to_string(), body.to_string()));
+        assert_eq!(
+            observed,
+            (StatusCode::INTERNAL_SERVER_ERROR, TEXT.to_string(), body.to_string())
+        );
     }
 }
