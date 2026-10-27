@@ -9,7 +9,7 @@ github-issue: 2670
 spec-path: docs/issues/open/2670-2482-build-shipped-artifacts-without-test-features/ISSUE.md
 branch: "2670-2482-build-shipped-artifacts-without-test-features"
 related-pr: null
-last-updated-utc: "2026-10-27 20:13"
+last-updated-utc: "2026-10-27 20:14"
 semantic-links:
   skill-links:
     - create-issue
@@ -271,7 +271,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T3 | DONE | Create the check crate, test first | Parser tests from real `cargo tree` output; scratch-workspace red and green tests; registered as a workspace member and admitted in `.dockerignore`; `cargo machete` and `cargo deny` pass |
 | T4 | IN_PROGRESS | Add the check as a job in `testing.yaml` | Job runs the check for `torrust-tracker`; follows `implement-workflow` |
 | T5 | DONE | Add the shipped cook and build stages for the release and debug images; point `test` and `test_debug` at the shipped binary; take `/app/bin` from it | Both targets build; every baseline test is still present and passing, and the delta for new tests (T2 adds some, compiled into the targets that include `tests/common/native_tracker`) is recorded; times recorded |
-| T6 | TODO | Amend ADR 20260603; update `docs/containers.md` | Docs describe the two builds, the override variable and the check |
+| T6 | DONE | Amend ADR 20260603; update `docs/containers.md` | Docs describe the two builds, the override variable and the check |
 
 ## Commit Points
 
@@ -322,13 +322,14 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-10-27 14:55 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 9) - T3 is done: the `shipped-features-check` crate parses `cargo tree -e normal,build` output and fails on a workspace `testing` feature in a shipped package's tree (9 parser tests and 7 scratch-workspace tests, each red before green, two mutations for the negative tests). The real workspace passes vacuously (M4) and the scratch fixture fails and passes as it should (M5). The crate is a workspace member but not a default member, is admitted in `.dockerignore`, and is listed in the `AGENTS.md` catalogue and the CLI output contract ADR. The maintainer (josecelano) reviewed the increments and approved them through `ask_user` before the commit.
 - 2026-10-27 14:57 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 9) - Added the `Shipped Features` job to `testing.yaml` (T4), which runs `cargo run --package shipped-features-check -- --package torrust-tracker`; `linter yaml` and `git diff --check` pass and the same command passes locally (V4). The spec's commit point asks for the job to pass in a fork or pull request first, but the implementation pull request is the first hosted run, so T4 stays IN_PROGRESS and M6 stays TODO until that run is recorded.
 - 2026-10-27 20:13 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 9) - T5 is done: the `Containerfile` has shipped cook and build stages for the release and debug images (`cargo build` without test flags or features), the `test` stages run the native-tracker tests against the shipped binary through `TORRUST_TRACKER_BINARY`, and `/app/bin` takes the shipped binaries. Both targets build; 0 of the 1531 baseline tests are missing and 6 were added (T2's tests); cold builds cost +17 s (release) and +18 s (debug) and the warm release rebuild +8 s (V2). The override is honoured: pointing it at a missing file fails the native-tracker tests (V3). An interrupted warm run and a fully cached rerun were discarded and the warm run repeated with a different change.
+- 2026-10-27 20:14 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 9) - T6 is done: `docs/containers.md` describes the test build, the shipped build, `TORRUST_TRACKER_BINARY` and the check, and ADR 20260603 carries an amendment note that narrows its "exact binary" claim. Ticked AC1, AC2 and AC4 (validated by the AI assistant against V0 to V3). AC3 stays open until the `Shipped Features` job has run on the implementation pull request (M6).
 
 ## Acceptance Criteria
 
-- [ ] AC1: Every command that produces a shipped artifact is listed with its flags (the audit
+- [x] AC1: Every command that produces a shipped artifact is listed with its flags (the audit
       table), and none of the shipped-artifact builds uses `--all-features`, `--all-targets`,
       `--tests`, `--examples` or `--benches`.
-- [ ] AC2: The image's shipped binaries are built by `cargo build` invocations of their own with
+- [x] AC2: The image's shipped binaries are built by `cargo build` invocations of their own with
       explicit features; the `test` and `test_debug` stages still run the nextest archive, every
       baseline test (T1) is still present and passing, the delta for new tests is recorded, and
       the native-tracker tests run against the shipped binary.
@@ -336,7 +337,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
       normal or build dependency tree (shown by an automated scratch-workspace test), passes when
       only a dev-dependency enables it, and passes on the real workspace; the `testing.yaml` job
       runs it.
-- [ ] AC4: `docs/containers.md` describes the builds, the `TORRUST_TRACKER_BINARY` variable and the
+- [x] AC4: `docs/containers.md` describes the builds, the `TORRUST_TRACKER_BINARY` variable and the
       check; ADR 20260603 carries its amendment note.
 - [ ] `linter all` exits with code `0`; pre-push checks pass; the container workflow is green.
 
@@ -367,10 +368,10 @@ applies, except that this subissue moves no test code. The workflow changes foll
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1   | TODO                   |          |
-| AC2   | TODO                   |          |
+| AC1   | DONE                   | V0 (audit) and V2 (build log); validated by the AI assistant |
+| AC2   | DONE                   | V2 (builds, 0 of 1531 baseline tests missing, 6 added) and V3 (override); validated by the AI assistant |
 | AC3   | TODO                   |          |
-| AC4   | TODO                   |          |
+| AC4   | DONE                   | `docs/containers.md` and the ADR 20260603 amendment; validated by the AI assistant |
 
 ## Design evidence
 
