@@ -1,12 +1,12 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2673-runner-disk-full-build-cache-not-pruned/ISSUE.md
-last-updated-utc: 2026-10-27 10:30
+last-updated-utc: 2026-10-27 10:57
 ---
 
 # Manual Verification Evidence
 
-<!-- cspell:ignore ardinghelli fsverity inodes journalctl keldysh moby overlayfs -->
+<!-- cspell:ignore ardinghelli fsverity inodes journalctl keldysh moby overlayfs rwxr -->
 
 ## Purpose
 
@@ -266,22 +266,41 @@ The test fails for the missing restart, readiness wait, and failure exit status,
 ### V6 - Deploy the script and recheck on the runner (T7)
 
 - Goal: install the script, run it once under systemd, and watch the first scheduled runs.
-- Initial state: to be recorded when run. Name the commit under test by its Conventional Commit subject.
-- Status: `TODO`
+- Initial state: the runner idle (GitHub API `busy: false` and no `Runner.Worker` process, checked before every step), `/` at 49% used, build cache 121.1 GB. Artifact under test: the script from the branch commit `docs(issues): [#2673] update the specification and evidence for the cleanup fix` (the script itself last changed in `chore(self-hosted-runner): [#2673] fix the spelling check in the cleanup script`), installed before that branch was merged.
+- Status: `IN_PROGRESS` (deployed and run once by hand; the three scheduled runs are pending)
 
 #### Steps Performed
 
-To be recorded when executed, with the maintainer's explicit approval and only while the runner is idle.
+All on 2026-10-27 UTC, with the maintainer's approval in chat ("Deploy now from the branch, once the runner is idle").
+
+1. 10:54:43 Saved the old unit: `cp -p /etc/systemd/system/docker-ci-prune.service /root/docker-ci-prune.service.before-2673` (the old unit had four `ExecStart=/usr/bin/docker ... prune` lines).
+2. 10:54:49 `scp contrib/dev-tools/self-hosted-runner/docker-ci-prune.sh torrust-runner-01:/usr/local/sbin/docker-ci-prune`, then `chmod 0755` and `sha256sum` on both sides.
+3. 10:54:56 Ran the unit-writing `printf` command from `docs/self-hosted-runner.md` setup step 10 (extracted from the document, so the document was exercised), then `systemctl daemon-reload` and `systemd-analyze verify`.
+4. 10:55:03 `systemctl start docker-ci-prune.service`, then `journalctl -u docker-ci-prune.service`, `df`, `docker system df`, `systemctl is-failed`.
 
 #### Observed Result
 
 ```text
-Not yet run.
+sha256 (repo and runner): c2af7c81ca8a1811200612c8c89d0390fcd739c4a3d0e8700811ba566414542f
+/usr/local/sbin/docker-ci-prune: -rwxr-xr-x root root 2911 bytes; bash -n: syntax-ok
+systemd-analyze verify: verify-ok (two unrelated xfs_scrub warnings)
+unit now: Type=oneshot, TimeoutStartSec=1h, ExecStart=/usr/local/sbin/docker-ci-prune
+
+systemctl start docker-ci-prune.service: exit 0, Result=success, ExecMainStatus=0
+journal (trimmed): Total: 0B (build cache) / Total reclaimed space: 0B (containers) / 0B (images)
+                   / 99.57kB (3 anonymous volumes deleted)
+                   Disk usage after the prune: 49%.
+                   docker-ci-prune.service: Deactivated successfully.
+before and after:  /dev/sda1 301G, 141G used, 147G free, 49%; Build Cache 206 records, 121.1GB, 120.8GB reclaimable
+systemctl is-failed docker-ci-prune.service: inactive (it prints "failed" after a failed run)
+next scheduled run: Wed 2026-10-28 04:00:00 UTC
 ```
+
+Check that checks work again: the `Test (Docker) (release)` job of the pull request for this issue's branch ran on `torrust-runner-01` from 10:41:43 to 10:54:29 UTC and succeeded, with the disk at 49% and the cache at 121 GB.
 
 #### Conclusion
 
-Pending.
+Deployed and working for the no-restart path: the prune ran, the disk is 49%, and the unit succeeded. Not yet shown on the runner: the restart path (the disk was below the 70% threshold, so it did not run) and three consecutive scheduled daily runs. The first scheduled run is 2026-10-28 04:00 UTC. Record them here, or run a controlled check of the restart path with a lowered `DOCKER_CI_PRUNE_RESTART_ABOVE_PERCENT` on an idle runner with the maintainer's approval.
 
 ## Failures and Follow-up
 

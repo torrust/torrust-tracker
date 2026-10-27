@@ -290,7 +290,7 @@ all 253.6 GB of cache counted as in use, and only restarting `docker.service` re
 [issue 2673](https://github.com/torrust/torrust-tracker/issues/2673)). The script therefore restarts
 `docker.service` and prunes again when the disk is still above 70% after the prune and no job is
 running (it looks for a `Runner.Worker` process), and it exits with an error when the disk is at or
-above 85%, so `systemctl --failed` lists `docker-ci-prune.service`. The restart stops running
+above 85%, so `systemctl is-failed docker-ci-prune.service` prints `failed`. The restart stops running
 containers because Docker's live restore is off, which is why it waits for an idle runner. The
 trigger that leaves the state behind is not proven; a cancelled build is the suspect.
 
@@ -367,8 +367,9 @@ reports `runner_name` `torrust-runner-01` and passes.
 - Service: `systemctl status actions.runner.torrust-torrust-tracker.torrust-runner-01.service`.
 - Out-of-memory kills: `journalctl -k | grep "Killed process"`.
 - Disk and cache: `df -h /` and `docker system df`.
-- Cleanup: `systemctl --failed` (a failed `docker-ci-prune.service` means the disk stayed at or above
-  85%) and `journalctl -u docker-ci-prune.service --since "3 days ago"`.
+- Cleanup: `systemctl is-failed docker-ci-prune.service` (`failed` means the disk stayed at or above
+  85%; `systemctl --failed` lists every failed unit, including unrelated ones) and
+  `journalctl -u docker-ci-prune.service --since "3 days ago"`.
 
 ### When the Runner Is Offline
 

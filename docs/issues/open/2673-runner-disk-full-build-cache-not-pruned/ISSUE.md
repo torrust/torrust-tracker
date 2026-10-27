@@ -9,7 +9,7 @@ github-issue: 2673
 spec-path: docs/issues/open/2673-runner-disk-full-build-cache-not-pruned/ISSUE.md
 branch: "2673-runner-disk-full-build-cache-not-pruned-spec"
 related-pr: null
-last-updated-utc: "2026-10-27 10:30"
+last-updated-utc: "2026-10-27 10:57"
 semantic-links:
   skill-links:
     - create-issue
@@ -128,7 +128,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T4  | DONE   | Make the daily cleanup release the orphaned build state                                               | Done: restart `docker.service` when the disk is still at or above 70% after the prune and no `Runner.Worker` runs, wait for Docker, prune again. 8 of 8 tests green (commit `fix(self-hosted-runner): [#2673] restart dockerd when the daily prune cannot free the disk`). |
 | T5  | DONE   | Make a failed cleanup visible and decide the host Cargo target cache policy                           | Done: the script exits non-zero at or above 85%, so `systemctl --failed` lists the unit. Policy: not pruned automatically, last-resort deletion documented in the guide. Notifications deferred. |
 | T6  | IN_PROGRESS | Update the runner guide, record the deferred proposals, and add the next health report            | Guide updated and `deferred-proposals.md` written. Open: the follow-up health report after deployment. |
-| T7  | TODO   | Deploy the script and verify green and recheck like-for-like                                          | Script installed on the runner with the maintainer's approval, `docker-ci-prune.service` run, and the first scheduled runs recorded in V6. The disk stays below 70% (or the restart path runs and works) across at least three daily runs. |
+| T7  | IN_PROGRESS | Deploy the script and verify green and recheck like-for-like                                          | Script installed on the runner with the maintainer's approval, `docker-ci-prune.service` run, and the first scheduled runs recorded in V6. Done: installed and run once by hand (V6). Open: the restart path on the runner and at least three scheduled daily runs, the first on 2026-10-28 04:00 UTC. The disk stays below 70% (or the restart path runs and works) across at least three daily runs. |
 
 Follow the Required Sequence of the `fix-bug` skill: T3 red before T4, and T7 after the last production change.
 
@@ -168,13 +168,14 @@ T2 and T7 change the runner, not the repository; their results are recorded as e
 - 2026-10-27 09:50 UTC - GitHub Copilot (Claude Opus 5.5) - Maintainer approved the draft as a standalone issue (no parent EPIC) with a spec-only PR first; created GitHub issue 2673 and moved the specification to `docs/issues/open/`
 - 2026-10-27 10:12 UTC - GitHub Copilot (Claude Opus 5.5) - T1 diagnosis rejected the four-container hypothesis and named the pinned state; T2 recovered the runner with the maintainer's approval (`/` 100% to 42%, cache 253.6 GB to 100 GB, restart of `docker.service` released the pinned state); the leak trigger and the fix design remain open - [manual-verification-evidence.md](manual-verification-evidence.md)
 - 2026-10-27 10:28 UTC - GitHub Copilot (Claude Opus 5.5) - Maintainer decided: fix the problem, no notifications and no scheduled workflows for now, write the proposals down. Implemented `docker-ci-prune.sh` with an idle-guarded dockerd restart and a failure exit above 85% (red tests first, then the fix), updated the runner guide, and wrote `deferred-proposals.md`. Not yet deployed to the runner - [manual-verification-evidence.md](manual-verification-evidence.md) V5
+- 2026-10-27 10:56 UTC - GitHub Copilot (Claude Opus 5.5) - Deployed the script and the new unit to the runner with the maintainer's approval while it was idle, and ran the service once (success, disk 49%). The `Test (Docker)` job of the pull request for this issue passed on the runner. Pending: the restart path on the runner and three scheduled daily runs, the first on 2026-10-28 04:00 UTC - V6
 
 ## Acceptance Criteria
 
 - [ ] AC1: The cause that keeps the Docker build cache from being reclaimed is identified with evidence: BuildKit inside dockerd holds orphaned build state that only a daemon restart releases (V2, V4). The trigger that creates that state is not proven and is deferred (see [deferred-proposals.md](deferred-proposals.md), R1).
 - [ ] AC2: The daily cleanup releases that state without a person: when the disk is still at or above 70% after the prune and no job runs, it restarts `docker.service` and prunes again; it never restarts while a job runs. Shown by the maintained test and by a run on the runner (V5, V6).
 - [ ] AC3: After deployment, the daily prune keeps the build cache near its 120 GiB target and the disk below 70%, or the restart path runs and brings it back, across at least three consecutive daily runs (V6).
-- [ ] AC4: A cleanup that cannot keep the disk below 85% makes `docker-ci-prune.service` fail, so `systemctl --failed` lists it, and the runner guide says where to look. Notifications and scheduled workflows are out of scope.
+- [ ] AC4: A cleanup that cannot keep the disk below 85% makes `docker-ci-prune.service` fail, so `systemctl is-failed docker-ci-prune.service` prints `failed`, and the runner guide says where to look. Notifications and scheduled workflows are out of scope.
 - [ ] AC5: The host Cargo target cache has a documented cleanup policy.
 - [ ] AC6: `docker-ci-prune.sh` has a maintained test, and `docs/self-hosted-runner.md` matches the behavior and no longer states that the disk absorbs the cache growth without evidence.
 - [ ] `linter all` exits with code `0`
@@ -200,7 +201,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | --- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ------ | -------------------------------------------- |
 | M1  | Reproduce the symptom: full disk and a prune that frees nothing | On `torrust-runner-01`: `df -h /`, `docker system df`, `docker ps -a`, and `journalctl -u docker-ci-prune.service`; `gh run list` for failed container runs | `/` is full, the cache is not reclaimable, and the prune frees 0 B                       | DONE   | `manual-verification-evidence.md` section V1 |
 | M2  | Find what pins the cache and reproduce the trigger | Offline analysis of `docker buildx du --verbose` and `ctr -n moby snapshots ls`; a local cancelled build; a cancelled build on the runner | The pinned state is named, and a cancelled build on the runner stack leaves in-use state | BLOCKED | `manual-verification-evidence.md` section V2: state named, local substitute negative; the runner-stack reproduction is deferred (R1 in `deferred-proposals.md`) because the maintainer did not approve a test build on the production runner |
-| M3  | Deploy the script and recheck after the last production change (T7) | Copy `docker-ci-prune.sh` to the runner with the maintainer's approval, update `docker-ci-prune.service`, run `systemctl start docker-ci-prune.service`, and read the first scheduled runs with `journalctl -u docker-ci-prune.service` and `systemctl --failed` | The unit succeeds, the disk stays below 70% or the restart path brings it back, and nothing is listed as failed, across three daily runs | TODO | `manual-verification-evidence.md` section V6 |
+| M3  | Deploy the script and recheck after the last production change (T7) | Copy `docker-ci-prune.sh` to the runner with the maintainer's approval, update `docker-ci-prune.service`, run `systemctl start docker-ci-prune.service`, and read the first scheduled runs with `journalctl -u docker-ci-prune.service` and `systemctl --failed` | The unit succeeds, the disk stays below 70% or the restart path brings it back, and nothing is listed as failed, across three daily runs | IN_PROGRESS | `manual-verification-evidence.md` section V6: deployed and run once; three scheduled runs pending |
 | M4  | Recover the runner with the maintainer's approval (T2)         | While the runner is idle: delete the host Cargo target cache, remove the four containers, `systemctl restart docker.service`, `systemctl start docker-ci-prune.service` | `/` is below 70% used and the build cache is reclaimable                                 | DONE   | `manual-verification-evidence.md` section V4 |
 
 Notes:
