@@ -12,6 +12,7 @@
 //! In that case it would not need to notify a parent process.
 use std::net::SocketAddr;
 use std::sync::Arc;
+use std::time::Duration;
 
 use axum_server::tls_rustls::RustlsConfig;
 use tokio_util::sync::CancellationToken;
@@ -62,6 +63,7 @@ pub async fn start_job(
     metadata: RuntimeServiceMetadata,
     version: Version,
     cancellation_token: CancellationToken,
+    drain_timeout: Duration,
 ) -> Result<Option<impl Future<Output = ComponentResult> + Send + 'static>, Error> {
     let socket = http_tracker_container.http_tracker_config.bind_address;
 
@@ -79,7 +81,16 @@ pub async fn start_job(
 
     match version {
         Version::V1 => Ok(Some(
-            start_v1(socket, tls, http_tracker_container, form, metadata, cancellation_token).await?,
+            start_v1(
+                socket,
+                tls,
+                http_tracker_container,
+                form,
+                metadata,
+                cancellation_token,
+                drain_timeout,
+            )
+            .await?,
         )),
     }
 }
@@ -102,11 +113,13 @@ async fn start_v1(
     form: ServiceRegistrationForm<RuntimeServiceMetadata>,
     metadata: RuntimeServiceMetadata,
     cancellation_token: CancellationToken,
+    drain_timeout: Duration,
 ) -> Result<impl Future<Output = ComponentResult> + Send + 'static, Error> {
     let server = HttpServer::new(Launcher::new(
         socket,
         tls,
         http_tracker_container.http_tracker_config.network.ipv6_v6only,
+        drain_timeout,
     ))
     .start_with_cancellation(http_tracker_container, form, metadata, cancellation_token.clone())
     .await
@@ -239,6 +252,7 @@ mod tests {
             RuntimeServiceMetadata::new(configuration_instance_id),
             version,
             cancellation_token.clone(),
+            cfg.application.shutdown.http_drain_in_secs.as_duration(),
         )
         .await
         .expect("it should be able to start the HTTP tracker")
@@ -340,6 +354,7 @@ mod tests {
             RuntimeServiceMetadata::new(instance_id),
             Version::V1,
             CancellationToken::new(),
+            configuration.application.shutdown.http_drain_in_secs.as_duration(),
         )
         .await;
 
@@ -368,6 +383,7 @@ mod tests {
             RuntimeServiceMetadata::new(instance_id),
             Version::V1,
             CancellationToken::new(),
+            configuration.application.shutdown.http_drain_in_secs.as_duration(),
         )
         .await;
 

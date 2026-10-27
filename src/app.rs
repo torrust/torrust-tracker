@@ -575,6 +575,7 @@ async fn start_http_instance(
             .with_public_url(http_tracker_config.public_url.as_ref().map(|url| url.as_url().clone())),
         torrust_tracker_axum_http_server::Version::V1,
         reservation.cancellation_token(),
+        app_container.application_config.shutdown.http_drain_in_secs.as_duration(),
     )
     .await
     .map_err(|source| Error::ServiceStartup {
