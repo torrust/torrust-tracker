@@ -7,9 +7,9 @@ priority: p2
 epic: 1978
 github-issue: 2466
 spec-path: docs/issues/open/2466-1978-announce-interval-upper-bound/ISSUE.md
-branch: "2466-1978-announce-interval-upper-bound-spec"
+branch: "2466-1978-announce-interval-upper-bound"
 related-pr: null
-last-updated-utc: "2026-10-07 13:12"
+last-updated-utc: "2026-10-27 15:00"
 semantic-links:
   skill-links:
     - create-issue
@@ -78,6 +78,20 @@ Recorded with the maintainer on 2026-10-07:
    (`2147483647`).
 6. **ADR.** The rule in decision 1 is recorded as a repository-wide ADR, because it will apply to
    other numeric configuration values and future delivery protocols.
+7. **Type name** (recorded 2026-10-27, before implementation). The bounded type is `AnnounceIntervalInSecs`, following the
+   `IpBansResetIntervalInSecs` precedent.
+8. **Representation and accessors.** The type wraps a `u32`. `get()` returns `u32`, and
+   `From<AnnounceIntervalInSecs>` is implemented for `i64` (HTTP), and `get_i32()` returns the
+   value as `i32` (UDP). Neither clamps, because the bound guarantees both conversions are
+   infallible.
+9. **Constructors.** `new(u32)` and `TryFrom<u32>` are fallible; `From<u16>` is infallible
+   because every `u16` is within the bound, which keeps tests and literals ergonomic.
+10. **Error naming the field.** The type's error states the value and the limit; the field name
+    comes from the key path of the TOML loader error. The configuration-load tests assert that the
+    final load error contains all three. If the loader error does not name the key, the maintainer
+    is consulted before adding any per-field wrapper, which the ADRs discourage.
+11. **Serialization and v2.** `Serialize` emits a plain integer, so configuration round-trips and
+    generated documentation are unchanged. `v2_0_0` inherits the bound, as already scoped.
 
 ## Scope
 
@@ -176,7 +190,7 @@ with the narrow affected scope.
 - [x] Folder-style spec drafted in `docs/issues/drafts/1978-announce-interval-upper-bound/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] Spec-only PR merged into `develop` before implementation
+- [x] Spec-only PR merged into `develop` before implementation (PR #2468)
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
@@ -195,6 +209,7 @@ with the narrow affected scope.
 - 2026-10-07 08:59 UTC - GitHub Copilot - Maintainer approved the specification; created #2466, reopened #1978 and linked #2466 as its subissue; moved this spec to `docs/issues/open/` - Specification PR
 - 2026-10-07 10:24 UTC - GitHub Copilot - Applied PR #2468 round-1 review fixes: reproduced the defect before implementation (V0, Reproduced), added the red-run regression task and the migration-guide task, asserted field, value, and limit in tests and scenarios, restored the verification notes and two template checkpoints, scoped the v2 inheritance, and cited #2245 by issue number - In review
 - 2026-10-07 13:12 UTC - josecelano - Kept one type for `interval` and `interval_min` because both measure the same quantity, although no protocol bounds `interval_min` (Copilot's review overview had noted the missing protocol justification) - Chat decision
+- 2026-10-27 15:00 UTC - josecelano - Pre-implementation questions answered: type `AnnounceIntervalInSecs` wrapping `u32`, infallible `From` to `i64` plus `get_i32()` for UDP, fallible `new(u32)` plus `From<u16>`, field name taken from the loader key path, serialization and v2 inheritance confirmed (decisions 7-11) - Chat decision
 
 ## Acceptance Criteria
 
