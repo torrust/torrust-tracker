@@ -18,6 +18,7 @@ semantic-links:
     - docs/profiling.md
     - docs/release_process.md
     - docs/self-hosted-runner.md
+    - docs/self-hosted-runner-reports/README.md
     - docs/testing/README.md
     - docs/adrs/README.md
     - docs/adrs/index.md
@@ -51,6 +52,7 @@ Operational and development guides for working with the tracker.
 | [schemas/README.md](schemas/README.md)                                                                                                                                             | Generated frontmatter JSON Schema: regeneration, drift check, Rust-only invariants |
 | [security/README.md](security/README.md)                                                                                                                                           | Security processes, analysis catalogs, scanning, and disclosure routing    |
 | [self-hosted-runner.md](self-hosted-runner.md)                                                                                                                                     | Set up and operate the self-hosted CI runner for the container test jobs   |
+| [self-hosted-runner-reports/README.md](self-hosted-runner-reports/README.md) | Periodic health reports for the self-hosted CI runner: CPU, disk space, and cleanup |
 | [testing.md](testing.md)                                                                                                                                                           | Test-layer selection strategy, evidence boundaries, and validation owners  |
 | [testing/README.md](testing/README.md)                                                                                                                                             | Testing guidance and a catalog of durable test-design refactoring patterns |
 | [adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md](adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md) | Governance for portable AI-agent workflows and retained context            |
@@ -195,6 +197,7 @@ that type.
 | [templates/PR-REVIEW-RETROSPECTIVE.md](templates/PR-REVIEW-RETROSPECTIVE.md)           | Template for PR review retrospectives, when warranted             |
 | [templates/PR-REVIEW-TEMPLATE.md](templates/PR-REVIEW-TEMPLATE.md)                     | Template for tracking all PR review findings and responses        |
 | [templates/REVIEW-FINDINGS.md](templates/REVIEW-FINDINGS.md)                           | Advisory reviewer finding format for inline review threads        |
+| [templates/RUNNER-HEALTH-REPORT.md](templates/RUNNER-HEALTH-REPORT.md) | Template for periodic self-hosted runner health reports |
 
 ## Media
 

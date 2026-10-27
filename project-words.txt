@@ -306,6 +306,7 @@ infohashes
 infoschema
 initialisation
 inlines
+inodes
 intervali
 io_uring
 isready
@@ -313,14 +314,17 @@ issuecomment
 iterationsadd
 jdbe
 josecelano
+journalctl
 kallsyms
 kcachegrind
 kentbeck
 kexec
 keyout
 kptr
+kswapd
 ksys
 lcov
+ldavg
 leafification
 leecher
 leechers
@@ -336,6 +340,7 @@ libstdc
 libtorrent
 libz
 llist
+loadavg
 lscr
 lycheeignore
 lycheeverse
@@ -355,6 +360,7 @@ misresolved
 mktemp
 mmap
 mmdb
+moby
 mockall
 monomorphisation
 mprotect
@@ -401,6 +407,7 @@ organisation
 organised
 ostr
 overengineered
+overlayfs
 parallelisable
 parallelise
 parallelised
@@ -455,6 +462,7 @@ reqs
 reqwest
 rerequests
 rescope
+retag
 reuseaddr
 ringbuf
 ringsize
@@ -515,9 +523,11 @@ substeps
 suffixless
 summarising
 supertrait
+swapon
 syscall
 sysmalloc
 sysret
+sysstat
 taiki
 taplo
 taskkill
@@ -539,6 +549,7 @@ topo
 torru
 torrust
 torrustracker
+tostring
 trackerid
 triaging
 trivy
