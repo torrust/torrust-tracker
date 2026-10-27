@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# cspell:ignore pcent
 # Daily cleanup of Docker state on the self-hosted CI runner (see docs/self-hosted-runner.md).
 #
 # Prunes the Docker build cache and stale Docker objects. Runs as root from docker-ci-prune.service.
