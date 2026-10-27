@@ -7,9 +7,9 @@ priority: p2
 epic: 1347
 github-issue: 2637
 spec-path: docs/issues/open/2637-1347-add-tests-axum-rest-api-server/ISSUE.md
-branch: "2637-1347-add-tests-axum-rest-api-server-auth"
-related-pr: 2667
-last-updated-utc: "2026-10-27 08:07"
+branch: "2637-1347-add-tests-axum-rest-api-server-routes"
+related-pr: null
+last-updated-utc: "2026-10-27 14:58"
 semantic-links:
   skill-links:
     - create-issue
@@ -403,8 +403,8 @@ ledger order inside each slice is still confirmed with the first plan (T3).
 | Slice | Content | Ledger rows | Branch | PR | Status |
 | --- | --- | --- | --- | --- | --- |
 | S0 | This specification, the T1 coverage evidence and inventory, and the EPIC registration with the baseline | - | `2637-1347-add-tests-axum-rest-api-server-spec` | #2638 | DONE |
-| S1 | T2-T3, then authentication and the shared response contract (ranks 1 and 3) | 1, 5 | `2637-1347-add-tests-axum-rest-api-server-auth` | #2667 | IN_PROGRESS |
-| S2 | Route composition, transport layers and the health check (rank 2) | 2-4 | `2637-1347-add-tests-axum-rest-api-server-routes` | TBD | PENDING |
+| S1 | T2-T3, then authentication and the shared response contract (ranks 1 and 3) | 1, 5 | `2637-1347-add-tests-axum-rest-api-server-auth` | #2667 | DONE |
+| S2 | Route composition, transport layers and the health check (rank 2) | 2-4 | `2637-1347-add-tests-axum-rest-api-server-routes` | TBD | IN_PROGRESS |
 | S3 | State-changing contexts: auth keys and whitelist (rank 4) | 6-11 | `2637-1347-add-tests-axum-rest-api-server-commands` | TBD | PENDING |
 | S4 | Read-only contexts: torrents and statistics (rank 5) | 12-17 | `2637-1347-add-tests-axum-rest-api-server-queries` | TBD | PENDING |
 | S5 | Server lifecycle (rank 6) | 18 | `2637-1347-add-tests-axum-rest-api-server-lifecycle` | TBD | PENDING |
@@ -533,7 +533,7 @@ declaration-only rows have no executable entries.
 | Order | Source module | Rank | Slice | Unit-only lines | Tests | Initial hypothesis | State | Plan |
 | ---: | --- | ---: | --- | ---: | ---: | --- | --- | --- |
 | 1 | `v1/middlewares/auth.rs` | 1 | S1 | 71 / 103 (68.93%) | 4 | Property candidate | DONE | [v1-middlewares-auth-tests.md](test-refactor-plans/v1-middlewares-auth-tests.md) (done; 142 / 142 lines after, 27 test cases, 8 mutants killed, property test declined) |
-| 2 | `v1/routes.rs` | 2 | S2 | 27 / 45 (60.00%) | 0 | Test candidate | PENDING | - |
+| 2 | `v1/routes.rs` | 2 | S2 | 27 / 45 (60.00%) | 0 | Test candidate | IN_PROGRESS | [v1-routes-tests.md](test-refactor-plans/v1-routes-tests.md) (proposed) |
 | 3 | `routes.rs` | 2 | S2 | 58 / 67 (86.57%) | 0 | Test candidate | PENDING | - |
 | 4 | `v1/context/health_check/handlers.rs` | 2 | S2 | 4 / 4 (100.00%) | 0 | Test candidate (small) | PENDING | - |
 | 5 | `v1/responses.rs` | 3 | S1 | 8 / 40 (20.00%) | 0 | Test candidate | DONE | [v1-responses-tests.md](test-refactor-plans/v1-responses-tests.md) (done; 66 / 66 lines after, 8 test cases, 8 mutants killed) |
@@ -658,6 +658,13 @@ once. If the slicing changes, the Slice column changes with it.
   again: unit-only lines 921 / 1,305 (70.57%), aggregate 1,161 / 1,305 (88.97%), integration-only 674 / 908
   (74.23%); 46 unit tests. Updated the EPIC "Latest" values.
 - 2026-10-27 08:07 UTC - GitHub Copilot - Recorded S1 pull request #2667 (<https://github.com/torrust/torrust-tracker/pull/2667>) with `Related to #2637`, opened at 07:32 UTC after both independent reviews; recorded its number in the frontmatter and the slice table after Copilot's review (finding F1 of the PR #2667 audit).
+- 2026-10-27 14:58 UTC - GitHub Copilot - S1 merged through #2667 (11:47 UTC, with your ACK at 10:23 UTC;
+  Copilot's one nit F1 was fixed before the merge). Closed the loop on the late #2638 findings F5 to F9: the
+  fixes are on `develop`, I replied to and resolved the five threads (14:55 UTC) and set their audit rows to
+  `FIXED`/`RESOLVED` in the first commit of this branch. Started S2 on branch
+  `2637-1347-add-tests-axum-rest-api-server-routes` from `develop` at the merge of #2672. The package is
+  byte-identical to the S1 head, so the S1 measurement is the S2 baseline (unit-only lines 921 / 1,305,
+  70.57%). Row 2 (`v1/routes.rs`) is `IN_PROGRESS`; its plan is proposed and awaits the maintainer.
 
 ## Acceptance Criteria
 
