@@ -121,6 +121,51 @@ RUN cargo nextest archive --tests --all-features \
     --archive-file /build/temp.tar.zst --release && rm -f /build/temp.tar.zst
 
 
+# The binaries that ship are built by `cargo build` invocations of their own, never taken from the
+# nextest archives above: `--tests` and `--all-features` enable dev-dependency features and every
+# feature, which would ship every `testing` feature (ADR 20261021190318, rule A.5). The shipped
+# builds use no test flag and name no feature, because the shipped packages need none today; name
+# any feature they need explicitly here and in the "Shipped Features" job of
+# `.github/workflows/testing.yaml`, which checks that no `testing` feature reaches the build.
+#
+# The cook stages stack on the third-party layers of the test cooks, so third-party crates whose
+# features do not differ are compiled once; they only rebuild when the external dependencies change.
+
+## Cook Third-party Shipped (debug)
+FROM dependencies_thirdparty_debug AS dependencies_shipped_thirdparty_debug
+WORKDIR /build/src
+RUN cargo chef cook --package torrust-tracker --bin torrust-tracker --recipe-path /build/recipe.json
+
+## Cook Shipped (debug)
+FROM dependencies_shipped_thirdparty_debug AS dependencies_shipped_debug
+WORKDIR /build/src
+COPY --from=recipe /build/recipe.json /build/recipe.json
+RUN cargo chef cook --package torrust-tracker --bin torrust-tracker --recipe-path /build/recipe.json
+
+## Cook Third-party Shipped (release)
+FROM dependencies_thirdparty AS dependencies_shipped_thirdparty
+WORKDIR /build/src
+RUN cargo chef cook --release --package torrust-tracker --bins --recipe-path /build/recipe.json
+
+## Cook Shipped (release)
+FROM dependencies_shipped_thirdparty AS dependencies_shipped
+WORKDIR /build/src
+COPY --from=recipe /build/recipe.json /build/recipe.json
+RUN cargo chef cook --release --package torrust-tracker --bins --recipe-path /build/recipe.json
+
+## Build Shipped (debug)
+FROM dependencies_shipped_debug AS build_shipped_debug
+WORKDIR /build/src
+COPY . /build/src
+RUN cargo build --package torrust-tracker --bin torrust-tracker
+
+## Build Shipped (release)
+FROM dependencies_shipped AS build_shipped
+WORKDIR /build/src
+COPY . /build/src
+RUN cargo build --release --package torrust-tracker --bins
+
+
 ## Build Archive (debug)
 FROM dependencies_debug AS build_debug
 WORKDIR /build/src
@@ -145,10 +190,10 @@ COPY --from=build_debug \
   /test/torrust-tracker-debug.tar.zst
 RUN cargo nextest run --workspace-remap /test/src/ --extract-to /test/src/ --no-run --archive-file /test/torrust-tracker-debug.tar.zst
 RUN mkdir -p /test/src/storage/tracker/lib/database
-RUN cargo nextest run --workspace-remap /test/src/ --target-dir-remap /test/src/target/ --cargo-metadata /test/src/target/nextest/cargo-metadata.json --binaries-metadata /test/src/target/nextest/binaries-metadata.json
+# The native-tracker tests start the shipped binary, not the one built with the test features.
+COPY --from=build_shipped_debug /build/src/target/debug/torrust-tracker /app/bin/torrust-tracker
+RUN TORRUST_TRACKER_BINARY=/app/bin/torrust-tracker cargo nextest run --workspace-remap /test/src/ --target-dir-remap /test/src/target/ --cargo-metadata /test/src/target/nextest/cargo-metadata.json --binaries-metadata /test/src/target/nextest/binaries-metadata.json
 
-RUN time mkdir -p /app/bin/ \
- && time cp -l /test/src/target/debug/torrust-tracker /app/bin/torrust-tracker
 RUN time mkdir /app/lib/ \
  && time cp -l $(realpath $(ldd /app/bin/torrust-tracker | grep "libz\.so\.1" | awk '{print $3}')) /app/lib/libz.so.1
 RUN time chown -R root:root /app \
@@ -164,11 +209,13 @@ COPY --from=build \
   /test/torrust-tracker.tar.zst
 RUN cargo nextest run --workspace-remap /test/src/ --extract-to /test/src/ --no-run --archive-file /test/torrust-tracker.tar.zst
 RUN mkdir -p /test/src/storage/tracker/lib/database
-RUN cargo nextest run --workspace-remap /test/src/ --target-dir-remap /test/src/target/ --cargo-metadata /test/src/target/nextest/cargo-metadata.json --binaries-metadata /test/src/target/nextest/binaries-metadata.json
+# The native-tracker tests start the shipped binary, not the one built with the test features.
+COPY --from=build_shipped \
+  /build/src/target/release/torrust-tracker \
+  /build/src/target/release/http_health_check \
+  /app/bin/
+RUN TORRUST_TRACKER_BINARY=/app/bin/torrust-tracker cargo nextest run --workspace-remap /test/src/ --target-dir-remap /test/src/target/ --cargo-metadata /test/src/target/nextest/cargo-metadata.json --binaries-metadata /test/src/target/nextest/binaries-metadata.json
 
-RUN time mkdir -p /app/bin/ \
- && time cp -l /test/src/target/release/torrust-tracker /app/bin/torrust-tracker \
- && time cp -l /test/src/target/release/http_health_check /app/bin/http_health_check
 RUN time mkdir -p /app/lib/ \
  && time cp -l $(realpath $(ldd /app/bin/torrust-tracker | grep "libz\.so\.1" | awk '{print $3}')) /app/lib/libz.so.1
 RUN time chown -R root:root /app \

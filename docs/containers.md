@@ -119,6 +119,43 @@ podman build --target release --tag torrust-tracker:release --file Containerfile
 podman build --target debug --tag torrust-tracker:debug --file Containerfile .
 ```
 
+### How the Image Is Built
+
+The `Containerfile` builds the tracker twice, and the two builds have different jobs:
+
+- **Test build.** The stages "Cook", "Build Archive" and "Extract and Test" compile every test with
+  `cargo nextest archive --tests --all-features` and run them. This build enables the dev-dependency features
+  and every feature, which test support code needs.
+- **Shipped build.** The stages "Cook Shipped" and "Build Shipped" compile `torrust-tracker` and
+  `http_health_check` (the debug image ships only `torrust-tracker`) with `cargo build --package torrust-tracker`,
+  without `--tests`, `--all-targets`, `--examples`, `--benches` or `--all-features`. The image's `/app/bin` takes its
+  binaries from these stages, never from the test archive, so no `testing` feature of a workspace package reaches
+  them (rule A.5 of [ADR 20261021190318](adrs/20261021190318_share_workspace_test_support_through_testing_features.md)).
+  A shipped build that needs a feature names it explicitly in its `cargo build` command.
+
+The `test` stages still gate the image. They run the native-tracker tests against the shipped binary: the test
+helper `tracker_binary()` starts the executable named by the `TORRUST_TRACKER_BINARY` environment variable when it is
+set (the `test` stages set it), and otherwise the one Cargo or nextest built. Build a binary of your own and point the
+variable at it to run those tests against it:
+
+```sh
+cargo build --release --package torrust-tracker
+TORRUST_TRACKER_BINARY=./target/release/torrust-tracker cargo test -p torrust-tracker --test lifecycle-signals
+```
+
+The `Shipped Features` job of `.github/workflows/testing.yaml` runs the `shipped-features-check` tool
+(`contrib/dev-tools/checks/shipped-features-check`), which reads `cargo tree -p torrust-tracker -e normal,build`
+and fails if a workspace package has its `testing` feature enabled in that tree. Keep the package and features it
+names in step with the "Build Shipped" stages. Run the check locally with:
+
+```sh
+cargo run --quiet --package shipped-features-check -- --package torrust-tracker
+```
+
+The shipped build costs about 17 seconds on a cold release image build, 18 seconds on a cold debug image build and 8
+seconds on a rebuild after a one-line source change, measured against the build before it existed (see the evidence of
+issue #2670).
+
 ## Running the Container
 
 ### Basic Run

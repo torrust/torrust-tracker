@@ -12,6 +12,21 @@ semantic-links:
 
 # Keep unit tests inside the container build process
 
+> **Amendment of 2026-10-27 (issue #2670).** The decision to keep the unit tests inside the container
+> build stands. One claim below no longer holds: the in-container tests do not all run "the exact
+> binary" that ships. The shipped `torrust-tracker` and `http_health_check` are built by `cargo build`
+> invocations of their own (the `Build Shipped` stages of the `Containerfile`), without `--tests` and
+> `--all-features`, so that no `testing` feature reaches them (rule A.5 of
+> [ADR 20261021190318](20261021190318_share_workspace_test_support_through_testing_features.md)). The
+> nextest archive, which keeps `--all-features`, still builds and runs every test. What the tests verify
+> is kept close to what ships in three ways: the root crate's native-tracker tests start the shipped
+> binary through the `TORRUST_TRACKER_BINARY` variable that the `test` stages set; the E2E suite still
+> runs against the final `release` image; and both builds use the same image, compiler, profile and
+> `RUSTFLAGS`, while the `Shipped Features` job of `testing.yaml` checks that the feature set is the
+> only difference. The library code the other unit tests exercise is therefore built with the test
+> features, and a shipped binary is not the one those tests link. The text below is kept unchanged as
+> the record of the original decision.
+
 ## Description
 
 The Torrust Tracker [Containerfile](../../Containerfile) runs unit tests inside the image build

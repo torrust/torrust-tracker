@@ -42,6 +42,7 @@
 !/contrib/dev-tools/checks/clippy-allow-reasons/
 !/contrib/dev-tools/checks/frontmatter-validator/
 !/contrib/dev-tools/checks/package-coverage-check/
+!/contrib/dev-tools/checks/shipped-features-check/
 !/contrib/dev-tools/github/github-review-threads/
 
 # ── Re-exclusions inside admitted directories ─────────────────────────────────

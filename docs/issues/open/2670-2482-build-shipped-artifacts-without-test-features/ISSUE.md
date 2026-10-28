@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-review
 priority: p2
 epic: 2482
 github-issue: 2670
 spec-path: docs/issues/open/2670-2482-build-shipped-artifacts-without-test-features/ISSUE.md
 branch: "2670-2482-build-shipped-artifacts-without-test-features"
-related-pr: null
-last-updated-utc: "2026-10-27 09:06"
+related-pr: 2676
+last-updated-utc: "2026-10-28 07:07"
 semantic-links:
   skill-links:
     - create-issue
@@ -266,12 +266,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T1 | TODO | Re-verify the audit table against `develop`; record a baseline: the list and count of the tests the image's `test` stage runs, and cold and warm build times | Table and baseline in the evidence; the list lets the later comparison show that every baseline test is still present |
-| T2 | TODO | Add `TORRUST_TRACKER_BINARY` to `tracker_binary()`, test first | Unit tests for the resolution order; default behaviour unchanged |
-| T3 | TODO | Create the check crate, test first | Parser tests from real `cargo tree` output; scratch-workspace red and green tests; registered as a workspace member and admitted in `.dockerignore`; `cargo machete` and `cargo deny` pass |
-| T4 | TODO | Add the check as a job in `testing.yaml` | Job runs the check for `torrust-tracker`; follows `implement-workflow` |
-| T5 | TODO | Add the shipped cook and build stages for the release and debug images; point `test` and `test_debug` at the shipped binary; take `/app/bin` from it | Both targets build; every baseline test is still present and passing, and the delta for new tests (T2 adds some, compiled into the targets that include `tests/common/native_tracker`) is recorded; times recorded |
-| T6 | TODO | Amend ADR 20260603; update `docs/containers.md` | Docs describe the two builds, the override variable and the check |
+| T1 | DONE | Re-verify the audit table against `develop`; record a baseline: the list and count of the tests the image's `test` stage runs, and cold and warm build times | Table and baseline in the evidence (V0, V1); the list lets the later comparison show that every baseline test is still present |
+| T2 | DONE | Add `TORRUST_TRACKER_BINARY` to `tracker_binary()`, test first | Unit tests for the resolution order; default behaviour unchanged |
+| T3 | DONE | Create the check crate, test first | Parser tests from real `cargo tree` output; scratch-workspace red and green tests; registered as a workspace member and admitted in `.dockerignore`; `cargo machete` and `cargo deny` pass |
+| T4 | IN_PROGRESS | Add the check as a job in `testing.yaml` | Job runs the check for `torrust-tracker`; follows `implement-workflow` |
+| T5 | DONE | Add the shipped cook and build stages for the release and debug images; point `test` and `test_debug` at the shipped binary; take `/app/bin` from it | Both targets build; every baseline test is still present and passing, and the delta for new tests (T2 adds some, compiled into the targets that include `tests/common/native_tracker`) is recorded; times recorded |
+| T6 | DONE | Amend ADR 20260603; update `docs/containers.md` | Docs describe the two builds, the override variable and the check |
 
 ## Commit Points
 
@@ -291,12 +291,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Folder-style spec drafted in `docs/issues/open/2670-2482-build-shipped-artifacts-without-test-features/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer (approved by the maintainer through `ask_user` and chat on 2026-10-27, including the `cargo tree` refinement of D3)
 - [x] GitHub issue created, linked as a sub-issue of #2482 (`parent_issue_url` verified), and its number added to this spec
-- [ ] Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
+- [x] Spec-only PR merged into `develop` before implementation (PR #2671)
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all` through the pre-commit gate on every commit, `cargo test` of the check crate and the native-tracker targets, and the full pre-push suite on 2026-10-27)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md` (M1 to M6)
+- [x] Acceptance criteria reviewed after implementation and updated with evidence (AC1 to AC4; the container workflow criterion stays open until that job is green)
+- [x] Evidence-based implementation completion review recorded (retrospective created)
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
@@ -317,21 +317,29 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-10-27 09:04 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 9) - PR #2671 review round 1, F1: the Regression Test Strategy and the Commit Points now require the recorded prose-first Arrange-Act-Assert test-design review after each test increment and the maintainer-review stop after the final increment of T2 and of T3.
 - 2026-10-27 09:05 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 9) - PR #2671 review round 1, F2: T1 now records the list and count of the baseline tests, and T5, AC2 and M2 require every baseline test to remain present and passing with the delta for new tests recorded, instead of an equal count (T2's tests are compiled into the targets that include `tests/common/native_tracker`).
 - 2026-10-27 09:06 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 9) - PR #2671 review round 1, F3: scenario M1 now builds both targets with `--file Containerfile`, as `docs/containers.md` does, because the repository root has no `Dockerfile`.
+- 2026-10-27 12:43 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 9) - Started the implementation. T1 is done: the audit table still holds on `develop` after PR #2671 (V0), and the baseline is 1531 tests in 40 binaries with a cold `release` build of 4 min 59 s, a cold `debug` build of 1 min 55 s and a warm `release` rebuild of 2 min 53 s (V1, list in `baseline-test-list.txt`).
+- 2026-10-27 12:44 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 9) - T2 is done: `tracker_binary()` reads `TORRUST_TRACKER_BINARY` before the nextest and Cargo variables, with three unit tests (red with the override discarded, green on the `lifecycle-signals` and `cli-configuration` targets). The test-design review is recorded in the evidence; the maintainer (josecelano) reviewed the increment and approved it through `ask_user` before the commit.
+- 2026-10-27 14:55 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 9) - T3 is done: the `shipped-features-check` crate parses `cargo tree -e normal,build` output and fails on a workspace `testing` feature in a shipped package's tree (9 parser tests and 7 scratch-workspace tests, each red before green, two mutations for the negative tests). The real workspace passes vacuously (M4) and the scratch fixture fails and passes as it should (M5). The crate is a workspace member but not a default member, is admitted in `.dockerignore`, and is listed in the `AGENTS.md` catalogue and the CLI output contract ADR. The maintainer (josecelano) reviewed the increments and approved them through `ask_user` before the commit.
+- 2026-10-27 14:57 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 9) - Added the `Shipped Features` job to `testing.yaml` (T4), which runs `cargo run --package shipped-features-check -- --package torrust-tracker`; `linter yaml` and `git diff --check` pass and the same command passes locally (V4). The spec's commit point asks for the job to pass in a fork or pull request first, but the implementation pull request is the first hosted run, so T4 stays IN_PROGRESS and M6 stays TODO until that run is recorded.
+- 2026-10-27 20:13 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 9) - T5 is done: the `Containerfile` has shipped cook and build stages for the release and debug images (`cargo build` without test flags or features), the `test` stages run the native-tracker tests against the shipped binary through `TORRUST_TRACKER_BINARY`, and `/app/bin` takes the shipped binaries. Both targets build; 0 of the 1531 baseline tests are missing and 6 were added (T2's tests); cold builds cost +17 s (release) and +18 s (debug) and the warm release rebuild +8 s (V2). The override is honoured: pointing it at a missing file fails the native-tracker tests (V3). An interrupted warm run and a fully cached rerun were discarded and the warm run repeated with a different change.
+- 2026-10-27 20:14 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 9) - T6 is done: `docs/containers.md` describes the test build, the shipped build, `TORRUST_TRACKER_BINARY` and the check, and ADR 20260603 carries an amendment note that narrows its "exact binary" claim. Ticked AC1, AC2 and AC4 (validated by the AI assistant against V0 to V3). AC3 stays open until the `Shipped Features` job has run on the implementation pull request (M6).
+- 2026-10-27 21:00 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 9) - The independent Task Reviewer's pre-PR review (PASS WITH FINDINGS, no blocking defect) led to three fixes: the check now fails when `cargo tree` output does not list the shipped package as a workspace package, it reads a checkout path that contains the separator, and an empty `TORRUST_TRACKER_BINARY` is ignored; the maintainer approved the test increments through `ask_user`. Rebased onto `develop`, rebuilt the final image (1539 tests, binaries identical to the `build_shipped` stage, healthy; V2b) and ran the full pre-push suite. Wrote the implementation completion review and the retrospective. M6 and AC3 stay open until the `Shipped Features` job has run on the pull request.
+- 2026-10-28 07:07 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 9) - Opened PR #2676. The `Shipped Features` job ran green on a hosted runner (M6, V6), so AC3 and M6 are done and the status is `in-review`. Copilot's review found that a relative `TORRUST_TRACKER_BINARY` broke the configuration test that changes the child's working directory (F1 of the audit of PR #2676): reproduced (V7) and fixed by anchoring a relative path at the test working directory, which also fixes the example of `docs/containers.md`. The container workflow criterion stays open until that job is green.
 
 ## Acceptance Criteria
 
-- [ ] AC1: Every command that produces a shipped artifact is listed with its flags (the audit
+- [x] AC1: Every command that produces a shipped artifact is listed with its flags (the audit
       table), and none of the shipped-artifact builds uses `--all-features`, `--all-targets`,
       `--tests`, `--examples` or `--benches`.
-- [ ] AC2: The image's shipped binaries are built by `cargo build` invocations of their own with
+- [x] AC2: The image's shipped binaries are built by `cargo build` invocations of their own with
       explicit features; the `test` and `test_debug` stages still run the nextest archive, every
       baseline test (T1) is still present and passing, the delta for new tests is recorded, and
       the native-tracker tests run against the shipped binary.
-- [ ] AC3: The check fails when a workspace `testing` feature is enabled in a shipped package's
+- [x] AC3: The check fails when a workspace `testing` feature is enabled in a shipped package's
       normal or build dependency tree (shown by an automated scratch-workspace test), passes when
       only a dev-dependency enables it, and passes on the real workspace; the `testing.yaml` job
       runs it.
-- [ ] AC4: `docs/containers.md` describes the builds, the `TORRUST_TRACKER_BINARY` variable and the
+- [x] AC4: `docs/containers.md` describes the builds, the `TORRUST_TRACKER_BINARY` variable and the
       check; ADR 20260603 carries its amendment note.
 - [ ] `linter all` exits with code `0`; pre-push checks pass; the container workflow is green.
 
@@ -351,21 +359,21 @@ applies, except that this subissue moves no test code. The workflow changes foll
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | Baseline before the change | Build the `release` and `debug` targets of `develop`'s `Containerfile` (`docker build --target release --tag torrust-tracker:release --file Containerfile .` and the same with `--target debug --tag torrust-tracker:debug`) and record the `test` stage's test list and count and the cold and warm times | Numbers recorded | TODO | `manual-verification-evidence.md` V1 |
-| M2 | The image builds and its tests run | Build both targets after the change | Both build; every baseline test is still present and passing; the delta for new tests is recorded (the count may rise by the tests T2 adds); times recorded | TODO | V2 |
-| M3 | The override is honoured | In the `test` stage, point `TORRUST_TRACKER_BINARY` at a missing file, build, then restore it | The native-tracker tests fail with the missing path (red), then pass (green) | TODO | V3 |
-| M4 | The shipped binary has no `testing` feature | `cargo run -p shipped-features-check -- --package torrust-tracker` and `cargo tree -p torrust-tracker -e normal,build -f "{p} {f}"` | Passes; no `testing` feature (vacuous today, since none exists) | TODO | V4 |
-| M5 | The check fails when it should | Run the scratch-workspace red case (a shipped package enabling a `testing` feature through a normal dependency) | The check fails and names the package and feature | TODO | V5 |
-| M6 | The workflow job runs | Open the pull request and read the `testing.yaml` job result | The job is green on the real workspace | TODO | V6 |
+| M1 | Baseline before the change | Build the `release` and `debug` targets of `develop`'s `Containerfile` (`docker build --target release --tag torrust-tracker:release --file Containerfile .` and the same with `--target debug --tag torrust-tracker:debug`) and record the `test` stage's test list and count and the cold and warm times | Numbers recorded | DONE | `manual-verification-evidence.md` V1 |
+| M2 | The image builds and its tests run | Build both targets after the change | Both build; every baseline test is still present and passing; the delta for new tests is recorded (the count may rise by the tests T2 adds); times recorded | DONE | V2 |
+| M3 | The override is honoured | In the `test` stage, point `TORRUST_TRACKER_BINARY` at a missing file, build, then restore it | The native-tracker tests fail with the missing path (red), then pass (green) | DONE | V3 |
+| M4 | The shipped binary has no `testing` feature | `cargo run -p shipped-features-check -- --package torrust-tracker` and `cargo tree -p torrust-tracker -e normal,build -f "{p} {f}"` | Passes; no `testing` feature (vacuous today, since none exists) | DONE | V4 |
+| M5 | The check fails when it should | Run the scratch-workspace red case (a shipped package enabling a `testing` feature through a normal dependency) | The check fails and names the package and feature | DONE | V5 |
+| M6 | The workflow job runs | Open the pull request and read the `testing.yaml` job result | The job is green on the real workspace | DONE | V6 |
 
 ### Acceptance Verification
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1   | TODO                   |          |
-| AC2   | TODO                   |          |
-| AC3   | TODO                   |          |
-| AC4   | TODO                   |          |
+| AC1   | DONE                   | V0 (audit) and V2 (build log); validated by the AI assistant |
+| AC2   | DONE                   | V2 (builds, 0 of 1531 baseline tests missing, 6 added) and V3 (override); validated by the AI assistant |
+| AC3   | DONE                   | V4, V5 and V6 (hosted run); validated by the AI assistant |
+| AC4   | DONE                   | `docs/containers.md` and the ADR 20260603 amendment; validated by the AI assistant |
 
 ## Design evidence
 
@@ -407,8 +415,28 @@ reports `testing`, so it would flag a build that does not have the feature.
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
-- If no retrospective is needed, add a progress-log entry saying why.
+Reviewed by the AI assistant against the acceptance criteria and the evidence on 2026-10-27, after an
+independent Task Reviewer pre-PR review (evidence, "Pre-PR review"); the maintainer reviews it in the pull
+request.
+
+- Scope: the change is in `Containerfile` (shipped cook and build stages, test stages), `tests/common/native_tracker/`
+  (the override), the new `contrib/dev-tools/checks/shipped-features-check` crate (registered in `Cargo.toml` and
+  `.dockerignore`, listed in `AGENTS.md` and the CLI output contract ADR), the `Shipped Features` job of
+  `testing.yaml`, `docs/containers.md` and the amendment note of ADR 20260603. No test support code moved, no
+  `testing` feature was added and the test archives keep `--all-features` (D5).
+- Design: the shipped binaries come from `build_shipped` stages stacked on the third-party test cooks (D6); the
+  measured cost is +17 s (release) and +18 s (debug) cold and +8 s on a warm rebuild. The check reads
+  `cargo tree -e normal,build` because `cargo metadata` counts dev-dependency features (D3). It follows the global
+  CLI output contract.
+- Known limits: the check covers workspace packages only (third-party features are outside it) and only the
+  features `cargo build -p torrust-tracker` enables on the host, so target-specific dependencies of another
+  platform are not seen. The job names the shipped package, and the `Containerfile` names it too; only two comments
+  keep them in step (D4, review finding 6). The shipped build names no feature today. The `Shipped Features` job
+  has run green on the pull request (M6, V6) and the check passes vacuously on the real workspace because no
+  `testing` feature exists yet; the scratch tests prove it fails when one reaches a shipped package.
+- Retrospective: created, [`implementation-retrospective.md`](implementation-retrospective.md): `cargo metadata`
+  proved unusable for the check, and the independent review found that the check could pass on output it could not
+  read.
 
 ## References
 

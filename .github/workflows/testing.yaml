@@ -164,6 +164,31 @@ jobs:
         name: Check layer boundary bans
         run: cargo deny check bans
 
+  # issue: #2670
+  # Rule A.5 of ADR 20261021190318: a `testing` feature of a workspace package must not be enabled in the
+  # dependency tree of a shipped package. The check reads `cargo tree` for the edges and features of
+  # `cargo build -p <package>`, so it ignores the dev-dependencies that `--tests` would enable. Keep the
+  # package (and, once the shipped build names any, its features) in step with the "Build Shipped
+  # (release)" and "Build Shipped (debug)" stages of the `Containerfile`.
+  shipped-features:
+    name: Shipped Features
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - id: checkout
+        name: Checkout Repository
+        uses: actions/checkout@v7.0.1
+
+      - id: setup
+        name: Setup Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - id: check
+        name: Check Shipped Features
+        run: cargo run --quiet --package shipped-features-check -- --package torrust-tracker
+
   # issue: #2582
   # Packages every workspace member so a crate that cannot be published (for example a versioned
   # dependency that crates.io cannot resolve) fails here instead of at publish time. `--no-verify`

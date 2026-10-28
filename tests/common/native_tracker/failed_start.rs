@@ -105,7 +105,7 @@ impl NativeTrackerStartAttempt {
     }
 
     pub fn start(mut self) -> NativeTrackerFailedStart {
-        let mut child = self.command.spawn().expect("spawn Cargo-built tracker executable");
+        let mut child = self.command.spawn().expect("spawn tracker executable");
         let stdout = child.stdout.take().expect("tracker child stdout is piped");
         let stderr = child.stderr.take().expect("tracker child stderr is piped");
 

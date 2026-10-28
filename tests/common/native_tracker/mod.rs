@@ -54,7 +54,9 @@ pub struct NativeTracker {
 }
 
 impl NativeTracker {
-    /// Spawns the Cargo-built tracker binary with an isolated CLI configuration and port-zero bindings.
+    /// Spawns the tracker binary with an isolated CLI configuration and port-zero bindings.
+    ///
+    /// The binary is the one Cargo built, or the one named by `TORRUST_TRACKER_BINARY`.
     // The configuration binary always supplies explicit source settings.
     #[allow(dead_code)]
     pub fn start() -> Self {
@@ -78,7 +80,7 @@ impl NativeTracker {
             workspace.health_check_api_bind_address_override(),
         );
 
-        let mut child = command.spawn().expect("spawn Cargo-built tracker executable");
+        let mut child = command.spawn().expect("spawn tracker executable");
         let stdout = child.stdout.take().expect("tracker child stdout is piped");
         let stderr = child.stderr.take().expect("tracker child stderr is piped");
         let output = TrackerOutputCapture::new(stdout, stderr);
