@@ -43,6 +43,8 @@ Round 1: the review of `copilot-pull-request-reviewer` (5682635980, COMMENTED, s
 
 Round 2: the second review of `copilot-pull-request-reviewer` (5683463670, COMMENTED, submitted 2026-10-28T13:34:16Z) on the head whose subject is `docs(pr-reviews): [#2581] record the first Copilot review of PR 2683`. It was the review requested through the REST `requested_reviewers` endpoint at 12:54:26 UTC. It opens two inline threads, F5 and F6, in the advisory format `[<Severity>][<FindingId>]`: its comments carry their own severity and finding ID, and neither ID collides with F1 to F4, so both are kept. Its body lists F5 and F6 as open and F1 to F4 as resolved since the last review, and adds no other row.
 
+Round 3: the third review of `copilot-pull-request-reviewer` (5684761654, COMMENTED, submitted 2026-10-28T14:58:12Z) on the head whose subject is `fix(wait-for-pr-review): [#2581] synchronize the head before processing feedback`. It was the review requested through the REST `requested_reviewers` endpoint at 14:13:25 UTC, and the `wait-for-pr-review` poller returned it. Its body says that Copilot could not run its full agentic suite, which raises no assertion of its own. It opens six inline threads and lists F5 and F6 as resolved since the last review. Its comments carry no severity or finding ID, so the audit assigns F7 to F12 in source order and infers the severities. The three comments on `reserve_free_ports` in `tests/common/native_tracker/ports.rs` (lines 22, 38 and 48) are the same concern posted three times: F10 is the original, and F11 and F12 are recorded as re-raises of it.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2683-f1 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -51,6 +53,12 @@ Round 2: the second review of `copilot-pull-request-reviewer` (5683463670, COMME
 | F4 | review-finding:pr-2683-f4 | Copilot | Nit (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
 | F5 | review-finding:pr-2683-f5 | Copilot | Major | correctness | ORIGINAL | FIXED | RESOLVED |
 | F6 | review-finding:pr-2683-f6 | Copilot | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F7 | review-finding:pr-2683-f7 | Copilot | Nit (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F8 | review-finding:pr-2683-f8 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
+| F9 | review-finding:pr-2683-f9 | Copilot | Nit (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F10 | review-finding:pr-2683-f10 | Copilot | Nit (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F11 | review-finding:pr-2683-f11 | Copilot | Nit (inferred) | maintainability | RE_RAISE_OF:F10 | NO_ACTION | SUPERSEDED |
+| F12 | review-finding:pr-2683-f12 | Copilot | Nit (inferred) | maintainability | RE_RAISE_OF:F10 | NO_ACTION | SUPERSEDED |
 
 ## Finding Details
 
@@ -132,6 +140,84 @@ Round 2: the second review of `copilot-pull-request-reviewer` (5683463670, COMME
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2683#discussion_r4401635307>
 
+### F7 - The `Review::id` documentation contradicts the baseline design
+
+- PR number: 2683
+- Source review ID: 5684761654
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2683#discussion_r4402180076>
+- Concern: The docstring on `Review::id` states that higher IDs imply later reviews, but the design, since the fix for F1, assumes that a review can have a lower ID than one already submitted because drafts keep their IDs. Update the comment so it does not contradict the baseline and event logic.
+- Solution: The `Review::id` documentation in `snapshot.rs` now says the ID is unique and assigned when the review is created, that a draft keeps it, and that a higher ID is therefore not necessarily a later submission. The `Comment::id` line says IDs only grow because comments have no draft state, which matches the baseline's rule for comments.
+- Current-tree verification: Both doc comments were read in `snapshot.rs`, and `cargo clippy -p wait-for-pr-review --all-targets` reported nothing.
+- Resolution reference: docs(wait-for-pr-review): [#2581] stop claiming that a higher review ID is a later review
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2683#discussion_r4403215806>
+
+### F8 - The CLI integration test is Unix-specific and is not gated
+
+- PR number: 2683
+- Source review ID: 5684761654
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2683#discussion_r4402180244>
+- Concern: `tests/cli.rs` uses `std::os::unix::fs::PermissionsExt` and a `#!/bin/sh` fake `gh`, so it does not compile on non-Unix targets. Gate it with `#[cfg(unix)]` or provide a Windows-compatible alternative so the crate stays buildable across targets.
+- Solution: The file is gated with `#![cfg(unix)]` and a comment that says why, as the tracker's native-process scenarios in `tests/configuration/cli_configuration.rs` already do. The library and binary are not gated.
+- Current-tree verification: With a real Windows target (`x86_64-pc-windows-gnu`, added for this check), `cargo check -p wait-for-pr-review --tests --target x86_64-pc-windows-gnu` failed before the change with `cannot find unix in os` and `could not compile wait-for-pr-review (test "cli")`, and finished without error after it. On Linux, `cargo test -p wait-for-pr-review` still ran 52 unit tests and 19 integration tests.
+- Resolution reference: fix(wait-for-pr-review): [#2581] gate the Unix-only CLI scenarios with cfg(unix)
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2683#discussion_r4403216504>
+
+### F9 - The port range comment overstates what the range guarantees
+
+- PR number: 2683
+- Source review ID: 5684761654
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2683#discussion_r4402180347>
+- Concern: The comment claims that ending at `32768` prevents kernel-assigned ephemeral ports from landing in the scenario range, but Linux ephemeral port ranges are configurable and can start below `32768`. Soften the guarantee, or derive the start of the ephemeral range dynamically and choose a range below it.
+- Solution: The softening option was taken. The module and constant documentation in `tests/common/native_tracker/ports.rs` say the range is below the default Linux ephemeral range, that a host which lowers `net.ipv4.ip_local_port_range` below it narrows the guarantee, and the default is named once as `DEFAULT_EPHEMERAL_START`, used by the range and by its guard test. Reading `/proc/sys/net/ipv4/ip_local_port_range` would make a test-only helper platform-specific, so it was not added.
+- Current-tree verification: `cargo test -p torrust-tracker --test cli-configuration` passed with the guard test renamed to `it_should_reserve_only_ports_below_the_default_ephemeral_range`, and clippy reported nothing.
+- Resolution reference: docs(tests): [#2581] state that the scenario port range assumes the default ephemeral range
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2683#discussion_r4403217116>
+
+### F10 - `reserve_free_ports` panics with a misleading message
+
+- PR number: 2683
+- Source review ID: 5684761654
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2683#discussion_r4402180447>
+- Concern: `reserve_free_ports` can panic in a misleading way when `N` is larger than `MAX_DRAWS`, or when the candidate stream runs out for another reason: the panic blames the loopback interface or the range, while the real cause may be an insufficient search budget. Add an explicit precondition and/or a failure message that names the requested count and `MAX_DRAWS`.
+- Solution: `reserve_free_ports` rejects `N` above `MAX_DRAWS` up front with `cannot reserve {N} ports with a budget of {MAX_DRAWS} draws`, and when the shared budget runs dry it reports how many free ports it found, the range, the budget and the requested count. The `# Panics` section says both.
+- Current-tree verification: The new test `it_should_refuse_to_reserve_more_ports_than_it_can_search_for` failed before the change with the panic message `the loopback interface should have a free port below the ephemeral range`, which is the misleading message the review describes, and passes now. `cargo test -p torrust-tracker --test cli-configuration` passed (30 tests) and so did `--test lifecycle-signals` (25 tests), which shares the fixture. With ports 43152 to 43156 held by another process, the suite then passed 40 more runs.
+- Resolution reference: fix(tests): [#2581] name the real cause when a port reservation cannot be satisfied
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2683#discussion_r4403217683>
+
+### F11 - The same `reserve_free_ports` panic message concern, on another line
+
+- PR number: 2683
+- Source review ID: 5684761654
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2683#discussion_r4402180542>
+- Concern: The same comment as F10, posted on a second line of `reserve_free_ports`: the panic message is misleading when `N` exceeds `MAX_DRAWS` or the candidates run out.
+- Solution: No separate change. The concern is identical to F10 and is resolved by its fix.
+- Current-tree verification: The panic messages of `reserve_free_ports` were read in `tests/common/native_tracker/ports.rs`, and the F10 test passes.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2683#discussion_r4403218690>
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2683#discussion_r4403218690>
+
+### F12 - The same `reserve_free_ports` panic message concern, on a third line
+
+- PR number: 2683
+- Source review ID: 5684761654
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2683#discussion_r4402180596>
+- Concern: The same comment as F10, posted on a third line of `reserve_free_ports`.
+- Solution: No separate change. The concern is identical to F10 and is resolved by its fix.
+- Current-tree verification: The panic messages of `reserve_free_ports` were read in `tests/common/native_tracker/ports.rs`, and the F10 test passes.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2683#discussion_r4403219283>
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2683#discussion_r4403219283>
+
 ## Processing Log
 
 - 2026-10-28 12:35 UTC - The `wait-for-pr-review` poller returned Copilot's review 5682635980, submitted at 12:34:22 UTC (kind `review`, state `COMMENTED`, exit `0`; its stdout file was last written at 12:35:33 UTC). The review opened four inline threads, F1 to F4; all were unresolved. Each was checked against the current tree and found valid.
@@ -142,6 +228,11 @@ Round 2: the second review of `copilot-pull-request-reviewer` (5683463670, COMME
 - 2026-10-28 13:34 UTC - Copilot's second review 5683463670 was submitted (COMMENTED, on the head with subject `docs(pr-reviews): [#2581] record the first Copilot review of PR 2683`). The `wait-for-pr-review` poller had stopped at 13:24:55 UTC with a `timeout`, so the review was read from GitHub at 14:01 UTC. It opened F5 and F6, both unresolved, and listed F1 to F4 as resolved. Each was checked against the current tree and found valid; F6 was reproduced against the real binary.
 - 2026-10-28 14:10 UTC - The two fixes were committed, one signed commit each: F6 at 14:04 and F5 at 14:10 UTC (commit times from `git log --format=%cI`).
 - 2026-10-28 14:13 UTC - After the push, each thread was replied to and resolved with `reply-and-resolve-thread.sh`; the GitHub times of the two replies are 14:13:09 and 14:13:13 UTC. Copilot was requested again through the REST `requested_reviewers` endpoint at 14:13:25 UTC (timeline event `review_requested`). A GraphQL fetch at 14:13:31 UTC reported no unresolved thread.
+
+- 2026-10-28 14:59 UTC - The `wait-for-pr-review` poller returned Copilot's third review 5684761654, submitted at 14:58:12 UTC (kind `review`, state `COMMENTED`, no `head_moved`; its stdout file was last written at 14:59:15 UTC). It opened six threads, F7 to F12, all unresolved. Each was checked against the current tree and found valid; F11 and F12 repeat F10.
+- 2026-10-28 16:21 UTC - The four fixes were committed, one signed commit each: F7 at 16:15, F8 at 16:17, F9 at 16:18 and F10 at 16:21 UTC (commit times from `git log --format=%cI`). The first signing attempt for F7 failed; it was rerun with the maintainer's approval and the maintainer entered the passphrase, which accounts for the gap after 14:59.
+- 2026-10-28 16:24 UTC - After the push, each thread was replied to and resolved with `reply-and-resolve-thread.sh`; the GitHub times of the six replies are 16:24:29, 16:24:32, 16:24:36, 16:24:39, 16:24:44 and 16:24:47 UTC. F11 and F12 received the prescribed `Superseded by F10: <reason>.` reply.
+- 2026-10-28 16:25 UTC - A GraphQL fetch at 16:25:04 UTC, after the last reply, reported no unresolved thread.
 
 ## Completion Rules
 
