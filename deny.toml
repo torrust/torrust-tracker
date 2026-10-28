@@ -108,6 +108,7 @@ deny = [
     "torrust-tracker",
     "torrust-tracker-axum-http-server",
     "torrust-tracker-axum-rest-api-server",
+    "torrust-tracker-core",
     "torrust-tracker-http-core",
     "torrust-tracker-rest-api-runtime-adapter",
     "torrust-tracker-udp-core",

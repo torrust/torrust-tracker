@@ -62,6 +62,8 @@ pub mod error;
 pub mod setup;
 pub mod traits;
 
-pub use traits::{AuthKeyStore, MockTorrentMetricsStore, SchemaMigrator, TorrentMetricsStore, WhitelistStore};
+#[cfg(feature = "testing")]
+pub use traits::MockTorrentMetricsStore;
+pub use traits::{AuthKeyStore, SchemaMigrator, TorrentMetricsStore, WhitelistStore};
 #[cfg(test)]
 pub use traits::{MockAuthKeyStore, MockSchemaMigrator, MockWhitelistStore};

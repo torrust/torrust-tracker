@@ -5,6 +5,7 @@
 //! in ADR
 //! [`20260429000000_keep_database_as_aggregate_supertrait`](../../../../docs/adrs/20260429000000_keep_database_as_aggregate_supertrait.md).
 use async_trait::async_trait;
+#[cfg(feature = "testing")]
 use mockall::automock;
 use torrust_info_hash::InfoHash;
 use torrust_tracker_primitives::{NumberOfDownloads, NumberOfDownloadsPerInfoHash};
@@ -24,7 +25,7 @@ use super::super::error::Error;
     clippy::extra_unused_lifetimes,
     reason = "async_trait generates lifetimes outside workspace control"
 )]
-#[automock]
+#[cfg_attr(feature = "testing", automock)]
 pub trait TorrentMetricsStore: Sync + Send {
     /// Loads torrent metrics data from the database for all torrents.
     ///
