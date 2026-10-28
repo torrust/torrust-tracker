@@ -354,7 +354,7 @@ mod tests {
             RuntimeServiceMetadata::new(instance_id),
             Version::V1,
             CancellationToken::new(),
-            configuration.application.shutdown.http_drain(),
+            app_container.application_config.shutdown.http_drain(),
         )
         .await;
 
@@ -383,7 +383,7 @@ mod tests {
             RuntimeServiceMetadata::new(instance_id),
             Version::V1,
             CancellationToken::new(),
-            configuration.application.shutdown.http_drain(),
+            app_container.application_config.shutdown.http_drain(),
         )
         .await;
 

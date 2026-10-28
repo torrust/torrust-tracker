@@ -230,7 +230,7 @@ mod tests {
             RuntimeServiceMetadata::new(configuration_instance_id),
             ConnectionIdValidationPolicy::Strict,
             CancellationToken::new(),
-            configuration.application.shutdown.udp_request_drain(),
+            app_container.application_config.shutdown.udp_request_drain(),
         )
         .await
         .expect("the UDP tracker component should start");
