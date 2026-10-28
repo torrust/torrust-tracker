@@ -1,16 +1,22 @@
 //! Event detection: compares a snapshot of the pull request with the baseline taken when the poller started.
 
+use std::collections::BTreeSet;
+
 use serde::Serialize;
 
 use crate::snapshot::{Comment, PullState, Review, Snapshot};
 use crate::timestamp::parse_utc;
 
 /// Which items count as new.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 enum Cutoff {
-    /// Items with an ID above the highest ID present at the start. GitHub IDs only grow.
+    /// Reviews that are not among the submitted ones present at the start, and comments with an ID
+    /// above the highest comment ID present at the start.
+    ///
+    /// A review keeps the ID it got as a draft, so a review submitted later can have a lower ID than
+    /// one already submitted. Comments have no draft state, so their IDs only grow.
     AfterIds {
-        review: u64,
+        submitted_reviews: BTreeSet<u64>,
         issue_comment: u64,
         review_comment: u64,
     },
@@ -34,7 +40,12 @@ impl Baseline {
         Self {
             head_sha: snapshot.head_sha.clone(),
             cutoff: Cutoff::AfterIds {
-                review: highest(&mut snapshot.reviews.iter().map(|review| review.id)),
+                submitted_reviews: snapshot
+                    .reviews
+                    .iter()
+                    .filter(|review| review.state != "PENDING")
+                    .map(|review| review.id)
+                    .collect(),
                 issue_comment: highest(&mut snapshot.issue_comments.iter().map(|comment| comment.id)),
                 review_comment: highest(&mut snapshot.review_comments.iter().map(|comment| comment.id)),
             },
@@ -52,23 +63,23 @@ impl Baseline {
     }
 
     fn is_new_review(&self, review: &Review) -> bool {
-        match self.cutoff {
-            Cutoff::AfterIds { review: highest, .. } => review.id > highest,
-            Cutoff::After(moment) => is_after(review.submitted_at.as_deref(), moment),
+        match &self.cutoff {
+            Cutoff::AfterIds { submitted_reviews, .. } => !submitted_reviews.contains(&review.id),
+            Cutoff::After(moment) => is_after(review.submitted_at.as_deref(), *moment),
         }
     }
 
     fn is_new_issue_comment(&self, comment: &Comment) -> bool {
-        match self.cutoff {
-            Cutoff::AfterIds { issue_comment, .. } => comment.id > issue_comment,
-            Cutoff::After(moment) => is_after(Some(&comment.created_at), moment),
+        match &self.cutoff {
+            Cutoff::AfterIds { issue_comment, .. } => comment.id > *issue_comment,
+            Cutoff::After(moment) => is_after(Some(&comment.created_at), *moment),
         }
     }
 
     fn is_new_review_comment(&self, comment: &Comment) -> bool {
-        match self.cutoff {
-            Cutoff::AfterIds { review_comment, .. } => comment.id > review_comment,
-            Cutoff::After(moment) => is_after(Some(&comment.created_at), moment),
+        match &self.cutoff {
+            Cutoff::AfterIds { review_comment, .. } => comment.id > *review_comment,
+            Cutoff::After(moment) => is_after(Some(&comment.created_at), *moment),
         }
     }
 }
@@ -283,6 +294,36 @@ mod tests {
                 head_sha: "head".to_owned(),
             })
         );
+    }
+
+    #[test]
+    fn it_should_report_a_review_submitted_later_with_a_lower_id_than_one_already_submitted() {
+        let mut before = snapshot();
+        before
+            .reviews
+            .push(review(12, "copilot-pull-request-reviewer[bot]", "COMMENTED"));
+        let mut after = before.clone();
+        // A draft started before review 12 keeps its lower ID when it is finally submitted.
+        after.reviews.push(review(11, "da2ce7", "CHANGES_REQUESTED"));
+
+        assert!(matches!(
+            detect(&Baseline::from_snapshot(&before), &after, &reviewers()),
+            Some(Event::Review { review_id: 11, .. })
+        ));
+    }
+
+    #[test]
+    fn it_should_report_a_review_that_was_pending_at_the_start_when_it_is_submitted() {
+        let mut before = snapshot();
+        before.reviews.push(review(11, "da2ce7", "PENDING"));
+        let mut after = before.clone();
+        after.reviews[1] = review(11, "da2ce7", "COMMENTED");
+
+        assert_eq!(detect(&Baseline::from_snapshot(&before), &before, &reviewers()), None);
+        assert!(matches!(
+            detect(&Baseline::from_snapshot(&before), &after, &reviewers()),
+            Some(Event::Review { review_id: 11, .. })
+        ));
     }
 
     #[test]
