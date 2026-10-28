@@ -4,7 +4,7 @@ semantic-links:
     - process-pr-review
   related-artifacts:
     - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
-    - docs/issues/open/2466-1978-announce-interval-upper-bound/ISSUE.md
+    - docs/issues/closed/2466-1978-announce-interval-upper-bound/ISSUE.md
 ---
 
 <!-- skill-link: process-pr-review -->

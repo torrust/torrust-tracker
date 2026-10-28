@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: planned
+status: done
 priority: p2
 epic: 1978
 github-issue: 2466
-spec-path: docs/issues/open/2466-1978-announce-interval-upper-bound/ISSUE.md
+spec-path: docs/issues/closed/2466-1978-announce-interval-upper-bound/ISSUE.md
 branch: "2466-1978-announce-interval-upper-bound"
-related-pr: null
-last-updated-utc: "2026-10-28 07:35"
+related-pr: 2680
+last-updated-utc: "2026-10-28 13:35"
 semantic-links:
   skill-links:
     - create-issue
@@ -194,12 +194,12 @@ with the narrow affected scope.
 - [x] Implementation completed
 - [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded
+- [x] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
-- [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Committer verified spec progress is up to date before commit
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -211,18 +211,20 @@ with the narrow affected scope.
 - 2026-10-07 13:12 UTC - josecelano - Kept one type for `interval` and `interval_min` because both measure the same quantity, although no protocol bounds `interval_min` (Copilot's review overview had noted the missing protocol justification) - Chat decision
 - 2026-10-27 15:00 UTC - josecelano - Pre-implementation questions answered: type `AnnounceIntervalInSecs` wrapping `u32`, infallible `From` to `i64` plus `get_i32()` for UDP, fallible `new(u32)` plus `From<u16>`, field name taken from the loader key path, serialization and v2 inheritance confirmed (decisions 7-11) - Chat decision
 - 2026-10-28 07:35 UTC - GitHub Copilot - Implemented T2-T7 on branch `2466-1978-announce-interval-upper-bound`: regression tests (red then green), `AnnounceIntervalInSecs`, `AnnouncePolicy` and consumers, unclamped UDP interval, migration guide Step 11, and manual scenarios M1-M3 (V1-V3) - Awaiting maintainer review
+- 2026-10-28 13:03 UTC - josecelano - Merged PR #2680 (implementation); GitHub closed #2466 two seconds later through the `Closes` keyword - Merged
+- 2026-10-28 13:35 UTC - GitHub Copilot - Archived this spec to `docs/issues/closed/`: `status: done`, `spec-path`, `related-pr`, and the acceptance and workflow checkboxes updated from the recorded evidence; the "independent reviewer reports" checkpoint stays open because no `agent-review-reports.md` was recorded - Archive PR
 
 ## Acceptance Criteria
 
-- [ ] AC1: A configuration with `core.announce_policy.interval` or `interval_min` above
+- [x] AC1: A configuration with `core.announce_policy.interval` or `interval_min` above
   `2147483647` fails to load with an error naming the field, the value, and the limit.
-- [ ] AC2: `2147483647` is accepted, and UDP and HTTP announces report the same interval.
-- [ ] AC3: The bound is enforced by a type in `primitives`, not by `Validator`, as the ADRs require.
-- [ ] AC4: The UDP interval is converted without clamping.
-- [ ] AC5: `linter all` exits with code `0` and relevant tests pass.
-- [ ] AC6: Manual verification scenarios are executed and documented in issue-local
+- [x] AC2: `2147483647` is accepted, and UDP and HTTP announces report the same interval.
+- [x] AC3: The bound is enforced by a type in `primitives`, not by `Validator`, as the ADRs require.
+- [x] AC4: The UDP interval is converted without clamping.
+- [x] AC5: `linter all` exits with code `0` and relevant tests pass.
+- [x] AC6: Manual verification scenarios are executed and documented in issue-local
   `manual-verification-evidence.md`.
-- [ ] AC7: `packages/configuration/docs/migrate-v2-to-v3.md` documents the new bound.
+- [x] AC7: `packages/configuration/docs/migrate-v2-to-v3.md` documents the new bound.
 
 ## Verification Plan
 
@@ -287,5 +289,5 @@ None planned. The scenarios use the tracker binary and `tracker_client`.
 ## References
 
 - Related issues: #2245 (origin), #2243 (numeric conversion EPIC), #1978 (parent EPIC)
-- Related PRs: #2452 (wire clamp), #2455 (#2245 archive)
+- Related PRs: #2468 (specification), #2680 (implementation), #2452 (wire clamp), #2455 (#2245 archive)
 - Related ADRs: see Architectural Decisions

@@ -6,7 +6,7 @@ epic: null
 github-issue: 1978
 spec-path: docs/issues/open/1978-configuration-overhaul-epic/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-07 10:24"
+last-updated-utc: "2026-10-28 13:35"
 semantic-links:
   skill-links:
     - create-issue
@@ -27,7 +27,7 @@ semantic-links:
     - docs/issues/closed/2079-adopt-secrecy-for-sensitive-configuration/ISSUE.md
     - docs/adrs/20260617093046_reject_wildcard_external_ip.md
     - docs/adrs/20261007082938_bound_protocol_agnostic_values_by_the_tightest_delivery_protocol.md
-    - docs/issues/open/2466-1978-announce-interval-upper-bound/ISSUE.md
+    - docs/issues/closed/2466-1978-announce-interval-upper-bound/ISSUE.md
 ---
 
 # EPIC #1978 - Configuration Overhaul (schema v3.0.0)
@@ -112,7 +112,7 @@ Status values: `TODO`, `IN_PROGRESS`, `IN_REVIEW`, `BLOCKED`, `DONE`.
 | 13    | [#2107](https://github.com/torrust/torrust-tracker/issues/2107) — Activate persistence-free v3 runtime composition                                  | `docs/issues/closed/2107-1978-activate-persistence-free-v3-runtime-composition/ISSUE.md`       | DONE   | Active v3 composition honors an omitted database while preserving capability-aware REST API routes and configured database-driver startup.                |
 | 14    | [#2023](https://github.com/torrust/torrust-tracker/issues/2023) — Expose configured public URLs in runtime observability                            | `docs/issues/closed/2023-1978-expose-configured-public-urls-in-runtime-observability/ISSUE.md` | DONE   | Implemented with automated and reproducible local runtime verification; evidence is recorded in the issue folder.                                         |
 | 15    | [#2067](https://github.com/torrust/torrust-tracker/issues/2067) — Analyze a flat heterogeneous service configuration                                | `docs/issues/closed/2067-1978-analyze-flat-service-configuration/ISSUE.md`                     | DONE   | Analysis rejected a successor flat schema; its confirmed configuration-model bug was resolved by #2083.                                                   |
-| 16    | [#2466](https://github.com/torrust/torrust-tracker/issues/2466) — Bound announce intervals to what every delivery protocol can encode               | `docs/issues/open/2466-1978-announce-interval-upper-bound/ISSUE.md`                            | TODO   | Added after closure (EPIC reopened). Found by #2245: reject `interval` and `interval_min` above `i32::MAX` at configuration load. |
+| 16    | [#2466](https://github.com/torrust/torrust-tracker/issues/2466) — Bound announce intervals to what every delivery protocol can encode               | `docs/issues/closed/2466-1978-announce-interval-upper-bound/ISSUE.md`                          | DONE   | Added after closure (EPIC reopened). Found by #2245: `interval` and `interval_min` above `i32::MAX` are now rejected at configuration load (PR #2680). |
 
 ### Release-gated prerequisite
 
@@ -325,6 +325,7 @@ For each subissue implementation in this EPIC, the default completion policy is:
 - 2026-09-01 10:25 UTC - GitHub Copilot - Verified GitHub's native hierarchy has 16 of 16 subissues complete, confirmed the recorded verification evidence, closed #1978 as completed, and archived this EPIC specification.
 - 2026-10-07 08:29 UTC - josecelano - Decided to reopen #1978 for the #2245 follow-up instead of a standalone issue: configuration schema v3.0.0 is not yet published on crates.io, so the change still belongs to this EPIC - Chat decision
 - 2026-10-07 08:50 UTC - GitHub Copilot - Created subissue #2466 (bound the announce interval to what every delivery protocol can encode), reopened #1978 on GitHub, and linked #2466 natively; the specification PR then moves this specification back to `docs/issues/open/` - 16 of 17 subissues done
+- 2026-10-28 13:35 UTC - GitHub Copilot - Archived the #2466 spec to `docs/issues/closed/` after PR #2680 merged and #2466 closed, and marked it `DONE` in the Subissues table; EPIC closure and AC4 are left for the maintainer to decide - Archive PR
 
 ## Acceptance Criteria
 
