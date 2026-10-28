@@ -1,5 +1,6 @@
 //! The [`WhitelistStore`] trait — torrent whitelist context.
 use async_trait::async_trait;
+#[cfg(test)]
 use mockall::automock;
 use torrust_info_hash::InfoHash;
 
@@ -17,7 +18,7 @@ use super::super::error::Error;
     clippy::extra_unused_lifetimes,
     reason = "async_trait generates lifetimes outside workspace control"
 )]
-#[automock]
+#[cfg_attr(test, automock)]
 pub trait WhitelistStore: Sync + Send {
     /// Loads the whitelisted torrents from the database.
     ///

@@ -1,5 +1,6 @@
 //! The [`SchemaMigrator`] trait — schema management context.
 use async_trait::async_trait;
+#[cfg(test)]
 use mockall::automock;
 
 use super::super::error::Error;
@@ -19,7 +20,7 @@ use super::super::error::Error;
     clippy::extra_unused_lifetimes,
     reason = "async_trait generates lifetimes outside workspace control"
 )]
-#[automock]
+#[cfg_attr(test, automock)]
 pub trait SchemaMigrator: Sync + Send {
     /// Creates the necessary database tables.
     ///

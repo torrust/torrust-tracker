@@ -8,8 +8,14 @@ pub mod schema;
 pub mod torrent_metrics;
 pub mod whitelist;
 
-pub use auth_keys::{AuthKeyStore, MockAuthKeyStore};
+pub use auth_keys::AuthKeyStore;
+#[cfg(test)]
+pub use auth_keys::MockAuthKeyStore;
 pub use database::Database;
-pub use schema::{MockSchemaMigrator, SchemaMigrator};
+#[cfg(test)]
+pub use schema::MockSchemaMigrator;
+pub use schema::SchemaMigrator;
 pub use torrent_metrics::{MockTorrentMetricsStore, TorrentMetricsStore};
-pub use whitelist::{MockWhitelistStore, WhitelistStore};
+#[cfg(test)]
+pub use whitelist::MockWhitelistStore;
+pub use whitelist::WhitelistStore;
