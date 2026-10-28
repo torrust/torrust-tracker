@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2581-2003-pr-review-wait-poller/ISSUE.md
-last-updated-utc: "2026-10-28 11:55"
+last-updated-utc: "2026-10-28 13:50"
 ---
 
 # Manual Verification Evidence
@@ -22,7 +22,7 @@ do not invent commands, output, logs, or results.
 - Prerequisites and setup performed: `cargo build -p wait-for-pr-review`. Every run below is
   read-only against the GitHub API. The binary refuses a terminal on stdout, so each run redirects
   stdout and stderr to files under `.tmp/`; the relevant output is copied here.
-- Not yet run: V6 and V7 need this feature's pull request, which is not open yet.
+- V6 and V7 need this feature's pull request. It is open now (PR #2683); their status is below.
 
 ## Verification Processes
 
@@ -164,16 +164,142 @@ The automated suite also covers a hung `gh` call being killed on a signal
 ### V6 - A real `da2ce7` review
 
 - Goal: the poller returns on a real `da2ce7` review of this feature's pull request.
-- Initial state: this feature's pull request is not open yet.
+- Initial state: PR #2683 is open and `da2ce7` is a requested reviewer (GitHub timeline event
+  `review_requested` at 2026-10-28T12:19:58Z). No `da2ce7` review exists yet.
 - Status: `TODO`
 
 ### V7 - Copilot re-review request path
 
 - Goal: find out whether `POST repos/{owner}/{repo}/pulls/{n}/requested_reviewers` re-requests a
   Copilot review, and record the verified command or the limitation in the skill.
-- Initial state: this feature's pull request is not open yet.
-- Status: `TODO`
+- Initial state: PR #2683 had one Copilot review (5682635980, submitted 2026-10-28T12:34:22Z).
+  The fixes for its four findings were pushed before the request.
+- Status: `IN_PROGRESS`
+
+#### Steps Performed
+
+1. At 12:54:25 UTC: `gh api --method POST repos/torrust/torrust-tracker/pulls/2683/requested_reviewers -f 'reviewers[]=copilot-pull-request-reviewer[bot]'` (exit `0`, JSON of the pull request returned).
+2. `gh api repos/torrust/torrust-tracker/pulls/2683 --jq '{requested:[.requested_reviewers[].login]}'` right after.
+3. `gh api repos/torrust/torrust-tracker/issues/2683/timeline --paginate --jq '.[]|select(.event=="review_requested")|...'`.
+4. Two poller runs with `--since-head-sha` set to the pushed head, one after the other: 12:54:43 to 13:09:43 UTC and 13:09:55 to 13:24:55 UTC.
+5. At 13:25:15 UTC, the GraphQL route that earlier audits of PRs #2671, #2676, and #2679 name: the
+   `requestReviews` mutation with `botIds` set to the node ID of the `copilot-pull-request-reviewer`
+   bot (read from the existing Copilot review's author) and `union: true`. Then a GraphQL `reviewRequests` query.
+
+#### Observed Result
+
+```text
+step 2: {"requested":["da2ce7"]}
+step 3 (last events): 2026-10-28T12:16:59Z maintainers / 2026-10-28T12:19:58Z da2ce7 / 2026-10-28T12:54:26Z Copilot
+step 4: {"kind":"timeout","waited_seconds":900,"head_sha":"<head of PR #2683, elided>"}   (both runs)
+step 5: {"data":{"requestReviews":{"pullRequest":{"number":2683}}}}
+step 5, reviewRequests: Team maintainers, User da2ce7, Bot copilot-pull-request-reviewer
+```
+
+#### Conclusion so far
+
+The REST call is accepted and does record a Copilot request: the timeline shows `review_requested`
+for `Copilot` one second after the call, and the GraphQL `reviewRequests` list shows the bot as a
+pending reviewer. The REST `requested_reviewers` list never shows bots, so it cannot be used to
+check the request. No new Copilot review had arrived 30 minutes after the request, and the GraphQL
+mutation added no second event, because the request was still pending. The result is not final: it
+is recorded as `DONE` or `FAILED` after a review arrives or the request is shown to be dropped.
+
+### V8 - Unrelated CI failure: `base_source_precedence` fails with `Address already in use`
+
+This is not part of the poller. The Testing workflow of PR #2683 failed in `Unit (stable)` on a test
+that this pull request does not touch, so the cause was investigated and fixed here in its own commit,
+following the `fix-bug` skill.
+
+- Goal: the executable-boundary configuration scenarios no longer fail because another process holds
+  the port they hard-code.
+- Initial state: `tests/configuration/cli_configuration/` hard-coded `43152` to `43154`
+  (`base_source_precedence`) and `43155` and `43156` (`per_value_overrides`).
+- Status: `DONE`
+
+#### Symptom and hypothesis
+
+Run 40691707586 (workflow Testing, job `Unit (stable)`, 2026-10-28) failed on
+`base_source_precedence::it_should_select_the_cli_configuration_when_both_child_environment_base_sources_are_set`
+with `tracker exited before readiness with exit status: 1` and the tracker's own error `Could not bind
+the health check API listener ... Address already in use (os error 98)`. The same test failed with the
+same error in run 38925732709 (2026-10-16, a push to `develop`) and run 37060706317 (2026-10-02, a pull
+request), so it is not caused by PR #2683, which adds no tracker code. The only port the scenario binds
+is the winning CLI one, `43152`. It lies inside Linux's default ephemeral range (`32768` to `60999`,
+read from `/proc/sys/net/ipv4/ip_local_port_range` on the machine used here), which the kernel hands
+to port-zero bindings and to the source side of outgoing connections. Hypothesis: something on the
+runner holds the port when the tracker binds it. The holder in the CI runs was not identified.
+
+#### Reproduction (before the fix)
+
+Toolchain `rustc 1.99.1 (58cf8f9c3 2026-10-13)`, code at the commit `docs(pr-reviews): [#2581] record
+the first Copilot review of PR 2683` (tests unchanged). A Python process bound `127.0.0.1:43152` and
+ran `cargo test -p torrust-tracker --test cli-configuration`.
+
+```text
+baseline, port free:   test result: ok. 25 passed; 0 failed
+port 43152 held:       base_source_precedence::it_should_select_the_cli_configuration_when_both_child_environment_base_sources_are_set ... FAILED
+                       ... Could not start the health check API: Could not bind the health check API listener. Check that its bind address is available: Address already in use (os error 98)
+                       test result: FAILED. 24 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out
+```
+
+Outcome: **Reproduced** with an induced collision; the failure and its error text match the three CI
+runs. What held the port in CI is not known.
+
+#### Regression-test boundary
+
+The defect is that a scenario names a port that anything may hold. The smallest deterministic
+maintained tests are unit tests of a shared fixture helper, `reserve_free_ports`, in
+`tests/common/native_tracker/ports.rs`, plus the scenarios themselves using it:
+
+- `it_should_reserve_only_ports_below_the_ephemeral_range` guards the cause: it fails if the helper
+  draws from the range the kernel assigns.
+- `it_should_reserve_the_requested_number_of_distinct_ports`, `it_should_skip_a_candidate_that_a_live_listener_holds`,
+  and `it_should_return_nothing_when_there_are_no_candidates` guard the helper contract.
+
+A first design reserved ports from the kernel with port zero. It was rejected before commit: a
+port-zero port comes from the same ephemeral range, so it only narrows the window, and its tests
+raced the other tests in the process (one run failed with `reserved port 33495 should be free to bind:
+Address already in use`). The helper now draws random ports from `10000..32768`, below the range, and
+probes each by binding it.
+
+No maintained test stops someone from writing a literal port in a new scenario; that stays a review
+matter.
+
+#### Red proof
+
+With `SCENARIO_PORTS` mutated to `40_000..50_000` (not staged, then restored byte for byte):
+
+```text
+test native_tracker::ports::tests::it_should_reserve_only_ports_below_the_ephemeral_range ... FAILED
+port 44324 is outside the scenario range and could be handed out by the kernel
+test result: FAILED. 28 passed; 1 failed
+```
+
+The scenario tests were also run against the first design with the old ports as its return value and
+`43152` held: `it_should_reserve_ports_that_can_be_bound_once_the_call_has_returned` and
+`base_source_precedence` failed. That test was later removed with the design.
+
+#### Green and like-for-like recheck (after the last change to the fix)
+
+```text
+cargo test -p torrust-tracker --test cli-configuration      test result: ok. 29 passed; 0 failed
+cargo test -p torrust-tracker --test lifecycle-signals      test result: ok. 24 passed; 0 failed
+cargo clippy -p torrust-tracker --tests                     no warning or error
+```
+
+The reproduction was repeated: ports `43152` to `43156` all held by another process, then the same
+`cargo test -p torrust-tracker --test cli-configuration`: 29 passed, 0 failed, with both scenarios `ok`.
+The full suite was then run 40 more times with the old ports held: 0 failed runs. Before the fix,
+holding `43152` alone failed the run both times it was tried.
+
+#### Conclusion
+
+Met for the failure that was reproduced and for the cause the evidence supports. Not shown: that the
+ephemeral range is what caused the failures in CI, since the holder there was not observed. A port can
+still be taken between the probe and the tracker's bind by a process that listens on that exact port;
+the range is below what the kernel assigns, and concurrent runs draw different random ports.
 
 ## Failures and Follow-up
 
-No failure so far. V6 and V7 remain after the pull request opens.
+No failure of the poller so far. V6 and V7 are open: V6 waits for a `da2ce7` review, and V7 waits for a Copilot review or proof that the request was dropped. V8 is an unrelated pre-existing flake fixed in its own commit.
