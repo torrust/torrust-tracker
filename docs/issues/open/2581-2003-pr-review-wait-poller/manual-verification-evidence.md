@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2581-2003-pr-review-wait-poller/ISSUE.md
-last-updated-utc: "2026-10-28 16:40"
+last-updated-utc: "2026-10-28 17:20"
 ---
 
 # Manual Verification Evidence
@@ -152,8 +152,13 @@ exit 1 stdout bytes 0 stopped after 3.1s
 exit 1 stdout bytes 0 stopped after 3.0s
 {"kind":"interrupted","message":"interrupted by a signal"}
 --- usage error
-exit 2 {"kind":"usage_error","message":"error: the following required arguments were not provided:\n  --pr-number <PR_NUMBER>\n
+exit 2 {"kind":"usage_error","message":"error: the following required arguments were not provided:\n  --pr-number <PR_NUMBER>\n\nUsage: wait-for-pr-review --pr-number <PR_NUMBER>\n\nFor more information, try '--help'.\n"}
 ```
+
+The usage-error line above is the complete stderr record. The first capture of this run cut it at 120
+characters; the full record was captured again at 17:12 UTC with the same command
+(`target/debug/wait-for-pr-review`, no arguments), which exited `2` with one stderr line of 215 bytes
+that parses as one JSON object.
 
 #### Conclusion
 
@@ -265,15 +270,33 @@ maintained tests are unit tests of a shared fixture helper, `reserve_free_ports`
 
 - `it_should_reserve_only_ports_below_the_default_ephemeral_range` guards the cause: it fails if the
   helper draws from the range the kernel assigns by default.
-- `it_should_reserve_the_requested_number_of_distinct_ports`, `it_should_skip_a_candidate_that_a_live_listener_holds`,
-  `it_should_return_nothing_when_there_are_no_candidates`, and
-  `it_should_refuse_to_reserve_more_ports_than_it_can_search_for` guard the helper contract.
+- `it_should_reserve_the_requested_number_of_distinct_ports`,
+  `it_should_not_bind_a_port_that_a_live_listener_of_ours_holds`, and
+  `it_should_refuse_to_reserve_more_ports_than_the_range_holds` guard the helper contract with real
+  sockets, in ways that do not depend on re-binding a port that was just released.
+- `it_should_skip_a_candidate_that_cannot_be_bound`,
+  `it_should_give_each_port_its_own_draw_budget_even_when_the_candidates_repeat`, and
+  `it_should_name_the_range_the_budget_and_the_count_when_a_port_cannot_be_found` test the search
+  logic through an injected bind step (`reserve_from`), with a fake binder and no sockets.
 
 A first design reserved ports from the kernel with port zero. It was rejected before commit: a
 port-zero port comes from the same ephemeral range, so it only narrows the window, and its tests
 raced the other tests in the process (one run failed with `reserved port 33495 should be free to bind:
 Address already in use`). The helper now draws random ports from `10000..32768`, below the range, and
 probes each by binding it.
+
+A later version of the budget test used real sockets: it took two ports from `reserve_free_ports`
+and re-bound them at once. It passed alone, as a group, and single-threaded, and failed in 11 of 60
+runs of the full parallel suite. An instrumented copy showed why: right after `reserve_free_ports`
+returned, binding the port it had returned failed with `Address already in use` in 8 of the first 10 failing runs
+I looked at; in the other 2 the probe bind succeeded and the test still failed.
+The suite starts tracker child processes from parallel test threads, and a child forked while a listener
+is open keeps an inherited copy of its socket until `exec`, so a just-released port can stay held for a
+moment. The helper is not affected, because a failed probe only skips to the next candidate, but a test
+that re-binds a released port is. That test was replaced by the fake-binder test above, and the helper's
+documentation now says a caller must not assume it can re-bind a port it was just given. After the
+change, the full parallel suite ran 100 times for each of the two binaries that share the fixture
+(`cli-configuration` and `lifecycle-signals`) with 0 failed runs.
 
 No maintained test stops someone from writing a literal port in a new scenario; that stays a review
 matter.
@@ -289,9 +312,16 @@ port 44324 is outside the scenario range and could be handed out by the kernel
 test result: FAILED. 28 passed; 1 failed
 ```
 
-The test `it_should_refuse_to_reserve_more_ports_than_it_can_search_for`, added for a review finding,
-failed before its fix with the panic message `the loopback interface should have a free port below the
-ephemeral range` where `cannot reserve 1001 ports with a budget of 1000 draws` was expected.
+Tests added for review findings, each run before its fix:
+
+- `it_should_refuse_to_reserve_more_ports_than_it_can_search_for` (a test of the earlier version) failed
+  with the panic message `the loopback interface should have a free port below the ephemeral range`
+  where `cannot reserve 1001 ports with a budget of 1000 draws` was expected.
+- `it_should_give_each_port_its_own_draw_budget_even_when_the_candidates_repeat` did not compile before
+  `reserve_from` existed. With the per-port budget mutated into one that shrinks as ports are held
+  (`draws_per_port.saturating_sub(held.len())`, not staged, then restored byte for byte), the final
+  fake-binder version failed in 5 of 5 runs with `found only 1 free loopback ports in 10000..32768 within
+  3 draws per port while reserving 2`.
 
 The scenario tests were also run against the first design with the old ports as its return value and
 `43152` held: `it_should_reserve_ports_that_can_be_bound_once_the_call_has_returned` and
@@ -299,18 +329,19 @@ The scenario tests were also run against the first design with the old ports as 
 
 #### Green and like-for-like recheck (after the last change to the fix)
 
-The fixture changed again after a Copilot review (the commit
-`fix(tests): [#2581] name the real cause when a port reservation cannot be satisfied`), so the recheck
-was repeated on the build that includes it.
+The fixture changed again after Copilot reviews (the commits
+`fix(tests): [#2581] name the real cause when a port reservation cannot be satisfied` and
+`fix(tests): [#2581] give each reserved port its own draw budget and bound N by the range`), so the
+recheck was repeated on the build that includes both.
 
 ```text
-cargo test -p torrust-tracker --test cli-configuration      test result: ok. 30 passed; 0 failed
-cargo test -p torrust-tracker --test lifecycle-signals      test result: ok. 25 passed; 0 failed
+cargo test -p torrust-tracker --test cli-configuration      test result: ok. 32 passed; 0 failed
+cargo test -p torrust-tracker --test lifecycle-signals      test result: ok. 27 passed; 0 failed
 cargo clippy -p torrust-tracker --tests                     no warning or error
 ```
 
 The reproduction was repeated: ports `43152` to `43156` all held by another process, then the same
-`cargo test -p torrust-tracker --test cli-configuration`: 30 passed, 0 failed, with both scenarios `ok`.
+`cargo test -p torrust-tracker --test cli-configuration`: 32 passed, 0 failed, with both scenarios `ok`.
 The full suite was then run 40 more times with the old ports held: 0 failed runs. Before the fix,
 holding `43152` alone failed the run both times it was tried.
 
