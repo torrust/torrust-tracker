@@ -17,12 +17,15 @@ mod tests {
     use axum::response::IntoResponse;
 
     use super::health_check_handler;
+    use crate::test_support::MAX_BODY_BYTES;
 
     #[tokio::test]
     async fn it_should_answer_ok_with_a_json_report_whose_status_is_ok() {
         let (parts, body) = health_check_handler().await.into_response().into_parts();
 
-        let body = to_bytes(body, usize::MAX).await.expect("the body is readable");
+        let body = to_bytes(body, MAX_BODY_BYTES)
+            .await
+            .expect("the body is readable and within the limit");
         assert_eq!(
             (parts.status, parts.headers[CONTENT_TYPE].as_bytes(), &body[..]),
             (StatusCode::OK, &b"application/json"[..], &br#"{"status":"Ok"}"#[..])

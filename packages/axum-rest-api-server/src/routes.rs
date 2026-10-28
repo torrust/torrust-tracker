@@ -177,7 +177,7 @@ mod tests {
     use uuid::Uuid;
 
     use super::{router, with_layers};
-    use crate::test_support::api_container;
+    use crate::test_support::{MAX_BODY_BYTES, api_container};
 
     const TOKEN: &str = "test-token";
     const DEADLINE: Duration = Duration::from_secs(5);
@@ -208,9 +208,9 @@ mod tests {
     async fn into_received(response: axum::response::Response) -> Received {
         let status = response.status();
         let headers = response.headers().clone();
-        let body = to_bytes(response.into_body(), usize::MAX)
+        let body = to_bytes(response.into_body(), MAX_BODY_BYTES)
             .await
-            .expect("the body is readable");
+            .expect("the body is readable and within the limit");
 
         Received {
             status,

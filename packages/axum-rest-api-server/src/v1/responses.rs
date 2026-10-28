@@ -110,6 +110,7 @@ mod tests {
         bad_request_response, disabled_by_configuration_response, invalid_auth_key_param_response,
         invalid_info_hash_param_response, ok_response, unhandled_rejection_response,
     };
+    use crate::test_support::MAX_BODY_BYTES;
 
     const JSON: &str = "application/json";
     const TEXT: &str = "text/plain; charset=utf-8";
@@ -124,9 +125,9 @@ mod tests {
             .to_str()
             .expect("the content type is text")
             .to_string();
-        let body = to_bytes(response.into_body(), usize::MAX)
+        let body = to_bytes(response.into_body(), MAX_BODY_BYTES)
             .await
-            .expect("the body is readable");
+            .expect("the body is readable and within the limit");
 
         (
             status,

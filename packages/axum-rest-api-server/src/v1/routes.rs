@@ -85,7 +85,7 @@ mod tests {
     use tower::ServiceExt;
 
     use super::add;
-    use crate::test_support::api_container;
+    use crate::test_support::{MAX_BODY_BYTES, api_container};
 
     const KEY_PATH: &str = "/api/v1/key/60";
     const WHITELIST_RELOAD_PATH: &str = "/api/v1/whitelist/reload";
@@ -126,9 +126,9 @@ mod tests {
             .headers()
             .get(CONTENT_TYPE)
             .map(|value| value.to_str().expect("the content type is text").to_string());
-        let body = to_bytes(response.into_body(), usize::MAX)
+        let body = to_bytes(response.into_body(), MAX_BODY_BYTES)
             .await
-            .expect("the body is readable");
+            .expect("the body is readable and within the limit");
 
         (
             status,

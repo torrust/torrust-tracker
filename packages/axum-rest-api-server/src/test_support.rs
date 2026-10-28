@@ -9,6 +9,10 @@ use torrust_tracker_configuration::v3_0_0::Configuration;
 use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
 use torrust_tracker_rest_api_runtime_adapter::v1::container::TrackerHttpApiCoreContainer;
 
+/// The most bytes that a test reads from a response body. The bodies under test are small, so a larger one is a
+/// regression that should fail the test instead of being buffered.
+pub const MAX_BODY_BYTES: usize = 1024 * 1024;
+
 /// Builds the REST API container for a configuration, as the application does at startup.
 ///
 /// # Panics
