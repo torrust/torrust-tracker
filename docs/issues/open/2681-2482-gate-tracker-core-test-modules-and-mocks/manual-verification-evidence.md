@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2681-2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md
-last-updated-utc: "2026-10-28 16:42"
+last-updated-utc: "2026-10-28 16:50"
 ---
 
 # Manual Verification Evidence
@@ -243,3 +243,29 @@ torrust-tracker-core      no `torrust-tracker-core` entry (the self edge is skip
 ```
 
 The report lists only workspace packages, so `mockall` is absent by design; V6 shows it in `cargo metadata`.
+
+## V8 - Pre-push checks and the independent pre-PR review
+
+`./contrib/dev-tools/git/hooks/pre-push.sh` exits 0 on the implementation head (nightly format, nightly check, nightly docs for binaries and libraries, workspace packaging, all tests):
+
+```text
+[Step 1/6] Checking format with nightly toolchain ... PASS (1s)
+[Step 2/6] Checking workspace with nightly toolchain ... PASS (0s)
+[Step 3/6] Building documentation with nightly toolchain ... PASS (5s)
+[Step 4/6] Building library documentation with nightly toolchain ... PASS (3s)
+[Step 5/6] Checking that every workspace crate can be packaged ... PASS (39s)
+[Step 6/6] Running all tests ... PASS (38s)
+SUCCESS: All pre-push checks passed! (1m 26s)
+```
+
+An independent Task Reviewer reviewed the branch read-only before the pull request and returned PASS WITH FINDINGS (no blocker). It re-ran the builds, the three packages' plain tests, clippy, `cargo tree`, `shipped-features-check`, `cargo deny check bans`, `cargo machete` and `cargo doc` and reproduced AC1 to AC3 and AC6; it did not repeat the destructive red runs of V4 and V5 (its instruction was read-only). Findings and dispositions:
+
+| # | Severity | Finding | Disposition |
+| --- | --- | --- | --- |
+| 1 | Minor | Rule A.6 asks for the "outside semver" statement in the module documentation too, not only in the `Cargo.toml` comment | Fixed: a doc comment on the `MockTorrentMetricsStore` re-export, in `docs(tracker-core): [#2681] explain the testing mock, the self wrapper and the pub test modules` |
+| 2 | Minor | The spec's AC1 changed "five" to "four" `Mock*` types, but the Progress Log said no deviation | Fixed by a new Progress Log entry (the log is append-only); T1 and the Risks section keep "five names" as the grep pattern, which included the non-existent `MockDatabase` |
+| 3 | Minor | The Progress Log said "five signed commits"; there were six at that point | Corrected by the same new entry |
+| 4 | Nit | `883cc834c` is cited in the docs | No change: it is a commit on `develop`, which no rewrite of this branch changes (the commit-id check of the `open-pull-request` skill passes) |
+| 5 | Nit | The evidence has no raw logs | No change: the transcripts are the real output reduced to the relevant lines, as in earlier rows |
+| 6 | Nit | The `deny.toml` self-wrapper is unexplained | Fixed: a comment in the same commit as finding 1 |
+| 7 | Nit | `pub mod tests` is explained only in the inventory | Fixed: a comment above each `pub mod tests`, in the same commit |

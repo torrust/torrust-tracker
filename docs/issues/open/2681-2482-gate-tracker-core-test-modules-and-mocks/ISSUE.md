@@ -9,7 +9,7 @@ github-issue: 2681
 spec-path: docs/issues/open/2681-2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md
 branch: "2681-2482-gate-tracker-core-test-modules-and-mocks"
 related-pr: null
-last-updated-utc: "2026-10-28 16:42"
+last-updated-utc: "2026-10-28 16:50"
 semantic-links:
   skill-links:
     - create-issue
@@ -276,7 +276,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T5 | DONE | Verify | Without-feature build and tree; tests with and without `--all-features`; `cargo machete --with-metadata`; `cargo deny check bans`; Shipped Features red/green; the coupling report's `normal` and `dev` entries and the `cargo metadata` view of the optional `mockall` (M5); `cargo +stable package --workspace --no-verify` |
 | T6 | DONE | Update the inventory (patterns C and D resolved) and check the docs and diagram | `docs/packages.md` and the READMEs mention no mock; the 2026-10-17 coupling report is not edited |
 | T7 | DONE | Add the dated amendment note to ADR rule D.1 (D1) | Short note; the ADR index needs no change |
-| T8 | TODO | Manual verification evidence, acceptance review, completion review, independent pre-PR review | `manual-verification-evidence.md`; retrospective if there are lessons |
+| T8 | DONE | Manual verification evidence, acceptance review, completion review, independent pre-PR review | `manual-verification-evidence.md`; retrospective if there are lessons |
 
 ## Commit Points
 
@@ -299,10 +299,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] GitHub issue created, linked as a sub-issue of #2482 (`parent_issue_url` verified), and its number added to this spec
 - [x] Spec-only PR merged into `develop` before implementation (PR #2682)
 - [x] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
+- [x] Automatic verification completed (`linter all` through the pre-commit gate on every commit, the relevant tests, and the pre-push script, evidence V8)
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence (the AI assistant; the maintainer reviews it in the pull request)
-- [ ] Evidence-based implementation completion review recorded
+- [x] Evidence-based implementation completion review recorded
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
@@ -317,6 +317,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-10-28 12:33 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 3) - PR #2682 review round 1 (Copilot, four low-severity findings, all confirmed against the spec): the feature-enabled build checkpoint moved from T3 to T4; doc tests are counted by matching baseline and post-change commands (`--doc` runs; `--all-targets` does not run them); M3 inspects the consumers' normal dependency graph with `cargo tree -i mockall`; M5 and T5 expect the `[normal]` and `[dev]` entries the coupling report really lists and check the optional `mockall` in `cargo metadata`. Recorded in `docs/pr-reviews/pr-2682-review/PR-REVIEW.md`.
 - 2026-10-28 13:45 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 3) - PR #2682 review rounds 2 and 3 (Copilot): two findings that claimed table rows start with `||` were declined (the files contain none); the frontmatter `branch:` now records the `-spec` branch of this PR, as `create-issue` requires, and the implementation PR switches it to the base name `2681-2482-gate-tracker-core-test-modules-and-mocks`.
 - 2026-10-28 16:41 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 3) - Implementation done on branch `2681-2482-gate-tracker-core-test-modules-and-mocks` after the spec PR #2682 merged: five signed commits (helper modules private; three crate-private mocks under `cfg_attr(test)`; the `testing` feature with the optional `mockall`, the self dev-dependency, the `deny.toml` wrapper and the consumers' dev-dependencies; the inventory; the ADR amendment note). Evidence in `manual-verification-evidence.md` (V0 to V7). Facts were re-verified because `develop` had moved. Deviation from the spec text: none. The `Cargo.lock` gained the self dev-dependency edge. Pending: pre-push, independent pre-PR review, completion review.
+- 2026-10-28 16:50 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 3) - Correction to the 16:41 entry above: it said "five signed commits" and "Deviation from the spec text: none". At that point the branch had six commits (the evidence commit was the sixth), and the spec text did change: AC1's "five `Mock*` types" became "four" (the pattern that found five names included the non-existent `MockDatabase`). Then: the independent pre-PR review (PASS WITH FINDINGS) and the pre-push script (exit 0) are recorded in the evidence (V8); the review's findings 1, 6 and 7 are fixed in `docs(tracker-core): [#2681] explain the testing mock, the self wrapper and the pub test modules`; the completion review and the retrospective are written.
 
 ## Acceptance Criteria
 
@@ -339,7 +340,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] AC5: `cargo machete --with-metadata` and `cargo deny check bans` pass, with the self
       dev-dependency having no `version`; `cargo +stable package --workspace --no-verify` passes.
 - [x] AC6: Inventory patterns C and D are marked resolved, and the ADR carries the D.1 amendment note.
-- [ ] `linter all` exits with code `0`; pre-push checks pass.
+- [x] `linter all` exits with code `0` (pre-commit gate on every commit); pre-push checks pass (evidence V8).
 
 ## Verification Plan
 
@@ -404,8 +405,12 @@ without `--all-features`, compare test counts, and make sure no test is silently
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
-- If no retrospective is needed, add a progress-log entry saying why.
+Reviewed by the AI assistant against the acceptance criteria and the evidence on 2026-10-28 16:50 UTC, after an independent Task Reviewer pre-PR review (evidence V8: PASS WITH FINDINGS, no blocker, every finding fixed or answered); the maintainer reviews it in the pull request.
+
+- Scope: the change is in `packages/tracker-core` (the three helper-module declarations and their inner modules, the four trait files, the two re-export files, `Cargo.toml`), the two consumers' `Cargo.toml`, `deny.toml`, `Cargo.lock`, the inventory and the ADR amendment note. No test body changed, no `required-features` was added, and no `testing` feature is in a `[dependencies]` entry or a `default` chain.
+- Design: as decided in D1 to D6. Deviation from the spec text: none in the code; the spec's AC1 wording was corrected from "five" to "four" `Mock*` types (there are four), and the Design and Ownership paragraph moved its feature-enabled checkpoint to T4 after review.
+- Known limits: `MockWhitelistStore` and `MockSchemaMigrator` are used by no test and stay under `cfg(test)` (deleting them is a separate cleanup); the test archives keep `--all-features`; `testing` is public surface outside semver, and #2583 decides versions. Rows 4 to 7 reuse the pattern, including the `deny.toml` self-wrapper entry.
+- Retrospective: created, [`implementation-retrospective.md`](implementation-retrospective.md): the per-mock consumer count that narrowed ADR rule D.1, and the `deny.toml` and clippy side effects of the self dev-dependency.
 
 ## References
 
