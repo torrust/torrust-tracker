@@ -9,7 +9,7 @@ github-issue: 2681
 spec-path: docs/issues/open/2681-2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md
 branch: "2681-2482-gate-tracker-core-test-modules-and-mocks"
 related-pr: null
-last-updated-utc: "2026-10-28 12:31"
+last-updated-utc: "2026-10-28 12:33"
 semantic-links:
   skill-links:
     - create-issue
@@ -314,6 +314,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-10-22 18:39 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 1) - Changed after PR #2624's review round 2: the `Mock*` re-exports in `databases/traits/mod.rs` are at lines 11, 13, 14 and 15 (all four mocks), not only line 14.
 - 2026-10-28 12:05 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 3) - Refreshed against `develop` at `883cc834c` after rows 2, 8 and 9. Re-verified every module declaration, line number and consumer of each `Mock*` type; measured the plain-test baseline; ran a discarded prototype that found the `deny.toml` wrapper and the `redundant_pub_crate` side effects. The maintainer decided on 2026-10-28 that only `MockTorrentMetricsStore` (the one mock other packages use) goes behind `testing` and the other three use `cfg_attr(test, automock)` (D1), and accepted the defaults of D4 to D6. The scope, tasks, acceptance criteria and scenarios changed accordingly. Awaiting the maintainer's approval of the spec.
 - 2026-10-28 12:07 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 3) - The maintainer approved the spec and the T7 ADR amendment note on 2026-10-28. Created issue #2681, linked it as a sub-issue of #2482 (`parent_issue_url` verified), moved the spec to `docs/issues/open/2681-2482-gate-tracker-core-test-modules-and-mocks/`, set `status: planned` and updated row 3 of the EPIC Subissues table (IN_PROGRESS) and the inventory links.
+- 2026-10-28 12:33 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 3) - PR #2682 review round 1 (Copilot, four low-severity findings, all confirmed against the spec): the feature-enabled build checkpoint moved from T3 to T4; doc tests are counted by matching baseline and post-change commands (`--doc` runs; `--all-targets` does not run them); M3 inspects the consumers' normal dependency graph with `cargo tree -i mockall`; M5 and T5 expect the `[normal]` and `[dev]` entries the coupling report really lists and check the optional `mockall` in `cargo metadata`. Recorded in `docs/pr-reviews/pr-2682-review/PR-REVIEW.md`.
 
 ## Acceptance Criteria
 
