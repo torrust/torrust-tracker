@@ -7,11 +7,29 @@
 #     - Cargo.toml  # `[workspace] default-members` is the positive list of packages tested in the image
 #     - .dockerignore  # allow-list of the build context; every workspace member must be admitted
 #     - .hadolint.yaml  # hadolint global linting rules and ignore policies with rationale
+#
+# Multi-platform build strategy:
+#   The `chef`, `tester`, and `recipe` stages are built on `$BUILDPLATFORM` (the
+#   host running buildx) because they only install build tools and generate
+#   platform-independent artefacts (recipe JSON, SQLite database file). This lets
+#   Docker cache and share them across every target platform, skipping QEMU
+#   emulation for the slowest set-up steps.
+#   The `builder` and `test_base` stages mirror `chef` / `tester` at
+#   `$TARGETPLATFORM` — Docker does not allow cross-platform inheritance, so
+#   stages that compile or execute target-platform binaries cannot inherit
+#   directly from a BUILDPLATFORM stage. When BUILDPLATFORM == TARGETPLATFORM
+#   (single-platform or self-hosted builds) the layer cache reuses the
+#   identical layers, so there is no build-time overhead.
 
 # Torrust Tracker
 
-## Builder Image
-FROM docker.io/library/rust:slim-trixie AS chef
+## Chef Image (BUILDPLATFORM)
+# Installs cargo-chef and cargo-nextest as BUILDPLATFORM binaries. These tools
+# orchestrate the build (recipe preparation, test archiving) but do not produce
+# target-platform code. Built on BUILDPLATFORM so the layer is cached once and
+# shared across all target platforms in multi-platform builds, avoiding QEMU
+# emulation overhead for tool installation.
+FROM --platform=$BUILDPLATFORM docker.io/library/rust:slim-trixie AS chef
 WORKDIR /tmp
 RUN apt-get update \
  && apt-get install -y --no-install-recommends curl libssl-dev pkg-config \
@@ -23,8 +41,11 @@ RUN cargo binstall --no-confirm --locked torrust-cargo-chef@0.1.78 cargo-nextest
 # https://github.com/LukeMathWalker/cargo-chef/pull/360 is pending. Once merged,
 # switch back to upstream `cargo-chef` and remove this comment.
 
-## Tester Image
-FROM docker.io/library/rust:slim-trixie AS tester
+## Tester Image (BUILDPLATFORM)
+# Installs test tools and pre-initializes the SQLite database. The database file
+# is platform-independent (a file on disk), so it can be produced on
+# BUILDPLATFORM and copied into target-platform test stages.
+FROM --platform=$BUILDPLATFORM docker.io/library/rust:slim-trixie AS tester
 WORKDIR /tmp
 
 RUN apt-get update \
@@ -36,24 +57,32 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 # Database initialization: Tests at runtime require a pre-initialized SQLite3 database
 # to test against a valid (not corrupted) schema. The VACUUM command optimizes the
-# database file layout. This image layer is inherited by test_debug and test stages.
-
+# database file layout. This image layer is copied into the TARGETPLATFORM
+# `test_base` stage (see below).
 COPY ./share/ /app/share/torrust
 RUN time mkdir -p /app/share/torrust/default/database/ \
  && time sqlite3 /app/share/torrust/default/database/tracker.sqlite3.db "VACUUM;"
 
-## Su Exe Compile
-FROM docker.io/library/debian:trixie-slim AS gcc
+## Builder Image (TARGETPLATFORM)
+# Target-platform build tools. Cannot inherit from the BUILDPLATFORM `chef`
+# stage because Docker does not allow cross-platform inheritance — a stage that
+# inherits from a BUILDPLATFORM stage is itself BUILDPLATFORM and would compile
+# for the wrong architecture. The tool installation mirrors `chef` but produces
+# target-platform binaries. When BUILDPLATFORM == TARGETPLATFORM the layer cache
+# reuses the identical layers from `chef`, so there is no build-time overhead.
+FROM docker.io/library/rust:slim-trixie AS builder
+WORKDIR /tmp
 RUN apt-get update \
- && apt-get install -y --no-install-recommends gcc libc6-dev \
+ && apt-get install -y --no-install-recommends curl libssl-dev pkg-config \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
-COPY ./contrib/dev-tools/su-exec/ /usr/local/src/su-exec/
-RUN cc -Wall -Werror -g /usr/local/src/su-exec/su-exec.c -o /usr/local/bin/su-exec \
- && chmod +x /usr/local/bin/su-exec
-
+RUN curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
+RUN cargo binstall --no-confirm --locked torrust-cargo-chef@0.1.78 cargo-nextest@0.9.140
 
 ## Chef Prepare (look at project and see wat we need)
+# Inherits from BUILDPLATFORM `chef`. `cargo chef prepare` only analyses
+# Cargo.toml metadata — it produces platform-independent recipe JSON — so this
+# stage runs natively without QEMU emulation.
 FROM chef AS recipe
 WORKDIR /build/src
 # Canonical cargo-chef planner stage: copy the whole (allow-listed, see .dockerignore)
@@ -77,8 +106,24 @@ RUN cargo chef prepare --recipe-path /build/recipe.json
 RUN cargo chef prepare --external-only --recipe-path /build/recipe-thirdparty.json
 
 
+## Su Exe Compile (TARGETPLATFORM)
+# su-exec must match the target architecture because it runs inside the final
+# runtime container.
+FROM docker.io/library/debian:trixie-slim AS gcc
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends gcc libc6-dev \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+COPY ./contrib/dev-tools/su-exec/ /usr/local/src/su-exec/
+RUN cc -Wall -Werror -g /usr/local/src/su-exec/su-exec.c -o /usr/local/bin/su-exec \
+ && chmod +x /usr/local/bin/su-exec
+
+
 ## Cook Third-party (debug)
-FROM chef AS dependencies_thirdparty_debug
+# Inherits from TARGETPLATFORM `builder`. Recipe files are platform-independent
+# JSON copied from the BUILDPLATFORM `recipe` stage, so they are shared across
+# all target platforms.
+FROM builder AS dependencies_thirdparty_debug
 WORKDIR /build/src
 # Only third-party recipe: immune to workspace Cargo.toml changes.
 COPY --from=recipe /build/recipe-thirdparty.json /build/recipe.json
@@ -101,7 +146,7 @@ RUN cargo nextest archive --tests --all-features \
     --archive-file /build/temp.tar.zst && rm -f /build/temp.tar.zst
 
 ## Cook Third-party (release)
-FROM chef AS dependencies_thirdparty
+FROM builder AS dependencies_thirdparty
 WORKDIR /build/src
 # Only third-party recipe: immune to workspace Cargo.toml changes.
 COPY --from=recipe /build/recipe-thirdparty.json /build/recipe.json
@@ -136,8 +181,21 @@ RUN cargo nextest archive --tests --all-features \
     --archive-file /build/torrust-tracker.tar.zst --release
 
 
+## Test Base (TARGETPLATFORM)
+# Inherits build tools from TARGETPLATFORM `builder` and the pre-initialized
+# SQLite database from BUILDPLATFORM `tester`. The database file is
+# platform-independent, so copying it across platforms is safe.
+FROM builder AS test_base
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends time \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+# Reuse the pre-initialized database (platform-independent) from the
+# BUILDPLATFORM tester stage.
+COPY --from=tester /app/share/torrust/ /app/share/torrust/
+
 # Extract and Test (debug)
-FROM tester AS test_debug
+FROM test_base AS test_debug
 WORKDIR /test
 COPY . /test/src/
 COPY --from=build_debug \
@@ -156,7 +214,7 @@ RUN time chown -R root:root /app \
  && time chmod -R a+x /app/bin
 
 # Extract and Test (release)
-FROM tester AS test
+FROM test_base AS test
 WORKDIR /test
 COPY . /test/src
 COPY --from=build \
@@ -177,7 +235,9 @@ RUN time chown -R root:root /app \
 RUN rm -rf /app/share/torrust/default/database
 
 
-## Runtime
+## Runtime (TARGETPLATFORM)
+# The final runtime image must match the target architecture: it contains the
+# compiled tracker binary (TARGETPLATFORM) and su-exec (TARGETPLATFORM).
 FROM gcr.io/distroless/cc-debian13:debug AS runtime
 RUN ["/busybox/cp", "-sp", "/busybox/sh","/busybox/cat","/busybox/ls","/busybox/env", "/bin/"]
 COPY --from=gcc --chmod=0555 /usr/local/bin/su-exec /bin/su-exec

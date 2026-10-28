@@ -119,6 +119,18 @@ podman build --target release --tag torrust-tracker:release --file Containerfile
 podman build --target debug --tag torrust-tracker:debug --file Containerfile .
 ```
 
+### Multi-Architecture Builds (Docker)
+
+The published Docker Hub images are multi-platform manifest lists built with `docker buildx` for `linux/amd64` and `linux/arm64` from a single tag. No dedicated tags are published per architecture — the manifest list lets a single tag resolve to the correct binary for each platform.
+
+To build a multi-platform image locally (requires Docker BuildKit and QEMU emulation), use `buildx`:
+
+```sh
+docker buildx build --platform linux/amd64,linux/arm64 --target release --tag torrust-tracker:multi-platform --file Containerfile --push .
+```
+
+The `Containerfile` is optimized for multi-platform builds: stages that only install build tools or generate platform-independent artefacts (recipe JSON, SQLite database files) use `FROM --platform=$BUILDPLATFORM`, so Docker caches and shares them across all target platforms. Stages that compile or execute target-platform binaries use `FROM --platform=$TARGETPLATFORM`, which is the default when `--platform=$BUILDPLATFORM` is omitted.
+
 ## Running the Container
 
 ### Basic Run
