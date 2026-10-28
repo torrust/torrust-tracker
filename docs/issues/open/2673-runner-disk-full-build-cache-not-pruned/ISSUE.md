@@ -9,7 +9,7 @@ github-issue: 2673
 spec-path: docs/issues/open/2673-runner-disk-full-build-cache-not-pruned/ISSUE.md
 branch: "2673-runner-disk-full-build-cache-not-pruned-spec"
 related-pr: null
-last-updated-utc: "2026-10-27 11:45"
+last-updated-utc: "2026-10-28 07:26"
 semantic-links:
   skill-links:
     - create-issue
@@ -40,9 +40,9 @@ The container test jobs run on a self-hosted Hetzner runner (see [docs/self-host
 
 What happens, step by step, as observed on 2026-10-27 (details in [manual-verification-evidence.md](manual-verification-evidence.md)):
 
-1. CI jobs build the tracker image on the runner, and the Docker build cache grows well past 120 GB between daily runs.
+1. CI jobs build the tracker image on the runner, and the Docker build cache grows well past its 120 GiB (128.8 GB) target between daily runs.
 2. Until about 2026-10-22 the 04:00 UTC prune freed tens of GB per day (for example 88.56 GB on 2026-10-15). Its freed amount then fell (17.48 GB on 2026-10-23, 943 MB on 2026-10-24) and has been 0 B on 2026-10-25, 2026-10-26, and 2026-10-27.
-3. On 2026-10-27 the build cache is 253.6 GB in 487 records, and Docker reports none of it reclaimable. The root filesystem `/` is 100% full (288 GB of 301 GB used, under 200 MB free).
+3. On 2026-10-27 the build cache is 253.6 GB in 487 records, and Docker reports none of it reclaimable. The root filesystem `/` is 100% full (288 GiB of 301 GiB used, under 200 MiB free).
 4. From about 07:42 UTC the system logs "No space left on device". Container jobs on the runner fail within seconds: the `develop` push run created at 07:28 UTC and the run for pull request 2637 created at 08:09 UTC both ended with `Test (Docker) (release)` failed and the publish jobs skipped.
 
 The timer itself is healthy: it fired on every day from 2026-09-26 and exits with status 0. The failure is silent. Nothing in the setup fails or alerts when a prune frees nothing, and the first visible sign was failed CI jobs.
@@ -57,7 +57,7 @@ The first draft of this specification guessed that four orphaned `torrust-tracke
 
 Still a hypothesis: the trigger is a cancelled or killed build. Evidence for it is a correlation (551 `context canceled` Solve errors since 2026-10-01, leaves created mostly on heavy-cancellation days, dockerd up 32 days). A cancelled build on a desktop with Docker 28.3.3, overlay2, and BuildKit 0.23.2 did not reproduce it; the runner uses Docker 29.8.1, the containerd snapshotter, and BuildKit 0.33.0.
 
-A second, smaller gap: the host-side Cargo target cache (23 GB under `/home/runner/.cache/torrust-tracker/`) has no automatic cleanup. It was deleted once during T2, and the next job rebuilds it.
+A second, smaller gap: the host-side Cargo target cache (23 GiB under `/home/runner/.cache/torrust-tracker/`) has no automatic cleanup. It was deleted once during T2, and the next job rebuilds it.
 
 ## Scope
 
