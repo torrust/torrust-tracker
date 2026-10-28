@@ -19,15 +19,17 @@ pub async fn api_container(configuration: &Configuration) -> Arc<TrackerHttpApiC
     let http_tracker_config = Arc::new(
         configuration
             .http_trackers
-            .clone()
-            .expect("the configuration enables an HTTP tracker")[0]
+            .as_ref()
+            .and_then(|trackers| trackers.first())
+            .expect("the configuration enables an HTTP tracker")
             .clone(),
     );
     let udp_tracker_config = Arc::new(
         configuration
             .udp_trackers
-            .clone()
-            .expect("the configuration enables a UDP tracker")[0]
+            .as_ref()
+            .and_then(|trackers| trackers.first())
+            .expect("the configuration enables a UDP tracker")
             .clone(),
     );
     let http_api_config = Arc::new(
