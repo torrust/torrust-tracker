@@ -536,7 +536,7 @@ declaration-only rows have no executable entries.
 | ---: | --- | ---: | --- | ---: | ---: | --- | --- | --- |
 | 1 | `v1/middlewares/auth.rs` | 1 | S1 | 71 / 103 (68.93%) | 4 | Property candidate | DONE | [v1-middlewares-auth-tests.md](test-refactor-plans/v1-middlewares-auth-tests.md) (done; 142 / 142 lines after, 27 test cases, 8 mutants killed, property test declined) |
 | 2 | `v1/routes.rs` | 2 | S2 | 27 / 45 (60.00%) | 0 | Test candidate | DONE | [v1-routes-tests.md](test-refactor-plans/v1-routes-tests.md) (done; 111 / 111 lines after, 19 test cases, 6 mutants killed, private test_support helper) |
-| 3 | `routes.rs` | 2 | S2 | 58 / 67 (86.57%) | 0 | Test candidate | IN_PROGRESS | [routes-tests.md](test-refactor-plans/routes-tests.md) (approved 2026-10-28) |
+| 3 | `routes.rs` | 2 | S2 | 58 / 67 (86.57%) | 0 | Test candidate | DONE | [routes-tests.md](test-refactor-plans/routes-tests.md) (done; 174 / 174 lines after, 9 test cases, 8 of 10 mutants killed, the 2 survivors recorded, R0 refactor) |
 | 4 | `v1/context/health_check/handlers.rs` | 2 | S2 | 4 / 4 (100.00%) | 0 | Test candidate (small) | PENDING | - |
 | 5 | `v1/responses.rs` | 3 | S1 | 8 / 40 (20.00%) | 0 | Test candidate | DONE | [v1-responses-tests.md](test-refactor-plans/v1-responses-tests.md) (done; 66 / 66 lines after, 8 test cases, 8 mutants killed) |
 | 6 | `v1/context/auth_key/handlers.rs` | 4 | S3 | 0 / 56 (0.00%) | 0 | Test candidate | PENDING | - |

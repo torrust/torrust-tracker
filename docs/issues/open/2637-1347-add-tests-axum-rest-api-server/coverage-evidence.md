@@ -217,3 +217,7 @@ Unit-only lines move 792 / 1,240 (63.87%) at the S1 baseline to 921 / 1,305 (70.
 ### `v1/routes.rs` (slice S2)
 
 Unit-only (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): lines 27 / 45 (60.00%) before, 111 / 111 (100.00%) after; regions 51 / 73 before, 174 / 174 after; functions 1 / 3 before, 13 / 13 after. The counts include the in-file test module. The new crate-private `test_support.rs` helper is 31 / 31 lines. Nineteen test cases; six named mutations killed (see [the plan](test-refactor-plans/v1-routes-tests.md)).
+
+### `routes.rs` (slice S2)
+
+Unit-only (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): lines 58 / 67 (86.57%) before, 174 / 174 (100.00%) after; regions 103 / 117 before, 280 / 280 after; functions 5 / 8 before, 26 / 26 after. The counts include the in-file test module. The request, response and failure log closures run but their content is not asserted at unit level (an integration test asserts the `ERROR` line). Nine test cases; eight of ten named mutations killed, two survive by design (see [the plan](test-refactor-plans/routes-tests.md)).

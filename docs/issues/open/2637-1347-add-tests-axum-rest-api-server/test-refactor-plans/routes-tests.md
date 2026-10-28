@@ -3,7 +3,7 @@ doc-type: file-test-plan
 issue: 2637
 package: torrust-tracker-axum-rest-api-server
 target-file: packages/axum-rest-api-server/src/routes.rs
-status: approved
+status: done
 semantic-links:
   related-artifacts:
     - packages/axum-rest-api-server/src/routes.rs
@@ -93,11 +93,11 @@ None new: `uuid` (already a dev-dependency) parses the generated id, and `rstest
 
 | ID | Status | Work | Completion evidence |
 | --- | --- | --- | --- |
-| R0 | TODO | The behavior-preserving testability refactor above, in its own `refactor` commit. | The existing unit and integration tests pass unchanged, `cargo +nightly fmt --all -- --check`, `cargo clippy`. |
+| R0 | DONE | The behavior-preserving testability refactor above, in its own `refactor` commit. | The existing unit and integration tests pass unchanged, `cargo +nightly fmt --all -- --check`, `cargo clippy`. |
 | R1 | SKIPPED | No existing tests. | None. |
-| R2 | TODO | Add the in-file test module with the cases above. | Focused tests, `cargo +nightly fmt --all -- --check`, `cargo clippy`, `git diff --check`, prose-first AAA review, and the named mutations. |
-| R3 | TODO | Integration increment: `none` expected. | The integration tests keep the wire and log contract. |
-| R4 | TODO | Re-run unit-only coverage; record before and after. | Results below and `coverage-evidence.md`. |
+| R2 | DONE | Add the in-file test module with the cases above. | Focused tests, `cargo +nightly fmt --all -- --check`, `cargo clippy`, `git diff --check`, prose-first AAA review, and the named mutations. |
+| R3 | DONE | Integration increment: `none` expected. | The integration tests keep the wire and log contract. |
+| R4 | DONE | Re-run unit-only coverage; record before and after. | Results below and `coverage-evidence.md`. |
 
 ## Named Mutations
 
@@ -128,8 +128,44 @@ Recorded on 2026-10-28.
 
 ## Prose-First AAA Review
 
-To be written for every added test before the completed-file review.
+Temporary prose, written before comparing with the code.
+
+| Test (cases) | Arrange prose | Act prose | Assert prose | Outcome |
+| --- | --- | --- | --- | --- |
+| `it_should_serve_the_health_check_without_a_token` | A request to the health check with no token. | Send it through the router. | `200`. | Only the status: the body belongs to the health check handler (row 4). Kept. |
+| `it_should_reject_a_request_to_an_api_route_without_a_configured_token` (2) | A v1 request with no token, or with a wrong one. | Same. | `500` and the literal `unauthorized` or `token not valid` body. | The middleware's own cases were done in S1; this pins that the router applies it to v1 and feeds it the tokens. Kept. |
+| `it_should_serve_an_api_route_when_the_request_carries_a_token_given_to_the_router` | A v1 request with the literal token that the test gave the router. | Same. | `200`. | The token is a literal in the test, not read from the configuration. Kept. |
+| `it_should_generate_a_request_id_when_the_request_has_none` | A request with no `x-request-id`. | Same. | The response header parses as a UUID. | The value is random, so the property is the format. Kept. |
+| `it_should_return_the_request_id_provided_by_the_client` | A request with `x-request-id: my-request-1`. | Same. | The response carries exactly that value. | Kept. |
+| `it_should_compress_the_response_only_as_the_client_asks` (2) | A v1 request with `Accept-Encoding: gzip`, or without it. | Same. | `content-encoding: gzip`, or none. | Only the header: decoding is `tower-http`'s. Kept. |
+| `it_should_answer_request_timeout_when_an_api_route_does_not_answer_within_the_timeout` | A route that never answers, a 50 ms timeout, a token. | `with_layers` through `oneshot`, awaited under an absolute 5 s deadline. | `408` and an empty body. | The deadline makes a missing timeout fail instead of hang (L8 fails after 5 s). Kept. |
+
+Helpers: `received` reads the status, headers and body; `through_the_router` builds the container and the router for a
+default tracker; `access_tokens` and `service_binding` hide only construction. The expected values are literals.
 
 ## Results
 
-Pending.
+- **Unit-only coverage** (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): `routes.rs` 58 / 67 lines
+  (86.57%) before; 174 / 174 lines (100.00%), 280 / 280 regions and 26 / 26 functions after (the counts include
+  the test module). Package unit-only lines after this file: 1,258 / 1,509 (83.37%), regions 1,838 / 2,305
+  (79.74%), functions 178 / 226 (78.76%), 74 unit tests.
+- **Honest note on coverage:** the request, response and failure log closures (lines 67-136) are now executed, because
+  the unauthorized request goes through the router and a `5xx` response runs the server-error and failure arms. No
+  test asserts their content (maintainer decision: no unit-level log assertions). The `ERROR ... API ... <request id>`
+  line is asserted by an integration test, so those lines are covered, not protected, at unit level.
+- **Tests:** 9 test cases in seven tests (two `rstest` tables of 2). No integration test was added or changed.
+- **R0 refactor:** commit `refactor(axum-rest-api-server): [#2637] separate the router layers from the routes`. A pure
+  move: the chain and its order are unchanged, `timeout` replaces the constant, and the prefix is a constant. The
+  58 integration tests and the 65 unit tests of the moment passed unchanged before the tests were added.
+- **Mutations** (each applied alone, stable toolchain, then reverted; the file was identical to the tested one
+  afterwards): L1 killed by the public health check test, L2 by both rejection cases, L3 by the valid-token and the
+  timeout tests, L4 by both request-id tests, L5 by the gzip case, L7 by the generated-id test, L8 by the timeout test
+  (after its 5 s deadline) and L9 by the timeout test. **L6 survived, as predicted:** removing the inner
+  `SetRequestIdLayer` changes nothing a client can see, because the outer one already sets the header, so `router`
+  carries a redundant layer. **L10 survived:** the 5 s default is not asserted, because that would need a 5 s wait
+  or a tautology. Both are recorded in `lessons.md`; neither is a finding. L8 and L9 were run again after the
+  timeout assertion was simplified to status and body.
+- **Validation:** `cargo +nightly fmt --all -- --check` (nightly Rust toolchain), `cargo clippy -p
+  torrust-tracker-axum-rest-api-server --all-targets` (stable), `cargo machete --with-metadata`, `git diff
+  --check` and `cargo test -p torrust-tracker-axum-rest-api-server` (74 unit and 58 integration tests) pass.
+- **Review outcome:** the maintainer approved the completed file on 2026-10-28, including the R0 refactor.

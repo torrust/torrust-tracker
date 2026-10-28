@@ -157,3 +157,186 @@ fn with_layers(
                 .layer(TimeoutLayer::new(timeout)),
         )
 }
+
+#[cfg(test)]
+mod tests {
+    use std::sync::Arc;
+    use std::time::Duration;
+
+    use axum::Router;
+    use axum::body::{Body, to_bytes};
+    use axum::http::header::{ACCEPT_ENCODING, CONTENT_ENCODING};
+    use axum::http::{HeaderMap, Request, StatusCode};
+    use axum::routing::get;
+    use rstest::rstest;
+    use secrecy::SecretString;
+    use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
+    use torrust_tracker_configuration::v3_0_0::tracker_api::AccessTokens;
+    use torrust_tracker_test_helpers::configuration::ephemeral;
+    use tower::ServiceExt;
+    use uuid::Uuid;
+
+    use super::{router, with_layers};
+    use crate::test_support::api_container;
+
+    const TOKEN: &str = "test-token";
+    const DEADLINE: Duration = Duration::from_secs(5);
+
+    /// What a client receives: the status, the headers and the body.
+    struct Received {
+        status: StatusCode,
+        headers: HeaderMap,
+        body: String,
+    }
+
+    fn access_tokens() -> Arc<AccessTokens> {
+        Arc::new(AccessTokens::from([("test".to_string(), SecretString::from(TOKEN))]))
+    }
+
+    fn service_binding() -> ServiceBinding {
+        ServiceBinding::new(Protocol::HTTP, "127.0.0.1:1212".parse().expect("the address is valid"))
+            .expect("the service binding is valid")
+    }
+
+    fn get_request(uri: &str) -> Request<Body> {
+        Request::builder()
+            .uri(uri)
+            .body(Body::empty())
+            .expect("the request is well formed")
+    }
+
+    async fn received(response: axum::response::Response) -> Received {
+        let status = response.status();
+        let headers = response.headers().clone();
+        let body = to_bytes(response.into_body(), usize::MAX)
+            .await
+            .expect("the body is readable");
+
+        Received {
+            status,
+            headers,
+            body: String::from_utf8_lossy(&body).into_owned(),
+        }
+    }
+
+    /// Sends the request through the API router built for a default tracker.
+    async fn through_the_router(request: Request<Body>) -> Received {
+        let container = api_container(&ephemeral()).await;
+        let router = router(&container, access_tokens(), &service_binding());
+
+        received(router.oneshot(request).await.expect("the router never fails")).await
+    }
+
+    #[tokio::test]
+    async fn it_should_serve_the_health_check_without_a_token() {
+        let request = get_request("/api/health_check");
+
+        let received = through_the_router(request).await;
+
+        assert_eq!(received.status, StatusCode::OK);
+    }
+
+    #[rstest]
+    #[case::no_token("/api/v1/stats", r#"Unhandled rejection: Err { reason: "unauthorized" }"#)]
+    #[case::a_wrong_token(
+        "/api/v1/stats?token=wrong-token",
+        r#"Unhandled rejection: Err { reason: "token not valid" }"#
+    )]
+    #[tokio::test]
+    async fn it_should_reject_a_request_to_an_api_route_without_a_configured_token(#[case] uri: &str, #[case] body: &str) {
+        let request = get_request(uri);
+
+        let received = through_the_router(request).await;
+
+        assert_eq!(
+            (received.status, received.body),
+            (StatusCode::INTERNAL_SERVER_ERROR, body.to_string())
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_serve_an_api_route_when_the_request_carries_a_token_given_to_the_router() {
+        let request = get_request("/api/v1/stats?token=test-token");
+
+        let received = through_the_router(request).await;
+
+        assert_eq!(received.status, StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn it_should_generate_a_request_id_when_the_request_has_none() {
+        let request = get_request("/api/health_check");
+
+        let received = through_the_router(request).await;
+
+        let request_id = received
+            .headers
+            .get("x-request-id")
+            .expect("the response has a request id")
+            .to_str()
+            .expect("the request id is text");
+        assert!(
+            Uuid::parse_str(request_id).is_ok(),
+            "the request id is not a UUID: {request_id}"
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_return_the_request_id_provided_by_the_client() {
+        let request = Request::builder()
+            .uri("/api/health_check")
+            .header("x-request-id", "my-request-1")
+            .body(Body::empty())
+            .expect("the request is well formed");
+
+        let received = through_the_router(request).await;
+
+        assert_eq!(
+            received.headers.get("x-request-id").map(axum::http::HeaderValue::as_bytes),
+            Some(&b"my-request-1"[..])
+        );
+    }
+
+    #[rstest]
+    #[case::when_the_client_accepts_gzip(Some("gzip"), Some("gzip"))]
+    #[case::when_the_client_does_not_ask_for_compression(None, None)]
+    #[tokio::test]
+    async fn it_should_compress_the_response_only_as_the_client_asks(
+        #[case] accept_encoding: Option<&str>,
+        #[case] content_encoding: Option<&str>,
+    ) {
+        let mut request = get_request("/api/v1/stats?token=test-token");
+        if let Some(accept_encoding) = accept_encoding {
+            request
+                .headers_mut()
+                .insert(ACCEPT_ENCODING, accept_encoding.parse().expect("the header value is valid"));
+        }
+
+        let received = through_the_router(request).await;
+
+        assert_eq!(
+            received.headers.get(CONTENT_ENCODING).map(axum::http::HeaderValue::as_bytes),
+            content_encoding.map(str::as_bytes)
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_answer_request_timeout_when_an_api_route_does_not_answer_within_the_timeout() {
+        let never_answering = Router::new().route("/api/v1/slow", get(std::future::pending::<&'static str>));
+        let router = with_layers(
+            never_answering,
+            access_tokens(),
+            &service_binding(),
+            Duration::from_millis(50),
+        );
+        let request = get_request("/api/v1/slow?token=test-token");
+
+        let response = tokio::time::timeout(DEADLINE, router.oneshot(request))
+            .await
+            .expect("the router answers within the deadline")
+            .expect("the router never fails");
+
+        let received = received(response).await;
+        assert_eq!((received.status, received.body), (StatusCode::REQUEST_TIMEOUT, String::new()));
+    }
+}
