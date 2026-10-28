@@ -31,7 +31,9 @@ use crate::event::UdpRequestKind;
 /// Type alias for the common handler error returned by UDP request handlers.
 pub(crate) type HandlerError = Box<(Error, TransactionId, UdpRequestKind)>;
 
-/// BEP 15 encodes announce intervals and peer/download counters as signed 32-bit fields; clamp instead of wrapping negative.
+/// BEP 15 encodes peer and download counters as signed 32-bit fields; clamp instead of wrapping negative.
+///
+/// The announce interval needs no clamping: it is bounded by `i32::MAX` in the configuration.
 pub(crate) fn saturating_wire_i32(value: u32) -> I32 {
     I32::new(i32::try_from(value).unwrap_or(i32::MAX))
 }

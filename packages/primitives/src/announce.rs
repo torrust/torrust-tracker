@@ -5,6 +5,7 @@ use std::sync::Arc;
 use derive_more::derive::Constructor;
 use serde::{Deserialize, Serialize};
 
+use crate::announce_interval::AnnounceIntervalInSecs;
 use crate::peer;
 use crate::swarm_metadata::SwarmMetadata;
 
@@ -30,7 +31,7 @@ pub struct AnnouncePolicy {
     /// how often they should contact the tracker for updates on the peer list,
     /// while ensuring that the tracker is not overwhelmed with requests.
     #[serde(default = "AnnouncePolicy::default_interval")]
-    pub interval: u32,
+    pub interval: AnnounceIntervalInSecs,
 
     /// Minimum announce interval. Clients must not reannounce more frequently
     /// than this.
@@ -44,7 +45,7 @@ pub struct AnnouncePolicy {
     /// could lead to excessive load on the tracker or even getting banned by
     /// the tracker for not adhering to the rules.
     #[serde(default = "AnnouncePolicy::default_interval_min")]
-    pub interval_min: u32,
+    pub interval_min: AnnounceIntervalInSecs,
 
     /// Maximum number of peers returned in a single announce response.
     ///
@@ -70,12 +71,12 @@ impl Default for AnnouncePolicy {
 }
 
 impl AnnouncePolicy {
-    const fn default_interval() -> u32 {
-        120
+    fn default_interval() -> AnnounceIntervalInSecs {
+        AnnounceIntervalInSecs::from(120_u16)
     }
 
-    const fn default_interval_min() -> u32 {
-        120
+    fn default_interval_min() -> AnnounceIntervalInSecs {
+        AnnounceIntervalInSecs::from(120_u16)
     }
 
     const fn default_max_peers_per_announce() -> usize {

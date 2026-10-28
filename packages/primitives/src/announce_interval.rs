@@ -23,7 +23,7 @@ pub struct AnnounceIntervalInSecs(u32);
 /// configuration adds the name of the field.
 #[derive(Debug, Error, PartialEq, Eq)]
 #[error(
-    "the announce interval {value} is above the maximum of {max} seconds that every delivery protocol can encode",
+    "the interval {value} is above the maximum of {max} seconds that every delivery protocol can encode",
     max = AnnounceIntervalInSecs::MAX
 )]
 pub struct AnnounceIntervalTooLargeError {

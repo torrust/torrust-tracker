@@ -599,8 +599,8 @@ async fn should_return_no_peers_if_the_announced_peer_is_the_first_one() {
         &DeserializedNormal {
             complete: 1, // the peer for this test
             incomplete: 0,
-            interval: announce_policy.interval,
-            min_interval: announce_policy.interval_min,
+            interval: announce_policy.interval.get(),
+            min_interval: announce_policy.interval_min.get(),
             peers: vec![],
         },
     )
@@ -648,8 +648,8 @@ async fn should_return_the_list_of_previously_announced_peers() {
         &DeserializedNormal {
             complete: 2,
             incomplete: 0,
-            interval: announce_policy.interval,
-            min_interval: announce_policy.interval_min,
+            interval: announce_policy.interval.get(),
+            min_interval: announce_policy.interval_min.get(),
             peers: vec![DictionaryPeer {
                 peer_id: previously_announced_peer.peer_id.as_bytes().to_vec(),
                 ip: previously_announced_peer.peer_addr.ip().to_string(),
@@ -711,8 +711,8 @@ async fn should_return_the_list_of_previously_announced_peers_including_peers_us
         &DeserializedNormal {
             complete: 3,
             incomplete: 0,
-            interval: announce_policy.interval,
-            min_interval: announce_policy.interval_min,
+            interval: announce_policy.interval.get(),
+            min_interval: announce_policy.interval_min.get(),
             peers: vec![
                 DictionaryPeer {
                     peer_id: peer_using_ipv4.peer_id.as_bytes().to_vec(),
@@ -782,8 +782,8 @@ async fn should_consider_two_peers_to_be_the_same_when_they_have_the_same_connec
         &DeserializedNormal {
             complete: 1,
             incomplete: 0,
-            interval: announce_policy.interval,
-            min_interval: announce_policy.interval_min,
+            interval: announce_policy.interval.get(),
+            min_interval: announce_policy.interval_min.get(),
             peers: vec![],
         },
     )

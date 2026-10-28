@@ -5,7 +5,7 @@ use std::sync::Arc;
 use torrust_info_hash::InfoHash;
 use torrust_net_primitives::service_binding::ServiceBinding;
 use torrust_tracker_configuration::v3_0_0::core::Core;
-use torrust_tracker_primitives::AnnounceData;
+use torrust_tracker_primitives::{AnnounceData, AnnounceIntervalInSecs};
 use torrust_tracker_udp_core::event::ConnectionContext;
 use torrust_tracker_udp_core::services::announce::AnnounceService;
 use torrust_tracker_udp_core::{ConnectionIdValidationPolicy, UDP_TRACKER_LOG_TARGET};
@@ -14,6 +14,7 @@ use torrust_tracker_udp_protocol::{
     Port, Response, ResponsePeer,
 };
 use tracing::{Level, instrument};
+use zerocopy::byteorder::network_endian::I32;
 
 use crate::event::{ErrorKind, Event, UdpRequestKind};
 use crate::handlers::{CookieValidationContext, HandlerError, saturating_wire_i32};
@@ -129,7 +130,7 @@ fn build_response(
         let announce_response = AnnounceResponse {
             fixed: AnnounceResponseFixedData {
                 transaction_id: request.transaction_id,
-                announce_interval: AnnounceInterval(saturating_wire_i32(core_config.announce_policy.interval)),
+                announce_interval: announce_interval_on_the_wire(core_config.announce_policy.interval),
                 leechers: NumberOfPeers(saturating_wire_i32(announce_data.stats.incomplete)),
                 seeders: NumberOfPeers(saturating_wire_i32(announce_data.stats.complete)),
             },
@@ -154,7 +155,7 @@ fn build_response(
         let announce_response = AnnounceResponse {
             fixed: AnnounceResponseFixedData {
                 transaction_id: request.transaction_id,
-                announce_interval: AnnounceInterval(saturating_wire_i32(core_config.announce_policy.interval)),
+                announce_interval: announce_interval_on_the_wire(core_config.announce_policy.interval),
                 leechers: NumberOfPeers(saturating_wire_i32(announce_data.stats.incomplete)),
                 seeders: NumberOfPeers(saturating_wire_i32(announce_data.stats.complete)),
             },
@@ -178,6 +179,15 @@ fn build_response(
     }
 }
 
+/// Converts the configured announce interval to the signed 32-bit BEP 15 field without clamping.
+///
+/// [`AnnounceIntervalInSecs`] is bounded by `i32::MAX` when the configuration is loaded, so the
+/// conversion cannot overflow. See the
+/// [ADR](https://github.com/torrust/torrust-tracker/blob/develop/docs/adrs/20261007082938_bound_protocol_agnostic_values_by_the_tightest_delivery_protocol.md).
+const fn announce_interval_on_the_wire(interval: AnnounceIntervalInSecs) -> AnnounceInterval {
+    AnnounceInterval(I32::new(interval.get_i32()))
+}
+
 #[cfg(test)]
 pub(crate) mod tests {
 
@@ -191,7 +201,7 @@ pub(crate) mod tests {
         use torrust_tracker_configuration::v3_0_0::core::Core;
         use torrust_tracker_primitives::peer::fixture::PeerBuilder;
         use torrust_tracker_primitives::swarm_metadata::SwarmMetadata;
-        use torrust_tracker_primitives::{AnnounceData, AnnouncePolicy};
+        use torrust_tracker_primitives::{AnnounceData, AnnounceIntervalInSecs, AnnouncePolicy};
         use torrust_tracker_udp_protocol::{
             AnnounceActionPlaceholder, AnnounceEvent, AnnounceInterval, AnnounceRequest, AnnounceResponse,
             AnnounceResponseFixedData, ConnectionId, Ipv4AddrBytes, Ipv6AddrBytes, NumberOfBytes, NumberOfPeers, PeerKey, Port,
@@ -329,13 +339,13 @@ pub(crate) mod tests {
         }
 
         #[test]
-        fn it_should_clamp_an_out_of_range_interval_and_peer_counts_for_both_address_families() {
+        fn it_should_convey_the_largest_interval_and_clamp_out_of_range_peer_counts_for_both_address_families() {
             // Arrange
             let request = AnnounceRequestBuilder::default().into();
             let first_out_of_range = u32::try_from(i32::MAX).unwrap() + 1;
             let core_config = Arc::new(Core {
                 announce_policy: AnnouncePolicy {
-                    interval: first_out_of_range,
+                    interval: AnnounceIntervalInSecs::new(u32::try_from(i32::MAX).unwrap()).unwrap(),
                     ..AnnouncePolicy::default()
                 },
                 ..Core::default()

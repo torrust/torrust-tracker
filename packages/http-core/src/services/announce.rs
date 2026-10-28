@@ -798,8 +798,8 @@ mod tests {
     async fn it_should_return_the_announce_data() {
         // Arrange
         let configured_policy = AnnouncePolicy {
-            interval: 1800,
-            interval_min: 900,
+            interval: 1800.into(),
+            interval_min: 900.into(),
             max_peers_per_announce: 50,
         };
         let mut configuration = configuration::ephemeral_public();
