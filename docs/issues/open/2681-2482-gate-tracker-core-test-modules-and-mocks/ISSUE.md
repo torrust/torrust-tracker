@@ -9,7 +9,7 @@ github-issue: 2681
 spec-path: docs/issues/open/2681-2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md
 branch: "2681-2482-gate-tracker-core-test-modules-and-mocks"
 related-pr: null
-last-updated-utc: "2026-10-28 12:07"
+last-updated-utc: "2026-10-28 12:29"
 semantic-links:
   skill-links:
     - create-issue
@@ -246,10 +246,11 @@ short-name style and a one-line diff per attribute.
 `tracker-core` owns the mock of its `TorrentMetricsStore` trait; `http-core` and `udp-core` reach
 it only through `[dev-dependencies]` with `features = ["testing"]`. The other three mocks and the
 helper modules belong to `tracker-core`'s own unit tests and become invisible outside them. No
-lifetimes, I/O or process ownership change, and no test body changes. After the first compiling
-slice (T3), check that `cargo build -p torrust-tracker-core` and
+lifetimes, I/O or process ownership change, and no test body changes. After the first slice that
+adds the feature (T4), check that `cargo build -p torrust-tracker-core` and
 `cargo build -p torrust-tracker-core --features testing` both compile and that the consumers'
-tests still find `MockTorrentMetricsStore`.
+tests still find `MockTorrentMetricsStore`. T2 and T3 add no feature, so their checkpoint is the
+package's plain `cargo test` and clippy.
 
 ## Bug-Fix Process
 
