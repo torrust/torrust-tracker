@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2668-1488-si-20-configure-shutdown-policy/ISSUE.md
-last-updated-utc: "2026-10-27 21:09"
+last-updated-utc: "2026-10-28 12:12"
 ---
 
 # Manual Verification Evidence
@@ -134,7 +134,7 @@ The defect is real and reproduced for both signals: a component aborted at the d
 - Executable boundary (T6): native-binary tests in `tests/lifecycle/` for a clean stop (`0`) and for a drain budget reached (`1`), using a held partial-header connection and a configured drain shorter than the 5 s header timeout (see M3).
 - Final like-for-like recheck (T8): after the last production change, rebuild, re-apply the same temporary patch to the fixed tree (not committed), and rerun B1 to B4. Expected: exit status `1` and no "successfully shutdown" message; the control C1 and C2 stay at `0`. Name the commit subject the recheck ran on.
 
-### V2 to V8 - Manual verification of the finished change
+### V2 to V9 - Manual verification of the finished change
 
 - Goal: on the real binary and the real image, check the configured defaults, the drain budget, the invalid configurations, the exit code after a failed or aborted shutdown, and the deployment contract (Docker, systemd), with SIGTERM and SIGINT where the signal matters.
 - Status: `DONE`, except Podman, which is `not run` (not installed).
@@ -666,7 +666,7 @@ Two root ADRs, registered in `docs/adrs/index.md`: the placement rule for `[appl
 2. **The two reads of the deadline** (`main` and `start_jobs`) take it from different holders (`app_container` in both after the refactor). Left as it is: both now use the container.
 3. **`Shutdown::default()` in four test environments and one legacy path.** Left as it is: they are standalone fixtures or code that SI-19 deletes (recorded in T5). A shared "test environment" constant would add a package dependency for no behavior.
 4. **The REST API and health check share `http_drain_in_secs`.** Left as it is (D3). If a deployment needs different drains, a second key is a backward-compatible addition.
-5. **`event_listener_drain_timeout(config)` takes the whole `Configuration`**, although a listener needs one `Duration`. It is a root-crate helper used by five bootstrap files with a `config` parameter they already have; narrowing it would change the signatures of the listener starters. Left as it is; the source-level guard of T4 protects its use.
+5. **`event_listener_drain_timeout(config)` takes the whole `Configuration`**, although a listener needs one `Duration`. It is a root-crate helper used by five bootstrap files with a `config` parameter they already have; narrowing it would change the signatures of the listener starters. Left as it is; the source-level guard of T4 protects its use. **Superseded** during the pull-request review: the maintainer decided that the listeners read the budget from the container like the other budgets, and the helper was removed (section "Listener drain read from the container" below).
 
 #### Re-proof of the wiring on the new path
 
@@ -682,6 +682,20 @@ Because the call sites changed, two executable-boundary mutations were repeated 
 #### Process note, recorded
 
 - A combined gate command (format check, linter, workspace tests and doc tests in one call) was interrupted; I reran it in two steps and used only those results.
+- The D5 section edit above replaced the heading `## Failures and Follow-up` by mistake, so the three bullets of that section sat under the D5 section until the commit that adds the next section restored it. This is the second time that heading was lost (the first is recorded under T7); both times the cause was a replacement text that left out the heading it replaced.
+
+### Listener drain read from the container (maintainer decision during the review of PR #2678)
+
+- Status: `DONE`. Commits (by subject): `refactor(bootstrap): read the listener drain budget from the application container` and `test(bootstrap): take the drain value of the starter tests from the application container`. Toolchain: stable Rust 1.99.1 (nightly Rust toolchain for the formatter check).
+- Question asked by the maintainer: why do `run_event_listener` of `http_tracker_core.rs` and `udp_tracker_core.rs`, `run_stats_event_listener` and `run_banning_event_listener` of `udp_tracker_server.rs` take both `config: &Configuration` and `app_container`, now that `AppContainer.application_config` exists? Answer (read from source): on `develop` the first three took an unused `_config` next to `app_container`; this branch renamed it and used it only for the removed helper `event_listener_drain_timeout(config)`, and gave `run_banning_event_listener` a new `config` parameter. D5 asks for one source.
+- Decision: all seven listener sites read `app_container.application_config.shutdown.event_listener_drain()`; the helper is removed. The four starters above drop `config` (the banning starter has its `develop` signature again, apart from the drain value), and so do their wrappers in `src/app.rs` (`start_http_core_event_listener`, `start_udp_core_event_listener`, `start_udp_server_stats_event_listener`, `start_udp_server_banning_event_listener`), whose `config` would otherwise be unused. `torrent_repository::run_event_listener` and the two `tracker_core` listeners keep `config` because they read `core.tracker_usage_statistics` and `core.tracker_policy`, but their drain budget now also comes from the container, so every listener has the same single source.
+- Job starters: `start_job` of the HTTP tracker, the REST API, the health check and the UDP tracker take a `Duration` and read no configuration (D5), so there is nothing to move into the container there. Their tests that already build an `AppContainer` (HTTP tracker TLS and listener errors, UDP tracker socket release) take the value from it; the other tests have only a `Configuration` or a standalone container and keep what they have.
+- Remaining reads of `config.application`: none in production code; `src/bootstrap/config.rs` reads it in a template test and the starter tests above read it where no container is in scope.
+- Tests: the helper test `it_should_use_the_configured_event_listener_drain_budget_and_not_the_default` is removed. Its behavior is covered by `it_should_expose_each_budget_as_a_duration_under_its_own_name` (accessor, four distinct values) and by the `AppContainer` test that keeps the configured budgets. The source-level guard `it_should_not_leave_a_listener_site_on_the_default_drain_timeout` now counts `app_container.application_config.shutdown.event_listener_drain(),` per file (1, 1, 2, 1, 2 listeners) and still rejects the `events` default. The workspace suite goes from 3,652 to 3,651 passed on the rebased tree (one test removed, none added).
+- Mutation proofs (stable toolchain, one at a time, `could_not_compile=0`, `cmp` identical after each restore): M1, a listener site with a hard-coded 5 s (`udp_tracker_core.rs`): the guard fails and names the file; M2, a site reading `http_drain()` from the container (`torrent_repository.rs`): the guard fails and names the file.
+- Not covered: the guard checks the source text, and the value the container holds is guarded by other tests; no unit test can show a listener's drain value (T4).
+
+## Failures and Follow-up
 
 - Two discarded attempts at 08:46 (`partial-header` and `api-body`) failed at startup with `Address already in use (os error 98)`: sockets of the previous run were still in TIME_WAIT. Both exited with status `1` before the tracker started and are not part of V1. The script now waits until the three ports have no socket before it starts; A3 and A4 are the reruns.
 - The first clean-stop run (hold `none`, SIGTERM, about 08:45) wrote a log that a later run overwrote. C1 and C2 replace it as the control.
