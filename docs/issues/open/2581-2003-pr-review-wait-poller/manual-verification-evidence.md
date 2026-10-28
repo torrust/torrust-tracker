@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2581-2003-pr-review-wait-poller/ISSUE.md
-last-updated-utc: "2026-10-28 14:30"
+last-updated-utc: "2026-10-28 16:40"
 ---
 
 # Manual Verification Evidence
@@ -263,10 +263,11 @@ The defect is that a scenario names a port that anything may hold. The smallest 
 maintained tests are unit tests of a shared fixture helper, `reserve_free_ports`, in
 `tests/common/native_tracker/ports.rs`, plus the scenarios themselves using it:
 
-- `it_should_reserve_only_ports_below_the_ephemeral_range` guards the cause: it fails if the helper
-  draws from the range the kernel assigns.
+- `it_should_reserve_only_ports_below_the_default_ephemeral_range` guards the cause: it fails if the
+  helper draws from the range the kernel assigns by default.
 - `it_should_reserve_the_requested_number_of_distinct_ports`, `it_should_skip_a_candidate_that_a_live_listener_holds`,
-  and `it_should_return_nothing_when_there_are_no_candidates` guard the helper contract.
+  `it_should_return_nothing_when_there_are_no_candidates`, and
+  `it_should_refuse_to_reserve_more_ports_than_it_can_search_for` guard the helper contract.
 
 A first design reserved ports from the kernel with port zero. It was rejected before commit: a
 port-zero port comes from the same ephemeral range, so it only narrows the window, and its tests
@@ -279,7 +280,8 @@ matter.
 
 #### Red proof
 
-With `SCENARIO_PORTS` mutated to `40_000..50_000` (not staged, then restored byte for byte):
+With `SCENARIO_PORTS` mutated to `40_000..50_000` (not staged, then restored byte for byte; the test
+had the name `it_should_reserve_only_ports_below_the_ephemeral_range` then and was renamed later):
 
 ```text
 test native_tracker::ports::tests::it_should_reserve_only_ports_below_the_ephemeral_range ... FAILED
@@ -287,20 +289,28 @@ port 44324 is outside the scenario range and could be handed out by the kernel
 test result: FAILED. 28 passed; 1 failed
 ```
 
+The test `it_should_refuse_to_reserve_more_ports_than_it_can_search_for`, added for a review finding,
+failed before its fix with the panic message `the loopback interface should have a free port below the
+ephemeral range` where `cannot reserve 1001 ports with a budget of 1000 draws` was expected.
+
 The scenario tests were also run against the first design with the old ports as its return value and
 `43152` held: `it_should_reserve_ports_that_can_be_bound_once_the_call_has_returned` and
 `base_source_precedence` failed. That test was later removed with the design.
 
 #### Green and like-for-like recheck (after the last change to the fix)
 
+The fixture changed again after a Copilot review (the commit
+`fix(tests): [#2581] name the real cause when a port reservation cannot be satisfied`), so the recheck
+was repeated on the build that includes it.
+
 ```text
-cargo test -p torrust-tracker --test cli-configuration      test result: ok. 29 passed; 0 failed
-cargo test -p torrust-tracker --test lifecycle-signals      test result: ok. 24 passed; 0 failed
+cargo test -p torrust-tracker --test cli-configuration      test result: ok. 30 passed; 0 failed
+cargo test -p torrust-tracker --test lifecycle-signals      test result: ok. 25 passed; 0 failed
 cargo clippy -p torrust-tracker --tests                     no warning or error
 ```
 
 The reproduction was repeated: ports `43152` to `43156` all held by another process, then the same
-`cargo test -p torrust-tracker --test cli-configuration`: 29 passed, 0 failed, with both scenarios `ok`.
+`cargo test -p torrust-tracker --test cli-configuration`: 30 passed, 0 failed, with both scenarios `ok`.
 The full suite was then run 40 more times with the old ports held: 0 failed runs. Before the fix,
 holding `43152` alone failed the run both times it was tried.
 
@@ -315,8 +325,10 @@ above, with the old ports held, are the evidence for the fix.
 Met for the failure that was reproduced and for the cause the evidence supports. Not shown: that the
 ephemeral range is what caused the failures in CI, since the holder there was not observed. A port can
 still be taken between the probe and the tracker's bind by a process that listens on that exact port;
-the range is below what the kernel assigns, and concurrent runs draw different random ports.
+the range is below what the kernel assigns on a default Linux configuration, and concurrent runs draw
+different random ports. A host that lowers `net.ipv4.ip_local_port_range` below `32768` narrows that
+guarantee; the fixture documents it and does not read the setting.
 
 ## Failures and Follow-up
 
-No failure of the poller remains open. Copilot's two reviews found six defects, all fixed (see the audit in `docs/pr-reviews/pr-2683-review/PR-REVIEW.md`). V6 is open: it waits for a `da2ce7` review. V8 is an unrelated pre-existing flake fixed in its own commit.
+No failure of the poller remains open. Copilot's three reviews raised twelve findings (ten distinct, two duplicates), all addressed (see the audit in `docs/pr-reviews/pr-2683-review/PR-REVIEW.md`). V6 is open: it waits for a `da2ce7` review. V8 is an unrelated pre-existing flake fixed in its own commit.
