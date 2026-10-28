@@ -37,8 +37,14 @@ const MAX_DRAWS: u64 = 1_000;
 ///
 /// # Panics
 ///
-/// Panics when no free port is found within [`MAX_DRAWS`] candidates.
+/// Panics when `N` exceeds [`MAX_DRAWS`], because the search budget could not cover the request, and
+/// when the [`MAX_DRAWS`] candidates, shared by all `N` ports, hold fewer than `N` free ports.
 pub fn reserve_free_ports<const N: usize>() -> [u16; N] {
+    assert!(
+        u64::try_from(N).is_ok_and(|requested| requested <= MAX_DRAWS),
+        "cannot reserve {N} ports with a budget of {MAX_DRAWS} draws"
+    );
+
     let random = RandomState::new();
     let span = u64::from(SCENARIO_PORTS.end - SCENARIO_PORTS.start);
     let mut candidates = (0..MAX_DRAWS).map(|draw| {
@@ -48,8 +54,12 @@ pub fn reserve_free_ports<const N: usize>() -> [u16; N] {
 
     let mut held = Vec::with_capacity(N);
     while held.len() < N {
-        let listener =
-            bind_first_free(&mut candidates).expect("the loopback interface should have a free port below the ephemeral range");
+        let listener = bind_first_free(&mut candidates).unwrap_or_else(|| {
+            panic!(
+                "found only {} free loopback ports in {SCENARIO_PORTS:?} within {MAX_DRAWS} draws while reserving {N}",
+                held.len()
+            )
+        });
         held.push(listener);
     }
 
@@ -101,6 +111,12 @@ mod tests {
         let held_port = held.local_addr().unwrap().port();
 
         assert!(bind_first_free(&mut std::iter::once(held_port)).is_none());
+    }
+
+    #[test]
+    #[should_panic(expected = "cannot reserve 1001 ports with a budget of 1000 draws")]
+    fn it_should_refuse_to_reserve_more_ports_than_it_can_search_for() {
+        let _ = reserve_free_ports::<1001>();
     }
 
     #[test]
