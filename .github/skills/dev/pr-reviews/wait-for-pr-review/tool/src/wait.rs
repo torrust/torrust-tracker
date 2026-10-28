@@ -8,7 +8,7 @@ use std::time::{Duration, Instant};
 use crate::error::Error;
 use crate::event::{Baseline, Event, detect};
 use crate::gh::Gh;
-use crate::snapshot::{PullRequest, Snapshot, commit_date, take_snapshot};
+use crate::snapshot::{PullRequest, Snapshot, commit_info, take_snapshot};
 
 const SLEEP_SLICE: Duration = Duration::from_millis(100);
 
@@ -89,7 +89,10 @@ pub fn wait(gh: &impl Gh, clock: &impl Clock, pull_request: &PullRequest, config
 
     let first = take_snapshot(gh, pull_request)?;
     let baseline = match &config.since_head_sha {
-        Some(sha) => Baseline::since_commit(sha, commit_date(gh, pull_request, sha)?),
+        Some(sha) => {
+            let commit = commit_info(gh, pull_request, sha)?;
+            Baseline::since_commit(&commit.sha, commit.committed_at)
+        }
         None => Baseline::from_snapshot(&first),
     };
 
@@ -271,7 +274,7 @@ mod tests {
         let gh = quiet_pull_request();
         gh.respond(
             "repos/torrust/torrust-tracker/commits/a",
-            json!({"commit": {"committer": {"date": "2026-10-28T06:00:00Z"}}}),
+            json!({"sha": "a", "commit": {"committer": {"date": "2026-10-28T06:00:00Z"}}}),
         );
         let config = Config {
             since_head_sha: Some("a".to_owned()),
@@ -283,6 +286,34 @@ mod tests {
 
         assert!(matches!(event, Event::Review { review_id: 1, .. }));
         assert!(clock.sleeps.borrow().is_empty());
+    }
+
+    #[test]
+    fn it_should_not_report_a_head_change_when_the_commit_is_given_as_an_abbreviated_uppercase_sha() {
+        let gh = FakeGh::new();
+        gh.respond(PULL, pull("abc1234fedcba", "open", false));
+        gh.respond(REVIEWS, json!([]));
+        gh.respond(ISSUE_COMMENTS, json!([]));
+        gh.respond(REVIEW_COMMENTS, json!([]));
+        gh.respond(
+            "repos/torrust/torrust-tracker/commits/ABC1234",
+            json!({"sha": "abc1234fedcba", "commit": {"committer": {"date": "2026-10-28T06:00:00Z"}}}),
+        );
+        let config = Config {
+            since_head_sha: Some("ABC1234".to_owned()),
+            timeout: Duration::from_secs(240),
+            ..config()
+        };
+
+        let event = wait(&gh, &FakeClock::default(), &pull_request(), &config).unwrap();
+
+        assert_eq!(
+            event,
+            Event::Timeout {
+                waited_seconds: 240,
+                head_sha: "abc1234fedcba".to_owned()
+            }
+        );
     }
 
     #[test]

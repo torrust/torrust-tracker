@@ -101,6 +101,7 @@ struct Head {
 
 #[derive(Deserialize)]
 struct CommitResponse {
+    sha: String,
     commit: CommitDetail,
 }
 
@@ -143,20 +144,34 @@ pub fn take_snapshot(gh: &impl Gh, pull_request: &PullRequest) -> Result<Snapsho
     })
 }
 
-/// The committer date of `sha`, in seconds since the Unix epoch.
+/// A commit as GitHub identifies it, whatever abbreviation or letter case was used to ask for it.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CommitInfo {
+    /// The full, lowercase commit SHA, comparable with [`Snapshot::head_sha`].
+    pub sha: String,
+    /// The committer date, in seconds since the Unix epoch.
+    pub committed_at: i64,
+}
+
+/// Looks up `sha`, which may be abbreviated or in uppercase, and returns its canonical form and date.
 ///
 /// # Errors
 ///
 /// Returns an error when the request fails or the commit has no parsable committer date.
-pub fn commit_date(gh: &impl Gh, pull_request: &PullRequest, sha: &str) -> Result<i64, Error> {
+pub fn commit_info(gh: &impl Gh, pull_request: &PullRequest, sha: &str) -> Result<CommitInfo, Error> {
     let endpoint = pull_request.endpoint(&format!("commits/{sha}"));
     let commit: CommitResponse = decode(&endpoint, gh.get(&endpoint)?)?;
 
-    commit
+    let committed_at = commit
         .commit
         .committer
         .and_then(|committer| parse_utc(&committer.date))
-        .ok_or_else(|| Error::CommitDate { sha: sha.to_owned() })
+        .ok_or_else(|| Error::CommitDate { sha: sha.to_owned() })?;
+
+    Ok(CommitInfo {
+        sha: commit.sha.to_ascii_lowercase(),
+        committed_at,
+    })
 }
 
 fn fetch_all<T: for<'de> Deserialize<'de>>(gh: &impl Gh, endpoint: &str) -> Result<Vec<T>, Error> {
@@ -257,7 +272,7 @@ mod tests {
     use serde_json::json;
 
     use super::fake::FakeGh;
-    use super::{PullRequest, PullState, commit_date, take_snapshot};
+    use super::{CommitInfo, PullRequest, PullState, commit_info, take_snapshot};
     use crate::error::Error;
 
     fn pull_request() -> PullRequest {
@@ -330,10 +345,27 @@ mod tests {
         let gh = FakeGh::new();
         gh.respond(
             "repos/torrust/torrust-tracker/commits/abc",
-            json!({"commit": {"committer": {"date": "1970-01-01T00:01:00Z"}}}),
+            json!({"sha": "abc", "commit": {"committer": {"date": "1970-01-01T00:01:00Z"}}}),
         );
 
-        assert_eq!(commit_date(&gh, &pull_request(), "abc").unwrap(), 60);
+        assert_eq!(commit_info(&gh, &pull_request(), "abc").unwrap().committed_at, 60);
+    }
+
+    #[test]
+    fn it_should_return_the_full_lowercase_sha_for_an_abbreviated_uppercase_one() {
+        let gh = FakeGh::new();
+        gh.respond(
+            "repos/torrust/torrust-tracker/commits/ABC1234",
+            json!({"sha": "ABC1234FEDCBA", "commit": {"committer": {"date": "1970-01-01T00:01:00Z"}}}),
+        );
+
+        assert_eq!(
+            commit_info(&gh, &pull_request(), "ABC1234").unwrap(),
+            CommitInfo {
+                sha: "abc1234fedcba".to_owned(),
+                committed_at: 60
+            }
+        );
     }
 
     #[test]
@@ -341,11 +373,11 @@ mod tests {
         let gh = FakeGh::new();
         gh.respond(
             "repos/torrust/torrust-tracker/commits/abc",
-            json!({"commit": {"committer": {"date": "soon"}}}),
+            json!({"sha": "abc", "commit": {"committer": {"date": "soon"}}}),
         );
 
         assert!(matches!(
-            commit_date(&gh, &pull_request(), "abc"),
+            commit_info(&gh, &pull_request(), "abc"),
             Err(Error::CommitDate { .. })
         ));
     }
