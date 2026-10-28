@@ -146,9 +146,10 @@ default tracker; `access_tokens` and `service_binding` hide only construction. T
 ## Results
 
 - **Unit-only coverage** (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): `routes.rs` 58 / 67 lines
-  (86.57%) before; 174 / 174 lines (100.00%), 280 / 280 regions and 26 / 26 functions after (the counts include
-  the test module). Package unit-only lines after this file: 1,258 / 1,509 (83.37%), regions 1,838 / 2,305
-  (79.74%), functions 178 / 226 (78.76%), 74 unit tests.
+  (86.57%) before; 169 / 169 lines (100.00%), 277 / 277 regions and 26 / 26 functions after (the counts include
+  the test module). An earlier version of this entry said 174 / 174 and 280 / 280: those were measured before the
+  timeout assertion was simplified, which removed 5 lines; the figures here come from the S2 slice measurement.
+  The package figures after S2 are in the slice measurement of `coverage-evidence.md`.
 - **Honest note on coverage:** the request, response and failure log closures (lines 67-136) are now executed, because
   the unauthorized request goes through the router and a `5xx` response runs the server-error and failure arms. No
   test asserts their content (maintainer decision: no unit-level log assertions). The `ERROR ... API ... <request id>`
