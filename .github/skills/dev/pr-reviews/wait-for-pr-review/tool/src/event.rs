@@ -4,7 +4,7 @@ use std::collections::BTreeSet;
 
 use serde::Serialize;
 
-use crate::snapshot::{Comment, PullState, Review, Snapshot};
+use crate::snapshot::{Comment, PullState, Review, Snapshot, User};
 use crate::timestamp::parse_utc;
 
 /// Which items count as new.
@@ -171,10 +171,12 @@ pub enum Event {
     },
 }
 
-/// The first event, in priority order, that `snapshot` shows beyond `baseline`.
+/// The event that `snapshot` shows beyond `baseline`.
 ///
-/// A closed or merged pull request wins, then a new review, then a new comment, then a new head
-/// commit. Only logins in `reviewers` count, compared without regard to case.
+/// A closed or merged pull request wins. Next comes the earliest new review or comment, in time
+/// order, so the `cursor` of the result never skips an item that is still unreported: a review and
+/// a comment made in the same second are reported review first. A new head commit comes last. Only
+/// logins in `reviewers` count, compared without regard to case.
 #[must_use]
 pub fn detect(baseline: &Baseline, snapshot: &Snapshot, reviewers: &[String]) -> Option<Event> {
     let head_sha = snapshot.head_sha.clone();
@@ -185,62 +187,95 @@ pub fn detect(baseline: &Baseline, snapshot: &Snapshot, reviewers: &[String]) ->
         PullState::Open => {}
     }
 
-    new_review(baseline, snapshot, reviewers)
-        .or_else(|| new_comment(baseline, snapshot, reviewers))
-        .or_else(|| {
-            (snapshot.head_sha != baseline.head_sha).then(|| Event::HeadChanged {
-                previous_head_sha: baseline.head_sha.clone(),
-                head_sha: snapshot.head_sha.clone(),
-            })
+    earliest_feedback(baseline, snapshot, reviewers).or_else(|| {
+        (snapshot.head_sha != baseline.head_sha).then(|| Event::HeadChanged {
+            previous_head_sha: baseline.head_sha.clone(),
+            head_sha: snapshot.head_sha.clone(),
         })
+    })
 }
 
 fn is_watched(login: Option<&str>, reviewers: &[String]) -> bool {
     login.is_some_and(|login| reviewers.iter().any(|reviewer| reviewer.eq_ignore_ascii_case(login)))
 }
 
-fn new_review(baseline: &Baseline, snapshot: &Snapshot, reviewers: &[String]) -> Option<Event> {
-    snapshot
-        .reviews
-        .iter()
-        .filter(|review| review.state != "PENDING" && baseline.is_new_review(review))
-        .find(|review| is_watched(review.user.as_ref().map(|user| user.login.as_str()), reviewers))
-        .map(|review| Event::Review {
-            reviewer: review.user.as_ref().map(|user| user.login.clone()).unwrap_or_default(),
-            review_id: review.id,
-            state: review.state.clone(),
-            review_commit_id: review.commit_id.clone(),
-            url: review.html_url.clone(),
-            head_sha: snapshot.head_sha.clone(),
-            cursor: review.submitted_at.clone(),
-            head_moved: snapshot.head_sha != baseline.head_sha,
-        })
+/// A new review or comment from a watched reviewer.
+enum Feedback<'a> {
+    Review(&'a Review),
+    IssueComment(&'a Comment),
+    ReviewComment(&'a Comment),
 }
 
-fn new_comment(baseline: &Baseline, snapshot: &Snapshot, reviewers: &[String]) -> Option<Event> {
-    let issue = snapshot
+impl Feedback<'_> {
+    /// Orders by time, then review before conversation comment before inline comment, then by ID.
+    fn sort_key(&self) -> (i64, u8, u64) {
+        // A timestamp that cannot be read sorts last: the readable ones are reported first.
+        let time = |text: Option<&str>| text.and_then(parse_utc).unwrap_or(i64::MAX);
+
+        match self {
+            Self::Review(review) => (time(review.submitted_at.as_deref()), 0, review.id),
+            Self::IssueComment(comment) => (time(Some(&comment.created_at)), 1, comment.id),
+            Self::ReviewComment(comment) => (time(Some(&comment.created_at)), 2, comment.id),
+        }
+    }
+
+    fn into_event(self, head_sha: &str, baseline: &Baseline) -> Event {
+        let current_head = head_sha.to_owned();
+        let head_moved = head_sha != baseline.head_sha;
+        let login = |user: &Option<User>| user.as_ref().map(|user| user.login.clone()).unwrap_or_default();
+
+        match self {
+            Self::Review(review) => Event::Review {
+                reviewer: login(&review.user),
+                review_id: review.id,
+                state: review.state.clone(),
+                review_commit_id: review.commit_id.clone(),
+                url: review.html_url.clone(),
+                head_sha: current_head,
+                cursor: review.submitted_at.clone(),
+                head_moved,
+            },
+            Self::IssueComment(comment) | Self::ReviewComment(comment) => Event::Comment {
+                comment_kind: if matches!(self, Self::IssueComment(_)) {
+                    CommentKind::Issue
+                } else {
+                    CommentKind::Review
+                },
+                reviewer: login(&comment.user),
+                comment_id: comment.id,
+                url: comment.html_url.clone(),
+                head_sha: current_head,
+                cursor: Some(comment.created_at.clone()),
+                head_moved,
+            },
+        }
+    }
+}
+
+fn earliest_feedback(baseline: &Baseline, snapshot: &Snapshot, reviewers: &[String]) -> Option<Event> {
+    let watched = |user: &Option<User>| is_watched(user.as_ref().map(|user| user.login.as_str()), reviewers);
+
+    let reviews = snapshot
+        .reviews
+        .iter()
+        .filter(|review| review.state != "PENDING" && baseline.is_new_review(review) && watched(&review.user))
+        .map(Feedback::Review);
+    let issue_comments = snapshot
         .issue_comments
         .iter()
-        .filter(|comment| baseline.is_new_issue_comment(comment))
-        .map(|comment| (CommentKind::Issue, comment));
-    let review = snapshot
+        .filter(|comment| baseline.is_new_issue_comment(comment) && watched(&comment.user))
+        .map(Feedback::IssueComment);
+    let review_comments = snapshot
         .review_comments
         .iter()
-        .filter(|comment| baseline.is_new_review_comment(comment))
-        .map(|comment| (CommentKind::Review, comment));
+        .filter(|comment| baseline.is_new_review_comment(comment) && watched(&comment.user))
+        .map(Feedback::ReviewComment);
 
-    issue
-        .chain(review)
-        .find(|(_, comment)| is_watched(comment.user.as_ref().map(|user| user.login.as_str()), reviewers))
-        .map(|(comment_kind, comment)| Event::Comment {
-            comment_kind,
-            reviewer: comment.user.as_ref().map(|user| user.login.clone()).unwrap_or_default(),
-            comment_id: comment.id,
-            url: comment.html_url.clone(),
-            head_sha: snapshot.head_sha.clone(),
-            cursor: Some(comment.created_at.clone()),
-            head_moved: snapshot.head_sha != baseline.head_sha,
-        })
+    reviews
+        .chain(issue_comments)
+        .chain(review_comments)
+        .min_by_key(Feedback::sort_key)
+        .map(|feedback| feedback.into_event(&snapshot.head_sha, baseline))
 }
 
 #[cfg(test)]
@@ -532,6 +567,71 @@ mod tests {
         assert!(matches!(
             detect(&Baseline::from_snapshot(&before), &after, &reviewers()),
             Some(Event::Review { .. })
+        ));
+    }
+
+    fn review_at(id: u64, login: &str, submitted_at: &str) -> Review {
+        Review {
+            submitted_at: Some(submitted_at.to_owned()),
+            ..review(id, login, "COMMENTED")
+        }
+    }
+
+    #[test]
+    fn it_should_report_the_earliest_new_item_when_a_comment_came_before_a_review() {
+        let before = snapshot();
+        let mut after = before.clone();
+        after.reviews.push(review_at(11, "da2ce7", "2026-10-28T08:05:00Z"));
+        after.issue_comments.push(comment(21, "da2ce7", "2026-10-28T08:00:00Z"));
+
+        // Reporting the review would put the cursor at 08:05 and skip the comment from 08:00 on resume.
+        assert!(matches!(
+            detect(&Baseline::from_snapshot(&before), &after, &reviewers()),
+            Some(Event::Comment { comment_id: 21, .. })
+        ));
+    }
+
+    #[test]
+    fn it_should_report_the_earliest_new_item_among_comments_of_both_kinds() {
+        let before = snapshot();
+        let mut after = before.clone();
+        after.issue_comments.push(comment(21, "da2ce7", "2026-10-28T08:10:00Z"));
+        after.review_comments.push(comment(31, "da2ce7", "2026-10-28T08:00:00Z"));
+
+        assert!(matches!(
+            detect(&Baseline::from_snapshot(&before), &after, &reviewers()),
+            Some(Event::Comment {
+                comment_kind: CommentKind::Review,
+                comment_id: 31,
+                ..
+            })
+        ));
+    }
+
+    #[test]
+    fn it_should_report_the_earliest_of_two_new_reviews_whatever_order_the_api_listed_them_in() {
+        let before = snapshot();
+        let mut after = before.clone();
+        after.reviews.push(review_at(12, "da2ce7", "2026-10-28T08:10:00Z"));
+        after.reviews.push(review_at(11, "da2ce7", "2026-10-28T08:05:00Z"));
+
+        assert!(matches!(
+            detect(&Baseline::from_snapshot(&before), &after, &reviewers()),
+            Some(Event::Review { review_id: 11, .. })
+        ));
+    }
+
+    #[test]
+    fn it_should_report_a_review_before_a_comment_made_in_the_same_second() {
+        let before = snapshot();
+        let mut after = before.clone();
+        after.review_comments.push(comment(31, "da2ce7", "2026-10-28T08:00:00Z"));
+        after.issue_comments.push(comment(21, "da2ce7", "2026-10-28T08:00:00Z"));
+        after.reviews.push(review_at(11, "da2ce7", "2026-10-28T08:00:00Z"));
+
+        assert!(matches!(
+            detect(&Baseline::from_snapshot(&before), &after, &reviewers()),
+            Some(Event::Review { review_id: 11, .. })
         ));
     }
 

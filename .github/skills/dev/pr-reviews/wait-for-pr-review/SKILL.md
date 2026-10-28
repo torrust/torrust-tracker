@@ -89,9 +89,16 @@ created strictly after it, so the reported item and everything before it are ski
 in the same second as the cursor is skipped too; the review loop reads the whole pull request after
 every event, so it is still read.
 
-When several things happened at once, the poller reports the first in this order: closed or merged,
-review, comment, head change. It reports one event; the review loop reads the whole pull request
-afterward, so nothing is lost.
+When several things happened at once, the poller reports a closed or merged pull request first, then
+the earliest new review or comment by GitHub time (a review before a conversation comment before an
+inline comment when made in the same second), then a head change. Reporting the earliest keeps the
+`cursor` honest: resuming from it never skips an item that was still unreported. The poller reports
+one event; the review loop reads the whole pull request afterward, so nothing is lost.
+
+Copilot's reviews come from `copilot-pull-request-reviewer[bot]`, but its inline comments come from
+the login `Copilot`. The default reviewer set therefore sees its reviews and not its inline comments,
+which is enough because the review result is the signal. Add `--reviewer Copilot` to be woken by each
+inline comment as well.
 
 Stderr is NDJSON, one record per line, each with a `kind`: `wait_started` at the start, and on
 failure one diagnostic.

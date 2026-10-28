@@ -123,7 +123,9 @@ Contract, confirmed by the maintainer on 2026-10-28:
 - **Resumable cursor**: a `review` or `comment` result carries `cursor`, the GitHub time of the
   reported item. `--since <cursor>` counts only items created strictly after it, so the review loop
   can continue after an event that needed no push without the event being reported again and
-  without losing what came after it.
+  without losing what came after it. When several reviews and comments are new, the poller reports
+  the earliest by GitHub time, so the cursor never skips an unreported item. An item created in the
+  same second as the cursor is skipped, and the review loop reads the whole pull request anyway.
 - **Stale checkout**: reviews and comments take priority over a head change, so the feedback can
   arrive with a head the checkout does not have. Such a result carries `head_moved: true`, and the
   review loop synchronizes the checkout before processing it. Passing `--since-head-sha` together
@@ -279,6 +281,8 @@ them:
 - **Stale checkout.** `--since-head-sha` and `--since` can be combined, a `review` or `comment`
   result carries `head_moved` when the head is not the watched one, and the loop synchronizes
   before processing feedback (`review-finding:pr-2683-f5`).
+- **Earliest first.** The poller reports the earliest new review or comment, not the first match
+  in a fixed priority, so the cursor never skips an unreported item (`review-finding:pr-2683-f13`).
 - **Strict `--since`.** A malformed or impossible timestamp is a usage error and never moves the
   cutoff (`review-finding:pr-2683-f6`).
 
