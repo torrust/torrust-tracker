@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2670-2482-build-shipped-artifacts-without-test-features/ISSUE.md
-last-updated-utc: "2026-10-27 21:00"
+last-updated-utc: "2026-10-28 07:07"
 ---
 
 # Manual Verification Evidence
@@ -331,3 +331,40 @@ The maintainer (josecelano) reviewed the test increments of findings 2 to 5 and 
 their commits. Results after the fixes: `cargo test -p shipped-features-check` reports 13 unit and 10 CLI tests passing,
 `cargo clippy -p shipped-features-check --all-targets -- -D warnings` reports nothing, and the check still passes on the
 real workspace.
+
+## V6 - The workflow job runs on a hosted runner (scenario M6)
+
+The `Shipped Features` job of `testing.yaml` ran on the pull request, on `ubuntu-latest` with the stable toolchain,
+on two heads of the branch:
+
+| Head (commit subject) | Run | Job result |
+| --- | --- | --- |
+| `docs(issues): [#2670] record the pre-PR review, the final image and the completion review` | [run 40583603727](https://github.com/torrust/torrust-tracker/actions/runs/40583603727/job/122469179536) | pass, 22 s |
+| `fix(tracker): [#2670] anchor a relative TORRUST_TRACKER_BINARY at the test working directory` | [run 40647792189](https://github.com/torrust/torrust-tracker/actions/runs/40647792189/job/122680559895) | pass, 19 s |
+
+The job runs `cargo run --quiet --package shipped-features-check -- --package torrust-tracker`, the command of V4, so
+it is green on the real workspace. As in V4 it passes because no `testing` feature exists yet; the cases that make it
+fail are the scratch-workspace tests of `tests/cli.rs` (V5), which the `Unit` jobs of the same workflow run.
+
+## V7 - A relative `TORRUST_TRACKER_BINARY` (PR review finding F1)
+
+Copilot's review of the pull request reported that a relative override breaks the configuration test that changes the
+child's working directory. Reproduced before the fix, on a release binary built with
+`cargo build --release --package torrust-tracker --bin torrust-tracker`:
+
+```bash
+TORRUST_TRACKER_BINARY=./target/release/torrust-tracker cargo test -p torrust-tracker --test cli-configuration
+TORRUST_TRACKER_BINARY=$PWD/target/release/torrust-tracker cargo test -p torrust-tracker --test cli-configuration
+```
+
+```text
+relative: test invalid_sources::it_should_not_search_parent_directories_for_a_relative_cli_configuration_file ... FAILED
+          spawn tracker executable: Os { code: 2, kind: NotFound, message: "No such file or directory" }
+          test result: FAILED. 21 passed; 1 failed
+absolute: test result: ok. 22 passed; 0 failed
+```
+
+After the fix, `tracker_binary()` anchors a relative path that has a directory part at the test's working directory (the
+unit test of that shape was red against a stub returning the path unchanged, `left: "./target/release/torrust-tracker"`,
+then green). The same relative invocation now passes: `test result: ok. 25 passed; 0 failed` for `cli-configuration`,
+and `lifecycle-signals` reports `20 passed`. The three new tests add 6 to the image's test count.
