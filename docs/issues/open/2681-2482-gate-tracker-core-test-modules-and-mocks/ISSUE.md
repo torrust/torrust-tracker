@@ -9,7 +9,7 @@ github-issue: 2681
 spec-path: docs/issues/open/2681-2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md
 branch: "2681-2482-gate-tracker-core-test-modules-and-mocks"
 related-pr: null
-last-updated-utc: "2026-10-28 12:30"
+last-updated-utc: "2026-10-28 12:31"
 semantic-links:
   skill-links:
     - create-issue
@@ -273,7 +273,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2 | TODO | Rule C: make the three helper modules private | `#[cfg(test)] mod`; `pub mod tests` inside; doc bullet removed. `cargo test -p torrust-tracker-core` and clippy pass |
 | T3 | TODO | Rule D.2: the three crate-private mocks use `cfg_attr(test, automock)` | Imports and re-exports gated by `cfg(test)`; tracker-core tests pass |
 | T4 | TODO | Rule D: gate `MockTorrentMetricsStore` behind `testing`, add the feature, optional `mockall`, self dev-dependency, `deny.toml` wrapper, and the consumers' dev-dependency entries | One commit: the gate runs `cargo machete` and `cargo deny` on every commit. Plain `cargo test -p` passes for the three packages |
-| T5 | TODO | Verify | Without-feature build and tree; tests with and without `--all-features`; `cargo machete --with-metadata`; `cargo deny check bans`; Shipped Features red/green; coupling tool labels; `cargo +stable package --workspace --no-verify` |
+| T5 | TODO | Verify | Without-feature build and tree; tests with and without `--all-features`; `cargo machete --with-metadata`; `cargo deny check bans`; Shipped Features red/green; the coupling report's `normal` and `dev` entries and the `cargo metadata` view of the optional `mockall` (M5); `cargo +stable package --workspace --no-verify` |
 | T6 | TODO | Update the inventory (patterns C and D resolved) and check the docs and diagram | `docs/packages.md` and the READMEs mention no mock; the 2026-10-17 coupling report is not edited |
 | T7 | TODO | Add the dated amendment note to ADR rule D.1 (D1) | Short note; the ADR index needs no change |
 | T8 | TODO | Manual verification evidence, acceptance review, completion review, independent pre-PR review | `manual-verification-evidence.md`; retrospective if there are lessons |
@@ -368,7 +368,7 @@ without `--all-features`, compare test counts, and make sure no test is silently
 | M2 | Each package's tests run with a plain command | `cargo test -p torrust-tracker-core`, `-p torrust-tracker-http-core`, `-p torrust-tracker-udp-core` (no `--all-features`) | Counts equal the baseline for every target | TODO | V2 |
 | M3 | A consumer still gets the mock in its tests and not in its production graph | `cargo test -p torrust-tracker-http-core -- scrape` and `-p torrust-tracker-udp-core -- scrape`; then, before and after the change, `cargo tree -p torrust-tracker-http-core -e normal -i mockall` and the same for `torrust-tracker-udp-core` | The tests that use `MockTorrentMetricsStore` run and pass; before the change each `cargo tree -i` prints `mockall` reached through `torrust-tracker-core`, after it `mockall` is not in the normal graph of either consumer (`cargo tree` resolves the graph itself, so a cached build cannot hide it) | TODO | V3 |
 | M4 | The shipped binary cannot get the feature | Run `shipped-features-check` on the real tree; temporarily put `features = ["testing"]` on a `[dependencies]` entry of `torrust-tracker-core`; run it again; restore | Exit 0, then exit 1 naming `torrust-tracker-core`, then exit 0 again | TODO | V4 |
-| M5 | The coupling tool labels the new edges | Run `workspace-coupling` on the tree | `mockall` shows `optional (testing)` for `tracker-core`; the self edge is skipped; `http-core` and `udp-core` edges to `tracker-core` are unchanged | TODO | V5 |
+| M5 | The dependency edges are reported as designed | Run `cargo run -p workspace-coupling -- /tmp/<report>.md` (an output path outside the tracked reports) and `cargo metadata --format-version 1 --no-deps`, and read the `torrust-tracker-core` dependency entries | In the report, `http-core` and `udp-core` list `torrust-tracker-core` under both `[normal]` and `[dev]` headings, and `tracker-core` has no self edge. The report lists only workspace packages, so `mockall` is absent from it by design; the optional `mockall` is checked in the `cargo metadata` output instead (a normal dependency of `torrust-tracker-core` with `optional: true`, enabled by the `testing` feature `["dep:mockall"]`), where it appears before and after the change | TODO | V5 |
 | M6 | The feature is visible only when asked | `cargo doc -p torrust-tracker-core --no-deps` with and without `--features testing` | `MockTorrentMetricsStore` appears only with the feature; the three helper modules never appear | TODO | V6 |
 
 ### Acceptance Verification
