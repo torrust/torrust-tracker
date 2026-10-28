@@ -221,3 +221,7 @@ Unit-only (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): lines 
 ### `routes.rs` (slice S2)
 
 Unit-only (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): lines 58 / 67 (86.57%) before, 174 / 174 (100.00%) after; regions 103 / 117 before, 280 / 280 after; functions 5 / 8 before, 26 / 26 after. The counts include the in-file test module. The request, response and failure log closures run but their content is not asserted at unit level (an integration test asserts the `ERROR` line). Nine test cases; eight of ten named mutations killed, two survive by design (see [the plan](test-refactor-plans/routes-tests.md)).
+
+### `v1/context/health_check/handlers.rs` (slice S2)
+
+Unit-only (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): lines 4 / 4 (100.00%) before, 16 / 16 (100.00%) after; regions 4 / 4 before, 25 / 25 after; functions 2 / 2 before, 4 / 4 after. The file was already fully covered; the single test adds protection (nothing asserted the answer), and the counts grow only by the test module. The mutation (report `Status::Error`) is killed (see [the plan](test-refactor-plans/v1-context-health-check-handlers-tests.md)).

@@ -3,7 +3,7 @@ doc-type: file-test-plan
 issue: 2637
 package: torrust-tracker-axum-rest-api-server
 target-file: packages/axum-rest-api-server/src/v1/context/health_check/handlers.rs
-status: proposed
+status: done
 semantic-links:
   related-artifacts:
     - packages/axum-rest-api-server/src/v1/context/health_check/handlers.rs
@@ -59,9 +59,9 @@ None.
 | ID | Status | Work | Completion evidence |
 | --- | --- | --- | --- |
 | R1 | SKIPPED | No existing tests. | None. |
-| R2 | TODO | Add the in-file test module with the one case. | Focused test, `cargo +nightly fmt --all -- --check`, `cargo clippy`, `git diff --check`, prose-first AAA review, and the named mutations. |
-| R3 | TODO | Integration increment: `none`. | The integration test keeps the wire contract. |
-| R4 | TODO | Re-run unit-only coverage; record before and after. | Results below and `coverage-evidence.md`. |
+| R2 | DONE | Add the in-file test module with the one case. | Focused test, `cargo +nightly fmt --all -- --check`, `cargo clippy`, `git diff --check`, prose-first AAA review, and the named mutations. |
+| R3 | DONE | Integration increment: `none`. | The integration test keeps the wire contract. |
+| R4 | DONE | Re-run unit-only coverage; record before and after. | Results below and `coverage-evidence.md`. |
 
 ## Named Mutations
 
@@ -71,8 +71,21 @@ None.
 
 ## Prose-First AAA Review
 
-To be written for the added test before the completed-file review.
+Temporary prose, written before comparing with the code.
+
+| Test | Arrange prose | Act prose | Assert prose | Outcome |
+| --- | --- | --- | --- | --- |
+| `it_should_answer_ok_with_a_json_report_whose_status_is_ok` | Nothing: the handler takes no input. | Call `health_check_handler` and turn its answer into a response. | The status, the `content-type` and the body together equal `200`, `application/json` and `{"status":"Ok"}`. | The expected whole value is a literal in the test, not produced by the DTO's serializer. No helper was needed. Kept. |
 
 ## Results
 
-Pending.
+- **Unit-only coverage** (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): 4 / 4 lines (100.00%) before; 16 / 16 lines
+  (100.00%), 25 / 25 regions and 4 / 4 functions after. The file was already fully covered, so the line gain is only
+  the test module: this test adds protection, not production-line coverage. Package unit-only lines after this file:
+  1,265 / 1,516 (83.44%), regions 1,856 / 2,323 (79.90%), functions 180 / 228 (78.95%), 75 unit tests.
+- **Mutation H1** (report `Status::Error`) applied alone and reverted exactly: killed by the one test.
+- **Tests:** one test. No integration test was added or changed.
+- **Validation:** `cargo +nightly fmt --all -- --check` (nightly Rust toolchain), `cargo clippy -p
+  torrust-tracker-axum-rest-api-server --all-targets` (stable), `cargo machete --with-metadata`, `git diff --check`
+  and `cargo test -p torrust-tracker-axum-rest-api-server` (75 unit and 58 integration tests) pass.
+- **Review outcome:** the maintainer approved the completed file on 2026-10-28.
