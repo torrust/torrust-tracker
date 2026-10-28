@@ -7,9 +7,9 @@ priority: p2
 epic: 1347
 github-issue: 2637
 spec-path: docs/issues/open/2637-1347-add-tests-axum-rest-api-server/ISSUE.md
-branch: "2637-1347-add-tests-axum-rest-api-server-routes"
-related-pr: 2687
-last-updated-utc: "2026-10-28 16:55"
+branch: "2637-1347-add-tests-axum-rest-api-server-commands"
+related-pr: null
+last-updated-utc: "2026-10-28 18:14"
 semantic-links:
   skill-links:
     - create-issue
@@ -406,8 +406,8 @@ ledger order inside each slice is still confirmed with the first plan (T3).
 | --- | --- | --- | --- | --- | --- |
 | S0 | This specification, the T1 coverage evidence and inventory, and the EPIC registration with the baseline | - | `2637-1347-add-tests-axum-rest-api-server-spec` | #2638 | DONE |
 | S1 | T2-T3, then authentication and the shared response contract (ranks 1 and 3) | 1, 5 | `2637-1347-add-tests-axum-rest-api-server-auth` | #2667 | DONE |
-| S2 | Route composition, transport layers and the health check (rank 2) | 2-4 | `2637-1347-add-tests-axum-rest-api-server-routes` | #2687 | IN_PROGRESS |
-| S3 | State-changing contexts: auth keys and whitelist (rank 4) | 6-11 | `2637-1347-add-tests-axum-rest-api-server-commands` | TBD | PENDING |
+| S2 | Route composition, transport layers and the health check (rank 2) | 2-4 | `2637-1347-add-tests-axum-rest-api-server-routes` | #2687 | DONE |
+| S3 | State-changing contexts: auth keys and whitelist (rank 4) | 6-11 | `2637-1347-add-tests-axum-rest-api-server-commands` | TBD | IN_PROGRESS |
 | S4 | Read-only contexts: torrents and statistics (rank 5) | 12-17 | `2637-1347-add-tests-axum-rest-api-server-queries` | TBD | PENDING |
 | S5 | Server lifecycle (rank 6) | 18 | `2637-1347-add-tests-axum-rest-api-server-lifecycle` | TBD | PENDING |
 | S6 | Crate root, wiring and test-support decisions (ranks 7-8), then T5-T8 | 19-31 | `2637-1347-add-tests-axum-rest-api-server-final` | TBD | PENDING |
@@ -539,7 +539,7 @@ declaration-only rows have no executable entries.
 | 3 | `routes.rs` | 2 | S2 | 58 / 67 (86.57%) | 0 | Test candidate | DONE | [routes-tests.md](test-refactor-plans/routes-tests.md) (done; 169 / 169 lines after, 9 test cases, 8 of 10 mutants killed, the 2 survivors recorded, R0 refactor) |
 | 4 | `v1/context/health_check/handlers.rs` | 2 | S2 | 4 / 4 (100.00%) | 0 | Test candidate (small) | DONE | [v1-context-health-check-handlers-tests.md](test-refactor-plans/v1-context-health-check-handlers-tests.md) (done; 16 / 16 lines after, 1 test, mutant killed; protection not coverage) |
 | 5 | `v1/responses.rs` | 3 | S1 | 8 / 40 (20.00%) | 0 | Test candidate | DONE | [v1-responses-tests.md](test-refactor-plans/v1-responses-tests.md) (done; 66 / 66 lines after, 8 test cases, 8 mutants killed) |
-| 6 | `v1/context/auth_key/handlers.rs` | 4 | S3 | 0 / 56 (0.00%) | 0 | Test candidate | PENDING | - |
+| 6 | `v1/context/auth_key/handlers.rs` | 4 | S3 | 0 / 56 (0.00%) | 0 | Test candidate | IN_PROGRESS | [v1-context-auth-key-handlers-tests.md](test-refactor-plans/v1-context-auth-key-handlers-tests.md) (proposed) |
 | 7 | `v1/context/auth_key/responses.rs` | 4 | S3 | 0 / 26 (0.00%) | 0 | Test candidate | PENDING | - |
 | 8 | `v1/context/auth_key/routes.rs` | 4 | S3 | 16 / 16 (100.00%) | 0 | Probably no change | PENDING | - |
 | 9 | `v1/context/whitelist/handlers.rs` | 4 | S3 | 0 / 37 (0.00%) | 0 | Test candidate | PENDING | - |
@@ -705,6 +705,10 @@ once. If the slicing changes, the Slice column changes with it.
   change requested), and approved the completed file at 16:35 UTC. The independent S2 review found that the log did
   not record them. Also fixed the other records items of that review (see `agent-review-reports.md`).
 - 2026-10-28 16:55 UTC - GitHub Copilot - Recorded S2 pull request #2687 (<https://github.com/torrust/torrust-tracker/pull/2687>, `Related to #2637`, opened at 16:55 UTC) in the frontmatter, the slice table and the EPIC row.
+- 2026-10-28 18:14 UTC - GitHub Copilot - S2 merged through #2687 (18:10 UTC, with your ACK at 17:26 UTC; Copilot's two findings F1 and F2 were fixed before the merge and no late review exists). Started S3 on branch
+  `2637-1347-add-tests-axum-rest-api-server-commands` from `develop` at the merge of #2687. The package and its `rest-api-*`
+  collaborators are unchanged since the S2 head, so the S2 measurement is the S3 baseline (unit-only lines
+  1,305 / 1,556, 83.87%). Row 6 (`v1/context/auth_key/handlers.rs`) is `IN_PROGRESS`; its plan is proposed and awaits the maintainer.
 
 ## Acceptance Criteria
 
