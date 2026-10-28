@@ -41,12 +41,16 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 Round 1: the review of `copilot-pull-request-reviewer` (5682635980, COMMENTED, submitted 2026-10-28T12:34:22Z) on the head whose subject is `docs(issues): [#2581] elide a pull-request head commit id from the evidence`. The `wait-for-pr-review` poller this pull request adds detected it (result `review`, exit `0`). The review opens four inline threads, F1 to F4. Its body only lists the same four with the labels "Medium" for F1 to F3 and "Low" for F4, and its "What changed in this PR" summary raises no assertion of its own, so the body adds no row. The comments carry no `[Severity]` bracket, so the severities are inferred from those labels: "Medium" is recorded as Minor (inferred), as in earlier audits, and "Low" as Nit (inferred).
 
+Round 2: the second review of `copilot-pull-request-reviewer` (5683463670, COMMENTED, submitted 2026-10-28T13:34:16Z) on the head whose subject is `docs(pr-reviews): [#2581] record the first Copilot review of PR 2683`. It was the review requested through the REST `requested_reviewers` endpoint at 12:54:26 UTC. It opens two inline threads, F5 and F6, in the advisory format `[<Severity>][<FindingId>]`: its comments carry their own severity and finding ID, and neither ID collides with F1 to F4, so both are kept. Its body lists F5 and F6 as open and F1 to F4 as resolved since the last review, and adds no other row.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2683-f1 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
 | F2 | review-finding:pr-2683-f2 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
 | F3 | review-finding:pr-2683-f3 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
 | F4 | review-finding:pr-2683-f4 | Copilot | Nit (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
+| F5 | review-finding:pr-2683-f5 | Copilot | Major | correctness | ORIGINAL | FIXED | RESOLVED |
+| F6 | review-finding:pr-2683-f6 | Copilot | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -102,12 +106,42 @@ Round 1: the review of `copilot-pull-request-reviewer` (5682635980, COMMENTED, s
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2683#discussion_r4400735252>
 
+### F5 - Synchronize the head for feedback results too
+
+- PR number: 2683
+- Source review ID: 5683463670
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2683#discussion_r4401206737>
+- Concern: When a push and feedback arrive together, `detect()` prioritizes the review or comment over `head_changed`, so the skill's loop can process feedback on a stale checkout, and resuming with `--since` adopts the new head as its baseline, which hides the head change from later polls. Check the head and synchronize safely before processing feedback, not only in the `head_changed` branch.
+- Solution: `--since-head-sha` and `--since` can be combined, so the agent's checkout is the head to watch and a pull request that is ahead of it is reported as `head_changed`. A `review` or `comment` result that arrives while the head differs from the watched one carries `head_moved: true`. The skill's loop requires `git fetch` and a safe fast-forward (or a rebase of unpushed commits) before processing feedback when `head_moved` is true or `head_sha` differs from the local `HEAD`, stops and tells the contributor when that is not safe, and passes both flags when resuming. The priority of reviews over head changes is unchanged, because reporting `head_changed` first would hide the review that triggered the wait.
+- Current-tree verification: `cargo test -p wait-for-pr-review` passed with the new unit tests `it_should_report_a_head_change_when_resuming_from_a_cursor_with_a_checkout_that_is_not_the_head`, `it_should_flag_a_review_that_arrives_with_a_head_that_differs_from_the_checkout`, `it_should_flag_a_review_reported_while_the_head_differs_from_the_one_the_wait_watched` and `it_should_flag_a_comment_reported_while_the_head_differs_from_the_one_the_wait_watched`, and with the integration test `it_should_report_a_head_change_at_once_when_the_checked_out_commit_is_not_the_head_even_with_a_cursor`, which failed with exit `2` before the change. Against this pull request, `--since-head-sha` set to its first commit with `--since 2026-10-28T13:34:16Z` returned `head_changed` at once, the same checkout without `--since` returned Copilot's earlier review with `head_moved: true`, and a checkout equal to the head returned no `head_moved`.
+- Resolution reference: fix(wait-for-pr-review): [#2581] synchronize the head before processing feedback
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2683#discussion_r4401634456>
+
+### F6 - Reject invalid dates and signed clock fields in `--since`
+
+- PR number: 2683
+- Source review ID: 5683463670
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2683#discussion_r4401206798>
+- Concern: `--since 2026-02-29T07:00:00Z` was accepted and converted to March 1, and `2026-10-28T-1:00:00Z` became the previous day's 23:00, so malformed input silently changed the review cutoff instead of producing `usage_error`. Validate digit-only components and the month's actual day count, with regression cases for both inputs.
+- Solution: `parse_utc` takes digits only, checks the day against the month's real length with leap years, and rejects out-of-range clock fields, including a second of `60`. A malformed `--since` is a `usage_error` (exit `2`).
+- Current-tree verification: `cargo test -p wait-for-pr-review` passed with the new tests `it_should_reject_a_day_the_month_does_not_have`, `it_should_reject_signed_or_otherwise_non_digit_fields`, `it_should_reject_clock_fields_that_are_out_of_range`, `it_should_accept_the_last_day_of_every_kind_of_month_and_both_kinds_of_february` and the integration test `it_should_exit_two_when_since_names_a_day_or_a_signed_field_that_does_not_exist`. The three rejection tests failed before the change, naming `2026-02-29T07:00:00Z`, `2026-10-28T-1:00:00Z` and `2026-10-28T07:00:60Z`. Against the real binary, `--since` with `2026-02-29T07:00:00Z`, `2026-10-28T-1:00:00Z`, `2026-04-31T00:00:00Z`, `2026-10-28T24:00:00Z` and `2026-10-28T07:00:+1Z` all exited `2` with empty stdout and a `usage_error` record; before the change, four of those five were accepted. `2028-02-29T07:00:00Z` is still accepted.
+- Resolution reference: fix(wait-for-pr-review): [#2581] reject invalid dates and signed fields in --since
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2683#discussion_r4401635307>
+
 ## Processing Log
 
 - 2026-10-28 12:35 UTC - The `wait-for-pr-review` poller returned Copilot's review 5682635980, submitted at 12:34:22 UTC (kind `review`, state `COMMENTED`, exit `0`; its stdout file was last written at 12:35:33 UTC). The review opened four inline threads, F1 to F4; all were unresolved. Each was checked against the current tree and found valid.
 - 2026-10-28 12:45 UTC - The four fixes were committed, one signed commit each: F1 at 12:38, F2 at 12:41, F3 at 12:42 and F4 at 12:45 UTC (commit times from `git log --format=%cI`). The spec was refined for the changed contract at 12:47 UTC.
 - 2026-10-28 12:50 UTC - After the push, each thread was replied to and resolved with `reply-and-resolve-thread.sh`; the GitHub times of the four replies are 12:49:59, 12:50:02, 12:50:06 and 12:50:09 UTC.
 - 2026-10-28 12:50 UTC - A GraphQL fetch at 12:50:24 UTC, after the last reply, reported no unresolved thread, and `github-review-threads reply-status` exited `0` for the login `josecelano`.
+
+- 2026-10-28 13:34 UTC - Copilot's second review 5683463670 was submitted (COMMENTED, on the head with subject `docs(pr-reviews): [#2581] record the first Copilot review of PR 2683`). The `wait-for-pr-review` poller had stopped at 13:24:55 UTC with a `timeout`, so the review was read from GitHub at 14:01 UTC. It opened F5 and F6, both unresolved, and listed F1 to F4 as resolved. Each was checked against the current tree and found valid; F6 was reproduced against the real binary.
+- 2026-10-28 14:10 UTC - The two fixes were committed, one signed commit each: F6 at 14:04 and F5 at 14:10 UTC (commit times from `git log --format=%cI`).
+- 2026-10-28 14:13 UTC - After the push, each thread was replied to and resolved with `reply-and-resolve-thread.sh`; the GitHub times of the two replies are 14:13:09 and 14:13:13 UTC. Copilot was requested again through the REST `requested_reviewers` endpoint at 14:13:25 UTC (timeline event `review_requested`). A GraphQL fetch at 14:13:31 UTC reported no unresolved thread.
 
 ## Completion Rules
 
