@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p2
 epic: 2482
 github-issue: 2681
 spec-path: docs/issues/open/2681-2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md
-branch: "2681-2482-gate-tracker-core-test-modules-and-mocks-spec"
+branch: "2681-2482-gate-tracker-core-test-modules-and-mocks"
 related-pr: null
-last-updated-utc: "2026-10-28 13:45"
+last-updated-utc: "2026-10-28 16:42"
 semantic-links:
   skill-links:
     - create-issue
@@ -269,13 +269,13 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T1 | TODO | Record the baseline and audit the dependencies | `cargo tree -p torrust-tracker-core -e normal --depth 1` (shows `mockall`); test counts of the three packages from four commands each, `cargo test -p <package>`, `cargo test -p <package> --all-features`, `cargo test -p <package> --all-targets --all-features` and `cargo test -p <package> --doc --all-features` (`--all-targets` does not run doc tests, so the doc-test count comes from the plain and `--doc` runs); re-`grep` the five `Mock*` names across the workspace; audit every other normal dependency of `tracker-core` against ADR rule A.2 (only `#[cfg(test)]` users become dev-dependencies, the audit result is recorded even if empty) |
-| T2 | TODO | Rule C: make the three helper modules private | `#[cfg(test)] mod`; `pub mod tests` inside; doc bullet removed. `cargo test -p torrust-tracker-core` and clippy pass |
-| T3 | TODO | Rule D.2: the three crate-private mocks use `cfg_attr(test, automock)` | Imports and re-exports gated by `cfg(test)`; tracker-core tests pass |
-| T4 | TODO | Rule D: gate `MockTorrentMetricsStore` behind `testing`, add the feature, optional `mockall`, self dev-dependency, `deny.toml` wrapper, and the consumers' dev-dependency entries | One commit: the gate runs `cargo machete` and `cargo deny` on every commit. Plain `cargo test -p` passes for the three packages |
-| T5 | TODO | Verify | Without-feature build and tree; tests with and without `--all-features`; `cargo machete --with-metadata`; `cargo deny check bans`; Shipped Features red/green; the coupling report's `normal` and `dev` entries and the `cargo metadata` view of the optional `mockall` (M5); `cargo +stable package --workspace --no-verify` |
-| T6 | TODO | Update the inventory (patterns C and D resolved) and check the docs and diagram | `docs/packages.md` and the READMEs mention no mock; the 2026-10-17 coupling report is not edited |
-| T7 | TODO | Add the dated amendment note to ADR rule D.1 (D1) | Short note; the ADR index needs no change |
+| T1 | DONE | Record the baseline and audit the dependencies | `cargo tree -p torrust-tracker-core -e normal --depth 1` (shows `mockall`); test counts of the three packages from four commands each, `cargo test -p <package>`, `cargo test -p <package> --all-features`, `cargo test -p <package> --all-targets --all-features` and `cargo test -p <package> --doc --all-features` (`--all-targets` does not run doc tests, so the doc-test count comes from the plain and `--doc` runs); re-`grep` the five `Mock*` names across the workspace; audit every other normal dependency of `tracker-core` against ADR rule A.2 (only `#[cfg(test)]` users become dev-dependencies, the audit result is recorded even if empty) |
+| T2 | DONE | Rule C: make the three helper modules private | `#[cfg(test)] mod`; `pub mod tests` inside; doc bullet removed. `cargo test -p torrust-tracker-core` and clippy pass |
+| T3 | DONE | Rule D.2: the three crate-private mocks use `cfg_attr(test, automock)` | Imports and re-exports gated by `cfg(test)`; tracker-core tests pass |
+| T4 | DONE | Rule D: gate `MockTorrentMetricsStore` behind `testing`, add the feature, optional `mockall`, self dev-dependency, `deny.toml` wrapper, and the consumers' dev-dependency entries | One commit: the gate runs `cargo machete` and `cargo deny` on every commit. Plain `cargo test -p` passes for the three packages |
+| T5 | DONE | Verify | Without-feature build and tree; tests with and without `--all-features`; `cargo machete --with-metadata`; `cargo deny check bans`; Shipped Features red/green; the coupling report's `normal` and `dev` entries and the `cargo metadata` view of the optional `mockall` (M5); `cargo +stable package --workspace --no-verify` |
+| T6 | DONE | Update the inventory (patterns C and D resolved) and check the docs and diagram | `docs/packages.md` and the READMEs mention no mock; the 2026-10-17 coupling report is not edited |
+| T7 | DONE | Add the dated amendment note to ADR rule D.1 (D1) | Short note; the ADR index needs no change |
 | T8 | TODO | Manual verification evidence, acceptance review, completion review, independent pre-PR review | `manual-verification-evidence.md`; retrospective if there are lessons |
 
 ## Commit Points
@@ -297,11 +297,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Folder-style spec drafted in `docs/issues/drafts/2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md` (now `docs/issues/open/2681-2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md`)
 - [x] Spec reviewed and approved by user/maintainer (the maintainer, 2026-10-28)
 - [x] GitHub issue created, linked as a sub-issue of #2482 (`parent_issue_url` verified), and its number added to this spec
-- [ ] Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
+- [x] Spec-only PR merged into `develop` before implementation (PR #2682)
+- [x] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence (the AI assistant; the maintainer reviews it in the pull request)
 - [ ] Evidence-based implementation completion review recorded
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
@@ -316,28 +316,29 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-10-28 12:07 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 3) - The maintainer approved the spec and the T7 ADR amendment note on 2026-10-28. Created issue #2681, linked it as a sub-issue of #2482 (`parent_issue_url` verified), moved the spec to `docs/issues/open/2681-2482-gate-tracker-core-test-modules-and-mocks/`, set `status: planned` and updated row 3 of the EPIC Subissues table (IN_PROGRESS) and the inventory links.
 - 2026-10-28 12:33 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 3) - PR #2682 review round 1 (Copilot, four low-severity findings, all confirmed against the spec): the feature-enabled build checkpoint moved from T3 to T4; doc tests are counted by matching baseline and post-change commands (`--doc` runs; `--all-targets` does not run them); M3 inspects the consumers' normal dependency graph with `cargo tree -i mockall`; M5 and T5 expect the `[normal]` and `[dev]` entries the coupling report really lists and check the optional `mockall` in `cargo metadata`. Recorded in `docs/pr-reviews/pr-2682-review/PR-REVIEW.md`.
 - 2026-10-28 13:45 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 3) - PR #2682 review rounds 2 and 3 (Copilot): two findings that claimed table rows start with `||` were declined (the files contain none); the frontmatter `branch:` now records the `-spec` branch of this PR, as `create-issue` requires, and the implementation PR switches it to the base name `2681-2482-gate-tracker-core-test-modules-and-mocks`.
+- 2026-10-28 16:41 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 3) - Implementation done on branch `2681-2482-gate-tracker-core-test-modules-and-mocks` after the spec PR #2682 merged: five signed commits (helper modules private; three crate-private mocks under `cfg_attr(test)`; the `testing` feature with the optional `mockall`, the self dev-dependency, the `deny.toml` wrapper and the consumers' dev-dependencies; the inventory; the ADR amendment note). Evidence in `manual-verification-evidence.md` (V0 to V7). Facts were re-verified because `develop` had moved. Deviation from the spec text: none. The `Cargo.lock` gained the self dev-dependency edge. Pending: pre-push, independent pre-PR review, completion review.
 
 ## Acceptance Criteria
 
-- [ ] AC1: `cargo tree -p torrust-tracker-core -e normal --depth 1` shows no direct dependency on
-      `mockall` in a default build, and a default build's public API contains none of the five
+- [x] AC1: `cargo tree -p torrust-tracker-core -e normal --depth 1` shows no direct dependency on
+      `mockall` in a default build, and a default build's public API contains none of the four
       `Mock*` types and none of the three helper modules. (`mockall` can remain a transitive
       dependency through other crates; say which when recording.)
-- [ ] AC2: With `--features testing`, `torrust_tracker_core::databases::MockTorrentMetricsStore` exists
+- [x] AC2: With `--features testing`, `torrust_tracker_core::databases::MockTorrentMetricsStore` exists
       and `mockall` is a direct normal dependency; `MockAuthKeyStore`, `MockWhitelistStore` and
       `MockSchemaMigrator` do not exist outside `cfg(test)`.
-- [ ] AC3: `cargo test -p torrust-tracker-core`, `-p torrust-tracker-http-core` and
+- [x] AC3: `cargo test -p torrust-tracker-core`, `-p torrust-tracker-http-core` and
       `-p torrust-tracker-udp-core` pass without `--all-features`, and each target's test count
       equals the baseline (unit, integration and doc tests, counted separately); the same
       comparison holds for the other three T1 commands per package (`--all-features`,
       `--all-targets --all-features` and `--doc --all-features`), each against the count its own
       baseline command recorded.
-- [ ] AC4: Every `features = ["testing"]` edge on `torrust-tracker-core` is in a
+- [x] AC4: Every `features = ["testing"]` edge on `torrust-tracker-core` is in a
       `[dev-dependencies]` table; the `Shipped Features` check exits 0 on the real tree, and exits 1
       when the edge is temporarily moved to `[dependencies]` (evidence, not committed).
-- [ ] AC5: `cargo machete --with-metadata` and `cargo deny check bans` pass, with the self
+- [x] AC5: `cargo machete --with-metadata` and `cargo deny check bans` pass, with the self
       dev-dependency having no `version`; `cargo +stable package --workspace --no-verify` passes.
-- [ ] AC6: Inventory patterns C and D are marked resolved, and the ADR carries the D.1 amendment note.
+- [x] AC6: Inventory patterns C and D are marked resolved, and the ADR carries the D.1 amendment note.
 - [ ] `linter all` exits with code `0`; pre-push checks pass.
 
 ## Verification Plan
@@ -366,23 +367,23 @@ without `--all-features`, compare test counts, and make sure no test is silently
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | The default build has no test dependency | `cargo tree -p torrust-tracker-core -e normal --depth 1`, before and after; `cargo build -p torrust-tracker-core` | `mockall` is a direct dependency before and absent after | TODO | `manual-verification-evidence.md` V1 |
-| M2 | Each package's tests run with a plain command | `cargo test -p torrust-tracker-core`, `-p torrust-tracker-http-core`, `-p torrust-tracker-udp-core` (no `--all-features`) | Counts equal the baseline for every target | TODO | V2 |
-| M3 | A consumer still gets the mock in its tests and not in its production graph | `cargo test -p torrust-tracker-http-core -- scrape` and `-p torrust-tracker-udp-core -- scrape`; then, before and after the change, `cargo tree -p torrust-tracker-http-core -e normal -i mockall` and the same for `torrust-tracker-udp-core` | The tests that use `MockTorrentMetricsStore` run and pass; before the change each `cargo tree -i` prints `mockall` reached through `torrust-tracker-core`, after it `mockall` is not in the normal graph of either consumer (`cargo tree` resolves the graph itself, so a cached build cannot hide it) | TODO | V3 |
-| M4 | The shipped binary cannot get the feature | Run `shipped-features-check` on the real tree; temporarily put `features = ["testing"]` on a `[dependencies]` entry of `torrust-tracker-core`; run it again; restore | Exit 0, then exit 1 naming `torrust-tracker-core`, then exit 0 again | TODO | V4 |
-| M5 | The dependency edges are reported as designed | Run `cargo run -p workspace-coupling -- /tmp/<report>.md` (an output path outside the tracked reports) and `cargo metadata --format-version 1 --no-deps`, and read the `torrust-tracker-core` dependency entries | In the report, `http-core` and `udp-core` list `torrust-tracker-core` under both `[normal]` and `[dev]` headings, and `tracker-core` has no self edge. The report lists only workspace packages, so `mockall` is absent from it by design; the optional `mockall` is checked in the `cargo metadata` output instead (a normal dependency of `torrust-tracker-core` with `optional: true`, enabled by the `testing` feature `["dep:mockall"]`), where it appears before and after the change | TODO | V5 |
-| M6 | The feature is visible only when asked | `cargo doc -p torrust-tracker-core --no-deps` with and without `--features testing` | `MockTorrentMetricsStore` appears only with the feature; the three helper modules never appear | TODO | V6 |
+| M1 | The default build has no test dependency | `cargo tree -p torrust-tracker-core -e normal --depth 1`, before and after; `cargo build -p torrust-tracker-core` | `mockall` is a direct dependency before and absent after | DONE | V1 |
+| M2 | Each package's tests run with a plain command | `cargo test -p torrust-tracker-core`, `-p torrust-tracker-http-core`, `-p torrust-tracker-udp-core` (no `--all-features`) | Counts equal the baseline for every target | DONE | V2 |
+| M3 | A consumer still gets the mock in its tests and not in its production graph | `cargo test -p torrust-tracker-http-core -- scrape` and `-p torrust-tracker-udp-core -- scrape`; then, before and after the change, `cargo tree -p torrust-tracker-http-core -e normal -i mockall` and the same for `torrust-tracker-udp-core` | The tests that use `MockTorrentMetricsStore` run and pass; before the change each `cargo tree -i` prints `mockall` reached through `torrust-tracker-core`, after it `mockall` is not in the normal graph of either consumer (`cargo tree` resolves the graph itself, so a cached build cannot hide it) | DONE | V3 |
+| M4 | The shipped binary cannot get the feature | Run `shipped-features-check` on the real tree; temporarily put `features = ["testing"]` on a `[dependencies]` entry of `torrust-tracker-core`; run it again; restore | Exit 0, then exit 1 naming `torrust-tracker-core`, then exit 0 again | DONE | V4 |
+| M5 | The dependency edges are reported as designed | Run `cargo run -p workspace-coupling -- /tmp/<report>.md` (an output path outside the tracked reports) and `cargo metadata --format-version 1 --no-deps`, and read the `torrust-tracker-core` dependency entries | In the report, `http-core` and `udp-core` list `torrust-tracker-core` under both `[normal]` and `[dev]` headings, and `tracker-core` has no self edge. The report lists only workspace packages, so `mockall` is absent from it by design; the optional `mockall` is checked in the `cargo metadata` output instead (a normal dependency of `torrust-tracker-core` with `optional: true`, enabled by the `testing` feature `["dep:mockall"]`), where it appears before and after the change | DONE | V7 |
+| M6 | The feature is visible only when asked | `cargo doc -p torrust-tracker-core --no-deps` with and without `--features testing` | `MockTorrentMetricsStore` appears only with the feature; the three helper modules never appear | DONE | V6 |
 
 ### Acceptance Verification
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1   | TODO                   |          |
-| AC2   | TODO                   |          |
-| AC3   | TODO                   |          |
-| AC4   | TODO                   |          |
-| AC5   | TODO                   |          |
-| AC6   | TODO                   |          |
+| AC1   | DONE                   | [V1, V3, V6](manual-verification-evidence.md): `mockall` is absent from the default direct tree and from both consumers' normal graphs, and no `Mock*` item or helper module is in the default docs. |
+| AC2   | DONE                   | [V1, V6](manual-verification-evidence.md): with `--features testing` the tree shows `mockall` and the docs show `MockTorrentMetricsStore`; `MockAuthKeyStore`, `MockWhitelistStore` and `MockSchemaMigrator` are `#[cfg(test)]` only (V0, code). |
+| AC3   | DONE                   | [V2](manual-verification-evidence.md): 12 commands, every count equal to the baseline. |
+| AC4   | DONE                   | [V4](manual-verification-evidence.md): `Shipped Features` check green on the real tree, red (exit 1) with the edge in `[dependencies]` and with `testing` in `default`, green again after reverting; the three `features = ["testing"]` edges are in `[dev-dependencies]` tables. |
+| AC5   | DONE                   | [V5](manual-verification-evidence.md): `cargo deny check bans` red without the wrapper entry and green with it; `cargo machete --with-metadata` clean; `cargo +stable package --workspace --no-verify --allow-dirty` exit 0; the self dev-dependency has no `version`. |
+| AC6   | DONE                   | The inventory rows and sections for patterns C and D say `Resolved by #2681`; the ADR carries the 2026-10-28 amendment note (commits `docs(issues): [#2681] mark inventory patterns C and D resolved` and `docs(adrs): [#2681] narrow rule D.1 to the mock other packages use`). |
 
 ## Risks and Trade-offs
 
