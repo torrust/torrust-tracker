@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2581-2003-pr-review-wait-poller/ISSUE.md
-last-updated-utc: "2026-10-28 13:50"
+last-updated-utc: "2026-10-28 14:30"
 ---
 
 # Manual Verification Evidence
@@ -174,7 +174,7 @@ The automated suite also covers a hung `gh` call being killed on a signal
   Copilot review, and record the verified command or the limitation in the skill.
 - Initial state: PR #2683 had one Copilot review (5682635980, submitted 2026-10-28T12:34:22Z).
   The fixes for its four findings were pushed before the request.
-- Status: `IN_PROGRESS`
+- Status: `DONE`
 
 #### Steps Performed
 
@@ -196,14 +196,25 @@ step 5: {"data":{"requestReviews":{"pullRequest":{"number":2683}}}}
 step 5, reviewRequests: Team maintainers, User da2ce7, Bot copilot-pull-request-reviewer
 ```
 
-#### Conclusion so far
+#### Later observations
 
-The REST call is accepted and does record a Copilot request: the timeline shows `review_requested`
-for `Copilot` one second after the call, and the GraphQL `reviewRequests` list shows the bot as a
-pending reviewer. The REST `requested_reviewers` list never shows bots, so it cannot be used to
-check the request. No new Copilot review had arrived 30 minutes after the request, and the GraphQL
-mutation added no second event, because the request was still pending. The result is not final: it
-is recorded as `DONE` or `FAILED` after a review arrives or the request is shown to be dropped.
+Copilot submitted review 5683463670 at 13:34:16 UTC, 39 minutes 50 seconds after the REST request at
+12:54:26 UTC, on the head that was current when the request was made. Both poller windows had ended
+by then (13:09:43 and 13:24:55 UTC), so neither returned it; it was read from GitHub at 14:01 UTC. No
+Copilot review exists on the head of the earlier push of the spec-refinement commit, so the push alone
+did not produce one. A second request, made through the REST endpoint at 14:13:25 UTC after the next
+push, was recorded as a `review_requested` event for `Copilot` as well.
+
+#### Conclusion
+
+Met. `POST repos/{owner}/{repo}/pulls/{n}/requested_reviewers` with
+`reviewers[]=copilot-pull-request-reviewer[bot]` requests a Copilot review: the timeline records it,
+the GraphQL `reviewRequests` list shows the bot while the request is pending, and Copilot answered. The
+REST `requested_reviewers` list never shows bots, so it cannot confirm the request. The latency was
+about 40 minutes, longer than the poller's 15-minute default. The GraphQL `requestReviews` mutation
+that earlier audits used was also run once (13:25:15 UTC, `union: true`); it returned success and
+added no second event while the first request was pending, so it was not needed. The skill records the
+verified command and these limits.
 
 ### V8 - Unrelated CI failure: `base_source_precedence` fails with `Address already in use`
 
@@ -293,6 +304,12 @@ The reproduction was repeated: ports `43152` to `43156` all held by another proc
 The full suite was then run 40 more times with the old ports held: 0 failed runs. Before the fix,
 holding `43152` alone failed the run both times it was tried.
 
+#### CI after the fix
+
+The Testing workflow re-ran on the pushed fix (run 40698289978) and `Unit (stable)` passed, with every
+other check on the pull request. One passing run does not show that a flake is gone; the local runs
+above, with the old ports held, are the evidence for the fix.
+
 #### Conclusion
 
 Met for the failure that was reproduced and for the cause the evidence supports. Not shown: that the
@@ -302,4 +319,4 @@ the range is below what the kernel assigns, and concurrent runs draw different r
 
 ## Failures and Follow-up
 
-No failure of the poller so far. V6 and V7 are open: V6 waits for a `da2ce7` review, and V7 waits for a Copilot review or proof that the request was dropped. V8 is an unrelated pre-existing flake fixed in its own commit.
+No failure of the poller remains open. Copilot's two reviews found six defects, all fixed (see the audit in `docs/pr-reviews/pr-2683-review/PR-REVIEW.md`). V6 is open: it waits for a `da2ce7` review. V8 is an unrelated pre-existing flake fixed in its own commit.

@@ -151,16 +151,27 @@ thread is not counted by the thread check, so read each new review body through 
 ## Re-Requesting a Review
 
 After you push fixes for a reviewer, ask the same reviewer again. Do it only when new fixes need a
-new look; a clean review needs no re-request. The poller never does this. This
-call is the documented GitHub REST endpoint; it has not run against this repository yet.
+new look; a clean review needs no re-request. The poller never does this. The same REST endpoint
+works for a maintainer and for Copilot; the Copilot reviewer is a bot, so its login ends in `[bot]`:
 
 ```sh
-gh api --method POST repos/torrust/torrust-tracker/pulls/<PR>/requested_reviewers \
-  -f 'reviewers[]=da2ce7' > .tmp/re-request.stdout 2> .tmp/re-request.stderr
+gh api --method POST repos/torrust/torrust-tracker/pulls/<PR>/requested_reviewers   -f 'reviewers[]=da2ce7' > .tmp/re-request.stdout 2> .tmp/re-request.stderr
+
+gh api --method POST repos/torrust/torrust-tracker/pulls/<PR>/requested_reviewers   -f 'reviewers[]=copilot-pull-request-reviewer[bot]' > .tmp/re-request.stdout 2> .tmp/re-request.stderr
 ```
 
-The Copilot re-review path is not verified. Record the verified command, or the confirmed
-limitation, here once the manual verification of issue #2581 has run it.
+The Copilot call was verified on PR #2683 (2026-10-28): it exited `0`, GitHub recorded a
+`review_requested` timeline event for `Copilot` one second later, and Copilot submitted a review
+about 40 minutes after the request. Three things follow:
+
+- The `requested_reviewers` list of the pull request never shows a bot, so do not use it to check
+  that the request worked. Read the timeline (`gh api repos/torrust/torrust-tracker/issues/<PR>/timeline`,
+  event `review_requested`) or the GraphQL `reviewRequests` of the pull request, which lists the bot
+  while the request is pending.
+- Copilot can take 40 minutes or more, longer than the poller's 15-minute default. Run the poller
+  again with the same flags after a `timeout`; a second request while the first is pending adds
+  nothing.
+- Pushing does not request a review by itself: the earlier push on that pull request produced none.
 
 ## Skill Links
 
