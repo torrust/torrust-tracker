@@ -1,6 +1,10 @@
 //! Runs the real binary against a fake `gh` script, to pin the command-line contract:
 //! one JSON result on stdout, NDJSON diagnostics on stderr, and exit codes 0, 1, and 2.
 
+// The fake `gh` is a `/bin/sh` script made executable with Unix permissions, and the signal scenarios
+// send `kill`, so these scenarios have no Windows equivalent. The crate still builds on every target.
+#![cfg(unix)]
+
 use std::fs;
 use std::io::{BufRead, BufReader, Read};
 use std::os::unix::fs::PermissionsExt;
