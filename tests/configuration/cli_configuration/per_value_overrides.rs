@@ -4,12 +4,13 @@ use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
 use crate::native_tracker::NativeTracker;
 use crate::native_tracker::configuration::NativeTrackerConfigurationSources;
+use crate::native_tracker::ports::reserve_free_ports;
 
 #[tokio::test]
 async fn it_should_select_the_health_check_bind_address_override_over_the_cli_configuration() {
     // Arrange
-    let cli_port = 43155;
-    let expected_health_check_address = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 43156);
+    let [cli_port, override_port] = reserve_free_ports();
+    let expected_health_check_address = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), override_port);
     // The CLI file and per-value override both set `health_check_api.bind_address`.
     // The override must win.
     let sources = NativeTrackerConfigurationSources::with_cli_health_check_port(cli_port)

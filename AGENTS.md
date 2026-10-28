@@ -121,6 +121,12 @@ package's `Cargo.toml` holds its version. Rows marked _(unpublished)_ set `publi
 | `checks/shipped-features-check`       | `shipped-features-check`       | Fails if a `testing` feature reaches a shipped binary      |
 | `github/github-review-threads`        | `github-review-threads`        | Fetches pull-request review threads through the GitHub CLI |
 
+**Skill-owned tools** (a crate inside the skill folder that uses it, _(unpublished)_):
+
+| Tool                                                      | Crate Name           | Description                                                      |
+| --------------------------------------------------------- | -------------------- | ---------------------------------------------------------------- |
+| `.github/skills/dev/pr-reviews/wait-for-pr-review/tool`   | `wait-for-pr-review` | Blocks until a PR reviewer event happens, through the GitHub CLI |
+
 **Community contributions** (under `contrib/`):
 
 | Crate | Description                                                                                            |

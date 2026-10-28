@@ -144,6 +144,7 @@ nix = { version = "0.31.3", default-features = false, features = [ "signal" ] }
 # auto-discovery) so that the cargo-chef `--external-only` skeleton, which strips
 # path dependencies, still resolves the same membership and `default-members`.
 members = [
+  ".github/skills/dev/pr-reviews/wait-for-pr-review/tool",
   "console/tracker-client",
   "contrib/dev-tools/analysis/workspace-coupling",
   "contrib/dev-tools/checks/agent-review-report-contract",
