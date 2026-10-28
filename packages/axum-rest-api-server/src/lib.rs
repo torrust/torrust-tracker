@@ -155,6 +155,8 @@
 //! > errors. For example: `curl "http://127.0.0.1:1212/api/v1/stats?token=MyAccessToken"`.
 pub mod routes;
 pub mod server;
+#[cfg(test)]
+mod test_support;
 pub mod testing;
 pub mod v1;
 

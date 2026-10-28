@@ -3,7 +3,7 @@ doc-type: file-test-plan
 issue: 2637
 package: torrust-tracker-axum-rest-api-server
 target-file: packages/axum-rest-api-server/src/v1/routes.rs
-status: approved
+status: done
 semantic-links:
   related-artifacts:
     - packages/axum-rest-api-server/src/v1/routes.rs
@@ -105,9 +105,9 @@ None new. `rstest` and `tower` (`util`) exist; `torrust-tracker-test-helpers` is
 | ID | Status | Work | Completion evidence |
 | --- | --- | --- | --- |
 | R1 | SKIPPED | No existing tests. | None. |
-| R2 | TODO | Add `src/test_support.rs` (the crate-private container helper) and the in-file test module with the gating and registration tables. | Focused tests, `cargo +nightly fmt --all -- --check`, `cargo clippy`, `git diff --check`, prose-first AAA review, and the named mutations. |
-| R3 | TODO | Integration increment: `none` expected. | The 58 integration tests keep the wire contract. |
-| R4 | TODO | Re-run unit-only coverage; record before and after. | Results below and `coverage-evidence.md`. |
+| R2 | DONE | Add `src/test_support.rs` (the crate-private container helper) and the in-file test module with the gating and registration tables. | Focused tests, `cargo +nightly fmt --all -- --check`, `cargo clippy`, `git diff --check`, prose-first AAA review, and the named mutations. |
+| R3 | DONE | Integration increment: `none` expected. | The 58 integration tests keep the wire contract. |
+| R4 | DONE | Re-run unit-only coverage; record before and after. | Results below and `coverage-evidence.md`. |
 
 ## Named Mutations
 
@@ -131,11 +131,49 @@ Recorded on 2026-10-28.
 2. **Cases with `private` or `listed` set but no persistence:** kept, labelled as the second line of defense and
    linked to the first line (above).
 3. **Plan approved** with the edits above.
+4. **Helper location, confirmed 2026-10-28 after questioning the `src/testing/` convention:** the helper stays a
+   private `#[cfg(test)] mod test_support` at the crate root, and the file also carries the inner attribute
+   `#![cfg(test)]` so that it states it is test code. Evidence weighed: the `src/environment.rs` to
+   `src/testing/environment.rs` moves were meant to mark test-only infrastructure but moved shared server
+   environments; ADR `20261021190318` rule C does not say where a crate-private helper's file lives; and
+   `tracker-core` keeps `src/test_helpers.rs` at the crate root with only `#[cfg(test)]` content. The
+   convention is recorded in `lessons.md` for a separate ADR clarification after this issue, together with the
+   maintainer's note that files containing only test code are prefixed `test_`.
 
 ## Prose-First AAA Review
 
-To be written for every added test before the completed-file review.
+Temporary prose, written before comparing with the code.
+
+| Test (cases) | Arrange prose | Act prose | Assert prose | Outcome |
+| --- | --- | --- | --- | --- |
+| `it_should_serve_the_auth_key_routes_when_the_tracker_is_private_and_has_persistence` | A private tracker with a database. | `POST /api/v1/key/60` through the composed routes. | `200`. | Only the status is asserted: the body is a random key owned by `tracker-core`. Kept. |
+| `it_should_answer_conflict_on_the_auth_key_routes_when_the_private_capability_is_not_available` (2) | A public tracker with a database, or a private tracker without one (the second line of defense). | Same request. | `409`, `application/json`, the literal disabled body. | The two states share one outcome, so one table; the case names say which state each is. Kept. |
+| `it_should_serve_the_whitelist_routes_when_the_tracker_is_listed_and_has_persistence` | A listed tracker with a database. | `GET /api/v1/whitelist/reload`. | `200`, JSON, `{"status":"ok"}`. | Kept. |
+| `it_should_answer_conflict_on_the_whitelist_routes_when_the_listed_capability_is_not_available` (2) | A public tracker with a database, or a listed tracker without one (the second line of defense). | Same request. | `409`, JSON, the literal disabled body. | Kept. |
+| `it_should_serve_the_read_routes_even_when_the_tracker_has_no_persistence` (2) | The least capable tracker (public, no database). | `GET` of the statistics and the torrent list. | `200`. | Status only: the bodies are owned by the stats and torrent services. Kept. |
+| `it_should_register_every_route_of_the_four_contexts_even_for_the_least_capable_tracker` (11) | The least capable tracker. | One request per method and path of the four contexts. | The status is neither `404` (path not registered) nor `405` (method not registered). | Deliberately weak: it pins the route table, not the behavior of each handler, which is the job of the handler plans (S3 and S4). Kept. |
+
+Helpers: `private_tracker`, `listed_tracker` and `without_database` name the three configuration states; `call`
+builds the container, composes the routes and reads the response, and hides only mechanics. `test_support::api_container`
+(in `src/test_support.rs`, rule C of ADR `20261021190318`, with an inner `#![cfg(test)]`) builds the container as the application does.
 
 ## Results
 
-Pending.
+- **Unit-only coverage** (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): `v1/routes.rs` 27 / 45
+  lines (60.00%) before; 111 / 111 lines (100.00%), 174 / 174 regions and 13 / 13 functions after (the counts include
+  the test module). The new `test_support.rs` is 31 / 31. The four context `routes.rs` files stay at 100%
+  (their paths and methods are now pinned by the registration table). Package unit-only lines after this file:
+  1,142 / 1,402 (81.46%), regions 1,661 / 2,142 (77.54%), functions 157 / 208 (75.48%), 65 unit tests; the
+  denominator grew by the test module and the helper.
+- **Tests:** 19 test cases in six tests (single tests and `rstest` tables of 2, 2, 2 and 11 cases). No
+  integration test was added or changed.
+- **Mutations** (each applied alone, stable toolchain, then reverted; the file was identical to the tested one
+  afterwards): G1 killed by the public-tracker `409` case, G2 by the private-with-persistence test, G3 and G4 by the
+  listed-with-persistence test, G5 by six cases (both auth-key `409` cases and the key rows of the registration
+  table), G6 by three cases (the statistics and metrics registration rows and the statistics read case). The
+  first G6 attempt left `stats` unused and did not compile under `unused = "deny"`; it was redone as a clone that
+  is dropped, which compiles.
+- **Validation:** `cargo +nightly fmt --all -- --check` (nightly Rust toolchain), `cargo clippy -p
+  torrust-tracker-axum-rest-api-server --all-targets` (stable), `cargo machete --with-metadata`, `git diff
+  --check` and `cargo test -p torrust-tracker-axum-rest-api-server` (65 unit and 58 integration tests) pass.
+- **Review outcome:** the maintainer approved the completed file on 2026-10-28.

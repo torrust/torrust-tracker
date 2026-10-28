@@ -213,3 +213,7 @@ After both S1 files (`v1/middlewares/auth.rs` and `v1/responses.rs`), on the S1 
 | Integration-only (`--test integration`) | 58 integration | 674 / 908 (74.23%) | 941 / 1,352 (69.60%) | 97 / 137 (70.80%) |
 
 Unit-only lines move 792 / 1,240 (63.87%) at the S1 baseline to 921 / 1,305 (70.57%). Both files count their new test modules, so the denominator grew by 65 lines; the production lines of the two files are now fully covered by unit tests. The integration-only figure is unchanged because the integration binary does not compile the in-file test modules.
+
+### `v1/routes.rs` (slice S2)
+
+Unit-only (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): lines 27 / 45 (60.00%) before, 111 / 111 (100.00%) after; regions 51 / 73 before, 174 / 174 after; functions 1 / 3 before, 13 / 13 after. The counts include the in-file test module. The new crate-private `test_support.rs` helper is 31 / 31 lines. Nineteen test cases; six named mutations killed (see [the plan](test-refactor-plans/v1-routes-tests.md)).
