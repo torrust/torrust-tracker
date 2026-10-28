@@ -9,7 +9,7 @@ github-issue: 2581
 spec-path: docs/issues/open/2581-2003-pr-review-wait-poller/ISSUE.md
 branch: "2581-pr-review-wait-poller"
 related-pr: null
-last-updated-utc: "2026-10-28 07:30"
+last-updated-utc: "2026-10-28 12:00"
 semantic-links:
   skill-links:
     - create-issue
@@ -179,12 +179,12 @@ Contract, confirmed by the maintainer on 2026-10-28:
 
 - [x] The spec has been reviewed and approved by the maintainer before implementation starts.
 - [x] The decisions recorded below are reflected in the spec.
-- [ ] The poller returns on each event kind and on timeout, following the exit contract above.
-- [ ] The poller refuses to run on a TTY and handles `SIGINT` and `SIGTERM`.
-- [ ] The `wait-for-pr-review` skill documents the usage and the review loop.
-- [ ] The ADR table lists the poller.
+- [x] The poller returns on each event kind and on timeout, following the exit contract above.
+- [x] The poller refuses to run on a TTY and handles `SIGINT` and `SIGTERM`.
+- [x] The `wait-for-pr-review` skill documents the usage and the review loop.
+- [x] The ADR table lists the poller.
 - [ ] The manual verification is recorded and the Copilot re-review path is documented.
-- [ ] `linter all` and the tool's tests pass.
+- [x] `linter all` and the tool's tests pass.
 
 ## Verification Policy
 
@@ -258,7 +258,7 @@ Decided by the maintainer (2026-10-28):
 - [x] Draft passes `linter markdown` and `linter cspell`
 - [x] GitHub issue created and spec PR opened
 - [x] Maintainer decisions of 2026-10-28 recorded in the spec
-- [ ] Implementation complete
+- [x] Implementation complete
 - [ ] Implementation PR opened
 
 ### Progress Log
@@ -277,3 +277,8 @@ Decided by the maintainer (2026-10-28):
   to follow the ADR exit codes (`0`/`1`/`2`) with timeout as a `kind: timeout` result, to add the
   poller to the ADR table, and to track the ADR scope and exit-code policy in a follow-up issue.
   Entry written by the AI assistant (Copilot SDK in VS Code).
+- 2026-10-28: Implemented the poller, the `wait-for-pr-review` skill, the link from
+  `process-pr-review`, and the ADR table row. Manual verification V1 to V5 ran against the real
+  GitHub API (merged PR, a real Copilot review, timeout, API failure, TTY refusal, usage error,
+  `SIGTERM`, `SIGINT`); V6 (a real `da2ce7` review) and V7 (Copilot re-review path) wait for this
+  feature's pull request. Entry written by the AI assistant (Copilot SDK in VS Code).
