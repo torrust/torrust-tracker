@@ -91,8 +91,10 @@ Copilot half of the "real review" scenario; V6 covers `da2ce7`.
 
 ```text
 exit=0
-{"kind":"timeout","waited_seconds":3,"head_sha":"0f5b7876f4b8e798fb9e889bd0172c417fa401fe"}
+{"kind":"timeout","waited_seconds":3,"head_sha":"<head commit of PR #2622, elided>"}
 ```
+
+The `head_sha` value is replaced by a placeholder because a PR head commit id is not durable; the rest of the line is verbatim.
 
 #### Conclusion
 
