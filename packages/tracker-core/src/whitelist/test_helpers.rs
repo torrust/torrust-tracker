@@ -4,7 +4,7 @@
 //! In particular, it sets up the `WhitelistAuthorization` and `WhitelistManager` services using a
 //! configured database and an in-memory whitelist repository.
 #[cfg(test)]
-pub(crate) mod tests {
+pub mod tests {
 
     use std::sync::Arc;
 
