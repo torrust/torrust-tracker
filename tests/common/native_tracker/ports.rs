@@ -5,17 +5,23 @@
 //! every outgoing connection, so any process on the machine can be holding the port when the tracker
 //! child tries to bind it, and the child then exits with `Address already in use`. A port taken from
 //! the kernel with port zero comes from the same range, so it only narrows the window. This module
-//! draws random ports below that range instead, where only a deliberate listener can hold one, and
-//! probes each by binding it. It must not start, probe, or stop a tracker.
+//! draws random ports below the default Linux ephemeral range instead, where only a deliberate
+//! listener can hold one on a default configuration, and probes each by binding it. A host that
+//! lowers `net.ipv4.ip_local_port_range` below that default narrows the guarantee. It must not
+//! start, probe, or stop a tracker.
 
 use std::collections::hash_map::RandomState;
 use std::hash::BuildHasher;
 use std::net::{Ipv4Addr, TcpListener};
 use std::ops::Range;
 
-/// The ports a scenario may use. It ends where Linux's default ephemeral range begins (`32768`), so
-/// no kernel-assigned port can land in it.
-const SCENARIO_PORTS: Range<u16> = 10_000..32_768;
+/// Where Linux's ephemeral port range begins by default (`net.ipv4.ip_local_port_range`). A host can
+/// configure a lower start; the scenarios assume the default.
+const DEFAULT_EPHEMERAL_START: u16 = 32_768;
+
+/// The ports a scenario may use. It ends where the default ephemeral range begins, so on a default
+/// configuration no kernel-assigned port can land in it.
+const SCENARIO_PORTS: Range<u16> = 10_000..DEFAULT_EPHEMERAL_START;
 
 /// How many candidates are tried before giving up. Most of the range is free, so reaching it means
 /// the machine has no usable loopback.
@@ -68,7 +74,7 @@ mod tests {
     use std::collections::HashSet;
     use std::net::{Ipv4Addr, TcpListener};
 
-    use super::{SCENARIO_PORTS, bind_first_free, reserve_free_ports};
+    use super::{DEFAULT_EPHEMERAL_START, SCENARIO_PORTS, bind_first_free, reserve_free_ports};
 
     #[test]
     fn it_should_reserve_the_requested_number_of_distinct_ports() {
@@ -78,12 +84,12 @@ mod tests {
     }
 
     #[test]
-    fn it_should_reserve_only_ports_below_the_ephemeral_range() {
+    fn it_should_reserve_only_ports_below_the_default_ephemeral_range() {
         for _ in 0..20 {
             for port in reserve_free_ports::<3>() {
                 assert!(
-                    SCENARIO_PORTS.contains(&port) && port < 32_768,
-                    "port {port} is outside the scenario range and could be handed out by the kernel"
+                    SCENARIO_PORTS.contains(&port) && port < DEFAULT_EPHEMERAL_START,
+                    "port {port} is outside the scenario range and could be handed out by the kernel by default"
                 );
             }
         }
