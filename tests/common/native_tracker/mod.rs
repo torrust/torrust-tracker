@@ -10,6 +10,9 @@ mod command;
 pub mod failed_start;
 mod health;
 mod output;
+// The lifecycle-signals binary binds port zero and never reserves a port.
+#[allow(dead_code)]
+pub mod ports;
 
 // The lifecycle-signals binary does not configure alternative sources.
 #[allow(unused_imports)]

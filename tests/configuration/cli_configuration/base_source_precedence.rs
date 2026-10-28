@@ -4,13 +4,12 @@ use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
 use crate::native_tracker::NativeTracker;
 use crate::native_tracker::configuration::NativeTrackerConfigurationSources;
+use crate::native_tracker::ports::reserve_free_ports;
 
 #[tokio::test]
 async fn it_should_select_the_cli_configuration_when_both_child_environment_base_sources_are_set() {
     // Arrange
-    let cli_port = 43152;
-    let environment_path_port = 43153;
-    let environment_toml_port = 43154;
+    let [cli_port, environment_path_port, environment_toml_port] = reserve_free_ports();
     let expected_health_check_address = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), cli_port);
     // All three base sources set `health_check_api.bind_address` differently.
     // The CLI file must win over both environment base sources.
