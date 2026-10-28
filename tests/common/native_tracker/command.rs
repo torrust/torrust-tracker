@@ -218,10 +218,25 @@ fn write_configuration_at(config_path: &Path, storage_path: &Path, health_check_
 const SHIPPED_BINARY_VARIABLE: &str = "TORRUST_TRACKER_BINARY";
 
 pub(super) fn tracker_binary() -> PathBuf {
-    resolve_tracker_binary(
+    let binary = resolve_tracker_binary(
         |name| std::env::var_os(name),
         PathBuf::from(env!("CARGO_BIN_EXE_torrust-tracker")),
-    )
+    );
+
+    anchored_at(binary, &std::env::current_dir().expect("read the test working directory"))
+}
+
+/// Makes a relative executable path that has a directory part independent of the child's working directory.
+///
+/// A child whose working directory is changed (`Command::current_dir`) looks a relative path up inside that
+/// directory, so `./target/release/torrust-tracker` must be anchored at the test's working directory first. A bare
+/// name has no directory part and keeps its `PATH` lookup.
+fn anchored_at(binary: PathBuf, working_directory: &Path) -> PathBuf {
+    if binary.is_relative() && binary.components().count() > 1 {
+        working_directory.join(binary)
+    } else {
+        binary
+    }
 }
 
 fn resolve_tracker_binary(variable: impl Fn(&str) -> Option<OsString>, compiled: PathBuf) -> PathBuf {
@@ -238,7 +253,7 @@ mod tests {
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
     use std::path::{Path, PathBuf};
 
-    use super::{resolve_tracker_binary, tracker_command, write_configuration};
+    use super::{anchored_at, resolve_tracker_binary, tracker_command, write_configuration};
 
     fn lookup_in<'a>(variables: &'a [(&'a str, &'a str)]) -> impl Fn(&str) -> Option<OsString> + 'a {
         move |name| {
@@ -278,6 +293,43 @@ mod tests {
 
         // Assert
         assert_eq!(binary, PathBuf::from("/nextest/torrust-tracker"));
+    }
+
+    #[test]
+    fn it_should_anchor_a_relative_binary_path_at_the_test_working_directory() {
+        // Arrange: a path with a directory part, such as `./target/release/torrust-tracker`; a child that changes
+        // its working directory would otherwise look the executable up inside that directory.
+        let binary = PathBuf::from("./target/release/torrust-tracker");
+
+        // Act
+        let anchored = anchored_at(binary, Path::new("/workspace"));
+
+        // Assert
+        assert_eq!(anchored, PathBuf::from("/workspace/./target/release/torrust-tracker"));
+    }
+
+    #[test]
+    fn it_should_leave_an_absolute_binary_path_as_it_is() {
+        // Arrange
+        let binary = PathBuf::from("/shipped/torrust-tracker");
+
+        // Act
+        let anchored = anchored_at(binary, Path::new("/workspace"));
+
+        // Assert
+        assert_eq!(anchored, PathBuf::from("/shipped/torrust-tracker"));
+    }
+
+    #[test]
+    fn it_should_leave_a_bare_binary_name_for_the_path_lookup() {
+        // Arrange: no directory part, so the operating system finds the executable through `PATH`.
+        let binary = PathBuf::from("torrust-tracker");
+
+        // Act
+        let anchored = anchored_at(binary, Path::new("/workspace"));
+
+        // Assert
+        assert_eq!(anchored, PathBuf::from("torrust-tracker"));
     }
 
     #[test]
