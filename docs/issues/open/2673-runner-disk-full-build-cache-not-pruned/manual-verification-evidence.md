@@ -267,7 +267,7 @@ The test fails for the missing restart, readiness wait, and failure exit status,
 
 - Goal: install the script, run it once under systemd, and watch the first scheduled runs.
 - Initial state: the runner idle (GitHub API `busy: false` and no `Runner.Worker` process, checked before every step), `/` at 49% used, build cache 121.1 GB. Artifact under test: the script from the branch commit `docs(issues): [#2673] update the specification and evidence for the cleanup fix` (the script itself last changed in `chore(self-hosted-runner): [#2673] fix the spelling check in the cleanup script`), installed before that branch was merged.
-- Status: `IN_PROGRESS` (deployed and run once by hand; the three scheduled runs are pending)
+- Status: `IN_PROGRESS` (deployed and run once by hand; scheduled run 1 of 3 passed; runs 2 and 3 are pending)
 
 #### Steps Performed
 
@@ -320,6 +320,39 @@ Check that checks work again: the `Test (Docker) (release)` job of the pull requ
 #### Conclusion
 
 Deployed and working. The no-restart path ran under systemd (disk 49%, unit succeeded). The restart path ran once on the real runner through a controlled test with a lowered threshold: the script restarted `docker.service`, waited for it, pruned again, and exited 0, and Docker, containerd, and the runner service came back. Two things are still not shown: the restart path triggered by the real 70% threshold under systemd (the test ran the script directly), and three consecutive scheduled daily runs. The first scheduled run is 2026-10-28 04:00 UTC; record them here.
+
+#### Scheduled Runs and Reboot
+
+Observed on the runner over SSH on 2026-10-28 by the agent session that owned the work before this one, with the maintainer's approval for the reboot ("reboot while idle"). Scheduled runs 2 and 3 are pending until 2026-10-29 and 2026-10-30 at 04:00 UTC.
+
+Scheduled run 1, 2026-10-28:
+
+```text
+unit ran 04:00:24 to 04:00:45 UTC; ExecMainStatus=0; systemctl is-failed docker-ci-prune.service: inactive
+build cache prune:  Total: 40.2GB
+container prune:    Total reclaimed space: 0B
+image prune:        Total reclaimed space: 0B
+volume prune:       Total reclaimed space: 248.9kB
+Disk usage after the prune: 51%.   (below 70%, so no docker.service restart)
+at 07:20 UTC: /  55% (157G used, df binary units); build cache 134.5 GB, 79 records active (a job was running); 0 "No space left" journal lines for the day
+script on the host: sha256 c2af7c81ca8a1811200612c8c89d0390fcd739c4a3d0e8700811ba566414542f, identical to the merged script
+host Cargo target cache (/home/runner/.cache/torrust-tracker/container-target): 2.7G at 2026-10-27 11:43 and 2.7G at 2026-10-28 07:20
+```
+
+Reboot, 2026-10-28 (kernel update, pending `reboot-required`):
+
+```text
+idle guard 07:26:52 UTC: GitHub busy=false, Runner.Worker count 0, 0 containers, nothing queued or running on the runner
+systemctl reboot 07:27:10 UTC (kernel 7.0.0-34-generic); boot started 07:27:23 UTC on 7.0.0-38-generic; /var/run/reboot-required gone
+runner service active 07:27:31, "Connected to GitHub" and "Listening for Jobs" 07:27:35, NRestarts=0
+docker, containerd, docker-ci-prune.timer (Persistent=true, next 2026-10-29 04:00 UTC), ssh.socket, sysstat active; systemctl --failed empty; no journal errors this boot; swap active, 0 B used
+after the reboot: 0 containers; disk 56%; build cache 141.5 GB, 0 in use, 141.3 GB reclaimable (the Docker restart reset the cache state)
+OOM check across boots: journalctl _TRANSPORT=kernel --since "30 days ago" starts 2026-09-28 07:38:20 and has 0 "Killed process" lines in 30 days
+```
+
+Scheduled run 2 (2026-10-29): pending.
+
+Scheduled run 3 (2026-10-30): pending.
 
 ## Failures and Follow-up
 
