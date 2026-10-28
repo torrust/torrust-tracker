@@ -39,13 +39,14 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-One review was submitted so far: the review of `copilot-pull-request-reviewer` (5680797114, COMMENTED,
+One review was submitted by Copilot so far: the review of `copilot-pull-request-reviewer` (5680797114, COMMENTED,
 2026-10-28 09:58 UTC) on the head whose subject is `chore(issues): archive closed issue #2670 spec to docs/issues/closed`.
 Its body warns that the full agentic review did not start before the timeout, so Copilot was requested again once
 (through the GraphQL `requestReviews` mutation, because the `request_copilot_review` MCP tool fails with a header
-mismatch). The review lists no open issue and carries no inline thread, so it adds no row. At the time of this record
-the re-requested review had not arrived. da2ce7 was not requested: the maintainer decided on 2026-10-28 not to wait for
-da2ce7's reviews and to wait only for Copilot's findings and the checks.
+mismatch). The review lists no open issue and carries no inline thread, so it adds no row. The re-requested review,
+5681019364 (COMMENTED, 2026-10-28 10:16 UTC, on the same head), recommends approval with no open issue and adds no
+row either. da2ce7 was not requested: the maintainer decided on 2026-10-28 not to wait for da2ce7's reviews and to
+wait only for Copilot's findings and the checks.
 
 No finding exists, so the table below has no row.
 
@@ -60,6 +61,7 @@ No finding exists, so there is no entry.
 
 - 2026-10-28 10:12 UTC - The review of `copilot-pull-request-reviewer` (5680797114) arrived with no open issue and a
   timeout warning; Copilot was requested again once. No thread exists to reply to or resolve.
+- 2026-10-28 10:25 UTC - The re-requested Copilot review (5681019364, approval recommended, no open issue) arrived on the same head; the record above was updated to name it and to drop the earlier statement that it had not arrived. No thread exists to reply to or resolve.
 
 ## Completion Rules
 
