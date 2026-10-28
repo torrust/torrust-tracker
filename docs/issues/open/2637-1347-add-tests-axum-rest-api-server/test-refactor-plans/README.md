@@ -28,6 +28,7 @@ approves it. A group of declaration-only files may share one plan.
 | 1 | [v1-middlewares-auth-tests.md](v1-middlewares-auth-tests.md) | DONE | Approved 2026-10-26; completed file approved 2026-10-26 |
 | 2 | [v1-responses-tests.md](v1-responses-tests.md) | DONE | Approved 2026-10-26; completed file approved 2026-10-27 |
 | 3 | [v1-routes-tests.md](v1-routes-tests.md) | DONE | Approved 2026-10-28; completed file approved 2026-10-28 |
+| 4 | [routes-tests.md](routes-tests.md) | PROPOSED | Awaiting maintainer approval and two answers |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 

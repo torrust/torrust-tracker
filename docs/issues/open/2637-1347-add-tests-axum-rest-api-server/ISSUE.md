@@ -9,7 +9,7 @@ github-issue: 2637
 spec-path: docs/issues/open/2637-1347-add-tests-axum-rest-api-server/ISSUE.md
 branch: "2637-1347-add-tests-axum-rest-api-server-routes"
 related-pr: null
-last-updated-utc: "2026-10-28 13:22"
+last-updated-utc: "2026-10-28 13:25"
 semantic-links:
   skill-links:
     - create-issue
@@ -534,7 +534,7 @@ declaration-only rows have no executable entries.
 | ---: | --- | ---: | --- | ---: | ---: | --- | --- | --- |
 | 1 | `v1/middlewares/auth.rs` | 1 | S1 | 71 / 103 (68.93%) | 4 | Property candidate | DONE | [v1-middlewares-auth-tests.md](test-refactor-plans/v1-middlewares-auth-tests.md) (done; 142 / 142 lines after, 27 test cases, 8 mutants killed, property test declined) |
 | 2 | `v1/routes.rs` | 2 | S2 | 27 / 45 (60.00%) | 0 | Test candidate | DONE | [v1-routes-tests.md](test-refactor-plans/v1-routes-tests.md) (done; 111 / 111 lines after, 19 test cases, 6 mutants killed, private test_support helper) |
-| 3 | `routes.rs` | 2 | S2 | 58 / 67 (86.57%) | 0 | Test candidate | PENDING | - |
+| 3 | `routes.rs` | 2 | S2 | 58 / 67 (86.57%) | 0 | Test candidate | IN_PROGRESS | [routes-tests.md](test-refactor-plans/routes-tests.md) (proposed) |
 | 4 | `v1/context/health_check/handlers.rs` | 2 | S2 | 4 / 4 (100.00%) | 0 | Test candidate (small) | PENDING | - |
 | 5 | `v1/responses.rs` | 3 | S1 | 8 / 40 (20.00%) | 0 | Test candidate | DONE | [v1-responses-tests.md](test-refactor-plans/v1-responses-tests.md) (done; 66 / 66 lines after, 8 test cases, 8 mutants killed) |
 | 6 | `v1/context/auth_key/handlers.rs` | 4 | S3 | 0 / 56 (0.00%) | 0 | Test candidate | PENDING | - |
@@ -677,6 +677,11 @@ once. If the slicing changes, the Slice column changes with it.
   stays a private `#[cfg(test)] mod test_support` and its file gets an inner `#![cfg(test)]`; the convention, including
   the `test_` file prefix for files that contain only test code, goes to `lessons.md` for a separate ADR
   clarification after this issue.
+- 2026-10-28 13:25 UTC - GitHub Copilot - S2 row 2 (`v1/routes.rs`) is done: unit-only lines 27 / 45 (60.00%) to 111 / 111
+  (100.00%), 19 test cases, six named mutations killed, a crate-private `test_support` helper; the maintainer approved
+  the completed file (2026-10-28). Proposed the row 3 plan (`routes.rs`: the authentication layer wiring, request id,
+  compression), with two questions for the maintainer (the `408` timeout has no test seam; asserting log events
+  needs a new dev-dependency).
 
 ## Acceptance Criteria
 
