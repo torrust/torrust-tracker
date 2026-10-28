@@ -9,7 +9,7 @@ github-issue: 2581
 spec-path: docs/issues/open/2581-2003-pr-review-wait-poller/ISSUE.md
 branch: "2581-pr-review-wait-poller"
 related-pr: null
-last-updated-utc: "2026-10-28 16:40"
+last-updated-utc: "2026-10-28 17:40"
 semantic-links:
   skill-links:
     - create-issue
@@ -322,11 +322,12 @@ them:
   GitHub API (merged PR, a real Copilot review, timeout, API failure, TTY refusal, usage error,
   `SIGTERM`, `SIGINT`); V6 (a real `da2ce7` review) and V7 (Copilot re-review path) wait for this
   feature's pull request. Entry written by the AI assistant (Copilot SDK in VS Code).
-- 2026-10-28: Copilot reviewed the pull request three times and raised twelve findings, ten distinct
-  and two duplicates, all fixed or recorded as duplicates in
+- 2026-10-28: Copilot reviewed the pull request four times and raised sixteen findings, fourteen
+  distinct and two duplicates, all fixed or recorded as duplicates in
   `docs/pr-reviews/pr-2683-review/PR-REVIEW.md`. The first two rounds changed the poller contract
   (see the amendments in Decisions); the third changed documentation, the gating of a Unix-only test,
-  and a test fixture. The Testing workflow failed once on an unrelated, pre-existing flake in
+  and a test fixture; the fourth changed event ordering (the earliest new item is reported), the
+  reclaiming of killed `gh` readers, the port fixture, and the evidence. The Testing workflow failed once on an unrelated, pre-existing flake in
   `base_source_precedence`, fixed in its own commit (evidence section V8). V7 is settled: the REST
   `requested_reviewers` call requests a Copilot review (about 40 to 45 minutes to answer). V6, a real
   `da2ce7` review, is still open. Entry written by the AI assistant (Copilot SDK in VS Code).
