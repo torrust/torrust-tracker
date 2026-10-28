@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2670-2482-build-shipped-artifacts-without-test-features/ISSUE.md
-last-updated-utc: "2026-10-28 07:07"
+issue-spec: docs/issues/closed/2670-2482-build-shipped-artifacts-without-test-features/ISSUE.md
+last-updated-utc: "2026-10-28 09:37"
 ---
 
 # Manual Verification Evidence

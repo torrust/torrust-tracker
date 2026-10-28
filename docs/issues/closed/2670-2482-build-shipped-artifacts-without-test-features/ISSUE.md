@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-review
+status: done
 priority: p2
 epic: 2482
 github-issue: 2670
-spec-path: docs/issues/open/2670-2482-build-shipped-artifacts-without-test-features/ISSUE.md
+spec-path: docs/issues/closed/2670-2482-build-shipped-artifacts-without-test-features/ISSUE.md
 branch: "2670-2482-build-shipped-artifacts-without-test-features"
 related-pr: 2676
-last-updated-utc: "2026-10-28 07:07"
+last-updated-utc: "2026-10-28 09:37"
 semantic-links:
   skill-links:
     - create-issue
@@ -288,16 +288,16 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ### Workflow Checkpoints
 
-- [x] Folder-style spec drafted in `docs/issues/open/2670-2482-build-shipped-artifacts-without-test-features/ISSUE.md`
+- [x] Folder-style spec drafted in `docs/issues/closed/2670-2482-build-shipped-artifacts-without-test-features/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer (approved by the maintainer through `ask_user` and chat on 2026-10-27, including the `cargo tree` refinement of D3)
 - [x] GitHub issue created, linked as a sub-issue of #2482 (`parent_issue_url` verified), and its number added to this spec
 - [x] Spec-only PR merged into `develop` before implementation (PR #2671)
 - [x] Implementation completed
 - [x] Automatic verification completed (`linter all` through the pre-commit gate on every commit, `cargo test` of the check crate and the native-tracker targets, and the full pre-push suite on 2026-10-27)
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md` (M1 to M6)
-- [x] Acceptance criteria reviewed after implementation and updated with evidence (AC1 to AC4; the container workflow criterion stays open until that job is green)
+- [x] Acceptance criteria reviewed after implementation and updated with evidence (AC1 to AC4 and the final verification criterion)
 - [x] Evidence-based implementation completion review recorded (retrospective created)
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/` (issue closed by PR #2676; archived by the pull request that carries this entry)
 
 ### Progress Log
 
@@ -325,6 +325,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-10-27 20:14 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 9) - T6 is done: `docs/containers.md` describes the test build, the shipped build, `TORRUST_TRACKER_BINARY` and the check, and ADR 20260603 carries an amendment note that narrows its "exact binary" claim. Ticked AC1, AC2 and AC4 (validated by the AI assistant against V0 to V3). AC3 stays open until the `Shipped Features` job has run on the implementation pull request (M6).
 - 2026-10-27 21:00 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 9) - The independent Task Reviewer's pre-PR review (PASS WITH FINDINGS, no blocking defect) led to three fixes: the check now fails when `cargo tree` output does not list the shipped package as a workspace package, it reads a checkout path that contains the separator, and an empty `TORRUST_TRACKER_BINARY` is ignored; the maintainer approved the test increments through `ask_user`. Rebased onto `develop`, rebuilt the final image (1539 tests, binaries identical to the `build_shipped` stage, healthy; V2b) and ran the full pre-push suite. Wrote the implementation completion review and the retrospective. M6 and AC3 stay open until the `Shipped Features` job has run on the pull request.
 - 2026-10-28 07:07 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 9) - Opened PR #2676. The `Shipped Features` job ran green on a hosted runner (M6, V6), so AC3 and M6 are done and the status is `in-review`. Copilot's review found that a relative `TORRUST_TRACKER_BINARY` broke the configuration test that changes the child's working directory (F1 of the audit of PR #2676): reproduced (V7) and fixed by anchoring a relative path at the test working directory, which also fixes the example of `docs/containers.md`. The container workflow criterion stays open until that job is green.
+- 2026-10-28 09:37 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 9) - PR #2676 merged on 2026-10-28 (merge commit `09263a46c`) and the maintainer asked for the archive: moved the spec to `docs/issues/closed/`, set the status to `done`, repaired the references, and set row 9 of the #2482 Subissues table to DONE.
 
 ## Acceptance Criteria
 
@@ -341,7 +342,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
       runs it.
 - [x] AC4: `docs/containers.md` describes the builds, the `TORRUST_TRACKER_BINARY` variable and the
       check; ADR 20260603 carries its amendment note.
-- [ ] `linter all` exits with code `0`; pre-push checks pass; the container workflow is green.
+- [x] `linter all` exits with code `0`; pre-push checks pass; the container workflow is green (pre-commit gate on every commit, pre-push on 2026-10-27, and `Test (Docker) (release)` green on the merged head of PR #2676; validated by the AI assistant).
 
 ## Verification Plan
 

@@ -2,7 +2,7 @@
 doc-type: research-report
 parent-issue: 2482
 status: completed
-last-updated-utc: 2026-10-26
+last-updated-utc: 2026-10-28
 semantic-links:
   related-artifacts:
     - docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md
@@ -219,7 +219,7 @@ that resolves it.
 | D. `tracker-core` database mocks | Rule D: behind the `testing` feature of `tracker-core` | [Row 3](../../drafts/2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md) | Open |
 | E. Per-package `tests/common/` | Rule E: unchanged | None | Kept by the ADR |
 | Optional and self edges in `cargo metadata` (consequence of rules A and D) | The coupling tool and diagrams label them | [Row 8](../../closed/2645-2482-label-optional-and-self-dependency-edges/ISSUE.md) | Resolved by #2645 |
-| Build commands of shipped artifacts (`Containerfile` builds the release binary with `--tests --all-features`; consequence of rules A and D) | Rule A.5: built on their own with explicit features, plus a check | [Row 9](../2670-2482-build-shipped-artifacts-without-test-features/ISSUE.md) | Open |
+| Build commands of shipped artifacts (`Containerfile` builds the release binary with `--tests --all-features`; consequence of rules A and D) | Rule A.5: built on their own with explicit features, plus a check | [Row 9](../../closed/2670-2482-build-shipped-artifacts-without-test-features/ISSUE.md) | Resolved by #2670 |
 
 ## Members without shared test support
 

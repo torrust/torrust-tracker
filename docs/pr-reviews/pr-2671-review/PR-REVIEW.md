@@ -4,7 +4,7 @@ semantic-links:
     - process-pr-review
   related-artifacts:
     - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
-    - docs/issues/open/2670-2482-build-shipped-artifacts-without-test-features/ISSUE.md
+    - docs/issues/closed/2670-2482-build-shipped-artifacts-without-test-features/ISSUE.md
 ---
 
 <!-- skill-link: process-pr-review -->
@@ -67,7 +67,7 @@ with `header mismatch: missing Mcp-Param-repo header` and once with the same err
   maintainer stop after the final increment of each task, Task Reviewer only for the final pre-PR review). The
   Commit Points rows for T2 and T3 require the recorded review and the maintainer's review before their commit.
 - Current-tree verification: `.github/skills/dev/planning/create-issue/SKILL.md` lines 180 to 194 describe the
-  loop; `grep -n "Arrange-Act-Assert" docs/issues/open/2670-2482-build-shipped-artifacts-without-test-features/ISSUE.md`
+  loop; `grep -n "Arrange-Act-Assert" docs/issues/closed/2670-2482-build-shipped-artifacts-without-test-features/ISSUE.md`
   shows the new text.
 - Resolution reference: docs(issues): [#2670] require test design reviews and maintainer stops in the spec
 - Follow-up PR URL: N/A
@@ -86,7 +86,7 @@ with `header mismatch: missing Mcp-Param-repo header` and once with the same err
   targets. T1 now records the baseline test list, and T5, AC2 and M2 require every baseline test to remain present
   and passing with the delta for new tests recorded.
 - Current-tree verification: `grep -n "#\[path" tests/lifecycle/signals.rs tests/configuration/cli_configuration.rs`
-  prints both includes; `grep -n "same test\|test count" docs/issues/open/2670-2482-build-shipped-artifacts-without-test-features/ISSUE.md`
+  prints both includes; `grep -n "same test\|test count" docs/issues/closed/2670-2482-build-shipped-artifacts-without-test-features/ISSUE.md`
   no longer finds an equality criterion.
 - Resolution reference: docs(issues): [#2670] require baseline tests to remain with a recorded delta
 - Follow-up PR URL: N/A
@@ -102,7 +102,7 @@ with `header mismatch: missing Mcp-Param-repo header` and once with the same err
   `Dockerfile`, which the repository root does not have, so the baseline command fails.
 - Solution: the finding was right. M1 now builds both targets with `--file Containerfile` and a tag, as
   `docs/containers.md` does.
-- Current-tree verification: `ls Dockerfile` reports no such file; `grep -n "docker build" docs/issues/open/2670-2482-build-shipped-artifacts-without-test-features/ISSUE.md`
+- Current-tree verification: `ls Dockerfile` reports no such file; `grep -n "docker build" docs/issues/closed/2670-2482-build-shipped-artifacts-without-test-features/ISSUE.md`
   shows `--file Containerfile` in M1.
 - Resolution reference: docs(issues): [#2670] select the Containerfile in the baseline build commands
 - Follow-up PR URL: N/A
