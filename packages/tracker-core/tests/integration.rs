@@ -69,8 +69,8 @@ async fn it_should_handle_the_announce_request() {
                 incomplete: 0
             },
             policy: AnnouncePolicy {
-                interval: 120,
-                interval_min: 120,
+                interval: 120.into(),
+                interval_min: 120.into(),
                 max_peers_per_announce: 74,
             }
         }

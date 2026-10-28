@@ -123,8 +123,8 @@ fn to_protocol_announce_data(domain_data: DomainAnnounceData) -> responses::anno
             incomplete: domain_data.stats.incomplete,
         },
         policy: responses::announce::AnnouncePolicy {
-            interval: domain_data.policy.interval,
-            interval_min: domain_data.policy.interval_min,
+            interval: domain_data.policy.interval.get(),
+            interval_min: domain_data.policy.interval_min.get(),
         },
     }
 }
@@ -362,8 +362,8 @@ mod tests {
                 incomplete: 4,
             },
             policy: AnnouncePolicy {
-                interval: 60,
-                interval_min: 30,
+                interval: 60.into(),
+                interval_min: 30.into(),
                 max_peers_per_announce: 74, // Not represented in the announce response.
             },
         }

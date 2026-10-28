@@ -60,6 +60,7 @@
 //!
 //! ```rust,no_run
 //! use torrust_tracker_primitives::peer;
+//! use torrust_tracker_primitives::AnnounceIntervalInSecs;
 //! use torrust_tracker_primitives::AnnouncePolicy;
 //!
 //! pub struct AnnounceData {
@@ -77,8 +78,8 @@
 //! // Core tracker configuration
 //! pub struct AnnounceInterval {
 //!     // ...
-//!     pub interval: u32, // Interval in seconds that the client should wait between sending regular announce requests to the tracker
-//!     pub interval_min: u32, // Minimum announce interval. Clients must not reannounce more frequently than this
+//!     pub interval: AnnounceIntervalInSecs, // Interval in seconds that the client should wait between sending regular announce requests to the tracker
+//!     pub interval_min: AnnounceIntervalInSecs, // Minimum announce interval. Clients must not reannounce more frequently than this
 //!     // ...
 //! }
 //! ```

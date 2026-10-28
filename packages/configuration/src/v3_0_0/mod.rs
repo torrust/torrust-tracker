@@ -1522,5 +1522,109 @@ mod tests {
                 Ok(())
             });
         }
+
+        #[allow(
+            clippy::result_large_err,
+            reason = "figment::Jail::expect_with requires the framework Result callback type"
+        )]
+        fn load_error_for_announce_policy(announce_policy_toml: &str) -> String {
+            let config_toml = format!(
+                r#"
+                    [metadata]
+                    schema_version = "3.0.0"
+
+                    [logging]
+                    trace_filter = "info"
+
+                    [core]
+                    listed = false
+                    private = false
+
+                    [core.announce_policy]
+                    {announce_policy_toml}
+                "#
+            );
+
+            let mut message = String::new();
+
+            figment::Jail::expect_with(|_jail| {
+                let info = Info {
+                    config_toml: Some(config_toml),
+                    config_toml_path: String::new(),
+                    explicit_config_toml_path: None,
+                };
+
+                message = Configuration::load(&info)
+                    .expect_err("an announce interval above i32::MAX should be rejected")
+                    .to_string();
+
+                Ok(())
+            });
+
+            message
+        }
+
+        #[test]
+        fn it_should_reject_an_announce_interval_above_the_i32_maximum_naming_the_field_value_and_limit() {
+            let message = load_error_for_announce_policy("interval = 2147483648");
+
+            assert!(
+                message.contains(r#"core.announce_policy.interval""#),
+                "the error should name the field: {message}"
+            );
+            assert!(message.contains("2147483648"), "the error should name the value: {message}");
+            assert!(message.contains("2147483647"), "the error should name the limit: {message}");
+        }
+
+        #[allow(
+            clippy::result_large_err,
+            reason = "figment::Jail::expect_with requires the framework Result callback type"
+        )]
+        #[test]
+        fn it_should_accept_the_i32_maximum_for_both_announce_intervals() {
+            figment::Jail::expect_with(|_jail| {
+                let config_toml = r#"
+                    [metadata]
+                    schema_version = "3.0.0"
+
+                    [logging]
+                    trace_filter = "info"
+
+                    [core]
+                    listed = false
+                    private = false
+
+                    [core.announce_policy]
+                    interval = 2147483647
+                    interval_min = 2147483647
+                "#
+                .to_string();
+
+                let info = Info {
+                    config_toml: Some(config_toml),
+                    config_toml_path: String::new(),
+                    explicit_config_toml_path: None,
+                };
+
+                let configuration = Configuration::load(&info).expect("i32::MAX seconds should be accepted");
+
+                assert_eq!(configuration.core.announce_policy.interval.get(), 2_147_483_647);
+                assert_eq!(configuration.core.announce_policy.interval_min.get(), 2_147_483_647);
+
+                Ok(())
+            });
+        }
+
+        #[test]
+        fn it_should_reject_a_minimum_announce_interval_above_the_i32_maximum_naming_the_field_value_and_limit() {
+            let message = load_error_for_announce_policy("interval_min = 2147483648");
+
+            assert!(
+                message.contains(r#"core.announce_policy.interval_min""#),
+                "the error should name the field: {message}"
+            );
+            assert!(message.contains("2147483648"), "the error should name the value: {message}");
+            assert!(message.contains("2147483647"), "the error should name the limit: {message}");
+        }
     }
 }
