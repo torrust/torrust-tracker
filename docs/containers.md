@@ -374,6 +374,8 @@ The exit code tells whether the stop was complete:
 | `1`       | A component failed, panicked, or was aborted at the deadline, or the tracker could not start. The log names it.   |
 | `137`     | The container runtime sent `SIGKILL` before the tracker finished. The tracker did not exit by itself.            |
 
+Only an HTTP-family drain that reaches its budget (the HTTP tracker, the REST API, or the health check API, all governed by `http_drain_in_secs`) is a failed component. The UDP request drain and the event listener drain log a warning when their budget expires, which names how many requests were aborted or how many events were left unread, and the stop still exits `0`. An exit code `0` therefore does not prove that no UDP request or queued event was discarded; check the shutdown log for those warnings.
+
 #### Give the tracker enough time to stop
 
 The container runtime must wait longer than the tracker's deadline before it sends `SIGKILL`: at least

@@ -82,8 +82,13 @@ default P, so a tracker that is still draining is killed (exit status 137). Rais
 the orchestrator value by the same amount. The documentation is `docs/containers.md`.
 
 The process exits `0` only when every component outcome is completed or cancelled, and `1` when any
-component failed, panicked, or was aborted, or when startup failed (the Q3 contract). A drain that
-reaches its budget is reported as a failed component. A requested stop that ends with `1` leaves a
+component failed, panicked, or was aborted, or when startup failed (the Q3 contract). Only the
+HTTP-family drains (the HTTP tracker, the REST API, and the health check API) end as a failed
+component when their budget is reached. The two other drains log a warning and still end as
+completed or cancelled: the UDP request drain aborts the processors it could not finish and logs how
+many, and an event listener whose admission budget expires logs how many events it left unread.
+An exit code `0` and the success message therefore do not prove that no UDP request or queued event
+was discarded; read the shutdown warnings for that. A requested stop that ends with `1` leaves a
 systemd unit `failed`; `1` is not added to `SuccessExitStatus`.
 
 ### Alternatives Considered
