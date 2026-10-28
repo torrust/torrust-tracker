@@ -39,7 +39,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-One review was submitted so far: the review of `copilot-pull-request-reviewer` (5682548756, COMMENTED, 2026-10-28 12:27 UTC) on the head whose subject is `docs(issues): [#2681] specify gating the tracker-core test modules and mocks`. It carries no "did not start before the timeout" warning, so it was not re-requested. It reports four open low-severity issues, each with one inline thread (F1 to F4). Copilot was requested through the `request_copilot_review` MCP tool, which worked this time. da2ce7 was requested through the REST `requested_reviewers` endpoint.
+Three reviews of `copilot-pull-request-reviewer` were submitted so far. Review 5682548756 (COMMENTED, 2026-10-28 12:27 UTC, on the head whose subject is `docs(issues): [#2681] specify gating the tracker-core test modules and mocks`) carries four low-severity inline threads, F1 to F4, and no timeout warning. Review 5683278144 (COMMENTED, 13:24 UTC, on the head whose subject is `docs(pr-reviews): [#2681] record the review of PR 2682`) carries a "didn't start before the timeout" warning, so Copilot was re-requested once; it adds two inline threads, F5 and F6, both about table rows that start with `||`, which the files do not contain. The re-requested review 5683607616 (COMMENTED, 13:43 UTC, same head) adds one inline thread, F7, and no warning. Copilot was requested through the `request_copilot_review` MCP tool, which worked each time. da2ce7 was requested through the REST `requested_reviewers` endpoint (and again after the push) and has not reviewed. The maintainer asked on 2026-10-28 to address Copilot's review first.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -47,6 +47,9 @@ One review was submitted so far: the review of `copilot-pull-request-reviewer` (
 | F2 | review-finding:pr-2682-f2 | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
 | F3 | review-finding:pr-2682-f3 | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
 | F4 | review-finding:pr-2682-f4 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F5 | review-finding:pr-2682-f5 | Copilot | Minor | formatting | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F6 | review-finding:pr-2682-f6 | Copilot | Minor | formatting | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F7 | review-finding:pr-2682-f7 | Copilot | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -102,9 +105,50 @@ One review was submitted so far: the review of `copilot-pull-request-reviewer` (
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2682#discussion_r4400568411>
 
+### F5 - Table rows that start with `||` in the issue spec
+
+- PR number: 2682
+- Source review ID: 5683278144
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2682#discussion_r4401079473>
+- Concern: the table rows at the Pattern C table of `ISSUE.md` start with `||`, which renders an extra empty column; the reviewer asks for a single leading `|` in those rows and in the other tables of the document.
+- Solution: no change. The claim does not match the file: no line of `ISSUE.md` starts with `||`, and every table row starts with a single `|`. The reviewer probably read the `+` that GitHub prefixes to each line of a new-file diff, followed by the row's own `|`.
+- Current-tree verification: `grep -c '^||'` on `ISSUE.md` printed `0`, `grep -n '||'` found no occurrence, and `linter markdown` (markdownlint, which checks table pipe style) passed.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2682#discussion_r4401103911
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2682#discussion_r4401103911>
+
+### F6 - Table rows that start with `||` in the audit record
+
+- PR number: 2682
+- Source review ID: 5683278144
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2682#discussion_r4401079526>
+- Concern: the findings table of this audit record starts its header, separator and rows with `||`; the reviewer asks for a single leading `|`.
+- Solution: no change, for the same reason as F5: the committed table starts every line with a single `|`.
+- Current-tree verification: `grep -c '^||'` on `PR-REVIEW.md` printed `0`, and the committed text of the head under review (read with `git show`) shows single leading pipes; `linter markdown` passed.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2682#discussion_r4401104263
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2682#discussion_r4401104263>
+
+### F7 - Record the actual -spec PR head branch
+
+- PR number: 2682
+- Source review ID: 5683607616
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2682#discussion_r4401301130>
+- Concern: the frontmatter `branch:` of `ISSUE.md` records the implementation branch, but `create-issue` requires a spec-only PR's spec to record the `-spec` branch that the PR uses.
+- Solution: the finding was right. Earlier rows recorded the base name, but the skill text governs. `branch:` now records the `-spec` branch; the implementation PR switches it to the base name.
+- Current-tree verification: read `create-issue` Optional Step 6 (the frontmatter `branch:` value is the `-spec` branch name) and the PR head (`gh pr view 2682`); the field now equals the PR head branch.
+- Resolution reference: docs(issues): [#2681] record the spec-only branch in the issue frontmatter
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2682#discussion_r4401328328>
+
 ## Processing Log
 
 - 2026-10-28 12:33 UTC - The review of `copilot-pull-request-reviewer` (5682548756) arrived with four inline threads, F1 to F4. Each claim was checked against the spec and the tree and confirmed; each was fixed in its own signed commit, replied on, and resolved. This record is committed and pushed after the fixes; da2ce7 is re-requested after the push.
+- 2026-10-28 13:45 UTC - Round 2: review 5683278144 arrived with a timeout warning and two inline threads, F5 and F6. The claim (rows starting with `||`) was checked against both files and found false; replied with the prescribed `Superseded by F5:` and `Superseded by F6:` forms and resolved both threads. Copilot was re-requested once because of the warning.
+- 2026-10-28 13:45 UTC - Round 3: the re-requested review 5683607616 arrived with one inline thread, F7. The claim was confirmed against the `create-issue` skill, fixed in its own signed commit, replied on and resolved. This record is committed and pushed after the fix; da2ce7 is re-requested after the push.
 
 ## Completion Rules
 
