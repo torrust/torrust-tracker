@@ -6,7 +6,7 @@ epic: null
 github-issue: 1488
 spec-path: docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-27 07:46"
+last-updated-utc: "2026-10-28 16:37"
 semantic-links:
   skill-links:
     - create-issue
@@ -72,14 +72,16 @@ status as of 2026-10-07.
    **Status: fixed** by SI-4 (#2169) and #2221.
 4. **Grace period mismatch** — `JobManager` waits 10s per job sequentially and
    force-aborts timed-out wrappers, while Axum servers have a 90s graceful
-   shutdown with detached drain controllers. **Status: partly fixed**: #1586
-   made `JobManager` wait concurrently under one deadline, and #2274 made the
-   Axum drain joinable; the 90s HTTP drain is still longer than the 10s
-   deadline (SI-20).
+   shutdown with detached drain controllers. **Status: fixed**: #1586
+   made `JobManager` wait concurrently under one deadline, #2274 made the
+   Axum drain joinable, and SI-20 (#2668) replaced the 90s drain and the 10s
+   deadline with configured budgets that the startup validation keeps
+   consistent (defaults 15s and 25s).
 5. **No graceful UDP shutdown** — the UDP server simply aborts its main loop.
    **Status: fixed** by #2342 and #2370.
 6. **Hardcoded timeouts** — grace periods are magic numbers with no configuration
-   surface. **Status: open** (SI-20).
+   surface. **Status: fixed** by SI-20 (#2668), which adds the
+   `[application.shutdown]` configuration section.
 7. **Incomplete shutdown observability** — named per-job waiting and timeout
    logs exist, but the supervisor has no concurrent aggregate outcomes or
    complete component-level drain progress. **Status: partly fixed**: #1586
@@ -123,16 +125,15 @@ Before SI-1, `SIGTERM` reached the server libraries but bypassed `main`, so
 only the servers stopped. Adding the `SIGTERM` handler in `main.rs` was the
 single most impactful change in this EPIC. SI-22 later added ordered listener
 draining with an explicit admission timeout and failure reporting, not an
-unconditional zero-loss guarantee. What remains of the contract is owned by
-later sub-issues: the shutdown budget fits the orchestrator's grace period and
-the exit code reports the
-outcome (SI-20), and the health check reports not ready during shutdown
-(SI-21).
+unconditional zero-loss guarantee. SI-20 (#2668) then made the shutdown budget
+configurable and documented how it fits the orchestrator's grace period, and
+made the exit code report the outcome. What remains of the contract is owned by
+a later sub-issue: the health check reports not ready during shutdown (SI-21).
 
 The signal examples establish that coordinated shutdown starts, not that every
 deployment waits long enough for it to finish. Docker, systemd, and Kubernetes
-can still enforce an external deadline and kill the process; SI-20 owns that
-budget alignment and operator guidance.
+can still enforce an external deadline and kill the process; SI-20 documented
+that budget alignment and operator guidance.
 
 ## Background
 
@@ -210,7 +211,7 @@ deterministic tests, and manual evidence.
 | 17       | #2450 | [Migrate health-check API test environment](../../closed/2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md) | Done       | SI-24. One test environment migration; found while refreshing SI-17 (2026-10-06). Merged in PR #2652 on 2026-10-26; one token and one `DropGuard`, because the environment owns no listener. Review found that a fixed-port restart panicked because the registry could not remove a registration, so `torrust-server-lib` 0.4.0 added `Registar::deregister` and `stop()` removes its own binding. |
 | 18       | SI-18 | [Deprecate legacy shutdown API](../../drafts/1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md)                           | Draft      | Compatibility-preserving source deprecation only.                                                    |
 | 19       | SI-19 | [Remove legacy shutdown API and library OS signals](../../drafts/1488-si-19-remove-legacy-shutdown-api/ISSUE.md)          | Draft      | Breaking release after migration, deprecation, and compatibility gates.                              |
-| 20       | #2668 | [Configure shutdown policy and deployment contract](../2668-1488-si-20-configure-shutdown-policy/ISSUE.md)               | Planned    | Apply approved Q3/Q4 outcomes, budgets, configuration, and deployment guidance.                      |
+| 20       | #2668 | [Configure shutdown policy and deployment contract](../../closed/2668-1488-si-20-configure-shutdown-policy/ISSUE.md)     | Done       | Apply approved Q3/Q4 outcomes, budgets, configuration, and deployment guidance.                      |
 | 21       | SI-21 | [Mark health check unhealthy during shutdown](../../drafts/1488-si-21-mark-health-unhealthy-during-shutdown/ISSUE.md)     | Draft      | Set readiness to not ready before root cancellation and component drain.                             |
 | —        | SI-3  | [Combined standalone environment migration](../../drafts/1488-si-3-fix-environment-stop/ISSUE.md)                         | Superseded | Replaced by SI-16 and SI-17. Do not implement.                                                       |
 | —        | SI-6  | [Concurrent supervisor outcomes](../../drafts/1488-si-6-align-grace-periods/ISSUE.md)                                     | Superseded | Replaced by existing issue #1586. Do not implement separately.                                       |

@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/1488-si-8-configurable-grace-periods/ISSUE.md
 branch: "1488-si-8-configurable-grace-periods"
 related-pr: null
-last-updated-utc: "2026-10-27 07:46"
+last-updated-utc: "2026-10-28 16:37"
 semantic-links:
   skill-links:
     - create-issue
@@ -26,7 +26,7 @@ semantic-links:
 
 # Superseded Draft SI-8 — Split Shutdown Policy Configuration
 
-> **Status**: Superseded for implementation planning. [SI-20](../../open/2668-1488-si-20-configure-shutdown-policy/ISSUE.md)
+> **Status**: Superseded for implementation planning. [SI-20](../../closed/2668-1488-si-20-configure-shutdown-policy/ISSUE.md)
 > replaces this draft after Q3 and Q4 defined the final outcome and deadline
 > semantics.
 >

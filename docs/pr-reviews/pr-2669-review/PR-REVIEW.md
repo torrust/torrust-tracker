@@ -4,8 +4,8 @@ semantic-links:
     - process-pr-review
   related-artifacts:
     - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
-    - docs/issues/open/2668-1488-si-20-configure-shutdown-policy/ISSUE.md
-    - docs/issues/open/2668-1488-si-20-configure-shutdown-policy/manual-verification-evidence.md
+    - docs/issues/closed/2668-1488-si-20-configure-shutdown-policy/ISSUE.md
+    - docs/issues/closed/2668-1488-si-20-configure-shutdown-policy/manual-verification-evidence.md
 ---
 
 <!-- skill-link: process-pr-review -->

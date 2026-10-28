@@ -4,7 +4,7 @@ semantic-links:
     - create-adr
     - write-markdown-docs
   related-artifacts:
-    - docs/issues/open/2668-1488-si-20-configure-shutdown-policy/ISSUE.md
+    - docs/issues/closed/2668-1488-si-20-configure-shutdown-policy/ISSUE.md
     - docs/features/shutdown-process/questions.md
     - docs/adrs/20261021184946_order_shutdown_by_event_flow_and_drain_event_listeners.md
     - packages/configuration/src/v3_0_0/shutdown.rs

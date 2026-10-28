@@ -3,8 +3,8 @@ semantic-links:
   skill-links:
     - write-markdown-docs
   related-artifacts:
-    - docs/issues/open/2668-1488-si-20-configure-shutdown-policy/ISSUE.md
-    - docs/issues/open/2668-1488-si-20-configure-shutdown-policy/manual-verification-evidence.md
+    - docs/issues/closed/2668-1488-si-20-configure-shutdown-policy/ISSUE.md
+    - docs/issues/closed/2668-1488-si-20-configure-shutdown-policy/manual-verification-evidence.md
     - docs/templates/IMPLEMENTATION-RETROSPECTIVE.md
 ---
 
@@ -99,10 +99,10 @@ leave no observable effect.
 
 ## Evidence
 
-- `docs/issues/open/2668-1488-si-20-configure-shutdown-policy/ISSUE.md` (decisions D1 to D10, progress log).
-- `docs/issues/open/2668-1488-si-20-configure-shutdown-policy/manual-verification-evidence.md`
+- `docs/issues/closed/2668-1488-si-20-configure-shutdown-policy/ISSUE.md` (decisions D1 to D10, progress log).
+- `docs/issues/closed/2668-1488-si-20-configure-shutdown-policy/manual-verification-evidence.md`
   (V1 to V9, T2 to T7 and the D5 follow-up with their mutation proofs).
-- `docs/issues/open/2668-1488-si-20-configure-shutdown-policy/agent-review-reports.md` (the independent review).
+- `docs/issues/closed/2668-1488-si-20-configure-shutdown-policy/agent-review-reports.md` (the independent review).
 - The commits `test(lifecycle): add native-binary tests for the shutdown policy of #2668`,
   `fix(axum-server): bound the drain timeout so an oversized value cannot overflow the clock` and
   `refactor(configuration): read each shutdown budget through a named accessor`.
