@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2681-2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md
-last-updated-utc: "2026-10-28 16:50"
+last-updated-utc: "2026-10-28 17:37"
 ---
 
 # Manual Verification Evidence
@@ -176,14 +176,28 @@ $ strings <rlib of the default build> | grep -c __mock_MockTorrentMetricsStore ;
 0 ; 0
 ```
 
-The native-tracker tests pass in both targets (`tests/common/native_tracker`, through the `cli-configuration` test target), with the test build's own binary and with the shipped-profile binary through `TORRUST_TRACKER_BINARY`:
+The native-tracker tests pass in both targets (`tests/common/native_tracker`, through the `cli-configuration` test target), with the test build's own binary and with the preserved shipped-profile binary through `TORRUST_TRACKER_BINARY`. The first version of this scenario pointed the override at `target/debug/torrust-tracker`, which the plain test run rebuilds, so it did not prove that the inspected binary was the one tested (finding F4 of PR #2688). It was redone with a copy made right after the shipped-profile build, whose checksum is compared before and after:
 
 ```text
+$ cargo build -p torrust-tracker --bin torrust-tracker
+$ cp target/debug/torrust-tracker /tmp/<dir>/torrust-tracker      # the preserved shipped-profile binary
+$ sha256sum target/debug/torrust-tracker /tmp/<dir>/torrust-tracker
+1653421cdeec9d69  target/debug/torrust-tracker                     # first 16 hex digits
+1653421cdeec9d69  /tmp/<dir>/torrust-tracker
+$ strings /tmp/<dir>/torrust-tracker | grep -c MockTorrentMetricsStore ; ... | grep -ci mockall
+0 ; 0
 $ cargo test -p torrust-tracker --test cli-configuration
 test result: ok. 25 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.07s
-$ TORRUST_TRACKER_BINARY=<repo>/target/debug/torrust-tracker cargo test -p torrust-tracker --test cli-configuration
+$ sha256sum target/debug/torrust-tracker /tmp/<dir>/torrust-tracker
+2f9d185fca66a2e5  target/debug/torrust-tracker                     # rebuilt by the test run: it differs
+1653421cdeec9d69  /tmp/<dir>/torrust-tracker                       # the preserved copy is unchanged
+$ TORRUST_TRACKER_BINARY=/tmp/<dir>/torrust-tracker cargo test -p torrust-tracker --test cli-configuration
 test result: ok. 25 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.07s
+$ sha256sum /tmp/<dir>/torrust-tracker
+1653421cdeec9d69
 ```
+
+The test-profile binary that the plain run rebuilt also has no `MockTorrentMetricsStore` and no `mockall` string (measured with `strings`; the `shipped-features-check` in V4 covers the dependency tree).
 
 ## V5 - `cargo deny`, `cargo machete` and packaging (AC5)
 
