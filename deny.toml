@@ -108,6 +108,7 @@ deny = [
     "torrust-tracker",
     "torrust-tracker-axum-http-server",
     "torrust-tracker-axum-rest-api-server",
+    # Its own path-only self dev-dependency enabling the `testing` feature (ADR 20261021190318, rule A.3).
     "torrust-tracker-core",
     "torrust-tracker-http-core",
     "torrust-tracker-rest-api-runtime-adapter",

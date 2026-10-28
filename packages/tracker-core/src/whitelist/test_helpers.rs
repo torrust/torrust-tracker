@@ -3,6 +3,7 @@
 //! This module provides utility functions to initialize the whitelist services required for testing.
 //! In particular, it sets up the `WhitelistAuthorization` and `WhitelistManager` services using a
 //! configured database and an in-memory whitelist repository.
+// `pub`, not `pub(crate)`: the parent module is private, and `clippy::redundant_pub_crate` rejects `pub(crate)` here.
 #[cfg(test)]
 pub mod tests {
 

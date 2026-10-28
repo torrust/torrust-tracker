@@ -1,5 +1,6 @@
 //! Some generic test helpers functions.
 
+// `pub`, not `pub(crate)`: the parent module is private, and `clippy::redundant_pub_crate` rejects `pub(crate)` here.
 #[cfg(test)]
 pub mod tests {
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
