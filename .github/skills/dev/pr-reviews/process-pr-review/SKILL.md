@@ -3,7 +3,7 @@ name: process-pr-review
 description: Process every pull-request review finding, regardless of whether it was authored by Copilot, a person, or another bot. Use when asked to process PR review feedback, resolve review threads, audit review comments, address Copilot and maintainer findings together, triage review feedback submitted after merge, or handle a review left on a closed pull request that another pull request replaced.
 metadata:
   author: torrust
-  version: "1.6"
+  version: "1.7"
   semantic-links:
     related-artifacts:
       - docs/issues/closed/2219-2003-unify-pr-review-processing/ISSUE.md
@@ -11,6 +11,7 @@ metadata:
       - docs/templates/REVIEW-FINDINGS.md
       - .github/skills/dev/pr-reviews/fetch-review-threads/SKILL.md
       - .github/skills/dev/pr-reviews/resolve-review-threads/SKILL.md
+      - .github/skills/dev/pr-reviews/wait-for-pr-review/SKILL.md
       - .github/skills/dev/pr-reviews/process-pr-review/scripts/validate-audit-record.py
 ---
 
@@ -37,6 +38,8 @@ feedback is prevented earlier and future review processing consumes fewer tokens
 - GitHub CLI (`gh`) and the `fetch-review-threads` and
   `resolve-review-threads` helper skills.
 - Ability to run focused validation for any proposed fix.
+- To wait for the next review round without being told, use the
+  [`wait-for-pr-review`](../wait-for-pr-review/SKILL.md) skill, which runs this workflow on each event.
 
 ## Workflow
 
