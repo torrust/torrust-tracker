@@ -3,10 +3,14 @@ doc-type: file-test-plan
 issue: 2637
 package: torrust-tracker-axum-rest-api-server
 target-file: packages/axum-rest-api-server/src/v1/routes.rs
-status: proposed
+status: approved
 semantic-links:
   related-artifacts:
     - packages/axum-rest-api-server/src/v1/routes.rs
+    - src/bootstrap/persistence.rs
+    - src/bootstrap/app.rs
+    - docs/adrs/20260825193119_make_persistence_an_optional_application_composition_capability.md
+    - docs/adrs/20261021190318_share_workspace_test_support_through_testing_features.md
     - docs/issues/open/2637-1347-add-tests-axum-rest-api-server/coverage-evidence.md
 ---
 
@@ -43,12 +47,30 @@ No tests in the file, so R1 is skipped.
 | Every route of the four contexts is registered | 3A unit | R2: a table of method and path pairs; a registered route never answers `404`. This also pins the paths of the four `*/routes.rs` files (ledger rows 8, 11, 14, 17). |
 | What the services do (key validity, persistence, DTOs) | Collaborator-owned | `rest-api-application`, `rest-api-runtime-adapter` and `tracker-core`; asserted only as "not the disabled `409`". |
 
+### Two Lines Of Defense
+
+The "private or listed set but no persistence" state is guarded twice, and this plan links both:
+
+- **First line (startup, owned by the root crate):** `validate_persistence_requirements` in
+  `src/bootstrap/persistence.rs` rejects `core.listed`, `core.private` and persistent completed statistics
+  without `[core.database]`, and `setup` in `src/bootstrap/app.rs` calls it before any container is built
+  (ADR `20260825193119`, agreement 3). Its own tests are in those two files.
+- **Second line (this file):** `v1::routes::add` receives a container whose `core_config.private` and
+  `persistence` are independent fields, so the combination is representable. The handler treats it as
+  "capability off" and answers `409` instead of building a service or panicking. The "no persistence" cases below
+  protect that second line. They are defensive: a real tracker never reaches them, because the first line stops
+  startup. The decision to keep them is the maintainer's (2026-10-28): when the contract of a layer allows a state,
+  the layer's defense is tested even if an earlier layer validates.
+
+Whether the state could be made unrepresentable in the types is a design question outside this issue; it is
+recorded in `lessons.md`.
+
 ### Boundary And Arrange
 
 The test calls `v1::routes::add("/api", Router::new(), &container)` and sends requests with
 `tower::ServiceExt::oneshot`. It does **not** go through `routes::router`, so the authentication layer, request
 id, compression and timeout (row 3, `routes.rs`) are not involved. The container is built by the package's
-`TrackerHttpApiCoreContainer::initialize` from a `torrust-tracker-test-helpers` configuration whose `core.private`,
+`TrackerHttpApiCoreContainer::initialize` (through the crate-private helper below) from a `torrust-tracker-test-helpers` configuration whose `core.private`,
 `core.listed` and `core.database` are set by the test. `ephemeral()` already gives each call its own temporary
 SQLite file, and `core.database = None` composes no persistence.
 
@@ -58,10 +80,10 @@ SQLite file, and `core.database = None` composes no persistence.
 | --- | --- | --- |
 | `private`, persistence | `POST /api/v1/key/60` | `200` (a generated key; only the status is asserted) |
 | not `private`, persistence | `POST /api/v1/key/60` | `409`, `application/json`, `{"status":"err","reason":"private capability is disabled by configuration"}` |
-| `private`, no persistence | `POST /api/v1/key/60` | the same `409` |
+| `private`, no persistence (second line) | `POST /api/v1/key/60` | the same `409` |
 | `listed`, persistence | `GET /api/v1/whitelist/reload` | `200` |
 | not `listed`, persistence | `GET /api/v1/whitelist/reload` | `409`, `{"status":"err","reason":"listed capability is disabled by configuration"}` |
-| `listed`, no persistence | `GET /api/v1/whitelist/reload` | the same `409` |
+| `listed`, no persistence (second line) | `GET /api/v1/whitelist/reload` | the same `409` |
 | public, no persistence | `GET /api/v1/stats` and `GET /api/v1/torrents` | `200` |
 
 Route registration table (the least capable composition, so a gated route answers `409` and an open one `200` or
@@ -83,7 +105,7 @@ None new. `rstest` and `tower` (`util`) exist; `torrust-tracker-test-helpers` is
 | ID | Status | Work | Completion evidence |
 | --- | --- | --- | --- |
 | R1 | SKIPPED | No existing tests. | None. |
-| R2 | TODO | Add the in-file test module with the gating and registration tables and a helper that builds the container. | Focused tests, `cargo +nightly fmt --all -- --check`, `cargo clippy`, `git diff --check`, prose-first AAA review, and the named mutations. |
+| R2 | TODO | Add `src/test_support.rs` (the crate-private container helper) and the in-file test module with the gating and registration tables. | Focused tests, `cargo +nightly fmt --all -- --check`, `cargo clippy`, `git diff --check`, prose-first AAA review, and the named mutations. |
 | R3 | TODO | Integration increment: `none` expected. | The 58 integration tests keep the wire contract. |
 | R4 | TODO | Re-run unit-only coverage; record before and after. | Results below and `coverage-evidence.md`. |
 
@@ -98,18 +120,17 @@ None new. `rstest` and `tower` (`util`) exist; `torrust-tracker-test-helpers` is
 | G5 | auth-key routes | Do not register the auth-key routes when the service is absent. | the "no persistence" `409` cases and the route table |
 | G6 | stats service | Skip `stats::routes::add`. | the `stats` cases and the route table |
 
-## Maintainer Questions
+## Maintainer Decisions
 
-1. **Shared test container helper.** Row 3 (`routes.rs`) and later `server.rs` (S5) need the same container
-   builder, and `server.rs` already has a private copy inside its test module. Proposal: add one
-   `#[cfg(test)] pub(crate)` module in this package (for example `src/test_support.rs`) with
-   `api_container(&Configuration) -> Arc<TrackerHttpApiCoreContainer>`, used from here, row 3 and S5. It does
-   not depend on `testing::environment` (which #2482 gates). Alternative: a private helper in each test module.
-   Which do you prefer?
-2. **Persistence "none" case.** It relies on `TrackerCoreContainer::initialize_from` accepting
-   `core.database = None` with `private` or `listed` set. If a configuration rule forbids that combination in
-   production, the case still protects the route's behavior, because `add` only reads the composed
-   persistence. Confirm the case stays.
+Recorded on 2026-10-28.
+
+1. **Container helper:** a private `#[cfg(test)] mod test_support` in this crate (`src/test_support.rs`), as
+   rule C of ADR `20261021190318` says for a helper used only by the crate's own unit tests. It is not placed in
+   `src/testing/`, which holds test support shared outside the crate (rules A and D) and is gated by #2482. It is
+   reused by `routes.rs` (row 3) and by `server.rs` in S5, whose private copy it replaces then.
+2. **Cases with `private` or `listed` set but no persistence:** kept, labelled as the second line of defense and
+   linked to the first line (above).
+3. **Plan approved** with the edits above.
 
 ## Prose-First AAA Review
 

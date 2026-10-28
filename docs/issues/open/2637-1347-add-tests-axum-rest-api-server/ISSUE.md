@@ -9,7 +9,7 @@ github-issue: 2637
 spec-path: docs/issues/open/2637-1347-add-tests-axum-rest-api-server/ISSUE.md
 branch: "2637-1347-add-tests-axum-rest-api-server-routes"
 related-pr: null
-last-updated-utc: "2026-10-27 14:58"
+last-updated-utc: "2026-10-28 12:20"
 semantic-links:
   skill-links:
     - create-issue
@@ -533,7 +533,7 @@ declaration-only rows have no executable entries.
 | Order | Source module | Rank | Slice | Unit-only lines | Tests | Initial hypothesis | State | Plan |
 | ---: | --- | ---: | --- | ---: | ---: | --- | --- | --- |
 | 1 | `v1/middlewares/auth.rs` | 1 | S1 | 71 / 103 (68.93%) | 4 | Property candidate | DONE | [v1-middlewares-auth-tests.md](test-refactor-plans/v1-middlewares-auth-tests.md) (done; 142 / 142 lines after, 27 test cases, 8 mutants killed, property test declined) |
-| 2 | `v1/routes.rs` | 2 | S2 | 27 / 45 (60.00%) | 0 | Test candidate | IN_PROGRESS | [v1-routes-tests.md](test-refactor-plans/v1-routes-tests.md) (proposed) |
+| 2 | `v1/routes.rs` | 2 | S2 | 27 / 45 (60.00%) | 0 | Test candidate | IN_PROGRESS | [v1-routes-tests.md](test-refactor-plans/v1-routes-tests.md) (approved 2026-10-28) |
 | 3 | `routes.rs` | 2 | S2 | 58 / 67 (86.57%) | 0 | Test candidate | PENDING | - |
 | 4 | `v1/context/health_check/handlers.rs` | 2 | S2 | 4 / 4 (100.00%) | 0 | Test candidate (small) | PENDING | - |
 | 5 | `v1/responses.rs` | 3 | S1 | 8 / 40 (20.00%) | 0 | Test candidate | DONE | [v1-responses-tests.md](test-refactor-plans/v1-responses-tests.md) (done; 66 / 66 lines after, 8 test cases, 8 mutants killed) |
@@ -665,6 +665,12 @@ once. If the slicing changes, the Slice column changes with it.
   `2637-1347-add-tests-axum-rest-api-server-routes` from `develop` at the merge of #2672. The package is
   byte-identical to the S1 head, so the S1 measurement is the S2 baseline (unit-only lines 921 / 1,305,
   70.57%). Row 2 (`v1/routes.rs`) is `IN_PROGRESS`; its plan is proposed and awaits the maintainer.
+- 2026-10-28 12:20 UTC - Jose Celano - Approved the row 2 plan (`v1/routes.rs`) with these decisions: the
+  crate-private container helper is a `#[cfg(test)] mod test_support` (ADR `20261021190318`, rule C; `src/testing/`
+  is for code shared outside the crate); the cases with `private` or `listed` set but no persistence are kept as the
+  second line of defense, linked to the first line (`validate_persistence_requirements` in
+  `src/bootstrap/persistence.rs`, called by `setup` in `src/bootstrap/app.rs`); the design question (making that
+  state unrepresentable) and a stale module comment are recorded in `lessons.md` only.
 
 ## Acceptance Criteria
 
