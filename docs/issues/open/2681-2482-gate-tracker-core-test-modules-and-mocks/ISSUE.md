@@ -9,7 +9,7 @@ github-issue: 2681
 spec-path: docs/issues/open/2681-2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md
 branch: "2681-2482-gate-tracker-core-test-modules-and-mocks"
 related-pr: null
-last-updated-utc: "2026-10-28 17:37"
+last-updated-utc: "2026-10-28 17:46"
 semantic-links:
   skill-links:
     - create-issue
@@ -319,6 +319,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-10-28 16:41 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 3) - Implementation done on branch `2681-2482-gate-tracker-core-test-modules-and-mocks` after the spec PR #2682 merged: five signed commits (helper modules private; three crate-private mocks under `cfg_attr(test)`; the `testing` feature with the optional `mockall`, the self dev-dependency, the `deny.toml` wrapper and the consumers' dev-dependencies; the inventory; the ADR amendment note). Evidence in `manual-verification-evidence.md` (V0 to V7). Facts were re-verified because `develop` had moved. Deviation from the spec text: none. The `Cargo.lock` gained the self dev-dependency edge. Pending: pre-push, independent pre-PR review, completion review.
 - 2026-10-28 16:50 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 3) - Correction to the 16:41 entry above: it said "five signed commits" and "Deviation from the spec text: none". At that point the branch had six commits (the evidence commit was the sixth), and the spec text did change: AC1's "five `Mock*` types" became "four" (the pattern that found five names included the non-existent `MockDatabase`). Then: the independent pre-PR review (PASS WITH FINDINGS) and the pre-push script (exit 0) are recorded in the evidence (V8); the review's findings 1, 6 and 7 are fixed in `docs(tracker-core): [#2681] explain the testing mock, the self wrapper and the pub test modules`; the completion review and the retrospective are written.
 - 2026-10-28 17:37 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 3) - PR #2688 review: Copilot's finding F4 (review body, no thread) was right: the first native-tracker override run in the evidence (V4) pointed `TORRUST_TRACKER_BINARY` at `target/debug/torrust-tracker`, which the preceding plain test run rebuilds, so it did not prove that the inspected shipped-profile binary was tested. V4 was redone with a preserved copy (checksum unchanged, 25 tests pass); the three inline findings F1 to F3 were declined with the prescribed replies. Recorded in `docs/pr-reviews/pr-2688-review/PR-REVIEW.md`.
+- 2026-10-28 17:46 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 3) - Issue #2681 was closed by the merge of spec PR #2682, whose body said "will close #2681"; GitHub applied the keyword from the merge commit. The #2482 coordinator reopened it (state OPEN and parent #2482 verified). The merged spec is unchanged. The implementation PR #2688 carries `Closes #2681` and no other closing keyword followed by an issue number. The lesson (no closing keyword in a spec-only PR body, even about the future; run the `open-pull-request` grep on every spec-PR body) is in the retrospective.
 
 ## Acceptance Criteria
 

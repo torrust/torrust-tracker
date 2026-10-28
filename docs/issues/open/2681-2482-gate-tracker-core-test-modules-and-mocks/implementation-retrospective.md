@@ -30,6 +30,7 @@ The three helper modules are private `#[cfg(test)]` modules. `MockTorrentMetrics
 - Rule D.1 of the ADR said `tracker-core` applies the feature to all four traits. The per-mock consumer count contradicted it, so the maintainer chose the narrower scope and the ADR got an amendment note instead of a rewrite.
 - `develop` moved between the spec audit and the implementation (`tracker-core` and other packages changed). The facts were re-verified before editing, and nothing in the spec changed.
 - The spec's scenario M5 first expected the coupling report to show `mockall`; the report lists only workspace packages. Copilot's review of the spec PR caught it, and it now checks the `[normal]` and `[dev]` entries and `cargo metadata`.
+- The body of the spec-only PR #2682 said "The implementation PR follows after this one merges and will close #2681". The merge tool copies the PR body into the merge commit, so GitHub applied the closing keyword and closed #2681 when #2682 merged; the #2482 coordinator reopened it. The `open-pull-request` skill already warns that a keyword closes the issue even in a sentence about the future, and its grep would have flagged the line; it was not run on that body.
 - The `create-issue` skill says a spec-only PR's frontmatter `branch:` is the `-spec` name; earlier rows used the base name. A review finding fixed it.
 
 ## Root Cause
@@ -41,7 +42,9 @@ The ADR was written from the inventory's pattern-level view ("four traits, one s
 1. Rows 4 to 7 add the self dev-dependency to servers: add the package to its own `wrappers` entry in `deny.toml` (if it has one) in the same commit as the manifest change, because the pre-commit gate runs `cargo deny check bans` on every commit.
 2. Before applying a rule to a group of items, count each item's consumers; apply the rule to the items that other packages use and the private rule to the rest.
 3. Run the dependency-graph side of a spec (`cargo deny`, `cargo machete`, clippy) in a throwaway prototype before the spec is approved.
-4. For a scenario that inspects a tool's output, read the tool's code or run it first; do not assume what it lists.
+4. Never write `close`, `closes`, `fixes` or `resolves` followed by an issue number in a spec-only PR body, even in a sentence about the future (say "the implementation PR will follow" without the keyword). Run the `open-pull-request` skill's keyword grep on every spec-PR body before creating or editing it; the implementation PR body is the only one that carries `Closes #N`.
+5. For a scenario that inspects a tool's output, read the tool's code or run it first; do not assume what it lists.
+6. When a check needs an artifact (a binary) that another command can rebuild, copy the artifact right after building it and test the copy; record its checksum before and after (finding F4 of PR #2688).
 
 ## Avoiding Overcorrection
 
