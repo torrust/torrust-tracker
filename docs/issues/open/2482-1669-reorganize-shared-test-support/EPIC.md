@@ -6,7 +6,7 @@ epic: 1669
 github-issue: 2482
 spec-path: docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-28 09:37"
+last-updated-utc: "2026-10-28 12:07"
 semantic-links:
   skill-links:
     - create-issue
@@ -169,7 +169,7 @@ packages. The ADR decides.
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-Subissues 1 (#2618), 2 (#2628), 8 (#2645) and 9 (#2670) are GitHub issues. Rows 3 to 7 are drafts written by subissue 1 from its
+Subissues 1 (#2618), 2 (#2628), 3 (#2681), 8 (#2645) and 9 (#2670) are GitHub issues. Rows 4 to 7 are drafts written by subissue 1 from its
 ADR and migration plan, one per inventory item that moves, plus the coupling tool change and the container build change the ADR requires. They
 become GitHub issues one at a time afterwards.
 
@@ -185,7 +185,7 @@ same pull request.
 | --- | --- | --- | --- | --- |
 | 1 | #2618 - Decide how packages share test support code | [`docs/issues/closed/2618-2482-decide-test-support-rules/ISSUE.md`](../../closed/2618-2482-decide-test-support-rules/ISSUE.md) | DONE | Tasks D1 to D5; MV1 to MV4. Merged in PR #2624 on 2026-10-23; issue closed. |
 | 2 | #2628 - Move the `test-helpers` protocol helpers to their consumer | [`docs/issues/closed/2628-2482-move-test-helpers-protocol-helpers/ISSUE.md`](../../closed/2628-2482-move-test-helpers-protocol-helpers/ISSUE.md) | DONE | Pattern B; ADR rule B; coupling report finding 1. The `http` and `udp` modules move to the root crate's `tests/common/`. `test-helpers` is published as 3.0.0 with only `configuration` and `random`, so the move alone does not break that API; #2583 decides the bump. Runs first (not an O1 move). Merged in PR #2636 on 2026-10-24; issue closed. |
-| 3 | #[To be assigned] - Gate `tracker-core`'s test modules and mocks | [`docs/issues/drafts/2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md`](../../drafts/2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md) | TODO | Patterns C and D; ADR rules C and D. `MockTorrentMetricsStore` is also used by `http-core` and `udp-core`, so their dev-dependencies enable the feature in the same PR. The first O1 move: after rows 8 and 9. |
+| 3 | #2681 - Gate `tracker-core`'s test modules and mocks | [`docs/issues/open/2681-2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md`](../2681-2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md) | IN_PROGRESS | Patterns C and D; ADR rules C and D. `MockTorrentMetricsStore` is also used by `http-core` and `udp-core`, so their dev-dependencies enable the feature in the same PR. The first O1 move: after rows 8 and 9. |
 | 4 | #[To be assigned] - Gate the `udp-server` test environment behind a `testing` feature | [`docs/issues/drafts/2482-gate-udp-server-test-environment/ISSUE.md`](../../drafts/2482-gate-udp-server-test-environment/ISSUE.md) | TODO | Pattern A; ADR rule A; includes `examples/udp_only_public_tracker.rs`. After #2416 (its T9 changes this environment). |
 | 5 | #[To be assigned] - Gate the `axum-http-server` test environment behind a `testing` feature | [`docs/issues/drafts/2482-gate-axum-http-server-test-environment/ISSUE.md`](../../drafts/2482-gate-axum-http-server-test-environment/ISSUE.md) | TODO | Pattern A; includes `examples/http_only_public_tracker.rs` and the doc-link-only `configuration` edge. After #2471, which merged on 2026-10-16, and after #2416 (its T9 changes this environment). |
 | 6 | #[To be assigned] - Gate the `axum-rest-api-server` test environment behind a `testing` feature | [`docs/issues/drafts/2482-gate-axum-rest-api-server-test-environment/ISSUE.md`](../../drafts/2482-gate-axum-rest-api-server-test-environment/ISSUE.md) | TODO | Pattern A; six forced edges; also removes the stale `rest-api-core` comment in `src/testing/mod.rs`. After #2449. |
@@ -436,6 +436,7 @@ Append one line per meaningful update.
 - 2026-10-26 17:35 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 8) - Subissue 8 (#2645) is done: PR #2648 merged on 2026-10-26 (merge commit `f4b221095`) and #2645 is closed; its spec is archived. Row 8 of the Subissues table is DONE. The coupling tool labels an optional normal dependency `optional (<features>)` with every feature that enables it, directly or through other features, so a `default` chain that includes `testing` is not test-only, and skips self edges. The tool has no runtime-edge counter and the coupling report was not regenerated; row 7 does both if AC8 needs them. Next: row 9.
 - 2026-10-27 08:43 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 9) - Created issue #2670 for row 9 after the maintainer approved its refreshed spec, linked it as a sub-issue of #2482 (`parent_issue_url` verified) and moved the spec to `docs/issues/open/`; row 9 is IN_PROGRESS. The design: two builds, the native-tracker container tests run against the shipped binary through `TORRUST_TRACKER_BINARY`, and a Rust check over `cargo tree -e normal,build` run as a `testing.yaml` job (`cargo metadata` is not usable: it counts dev-dependency features). Updated the Subissues intro sentence, which still listed rows 8 and 9 as drafts.
 - 2026-10-28 09:37 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 9) - Subissue 9 (#2670) is done: PR #2676 merged on 2026-10-28 (merge commit `09263a46c`) and #2670 is closed; its spec is archived. Row 9 of the Subissues table is DONE. The release and debug images ship binaries built without test flags or features, the native-tracker container tests run the shipped binary through `TORRUST_TRACKER_BINARY`, and the `Shipped Features` job fails if a workspace `testing` feature reaches `torrust-tracker`'s normal or build dependency tree. Rows 3 to 7 keep `testing` in dev-dependencies only and keep the shipped package and features in step across the `Containerfile`, `testing.yaml` and `docs/containers.md`. Next: row 3.
+- 2026-10-28 12:07 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 3) - Created issue #2681 for row 3 after the maintainer approved its refreshed spec, linked it as a sub-issue of #2482 (`parent_issue_url` verified) and moved the spec to `docs/issues/open/`; row 3 is IN_PROGRESS. Design decided with the maintainer: only `MockTorrentMetricsStore`, the one mock other packages use, goes behind the `testing` feature; the other three `tracker-core` mocks use `cfg_attr(test, automock)`, which narrows rule D.1 of the ADR (the spec adds an amendment note). Updated the Subissues intro sentence.
 
 ## Acceptance Criteria
 
