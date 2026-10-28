@@ -29,6 +29,7 @@ configuration before loading it with the active runtime.
 | Per-listener UDP error limit | `[udp_tracker_server] max_connection_id_errors_per_ip`           | #2083    | Active |
 | Flat `[core.database]`       | Database enum with per-driver config                             | #1490    | DONE   |
 | No announce `ip` opt-in      | Per-HTTP-tracker `use_ip_from_query_string`                      | #1987    | Active |
+| Unbounded announce interval  | `[core.announce_policy] interval` / `interval_min` ≤ `2147483647` | #2466    | Active |
 
 ## Practical migration sequence
 
@@ -358,6 +359,27 @@ For an accepted non-empty query IP, the precedence is:
 
 An absent or empty `ip` preserves steps 2–4.
 
+## Step 11: Keep announce intervals within `2147483647` seconds
+
+**Subissue**: #2466 — Bound announce intervals to what every delivery protocol can encode
+
+`[core.announce_policy] interval` and `interval_min` must not exceed
+`2147483647` seconds (`i32::MAX`, about 68 years). BEP 15 encodes the UDP
+announce interval as a signed 32-bit integer, the tightest limit among the
+supported delivery protocols, so the tracker applies one bound to every
+protocol. Older versions accepted larger values and sent a clamped or
+protocol-dependent interval; v3 rejects them when the configuration loads.
+
+```toml
+# v2 — any u32 value was accepted
+# v3 — rejected above 2147483647
+[core.announce_policy]
+interval = 120
+interval_min = 120
+```
+
+The error names the rejected value, the limit, and the configuration key.
+
 ## Complete representative v3 configuration
 
 This configuration shows a direct TLS HTTP tracker, one UDP listener, an HTTP
@@ -452,6 +474,7 @@ Use this checklist to verify your configuration is ready for v3:
 - [ ] `connection_id_validation` reviewed in `[udp_tracker_server]` (optional, defaults to `"strict"`)
 - [ ] `ip_bans_reset_interval_in_secs` reviewed in `[udp_tracker_server]` (optional, defaults to `86400`)
 - [ ] `use_ip_from_query_string` left disabled unless client-supplied peer IPs are trusted
+- [ ] `interval` and `interval_min` in `[core.announce_policy]` are at most `2147483647`
 - [ ] Network database URLs replaced with component fields; database passwords are non-empty
 - [ ] Explicit SQLite configuration retained during the fixed-SQLite bridge period
 
