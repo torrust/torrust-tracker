@@ -9,7 +9,7 @@ github-issue: 2466
 spec-path: docs/issues/open/2466-1978-announce-interval-upper-bound/ISSUE.md
 branch: "2466-1978-announce-interval-upper-bound"
 related-pr: null
-last-updated-utc: "2026-10-27 15:00"
+last-updated-utc: "2026-10-28 07:35"
 semantic-links:
   skill-links:
     - create-issue
@@ -162,12 +162,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID | Status | Task | Notes / Expected Output |
 | -- | ------ | ---- | ----------------------- |
 | T1 | DONE | Resolve the open questions | Decisions section; ADR added in the specification PR. |
-| T2 | TODO | Write the configuration-load regression tests | Assert field, value, and limit for `interval` and `interval_min`. Expected output: the recorded red run against the `u32` fields. |
-| T3 | TODO | Add the bounded type to `primitives` | Construction and `Deserialize` reject values above `i32::MAX`; boundary unit tests; module doc links the ADR. |
-| T4 | TODO | Fix: adopt it for `interval` and `interval_min` | Consumers updated; the T2 tests pass. |
-| T5 | TODO | Convert the UDP interval through the type | No clamp for the interval; `saturating_wire_i32` kept for peer counts; doc comment links the ADR. |
-| T6 | TODO | Update the migration guide | Quick-reference row and the bound on `[core.announce_policy]` in `migrate-v2-to-v3.md`. |
-| T7 | TODO | Green run and recheck | T2 tests green; M1 "after", M2, and M3 recorded in the evidence file. |
+| T2 | DONE | Write the configuration-load regression tests | Assert field, value, and limit for `interval` and `interval_min`. Red run recorded in the evidence file; the T2 tests passed after T4. |
+| T3 | DONE | Add the bounded type to `primitives` | `AnnounceIntervalInSecs` in `packages/primitives/src/announce_interval.rs`; boundary unit tests; module doc links the ADR. |
+| T4 | DONE | Fix: adopt it for `interval` and `interval_min` | `AnnouncePolicy` and consumers updated (`axum-http-server`, `http-core`, `tracker-core`, `udp-server`); the T2 tests pass. `http-protocol` keeps its own wire policy type (it does not depend on `primitives`), so the Axum handler converts with `get()`. |
+| T5 | DONE | Convert the UDP interval through the type | `announce_interval_on_the_wire` converts without clamping; `saturating_wire_i32` kept for peer counts; doc comment links the ADR. |
+| T6 | DONE | Update the migration guide | Quick-reference row, Step 11, and a checklist item in `migrate-v2-to-v3.md`. |
+| T7 | DONE | Green run and recheck | T2 tests green; M1 "after", M2, and M3 recorded in the evidence file. |
 
 ## Commit Points
 
@@ -191,9 +191,9 @@ with the narrow affected scope.
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [x] Spec-only PR merged into `develop` before implementation (PR #2468)
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Evidence-based implementation completion review recorded
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
@@ -210,6 +210,7 @@ with the narrow affected scope.
 - 2026-10-07 10:24 UTC - GitHub Copilot - Applied PR #2468 round-1 review fixes: reproduced the defect before implementation (V0, Reproduced), added the red-run regression task and the migration-guide task, asserted field, value, and limit in tests and scenarios, restored the verification notes and two template checkpoints, scoped the v2 inheritance, and cited #2245 by issue number - In review
 - 2026-10-07 13:12 UTC - josecelano - Kept one type for `interval` and `interval_min` because both measure the same quantity, although no protocol bounds `interval_min` (Copilot's review overview had noted the missing protocol justification) - Chat decision
 - 2026-10-27 15:00 UTC - josecelano - Pre-implementation questions answered: type `AnnounceIntervalInSecs` wrapping `u32`, infallible `From` to `i64` plus `get_i32()` for UDP, fallible `new(u32)` plus `From<u16>`, field name taken from the loader key path, serialization and v2 inheritance confirmed (decisions 7-11) - Chat decision
+- 2026-10-28 07:35 UTC - GitHub Copilot - Implemented T2-T7 on branch `2466-1978-announce-interval-upper-bound`: regression tests (red then green), `AnnounceIntervalInSecs`, `AnnouncePolicy` and consumers, unclamped UDP interval, migration guide Step 11, and manual scenarios M1-M3 (V1-V3) - Awaiting maintainer review
 
 ## Acceptance Criteria
 
@@ -236,9 +237,9 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | -- | -------- | ---------------------------- | --------------- | ------ | -------- |
-| M1 | Reproduce, then reject an out-of-range interval | Start a local tracker with `interval = 2147483648`, before and after the fix. | Before: starts; UDP reports `2147483647`, HTTP `2147483648`. After: startup fails with an error naming `interval`, the value `2147483648`, and the limit `2147483647`. | IN_PROGRESS (before: DONE) | `manual-verification-evidence.md` sections V0 and V1 |
-| M2 | Reject an out-of-range minimum interval | Start with `interval_min = 2147483648`. | Startup fails with an error naming `interval_min`, the value `2147483648`, and the limit `2147483647`. | TODO | `manual-verification-evidence.md` section V2 |
-| M3 | Accept the boundary | Start with `interval = 2147483647` and announce over UDP and HTTP. | Both report `2147483647`. | TODO | `manual-verification-evidence.md` section V3 |
+| M1 | Reproduce, then reject an out-of-range interval | Start a local tracker with `interval = 2147483648`, before and after the fix. | Before: starts; UDP reports `2147483647`, HTTP `2147483648`. After: startup fails with an error naming `interval`, the value `2147483648`, and the limit `2147483647`. | DONE | `manual-verification-evidence.md` sections V0 and V1 |
+| M2 | Reject an out-of-range minimum interval | Start with `interval_min = 2147483648`. | Startup fails with an error naming `interval_min`, the value `2147483648`, and the limit `2147483647`. | DONE | `manual-verification-evidence.md` section V2 |
+| M3 | Accept the boundary | Start with `interval = 2147483647` and announce over UDP and HTTP. | Both report `2147483647`. | DONE | `manual-verification-evidence.md` section V3 |
 
 Notes:
 
@@ -261,13 +262,13 @@ None planned. The scenarios use the tracker binary and `tracker_client`.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1 | TODO | Configuration-load tests, M1, and M2. |
-| AC2 | TODO | Bounded-type unit test and M3. |
-| AC3 | TODO | Type definition and absence of a `Validator` rule. |
-| AC4 | TODO | UDP response code and M3. |
-| AC5 | TODO | `linter all` and test output. |
-| AC6 | TODO | `manual-verification-evidence.md`. |
-| AC7 | TODO | Migration guide diff. |
+| AC1 | DONE | Configuration-load tests (`it_should_reject_*announce_interval_above_the_i32_maximum_*`), V1 and V2 in the evidence file. |
+| AC2 | DONE | `it_should_accept_the_i32_maximum_for_both_announce_intervals`, the bounded-type unit tests, and V3. |
+| AC3 | DONE | `AnnounceIntervalInSecs` in `primitives`; no rule added to `Validator`. |
+| AC4 | DONE | `announce_interval_on_the_wire` in `udp-server`, its handler test, and V3. |
+| AC5 | DONE | `linter all` (run by the pre-commit hook on every commit) and `pre-push.sh` (nightly format, check and docs, packaging, full stable test suite) exited `0` on 2026-10-28. |
+| AC6 | DONE | `manual-verification-evidence.md` sections V0-V3. |
+| AC7 | DONE | Step 11, the quick-reference row, and the checklist item in `migrate-v2-to-v3.md`. |
 
 ## Risks and Trade-offs
 
@@ -278,9 +279,10 @@ None planned. The scenarios use the tracker binary and `tracker_client`.
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`. Create `implementation-retrospective.md` if the type design
-  changes during implementation or yields a reusable lesson; otherwise record why none is needed
-  in the Progress Log.
+- Retrospective: not needed. The type design matched the plan except that the type's error states
+  the value and the limit, and the field name comes from the loader's key path (decision 10),
+  which the configuration-load tests and V1-V2 confirm. `http-protocol` keeps its own wire
+  policy type, so only the Axum handler converts with `get()`.
 
 ## References
 
