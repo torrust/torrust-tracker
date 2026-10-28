@@ -6,7 +6,7 @@ use std::process::{Child, Command, ExitStatus, Stdio};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::thread::{self, JoinHandle};
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use serde_json::Value;
 
@@ -43,19 +43,26 @@ pub trait Gh {
 pub struct GhCli {
     program: OsString,
     interrupted: Arc<AtomicBool>,
+    deadline: Instant,
 }
 
 impl GhCli {
-    /// A CLI handle that stops its running `gh` child as soon as `interrupted` is set.
+    /// A CLI handle that kills its running `gh` child as soon as `interrupted` is set or `deadline`
+    /// passes, and refuses to start a child after `deadline`.
     #[must_use]
-    pub fn new(program: impl Into<OsString>, interrupted: Arc<AtomicBool>) -> Self {
+    pub fn new(program: impl Into<OsString>, interrupted: Arc<AtomicBool>, deadline: Instant) -> Self {
         Self {
             program: program.into(),
             interrupted,
+            deadline,
         }
     }
 
     fn run(&self, arguments: &[&str]) -> Result<(ExitStatus, Vec<u8>, Vec<u8>), Error> {
+        if Instant::now() >= self.deadline {
+            return Err(Error::DeadlineExceeded);
+        }
+
         let mut child = Command::new(&self.program)
             .args(arguments)
             .stdin(Stdio::null())
@@ -75,20 +82,26 @@ impl GhCli {
         Ok((status, join(stdout), join(stderr)))
     }
 
-    /// Waits for `child`, killing it when a signal arrives so no `gh` process is orphaned.
+    /// Waits for `child`, killing and reaping it when a signal arrives or the deadline passes, so a
+    /// stalled `gh` call never outlives the wait and no `gh` process is orphaned.
     fn wait_for(&self, child: &mut Child) -> Result<ExitStatus, Error> {
         loop {
             if let Some(status) = child.try_wait().map_err(|error| self.unavailable(&error))? {
                 return Ok(status);
             }
 
-            if self.interrupted.load(Ordering::Relaxed) {
-                drop(child.kill());
-                drop(child.wait());
-                return Err(Error::Interrupted);
-            }
+            let failure = if self.interrupted.load(Ordering::Relaxed) {
+                Error::Interrupted
+            } else if Instant::now() >= self.deadline {
+                Error::DeadlineExceeded
+            } else {
+                thread::sleep(CHILD_POLL_INTERVAL);
+                continue;
+            };
 
-            thread::sleep(CHILD_POLL_INTERVAL);
+            drop(child.kill());
+            drop(child.wait());
+            return Err(failure);
         }
     }
 

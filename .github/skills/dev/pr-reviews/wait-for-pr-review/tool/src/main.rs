@@ -9,7 +9,7 @@ use std::io::{self, IsTerminal, Write};
 use std::process::ExitCode;
 use std::sync::Arc;
 use std::sync::atomic::AtomicBool;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use clap::error::ErrorKind;
 use clap::{Parser, value_parser};
@@ -112,8 +112,9 @@ fn main() -> ExitCode {
         poll_interval: Duration::from_secs(cli.poll_interval_seconds),
         since_head_sha: cli.since_head_sha,
     };
-    let gh = GhCli::new("gh", Arc::clone(&interrupted));
-    let clock = SystemClock::start(interrupted);
+    let started = Instant::now();
+    let gh = GhCli::new("gh", Arc::clone(&interrupted), started + config.timeout);
+    let clock = SystemClock::starting_at(started, interrupted);
 
     match wait(&gh, &clock, &pull_request, &config) {
         Ok(event) => emit_json(&event),

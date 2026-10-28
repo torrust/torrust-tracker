@@ -19,6 +19,9 @@ case "$*" in
     exit 0 ;;
   "api repos/torrust/torrust-tracker/pulls/7")
     if [ -f "$dir/api-fails" ]; then echo "HTTP 502" >&2; exit 1; fi
+    n=$(cat "$dir/pull-calls" 2>/dev/null || echo 0)
+    echo $((n + 1)) > "$dir/pull-calls"
+    if [ -f "$dir/pull-hangs-later" ] && [ "$n" -ge 1 ]; then sleep 30; fi
     cat "$dir/pull.json" ;;
   "api --paginate --slurp repos/torrust/torrust-tracker/pulls/7/reviews?per_page=100")
     n=$(cat "$dir/review-calls" 2>/dev/null || echo 0)
@@ -210,6 +213,48 @@ fn it_should_print_help_as_a_json_record_on_stderr_and_exit_zero() {
     assert_eq!(output.status.code(), Some(0));
     assert_eq!(output.stdout, b"");
     assert_eq!(kinds(&output), ["help"]);
+}
+
+#[test]
+fn it_should_kill_a_hung_gh_call_at_the_deadline_without_a_signal_and_exit_one_before_the_baseline() {
+    let sandbox = Sandbox::with_pull(OPEN_PULL);
+    sandbox.flag("auth-hangs");
+    let started = Instant::now();
+
+    let output = sandbox.run(&["--pr-number", "7", "--timeout-seconds", "2"]);
+
+    assert_eq!(output.status.code(), Some(1));
+    assert_eq!(output.stdout, b"");
+    assert_eq!(kinds(&output).last().map(String::as_str), Some("deadline_exceeded"));
+    assert!(
+        started.elapsed() < Duration::from_secs(10),
+        "the hung call should be killed at the deadline"
+    );
+}
+
+#[test]
+fn it_should_report_a_timeout_when_a_gh_call_hangs_past_the_deadline_after_the_baseline() {
+    let sandbox = Sandbox::with_pull(OPEN_PULL);
+    sandbox.flag("pull-hangs-later");
+    let started = Instant::now();
+
+    let output = sandbox.run(&[
+        "--pr-number",
+        "7",
+        "--reviewer",
+        "someone-else",
+        "--poll-interval-seconds",
+        "1",
+        "--timeout-seconds",
+        "3",
+    ]);
+
+    assert_eq!(output.status.code(), Some(0));
+    assert_eq!(json(&output.stdout)["kind"], "timeout");
+    assert!(
+        started.elapsed() < Duration::from_secs(10),
+        "the hung call should be killed at the deadline"
+    );
 }
 
 fn send(signal: &str, child: &Child) {

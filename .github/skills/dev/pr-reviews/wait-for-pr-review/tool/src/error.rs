@@ -38,6 +38,9 @@ pub enum Error {
         /// The commit that was looked up.
         sha: String,
     },
+    /// The wait budget ran out while a `gh` call was still running, so the call was killed.
+    #[error("the wait budget ended while a `gh` call was still running")]
+    DeadlineExceeded,
     /// A `SIGINT` or `SIGTERM` stopped the poller.
     #[error("interrupted by a signal")]
     Interrupted,
@@ -53,6 +56,7 @@ impl Error {
             Self::GhApi { .. } => "gh_api_error",
             Self::MalformedResponse { .. } => "malformed_response",
             Self::CommitDate { .. } => "commit_date_error",
+            Self::DeadlineExceeded => "deadline_exceeded",
             Self::Interrupted => "interrupted",
         }
     }

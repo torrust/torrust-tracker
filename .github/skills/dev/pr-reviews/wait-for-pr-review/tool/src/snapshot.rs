@@ -196,10 +196,17 @@ pub mod fake {
 
     use super::{Error, Gh};
 
+    /// A scripted failure.
+    #[derive(Clone)]
+    enum Failure {
+        Api(String),
+        DeadlineExceeded,
+    }
+
     /// Returns the queued responses of an endpoint in order, then repeats the last one.
     #[derive(Default)]
     pub struct FakeGh {
-        responses: RefCell<HashMap<String, VecDeque<Result<Value, String>>>>,
+        responses: RefCell<HashMap<String, VecDeque<Result<Value, Failure>>>>,
         pub calls: RefCell<Vec<String>>,
         pub authenticated: bool,
     }
@@ -226,7 +233,16 @@ pub mod fake {
                 .borrow_mut()
                 .entry(endpoint.to_owned())
                 .or_default()
-                .push_back(Err(message.to_owned()));
+                .push_back(Err(Failure::Api(message.to_owned())));
+        }
+
+        /// The next call to `endpoint` is a call that the deadline killed.
+        pub fn exceed_deadline(&self, endpoint: &str) {
+            self.responses
+                .borrow_mut()
+                .entry(endpoint.to_owned())
+                .or_default()
+                .push_back(Err(Failure::DeadlineExceeded));
         }
 
         fn next(&self, endpoint: &str) -> Result<Value, Error> {
@@ -241,9 +257,12 @@ pub mod fake {
                 queue.front().cloned().unwrap()
             };
 
-            response.map_err(|message| Error::GhApi {
-                endpoint: endpoint.to_owned(),
-                message,
+            response.map_err(|failure| match failure {
+                Failure::Api(message) => Error::GhApi {
+                    endpoint: endpoint.to_owned(),
+                    message,
+                },
+                Failure::DeadlineExceeded => Error::DeadlineExceeded,
             })
         }
     }

@@ -46,13 +46,10 @@ pub struct SystemClock {
 }
 
 impl SystemClock {
-    /// A clock that starts now.
+    /// A clock whose elapsed time is counted from `started`.
     #[must_use]
-    pub fn start(interrupted: Arc<AtomicBool>) -> Self {
-        Self {
-            started: Instant::now(),
-            interrupted,
-        }
+    pub const fn starting_at(started: Instant, interrupted: Arc<AtomicBool>) -> Self {
+        Self { started, interrupted }
     }
 }
 
@@ -81,9 +78,14 @@ impl Clock for SystemClock {
 
 /// Blocks until something happens on `pull_request`, then returns what happened.
 ///
+/// The wait budget is `config.timeout`. No request starts once it is spent, and a request still
+/// running at that moment is killed. After the baseline is taken that ends the wait with a
+/// [`Event::Timeout`]; before it, nothing was observed, so it is [`Error::DeadlineExceeded`].
+///
 /// # Errors
 ///
-/// Returns an error when `gh` is unusable, a request fails, or a signal interrupts the wait.
+/// Returns an error when `gh` is unusable, a request fails, the budget runs out before the baseline
+/// is taken, or a signal interrupts the wait.
 pub fn wait(gh: &impl Gh, clock: &impl Clock, pull_request: &PullRequest, config: &Config) -> Result<Event, Error> {
     gh.check_authenticated()?;
 
@@ -111,18 +113,28 @@ fn poll(
     baseline: &Baseline,
     first: &Snapshot,
 ) -> Result<Event, Error> {
+    let timeout = || Event::Timeout {
+        waited_seconds: config.timeout.as_secs(),
+        head_sha: first.head_sha.clone(),
+    };
+
     loop {
         let remaining = config.timeout.saturating_sub(clock.elapsed());
         if remaining.is_zero() {
-            return Ok(Event::Timeout {
-                waited_seconds: config.timeout.as_secs(),
-                head_sha: first.head_sha.clone(),
-            });
+            return Ok(timeout());
         }
 
         clock.sleep(config.poll_interval.min(remaining))?;
 
-        let snapshot = take_snapshot(gh, pull_request)?;
+        if clock.elapsed() >= config.timeout {
+            return Ok(timeout());
+        }
+
+        let snapshot = match take_snapshot(gh, pull_request) {
+            Ok(snapshot) => snapshot,
+            Err(Error::DeadlineExceeded) => return Ok(timeout()),
+            Err(error) => return Err(error),
+        };
         if let Some(event) = detect(baseline, &snapshot, &config.reviewers) {
             return Ok(event);
         }
@@ -314,6 +326,50 @@ mod tests {
                 head_sha: "abc1234fedcba".to_owned()
             }
         );
+    }
+
+    #[test]
+    fn it_should_not_take_a_snapshot_once_the_wait_budget_is_spent() {
+        let gh = quiet_pull_request();
+        let config = Config {
+            timeout: Duration::from_secs(300),
+            ..config()
+        };
+
+        wait(&gh, &FakeClock::default(), &pull_request(), &config).unwrap();
+
+        let pull_requests = gh.calls.borrow().iter().filter(|call| call.as_str() == PULL).count();
+        assert_eq!(
+            pull_requests, 3,
+            "the baseline plus the looks at 120 s and 240 s, none at 300 s"
+        );
+    }
+
+    #[test]
+    fn it_should_report_a_timeout_when_a_call_is_killed_at_the_deadline_after_the_baseline() {
+        let gh = quiet_pull_request();
+        gh.respond(PULL, pull("a", "open", false));
+        gh.exceed_deadline(PULL);
+
+        let event = wait(&gh, &FakeClock::default(), &pull_request(), &config()).unwrap();
+
+        assert_eq!(
+            event,
+            Event::Timeout {
+                waited_seconds: 900,
+                head_sha: "a".to_owned()
+            }
+        );
+    }
+
+    #[test]
+    fn it_should_stop_with_an_error_when_the_deadline_hits_before_the_baseline_is_taken() {
+        let gh = FakeGh::new();
+        gh.exceed_deadline(PULL);
+
+        let result = wait(&gh, &FakeClock::default(), &pull_request(), &config());
+
+        assert!(matches!(result, Err(Error::DeadlineExceeded)));
     }
 
     #[test]

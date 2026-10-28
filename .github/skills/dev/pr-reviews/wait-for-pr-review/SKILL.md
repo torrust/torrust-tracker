@@ -85,11 +85,18 @@ failure one diagnostic.
 | Exit code | Meaning                                                                                                                                         |
 | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
 | `0`       | A result is on stdout (or help was printed).                                                                                                    |
-| `1`       | Failure; stdout is empty. Diagnostic kinds: `gh_unavailable`, `gh_not_authenticated`, `gh_api_error`, `malformed_response`, `commit_date_error`, `interrupted`, `output_error`. |
+| `1`       | Failure; stdout is empty. Diagnostic kinds: `gh_unavailable`, `gh_not_authenticated`, `gh_api_error`, `malformed_response`, `commit_date_error`, `deadline_exceeded`, `interrupted`, `output_error`. |
 | `2`       | Usage error or TTY refusal (`usage_error`, `tty_refusal`).                                                                                      |
 
 On exit `1`, read the `message` of the last stderr record. A signal (`SIGINT` or `SIGTERM`) stops the
 poller and any `gh` call in flight and reports `interrupted`.
+
+The `--timeout-seconds` budget is a hard bound. No request starts once it is spent, and a `gh` call
+still running at that moment is killed. If that happens after the first look at the pull request, the
+result is `timeout` (exit `0`). If it happens before, nothing was observed, so it is a
+`deadline_exceeded` failure (exit `1`), not a `timeout` that would suggest a quiet pull request. The
+last look is taken one poll interval or less before the budget ends, so rerun with `--since-head-sha`
+and nothing in that gap is missed.
 
 ## The Review Loop
 
