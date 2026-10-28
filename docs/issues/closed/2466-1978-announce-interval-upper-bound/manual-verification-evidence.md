@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2466-1978-announce-interval-upper-bound/ISSUE.md
-last-updated-utc: "2026-10-28 07:35"
+issue-spec: docs/issues/closed/2466-1978-announce-interval-upper-bound/ISSUE.md
+last-updated-utc: "2026-10-28 13:35"
 ---
 
 # Manual Verification Evidence
