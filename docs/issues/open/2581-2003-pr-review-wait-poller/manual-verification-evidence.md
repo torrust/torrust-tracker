@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2581-2003-pr-review-wait-poller/ISSUE.md
-last-updated-utc: "2026-10-28 17:40"
+last-updated-utc: "2026-10-28 17:55"
 ---
 
 # Manual Verification Evidence
@@ -362,4 +362,4 @@ guarantee; the fixture documents it and does not read the setting.
 
 ## Failures and Follow-up
 
-No failure of the poller remains open. Copilot's four reviews raised sixteen findings (fourteen distinct, two duplicates), all addressed (see the audit in `docs/pr-reviews/pr-2683-review/PR-REVIEW.md`). V6 is open: it waits for a `da2ce7` review. V8 is an unrelated pre-existing flake fixed in its own commit.
+No failure of the poller remains open. Copilot's five reviews raised eighteen findings (sixteen distinct, two duplicates), all addressed (see the audit in `docs/pr-reviews/pr-2683-review/PR-REVIEW.md`). V6 is open: it waits for a `da2ce7` review. V8 is an unrelated pre-existing flake fixed in its own commit.
