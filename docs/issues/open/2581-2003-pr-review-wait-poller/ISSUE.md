@@ -9,7 +9,7 @@ github-issue: 2581
 spec-path: docs/issues/open/2581-2003-pr-review-wait-poller/ISSUE.md
 branch: "2581-pr-review-wait-poller"
 related-pr: null
-last-updated-utc: "2026-10-28 12:00"
+last-updated-utc: "2026-10-28 13:00"
 semantic-links:
   skill-links:
     - create-issue
@@ -108,11 +108,19 @@ Contract, confirmed by the maintainer on 2026-10-28:
 
 - **Transport**: `gh api` only. The tool holds no token. It refuses to run without `gh`
   authentication.
-- **Start baseline**: on start, the tool records the current head SHA and the latest
-  review and comment IDs of each watched reviewer. It returns only on events that happen
-  after that baseline. The optional `--since-head-sha <sha>` moves the baseline to the commit
-  date of that SHA, so a review that lands between the agent's push and the poller start is
-  not missed. Without it the baseline is the poller start.
+- **Start baseline**: on start, the tool records the current head SHA and the IDs of the
+  submitted reviews and the latest comment IDs. It returns only on events that happen after that
+  baseline. A review keeps the ID it got as a draft, so reviews are tracked as a set of submitted
+  IDs, not as a maximum, and a review submitted later with a lower ID still counts. The optional
+  `--since-head-sha <sha>` moves the baseline to the commit date of that commit, so a review that
+  lands between the agent's push and the poller start is not missed; the commit may be abbreviated
+  or in uppercase, and the baseline uses the full lowercase SHA that GitHub returns. The optional
+  `--since <utc time>` sets the baseline to a moment and cannot be combined with `--since-head-sha`.
+  Without either, the baseline is the poller start.
+- **Resumable cursor**: a `review` or `comment` result carries `cursor`, the GitHub time of the
+  reported item. `--since <cursor>` counts only items created strictly after it, so the review loop
+  can continue after an event that needed no push without the event being reported again and
+  without losing what came after it.
 - **Watched reviewers**: `da2ce7` and `copilot-pull-request-reviewer[bot]` by default. The
   repeatable `--reviewer <login>` flag overrides the set. Events from logins outside the set,
   including the agent's own, never count.
@@ -122,7 +130,10 @@ Contract, confirmed by the maintainer on 2026-10-28:
   - a change of the PR head SHA (a push by the agent or the contributor);
   - the PR is closed or merged.
 - **Timeout**: after the configured wait, the poller reports a timeout result. The default is
-  15 minutes.
+  15 minutes. The wait is a hard bound: no request starts once the budget is spent and a `gh` call
+  still running at that moment is killed. After the baseline was taken that ends the wait with a
+  `timeout` result. Before it, nothing was observed, so it is a `deadline_exceeded` failure (exit
+  `1`), because a `timeout` would wrongly suggest a quiet pull request.
 - **Poll interval**: configurable per run. The default is 2 minutes (120 seconds).
 - **Exit condition for the review loop**: all of the following hold. Copilot never submits
   `APPROVED`, so its last review is `COMMENTED`.
@@ -245,6 +256,19 @@ Decided by the maintainer (2026-10-28):
 - **Re-review.** The poller never re-requests a review. The agent does it through
     `POST repos/{owner}/{repo}/pulls/{n}/requested_reviewers`. The Copilot re-review path is not
     verified; it is verified on this PR and the result is documented in the skill.
+
+Amended by the maintainer-approved review round on PR #2683 (2026-10-28), after Copilot's review
+found four defects in the first implementation. The decisions above are unchanged; these refine
+them:
+
+- **Review IDs.** The baseline tracks the set of submitted review IDs, not a maximum, because a
+  review keeps its draft ID (`review-finding:pr-2683-f1`).
+- **Canonical SHA.** `--since-head-sha` accepts an abbreviated or uppercase SHA, and the poller
+  compares the full lowercase SHA that GitHub returns (`review-finding:pr-2683-f2`).
+- **Hard deadline.** The timeout is a hard bound on every `gh` call, and the poller starts no
+  request after the budget is spent (`review-finding:pr-2683-f3`).
+- **Cursor.** Results carry a `cursor` and `--since` resumes after it, so the review loop does not
+  reprocess a handled event (`review-finding:pr-2683-f4`).
 
 ## Progress Tracking
 
