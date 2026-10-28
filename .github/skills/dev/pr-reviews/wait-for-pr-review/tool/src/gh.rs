@@ -5,7 +5,8 @@ use std::io::Read;
 use std::process::{Child, Command, ExitStatus, Stdio};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::thread::{self, JoinHandle};
+use std::sync::mpsc::{self, Receiver};
+use std::thread;
 use std::time::{Duration, Instant};
 
 use serde_json::Value;
@@ -13,6 +14,11 @@ use serde_json::Value;
 use crate::error::Error;
 
 const CHILD_POLL_INTERVAL: Duration = Duration::from_millis(25);
+
+/// How long the readers of a killed child get to finish. A killed child normally closes its pipes at
+/// once, so they finish and are reclaimed. A grandchild that inherited a pipe can keep it open, and
+/// waiting for that without limit would defeat the deadline, so the wait is bounded.
+const RECLAIM_GRACE: Duration = Duration::from_millis(200);
 
 /// Read access to the GitHub REST API. Tests fake this boundary.
 pub trait Gh {
@@ -77,9 +83,12 @@ impl GhCli {
         let stdout = child.stdout.take().map(drain);
         let stderr = child.stderr.take().map(drain);
 
-        let status = self.wait_for(&mut child)?;
+        let outcome = self.wait_for(&mut child);
 
-        Ok((status, join(stdout), join(stderr)))
+        let grace = outcome.is_err().then_some(RECLAIM_GRACE);
+        let (stdout, stderr) = (collect(stdout, grace), collect(stderr, grace));
+
+        Ok((outcome?, stdout, stderr))
     }
 
     /// Waits for `child`, killing and reaping it when a signal arrives or the deadline passes, so a
@@ -171,15 +180,73 @@ impl Gh for GhCli {
     }
 }
 
-/// Reads a child pipe to the end on its own thread, so a large response never blocks the child.
-fn drain(mut pipe: impl Read + Send + 'static) -> JoinHandle<Vec<u8>> {
+/// Reads a child pipe to the end on its own thread, so a large response never blocks the child, and
+/// sends what it read when the pipe closes.
+fn drain(mut pipe: impl Read + Send + 'static) -> Receiver<Vec<u8>> {
+    let (sender, receiver) = mpsc::channel();
+
     thread::spawn(move || {
         let mut buffer = Vec::new();
         drop(pipe.read_to_end(&mut buffer));
-        buffer
-    })
+        drop(sender.send(buffer));
+    });
+
+    receiver
 }
 
-fn join(handle: Option<JoinHandle<Vec<u8>>>) -> Vec<u8> {
-    handle.and_then(|handle| handle.join().ok()).unwrap_or_default()
+/// What a reader read. Without `grace` it waits until the pipe closes; with it, it gives up after
+/// `grace` and returns nothing, leaving the reader to finish on its own.
+fn collect(reader: Option<Receiver<Vec<u8>>>, grace: Option<Duration>) -> Vec<u8> {
+    let Some(reader) = reader else {
+        return Vec::new();
+    };
+
+    grace.map_or_else(
+        || reader.recv().unwrap_or_default(),
+        |grace| reader.recv_timeout(grace).unwrap_or_default(),
+    )
+}
+
+#[cfg(test)]
+mod tests {
+    use std::sync::mpsc;
+    use std::time::{Duration, Instant};
+
+    use super::collect;
+
+    #[test]
+    fn it_should_return_what_a_reader_sent_when_there_is_no_grace_period() {
+        let (sender, receiver) = mpsc::channel();
+        sender.send(b"output".to_vec()).unwrap();
+
+        assert_eq!(collect(Some(receiver), None), b"output");
+    }
+
+    #[test]
+    fn it_should_return_what_a_reader_sent_within_the_grace_period() {
+        let (sender, receiver) = mpsc::channel();
+        sender.send(b"output".to_vec()).unwrap();
+
+        assert_eq!(collect(Some(receiver), Some(Duration::from_secs(5))), b"output");
+    }
+
+    #[test]
+    fn it_should_give_up_on_a_reader_that_stays_silent_once_the_grace_period_is_over() {
+        // The sender stays alive, like a reader whose pipe a grandchild keeps open.
+        let (_sender, receiver) = mpsc::channel::<Vec<u8>>();
+        let started = Instant::now();
+
+        let bytes = collect(Some(receiver), Some(Duration::from_millis(50)));
+
+        assert_eq!(bytes, b"");
+        assert!(
+            started.elapsed() < Duration::from_secs(5),
+            "the wait must be bounded by the grace period"
+        );
+    }
+
+    #[test]
+    fn it_should_return_nothing_for_a_pipe_that_does_not_exist() {
+        assert_eq!(collect(None, None), b"");
+    }
 }
