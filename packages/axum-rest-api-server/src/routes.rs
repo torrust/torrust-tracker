@@ -30,6 +30,8 @@ use tracing::{Level, Span, instrument};
 
 const DEFAULT_REQUEST_TIMEOUT: Duration = Duration::from_secs(5);
 
+const API_URL_PREFIX: &str = "/api";
+
 use super::v1;
 use super::v1::context::health_check::handlers::health_check_handler;
 use super::v1::middlewares::auth::State;
@@ -42,21 +44,31 @@ pub fn router(
     access_tokens: Arc<AccessTokens>,
     server_service_binding: &ServiceBinding,
 ) -> Router {
+    let routes = v1::routes::add(API_URL_PREFIX, Router::new(), http_api_container);
+
+    with_layers(routes, access_tokens, server_service_binding, DEFAULT_REQUEST_TIMEOUT)
+}
+
+/// Adds the authentication, the public health check and the transport layers to the API routes.
+///
+/// The authentication layer is added before the health check route, so it protects the API routes and not the health
+/// check. The timeout is a parameter so that a test can use a short one.
+fn with_layers(
+    routes: Router,
+    access_tokens: Arc<AccessTokens>,
+    server_service_binding: &ServiceBinding,
+    timeout: Duration,
+) -> Router {
     let server_socket_addr = server_service_binding.bind_address();
     let request_service_binding = server_service_binding.clone();
     let response_service_binding = server_service_binding.clone();
     let failure_service_binding = server_service_binding.clone();
-    let router = Router::new();
-
-    let api_url_prefix = "/api";
-
-    let router = v1::routes::add(api_url_prefix, router, http_api_container);
 
     let state = State { access_tokens };
 
-    router
+    routes
         .layer(middleware::from_fn_with_state(state, v1::middlewares::auth::auth))
-        .route(&format!("{api_url_prefix}/health_check"), get(health_check_handler))
+        .route(&format!("{API_URL_PREFIX}/health_check"), get(health_check_handler))
         .layer(CompressionLayer::new())
         .layer(SetRequestIdLayer::x_request_id(MakeRequestUuid))
         .layer(PropagateHeaderLayer::new(HeaderName::from_static("x-request-id")))
@@ -142,6 +154,6 @@ pub fn router(
                 // this middleware goes above `TimeoutLayer` because it will receive
                 // errors returned by `TimeoutLayer`
                 .layer(HandleErrorLayer::new(|_: BoxError| async { StatusCode::REQUEST_TIMEOUT }))
-                .layer(TimeoutLayer::new(DEFAULT_REQUEST_TIMEOUT)),
+                .layer(TimeoutLayer::new(timeout)),
         )
 }
