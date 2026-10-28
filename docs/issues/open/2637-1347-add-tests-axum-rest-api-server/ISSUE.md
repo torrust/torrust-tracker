@@ -7,9 +7,9 @@ priority: p2
 epic: 1347
 github-issue: 2637
 spec-path: docs/issues/open/2637-1347-add-tests-axum-rest-api-server/ISSUE.md
-branch: "2637-1347-add-tests-axum-rest-api-server-auth"
-related-pr: 2667
-last-updated-utc: "2026-10-27 08:07"
+branch: "2637-1347-add-tests-axum-rest-api-server-routes"
+related-pr: 2687
+last-updated-utc: "2026-10-28 16:55"
 semantic-links:
   skill-links:
     - create-issue
@@ -242,7 +242,9 @@ is:
 ### Out of Scope
 
 - Production behavior changes in `packages/axum-rest-api-server/src/`. A bug fix or production
-  clean-up found here goes to a separate issue through the findings procedure.
+  clean-up found here goes to a separate issue through the findings procedure. One exception, approved by the
+  maintainer on 2026-10-28: the behavior-preserving testability refactor of `routes.rs` (plan R0), in its own
+  `refactor` commit.
 - Tracker business rules and persistence owned by `tracker-core`, use-case orchestration and port
   traits owned by `rest-api-application`, adapters and container wiring owned by
   `rest-api-runtime-adapter`, DTOs and their serialization owned by `rest-api-protocol`, the HTTP
@@ -403,8 +405,8 @@ ledger order inside each slice is still confirmed with the first plan (T3).
 | Slice | Content | Ledger rows | Branch | PR | Status |
 | --- | --- | --- | --- | --- | --- |
 | S0 | This specification, the T1 coverage evidence and inventory, and the EPIC registration with the baseline | - | `2637-1347-add-tests-axum-rest-api-server-spec` | #2638 | DONE |
-| S1 | T2-T3, then authentication and the shared response contract (ranks 1 and 3) | 1, 5 | `2637-1347-add-tests-axum-rest-api-server-auth` | #2667 | IN_PROGRESS |
-| S2 | Route composition, transport layers and the health check (rank 2) | 2-4 | `2637-1347-add-tests-axum-rest-api-server-routes` | TBD | PENDING |
+| S1 | T2-T3, then authentication and the shared response contract (ranks 1 and 3) | 1, 5 | `2637-1347-add-tests-axum-rest-api-server-auth` | #2667 | DONE |
+| S2 | Route composition, transport layers and the health check (rank 2) | 2-4 | `2637-1347-add-tests-axum-rest-api-server-routes` | #2687 | IN_PROGRESS |
 | S3 | State-changing contexts: auth keys and whitelist (rank 4) | 6-11 | `2637-1347-add-tests-axum-rest-api-server-commands` | TBD | PENDING |
 | S4 | Read-only contexts: torrents and statistics (rank 5) | 12-17 | `2637-1347-add-tests-axum-rest-api-server-queries` | TBD | PENDING |
 | S5 | Server lifecycle (rank 6) | 18 | `2637-1347-add-tests-axum-rest-api-server-lifecycle` | TBD | PENDING |
@@ -533,9 +535,9 @@ declaration-only rows have no executable entries.
 | Order | Source module | Rank | Slice | Unit-only lines | Tests | Initial hypothesis | State | Plan |
 | ---: | --- | ---: | --- | ---: | ---: | --- | --- | --- |
 | 1 | `v1/middlewares/auth.rs` | 1 | S1 | 71 / 103 (68.93%) | 4 | Property candidate | DONE | [v1-middlewares-auth-tests.md](test-refactor-plans/v1-middlewares-auth-tests.md) (done; 142 / 142 lines after, 27 test cases, 8 mutants killed, property test declined) |
-| 2 | `v1/routes.rs` | 2 | S2 | 27 / 45 (60.00%) | 0 | Test candidate | PENDING | - |
-| 3 | `routes.rs` | 2 | S2 | 58 / 67 (86.57%) | 0 | Test candidate | PENDING | - |
-| 4 | `v1/context/health_check/handlers.rs` | 2 | S2 | 4 / 4 (100.00%) | 0 | Test candidate (small) | PENDING | - |
+| 2 | `v1/routes.rs` | 2 | S2 | 27 / 45 (60.00%) | 0 | Test candidate | DONE | [v1-routes-tests.md](test-refactor-plans/v1-routes-tests.md) (done; 111 / 111 lines after, 19 test cases, 6 mutants killed, private test_support helper) |
+| 3 | `routes.rs` | 2 | S2 | 58 / 67 (86.57%) | 0 | Test candidate | DONE | [routes-tests.md](test-refactor-plans/routes-tests.md) (done; 169 / 169 lines after, 9 test cases, 8 of 10 mutants killed, the 2 survivors recorded, R0 refactor) |
+| 4 | `v1/context/health_check/handlers.rs` | 2 | S2 | 4 / 4 (100.00%) | 0 | Test candidate (small) | DONE | [v1-context-health-check-handlers-tests.md](test-refactor-plans/v1-context-health-check-handlers-tests.md) (done; 16 / 16 lines after, 1 test, mutant killed; protection not coverage) |
 | 5 | `v1/responses.rs` | 3 | S1 | 8 / 40 (20.00%) | 0 | Test candidate | DONE | [v1-responses-tests.md](test-refactor-plans/v1-responses-tests.md) (done; 66 / 66 lines after, 8 test cases, 8 mutants killed) |
 | 6 | `v1/context/auth_key/handlers.rs` | 4 | S3 | 0 / 56 (0.00%) | 0 | Test candidate | PENDING | - |
 | 7 | `v1/context/auth_key/responses.rs` | 4 | S3 | 0 / 26 (0.00%) | 0 | Test candidate | PENDING | - |
@@ -658,6 +660,51 @@ once. If the slicing changes, the Slice column changes with it.
   again: unit-only lines 921 / 1,305 (70.57%), aggregate 1,161 / 1,305 (88.97%), integration-only 674 / 908
   (74.23%); 46 unit tests. Updated the EPIC "Latest" values.
 - 2026-10-27 08:07 UTC - GitHub Copilot - Recorded S1 pull request #2667 (<https://github.com/torrust/torrust-tracker/pull/2667>) with `Related to #2637`, opened at 07:32 UTC after both independent reviews; recorded its number in the frontmatter and the slice table after Copilot's review (finding F1 of the PR #2667 audit).
+- 2026-10-27 14:58 UTC - GitHub Copilot - S1 merged through #2667 (11:47 UTC, with your ACK at 10:23 UTC;
+  Copilot's one nit F1 was fixed before the merge). Closed the loop on the late #2638 findings F5 to F9: the
+  fixes are on `develop`, I replied to and resolved the five threads (14:55 UTC) and set their audit rows to
+  `FIXED`/`RESOLVED` in the first commit of this branch. Started S2 on branch
+  `2637-1347-add-tests-axum-rest-api-server-routes` from `develop` at the merge of #2672. The package is
+  byte-identical to the S1 head, so the S1 measurement is the S2 baseline (unit-only lines 921 / 1,305,
+  70.57%). Row 2 (`v1/routes.rs`) is `IN_PROGRESS`; its plan is proposed and awaits the maintainer.
+- 2026-10-28 12:20 UTC - Jose Celano - Approved the row 2 plan (`v1/routes.rs`) with these decisions: the
+  crate-private container helper is a `#[cfg(test)] mod test_support` (ADR `20261021190318`, rule C; `src/testing/`
+  is for code shared outside the crate); the cases with `private` or `listed` set but no persistence are kept as the
+  second line of defense, linked to the first line (`validate_persistence_requirements` in
+  `src/bootstrap/persistence.rs`, called by `setup` in `src/bootstrap/app.rs`); the design question (making that
+  state unrepresentable) and a stale module comment are recorded in `lessons.md` only.
+- 2026-10-28 13:22 UTC - GitHub Copilot - Jose Celano questioned whether `src/testing/` should hold only shared test
+  code or all test-only code outside a test module. The repository evidence (history of the `src/environment.rs`
+  moves, ADR `20261021190318` rule C, `tracker-core`'s crate-root helpers) is in the routes plan. Decision: the helper
+  stays a private `#[cfg(test)] mod test_support` and its file gets an inner `#![cfg(test)]`; the convention, including
+  the `test_` file prefix for files that contain only test code, goes to `lessons.md` for a separate ADR
+  clarification after this issue.
+- 2026-10-28 13:25 UTC - GitHub Copilot - S2 row 2 (`v1/routes.rs`) is done: unit-only lines 27 / 45 (60.00%) to 111 / 111
+  (100.00%), 19 test cases, six named mutations killed, a crate-private `test_support` helper; the maintainer approved
+  the completed file (2026-10-28). Proposed the row 3 plan (`routes.rs`: the authentication layer wiring, request id,
+  compression), with two questions for the maintainer (the `408` timeout has no test seam; asserting log events
+  needs a new dev-dependency).
+- 2026-10-28 13:27 UTC - Jose Celano - Approved the row 3 plan (`routes.rs`) and answered its two questions: do not
+  assert log events at unit level, and make the `408` timeout testable with a small behavior-preserving refactor
+  (R0) in this issue. This extends the scope with one exception to the production-change exclusion, recorded in
+  Out of Scope; the refactor is its own `refactor` commit before any test.
+- 2026-10-28 16:24 UTC - GitHub Copilot - S2 row 3 (`routes.rs`) is done: unit-only lines 58 / 67 (86.57%) to 174 / 174
+  (100.00%), 9 test cases, eight of ten named mutations killed (two survive by design and are recorded), and the
+  behavior-preserving `with_layers` refactor in its own commit; the maintainer approved the completed file (16:22 UTC).
+  Proposed the plan for row 4 (`v1/context/health_check/handlers.rs`), the last file of S2.
+- 2026-10-28 16:39 UTC - GitHub Copilot - S2 close: rows 2 to 4 are `DONE` (`v1/routes.rs` 111 / 111, `routes.rs` 169 / 169 and the
+  health check handler 16 / 16 unit-only lines), with the behavior-preserving `with_layers` refactor in its own commit
+  and the crate-private `test_support` helper. Correction to the 16:24 UTC entry above: `routes.rs` is 169 / 169 lines,
+  not 174 / 174, because the earlier figure was measured before the timeout assertion was simplified; the ledger,
+  evidence and plan now say 169 / 169. Rebased onto `develop`, which changed the package meanwhile (the configured
+  drain timeout in `server.rs` and its test environment), and measured again: unit-only lines 1,305 / 1,556
+  (83.87%), aggregate 1,421 / 1,556 (91.32%), integration-only 682 / 916 (74.45%); 76 unit tests. Updated the EPIC
+  "Latest" values.
+- 2026-10-28 16:52 UTC - GitHub Copilot - Added the missing approvals of row 4 (`v1/context/health_check/handlers.rs`): the maintainer approved the plan on
+  2026-10-28 after the plan commit of 16:24 UTC and before its test was written (the answer to the plan question, with no
+  change requested), and approved the completed file at 16:35 UTC. The independent S2 review found that the log did
+  not record them. Also fixed the other records items of that review (see `agent-review-reports.md`).
+- 2026-10-28 16:55 UTC - GitHub Copilot - Recorded S2 pull request #2687 (<https://github.com/torrust/torrust-tracker/pull/2687>, `Related to #2637`, opened at 16:55 UTC) in the frontmatter, the slice table and the EPIC row.
 
 ## Acceptance Criteria
 

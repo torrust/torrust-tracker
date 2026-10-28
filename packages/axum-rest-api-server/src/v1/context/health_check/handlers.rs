@@ -8,3 +8,27 @@ use torrust_tracker_rest_api_protocol::v1::context::health_check::resources::rep
 pub async fn health_check_handler() -> Json<Report> {
     Json(Report { status: Status::Ok })
 }
+
+#[cfg(test)]
+mod tests {
+    use axum::body::to_bytes;
+    use axum::http::StatusCode;
+    use axum::http::header::CONTENT_TYPE;
+    use axum::response::IntoResponse;
+
+    use super::health_check_handler;
+    use crate::test_support::MAX_BODY_BYTES;
+
+    #[tokio::test]
+    async fn it_should_answer_ok_with_a_json_report_whose_status_is_ok() {
+        let (parts, body) = health_check_handler().await.into_response().into_parts();
+
+        let body = to_bytes(body, MAX_BODY_BYTES)
+            .await
+            .expect("the body is readable and within the limit");
+        assert_eq!(
+            (parts.status, parts.headers[CONTENT_TYPE].as_bytes(), &body[..]),
+            (StatusCode::OK, &b"application/json"[..], &br#"{"status":"Ok"}"#[..])
+        );
+    }
+}

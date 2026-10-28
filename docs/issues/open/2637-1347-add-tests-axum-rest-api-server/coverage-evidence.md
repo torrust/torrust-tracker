@@ -213,3 +213,27 @@ After both S1 files (`v1/middlewares/auth.rs` and `v1/responses.rs`), on the S1 
 | Integration-only (`--test integration`) | 58 integration | 674 / 908 (74.23%) | 941 / 1,352 (69.60%) | 97 / 137 (70.80%) |
 
 Unit-only lines move 792 / 1,240 (63.87%) at the S1 baseline to 921 / 1,305 (70.57%). Both files count their new test modules, so the denominator grew by 65 lines; the production lines of the two files are now fully covered by unit tests. The integration-only figure is unchanged because the integration binary does not compile the in-file test modules.
+
+### `v1/routes.rs` (slice S2)
+
+Unit-only (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): lines 27 / 45 (60.00%) before, 111 / 111 (100.00%) after; regions 51 / 73 before, 174 / 174 after; functions 1 / 3 before, 13 / 13 after. The counts include the in-file test module. The new crate-private `test_support.rs` helper is 31 / 31 lines. Nineteen test cases; six named mutations killed (see [the plan](test-refactor-plans/v1-routes-tests.md)).
+
+### `routes.rs` (slice S2)
+
+Unit-only (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): lines 58 / 67 (86.57%) before, 169 / 169 (100.00%) after; regions 103 / 117 before, 277 / 277 after; functions 5 / 8 before, 26 / 26 after. The counts include the in-file test module. The request, response and failure log closures run but their content is not asserted at unit level (an integration test asserts the `ERROR` line). Nine test cases; eight of ten named mutations killed, two survive by design (see [the plan](test-refactor-plans/routes-tests.md)).
+
+### `v1/context/health_check/handlers.rs` (slice S2)
+
+Unit-only (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): lines 4 / 4 (100.00%) before, 16 / 16 (100.00%) after; regions 4 / 4 before, 25 / 25 after; functions 2 / 2 before, 4 / 4 after. The file was already fully covered; the single test adds protection (nothing asserted the answer), and the counts grow only by the test module. The mutation (report `Status::Error`) is killed (see [the plan](test-refactor-plans/v1-context-health-check-handlers-tests.md)).
+
+### Slice S2 Measurement
+
+After the four S2 files (`v1/routes.rs`, `routes.rs`, `v1/context/health_check/handlers.rs`, and the crate-private `test_support.rs` helper), on the S2 branch rebased onto `develop`. Stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, a clean workspace before each report, the commands of the Measurement Scope section. `develop` changed the package while S2 ran: `feat(axum-rest-api-server): apply the configured drain timeout to the REST API` (in `server.rs`, which is the S5 file, and the out-of-scope `testing/environment.rs`) added a unit test and 40 lines, so part of the rise below is not from S2.
+
+| Scope | Tests | Lines | Regions | Functions |
+| --- | ---: | ---: | ---: | ---: |
+| Aggregate (all selected test targets) | 76 unit + 58 integration | 1,421 / 1,556 (91.32%) | 2,122 / 2,405 (88.23%) | 205 / 230 (89.13%) |
+| Unit-only (`--lib`) | 76 unit | 1,305 / 1,556 (83.87%) | 1,938 / 2,405 (80.58%) | 182 / 230 (79.13%) |
+| Integration-only (`--test integration`) | 58 integration | 682 / 916 (74.45%) | 949 / 1,360 (69.78%) | 98 / 138 (71.01%) |
+
+Unit-only lines move 921 / 1,305 (70.57%) at the S2 baseline (the S1 measurement) to 1,305 / 1,556 (83.87%). The files S2 changed are fully covered by unit tests, counting their test modules: `v1/routes.rs` 111 / 111, `routes.rs` 169 / 169, `v1/context/health_check/handlers.rs` 16 / 16 and `test_support.rs` 31 / 31. The remaining uncovered production lines are in `server.rs` (S5), the context handlers and responses (S3 and S4), and the out-of-scope `testing/environment.rs`.

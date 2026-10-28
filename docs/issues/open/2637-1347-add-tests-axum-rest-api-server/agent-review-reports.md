@@ -54,3 +54,20 @@ semantic-links:
 - Verdict: REVIEW PASSED
 - Follow-up actions:
   - None.
+
+### 2026-10-28 16:50 UTC - Task Reviewer (slice S2, first review)
+
+- Invocation scope: slice S2 of #2637 on branch `2637-1347-add-tests-axum-rest-api-server-routes`: the commits above `torrust/develop`, including `refactor(axum-rest-api-server): [#2637] separate the router layers from the routes` and the test commits for `v1/routes.rs`, `routes.rs` and the health check handler.
+- Inputs: the issue folder, the EPIC, the subissue guidelines, the `write-unit-test` skill, ADR `20261021190318` rule C, and the changed Rust files.
+- Evidence: the reviewer recomputed the three coverage scopes with clean `cargo llvm-cov` runs (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`) and every recorded figure matched, including the "before" figures rebuilt from a `develop` snapshot and the six EPIC deltas; the production refactor commit is a pure move (same chain and order, same 5 s default, same `#[instrument]`); eight mutations (G1, G5, L1, L5, L8, H1, L6, L10) behaved as the plans say, L6 and L10 surviving by design; `cargo +nightly fmt --all -- --check` (nightly Rust toolchain), `cargo clippy --all-targets`, `cargo machete --with-metadata`, `git diff --check`, `linter markdown` and `linter cspell` passed; no closing keyword and no cited branch SHA; every log stamp was at or before its commit.
+- Findings:
+  - MEDIUM: the row 4 plan approval and completed-file approval were recorded in the plan index and plan but not in the progress log.
+  - LOW: package-level figures in two plans were measured before the rebase onto `develop` and were not labelled as such.
+  - LOW: the routes plan's case table expected a content type that the tests do not assert.
+  - LOW: the timeout test bound a variable named like the helper that reads the response (`received`).
+  - LOW: one rejection test name was narrower than its cases (a wrong token).
+  - LOW: the note on log coverage did not say that the integration test most likely protects only the server-error response event and not the `on_failure` closure.
+  - LOW (declined): `v1/routes.rs`'s helper returns a content type that three tests ignore; the two `409` tables assert it, so the helper stays as it is.
+- Verdict: REVIEW PASSED
+- Follow-up actions:
+  - The approvals were added to the progress log, the figures were labelled, the table and the log note were corrected, and the helper and the test were renamed: `test(axum-rest-api-server): [#2637] stop shadowing the response reader in the router tests` and `docs(issues): [#2637] fix the records items of the S2 independent review`.

@@ -202,6 +202,7 @@ mod tests {
     use tower::ServiceExt;
 
     use super::{State, auth, authenticate};
+    use crate::test_support::MAX_BODY_BYTES;
 
     const FIRST_TOKEN: &str = "api-token-12345";
     const SECOND_TOKEN: &str = "other-token-678";
@@ -260,9 +261,9 @@ mod tests {
             .headers()
             .get(CONTENT_TYPE)
             .map(|value| value.to_str().expect("the content type is text").to_string());
-        let body = to_bytes(response.into_body(), usize::MAX)
+        let body = to_bytes(response.into_body(), MAX_BODY_BYTES)
             .await
-            .expect("the body is readable");
+            .expect("the body is readable and within the limit");
 
         Sent {
             status,

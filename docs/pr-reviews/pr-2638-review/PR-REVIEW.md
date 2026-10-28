@@ -43,7 +43,7 @@ reviewer IDs F1 to F4 do not collide with an existing audit ID and are kept.
 
 Round 2 is da2ce7's review `5639895525` (submitted 2026-10-24 20:39 UTC), a post-merge follow-up because the pull
 request merged at 20:45 UTC before it was processed. Its reviewer IDs F5 to F9 do not collide and are kept. Its
-fixes are on the open follow-up pull request #2667, so the rows are `FOLLOW_UP` and `OPEN` until it merges.
+fixes were first on the open follow-up pull request #2667 (the rows were `FOLLOW_UP` and `OPEN`) and merged through it, so the rows are now `FIXED` and `RESOLVED`.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -51,11 +51,11 @@ fixes are on the open follow-up pull request #2667, so the rows are `FOLLOW_UP` 
 | F2 | review-finding:pr-2638-f2 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F3 | review-finding:pr-2638-f3 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F4 | review-finding:pr-2638-f4 | Copilot | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
-| F5 | review-finding:pr-2638-f5 | Human | Minor | documentation | ORIGINAL | FOLLOW_UP | OPEN |
-| F6 | review-finding:pr-2638-f6 | Human | Nit | correctness | ORIGINAL | FOLLOW_UP | OPEN |
-| F7 | review-finding:pr-2638-f7 | Human | Nit | documentation | ORIGINAL | FOLLOW_UP | OPEN |
-| F8 | review-finding:pr-2638-f8 | Human | Nit | documentation | ORIGINAL | FOLLOW_UP | OPEN |
-| F9 | review-finding:pr-2638-f9 | Human | Nit | documentation | ORIGINAL | FOLLOW_UP | OPEN |
+| F5 | review-finding:pr-2638-f5 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F6 | review-finding:pr-2638-f6 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
+| F7 | review-finding:pr-2638-f7 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F8 | review-finding:pr-2638-f8 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F9 | review-finding:pr-2638-f9 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -118,7 +118,7 @@ fixes are on the open follow-up pull request #2667, so the rows are `FOLLOW_UP` 
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2638#discussion_r4368445264
 - Concern: The spec and EPIC progress-log entries were stamped 20:05 and 20:20 UTC (the forge says the issue was created at 19:57:14 UTC and the PR opened at 20:00 UTC), the EPIC entry and the stamps came from a commit authored at 19:59 UTC, and `last-updated-utc` was not bumped after four later commits that changed the files without a log entry.
-- Solution: The entries are re-stamped with the forge times, the review round and the merge are logged, and `last-updated-utc` is bumped in both files. Fixed on the follow-up branch of PR #2667; not on `develop` until that pull request merges.
+- Solution: The entries are re-stamped with the forge times, the review round and the merge are logged, and `last-updated-utc` is bumped in both files. Merged through the follow-up pull request #2667.
 - Current-tree verification: Read the progress logs of `ISSUE.md` and `EPIC.md` against `gh issue view 2637 --json createdAt` (19:57:14Z) and `gh pr view 2638 --json createdAt` (20:00:00Z).
 - Resolution reference: docs(issues): [#2637] stamp the spec and EPIC log entries with the event times
 - Follow-up PR URL: https://github.com/torrust/torrust-tracker/pull/2667
@@ -131,7 +131,7 @@ fixes are on the open follow-up pull request #2667, so the rows are `FOLLOW_UP` 
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2638#discussion_r4368445267
 - Concern: `coverage-evidence.md` named `routes.rs:136` as the handler that answers `408`; at the measured commit that line closes the `on_failure` closure, and the `HandleErrorLayer` closure that answers `408` is at line 144, which the unit-only report does not list.
-- Solution: The group is split: lines 122-129 and 136 are the logging `on_failure` closure, and line 144 is named as the `408` handler, with the reason the report does not list it. Fixed on the follow-up branch of PR #2667; not on `develop` until that pull request merges.
+- Solution: The group is split: lines 122-129 and 136 are the logging `on_failure` closure, and line 144 is named as the `408` handler, with the reason the report does not list it. Merged through the follow-up pull request #2667.
 - Current-tree verification: Read `packages/axum-rest-api-server/src/routes.rs` lines 136 and 144 and the two rows of `coverage-evidence.md`.
 - Resolution reference: docs(issues): [#2637] name the 408 timeout handler line in the coverage evidence
 - Follow-up PR URL: https://github.com/torrust/torrust-tracker/pull/2667
@@ -144,7 +144,7 @@ fixes are on the open follow-up pull request #2667, so the rows are `FOLLOW_UP` 
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2638#discussion_r4368445269
 - Concern: Row 4 of the inventory (`v1/context/health_check/handlers.rs`) showed `1 (integration)` in the column that counts in-file `#[test]` functions; the file has none.
-- Solution: The cell reads `0 (1 integration)`, as rows 6, 9, 12 and 15 do. Fixed on the follow-up branch of PR #2667; not on `develop` until that pull request merges.
+- Solution: The cell reads `0 (1 integration)`, as rows 6, 9, 12 and 15 do. Merged through the follow-up pull request #2667.
 - Current-tree verification: Read row 4 of the inventory; `grep -c '#\[test\]\|#\[tokio::test\]'` on the file gives 0.
 - Resolution reference: docs(issues): [#2637] write the health check test count as zero in-file
 - Follow-up PR URL: https://github.com/torrust/torrust-tracker/pull/2667
@@ -157,7 +157,7 @@ fixes are on the open follow-up pull request #2667, so the rows are `FOLLOW_UP` 
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2638#discussion_r4368445271
 - Concern: The property-based testing row of `coverage-evidence.md` still said `the route gating by configuration` after the F4 fix of this audit said every such statement had been changed.
-- Solution: The row now says `capability gating`; the sweep covered `ISSUE.md` and `coverage-evidence.md` and `grep -rn 'route gating'` over the issue folder finds nothing. Fixed on the follow-up branch of PR #2667; not on `develop` until that pull request merges.
+- Solution: The row now says `capability gating`; the sweep covered `ISSUE.md` and `coverage-evidence.md` and `grep -rn 'route gating'` over the issue folder finds nothing. Merged through the follow-up pull request #2667.
 - Current-tree verification: `grep -rn 'route gating' docs/issues/open/2637-1347-add-tests-axum-rest-api-server` returned no match after the change.
 - Resolution reference: docs(issues): [#2637] finish the capability gating wording in the technique assessment
 - Follow-up PR URL: https://github.com/torrust/torrust-tracker/pull/2667
@@ -170,7 +170,7 @@ fixes are on the open follow-up pull request #2667, so the rows are `FOLLOW_UP` 
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2638#discussion_r4368445273
 - Concern: The Processing Log entry of 20:18 UTC said `No review from the maintainer da2ce7`; da2ce7 was the requested reviewer, and the maintainer is the PR author.
-- Solution: The log is append-only, so a correction entry names the rewritten wording and the 20:18 UTC entry is left as written. Fixed on the follow-up branch of PR #2667; not on `develop` until that pull request merges.
+- Solution: The log is append-only, so a correction entry names the rewritten wording and the 20:18 UTC entry is left as written. Merged through the follow-up pull request #2667.
 - Current-tree verification: Read the Processing Log of this audit after the change.
 - Resolution reference: docs(pr-reviews): correct the role of da2ce7 in the PR 2638 audit log
 - Follow-up PR URL: https://github.com/torrust/torrust-tracker/pull/2667
@@ -183,6 +183,7 @@ fixes are on the open follow-up pull request #2667, so the rows are `FOLLOW_UP` 
 - 2026-10-24 20:24 UTC - Replied to the four threads (reply times 20:24:17 to 20:24:24 UTC) and resolved them; each resolve mutation returned `isResolved: true`.
 - 2026-10-24 20:53 UTC - Correction to the 20:18 UTC entry: it called da2ce7 "the maintainer", but da2ce7 is the requested reviewer (the maintainer is the PR author, josecelano), as da2ce7's finding F9 states. The 20:18 UTC entry is left as written.
 - 2026-10-27 07:32 UTC - Recorded late: da2ce7's review `5639895525` was submitted at 2026-10-24 20:39 UTC with five inline findings (F5 to F9), after the Copilot round above and before the pull request merged at 20:45 UTC; the five findings were unprocessed at the merge. Triage was read-only first and the maintainer chose to fold the fixes into the S1 branch. The five replies on the merged threads (07:32:50 to 07:32:59 UTC) carry the `FOLLOW_UP` disposition, the follow-up pull request #2667 and the approval comment created at 07:32:25 UTC. The threads stay open until #2667 merges.
+- 2026-10-27 14:56 UTC - The follow-up pull request #2667 was merged at 11:47 UTC (merge commit subject `Merge torrust/torrust-tracker#2667: test(axum-rest-api-server): [#2637] cover the authentication middleware and the shared responses`). Re-checked the five fixes in the `develop` tree, replied to each thread (14:55:46 to 14:55:55 UTC) and resolved all five (each mutation returned `isResolved: true`); F5 to F9 are `FIXED` and `RESOLVED`. This update travels with the next slice pull request, because the merged branch cannot carry it.
 
 ## Completion Rules
 
