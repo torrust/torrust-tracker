@@ -8,8 +8,8 @@ epic: 1347
 github-issue: 2637
 spec-path: docs/issues/open/2637-1347-add-tests-axum-rest-api-server/ISSUE.md
 branch: "2637-1347-add-tests-axum-rest-api-server-routes"
-related-pr: null
-last-updated-utc: "2026-10-28 16:52"
+related-pr: 2687
+last-updated-utc: "2026-10-28 16:55"
 semantic-links:
   skill-links:
     - create-issue
@@ -406,7 +406,7 @@ ledger order inside each slice is still confirmed with the first plan (T3).
 | --- | --- | --- | --- | --- | --- |
 | S0 | This specification, the T1 coverage evidence and inventory, and the EPIC registration with the baseline | - | `2637-1347-add-tests-axum-rest-api-server-spec` | #2638 | DONE |
 | S1 | T2-T3, then authentication and the shared response contract (ranks 1 and 3) | 1, 5 | `2637-1347-add-tests-axum-rest-api-server-auth` | #2667 | DONE |
-| S2 | Route composition, transport layers and the health check (rank 2) | 2-4 | `2637-1347-add-tests-axum-rest-api-server-routes` | TBD | IN_PROGRESS |
+| S2 | Route composition, transport layers and the health check (rank 2) | 2-4 | `2637-1347-add-tests-axum-rest-api-server-routes` | #2687 | IN_PROGRESS |
 | S3 | State-changing contexts: auth keys and whitelist (rank 4) | 6-11 | `2637-1347-add-tests-axum-rest-api-server-commands` | TBD | PENDING |
 | S4 | Read-only contexts: torrents and statistics (rank 5) | 12-17 | `2637-1347-add-tests-axum-rest-api-server-queries` | TBD | PENDING |
 | S5 | Server lifecycle (rank 6) | 18 | `2637-1347-add-tests-axum-rest-api-server-lifecycle` | TBD | PENDING |
@@ -704,6 +704,7 @@ once. If the slicing changes, the Slice column changes with it.
   2026-10-28 after the plan commit of 16:24 UTC and before its test was written (the answer to the plan question, with no
   change requested), and approved the completed file at 16:35 UTC. The independent S2 review found that the log did
   not record them. Also fixed the other records items of that review (see `agent-review-reports.md`).
+- 2026-10-28 16:55 UTC - GitHub Copilot - Recorded S2 pull request #2687 (<https://github.com/torrust/torrust-tracker/pull/2687>, `Related to #2637`, opened at 16:55 UTC) in the frontmatter, the slice table and the EPIC row.
 
 ## Acceptance Criteria
 
