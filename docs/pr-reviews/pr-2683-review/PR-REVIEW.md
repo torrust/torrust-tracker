@@ -47,6 +47,8 @@ Round 3: the third review of `copilot-pull-request-reviewer` (5684761654, COMMEN
 
 Round 4: the fourth review of `copilot-pull-request-reviewer` (5686403906, COMMENTED, submitted 2026-10-28T16:48:28Z) on the head whose subject is `docs(issues): [#2581] record the recheck after the third review and the progress`. It was the review requested through the REST `requested_reviewers` endpoint at 16:30:49 UTC, after everything else had been pushed, and the `wait-for-pr-review` poller returned it. Its body warns that Copilot could not run its full agentic review because it did not start before the timeout, which raises no assertion of its own. It opens four inline threads and lists F7 to F12 as resolved since the last review. Its comments carry no severity or finding ID, so the audit assigns F13 to F16 in source order and infers the severities.
 
+Round 5: the fifth review of `copilot-pull-request-reviewer` (5687101185, COMMENTED, submitted 2026-10-28T17:40:38Z) on the head whose subject is `docs(issues): [#2581] update the review round counts in the spec progress log and the evidence`. It was the review requested through the REST `requested_reviewers` endpoint at 17:21:42 UTC, after everything else had been pushed, and the `wait-for-pr-review` poller returned it. Its body warns that Copilot could not run its full agentic review because it didn't start before the timeout, which raises no assertion of its own. It opens two inline threads and lists F13 to F16 as resolved since the last review. Its comments carry no severity or finding ID, so the audit assigns F17 and F18 in source order and infers the severities.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2683-f1 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -65,6 +67,8 @@ Round 4: the fourth review of `copilot-pull-request-reviewer` (5686403906, COMME
 | F14 | review-finding:pr-2683-f14 | Copilot | Nit (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
 | F15 | review-finding:pr-2683-f15 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
 | F16 | review-finding:pr-2683-f16 | Copilot | Nit (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F17 | review-finding:pr-2683-f17 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
+| F18 | review-finding:pr-2683-f18 | Copilot | Nit (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -276,6 +280,32 @@ Round 4: the fourth review of `copilot-pull-request-reviewer` (5686403906, COMME
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2683#discussion_r4403773128>
 
+### F17 - `write_diagnostic` ignores I/O and serialization errors
+
+- PR number: 2683
+- Source review ID: 5687101185
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2683#discussion_r4404026465>
+- Concern: `write_diagnostic` drops I/O and serialization errors, which can silently violate the NDJSON-on-stderr contract, for example partial JSON on a short write. Handle the results of the writes, at least to return a non-zero exit code when valid diagnostics cannot be produced.
+- Solution: `write_diagnostic` builds the whole record in memory and writes it with one call, so a failure cannot leave half a record behind, and it returns the error. `emit_diagnostic` exits non-zero when a record cannot be written: every failure code already is non-zero, and the help text, whose whole purpose is to be read, no longer reports success when it was never written. The `wait_started` progress record stays best effort, because the caller relies on the result on stdout or on the failure record and its exit code; the code says so.
+- Current-tree verification: With `/dev/full` as stderr, which fails every write, the new test `it_should_not_report_success_for_help_when_the_help_text_cannot_be_written` failed before the change (exit `0` where `1` was expected) and passes now; `it_should_keep_the_usage_error_exit_code_when_the_diagnostic_cannot_be_written` and `it_should_still_print_the_result_when_only_the_progress_record_cannot_be_written` pin the other two cases. Against the real binary, `--help` into `/dev/full` exited `1` with empty stdout, no arguments exited `2`, a merged pull request still printed its `pr_merged` result with exit `0`, and `--help` with a normal stderr exited `0` with one valid JSON record. The three tests are gated to Linux because `/dev/full` is.
+- Resolution reference: fix(wait-for-pr-review): [#2581] never report success for help that could not be written
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2683#discussion_r4404131549>
+
+### F18 - The digit-only check of `digits` is hard to read
+
+- PR number: 2683
+- Source review ID: 5687101185
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2683#discussion_r4404026549>
+- Concern: `digits` uses a nested `Option` with `then(|| field.parse().ok())?`, which is correct but hard to read. Rewrite it so the digit-only validation and the parse failure path are explicit.
+- Solution: `digits` returns early when a field has a non-digit and parses otherwise. Behavior is unchanged.
+- Current-tree verification: The existing parser tests passed after the rewrite, including `it_should_reject_signed_or_otherwise_non_digit_fields`, the day, clock-range and leap-year cases (60 unit tests in total), and `cargo clippy -p wait-for-pr-review --all-targets` reported nothing.
+- Resolution reference: refactor(wait-for-pr-review): [#2581] make the digit-only check of the timestamp parser explicit
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2683#discussion_r4404132355>
+
 ## Processing Log
 
 - 2026-10-28 12:35 UTC - The `wait-for-pr-review` poller returned Copilot's review 5682635980, submitted at 12:34:22 UTC (kind `review`, state `COMMENTED`, exit `0`; its stdout file was last written at 12:35:33 UTC). The review opened four inline threads, F1 to F4; all were unresolved. Each was checked against the current tree and found valid.
@@ -296,6 +326,11 @@ Round 4: the fourth review of `copilot-pull-request-reviewer` (5686403906, COMME
 - 2026-10-28 17:13 UTC - The four fixes were committed, one signed commit each: F13 at 16:55, F14 at 16:57, F15 at 17:11 and F16 at 17:13 UTC (commit times from `git log --format=%cI`). While preparing F15, a test that re-bound just-released ports failed in 11 of 60 full parallel runs and was replaced before its commit (see the F15 detail and section V8 of the evidence file).
 - 2026-10-28 17:16 UTC - After the push, each thread was replied to and resolved with `reply-and-resolve-thread.sh`; the GitHub times of the four replies are 17:16:24, 17:16:28, 17:16:32 and 17:16:35 UTC.
 - 2026-10-28 17:16 UTC - A GraphQL fetch at 17:16:48 UTC, after the last reply, reported no unresolved thread.
+
+- 2026-10-28 17:41 UTC - The `wait-for-pr-review` poller returned Copilot's fifth review 5687101185, submitted at 17:40:38 UTC (kind `review`, state `COMMENTED`, no `head_moved`; its stdout file was last written at 17:41:08 UTC). It opened two threads, F17 and F18, both unresolved. Each was checked against the current tree and found valid.
+- 2026-10-28 17:45 UTC - The two fixes were committed, one signed commit each: F17 at 17:44 and F18 at 17:45 UTC (commit times from `git log --format=%cI`). The first commit attempt for F17 was refused by pre-commit because of one word in a comment that the spell checker did not know; it was fixed and committed after the checks passed.
+- 2026-10-28 17:50 UTC - After the push, each thread was replied to and resolved with `reply-and-resolve-thread.sh`; the GitHub times of the two replies are 17:50:11 and 17:50:16 UTC.
+- 2026-10-28 17:50 UTC - A GraphQL fetch at 17:50:20 UTC, after the last reply, reported no unresolved thread.
 
 ## Completion Rules
 
