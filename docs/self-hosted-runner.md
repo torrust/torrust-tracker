@@ -403,7 +403,7 @@ happened on 2026-10-27 ([issue 2673](https://github.com/torrust/torrust-tracker/
    starred is the stuck state.
 3. Restart Docker to release it: `systemctl restart docker.service`. This stops running containers
    (live restore is off). Then run `systemctl start docker-ci-prune.service`. On 2026-10-27 the restart
-   alone freed 150 GB.
+   alone released 153.6 GB of build cache and freed 144 GiB of disk.
 4. If the disk is still full, delete the host Cargo target cache as described in "Cache Cleanup".
 5. Re-run the failed pull-request checks from each pull request's latest run, as in "When the Runner
    Is Offline".
@@ -423,7 +423,7 @@ holds a lock and makes jobs wait at their start is described as R5 in
 [deferred-proposals.md](issues/open/2673-runner-disk-full-build-cache-not-pruned/deferred-proposals.md).
 
 The host-side Cargo target directories under `/home/runner/.cache/torrust-tracker/` are not pruned
-automatically. The directory is reused by every job, and it measured 23 GB on 2026-10-27, thirty days
+automatically. The directory is reused by every job, and it measured 23 GiB on 2026-10-27, thirty days
 after it was created. Deleting it costs the next job a full Cargo rebuild, so it is only a last
 resort: if the disk stays at or above 85% after the restart, the prune unit fails, and then you delete
 it (`rm -rf /home/runner/.cache/torrust-tracker/*-target`) while no job is running. Check its size

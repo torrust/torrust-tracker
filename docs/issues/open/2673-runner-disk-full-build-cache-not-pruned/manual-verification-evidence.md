@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2673-runner-disk-full-build-cache-not-pruned/ISSUE.md
-last-updated-utc: 2026-10-27 11:45
+last-updated-utc: 2026-10-28 07:26
 ---
 
 # Manual Verification Evidence
@@ -199,11 +199,11 @@ after step 3 (10:11:27)   119G, 170G,  42%           137, 0, 100GB, 100GB    (no
 after step 4 (10:11:38)   119G, 170G,  42%           137, 0, 100GB, 100GB
 ```
 
-The prune in step 4 reported `Total: 0B` for the build cache. That is expected: the cache, 100 GB, is under the 120 GB `--max-used-space` target. Docker, containerd, and the runner service were `active` after the restart, GitHub reported the runner `online` and not busy, and the daemon log shows `Initializing buildkit` at 10:10:59 and `Completed buildkit initialization` at 10:10:59, with no errors apart from an unrelated fsverity warning. `docker.service` had consumed 6 h 36 min CPU and a 1.9 GB memory peak over 32 days.
+The prune in step 4 reported `Total: 0B` for the build cache. That is expected: the cache, 100 GB, is under the `--max-used-space` target (the guide records 120 GiB as about 128.8 GB). Docker, containerd, and the runner service were `active` after the restart, GitHub reported the runner `online` and not busy, and the daemon log shows `Initializing buildkit` at 10:10:59 and `Completed buildkit initialization` at 10:10:59, with no errors apart from an unrelated fsverity warning. `docker.service` had consumed 6 h 36 min CPU and a 1.9 GB memory peak over 32 days.
 
 #### Conclusion
 
-The disk is recovered: 42% used with 170 GB free, and the cache is reclaimable again. Removing the containers (step 2) changed nothing in the cache. Restarting dockerd (step 3) released the pinned state: the 117 Active snapshots disappeared, the build cache fell by 153.6 GB (253.6 GB to 100 GB), and `df` used space fell by 144 GiB, all without any prune. That identifies the pinned state as orphaned references that BuildKit inside dockerd holds until the daemon restarts. This restores service only; it does not stop the state from accumulating again.
+The disk is recovered: 42% used with 170 GiB free (`df`), and the cache is reclaimable again. Removing the containers (step 2) changed nothing in the cache. Restarting dockerd (step 3) released the pinned state: the 117 Active snapshots disappeared, the build cache fell by 153.6 GB (253.6 GB to 100 GB), and `df` used space fell by 144 GiB, all without any prune. That identifies the pinned state as orphaned references that BuildKit inside dockerd holds until the daemon restarts. This restores service only; it does not stop the state from accumulating again.
 
 ### V5 - Regression test red, then green (T3, T4, T5)
 

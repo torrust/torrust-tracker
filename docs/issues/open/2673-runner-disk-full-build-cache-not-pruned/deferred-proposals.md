@@ -63,7 +63,7 @@ Restart `docker.service` every night when no job runs, regardless of disk usage.
 
 ### R4. Larger disk
 
-The 301 GB disk was full at a 253 GB cache. A larger disk only delays the failure if build state keeps leaking. Choose it only after R1 or R2 bound the leak.
+The 301 GiB disk was full at a 253.6 GB cache. A larger disk only delays the failure if build state keeps leaking. Choose it only after R1 or R2 bound the leak.
 
 ### R5. Keep new jobs out while Docker restarts
 
