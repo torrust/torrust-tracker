@@ -9,7 +9,7 @@ github-issue: 2681
 spec-path: docs/issues/open/2681-2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md
 branch: "2681-2482-gate-tracker-core-test-modules-and-mocks"
 related-pr: null
-last-updated-utc: "2026-10-28 12:29"
+last-updated-utc: "2026-10-28 12:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -269,7 +269,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T1 | TODO | Record the baseline and audit the dependencies | `cargo tree -p torrust-tracker-core -e normal --depth 1` (shows `mockall`); test counts with and without `--all-features` for the three packages; re-`grep` the five `Mock*` names across the workspace; audit every other normal dependency of `tracker-core` against ADR rule A.2 (only `#[cfg(test)]` users become dev-dependencies, the audit result is recorded even if empty) |
+| T1 | TODO | Record the baseline and audit the dependencies | `cargo tree -p torrust-tracker-core -e normal --depth 1` (shows `mockall`); test counts of the three packages from four commands each, `cargo test -p <package>`, `cargo test -p <package> --all-features`, `cargo test -p <package> --all-targets --all-features` and `cargo test -p <package> --doc --all-features` (`--all-targets` does not run doc tests, so the doc-test count comes from the plain and `--doc` runs); re-`grep` the five `Mock*` names across the workspace; audit every other normal dependency of `tracker-core` against ADR rule A.2 (only `#[cfg(test)]` users become dev-dependencies, the audit result is recorded even if empty) |
 | T2 | TODO | Rule C: make the three helper modules private | `#[cfg(test)] mod`; `pub mod tests` inside; doc bullet removed. `cargo test -p torrust-tracker-core` and clippy pass |
 | T3 | TODO | Rule D.2: the three crate-private mocks use `cfg_attr(test, automock)` | Imports and re-exports gated by `cfg(test)`; tracker-core tests pass |
 | T4 | TODO | Rule D: gate `MockTorrentMetricsStore` behind `testing`, add the feature, optional `mockall`, self dev-dependency, `deny.toml` wrapper, and the consumers' dev-dependency entries | One commit: the gate runs `cargo machete` and `cargo deny` on every commit. Plain `cargo test -p` passes for the three packages |
@@ -326,8 +326,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
       `MockSchemaMigrator` do not exist outside `cfg(test)`.
 - [ ] AC3: `cargo test -p torrust-tracker-core`, `-p torrust-tracker-http-core` and
       `-p torrust-tracker-udp-core` pass without `--all-features`, and each target's test count
-      equals the baseline (unit, integration and doc tests, counted separately); the same three
-      commands with `--all-targets --all-features` pass with counts equal to the T1 baseline.
+      equals the baseline (unit, integration and doc tests, counted separately); the same
+      comparison holds for the other three T1 commands per package (`--all-features`,
+      `--all-targets --all-features` and `--doc --all-features`), each against the count its own
+      baseline command recorded.
 - [ ] AC4: Every `features = ["testing"]` edge on `torrust-tracker-core` is in a
       `[dev-dependencies]` table; the `Shipped Features` check exits 0 on the real tree, and exits 1
       when the edge is temporarily moved to `[dependencies]` (evidence, not committed).
@@ -346,8 +348,10 @@ without `--all-features`, compare test counts, and make sure no test is silently
 ### Automatic Checks
 
 - `linter all` (via the pre-commit gate on every commit) and the pre-push script before the PR.
-- `cargo test -p torrust-tracker-core`, `-p torrust-tracker-http-core`, `-p torrust-tracker-udp-core`
-  with and without `--all-targets --all-features`, counts compared with T1.
+- For each of `torrust-tracker-core`, `torrust-tracker-http-core` and `torrust-tracker-udp-core`, the
+  four commands of T1 (`cargo test -p <package>`, `... --all-features`,
+  `... --all-targets --all-features` and `... --doc --all-features`), each count compared with the
+  baseline recorded by the same command.
 - `cargo clippy` on the three packages with `--all-targets`, with and without `--all-features`.
 - `cargo machete --with-metadata`, `cargo deny check bans`,
   `cargo +stable package --workspace --no-verify`.
