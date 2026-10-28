@@ -39,13 +39,14 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-One review of `copilot-pull-request-reviewer` has arrived so far: 5686786536 (COMMENTED, 2026-10-28 17:17 UTC, on the head whose subject is `docs(issues): [#2681] record the pre-PR review, the completion review and the retrospective`). It carries a "didn't start before the timeout" warning, so Copilot was requested again once; the re-requested review had not arrived when this record was written. It lists three open issues, each with one inline thread (F1 to F3). Copilot was requested through the `request_copilot_review` MCP tool. da2ce7 was requested through the REST `requested_reviewers` endpoint and has not reviewed. The maintainer asked on 2026-10-28 to address Copilot's review.
+Two reviews of `copilot-pull-request-reviewer` have arrived. Review 5686786536 (COMMENTED, 2026-10-28 17:17 UTC, on the head whose subject is `docs(issues): [#2681] record the pre-PR review, the completion review and the retrospective`) carries a "didn't start before the timeout" warning, so Copilot was requested again once; it lists three open issues, each with one inline thread (F1 to F3). The re-requested review 5687032971 (COMMENTED, 17:35 UTC, on the head whose subject is `docs(pr-reviews): [#2681] record the review of PR 2688`) has no open issue and one "previously missed" finding in its body, without an inline thread (F4). Copilot was requested through the `request_copilot_review` MCP tool. da2ce7 was requested through the REST `requested_reviewers` endpoint and has not reviewed. The maintainer asked on 2026-10-28 to address Copilot's review.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2688-f1 | Copilot | Suggestion | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F2 | review-finding:pr-2688-f2 | Copilot | Suggestion | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F3 | review-finding:pr-2688-f3 | Copilot | Suggestion | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F4 | review-finding:pr-2688-f4 | Copilot | Minor | testing | ORIGINAL | FIXED | NON_RESOLVABLE |
 
 ## Finding Details
 
@@ -88,9 +89,23 @@ One review of `copilot-pull-request-reviewer` has arrived so far: 5686786536 (CO
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2688#discussion_r4403811999>
 
+### F4 - Test the preserved shipped-profile binary, not a target path that is rebuilt
+
+- PR number: 2688
+- Source review ID: 5687032971
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2688#pullrequestreview-5687032971>
+- Concern: in the evidence file, the `TORRUST_TRACKER_BINARY` run points into Cargo's target directory, which the preceding plain test run can rebuild, so the transcript does not establish that the inspected shipped-profile binary was the one tested. The reviewer asks to copy the binary to a separate path right after building it, use the copy as the override, and record the actual result.
+- Solution: the finding was right. The plain run did rebuild `target/debug/torrust-tracker` (its checksum changed). V4 of the evidence now records a copy made right after the shipped-profile build, its checksum before and after, the `strings` check on the copy, and the override run against the copy (25 tests pass, copy unchanged). The review has no inline thread, so there is nothing to reply to or resolve.
+- Current-tree verification: ran the sequence build, copy, `sha256sum`, plain `cargo test -p torrust-tracker --test cli-configuration`, `sha256sum` again, then the override run: the target binary changed (`1653421cdeec9d69` to `2f9d185fca66a2e5`, first 16 hex digits) while the copy stayed `1653421cdeec9d69`, and the override run passed 25 tests.
+- Resolution reference: docs(issues): [#2681] test the preserved shipped-profile binary in the evidence
+- Follow-up PR URL: N/A
+- Reply URL: N/A
+
 ## Processing Log
 
 - 2026-10-28 17:22 UTC - Round 1: review 5686786536 arrived with a timeout warning and three inline threads, F1 to F3. Each claim was checked against the tree; none required a change, so each thread got the prescribed `Superseded by F<n>:` reply and was resolved. Copilot was re-requested once because of the warning.
+- 2026-10-28 17:37 UTC - Round 2: the re-requested review 5687032971 arrived with no open issue and one review-body finding without a thread (F4). It was reproduced (the plain test run rebuilds the target binary), fixed in the evidence in its own signed commit, and recorded as `FIXED`/`NON_RESOLVABLE`. This record is committed and pushed after the fix; da2ce7 is re-requested after the push.
 
 ## Completion Rules
 
