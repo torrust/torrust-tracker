@@ -345,7 +345,7 @@ pub(crate) mod tests {
             let first_out_of_range = u32::try_from(i32::MAX).unwrap() + 1;
             let core_config = Arc::new(Core {
                 announce_policy: AnnouncePolicy {
-                    interval: AnnounceIntervalInSecs::new(u32::try_from(i32::MAX).unwrap()).unwrap(),
+                    interval: AnnounceIntervalInSecs::new(AnnounceIntervalInSecs::MAX).unwrap(),
                     ..AnnouncePolicy::default()
                 },
                 ..Core::default()
