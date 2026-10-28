@@ -7,9 +7,9 @@ priority: p2
 epic: 2482
 github-issue: 2681
 spec-path: docs/issues/open/2681-2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md
-branch: "2681-2482-gate-tracker-core-test-modules-and-mocks"
+branch: "2681-2482-gate-tracker-core-test-modules-and-mocks-spec"
 related-pr: null
-last-updated-utc: "2026-10-28 12:33"
+last-updated-utc: "2026-10-28 13:45"
 semantic-links:
   skill-links:
     - create-issue
