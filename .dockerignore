@@ -44,6 +44,7 @@
 !/contrib/dev-tools/checks/package-coverage-check/
 !/contrib/dev-tools/checks/shipped-features-check/
 !/contrib/dev-tools/github/github-review-threads/
+!/.github/skills/dev/pr-reviews/wait-for-pr-review/tool/
 
 # ── Re-exclusions inside admitted directories ─────────────────────────────────
 # Agent instructions and package documentation are never read by a build stage.
