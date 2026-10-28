@@ -185,8 +185,8 @@ async fn start_jobs_with_manager(
     start_swarm_coordination_registry_event_listener(config, app_container, job_manager, &mut flows)?;
     start_tracker_core_in_memory_event_listener(config, app_container, job_manager, &mut flows)?;
     start_tracker_core_persistent_completed_statistics_event_listener(config, app_container, job_manager, &mut flows)?;
-    start_http_core_event_listener(config, app_container, job_manager, &mut flows)?;
-    start_udp_core_event_listener(config, app_container, job_manager, &mut flows)?;
+    start_http_core_event_listener(app_container, job_manager, &mut flows)?;
+    start_udp_core_event_listener(app_container, job_manager, &mut flows)?;
     start_udp_tracker_services(config, app_container, job_manager, &mut flows).await?;
     start_the_http_instances(config, app_container, job_manager, &mut flows).await?;
 
@@ -308,24 +308,22 @@ fn start_tracker_core_persistent_completed_statistics_event_listener(
 }
 
 fn start_http_core_event_listener(
-    config: &Configuration,
     app_container: &Arc<AppContainer>,
     job_manager: &mut JobManager,
     flows: &mut EventFlows,
 ) -> Result<(), Error> {
     let reservation = job_manager.reserve("http_core_event_listener");
-    let runner = jobs::http_tracker_core::run_event_listener(config, app_container, reservation.cancellation_token());
+    let runner = jobs::http_tracker_core::run_event_listener(app_container, reservation.cancellation_token());
     spawn_listener(job_manager, flows, Bus::HttpCore, reservation, component_runner(runner))
 }
 
 fn start_udp_core_event_listener(
-    config: &Configuration,
     app_container: &Arc<AppContainer>,
     job_manager: &mut JobManager,
     flows: &mut EventFlows,
 ) -> Result<(), Error> {
     let reservation = job_manager.reserve("udp_core_event_listener");
-    let runner = jobs::udp_tracker_core::run_event_listener(config, app_container, reservation.cancellation_token());
+    let runner = jobs::udp_tracker_core::run_event_listener(app_container, reservation.cancellation_token());
     spawn_listener(job_manager, flows, Bus::UdpCore, reservation, component_runner(runner))
 }
 
@@ -340,8 +338,8 @@ async fn start_udp_tracker_services(
         return Ok(());
     }
 
-    start_udp_server_stats_event_listener(config, app_container, job_manager, flows)?;
-    start_udp_server_banning_event_listener(config, app_container, job_manager, flows)?;
+    start_udp_server_stats_event_listener(app_container, job_manager, flows)?;
+    start_udp_server_banning_event_listener(app_container, job_manager, flows)?;
     // issue: #1453
     start_udp_ban_cleanup_job(config, app_container, job_manager);
     start_the_udp_instances(config, app_container, job_manager, flows).await
@@ -369,24 +367,22 @@ fn log_udp_tracker_services_not_started(config: &Configuration) {
 }
 
 fn start_udp_server_stats_event_listener(
-    config: &Configuration,
     app_container: &Arc<AppContainer>,
     job_manager: &mut JobManager,
     flows: &mut EventFlows,
 ) -> Result<(), Error> {
     let reservation = job_manager.reserve("udp_server_stats_event_listener");
-    let runner = jobs::udp_tracker_server::run_stats_event_listener(config, app_container, reservation.cancellation_token());
+    let runner = jobs::udp_tracker_server::run_stats_event_listener(app_container, reservation.cancellation_token());
     spawn_listener(job_manager, flows, Bus::UdpServer, reservation, component_runner(runner))
 }
 
 fn start_udp_server_banning_event_listener(
-    config: &Configuration,
     app_container: &Arc<AppContainer>,
     job_manager: &mut JobManager,
     flows: &mut EventFlows,
 ) -> Result<(), Error> {
     let reservation = job_manager.reserve("udp_server_banning_event_listener");
-    let runner = jobs::udp_tracker_server::run_banning_event_listener(config, app_container, reservation.cancellation_token());
+    let runner = jobs::udp_tracker_server::run_banning_event_listener(app_container, reservation.cancellation_token());
     spawn_listener(job_manager, flows, Bus::UdpServer, reservation, component_runner(runner))
 }
 

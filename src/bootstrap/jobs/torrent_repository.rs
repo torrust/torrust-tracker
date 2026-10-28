@@ -4,7 +4,6 @@ use tokio_util::sync::CancellationToken;
 use torrust_tracker_configuration::v3_0_0::Configuration;
 use torrust_tracker_events::shutdown::Completion;
 
-use crate::bootstrap::jobs::event_listener_drain_timeout;
 use crate::container::AppContainer;
 
 /// Returns an unspawned listener for application-level supervision.
@@ -19,7 +18,7 @@ pub fn run_event_listener(
             app_container.swarm_coordination_registry_container.event_bus.receiver(),
             cancellation_token,
             app_container.swarm_coordination_registry_container.stats_repository.clone(),
-            event_listener_drain_timeout(config),
+            app_container.application_config.shutdown.event_listener_drain(),
         )
     })
 }
