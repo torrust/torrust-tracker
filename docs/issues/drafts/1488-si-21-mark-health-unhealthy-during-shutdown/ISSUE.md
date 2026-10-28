@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/1488-si-21-mark-health-unhealthy-during-shutdown/ISSUE.md
 branch: "1488-si-21-mark-health-unhealthy-during-shutdown-draft"
 related-pr: null
-last-updated-utc: "2026-10-28 17:57"
+last-updated-utc: "2026-10-28 18:06"
 semantic-links:
   skill-links:
     - create-issue
@@ -87,11 +87,26 @@ Options, to be decided by the maintainer:
   listeners and as `src/app.rs` does for the runner. The readiness flip happens
   before `jobs.cancel()`; the health server keeps serving 503 for the whole
   drain and is cancelled only after every component it waits for completed.
-  Uses the existing `JobManager` API, no timer, no Q6 amendment. Cost: the
-  health server's own drain budget (15 s) starts after the others finish, so
-  the ordering must be checked against `max(H, U) + L < P`; open question for
-  the maintainer. Also, the health list still shows services that stopped (see
-  the Registar note).
+  Uses the existing `JobManager` API, no timer, no Q6 amendment.
+  Risk check (all read from source in `src/bootstrap/jobs/manager.rs`, not run):
+  - The exit stays bounded by P: `wait_for_all` shares one deadline across all
+    jobs, and a last-stopping health server is aborted at P at the latest.
+  - A failure is not hidden: failed, panicked and aborted jobs all appear in
+    the outcomes, and `report_shutdown` returns exit 1 for each of them. A
+    health server aborted at P also counts as aborted.
+  - A failed or panicked predecessor still releases its dependents, because
+    `mark_finished` runs for every outcome that has a component id.
+  - Worst case, a hung predecessor keeps the health server serving 503 until P.
+  - Budget: the health server's own graceful drain starts only after the others
+    finish, with `P - elapsed` left, and `max(H, U) + L < P` does not budget for
+    it. Idle, its drain is near-instant; open question for the maintainer.
+  - Reservation order: `add_stop_before` needs target ids strictly earlier than
+    the added id, and `health_check_api` is reserved last (`src/app.rs`), so it
+    must be reserved first (its server may still start last).
+  - The 503 handler must be a constant-time atomic read of application-owned
+    readiness state, with no `Registar` probe fan-out.
+  Also, the health list still shows services that stopped (see the Registar
+  note).
 - **(b) Flip then cancel, document only.** Simple, but a refused connection also
   fails a Kubernetes readiness probe, so the 503 adds almost nothing and
   acceptance criteria 3 and 7 could not be met on new connections.
