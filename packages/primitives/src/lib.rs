@@ -5,6 +5,7 @@
 //! by the tracker server crate, but also by other crates in the Torrust
 //! ecosystem.
 pub mod announce;
+pub mod announce_interval;
 pub mod configuration_instance_id;
 pub mod driver;
 pub mod mode;
@@ -26,6 +27,7 @@ pub mod swarm_metadata;
 use std::collections::BTreeMap;
 
 pub use announce::{AnnounceData, AnnounceEvent, AnnouncePolicy};
+pub use announce_interval::AnnounceIntervalInSecs;
 pub use configuration_instance_id::ConfigurationInstanceId;
 pub use driver::Driver;
 pub use mode::PrivateMode;
