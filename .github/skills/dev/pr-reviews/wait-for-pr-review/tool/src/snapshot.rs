@@ -45,7 +45,8 @@ pub struct User {
 /// A submitted pull-request review.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 pub struct Review {
-    /// The review ID. IDs only grow, so a higher ID is a later review.
+    /// The review ID. It is unique and assigned when the review is created, not when it is
+    /// submitted: a draft keeps its ID, so a higher ID is not necessarily a later submission.
     pub id: u64,
     /// The reviewer.
     pub user: Option<User>,
@@ -62,7 +63,7 @@ pub struct Review {
 /// A pull-request issue comment or inline review comment.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 pub struct Comment {
-    /// The comment ID. IDs only grow within one comment kind.
+    /// The comment ID. Comments have no draft state, so IDs only grow within one comment kind.
     pub id: u64,
     /// The author.
     pub user: Option<User>,
