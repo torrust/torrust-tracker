@@ -45,6 +45,8 @@ Round 2: the second review of `copilot-pull-request-reviewer` (5683463670, COMME
 
 Round 3: the third review of `copilot-pull-request-reviewer` (5684761654, COMMENTED, submitted 2026-10-28T14:58:12Z) on the head whose subject is `fix(wait-for-pr-review): [#2581] synchronize the head before processing feedback`. It was the review requested through the REST `requested_reviewers` endpoint at 14:13:25 UTC, and the `wait-for-pr-review` poller returned it. Its body says that Copilot could not run its full agentic suite, which raises no assertion of its own. It opens six inline threads and lists F5 and F6 as resolved since the last review. Its comments carry no severity or finding ID, so the audit assigns F7 to F12 in source order and infers the severities. The three comments on `reserve_free_ports` in `tests/common/native_tracker/ports.rs` (lines 22, 38 and 48) are the same concern posted three times: F10 is the original, and F11 and F12 are recorded as re-raises of it.
 
+Round 4: the fourth review of `copilot-pull-request-reviewer` (5686403906, COMMENTED, submitted 2026-10-28T16:48:28Z) on the head whose subject is `docs(issues): [#2581] record the recheck after the third review and the progress`. It was the review requested through the REST `requested_reviewers` endpoint at 16:30:49 UTC, after everything else had been pushed, and the `wait-for-pr-review` poller returned it. Its body warns that Copilot could not run its full agentic review because it did not start before the timeout, which raises no assertion of its own. It opens four inline threads and lists F7 to F12 as resolved since the last review. Its comments carry no severity or finding ID, so the audit assigns F13 to F16 in source order and infers the severities.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2683-f1 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -59,6 +61,10 @@ Round 3: the third review of `copilot-pull-request-reviewer` (5684761654, COMMEN
 | F10 | review-finding:pr-2683-f10 | Copilot | Nit (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
 | F11 | review-finding:pr-2683-f11 | Copilot | Nit (inferred) | maintainability | RE_RAISE_OF:F10 | NO_ACTION | SUPERSEDED |
 | F12 | review-finding:pr-2683-f12 | Copilot | Nit (inferred) | maintainability | RE_RAISE_OF:F10 | NO_ACTION | SUPERSEDED |
+| F13 | review-finding:pr-2683-f13 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
+| F14 | review-finding:pr-2683-f14 | Copilot | Nit (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F15 | review-finding:pr-2683-f15 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
+| F16 | review-finding:pr-2683-f16 | Copilot | Nit (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -218,6 +224,58 @@ Round 3: the third review of `copilot-pull-request-reviewer` (5684761654, COMMEN
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2683#discussion_r4403219283>
 
+### F13 - A resumable cursor can skip earlier unprocessed items
+
+- PR number: 2683
+- Source review ID: 5686403906
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2683#discussion_r4403476575>
+- Concern: When `--since` is used as a resumable cursor, returning an arbitrary matching review or comment, chosen by iterator order, can cause earlier unprocessed items to be skipped on the next run if the returned item's `cursor` is later than other pending items. Select the earliest new item by `submitted_at` or `created_at`, or otherwise ensure a stable total order, before returning an event.
+- Solution: `detect` gathers every new review, conversation comment and inline comment of a watched reviewer and reports the earliest by GitHub time, with a review before a conversation comment before an inline comment when made in the same second, then by ID. This also fixes a case the finding did not name: the old fixed priority let a review outrank an earlier comment. The skill and the spec describe the ordering. An item created in the same second as the cursor is still skipped; the review loop reads the whole pull request after every event.
+- Current-tree verification: `cargo test -p wait-for-pr-review` passed with the new tests `it_should_report_the_earliest_new_item_when_a_comment_came_before_a_review`, `it_should_report_the_earliest_new_item_among_comments_of_both_kinds` and `it_should_report_the_earliest_of_two_new_reviews_whatever_order_the_api_listed_them_in`, which failed before the change, and with `it_should_report_a_review_before_a_comment_made_in_the_same_second`, which pins the tie-break. Against this pull request, watching the logins `Copilot` and `copilot-pull-request-reviewer[bot]` and resuming from each cursor in turn returned inline comment 16:48:26, inline comment 16:48:27, review 16:48:28, then `timeout`; the inline comment `4403476731` at 16:48:27 was skipped, as the same-second rule says.
+- Resolution reference: fix(wait-for-pr-review): [#2581] report the earliest new review or comment so the cursor skips nothing
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2683#discussion_r4403771237>
+
+### F14 - The pipe readers of a killed gh call are not reclaimed
+
+- PR number: 2683
+- Source review ID: 5686403906
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2683#discussion_r4403476660>
+- Concern: On the `Err` path from `wait_for`, such as `Interrupted` or `DeadlineExceeded`, `run()` returns early and never joins the drain threads created for stdout and stderr, which risks leaking detached threads and makes failure-path behavior less predictable. Restructure `run()` to always join the handles before returning, including on error.
+- Solution: Not adopted literally. A trial that joined both readers on every path made the two existing hung-call tests fail after 30.01 s, because a grandchild that inherited the pipe keeps it open after the child is killed, so an unconditional join waits on it and defeats the hard deadline of F3. The file was restored. Instead, the readers send what they read over a channel, and after a kill `run()` gives them a bounded grace period of 200 ms to finish and be collected, then lets go. In the normal case, where a killed child closes its pipes at once, they are reclaimed on every path.
+- Current-tree verification: The unit tests `it_should_return_what_a_reader_sent_when_there_is_no_grace_period`, `it_should_return_what_a_reader_sent_within_the_grace_period`, `it_should_give_up_on_a_reader_that_stays_silent_once_the_grace_period_is_over` and `it_should_return_nothing_for_a_pipe_that_does_not_exist` pass; they did not compile before `collect` existed. The two hung-call integration tests pass in 2.41 s. Against the real binary, `SIGTERM` and `SIGINT` during a wait stopped it after 3.0 s with `interrupted` and exit `1`, and a 2 s budget ended after 2.0 s with `deadline_exceeded`.
+- Resolution reference: fix(wait-for-pr-review): [#2581] reclaim the pipe readers of a killed gh call within a bound
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2683#discussion_r4403771969>
+
+### F15 - `reserve_free_ports` promises N distinct ports but samples with replacement
+
+- PR number: 2683
+- Source review ID: 5686403906
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2683#discussion_r4403476731>
+- Concern: The function promises `N` distinct ports and allows `N` up to the draw budget, but the candidate stream is sampled with replacement, so for large `N` it can contain duplicates and the function can panic even when enough free ports exist. Generate candidates without replacement, or skip duplicates while allowing more than `N` draws, and adjust the precondition and message.
+- Solution: Each port gets its own draw budget (`DRAWS_PER_PORT`), so duplicate candidates cannot exhaust a budget shared by all ports, and a candidate that repeats a port already held fails to bind and is skipped. `N` is bounded by the size of the range, with the message `cannot reserve {N} ports from a range of {available} ports`. The bind step is injected (`reserve_from`) so the budget logic is tested with a fake binder and no sockets.
+- Current-tree verification: `it_should_give_each_port_its_own_draw_budget_even_when_the_candidates_repeat` failed in 5 of 5 runs when the per-port budget was mutated into one that shrinks as ports are held (not staged, then restored byte for byte), and passes now; `it_should_refuse_to_reserve_more_ports_than_the_range_holds` covers the precondition. A first version of the budget test used real sockets and failed in 11 of 60 full parallel runs, because a just-released port can stay held by a tracker child that another test thread forked while the listener was open; it was replaced before the commit. After the change the full parallel suites of `cli-configuration` and `lifecycle-signals` ran 100 times each with 0 failures, and with ports 43152 to 43156 held the suite passed 40 more runs. The evidence is in section V8 of the evidence file.
+- Resolution reference: fix(tests): [#2581] give each reserved port its own draw budget and bound N by the range
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2683#discussion_r4403772491>
+
+### F16 - A `usage_error` example in the evidence is truncated
+
+- PR number: 2683
+- Source review ID: 5686403906
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2683#discussion_r4403476783>
+- Concern: The `usage_error` example line in the manual verification evidence is cut short, missing its closing quote and brace, so it cannot be copied or validated as one complete NDJSON record. Paste the full record exactly as emitted.
+- Solution: The cut came from the capture, which sliced the record at 120 characters. The complete record was captured again with the same command and pasted verbatim, with a note saying when it was re-captured. The rest of the evidence file was scanned for other records cut mid-line, and none was found.
+- Current-tree verification: `target/debug/wait-for-pr-review` with no arguments exited `2` and wrote one stderr line of 215 bytes, which `python3 -c "import json; json.loads(...)"` parsed as one JSON object with `kind` `usage_error`; the evidence file now holds that line in full.
+- Resolution reference: docs(issues): [#2581] record the complete usage_error record and the fixture changes
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2683#discussion_r4403773128>
+
 ## Processing Log
 
 - 2026-10-28 12:35 UTC - The `wait-for-pr-review` poller returned Copilot's review 5682635980, submitted at 12:34:22 UTC (kind `review`, state `COMMENTED`, exit `0`; its stdout file was last written at 12:35:33 UTC). The review opened four inline threads, F1 to F4; all were unresolved. Each was checked against the current tree and found valid.
@@ -233,6 +291,11 @@ Round 3: the third review of `copilot-pull-request-reviewer` (5684761654, COMMEN
 - 2026-10-28 16:21 UTC - The four fixes were committed, one signed commit each: F7 at 16:15, F8 at 16:17, F9 at 16:18 and F10 at 16:21 UTC (commit times from `git log --format=%cI`). The first signing attempt for F7 failed; it was rerun with the maintainer's approval and the maintainer entered the passphrase, which accounts for the gap after 14:59.
 - 2026-10-28 16:24 UTC - After the push, each thread was replied to and resolved with `reply-and-resolve-thread.sh`; the GitHub times of the six replies are 16:24:29, 16:24:32, 16:24:36, 16:24:39, 16:24:44 and 16:24:47 UTC. F11 and F12 received the prescribed `Superseded by F10: <reason>.` reply.
 - 2026-10-28 16:25 UTC - A GraphQL fetch at 16:25:04 UTC, after the last reply, reported no unresolved thread.
+
+- 2026-10-28 16:50 UTC - The `wait-for-pr-review` poller returned Copilot's fourth review 5686403906, submitted at 16:48:28 UTC (kind `review`, state `COMMENTED`, no `head_moved`; its stdout file was last written at 16:50:10 UTC). It opened four threads, F13 to F16, all unresolved. Each was checked against the current tree and found valid.
+- 2026-10-28 17:13 UTC - The four fixes were committed, one signed commit each: F13 at 16:55, F14 at 16:57, F15 at 17:11 and F16 at 17:13 UTC (commit times from `git log --format=%cI`). While preparing F15, a test that re-bound just-released ports failed in 11 of 60 full parallel runs and was replaced before its commit (see the F15 detail and section V8 of the evidence file).
+- 2026-10-28 17:16 UTC - After the push, each thread was replied to and resolved with `reply-and-resolve-thread.sh`; the GitHub times of the four replies are 17:16:24, 17:16:28, 17:16:32 and 17:16:35 UTC.
+- 2026-10-28 17:16 UTC - A GraphQL fetch at 17:16:48 UTC, after the last reply, reported no unresolved thread.
 
 ## Completion Rules
 
