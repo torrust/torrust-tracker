@@ -232,6 +232,19 @@ fn it_should_exit_two_when_since_is_not_a_utc_timestamp() {
 }
 
 #[test]
+fn it_should_exit_two_when_since_names_a_day_or_a_signed_field_that_does_not_exist() {
+    let sandbox = Sandbox::with_pull(OPEN_PULL);
+
+    for since in ["2026-02-29T07:00:00Z", "2026-10-28T-1:00:00Z"] {
+        let output = sandbox.run(&["--pr-number", "7", "--since", since]);
+
+        assert_eq!(output.status.code(), Some(2), "--since {since} should be a usage error");
+        assert_eq!(output.stdout, b"");
+        assert_eq!(kinds(&output), ["usage_error"]);
+    }
+}
+
+#[test]
 fn it_should_exit_two_when_since_and_since_head_sha_are_both_given() {
     let sandbox = Sandbox::with_pull(OPEN_PULL);
 
