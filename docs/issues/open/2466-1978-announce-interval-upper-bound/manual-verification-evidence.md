@@ -154,7 +154,8 @@ test v3_0_0::tests::smoke::it_should_reject_a_minimum_announce_interval_above_th
 - Date and time (UTC): 2026-10-28 07:25-07:30.
 - Artifact under test: `target/debug/torrust-tracker` and `target/debug/tracker_client`, built
   with stable `rustc 1.99.1 (58cf8f9c3 2026-10-13)` from branch
-  `2466-1978-announce-interval-upper-bound` at `d5c8fcddc`.
+  `2466-1978-announce-interval-upper-bound` at the commit
+  `docs(configuration): [#2466] document the announce interval bound in the v2 to v3 guide`.
 - Setup: the V0 configuration with only the announce policy changed, saved as
   `.tmp/repro-2466/tracker-over.toml` (`interval = 2147483648`),
   `.tmp/repro-2466/tracker-min-over.toml` (`interval_min = 2147483648`, `interval = 120`), and
