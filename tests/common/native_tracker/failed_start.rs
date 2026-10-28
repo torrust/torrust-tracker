@@ -90,7 +90,7 @@ impl NativeTrackerStartAttempt {
         match std::fs::read_to_string(&source_path) {
             Err(error) if error.kind() == std::io::ErrorKind::PermissionDenied => {
                 NativeTrackerUnreadableCliSource::Enforced(Box::new(Self {
-                    command: tracker_command(&source_path, None, None, None),
+                    command: tracker_command(&source_path, None, None, None, None),
                     permission_restore: Some(permission_restore),
                     workspace: Some(workspace),
                     source_path: Some(source_path),

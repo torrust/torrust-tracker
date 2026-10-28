@@ -20,10 +20,9 @@
 //!
 //! Refer to the [configuration documentation](https://docs.rs/torrust-tracker-configuration)
 //! for the API configuration options.
-use std::net::SocketAddr;
 use std::sync::Arc;
+use std::time::Duration;
 
-use axum_server::tls_rustls::RustlsConfig;
 use tokio_util::sync::CancellationToken;
 use torrust_server_lib::registar::ServiceRegistrationForm;
 use torrust_tracker_axum_rest_api_server::Version;
@@ -83,6 +82,7 @@ pub async fn start_job(
     metadata: RuntimeServiceMetadata,
     version: Version,
     cancellation_token: CancellationToken,
+    drain_timeout: Duration,
 ) -> Result<Option<impl Future<Output = ComponentResult> + Send + 'static>, Error> {
     let bind_to = http_api_container.http_api_config.bind_address;
 
@@ -97,8 +97,7 @@ pub async fn start_job(
     match version {
         Version::V1 => Ok(Some(
             start_v1(
-                bind_to,
-                tls,
+                Launcher::new(bind_to, tls, drain_timeout),
                 http_api_container,
                 form,
                 metadata,
@@ -115,22 +114,21 @@ pub async fn start_job(
     reason = "startup awaits listener errors before returning the cancellation-aware REST API runtime future"
 )]
 #[instrument(
-    skip(socket, tls, http_api_container, form, metadata, access_tokens),
+    skip(launcher, http_api_container, form, metadata, access_tokens),
     fields(
         service_role = metadata.service_role().as_str(),
         instance_index = metadata.configuration_instance_id().instance_index(),
     )
 )]
 async fn start_v1(
-    socket: SocketAddr,
-    tls: Option<RustlsConfig>,
+    launcher: Launcher,
     http_api_container: Arc<TrackerHttpApiCoreContainer>,
     form: ServiceRegistrationForm<RuntimeServiceMetadata>,
     metadata: RuntimeServiceMetadata,
     access_tokens: Arc<AccessTokens>,
     cancellation_token: CancellationToken,
 ) -> Result<impl Future<Output = ComponentResult> + Send + 'static, Error> {
-    let server = ApiServer::new(Launcher::new(socket, tls))
+    let server = ApiServer::new(launcher)
         .start_with_cancellation(http_api_container, form, metadata, access_tokens, cancellation_token.clone())
         .await
         .map_err(|source| Error::Listener { source })?;
@@ -279,6 +277,7 @@ mod tests {
             )),
             version,
             CancellationToken::new(),
+            cfg.application.shutdown.http_drain(),
         )
         .await
         .expect("it should be able to start the tracker API");

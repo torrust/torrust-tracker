@@ -88,6 +88,41 @@ pub struct JobOutcome {
     pub status: JobStatus,
 }
 
+/// Process exit code of a shutdown in which every component completed.
+pub const EXIT_CODE_GRACEFUL_SHUTDOWN: u8 = 0;
+
+/// Process exit code of a shutdown in which a component failed, panicked, or was aborted.
+pub const EXIT_CODE_INCOMPLETE_SHUTDOWN: u8 = 1;
+
+impl JobStatus {
+    /// Whether the component stopped on request without a failure, a panic, or an abort.
+    #[must_use]
+    pub const fn is_graceful(&self) -> bool {
+        matches!(self, Self::Completed | Self::Cancelled)
+    }
+}
+
+/// Maps the outcomes of a shutdown to the process exit code (Q3 of
+/// `docs/features/shutdown-process/questions.md`): `0` only when every component was graceful.
+#[must_use]
+pub fn shutdown_exit_code(outcomes: &[JobOutcome]) -> u8 {
+    if outcomes.iter().all(|outcome| outcome.status.is_graceful()) {
+        EXIT_CODE_GRACEFUL_SHUTDOWN
+    } else {
+        EXIT_CODE_INCOMPLETE_SHUTDOWN
+    }
+}
+
+/// The names of the components whose shutdown was not graceful, in outcome order.
+#[must_use]
+pub fn incomplete_components(outcomes: &[JobOutcome]) -> Vec<&str> {
+    outcomes
+        .iter()
+        .filter(|outcome| !outcome.status.is_graceful())
+        .map(|outcome| outcome.name.as_str())
+        .collect()
+}
+
 /// Delivers a normal halt signal when its component is dropped.
 #[derive(Debug)]
 pub struct HaltSignal {
@@ -1001,9 +1036,17 @@ mod tests {
     use torrust_server_lib::signals::Halted;
 
     use super::{
-        ComponentCompletion, ComponentError, ComponentId, ComponentRegistry, ComponentResult, JobManager, JobOutcome, JobStatus,
-        Reservation, ShutdownPlan, SpawnError, StopBefore, WaitingComponent, lock,
+        ComponentCompletion, ComponentError, ComponentId, ComponentRegistry, ComponentResult, EXIT_CODE_GRACEFUL_SHUTDOWN,
+        EXIT_CODE_INCOMPLETE_SHUTDOWN, JobManager, JobOutcome, JobStatus, Reservation, ShutdownPlan, SpawnError, StopBefore,
+        WaitingComponent, incomplete_components, lock, shutdown_exit_code,
     };
+
+    fn named_outcome(name: &str, status: JobStatus) -> JobOutcome {
+        JobOutcome {
+            name: name.to_owned(),
+            status,
+        }
+    }
 
     /// Reserves a component and spawns it with a runner that does not use its token.
     fn reserve_and_spawn<F>(manager: &mut JobManager, name: &str, future: F)
@@ -2072,5 +2115,112 @@ mod tests {
 
         // Act
         let (_id, _token) = registry.reserve("component");
+    }
+
+    #[test]
+    fn it_should_exit_with_the_graceful_code_when_there_are_no_outcomes() {
+        // Arrange
+        let outcomes: Vec<JobOutcome> = Vec::new();
+
+        // Act
+        let exit_code = shutdown_exit_code(&outcomes);
+
+        // Assert
+        assert_eq!(exit_code, EXIT_CODE_GRACEFUL_SHUTDOWN, "no component means nothing failed");
+    }
+
+    #[test]
+    fn it_should_exit_with_the_graceful_code_when_every_component_completed_or_was_cancelled() {
+        // Arrange
+        let outcomes = vec![
+            named_outcome("http_api", JobStatus::Completed),
+            named_outcome("udp_instance_0", JobStatus::Cancelled),
+        ];
+
+        // Act
+        let exit_code = shutdown_exit_code(&outcomes);
+
+        // Assert
+        assert_eq!(
+            exit_code, EXIT_CODE_GRACEFUL_SHUTDOWN,
+            "Completed and Cancelled are graceful outcomes"
+        );
+    }
+
+    #[test]
+    fn it_should_exit_with_the_incomplete_code_when_a_component_failed() {
+        // Arrange
+        let outcomes = vec![
+            named_outcome("http_api", JobStatus::Completed),
+            named_outcome(
+                "http_instance_0",
+                JobStatus::Failed(ComponentError::new("graceful drain timed out")),
+            ),
+        ];
+
+        // Act
+        let exit_code = shutdown_exit_code(&outcomes);
+
+        // Assert
+        assert_eq!(
+            exit_code, EXIT_CODE_INCOMPLETE_SHUTDOWN,
+            "a Failed outcome (for example a reached drain budget) must not exit with the graceful code"
+        );
+    }
+
+    #[test]
+    fn it_should_exit_with_the_incomplete_code_when_a_component_panicked() {
+        // Arrange
+        let outcomes = vec![
+            named_outcome("http_api", JobStatus::Completed),
+            named_outcome("torrent_cleanup", JobStatus::Panicked("boom".to_owned())),
+        ];
+
+        // Act
+        let exit_code = shutdown_exit_code(&outcomes);
+
+        // Assert
+        assert_eq!(
+            exit_code, EXIT_CODE_INCOMPLETE_SHUTDOWN,
+            "a Panicked outcome must not exit with the graceful code"
+        );
+    }
+
+    #[test]
+    fn it_should_name_only_the_components_whose_shutdown_was_not_graceful_in_outcome_order() {
+        // Arrange
+        let outcomes = vec![
+            named_outcome("http_api", JobStatus::Completed),
+            named_outcome(
+                "http_instance_0",
+                JobStatus::Failed(ComponentError::new("graceful drain timed out")),
+            ),
+            named_outcome("udp_instance_0", JobStatus::Cancelled),
+            named_outcome("peers_inactivity_update", JobStatus::Aborted),
+        ];
+
+        // Act
+        let incomplete = incomplete_components(&outcomes);
+
+        // Assert
+        assert_eq!(incomplete, vec!["http_instance_0", "peers_inactivity_update"]);
+    }
+
+    #[test]
+    fn it_should_exit_with_the_incomplete_code_when_a_component_was_aborted_at_the_deadline() {
+        // Arrange
+        let outcomes = vec![
+            named_outcome("http_api", JobStatus::Completed),
+            named_outcome("peers_inactivity_update", JobStatus::Aborted),
+        ];
+
+        // Act
+        let exit_code = shutdown_exit_code(&outcomes);
+
+        // Assert
+        assert_eq!(
+            exit_code, EXIT_CODE_INCOMPLETE_SHUTDOWN,
+            "an Aborted outcome (the supervisor deadline expired) must not exit with the graceful code"
+        );
     }
 }

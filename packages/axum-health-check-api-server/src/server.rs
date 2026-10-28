@@ -33,9 +33,6 @@ use tracing::{Level, Span, instrument};
 use crate::HEALTH_CHECK_API_LOG_TARGET;
 use crate::handlers::health_check_handler;
 
-// Health-check requests are short probe fan-outs; SI-20 owns configurable budgets.
-const HEALTH_CHECK_API_GRACEFUL_DRAIN_TIMEOUT: Duration = Duration::from_secs(5);
-
 /// Errors returned by [`start_with_cancellation`].
 #[derive(Debug, thiserror::Error)]
 #[non_exhaustive]
@@ -135,7 +132,8 @@ pub fn start(
 /// registers the service and, if registration fails, cancels
 /// `cancellation_token`, stops both children, and releases the listener before
 /// returning. Otherwise the caller owns the returned runtime task and drain
-/// controller.
+/// controller. `drain_timeout` is how long the server waits for open connections to finish after
+/// `cancellation_token` is cancelled, before it closes them.
 ///
 /// # Errors
 ///
@@ -145,6 +143,7 @@ pub async fn start_with_cancellation(
     registar: Registar<RuntimeServiceMetadata>,
     metadata: RuntimeServiceMetadata,
     cancellation_token: CancellationToken,
+    drain_timeout: Duration,
 ) -> Result<CancellationRunning, Error> {
     let protocol = Protocol::HTTP; // The health check API only supports HTTP directly now. Use a reverse proxy for HTTPS.
 
@@ -168,7 +167,7 @@ pub async fn start_with_cancellation(
         cancellation_token.clone(),
         format!("Shutting down health check API server on socket address: {local_addr}"),
         local_addr,
-        HEALTH_CHECK_API_GRACEFUL_DRAIN_TIMEOUT,
+        drain_timeout,
     ));
 
     tracing::info!(
@@ -271,11 +270,16 @@ mod tests {
     use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
     use torrust_server_lib::registar::{Registar, RegistrationError, ServiceRegistration};
     use torrust_tracker_axum_server::signals::GracefulShutdownOutcome;
+    use torrust_tracker_configuration::v3_0_0::shutdown::Shutdown;
     use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
 
     use crate::server::{Error, start_with_cancellation};
 
     const TEST_COMPLETION_TIMEOUT: Duration = Duration::from_secs(5);
+
+    fn default_drain_timeout() -> Duration {
+        Shutdown::default().http_drain()
+    }
 
     fn any_available_port() -> SocketAddr {
         SocketAddr::from((Ipv4Addr::LOCALHOST, 0))
@@ -323,6 +327,7 @@ mod tests {
             registar.clone(),
             health_check_api_metadata(),
             cancellation_token.clone(),
+            default_drain_timeout(),
         )
         .await
         .expect("the token-aware health check API should start");
@@ -347,6 +352,7 @@ mod tests {
             Registar::default(),
             health_check_api_metadata(),
             cancellation_token.clone(),
+            default_drain_timeout(),
         )
         .await
         .expect("the token-aware health check API should start");
@@ -371,6 +377,50 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn it_should_time_out_the_drain_after_the_configured_drain_timeout_when_a_connection_stays_open() {
+        // Arrange
+        // The server is configured with a 300 ms drain timeout, far below the 15 s default. A client
+        // opens a connection and sends only part of a request header, so the server keeps waiting for
+        // it. A second request that completes proves the server has accepted the first connection.
+        let configured_drain_timeout = Duration::from_millis(300);
+        let cancellation_token = CancellationToken::new();
+        let running = start_with_cancellation(
+            any_available_port(),
+            Registar::default(),
+            health_check_api_metadata(),
+            cancellation_token.clone(),
+            configured_drain_timeout,
+        )
+        .await
+        .expect("the token-aware health check API should start");
+        let mut held_connection = std::net::TcpStream::connect(running.local_addr).expect("open the connection to hold");
+        std::io::Write::write_all(&mut held_connection, b"GET /health_check HTTP/1.1\r\nHost: tracker\r\n")
+            .expect("send a partial request header");
+        tokio::time::timeout(
+            TEST_COMPLETION_TIMEOUT,
+            reqwest::get(format!("http://{}/health_check", running.local_addr)),
+        )
+        .await
+        .expect("the server should answer within the test deadline")
+        .expect("the server should answer once it has accepted the held connection");
+
+        // Act
+        cancellation_token.cancel();
+        let drain_outcome = tokio::time::timeout(TEST_COMPLETION_TIMEOUT, running.shutdown_controller)
+            .await
+            .expect("the drain should end by the configured timeout, not the default one")
+            .expect("the health check API drain controller should not panic");
+
+        // Assert
+        assert_eq!(
+            drain_outcome,
+            GracefulShutdownOutcome::TimedOut,
+            "a connection held open past the {configured_drain_timeout:?} drain timeout should end the drain as timed out"
+        );
+        drop(held_connection);
+    }
+
+    #[tokio::test]
     async fn it_should_release_the_listener_when_token_aware_startup_registration_fails() {
         // Arrange
         let scenario = ServerStartWithDuplicateRegistration::new().await;
@@ -381,6 +431,7 @@ mod tests {
             scenario.registar,
             health_check_api_metadata(),
             CancellationToken::new(),
+            default_drain_timeout(),
         )
         .await;
 

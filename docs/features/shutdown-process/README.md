@@ -1,7 +1,7 @@
 ---
 doc-type: feature
 status: draft
-last-updated-utc: "2026-10-21 18:55"
+last-updated-utc: "2026-10-28 12:12"
 semantic-links:
   related-artifacts:
     - docs/analysis/20260716-shutdown-process/README.md
@@ -137,10 +137,16 @@ A fully graceful shutdown exits with code 0. A startup failure or any component
 failure, timeout, or deliberate abort exits with code 1. A termination signal
 that cannot be handled, such as SIGKILL, has an OS-defined process result.
 
-All top-level components share one 25-second process-wide shutdown deadline.
-HTTP, REST API, and health-check connection draining has a 20-second component
-budget; UDP active request work has a five-second component budget. The
-orchestrator grace period must be at least 30 seconds, leaving at least five
+All top-level components share one process-wide shutdown deadline, 25 seconds
+by default. HTTP, REST API, and health-check connection draining has a
+15-second component budget by default; UDP active request work has a
+five-second component budget; the event listeners that process the events
+queued by those servers have a five-second budget of their own. The stages run
+one after the other (servers first, listeners second), so the tracker refuses
+to start unless `max(HTTP drain, UDP drain) + listener drain` is below the
+deadline. All four values are set in `[application.shutdown]`; see
+[Shutdown Deadline Policy](#shutdown-deadline-policy). The orchestrator grace
+period must be at least 30 seconds for the defaults, leaving at least five
 seconds after the tracker process deadline. Docker/Podman's default 10-second
 deadline is insufficient and must be configured. See [Q3 and Q4](questions.md#q3)
 for rationale and deployment constraints.
@@ -508,18 +514,30 @@ Waiting for jobs to finish (process deadline: 25s)...
 
 ### Shutdown Deadline Policy
 
-SI-20 will add validated configuration for the approved deadline hierarchy:
+The `[application.shutdown]` configuration table holds the validated deadline
+hierarchy (see the
+[budget ADR](../../adrs/20261027145446_budget_shutdown_in_two_chained_stages_inside_one_process_deadline.md)
+and the [placement ADR](../../adrs/20261027145429_place_process_wide_settings_in_the_application_configuration_section.md)).
+The defaults are:
 
-- a 25-second process-wide shutdown deadline;
-- a 20-second connection-drain budget for HTTP, REST API, and health-check
-  servers;
-- a 5-second completion budget for accepted UDP requests; and
+- a 25-second process-wide shutdown deadline (`deadline_in_secs`);
+- a 15-second connection-drain budget for HTTP, REST API, and health-check
+  servers (`http_drain_in_secs`);
+- a 5-second completion budget for accepted UDP requests
+  (`udp_request_drain_in_secs`);
+- a 5-second admission budget for each event listener, which starts after the
+  servers that publish on its bus have stopped (`event_listener_drain_in_secs`);
+  and
 - an externally configured orchestrator grace period of at least 30 seconds,
   with 35 seconds or more recommended where practical.
 
-The process deadline is shared by all top-level components, not applied
-sequentially per job. Docker and Podman's default 10-second stop deadline is
-therefore insufficient and must be explicitly increased.
+Every value is a whole number of seconds from 1 to 3600, and the tracker
+refuses to start unless `max(http_drain_in_secs, udp_request_drain_in_secs) +
+event_listener_drain_in_secs` is below `deadline_in_secs`. The process deadline
+is shared by all top-level components, not applied sequentially per job. Docker
+and Podman's default 10-second stop deadline is therefore insufficient and must
+be explicitly increased; [Stopping the Tracker](../../containers.md#stopping-the-tracker)
+gives the settings for Docker, Compose, Kubernetes, and systemd.
 
 ## Related Documents
 

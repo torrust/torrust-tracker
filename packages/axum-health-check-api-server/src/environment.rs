@@ -7,6 +7,7 @@ use tokio_util::sync::{CancellationToken, DropGuard};
 use torrust_server_lib::registar::Registar;
 use torrust_tracker_axum_server::signals::GracefulShutdownOutcome;
 use torrust_tracker_configuration::v3_0_0::health_check_api::HealthCheckApi;
+use torrust_tracker_configuration::v3_0_0::shutdown::Shutdown;
 use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
 
 use crate::server::{self, CancellationRunning};
@@ -72,6 +73,7 @@ impl Environment<Stopped> {
             self.registar.clone(),
             RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::HealthCheckApi, 0)),
             cancellation_token.clone(),
+            Shutdown::default().http_drain(),
         )
         .await
         .expect("it should start the health check service");

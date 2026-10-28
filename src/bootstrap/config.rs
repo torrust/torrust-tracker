@@ -53,6 +53,7 @@ mod tests {
 
     use torrust_tracker_configuration::Info;
     use torrust_tracker_configuration::v3_0_0::Configuration;
+    use torrust_tracker_configuration::v3_0_0::shutdown::Shutdown;
 
     use super::{Error, initialize_configuration};
 
@@ -299,6 +300,41 @@ mod tests {
             let info = Info::new(template.to_string()).expect("configuration source should be valid");
 
             Configuration::load(&info).unwrap_or_else(|error| panic!("template should load: {template}: {error}"));
+        }
+    }
+
+    #[test]
+    fn it_should_state_the_default_shutdown_budgets_in_the_container_and_development_templates() {
+        // Arrange
+        // These templates show operators the shutdown settings, so each must carry the block and its
+        // values must equal the defaults; a template that omitted the block would also load.
+        let _environment_lock = ENVIRONMENT_LOCK.lock().expect("lock environment access");
+        let templates = [
+            "./share/default/config/tracker.container.mysql.toml",
+            "./share/default/config/tracker.container.no-persistence.toml",
+            "./share/default/config/tracker.container.postgresql.toml",
+            "./share/default/config/tracker.container.sqlite3.toml",
+            "./share/default/config/tracker.development.sqlite3.toml",
+        ];
+
+        for template in templates {
+            // Act
+            let text =
+                fs::read_to_string(template).unwrap_or_else(|error| panic!("template should be readable: {template}: {error}"));
+            let info = Info::new(template.to_string()).expect("configuration source should be valid");
+            let configuration =
+                Configuration::load(&info).unwrap_or_else(|error| panic!("template should load: {template}: {error}"));
+
+            // Assert
+            assert!(
+                text.contains("[application.shutdown]"),
+                "template should state the shutdown budgets: {template}"
+            );
+            assert_eq!(
+                configuration.application.shutdown,
+                Shutdown::default(),
+                "template should state the default shutdown budgets: {template}"
+            );
         }
     }
 }

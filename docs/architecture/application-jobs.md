@@ -48,7 +48,8 @@ unmanaged task) are defined once in the [glossary](glossary.md).
    publish events (see [Startup sequence](#startup-sequence)).
 4. On `Ctrl+C` or `SIGTERM`, `main` calls `JobManager::cancel`, then waits for
    registered direct components and transitional legacy jobs through
-   `JobManager::wait_for_all` under one ten-second process-wide grace period
+   `JobManager::wait_for_all` under one process-wide deadline
+   (`application.shutdown.deadline_in_secs`, 25 seconds by default)
    (see [Shutdown sequence](#shutdown-sequence)).
 
 ### Supervision Tree and Stop Order

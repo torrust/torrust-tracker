@@ -8,6 +8,8 @@
 //! Refer to the [configuration documentation](https://docs.rs/torrust-tracker-configuration)
 //! for the API configuration options.
 
+use std::time::Duration;
+
 use tokio_util::sync::CancellationToken;
 use torrust_server_lib::registar::Registar;
 use torrust_tracker_axum_health_check_api_server::{HEALTH_CHECK_API_LOG_TARGET, server};
@@ -44,12 +46,14 @@ pub async fn start_job(
     config: &HealthCheckApi,
     registar: Registar<RuntimeServiceMetadata>,
     cancellation_token: CancellationToken,
+    drain_timeout: Duration,
 ) -> Result<impl Future<Output = ComponentResult> + Send + 'static, Error> {
     let server = server::start_with_cancellation(
         config.bind_address,
         registar,
         RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::HealthCheckApi, 0)),
         cancellation_token.clone(),
+        drain_timeout,
     )
     .await
     .map_err(|source| Error::Start { source })?;
@@ -113,6 +117,7 @@ mod tests {
     use torrust_server_lib::registar::Registar;
     use torrust_tracker_axum_server::signals::GracefulShutdownOutcome;
     use torrust_tracker_configuration::v3_0_0::health_check_api::HealthCheckApi;
+    use torrust_tracker_configuration::v3_0_0::shutdown::Shutdown;
 
     use crate::bootstrap::jobs::health_check_api::{start_job, supervise_token_aware_server};
     use crate::bootstrap::jobs::manager::{ComponentCompletion, TokenAwareServerTask};
@@ -177,9 +182,14 @@ mod tests {
         let config = HealthCheckApi {
             bind_address: available_health_check_address(),
         };
-        let component = start_job(&config, Registar::default(), CancellationToken::new())
-            .await
-            .expect("the health check API component should start");
+        let component = start_job(
+            &config,
+            Registar::default(),
+            CancellationToken::new(),
+            Shutdown::default().http_drain(),
+        )
+        .await
+        .expect("the health check API component should start");
 
         // Act
         drop(component);

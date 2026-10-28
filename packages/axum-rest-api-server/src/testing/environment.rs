@@ -77,7 +77,7 @@ impl Environment<Stopped> {
             None
         };
 
-        let server = ApiServer::new(Launcher::new(bind_to, tls));
+        let server = ApiServer::new(Launcher::new(bind_to, tls, configuration.application.shutdown.http_drain()));
 
         Self {
             container,
@@ -327,6 +327,7 @@ mod tests {
     use tokio_util::sync::CancellationToken;
     use torrust_server_lib::registar::Registar;
     use torrust_tracker_axum_server::signals::GracefulShutdownOutcome;
+    use torrust_tracker_configuration::v3_0_0::shutdown::Shutdown;
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
 
     use super::{Environment, Running, Started, Unstarted, join_owned_tasks};
@@ -351,7 +352,7 @@ mod tests {
     }
 
     fn a_launcher() -> Launcher {
-        Launcher::new(SocketAddr::from(([127, 0, 0, 1], 0)), None)
+        Launcher::new(SocketAddr::from(([127, 0, 0, 1], 0)), None, Shutdown::default().http_drain())
     }
 
     #[tokio::test]

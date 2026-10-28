@@ -7,6 +7,7 @@ use tokio::task::JoinHandle;
 use tokio_util::sync::{CancellationToken, DropGuard};
 use torrust_server_lib::registar::Registar;
 use torrust_tracker_configuration::v3_0_0::core::Core;
+use torrust_tracker_configuration::v3_0_0::shutdown::Shutdown;
 use torrust_tracker_configuration::v3_0_0::udp_tracker::UdpTracker;
 use torrust_tracker_configuration::v3_0_0::udp_tracker_server::{
     ConnectionIdValidationPolicy as ConfigurationConnectionIdValidationPolicy, UdpTrackerServer,
@@ -142,6 +143,7 @@ impl Environment<Stopped> {
                 RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0)),
                 cookie_lifetime,
                 self.connection_id_validation,
+                Shutdown::default().udp_request_drain(),
                 server_token.clone(),
             )
             .await

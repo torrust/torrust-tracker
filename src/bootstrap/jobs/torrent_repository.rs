@@ -2,7 +2,6 @@ use std::sync::Arc;
 
 use tokio_util::sync::CancellationToken;
 use torrust_tracker_configuration::v3_0_0::Configuration;
-use torrust_tracker_events::drain::DEFAULT_DRAIN_TIMEOUT;
 use torrust_tracker_events::shutdown::Completion;
 
 use crate::container::AppContainer;
@@ -19,7 +18,7 @@ pub fn run_event_listener(
             app_container.swarm_coordination_registry_container.event_bus.receiver(),
             cancellation_token,
             app_container.swarm_coordination_registry_container.stats_repository.clone(),
-            DEFAULT_DRAIN_TIMEOUT,
+            app_container.application_config.shutdown.event_listener_drain(),
         )
     })
 }

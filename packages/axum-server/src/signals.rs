@@ -6,6 +6,10 @@ use tokio_util::sync::CancellationToken;
 use torrust_server_lib::signals::{Halted, shutdown_signal_with_message};
 use tracing::instrument;
 
+/// Longest drain the timer accepts; a longer request is shortened to it. One year is far beyond any
+/// shutdown policy and far below the range where adding it to the clock overflows.
+const MAX_DRAIN_TIMEOUT: Duration = Duration::from_secs(365 * 24 * 60 * 60);
+
 #[derive(Debug, PartialEq, Eq)]
 pub enum GracefulShutdownOutcome {
     Drained,
@@ -23,6 +27,9 @@ pub async fn graceful_shutdown_on_cancellation(
     cancellation_token.cancelled().await;
 
     handle.graceful_shutdown(None);
+
+    // `Instant + Duration` panics on overflow, and this function takes any `Duration`.
+    let drain_timeout = drain_timeout.min(MAX_DRAIN_TIMEOUT);
 
     tracing::info!("!! {} in {:?} !!", message, drain_timeout);
 
@@ -141,6 +148,31 @@ mod tests {
             .await
             .expect("shutdown should complete after cancellation")
             .expect("shutdown task should not panic");
+
+        // Assert
+        assert_eq!(outcome, GracefulShutdownOutcome::Drained);
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn it_should_return_drained_without_panicking_when_the_drain_timeout_is_too_large_for_the_clock() {
+        // Arrange
+        // The drain timeout is the largest `Duration`, which cannot be added to the clock. No connection
+        // is open, so the helper should report the drain as complete.
+        let cancellation_token = CancellationToken::new();
+        let shutdown = tokio::spawn(graceful_shutdown_on_cancellation(
+            Handle::new(),
+            cancellation_token.clone(),
+            String::from("shutting down test server"),
+            SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 0),
+            Duration::MAX,
+        ));
+
+        // Act
+        cancellation_token.cancel();
+        let outcome = tokio::time::timeout(Duration::from_secs(1), shutdown)
+            .await
+            .expect("shutdown should complete after cancellation")
+            .expect("shutdown task should not panic on an oversized drain timeout");
 
         // Assert
         assert_eq!(outcome, GracefulShutdownOutcome::Drained);

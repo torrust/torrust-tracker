@@ -14,6 +14,7 @@ use torrust_server_lib::logging::STARTED_ON;
 use torrust_server_lib::registar::ServiceHealthCheckJob;
 use torrust_server_lib::signals::{Halted, Started, global_shutdown_signal};
 use torrust_tracker_client::udp::client::check;
+use torrust_tracker_configuration::v3_0_0::shutdown::Shutdown;
 use torrust_tracker_udp_core::container::UdpTrackerCoreContainer;
 use torrust_tracker_udp_core::event::ConnectionContext;
 use torrust_tracker_udp_core::{self, ConnectionIdValidationPolicy, UDP_TRACKER_LOG_TARGET};
@@ -67,10 +68,6 @@ struct RequestDrainOutcome {
     aborted: u64,
     evicted: u64,
 }
-
-/// How long accepted UDP requests may keep running after cancellation (issue #2370, Q4).
-// Private until the shutdown policy configuration makes it configurable (SI-20).
-const REQUEST_DRAIN_DEADLINE: Duration = Duration::from_secs(5);
 
 /// Waits up to `deadline` for every request processor, then aborts and joins the rest.
 ///
@@ -216,6 +213,8 @@ impl Launcher {
             cookie_lifetime,
             connection_id_validation,
             cancellation_token.clone(),
+            // The legacy launcher path takes no shutdown settings; SI-19 removes it.
+            Shutdown::default().udp_request_drain(),
         );
         let mut receive_loop = OwnedReceiveLoop::new(task);
 
@@ -251,27 +250,9 @@ impl Launcher {
 
     /// Logs the listener startup and spawns the receive loop, which stops
     /// admitting datagrams when `cancellation_token` is cancelled, drains its
-    /// request processors, and returns `Ok(())`. The caller owns the returned task.
+    /// request processors for at most `request_drain_deadline`, and returns `Ok(())`.
+    /// The caller owns the returned task.
     pub(crate) fn start_receive_loop(
-        udp_tracker_core_container: Arc<UdpTrackerCoreContainer>,
-        udp_tracker_server_container: Arc<UdpTrackerServerContainer>,
-        bound_socket: BoundSocket,
-        cookie_lifetime: Duration,
-        connection_id_validation: ConnectionIdValidationPolicy,
-        cancellation_token: CancellationToken,
-    ) -> StartedReceiveLoop {
-        Self::start_receive_loop_with_request_drain_deadline(
-            udp_tracker_core_container,
-            udp_tracker_server_container,
-            bound_socket,
-            cookie_lifetime,
-            connection_id_validation,
-            cancellation_token,
-            REQUEST_DRAIN_DEADLINE,
-        )
-    }
-
-    pub(crate) fn start_receive_loop_with_request_drain_deadline(
         udp_tracker_core_container: Arc<UdpTrackerCoreContainer>,
         udp_tracker_server_container: Arc<UdpTrackerServerContainer>,
         bound_socket: BoundSocket,
@@ -1221,16 +1202,19 @@ mod tests {
         use tokio::sync::{mpsc, watch};
         use tokio::task::{JoinError, JoinHandle};
         use tokio_util::sync::CancellationToken;
+        use torrust_server_lib::registar::Registar;
         use torrust_tracker_events::sender::{SendError, Sender};
+        use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
         use torrust_tracker_udp_core::ConnectionIdValidationPolicy;
         use torrust_tracker_udp_protocol::{ConnectRequest, Request, TransactionId};
 
         use super::{LIFECYCLE_TIMEOUT, RunningProcessor, UdpLauncherTestContext, wait_until_bindable};
         use crate::container::UdpTrackerServerContainer;
         use crate::event::Event;
-        use crate::server::bound_socket::BoundSocket;
-        use crate::server::launcher::{Launcher, StartedReceiveLoop};
+        use crate::server::Server;
         use crate::server::request_buffer::ACTIVE_REQUESTS_CAPACITY;
+        use crate::server::spawner::Spawner;
+        use crate::server::states::CancellationRunning;
 
         /// Shorter than the time a held processor waits, so the drain must abort it.
         const SHORT_DRAIN_DEADLINE: Duration = Duration::from_millis(100);
@@ -1299,15 +1283,23 @@ mod tests {
                     banned_ips_publication_order: context.udp_tracker_server_container.banned_ips_publication_order.clone(),
                 });
                 let cancellation_token = CancellationToken::new();
-                let StartedReceiveLoop { address, task, .. } = Launcher::start_receive_loop_with_request_drain_deadline(
-                    context.udp_tracker_core_container,
-                    server_container,
-                    BoundSocket::bind(context.bind_address, false).expect("UDP socket should bind"),
-                    context.cookie_lifetime,
-                    ConnectionIdValidationPolicy::Strict,
-                    cancellation_token.clone(),
-                    request_drain_deadline,
-                );
+                // The public token-aware start is the path that must carry the drain deadline.
+                let CancellationRunning {
+                    local_addr: address,
+                    task,
+                } = Server::new(Spawner::new(context.bind_address))
+                    .start_with_cancellation(
+                        context.udp_tracker_core_container,
+                        server_container,
+                        Registar::default().give_form(),
+                        RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0)),
+                        context.cookie_lifetime,
+                        ConnectionIdValidationPolicy::Strict,
+                        request_drain_deadline,
+                        cancellation_token.clone(),
+                    )
+                    .await
+                    .expect("the token-aware UDP server should start");
 
                 Self {
                     address,

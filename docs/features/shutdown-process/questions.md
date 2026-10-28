@@ -679,6 +679,27 @@ when their expected request duration requires them.
 - [x] Identified Docker/Podman's default 10-second stop behavior as insufficient.
 - [x] Assigned SI-20 to configure and document the policy.
 
+### Amendment (2026-10-27, issue #2668)
+
+The decision above is kept as it was approved. The implementation in issue #2668 (SI-20) changed
+two things, recorded in the
+[budget ADR](../../adrs/20261027145446_budget_shutdown_in_two_chained_stages_inside_one_process_deadline.md):
+
+- A fourth budget exists. The shutdown-order work (sub-EPIC #2410) made shutdown two sequential
+  stages: an event listener is asked to stop only after its producers have completed, and its drain
+  budget is five seconds. `T_component < T_process` holds for each component alone but not for the
+  chain, so the startup validation requires
+  `max(HTTP drain, UDP drain) + listener drain < process deadline`.
+- With the listener budget of five seconds, the 20-second HTTP drain would make the chain `20 + 5 = 25`,
+  which is not below 25. The default HTTP-family drain is therefore **15 seconds** (`15 + 5 = 20 < 25`),
+  and the 25-second process deadline, the five-second UDP budget, and the 30-second orchestrator minimum
+  are unchanged.
+
+All four values are the keys of `[application.shutdown]`, each a whole number of seconds from 1 to
+3600, with the defaults 25, 15, 5, and 5 (`deadline_in_secs`, `http_drain_in_secs`,
+`udp_request_drain_in_secs`, `event_listener_drain_in_secs`). The deployment guidance is in
+[Stopping the Tracker](../../containers.md#stopping-the-tracker).
+
 ---
 
 ## Q5
@@ -919,9 +940,8 @@ component outcomes, and the final process result. Docker/Podman's default
 it is not a passing graceful-drain target.
 
 After implementation, record the raw command output and logs in SI-20's
-`manual-verification-evidence.md` (the original `verification.md` skeleton was
-replaced by the evidence template), then add the observed behavior to the
-shutdown analysis.
+[`manual-verification-evidence.md`](../../issues/open/2668-1488-si-20-configure-shutdown-policy/manual-verification-evidence.md),
+then add the observed behavior to the shutdown analysis.
 
 ### Actions Taken
 

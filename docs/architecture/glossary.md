@@ -132,19 +132,23 @@ lists every producer and consumer.
 - **Drain timeout**: a component-specific drain policy. Two kinds exist, and
   they differ at expiry:
   - A **server drain deadline** is a hard limit. The HTTP server forces shutdown
-    when its 90-second timeout passes, and the UDP server aborts the request
-    processors still running when its 5-second deadline passes.
+    when its configured drain timeout (`http_drain_in_secs`, 15 seconds by
+    default) passes, and the UDP server aborts the request processors still
+    running when its configured deadline (`udp_request_drain_in_secs`, 5 seconds
+    by default) passes.
   - A **listener admission timeout** is checked only between
     events, so it never interrupts a handler that is running. Each listener gets
-    its budget injected through its constructor, and a later issue (SI-20) aligns
-    the aggregate budgets.
+    its budget injected through its constructor from
+    `event_listener_drain_in_secs` (5 seconds by default). The startup
+    validation requires the longer server drain plus this budget to stay below
+    the shared deadline.
 
   Every drain timeout is still bounded by the shared deadline, which aborts
   whatever is left, including a running handler.
 - **Shared deadline**: the single deadline `JobManager::wait_for_all` applies to
-  all top-level components together. `main` passes 10 seconds today, and SI-20
-  makes it configurable. When it expires, `JobManager` aborts the remaining
-  components.
+  all top-level components together. `main` passes `deadline_in_secs` from the
+  configuration (25 seconds by default). When it expires, `JobManager` aborts
+  the remaining components.
 - **Abort**: a forced stop of a task (`JoinHandle::abort`). It takes effect
   when the runtime can next cancel the task, so it is not synchronous
   preemption. Join the task to observe that it ended. The outcome of an

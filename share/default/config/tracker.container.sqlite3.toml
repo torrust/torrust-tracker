@@ -20,6 +20,17 @@ ip_bans_reset_interval_in_secs = 86400
 max_connection_id_errors_per_ip = 10
 connection_id_validation = "strict"
 
+# How long the tracker takes to stop after SIGTERM or SIGINT. The values are the defaults.
+# The container runtime must wait at least `deadline_in_secs` + 5 s before it sends SIGKILL:
+# raise `docker stop --time`, `stop_grace_period` or `terminationGracePeriodSeconds` when you raise it.
+# `max(http_drain_in_secs, udp_request_drain_in_secs) + event_listener_drain_in_secs` must be
+# below `deadline_in_secs`; the tracker refuses to start otherwise.
+[application.shutdown]
+deadline_in_secs = 25
+http_drain_in_secs = 15
+udp_request_drain_in_secs = 5
+event_listener_drain_in_secs = 5
+
 # Uncomment to enable services
 
 #[[udp_trackers]]

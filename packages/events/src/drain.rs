@@ -17,13 +17,16 @@ use tokio::time::Instant;
 
 use crate::receiver::{Receiver, TryRecvError};
 
-/// The drain timeout the application gives every listener until it becomes configuration (SI-20).
+/// The drain timeout that standalone listeners and the test environments use.
 ///
-/// It bounds how long a cancelled listener keeps *admitting* queued events, not how long a handler
-/// may run. It is deliberately below the 10-second shared shutdown deadline: a full buffer of 65,536
-/// events takes about 12 to 14 s to persist on tmpfs and about 158 to 188 s on an `NVMe` disk with
-/// SQLite (issue #2414, `manual-verification-evidence.md` V6), so no timeout that fits the deadline
-/// drains a full buffer, and a larger backlog is reported by the drain's warning.
+/// The application passes the configured `application.shutdown.event_listener_drain_in_secs` (also 5
+/// seconds by default) instead. It bounds how long a cancelled listener keeps *admitting* queued
+/// events, not how long a handler may run. It is deliberately below the 25-second default shutdown
+/// deadline, and the configuration requires it plus the longer server drain to stay below that
+/// deadline: a full buffer of 65,536 events takes about 12 to 14 s to persist on tmpfs and about
+/// 158 to 188 s on an `NVMe` disk with SQLite (issue #2414, `manual-verification-evidence.md` V6), so
+/// the default budgets do not drain a full buffer on disk, and a larger backlog is reported by the
+/// drain's warning.
 pub const DEFAULT_DRAIN_TIMEOUT: Duration = Duration::from_secs(5);
 
 /// Why a [`drain`] stopped.

@@ -8,6 +8,7 @@ use torrust_tracker_axum_server::signals::GracefulShutdownOutcome;
 use torrust_tracker_axum_server::tls::make_rust_tls;
 use torrust_tracker_configuration::v3_0_0::core::Core;
 use torrust_tracker_configuration::v3_0_0::http_tracker::HttpTracker;
+use torrust_tracker_configuration::v3_0_0::shutdown::Shutdown;
 use torrust_tracker_core::container::TrackerCoreContainer;
 use torrust_tracker_http_core::container::HttpTrackerCoreContainer;
 use torrust_tracker_http_core::statistics::event::listener::{DEFAULT_DRAIN_TIMEOUT, run_event_listener};
@@ -81,6 +82,7 @@ impl Environment<Stopped> {
             bind_to,
             tls,
             container.http_tracker_core_container.http_tracker_config.network.ipv6_v6only,
+            Shutdown::default().http_drain(),
         ));
 
         Self {
@@ -309,6 +311,7 @@ mod tests {
     use tokio::io::{AsyncReadExt, AsyncWriteExt};
     use tokio_util::sync::CancellationToken;
     use torrust_tracker_axum_server::signals::GracefulShutdownOutcome;
+    use torrust_tracker_configuration::v3_0_0::shutdown::Shutdown;
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
 
     use super::{Started, Unstarted, join_owned_tasks};
@@ -568,7 +571,12 @@ mod tests {
         let (release_controller, controller_released) = tokio::sync::oneshot::channel::<()>();
         let server_task = tokio::spawn(async move {
             let _ = server_released.await;
-            Launcher::new(SocketAddr::from(([127, 0, 0, 1], 0)), None, false)
+            Launcher::new(
+                SocketAddr::from(([127, 0, 0, 1], 0)),
+                None,
+                false,
+                Shutdown::default().http_drain(),
+            )
         });
         let drain_controller = tokio::spawn(async move {
             let _ = controller_released.await;
@@ -677,7 +685,14 @@ mod tests {
     #[tokio::test]
     async fn it_should_report_a_drain_timeout_even_when_every_task_joins() {
         // Arrange
-        let finished_server_task = tokio::spawn(async { Launcher::new(SocketAddr::from(([127, 0, 0, 1], 0)), None, false) });
+        let finished_server_task = tokio::spawn(async {
+            Launcher::new(
+                SocketAddr::from(([127, 0, 0, 1], 0)),
+                None,
+                false,
+                Shutdown::default().http_drain(),
+            )
+        });
         let timed_out_controller = tokio::spawn(async { GracefulShutdownOutcome::TimedOut });
         let finished_event_listener = tokio::spawn(async {});
 

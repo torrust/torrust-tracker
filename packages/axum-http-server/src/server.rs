@@ -26,8 +26,6 @@ use tracing::instrument;
 use super::v1::routes::router;
 use crate::HTTP_TRACKER_LOG_TARGET;
 
-const HTTP_GRACEFUL_DRAIN_TIMEOUT: Duration = Duration::from_secs(90);
-
 /// Error that can occur when starting or stopping the HTTP server.
 ///
 /// Some errors triggered while starting the server are:
@@ -76,6 +74,9 @@ pub struct Launcher {
     pub bind_to: SocketAddr,
     pub tls: Option<RustlsConfig>,
     pub ipv6_v6only: bool,
+    /// How long the server waits for open connections to finish after its cancellation token is
+    /// cancelled, before it closes them.
+    pub drain_timeout: Duration,
 }
 
 impl Launcher {
@@ -436,6 +437,7 @@ fn start_token_aware_runtime(
         source: std::io::Error::other(error),
     })?;
     let server = launcher.server_future(socket, handle.clone(), http_tracker_container, &service_binding)?;
+    let drain_timeout = launcher.drain_timeout;
 
     tracing::info!(target: HTTP_TRACKER_LOG_TARGET, "Starting on: {protocol}://{binding}");
     tracing::info!(target: HTTP_TRACKER_LOG_TARGET, "{STARTED_ON}: {protocol}://{binding}");
@@ -448,7 +450,7 @@ fn start_token_aware_runtime(
         cancellation_token,
         format!("Shutting down HTTP server on socket address: {binding}"),
         binding,
-        HTTP_GRACEFUL_DRAIN_TIMEOUT,
+        drain_timeout,
     ));
 
     Ok((
@@ -526,6 +528,7 @@ fn health_check_url(service_binding: &ServiceBinding) -> String {
 mod tests {
     use std::net::{Ipv4Addr, SocketAddr, TcpListener};
     use std::sync::Arc;
+    use std::time::Duration;
 
     use tokio_util::sync::CancellationToken;
     use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
@@ -534,6 +537,7 @@ mod tests {
     };
     use torrust_tracker_axum_server::signals::GracefulShutdownOutcome;
     use torrust_tracker_axum_server::tls::make_rust_tls;
+    use torrust_tracker_configuration::v3_0_0::shutdown::Shutdown;
     use torrust_tracker_configuration::v3_0_0::{Configuration, logging};
     use torrust_tracker_core::container::TrackerCoreContainer;
     use torrust_tracker_http_core::container::HttpTrackerCoreContainer;
@@ -737,7 +741,12 @@ mod tests {
                 .as_ref()
                 .expect("test configuration enables HTTP")[0];
 
-            Launcher::new(self.bind_to, None, http_tracker_config.network.ipv6_v6only)
+            Launcher::new(
+                self.bind_to,
+                None,
+                http_tracker_config.network.ipv6_v6only,
+                Shutdown::default().http_drain(),
+            )
         }
 
         fn registration_form(&self) -> ServiceRegistrationForm<RuntimeServiceMetadata> {
@@ -791,7 +800,12 @@ mod tests {
                 None
             };
 
-            Launcher::new(self.bind_to, tls, http_tracker_config.network.ipv6_v6only)
+            Launcher::new(
+                self.bind_to,
+                tls,
+                http_tracker_config.network.ipv6_v6only,
+                Shutdown::default().http_drain(),
+            )
         }
 
         fn registration_form(&self) -> ServiceRegistrationForm<RuntimeServiceMetadata> {
@@ -847,6 +861,55 @@ mod tests {
         // Assert
         assert_eq!(launcher.bind_to, scenario.bind_to);
         assert_eq!(drain_outcome, GracefulShutdownOutcome::Drained);
+    }
+
+    #[tokio::test]
+    async fn it_should_time_out_the_drain_after_the_configured_drain_timeout_when_a_connection_stays_open() {
+        // Arrange
+        // The launcher is configured with a 300 ms drain timeout, far below the 15 s default. A client
+        // opens a connection and sends only part of a request header, so the server keeps waiting for
+        // it. A second request that completes proves the server has accepted the first connection.
+        let configured_drain_timeout = Duration::from_millis(300);
+        let test_deadline = Duration::from_secs(5);
+        let scenario = ServerStartWithAvailableHttpBinding::new();
+        let http_tracker_container = scenario.container().await;
+        let cancellation_token = CancellationToken::new();
+        let mut launcher = scenario.launcher().await;
+        launcher.drain_timeout = configured_drain_timeout;
+        let running = HttpServer::new(launcher)
+            .start_with_cancellation(
+                http_tracker_container,
+                scenario.registration_form(),
+                scenario.metadata(),
+                cancellation_token.clone(),
+            )
+            .await
+            .expect("the token-aware HTTP server should start");
+        let mut held_connection = std::net::TcpStream::connect(running.binding).expect("open the connection to hold");
+        std::io::Write::write_all(&mut held_connection, b"GET /health_check HTTP/1.1\r\nHost: tracker\r\n")
+            .expect("send a partial request header");
+        tokio::time::timeout(
+            test_deadline,
+            reqwest::get(format!("http://{}/health_check", running.binding)),
+        )
+        .await
+        .expect("the server should answer within the test deadline")
+        .expect("the server should answer once it has accepted the held connection");
+
+        // Act
+        cancellation_token.cancel();
+        let drain_outcome = tokio::time::timeout(test_deadline, running.shutdown_controller)
+            .await
+            .expect("the drain should end by the configured timeout, not the default one")
+            .expect("the HTTP drain controller should not panic");
+
+        // Assert
+        assert_eq!(
+            drain_outcome,
+            GracefulShutdownOutcome::TimedOut,
+            "a connection held open past the {configured_drain_timeout:?} drain timeout should end the drain as timed out"
+        );
+        drop(held_connection);
     }
 
     const INJECTED_HEALTH_CHECK_RESULT: &str = "injected health check ran";

@@ -8,6 +8,8 @@ services:
       target: release
     image: ${QBT_E2E_TRACKER_IMAGE:?QBT_E2E_TRACKER_IMAGE is required}
     restart: "no"
+    # The tracker's default shutdown deadline is 25 s; the runtime must wait at least 30 s (docs/containers.md).
+    stop_grace_period: 35s
     environment:
       TORRUST_TRACKER_CONFIG_OVERRIDE_CORE__DATABASE__DRIVER: postgresql
     depends_on:
