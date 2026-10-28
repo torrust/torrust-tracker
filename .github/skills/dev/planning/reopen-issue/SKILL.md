@@ -22,6 +22,11 @@ Reopen when the new work belongs to the original goal and its deliverable is not
 example, #1978's configuration schema v3.0.0 was active but not published on crates.io). Otherwise
 create a new issue or EPIC and reference the closed one.
 
+Once the deliverable is released, never reopen its EPIC: create standalone issues and plan the
+version in which each should ship, stating the target version in the issue and its specification.
+While it is unpublished, the same EPIC may be reopened again for each new change, as #1978 was
+for #2466, and closed again when the last subissue closes.
+
 For a closed single issue, reopen when the closing PR did not meet its acceptance criteria or the
 fix regressed before release. A regression after release is a new bug issue.
 
