@@ -1,12 +1,12 @@
 ---
 schema-version: 1
 doc-type: epic
-status: in-progress
+status: done
 epic: null
 github-issue: 1978
-spec-path: docs/issues/open/1978-configuration-overhaul-epic/EPIC.md
+spec-path: docs/issues/closed/1978-configuration-overhaul-epic/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-28 13:35"
+last-updated-utc: "2026-10-28 16:40"
 semantic-links:
   skill-links:
     - create-issue
@@ -236,7 +236,7 @@ For each subissue implementation in this EPIC, the default completion policy is:
 
 ### Workflow Checkpoints
 
-- [x] Epic spec drafted in `docs/issues/open/1978-configuration-overhaul-epic/EPIC.md`
+- [x] Epic spec drafted in `docs/issues/closed/1978-configuration-overhaul-epic/EPIC.md`
 - [x] Epic spec reviewed and approved by user/maintainer
 - [x] GitHub epic issue created: #1978
 - [x] Subissues created and linked in this spec
@@ -244,8 +244,8 @@ For each subissue implementation in this EPIC, the default completion policy is:
 - [x] For each implemented subissue: automatic checks completed and recorded
 - [x] For each implemented subissue: manual verification completed and recorded
 - [x] For each implemented subissue: acceptance criteria reviewed post-implementation
-- [ ] Epic acceptance criteria reviewed and checked off
-- [ ] Epic issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Epic acceptance criteria reviewed and checked off
+- [x] Epic issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -326,13 +326,15 @@ For each subissue implementation in this EPIC, the default completion policy is:
 - 2026-10-07 08:29 UTC - josecelano - Decided to reopen #1978 for the #2245 follow-up instead of a standalone issue: configuration schema v3.0.0 is not yet published on crates.io, so the change still belongs to this EPIC - Chat decision
 - 2026-10-07 08:50 UTC - GitHub Copilot - Created subissue #2466 (bound the announce interval to what every delivery protocol can encode), reopened #1978 on GitHub, and linked #2466 natively; the specification PR then moves this specification back to `docs/issues/open/` - 16 of 17 subissues done
 - 2026-10-28 13:35 UTC - GitHub Copilot - Archived the #2466 spec to `docs/issues/closed/` after PR #2680 merged and #2466 closed, and marked it `DONE` in the Subissues table; EPIC closure and AC4 are left for the maintainer to decide - Archive PR
+- 2026-10-28 16:31 UTC - josecelano - Closed #1978 on GitHub, with all 17 linked subissues closed. Policy decided: this EPIC was reopened only to add #2466 because schema v3.0.0 is unpublished; while it stays unpublished the EPIC may be reopened the same way, and after the release changes become standalone issues planned for a target version - Chat decision
+- 2026-10-28 16:40 UTC - GitHub Copilot - Marked AC4 and the closing checkpoints done, recorded the reopening policy in Risk 3, and archived this spec to `docs/issues/closed/` - Archive PR
 
 ## Acceptance Criteria
 
 - [x] All required subissues are created and linked.
 - [x] Implementation order is explicit and justified.
 - [x] Dependencies and blockers are documented and current.
-- [ ] Epic status reflects actual state of linked subissues.
+- [x] Epic status reflects actual state of linked subissues.
 - [x] Every completed subissue includes automated verification evidence.
 - [x] Every completed subissue includes manual verification evidence.
 - [x] Every completed subissue includes post-implementation acceptance criteria review.
@@ -345,7 +347,7 @@ For each subissue implementation in this EPIC, the default completion policy is:
 | AC1   | DONE                   | GitHub EPIC #1978 reports 17 linked native subissues, including #2466 added after reopening.                      |
 | AC2   | DONE                   | The dependency graph, critical paths, phases, and conflict hotspot table document ordering and rationale.         |
 | AC3   | DONE                   | The EPIC table, dependency graph, and release-gated #2079 prerequisite record current prerequisites and blockers. |
-| AC4   | TODO                   | Reopened for #2466; recheck when it closes.                                                                       |
+| AC4   | DONE                   | All 17 linked subissues are closed on GitHub; the last, #2466, closed on 2026-10-28 with PR #2680.                |
 | AC5   | DONE                   | The completed subissue specifications record their relevant automated-check evidence.                             |
 | AC6   | DONE                   | The completed subissue specifications record their applicable manual-verification evidence.                       |
 | AC7   | DONE                   | The completed subissue specifications record post-implementation acceptance reviews.                              |
@@ -359,7 +361,10 @@ For each subissue implementation in this EPIC, the default completion policy is:
    namespace could conflict. Mitigation: implement sequentially or coordinate branches
    carefully; subissue #1 (copy baseline) must be merged first.
 3. **Scope creep**: More configuration changes may be discovered during implementation.
-   Mitigation: document new findings as separate subissues or follow-up EPICs.
+   Mitigation: document new findings as separate subissues or follow-up EPICs. While schema
+   v3.0.0 is unpublished, reopen this EPIC and add the change as a subissue, as was done for
+   #2466. After v3.0.0 is released, do not reopen it: create standalone issues and plan the
+   version in which each should ship.
 4. **Backward compatibility**: Some consumers (deployer, helm charts, docker-compose files)
    may need coordinated updates. Mitigation: coordinate with deployer team.
 
