@@ -54,9 +54,13 @@ cat .tmp/wait-for-pr-review.stdout
 | `--timeout-seconds <N>`     | 900 (15 minutes)                                     | Longest wait before a `timeout` result.                                                                         |
 | `--poll-interval-seconds N` | 120 (2 minutes)                                      | Pause between two looks at the pull request.                                                                    |
 | `--since-head-sha <sha>`    | the moment the poller starts                         | Count reviews and comments created after this commit was made. Pass the commit you just pushed.                 |
+| `--since <utc time>`        | the moment the poller starts                         | Count reviews and comments created strictly after this time. Pass the `cursor` of the previous result. Cannot be combined with `--since-head-sha`. |
 
-Pass `--since-head-sha "$(git rev-parse HEAD)"` after every push. Without it, a review that lands
-between your push and the poller start is missed, because the baseline is the poller start.
+Always pass `--since-head-sha` or `--since`. Without either, the baseline is the poller start, so a
+review that lands between your push and the poller start, or between two runs, is missed. Use
+`--since-head-sha "$(git rev-parse HEAD)"` right after a push, and `--since <cursor>` to resume
+after an event that needed no push (see [The Review Loop](#the-review-loop)). The two cannot be
+combined.
 
 If your shell tool caps a call below the 15-minute default, set `--timeout-seconds` under that cap
 and run the poller again on a `timeout` result.
@@ -68,12 +72,17 @@ timeout, exits `0`, so branch on `kind`.
 
 | `kind`         | Meaning                                              | Other fields                                                                    |
 | -------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------- |
-| `review`       | A watched reviewer submitted a review (any state).   | `reviewer`, `review_id`, `state`, `review_commit_id`, `url`, `head_sha`         |
-| `comment`      | A watched reviewer commented.                        | `comment_kind` (`issue` or `review`), `reviewer`, `comment_id`, `url`, `head_sha` |
+| `review`       | A watched reviewer submitted a review (any state).   | `reviewer`, `review_id`, `state`, `review_commit_id`, `url`, `head_sha`, `cursor` |
+| `comment`      | A watched reviewer commented.                        | `comment_kind` (`issue` or `review`), `reviewer`, `comment_id`, `url`, `head_sha`, `cursor` |
 | `head_changed` | The head commit changed: someone pushed.             | `previous_head_sha`, `head_sha`                                                 |
 | `pr_closed`    | The pull request was closed without merging.         | `head_sha`                                                                      |
 | `pr_merged`    | The pull request was merged.                         | `head_sha`                                                                      |
 | `timeout`      | Nothing happened within the wait.                    | `waited_seconds`, `head_sha`                                                    |
+
+`cursor` is the GitHub time of the item the result reports. `--since <cursor>` counts only items
+created strictly after it, so the reported item and everything before it are skipped. An item created
+in the same second as the cursor is skipped too; the review loop reads the whole pull request after
+every event, so it is still read.
 
 When several things happened at once, the poller reports the first in this order: closed or merged,
 review, comment, head change. It reports one event; the review loop reads the whole pull request
@@ -100,15 +109,22 @@ and nothing in that gap is missed.
 
 ## The Review Loop
 
-1. Push, then run the poller with `--since-head-sha` set to the pushed commit.
+1. Run the poller with `--since-head-sha` set to the commit you just pushed. On the first run, use
+   the head of the pull request.
 2. Branch on `kind`:
    - `review` or `comment`: run the [`process-pr-review`](../process-pr-review/SKILL.md) workflow.
-     Fetch every thread with [`fetch-review-threads`](../fetch-review-threads/SKILL.md), read the new
-     review body (a finding in a review body has no thread), fix, commit, push, and reply. Then
-     re-request the review (see below) and go to step 1.
-   - `head_changed`: someone else pushed. Pull the branch, then go to step 1 with the new head.
-   - `timeout`: check the exit condition. If it is not met, go to step 1; after a few timeouts in a
-     row, tell the contributor the reviewer has not answered.
+     Fetch every thread with [`fetch-review-threads`](../fetch-review-threads/SKILL.md) and read the
+     new review body (a finding in a review body has no thread).
+     - If you fixed something, commit, push, reply, and re-request the review (see below). Then go
+       to step 1 with `--since-head-sha` set to the commit you pushed.
+     - If you pushed nothing, because the review was clean or the comment was informational, do not
+       re-request the review. Go to step 1 with `--since <cursor>` from this result, so this event
+       is not reported again and nothing after it is missed.
+   - `head_changed`: someone else pushed. Pull the branch, then go to step 1 with
+     `--since-head-sha` set to the new `head_sha`.
+   - `timeout`: check the exit condition. If it is not met, run the poller again with the same
+     `--since-head-sha` or `--since` as the run that timed out, since nothing was processed in
+     between. After a few timeouts in a row, tell the contributor the reviewer has not answered.
    - `pr_closed` or `pr_merged`: stop.
 3. Check the exit condition after each return. The loop is done when all of these hold:
    - Copilot's latest review is on the current head commit. Copilot never submits `APPROVED`, so its
@@ -126,7 +142,8 @@ thread is not counted by the thread check, so read each new review body through 
 
 ## Re-Requesting a Review
 
-After you push fixes for a reviewer, ask the same reviewer again. The poller never does this. This
+After you push fixes for a reviewer, ask the same reviewer again. Do it only when new fixes need a
+new look; a clean review needs no re-request. The poller never does this. This
 call is the documented GitHub REST endpoint; it has not run against this repository yet.
 
 ```sh

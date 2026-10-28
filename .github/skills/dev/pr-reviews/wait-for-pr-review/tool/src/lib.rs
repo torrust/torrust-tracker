@@ -15,4 +15,4 @@ pub use error::Error;
 pub use event::Event;
 pub use gh::{Gh, GhCli};
 pub use snapshot::PullRequest;
-pub use wait::{Clock, Config, SystemClock, wait};
+pub use wait::{Clock, Config, Since, SystemClock, wait};

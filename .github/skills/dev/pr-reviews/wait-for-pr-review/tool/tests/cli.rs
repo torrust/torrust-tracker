@@ -101,7 +101,33 @@ fn it_should_print_the_review_that_arrives_after_the_wait_began_as_one_json_obje
     assert_eq!(event["reviewer"], "da2ce7");
     assert_eq!(event["state"], "APPROVED");
     assert_eq!(event["head_sha"], "abc1234");
+    assert_eq!(event["cursor"], "2026-10-28T07:00:00Z");
     assert_eq!(kinds(&output), ["wait_started"]);
+}
+
+#[test]
+fn it_should_not_report_a_review_again_when_resumed_from_its_cursor() {
+    let sandbox = Sandbox::with_pull(OPEN_PULL);
+    let first = sandbox.run(&["--pr-number", "7", "--poll-interval-seconds", "1", "--timeout-seconds", "30"]);
+    let cursor = json(&first.stdout)["cursor"].as_str().unwrap().to_owned();
+
+    let resumed = sandbox.run(&[
+        "--pr-number",
+        "7",
+        "--since",
+        &cursor,
+        "--poll-interval-seconds",
+        "1",
+        "--timeout-seconds",
+        "2",
+    ]);
+
+    assert_eq!(resumed.status.code(), Some(0));
+    assert_eq!(
+        json(&resumed.stdout)["kind"],
+        "timeout",
+        "the review at the cursor must not fire again"
+    );
 }
 
 #[test]
@@ -190,6 +216,33 @@ fn it_should_exit_two_when_since_head_sha_is_not_a_commit_sha() {
     let sandbox = Sandbox::with_pull(OPEN_PULL);
 
     let output = sandbox.run(&["--pr-number", "7", "--since-head-sha", "../../etc/passwd"]);
+
+    assert_eq!(output.status.code(), Some(2));
+    assert_eq!(kinds(&output), ["usage_error"]);
+}
+
+#[test]
+fn it_should_exit_two_when_since_is_not_a_utc_timestamp() {
+    let sandbox = Sandbox::with_pull(OPEN_PULL);
+
+    let output = sandbox.run(&["--pr-number", "7", "--since", "yesterday"]);
+
+    assert_eq!(output.status.code(), Some(2));
+    assert_eq!(kinds(&output), ["usage_error"]);
+}
+
+#[test]
+fn it_should_exit_two_when_since_and_since_head_sha_are_both_given() {
+    let sandbox = Sandbox::with_pull(OPEN_PULL);
+
+    let output = sandbox.run(&[
+        "--pr-number",
+        "7",
+        "--since",
+        "2026-10-28T07:00:00Z",
+        "--since-head-sha",
+        "abc1234",
+    ]);
 
     assert_eq!(output.status.code(), Some(2));
     assert_eq!(kinds(&output), ["usage_error"]);

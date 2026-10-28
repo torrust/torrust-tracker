@@ -52,13 +52,14 @@ impl Baseline {
         }
     }
 
-    /// The baseline is the moment `head_sha` was committed, so a reply that landed after the agent
-    /// pushed but before the poller started still counts.
+    /// The baseline is a moment: reviews and comments created strictly after `moment` count, so a
+    /// reply that landed after a push but before the poller started is not missed, and an item
+    /// already handled is not reported again. `head_sha` is the head commit to watch for changes.
     #[must_use]
-    pub fn since_commit(head_sha: &str, committed_at: i64) -> Self {
+    pub fn since(head_sha: &str, moment: i64) -> Self {
         Self {
             head_sha: head_sha.to_owned(),
-            cutoff: Cutoff::After(committed_at),
+            cutoff: Cutoff::After(moment),
         }
     }
 
@@ -117,6 +118,9 @@ pub enum Event {
         url: String,
         /// The current head commit.
         head_sha: String,
+        /// When the review was submitted. Resume with `--since` to skip it and everything before it.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        cursor: Option<String>,
     },
     /// A watched reviewer commented.
     Comment {
@@ -130,6 +134,9 @@ pub enum Event {
         url: String,
         /// The current head commit.
         head_sha: String,
+        /// When the comment was created. Resume with `--since` to skip it and everything before it.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        cursor: Option<String>,
     },
     /// The head commit changed: someone pushed.
     HeadChanged {
@@ -198,6 +205,7 @@ fn new_review(baseline: &Baseline, snapshot: &Snapshot, reviewers: &[String]) ->
             review_commit_id: review.commit_id.clone(),
             url: review.html_url.clone(),
             head_sha: snapshot.head_sha.clone(),
+            cursor: review.submitted_at.clone(),
         })
 }
 
@@ -222,6 +230,7 @@ fn new_comment(baseline: &Baseline, snapshot: &Snapshot, reviewers: &[String]) -
             comment_id: comment.id,
             url: comment.html_url.clone(),
             head_sha: snapshot.head_sha.clone(),
+            cursor: Some(comment.created_at.clone()),
         })
 }
 
@@ -292,6 +301,7 @@ mod tests {
                 review_commit_id: Some("head".to_owned()),
                 url: "https://example.test/review/11".to_owned(),
                 head_sha: "head".to_owned(),
+                cursor: Some("2026-10-28T07:00:00Z".to_owned()),
             })
         );
     }
@@ -398,6 +408,18 @@ mod tests {
     }
 
     #[test]
+    fn it_should_carry_the_creation_time_of_a_reported_comment_as_the_cursor() {
+        let before = snapshot();
+        let mut after = before.clone();
+        after.issue_comments.push(comment(21, "da2ce7", "2026-10-28T08:00:00Z"));
+
+        assert!(matches!(
+            detect(&Baseline::from_snapshot(&before), &after, &reviewers()),
+            Some(Event::Comment { cursor: Some(cursor), .. }) if cursor == "2026-10-28T08:00:00Z"
+        ));
+    }
+
+    #[test]
     fn it_should_report_a_new_inline_review_comment_from_a_watched_reviewer() {
         let before = snapshot();
         let mut after = before.clone();
@@ -480,7 +502,7 @@ mod tests {
     #[test]
     fn it_should_count_items_created_after_the_commit_date_when_the_baseline_is_a_commit() {
         let committed_at = 1_793_167_200; // 2026-10-28T06:00:00Z
-        let baseline = Baseline::since_commit("head", committed_at);
+        let baseline = Baseline::since("head", committed_at);
         let mut current = snapshot();
         current.reviews = vec![Review {
             submitted_at: Some("2026-10-28T06:00:01Z".to_owned()),
@@ -498,7 +520,7 @@ mod tests {
     #[test]
     fn it_should_not_count_items_created_at_or_before_the_commit_date_when_the_baseline_is_a_commit() {
         let committed_at = 1_793_174_400; // 2026-10-28T08:00:00Z, after every item in the fixture
-        let baseline = Baseline::since_commit("head", committed_at);
+        let baseline = Baseline::since("head", committed_at);
 
         assert_eq!(detect(&baseline, &snapshot(), &reviewers()), None);
     }
