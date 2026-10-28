@@ -121,6 +121,10 @@ pub enum Event {
         /// When the review was submitted. Resume with `--since` to skip it and everything before it.
         #[serde(skip_serializing_if = "Option::is_none")]
         cursor: Option<String>,
+        /// Set when the head commit is not the one the wait watched, so the review may be about a
+        /// commit the checkout does not have: synchronize before processing it.
+        #[serde(skip_serializing_if = "std::ops::Not::not")]
+        head_moved: bool,
     },
     /// A watched reviewer commented.
     Comment {
@@ -137,6 +141,9 @@ pub enum Event {
         /// When the comment was created. Resume with `--since` to skip it and everything before it.
         #[serde(skip_serializing_if = "Option::is_none")]
         cursor: Option<String>,
+        /// Set when the head commit is not the one the wait watched: synchronize before processing.
+        #[serde(skip_serializing_if = "std::ops::Not::not")]
+        head_moved: bool,
     },
     /// The head commit changed: someone pushed.
     HeadChanged {
@@ -206,6 +213,7 @@ fn new_review(baseline: &Baseline, snapshot: &Snapshot, reviewers: &[String]) ->
             url: review.html_url.clone(),
             head_sha: snapshot.head_sha.clone(),
             cursor: review.submitted_at.clone(),
+            head_moved: snapshot.head_sha != baseline.head_sha,
         })
 }
 
@@ -231,6 +239,7 @@ fn new_comment(baseline: &Baseline, snapshot: &Snapshot, reviewers: &[String]) -
             url: comment.html_url.clone(),
             head_sha: snapshot.head_sha.clone(),
             cursor: Some(comment.created_at.clone()),
+            head_moved: snapshot.head_sha != baseline.head_sha,
         })
 }
 
@@ -302,6 +311,7 @@ mod tests {
                 url: "https://example.test/review/11".to_owned(),
                 head_sha: "head".to_owned(),
                 cursor: Some("2026-10-28T07:00:00Z".to_owned()),
+                head_moved: false,
             })
         );
     }
@@ -333,6 +343,32 @@ mod tests {
         assert!(matches!(
             detect(&Baseline::from_snapshot(&before), &after, &reviewers()),
             Some(Event::Review { review_id: 11, .. })
+        ));
+    }
+
+    #[test]
+    fn it_should_flag_a_review_reported_while_the_head_differs_from_the_one_the_wait_watched() {
+        let before = snapshot();
+        let mut after = before.clone();
+        after.head_sha = "newer".to_owned();
+        after.reviews.push(review(11, "da2ce7", "COMMENTED"));
+
+        assert!(matches!(
+            detect(&Baseline::from_snapshot(&before), &after, &reviewers()),
+            Some(Event::Review { head_moved: true, .. })
+        ));
+    }
+
+    #[test]
+    fn it_should_flag_a_comment_reported_while_the_head_differs_from_the_one_the_wait_watched() {
+        let before = snapshot();
+        let mut after = before.clone();
+        after.head_sha = "newer".to_owned();
+        after.issue_comments.push(comment(21, "da2ce7", "2026-10-28T08:00:00Z"));
+
+        assert!(matches!(
+            detect(&Baseline::from_snapshot(&before), &after, &reviewers()),
+            Some(Event::Comment { head_moved: true, .. })
         ));
     }
 

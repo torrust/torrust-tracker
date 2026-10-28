@@ -27,6 +27,8 @@ case "$*" in
     n=$(cat "$dir/review-calls" 2>/dev/null || echo 0)
     echo $((n + 1)) > "$dir/review-calls"
     if [ "$n" -eq 0 ]; then echo '[[]]'; else cat "$dir/reviews-later.json"; fi ;;
+  "api repos/torrust/torrust-tracker/commits/1111111")
+    echo '{"sha": "1111111000000000000000000000000000000000", "commit": {"committer": {"date": "2026-10-28T06:00:00Z"}}}' ;;
   "api --paginate --slurp repos/torrust/torrust-tracker/issues/7/comments?per_page=100") echo '[[]]' ;;
   "api --paginate --slurp repos/torrust/torrust-tracker/pulls/7/comments?per_page=100") echo '[[]]' ;;
   *) echo "unexpected gh call: $*" >&2; exit 1 ;;
@@ -245,20 +247,28 @@ fn it_should_exit_two_when_since_names_a_day_or_a_signed_field_that_does_not_exi
 }
 
 #[test]
-fn it_should_exit_two_when_since_and_since_head_sha_are_both_given() {
+fn it_should_report_a_head_change_at_once_when_the_checked_out_commit_is_not_the_head_even_with_a_cursor() {
     let sandbox = Sandbox::with_pull(OPEN_PULL);
 
+    // The pull request head is abc1234, but the agent says its checkout is 1111111: its tree is stale.
     let output = sandbox.run(&[
         "--pr-number",
         "7",
-        "--since",
-        "2026-10-28T07:00:00Z",
         "--since-head-sha",
-        "abc1234",
+        "1111111",
+        "--since",
+        "2026-10-28T08:00:00Z",
+        "--reviewer",
+        "someone-else",
+        "--timeout-seconds",
+        "30",
     ]);
 
-    assert_eq!(output.status.code(), Some(2));
-    assert_eq!(kinds(&output), ["usage_error"]);
+    assert_eq!(output.status.code(), Some(0));
+    let event = json(&output.stdout);
+    assert_eq!(event["kind"], "head_changed");
+    assert_eq!(event["previous_head_sha"], "1111111000000000000000000000000000000000");
+    assert_eq!(event["head_sha"], "abc1234");
 }
 
 #[test]

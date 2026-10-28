@@ -9,7 +9,7 @@ github-issue: 2581
 spec-path: docs/issues/open/2581-2003-pr-review-wait-poller/ISSUE.md
 branch: "2581-pr-review-wait-poller"
 related-pr: null
-last-updated-utc: "2026-10-28 13:00"
+last-updated-utc: "2026-10-28 14:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -112,15 +112,22 @@ Contract, confirmed by the maintainer on 2026-10-28:
   submitted reviews and the latest comment IDs. It returns only on events that happen after that
   baseline. A review keeps the ID it got as a draft, so reviews are tracked as a set of submitted
   IDs, not as a maximum, and a review submitted later with a lower ID still counts. The optional
-  `--since-head-sha <sha>` moves the baseline to the commit date of that commit, so a review that
-  lands between the agent's push and the poller start is not missed; the commit may be abbreviated
-  or in uppercase, and the baseline uses the full lowercase SHA that GitHub returns. The optional
-  `--since <utc time>` sets the baseline to a moment and cannot be combined with `--since-head-sha`.
-  Without either, the baseline is the poller start.
+  `--since-head-sha <sha>` names the commit the agent has checked out: a different pull request
+  head is reported as a head change, and unless `--since` is given the baseline moves to that
+  commit's date, so a review that lands between the agent's push and the poller start is not
+  missed. The commit may be abbreviated or in uppercase, and the poller uses the full lowercase SHA
+  that GitHub returns. The optional `--since <utc time>` sets the baseline to a moment; it can be
+  combined with `--since-head-sha`. Without either, the baseline is the poller start and the head
+  at that moment. `--since` accepts only a real UTC date and time: digits only, a day the month
+  has, and clock fields in range.
 - **Resumable cursor**: a `review` or `comment` result carries `cursor`, the GitHub time of the
   reported item. `--since <cursor>` counts only items created strictly after it, so the review loop
   can continue after an event that needed no push without the event being reported again and
   without losing what came after it.
+- **Stale checkout**: reviews and comments take priority over a head change, so the feedback can
+  arrive with a head the checkout does not have. Such a result carries `head_moved: true`, and the
+  review loop synchronizes the checkout before processing it. Passing `--since-head-sha` together
+  with `--since` keeps a head that moved from being adopted silently.
 - **Watched reviewers**: `da2ce7` and `copilot-pull-request-reviewer[bot]` by default. The
   repeatable `--reviewer <login>` flag overrides the set. Events from logins outside the set,
   including the agent's own, never count.
@@ -257,8 +264,8 @@ Decided by the maintainer (2026-10-28):
     `POST repos/{owner}/{repo}/pulls/{n}/requested_reviewers`. The Copilot re-review path is not
     verified; it is verified on this PR and the result is documented in the skill.
 
-Amended by the maintainer-approved review round on PR #2683 (2026-10-28), after Copilot's review
-found four defects in the first implementation. The decisions above are unchanged; these refine
+Amended by the maintainer-approved review round on PR #2683 (2026-10-28), after Copilot's reviews
+found defects in the first implementation (four in round 1, two in round 2). The decisions above are unchanged; these refine
 them:
 
 - **Review IDs.** The baseline tracks the set of submitted review IDs, not a maximum, because a
@@ -269,6 +276,11 @@ them:
   request after the budget is spent (`review-finding:pr-2683-f3`).
 - **Cursor.** Results carry a `cursor` and `--since` resumes after it, so the review loop does not
   reprocess a handled event (`review-finding:pr-2683-f4`).
+- **Stale checkout.** `--since-head-sha` and `--since` can be combined, a `review` or `comment`
+  result carries `head_moved` when the head is not the watched one, and the loop synchronizes
+  before processing feedback (`review-finding:pr-2683-f5`).
+- **Strict `--since`.** A malformed or impossible timestamp is a usage error and never moves the
+  cutoff (`review-finding:pr-2683-f6`).
 
 ## Progress Tracking
 

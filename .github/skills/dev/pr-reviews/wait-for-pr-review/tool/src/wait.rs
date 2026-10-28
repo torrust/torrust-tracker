@@ -12,18 +12,6 @@ use crate::snapshot::{PullRequest, Snapshot, commit_info, take_snapshot};
 
 const SLEEP_SLICE: Duration = Duration::from_millis(100);
 
-/// Which reviews and comments count as new.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum Since {
-    /// Those that appear after the wait begins.
-    Start,
-    /// Those created after this commit was made. The commit may be abbreviated or in uppercase.
-    Commit(String),
-    /// Those created strictly after this moment, in seconds since the Unix epoch. It is the
-    /// `cursor` of an earlier result.
-    Time(i64),
-}
-
 /// How long to wait, how often to look, and whom to listen to.
 #[derive(Clone, Debug)]
 pub struct Config {
@@ -33,8 +21,13 @@ pub struct Config {
     pub timeout: Duration,
     /// The pause between two looks at the pull request.
     pub poll_interval: Duration,
-    /// Which reviews and comments count as new.
-    pub since: Since,
+    /// The commit the agent has checked out. A pull request head that differs from it is a head
+    /// change. It may be abbreviated or in uppercase. Unless `since_moment` is set, reviews and
+    /// comments created after its commit date count as new.
+    pub since_head_sha: Option<String>,
+    /// When set, reviews and comments created strictly after this moment, in seconds since the Unix
+    /// epoch, count as new. It is the `cursor` of an earlier result.
+    pub since_moment: Option<i64>,
 }
 
 /// Time, kept behind a trait so tests never sleep.
@@ -102,13 +95,13 @@ pub fn wait(gh: &impl Gh, clock: &impl Clock, pull_request: &PullRequest, config
     gh.check_authenticated()?;
 
     let first = take_snapshot(gh, pull_request)?;
-    let baseline = match &config.since {
-        Since::Start => Baseline::from_snapshot(&first),
-        Since::Commit(sha) => {
+    let baseline = match (&config.since_head_sha, config.since_moment) {
+        (None, None) => Baseline::from_snapshot(&first),
+        (None, Some(moment)) => Baseline::since(&first.head_sha, moment),
+        (Some(sha), moment) => {
             let commit = commit_info(gh, pull_request, sha)?;
-            Baseline::since(&commit.sha, commit.committed_at)
+            Baseline::since(&commit.sha, moment.unwrap_or(commit.committed_at))
         }
-        Since::Time(moment) => Baseline::since(&first.head_sha, *moment),
     };
 
     if let Some(event) = detect(&baseline, &first, &config.reviewers) {
@@ -161,7 +154,7 @@ mod tests {
 
     use serde_json::{Value, json};
 
-    use super::{Clock, Config, Since, wait};
+    use super::{Clock, Config, wait};
     use crate::error::Error;
     use crate::event::Event;
     use crate::snapshot::PullRequest;
@@ -208,7 +201,8 @@ mod tests {
             reviewers: vec!["da2ce7".to_owned()],
             timeout: Duration::from_secs(900),
             poll_interval: Duration::from_secs(120),
-            since: Since::Start,
+            since_head_sha: None,
+            since_moment: None,
         }
     }
 
@@ -302,7 +296,7 @@ mod tests {
             json!({"sha": "a", "commit": {"committer": {"date": "2026-10-28T06:00:00Z"}}}),
         );
         let config = Config {
-            since: Since::Commit("a".to_owned()),
+            since_head_sha: Some("a".to_owned()),
             ..config()
         };
         let clock = FakeClock::default();
@@ -323,7 +317,7 @@ mod tests {
             json!([review(1, "da2ce7"), {"id": 2, "user": {"login": "da2ce7"}, "state": "COMMENTED", "commit_id": "a", "html_url": "u2", "submitted_at": "2026-10-28T07:00:01Z"}]),
         );
         let config = Config {
-            since: Since::Time(cursor),
+            since_moment: Some(cursor),
             ..config()
         };
 
@@ -341,7 +335,7 @@ mod tests {
         gh.respond(PULL, pull("a", "open", false));
         gh.respond(PULL, pull("b", "open", false));
         let config = Config {
-            since: Since::Time(1_793_170_800),
+            since_moment: Some(1_793_170_800),
             ..config()
         };
 
@@ -349,6 +343,101 @@ mod tests {
 
         assert!(
             matches!(event, Event::HeadChanged { previous_head_sha, head_sha } if previous_head_sha == "a" && head_sha == "b")
+        );
+    }
+
+    /// A pull request whose head is `new-head`, with one review at the cursor and, optionally, a later one.
+    fn pull_request_that_moved_on(later_review: bool) -> FakeGh {
+        let gh = FakeGh::new();
+        gh.respond(PULL, pull("new-head", "open", false));
+        let mut reviews = vec![review(1, "da2ce7")];
+        if later_review {
+            reviews.push(json!({"id": 2, "user": {"login": "da2ce7"}, "state": "COMMENTED", "commit_id": "old-full", "html_url": "u2", "submitted_at": "2026-10-28T07:00:01Z"}));
+        }
+        gh.respond(REVIEWS, Value::Array(reviews));
+        gh.respond(ISSUE_COMMENTS, json!([]));
+        gh.respond(REVIEW_COMMENTS, json!([]));
+        gh.respond(
+            "repos/torrust/torrust-tracker/commits/old",
+            json!({"sha": "old-full", "commit": {"committer": {"date": "2026-10-28T06:00:00Z"}}}),
+        );
+        gh
+    }
+
+    fn resuming_from_a_cursor_with_checkout_old() -> Config {
+        Config {
+            since_head_sha: Some("old".to_owned()),
+            since_moment: Some(1_793_170_800), // 07:00:00Z: the review at the cursor is skipped
+            ..config()
+        }
+    }
+
+    #[test]
+    fn it_should_report_a_head_change_when_resuming_from_a_cursor_with_a_checkout_that_is_not_the_head() {
+        let gh = pull_request_that_moved_on(false);
+
+        let event = wait(
+            &gh,
+            &FakeClock::default(),
+            &pull_request(),
+            &resuming_from_a_cursor_with_checkout_old(),
+        )
+        .unwrap();
+
+        assert_eq!(
+            event,
+            Event::HeadChanged {
+                previous_head_sha: "old-full".to_owned(),
+                head_sha: "new-head".to_owned()
+            }
+        );
+    }
+
+    #[test]
+    fn it_should_use_the_cursor_and_not_the_commit_date_when_both_are_given() {
+        let gh = quiet_pull_request();
+        gh.respond(
+            "repos/torrust/torrust-tracker/commits/a",
+            json!({"sha": "a", "commit": {"committer": {"date": "2026-10-28T06:00:00Z"}}}),
+        );
+        // The review in the fixture was submitted at 07:00:00Z: after the commit date, but at the cursor.
+        let config = Config {
+            since_head_sha: Some("a".to_owned()),
+            since_moment: Some(1_793_170_800),
+            timeout: Duration::from_secs(240),
+            ..config()
+        };
+
+        let event = wait(&gh, &FakeClock::default(), &pull_request(), &config).unwrap();
+
+        assert!(
+            matches!(event, Event::Timeout { .. }),
+            "the review at the cursor must be skipped, got {event:?}"
+        );
+    }
+
+    #[test]
+    fn it_should_flag_a_review_that_arrives_with_a_head_that_differs_from_the_checkout() {
+        let gh = pull_request_that_moved_on(true);
+
+        let event = wait(
+            &gh,
+            &FakeClock::default(),
+            &pull_request(),
+            &resuming_from_a_cursor_with_checkout_old(),
+        )
+        .unwrap();
+
+        assert!(
+            matches!(
+                event,
+                Event::Review {
+                    review_id: 2,
+                    head_moved: true,
+                    ..
+                }
+            ),
+            "got {event:?}"
         );
     }
 
@@ -364,7 +453,7 @@ mod tests {
             json!({"sha": "abc1234fedcba", "commit": {"committer": {"date": "2026-10-28T06:00:00Z"}}}),
         );
         let config = Config {
-            since: Since::Commit("ABC1234".to_owned()),
+            since_head_sha: Some("ABC1234".to_owned()),
             timeout: Duration::from_secs(240),
             ..config()
         };

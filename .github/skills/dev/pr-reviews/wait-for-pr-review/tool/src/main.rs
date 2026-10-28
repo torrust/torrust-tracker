@@ -17,7 +17,7 @@ use serde::Serialize;
 use signal_hook::consts::{SIGINT, SIGTERM};
 use signal_hook::flag;
 use wait_for_pr_review::timestamp::parse_utc;
-use wait_for_pr_review::{Config, GhCli, PullRequest, Since, SystemClock, wait};
+use wait_for_pr_review::{Config, GhCli, PullRequest, SystemClock, wait};
 
 /// Block until a watched reviewer reviews or comments, the head commit changes, or the pull request
 /// closes. Print the event as one JSON object. Stdout must not be a terminal; pipe it, for example `| jq .`.
@@ -42,13 +42,16 @@ struct Cli {
     /// Pause between two looks at the pull request, in seconds.
     #[arg(long, default_value_t = 120, value_parser = value_parser!(u64).range(1..))]
     poll_interval_seconds: u64,
-    /// Count reviews and comments created after this commit was made, instead of after the poller starts.
-    /// Pass the commit you just pushed so a reply that lands before the poller starts is not missed.
-    #[arg(long, value_parser = commit_sha, conflicts_with = "since")]
+    /// The commit you have checked out, usually the one you just pushed. A pull request head that
+    /// differs from it is reported as `head_changed`. Unless `--since` is given, reviews and comments
+    /// created after this commit was made count as new, so a reply that lands before the poller starts
+    /// is not missed.
+    #[arg(long, value_parser = commit_sha)]
     since_head_sha: Option<String>,
     /// Count reviews and comments created strictly after this UTC time, for example `2026-10-28T07:00:00Z`.
     /// Pass the `cursor` of the previous result to resume after an event that needed no push, so the
-    /// event is not reported again and nothing after it is missed.
+    /// event is not reported again and nothing after it is missed. Pass `--since-head-sha` as well, so a
+    /// head that moved is not adopted silently.
     #[arg(long, value_parser = utc_timestamp)]
     since: Option<i64>,
 }
@@ -120,11 +123,8 @@ fn main() -> ExitCode {
         reviewers: cli.reviewers,
         timeout: Duration::from_secs(cli.timeout_seconds),
         poll_interval: Duration::from_secs(cli.poll_interval_seconds),
-        since: match (cli.since_head_sha, cli.since) {
-            (Some(sha), _) => Since::Commit(sha),
-            (None, Some(moment)) => Since::Time(moment),
-            (None, None) => Since::Start,
-        },
+        since_head_sha: cli.since_head_sha,
+        since_moment: cli.since,
     };
     let started = Instant::now();
     let gh = GhCli::new("gh", Arc::clone(&interrupted), started + config.timeout);
