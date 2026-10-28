@@ -9,7 +9,7 @@ github-issue: 2668
 spec-path: docs/issues/open/2668-1488-si-20-configure-shutdown-policy/ISSUE.md
 branch: "2668-configure-shutdown-policy"
 related-pr: 2678
-last-updated-utc: "2026-10-28 09:56"
+last-updated-utc: "2026-10-28 11:10"
 semantic-links:
   skill-links:
     - create-issue
@@ -305,11 +305,11 @@ maps them, and `main` returns the result as a `std::process::ExitCode` (D9):
 | Outcome set                                                                  | Exit code |
 | ---------------------------------------------------------------------------- | --------- |
 | Every outcome is `Completed` or `Cancelled`                                  | `0`       |
-| Any outcome is `Failed` (including a drain budget reached), `Panicked`, or `Aborted` (deadline abort) | `1`       |
+| Any outcome is `Failed` (including an HTTP-family drain budget reached), `Panicked`, or `Aborted` (deadline abort) | `1`       |
 | Startup cannot complete                                                      | `1`       |
 | SIGKILL or another signal the process cannot handle                          | OS-defined (`128 + n` in a shell) |
 
-Components keep returning outcomes to their owner and never call `std::process::exit`.
+Components keep returning outcomes to their owner and never call `std::process::exit`. Only the HTTP-family drains (HTTP tracker, REST API, health check) return an error when their budget is reached. The UDP request drain and the event listener drain log a warning when their budget expires and still end as `Completed` or `Cancelled`, so exit `0` does not prove that no UDP request or queued event was discarded (review finding `review-finding:pr-2678-f1`).
 "Torrust tracker successfully shutdown." is logged only on exit code `0`; otherwise `main` logs
 the failing outcomes by name and an error line.
 
@@ -522,6 +522,7 @@ Sign every commit with GPG. Any new error enum follows the `handle-errors-in-cod
 - 2026-10-27 21:05 UTC - GitHub Copilot - The independent `review-task` review returned `REVIEW FAILED` for documentation and evidence findings only (recorded in `agent-review-reports.md`). Addressed: the retrospective was written (the reviewer judged one required) and the completion-review lines updated; V9, a real-binary run with a UDP tracker and distinct budgets 20/6/3/2, was added to the evidence (the UDP deadline `request_drain_deadline=3s` and the HTTP-family `drain_timeout=6s` appear in the logs; the listener drain is not logged and has no executable-boundary check); the stale evidence text, the `src/AGENTS.md` statement, the README stamp, the M3 expectation (2.0 s), the test counts (27 in the configuration package) and the comment lost in `src/container.rs` were fixed; the Rollback text now says that a revert restores the old drain defaults. Left for the maintainer: AC5 is not guarded by a maintained test for `U` (swapping the keys in `src/app.rs` passes every test) and `L` (source-level guard only), the wrapper-style native tests (the Act sits in a helper), and `JobManager::wait_for_all` adding to the clock unchecked (a follow-up candidate, recorded in the retrospective). No acceptance criterion is ticked. A re-review entry follows.
 - 2026-10-27 21:09 UTC - GitHub Copilot - T9 done: the independent re-review returned `REVIEW PASSED` (second entry of `agent-review-reports.md`); B1, M1, m1 to m5, m8 and AC11 are resolved, and m6, m7, m9 and the AC5 test gap for `U` and `L` are recorded for the maintainer. All implementation tasks T1 to T9 are done and no acceptance criterion is ticked. Final state before the pull request: 29 signed commits ahead of `torrust/develop` (counting the one that carries this entry), `linter all` exit 0, the workspace suite 3,577 passed at the last code change. Next: the pre-push checks, then ask the maintainer before pushing and before opening the pull request.
 - 2026-10-28 09:56 UTC - GitHub Copilot - The implementation PR #2678 was opened on 2026-10-27 and its CI finished green (25 passed, 3 skipped: two publish jobs and Docker E2E). Afterwards another pull request merged into `develop` and conflicted with the shared native-tracker fixture (`tests/common/native_tracker/command.rs`, the `TORRUST_TRACKER_BINARY` override). The branch was rebased onto the new `develop` (a required rebase, because of the conflict): the only conflict was the import line of that file's test module, resolved by keeping both sets of tests and imports; all 29 commits were re-signed; a local backup branch holds the pre-rebase history. This entry cites commit subjects only, so the rebase invalidates no reference in repository files. On the rebased tree `linter all` and the formatter check exit 0, the workspace suite passes (3,652 tests, which includes the tests that `develop` gained), and the doc tests pass. The manual evidence (V1 to V9) ran before the rebase on code that the rebase did not change apart from the fixture merge; it is not repeated. `related-pr` is set to 2678.
+- 2026-10-28 11:10 UTC - GitHub Copilot - Review of PR #2678 (Copilot, one inline finding, `review-finding:pr-2678-f1`, audit in `docs/pr-reviews/pr-2678-review/PR-REVIEW.md`): only the HTTP-family drains end as a failed component; the UDP request drain and the listener drain only log a warning and still exit `0`. The budget ADR and `docs/containers.md` were corrected in the commit `docs(shutdown): qualify which drain timeouts end a stop with exit code 1`, and the exit-result section of this specification (the same overstatement) here. CI on the head before the fix: all green except one job still running at the time of the review.
 
 ## Open Decisions for the Maintainer
 
