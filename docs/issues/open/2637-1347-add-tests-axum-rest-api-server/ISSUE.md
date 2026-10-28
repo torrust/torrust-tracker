@@ -9,7 +9,7 @@ github-issue: 2637
 spec-path: docs/issues/open/2637-1347-add-tests-axum-rest-api-server/ISSUE.md
 branch: "2637-1347-add-tests-axum-rest-api-server-routes"
 related-pr: null
-last-updated-utc: "2026-10-28 13:27"
+last-updated-utc: "2026-10-28 16:24"
 semantic-links:
   skill-links:
     - create-issue
@@ -537,7 +537,7 @@ declaration-only rows have no executable entries.
 | 1 | `v1/middlewares/auth.rs` | 1 | S1 | 71 / 103 (68.93%) | 4 | Property candidate | DONE | [v1-middlewares-auth-tests.md](test-refactor-plans/v1-middlewares-auth-tests.md) (done; 142 / 142 lines after, 27 test cases, 8 mutants killed, property test declined) |
 | 2 | `v1/routes.rs` | 2 | S2 | 27 / 45 (60.00%) | 0 | Test candidate | DONE | [v1-routes-tests.md](test-refactor-plans/v1-routes-tests.md) (done; 111 / 111 lines after, 19 test cases, 6 mutants killed, private test_support helper) |
 | 3 | `routes.rs` | 2 | S2 | 58 / 67 (86.57%) | 0 | Test candidate | DONE | [routes-tests.md](test-refactor-plans/routes-tests.md) (done; 174 / 174 lines after, 9 test cases, 8 of 10 mutants killed, the 2 survivors recorded, R0 refactor) |
-| 4 | `v1/context/health_check/handlers.rs` | 2 | S2 | 4 / 4 (100.00%) | 0 | Test candidate (small) | PENDING | - |
+| 4 | `v1/context/health_check/handlers.rs` | 2 | S2 | 4 / 4 (100.00%) | 0 | Test candidate (small) | IN_PROGRESS | [v1-context-health-check-handlers-tests.md](test-refactor-plans/v1-context-health-check-handlers-tests.md) (proposed) |
 | 5 | `v1/responses.rs` | 3 | S1 | 8 / 40 (20.00%) | 0 | Test candidate | DONE | [v1-responses-tests.md](test-refactor-plans/v1-responses-tests.md) (done; 66 / 66 lines after, 8 test cases, 8 mutants killed) |
 | 6 | `v1/context/auth_key/handlers.rs` | 4 | S3 | 0 / 56 (0.00%) | 0 | Test candidate | PENDING | - |
 | 7 | `v1/context/auth_key/responses.rs` | 4 | S3 | 0 / 26 (0.00%) | 0 | Test candidate | PENDING | - |
@@ -688,6 +688,10 @@ once. If the slicing changes, the Slice column changes with it.
   assert log events at unit level, and make the `408` timeout testable with a small behavior-preserving refactor
   (R0) in this issue. This extends the scope with one exception to the production-change exclusion, recorded in
   Out of Scope; the refactor is its own `refactor` commit before any test.
+- 2026-10-28 16:24 UTC - GitHub Copilot - S2 row 3 (`routes.rs`) is done: unit-only lines 58 / 67 (86.57%) to 174 / 174
+  (100.00%), 9 test cases, eight of ten named mutations killed (two survive by design and are recorded), and the
+  behavior-preserving `with_layers` refactor in its own commit; the maintainer approved the completed file (16:22 UTC).
+  Proposed the plan for row 4 (`v1/context/health_check/handlers.rs`), the last file of S2.
 
 ## Acceptance Criteria
 
