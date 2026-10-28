@@ -34,7 +34,11 @@ pub fn parse_utc(text: &str) -> Option<i64> {
 fn digits(text: &str, range: Range<usize>) -> Option<i64> {
     let field = text.get(range)?;
 
-    field.bytes().all(|byte| byte.is_ascii_digit()).then(|| field.parse().ok())?
+    if !field.bytes().all(|byte| byte.is_ascii_digit()) {
+        return None;
+    }
+
+    field.parse().ok()
 }
 
 const fn days_in_month(year: i64, month: i64) -> i64 {
