@@ -106,13 +106,15 @@ fn main() -> ExitCode {
         }
     }
 
-    write_diagnostic(&WaitStarted {
+    // The progress record is best effort: the result on stdout, or the failure record and its exit code,
+    // is what the caller relies on.
+    drop(write_diagnostic(&WaitStarted {
         kind: "wait_started",
         pr_number: cli.pr_number,
         reviewers: &cli.reviewers,
         timeout_seconds: cli.timeout_seconds,
         poll_interval_seconds: cli.poll_interval_seconds,
-    });
+    }));
 
     let pull_request = PullRequest {
         owner: cli.owner,
@@ -150,12 +152,19 @@ fn emit_json(value: &impl Serialize) -> ExitCode {
 }
 
 fn emit_diagnostic(kind: &str, message: &str, exit_code: u8) -> ExitCode {
-    write_diagnostic(&Diagnostic { kind, message });
-    ExitCode::from(exit_code)
+    match write_diagnostic(&Diagnostic { kind, message }) {
+        Ok(()) => ExitCode::from(exit_code),
+        // Every failure code already tells the caller that something went wrong. The help text is the
+        // one record whose whole purpose is to be read, so help that could not be written is a failure.
+        Err(_) => ExitCode::from(exit_code.max(1)),
+    }
 }
 
-fn write_diagnostic(diagnostic: &impl Serialize) {
-    let mut stderr = io::stderr().lock();
-    drop(serde_json::to_writer(&mut stderr, diagnostic));
-    drop(writeln!(stderr));
+/// Writes one complete NDJSON record to stderr. The line is built first and written with one call, so
+/// a failure cannot leave half a record behind.
+fn write_diagnostic(diagnostic: &impl Serialize) -> io::Result<()> {
+    let mut line = serde_json::to_vec(diagnostic).map_err(io::Error::from)?;
+    line.push(b'\n');
+
+    io::stderr().lock().write_all(&line)
 }

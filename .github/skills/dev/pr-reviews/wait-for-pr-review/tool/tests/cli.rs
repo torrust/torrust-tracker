@@ -337,6 +337,47 @@ fn it_should_report_a_timeout_when_a_gh_call_hangs_past_the_deadline_after_the_b
     );
 }
 
+/// A command whose stderr is `/dev/full`, so that every write to it fails with "no space left".
+#[cfg(target_os = "linux")]
+fn with_full_stderr(sandbox: &Sandbox, arguments: &[&str]) -> Output {
+    let full = fs::OpenOptions::new().write(true).open("/dev/full").unwrap();
+
+    sandbox.command(arguments).stderr(Stdio::from(full)).output().unwrap()
+}
+
+#[cfg(target_os = "linux")]
+#[test]
+fn it_should_not_report_success_for_help_when_the_help_text_cannot_be_written() {
+    let sandbox = Sandbox::with_pull(OPEN_PULL);
+
+    let output = with_full_stderr(&sandbox, &["--help"]);
+
+    assert_eq!(output.status.code(), Some(1), "help that was never written must not exit 0");
+    assert_eq!(output.stdout, b"");
+}
+
+#[cfg(target_os = "linux")]
+#[test]
+fn it_should_keep_the_usage_error_exit_code_when_the_diagnostic_cannot_be_written() {
+    let sandbox = Sandbox::with_pull(OPEN_PULL);
+
+    let output = with_full_stderr(&sandbox, &[]);
+
+    assert_eq!(output.status.code(), Some(2));
+    assert_eq!(output.stdout, b"");
+}
+
+#[cfg(target_os = "linux")]
+#[test]
+fn it_should_still_print_the_result_when_only_the_progress_record_cannot_be_written() {
+    let sandbox = Sandbox::with_pull(MERGED_PULL);
+
+    let output = with_full_stderr(&sandbox, &["--pr-number", "7"]);
+
+    assert_eq!(output.status.code(), Some(0));
+    assert_eq!(json(&output.stdout)["kind"], "pr_merged");
+}
+
 fn send(signal: &str, child: &Child) {
     let status = Command::new("kill").args([signal, &child.id().to_string()]).status().unwrap();
     assert!(status.success());
