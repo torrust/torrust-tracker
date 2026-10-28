@@ -162,7 +162,7 @@ builds the container, composes the routes and reads the response, and hides only
 - **Unit-only coverage** (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): `v1/routes.rs` 27 / 45
   lines (60.00%) before; 111 / 111 lines (100.00%), 174 / 174 regions and 13 / 13 functions after (the counts include
   the test module). The new `test_support.rs` is 31 / 31. The four context `routes.rs` files stay at 100%
-  (their paths and methods are now pinned by the registration table). Package unit-only lines after this file:
+  (their paths and methods are now pinned by the registration table). Package unit-only lines after this file (before the rebase onto `develop`):
   1,142 / 1,402 (81.46%), regions 1,661 / 2,142 (77.54%), functions 157 / 208 (75.48%), 65 unit tests; the
   denominator grew by the test module and the helper.
 - **Tests:** 19 test cases in six tests (single tests and `rstest` tables of 2, 2, 2 and 11 cases). No

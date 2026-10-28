@@ -81,7 +81,7 @@ Temporary prose, written before comparing with the code.
 
 - **Unit-only coverage** (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): 4 / 4 lines (100.00%) before; 16 / 16 lines
   (100.00%), 25 / 25 regions and 4 / 4 functions after. The file was already fully covered, so the line gain is only
-  the test module: this test adds protection, not production-line coverage. Package unit-only lines after this file:
+  the test module: this test adds protection, not production-line coverage. Package unit-only lines after this file (before the rebase onto `develop`):
   1,265 / 1,516 (83.44%), regions 1,856 / 2,323 (79.90%), functions 180 / 228 (78.95%), 75 unit tests.
 - **Mutation H1** (report `Status::Error`) applied alone and reverted exactly: killed by the one test.
 - **Tests:** one test. No integration test was added or changed.

@@ -72,7 +72,7 @@ literal `AccessTokens` (`test-token`) built in the test, not read from the confi
 | Request | Expected |
 | --- | --- |
 | `GET /api/health_check`, no token | `200` |
-| `GET /api/v1/stats`, no token | `500`, `text/plain; charset=utf-8`, `Unhandled rejection: Err { reason: "unauthorized" }` |
+| `GET /api/v1/stats`, no token | `500`, `Unhandled rejection: Err { reason: "unauthorized" }` (the content type is asserted by the S1 middleware tests) |
 | `GET /api/v1/stats?token=wrong` | `500`, the `token not valid` body |
 | `GET /api/v1/stats?token=test-token` | `200` |
 | `GET /api/health_check`, no `x-request-id` | response header `x-request-id` is a valid UUID (parsed with `uuid`) |
@@ -133,7 +133,7 @@ Temporary prose, written before comparing with the code.
 | Test (cases) | Arrange prose | Act prose | Assert prose | Outcome |
 | --- | --- | --- | --- | --- |
 | `it_should_serve_the_health_check_without_a_token` | A request to the health check with no token. | Send it through the router. | `200`. | Only the status: the body belongs to the health check handler (row 4). Kept. |
-| `it_should_reject_a_request_to_an_api_route_without_a_configured_token` (2) | A v1 request with no token, or with a wrong one. | Same. | `500` and the literal `unauthorized` or `token not valid` body. | The middleware's own cases were done in S1; this pins that the router applies it to v1 and feeds it the tokens. Kept. |
+| `it_should_reject_a_request_to_an_api_route_without_a_valid_token` (2) | A v1 request with no token, or with a wrong one. | Same. | `500` and the literal `unauthorized` or `token not valid` body. | The middleware's own cases were done in S1; this pins that the router applies it to v1 and feeds it the tokens. Kept. |
 | `it_should_serve_an_api_route_when_the_request_carries_a_token_given_to_the_router` | A v1 request with the literal token that the test gave the router. | Same. | `200`. | The token is a literal in the test, not read from the configuration. Kept. |
 | `it_should_generate_a_request_id_when_the_request_has_none` | A request with no `x-request-id`. | Same. | The response header parses as a UUID. | The value is random, so the property is the format. Kept. |
 | `it_should_return_the_request_id_provided_by_the_client` | A request with `x-request-id: my-request-1`. | Same. | The response carries exactly that value. | Kept. |
@@ -152,8 +152,11 @@ default tracker; `access_tokens` and `service_binding` hide only construction. T
   The package figures after S2 are in the slice measurement of `coverage-evidence.md`.
 - **Honest note on coverage:** the request, response and failure log closures (lines 67-136) are now executed, because
   the unauthorized request goes through the router and a `5xx` response runs the server-error and failure arms. No
-  test asserts their content (maintainer decision: no unit-level log assertions). The `ERROR ... API ... <request id>`
-  line is asserted by an integration test, so those lines are covered, not protected, at unit level.
+  test asserts their content (maintainer decision: no unit-level log assertions). An integration test
+  (`tests/server/v1/contract/authentication.rs`) asserts one `ERROR ... API ... <request id>` line, which most likely
+  matches only the server-error response event, because the `on_failure` event has no request id field. So the
+  response arm has an integration-level assertion, and the `on_failure` closure has no assertion at any level; at unit
+  level both are covered, not protected.
 - **Tests:** 9 test cases in seven tests (two `rstest` tables of 2). No integration test was added or changed.
 - **R0 refactor:** commit `refactor(axum-rest-api-server): [#2637] separate the router layers from the routes`. A pure
   move: the chain and its order are unchanged, `timeout` replaces the constant, and the prefix is a constant. The
