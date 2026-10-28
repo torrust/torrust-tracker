@@ -205,7 +205,7 @@ mod tests {
             .expect("the request is well formed")
     }
 
-    async fn received(response: axum::response::Response) -> Received {
+    async fn into_received(response: axum::response::Response) -> Received {
         let status = response.status();
         let headers = response.headers().clone();
         let body = to_bytes(response.into_body(), usize::MAX)
@@ -224,7 +224,7 @@ mod tests {
         let container = api_container(&ephemeral()).await;
         let router = router(&container, access_tokens(), &service_binding());
 
-        received(router.oneshot(request).await.expect("the router never fails")).await
+        into_received(router.oneshot(request).await.expect("the router never fails")).await
     }
 
     #[tokio::test]
@@ -243,7 +243,7 @@ mod tests {
         r#"Unhandled rejection: Err { reason: "token not valid" }"#
     )]
     #[tokio::test]
-    async fn it_should_reject_a_request_to_an_api_route_without_a_configured_token(#[case] uri: &str, #[case] body: &str) {
+    async fn it_should_reject_a_request_to_an_api_route_without_a_valid_token(#[case] uri: &str, #[case] body: &str) {
         let request = get_request(uri);
 
         let received = through_the_router(request).await;
@@ -336,7 +336,7 @@ mod tests {
             .expect("the router answers within the deadline")
             .expect("the router never fails");
 
-        let received = received(response).await;
+        let received = into_received(response).await;
         assert_eq!((received.status, received.body), (StatusCode::REQUEST_TIMEOUT, String::new()));
     }
 }
