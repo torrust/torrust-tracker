@@ -2,7 +2,7 @@
 semantic-links:
   related-artifacts:
     - .github/agents/task-reviewer.agent.md
-    - docs/issues/open/2668-1488-si-20-configure-shutdown-policy/ISSUE.md
+    - docs/issues/closed/2668-1488-si-20-configure-shutdown-policy/ISSUE.md
 ---
 
 # Agent Review Reports - Issue #2668 Configure Shutdown Policy and Deployment Contract

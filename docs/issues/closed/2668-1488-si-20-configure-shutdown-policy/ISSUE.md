@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-progress
+status: done
 priority: p2
 epic: 1488
 github-issue: 2668
-spec-path: docs/issues/open/2668-1488-si-20-configure-shutdown-policy/ISSUE.md
+spec-path: docs/issues/closed/2668-1488-si-20-configure-shutdown-policy/ISSUE.md
 branch: "2668-configure-shutdown-policy"
 related-pr: 2678
-last-updated-utc: "2026-10-28 13:22"
+last-updated-utc: "2026-10-28 16:38"
 semantic-links:
   skill-links:
     - create-issue
@@ -496,14 +496,14 @@ Sign every commit with GPG. Any new error enum follows the `handle-errors-in-cod
 - [x] GitHub issue created and issue number added to this spec (#2668)
 - [x] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [x] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md`
 - [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -533,6 +533,7 @@ Sign every commit with GPG. Any new error enum follows the `handle-errors-in-cod
 - 2026-10-28 11:10 UTC - GitHub Copilot - Review of PR #2678 (Copilot, one inline finding, `review-finding:pr-2678-f1`, audit in `docs/pr-reviews/pr-2678-review/PR-REVIEW.md`): only the HTTP-family drains end as a failed component; the UDP request drain and the listener drain only log a warning and still exit `0`. The budget ADR and `docs/containers.md` were corrected in the commit `docs(shutdown): qualify which drain timeouts end a stop with exit code 1`, and the exit-result section of this specification (the same overstatement) here. CI on the head before the fix: all green except one job still running at the time of the review.
 - 2026-10-28 12:12 UTC - GitHub Copilot - Two maintainer decisions on PR #2678. (1) The stamp of `docs/features/shutdown-process/README.md` was behind the last commit that touched it; it is bumped, and every changed file's `last-updated-utc` was re-checked against the author time of its last commit. (2) The listeners read the listener drain budget from `app_container.application_config.shutdown.event_listener_drain()` like the other budgets (single source, D5): the helper `event_listener_drain_timeout(config)` is removed, the HTTP core, UDP core and UDP server statistics starters and their `src/app.rs` wrappers drop the `config` parameter, the UDP banning starter has its `develop` signature again, and the torrent repository and tracker core starters keep `config` for core settings but take the drain from the container too. The job starters take a `Duration` and read no configuration; their tests that build an `AppContainer` use it. Evidence section "Listener drain read from the container"; the workspace suite passes (3,651 tests, one helper test removed), with two mutation proofs of the source-level guard.
 - 2026-10-28 13:22 UTC - GitHub Copilot - A second required rebase onto `develop`, because another pull request (announce-interval bounds, #2466) conflicted with this branch in `packages/configuration/docs/migrate-v2-to-v3.md`: both pull requests added a "Step 11" section, a quick-reference row and a checklist row. The announce-interval content keeps Step 11 and the shutdown-budget section is now Step 12; the row and checklist item of both are kept. `packages/configuration/src/v3_0_0/mod.rs` merged without a conflict. All 37 commits were re-signed and a local backup branch holds the pre-rebase history. A first attempt committed unresolved conflict markers into the rewritten history before the push; it was found by comparing the rebased tree with the backup, discarded, and the rebase was redone from the backup, so no marker reached the remote. On the rebased tree the formatter check exits 0, `cargo check --workspace --all-targets` passes, the workspace suite passes (3,664 tests, which includes the tests that `develop` gained) and the doc tests pass. The manual evidence (V1 to V9) is not repeated: the rebase changed no production code of this issue.
+- 2026-10-28 16:38 UTC - GitHub Copilot - The maintainer merged PR #2678 on 2026-10-28 at 16:30:27 UTC (merge subject `Merge torrust/torrust-tracker#2678: feat(configuration): [#2668] configure the shutdown policy and document the deployment contract`) and GitHub closed issue #2668 at 16:30:29 UTC. CI on the merged head: 26 passed, 3 skipped (two publish jobs and Docker E2E), none failed; the review of Copilot had one finding, processed in `docs/pr-reviews/pr-2678-review/PR-REVIEW.md`, and no review arrived after the merge. This specification is archived to `docs/issues/closed/` with `status: done`; EPIC #1488 roadmap row 20 is marked Done and the links to the old open path are repaired. Two workflow checkpoints are ticked (automatic verification, closure and move). The acceptance criteria stay unticked, because only the maintainer ticks them, and the three checkpoints about the acceptance review, the reviewer validation and the committer check stay unticked with them.
 
 ## Open Decisions for the Maintainer
 

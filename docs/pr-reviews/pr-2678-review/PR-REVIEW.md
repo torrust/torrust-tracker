@@ -4,7 +4,7 @@ semantic-links:
     - process-pr-review
   related-artifacts:
     - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
-    - docs/issues/open/2668-1488-si-20-configure-shutdown-policy/ISSUE.md
+    - docs/issues/closed/2668-1488-si-20-configure-shutdown-policy/ISSUE.md
     - docs/adrs/20261027145446_budget_shutdown_in_two_chained_stages_inside_one_process_deadline.md
 ---
 

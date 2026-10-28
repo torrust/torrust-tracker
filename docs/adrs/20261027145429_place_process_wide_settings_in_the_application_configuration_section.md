@@ -4,7 +4,7 @@ semantic-links:
     - create-adr
     - write-markdown-docs
   related-artifacts:
-    - docs/issues/open/2668-1488-si-20-configure-shutdown-policy/ISSUE.md
+    - docs/issues/closed/2668-1488-si-20-configure-shutdown-policy/ISSUE.md
     - docs/architecture/tracker-instance-architecture.md
     - docs/adrs/20260723184019_separate_configuration_value_invariants_from_consistency_validation.md
     - packages/configuration/src/v3_0_0/application.rs

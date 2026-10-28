@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2668-1488-si-20-configure-shutdown-policy/ISSUE.md
-last-updated-utc: "2026-10-28 12:12"
+issue-spec: docs/issues/closed/2668-1488-si-20-configure-shutdown-policy/ISSUE.md
+last-updated-utc: "2026-10-28 16:37"
 ---
 
 # Manual Verification Evidence
