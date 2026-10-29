@@ -14,13 +14,12 @@
 //! - **`repository`**: Implements persistence for whitelist data.
 //! - **`setup`**: Provides initialization routines for setting up the whitelist
 //!   system.
-//! - **`test_helpers`**: Contains helper functions and fixtures for testing
-//!   whitelist functionality.
 pub mod authorization;
 pub mod manager;
 pub mod repository;
 pub mod setup;
-pub mod test_helpers;
+#[cfg(test)]
+mod test_helpers;
 
 #[cfg(test)]
 mod tests {

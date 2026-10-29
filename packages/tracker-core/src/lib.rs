@@ -128,8 +128,10 @@ pub mod statistics;
 pub mod torrent;
 pub mod whitelist;
 
-pub mod peer_tests;
-pub mod test_helpers;
+#[cfg(test)]
+mod peer_tests;
+#[cfg(test)]
+mod test_helpers;
 
 use torrust_clock::clock;
 

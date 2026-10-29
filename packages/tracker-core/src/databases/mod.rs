@@ -62,7 +62,9 @@ pub mod error;
 pub mod setup;
 pub mod traits;
 
-pub use traits::{
-    AuthKeyStore, MockAuthKeyStore, MockSchemaMigrator, MockTorrentMetricsStore, MockWhitelistStore, SchemaMigrator,
-    TorrentMetricsStore, WhitelistStore,
-};
+/// Test support behind the `testing` feature, outside the semver guarantees of this package.
+#[cfg(feature = "testing")]
+pub use traits::MockTorrentMetricsStore;
+pub use traits::{AuthKeyStore, SchemaMigrator, TorrentMetricsStore, WhitelistStore};
+#[cfg(test)]
+pub use traits::{MockAuthKeyStore, MockSchemaMigrator, MockWhitelistStore};

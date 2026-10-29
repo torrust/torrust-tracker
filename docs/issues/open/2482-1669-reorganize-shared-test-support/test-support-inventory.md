@@ -162,6 +162,11 @@ Nothing ships, but two of the three `pub mod` declarations (`test_helpers` and
 module itself from non-test builds. `pub(crate)` keeps the helpers out of reach of the crate's own
 integration tests, which keep separate fixtures in `tests/common/fixtures.rs`.
 
+**Resolved by #2681.** The three declarations are now `#[cfg(test)] mod` (private), the inner
+`pub(crate) mod tests` modules are `pub mod tests` inside them (clippy's `redundant_pub_crate` rejects
+`pub(crate)` there; they remain unreachable outside the crate), and the module documentation of
+`whitelist` no longer lists `test_helpers`. The table above describes the state before the change.
+
 ## Pattern D: unconditional mocks
 
 `tracker-core` annotates four database traits with an unconditional `#[automock]`
@@ -180,6 +185,16 @@ mocks, which was not checked against the other packages).
 `events` does this test-only: `#[cfg_attr(test, automock(…))]` with `mockall` as a
 dev-dependency. `http-core`, `udp-core`, `udp-server` and `swarm-coordination-registry` also keep
 `mockall` as a dev-dependency.
+
+**Resolved by #2681.** Only `MockTorrentMetricsStore`, the mock other packages use, is generated
+behind the non-default `testing` feature of `tracker-core` (`testing = ["dep:mockall"]`, with
+`mockall` an optional dependency); `http-core` and `udp-core` enable it from their
+`[dev-dependencies]`, and `tracker-core`'s own targets use a path-only self dev-dependency. The other
+three mocks (`MockAuthKeyStore`, `MockWhitelistStore`, `MockSchemaMigrator`) use
+`#[cfg_attr(test, automock)]` because no other package uses them, which is rule D.2 of the ADR
+applied to them (the ADR carries an amendment note for rule D.1). The paragraphs above describe
+the state before the change. A default build of `tracker-core` has no direct dependency on
+`mockall` and no `Mock*` type in its API.
 
 ## Pattern E: per-package `tests/` helpers
 
@@ -215,8 +230,8 @@ that resolves it.
 | A. `axum-health-check-api-server` environment | Rule A: behind the `testing` feature of `axum-health-check-api-server` | [Row 7](../../drafts/2482-gate-axum-health-check-api-server-test-environment/ISSUE.md) | Open |
 | B. `test-helpers` `http` and `udp` modules | Rule B: the root crate's `tests/common/` | [Row 2](../../closed/2628-2482-move-test-helpers-protocol-helpers/ISSUE.md) | Resolved by #2628 |
 | B. `test-helpers` `configuration`, `logging`, `random` | Rule B: stay in `test-helpers` | None | Kept by the ADR |
-| C. `tracker-core` `pub mod` test declarations | Rule C: private `#[cfg(test)] mod` | [Row 3](../2681-2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md) | Open |
-| D. `tracker-core` database mocks | Rule D: behind the `testing` feature of `tracker-core` | [Row 3](../2681-2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md) | Open |
+| C. `tracker-core` `pub mod` test declarations | Rule C: private `#[cfg(test)] mod` | [Row 3](../2681-2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md) | Resolved by #2681 |
+| D. `tracker-core` database mocks | Rule D: `MockTorrentMetricsStore` behind the `testing` feature of `tracker-core`; the other three under `cfg(test)` | [Row 3](../2681-2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md) | Resolved by #2681 |
 | E. Per-package `tests/common/` | Rule E: unchanged | None | Kept by the ADR |
 | Optional and self edges in `cargo metadata` (consequence of rules A and D) | The coupling tool and diagrams label them | [Row 8](../../closed/2645-2482-label-optional-and-self-dependency-edges/ISSUE.md) | Resolved by #2645 |
 | Build commands of shipped artifacts (`Containerfile` builds the release binary with `--tests --all-features`; consequence of rules A and D) | Rule A.5: built on their own with explicit features, plus a check | [Row 9](../../closed/2670-2482-build-shipped-artifacts-without-test-features/ISSUE.md) | Resolved by #2670 |

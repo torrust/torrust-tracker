@@ -19,13 +19,16 @@ workspace = true
 [features]
 default = [  ]
 db-compatibility-tests = [  ]
+# Test support outside the semver guarantees of this package: the `mockall` mock of `TorrentMetricsStore`,
+# which the unit tests of other workspace packages use. Never enable it from a `[dependencies]` entry.
+testing = [ "dep:mockall" ]
 
 [dependencies]
 async-trait = "0"
 torrust-info-hash = "=0.2.0"
 chrono = { version = "0", default-features = false, features = [ "clock" ] }
 derive_more = { version = "2", features = [ "as_ref", "constructor", "from" ] }
-mockall = "0"
+mockall = { version = "0", optional = true }
 rand = "0.9"
 serde = { version = "1", features = [ "derive" ] }
 serde_json = { version = "1", features = [ "preserve_order" ] }
@@ -46,5 +49,6 @@ tracing = "0"
 mockall = "0"
 secrecy = "0.10.3"
 testcontainers = "0"
+torrust-tracker-core = { path = ".", features = [ "testing" ] }
 torrust-tracker-test-helpers = { version = "3.0.0", path = "../test-helpers" }
 url = "2.5.4"

@@ -8,8 +8,18 @@ pub mod schema;
 pub mod torrent_metrics;
 pub mod whitelist;
 
-pub use auth_keys::{AuthKeyStore, MockAuthKeyStore};
+// Only `MockTorrentMetricsStore` is used by other packages' tests, so only it sits behind the `testing`
+// feature. The other mocks are generated for this crate's own tests (`cfg(test)`).
+pub use auth_keys::AuthKeyStore;
+#[cfg(test)]
+pub use auth_keys::MockAuthKeyStore;
 pub use database::Database;
-pub use schema::{MockSchemaMigrator, SchemaMigrator};
-pub use torrent_metrics::{MockTorrentMetricsStore, TorrentMetricsStore};
-pub use whitelist::{MockWhitelistStore, WhitelistStore};
+#[cfg(test)]
+pub use schema::MockSchemaMigrator;
+pub use schema::SchemaMigrator;
+#[cfg(feature = "testing")]
+pub use torrent_metrics::MockTorrentMetricsStore;
+pub use torrent_metrics::TorrentMetricsStore;
+#[cfg(test)]
+pub use whitelist::MockWhitelistStore;
+pub use whitelist::WhitelistStore;

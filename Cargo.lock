@@ -5218,6 +5218,7 @@ dependencies = [
  "torrust-located-error",
  "torrust-metrics",
  "torrust-tracker-configuration",
+ "torrust-tracker-core",
  "torrust-tracker-events",
  "torrust-tracker-primitives",
  "torrust-tracker-swarm-coordination-registry",

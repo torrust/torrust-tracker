@@ -38,6 +38,7 @@ tracing = "0"
 criterion = { version = "0.5.1", features = [ "async_tokio" ] }
 mockall = "0"
 rstest = "0.28.0"
+torrust-tracker-core = { version = "0.1.0", path = "../tracker-core", features = [ "testing" ] }
 torrust-tracker-test-helpers = { version = "3.0.0", path = "../test-helpers" }
 
 [[bench]]

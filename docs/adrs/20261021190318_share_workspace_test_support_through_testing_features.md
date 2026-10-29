@@ -19,6 +19,18 @@ semantic-links:
 
 # Share Workspace Test Support Through `testing` Features and a Generic Helper Crate
 
+> **Amendment of 2026-10-28 (issue #2681).** The decision stands. One sentence of rule D.1 is narrowed:
+> `tracker-core` does not apply the `testing` feature to all four database traits. Only
+> `MockTorrentMetricsStore` is used by other packages' tests (`http-core` and `udp-core`), so only it is
+> generated behind the `testing` feature. The other three (`MockAuthKeyStore`, `MockWhitelistStore` and
+> `MockSchemaMigrator`) are used by no other package, so rule D.2 applies to them:
+> `#[cfg_attr(test, automock)]` with `mockall` as a dev-dependency. The ownership map row that lists "the
+> other `tracker-core` database mocks" as reachable through the `testing` feature holds for
+> `MockTorrentMetricsStore` only. The maintainer decided this on 2026-10-28: share only what other
+> crates need. The first count of consumers per trait was made when the rule was written; the
+> per-mock counts are in the
+> [#2681 spec](../issues/open/2681-2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md).
+
 ## Scope
 
 Root ADR. It governs how workspace packages provide test support code (test environments,

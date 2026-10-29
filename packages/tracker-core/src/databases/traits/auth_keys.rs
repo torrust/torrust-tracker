@@ -1,5 +1,6 @@
 //! The [`AuthKeyStore`] trait — authentication keys context.
 use async_trait::async_trait;
+#[cfg(test)]
 use mockall::automock;
 
 use super::super::error::Error;
@@ -21,7 +22,7 @@ use crate::authentication::{self, Key};
     clippy::extra_unused_lifetimes,
     reason = "automock and async_trait generate field names and lifetimes outside workspace control"
 )]
-#[automock]
+#[cfg_attr(test, automock)]
 pub trait AuthKeyStore: Sync + Send {
     /// Loads all authentication keys from the database.
     ///
