@@ -9,7 +9,7 @@ github-issue: 2637
 spec-path: docs/issues/open/2637-1347-add-tests-axum-rest-api-server/ISSUE.md
 branch: "2637-1347-add-tests-axum-rest-api-server-commands"
 related-pr: null
-last-updated-utc: "2026-10-29 11:50"
+last-updated-utc: "2026-10-29 11:52"
 semantic-links:
   skill-links:
     - create-issue
@@ -541,7 +541,7 @@ declaration-only rows have no executable entries.
 | 5 | `v1/responses.rs` | 3 | S1 | 8 / 40 (20.00%) | 0 | Test candidate | DONE | [v1-responses-tests.md](test-refactor-plans/v1-responses-tests.md) (done; 66 / 66 lines after, 8 test cases, 8 mutants killed) |
 | 6 | `v1/context/auth_key/handlers.rs` | 4 | S3 | 0 / 56 (0.00%) | 0 | Test candidate | DONE | [v1-context-auth-key-handlers-tests.md](test-refactor-plans/v1-context-auth-key-handlers-tests.md) (done; 261 / 264 lines after, 18 test cases, 9 mutants killed) |
 | 7 | `v1/context/auth_key/responses.rs` | 4 | S3 | 0 / 26 (0.00%) | 0 | Test candidate | DONE | [v1-context-auth-key-responses-tests.md](test-refactor-plans/v1-context-auth-key-responses-tests.md) (done: no change; 26 / 26 lines covered by the row 6 tests, 8 mutants killed) |
-| 8 | `v1/context/auth_key/routes.rs` | 4 | S3 | 16 / 16 (100.00%) | 0 | Probably no change | PENDING | - |
+| 8 | `v1/context/auth_key/routes.rs` | 4 | S3 | 16 / 16 (100.00%) | 0 | Probably no change | DONE | [v1-context-auth-key-routes-tests.md](test-refactor-plans/v1-context-auth-key-routes-tests.md) (done: no change; 16 / 16 lines, 8 mutants killed by existing tests) |
 | 9 | `v1/context/whitelist/handlers.rs` | 4 | S3 | 0 / 37 (0.00%) | 0 | Test candidate | PENDING | - |
 | 10 | `v1/context/whitelist/responses.rs` | 4 | S3 | 0 / 9 (0.00%) | 0 | Test candidate (small) | PENDING | - |
 | 11 | `v1/context/whitelist/routes.rs` | 4 | S3 | 14 / 14 (100.00%) | 0 | Probably no change | PENDING | - |
@@ -711,6 +711,7 @@ once. If the slicing changes, the Slice column changes with it.
   collaborators are unchanged since the S2 head, so the S2 measurement is the S3 baseline (unit-only lines
   1,305 / 1,556, 83.87%). Row 6 (`v1/context/auth_key/handlers.rs`) is `IN_PROGRESS`; its plan is proposed and awaits the maintainer.
 - 2026-10-29 11:50 UTC - GitHub Copilot - Row 6 committed as `test(axum-rest-api-server): [#2637] cover the auth key handlers` (the first signing attempt timed out; the commit was redone with your passphrase entry). Row 7 (`v1/context/auth_key/responses.rs`) is `DONE` with a no-change decision, approved by the maintainer at 11:49 UTC: after row 6 the file is already 26 / 26 lines, 30 / 30 regions and 7 / 7 functions, and eight named mutations (one per builder, plus the status and content type) each fail an assertion of the row 6 handler tests, so direct tests would only duplicate those literals.
+- 2026-10-29 11:52 UTC - GitHub Copilot - Row 7 committed as `docs(issues): [#2637] record the no-change decision for the auth key responses`. Row 8 (`v1/context/auth_key/routes.rs`) is `DONE` with a no-change decision, approved by the maintainer at 11:52 UTC: the file is already 16 / 16 lines, and eight named mutations (three path changes, a method change, and `None` state on four routes) each fail an existing `v1/routes.rs` or auth-key integration test on an assertion. The one mutation not tried (swapping a handler between routes) cannot compile under `unused = "deny"`.
 
 ## Acceptance Criteria
 

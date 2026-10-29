@@ -245,3 +245,7 @@ Unit-only (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): lines 
 ### `v1/context/auth_key/responses.rs` (slice S3)
 
 Unit-only (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): lines 0 / 26 (0.00%) at the S1 baseline, 26 / 26 (100.00%) after row 6 with no change to this file; regions 30 / 30; functions 7 / 7. The file has no test module of its own: the row 6 handler tests assert each of its seven response builders with literal status, content type and body. Decision: no change. Eight named mutations (one per builder, plus the status and content type) each fail an assertion of those tests (see [the plan](test-refactor-plans/v1-context-auth-key-responses-tests.md)).
+
+### `v1/context/auth_key/routes.rs` (slice S3)
+
+Unit-only (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): lines 16 / 16 (100.00%), regions 27 / 27, functions 1 / 1, before and after; the file has no test module and is covered by the `v1/routes.rs` tests. Decision: no change. Eight named mutations (three path changes, a method change and `None` state on the add, reload, generate and delete routes) each fail an existing unit or integration test on an assertion (see [the plan](test-refactor-plans/v1-context-auth-key-routes-tests.md)).

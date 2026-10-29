@@ -32,6 +32,7 @@ approves it. A group of declaration-only files may share one plan.
 | 5 | [v1-context-health-check-handlers-tests.md](v1-context-health-check-handlers-tests.md) | DONE | Approved 2026-10-28; completed file approved 2026-10-28 |
 | 6 | [v1-context-auth-key-handlers-tests.md](v1-context-auth-key-handlers-tests.md) | DONE | Approved 2026-10-29; completed file approved 2026-10-29 |
 | 7 | [v1-context-auth-key-responses-tests.md](v1-context-auth-key-responses-tests.md) | DONE | No-change decision approved 2026-10-29 |
+| 8 | [v1-context-auth-key-routes-tests.md](v1-context-auth-key-routes-tests.md) | DONE | No-change decision approved 2026-10-29 |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 
