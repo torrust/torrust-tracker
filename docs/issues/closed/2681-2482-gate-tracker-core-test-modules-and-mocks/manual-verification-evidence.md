@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2681-2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md
-last-updated-utc: "2026-10-29 11:53"
+issue-spec: docs/issues/closed/2681-2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md
+last-updated-utc: "2026-10-29 12:50"
 ---
 
 # Manual Verification Evidence

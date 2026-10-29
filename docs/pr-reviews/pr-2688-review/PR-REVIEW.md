@@ -4,7 +4,7 @@ semantic-links:
     - process-pr-review
   related-artifacts:
     - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
-    - docs/issues/open/2681-2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md
+    - docs/issues/closed/2681-2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md
 ---
 
 <!-- skill-link: process-pr-review -->

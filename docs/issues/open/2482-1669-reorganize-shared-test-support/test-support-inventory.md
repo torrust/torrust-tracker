@@ -2,7 +2,7 @@
 doc-type: research-report
 parent-issue: 2482
 status: completed
-last-updated-utc: 2026-10-28
+last-updated-utc: 2026-10-29
 semantic-links:
   related-artifacts:
     - docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md
@@ -230,8 +230,8 @@ that resolves it.
 | A. `axum-health-check-api-server` environment | Rule A: behind the `testing` feature of `axum-health-check-api-server` | [Row 7](../../drafts/2482-gate-axum-health-check-api-server-test-environment/ISSUE.md) | Open |
 | B. `test-helpers` `http` and `udp` modules | Rule B: the root crate's `tests/common/` | [Row 2](../../closed/2628-2482-move-test-helpers-protocol-helpers/ISSUE.md) | Resolved by #2628 |
 | B. `test-helpers` `configuration`, `logging`, `random` | Rule B: stay in `test-helpers` | None | Kept by the ADR |
-| C. `tracker-core` `pub mod` test declarations | Rule C: private `#[cfg(test)] mod` | [Row 3](../2681-2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md) | Resolved by #2681 |
-| D. `tracker-core` database mocks | Rule D: `MockTorrentMetricsStore` behind the `testing` feature of `tracker-core`; the other three under `cfg(test)` | [Row 3](../2681-2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md) | Resolved by #2681 |
+| C. `tracker-core` `pub mod` test declarations | Rule C: private `#[cfg(test)] mod` | [Row 3](../../closed/2681-2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md) | Resolved by #2681 |
+| D. `tracker-core` database mocks | Rule D: `MockTorrentMetricsStore` behind the `testing` feature of `tracker-core`; the other three under `cfg(test)` | [Row 3](../../closed/2681-2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md) | Resolved by #2681 |
 | E. Per-package `tests/common/` | Rule E: unchanged | None | Kept by the ADR |
 | Optional and self edges in `cargo metadata` (consequence of rules A and D) | The coupling tool and diagrams label them | [Row 8](../../closed/2645-2482-label-optional-and-self-dependency-edges/ISSUE.md) | Resolved by #2645 |
 | Build commands of shipped artifacts (`Containerfile` builds the release binary with `--tests --all-features`; consequence of rules A and D) | Rule A.5: built on their own with explicit features, plus a check | [Row 9](../../closed/2670-2482-build-shipped-artifacts-without-test-features/ISSUE.md) | Resolved by #2670 |
