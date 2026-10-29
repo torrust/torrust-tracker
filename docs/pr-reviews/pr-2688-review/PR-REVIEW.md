@@ -43,10 +43,10 @@ Two reviews of `copilot-pull-request-reviewer` have arrived. Review 5686786536 (
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
-| F1 | review-finding:pr-2688-f1 | Copilot | Suggestion | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
-| F2 | review-finding:pr-2688-f2 | Copilot | Suggestion | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
-| F3 | review-finding:pr-2688-f3 | Copilot | Suggestion | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
-| F4 | review-finding:pr-2688-f4 | Copilot | Minor | testing | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F1 | review-finding:pr-2688-f1 | Copilot | Suggestion (inferred) | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F2 | review-finding:pr-2688-f2 | Copilot | Suggestion (inferred) | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F3 | review-finding:pr-2688-f3 | Copilot | Suggestion (inferred) | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F4 | review-finding:pr-2688-f4 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | NON_RESOLVABLE |
 
 ## Finding Details
 
