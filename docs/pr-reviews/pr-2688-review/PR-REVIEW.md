@@ -18,7 +18,7 @@ Source: pull-request reviews and inline review threads for <https://github.com/t
 The PR author owns this tracked audit record. Reviewers, including repository review agents,
 deliver findings through GitHub and have no repository-artifact obligation.
 
-- Post-merge workflow approval: N/A
+- Post-merge workflow approval: <https://github.com/torrust/torrust-tracker/pull/2688#issuecomment-6497509001> (maintainer, 2026-10-29 13:06 UTC)
 
 ## Status Values
 
@@ -45,6 +45,8 @@ Update of 2026-10-29: da2ce7 reviewed the head whose subject is `docs(issues): [
 
 Update of 2026-10-29 (second): after the corrections for F5 to F8 were pushed, da2ce7 reviewed the head whose subject is `docs(pr-reviews): [#2681] record the da2ce7 review of PR 2688` (review 5697124103, APPROVED, 2026-10-29 11:44:41 UTC) and posted the ACK comment 6495757274 for it; the earlier approval 5694275942 shows as DISMISSED. The review carries one inline finding, F9, marked non-blocking, which continues F7. The maintainer chose on 2026-10-29 to push the F9 fix to this pull request now, which makes the second ACK stale as well.
 
+Update of 2026-10-29 (third, post-merge): this pull request merged on 2026-10-29 12:42 UTC (merge commit `49641da387a500a052e262c2ba4d1557257eea10`) while da2ce7's approving review 5697492766 (APPROVED, 2026-10-29 12:14:18 UTC) carried one inline finding, F10, that was still unprocessed at merge time. Per the `process-pr-review` skill's post-merge workflow, this was read-only triaged, reported to the maintainer, and approved as a durable comment (issuecomment-6497509001, 2026-10-29 13:06 UTC) before any mutating action. The approved disposition: an audit-only correction, carried in the follow-up branch `chore/archive-issue-2681-spec` (the archive pull request for issue #2681), not on the merged branch itself.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2688-f1 | Copilot | Suggestion (inferred) | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
@@ -56,6 +58,7 @@ Update of 2026-10-29 (second): after the corrections for F5 to F8 were pushed, d
 | F7 | review-finding:pr-2688-f7 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F8 | review-finding:pr-2688-f8 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F9 | review-finding:pr-2688-f9 | Human | Minor | documentation | RE_RAISE_OF:F7 | FIXED | RESOLVED |
+| F10 | review-finding:pr-2688-f10 | Human | Minor | documentation | RE_RAISE_OF:F6 | FOLLOW_UP | OPEN |
 
 ## Finding Details
 
@@ -176,6 +179,19 @@ Update of 2026-10-29 (second): after the corrections for F5 to F8 were pushed, d
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2688#discussion_r4411982034>
 
+### F10 - Correct the recorded review-request chronology (continues F6)
+
+- PR number: 2688
+- Source review ID: 5697492766
+- Reviewer finding ID: F10
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2688#discussion_r4412162522>
+- Concern: the 11:55 UTC Processing Log entry's final sentence says the re-request after the previous push was a no-op with no timeline event. The captured PR timeline instead contains event 34577909888: `review_requested` for `da2ce7` at 2026-10-29 11:24:49 UTC, followed by the dismissal of review 5694275942 at 11:24:50 UTC. So 11:24:49 UTC is an evidenced request time, though the capture does not establish it as the exact push time. The reviewer asks to append a correction preserving the entry, identify the completed request, and distinguish any separate attempted no-op from that event; the subsequent request at 11:57:58 UTC was still future when the 11:55 entry was written and need not be described as completed then.
+- Solution: the finding was right, and continues F6 (the same chronology-precision concern). This pull request merged (2026-10-29 12:42 UTC, commit `49641da38`) before the correction could be made, so this is a post-merge finding handled under the `process-pr-review` skill's post-merge workflow: read-only triage, maintainer approval recorded as a durable comment (<https://github.com/torrust/torrust-tracker/pull/2688#issuecomment-6497509001>, 2026-10-29 13:06 UTC), then the append-only correction carried in the archive follow-up pull request for #2681, <https://github.com/torrust/torrust-tracker/pull/2689> (branch `chore/archive-issue-2681-spec`), which touches this audit file only (no code). The correction: the 11:24:49 UTC `review_requested` event for da2ce7 is the completed request after the push at 11:24:49 UTC (the capture does not establish it as the exact push instant); no separate no-op request is claimed for that push. The 11:57:58 UTC request remains described as a pending action in the 11:55 entry it was written in, because it was still future then.
+- Current-tree verification: `gh api --paginate repos/torrust/torrust-tracker/issues/2688/timeline` lists `review_requested` for `da2ce7` at 2026-10-28 16:57:01 UTC, 2026-10-29 11:24:49 UTC and 2026-10-29 11:57:58 UTC, with `review_dismissed` following the first two at 11:24:50 UTC and 11:57:53 UTC.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2688#discussion_r4412730988>
+- Follow-up PR URL: <https://github.com/torrust/torrust-tracker/pull/2689>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2688#discussion_r4412730988>
+
 ## Processing Log
 
 - 2026-10-28 17:22 UTC - Round 1: review 5686786536 arrived with a timeout warning and three inline threads, F1 to F3. Each claim was checked against the tree; none required a change, so each thread got the prescribed `Superseded by F<n>:` reply and was resolved. Copilot was re-requested once because of the warning.
@@ -183,6 +199,7 @@ Update of 2026-10-29 (second): after the corrections for F5 to F8 were pushed, d
 - 2026-10-29 11:18 UTC - Correction to the 2026-10-28 17:37 UTC entry (finding F6 of this review; the earlier entries are kept as written). That entry was stamped 17:37 and described the F4 fix as already made in its own signed commit and da2ce7 as re-requested after the push. The recorded events are: the F4 fix commit was created at 2026-10-28 17:38:29 UTC and the audit update commit at 17:39:18 UTC (commit times from `git log`), so the entry was written before its fix existed. The PR timeline shows `review_requested` events for da2ce7 only at 2026-10-28 16:57:01 UTC and for Copilot at 16:57:00 and 17:19:54 UTC. The statements that da2ce7 is re-requested after the push in the 17:22 and 17:37 entries were intended actions: the REST requests made after the pushes listed da2ce7 as pending but produced no new timeline event, so no re-request event is recorded. From here on an intended or attempted action is written as such, and an event is stamped after it completes.
 - 2026-10-29 11:21 UTC - Round 3 (completed events): da2ce7's review 5694275942 (APPROVED, 2026-10-29 07:35:54 UTC) and ACK comment 6490827285 had four inline findings, F5 to F8. Each claim was checked against the tree and the timeline and confirmed. The maintainer authorized pushing the corrections after the ACK (2026-10-29). The fix commits were created at 2026-10-29 11:16:59 UTC (F5), 11:18:15 UTC (F6), 11:19:39 UTC (F7) and 11:20:21 UTC (F8). Replies were posted at 11:21:09, 11:21:12, 11:21:14 and 11:21:16 UTC and the four threads were resolved afterwards. Not yet events when this entry was written: the push of these commits and the request to da2ce7 to review the new head; the ACK on the earlier head is stale.
 - 2026-10-29 11:55 UTC - Round 4 (completed events): da2ce7's review 5697124103 (APPROVED, 2026-10-29 11:44:41 UTC) and ACK comment 6495757274 on the head pushed at 2026-10-29 11:24:49 UTC had one inline finding, F9. It was confirmed against the evidence and the retained script. The maintainer authorized one more push (2026-10-29). The fix commit was created at 2026-10-29 11:54:13 UTC, the reply was posted at 11:54:46 UTC and the thread was resolved afterwards. Not yet events when this entry was written: the push of this record and the request to da2ce7 to review the new head; the ACK on the previous head is stale. Re-requests of da2ce7 so far: the REST request after the push of 11:24:49 UTC was a no-op because he was still pending (no new timeline event), and the next one is a pending action, not an event, until the timeline shows it.
+- 2026-10-29 13:12 UTC - Post-merge finding F10 (continues F6): this pull request merged at 2026-10-29 12:42 UTC before da2ce7's inline finding on review 5697492766 was processed. Read-only triage confirmed the finding against the PR timeline and reported it to the maintainer, who approved an audit-only correction as a durable comment (issuecomment-6497509001, 13:06 UTC) before any mutating action. The correction was appended under that approval in the follow-up pull request for the #2681 archive, https://github.com/torrust/torrust-tracker/pull/2689 (branch `chore/archive-issue-2681-spec`), not on this merged branch; a reply was posted on the F10 thread at 13:12:52 UTC citing that pull request, and the thread is left open until it merges.
 
 ## Completion Rules
 
