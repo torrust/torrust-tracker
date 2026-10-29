@@ -41,12 +41,18 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 Two reviews of `copilot-pull-request-reviewer` have arrived. Review 5686786536 (COMMENTED, 2026-10-28 17:17 UTC, on the head whose subject is `docs(issues): [#2681] record the pre-PR review, the completion review and the retrospective`) carries a "didn't start before the timeout" warning, so Copilot was requested again once; it lists three open issues, each with one inline thread (F1 to F3). The re-requested review 5687032971 (COMMENTED, 17:35 UTC, on the head whose subject is `docs(pr-reviews): [#2681] record the review of PR 2688`) has no open issue and one "previously missed" finding in its body, without an inline thread (F4). Copilot was requested through the `request_copilot_review` MCP tool. da2ce7 was requested through the REST `requested_reviewers` endpoint and has not reviewed. The maintainer asked on 2026-10-28 to address Copilot's review.
 
+Update of 2026-10-29: da2ce7 reviewed the head whose subject is `docs(issues): [#2681] record the closing-keyword lesson of the spec PR` (review 5694275942, APPROVED, 2026-10-29 07:35:54 UTC) and posted the ACK comment 6490827285 for it. The review carries four inline findings, F5 to F8 (the reviewer's own finding IDs, which continue this audit's numbering), each marked non-blocking and repairable after merge. The maintainer chose on 2026-10-29 to push the corrections to this pull request now, which makes that ACK stale; da2ce7 is asked to review the new head after the push.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2688-f1 | Copilot | Suggestion (inferred) | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F2 | review-finding:pr-2688-f2 | Copilot | Suggestion (inferred) | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F3 | review-finding:pr-2688-f3 | Copilot | Suggestion (inferred) | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F4 | review-finding:pr-2688-f4 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F5 | review-finding:pr-2688-f5 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F6 | review-finding:pr-2688-f6 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F7 | review-finding:pr-2688-f7 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F8 | review-finding:pr-2688-f8 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -102,11 +108,64 @@ Two reviews of `copilot-pull-request-reviewer` have arrived. Review 5686786536 (
 - Follow-up PR URL: N/A
 - Reply URL: N/A
 
+### F5 - Correct the visibility rationale for declining F1 and F2
+
+- PR number: 2688
+- Source review ID: 5694275942
+- Reviewer finding ID: F5
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2688#discussion_r4409761484>
+- Concern: the audit and the replies said `pub(super)` cannot work because 28 references need crate-wide visibility; that is false for the whitelist helper (27 references use the root helper and one, in `whitelist/mod.rs:31`, the whitelist helper), and the paragraph should separate privacy from separately verified lint behaviour. Keeping `pub` and the `NO_ACTION` dispositions is reasonable.
+- Solution: the finding was right. The Solution and verification fields of F1 and F2 were corrected: `pub(super)` would have been valid for the whitelist helper, is rejected by clippy for the root helper, privacy comes from the private `#[cfg(test)]` parent, and the chosen `pub` form stays (D5 of the spec).
+- Current-tree verification: a temporary edit of the whitelist helper to `pub(super) mod tests` passed `cargo clippy -p torrust-tracker-core --all-targets -- -D warnings` and compiled the tests; the same edit of the root helper failed with `pub(crate) module inside private module`; both were reverted (`git status` clean).
+- Resolution reference: docs(pr-reviews): [#2681] correct the visibility rationale for declining F1 and F2
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2688#discussion_r4411686160>
+
+### F6 - Append a chronology correction based on completed events
+
+- PR number: 2688
+- Source review ID: 5694275942
+- Reviewer finding ID: F6
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2688#discussion_r4409761493>
+- Concern: the 17:37 Processing Log entry described the F4 fix as made in its own commit before that commit existed (created at 17:38:29 UTC), and the post-push re-request of da2ce7 is not evidenced by the timeline (only the 16:57:01 request exists); the spec's 16:50 correction should be reconciled (five branch commits existed at 16:41, the sixth was created at 16:42:25).
+- Solution: the finding was right. A correction entry was appended to this Processing Log and a new entry to the spec Progress Log; earlier entries are kept as written. Intended or attempted actions are recorded as such from here on.
+- Current-tree verification: `git log --format='%cI %s'` gives the commit times above, and `gh api repos/torrust/torrust-tracker/issues/2688/timeline` lists `review_requested` for da2ce7 only at 2026-10-28 16:57:01 UTC and for Copilot at 16:57:00 and 17:19:54 UTC.
+- Resolution reference: docs(pr-reviews): [#2681] append the chronology correction for the audit and the spec log
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2688#discussion_r4411686446>
+
+### F7 - Record run provenance for the dependent verification sequence
+
+- PR number: 2688
+- Source review ID: 5694275942
+- Reviewer finding ID: F7
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2688#discussion_r4409761506>
+- Concern: the preserved-copy sequence in the evidence has no start and end UTC stamps, the environment names the post-change artifact only as "this branch", and the same provenance qualification applies to V1 to V3 and the red and restore steps of V4; the reviewer asks for retained timestamps, or a statement that they are unavailable and a fresh stamped run, not invented times.
+- Solution: the finding was right. The per-step times of V0 to V8 were not recorded and cannot be recovered, so the evidence says so, names the tested artifact by its Conventional Commit subject, and adds V9, a fresh stamped run of the whole sequence (V1, V3, V4, V5, V6 and the V2 matrix, before and after) with every step's UTC start and end stamp. V9 reports three sub-second backward steps of the host clock.
+- Current-tree verification: the V9 transcript has 57 stamped steps; every non-zero exit is an intended red step (101, 101, 1, 1, 2), every restore step prints `clean-exit=0`, and the 12 V2 comparisons are equal.
+- Resolution reference: docs(issues): [#2681] record a stamped re-run of the verification sequence
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2688#discussion_r4411686734>
+
+### F8 - Mark the normalized severities as inferred
+
+- PR number: 2688
+- Source review ID: 5694275942
+- Reviewer finding ID: F8
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2688#discussion_r4409761508>
+- Concern: the Copilot comments give no repository severity labels, so the four normalized severities of F1 to F4 need the `(inferred)` qualifier required by the processing skill and the audit's Status Values; the chosen values may stay.
+- Solution: the finding was right. The four severities now read `Suggestion (inferred)` or `Minor (inferred)`.
+- Current-tree verification: the findings table rows F1 to F4 carry the qualifier, and `validate-audit-record.py --pr-number 2688` reports `failures: 0`.
+- Resolution reference: docs(pr-reviews): [#2681] mark the normalized severities as inferred
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2688#discussion_r4411687006>
+
 ## Processing Log
 
 - 2026-10-28 17:22 UTC - Round 1: review 5686786536 arrived with a timeout warning and three inline threads, F1 to F3. Each claim was checked against the tree; none required a change, so each thread got the prescribed `Superseded by F<n>:` reply and was resolved. Copilot was re-requested once because of the warning.
 - 2026-10-28 17:37 UTC - Round 2: the re-requested review 5687032971 arrived with no open issue and one review-body finding without a thread (F4). It was reproduced (the plain test run rebuilds the target binary), fixed in the evidence in its own signed commit, and recorded as `FIXED`/`NON_RESOLVABLE`. This record is committed and pushed after the fix; da2ce7 is re-requested after the push.
 - 2026-10-29 11:18 UTC - Correction to the 2026-10-28 17:37 UTC entry (finding F6 of this review; the earlier entries are kept as written). That entry was stamped 17:37 and described the F4 fix as already made in its own signed commit and da2ce7 as re-requested after the push. The recorded events are: the F4 fix commit was created at 2026-10-28 17:38:29 UTC and the audit update commit at 17:39:18 UTC (commit times from `git log`), so the entry was written before its fix existed. The PR timeline shows `review_requested` events for da2ce7 only at 2026-10-28 16:57:01 UTC and for Copilot at 16:57:00 and 17:19:54 UTC. The statements that da2ce7 is re-requested after the push in the 17:22 and 17:37 entries were intended actions: the REST requests made after the pushes listed da2ce7 as pending but produced no new timeline event, so no re-request event is recorded. From here on an intended or attempted action is written as such, and an event is stamped after it completes.
+- 2026-10-29 11:21 UTC - Round 3 (completed events): da2ce7's review 5694275942 (APPROVED, 2026-10-29 07:35:54 UTC) and ACK comment 6490827285 had four inline findings, F5 to F8. Each claim was checked against the tree and the timeline and confirmed. The maintainer authorized pushing the corrections after the ACK (2026-10-29). The fix commits were created at 2026-10-29 11:16:59 UTC (F5), 11:18:15 UTC (F6), 11:19:39 UTC (F7) and 11:20:21 UTC (F8). Replies were posted at 11:21:09, 11:21:12, 11:21:14 and 11:21:16 UTC and the four threads were resolved afterwards. Not yet events when this entry was written: the push of these commits and the request to da2ce7 to review the new head; the ACK on the earlier head is stale.
 
 ## Completion Rules
 
