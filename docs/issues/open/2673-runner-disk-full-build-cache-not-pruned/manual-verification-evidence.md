@@ -267,7 +267,7 @@ The test fails for the missing restart, readiness wait, and failure exit status,
 
 - Goal: install the script, run it once under systemd, and watch the first scheduled runs.
 - Initial state: the runner idle (GitHub API `busy: false` and no `Runner.Worker` process, checked before every step), `/` at 49% used, build cache 121.1 GB. Artifact under test: the script from the branch commit `docs(issues): [#2673] update the specification and evidence for the cleanup fix` (the script itself last changed in `chore(self-hosted-runner): [#2673] fix the spelling check in the cleanup script`), installed before that branch was merged.
-- Status: `IN_PROGRESS` (deployed and run once by hand; scheduled run 1 of 3 passed; runs 2 and 3 are pending)
+- Status: `IN_PROGRESS` (deployed and run once by hand; scheduled runs 1 and 2 of 3 passed; run 3 is pending)
 
 #### Steps Performed
 
@@ -350,7 +350,22 @@ after the reboot: 0 containers; disk 56%; build cache 141.5 GB, 0 in use, 141.3 
 OOM check across boots: journalctl _TRANSPORT=kernel --since "30 days ago" starts 2026-09-28 07:38:20 and has 0 "Killed process" lines in 30 days
 ```
 
-Scheduled run 2 (2026-10-29): pending.
+Scheduled run 2, 2026-10-29 (checked read-only at 10:21 UTC):
+
+```text
+unit ran 04:00:03 to 04:00:36 UTC; Result=success; ExecMainStatus=0; systemctl is-failed docker-ci-prune.service: inactive
+build cache prune:  Total:        94.74GB
+container prune:    Total reclaimed space: 0B
+image prune:        Total reclaimed space: 0B
+volume prune:       Total reclaimed space: 1.253MB
+Disk usage after the prune: 52%.   (below 70%, so no docker.service restart; no "restarting docker.service" line)
+at 10:21 UTC: /  301G, 150G used, 139G free, 52% (df binary units); Build Cache 345 records, 59 active, 129GB, 107.4GB reclaimable (docker system df, decimal units)
+docker.service: ActiveEnterTimestamp 2026-10-28 07:27:35 UTC (the reboot), NRestarts=0; 0 "No space left" journal lines since 00:00; GitHub runner online, busy=false, Runner.Worker count 0
+host Cargo target cache: 3.1G (2.7G on 2026-10-28)
+script on the host: sha256 c2af7c81ca8a1811200612c8c89d0390fcd739c4a3d0e8700811ba566414542f, unchanged
+```
+
+Observation, not investigated: one container, up 24 hours and healthy, was running with no `Runner.Worker` process and the runner not busy, which explains the 59 active cache records. The run did not touch it and the disk stayed at 52%.
 
 Scheduled run 3 (2026-10-30): pending.
 
