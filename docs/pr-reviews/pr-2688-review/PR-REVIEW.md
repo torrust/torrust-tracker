@@ -43,6 +43,8 @@ Two reviews of `copilot-pull-request-reviewer` have arrived. Review 5686786536 (
 
 Update of 2026-10-29: da2ce7 reviewed the head whose subject is `docs(issues): [#2681] record the closing-keyword lesson of the spec PR` (review 5694275942, APPROVED, 2026-10-29 07:35:54 UTC) and posted the ACK comment 6490827285 for it. The review carries four inline findings, F5 to F8 (the reviewer's own finding IDs, which continue this audit's numbering), each marked non-blocking and repairable after merge. The maintainer chose on 2026-10-29 to push the corrections to this pull request now, which makes that ACK stale; da2ce7 is asked to review the new head after the push.
 
+Update of 2026-10-29 (second): after the corrections for F5 to F8 were pushed, da2ce7 reviewed the head whose subject is `docs(pr-reviews): [#2681] record the da2ce7 review of PR 2688` (review 5697124103, APPROVED, 2026-10-29 11:44:41 UTC) and posted the ACK comment 6495757274 for it; the earlier approval 5694275942 shows as DISMISSED. The review carries one inline finding, F9, marked non-blocking, which continues F7. The maintainer chose on 2026-10-29 to push the F9 fix to this pull request now, which makes the second ACK stale as well.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2688-f1 | Copilot | Suggestion (inferred) | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
@@ -53,6 +55,7 @@ Update of 2026-10-29: da2ce7 reviewed the head whose subject is `docs(issues): [
 | F6 | review-finding:pr-2688-f6 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F7 | review-finding:pr-2688-f7 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F8 | review-finding:pr-2688-f8 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F9 | review-finding:pr-2688-f9 | Human | Minor | documentation | RE_RAISE_OF:F7 | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -160,12 +163,26 @@ Update of 2026-10-29: da2ce7 reviewed the head whose subject is `docs(issues): [
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2688#discussion_r4411687006>
 
+### F9 - Name the commands behind V9's state checks (continues F7)
+
+- PR number: 2688
+- Source review ID: 5697124103
+- Reviewer finding ID: F9
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2688#discussion_r4411895168>
+- Concern: the V9 transcript still omits the command behind several state claims: the restore blocks print `clean-exit=0` without the comparison command, reference or path scope, and the ending `0 changed files` has no invocation, although the introduction says the script's commands are printed. The template requires the command behind each state claim. The reviewer asks to embed the retained script or the actual commands beside the stamps, without reconstructing commands that were not retained, and calls it non-blocking.
+- Solution: the finding was right, and it is a re-raise of the part of F7 that V9 did not close. The script that ran is retained, so the evidence now prints it in full under "Script" (identical to the retained file apart from the worktree path replaced by `<repo>`), and the V9 introduction names the comparison commands for the restore steps and the final status line. `didn` (a regex in the script) was added to `project-words.txt` instead of editing the script.
+- Current-tree verification: `diff` of the embedded block against the retained script (with `<repo>` expanded) printed nothing; `grep -c "/home/josecelano"` on the evidence printed `0`; `linter markdown` and `linter cspell` pass.
+- Resolution reference: docs(issues): [#2681] embed the retained verification script and name its state-check commands
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2688#discussion_r4411982034>
+
 ## Processing Log
 
 - 2026-10-28 17:22 UTC - Round 1: review 5686786536 arrived with a timeout warning and three inline threads, F1 to F3. Each claim was checked against the tree; none required a change, so each thread got the prescribed `Superseded by F<n>:` reply and was resolved. Copilot was re-requested once because of the warning.
 - 2026-10-28 17:37 UTC - Round 2: the re-requested review 5687032971 arrived with no open issue and one review-body finding without a thread (F4). It was reproduced (the plain test run rebuilds the target binary), fixed in the evidence in its own signed commit, and recorded as `FIXED`/`NON_RESOLVABLE`. This record is committed and pushed after the fix; da2ce7 is re-requested after the push.
 - 2026-10-29 11:18 UTC - Correction to the 2026-10-28 17:37 UTC entry (finding F6 of this review; the earlier entries are kept as written). That entry was stamped 17:37 and described the F4 fix as already made in its own signed commit and da2ce7 as re-requested after the push. The recorded events are: the F4 fix commit was created at 2026-10-28 17:38:29 UTC and the audit update commit at 17:39:18 UTC (commit times from `git log`), so the entry was written before its fix existed. The PR timeline shows `review_requested` events for da2ce7 only at 2026-10-28 16:57:01 UTC and for Copilot at 16:57:00 and 17:19:54 UTC. The statements that da2ce7 is re-requested after the push in the 17:22 and 17:37 entries were intended actions: the REST requests made after the pushes listed da2ce7 as pending but produced no new timeline event, so no re-request event is recorded. From here on an intended or attempted action is written as such, and an event is stamped after it completes.
 - 2026-10-29 11:21 UTC - Round 3 (completed events): da2ce7's review 5694275942 (APPROVED, 2026-10-29 07:35:54 UTC) and ACK comment 6490827285 had four inline findings, F5 to F8. Each claim was checked against the tree and the timeline and confirmed. The maintainer authorized pushing the corrections after the ACK (2026-10-29). The fix commits were created at 2026-10-29 11:16:59 UTC (F5), 11:18:15 UTC (F6), 11:19:39 UTC (F7) and 11:20:21 UTC (F8). Replies were posted at 11:21:09, 11:21:12, 11:21:14 and 11:21:16 UTC and the four threads were resolved afterwards. Not yet events when this entry was written: the push of these commits and the request to da2ce7 to review the new head; the ACK on the earlier head is stale.
+- 2026-10-29 11:55 UTC - Round 4 (completed events): da2ce7's review 5697124103 (APPROVED, 2026-10-29 11:44:41 UTC) and ACK comment 6495757274 on the head pushed at 2026-10-29 11:24:49 UTC had one inline finding, F9. It was confirmed against the evidence and the retained script. The maintainer authorized one more push (2026-10-29). The fix commit was created at 2026-10-29 11:54:13 UTC, the reply was posted at 11:54:46 UTC and the thread was resolved afterwards. Not yet events when this entry was written: the push of this record and the request to da2ce7 to review the new head; the ACK on the previous head is stale. Re-requests of da2ce7 so far: the REST request after the push of 11:24:49 UTC was a no-op because he was still pending (no new timeline event), and the next one is a pending action, not an event, until the timeline shows it.
 
 ## Completion Rules
 
