@@ -222,6 +222,7 @@ defence
 depgraph
 devpriv
 dfsg
+didn
 dispositioned
 distroless
 distros

@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2681-2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md
-last-updated-utc: "2026-10-29 11:19"
+last-updated-utc: "2026-10-29 11:53"
 ---
 
 # Manual Verification Evidence
@@ -288,7 +288,7 @@ An independent Task Reviewer reviewed the branch read-only before the pull reque
 
 ## V9 - Stamped re-run of the verification sequence
 
-Added after finding F7 of da2ce7's review of PR #2688, which asked for run provenance (start and end UTC stamps of the dependent steps, and the artifact identified by its Conventional Commit subject) instead of inventing times for V0 to V8. This is a fresh run on 2026-10-29, not a re-reading of the old one: a script ran every step in order against the tested head named in the Environment section (V1, V3, V4, V5, V6 and the V2 matrix, with the baseline as a detached worktree at the merge of PR #2682), temporarily editing a manifest for each red step and restoring it with `git checkout`, and printing `date -u` before and after each step. The script was kept in `/tmp` and is not part of the repository; its steps are the commands printed below. Paths are replaced by `<repo>`, `<baseline>` and `<preserved-copy-dir>`, and output is filtered to the lines that matter (the exit code of every step is the real one).
+Added after finding F7 of da2ce7's review of PR #2688, which asked for run provenance (start and end UTC stamps of the dependent steps, and the artifact identified by its Conventional Commit subject) instead of inventing times for V0 to V8. This is a fresh run on 2026-10-29, not a re-reading of the old one: a script ran every step in order against the tested head named in the Environment section (V1, V3, V4, V5, V6 and the V2 matrix, with the baseline as a detached worktree at the merge of PR #2682), temporarily editing a manifest for each red step and restoring it with `git checkout`, and printing `date -u` before and after each step. The script that ran is retained and printed in full under "Script" below (only the absolute path of the worktree is replaced by `<repo>`); each step label in the transcript is the `run "<label>"` call of that script, and the command behind it is on the same line. The comparisons behind the restore steps are `git diff --quiet -- Cargo.toml Cargo.lock packages deny.toml` (V3 and V4) and `git diff --quiet -- deny.toml` (V5), both printing `clean-exit=$?`, and the final line of the run is `git status --short -- Cargo.toml Cargo.lock packages deny.toml | wc -l`. Paths are replaced by `<repo>`, `<baseline>` and `<preserved-copy-dir>`, and output is filtered to the lines that matter (the exit code of every step is the real one).
 
 Three reading notes:
 
@@ -664,4 +664,135 @@ end 2026-10-29 11:15:16.480 UTC exit=0
 
 RUN END 2026-10-29 11:15:16.767 UTC
 final manifests status: 0 changed files
+```
+
+## Script
+
+The script of V9, as it ran (the same file ran twice; the transcript above is the second run, the first having been discarded as the reading notes say). `run LABEL FILTER COMMAND...` prints the `date -u` start stamp, runs the command, prints the lines of its output that match the filter, and prints the end stamp and the command's exit code. The restore steps compare the working tree with `HEAD` through `git diff --quiet` on the named paths after a `git checkout -q --` of the files the red step edited; `$CODE` is the commit whose subject is `docs(tracker-core): [#2681] explain the testing mock, the self wrapper and the pub test modules`.
+
+```bash
+#!/usr/bin/env bash
+set -u
+R=<repo>
+B=/tmp/row3/base
+export CARGO_TARGET_DIR=$R/target
+cd "$R" || exit 1
+
+ts() { date -u '+%Y-%m-%d %H:%M:%S.%3N'; }
+
+# run LABEL FILTER-REGEX COMMAND...: prints start/end stamps, the filtered output and the exit code
+run() {
+  local label="$1" pat="$2"
+  shift 2
+  echo "### $label"
+  echo "start $(ts) UTC"
+  local out rc
+  out=$("$@" 2>&1)
+  rc=$?
+  echo "$out" | grep -E "$pat"
+  echo "end $(ts) UTC exit=$rc"
+  echo
+}
+
+echo "RUN START $(ts) UTC"
+CODE=$(git log --format=%H -1 --grep='explain the testing mock, the self wrapper')
+echo "tested head subject: $(git log -1 --format=%s)"
+echo "code commit subject: $(git log -1 --format=%s "$CODE")"
+run "no code change between the code commit and the tested head" '.' bash -c "git diff --quiet $CODE HEAD -- packages deny.toml Cargo.toml Cargo.lock; echo diff-exit=\$?"
+
+git worktree add -q --detach "$B" 0edeb136c
+echo "baseline worktree subject: $(git -C "$B" log -1 --format=%s)"
+echo
+
+# V1
+run "V1 before: direct normal dependencies of tracker-core" 'mockall|torrust-tracker-core v' bash -c "cd $B && cargo tree -p torrust-tracker-core -e normal --depth 1"
+run "V1 after: direct normal dependencies of tracker-core" 'mockall|torrust-tracker-core v' cargo tree -p torrust-tracker-core -e normal --depth 1
+run "V1 after, with the feature: direct normal dependencies" 'mockall|torrust-tracker-core v' cargo tree -p torrust-tracker-core -e normal --depth 1 -F testing
+run "V1 builds without and with the feature" 'Finished|error' bash -c "cargo build -p torrust-tracker-core && cargo build -p torrust-tracker-core --features testing"
+
+# V3 normal graph of the consumers
+for p in torrust-tracker-http-core torrust-tracker-udp-core; do
+  run "V3 before: normal graph of $p (-i mockall)" '.' bash -c "cd $B && cargo tree -p $p -e normal -i mockall"
+  run "V3 after: normal graph of $p (-i mockall)" '.' cargo tree -p "$p" -e normal -i mockall
+done
+
+# V3 red: consumers without their dev-dependency entry
+sed -i '/^torrust-tracker-core = .*features = \[ "testing" \]/d' packages/http-core/Cargo.toml packages/udp-core/Cargo.toml
+for p in torrust-tracker-http-core torrust-tracker-udp-core; do
+  run "V3 red: $p without its dev-dependency entry" '^error' cargo test -p "$p" --no-run
+done
+git checkout -q -- packages/http-core/Cargo.toml packages/udp-core/Cargo.toml Cargo.lock
+run "V3 restore: no change in manifests" '.' bash -c "git diff --quiet -- Cargo.toml Cargo.lock packages deny.toml; echo clean-exit=\$?"
+for p in torrust-tracker-http-core torrust-tracker-udp-core; do
+  run "V3 green: $p with its dev-dependency entry" '^test result' cargo test -p "$p"
+done
+
+# V4 shipped features red and restore
+run "V4 green: real tree" '.' cargo run -q -p shipped-features-check -- --package torrust-tracker
+sed -i 's#^torrust-tracker-core = { version = "0.1.0", path = "packages/tracker-core" }#torrust-tracker-core = { version = "0.1.0", path = "packages/tracker-core", features = ["testing"] }#' Cargo.toml
+run "V4 red 1: features testing on the root [dependencies] entry" '.' cargo run -q -p shipped-features-check -- --package torrust-tracker
+git checkout -q -- Cargo.toml Cargo.lock
+sed -i 's#^default = \[  \]#default = [ "testing" ]#' packages/tracker-core/Cargo.toml
+run "V4 red 2: testing in the default chain of tracker-core" '.' cargo run -q -p shipped-features-check -- --package torrust-tracker
+git checkout -q -- packages/tracker-core/Cargo.toml Cargo.lock
+run "V4 restore: no change in manifests" '.' bash -c "git diff --quiet -- Cargo.toml Cargo.lock packages deny.toml; echo clean-exit=\$?"
+run "V4 green again after the restore" '.' cargo run -q -p shipped-features-check -- --package torrust-tracker
+
+# V4 preserved shipped-profile binary
+run "V4 build the shipped-profile binary" 'Finished|error' cargo build -p torrust-tracker --bin torrust-tracker
+mkdir -p /tmp/row3/shipped2 && cp target/debug/torrust-tracker /tmp/row3/shipped2/torrust-tracker
+run "V4 checksum of the build and of the preserved copy (first 16 hex digits)" '.' bash -c "sha256sum target/debug/torrust-tracker /tmp/row3/shipped2/torrust-tracker | cut -c1-16,65-"
+run "V4 mock strings in the preserved copy" '.' bash -c "echo MockTorrentMetricsStore=\$(strings /tmp/row3/shipped2/torrust-tracker | grep -c MockTorrentMetricsStore) mockall=\$(strings /tmp/row3/shipped2/torrust-tracker | grep -ci mockall)"
+run "V4 plain cli-configuration tests" '^test result|^error' cargo test -p torrust-tracker --test cli-configuration
+run "V4 checksums after the plain run" '.' bash -c "sha256sum target/debug/torrust-tracker /tmp/row3/shipped2/torrust-tracker | cut -c1-16,65-"
+run "V4 cli-configuration tests with TORRUST_TRACKER_BINARY set to the preserved copy" '^test result|^error' env TORRUST_TRACKER_BINARY=/tmp/row3/shipped2/torrust-tracker cargo test -p torrust-tracker --test cli-configuration
+run "V4 checksum of the preserved copy after the override run" '.' bash -c "sha256sum /tmp/row3/shipped2/torrust-tracker | cut -c1-16"
+
+# V5
+run "V5 cargo deny check bans (committed deny.toml)" 'bans (ok|FAILED)' cargo deny check bans
+cp deny.toml /tmp/row3/deny.keep2
+python3 - <<'PY'
+lines = open("deny.toml").read().split("\n")
+out = []
+inside = False
+for l in lines:
+    if 'crate = "torrust-tracker-core", wrappers' in l:
+        inside = True
+    if inside and l.strip() == '"torrust-tracker-core",':
+        continue
+    if inside and l.strip() == "] },":
+        inside = False
+    out.append(l)
+open("deny.toml", "w").write("\n".join(out))
+PY
+run "V5 red: cargo deny check bans without the self wrapper" '^error\[|bans (ok|FAILED)' cargo deny check bans
+cp /tmp/row3/deny.keep2 deny.toml
+run "V5 restore: deny.toml has no change" '.' bash -c "git diff --quiet -- deny.toml; echo clean-exit=\$?"
+run "V5 cargo deny check bans after the restore" 'bans (ok|FAILED)' cargo deny check bans
+run "V5 cargo machete --with-metadata" 'didn.t find|found' cargo machete --with-metadata
+
+# V6 docs
+run "V6 cargo doc default" '.' bash -c "cargo doc -p torrust-tracker-core --no-deps >/dev/null 2>&1; D=target/doc/torrust_tracker_core; echo Mock-files=\$(find \$D -name '*Mock*' | wc -l) helper-entries=\$(grep -rl 'peer_tests\|test_helpers' \$D --include=*.html | wc -l)"
+run "V6 cargo doc with the feature" '.' bash -c "cargo doc -p torrust-tracker-core --no-deps --features testing >/dev/null 2>&1; D=target/doc/torrust_tracker_core; echo Mock-files=\$(find \$D -name '*Mock*' | wc -l) helper-entries=\$(grep -rl 'peer_tests\|test_helpers' \$D --include=*.html | wc -l)"
+
+# V2 matrix, before then after
+mat() {
+  local where="$1" pkg="$2" label="$3"
+  shift 3
+  run "V2 cargo test -p $pkg $label" '^test result|^error' bash -c "cd $where && cargo test -p $pkg $*"
+}
+for p in torrust-tracker-core torrust-tracker-http-core torrust-tracker-udp-core; do
+  for w in "$B:before" "$R:after"; do
+    dir=${w%%:*}
+    tag=${w##*:}
+    mat "$dir" "$p" "(plain, $tag)" ""
+    mat "$dir" "$p" "--all-features ($tag)" "--all-features"
+    mat "$dir" "$p" "--all-targets --all-features ($tag)" "--all-targets --all-features"
+    mat "$dir" "$p" "--doc --all-features ($tag)" "--doc --all-features"
+  done
+done
+
+git worktree remove --force "$B"
+echo "RUN END $(ts) UTC"
+echo "final manifests status: $(git status --short -- Cargo.toml Cargo.lock packages deny.toml | wc -l) changed files"
 ```
