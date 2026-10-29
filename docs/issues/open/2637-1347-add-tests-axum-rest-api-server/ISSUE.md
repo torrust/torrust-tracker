@@ -9,7 +9,7 @@ github-issue: 2637
 spec-path: docs/issues/open/2637-1347-add-tests-axum-rest-api-server/ISSUE.md
 branch: "2637-1347-add-tests-axum-rest-api-server-commands"
 related-pr: null
-last-updated-utc: "2026-10-28 18:14"
+last-updated-utc: "2026-10-29 10:23"
 semantic-links:
   skill-links:
     - create-issue
@@ -539,7 +539,7 @@ declaration-only rows have no executable entries.
 | 3 | `routes.rs` | 2 | S2 | 58 / 67 (86.57%) | 0 | Test candidate | DONE | [routes-tests.md](test-refactor-plans/routes-tests.md) (done; 169 / 169 lines after, 9 test cases, 8 of 10 mutants killed, the 2 survivors recorded, R0 refactor) |
 | 4 | `v1/context/health_check/handlers.rs` | 2 | S2 | 4 / 4 (100.00%) | 0 | Test candidate (small) | DONE | [v1-context-health-check-handlers-tests.md](test-refactor-plans/v1-context-health-check-handlers-tests.md) (done; 16 / 16 lines after, 1 test, mutant killed; protection not coverage) |
 | 5 | `v1/responses.rs` | 3 | S1 | 8 / 40 (20.00%) | 0 | Test candidate | DONE | [v1-responses-tests.md](test-refactor-plans/v1-responses-tests.md) (done; 66 / 66 lines after, 8 test cases, 8 mutants killed) |
-| 6 | `v1/context/auth_key/handlers.rs` | 4 | S3 | 0 / 56 (0.00%) | 0 | Test candidate | IN_PROGRESS | [v1-context-auth-key-handlers-tests.md](test-refactor-plans/v1-context-auth-key-handlers-tests.md) (proposed) |
+| 6 | `v1/context/auth_key/handlers.rs` | 4 | S3 | 0 / 56 (0.00%) | 0 | Test candidate | DONE | [v1-context-auth-key-handlers-tests.md](test-refactor-plans/v1-context-auth-key-handlers-tests.md) (done; 261 / 264 lines after, 18 test cases, 9 mutants killed) |
 | 7 | `v1/context/auth_key/responses.rs` | 4 | S3 | 0 / 26 (0.00%) | 0 | Test candidate | PENDING | - |
 | 8 | `v1/context/auth_key/routes.rs` | 4 | S3 | 16 / 16 (100.00%) | 0 | Probably no change | PENDING | - |
 | 9 | `v1/context/whitelist/handlers.rs` | 4 | S3 | 0 / 37 (0.00%) | 0 | Test candidate | PENDING | - |
@@ -667,6 +667,7 @@ once. If the slicing changes, the Slice column changes with it.
   `2637-1347-add-tests-axum-rest-api-server-routes` from `develop` at the merge of #2672. The package is
   byte-identical to the S1 head, so the S1 measurement is the S2 baseline (unit-only lines 921 / 1,305,
   70.57%). Row 2 (`v1/routes.rs`) is `IN_PROGRESS`; its plan is proposed and awaits the maintainer.
+- 2026-10-29 10:23 UTC - GitHub Copilot - Row 6 (`v1/context/auth_key/handlers.rs`) is `DONE`: the maintainer approved the completed file at 10:22 UTC. 13 test functions (18 cases) over a hand-written `AuthKeyPort` fake; the file went from 0 / 56 to 261 / 264 lines; all 9 named mutations were killed; `async-trait` 0.1 was added as a dev-dependency. The three uncovered lines are `AuthKeyErrorDisplay`'s `Debug` impl, deliberately not tested.
 - 2026-10-28 12:20 UTC - Jose Celano - Approved the row 2 plan (`v1/routes.rs`) with these decisions: the
   crate-private container helper is a `#[cfg(test)] mod test_support` (ADR `20261021190318`, rule C; `src/testing/`
   is for code shared outside the crate); the cases with `private` or `listed` set but no persistence are kept as the

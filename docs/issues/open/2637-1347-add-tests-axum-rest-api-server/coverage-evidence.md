@@ -237,3 +237,7 @@ After the four S2 files (`v1/routes.rs`, `routes.rs`, `v1/context/health_check/h
 | Integration-only (`--test integration`) | 58 integration | 682 / 916 (74.45%) | 949 / 1,360 (69.78%) | 98 / 138 (71.01%) |
 
 Unit-only lines move 921 / 1,305 (70.57%) at the S2 baseline (the S1 measurement) to 1,305 / 1,556 (83.87%). The files S2 changed are fully covered by unit tests, counting their test modules: `v1/routes.rs` 111 / 111, `routes.rs` 169 / 169, `v1/context/health_check/handlers.rs` 16 / 16 and `test_support.rs` 31 / 31. The remaining uncovered production lines are in `server.rs` (S5), the context handlers and responses (S3 and S4), and the out-of-scope `testing/environment.rs`.
+
+### `v1/context/auth_key/handlers.rs` (slice S3)
+
+Unit-only (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): lines 0 / 56 (0.00%) before, 261 / 264 (98.86%) after; regions 0 / 83 before, 373 / 378 after; functions 0 / 11 before, 62 / 63 after. The counts include the in-file test module. The three uncovered lines (153-155) are `AuthKeyErrorDisplay`'s `Debug` implementation, deliberately not tested. 13 test functions (18 cases); nine named mutations killed (see [the plan](test-refactor-plans/v1-context-auth-key-handlers-tests.md)). Package unit-only after this file: lines 1,563 / 1,770 (88.31%), regions 2,315 / 2,708 (85.49%), functions 245 / 284 (86.27%), 94 unit tests.

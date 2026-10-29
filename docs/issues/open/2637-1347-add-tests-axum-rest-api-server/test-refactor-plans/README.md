@@ -30,7 +30,7 @@ approves it. A group of declaration-only files may share one plan.
 | 3 | [v1-routes-tests.md](v1-routes-tests.md) | DONE | Approved 2026-10-28; completed file approved 2026-10-28 |
 | 4 | [routes-tests.md](routes-tests.md) | DONE | Approved 2026-10-28 with a testability refactor (R0); completed file approved 2026-10-28 |
 | 5 | [v1-context-health-check-handlers-tests.md](v1-context-health-check-handlers-tests.md) | DONE | Approved 2026-10-28; completed file approved 2026-10-28 |
-| 6 | [v1-context-auth-key-handlers-tests.md](v1-context-auth-key-handlers-tests.md) | PROPOSED | Awaiting maintainer approval |
+| 6 | [v1-context-auth-key-handlers-tests.md](v1-context-auth-key-handlers-tests.md) | DONE | Approved 2026-10-29; completed file approved 2026-10-29 |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 
