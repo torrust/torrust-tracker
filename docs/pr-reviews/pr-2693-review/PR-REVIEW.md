@@ -38,7 +38,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-All six findings are by the human reviewer `da2ce7`, from review 5715892693 (CHANGES_REQUESTED, 2026-10-30 17:09:01 UTC, on the head whose subject is `docs(pr-reviews): [#2547] record the post-merge findings F20 to F22 of PR 2690`). The reviewer's own IDs F1 to F6 are kept; this pull request had no audit before, so there is no collision. F2 to F4 are blocking, F1, F5 and F6 are nonblocking.
+All findings are by the human reviewer `da2ce7`. F1 to F6 are from review 5715892693 (CHANGES_REQUESTED, 2026-10-30 17:09:01 UTC, on the head whose subject is `docs(pr-reviews): [#2547] record the post-merge findings F20 to F22 of PR 2690`). The reviewer's own IDs F1 to F6 are kept; this pull request had no audit before, so there is no collision. F2 to F4 are blocking, F1, F5 and F6 are nonblocking. Review 5716380696 (CHANGES_REQUESTED, 2026-10-30 17:50:05 UTC, on the head whose subject is `docs(pr-reviews): [#2547] record the resolution of the PR 2693 review threads`) resolved F1 to F4 and F6 and raised F7 (Minor, blocking), which continues F5; F8 is its "Not yet" reply in the thread of F5 (a reply, so its Source URL is the submitted review).
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -48,6 +48,8 @@ All six findings are by the human reviewer `da2ce7`, from review 5715892693 (CHA
 | F4 | review-finding:pr-2693-f4 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F5 | review-finding:pr-2693-f5 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F6 | review-finding:pr-2693-f6 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F7 | review-finding:pr-2693-f7 | Human | Minor | correctness | RE_RAISE_OF:F5 | FIXED | RESOLVED |
+| F8 | review-finding:pr-2693-f8 | Human | Minor (inferred) | correctness | RE_RAISE_OF:F5 | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -129,11 +131,38 @@ All six findings are by the human reviewer `da2ce7`, from review 5715892693 (CHA
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2693#discussion_r4426447491
 
+### F7 - Keep the pending resolution references parseable
+
+- PR number: 2693
+- Source review ID: 5716380696
+- Reviewer finding ID: F7
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2693#discussion_r4426732741
+- Concern: Continues F5. The semicolon in the parenthetical of each F20 to F22 Resolution reference in the PR #2690 audit split it into two references, and the validator read the text after it as a nonexistent commit subject: `validate-audit-record.py --pr-number 2690` reported 3 failures, while the earlier statement that the validator passes covered only the PR #2693 audit.
+- Solution: The finding was right and was reproduced (3 failures). Each Resolution reference is only the durable reply URL, and the commit subject moved into Solution. Both audit records were revalidated at the fixed head.
+- Current-tree verification: `validate-audit-record.py --pr-number 2690` returns ok (22 rows, 0 failures) and `--pr-number 2693` returns ok (8 rows, 0 failures) at this head.
+- Resolution reference: `docs(pr-reviews): [#2547] keep the pending resolution references parseable`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2693#discussion_r4426784465
+
+### F8 - Re-check of F5 at the previous head
+
+- PR number: 2693
+- Source review ID: 5716380696
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2693#pullrequestreview-5716380696
+- Concern: A "Not yet" reply (inline comment r4426734938) in the thread of F5: the reply URLs are right, but the semicolon-separated text is parsed as nonexistent commit subjects; F7 continues it.
+- Solution: The fix of F7 completes F5; see that finding.
+- Current-tree verification: Same as F7.
+- Resolution reference: `docs(pr-reviews): [#2547] keep the pending resolution references parseable`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2693#discussion_r4426785048
+
 ## Processing Log
 
 - 2026-10-30 17:10 UTC - Review 5715892693 arrived (CHANGES_REQUESTED, 17:09:01 UTC, six inline findings F1 to F6, all confirmed against the tree and the PR metadata). The maintainer had asked on 2026-10-30 to fix the reviewer's findings if a review came within 15 minutes.
 - 2026-10-30 17:20 UTC - Fixes and replies (completed events). The fix commits were created at 2026-10-30 17:11:21 UTC (F1), 17:12:16 UTC (F3), 17:13:00 UTC (F4) and 17:13:45 and 17:15:04 UTC (F5). F2 reworded the body of the first commit of the branch, whose original author time is 16:33:01 UTC, by one scripted (non-interactive) `git rebase -i` over all eight commits; the final tree was verified identical to the pre-rewrite head, and the branch was pushed with `--force-with-lease` (the PR timeline shows `head_ref_force_pushed` at 17:18:24 UTC). F6 was done by editing the pull request title (`renamed` event at 17:18:31 UTC). The six replies were posted from 17:18:50 to 17:19:01 UTC. Not yet events when this entry was written: the resolution of the six threads and the push of this record.
 - 2026-10-30 17:23 UTC - Resolved the six threads (GraphQL `resolveReviewThread`, 17:23 UTC); a GraphQL refresh at 17:23 UTC reported 0 unresolved threads. The record of the fixes was pushed at 17:22 UTC (head whose subject is `docs(pr-reviews): [#2547] record the review of PR 2693`). `validate-audit-record.py --pr-number 2693` exited 0 (6 rows, 0 failures) before this entry. The three threads of #2690 (F20 to F22) stay open until this pull request merges.
+- 2026-10-30 17:57 UTC - Round 2: review 5716380696 (CHANGES_REQUESTED, 17:50:05 UTC) confirmed F1 to F4 and F6 and raised F7. It was reproduced (the validator failed on the PR #2690 audit with 3 failures, which this audit's 17:23 entry did not cover: it validated only this audit). The fix commit was created at 17:52:45 UTC and pushed at about 17:55 UTC; the replies on the F7 thread and on the F5 thread were posted at 17:55:30 and 17:55:32 UTC, the F7 thread was resolved afterwards, and a GraphQL refresh at 17:55:58 UTC reported 0 unresolved threads. The maintainer re-requested da2ce7 after the previous push. Not yet events when this entry was written: the push of this record.
 
 ## Completion Rules
 
