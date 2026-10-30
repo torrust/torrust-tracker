@@ -386,6 +386,7 @@ nologin
 nonblocking
 nonroot
 noprefix
+nosalt
 notnull
 nping
 nquery
@@ -502,6 +503,7 @@ settimeout
 setuid
 sharktorrent
 shellcheck
+shuf
 signingkey
 skiplist
 slowloris

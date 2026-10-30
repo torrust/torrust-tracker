@@ -9,7 +9,7 @@ github-issue: 2547
 spec-path: docs/issues/open/2547-measure-effect-of-optional-rebases/ISSUE.md
 branch: "2547-measure-effect-of-optional-rebases"
 related-pr: null
-last-updated-utc: "2026-10-29 17:30"
+last-updated-utc: "2026-10-30 09:10"
 semantic-links:
   skill-links:
     - create-issue
@@ -148,9 +148,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                         | Notes / Expected Output                                                                                                                                                                                                                                     |
 | --- | ------ | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Wait for the window to close | Do not start before 2026-10-29. List the workflow-changing merges between 2026-10-15 and 2026-10-28 (see Out of Scope), and record them.                                                                                                                    |
-| T2  | TODO   | Collect the measurements     | Run the baseline commands of sections 4 to 7 for the window, plus the V1 and V4 classifications. Recount the rebase-fallout baseline for 1 to 13 October only. Write the raw per-PR results as a table in `post-change-evidence.md`, not as generated JSON. |
-| T3  | TODO   | Compare and conclude         | Baseline vs window table normalized per merged PR and per day, a short conclusion, and any caveats (sampling, workflow changes, PR volume). If the result argues for a policy change, draft a new issue and link it here.                                   |
+| T1  | DONE   | Wait for the window to close | Do not start before 2026-10-29. List the workflow-changing merges between 2026-10-15 and 2026-10-28 (see Out of Scope), and record them.                                                                                                                    |
+| T2  | DONE   | Collect the measurements     | Run the baseline commands of sections 4 to 7 for the window, plus the V1 and V4 classifications. Recount the rebase-fallout baseline for 1 to 13 October only. Write the raw per-PR results as a table in `post-change-evidence.md`, not as generated JSON. |
+| T3  | DONE   | Compare and conclude         | Baseline vs window table normalized per merged PR and per day, a short conclusion, and any caveats (sampling, workflow changes, PR volume). If the result argues for a policy change, draft a new issue and link it here.                                   |
 
 ## Commit Points
 
@@ -169,8 +169,8 @@ with GPG.
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`)
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
@@ -215,6 +215,11 @@ with GPG.
   GitHub issue body was updated to match.
 - 2026-10-16 15:40 UTC - AI assistant - #2507 was closed and its specification archived, so the links
   to its baseline and evidence now point to `docs/issues/closed/2507-stop-requiring-pull-request-rebases/`.
+- 2026-10-30 09:10 UTC - AI assistant - Collected the window data (T1 to T3) and wrote
+  `post-change-evidence.md`. Findings: force-pushes per merged PR fell from 1.58 to 0.09, but
+  estimated PR CI runner-hours rose from 15.2 to 40.5 per day (3.0 to 4.7 per merged PR). The baseline
+  merge count recounts to 68, not 67. The workflow-changing merges are #2572, #2601, #2665 and #2676;
+  #2574, #2580 and #2675 change no workflow file.
 - 2026-10-29 17:30 UTC - AI assistant - Maintainer feedback before implementation: per-day figures use
   inclusive calendar days (14 for the window, 13 for the baseline); the CI sample stays at six runs per
   workflow with a recorded seed; the confounder list covers every merge that changed

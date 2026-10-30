@@ -1,0 +1,383 @@
+---
+semantic-links:
+  skill-links:
+    - create-issue
+  related-artifacts:
+    - docs/issues/open/2547-measure-effect-of-optional-rebases/ISSUE.md
+    - docs/issues/closed/2507-stop-requiring-pull-request-rebases/baseline-evidence.md
+---
+
+<!-- skill-link: create-issue -->
+
+# Post-Change Evidence: Optional Pull-Request Rebases
+
+Collected on 2026-10-30 between 07:50 and 09:30 UTC from the GitHub REST and GraphQL APIs for
+`torrust/torrust-tracker` (authenticated as `josecelano`) and from a local clone at
+`torrust/develop` tip `49641da38` (`Merge torrust/torrust-tracker#2688`). Window: 2026-10-15 00:00
+UTC to 2026-10-28 23:59 UTC (14 days). Baseline: 1 to 13 October 2026 (13 days), from
+[`baseline-evidence.md`](../../closed/2507-stop-requiring-pull-request-rebases/baseline-evidence.md).
+Raw output was kept in a scratch directory and is not committed; the tables below are the raw
+per-item results. Commands are recorded verbatim in each section.
+
+## 1. Pull-Request Volume (baseline section 4)
+
+```sh
+gh pr list --repo torrust/torrust-tracker --state all --limit 3000 \
+  --json number,createdAt,mergedAt,state,author
+```
+
+The queue is sampled daily at 12:00 UTC and counts PRs that were later merged or are still open, as in
+the baseline. The same code run on 1 to 13 October gives the baseline's own median queue (8), max (12)
+and median hours to merge (4.0), which validates the method.
+
+| Measure                      | 1 to 13 Oct (recount) | 15 to 28 Oct |
+| ---------------------------- | --------------------: | -----------: |
+| PRs opened                   |                    76 |          130 |
+| PRs merged                   |                    68 |          121 |
+| Merged PRs per day           |                   5.2 |          8.6 |
+| Median open-PR queue (daily) |                     8 |            5 |
+| Max open-PR queue            |                    12 |            8 |
+| Median hours to merge        |                   4.0 |          1.9 |
+
+Discrepancy: the baseline recorded 67 merges and 73 opened for 1 to 13 October because it was
+collected on 13 October, before the day ended. The recount gives 68 merged and 76 opened. This
+evidence uses the recount (68) as the baseline merge count for per-PR figures, and the baseline's
+published force-push and CI figures as they were (67 PRs).
+
+## 2. Force-Pushes per Merged PR (baseline section 5)
+
+Population: the 121 PRs with `merged_at` in the window, each with its whole force-push timeline.
+Nodes were counted, not `totalCount`. No timeline had a second page.
+
+```sh
+for n in $(cat win.txt); do gh api graphql -f query='query($n:Int!){repository(owner:"torrust",name:"torrust-tracker"){pullRequest(number:$n){number mergedAt mergeCommit{oid} timelineItems(first:100,itemTypes:[HEAD_REF_FORCE_PUSHED_EVENT]){pageInfo{hasNextPage} nodes{... on HeadRefForcePushedEvent{createdAt beforeCommit{oid} afterCommit{oid}}}}}}}' -F n=$n; done
+```
+
+| Period               | PRs | Force-pushes | Mean per PR | PRs with at least one |
+| -------------------- | --: | -----------: | ----------: | --------------------: |
+| 2026-10 baseline     |  67 |          106 |        1.58 |              54 (81%) |
+| 15 to 28 Oct         | 121 |           11 |        0.09 |              10 (8.3%) |
+
+The 11 force-pushes belong to 10 PRs (#2678 has two); the other 111 merged PRs have none.
+
+### 2.1 Classification (method of #2507 V4)
+
+The `develop` tip at push time is the last first-parent `develop` commit whose PR has a `merged_at`
+before the push. The `beforeCommit` objects were fetched with `git fetch torrust <sha>`.
+
+```sh
+git log --first-parent --format='%H%x09%s' torrust/develop --since=2026-10-01   # tip lookup
+git merge-base <tip> <beforeCommit>; git merge-base <tip> <afterCommit>
+git merge-tree --write-tree <tip> <beforeCommit>   # exit != 0: conflict
+```
+
+| PR    | Push (UTC)           | `develop` tip | Base before | Base after  | Class                             |
+| ----- | -------------------- | ------------- | ----------- | ----------- | --------------------------------- |
+| #2430 | 2026-10-15T11:31:01Z | `9c8bcdf8a` | `eb96d2957` | `9c8bcdf8a` | rebase, recommended (clean) |
+| #2537 | 2026-10-14T21:27:23Z | `07750152f` | `48c4d3013` | `07750152f` | rebase, required (conflict) |
+| #2538 | 2026-10-15T12:04:26Z | `9c8bcdf8a` | `48c4d3013` | `9c8bcdf8a` | rebase, recommended (clean) |
+| #2559 | 2026-10-19T12:21:03Z | `2dc157b9c` | `e9c01fbb6` | `2dc157b9c` | rebase, required (conflict) |
+| #2578 | 2026-10-20T17:28:48Z | `e760e714c` | `7771f09a4` | `e760e714c` | rebase, required (conflict) |
+| #2629 | 2026-10-23T16:48:24Z | `67e37efd3` | `64e6783b0` | `67e37efd3` | rebase, recommended (clean) |
+| #2630 | 2026-10-23T17:46:08Z | `5e9e575d8` | `5e9e575d8` | `5e9e575d8` | not a rebase (base unchanged) |
+| #2638 | 2026-10-24T20:24:05Z | `d09a45f0a` | `abce11ec8` | `d09a45f0a` | rebase, recommended (clean) |
+| #2672 | 2026-10-27T12:39:25Z | `79f550718` | `72fbeacc1` | `79f550718` | rebase, required (conflict) |
+| #2678 | 2026-10-28T10:00:55Z | `09263a46c` | `802612dce` | `09263a46c` | rebase, required (conflict) |
+| #2678 | 2026-10-28T13:31:06Z | `2025431d3` | `09263a46c` | `2025431d3` | rebase, required (conflict) |
+
+| Class                                 | Force-pushes | Per merged PR (121) |
+| ------------------------------------- | -----------: | ------------------: |
+| Rebase, required (conflicted)         |            6 |                0.05 |
+| Rebase, recommended (merged cleanly)  |            4 |                0.03 |
+| Not a rebase (base unchanged)         |            1 |                0.01 |
+| **All force-pushes**                  |       **11** |            **0.09** |
+| **Rebase-only**                       |       **10** |            **0.08** |
+
+The baseline counted every force-push as a rebase. The one non-rebase push is #2630 at
+2026-10-23 17:46 UTC.
+
+## 3. Merges Behind `develop` and the Refresh Path (method of #2507 V1)
+
+For each of the 121 first-parent merges `M`: `M^1` is the `develop` tip the merge was built on and
+`M^2` the PR head. A head is behind when `git merge-base M^1 M^2` is not `M^1`. "Head pushed" is the
+creation time of the earliest `pull_request` workflow run for `M^2`; "refresh path" means that time is
+before the commit date of `M^1`.
+
+```sh
+git merge-base "$M^1" "$M^2"
+gh api "repos/torrust/torrust-tracker/actions/runs?head_sha=$M2&event=pull_request&per_page=100" --jq '[.workflow_runs[].created_at]|min'
+git log -1 --format=%cI "$M^1"
+gh api repos/torrust/torrust-tracker/pulls/<n> --jq .base.sha
+```
+
+| Measure                                                      | Count | Share of 121 |
+| ------------------------------------------------------------ | ----: | -----------: |
+| Merged while behind `develop`                                |    93 |          77% |
+| Behind, head pushed before `develop` reached `M^1` (refresh path) |    68 |          56% |
+| ... of which recorded `base.sha` equals `M^1` after merge    |    66 |          55% |
+| Behind, head pushed after `develop` reached `M^1`            |    25 |          21% |
+
+Two refresh-path merges (listed below with `base=M^1` "no") do not show `base.sha` equal to `M^1`; the
+count is inferred, like #2507's, because the merge tool's output is not captured. Per-PR rows
+for the 93 behind merges:
+
+| PR | `M^1` | `M^2` | Head pushed (UTC) | `develop` reached `M^1` (UTC) | Refresh path | `base.sha` = `M^1` |
+| -- | ----- | ----- | ----------------- | ----------------------------- | ------------ | ------------------ |
+| #2430 | `3195b8b60` | `ff8015ad1` | 2026-10-15T15:22:41Z | 2026-10-15T15:06:29Z | no | yes |
+| #2500 | `fd04ac51e` | `cac0c04f6` | 2026-10-15T16:49:48Z | 2026-10-15T16:32:03Z | no | yes |
+| #2535 | `e6b46013b` | `ed56f2efe` | 2026-10-14T16:55:35Z | 2026-10-15T06:41:23Z | yes | yes |
+| #2539 | `ee4eb8e9c` | `51ca18aff` | 2026-10-15T07:01:02Z | 2026-10-15T06:48:41Z | no | yes |
+| #2541 | `09887e70d` | `079b6e741` | 2026-10-15T15:22:40Z | 2026-10-15T15:42:11Z | yes | yes |
+| #2544 | `fe5d8264a` | `af3e157d0` | 2026-10-15T20:40:01Z | 2026-10-15T17:12:11Z | no | yes |
+| #2545 | `ae4288087` | `a8165585f` | 2026-10-16T11:18:28Z | 2026-10-16T11:35:22Z | yes | yes |
+| #2546 | `702cff6cc` | `250d4b541` | 2026-10-16T10:58:30Z | 2026-10-16T07:41:31Z | no | yes |
+| #2549 | `2dc157b9c` | `5f972f6ab` | 2026-10-16T06:29:36Z | 2026-10-19T11:08:50Z | yes | yes |
+| #2550 | `04013e7f1` | `b2d33e199` | 2026-10-16T13:18:14Z | 2026-10-16T15:19:59Z | yes | yes |
+| #2552 | `e2b431666` | `8037065bb` | 2026-10-16T12:23:16Z | 2026-10-16T15:35:03Z | yes | yes |
+| #2553 | `7a02904ee` | `863d0905d` | 2026-10-19T12:16:28Z | 2026-10-19T15:09:36Z | yes | yes |
+| #2554 | `e9c01fbb6` | `117f84067` | 2026-10-19T10:21:54Z | 2026-10-17T12:14:55Z | no | yes |
+| #2555 | `55e08830f` | `2e5e8eeb4` | 2026-10-16T15:43:31Z | 2026-10-19T15:27:17Z | yes | yes |
+| #2556 | `7ba4c696d` | `d020502aa` | 2026-10-19T16:19:34Z | 2026-10-20T11:49:39Z | yes | yes |
+| #2558 | `94490c497` | `f2ad9298e` | 2026-10-19T16:33:53Z | 2026-10-20T12:11:05Z | yes | yes |
+| #2559 | `f2edc52c3` | `fba43030b` | 2026-10-19T12:50:48Z | 2026-10-19T15:16:35Z | yes | yes |
+| #2561 | `5956368b3` | `dc461b1de` | 2026-10-19T15:40:26Z | 2026-10-20T12:02:50Z | yes | yes |
+| #2562 | `1eae3c33e` | `9c50e4649` | 2026-10-19T15:16:57Z | 2026-10-19T16:26:35Z | yes | yes |
+| #2563 | `6d6dd92ee` | `80e3381e0` | 2026-10-19T15:35:19Z | 2026-10-19T15:41:08Z | yes | yes |
+| #2564 | `f37c0eca2` | `900fbaa9a` | 2026-10-19T15:58:36Z | 2026-10-19T16:22:45Z | yes | yes |
+| #2568 | `e3beee28a` | `24276fb59` | 2026-10-20T07:11:01Z | 2026-10-20T11:32:45Z | yes | yes |
+| #2569 | `550bddbb8` | `f24a690ec` | 2026-10-19T20:26:07Z | 2026-10-20T11:19:20Z | yes | yes |
+| #2570 | `e1bf6fef2` | `ad6e2aa7a` | 2026-10-20T11:27:52Z | 2026-10-20T11:43:56Z | yes | yes |
+| #2571 | `87690b15e` | `2e6b5d8c1` | 2026-10-20T12:01:52Z | 2026-10-20T12:16:55Z | yes | yes |
+| #2572 | `b413306d2` | `3edca64d0` | 2026-10-20T12:23:42Z | 2026-10-20T12:31:31Z | yes | yes |
+| #2573 | `954c5611e` | `1a536293d` | 2026-10-20T12:25:05Z | 2026-10-20T12:58:10Z | yes | yes |
+| #2574 | `5ee038f1c` | `a032526f4` | 2026-10-20T15:43:41Z | 2026-10-20T15:57:10Z | yes | yes |
+| #2575 | `7771f09a4` | `61c34601e` | 2026-10-20T16:19:10Z | 2026-10-20T16:07:21Z | no | yes |
+| #2577 | `fe70cf908` | `1e0d7bb0a` | 2026-10-20T16:51:00Z | 2026-10-20T16:44:19Z | no | yes |
+| #2579 | `5b54bb0f4` | `5f278ca4b` | 2026-10-20T16:53:44Z | 2026-10-20T16:55:01Z | yes | yes |
+| #2580 | `f8e3bb2d7` | `d1f4ece84` | 2026-10-20T18:00:39Z | 2026-10-20T19:24:52Z | yes | yes |
+| #2584 | `d60b680bd` | `0f6ae3235` | 2026-10-20T19:49:37Z | 2026-10-20T19:53:21Z | yes | yes |
+| #2585 | `0a7145528` | `ae6d53b10` | 2026-10-20T18:03:46Z | 2026-10-20T19:32:48Z | yes | yes |
+| #2586 | `e42eb1b37` | `1b0176415` | 2026-10-20T17:55:46Z | 2026-10-20T19:41:39Z | yes | yes |
+| #2587 | `fefefdd9e` | `5782782bf` | 2026-10-20T19:34:30Z | 2026-10-20T19:46:30Z | yes | yes |
+| #2589 | `ff9f7745a` | `2bd2f667e` | 2026-10-21T07:10:06Z | 2026-10-21T07:04:50Z | no | yes |
+| #2590 | `12da1ea7d` | `ab78903d0` | 2026-10-21T07:53:34Z | 2026-10-21T07:42:40Z | no | yes |
+| #2591 | `afbd5dbf1` | `492d19a86` | 2026-10-21T08:23:43Z | 2026-10-21T09:08:07Z | yes | yes |
+| #2593 | `321e83bc4` | `580b5922b` | 2026-10-21T08:00:46Z | 2026-10-21T09:16:25Z | yes | yes |
+| #2595 | `6fd4bc597` | `8893a0a67` | 2026-10-21T08:15:47Z | 2026-10-21T08:58:45Z | yes | yes |
+| #2596 | `b5ab35ae9` | `f8f53e8a5` | 2026-10-21T07:51:19Z | 2026-10-21T09:23:24Z | yes | yes |
+| #2597 | `d21282aa4` | `0ebb43117` | 2026-10-21T09:12:51Z | 2026-10-21T09:30:24Z | yes | yes |
+| #2598 | `b5894fb67` | `d7f32d451` | 2026-10-21T09:25:51Z | 2026-10-21T09:38:56Z | yes | yes |
+| #2599 | `4ad183d18` | `ae26e2c77` | 2026-10-21T10:08:27Z | 2026-10-21T10:25:47Z | yes | yes |
+| #2600 | `97c689fe1` | `8efbf8cbb` | 2026-10-21T09:55:15Z | 2026-10-21T09:46:46Z | no | yes |
+| #2601 | `01bf6624d` | `3b91c65f2` | 2026-10-21T10:52:31Z | 2026-10-21T11:02:43Z | yes | yes |
+| #2602 | `6da62f0ee` | `a252e0566` | 2026-10-21T10:35:36Z | 2026-10-21T10:47:59Z | yes | yes |
+| #2604 | `c160fe1e2` | `a61c46a9e` | 2026-10-21T11:08:47Z | 2026-10-21T11:08:59Z | yes | yes |
+| #2605 | `29e1f7ce3` | `118fbf509` | 2026-10-22T19:45:01Z | 2026-10-21T17:35:20Z | no | yes |
+| #2607 | `889a6dc36` | `dca0cd6dd` | 2026-10-21T12:04:07Z | 2026-10-21T12:02:31Z | no | yes |
+| #2608 | `9f20a89b8` | `af69b317c` | 2026-10-21T11:38:36Z | 2026-10-21T11:39:56Z | yes | yes |
+| #2609 | `4fbc38da3` | `28370ac89` | 2026-10-21T11:32:52Z | 2026-10-21T11:28:17Z | no | yes |
+| #2612 | `9bd58da1f` | `d83b32bee` | 2026-10-21T14:01:34Z | 2026-10-21T14:45:38Z | yes | no |
+| #2613 | `11d5d2dd0` | `c104a6f02` | 2026-10-21T15:05:44Z | 2026-10-21T15:09:22Z | yes | yes |
+| #2614 | `5a63b9ada` | `eca8d0916` | 2026-10-21T15:30:04Z | 2026-10-21T15:15:32Z | no | yes |
+| #2615 | `0126fa3f7` | `c2fdf1ff5` | 2026-10-21T15:08:27Z | 2026-10-21T16:15:07Z | yes | yes |
+| #2616 | `0043e21e3` | `2c2f0dcf2` | 2026-10-21T16:22:57Z | 2026-10-21T16:44:08Z | yes | yes |
+| #2619 | `80c45b606` | `82bcbc65a` | 2026-10-21T17:10:22Z | 2026-10-21T16:52:39Z | no | yes |
+| #2620 | `7963007ee` | `1bef679ea` | 2026-10-21T17:00:34Z | 2026-10-21T17:12:11Z | yes | yes |
+| #2621 | `97c214c76` | `98aa6b65c` | 2026-10-23T11:10:05Z | 2026-10-23T15:31:04Z | yes | yes |
+| #2623 | `5e9e575d8` | `01a65acee` | 2026-10-24T09:00:39Z | 2026-10-23T16:43:47Z | no | yes |
+| #2624 | `756b08b2e` | `ff44a2bac` | 2026-10-22T18:50:56Z | 2026-10-23T07:12:02Z | yes | yes |
+| #2627 | `67e37efd3` | `26bf2f59f` | 2026-10-23T15:51:02Z | 2026-10-23T15:55:25Z | yes | no |
+| #2629 | `8f8b4d714` | `3a62c7e3c` | 2026-10-24T17:23:16Z | 2026-10-24T12:51:05Z | no | yes |
+| #2630 | `a900e4545` | `ca34aa9ce` | 2026-10-24T17:26:00Z | 2026-10-24T19:17:58Z | yes | yes |
+| #2633 | `0599fbd05` | `c19fca7d1` | 2026-10-24T17:19:30Z | 2026-10-24T19:12:34Z | yes | yes |
+| #2634 | `e80d5c70e` | `7c2b7c7a3` | 2026-10-24T19:29:01Z | 2026-10-24T19:59:02Z | yes | yes |
+| #2636 | `1d14569cd` | `9e5c38005` | 2026-10-24T20:15:30Z | 2026-10-24T20:42:24Z | yes | yes |
+| #2641 | `849f5a809` | `453c6fa9a` | 2026-10-24T20:39:27Z | 2026-10-25T06:18:48Z | yes | yes |
+| #2642 | `722f2b5b2` | `aede6ed69` | 2026-10-24T21:11:30Z | 2026-10-24T20:52:20Z | no | yes |
+| #2643 | `2451f97bb` | `dc9d81b0a` | 2026-10-24T20:57:36Z | 2026-10-25T06:39:24Z | yes | yes |
+| #2644 | `1b6129768` | `0af1e95b2` | 2026-10-25T06:27:57Z | 2026-10-25T06:23:29Z | no | yes |
+| #2648 | `945d482d3` | `1cab588e6` | 2026-10-26T12:44:24Z | 2026-10-26T16:46:03Z | yes | yes |
+| #2649 | `5124c66e2` | `7d8ee56e4` | 2026-10-25T14:36:43Z | 2026-10-25T14:47:34Z | yes | yes |
+| #2652 | `d0c3b7e15` | `6c0d9cd80` | 2026-10-26T16:46:33Z | 2026-10-26T18:37:02Z | yes | yes |
+| #2654 | `47cba5a97` | `9378ec1dd` | 2026-10-26T12:52:32Z | 2026-10-26T12:31:13Z | no | yes |
+| #2657 | `0b4b2d0d3` | `5de6253f2` | 2026-10-26T17:21:22Z | 2026-10-26T17:24:31Z | yes | yes |
+| #2658 | `f4b221095` | `68833b888` | 2026-10-26T17:11:58Z | 2026-10-26T17:15:15Z | yes | yes |
+| #2659 | `b6cf72147` | `6b5177304` | 2026-10-26T17:56:56Z | 2026-10-26T18:21:44Z | yes | yes |
+| #2664 | `5cbc4ec66` | `998637855` | 2026-10-26T20:09:07Z | 2026-10-26T21:54:55Z | yes | yes |
+| #2666 | `71e130242` | `3b4a648ca` | 2026-10-27T07:05:05Z | 2026-10-26T21:59:54Z | no | yes |
+| #2667 | `802612dce` | `ca784109d` | 2026-10-27T08:09:48Z | 2026-10-27T10:44:17Z | yes | yes |
+| #2669 | `05c088306` | `65faa45b1` | 2026-10-27T09:23:06Z | 2026-10-27T10:00:44Z | yes | yes |
+| #2671 | `24d708208` | `6ec28a96a` | 2026-10-27T09:13:24Z | 2026-10-27T11:44:47Z | yes | yes |
+| #2675 | `249216aed` | `e7c0887ab` | 2026-10-27T12:17:39Z | 2026-10-27T11:51:27Z | no | yes |
+| #2676 | `8e5459ada` | `248f95836` | 2026-10-28T07:10:08Z | 2026-10-28T09:29:36Z | yes | yes |
+| #2678 | `0edeb136c` | `a6457bf87` | 2026-10-28T13:31:11Z | 2026-10-28T16:21:42Z | yes | yes |
+| #2680 | `883cc834c` | `3d7d18368` | 2026-10-28T11:45:30Z | 2026-10-28T11:44:08Z | no | yes |
+| #2682 | `f6c26d855` | `98a6e13b3` | 2026-10-28T13:48:48Z | 2026-10-28T16:12:00Z | yes | yes |
+| #2683 | `aace1874f` | `a70d3a662` | 2026-10-28T17:54:46Z | 2026-10-28T18:10:01Z | yes | yes |
+| #2686 | `db1789b66` | `a08a842d0` | 2026-10-28T16:43:30Z | 2026-10-28T17:11:37Z | yes | yes |
+| #2687 | `424dd91fd` | `b2bb60d3d` | 2026-10-28T17:25:01Z | 2026-10-28T17:18:15Z | no | yes |
+
+## 4. CI Cost of Pull-Request Runs (baseline section 6)
+
+The runs are the `pull_request` workflow runs created in the window (all PRs, merged or not). One
+request for the whole window returns at most 1000 runs, so the runs were listed per creation day:
+
+```sh
+for d in $(seq 15 28); do
+  gh api --paginate "repos/torrust/torrust-tracker/actions/runs?event=pull_request&created=2026-10-$d&per_page=100" \
+    --jq '.workflow_runs[]|[.id,.name,.created_at,.run_started_at,.updated_at,.conclusion]|@tsv'
+done
+```
+
+That gives 1894 runs. Runner time per run is the mean summed job duration (`completed_at` minus
+`started_at`, all jobs) of six runs sampled per workflow (all five for `Copilot Setup Steps`). The
+sample is reproducible with seed `2547`: the run ids of a workflow, sorted ascending, are shuffled with
+`shuf -n 6 --random-source=<(openssl enc -aes-256-ctr -pass pass:2547 -nosalt </dev/zero)`.
+
+```sh
+gh api --paginate repos/torrust/torrust-tracker/actions/runs/<id>/jobs \
+  --jq '.jobs[]|select(.started_at!=null and .completed_at!=null)|[.started_at,.completed_at]|@tsv'
+```
+
+| Workflow                       | Runs | Mean job-minutes per run | Estimated runner-hours |
+| ------------------------------ | ---: | -----------------------: | ---------------------: |
+| Generate Coverage Reports (PR) | 324 | 34.4 | 185.5 |
+| Testing | 324 | 26.0 | 140.2 |
+| OS Compatibility | 324 | 24.8 | 133.8 |
+| Container | 324 | 14.1 | 76.4 |
+| Docs Lint | 520 | 1.6 | 13.8 |
+| Database Compatibility | 32 | 16.1 | 8.6 |
+| Security Scan | 9 | 32.8 | 4.9 |
+| Database Benchmarking | 32 | 5.8 | 3.1 |
+| Copilot Setup Steps | 5 | 10.1 | 0.8 |
+| **Total**                      | 1894 |                          |              **567.0** |
+
+Sampled run ids by workflow:
+
+- Container: 39594972858, 39980508319, 40672441023, 39561659745, 39315165857, 40078761362
+- Copilot Setup Steps: 40229361313, 40225974357, 40013596424, 40228883080, 40402491003
+- Database Benchmarking: 39253735180, 38892902300, 38892583325, 38866301345, 39246697370, 39254704308
+- Database Compatibility: 39253735217, 38892902287, 38892583343, 38866301295, 39246697243, 39254704250
+- Docs Lint: 39929995064, 39837141278, 40489021802, 39253735195, 39255154889, 40077375038
+- Generate Coverage Reports (PR): 39594972871, 39980508208, 40672440955, 39561659690, 39315165500, 40078761355
+- OS Compatibility: 39594972937, 39980508168, 40672441248, 39561659823, 39315165637, 40078761306
+- Security Scan: 40648337098, 39313465505, 40402491840, 40391663023, 39421908057, 40219343861
+- Testing: 39594972851, 39980508199, 40672440978, 39561659655, 39315165758, 40078761307
+
+Each mean rests on six runs, so a total can move by tens of runner-hours with another seed. About 41%
+of `Testing` runs (134 of 324) ended `cancelled` (superseded pushes), so job time of those runs is
+partial; the baseline method also averaged over all runs, so the comparison is like for like.
+`Copilot Setup Steps` (5 runs) is not in the baseline table.
+
+## 5. Rebase-Fallout Commits (baseline section 7)
+
+Candidates by the baseline command, filtered by author date to the window; then classified by reading
+the subjects. A commit counts when its only purpose is to record a rebase or to re-cite an id a rebase
+orphaned. The maintainer reviews this classification.
+
+```sh
+git log --no-merges --since=2026-09-25 --until=2026-11-01 --format='%h|%aI|%s' -i -E \
+  --grep='rebase|rebased|rebasing|instead of (the )?(branch )?(commit )?id|by subject|rebase-safe|orphan' torrust/develop
+```
+
+Counted in the window (12), author dates 2026-10-15 to 2026-10-28:
+
+- `a6457bf87` record the second rebase onto develop for #2668
+- `6d8eefc4c` link pull request 2678 and record the rebase for #2668
+- `a7bfc15f7` [#2466] cite the verified commit by subject in the evidence file
+- `453c6fa9a` [#2606] cite the checked commit by subject in the evidence
+- `ae08130cb` [#2628] cite the round 3 head by subject in the F12 correction
+- `ed3a4f756` cite commit subjects instead of ids in the PR 2630 audit
+- `faf21a128` [#2416] cite a branch commit by its subject, not its id, in the audit
+- `261efbe43` cite the reviewed head by subject in the PR 2624 audit
+- `2d58f3b46` [#2582] record the checks rerun after rebasing onto develop
+- `147a22cf5` [#2414] record the second rebase onto develop
+- `4a1ef60a0` [#2414] record the rebase onto the latest develop
+- `f3b1b1bc0` [#2413] cite the approved head by commit subject in the retrospective
+
+Candidates matched but not counted (not repairs of rebase fallout): `12b9c922f`, `b6d87209d`,
+`80b42b7b2`, `f25c370e6`, `62a87a4dd`, `aaf2f9b4b`, `437f79b54`, the #2547 and #2507 measurement
+commits (`cbf2b8b3b`, `1dea06489`, `0dbe53d32`, `436a91dde`, `7a3d1ccc1`, `2733f2ecf`). Borderline:
+`b174608fa` (corrects an audit's head citation and findings; not counted).
+
+Baseline recount: 13 of the 23 commits listed in baseline section 7 have author dates from 1 to 13
+October (checked with `git log -1 --format='%h %aI' <id>`): `505fa5745`, `ef27e6585`, `1736f0d91`,
+`03bc9d794`, `4596fb323`, `6f7053686`, `648d184b6`, `9bc523862`, `0be2875aa`, `3b6c63027`,
+`df4b11a29`, `91b0f5b22`, `943b02765`. The other ten are dated 2 to 30 September.
+
+## 6. Workflow-Changing Merges in the Window
+
+```sh
+git log --first-parent --format='%h %cI %s' --since=2026-10-14T20:00:00Z --until=2026-10-29T00:00:00Z \
+  torrust/develop -- .github/workflows
+```
+
+| PR    | Merged (UTC)     | Change                                                    | #2525 |
+| ----- | ---------------- | --------------------------------------------------------- | ----- |
+| #2572 | 2026-10-20 12:58 | ci(workflows): update GitHub Actions                      | no    |
+| #2601 | 2026-10-21 11:08 | health-check packaging; touches one workflow file         | no    |
+| #2665 | 2026-10-26 21:54 | ci(workflows): update GitHub Actions                      | no    |
+| #2676 | 2026-10-28 09:32 | ci(container): build shipped binaries without test features | no  |
+
+PR #2574 (the #2525 change-detection tool, merged 2026-10-20 16:10 UTC), #2580 and #2675 are in the
+window but change no file under `.github/workflows` (`git diff --name-only M^1 M | grep -c
+'^.github/workflows'` is 0), so the path search does not list them. No merge in the window wires the
+PR #2525 `CI gate` into a workflow. #2523 (merged 2026-10-14 08:51 UTC) is before the window.
+
+## 7. Comparison
+
+Per-day figures divide by 13 (baseline) or 14 (window); per-PR figures by merged PRs (67 for the
+baseline's published figures, 68 for the recount, 121 for the window).
+
+| Measure                                    | Baseline (1 to 13 Oct) | Window (15 to 28 Oct) |
+| ------------------------------------------ | ---------------------: | --------------------: |
+| Merged PRs                                 |                  67/68 |                   121 |
+| Merged PRs per day                         |                    5.2 |                   8.6 |
+| Force-pushes per merged PR                 |                   1.58 |                  0.09 |
+| Force-pushes per day                       |                    8.2 |                   0.8 |
+| Merged PRs force-pushed at least once      |                    81% |                  8.3% |
+| Rebase-only force-pushes per merged PR     |                   n/a |                  0.08 |
+| Merges while behind `develop`              |                    n/a |              93 (77%) |
+| Merges on the refresh path (inferred)      |                    n/a |              68 (56%) |
+| `pull_request` runs                        |              899 (69/day) |         1894 (135/day) |
+| `pull_request` runs per merged PR          |                   13.4 |                  15.7 |
+| Estimated PR CI runner-hours               |                  197.8 |                 567.0 |
+| Runner-hours per day                       |                   15.2 |                  40.5 |
+| Runner-hours per merged PR                 |                    3.0 |                   4.7 |
+| Rebase-fallout commits                     |                     13 |                    12 |
+| Rebase-fallout commits per day             |                   1.00 |                  0.86 |
+| Rebase-fallout commits per merged PR       |                   0.19 |                  0.10 |
+| Median daily open-PR queue                 |                      8 |                     5 |
+| Median hours to merge                      |                    4.0 |                   1.9 |
+
+## 8. Conclusion
+
+- Force-pushes fell by about 94% per merged PR (1.58 to 0.09) and the share of merged PRs that were
+  force-pushed fell from 81% to 8.3%. Of the 11 pushes, 10 moved the base: six because the head
+  conflicted with `develop`, four recommended and clean.
+- 77% of merges were made behind `develop`; 56% of all merges are consistent with the merge tool's
+  recorded-base refresh path (inferred, not observed).
+- Median time to merge halved and the median queue fell from 8 to 5, with 1.8 times as many merges
+  per day. Fallout commits per merged PR halved (0.19 to 0.10); per day they barely moved (1.00 to 0.86).
+- PR CI cost did not fall: it rose from about 15 to about 41 runner-hours per day and from 3.0 to 4.7
+  per merged PR. Runs per merged PR rose only from 13.4 to 15.7, so most of the per-day increase
+  follows volume (merged PRs per day up 66%); the rest comes from the sampled per-run means
+  (Coverage 27.6 to 34.4, Testing 22.5 to 26.0, OS Compatibility 28.2 to 24.8 job-minutes) and
+  from runs of PRs that did not merge in the window.
+- The data does not argue for reverting the policy. It does not show a CI saving either.
+
+## 9. Caveats
+
+- A rebase onto `develop` is not the only reason for a new head. The CI figure counts every pushed
+  head, not only rebases; the baseline's "29% of CI time attributable to rebases" is an estimate, and
+  none is made here.
+- Six sampled runs per workflow give wide error bars; the totals are estimates, and the seed above
+  reproduces the sample, not the exact minutes.
+- The window had 1.8 times the merges per day of the baseline, so absolute figures are not comparable;
+  the per-merged-PR rows are.
+- The `CI gate` of #2525 landed no workflow wiring in the window (section 6), and four workflow files
+  changed for other reasons. #2676 changed the Container build and may account for part of that
+  workflow's runtime change.
+- The refresh-path count is inferred from run creation times, because the merge tool's output is not
+  captured. Two of its 68 merges do not show `base.sha` equal to `M^1`.
+- Fallout classification is a reading of commit subjects and is the maintainer's to confirm.
