@@ -17,7 +17,8 @@ Collected on 2026-10-30 between 07:50 and 09:30 UTC from the GitHub REST and Gra
 UTC to 2026-10-28 23:59 UTC (14 days). Baseline: 1 to 13 October 2026 (13 days), from
 [`baseline-evidence.md`](../../closed/2507-stop-requiring-pull-request-rebases/baseline-evidence.md).
 Raw output was kept in a scratch directory and is not committed; the tables below are the raw
-per-item results. Commands are recorded verbatim in each section.
+per-item results. Retrieval commands are recorded verbatim in each section; the commands that turn
+their output into the tables, and the per-run CI data, are in Appendix A.
 
 ## 1. Pull-Request Volume (baseline section 4)
 
@@ -261,7 +262,7 @@ gh api --paginate repos/torrust/torrust-tracker/actions/runs/<id>/jobs \
 | Security Scan | 9 | 32.8 | 4.9 |
 | Database Benchmarking | 32 | 5.8 | 3.1 |
 | Copilot Setup Steps | 5 | 10.1 | 0.8 |
-| **Total**                      | 1894 |                          |              **567.0** |
+| **Total**                      | 1894 |                          |              **567.1** |
 
 Sampled run ids by workflow:
 
@@ -467,3 +468,177 @@ snapshot because the baseline's sampled runs cannot be recounted, so they are no
 - The refresh-path count is inferred from run creation times, because the merge tool's output is not
   captured. Two of its 68 merges do not show `base.sha` equal to `M^1`.
 - Fallout classification is a reading of commit subjects and is the maintainer's to confirm.
+
+## Appendix A. Aggregation Commands and Per-Run Data
+
+The retrieval commands in sections 1 to 7 stop at the API. This appendix records the commands that
+turn their output into the tables, and the per-run totals the CI table is built from. `prs.json` is the
+file written by the `gh pr list` command of section 1. `SCRATCH` stands for the scratch directory that
+held the raw files; the per-run data that matters is kept in A.5.
+
+### A.1 The merged-PR lists
+
+```sh
+jq -r '.[]|select(.mergedAt!=null and .mergedAt>="2026-10-15T00:00:00Z" and .mergedAt<"2026-10-29T00:00:00Z")|.number' prs.json | sort -n > win.txt
+jq -r '.[]|select(.mergedAt!=null and .mergedAt>="2026-10-01T00:00:00Z" and .mergedAt<"2026-10-14T00:00:00Z")|.number' prs.json | sort -n > base.txt
+wc -l < win.txt; wc -l < base.txt     # 121 and 68
+```
+
+### A.2 Volume, daily queue and median hours to merge (section 1)
+
+The queue at day `d` is the number of PRs created at or before 12:00 UTC that day and either still
+open or merged after that time. The baseline "67 PRs" row excludes #2506.
+
+```python
+import json,sys,statistics as st
+from datetime import datetime as D
+t=lambda s:D.strptime(s,"%Y-%m-%dT%H:%M:%SZ").timestamp()
+prs=json.load(open("prs.json"))
+for name,a,b,days,excl in [("base68","2026-10-01","2026-10-14",13,[]),("base67","2026-10-01","2026-10-14",13,[2506]),("win","2026-10-15","2026-10-29",14,[])]:
+    mg=[p for p in prs if p["mergedAt"] and a<=p["mergedAt"][:10]<b and p["number"] not in excl]
+    h=[(t(p["mergedAt"])-t(p["createdAt"]))/3600 for p in mg]
+    day0=t(a+"T00:00:00Z")
+    q=[]
+    for d in range(days):
+        pt=day0+d*86400+43200
+        q.append(sum(1 for p in prs if t(p["createdAt"])<=pt and (p["state"]=="OPEN" or (p["mergedAt"] and t(p["mergedAt"])>pt)) and not (p["number"] in excl)))
+    print(name,len(mg),"median_h %.4f"%st.median(h),"queue median",st.median(q),"max",max(q))
+```
+
+Output:
+
+```text
+base68 68 median_h 3.7828 queue median 8 max 12
+base67 67 median_h 4.0086 queue median 8 max 12
+win 121 median_h 1.9186 queue median 5.0 max 8
+```
+
+Opened counts: `jq '[.[]|select(.createdAt>="2026-10-15T00:00:00Z" and .createdAt<"2026-10-29T00:00:00Z")]|length' prs.json`
+gives 130 and the same filter for 1 to 14 October gives 76.
+
+### A.3 Force-push classification (section 2.1)
+
+`fp_merges_t.txt` lists, newest first, each first-parent `develop` merge commit with its PR number and
+`merged_at`. `fp11.tsv` has one line per force-push: PR, time, `beforeCommit`, `afterCommit`.
+
+```sh
+git log --first-parent --format='%H%x09%s' torrust/develop --since=2026-10-01 \
+  | sed -n 's/^\([0-9a-f]*\)\tMerge torrust\/torrust-tracker#\([0-9]*\):.*/\1 \2/p' > fp_merges.txt
+jq -r '.[]|select(.mergedAt!=null)|"\(.number) \(.mergedAt)"' prs.json | sort > merged_at.txt
+while read c n; do echo "$c $n $(grep "^$n " merged_at.txt | cut -d' ' -f2)"; done < fp_merges.txt > fp_merges_t.txt
+while IFS=$'\t' read n t b a; do
+  tip=$(awk -v t=$t '$3<t{print $1; exit}' fp_merges_t.txt)
+  mb=$(git merge-base $tip $b); ma=$(git merge-base $tip $a)
+  if [ "$mb" = "$ma" ]; then cls="not-rebase"; else
+    if git merge-tree --write-tree $tip $b >/dev/null 2>&1; then cls="rebase-recommended"; else cls="rebase-required"; fi; fi
+  echo -e "$n\t$t\t${tip:0:9}\t${mb:0:9}\t${ma:0:9}\t$cls"
+done < fp11.tsv
+```
+
+`git log --since` stops at an older commit, so it missed two merges of 1 October (#2397 and #2400);
+they were found with `git log --first-parent --grep="#<n>:" torrust/develop`. Neither is a force-push
+candidate, but both are in the merge-bunching and workload-mix figures.
+
+### A.4 Merges behind `develop` and the refresh path (section 3)
+
+```sh
+for n in $(cat win.txt); do
+  M=$(awk -v n=$n '$2==n{print $1}' fp_merges.txt)
+  p1=$(git rev-parse $M^1); p2=$(git rev-parse $M^2)
+  mb=$(git merge-base $p1 $p2); behind=no; [ "$mb" != "$p1" ] && behind=yes
+  t1=$(git log -1 --format=%cI $p1 | xargs -I{} date -u -d {} +%Y-%m-%dT%H:%M:%SZ)
+  first=$(gh api "repos/torrust/torrust-tracker/actions/runs?head_sha=$p2&event=pull_request&per_page=100" --jq '[.workflow_runs[].created_at]|min // "none"')
+  base=$(gh api repos/torrust/torrust-tracker/pulls/$n --jq .base.sha); [ "$base" = "$p1" ] && bm=yes || bm=no
+  echo -e "$n\t${M:0:9}\t${p1:0:9}\t${p2:0:9}\t$behind\t$t1\t$first\tbase=M1:$bm"
+done > v1.tsv
+awk -F'\t' '$5=="yes"' v1.tsv | wc -l                       # behind: 93
+awk -F'\t' '$5=="yes" && $7!="none" && $7<$6' v1.tsv | wc -l # refresh path: 68
+```
+
+### A.5 CI cost (section 4)
+
+`runs_u.tsv` is the deduplicated per-day run list of section 4. The per-workflow run count is
+`cut -f2 runs_u.tsv | sort | uniq -c`. A run's job-minutes (`LC_ALL=C` keeps the decimal point):
+
+```sh
+gh api --paginate repos/torrust/torrust-tracker/actions/runs/<id>/jobs \
+  --jq '.jobs[]|select(.started_at!=null and .completed_at!=null)|[(.started_at|fromdateiso8601),(.completed_at|fromdateiso8601)]|@tsv' \
+  | awk -F'\t' '{t+=$2-$1} END{printf "%.2f\n", t/60}'
+```
+
+The mean per workflow is the arithmetic mean of its sampled runs' job-minutes below, and the
+estimated runner-hours are `runs x mean / 60`. Workflow means to three decimals, and the resulting
+hours before rounding:
+
+| Workflow                       | Runs | Sampled | Mean job-minutes | Runner-hours |
+| ------------------------------ | ---: | ------: | ---------------: | -----------: |
+| Container | 324 | 6 | 14.142 | 76.37 |
+| Copilot Setup Steps | 5 | 5 | 10.136 | 0.84 |
+| Database Benchmarking | 32 | 6 | 5.852 | 3.12 |
+| Database Compatibility | 32 | 6 | 16.090 | 8.58 |
+| Docs Lint | 520 | 6 | 1.595 | 13.82 |
+| Generate Coverage Reports (PR) | 324 | 6 | 34.353 | 185.51 |
+| OS Compatibility | 324 | 6 | 24.765 | 133.73 |
+| Security Scan | 9 | 6 | 32.752 | 4.91 |
+| Testing | 324 | 6 | 25.957 | 140.17 |
+| **Total** | 1894 | 53 | | **567.05** |
+
+The total is 567.05 runner-hours before rounding, which is 567.1 to one decimal; section 4 and the
+comparison round the per-workflow hours first. Per-run job-minutes of the 53 sampled runs, in the order
+the seeded shuffle produced them (the first run of each workflow is the one the manual check V2 used):
+
+| Workflow                       | Run id       | Job-minutes |
+| ------------------------------ | ------------ | ----------: |
+| OS Compatibility | 39594972937 | 25.88 |
+| OS Compatibility | 39980508168 | 23.55 |
+| OS Compatibility | 40672441248 | 21.13 |
+| OS Compatibility | 39561659823 | 23.25 |
+| OS Compatibility | 39315165637 | 29.85 |
+| OS Compatibility | 40078761306 | 24.93 |
+| Generate Coverage Reports (PR) | 39594972871 | 17.32 |
+| Generate Coverage Reports (PR) | 39980508208 | 40.67 |
+| Generate Coverage Reports (PR) | 40672440955 | 11.50 |
+| Generate Coverage Reports (PR) | 39561659690 | 16.43 |
+| Generate Coverage Reports (PR) | 39315165500 | 85.38 |
+| Generate Coverage Reports (PR) | 40078761355 | 34.82 |
+| Testing | 39594972851 | 21.47 |
+| Testing | 39980508199 | 31.07 |
+| Testing | 40672440978 | 23.40 |
+| Testing | 39561659655 | 27.92 |
+| Testing | 39315165758 | 26.00 |
+| Testing | 40078761307 | 25.88 |
+| Container | 39594972858 | 12.48 |
+| Container | 39980508319 | 13.68 |
+| Container | 40672441023 | 15.20 |
+| Container | 39561659745 | 16.32 |
+| Container | 39315165857 | 13.90 |
+| Container | 40078761362 | 13.27 |
+| Database Compatibility | 39253735217 | 14.33 |
+| Database Compatibility | 38892902287 | 15.28 |
+| Database Compatibility | 38892583343 | 17.70 |
+| Database Compatibility | 38866301295 | 14.55 |
+| Database Compatibility | 39246697243 | 19.83 |
+| Database Compatibility | 39254704250 | 14.85 |
+| Docs Lint | 39929995064 | 1.07 |
+| Docs Lint | 39837141278 | 1.07 |
+| Docs Lint | 40489021802 | 1.00 |
+| Docs Lint | 39253735195 | 0.97 |
+| Docs Lint | 39255154889 | 1.03 |
+| Docs Lint | 40077375038 | 4.43 |
+| Database Benchmarking | 39253735180 | 5.37 |
+| Database Benchmarking | 38892902300 | 5.43 |
+| Database Benchmarking | 38892583325 | 6.43 |
+| Database Benchmarking | 38866301345 | 5.25 |
+| Database Benchmarking | 39246697370 | 8.43 |
+| Database Benchmarking | 39254704308 | 4.20 |
+| Security Scan | 40648337098 | 40.40 |
+| Security Scan | 39313465505 | 31.70 |
+| Security Scan | 40402491840 | 33.50 |
+| Security Scan | 40391663023 | 32.78 |
+| Security Scan | 39421908057 | 23.88 |
+| Security Scan | 40219343861 | 34.25 |
+| Copilot Setup Steps | 40229361313 | 2.73 |
+| Copilot Setup Steps | 40225974357 | 15.85 |
+| Copilot Setup Steps | 40013596424 | 14.60 |
+| Copilot Setup Steps | 40228883080 | 2.83 |
+| Copilot Setup Steps | 40402491003 | 14.67 |

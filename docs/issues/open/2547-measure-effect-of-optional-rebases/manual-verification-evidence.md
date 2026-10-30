@@ -62,7 +62,8 @@ All four counts match the evidence table. Met.
 - Goal: the summed job duration of one sampled run per workflow matches the job-minutes recorded for
   the run in `post-change-evidence.md` section 4.
 - Initial state: the per-run minutes were computed on 2026-10-30 from the runs' job
-  `started_at`/`completed_at`.
+  `started_at`/`completed_at`. The recorded values are the per-run
+  job-minutes of `post-change-evidence.md` Appendix A.5; V2 used the first listed run of each workflow.
 - Status: `DONE` (API cross-check, not the Actions UI)
 
 #### Steps Performed
