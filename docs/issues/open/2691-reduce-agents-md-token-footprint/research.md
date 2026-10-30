@@ -63,9 +63,32 @@ Observations:
   `cargo metadata --no-deps --format-version 1` and `docs/packages.md`.
 - The five largest sections (Package Catalog, Git Workflow, Key Configuration Files, Engineering
   Policies, Build/Test/Lint) account for about 60% of the tokens.
-- Claude Code's own report of the loaded size (`/context`) is the authoritative number for Claude
-  and should be recorded by the maintainer for the baseline, since this agent cannot run the
-  slash command. See the open item below.
+- Claude Code's own report (`/context all`) is the authoritative number for Claude; it is recorded
+  in the next subsection.
+
+### Claude Code `/context` Measurement
+
+Reported by the maintainer on 2026-10-30 with `/context all`, run in the working session for this
+issue on the model `claude-sonnet-5-5` (not a fresh session: it already held about 13k tokens of
+messages). The measured `AGENTS.md` is the same unmodified file as in the table above:
+
+| Item                         | Tokens (Claude Code) |
+| ---------------------------- | -------------------- |
+| `AGENTS.md`                  | 12,400               |
+| Memory files (total)         | 12,500               |
+| System prompt                | 2,800                |
+| System tools                 | 21,600               |
+| Skills (names/descriptions)  | 4,800                |
+| Total context at that moment | 56,300 of 1,000,000  |
+
+- Claude counts `AGENTS.md` at about 1.65 times the proxy tokenizers (12.4k against 7.5k). The
+  proxies are therefore usable for relative before/after comparison, but they understate the real
+  cost, and any target in tokens must be stated in Claude Code `/context` units.
+- `AGENTS.md` is about 22% of the whole session context at that point, and the single largest
+  item after system tools. It is loaded before any task starts, which matches the maintainer's
+  report.
+- The 56.3k total includes about 13k tokens of messages from this session; the fixed cost of an
+  empty session is therefore about 43k, of which `AGENTS.md` is about 29%.
 
 ## Sources Consulted (T2)
 
@@ -184,8 +207,8 @@ Conclusion for T3: `AGENTS.md` stays the only root instruction file, and AC5 hol
 
 ## Open Items
 
-- The maintainer records Claude Code's own `/context` figure for the baseline (T1), so that the
-  final comparison (M1) includes a real Claude measure and not only the proxy tokenizers.
+- Repeat the `/context` measurement after the change (M1) in a comparable fresh session, since
+  that is the only Claude-native number.
 - Verify the unverified length figures (Cursor, Codex) from primary documentation before citing
   them anywhere in repository documents.
 - Read the full text of arXiv:2602.11988 for per-type results before using any number other than

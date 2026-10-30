@@ -9,7 +9,7 @@ github-issue: 2691
 spec-path: docs/issues/open/2691-reduce-agents-md-token-footprint/ISSUE.md
 branch: "2691-reduce-agents-md-token-footprint-spec"
 related-pr: null
-last-updated-utc: "2026-10-30 15:00"
+last-updated-utc: "2026-10-30 15:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -164,7 +164,8 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - 2026-10-30 13:55 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the scope and decided no ADR is needed for now; removed the ADR task and added a post-implementation re-evaluation (T10) - this file
 - 2026-10-30 14:05 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer confirmed Claude Code accepts `AGENTS.md` in place of `CLAUDE.md`; removed the adapter work from the scope, T3, T7 and AC5 - this file
 - 2026-10-30 14:15 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the draft; created GitHub issue #2691, chose a spec-only PR, and moved the spec to `docs/issues/open/` - https://github.com/torrust/torrust-tracker/issues/2691
-- 2026-10-30 15:00 UTC - Claude Code (Claude Sonnet 5.5) - Completed T1 to T3: baseline measured (about 7.5k tokens by proxy tokenizers), research and adopted practices recorded, confirmed `AGENTS.md` needs no adapter; maintainer `/context` figure and target reduction still open - `research.md`
+- 2026-10-30 15:00 UTC - Claude Code (Claude Sonnet 5.5) - Completed T1 to T3: baseline measured (about 7.5k tokens by proxy tokenizers), research and adopted practices recorded, confirmed `AGENTS.md` needs no adapter; target reduction still open - `research.md`
+- 2026-10-30 15:30 UTC - Claude Code (Claude Sonnet 5.5) - Recorded the maintainer's `/context all` baseline: `AGENTS.md` is 12.4k Claude tokens, about 1.65 times the proxy tokenizer count, and about 22% of the session context - `research.md`
 
 ## Acceptance Criteria
 
