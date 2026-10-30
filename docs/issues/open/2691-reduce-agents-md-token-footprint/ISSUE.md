@@ -9,7 +9,7 @@ github-issue: 2691
 spec-path: docs/issues/open/2691-reduce-agents-md-token-footprint/ISSUE.md
 branch: "2691-reduce-agents-md-token-footprint-spec"
 related-pr: null
-last-updated-utc: "2026-10-30 15:30"
+last-updated-utc: "2026-10-30 16:00"
 semantic-links:
   skill-links:
     - create-issue
@@ -18,6 +18,7 @@ semantic-links:
     - AGENTS.md
     - docs/adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md
     - docs/issues/open/2691-reduce-agents-md-token-footprint/research.md
+    - docs/issues/open/2691-reduce-agents-md-token-footprint/section-disposition.md
 ---
 
 <!-- skill-link: create-issue -->
@@ -117,7 +118,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T1  | DONE   | Measure the baseline token footprint of `AGENTS.md`                                   | Method, tool and numbers recorded in `research.md` (baseline section)                                   |
 | T2  | DONE   | Research best practices for agent instruction files                                   | `research.md` with sources, dates, and a short list of adopted practices with the evidence behind each  |
 | T3  | DONE   | Record how the major tools consume `AGENTS.md` (Claude Code accepts it as is)         | Short section in `research.md`; confirms no adapter file is needed                                      |
-| T4  | TODO   | Classify each `AGENTS.md` section and record the disposition                          | `section-disposition.md` covering 100% of sections, including the destination for every moved rule      |
+| T4  | DONE   | Classify each `AGENTS.md` section and record the disposition                          | `section-disposition.md` covering 100% of sections, including the destination for every moved rule      |
 | T5  | TODO   | Maintainer review of research and dispositions before any restructuring               | Explicit maintainer approval recorded in the progress log                                               |
 | T6  | TODO   | Move content to canonical homes (skills/docs) and replace it with links where needed  | No rule lost, no duplicated procedural guidance; links validated                                        |
 | T7  | TODO   | Condense `AGENTS.md`                                                                    | Reduced file; footprint re-measured with the T1 method                                                  |
@@ -166,6 +167,7 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - 2026-10-30 14:15 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the draft; created GitHub issue #2691, chose a spec-only PR, and moved the spec to `docs/issues/open/` - https://github.com/torrust/torrust-tracker/issues/2691
 - 2026-10-30 15:00 UTC - Claude Code (Claude Sonnet 5.5) - Completed T1 to T3: baseline measured (about 7.5k tokens by proxy tokenizers), research and adopted practices recorded, confirmed `AGENTS.md` needs no adapter; target reduction still open - `research.md`
 - 2026-10-30 15:30 UTC - Claude Code (Claude Sonnet 5.5) - Recorded the maintainer's `/context all` baseline: `AGENTS.md` is 12.4k Claude tokens, about 1.65 times the proxy tokenizer count, and about 22% of the session context - `research.md`
+- 2026-10-30 16:00 UTC - Claude Code (Claude Sonnet 5.5) - Completed T4: proposed a disposition for all 17 sections, estimated about 4.1k Claude tokens (about 67% reduction, about 60% if trimmed conservatively), listed prerequisites for T6 and five open questions; waiting for maintainer review (T5) - `section-disposition.md`
 
 ## Acceptance Criteria
 
