@@ -402,7 +402,29 @@ Reading:
   cannot separate idle time after CI from waiting for a rebase, so it neither supports nor
   contradicts the expectation.
 
-## 8. Comparison
+## 8. Workload Mix (documentation and code)
+
+The specification names the mix of documentation and code PRs as a confounder of CI time, because the
+Rust workflows skip Markdown-only changes (`paths-ignore: "**/*.md"`). Rule: a merge is
+documentation-only when every path changed between its first parent `M^1` and the merge commit `M` is a
+Markdown file or `project-words.txt`; any other path makes it a code (other) merge. The command is in
+Appendix A.6.
+
+| Period       | Merges | Documentation-only | Other | Other share |
+| ------------ | -----: | -----------------: | ----: | ----------: |
+| 1 to 13 Oct  |     68 |                 49 |    19 |       27.9% |
+| 15 to 28 Oct |    121 |                 62 |    59 |       48.8% |
+
+The share of merges that run the full Rust workflows rose by a factor of 1.75 (48.8 / 27.9). The
+per-merged-PR CI cost rose by a factor of 1.59 (4.7 / 2.95, with the published 67-PR denominator for
+the baseline). A documentation-only PR costs about 1.4 job-minutes and a code PR about 92 (baseline
+section 6), so a change of mix of this size can account for most or all of the per-PR increase. The
+data here cannot split the CI cost by class, because the sample of six runs per workflow was not
+stratified, and the runs of PRs that never merged are counted in the window total but have no merge
+to classify. The per-merged-PR CI rows are therefore not evidence of a policy effect in either
+direction.
+
+## 9. Comparison
 
 Per-day figures divide by 13 (baseline) or 14 (window); per-PR figures by the merged PRs of the same
 column: 67 for the published snapshot, 68 for the recount, 121 for the window. A figure the snapshot
@@ -432,7 +454,7 @@ snapshot because the baseline's sampled runs cannot be recounted, so they are no
 | Median gap between merges (minutes)        |                n/a |             68.3 |                  23.3 |
 | Median hours to merge                      |                4.0 |              3.8 |                   1.9 |
 
-## 9. Conclusion
+## 10. Conclusion
 
 - Force-pushes fell by about 94% per merged PR (1.56 to 0.09 against the recount; 1.58 against the
   published snapshot) and the share of merged PRs that were force-pushed fell from 79.4% (81%
@@ -448,20 +470,23 @@ snapshot because the baseline's sampled runs cannot be recounted, so they are no
   The time from CI to merge cannot show this and is inconclusive.
 - PR CI cost did not fall: it rose from about 15 to about 41 runner-hours per day and from 3.0 to 4.7
   per merged PR. Runs per merged PR rose only from 13.4 to 15.7, so most of the per-day increase
-  follows volume (merged PRs per day up 65%); the rest comes from the sampled per-run means
-  (Coverage 27.6 to 34.4, Testing 22.5 to 26.0, OS Compatibility 28.2 to 24.8 job-minutes) and
-  from runs of PRs that did not merge in the window.
+  follows volume (merged PRs per day up 65%). The per-PR rise coincides with a change of workload
+  mix: the share of merges that touch code rose from 27.9% to 48.8% (section 8), and the Rust workflows
+  skip documentation-only changes. This evidence cannot separate the mix from any effect of the
+  policy, so it neither shows a CI saving nor a CI increase caused by the policy.
 - The data does not argue for reverting the policy. It does not show a CI saving either.
 
-## 10. Caveats
+## 11. Caveats
 
 - A rebase onto `develop` is not the only reason for a new head. The CI figure counts every pushed
   head, not only rebases; the baseline's "29% of CI time attributable to rebases" is an estimate, and
   none is made here.
 - Six sampled runs per workflow give wide error bars; the totals are estimates, and the seed above
   reproduces the sample, not the exact minutes.
-- The window had 1.65 times the merges per day of the baseline (121/14 against 68/13), so absolute figures are not comparable;
-  the per-merged-PR rows are.
+- The window had 1.65 times the merges per day of the baseline (121/14 against 68/13), so absolute
+  figures are not comparable. Per-merged-PR figures remove that difference but not the workload mix:
+  the share of code merges rose from 27.9% to 48.8% (section 8), which affects the CI rows in
+  particular.
 - The `CI gate` of #2525 landed no workflow wiring in the window (section 6), and four workflow files
   changed for other reasons. #2676 changed the Container build and may account for part of that
   workflow's runtime change.
@@ -642,3 +667,16 @@ the seeded shuffle produced them (the first run of each workflow is the one the 
 | Copilot Setup Steps | 40013596424 | 14.60 |
 | Copilot Setup Steps | 40228883080 | 2.83 |
 | Copilot Setup Steps | 40402491003 | 14.67 |
+
+### A.6 Workload mix (section 8)
+
+```sh
+for n in $(cat base.txt win.txt); do
+  m=$(grep " $n\$" fp_merges.txt | cut -d' ' -f1)
+  [ -z "$m" ] && m=$(git log --first-parent --format=%H --grep="#$n:" torrust/develop | head -1)
+  other=$(git diff --name-only $m^1 $m | grep -v -E '\.md$|^project-words\.txt$' | wc -l)
+  echo -e "$n\t$([ $other -eq 0 ] && echo docs || echo other)"
+done
+```
+
+Counts: baseline 49 docs and 19 other; window 62 docs and 59 other.
