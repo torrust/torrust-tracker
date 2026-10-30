@@ -9,7 +9,7 @@ github-issue: 2691
 spec-path: docs/issues/open/2691-reduce-agents-md-token-footprint/ISSUE.md
 branch: "2691-reduce-agents-md-token-footprint-spec"
 related-pr: null
-last-updated-utc: "2026-10-30 16:00"
+last-updated-utc: "2026-10-30 16:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -119,7 +119,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2  | DONE   | Research best practices for agent instruction files                                   | `research.md` with sources, dates, and a short list of adopted practices with the evidence behind each  |
 | T3  | DONE   | Record how the major tools consume `AGENTS.md` (Claude Code accepts it as is)         | Short section in `research.md`; confirms no adapter file is needed                                      |
 | T4  | DONE   | Classify each `AGENTS.md` section and record the disposition                          | `section-disposition.md` covering 100% of sections, including the destination for every moved rule      |
-| T5  | TODO   | Maintainer review of research and dispositions before any restructuring               | Explicit maintainer approval recorded in the progress log                                               |
+| T5  | DONE   | Maintainer review of research and dispositions before any restructuring               | Explicit maintainer approval recorded in the progress log                                               |
 | T6  | TODO   | Move content to canonical homes (skills/docs) and replace it with links where needed  | No rule lost, no duplicated procedural guidance; links validated                                        |
 | T7  | TODO   | Condense `AGENTS.md`                                                                    | Reduced file; footprint re-measured with the T1 method                                                  |
 | T8  | TODO   | Add a regrowth guard (documented budget; automated check only if justified)           | Documented in the owning skill or doc; any tool follows the shell-vs-Rust policy                        |
@@ -168,14 +168,15 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - 2026-10-30 15:00 UTC - Claude Code (Claude Sonnet 5.5) - Completed T1 to T3: baseline measured (about 7.5k tokens by proxy tokenizers), research and adopted practices recorded, confirmed `AGENTS.md` needs no adapter; target reduction still open - `research.md`
 - 2026-10-30 15:30 UTC - Claude Code (Claude Sonnet 5.5) - Recorded the maintainer's `/context all` baseline: `AGENTS.md` is 12.4k Claude tokens, about 1.65 times the proxy tokenizer count, and about 22% of the session context - `research.md`
 - 2026-10-30 16:00 UTC - Claude Code (Claude Sonnet 5.5) - Completed T4: proposed a disposition for all 17 sections, estimated about 4.1k Claude tokens (about 67% reduction, about 60% if trimmed conservatively), listed prerequisites for T6 and five open questions; waiting for maintainer review (T5) - `section-disposition.md`
+- 2026-10-30 16:30 UTC - Claude Code (Claude Sonnet 5.5) - T5: maintainer reviewed the dispositions and decided D1 to D5 (target about 5k Claude tokens, skill/nested-`AGENTS.md` placement rule, catalog in `docs/packages.md`, keep Development Principles, keep all eight policies inline); estimate now about 4.5k Claude tokens - `section-disposition.md`
 
 ## Acceptance Criteria
 
 - [ ] AC1: `research.md` documents the sources consulted and the practices adopted, each tied to
       evidence, and states which practices were deliberately not adopted and why.
 - [ ] AC2: A baseline and a final token measurement exist, taken with the same documented method,
-      and the final footprint of `AGENTS.md` is materially lower. The target reduction is agreed
-      with the maintainer after T1 and T2 and recorded here before restructuring begins.
+      and the final footprint of `AGENTS.md` is about 5k Claude Code tokens or fewer in `/context`
+      (target agreed with the maintainer in T5, decision D1; baseline 12.4k).
 - [ ] AC3: Every section of the original `AGENTS.md` has a recorded disposition, and every rule that
       was moved is reachable from `AGENTS.md` by link or skill reference.
 - [ ] AC4: No procedural guidance is duplicated between `AGENTS.md` and a skill or `docs/` page
