@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-progress
+status: done
 priority: p2
 epic: 2482
 github-issue: 2681
-spec-path: docs/issues/open/2681-2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md
+spec-path: docs/issues/closed/2681-2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md
 branch: "2681-2482-gate-tracker-core-test-modules-and-mocks"
-related-pr: null
-last-updated-utc: "2026-10-29 11:53"
+related-pr: 2688
+last-updated-utc: "2026-10-29 12:50"
 semantic-links:
   skill-links:
     - create-issue
@@ -294,7 +294,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ### Workflow Checkpoints
 
-- [x] Folder-style spec drafted in `docs/issues/drafts/2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md` (now `docs/issues/open/2681-2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md`)
+- [x] Folder-style spec drafted in `docs/issues/drafts/2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md` (now `docs/issues/closed/2681-2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md`)
 - [x] Spec reviewed and approved by user/maintainer (the maintainer, 2026-10-28)
 - [x] GitHub issue created, linked as a sub-issue of #2482 (`parent_issue_url` verified), and its number added to this spec
 - [x] Spec-only PR merged into `develop` before implementation (PR #2682)
@@ -303,7 +303,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence (the AI assistant; the maintainer reviews it in the pull request)
 - [x] Evidence-based implementation completion review recorded
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/` (issue closed by the merge of PR #2688; archived by the pull request whose commit subject is `chore(issues): archive closed issue #2681 spec to docs/issues/closed`)
 
 ### Progress Log
 
@@ -322,6 +322,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-10-28 17:46 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 3) - Issue #2681 was closed by the merge of spec PR #2682, whose body said "will close #2681"; GitHub applied the keyword from the merge commit. The #2482 coordinator reopened it (state OPEN and parent #2482 verified). The merged spec is unchanged. The implementation PR #2688 carries `Closes #2681` and no other closing keyword followed by an issue number. The lesson (no closing keyword in a spec-only PR body, even about the future; run the `open-pull-request` grep on every spec-PR body) is in the retrospective.
 - 2026-10-29 11:18 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 3) - Correction to the 2026-10-28 16:50 UTC entry, following finding F6 of da2ce7's review of PR #2688 (earlier entries are kept as written): the 16:41 UTC entry's "five signed commits" was right when written. Five branch commits existed at 16:41 (created from 16:27:49 to 16:39:19 UTC); the sixth, `docs(issues): [#2681] record the manual verification evidence`, was created at 16:42:25 UTC and contains that entry. The 16:50 entry's statement that the branch had six commits "at that point" was wrong; its other correction (AC1's "five" `Mock*` types became "four", so the spec text did change) stands.
 - 2026-10-29 11:53 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 3) - Finding F9 of da2ce7's review of PR #2688 (the commands behind V9's state claims were not shown) was right; the maintainer authorized one more push on 2026-10-29. The evidence now prints the retained V9 script in full and names the comparison commands behind the restore steps and the final status line. Recorded in `docs/pr-reviews/pr-2688-review/PR-REVIEW.md`.
+- 2026-10-29 12:50 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 3) - Issue #2681 is closed: PR #2688 merged on 2026-10-29 (merge commit `49641da38`; spec PR #2682 merged on 2026-10-28). The spec folder is archived to `docs/issues/closed/`, `status` is `done`, `related-pr` is 2688, and the last workflow checkpoint is ticked. Row 3 of the #2482 Subissues table is DONE. Live references to the old path (the EPIC row, the inventory links, the ADR amendment note, the evidence and retrospective frontmatter and the two PR review audits' `related-artifacts`) were updated; the Progress Log entries above keep the paths they recorded.
 
 ## Acceptance Criteria
 

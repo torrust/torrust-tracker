@@ -29,7 +29,7 @@ semantic-links:
 > `MockTorrentMetricsStore` only. The maintainer decided this on 2026-10-28: share only what other
 > crates need. The first count of consumers per trait was made when the rule was written; the
 > per-mock counts are in the
-> [#2681 spec](../issues/open/2681-2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md).
+> [#2681 spec](../issues/closed/2681-2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md).
 
 ## Scope
 
