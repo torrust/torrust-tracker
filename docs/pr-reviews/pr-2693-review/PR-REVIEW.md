@@ -38,7 +38,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-All findings are by the human reviewer `da2ce7`. F1 to F6 are from review 5715892693 (CHANGES_REQUESTED, 2026-10-30 17:09:01 UTC, on the head whose subject is `docs(pr-reviews): [#2547] record the post-merge findings F20 to F22 of PR 2690`). The reviewer's own IDs F1 to F6 are kept; this pull request had no audit before, so there is no collision. F2 to F4 are blocking, F1, F5 and F6 are nonblocking. Review 5716380696 (CHANGES_REQUESTED, 2026-10-30 17:50:05 UTC, on the head whose subject is `docs(pr-reviews): [#2547] record the resolution of the PR 2693 review threads`) resolved F1 to F4 and F6 and raised F7 (Minor, blocking), which continues F5; F8 is its "Not yet" reply (comment r4426734938) in the thread of F5; that reply belongs to review 5716383184, which is its Source review ID and the review its Source URL names, while the comment link is kept in the Concern.
+All findings are by the human reviewer `da2ce7`. F1 to F6 are from review 5715892693 (CHANGES_REQUESTED, 2026-10-30 17:09:01 UTC, on the head whose subject is `docs(pr-reviews): [#2547] record the post-merge findings F20 to F22 of PR 2690`). The reviewer's own IDs F1 to F6 are kept; this pull request had no audit before, so there is no collision. F2 to F4 are blocking, F1, F5 and F6 are nonblocking. Review 5716380696 (CHANGES_REQUESTED, 2026-10-30 17:50:05 UTC, on the head whose subject is `docs(pr-reviews): [#2547] record the resolution of the PR 2693 review threads`) resolved F1 to F4 and F6 and raised F7 (Minor, blocking), which continues F5; F8 is its "Not yet" reply (comment r4426734938) in the thread of F5; that reply belongs to review 5716383184, which is its Source review ID and the review its Source URL names, while the comment link is kept in the Concern. Review 5717204981 (APPROVED, 2026-10-30 18:51:18 UTC, on the head whose subject is `docs(pr-reviews): [#2547] record the second review round of PR 2693`, with the reviewer's own ACK comment) had no blocking finding and one nonblocking Nit, F9, on that attribution; the reviewer numbered it F9 because this audit already held its own row F8.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -50,6 +50,7 @@ All findings are by the human reviewer `da2ce7`. F1 to F6 are from review 571589
 | F6 | review-finding:pr-2693-f6 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F7 | review-finding:pr-2693-f7 | Human | Minor | correctness | RE_RAISE_OF:F5 | FIXED | RESOLVED |
 | F8 | review-finding:pr-2693-f8 | Human | Minor (inferred) | correctness | RE_RAISE_OF:F5 | FIXED | RESOLVED |
+| F9 | review-finding:pr-2693-f9 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -157,12 +158,26 @@ All findings are by the human reviewer `da2ce7`. F1 to F6 are from review 571589
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2693#discussion_r4426785048
 
+### F9 - Preserve the actual review owning the F5 reply
+
+- PR number: 2693
+- Source review ID: 5717204981
+- Reviewer finding ID: F9
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2693#discussion_r4427378823
+- Concern: The row F8 named review 5716380696 as the source of the reply r4426734938, but that comment has `pull_request_review_id` 5716383184 and `in_reply_to_id` 4426354689; the validator's review-URL branch only compares the two supplied review IDs, so its pass did not validate this provenance. Nonblocking: the reply link was right.
+- Solution: The finding was right and was verified against the API. The row F8 and the introduction name review 5716383184, with the comment link and the F5 thread relationship kept in the Concern.
+- Current-tree verification: The detail of F8 reads Source review ID 5716383184 and a Source URL for that review; `validate-audit-record.py --pr-number 2693` still returns ok.
+- Resolution reference: `docs(pr-reviews): [#2547] attribute the F5 re-check reply to its owning review`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2693#discussion_r4427416460
+
 ## Processing Log
 
 - 2026-10-30 17:10 UTC - Review 5715892693 arrived (CHANGES_REQUESTED, 17:09:01 UTC, six inline findings F1 to F6, all confirmed against the tree and the PR metadata). The maintainer had asked on 2026-10-30 to fix the reviewer's findings if a review came within 15 minutes.
 - 2026-10-30 17:20 UTC - Fixes and replies (completed events). The fix commits were created at 2026-10-30 17:11:21 UTC (F1), 17:12:16 UTC (F3), 17:13:00 UTC (F4) and 17:13:45 and 17:15:04 UTC (F5). F2 reworded the body of the first commit of the branch, whose original author time is 16:33:01 UTC, by one scripted (non-interactive) `git rebase -i` over all eight commits; the final tree was verified identical to the pre-rewrite head, and the branch was pushed with `--force-with-lease` (the PR timeline shows `head_ref_force_pushed` at 17:18:24 UTC). F6 was done by editing the pull request title (`renamed` event at 17:18:31 UTC). The six replies were posted from 17:18:50 to 17:19:01 UTC. Not yet events when this entry was written: the resolution of the six threads and the push of this record.
 - 2026-10-30 17:23 UTC - Resolved the six threads (GraphQL `resolveReviewThread`, 17:23 UTC); a GraphQL refresh at 17:23 UTC reported 0 unresolved threads. The record of the fixes was pushed at 17:22 UTC (head whose subject is `docs(pr-reviews): [#2547] record the review of PR 2693`). `validate-audit-record.py --pr-number 2693` exited 0 (6 rows, 0 failures) before this entry. The three threads of #2690 (F20 to F22) stay open until this pull request merges.
 - 2026-10-30 17:57 UTC - Round 2: review 5716380696 (CHANGES_REQUESTED, 17:50:05 UTC) confirmed F1 to F4 and F6 and raised F7. It was reproduced (the validator failed on the PR #2690 audit with 3 failures, which this audit's 17:23 entry did not cover: it validated only this audit). The fix commit was created at 17:52:45 UTC and pushed at about 17:55 UTC; the replies on the F7 thread and on the F5 thread were posted at 17:55:30 and 17:55:32 UTC, the F7 thread was resolved afterwards, and a GraphQL refresh at 17:55:58 UTC reported 0 unresolved threads. The maintainer re-requested da2ce7 after the previous push. Not yet events when this entry was written: the push of this record.
+- 2026-10-30 18:57 UTC - Round 3: review 5717204981 (APPROVED, 18:51:18 UTC, with da2ce7's own ACK comment on the head whose subject is `docs(pr-reviews): [#2547] record the second review round of PR 2693`) confirmed F5 and F7 and raised one nonblocking Nit, F9, on the source-review attribution of the row F8. It was verified against the API (the reply r4426734938 belongs to review 5716383184). The fix commit was created at 18:52:58 UTC and pushed before the reply was posted (18:55:31 UTC); the thread was resolved at about 18:55:44 UTC and a GraphQL refresh reported 0 unresolved threads. The maintainer had asked to fix newer findings, so the nit was fixed before merge although the reviewer allowed it after; that makes the ACK on the earlier head stale. Not yet events when this entry was written: the push of this record.
 
 ## Completion Rules
 
