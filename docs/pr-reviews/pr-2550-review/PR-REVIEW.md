@@ -4,7 +4,7 @@ semantic-links:
     - process-pr-review
   related-artifacts:
     - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
-    - docs/issues/open/2547-measure-effect-of-optional-rebases/ISSUE.md
+    - docs/issues/closed/2547-measure-effect-of-optional-rebases/ISSUE.md
     - docs/issues/open/2507-stop-requiring-pull-request-rebases/ISSUE.md
 ---
 

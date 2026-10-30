@@ -24,7 +24,7 @@ semantic-links:
     - docs/issues/closed/2507-stop-requiring-pull-request-rebases/agent-review-reports.md
     - "issue #2525"
     - "issue #2547"
-    - docs/issues/open/2547-measure-effect-of-optional-rebases/ISSUE.md
+    - docs/issues/closed/2547-measure-effect-of-optional-rebases/ISSUE.md
     - docs/adrs/20261013161419_stop_requiring_pull_request_rebases.md
     - .github/skills/dev/git-workflow/open-pull-request/SKILL.md
     - .github/skills/dev/git-workflow/merge-pull-request/SKILL.md

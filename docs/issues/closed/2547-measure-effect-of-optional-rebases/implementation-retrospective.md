@@ -3,8 +3,8 @@ semantic-links:
   skill-links:
     - write-markdown-docs
   related-artifacts:
-    - docs/issues/open/2547-measure-effect-of-optional-rebases/ISSUE.md
-    - docs/issues/open/2547-measure-effect-of-optional-rebases/post-change-evidence.md
+    - docs/issues/closed/2547-measure-effect-of-optional-rebases/ISSUE.md
+    - docs/issues/closed/2547-measure-effect-of-optional-rebases/post-change-evidence.md
 ---
 
 # Implementation Retrospective — Measure the Effect of Optional Pull-Request Rebases
@@ -67,6 +67,6 @@ specification of a future measurement, not in a global policy.
 
 ## Evidence
 
-- `docs/issues/open/2547-measure-effect-of-optional-rebases/ISSUE.md`
-- `docs/issues/open/2547-measure-effect-of-optional-rebases/post-change-evidence.md`
+- `docs/issues/closed/2547-measure-effect-of-optional-rebases/ISSUE.md`
+- `docs/issues/closed/2547-measure-effect-of-optional-rebases/post-change-evidence.md`
 - Pull request #2690 and its first review

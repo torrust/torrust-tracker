@@ -3,7 +3,7 @@ semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
-    - docs/issues/open/2547-measure-effect-of-optional-rebases/ISSUE.md
+    - docs/issues/closed/2547-measure-effect-of-optional-rebases/ISSUE.md
     - docs/issues/closed/2507-stop-requiring-pull-request-rebases/baseline-evidence.md
 ---
 
