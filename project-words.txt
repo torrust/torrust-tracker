@@ -265,6 +265,7 @@ formatjson
 fput
 fputwc
 fract
+fromdateiso
 frontmatter
 frontmattered
 fscanf
@@ -386,6 +387,7 @@ nologin
 nonblocking
 nonroot
 noprefix
+nosalt
 notnull
 nping
 nquery
@@ -477,6 +479,7 @@ rosegment
 routable
 rsplit
 rstest
+rstrip
 rusqlite
 rustc
 rustdoc
@@ -502,6 +505,7 @@ settimeout
 setuid
 sharktorrent
 shellcheck
+shuf
 signingkey
 skiplist
 slowloris
@@ -519,6 +523,7 @@ stabilised
 stackoverflow
 staticlib
 strfmon
+strptime
 subissue
 subkey
 subsec
