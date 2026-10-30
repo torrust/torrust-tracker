@@ -27,22 +27,27 @@ gh pr list --repo torrust/torrust-tracker --state all --limit 3000 \
 ```
 
 The queue is sampled daily at 12:00 UTC and counts PRs that were later merged or are still open, as in
-the baseline. The same code run on 1 to 13 October gives the baseline's own median queue (8), max (12)
-and median hours to merge (4.0), which validates the method.
+the baseline. Medians of an even count are the mean of the two middle values.
 
-| Measure                      | 1 to 13 Oct (recount) | 15 to 28 Oct |
-| ---------------------------- | --------------------: | -----------: |
-| PRs opened                   |                    76 |          130 |
-| PRs merged                   |                    68 |          121 |
-| Merged PRs per day           |                   5.2 |          8.6 |
-| Median open-PR queue (daily) |                     8 |            5 |
-| Max open-PR queue            |                    12 |            8 |
-| Median hours to merge        |                   4.0 |          1.9 |
+Two baseline populations appear in this evidence and are kept apart:
 
-Discrepancy: the baseline recorded 67 merges and 73 opened for 1 to 13 October because it was
-collected on 13 October, before the day ended. The recount gives 68 merged and 76 opened. This
-evidence uses the recount (68) as the baseline merge count for per-PR figures, and the baseline's
-published force-push and CI figures as they were (67 PRs).
+- **Published snapshot**: the figures `baseline-evidence.md` recorded on 2026-10-13 between 15:00 and
+  16:15 UTC, for 67 merged PRs.
+- **Full-window recount**: the same 13 calendar days (2026-10-01 to 2026-10-13 UTC) recounted on
+  2026-10-30, for 68 merged PRs. The extra PR is #2506, created 2026-10-13 16:13:59 UTC and merged
+  17:50:54 UTC, after the snapshot was taken. #2506 has no force-push.
+
+| Measure                      | Published snapshot (67 PRs) | Recount (68 PRs) | 15 to 28 Oct |
+| ---------------------------- | --------------------------: | ---------------: | -----------: |
+| PRs opened                   |                          73 |               76 |          130 |
+| PRs merged                   |                          67 |               68 |          121 |
+| Merged PRs per day           |                         5.2 |              5.2 |          8.6 |
+| Median open-PR queue (daily) |                           8 |                8 |            5 |
+| Max open-PR queue            |                          12 |               12 |            8 |
+| Median hours to merge        |                         4.0 |              3.8 |          1.9 |
+
+Running the same code on the 67 merges without #2506 reproduces the published queue (8), maximum
+(12) and median hours to merge (4.0086). With #2506 the median hours to merge is 3.7828.
 
 ## 2. Force-Pushes per Merged PR (baseline section 5)
 
@@ -53,12 +58,18 @@ Nodes were counted, not `totalCount`. No timeline had a second page.
 for n in $(cat win.txt); do gh api graphql -f query='query($n:Int!){repository(owner:"torrust",name:"torrust-tracker"){pullRequest(number:$n){number mergedAt mergeCommit{oid} timelineItems(first:100,itemTypes:[HEAD_REF_FORCE_PUSHED_EVENT]){pageInfo{hasNextPage} nodes{... on HeadRefForcePushedEvent{createdAt beforeCommit{oid} afterCommit{oid}}}}}}}' -F n=$n; done
 ```
 
-| Period               | PRs | Force-pushes | Mean per PR | PRs with at least one |
-| -------------------- | --: | -----------: | ----------: | --------------------: |
-| 2026-10 baseline     |  67 |          106 |        1.58 |              54 (81%) |
-| 15 to 28 Oct         | 121 |           11 |        0.09 |              10 (8.3%) |
+| Period                                | PRs | Force-pushes | Mean per PR | PRs with at least one |
+| ------------------------------------- | --: | -----------: | ----------: | --------------------: |
+| Baseline, published snapshot          |  67 |          106 |        1.58 |             54 (81%)  |
+| Baseline, recount (adds #2506, none)  |  68 |          106 |        1.56 |             54 (79.4%) |
+| 15 to 28 Oct                          | 121 |           11 |        0.09 |             10 (8.3%)  |
 
-The 11 force-pushes belong to 10 PRs (#2678 has two); the other 111 merged PRs have none.
+The baseline rows are the published figures of `baseline-evidence.md` section 5 for the 2026-10
+merges; #2506's timeline was read with the GraphQL query above and has no force-push event.
+
+The 11 force-pushes are lifetime events of the 121 merged PRs, as the population rule requires. They
+belong to 10 PRs (#2678 has two); the other 111 merged PRs have none. Ten of the 11 happened inside the
+window; the push on #2537 is dated 2026-10-14 21:27 UTC.
 
 ### 2.1 Classification (method of #2507 V4)
 
@@ -373,8 +384,8 @@ for name,a,b in [("base","2026-10-01","2026-10-14"),("win","2026-10-15","2026-10
 | Median gap between consecutive merges (minutes)       |        68.3 |          23.3 |
 | Gaps of 15 minutes or less                            |     3 (4%)  |     49 (41%)  |
 | Gaps of 5 minutes or less                             |     1 (1%)  |      7 (6%)   |
-| Merges with a first-parent merge commit (CI to merge) |          66 |           121 |
-| Median minutes from last finished CI run to merge     |        15.8 |          46.3 |
+| Merges with a finished CI run (CI to merge)           |          68 |           121 |
+| Median minutes from last finished CI run to merge     |        14.9 |          46.3 |
 | 90th percentile of the same                           |       130.1 |         605.3 |
 
 Reading:
@@ -389,45 +400,47 @@ Reading:
   by construction, while in the window a green PR waits for review and for the maintainer. The figure
   cannot separate idle time after CI from waiting for a rebase, so it neither supports nor
   contradicts the expectation.
-- Two baseline merges have no first-parent merge commit in the local history and are missing from the
-  CI-to-merge rows.
 
 ## 8. Comparison
 
-Per-day figures divide by 13 (baseline) or 14 (window); per-PR figures by merged PRs (67 for the
-baseline's published figures, 68 for the recount, 121 for the window).
+Per-day figures divide by 13 (baseline) or 14 (window); per-PR figures by the merged PRs of the same
+column: 67 for the published snapshot, 68 for the recount, 121 for the window. A figure the snapshot
+did not record, or that this evidence did not recount, is `n/a`. The CI rows use the published
+snapshot because the baseline's sampled runs cannot be recounted, so they are not recounted.
 
-| Measure                                    | Baseline (1 to 13 Oct) | Window (15 to 28 Oct) |
-| ------------------------------------------ | ---------------------: | --------------------: |
-| Merged PRs                                 |                  67/68 |                   121 |
-| Merged PRs per day                         |                    5.2 |                   8.6 |
-| Force-pushes per merged PR                 |                   1.58 |                  0.09 |
-| Force-pushes per day                       |                    8.2 |                   0.8 |
-| Merged PRs force-pushed at least once      |                    81% |                  8.3% |
-| Rebase-only force-pushes per merged PR     |                   n/a |                  0.08 |
-| Merges while behind `develop`              |                    n/a |              93 (77%) |
-| Merges on the refresh path (inferred)      |                    n/a |              68 (56%) |
-| `pull_request` runs                        |              899 (69/day) |         1894 (135/day) |
-| `pull_request` runs per merged PR          |                   13.4 |                  15.7 |
-| Estimated PR CI runner-hours               |                  197.8 |                 567.0 |
-| Runner-hours per day                       |                   15.2 |                  40.5 |
-| Runner-hours per merged PR                 |                    3.0 |                   4.7 |
-| Rebase-fallout commits                     |                     13 |                    12 |
-| Rebase-fallout commits per day             |                   1.00 |                  0.86 |
-| Rebase-fallout commits per merged PR       |                   0.19 |                  0.10 |
-| Median daily open-PR queue                 |                      8 |                     5 |
-| Consecutive merges within 15 minutes       |                     4% |                   41% |
-| Median gap between merges (minutes)        |                   68.3 |                  23.3 |
-| Median hours to merge                      |                    4.0 |                   1.9 |
+| Measure                                    | Baseline published | Baseline recount | Window (15 to 28 Oct) |
+| ------------------------------------------ | -----------------: | ---------------: | --------------------: |
+| Merged PRs                                 |                 67 |               68 |                   121 |
+| Merged PRs per day                         |                5.2 |              5.2 |                   8.6 |
+| Force-pushes per merged PR                 |               1.58 |             1.56 |                  0.09 |
+| Force-pushes per day                       |                8.2 |              8.2 |                   0.8 |
+| Merged PRs force-pushed at least once      |                81% |            79.4% |                  8.3% |
+| Rebase-only force-pushes per merged PR     |                n/a |              n/a |                  0.08 |
+| Merges while behind `develop`              |                n/a |              n/a |             93 (77%)  |
+| Merges on the refresh path (inferred)      |                n/a |              n/a |             68 (56%)  |
+| `pull_request` runs                        |       899 (69/day) |              n/a |        1894 (135/day) |
+| `pull_request` runs per merged PR          |               13.4 |              n/a |                  15.7 |
+| Estimated PR CI runner-hours               |              197.8 |              n/a |                 567.0 |
+| Runner-hours per day                       |               15.2 |              n/a |                  40.5 |
+| Runner-hours per merged PR                 |                3.0 |              n/a |                   4.7 |
+| Rebase-fallout commits                     |                n/a |               13 |                    12 |
+| Rebase-fallout commits per day             |                n/a |             1.00 |                  0.86 |
+| Rebase-fallout commits per merged PR       |                n/a |             0.19 |                  0.10 |
+| Median daily open-PR queue                 |                  8 |                8 |                     5 |
+| Consecutive merges within 15 minutes       |                n/a |               4% |                   41% |
+| Median gap between merges (minutes)        |                n/a |             68.3 |                  23.3 |
+| Median hours to merge                      |                4.0 |              3.8 |                   1.9 |
 
 ## 9. Conclusion
 
-- Force-pushes fell by about 94% per merged PR (1.58 to 0.09) and the share of merged PRs that were
-  force-pushed fell from 81% to 8.3%. Of the 11 pushes, 10 moved the base: six because the head
+- Force-pushes fell by about 94% per merged PR (1.56 to 0.09 against the recount; 1.58 against the
+  published snapshot) and the share of merged PRs that were force-pushed fell from 79.4% (81%
+  published) to 8.3%. Of the 11 pushes, 10 moved the base: six because the head
   conflicted with `develop`, four recommended and clean.
 - 77% of merges were made behind `develop`; 56% of all merges are consistent with the merge tool's
   recorded-base refresh path (inferred, not observed).
-- Median time to merge halved and the median queue fell from 8 to 5, with 1.8 times as many merges
+- Median time to merge halved (3.8 to 1.9 hours against the recount; 4.0 published) and the median
+  queue fell from 8 to 5, with 1.8 times as many merges
   per day. Fallout commits per merged PR halved (0.19 to 0.10); per day they barely moved (1.00 to 0.86).
 - Merges are bunched far more tightly: consecutive merges within 15 minutes went from 4% to 41%
   (section 7), consistent with queued PRs no longer waiting for a rebase and its CI between merges.
