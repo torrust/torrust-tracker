@@ -440,14 +440,14 @@ snapshot because the baseline's sampled runs cannot be recounted, so they are no
 - 77% of merges were made behind `develop`; 56% of all merges are consistent with the merge tool's
   recorded-base refresh path (inferred, not observed).
 - Median time to merge halved (3.8 to 1.9 hours against the recount; 4.0 published) and the median
-  queue fell from 8 to 5, with 1.8 times as many merges
-  per day. Fallout commits per merged PR halved (0.19 to 0.10); per day they barely moved (1.00 to 0.86).
+  queue fell from 8 to 5, with 1.65 times as many merges
+  per day (121/14 against 68/13). Fallout commits per merged PR halved (0.19 to 0.10); per day they barely moved (1.00 to 0.86).
 - Merges are bunched far more tightly: consecutive merges within 15 minutes went from 4% to 41%
   (section 7), consistent with queued PRs no longer waiting for a rebase and its CI between merges.
   The time from CI to merge cannot show this and is inconclusive.
 - PR CI cost did not fall: it rose from about 15 to about 41 runner-hours per day and from 3.0 to 4.7
   per merged PR. Runs per merged PR rose only from 13.4 to 15.7, so most of the per-day increase
-  follows volume (merged PRs per day up 66%); the rest comes from the sampled per-run means
+  follows volume (merged PRs per day up 65%); the rest comes from the sampled per-run means
   (Coverage 27.6 to 34.4, Testing 22.5 to 26.0, OS Compatibility 28.2 to 24.8 job-minutes) and
   from runs of PRs that did not merge in the window.
 - The data does not argue for reverting the policy. It does not show a CI saving either.
@@ -459,7 +459,7 @@ snapshot because the baseline's sampled runs cannot be recounted, so they are no
   none is made here.
 - Six sampled runs per workflow give wide error bars; the totals are estimates, and the seed above
   reproduces the sample, not the exact minutes.
-- The window had 1.8 times the merges per day of the baseline, so absolute figures are not comparable;
+- The window had 1.65 times the merges per day of the baseline (121/14 against 68/13), so absolute figures are not comparable;
   the per-merged-PR rows are.
 - The `CI gate` of #2525 landed no workflow wiring in the window (section 6), and four workflow files
   changed for other reasons. #2676 changed the Container build and may account for part of that
