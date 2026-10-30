@@ -9,7 +9,7 @@ github-issue: 2507
 spec-path: docs/issues/closed/2507-stop-requiring-pull-request-rebases/ISSUE.md
 branch: "2507-stop-requiring-pull-request-rebases"
 related-pr: 2526
-last-updated-utc: "2026-10-16 15:40"
+last-updated-utc: "2026-10-30 17:11"
 semantic-links:
   skill-links:
     - create-issue
