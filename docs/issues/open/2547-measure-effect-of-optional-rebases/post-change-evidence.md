@@ -324,7 +324,75 @@ window but change no file under `.github/workflows` (`git diff --name-only M^1 M
 '^.github/workflows'` is 0), so the path search does not list them. No merge in the window wires the
 PR #2525 `CI gate` into a workflow. #2523 (merged 2026-10-14 08:51 UTC) is before the window.
 
-## 7. Comparison
+## 7. Merge Bunching and Waiting
+
+The maintainer expects a gain mainly from not waiting: with required rebases, each merge made the
+next PR stale, so a queue of passing PRs had to merge one at a time, each after a rebase and its CI
+run. This section measures that with two figures from data already collected. It was added after the
+first read of the results.
+
+- Gaps between consecutive merges, by `merged_at`, within each period. A gap of 15 minutes or less is
+  a merge that followed another almost at once, which a rebase and CI wait between merges prevents
+  for code PRs.
+- Time from the end of the last finished `pull_request` run of the merged head to `merged_at`. The
+  runs of each head came from the request below, taking the maximum `updated_at` of runs concluded
+  `success` or `failure`. `M2` is the PR head of the first-parent merge, as in section 3.
+
+```sh
+gh api "repos/torrust/torrust-tracker/actions/runs?head_sha=$M2&event=pull_request&per_page=100" \
+  --jq '[.workflow_runs[]|select(.conclusion=="success" or .conclusion=="failure")|.updated_at]|max // "none"'
+```
+
+The statistics were computed with this ad-hoc Python (`SCRATCH` was a scratch directory holding the
+`prs.json` of section 1 and a `ci2merge.tsv` file with one line per merge: period, PR, `merged_at`, last
+run time):
+
+```python
+import json,sys,statistics as st
+from datetime import datetime as D
+def t(s): return D.strptime(s,"%Y-%m-%dT%H:%M:%SZ").timestamp()
+prs=json.load(open(SCRATCH+"/prs.json"))
+for name,a,b in [("base","2026-10-01","2026-10-14"),("win","2026-10-15","2026-10-29")]:
+    m=sorted(t(p["mergedAt"]) for p in prs if p["mergedAt"] and a<=p["mergedAt"][:10]<b)
+    g=[(y-x)/60 for x,y in zip(m,m[1:])]
+    n=len(g)
+    print(name,"merges",len(m),"median gap min %.1f"%st.median(g),"<=15min %d (%.0f%%)"%(sum(x<=15 for x in g),100*sum(x<=15 for x in g)/n),"<=5min %d (%.0f%%)"%(sum(x<=5 for x in g),100*sum(x<=5 for x in g)/n))
+    # runs: merges that have another merge within the previous 15 min
+    r=[]
+    for line in open(SCRATCH+"/ci2merge.tsv"):
+        per,n_,mt,last=line.rstrip("\n").split("\t")
+        if per==name: r.append((t(mt)-t(last))/60)
+    r.sort()
+    q=lambda p:r[int(p*(len(r)-1))]
+    print(name,"CI-done->merge n=%d median %.1f min p75 %.1f p90 %.1f; <=15min %d (%.0f%%); >60min %d (%.0f%%)"%(len(r),q(.5),q(.75),q(.9),sum(x<=15 for x in r),100*sum(x<=15 for x in r)/len(r),sum(x>60 for x in r),100*sum(x>60 for x in r)/len(r)), "negative:",sum(x<0 for x in r))
+```
+
+| Measure                                               | 1 to 13 Oct | 15 to 28 Oct |
+| ----------------------------------------------------- | ----------: | ------------: |
+| Merges                                                |          68 |           121 |
+| Median gap between consecutive merges (minutes)       |        68.3 |          23.3 |
+| Gaps of 15 minutes or less                            |     3 (4%)  |     49 (41%)  |
+| Gaps of 5 minutes or less                             |     1 (1%)  |      7 (6%)   |
+| Merges with a first-parent merge commit (CI to merge) |          66 |           121 |
+| Median minutes from last finished CI run to merge     |        15.8 |          46.3 |
+| 90th percentile of the same                           |       130.1 |         605.3 |
+
+Reading:
+
+- Merges are far more bunched in the window: the share of consecutive merges within 15 minutes rose
+  from 4% to 41%, and the median gap fell from 68 to 23 minutes. Part of this is volume (5.2 to 8.6
+  merges per day), but volume alone is unlikely to multiply the 15-minute share tenfold. This is
+  consistent with queued PRs no longer waiting for a rebase and its CI between merges. It does not
+  prove the cause.
+- The time from the last CI run to merge is longer in the window. It is not a measure of rebase
+  waiting: in the baseline the last run was usually the rebase's, so the merge followed it closely
+  by construction, while in the window a green PR waits for review and for the maintainer. The figure
+  cannot separate idle time after CI from waiting for a rebase, so it neither supports nor
+  contradicts the expectation.
+- Two baseline merges have no first-parent merge commit in the local history and are missing from the
+  CI-to-merge rows.
+
+## 8. Comparison
 
 Per-day figures divide by 13 (baseline) or 14 (window); per-PR figures by merged PRs (67 for the
 baseline's published figures, 68 for the recount, 121 for the window).
@@ -348,9 +416,11 @@ baseline's published figures, 68 for the recount, 121 for the window).
 | Rebase-fallout commits per day             |                   1.00 |                  0.86 |
 | Rebase-fallout commits per merged PR       |                   0.19 |                  0.10 |
 | Median daily open-PR queue                 |                      8 |                     5 |
+| Consecutive merges within 15 minutes       |                     4% |                   41% |
+| Median gap between merges (minutes)        |                   68.3 |                  23.3 |
 | Median hours to merge                      |                    4.0 |                   1.9 |
 
-## 8. Conclusion
+## 9. Conclusion
 
 - Force-pushes fell by about 94% per merged PR (1.58 to 0.09) and the share of merged PRs that were
   force-pushed fell from 81% to 8.3%. Of the 11 pushes, 10 moved the base: six because the head
@@ -359,6 +429,9 @@ baseline's published figures, 68 for the recount, 121 for the window).
   recorded-base refresh path (inferred, not observed).
 - Median time to merge halved and the median queue fell from 8 to 5, with 1.8 times as many merges
   per day. Fallout commits per merged PR halved (0.19 to 0.10); per day they barely moved (1.00 to 0.86).
+- Merges are bunched far more tightly: consecutive merges within 15 minutes went from 4% to 41%
+  (section 7), consistent with queued PRs no longer waiting for a rebase and its CI between merges.
+  The time from CI to merge cannot show this and is inconclusive.
 - PR CI cost did not fall: it rose from about 15 to about 41 runner-hours per day and from 3.0 to 4.7
   per merged PR. Runs per merged PR rose only from 13.4 to 15.7, so most of the per-day increase
   follows volume (merged PRs per day up 66%); the rest comes from the sampled per-run means
@@ -366,7 +439,7 @@ baseline's published figures, 68 for the recount, 121 for the window).
   from runs of PRs that did not merge in the window.
 - The data does not argue for reverting the policy. It does not show a CI saving either.
 
-## 9. Caveats
+## 10. Caveats
 
 - A rebase onto `develop` is not the only reason for a new head. The CI figure counts every pushed
   head, not only rebases; the baseline's "29% of CI time attributable to rebases" is an estimate, and
