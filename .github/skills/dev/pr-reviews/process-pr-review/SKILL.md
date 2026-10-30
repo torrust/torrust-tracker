@@ -3,7 +3,7 @@ name: process-pr-review
 description: Process every pull-request review finding, regardless of whether it was authored by Copilot, a person, or another bot. Use when asked to process PR review feedback, resolve review threads, audit review comments, address Copilot and maintainer findings together, triage review feedback submitted after merge, or handle a review left on a closed pull request that another pull request replaced.
 metadata:
   author: torrust
-  version: "1.7"
+  version: "1.8"
   semantic-links:
     related-artifacts:
       - docs/issues/closed/2219-2003-unify-pr-review-processing/ISSUE.md
@@ -93,7 +93,11 @@ feedback is prevented earlier and future review processing consumes fewer tokens
    superseded, or no-change thread, reply exactly `Superseded by <FindingId>:
 <reason>.`, record `Disposition=NO_ACTION` and `Thread state=SUPERSEDED`, then
    resolve it. In a post-merge review, record `NO_ACTION` only when the
-   maintainer has approved declining the follow-up work.
+   maintainer has approved declining the follow-up work. If the current identity
+   cannot resolve the thread (`viewerCanResolve` is `false`, as for a contributor
+   without write access who is not the PR author), still reply, record
+   `Disposition=FIXED` and `Thread state=OPEN`, and leave the resolution to the
+   reviewer or PR author. A general PR comment never replaces the per-thread reply.
 8. **Consolidate review bodies.** A PR conversation response may cover multiple
    review rounds only when it names every review ID and every finding ID with its
    disposition and resolution reference. Store its durable URL in each related
