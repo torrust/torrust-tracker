@@ -9,7 +9,7 @@ github-issue: 2547
 spec-path: docs/issues/open/2547-measure-effect-of-optional-rebases/ISSUE.md
 branch: "2547-measure-effect-of-optional-rebases"
 related-pr: null
-last-updated-utc: "2026-10-16 15:40"
+last-updated-utc: "2026-10-29 17:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -73,16 +73,20 @@ pull requests #2530, #2538, and #2430 rebased clean branches. See the #2507
 
 - Measure the window from 2026-10-15 00:00 UTC to 2026-10-28 23:59 UTC (14 days) with the #2507
   baseline commands, and normalize per merged PR and per day so the 13-day baseline stays comparable.
-  This specification fixes how each measure selects its data, because the baseline sections do not
-  all say how they selected theirs:
+  Per-day figures divide by calendar days, counted inclusively: 14 for the window (2026-10-15 to
+  2026-10-28) and 13 for the baseline (2026-10-01 to 2026-10-13). Per-merged-PR figures divide by the
+  number of pull requests merged in the same period. This specification fixes how each measure selects
+  its data, because the baseline sections do not all say how they selected theirs:
   - force-pushes per merged PR and the share of merged PRs force-pushed at least once. The population
     is the pull requests merged in the window (`merged_at`), with every force-push of each of them,
     including events before 2026-10-15: baseline section 5 selects pull requests by merge date and
     counts each one's whole force-push timeline. The classification below uses the same population;
-  - estimated PR CI runner-hours per workflow, sampled as in the baseline. The runs are the
-    `pull_request` workflow runs created within the window, not the runs of the pull requests merged in
-    it, so runs of pull requests still open count too. Baseline section 6 reports 899 runs for 1 to 13
-    October and names no date field; creation date is this specification's reading of it;
+  - estimated PR CI runner-hours per workflow, sampled as in the baseline: six randomly sampled runs
+    per workflow, with the random seed recorded in the evidence so the sample can be reproduced. The
+    runs are the `pull_request` workflow runs created within the window, not the runs of the pull
+    requests merged in it, so runs of pull requests still open count too. Baseline section 6 reports
+    899 runs for 1 to 13 October and names no date field; creation date is this specification's reading
+    of it;
   - rebase-fallout commits, compared with a baseline recounted for 1 to 13 October only: section 7 of
     the baseline lists 23 commits "since September 2026", of which 13 have author dates from 1 to 13
     October, so do not divide the whole list by 13 days or by the 67 October merges. A commit is in
@@ -115,8 +119,9 @@ pull requests #2530, #2538, and #2430 rebased clean branches. See the #2507
   change, propose it in a new issue.
 - Building scripts or tooling for the measurement. Ad-hoc `gh` and `git` commands are enough. Record
   them verbatim.
-- Measuring the `CI gate` work of #2525. If #2525 changes PR workflows during the window, record which
-  changes landed and when, so they are not mistaken for an effect of the rebase policy.
+- Measuring the `CI gate` work of #2525. Record every merge in the window that changed
+  `.github/workflows/**` (found with `git log --first-parent` over that path), with its merge time and
+  whether it belongs to #2525, so no workflow change is mistaken for an effect of the rebase policy.
 
 ## Architectural Decisions
 
@@ -143,7 +148,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                         | Notes / Expected Output                                                                                                                                                                                                                                     |
 | --- | ------ | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Wait for the window to close | Do not start before 2026-10-29. Check whether #2525 changed any PR workflow between 2026-10-15 and 2026-10-28, and record it.                                                                                                                               |
+| T1  | TODO   | Wait for the window to close | Do not start before 2026-10-29. List the workflow-changing merges between 2026-10-15 and 2026-10-28 (see Out of Scope), and record them.                                                                                                                    |
 | T2  | TODO   | Collect the measurements     | Run the baseline commands of sections 4 to 7 for the window, plus the V1 and V4 classifications. Recount the rebase-fallout baseline for 1 to 13 October only. Write the raw per-PR results as a table in `post-change-evidence.md`, not as generated JSON. |
 | T3  | TODO   | Compare and conclude         | Baseline vs window table normalized per merged PR and per day, a short conclusion, and any caveats (sampling, workflow changes, PR volume). If the result argues for a policy change, draft a new issue and link it here.                                   |
 
@@ -210,6 +215,11 @@ with GPG.
   GitHub issue body was updated to match.
 - 2026-10-16 15:40 UTC - AI assistant - #2507 was closed and its specification archived, so the links
   to its baseline and evidence now point to `docs/issues/closed/2507-stop-requiring-pull-request-rebases/`.
+- 2026-10-29 17:30 UTC - AI assistant - Maintainer feedback before implementation: per-day figures use
+  inclusive calendar days (14 for the window, 13 for the baseline); the CI sample stays at six runs per
+  workflow with a recorded seed; the confounder list covers every merge that changed
+  `.github/workflows/**` in the window, not only #2525 (the window already holds the ci-gate merges
+  #2574 and #2580 and several other workflow edits).
 
 ## Acceptance Criteria
 
