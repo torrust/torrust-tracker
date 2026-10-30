@@ -8,8 +8,8 @@ epic: null
 github-issue: 2547
 spec-path: docs/issues/open/2547-measure-effect-of-optional-rebases/ISSUE.md
 branch: "2547-measure-effect-of-optional-rebases"
-related-pr: null
-last-updated-utc: "2026-10-30 13:00"
+related-pr: 2690
+last-updated-utc: "2026-10-30 13:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -226,6 +226,8 @@ with GPG.
   `post-change-evidence.md`, which measures merge bunching: consecutive merges within 15 minutes rose
   from 4% to 41% and the median gap fell from 68 to 23 minutes. The time from the last CI run to merge
   grew, but it does not measure rebase waiting (the baseline merges followed the rebase's CI by design).
+- 2026-10-30 13:30 UTC - AI assistant - Opened pull request #2690 from the bot's fork and set
+  `related-pr` to 2690.
 - 2026-10-29 17:30 UTC - AI assistant - Maintainer feedback before implementation: per-day figures use
   inclusive calendar days (14 for the window, 13 for the baseline); the CI sample stays at six runs per
   workflow with a recorded seed; the confounder list covers every merge that changed
