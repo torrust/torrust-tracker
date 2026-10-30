@@ -265,6 +265,7 @@ formatjson
 fput
 fputwc
 fract
+fromdateiso
 frontmatter
 frontmattered
 fscanf

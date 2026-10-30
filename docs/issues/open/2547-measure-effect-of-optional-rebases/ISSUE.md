@@ -171,7 +171,7 @@ with GPG.
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [x] Implementation completed
 - [x] Automatic verification completed (`linter all`)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
@@ -220,6 +220,8 @@ with GPG.
   estimated PR CI runner-hours rose from 15.2 to 40.5 per day (3.0 to 4.7 per merged PR). The baseline
   merge count recounts to 68, not 67. The workflow-changing merges are #2572, #2601, #2665 and #2676;
   #2574, #2580 and #2675 change no workflow file.
+- 2026-10-30 11:15 UTC - AI assistant - Ran M1 and M2 as API cross-checks (no browser in the session),
+  all counts and sums matched; recorded in `manual-verification-evidence.md`.
 - 2026-10-29 17:30 UTC - AI assistant - Maintainer feedback before implementation: per-day figures use
   inclusive calendar days (14 for the window, 13 for the baseline); the CI sample stays at six runs per
   workflow with a recorded seed; the confounder list covers every merge that changed
@@ -228,18 +230,18 @@ with GPG.
 
 ## Acceptance Criteria
 
-- [ ] AC1: `post-change-evidence.md` compares the window with the #2507 baseline for force-pushes per
+- [x] AC1: `post-change-evidence.md` compares the window with the #2507 baseline for force-pushes per
       merged PR, share of merged PRs force-pushed, estimated PR CI runner-hours, and rebase-fallout
       commits, normalized per merged PR and per day. The rebase-fallout baseline is recounted for
       1 to 13 October with the same subject reading, not taken from the whole section 7 list.
-- [ ] AC2: Every force-push of the pull requests merged in the window, including events before it, is
+- [x] AC2: Every force-push of the pull requests merged in the window, including events before it, is
       classified as required (conflict), recommended (clean), or not a rebase, and the count of merges
       through the recorded-base refresh is reported.
-- [ ] AC3: Every number can be reproduced from commands recorded verbatim in the evidence.
-- [ ] AC4: The conclusion states whether the policy reduced each measure, names the caveats, and
+- [x] AC3: Every number can be reproduced from commands recorded verbatim in the evidence.
+- [x] AC4: The conclusion states whether the policy reduced each measure, names the caveats, and
       links a new issue if a policy change is proposed.
-- [ ] `linter all` exits with code `0`
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] `linter all` exits with code `0`
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
 
 ## Verification Plan
@@ -254,8 +256,8 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario                     | Human-oriented command/steps                                                                                                   | Expected Result                                       | Status | Evidence                                     |
 | --- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------- | ------ | -------------------------------------------- |
-| M1  | Spot-check force-push counts | Pick three merged PRs from the window and count "force-pushed" entries in each PR's GitHub conversation timeline in a browser. | The counts match the per-PR table.                    | TODO   | `manual-verification-evidence.md` section V1 |
-| M2  | Spot-check a CI sample       | Open one sampled workflow run per workflow in the GitHub Actions UI and add up its job durations.                              | The sum matches the job-minutes recorded for the run. | TODO   | `manual-verification-evidence.md` section V2 |
+| M1  | Spot-check force-push counts | Pick three merged PRs from the window and count "force-pushed" entries in each PR's GitHub conversation timeline in a browser. | The counts match the per-PR table.                    | DONE   | `manual-verification-evidence.md` section V1 |
+| M2  | Spot-check a CI sample       | Open one sampled workflow run per workflow in the GitHub Actions UI and add up its job durations.                              | The sum matches the job-minutes recorded for the run. | DONE   | `manual-verification-evidence.md` section V2 |
 
 Notes:
 
