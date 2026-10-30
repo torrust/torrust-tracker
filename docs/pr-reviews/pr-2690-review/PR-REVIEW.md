@@ -323,9 +323,9 @@ Update of 2026-10-30 (post-merge): this pull request merged on 2026-10-30 16:25 
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2690#discussion_r4424691581
 - Concern: Continues F3 (reproducing the aggregation evidence). `git log --first-parent --since=2026-10-01` takes the time of day at which it runs; replayed, it omitted #2397, #2400 and #2401, not only two merges, so the merge-list construction of section 7 and A.3 does not regenerate the TSV and the "two missing merges" explanation is wrong.
-- Solution: The finding was right. This pull request merged before the fix, so under the post-merge workflow the correction is carried by the follow-up pull request: the commands use `--since=2026-10-01T00:00:00Z`, and A.3, section 7 and the retrospective name the three merges and the real cause.
+- Solution: The finding was right. This pull request merged before the fix, so under the post-merge workflow the correction is carried by the follow-up pull request: the commands use `--since=2026-10-01T00:00:00Z`, and A.3, section 7 and the retrospective name the three merges and the real cause. The fix is carried by the commit `docs(issues): [#2547] make the merge-list construction reproducible and the CI total consistent` of the follow-up pull request, and stays pending until that pull request merges.
 - Current-tree verification: Replaying `git log --first-parent torrust/develop --since=2026-10-01T00:00:00Z` lists 211 merges (208 without the time) including #2397, #2400 and #2401, and the merges in the periods reproduce exactly the 189 period and PR pairs of `evidence/ci-to-merge.tsv` (68 baseline, 121 window).
-- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2690#discussion_r4426151564 (the reply posted on the thread; the fix is carried by the commit `docs(issues): [#2547] make the merge-list construction reproducible and the CI total consistent`, pending until the follow-up merges)
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2690#discussion_r4426151564
 - Follow-up PR URL: https://github.com/torrust/torrust-tracker/pull/2693
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2690#discussion_r4426151564
 
@@ -336,9 +336,9 @@ Update of 2026-10-30 (post-merge): this pull request merged on 2026-10-30 16:25 
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2690#discussion_r4424691612
 - Concern: Continues F3 (reproducing the aggregation evidence). The six A.5 values of OS Compatibility sum to 148.59 (mean 24.765, 133.731 h), so the section 4 row should be 133.7, not 133.8; summing the rounded rows gives 567.0 and summing before rounding gives 567.052972 (567.1), and the comparison said 567.0.
-- Solution: The finding was right and the follow-up pull request corrects it: the row is 133.7, the total is the unrounded sum rounded once (567.05, so 567.1), the section 4 and A.5 text say so, and the comparison row is 567.1.
+- Solution: The finding was right and the follow-up pull request corrects it: the row is 133.7, the total is the unrounded sum rounded once (567.05, so 567.1), the section 4 and A.5 text say so, and the comparison row is 567.1. The fix is carried by the commit `docs(issues): [#2547] make the merge-list construction reproducible and the CI total consistent` of the follow-up pull request, and stays pending until that pull request merges.
 - Current-tree verification: Section 4 shows 133.7 and the convention note, A.5 states the unrounded sum, and the comparison reads 567.1; no conclusion changes.
-- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2690#discussion_r4426151939 (the reply posted on the thread; the fix is carried by the commit `docs(issues): [#2547] make the merge-list construction reproducible and the CI total consistent`, pending until the follow-up merges)
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2690#discussion_r4426151939
 - Follow-up PR URL: https://github.com/torrust/torrust-tracker/pull/2693
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2690#discussion_r4426151939
 
@@ -349,9 +349,9 @@ Update of 2026-10-30 (post-merge): this pull request merged on 2026-10-30 16:25 
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2690#discussion_r4424691625
 - Concern: The Processing Log entry stamped 13:53 UTC says the audit started after the 11 thread replies had been posted (13:53:51 to 13:54:34 UTC), but the replies ran from 13:54:12 to 13:54:34 UTC; only the consolidated comment (13:53:51 UTC) preceded the stamp.
-- Solution: The finding was right. The log is append-only, so the original entry is kept and a correction entry is appended in the follow-up pull request.
+- Solution: The finding was right. The log is append-only, so the original entry is kept and a correction entry is appended in the follow-up pull request. The correction is carried by the commit `docs(pr-reviews): [#2547] record the post-merge findings F20 to F22 of PR 2690` of the follow-up pull request, and stays pending until that pull request merges.
 - Current-tree verification: The Processing Log below keeps the 13:53 entry and has the appended correction with the captured times from the GitHub API.
-- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2690#discussion_r4426152427 (the reply posted on the thread; the correction is carried by the commit `docs(pr-reviews): [#2547] record the post-merge findings F20 to F22 of PR 2690`, pending until the follow-up merges)
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2690#discussion_r4426152427
 - Follow-up PR URL: https://github.com/torrust/torrust-tracker/pull/2693
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2690#discussion_r4426152427
 
