@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2547-measure-effect-of-optional-rebases/ISSUE.md
-last-updated-utc: 2026-10-30 11:15
+last-updated-utc: 2026-10-30 13:21
 ---
 
 # Manual Verification Evidence

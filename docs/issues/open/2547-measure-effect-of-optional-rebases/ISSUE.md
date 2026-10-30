@@ -9,7 +9,7 @@ github-issue: 2547
 spec-path: docs/issues/open/2547-measure-effect-of-optional-rebases/ISSUE.md
 branch: "2547-measure-effect-of-optional-rebases"
 related-pr: 2690
-last-updated-utc: "2026-10-30 13:50"
+last-updated-utc: "2026-10-30 13:49"
 semantic-links:
   skill-links:
     - create-issue
@@ -220,20 +220,20 @@ with GPG.
   workflow with a recorded seed; the confounder list covers every merge that changed
   `.github/workflows/**` in the window, not only #2525 (the window already holds the ci-gate merges
   #2574 and #2580 and several other workflow edits).
-- 2026-10-30 09:10 UTC - AI assistant - Collected the window data (T1 to T3) and wrote
+- 2026-10-30 11:06 UTC - AI assistant - Collected the window data (T1 to T3) and wrote
   `post-change-evidence.md`. Findings: force-pushes per merged PR fell from 1.58 to 0.09, but
   estimated PR CI runner-hours rose from 15.2 to 40.5 per day (3.0 to 4.7 per merged PR). The baseline
   merge count recounts to 68, not 67. The workflow-changing merges are #2572, #2601, #2665 and #2676;
   #2574, #2580 and #2675 change no workflow file.
-- 2026-10-30 11:15 UTC - AI assistant - Ran M1 and M2 as API cross-checks (no browser in the session),
+- 2026-10-30 11:49 UTC - AI assistant - Ran M1 and M2 (at 11:09 to 11:10 UTC) as API cross-checks (no browser in the session),
   all counts and sums matched; recorded in `manual-verification-evidence.md`.
-- 2026-10-30 13:00 UTC - AI assistant - At the maintainer's request added section 7 to
+- 2026-10-30 12:45 UTC - AI assistant - At the maintainer's request added section 7 to
   `post-change-evidence.md`, which measures merge bunching: consecutive merges within 15 minutes rose
   from 4% to 41% and the median gap fell from 68 to 23 minutes. The time from the last CI run to merge
   grew, but it does not measure rebase waiting (the baseline merges followed the rebase's CI by design).
-- 2026-10-30 13:30 UTC - AI assistant - Opened pull request #2690 from the bot's fork and set
-  `related-pr` to 2690.
-- 2026-10-30 13:50 UTC - AI assistant - Completed the close-out state after the first review of PR #2690:
+- 2026-10-30 12:57 UTC - AI assistant - Set `related-pr` to 2690, the pull request opened from the bot's
+  fork at 12:09 UTC.
+- 2026-10-30 13:45 UTC - AI assistant - Completed the close-out state after the first review of PR #2690:
   acceptance verification, completion review (`implementation-retrospective.md`), status `in-review`, the
   M1/M2 deviation in the scenario table, and the chronological order of this log. No independent reviewer
   agent was given this folder, so no `agent-review-reports.md` is recorded.
