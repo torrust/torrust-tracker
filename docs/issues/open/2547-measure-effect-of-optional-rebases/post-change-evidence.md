@@ -322,19 +322,25 @@ October (checked with `git log -1 --format='%h %aI' <id>`): `505fa5745`, `ef27e6
 ```sh
 git log --first-parent --format='%h %cI %s' --since=2026-10-14T20:00:00Z --until=2026-10-29T00:00:00Z \
   torrust/develop -- .github/workflows
+git diff --name-only "$M^1" "$M" -- .github/workflows    # files of one merge M
 ```
 
-| PR    | Merged (UTC)     | Change                                                    | #2525 |
-| ----- | ---------------- | --------------------------------------------------------- | ----- |
-| #2572 | 2026-10-20 12:58 | ci(workflows): update GitHub Actions                      | no    |
-| #2601 | 2026-10-21 11:08 | health-check packaging; touches one workflow file         | no    |
-| #2665 | 2026-10-26 21:54 | ci(workflows): update GitHub Actions                      | no    |
-| #2676 | 2026-10-28 09:32 | ci(container): build shipped binaries without test features | no  |
+Four merges changed workflow files in the window. They changed seven distinct files between them; the
+files per merge are listed below, so the number of merges and the number of files are not confused.
+Times are GitHub's `merged_at` (UTC). The Git committer times of the same merges are 12:58:10,
+11:08:59, 21:54:55 and 09:32:27 UTC; `merged_at` is the later of the two by 2 to 10 minutes.
 
-PR #2574 (the #2525 change-detection tool, merged 2026-10-20 16:10 UTC), #2580 and #2675 are in the
-window but change no file under `.github/workflows` (`git diff --name-only M^1 M | grep -c
+| PR    | Merged (`merged_at`, UTC) | Change (subject)                                           | Workflow files changed                                                                                                                                       | #2525 |
+| ----- | ------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----- |
+| #2572 | 2026-10-20 13:00:47       | ci(workflows): update GitHub Actions                       | `coverage.yaml`, `generate_coverage_pr.yaml`, `security-scan.yaml`, `testing.yaml` (4)                                                                       | no    |
+| #2601 | 2026-10-21 11:18:42       | fix(axum-health-check-api-server): remove the self dev-dependency and check workspace packaging | `testing.yaml` (1)                                                                                                       | no    |
+| #2665 | 2026-10-26 21:57:03       | ci(workflows): update GitHub Actions                       | `container.yaml`, `copilot-setup-steps.yml`, `coverage.yaml`, `docs-lint.yaml`, `generate_coverage_pr.yaml`, `security-scan.yaml`, `testing.yaml` (7)        | no    |
+| #2676 | 2026-10-28 09:34:42       | ci(container): build the shipped binaries without test features | `testing.yaml` (1)                                                                                                                                  | no    |
+
+PR #2574 (the #2525 change-detection tool, `merged_at` 2026-10-20 16:10:04 UTC), #2580 and #2675 are
+in the window but change no file under `.github/workflows` (`git diff --name-only M^1 M | grep -c
 '^.github/workflows'` is 0), so the path search does not list them. No merge in the window wires the
-PR #2525 `CI gate` into a workflow. #2523 (merged 2026-10-14 08:51 UTC) is before the window.
+`CI gate` of #2525 into a workflow. PR #2523 (`merged_at` before the window) is not listed.
 
 ## 7. Merge Bunching and Waiting
 
@@ -487,9 +493,9 @@ snapshot because the baseline's sampled runs cannot be recounted, so they are no
   figures are not comparable. Per-merged-PR figures remove that difference but not the workload mix:
   the share of code merges rose from 27.9% to 48.8% (section 8), which affects the CI rows in
   particular.
-- The `CI gate` of #2525 landed no workflow wiring in the window (section 6), and four workflow files
-  changed for other reasons. #2676 changed the Container build and may account for part of that
-  workflow's runtime change.
+- The `CI gate` of #2525 landed no workflow wiring in the window (section 6), and four merges
+  changed seven workflow files for other reasons. #2665 alone touched all seven, so a change of
+  workflow runtime between the periods cannot be attributed to one of them.
 - The refresh-path count is inferred from run creation times, because the merge tool's output is not
   captured. Two of its 68 merges do not show `base.sha` equal to `M^1`.
 - Fallout classification is a reading of commit subjects and is the maintainer's to confirm.
