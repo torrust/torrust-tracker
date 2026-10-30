@@ -284,28 +284,39 @@ partial; the baseline method also averaged over all runs, so the comparison is l
 ## 5. Rebase-Fallout Commits (baseline section 7)
 
 Candidates by the baseline command, filtered by author date to the window; then classified by reading
-the subjects. A commit counts when its only purpose is to record a rebase or to re-cite an id a rebase
-orphaned. The maintainer reviews this classification.
+the subjects. The baseline's section 7 list is a broad proxy for review noise caused by rebases: it
+holds commits that record or repair a rebase, and commits that re-cite an id by subject so a later
+rebase cannot orphan it, which is preventive and not a repair. This evidence applies one definition to
+both periods and reports the two kinds apart. The maintainer reviews this classification.
 
 ```sh
 git log --no-merges --since=2026-09-25 --until=2026-11-01 --format='%h|%aI|%s' -i -E \
   --grep='rebase|rebased|rebasing|instead of (the )?(branch )?(commit )?id|by subject|rebase-safe|orphan' torrust/develop
 ```
 
-Counted in the window (12), author dates 2026-10-15 to 2026-10-28:
+Kind A, the subject names a rebase (it records one or repairs its effects). Window, author dates
+2026-10-15 to 2026-10-28 (5):
 
 - `a6457bf87` record the second rebase onto develop for #2668
 - `6d8eefc4c` link pull request 2678 and record the rebase for #2668
-- `a7bfc15f7` [#2466] cite the verified commit by subject in the evidence file
-- `453c6fa9a` [#2606] cite the checked commit by subject in the evidence
-- `ae08130cb` [#2628] cite the round 3 head by subject in the F12 correction
-- `ed3a4f756` cite commit subjects instead of ids in the PR 2630 audit
-- `faf21a128` [#2416] cite a branch commit by its subject, not its id, in the audit
-- `261efbe43` cite the reviewed head by subject in the PR 2624 audit
 - `2d58f3b46` [#2582] record the checks rerun after rebasing onto develop
 - `147a22cf5` [#2414] record the second rebase onto develop
 - `4a1ef60a0` [#2414] record the rebase onto the latest develop
+
+Kind B, the subject cites a commit by its subject instead of its id, a preventive housekeeping edit
+under the branch-id rule. Window (6):
+
+- `a7bfc15f7` [#2466] cite the verified commit by subject in the evidence file
+- `453c6fa9a` [#2606] cite the checked commit by subject in the evidence
+- `ae08130cb` [#2628] cite the round 3 head by subject in the F12 correction
+- `faf21a128` [#2416] cite a branch commit by its subject, not its id, in the audit
+- `261efbe43` cite the reviewed head by subject in the PR 2624 audit
 - `f3b1b1bc0` [#2413] cite the approved head by commit subject in the retrospective
+
+Excluded from both kinds, a repair after a force-push that was not a rebase (1): `ed3a4f756` cite
+commit subjects instead of ids in the PR 2630 audit. PR #2630's one force-push (2026-10-23 17:46 UTC,
+section 2.1) left the base unchanged, and the commit was authored on 2026-10-24. The baseline period
+has no such case, because history rewrites other than rebases were not allowed then.
 
 Candidates matched but not counted (not repairs of rebase fallout): `12b9c922f`, `b6d87209d`,
 `80b42b7b2`, `f25c370e6`, `62a87a4dd`, `aaf2f9b4b`, `437f79b54`, the #2547 and #2507 measurement
@@ -313,9 +324,15 @@ commits (`cbf2b8b3b`, `1dea06489`, `0dbe53d32`, `436a91dde`, `7a3d1ccc1`, `2733f
 `b174608fa` (corrects an audit's head citation and findings; not counted).
 
 Baseline recount: 13 of the 23 commits listed in baseline section 7 have author dates from 1 to 13
-October (checked with `git log -1 --format='%h %aI' <id>`): `505fa5745`, `ef27e6585`, `1736f0d91`,
-`03bc9d794`, `4596fb323`, `6f7053686`, `648d184b6`, `9bc523862`, `0be2875aa`, `3b6c63027`,
-`df4b11a29`, `91b0f5b22`, `943b02765`. The other ten are dated 2 to 30 September.
+October (checked with `git log -1 --format='%h %aI' <id>`). Kind A (6): `505fa5745`, `1736f0d91`,
+`03bc9d794`, `4596fb323`, `648d184b6`, `0be2875aa`. Kind B (7): `ef27e6585`, `6f7053686`, `9bc523862`,
+`3b6c63027`, `df4b11a29`, `91b0f5b22`, `943b02765`. The other ten are dated 2 to 30 September.
+
+| Kind                       | 1 to 13 Oct | Per merged PR (68) | 15 to 28 Oct | Per merged PR (121) |
+| -------------------------- | ----------: | -----------------: | -----------: | ------------------: |
+| A, the subject names a rebase |        6 |               0.09 |            5 |                0.04 |
+| B, cite by subject         |           7 |               0.10 |            6 |                0.05 |
+| **A + B (broad proxy)**    |      **13** |           **0.19** |       **11** |            **0.09** |
 
 ## 6. Workflow-Changing Merges in the Window
 
@@ -452,9 +469,10 @@ snapshot because the baseline's sampled runs cannot be recounted, so they are no
 | Estimated PR CI runner-hours               |              197.8 |              n/a |                 567.0 |
 | Runner-hours per day                       |               15.2 |              n/a |                  40.5 |
 | Runner-hours per merged PR                 |                3.0 |              n/a |                   4.7 |
-| Rebase-fallout commits                     |                n/a |               13 |                    12 |
-| Rebase-fallout commits per day             |                n/a |             1.00 |                  0.86 |
-| Rebase-fallout commits per merged PR       |                n/a |             0.19 |                  0.10 |
+| Fallout commits, kind A (names a rebase)   |                n/a |                6 |                     5 |
+| Fallout commits, A + B (broad proxy)       |                n/a |               13 |                    11 |
+| A + B per day                              |                n/a |             1.00 |                  0.79 |
+| A + B per merged PR                        |                n/a |             0.19 |                  0.09 |
 | Median daily open-PR queue                 |                  8 |                8 |                     5 |
 | Consecutive merges within 15 minutes       |                n/a |               4% |                   41% |
 | Median gap between merges (minutes)        |                n/a |             68.3 |                  23.3 |
@@ -470,7 +488,7 @@ snapshot because the baseline's sampled runs cannot be recounted, so they are no
   recorded-base refresh path (inferred, not observed).
 - Median time to merge halved (3.8 to 1.9 hours against the recount; 4.0 published) and the median
   queue fell from 8 to 5, with 1.65 times as many merges
-  per day (121/14 against 68/13). Fallout commits per merged PR halved (0.19 to 0.10); per day they barely moved (1.00 to 0.86).
+  per day (121/14 against 68/13). The broad fallout proxy per merged PR halved (0.19 to 0.09) and kind A, the commits that name a rebase, fell from 0.09 to 0.04 per merged PR; per day the broad proxy fell less, from 1.00 to 0.79 (section 5).
 - Merges are bunched far more tightly: consecutive merges within 15 minutes went from 4% to 41%
   (section 7), consistent with queued PRs no longer waiting for a rebase and its CI between merges.
   The time from CI to merge cannot show this and is inconclusive.
