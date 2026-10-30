@@ -38,7 +38,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-All findings are by the human reviewer `da2ce7`. F1 to F6 are from review 5715892693 (CHANGES_REQUESTED, 2026-10-30 17:09:01 UTC, on the head whose subject is `docs(pr-reviews): [#2547] record the post-merge findings F20 to F22 of PR 2690`). The reviewer's own IDs F1 to F6 are kept; this pull request had no audit before, so there is no collision. F2 to F4 are blocking, F1, F5 and F6 are nonblocking. Review 5716380696 (CHANGES_REQUESTED, 2026-10-30 17:50:05 UTC, on the head whose subject is `docs(pr-reviews): [#2547] record the resolution of the PR 2693 review threads`) resolved F1 to F4 and F6 and raised F7 (Minor, blocking), which continues F5; F8 is its "Not yet" reply in the thread of F5 (a reply, so its Source URL is the submitted review).
+All findings are by the human reviewer `da2ce7`. F1 to F6 are from review 5715892693 (CHANGES_REQUESTED, 2026-10-30 17:09:01 UTC, on the head whose subject is `docs(pr-reviews): [#2547] record the post-merge findings F20 to F22 of PR 2690`). The reviewer's own IDs F1 to F6 are kept; this pull request had no audit before, so there is no collision. F2 to F4 are blocking, F1, F5 and F6 are nonblocking. Review 5716380696 (CHANGES_REQUESTED, 2026-10-30 17:50:05 UTC, on the head whose subject is `docs(pr-reviews): [#2547] record the resolution of the PR 2693 review threads`) resolved F1 to F4 and F6 and raised F7 (Minor, blocking), which continues F5; F8 is its "Not yet" reply (comment r4426734938) in the thread of F5; that reply belongs to review 5716383184, which is its Source review ID and the review its Source URL names, while the comment link is kept in the Concern.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -147,10 +147,10 @@ All findings are by the human reviewer `da2ce7`. F1 to F6 are from review 571589
 ### F8 - Re-check of F5 at the previous head
 
 - PR number: 2693
-- Source review ID: 5716380696
+- Source review ID: 5716383184
 - Reviewer finding ID: N/A
-- Source URL: https://github.com/torrust/torrust-tracker/pull/2693#pullrequestreview-5716380696
-- Concern: A "Not yet" reply (inline comment r4426734938) in the thread of F5: the reply URLs are right, but the semicolon-separated text is parsed as nonexistent commit subjects; F7 continues it.
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2693#pullrequestreview-5716383184
+- Concern: A "Not yet" reply (inline comment r4426734938, link https://github.com/torrust/torrust-tracker/pull/2693#discussion_r4426734938; it belongs to review 5716383184 and replies in the thread of F5, root r4426354689): the reply URLs are right, but the semicolon-separated text is parsed as nonexistent commit subjects; F7 continues it.
 - Solution: The fix of F7 completes F5; see that finding.
 - Current-tree verification: Same as F7.
 - Resolution reference: `docs(pr-reviews): [#2547] keep the pending resolution references parseable`
