@@ -81,7 +81,7 @@ The `develop` tip at push time is the last first-parent `develop` commit whose P
 before the push. The `beforeCommit` objects were fetched with `git fetch torrust <sha>`.
 
 ```sh
-git log --first-parent --format='%H%x09%s' torrust/develop --since=2026-10-01   # tip lookup
+git log --first-parent --format='%H%x09%s' torrust/develop --since=2026-10-01T00:00:00Z   # tip lookup
 git merge-base <tip> <beforeCommit>; git merge-base <tip> <afterCommit>
 git merge-tree --write-tree <tip> <beforeCommit>   # exit != 0: conflict
 ```
@@ -258,7 +258,7 @@ gh api --paginate repos/torrust/torrust-tracker/actions/runs/<id>/jobs \
 | ------------------------------ | ---: | -----------------------: | ---------------------: |
 | Generate Coverage Reports (PR) | 324 | 34.4 | 185.5 |
 | Testing | 324 | 26.0 | 140.2 |
-| OS Compatibility | 324 | 24.8 | 133.8 |
+| OS Compatibility | 324 | 24.8 | 133.7 |
 | Container | 324 | 14.1 | 76.4 |
 | Docs Lint | 520 | 1.6 | 13.8 |
 | Database Compatibility | 32 | 16.1 | 8.6 |
@@ -266,6 +266,9 @@ gh api --paginate repos/torrust/torrust-tracker/actions/runs/<id>/jobs \
 | Database Benchmarking | 32 | 5.8 | 3.1 |
 | Copilot Setup Steps | 5 | 10.1 | 0.8 |
 | **Total**                      | 1894 |                          |              **567.1** |
+
+The rows are rounded to one decimal for display. The total is the sum of the unrounded rows, 567.05,
+rounded once; the displayed rows sum to 567.0. Appendix A.5 gives the unrounded values.
 
 Sampled run ids by workflow:
 
@@ -386,7 +389,7 @@ The per-merge input of the second figure is kept in
 15 to 28 October), PR number, GitHub `merged_at`, and the latest `updated_at` of the finished runs of the
 merged head. It has one row for each of the 68 baseline and 121 window merges; no merge was excluded,
 and every head had at least one finished run. It was built with this loop, where `fp_merges_t.txt`
-is the merge list of A.3 (with #2397 and #2400 added from their `--grep` lookup):
+is the merge list of A.3 (`fp_merges_t.txt`, built with the explicit UTC boundary):
 
 ```sh
 while read M n mt; do
@@ -490,7 +493,7 @@ snapshot because the baseline's sampled runs cannot be recounted, so they are no
 | Merges on the refresh path (inferred)      |                n/a |              n/a |             68 (56%)  |
 | `pull_request` runs                        |       899 (69/day) |              n/a |        1894 (135/day) |
 | `pull_request` runs per merged PR          |               13.4 |              n/a |                  15.7 |
-| Estimated PR CI runner-hours               |              197.8 |              n/a |                 567.0 |
+| Estimated PR CI runner-hours               |              197.8 |              n/a |                 567.1 |
 | Runner-hours per day                       |               15.2 |              n/a |                  40.5 |
 | Runner-hours per merged PR                 |                3.0 |              n/a |                   4.7 |
 | Fallout commits, kind A (names a rebase)   |                n/a |                6 |                     5 |
@@ -595,7 +598,7 @@ gives 130 and the same filter for 1 to 14 October gives 76.
 `merged_at`. `fp11.tsv` has one line per force-push: PR, time, `beforeCommit`, `afterCommit`.
 
 ```sh
-git log --first-parent --format='%H%x09%s' torrust/develop --since=2026-10-01 \
+git log --first-parent --format='%H%x09%s' torrust/develop --since=2026-10-01T00:00:00Z \
   | sed -n 's/^\([0-9a-f]*\)\tMerge torrust\/torrust-tracker#\([0-9]*\):.*/\1 \2/p' > fp_merges.txt
 jq -r '.[]|select(.mergedAt!=null)|"\(.number) \(.mergedAt)"' prs.json | sort > merged_at.txt
 while read c n; do echo "$c $n $(grep "^$n " merged_at.txt | cut -d' ' -f2)"; done < fp_merges.txt > fp_merges_t.txt
@@ -608,9 +611,13 @@ while IFS=$'\t' read n t b a; do
 done < fp11.tsv
 ```
 
-`git log --since` stops at an older commit, so it missed two merges of 1 October (#2397 and #2400);
-they were found with `git log --first-parent --grep="#<n>:" torrust/develop`. Neither is a force-push
-candidate, but both are in the merge-bunching and workload-mix figures.
+The boundary must carry a time: `--since=2026-10-01` alone takes the time of day at which the command
+runs, and an earlier version of this evidence used it. Replayed after 10:27 UTC, that command omits three
+merges of 1 October, #2397, #2400 and #2401, which were committed from 06:54 to 10:27 UTC;
+`--since=2026-10-01T00:00:00Z` lists them and gives 211 first-parent merges (208 without it). The
+merges at or after the boundary then reproduce exactly the 189 rows of `evidence/ci-to-merge.tsv`
+(68 baseline, 121 window; checked by comparing the sets of period and PR number). None of the three is a
+force-push candidate, but all are in the merge-bunching and workload-mix figures.
 
 ### A.4 Merges behind `develop` and the refresh path (section 3)
 
@@ -656,8 +663,9 @@ hours before rounding:
 | Testing | 324 | 6 | 25.957 | 140.17 |
 | **Total** | 1894 | 53 | | **567.05** |
 
-The total is 567.05 runner-hours before rounding, which is 567.1 to one decimal; section 4 and the
-comparison round the per-workflow hours first. Per-run job-minutes of the 53 sampled runs, in the order
+The total is the sum of the unrounded hours, 567.053 runner-hours, rounded once to 567.1; section 4 and
+the comparison use that figure. The one-decimal rows of section 4 are rounded for display and sum to 567.0,
+so they are not summed to get the total. Per-run job-minutes of the 53 sampled runs, in the order
 the seeded shuffle produced them (the first run of each workflow is the one the manual check V2 used):
 
 | Workflow                       | Run id       | Job-minutes |

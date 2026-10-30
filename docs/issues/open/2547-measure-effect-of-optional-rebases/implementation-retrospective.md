@@ -35,8 +35,10 @@ wrongly or too loosely; they were corrected in the PR.
    13 October, so it holds 67 merges; the full window holds 68. The first version of the evidence mixed
    the two and claimed its median reproduced the baseline's, which was true only for 67 merges: the code
    took the upper middle value of an even count, which hid the difference until the review.
-2. **A time-limited `git log --since` walk missed two merges** of 1 October, because the walk stops at
-   an older commit. They were found by `--grep="#<n>:"` and added to the merge-bunching and mix figures.
+2. **A `git log --since=<date>` walk missed three merges** of 1 October (#2397, #2400 and #2401): a date
+   without a time takes the time of day of the run. Two were found by `--grep="#<n>:"` and added by hand;
+   the review of PR #2690 showed the construction was not reproducible, and the explicit boundary
+   `--since=2026-10-01T00:00:00Z` now lists all three.
 3. **The documentation and code split was promised by the specification and still omitted.** The
    per-PR CI cost rose, which the expectation of this issue did not predict, and the omitted split is the
    confounder that most plausibly explains it.
