@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-review
 priority: p3
 epic: null
 github-issue: 2547
 spec-path: docs/issues/open/2547-measure-effect-of-optional-rebases/ISSUE.md
 branch: "2547-measure-effect-of-optional-rebases"
 related-pr: 2690
-last-updated-utc: "2026-10-30 13:30"
+last-updated-utc: "2026-10-30 13:50"
 semantic-links:
   skill-links:
     - create-issue
@@ -172,8 +172,8 @@ with GPG.
 - [x] Implementation completed
 - [x] Automatic verification completed (`linter all`)
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [ ] Committer verified spec progress is up to date before commit
@@ -215,6 +215,11 @@ with GPG.
   GitHub issue body was updated to match.
 - 2026-10-16 15:40 UTC - AI assistant - #2507 was closed and its specification archived, so the links
   to its baseline and evidence now point to `docs/issues/closed/2507-stop-requiring-pull-request-rebases/`.
+- 2026-10-29 17:30 UTC - AI assistant - Maintainer feedback before implementation: per-day figures use
+  inclusive calendar days (14 for the window, 13 for the baseline); the CI sample stays at six runs per
+  workflow with a recorded seed; the confounder list covers every merge that changed
+  `.github/workflows/**` in the window, not only #2525 (the window already holds the ci-gate merges
+  #2574 and #2580 and several other workflow edits).
 - 2026-10-30 09:10 UTC - AI assistant - Collected the window data (T1 to T3) and wrote
   `post-change-evidence.md`. Findings: force-pushes per merged PR fell from 1.58 to 0.09, but
   estimated PR CI runner-hours rose from 15.2 to 40.5 per day (3.0 to 4.7 per merged PR). The baseline
@@ -228,11 +233,10 @@ with GPG.
   grew, but it does not measure rebase waiting (the baseline merges followed the rebase's CI by design).
 - 2026-10-30 13:30 UTC - AI assistant - Opened pull request #2690 from the bot's fork and set
   `related-pr` to 2690.
-- 2026-10-29 17:30 UTC - AI assistant - Maintainer feedback before implementation: per-day figures use
-  inclusive calendar days (14 for the window, 13 for the baseline); the CI sample stays at six runs per
-  workflow with a recorded seed; the confounder list covers every merge that changed
-  `.github/workflows/**` in the window, not only #2525 (the window already holds the ci-gate merges
-  #2574 and #2580 and several other workflow edits).
+- 2026-10-30 13:50 UTC - AI assistant - Completed the close-out state after the first review of PR #2690:
+  acceptance verification, completion review (`implementation-retrospective.md`), status `in-review`, the
+  M1/M2 deviation in the scenario table, and the chronological order of this log. No independent reviewer
+  agent was given this folder, so no `agent-review-reports.md` is recorded.
 
 ## Acceptance Criteria
 
@@ -262,12 +266,14 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario                     | Human-oriented command/steps                                                                                                   | Expected Result                                       | Status | Evidence                                     |
 | --- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------- | ------ | -------------------------------------------- |
-| M1  | Spot-check force-push counts | Pick three merged PRs from the window and count "force-pushed" entries in each PR's GitHub conversation timeline in a browser. | The counts match the per-PR table.                    | DONE   | `manual-verification-evidence.md` section V1 |
-| M2  | Spot-check a CI sample       | Open one sampled workflow run per workflow in the GitHub Actions UI and add up its job durations.                              | The sum matches the job-minutes recorded for the run. | DONE   | `manual-verification-evidence.md` section V2 |
+| M1  | Spot-check force-push counts | Pick three merged PRs from the window and count "force-pushed" entries in each PR's GitHub conversation timeline in a browser (executed through the REST timeline API, no browser was available). | The counts match the per-PR table.                    | DONE   | `manual-verification-evidence.md` section V1 |
+| M2  | Spot-check a CI sample       | Open one sampled workflow run per workflow in the GitHub Actions UI and add up its job durations (executed with `gh run view --json jobs`, not the UI).                              | The sum matches the job-minutes recorded for the run. | DONE   | `manual-verification-evidence.md` section V2 |
 
 Notes:
 
 - Create `manual-verification-evidence.md` from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`.
+- M1 and M2 were executed as API cross-checks on 2026-10-30; the deviation from the browser and UI
+  checks is recorded in `manual-verification-evidence.md`.
 
 ### Disposable Verification Scripts
 
@@ -277,10 +283,10 @@ None planned.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1   | TODO                   |          |
-| AC2   | TODO                   |          |
-| AC3   | TODO                   |          |
-| AC4   | TODO                   |          |
+| AC1   | DONE                   | `post-change-evidence.md` sections 1, 2, 4, 5 and 9 |
+| AC2   | DONE                   | `post-change-evidence.md` sections 2.1 and 3        |
+| AC3   | DONE                   | `post-change-evidence.md` Appendix A and the commands of each section |
+| AC4   | DONE                   | `post-change-evidence.md` sections 10 and 11        |
 
 ## Risks and Trade-offs
 
@@ -298,10 +304,8 @@ None planned.
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
-- If needed, create `implementation-retrospective.md` from
-  `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this directory.
-- If no retrospective is needed, add a concise progress-log entry explaining why.
+- Retrospective: [`implementation-retrospective.md`](implementation-retrospective.md) records the baseline
+  population, median, merge-list and reproducibility discoveries of the first review round.
 
 ## References
 
