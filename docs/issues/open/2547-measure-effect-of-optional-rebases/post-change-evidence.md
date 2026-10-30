@@ -11,12 +11,15 @@ semantic-links:
 
 # Post-Change Evidence: Optional Pull-Request Rebases
 
-Collected on 2026-10-30 between 07:50 and 09:30 UTC from the GitHub REST and GraphQL APIs for
+Collected on 2026-10-30 from the GitHub REST and GraphQL APIs for
 `torrust/torrust-tracker` (authenticated as `josecelano`) and from a local clone at
 `torrust/develop` tip `49641da38` (`Merge torrust/torrust-tracker#2688`). Window: 2026-10-15 00:00
 UTC to 2026-10-28 23:59 UTC (14 days). Baseline: 1 to 13 October 2026 (13 days), from
 [`baseline-evidence.md`](../../closed/2507-stop-requiring-pull-request-rebases/baseline-evidence.md).
-Raw output was kept in a scratch directory and is not committed; the tables below are the raw
+The data of sections 1 to 6 was collected between 08:02 and 08:58 UTC (file times of the raw output);
+section 7 was computed at about 12:30 UTC and its inputs recomputed at 13:11 UTC; the manual checks ran at
+11:09 UTC. Raw output was kept in a scratch directory and is not committed, except
+`evidence/ci-to-merge.tsv`; the tables below are the raw
 per-item results. Retrieval commands are recorded verbatim in each section; the commands that turn
 their output into the tables, and the per-run CI data, are in Appendix A.
 
@@ -378,28 +381,49 @@ gh api "repos/torrust/torrust-tracker/actions/runs?head_sha=$M2&event=pull_reque
   --jq '[.workflow_runs[]|select(.conclusion=="success" or .conclusion=="failure")|.updated_at]|max // "none"'
 ```
 
-The statistics were computed with this ad-hoc Python (`SCRATCH` was a scratch directory holding the
-`prs.json` of section 1 and a `ci2merge.tsv` file with one line per merge: period, PR, `merged_at`, last
-run time):
+The per-merge input of the second figure is kept in
+[`evidence/ci-to-merge.tsv`](evidence/ci-to-merge.tsv): period (`base` for 1 to 13 October, `win` for
+15 to 28 October), PR number, GitHub `merged_at`, and the latest `updated_at` of the finished runs of the
+merged head. It has one row for each of the 68 baseline and 121 window merges; no merge was excluded,
+and every head had at least one finished run. It was built with this loop, where `fp_merges_t.txt`
+is the merge list of A.3 (with #2397 and #2400 added from their `--grep` lookup):
+
+```sh
+while read M n mt; do
+  case $mt in 2026-10-0*|2026-10-1[0-3]*) per=base;; 2026-10-1[5-9]*|2026-10-2[0-8]*) per=win;; *) continue;; esac
+  h=$(git rev-parse -q --verify $M^2) || continue
+  last=$(gh api "repos/torrust/torrust-tracker/actions/runs?head_sha=$h&event=pull_request&per_page=100" --jq '[.workflow_runs[]|select(.conclusion=="success" or .conclusion=="failure")|.updated_at]|max // "none"')
+  echo -e "$per\t$n\t$mt\t$last"
+done < fp_merges_t.txt
+```
+
+The statistics were computed with this ad-hoc Python. Medians are the mean of the two middle values for
+an even count. The quartile and percentile use `statistics.quantiles(..., method="inclusive")`, which
+interpolates linearly between observations. The gaps use the same median.
 
 ```python
-import json,sys,statistics as st
+import json,sys,csv,statistics as st
 from datetime import datetime as D
-def t(s): return D.strptime(s,"%Y-%m-%dT%H:%M:%SZ").timestamp()
-prs=json.load(open(SCRATCH+"/prs.json"))
+t=lambda s:D.strptime(s,"%Y-%m-%dT%H:%M:%SZ").timestamp()
+prs=json.load(open("prs.json"))
 for name,a,b in [("base","2026-10-01","2026-10-14"),("win","2026-10-15","2026-10-29")]:
     m=sorted(t(p["mergedAt"]) for p in prs if p["mergedAt"] and a<=p["mergedAt"][:10]<b)
     g=[(y-x)/60 for x,y in zip(m,m[1:])]
-    n=len(g)
-    print(name,"merges",len(m),"median gap min %.1f"%st.median(g),"<=15min %d (%.0f%%)"%(sum(x<=15 for x in g),100*sum(x<=15 for x in g)/n),"<=5min %d (%.0f%%)"%(sum(x<=5 for x in g),100*sum(x<=5 for x in g)/n))
-    # runs: merges that have another merge within the previous 15 min
-    r=[]
-    for line in open(SCRATCH+"/ci2merge.tsv"):
-        per,n_,mt,last=line.rstrip("\n").split("\t")
-        if per==name: r.append((t(mt)-t(last))/60)
-    r.sort()
-    q=lambda p:r[int(p*(len(r)-1))]
-    print(name,"CI-done->merge n=%d median %.1f min p75 %.1f p90 %.1f; <=15min %d (%.0f%%); >60min %d (%.0f%%)"%(len(r),q(.5),q(.75),q(.9),sum(x<=15 for x in r),100*sum(x<=15 for x in r)/len(r),sum(x>60 for x in r),100*sum(x>60 for x in r)/len(r)), "negative:",sum(x<0 for x in r))
+    print(name,"merges",len(m),"median gap min %.1f"%st.median(g),"<=15min %d (%.0f%%)"%(sum(x<=15 for x in g),100*sum(x<=15 for x in g)/len(g)),"<=5min %d (%.0f%%)"%(sum(x<=5 for x in g),100*sum(x<=5 for x in g)/len(g)))
+rows=list(csv.DictReader(open("evidence/ci-to-merge.tsv"),delimiter="\t"))
+for per in ("base","win"):
+    r=sorted((t(x["merged_at"])-t(x["last_finished_ci_run"]))/60 for x in rows if x["period"]==per)
+    q=st.quantiles(r,n=100,method="inclusive")
+    print(per,len(r),"median %.1f"%st.median(r),"p75 %.1f"%q[74],"p90 %.1f"%q[89],"le15 %d (%.0f%%)"%(sum(x<=15 for x in r),100*sum(x<=15 for x in r)/len(r)),"gt60 %d (%.0f%%)"%(sum(x>60 for x in r),100*sum(x>60 for x in r)/len(r)))
+```
+
+Output:
+
+```text
+base merges 68 median gap min 68.3 <=15min 3 (4%) <=5min 1 (1%)
+win merges 121 median gap min 23.3 <=15min 49 (41%) <=5min 7 (6%)
+base 68 median 15.4 p75 49.6 p90 274.8 le15 34 (50%) gt60 14 (21%)
+win 121 median 46.3 p75 159.7 p90 605.3 le15 32 (26%) gt60 54 (45%)
 ```
 
 | Measure                                               | 1 to 13 Oct | 15 to 28 Oct |
@@ -409,8 +433,8 @@ for name,a,b in [("base","2026-10-01","2026-10-14"),("win","2026-10-15","2026-10
 | Gaps of 15 minutes or less                            |     3 (4%)  |     49 (41%)  |
 | Gaps of 5 minutes or less                             |     1 (1%)  |      7 (6%)   |
 | Merges with a finished CI run (CI to merge)           |          68 |           121 |
-| Median minutes from last finished CI run to merge     |        14.9 |          46.3 |
-| 90th percentile of the same                           |       130.1 |         605.3 |
+| Median minutes from last finished CI run to merge     |        15.4 |          46.3 |
+| 90th percentile of the same (linear interpolation)    |       274.8 |         605.3 |
 
 Reading:
 
