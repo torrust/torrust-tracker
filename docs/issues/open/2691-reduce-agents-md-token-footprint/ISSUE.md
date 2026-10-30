@@ -9,7 +9,7 @@ github-issue: 2691
 spec-path: docs/issues/open/2691-reduce-agents-md-token-footprint/ISSUE.md
 branch: "2691-reduce-agents-md-token-footprint-spec"
 related-pr: null
-last-updated-utc: "2026-10-30 14:15"
+last-updated-utc: "2026-10-30 15:00"
 semantic-links:
   skill-links:
     - create-issue
@@ -17,6 +17,7 @@ semantic-links:
     - .github/skills/dev/planning/create-issue/SKILL.md
     - AGENTS.md
     - docs/adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md
+    - docs/issues/open/2691-reduce-agents-md-token-footprint/research.md
 ---
 
 <!-- skill-link: create-issue -->
@@ -113,9 +114,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                                                                  | Notes / Expected Output                                                                                 |
 | --- | ------ | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Measure the baseline token footprint of `AGENTS.md`                                   | Method, tool and numbers recorded in `research.md` (baseline section)                                   |
-| T2  | TODO   | Research best practices for agent instruction files                                   | `research.md` with sources, dates, and a short list of adopted practices with the evidence behind each  |
-| T3  | TODO   | Record how the major tools consume `AGENTS.md` (Claude Code accepts it as is)         | Short section in `research.md`; confirms no adapter file is needed                                      |
+| T1  | DONE   | Measure the baseline token footprint of `AGENTS.md`                                   | Method, tool and numbers recorded in `research.md` (baseline section)                                   |
+| T2  | DONE   | Research best practices for agent instruction files                                   | `research.md` with sources, dates, and a short list of adopted practices with the evidence behind each  |
+| T3  | DONE   | Record how the major tools consume `AGENTS.md` (Claude Code accepts it as is)         | Short section in `research.md`; confirms no adapter file is needed                                      |
 | T4  | TODO   | Classify each `AGENTS.md` section and record the disposition                          | `section-disposition.md` covering 100% of sections, including the destination for every moved rule      |
 | T5  | TODO   | Maintainer review of research and dispositions before any restructuring               | Explicit maintainer approval recorded in the progress log                                               |
 | T6  | TODO   | Move content to canonical homes (skills/docs) and replace it with links where needed  | No rule lost, no duplicated procedural guidance; links validated                                        |
@@ -163,6 +164,7 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - 2026-10-30 13:55 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the scope and decided no ADR is needed for now; removed the ADR task and added a post-implementation re-evaluation (T10) - this file
 - 2026-10-30 14:05 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer confirmed Claude Code accepts `AGENTS.md` in place of `CLAUDE.md`; removed the adapter work from the scope, T3, T7 and AC5 - this file
 - 2026-10-30 14:15 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the draft; created GitHub issue #2691, chose a spec-only PR, and moved the spec to `docs/issues/open/` - https://github.com/torrust/torrust-tracker/issues/2691
+- 2026-10-30 15:00 UTC - Claude Code (Claude Sonnet 5.5) - Completed T1 to T3: baseline measured (about 7.5k tokens by proxy tokenizers), research and adopted practices recorded, confirmed `AGENTS.md` needs no adapter; maintainer `/context` figure and target reduction still open - `research.md`
 
 ## Acceptance Criteria
 
