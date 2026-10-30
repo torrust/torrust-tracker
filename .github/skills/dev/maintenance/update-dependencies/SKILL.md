@@ -3,7 +3,7 @@ name: update-dependencies
 description: Guide for updating project dependencies in the torrust-tracker project. Covers the manual cargo update workflow including branch creation, running checks, committing, and pushing. Distinguishes trivial updates (Cargo.lock only) from breaking-change updates (code rework needed). Use when updating dependencies, running cargo update, or bumping deps. Triggers on "update dependencies", "cargo update", "update deps", or "bump dependencies".
 metadata:
   author: torrust
-  version: "1.1"
+  version: "1.2"
 semantic-links:
   skill-links:
     - update-github-workflow-actions
@@ -93,6 +93,10 @@ git checkout -b "$UPDATE_BRANCH"
 mkdir -p .tmp
 ```
 
+Confirm the branch is cut from an up-to-date `develop` before running anything. A branch cut from
+`main` (or any older branch) lacks the current hooks and tooling, so every commit fails or checks
+against stale rules.
+
 For breaking-change updates that require a tracked issue:
 
 ```bash
@@ -127,6 +131,19 @@ If any updated dependency introduced a breaking API change:
 # Revert a single crate to its current locked version to defer it
 cargo update --precise {old-version} {crate-name}
 ```
+
+`cargo update --precise` is only recorded in `Cargo.lock`; the next plain `cargo update` moves the
+crate again whenever the manifest requirement is loose (for example `"0"` or `"1"`). To defer a
+breaking release durably, also pin the manifest requirement to the current series (for example
+`ringbuf = "0.5"`), commit that pin, and open a follow-up issue or PR that raises the pin together
+with the required code changes. Loosely-ranged `0.x` crates are the usual source of breaking
+minors, so after any `cargo update` run `cargo check --workspace --all-targets` to find them, and
+separate lints introduced by a newer toolchain from real dependency breakage by comparing with the
+base branch.
+
+A manifest requirement bump (for example `"0.27.0"` to `"0.28.0"`) is outside the compatible range
+of the old requirement. It is not a lockfile-only update: say so in the commit and the PR
+description.
 
 ### Step 4: Verify
 
@@ -166,6 +183,34 @@ for the PR-body structure. Include the complete `"$UPDATE_OUTPUT"` contents in t
 as well as the commit body, replacing the template's placeholder verbatim. Do not replace it with
 a manually abbreviated package list unless the output contains information that must not be
 published.
+
+## Optional: One Commit per Dependency
+
+When reviewers want each update traceable, update one package at a time instead of one big
+`cargo update`:
+
+1. Run `cargo update --dry-run` and list the packages that would change.
+2. For each package, run `cargo update -p <crate>` (use `<crate>@<version>` when several versions
+   exist), capture its complete output, and commit `Cargo.lock` with that output as the body.
+3. A per-crate update can leave related packages behind (for example a sibling crate of the same
+   project). Finish with a plain `cargo update` for the remainder and confirm that
+   `cargo update --dry-run` reports nothing left.
+4. A command that changes no package version only re-resolves dependency edges in `Cargo.lock`.
+   Say that in its commit message instead of claiming an update, and mention newly added
+   transitive packages (`Adding ...` lines) in the commit that introduces them.
+5. Prove each commit: re-run its command from the parent commit and check that the resulting
+   `Cargo.lock` equals the committed one.
+
+There is no single `cargo update` run in this mode, so the PR description holds each step's
+output in its own block, as it appears in the commit bodies. List the verification actually run
+(for example the workspace test suite on the final tree) and nothing that was not run.
+
+## CI Failures Unrelated to the Change
+
+If CI jobs fail before compiling the project (for example a shared build cache such as `sccache`
+returning a storage quota or availability error), the change is not the cause. Read the first
+failing step of each failed job to confirm, re-run the failed jobs once the quota or outage clears
+instead of changing code, and record the cause in the PR conversation.
 
 ## Decision Guide
 
