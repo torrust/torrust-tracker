@@ -95,9 +95,11 @@ feedback is prevented earlier and future review processing consumes fewer tokens
    resolve it. In a post-merge review, record `NO_ACTION` only when the
    maintainer has approved declining the follow-up work. If the current identity
    cannot resolve the thread (`viewerCanResolve` is `false`, as for a contributor
-   without write access who is not the PR author), still reply, record
-   `Disposition=FIXED` and `Thread state=OPEN`, and leave the resolution to the
-   reviewer or PR author. A general PR comment never replaces the per-thread reply.
+   without write access who is not the PR author), still reply, keep the
+   disposition established from the current tree (`FIXED`, `NO_ACTION`,
+   `SUPERSEDED`, or `FOLLOW_UP`), set only `Thread state=OPEN`, and leave the
+   resolution to the reviewer or PR author. Permission says nothing about whether
+   the concern was fixed. A general PR comment never replaces the per-thread reply.
 8. **Consolidate review bodies.** A PR conversation response may cover multiple
    review rounds only when it names every review ID and every finding ID with its
    disposition and resolution reference. Store its durable URL in each related

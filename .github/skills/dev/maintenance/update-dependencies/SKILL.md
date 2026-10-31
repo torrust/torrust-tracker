@@ -141,9 +141,11 @@ minors, so after any `cargo update` run `cargo check --workspace --all-targets` 
 separate lints introduced by a newer toolchain from real dependency breakage by comparing with the
 base branch.
 
-A manifest requirement bump (for example `"0.27.0"` to `"0.28.0"`) is outside the compatible range
-of the old requirement. It is not a lockfile-only update: say so in the commit and the PR
-description.
+Any manifest requirement edit is more than a lockfile-only update: say so in the commit and the PR
+description. Only some edits also cross the compatibility boundary of the old requirement. A bump
+such as `"0.27.0"` to `"0.28.0"` excludes versions the old requirement allowed, so it is outside the
+old compatible range. A bump such as `"0.28.0"` to `"0.28.1"` only raises the minimum within the old
+range and must not be described as outside it. State which case applies.
 
 ### Step 4: Verify
 
@@ -205,12 +207,15 @@ There is no single `cargo update` run in this mode, so the PR description holds 
 output in its own block, as it appears in the commit bodies. List the verification actually run
 (for example the workspace test suite on the final tree) and nothing that was not run.
 
-## CI Failures Unrelated to the Change
+## CI Failures Caused Outside the Change
 
-If CI jobs fail before compiling the project (for example a shared build cache such as `sccache`
-returning a storage quota or availability error), the change is not the cause. Read the first
-failing step of each failed job to confirm, re-run the failed jobs once the quota or outage clears
-instead of changing code, and record the cause in the PR conversation.
+Failing early does not by itself show that the change is innocent: dependency fetching, formatting
+and other linters run before the project tests, and a bad manifest, dependency selection or
+formatting change can fail there. Read the first failing step of each failed job and investigate it
+normally. Only when the log itself shows an external failure (for example a shared build cache such
+as `sccache` returning a storage quota or availability error) treat the change as not the cause:
+re-run the failed jobs once the quota or outage clears instead of changing code, and record the
+cause in the PR conversation.
 
 ## Decision Guide
 
