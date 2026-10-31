@@ -84,7 +84,7 @@ destination is verified to contain the content.
 
 | Source row | Verify before removing                                                                                       | Status |
 | ---------- | ------------------------------------------------------------------------------------------------------------ | ------ |
-| 5          | Catalog merged into `docs/packages.md`; links in `docs/packages.md` and `packages/AGENTS.md` (2) reversed     | TODO   |
+| 5          | Catalog merged into `docs/packages.md`; links in `docs/packages.md` and `packages/AGENTS.md` (2) reversed     | DONE   |
 | 6          | `docs/packages.md#package-conventions` matches the table (one difference: `*-protocol` wording)                | TODO   |
 | 7          | Configuration-file table present in `run-linters` or another canonical doc                                    | TODO   |
 | 8          | Build and test commands present in `docs/testing.md` or a skill                                               | TODO   |

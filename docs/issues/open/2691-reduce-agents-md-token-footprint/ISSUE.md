@@ -9,7 +9,7 @@ github-issue: 2691
 spec-path: docs/issues/open/2691-reduce-agents-md-token-footprint/ISSUE.md
 branch: "2691-reduce-agents-md-token-footprint-spec"
 related-pr: null
-last-updated-utc: "2026-10-30 16:30"
+last-updated-utc: "2026-10-30 17:00"
 semantic-links:
   skill-links:
     - create-issue
@@ -169,6 +169,7 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - 2026-10-30 15:30 UTC - Claude Code (Claude Sonnet 5.5) - Recorded the maintainer's `/context all` baseline: `AGENTS.md` is 12.4k Claude tokens, about 1.65 times the proxy tokenizer count, and about 22% of the session context - `research.md`
 - 2026-10-30 16:00 UTC - Claude Code (Claude Sonnet 5.5) - Completed T4: proposed a disposition for all 17 sections, estimated about 4.1k Claude tokens (about 67% reduction, about 60% if trimmed conservatively), listed prerequisites for T6 and five open questions; waiting for maintainer review (T5) - `section-disposition.md`
 - 2026-10-30 16:30 UTC - Claude Code (Claude Sonnet 5.5) - T5: maintainer reviewed the dispositions and decided D1 to D5 (target about 5k Claude tokens, skill/nested-`AGENTS.md` placement rule, catalog in `docs/packages.md`, keep Development Principles, keep all eight policies inline); estimate now about 4.5k Claude tokens - `section-disposition.md`
+- 2026-10-30 17:00 UTC - Claude Code (Claude Sonnet 5.5) - T6 step 1: moved the Package Catalog to `docs/packages.md` (23 packages and crate names verified one to one, tool tables carried over) and reversed the back-links in `packages/AGENTS.md`; `AGENTS.md` keeps a pointer and the `cargo metadata` command - `section-disposition.md`
 
 ## Acceptance Criteria
 

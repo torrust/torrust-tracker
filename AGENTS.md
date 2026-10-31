@@ -40,11 +40,11 @@ native IPv4/IPv6 support, private/whitelisted mode, and a management REST API.
   `packages/e2e-tools`)
 - `src/bootstrap/` — Application bootstrap logic
 - `src/console/` — Console entry points
-- `packages/` — Cargo workspace packages (all domain logic lives here; see package catalog below)
+- `packages/` — Cargo workspace packages (all domain logic lives here; see the [package catalog](docs/packages.md#package-catalog))
 - `console/` — Console tools (e.g., `tracker-client`)
 - `contrib/` — Developer tooling
 - `contrib/dev-tools/` — Developer tools: git hooks (`pre-commit.sh`, `pre-push.sh`, `install-git-hooks.sh`),
-  container scripts, init scripts, and the Rust developer-tool crates listed in the package catalog
+  container scripts, init scripts, and the Rust developer-tool crates listed in the [package catalog](docs/packages.md#package-catalog)
 - `tests/` — Integration tests (`integration.rs`, `servers/`)
 - `docs/` — Project documentation, ADRs, issue specs, and benchmarking guides
 - `docs/adrs/` — Architectural Decision Records
@@ -59,79 +59,9 @@ native IPv4/IPv6 support, private/whitelisted mode, and a management REST API.
 
 ## 📦 Package Catalog
 
-This catalog is the canonical list of workspace packages. The workspace members are the root crate
-`torrust-tracker`, the packages under `packages/` (table below), the console tool under `console/`
-and the developer tools under `contrib/dev-tools/` (tables further down). The authoritative list is
-`cargo metadata --no-deps --format-version 1`. Packages are versioned independently (see
-[ADR 20260629000000](docs/adrs/20260629000000_adopt_independent_package_versioning.md)); each
-package's `Cargo.toml` holds its version. Rows marked _(unpublished)_ set `publish = false`.
-
-| Package                           | Crate Name                                        | Prefix / Layer       | Description                                             |
-| --------------------------------- | ------------------------------------------------- | -------------------- | ------------------------------------------------------- |
-| `axum-health-check-api-server`    | `torrust-tracker-axum-health-check-api-server`    | `axum-*`             | Health monitoring endpoint                              |
-| `axum-http-server`                | `torrust-tracker-axum-http-server`                | `axum-*`             | BitTorrent HTTP tracker server (BEP 3/23)               |
-| `axum-rest-api-server`            | `torrust-tracker-axum-rest-api-server`            | `axum-*`             | Management REST API server                              |
-| `axum-server`                     | `torrust-tracker-axum-server`                     | `axum-*`             | Base Axum HTTP server infrastructure                    |
-| `configuration`                   | `torrust-tracker-configuration`                   | domain               | Config file parsing, environment variables              |
-| `e2e-tools`                       | `torrust-tracker-e2e-tools`                       | dev tools            | E2E test runners and profiling binaries _(unpublished)_ |
-| `events`                          | `torrust-tracker-events`                          | domain               | Domain event definitions                                |
-| `http-protocol`                   | `torrust-tracker-http-protocol`                   | `*-protocol`         | HTTP tracker protocol (BEP 3/23) parsing                |
-| `http-core`                       | `torrust-tracker-http-core`                       | `*-core`             | HTTP-specific tracker domain logic                      |
-| `persistence-benchmark`           | `torrust-tracker-persistence-benchmark`           | benchmarking         | Persistence layer benchmark _(unpublished)_             |
-| `primitives`                      | `torrust-tracker-primitives`                      | domain               | Core domain types (PeerId, Peer, SwarmMetadata, ...)    |
-| `rest-api-application`            | `torrust-tracker-rest-api-application`            | REST API application | REST API port traits and use-case services              |
-| `rest-api-client`                 | `torrust-tracker-rest-api-client`                 | client tools         | REST API client library                                 |
-| `rest-api-protocol`               | `torrust-tracker-rest-api-protocol`               | REST API protocol    | REST API wire contract (DTOs, error schemas)            |
-| `rest-api-runtime-adapter`        | `torrust-tracker-rest-api-runtime-adapter`        | runtime adapter      | REST API runtime adapter and container wiring           |
-| `swarm-coordination-registry`     | `torrust-tracker-swarm-coordination-registry`     | domain               | Torrent/peer coordination registry                      |
-| `test-helpers`                    | `torrust-tracker-test-helpers`                    | utilities            | Test configurations, logging, random data               |
-| `torrent-repository-benchmarking` | `torrust-tracker-torrent-repository-benchmarking` | benchmarking         | Torrent storage benchmarks _(unpublished)_              |
-| `tracker-client`                  | `torrust-tracker-client-lib`                      | client tools         | Generic UDP and HTTP tracker client library             |
-| `tracker-core`                    | `torrust-tracker-core`                            | `*-core`             | Central tracker peer-management logic                   |
-| `udp-protocol`                    | `torrust-tracker-udp-protocol`                    | `*-protocol`         | UDP tracker protocol (BEP 15) framing/parsing           |
-| `udp-core`                        | `torrust-tracker-udp-core`                        | `*-core`             | UDP-specific tracker domain logic                       |
-| `udp-server`                      | `torrust-tracker-udp-server`                      | server               | UDP tracker server implementation                       |
-
-**Extracted packages** — previously part of this workspace, now in their own standalone repositories:
-
-| Package          | Crate Name               | Standalone Repository                                                               | Description                                                      |
-| ---------------- | ------------------------ | ----------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| `clock`          | `torrust-clock`          | [torrust/torrust-clock](https://github.com/torrust/torrust-clock)                   | Deterministic clock abstraction                                  |
-| `located-error`  | `torrust-located-error`  | [torrust/torrust-located-error](https://github.com/torrust/torrust-located-error)   | Diagnostic errors with source locations                          |
-| `metrics`        | `torrust-metrics`        | [torrust/torrust-metrics](https://github.com/torrust/torrust-metrics)               | Prometheus-compatible metrics: counters, gauges, labels, samples |
-| `net-primitives` | `torrust-net-primitives` | [torrust/torrust-net-primitives](https://github.com/torrust/torrust-net-primitives) | Generic networking primitive types (ServiceBinding, Protocol)    |
-| `server-lib`     | `torrust-server-lib`     | [torrust/torrust-server-lib](https://github.com/torrust/torrust-server-lib)         | Shared server library utilities                                  |
-
-**Console tools** (under `console/`):
-
-| Tool             | Crate Name               | Description                                                                    |
-| ---------------- | ------------------------ | ------------------------------------------------------------------------------ |
-| `tracker-client` | `torrust-tracker-client` | Console clients for trackers (`tracker_client`, `tracker_checker`, and others) |
-
-**Workspace developer tools** (under `contrib/dev-tools/`, all _(unpublished)_):
-
-| Tool                                  | Crate Name                     | Description                                                |
-| ------------------------------------- | ------------------------------ | ---------------------------------------------------------- |
-| `analysis/workspace-coupling`         | `workspace-coupling`           | Generates the workspace coupling report                    |
-| `checks/agent-review-report-contract` | `agent-review-report-contract` | Validates agent-review report documentation contracts      |
-| `checks/ci-gate`                      | `ci-gate`                      | Decides which CI job groups a pull request needs           |
-| `checks/clippy-allow-reasons`         | `clippy-allow-reasons`         | Validates documented Clippy allow attributes               |
-| `checks/frontmatter-validator`        | `frontmatter-validator`        | Validates Markdown frontmatter                             |
-| `checks/package-coverage-check`       | `package-coverage-check`       | Checks changed workspace packages for coverage regressions |
-| `checks/shipped-features-check`       | `shipped-features-check`       | Fails if a `testing` feature reaches a shipped binary      |
-| `github/github-review-threads`        | `github-review-threads`        | Fetches pull-request review threads through the GitHub CLI |
-
-**Skill-owned tools** (a crate inside the skill folder that uses it, _(unpublished)_):
-
-| Tool                                                      | Crate Name           | Description                                                      |
-| --------------------------------------------------------- | -------------------- | ---------------------------------------------------------------- |
-| `.github/skills/dev/pr-reviews/wait-for-pr-review/tool`   | `wait-for-pr-review` | Blocks until a PR reviewer event happens, through the GitHub CLI |
-
-**Community contributions** (under `contrib/`):
-
-| Crate | Description                                                                                            |
-| ----- | ------------------------------------------------------------------------------------------------------ |
-| —     | None (bencode migrated to [torrust/torrust-bittorrent](https://github.com/torrust/torrust-bittorrent)) |
+Packages, crate names, layers, publish status and tools are listed in the
+[package catalog](docs/packages.md#package-catalog). The authoritative, always-current list is
+`cargo metadata --no-deps --format-version 1`.
 
 ## 🏷️ Package Naming Conventions
 

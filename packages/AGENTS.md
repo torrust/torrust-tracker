@@ -54,8 +54,8 @@ See [docs/packages.md](../docs/packages.md) for a full diagram.
 ## Packages by Layer
 
 The canonical list of packages, with crate names, layers and publish status, is the
-[Package Catalog in the root `AGENTS.md`](../AGENTS.md#-package-catalog).
-[docs/packages.md](../docs/packages.md#package-catalog) groups the packages by architectural role.
+[Package Catalog in `docs/packages.md`](../docs/packages.md#package-catalog), which also groups the
+packages by architectural role.
 The notes below are the per-layer rules for working in this directory.
 
 ### Servers (`axum-*`, `udp-server`)
@@ -111,8 +111,7 @@ contract.
 
 1. Create the directory under `packages/<new-package>/` with a `Cargo.toml` and `src/lib.rs`.
 2. Add the package to the workspace `[members]` in the root `Cargo.toml`.
-3. Add it to the [Package Catalog in the root `AGENTS.md`](../AGENTS.md#-package-catalog) and to the
-   [`docs/packages.md` catalog](../docs/packages.md#package-catalog).
+3. Add it to the [Package Catalog in `docs/packages.md`](../docs/packages.md#package-catalog).
 4. Follow the naming conventions above.
 5. Each package must have:
    - A crate-level doc comment in `src/lib.rs` explaining its purpose and layer.
