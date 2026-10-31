@@ -3,7 +3,7 @@ name: resolve-review-threads
 description: Resolve addressed GitHub pull request review threads for the torrust-tracker project. Use when asked to mark PR suggestions as resolved, resolve review comments, close addressed review threads, or clear Copilot review feedback after fixes are pushed. Triggers on "resolve PR threads", "mark suggestions as resolved", "resolve review comments", or "close addressed review threads".
 metadata:
   author: torrust
-  version: "1.0"
+  version: "1.1"
   semantic-links:
     related-artifacts:
       - .github/skills/dev/pr-reviews/resolve-review-threads/scripts/resolve-all-unresolved-threads.sh
@@ -102,6 +102,12 @@ done
 - Thread IDs are GraphQL node IDs, not PR numbers or comment IDs.
 - This resolves the review thread, not the entire review.
 - If a thread should remain open, leave it open and explain why.
+- Not every identity may resolve a thread. GitHub only lets the pull request author and users with
+  write access resolve threads. Before resolving, read `viewerCanResolve` (and `viewerCanReply`) on
+  each thread through GraphQL. When `viewerCanResolve` is `false`, still post the reply (a reply
+  needs no write access), leave the thread open, and state in the reply or the PR conversation that
+  the reviewer or PR author is expected to resolve it. Do not switch to a different identity or
+  broaden permissions to work around this unless the maintainer explicitly asks.
 - If you do not know the thread IDs yet, query the active PR first instead of guessing.
 
 ## Completion Checklist
@@ -109,5 +115,7 @@ done
 - [ ] All targeted threads were verified against the current branch state
 - [ ] Validation passed before resolution
 - [ ] Every thread had a reply before any batch resolution (`github-review-threads reply-status` exits 0)
+- [ ] `viewerCanResolve` was `true` for every thread resolved; threads the current identity cannot
+      resolve got a reply and were left open for the reviewer or PR author
 - [ ] Each resolved mutation returned `isResolved: true`
 - [ ] Any intentionally unresolved feedback is documented with reasoning
