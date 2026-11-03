@@ -10,6 +10,8 @@ semantic-links:
     - packages/rest-api-application/src/v1/ports/auth_key.rs
     - docs/issues/open/2637-1347-add-tests-axum-rest-api-server/coverage-evidence.md
     - docs/issues/open/2637-1347-add-tests-axum-rest-api-server/test-refactor-plans/v1-routes-tests.md
+    - docs/issues/open/2637-1347-add-tests-axum-rest-api-server/test-refactor-plans/v1-context-whitelist-handlers-tests.md
+    - packages/axum-rest-api-server/src/v1/context/whitelist/handlers.rs
 ---
 
 # Auth Key Handlers File Test Plan
@@ -49,6 +51,11 @@ No tests in the file, so R1 is skipped.
 | `AuthKeyErrorDisplay`'s `Debug` implementation | Not tested | It exists only to satisfy the `Error` bound of the response functions, and no caller prints it. A test of `format!("{:?}")` would add a line of coverage, not behavior. |
 | Path and body extraction (`Path`, `Json`) | Not here | Axum's. Routing of the paths is pinned by the registration table of `v1/routes.rs`. |
 | Persistence, key validity, durations | Collaborator-owned | `rest-api-application`, `rest-api-runtime-adapter`, `tracker-core`. |
+
+Cross-context difference, documented: this handler maps a service-reported `DisabledByConfiguration` to the disabled
+`409`, while the whitelist handlers map the equivalent `WhitelistError` to a `500` (not reachable today). The
+whitelist plan pins that behavior and explains it in
+[Documented inconsistency](v1-context-whitelist-handlers-tests.md#documented-inconsistency-a-service-reported-capability-disabled-error-decision-pin-it).
 
 ### Boundary And Arrange
 

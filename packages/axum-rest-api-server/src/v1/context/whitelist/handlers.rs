@@ -92,3 +92,273 @@ pub async fn reload_whitelist_handler(State(whitelist_service): State<Option<Arc
 fn disabled_response() -> Response {
     disabled_by_configuration_response(&WhitelistError::DisabledByConfiguration { capability: "listed" }.to_string())
 }
+
+#[cfg(test)]
+mod tests {
+    use std::sync::{Arc, Mutex};
+
+    use async_trait::async_trait;
+    use axum::body::to_bytes;
+    use axum::extract::{Path, State};
+    use axum::http::StatusCode;
+    use axum::http::header::CONTENT_TYPE;
+    use axum::response::Response;
+    use rstest::rstest;
+    use torrust_info_hash::InfoHash;
+    use torrust_tracker_rest_api_application::v1::ports::whitelist::WhitelistCommandPort;
+    use torrust_tracker_rest_api_application::v1::use_cases::whitelist::WhitelistApiService;
+    use torrust_tracker_rest_api_protocol::v1::context::whitelist::resources::whitelist::WhitelistError;
+
+    use super::{add_torrent_to_whitelist_handler, reload_whitelist_handler, remove_torrent_from_whitelist_handler};
+    use crate::InfoHashParam;
+    use crate::test_support::MAX_BODY_BYTES;
+
+    type Outcome = fn() -> Result<(), WhitelistError>;
+    type CallLog = Arc<Mutex<Vec<String>>>;
+    type ServiceState = State<Option<Arc<WhitelistApiService>>>;
+
+    const INFO_HASH: &str = "443c7602b4fde83d1154d6d9da48808418b181b6";
+
+    /// What a client receives: the status, the content type and the body.
+    #[derive(Debug, PartialEq, Eq)]
+    struct Observed {
+        status: StatusCode,
+        content_type: String,
+        body: String,
+    }
+
+    fn expected(status: StatusCode, content_type: &str, body: &str) -> Observed {
+        Observed {
+            status,
+            content_type: content_type.to_string(),
+            body: body.to_string(),
+        }
+    }
+
+    fn disabled() -> Observed {
+        expected(
+            StatusCode::CONFLICT,
+            "application/json",
+            r#"{"status":"err","reason":"listed capability is disabled by configuration"}"#,
+        )
+    }
+
+    fn ok() -> Observed {
+        expected(StatusCode::OK, "application/json", r#"{"status":"ok"}"#)
+    }
+
+    fn unhandled(reason: &str) -> Observed {
+        expected(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "text/plain; charset=utf-8",
+            &format!(r#"Unhandled rejection: Err {{ reason: "{reason}" }}"#),
+        )
+    }
+
+    fn invalid_info_hash(value: &str) -> Observed {
+        expected(
+            StatusCode::BAD_REQUEST,
+            "text/plain; charset=utf-8",
+            &format!(r#"Invalid URL: invalid infohash param: string "{value}", expected a 40 character long string"#),
+        )
+    }
+
+    async fn observed(response: Response) -> Observed {
+        let status = response.status();
+        let content_type = response
+            .headers()
+            .get(CONTENT_TYPE)
+            .expect("the response has a content type")
+            .to_str()
+            .expect("the content type is text")
+            .to_string();
+        let body = to_bytes(response.into_body(), MAX_BODY_BYTES)
+            .await
+            .expect("the body is readable and within the limit");
+
+        Observed {
+            status,
+            content_type,
+            body: String::from_utf8(body.to_vec()).expect("the body is text"),
+        }
+    }
+
+    #[allow(clippy::unnecessary_wraps, reason = "it must have the outcome type of the fake port")]
+    fn succeeds() -> Result<(), WhitelistError> {
+        Ok(())
+    }
+
+    fn database_error() -> Result<(), WhitelistError> {
+        Err(WhitelistError::Database("boom".to_string()))
+    }
+
+    /// A `WhitelistCommandPort` that answers each call with a scripted outcome and records the call.
+    struct FakeWhitelistPort {
+        outcome: Outcome,
+        calls: CallLog,
+    }
+
+    impl FakeWhitelistPort {
+        fn answering(outcome: Outcome) -> Self {
+            Self {
+                outcome,
+                calls: Arc::new(Mutex::new(Vec::new())),
+            }
+        }
+
+        fn call_log(&self) -> CallLog {
+            self.calls.clone()
+        }
+
+        fn record(&self, call: String) {
+            self.calls.lock().expect("the call log is not poisoned").push(call);
+        }
+    }
+
+    #[async_trait]
+    impl WhitelistCommandPort for FakeWhitelistPort {
+        async fn add_torrent(&self, info_hash: &InfoHash) -> Result<(), WhitelistError> {
+            self.record(format!("add_torrent({info_hash})"));
+            (self.outcome)()
+        }
+
+        async fn remove_torrent(&self, info_hash: &InfoHash) -> Result<(), WhitelistError> {
+            self.record(format!("remove_torrent({info_hash})"));
+            (self.outcome)()
+        }
+
+        async fn reload(&self) -> Result<(), WhitelistError> {
+            self.record("reload".to_string());
+            (self.outcome)()
+        }
+    }
+
+    fn state_with(fake: FakeWhitelistPort) -> ServiceState {
+        State(Some(Arc::new(WhitelistApiService::new(Box::new(fake)))))
+    }
+
+    fn state_answering(outcome: Outcome) -> ServiceState {
+        state_with(FakeWhitelistPort::answering(outcome))
+    }
+
+    fn param(value: &str) -> Path<InfoHashParam> {
+        Path(InfoHashParam(value.to_string()))
+    }
+
+    fn recorded(calls: &CallLog) -> Vec<String> {
+        calls.lock().expect("the call log is not poisoned").clone()
+    }
+
+    #[tokio::test]
+    async fn it_should_answer_conflict_when_whitelisting_a_torrent_and_the_listed_capability_is_not_available() {
+        let response = add_torrent_to_whitelist_handler(State(None), param(INFO_HASH)).await;
+
+        assert_eq!(observed(response).await, disabled());
+    }
+
+    #[tokio::test]
+    async fn it_should_answer_conflict_when_removing_a_torrent_and_the_listed_capability_is_not_available() {
+        let response = remove_torrent_from_whitelist_handler(State(None), param(INFO_HASH)).await;
+
+        assert_eq!(observed(response).await, disabled());
+    }
+
+    #[tokio::test]
+    async fn it_should_answer_conflict_when_reloading_the_whitelist_and_the_listed_capability_is_not_available() {
+        let response = reload_whitelist_handler(State(None)).await;
+
+        assert_eq!(observed(response).await, disabled());
+    }
+
+    #[tokio::test]
+    async fn it_should_reject_an_invalid_info_hash_without_calling_the_service_when_whitelisting_a_torrent() {
+        let fake = FakeWhitelistPort::answering(succeeds);
+        let calls = fake.call_log();
+
+        let response = add_torrent_to_whitelist_handler(state_with(fake), param("abc")).await;
+
+        assert_eq!(observed(response).await, invalid_info_hash("abc"));
+        assert_eq!(recorded(&calls), Vec::<String>::new());
+    }
+
+    #[tokio::test]
+    async fn it_should_reject_an_invalid_info_hash_without_calling_the_service_when_removing_a_torrent() {
+        let fake = FakeWhitelistPort::answering(succeeds);
+        let calls = fake.call_log();
+
+        let response = remove_torrent_from_whitelist_handler(state_with(fake), param("abc")).await;
+
+        assert_eq!(observed(response).await, invalid_info_hash("abc"));
+        assert_eq!(recorded(&calls), Vec::<String>::new());
+    }
+
+    #[tokio::test]
+    async fn it_should_answer_ok_and_forward_the_parsed_info_hash_to_the_service_when_whitelisting_a_torrent() {
+        let fake = FakeWhitelistPort::answering(succeeds);
+        let calls = fake.call_log();
+
+        let response = add_torrent_to_whitelist_handler(state_with(fake), param(INFO_HASH)).await;
+
+        assert_eq!(observed(response).await, ok());
+        assert_eq!(recorded(&calls), vec![format!("add_torrent({INFO_HASH})")]);
+    }
+
+    #[tokio::test]
+    async fn it_should_answer_ok_and_forward_the_parsed_info_hash_to_the_service_when_removing_a_torrent() {
+        let fake = FakeWhitelistPort::answering(succeeds);
+        let calls = fake.call_log();
+
+        let response = remove_torrent_from_whitelist_handler(state_with(fake), param(INFO_HASH)).await;
+
+        assert_eq!(observed(response).await, ok());
+        assert_eq!(recorded(&calls), vec![format!("remove_torrent({INFO_HASH})")]);
+    }
+
+    #[tokio::test]
+    async fn it_should_answer_ok_when_the_whitelist_is_reloaded() {
+        let fake = FakeWhitelistPort::answering(succeeds);
+        let calls = fake.call_log();
+
+        let response = reload_whitelist_handler(state_with(fake)).await;
+
+        assert_eq!(observed(response).await, ok());
+        assert_eq!(recorded(&calls), vec!["reload".to_string()]);
+    }
+
+    /// The second case documents a difference with the auth-key handlers: `add_auth_key_handler` maps a service-reported
+    /// `AuthKeyError::DisabledByConfiguration` to the disabled `409`, while this handler answers a `500`. The service never
+    /// returns that error today, so no client can see it. See the "Documented inconsistency" section of the plan
+    /// `docs/issues/open/2637-1347-add-tests-axum-rest-api-server/test-refactor-plans/v1-context-whitelist-handlers-tests.md`.
+    #[rstest]
+    #[case::a_database_error(database_error as Outcome, "failed to whitelist torrent: boom")]
+    #[case::a_capability_disabled_in_the_service(
+        (|| Err(WhitelistError::DisabledByConfiguration { capability: "listed" })) as Outcome,
+        "failed to whitelist torrent: listed capability is disabled by configuration"
+    )]
+    #[tokio::test]
+    async fn it_should_answer_an_internal_server_error_whatever_the_error_when_whitelisting_a_torrent(
+        #[case] outcome: Outcome,
+        #[case] reason: &str,
+    ) {
+        let response = add_torrent_to_whitelist_handler(state_answering(outcome), param(INFO_HASH)).await;
+
+        assert_eq!(observed(response).await, unhandled(reason));
+    }
+
+    #[tokio::test]
+    async fn it_should_answer_an_internal_server_error_when_removing_a_torrent_fails() {
+        let response = remove_torrent_from_whitelist_handler(state_answering(database_error), param(INFO_HASH)).await;
+
+        assert_eq!(
+            observed(response).await,
+            unhandled("failed to remove torrent from whitelist: boom")
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_answer_an_internal_server_error_when_reloading_the_whitelist_fails() {
+        let response = reload_whitelist_handler(state_answering(database_error)).await;
+
+        assert_eq!(observed(response).await, unhandled("failed to reload whitelist: boom"));
+    }
+}

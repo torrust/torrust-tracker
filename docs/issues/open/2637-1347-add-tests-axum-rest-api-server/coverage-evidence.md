@@ -249,3 +249,7 @@ Unit-only (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): lines 
 ### `v1/context/auth_key/routes.rs` (slice S3)
 
 Unit-only (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): lines 16 / 16 (100.00%), regions 27 / 27, functions 1 / 1, before and after; the file has no test module and is covered by the `v1/routes.rs` tests. Decision: no change. Eight named mutations (three path changes, a method change and `None` state on the add, reload, generate and delete routes) each fail an existing unit or integration test on an assertion (see [the plan](test-refactor-plans/v1-context-auth-key-routes-tests.md)).
+
+### `v1/context/whitelist/handlers.rs` (slice S3)
+
+Unit-only (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): lines 0 / 37 (0.00%) at the S1 baseline (26 / 37 before this file, from the S2 gating tests), 198 / 198 (100.00%) after; regions 334 / 334; functions 47 / 47. The counts include the in-file test module. 12 test functions (13 cases); ten named mutations killed (see [the plan](test-refactor-plans/v1-context-whitelist-handlers-tests.md)). One case pins a documented difference with the auth-key handlers (a service-reported disabled capability is a `500` here, a `409` there; not reachable today). Package unit-only after this file: lines 1,744 / 1,931 (90.32%), regions 2,638 / 2,992 (88.17%), functions 288 / 324 (88.89%), 106 unit tests.
