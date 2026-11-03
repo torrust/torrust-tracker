@@ -191,8 +191,8 @@ mod tests {
     use std::sync::Arc;
     use std::sync::atomic::{AtomicBool, Ordering};
 
-    use axum::body::{Body, to_bytes};
-    use axum::http::header::{AUTHORIZATION, CONTENT_TYPE};
+    use axum::body::Body;
+    use axum::http::header::AUTHORIZATION;
     use axum::http::{HeaderValue, Request, StatusCode};
     use axum::routing::get;
     use axum::{Router, middleware};
@@ -202,7 +202,7 @@ mod tests {
     use tower::ServiceExt;
 
     use super::{State, auth, authenticate};
-    use crate::test_support::MAX_BODY_BYTES;
+    use crate::test_support::{Observed, observed};
 
     const FIRST_TOKEN: &str = "api-token-12345";
     const SECOND_TOKEN: &str = "other-token-678";
@@ -211,9 +211,7 @@ mod tests {
     /// handler behind it ran.
     #[derive(Debug, PartialEq, Eq)]
     struct Sent {
-        status: StatusCode,
-        content_type: Option<String>,
-        body: String,
+        response: Observed,
         handler_ran: bool,
     }
 
@@ -256,19 +254,8 @@ mod tests {
 
         let response = app.oneshot(request).await.expect("the router never fails");
 
-        let status = response.status();
-        let content_type = response
-            .headers()
-            .get(CONTENT_TYPE)
-            .map(|value| value.to_str().expect("the content type is text").to_string());
-        let body = to_bytes(response.into_body(), MAX_BODY_BYTES)
-            .await
-            .expect("the body is readable and within the limit");
-
         Sent {
-            status,
-            content_type,
-            body: String::from_utf8(body.to_vec()).expect("the body is text"),
+            response: observed(response).await,
             handler_ran: handler_ran.load(Ordering::SeqCst),
         }
     }
@@ -291,9 +278,7 @@ mod tests {
         assert_eq!(
             sent,
             Sent {
-                status: StatusCode::OK,
-                content_type: Some("text/plain; charset=utf-8".to_string()),
-                body: "handler ran".to_string(),
+                response: Observed::new(StatusCode::OK, "text/plain; charset=utf-8", "handler ran"),
                 handler_ran: true,
             }
         );
@@ -318,9 +303,11 @@ mod tests {
         assert_eq!(
             sent,
             Sent {
-                status: StatusCode::INTERNAL_SERVER_ERROR,
-                content_type: Some("text/plain; charset=utf-8".to_string()),
-                body: r#"Unhandled rejection: Err { reason: "token not valid" }"#.to_string(),
+                response: Observed::new(
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "text/plain; charset=utf-8",
+                    r#"Unhandled rejection: Err { reason: "token not valid" }"#
+                ),
                 handler_ran: false,
             }
         );
@@ -344,9 +331,11 @@ mod tests {
         assert_eq!(
             sent,
             Sent {
-                status: StatusCode::INTERNAL_SERVER_ERROR,
-                content_type: Some("text/plain; charset=utf-8".to_string()),
-                body: r#"Unhandled rejection: Err { reason: "unknown token provided" }"#.to_string(),
+                response: Observed::new(
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "text/plain; charset=utf-8",
+                    r#"Unhandled rejection: Err { reason: "unknown token provided" }"#
+                ),
                 handler_ran: false,
             }
         );
@@ -362,9 +351,11 @@ mod tests {
         assert_eq!(
             sent,
             Sent {
-                status: StatusCode::INTERNAL_SERVER_ERROR,
-                content_type: Some("text/plain; charset=utf-8".to_string()),
-                body: r#"Unhandled rejection: Err { reason: "unknown token provided" }"#.to_string(),
+                response: Observed::new(
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "text/plain; charset=utf-8",
+                    r#"Unhandled rejection: Err { reason: "unknown token provided" }"#
+                ),
                 handler_ran: false,
             }
         );
@@ -382,9 +373,11 @@ mod tests {
         assert_eq!(
             sent,
             Sent {
-                status: StatusCode::INTERNAL_SERVER_ERROR,
-                content_type: Some("text/plain; charset=utf-8".to_string()),
-                body: r#"Unhandled rejection: Err { reason: "unauthorized" }"#.to_string(),
+                response: Observed::new(
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "text/plain; charset=utf-8",
+                    r#"Unhandled rejection: Err { reason: "unauthorized" }"#
+                ),
                 handler_ran: false,
             }
         );
@@ -397,7 +390,7 @@ mod tests {
         let sent = send(request).await;
 
         // The text of a query rejection belongs to Axum; the package owns that the handler does not run.
-        assert_eq!(sent.status, StatusCode::BAD_REQUEST);
+        assert_eq!(sent.response.status, StatusCode::BAD_REQUEST);
         assert!(!sent.handler_ran);
     }
 

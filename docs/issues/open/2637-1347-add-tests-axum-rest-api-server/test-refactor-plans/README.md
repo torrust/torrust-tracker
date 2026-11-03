@@ -30,6 +30,12 @@ approves it. A group of declaration-only files may share one plan.
 | 3 | [v1-routes-tests.md](v1-routes-tests.md) | DONE | Approved 2026-10-28; completed file approved 2026-10-28 |
 | 4 | [routes-tests.md](routes-tests.md) | DONE | Approved 2026-10-28 with a testability refactor (R0); completed file approved 2026-10-28 |
 | 5 | [v1-context-health-check-handlers-tests.md](v1-context-health-check-handlers-tests.md) | DONE | Approved 2026-10-28; completed file approved 2026-10-28 |
+| 6 | [v1-context-auth-key-handlers-tests.md](v1-context-auth-key-handlers-tests.md) | DONE | Approved 2026-10-29; completed file approved 2026-10-29 |
+| 7 | [v1-context-auth-key-responses-tests.md](v1-context-auth-key-responses-tests.md) | DONE | No-change decision approved 2026-10-29 |
+| 8 | [v1-context-auth-key-routes-tests.md](v1-context-auth-key-routes-tests.md) | DONE | No-change decision approved 2026-10-29 |
+| 9 | [v1-context-whitelist-handlers-tests.md](v1-context-whitelist-handlers-tests.md) | DONE | Approved 2026-11-03 (option a for the documented inconsistency); completed file approved 2026-11-03 |
+| 10 | [v1-context-whitelist-responses-tests.md](v1-context-whitelist-responses-tests.md) | DONE | No-change decision approved 2026-11-03 |
+| 11 | [v1-context-whitelist-routes-tests.md](v1-context-whitelist-routes-tests.md) | DONE | No-change decision approved 2026-11-03 |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 
@@ -59,6 +65,9 @@ Add a row when a plan is created; the remaining files and their order are in the
   Use stable Rust for tests and coverage. Record the toolchain with every validation result.
 - Run `git diff --check` after each increment and `linter markdown` plus `linter cspell` after
   changing these records.
+- The response-reading helper (`read_body`, `Observed`, `observed`) is shared in `src/test_support.rs` since the review
+  of #2702. The plans written before that describe the local helper each file had at its completed-file review; the
+  code now uses the shared one, with the same assertions.
 - Shared helpers require an approved cohesive responsibility; do not create generic fixtures for a
   one-file seam. A port fake used by many handler tests (S3 and S4) is a shared helper: its plan
   defines its contract and tests it against the mutant that breaks that contract.

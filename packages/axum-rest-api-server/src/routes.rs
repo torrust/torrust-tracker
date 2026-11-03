@@ -164,7 +164,7 @@ mod tests {
     use std::time::Duration;
 
     use axum::Router;
-    use axum::body::{Body, to_bytes};
+    use axum::body::Body;
     use axum::http::header::{ACCEPT_ENCODING, CONTENT_ENCODING};
     use axum::http::{HeaderMap, Request, StatusCode};
     use axum::routing::get;
@@ -177,7 +177,7 @@ mod tests {
     use uuid::Uuid;
 
     use super::{router, with_layers};
-    use crate::test_support::{MAX_BODY_BYTES, api_container};
+    use crate::test_support::{api_container, read_body};
 
     const TOKEN: &str = "test-token";
     const DEADLINE: Duration = Duration::from_secs(5);
@@ -208,9 +208,7 @@ mod tests {
     async fn into_received(response: axum::response::Response) -> Received {
         let status = response.status();
         let headers = response.headers().clone();
-        let body = to_bytes(response.into_body(), MAX_BODY_BYTES)
-            .await
-            .expect("the body is readable and within the limit");
+        let body = read_body(response.into_body()).await;
 
         Received {
             status,

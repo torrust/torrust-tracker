@@ -7,9 +7,9 @@ priority: p2
 epic: 1347
 github-issue: 2637
 spec-path: docs/issues/open/2637-1347-add-tests-axum-rest-api-server/ISSUE.md
-branch: "2637-1347-add-tests-axum-rest-api-server-routes"
-related-pr: 2687
-last-updated-utc: "2026-10-28 16:55"
+branch: "2637-1347-add-tests-axum-rest-api-server-commands"
+related-pr: 2702
+last-updated-utc: "2026-11-03 18:08"
 semantic-links:
   skill-links:
     - create-issue
@@ -406,8 +406,8 @@ ledger order inside each slice is still confirmed with the first plan (T3).
 | --- | --- | --- | --- | --- | --- |
 | S0 | This specification, the T1 coverage evidence and inventory, and the EPIC registration with the baseline | - | `2637-1347-add-tests-axum-rest-api-server-spec` | #2638 | DONE |
 | S1 | T2-T3, then authentication and the shared response contract (ranks 1 and 3) | 1, 5 | `2637-1347-add-tests-axum-rest-api-server-auth` | #2667 | DONE |
-| S2 | Route composition, transport layers and the health check (rank 2) | 2-4 | `2637-1347-add-tests-axum-rest-api-server-routes` | #2687 | IN_PROGRESS |
-| S3 | State-changing contexts: auth keys and whitelist (rank 4) | 6-11 | `2637-1347-add-tests-axum-rest-api-server-commands` | TBD | PENDING |
+| S2 | Route composition, transport layers and the health check (rank 2) | 2-4 | `2637-1347-add-tests-axum-rest-api-server-routes` | #2687 | DONE |
+| S3 | State-changing contexts: auth keys and whitelist (rank 4) | 6-11 | `2637-1347-add-tests-axum-rest-api-server-commands` | #2702 | IN_PROGRESS |
 | S4 | Read-only contexts: torrents and statistics (rank 5) | 12-17 | `2637-1347-add-tests-axum-rest-api-server-queries` | TBD | PENDING |
 | S5 | Server lifecycle (rank 6) | 18 | `2637-1347-add-tests-axum-rest-api-server-lifecycle` | TBD | PENDING |
 | S6 | Crate root, wiring and test-support decisions (ranks 7-8), then T5-T8 | 19-31 | `2637-1347-add-tests-axum-rest-api-server-final` | TBD | PENDING |
@@ -539,12 +539,12 @@ declaration-only rows have no executable entries.
 | 3 | `routes.rs` | 2 | S2 | 58 / 67 (86.57%) | 0 | Test candidate | DONE | [routes-tests.md](test-refactor-plans/routes-tests.md) (done; 169 / 169 lines after, 9 test cases, 8 of 10 mutants killed, the 2 survivors recorded, R0 refactor) |
 | 4 | `v1/context/health_check/handlers.rs` | 2 | S2 | 4 / 4 (100.00%) | 0 | Test candidate (small) | DONE | [v1-context-health-check-handlers-tests.md](test-refactor-plans/v1-context-health-check-handlers-tests.md) (done; 16 / 16 lines after, 1 test, mutant killed; protection not coverage) |
 | 5 | `v1/responses.rs` | 3 | S1 | 8 / 40 (20.00%) | 0 | Test candidate | DONE | [v1-responses-tests.md](test-refactor-plans/v1-responses-tests.md) (done; 66 / 66 lines after, 8 test cases, 8 mutants killed) |
-| 6 | `v1/context/auth_key/handlers.rs` | 4 | S3 | 0 / 56 (0.00%) | 0 | Test candidate | PENDING | - |
-| 7 | `v1/context/auth_key/responses.rs` | 4 | S3 | 0 / 26 (0.00%) | 0 | Test candidate | PENDING | - |
-| 8 | `v1/context/auth_key/routes.rs` | 4 | S3 | 16 / 16 (100.00%) | 0 | Probably no change | PENDING | - |
-| 9 | `v1/context/whitelist/handlers.rs` | 4 | S3 | 0 / 37 (0.00%) | 0 | Test candidate | PENDING | - |
-| 10 | `v1/context/whitelist/responses.rs` | 4 | S3 | 0 / 9 (0.00%) | 0 | Test candidate (small) | PENDING | - |
-| 11 | `v1/context/whitelist/routes.rs` | 4 | S3 | 14 / 14 (100.00%) | 0 | Probably no change | PENDING | - |
+| 6 | `v1/context/auth_key/handlers.rs` | 4 | S3 | 0 / 56 (0.00%) | 0 | Test candidate | DONE | [v1-context-auth-key-handlers-tests.md](test-refactor-plans/v1-context-auth-key-handlers-tests.md) (done; 261 / 264 lines after, 18 test cases, 9 mutants killed) |
+| 7 | `v1/context/auth_key/responses.rs` | 4 | S3 | 0 / 26 (0.00%) | 0 | Test candidate | DONE | [v1-context-auth-key-responses-tests.md](test-refactor-plans/v1-context-auth-key-responses-tests.md) (done: no change; 26 / 26 lines covered by the row 6 tests, 8 mutants killed) |
+| 8 | `v1/context/auth_key/routes.rs` | 4 | S3 | 16 / 16 (100.00%) | 0 | Probably no change | DONE | [v1-context-auth-key-routes-tests.md](test-refactor-plans/v1-context-auth-key-routes-tests.md) (done: no change; 16 / 16 lines, 8 mutants killed by existing tests) |
+| 9 | `v1/context/whitelist/handlers.rs` | 4 | S3 | 0 / 37 (0.00%) | 0 | Test candidate | DONE | [v1-context-whitelist-handlers-tests.md](test-refactor-plans/v1-context-whitelist-handlers-tests.md) (done; 198 / 198 lines after, 13 test cases, 10 mutants killed) |
+| 10 | `v1/context/whitelist/responses.rs` | 4 | S3 | 0 / 9 (0.00%) | 0 | Test candidate (small) | DONE | [v1-context-whitelist-responses-tests.md](test-refactor-plans/v1-context-whitelist-responses-tests.md) (done: no change; 9 / 9 lines covered by the row 9 tests, 3 mutants killed) |
+| 11 | `v1/context/whitelist/routes.rs` | 4 | S3 | 14 / 14 (100.00%) | 0 | Probably no change | DONE | [v1-context-whitelist-routes-tests.md](test-refactor-plans/v1-context-whitelist-routes-tests.md) (done: no change; 14 / 14 lines, 7 mutants killed by existing tests) |
 | 12 | `v1/context/torrent/handlers.rs` | 5 | S4 | 0 / 50 (0.00%) | 0 | Test candidate (weak property) | PENDING | - |
 | 13 | `v1/context/torrent/responses.rs` | 5 | S4 | 0 / 9 (0.00%) | 0 | Test candidate (small) | PENDING | - |
 | 14 | `v1/context/torrent/routes.rs` | 5 | S4 | 9 / 9 (100.00%) | 0 | Probably no change | PENDING | - |
@@ -667,6 +667,7 @@ once. If the slicing changes, the Slice column changes with it.
   `2637-1347-add-tests-axum-rest-api-server-routes` from `develop` at the merge of #2672. The package is
   byte-identical to the S1 head, so the S1 measurement is the S2 baseline (unit-only lines 921 / 1,305,
   70.57%). Row 2 (`v1/routes.rs`) is `IN_PROGRESS`; its plan is proposed and awaits the maintainer.
+- 2026-10-29 10:23 UTC - GitHub Copilot - Row 6 (`v1/context/auth_key/handlers.rs`) is `DONE`: the maintainer approved the completed file at 10:22 UTC. 13 test functions (18 cases) over a hand-written `AuthKeyPort` fake; the file went from 0 / 56 to 261 / 264 lines; all 9 named mutations were killed; `async-trait` 0.1 was added as a dev-dependency. The three uncovered lines are `AuthKeyErrorDisplay`'s `Debug` impl, deliberately not tested.
 - 2026-10-28 12:20 UTC - Jose Celano - Approved the row 2 plan (`v1/routes.rs`) with these decisions: the
   crate-private container helper is a `#[cfg(test)] mod test_support` (ADR `20261021190318`, rule C; `src/testing/`
   is for code shared outside the crate); the cases with `private` or `listed` set but no persistence are kept as the
@@ -705,6 +706,19 @@ once. If the slicing changes, the Slice column changes with it.
   change requested), and approved the completed file at 16:35 UTC. The independent S2 review found that the log did
   not record them. Also fixed the other records items of that review (see `agent-review-reports.md`).
 - 2026-10-28 16:55 UTC - GitHub Copilot - Recorded S2 pull request #2687 (<https://github.com/torrust/torrust-tracker/pull/2687>, `Related to #2637`, opened at 16:55 UTC) in the frontmatter, the slice table and the EPIC row.
+- 2026-10-28 18:14 UTC - GitHub Copilot - S2 merged through #2687 (18:10 UTC, with your ACK at 17:26 UTC; Copilot's two findings F1 and F2 were fixed before the merge and no late review exists). Started S3 on branch
+  `2637-1347-add-tests-axum-rest-api-server-commands` from `develop` at the merge of #2687. The package and its `rest-api-*`
+  collaborators are unchanged since the S2 head, so the S2 measurement is the S3 baseline (unit-only lines
+  1,305 / 1,556, 83.87%). Row 6 (`v1/context/auth_key/handlers.rs`) is `IN_PROGRESS`; its plan is proposed and awaits the maintainer.
+- 2026-10-29 11:50 UTC - GitHub Copilot - Row 6 committed as `test(axum-rest-api-server): [#2637] cover the auth key handlers` (the first signing attempt timed out; the commit was redone with your passphrase entry). Row 7 (`v1/context/auth_key/responses.rs`) is `DONE` with a no-change decision, approved by the maintainer at 11:49 UTC: after row 6 the file is already 26 / 26 lines, 30 / 30 regions and 7 / 7 functions, and eight named mutations (one per builder, plus the status and content type) each fail an assertion of the row 6 handler tests, so direct tests would only duplicate those literals.
+- 2026-10-29 11:52 UTC - GitHub Copilot - Row 7 committed as `docs(issues): [#2637] record the no-change decision for the auth key responses`. Row 8 (`v1/context/auth_key/routes.rs`) is `DONE` with a no-change decision, approved by the maintainer at 11:52 UTC: the file is already 16 / 16 lines, and eight named mutations (three path changes, a method change, and `None` state on four routes) each fail an existing `v1/routes.rs` or auth-key integration test on an assertion. The one mutation not tried (swapping a handler between routes) cannot compile under `unused = "deny"`.
+- 2026-11-03 17:05 UTC - GitHub Copilot - Row 8 committed as `docs(issues): [#2637] record the no-change decision for the auth key routes`. Row 9 (`v1/context/whitelist/handlers.rs`) is `DONE`: the maintainer approved the plan with option (a) (pin the whitelist `500` for a service-reported disabled capability, and link the difference with the auth-key `409` across both plans, the in-file test comment and `lessons.md`) and the completed file at 17:04 UTC. 12 test functions (13 cases) over a hand-written `WhitelistCommandPort` fake; the file went from 0 / 37 to 198 / 198 lines; all ten named mutations were killed (four redone as compiling mutants). Package unit-only lines 1,744 / 1,931 (90.32%), 106 unit tests.
+- 2026-11-03 17:12 UTC - GitHub Copilot - Row 9 committed as `test(axum-rest-api-server): [#2637] cover the whitelist handlers`. Rows 10 (`v1/context/whitelist/responses.rs`) and 11 (`v1/context/whitelist/routes.rs`) are `DONE` with no-change decisions, both approved by the maintainer at 17:12 UTC: row 10 is 9 / 9 lines after row 9 and its three messages are pinned by the row 9 handler tests (three mutants killed); row 11 is 14 / 14 lines and seven mutants are killed by existing `v1/routes.rs` and integration tests (a method replaced by a dummy handler only by the integration tests, a dropped method also by the `v1/routes.rs` table). All six S3 ledger rows are `DONE`.
+- 2026-11-03 17:16 UTC - GitHub Copilot - S3 implementation finished and rebased onto `develop` (the package and its `rest-api-*` collaborators are unchanged since the S2 head). Re-measured with clean runs: unit-only lines 1,744 / 1,931 (90.32%), aggregate 1,806 / 1,931 (93.53%), integration-only 682 / 916 (74.45%); 106 unit and 58 integration tests. Updated the S3 measurement in `coverage-evidence.md` and the EPIC "Latest" tables and log. Next: the independent Task Reviewer, pre-push, and the pull request.
+- 2026-11-03 17:23 UTC - GitHub Copilot - Independent S3 review (see `agent-review-reports.md`): REVIEW FAILED on documentation only, with no code or measurement defect. Fixed the claim about the method mutants of the whitelist routes (a method dropped is killed by the `v1/routes.rs` table, a method replaced by a dummy handler only by the integration tests; both recorded), the EPIC `last-updated-utc`, the F1 count of the auth-key plan and the `lessons.md` wording about what pins the whitelist `500`.
+- 2026-11-03 17:24 UTC - GitHub Copilot - The short S3 re-review passed (REVIEW PASSED, no findings; see `agent-review-reports.md`). Next: pre-push, the scans and the pull request.
+- 2026-11-03 17:28 UTC - GitHub Copilot - Pre-push passed and S3 pull request #2702 (<https://github.com/torrust/torrust-tracker/pull/2702>, `Related to #2637`) was opened at 17:27 UTC; recorded it in the frontmatter, the slice table and the EPIC row. Corrected the stamps of the S3 re-review entry (17:25 to 17:24 UTC) and the report heading, which were later than their commit (17:24:55 UTC).
+- 2026-11-03 18:08 UTC - GitHub Copilot - Review round of #2702 (audit: `docs/pr-reviews/pr-2702-review/PR-REVIEW.md`). The testing workflow failed on a clippy lint in `http-protocol` that `develop` had already fixed, so `develop` was merged into the branch (no rebase, no squash). Copilot's five comments are two findings, both fixed at the maintainer's decision: the port fakes now record typed `Call` values (F1-F3) and the response-reading helper is shared in `test_support` across the seven modules (F4-F5, extracted now instead of deferred; the helper note of `lessons.md` is resolved). Re-measured: unit-only lines 1,668 / 1,855 (89.92%), aggregate 1,730 / 1,855 (93.26%), integration-only unchanged; the denominator fell by 76 lines because duplicated test code left the modules, and no test was added or removed (106 unit and 58 integration tests).
 
 ## Acceptance Criteria
 
