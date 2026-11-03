@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/1488-si-21-mark-health-unhealthy-during-shutdown/ISSUE.md
 branch: "1488-si-21-mark-health-unhealthy-during-shutdown-draft"
 related-pr: null
-last-updated-utc: "2026-10-28 18:06"
+last-updated-utc: "2026-11-03 16:44"
 semantic-links:
   skill-links:
     - create-issue
@@ -80,9 +80,28 @@ spawns the health-check component with no stop-before edge, so
 down" log) cancels its token together with every component that waits for no
 other job. Its `graceful_shutdown_on_cancellation` then stops axum accepting.
 
-Options, to be decided by the maintainer:
+Maintainer decisions (recorded 2026-11-03 from the review chat; the maintainer
+has not yet approved creating the issue from this text):
 
-- **(a) Health-check server stops last (recommended).** Spawn it with
+- Option (a) is accepted: "I think option A is fine".
+- The health server's own near-instant idle drain is not budgeted inside `P`.
+- Reserving `health_check_api` first is accepted; it is still bound and spawned
+  last, so startup order and port-conflict behaviour do not change. Every other
+  supervised component declares `StopBefore` on it. Read from source, not run:
+  a target only has to be reserved, not spawned, and a reservation dropped by a
+  failed startup is released (`release_if_reserved`). A test must assert that
+  every supervised component has the health server as a successor, so a
+  component added later cannot silently stop concurrently with it.
+- Readiness state shape is NOT decided. Proposal: a small one-way readiness
+  handle (atomic flag) owned by the application, defined in a crate the health
+  crate may depend on, created by the app and flipped by `main` before
+  `jobs.cancel()`. Alternatives: reuse a `CancellationToken` as "not ready", or
+  derive it from `JobManager`. The final shape is fixed at the Phase 2 design
+  review, before anything is wired through `main`.
+
+Options considered:
+
+- **(a) Health-check server stops last (accepted).** Spawn it with
   `StopBefore` the other supervised components, as SI-22 does for event
   listeners and as `src/app.rs` does for the runner. The readiness flip happens
   before `jobs.cancel()`; the health server keeps serving 503 for the whole
@@ -99,7 +118,7 @@ Options, to be decided by the maintainer:
   - Worst case, a hung predecessor keeps the health server serving 503 until P.
   - Budget: the health server's own graceful drain starts only after the others
     finish, with `P - elapsed` left, and `max(H, U) + L < P` does not budget for
-    it. Idle, its drain is near-instant; open question for the maintainer.
+    it. Idle, its drain is near-instant; the maintainer accepted this.
   - Reservation order: `add_stop_before` needs target ids strictly earlier than
     the added id, and `health_check_api` is reserved last (`src/app.rs`), so it
     must be reserved first (its server may still start last).
@@ -163,7 +182,7 @@ services that are no longer available. `Registar::deregister` exists since
    startup-failure exit result and must not advertise readiness.
 7. The health-check crate must not depend on the root crate: the readiness
    state is a type owned outside it and injected (read `docs/packages.md`; the
-   exact home is an open decision).
+   exact home is fixed at the Phase 2 design review).
 
 ## Acceptance Criteria
 
@@ -178,6 +197,9 @@ services that are no longer available. `Registar::deregister` exists since
 - [ ] Readiness transition is one-way and safe under concurrent health requests.
 - [ ] Deterministic tests cover ready response, not-ready 503, no probe fan-out,
       and ordering before cancellation without OS signals.
+- [ ] The health-check component stops after every other supervised component
+      (a test asserts each has it as a successor), and a failed, panicked or
+      aborted component still yields exit code 1 within `P`.
 - [ ] Focused manual verification records readiness becoming 503 before the
       relevant component drain logs and before process exit, with timestamped
       probes on new connections, for SIGTERM and SIGINT.
