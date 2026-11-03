@@ -9,7 +9,7 @@ github-issue: 2691
 spec-path: docs/issues/open/2691-reduce-agents-md-token-footprint/ISSUE.md
 branch: "2691-reduce-agents-md-token-footprint-spec"
 related-pr: null
-last-updated-utc: "2026-11-03 09:30"
+last-updated-utc: "2026-11-03 10:15"
 semantic-links:
   skill-links:
     - create-issue
@@ -174,6 +174,7 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - 2026-10-30 16:30 UTC - Claude Code (Claude Sonnet 5.5) - T5: maintainer reviewed the dispositions and decided D1 to D5 (target about 5k Claude tokens, skill/nested-`AGENTS.md` placement rule, catalog in `docs/packages.md`, keep Development Principles, keep all eight policies inline); estimate now about 4.5k Claude tokens - `section-disposition.md`
 - 2026-10-30 17:00 UTC - Claude Code (Claude Sonnet 5.5) - T6 step 1: moved the Package Catalog to `docs/packages.md` (23 packages and crate names verified one to one, tool tables carried over) and reversed the back-links in `packages/AGENTS.md`; `AGENTS.md` keeps a pointer and the `cargo metadata` command - `section-disposition.md`
 - 2026-11-03 09:30 UTC - Claude Code (Claude Sonnet 5.5) - Added T4a after an outside comment on the issue noted that a checklist seeded from the planned moves can only confirm those moves: built `rule-inventory.md` with 99 rows from the baseline file at the commit `Merge torrust/torrust-tracker#2692: docs(issues): [#2691] add specification to reduce the AGENTS.md token footprint`; all 99 locator phrases verified present in the baseline; 9 rows already asserted (catalog) - `rule-inventory.md`
+- 2026-11-03 10:15 UTC - Claude Code (Claude Sonnet 5.5) - T6 step 2: replaced the Package Naming Conventions and Container / Docker sections with links (`docs/packages.md#package-conventions`, `docs/containers.md`, destination content verified first) and asserted the 4 matching inventory rows - `rule-inventory.md`
 
 ## Acceptance Criteria
 

@@ -61,19 +61,8 @@ native IPv4/IPv6 support, private/whitelisted mode, and a management REST API.
 
 Packages, crate names, layers, publish status and tools are listed in the
 [package catalog](docs/packages.md#package-catalog). The authoritative, always-current list is
-`cargo metadata --no-deps --format-version 1`.
-
-## 🏷️ Package Naming Conventions
-
-| Prefix       | Responsibility                         | Dependencies                                                                  |
-| ------------ | -------------------------------------- | ----------------------------------------------------------------------------- |
-| `axum-*`     | HTTP server components using Axum      | Axum framework                                                                |
-| `*-server`   | Server implementations                 | Corresponding `*-core`                                                        |
-| `*-core`     | Domain logic and business rules        | Protocol implementations                                                      |
-| `*-protocol` | Wire protocol implementations          | BEP specifications, or the REST API contract (`rest-api-protocol`)            |
-| `rest-api-*` | REST API layers (contract-first)       | See [docs/packages.md](docs/packages.md#rest-api-contract-first-architecture) |
-| `udp-*`      | UDP protocol-specific implementations  | Tracker core                                                                  |
-| `http-*`     | HTTP protocol-specific implementations | Tracker core                                                                  |
+`cargo metadata --no-deps --format-version 1`. Package naming conventions (prefixes and layers) are
+in [package conventions](docs/packages.md#package-conventions).
 
 ## 📄 Key Configuration Files
 
@@ -387,29 +376,8 @@ Reference: [Beck Design Rules](https://martinfowler.com/bliki/BeckDesignRules.ht
 
 ## 🐳 Container / Docker
 
-```sh
-# Run the latest image
-docker run -it torrust/tracker:latest
-# or with Podman
-podman run -it docker.io/torrust/tracker:latest
-
-# Build and run via Docker Compose
-docker compose up -d               # Start all services (detached)
-docker compose logs -f tracker     # Follow tracker logs
-docker compose down                # Stop and remove containers
-```
-
-**Volume mappings** (local `storage/` → container paths):
-
-```text
-./storage/tracker/lib  →  /var/lib/torrust/tracker
-./storage/tracker/log  →  /var/log/torrust/tracker
-./storage/tracker/etc  →  /etc/torrust/tracker
-```
-
-**Ports**: UDP tracker: `6969`, HTTP tracker: `7070`, REST API: `1212`
-
-See [docs/containers.md](docs/containers.md) for detailed container documentation.
+Running the image, volume mappings, ports and Docker Compose usage are in
+[docs/containers.md](docs/containers.md).
 
 ## 🎯 Auto-Invoke Skills
 
