@@ -3,7 +3,7 @@ name: setup-dev-environment
 description: Set up a local development environment for torrust-tracker from scratch. Covers system dependencies, Rust toolchain, storage directories, linter binary, git hooks, and smoke tests. Use when onboarding to the project, setting up a new machine, or after a fresh clone. Triggers on "setup dev environment", "fresh clone", "onboarding", "install dependencies", "set up environment", or "getting started".
 metadata:
   author: torrust
-  version: "1.0"
+  version: "1.1"
 ---
 
 # Set Up the Development Environment
@@ -144,6 +144,11 @@ cp share/default/config/tracker.development.sqlite3.toml storage/tracker/etc/tra
 # Edit storage/tracker/etc/tracker.toml as needed
 TORRUST_TRACKER_CONFIG_TOML_PATH="./storage/tracker/etc/tracker.toml" cargo run
 ```
+
+## Agent Skills in VS Code (Optional)
+
+Enable `chat.useAgentSkills` in the VS Code settings to activate discovery of the repository skills
+under `.github/skills/`. See the [Agent Skills specification](https://agentskills.io/specification).
 
 ## Useful Development Tools
 
