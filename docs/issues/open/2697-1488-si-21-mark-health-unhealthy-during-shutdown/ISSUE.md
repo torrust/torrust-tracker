@@ -8,8 +8,8 @@ epic: 1488
 github-issue: 2697
 spec-path: docs/issues/open/2697-1488-si-21-mark-health-unhealthy-during-shutdown/ISSUE.md
 branch: "2697-mark-health-unhealthy-during-shutdown-spec"
-related-pr: null
-last-updated-utc: "2026-11-03 16:51"
+related-pr: 2698
+last-updated-utc: "2026-11-03 17:02"
 semantic-links:
   skill-links:
     - create-issue
@@ -284,6 +284,7 @@ and sign every commit with GPG.
 - 2026-11-03 16:44 UTC - AI agent (model not stated by the runtime) - Recorded the maintainer's decisions: option (a), idle drain not budgeted inside `P`, health server reserved first; readiness state shape left to the design review
 - 2026-11-03 16:50 UTC - AI agent (model not stated by the runtime) - Added the template sections (plan, commit points, verification plan, risks) required by the `create-issue` skill
 - 2026-11-03 16:51 UTC - AI agent (model not stated by the runtime) - Created issue #2697, linked it under #1488 and moved the spec to `docs/issues/open/`
+- 2026-11-03 17:02 UTC - AI agent (model not stated by the runtime) - Opened the specification-only PR #2698 (`Related to #2697`); CI: Docs Lint passed, no reviews or comments yet
 
 ## Acceptance Criteria
 
