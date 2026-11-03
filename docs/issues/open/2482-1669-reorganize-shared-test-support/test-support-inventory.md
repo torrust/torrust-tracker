@@ -222,7 +222,7 @@ Set by the [ADR](../../../adrs/20261021190318_share_workspace_test_support_throu
 [EPIC](EPIC.md#subissues). The "Status" column is the state of the item, updated by the subissue
 that resolves it.
 
-| Item | Rule and destination | Subissue draft | Status |
+| Item | Rule and destination | Subissue spec | Status |
 | --- | --- | --- | --- |
 | A. `udp-server` environment (and its example) | Rule A: behind the `testing` feature of `udp-server` | [Row 4](../../open/2699-2482-gate-udp-server-test-environment/ISSUE.md) | Open |
 | A. `axum-http-server` environment (and its example) | Rule A: behind the `testing` feature of `axum-http-server` | [Row 5](../../drafts/2482-gate-axum-http-server-test-environment/ISSUE.md) | Open |
