@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/1488-si-21-mark-health-unhealthy-during-shutdown/ISSUE.md
 branch: "1488-si-21-mark-health-unhealthy-during-shutdown-draft"
 related-pr: null
-last-updated-utc: "2026-11-03 16:44"
+last-updated-utc: "2026-11-03 16:50"
 semantic-links:
   skill-links:
     - create-issue
@@ -184,6 +184,106 @@ services that are no longer available. `Registar::deregister` exists since
    state is a type owned outside it and injected (read `docs/packages.md`; the
    exact home is fixed at the Phase 2 design review).
 
+## Architectural Decisions
+
+- Related ADRs:
+  `docs/adrs/20261021184946_order_shutdown_by_event_flow_and_drain_event_listeners.md`
+  (stop order by event flow; the health-check component gains a stop-after
+  relationship to every other component) and
+  `docs/adrs/20260629000000_adopt_independent_package_versioning.md` (a public
+  API change in a published package).
+- ADRs to create: none known. Option (c) would need one (it amends Q6), but it
+  was not chosen. If the "health server stops last" rule proves to be a lasting
+  ordering decision, record it in an ADR at implementation time.
+
+## Design and Ownership Review
+
+Applicable: this task changes asynchronous shutdown ordering and a network
+readiness response.
+
+- **Readiness state**: owned by the application lifecycle. Interface: a one-way
+  `mark not ready` write held by `main`, and a cheap read held by the
+  health-check handler. The type is defined where the health crate can use it
+  without depending on the root crate; its final shape is fixed at the design
+  review below.
+- **Stop order**: the health-check component is reserved first, bound and
+  spawned last, and stops after every other supervised component. `JobManager`
+  owns the edges; `app.rs` declares them.
+- **Lifetime invariants**: normal path, the flag flips once before
+  `jobs.cancel()` and the health server is cancelled after the last other
+  component completes. Failure path, a failed or panicked predecessor still
+  releases the health server, and a hung one keeps it serving 503 until the
+  shared process deadline `P` aborts everything (exit 1). Drop path, a
+  reservation dropped by a failed startup is released by the manager.
+- **Deadline**: every wait in a new test carries an absolute bound; the real
+  binary evidence bounds the process wait by `P` plus a margin.
+- **Design-review checkpoint**: after the first implementation step fixes the
+  readiness API shape, stop for maintainer review before wiring it through
+  `main` and `JobManager`.
+
+## Bug-Fix Process
+
+Not applicable: this is a planned feature slice (readiness during shutdown). The
+measured baseline that a new probe sees no 503 is recorded in
+`manual-verification-evidence.md` (V1, V2) and is the reason for design (a).
+
+## Regression Test Strategy
+
+Not applicable: not substantively a bug. The behaviour under test is new, and the
+deterministic tests are listed in the Implementation Plan.
+
+## Implementation Plan
+
+Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
+
+| ID  | Status | Task                                                                    | Notes / Expected Output                                                                                              |
+| --- | ------ | ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| T1  | TODO   | Define the one-way readiness state and its handler read.                | Unit tests: ready, not ready, one-way, concurrent reads. Stop for design review after this step.                     |
+| T2  | TODO   | Return 503 from `/health_check` while not ready, with no probe fan-out. | Handler test proves no `Registar` probe runs; healthy body unchanged.                                                |
+| T3  | TODO   | Reserve `health_check_api` first, spawn last, and stop it after the rest. | Test: every supervised component has the health server as a successor; failed and hung predecessors still end in P. |
+| T4  | TODO   | Flip readiness in `main` before `jobs.cancel()`.                        | Ordering test without OS signals.                                                                                    |
+| T5  | TODO   | Real-binary evidence for SIGTERM and SIGINT.                            | `manual-verification-evidence.md`: timestamped 503 probes on new connections, exit status, listener release.         |
+| T6  | TODO   | Document the readiness contract for operators.                          | Deployment docs name `/health_check` as the readiness probe and the 503 semantics.                                   |
+
+## Commit Points
+
+| Task | Coherent change set                                          | Commit policy                                        |
+| ---- | ------------------------------------------------------------ | ---------------------------------------------------- |
+| T1   | Readiness type and its unit tests                            | Commit after focused validation and required review. |
+| T2   | Handler 503 path and tests                                   | Commit after focused validation and required review. |
+| T3   | Reservation order, stop-after edges and their tests          | Commit after focused validation and required review. |
+| T4   | Readiness flip in `main` and its ordering test               | Commit after focused validation and required review. |
+| T5   | Real-binary evidence                                         | Commit after the last production change.             |
+| T6   | Operator documentation                                       | Commit after focused validation and required review. |
+
+Use the `write-unit-test` skill for every test increment, record the prose-first
+Arrange-Act-Assert design review in task evidence, mutation-prove each new test,
+and sign every commit with GPG.
+
+## Progress Tracking
+
+### Workflow Checkpoints
+
+- [x] Folder-style spec drafted in `docs/issues/drafts/1488-si-21-mark-health-unhealthy-during-shutdown/ISSUE.md`
+- [x] Spec reviewed and approved by user/maintainer (design and issue creation approved in the review chat, 2026-11-03)
+- [ ] GitHub issue created and issue number added to this spec
+- [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
+- [ ] Implementation completed
+- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [ ] Acceptance criteria reviewed after implementation and updated with evidence
+- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [ ] Reviewer validated acceptance criteria and updated checkboxes
+- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md`
+- [ ] Committer verified spec progress is up to date before commit
+- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+
+### Progress Log
+
+- 2026-10-28 18:06 UTC - AI agent (model not stated by the runtime) - Refreshed the 2026-09-25 draft against `develop` and measured that a new health-check connection gets no 503 during a drain - `manual-verification-evidence.md` V1, V2
+- 2026-11-03 16:44 UTC - AI agent (model not stated by the runtime) - Recorded the maintainer's decisions: option (a), idle drain not budgeted inside `P`, health server reserved first; readiness state shape left to the design review
+- 2026-11-03 16:50 UTC - AI agent (model not stated by the runtime) - Added the template sections (plan, commit points, verification plan, risks) required by the `create-issue` skill
+
 ## Acceptance Criteria
 
 - [ ] Application readiness defaults to ready only after successful startup.
@@ -204,8 +304,10 @@ services that are no longer available. `Registar::deregister` exists since
       relevant component drain logs and before process exit, with timestamped
       probes on new connections, for SIGTERM and SIGINT.
 - [ ] `linter all` passes.
-
-## Dependencies
+- [ ] Relevant tests pass.
+- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`.
+- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior.
+- [ ] Documentation is updated for the readiness contract.
 
 All done on `develop`:
 
@@ -224,16 +326,73 @@ all component shutdown behavior remains unchanged. After release, preserve the
 published 503 readiness contract and repair defects through a compatible patch
 rather than silently restoring always-probe behavior.
 
-## Manual Verification
+## Verification Plan
 
-Record commands, output, and logs in issue-local `manual-verification-evidence.md` before closing this issue. Follow the EPIC executable-boundary protocol: signal the direct tracker binary PID, capture bounded completion and exit status, and prove readiness changes before affected bindings are released.
+### Automatic Checks
 
-1. Run deterministic handler/application tests that toggle readiness without
-   delivering an OS signal. Prove not-ready returns 503 without probe fan-out.
-2. Run the tracker with health-check API enabled. Send SIGTERM and SIGINT to
-   the tracker binary PID while a request holds the HTTP tracker drain open, and
-   poll `/health_check` with NEW connections; record the 503 transition before
-   drain-completion and process-exit logs, the exit status and listener release.
-3. Verify a healthy running tracker still returns the existing health response.
-4. Review deployment documentation to confirm readiness probes use
-   `/health_check` and infrastructure removes not-ready instances from traffic.
+- `linter all`
+- `cargo test --doc --workspace` and the focused tests of the changed packages
+- Pre-push checks before the implementation push
+
+### Manual Verification Scenarios
+
+Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
+
+Follow the EPIC executable-boundary protocol: signal the direct tracker binary
+PID, capture bounded completion and exit status, and prove readiness changes
+before affected bindings are released.
+
+| ID  | Scenario                                    | Human-oriented command/steps                                                                                                                                   | Expected Result                                                                                                  | Status | Evidence                                          |
+| --- | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ------ | ------------------------------------------------- |
+| M1  | Baseline before the change                  | Hold a partial request on the REST API, send SIGTERM and SIGINT to the PID, poll `/health_check` with new connections (done during drafting).                  | No 503 on new connections: refused or reset.                                                                     | DONE   | `manual-verification-evidence.md` sections V1, V2 |
+| M2  | Deterministic readiness tests               | Toggle readiness in handler and application tests without an OS signal.                                                                                        | Not ready returns 503 with no probe fan-out; ready returns the unchanged body.                                   | TODO   | `manual-verification-evidence.md` section V3      |
+| M3  | Drain with SIGTERM and SIGINT on the binary | Same holder as M1, after the change; poll `/health_check` on new and open connections with timestamps; record exit status and that the listeners are released. | New connections get 503 for the whole drain, before the drain-complete and exit logs; exit status as before.     | TODO   | `manual-verification-evidence.md` section V4      |
+| M4  | Healthy tracker unchanged                   | `curl` `/health_check` on a running tracker.                                                                                                                   | The existing health response.                                                                                    | TODO   | `manual-verification-evidence.md` section V5      |
+| M5  | Failure path                                | Hold the drain open past the configured drain so a component fails or is aborted at `P`.                                                                       | Exit 1 within `P`; the failed outcome is reported; the health server does not delay the exit past `P`.          | TODO   | `manual-verification-evidence.md` section V6      |
+| M6  | Operator documentation                      | Read the deployment docs.                                                                                                                                      | Readiness probes use `/health_check` and not-ready instances leave the traffic.                                  | TODO   | `manual-verification-evidence.md` section V7      |
+
+Record every command result with its toolchain or runtime when it can affect
+behaviour. If a scenario fails, record the failure and diagnosis in the progress
+log before proceeding.
+
+### Disposable Verification Scripts
+
+None in this specification-only change: the baseline probes used a throwaway
+script outside the repository, and its results are embedded in the evidence.
+If the implementation needs a retained probe script, its rationale, issue-local
+path, removal owner and, for Python, why Rust is unsuitable are recorded here
+and the script is added only in the implementation pull request.
+
+### Acceptance Verification
+
+| AC ID                                  | Status | Evidence                                |
+| -------------------------------------- | ------ | --------------------------------------- |
+| Every criterion in Acceptance Criteria | TODO   | Filled in after implementation review. |
+
+## Risks and Trade-offs
+
+- A hung component keeps the health server serving 503 until `P`; the exit stays
+  bounded by `P` and reports exit 1. Accepted in the design decision.
+- The health server's own drain is not covered by `max(H, U) + L < P`; it is
+  idle and near-instant. Accepted; the real-binary evidence measures it.
+- A component added later without the stop-after edge would stop concurrently
+  with the health server; T3 adds a test for it.
+- A published public API change needs a version bump under the independent
+  versioning ADR; decided at the design review.
+
+## Implementation Completion Review
+
+- Retrospective: `Not yet assessed`
+- If needed, create `implementation-retrospective.md` from the repository
+  template at `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this issue
+  specification's directory; otherwise add a progress-log entry saying why none
+  was needed.
+- The independent reviewer records its result in `agent-review-reports.md`
+  using `docs/templates/AGENT-REVIEW-REPORTS.md`.
+
+## References
+
+- Parent EPIC: #1488 (roadmap row 21)
+- Related issues: #2324 (SI-13), #2410 (SI-22), #2668 (SI-20)
+- Related ADRs: `docs/adrs/20261021184946_order_shutdown_by_event_flow_and_drain_event_listeners.md`
+- Q6: `docs/features/shutdown-process/questions.md`
