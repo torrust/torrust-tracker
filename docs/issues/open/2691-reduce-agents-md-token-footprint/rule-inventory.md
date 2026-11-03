@@ -35,22 +35,22 @@ decisions D1 to D5 recorded there.
 
 | ID  | Baseline section | Rule or fact | Locator | Planned handling | Final location | Status |
 | --- | ---------------- | ------------ | ------- | ---------------- | -------------- | ------ |
-| R001 | Project Overview | Repository is torrust/torrust-tracker | `torrust/torrust-tracker` | KEEP |  | PENDING |
-| R002 | Project Overview | Production-grade BitTorrent tracker; UDP, HTTP, TLS; IPv4/IPv6; private/whitelisted mode; REST API | `production-grade BitTorrent tracker` | KEEP (trim) |  | PENDING |
-| R003 | Project Overview | Rust edition 2024, MSRV 1.88 | `edition 2024, MSRV 1.88` | KEEP |  | PENDING |
-| R004 | Project Overview | MSRV policy once bittorrent-* crates are extracted (#1669) | `MSRV policy` | KEEP (trim) or MOVE |  | PENDING |
-| R005 | Project Overview | License AGPL-3.0-only; version 3.0.0-develop | `AGPL-3.0-only` | KEEP |  | PENDING |
-| R006 | Project Overview | Axum web framework, Tokio runtime, BEP 15/3/23, SQLite/MySQL/PostgreSQL, Cargo workspace | `Cargo workspace (multi-crate monorepo)` | DELETE (derivable) |  | PENDING |
-| R007 | Tech Stack | Languages, Axum, Tokio, testcontainers, databases, Containerfile, GitHub Actions | `testcontainers (E2E)` | DELETE (derivable) |  | PENDING |
-| R008 | Tech Stack | Linters unified under the `linter` binary from torrust/torrust-linting (markdownlint, lychee, yamllint, taplo, cspell, shellcheck, clippy, rustfmt) | `unified` | MOVE to `run-linters` skill or keep one line |  | PENDING |
-| R009 | Key Directories | src/ holds main.rs, lib.rs, app.rs, container.rs; src/bin/ has http_health_check; E2E runners and profiling are in packages/e2e-tools | `src/bin/` | DELETE (derivable) |  | PENDING |
-| R010 | Key Directories | src/bootstrap/ and src/console/ purpose | `src/bootstrap/` | DELETE (derivable) |  | PENDING |
-| R011 | Key Directories | packages/ holds all domain logic; console/ holds console tools | `all domain logic lives here` | KEEP (trim) + link |  | PENDING |
-| R012 | Key Directories | contrib/dev-tools/ holds git hooks, container scripts, init scripts and developer-tool crates | `contrib/dev-tools/` | KEEP (trim) |  | PENDING |
-| R013 | Key Directories | tests/ integration tests; docs/ with adrs/ and issues/; share/default/ default config | `share/default/` | KEEP (trim) |  | PENDING |
-| R014 | Key Directories | storage/ is runtime data and git-ignored | ``storage/` — Runtime data`` | KEEP |  | PENDING |
-| R015 | Key Directories | .tmp/ is a git-ignored workspace temp dir for hook logs (TORRUST_GIT_HOOKS_LOG_DIR=.tmp) and benchmark isolation dirs | `.tmp/` | KEEP |  | PENDING |
-| R016 | Key Directories | .github/workflows, .github/skills and .github/agents locations | `` `.github/skills/` `` | KEEP |  | PENDING |
+| R001 | Project Overview | Repository is torrust/torrust-tracker | `torrust/torrust-tracker` | DONE | `AGENTS.md` header (repository link) | ASSERTED |
+| R002 | Project Overview | Production-grade BitTorrent tracker; UDP, HTTP, TLS; IPv4/IPv6; private/whitelisted mode; REST API | `production-grade BitTorrent tracker` | DONE | `AGENTS.md` Project Overview | ASSERTED |
+| R003 | Project Overview | Rust edition 2024, MSRV 1.88 | `edition 2024, MSRV 1.88` | DONE | `AGENTS.md` Project Overview | ASSERTED |
+| R004 | Project Overview | MSRV policy once bittorrent-* crates are extracted (#1669) | `MSRV policy` | DONE | `AGENTS.md` Project Overview (reworded) | ASSERTED |
+| R005 | Project Overview | License AGPL-3.0-only; version 3.0.0-develop | `AGPL-3.0-only` | DONE | `AGENTS.md` Project Overview | ASSERTED |
+| R006 | Project Overview | Axum web framework, Tokio runtime, BEP 15/3/23, SQLite/MySQL/PostgreSQL, Cargo workspace | `Cargo workspace (multi-crate monorepo)` | DELETE (reason recorded) | Reason: derivable from `Cargo.toml` and the code (Axum, Tokio, the BEP numbers, databases, workspace layout); the research found overviews do not help agents | ASSERTED |
+| R007 | Tech Stack | Languages, Axum, Tokio, testcontainers, databases, Containerfile, GitHub Actions | `testcontainers (E2E)` | DELETE (reason recorded) | Reason: derivable from `Cargo.toml`, `Containerfile` and `.github/workflows/`; the linter list is in the `run-linters` skill | ASSERTED |
+| R008 | Tech Stack | Linters unified under the `linter` binary from torrust/torrust-linting (markdownlint, lychee, yamllint, taplo, cspell, shellcheck, clippy, rustfmt) | `unified` | DONE | `AGENTS.md` Build, Test, and Lint (linter clause with the torrust-linting link); tool list in the `run-linters` skill | ASSERTED |
+| R009 | Key Directories | src/ holds main.rs, lib.rs, app.rs, container.rs; src/bin/ has http_health_check; E2E runners and profiling are in packages/e2e-tools | `src/bin/` | DELETE (reason recorded) | Reason: derivable from `src/`; E2E runners and profiling are documented in `packages/e2e-tools/README.md` | ASSERTED |
+| R010 | Key Directories | src/bootstrap/ and src/console/ purpose | `src/bootstrap/` | DELETE (reason recorded) | Reason: self-describing directory names under `src/` | ASSERTED |
+| R011 | Key Directories | packages/ holds all domain logic; console/ holds console tools | `all domain logic lives here` | DONE | `AGENTS.md` Key Directories | ASSERTED |
+| R012 | Key Directories | contrib/dev-tools/ holds git hooks, container scripts, init scripts and developer-tool crates | `contrib/dev-tools/` | DONE | `AGENTS.md` Key Directories (shortened) | ASSERTED |
+| R013 | Key Directories | tests/ integration tests; docs/ with adrs/ and issues/; share/default/ default config | `share/default/` | DONE | `AGENTS.md` Key Directories (the baseline named `integration.rs` and `servers/` under `tests/`; neither exists, so it now points to `tests/AGENTS.md`) | ASSERTED |
+| R014 | Key Directories | storage/ is runtime data and git-ignored | ``storage/` — Runtime data`` | DONE | `AGENTS.md` Key Directories | ASSERTED |
+| R015 | Key Directories | .tmp/ is a git-ignored workspace temp dir for hook logs (TORRUST_GIT_HOOKS_LOG_DIR=.tmp) and benchmark isolation dirs | `.tmp/` | DONE | `AGENTS.md` Key Directories; the `TORRUST_GIT_HOOKS_LOG_DIR=.tmp` tip is in Build, Test, and Lint | ASSERTED |
+| R016 | Key Directories | .github/workflows, .github/skills and .github/agents locations | `` `.github/skills/` `` | DONE | `AGENTS.md` Key Directories | ASSERTED |
 | R017 | Package Catalog | List of workspace packages with crate names, layers, publish status | `Package Catalog` | DONE | `docs/packages.md#package-catalog` | ASSERTED |
 | R018 | Package Catalog | Packages are versioned independently (ADR 20260629000000); `publish = false` rows are unpublished | `versioned independently` | DONE | `docs/packages.md#package-catalog` | ASSERTED |
 | R019 | Package Catalog | Extracted packages (clock, located-error, metrics, net-primitives, server-lib) and their repositories | `Extracted packages` | DONE | `docs/packages.md#extracted-packages` | ASSERTED |
@@ -75,39 +75,39 @@ decisions D1 to D5 recorded there.
 | R038 | Build, Test, and Lint | Linter entry point is `linter all` | `Linter entry point` | DONE | `AGENTS.md` Build, Test, and Lint | ASSERTED |
 | R039 | Build, Test, and Lint | Skill references: run-linters, run-pre-commit-checks, run-pre-push-checks, setup-dev-environment | `Primary skill references` | DONE | `AGENTS.md` Build, Test, and Lint (four skill paths kept: repository skills are not auto-loaded in Claude Code) | ASSERTED |
 | R040 | Build, Test, and Lint | Supporting docs: benchmarking, profiling, containers | `Supporting docs` | DONE | `docs/index.md` lists benchmarking, profiling and containers (lines 44, 45 and 50) | ASSERTED |
-| R041 | Code Style | Format with cargo fmt before committing; rustfmt config in rustfmt.toml | `` Format with `cargo fmt` `` | DELETE (enforced by linter) |  | PENDING |
-| R042 | Code Style | Strict global rustflags (-D warnings, -D unused, -D rust-2018-idioms, -D future-incompatible); no suppressions unless absolutely necessary | `no suppressions unless absolutely necessary` | KEEP |  | PENDING |
-| R043 | Code Style | clippy: no warnings allowed | `No warnings allowed` | DELETE (enforced by linter) |  | PENDING |
-| R044 | Code Style | Imports at the top of the file, grouped std, external, internal; prefer short imported names; full paths only to disambiguate | `Prefer short imported names` | KEEP |  | PENDING |
-| R045 | Code Style | TOML must pass taplo fmt --check; auto-fix with taplo fmt | `taplo fmt --check` | DELETE (enforced by linter) |  | PENDING |
-| R046 | Code Style | Markdown must pass markdownlint and lychee local checks | `lychee` | DELETE (enforced by linter) |  | PENDING |
-| R047 | Code Style | YAML must pass yamllint -c .yamllint-ci.yml | `yamllint -c .yamllint-ci.yml` | DELETE (enforced by linter) |  | PENDING |
-| R048 | Code Style | Add new technical terms to project-words.txt, one per line, alphabetical | `project-words.txt` | KEEP (trim) |  | PENDING |
-| R049 | Collaboration Principles | Do not flatter the user or agree with weak ideas by default | `Do not flatter the user` | KEEP |  | PENDING |
-| R050 | Collaboration Principles | Push back when a request, diff or proposed commit looks wrong | `Push back when` | KEEP |  | PENDING |
-| R051 | Collaboration Principles | Flag unclear but important points early | `Flag unclear but important points` | KEEP |  | PENDING |
-| R052 | Collaboration Principles | Ask a clarifying question instead of making a random choice when the decision matters | `Ask a clarifying question` | KEEP |  | PENDING |
-| R053 | Collaboration Principles | Undocumented process gate: stop after read-only investigation, identify the gap, get explicit maintainer approval before branches, edits, commits, pushes, GitHub artifacts, review replies or resolved threads | `explicit approval of the proposed process` | KEEP |  | PENDING |
-| R054 | Collaboration Principles | Call out likely misses (naming, generated files, staged versus unstaged, missing docs, commit scope) | `Call out likely misses` | KEEP |  | PENDING |
-| R055 | Collaboration Principles | Raise likely mistakes or blockers clearly and early | `clearly and early` | KEEP |  | PENDING |
-| R056 | Engineering Policies | 1. Dependency freshness: prefer the latest stable crate; document exceptions | `Dependency freshness` | KEEP (trim) per D5 |  | PENDING |
-| R057 | Engineering Policies | 2. Container base image freshness; document retained older images | `Container base image freshness` | KEEP (trim) per D5 |  | PENDING |
-| R058 | Engineering Policies | 3. Shell vs Rust threshold: shell only for simple orchestration | `Shell vs Rust threshold` | KEEP (trim) per D5 |  | PENDING |
-| R059 | Engineering Policies | 4. Testing coverage and maintainability: document untested behaviour | `Testing coverage and maintainability` | KEEP (trim) per D5 |  | PENDING |
-| R060 | Engineering Policies | 5. Rust documentation quality for public APIs and invariants | `Rust documentation quality` | KEEP (trim) per D5 |  | PENDING |
-| R061 | Engineering Policies | 6. Documentation single source of truth; folder READMEs stay lightweight; skills and docs/index.md are authoritative | `Documentation single source of truth` | KEEP (trim) per D5 |  | PENDING |
-| R062 | Engineering Policies | 7. AI-agent implementation independence; provider-specific adapters are optional; link to the portability ADR | `AI-agent implementation independence` | KEEP (trim) per D5 |  | PENDING |
-| R063 | Engineering Policies | 8. Repository-owned skill authority; warn on conflicts with external skills | `Repository-owned skill authority` | KEEP (trim) per D5 |  | PENDING |
-| R064 | Engineering Policies | Implementation workflow references: update-dependencies, add-rust-dependency, write-unit-test, implement-workflow skills | `Implementation workflow references` | KEEP (trim) or MOVE to skills |  | PENDING |
-| R065 | Essential Rules | `linter all` must exit 0 before every commit, no exceptions | ``must exit `0` before every commit`` | KEEP |  | PENDING |
-| R066 | Essential Rules | All commits must be GPG-signed with git commit -S | `GPG commit signing` | KEEP |  | PENDING |
-| R067 | Essential Rules | GPG timeout: stop the failed attempt, notify the user, ask whether to retry manually or rerun while the user enters the passphrase; never retry automatically, handle the passphrase in chat, use --no-gpg-sign, or skip signing; absolute rule | `This rule is absolute` | KEEP |  | PENDING |
-| R068 | Essential Rules | Never commit or force-add storage/ or target/ | `` Never commit `storage/` or `target/` `` | KEEP |  | PENDING |
-| R069 | Essential Rules | Run cargo machete before committing; remove unused dependencies immediately | `cargo machete` | KEEP (trim) |  | PENDING |
-| R070 | Essential Rules | Rust imports at the top of the file, grouped; short names (duplicate of the Code Style import rule) | `**Rust imports**` | MERGE with Code Style rule |  | PENDING |
-| R071 | Essential Rules | Continuous self-review at three levels: mandatory before opening a PR, strongly recommended before each commit, recommended after each small deployable change | `Continuous self-review` | KEEP |  | PENDING |
-| R072 | Essential Rules | Report security vulnerabilities by email to info@nautilus-cyberneering.de, not public issues; see SECURITY.md | `info@nautilus-cyberneering.de` | KEEP |  | PENDING |
-| R073 | Essential Rules | Skill-link synchronization: when changing an artifact with a skill-link marker, update the linked skill and run its validation script | `Skill-link synchronization` | KEEP |  | PENDING |
+| R041 | Code Style | Format with cargo fmt before committing; rustfmt config in rustfmt.toml | `` Format with `cargo fmt` `` | DELETE (reason recorded) | Reason: enforced by `linter all` (`linter rustfmt`); the settings live in `rustfmt.toml`, which `AGENTS.md` points to | ASSERTED |
+| R042 | Code Style | Strict global rustflags (-D warnings, -D unused, -D rust-2018-idioms, -D future-incompatible); no suppressions unless absolutely necessary | `no suppressions unless absolutely necessary` | DONE | `AGENTS.md` Code Style (compile flags) | ASSERTED |
+| R043 | Code Style | clippy: no warnings allowed | `No warnings allowed` | DONE | `AGENTS.md` Code Style (merged into the compile-flags bullet: pass clippy without warnings) | ASSERTED |
+| R044 | Code Style | Imports at the top of the file, grouped std, external, internal; prefer short imported names; full paths only to disambiguate | `Prefer short imported names` | DONE | `AGENTS.md` Code Style (imports) | ASSERTED |
+| R045 | Code Style | TOML must pass taplo fmt --check; auto-fix with taplo fmt | `taplo fmt --check` | DELETE (reason recorded) | Reason: enforced by `linter all`; the `run-linters` skill lists the tool and its config (`.taplo.toml`) | ASSERTED |
+| R046 | Code Style | Markdown must pass markdownlint and lychee local checks | `lychee` | DELETE (reason recorded) | Reason: enforced by `linter all`; the `run-linters` skill lists the tools and configs (`.markdownlint.json`, `lychee.toml`) | ASSERTED |
+| R047 | Code Style | YAML must pass yamllint -c .yamllint-ci.yml | `yamllint -c .yamllint-ci.yml` | DELETE (reason recorded) | Reason: enforced by `linter all`; the `run-linters` skill lists the tool and its config (`.yamllint-ci.yml`) | ASSERTED |
+| R048 | Code Style | Add new technical terms to project-words.txt, one per line, alphabetical | `project-words.txt` | DONE | `AGENTS.md` Code Style (spelling terms) | ASSERTED |
+| R049 | Collaboration Principles | Do not flatter the user or agree with weak ideas by default | `Do not flatter the user` | DONE | `AGENTS.md` Collaboration Principles (unchanged) | ASSERTED |
+| R050 | Collaboration Principles | Push back when a request, diff or proposed commit looks wrong | `Push back when` | DONE | `AGENTS.md` Collaboration Principles (unchanged) | ASSERTED |
+| R051 | Collaboration Principles | Flag unclear but important points early | `Flag unclear but important points` | DONE | `AGENTS.md` Collaboration Principles (unchanged) | ASSERTED |
+| R052 | Collaboration Principles | Ask a clarifying question instead of making a random choice when the decision matters | `Ask a clarifying question` | DONE | `AGENTS.md` Collaboration Principles (unchanged) | ASSERTED |
+| R053 | Collaboration Principles | Undocumented process gate: stop after read-only investigation, identify the gap, get explicit maintainer approval before branches, edits, commits, pushes, GitHub artifacts, review replies or resolved threads | `explicit approval of the proposed process` | DONE | `AGENTS.md` Collaboration Principles (unchanged) | ASSERTED |
+| R054 | Collaboration Principles | Call out likely misses (naming, generated files, staged versus unstaged, missing docs, commit scope) | `Call out likely misses` | DONE | `AGENTS.md` Collaboration Principles (unchanged) | ASSERTED |
+| R055 | Collaboration Principles | Raise likely mistakes or blockers clearly and early | `clearly and early` | DONE | `AGENTS.md` Collaboration Principles (unchanged) | ASSERTED |
+| R056 | Engineering Policies | 1. Dependency freshness: prefer the latest stable crate; document exceptions | `Dependency freshness` | DONE | `AGENTS.md` Engineering Policies, policy 1 (shortened, wording approved as D6) | ASSERTED |
+| R057 | Engineering Policies | 2. Container base image freshness; document retained older images | `Container base image freshness` | DONE | `AGENTS.md` Engineering Policies, policy 2 (shortened, wording approved as D6) | ASSERTED |
+| R058 | Engineering Policies | 3. Shell vs Rust threshold: shell only for simple orchestration | `Shell vs Rust threshold` | DONE | `AGENTS.md` Engineering Policies, policy 3 (shortened, wording approved as D6) | ASSERTED |
+| R059 | Engineering Policies | 4. Testing coverage and maintainability: document untested behaviour | `Testing coverage and maintainability` | DONE | `AGENTS.md` Engineering Policies, policy 4 (shortened, wording approved as D6) | ASSERTED |
+| R060 | Engineering Policies | 5. Rust documentation quality for public APIs and invariants | `Rust documentation quality` | DONE | `AGENTS.md` Engineering Policies, policy 5 (shortened, wording approved as D6) | ASSERTED |
+| R061 | Engineering Policies | 6. Documentation single source of truth; folder READMEs stay lightweight; skills and docs/index.md are authoritative | `Documentation single source of truth` | DONE | `AGENTS.md` Engineering Policies, policy 6 (shortened, wording approved as D6) | ASSERTED |
+| R062 | Engineering Policies | 7. AI-agent implementation independence; provider-specific adapters are optional; link to the portability ADR | `AI-agent implementation independence` | DONE | `AGENTS.md` Engineering Policies, policy 7 (shortened, wording approved as D6) | ASSERTED |
+| R063 | Engineering Policies | 8. Repository-owned skill authority; warn on conflicts with external skills | `Repository-owned skill authority` | DONE | `AGENTS.md` Engineering Policies, policy 8 (shortened, wording approved as D6) | ASSERTED |
+| R064 | Engineering Policies | Implementation workflow references: update-dependencies, add-rust-dependency, write-unit-test, implement-workflow skills | `Implementation workflow references` | DONE | `AGENTS.md` Engineering Policies (skill names and one location pattern; each name resolves to exactly one skill folder) | ASSERTED |
+| R065 | Essential Rules | `linter all` must exit 0 before every commit, no exceptions | ``must exit `0` before every commit`` | DONE | `AGENTS.md` Essential Rules (unchanged text) | ASSERTED |
+| R066 | Essential Rules | All commits must be GPG-signed with git commit -S | `GPG commit signing` | DONE | `AGENTS.md` Essential Rules (unchanged text) | ASSERTED |
+| R067 | Essential Rules | GPG timeout: stop the failed attempt, notify the user, ask whether to retry manually or rerun while the user enters the passphrase; never retry automatically, handle the passphrase in chat, use --no-gpg-sign, or skip signing; absolute rule | `This rule is absolute` | DONE | `AGENTS.md` Essential Rules (unchanged text) | ASSERTED |
+| R068 | Essential Rules | Never commit or force-add storage/ or target/ | `` Never commit `storage/` or `target/` `` | DONE | `AGENTS.md` Essential Rules (unchanged text) | ASSERTED |
+| R069 | Essential Rules | Run cargo machete before committing; remove unused dependencies immediately | `cargo machete` | DONE | `AGENTS.md` Essential Rules (unchanged text) | ASSERTED |
+| R070 | Essential Rules | Rust imports at the top of the file, grouped; short names (duplicate of the Code Style import rule) | `**Rust imports**` | DELETE (reason recorded) | Reason: duplicate of the Code Style import rule (R044), which is kept; Essential Rules were renumbered | ASSERTED |
+| R071 | Essential Rules | Continuous self-review at three levels: mandatory before opening a PR, strongly recommended before each commit, recommended after each small deployable change | `Continuous self-review` | DONE | `AGENTS.md` Essential Rules 5 (renumbered) | ASSERTED |
+| R072 | Essential Rules | Report security vulnerabilities by email to info@nautilus-cyberneering.de, not public issues; see SECURITY.md | `info@nautilus-cyberneering.de` | DONE | `AGENTS.md` Essential Rules 6 (renumbered) | ASSERTED |
+| R073 | Essential Rules | Skill-link synchronization: when changing an artifact with a skill-link marker, update the linked skill and run its validation script | `Skill-link synchronization` | DONE | `AGENTS.md` Essential Rules 7 (renumbered) | ASSERTED |
 | R074 | Git Workflow | Branch naming: <issue-number>-<short-description>, feat/, fix/, chore/ | `<issue-number>-<short-description>` | DONE | `AGENTS.md` Git Workflow | ASSERTED |
 | R075 | Git Workflow | Spec-only branch uses a -spec suffix so the base name stays free for implementation | `-spec` | DONE | `AGENTS.md` Git Workflow (one sentence); `create-feature-branch` skill, spec-only branch section | ASSERTED |
 | R076 | Git Workflow | Conventional Commits types feat, fix, chore, docs, refactor, ci, test; scope names the package or area | `Conventional Commits` | DONE | `AGENTS.md` Git Workflow (seven types and the scope rule); `commit-changes` skill, Commit Types table (ten types) | ASSERTED |
@@ -122,17 +122,17 @@ decisions D1 to D5 recorded there.
 | R085 | Git Workflow | Minor process, skill or docs improvements may ride along in the PR that produced them, each in its own commit; substantial changes get their own issue and PR | `may ride along` | DONE | `AGENTS.md` Git Workflow (one sentence); `open-pull-request` skill, Commit History and Pull-Request Scope | ASSERTED |
 | R086 | Git Workflow | PR title is a single Conventional Commits line, without the PR number; include [#issue] only for the issue the PR implements or closes; the merge tool copies the title into the merge subject | `copies the PR title verbatim` | DONE | `open-pull-request` skill, Title section (merge-subject example and the three title rules) | ASSERTED |
 | R087 | Git Workflow | Release process is documented in docs/release_process.md | `release_process.md` | DONE | `AGENTS.md` Git Workflow link to `docs/release_process.md` | ASSERTED |
-| R088 | Development Principles | Core principles: observability, testability, modularity, extensibility | `Observability` | KEEP per D4 |  | PENDING |
-| R089 | Development Principles | Code quality standards: clean, maintainable, readable, testable | `Clean` | KEEP per D4 |  | PENDING |
-| R090 | Development Principles | Beck's four rules of simple design in priority order | `Beck` | KEEP per D4 |  | PENDING |
+| R088 | Development Principles | Core principles: observability, testability, modularity, extensibility | `Observability` | DONE | `AGENTS.md` Development Principles (unchanged, decision D4) | ASSERTED |
+| R089 | Development Principles | Code quality standards: clean, maintainable, readable, testable | `Clean` | DONE | `AGENTS.md` Development Principles (unchanged, decision D4) | ASSERTED |
+| R090 | Development Principles | Beck's four rules of simple design in priority order | `Beck` | DONE | `AGENTS.md` Development Principles (unchanged, decision D4) | ASSERTED |
 | R091 | Container / Docker | Commands to run the latest image with Docker or Podman and to use Docker Compose | `docker compose up -d` | DONE | `docs/containers.md` (run: lines 21 and 27; compose up and down: lines 509 and 528) | ASSERTED |
 | R092 | Container / Docker | Volume mappings from storage/ to container paths | `/var/lib/torrust/tracker` | DONE | `docs/containers.md#volumes` | ASSERTED |
 | R093 | Container / Docker | Ports: UDP 6969, HTTP 7070, REST API 1212 | `` UDP tracker: `6969` `` | DONE | `docs/containers.md` (default HTTP_PORT, API_PORT and UDP_PORT; publish examples) | ASSERTED |
-| R094 | Auto-Invoke Skills | Skills live under .github/skills as SKILL.md files; skills supplement the rules and activate when their workflows are needed | `Agent Skills live under` | KEEP (trim) |  | PENDING |
-| R095 | Auto-Invoke Skills | For VS Code enable chat.useAgentSkills; link to the Agent Skills specification | `chat.useAgentSkills` | DELETE or MOVE to `setup-dev-environment` |  | PENDING |
-| R096 | Documentation | Links to documentation index, package architecture, benchmarking, profiling, containers, release process, ADRs, issues, docs.rs | `Documentation Index` | LINK (docs index) |  | PENDING |
-| R097 | Documentation | Quick-navigation table mapping tasks to starting documents | `Quick Navigation` | LINK (docs index) |  | PENDING |
-| R098 | Documentation | Report security vulnerabilities through SECURITY.md | `Report a security vulnerability` | KEEP |  | PENDING |
-| R099 | Documentation | Custom agents reference in .github/agents/README.md | `Custom agents reference` | KEEP (trim) |  | PENDING |
+| R094 | Auto-Invoke Skills | Skills live under .github/skills as SKILL.md files; skills supplement the rules and activate when their workflows are needed | `Agent Skills live under` | DONE | `AGENTS.md` Auto-Invoke Skills (condensed) | ASSERTED |
+| R095 | Auto-Invoke Skills | For VS Code enable chat.useAgentSkills; link to the Agent Skills specification | `chat.useAgentSkills` | DONE | `setup-dev-environment` skill, new section Agent Skills in VS Code (Optional), with the specification link | ASSERTED |
+| R096 | Documentation | Links to documentation index, package architecture, benchmarking, profiling, containers, release process, ADRs, issues, docs.rs | `Documentation Index` | DONE | `docs/index.md` (packages, benchmarking, profiling, containers, release process, ADRs, issues, docs.rs); `AGENTS.md` Documentation points to it | ASSERTED |
+| R097 | Documentation | Quick-navigation table mapping tasks to starting documents | `Quick Navigation` | DELETE (reason recorded) | Reason: duplicates `docs/index.md`; skills and custom agents are in `AGENTS.md` Auto-Invoke Skills and security in Documentation and Essential Rules | ASSERTED |
+| R098 | Documentation | Report security vulnerabilities through SECURITY.md | `Report a security vulnerability` | DONE | `AGENTS.md` Documentation and Essential Rules 6 | ASSERTED |
+| R099 | Documentation | Custom agents reference in .github/agents/README.md | `Custom agents reference` | DONE | `AGENTS.md` Auto-Invoke Skills (`.github/agents/README.md`) | ASSERTED |
 
 Total rows: 99.

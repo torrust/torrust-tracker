@@ -9,7 +9,7 @@ github-issue: 2691
 spec-path: docs/issues/open/2691-reduce-agents-md-token-footprint/ISSUE.md
 branch: "2691-reduce-agents-md-token-footprint"
 related-pr: 2704
-last-updated-utc: "2026-11-03 13:00"
+last-updated-utc: "2026-11-03 15:00"
 semantic-links:
   skill-links:
     - create-issue
@@ -123,7 +123,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T4a | DONE   | Build the rule inventory from the baseline `AGENTS.md`                                | `rule-inventory.md`: one row per rule, seeded from the source file, not from the planned moves          |
 | T5  | DONE   | Maintainer review of research and dispositions before any restructuring               | Explicit maintainer approval recorded in the progress log                                               |
 | T6  | TODO   | Move content to canonical homes (skills/docs) and replace it with links where needed  | No rule lost, no duplicated procedural guidance; links validated                                        |
-| T7  | TODO   | Condense `AGENTS.md`                                                                    | Reduced file; footprint re-measured with the T1 method                                                  |
+| T7  | DONE   | Condense `AGENTS.md`                                                                    | Reduced file; footprint re-measured with the T1 method                                                  |
 | T8  | TODO   | Add a regrowth guard (documented budget; automated check only if justified)           | Documented in the owning skill or doc; any tool follows the shell-vs-Rust policy                        |
 | T9  | TODO   | Behavioral check that agents still follow the key rules after the reduction           | See manual scenarios M1 to M3                                                                           |
 | T10 | TODO   | Re-evaluate after implementation whether an ADR is warranted                          | Outcome recorded in the progress log and in the implementation completion review                       |
@@ -177,6 +177,7 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - 2026-11-03 10:15 UTC - Claude Code (Claude Sonnet 5.5) - T6 step 2: replaced the Package Naming Conventions and Container / Docker sections with links (`docs/packages.md#package-conventions`, `docs/containers.md`, destination content verified first) and asserted the 4 matching inventory rows - `rule-inventory.md`
 - 2026-11-03 11:00 UTC - Claude Code (Claude Sonnet 5.5) - T6 step 3: replaced the Key Configuration Files and Build, Test, and Lint content with short pointers, after confirming that the `run-linters`, `run-pre-commit-checks`, `run-pre-push-checks` skills and `docs/benchmarking.md` already hold the removed content; corrected the `run-linters` ignore note; found and dropped three stale baseline statements (`cargo test --test integration`, `.cspell.gitignore`, four of five cargo aliases); asserted 16 inventory rows - `section-disposition.md`, `rule-inventory.md`
 - 2026-11-03 13:00 UTC - Claude Code (Claude Sonnet 5.5) - T6 step 4: moved the Git Workflow detail to the `open-pull-request` skill. The skill pointed back to `AGENTS.md` for the history-rewrite rules and held only a stub of the PR-title rules, so I added both to the skill first (new section Commit History and Pull-Request Scope, extended Title section) and fixed the circular reference; `AGENTS.md` keeps branch naming, the Conventional Commits form, the branch strategy and the keep-intermediate-commits rule; asserted 14 inventory rows; `AGENTS.md` is now about 4.1k proxy tokens - `rule-inventory.md`
+- 2026-11-03 15:00 UTC - Claude Code (Claude Sonnet 5.5) - T7: the maintainer approved the remaining trims including shortened policies (decision D6). Condensed Project Overview, Key Directories, Code Style, Engineering Policies, Essential Rules, Auto-Invoke Skills and Documentation, and removed Tech Stack; moved the VS Code skills setting to the `setup-dev-environment` skill first; removed one duplicated rule and renumbered Essential Rules; found one more stale baseline statement (`tests/` contents). `AGENTS.md` is now 2,994 proxy tokens (about 4.9k Claude tokens, estimated), 229 lines, 13,027 bytes. All 99 inventory rows are asserted; 45 `AGENTS.md` rows were checked mechanically and 4 reworded rows by reading - `section-disposition.md`, `rule-inventory.md`
 
 ## Acceptance Criteria
 

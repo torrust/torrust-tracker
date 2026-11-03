@@ -103,6 +103,7 @@ not carried forward.
 | `cargo test --test integration` is a common command     | `Cargo.toml` has no `integration` test target; `tests/` has separate binaries |
 | `.cspell.gitignore` is the cspell ignore file           | The file does not exist; cspell uses `ignorePaths` in `cspell.json`        |
 | Cargo aliases are `cov`, `cov-lcov`, `cov-html`, `time` | `.cargo/config.toml` defines five; `cov-codecov` was missing               |
+| `tests/` holds `integration.rs` and `servers/`          | Neither exists; `tests/` has separate binaries described in `tests/AGENTS.md` |
 
 ## Maintainer Decisions (T5)
 
@@ -115,8 +116,26 @@ Recorded 2026-10-30 from the maintainer's answers to the five questions raised i
 | D3 | The package catalog lives in `docs/packages.md`; `packages/AGENTS.md` points to it.                                                                                                              |
 | D4 | Keep Development Principles unchanged. The maintainer considers it very important.                                                                                                               |
 | D5 | Keep all eight Engineering Policies inline, as agreed with the recommendation to move only duplicates. Policies 1 and 2 (dependency and base-image freshness) fit D2 and can be reconsidered later. |
+| D6 | Approved on 2026-11-03, after the maintainer asked whether the trims were documented and approved: shorten the eight Engineering Policies to one or two lines each (numbers and substance kept), and apply the remaining trims of rows 2, 3, 4, 9, 11, 12, 16 and 17. The maintainer's words: "I approve, they look reasonable". |
 
 Applying D2 changes the destination of some rows: where this document says "move", prefer an
 existing nested `AGENTS.md` in the closest subfolder (for example `tests/AGENTS.md` for test
 commands, `.github/workflows/AGENTS.md` for CI guidance, `docs/AGENTS.md` for documentation
 navigation) over a new page, unless a skill owns the workflow.
+
+## Result After the Trims
+
+Measured on 2026-11-03 with the proxy tokenizer `cl100k_base`; the Claude figure applies the 1.65
+ratio from the baseline and is an estimate until `/context` is re-run.
+
+| Measure                    | Baseline | Estimated in T4 | Actual   |
+| -------------------------- | -------- | --------------- | -------- |
+| Proxy tokens               | 7,472    | 2,756           | 2,994    |
+| Claude Code tokens (est.)  | 12,400   | about 4,500     | about 4,940 |
+| Lines                      | 523      | n/a             | 229      |
+| Bytes                      | 35,910   | n/a             | 13,027   |
+
+The actual result is above the T4 estimate because Engineering Policies (525 against an estimated
+380) and Essential Rules (398 against 380) were trimmed less than planned: their wording is
+maintainer-owned and the absolute rules stay verbatim. The skill lists were shortened to names plus
+one location pattern to compensate.
