@@ -6,7 +6,7 @@ epic: null
 github-issue: 1488
 spec-path: docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
 epic-owner: josecelano
-last-updated-utc: "2026-10-28 16:37"
+last-updated-utc: "2026-11-03 16:51"
 semantic-links:
   skill-links:
     - create-issue
@@ -212,7 +212,7 @@ deterministic tests, and manual evidence.
 | 18       | SI-18 | [Deprecate legacy shutdown API](../../drafts/1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md)                           | Draft      | Compatibility-preserving source deprecation only.                                                    |
 | 19       | SI-19 | [Remove legacy shutdown API and library OS signals](../../drafts/1488-si-19-remove-legacy-shutdown-api/ISSUE.md)          | Draft      | Breaking release after migration, deprecation, and compatibility gates.                              |
 | 20       | #2668 | [Configure shutdown policy and deployment contract](../../closed/2668-1488-si-20-configure-shutdown-policy/ISSUE.md)     | Done       | Apply approved Q3/Q4 outcomes, budgets, configuration, and deployment guidance.                      |
-| 21       | SI-21 | [Mark health check unhealthy during shutdown](../../drafts/1488-si-21-mark-health-unhealthy-during-shutdown/ISSUE.md)     | Draft      | Set readiness to not ready before root cancellation and component drain.                             |
+| 21       | #2697 | [Mark health check unhealthy during shutdown](../2697-1488-si-21-mark-health-unhealthy-during-shutdown/ISSUE.md)         | Open       | Set readiness to not ready before root cancellation and component drain.                             |
 | —        | SI-3  | [Combined standalone environment migration](../../drafts/1488-si-3-fix-environment-stop/ISSUE.md)                         | Superseded | Replaced by SI-16 and SI-17. Do not implement.                                                       |
 | —        | SI-6  | [Concurrent supervisor outcomes](../../drafts/1488-si-6-align-grace-periods/ISSUE.md)                                     | Superseded | Replaced by existing issue #1586. Do not implement separately.                                       |
 | —        | SI-7  | [Standalone shutdown-progress reporting](../../drafts/1488-si-7-observable-shutdown-progress/ISSUE.md)                    | Superseded | Structured outcomes are incorporated into issue #1586. Do not implement.                             |
