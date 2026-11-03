@@ -175,10 +175,10 @@ fn delimited_yaml(markdown: &str) -> Result<Option<String>, Diagnostic> {
 fn semantic_links(values: &Mapping, ownership: DocumentOwnership) -> Result<Option<SemanticLinks>, Diagnostic> {
     let metadata_key = Value::String(String::from("metadata"));
     if ownership == DocumentOwnership::External {
-        return values.get(&metadata_key).and_then(Value::as_mapping).map_or_else(
-            || Ok(None),
-            |metadata| semantic_links_from(metadata, "metadata.semantic-links"),
-        );
+        return values
+            .get(&metadata_key)
+            .and_then(Value::as_mapping)
+            .map_or(Ok(None), |metadata| semantic_links_from(metadata, "metadata.semantic-links"));
     }
 
     semantic_links_from(values, "semantic-links")
