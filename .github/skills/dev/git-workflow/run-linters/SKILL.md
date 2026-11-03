@@ -175,5 +175,6 @@ delegates to each tool, which reads its own config file from the project root:
 | `rustfmt.toml`       | rustfmt      |
 
 > **Note**: Files listed in `.gitignore` are **not** automatically excluded from linting.
-> Each tool has its own ignore mechanism (e.g. `.markdownlintignore` for markdownlint).
+> Each tool has its own ignore mechanism (e.g. `.markdownlintignore` for markdownlint, and the
+> `ignorePaths` list in `cspell.json` for cspell).
 > Add `.gitignore` paths to the appropriate per-linter ignore file when needed.

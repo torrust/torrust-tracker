@@ -66,48 +66,11 @@ in [package conventions](docs/packages.md#package-conventions).
 
 ## 📄 Key Configuration Files
 
-The `linter` binary has **no configuration file of its own**. It is a thin wrapper that
-delegates to each tool, which reads its own config file from the project root. The
-config files are already present in the repository — no manual setup is needed.
-
-Files listed in `.gitignore` are **not** automatically excluded from linting. Each linter
-has its own ignore mechanism (e.g. `.markdownlintignore` for markdownlint,
-`.cspell.gitignore` for cspell). Add `.gitignore` paths that must be excluded from a
-linter to the appropriate ignore file.
-
-| File                                      | Used by                                                                                                                             |
-| ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `.markdownlint.json`                      | markdownlint                                                                                                                        |
-| `.yamllint-ci.yml`                        | yamllint                                                                                                                            |
-| `.taplo.toml`                             | taplo (TOML formatting)                                                                                                             |
-| `cspell.json`                             | cspell (spell checker) configuration                                                                                                |
-| `lychee.toml`                             | lychee (offline local Markdown file and fragment checking)                                                                          |
-| `project-words.txt`                       | cspell project-specific dictionary                                                                                                  |
-| `rustfmt.toml`                            | rustfmt (`group_imports = "StdExternalCrate"`, `max_width = 130`)                                                                   |
-| `.cargo/config.toml`                      | Cargo aliases (`cov`, `cov-lcov`, `cov-html`, `time`) and global `rustflags` (`-D warnings`, `-D unused`, `-D rust-2018-idioms`, …) |
-| `Cargo.toml`                              | Cargo workspace root                                                                                                                |
-| `compose.qbittorrent-e2e.sqlite3.yaml`    | qBittorrent E2E Compose stack for SQLite backend                                                                                    |
-| `compose.qbittorrent-e2e.mysql.yaml`      | qBittorrent E2E Compose stack for MySQL backend                                                                                     |
-| `compose.qbittorrent-e2e.postgresql.yaml` | qBittorrent E2E Compose stack for PostgreSQL backend                                                                                |
-| `Containerfile`                           | Container image definition                                                                                                          |
-| `codecov.yaml`                            | Code coverage configuration                                                                                                         |
+The `linter` binary has no configuration file of its own, and `.gitignore` does not exclude files
+from linting; the `run-linters` skill lists each tool's config and ignore mechanism. Cargo aliases
+and global `rustflags` are in `.cargo/config.toml`; formatting is in `rustfmt.toml`.
 
 ## 🧪 Build, Test, and Lint
-
-Use this section as a quick policy-level summary. For detailed command workflows and troubleshooting,
-prefer the corresponding skills.
-
-Common commands:
-
-```sh
-cargo build
-cargo test --doc --workspace
-cargo test --tests --benches --examples --workspace --all-targets --all-features
-cargo test --test integration
-cargo +nightly doc --no-deps --bins --examples --workspace --all-features
-cargo +nightly doc --no-deps --lib --workspace --all-features
-cargo bench --package torrust-tracker-torrent-repository-benchmarking
-```
 
 Mandatory quality gate before every commit:
 
@@ -115,52 +78,18 @@ Mandatory quality gate before every commit:
 ./contrib/dev-tools/git/hooks/pre-commit.sh
 ```
 
-Pre-commit defaults to concise text output and runs the fast local profile:
+Linter entry point: `linter all`. CI is the merge authority and also runs the E2E matrix.
 
-1. Format `project-words.txt`
-2. Check documented Clippy allows
-3. Check staged Markdown frontmatter
-4. Run `cargo machete --with-metadata`
-5. Run `cargo deny check bans`
-6. Check nightly Rust formatting
-7. Run `linter all`
-8. Lint the `Containerfile` with hadolint
-9. Run `cargo test --doc --workspace`
+Both git hooks write per-step logs to `TORRUST_GIT_HOOKS_LOG_DIR` (default: `/tmp`). In restricted
+AI-agent sandboxes set `TORRUST_GIT_HOOKS_LOG_DIR=.tmp` so the logs stay inside the workspace
+(`.tmp/` is git-ignored).
 
-Use `--format=text --verbosity=verbose` for full streaming output, or `--format=json` for a
-single structured JSON payload.
-
-Both hooks write per-step logs to `TORRUST_GIT_HOOKS_LOG_DIR` (default: `/tmp`).
-In restricted AI-agent sandboxes, set `TORRUST_GIT_HOOKS_LOG_DIR=.tmp` to keep temporary logs
-inside the workspace for both hooks (`.tmp/` is git-ignored).
-When using `.tmp`, periodically clean old logs (for example, remove stale `pre-commit-*.log` and
-`pre-push-*.log` files) because OS-managed `/tmp` cleanup does not apply.
-
-Gate ownership:
-
-- Pre-commit: fast local feedback
-- Pre-push: nightly toolchain checks + workspace packaging check + full stable test suite (no pre-commit
-  duplicates; no E2E)
-- CI: merge authority (includes E2E matrix)
-
-Linter entry point:
-
-```sh
-linter all
-```
-
-Primary skill references:
+Skills for these workflows:
 
 - `run-linters`: `.github/skills/dev/git-workflow/run-linters/SKILL.md`
 - `run-pre-commit-checks`: `.github/skills/dev/git-workflow/run-pre-commit-checks/SKILL.md`
 - `run-pre-push-checks`: `.github/skills/dev/git-workflow/run-pre-push-checks/SKILL.md`
 - `setup-dev-environment`: `.github/skills/dev/maintenance/setup-dev-environment/SKILL.md`
-
-Supporting docs:
-
-- [docs/benchmarking.md](docs/benchmarking.md)
-- [docs/profiling.md](docs/profiling.md)
-- [docs/containers.md](docs/containers.md)
 
 ## 🎨 Code Style
 

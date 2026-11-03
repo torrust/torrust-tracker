@@ -86,12 +86,23 @@ destination is verified to contain the content.
 | ---------- | ------------------------------------------------------------------------------------------------------------ | ------ |
 | 5          | Catalog merged into `docs/packages.md`; links in `docs/packages.md` and `packages/AGENTS.md` (2) reversed     | DONE   |
 | 6          | `docs/packages.md#package-conventions` matches the table (one difference: `*-protocol` wording)                | DONE   |
-| 7          | Configuration-file table present in `run-linters` or another canonical doc                                    | TODO   |
-| 8          | Build and test commands present in `docs/testing.md` or a skill                                               | TODO   |
+| 7          | Configuration-file table present in `run-linters` or another canonical doc                                    | DONE   |
+| 8          | Build and test commands present in `docs/testing.md` or a skill                                               | DONE   |
 | 11         | Policies 1 and 2 present in the dependency skills                                                             | TODO   |
 | 13         | PR-title and merge-tool text present in the skills; "keep intermediate commits" rule placed (finding 4)        | TODO   |
 | 15         | `docs/containers.md` covers ports and volumes (ports confirmed; volumes confirmed in "Volumes")               | DONE   |
 | all        | `grep` for anchors into `AGENTS.md` finds no link to a removed heading                                        | TODO   |
+
+## Stale Baseline Content Found
+
+Moving content exposed statements in the baseline `AGENTS.md` that were already wrong. They are
+not carried forward.
+
+| Baseline statement                                      | Reality                                                                    |
+| ------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `cargo test --test integration` is a common command     | `Cargo.toml` has no `integration` test target; `tests/` has separate binaries |
+| `.cspell.gitignore` is the cspell ignore file           | The file does not exist; cspell uses `ignorePaths` in `cspell.json`        |
+| Cargo aliases are `cov`, `cov-lcov`, `cov-html`, `time` | `.cargo/config.toml` defines five; `cov-codecov` was missing               |
 
 ## Maintainer Decisions (T5)
 
