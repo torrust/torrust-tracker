@@ -17,7 +17,7 @@ Source: pull-request reviews and inline review threads for https://github.com/to
 The PR author owns this tracked audit record. Reviewers, including repository review agents,
 deliver findings through GitHub and have no repository-artifact obligation.
 
-- Post-merge workflow approval: N/A
+- Post-merge workflow approval: https://github.com/torrust/torrust-tracker/pull/2690#issuecomment-6528193668 (comment created 2026-10-30 16:45 UTC by `josecelano-bot` on behalf of the maintainer, who approved the plan in chat at about 16:30 UTC and the posting at 16:45 UTC; one local signed commit, the F20/F21 evidence fix at 16:33 UTC, preceded the comment, and nothing was pushed or posted before it)
 
 ## Status Values
 
@@ -40,6 +40,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 F1 to F8 come from review 5712289311 (round 1) and F9 to F11 from review 5712767693 (round 2). F12 to F19 are the eight "Not yet" follow-up comments of reviews 5712768462 to 5712771679, each a re-raise of F1 to F8 against a head that predates the fixes. Each is an inline reply inside the thread of the finding it re-raises, so its `Source URL` is the submitted review that holds it (the inline comment id is named in the Concern) and its `Reply URL` is the reply posted on that same thread: the validation script can only match a reply to a thread root, and a reply comment is never one. The reviewer ID scheme (F1 to F11) was kept; no collision. All findings are by the human reviewer `da2ce7`.
 
+Update of 2026-10-30 (post-merge): this pull request merged on 2026-10-30 16:25 UTC (merge commit `6a20f4368`) while the three inline threads of da2ce7's approving review 5713751044 (APPROVED, 2026-10-30 14:28:48 UTC, with the ACK of the head `4601be56f`) were unprocessed: F20 to F22, all non-blocking. Per the `process-pr-review` skill's post-merge workflow they were triaged read-only, reported to the maintainer and approved as a durable comment (https://github.com/torrust/torrust-tracker/pull/2690#issuecomment-6528193668) before any push or reply. They are carried by the follow-up pull request https://github.com/torrust/torrust-tracker/pull/2693 (branch `2547-archive-and-evidence-fixes`), not by the merged branch. The reviewer titled the three comments `[Minor][F20]`, `[Minor][F21]` and `[Nit][F22]`; those IDs are retained here as this audit's IDs and continue its numbering (the template leaves `Reviewer finding ID` as `N/A` when no ID was reassigned).
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2690-f1 | Human | Major | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -61,6 +63,9 @@ F1 to F8 come from review 5712289311 (round 1) and F9 to F11 from review 5712767
 | F17 | review-finding:pr-2690-f17 | Human | Minor (inferred) | correctness | RE_RAISE_OF:F6 | FIXED | RESOLVED |
 | F18 | review-finding:pr-2690-f18 | Human | Minor (inferred) | documentation | RE_RAISE_OF:F7 | FIXED | RESOLVED |
 | F19 | review-finding:pr-2690-f19 | Human | Minor (inferred) | correctness | RE_RAISE_OF:F8 | FIXED | RESOLVED |
+| F20 | review-finding:pr-2690-f20 | Human | Minor | correctness | RE_RAISE_OF:F3 | FOLLOW_UP | OPEN |
+| F21 | review-finding:pr-2690-f21 | Human | Minor | correctness | RE_RAISE_OF:F3 | FOLLOW_UP | OPEN |
+| F22 | review-finding:pr-2690-f22 | Human | Nit | documentation | ORIGINAL | FOLLOW_UP | OPEN |
 
 ## Finding Details
 
@@ -311,10 +316,51 @@ F1 to F8 come from review 5712289311 (round 1) and F9 to F11 from review 5712767
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2690#discussion_r4424367971
 
+### F20 - Make the merge-list construction reproducible
+
+- PR number: 2690
+- Source review ID: 5713751044
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2690#discussion_r4424691581
+- Concern: Continues F3 (reproducing the aggregation evidence). `git log --first-parent --since=2026-10-01` takes the time of day at which it runs; replayed, it omitted #2397, #2400 and #2401, not only two merges, so the merge-list construction of section 7 and A.3 does not regenerate the TSV and the "two missing merges" explanation is wrong.
+- Solution: The finding was right. This pull request merged before the fix, so under the post-merge workflow the correction is carried by the follow-up pull request: the commands use `--since=2026-10-01T00:00:00Z`, and A.3, section 7 and the retrospective name the three merges and the real cause. The fix is carried by the commit `docs(issues): [#2547] make the merge-list construction reproducible and the CI total consistent` of the follow-up pull request, and stays pending until that pull request merges.
+- Current-tree verification: Replaying `git log --first-parent torrust/develop --since=2026-10-01T00:00:00Z` lists 211 merges (208 without the time) including #2397, #2400 and #2401, and the merges in the periods reproduce exactly the 189 period and PR pairs of `evidence/ci-to-merge.tsv` (68 baseline, 121 window).
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2690#discussion_r4426151564
+- Follow-up PR URL: https://github.com/torrust/torrust-tracker/pull/2693
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2690#discussion_r4426151564
+
+### F21 - State one rounding convention for the CI total
+
+- PR number: 2690
+- Source review ID: 5713751044
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2690#discussion_r4424691612
+- Concern: Continues F3 (reproducing the aggregation evidence). The six A.5 values of OS Compatibility sum to 148.59 (mean 24.765, 133.731 h), so the section 4 row should be 133.7, not 133.8; summing the rounded rows gives 567.0 and summing before rounding gives 567.052972 (567.1), and the comparison said 567.0.
+- Solution: The finding was right and the follow-up pull request corrects it: the row is 133.7, the total is the unrounded sum rounded once (567.05, so 567.1), the section 4 and A.5 text say so, and the comparison row is 567.1. The fix is carried by the commit `docs(issues): [#2547] make the merge-list construction reproducible and the CI total consistent` of the follow-up pull request, and stays pending until that pull request merges.
+- Current-tree verification: Section 4 shows 133.7 and the convention note, A.5 states the unrounded sum, and the comparison reads 567.1; no conclusion changes.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2690#discussion_r4426151939
+- Follow-up PR URL: https://github.com/torrust/torrust-tracker/pull/2693
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2690#discussion_r4426151939
+
+### F22 - Correct the 13:53 "Started audit" entry
+
+- PR number: 2690
+- Source review ID: 5713751044
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2690#discussion_r4424691625
+- Concern: The Processing Log entry stamped 13:53 UTC says the audit started after the 11 thread replies had been posted (13:53:51 to 13:54:34 UTC), but the replies ran from 13:54:12 to 13:54:34 UTC; only the consolidated comment (13:53:51 UTC) preceded the stamp.
+- Solution: The finding was right. The log is append-only, so the original entry is kept and a correction entry is appended in the follow-up pull request. The correction is carried by the commit `docs(pr-reviews): [#2547] record the post-merge findings F20 to F22 of PR 2690` of the follow-up pull request, and stays pending until that pull request merges.
+- Current-tree verification: The Processing Log below keeps the 13:53 entry and has the appended correction with the captured times from the GitHub API.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2690#discussion_r4426152427
+- Follow-up PR URL: https://github.com/torrust/torrust-tracker/pull/2693
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2690#discussion_r4426152427
+
 ## Processing Log
 
 - 2026-10-30 13:53 UTC - Started audit after the consolidated response (https://github.com/torrust/torrust-tracker/pull/2690#issuecomment-6524493920) and the 11 thread replies had been posted (13:53:51 to 13:54:34 UTC).
 - 2026-10-30 13:56 UTC - Resolved the 11 threads (GraphQL `resolveReviewThread`, 13:56:39 to 13:56:50 UTC); a GraphQL refresh at 13:56:50 UTC reported 0 unresolved threads. `validate-audit-record.py --pr-number 2690` exited 0 (19 rows, 0 failures) before this entry.
+- 2026-10-30 16:49 UTC - Correction to the 2026-10-30 13:53 UTC entry (finding F22 of review 5713751044; the earlier entries are kept as written). That entry was stamped 13:53 and said the audit started after the consolidated response and the 11 thread replies had been posted. The captured times are: the consolidated response (issuecomment-6524493920) at 13:53:51 UTC; the 11 thread replies from 13:54:12 to 13:54:34 UTC; the thread resolutions from 13:56:39 to 13:56:50 UTC; and the commit of the audit at 13:58:36 UTC. So the audit was written after all the replies, and its 13:53 stamp preceded 11 events it described as done; the stamp was an approximation of the start of the work, not the time of the entry.
+- 2026-10-30 16:49 UTC - Post-merge findings F20 to F22: this pull request merged at 2026-10-30 16:25 UTC before da2ce7's three inline threads on review 5713751044 were processed. Read-only triage confirmed each finding (F20 by replaying the merge list, F21 by recomputing the A.5 sums) and the maintainer approved a follow-up as a durable comment (https://github.com/torrust/torrust-tracker/pull/2690#issuecomment-6528193668, 16:45 UTC). Replies citing the follow-up pull request https://github.com/torrust/torrust-tracker/pull/2693 were posted on the three threads at 16:49:16, 16:49:19 and 16:49:21 UTC (`FOLLOW_UP`/`OPEN`); they are left open until it merges. One local signed commit (F20 and F21) was created at 16:33 UTC, before the approval comment, which was a process slip recorded in the Ownership section.
 
 ## Completion Rules
 

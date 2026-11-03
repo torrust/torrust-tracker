@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-review
+status: done
 priority: p3
 epic: null
 github-issue: 2547
-spec-path: docs/issues/open/2547-measure-effect-of-optional-rebases/ISSUE.md
+spec-path: docs/issues/closed/2547-measure-effect-of-optional-rebases/ISSUE.md
 branch: "2547-measure-effect-of-optional-rebases"
 related-pr: 2690
-last-updated-utc: "2026-10-30 13:49"
+last-updated-utc: "2026-10-30 16:45"
 semantic-links:
   skill-links:
     - create-issue
@@ -177,7 +177,7 @@ with GPG.
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/` (issue closed by the merge of PR #2690; archived by the pull request whose commit subject is `chore(issues): archive closed issue #2547 spec to docs/issues/closed`)
 
 ### Progress Log
 
@@ -237,6 +237,7 @@ with GPG.
   acceptance verification, completion review (`implementation-retrospective.md`), status `in-review`, the
   M1/M2 deviation in the scenario table, and the chronological order of this log. No independent reviewer
   agent was given this folder, so no `agent-review-reports.md` is recorded.
+- 2026-10-30 16:45 UTC - AI assistant - Issue #2547 is closed: PR #2690 merged on 2026-10-30 16:25 UTC (merge commit `6a20f4368`). The spec folder is archived to `docs/issues/closed/`, `status` is `done` and the last workflow checkpoint is ticked. The reviewer's three post-merge findings (F20 to F22 of `docs/pr-reviews/pr-2690-review/PR-REVIEW.md`) are corrected in the same follow-up pull request, with the maintainer's approval (comment https://github.com/torrust/torrust-tracker/pull/2690#issuecomment-6528193668). The reviewer-validation checkbox is left unticked: the reviewer approved the pull request but did not tick the acceptance criteria in this spec.
 
 ## Acceptance Criteria
 
