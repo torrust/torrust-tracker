@@ -88,8 +88,8 @@ destination is verified to contain the content.
 | 6          | `docs/packages.md#package-conventions` matches the table (one difference: `*-protocol` wording)                | DONE   |
 | 7          | Configuration-file table present in `run-linters` or another canonical doc                                    | DONE   |
 | 8          | Build and test commands present in `docs/testing.md` or a skill                                               | DONE   |
-| 11         | Policies 1 and 2 present in the dependency skills                                                             | TODO   |
-| 13         | PR-title and merge-tool text present in the skills; "keep intermediate commits" rule placed (finding 4)        | TODO   |
+| 11         | Policies 1 and 2 present in the dependency skills                                                             | DONE   |
+| 13         | PR-title and merge-tool text present in the skills; "keep intermediate commits" rule placed (finding 4)        | DONE   |
 | 15         | `docs/containers.md` covers ports and volumes (ports confirmed; volumes confirmed in "Volumes")               | DONE   |
 | all        | `grep` for anchors into `AGENTS.md` finds no link to a removed heading                                        | TODO   |
 

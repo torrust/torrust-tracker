@@ -206,75 +206,35 @@ Implementation workflow references:
 
 ```text
 <issue-number>-<short-description>   # e.g. 1697-ai-agent-configuration (preferred)
-<issue-number>-<short-description>-spec # spec-only branch; reserve the base name for implementation
 feat/<short-description>             # for features without a tracked issue
 fix/<short-description>              # for bug fixes
 chore/<short-description>            # for maintenance tasks
 ```
 
+A spec-only branch adds a `-spec` suffix, so the base name stays free for implementation (see the
+`create-feature-branch` skill).
+
 **Commit messages** follow [Conventional Commits](https://www.conventionalcommits.org/):
-
-```text
-feat(<scope>): add X
-fix(<scope>): resolve Y
-chore(<scope>): update Z
-docs(<scope>): document W
-refactor(<scope>): restructure V
-ci(<scope>): adjust pipeline U
-test(<scope>): add tests for T
-```
-
-Scope should reflect the affected package or area (e.g., `tracker-core`, `udp-protocol`, `ci`, `docs`).
+`type(scope): summary`, with the types `feat`, `fix`, `chore`, `docs`, `refactor`, `ci` and `test`.
+Scope names the affected package or area (e.g., `tracker-core`, `udp-protocol`, `ci`, `docs`).
 
 **Branch strategy**:
 
-- Feature branches are cut from `develop`
+- Feature branches are cut from `develop`; PRs target `develop`
 - Direct pushes to `develop` and `main` are not allowed; changes must be merged via PR
 - PRs targeting `develop` or `main` must come from a fork branch (`<fork-owner>:<branch>`), not a branch in `torrust/torrust-tracker`
-- Remote names are contributor-local (`josecelano`, `origin`, `upstream`, `torrust`, etc.); do not assume fixed remote names
-- PRs target `develop`
-- `develop` → `staging/main` → `main` (release pipeline)
 - PRs must pass all CI status checks before merge
 
-**Commit history and PR scope**:
+**Commit history**: keep intermediate commits. Do not squash, fixup, or rewrite a branch's history to
+hide steps that were later superseded; the sequence of a mistake and its correction is deliberately
+preserved as training material. Never propose squashing as a cleanup. Minor process, skill, or
+documentation improvements may ride along in the PR that produced them, each in its own commit; do
+not propose splitting them out by default.
 
-- Keep intermediate commits. Do not squash, fixup, or rewrite a branch's history to hide steps
-  that were later superseded. The sequence of a mistake and its correction is deliberately
-  preserved as training material for humans and AI agents. Never propose squashing as a cleanup.
-- A rebase onto `develop` is recommended when cheap and required on conflicts (see
-  [`docs/adrs/20261013161419_stop_requiring_pull_request_rebases.md`](docs/adrs/20261013161419_stop_requiring_pull_request_rebases.md)).
-- Other rewrites of an unmerged pull request's history, such as splitting a commit that mixes
-  independent changes, are allowed but not ideal; agents may do them on their own judgment. Prefer
-  a new commit on top when it achieves the same result, especially during a review round, whose
-  cited commit ids a rewrite invalidates. A rewrite may separate or reorder steps but must keep
-  every one of them, including superseded steps and corrections. After it, confirm the final tree
-  is unchanged unless the rewrite intends a change, and push with `--force-with-lease`. Replace
-  every old commit id in repository artifacts and the PR body with the commit's Conventional Commit
-  subject, not with its new id, which a later rewrite can change too (see the `open-pull-request`
-  skill). Review comments cannot be edited, so map the ids they cite to commit subjects in the pull
-  request's review audit. Say in the PR body that the history was rewritten. Never rewrite
-  `develop`, `main`, or merged history.
-- Minor process, skill, or documentation improvements learned while doing the work may ride along
-  in the PR that produced them, even when unrelated to the PR's runtime change, as long as each
-  lives in its own commit with the right Conventional Commits type (`docs(...)`, `chore(...)`).
-  Splitting them into separate PRs is unnecessary bureaucracy for changes that will be merged
-  immediately; do not propose it by default. Substantial changes (new agents, ADRs, workflow
-  redesigns) still get their own issue and PR.
-
-**Pull request titles**: the maintainer merge tool (`contrib/dev-tools/git/merge-pull-request.sh`, which runs the vendored `contrib/dev-tools/git/github-merge.py`) copies the PR title verbatim into the merge commit subject, so the title becomes permanent `develop` history:
-
-```text
-PR title:      feat(tracker-core): [#42] add peer expiry grace period
-Merge subject: Merge torrust/torrust-tracker#123: feat(tracker-core): [#42] add peer expiry grace period
-```
-
-- Write the title as a single Conventional Commits line (`type(scope): summary`, same forms as above) that reads well as that subject
-- Do not put the PR number in the title; the merge tool prepends it
-- Include an issue reference `[#<issue>]` only for the issue the PR implements or closes, so the merge commit links that issue; a merely related or already-closed issue belongs in the PR body (`Related to #N`)
-
-Full title and body conventions: `.github/skills/dev/git-workflow/open-pull-request/SKILL.md`.
-
-See [docs/release_process.md](docs/release_process.md) for the full release workflow.
+PR titles, bodies, issue-linking keywords, rebasing and history-rewrite rules are in the
+`open-pull-request` skill (`.github/skills/dev/git-workflow/open-pull-request/SKILL.md`); merging
+is in the `merge-pull-request` skill. See [docs/release_process.md](docs/release_process.md) for the
+release workflow.
 
 ## 🧭 Development Principles
 
