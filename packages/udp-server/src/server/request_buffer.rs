@@ -1,5 +1,5 @@
 use ringbuf::StaticRb;
-use ringbuf::traits::{Consumer, Observer, Producer};
+use ringbuf::traits::Observer;
 use tokio::task::AbortHandle;
 use torrust_tracker_udp_core::UDP_TRACKER_LOG_TARGET;
 
@@ -25,8 +25,9 @@ pub struct ActiveRequests {
 
 impl std::fmt::Debug for ActiveRequests {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let (left, right) = &self.rb.as_slices();
-        let dbg = format!("capacity: {}, left: {left:?}, right: {right:?}", self.rb.capacity());
+        // ringbuf 0.6 only exposes the stored handles through `&mut self`, so `Debug` reports the
+        // shared metadata only.
+        let dbg = format!("capacity: {}, len: {}", self.rb.capacity(), self.rb.occupied_len());
         f.debug_struct("ActiveRequests").field("rb", &dbg).finish()
     }
 }
@@ -149,7 +150,7 @@ impl ActiveRequests {
 mod tests {
     use std::time::Duration;
 
-    use ringbuf::traits::{Observer, Producer};
+    use ringbuf::traits::Observer;
     use tokio::sync::oneshot;
     use tokio::task::JoinHandle;
 
