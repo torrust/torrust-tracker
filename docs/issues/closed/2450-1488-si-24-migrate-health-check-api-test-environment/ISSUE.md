@@ -9,7 +9,7 @@ github-issue: 2450
 spec-path: docs/issues/closed/2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md
 branch: "2450-migrate-health-check-api-test-environment"
 related-pr: 2652
-last-updated-utc: "2026-10-26 20:04"
+last-updated-utc: "2026-11-03 16:51"
 semantic-links:
   skill-links:
     - create-issue
@@ -27,7 +27,7 @@ semantic-links:
     - docs/issues/closed/2449-1488-si-23-migrate-rest-api-test-environment/ISSUE.md
     - docs/issues/drafts/1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md
     - docs/issues/drafts/1488-si-19-remove-legacy-shutdown-api/ISSUE.md
-    - docs/issues/drafts/1488-si-21-mark-health-unhealthy-during-shutdown/ISSUE.md
+    - docs/issues/open/2697-1488-si-21-mark-health-unhealthy-during-shutdown/ISSUE.md
     - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
 ---
 
@@ -248,6 +248,7 @@ before maintainer review and commit. Sign every commit with GPG.
 - 2026-10-26 16:31 UTC - GitHub Copilot - A new independent Task Reviewer ran on the final tree and returned REVIEW FAILED for one documentation blocker (V5 lacked the prose-first comparison of the three tests added in this round) and six low findings, with no production defect; recorded in `agent-review-reports.md`. Fixed: V5 now covers the eleven environment tests, the production call-site count is corrected from eight to seven, V4 is labelled as measured at T1, `related-pr` is set, and the dropped-`stop()` risk is stated. The acceptance criteria stay TODO.
 - 2026-10-26 19:50 UTC - GitHub Copilot - PR #2652 merged on 2026-10-26 at 19:34 UTC by the maintainer, and #2450 is closed. The maintainer merged without waiting for the re-requested review of da2ce7, whose earlier findings F2 and F3 were fixed and their threads resolved. Archived this spec to `docs/issues/closed/`: `status: done`, `spec-path` and `issue-spec` updated, T4 and T5 marked DONE, the roadmap row 17 of EPIC #1488 marked Done, and every live link to the old `docs/issues/open/` path repaired. The acceptance criteria and the checkpoints for AC review, reviewer validation and committer verification stay unticked: the maintainer has not told the author to tick them.
 - 2026-10-26 20:04 UTC - GitHub Copilot - The maintainer told the author to tick the acceptance criteria. This corrects the 19:50 UTC entry, which said they stay unticked: AC1 to AC8, the definition-of-done items and the checkpoints for AC review, reviewer validation and committer verification are now ticked, each AC row has its evidence pointer, and the evidence is the final-tree review in `agent-review-reports.md` and `manual-verification-evidence.md` (V0 to V7).
+- 2026-11-03 16:51 UTC - AI agent (model not stated by the runtime) - Repaired the related-artifacts link to the SI-21 specification, which moved from `docs/issues/drafts/` to `docs/issues/open/` (#2697). No other content changed.
 
 ## Acceptance Criteria
 

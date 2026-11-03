@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: draft
+status: planned
 priority: p2
 epic: 1488
-github-issue: null
-spec-path: docs/issues/drafts/1488-si-21-mark-health-unhealthy-during-shutdown/ISSUE.md
-branch: "1488-si-21-mark-health-unhealthy-during-shutdown-draft"
+github-issue: 2697
+spec-path: docs/issues/open/2697-1488-si-21-mark-health-unhealthy-during-shutdown/ISSUE.md
+branch: "2697-mark-health-unhealthy-during-shutdown-spec"
 related-pr: null
-last-updated-utc: "2026-11-03 16:50"
+last-updated-utc: "2026-11-03 16:51"
 semantic-links:
   skill-links:
     - create-issue
@@ -24,13 +24,13 @@ semantic-links:
     - docs/features/shutdown-process/questions.md
     - docs/issues/closed/2324-1488-si-13-migrate-health-check-api-token-lifecycle/ISSUE.md
     - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
-    - docs/issues/drafts/1488-si-21-mark-health-unhealthy-during-shutdown/manual-verification-evidence.md
+    - docs/issues/open/2697-1488-si-21-mark-health-unhealthy-during-shutdown/manual-verification-evidence.md
     - docs/adrs/20261021184946_order_shutdown_by_event_flow_and_drain_event_listeners.md
 ---
 
 <!-- skill-link: create-issue -->
 
-# Draft SI-21 — Mark Health Check Unhealthy During Shutdown
+# Issue #2697 - Mark Health Check Unhealthy During Shutdown (SI-21)
 
 > **EPIC position**: Readiness-before-drain vertical slice (roadmap row 21).
 > Every prerequisite is done on `develop`: SI-13 (#2324), SI-22 (#2410) and
@@ -264,9 +264,9 @@ and sign every commit with GPG.
 
 ### Workflow Checkpoints
 
-- [x] Folder-style spec drafted in `docs/issues/drafts/1488-si-21-mark-health-unhealthy-during-shutdown/ISSUE.md`
+- [x] Folder-style spec drafted in `docs/issues/drafts/1488-si-21-mark-health-unhealthy-during-shutdown/ISSUE.md`, moved to `docs/issues/open/`
 - [x] Spec reviewed and approved by user/maintainer (design and issue creation approved in the review chat, 2026-11-03)
-- [ ] GitHub issue created and issue number added to this spec
+- [x] GitHub issue created (#2697) and issue number added to this spec
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
@@ -283,6 +283,7 @@ and sign every commit with GPG.
 - 2026-10-28 18:06 UTC - AI agent (model not stated by the runtime) - Refreshed the 2026-09-25 draft against `develop` and measured that a new health-check connection gets no 503 during a drain - `manual-verification-evidence.md` V1, V2
 - 2026-11-03 16:44 UTC - AI agent (model not stated by the runtime) - Recorded the maintainer's decisions: option (a), idle drain not budgeted inside `P`, health server reserved first; readiness state shape left to the design review
 - 2026-11-03 16:50 UTC - AI agent (model not stated by the runtime) - Added the template sections (plan, commit points, verification plan, risks) required by the `create-issue` skill
+- 2026-11-03 16:51 UTC - AI agent (model not stated by the runtime) - Created issue #2697, linked it under #1488 and moved the spec to `docs/issues/open/`
 
 ## Acceptance Criteria
 
