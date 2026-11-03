@@ -41,6 +41,9 @@ deliver findings through GitHub and have no repository-artifact obligation.
   original thread outdated after the push. For in-PR feedback, use `NO_ACTION`/`SUPERSEDED` only
   for a duplicate, superseded, or no-change concern. A post-merge `NO_ACTION` requires maintainer
   approval to decline the follow-up work.
+- When the current identity cannot resolve a thread (`viewerCanResolve` is `false`), keep the
+  disposition established from the current tree and record `Thread state=OPEN`. The reviewer or PR
+  author resolves it; permission says nothing about whether the concern was fixed.
 
 <!-- Guidance omitted from an audit record; instantiate the heading and table below. -->
 
@@ -123,7 +126,9 @@ correction that names the rewritten content; do not rewrite the record again.
   duplicate, superseded, or no-change in-PR thread, reply exactly
   `Superseded by <FindingId>: <reason>.`, record `Disposition=NO_ACTION` and
   `Thread state=SUPERSEDED`, then resolve it. A post-merge `NO_ACTION` requires maintainer
-  approval to decline the follow-up work.
+  approval to decline the follow-up work. When the current identity cannot resolve a thread
+  (`viewerCanResolve` is `false`), still reply, keep the disposition established from the current
+  tree, and record `Thread state=OPEN`; the reviewer or PR author resolves it.
 - A consolidated PR conversation response may cover multiple review rounds only when it names
   every review ID and every finding ID with its disposition and resolution reference. Record its
   durable URL in each related row.

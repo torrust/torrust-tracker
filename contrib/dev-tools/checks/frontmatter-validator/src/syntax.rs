@@ -122,11 +122,7 @@ mod tests {
         for (value, expected_layout, expected_calendar) in cases {
             // Act: evaluate layout first, then calendar validity only for a safe fixed layout.
             let actual_layout = has_utc_minute_layout(value);
-            let actual_calendar = if actual_layout {
-                is_valid_utc_minute_calendar(value)
-            } else {
-                false
-            };
+            let actual_calendar = actual_layout && is_valid_utc_minute_calendar(value);
 
             // Assert: each independent boundary has the documented result without panics.
             assert_eq!(actual_layout, expected_layout, "unexpected layout result for `{value}`");

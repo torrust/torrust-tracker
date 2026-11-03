@@ -638,18 +638,15 @@ fn extract_compact(query: &Query) -> Result<Option<Compact>, ParseAnnounceQueryE
 }
 
 fn extract_numwant(query: &Query) -> Result<Option<u32>, ParseAnnounceQueryError> {
-    query.get_param(NUMWANT).map_or_else(
-        || Ok(None),
-        |raw_param| {
-            u32::from_str(&raw_param)
-                .map(Some)
-                .map_err(|_| ParseAnnounceQueryError::InvalidParam {
-                    param_name: NUMWANT.to_owned(),
-                    param_value: raw_param.clone(),
-                    location: Location::caller(),
-                })
-        },
-    )
+    query.get_param(NUMWANT).map_or(Ok(None), |raw_param| {
+        u32::from_str(&raw_param)
+            .map(Some)
+            .map_err(|_| ParseAnnounceQueryError::InvalidParam {
+                param_name: NUMWANT.to_owned(),
+                param_value: raw_param.clone(),
+                location: Location::caller(),
+            })
+    })
 }
 
 #[cfg(test)]
