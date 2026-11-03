@@ -98,11 +98,8 @@ mod tests {
     use std::sync::{Arc, Mutex};
 
     use async_trait::async_trait;
-    use axum::body::to_bytes;
     use axum::extract::{Path, State};
     use axum::http::StatusCode;
-    use axum::http::header::CONTENT_TYPE;
-    use axum::response::Response;
     use rstest::rstest;
     use torrust_info_hash::InfoHash;
     use torrust_tracker_rest_api_application::v1::ports::whitelist::WhitelistCommandPort;
@@ -111,7 +108,7 @@ mod tests {
 
     use super::{add_torrent_to_whitelist_handler, reload_whitelist_handler, remove_torrent_from_whitelist_handler};
     use crate::InfoHashParam;
-    use crate::test_support::MAX_BODY_BYTES;
+    use crate::test_support::{Observed, observed};
 
     type Outcome = fn() -> Result<(), WhitelistError>;
     type CallLog = Arc<Mutex<Vec<String>>>;
@@ -119,24 +116,8 @@ mod tests {
 
     const INFO_HASH: &str = "443c7602b4fde83d1154d6d9da48808418b181b6";
 
-    /// What a client receives: the status, the content type and the body.
-    #[derive(Debug, PartialEq, Eq)]
-    struct Observed {
-        status: StatusCode,
-        content_type: String,
-        body: String,
-    }
-
-    fn expected(status: StatusCode, content_type: &str, body: &str) -> Observed {
-        Observed {
-            status,
-            content_type: content_type.to_string(),
-            body: body.to_string(),
-        }
-    }
-
     fn disabled() -> Observed {
-        expected(
+        Observed::new(
             StatusCode::CONFLICT,
             "application/json",
             r#"{"status":"err","reason":"listed capability is disabled by configuration"}"#,
@@ -144,11 +125,11 @@ mod tests {
     }
 
     fn ok() -> Observed {
-        expected(StatusCode::OK, "application/json", r#"{"status":"ok"}"#)
+        Observed::new(StatusCode::OK, "application/json", r#"{"status":"ok"}"#)
     }
 
     fn unhandled(reason: &str) -> Observed {
-        expected(
+        Observed::new(
             StatusCode::INTERNAL_SERVER_ERROR,
             "text/plain; charset=utf-8",
             &format!(r#"Unhandled rejection: Err {{ reason: "{reason}" }}"#),
@@ -156,31 +137,11 @@ mod tests {
     }
 
     fn invalid_info_hash(value: &str) -> Observed {
-        expected(
+        Observed::new(
             StatusCode::BAD_REQUEST,
             "text/plain; charset=utf-8",
             &format!(r#"Invalid URL: invalid infohash param: string "{value}", expected a 40 character long string"#),
         )
-    }
-
-    async fn observed(response: Response) -> Observed {
-        let status = response.status();
-        let content_type = response
-            .headers()
-            .get(CONTENT_TYPE)
-            .expect("the response has a content type")
-            .to_str()
-            .expect("the content type is text")
-            .to_string();
-        let body = to_bytes(response.into_body(), MAX_BODY_BYTES)
-            .await
-            .expect("the body is readable and within the limit");
-
-        Observed {
-            status,
-            content_type,
-            body: String::from_utf8(body.to_vec()).expect("the body is text"),
-        }
     }
 
     #[allow(clippy::unnecessary_wraps, reason = "it must have the outcome type of the fake port")]

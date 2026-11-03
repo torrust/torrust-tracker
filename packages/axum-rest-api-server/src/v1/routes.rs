@@ -76,8 +76,7 @@ pub fn add(prefix: &str, router: Router, http_api_container: &Arc<TrackerHttpApi
 #[cfg(test)]
 mod tests {
     use axum::Router;
-    use axum::body::{Body, to_bytes};
-    use axum::http::header::CONTENT_TYPE;
+    use axum::body::Body;
     use axum::http::{Method, Request, StatusCode};
     use rstest::rstest;
     use torrust_tracker_configuration::v3_0_0::Configuration;
@@ -85,7 +84,7 @@ mod tests {
     use tower::ServiceExt;
 
     use super::add;
-    use crate::test_support::{MAX_BODY_BYTES, api_container};
+    use crate::test_support::{Observed, api_container, observed};
 
     const KEY_PATH: &str = "/api/v1/key/60";
     const WHITELIST_RELOAD_PATH: &str = "/api/v1/whitelist/reload";
@@ -108,9 +107,8 @@ mod tests {
         configuration
     }
 
-    /// Sends one request to the v1 routes composed for the configuration and returns the status, the content type
-    /// and the body.
-    async fn call(configuration: &Configuration, method: Method, uri: &str) -> (StatusCode, Option<String>, String) {
+    /// Sends one request to the v1 routes composed for the configuration and returns what the client receives.
+    async fn call(configuration: &Configuration, method: Method, uri: &str) -> Observed {
         let container = api_container(configuration).await;
         let router = add("/api", Router::new(), &container);
         let request = Request::builder()
@@ -119,31 +117,16 @@ mod tests {
             .body(Body::empty())
             .expect("the request is well formed");
 
-        let response = router.oneshot(request).await.expect("the router never fails");
-
-        let status = response.status();
-        let content_type = response
-            .headers()
-            .get(CONTENT_TYPE)
-            .map(|value| value.to_str().expect("the content type is text").to_string());
-        let body = to_bytes(response.into_body(), MAX_BODY_BYTES)
-            .await
-            .expect("the body is readable and within the limit");
-
-        (
-            status,
-            content_type,
-            String::from_utf8(body.to_vec()).expect("the body is text"),
-        )
+        observed(router.oneshot(request).await.expect("the router never fails")).await
     }
 
     #[tokio::test]
     async fn it_should_serve_the_auth_key_routes_when_the_tracker_is_private_and_has_persistence() {
         let configuration = private_tracker();
 
-        let (status, _content_type, _body) = call(&configuration, Method::POST, KEY_PATH).await;
+        let received = call(&configuration, Method::POST, KEY_PATH).await;
 
-        assert_eq!(status, StatusCode::OK);
+        assert_eq!(received.status, StatusCode::OK);
     }
 
     #[rstest]
@@ -153,14 +136,14 @@ mod tests {
     async fn it_should_answer_conflict_on_the_auth_key_routes_when_the_private_capability_is_not_available(
         #[case] configuration: Configuration,
     ) {
-        let (status, content_type, body) = call(&configuration, Method::POST, KEY_PATH).await;
+        let received = call(&configuration, Method::POST, KEY_PATH).await;
 
         assert_eq!(
-            (status, content_type, body),
-            (
+            received,
+            Observed::new(
                 StatusCode::CONFLICT,
-                Some("application/json".to_string()),
-                r#"{"status":"err","reason":"private capability is disabled by configuration"}"#.to_string(),
+                "application/json",
+                r#"{"status":"err","reason":"private capability is disabled by configuration"}"#
             )
         );
     }
@@ -169,15 +152,11 @@ mod tests {
     async fn it_should_serve_the_whitelist_routes_when_the_tracker_is_listed_and_has_persistence() {
         let configuration = listed_tracker();
 
-        let (status, content_type, body) = call(&configuration, Method::GET, WHITELIST_RELOAD_PATH).await;
+        let received = call(&configuration, Method::GET, WHITELIST_RELOAD_PATH).await;
 
         assert_eq!(
-            (status, content_type, body),
-            (
-                StatusCode::OK,
-                Some("application/json".to_string()),
-                r#"{"status":"ok"}"#.to_string()
-            )
+            received,
+            Observed::new(StatusCode::OK, "application/json", r#"{"status":"ok"}"#)
         );
     }
 
@@ -188,14 +167,14 @@ mod tests {
     async fn it_should_answer_conflict_on_the_whitelist_routes_when_the_listed_capability_is_not_available(
         #[case] configuration: Configuration,
     ) {
-        let (status, content_type, body) = call(&configuration, Method::GET, WHITELIST_RELOAD_PATH).await;
+        let received = call(&configuration, Method::GET, WHITELIST_RELOAD_PATH).await;
 
         assert_eq!(
-            (status, content_type, body),
-            (
+            received,
+            Observed::new(
                 StatusCode::CONFLICT,
-                Some("application/json".to_string()),
-                r#"{"status":"err","reason":"listed capability is disabled by configuration"}"#.to_string(),
+                "application/json",
+                r#"{"status":"err","reason":"listed capability is disabled by configuration"}"#
             )
         );
     }
@@ -207,9 +186,9 @@ mod tests {
     async fn it_should_serve_the_read_routes_even_when_the_tracker_has_no_persistence(#[case] uri: &str) {
         let configuration = without_database(ephemeral());
 
-        let (status, _content_type, _body) = call(&configuration, Method::GET, uri).await;
+        let received = call(&configuration, Method::GET, uri).await;
 
-        assert_eq!(status, StatusCode::OK);
+        assert_eq!(received.status, StatusCode::OK);
     }
 
     #[rstest]
@@ -231,8 +210,9 @@ mod tests {
     ) {
         let configuration = without_database(ephemeral());
 
-        let (status, _content_type, _body) = call(&configuration, method, uri).await;
+        let received = call(&configuration, method, uri).await;
 
+        let status = received.status;
         assert!(
             status != StatusCode::NOT_FOUND && status != StatusCode::METHOD_NOT_ALLOWED,
             "the route is not registered: {status}"

@@ -142,8 +142,8 @@ Temporary prose, written before comparing with the code.
 | `it_should_answer_an_internal_server_error_when_deleting_a_key_fails_in_the_database` | A fake that fails with a database error. | `delete_auth_key_handler`. | The `500` with `failed to delete key: boom`. | Kept. |
 | `it_should_answer_ok_when_the_keys_are_reloaded` and `it_should_answer_an_internal_server_error_when_reloading_the_keys_fails` | A fake that succeeds, or fails with a database error. | `reload_keys_handler`. | `ok`, or the `500` with `failed to reload keys: boom`. | Kept. |
 
-Helpers: `expected`, `disabled`, `ok`, `unhandled` and `bad_request` build the literal expected `Observed` values (one
-visible literal each); `observed` reads a response with the bounded body limit; `FakeAuthKeyPort`, `state_with`,
+Helpers: `disabled`, `ok`, `unhandled` and `bad_request` build the literal expected `Observed` values (one
+visible literal each, with the shared `Observed::new`); the shared `observed` reads a response with the bounded body limit; `FakeAuthKeyPort`, `state_with`,
 `state_answering` and `a_form` are the Arrange mechanics. The fake's contract (scripted answers and a call log) is
 exercised by every forwarding test, and mutation F1 breaks it.
 

@@ -100,9 +100,7 @@ pub fn unhandled_rejection_response(reason: String) -> Response {
 
 #[cfg(test)]
 mod tests {
-    use axum::body::to_bytes;
     use axum::http::StatusCode;
-    use axum::http::header::CONTENT_TYPE;
     use axum::response::Response;
     use rstest::rstest;
 
@@ -110,39 +108,18 @@ mod tests {
         bad_request_response, disabled_by_configuration_response, invalid_auth_key_param_response,
         invalid_info_hash_param_response, ok_response, unhandled_rejection_response,
     };
-    use crate::test_support::MAX_BODY_BYTES;
+    use crate::test_support::{Observed, observed};
 
     const JSON: &str = "application/json";
     const TEXT: &str = "text/plain; charset=utf-8";
-
-    /// The parts of a response that clients depend on: status, content type and body.
-    async fn sent(response: Response) -> (StatusCode, String, String) {
-        let status = response.status();
-        let content_type = response
-            .headers()
-            .get(CONTENT_TYPE)
-            .expect("the response has a content type")
-            .to_str()
-            .expect("the content type is text")
-            .to_string();
-        let body = to_bytes(response.into_body(), MAX_BODY_BYTES)
-            .await
-            .expect("the body is readable and within the limit");
-
-        (
-            status,
-            content_type,
-            String::from_utf8(body.to_vec()).expect("the body is text"),
-        )
-    }
 
     #[tokio::test]
     async fn it_should_answer_ok_with_a_json_status_ok_body() {
         let response = ok_response();
 
-        let observed = sent(response).await;
+        let received = observed(response).await;
 
-        assert_eq!(observed, (StatusCode::OK, JSON.to_string(), r#"{"status":"ok"}"#.to_string()));
+        assert_eq!(received, Observed::new(StatusCode::OK, JSON, r#"{"status":"ok"}"#));
     }
 
     #[rstest]
@@ -154,9 +131,9 @@ mod tests {
     #[case::a_custom_message(bad_request_response("custom"), "custom")]
     #[tokio::test]
     async fn it_should_answer_a_bad_request_with_the_message_as_plain_text(#[case] response: Response, #[case] message: &str) {
-        let observed = sent(response).await;
+        let received = observed(response).await;
 
-        assert_eq!(observed, (StatusCode::BAD_REQUEST, TEXT.to_string(), message.to_string()));
+        assert_eq!(received, Observed::new(StatusCode::BAD_REQUEST, TEXT, message));
     }
 
     #[rstest]
@@ -169,9 +146,9 @@ mod tests {
     ) {
         let response = disabled_by_configuration_response(reason);
 
-        let observed = sent(response).await;
+        let received = observed(response).await;
 
-        assert_eq!(observed, (StatusCode::CONFLICT, JSON.to_string(), body.to_string()));
+        assert_eq!(received, Observed::new(StatusCode::CONFLICT, JSON, body));
     }
 
     #[rstest]
@@ -184,11 +161,8 @@ mod tests {
     ) {
         let response = unhandled_rejection_response(reason.to_string());
 
-        let observed = sent(response).await;
+        let received = observed(response).await;
 
-        assert_eq!(
-            observed,
-            (StatusCode::INTERNAL_SERVER_ERROR, TEXT.to_string(), body.to_string())
-        );
+        assert_eq!(received, Observed::new(StatusCode::INTERNAL_SERVER_ERROR, TEXT, body));
     }
 }

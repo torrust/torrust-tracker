@@ -161,11 +161,8 @@ mod tests {
 
     use async_trait::async_trait;
     use axum::Json;
-    use axum::body::to_bytes;
     use axum::extract::{Path, State};
     use axum::http::StatusCode;
-    use axum::http::header::CONTENT_TYPE;
-    use axum::response::Response;
     use rstest::rstest;
     use torrust_tracker_rest_api_application::v1::ports::auth_key::AuthKeyPort;
     use torrust_tracker_rest_api_application::v1::use_cases::auth_key::AuthKeyApiService;
@@ -173,7 +170,7 @@ mod tests {
     use torrust_tracker_rest_api_protocol::v1::context::auth_key::resources::auth_key::{AuthKey, AuthKeyError};
 
     use super::{KeyParam, add_auth_key_handler, delete_auth_key_handler, generate_auth_key_handler, reload_keys_handler};
-    use crate::test_support::MAX_BODY_BYTES;
+    use crate::test_support::{Observed, observed};
 
     type KeyOutcome = fn() -> Result<AuthKey, AuthKeyError>;
     type UnitOutcome = fn() -> Result<(), AuthKeyError>;
@@ -182,24 +179,8 @@ mod tests {
 
     const KEY_JSON: &str = r#"{"key":"k1","valid_until":null,"expiry_time":null}"#;
 
-    /// What a client receives: the status, the content type and the body.
-    #[derive(Debug, PartialEq, Eq)]
-    struct Observed {
-        status: StatusCode,
-        content_type: String,
-        body: String,
-    }
-
-    fn expected(status: StatusCode, content_type: &str, body: &str) -> Observed {
-        Observed {
-            status,
-            content_type: content_type.to_string(),
-            body: body.to_string(),
-        }
-    }
-
     fn disabled() -> Observed {
-        expected(
+        Observed::new(
             StatusCode::CONFLICT,
             "application/json",
             r#"{"status":"err","reason":"private capability is disabled by configuration"}"#,
@@ -207,11 +188,11 @@ mod tests {
     }
 
     fn ok() -> Observed {
-        expected(StatusCode::OK, "application/json", r#"{"status":"ok"}"#)
+        Observed::new(StatusCode::OK, "application/json", r#"{"status":"ok"}"#)
     }
 
     fn unhandled(reason: &str) -> Observed {
-        expected(
+        Observed::new(
             StatusCode::INTERNAL_SERVER_ERROR,
             "text/plain; charset=utf-8",
             &format!(r#"Unhandled rejection: Err {{ reason: "{reason}" }}"#),
@@ -219,27 +200,7 @@ mod tests {
     }
 
     fn bad_request(body: &str) -> Observed {
-        expected(StatusCode::BAD_REQUEST, "text/plain; charset=utf-8", body)
-    }
-
-    async fn observed(response: Response) -> Observed {
-        let status = response.status();
-        let content_type = response
-            .headers()
-            .get(CONTENT_TYPE)
-            .expect("the response has a content type")
-            .to_str()
-            .expect("the content type is text")
-            .to_string();
-        let body = to_bytes(response.into_body(), MAX_BODY_BYTES)
-            .await
-            .expect("the body is readable and within the limit");
-
-        Observed {
-            status,
-            content_type,
-            body: String::from_utf8(body.to_vec()).expect("the body is text"),
-        }
+        Observed::new(StatusCode::BAD_REQUEST, "text/plain; charset=utf-8", body)
     }
 
     #[allow(deprecated, reason = "the resource still carries the deprecated `valid_until` field")]
@@ -355,7 +316,7 @@ mod tests {
     #[rstest]
     #[case::the_added_key(
         (|| a_key()) as KeyOutcome,
-        expected(StatusCode::OK, "application/json; charset=utf-8", KEY_JSON)
+        Observed::new(StatusCode::OK, "application/json; charset=utf-8", KEY_JSON)
     )]
     #[case::a_duration_overflow(
         (|| Err(AuthKeyError::DurationOverflow { seconds_valid: u64::MAX })) as KeyOutcome,
@@ -405,7 +366,7 @@ mod tests {
                 calls.lock().expect("the call log is not poisoned").clone()
             ),
             (
-                expected(StatusCode::OK, "application/json; charset=utf-8", KEY_JSON),
+                Observed::new(StatusCode::OK, "application/json; charset=utf-8", KEY_JSON),
                 vec!["generate_key(60)".to_string()]
             )
         );

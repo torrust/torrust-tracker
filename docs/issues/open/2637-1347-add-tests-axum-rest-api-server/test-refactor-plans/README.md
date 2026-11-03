@@ -65,6 +65,9 @@ Add a row when a plan is created; the remaining files and their order are in the
   Use stable Rust for tests and coverage. Record the toolchain with every validation result.
 - Run `git diff --check` after each increment and `linter markdown` plus `linter cspell` after
   changing these records.
+- The response-reading helper (`read_body`, `Observed`, `observed`) is shared in `src/test_support.rs` since the review
+  of #2702. The plans written before that describe the local helper each file had at its completed-file review; the
+  code now uses the shared one, with the same assertions.
 - Shared helpers require an approved cohesive responsibility; do not create generic fixtures for a
   one-file seam. A port fake used by many handler tests (S3 and S4) is a shared helper: its plan
   defines its contract and tests it against the mutant that breaks that contract.

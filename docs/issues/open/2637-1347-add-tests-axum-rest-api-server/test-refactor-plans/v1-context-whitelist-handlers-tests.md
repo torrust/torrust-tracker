@@ -98,9 +98,10 @@ place that explains it, so the difference between the two contexts stays documen
   returning `Result<(), WhitelistError>`) and an `Arc<Mutex<Vec<String>>>` call log, as in the auth-key tests.
   Forwarding is asserted through the log (`add_torrent("<hash>")`, `remove_torrent("<hash>")`, `reload`). The fake
   needs only one outcome type, so it is smaller than the auth-key one.
-- **Helpers:** the same `Observed` value (status, content type, body) and a bounded body read with
-  `MAX_BODY_BYTES`. This is the seventh copy of that helper; the plan does not add a shared one (see `lessons.md`),
-  and the maintainer decides when to extract it.
+- **Helpers:** the `Observed` value (status, content type, body) and a bounded body read. This plan first wrote its
+  own copy, the seventh in the package; Copilot's review of #2702 (finding F2) asked for a shared one, and the
+  maintainer decided on 2026-11-03 to extract it in the same pull request: `test_support` now holds `read_body`,
+  `Observed` and `observed`, and this file and the six others use them (see `lessons.md`).
 - **Lint allows:** the scripted success outcome needs one `#[allow(clippy::unnecessary_wraps, reason = ...)]`.
 
 ## Property-Test Decision
@@ -151,8 +152,8 @@ Temporary prose, written before comparing with the code.
 | `it_should_answer_an_internal_server_error_when_removing_a_torrent_fails` | A fake that fails with a database error. | `remove_torrent_from_whitelist_handler`. | The `500` with `failed to remove torrent from whitelist: boom`. | Kept. |
 | `it_should_answer_an_internal_server_error_when_reloading_the_whitelist_fails` | A fake that fails with a database error. | `reload_whitelist_handler`. | The `500` with `failed to reload whitelist: boom`. | Kept. |
 
-Helpers: `expected`, `disabled`, `ok`, `unhandled` and `invalid_info_hash` build the literal expected values;
-`observed` reads a response with the bounded limit; `FakeWhitelistPort`, `state_with`, `state_answering`, `param` and
+Helpers: `disabled`, `ok`, `unhandled` and `invalid_info_hash` build the literal expected values with `Observed::new`;
+the shared `observed` reads a response with the bounded limit; `FakeWhitelistPort`, `state_with`, `state_answering`, `param` and
 `recorded` are the Arrange and Assert mechanics.
 
 ## Results
