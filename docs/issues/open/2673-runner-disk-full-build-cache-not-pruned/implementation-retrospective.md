@@ -17,7 +17,7 @@ Record evidence-based process improvements discovered while implementing issue 2
 
 On 2026-10-27 the disk of the self-hosted runner `torrust-runner-01` reached 100% and the daily prune freed 0 B for three days. The cause is orphaned build state held by BuildKit inside `dockerd`, which counted all of the build cache as in use until `docker.service` was restarted (V2, V4). `docker-ci-prune.sh` now restarts Docker when the disk is still at or above 70% after the prune and no job runs, prunes again, and exits non-zero at or above 85% (V5, V6). The trigger that creates the orphaned state is still unproven and is deferred (`deferred-proposals.md`, R1).
 
-Scheduled run 1 of 3 (2026-10-28) passed with the disk at 51%. This retrospective is written before run 3; whether the fix holds over three runs is recorded in V6, not here.
+Seven scheduled runs (2026-10-28 to 2026-11-03) all succeeded with the disk at 51% to 53% after the prune, and none needed the Docker restart (V6, [report of 2026-11-03](../../../self-hosted-runner-reports/20261103-171940-runner-report.md)).
 
 ## What Went Well
 
