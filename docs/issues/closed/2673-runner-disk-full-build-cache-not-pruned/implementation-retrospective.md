@@ -4,7 +4,7 @@ semantic-links:
     - write-markdown-docs
   related-artifacts:
     - docs/templates/IMPLEMENTATION-RETROSPECTIVE.md
-    - docs/issues/open/2673-runner-disk-full-build-cache-not-pruned/ISSUE.md
+    - docs/issues/closed/2673-runner-disk-full-build-cache-not-pruned/ISSUE.md
 ---
 
 # Implementation Retrospective — Runner Disk Full, Build Cache Not Pruned

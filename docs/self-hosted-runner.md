@@ -420,7 +420,7 @@ accepting jobs in between, so a job that starts during the restart can fail and 
 restart only runs at 04:00 UTC and only when the disk is still at or above 70% after the prune, which
 is the stuck state of [issue 2673](https://github.com/torrust/torrust-tracker/issues/2673). A fix that
 holds a lock and makes jobs wait at their start is described as R5 in
-[deferred-proposals.md](issues/open/2673-runner-disk-full-build-cache-not-pruned/deferred-proposals.md).
+[deferred-proposals.md](issues/closed/2673-runner-disk-full-build-cache-not-pruned/deferred-proposals.md).
 
 The host-side Cargo target directories under `/home/runner/.cache/torrust-tracker/` are not pruned
 automatically. The directory is reused by every job, and it measured 23 GiB on 2026-10-27, thirty days
