@@ -9,7 +9,7 @@ github-issue: 2637
 spec-path: docs/issues/open/2637-1347-add-tests-axum-rest-api-server/ISSUE.md
 branch: "2637-1347-add-tests-axum-rest-api-server-commands"
 related-pr: null
-last-updated-utc: "2026-11-03 17:05"
+last-updated-utc: "2026-11-03 17:12"
 semantic-links:
   skill-links:
     - create-issue
@@ -543,8 +543,8 @@ declaration-only rows have no executable entries.
 | 7 | `v1/context/auth_key/responses.rs` | 4 | S3 | 0 / 26 (0.00%) | 0 | Test candidate | DONE | [v1-context-auth-key-responses-tests.md](test-refactor-plans/v1-context-auth-key-responses-tests.md) (done: no change; 26 / 26 lines covered by the row 6 tests, 8 mutants killed) |
 | 8 | `v1/context/auth_key/routes.rs` | 4 | S3 | 16 / 16 (100.00%) | 0 | Probably no change | DONE | [v1-context-auth-key-routes-tests.md](test-refactor-plans/v1-context-auth-key-routes-tests.md) (done: no change; 16 / 16 lines, 8 mutants killed by existing tests) |
 | 9 | `v1/context/whitelist/handlers.rs` | 4 | S3 | 0 / 37 (0.00%) | 0 | Test candidate | DONE | [v1-context-whitelist-handlers-tests.md](test-refactor-plans/v1-context-whitelist-handlers-tests.md) (done; 198 / 198 lines after, 13 test cases, 10 mutants killed) |
-| 10 | `v1/context/whitelist/responses.rs` | 4 | S3 | 0 / 9 (0.00%) | 0 | Test candidate (small) | PENDING | - |
-| 11 | `v1/context/whitelist/routes.rs` | 4 | S3 | 14 / 14 (100.00%) | 0 | Probably no change | PENDING | - |
+| 10 | `v1/context/whitelist/responses.rs` | 4 | S3 | 0 / 9 (0.00%) | 0 | Test candidate (small) | DONE | [v1-context-whitelist-responses-tests.md](test-refactor-plans/v1-context-whitelist-responses-tests.md) (done: no change; 9 / 9 lines covered by the row 9 tests, 3 mutants killed) |
+| 11 | `v1/context/whitelist/routes.rs` | 4 | S3 | 14 / 14 (100.00%) | 0 | Probably no change | DONE | [v1-context-whitelist-routes-tests.md](test-refactor-plans/v1-context-whitelist-routes-tests.md) (done: no change; 14 / 14 lines, 7 mutants killed by existing tests) |
 | 12 | `v1/context/torrent/handlers.rs` | 5 | S4 | 0 / 50 (0.00%) | 0 | Test candidate (weak property) | PENDING | - |
 | 13 | `v1/context/torrent/responses.rs` | 5 | S4 | 0 / 9 (0.00%) | 0 | Test candidate (small) | PENDING | - |
 | 14 | `v1/context/torrent/routes.rs` | 5 | S4 | 9 / 9 (100.00%) | 0 | Probably no change | PENDING | - |
@@ -713,6 +713,7 @@ once. If the slicing changes, the Slice column changes with it.
 - 2026-10-29 11:50 UTC - GitHub Copilot - Row 6 committed as `test(axum-rest-api-server): [#2637] cover the auth key handlers` (the first signing attempt timed out; the commit was redone with your passphrase entry). Row 7 (`v1/context/auth_key/responses.rs`) is `DONE` with a no-change decision, approved by the maintainer at 11:49 UTC: after row 6 the file is already 26 / 26 lines, 30 / 30 regions and 7 / 7 functions, and eight named mutations (one per builder, plus the status and content type) each fail an assertion of the row 6 handler tests, so direct tests would only duplicate those literals.
 - 2026-10-29 11:52 UTC - GitHub Copilot - Row 7 committed as `docs(issues): [#2637] record the no-change decision for the auth key responses`. Row 8 (`v1/context/auth_key/routes.rs`) is `DONE` with a no-change decision, approved by the maintainer at 11:52 UTC: the file is already 16 / 16 lines, and eight named mutations (three path changes, a method change, and `None` state on four routes) each fail an existing `v1/routes.rs` or auth-key integration test on an assertion. The one mutation not tried (swapping a handler between routes) cannot compile under `unused = "deny"`.
 - 2026-11-03 17:05 UTC - GitHub Copilot - Row 8 committed as `docs(issues): [#2637] record the no-change decision for the auth key routes`. Row 9 (`v1/context/whitelist/handlers.rs`) is `DONE`: the maintainer approved the plan with option (a) (pin the whitelist `500` for a service-reported disabled capability, and link the difference with the auth-key `409` across both plans, the in-file test comment and `lessons.md`) and the completed file at 17:04 UTC. 12 test functions (13 cases) over a hand-written `WhitelistCommandPort` fake; the file went from 0 / 37 to 198 / 198 lines; all ten named mutations were killed (four redone as compiling mutants). Package unit-only lines 1,744 / 1,931 (90.32%), 106 unit tests.
+- 2026-11-03 17:12 UTC - GitHub Copilot - Row 9 committed as `test(axum-rest-api-server): [#2637] cover the whitelist handlers`. Rows 10 (`v1/context/whitelist/responses.rs`) and 11 (`v1/context/whitelist/routes.rs`) are `DONE` with no-change decisions, both approved by the maintainer at 17:12 UTC: row 10 is 9 / 9 lines after row 9 and its three messages are pinned by the row 9 handler tests (three mutants killed); row 11 is 14 / 14 lines and seven mutants are killed by existing `v1/routes.rs` and integration tests (the two method mutants only by the integration tests). All six S3 ledger rows are `DONE`.
 
 ## Acceptance Criteria
 
