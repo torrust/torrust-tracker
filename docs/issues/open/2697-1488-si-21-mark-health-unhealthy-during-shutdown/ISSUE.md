@@ -9,7 +9,7 @@ github-issue: 2697
 spec-path: docs/issues/open/2697-1488-si-21-mark-health-unhealthy-during-shutdown/ISSUE.md
 branch: "2697-mark-health-unhealthy-during-shutdown-spec"
 related-pr: 2698
-last-updated-utc: "2026-11-03 17:02"
+last-updated-utc: "2026-11-03 17:44"
 semantic-links:
   skill-links:
     - create-issue
@@ -81,7 +81,7 @@ down" log) cancels its token together with every component that waits for no
 other job. Its `graceful_shutdown_on_cancellation` then stops axum accepting.
 
 Maintainer decisions (recorded 2026-11-03 from the review chat; the maintainer
-has not yet approved creating the issue from this text):
+approved creating the issue from this text on the same day):
 
 - Option (a) is accepted: "I think option A is fine".
 - The health server's own near-instant idle drain is not budgeted inside `P`.
@@ -285,6 +285,7 @@ and sign every commit with GPG.
 - 2026-11-03 16:50 UTC - AI agent (model not stated by the runtime) - Added the template sections (plan, commit points, verification plan, risks) required by the `create-issue` skill
 - 2026-11-03 16:51 UTC - AI agent (model not stated by the runtime) - Created issue #2697, linked it under #1488 and moved the spec to `docs/issues/open/`
 - 2026-11-03 17:02 UTC - AI agent (model not stated by the runtime) - Opened the specification-only PR #2698 (`Related to #2697`); CI: Docs Lint passed, no reviews or comments yet
+- 2026-11-03 17:44 UTC - AI agent (model not stated by the runtime) - `review-finding:pr-2698-f2`: replaced the stale clause saying the maintainer had not yet approved creating the issue with the approval that already happened on 2026-11-03
 
 ## Acceptance Criteria
 
