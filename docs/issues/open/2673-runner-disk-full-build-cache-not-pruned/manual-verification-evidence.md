@@ -323,7 +323,7 @@ Deployed and working. The no-restart path ran under systemd: the manual run on 2
 
 #### Scheduled Runs and Reboot
 
-Observed on the runner over SSH on 2026-10-28 by the agent session that owned the work before this one, with the maintainer's approval for the reboot ("reboot while idle"). Scheduled runs 2 and 3 are pending until 2026-10-29 and 2026-10-30 at 04:00 UTC.
+Observed on the runner over SSH by two agent sessions with the maintainer's approval for the reboot ("reboot while idle"): scheduled run 1 and the reboot on 2026-10-28 by the session that owned the work first, run 2 on 2026-10-29 by the session that continued it, and runs 3 to 7 on 2026-11-03 from the journal (see the notes at each block). When this section was first written, runs 2 and 3 were still pending; they are recorded below.
 
 Scheduled run 1, 2026-10-28:
 
