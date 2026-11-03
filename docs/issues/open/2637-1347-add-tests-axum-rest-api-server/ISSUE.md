@@ -9,7 +9,7 @@ github-issue: 2637
 spec-path: docs/issues/open/2637-1347-add-tests-axum-rest-api-server/ISSUE.md
 branch: "2637-1347-add-tests-axum-rest-api-server-commands"
 related-pr: null
-last-updated-utc: "2026-11-03 17:23"
+last-updated-utc: "2026-11-03 17:25"
 semantic-links:
   skill-links:
     - create-issue
@@ -716,6 +716,7 @@ once. If the slicing changes, the Slice column changes with it.
 - 2026-11-03 17:12 UTC - GitHub Copilot - Row 9 committed as `test(axum-rest-api-server): [#2637] cover the whitelist handlers`. Rows 10 (`v1/context/whitelist/responses.rs`) and 11 (`v1/context/whitelist/routes.rs`) are `DONE` with no-change decisions, both approved by the maintainer at 17:12 UTC: row 10 is 9 / 9 lines after row 9 and its three messages are pinned by the row 9 handler tests (three mutants killed); row 11 is 14 / 14 lines and seven mutants are killed by existing `v1/routes.rs` and integration tests (a method replaced by a dummy handler only by the integration tests, a dropped method also by the `v1/routes.rs` table). All six S3 ledger rows are `DONE`.
 - 2026-11-03 17:16 UTC - GitHub Copilot - S3 implementation finished and rebased onto `develop` (the package and its `rest-api-*` collaborators are unchanged since the S2 head). Re-measured with clean runs: unit-only lines 1,744 / 1,931 (90.32%), aggregate 1,806 / 1,931 (93.53%), integration-only 682 / 916 (74.45%); 106 unit and 58 integration tests. Updated the S3 measurement in `coverage-evidence.md` and the EPIC "Latest" tables and log. Next: the independent Task Reviewer, pre-push, and the pull request.
 - 2026-11-03 17:23 UTC - GitHub Copilot - Independent S3 review (see `agent-review-reports.md`): REVIEW FAILED on documentation only, with no code or measurement defect. Fixed the claim about the method mutants of the whitelist routes (a method dropped is killed by the `v1/routes.rs` table, a method replaced by a dummy handler only by the integration tests; both recorded), the EPIC `last-updated-utc`, the F1 count of the auth-key plan and the `lessons.md` wording about what pins the whitelist `500`.
+- 2026-11-03 17:25 UTC - GitHub Copilot - The short S3 re-review passed (REVIEW PASSED, no findings; see `agent-review-reports.md`). Next: pre-push, the scans and the pull request.
 
 ## Acceptance Criteria
 

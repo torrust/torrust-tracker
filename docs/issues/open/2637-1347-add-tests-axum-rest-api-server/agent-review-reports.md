@@ -86,3 +86,14 @@ semantic-links:
 - Verdict: REVIEW FAILED (documentation only)
 - Follow-up actions:
   - The two MEDIUM and two LOW items were fixed in one documentation commit: the routes plan now records both kinds of method mutant (M3, M4 and M3b, M4b), the evidence and log wording is corrected, the EPIC stamp is updated, and the F1 count and the `lessons.md` wording are corrected. A short re-review of the documentation follows.
+
+### 2026-11-03 17:25 UTC - Task Reviewer (slice S3, re-review)
+
+- Invocation scope: the commit `docs(issues): [#2637] record the first S3 review and correct its documentation findings`, which answers the four findings of the first S3 review.
+- Inputs: that commit, the issue folder and the EPIC.
+- Evidence: the four fixes were verified (the routes plan, evidence and log now separate a method replaced by a dummy handler, killed only by the integration tests, from a dropped method, killed by the `v1/routes.rs` table and reproduced; the EPIC stamp; the three forwarding assertions; the `lessons.md` wording). No stamp is later than its commit; every relative link and anchor resolves; `linter markdown` and `linter cspell` pass; `git diff --check` is clean; the tree is clean. The reviewer did not re-run the dummy-handler variants M3 and M4 and relied on the implementing agent's earlier run. The commit changes only documentation, so the Rust checks of the first review stand. As before, this entry was written by the implementing agent from the report.
+- Findings:
+  - None.
+- Verdict: REVIEW PASSED
+- Follow-up actions:
+  - None.
