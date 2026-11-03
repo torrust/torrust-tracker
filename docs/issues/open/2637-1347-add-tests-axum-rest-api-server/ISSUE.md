@@ -7,9 +7,9 @@ priority: p2
 epic: 1347
 github-issue: 2637
 spec-path: docs/issues/open/2637-1347-add-tests-axum-rest-api-server/ISSUE.md
-branch: "2637-1347-add-tests-axum-rest-api-server-commands"
-related-pr: 2702
-last-updated-utc: "2026-11-03 18:08"
+branch: "2637-1347-add-tests-axum-rest-api-server-queries"
+related-pr: null
+last-updated-utc: "2026-11-03 19:14"
 semantic-links:
   skill-links:
     - create-issue
@@ -407,8 +407,8 @@ ledger order inside each slice is still confirmed with the first plan (T3).
 | S0 | This specification, the T1 coverage evidence and inventory, and the EPIC registration with the baseline | - | `2637-1347-add-tests-axum-rest-api-server-spec` | #2638 | DONE |
 | S1 | T2-T3, then authentication and the shared response contract (ranks 1 and 3) | 1, 5 | `2637-1347-add-tests-axum-rest-api-server-auth` | #2667 | DONE |
 | S2 | Route composition, transport layers and the health check (rank 2) | 2-4 | `2637-1347-add-tests-axum-rest-api-server-routes` | #2687 | DONE |
-| S3 | State-changing contexts: auth keys and whitelist (rank 4) | 6-11 | `2637-1347-add-tests-axum-rest-api-server-commands` | #2702 | IN_PROGRESS |
-| S4 | Read-only contexts: torrents and statistics (rank 5) | 12-17 | `2637-1347-add-tests-axum-rest-api-server-queries` | TBD | PENDING |
+| S3 | State-changing contexts: auth keys and whitelist (rank 4) | 6-11 | `2637-1347-add-tests-axum-rest-api-server-commands` | #2702 | DONE |
+| S4 | Read-only contexts: torrents and statistics (rank 5) | 12-17 | `2637-1347-add-tests-axum-rest-api-server-queries` | TBD | IN_PROGRESS |
 | S5 | Server lifecycle (rank 6) | 18 | `2637-1347-add-tests-axum-rest-api-server-lifecycle` | TBD | PENDING |
 | S6 | Crate root, wiring and test-support decisions (ranks 7-8), then T5-T8 | 19-31 | `2637-1347-add-tests-axum-rest-api-server-final` | TBD | PENDING |
 
@@ -719,6 +719,7 @@ once. If the slicing changes, the Slice column changes with it.
 - 2026-11-03 17:24 UTC - GitHub Copilot - The short S3 re-review passed (REVIEW PASSED, no findings; see `agent-review-reports.md`). Next: pre-push, the scans and the pull request.
 - 2026-11-03 17:28 UTC - GitHub Copilot - Pre-push passed and S3 pull request #2702 (<https://github.com/torrust/torrust-tracker/pull/2702>, `Related to #2637`) was opened at 17:27 UTC; recorded it in the frontmatter, the slice table and the EPIC row. Corrected the stamps of the S3 re-review entry (17:25 to 17:24 UTC) and the report heading, which were later than their commit (17:24:55 UTC).
 - 2026-11-03 18:08 UTC - GitHub Copilot - Review round of #2702 (audit: `docs/pr-reviews/pr-2702-review/PR-REVIEW.md`). The testing workflow failed on a clippy lint in `http-protocol` that `develop` had already fixed, so `develop` was merged into the branch (no rebase, no squash). Copilot's five comments are two findings, both fixed at the maintainer's decision: the port fakes now record typed `Call` values (F1-F3) and the response-reading helper is shared in `test_support` across the seven modules (F4-F5, extracted now instead of deferred; the helper note of `lessons.md` is resolved). Re-measured: unit-only lines 1,668 / 1,855 (89.92%), aggregate 1,730 / 1,855 (93.26%), integration-only unchanged; the denominator fell by 76 lines because duplicated test code left the modules, and no test was added or removed (106 unit and 58 integration tests).
+- 2026-11-03 19:14 UTC - GitHub Copilot - S3 merged through #2702 (19:13 UTC; Copilot's five comments, two findings, were fixed and their threads resolved before the merge, and no late review exists). Started S4 on branch `2637-1347-add-tests-axum-rest-api-server-queries` from `develop` at the merge of #2702. The package and its `rest-api-*` collaborators are unchanged since the S3 head, so the S3 re-measurement is the S4 baseline (unit-only lines 1,668 / 1,855, 89.92%). Ledger rows 12-17 (the torrent and stats contexts) are next; the first plan awaits your direction.
 
 ## Acceptance Criteria
 

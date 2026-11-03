@@ -6,7 +6,7 @@ epic: null
 github-issue: 1347
 spec-path: docs/issues/open/1347-overhaul-packages-testing/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-03 18:08"
+last-updated-utc: "2026-11-03 19:14"
 semantic-links:
   skill-links:
     - create-issue
@@ -95,7 +95,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | 7     | #2283 - Increase UDP server package coverage      | `docs/issues/closed/2283-1347-increase-udp-server-package-coverage/ISSUE.md`      | DONE   | Every package source file processed through a reviewed per-file plan; unit-only lines 96.18% → 98.18%; bounded mutation sample and manual verification recorded; merged via PR #2381. |
 | 8     | #2301 - Review package coverage rollout           | `docs/issues/open/2301-1347-review-package-coverage-rollout/ISSUE.md`             | TODO   | After the EPIC completes, review real rollout evidence before retaining, revising, or proposing a required coverage check. |
 | 9     | #2361 - Keep the report-only package coverage summary from failing on a discovery failure | `docs/issues/open/2361-1347-package-coverage-summary-discovery-failure/ISSUE.md` | TODO | Bug follow-up of #2347 (`review-finding:pr-2293-f1`): the #2222 summary check goes red with a JSON parse error when discovery fails. |
-| 10    | #2637 - Add tests to the axum-rest-api-server package | `docs/issues/open/2637-1347-add-tests-axum-rest-api-server/ISSUE.md` | IN_PROGRESS | S0 (spec and T1 baseline) merged through #2638; S1 (authentication and shared responses) merged through #2667; S2 (routes) merged through #2687; S3 (auth-key and whitelist contexts) in review through #2702; S4-S6 follow. Replaces the former draft that was misfiled under #1349. |
+| 10    | #2637 - Add tests to the axum-rest-api-server package | `docs/issues/open/2637-1347-add-tests-axum-rest-api-server/ISSUE.md` | IN_PROGRESS | S0 (spec and T1 baseline) merged through #2638; S1 (authentication and shared responses) merged through #2667; S2 (routes) merged through #2687; S3 (auth-key and whitelist contexts) merged through #2702; S4 (torrent and stats contexts) started; S5-S6 follow. Replaces the former draft that was misfiled under #1349. |
 | 11    | Additional package-testing subissues              | Create a folder-style spec when a concrete package need is identified             | TODO   | Permitted but not required upfront; retain scope in this EPIC.                                                       |
 
 ## Package Coverage Tracking
@@ -328,6 +328,7 @@ For each subissue implementation, the completion policy is:
   baseline until the final measurement. Two files gained tests (the auth-key and whitelist handlers) and four were
   recorded as no change.
 - 2026-11-03 18:08 UTC - GitHub Copilot - #2637 S3 review round of #2702: the shared response-reading test helper and typed call logs in the port fakes (Copilot's findings, fixed at the maintainer's decision) remove duplicated test code, so the S3 figures moved to unit-only lines 89.92% (from 90.32%) and aggregate 93.26% (from 93.53%); no test was added or removed (106 unit tests). Both "Latest" tables carry the new values.
+- 2026-11-03 19:14 UTC - GitHub Copilot - #2637 S3 merged through #2702 (19:13 UTC). S4 (the torrent and stats contexts) started; its baseline is the S3 re-measurement.
 
 ## Acceptance Criteria
 
