@@ -3,7 +3,7 @@ name: wait-for-pr-review
 description: Wait for pull-request reviewers without spending tokens, using a deterministic Rust poller, then run the review loop on each event. Use after opening or updating a pull request when you must wait for Copilot or a maintainer review, instead of being told to wait. Triggers on "wait for review", "wait for da2ce7", "wait for Copilot review", "poll the PR", "block until reviewed", "review loop", or "wait-for-pr-review".
 metadata:
   author: torrust
-  version: "1.0"
+  version: "1.1"
   semantic-links:
     related-artifacts:
       - .github/skills/dev/pr-reviews/wait-for-pr-review/tool/Cargo.toml
@@ -11,7 +11,7 @@ metadata:
       - .github/skills/dev/pr-reviews/fetch-review-threads/SKILL.md
       - .github/skills/dev/git-workflow/merge-pull-request/SKILL.md
       - docs/adrs/20260519000000_define_global_cli_output_contract.md
-      - docs/issues/open/2581-2003-pr-review-wait-poller/ISSUE.md
+      - docs/issues/closed/2581-2003-pr-review-wait-poller/ISSUE.md
 ---
 
 # Waiting for Pull-Request Reviews
@@ -162,22 +162,30 @@ new look; a clean review needs no re-request. The poller never does this. The sa
 works for a maintainer and for Copilot; the Copilot reviewer is a bot, so its login ends in `[bot]`:
 
 ```sh
-gh api --method POST repos/torrust/torrust-tracker/pulls/<PR>/requested_reviewers   -f 'reviewers[]=da2ce7' > .tmp/re-request.stdout 2> .tmp/re-request.stderr
+gh api --method POST repos/torrust/torrust-tracker/pulls/<PR>/requested_reviewers \
+  -f 'reviewers[]=da2ce7' > .tmp/re-request.stdout 2> .tmp/re-request.stderr
 
-gh api --method POST repos/torrust/torrust-tracker/pulls/<PR>/requested_reviewers   -f 'reviewers[]=copilot-pull-request-reviewer[bot]' > .tmp/re-request.stdout 2> .tmp/re-request.stderr
+gh api --method POST repos/torrust/torrust-tracker/pulls/<PR>/requested_reviewers \
+  -f 'reviewers[]=copilot-pull-request-reviewer[bot]' > .tmp/re-request.stdout 2> .tmp/re-request.stderr
 ```
 
 The Copilot call was verified on PR #2683 (2026-10-28): it exited `0`, GitHub recorded a
 `review_requested` timeline event for `Copilot` one second later, and Copilot submitted a review
-about 40 minutes after the request. Three things follow:
+about 40 minutes after the request. Four things follow:
 
+- **Push first, request last.** Copilot reviews the head as of the request, not as of the moment it
+  answers, so a push made after the request is not covered. On PR #2683 Copilot was requested at
+  14:13:25 UTC with head `d000f8881`, two more commits were pushed at 14:18, and its review at 14:58
+  was of `d000f8881`. Push every commit, including audit and evidence commits, and make the request
+  the last step. A commit pushed after it needs a new request.
 - The `requested_reviewers` list of the pull request never shows a bot, so do not use it to check
   that the request worked. Read the timeline (`gh api repos/torrust/torrust-tracker/issues/<PR>/timeline`,
   event `review_requested`) or the GraphQL `reviewRequests` of the pull request, which lists the bot
   while the request is pending.
-- Copilot can take 40 minutes or more, longer than the poller's 15-minute default. Run the poller
-  again with the same flags after a `timeout`; a second request while the first is pending adds
-  nothing.
+- Copilot can take 40 minutes or more, longer than the poller's 15-minute default. When waiting for
+  Copilot, pass `--timeout-seconds 2700` (45 minutes) if your shell tool allows a call that long, or
+  run the poller again with the same flags after a `timeout`. A second request while the first is
+  pending adds nothing.
 - Pushing does not request a review by itself: the earlier push on that pull request produced none.
 
 ## Skill Links

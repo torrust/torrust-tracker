@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2581-2003-pr-review-wait-poller/ISSUE.md
-last-updated-utc: "2026-10-28 17:55"
+issue-spec: docs/issues/closed/2581-2003-pr-review-wait-poller/ISSUE.md
+last-updated-utc: "2026-11-03 17:12"
 ---
 
 # Manual Verification Evidence
@@ -172,6 +172,14 @@ The automated suite also covers a hung `gh` call being killed on a signal
 - Initial state: PR #2683 is open and `da2ce7` is a requested reviewer (GitHub timeline event
   `review_requested` at 2026-10-28T12:19:58Z). No `da2ce7` review exists yet.
 - Status: `TODO`
+
+#### Closing note (2026-11-03)
+
+Not run. No `da2ce7` review existed when PR #2683 merged on 2026-10-28 at 18:32:57 UTC (checked
+through the GitHub API at 18:33 UTC that day), and the poller had already returned `pr_merged`, so there
+was no real `da2ce7` review for it to return on. `da2ce7` reviewed the pull request after the merge. The
+status stays `TODO` because the scenario was not run, not because it failed. The Copilot half of the
+"real review" scenario ran in V2 and on this pull request itself.
 
 ### V7 - Copilot re-review request path
 
@@ -362,4 +370,4 @@ guarantee; the fixture documents it and does not read the setting.
 
 ## Failures and Follow-up
 
-No failure of the poller remains open. Copilot's five reviews raised eighteen findings (sixteen distinct, two duplicates), all addressed (see the audit in `docs/pr-reviews/pr-2683-review/PR-REVIEW.md`). V6 is open: it waits for a `da2ce7` review. V8 is an unrelated pre-existing flake fixed in its own commit.
+No failure of the poller remains open. Copilot's five reviews raised eighteen findings (sixteen distinct, two duplicates), all addressed (see the audit in `docs/pr-reviews/pr-2683-review/PR-REVIEW.md`). V6 is open: it waits for a `da2ce7` review. V6 stayed not run (see its closing note). V8 is an unrelated pre-existing flake fixed in its own commit.

@@ -4,7 +4,7 @@ semantic-links:
     - process-pr-review
   related-artifacts:
     - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
-    - docs/issues/open/2581-2003-pr-review-wait-poller/ISSUE.md
+    - docs/issues/closed/2581-2003-pr-review-wait-poller/ISSUE.md
 ---
 
 <!-- skill-link: process-pr-review -->
