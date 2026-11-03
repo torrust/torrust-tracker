@@ -261,3 +261,15 @@ Unit-only (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): lines 
 ### `v1/context/whitelist/routes.rs` (slice S3)
 
 Unit-only (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): lines 14 / 14 (100.00%), regions 25 / 25, functions 1 / 1, before and after; the file has no test module and is covered by the `v1/routes.rs` tests. Decision: no change. Seven named mutations (prefix, reload path, the add and remove methods, and `None` state on the add, remove and reload routes) each fail an existing unit or integration test on an assertion; the two method mutants are killed by the integration tests only (see [the plan](test-refactor-plans/v1-context-whitelist-routes-tests.md)).
+
+### Slice S3 Measurement
+
+After the six S3 files (`v1/context/auth_key/{handlers,responses,routes}.rs` and `v1/context/whitelist/{handlers,responses,routes}.rs`), on the S3 branch rebased onto `develop` (the package and its `rest-api-*` collaborators are unchanged since the S2 head; `develop` changed other packages and documentation only). Stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, a clean workspace before each report, the commands of the Measurement Scope section:
+
+| Scope | Tests | Lines | Regions | Functions |
+| --- | ---: | ---: | ---: | ---: |
+| Aggregate (all selected test targets) | 106 unit + 58 integration | 1,806 / 1,931 (93.53%) | 2,722 / 2,992 (90.98%) | 300 / 324 (92.59%) |
+| Unit-only (`--lib`) | 106 unit | 1,744 / 1,931 (90.32%) | 2,638 / 2,992 (88.17%) | 288 / 324 (88.89%) |
+| Integration-only (`--test integration`) | 58 integration | 682 / 916 (74.45%) | 949 / 1,360 (69.78%) | 98 / 138 (71.01%) |
+
+Unit-only lines move 1,305 / 1,556 (83.87%) at the S3 baseline (the S2 measurement) to 1,744 / 1,931 (90.32%). Two files gained test modules (`auth_key/handlers.rs` and `whitelist/handlers.rs`), so the denominator grew by 375 lines; the other four S3 files are unchanged and were already fully covered by tests of earlier rows. The integration-only figure is unchanged because the integration binary does not compile the in-file test modules. The remaining uncovered unit-only lines are in `server.rs` (74, S5), `v1/context/stats/responses.rs` (39), `testing/environment.rs` (31, out of scope), `v1/context/torrent/handlers.rs` (29), `v1/context/stats/handlers.rs` (8), `auth_key/handlers.rs` (3, the `Debug` implementation of `AuthKeyErrorDisplay`) and `v1/context/torrent/responses.rs` (3); the torrent and stats files are S4.

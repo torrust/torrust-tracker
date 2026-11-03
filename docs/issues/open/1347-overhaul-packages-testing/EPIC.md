@@ -95,7 +95,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | 7     | #2283 - Increase UDP server package coverage      | `docs/issues/closed/2283-1347-increase-udp-server-package-coverage/ISSUE.md`      | DONE   | Every package source file processed through a reviewed per-file plan; unit-only lines 96.18% → 98.18%; bounded mutation sample and manual verification recorded; merged via PR #2381. |
 | 8     | #2301 - Review package coverage rollout           | `docs/issues/open/2301-1347-review-package-coverage-rollout/ISSUE.md`             | TODO   | After the EPIC completes, review real rollout evidence before retaining, revising, or proposing a required coverage check. |
 | 9     | #2361 - Keep the report-only package coverage summary from failing on a discovery failure | `docs/issues/open/2361-1347-package-coverage-summary-discovery-failure/ISSUE.md` | TODO | Bug follow-up of #2347 (`review-finding:pr-2293-f1`): the #2222 summary check goes red with a JSON parse error when discovery fails. |
-| 10    | #2637 - Add tests to the axum-rest-api-server package | `docs/issues/open/2637-1347-add-tests-axum-rest-api-server/ISSUE.md` | IN_PROGRESS | S0 (spec and T1 baseline) merged through #2638; S1 (authentication and shared responses) merged through #2667; S2 (routes) merged through #2687; S3 (auth-key and whitelist contexts) started; S4-S6 follow. Replaces the former draft that was misfiled under #1349. |
+| 10    | #2637 - Add tests to the axum-rest-api-server package | `docs/issues/open/2637-1347-add-tests-axum-rest-api-server/ISSUE.md` | IN_PROGRESS | S0 (spec and T1 baseline) merged through #2638; S1 (authentication and shared responses) merged through #2667; S2 (routes) merged through #2687; S3 (auth-key and whitelist contexts) implemented, pull request pending; S4-S6 follow. Replaces the former draft that was misfiled under #1349. |
 | 11    | Additional package-testing subissues              | Create a folder-style spec when a concrete package need is identified             | TODO   | Permitted but not required upfront; retain scope in this EPIC.                                                       |
 
 ## Package Coverage Tracking
@@ -119,7 +119,7 @@ level or determine whether unit coverage is adequate.
 | `torrust-tracker-udp-server`       | [#2283](../../closed/2283-1347-increase-udp-server-package-coverage/ISSUE.md) | Lines: 97.86%; regions: 96.64%; functions: 97.64% | Lines: 98.58%; regions: 97.62%; functions: 98.56% | Lines: +0.72 pp; regions: +0.98 pp; functions: +0.92 pp | [Coverage evidence](../../closed/2283-1347-increase-udp-server-package-coverage/coverage-evidence.md) |
 | `torrust-tracker-udp-core`         | [#1348](../../closed/1348-1347-add-tests-udp-core/ISSUE.md) | Lines: 72.49%; regions: 78.56%; functions: 71.27% | Lines: 98.04%; regions: 98.15%; functions: 97.61% | Lines: +25.55 pp; regions: +19.58 pp; functions: +26.34 pp | [Coverage evidence](../../closed/1348-1347-add-tests-udp-core/coverage-evidence.md) |
 | `torrust-tracker-http-core`        | [#1349](../../closed/1349-1347-add-tests-http-core/ISSUE.md) | Lines: 88.88%; regions: 90.41%; functions: 84.29% | Lines: 99.28%; regions: 99.25%; functions: 99.74% | Lines: +10.40 pp; regions: +8.84 pp; functions: +15.45 pp | [Coverage evidence](../../closed/1349-1347-add-tests-http-core/coverage-evidence.md) |
-| `torrust-tracker-axum-rest-api-server` | [#2637](../2637-1347-add-tests-axum-rest-api-server/ISSUE.md) | Lines: 87.98%; regions: 84.10%; functions: 83.42% | Lines: 91.32%; regions: 88.23%; functions: 89.13% | Lines: +3.34 pp; regions: +4.13 pp; functions: +5.71 pp | [Coverage evidence](../2637-1347-add-tests-axum-rest-api-server/coverage-evidence.md) |
+| `torrust-tracker-axum-rest-api-server` | [#2637](../2637-1347-add-tests-axum-rest-api-server/ISSUE.md) | Lines: 87.98%; regions: 84.10%; functions: 83.42% | Lines: 93.53%; regions: 90.98%; functions: 92.59% | Lines: +5.55 pp; regions: +6.88 pp; functions: +9.17 pp | [Coverage evidence](../2637-1347-add-tests-axum-rest-api-server/coverage-evidence.md) |
 
 ### Unit-Only Coverage
 
@@ -133,7 +133,7 @@ weak unit-only result with aggregate, integration, example, or end-to-end covera
 | `torrust-tracker-udp-server` | [#2283](../../closed/2283-1347-increase-udp-server-package-coverage/ISSUE.md) | Lines: 96.18%; regions: 95.34%; functions: 94.93% | Lines: 98.18%; regions: 97.04%; functions: 97.70% | Lines: +2.00 pp; regions: +1.70 pp; functions: +2.77 pp | [Coverage evidence](../../closed/2283-1347-increase-udp-server-package-coverage/coverage-evidence.md) |
 | `torrust-tracker-udp-core` | [#1348](../../closed/1348-1347-add-tests-udp-core/ISSUE.md) | Lines: 72.49%; regions: 78.56%; functions: 71.27% | Lines: 98.04%; regions: 98.15%; functions: 97.61% | Lines: +25.55 pp; regions: +19.58 pp; functions: +26.34 pp | [Coverage evidence](../../closed/1348-1347-add-tests-udp-core/coverage-evidence.md) |
 | `torrust-tracker-http-core` | [#1349](../../closed/1349-1347-add-tests-http-core/ISSUE.md) | Lines: 88.88%; regions: 90.41%; functions: 84.29% | Lines: 99.28%; regions: 99.25%; functions: 99.74% | Lines: +10.40 pp; regions: +8.84 pp; functions: +15.45 pp | [Coverage evidence](../../closed/1349-1347-add-tests-http-core/coverage-evidence.md) |
-| `torrust-tracker-axum-rest-api-server` | [#2637](../2637-1347-add-tests-axum-rest-api-server/ISSUE.md) | Lines: 63.87%; regions: 63.98%; functions: 51.34% | Lines: 83.87%; regions: 80.58%; functions: 79.13% | Lines: +20.00 pp; regions: +16.60 pp; functions: +27.79 pp | [Coverage evidence](../2637-1347-add-tests-axum-rest-api-server/coverage-evidence.md) |
+| `torrust-tracker-axum-rest-api-server` | [#2637](../2637-1347-add-tests-axum-rest-api-server/ISSUE.md) | Lines: 63.87%; regions: 63.98%; functions: 51.34% | Lines: 90.32%; regions: 88.17%; functions: 88.89% | Lines: +26.45 pp; regions: +24.19 pp; functions: +37.55 pp | [Coverage evidence](../2637-1347-add-tests-axum-rest-api-server/coverage-evidence.md) |
 
 ## Delivery Strategy
 
@@ -323,6 +323,10 @@ For each subissue implementation, the completion policy is:
   70.57% to 83.87% (76 unit tests), aggregate 88.97% to 91.32%; both tables carry the interim figures against the S1
   baseline until the final measurement. Part of the rise comes from a `develop` change to `server.rs` (the configured
   drain timeout and its test), not from S2.
+- 2026-11-03 17:16 UTC - GitHub Copilot - #2637 S3 (the auth-key and whitelist contexts) finished: unit-only lines
+  83.87% to 90.32% (106 unit tests), aggregate 91.32% to 93.53%; both tables carry the interim figures against the S1
+  baseline until the final measurement. Two files gained tests (the auth-key and whitelist handlers) and four were
+  recorded as no change.
 
 ## Acceptance Criteria
 
