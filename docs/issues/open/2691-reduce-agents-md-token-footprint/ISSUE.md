@@ -9,7 +9,7 @@ github-issue: 2691
 spec-path: docs/issues/open/2691-reduce-agents-md-token-footprint/ISSUE.md
 branch: "2691-reduce-agents-md-token-footprint-spec"
 related-pr: null
-last-updated-utc: "2026-10-30 17:00"
+last-updated-utc: "2026-11-03 09:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -19,6 +19,7 @@ semantic-links:
     - docs/adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md
     - docs/issues/open/2691-reduce-agents-md-token-footprint/research.md
     - docs/issues/open/2691-reduce-agents-md-token-footprint/section-disposition.md
+    - docs/issues/open/2691-reduce-agents-md-token-footprint/rule-inventory.md
 ---
 
 <!-- skill-link: create-issue -->
@@ -119,6 +120,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2  | DONE   | Research best practices for agent instruction files                                   | `research.md` with sources, dates, and a short list of adopted practices with the evidence behind each  |
 | T3  | DONE   | Record how the major tools consume `AGENTS.md` (Claude Code accepts it as is)         | Short section in `research.md`; confirms no adapter file is needed                                      |
 | T4  | DONE   | Classify each `AGENTS.md` section and record the disposition                          | `section-disposition.md` covering 100% of sections, including the destination for every moved rule      |
+| T4a | DONE   | Build the rule inventory from the baseline `AGENTS.md`                                | `rule-inventory.md`: one row per rule, seeded from the source file, not from the planned moves          |
 | T5  | DONE   | Maintainer review of research and dispositions before any restructuring               | Explicit maintainer approval recorded in the progress log                                               |
 | T6  | TODO   | Move content to canonical homes (skills/docs) and replace it with links where needed  | No rule lost, no duplicated procedural guidance; links validated                                        |
 | T7  | TODO   | Condense `AGENTS.md`                                                                    | Reduced file; footprint re-measured with the T1 method                                                  |
@@ -134,6 +136,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2   | `research.md` with sources and adopted practices             | Commit after focused validation and required review. |
 | T3   | Tool-consumption findings in `research.md`                   | Commit after focused validation and required review. |
 | T4   | `section-disposition.md`                                     | Commit after focused validation and required review. |
+| T4a  | `rule-inventory.md`                                          | Commit after focused validation and required review. |
 | T6   | One commit per destination (skill or doc) receiving content | Commit after focused validation and required review. |
 | T7   | Condensed `AGENTS.md`                                          | Commit after focused validation and required review. |
 | T8   | Regrowth guard                                               | Commit after focused validation and required review. |
@@ -170,6 +173,7 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - 2026-10-30 16:00 UTC - Claude Code (Claude Sonnet 5.5) - Completed T4: proposed a disposition for all 17 sections, estimated about 4.1k Claude tokens (about 67% reduction, about 60% if trimmed conservatively), listed prerequisites for T6 and five open questions; waiting for maintainer review (T5) - `section-disposition.md`
 - 2026-10-30 16:30 UTC - Claude Code (Claude Sonnet 5.5) - T5: maintainer reviewed the dispositions and decided D1 to D5 (target about 5k Claude tokens, skill/nested-`AGENTS.md` placement rule, catalog in `docs/packages.md`, keep Development Principles, keep all eight policies inline); estimate now about 4.5k Claude tokens - `section-disposition.md`
 - 2026-10-30 17:00 UTC - Claude Code (Claude Sonnet 5.5) - T6 step 1: moved the Package Catalog to `docs/packages.md` (23 packages and crate names verified one to one, tool tables carried over) and reversed the back-links in `packages/AGENTS.md`; `AGENTS.md` keeps a pointer and the `cargo metadata` command - `section-disposition.md`
+- 2026-11-03 09:30 UTC - Claude Code (Claude Sonnet 5.5) - Added T4a after an outside comment on the issue noted that a checklist seeded from the planned moves can only confirm those moves: built `rule-inventory.md` with 99 rows from the baseline file at the commit `Merge torrust/torrust-tracker#2692: docs(issues): [#2691] add specification to reduce the AGENTS.md token footprint`; all 99 locator phrases verified present in the baseline; 9 rows already asserted (catalog) - `rule-inventory.md`
 
 ## Acceptance Criteria
 
@@ -180,6 +184,9 @@ a Conventional Commit message with the narrow affected scope, and sign every com
       (target agreed with the maintainer in T5, decision D1; baseline 12.4k).
 - [ ] AC3: Every section of the original `AGENTS.md` has a recorded disposition, and every rule that
       was moved is reachable from `AGENTS.md` by link or skill reference.
+- [ ] AC7: Every row of `rule-inventory.md`, built from the baseline file before restructuring,
+      has status `ASSERTED`: its final location was opened and confirmed, or a `DELETE` has a
+      recorded reason.
 - [ ] AC4: No procedural guidance is duplicated between `AGENTS.md` and a skill or `docs/` page
       (Engineering Policy 6).
 - [ ] AC5: `AGENTS.md` remains the sole source of truth and no provider-specific adapter file is
@@ -208,6 +215,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | --- | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ------ | -------------------------------------------- |
 | M1  | Token footprint before and after      | Measure `AGENTS.md` with the T1 method on the original commit and on the final commit                       | Final footprint is lower by the agreed target                                    | TODO   | `manual-verification-evidence.md` section V1 |
 | M2  | Key rules survive in a fresh session  | Start a fresh Claude Code session and ask it to describe the commit rules, branch naming and linting gate                     | Answers match the original rules, including GPG signing and `linter all`         | TODO   | `manual-verification-evidence.md` section V2 |
+| M4  | Rule inventory is fully asserted      | For every row of `rule-inventory.md`, open the final location, confirm it holds the rule, and set the row to `ASSERTED`; list any `DELETE` with its reason | No row is `PENDING`; no rule is unreachable | TODO   | `manual-verification-evidence.md` section V4 |
 | M3  | Moved content is discoverable         | In a fresh session, ask for the package list and the container ports, and observe where the agent looks                       | The agent finds the canonical source through links or skills                     | TODO   | `manual-verification-evidence.md` section V3 |
 
 Notes:
@@ -234,6 +242,7 @@ Rust test is not suitable, and its removal or retention owner here before creati
 | AC4   | TODO                   | {test/log/PR link} |
 | AC5   | TODO                   | {test/log/PR link} |
 | AC6   | TODO                   | {test/log/PR link} |
+| AC7   | TODO                   | {test/log/PR link} |
 
 ## Risks and Trade-offs
 

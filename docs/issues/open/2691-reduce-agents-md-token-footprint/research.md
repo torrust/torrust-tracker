@@ -151,6 +151,27 @@ found, so it is treated as unverified. The two results are not necessarily in co
 study measures total cost and success on its benchmark, and the other reports runtime and output
 tokens. Neither says a short, command-focused file is harmful.
 
+## Field Checks Against the Docs
+
+Checks run on 2026-11-03 with Claude Code 2.1.316, prompted by an outside comment on the issue.
+
+- **Skill descriptions are not free, but repo skills are not auto-loaded here.** `/context all`
+  lists only built-in and claude.ai skills; the repository skills live in `.github/skills/`, not
+  `.claude/skills/`, so Claude Code does not load their descriptions. Moving text into a repo
+  skill therefore costs no description tokens in Claude Code, but a skill is found only through a
+  pointer in `AGENTS.md`, and that pointer costs tokens. Tools that do auto-load
+  `.github/skills/` descriptions (for example GitHub Copilot) pay the description cost instead.
+- **Nested `AGENTS.md` loads on demand here.** In this repository there is no `CLAUDE.md` or
+  `CLAUDE.local.md` in the working directory or any parent. Reading
+  `tests/lifecycle/signals.rs` with the Read tool injected `tests/AGENTS.md` as additional
+  context. No hook is configured in the user or project settings, so this is not a local hook.
+  This is a single observation on one version. The documented failure case is a `CLAUDE.md` or
+  `CLAUDE.local.md` above the directory, which stops `AGENTS.md` from loading; the outside
+  comment reports exactly that, for a repository with a root `CLAUDE.md`.
+- **Completeness must be checked against the source, not against the moves.** A checklist seeded
+  from the planned moves can only confirm those moves. The rule inventory
+  ([`rule-inventory.md`](rule-inventory.md)) is built from the baseline file instead.
+
 ## Practices Adopted for This Issue
 
 Each practice is tied to the evidence above and to this repository's constraints.
