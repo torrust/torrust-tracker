@@ -9,7 +9,7 @@ github-issue: 2637
 spec-path: docs/issues/open/2637-1347-add-tests-axum-rest-api-server/ISSUE.md
 branch: "2637-1347-add-tests-axum-rest-api-server-commands"
 related-pr: 2702
-last-updated-utc: "2026-11-03 17:28"
+last-updated-utc: "2026-11-03 18:08"
 semantic-links:
   skill-links:
     - create-issue
@@ -718,6 +718,7 @@ once. If the slicing changes, the Slice column changes with it.
 - 2026-11-03 17:23 UTC - GitHub Copilot - Independent S3 review (see `agent-review-reports.md`): REVIEW FAILED on documentation only, with no code or measurement defect. Fixed the claim about the method mutants of the whitelist routes (a method dropped is killed by the `v1/routes.rs` table, a method replaced by a dummy handler only by the integration tests; both recorded), the EPIC `last-updated-utc`, the F1 count of the auth-key plan and the `lessons.md` wording about what pins the whitelist `500`.
 - 2026-11-03 17:24 UTC - GitHub Copilot - The short S3 re-review passed (REVIEW PASSED, no findings; see `agent-review-reports.md`). Next: pre-push, the scans and the pull request.
 - 2026-11-03 17:28 UTC - GitHub Copilot - Pre-push passed and S3 pull request #2702 (<https://github.com/torrust/torrust-tracker/pull/2702>, `Related to #2637`) was opened at 17:27 UTC; recorded it in the frontmatter, the slice table and the EPIC row. Corrected the stamps of the S3 re-review entry (17:25 to 17:24 UTC) and the report heading, which were later than their commit (17:24:55 UTC).
+- 2026-11-03 18:08 UTC - GitHub Copilot - Review round of #2702 (audit: `docs/pr-reviews/pr-2702-review/PR-REVIEW.md`). The testing workflow failed on a clippy lint in `http-protocol` that `develop` had already fixed, so `develop` was merged into the branch (no rebase, no squash). Copilot's five comments are two findings, both fixed at the maintainer's decision: the port fakes now record typed `Call` values (F1-F3) and the response-reading helper is shared in `test_support` across the seven modules (F4-F5, extracted now instead of deferred; the helper note of `lessons.md` is resolved). Re-measured: unit-only lines 1,668 / 1,855 (89.92%), aggregate 1,730 / 1,855 (93.26%), integration-only unchanged; the denominator fell by 76 lines because duplicated test code left the modules, and no test was added or removed (106 unit and 58 integration tests).
 
 ## Acceptance Criteria
 

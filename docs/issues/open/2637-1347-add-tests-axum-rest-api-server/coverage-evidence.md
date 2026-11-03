@@ -273,3 +273,15 @@ After the six S3 files (`v1/context/auth_key/{handlers,responses,routes}.rs` and
 | Integration-only (`--test integration`) | 58 integration | 682 / 916 (74.45%) | 949 / 1,360 (69.78%) | 98 / 138 (71.01%) |
 
 Unit-only lines move 1,305 / 1,556 (83.87%) at the S3 baseline (the S2 measurement) to 1,744 / 1,931 (90.32%). Two files gained test modules (`auth_key/handlers.rs` and `whitelist/handlers.rs`), so the denominator grew by 375 lines; the other four S3 files are unchanged and were already fully covered by tests of earlier rows. The integration-only figure is unchanged because the integration binary does not compile the in-file test modules. The remaining uncovered unit-only lines are in `server.rs` (74, S5), `v1/context/stats/responses.rs` (39), `testing/environment.rs` (31, out of scope), `v1/context/torrent/handlers.rs` (29), `v1/context/stats/handlers.rs` (8), `auth_key/handlers.rs` (3, the `Debug` implementation of `AuthKeyErrorDisplay`) and `v1/context/torrent/responses.rs` (3); the torrent and stats files are S4.
+
+### Slice S3 Re-Measurement After The Review Of #2702
+
+Copilot's review of #2702 led to two test-only changes: the response-reading helper became shared in `test_support.rs` (the seven modules that each had a copy now use it), and the two port fakes record typed `Call` values. Both remove duplicated test code, so the denominator falls and the percentages move slightly; no test was added or removed. Measured on the branch after both changes and the merge of `develop` (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, a clean workspace before each report, the commands of the Measurement Scope section). This is the latest S3 figure; the slice measurement above is the one taken before the review.
+
+| Scope | Tests | Lines | Regions | Functions |
+| --- | ---: | ---: | ---: | ---: |
+| Aggregate (all selected test targets) | 106 unit + 58 integration | 1,730 / 1,855 (93.26%) | 2,619 / 2,889 (90.65%) | 298 / 322 (92.55%) |
+| Unit-only (`--lib`) | 106 unit | 1,668 / 1,855 (89.92%) | 2,535 / 2,889 (87.75%) | 286 / 322 (88.82%) |
+| Integration-only (`--test integration`) | 58 integration | 682 / 916 (74.45%) | 949 / 1,360 (69.78%) | 98 / 138 (71.01%) |
+
+Unit-only lines per file, before and after the two changes (the per-file sections above record the figure at each file's completed-file review): `routes.rs` 169 / 169 to 167 / 167, `test_support.rs` 35 / 35 to 63 / 63, `v1/context/auth_key/handlers.rs` 261 / 264 to 236 / 239, `v1/context/health_check/handlers.rs` 18 / 18 to 15 / 15, `v1/context/whitelist/handlers.rs` 198 / 198 to 175 / 175, `v1/middlewares/auth.rs` 142 / 142 to 133 / 133, `v1/responses.rs` 66 / 66 to 47 / 47 and `v1/routes.rs` 111 / 111 to 88 / 88. The uncovered lines are unchanged (the three `Debug` lines of `AuthKeyErrorDisplay` and the S4, S5 and out-of-scope files listed above). Mutations of the shared `observed` fail 48 to 62 unit tests, and the forwarding mutations of both fakes still fail their tests.
