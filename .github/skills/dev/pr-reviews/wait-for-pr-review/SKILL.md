@@ -11,7 +11,7 @@ metadata:
       - .github/skills/dev/pr-reviews/fetch-review-threads/SKILL.md
       - .github/skills/dev/git-workflow/merge-pull-request/SKILL.md
       - docs/adrs/20260519000000_define_global_cli_output_contract.md
-      - docs/issues/open/2581-2003-pr-review-wait-poller/ISSUE.md
+      - docs/issues/closed/2581-2003-pr-review-wait-poller/ISSUE.md
 ---
 
 # Waiting for Pull-Request Reviews

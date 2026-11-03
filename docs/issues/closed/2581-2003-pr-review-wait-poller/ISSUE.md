@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-progress
+status: done
 priority: p2
 epic: 2003
 github-issue: 2581
-spec-path: docs/issues/open/2581-2003-pr-review-wait-poller/ISSUE.md
+spec-path: docs/issues/closed/2581-2003-pr-review-wait-poller/ISSUE.md
 branch: "2581-pr-review-wait-poller"
-related-pr: null
-last-updated-utc: "2026-10-28 17:55"
+related-pr: 2683
+last-updated-utc: "2026-11-03 17:12"
 semantic-links:
   skill-links:
     - create-issue
@@ -299,7 +299,7 @@ them:
 - [x] GitHub issue created and spec PR opened
 - [x] Maintainer decisions of 2026-10-28 recorded in the spec
 - [x] Implementation complete
-- [ ] Implementation PR opened
+- [x] Implementation PR opened
 
 ### Progress Log
 
@@ -332,3 +332,8 @@ them:
   `base_source_precedence`, fixed in its own commit (evidence section V8). V7 is settled: the REST
   `requested_reviewers` call requests a Copilot review (about 40 to 45 minutes to answer). V6, a real
   `da2ce7` review, is still open. Entry written by the AI assistant (Copilot SDK in VS Code).
+- 2026-11-03: PR #2683 merged on 2026-10-28 at 18:32:57 UTC and the issue closed as completed, so the
+  spec moved to `docs/issues/closed/` with `status: done`, the new `spec-path`, and `related-pr: 2683`.
+  V6 was not run: no `da2ce7` review existed when the PR merged and the poller had ended with
+  `pr_merged`, so the criterion about manual verification stays unticked. Entry written by the AI
+  assistant (Copilot SDK in VS Code).
