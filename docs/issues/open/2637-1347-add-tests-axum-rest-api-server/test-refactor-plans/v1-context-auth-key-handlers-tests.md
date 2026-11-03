@@ -124,7 +124,7 @@ features exist to trim. `rstest` and `tokio` exist.
 | A6 | `delete` | Answer `invalid_auth_key_param_response` for every error. | the `Database` case |
 | A7 | `reload` | Report `failed to delete keys` in the error message. | the reload error case |
 | A8 | `generate` | Map every error to `failed_to_add_key_response`. | both `generate` error cases |
-| F1 | the fake | Record no calls. | the four forwarding assertions |
+| F1 | the fake | Record no calls. | the three forwarding assertions |
 
 ## Prose-First AAA Review
 

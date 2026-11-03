@@ -260,7 +260,7 @@ Unit-only (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): lines 
 
 ### `v1/context/whitelist/routes.rs` (slice S3)
 
-Unit-only (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): lines 14 / 14 (100.00%), regions 25 / 25, functions 1 / 1, before and after; the file has no test module and is covered by the `v1/routes.rs` tests. Decision: no change. Seven named mutations (prefix, reload path, the add and remove methods, and `None` state on the add, remove and reload routes) each fail an existing unit or integration test on an assertion; the two method mutants are killed by the integration tests only (see [the plan](test-refactor-plans/v1-context-whitelist-routes-tests.md)).
+Unit-only (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): lines 14 / 14 (100.00%), regions 25 / 25, functions 1 / 1, before and after; the file has no test module and is covered by the `v1/routes.rs` tests. Decision: no change. Seven named mutations (prefix, reload path, the add and remove methods, and `None` state on the add, remove and reload routes) each fail an existing unit or integration test on an assertion. Replacing a method with a dummy handler (M3, M4) is killed only by the integration tests, while dropping the method (M3b, M4b) is killed by the `v1/routes.rs` table (see [the plan](test-refactor-plans/v1-context-whitelist-routes-tests.md)).
 
 ### Slice S3 Measurement
 

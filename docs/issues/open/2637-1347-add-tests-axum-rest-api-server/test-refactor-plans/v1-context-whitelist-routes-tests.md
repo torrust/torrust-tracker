@@ -64,13 +64,16 @@ Each is a temporary hand-made change to this file that a test must catch, applie
 | M2 | reload route | Path `/reload` with a letter added. | the `v1/routes.rs` table, reload case, and 3 more `v1/routes.rs` tests |
 | M3 | add route | Method `POST` to `PUT` (the `POST` answers an empty `200`). | the whitelist integration tests of `add` |
 | M4 | remove route | Method `DELETE` to `PUT` (the `DELETE` answers an empty `200`). | the whitelist integration tests of `remove` |
+| M3b | add route | Method `POST` to `PUT`, with no dummy handler (the `POST` answers `405`). | the `v1/routes.rs` table, case `whitelist_a_torrent` |
+| M4b | remove route | Method `DELETE` to `PUT`, with no dummy handler (the `DELETE` answers `405`). | the `v1/routes.rs` table, case `remove_a_torrent_from_the_whitelist` |
 | M5 | add route | Service state `None`. | 4 whitelist integration tests (add) |
 | M6 | remove route | Service state `None`. | 4 whitelist integration tests (remove) |
 | M7 | reload route | Service state `None`. | the `v1/routes.rs` "serve the whitelist routes" test |
 
-Notes: the method mutants keep the route registered with a dummy handler, so the table of `v1/routes.rs` (which
-checks only that a route is not `404` or `405`) does not kill them; the integration tests do, which is why the
-wiring stays an integration concern. A first attempt to change a method with the unused import did not
+Notes: M3 and M4 keep the method registered with a dummy handler, so the table of `v1/routes.rs` (which checks only
+that a route is not `404` or `405`) does not kill them; the integration tests do. M3b and M4b remove the method with
+no dummy handler, so the route answers `405` and the table kills them. The independent review of S3 found M3b and
+M4b, and they were reproduced afterwards. A first attempt to change a method with the unused import did not
 compile (`unused = "deny"`), and a second (`DELETE` to `POST`) made the router panic on a duplicate `POST`
 registration; both were replaced by the `PUT` mutants above.
 
@@ -99,6 +102,6 @@ No test is added or changed, so there is nothing to review.
 
 - **Unit-only coverage** (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): 14 / 14 lines, 25 / 25
   regions and 1 / 1 functions before and after (no change to the file).
-- **Mutations:** M1-M7 were each applied alone and reverted exactly (the working tree was clean afterwards); every
+- **Mutations:** M1-M7, M3b and M4b were each applied alone and reverted exactly (the working tree was clean afterwards); every
   one made at least one existing test fail on an assertion, not on a compile error.
 - **Decision:** no change, recorded as documentation. The maintainer approved the no-change decision on 2026-11-03.

@@ -71,3 +71,18 @@ semantic-links:
 - Verdict: REVIEW PASSED
 - Follow-up actions:
   - The approvals were added to the progress log, the figures were labelled, the table and the log note were corrected, and the helper and the test were renamed: `test(axum-rest-api-server): [#2637] stop shadowing the response reader in the router tests` and `docs(issues): [#2637] fix the records items of the S2 independent review`.
+
+### 2026-11-03 17:23 UTC - Task Reviewer (slice S3, first review)
+
+- Invocation scope: slice S3 of #2637 on branch `2637-1347-add-tests-axum-rest-api-server-commands`: the seven commits above `torrust/develop` (ledger rows 6-11), including `test(axum-rest-api-server): [#2637] cover the auth key handlers` and `test(axum-rest-api-server): [#2637] cover the whitelist handlers`.
+- Inputs: the issue folder, the EPIC, the two changed Rust files, `Cargo.toml` and `Cargo.lock`. The reviewer did not re-read the subissue guidelines or the `write-unit-test` skill in full and judged AAA and naming against the plans' prose-first tables. It was told not to modify tracked files, so this entry was written by the implementing agent from its report.
+- Evidence: clean `cargo llvm-cov` runs (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`) matched every recorded figure: aggregate 1,806 / 1,931 (93.53%), unit-only 1,744 / 1,931 (90.32%), integration-only 682 / 916 (74.45%); the per-file figures of all six files; the uncovered-line sum 187; and the six EPIC deltas. Ten named mutations were re-applied and killed by assertions (A2, A4, F1, W3, W5, W10, the whitelist responses M2, the auth-key responses M8, the whitelist routes M3 and M4) and reverted exactly. `cargo +nightly fmt --all -- --check` (nightly Rust toolchain), `git diff --check`, `cargo clippy --all-targets`, `cargo machete --with-metadata`, `linter markdown` and `linter cspell` passed; all relative links and the anchor resolve; no production code changed, no closing keyword and no commit id in the docs; no stamp is later than its commit.
+- Findings:
+  - MEDIUM: the whitelist routes plan, the evidence and the progress log said the method mutants are killed "by the integration tests only". The reviewer's variants (the method replaced and left unregistered for the original verb, so the route answers `405`) are killed by the `v1/routes.rs` table; only the variants with a dummy handler need the integration tests. Reproduced by the implementing agent.
+  - MEDIUM: the EPIC `last-updated-utc` was older than its own newest log entry.
+  - LOW: the auth-key handlers plan said F1 is killed by "the four forwarding assertions"; there are three.
+  - LOW: `lessons.md` said the whitelist `add` and `remove` `500` is pinned by a test; only `add` is.
+  - LOW (declined): a few reload and delete tests pass an irrelevant key outcome to the fake; harmless, and the duplicated helpers are already in `lessons.md`.
+- Verdict: REVIEW FAILED (documentation only)
+- Follow-up actions:
+  - The two MEDIUM and two LOW items were fixed in one documentation commit: the routes plan now records both kinds of method mutant (M3, M4 and M3b, M4b), the evidence and log wording is corrected, the EPIC stamp is updated, and the F1 count and the `lessons.md` wording are corrected. A short re-review of the documentation follows.
