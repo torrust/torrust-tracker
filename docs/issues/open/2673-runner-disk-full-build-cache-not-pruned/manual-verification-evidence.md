@@ -267,7 +267,7 @@ The test fails for the missing restart, readiness wait, and failure exit status,
 
 - Goal: install the script, run it once under systemd, and watch the first scheduled runs.
 - Initial state: the runner idle (GitHub API `busy: false` and no `Runner.Worker` process, checked before every step), `/` at 49% used, build cache 121.1 GB. Artifact under test: the script from the branch commit `docs(issues): [#2673] update the specification and evidence for the cleanup fix` (the script itself last changed in `chore(self-hosted-runner): [#2673] fix the spelling check in the cleanup script`), installed before that branch was merged.
-- Status: `IN_PROGRESS` (deployed and run once by hand; the three scheduled runs are pending)
+- Status: `DONE` (deployed, run once by hand, and seven scheduled runs from 2026-10-28 to 2026-11-03 passed)
 
 #### Steps Performed
 
@@ -319,7 +319,78 @@ Check that checks work again: the `Test (Docker) (release)` job of the pull requ
 
 #### Conclusion
 
-Deployed and working. The no-restart path ran under systemd (disk 49%, unit succeeded). The restart path ran once on the real runner through a controlled test with a lowered threshold: the script restarted `docker.service`, waited for it, pruned again, and exited 0, and Docker, containerd, and the runner service came back. Two things are still not shown: the restart path triggered by the real 70% threshold under systemd (the test ran the script directly), and three consecutive scheduled daily runs. The first scheduled run is 2026-10-28 04:00 UTC; record them here.
+Deployed and working. The no-restart path ran under systemd: the manual run on 2026-10-27 (disk 49%) and seven scheduled runs from 2026-10-28 to 2026-11-03 (disk 51% to 53%), all with exit status 0. The restart path ran once on the real runner through a controlled test with a lowered threshold: the script restarted `docker.service`, waited for it, pruned again, and exited 0, and Docker, containerd, and the runner service came back. One thing is still not shown: the restart triggered by the real 70% threshold under systemd, because no scheduled run found the disk that high after the prune. That is the safe outcome and not a gap in the three-run criterion; the branch is covered by the lowered-threshold test and the stub tests (V5). The scheduled-run details follow in "Scheduled Runs and Reboot".
+
+#### Scheduled Runs and Reboot
+
+Observed on the runner over SSH by two agent sessions with the maintainer's approval for the reboot ("reboot while idle"): scheduled run 1 and the reboot on 2026-10-28 by the session that owned the work first, run 2 on 2026-10-29 by the session that continued it, and runs 3 to 7 on 2026-11-03 from the journal (see the notes at each block). When this section was first written, runs 2 and 3 were still pending; they are recorded below.
+
+Scheduled run 1, 2026-10-28:
+
+```text
+unit ran 04:00:24 to 04:00:45 UTC; ExecMainStatus=0; systemctl is-failed docker-ci-prune.service: inactive
+build cache prune:  Total: 40.2GB
+container prune:    Total reclaimed space: 0B
+image prune:        Total reclaimed space: 0B
+volume prune:       Total reclaimed space: 248.9kB
+Disk usage after the prune: 51%.   (below 70%, so no docker.service restart)
+at 07:20 UTC: /  55% (157G used, df binary units); build cache 134.5 GB, 79 records active (a job was running); 0 "No space left" journal lines for the day
+script on the host: sha256 c2af7c81ca8a1811200612c8c89d0390fcd739c4a3d0e8700811ba566414542f, identical to the merged script
+host Cargo target cache (/home/runner/.cache/torrust-tracker/container-target): 2.7G at 2026-10-27 11:43 and 2.7G at 2026-10-28 07:20
+```
+
+Reboot, 2026-10-28 (kernel update, pending `reboot-required`):
+
+```text
+idle guard 07:26:52 UTC: GitHub busy=false, Runner.Worker count 0, 0 containers, nothing queued or running on the runner
+systemctl reboot 07:27:10 UTC (kernel 7.0.0-34-generic); boot started 07:27:23 UTC on 7.0.0-38-generic; /var/run/reboot-required gone
+runner service active 07:27:31, "Connected to GitHub" and "Listening for Jobs" 07:27:35, NRestarts=0
+docker, containerd, docker-ci-prune.timer (Persistent=true, next 2026-10-29 04:00 UTC), ssh.socket, sysstat active; systemctl --failed empty; no journal errors this boot; swap active, 0 B used
+after the reboot: 0 containers; disk 56%; build cache 141.5 GB, 0 in use, 141.3 GB reclaimable (the Docker restart reset the cache state)
+OOM check across boots: journalctl _TRANSPORT=kernel --since "30 days ago" starts 2026-09-28 07:38:20 and has 0 "Killed process" lines in 30 days
+```
+
+Scheduled run 2, 2026-10-29 (checked read-only at 10:21 UTC):
+
+```text
+unit ran 04:00:03 to 04:00:36 UTC; Result=success; ExecMainStatus=0; systemctl is-failed docker-ci-prune.service: inactive
+build cache prune:  Total:        94.74GB
+container prune:    Total reclaimed space: 0B
+image prune:        Total reclaimed space: 0B
+volume prune:       Total reclaimed space: 1.253MB
+Disk usage after the prune: 52%.   (below 70%, so no docker.service restart; no "restarting docker.service" line)
+at 10:21 UTC: /  301G, 150G used, 139G free, 52% (df binary units); Build Cache 345 records, 59 active, 129GB, 107.4GB reclaimable (docker system df, decimal units)
+docker.service: ActiveEnterTimestamp 2026-10-28 07:27:35 UTC (the reboot), NRestarts=0; 0 "No space left" journal lines since 00:00; GitHub runner online, busy=false, Runner.Worker count 0
+host Cargo target cache: 3.1G (2.7G on 2026-10-28)
+script on the host: sha256 c2af7c81ca8a1811200612c8c89d0390fcd739c4a3d0e8700811ba566414542f, unchanged
+```
+
+Observation, not investigated: one container, up 24 hours and healthy, was running with no `Runner.Worker` process and the runner not busy, which explains the 59 active cache records. The run did not touch it and the disk stayed at 52%.
+
+Scheduled runs 3 to 7, 2026-10-30 to 2026-11-03 (checked read-only on 2026-11-03 at 17:19 UTC from the journal; run 3 was not checked on its own day, so these figures come from the journal and not from a same-day check):
+
+```text
+date        build cache prune   container prune   image prune   volume prune    disk after the prune   restart line   is-failed
+2026-10-30  Total: 24.32GB       0B                0B            151.1kB         52%                    none           (journal: Finished, no failure)
+2026-10-31  Total: 76.88GB       0B                0B            453.3kB         52%                    none           (journal: Finished, no failure)
+2026-11-01  Total: 6.94GB        0B                0B            50.37kB         53%                    none           (journal: Finished, no failure)
+2026-11-02  Total: 0B            0B                0B            0B              53%                    none           (journal: Finished, no failure)
+2026-11-03  Total: 0B            0B                0B            0B              53%                    none           Result=success, ExecMainStatus=0, 04:00:23 to 04:00:24 UTC; is-failed: inactive
+```
+
+```text
+at 2026-11-03 17:19 UTC: systemctl is-failed docker-ci-prune.service: inactive
+docker.service: ActiveEnterTimestamp 2026-10-28 07:27:35 UTC, NRestarts=0 (no restart since the reboot)
+journal "no space left" lines since 2026-10-30 00:00: 0 (0 in the last 7 days)
+script on the host: sha256 c2af7c81ca8a1811200612c8c89d0390fcd739c4a3d0e8700811ba566414542f, unchanged
+host Cargo target cache: 4.1G (2.7G on 2026-10-28, 3.1G on 2026-10-29)
+timer: next run 2026-11-04 04:00:00 UTC
+/  301G, 182G used, 107G free, 64% (df; a job was running); Build Cache 409 records, 77 in use, 162.4GB, 129.7GB reclaimable (docker system df)
+```
+
+The two 0 B runs follow two days with no jobs on the runner (sysstat 99.6% idle on 2026-11-01 and 2026-11-02, no `container.yaml` job started on the runner). The cache size at 04:00 on those days was not recorded, so that explanation is a hypothesis; the cache is not in the stuck state now (129.7 GB reclaimable, only the records of the running job in use). See the [report of 2026-11-03](../../../self-hosted-runner-reports/20261103-171940-runner-report.md).
+
+Summary of the three planned runs plus four more: seven scheduled runs (2026-10-28 to 2026-11-03), all with exit status 0 and the disk at 51% to 53% after the prune; none reached the 70% threshold, so the restart path did not run under systemd. No job failed on the runner in that period: 47 successful and 11 cancelled `container.yaml` jobs since 2026-10-27 11:47 UTC.
 
 ## Failures and Follow-up
 
@@ -327,3 +398,6 @@ Deployed and working. The no-restart path ran under systemd (disk 49%, unit succ
 - The four-container hypothesis recorded in the first draft of this specification and in the first health report was wrong. The health report is not edited because reports are immutable; the next report states the corrected cause.
 - A permission gate denied two batched collection commands (the cause was not identified) and, later, one local Docker command. The collection commands were re-run one at a time, and the local Docker commands ran after the maintainer approved the local experiment.
 - Not yet known: what makes a build leave an Active snapshot behind (V2), and how fast the state accumulates again. Both are inputs to T3 to T5.
+- After the reboot, 9 cancelled `container.yaml` jobs ran on the runner (2026-10-28 to 2026-11-03) and no pinned build state appeared. This is weak evidence against "cancelled builds alone create it"; it neither proves nor refutes the trigger, which stays unproven (`deferred-proposals.md`, R1).
+- A `torrust-tracker:local` container has been up on the runner since 2026-10-28 10:16:22 UTC, ten seconds before a cancelled job ended (run 40666149359, cancelled in the step `Run Persistence Transition Regression`). A cancelled step leaving its container behind is a hypothesis, not proven; the container does not block the prune and was not removed. It is finding F3 of the [report of 2026-11-03](../../../self-hosted-runner-reports/20261103-171940-runner-report.md) and is outside this issue's scope.
+- Run 3 (2026-10-30) was not checked on its own day: it is recorded from the journal on 2026-11-03, after the AI token budget ran out on the original schedule.
