@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2673-runner-disk-full-build-cache-not-pruned/ISSUE.md
-last-updated-utc: 2026-10-28 07:26
+issue-spec: docs/issues/closed/2673-runner-disk-full-build-cache-not-pruned/ISSUE.md
+last-updated-utc: 2026-11-03 19:05
 ---
 
 # Manual Verification Evidence

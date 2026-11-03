@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: planned
+status: done
 priority: p1
 epic: null
 github-issue: 2673
-spec-path: docs/issues/open/2673-runner-disk-full-build-cache-not-pruned/ISSUE.md
+spec-path: docs/issues/closed/2673-runner-disk-full-build-cache-not-pruned/ISSUE.md
 branch: "2673-runner-disk-full-build-cache-not-pruned-spec"
 related-pr: null
-last-updated-utc: "2026-11-03 17:26"
+last-updated-utc: "2026-11-03 19:05"
 semantic-links:
   skill-links:
     - create-issue
@@ -21,7 +21,7 @@ semantic-links:
     - .github/workflows/container.yaml
     - contrib/dev-tools/self-hosted-runner/docker-ci-prune.sh
     - contrib/dev-tools/self-hosted-runner/tests/test-docker-ci-prune.sh
-    - docs/issues/open/2673-runner-disk-full-build-cache-not-pruned/deferred-proposals.md
+    - docs/issues/closed/2673-runner-disk-full-build-cache-not-pruned/deferred-proposals.md
 ---
 
 <!-- skill-link: create-issue -->
@@ -160,7 +160,7 @@ T2 and T7 change the runner, not the repository; their results are recorded as e
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
