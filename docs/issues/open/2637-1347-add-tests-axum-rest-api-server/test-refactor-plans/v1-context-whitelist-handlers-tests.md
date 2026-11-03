@@ -95,8 +95,9 @@ place that explains it, so the difference between the two contexts stays documen
 ## Test Design
 
 - **Fake:** a `FakeWhitelistPort` implementing `WhitelistCommandPort`, with one scripted outcome (a function pointer
-  returning `Result<(), WhitelistError>`) and an `Arc<Mutex<Vec<String>>>` call log, as in the auth-key tests.
-  Forwarding is asserted through the log (`add_torrent("<hash>")`, `remove_torrent("<hash>")`, `reload`). The fake
+  returning `Result<(), WhitelistError>`) and an `Arc<Mutex<Vec<Call>>>` call log, as in the auth-key tests.
+  `Call` is a test-local enum (`AddTorrent(InfoHash)`, `RemoveTorrent(InfoHash)`, `Reload`), typed after Copilot's review
+  of #2702 (finding F1) instead of formatted strings. Forwarding is asserted through the log. The fake
   needs only one outcome type, so it is smaller than the auth-key one.
 - **Helpers:** the `Observed` value (status, content type, body) and a bounded body read. This plan first wrote its
   own copy, the seventh in the package; Copilot's review of #2702 (finding F2) asked for a shared one, and the

@@ -111,8 +111,16 @@ mod tests {
     use crate::test_support::{Observed, observed};
 
     type Outcome = fn() -> Result<(), WhitelistError>;
-    type CallLog = Arc<Mutex<Vec<String>>>;
+    type CallLog = Arc<Mutex<Vec<Call>>>;
     type ServiceState = State<Option<Arc<WhitelistApiService>>>;
+
+    /// A call that the fake port received, with the info hash the handler forwarded.
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    enum Call {
+        AddTorrent(InfoHash),
+        RemoveTorrent(InfoHash),
+        Reload,
+    }
 
     const INFO_HASH: &str = "443c7602b4fde83d1154d6d9da48808418b181b6";
 
@@ -171,7 +179,7 @@ mod tests {
             self.calls.clone()
         }
 
-        fn record(&self, call: String) {
+        fn record(&self, call: Call) {
             self.calls.lock().expect("the call log is not poisoned").push(call);
         }
     }
@@ -179,17 +187,17 @@ mod tests {
     #[async_trait]
     impl WhitelistCommandPort for FakeWhitelistPort {
         async fn add_torrent(&self, info_hash: &InfoHash) -> Result<(), WhitelistError> {
-            self.record(format!("add_torrent({info_hash})"));
+            self.record(Call::AddTorrent(*info_hash));
             (self.outcome)()
         }
 
         async fn remove_torrent(&self, info_hash: &InfoHash) -> Result<(), WhitelistError> {
-            self.record(format!("remove_torrent({info_hash})"));
+            self.record(Call::RemoveTorrent(*info_hash));
             (self.outcome)()
         }
 
         async fn reload(&self) -> Result<(), WhitelistError> {
-            self.record("reload".to_string());
+            self.record(Call::Reload);
             (self.outcome)()
         }
     }
@@ -206,7 +214,11 @@ mod tests {
         Path(InfoHashParam(value.to_string()))
     }
 
-    fn recorded(calls: &CallLog) -> Vec<String> {
+    fn info_hash() -> InfoHash {
+        INFO_HASH.parse().expect("the test info hash is valid")
+    }
+
+    fn recorded(calls: &CallLog) -> Vec<Call> {
         calls.lock().expect("the call log is not poisoned").clone()
     }
 
@@ -239,7 +251,7 @@ mod tests {
         let response = add_torrent_to_whitelist_handler(state_with(fake), param("abc")).await;
 
         assert_eq!(observed(response).await, invalid_info_hash("abc"));
-        assert_eq!(recorded(&calls), Vec::<String>::new());
+        assert_eq!(recorded(&calls), Vec::<Call>::new());
     }
 
     #[tokio::test]
@@ -250,7 +262,7 @@ mod tests {
         let response = remove_torrent_from_whitelist_handler(state_with(fake), param("abc")).await;
 
         assert_eq!(observed(response).await, invalid_info_hash("abc"));
-        assert_eq!(recorded(&calls), Vec::<String>::new());
+        assert_eq!(recorded(&calls), Vec::<Call>::new());
     }
 
     #[tokio::test]
@@ -261,7 +273,7 @@ mod tests {
         let response = add_torrent_to_whitelist_handler(state_with(fake), param(INFO_HASH)).await;
 
         assert_eq!(observed(response).await, ok());
-        assert_eq!(recorded(&calls), vec![format!("add_torrent({INFO_HASH})")]);
+        assert_eq!(recorded(&calls), vec![Call::AddTorrent(info_hash())]);
     }
 
     #[tokio::test]
@@ -272,7 +284,7 @@ mod tests {
         let response = remove_torrent_from_whitelist_handler(state_with(fake), param(INFO_HASH)).await;
 
         assert_eq!(observed(response).await, ok());
-        assert_eq!(recorded(&calls), vec![format!("remove_torrent({INFO_HASH})")]);
+        assert_eq!(recorded(&calls), vec![Call::RemoveTorrent(info_hash())]);
     }
 
     #[tokio::test]
@@ -283,7 +295,7 @@ mod tests {
         let response = reload_whitelist_handler(state_with(fake)).await;
 
         assert_eq!(observed(response).await, ok());
-        assert_eq!(recorded(&calls), vec!["reload".to_string()]);
+        assert_eq!(recorded(&calls), vec![Call::Reload]);
     }
 
     /// The second case documents a difference with the auth-key handlers: `add_auth_key_handler` maps a service-reported

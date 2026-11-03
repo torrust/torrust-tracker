@@ -68,8 +68,11 @@ hand-written `AuthKeyPort` fake in the test module.
 `FakeAuthKeyPort` has one responsibility: answer each port call with a scripted outcome and record the call. It holds
 two plain function pointers (one returning `Result<AuthKey, AuthKeyError>` for `add` and `generate`, one returning
 `Result<(), AuthKeyError>` for `delete` and `reload`) because `AuthKeyError` is not `Clone`, and an
-`Arc<Mutex<Vec<String>>>` call log, for example `generate_key(60)` or `delete_key("abc")`. Its contract is exercised by
-the forwarding tests; mutation F1 (the fake records nothing) proves it.
+`Arc<Mutex<Vec<Call>>>` call log. `Call` is a test-local enum with one variant per port method and the forwarded inputs
+as fields (for example `Call::GenerateKey { seconds_valid: 60 }`). It was a log of formatted strings until Copilot's
+review of #2702 (finding F1) pointed out that the assertions then depended on `Debug` formatting; the maintainer
+decided on 2026-11-03 to type it in both fakes. Its contract is exercised by the forwarding tests; mutation F1 (the fake
+records nothing) proves it.
 
 ### Cases For R2 (literal expectations)
 

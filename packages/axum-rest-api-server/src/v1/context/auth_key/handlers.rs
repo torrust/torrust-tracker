@@ -174,8 +174,24 @@ mod tests {
 
     type KeyOutcome = fn() -> Result<AuthKey, AuthKeyError>;
     type UnitOutcome = fn() -> Result<(), AuthKeyError>;
-    type CallLog = Arc<Mutex<Vec<String>>>;
+    type CallLog = Arc<Mutex<Vec<Call>>>;
     type ServiceState = State<Option<Arc<AuthKeyApiService>>>;
+
+    /// A call that the fake port received, with the inputs the handler forwarded.
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    enum Call {
+        AddKey {
+            opt_key: Option<String>,
+            opt_seconds_valid: Option<u64>,
+        },
+        GenerateKey {
+            seconds_valid: u64,
+        },
+        DeleteKey {
+            key: String,
+        },
+        ReloadKeys,
+    }
 
     const KEY_JSON: &str = r#"{"key":"k1","valid_until":null,"expiry_time":null}"#;
 
@@ -238,7 +254,7 @@ mod tests {
             self.calls.clone()
         }
 
-        fn record(&self, call: String) {
+        fn record(&self, call: Call) {
             self.calls.lock().expect("the call log is not poisoned").push(call);
         }
     }
@@ -246,22 +262,25 @@ mod tests {
     #[async_trait]
     impl AuthKeyPort for FakeAuthKeyPort {
         async fn add_key(&self, form: &AddKeyForm) -> Result<AuthKey, AuthKeyError> {
-            self.record(format!("add_key({:?}, {:?})", form.opt_key, form.opt_seconds_valid));
+            self.record(Call::AddKey {
+                opt_key: form.opt_key.clone(),
+                opt_seconds_valid: form.opt_seconds_valid,
+            });
             (self.key_outcome)()
         }
 
         async fn generate_key(&self, seconds_valid: u64) -> Result<AuthKey, AuthKeyError> {
-            self.record(format!("generate_key({seconds_valid})"));
+            self.record(Call::GenerateKey { seconds_valid });
             (self.key_outcome)()
         }
 
         async fn delete_key(&self, key: &str) -> Result<(), AuthKeyError> {
-            self.record(format!("delete_key({key:?})"));
+            self.record(Call::DeleteKey { key: key.to_string() });
             (self.unit_outcome)()
         }
 
         async fn reload_keys(&self) -> Result<(), AuthKeyError> {
-            self.record("reload_keys".to_string());
+            self.record(Call::ReloadKeys);
             (self.unit_outcome)()
         }
     }
@@ -272,6 +291,10 @@ mod tests {
 
     fn state_answering(key_outcome: KeyOutcome, unit_outcome: UnitOutcome) -> ServiceState {
         state_with(FakeAuthKeyPort::answering(key_outcome, unit_outcome))
+    }
+
+    fn recorded(calls: &CallLog) -> Vec<Call> {
+        calls.lock().expect("the call log is not poisoned").clone()
     }
 
     fn database_error() -> AuthKeyError {
@@ -348,8 +371,11 @@ mod tests {
         add_auth_key_handler(state_with(fake), a_form()).await;
 
         assert_eq!(
-            *calls.lock().expect("the call log is not poisoned"),
-            vec![r#"add_key(Some("k1"), Some(5))"#]
+            recorded(&calls),
+            vec![Call::AddKey {
+                opt_key: Some("k1".to_string()),
+                opt_seconds_valid: Some(5)
+            }]
         );
     }
 
@@ -361,13 +387,10 @@ mod tests {
         let response = generate_auth_key_handler(state_with(fake), Path(60)).await;
 
         assert_eq!(
-            (
-                observed(response).await,
-                calls.lock().expect("the call log is not poisoned").clone()
-            ),
+            (observed(response).await, recorded(&calls)),
             (
                 Observed::new(StatusCode::OK, "application/json; charset=utf-8", KEY_JSON),
-                vec!["generate_key(60)".to_string()]
+                vec![Call::GenerateKey { seconds_valid: 60 }]
             )
         );
     }
@@ -398,11 +421,8 @@ mod tests {
         let response = delete_auth_key_handler(state_with(fake), Path(KeyParam("abc".to_string()))).await;
 
         assert_eq!(
-            (
-                observed(response).await,
-                calls.lock().expect("the call log is not poisoned").clone()
-            ),
-            (ok(), vec![r#"delete_key("abc")"#.to_string()])
+            (observed(response).await, recorded(&calls)),
+            (ok(), vec![Call::DeleteKey { key: "abc".to_string() }])
         );
     }
 
