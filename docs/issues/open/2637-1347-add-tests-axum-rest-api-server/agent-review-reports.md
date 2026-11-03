@@ -87,7 +87,7 @@ semantic-links:
 - Follow-up actions:
   - The two MEDIUM and two LOW items were fixed in one documentation commit: the routes plan now records both kinds of method mutant (M3, M4 and M3b, M4b), the evidence and log wording is corrected, the EPIC stamp is updated, and the F1 count and the `lessons.md` wording are corrected. A short re-review of the documentation follows.
 
-### 2026-11-03 17:25 UTC - Task Reviewer (slice S3, re-review)
+### 2026-11-03 17:24 UTC - Task Reviewer (slice S3, re-review)
 
 - Invocation scope: the commit `docs(issues): [#2637] record the first S3 review and correct its documentation findings`, which answers the four findings of the first S3 review.
 - Inputs: that commit, the issue folder and the EPIC.
