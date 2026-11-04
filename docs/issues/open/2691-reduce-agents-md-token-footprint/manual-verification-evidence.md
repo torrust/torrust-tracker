@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2691-reduce-agents-md-token-footprint/ISSUE.md
-last-updated-utc: 2026-11-03 16:30
+last-updated-utc: 2026-11-04 10:30
 ---
 
 # Manual Verification Evidence
@@ -154,21 +154,98 @@ every agent will always follow them.
 ### V3 - Moved content is discoverable (scenario M3)
 
 - Goal: confirm that an agent finds the package list and the container ports through the links and
-  skill pointers.
-- Initial state: fresh Claude Code session on the branch tip.
-- Status: `TODO`
+  skill pointers that replaced the removed text.
+- Initial state: a second fresh Claude Code session (not resumed) in the working copy at branch tip
+  `66403fc93`, model Sonnet 5.5 (as reported by the maintainer). The `AGENTS.md` loaded had 229 lines.
+- Status: `DONE`
 
-Pending: to be run by the maintainer in a fresh session, recording the agent and model used.
+#### Steps Performed
+
+1. The maintainer started a new session with `claude` in the working copy.
+2. The maintainer asked, forbidding tools: "Without using any tool or reading any file yet: where
+   would you find the list of this repository's workspace packages with their crate names, and which
+   ports does the tracker container use by default? Tell me what you already know from your loaded
+   instructions and where you would look for the rest."
+3. The maintainer asked, in the same session: "Go ahead and look them up now. Tell me the crate name
+   of the tracker-client package under packages/, and the default UDP, HTTP and API ports, and name
+   each file you read to find them."
+4. The agent's answers were pasted by the maintainer and are summarized below. The agent's claims
+   were then checked against the repository: `docs/packages.md` line 264 is the row
+   `tracker-client` (`packages/`) with crate `torrust-tracker-client-lib`; line 289 is the console
+   tool row with crate `torrust-tracker-client`; `docs/containers.md` lines 220 to 223 give the four
+   defaults and lines 256 to 258 the publish examples.
+
+#### Observed Result
+
+Step 2 (no tools allowed), summarized from the agent's answer:
+
+- It said the loaded instructions do not list the packages or ports, and named the correct pointers:
+  `docs/packages.md#package-catalog`, `cargo metadata --no-deps --format-version 1` as the
+  authoritative list, `docs/packages.md#package-conventions`, and `docs/containers.md` for the ports.
+- It offered a recollection of UDP 6969, HTTP 7070, API 1212 and health check 1313, explicitly
+  labelled as general knowledge and unverified.
+
+Step 3 (tools allowed), summarized from the agent's answer:
+
+```text
+Crate name of the packages/ tracker-client: torrust-tracker-client-lib (docs/packages.md:264).
+A second tracker-client row at line 289 is the console tools, crate torrust-tracker-client.
+Default ports (docs/containers.md, lines 220-223 and 253-258):
+UDP 6969, HTTP 7070, API 1212, Health Check API 1313.
+Files read: docs/packages.md, docs/containers.md (grepped for matching lines, not read in full).
+```
+
+#### Conclusion
+
+The expected result was met. With the removed text gone, the agent found the right canonical sources
+from the loaded pointers alone, retrieved the correct crate name and all four ports from them, and
+told apart two packages with the same name. Its earlier unverified recollection was also correct, and
+it labelled it as unverified. The health check port 1313 is in `docs/containers.md` but was not in
+the removed `AGENTS.md` text, so nothing was lost. Limits: one run, one model, and the agent grepped
+the two files instead of reading them in full.
 
 ### V4 - Rule inventory is fully asserted (scenario M4)
 
 - Goal: confirm that every rule in the baseline file has a final location or a recorded reason.
-- Initial state: `rule-inventory.md` with 99 rows.
-- Status: `TODO`
+- Initial state: `rule-inventory.md` with 99 rows, `AGENTS.md` at 229 lines.
+- Status: `DONE`
 
-Pending: final walk-through after the last edits to `AGENTS.md`. At the time of writing every row
-is `ASSERTED`, and 45 of the rows whose final home is `AGENTS.md` were checked mechanically for the
-baseline phrase.
+#### Steps Performed
+
+1. Parsed every row of `rule-inventory.md` and counted statuses, `DELETE` rows without a recorded
+   reason, and rows with an empty final location.
+2. For the 61 rows whose final home is `AGENTS.md`, searched the current file for the baseline
+   phrase (whitespace folded).
+3. Read the current text for every row whose phrase was not found.
+
+#### Observed Result
+
+```text
+rows 99 | ASSERTED 99 | PENDING 0
+DELETE rows without reason: []
+rows with empty final location: []
+AGENTS.md rows 61 baseline phrase absent: ['R008', 'R031', 'R039', 'R043', 'R064', 'R081', 'R082', 'R099']
+```
+
+The eight rows where the phrase is absent were read against the current file:
+
+| Row  | Why the phrase is absent                                                                              | Rule still present |
+| ---- | ----------------------------------------------------------------------------------------------------- | ------------------ |
+| R008 | Reworded: the torrust-linting clause in Build, Test, and Lint                                          | yes                |
+| R031 | The baseline sentence "policy-level summary" was dropped; the section points to the skills             | yes (pointer)      |
+| R039 | Reworded: "Skills for these workflows (each is `.github/skills/dev/<area>/<name>/SKILL.md`)"           | yes                |
+| R043 | Reworded: "pass clippy without warnings" in the compile-flags bullet                                   | yes                |
+| R064 | Reworded: "Implementation workflow skills (same location)"                                             | yes                |
+| R081 | Split: "PRs target develop" and "PRs must pass all CI" stay; the release pipeline is in `docs/release_process.md`, linked from the file | yes |
+| R082 | Letter case only: "keep intermediate commits" now follows the bold lead-in "Commit history"           | yes                |
+| R099 | Reworded: custom agents are described in `.github/agents/README.md`                                   | yes                |
+
+#### Conclusion
+
+The expected result was met: no row is pending, every deletion has a reason, every final location is
+filled in, and 53 of the 61 rows kept in `AGENTS.md` still contain the baseline phrase verbatim, with
+the other eight confirmed by reading. The check is repeatable by running the same count against
+`rule-inventory.md`.
 
 ## Failures and Follow-up
 

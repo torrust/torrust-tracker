@@ -9,7 +9,7 @@ github-issue: 2691
 spec-path: docs/issues/open/2691-reduce-agents-md-token-footprint/ISSUE.md
 branch: "2691-reduce-agents-md-token-footprint"
 related-pr: 2704
-last-updated-utc: "2026-11-04 09:00"
+last-updated-utc: "2026-11-04 10:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -126,7 +126,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T6  | TODO   | Move content to canonical homes (skills/docs) and replace it with links where needed  | No rule lost, no duplicated procedural guidance; links validated                                        |
 | T7  | DONE   | Condense `AGENTS.md`                                                                    | Reduced file; footprint re-measured with the T1 method                                                  |
 | T8  | DONE   | Add a regrowth guard (documented budget; automated check only if justified)           | Not implemented, by maintainer decision D7 (2026-11-04): no guard now, to be reconsidered if the file regrows |
-| T9  | TODO   | Behavioral check that agents still follow the key rules after the reduction           | See manual scenarios M1 to M3                                                                           |
+| T9  | DONE   | Behavioral check that agents still follow the key rules after the reduction           | See manual scenarios M1 to M3                                                                           |
 | T10 | TODO   | Re-evaluate after implementation whether an ADR is warranted                          | Outcome recorded in the progress log and in the implementation completion review                       |
 
 ## Commit Points
@@ -181,6 +181,7 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - 2026-11-03 15:00 UTC - Claude Code (Claude Sonnet 5.5) - T7: the maintainer approved the remaining trims including shortened policies (decision D6). Condensed Project Overview, Key Directories, Code Style, Engineering Policies, Essential Rules, Auto-Invoke Skills and Documentation, and removed Tech Stack; moved the VS Code skills setting to the `setup-dev-environment` skill first; removed one duplicated rule and renumbered Essential Rules; found one more stale baseline statement (`tests/` contents). `AGENTS.md` is now 2,994 proxy tokens (about 4.9k Claude tokens, estimated), 229 lines, 13,027 bytes. All 99 inventory rows are asserted; 45 `AGENTS.md` rows were checked mechanically and 4 reworded rows by reading - `section-disposition.md`, `rule-inventory.md`
 - 2026-11-03 16:30 UTC - Claude Code (Claude Sonnet 5.5) - Recorded the maintainer's final `/context`: `AGENTS.md` is 4.8k Claude Code tokens against the 12.4k baseline (-61%), under the 5k target; discarded an earlier reading that had loaded the old file; created `manual-verification-evidence.md` with V1 done and V2 to V4 pending - `manual-verification-evidence.md`
 - 2026-11-04 09:00 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer decided not to add a regrowth guard now and that this may change later (decision D7); T8 closed without implementation and AC6 waived; V2 and V3 will be run by the maintainer one step at a time - `section-disposition.md`
+- 2026-11-04 10:30 UTC - Claude Code (Claude Sonnet 5.5) - The maintainer ran V2 and V3 in fresh Sonnet 5.5 sessions one step at a time; both passed (key rules stated correctly; the removed package and port content found through the pointers). V4 walk-through: 99 of 99 inventory rows asserted, no deletion without a reason, 53 of 61 `AGENTS.md` rows verbatim and 8 reworded rows confirmed by reading; M2 to M4 and T9 done - `manual-verification-evidence.md`
 
 ## Acceptance Criteria
 
@@ -222,9 +223,9 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | ID  | Scenario                              | Human-oriented command/steps                                                                                                  | Expected Result                                                                  | Status | Evidence                                     |
 | --- | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ------ | -------------------------------------------- |
 | M1  | Token footprint before and after      | Measure `AGENTS.md` with the T1 method on the original commit and on the final commit                       | Final footprint is lower by the agreed target                                    | DONE   | `manual-verification-evidence.md` section V1 |
-| M2  | Key rules survive in a fresh session  | Start a fresh Claude Code session and ask it to describe the commit rules, branch naming and linting gate                     | Answers match the original rules, including GPG signing and `linter all`         | TODO   | `manual-verification-evidence.md` section V2 |
-| M4  | Rule inventory is fully asserted      | For every row of `rule-inventory.md`, open the final location, confirm it holds the rule, and set the row to `ASSERTED`; list any `DELETE` with its reason | No row is `PENDING`; no rule is unreachable | TODO   | `manual-verification-evidence.md` section V4 |
-| M3  | Moved content is discoverable         | In a fresh session, ask for the package list and the container ports, and observe where the agent looks                       | The agent finds the canonical source through links or skills                     | TODO   | `manual-verification-evidence.md` section V3 |
+| M2  | Key rules survive in a fresh session  | Start a fresh Claude Code session and ask it to describe the commit rules, branch naming and linting gate                     | Answers match the original rules, including GPG signing and `linter all`         | DONE   | `manual-verification-evidence.md` section V2 |
+| M3  | Moved content is discoverable         | In a fresh session, ask for the package list and the container ports, and observe where the agent looks                       | The agent finds the canonical source through links or skills                     | DONE   | `manual-verification-evidence.md` section V3 |
+| M4  | Rule inventory is fully asserted      | For every row of `rule-inventory.md`, open the final location, confirm it holds the rule, and set the row to `ASSERTED`; list any `DELETE` with its reason | No row is `PENDING`; no rule is unreachable | DONE   | `manual-verification-evidence.md` section V4 |
 
 Notes:
 
