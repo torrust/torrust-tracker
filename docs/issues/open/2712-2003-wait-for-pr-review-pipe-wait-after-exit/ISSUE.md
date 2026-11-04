@@ -9,7 +9,7 @@ github-issue: 2712
 spec-path: docs/issues/open/2712-2003-wait-for-pr-review-pipe-wait-after-exit/ISSUE.md
 branch: "2712-wait-for-pr-review-bug-and-adr-specs-spec"
 related-pr: null
-last-updated-utc: "2026-11-04 12:12"
+last-updated-utc: "2026-11-04 13:07"
 semantic-links:
   skill-links:
     - create-issue
@@ -175,6 +175,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   defect with the real binary and a fake `gh`; a 3 s budget took 25.0 s and a `SIGTERM` sent at 3.0 s was honored
   at 25.0 s - `manual-verification-evidence.md` V1.
 - 2026-11-04 12:12 UTC - AI assistant (Copilot SDK in VS Code) - The maintainer approved the specification; GitHub issue #2712 created, labelled `Bug` and `Automation`, and linked as a sub-issue of EPIC #2003; the specification moved from `docs/issues/drafts/` to `docs/issues/open/` for a spec-only pull request.
+- 2026-11-04 13:07 UTC - AI assistant (Copilot SDK in VS Code) - Correction: the drafting entry above (12:00) was stamped before the commands it
+  describes ran. The reproduction and lint commands ran between 11:49 and 11:56 UTC, as the command output and
+  `manual-verification-evidence.md` record, so the drafting stamp is wrong. The earlier entries are kept unchanged,
+  and `last-updated-utc` now holds the time of this edit.
 
 ## Acceptance Criteria
 

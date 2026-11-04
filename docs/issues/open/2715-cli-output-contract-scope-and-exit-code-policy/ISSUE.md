@@ -9,7 +9,7 @@ github-issue: 2715
 spec-path: docs/issues/open/2715-cli-output-contract-scope-and-exit-code-policy/ISSUE.md
 branch: "2712-wait-for-pr-review-bug-and-adr-specs-spec"
 related-pr: null
-last-updated-utc: "2026-11-04 12:12"
+last-updated-utc: "2026-11-04 13:07"
 semantic-links:
   skill-links:
     - create-issue
@@ -142,6 +142,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   questions recorded while implementing #2581, and checked the ADR text, its issue specification and the exit-code
   behavior of the listed tools.
 - 2026-11-04 12:12 UTC - AI assistant (Copilot SDK in VS Code) - The maintainer approved the specification; GitHub issue #2715 created, labelled `task` and `ADR`, not attached to an EPIC (the maintainer decides); the specification moved from `docs/issues/drafts/` to `docs/issues/open/` for a spec-only pull request.
+- 2026-11-04 13:07 UTC - AI assistant (Copilot SDK in VS Code) - Correction: the drafting entry above (12:30) was stamped before the commands it
+  describes ran. The drafting and the lint commands finished by 11:56 UTC, as the
+  command output records, so the drafting stamp is wrong. The earlier entries are kept unchanged,
+  and `last-updated-utc` now holds the time of this edit.
 
 ## Acceptance Criteria
 

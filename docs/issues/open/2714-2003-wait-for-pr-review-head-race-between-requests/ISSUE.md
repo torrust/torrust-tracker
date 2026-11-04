@@ -9,7 +9,7 @@ github-issue: 2714
 spec-path: docs/issues/open/2714-2003-wait-for-pr-review-head-race-between-requests/ISSUE.md
 branch: "2712-wait-for-pr-review-bug-and-adr-specs-spec"
 related-pr: null
-last-updated-utc: "2026-11-04 12:12"
+last-updated-utc: "2026-11-04 13:07"
 semantic-links:
   skill-links:
     - create-issue
@@ -170,6 +170,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   defect on the real binary with a scripted `gh`: a review of commit `bbbb…` was returned with `head_sha`
   `aaaa…` and no `head_moved` - `manual-verification-evidence.md` V1.
 - 2026-11-04 12:12 UTC - AI assistant (Copilot SDK in VS Code) - The maintainer approved the specification; GitHub issue #2714 created, labelled `Bug` and `Automation`, and linked as a sub-issue of EPIC #2003; the specification moved from `docs/issues/drafts/` to `docs/issues/open/` for a spec-only pull request.
+- 2026-11-04 13:07 UTC - AI assistant (Copilot SDK in VS Code) - Correction: the drafting entry above (12:20) was stamped before the commands it
+  describes ran. The reproduction and lint commands ran between 11:49 and 11:56 UTC, as the command output and
+  `manual-verification-evidence.md` record, so the drafting stamp is wrong. The earlier entries are kept unchanged,
+  and `last-updated-utc` now holds the time of this edit.
 
 ## Acceptance Criteria
 
