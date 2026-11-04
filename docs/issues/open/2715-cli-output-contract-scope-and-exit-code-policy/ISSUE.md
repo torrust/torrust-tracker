@@ -9,7 +9,7 @@ github-issue: 2715
 spec-path: docs/issues/open/2715-cli-output-contract-scope-and-exit-code-policy/ISSUE.md
 branch: "2712-wait-for-pr-review-bug-and-adr-specs-spec"
 related-pr: null
-last-updated-utc: "2026-11-04 13:07"
+last-updated-utc: "2026-11-04 13:09"
 semantic-links:
   skill-links:
     - create-issue
@@ -146,6 +146,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   describes ran. The drafting and the lint commands finished by 11:56 UTC, as the
   command output records, so the drafting stamp is wrong. The earlier entries are kept unchanged,
   and `last-updated-utc` now holds the time of this edit.
+- 2026-11-04 13:09 UTC - AI assistant (Copilot SDK in VS Code) - The Evidence column of the manual scenarios M1 and M2
+  now reads `TBD`: this pull request adds no `manual-verification-evidence.md` for this specification, and the file is
+  written when the scenarios run.
 
 ## Acceptance Criteria
 
@@ -167,8 +170,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Scenario                                        | Human-oriented command/steps                                                                                          | Expected Result                                                     | Status | Evidence                                     |
 | -- | ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- | ------ | -------------------------------------------- |
-| M1 | The ADR text and the table agree                | Read the scope statement and compare it with every row of the binary table                                            | No row contradicts the stated scope                                 | TODO   | `manual-verification-evidence.md` section V1 |
-| M2 | The listed tools match the decision             | Run each tool in the table with no arguments and with a failing input; record the exit code and the stderr kind        | Each behaves as the ADR says, or has a follow-up issue              | TODO   | `manual-verification-evidence.md` section V2 |
+| M1 | The ADR text and the table agree                | Read the scope statement and compare it with every row of the binary table                                            | No row contradicts the stated scope                                 | TODO   | TBD, written when the scenario runs      |
+| M2 | The listed tools match the decision             | Run each tool in the table with no arguments and with a failing input; record the exit code and the stderr kind        | Each behaves as the ADR says, or has a follow-up issue              | TODO   | TBD, written when the scenario runs      |
 
 Every recorded command result names the toolchain that produced it.
 
