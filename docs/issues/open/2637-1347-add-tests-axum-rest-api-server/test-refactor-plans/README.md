@@ -36,7 +36,7 @@ approves it. A group of declaration-only files may share one plan.
 | 9 | [v1-context-whitelist-handlers-tests.md](v1-context-whitelist-handlers-tests.md) | DONE | Approved 2026-11-03 (option a for the documented inconsistency); completed file approved 2026-11-03 |
 | 10 | [v1-context-whitelist-responses-tests.md](v1-context-whitelist-responses-tests.md) | DONE | No-change decision approved 2026-11-03 |
 | 11 | [v1-context-whitelist-routes-tests.md](v1-context-whitelist-routes-tests.md) | DONE | No-change decision approved 2026-11-03 |
-| 12 | [v1-context-torrent-handlers-tests.md](v1-context-torrent-handlers-tests.md) | IN_PROGRESS | Approved 2026-11-04 (pin the documented `200`, no property test, no `Display` test) |
+| 12 | [v1-context-torrent-handlers-tests.md](v1-context-torrent-handlers-tests.md) | DONE | Approved 2026-11-04 (pin the documented `200`, no property test, no `Display` test); completed file approved 2026-11-04 |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 

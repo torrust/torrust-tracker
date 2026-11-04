@@ -3,7 +3,7 @@ doc-type: file-test-plan
 issue: 2637
 package: torrust-tracker-axum-rest-api-server
 target-file: packages/axum-rest-api-server/src/v1/context/torrent/handlers.rs
-status: in-progress
+status: done
 semantic-links:
   related-artifacts:
     - packages/axum-rest-api-server/src/v1/context/torrent/handlers.rs
@@ -67,13 +67,19 @@ No tests in the file, so R1 is skipped.
 | `get_torrents_handler`: no `info_hash` parameter | 3A unit | R2: a table over the pagination the fake receives: no parameters give `Pagination::default()`, `offset` only and `limit` only keep the other at its default, both given are forwarded as given (offset 5, limit 2 are literals), and the page items are the JSON list. The page call is the only one made. |
 | `get_torrents_handler`: `info_hash` parameters | 3A unit | R2: the fake receives `get_torrents` with the parsed hashes in the order given (including a repeated hash), `offset` and `limit` given together are ignored, and the list items are the JSON list. |
 | `get_torrents_handler`: invalid hash among valid ones | 3A unit | R2: `400` with the first invalid string (an invalid hash after a valid one, and two invalid ones), and the fake records no call. |
-| `QueryParams` deserialization (`empty_string_as_none`, `default`, the `info_hash` rename) | 3A unit | R2: read through `axum_extra::extract::Query::try_from_uri`, the extractor the router uses. Cases: absent and empty `offset` and `limit` are `None`; `0`, a normal value and `u32::MAX` are `Some`; `-1`, `1.1`, a word, a space and `u32::MAX + 1` are rejected; two `info_hash` parameters are collected in order; an empty `info_hash=` is collected as an empty string. |
+| `QueryParams` deserialization (`empty_string_as_none`, `default`, the `info_hash` rename) | 3A unit | R2: read through `axum_extra::extract::Query::try_from_uri`, the extractor the router uses. Cases: absent and empty `offset` and `limit` are `None`; `0`, a normal value and `u32::MAX` are `Some`; `-1`, `1.1`, a word, a space and `u32::MAX + 1` are rejected; two `info_hash` parameters are collected in order; an empty `info_hash=` is collected as an empty string. `empty_string_as_none` itself is also tested directly with JSON (empty string, number in a string, `null`, absent, a word, an overflow, and a number that is not a string). |
 | The text of a rejected query | Not here | `axum_extra` and `serde` own the wording; the integration test `should_fail_getting_torrents_when_the_offset_query_parameter_cannot_be_parsed` pins it end to end. The unit cases assert only that the value is rejected. |
 | `QueryParamError`'s `Display` | Not tested | Nothing prints it: the handler matches the only variant and builds the response from the string. A test of the `thiserror` message would add no behavior. The enum is `pub`, so the message is public API of the crate, a candidate for the maintainer's call. |
 | Tracing of the pagination (`tracing::debug!`) | Not tested | A log line without an observer; the line runs in every list test. |
 | Torrent data and ordering of results | Collaborator-owned | tracker-core and the runtime adapter, covered by the integration tests. |
 
 ### Observation for the record, not a finding
+
+Written after the mutation run: the empty-string arm of `empty_string_as_none` is not reachable through the real query
+extractor. `axum_extra`'s `Query` already reads an empty `offset=` as absent, so the mutation T11 survived the query
+cases and the plan's expectation that they would kill it was wrong. The arm is a second line of defense for other
+deserializers, so it is tested directly with a JSON probe struct that uses the function. The same probe covers a value
+that is not a string at all (the `?` on the underlying deserializer error).
 
 An `info_hash=` parameter with an empty value is collected as an empty string and rejected as an invalid hash (`400`),
 whereas an empty `offset=` or `limit=` means "not set". The two are different parameters and the behavior is
@@ -116,9 +122,9 @@ None new: `async-trait`, `rstest` and `axum-extra` (already a dependency, with t
 | ID | Status | Work | Completion evidence |
 | --- | --- | --- | --- |
 | R1 | SKIPPED | No existing tests in the file. | None. |
-| R2 | TODO | Add the in-file `#[cfg(test)]` module with the fake and the cases above. | Focused tests, `cargo +nightly fmt --all -- --check`, `cargo clippy`, `git diff --check`, prose-first AAA review, and the named mutations. |
-| R3 | TODO | Integration increment: `none` expected. | The 14 torrent integration tests keep protecting the wire contract. |
-| R4 | TODO | Re-run unit-only coverage; record before and after. | Results below and `coverage-evidence.md`. |
+| R2 | DONE | Add the in-file `#[cfg(test)]` module with the fake and the cases above. | Focused tests, `cargo +nightly fmt --all -- --check`, `cargo clippy`, `git diff --check`, prose-first AAA review, and the named mutations. |
+| R3 | DONE | Integration increment: `none` expected. | The 14 torrent integration tests keep protecting the wire contract. |
+| R4 | DONE | Re-run unit-only coverage; record before and after. | Results below and `coverage-evidence.md`. |
 
 ## Named Mutations
 
@@ -136,15 +142,54 @@ or variable unused does not compile under `unused = "deny"`, so such a mutant is
 | T7 | `get_torrents_handler` | Hashes branch calls `get_torrents_page`. | the hashes test |
 | T8 | `parse_info_hashes` | Skip an invalid hash instead of returning the error. | the invalid-hash-among-valid tests |
 | T9 | `parse_info_hashes` | Reverse the parsed hashes. | the order assertion |
-| T10 | `get_torrents_handler` | Answer the first hash in the `400` text instead of the invalid one. | the invalid-hash-after-valid test |
-| T11 | `empty_string_as_none` | Drop the empty-string arm. | the empty `offset` and `limit` cases |
+| T10 | `get_torrents_handler` | Report the rejected string upper-cased in the `400` text. | the invalid-hash-after-valid and two-invalid cases |
+| T11 | `empty_string_as_none` | Drop the empty-string arm. | the direct JSON case with an empty string (the query cases cannot kill it, see below) |
 | T12 | `QueryParams` | Remove `#[serde(default)]` from `offset`. | the absent-`offset` cases |
 | T13 | `QueryParams` | Remove `rename = "info_hash"`. | the `info_hash` cases |
 
 ## Prose-First AAA Review
 
-Written after the tests, before comparing them with the code.
+Temporary prose, written before comparing with the code.
+
+| Test (cases) | Arrange prose | Act prose | Assert prose | Outcome |
+| --- | --- | --- | --- | --- |
+| `it_should_reject_an_invalid_info_hash_without_calling_the_service_when_getting_a_torrent` | A recording fake that would answer a torrent; the path parameter `abc`. | `get_torrent_handler`. | The whole response is the `400` with `abc`, and the call log is empty. | Kept. |
+| `it_should_answer_the_torrent_and_forward_the_parsed_info_hash_to_the_service_when_getting_a_torrent` | A fake that answers a torrent; a valid hash. | `get_torrent_handler`. | The response is the torrent JSON and the log is the one call with the parsed hash. | Response and forwarding are one behavior of one call, asserted as one value. Kept. |
+| `it_should_answer_the_documented_not_known_text_with_ok_when_the_torrent_is_not_known` | A fake that has no torrent. | `get_torrent_handler`. | `200`, JSON, `"torrent not known"` and the one call. | Its doc comment names the module documentation, so the odd `200` reads as the contract. Kept. |
+| `it_should_serve_a_page_of_torrents_when_no_info_hash_is_given` (5) | A fake that answers two items; a query string with none, empty, one or both pagination values. | `get_torrents_handler` with the query read by the real extractor. | The list JSON and the single page call with the literal pagination. | The expected `Pagination` is in each case, so the default is visible. Kept. |
+| `it_should_serve_the_given_torrents_in_order_and_ignore_the_pagination_when_info_hashes_are_given` | A fake; three hashes (the first two differ, the last repeats the second) and an offset and a limit. | `get_torrents_handler`. | The list JSON and one `Torrents` call with the hashes in the given order. | The first version used a palindrome order, so the reverse-order mutation T9 survived; the hashes are now not a palindrome. Kept. |
+| `it_should_reject_the_first_invalid_info_hash_without_calling_the_service_when_listing_torrents` (3) | A recording fake; an invalid hash after a valid one, two invalid ones, an empty one. | `get_torrents_handler`. | The `400` with the first invalid string, and an empty log. | Kept. |
+| `it_should_read_an_empty_or_absent_pagination_value_as_not_set` (5) | A query string only; no fake. | Read the query with the extractor. | The pair `(offset, limit)` equals the literal. | Kept. |
+| `it_should_reject_a_pagination_value_that_is_not_an_unsigned_32_bit_number` (7) | A query string with one bad value. | Read the query with the extractor. | The extractor rejects it; the message is not asserted (owned by `axum_extra`). | Kept. |
+| `it_should_collect_every_info_hash_parameter_in_order` (3) | A query string with two, an empty and no hashes. | Read the query with the extractor. | The collected strings equal the literal list. | Kept. |
+| `it_should_read_an_empty_string_as_not_set_and_reject_what_is_not_a_number` (7) | A JSON object with one `value` field read by a probe struct that uses the function. | `serde_json::from_str`. | `Ok` with the expected `Option<u32>`, or an error. | Kept. |
+
+Helpers: `invalid_info_hash` builds the literal expected `400`; `a_torrent`, `no_torrent` and `two_items` are the scripted
+outcomes; `FakeTorrentQueryPort`, `state_with`, `param` and `query` are the Arrange mechanics; `recorded` reads the typed
+call log; the shared `observed` and `Observed` come from `test_support`.
 
 ## Results
 
-Written after the tests.
+- **Unit-only coverage** (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): `torrent/handlers.rs` 21 / 50
+  lines at the S4 baseline; 194 / 194 lines (100.00%), 248 / 248 regions and 30 / 30 functions after (the counts include
+  the test module). The row 13 file `torrent/responses.rs` is now 9 / 9 lines through the "not known" test. Package
+  unit-only lines after this file: 1,844 / 1,999 (92.25%), regions 2,766 / 3,070 (90.10%), functions 313 / 345 (90.72%),
+  140 unit tests.
+- **Tests:** 10 test functions, 34 test cases counting the tables; the package went from 106 to 140 unit tests. No
+  integration test was added or changed.
+- **Mutations** (each applied alone, stable toolchain, then reverted; the file was identical to the tested one
+  afterwards): T1 killed by the invalid-hash test, T2 by the unknown-torrent test, T3 by the two forwarding tests, T4 by
+  the known-torrent test, T5 by the page and invalid-hash cases, T6 by the three pagination cases that set a value, T7
+  and T9 by the order test, T8 and T10 by the invalid-hash cases, T11 by the direct JSON case, T12 and T13 by the
+  deserialization and list cases. Corrections made while writing: T9 survived at first because the three hashes of the
+  order test formed a palindrome, so they were changed; T11 survived because the real extractor already reads an empty
+  value as absent, so the direct JSON test was added (see the observation); T2 and T7 first failed to compile (an unused
+  import or variable under `unused = "deny"`) and were redone as mutants that drop the original value; one more case (a
+  JSON number instead of a string) covers the `?` of the underlying deserializer error, the only uncovered region.
+- **Dependency:** none new. **Clippy allows:** one `#[allow(clippy::unnecessary_wraps, reason = ...)]` on `a_torrent`.
+  The first clippy run also asked to rename the `Call` variants (all started with `Get`) and to avoid an
+  `Option<Option<u32>>` expectation; both were changed.
+- **Validation:** `cargo +nightly fmt --all -- --check` (nightly Rust toolchain), `cargo clippy -p
+  torrust-tracker-axum-rest-api-server --all-targets` (stable), `cargo machete --with-metadata`, `git diff --check` and
+  `cargo test -p torrust-tracker-axum-rest-api-server` (140 unit and 58 integration tests) pass.
+- **Review outcome:** the maintainer approved the plan (asked on 2026-11-03, answered on 2026-11-04) and the completed file on 2026-11-04.
