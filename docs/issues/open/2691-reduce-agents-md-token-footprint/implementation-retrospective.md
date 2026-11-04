@@ -42,7 +42,7 @@ verification.
 
 1. **Spec first, review before moving anything.** Research (T1 to T3), a disposition per section
    (T4) and a maintainer review (T5) came before any edit to `AGENTS.md`. The maintainer's decisions
-   (D1 to D7) were recorded in the spec, so every later trim had a documented basis.
+   (D1 to D9) were recorded in the spec, so every later trim had a documented basis.
 2. **Destination before removal.** For each move the destination was checked first and the content
    added there in its own commit when it was missing. The order of commits therefore never left a
    rule without a home.
