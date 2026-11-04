@@ -59,8 +59,9 @@ use torrust_tracker_udp_server::server::spawner::Spawner;
 
 #[tokio::main]
 async fn main() {
-    // Temporary database file — cleaned up on exit.
-    let db_path = std::env::temp_dir().join("torrust-udp-example-production-style.db");
+    // Temporary database file, unique per process so concurrent runs and a run that crashed before its
+    // cleanup do not share state; removed on exit.
+    let db_path = std::env::temp_dir().join(format!("torrust-udp-example-production-style-{}.db", std::process::id()));
 
     // Build Core and UdpTracker directly — no full Configuration aggregate needed.
     // Public tracker: peers do not need an authentication key.
