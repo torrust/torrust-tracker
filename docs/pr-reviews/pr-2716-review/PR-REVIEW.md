@@ -56,6 +56,10 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F7 | review-finding:pr-2716-f7 | Copilot | Minor (inferred) | metadata | ORIGINAL | FIXED | RESOLVED |
 | F8 | review-finding:pr-2716-f8 | Copilot | Minor (inferred) | metadata | RE_RAISE_OF:F7 | NO_ACTION | SUPERSEDED |
 | F9 | review-finding:pr-2716-f9 | Copilot | Minor (inferred) | link-integrity | ORIGINAL | FIXED | RESOLVED |
+| F10 | review-finding:pr-2716-f10 | Copilot | Minor (inferred) | metadata | ORIGINAL | FIXED | RESOLVED |
+| F11 | review-finding:pr-2716-f11 | Copilot | Nit (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F12 | review-finding:pr-2716-f12 | Copilot | Nit (inferred) | maintainability | RE_RAISE_OF:F11 | NO_ACTION | SUPERSEDED |
+| F13 | review-finding:pr-2716-f13 | Copilot | Nit (inferred) | formatting | ORIGINAL | NO_ACTION | SUPERSEDED |
 
 ## Finding Details
 
@@ -176,12 +180,69 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2716#discussion_r4467922737>
 
+### F10 - The #2715 progress log is not in chronological order
+
+- PR number: 2716
+- Source review ID: 5769278008
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2716#discussion_r4468206945>
+- Concern: The 12:30 drafting entry appears before the 12:12 approval entry; reorder the entries or mark the out-of-order ones.
+- Solution: The file order matches the order of the events and only the drafting stamp is wrong, so reordering by stamp would be wrong. The drafting entry is marked `OUT-OF-ORDER` and a new log entry records the marking. The same marking was applied to the #2714 specification, which has the same defect.
+- Current-tree verification: The frontmatter validator accepted the changed files and the pre-commit checks passed.
+- Resolution reference: docs(issues): mark the out-of-order drafting entries in the 2714 and 2715 specs
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2716#discussion_r4468265278>
+
+### F11 - HEAD_B names a commit the pull request head never reaches
+
+- PR number: 2716
+- Source review ID: 5769278008
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2716#discussion_r4468207047>
+- Concern: In the #2714 reproduction script `HEAD_B` is the reviewed commit id, but the script keeps the pull request head at A for every read, so the name is misleading.
+- Solution: Valid. The variable is renamed to `REVIEW_COMMIT_B` at its definition and its use.
+- Current-tree verification: `bash -n` on the script passed, and the pre-commit checks passed.
+- Resolution reference: docs(issues): rename HEAD_B in the 2714 head-race reproduction script
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2716#discussion_r4468266052>
+
+### F12 - The HEAD_B name at its use in the script
+
+- PR number: 2716
+- Source review ID: 5769278008
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2716#discussion_r4468207107>
+- Concern: The same concern as F11, raised on the line that uses `HEAD_B`.
+- Solution: Superseded by F11; the same commit fixes both.
+- Current-tree verification: Covered by F11.
+- Resolution reference: docs(issues): rename HEAD_B in the 2714 head-race reproduction script
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2716#discussion_r4468266689>
+
+### F13 - The Evidence column of the #2715 table has trailing whitespace
+
+- PR number: 2716
+- Source review ID: 5769278008
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2716#discussion_r4468207157>
+- Concern: The Evidence column values include trailing whitespace; trim it.
+- Solution: No change. The row ends at the closing `|` with no trailing whitespace on the line; the spaces before it pad the cell to the column width, as in the other tables of the specification, and trimming them would break the alignment.
+- Current-tree verification: Inspected the line with `cat -A`: it ends with `|$`. The markdown linters in `linter all` passed in the pre-commit checks.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2716#discussion_r4468267312>
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2716#discussion_r4468267312>
+
 ## Processing Log
 
 - 2026-11-04 13:05 UTC - Started audit: fetched the nine unresolved threads of Copilot's review 5768334587 (submitted 12:34:59 UTC) on the head at that time.
 - 2026-11-04 13:09 UTC - Fixed in two signed commits (commit times from `git log --format=%cI`): the stamp correction at 13:07 and the F9 evidence column at 13:09 UTC.
 - 2026-11-04 13:12 UTC - After the push, each thread was replied to and resolved with `reply-and-resolve-thread.sh`; the GitHub times of the nine replies run from 13:12:13 to 13:12:39 UTC.
 - 2026-11-04 13:13 UTC - A GraphQL fetch at 13:13:05 UTC, after the last reply, reported no unresolved thread.
+- 2026-11-04 13:22 UTC - Copilot was re-requested at 13:22:55 UTC on the head at that time (after everything was pushed).
+- 2026-11-04 13:40 UTC - The `wait-for-pr-review` poller returned Copilot's second review 5769278008, submitted at 13:39:26 UTC (kind `review`, state `COMMENTED`); four unresolved threads, F10 to F13, were recorded.
+- 2026-11-04 13:42 UTC - F10 and F11 were fixed in two signed commits (commit times from `git log --format=%cI`): F10 at 13:41 and F11 at 13:42 UTC. F12 is a duplicate of F11 and F13 needed no change.
+- 2026-11-04 13:44 UTC - After the push, each thread was replied to and resolved with `reply-and-resolve-thread.sh`; the GitHub times of the four replies are 13:44:37, 13:44:42, 13:44:45 and 13:44:48 UTC.
+- 2026-11-04 13:44 UTC - A GraphQL fetch at 13:44:59 UTC, after the last reply, reported no unresolved thread.
 
 ## Completion Rules
 
