@@ -117,6 +117,7 @@ Recorded 2026-10-30 from the maintainer's answers to the five questions raised i
 | D4 | Keep Development Principles unchanged. The maintainer considers it very important.                                                                                                               |
 | D5 | Keep all eight Engineering Policies inline, as agreed with the recommendation to move only duplicates. Policies 1 and 2 (dependency and base-image freshness) fit D2 and can be reconsidered later. |
 | D6 | Approved on 2026-11-03, after the maintainer asked whether the trims were documented and approved: shorten the eight Engineering Policies to one or two lines each (numbers and substance kept), and apply the remaining trims of rows 2, 3, 4, 9, 11, 12, 16 and 17. The maintainer's words: "I approve, they look reasonable". |
+| D7 | Decided on 2026-11-04: do not add a regrowth guard (neither a documented budget nor an automated check) now, because it may change in the future. T8 is closed without implementation and AC6 is waived. |
 
 Applying D2 changes the destination of some rows: where this document says "move", prefer an
 existing nested `AGENTS.md` in the closest subfolder (for example `tests/AGENTS.md` for test

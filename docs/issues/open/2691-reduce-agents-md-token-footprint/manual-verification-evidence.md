@@ -80,10 +80,76 @@ within 3% of the measurement.
 
 - Goal: confirm that an agent working from the trimmed file states the commit, signing, branch and
   linting rules correctly.
-- Initial state: fresh Claude Code session on the branch tip.
-- Status: `TODO`
+- Initial state: a fresh Claude Code session (not resumed) in the working copy at branch tip
+  `66403fc93` (`wc -l AGENTS.md` printed 229), no history, model Sonnet 5.5 (as reported by the
+  maintainer).
+- Status: `DONE`
 
-Pending: to be run by the maintainer in a fresh session, recording the agent and model used.
+#### Steps Performed
+
+1. The maintainer ran `git rev-parse --short HEAD && wc -l AGENTS.md` in the working copy and got
+   `66403fc93` and `229 AGENTS.md`.
+2. The maintainer started a fresh session with `claude` in that directory and reported the model:
+   Sonnet 5.5.
+3. The maintainer asked: "From your project instructions only, without reading any other file: what
+   are the rules for making a commit in this repository (signing, message format), how should I name
+   a branch for issue 123 about peer expiry, and what must pass before every commit?"
+4. The maintainer pasted the answer, quoted below unchanged.
+
+#### Observed Result
+
+```text
+Commit rules
+- Signing: every commit must be GPG-signed (git commit -S). If the passphrase prompt times out, stop, tell you, and ask whether you want to retry manually or have me rerun the same signed command while you type the passphrase in the terminal. I never retry automatically, handle the passphrase in chat, or use --no-gpg-sign.
+- Message format: Conventional Commits, type(scope): summary.
+  - Types: feat, fix, chore, docs, refactor, ci, test.
+  - Scope is the affected package or area, such as tracker-core, udp-protocol, ci or docs.
+- History: keep intermediate commits. Don't squash, fixup, or rewrite history.
+- Never commit storage/ or target/.
+
+Branch name for issue 123 about peer expiry
+The preferred pattern is <issue-number>-<short-description>, so 123-peer-expiry, or 123-fix-peer-expiry if it's a bug fix. Branches are cut from develop, and PRs target develop from a fork branch. If it's a spec-only branch, add a -spec suffix: 123-peer-expiry-spec.
+
+What must pass before every commit
+- linter all must exit 0, with no exceptions.
+- ./contrib/dev-tools/git/hooks/pre-commit.sh is the mandatory quality gate. In restricted sandboxes, set TORRUST_GIT_HOOKS_LOG_DIR=.tmp so the logs stay in the workspace.
+- Run cargo machete and remove any unused dependencies.
+- Code must compile and pass clippy cleanly under the strict rustflags.
+- Self-review is strongly recommended before each commit.
+
+One more thing: new technical terms go in project-words.txt, or cspell will fail the linter.
+```
+
+Comparison with the baseline rules (inventory rows in brackets):
+
+| Expected rule                                                              | In the answer | Source in the final file        |
+| -------------------------------------------------------------------------- | ------------- | ------------------------------- |
+| Commits signed with `git commit -S` (R066)                                 | yes           | Essential Rules 2               |
+| GPG timeout handling: stop, ask, never retry, never `--no-gpg-sign` (R067) | yes, in full  | Essential Rules 2               |
+| Conventional Commits, `type(scope): summary`, types and scope (R076)      | yes           | Git Workflow                    |
+| Branch pattern `<issue-number>-<short-description>` (R074)                | yes           | Git Workflow                    |
+| `-spec` suffix for a spec-only branch (R075)                              | yes           | Git Workflow                    |
+| Cut from `develop`, PR target `develop`, from a fork branch (R077, R079, R081)| yes           | Git Workflow, Branch strategy   |
+| Keep intermediate commits, no squash (R082)                               | yes           | Git Workflow, Commit history    |
+| Never commit `storage/` or `target/` (R068)                               | yes           | Essential Rules 3               |
+| `linter all` exits 0, no exceptions (R065)                                | yes           | Essential Rules 1               |
+| `pre-commit.sh` is the mandatory gate (R033)                              | yes           | Build, Test, and Lint           |
+| `TORRUST_GIT_HOOKS_LOG_DIR=.tmp` in sandboxes (R036)                      | yes           | Build, Test, and Lint           |
+| `cargo machete`, remove unused dependencies (R069)                        | yes           | Essential Rules 4               |
+| Strict rustflags and clippy (R042, R043)                                  | yes           | Code Style                      |
+| Self-review before each commit (R071)                                     | yes           | Essential Rules 5               |
+| New terms in `project-words.txt` (R048)                                   | yes           | Code Style                      |
+
+#### Conclusion
+
+The expected result was met: every rule asked about was stated correctly, including the absolute
+GPG timeout rule with all four prohibitions, and the agent also recalled rules it was not asked
+about (`project-words.txt`, clippy, `cargo machete`). One imprecision: the answer says "Don't squash,
+fixup, or rewrite history", while the file says not to do so "to hide steps that were later
+superseded". The file's own wording is the same as the baseline's; the agent shortened it. The
+answer does not mention that PR titles and issue-linking rules are in a skill; that was not asked.
+This is a single run with one model, so it shows that the rules survive in the loaded text, not that
+every agent will always follow them.
 
 ### V3 - Moved content is discoverable (scenario M3)
 

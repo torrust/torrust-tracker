@@ -9,7 +9,7 @@ github-issue: 2691
 spec-path: docs/issues/open/2691-reduce-agents-md-token-footprint/ISSUE.md
 branch: "2691-reduce-agents-md-token-footprint"
 related-pr: 2704
-last-updated-utc: "2026-11-03 16:30"
+last-updated-utc: "2026-11-04 09:00"
 semantic-links:
   skill-links:
     - create-issue
@@ -79,7 +79,7 @@ Git-tracked documentation, and reducing `AGENTS.md` must not silently drop a rul
   lost and nothing is duplicated.
 - Keep `AGENTS.md` as the only root instruction file; do not add a `CLAUDE.md` adapter.
 - Define a lightweight, repeatable guard against regrowth (for example a documented size budget,
-  and, only if justified, an automated check).
+  and, only if justified, an automated check). Not done: decision D7 waived it.
 - Update documentation, cross-references and `project-words.txt` affected by moved content.
 
 ### Out of Scope
@@ -125,7 +125,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T5  | DONE   | Maintainer review of research and dispositions before any restructuring               | Explicit maintainer approval recorded in the progress log                                               |
 | T6  | TODO   | Move content to canonical homes (skills/docs) and replace it with links where needed  | No rule lost, no duplicated procedural guidance; links validated                                        |
 | T7  | DONE   | Condense `AGENTS.md`                                                                    | Reduced file; footprint re-measured with the T1 method                                                  |
-| T8  | TODO   | Add a regrowth guard (documented budget; automated check only if justified)           | Documented in the owning skill or doc; any tool follows the shell-vs-Rust policy                        |
+| T8  | DONE   | Add a regrowth guard (documented budget; automated check only if justified)           | Not implemented, by maintainer decision D7 (2026-11-04): no guard now, to be reconsidered if the file regrows |
 | T9  | TODO   | Behavioral check that agents still follow the key rules after the reduction           | See manual scenarios M1 to M3                                                                           |
 | T10 | TODO   | Re-evaluate after implementation whether an ADR is warranted                          | Outcome recorded in the progress log and in the implementation completion review                       |
 
@@ -180,6 +180,7 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - 2026-11-03 13:00 UTC - Claude Code (Claude Sonnet 5.5) - T6 step 4: moved the Git Workflow detail to the `open-pull-request` skill. The skill pointed back to `AGENTS.md` for the history-rewrite rules and held only a stub of the PR-title rules, so I added both to the skill first (new section Commit History and Pull-Request Scope, extended Title section) and fixed the circular reference; `AGENTS.md` keeps branch naming, the Conventional Commits form, the branch strategy and the keep-intermediate-commits rule; asserted 14 inventory rows; `AGENTS.md` is now about 4.1k proxy tokens - `rule-inventory.md`
 - 2026-11-03 15:00 UTC - Claude Code (Claude Sonnet 5.5) - T7: the maintainer approved the remaining trims including shortened policies (decision D6). Condensed Project Overview, Key Directories, Code Style, Engineering Policies, Essential Rules, Auto-Invoke Skills and Documentation, and removed Tech Stack; moved the VS Code skills setting to the `setup-dev-environment` skill first; removed one duplicated rule and renumbered Essential Rules; found one more stale baseline statement (`tests/` contents). `AGENTS.md` is now 2,994 proxy tokens (about 4.9k Claude tokens, estimated), 229 lines, 13,027 bytes. All 99 inventory rows are asserted; 45 `AGENTS.md` rows were checked mechanically and 4 reworded rows by reading - `section-disposition.md`, `rule-inventory.md`
 - 2026-11-03 16:30 UTC - Claude Code (Claude Sonnet 5.5) - Recorded the maintainer's final `/context`: `AGENTS.md` is 4.8k Claude Code tokens against the 12.4k baseline (-61%), under the 5k target; discarded an earlier reading that had loaded the old file; created `manual-verification-evidence.md` with V1 done and V2 to V4 pending - `manual-verification-evidence.md`
+- 2026-11-04 09:00 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer decided not to add a regrowth guard now and that this may change later (decision D7); T8 closed without implementation and AC6 waived; V2 and V3 will be run by the maintainer one step at a time - `section-disposition.md`
 
 ## Acceptance Criteria
 
@@ -197,7 +198,8 @@ a Conventional Commit message with the narrow affected scope, and sign every com
       (Engineering Policy 6).
 - [ ] AC5: `AGENTS.md` remains the sole source of truth and no provider-specific adapter file is
       introduced (Engineering Policy 7).
-- [ ] AC6: A regrowth guard is documented in the owning skill or doc.
+- [x] AC6: Waived by maintainer decision D7: no regrowth guard is added now; it can be reconsidered
+      later if `AGENTS.md` grows again.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
@@ -247,7 +249,7 @@ Rust test is not suitable, and its removal or retention owner here before creati
 | AC3   | TODO                   | {test/log/PR link} |
 | AC4   | TODO                   | {test/log/PR link} |
 | AC5   | TODO                   | {test/log/PR link} |
-| AC6   | TODO                   | {test/log/PR link} |
+| AC6   | DONE                   | `section-disposition.md`, decision D7 (waived) |
 | AC7   | TODO                   | {test/log/PR link} |
 
 ## Risks and Trade-offs
@@ -260,7 +262,7 @@ Rust test is not suitable, and its removal or retention owner here before creati
   weigh always-loaded cost against on-demand lookup cost, not just minimize the file size.
 - **Single-vendor optimization.** Practices from one provider's guidance may not apply to others;
   the research records the provenance of each adopted practice.
-- **Regrowth.** Without a guard the file grows again; T8 addresses this.
+- **Regrowth.** Without a guard the file can grow again. The maintainer accepted this risk (decision D7) and may revisit it.
 
 ## Implementation Completion Review
 
