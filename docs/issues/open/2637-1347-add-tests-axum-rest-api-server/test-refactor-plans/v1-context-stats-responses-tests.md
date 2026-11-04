@@ -109,7 +109,7 @@ or variable unused does not compile under `unused = "deny"`, so such a mutant is
 | P1 | `stats_response` | Answer the legacy text instead of JSON. | the JSON test |
 | P2 | `labeled_stats_response` | Answer the collection without the `metrics` wrapper (`Json(&stats.metrics)`). | the labeled JSON test |
 | P3 | `labeled_metrics_response` | Answer JSON instead of the Prometheus text. | the labeled Prometheus test |
-| P4 | `metrics_response` | Swap the values of `seeders` and `completed`. | the legacy text test |
+| P4 | `metrics_response` | Swap the values of `seeders` and `completed`. | the legacy text test (and the Prometheus case of the stats handler test) |
 | P5 | `metrics_response` | A typo in the name `tcp4_connections_handled`. | the legacy text test |
 | P6 | `metrics_response` | Drop the last line, `udp6_errors_handled`. | the legacy text test |
 | P7 | `metrics_response` | Join with `\r\n`. | the legacy text test |

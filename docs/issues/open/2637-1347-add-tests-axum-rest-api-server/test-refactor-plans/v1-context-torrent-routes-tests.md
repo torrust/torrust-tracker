@@ -49,8 +49,9 @@ unselected.
 ### Why direct tests would not add protection
 
 A test of `add` alone would build the same router and call the same routes as the `v1/routes.rs` table, so it would
-duplicate it. Which handler serves which path is observable only through a real service, which the integration tests
-have; the read-routes test of `v1/routes.rs` also kills the handler swap below.
+duplicate it. Which handler serves which path is observable most directly through a real service, which the integration tests
+have. For the torrent routes the read-routes test of `v1/routes.rs` also kills the handler swap below, but only
+incidentally: the swapped list route no longer answers `200`. The stats routes have no such incidental unit kill.
 
 ## Named Mutations
 

@@ -6,7 +6,7 @@ epic: null
 github-issue: 1347
 spec-path: docs/issues/open/1347-overhaul-packages-testing/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-04 13:29"
+last-updated-utc: "2026-11-04 13:38"
 semantic-links:
   skill-links:
     - create-issue
@@ -329,7 +329,7 @@ For each subissue implementation, the completion policy is:
   recorded as no change.
 - 2026-11-03 18:08 UTC - GitHub Copilot - #2637 S3 review round of #2702: the shared response-reading test helper and typed call logs in the port fakes (Copilot's findings, fixed at the maintainer's decision) remove duplicated test code, so the S3 figures moved to unit-only lines 89.92% (from 90.32%) and aggregate 93.26% (from 93.53%); no test was added or removed (106 unit tests). Both "Latest" tables carry the new values.
 - 2026-11-03 19:14 UTC - GitHub Copilot - #2637 S3 merged through #2702 (19:13 UTC). S4 (the torrent and stats contexts) started; its baseline is the S3 re-measurement.
-- 2026-11-04 13:29 UTC - GitHub Copilot - #2637 S4 (the torrent and stats contexts) finished: unit-only lines 89.92% to 95.03% (156 unit tests), aggregate 93.26% to 96.14%; both tables carry the interim figures against the S1 baseline until the final measurement. Every file of the v1 contexts is now fully covered by unit tests; the remaining uncovered unit-only lines are in `server.rs` (S5), the out-of-scope `testing/environment.rs` and three `Debug` lines.
+- 2026-11-04 13:29 UTC - GitHub Copilot - #2637 S4 (the torrent and stats contexts) finished: unit-only lines 89.92% to 95.03% (156 unit tests), aggregate 93.26% to 96.14%; both tables carry the interim figures against the S1 baseline until the final measurement. The remaining uncovered unit-only lines are in `server.rs` (S5), the out-of-scope `testing/environment.rs` and three `Debug` lines of the auth-key handlers; every other source file is fully covered by unit tests.
 
 ## Acceptance Criteria
 
