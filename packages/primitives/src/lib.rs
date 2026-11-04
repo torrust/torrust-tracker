@@ -19,6 +19,7 @@ pub mod peer;
 )]
 pub mod peer_id;
 pub mod policy;
+pub mod readiness;
 pub mod runtime_service_metadata;
 pub mod scrape;
 pub mod service_role;
@@ -33,6 +34,7 @@ pub use driver::Driver;
 pub use mode::PrivateMode;
 pub use number_of_bytes::NumberOfBytes;
 pub use policy::TrackerPolicy;
+pub use readiness::Readiness;
 pub use runtime_service_metadata::RuntimeServiceMetadata;
 pub use scrape::ScrapeData;
 pub use service_role::ServiceRole;

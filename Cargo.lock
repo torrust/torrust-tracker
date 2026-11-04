@@ -5303,7 +5303,7 @@ dependencies = [
 
 [[package]]
 name = "torrust-tracker-primitives"
-version = "3.0.0"
+version = "3.1.0"
 dependencies = [
  "binascii",
  "derive_more 2.1.1",
