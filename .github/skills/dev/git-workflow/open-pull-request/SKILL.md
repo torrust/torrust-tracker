@@ -3,7 +3,7 @@ name: open-pull-request
 description: Open a pull request from a feature branch using GitHub CLI (preferred) or GitHub MCP tools. Covers pre-flight checks, correct base/head configuration for fork workflows, title/body conventions, and post-creation validation. Use when asked to "open PR", "create pull request", or "submit branch for review".
 metadata:
   author: torrust
-  version: "1.1"
+  version: "1.2"
 ---
 
 # Open a Pull Request
@@ -111,6 +111,31 @@ abbreviations. It covers only the worktree; the PR body and review replies are a
 >
 > Resolve upstream from `Cargo.toml` (`repository = "https://github.com/torrust/torrust-tracker"`) and use that value for `gh pr create --repo ...`.
 
+## Commit History and Pull-Request Scope
+
+These rules apply to every branch and pull request.
+
+- **Keep intermediate commits.** Do not squash, fixup, or rewrite a branch's history to hide steps
+  that were later superseded. The sequence of a mistake and its correction is deliberately
+  preserved as training material for humans and AI agents. Never propose squashing as a cleanup.
+- **Rebasing** onto `develop` follows [Keeping the branch up to date](#keeping-the-branch-up-to-date).
+- **Other rewrites** of an unmerged pull request's history, such as splitting a commit that mixes
+  independent changes, are allowed but not ideal; agents may do them on their own judgment. Prefer
+  a new commit on top when it achieves the same result, especially during a review round, whose
+  cited commit ids a rewrite invalidates. A rewrite may separate or reorder steps but must keep
+  every one of them, including superseded steps and corrections. After it, confirm the final tree
+  is unchanged unless the rewrite intends a change, and push with `--force-with-lease`. Replace
+  every old commit id in repository artifacts and the PR body with the commit's Conventional Commit
+  subject, not with its new id, which a later rewrite can change too. Review comments cannot be
+  edited, so map the ids they cite to commit subjects in the pull request's review audit. Say in
+  the PR body that the history was rewritten. Never rewrite `develop`, `main`, or merged history.
+- **Minor improvements ride along.** Minor process, skill, or documentation improvements learned
+  while doing the work may ride along in the PR that produced them, even when unrelated to the PR's
+  runtime change, as long as each lives in its own commit with the right Conventional Commits type
+  (`docs(...)`, `chore(...)`). Splitting them into separate PRs is unnecessary bureaucracy for
+  changes that will be merged immediately; do not propose it by default. Substantial changes (new
+  agents, ADRs, workflow redesigns) still get their own issue and PR.
+
 ## Title and Description Convention
 
 ### Body Formatting for GitHub
@@ -124,7 +149,21 @@ checklist for GitHub surfaces:
 
 ### Title
 
-PR title: use Conventional Commit style, include issue reference.
+The maintainer merge tool (`contrib/dev-tools/git/merge-pull-request.sh`, which runs the vendored
+`contrib/dev-tools/git/github-merge.py`) copies the PR title verbatim into the merge commit
+subject, so the title becomes permanent `develop` history:
+
+```text
+PR title:      feat(tracker-core): [#42] add peer expiry grace period
+Merge subject: Merge torrust/torrust-tracker#123: feat(tracker-core): [#42] add peer expiry grace period
+```
+
+- Write the title as a single Conventional Commits line (`type(scope): summary`, the types in the
+  `commit-changes` skill) that reads well as that subject.
+- Do not put the PR number in the title; the merge tool prepends it.
+- Include an issue reference `[#<issue>]` only for the issue the PR implements or closes, so the
+  merge commit links that issue; a merely related or already-closed issue belongs in the PR body
+  (`Related to #N`).
 
 Examples:
 
@@ -183,7 +222,7 @@ git log --format='%B%n--COMMIT--' <upstream-remote>/develop..HEAD | tr '\n' ' ' 
 ```
 
 A commit message that matches cannot be fixed after the merge. Reword it before the merge, using the
-history-rewrite rules in the repository instructions.
+[history rules](#commit-history-and-pull-request-scope).
 
 The merge commit subject carries the PR title (`Merge <ref>: <title>`), so a title that pairs a
 keyword with an issue closes it the same way. Scan the title with the same pattern:

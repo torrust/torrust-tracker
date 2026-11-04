@@ -225,43 +225,48 @@ See `deny.toml` for the complete configuration.
 
 ## Package Catalog
 
-This table groups the `packages/` members by architectural role. Crate names, publish status
-and the console and developer-tool members are in the canonical
-[Package Catalog in `AGENTS.md`](../AGENTS.md#-package-catalog).
+This catalog is the canonical list of workspace packages. The workspace members are the root crate
+`torrust-tracker`, the packages under `packages/` (table below), the console tool under `console/`
+and the developer tools under `contrib/dev-tools/` (sections further down). The authoritative,
+always-current list is `cargo metadata --no-deps --format-version 1`. Packages are versioned
+independently (see
+[ADR 20260629000000](adrs/20260629000000_adopt_independent_package_versioning.md)); each package's
+`Cargo.toml` holds its version. Rows marked _(unpublished)_ set `publish = false`. The table groups
+the `packages/` members by architectural role.
 
-| Package                              | Description                          | Key Responsibilities                                                 |
-| ------------------------------------ | ------------------------------------ | -------------------------------------------------------------------- |
-| **Servers** (`axum-*`, `udp-server`) |                                      |                                                                      |
-| `axum-server`                        | Base Axum HTTP server infrastructure | HTTP server lifecycle management                                     |
-| `axum-http-server`                   | BitTorrent HTTP tracker (BEP 3/23)   | Handle announce/scrape requests                                      |
-| `axum-rest-api-server`               | Management REST API (transport)      | HTTP routing, request extraction, response serialization, middleware |
-| `axum-health-check-api-server`       | Health monitoring endpoint           | System health reporting                                              |
-| `udp-server`                         | BitTorrent UDP tracker (BEP 15)      | Receive UDP datagrams, dispatch to `udp-core`, send responses        |
-| **REST API**                         | Contract-first layers                | See [REST API architecture](#rest-api-contract-first-architecture)   |
-| `rest-api-protocol`                  | REST API protocol contract           | Versioned DTOs, error schemas, auth semantics                        |
-| `rest-api-application`               | REST API application                 | Port traits, use-case services, domain-error mapping                 |
-| `rest-api-runtime-adapter`           | REST API runtime adapter             | Tracker-specific port implementations, domain→DTO conversions        |
-| **Core Components**                  |                                      |                                                                      |
-| `http-core`                          | HTTP-specific implementation         | Request validation, Response formatting                              |
-| `udp-core`                           | UDP-specific implementation          | Connectionless request handling                                      |
-| `tracker-core`                       | Central tracker logic                | Peer management                                                      |
-| **Protocols**                        |                                      |                                                                      |
-| `http-protocol`                      | HTTP tracker protocol (BEP 3/23)     | Announce/scrape request parsing                                      |
-| `udp-protocol`                       | UDP tracker protocol (BEP 15)        | UDP message framing/parsing                                          |
-| **Domain**                           |                                      |                                                                      |
-| `swarm-coordination-registry`        | Peer swarm registry                  | Torrent/peer coordination                                            |
-| `configuration`                      | Runtime configuration                | Config file parsing, Environment variables                           |
-| `primitives`                         | Domain-specific types                | PeerId, Peer, SwarmMetadata                                          |
-| `events`                             | Async event bus                      | Inter-package communication                                          |
-| **Utilities**                        |                                      |                                                                      |
-| `test-helpers`                       | Testing utilities                    | Test configurations, logging, random data                            |
-| **Client Tools**                     |                                      |                                                                      |
-| `tracker-client` (`packages/`)       | Tracker client library               | Generic tracker client library                                       |
-| `rest-api-client`                    | API client library                   | REST API integration                                                 |
-| **Benchmarking and developer tools** |                                      |                                                                      |
-| `torrent-repository-benchmarking`    | Torrent storage benchmarks           | Criterion benchmarks                                                 |
-| `persistence-benchmark`              | Persistence layer benchmarks         | SQLite/MySQL/PostgreSQL benchmarks                                   |
-| `e2e-tools`                          | E2E runners and profiling            | `e2e_tests_runner`, `qbittorrent_e2e_runner`, `profiling` binaries   |
+| Package | Crate Name | Description | Key Responsibilities |
+| ------- | ---------- | ----------- | -------------------- |
+| **Servers** (`axum-*`, `udp-server`) | |  |  |
+| `axum-server` | `torrust-tracker-axum-server` | Base Axum HTTP server infrastructure | HTTP server lifecycle management |
+| `axum-http-server` | `torrust-tracker-axum-http-server` | BitTorrent HTTP tracker (BEP 3/23) | Handle announce/scrape requests |
+| `axum-rest-api-server` | `torrust-tracker-axum-rest-api-server` | Management REST API (transport) | HTTP routing, request extraction, response serialization, middleware |
+| `axum-health-check-api-server` | `torrust-tracker-axum-health-check-api-server` | Health monitoring endpoint | System health reporting |
+| `udp-server` | `torrust-tracker-udp-server` | BitTorrent UDP tracker (BEP 15) | Receive UDP datagrams, dispatch to `udp-core`, send responses |
+| **REST API** | | Contract-first layers | See [REST API architecture](#rest-api-contract-first-architecture) |
+| `rest-api-protocol` | `torrust-tracker-rest-api-protocol` | REST API protocol contract | Versioned DTOs, error schemas, auth semantics |
+| `rest-api-application` | `torrust-tracker-rest-api-application` | REST API application | Port traits, use-case services, domain-error mapping |
+| `rest-api-runtime-adapter` | `torrust-tracker-rest-api-runtime-adapter` | REST API runtime adapter | Tracker-specific port implementations, domain→DTO conversions |
+| **Core Components** | |  |  |
+| `http-core` | `torrust-tracker-http-core` | HTTP-specific implementation | Request validation, Response formatting |
+| `udp-core` | `torrust-tracker-udp-core` | UDP-specific implementation | Connectionless request handling |
+| `tracker-core` | `torrust-tracker-core` | Central tracker logic | Peer management |
+| **Protocols** | |  |  |
+| `http-protocol` | `torrust-tracker-http-protocol` | HTTP tracker protocol (BEP 3/23) | Announce/scrape request parsing |
+| `udp-protocol` | `torrust-tracker-udp-protocol` | UDP tracker protocol (BEP 15) | UDP message framing/parsing |
+| **Domain** | |  |  |
+| `swarm-coordination-registry` | `torrust-tracker-swarm-coordination-registry` | Peer swarm registry | Torrent/peer coordination |
+| `configuration` | `torrust-tracker-configuration` | Runtime configuration | Config file parsing, Environment variables |
+| `primitives` | `torrust-tracker-primitives` | Domain-specific types | PeerId, Peer, SwarmMetadata |
+| `events` | `torrust-tracker-events` | Async event bus | Inter-package communication |
+| **Utilities** | |  |  |
+| `test-helpers` | `torrust-tracker-test-helpers` | Testing utilities | Test configurations, logging, random data |
+| **Client Tools** | |  |  |
+| `tracker-client` (`packages/`) | `torrust-tracker-client-lib` | Tracker client library | Generic tracker client library |
+| `rest-api-client` | `torrust-tracker-rest-api-client` | API client library | REST API integration |
+| **Benchmarking and developer tools** | |  |  |
+| `torrent-repository-benchmarking` | `torrust-tracker-torrent-repository-benchmarking` | Torrent storage benchmarks _(unpublished)_ | Criterion benchmarks |
+| `persistence-benchmark` | `torrust-tracker-persistence-benchmark` | Persistence layer benchmarks _(unpublished)_ | SQLite/MySQL/PostgreSQL benchmarks |
+| `e2e-tools` | `torrust-tracker-e2e-tools` | E2E runners and profiling _(unpublished)_ | `e2e_tests_runner`, `qbittorrent_e2e_runner`, `profiling` binaries |
 
 ### Extracted Packages
 
@@ -274,6 +279,45 @@ Packages that have been extracted to their own standalone repositories.
 | `metrics`        | [torrust/torrust-metrics](https://github.com/torrust/torrust-metrics)               | `torrust-metrics`        | Prometheus-compatible metrics: counters, gauges, labels, samples |
 | `net-primitives` | [torrust/torrust-net-primitives](https://github.com/torrust/torrust-net-primitives) | `torrust-net-primitives` | Generic networking primitive types (ServiceBinding, Protocol)    |
 | `server-lib`     | [torrust/torrust-server-lib](https://github.com/torrust/torrust-server-lib)         | `torrust-server-lib`     | Shared server library utilities                                  |
+
+### Console tools
+
+Under `console/`.
+
+| Tool             | Crate Name               | Description                                                                    |
+| ---------------- | ------------------------ | ------------------------------------------------------------------------------ |
+| `tracker-client` | `torrust-tracker-client` | Console clients for trackers (`tracker_client`, `tracker_checker`, and others) |
+
+### Workspace developer tools
+
+Under `contrib/dev-tools/`, all _(unpublished)_.
+
+| Tool                                  | Crate Name                     | Description                                                |
+| ------------------------------------- | ------------------------------ | ---------------------------------------------------------- |
+| `analysis/workspace-coupling`         | `workspace-coupling`           | Generates the workspace coupling report                    |
+| `checks/agent-review-report-contract` | `agent-review-report-contract` | Validates agent-review report documentation contracts      |
+| `checks/ci-gate`                      | `ci-gate`                      | Decides which CI job groups a pull request needs           |
+| `checks/clippy-allow-reasons`         | `clippy-allow-reasons`         | Validates documented Clippy allow attributes               |
+| `checks/frontmatter-validator`        | `frontmatter-validator`        | Validates Markdown frontmatter                             |
+| `checks/package-coverage-check`       | `package-coverage-check`       | Checks changed workspace packages for coverage regressions |
+| `checks/shipped-features-check`       | `shipped-features-check`       | Fails if a `testing` feature reaches a shipped binary      |
+| `github/github-review-threads`        | `github-review-threads`        | Fetches pull-request review threads through the GitHub CLI |
+
+### Skill-owned tools
+
+A crate inside the skill folder that uses it, _(unpublished)_.
+
+| Tool                                                      | Crate Name           | Description                                                      |
+| --------------------------------------------------------- | -------------------- | ---------------------------------------------------------------- |
+| `.github/skills/dev/pr-reviews/wait-for-pr-review/tool`   | `wait-for-pr-review` | Blocks until a PR reviewer event happens, through the GitHub CLI |
+
+### Community contributions
+
+Under `contrib/`.
+
+| Crate | Description                                                                                            |
+| ----- | ------------------------------------------------------------------------------------------------------ |
+| —     | None (bencode migrated to [torrust/torrust-bittorrent](https://github.com/torrust/torrust-bittorrent)) |
 
 ## Protocol Implementation Details
 

@@ -8,7 +8,7 @@
 #
 # See:
 #   - docs/packages.md for the layer architecture and forbidden edge table
-#   - packages/AGENTS.md for the package catalog
+#   - docs/packages.md#package-catalog for the package catalog
 
 [advisories]
 # Advisory scanning is a separate concern and not configured here.

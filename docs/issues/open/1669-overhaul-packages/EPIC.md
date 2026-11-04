@@ -524,7 +524,7 @@ Verified with `cargo metadata --no-deps` on 2026-10-05. The root `torrust-tracke
   destination repository when the decision is made.
 - Decide and document the versioning strategy for packages that remain in this workspace
   after extractions.
-- Update `docs/packages.md` and `AGENTS.md` Package Catalog after each structural change.
+- Update the `docs/packages.md` Package Catalog after each structural change.
 - Keep the dependency diagram at `docs/media/packages/dependencies-workspace-packages.md`
   in sync with the actual Cargo workspace by regenerating it after every package move,
   rename, or dependency change.
@@ -1104,7 +1104,7 @@ entire EPIC at once. The EPIC is considered healthy (not stale) when:
 - [x] The baseline analysis is merged and the dependency graph is up to date.
 - [ ] Every clearly independent package either has an open extraction subissue or a recorded
       decision explaining why extraction was deferred.
-- [ ] `docs/packages.md` and `AGENTS.md` Package Catalog are accurate after each change.
+- [ ] the `docs/packages.md` Package Catalog is accurate after each change.
 - [ ] Every completed subissue includes automated and manual verification evidence.
 - [ ] The EPIC spec is reviewed and updated after each significant structural change.
 

@@ -3,6 +3,7 @@ ASMS
 AUTOINCREMENT
 Abdurazzoqov
 Addrs
+Addy
 Agentic
 Aideq
 Arvid
@@ -42,6 +43,7 @@ Frigyes
 Frostegård
 Garnham
 Gibibytes
+Gloaguen
 Glrg
 Graphviz
 Grcov
@@ -75,6 +77,7 @@ Naim
 Naur
 Norberg
 Oaep
+Osmani
 PATHSPECS
 PGID
 PRRT
@@ -514,6 +517,7 @@ socat
 socketaddr
 sockfd
 specialised
+splitlines
 spoofable
 sqllite
 sqlx
@@ -547,6 +551,7 @@ testcontainer
 testcontainers
 thirdparty
 thiserror
+tiktoken
 timespec
 tlnp
 tlsv

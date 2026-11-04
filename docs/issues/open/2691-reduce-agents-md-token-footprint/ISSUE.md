@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p2
 epic: null
 github-issue: 2691
 spec-path: docs/issues/open/2691-reduce-agents-md-token-footprint/ISSUE.md
-branch: "2691-reduce-agents-md-token-footprint-spec"
-related-pr: null
-last-updated-utc: "2026-10-30 14:15"
+branch: "2691-reduce-agents-md-token-footprint"
+related-pr: 2704
+last-updated-utc: "2026-11-04 12:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -17,6 +17,11 @@ semantic-links:
     - .github/skills/dev/planning/create-issue/SKILL.md
     - AGENTS.md
     - docs/adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md
+    - docs/issues/open/2691-reduce-agents-md-token-footprint/research.md
+    - docs/issues/open/2691-reduce-agents-md-token-footprint/section-disposition.md
+    - docs/issues/open/2691-reduce-agents-md-token-footprint/rule-inventory.md
+    - docs/issues/open/2691-reduce-agents-md-token-footprint/manual-verification-evidence.md
+    - docs/issues/open/2691-reduce-agents-md-token-footprint/implementation-retrospective.md
 ---
 
 <!-- skill-link: create-issue -->
@@ -75,7 +80,7 @@ Git-tracked documentation, and reducing `AGENTS.md` must not silently drop a rul
   lost and nothing is duplicated.
 - Keep `AGENTS.md` as the only root instruction file; do not add a `CLAUDE.md` adapter.
 - Define a lightweight, repeatable guard against regrowth (for example a documented size budget,
-  and, only if justified, an automated check).
+  and, only if justified, an automated check). Not done: decision D7 waived it.
 - Update documentation, cross-references and `project-words.txt` affected by moved content.
 
 ### Out of Scope
@@ -113,16 +118,17 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                                                                  | Notes / Expected Output                                                                                 |
 | --- | ------ | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Measure the baseline token footprint of `AGENTS.md`                                   | Method, tool and numbers recorded in `research.md` (baseline section)                                   |
-| T2  | TODO   | Research best practices for agent instruction files                                   | `research.md` with sources, dates, and a short list of adopted practices with the evidence behind each  |
-| T3  | TODO   | Record how the major tools consume `AGENTS.md` (Claude Code accepts it as is)         | Short section in `research.md`; confirms no adapter file is needed                                      |
-| T4  | TODO   | Classify each `AGENTS.md` section and record the disposition                          | `section-disposition.md` covering 100% of sections, including the destination for every moved rule      |
-| T5  | TODO   | Maintainer review of research and dispositions before any restructuring               | Explicit maintainer approval recorded in the progress log                                               |
-| T6  | TODO   | Move content to canonical homes (skills/docs) and replace it with links where needed  | No rule lost, no duplicated procedural guidance; links validated                                        |
-| T7  | TODO   | Condense `AGENTS.md`                                                                    | Reduced file; footprint re-measured with the T1 method                                                  |
-| T8  | TODO   | Add a regrowth guard (documented budget; automated check only if justified)           | Documented in the owning skill or doc; any tool follows the shell-vs-Rust policy                        |
-| T9  | TODO   | Behavioral check that agents still follow the key rules after the reduction           | See manual scenarios M1 to M3                                                                           |
-| T10 | TODO   | Re-evaluate after implementation whether an ADR is warranted                          | Outcome recorded in the progress log and in the implementation completion review                       |
+| T1  | DONE   | Measure the baseline token footprint of `AGENTS.md`                                   | Method, tool and numbers recorded in `research.md` (baseline section)                                   |
+| T2  | DONE   | Research best practices for agent instruction files                                   | `research.md` with sources, dates, and a short list of adopted practices with the evidence behind each  |
+| T3  | DONE   | Record how the major tools consume `AGENTS.md` (Claude Code accepts it as is)         | Short section in `research.md`; confirms no adapter file is needed                                      |
+| T4  | DONE   | Classify each `AGENTS.md` section and record the disposition                          | `section-disposition.md` covering 100% of sections, including the destination for every moved rule      |
+| T4a | DONE   | Build the rule inventory from the baseline `AGENTS.md`                                | `rule-inventory.md`: one row per rule, seeded from the source file, not from the planned moves          |
+| T5  | DONE   | Maintainer review of research and dispositions before any restructuring               | Explicit maintainer approval recorded in the progress log                                               |
+| T6  | DONE   | Move content to canonical homes (skills/docs) and replace it with links where needed  | No rule lost, no duplicated procedural guidance; links validated                                        |
+| T7  | DONE   | Condense `AGENTS.md`                                                                    | Reduced file; footprint re-measured with the T1 method                                                  |
+| T8  | DONE   | Add a regrowth guard (documented budget; automated check only if justified)           | Not implemented, by maintainer decision D7 (2026-11-04): no guard now, to be reconsidered if the file regrows |
+| T9  | DONE   | Behavioral check that agents still follow the key rules after the reduction           | See manual scenarios M1 to M3                                                                           |
+| T10 | DONE   | Re-evaluate after implementation whether an ADR is warranted                          | Decision D9 (2026-11-04): no ADR is needed; recorded in the progress log and the implementation completion review |
 
 ## Commit Points
 
@@ -132,6 +138,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2   | `research.md` with sources and adopted practices             | Commit after focused validation and required review. |
 | T3   | Tool-consumption findings in `research.md`                   | Commit after focused validation and required review. |
 | T4   | `section-disposition.md`                                     | Commit after focused validation and required review. |
+| T4a  | `rule-inventory.md`                                          | Commit after focused validation and required review. |
 | T6   | One commit per destination (skill or doc) receiving content | Commit after focused validation and required review. |
 | T7   | Condensed `AGENTS.md`                                          | Commit after focused validation and required review. |
 | T8   | Regrowth guard                                               | Commit after focused validation and required review. |
@@ -147,12 +154,12 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [ ] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
@@ -163,26 +170,47 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - 2026-10-30 13:55 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the scope and decided no ADR is needed for now; removed the ADR task and added a post-implementation re-evaluation (T10) - this file
 - 2026-10-30 14:05 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer confirmed Claude Code accepts `AGENTS.md` in place of `CLAUDE.md`; removed the adapter work from the scope, T3, T7 and AC5 - this file
 - 2026-10-30 14:15 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the draft; created GitHub issue #2691, chose a spec-only PR, and moved the spec to `docs/issues/open/` - https://github.com/torrust/torrust-tracker/issues/2691
+- 2026-10-30 15:00 UTC - Claude Code (Claude Sonnet 5.5) - Completed T1 to T3: baseline measured (about 7.5k tokens by proxy tokenizers), research and adopted practices recorded, confirmed `AGENTS.md` needs no adapter; target reduction still open - `research.md`
+- 2026-10-30 15:30 UTC - Claude Code (Claude Sonnet 5.5) - Recorded the maintainer's `/context all` baseline: `AGENTS.md` is 12.4k Claude tokens, about 1.65 times the proxy tokenizer count, and about 22% of the session context - `research.md`
+- 2026-10-30 16:00 UTC - Claude Code (Claude Sonnet 5.5) - Completed T4: proposed a disposition for all 17 sections, estimated about 4.1k Claude tokens (about 67% reduction, about 60% if trimmed conservatively), listed prerequisites for T6 and five open questions; waiting for maintainer review (T5) - `section-disposition.md`
+- 2026-10-30 16:30 UTC - Claude Code (Claude Sonnet 5.5) - T5: maintainer reviewed the dispositions and decided D1 to D5 (target about 5k Claude tokens, skill/nested-`AGENTS.md` placement rule, catalog in `docs/packages.md`, keep Development Principles, keep all eight policies inline); estimate now about 4.5k Claude tokens - `section-disposition.md`
+- 2026-10-30 17:00 UTC - Claude Code (Claude Sonnet 5.5) - T6 step 1: moved the Package Catalog to `docs/packages.md` (23 packages and crate names verified one to one, tool tables carried over) and reversed the back-links in `packages/AGENTS.md`; `AGENTS.md` keeps a pointer and the `cargo metadata` command - `section-disposition.md`
+- 2026-11-03 09:30 UTC - Claude Code (Claude Sonnet 5.5) - Added T4a after an outside comment on the issue noted that a checklist seeded from the planned moves can only confirm those moves: built `rule-inventory.md` with 99 rows from the baseline file at the commit `Merge torrust/torrust-tracker#2692: docs(issues): [#2691] add specification to reduce the AGENTS.md token footprint`; all 99 locator phrases verified present in the baseline; 9 rows already asserted (catalog) - `rule-inventory.md`
+- 2026-11-03 10:15 UTC - Claude Code (Claude Sonnet 5.5) - T6 step 2: replaced the Package Naming Conventions and Container / Docker sections with links (`docs/packages.md#package-conventions`, `docs/containers.md`, destination content verified first) and asserted the 4 matching inventory rows - `rule-inventory.md`
+- 2026-11-03 11:00 UTC - Claude Code (Claude Sonnet 5.5) - T6 step 3: replaced the Key Configuration Files and Build, Test, and Lint content with short pointers, after confirming that the `run-linters`, `run-pre-commit-checks`, `run-pre-push-checks` skills and `docs/benchmarking.md` already hold the removed content; corrected the `run-linters` ignore note; found and dropped three stale baseline statements (`cargo test --test integration`, `.cspell.gitignore`, four of five cargo aliases); asserted 16 inventory rows - `section-disposition.md`, `rule-inventory.md`
+- 2026-11-03 13:00 UTC - Claude Code (Claude Sonnet 5.5) - T6 step 4: moved the Git Workflow detail to the `open-pull-request` skill. The skill pointed back to `AGENTS.md` for the history-rewrite rules and held only a stub of the PR-title rules, so I added both to the skill first (new section Commit History and Pull-Request Scope, extended Title section) and fixed the circular reference; `AGENTS.md` keeps branch naming, the Conventional Commits form, the branch strategy and the keep-intermediate-commits rule; asserted 14 inventory rows; `AGENTS.md` is now about 4.1k proxy tokens - `rule-inventory.md`
+- 2026-11-03 15:00 UTC - Claude Code (Claude Sonnet 5.5) - T7: the maintainer approved the remaining trims including shortened policies (decision D6). Condensed Project Overview, Key Directories, Code Style, Engineering Policies, Essential Rules, Auto-Invoke Skills and Documentation, and removed Tech Stack; moved the VS Code skills setting to the `setup-dev-environment` skill first; removed one duplicated rule and renumbered Essential Rules; found one more stale baseline statement (`tests/` contents). `AGENTS.md` is now 2,994 proxy tokens (about 4.9k Claude tokens, estimated), 229 lines, 13,027 bytes. All 99 inventory rows are asserted; 45 `AGENTS.md` rows were checked mechanically and 4 reworded rows by reading - `section-disposition.md`, `rule-inventory.md`
+- 2026-11-03 16:30 UTC - Claude Code (Claude Sonnet 5.5) - Recorded the maintainer's final `/context`: `AGENTS.md` is 4.8k Claude Code tokens against the 12.4k baseline (-61%), under the 5k target; discarded an earlier reading that had loaded the old file; created `manual-verification-evidence.md` with V1 done and V2 to V4 pending - `manual-verification-evidence.md`
+- 2026-11-04 09:00 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer decided not to add a regrowth guard now and that this may change later (decision D7); T8 closed without implementation and AC6 waived; V2 and V3 will be run by the maintainer one step at a time - `section-disposition.md`
+- 2026-11-04 10:30 UTC - Claude Code (Claude Sonnet 5.5) - The maintainer ran V2 and V3 in fresh Sonnet 5.5 sessions one step at a time; both passed (key rules stated correctly; the removed package and port content found through the pointers). V4 walk-through: 99 of 99 inventory rows asserted, no deletion without a reason, 53 of 61 `AGENTS.md` rows verbatim and 8 reworded rows confirmed by reading; M2 to M4 and T9 done - `manual-verification-evidence.md`
+- 2026-11-04 11:30 UTC - Claude Code (Claude Sonnet 5.5) - Wrote the implementation retrospective (material discoveries: source-seeded inventory, a skill that pointed back at `AGENTS.md`, four stale baseline statements, silent table re-alignment, a stale-session measurement) and reviewed the acceptance criteria against the evidence: AC1, AC2, AC3, AC5, AC6 (waived) and AC7 are met. AC4 left open for the maintainer: no procedure is duplicated, but four short global rules remain in both `AGENTS.md` and a skill by decision D2 (branch naming and the `-spec` suffix, the Conventional Commits types, the pre-commit gate command, the log-directory tip) - `implementation-retrospective.md`
+- 2026-11-04 12:30 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer decisions: D8, AC4 is met. The maintainer first proposed keeping procedural guidance only in skills and pointing to them, and the agent agreed and proposed four edits; the maintainer then changed their mind because the rules concern very common tasks and the token cost is low, so no edit was made and V1, V2 and V4 stay valid. D9, no ADR is needed (T10 closed); the placement rule stays recorded in `section-disposition.md` - `section-disposition.md`
+- 2026-11-04 14:00 UTC - Claude Code (Claude Sonnet 5.5) - Independent review returned REVIEW FAILED (`agent-review-reports.md`): fixed T6 status, stale references (EPIC #1669, issue #2183 T4, `deny.toml`), the R030 reason, the D1-D9 mention, the `run-linters` version bump and the D8 overlap note. The reviewer cited `docs/testing.md` for the E2E compose files; it does not name them, so R030 now says no document does. Re-review requested - `agent-review-reports.md`
+- 2026-11-04 14:30 UTC - Claude Code (Claude Sonnet 5.5) - Re-review found one LOW issue left (R030 said no document names the compose files; the qbt debugging README names one); corrected the reason. Acceptance criteria re-reviewed and reviewer validation ticked, since every other finding was verified fixed - `agent-review-reports.md`
 
 ## Acceptance Criteria
 
-- [ ] AC1: `research.md` documents the sources consulted and the practices adopted, each tied to
+- [x] AC1: `research.md` documents the sources consulted and the practices adopted, each tied to
       evidence, and states which practices were deliberately not adopted and why.
-- [ ] AC2: A baseline and a final token measurement exist, taken with the same documented method,
-      and the final footprint of `AGENTS.md` is materially lower. The target reduction is agreed
-      with the maintainer after T1 and T2 and recorded here before restructuring begins.
-- [ ] AC3: Every section of the original `AGENTS.md` has a recorded disposition, and every rule that
+- [x] AC2: A baseline and a final token measurement exist, taken with the same documented method,
+      and the final footprint of `AGENTS.md` is about 5k Claude Code tokens or fewer in `/context`
+      (target agreed with the maintainer in T5, decision D1; baseline 12.4k).
+- [x] AC3: Every section of the original `AGENTS.md` has a recorded disposition, and every rule that
       was moved is reachable from `AGENTS.md` by link or skill reference.
-- [ ] AC4: No procedural guidance is duplicated between `AGENTS.md` and a skill or `docs/` page
+- [x] AC7: Every row of `rule-inventory.md`, built from the baseline file before restructuring,
+      has status `ASSERTED`: its final location was opened and confirmed, or a `DELETE` has a
+      recorded reason.
+- [x] AC4: No procedural guidance is duplicated between `AGENTS.md` and a skill or `docs/` page
       (Engineering Policy 6).
-- [ ] AC5: `AGENTS.md` remains the sole source of truth and no provider-specific adapter file is
+- [x] AC5: `AGENTS.md` remains the sole source of truth and no provider-specific adapter file is
       introduced (Engineering Policy 7).
-- [ ] AC6: A regrowth guard is documented in the owning skill or doc.
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
-- [ ] Documentation is updated when behavior/workflow changes
+- [x] AC6: Waived by maintainer decision D7: no regrowth guard is added now; it can be reconsidered
+      later if `AGENTS.md` grows again.
+- [x] `linter all` exits with code `0`
+- [x] Relevant tests pass
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] Documentation is updated when behavior/workflow changes
 
 ## Verification Plan
 
@@ -199,9 +227,10 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario                              | Human-oriented command/steps                                                                                                  | Expected Result                                                                  | Status | Evidence                                     |
 | --- | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ------ | -------------------------------------------- |
-| M1  | Token footprint before and after      | Measure `AGENTS.md` with the T1 method on the original commit and on the final commit                       | Final footprint is lower by the agreed target                                    | TODO   | `manual-verification-evidence.md` section V1 |
-| M2  | Key rules survive in a fresh session  | Start a fresh Claude Code session and ask it to describe the commit rules, branch naming and linting gate                     | Answers match the original rules, including GPG signing and `linter all`         | TODO   | `manual-verification-evidence.md` section V2 |
-| M3  | Moved content is discoverable         | In a fresh session, ask for the package list and the container ports, and observe where the agent looks                       | The agent finds the canonical source through links or skills                     | TODO   | `manual-verification-evidence.md` section V3 |
+| M1  | Token footprint before and after      | Measure `AGENTS.md` with the T1 method on the original commit and on the final commit                       | Final footprint is lower by the agreed target                                    | DONE   | `manual-verification-evidence.md` section V1 |
+| M2  | Key rules survive in a fresh session  | Start a fresh Claude Code session and ask it to describe the commit rules, branch naming and linting gate                     | Answers match the original rules, including GPG signing and `linter all`         | DONE   | `manual-verification-evidence.md` section V2 |
+| M3  | Moved content is discoverable         | In a fresh session, ask for the package list and the container ports, and observe where the agent looks                       | The agent finds the canonical source through links or skills                     | DONE   | `manual-verification-evidence.md` section V3 |
+| M4  | Rule inventory is fully asserted      | For every row of `rule-inventory.md`, open the final location, confirm it holds the rule, and set the row to `ASSERTED`; list any `DELETE` with its reason | No row is `PENDING`; no rule is unreachable | DONE   | `manual-verification-evidence.md` section V4 |
 
 Notes:
 
@@ -221,12 +250,13 @@ Rust test is not suitable, and its removal or retention owner here before creati
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence           |
 | ----- | ---------------------- | ------------------ |
-| AC1   | TODO                   | {test/log/PR link} |
-| AC2   | TODO                   | {test/log/PR link} |
-| AC3   | TODO                   | {test/log/PR link} |
-| AC4   | TODO                   | {test/log/PR link} |
-| AC5   | TODO                   | {test/log/PR link} |
-| AC6   | TODO                   | {test/log/PR link} |
+| AC1   | DONE                   | `research.md`: sources, adopted practices P1 to P8 and the practices not adopted |
+| AC2   | DONE                   | `manual-verification-evidence.md` section V1: 12.4k to 4.8k Claude Code tokens |
+| AC3   | DONE                   | `section-disposition.md` (17 sections) and `rule-inventory.md` (99 rows, all asserted) |
+| AC4   | DONE                   | Accepted by the maintainer (decision D8): no multi-step procedure is duplicated; four short common rules stay inline on purpose |
+| AC5   | DONE                   | No `CLAUDE.md` or adapter file added; `research.md` T3 section and the V2 and V3 fresh-session runs |
+| AC6   | DONE                   | `section-disposition.md`, decision D7 (waived) |
+| AC7   | DONE                   | `manual-verification-evidence.md` V4: 99 of 99 asserted, no deletion without a reason |
 
 ## Risks and Trade-offs
 
@@ -238,11 +268,11 @@ Rust test is not suitable, and its removal or retention owner here before creati
   weigh always-loaded cost against on-demand lookup cost, not just minimize the file size.
 - **Single-vendor optimization.** Practices from one provider's guidance may not apply to others;
   the research records the provenance of each adopted practice.
-- **Regrowth.** Without a guard the file grows again; T8 addresses this.
+- **Regrowth.** Without a guard the file can grow again. The maintainer accepted this risk (decision D7) and may revisit it.
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
+- Retrospective: created, see [`implementation-retrospective.md`](implementation-retrospective.md)
 - If needed, create `implementation-retrospective.md` from the repository template at
   `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this issue specification's directory.
 - If no retrospective is needed, add a concise progress-log entry explaining why the work had no
