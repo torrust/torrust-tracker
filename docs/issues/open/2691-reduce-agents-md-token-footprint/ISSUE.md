@@ -9,7 +9,7 @@ github-issue: 2691
 spec-path: docs/issues/open/2691-reduce-agents-md-token-footprint/ISSUE.md
 branch: "2691-reduce-agents-md-token-footprint"
 related-pr: 2704
-last-updated-utc: "2026-11-03 15:00"
+last-updated-utc: "2026-11-03 16:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -20,6 +20,7 @@ semantic-links:
     - docs/issues/open/2691-reduce-agents-md-token-footprint/research.md
     - docs/issues/open/2691-reduce-agents-md-token-footprint/section-disposition.md
     - docs/issues/open/2691-reduce-agents-md-token-footprint/rule-inventory.md
+    - docs/issues/open/2691-reduce-agents-md-token-footprint/manual-verification-evidence.md
 ---
 
 <!-- skill-link: create-issue -->
@@ -178,12 +179,13 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - 2026-11-03 11:00 UTC - Claude Code (Claude Sonnet 5.5) - T6 step 3: replaced the Key Configuration Files and Build, Test, and Lint content with short pointers, after confirming that the `run-linters`, `run-pre-commit-checks`, `run-pre-push-checks` skills and `docs/benchmarking.md` already hold the removed content; corrected the `run-linters` ignore note; found and dropped three stale baseline statements (`cargo test --test integration`, `.cspell.gitignore`, four of five cargo aliases); asserted 16 inventory rows - `section-disposition.md`, `rule-inventory.md`
 - 2026-11-03 13:00 UTC - Claude Code (Claude Sonnet 5.5) - T6 step 4: moved the Git Workflow detail to the `open-pull-request` skill. The skill pointed back to `AGENTS.md` for the history-rewrite rules and held only a stub of the PR-title rules, so I added both to the skill first (new section Commit History and Pull-Request Scope, extended Title section) and fixed the circular reference; `AGENTS.md` keeps branch naming, the Conventional Commits form, the branch strategy and the keep-intermediate-commits rule; asserted 14 inventory rows; `AGENTS.md` is now about 4.1k proxy tokens - `rule-inventory.md`
 - 2026-11-03 15:00 UTC - Claude Code (Claude Sonnet 5.5) - T7: the maintainer approved the remaining trims including shortened policies (decision D6). Condensed Project Overview, Key Directories, Code Style, Engineering Policies, Essential Rules, Auto-Invoke Skills and Documentation, and removed Tech Stack; moved the VS Code skills setting to the `setup-dev-environment` skill first; removed one duplicated rule and renumbered Essential Rules; found one more stale baseline statement (`tests/` contents). `AGENTS.md` is now 2,994 proxy tokens (about 4.9k Claude tokens, estimated), 229 lines, 13,027 bytes. All 99 inventory rows are asserted; 45 `AGENTS.md` rows were checked mechanically and 4 reworded rows by reading - `section-disposition.md`, `rule-inventory.md`
+- 2026-11-03 16:30 UTC - Claude Code (Claude Sonnet 5.5) - Recorded the maintainer's final `/context`: `AGENTS.md` is 4.8k Claude Code tokens against the 12.4k baseline (-61%), under the 5k target; discarded an earlier reading that had loaded the old file; created `manual-verification-evidence.md` with V1 done and V2 to V4 pending - `manual-verification-evidence.md`
 
 ## Acceptance Criteria
 
 - [ ] AC1: `research.md` documents the sources consulted and the practices adopted, each tied to
       evidence, and states which practices were deliberately not adopted and why.
-- [ ] AC2: A baseline and a final token measurement exist, taken with the same documented method,
+- [x] AC2: A baseline and a final token measurement exist, taken with the same documented method,
       and the final footprint of `AGENTS.md` is about 5k Claude Code tokens or fewer in `/context`
       (target agreed with the maintainer in T5, decision D1; baseline 12.4k).
 - [ ] AC3: Every section of the original `AGENTS.md` has a recorded disposition, and every rule that
@@ -217,7 +219,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario                              | Human-oriented command/steps                                                                                                  | Expected Result                                                                  | Status | Evidence                                     |
 | --- | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ------ | -------------------------------------------- |
-| M1  | Token footprint before and after      | Measure `AGENTS.md` with the T1 method on the original commit and on the final commit                       | Final footprint is lower by the agreed target                                    | TODO   | `manual-verification-evidence.md` section V1 |
+| M1  | Token footprint before and after      | Measure `AGENTS.md` with the T1 method on the original commit and on the final commit                       | Final footprint is lower by the agreed target                                    | DONE   | `manual-verification-evidence.md` section V1 |
 | M2  | Key rules survive in a fresh session  | Start a fresh Claude Code session and ask it to describe the commit rules, branch naming and linting gate                     | Answers match the original rules, including GPG signing and `linter all`         | TODO   | `manual-verification-evidence.md` section V2 |
 | M4  | Rule inventory is fully asserted      | For every row of `rule-inventory.md`, open the final location, confirm it holds the rule, and set the row to `ASSERTED`; list any `DELETE` with its reason | No row is `PENDING`; no rule is unreachable | TODO   | `manual-verification-evidence.md` section V4 |
 | M3  | Moved content is discoverable         | In a fresh session, ask for the package list and the container ports, and observe where the agent looks                       | The agent finds the canonical source through links or skills                     | TODO   | `manual-verification-evidence.md` section V3 |
@@ -241,7 +243,7 @@ Rust test is not suitable, and its removal or retention owner here before creati
 | AC ID | Status (`TODO`/`DONE`) | Evidence           |
 | ----- | ---------------------- | ------------------ |
 | AC1   | TODO                   | {test/log/PR link} |
-| AC2   | TODO                   | {test/log/PR link} |
+| AC2   | DONE                   | `manual-verification-evidence.md` section V1: 12.4k to 4.8k Claude Code tokens |
 | AC3   | TODO                   | {test/log/PR link} |
 | AC4   | TODO                   | {test/log/PR link} |
 | AC5   | TODO                   | {test/log/PR link} |
