@@ -9,7 +9,7 @@ github-issue: 2691
 spec-path: docs/issues/open/2691-reduce-agents-md-token-footprint/ISSUE.md
 branch: "2691-reduce-agents-md-token-footprint"
 related-pr: 2704
-last-updated-utc: "2026-11-04 11:30"
+last-updated-utc: "2026-11-04 12:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -128,7 +128,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T7  | DONE   | Condense `AGENTS.md`                                                                    | Reduced file; footprint re-measured with the T1 method                                                  |
 | T8  | DONE   | Add a regrowth guard (documented budget; automated check only if justified)           | Not implemented, by maintainer decision D7 (2026-11-04): no guard now, to be reconsidered if the file regrows |
 | T9  | DONE   | Behavioral check that agents still follow the key rules after the reduction           | See manual scenarios M1 to M3                                                                           |
-| T10 | TODO   | Re-evaluate after implementation whether an ADR is warranted                          | Outcome recorded in the progress log and in the implementation completion review                       |
+| T10 | DONE   | Re-evaluate after implementation whether an ADR is warranted                          | Decision D9 (2026-11-04): no ADR is needed; recorded in the progress log and the implementation completion review |
 
 ## Commit Points
 
@@ -184,6 +184,7 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - 2026-11-04 09:00 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer decided not to add a regrowth guard now and that this may change later (decision D7); T8 closed without implementation and AC6 waived; V2 and V3 will be run by the maintainer one step at a time - `section-disposition.md`
 - 2026-11-04 10:30 UTC - Claude Code (Claude Sonnet 5.5) - The maintainer ran V2 and V3 in fresh Sonnet 5.5 sessions one step at a time; both passed (key rules stated correctly; the removed package and port content found through the pointers). V4 walk-through: 99 of 99 inventory rows asserted, no deletion without a reason, 53 of 61 `AGENTS.md` rows verbatim and 8 reworded rows confirmed by reading; M2 to M4 and T9 done - `manual-verification-evidence.md`
 - 2026-11-04 11:30 UTC - Claude Code (Claude Sonnet 5.5) - Wrote the implementation retrospective (material discoveries: source-seeded inventory, a skill that pointed back at `AGENTS.md`, four stale baseline statements, silent table re-alignment, a stale-session measurement) and reviewed the acceptance criteria against the evidence: AC1, AC2, AC3, AC5, AC6 (waived) and AC7 are met. AC4 left open for the maintainer: no procedure is duplicated, but four short global rules remain in both `AGENTS.md` and a skill by decision D2 (branch naming and the `-spec` suffix, the Conventional Commits types, the pre-commit gate command, the log-directory tip) - `implementation-retrospective.md`
+- 2026-11-04 12:30 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer decisions: D8, AC4 is met. The maintainer first proposed keeping procedural guidance only in skills and pointing to them, and the agent agreed and proposed four edits; the maintainer then changed their mind because the rules concern very common tasks and the token cost is low, so no edit was made and V1, V2 and V4 stay valid. D9, no ADR is needed (T10 closed); the placement rule stays recorded in `section-disposition.md` - `section-disposition.md`
 
 ## Acceptance Criteria
 
@@ -197,7 +198,7 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - [x] AC7: Every row of `rule-inventory.md`, built from the baseline file before restructuring,
       has status `ASSERTED`: its final location was opened and confirmed, or a `DELETE` has a
       recorded reason.
-- [ ] AC4: No procedural guidance is duplicated between `AGENTS.md` and a skill or `docs/` page
+- [x] AC4: No procedural guidance is duplicated between `AGENTS.md` and a skill or `docs/` page
       (Engineering Policy 6).
 - [x] AC5: `AGENTS.md` remains the sole source of truth and no provider-specific adapter file is
       introduced (Engineering Policy 7).
@@ -250,7 +251,7 @@ Rust test is not suitable, and its removal or retention owner here before creati
 | AC1   | DONE                   | `research.md`: sources, adopted practices P1 to P8 and the practices not adopted |
 | AC2   | DONE                   | `manual-verification-evidence.md` section V1: 12.4k to 4.8k Claude Code tokens |
 | AC3   | DONE                   | `section-disposition.md` (17 sections) and `rule-inventory.md` (99 rows, all asserted) |
-| AC4   | TODO                   | Awaiting maintainer judgment: no procedure is copied, but short global rules stay in both places by decision D2 (see the progress log) |
+| AC4   | DONE                   | Accepted by the maintainer (decision D8): no multi-step procedure is duplicated; four short common rules stay inline on purpose |
 | AC5   | DONE                   | No `CLAUDE.md` or adapter file added; `research.md` T3 section and the V2 and V3 fresh-session runs |
 | AC6   | DONE                   | `section-disposition.md`, decision D7 (waived) |
 | AC7   | DONE                   | `manual-verification-evidence.md` V4: 99 of 99 asserted, no deletion without a reason |

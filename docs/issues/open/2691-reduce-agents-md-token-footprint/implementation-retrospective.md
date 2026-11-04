@@ -125,7 +125,10 @@ The evidence does not justify:
 - nested `AGENTS.md` files for every package, which would add many files for an unmeasured gain;
 - a reusable tool for the rule inventory: the one-off scripts were enough and their method is
   recorded in the evidence;
-- an ADR for this work, which is re-evaluated in task T10.
+- an ADR for this work: task T10 re-evaluated it and the maintainer decided none is needed (D9);
+- moving the four short common rules (branch naming, commit types, the pre-commit command, the log
+  directory tip) out of `AGENTS.md`: considered and withdrawn (D8), because they concern very common
+  tasks and the saving is about 0.35k Claude tokens.
 
 ## Evidence
 
