@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2699-2482-gate-udp-server-test-environment/ISSUE.md
-last-updated-utc: "2026-11-04 12:19"
+last-updated-utc: "2026-11-04 12:26"
 ---
 
 # Manual Verification Evidence
@@ -629,6 +629,23 @@ PY
 done
 echo "RUN END $(ts) UTC"
 ```
+
+### V9 follow-up - the published 0.1.79
+
+The maintainer merged https://github.com/torrust/cargo-chef/pull/1 on 2026-11-04 at 12:23:33 UTC, and `torrust-cargo-chef` 0.1.79 was published to crates.io on 2026-11-04 at 12:25:09 UTC (the crates.io API lists it, not yanked) and tagged `v0.1.79-torrust` on the merge commit. `cargo-binstall` is not installed on this host, so the published crate was installed from crates.io with `cargo install`, which is what `cargo binstall` builds when no prebuilt artifact exists, and the same two `Containerfile` commands were run on this tree with it (2026-11-04, 12:25:45 to 12:25:55 UTC; the tracker tree had no change, `git status --short` empty):
+
+```text
+$ cargo install torrust-cargo-chef --version 0.1.79 --locked --root /tmp/row4/crates-io
+   Installed package `torrust-cargo-chef v0.1.79` (executable `cargo-chef`)
+$ cargo chef --version
+torrust-cargo-chef-chef 0.1.79
+$ cargo chef prepare --external-only --recipe-path /tmp/row4/recipe-published.json
+$ cd <scratch> && cargo chef cook --tests --workspace --all-features --recipe-path /tmp/row4/recipe-published.json
+    Finished `dev` profile [optimized + debuginfo] target(s) in 0.90s
+cook exit=0
+```
+
+The 0.90 s is a cache hit: the third-party crates were already built in the same target directory by the run above.
 
 ## Script
 

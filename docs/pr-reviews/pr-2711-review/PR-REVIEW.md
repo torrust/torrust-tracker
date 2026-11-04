@@ -1,7 +1,7 @@
 ---
 pr-number: 2711
 pr-url: https://github.com/torrust/torrust-tracker/pull/2711
-last-updated-utc: "2026-11-04 11:38"
+last-updated-utc: "2026-11-04 12:26"
 ---
 
 # PR #2711 Review Audit
@@ -57,3 +57,4 @@ No findings have been normalized.
 - Cite a fix by its unique Conventional Commit subject or durable reply URL, never by a branch SHA
   that can change after a rebase.
 - Refresh review threads using GraphQL and confirm that no unresolved actionable thread remains.
+- 2026-11-04 12:26 UTC - The `Test (Docker) (release)` job failed on the first push (head at that time: the audit-start commit): `cargo chef cook` rejected the third-party recipe because `torrust-cargo-chef` 0.1.78 does not prune the `testing` feature entry that names the now-optional workspace dependency. This is a CI failure, not a review finding. Fixed outside this repository (https://github.com/torrust/cargo-chef/pull/1, merged and published as 0.1.79) and in this PR by bumping the pin in the `Containerfile`; the decision and options are in the spec. Copilot's review of 12:15:55Z, which carries two inline findings, had already arrived when this entry was written; it is recorded as round 1 in the next entry. Copilot and da2ce7 were requested at 11:38 and 11:40 UTC and are re-requested after the next push.
