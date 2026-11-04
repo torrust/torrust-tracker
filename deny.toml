@@ -55,6 +55,8 @@ deny = [
     "torrust-tracker-axum-health-check-api-server",
     "torrust-tracker-axum-rest-api-server",
     "torrust-tracker-rest-api-runtime-adapter",
+    # Its own path-only self dev-dependency enabling the `testing` feature (ADR 20261021190318, rule A.3).
+    "torrust-tracker-udp-server",
   ] },
 
   # Protocol crates must not be used directly by torrust-tracker-core.

@@ -4,6 +4,19 @@
 //! entry point now accepts `&Arc<Core>` and `&Arc<UdpTracker>` directly, so a UDP-only
 //! binary no longer needs to compile the full `Configuration` aggregate.
 //!
+//! ## Testing style
+//!
+//! This example **follows the conventions used in testing**: it starts the tracker through
+//! `torrust_tracker_udp_server::testing::environment`, which needs the non-default `testing`
+//! feature (outside the semver guarantees of this package; the package's own targets enable it
+//! through a path-only self dev-dependency, so plain `cargo run` works). The sibling example
+//! `udp_only_public_tracker_production_style` does not use `testing`: it **simulates production
+//! as closely as possible** by starting the server the way the `torrust-tracker` binary does.
+//!
+//! > **Note**: production startup may become more like the testing style in the future. An end
+//! > user who prefers this object-oriented version can adopt it by enabling the `testing`
+//! > feature.
+//!
 //! ## What this example shows
 //!
 //! A UDP-only public tracker can now be started with exactly the two config types it

@@ -644,6 +644,7 @@ pub mod event;
 pub mod handlers;
 pub mod server;
 pub mod statistics;
+#[cfg(feature = "testing")]
 pub mod testing;
 
 use std::net::SocketAddr;

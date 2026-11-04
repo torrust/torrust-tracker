@@ -431,6 +431,7 @@ pessimize
 pgrep
 pinentry
 pipefail
+pipestatus
 pkey
 pkill
 porti

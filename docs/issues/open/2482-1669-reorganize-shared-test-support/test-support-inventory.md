@@ -2,7 +2,7 @@
 doc-type: research-report
 parent-issue: 2482
 status: completed
-last-updated-utc: 2026-10-29
+last-updated-utc: 2026-11-04
 semantic-links:
   related-artifacts:
     - docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md
@@ -81,7 +81,7 @@ servers through its own bootstrap jobs in `src/bootstrap/jobs/`.
 | --- | --- | --- | --- |
 | `axum-http-server` | `src/testing/environment.rs` (484) | HTTP tracker on `Core` + `HttpTracker` config; `add_torrent_peer`, `base_url` | Own `tests/` (9 files), `examples/http_only_public_tracker.rs`, `axum-health-check-api-server` tests |
 | `axum-rest-api-server` | `src/testing/environment.rs` (232) | REST API on the full `Configuration`, wiring the HTTP and UDP cores; `add_torrent_peer`, `get_connection_info` | Own `tests/` (6 files), `axum-health-check-api-server` tests |
-| `udp-server` | `src/testing/environment.rs` (581) | UDP tracker on `Core` + `UdpTracker` config | Own `tests/server/contract.rs`, own `#[cfg(test)]` unit tests (`handlers/mod.rs`, `server/processor.rs`), `examples/udp_only_public_tracker.rs`, `axum-health-check-api-server` tests |
+| `udp-server` | `src/testing/environment.rs` (878) | UDP tracker on `Core` + `UdpTracker` config | Own `tests/server/contract.rs`, own `#[cfg(test)]` unit tests (`handlers/mod.rs`, `server/processor.rs`), `examples/udp_only_public_tracker.rs`, `axum-health-check-api-server` tests |
 | `axum-health-check-api-server` | `src/environment.rs` (118) | Health check API on `HealthCheckApi` config and a `Registar` | Own `tests/server/contract.rs` |
 
 Normal dependencies that production source does not use, only the module above:
@@ -98,6 +98,17 @@ uses are not counted: the review of #2618 found two in `axum-http-server`, `torr
 only in `#[cfg(test)]` code and `src/testing/environment.rs`) and `torrust-info-hash` (used only in
 test modules and `src/testing/environment.rs`). Each environment move audits every normal
 dependency of its package.
+
+**`udp-server` resolved by #2699.** `src/testing/` is compiled only with the non-default `testing`
+feature (`testing = ["dep:torrust-tracker-swarm-coordination-registry"]`, the registry crate an
+optional dependency, the only direct dependency used solely by that module). The package's own
+targets (the `src/` unit tests, `tests/` and the examples) enable it through a path-only self
+dev-dependency, and `axum-health-check-api-server` enables it from its `[dev-dependencies]`. The
+rows above describe the state before the change. A default build of `udp-server` has no direct
+dependency on the registry crate (it stays transitive through `tracker-core` and `udp-core`) and no
+`testing` module. The example `examples/udp_only_public_tracker.rs` stays on the test environment
+and a new `examples/udp_only_public_tracker_production_style.rs` starts the server the way the
+binary does. The other three environments are rows 5 to 7.
 
 The 2026-10-06 coupling report (finding 2) listed four of `axum-rest-api-server`'s six; this
 inventory adds `tracker-core` and `rest-api-client`, and the health check's `configuration`.
@@ -224,7 +235,7 @@ that resolves it.
 
 | Item | Rule and destination | Subissue spec | Status |
 | --- | --- | --- | --- |
-| A. `udp-server` environment (and its example) | Rule A: behind the `testing` feature of `udp-server` | [Row 4](../../open/2699-2482-gate-udp-server-test-environment/ISSUE.md) | Open |
+| A. `udp-server` environment (and its example) | Rule A: behind the `testing` feature of `udp-server` | [Row 4](../../open/2699-2482-gate-udp-server-test-environment/ISSUE.md) | Resolved by #2699 |
 | A. `axum-http-server` environment (and its example) | Rule A: behind the `testing` feature of `axum-http-server` | [Row 5](../../drafts/2482-gate-axum-http-server-test-environment/ISSUE.md) | Open |
 | A. `axum-rest-api-server` environment | Rule A: behind the `testing` feature of `axum-rest-api-server` | [Row 6](../../drafts/2482-gate-axum-rest-api-server-test-environment/ISSUE.md) | Open |
 | A. `axum-health-check-api-server` environment | Rule A: behind the `testing` feature of `axum-health-check-api-server` | [Row 7](../../drafts/2482-gate-axum-health-check-api-server-test-environment/ISSUE.md) | Open |

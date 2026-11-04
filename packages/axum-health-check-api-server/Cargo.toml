@@ -42,4 +42,4 @@ torrust-tracker-axum-http-server = { version = "0.1.0", path = "../axum-http-ser
 torrust-tracker-axum-rest-api-server = { version = "0.1.0", path = "../axum-rest-api-server" }
 torrust-clock = "3.0.0"
 torrust-tracker-test-helpers = { version = "3.0.0", path = "../test-helpers" }
-torrust-tracker-udp-server = { version = "0.1.0", path = "../udp-server" }
+torrust-tracker-udp-server = { version = "0.1.0", path = "../udp-server", features = [ "testing" ] }

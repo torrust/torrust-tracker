@@ -16,6 +16,12 @@ version = "0.1.0"
 [lints]
 workspace = true
 
+[features]
+default = [  ]
+# Test support outside the semver guarantees of this package: the UDP test environment in `src/testing/`, which
+# the tests of other workspace packages use. Never enable it from a `[dependencies]` entry.
+testing = [ "dep:torrust-tracker-swarm-coordination-registry" ]
+
 [dependencies]
 torrust_tracker_udp_protocol = { package = "torrust-tracker-udp-protocol", version = "0.1.0", path = "../udp-protocol" }
 torrust-peer-id = "0.1.0"
@@ -38,7 +44,7 @@ torrust-tracker-events = { version = "0.1.0", path = "../events" }
 torrust-metrics = "0.2.0"
 torrust-net-primitives = "0.1.0"
 torrust-tracker-primitives = { version = "3.0.0", path = "../primitives" }
-torrust-tracker-swarm-coordination-registry = { version = "0.1.0", path = "../swarm-coordination-registry" }
+torrust-tracker-swarm-coordination-registry = { version = "0.1.0", path = "../swarm-coordination-registry", optional = true }
 tracing = "0"
 url = { version = "2", features = [ "serde" ] }
 uuid = { version = "1", features = [ "v4" ] }
@@ -52,6 +58,7 @@ mockall = "0"
 rand = "0.9"
 tokio = { version = "1", features = [ "test-util" ] }
 torrust-tracker-test-helpers = { version = "3.0.0", path = "../test-helpers" }
+torrust-tracker-udp-server = { path = ".", features = [ "testing" ] }
 
 [[bench]]
 harness = false

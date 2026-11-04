@@ -18,10 +18,13 @@ RUN apt-get update \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 RUN curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
-RUN cargo binstall --no-confirm --locked torrust-cargo-chef@0.1.78 cargo-nextest@0.9.140
-# Note: We use the `torrust-cargo-chef` fork (v0.1.78) while upstream PR
+RUN cargo binstall --no-confirm --locked torrust-cargo-chef@0.1.79 cargo-nextest@0.9.140
+# Note: We use the `torrust-cargo-chef` fork (v0.1.79) while upstream PR
 # https://github.com/LukeMathWalker/cargo-chef/pull/360 is pending. Once merged,
 # switch back to upstream `cargo-chef` and remove this comment.
+# v0.1.79 is the first version whose `prepare --external-only` also prunes the `[features]` entries that
+# name a stripped path dependency; without it, an optional workspace dependency behind a feature (such
+# as the `testing` feature of `udp-server`) makes `cargo chef cook` fail on the third-party recipe.
 
 ## Tester Image
 FROM docker.io/library/rust:slim-trixie AS tester
