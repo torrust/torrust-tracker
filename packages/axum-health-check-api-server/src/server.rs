@@ -21,7 +21,7 @@ use torrust_server_lib::logging::{Latency, STARTED_ON};
 use torrust_server_lib::registar::{Registar, RegistrationError, ServiceRegistration};
 use torrust_server_lib::signals::{Halted, Started};
 use torrust_tracker_axum_server::signals::{GracefulShutdownOutcome, graceful_shutdown, graceful_shutdown_on_cancellation};
-use torrust_tracker_primitives::RuntimeServiceMetadata;
+use torrust_tracker_primitives::{Readiness, RuntimeServiceMetadata};
 use tower_http::LatencyUnit;
 use tower_http::classify::ServerErrorsFailureClass;
 use tower_http::compression::CompressionLayer;
@@ -31,7 +31,7 @@ use tower_http::trace::{DefaultMakeSpan, TraceLayer};
 use tracing::{Level, Span, instrument};
 
 use crate::HEALTH_CHECK_API_LOG_TARGET;
-use crate::handlers::health_check_handler;
+use crate::handlers::{HealthCheckState, health_check_handler};
 
 /// Errors returned by [`start_with_cancellation`].
 #[derive(Debug, thiserror::Error)]
@@ -83,7 +83,8 @@ pub fn start(
     rx_halt: Receiver<Halted>,
     registar: Registar<RuntimeServiceMetadata>,
 ) -> Result<RunningServer<impl Future<Output = Result<(), std::io::Error>> + Send>, std::io::Error> {
-    let router = router(registar);
+    // The signal-based path has no application lifecycle: it is always ready.
+    let router = router(registar, Readiness::default());
 
     let socket = std::net::TcpListener::bind(bind_to)?;
     socket.set_nonblocking(true)?;
@@ -128,6 +129,9 @@ pub fn start(
 
 /// Starts the Health Check API using an injected cancellation token.
 ///
+/// `readiness` is read on every `/health_check` request: while it is not ready the endpoint
+/// answers `503 Service Unavailable` without probing any registered service.
+///
 /// This additive path does not subscribe to operating-system signals. It
 /// registers the service and, if registration fails, cancels
 /// `cancellation_token`, stops both children, and releases the listener before
@@ -141,6 +145,7 @@ pub fn start(
 pub async fn start_with_cancellation(
     bind_to: SocketAddr,
     registar: Registar<RuntimeServiceMetadata>,
+    readiness: Readiness,
     metadata: RuntimeServiceMetadata,
     cancellation_token: CancellationToken,
     drain_timeout: Duration,
@@ -160,7 +165,7 @@ pub async fn start_with_cancellation(
     let handle = Handle::new();
     let serving = server
         .handle(handle.clone())
-        .serve(router(registar.clone()).into_make_service_with_connect_info::<SocketAddr>());
+        .serve(router(registar.clone(), readiness).into_make_service_with_connect_info::<SocketAddr>());
     let task = tokio::spawn(serving);
     let shutdown_controller = tokio::spawn(graceful_shutdown_on_cancellation(
         handle,
@@ -201,11 +206,11 @@ pub async fn start_with_cancellation(
     })
 }
 
-fn router(registar: Registar<RuntimeServiceMetadata>) -> Router {
+fn router(registar: Registar<RuntimeServiceMetadata>, readiness: Readiness) -> Router {
     Router::new()
         .route("/", get(|| async { Json(json!({})) }))
         .route("/health_check", get(health_check_handler))
-        .with_state(registar)
+        .with_state(HealthCheckState { registar, readiness })
         .layer(CompressionLayer::new())
         .layer(SetRequestIdLayer::x_request_id(MakeRequestUuid))
         .layer(PropagateHeaderLayer::new(HeaderName::from_static("x-request-id")))
@@ -271,7 +276,7 @@ mod tests {
     use torrust_server_lib::registar::{Registar, RegistrationError, ServiceRegistration};
     use torrust_tracker_axum_server::signals::GracefulShutdownOutcome;
     use torrust_tracker_configuration::v3_0_0::shutdown::Shutdown;
-    use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
+    use torrust_tracker_primitives::{ConfigurationInstanceId, Readiness, RuntimeServiceMetadata, ServiceRole};
 
     use crate::server::{Error, start_with_cancellation};
 
@@ -325,6 +330,7 @@ mod tests {
         let running = start_with_cancellation(
             any_available_port(),
             registar.clone(),
+            Readiness::default(),
             health_check_api_metadata(),
             cancellation_token.clone(),
             default_drain_timeout(),
@@ -350,6 +356,7 @@ mod tests {
         let running = start_with_cancellation(
             any_available_port(),
             Registar::default(),
+            Readiness::default(),
             health_check_api_metadata(),
             cancellation_token.clone(),
             default_drain_timeout(),
@@ -387,6 +394,7 @@ mod tests {
         let running = start_with_cancellation(
             any_available_port(),
             Registar::default(),
+            Readiness::default(),
             health_check_api_metadata(),
             cancellation_token.clone(),
             configured_drain_timeout,
@@ -429,6 +437,7 @@ mod tests {
         let result = start_with_cancellation(
             scenario.bind_to,
             scenario.registar,
+            Readiness::default(),
             health_check_api_metadata(),
             CancellationToken::new(),
             default_drain_timeout(),

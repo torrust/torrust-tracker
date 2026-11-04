@@ -15,7 +15,7 @@ use torrust_server_lib::registar::Registar;
 use torrust_tracker_axum_health_check_api_server::{HEALTH_CHECK_API_LOG_TARGET, server};
 use torrust_tracker_axum_server::signals::GracefulShutdownOutcome;
 use torrust_tracker_configuration::v3_0_0::health_check_api::HealthCheckApi;
-use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
+use torrust_tracker_primitives::{ConfigurationInstanceId, Readiness, RuntimeServiceMetadata, ServiceRole};
 use tracing::instrument;
 
 use crate::bootstrap::jobs::manager::{ComponentCompletion, ComponentError, ComponentResult, TokenAwareServerTask};
@@ -45,12 +45,14 @@ pub enum Error {
 pub async fn start_job(
     config: &HealthCheckApi,
     registar: Registar<RuntimeServiceMetadata>,
+    readiness: Readiness,
     cancellation_token: CancellationToken,
     drain_timeout: Duration,
 ) -> Result<impl Future<Output = ComponentResult> + Send + 'static, Error> {
     let server = server::start_with_cancellation(
         config.bind_address,
         registar,
+        readiness,
         RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::HealthCheckApi, 0)),
         cancellation_token.clone(),
         drain_timeout,
@@ -118,6 +120,7 @@ mod tests {
     use torrust_tracker_axum_server::signals::GracefulShutdownOutcome;
     use torrust_tracker_configuration::v3_0_0::health_check_api::HealthCheckApi;
     use torrust_tracker_configuration::v3_0_0::shutdown::Shutdown;
+    use torrust_tracker_primitives::Readiness;
 
     use crate::bootstrap::jobs::health_check_api::{start_job, supervise_token_aware_server};
     use crate::bootstrap::jobs::manager::{ComponentCompletion, TokenAwareServerTask};
@@ -185,6 +188,7 @@ mod tests {
         let component = start_job(
             &config,
             Registar::default(),
+            Readiness::default(),
             CancellationToken::new(),
             Shutdown::default().http_drain(),
         )

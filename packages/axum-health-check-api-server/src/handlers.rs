@@ -1,18 +1,39 @@
 use axum::Json;
 use axum::extract::State;
+use axum::http::StatusCode;
+use axum::response::{IntoResponse, Response};
 use torrust_server_lib::registar::Registar;
-use torrust_tracker_primitives::RuntimeServiceMetadata;
+use torrust_tracker_primitives::{Readiness, RuntimeServiceMetadata};
 use tracing::{Level, instrument};
 
 use super::resources::{CheckReport, Report};
 use super::responses;
 
+/// The state shared by the health check handlers.
+#[derive(Clone)]
+pub(crate) struct HealthCheckState {
+    pub(crate) registar: Registar<RuntimeServiceMetadata>,
+    pub(crate) readiness: Readiness,
+}
+
 /// Endpoint for container health check.
 ///
-/// Creates a vector [`CheckReport`] from the input set of [`CheckJob`], and then builds a report from the results.
+/// While the application is not ready (it is shutting down) it answers `503 Service Unavailable`
+/// without probing any service: it reports lifecycle state, not a transient probe failure.
 ///
-#[instrument(skip(registar), ret(level = Level::DEBUG))]
-pub(crate) async fn health_check_handler(State(registar): State<Registar<RuntimeServiceMetadata>>) -> Json<Report> {
+/// Otherwise it creates a vector [`CheckReport`] from the input set of [`CheckJob`], and then builds a report from the results.
+///
+// issue: #2697
+#[instrument(skip(state), ret(level = Level::DEBUG))]
+pub(crate) async fn health_check_handler(State(state): State<HealthCheckState>) -> Response {
+    if !state.readiness.is_ready() {
+        return (StatusCode::SERVICE_UNAVAILABLE, responses::shutting_down()).into_response();
+    }
+
+    probe_services(&state.registar).await.into_response()
+}
+
+async fn probe_services(registar: &Registar<RuntimeServiceMetadata>) -> Json<Report> {
     let checks: Vec<_> = registar
         .services()
         .await

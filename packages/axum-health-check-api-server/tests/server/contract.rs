@@ -453,3 +453,126 @@ mod udp {
         }
     }
 }
+
+// issue: #2697
+mod readiness {
+    use std::sync::atomic::{AtomicUsize, Ordering};
+
+    use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
+    use torrust_server_lib::registar::{FnSpawnServiceHeathCheck, Registar, ServiceHealthCheckJob, ServiceRegistration};
+    use torrust_tracker_axum_health_check_api_server::environment::Started;
+    use torrust_tracker_axum_health_check_api_server::resources::{Report, Status};
+    use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
+    use torrust_tracker_test_helpers::{configuration, logging};
+
+    use crate::server::client::get;
+
+    // One counter per test: tests run in parallel and a probe is a plain `fn` pointer.
+    static PROBES_RUN_WHEN_READY: AtomicUsize = AtomicUsize::new(0);
+    static PROBES_RUN_WHEN_NOT_READY: AtomicUsize = AtomicUsize::new(0);
+
+    fn probe_counted_when_ready(_binding: &ServiceBinding) -> ServiceHealthCheckJob {
+        PROBES_RUN_WHEN_READY.fetch_add(1, Ordering::SeqCst);
+        passing_probe()
+    }
+
+    fn probe_counted_when_not_ready(_binding: &ServiceBinding) -> ServiceHealthCheckJob {
+        PROBES_RUN_WHEN_NOT_READY.fetch_add(1, Ordering::SeqCst);
+        passing_probe()
+    }
+
+    fn passing_probe() -> ServiceHealthCheckJob {
+        ServiceHealthCheckJob::new("counting probe".to_string(), tokio::spawn(async { Ok("200 OK".to_string()) }))
+    }
+
+    async fn registar_with_a_probed_service(probe: FnSpawnServiceHeathCheck) -> Registar<RuntimeServiceMetadata> {
+        let registar = Registar::default();
+        registar
+            .give_form()
+            .register(ServiceRegistration::new(
+                ServiceBinding::new(Protocol::HTTP, "127.0.0.1:7070".parse().unwrap()).unwrap(), // DevSkim: ignore DS137138
+                RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::RestApi, 0)),
+                Some(probe),
+            ))
+            .await
+            .expect("the probed service should register");
+        registar
+    }
+
+    #[tokio::test]
+    async fn it_should_answer_503_without_probing_any_service_when_the_application_is_not_ready() {
+        // Arrange: a probed service is registered, and the application is not ready.
+        logging::setup();
+        let configuration = configuration::ephemeral_with_no_services();
+        let env = Started::new(
+            &configuration.health_check_api.into(),
+            registar_with_a_probed_service(probe_counted_when_not_ready).await,
+        )
+        .await;
+        env.readiness.mark_not_ready();
+        let probes_before = PROBES_RUN_WHEN_NOT_READY.load(Ordering::SeqCst);
+
+        // Act
+        let response = get(&format!("http://{}/health_check", env.bind_address())).await; // DevSkim: ignore DS137138
+
+        // Assert
+        assert_eq!(response.status(), 503);
+        assert_eq!(response.headers().get("content-type").unwrap(), "application/json");
+        let report: Report = response.json().await.expect("the 503 body should be a report");
+        assert_eq!(report.status, Status::Error);
+        assert_eq!(report.message, "shutting down");
+        assert_eq!(report.details.len(), 0);
+        assert_eq!(
+            PROBES_RUN_WHEN_NOT_READY.load(Ordering::SeqCst),
+            probes_before,
+            "a not-ready answer should not run the registered service probes"
+        );
+
+        env.stop().await.expect("it should stop the service");
+    }
+
+    #[tokio::test]
+    async fn it_should_probe_the_services_and_answer_200_while_the_application_is_ready() {
+        // Arrange
+        logging::setup();
+        let configuration = configuration::ephemeral_with_no_services();
+        let env = Started::new(
+            &configuration.health_check_api.into(),
+            registar_with_a_probed_service(probe_counted_when_ready).await,
+        )
+        .await;
+        let probes_before = PROBES_RUN_WHEN_READY.load(Ordering::SeqCst);
+
+        // Act
+        let response = get(&format!("http://{}/health_check", env.bind_address())).await; // DevSkim: ignore DS137138
+
+        // Assert
+        assert_eq!(response.status(), 200);
+        let report: Report = response.json().await.expect("the body should be a report");
+        assert_eq!(report.status, Status::Ok);
+        assert_eq!(report.message, "");
+        assert_eq!(PROBES_RUN_WHEN_READY.load(Ordering::SeqCst), probes_before + 1);
+
+        env.stop().await.expect("it should stop the service");
+    }
+
+    #[tokio::test]
+    async fn it_should_answer_503_on_every_request_after_the_transition_and_never_return_to_ready() {
+        // Arrange
+        logging::setup();
+        let configuration = configuration::ephemeral_with_no_services();
+        let env = Started::new(&configuration.health_check_api.into(), Registar::default()).await;
+        let url = format!("http://{}/health_check", env.bind_address()); // DevSkim: ignore DS137138
+        assert_eq!(get(&url).await.status(), 200);
+
+        // Act
+        env.readiness.mark_not_ready();
+        let first = get(&url).await.status();
+        let second = get(&url).await.status();
+
+        // Assert
+        assert_eq!((first.as_u16(), second.as_u16()), (503, 503));
+
+        env.stop().await.expect("it should stop the service");
+    }
+}

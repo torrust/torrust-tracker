@@ -8,7 +8,7 @@ use torrust_server_lib::registar::Registar;
 use torrust_tracker_axum_server::signals::GracefulShutdownOutcome;
 use torrust_tracker_configuration::v3_0_0::health_check_api::HealthCheckApi;
 use torrust_tracker_configuration::v3_0_0::shutdown::Shutdown;
-use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
+use torrust_tracker_primitives::{ConfigurationInstanceId, Readiness, RuntimeServiceMetadata, ServiceRole};
 
 use crate::server::{self, CancellationRunning};
 
@@ -42,6 +42,8 @@ pub struct Running {
 
 pub struct Environment<S> {
     pub registar: Registar<RuntimeServiceMetadata>,
+    /// The readiness the started server reads; mark it not ready to simulate a shutdown.
+    pub readiness: Readiness,
     state: S,
 }
 
@@ -50,6 +52,7 @@ impl Environment<Stopped> {
     pub fn new(config: &Arc<HealthCheckApi>, registar: Registar<RuntimeServiceMetadata>) -> Self {
         Self {
             registar,
+            readiness: Readiness::default(),
             state: Stopped {
                 bind_to: config.bind_address,
             },
@@ -71,6 +74,7 @@ impl Environment<Stopped> {
         let server = server::start_with_cancellation(
             self.state.bind_to,
             self.registar.clone(),
+            self.readiness.clone(),
             RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::HealthCheckApi, 0)),
             cancellation_token.clone(),
             Shutdown::default().http_drain(),
@@ -80,6 +84,7 @@ impl Environment<Stopped> {
 
         Environment {
             registar: self.registar,
+            readiness: self.readiness,
             state: Running {
                 server,
                 bind_to: self.state.bind_to,
@@ -130,8 +135,10 @@ impl Environment<Running> {
         self.registar.deregister(&service_binding).await;
         joined.map_err(Error::Error)?;
 
+        // A restart is a new lifecycle: it starts ready, whatever the stopped one reported.
         Ok(Environment {
             registar: self.registar,
+            readiness: Readiness::default(),
             state: Stopped { bind_to },
         })
     }
@@ -178,7 +185,7 @@ mod tests {
     use torrust_server_lib::registar::{Registar, ServiceRegistration};
     use torrust_tracker_axum_server::signals::GracefulShutdownOutcome;
     use torrust_tracker_configuration::v3_0_0::health_check_api::HealthCheckApi;
-    use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
+    use torrust_tracker_primitives::{ConfigurationInstanceId, Readiness, RuntimeServiceMetadata, ServiceRole};
 
     use super::{Environment, Error, Running, Started, Unstarted, join_owned_tasks};
     use crate::server::CancellationRunning;
@@ -404,6 +411,7 @@ mod tests {
         // Arrange
         let environment: Started = Environment {
             registar: Registar::default(),
+            readiness: Readiness::default(),
             state: Running {
                 server: CancellationRunning {
                     local_addr: "127.0.0.1:0".parse().unwrap(),
@@ -445,6 +453,7 @@ mod tests {
             .expect("the environment's service should register");
         let environment: Started = Environment {
             registar: registar.clone(),
+            readiness: Readiness::default(),
             state: Running {
                 server: CancellationRunning {
                     local_addr: "127.0.0.1:0".parse().unwrap(),

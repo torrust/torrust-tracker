@@ -40,6 +40,15 @@ Example response:
 }
 ```
 
+## Readiness during shutdown
+
+While the tracker is shutting down, `/health_check` answers `503 Service Unavailable` with
+`{"status":"Error","message":"shutting down","details":[]}` and does not probe any service, so
+readiness probes stop routing traffic to the instance. The server reads a
+`torrust_tracker_primitives::Readiness` handle passed to `server::start_with_cancellation`; the
+application marks it not ready before it cancels its components. See the
+[shutdown process documentation](../../docs/features/shutdown-process/README.md#readiness-before-drain).
+
 ## Documentation
 
 [Crate documentation](https://docs.rs/crate/torrust-tracker/latest).

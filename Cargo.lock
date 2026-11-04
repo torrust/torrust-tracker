@@ -4987,7 +4987,7 @@ dependencies = [
 
 [[package]]
 name = "torrust-tracker-axum-health-check-api-server"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "axum",
  "axum-server",
@@ -5303,7 +5303,7 @@ dependencies = [
 
 [[package]]
 name = "torrust-tracker-primitives"
-version = "3.0.0"
+version = "3.1.0"
 dependencies = [
  "binascii",
  "derive_more 2.1.1",
