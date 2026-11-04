@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-progress
+status: done
 priority: p2
 epic: 2482
 github-issue: 2699
-spec-path: docs/issues/open/2699-2482-gate-udp-server-test-environment/ISSUE.md
+spec-path: docs/issues/closed/2699-2482-gate-udp-server-test-environment/ISSUE.md
 branch: "2699-2482-gate-udp-server-test-environment"
 related-pr: 2711
-last-updated-utc: "2026-11-04 13:20"
+last-updated-utc: "2026-11-04 15:58"
 semantic-links:
   skill-links:
     - create-issue
@@ -220,7 +220,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md` (V1 to V10)
 - [x] Acceptance criteria reviewed after implementation and updated with evidence (AC1 to AC6)
 - [x] Evidence-based implementation completion review recorded (updated on 2026-11-04 13:20 UTC after T8)
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -234,6 +234,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-04 12:19 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 4) - Option A executed up to the release: the fix (six failing-first unit tests, one integration test, changelog, README, version 0.1.79) is in https://github.com/torrust/cargo-chef/pull/1; the red/green run on this tree is recorded as evidence V9 (0.1.78 exits 101, the fixed build exits 0); the `Containerfile` pin bump is committed locally and is not pushed until the maintainer has merged the fork PR, tagged `v0.1.79-torrust` and published 0.1.79. T6 and T7 stay IN_PROGRESS and AC6 stays open until the `Test (Docker)` jobs pass.
 - 2026-11-04 12:26 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 4) - The fork PR was merged and, at the maintainer's request, the assistant published `torrust-cargo-chef` 0.1.79 to crates.io (12:25 UTC) and pushed the tag `v0.1.79-torrust`; the published crate cooks this tree's third-party recipe (evidence V9 follow-up). T6 is DONE. The branch, with the pin bump, is pushed next; T7 and AC6 stay open until the `Test (Docker)` jobs pass.
 - 2026-11-04 13:20 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 4) - The branch with the pin bump, the Copilot round 1 and 2 fixes and the audit was pushed; the `Test (Docker) (release)` job passed on it (evidence V10, run 41834169245). T7 and AC6 are DONE, the checkpoints are ticked again and the completion review is updated. Copilot findings F1 and F4 were declined with verified reasons (edition 2024 prelude; taplo requires `default = [  ]`), F2, F3 and F5 were fixed.
+- 2026-11-04 15:58 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 4) - Issue #2699 is closed: PR #2711 merged on 2026-11-04 at 15:56 UTC (merge commit `905401fa9`; spec PR #2700 merged on 2026-11-04 at 10:42 UTC). The spec folder is archived to `docs/issues/closed/`, `status` is `done`, and every live reference to the old path is repaired (the #2482 EPIC row and Progress Log, the inventory destination table, the 2026-10-06 coupling report's subissue list, and the frontmatter of the evidence and the retrospective). Row 4 of the #2482 Subissues table is DONE.
 
 ## Acceptance Criteria
 

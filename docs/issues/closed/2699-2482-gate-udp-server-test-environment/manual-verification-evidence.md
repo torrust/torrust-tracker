@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2699-2482-gate-udp-server-test-environment/ISSUE.md
-last-updated-utc: "2026-11-04 13:20"
+issue-spec: docs/issues/closed/2699-2482-gate-udp-server-test-environment/ISSUE.md
+last-updated-utc: "2026-11-04 15:58"
 ---
 
 # Manual Verification Evidence

@@ -3,8 +3,8 @@ semantic-links:
   skill-links:
     - write-markdown-docs
   related-artifacts:
-    - docs/issues/open/2699-2482-gate-udp-server-test-environment/ISSUE.md
-    - docs/issues/open/2699-2482-gate-udp-server-test-environment/manual-verification-evidence.md
+    - docs/issues/closed/2699-2482-gate-udp-server-test-environment/ISSUE.md
+    - docs/issues/closed/2699-2482-gate-udp-server-test-environment/manual-verification-evidence.md
     - docs/adrs/20261021190318_share_workspace_test_support_through_testing_features.md
 ---
 
