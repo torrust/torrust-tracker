@@ -97,3 +97,18 @@ semantic-links:
 - Verdict: REVIEW PASSED
 - Follow-up actions:
   - None.
+
+### 2026-11-04 13:38 UTC - Task Reviewer (slice S4, first review)
+
+- Invocation scope: slice S4 of #2637 on branch `2637-1347-add-tests-axum-rest-api-server-queries`: the nine commits above `torrust/develop` (ledger rows 12-17), including `test(axum-rest-api-server): [#2637] cover the torrent handlers`, `test(axum-rest-api-server): [#2637] cover the stats handlers` and `test(axum-rest-api-server): [#2637] cover the stats responses`.
+- Inputs: the issue folder, the EPIC, the S1-S3 entries of this file and the four changed Rust files (`torrent/handlers.rs`, `stats/handlers.rs`, `stats/responses.rs`, `test_support.rs`). The reviewer did not re-read the subissue guidelines or the `write-unit-test` skill in full and judged AAA and naming against the plans' prose-first tables and the S3 decisions. It was told not to modify tracked files, so this entry was written by the implementing agent from its report.
+- Evidence: clean `cargo llvm-cov` runs (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`) matched every recorded figure: aggregate 2,091 / 2,175 (96.14%), unit-only 2,067 / 2,175 (95.03%), integration-only 682 / 916 (74.45%), the per-file figures, and the 108 uncovered unit-only lines (`server.rs` 74, `testing/environment.rs` 31, `auth_key/handlers.rs` 3). Twelve mutations were re-applied and each was killed by an assertion, except the equivalent S9, which survives as the plan says; the claims that `axum_extra` reads an empty `offset=` as absent (T11 survives the query cases) and that the stats handler swap is killed only by the integration tests were confirmed. `cargo +nightly fmt --all -- --check` (nightly Rust toolchain), `cargo clippy --all-targets`, `cargo machete --with-metadata`, `git diff --check`, `linter markdown` and `linter cspell` passed; the EPIC deltas are arithmetically correct; no stamp is later than its commit; no commit id and no closing keyword; no production code changed; the `TODO(#2637)` comment points only to a tracked folder.
+- Findings:
+  - LOW: the S4 paragraph of the evidence and the EPIC log said every file of the v1 contexts is fully covered by unit tests, but three `Debug` lines of the auth-key handlers are not.
+  - LOW: the torrent routes plan read as if the handler swap were observable only through a real service, while the unit read-routes test also kills it for the torrent routes (not for the stats routes).
+  - LOW: the stats responses plan listed one killer for P4; the Prometheus case of the stats handler test also kills it.
+  - LOW (observation): the doc comment of `get_torrent_handler` says `500` for an unknown torrent while the handler and the module documentation say `200`. Production documentation outside this issue's scope.
+  - LOW (note): the handler tests assert the start or a part of a body as a boolean in a tuple; deliberate, because the full bodies are pinned in `stats/responses.rs`.
+- Verdict: REVIEW PASSED
+- Follow-up actions:
+  - The three plan and evidence wording items were corrected, and the doc comment observation was added to `lessons.md`; the boolean assertion note was declined as deliberate. No further review is required.

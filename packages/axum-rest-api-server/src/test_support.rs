@@ -9,8 +9,13 @@ use axum::body::{Body, Bytes, to_bytes};
 use axum::http::StatusCode;
 use axum::http::header::CONTENT_TYPE;
 use axum::response::Response;
+use torrust_clock::DurationSinceUnixEpoch;
+use torrust_metrics::label::LabelSet;
+use torrust_metrics::metric_collection::MetricCollection;
+use torrust_metrics::metric_name;
 use torrust_tracker_configuration::v3_0_0::Configuration;
 use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
+use torrust_tracker_rest_api_protocol::v1::context::stats::resources::stats::{LabeledStats, Stats};
 use torrust_tracker_rest_api_runtime_adapter::v1::container::TrackerHttpApiCoreContainer;
 
 /// The most bytes that a test reads from a response body. The bodies under test are small, so a larger one is a
@@ -108,4 +113,63 @@ pub async fn api_container(configuration: &Configuration) -> Arc<TrackerHttpApiC
         &http_api_config,
     )
     .await
+}
+
+/// Statistics whose fields are all different (the value is the position of the field, from 1 to 32), so a field that a
+/// test reads or prints in the wrong place shows. The one boolean, `completed_persisted_enabled`, is `true`.
+#[must_use]
+pub const fn a_stats() -> Stats {
+    Stats {
+        torrents: 1,
+        seeders: 2,
+        completed: 3,
+        completed_in_session: 4,
+        completed_persisted: 5,
+        completed_persisted_enabled: true,
+        leechers: 7,
+        tcp4_connections_handled: 8,
+        tcp4_announces_handled: 9,
+        tcp4_scrapes_handled: 10,
+        tcp6_connections_handled: 11,
+        tcp6_announces_handled: 12,
+        tcp6_scrapes_handled: 13,
+        udp_requests_discarded: 14,
+        udp_requests_aborted: 15,
+        udp_requests_banned: 16,
+        udp_banned_ips_total: 17,
+        udp_avg_connect_processing_time_ns: 18,
+        udp_avg_announce_processing_time_ns: 19,
+        udp_avg_scrape_processing_time_ns: 20,
+        udp4_requests: 21,
+        udp4_connections_handled: 22,
+        udp4_announces_handled: 23,
+        udp4_scrapes_handled: 24,
+        udp4_responses: 25,
+        udp4_errors_handled: 26,
+        udp6_requests: 27,
+        udp6_connections_handled: 28,
+        udp6_announces_handled: 29,
+        udp6_scrapes_handled: 30,
+        udp6_responses: 31,
+        udp6_errors_handled: 32,
+    }
+}
+
+/// Labeled statistics with one counter, `requests_total`, whose value is 1 and that has no labels.
+///
+/// # Panics
+///
+/// Panics if the counter cannot be recorded, which cannot happen in an empty collection.
+#[must_use]
+pub fn a_labeled_stats() -> LabeledStats {
+    let mut metrics = MetricCollection::default();
+    metrics
+        .increment_counter(
+            &metric_name!("requests_total"),
+            &LabelSet::default(),
+            DurationSinceUnixEpoch::from_secs(1),
+        )
+        .expect("the counter can be recorded in an empty collection");
+
+    LabeledStats { metrics }
 }

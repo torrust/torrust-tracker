@@ -285,3 +285,51 @@ Copilot's review of #2702 led to two test-only changes: the response-reading hel
 | Integration-only (`--test integration`) | 58 integration | 682 / 916 (74.45%) | 949 / 1,360 (69.78%) | 98 / 138 (71.01%) |
 
 Unit-only lines per file, before and after the two changes (the per-file sections above record the figure at each file's completed-file review): `routes.rs` 169 / 169 to 167 / 167, `test_support.rs` 35 / 35 to 63 / 63, `v1/context/auth_key/handlers.rs` 261 / 264 to 236 / 239, `v1/context/health_check/handlers.rs` 18 / 18 to 15 / 15, `v1/context/whitelist/handlers.rs` 198 / 198 to 175 / 175, `v1/middlewares/auth.rs` 142 / 142 to 133 / 133, `v1/responses.rs` 66 / 66 to 47 / 47 and `v1/routes.rs` 111 / 111 to 88 / 88. The uncovered lines are unchanged (the three `Debug` lines of `AuthKeyErrorDisplay` and the S4, S5 and out-of-scope files listed above). Mutations of the shared `observed` fail 48 to 62 unit tests, and the forwarding mutations of both fakes still fail their tests.
+
+### `v1/context/torrent/handlers.rs` (slice S4)
+
+Unit-only (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): lines 21 / 50 (42.00%) at the S4 baseline, 194 / 194 (100.00%) after; regions 20 / 67 before, 248 / 248 after; functions 4 / 7 before, 30 / 30 after. The counts include the in-file test module. 10 test functions (34 cases); 13 named mutations killed, two of them only after a correction (a palindromic order test, and a dead empty-string arm now tested directly; see [the plan](test-refactor-plans/v1-context-torrent-handlers-tests.md)). `torrent/responses.rs` (row 13) became 9 / 9 lines through the "not known" test. Package unit-only after this file: lines 1,844 / 1,999 (92.25%), regions 2,766 / 3,070 (90.10%), functions 313 / 345 (90.72%), 140 unit tests.
+
+### `v1/context/torrent/responses.rs` (slice S4)
+
+Unit-only (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): lines 0 / 9 (0.00%) at the S1 baseline and 6 / 9 at the S4 baseline, 9 / 9 (100.00%) after row 12 with no change to this file; regions 10 / 10; functions 3 / 3. The file has no test module of its own: the row 12 handler tests assert each of its three answers with a literal. Decision: no change. Three named mutations each fail the named handler test (see [the plan](test-refactor-plans/v1-context-torrent-responses-tests.md)).
+
+### `v1/context/torrent/routes.rs` (slice S4)
+
+Unit-only (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): lines 9 / 9 (100.00%), regions 15 / 15, functions 1 / 1, before and after; the file has no test module and is covered by the `v1/routes.rs` tests. Decision: no change. Four named mutations (two path changes, the two handlers swapped and the list method) each fail an existing unit test on an assertion (see [the plan](test-refactor-plans/v1-context-torrent-routes-tests.md)).
+
+### `v1/context/stats/handlers.rs` (slice S4)
+
+Unit-only (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): lines 12 / 20 (60.00%) at the S4 baseline, 40 / 40 (100.00%) after; regions 61 / 61; functions 14 / 14. The counts include the in-file test module. 4 test functions (12 cases); 8 of 9 named mutations killed, and the ninth is an equivalent mutant recorded in advance (see [the plan](test-refactor-plans/v1-context-stats-handlers-tests.md)). The two shared fixtures `a_stats` and `a_labeled_stats` were added to `test_support.rs` (109 / 109 lines). `stats/responses.rs` (row 16) now reads 45 / 45 lines only because the Prometheus handler case runs all its metric lines while asserting the first two, so row 16 still has to assert them. Package unit-only after this file: lines 1,957 / 2,065 (94.77%), regions 2,932 / 3,116 (94.09%), functions 325 / 353 (92.07%), 152 unit tests.
+
+### `v1/context/stats/responses.rs` (slice S4)
+
+Unit-only (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): lines 6 / 45 (13.33%) at the S4 baseline, 45 / 45 after row 15 (run but not asserted: only two of the 32 metric lines were checked), 155 / 155 (100.00%) after this file, where every line of the legacy text is now asserted; regions 168 / 168; functions 12 / 12. The counts include the in-file test module. 4 test functions; 10 named mutations killed (see [the plan](test-refactor-plans/v1-context-stats-responses-tests.md)). The legacy text is pinned as it is, with a `TODO` that whether its non-numeric `completed_persisted_enabled true` line is a bug is pending re-evaluation (a separate investigation, recorded in `lessons.md`). Package unit-only after this file: lines 2,067 / 2,175 (95.03%), regions 2,984 / 3,168 (94.19%), functions 333 / 361 (92.24%), 156 unit tests.
+
+### `v1/context/stats/routes.rs` (slice S4)
+
+Unit-only (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): lines 9 / 9 (100.00%), regions 15 / 15, functions 1 / 1, before and after; the file has no test module and is covered by the `v1/routes.rs` tests. Decision: no change. Four named mutations (two path changes, the metrics method and the two handlers swapped) each fail an existing test on an assertion; the handler swap is killed only by the integration tests (see [the plan](test-refactor-plans/v1-context-stats-routes-tests.md)).
+
+### Slice S4 Measurement
+
+After the six S4 files (`v1/context/torrent/{handlers,responses,routes}.rs` and `v1/context/stats/{handlers,responses,routes}.rs`, plus the two shared fixtures added to `test_support.rs`), on the S4 branch rebased onto `develop` (the package and its `rest-api-*` collaborators are unchanged since the S3 head; `develop` changed `Cargo.lock`, other packages and documentation only). Stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, a clean workspace before each report, the commands of the Measurement Scope section:
+
+| Scope | Tests | Lines | Regions | Functions |
+| --- | ---: | ---: | ---: | ---: |
+| Aggregate (all selected test targets) | 156 unit + 58 integration | 2,091 / 2,175 (96.14%) | 3,011 / 3,168 (95.04%) | 339 / 361 (93.91%) |
+| Unit-only (`--lib`) | 156 unit | 2,067 / 2,175 (95.03%) | 2,984 / 3,168 (94.19%) | 333 / 361 (92.24%) |
+| Integration-only (`--test integration`) | 58 integration | 682 / 916 (74.45%) | 949 / 1,360 (69.78%) | 98 / 138 (71.01%) |
+
+Unit-only lines move 1,668 / 1,855 (89.92%) at the S4 baseline (the S3 re-measurement) to 2,067 / 2,175 (95.03%). Two files gained substantial test modules and `test_support.rs` gained two fixtures, so the denominator grew by 320 lines; the four route and response files recorded as no change are unchanged. The integration-only figure is unchanged because the integration binary does not compile the in-file test modules. The only uncovered unit-only lines left are in `server.rs` (74, S5), `testing/environment.rs` (31, out of scope, test support owned by #2482 and #2449) and `auth_key/handlers.rs` (3, the `Debug` implementation of `AuthKeyErrorDisplay`), 108 in total; everything else, including every file of the torrent, stats, whitelist and health-check contexts, is fully covered by unit tests, and the auth-key contexts apart from those three `Debug` lines. Two files read as covered by an earlier row but needed their own assertions (`torrent/responses.rs` and `stats/responses.rs`); the second was 45 / 45 lines after row 15 with only two of its 32 metric lines asserted.
+
+### Slice S4 Re-Measurement After The Review Of #2718
+
+Copilot's review of #2718 led to one test-only change: the stats `format` test maps the parsed value to a small local enum with an exhaustive `match` instead of comparing its `Debug` text, which adds a few test lines. No test was added or removed. Measured on the branch after the change (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, a clean workspace before each report, the commands of the Measurement Scope section). This is the latest S4 figure; the slice measurement above is the one taken before the review.
+
+| Scope | Tests | Lines | Regions | Functions |
+| --- | ---: | ---: | ---: | ---: |
+| Aggregate (all selected test targets) | 156 unit + 58 integration | 2,097 / 2,181 (96.15%) | 3,017 / 3,174 (95.05%) | 340 / 362 (93.92%) |
+| Unit-only (`--lib`) | 156 unit | 2,073 / 2,181 (95.05%) | 2,990 / 3,174 (94.20%) | 334 / 362 (92.27%) |
+| Integration-only (`--test integration`) | 58 integration | 682 / 916 (74.45%) | 949 / 1,360 (69.78%) | 98 / 138 (71.01%) |
+
+`v1/context/stats/handlers.rs` is now 46 / 46 lines (it was 40 / 40), 67 / 67 regions and 15 / 15 functions; the other files are unchanged. The uncovered lines are the same 108 as before.
