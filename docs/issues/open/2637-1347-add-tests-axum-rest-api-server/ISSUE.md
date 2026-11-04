@@ -9,7 +9,7 @@ github-issue: 2637
 spec-path: docs/issues/open/2637-1347-add-tests-axum-rest-api-server/ISSUE.md
 branch: "2637-1347-add-tests-axum-rest-api-server-queries"
 related-pr: null
-last-updated-utc: "2026-11-04 12:11"
+last-updated-utc: "2026-11-04 12:16"
 semantic-links:
   skill-links:
     - create-issue
@@ -548,7 +548,7 @@ declaration-only rows have no executable entries.
 | 12 | `v1/context/torrent/handlers.rs` | 5 | S4 | 0 / 50 (0.00%) | 0 | Test candidate (weak property) | DONE | [v1-context-torrent-handlers-tests.md](test-refactor-plans/v1-context-torrent-handlers-tests.md) (done; 194 / 194 lines after, 34 test cases, 13 mutants killed) |
 | 13 | `v1/context/torrent/responses.rs` | 5 | S4 | 0 / 9 (0.00%) | 0 | Test candidate (small) | DONE | [v1-context-torrent-responses-tests.md](test-refactor-plans/v1-context-torrent-responses-tests.md) (done: no change; 9 / 9 lines covered by the row 12 tests, 3 mutants killed) |
 | 14 | `v1/context/torrent/routes.rs` | 5 | S4 | 9 / 9 (100.00%) | 0 | Probably no change | DONE | [v1-context-torrent-routes-tests.md](test-refactor-plans/v1-context-torrent-routes-tests.md) (done: no change; 9 / 9 lines, 4 mutants killed by existing tests) |
-| 15 | `v1/context/stats/handlers.rs` | 5 | S4 | 0 / 20 (0.00%) | 0 | Test candidate | PENDING | - |
+| 15 | `v1/context/stats/handlers.rs` | 5 | S4 | 0 / 20 (0.00%) | 0 | Test candidate | IN_PROGRESS | [v1-context-stats-handlers-tests.md](test-refactor-plans/v1-context-stats-handlers-tests.md) (approved) |
 | 16 | `v1/context/stats/responses.rs` | 5 | S4 | 0 / 45 (0.00%) | 0 | Test candidate | PENDING | - |
 | 17 | `v1/context/stats/routes.rs` | 5 | S4 | 9 / 9 (100.00%) | 0 | Probably no change | PENDING | - |
 | 18 | `server.rs` | 6 | S5 | 275 / 349 (78.80%) | 3 | Test candidate (TLS, errors, `check_fn`); legacy path owned by #1488 | PENDING | - |
@@ -723,6 +723,7 @@ once. If the slicing changes, the Slice column changes with it.
 - 2026-11-04 11:55 UTC - GitHub Copilot - Row 12 (`v1/context/torrent/handlers.rs`) is `IN_PROGRESS`: the maintainer approved its plan (answered after the 2026-11-03 19:22 UTC question): pin the documented `200` "torrent not known" answer, no property test, no test of `QueryParamError`'s `Display`. Fake-port pattern as in S3, with typed `Call` records and the shared `observed` helper.
 - 2026-11-04 12:08 UTC - GitHub Copilot - Row 12 (`v1/context/torrent/handlers.rs`) is `DONE`: the maintainer approved the completed file at 12:07 UTC. 10 test functions (34 cases) over a hand-written `TorrentQueryPort` fake with typed `Call` records; the file went from 21 / 50 to 194 / 194 lines; all 13 named mutations were killed (T9 and T11 only after a correction: a palindromic order test, and an empty-string arm that the real query extractor never reaches, now tested directly). Row 13's `torrent/responses.rs` is 9 / 9 as a side effect. Package unit-only lines 1,844 / 1,999 (92.25%), 140 unit tests.
 - 2026-11-04 12:11 UTC - GitHub Copilot - Row 12 committed as `test(axum-rest-api-server): [#2637] cover the torrent handlers`. Rows 13 (`v1/context/torrent/responses.rs`) and 14 (`v1/context/torrent/routes.rs`) are `DONE` with no-change decisions, both approved by the maintainer at 12:11 UTC: row 13 is 9 / 9 lines after row 12 and its three answers are pinned by the row 12 handler tests (three mutants killed); row 14 is 9 / 9 lines and four mutants are killed by existing `v1/routes.rs` tests. A state mutation is not possible on the torrent routes because the service is a required `Arc`, not an `Option`.
+- 2026-11-04 12:16 UTC - GitHub Copilot - Row 15 (`v1/context/stats/handlers.rs`) is `IN_PROGRESS`: the maintainer approved its plan and the shared fixtures `a_stats` and `a_labeled_stats` in `src/test_support.rs`, which rows 15 and 16 both use. Fake-port pattern as for the torrent handlers, asserting only what identifies the chosen builder (the full bodies are row 16's).
 
 ## Acceptance Criteria
 
