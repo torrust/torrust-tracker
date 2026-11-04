@@ -5,7 +5,7 @@ semantic-links:
     - .github/agents/task-reviewer.agent.md
     - .github/agents/pr-reviewer.agent.md
     - docs/agents/orchestration.md
-    - docs/issues/open/2691-reduce-agents-md-token-footprint/ISSUE.md
+    - docs/issues/closed/2691-reduce-agents-md-token-footprint/ISSUE.md
 ---
 
 # Agent Review Reports - Research AGENTS.md Best Practices and Reduce Its Token Footprint
