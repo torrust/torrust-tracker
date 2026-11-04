@@ -676,6 +676,8 @@ pub struct JobManager {
     legacy_jobs: Vec<LegacyJob>,
     registry: Arc<Mutex<ComponentRegistry>>,
     cancellation_token: CancellationToken,
+    /// The component that stops after every other component, once reserved.
+    stop_last: Option<ComponentId>,
 }
 
 impl JobManager {
@@ -687,7 +689,41 @@ impl JobManager {
             legacy_jobs: Vec::new(),
             registry: Arc::new(Mutex::new(ComponentRegistry::default())),
             cancellation_token: CancellationToken::new(),
+            stop_last: None,
         }
+    }
+
+    /// Reserves the one component that stops after every other component.
+    ///
+    /// Every component spawned afterwards stops before it, whatever other
+    /// [`StopBefore`] edges it declares: the manager adds the edge, so a
+    /// component added later cannot forget it. It is cancelled only once every
+    /// other spawned component has completed, in any state. Reserve it before
+    /// every other component (an edge needs a target reserved earlier), then
+    /// spawn it whenever it can start. A component that is not under the
+    /// manager's ordering, such as a legacy job, is not covered.
+    ///
+    /// A reservation dropped without being spawned is released, together with
+    /// the edges that other components declared towards it.
+    ///
+    /// # Panics
+    ///
+    /// Panics when a stop-last component was already reserved, or when other
+    /// components were reserved first: both are defects in the caller's
+    /// startup code.
+    pub fn reserve_stop_last<N>(&mut self, name: N) -> Reservation
+    where
+        N: Into<String>,
+    {
+        assert!(self.stop_last.is_none(), "a job manager has at most one stop-last component");
+        assert!(
+            lock(&self.registry).components.is_empty(),
+            "the stop-last component must be reserved before every other component"
+        );
+
+        let reservation = self.reserve(name);
+        self.stop_last = Some(reservation.id);
+        reservation
     }
 
     /// Reserves a top-level component and issues its own cancellation token.
@@ -752,9 +788,17 @@ impl JobManager {
             });
         }
 
+        let mut targets = stop_before.0.to_vec();
+        if let Some(stop_last) = self
+            .stop_last
+            .filter(|stop_last| *stop_last != reservation.id && !targets.contains(stop_last))
+        {
+            targets.push(stop_last);
+        }
+
         {
             let mut registry = lock(&self.registry);
-            registry.add_stop_before(reservation.id, stop_before.0)?;
+            registry.add_stop_before(reservation.id, &targets)?;
             registry.mark_spawned(reservation.id);
         }
         let abort_handle = self.jobs.spawn(future);
@@ -2222,5 +2266,130 @@ mod tests {
             exit_code, EXIT_CODE_INCOMPLETE_SHUTDOWN,
             "an Aborted outcome (the supervisor deadline expired) must not exit with the graceful code"
         );
+    }
+
+    // Stop last (issue #2697).
+
+    #[tokio::test(start_paused = true)]
+    async fn it_should_cancel_the_stop_last_component_only_after_every_other_component_has_completed() {
+        // Arrange
+        // The stop-last component is reserved first. The others declare no edge: the manager adds it.
+        let mut manager = JobManager::new();
+        let last = manager.reserve_stop_last("last");
+        let last_token = last.cancellation_token();
+        let release_first = spawn_producer_released_by_the_test(&mut manager, "first", &[]);
+        let release_second = spawn_producer_released_by_the_test(&mut manager, "second", &[]);
+        spawn_component_stopping_on_its_own_token(&mut manager, last);
+
+        // Act
+        manager.cancel();
+        let shutdown = tokio::spawn(manager.wait_for_all(Duration::from_secs(5)));
+        let_the_manager_react().await;
+        let cancelled_while_both_run = last_token.is_cancelled();
+        release_first
+            .send(())
+            .expect("the first component is waiting for its release");
+        let_the_manager_react().await;
+        let cancelled_while_one_runs = last_token.is_cancelled();
+        release_second
+            .send(())
+            .expect("the second component is waiting for its release");
+        let_the_manager_react().await;
+        let cancelled_after_both_completed = last_token.is_cancelled();
+        let outcomes = shutdown.await.expect("the shutdown task must not panic");
+
+        // Assert
+        assert!(
+            !cancelled_while_both_run,
+            "the stop-last component must keep running while both others run"
+        );
+        assert!(
+            !cancelled_while_one_runs,
+            "the stop-last component must keep running while one other runs"
+        );
+        assert!(
+            cancelled_after_both_completed,
+            "the stop-last component must stop once both others completed"
+        );
+        assert_eq!(outcomes.last().map(|outcome| outcome.name.as_str()), Some("last"));
+        assert_eq!(shutdown_exit_code(&outcomes), EXIT_CODE_GRACEFUL_SHUTDOWN);
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn it_should_cancel_the_stop_last_component_when_another_component_panics() {
+        // Arrange
+        let mut manager = JobManager::new();
+        let last = manager.reserve_stop_last("last");
+        let last_token = last.cancellation_token();
+        let panicking = manager.reserve("panicking");
+        manager
+            .spawn(panicking, async { panic!("simulated component panic") })
+            .expect("the reservation was issued by this manager");
+        spawn_component_stopping_on_its_own_token(&mut manager, last);
+
+        // Act
+        manager.cancel();
+        let outcomes = manager.wait_for_all(Duration::from_secs(5)).await;
+
+        // Assert
+        assert!(
+            last_token.is_cancelled(),
+            "a panicked predecessor must still release the stop-last component"
+        );
+        assert_eq!(shutdown_exit_code(&outcomes), EXIT_CODE_INCOMPLETE_SHUTDOWN);
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn it_should_abort_the_stop_last_component_at_the_deadline_when_another_component_hangs() {
+        // Arrange
+        let mut manager = JobManager::new();
+        let last = manager.reserve_stop_last("last");
+        let _never_released = spawn_producer_released_by_the_test(&mut manager, "hung", &[]);
+        spawn_component_stopping_on_its_own_token(&mut manager, last);
+
+        // Act
+        manager.cancel();
+        let outcomes = manager.wait_for_all(Duration::from_secs(5)).await;
+
+        // Assert
+        let status_of = |name: &str| {
+            outcomes
+                .iter()
+                .find(|outcome| outcome.name == name)
+                .map(|outcome| &outcome.status)
+        };
+        assert_eq!(status_of("hung"), Some(&JobStatus::Aborted));
+        assert_eq!(status_of("last"), Some(&JobStatus::Aborted));
+        assert_eq!(shutdown_exit_code(&outcomes), EXIT_CODE_INCOMPLETE_SHUTDOWN);
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn it_should_not_make_other_components_wait_for_a_stop_last_reservation_dropped_without_being_spawned() {
+        // Arrange
+        let mut manager = JobManager::new();
+        let last = manager.reserve_stop_last("last");
+        let other = manager.reserve("other");
+        let other_token = other.cancellation_token();
+        spawn_component_stopping_on_its_own_token(&mut manager, other);
+        drop(last);
+
+        // Act
+        manager.cancel();
+        let outcomes = manager.wait_for_all(Duration::from_secs(5)).await;
+
+        // Assert
+        assert!(other_token.is_cancelled());
+        assert_eq!(shutdown_exit_code(&outcomes), EXIT_CODE_GRACEFUL_SHUTDOWN);
+    }
+
+    #[test]
+    #[should_panic(expected = "must be reserved before every other component")]
+    fn it_should_reject_a_stop_last_reservation_made_after_another_component() {
+        // Arrange
+        let mut manager = JobManager::new();
+        let _other = manager.reserve("other");
+
+        // Act
+        let _last = manager.reserve_stop_last("last");
     }
 }
