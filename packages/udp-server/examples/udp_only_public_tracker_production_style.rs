@@ -207,7 +207,7 @@ async fn compose_containers(
 }
 
 /// Cancels the listeners and joins them, reporting every failure.
-async fn stop_event_listeners(token: CancellationToken, listeners: [JoinHandle<()>; 3]) {
+async fn stop_event_listeners(token: CancellationToken, listeners: impl IntoIterator<Item = JoinHandle<()>>) {
     token.cancel();
     for listener in listeners {
         if let Err(error) = listener.await {
