@@ -9,7 +9,7 @@ github-issue: 2699
 spec-path: docs/issues/open/2699-2482-gate-udp-server-test-environment/ISSUE.md
 branch: "2699-2482-gate-udp-server-test-environment"
 related-pr: 2711
-last-updated-utc: "2026-11-04 12:08"
+last-updated-utc: "2026-11-04 12:19"
 semantic-links:
   skill-links:
     - create-issue
@@ -191,9 +191,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T3 | DONE | Enable the feature in the health check package's dev-dependency | Its tests pass with the baseline counts (15 + 8); without the entry they fail to compile (evidence V3) |
 | T4 | DONE | Relabel the existing example and add the production-style example | Both build, run under plain `cargo run` and answer a real UDP connect request (evidence V6, V7); headers carry the required wording. Decision on the open implementation detail: no explicit dev-dependency on the registry crate was added; the new example imports it and compiles through the self dev-dependency, which enables `testing` (and so the optional crate) for every own target, like the `src/` unit tests. The example does not import the `testing` module |
 | T5 | DONE | Update inventory, diagram and docs | Inventory pattern A marked resolved for `udp-server`. `docs/packages.md` (its diagram shows layers, not test-only edges) and the package README mention no test environment, so they need no change; the coupling report of 2026-10-06 is not edited |
-| T6 | IN_PROGRESS | Fix `cargo chef prepare --external-only` in the `torrust/cargo-chef` fork so that it prunes feature entries that name a stripped path dependency | Failing test first, fix, tests and lints green, changelog entry; the maintainer reviews, merges and releases a new version (the pin must name it) |
-| T7 | TODO | Bump `torrust-cargo-chef@<new version>` in the `Containerfile` `chef` stage and check every other reference to the old pin | The `Test (Docker)` jobs of the PR pass |
-| T8 | TODO | Reproduce the CI job locally with the new version and record it | `cargo chef prepare --external-only` then `cargo chef cook --tests --workspace --all-features` on this tree exit 0 (evidence V9), and fail with 0.1.78 (the red control) |
+| T6 | IN_PROGRESS | Fix `cargo chef prepare --external-only` in the `torrust/cargo-chef` fork so that it prunes feature entries that name a stripped path dependency | Done and under review: https://github.com/torrust/cargo-chef/pull/1 (six unit tests failed first, one integration test, changelog and README, version 0.1.79). The maintainer reviews, merges, tags `v0.1.79-torrust` and publishes |
+| T7 | IN_PROGRESS | Bump `torrust-cargo-chef@<new version>` in the `Containerfile` `chef` stage and check every other reference to the old pin | The pin and its comment are bumped to 0.1.79 in a commit that is not pushed until 0.1.79 is published (`cargo binstall` cannot install it before); the only other reference to the old pin was the comment next to it. Open: the `Test (Docker)` jobs of the PR pass |
+| T8 | DONE | Reproduce the CI job locally with the new version and record it | `cargo chef prepare --external-only` then `cargo chef cook --tests --workspace --all-features` on this tree exit 0 with the fixed build and exit 101 with 0.1.78 (the red control), 2026-11-04 12:12 UTC (evidence V9) |
 
 ## Commit Points
 
@@ -217,7 +217,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed (reopened on 2026-11-04: T6 to T8, the container build)
 - [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks; reopened: the `Test (Docker)` jobs failed on the first push)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md` (V1 to V8 done; V9, the container recipe, is open)
+- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md` (V1 to V9 done; the `Test (Docker)` job with the new pin is open, AC6)
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence (AC6 is open)
 - [ ] Evidence-based implementation completion review recorded (to be updated after T8)
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
@@ -231,6 +231,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-03 17:08 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 4) - Created issue #2699 after the maintainer approved the refreshed spec, linked it as a sub-issue of #2482 and moved the spec to `docs/issues/open/`.
 - 2026-11-04 11:35 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 4) - Implementation done on branch `2699-2482-gate-udp-server-test-environment` after spec PR #2700 merged (2026-11-04 10:42 UTC): the gate, the feature, the optional registry dependency, the self dev-dependency and its `deny.toml` wrapper; the health check dev-dependency; the relabelled example and the new production-style example; the inventory. The independent pre-PR review found six minor findings on the new example and the evidence, all fixed (evidence V8). Verified with and without `--all-features` (evidence V1 to V8); no test was lost.
 - 2026-11-04 12:08 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 4) - The `Test (Docker) (release)` job of PR #2711 failed: `cargo chef prepare --external-only` strips workspace path dependencies but not the `[features]` entries that name them, so `testing = ["dep:torrust-tracker-swarm-coordination-registry"]` made the skeleton manifest invalid (reproduced locally with `torrust-cargo-chef` 0.1.78). The earlier 11:35 UTC entry's "verified" covered cargo checks, not the `Containerfile`; the checkpoints above are reopened. Options A to E are recorded in the new decision section; the maintainer chose A (fix the fork, bump the pin) on 2026-11-04 at 12:07 UTC. Tasks T6 to T8 added. Row 3 did not hit this because `mockall` is third-party; rows 5 to 7 will.
+- 2026-11-04 12:19 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 4) - Option A executed up to the release: the fix (six failing-first unit tests, one integration test, changelog, README, version 0.1.79) is in https://github.com/torrust/cargo-chef/pull/1; the red/green run on this tree is recorded as evidence V9 (0.1.78 exits 101, the fixed build exits 0); the `Containerfile` pin bump is committed locally and is not pushed until the maintainer has merged the fork PR, tagged `v0.1.79-torrust` and published 0.1.79. T6 and T7 stay IN_PROGRESS and AC6 stays open until the `Test (Docker)` jobs pass.
 
 ## Acceptance Criteria
 
@@ -277,7 +278,7 @@ target.
 | M5 | Dependents and the shipped binary | Tests of `axum-rest-api-server` and `rest-api-runtime-adapter`; `cli-configuration` with `TORRUST_TRACKER_BINARY` set to a preserved shipped-profile binary | Baseline counts; no test environment in the binary | DONE | V2, V4 |
 | M6 | Examples | Build, `cargo run`, a UDP connect request and SIGTERM for both examples | Both run and stop cleanly; only the existing one imports `testing` | DONE | V6, V7 |
 | M7 | Deny, machete, packaging, nightly check, bench build | The commands of the Verification Plan | All exit 0; `deny` fails without the self wrapper | DONE | V5, V6 |
-| M8 | The container recipe cooks | `cargo chef prepare --external-only --recipe-path <file>` then `cargo chef cook --tests --workspace --all-features --recipe-path <file>` with the pinned version, in a scratch directory | Exit 0 with the fixed version; the pinned 0.1.78 fails with the `dep:` message (red control) | TODO | V9 |
+| M8 | The container recipe cooks | `cargo chef prepare --external-only --recipe-path <file>` then `cargo chef cook --tests --workspace --all-features --recipe-path <file>` with the pinned version, in a scratch directory | Exit 0 with the fixed version; the pinned 0.1.78 fails with the `dep:` message (red control) | DONE | V9 (the fixed build from the fork's branch; the `Containerfile` job itself is open under AC6) |
 
 ### Acceptance Verification
 
