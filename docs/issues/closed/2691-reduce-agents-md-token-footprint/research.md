@@ -3,7 +3,7 @@ semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
-    - docs/issues/open/2691-reduce-agents-md-token-footprint/ISSUE.md
+    - docs/issues/closed/2691-reduce-agents-md-token-footprint/ISSUE.md
     - AGENTS.md
     - docs/adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md
 ---
