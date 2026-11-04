@@ -9,7 +9,7 @@ github-issue: 2715
 spec-path: docs/issues/open/2715-cli-output-contract-scope-and-exit-code-policy/ISSUE.md
 branch: "2712-wait-for-pr-review-bug-and-adr-specs-spec"
 related-pr: null
-last-updated-utc: "2026-11-04 13:09"
+last-updated-utc: "2026-11-04 13:41"
 semantic-links:
   skill-links:
     - create-issue
@@ -138,7 +138,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ### Progress Log
 
-- 2026-11-04 12:30 UTC - AI assistant (Copilot SDK in VS Code) - Drafted the specification from the open
+- 2026-11-04 12:30 UTC - OUT-OF-ORDER (the stamp is wrong, see the 13:07 correction below) - AI assistant (Copilot SDK in VS Code) - Drafted the specification from the open
   questions recorded while implementing #2581, and checked the ADR text, its issue specification and the exit-code
   behavior of the listed tools.
 - 2026-11-04 12:12 UTC - AI assistant (Copilot SDK in VS Code) - The maintainer approved the specification; GitHub issue #2715 created, labelled `task` and `ADR`, not attached to an EPIC (the maintainer decides); the specification moved from `docs/issues/drafts/` to `docs/issues/open/` for a spec-only pull request.
@@ -149,6 +149,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-04 13:09 UTC - AI assistant (Copilot SDK in VS Code) - The Evidence column of the manual scenarios M1 and M2
   now reads `TBD`: this pull request adds no `manual-verification-evidence.md` for this specification, and the file is
   written when the scenarios run.
+- 2026-11-04 13:41 UTC - AI assistant (Copilot SDK in VS Code) - The drafting entry is now marked `OUT-OF-ORDER`: the
+  file order matches the order of the events, and only its stamp is wrong, as the 13:07 correction states. The
+  entry text is unchanged.
 
 ## Acceptance Criteria
 
