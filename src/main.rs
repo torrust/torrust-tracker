@@ -35,7 +35,7 @@ async fn main() -> ExitCode {
 
             tracing::info!("Torrust tracker shutting down ({shutdown_signal}) ...");
 
-            jobs.cancel();
+            app::begin_shutdown(&app_container, &jobs);
 
             let outcomes = jobs.wait_for_all(app_container.application_config.shutdown.deadline()).await;
 

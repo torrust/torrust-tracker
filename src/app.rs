@@ -116,6 +116,18 @@ pub async fn start_with_explicit_config_toml_path(
     run_after_setup(&config, &app_container).await
 }
 
+/// Begins the normal shutdown: marks the application not ready, then asks the components to stop.
+///
+/// The order matters. A component that observes its cancellation must already see the tracker as not
+/// ready, and the health check API (which stops last) answers 503 for the whole drain, so readiness
+/// probes stop routing traffic to this instance before it stops serving. Marking not ready takes no
+/// time of its own: the process deadline covers the whole shutdown.
+// issue: #2697
+pub fn begin_shutdown(app_container: &AppContainer, job_manager: &JobManager) {
+    app_container.readiness.mark_not_ready();
+    job_manager.cancel();
+}
+
 async fn run_after_setup(
     config: &Configuration,
     app_container: &Arc<AppContainer>,
@@ -694,14 +706,16 @@ mod tests {
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
 
     use super::{
-        Error, EventFlows, component_runner, connection_id_validation_policy, load_data_from_database, run_after_setup,
-        should_start_udp_tracker_services, start_health_check_api, start_http_instance, start_jobs_with_manager,
+        Error, EventFlows, begin_shutdown, component_runner, connection_id_validation_policy, load_data_from_database,
+        run_after_setup, should_start_udp_tracker_services, start_health_check_api, start_http_instance, start_jobs_with_manager,
         start_peers_inactivity_update, start_swarm_coordination_registry_event_listener, start_the_http_api,
         start_torrent_cleanup, start_tracker_core_in_memory_event_listener,
         start_tracker_core_persistent_completed_statistics_event_listener, start_udp_instance,
     };
     use crate::bootstrap::app::initialize_global_services;
-    use crate::bootstrap::jobs::manager::{ComponentCompletion, JobManager, JobOutcome, JobStatus, StopBefore};
+    use crate::bootstrap::jobs::manager::{
+        ComponentCompletion, EXIT_CODE_GRACEFUL_SHUTDOWN, JobManager, JobOutcome, JobStatus, StopBefore, shutdown_exit_code,
+    };
     use crate::container::AppContainer;
 
     #[test]
@@ -967,6 +981,53 @@ mod tests {
                 status: JobStatus::Cancelled,
             }]
         );
+    }
+
+    // Multi-threaded and repeated, so that a wrong order (cancel, then mark) is caught: the observer
+    // runs on another thread and can win the race against the mark on any single attempt.
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn it_should_mark_the_application_not_ready_before_any_component_observes_its_cancellation() {
+        // Arrange
+        let configuration = ephemeral_public();
+        initialize_global_services(&configuration);
+
+        for attempt in 0..50 {
+            let app_container = Arc::new(
+                AppContainer::initialize(&configuration)
+                    .await
+                    .expect("composition should succeed"),
+            );
+            // A component records whether the application was ready at the moment it saw its token cancelled.
+            let mut job_manager = JobManager::new();
+            let reservation = job_manager.reserve("observer");
+            let token = reservation.cancellation_token();
+            let readiness = app_container.readiness.clone();
+            let (observed_sender, observed_receiver) = oneshot::channel();
+            job_manager
+                .spawn(reservation, async move {
+                    token.cancelled().await;
+                    let _ = observed_sender.send(readiness.is_ready());
+                    Ok(ComponentCompletion::Cancelled)
+                })
+                .expect("the reservation was issued by this manager");
+            assert!(app_container.readiness.is_ready(), "a started application is ready");
+
+            // Act
+            begin_shutdown(&app_container, &job_manager);
+            let outcomes = job_manager.wait_for_all(Duration::from_secs(5)).await;
+
+            // Assert
+            let ready_when_cancelled = tokio::time::timeout(Duration::from_secs(5), observed_receiver)
+                .await
+                .expect("the observer should report within the deadline")
+                .expect("the observer should report before it completes");
+            assert!(
+                !ready_when_cancelled,
+                "attempt {attempt}: readiness must already be not ready when components are cancelled"
+            );
+            assert!(!app_container.readiness.is_ready());
+            assert_eq!(shutdown_exit_code(&outcomes), EXIT_CODE_GRACEFUL_SHUTDOWN);
+        }
     }
 
     #[tokio::test]
