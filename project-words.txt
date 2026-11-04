@@ -9,6 +9,7 @@ Aideq
 Arvid
 Avicora
 Azureus
+BUILDPLATFORM
 Beránek
 Biriukov
 Bitflu
@@ -110,6 +111,7 @@ Subissues
 Swatinem
 Swiftbit
 Symfony
+TARGETPLATFORM
 TSIG
 Tebibytes
 Tera
@@ -136,6 +138,7 @@ Xeon
 Xtorrent
 Xunlei
 Zeroizing
+aarch64
 abdurazzoqovjavohir
 acgnxtracker
 acks
@@ -149,12 +152,15 @@ alekitto
 alives
 alloca
 alnum
+amd64
 analyse
 analysed
+applets
 appuser
 aquasec
 aquasecurity
 argjson
+arm64
 artefacts
 asdh
 asyn
@@ -181,6 +187,7 @@ bools
 bottlenecked
 bufs
 buildid
+buildx
 byteorder
 callgrind
 callsites
@@ -196,6 +203,7 @@ chrono
 ciphertext
 clippy
 cloneable
+cmake
 codecov
 codegen
 colour
@@ -276,9 +284,11 @@ gecos
 getaddrinfo
 gethostbyname
 ghac
+ghcr
 ghdata
 ghtoken
 githubmerge
+glibc
 gpgsign
 gzprintf
 gzvprintf
@@ -345,6 +355,7 @@ libsqlite
 libstdc
 libtorrent
 libz
+linux
 llist
 loadavg
 lscr
@@ -372,6 +383,7 @@ monomorphisation
 mprotect
 mpsc
 multimap
+musl
 myacicontext
 mysqladmin
 mysqld
@@ -406,6 +418,7 @@ oneline
 oneshot
 openexr
 openmetrics
+openssl
 opentracker
 opentrackers
 optimisation
@@ -528,6 +541,7 @@ stackoverflow
 staticlib
 strfmon
 strptime
+subcommand
 subissue
 subkey
 subsec
@@ -616,9 +630,12 @@ withf
 wordexp
 worktree
 writeln
+x86_64
 xxxxxxxxxxxxxxxxxxxxd
 yyyyyyyyyyyyyyyyyyyyd
 zerocopy
 zeroize
+zig
+zigbuild
 zstd
 ñaca
