@@ -41,6 +41,7 @@ approves it. A group of declaration-only files may share one plan.
 | 14 | [v1-context-torrent-routes-tests.md](v1-context-torrent-routes-tests.md) | DONE | No-change decision approved 2026-11-04 |
 | 15 | [v1-context-stats-handlers-tests.md](v1-context-stats-handlers-tests.md) | DONE | Approved 2026-11-04 (shared fixtures in `test_support`); completed file approved 2026-11-04 |
 | 16 | [v1-context-stats-responses-tests.md](v1-context-stats-responses-tests.md) | DONE | Directed 2026-11-04 (pin the text, investigate the boolean line apart); completed file approved 2026-11-04 |
+| 17 | [v1-context-stats-routes-tests.md](v1-context-stats-routes-tests.md) | DONE | No-change decision approved 2026-11-04 |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 

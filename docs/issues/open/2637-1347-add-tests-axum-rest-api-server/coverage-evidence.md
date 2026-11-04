@@ -305,3 +305,7 @@ Unit-only (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): lines 
 ### `v1/context/stats/responses.rs` (slice S4)
 
 Unit-only (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): lines 6 / 45 (13.33%) at the S4 baseline, 45 / 45 after row 15 (run but not asserted: only two of the 32 metric lines were checked), 155 / 155 (100.00%) after this file, where every line of the legacy text is now asserted; regions 168 / 168; functions 12 / 12. The counts include the in-file test module. 4 test functions; 10 named mutations killed (see [the plan](test-refactor-plans/v1-context-stats-responses-tests.md)). The legacy text is pinned as it is, with a `TODO` that whether its non-numeric `completed_persisted_enabled true` line is a bug is pending re-evaluation (a separate investigation, recorded in `lessons.md`). Package unit-only after this file: lines 2,067 / 2,175 (95.03%), regions 2,984 / 3,168 (94.19%), functions 333 / 361 (92.24%), 156 unit tests.
+
+### `v1/context/stats/routes.rs` (slice S4)
+
+Unit-only (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): lines 9 / 9 (100.00%), regions 15 / 15, functions 1 / 1, before and after; the file has no test module and is covered by the `v1/routes.rs` tests. Decision: no change. Four named mutations (two path changes, the metrics method and the two handlers swapped) each fail an existing test on an assertion; the handler swap is killed only by the integration tests (see [the plan](test-refactor-plans/v1-context-stats-routes-tests.md)).
