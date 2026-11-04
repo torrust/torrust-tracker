@@ -9,6 +9,7 @@ Aideq
 Arvid
 Avicora
 Azureus
+BUILDPLATFORM
 Beránek
 Biriukov
 Bitflu
@@ -110,6 +111,7 @@ Subissues
 Swatinem
 Swiftbit
 Symfony
+TARGETPLATFORM
 TSIG
 Tebibytes
 Tera
@@ -136,6 +138,7 @@ Xeon
 Xtorrent
 Xunlei
 Zeroizing
+aarch64
 abdurazzoqovjavohir
 acgnxtracker
 acks
@@ -149,12 +152,15 @@ alekitto
 alives
 alloca
 alnum
+amd64
 analyse
 analysed
+applets
 appuser
 aquasec
 aquasecurity
 argjson
+arm64
 artefacts
 asdh
 asyn
@@ -175,12 +181,15 @@ beps
 bidirectionality
 binascii
 bindv6only
+binfmt
 binstall
+binutils
 bitcode
 bools
 bottlenecked
 bufs
 buildid
+buildx
 byteorder
 callgrind
 callsites
@@ -196,6 +205,7 @@ chrono
 ciphertext
 clippy
 cloneable
+cmake
 codecov
 codegen
 colour
@@ -276,9 +286,11 @@ gecos
 getaddrinfo
 gethostbyname
 ghac
+ghcr
 ghdata
 ghtoken
 githubmerge
+glibc
 gpgsign
 gzprintf
 gzvprintf
@@ -336,6 +348,8 @@ leecher
 leechers
 libc
 libc6
+libclang
+libcrypto
 libgcc
 libgomp
 libheif
@@ -345,6 +359,8 @@ libsqlite
 libstdc
 libtorrent
 libz
+libzstd
+linux
 llist
 loadavg
 lscr
@@ -371,7 +387,9 @@ mockall
 monomorphisation
 mprotect
 mpsc
+multiarch
 multimap
+musl
 myacicontext
 mysqladmin
 mysqld
@@ -391,6 +409,7 @@ nonblocking
 nonroot
 noprefix
 nosalt
+nostdinc
 notnull
 nping
 nquery
@@ -406,6 +425,7 @@ oneline
 oneshot
 openexr
 openmetrics
+openssl
 opentracker
 opentrackers
 optimisation
@@ -528,6 +548,7 @@ stackoverflow
 staticlib
 strfmon
 strptime
+subcommand
 subissue
 subkey
 subsec
@@ -596,6 +617,7 @@ untuple
 unvalidated
 unviable
 upcasting
+uppercased
 ureq
 urlencode
 uroot
@@ -603,6 +625,7 @@ usize
 valgrind
 valueonly
 valuevec
+venv
 vmlinux
 vtable
 vulns
@@ -616,9 +639,15 @@ withf
 wordexp
 worktree
 writeln
+x86_64
 xxxxxxxxxxxxxxxxxxxxd
 yyyyyyyyyyyyyyyyyyyyd
 zerocopy
 zeroize
+zig
+zigbuild
+zigcc
+ziglang
+zigtest
 zstd
 ñaca

@@ -156,6 +156,21 @@ The shipped build costs about 17 seconds on a cold release image build, 18 secon
 seconds on a rebuild after a one-line source change, measured against the build before it existed (see the evidence of
 issue #2670).
 
+### Multi-Architecture Builds (Docker)
+
+The published Docker Hub images are multi-platform manifest lists built with `docker buildx` for `linux/amd64` and `linux/arm64` from a single tag. No dedicated tags are published per architecture; the manifest list allows a single tag to resolve to the correct binary for each platform. Since the `Containerfile` utilizes cross-compilation, QEMU emulation is only required to run tests against the produced `arm64` binaries. Before starting, ensure your environment meets the requirements for multi-platform builds (Docker BuildKit and QEMU) as detailed in the [Docker Multi-platform Documentation](https://docs.docker.com/build/building/multi-platform/)
+
+To build a multi-platform image locally, use `buildx`:
+
+```sh
+docker buildx build --platform linux/amd64,linux/arm64 --target release \
+  --file Containerfile --output type=oci,dest=torrust-tracker-multi-platform.tar .
+```
+
+> If you wish to load the image directly into your local Docker daemon instead, please note that Docker currently only supports loading a single platform at a time (e.g., use `--platform linux/amd64 --load`).
+
+The `Containerfile` is optimized for multi-platform builds: stages that only install build tools or generate platform-independent artefacts (recipe JSON, SQLite database files) use `FROM --platform=$BUILDPLATFORM`, so Docker caches and shares them across all target platforms. Stages that compile or run target-platform binaries use a plain `FROM`, which resolves to the target platform.
+
 ## Running the Container
 
 ### Basic Run
