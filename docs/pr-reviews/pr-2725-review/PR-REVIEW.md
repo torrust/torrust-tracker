@@ -1,7 +1,7 @@
 ---
 pr-number: 2725
 pr-url: https://github.com/torrust/torrust-tracker/pull/2725
-last-updated-utc: "2026-11-04 18:42"
+last-updated-utc: "2026-11-04 19:04"
 ---
 
 # PR #2725 Review Audit
@@ -32,12 +32,15 @@ Round 1: Copilot review 5773261511 on the head `6d0731d13` (two inline findings)
 
 Round 2: Copilot review 5773741514 on the head `3c9771b0b` (one finding, raised on two threads on the same line; the second is a duplicate).
 
+Round 3: Copilot review 5774058054 on the head `629f73ad9` (one review-body finding, no thread).
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2725-f1 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 | F2 | review-finding:pr-2725-f2 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
 | F3 | review-finding:pr-2725-f3 | Copilot | Minor (inferred) | metadata | ORIGINAL | FIXED | RESOLVED |
 | F4 | review-finding:pr-2725-f4 | Copilot | Minor (inferred) | metadata | RE_RAISE_OF:F3 | NO_ACTION | SUPERSEDED |
+| F5 | review-finding:pr-2725-f5 | Copilot | Minor | correctness | ORIGINAL | FIXED | NON_RESOLVABLE |
 
 ## Finding Details
 
@@ -93,10 +96,24 @@ Round 2: Copilot review 5773741514 on the head `3c9771b0b` (one finding, raised 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2725#discussion_r4471736451
 
+### F5 - Give startup and shutdown separate absolute deadlines
+
+- PR number: 2725
+- Source review ID: 5774058054
+- Reviewer finding ID: F5
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2725#pullrequestreview-5774058054
+- Concern: One absolute deadline computed before startup can expire while the example serves requests, leaving no budget to drain the server or join listeners on SIGTERM, and bounding the signal wait would impose a maximum server lifetime.
+- Solution: Valid. The Design and Ownership Review now has two absolute deadlines, one for start and readiness and a fresh one computed when shutdown begins, and leaves the wait for the shutdown signal unbounded.
+- Current-tree verification: Read the "Absolute deadlines" bullet in `docs/issues/open/2724-2482-gate-axum-http-server-test-environment/ISSUE.md` after the fix; it names both deadlines and the unbounded signal wait.
+- Resolution reference: docs(issues): [#2724] give the example separate startup and shutdown deadlines
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2725#issuecomment-6639489233
+
 ## Processing Log
 
 - 2026-11-04 18:18 UTC - Started audit; round 1 (Copilot review 5773261511) processed: F1 and F2 fixed in the two commits cited above, pushed, replied and resolved; zero unresolved threads after refreshing GraphQL. Copilot is re-requested after the audit is pushed.
 - 2026-11-04 18:42 UTC - Round 2 (Copilot review 5773741514): F3 fixed in the commit cited above, F4 superseded by F3; both replied and resolved after the push; zero unresolved threads after refreshing GraphQL. The maintainer's `ACK 6d0731d13` (comment 6637934790, 2026-11-04 17:54 UTC) is on a head older than the round 1 fixes and this round's fix, so it no longer matches the head.
+- 2026-11-04 19:04 UTC - Round 3 (Copilot review 5774058054, a review body with no thread): F5 fixed in the commit cited above, pushed, and answered in the PR conversation comment linked in its detail entry. Copilot reported no open thread.
 
 ## Completion Rules
 
