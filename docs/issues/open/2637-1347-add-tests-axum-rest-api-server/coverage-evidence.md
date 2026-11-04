@@ -309,3 +309,15 @@ Unit-only (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): lines 
 ### `v1/context/stats/routes.rs` (slice S4)
 
 Unit-only (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): lines 9 / 9 (100.00%), regions 15 / 15, functions 1 / 1, before and after; the file has no test module and is covered by the `v1/routes.rs` tests. Decision: no change. Four named mutations (two path changes, the metrics method and the two handlers swapped) each fail an existing test on an assertion; the handler swap is killed only by the integration tests (see [the plan](test-refactor-plans/v1-context-stats-routes-tests.md)).
+
+### Slice S4 Measurement
+
+After the six S4 files (`v1/context/torrent/{handlers,responses,routes}.rs` and `v1/context/stats/{handlers,responses,routes}.rs`, plus the two shared fixtures added to `test_support.rs`), on the S4 branch rebased onto `develop` (the package and its `rest-api-*` collaborators are unchanged since the S3 head; `develop` changed `Cargo.lock`, other packages and documentation only). Stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, a clean workspace before each report, the commands of the Measurement Scope section:
+
+| Scope | Tests | Lines | Regions | Functions |
+| --- | ---: | ---: | ---: | ---: |
+| Aggregate (all selected test targets) | 156 unit + 58 integration | 2,091 / 2,175 (96.14%) | 3,011 / 3,168 (95.04%) | 339 / 361 (93.91%) |
+| Unit-only (`--lib`) | 156 unit | 2,067 / 2,175 (95.03%) | 2,984 / 3,168 (94.19%) | 333 / 361 (92.24%) |
+| Integration-only (`--test integration`) | 58 integration | 682 / 916 (74.45%) | 949 / 1,360 (69.78%) | 98 / 138 (71.01%) |
+
+Unit-only lines move 1,668 / 1,855 (89.92%) at the S4 baseline (the S3 re-measurement) to 2,067 / 2,175 (95.03%). Two files gained substantial test modules and `test_support.rs` gained two fixtures, so the denominator grew by 320 lines; the four route and response files recorded as no change are unchanged. The integration-only figure is unchanged because the integration binary does not compile the in-file test modules. The only uncovered unit-only lines left are in `server.rs` (74, S5), `testing/environment.rs` (31, out of scope, test support owned by #2482 and #2449) and `auth_key/handlers.rs` (3, the `Debug` implementation of `AuthKeyErrorDisplay`), 108 in total; everything else, including every file of the v1 contexts, is fully covered by unit tests. Two files read as covered by an earlier row but needed their own assertions (`torrent/responses.rs` and `stats/responses.rs`); the second was 45 / 45 lines after row 15 with only two of its 32 metric lines asserted.

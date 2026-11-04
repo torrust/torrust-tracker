@@ -9,7 +9,7 @@ github-issue: 2637
 spec-path: docs/issues/open/2637-1347-add-tests-axum-rest-api-server/ISSUE.md
 branch: "2637-1347-add-tests-axum-rest-api-server-queries"
 related-pr: null
-last-updated-utc: "2026-11-04 13:27"
+last-updated-utc: "2026-11-04 13:29"
 semantic-links:
   skill-links:
     - create-issue
@@ -727,6 +727,7 @@ once. If the slicing changes, the Slice column changes with it.
 - 2026-11-04 12:26 UTC - GitHub Copilot - Row 15 (`v1/context/stats/handlers.rs`) is `DONE`: the maintainer approved the completed file. 4 test functions (12 cases) over a hand-written `StatsQueryPort` fake with a typed `Call` log; the file went from 12 / 20 to 40 / 40 lines; 8 of 9 named mutations were killed (two redone as compiling mutants) and the ninth, removing a redundant `#[serde(default)]`, is an equivalent mutant recorded in advance. The shared fixtures `a_stats` and `a_labeled_stats` joined `test_support.rs`. Row 16's `stats/responses.rs` reads 45 / 45 lines but is covered, not asserted, so its plan asserts every line. Package unit-only lines 1,957 / 2,065 (94.77%), 152 unit tests.
 - 2026-11-04 13:22 UTC - GitHub Copilot - Row 15 committed as `test(axum-rest-api-server): [#2637] cover the stats handlers`. Row 16 (`v1/context/stats/responses.rs`) is `DONE`: the maintainer directed the plan (pin the legacy text as it is, with a `TODO` comment, and investigate the non-numeric `completed_persisted_enabled true` line apart, through a hand-off to a separate agent) and approved the completed file. 4 test functions asserting the full literals; the file went from 6 / 45 lines to 155 / 155, now asserted and not only covered; all 10 named mutations were killed (three redone). Package unit-only lines 2,067 / 2,175 (95.03%), 156 unit tests.
 - 2026-11-04 13:27 UTC - GitHub Copilot - Row 16 committed as `test(axum-rest-api-server): [#2637] cover the stats responses`. Row 17 (`v1/context/stats/routes.rs`) is `DONE` with a no-change decision, approved by the maintainer: the file is already 9 / 9 lines, and four named mutations (two paths, a method, and the two handlers swapped) each fail an existing test; the handler swap only at integration level. All six S4 ledger rows (12-17) are `DONE`.
+- 2026-11-04 13:29 UTC - GitHub Copilot - S4 implementation finished and rebased onto `develop` (the package and its `rest-api-*` collaborators are unchanged since the S3 head). Re-measured with clean runs: unit-only lines 2,067 / 2,175 (95.03%), aggregate 2,091 / 2,175 (96.14%), integration-only 682 / 916 (74.45%); 156 unit and 58 integration tests. Updated the S4 measurement in `coverage-evidence.md` and the EPIC "Latest" tables and log. Next: the independent Task Reviewer, pre-push, and the pull request.
 
 ## Acceptance Criteria
 
