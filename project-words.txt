@@ -438,6 +438,7 @@ prealloc
 println
 prioritise
 programatik
+promtool
 proot
 proto
 pullrequestreview
@@ -526,6 +527,7 @@ sscanf
 stabilised
 stackoverflow
 staticlib
+strconv
 strfmon
 strptime
 subissue
