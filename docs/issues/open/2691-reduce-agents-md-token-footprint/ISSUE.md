@@ -9,7 +9,7 @@ github-issue: 2691
 spec-path: docs/issues/open/2691-reduce-agents-md-token-footprint/ISSUE.md
 branch: "2691-reduce-agents-md-token-footprint"
 related-pr: 2704
-last-updated-utc: "2026-11-04 10:30"
+last-updated-utc: "2026-11-04 11:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -21,6 +21,7 @@ semantic-links:
     - docs/issues/open/2691-reduce-agents-md-token-footprint/section-disposition.md
     - docs/issues/open/2691-reduce-agents-md-token-footprint/rule-inventory.md
     - docs/issues/open/2691-reduce-agents-md-token-footprint/manual-verification-evidence.md
+    - docs/issues/open/2691-reduce-agents-md-token-footprint/implementation-retrospective.md
 ---
 
 <!-- skill-link: create-issue -->
@@ -153,11 +154,11 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [ ] Committer verified spec progress is up to date before commit
@@ -182,30 +183,31 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - 2026-11-03 16:30 UTC - Claude Code (Claude Sonnet 5.5) - Recorded the maintainer's final `/context`: `AGENTS.md` is 4.8k Claude Code tokens against the 12.4k baseline (-61%), under the 5k target; discarded an earlier reading that had loaded the old file; created `manual-verification-evidence.md` with V1 done and V2 to V4 pending - `manual-verification-evidence.md`
 - 2026-11-04 09:00 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer decided not to add a regrowth guard now and that this may change later (decision D7); T8 closed without implementation and AC6 waived; V2 and V3 will be run by the maintainer one step at a time - `section-disposition.md`
 - 2026-11-04 10:30 UTC - Claude Code (Claude Sonnet 5.5) - The maintainer ran V2 and V3 in fresh Sonnet 5.5 sessions one step at a time; both passed (key rules stated correctly; the removed package and port content found through the pointers). V4 walk-through: 99 of 99 inventory rows asserted, no deletion without a reason, 53 of 61 `AGENTS.md` rows verbatim and 8 reworded rows confirmed by reading; M2 to M4 and T9 done - `manual-verification-evidence.md`
+- 2026-11-04 11:30 UTC - Claude Code (Claude Sonnet 5.5) - Wrote the implementation retrospective (material discoveries: source-seeded inventory, a skill that pointed back at `AGENTS.md`, four stale baseline statements, silent table re-alignment, a stale-session measurement) and reviewed the acceptance criteria against the evidence: AC1, AC2, AC3, AC5, AC6 (waived) and AC7 are met. AC4 left open for the maintainer: no procedure is duplicated, but four short global rules remain in both `AGENTS.md` and a skill by decision D2 (branch naming and the `-spec` suffix, the Conventional Commits types, the pre-commit gate command, the log-directory tip) - `implementation-retrospective.md`
 
 ## Acceptance Criteria
 
-- [ ] AC1: `research.md` documents the sources consulted and the practices adopted, each tied to
+- [x] AC1: `research.md` documents the sources consulted and the practices adopted, each tied to
       evidence, and states which practices were deliberately not adopted and why.
 - [x] AC2: A baseline and a final token measurement exist, taken with the same documented method,
       and the final footprint of `AGENTS.md` is about 5k Claude Code tokens or fewer in `/context`
       (target agreed with the maintainer in T5, decision D1; baseline 12.4k).
-- [ ] AC3: Every section of the original `AGENTS.md` has a recorded disposition, and every rule that
+- [x] AC3: Every section of the original `AGENTS.md` has a recorded disposition, and every rule that
       was moved is reachable from `AGENTS.md` by link or skill reference.
-- [ ] AC7: Every row of `rule-inventory.md`, built from the baseline file before restructuring,
+- [x] AC7: Every row of `rule-inventory.md`, built from the baseline file before restructuring,
       has status `ASSERTED`: its final location was opened and confirmed, or a `DELETE` has a
       recorded reason.
 - [ ] AC4: No procedural guidance is duplicated between `AGENTS.md` and a skill or `docs/` page
       (Engineering Policy 6).
-- [ ] AC5: `AGENTS.md` remains the sole source of truth and no provider-specific adapter file is
+- [x] AC5: `AGENTS.md` remains the sole source of truth and no provider-specific adapter file is
       introduced (Engineering Policy 7).
 - [x] AC6: Waived by maintainer decision D7: no regrowth guard is added now; it can be reconsidered
       later if `AGENTS.md` grows again.
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] `linter all` exits with code `0`
+- [x] Relevant tests pass
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
-- [ ] Documentation is updated when behavior/workflow changes
+- [x] Documentation is updated when behavior/workflow changes
 
 ## Verification Plan
 
@@ -245,13 +247,13 @@ Rust test is not suitable, and its removal or retention owner here before creati
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence           |
 | ----- | ---------------------- | ------------------ |
-| AC1   | TODO                   | {test/log/PR link} |
+| AC1   | DONE                   | `research.md`: sources, adopted practices P1 to P8 and the practices not adopted |
 | AC2   | DONE                   | `manual-verification-evidence.md` section V1: 12.4k to 4.8k Claude Code tokens |
-| AC3   | TODO                   | {test/log/PR link} |
-| AC4   | TODO                   | {test/log/PR link} |
-| AC5   | TODO                   | {test/log/PR link} |
+| AC3   | DONE                   | `section-disposition.md` (17 sections) and `rule-inventory.md` (99 rows, all asserted) |
+| AC4   | TODO                   | Awaiting maintainer judgment: no procedure is copied, but short global rules stay in both places by decision D2 (see the progress log) |
+| AC5   | DONE                   | No `CLAUDE.md` or adapter file added; `research.md` T3 section and the V2 and V3 fresh-session runs |
 | AC6   | DONE                   | `section-disposition.md`, decision D7 (waived) |
-| AC7   | TODO                   | {test/log/PR link} |
+| AC7   | DONE                   | `manual-verification-evidence.md` V4: 99 of 99 asserted, no deletion without a reason |
 
 ## Risks and Trade-offs
 
@@ -267,7 +269,7 @@ Rust test is not suitable, and its removal or retention owner here before creati
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
+- Retrospective: created, see [`implementation-retrospective.md`](implementation-retrospective.md)
 - If needed, create `implementation-retrospective.md` from the repository template at
   `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this issue specification's directory.
 - If no retrospective is needed, add a concise progress-log entry explaining why the work had no
