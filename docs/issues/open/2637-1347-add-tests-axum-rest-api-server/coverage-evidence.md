@@ -289,3 +289,11 @@ Unit-only lines per file, before and after the two changes (the per-file section
 ### `v1/context/torrent/handlers.rs` (slice S4)
 
 Unit-only (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): lines 21 / 50 (42.00%) at the S4 baseline, 194 / 194 (100.00%) after; regions 20 / 67 before, 248 / 248 after; functions 4 / 7 before, 30 / 30 after. The counts include the in-file test module. 10 test functions (34 cases); 13 named mutations killed, two of them only after a correction (a palindromic order test, and a dead empty-string arm now tested directly; see [the plan](test-refactor-plans/v1-context-torrent-handlers-tests.md)). `torrent/responses.rs` (row 13) became 9 / 9 lines through the "not known" test. Package unit-only after this file: lines 1,844 / 1,999 (92.25%), regions 2,766 / 3,070 (90.10%), functions 313 / 345 (90.72%), 140 unit tests.
+
+### `v1/context/torrent/responses.rs` (slice S4)
+
+Unit-only (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): lines 0 / 9 (0.00%) at the S1 baseline and 6 / 9 at the S4 baseline, 9 / 9 (100.00%) after row 12 with no change to this file; regions 10 / 10; functions 3 / 3. The file has no test module of its own: the row 12 handler tests assert each of its three answers with a literal. Decision: no change. Three named mutations each fail the named handler test (see [the plan](test-refactor-plans/v1-context-torrent-responses-tests.md)).
+
+### `v1/context/torrent/routes.rs` (slice S4)
+
+Unit-only (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): lines 9 / 9 (100.00%), regions 15 / 15, functions 1 / 1, before and after; the file has no test module and is covered by the `v1/routes.rs` tests. Decision: no change. Four named mutations (two path changes, the two handlers swapped and the list method) each fail an existing unit test on an assertion (see [the plan](test-refactor-plans/v1-context-torrent-routes-tests.md)).
