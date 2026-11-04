@@ -9,7 +9,7 @@ github-issue: 2637
 spec-path: docs/issues/open/2637-1347-add-tests-axum-rest-api-server/ISSUE.md
 branch: "2637-1347-add-tests-axum-rest-api-server-queries"
 related-pr: null
-last-updated-utc: "2026-11-03 19:14"
+last-updated-utc: "2026-11-04 11:55"
 semantic-links:
   skill-links:
     - create-issue
@@ -545,7 +545,7 @@ declaration-only rows have no executable entries.
 | 9 | `v1/context/whitelist/handlers.rs` | 4 | S3 | 0 / 37 (0.00%) | 0 | Test candidate | DONE | [v1-context-whitelist-handlers-tests.md](test-refactor-plans/v1-context-whitelist-handlers-tests.md) (done; 198 / 198 lines after, 13 test cases, 10 mutants killed) |
 | 10 | `v1/context/whitelist/responses.rs` | 4 | S3 | 0 / 9 (0.00%) | 0 | Test candidate (small) | DONE | [v1-context-whitelist-responses-tests.md](test-refactor-plans/v1-context-whitelist-responses-tests.md) (done: no change; 9 / 9 lines covered by the row 9 tests, 3 mutants killed) |
 | 11 | `v1/context/whitelist/routes.rs` | 4 | S3 | 14 / 14 (100.00%) | 0 | Probably no change | DONE | [v1-context-whitelist-routes-tests.md](test-refactor-plans/v1-context-whitelist-routes-tests.md) (done: no change; 14 / 14 lines, 7 mutants killed by existing tests) |
-| 12 | `v1/context/torrent/handlers.rs` | 5 | S4 | 0 / 50 (0.00%) | 0 | Test candidate (weak property) | PENDING | - |
+| 12 | `v1/context/torrent/handlers.rs` | 5 | S4 | 0 / 50 (0.00%) | 0 | Test candidate (weak property) | IN_PROGRESS | [v1-context-torrent-handlers-tests.md](test-refactor-plans/v1-context-torrent-handlers-tests.md) (approved) |
 | 13 | `v1/context/torrent/responses.rs` | 5 | S4 | 0 / 9 (0.00%) | 0 | Test candidate (small) | PENDING | - |
 | 14 | `v1/context/torrent/routes.rs` | 5 | S4 | 9 / 9 (100.00%) | 0 | Probably no change | PENDING | - |
 | 15 | `v1/context/stats/handlers.rs` | 5 | S4 | 0 / 20 (0.00%) | 0 | Test candidate | PENDING | - |
@@ -720,6 +720,7 @@ once. If the slicing changes, the Slice column changes with it.
 - 2026-11-03 17:28 UTC - GitHub Copilot - Pre-push passed and S3 pull request #2702 (<https://github.com/torrust/torrust-tracker/pull/2702>, `Related to #2637`) was opened at 17:27 UTC; recorded it in the frontmatter, the slice table and the EPIC row. Corrected the stamps of the S3 re-review entry (17:25 to 17:24 UTC) and the report heading, which were later than their commit (17:24:55 UTC).
 - 2026-11-03 18:08 UTC - GitHub Copilot - Review round of #2702 (audit: `docs/pr-reviews/pr-2702-review/PR-REVIEW.md`). The testing workflow failed on a clippy lint in `http-protocol` that `develop` had already fixed, so `develop` was merged into the branch (no rebase, no squash). Copilot's five comments are two findings, both fixed at the maintainer's decision: the port fakes now record typed `Call` values (F1-F3) and the response-reading helper is shared in `test_support` across the seven modules (F4-F5, extracted now instead of deferred; the helper note of `lessons.md` is resolved). Re-measured: unit-only lines 1,668 / 1,855 (89.92%), aggregate 1,730 / 1,855 (93.26%), integration-only unchanged; the denominator fell by 76 lines because duplicated test code left the modules, and no test was added or removed (106 unit and 58 integration tests).
 - 2026-11-03 19:14 UTC - GitHub Copilot - S3 merged through #2702 (19:13 UTC; Copilot's five comments, two findings, were fixed and their threads resolved before the merge, and no late review exists). Started S4 on branch `2637-1347-add-tests-axum-rest-api-server-queries` from `develop` at the merge of #2702. The package and its `rest-api-*` collaborators are unchanged since the S3 head, so the S3 re-measurement is the S4 baseline (unit-only lines 1,668 / 1,855, 89.92%). Ledger rows 12-17 (the torrent and stats contexts) are next; the first plan awaits your direction.
+- 2026-11-04 11:55 UTC - GitHub Copilot - Row 12 (`v1/context/torrent/handlers.rs`) is `IN_PROGRESS`: the maintainer approved its plan (answered after the 2026-11-03 19:22 UTC question): pin the documented `200` "torrent not known" answer, no property test, no test of `QueryParamError`'s `Display`. Fake-port pattern as in S3, with typed `Call` records and the shared `observed` helper.
 
 ## Acceptance Criteria
 
