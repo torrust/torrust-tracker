@@ -60,6 +60,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F11 | review-finding:pr-2716-f11 | Copilot | Nit (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
 | F12 | review-finding:pr-2716-f12 | Copilot | Nit (inferred) | maintainability | RE_RAISE_OF:F11 | NO_ACTION | SUPERSEDED |
 | F13 | review-finding:pr-2716-f13 | Copilot | Nit (inferred) | formatting | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F14 | review-finding:pr-2716-f14 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | NON_RESOLVABLE |
 
 ## Finding Details
 
@@ -232,6 +233,19 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: N/A
 - Reply URL: <https://github.com/torrust/torrust-tracker/pull/2716#discussion_r4468267312>
 
+### F14 - The fake gh never lets the post-feedback read observe head B
+
+- PR number: 2716
+- Source review ID: 5770062493
+- Reviewer finding ID: N/A
+- Source URL: <https://github.com/torrust/torrust-tracker/pull/2716#pullrequestreview-5770062493>
+- Concern: The #2714 fake `gh` always returns head A, so a fix that reads the pull request again after the feedback calls would still see A and fail the M2 recheck after receiving the review of commit B.
+- Solution: Valid. The first pull-request read of every snapshot still reports head A, and a read after the second review-list response reports head B. The evidence text and the progress log record the change.
+- Current-tree verification: `bash -n` on the script passed; the unfixed poller run against it gave `head_sha` `aaaa…` and a review of `bbbb…`, the same result as V1; the pre-commit checks passed.
+- Resolution reference: docs(issues): let the 2714 reproduction script report the push after the feedback calls
+- Follow-up PR URL: N/A
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2716#issuecomment-6634890063>
+
 ## Processing Log
 
 - 2026-11-04 13:05 UTC - Started audit: fetched the nine unresolved threads of Copilot's review 5768334587 (submitted 12:34:59 UTC) on the head at that time.
@@ -243,6 +257,10 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-11-04 13:42 UTC - F10 and F11 were fixed in two signed commits (commit times from `git log --format=%cI`): F10 at 13:41 and F11 at 13:42 UTC. F12 is a duplicate of F11 and F13 needed no change.
 - 2026-11-04 13:44 UTC - After the push, each thread was replied to and resolved with `reply-and-resolve-thread.sh`; the GitHub times of the four replies are 13:44:37, 13:44:42, 13:44:45 and 13:44:48 UTC.
 - 2026-11-04 13:44 UTC - A GraphQL fetch at 13:44:59 UTC, after the last reply, reported no unresolved thread.
+- 2026-11-04 14:14 UTC - Copilot was re-requested at 14:14:16 UTC on the head at that time (after everything was pushed).
+- 2026-11-04 14:32 UTC - The `wait-for-pr-review` poller returned Copilot's third review 5770062493, submitted at 14:31:57 UTC (kind `review`, state `COMMENTED`, no inline thread); its body held one finding, F14, recorded as `NON_RESOLVABLE`.
+- 2026-11-04 15:35 UTC - F14 was fixed in one signed commit, made at 15:35 UTC (commit time from `git log --format=%cI`; the first two attempts failed on a GPG passphrase timeout, and the signed command was rerun once after the maintainer chose that option).
+- 2026-11-04 15:38 UTC - After the push, the PR conversation response was posted at 15:38:10 UTC, and a GraphQL fetch at 15:38:17 UTC reported no unresolved thread.
 
 ## Completion Rules
 
