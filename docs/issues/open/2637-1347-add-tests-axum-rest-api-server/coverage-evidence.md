@@ -321,3 +321,15 @@ After the six S4 files (`v1/context/torrent/{handlers,responses,routes}.rs` and 
 | Integration-only (`--test integration`) | 58 integration | 682 / 916 (74.45%) | 949 / 1,360 (69.78%) | 98 / 138 (71.01%) |
 
 Unit-only lines move 1,668 / 1,855 (89.92%) at the S4 baseline (the S3 re-measurement) to 2,067 / 2,175 (95.03%). Two files gained substantial test modules and `test_support.rs` gained two fixtures, so the denominator grew by 320 lines; the four route and response files recorded as no change are unchanged. The integration-only figure is unchanged because the integration binary does not compile the in-file test modules. The only uncovered unit-only lines left are in `server.rs` (74, S5), `testing/environment.rs` (31, out of scope, test support owned by #2482 and #2449) and `auth_key/handlers.rs` (3, the `Debug` implementation of `AuthKeyErrorDisplay`), 108 in total; everything else, including every file of the torrent, stats, whitelist and health-check contexts, is fully covered by unit tests, and the auth-key contexts apart from those three `Debug` lines. Two files read as covered by an earlier row but needed their own assertions (`torrent/responses.rs` and `stats/responses.rs`); the second was 45 / 45 lines after row 15 with only two of its 32 metric lines asserted.
+
+### Slice S4 Re-Measurement After The Review Of #2718
+
+Copilot's review of #2718 led to one test-only change: the stats `format` test maps the parsed value to a small local enum with an exhaustive `match` instead of comparing its `Debug` text, which adds a few test lines. No test was added or removed. Measured on the branch after the change (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, a clean workspace before each report, the commands of the Measurement Scope section). This is the latest S4 figure; the slice measurement above is the one taken before the review.
+
+| Scope | Tests | Lines | Regions | Functions |
+| --- | ---: | ---: | ---: | ---: |
+| Aggregate (all selected test targets) | 156 unit + 58 integration | 2,097 / 2,181 (96.15%) | 3,017 / 3,174 (95.05%) | 340 / 362 (93.92%) |
+| Unit-only (`--lib`) | 156 unit | 2,073 / 2,181 (95.05%) | 2,990 / 3,174 (94.20%) | 334 / 362 (92.27%) |
+| Integration-only (`--test integration`) | 58 integration | 682 / 916 (74.45%) | 949 / 1,360 (69.78%) | 98 / 138 (71.01%) |
+
+`v1/context/stats/handlers.rs` is now 46 / 46 lines (it was 40 / 40), 67 / 67 regions and 15 / 15 functions; the other files are unchanged. The uncovered lines are the same 108 as before.

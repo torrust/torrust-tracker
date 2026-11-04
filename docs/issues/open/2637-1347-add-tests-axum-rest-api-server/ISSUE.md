@@ -9,7 +9,7 @@ github-issue: 2637
 spec-path: docs/issues/open/2637-1347-add-tests-axum-rest-api-server/ISSUE.md
 branch: "2637-1347-add-tests-axum-rest-api-server-queries"
 related-pr: 2718
-last-updated-utc: "2026-11-04 13:42"
+last-updated-utc: "2026-11-04 14:17"
 semantic-links:
   skill-links:
     - create-issue
@@ -730,6 +730,7 @@ once. If the slicing changes, the Slice column changes with it.
 - 2026-11-04 13:29 UTC - GitHub Copilot - S4 implementation finished and rebased onto `develop` (the package and its `rest-api-*` collaborators are unchanged since the S3 head). Re-measured with clean runs: unit-only lines 2,067 / 2,175 (95.03%), aggregate 2,091 / 2,175 (96.14%), integration-only 682 / 916 (74.45%); 156 unit and 58 integration tests. Updated the S4 measurement in `coverage-evidence.md` and the EPIC "Latest" tables and log. Next: the independent Task Reviewer, pre-push, and the pull request.
 - 2026-11-04 13:38 UTC - GitHub Copilot - Independent S4 review (see `agent-review-reports.md`): REVIEW PASSED with LOW findings only. Corrected the coverage wording of the evidence and the EPIC log (three `Debug` lines of the auth-key handlers are not covered), the torrent routes plan and the P4 killer wording, and added the stale `500` doc comment of `get_torrent_handler` to `lessons.md`. Next: pre-push and the pull request.
 - 2026-11-04 13:42 UTC - GitHub Copilot - Pre-push passed and S4 pull request #2718 (<https://github.com/torrust/torrust-tracker/pull/2718>, `Related to #2637`) was opened; recorded it in the frontmatter, the slice table and the EPIC row.
+- 2026-11-04 14:17 UTC - GitHub Copilot - Review round of #2718 (audit: `docs/pr-reviews/pr-2718-review/PR-REVIEW.md`). Copilot left one finding, that the stats `format` test compared the `Debug` string of the parsed value; it was fixed in the test only (an exhaustive `match` to a local enum, no production derive added), the thread was replied to and resolved, and the testing workflow was already green. Re-measured: unit-only lines 2,073 / 2,181 (95.05%), aggregate 2,097 / 2,181 (96.15%), integration-only unchanged; 156 unit and 58 integration tests.
 
 ## Acceptance Criteria
 

@@ -167,4 +167,5 @@ and the log; the shared `observed` comes from `test_support`, which also holds t
 - **Validation:** `cargo +nightly fmt --all -- --check` (nightly Rust toolchain), `cargo clippy -p
   torrust-tracker-axum-rest-api-server --all-targets` (stable), `cargo machete --with-metadata`, `git diff --check` and
   `cargo test -p torrust-tracker-axum-rest-api-server` (152 unit and 58 integration tests) pass.
+- **After the review of #2718:** the format test matches the parsed variant instead of its `Debug` text (see the prose-first review); the file is now 46 / 46 lines, 67 / 67 regions and 15 / 15 functions, and the package unit-only lines are 2,073 / 2,181 (95.05%).
 - **Review outcome:** the maintainer approved the plan and the shared fixtures on 2026-11-04 and the completed file on 2026-11-04.
