@@ -9,7 +9,7 @@ github-issue: 2724
 spec-path: docs/issues/open/2724-2482-gate-axum-http-server-test-environment/ISSUE.md
 branch: "2724-2482-gate-axum-http-server-test-environment-spec"
 related-pr: null
-last-updated-utc: "2026-11-04 17:48"
+last-updated-utc: "2026-11-04 18:14"
 semantic-links:
   skill-links:
     - create-issue
@@ -157,9 +157,8 @@ leaf data crate that the production dependencies need anyway).
 ## Design and Ownership Review
 
 `axum-http-server` owns the HTTP environment; the health check package uses it only through a
-dev-dependency feature. Start, ready, stop and drop-path behaviour are unchanged by this move.
-After the first passing slice (gate plus the package's own tests), review the consumer before the
-examples.
+dev-dependency feature. Start, ready, stop and drop-path behaviour of the existing environment are
+unchanged by this move (its server-before-listeners stop order and drop guards stay as they are).
 
 ## Bug-Fix Process
 
@@ -176,7 +175,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T1 | DONE | Record the baseline | `cargo tree -p torrust-tracker-axum-http-server -e normal --depth 1` (26 direct dependencies); measured 2026-11-04 17:10 to 17:12 UTC on `torrust/develop` at `15da3a9c3`: axum-http-server 49 unit + 62 integration + 0 doc; axum-health-check-api-server 15 unit + 8 integration + 0 doc; identical with and without `--all-features` |
+| T1 | DONE | Record the baseline | `cargo tree -p torrust-tracker-axum-http-server -e normal --depth 1` (26 direct dependencies); measured on `torrust/develop`: axum-http-server 49 unit + 62 integration + 0 doc; axum-health-check-api-server 15 unit + 11 integration + 0 doc. A first measurement at `15da3a9c3` (2026-11-04 17:10 UTC) gave 8 integration tests for the health check package; develop then gained three readiness tests (#2697), and the remeasurement at `4e23c4356` (2026-11-04 18:04 UTC) gave 11. The same counts hold with and without `--all-features` (four runs, all at `4e23c4356`). T2 remeasures on the implementation base before comparing |
 | T2 | TODO | Gate the module, add the feature, optional dependencies and self dev-dependency | Plain `cargo test -p torrust-tracker-axum-http-server` passes with the baseline counts; `cargo check -p torrust-tracker-axum-http-server --lib` passes with no features; the `deny.toml` self wrapper and `Cargo.lock` are in the same commit |
 | T3 | TODO | Enable the feature in the health check package's dev-dependency | Its tests pass with the baseline counts; without the entry they fail to compile |
 | T4 | TODO | Relabel the existing example and add the production-style example | Both build, run under plain `cargo run`, answer a real HTTP request (`/health_check` and an announce), stop on SIGTERM; headers carry the required wording |
