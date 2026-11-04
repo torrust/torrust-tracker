@@ -9,7 +9,7 @@ github-issue: 2724
 spec-path: docs/issues/open/2724-2482-gate-axum-http-server-test-environment/ISSUE.md
 branch: "2724-2482-gate-axum-http-server-test-environment-spec"
 related-pr: null
-last-updated-utc: "2026-11-04 17:41"
+last-updated-utc: "2026-11-04 17:48"
 semantic-links:
   skill-links:
     - create-issue
@@ -199,7 +199,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 - [x] Folder-style spec drafted in `docs/issues/open/2724-2482-gate-axum-http-server-test-environment/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer (2026-11-04)
-- [ ] GitHub issue created (#2724), linked as a sub-issue of #2482 (the maintainer links it: the bot cannot), and its number added to this spec
+- [x] GitHub issue created (#2724), linked as a sub-issue of #2482, and its number added to this spec
 - [ ] Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
@@ -216,6 +216,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-04 17:31 UTC - AI assistant (Claude Code, #2482 row 5) - Refreshed the draft against `torrust/develop` (environment.rs now 716 lines; the gate is satisfied, #2416, #2449 and #2450 are closed; dependency audit and baseline counts measured, T1 DONE); recorded the maintainer's decisions of 2026-11-04: keep the testing-style example and add a production-style one, documenting clearly why and where they differ (as in #2699), and make `torrust-tracker-swarm-coordination-registry`, `torrust-clock` and `torrust-info-hash` optional while `torrust-tracker-configuration` stays. The ADR amendment note on the examples decision was merged first (PR #2723). Added T6 and AC6 (container recipe, shipped features).
 
 - 2026-11-04 17:41 UTC - AI assistant (Claude Code, #2482 row 5) - The maintainer approved the spec. Created issue #2724 as `josecelano-bot`; the bot cannot add labels or link sub-issues on `torrust/torrust-tracker`, so the maintainer does both. The spec moved to `docs/issues/open/`; the #2482 EPIC row, the inventory and the 2026-10-06 coupling report link to it.
+- 2026-11-04 17:48 UTC - AI assistant (Claude Code, #2482 row 5) - At the maintainer's explicit instruction in this session, the labels (`task`, `packages`), the sub-issue link under #2482 and the review requests on PR #2725 were done with the `josecelano` account, because the bot account lacks those permissions. The link is verified (`parent_issue_url` is #2482).
 
 ## Acceptance Criteria
 
