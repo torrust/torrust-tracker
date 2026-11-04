@@ -5475,6 +5475,7 @@ dependencies = [
  "torrust-tracker-test-helpers",
  "torrust-tracker-udp-core",
  "torrust-tracker-udp-protocol",
+ "torrust-tracker-udp-server",
  "tracing",
  "url",
  "uuid",
