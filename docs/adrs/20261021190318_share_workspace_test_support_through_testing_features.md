@@ -30,6 +30,16 @@ semantic-links:
 > crates need. The first count of consumers per trait was made when the rule was written; the
 > per-mock counts are in the
 > [#2681 spec](../issues/closed/2681-2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md).
+>
+> **Amendment of 2026-11-04 (issue #2699, follow-up of #2482).** The decision stands. The question that
+> "What this ADR does not decide" leaves open about the examples is settled by the maintainer, first
+> for `udp-server` on 2026-11-03 (recorded in the
+> [#2699 spec](../issues/closed/2699-2482-gate-udp-server-test-environment/ISSUE.md)), and the same
+> rule applies to `axum-http-server` and to the other packages that move an environment. An example
+> that starts a tracker through the environment keeps doing so (the testing-style example), and the
+> package adds a second example that does not use the `testing` module and starts the server the way
+> production code does (the `_production_style` example). Both doc headers say which style they
+> follow. The decision for each remaining package is still recorded in its own spec.
 
 ## Scope
 
