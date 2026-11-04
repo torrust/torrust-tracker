@@ -62,13 +62,30 @@ mod tests {
     use torrust_tracker_rest_api_application::v1::use_cases::stats::StatsApiService;
     use torrust_tracker_rest_api_protocol::v1::context::stats::resources::stats::{LabeledStats, Stats};
 
-    use super::{QueryParams, get_metrics_handler, get_stats_handler};
+    use super::{Format, QueryParams, get_metrics_handler, get_stats_handler};
     use crate::test_support::{a_labeled_stats, a_stats, observed};
 
     type CallLog = Arc<Mutex<Vec<Call>>>;
 
     const JSON: &str = "application/json";
     const TEXT: &str = "text/plain; charset=utf-8";
+
+    /// What the query asked for, in a type that can be compared: `Format` itself does not implement `PartialEq`.
+    #[derive(Debug, PartialEq, Eq)]
+    enum Asked {
+        Nothing,
+        Json,
+        Prometheus,
+    }
+
+    /// An exhaustive match, so a new `Format` variant breaks the build here and gets its own case.
+    fn asked(format: Option<&Format>) -> Asked {
+        match format {
+            None => Asked::Nothing,
+            Some(Format::Json) => Asked::Json,
+            Some(Format::Prometheus) => Asked::Prometheus,
+        }
+    }
 
     /// A call that the fake port received.
     #[derive(Clone, Debug, PartialEq, Eq)]
@@ -174,13 +191,13 @@ mod tests {
     }
 
     #[rstest]
-    #[case::no_format("", "None")]
-    #[case::json("format=json", "Some(Json)")]
-    #[case::prometheus("format=prometheus", "Some(Prometheus)")]
-    fn it_should_read_the_format_in_lowercase(#[case] query_string: &str, #[case] expected: &str) {
+    #[case::no_format("", Asked::Nothing)]
+    #[case::json("format=json", Asked::Json)]
+    #[case::prometheus("format=prometheus", Asked::Prometheus)]
+    fn it_should_read_the_format_in_lowercase(#[case] query_string: &str, #[case] expected: Asked) {
         let params = query(query_string).0;
 
-        assert_eq!(format!("{:?}", params.format), expected);
+        assert_eq!(asked(params.format.as_ref()), expected);
     }
 
     #[rstest]
