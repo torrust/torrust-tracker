@@ -7,9 +7,9 @@ priority: p2
 epic: 1347
 github-issue: 2637
 spec-path: docs/issues/open/2637-1347-add-tests-axum-rest-api-server/ISSUE.md
-branch: "2637-1347-add-tests-axum-rest-api-server-queries"
-related-pr: 2718
-last-updated-utc: "2026-11-04 14:17"
+branch: "2637-1347-add-tests-axum-rest-api-server-lifecycle"
+related-pr: null
+last-updated-utc: "2026-11-04 16:11"
 semantic-links:
   skill-links:
     - create-issue
@@ -408,8 +408,8 @@ ledger order inside each slice is still confirmed with the first plan (T3).
 | S1 | T2-T3, then authentication and the shared response contract (ranks 1 and 3) | 1, 5 | `2637-1347-add-tests-axum-rest-api-server-auth` | #2667 | DONE |
 | S2 | Route composition, transport layers and the health check (rank 2) | 2-4 | `2637-1347-add-tests-axum-rest-api-server-routes` | #2687 | DONE |
 | S3 | State-changing contexts: auth keys and whitelist (rank 4) | 6-11 | `2637-1347-add-tests-axum-rest-api-server-commands` | #2702 | DONE |
-| S4 | Read-only contexts: torrents and statistics (rank 5) | 12-17 | `2637-1347-add-tests-axum-rest-api-server-queries` | #2718 | IN_PROGRESS |
-| S5 | Server lifecycle (rank 6) | 18 | `2637-1347-add-tests-axum-rest-api-server-lifecycle` | TBD | PENDING |
+| S4 | Read-only contexts: torrents and statistics (rank 5) | 12-17 | `2637-1347-add-tests-axum-rest-api-server-queries` | #2718 | DONE |
+| S5 | Server lifecycle (rank 6) | 18 | `2637-1347-add-tests-axum-rest-api-server-lifecycle` | TBD | IN_PROGRESS |
 | S6 | Crate root, wiring and test-support decisions (ranks 7-8), then T5-T8 | 19-31 | `2637-1347-add-tests-axum-rest-api-server-final` | TBD | PENDING |
 
 Rules:
@@ -731,6 +731,7 @@ once. If the slicing changes, the Slice column changes with it.
 - 2026-11-04 13:38 UTC - GitHub Copilot - Independent S4 review (see `agent-review-reports.md`): REVIEW PASSED with LOW findings only. Corrected the coverage wording of the evidence and the EPIC log (three `Debug` lines of the auth-key handlers are not covered), the torrent routes plan and the P4 killer wording, and added the stale `500` doc comment of `get_torrent_handler` to `lessons.md`. Next: pre-push and the pull request.
 - 2026-11-04 13:42 UTC - GitHub Copilot - Pre-push passed and S4 pull request #2718 (<https://github.com/torrust/torrust-tracker/pull/2718>, `Related to #2637`) was opened; recorded it in the frontmatter, the slice table and the EPIC row.
 - 2026-11-04 14:17 UTC - GitHub Copilot - Review round of #2718 (audit: `docs/pr-reviews/pr-2718-review/PR-REVIEW.md`). Copilot left one finding, that the stats `format` test compared the `Debug` string of the parsed value; it was fixed in the test only (an exhaustive `match` to a local enum, no production derive added), the thread was replied to and resolved, and the testing workflow was already green. Re-measured: unit-only lines 2,073 / 2,181 (95.05%), aggregate 2,097 / 2,181 (96.15%), integration-only unchanged; 156 unit and 58 integration tests.
+- 2026-11-04 16:11 UTC - GitHub Copilot - S4 merged through #2718 (16:04 UTC; Copilot's one finding was fixed and its thread resolved before the merge, and no late review exists). Started S5 on branch `2637-1347-add-tests-axum-rest-api-server-lifecycle` from `develop` at the merge of #2718; the package and its `rest-api-*` collaborators are unchanged since the S4 head, so the S4 re-measurement is the S5 baseline (unit-only lines 2,073 / 2,181, 95.05%). While reading `server.rs` for the row 18 plan I found a production bug: the registered health check of the REST API probes `http://` even when the server serves TLS (reproduced with a throwaway test: binding `https://127.0.0.1:...`, check `http://...` fails, the same endpoint answers `200` over HTTPS). Per the findings procedure I stopped, wrote the draft `docs/issues/drafts/rest-api-https-health-check/ISSUE.md` on its own branch cut from `develop` (`chore/rest-api-https-health-check-draft`, not pushed) and a hand-off under `.tmp/rest-api-https-health-check/`, and am waiting for the maintainer. No S5 plan or test exists yet.
 
 ## Acceptance Criteria
 
