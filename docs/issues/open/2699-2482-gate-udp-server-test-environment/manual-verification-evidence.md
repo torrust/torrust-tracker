@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2699-2482-gate-udp-server-test-environment/ISSUE.md
-last-updated-utc: "2026-11-04 11:14"
+last-updated-utc: "2026-11-04 11:34"
 ---
 
 # Manual Verification Evidence
@@ -13,8 +13,8 @@ Record the commands run to verify the scenarios of the [spec](ISSUE.md). Every o
 ## Environment and Prerequisites
 
 - Host: Linux; stable Rust toolchain (`cargo 1.99.1`), `cargo +nightly` (`cargo 1.101.0-nightly`) for the all-targets check. No container build is needed: the `Containerfile` change of #2670 already builds the shipped binary without test features, and V4 checks the shipped-profile binary directly.
-- Date and time (UTC): V1 to V6 and the matrix ran as one script on 2026-11-04 from 10:59:31 to 11:08:08 UTC; the examples run (V7) on 2026-11-04 at 11:13 UTC. The sub-second part of the stamps is not monotonic in a few steps (an end stamp a few hundred milliseconds before its start stamp, for example in "V3 red"), so the order of the steps is the order of the script, and only the seconds are meaningful.
-- Artifact under test: the branch head whose subject is `feat(udp-server): [#2699] add a production-style public tracker example`, when the script started; the script checks that the code paths (`packages`, `src`, `tests`, `deny.toml`, `Cargo.toml`, `Cargo.lock`) have no change against `HEAD` (`git diff --quiet HEAD -- <paths>`, exit 0).
+- Date and time (UTC): V1 to V6 and the matrix ran as one script on 2026-11-04 from 11:22:32 to 11:27:29 UTC; the examples run (V7) on 2026-11-04 from 11:27:29 to 11:27:35 UTC. An earlier run of the same scripts (10:59 to 11:13 UTC) on the previous version of the new example gave the same counts and exit codes; it is superseded by this one, after the independent pre-PR review asked for changes to that example, and its transcript is not kept. The sub-second part of the stamps is not monotonic in a few steps (an end stamp a few hundred milliseconds before its start stamp, for example in "V5 restore"), so the order of the steps is the order of the script, and only the seconds are meaningful.
+- Artifact under test: the branch head whose subject is `refactor(udp-server): [#2699] follow the application's listener policy and loop error handling in the production-style example`, when the script started; the script checks that the code paths (`packages`, `src`, `tests`, `deny.toml`, `Cargo.toml`, `Cargo.lock`) have no change against `HEAD` (`git diff --quiet HEAD -- <paths>`, exit 0).
 - Baseline tree: `develop` at the merge of PR #2700 (`docs(issues): [#2699] specify gating the udp-server test environment`), before any change of this issue, built in a detached worktree (`git worktree add --detach`) and removed at the end.
 - Test counts come from the `test result:` lines of the cargo runs; the transcript below keeps only those lines. The raw logs were kept under `/tmp` during the work and are not part of the repository. Benches run in test mode under `--all-targets` and print no `test result:` line.
 
@@ -24,11 +24,11 @@ Record the commands run to verify the scenarios of the [spec](ISSUE.md). Every o
 | --- | --- | --- |
 | M1 The production build has no test-only dependency | The direct normal dependencies of `udp-server` drop from 27 to 26; `torrust-tracker-swarm-coordination-registry` is no longer a direct dependency. It stays reachable transitively through `torrust-tracker-core` and `torrust-tracker-udp-core` (the `-i` tree below). With `-F testing` it is the only added direct dependency. `src/testing/` is absent from the default `cargo doc` output and present with the feature. | V1 |
 | M2 Plain package tests | `cargo test -p torrust-tracker-udp-server` runs 233 + 16 + 1 (1 ignored) + 2 tests, equal to the baseline, with and without `--all-features`; `--all-targets --all-features` has one more empty test binary, the new example. | V2 |
-| M3 The consumer still works | `cargo test -p torrust-tracker-axum-health-check-api-server` runs 15 + 8 tests, equal to the baseline. Without its dev-dependency feature the same command fails to compile (`E0433` at `tests/server/contract.rs`, two sites), so the feature entry is needed. | V2, V3 |
+| M3 The consumer still works | `cargo test -p torrust-tracker-axum-health-check-api-server` runs 15 + 8 tests, equal to the baseline. Without its dev-dependency feature the same command fails to compile (two `E0433` errors in the integration test of that package), so the feature entry is needed. | V2, V3 |
 | M4 Shipped features | green on the real tree; red with `features = ["testing"]` on the root `[dependencies]` entry of `udp-server`; red with `default = [ "testing" ]`; green again after restoring (clean `git diff --quiet`). | V4 |
 | M5 Dependents | `axum-rest-api-server` (106 + 58) and `rest-api-runtime-adapter` (3 + 0), which depend on `udp-server` through `[dependencies]`, have identical counts before and after, plain and with `--all-features`. | V2 |
-| M6 Examples | Both build under `cargo build --examples` and `cargo test --examples`; both run under plain `cargo run` (they print `Listening on ...` until the timeout kills them); both answer a real UDP connect request and stop on SIGTERM (V7). The new example has no `use` of `udp_server::testing`; the existing one has exactly one. | V6, V7 |
-| M7 Deny, machete, packaging, nightly, bench | `cargo deny check bans` ok, and failing (`explicitly banned`) without the self wrapper; `cargo machete --with-metadata` finds nothing; `cargo +stable package --workspace --no-verify` exits 0; `cargo +nightly check --tests --benches --examples --workspace --all-targets --all-features` exits 0; `cargo bench -p torrust-tracker-udp-server --no-run` exits 0; no `required-features` anywhere in the workspace manifests. | V5, V6 |
+| M6 Examples | Both build under `cargo build --examples` and `cargo test --examples`; both run under plain `cargo run` (they print `Listening on ...` until the timeout kills them); both answer a real UDP connect request and stop on SIGTERM (V7, whose commands are the second script below). The new example has no `use` line of `udp_server::testing` (`grep -c '^use .*udp_server::testing'` prints 0); the existing one has exactly one. | V6, V7 |
+| M7 Deny, machete, packaging, nightly, bench | `cargo deny check bans` ok, and failing (`explicitly banned`) without the self wrapper; `cargo machete --with-metadata` finds nothing; `cargo +stable package --workspace --no-verify` exits 0; `cargo +nightly check --tests --benches --examples --workspace --all-targets --all-features` exits 0 (in the script it finished in 0.54 s because the tree was up to date; after a `touch` of the new example, on 2026-11-04 at 11:31 UTC, the same command printed `Checking torrust-tracker-udp-server`, finished in 0.46 s and exited 0); `cargo bench -p torrust-tracker-udp-server --no-run` exits 0; no `required-features` anywhere in the workspace manifests. | V5, V6 |
 | M8 The shipped binary | The binary built by `cargo build -p torrust-tracker --bin torrust-tracker` has no trace of the UDP test environment (strings count 0 for both markers); the 35 `cli-configuration` tests pass with `TORRUST_TRACKER_BINARY` set to the preserved copy, whose checksum is unchanged by the plain run (the plain run rebuilt `target/debug/torrust-tracker`, whose checksum differs). | V4 |
 
 Dependency audit against rule A.2 of the ADR (done for the spec on 2026-11-03 and checked again by the "V1 before" and "V1 after" lists): `torrust-tracker-swarm-coordination-registry` was the only direct normal dependency of `udp-server` that only `src/testing/environment.rs` uses. Every other direct normal dependency is also used by non-test code, and `mockall`, `rand`, `criterion`, `torrust-tracker-test-helpers` are dev-dependencies already. The new production-style example imports the registry crate; it compiles because the self dev-dependency enables `testing` for the package's own targets, so no explicit dev-dependency on the registry crate was added (T4). `cargo build -p torrust-tracker-udp-server --examples` (V6) succeeded; that build runs with the package's dev-dependencies, so it shows the example compiles under the self dev-dependency, not that it would compile without the feature.
@@ -38,17 +38,17 @@ Dependency audit against rule A.2 of the ADR (done for the spec on 2026-11-03 an
 The script below ran once; its filtered output follows. "before" runs `cd <baseline worktree> && cargo ...`, "after" runs in this tree.
 
 ```text
-RUN START 2026-11-04 10:59:31.759 UTC
-tested head subject: feat(udp-server): [#2699] add a production-style public tracker example
+RUN START 2026-11-04 11:22:32.452 UTC
+tested head subject: refactor(udp-server): [#2699] follow the application's listener policy and loop error handling in the production-style example
 ### tree is clean for the code paths
-start 2026-11-04 10:59:31.763 UTC
+start 2026-11-04 11:22:32.456 UTC
 diff-exit=0
-end 2026-11-04 10:59:31.772 UTC exit=0
+end 2026-11-04 11:22:32.464 UTC exit=0
 
 baseline worktree subject: Merge torrust/torrust-tracker#2700: docs(issues): [#2699] specify gating the udp-server test environment
 
 ### V1 before: direct normal dependencies of udp-server
-start 2026-11-04 10:59:31.896 UTC
+start 2026-11-04 11:22:32.604 UTC
 torrust-tracker-udp-server v0.1.0 (/tmp/row4/base/packages/udp-server)
 ├── derive_more v2.1.1
 ├── futures v0.3.34
@@ -77,10 +77,10 @@ torrust-tracker-udp-server v0.1.0 (/tmp/row4/base/packages/udp-server)
 ├── url v2.5.8
 ├── uuid v1.26.1
 └── zerocopy v0.8.63
-end 2026-11-04 10:59:32.238 UTC exit=0
+end 2026-11-04 11:22:32.728 UTC exit=0
 
 ### V1 after: direct normal dependencies of udp-server
-start 2026-11-04 10:59:32.262 UTC
+start 2026-11-04 11:22:32.730 UTC
 torrust-tracker-udp-server v0.1.0 (<repo>/packages/udp-server)
 ├── derive_more v2.1.1
 ├── futures v0.3.34
@@ -108,363 +108,363 @@ torrust-tracker-udp-server v0.1.0 (<repo>/packages/udp-server)
 ├── url v2.5.8
 ├── uuid v1.26.1
 └── zerocopy v0.8.63
-end 2026-11-04 10:59:32.150 UTC exit=0
+end 2026-11-04 11:22:32.857 UTC exit=0
 
 ### V1 after, with the feature: direct normal dependencies
-start 2026-11-04 10:59:32.153 UTC
+start 2026-11-04 11:22:32.859 UTC
 torrust-tracker-udp-server v0.1.0 (<repo>/packages/udp-server)
 ├── torrust-tracker-swarm-coordination-registry v0.1.0 (<repo>/packages/swarm-coordination-registry)
-end 2026-11-04 10:59:32.276 UTC exit=0
+end 2026-11-04 11:22:32.991 UTC exit=0
 
 ### V1 transitive: where the registry crate stays reachable from udp-server (after, no feature)
-start 2026-11-04 10:59:32.278 UTC
+start 2026-11-04 11:22:32.993 UTC
 torrust-tracker-swarm-coordination-registry v0.1.0 (<repo>/packages/swarm-coordination-registry)
 ├── torrust-tracker-core v0.1.0 (<repo>/packages/tracker-core)
 │   ├── torrust-tracker-udp-core v0.1.0 (<repo>/packages/udp-core)
 │   │   └── torrust-tracker-udp-server v0.1.0 (<repo>/packages/udp-server)
 │   └── torrust-tracker-udp-server v0.1.0 (<repo>/packages/udp-server)
 └── torrust-tracker-udp-core v0.1.0 (<repo>/packages/udp-core) (*)
-end 2026-11-04 10:59:32.402 UTC exit=0
+end 2026-11-04 11:22:33.132 UTC exit=0
 
 ### V1 builds without and with the feature
-start 2026-11-04 10:59:32.404 UTC
-    Finished `dev` profile [optimized + debuginfo] target(s) in 0.14s
-    Finished `dev` profile [optimized + debuginfo] target(s) in 2.26s
-end 2026-11-04 10:59:34.867 UTC exit=0
+start 2026-11-04 11:22:33.134 UTC
+    Finished `dev` profile [optimized + debuginfo] target(s) in 3.68s
+    Finished `dev` profile [optimized + debuginfo] target(s) in 2.36s
+end 2026-11-04 11:22:39.262 UTC exit=0
 
 ### V1 the module is not compiled without the feature (rustdoc item count)
-start 2026-11-04 10:59:34.869 UTC
+start 2026-11-04 11:22:39.264 UTC
 testing-dir-default=0
 testing-dir-with-feature=1
-end 2026-11-04 10:59:41.729 UTC exit=0
+end 2026-11-04 11:22:41.762 UTC exit=0
 
 ### V3 red: health check package without its dev-dependency feature
-start 2026-11-04 10:59:41.764 UTC
+start 2026-11-04 11:22:41.804 UTC
 error[E0433]: cannot find `testing` in `torrust_tracker_udp_server`
 error[E0433]: cannot find `testing` in `torrust_tracker_udp_server`
 error: could not compile `torrust-tracker-axum-health-check-api-server` (test "integration") due to 2 previous errors
-end 2026-11-04 10:59:41.412 UTC exit=101
+end 2026-11-04 11:22:44.933 UTC exit=101
 
 ### V3 restore: no change in manifests
-start 2026-11-04 10:59:41.418 UTC
+start 2026-11-04 11:22:44.939 UTC
 clean-exit=0
-end 2026-11-04 10:59:41.426 UTC exit=0
+end 2026-11-04 11:22:44.947 UTC exit=0
 
 ### V3 dev edge of the health check package to udp-server, with its features
-start 2026-11-04 10:59:41.428 UTC
+start 2026-11-04 11:22:44.949 UTC
 torrust-tracker-axum-health-check-api-server v0.1.0 (<repo>/packages/axum-health-check-api-server) []
 ├── torrust-tracker-axum-http-server v0.1.0 (<repo>/packages/axum-http-server) []
 ├── torrust-tracker-axum-rest-api-server v0.1.0 (<repo>/packages/axum-rest-api-server) []
 ├── torrust-tracker-test-helpers v3.0.0 (<repo>/packages/test-helpers) []
 └── torrust-tracker-udp-server v0.1.0 (<repo>/packages/udp-server) [default,testing]
-end 2026-11-04 10:59:41.557 UTC exit=0
+end 2026-11-04 11:22:45.829 UTC exit=0
 
 ### V3 green: health check package with its dev-dependency feature
-start 2026-11-04 10:59:41.559 UTC
-test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.00s
-test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.04s
+start 2026-11-04 11:22:45.853 UTC
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.01s
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.05s
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
-end 2026-11-04 10:59:45.822 UTC exit=0
+end 2026-11-04 11:22:49.406 UTC exit=0
 
 ### V4 green: real tree
-start 2026-11-04 10:59:45.824 UTC
+start 2026-11-04 11:22:49.408 UTC
 {"kind":"checked","message":"no workspace package has the `testing` feature enabled in the dependency tree of shipped package `torrust-tracker`","shipped_package":"torrust-tracker","feature":"testing","exit_code":0}
-end 2026-11-04 10:59:46.190 UTC exit=0
+end 2026-11-04 11:22:49.641 UTC exit=0
 
 ### V4 red 1: features testing on the root [dependencies] entry of udp-server
-start 2026-11-04 10:59:46.194 UTC
+start 2026-11-04 11:22:49.655 UTC
 {"kind":"validation_error","message":"workspace package `torrust-tracker-udp-server` v0.1.0 has the `testing` feature enabled in the dependency tree of shipped package `torrust-tracker`","shipped_package":"torrust-tracker","package":"torrust-tracker-udp-server","feature":"testing","exit_code":1}
-end 2026-11-04 10:59:46.386 UTC exit=1
+end 2026-11-04 11:22:49.861 UTC exit=1
 
 ### V4 red 2: testing in the default chain of udp-server
-start 2026-11-04 10:59:46.393 UTC
+start 2026-11-04 11:22:49.870 UTC
 {"kind":"validation_error","message":"workspace package `torrust-tracker-udp-server` v0.1.0 has the `testing` feature enabled in the dependency tree of shipped package `torrust-tracker`","shipped_package":"torrust-tracker","package":"torrust-tracker-udp-server","feature":"testing","exit_code":1}
-end 2026-11-04 10:59:46.585 UTC exit=1
+end 2026-11-04 11:22:50.113 UTC exit=1
 
 ### V4 restore: no change in manifests
-start 2026-11-04 10:59:46.590 UTC
+start 2026-11-04 11:22:50.119 UTC
 clean-exit=0
-end 2026-11-04 10:59:46.598 UTC exit=0
+end 2026-11-04 11:22:50.126 UTC exit=0
 
 ### V4 green again after the restore
-start 2026-11-04 10:59:46.600 UTC
+start 2026-11-04 11:22:50.128 UTC
 {"kind":"checked","message":"no workspace package has the `testing` feature enabled in the dependency tree of shipped package `torrust-tracker`","shipped_package":"torrust-tracker","feature":"testing","exit_code":0}
-end 2026-11-04 10:59:46.813 UTC exit=0
+end 2026-11-04 11:22:50.348 UTC exit=0
 
 ### V4 build the shipped-profile binary
-start 2026-11-04 10:59:46.815 UTC
-    Finished `dev` profile [optimized + debuginfo] target(s) in 12.86s
-end 2026-11-04 10:59:59.722 UTC exit=0
+start 2026-11-04 11:22:50.350 UTC
+    Finished `dev` profile [optimized + debuginfo] target(s) in 5.59s
+end 2026-11-04 11:22:55.981 UTC exit=0
 
 ### V4 checksum of the build and of the preserved copy (first 16 hex digits)
-start 2026-11-04 10:59:59.799 UTC
-3267c410074c8956  target/debug/torrust-tracker
-3267c410074c8956  /tmp/row4/shipped/torrust-tracker
-end 2026-11-04 10:59:59.991 UTC exit=0
+start 2026-11-04 11:22:56.798 UTC
+7742439af594b43f  target/debug/torrust-tracker
+7742439af594b43f  /tmp/row4/shipped/torrust-tracker
+end 2026-11-04 11:22:56.282 UTC exit=0
 
 ### V4 test environment strings in the preserved copy
-start 2026-11-04 10:59:59.993 UTC
+start 2026-11-04 11:22:56.285 UTC
 environment=0 udp_server_testing_module=0
-end 2026-11-04 11:00:01.342 UTC exit=0
+end 2026-11-04 11:22:57.644 UTC exit=0
 
 ### V4 plain cli-configuration tests
-start 2026-11-04 11:00:01.344 UTC
+start 2026-11-04 11:22:57.646 UTC
 test result: ok. 35 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.07s
-end 2026-11-04 11:00:15.327 UTC exit=0
+end 2026-11-04 11:23:04.200 UTC exit=0
 
 ### V4 checksums after the plain run
-start 2026-11-04 11:00:15.329 UTC
-524f68579576b3ed  target/debug/torrust-tracker
-3267c410074c8956  /tmp/row4/shipped/torrust-tracker
-end 2026-11-04 11:00:15.531 UTC exit=0
+start 2026-11-04 11:23:04.202 UTC
+c6452a5d5c87e3ef  target/debug/torrust-tracker
+7742439af594b43f  /tmp/row4/shipped/torrust-tracker
+end 2026-11-04 11:23:04.395 UTC exit=0
 
 ### V4 cli-configuration tests with TORRUST_TRACKER_BINARY set to the preserved copy
-start 2026-11-04 11:00:15.533 UTC
+start 2026-11-04 11:23:04.398 UTC
 test result: ok. 35 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.07s
-end 2026-11-04 11:00:16.768 UTC exit=0
+end 2026-11-04 11:23:05.634 UTC exit=0
 
 ### V4 checksum of the preserved copy after the override run
-start 2026-11-04 11:00:16.771 UTC
-3267c410074c8956
-end 2026-11-04 11:00:16.873 UTC exit=0
+start 2026-11-04 11:23:05.637 UTC
+7742439af594b43f
+end 2026-11-04 11:23:05.740 UTC exit=0
 
 ### V5 cargo deny check bans (committed deny.toml)
-start 2026-11-04 11:00:16.876 UTC
+start 2026-11-04 11:23:05.742 UTC
 bans ok
-end 2026-11-04 11:00:17.437 UTC exit=0
+end 2026-11-04 11:23:06.316 UTC exit=0
 
 ### V5 red: cargo deny check bans without the self wrapper
-start 2026-11-04 11:00:17.448 UTC
+start 2026-11-04 11:23:06.328 UTC
 error[banned]: crate 'torrust-tracker-udp-server = 0.1.0' is explicitly banned
 bans FAILED
-end 2026-11-04 11:00:18.483 UTC exit=2
+end 2026-11-04 11:23:06.897 UTC exit=2
 
 ### V5 restore: deny.toml has no change
-start 2026-11-04 11:00:18.827 UTC
+start 2026-11-04 11:23:06.900 UTC
 clean-exit=0
-end 2026-11-04 11:00:18.180 UTC exit=0
+end 2026-11-04 11:23:06.910 UTC exit=0
 
 ### V5 cargo deny check bans after the restore
-start 2026-11-04 11:00:18.202 UTC
+start 2026-11-04 11:23:06.912 UTC
 bans ok
-end 2026-11-04 11:00:18.576 UTC exit=0
+end 2026-11-04 11:23:07.472 UTC exit=0
 
 ### V5 cargo machete --with-metadata
-start 2026-11-04 11:00:18.578 UTC
+start 2026-11-04 11:23:07.474 UTC
 cargo-machete didn't find any unused dependencies in this directory. Good job!
-end 2026-11-04 11:00:22.344 UTC exit=0
+end 2026-11-04 11:23:11.348 UTC exit=0
 
 ### V5 no required-features on any target of the workspace
-start 2026-11-04 11:00:22.346 UTC
+start 2026-11-04 11:23:11.351 UTC
 0
-end 2026-11-04 11:00:22.362 UTC exit=0
+end 2026-11-04 11:23:11.366 UTC exit=0
 
 ### V5 cargo +stable package --workspace --no-verify
 (34 "Packaged" lines and 9 license/homepage manifest warnings, all unrelated to this change, reduced to these counts)
-start 2026-11-04 11:00:22.364 UTC
-end 2026-11-04 11:00:59.694 UTC exit=0
+start 2026-11-04 11:23:11.369 UTC
+end 2026-11-04 11:23:40.471 UTC exit=0
 
-### V6 the new example does not use the testing module
-start 2026-11-04 11:00:59.696 UTC
+### V6 import lines of the testing module: new example, then existing example
+start 2026-11-04 11:23:40.473 UTC
+0
 1
-2
-end 2026-11-04 11:00:59.703 UTC exit=0
+end 2026-11-04 11:23:40.480 UTC exit=0
 
 ### V6 cargo build -p torrust-tracker-udp-server --examples
-start 2026-11-04 11:00:59.704 UTC
-    Finished `dev` profile [optimized + debuginfo] target(s) in 0.71s
-end 2026-11-04 11:01:00.457 UTC exit=0
+start 2026-11-04 11:23:40.483 UTC
+    Finished `dev` profile [optimized + debuginfo] target(s) in 0.94s
+end 2026-11-04 11:23:41.470 UTC exit=0
 
 ### V6 cargo test -p torrust-tracker-udp-server --examples
-start 2026-11-04 11:01:00.459 UTC
+start 2026-11-04 11:23:41.472 UTC
      Running unittests examples/udp_only_public_tracker.rs (target/debug/examples/udp_only_public_tracker-9a80d3aab20954cf)
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
      Running unittests examples/udp_only_public_tracker_production_style.rs (target/debug/examples/udp_only_public_tracker_production_style-9ce169b9b31ef80c)
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
-end 2026-11-04 11:01:00.633 UTC exit=0
+end 2026-11-04 11:23:41.874 UTC exit=0
 
 ### V6 plain cargo run of the production-style example (killed by timeout after the listening line)
-start 2026-11-04 11:01:00.635 UTC
-Listening on 127.0.0.1:40012
-end 2026-11-04 11:02:00.648 UTC exit=124
+start 2026-11-04 11:23:41.876 UTC
+Listening on 127.0.0.1:33512
+end 2026-11-04 11:24:41.889 UTC exit=124
 
 ### V6 plain cargo run of the testing-style example (killed by timeout after the listening line)
-start 2026-11-04 11:02:00.650 UTC
-Listening on 127.0.0.1:45217
-end 2026-11-04 11:03:00.674 UTC exit=124
+start 2026-11-04 11:24:41.891 UTC
+Listening on 127.0.0.1:41123
+end 2026-11-04 11:25:41.902 UTC exit=124
 
 ### V6 bench builds
-start 2026-11-04 11:03:00.676 UTC
-    Finished `bench` profile [optimized + debuginfo] target(s) in 1m 36s
-end 2026-11-04 11:04:36.983 UTC exit=0
+start 2026-11-04 11:25:41.905 UTC
+    Finished `bench` profile [optimized + debuginfo] target(s) in 0.27s
+end 2026-11-04 11:25:42.206 UTC exit=0
 
 ### V6 nightly check of every target with all features
-start 2026-11-04 11:04:36.991 UTC
-    Finished `dev` profile [optimized + debuginfo] target(s) in 20.85s
-end 2026-11-04 11:04:57.954 UTC exit=0
+start 2026-11-04 11:25:42.209 UTC
+    Finished `dev` profile [optimized + debuginfo] target(s) in 0.54s
+end 2026-11-04 11:25:42.816 UTC exit=0
 
 ### V2 cargo test -p torrust-tracker-udp-server (plain, before)
-start 2026-11-04 11:04:57.956 UTC
-test result: ok. 233 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.21s
+start 2026-11-04 11:25:42.818 UTC
+test result: ok. 233 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.22s
 test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.07s
 test result: ok. 1 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
-test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
-end 2026-11-04 11:05:21.789 UTC exit=0
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+end 2026-11-04 11:25:52.860 UTC exit=0
 
 ### V2 cargo test -p torrust-tracker-udp-server --all-features (before)
-start 2026-11-04 11:05:21.793 UTC
-test result: ok. 233 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.29s
-test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.17s
-test result: ok. 1 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.01s
-test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
-end 2026-11-04 11:05:31.244 UTC exit=0
+start 2026-11-04 11:25:52.862 UTC
+test result: ok. 233 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.20s
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.07s
+test result: ok. 1 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+end 2026-11-04 11:26:00.930 UTC exit=0
 
 ### V2 cargo test -p torrust-tracker-udp-server --all-targets --all-features (before)
-start 2026-11-04 11:05:31.251 UTC
+start 2026-11-04 11:26:00.933 UTC
 test result: ok. 233 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.24s
-test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.11s
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.07s
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
-end 2026-11-04 11:05:41.966 UTC exit=0
+end 2026-11-04 11:26:08.995 UTC exit=0
 
 ### V2 cargo test -p torrust-tracker-udp-server (plain, after)
-start 2026-11-04 11:05:41.969 UTC
-test result: ok. 233 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.20s
-test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.13s
+start 2026-11-04 11:26:08.997 UTC
+test result: ok. 233 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.15s
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.07s
 test result: ok. 1 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
-test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s
-end 2026-11-04 11:05:58.592 UTC exit=0
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+end 2026-11-04 11:26:18.175 UTC exit=0
 
 ### V2 cargo test -p torrust-tracker-udp-server --all-features (after)
-start 2026-11-04 11:05:58.644 UTC
-test result: ok. 233 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.36s
-test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.17s
-test result: ok. 1 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.01s
-test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
-end 2026-11-04 11:06:07.982 UTC exit=0
+start 2026-11-04 11:26:18.177 UTC
+test result: ok. 233 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.19s
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.07s
+test result: ok. 1 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+end 2026-11-04 11:26:26.183 UTC exit=0
 
 ### V2 cargo test -p torrust-tracker-udp-server --all-targets --all-features (after)
-start 2026-11-04 11:06:07.102 UTC
-test result: ok. 233 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.28s
-test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.08s
+start 2026-11-04 11:26:26.186 UTC
+test result: ok. 233 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.18s
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.09s
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
-end 2026-11-04 11:06:15.997 UTC exit=0
+end 2026-11-04 11:26:34.482 UTC exit=0
 
 ### V2 cargo test -p torrust-tracker-axum-health-check-api-server (plain, before)
-start 2026-11-04 11:06:16.579 UTC
-test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.01s
-test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.04s
+start 2026-11-04 11:26:34.506 UTC
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.00s
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.03s
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
-end 2026-11-04 11:06:34.325 UTC exit=0
+end 2026-11-04 11:26:40.260 UTC exit=0
 
 ### V2 cargo test -p torrust-tracker-axum-health-check-api-server --all-features (before)
-start 2026-11-04 11:06:34.348 UTC
+start 2026-11-04 11:26:40.262 UTC
 test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.00s
 test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.04s
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
-end 2026-11-04 11:06:38.320 UTC exit=0
+end 2026-11-04 11:26:44.516 UTC exit=0
 
 ### V2 cargo test -p torrust-tracker-axum-health-check-api-server --all-targets --all-features (before)
-start 2026-11-04 11:06:38.323 UTC
-test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.01s
+start 2026-11-04 11:26:44.518 UTC
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.00s
 test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.04s
-end 2026-11-04 11:06:42.550 UTC exit=0
+end 2026-11-04 11:26:48.722 UTC exit=0
 
 ### V2 cargo test -p torrust-tracker-axum-health-check-api-server (plain, after)
-start 2026-11-04 11:06:42.553 UTC
-test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.01s
+start 2026-11-04 11:26:48.724 UTC
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.00s
 test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.04s
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
-end 2026-11-04 11:06:50.682 UTC exit=0
+end 2026-11-04 11:26:53.484 UTC exit=0
 
 ### V2 cargo test -p torrust-tracker-axum-health-check-api-server --all-features (after)
-start 2026-11-04 11:06:50.684 UTC
+start 2026-11-04 11:26:53.487 UTC
 test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.00s
-test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.05s
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.04s
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
-end 2026-11-04 11:06:55.891 UTC exit=0
+end 2026-11-04 11:26:57.747 UTC exit=0
 
 ### V2 cargo test -p torrust-tracker-axum-health-check-api-server --all-targets --all-features (after)
-start 2026-11-04 11:06:55.975 UTC
-test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.05s
-test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.13s
-end 2026-11-04 11:07:00.169 UTC exit=0
+start 2026-11-04 11:26:57.749 UTC
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.00s
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.04s
+end 2026-11-04 11:27:01.951 UTC exit=0
 
 ### V2 cargo test -p torrust-tracker-axum-rest-api-server (plain, before)
-start 2026-11-04 11:07:00.181 UTC
-test result: ok. 106 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.22s
-test result: ok. 58 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.37s
+start 2026-11-04 11:27:01.953 UTC
+test result: ok. 106 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.21s
+test result: ok. 58 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.30s
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
-end 2026-11-04 11:07:24.158 UTC exit=0
+end 2026-11-04 11:27:07.250 UTC exit=0
 
 ### V2 cargo test -p torrust-tracker-axum-rest-api-server --all-features (before)
-start 2026-11-04 11:07:24.162 UTC
-test result: ok. 106 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.20s
-test result: ok. 58 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.32s
+start 2026-11-04 11:27:07.252 UTC
+test result: ok. 106 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.15s
+test result: ok. 58 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.29s
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
-end 2026-11-04 11:07:28.277 UTC exit=0
+end 2026-11-04 11:27:11.823 UTC exit=0
 
 ### V2 cargo test -p torrust-tracker-axum-rest-api-server --all-targets --all-features (before)
-start 2026-11-04 11:07:28.280 UTC
-test result: ok. 106 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.14s
-test result: ok. 58 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.38s
-end 2026-11-04 11:07:32.919 UTC exit=0
+start 2026-11-04 11:27:11.106 UTC
+test result: ok. 106 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.12s
+test result: ok. 58 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.29s
+end 2026-11-04 11:27:14.627 UTC exit=0
 
 ### V2 cargo test -p torrust-tracker-axum-rest-api-server (plain, after)
-start 2026-11-04 11:07:32.944 UTC
-test result: ok. 106 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.22s
-test result: ok. 58 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.34s
+start 2026-11-04 11:27:14.630 UTC
+test result: ok. 106 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.15s
+test result: ok. 58 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.27s
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
-end 2026-11-04 11:07:43.973 UTC exit=0
+end 2026-11-04 11:27:19.169 UTC exit=0
 
 ### V2 cargo test -p torrust-tracker-axum-rest-api-server --all-features (after)
-start 2026-11-04 11:07:43.976 UTC
-test result: ok. 106 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.23s
-test result: ok. 58 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.34s
+start 2026-11-04 11:27:19.172 UTC
+test result: ok. 106 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.15s
+test result: ok. 58 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.26s
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
-end 2026-11-04 11:07:47.921 UTC exit=0
+end 2026-11-04 11:27:22.895 UTC exit=0
 
 ### V2 cargo test -p torrust-tracker-axum-rest-api-server --all-targets --all-features (after)
-start 2026-11-04 11:07:47.923 UTC
-test result: ok. 106 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.20s
-test result: ok. 58 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.31s
-end 2026-11-04 11:07:51.676 UTC exit=0
+start 2026-11-04 11:27:22.898 UTC
+test result: ok. 106 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.16s
+test result: ok. 58 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.30s
+end 2026-11-04 11:27:26.563 UTC exit=0
 
 ### V2 cargo test -p torrust-tracker-rest-api-runtime-adapter (plain, before)
-start 2026-11-04 11:07:51.678 UTC
+start 2026-11-04 11:27:26.566 UTC
 test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
-end 2026-11-04 11:08:01.330 UTC exit=0
+end 2026-11-04 11:27:28.257 UTC exit=0
 
 ### V2 cargo test -p torrust-tracker-rest-api-runtime-adapter --all-features (before)
-start 2026-11-04 11:08:01.332 UTC
+start 2026-11-04 11:27:28.260 UTC
 test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
-end 2026-11-04 11:08:03.518 UTC exit=0
+end 2026-11-04 11:27:28.465 UTC exit=0
 
 ### V2 cargo test -p torrust-tracker-rest-api-runtime-adapter --all-targets --all-features (before)
-start 2026-11-04 11:08:03.521 UTC
+start 2026-11-04 11:27:28.468 UTC
 test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
-end 2026-11-04 11:08:03.702 UTC exit=0
+end 2026-11-04 11:27:28.620 UTC exit=0
 
 ### V2 cargo test -p torrust-tracker-rest-api-runtime-adapter (plain, after)
-start 2026-11-04 11:08:03.705 UTC
+start 2026-11-04 11:27:28.623 UTC
 test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
-end 2026-11-04 11:08:06.863 UTC exit=0
+end 2026-11-04 11:27:29.113 UTC exit=0
 
 ### V2 cargo test -p torrust-tracker-rest-api-runtime-adapter --all-features (after)
-start 2026-11-04 11:08:06.865 UTC
+start 2026-11-04 11:27:29.115 UTC
 test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
-end 2026-11-04 11:08:07.961 UTC exit=0
+end 2026-11-04 11:27:29.325 UTC exit=0
 
 ### V2 cargo test -p torrust-tracker-rest-api-runtime-adapter --all-targets --all-features (after)
-start 2026-11-04 11:08:07.964 UTC
+start 2026-11-04 11:27:29.328 UTC
 test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
-end 2026-11-04 11:08:08.478 UTC exit=0
+end 2026-11-04 11:27:29.483 UTC exit=0
 
-RUN END 2026-11-04 11:08:08.508 UTC
+RUN END 2026-11-04 11:27:29.511 UTC
 final manifests status: 0 changed files
 ```
 
@@ -474,18 +474,18 @@ Each example is built, started in the background, sent a UDP connect request (BE
 
 ```text
 ### example udp_only_public_tracker_production_style
-start 2026-11-04 11:13:00 UTC
+start 2026-11-04 11:27:29 UTC
 connect response: action=0 transaction_id=12345 length=16
 exit=0
-Listening on 127.0.0.1:38474
+Listening on 127.0.0.1:40042
 Press Ctrl-C (or send SIGTERM on Unix) to stop.
 
 Received SIGTERM. Shutting down...
 Stopped.
-end 2026-11-04 11:13:03 UTC
+end 2026-11-04 11:27:32 UTC
 
 ### example udp_only_public_tracker
-start 2026-11-04 11:13:03 UTC
+start 2026-11-04 11:27:32 UTC
 connect response: action=0 transaction_id=12345 length=16
 exit=0
 Types from torrust-tracker-configuration used by this binary:
@@ -493,17 +493,56 @@ Types from torrust-tracker-configuration used by this binary:
   UdpTracker — bind address, cookie lifetime
   (Configuration aggregate and idle types are NOT compiled in)
 
-Listening on 127.0.0.1:37471
+Listening on 127.0.0.1:40425
 Press Ctrl-C (or send SIGTERM on Unix) to stop.
 
 Received SIGTERM. Shutting down...
 Stopped.
-end 2026-11-04 11:13:06 UTC
+end 2026-11-04 11:27:35 UTC
 ```
+
+## V8 - Pre-push checks and the independent pre-PR review
+
+Pre-push checks (`./contrib/dev-tools/git/hooks/pre-push.sh`) on the final code; `git diff --quiet HEAD -- packages src tests deny.toml Cargo.toml Cargo.lock` exits 0 first, so the tested working tree has the code of the branch head. An earlier pre-push run (2026-11-04 11:15:46 to 11:18:05 UTC, exit 0) was on the code before the example changes below and is superseded by this one.
+
+```text
+start 2026-11-04 11:31:58 UTC
+code-diff-vs-HEAD-exit=0
+Running pre-push checks...
+Note: these checks can take several minutes. If Git reports a closed SSH connection after they pass, see <repository root>/docs/git-hooks.md.
+[Step 1/6] Checking format with nightly toolchain ... PASS (1s)
+[Step 2/6] Checking workspace with nightly toolchain ... PASS (0s)
+[Step 3/6] Building documentation with nightly toolchain ... PASS (2s)
+[Step 4/6] Building library documentation with nightly toolchain ... PASS (4s)
+[Step 5/6] Checking that every workspace crate can be packaged ... PASS (27s)
+[Step 6/6] Running all tests ... PASS (44s)
+==========================================
+SUCCESS: All pre-push checks passed! (1m 18s)
+==========================================
+You can now safely push your changes.
+exit=0
+end 2026-11-04 11:33:16 UTC
+```
+
+`linter all` runs in the pre-commit gate of every commit of the branch (each commit of this branch passed it, the one with the example refactor after the `too_many_lines` clippy finding of its first attempt was fixed).
+
+Independent pre-PR review (read-only Task Reviewer, 2026-11-04, while the first pre-push ran): **PASS WITH FINDINGS**, no Blocker or Major. It verified the dependency audit directly (the registry crate is used only by `src/testing/environment.rs`, `Cargo.toml` and the new example; every other direct dependency has a production use) and the gate shape. It did not run clippy, `cargo doc` or tests because the first pre-push held the target lock. Its findings and their disposition:
+
+| # | Severity | Finding | Disposition |
+| --- | --- | --- | --- |
+| 1 | Minor | The new example says it does not use the `testing` feature, but it imports the registry crate, which reaches it through the self dev-dependency | Fixed in `refactor(udp-server): [#2699] follow the application's listener policy and loop error handling in the production-style example`: the header says it does not use the `testing` module and explains the self dev-dependency. The T4 decision (no explicit dev-dependency) is recorded in the spec. |
+| 2 | Minor | The example drops an `io::Error` of the receive loop | Fixed in the same commit: the three outcomes of the join are reported. |
+| 3 | Minor | The metrics policy was hard-coded `true` and the drain was a constant | Fixed in the same commit: the policy comes from `UdpTracker::tracker_usage_statistics` and the drain from `Shutdown::event_listener_drain()`, like `src/bootstrap/jobs/udp_tracker_core.rs`. The header says the example spawns the listeners itself. |
+| 4 | Minor | The V6 grep step printed `1` and `2` for the "does not use the testing module" check | Fixed: the script now counts `^use .*udp_server::testing` lines, as its own step (0 and 1). |
+| 5 | Minor | The V7 commands were not shown | Fixed: V7 points at its script, which is in the last section. |
+| 6 | Minor | M3 named a file that the filtered output does not show | Fixed: the claim says "two `E0433` errors in the integration test of that package". |
+| 7 | Nit | The rustdoc step proves "absent from rustdoc output", not "not compiled" | Kept; the M1 row says "absent from the default `cargo doc` output", and the build steps next to it carry the compile claim. |
+| 8 | Nit | After the gating commit the health check tests do not compile until the next commit | Kept: the spec's Commit Points table asks for separate commits, and the gate runs no test compilation. |
+| 9 | Nit | EPIC row 4 notes and the ADR "does not decide" list | The EPIC row 4 note now says the new example exists. No ADR amendment was made: the decision is recorded in the spec and is a candidate for the coordinator. |
 
 ## Script
 
-The script of V1 to V6 and the matrix, as it ran. `run LABEL FILTER COMMAND...` prints the `date -u` start stamp, runs the command, prints the lines of its output that match the filter, and prints the end stamp and the command's exit code. The restore steps compare the working tree with `HEAD` through `git diff --quiet` on the named paths after a `git checkout -q --` of the files the red step edited. The check "V6 the new example does not use the testing module" matched the module name in the doc header of the new example (prose, not code), so the 1 it printed is not an import; the precise check is `grep -c '^use .*udp_server::testing'` on each example, which gave 0 for the new example and 1 for the existing one on 2026-11-04 at 11:12 UTC.
+The script of V1 to V6 and the matrix, as it ran (the pre-push run of V8 is the hook itself). `run LABEL FILTER COMMAND...` prints the `date -u` start stamp, runs the command, prints the lines of its output that match the filter, and prints the end stamp and the command's exit code. The restore steps compare the working tree with `HEAD` through `git diff --quiet` on the named paths after a `git checkout -q --` of the files the red step edited.
 
 ```bash
 #!/usr/bin/env bash
@@ -600,7 +639,7 @@ run "V5 no required-features on any target of the workspace" '.' bash -c "grep -
 run "V5 cargo +stable package --workspace --no-verify" 'Packaged|^error|warning: ' cargo +stable package --workspace --no-verify --allow-dirty
 
 # V6 examples
-run "V6 the new example does not use the testing module" '.' bash -c "grep -c 'udp_server::testing' packages/udp-server/examples/udp_only_public_tracker_production_style.rs; grep -c 'udp_server::testing' packages/udp-server/examples/udp_only_public_tracker.rs"
+run "V6 import lines of the testing module: new example, then existing example" '.' bash -c "grep -c '^use .*udp_server::testing' packages/udp-server/examples/udp_only_public_tracker_production_style.rs; grep -c '^use .*udp_server::testing' packages/udp-server/examples/udp_only_public_tracker.rs"
 run "V6 cargo build -p torrust-tracker-udp-server --examples" 'Finished|^error' cargo build -p torrust-tracker-udp-server --examples
 run "V6 cargo test -p torrust-tracker-udp-server --examples" '^test result|Running|^error' cargo test -p torrust-tracker-udp-server --examples
 run "V6 plain cargo run of the production-style example (killed by timeout after the listening line)" 'Listening|^error' timeout 60 cargo run -q -p torrust-tracker-udp-server --example udp_only_public_tracker_production_style
