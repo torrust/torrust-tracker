@@ -3,8 +3,8 @@ semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
-    - docs/issues/open/2691-reduce-agents-md-token-footprint/ISSUE.md
-    - docs/issues/open/2691-reduce-agents-md-token-footprint/research.md
+    - docs/issues/closed/2691-reduce-agents-md-token-footprint/ISSUE.md
+    - docs/issues/closed/2691-reduce-agents-md-token-footprint/research.md
     - AGENTS.md
 ---
 

@@ -5,11 +5,11 @@ semantic-links:
   related-artifacts:
     - docs/templates/ISSUE.md
     - .github/skills/dev/planning/create-issue/SKILL.md
-    - docs/issues/open/2691-reduce-agents-md-token-footprint/ISSUE.md
-    - docs/issues/open/2691-reduce-agents-md-token-footprint/research.md
-    - docs/issues/open/2691-reduce-agents-md-token-footprint/section-disposition.md
-    - docs/issues/open/2691-reduce-agents-md-token-footprint/rule-inventory.md
-    - docs/issues/open/2691-reduce-agents-md-token-footprint/manual-verification-evidence.md
+    - docs/issues/closed/2691-reduce-agents-md-token-footprint/ISSUE.md
+    - docs/issues/closed/2691-reduce-agents-md-token-footprint/research.md
+    - docs/issues/closed/2691-reduce-agents-md-token-footprint/section-disposition.md
+    - docs/issues/closed/2691-reduce-agents-md-token-footprint/rule-inventory.md
+    - docs/issues/closed/2691-reduce-agents-md-token-footprint/manual-verification-evidence.md
 ---
 
 # Implementation Retrospective — Reduce the AGENTS.md Token Footprint

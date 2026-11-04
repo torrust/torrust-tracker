@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2691-reduce-agents-md-token-footprint/ISSUE.md
-last-updated-utc: 2026-11-04 10:30
+issue-spec: docs/issues/closed/2691-reduce-agents-md-token-footprint/ISSUE.md
+last-updated-utc: 2026-11-04 15:00
 ---
 
 # Manual Verification Evidence

@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-progress
+status: done
 priority: p2
 epic: null
 github-issue: 2691
-spec-path: docs/issues/open/2691-reduce-agents-md-token-footprint/ISSUE.md
+spec-path: docs/issues/closed/2691-reduce-agents-md-token-footprint/ISSUE.md
 branch: "2691-reduce-agents-md-token-footprint"
 related-pr: 2704
-last-updated-utc: "2026-11-04 12:30"
+last-updated-utc: "2026-11-04 15:00"
 semantic-links:
   skill-links:
     - create-issue
@@ -17,11 +17,11 @@ semantic-links:
     - .github/skills/dev/planning/create-issue/SKILL.md
     - AGENTS.md
     - docs/adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md
-    - docs/issues/open/2691-reduce-agents-md-token-footprint/research.md
-    - docs/issues/open/2691-reduce-agents-md-token-footprint/section-disposition.md
-    - docs/issues/open/2691-reduce-agents-md-token-footprint/rule-inventory.md
-    - docs/issues/open/2691-reduce-agents-md-token-footprint/manual-verification-evidence.md
-    - docs/issues/open/2691-reduce-agents-md-token-footprint/implementation-retrospective.md
+    - docs/issues/closed/2691-reduce-agents-md-token-footprint/research.md
+    - docs/issues/closed/2691-reduce-agents-md-token-footprint/section-disposition.md
+    - docs/issues/closed/2691-reduce-agents-md-token-footprint/rule-inventory.md
+    - docs/issues/closed/2691-reduce-agents-md-token-footprint/manual-verification-evidence.md
+    - docs/issues/closed/2691-reduce-agents-md-token-footprint/implementation-retrospective.md
 ---
 
 <!-- skill-link: create-issue -->
@@ -153,16 +153,16 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - [x] Folder-style spec drafted in `docs/issues/open/2691-reduce-agents-md-token-footprint/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
+- [x] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
 - [x] Implementation completed
 - [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [x] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
-- [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
+- [x] Committer verified spec progress is up to date before commit
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -187,6 +187,7 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - 2026-11-04 12:30 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer decisions: D8, AC4 is met. The maintainer first proposed keeping procedural guidance only in skills and pointing to them, and the agent agreed and proposed four edits; the maintainer then changed their mind because the rules concern very common tasks and the token cost is low, so no edit was made and V1, V2 and V4 stay valid. D9, no ADR is needed (T10 closed); the placement rule stays recorded in `section-disposition.md` - `section-disposition.md`
 - 2026-11-04 14:00 UTC - Claude Code (Claude Sonnet 5.5) - Independent review returned REVIEW FAILED (`agent-review-reports.md`): fixed T6 status, stale references (EPIC #1669, issue #2183 T4, `deny.toml`), the R030 reason, the D1-D9 mention, the `run-linters` version bump and the D8 overlap note. The reviewer cited `docs/testing.md` for the E2E compose files; it does not name them, so R030 now says no document does. Re-review requested - `agent-review-reports.md`
 - 2026-11-04 14:30 UTC - Claude Code (Claude Sonnet 5.5) - Re-review found one LOW issue left (R030 said no document names the compose files; the qbt debugging README names one); corrected the reason. Acceptance criteria re-reviewed and reviewer validation ticked, since every other finding was verified fixed - `agent-review-reports.md`
+- 2026-11-04 15:00 UTC - Claude Code (Claude Sonnet 5.5) - PR #2704 merged and issue #2691 is CLOSED on GitHub; archived the spec to `docs/issues/closed/`, set `status: done`, repointed the frontmatter paths and ticked the remaining workflow checkpoints (spec-only PR #2692 merged, acceptance criteria reviewed, review reports recorded, spec progress verified). Historical prose that names the `open/` path was left as it was. - `ISSUE.md`
 
 ## Acceptance Criteria
 
