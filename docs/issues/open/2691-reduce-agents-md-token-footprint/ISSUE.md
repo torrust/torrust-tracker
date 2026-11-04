@@ -159,7 +159,7 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [ ] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
@@ -186,6 +186,7 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - 2026-11-04 11:30 UTC - Claude Code (Claude Sonnet 5.5) - Wrote the implementation retrospective (material discoveries: source-seeded inventory, a skill that pointed back at `AGENTS.md`, four stale baseline statements, silent table re-alignment, a stale-session measurement) and reviewed the acceptance criteria against the evidence: AC1, AC2, AC3, AC5, AC6 (waived) and AC7 are met. AC4 left open for the maintainer: no procedure is duplicated, but four short global rules remain in both `AGENTS.md` and a skill by decision D2 (branch naming and the `-spec` suffix, the Conventional Commits types, the pre-commit gate command, the log-directory tip) - `implementation-retrospective.md`
 - 2026-11-04 12:30 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer decisions: D8, AC4 is met. The maintainer first proposed keeping procedural guidance only in skills and pointing to them, and the agent agreed and proposed four edits; the maintainer then changed their mind because the rules concern very common tasks and the token cost is low, so no edit was made and V1, V2 and V4 stay valid. D9, no ADR is needed (T10 closed); the placement rule stays recorded in `section-disposition.md` - `section-disposition.md`
 - 2026-11-04 14:00 UTC - Claude Code (Claude Sonnet 5.5) - Independent review returned REVIEW FAILED (`agent-review-reports.md`): fixed T6 status, stale references (EPIC #1669, issue #2183 T4, `deny.toml`), the R030 reason, the D1-D9 mention, the `run-linters` version bump and the D8 overlap note. The reviewer cited `docs/testing.md` for the E2E compose files; it does not name them, so R030 now says no document does. Re-review requested - `agent-review-reports.md`
+- 2026-11-04 14:30 UTC - Claude Code (Claude Sonnet 5.5) - Re-review found one LOW issue left (R030 said no document names the compose files; the qbt debugging README names one); corrected the reason. Acceptance criteria re-reviewed and reviewer validation ticked, since every other finding was verified fixed - `agent-review-reports.md`
 
 ## Acceptance Criteria
 
@@ -208,7 +209,7 @@ a Conventional Commit message with the narrow affected scope, and sign every com
 - [x] `linter all` exits with code `0`
 - [x] Relevant tests pass
 - [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
 - [x] Documentation is updated when behavior/workflow changes
 
 ## Verification Plan

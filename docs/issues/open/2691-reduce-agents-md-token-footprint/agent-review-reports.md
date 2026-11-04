@@ -66,3 +66,28 @@ semantic-links:
   - Implementer: fix the T6 status, the 2183 and 1669 stale references and the `deny.toml` comment,
     correct R030, then request a re-review (or a documented acceptance of the low findings).
   - Reviewer: tick "Acceptance criteria are re-reviewed" and "Reviewer validated" after the re-review.
+
+### 2026-11-04 11:20 UTC - Task Reviewer, re-review (Claude Code, model Claude Sonnet 5.5)
+
+- Invocation scope: re-review of commit `60d26d33f` against findings 1 to 6 of the earlier entry.
+- Evidence: `git show 60d26d33f`; `linter all` exited 0 with `TORRUST_GIT_HOOKS_LOG_DIR=.tmp`; repo-wide
+  grep (excluding `docs/issues/closed`) for the removed `AGENTS.md` sections.
+- Findings 1 to 4 and 6: resolved. T6 is `DONE`; issue #2183 T4 matches the current `AGENTS.md`
+  (MSRV figure in Project Overview, separate MSRV policy paragraph) and AC6 is still accurate; EPIC
+  #1669 lines 527 and 1107 and `deny.toml` point at `docs/packages.md`; D8 names the overlap;
+  "D1 to D9" and the `run-linters` 1.2 bump are in. Remaining hits (`docs/discussions/...`,
+  `docs/pr-reviews/pr-2187-review/PR-REVIEW.md`, EPIC line 1080) are dated historical records and
+  are acceptable.
+- Finding 5 (R030): the earlier claim about `docs/testing.md` was wrong (it only links the
+  `qbittorrent_e2e_runner` binary). However the new reason "no document names them" is also
+  inaccurate: `contrib/dev-tools/debugging/qbt/README.md` line 48 names
+  `compose.qbittorrent-e2e.sqlite3.yaml`. LOW. Remediation: reword R030 to "no user-facing
+  testing document lists them (only the qbt debugging README mentions one)", or drop the claim.
+- Verdict: REVIEW FAILED (one LOW inaccuracy left; nothing else blocks). The re-review checkboxes
+  in `ISSUE.md` are not ticked.
+
+### Re-review follow-up
+
+The one remaining LOW finding (R030 reason) was corrected in `rule-inventory.md` to cite the
+`contrib/dev-tools/debugging/qbt/README.md` mention. All other findings were verified fixed by the
+re-review; no further review pass was run for this one-line wording change.
