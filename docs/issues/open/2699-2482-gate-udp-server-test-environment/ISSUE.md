@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: draft
+status: planned
 priority: p2
 epic: 2482
-github-issue: null
-spec-path: docs/issues/drafts/2482-gate-udp-server-test-environment/ISSUE.md
-branch: "{issue-number}-2482-gate-udp-server-test-environment"
+github-issue: 2699
+spec-path: docs/issues/open/2699-2482-gate-udp-server-test-environment/ISSUE.md
+branch: "2699-2482-gate-udp-server-test-environment-spec"
 related-pr: null
-last-updated-utc: "2026-10-22 18:10"
+last-updated-utc: "2026-11-03 17:08"
 semantic-links:
   skill-links:
     - create-issue
@@ -24,7 +24,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Gate the `udp-server` test environment behind a `testing` feature
+# Issue #2699 - Gate the `udp-server` test environment behind a `testing` feature
 
 Parent EPIC: #2482 (Reorganize test support code shared between workspace packages), row 4 of its
 Subissues table. Draft written by subissue 1 (#2618). Execution order: after rows 2, 8 and 3, and
@@ -40,7 +40,7 @@ feature.
 
 ## Background
 
-`udp-server` exposes `pub mod testing;` (`src/lib.rs`), whose `environment.rs` (581 lines) starts a
+`udp-server` exposes `pub mod testing;` (`src/lib.rs`), whose `environment.rs` (878 lines on `develop` on 2026-11-03) starts a
 UDP tracker on an ephemeral address for tests, compiled in every build. It forces one normal
 dependency that production code does not use: `torrust-tracker-swarm-coordination-registry`.
 Consumers: its own `tests/server/contract.rs`; its own unit tests in `src/handlers/mod.rs` and
@@ -49,9 +49,16 @@ Consumers: its own `tests/server/contract.rs`; its own unit tests in `src/handle
 
 ## Gate
 
-Issue #2416 (stop event producers before event listeners, part of #2410) is open on 2026-10-21 and its
-task T9 changes the HTTP and UDP environments. This subissue starts after it merges, or this spec
-is updated with why the order does not matter. #1488 work is not delayed for this EPIC.
+The gate is satisfied: #2416 (stop event producers before event listeners, part of #2410) closed on
+2026-10-24. Its task T9 (`fix(axum-http-server,udp-server): [#2416] stop the server before the
+listeners in the test environments`) changed the UDP environment: the `Running` state holds two
+independent cancellation tokens with drop guards (`server_token`, `listeners_token`); `stop()`
+cancels and joins the server first, then the listeners, so events of requests completed while the
+server drains are still processed; failures are reported after every task is joined; dropping an
+environment without `stop()` cancels both tokens. Later commits added tests for it and applied the
+configured request drain deadline. None of this changes what this subissue moves: the module's
+public surface and its single forced dependency are unchanged. No commit touched the four server
+packages on `develop` between 2026-10-29 and 2026-11-03 (verified with `git log` on `torrust/develop`).
 
 ## Scope
 
@@ -68,9 +75,11 @@ is updated with why the order does not matter. #1488 work is not delayed for thi
   `axum-health-check-api-server`'s `[dev-dependencies]`, in the same pull request.
 - Add the feature comment (test support, outside semver) and keep `testing` out of
   `[package.metadata.docs.rs]`.
-- Decide with the maintainer what `examples/udp_only_public_tracker.rs` becomes: it starts a tracker
-  through the test environment today. Either label it a test-support demonstration or give it a
-  production-style startup; record the choice. The ADR leaves it open.
+- Examples (maintainer decision, see Architectural Decisions): keep
+  `examples/udp_only_public_tracker.rs` on the test environment and add a new production-style
+  example next to it; both doc headers say which one follows the testing conventions and which one
+  simulates production as closely as possible (see the decision for the exact wording requirements).
+  This grows the scope beyond a pure gate on purpose.
 - Update the inventory (pattern A row for `udp-server`) and the diagram.
 
 ### Out of Scope
@@ -85,6 +94,40 @@ is updated with why the order does not matter. #1488 work is not delayed for thi
 - Related ADRs: [`20261021190318`](../../../adrs/20261021190318_share_workspace_test_support_through_testing_features.md)
   (rule A; ownership map: `udp-server` owns the UDP environment).
 - ADRs to create: None known.
+
+### Decision: what the examples become
+
+The ADR (section "What this ADR does not decide") leaves open whether the example that starts a
+tracker through an environment keeps doing so. Decided by the maintainer on 2026-11-03 through
+`ask_user`: keep the existing example on the test environment, add a NEW production-style example,
+and make both doc headers explain the difference.
+
+| Option | Strengths | Weaknesses | Outcome |
+| --- | --- | --- | --- |
+| (a) Relabel the existing example as a test-support demonstration only | Smallest change; keeps the object-oriented demo | The package then has no example of starting a UDP tracker the way the binary does | Not chosen alone (recommended by the assistant) |
+| (b) Rewrite the existing example to a production-style startup | One example; shows real startup | Loses the testing-style demonstration; large rewrite | Rejected |
+| (c) Delete the example | No label to maintain | Loses documentation of narrowed-configuration initialisation (#1861, DEC-09) | Rejected |
+| (d) `required-features = ["testing"]` on the example | No code change | Banned by the ADR (a skipped target is silent); `cargo run` would fail without the flag | Rejected |
+| (e) Keep it and add a production-style example, label both | Both styles documented; no behaviour lost | More scope: one new example to build and keep working | **Chosen** |
+
+Requirements of the chosen option:
+
+- The existing example keeps using `testing::environment` and its doc header says it follows the
+  conventions used in testing.
+- The new example (name proposed: `udp_only_public_tracker_production_style`) does NOT use
+  `testing`. It starts the server the way `src/bootstrap/jobs/udp_tracker.rs` does
+  (`Server::new(Spawner::new(bind_to)).start_with_cancellation(...)`) and runs the event listeners
+  as `environment.rs` does, and runs with plain `cargo run -p torrust-tracker-udp-server --example
+  <name>`. Its header says it simulates production as closely as possible.
+- Both headers say: production startup may become more testing-like in the future, and an end user
+  may adopt the object-oriented, testing-style version if they prefer it.
+- Both examples must build under `cargo test --examples` and `cargo +nightly check --tests
+  --benches --examples --workspace --all-targets --all-features`.
+- Open implementation detail: hand-building `SwarmCoordinationRegistryContainer` needs the crate
+  that becomes optional. The self dev-dependency enables `testing` and therefore the crate for
+  every own target, so the new example compiles under cargo's normal dev feature unification; the
+  implementation records whether an explicit dev-dependency is needed instead (T4), verified by
+  building the example with `cargo build -p torrust-tracker-udp-server --example <name>`.
 
 ## Design and Ownership Review
 
@@ -108,10 +151,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T1 | BLOCKED | Record the baseline (after #2416) | `cargo tree -p torrust-tracker-udp-server -e normal --depth 1`; test counts of `cargo test -p torrust-tracker-udp-server` and `-p torrust-tracker-axum-health-check-api-server` with and without `--all-features` |
+| T1 | DONE | Record the baseline (#2416 merged) | `cargo tree -p torrust-tracker-udp-server -e normal --depth 1`; test counts of `cargo test -p torrust-tracker-udp-server` and `-p torrust-tracker-axum-health-check-api-server` with and without `--all-features`. Measured 2026-11-03 17:04 to 17:05 UTC: udp-server 233 unit + 16 integration + 1 doc passed (1 ignored) + one further target reporting 2 passed; health check 15 unit + 8 integration; identical with and without `--all-features` before the change |
 | T2 | TODO | Gate the module, add the feature and optional dependency, add the self dev-dependency | Plain `cargo test -p torrust-tracker-udp-server` passes |
 | T3 | TODO | Enable the feature in the health check package's dev-dependency | Its tests pass |
-| T4 | TODO | Decide and apply the example's status | Example builds; choice recorded |
+| T4 | TODO | Relabel the existing example and add the production-style example | Both build and run; headers carry the required wording |
 | T5 | TODO | Update inventory, diagram and docs | Pattern A `udp-server` row resolved |
 
 ## Commit Points
@@ -120,7 +163,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | --- | --- |
 | T2 | Gate, feature, optional dependency, self dev-dependency | Commit after the package's tests pass without `--all-features`. |
 | T3 | Health check dev-dependency | Commit after its tests pass. |
-| T4 | Example | One commit. |
+| T4 | Examples | One commit (two if the relabel and the new example are independent). |
 | T5 | Docs | One commit. |
 
 ## Progress Tracking
@@ -143,6 +186,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-10-21 19:16 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 1) - Drafted from row 4 of
   the #2482 Subissues table and rule A of the ADR; gated by #2416.
 - 2026-10-22 18:10 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 1) - Changed after PR #2624's review: AC1 and M1 check direct dependencies (`--depth 1`) because the forced crate stays reachable through `tracker-core`; added the dependency audit to the scope.
+- 2026-11-03 17:06 UTC - AI assistant (Copilot SDK in VS Code, #2482 row 4) - Refreshed the draft against `develop` (environment.rs now 878 lines; Gate satisfied, #2416 T9 recorded; baseline counts measured, T1 DONE); recorded the maintainer's example decision (keep, add a production-style example, label both).
+- 2026-11-03 17:08 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 4) - Created issue #2699 after the maintainer approved the refreshed spec, linked it as a sub-issue of #2482 and moved the spec to `docs/issues/open/`.
 
 ## Acceptance Criteria
 
@@ -155,7 +200,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
       baseline test counts.
 - [ ] AC3: The self dev-dependency has no `version`; `cargo +stable package --workspace
       --no-verify` passes.
-- [ ] AC4: The example's status is decided and recorded; it builds.
+- [ ] AC4: The existing example keeps the test environment and is labelled; the new production-style example does not use `testing`, runs under plain `cargo run`, and both build under `cargo test --examples` and the nightly `--all-features` check.
 - [ ] AC5: The inventory row is marked resolved.
 - [ ] `linter all` exits with code `0`; pre-push checks pass.
 
@@ -166,6 +211,12 @@ applies. This is an O1 move: build the package without the feature, run `cargo t
 without `--all-features`, and check the test count.
 
 ### Automatic Checks
+
+Also: the Shipped Features check green on the real tree and red when `features = ["testing"]` is
+placed on a `[dependencies]` edge of `torrust-tracker-udp-server` (reverted afterwards); a
+`cargo +nightly check --tests --benches --examples --workspace --all-targets --all-features`; the
+bench builds (`cargo bench -p torrust-tracker-udp-server --no-run`); no `required-features` on any
+target.
 
 - `linter all`, the tests of both packages with and without `--all-features`,
   `cargo build -p torrust-tracker-udp-server --examples`, `cargo +stable package --workspace
@@ -193,6 +244,16 @@ without `--all-features`, and check the test count.
 
 - #2416 may change the environment between this draft and the implementation. Mitigation: T1 starts
   only after it merges, and re-reads the module.
+- The Containerfile builds shipped binaries in their own stages and test archives keep
+  `--all-features`, so the feature is on only in the test archive; the evidence runs the shipped
+  binary (`TORRUST_TRACKER_BINARY`) in a native-tracker test and records checksums.
+- Dependency audit (2026-11-03, `cargo tree -p torrust-tracker-udp-server -e normal --depth 1`
+  plus source grep): the only direct dependency used solely by `src/testing/` is
+  `torrust-tracker-swarm-coordination-registry` (stays transitive through `tracker-core` and
+  `udp-core`); every other direct normal dependency has production uses; `mockall`, `rand`,
+  `criterion` and `torrust-tracker-test-helpers` are already dev-only.
+- `deny.toml`: the `torrust-tracker-udp-server` wrappers entry gets the package itself (with a
+  comment, as row 3 did) in the SAME commit as the manifest change.
 - Another package may start using the environment before this lands; T1 re-greps the consumers.
 
 ## Implementation Completion Review

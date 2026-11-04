@@ -1209,8 +1209,8 @@ they compile into release builds. The report now shows the cost of that trade-of
 Gating each `testing` module behind a Cargo feature would make these edges optional. Sub-EPIC #2482
 decides how packages share test support code, with this as one option
 ([`2482-1669-reorganize-shared-test-support`](../2482-1669-reorganize-shared-test-support/EPIC.md)).
-Subissue drafts, one per package:
-[`udp-server`](../../drafts/2482-gate-udp-server-test-environment/ISSUE.md),
+Subissue specs (open and drafts), one per package:
+[`udp-server`](../../open/2699-2482-gate-udp-server-test-environment/ISSUE.md),
 [`axum-http-server`](../../drafts/2482-gate-axum-http-server-test-environment/ISSUE.md),
 [`axum-rest-api-server`](../../drafts/2482-gate-axum-rest-api-server-test-environment/ISSUE.md) and
 [`axum-health-check-api-server`](../../drafts/2482-gate-axum-health-check-api-server-test-environment/ISSUE.md),
