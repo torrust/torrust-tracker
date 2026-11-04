@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: draft
+status: planned
 priority: p2
 epic: 2482
-github-issue: null
-spec-path: docs/issues/drafts/2482-gate-axum-http-server-test-environment/ISSUE.md
-branch: "{issue-number}-2482-gate-axum-http-server-test-environment"
+github-issue: 2724
+spec-path: docs/issues/open/2724-2482-gate-axum-http-server-test-environment/ISSUE.md
+branch: "2724-2482-gate-axum-http-server-test-environment-spec"
 related-pr: null
-last-updated-utc: "2026-11-04 17:31"
+last-updated-utc: "2026-11-04 17:41"
 semantic-links:
   skill-links:
     - create-issue
@@ -25,7 +25,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Gate the `axum-http-server` test environment behind a `testing` feature
+# Issue #2724 - Gate the `axum-http-server` test environment behind a `testing` feature
 
 Parent EPIC: #2482 (Reorganize test support code shared between workspace packages), row 5 of its
 Subissues table. Draft written by subissue 1 (#2618), refreshed on 2026-11-04 against
@@ -197,9 +197,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ### Workflow Checkpoints
 
-- [x] Folder-style spec drafted in `docs/issues/drafts/2482-gate-axum-http-server-test-environment/ISSUE.md`
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created, linked as a sub-issue of #2482, and its number added to this spec
+- [x] Folder-style spec drafted in `docs/issues/open/2724-2482-gate-axum-http-server-test-environment/ISSUE.md`
+- [x] Spec reviewed and approved by user/maintainer (2026-11-04)
+- [ ] GitHub issue created (#2724), linked as a sub-issue of #2482 (the maintainer links it: the bot cannot), and its number added to this spec
 - [ ] Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
@@ -214,6 +214,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   the #2482 Subissues table and rule A of the ADR; gated by #2416.
 - 2026-10-22 18:10 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 1) - Changed after PR #2624's review: AC1 and M1 check direct dependencies (`--depth 1`); the scope audits third-party normal dependencies and names `torrust-clock` and `torrust-info-hash`.
 - 2026-11-04 17:31 UTC - AI assistant (Claude Code, #2482 row 5) - Refreshed the draft against `torrust/develop` (environment.rs now 716 lines; the gate is satisfied, #2416, #2449 and #2450 are closed; dependency audit and baseline counts measured, T1 DONE); recorded the maintainer's decisions of 2026-11-04: keep the testing-style example and add a production-style one, documenting clearly why and where they differ (as in #2699), and make `torrust-tracker-swarm-coordination-registry`, `torrust-clock` and `torrust-info-hash` optional while `torrust-tracker-configuration` stays. The ADR amendment note on the examples decision was merged first (PR #2723). Added T6 and AC6 (container recipe, shipped features).
+
+- 2026-11-04 17:41 UTC - AI assistant (Claude Code, #2482 row 5) - The maintainer approved the spec. Created issue #2724 as `josecelano-bot`; the bot cannot add labels or link sub-issues on `torrust/torrust-tracker`, so the maintainer does both. The spec moved to `docs/issues/open/`; the #2482 EPIC row, the inventory and the 2026-10-06 coupling report link to it.
 
 ## Acceptance Criteria
 
