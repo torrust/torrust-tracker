@@ -8,8 +8,8 @@ epic: 2482
 github-issue: 2699
 spec-path: docs/issues/open/2699-2482-gate-udp-server-test-environment/ISSUE.md
 branch: "2699-2482-gate-udp-server-test-environment"
-related-pr: null
-last-updated-utc: "2026-11-04 11:35"
+related-pr: 2711
+last-updated-utc: "2026-11-04 11:38"
 semantic-links:
   skill-links:
     - create-issue
