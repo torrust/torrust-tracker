@@ -173,6 +173,43 @@ routing new traffic. This does not stop direct TCP or UDP clients; server
 components retain admission and graceful-stop responsibility. The readiness
 transition has no separate timeout and remains inside the process deadline.
 
+#### Readiness Contract for Operators
+
+Use `GET /health_check` on the health-check API (default `127.0.0.1:1313`) as the
+readiness probe.
+
+| Tracker state                        | `/health_check` answer                                                                 |
+| ------------------------------------ | ---------------------------------------------------------------------------------------- |
+| Running                              | `200` with the probe results of every registered service (unchanged). |
+| Shutdown requested (SIGTERM, SIGINT) | `503` with `{"status":"Error","message":"shutting down","details":[]}`, no service probed. |
+| Process exited or still starting     | The connection is refused: not ready either.                                              |
+
+- The change is one-way: a tracker that began shutting down never reports ready again.
+- The health-check API stops after every other component, so a new probe gets `503` (not a refused
+  connection) for the whole drain. Only when every other component has completed does it stop, which
+  is within the process deadline `P` at the latest (see [the ADR](../../adrs/20261104120915_stop_the_health_check_api_last_to_report_not_ready_during_shutdown.md)).
+- A `503` removes the instance from Kubernetes Service endpoints and from readiness-aware load
+  balancers. It does not stop clients that connect directly to a tracker port: each server drains its
+  accepted work under its own budget.
+- Startup failure: the process exits before the health-check API is bound, so a failed start never
+  advertises readiness.
+- Do not use `/health_check` as a liveness probe: a draining tracker is alive, and restarting it
+  would cut the drain.
+
+```yaml
+# Kubernetes: readiness, not liveness, uses the health check API.
+readinessProbe:
+  httpGet:
+    path: /health_check
+    port: 1313
+  periodSeconds: 5
+  failureThreshold: 1
+terminationGracePeriodSeconds: 35 # at least P + 5 s, see the deadline policy
+```
+
+Every `503` is logged at error level by the health-check API, so a drain with a probe every few
+seconds produces error lines; they are the expected answer, not a failure.
+
 ## The Contracts We Are Implementing
 
 These are established, well-proven standards. We are not inventing anything new —
