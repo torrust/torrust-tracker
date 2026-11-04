@@ -32,9 +32,14 @@ Record the reusable lessons of #2699, the first server environment of #2482 to m
 - The pedantic clippy `too_many_lines` limit (100) applies to examples; the first `main` had 102 lines and the pre-commit gate rejected it, so the container composition and the listener stop moved to helpers.
 - The example's header said it does not use the `testing` feature, but it imports the registry crate, which the package's own targets get through the self dev-dependency. The header now says it does not use the `testing` module.
 
+- The first push failed the `Test (Docker) (release)` job: `cargo chef prepare --external-only` strips workspace path dependencies from every manifest but, in `torrust-cargo-chef` 0.1.78, not the `[features]` entries that name them, so `testing = ["dep:torrust-tracker-swarm-coordination-registry"]` made the skeleton manifest invalid. The maintainer chose to fix the fork (options A to E are in the spec): https://github.com/torrust/cargo-chef/pull/1, version 0.1.79, published and tagged; the `Containerfile` pin was bumped and the job passed. The assistant reproduced the failure locally with the pinned version before choosing, and proved the fix on the real tree (red then green, V9) before the maintainer was asked to release.
+- Two Copilot rounds on the PR found five points: two were not defects (the 2024 prelude has `Future`; taplo requires `default = [  ]`), and the checks behind both replies are in the audit. A third (the wording "dev-dependencies only") exposed a real contradiction with the example headers.
+
 ## Root Cause
 
 "Simulates production as closely as possible" was a claim written from memory of the application code. The example was made by adapting the test environment, which has its own shortcuts (a fixed metrics policy, a constant drain), so it inherited them.
+
+The container failure has a different cause: the verification plan listed cargo commands only, and the `Containerfile` runs a tool (`cargo chef`) that reads the manifests in its own way. Row 3 passed through it only because its optional dependency is third-party.
 
 ## Improvements for Future Work
 
@@ -43,6 +48,9 @@ Record the reusable lessons of #2699, the first server environment of #2482 to m
 3. Count `main`'s lines in examples that compose several containers: the pedantic limit is 100.
 4. An example that imports an optional dependency of the package compiles only through the self dev-dependency (as the `src/` unit tests do); a packaged `.crate` strips that edge, so say so instead of claiming the example never needs the feature.
 5. The sub-second part of `date -u` stamps from one script can be non-monotonic on this host; cite the order of the script and the seconds.
+6. Put the container build in the verification of every row that changes a manifest. When the change makes a workspace path dependency optional, run `cargo chef prepare --external-only` then `cargo chef cook --tests --workspace --all-features` on the tree (V9 has the script) before the first push, and check that the pinned `torrust-cargo-chef` is 0.1.79 or later. Rows 5 to 7 need this.
+7. A failing check on the first push is a decision, not only a fix: reproduce it, list the options with their strengths and weaknesses in the spec, let the maintainer choose, and reopen the checkpoints that the failure makes untrue.
+8. Check a pending review request before writing that no review exists: the audit entry that said so was wrong by the time it was committed and was corrected before the push.
 
 ## Avoiding Overcorrection
 
@@ -51,4 +59,5 @@ The evidence does not justify a shared helper for the production startup of the 
 ## Evidence
 
 - [Issue specification](ISSUE.md) and [manual verification evidence](manual-verification-evidence.md) (V1 to V8).
-- Spec PR #2700 and its review audit, `docs/pr-reviews/pr-2700-review/PR-REVIEW.md`.
+- Spec PR #2700 and its review audit, `docs/pr-reviews/pr-2700-review/PR-REVIEW.md`; this PR's audit, `docs/pr-reviews/pr-2711-review/PR-REVIEW.md`.
+- The fork fix: https://github.com/torrust/cargo-chef/pull/1 (evidence V9 and V10).

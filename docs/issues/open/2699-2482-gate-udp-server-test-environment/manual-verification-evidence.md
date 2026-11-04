@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2699-2482-gate-udp-server-test-environment/ISSUE.md
-last-updated-utc: "2026-11-04 12:26"
+last-updated-utc: "2026-11-04 13:20"
 ---
 
 # Manual Verification Evidence
@@ -30,7 +30,7 @@ Record the commands run to verify the scenarios of the [spec](ISSUE.md). Every o
 | M6 Examples | Both build under `cargo build --examples` and `cargo test --examples`; both run under plain `cargo run` (they print `Listening on ...` until the timeout kills them); both answer a real UDP connect request and stop on SIGTERM (V7, whose commands are the second script below). The new example has no `use` line of `udp_server::testing` (`grep -c '^use .*udp_server::testing'` prints 0); the existing one has exactly one. | V6, V7 |
 | M7 Deny, machete, packaging, nightly, bench | `cargo deny check bans` ok, and failing (`explicitly banned`) without the self wrapper; `cargo machete --with-metadata` finds nothing; `cargo +stable package --workspace --no-verify` exits 0; `cargo +nightly check --tests --benches --examples --workspace --all-targets --all-features` exits 0 (in the script it finished in 0.54 s because the tree was up to date; after a `touch` of the new example, on 2026-11-04 at 11:31 UTC, the same command printed `Checking torrust-tracker-udp-server`, finished in 0.46 s and exited 0); `cargo bench -p torrust-tracker-udp-server --no-run` exits 0; no `required-features` anywhere in the workspace manifests. | V5, V6 |
 | M8 The shipped binary | The binary built by `cargo build -p torrust-tracker --bin torrust-tracker` has no trace of the UDP test environment (strings count 0 for both markers); the 35 `cli-configuration` tests pass with `TORRUST_TRACKER_BINARY` set to the preserved copy, whose checksum is unchanged by the plain run (the plain run rebuilt `target/debug/torrust-tracker`, whose checksum differs). | V4 |
-| Container recipe (spec scenario M8) | With `torrust-cargo-chef` 0.1.78, `cargo chef prepare --external-only` then `cargo chef cook --tests --workspace --all-features` on this tree exits 101 with the CI message; with the fixed build (0.1.79) the skeleton has `testing = []` and `cook` exits 0. The `Containerfile` job with the new pin has not run yet (AC6 open). | V9 |
+| Container recipe (spec scenario M8) | With `torrust-cargo-chef` 0.1.78, `cargo chef prepare --external-only` then `cargo chef cook --tests --workspace --all-features` on this tree exits 101 with the CI message; with the fixed build (0.1.79) the skeleton has `testing = []` and `cook` exits 0. The `Containerfile` job with the new pin passed (V10). | V9, V10 |
 
 Dependency audit against rule A.2 of the ADR (done for the spec on 2026-11-03 and checked again by the "V1 before" and "V1 after" lists): `torrust-tracker-swarm-coordination-registry` was the only direct normal dependency of `udp-server` that only `src/testing/environment.rs` uses. Every other direct normal dependency is also used by non-test code, and `mockall`, `rand`, `criterion`, `torrust-tracker-test-helpers` are dev-dependencies already. The new production-style example imports the registry crate; it compiles because the self dev-dependency enables `testing` for the package's own targets, so no explicit dev-dependency on the registry crate was added (T4). `cargo build -p torrust-tracker-udp-server --examples` (V6) succeeded; that build runs with the package's dev-dependencies, so it shows the example compiles under the self dev-dependency, not that it would compile without the feature.
 
@@ -543,7 +543,7 @@ Independent pre-PR review (read-only Task Reviewer, 2026-11-04, while the first 
 
 ## V9 - The container's third-party recipe cooks with the fixed `torrust-cargo-chef` (M8)
 
-The `Test (Docker) (release)` job of PR #2711 failed on its first push because `cargo chef prepare --external-only` strips workspace path dependencies but, in `torrust-cargo-chef` 0.1.78, not the `[features]` entries that name them (see the decision in the [spec](ISSUE.md)). V1 to V8 did not build the `Containerfile`, so they could not see it. This step reproduces the two `Containerfile` commands (`cargo chef prepare --external-only` in the planner stage, `cargo chef cook --tests --workspace --all-features` in the cook stage, debug profile here; the release profile of the job does not change how manifests are read) on this tree with the pinned version (red control) and with the build of the fix from the `torrust/cargo-chef` checkout (green). The fix is in https://github.com/torrust/cargo-chef/pull/1, branch `fix/external-only-prune-features` (its fix commit is `fix(external-only): prune feature entries that name a stripped path dependency`); the version under test is the head of that branch, `chore: bump torrust-cargo-chef to 0.1.79`, built with `cargo install --path ... --locked`. The tracker tree is checked unchanged (`git diff --quiet HEAD -- packages src tests deny.toml Cargo.toml Cargo.lock Containerfile` is the first line of the transcript). The `Containerfile` pin bump is a separate commit that is not pushed until 0.1.79 is published, so the job itself has not run with it yet: AC6 stays open until it passes.
+The `Test (Docker) (release)` job of PR #2711 failed on its first push because `cargo chef prepare --external-only` strips workspace path dependencies but, in `torrust-cargo-chef` 0.1.78, not the `[features]` entries that name them (see the decision in the [spec](ISSUE.md)). V1 to V8 did not build the `Containerfile`, so they could not see it. This step reproduces the two `Containerfile` commands (`cargo chef prepare --external-only` in the planner stage, `cargo chef cook --tests --workspace --all-features` in the cook stage, debug profile here; the release profile of the job does not change how manifests are read) on this tree with the pinned version (red control) and with the build of the fix from the `torrust/cargo-chef` checkout (green). The fix is in https://github.com/torrust/cargo-chef/pull/1, branch `fix/external-only-prune-features` (its fix commit is `fix(external-only): prune feature entries that name a stripped path dependency`); the version under test is the head of that branch, `chore: bump torrust-cargo-chef to 0.1.79`, built with `cargo install --path ... --locked`. The tracker tree is checked unchanged (`git diff --quiet HEAD -- packages src tests deny.toml Cargo.toml Cargo.lock Containerfile` is the first line of the transcript). The `Containerfile` pin bump is a separate commit; the job itself ran with it afterwards (V10).
 
 What the transcript shows: with 0.1.78, the skeleton of `udp-server` has `testing = ["dep:torrust-tracker-swarm-coordination-registry"]` and no registry dependency, and `cook` exits 101 with the message of the CI job; with 0.1.79 the skeleton has `testing = []` and `cook` exits 0 (it built the third-party crates of the workspace, 34 s).
 
@@ -646,6 +646,20 @@ cook exit=0
 ```
 
 The 0.90 s is a cache hit: the third-party crates were already built in the same target directory by the run above.
+
+## V10 - The `Test (Docker) (release)` job passes with the new pin (AC6)
+
+The first push of PR #2711 failed this job (V9). After the pin bump to `torrust-cargo-chef@0.1.79`, the job ran on the head whose subject is `docs(udp-server): [#2699] word the testing module note as a workspace rule, not a Cargo limit`, whose code (`packages`, `src`, `tests`, `deny.toml`, `Cargo.toml`, `Cargo.lock`, `Containerfile`) is the code of the final branch (the later commits only change Markdown files; `git diff --quiet <that commit> HEAD -- packages src tests deny.toml Cargo.toml Cargo.lock Containerfile` exits 0 on the final head). The run is https://github.com/torrust/torrust-tracker/actions/runs/41834169245: the job `Test (Docker) (release)` concluded `success` (2026-11-04, started 13:01 and completed at 13:19 UTC). Lines of its log (`gh run view 41834169245 --log`), which show that the third-party stages used the new version and ran the commands that failed before:
+
+```text
+#13 [chef 5/5] RUN cargo binstall --no-confirm --locked torrust-cargo-chef@0.1.79 cargo-nextest@0.9.140
+#22 [recipe 4/4] RUN cargo chef prepare --external-only --recipe-path /build/recipe-thirdparty.json
+#24 [dependencies_thirdparty 3/3] RUN cargo chef cook --tests --workspace --all-features --recipe-path /build/recipe.json --release
+#27 [dependencies 3/4] RUN cargo chef cook --tests --workspace --all-features --recipe-path /build/recipe.json --release
+#28 [dependencies_shipped_thirdparty 2/2] RUN cargo chef cook --release --package torrust-tracker --bins --recipe-path /build/recipe.json
+```
+
+The same log has no line with `failed to parse manifest` (`grep -c` prints 0). The other jobs of that run that this change can affect also passed: `Shipped Features`, `Layer Boundary Bans`, `Workspace Packaging`, `Docs Lint`, `Documented Clippy Allows`, the six `Build` jobs and the package coverage jobs for `udp-server` and `axum-health-check-api-server`.
 
 ## Script
 
