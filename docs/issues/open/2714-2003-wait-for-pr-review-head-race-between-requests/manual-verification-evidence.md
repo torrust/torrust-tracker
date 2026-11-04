@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2714-2003-wait-for-pr-review-head-race-between-requests/ISSUE.md
-last-updated-utc: "2026-11-04 13:07"
+last-updated-utc: "2026-11-04 14:35"
 ---
 
 # Manual Verification Evidence
@@ -31,9 +31,11 @@ do not invent commands, output, logs, or results.
 
 - Goal: show whether a `review` result can carry a `head_sha` older than the commit the review is about, and
   whether `head_moved` then stays false for a checkout of that older head.
-- Initial state: unfixed code. The fake `gh` reports head `aaaa…` (40 characters) in every read of the pull
-  request, an empty review list on the first snapshot, and, from the second snapshot on, one review by `da2ce7`
-  of commit `bbbb…` (40 characters).
+- Initial state: unfixed code. The fake `gh` reports head `aaaa…` (40 characters) in the first read of the pull
+  request of every snapshot, an empty review list on the first snapshot, and, from the second snapshot on, one
+  review by `da2ce7` of commit `bbbb…` (40 characters). A read of the pull request after that review-list
+  response reports `bbbb…`; the unfixed code makes no such read, so the outcome below does not depend on it
+  (the script was changed after the first run, and a rerun on 2026-11-04 at 14:33 UTC gave the same result).
 - Status: `DONE`
 - Outcome: **Reproduced**, with the API timing scripted. The wrong outcome itself was observed: the result.
 

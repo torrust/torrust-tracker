@@ -7,6 +7,8 @@
 #   1. The pull request is read first and reports head A.
 #   2. The review list is read afterwards and, from the second snapshot on, already holds a review of
 #      commit B, which was pushed after step 1.
+#   3. Any pull-request read after that review-list response reports head B, so a poller that reads the
+#      pull request again after the feedback calls observes the push.
 #
 # The timing is scripted, not observed on GitHub. The script is stateful: it counts the review-list calls
 # in the directory named by FAKE_GH_STATE.
@@ -24,8 +26,14 @@ case "$*" in
   "auth status")
     exit 0 ;;
   "api repos/torrust/torrust-tracker/pulls/7")
-    # Always head A: the pull request is read before the push in every snapshot.
-    printf '{"head": {"sha": "%s"}, "state": "open", "merged": false}\n' "$HEAD_A" ;;
+    # Head A until the second review-list response has been served, then head B: the first read of every
+    # snapshot happens before the push, and a read after the feedback calls observes it.
+    calls=$(cat "$FAKE_GH_STATE/review-calls" 2>/dev/null || echo 0)
+    if [ "$calls" -ge 2 ]; then
+      printf '{"head": {"sha": "%s"}, "state": "open", "merged": false}\n' "$REVIEW_COMMIT_B"
+    else
+      printf '{"head": {"sha": "%s"}, "state": "open", "merged": false}\n' "$HEAD_A"
+    fi ;;
   "api --paginate --slurp repos/torrust/torrust-tracker/pulls/7/reviews?per_page=100")
     calls=$(cat "$FAKE_GH_STATE/review-calls" 2>/dev/null || echo 0)
     echo $((calls + 1)) > "$FAKE_GH_STATE/review-calls"

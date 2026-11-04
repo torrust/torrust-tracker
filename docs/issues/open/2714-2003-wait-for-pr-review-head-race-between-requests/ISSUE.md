@@ -9,7 +9,7 @@ github-issue: 2714
 spec-path: docs/issues/open/2714-2003-wait-for-pr-review-head-race-between-requests/ISSUE.md
 branch: "2712-wait-for-pr-review-bug-and-adr-specs-spec"
 related-pr: null
-last-updated-utc: "2026-11-04 13:41"
+last-updated-utc: "2026-11-04 14:35"
 semantic-links:
   skill-links:
     - create-issue
@@ -177,6 +177,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-04 13:41 UTC - AI assistant (Copilot SDK in VS Code) - The drafting entry is now marked `OUT-OF-ORDER`: the
   file order matches the order of the events, and only its stamp is wrong, as the 13:07 correction states. The
   entry text is unchanged.
+- 2026-11-04 14:35 UTC - AI assistant (Copilot SDK in VS Code) - The reproduction script now reports head `bbbb…`
+  for a pull-request read made after the second review-list response, so a fix that reads the head again after
+  the feedback calls can pass M2. A rerun of the unfixed build at 14:33 UTC gave the same result as V1.
 
 ## Acceptance Criteria
 
