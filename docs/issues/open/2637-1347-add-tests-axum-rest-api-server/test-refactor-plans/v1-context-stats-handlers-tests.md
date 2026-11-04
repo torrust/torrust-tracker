@@ -3,7 +3,7 @@ doc-type: file-test-plan
 issue: 2637
 package: torrust-tracker-axum-rest-api-server
 target-file: packages/axum-rest-api-server/src/v1/context/stats/handlers.rs
-status: in-progress
+status: done
 semantic-links:
   related-artifacts:
     - packages/axum-rest-api-server/src/v1/context/stats/handlers.rs
@@ -85,12 +85,12 @@ mutation that removes it will survive by design and is recorded as such, not a g
 - **Fake:** a `FakeStatsQueryPort` implementing `StatsQueryPort` that answers a fixed `Stats` and a fixed
   `LabeledStats` (`Stats` and `LabeledStats` are not `Clone`, so it builds them with two function pointers) and records
   a test-local `Call` enum (`GetStats`, `GetLabeledStats`) in an `Arc<Mutex<Vec<Call>>>`.
-- **Fixtures (approved):** `Stats` has 33 fields and no `Default`, and rows 15 and 16 both need a
+- **Fixtures (approved):** `Stats` has 32 fields and no `Default`, and rows 15 and 16 both need a
   value whose fields are all different (so a swapped label shows). I propose one crate-private fixture in
-  `src/test_support.rs`: `a_stats()` (fields `1` to `33` in the declaration order, `completed_persisted_enabled` true)
+  `src/test_support.rs`: `a_stats()` (each field is its position from `1` to `32` in the declaration order; the boolean `completed_persisted_enabled` is true)
   and `a_labeled_stats()` (one counter `requests_total` with the value `1`). It is test data with one responsibility,
   used by two files, and the shared helper of this package already lives there. The alternative is a copy of the
-  33-field value in each file.
+  32-field value in each file.
 - **Helpers:** the shared `observed`; the query is read with `Query::<QueryParams>::try_from_uri` as in the torrent
   tests.
 - **Dependencies:** none new. `torrust-metrics` and `torrust-clock` are already regular dependencies of the package, and
@@ -109,9 +109,9 @@ None new.
 | ID | Status | Work | Completion evidence |
 | --- | --- | --- | --- |
 | R1 | SKIPPED | No existing tests in the file. | None. |
-| R2 | TODO | Add the fixtures to `test_support.rs` and the in-file `#[cfg(test)]` module with the fake and the cases above. | Focused tests, `cargo +nightly fmt --all -- --check`, `cargo clippy`, `git diff --check`, prose-first AAA review, and the named mutations. |
-| R3 | TODO | Integration increment: `none` expected. | The 4 stats integration tests keep protecting the wire contract. |
-| R4 | TODO | Re-run unit-only coverage; record before and after. | Results below and `coverage-evidence.md`. |
+| R2 | DONE | Add the fixtures to `test_support.rs` and the in-file `#[cfg(test)]` module with the fake and the cases above. | Focused tests, `cargo +nightly fmt --all -- --check`, `cargo clippy`, `git diff --check`, prose-first AAA review, and the named mutations. |
+| R3 | DONE | Integration increment: `none` expected. | The 4 stats integration tests keep protecting the wire contract. |
+| R4 | DONE | Re-run unit-only coverage; record before and after. | Results below and `coverage-evidence.md`. |
 
 ## Named Mutations
 
@@ -130,10 +130,41 @@ or variable unused does not compile under `unused = "deny"`, so such a mutant is
 | S8 | `Format` | Remove `rename_all = "lowercase"`. | the deserialization cases |
 | S9 | `QueryParams` | Remove `#[serde(default)]` from `format`. | none: an equivalent mutant (see above) |
 
+S3 and S6 first failed to compile (they removed the last use of an import under `unused = "deny"`) and were redone so that the original call stays and its result is dropped.
+
 ## Prose-First AAA Review
 
-Written after the tests, before comparing them with the code.
+Temporary prose, written before comparing with the code.
+
+| Test (cases) | Arrange prose | Act prose | Assert prose | Outcome |
+| --- | --- | --- | --- | --- |
+| `it_should_answer_the_statistics_in_the_requested_format` (3) | A fake that answers the fixed statistics and records the call; a query with no format, `json` or `prometheus`. | `get_stats_handler` with the query read by the real extractor. | Status `200`, the content type, that the body starts with the expected text, and that the one call was `get_stats`; the body is printed when the tuple differs. | The body is checked only at its start because the full literals belong to row 16. Kept. |
+| `it_should_answer_the_labeled_metrics_in_the_requested_format` (3) | The same fake; a query with no format, `json` or `prometheus`. | `get_metrics_handler`. | Status `200`, the content type, that the body holds the expected part, and that the one call was `get_labeled_stats`. | As above. Kept. |
+| `it_should_read_the_format_in_lowercase` (3) | A query string only. | Read the query with the extractor. | The `Debug` form of the format is `None`, `Some(Json)` or `Some(Prometheus)`. | `Format` has no `PartialEq`, so the `Debug` form is the observation; no production derive was added for a test. Kept. |
+| `it_should_reject_a_format_that_is_not_json_or_prometheus` (3) | A query string with capitals, an unknown value or an empty value. | Read the query with the extractor. | The extractor rejects it; the message is not asserted (owned by `axum`). | Kept. |
+
+Helpers: `FakeStatsQueryPort` and `fake_with_log` are the Arrange mechanics; `query`, `uri` and `recorded` read the query
+and the log; the shared `observed` comes from `test_support`, which also holds the new fixtures `a_stats` and
+`a_labeled_stats`.
 
 ## Results
 
-Written after the tests.
+- **Unit-only coverage** (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): `stats/handlers.rs` 12 / 20
+  lines at the S4 baseline; 40 / 40 lines (100.00%), 61 / 61 regions and 14 / 14 functions after (the counts include
+  the test module). `test_support.rs` is 109 / 109 lines (63 / 63 before the two fixtures). Package unit-only lines after
+  this file: 1,957 / 2,065 (94.77%), regions 2,932 / 3,116 (94.09%), functions 325 / 353 (92.07%), 152 unit tests.
+- **Covered but not asserted:** `stats/responses.rs` (row 16) is now 45 / 45 lines, because the Prometheus case of
+  `get_stats_handler` runs all 32 metric lines of `metrics_response` while asserting only the first two. The line figure
+  hides that; row 16 asserts every line.
+- **Tests:** 4 test functions, 12 test cases counting the tables; the package went from 140 to 152 unit tests. No
+  integration test was added or changed.
+- **Mutations** (each applied alone, stable toolchain, then reverted; the file was identical to the tested one
+  afterwards): S1 killed by the default stats case, S2 by the `json` stats case, S3 by the Prometheus stats case, S4 by
+  the default metrics case, S5 by the `json` metrics case, S6 by the Prometheus metrics case, S7 by the call-log assertion
+  of the three stats cases, S8 by the deserialization and the Prometheus and `json` cases. S9 survived, as recorded in
+  advance (an equivalent mutant).
+- **Dependency:** none new. **Clippy allows:** none.
+- **Validation:** `cargo +nightly fmt --all -- --check` (nightly Rust toolchain), `cargo clippy -p
+  torrust-tracker-axum-rest-api-server --all-targets` (stable), `cargo machete --with-metadata`, `git diff --check` and
+  `cargo test -p torrust-tracker-axum-rest-api-server` (152 unit and 58 integration tests) pass.
+- **Review outcome:** the maintainer approved the plan and the shared fixtures on 2026-11-04 and the completed file on 2026-11-04.

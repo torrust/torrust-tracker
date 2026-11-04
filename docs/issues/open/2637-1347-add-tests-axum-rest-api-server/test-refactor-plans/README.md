@@ -39,7 +39,7 @@ approves it. A group of declaration-only files may share one plan.
 | 12 | [v1-context-torrent-handlers-tests.md](v1-context-torrent-handlers-tests.md) | DONE | Approved 2026-11-04 (pin the documented `200`, no property test, no `Display` test); completed file approved 2026-11-04 |
 | 13 | [v1-context-torrent-responses-tests.md](v1-context-torrent-responses-tests.md) | DONE | No-change decision approved 2026-11-04 |
 | 14 | [v1-context-torrent-routes-tests.md](v1-context-torrent-routes-tests.md) | DONE | No-change decision approved 2026-11-04 |
-| 15 | [v1-context-stats-handlers-tests.md](v1-context-stats-handlers-tests.md) | IN_PROGRESS | Approved 2026-11-04 (shared fixtures in `test_support`) |
+| 15 | [v1-context-stats-handlers-tests.md](v1-context-stats-handlers-tests.md) | DONE | Approved 2026-11-04 (shared fixtures in `test_support`); completed file approved 2026-11-04 |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 

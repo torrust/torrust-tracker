@@ -297,3 +297,7 @@ Unit-only (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): lines 
 ### `v1/context/torrent/routes.rs` (slice S4)
 
 Unit-only (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): lines 9 / 9 (100.00%), regions 15 / 15, functions 1 / 1, before and after; the file has no test module and is covered by the `v1/routes.rs` tests. Decision: no change. Four named mutations (two path changes, the two handlers swapped and the list method) each fail an existing unit test on an assertion (see [the plan](test-refactor-plans/v1-context-torrent-routes-tests.md)).
+
+### `v1/context/stats/handlers.rs` (slice S4)
+
+Unit-only (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): lines 12 / 20 (60.00%) at the S4 baseline, 40 / 40 (100.00%) after; regions 61 / 61; functions 14 / 14. The counts include the in-file test module. 4 test functions (12 cases); 8 of 9 named mutations killed, and the ninth is an equivalent mutant recorded in advance (see [the plan](test-refactor-plans/v1-context-stats-handlers-tests.md)). The two shared fixtures `a_stats` and `a_labeled_stats` were added to `test_support.rs` (109 / 109 lines). `stats/responses.rs` (row 16) now reads 45 / 45 lines only because the Prometheus handler case runs all its metric lines while asserting the first two, so row 16 still has to assert them. Package unit-only after this file: lines 1,957 / 2,065 (94.77%), regions 2,932 / 3,116 (94.09%), functions 325 / 353 (92.07%), 152 unit tests.
