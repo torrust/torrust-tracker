@@ -1,7 +1,7 @@
 ---
 pr-number: 2725
 pr-url: https://github.com/torrust/torrust-tracker/pull/2725
-last-updated-utc: "2026-11-04 18:18"
+last-updated-utc: "2026-11-04 18:42"
 ---
 
 # PR #2725 Review Audit
@@ -30,10 +30,14 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 Round 1: Copilot review 5773261511 on the head `6d0731d13` (two inline findings). Both are valid and fixed.
 
+Round 2: Copilot review 5773741514 on the head `3c9771b0b` (one finding, raised on two threads on the same line; the second is a duplicate).
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2725-f1 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 | F2 | review-finding:pr-2725-f2 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
+| F3 | review-finding:pr-2725-f3 | Copilot | Minor (inferred) | metadata | ORIGINAL | FIXED | RESOLVED |
+| F4 | review-finding:pr-2725-f4 | Copilot | Minor (inferred) | metadata | RE_RAISE_OF:F3 | NO_ACTION | SUPERSEDED |
 
 ## Finding Details
 
@@ -63,9 +67,36 @@ Round 1: Copilot review 5773261511 on the head `6d0731d13` (two inline findings)
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2725#discussion_r4471490045
 
+### F3 - `related-pr` is null and the spec status conflicts with the EPIC row
+
+- PR number: 2725
+- Source review ID: 5773741514
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2725#discussion_r4471692593
+- Concern: The spec front matter has `related-pr: null` although it is introduced by PR #2725, and `status: planned` conflicts with row 5 of the #2482 EPIC being `IN_PROGRESS`.
+- Solution: Valid. `related-pr` is `2725` and `status` is `in-progress`, matching the EPIC row.
+- Current-tree verification: `grep -n "^related-pr\|^status" docs/issues/open/2724-2482-gate-axum-http-server-test-environment/ISSUE.md` shows `status: in-progress` and `related-pr: 2725`; the pre-commit frontmatter validator accepted both values.
+- Resolution reference: docs(issues): [#2724] set related-pr and align the spec status with the EPIC row
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2725#discussion_r4471736077
+
+### F4 - Duplicate of F3 on the same line
+
+- PR number: 2725
+- Source review ID: 5773741514
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2725#discussion_r4471692663
+- Concern: The same text as F3, posted a second time on the same line.
+- Solution: Superseded by F3; no separate change.
+- Current-tree verification: The two comment bodies are identical; the F3 fix covers both.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2725#discussion_r4471736451
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2725#discussion_r4471736451
+
 ## Processing Log
 
 - 2026-11-04 18:18 UTC - Started audit; round 1 (Copilot review 5773261511) processed: F1 and F2 fixed in the two commits cited above, pushed, replied and resolved; zero unresolved threads after refreshing GraphQL. Copilot is re-requested after the audit is pushed.
+- 2026-11-04 18:42 UTC - Round 2 (Copilot review 5773741514): F3 fixed in the commit cited above, F4 superseded by F3; both replied and resolved after the push; zero unresolved threads after refreshing GraphQL. The maintainer's `ACK 6d0731d13` (comment 6637934790, 2026-11-04 17:54 UTC) is on a head older than the round 1 fixes and this round's fix, so it no longer matches the head.
 
 ## Completion Rules
 
