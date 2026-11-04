@@ -17,7 +17,7 @@
 #   FAKE_GH_STATE=$FAKE_GH_STATE PATH="$FAKE_GH_STATE/bin:$PATH" wait-for-pr-review --pr-number 7 \
 #     --poll-interval-seconds 1 --timeout-seconds 30 > result.json
 HEAD_A=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-HEAD_B=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+REVIEW_COMMIT_B=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
 : "${FAKE_GH_STATE:?set FAKE_GH_STATE to a writable directory}"
 
 case "$*" in
@@ -32,7 +32,7 @@ case "$*" in
     if [ "$calls" -eq 0 ]; then
       echo '[[]]'
     else
-      printf '[[{"id": 1, "user": {"login": "da2ce7"}, "state": "COMMENTED", "commit_id": "%s", "html_url": "https://example.test/review/1", "submitted_at": "2026-11-04T10:00:00Z"}]]\n' "$HEAD_B"
+      printf '[[{"id": 1, "user": {"login": "da2ce7"}, "state": "COMMENTED", "commit_id": "%s", "html_url": "https://example.test/review/1", "submitted_at": "2026-11-04T10:00:00Z"}]]\n' "$REVIEW_COMMIT_B"
     fi ;;
   "api --paginate --slurp repos/torrust/torrust-tracker/issues/7/comments?per_page=100") echo '[[]]' ;;
   "api --paginate --slurp repos/torrust/torrust-tracker/pulls/7/comments?per_page=100") echo '[[]]' ;;
