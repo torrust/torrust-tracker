@@ -160,6 +160,29 @@ leaf data crate that the production dependencies need anyway).
 dev-dependency feature. Start, ready, stop and drop-path behaviour of the existing environment are
 unchanged by this move (its server-before-listeners stop order and drop guards stay as they are).
 
+The one new asynchronous startup path is the production-style example (T4). Before it is written:
+
+- **Responsibilities.** The example's `main` owns everything it starts: two cancellation tokens
+  (one for the server, one for the event listeners), the server's join handle (from the same
+  `start_with_cancellation` call that `src/bootstrap/jobs/http_tracker.rs` uses) and the listener
+  task handles. The server and the listeners do not subscribe to OS signals; only `main` does,
+  as the existing example does. It does not use the `testing` module.
+- **Normal path.** On SIGINT or SIGTERM `main` cancels the server token and joins the server
+  (bounded by the configured drain timeout), then cancels the listeners token and joins the
+  listeners, so events of requests completed while the server drains are still processed.
+- **Failure path.** Listeners are spawned only after the server start succeeded, so a failed
+  start leaves no detached task; a start error is reported and the process exits non-zero.
+  Every task is joined before the failures are reported.
+- **Drop path.** The two tokens are held through drop guards, so an early return or a panic in
+  `main` cancels both and leaves no task running; the example does not rely on `Drop` to join.
+- **Absolute deadline.** One absolute deadline (computed once from `Instant::now()`) bounds the
+  awaited start/readiness step and the stop sequence; no await in the example is unbounded.
+- **Design-review checkpoint.** After the first passing T4 slice (the example starts, answers
+  `/health_check` and an announce, and stops on SIGTERM), the author compares the startup with
+  `src/bootstrap/jobs/http_tracker.rs` and `src/testing/environment.rs`, and the review is
+  recorded in the evidence before the header says "as production". The consumer review of the
+  health check package happens after the first passing gate slice (T2, T3), before the examples.
+
 ## Bug-Fix Process
 
 Not applicable.
@@ -216,6 +239,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 - 2026-11-04 17:41 UTC - AI assistant (Claude Code, #2482 row 5) - The maintainer approved the spec. Created issue #2724 as `josecelano-bot`; the bot cannot add labels or link sub-issues on `torrust/torrust-tracker`, so the maintainer does both. The spec moved to `docs/issues/open/`; the #2482 EPIC row, the inventory and the 2026-10-06 coupling report link to it.
 - 2026-11-04 17:48 UTC - AI assistant (Claude Code, #2482 row 5) - At the maintainer's explicit instruction in this session, the labels (`task`, `packages`), the sub-issue link under #2482 and the review requests on PR #2725 were done with the `josecelano` account, because the bot account lacks those permissions. The link is verified (`parent_issue_url` is #2482).
+- 2026-11-04 18:14 UTC - AI assistant (Claude Code, #2482 row 5) - Copilot review of PR #2725 (round 1, two low findings, both valid): the health check package has 11 integration tests on current develop, not 8 (develop gained three readiness tests from #2697 after the first measurement), so T1 is corrected and T2 remeasures on the implementation base; the Design and Ownership Review now defines the ownership, normal, failure and drop paths, the absolute deadline and the design-review checkpoint of the production-style example.
 
 ## Acceptance Criteria
 
