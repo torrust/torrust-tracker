@@ -181,7 +181,9 @@ beps
 bidirectionality
 binascii
 bindv6only
+binfmt
 binstall
+binutils
 bitcode
 bools
 bottlenecked
@@ -346,6 +348,8 @@ leecher
 leechers
 libc
 libc6
+libclang
+libcrypto
 libgcc
 libgomp
 libheif
@@ -355,6 +359,7 @@ libsqlite
 libstdc
 libtorrent
 libz
+libzstd
 linux
 llist
 loadavg
@@ -382,6 +387,7 @@ mockall
 monomorphisation
 mprotect
 mpsc
+multiarch
 multimap
 musl
 myacicontext
@@ -403,6 +409,7 @@ nonblocking
 nonroot
 noprefix
 nosalt
+nostdinc
 notnull
 nping
 nquery
@@ -610,6 +617,7 @@ untuple
 unvalidated
 unviable
 upcasting
+uppercased
 ureq
 urlencode
 uroot
@@ -617,6 +625,7 @@ usize
 valgrind
 valueonly
 valuevec
+venv
 vmlinux
 vtable
 vulns
@@ -637,5 +646,8 @@ zerocopy
 zeroize
 zig
 zigbuild
+zigcc
+ziglang
+zigtest
 zstd
 ñaca
