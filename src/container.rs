@@ -6,7 +6,7 @@ use torrust_tracker_configuration::v3_0_0::application::Application;
 use torrust_tracker_configuration::v3_0_0::tracker_api::HttpApi;
 use torrust_tracker_core::container::TrackerCoreContainer;
 use torrust_tracker_http_core::container::{HttpTrackerCoreContainer, HttpTrackerCoreServices};
-use torrust_tracker_primitives::ConfigurationInstanceId;
+use torrust_tracker_primitives::{ConfigurationInstanceId, Readiness};
 use torrust_tracker_rest_api_runtime_adapter::v1::container::TrackerHttpApiCoreContainer;
 use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
 use torrust_tracker_udp_core::container::{UdpTrackerCoreContainer, UdpTrackerCoreServices};
@@ -31,6 +31,9 @@ pub struct AppContainer {
     // Configuration
     pub http_api_config: Arc<Option<HttpApi>>,
     pub application_config: Arc<Application>,
+
+    // Readiness: marked not ready when shutdown begins, read by the health check API
+    pub readiness: Readiness,
 
     // Registar
     pub registar: Arc<Registar<torrust_tracker_primitives::RuntimeServiceMetadata>>,
@@ -115,6 +118,9 @@ impl AppContainer {
             // Configuration
             http_api_config,
             application_config,
+
+            // Readiness
+            readiness: Readiness::default(),
 
             // Registar
             registar,

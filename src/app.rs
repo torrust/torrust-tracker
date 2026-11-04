@@ -660,6 +660,7 @@ async fn start_health_check_api(
     let runner = health_check_api::start_job(
         &config.health_check_api,
         app_container.registar.as_ref().clone(),
+        app_container.readiness.clone(),
         reservation.cancellation_token(),
         app_container.application_config.shutdown.http_drain(),
     )
