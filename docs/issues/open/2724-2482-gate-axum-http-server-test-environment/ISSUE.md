@@ -9,7 +9,7 @@ github-issue: 2724
 spec-path: docs/issues/open/2724-2482-gate-axum-http-server-test-environment/ISSUE.md
 branch: "2724-2482-gate-axum-http-server-test-environment-spec"
 related-pr: 2725
-last-updated-utc: "2026-11-04 18:39"
+last-updated-utc: "2026-11-04 19:01"
 semantic-links:
   skill-links:
     - create-issue
@@ -175,8 +175,12 @@ The one new asynchronous startup path is the production-style example (T4). Befo
   Every task is joined before the failures are reported.
 - **Drop path.** The two tokens are held through drop guards, so an early return or a panic in
   `main` cancels both and leaves no task running; the example does not rely on `Drop` to join.
-- **Absolute deadline.** One absolute deadline (computed once from `Instant::now()`) bounds the
-  awaited start/readiness step and the stop sequence; no await in the example is unbounded.
+- **Absolute deadlines.** Two separate absolute deadlines, each computed once from `Instant::now()`
+  when its phase begins: one bounds the awaited start/readiness step; a fresh one is computed
+  when shutdown begins (on SIGINT or SIGTERM) and bounds the stop sequence (server join, then
+  listeners join). The wait for the shutdown signal is the example's normal running state and is
+  deliberately not bounded, so the example has no maximum lifetime and the stop sequence always
+  gets its full budget. No other await is unbounded.
 - **Design-review checkpoint.** After the first passing T4 slice (the example starts, answers
   `/health_check` and an announce, and stops on SIGTERM), the author compares the startup with
   `src/bootstrap/jobs/http_tracker.rs` and `src/testing/environment.rs`, and the review is
@@ -241,6 +245,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-04 17:48 UTC - AI assistant (Claude Code, #2482 row 5) - At the maintainer's explicit instruction in this session, the labels (`task`, `packages`), the sub-issue link under #2482 and the review requests on PR #2725 were done with the `josecelano` account, because the bot account lacks those permissions. The link is verified (`parent_issue_url` is #2482).
 - 2026-11-04 18:14 UTC - AI assistant (Claude Code, #2482 row 5) - Copilot review of PR #2725 (round 1, two low findings, both valid): the health check package has 11 integration tests on current develop, not 8 (develop gained three readiness tests from #2697 after the first measurement), so T1 is corrected and T2 remeasures on the implementation base; the Design and Ownership Review now defines the ownership, normal, failure and drop paths, the absolute deadline and the design-review checkpoint of the production-style example.
 - 2026-11-04 18:39 UTC - AI assistant (Claude Code, #2482 row 5) - Copilot review of PR #2725 (round 2, one finding raised twice): `related-pr` is set to 2725 and the front-matter `status` is `in-progress`, matching row 5 of the #2482 EPIC (IN_PROGRESS).
+- 2026-11-04 19:01 UTC - AI assistant (Claude Code, #2482 row 5) - Copilot review of PR #2725 (round 3, one finding): the example's single absolute deadline would have spanned startup, running and shutdown; the Design and Ownership Review now has separate startup and shutdown deadlines and leaves the wait for the shutdown signal unbounded.
 
 ## Acceptance Criteria
 
