@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p2
 epic: 2482
 github-issue: 2724
 spec-path: docs/issues/open/2724-2482-gate-axum-http-server-test-environment/ISSUE.md
 branch: "2724-2482-gate-axum-http-server-test-environment-spec"
-related-pr: null
-last-updated-utc: "2026-11-04 18:14"
+related-pr: 2725
+last-updated-utc: "2026-11-04 18:39"
 semantic-links:
   skill-links:
     - create-issue
@@ -240,6 +240,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-04 17:41 UTC - AI assistant (Claude Code, #2482 row 5) - The maintainer approved the spec. Created issue #2724 as `josecelano-bot`; the bot cannot add labels or link sub-issues on `torrust/torrust-tracker`, so the maintainer does both. The spec moved to `docs/issues/open/`; the #2482 EPIC row, the inventory and the 2026-10-06 coupling report link to it.
 - 2026-11-04 17:48 UTC - AI assistant (Claude Code, #2482 row 5) - At the maintainer's explicit instruction in this session, the labels (`task`, `packages`), the sub-issue link under #2482 and the review requests on PR #2725 were done with the `josecelano` account, because the bot account lacks those permissions. The link is verified (`parent_issue_url` is #2482).
 - 2026-11-04 18:14 UTC - AI assistant (Claude Code, #2482 row 5) - Copilot review of PR #2725 (round 1, two low findings, both valid): the health check package has 11 integration tests on current develop, not 8 (develop gained three readiness tests from #2697 after the first measurement), so T1 is corrected and T2 remeasures on the implementation base; the Design and Ownership Review now defines the ownership, normal, failure and drop paths, the absolute deadline and the design-review checkpoint of the production-style example.
+- 2026-11-04 18:39 UTC - AI assistant (Claude Code, #2482 row 5) - Copilot review of PR #2725 (round 2, one finding raised twice): `related-pr` is set to 2725 and the front-matter `status` is `in-progress`, matching row 5 of the #2482 EPIC (IN_PROGRESS).
 
 ## Acceptance Criteria
 
