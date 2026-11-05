@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: draft
+status: planned
 priority: p3
 epic: null
-github-issue: null
-spec-path: docs/issues/drafts/rest-api-https-health-check/ISSUE.md
-branch: "{issue-number}-rest-api-https-health-check"
+github-issue: 2726
+spec-path: docs/issues/open/2726-rest-api-https-health-check/ISSUE.md
+branch: "2726-rest-api-https-health-check-spec"
 related-pr: null
-last-updated-utc: "2026-11-04 16:10"
+last-updated-utc: "2026-11-05 08:33"
 semantic-links:
   skill-links:
     - create-issue
@@ -26,7 +26,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - The REST API health check probes `http://` even when the API serves TLS
+# Issue #2726 - The REST API health check probes `http://` even when the API serves TLS
 
 ## Goal
 
@@ -68,6 +68,20 @@ HTTPS GET https://127.0.0.1:41907/api/health_check  ->  Ok(200)   (client trusti
 ```
 
 The same listener answers `200` over HTTPS, so the service is healthy and only the probe is wrong.
+
+### Real-binary reproduction (2026-11-04)
+
+The tracker was run with only the REST API and the health check API, the REST API serving TLS with the test certificate
+(configuration schema 3.0.0, `[http_api.tls_config]`). `curl -sk https://127.0.0.1:41212/api/health_check` answered `200`,
+while the health check API report was `status: "Error"` with HTTP `200`:
+
+```text
+"service_binding":"https://127.0.0.1:41212/", "info":"checking api health check at: http://127.0.0.1:41212/api/health_check",
+"result":{"Err":"error sending request for url (http://127.0.0.1:41212/api/health_check)"}
+```
+
+Control with TLS disabled: the entry probes `http://127.0.0.1:41212/api/health_check`, the result is `{"Ok":"200 OK"}` and
+the report is `status: "Ok"`.
 
 ### Impact (what was and was not verified)
 
@@ -140,9 +154,10 @@ Smallest deterministic boundary, two layers, both in `packages/axum-rest-api-ser
   expects `Ok(200 ...)`, using the client that trusts the test certificate. It protects the integration of the binding,
   the TLS listener and the probe.
 
-The TLS test needs a certificate. Options to decide in the issue (none is chosen here): copy the self-signed test
-certificate and key (valid until 2036) into this package's test fixtures as the health check package does, or generate
-one with a dev-dependency. #2637 S5 faces the same question for its TLS startup tests and should use the same answer.
+The TLS test needs a certificate. **Decision (maintainer, 2026-11-04):** copy the existing self-signed test certificate
+and key (valid until August 2036) from `packages/axum-health-check-api-server/tests/fixtures/`
+(`https-health-check-cert.pem`, `https-health-check-key.pem`) into this package's test fixtures. No new dependency. The S5
+slice of #2637 uses the same answer for its TLS startup tests.
 
 ## Implementation Plan
 
@@ -150,7 +165,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                   | Notes / Expected Output                                                                 |
 | --- | ------ | -------------------------------------- | --------------------------------------------------------------------------------------- |
-| T1  | TODO   | Reproduce and record the evidence      | Real binary with a TLS REST API; the health report shows the REST API entry failing.   |
+| T1  | DONE   | Reproduce and record the evidence      | Real binary with a TLS REST API; the health report shows the REST API entry failing.   |
 | T2  | TODO   | Write the failing regression tests     | URL builder test and the TLS registered-check test, red on `develop`.                   |
 | T3  | TODO   | Build the URL from the service binding | Add a client-taking variant for tests, as in #2089; production validation unchanged.    |
 | T4  | TODO   | Verify green and recheck               | Tests green; the manual scenario now shows the REST API entry healthy.                  |
@@ -158,20 +173,23 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 ## Commit Points
 
 One signed Conventional Commit per task, with the issue number once assigned (for example
-`test(axum-rest-api-server): [#N] ...` then `fix(axum-rest-api-server): [#N] check HTTPS REST APIs over TLS`).
+`test(axum-rest-api-server): [#2726] ...` then `fix(axum-rest-api-server): [#2726] check HTTPS REST APIs over TLS`).
 
 ## Progress Tracking
 
 ### Workflow Checkpoints
 
 - [x] Draft written from a finding of #2637 S5.
-- [ ] GitHub issue created and linked.
+- [x] GitHub issue created and linked (#2726).
 - [ ] Implementation.
 
 ### Progress Log
 
 - 2026-11-04 16:10 UTC - GitHub Copilot - Draft written. Found while planning the `server.rs` slice of #2637; reproduced
   with a throwaway test (see Evidence); impact checked by reading the health check API and the container `HEALTHCHECK`.
+- 2026-11-04 18:00 UTC - Claude Sonnet 5.5 - Reproduced with the scratch test and with the real binary (see Real-binary
+  reproduction); the maintainer chose to copy the existing test certificate fixture.
+- 2026-11-05 08:33 UTC - Claude Sonnet 5.5 - GitHub issue #2726 created; the draft moved to `docs/issues/open/`.
 
 ## Acceptance Criteria
 
