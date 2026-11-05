@@ -21,7 +21,10 @@ pub fn stats_response(stats: &Stats) -> Response {
     Json(stats).into_response()
 }
 
-/// `200` response that contains the [`Stats`] resource in Prometheus Text Exposition Format.
+/// `200` response that contains the [`Stats`] resource as `name value` lines that Prometheus can scrape.
+///
+/// Every value is a number (`completed_persisted_enabled` is `1` or `0`) and the body ends with a line feed. The text has no
+/// `# HELP` or `# TYPE` lines and no labels; use `GET /metrics?format=prometheus` for the full exposition format.
 #[allow(deprecated)]
 #[must_use]
 pub fn metrics_response(stats: &Stats) -> Response {
@@ -32,7 +35,11 @@ pub fn metrics_response(stats: &Stats) -> Response {
     lines.push(format!("completed {}", stats.completed));
     lines.push(format!("completed_in_session {}", stats.completed_in_session));
     lines.push(format!("completed_persisted {}", stats.completed_persisted));
-    lines.push(format!("completed_persisted_enabled {}", stats.completed_persisted_enabled));
+    // Prometheus needs a numeric sample value, so the boolean is printed as `1` or `0`.
+    lines.push(format!(
+        "completed_persisted_enabled {}",
+        u8::from(stats.completed_persisted_enabled)
+    ));
     lines.push(format!("leechers {}", stats.leechers));
 
     // TCP
@@ -77,8 +84,8 @@ pub fn metrics_response(stats: &Stats) -> Response {
     lines.push(format!("udp6_responses {}", stats.udp6_responses));
     lines.push(format!("udp6_errors_handled {}", stats.udp6_errors_handled));
 
-    // Return the plain text response
-    lines.join("\n").into_response()
+    // Return the plain text response, terminated by a line feed as the Prometheus text format requires.
+    format!("{}\n", lines.join("\n")).into_response()
 }
 
 #[cfg(test)]
