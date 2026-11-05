@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: done
 priority: p2
 epic: 1488
 github-issue: 2697
-spec-path: docs/issues/open/2697-1488-si-21-mark-health-unhealthy-during-shutdown/ISSUE.md
+spec-path: docs/issues/closed/2697-1488-si-21-mark-health-unhealthy-during-shutdown/ISSUE.md
 branch: "2697-mark-health-unhealthy-during-shutdown"
-related-pr: 2698
-last-updated-utc: "2026-11-04 12:25"
+related-pr: 2720
+last-updated-utc: "2026-11-04 17:38"
 semantic-links:
   skill-links:
     - create-issue
@@ -24,7 +24,7 @@ semantic-links:
     - docs/features/shutdown-process/questions.md
     - docs/issues/closed/2324-1488-si-13-migrate-health-check-api-token-lifecycle/ISSUE.md
     - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
-    - docs/issues/open/2697-1488-si-21-mark-health-unhealthy-during-shutdown/manual-verification-evidence.md
+    - docs/issues/closed/2697-1488-si-21-mark-health-unhealthy-during-shutdown/manual-verification-evidence.md
     - docs/adrs/20261021184946_order_shutdown_by_event_flow_and_drain_event_listeners.md
 ---
 
@@ -284,7 +284,7 @@ and sign every commit with GPG.
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md`
 - [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -295,6 +295,7 @@ and sign every commit with GPG.
 - 2026-11-03 17:02 UTC - AI agent (model not stated by the runtime) - Opened the specification-only PR #2698 (`Related to #2697`); CI: Docs Lint passed, no reviews or comments yet
 - 2026-11-03 17:44 UTC - AI agent (model not stated by the runtime) - `review-finding:pr-2698-f2`: replaced the stale clause saying the maintainer had not yet approved creating the issue with the approval that already happened on 2026-11-03
 - 2026-11-04 12:25 UTC - AI agent (Claude Sonnet 5.5) - Recorded the maintainer's design answers, implemented T1-T6 on `2697-mark-health-unhealthy-during-shutdown` (readiness type, 503 path, stop-last edge, `begin_shutdown`, docs, ADR) and recorded real-binary evidence V3-V8; awaiting maintainer review before any PR
+- 2026-11-04 17:38 UTC - AI agent (Claude Sonnet 5.5) - Implementation PR #2720 merged and issue #2697 closed on GitHub; archived the spec to `docs/issues/closed/`, set `status: done` and marked EPIC #1488 roadmap row 21 Done. The acceptance criteria stay unticked for the maintainer.
 
 ## Acceptance Criteria
 
