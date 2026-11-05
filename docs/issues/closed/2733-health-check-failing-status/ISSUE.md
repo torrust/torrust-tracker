@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: in-review
+status: done
 priority: p3
 epic: null
 github-issue: 2733
-spec-path: docs/issues/open/2733-health-check-failing-status/ISSUE.md
+spec-path: docs/issues/closed/2733-health-check-failing-status/ISSUE.md
 branch: "2733-health-check-failing-status"
-related-pr: null
-last-updated-utc: "2026-11-05 17:37"
+related-pr: 2740
+last-updated-utc: "2026-11-05 21:55"
 semantic-links:
   skill-links:
     - create-issue
@@ -146,8 +146,8 @@ committed alone because the pre-commit script runs the tests; red output goes in
 - [x] Status rule decided by the maintainer.
 - [x] Draft reviewed and approved by the maintainer (2026-11-05).
 - [x] Spec merged.
-- [ ] Implementation merged.
-- [ ] Spec archived to `docs/issues/closed/`.
+- [x] Implementation merged (PR 2740).
+- [x] Spec archived to `docs/issues/closed/`.
 
 ### Progress Log
 
@@ -155,6 +155,7 @@ committed alone because the pre-commit script runs the tests; red output goes in
   and was reviewed; the maintainer chose to keep it and follow the process from here.
 - 2026-11-05 16:32 UTC - Claude Sonnet 5.5 - Draft approved by the maintainer. Moved to `docs/issues/open/`.
 - 2026-11-05 17:37 UTC - Claude Sonnet 5.5 - Implemented on branch `2733-health-check-failing-status`: both checks return `Err(status)` for a non-2xx answer; regression tests (red then green) and the manual run are recorded in `manual-verification-evidence.md`. No dependency added. The `500` case in a real run could not be produced (see evidence); the tests cover it.
+- 2026-11-05 21:55 UTC - Claude Sonnet 5.5 - PR 2740 merged by the maintainer and #2733 closed. Spec archived to `docs/issues/closed/`; no retrospective needed.
 
 ## Acceptance Criteria
 
