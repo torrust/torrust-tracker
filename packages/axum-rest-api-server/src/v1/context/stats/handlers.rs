@@ -145,7 +145,11 @@ mod tests {
     #[rstest]
     #[case::no_format("", JSON, r#"{"torrents":1,"#)]
     #[case::json("format=json", JSON, r#"{"torrents":1,"#)]
-    #[case::prometheus("format=prometheus", TEXT, "torrents 1\nseeders 2\n")]
+    #[case::prometheus(
+        "format=prometheus",
+        TEXT,
+        "# HELP torrents Total number of torrents.\n# TYPE torrents gauge\ntorrents 1\n"
+    )]
     #[tokio::test]
     async fn it_should_answer_the_statistics_in_the_requested_format(
         #[case] query_string: &str,

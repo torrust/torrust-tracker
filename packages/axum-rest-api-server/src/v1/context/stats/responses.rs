@@ -1,8 +1,12 @@
 //! API responses for the [`stats`](crate::v1::context::stats)
 //! API context.
+use std::fmt::Write as _;
+
 use axum::response::{IntoResponse, Json, Response};
 use torrust_metrics::prometheus::PrometheusSerializable;
-use torrust_tracker_rest_api_protocol::v1::context::stats::resources::stats::{LabeledStats, Stats};
+use torrust_tracker_rest_api_protocol::v1::context::stats::resources::stats::{
+    LabeledStats, STATS_DESCRIPTIONS, StatDescription, Stats,
+};
 
 /// `200` response that contains the [`LabeledStats`] resource as json.
 #[must_use]
@@ -21,71 +25,26 @@ pub fn stats_response(stats: &Stats) -> Response {
     Json(stats).into_response()
 }
 
-/// `200` response that contains the [`Stats`] resource as `name value` lines that Prometheus can scrape.
+/// `200` response that contains the [`Stats`] resource as Prometheus text.
 ///
-/// Every value is a number (`completed_persisted_enabled` is `1` or `0`) and the body ends with a line feed. The text has no
-/// `# HELP` or `# TYPE` lines and no labels; use `GET /metrics?format=prometheus` for the full exposition format.
-#[allow(deprecated)]
+/// Every metric has a `# HELP` and a `# TYPE` line before its `name value` sample, as the ADR "Define the stats and metrics
+/// endpoints and require HELP and TYPE in Prometheus output" requires. The names, types and descriptions come from
+/// [`STATS_DESCRIPTIONS`], in the order of the JSON fields. Every value is a number (`completed_persisted_enabled` is `1` or
+/// `0`) and the body ends with a line feed. The text has no labels; use `GET /metrics?format=prometheus` for the labelled metrics.
 #[must_use]
 pub fn metrics_response(stats: &Stats) -> Response {
-    let mut lines = vec![];
+    let mut text = String::new();
 
-    lines.push(format!("torrents {}", stats.torrents));
-    lines.push(format!("seeders {}", stats.seeders));
-    lines.push(format!("completed {}", stats.completed));
-    lines.push(format!("completed_in_session {}", stats.completed_in_session));
-    lines.push(format!("completed_persisted {}", stats.completed_persisted));
-    // Prometheus needs a numeric sample value, so the boolean is printed as `1` or `0`.
-    lines.push(format!(
-        "completed_persisted_enabled {}",
-        u8::from(stats.completed_persisted_enabled)
-    ));
-    lines.push(format!("leechers {}", stats.leechers));
+    for (description, value) in STATS_DESCRIPTIONS.iter().zip(stats.values()) {
+        let StatDescription { name, metric_type, help } = description;
 
-    // TCP
-    lines.push(format!("tcp4_connections_handled {}", stats.tcp4_connections_handled));
-    lines.push(format!("tcp4_announces_handled {}", stats.tcp4_announces_handled));
-    lines.push(format!("tcp4_scrapes_handled {}", stats.tcp4_scrapes_handled));
-    lines.push(format!("tcp6_connections_handled {}", stats.tcp6_connections_handled));
-    lines.push(format!("tcp6_announces_handled {}", stats.tcp6_announces_handled));
-    lines.push(format!("tcp6_scrapes_handled {}", stats.tcp6_scrapes_handled));
+        // Writing to a `String` cannot fail.
+        let _ = writeln!(text, "# HELP {name} {help}");
+        let _ = writeln!(text, "# TYPE {name} {}", metric_type.as_str());
+        let _ = writeln!(text, "{name} {value}");
+    }
 
-    // UDP
-    lines.push(format!("udp_requests_discarded {}", stats.udp_requests_discarded));
-    lines.push(format!("udp_requests_aborted {}", stats.udp_requests_aborted));
-    lines.push(format!("udp_requests_banned {}", stats.udp_requests_banned));
-    lines.push(format!("udp_banned_ips_total {}", stats.udp_banned_ips_total));
-    lines.push(format!(
-        "udp_avg_connect_processing_time_ns {}",
-        stats.udp_avg_connect_processing_time_ns
-    ));
-    lines.push(format!(
-        "udp_avg_announce_processing_time_ns {}",
-        stats.udp_avg_announce_processing_time_ns
-    ));
-    lines.push(format!(
-        "udp_avg_scrape_processing_time_ns {}",
-        stats.udp_avg_scrape_processing_time_ns
-    ));
-
-    // UDPv4
-    lines.push(format!("udp4_requests {}", stats.udp4_requests));
-    lines.push(format!("udp4_connections_handled {}", stats.udp4_connections_handled));
-    lines.push(format!("udp4_announces_handled {}", stats.udp4_announces_handled));
-    lines.push(format!("udp4_scrapes_handled {}", stats.udp4_scrapes_handled));
-    lines.push(format!("udp4_responses {}", stats.udp4_responses));
-    lines.push(format!("udp4_errors_handled {}", stats.udp4_errors_handled));
-
-    // UDPv6
-    lines.push(format!("udp6_requests {}", stats.udp6_requests));
-    lines.push(format!("udp6_connections_handled {}", stats.udp6_connections_handled));
-    lines.push(format!("udp6_announces_handled {}", stats.udp6_announces_handled));
-    lines.push(format!("udp6_scrapes_handled {}", stats.udp6_scrapes_handled));
-    lines.push(format!("udp6_responses {}", stats.udp6_responses));
-    lines.push(format!("udp6_errors_handled {}", stats.udp6_errors_handled));
-
-    // Return the plain text response, terminated by a line feed as the Prometheus text format requires.
-    format!("{}\n", lines.join("\n")).into_response()
+    text.into_response()
 }
 
 #[cfg(test)]
