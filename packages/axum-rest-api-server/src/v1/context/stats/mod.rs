@@ -56,30 +56,34 @@
 //!
 //! **Prometheus text**
 //!
-//! `GET /stats?format=prometheus` returns the same statistics as one `name value` line per statistic, in the order of the JSON
-//! fields, that a Prometheus server can scrape:
+//! `GET /stats?format=prometheus` returns the same statistics, in the order of the JSON fields, that a Prometheus server can scrape.
+//! Each statistic has a `# HELP` line, a `# TYPE` line and a `name value` sample line:
 //!
 //! ```bash
 //! curl "http://127.0.0.1:1212/api/v1/stats?token=MyAccessToken&format=prometheus"
 //! ```
 //!
 //! ```text
+//! # HELP torrents Total number of torrents.
+//! # TYPE torrents gauge
 //! torrents 0
+//! # HELP seeders Total number of seeders for all torrents.
+//! # TYPE seeders gauge
 //! seeders 0
+//! # HELP completed Deprecated ambiguous completed-download total. Use completed_in_session and completed_persisted instead.
+//! # TYPE completed counter
 //! completed 0
+//! # HELP completed_in_session Completed downloads observed since the current tracker process started.
+//! # TYPE completed_in_session counter
 //! completed_in_session 0
-//! completed_persisted 0
-//! completed_persisted_enabled 0
-//! leechers 0
 //! ...
 //! udp6_errors_handled 0
 //! ```
 //!
 //! Every value is a number: the boolean `completed_persisted_enabled` is printed as `1` (enabled) or `0` (disabled), and the
-//! body ends with a line feed. The text has no `# HELP` or `# TYPE` lines and no labels. That is a known gap, not a
-//! design choice: the ADR requires every Prometheus text of the tracker to carry `# HELP` and `# TYPE`, and adding them here
-//! is a tracked follow-up. The full Prometheus exposition format with metric types, descriptions and labels is
-//! `GET /metrics?format=prometheus`.
+//! body ends with a line feed. The names, types and descriptions come
+//! from one table, [`STATS_DESCRIPTIONS`](torrust_tracker_rest_api_protocol::v1::context::stats::resources::stats::STATS_DESCRIPTIONS).
+//! The text has no labels; the labelled metrics are `GET /metrics?format=prometheus`.
 //!
 //! **Resource**
 //!
