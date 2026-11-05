@@ -3,7 +3,7 @@ name: wait-for-pr-review
 description: Wait for pull-request reviewers without spending tokens, using a deterministic Rust poller, then run the review loop on each event. Use after opening or updating a pull request when you must wait for Copilot or a maintainer review, instead of being told to wait. Triggers on "wait for review", "wait for da2ce7", "wait for Copilot review", "poll the PR", "block until reviewed", "review loop", or "wait-for-pr-review".
 metadata:
   author: torrust
-  version: "1.1"
+  version: "1.2"
   semantic-links:
     related-artifacts:
       - .github/skills/dev/pr-reviews/wait-for-pr-review/tool/Cargo.toml
@@ -141,7 +141,9 @@ and nothing in that gap is missed.
      as the run that timed out, since nothing was processed in between. After a few timeouts in a
      row, tell the contributor the reviewer has not answered.
    - `pr_closed` or `pr_merged`: stop.
-3. Check the exit condition after each return. The loop is done when all of these hold:
+3. Count the round (see [Round Limit](#round-limit)) after each push, and stop and ask the
+   contributor when the limit is exceeded.
+4. Check the exit condition after each return. The loop is done when all of these hold:
    - Copilot's latest review is on the current head commit. Copilot never submits `APPROVED`, so its
      last review is `COMMENTED`; do not wait for an approval state.
    - The pull request has no unresolved actionable review thread anywhere, including threads on
@@ -149,11 +151,28 @@ and nothing in that gap is missed.
    - The other maintainer has commented `ACK <full head commit hash>` on the head commit, or the
      maintainer has recorded a waiver, as the Merge Readiness section of
      [`merge-pull-request`](../../git-workflow/merge-pull-request/SKILL.md) describes.
-4. When the exit condition holds, print the maintainer merge command from `merge-pull-request`. Do
+5. When the exit condition holds, print the maintainer merge command from `merge-pull-request`. Do
    not merge, approve, or post `ACK` yourself; an agent never waives a check.
 
 The poller returns events and does not decide the exit condition. A review-body finding with no
 thread is not counted by the thread check, so read each new review body through the audit workflow.
+
+## Round Limit
+
+A round is one push of fixes made in response to a review event. Stop the loop and ask the
+contributor before starting round 6, that is, when more than 5 rounds of fixes have been pushed.
+Rounds that ended with a clean review and no push do not count, and neither do timeouts. A loop that
+keeps finding new things after 5 rounds usually means something is wrong with the agent or its
+harness (for example a fix that regresses another finding, or a reviewer reacting to the agent's own
+replies), and a person should look before more tokens are spent.
+
+Keep the count where any agent can recompute it, not in the session memory: it is the number of
+distinct reviews in the audit record
+(`docs/pr-reviews/pr-<PR_NUMBER>-review/PR-REVIEW.md`) that have at least one `FIXED` finding. A
+restarted session, or a different agent or harness taking over the pull request, therefore resumes
+with the right count instead of starting at zero. When asking, say how many rounds ran, which
+findings keep coming back, and what you suggest. The contributor can raise the limit for that pull
+request; record the new limit in the pull request conversation.
 
 ## Re-Requesting a Review
 
