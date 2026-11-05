@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-progress
+status: done
 priority: p2
 epic: 2482
 github-issue: 2724
-spec-path: docs/issues/open/2724-2482-gate-axum-http-server-test-environment/ISSUE.md
+spec-path: docs/issues/closed/2724-2482-gate-axum-http-server-test-environment/ISSUE.md
 branch: "2724-2482-gate-axum-http-server-test-environment"
-related-pr: 2725
-last-updated-utc: "2026-11-05 08:49"
+related-pr: 2729
+last-updated-utc: "2026-11-05 16:32"
 semantic-links:
   skill-links:
     - create-issue
@@ -20,7 +20,7 @@ semantic-links:
     - packages/axum-http-server/src/testing/environment.rs
     - packages/axum-http-server/examples/http_only_public_tracker.rs
     - packages/axum-http-server/examples/http_only_public_tracker_production_style.rs
-    - docs/issues/open/2724-2482-gate-axum-http-server-test-environment/manual-verification-evidence.md
+    - docs/issues/closed/2724-2482-gate-axum-http-server-test-environment/manual-verification-evidence.md
     - docs/issues/closed/2699-2482-gate-udp-server-test-environment/ISSUE.md
     - packages/axum-health-check-api-server/Cargo.toml
 ---
@@ -225,16 +225,16 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ### Workflow Checkpoints
 
-- [x] Folder-style spec drafted in `docs/issues/open/2724-2482-gate-axum-http-server-test-environment/ISSUE.md`
+- [x] Folder-style spec drafted in `docs/issues/closed/2724-2482-gate-axum-http-server-test-environment/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer (2026-11-04)
 - [x] GitHub issue created (#2724), linked as a sub-issue of #2482, and its number added to this spec
-- [ ] Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Spec-only PR merged into `develop` before implementation
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -249,6 +249,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-04 18:39 UTC - AI assistant (Claude Code, #2482 row 5) - Copilot review of PR #2725 (round 2, one finding raised twice): `related-pr` is set to 2725 and the front-matter `status` is `in-progress`, matching row 5 of the #2482 EPIC (IN_PROGRESS).
 - 2026-11-04 19:01 UTC - AI assistant (Claude Code, #2482 row 5) - Copilot review of PR #2725 (round 3, one finding): the example's single absolute deadline would have spanned startup, running and shutdown; the Design and Ownership Review now has separate startup and shutdown deadlines and leaves the wait for the shutdown signal unbounded.
 - 2026-11-05 08:49 UTC - AI assistant (Claude Code, #2482 row 5) - Implemented T2 to T6 on branch `2724-2482-gate-axum-http-server-test-environment`: the `testing` feature, three optional dependencies, the self dev-dependency with its `deny.toml` wrapper, the health check dev-dependency feature, the production-style example and the relabelled existing example. Plain package tests keep the baseline counts (49 + 62, 15 + 11); the evidence is in `manual-verification-evidence.md`. No retrospective is needed (see the completion review).
+- 2026-11-05 16:32 UTC - AI assistant (Claude Code, #2482 row 5) - PR #2729 (implementation, `Closes #2724`) was merged with the maintainer's ACK after one Copilot round (one incorrect finding, no code change) and green CI; issue #2724 is closed. The spec is archived to `docs/issues/closed/`.
 
 ## Acceptance Criteria
 
@@ -269,7 +270,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] AC6: The container recipe cooks (`prepare --external-only` then `cook`) and the Shipped
       Features check exits 0; no `testing` feature is in a `[dependencies]` entry or a `default`
       chain.
-- [ ] `linter all` exits with code `0`; pre-push checks pass.
+- [x] `linter all` exits with code `0`; pre-push checks pass.
 
 ## Verification Plan
 
