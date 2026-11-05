@@ -373,7 +373,7 @@ impl ApiServer<Running> {
 /// # Errors
 ///
 /// This function will return an error if unable to connect.
-/// Or if there request returns an error code.
+/// Or if the request returns a status that is not a success (2xx).
 #[must_use]
 #[instrument(skip())]
 pub fn check_fn(service_binding: &ServiceBinding) -> ServiceHealthCheckJob {
@@ -392,7 +392,8 @@ pub fn check_fn_with_client(service_binding: &ServiceBinding, client: reqwest::C
 
     let job = tokio::spawn(async move {
         match client.get(url).send().await {
-            Ok(response) => Ok(response.status().to_string()),
+            Ok(response) if response.status().is_success() => Ok(response.status().to_string()),
+            Ok(response) => Err(response.status().to_string()),
             Err(err) => Err(err.to_string()),
         }
     });
@@ -824,5 +825,48 @@ mod tests {
 
         cancellation_token.cancel();
         drop(tokio::time::timeout(TEST_COMPLETION_TIMEOUT, running.task).await);
+    }
+
+    /// Serves a canned HTTP response to one connection on a local port, then stops and returns its address.
+    fn serve_status(status_line: &'static str) -> SocketAddr {
+        let listener = std::net::TcpListener::bind((Ipv4Addr::LOCALHOST, 0)).expect("bind a local test server");
+        let address = listener.local_addr().expect("read the test server address");
+        std::thread::spawn(move || {
+            let (mut stream, _peer) = listener.accept().expect("accept a connection");
+            let mut buffer = [0_u8; 1024];
+            drop(std::io::Read::read(&mut stream, &mut buffer));
+            let response = format!("HTTP/1.1 {status_line}\r\nContent-Length: 0\r\nConnection: close\r\n\r\n");
+            drop(std::io::Write::write_all(&mut stream, response.as_bytes()));
+        });
+        address
+    }
+
+    async fn run_health_check(status_line: &'static str) -> Result<String, String> {
+        let address = serve_status(status_line);
+        let service_binding = ServiceBinding::new(Protocol::HTTP, address).expect("service binding should be valid");
+
+        let client = reqwest::Client::builder()
+            .no_proxy()
+            .timeout(Duration::from_secs(5))
+            .build()
+            .expect("client should build");
+
+        tokio::time::timeout(Duration::from_secs(10), check_fn_with_client(&service_binding, client).job)
+            .await
+            .expect("the health check job should finish before the test deadline")
+            .expect("the health check job should not panic")
+    }
+
+    #[tokio::test]
+    async fn it_should_report_ok_when_the_health_endpoint_answers_a_success_status() {
+        assert_eq!(run_health_check("200 OK").await, Ok("200 OK".to_string()));
+    }
+
+    #[tokio::test]
+    async fn it_should_report_an_error_with_the_status_when_the_health_endpoint_answers_a_failing_status() {
+        assert_eq!(
+            run_health_check("500 Internal Server Error").await,
+            Err("500 Internal Server Error".to_string())
+        );
     }
 }
