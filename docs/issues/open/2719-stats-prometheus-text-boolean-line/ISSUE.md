@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: planned
+status: in-progress
 priority: p2
 epic: null
 github-issue: 2719
 spec-path: docs/issues/open/2719-stats-prometheus-text-boolean-line/ISSUE.md
 branch: "2719-stats-prometheus-text-boolean-line-spec"
 related-pr: null
-last-updated-utc: "2026-11-04 15:34"
+last-updated-utc: "2026-11-05 07:13"
 semantic-links:
   skill-links:
     - create-issue
@@ -74,9 +74,9 @@ docs, `packages/rest-api-client`, `console/`, Grafana/Prometheus examples). The 
 ### Out of Scope
 
 - Changing the JSON `/stats` response (the boolean stays a JSON boolean, as the ADR says).
-- Adding `# TYPE`/`# HELP` lines (allowed to be absent), or rewriting the endpoint on top of `torrust-metrics`.
+- Adding `# TYPE`/`# HELP` lines, or rewriting the endpoint on top of `torrust-metrics`. The format allows them to be absent, so they are not part of this bug. The maintainer decided they are required for every Prometheus text of the tracker (see the ADR "Define the stats and metrics endpoints and require HELP and TYPE in Prometheus output"), so adding them to this text is a follow-up issue.
 - A dedicated configuration/info endpoint or metric for consumers (design follow-up).
-- Removing or deprecating the endpoint (maintainer decision, separate issue if wanted).
+- Removing or deprecating the endpoint. The ADR above records that `/stats` is not deprecated; changing that needs a new decision.
 - The stale `#[allow(deprecated)]` on `metrics_response` (separate minor cleanup, convenient to fold in only if the maintainer agrees).
 
 ## Options
@@ -132,11 +132,11 @@ purpose in the PR that fixes this. Red and green output go to `manual-verificati
 | ID  | Status | Task                                                     | Notes / Expected Output                                           |
 | --- | ------ | -------------------------------------------------------- | ----------------------------------------------------------------- |
 | T1  | DONE   | Reproduce with real artifacts and parsers                | `manual-verification-evidence.md` V1-V3                           |
-| T2  | TODO   | Maintainer decides the option                            | Option recorded in the progress log                               |
-| T3  | TODO   | Add the failing regression test (red)                    | Fails on `true`/`false` and on the missing newline                |
-| T4  | TODO   | Fix `metrics_response`; align the #2637 pinning test      | Test green; JSON `/stats` untouched                               |
-| T5  | TODO   | Document the legacy text in the `stats` module docs      | Example of the text, `1`/`0` rendering, pointer to `/metrics`     |
-| T6  | TODO   | Like-for-like recheck of the reproduction                | Prometheus target `up` with 32 samples; `promtool` exits 0 or 3 |
+| T2  | DONE   | Maintainer decides the option                            | Maintainer chose `1`/`0` plus the trailing newline                               |
+| T3  | DONE   | Add the failing regression test (red)                    | Fails on `true`/`false` and on the missing newline                |
+| T4  | DONE   | Fix `metrics_response`; align the #2637 pinning test      | Test green; JSON `/stats` untouched                               |
+| T5  | DONE   | Document the legacy text in the `stats` module docs      | Example of the text, `1`/`0` rendering, pointer to `/metrics`     |
+| T6  | DONE   | Like-for-like recheck of the reproduction                | Prometheus target `up` with 32 samples; `promtool` exits 0 or 3 |
 
 ## Commit Points
 
@@ -155,9 +155,9 @@ purpose in the PR that fixes this. Red and green output go to `manual-verificati
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [ ] (Optional) Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
+- [x] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Evidence-based implementation completion review recorded
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
@@ -169,14 +169,15 @@ purpose in the PR that fixes this. Red and green output go to `manual-verificati
 - 2026-11-04 13:50 UTC - Claude Code (Claude Sonnet 5.5) - Reproduced the output, investigated history and consumers, ran
   Prometheus 3.5.0, `promtool` and `prometheus_client` against the body; drafted this spec - `manual-verification-evidence.md`
 - 2026-11-04 15:34 UTC - Claude Code (Claude Sonnet 5.5) - Spec approved by the maintainer; GitHub issue #2719 created; spec moved to `open/` on branch `2719-stats-prometheus-text-boolean-line-spec`
+- 2026-11-05 07:13 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer chose `1`/`0`; red test, fix, module docs and like-for-like recheck done on branch `2719-stats-prometheus-text-boolean-line` - `manual-verification-evidence.md` V4, V5
 
 ## Acceptance Criteria
 
-- [ ] AC1: Every sample value in `GET /api/v1/stats?format=prometheus` is numeric, with persistence on and off.
-- [ ] AC2: The body ends with a line feed.
-- [ ] AC3: A Prometheus 3.x server scraping the endpoint reports the target `up` with all samples ingested.
-- [ ] AC4: A unit test fails on the old output and passes on the new one.
-- [ ] AC5: The `stats` module docs describe the legacy text and point to `/metrics?format=prometheus`.
+- [x] AC1: Every sample value in `GET /api/v1/stats?format=prometheus` is numeric, with persistence on and off.
+- [x] AC2: The body ends with a line feed.
+- [x] AC3: A Prometheus 3.x server scraping the endpoint reports the target `up` with all samples ingested.
+- [x] AC4: A unit test fails on the old output and passes on the new one.
+- [x] AC5: The `stats` module docs describe the legacy text and point to `/metrics?format=prometheus`.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
@@ -197,17 +198,17 @@ purpose in the PR that fixes this. Red and green output go to `manual-verificati
 | M1  | Reproduce the raw text, both modes    | Run the tracker with persistence off and on; `curl` `/api/v1/stats?format=prometheus`; inspect bytes          | `false`/`true` line, no final newline             | DONE   | `manual-verification-evidence.md` section V1 |
 | M2  | Parser checks                         | `promtool check metrics`, `prometheus_client` parser                                                           | Errors on the boolean and on the missing newline  | DONE   | `manual-verification-evidence.md` section V2 |
 | M3  | Real Prometheus scrape                | Prometheus 3.5.0 scraping the tracker                                                                          | Target `down`, 5 samples                          | DONE   | `manual-verification-evidence.md` section V3 |
-| M4  | Like-for-like recheck after the fix   | Repeat M1-M3                                                                                                   | Numeric values, final newline, target `up`, 32 samples | TODO | `manual-verification-evidence.md` section V4 |
+| M4  | Like-for-like recheck after the fix   | Repeat M1-M3                                                                                                   | Numeric values, final newline, target `up`, 32 samples | DONE | `manual-verification-evidence.md` section V5 |
 
 ### Acceptance Verification
 
 | AC ID | Status | Evidence |
 | ----- | ------ | -------- |
-| AC1   | TODO   | -        |
-| AC2   | TODO   | -        |
-| AC3   | TODO   | -        |
-| AC4   | TODO   | -        |
-| AC5   | TODO   | -        |
+| AC1   | DONE   | `manual-verification-evidence.md` V4, V5 |
+| AC2   | DONE   | `manual-verification-evidence.md` V4, V5 |
+| AC3   | DONE   | `manual-verification-evidence.md` V4, V5 |
+| AC4   | DONE   | `manual-verification-evidence.md` V4, V5 |
+| AC5   | DONE   | `manual-verification-evidence.md` V4, V5 |
 
 ## Risks and Trade-offs
 
