@@ -1,5 +1,17 @@
 //! Minimal HTTP-only public tracker — narrowed configuration at the initialization boundary.
 //!
+//! This example **follows the conventions used in testing**: it starts the tracker through the
+//! `torrust_tracker_axum_http_server::testing` test environment, which composes the containers,
+//! starts the server and the statistics listener, and stops them for you. The package enables the
+//! non-default `testing` feature for its own examples through a path-only self dev-dependency.
+//! Its sibling, `http_only_public_tracker_production_style`, shows the same tracker started the way
+//! the `torrust-tracker` binary starts it, without the `testing` module. Compare the two to see
+//! what the environment hides.
+//!
+//! > **Note**: the `testing` feature is test support outside the semver guarantees of this package.
+//! > An end user who prefers this object-oriented version can adopt it, at the price of enabling
+//! > the feature, which can change in any release.
+//!
 //! **Status** (issue #1861, implementing decision DEC-09 from EPIC #1669): the initialization
 //! entry point now accepts `&Arc<Core>` and `&Arc<HttpTracker>` directly, so an HTTP-only
 //! binary no longer needs to compile the full `Configuration` aggregate.
