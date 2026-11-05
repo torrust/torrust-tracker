@@ -181,8 +181,17 @@ not propose splitting them out by default.
 
 PR titles, bodies, issue-linking keywords, rebasing and history-rewrite rules are in the
 `open-pull-request` skill (`.github/skills/dev/git-workflow/open-pull-request/SKILL.md`); merging
-is in the `merge-pull-request` skill. See [docs/release_process.md](docs/release_process.md) for the
-release workflow.
+is in the `merge-pull-request` skill.
+
+**After opening a PR**, an agent does not stop. It runs the review loop in the `wait-for-pr-review`
+skill: watch the CI checks and fix failures, wait with the poller, run `process-pr-review`, push,
+and re-request the review. Once everything is addressed, it keeps watching until the PR is merged or
+closed, so the contributor never has to tell it.
+
+The agent asks the contributor only in these cases: more than 5 rounds of review fixes have been
+pushed, more than 5 head commits have failed checks, or the skill says to.
+
+See [docs/release_process.md](docs/release_process.md) for the release workflow.
 
 ## 🧭 Development Principles
 

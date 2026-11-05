@@ -3,7 +3,7 @@ name: open-pull-request
 description: Open a pull request from a feature branch using GitHub CLI (preferred) or GitHub MCP tools. Covers pre-flight checks, correct base/head configuration for fork workflows, title/body conventions, and post-creation validation. Use when asked to "open PR", "create pull request", or "submit branch for review".
 metadata:
   author: torrust
-  version: "1.2"
+  version: "1.3"
 ---
 
 # Open a Pull Request
@@ -271,6 +271,20 @@ When MCP pull request management tools are available, create the PR with:
 - `head`: `<fork-owner>:<branch-name>`
 - Capture and share the resulting PR URL.
 
+## After Opening: Run the Review Loop
+
+Opening the pull request does not end the task. Unless the contributor said otherwise, do not stop
+and do not ask them to tell you when to look. Run the review loop in
+[`wait-for-pr-review`](../../pr-reviews/wait-for-pr-review/SKILL.md).
+
+The loop waits for the reviewers without spending tokens and watches the CI checks, fixing the ones
+that fail. It processes each review with
+[`process-pr-review`](../../pr-reviews/process-pr-review/SKILL.md), pushes fixes, and waits again.
+
+The loop stops and asks the contributor at the limits that skill defines: more than 5 rounds of
+review fixes, or more than 5 head commits with failed checks. That many rounds usually point at a
+problem with the agent or the harness, not with the code.
+
 ## Post-creation Validation
 
 - [ ] PR targets `torrust/torrust-tracker:develop`
@@ -279,6 +293,7 @@ When MCP pull request management tools are available, create the PR with:
 - [ ] Issue linked with the correct keyword (`Related to` for spec-only, `Closes` for implementation)
 - [ ] Title, body and branch commit messages scanned with the closing-keyword commands from [Issue Linking Rules](#issue-linking-rules); every match is an issue this PR closes
 - [ ] PR body still matches branch diff and commit history after final rebases/edits
+- [ ] The review loop is running (or the contributor said not to run it)
 
 Quick body-accuracy verification:
 

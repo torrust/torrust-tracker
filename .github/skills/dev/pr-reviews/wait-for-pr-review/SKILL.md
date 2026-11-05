@@ -3,10 +3,11 @@ name: wait-for-pr-review
 description: Wait for pull-request reviewers without spending tokens, using a deterministic Rust poller, then run the review loop on each event. Use after opening or updating a pull request when you must wait for Copilot or a maintainer review, instead of being told to wait. Triggers on "wait for review", "wait for da2ce7", "wait for Copilot review", "poll the PR", "block until reviewed", "review loop", or "wait-for-pr-review".
 metadata:
   author: torrust
-  version: "1.1"
+  version: "1.2"
   semantic-links:
     related-artifacts:
       - .github/skills/dev/pr-reviews/wait-for-pr-review/tool/Cargo.toml
+      - .github/skills/dev/ci/watch-pull-request-checks/SKILL.md
       - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
       - .github/skills/dev/pr-reviews/fetch-review-threads/SKILL.md
       - .github/skills/dev/git-workflow/merge-pull-request/SKILL.md
@@ -131,8 +132,10 @@ and nothing in that gap is missed.
      [`process-pr-review`](../process-pr-review/SKILL.md) workflow. Fetch every thread with
      [`fetch-review-threads`](../fetch-review-threads/SKILL.md) and read the new review body (a
      finding in a review body has no thread).
-     - If you fixed something, commit, push, reply, and re-request the review (see below). Then go
-       to step 1 with the commit you pushed.
+     - If you fixed something, commit, push, and reply. Then
+       [watch the checks](#watching-the-checks) of the new head and fix any failure. Re-request the
+       review only when the checks are green (see below), then go to step 1 with the commit you
+       pushed.
      - If you pushed nothing, because the review was clean or the comment was informational, do not
        re-request the review. Go to step 1 with your `HEAD` and the `cursor` of this result, so this
        event is not reported again and nothing after it is missed.
@@ -140,20 +143,83 @@ and nothing in that gap is missed.
    - `timeout`: check the exit condition. If it is not met, run the poller again with the same flags
      as the run that timed out, since nothing was processed in between. After a few timeouts in a
      row, tell the contributor the reviewer has not answered.
-   - `pr_closed` or `pr_merged`: stop.
-3. Check the exit condition after each return. The loop is done when all of these hold:
+   - `pr_closed` or `pr_merged`: stop watching and tell the contributor which one happened.
+3. Count the round (see [Round Limit](#round-limit)) after each push, and stop and ask the
+   contributor when the limit is exceeded.
+4. Check the exit condition after each return. The loop is done when all of these hold:
    - Copilot's latest review is on the current head commit. Copilot never submits `APPROVED`, so its
      last review is `COMMENTED`; do not wait for an approval state.
+   - Every check of the head commit finished and none failed, as
+     [`watch-pull-request-checks`](../../ci/watch-pull-request-checks/SKILL.md) reports (skipped
+     checks do not count as failures).
    - The pull request has no unresolved actionable review thread anywhere, including threads on
      earlier commits. Count them over the whole pull request with `fetch-review-threads`.
    - The other maintainer has commented `ACK <full head commit hash>` on the head commit, or the
      maintainer has recorded a waiver, as the Merge Readiness section of
      [`merge-pull-request`](../../git-workflow/merge-pull-request/SKILL.md) describes.
-4. When the exit condition holds, print the maintainer merge command from `merge-pull-request`. Do
+5. When the exit condition holds, print the maintainer merge command from `merge-pull-request`. Do
    not merge, approve, or post `ACK` yourself; an agent never waives a check.
+6. Keep watching until the pull request is merged or closed; do not end the session when the exit
+   condition first holds, and do not wait for the contributor to say it was merged. Run the poller
+   again with `--since-head-sha "$(git rev-parse HEAD)"` and the `cursor` of the last result.
+   - `pr_merged` or `pr_closed`: stop and report it.
+   - `timeout`: run it again. Waiting costs no tokens, so there is no limit on repeats, but use the
+     longest `--timeout-seconds` your shell tool allows to keep the number of calls small.
+   - `review`, `comment` or `head_changed`: the pull request changed after it looked ready. Go back
+     to step 2, because the exit condition no longer holds until it is checked again.
 
 The poller returns events and does not decide the exit condition. A review-body finding with no
 thread is not counted by the thread check, so read each new review body through the audit workflow.
+
+## Watching the Checks
+
+CI is part of the loop, not a separate task. Checks finish in minutes, long before Copilot answers,
+so run them first:
+
+1. After the first push, and after every later push, run `gh pr checks <PR> --watch --fail-fast`
+   as [`watch-pull-request-checks`](../../ci/watch-pull-request-checks/SKILL.md) describes. It
+   spends no tokens while it waits.
+2. If no check starts and the runs say `action_required`, a maintainer has to approve them (see
+   "When Checks Never Start" in that skill). Ask for it and wait; this is not a failure and does not
+   count toward the check limit.
+3. If a check failed, follow "When a Check Fails" in that skill: read the log, fix the change (or
+   re-run the jobs when the cause is outside it), push, and watch again.
+4. Only when every check is green, request the review (Copilot reviews the head as of the request,
+   so a push after it is not covered) and run the poller.
+
+A review that arrives while checks are failing is still processed, but its fixes and the check fixes
+go in the same push when possible, so the checks run once.
+
+## Round Limit
+
+A round is one push of fixes made in response to a review event. Stop the loop and ask the
+contributor before starting round 6, that is, when more than 5 rounds of fixes have been pushed.
+Rounds that ended with a clean review and no push do not count, and neither do timeouts.
+
+Failed check runs have their own limit of 5, because a check failure is not a review event. Count
+the distinct head commits of the pull request whose checks failed. Each one is a push that did not
+yet make the checks pass, so the count measures failed fixing attempts, not successful fixes. A
+re-run of the same commit does not add to it. Ask the contributor when more than 5 head commits have
+failed checks. Pass a large `--limit`, because `gh run list` returns only the 20 latest runs by
+default and a lower count would let the loop run past the limit:
+
+```sh
+gh run list --repo torrust/torrust-tracker --branch <branch> --event pull_request --limit 1000 \
+  --json headSha,conclusion \
+  --jq '[.[] | select(.conclusion == "failure") | .headSha] | unique | length'
+```
+
+A loop that keeps finding new things after 5 rounds usually means something is wrong with the agent
+or its harness (for example a fix that regresses another finding, or a reviewer reacting to the
+agent's own replies). A person should look before more tokens are spent.
+
+Keep the count where any agent can recompute it, not in the session memory: it is the number of
+distinct reviews in the audit record
+(`docs/pr-reviews/pr-<PR_NUMBER>-review/PR-REVIEW.md`) that have at least one `FIXED` finding. A
+restarted session, or a different agent or harness taking over the pull request, therefore resumes
+with the right count instead of starting at zero. When asking, say how many rounds ran, which
+findings keep coming back, and what you suggest. The contributor can raise the limit for that pull
+request; record the new limit in the pull request conversation.
 
 ## Re-Requesting a Review
 
