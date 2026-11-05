@@ -377,17 +377,34 @@ impl ApiServer<Running> {
 #[must_use]
 #[instrument(skip())]
 pub fn check_fn(service_binding: &ServiceBinding) -> ServiceHealthCheckJob {
-    let url = format!("http://{}/api/health_check", service_binding.bind_address()); // DevSkim: ignore DS137138
+    check_fn_with_client(service_binding, reqwest::Client::new())
+}
+
+/// Checks the API health endpoint using the supplied HTTP client.
+///
+/// This preserves normal production certificate validation when called from
+/// [`check_fn`] and allows tests to trust a known test certificate.
+#[must_use]
+pub fn check_fn_with_client(service_binding: &ServiceBinding, client: reqwest::Client) -> ServiceHealthCheckJob {
+    let url = health_check_url(service_binding);
 
     let info = format!("checking api health check at: {url}");
 
     let job = tokio::spawn(async move {
-        match reqwest::get(url).await {
+        match client.get(url).send().await {
             Ok(response) => Ok(response.status().to_string()),
             Err(err) => Err(err.to_string()),
         }
     });
     ServiceHealthCheckJob::new(info, job)
+}
+
+fn health_check_url(service_binding: &ServiceBinding) -> String {
+    service_binding
+        .url()
+        .join("api/health_check")
+        .expect("Service binding URL can always resolve a health check path")
+        .to_string()
 }
 
 /// A struct responsible for starting the API server.
@@ -502,10 +519,11 @@ impl Launcher {
 
 #[cfg(test)]
 mod tests {
-    use std::net::{Ipv4Addr, TcpListener};
-    use std::sync::Arc;
+    use std::net::{Ipv4Addr, SocketAddr, TcpListener};
+    use std::sync::{Arc, Once};
     use std::time::Duration;
 
+    use axum_server::tls_rustls::RustlsConfig;
     use tokio_util::sync::CancellationToken;
     use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
     use torrust_server_lib::registar::{Registar, RegistrationError, ServiceRegistration};
@@ -516,7 +534,7 @@ mod tests {
     use torrust_tracker_rest_api_runtime_adapter::v1::container::TrackerHttpApiCoreContainer;
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
 
-    use crate::server::{ApiServer, Error, Launcher};
+    use crate::server::{ApiServer, Error, Launcher, check_fn_with_client, health_check_url};
 
     const TEST_COMPLETION_TIMEOUT: Duration = Duration::from_secs(5);
 
@@ -726,5 +744,85 @@ mod tests {
         };
         assert_eq!(binding.bind_address(), bind_to);
         TcpListener::bind(bind_to).expect("REST API listener should be released after token-aware registration failure");
+    }
+
+    // Embedded at compile time: the container test stage runs the tests from a different directory than the build stage.
+    const TEST_CERTIFICATE: &[u8] = include_bytes!("../tests/fixtures/https-health-check-cert.pem");
+    static RUSTLS_CRYPTO_PROVIDER: Once = Once::new();
+
+    /// Selects `ring` as the process-level provider: with more than one provider enabled in the
+    /// workspace, Rustls cannot choose one itself.
+    fn install_rustls_crypto_provider() {
+        RUSTLS_CRYPTO_PROVIDER.call_once(|| {
+            rustls::crypto::ring::default_provider()
+                .install_default()
+                .expect("ring should be the Rustls crypto provider for the tests");
+        });
+    }
+
+    const TEST_KEY: &[u8] = include_bytes!("../tests/fixtures/https-health-check-key.pem");
+
+    #[test]
+    fn it_should_build_a_health_check_url_using_the_service_binding_protocol() {
+        let address = SocketAddr::from((Ipv4Addr::LOCALHOST, 1212));
+
+        for (protocol, expected_url) in [
+            (Protocol::HTTP, "http://127.0.0.1:1212/api/health_check"), // DevSkim: ignore DS137138
+            (Protocol::HTTPS, "https://127.0.0.1:1212/api/health_check"),
+        ] {
+            let service_binding = ServiceBinding::new(protocol, address).expect("service binding should be valid");
+
+            assert_eq!(health_check_url(&service_binding), expected_url);
+        }
+    }
+
+    #[tokio::test]
+    async fn it_should_report_a_tls_rest_api_as_healthy_when_the_check_trusts_the_test_certificate() {
+        // Arrange
+        let configuration = Arc::new(ephemeral_public());
+        initialize_global_services(&configuration);
+        install_rustls_crypto_provider();
+        let http_api_config = configuration.http_api.as_ref().expect("missing HTTP API configuration");
+        let tls = RustlsConfig::from_pem(TEST_CERTIFICATE.to_vec(), TEST_KEY.to_vec())
+            .await
+            .expect("the test certificate and key should load");
+        let registar = Registar::<RuntimeServiceMetadata>::default();
+        let cancellation_token = CancellationToken::new();
+        let running = ApiServer::new(Launcher::new(
+            http_api_config.bind_address,
+            Some(tls),
+            configuration.application.shutdown.http_drain(),
+        ))
+        .start_with_cancellation(
+            api_container(&configuration).await,
+            registar.give_form(),
+            RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::RestApi, 0)),
+            Arc::new(http_api_config.access_tokens.clone()),
+            cancellation_token.clone(),
+        )
+        .await
+        .expect("the token-aware REST API should start with TLS");
+        let services = registar.services().await;
+        let service_binding = services
+            .first()
+            .expect("the REST API should register one service")
+            .service_binding();
+        let certificate = reqwest::Certificate::from_pem(TEST_CERTIFICATE).expect("the test certificate should parse");
+        let client = reqwest::Client::builder()
+            .add_root_certificate(certificate)
+            .build()
+            .expect("the client trusting the test certificate should build");
+
+        // Act
+        let result = check_fn_with_client(service_binding, client)
+            .job
+            .await
+            .expect("the health check job should not panic");
+
+        // Assert
+        assert_eq!(result, Ok("200 OK".to_string()));
+
+        cancellation_token.cancel();
+        drop(tokio::time::timeout(TEST_COMPLETION_TIMEOUT, running.task).await);
     }
 }

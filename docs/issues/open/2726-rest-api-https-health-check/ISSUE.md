@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: planned
+status: in-progress
 priority: p3
 epic: null
 github-issue: 2726
 spec-path: docs/issues/open/2726-rest-api-https-health-check/ISSUE.md
-branch: "2726-rest-api-https-health-check-spec"
+branch: "2726-rest-api-https-health-check"
 related-pr: null
-last-updated-utc: "2026-11-05 08:33"
+last-updated-utc: "2026-11-05 13:07"
 semantic-links:
   skill-links:
     - create-issue
@@ -150,8 +150,9 @@ Smallest deterministic boundary, two layers, both in `packages/axum-rest-api-ser
 - A unit test of the URL builder (a pure function of a `ServiceBinding`): an HTTP binding gives
   `http://127.0.0.1:<port>/api/health_check`, an HTTPS binding gives `https://...`. Fails now because the scheme is
   fixed.
-- One test that starts the token-aware server with a TLS launcher, takes the registered check from the `Registar` and
-  expects `Ok(200 ...)`, using the client that trusts the test certificate. It protects the integration of the binding,
+- One test that starts the token-aware server with a TLS launcher, takes the registered service binding from the `Registar`
+  and runs `check_fn_with_client` on it, expecting `Ok("200 OK")` with a client that trusts the test certificate. (The
+  registered function pointer itself uses the default client, so it is covered by the URL test and the manual recheck.) It protects the integration of the binding,
   the TLS listener and the probe.
 
 The TLS test needs a certificate. **Decision (maintainer, 2026-11-04):** copy the existing self-signed test certificate
@@ -166,14 +167,16 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status | Task                                   | Notes / Expected Output                                                                 |
 | --- | ------ | -------------------------------------- | --------------------------------------------------------------------------------------- |
 | T1  | DONE   | Reproduce and record the evidence      | Real binary with a TLS REST API; the health report shows the REST API entry failing.   |
-| T2  | TODO   | Write the failing regression tests     | URL builder test and the TLS registered-check test, red on `develop`.                   |
-| T3  | TODO   | Build the URL from the service binding | Add a client-taking variant for tests, as in #2089; production validation unchanged.    |
-| T4  | TODO   | Verify green and recheck               | Tests green; the manual scenario now shows the REST API entry healthy.                  |
+| T2  | DONE   | Write the failing regression tests     | URL builder test and the TLS registered-binding test, red before the fix.               |
+| T3  | DONE   | Build the URL from the service binding | Add a client-taking variant for tests, as in #2089; production validation unchanged.    |
+| T4  | DONE   | Verify green and recheck               | Tests green; the manual scenario now shows the REST API entry healthy.                  |
 
 ## Commit Points
 
-One signed Conventional Commit per task, with the issue number once assigned (for example
-`test(axum-rest-api-server): [#2726] ...` then `fix(axum-rest-api-server): [#2726] check HTTPS REST APIs over TLS`).
+Signed Conventional Commits with the issue number. As implemented: `refactor(axum-rest-api-server): [#2726] ...` (the URL
+seam and the fixtures, behavior unchanged), then `fix(axum-rest-api-server): [#2726] check HTTPS REST APIs over TLS`
+(the regression tests, the fix and the evidence). The red run was measured on the seam commit plus the new tests, before
+the fix; a red test cannot be committed alone because the pre-commit script runs the tests.
 
 ## Progress Tracking
 
@@ -181,7 +184,7 @@ One signed Conventional Commit per task, with the issue number once assigned (fo
 
 - [x] Draft written from a finding of #2637 S5.
 - [x] GitHub issue created and linked (#2726).
-- [ ] Implementation.
+- [x] Implementation (PR pending).
 
 ### Progress Log
 
@@ -190,21 +193,36 @@ One signed Conventional Commit per task, with the issue number once assigned (fo
 - 2026-11-04 18:00 UTC - Claude Sonnet 5.5 - Reproduced with the scratch test and with the real binary (see Real-binary
   reproduction); the maintainer chose to copy the existing test certificate fixture.
 - 2026-11-05 08:33 UTC - Claude Sonnet 5.5 - GitHub issue #2726 created; the draft moved to `docs/issues/open/`.
+- 2026-11-05 12:23 UTC - Claude Sonnet 5.5 - Implemented: fixtures and the URL seam, then the two regression tests with the fix.
+  Red and green output and the real-binary recheck are in `manual-verification-evidence.md`.
+- 2026-11-05 12:25 UTC - Claude Sonnet 5.5 - Independent pre-PR review: no blocking findings; reworded AC1, T2 and the commit points to match
+  what the tests and history show.
+- 2026-11-05 12:29 UTC - Claude Sonnet 5.5 - The pre-push hook (workspace tests) failed the TLS test: with more than one Rustls provider
+  enabled in the workspace, Rustls cannot pick one. The test now installs `ring` once, as the health check API tests do.
+  This adds `rustls` (`default-features = false`, feature `ring`, version 0.23, the version already in `Cargo.lock`) as a
+  dev-dependency of this package; no new crate enters the lockfile. The certificate decision (copy the fixture, no
+  generator dependency) is unchanged.
+- 2026-11-05 13:07 UTC - Claude Sonnet 5.5 - The `Container` workflow failed the TLS test: it read the fixtures from a path fixed at compile time
+  (`/build/src/...`), which does not exist where the container test stage runs the tests. The test now embeds the fixtures with
+  `include_bytes!`, as the health check API test does.
 
 ## Acceptance Criteria
 
-- [ ] AC1: With TLS enabled the REST API registers a health check that probes `https://` and the registered check
-      succeeds for a healthy server.
-- [ ] AC2: With TLS disabled the check still probes `http://` and succeeds.
-- [ ] AC3: A regression test failed before the change and passes after it; the output is recorded.
-- [ ] AC4: Production certificate validation is unchanged.
-- [ ] AC5: The health report of a real tracker with a TLS REST API lists the REST API entry as healthy.
+- [x] AC1: With TLS enabled the REST API registers a health check that probes `https://` and, run with a client that
+      trusts the test certificate, succeeds for a healthy server (automatic test); the registered function with a trusted
+      certificate is checked manually (V5).
+- [x] AC2: With TLS disabled the check still probes `http://` and succeeds.
+- [x] AC3: A regression test failed before the change and passes after it; the output is recorded.
+- [x] AC4: Production certificate validation is unchanged.
+- [x] AC5: The health report of a real tracker with a TLS REST API lists the REST API entry as healthy when the host
+      trusts the certificate (see `manual-verification-evidence.md`, V5).
 
 ## Verification Plan
 
 ### Automatic Checks
 
-`cargo test -p torrust-tracker-axum-rest-api-server`, `linter all`, `./contrib/dev-tools/git/hooks/pre-commit.sh` and
+`cargo test -p torrust-tracker-axum-rest-api-server` (the TLS test is
+`it_should_report_a_tls_rest_api_as_healthy_when_the_check_trusts_the_test_certificate`), `linter all`, `./contrib/dev-tools/git/hooks/pre-commit.sh` and
 `./contrib/dev-tools/git/hooks/pre-push.sh`.
 
 ### Manual Verification Scenarios
