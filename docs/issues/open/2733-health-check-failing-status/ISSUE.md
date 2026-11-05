@@ -7,7 +7,7 @@ priority: p3
 epic: null
 github-issue: 2733
 spec-path: docs/issues/open/2733-health-check-failing-status/ISSUE.md
-branch: "2733-health-check-failing-status-spec"
+branch: "2733-health-check-failing-status"
 related-pr: null
 last-updated-utc: "2026-11-05 17:37"
 semantic-links:
@@ -60,7 +60,7 @@ health endpoint reflects real state, such as a dependency that is down.
 
 ### Evidence
 
-Not yet reproduced with real artifacts. Reproduction is the first task (T1): run the check against a server whose health
+Reproduced with the regression tests only (a real `500` run is not possible, the real endpoint always answers `200`); see `manual-verification-evidence.md`. Original plan (T1): run the check against a server whose health
 endpoint answers `500`, and record that the result is `Ok("500 Internal Server Error")`.
 
 ### Impact (to confirm)
@@ -126,10 +126,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                          | Notes / Expected Output                                           |
 | --- | ------ | --------------------------------------------- | ----------------------------------------------------------------- |
-| T1  | DONE   | Reproduce and record the evidence             | A `500` health endpoint is reported `Ok`; saved in the evidence.  |
+| T1  | DONE   | Reproduce and record the evidence             | Reproduced by the red regression tests (no real-run reproduction). |
 | T2  | DONE   | Write the failing regression tests            | `500` gives `Err`, `200` gives `Ok`, in both packages.            |
 | T3  | DONE   | Return `Err` for a non-success status         | Both checks; doc comments match the behavior.                     |
-| T4  | DONE   | Verify green and recheck                      | Tests green; the manual scenario now shows the entry failing.     |
+| T4  | DONE   | Verify green and recheck                      | Tests green; real run with `200` shows no regression.     |
 
 ## Commit Points
 

@@ -827,7 +827,7 @@ mod tests {
         drop(tokio::time::timeout(TEST_COMPLETION_TIMEOUT, running.task).await);
     }
 
-    /// Serves one canned HTTP response per connection on a local port and returns its address.
+    /// Serves a canned HTTP response for every connection on a local port and returns its address.
     fn serve_status(status_line: &'static str) -> SocketAddr {
         let listener = std::net::TcpListener::bind((Ipv4Addr::LOCALHOST, 0)).expect("bind a local test server");
         let address = listener.local_addr().expect("read the test server address");
@@ -847,10 +847,13 @@ mod tests {
         let address = serve_status(status_line);
         let service_binding = ServiceBinding::new(Protocol::HTTP, address).expect("service binding should be valid");
 
-        check_fn_with_client(&service_binding, reqwest::Client::new())
-            .job
-            .await
-            .expect("the health check job should not panic")
+        check_fn_with_client(
+            &service_binding,
+            reqwest::Client::builder().no_proxy().build().expect("client should build"),
+        )
+        .job
+        .await
+        .expect("the health check job should not panic")
     }
 
     #[tokio::test]
