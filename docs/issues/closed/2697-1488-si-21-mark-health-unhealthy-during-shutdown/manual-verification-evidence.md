@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2697-1488-si-21-mark-health-unhealthy-during-shutdown/ISSUE.md
-last-updated-utc: "2026-11-04 12:20"
+issue-spec: docs/issues/closed/2697-1488-si-21-mark-health-unhealthy-during-shutdown/ISSUE.md
+last-updated-utc: "2026-11-04 17:38"
 ---
 
 # SI-21 Manual Verification Evidence
