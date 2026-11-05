@@ -133,6 +133,10 @@ pub const STATS_FIELD_COUNT: usize = 32;
 ///
 /// The Prometheus text renderer reads this table, so the description of a field exists once. When a field is added to [`Stats`],
 /// add it here and to [`Stats::values`] in the same position; a test checks the names and the order against the JSON.
+///
+/// The names are part of API v1 and do not follow every Prometheus naming convention (`promtool check metrics` warns about the
+/// missing `_total` suffix of counters, the abbreviated `_ns` unit and the `_total` suffix of the gauge `udp_banned_ips_total`).
+/// Renaming them is a breaking change; it is planned for the next API version (see issue #2734).
 pub const STATS_DESCRIPTIONS: [StatDescription; STATS_FIELD_COUNT] = [
     StatDescription {
         name: "torrents",
