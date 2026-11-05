@@ -99,6 +99,105 @@ mod tests {
     const JSON: &str = "application/json";
     const TEXT: &str = "text/plain; charset=utf-8";
 
+    const STATS_TEXT: &str = concat!(
+        "# HELP torrents Total number of torrents.\n",
+        "# TYPE torrents gauge\n",
+        "torrents 1\n",
+        "# HELP seeders Total number of seeders for all torrents.\n",
+        "# TYPE seeders gauge\n",
+        "seeders 2\n",
+        "# HELP completed Deprecated ambiguous completed-download total. Use completed_in_session and completed_persisted instead.\n",
+        "# TYPE completed counter\n",
+        "completed 3\n",
+        "# HELP completed_in_session Completed downloads observed since the current tracker process started.\n",
+        "# TYPE completed_in_session counter\n",
+        "completed_in_session 4\n",
+        "# HELP completed_persisted Completed downloads restored from and maintained in persistent storage. Zero when persistence is disabled.\n",
+        "# TYPE completed_persisted counter\n",
+        "completed_persisted 5\n",
+        "# HELP completed_persisted_enabled Whether completed_persisted is backed by persistent storage (1 enabled, 0 disabled).\n",
+        "# TYPE completed_persisted_enabled gauge\n",
+        "completed_persisted_enabled 1\n",
+        "# HELP leechers Total number of leechers for all torrents.\n",
+        "# TYPE leechers gauge\n",
+        "leechers 7\n",
+        "# HELP tcp4_connections_handled Total number of TCP (HTTP tracker) connections from IPv4 peers.\n",
+        "# TYPE tcp4_connections_handled counter\n",
+        "tcp4_connections_handled 8\n",
+        "# HELP tcp4_announces_handled Total number of TCP (HTTP tracker) announce requests from IPv4 peers.\n",
+        "# TYPE tcp4_announces_handled counter\n",
+        "tcp4_announces_handled 9\n",
+        "# HELP tcp4_scrapes_handled Total number of TCP (HTTP tracker) scrape requests from IPv4 peers.\n",
+        "# TYPE tcp4_scrapes_handled counter\n",
+        "tcp4_scrapes_handled 10\n",
+        "# HELP tcp6_connections_handled Total number of TCP (HTTP tracker) connections from IPv6 peers.\n",
+        "# TYPE tcp6_connections_handled counter\n",
+        "tcp6_connections_handled 11\n",
+        "# HELP tcp6_announces_handled Total number of TCP (HTTP tracker) announce requests from IPv6 peers.\n",
+        "# TYPE tcp6_announces_handled counter\n",
+        "tcp6_announces_handled 12\n",
+        "# HELP tcp6_scrapes_handled Total number of TCP (HTTP tracker) scrape requests from IPv6 peers.\n",
+        "# TYPE tcp6_scrapes_handled counter\n",
+        "tcp6_scrapes_handled 13\n",
+        "# HELP udp_requests_discarded Total number of UDP (UDP tracker) requests discarded before processing (e.g. client source port is 0).\n",
+        "# TYPE udp_requests_discarded counter\n",
+        "udp_requests_discarded 14\n",
+        "# HELP udp_requests_aborted Total number of UDP (UDP tracker) requests aborted.\n",
+        "# TYPE udp_requests_aborted counter\n",
+        "udp_requests_aborted 15\n",
+        "# HELP udp_requests_banned Total number of UDP (UDP tracker) requests banned.\n",
+        "# TYPE udp_requests_banned counter\n",
+        "udp_requests_banned 16\n",
+        "# HELP udp_banned_ips_total Number of IPs whose UDP connection ID errors exceed the limit (banned when connection ID validation is strict, would-be banned when it is disabled).\n",
+        "# TYPE udp_banned_ips_total gauge\n",
+        "udp_banned_ips_total 17\n",
+        "# HELP udp_avg_connect_processing_time_ns Average rounded time spent processing UDP connect requests, in nanoseconds.\n",
+        "# TYPE udp_avg_connect_processing_time_ns gauge\n",
+        "udp_avg_connect_processing_time_ns 18\n",
+        "# HELP udp_avg_announce_processing_time_ns Average rounded time spent processing UDP announce requests, in nanoseconds.\n",
+        "# TYPE udp_avg_announce_processing_time_ns gauge\n",
+        "udp_avg_announce_processing_time_ns 19\n",
+        "# HELP udp_avg_scrape_processing_time_ns Average rounded time spent processing UDP scrape requests, in nanoseconds.\n",
+        "# TYPE udp_avg_scrape_processing_time_ns gauge\n",
+        "udp_avg_scrape_processing_time_ns 20\n",
+        "# HELP udp4_requests Total number of UDP (UDP tracker) requests from IPv4 peers.\n",
+        "# TYPE udp4_requests counter\n",
+        "udp4_requests 21\n",
+        "# HELP udp4_connections_handled Total number of UDP (UDP tracker) connections from IPv4 peers.\n",
+        "# TYPE udp4_connections_handled counter\n",
+        "udp4_connections_handled 22\n",
+        "# HELP udp4_announces_handled Total number of UDP (UDP tracker) announce requests from IPv4 peers.\n",
+        "# TYPE udp4_announces_handled counter\n",
+        "udp4_announces_handled 23\n",
+        "# HELP udp4_scrapes_handled Total number of UDP (UDP tracker) scrape requests from IPv4 peers.\n",
+        "# TYPE udp4_scrapes_handled counter\n",
+        "udp4_scrapes_handled 24\n",
+        "# HELP udp4_responses Total number of UDP (UDP tracker) responses to IPv4 peers.\n",
+        "# TYPE udp4_responses counter\n",
+        "udp4_responses 25\n",
+        "# HELP udp4_errors_handled Total number of UDP (UDP tracker) errors handled for IPv4 peers.\n",
+        "# TYPE udp4_errors_handled counter\n",
+        "udp4_errors_handled 26\n",
+        "# HELP udp6_requests Total number of UDP (UDP tracker) requests from IPv6 peers.\n",
+        "# TYPE udp6_requests counter\n",
+        "udp6_requests 27\n",
+        "# HELP udp6_connections_handled Total number of UDP (UDP tracker) connection requests from IPv6 peers.\n",
+        "# TYPE udp6_connections_handled counter\n",
+        "udp6_connections_handled 28\n",
+        "# HELP udp6_announces_handled Total number of UDP (UDP tracker) announce requests from IPv6 peers.\n",
+        "# TYPE udp6_announces_handled counter\n",
+        "udp6_announces_handled 29\n",
+        "# HELP udp6_scrapes_handled Total number of UDP (UDP tracker) scrape requests from IPv6 peers.\n",
+        "# TYPE udp6_scrapes_handled counter\n",
+        "udp6_scrapes_handled 30\n",
+        "# HELP udp6_responses Total number of UDP (UDP tracker) responses to IPv6 peers.\n",
+        "# TYPE udp6_responses counter\n",
+        "udp6_responses 31\n",
+        "# HELP udp6_errors_handled Total number of UDP (UDP tracker) errors handled for IPv6 peers.\n",
+        "# TYPE udp6_errors_handled counter\n",
+        "udp6_errors_handled 32\n"
+    );
+
     #[tokio::test]
     async fn it_should_answer_the_statistics_as_a_json_object() {
         let response = stats_response(&a_stats());
@@ -126,50 +225,30 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn it_should_answer_the_statistics_as_one_name_and_value_line_per_statistic() {
+    async fn it_should_answer_the_statistics_as_prometheus_text_with_help_and_type_for_each_statistic() {
         let response = metrics_response(&a_stats());
 
-        assert_eq!(
-            observed(response).await,
-            Observed::new(
-                StatusCode::OK,
-                TEXT,
-                concat!(
-                    "torrents 1\n",
-                    "seeders 2\n",
-                    "completed 3\n",
-                    "completed_in_session 4\n",
-                    "completed_persisted 5\n",
-                    "completed_persisted_enabled 1\n",
-                    "leechers 7\n",
-                    "tcp4_connections_handled 8\n",
-                    "tcp4_announces_handled 9\n",
-                    "tcp4_scrapes_handled 10\n",
-                    "tcp6_connections_handled 11\n",
-                    "tcp6_announces_handled 12\n",
-                    "tcp6_scrapes_handled 13\n",
-                    "udp_requests_discarded 14\n",
-                    "udp_requests_aborted 15\n",
-                    "udp_requests_banned 16\n",
-                    "udp_banned_ips_total 17\n",
-                    "udp_avg_connect_processing_time_ns 18\n",
-                    "udp_avg_announce_processing_time_ns 19\n",
-                    "udp_avg_scrape_processing_time_ns 20\n",
-                    "udp4_requests 21\n",
-                    "udp4_connections_handled 22\n",
-                    "udp4_announces_handled 23\n",
-                    "udp4_scrapes_handled 24\n",
-                    "udp4_responses 25\n",
-                    "udp4_errors_handled 26\n",
-                    "udp6_requests 27\n",
-                    "udp6_connections_handled 28\n",
-                    "udp6_announces_handled 29\n",
-                    "udp6_scrapes_handled 30\n",
-                    "udp6_responses 31\n",
-                    "udp6_errors_handled 32\n"
-                )
-            )
-        );
+        assert_eq!(observed(response).await, Observed::new(StatusCode::OK, TEXT, STATS_TEXT));
+    }
+
+    #[tokio::test]
+    async fn it_should_precede_every_sample_with_one_help_and_one_type_line_for_the_same_name() {
+        let body = observed(metrics_response(&a_stats())).await.body;
+
+        assert!(body.ends_with('\n'), "{body}");
+
+        let lines: Vec<&str> = body.lines().collect();
+        assert_eq!(lines.len(), 32 * 3, "{body}");
+
+        for family in lines.chunks(3) {
+            let sample_name = family[2].split(' ').next().unwrap();
+
+            assert!(family[0].starts_with(&format!("# HELP {sample_name} ")), "{family:?}");
+            assert!(
+                family[1] == format!("# TYPE {sample_name} gauge") || family[1] == format!("# TYPE {sample_name} counter"),
+                "{family:?}"
+            );
+        }
     }
 
     #[tokio::test]
