@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2726-rest-api-https-health-check/ISSUE.md
-last-updated-utc: "2026-11-05 12:23"
+issue-spec: docs/issues/closed/2726-rest-api-https-health-check/ISSUE.md
+last-updated-utc: "2026-11-05 13:49"
 ---
 
 # Manual Verification Evidence
