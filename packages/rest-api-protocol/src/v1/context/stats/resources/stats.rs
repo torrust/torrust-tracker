@@ -5,94 +5,60 @@
 use serde::{Deserialize, Serialize};
 use torrust_metrics::metric_collection::MetricCollection;
 
-/// Tracker statistics response for the `GET /api/v1/stats` endpoint.
+/// Declares [`Stats`], its field documentation and [`STATS_DESCRIPTIONS`] from one list, so the description of a field
+/// exists once and cannot drift between the Rust docs and the Prometheus `# HELP` text.
 ///
-/// The Prometheus name, type and description of every field are in [`STATS_DESCRIPTIONS`].
-#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
-pub struct Stats {
-    // Torrent metrics
-    /// Total number of torrents.
-    pub torrents: u64,
-    /// Total number of seeders for all torrents.
-    pub seeders: u64,
-    /// Deprecated ambiguous completed-download total. Use
-    /// [`Self::completed_in_session`] and [`Self::completed_persisted`] instead.
-    pub completed: u64,
-    /// Completed downloads observed since the current tracker process started.
-    #[serde(default)]
-    pub completed_in_session: u64,
-    /// Completed downloads restored from and maintained in persistent storage.
-    ///
-    /// This is zero when persistence is disabled; use
-    /// [`Self::completed_persisted_enabled`] to distinguish that state from an
-    /// enabled persisted counter whose observed value is zero.
-    #[serde(default)]
-    pub completed_persisted: u64,
-    /// Whether [`Self::completed_persisted`] is backed by persistent storage.
-    #[serde(default)]
-    pub completed_persisted_enabled: bool,
-    /// Total number of leechers for all torrents.
-    pub leechers: u64,
+/// Each entry is `name: type = MetricType, "one-line description";`, optionally preceded by attributes (more doc lines, serde).
+/// The order is the order of the JSON fields and of the Prometheus text.
+macro_rules! stats {
+    ($( $(#[$attr:meta])* $name:ident : $ty:ty = $metric_type:ident, $help:literal; )*) => {
+        /// Tracker statistics response for the `GET /api/v1/stats` endpoint.
+        ///
+        /// The Prometheus name, type and description of every field are in [`STATS_DESCRIPTIONS`].
+        #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
+        #[allow(
+            clippy::doc_markdown,
+            reason = "the one-line HELP text names other fields in plain text, because it is also printed in the Prometheus output"
+        )]
+        pub struct Stats {
+            $(
+                #[doc = $help]
+                $(#[$attr])*
+                pub $name: $ty,
+            )*
+        }
 
-    // Protocol metrics
-    /// Total number of TCP (HTTP tracker) connections from IPv4 peers.
-    pub tcp4_connections_handled: u64,
-    /// Total number of TCP (HTTP tracker) `announce` requests from IPv4 peers.
-    pub tcp4_announces_handled: u64,
-    /// Total number of TCP (HTTP tracker) `scrape` requests from IPv4 peers.
-    pub tcp4_scrapes_handled: u64,
-    /// Total number of TCP (HTTP tracker) connections from IPv6 peers.
-    pub tcp6_connections_handled: u64,
-    /// Total number of TCP (HTTP tracker) `announce` requests from IPv6 peers.
-    pub tcp6_announces_handled: u64,
-    /// Total number of TCP (HTTP tracker) `scrape` requests from IPv6 peers.
-    pub tcp6_scrapes_handled: u64,
+        /// Number of fields of [`Stats`], that is, of metrics in the legacy Prometheus text.
+        pub const STATS_FIELD_COUNT: usize = [$( stringify!($name) ),*].len();
 
-    // UDP
-    /// Total number of UDP (UDP tracker) requests discarded before processing (e.g. client source port is 0).
-    pub udp_requests_discarded: u64,
-    /// Total number of UDP (UDP tracker) requests aborted.
-    pub udp_requests_aborted: u64,
-    /// Total number of UDP (UDP tracker) requests banned.
-    pub udp_requests_banned: u64,
-    /// Number of IPs whose UDP connection ID errors exceed the limit: banned IPs
-    /// when connection ID validation is `strict`, and "would-be banned" IPs that
-    /// are not blocked when it is `disabled`.
-    pub udp_banned_ips_total: u64,
-    /// Average rounded time spent processing UDP connect requests.
-    pub udp_avg_connect_processing_time_ns: u64,
-    /// Average rounded time spent processing UDP announce requests.
-    pub udp_avg_announce_processing_time_ns: u64,
-    /// Average rounded time spent processing UDP scrape requests.
-    pub udp_avg_scrape_processing_time_ns: u64,
+        /// The single source of the Prometheus `# HELP` and `# TYPE` of every [`Stats`] field, in the order of the JSON fields.
+        ///
+        /// The same list declares the fields and their documentation, so the description of a field exists once. The Prometheus
+        /// text renderer reads this table.
+        ///
+        /// The names are part of API v1 and do not follow every Prometheus naming convention (`promtool check metrics` warns about
+        /// the missing `_total` suffix of counters, the abbreviated `_ns` unit and the `_total` suffix of the gauge
+        /// `udp_banned_ips_total`). Renaming them is a breaking change; it is planned for the next API version (see issue #2734).
+        pub const STATS_DESCRIPTIONS: [StatDescription; STATS_FIELD_COUNT] = [
+            $(
+                StatDescription {
+                    name: stringify!($name),
+                    metric_type: MetricType::$metric_type,
+                    help: $help,
+                },
+            )*
+        ];
 
-    // UDPv4
-    /// Total number of UDP (UDP tracker) requests from IPv4 peers.
-    pub udp4_requests: u64,
-    /// Total number of UDP (UDP tracker) connections from IPv4 peers.
-    pub udp4_connections_handled: u64,
-    /// Total number of UDP (UDP tracker) `announce` requests from IPv4 peers.
-    pub udp4_announces_handled: u64,
-    /// Total number of UDP (UDP tracker) `scrape` requests from IPv4 peers.
-    pub udp4_scrapes_handled: u64,
-    /// Total number of UDP (UDP tracker) responses from IPv4 peers.
-    pub udp4_responses: u64,
-    /// Total number of UDP (UDP tracker) errors handled from IPv4 peers.
-    pub udp4_errors_handled: u64,
-
-    // UDPv6
-    /// Total number of UDP (UDP tracker) requests from IPv6 peers.
-    pub udp6_requests: u64,
-    /// Total number of UDP (UDP tracker) `connection` requests from IPv6 peers.
-    pub udp6_connections_handled: u64,
-    /// Total number of UDP (UDP tracker) `announce` requests from IPv6 peers.
-    pub udp6_announces_handled: u64,
-    /// Total number of UDP (UDP tracker) `scrape` requests from IPv6 peers.
-    pub udp6_scrapes_handled: u64,
-    /// Total number of UDP (UDP tracker) responses from IPv6 peers.
-    pub udp6_responses: u64,
-    /// Total number of UDP (UDP tracker) errors handled from IPv6 peers.
-    pub udp6_errors_handled: u64,
+        impl Stats {
+            /// The values of all fields, in the order of [`STATS_DESCRIPTIONS`].
+            ///
+            /// The boolean `completed_persisted_enabled` is `1` or `0`, because a Prometheus sample value must be a number.
+            #[must_use]
+            pub fn values(&self) -> [u64; STATS_FIELD_COUNT] {
+                [ $( u64::from(self.$name) ),* ]
+            }
+        }
+    };
 }
 
 /// Prometheus metric type of a [`Stats`] field in the `?format=prometheus` text.
@@ -126,222 +92,54 @@ pub struct StatDescription {
     pub help: &'static str,
 }
 
-/// Number of fields of [`Stats`], that is, of metrics in the legacy Prometheus text.
-pub const STATS_FIELD_COUNT: usize = 32;
-
-/// The single source of the Prometheus `# HELP` and `# TYPE` of every [`Stats`] field, in the order of the JSON fields.
-///
-/// The Prometheus text renderer reads this table, so the description of a field exists once. When a field is added to [`Stats`],
-/// add it here and to [`Stats::values`] in the same position; a test checks the names and the order against the JSON.
-///
-/// The names are part of API v1 and do not follow every Prometheus naming convention (`promtool check metrics` warns about the
-/// missing `_total` suffix of counters, the abbreviated `_ns` unit and the `_total` suffix of the gauge `udp_banned_ips_total`).
-/// Renaming them is a breaking change; it is planned for the next API version (see issue #2734).
-pub const STATS_DESCRIPTIONS: [StatDescription; STATS_FIELD_COUNT] = [
-    StatDescription {
-        name: "torrents",
-        metric_type: MetricType::Gauge,
-        help: "Total number of torrents.",
-    },
-    StatDescription {
-        name: "seeders",
-        metric_type: MetricType::Gauge,
-        help: "Total number of seeders for all torrents.",
-    },
-    StatDescription {
-        name: "completed",
-        metric_type: MetricType::Counter,
-        help: "Deprecated ambiguous completed-download total. Use completed_in_session and completed_persisted instead.",
-    },
-    StatDescription {
-        name: "completed_in_session",
-        metric_type: MetricType::Counter,
-        help: "Completed downloads observed since the current tracker process started.",
-    },
-    StatDescription {
-        name: "completed_persisted",
-        metric_type: MetricType::Counter,
-        help: "Completed downloads restored from and maintained in persistent storage. Zero when persistence is disabled.",
-    },
-    StatDescription {
-        name: "completed_persisted_enabled",
-        metric_type: MetricType::Gauge,
-        help: "Whether completed_persisted is backed by persistent storage (1 enabled, 0 disabled).",
-    },
-    StatDescription {
-        name: "leechers",
-        metric_type: MetricType::Gauge,
-        help: "Total number of leechers for all torrents.",
-    },
-    StatDescription {
-        name: "tcp4_connections_handled",
-        metric_type: MetricType::Counter,
-        help: "Total number of TCP (HTTP tracker) connections from IPv4 peers.",
-    },
-    StatDescription {
-        name: "tcp4_announces_handled",
-        metric_type: MetricType::Counter,
-        help: "Total number of TCP (HTTP tracker) announce requests from IPv4 peers.",
-    },
-    StatDescription {
-        name: "tcp4_scrapes_handled",
-        metric_type: MetricType::Counter,
-        help: "Total number of TCP (HTTP tracker) scrape requests from IPv4 peers.",
-    },
-    StatDescription {
-        name: "tcp6_connections_handled",
-        metric_type: MetricType::Counter,
-        help: "Total number of TCP (HTTP tracker) connections from IPv6 peers.",
-    },
-    StatDescription {
-        name: "tcp6_announces_handled",
-        metric_type: MetricType::Counter,
-        help: "Total number of TCP (HTTP tracker) announce requests from IPv6 peers.",
-    },
-    StatDescription {
-        name: "tcp6_scrapes_handled",
-        metric_type: MetricType::Counter,
-        help: "Total number of TCP (HTTP tracker) scrape requests from IPv6 peers.",
-    },
-    StatDescription {
-        name: "udp_requests_discarded",
-        metric_type: MetricType::Counter,
-        help: "Total number of UDP (UDP tracker) requests discarded before processing (e.g. client source port is 0).",
-    },
-    StatDescription {
-        name: "udp_requests_aborted",
-        metric_type: MetricType::Counter,
-        help: "Total number of UDP (UDP tracker) requests aborted.",
-    },
-    StatDescription {
-        name: "udp_requests_banned",
-        metric_type: MetricType::Counter,
-        help: "Total number of UDP (UDP tracker) requests banned.",
-    },
-    StatDescription {
-        name: "udp_banned_ips_total",
-        metric_type: MetricType::Gauge,
-        help: "Number of IPs whose UDP connection ID errors exceed the limit (banned when connection ID validation is strict, would-be banned when it is disabled).",
-    },
-    StatDescription {
-        name: "udp_avg_connect_processing_time_ns",
-        metric_type: MetricType::Gauge,
-        help: "Average rounded time spent processing UDP connect requests, in nanoseconds.",
-    },
-    StatDescription {
-        name: "udp_avg_announce_processing_time_ns",
-        metric_type: MetricType::Gauge,
-        help: "Average rounded time spent processing UDP announce requests, in nanoseconds.",
-    },
-    StatDescription {
-        name: "udp_avg_scrape_processing_time_ns",
-        metric_type: MetricType::Gauge,
-        help: "Average rounded time spent processing UDP scrape requests, in nanoseconds.",
-    },
-    StatDescription {
-        name: "udp4_requests",
-        metric_type: MetricType::Counter,
-        help: "Total number of UDP (UDP tracker) requests from IPv4 peers.",
-    },
-    StatDescription {
-        name: "udp4_connections_handled",
-        metric_type: MetricType::Counter,
-        help: "Total number of UDP (UDP tracker) connections from IPv4 peers.",
-    },
-    StatDescription {
-        name: "udp4_announces_handled",
-        metric_type: MetricType::Counter,
-        help: "Total number of UDP (UDP tracker) announce requests from IPv4 peers.",
-    },
-    StatDescription {
-        name: "udp4_scrapes_handled",
-        metric_type: MetricType::Counter,
-        help: "Total number of UDP (UDP tracker) scrape requests from IPv4 peers.",
-    },
-    StatDescription {
-        name: "udp4_responses",
-        metric_type: MetricType::Counter,
-        help: "Total number of UDP (UDP tracker) responses to IPv4 peers.",
-    },
-    StatDescription {
-        name: "udp4_errors_handled",
-        metric_type: MetricType::Counter,
-        help: "Total number of UDP (UDP tracker) errors handled for IPv4 peers.",
-    },
-    StatDescription {
-        name: "udp6_requests",
-        metric_type: MetricType::Counter,
-        help: "Total number of UDP (UDP tracker) requests from IPv6 peers.",
-    },
-    StatDescription {
-        name: "udp6_connections_handled",
-        metric_type: MetricType::Counter,
-        help: "Total number of UDP (UDP tracker) connection requests from IPv6 peers.",
-    },
-    StatDescription {
-        name: "udp6_announces_handled",
-        metric_type: MetricType::Counter,
-        help: "Total number of UDP (UDP tracker) announce requests from IPv6 peers.",
-    },
-    StatDescription {
-        name: "udp6_scrapes_handled",
-        metric_type: MetricType::Counter,
-        help: "Total number of UDP (UDP tracker) scrape requests from IPv6 peers.",
-    },
-    StatDescription {
-        name: "udp6_responses",
-        metric_type: MetricType::Counter,
-        help: "Total number of UDP (UDP tracker) responses to IPv6 peers.",
-    },
-    StatDescription {
-        name: "udp6_errors_handled",
-        metric_type: MetricType::Counter,
-        help: "Total number of UDP (UDP tracker) errors handled for IPv6 peers.",
-    },
-];
-
-impl Stats {
-    /// The values of all fields, in the order of [`STATS_DESCRIPTIONS`].
-    ///
-    /// The boolean `completed_persisted_enabled` is `1` or `0`, because a Prometheus sample value must be a number.
-    #[allow(deprecated)]
-    #[must_use]
-    pub fn values(&self) -> [u64; STATS_FIELD_COUNT] {
-        [
-            self.torrents,
-            self.seeders,
-            self.completed,
-            self.completed_in_session,
-            self.completed_persisted,
-            u64::from(self.completed_persisted_enabled),
-            self.leechers,
-            self.tcp4_connections_handled,
-            self.tcp4_announces_handled,
-            self.tcp4_scrapes_handled,
-            self.tcp6_connections_handled,
-            self.tcp6_announces_handled,
-            self.tcp6_scrapes_handled,
-            self.udp_requests_discarded,
-            self.udp_requests_aborted,
-            self.udp_requests_banned,
-            self.udp_banned_ips_total,
-            self.udp_avg_connect_processing_time_ns,
-            self.udp_avg_announce_processing_time_ns,
-            self.udp_avg_scrape_processing_time_ns,
-            self.udp4_requests,
-            self.udp4_connections_handled,
-            self.udp4_announces_handled,
-            self.udp4_scrapes_handled,
-            self.udp4_responses,
-            self.udp4_errors_handled,
-            self.udp6_requests,
-            self.udp6_connections_handled,
-            self.udp6_announces_handled,
-            self.udp6_scrapes_handled,
-            self.udp6_responses,
-            self.udp6_errors_handled,
-        ]
-    }
+stats! {
+        // Torrent metrics
+        torrents: u64 = Gauge, "Total number of torrents.";
+        seeders: u64 = Gauge, "Total number of seeders for all torrents.";
+        ///
+        /// Use [`Self::completed_in_session`] and [`Self::completed_persisted`] instead.
+        completed: u64 = Counter, "Deprecated ambiguous completed-download total. Use completed_in_session and completed_persisted instead.";
+        #[serde(default)]
+        completed_in_session: u64 = Counter, "Completed downloads observed since the current tracker process started.";
+        ///
+        /// This is zero when persistence is disabled; use [`Self::completed_persisted_enabled`] to distinguish that state from an
+        /// enabled persisted counter whose observed value is zero.
+        #[serde(default)]
+        completed_persisted: u64 = Counter, "Completed downloads restored from and maintained in persistent storage. Zero when persistence is disabled.";
+        #[serde(default)]
+        completed_persisted_enabled: bool = Gauge, "Whether completed_persisted is backed by persistent storage (1 enabled, 0 disabled).";
+        leechers: u64 = Gauge, "Total number of leechers for all torrents.";
+        // TCP
+        tcp4_connections_handled: u64 = Counter, "Total number of TCP (HTTP tracker) connections from IPv4 peers.";
+        tcp4_announces_handled: u64 = Counter, "Total number of TCP (HTTP tracker) announce requests from IPv4 peers.";
+        tcp4_scrapes_handled: u64 = Counter, "Total number of TCP (HTTP tracker) scrape requests from IPv4 peers.";
+        tcp6_connections_handled: u64 = Counter, "Total number of TCP (HTTP tracker) connections from IPv6 peers.";
+        tcp6_announces_handled: u64 = Counter, "Total number of TCP (HTTP tracker) announce requests from IPv6 peers.";
+        tcp6_scrapes_handled: u64 = Counter, "Total number of TCP (HTTP tracker) scrape requests from IPv6 peers.";
+        // UDP
+        udp_requests_discarded: u64 = Counter, "Total number of UDP (UDP tracker) requests discarded before processing (e.g. client source port is 0).";
+        udp_requests_aborted: u64 = Counter, "Total number of UDP (UDP tracker) requests aborted.";
+        udp_requests_banned: u64 = Counter, "Total number of UDP (UDP tracker) requests banned.";
+        ///
+        /// Banned IPs when connection ID validation is `strict`, and "would-be banned" IPs that are not blocked when it is `disabled`.
+        udp_banned_ips_total: u64 = Gauge, "Number of IPs whose UDP connection ID errors exceed the limit (banned when connection ID validation is strict, would-be banned when it is disabled).";
+        udp_avg_connect_processing_time_ns: u64 = Gauge, "Average rounded time spent processing UDP connect requests, in nanoseconds.";
+        udp_avg_announce_processing_time_ns: u64 = Gauge, "Average rounded time spent processing UDP announce requests, in nanoseconds.";
+        udp_avg_scrape_processing_time_ns: u64 = Gauge, "Average rounded time spent processing UDP scrape requests, in nanoseconds.";
+        // UDPv4
+        udp4_requests: u64 = Counter, "Total number of UDP (UDP tracker) requests from IPv4 peers.";
+        udp4_connections_handled: u64 = Counter, "Total number of UDP (UDP tracker) connections from IPv4 peers.";
+        udp4_announces_handled: u64 = Counter, "Total number of UDP (UDP tracker) announce requests from IPv4 peers.";
+        udp4_scrapes_handled: u64 = Counter, "Total number of UDP (UDP tracker) scrape requests from IPv4 peers.";
+        udp4_responses: u64 = Counter, "Total number of UDP (UDP tracker) responses to IPv4 peers.";
+        udp4_errors_handled: u64 = Counter, "Total number of UDP (UDP tracker) errors handled for IPv4 peers.";
+        // UDPv6
+        udp6_requests: u64 = Counter, "Total number of UDP (UDP tracker) requests from IPv6 peers.";
+        udp6_connections_handled: u64 = Counter, "Total number of UDP (UDP tracker) connection requests from IPv6 peers.";
+        udp6_announces_handled: u64 = Counter, "Total number of UDP (UDP tracker) announce requests from IPv6 peers.";
+        udp6_scrapes_handled: u64 = Counter, "Total number of UDP (UDP tracker) scrape requests from IPv6 peers.";
+        udp6_responses: u64 = Counter, "Total number of UDP (UDP tracker) responses to IPv6 peers.";
+        udp6_errors_handled: u64 = Counter, "Total number of UDP (UDP tracker) errors handled for IPv6 peers.";
 }
 
 /// Extendable metrics response for the `GET /api/v1/metrics` endpoint.
