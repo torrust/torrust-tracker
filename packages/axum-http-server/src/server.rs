@@ -1012,18 +1012,16 @@ mod tests {
         TcpListener::bind(scenario.bind_to).expect("HTTP listener should be released after registration failure");
     }
 
-    /// Serves a canned HTTP response for every connection on a local port and returns its address.
+    /// Serves a canned HTTP response to one connection on a local port, then stops and returns its address.
     fn serve_status(status_line: &'static str) -> SocketAddr {
         let listener = std::net::TcpListener::bind((Ipv4Addr::LOCALHOST, 0)).expect("bind a local test server");
         let address = listener.local_addr().expect("read the test server address");
         std::thread::spawn(move || {
-            for stream in listener.incoming() {
-                let mut stream = stream.expect("accept a connection");
-                let mut buffer = [0_u8; 1024];
-                drop(std::io::Read::read(&mut stream, &mut buffer));
-                let response = format!("HTTP/1.1 {status_line}\r\nContent-Length: 0\r\nConnection: close\r\n\r\n");
-                drop(std::io::Write::write_all(&mut stream, response.as_bytes()));
-            }
+            let (mut stream, _peer) = listener.accept().expect("accept a connection");
+            let mut buffer = [0_u8; 1024];
+            drop(std::io::Read::read(&mut stream, &mut buffer));
+            let response = format!("HTTP/1.1 {status_line}\r\nContent-Length: 0\r\nConnection: close\r\n\r\n");
+            drop(std::io::Write::write_all(&mut stream, response.as_bytes()));
         });
         address
     }
