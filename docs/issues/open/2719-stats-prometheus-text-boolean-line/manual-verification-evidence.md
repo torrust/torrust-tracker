@@ -90,6 +90,43 @@ Prometheus scraped the running tracker (persistence on) at a 1 s interval with
 The tracker's `text/plain; charset=utf-8` content type is accepted by Prometheus 3.5.0. The legacy text is scraped up to the
 boolean line; the 26 samples after it are lost and the target is `down`.
 
-## V4 - Recheck after the fix
+## V4 - Regression test red and green
 
-Not yet executed (pending maintainer decision and implementation).
+Stable Rust toolchain, `cargo test -p torrust-tracker-axum-rest-api-server --lib stats::responses`.
+
+Red, at commit `test(axum-rest-api-server): [#2719] expect numeric values and a final newline in the legacy stats text` on top of the
+unfixed `metrics_response`: `it_should_answer_the_statistics_as_one_name_and_value_line_per_statistic` and
+`it_should_print_the_persistence_flag_as_zero_when_persisted_completed_statistics_are_disabled` fail (`3 passed; 2 failed`). The
+first reports the body `...completed_persisted_enabled true\n...udp6_errors_handled 32` against the expected
+`...completed_persisted_enabled 1\n...udp6_errors_handled 32\n`.
+
+Green, at `fix(axum-rest-api-server): [#2719] print numeric values and a final newline in the legacy stats text`: the whole package
+passes (`157 passed` unit, `58 passed` integration, `0 failed`).
+
+## V5 - Like-for-like recheck after the fix
+
+Build of the final production code (`cargo build --bin torrust-tracker`, branch head `501a5cc66`; the later commits only touch
+documentation and this evidence). Same configurations, same commands as V1 to V3.
+
+```bash
+curl -si 'http://localhost:1212/api/v1/stats?format=prometheus&token=MyAccessToken'
+```
+
+```text
+HTTP/1.1 200 OK
+content-type: text/plain; charset=utf-8
+content-length: 733
+
+torrents 0
+...
+```
+
+The line is `completed_persisted_enabled 0` with persistence off and `completed_persisted_enabled 1` with it on; the last byte of the body is
+`0x0a`.
+
+| Check                                            | Result                                                        |
+| ------------------------------------------------ | ------------------------------------------------------------- |
+| `promtool check metrics` 3.5.0, off and on       | only `no help text` lint warnings, exit 3 (parse succeeds)    |
+| `prometheus_client` 0.26.0, off and on           | 32 families parsed                                            |
+| Prometheus 3.5.0 scraping the tracker, persistence on | target `up`, `scrape_samples_scraped` 32 (was `down`, 5)  |
+| Prometheus 3.5.0 scraping `/api/v1/metrics?format=prometheus` | target `up`                                     |
