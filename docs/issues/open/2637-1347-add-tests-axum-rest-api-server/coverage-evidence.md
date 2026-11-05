@@ -333,3 +333,15 @@ Copilot's review of #2718 led to one test-only change: the stats `format` test m
 | Integration-only (`--test integration`) | 58 integration | 682 / 916 (74.45%) | 949 / 1,360 (69.78%) | 98 / 138 (71.01%) |
 
 `v1/context/stats/handlers.rs` is now 46 / 46 lines (it was 40 / 40), 67 / 67 regions and 15 / 15 functions; the other files are unchanged. The uncovered lines are the same 108 as before.
+
+### Slice S5 Baseline After #2719 And #2726
+
+Measured on the S5 branch rebased onto `torrust/develop` (it contains the fixes of #2719 and #2726, and `server.rs` grew by about 108 lines), stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, a clean workspace before each report, the commands of the Measurement Scope section. This supersedes the S4 figures as the baseline of S5; the S4 sections above stay as written. The stats responses text they call "pinned pending re-evaluation" was fixed by #2719 (PR #2727) and the stats responses tests were updated there.
+
+| Scope | Tests | Lines | Regions | Functions |
+| --- | ---: | ---: | ---: | ---: |
+| Aggregate (all selected test targets) | 159 unit + 58 integration | 2,196 / 2,261 (97.13%) | 3,188 / 3,311 (96.29%) | 351 / 371 (94.61%) |
+| Unit-only (`--lib`) | 159 unit | 2,172 / 2,261 (96.06%) | 3,161 / 3,311 (95.47%) | 345 / 371 (92.99%) |
+| Integration-only (`--test integration`) | 58 integration | 682 / 927 (73.57%) | 949 / 1,376 (68.97%) | 98 / 140 (70.00%) |
+
+Unit-only files below 100% lines: `server.rs` 403 / 458 (87.99%; 666 / 767 regions; 35 / 53 functions), `testing/environment.rs` 301 / 332 (out of scope, owned by #2482 and #2449) and `v1/context/auth_key/handlers.rs` 236 / 239 (the three deliberately untested `Debug` lines). `server.rs` is 403 / 458 in the aggregate as well: the integration tests add nothing to it (74 / 233 lines alone). Uncovered unit-only line ranges of `server.rs` at this baseline: 198, 242, 244-245, 277, 279-280, 289-290, 294, 296, 301-302, 310, 312, 318-319, 358-359, 362-363, 379-381, 396, 428-430, 432, 434, 455-457, 469, 471-472, 478-483, 487-488, 490-492, 494, 496, 502, 514, 583-584 and 742-743 (55 lines). The row 18 plan re-derives and classifies these groups.
