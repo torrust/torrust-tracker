@@ -143,7 +143,7 @@ and nothing in that gap is missed.
    - `timeout`: check the exit condition. If it is not met, run the poller again with the same flags
      as the run that timed out, since nothing was processed in between. After a few timeouts in a
      row, tell the contributor the reviewer has not answered.
-   - `pr_closed` or `pr_merged`: stop.
+   - `pr_closed` or `pr_merged`: stop watching and tell the contributor which one happened.
 3. Count the round (see [Round Limit](#round-limit)) after each push, and stop and ask the
    contributor when the limit is exceeded.
 4. Check the exit condition after each return. The loop is done when all of these hold:
@@ -159,6 +159,14 @@ and nothing in that gap is missed.
      [`merge-pull-request`](../../git-workflow/merge-pull-request/SKILL.md) describes.
 5. When the exit condition holds, print the maintainer merge command from `merge-pull-request`. Do
    not merge, approve, or post `ACK` yourself; an agent never waives a check.
+6. Keep watching until the pull request is merged or closed; do not end the session when the exit
+   condition first holds, and do not wait for the contributor to say it was merged. Run the poller
+   again with `--since-head-sha "$(git rev-parse HEAD)"` and the `cursor` of the last result.
+   - `pr_merged` or `pr_closed`: stop and report it.
+   - `timeout`: run it again. Waiting costs no tokens, so there is no limit on repeats, but use the
+     longest `--timeout-seconds` your shell tool allows to keep the number of calls small.
+   - `review`, `comment` or `head_changed`: the pull request changed after it looked ready. Go back
+     to step 2, because the exit condition no longer holds until it is checked again.
 
 The poller returns events and does not decide the exit condition. A review-body finding with no
 thread is not counted by the thread check, so read each new review body through the audit workflow.
