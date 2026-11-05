@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: planned
+status: in-progress
 priority: p3
 epic: null
 github-issue: 2726
 spec-path: docs/issues/open/2726-rest-api-https-health-check/ISSUE.md
-branch: "2726-rest-api-https-health-check-spec"
+branch: "2726-rest-api-https-health-check"
 related-pr: null
-last-updated-utc: "2026-11-05 08:33"
+last-updated-utc: "2026-11-05 12:23"
 semantic-links:
   skill-links:
     - create-issue
@@ -166,9 +166,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status | Task                                   | Notes / Expected Output                                                                 |
 | --- | ------ | -------------------------------------- | --------------------------------------------------------------------------------------- |
 | T1  | DONE   | Reproduce and record the evidence      | Real binary with a TLS REST API; the health report shows the REST API entry failing.   |
-| T2  | TODO   | Write the failing regression tests     | URL builder test and the TLS registered-check test, red on `develop`.                   |
-| T3  | TODO   | Build the URL from the service binding | Add a client-taking variant for tests, as in #2089; production validation unchanged.    |
-| T4  | TODO   | Verify green and recheck               | Tests green; the manual scenario now shows the REST API entry healthy.                  |
+| T2  | DONE   | Write the failing regression tests     | URL builder test and the TLS registered-check test, red on `develop`.                   |
+| T3  | DONE   | Build the URL from the service binding | Add a client-taking variant for tests, as in #2089; production validation unchanged.    |
+| T4  | DONE   | Verify green and recheck               | Tests green; the manual scenario now shows the REST API entry healthy.                  |
 
 ## Commit Points
 
@@ -181,7 +181,7 @@ One signed Conventional Commit per task, with the issue number once assigned (fo
 
 - [x] Draft written from a finding of #2637 S5.
 - [x] GitHub issue created and linked (#2726).
-- [ ] Implementation.
+- [x] Implementation (PR pending).
 
 ### Progress Log
 
@@ -190,15 +190,18 @@ One signed Conventional Commit per task, with the issue number once assigned (fo
 - 2026-11-04 18:00 UTC - Claude Sonnet 5.5 - Reproduced with the scratch test and with the real binary (see Real-binary
   reproduction); the maintainer chose to copy the existing test certificate fixture.
 - 2026-11-05 08:33 UTC - Claude Sonnet 5.5 - GitHub issue #2726 created; the draft moved to `docs/issues/open/`.
+- 2026-11-05 12:23 UTC - Claude Sonnet 5.5 - Implemented: fixtures and the URL seam, then the two regression tests with the fix.
+  Red and green output and the real-binary recheck are in `manual-verification-evidence.md`.
 
 ## Acceptance Criteria
 
-- [ ] AC1: With TLS enabled the REST API registers a health check that probes `https://` and the registered check
+- [x] AC1: With TLS enabled the REST API registers a health check that probes `https://` and the registered check
       succeeds for a healthy server.
-- [ ] AC2: With TLS disabled the check still probes `http://` and succeeds.
-- [ ] AC3: A regression test failed before the change and passes after it; the output is recorded.
-- [ ] AC4: Production certificate validation is unchanged.
-- [ ] AC5: The health report of a real tracker with a TLS REST API lists the REST API entry as healthy.
+- [x] AC2: With TLS disabled the check still probes `http://` and succeeds.
+- [x] AC3: A regression test failed before the change and passes after it; the output is recorded.
+- [x] AC4: Production certificate validation is unchanged.
+- [x] AC5: The health report of a real tracker with a TLS REST API lists the REST API entry as healthy when the host
+      trusts the certificate (see `manual-verification-evidence.md`, V5).
 
 ## Verification Plan
 
