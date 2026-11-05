@@ -193,14 +193,22 @@ A round is one push of fixes made in response to a review event. Stop the loop a
 contributor before starting round 6, that is, when more than 5 rounds of fixes have been pushed.
 Rounds that ended with a clean review and no push do not count, and neither do timeouts.
 
-Pushes that only fix failing checks have their own limit of 5, because a check failure is not a
-review event. Count them as the number of distinct head commits of the pull request whose checks
-failed:
-`gh run list --repo torrust/torrust-tracker --branch <branch> --event pull_request --json headSha,conclusion --jq '[.[] | select(.conclusion == "failure") | .headSha] | unique | length'`.
-A re-run of the same commit does not add to it. Stop and ask the contributor when it exceeds 5. A loop that
-keeps finding new things after 5 rounds usually means something is wrong with the agent or its
-harness (for example a fix that regresses another finding, or a reviewer reacting to the agent's own
-replies), and a person should look before more tokens are spent.
+Failed check runs have their own limit of 5, because a check failure is not a review event. Count
+the distinct head commits of the pull request whose checks failed. Each one is a push that did not
+yet make the checks pass, so the count measures failed fixing attempts, not successful fixes. A
+re-run of the same commit does not add to it. Ask the contributor when more than 5 head commits have
+failed checks. Pass a large `--limit`, because `gh run list` returns only the 20 latest runs by
+default and a lower count would let the loop run past the limit:
+
+```sh
+gh run list --repo torrust/torrust-tracker --branch <branch> --event pull_request --limit 1000 \
+  --json headSha,conclusion \
+  --jq '[.[] | select(.conclusion == "failure") | .headSha] | unique | length'
+```
+
+A loop that keeps finding new things after 5 rounds usually means something is wrong with the agent
+or its harness (for example a fix that regresses another finding, or a reviewer reacting to the
+agent's own replies). A person should look before more tokens are spent.
 
 Keep the count where any agent can recompute it, not in the session memory: it is the number of
 distinct reviews in the audit record

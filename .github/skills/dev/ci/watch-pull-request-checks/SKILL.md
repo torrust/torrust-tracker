@@ -67,4 +67,4 @@ gh pr checks <PR> --repo torrust/torrust-tracker --json name,bucket,link \
    cover the whole workspace, not one package.
 5. Do not loop forever: the review loop's
    [Round Limit](../../pr-reviews/wait-for-pr-review/SKILL.md#round-limit) stops and asks the
-   contributor after 5 pushes that fixed failing checks.
+   contributor when more than 5 head commits of the pull request have failed checks.
