@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: in-progress
+status: done
 priority: p3
 epic: null
 github-issue: 2726
-spec-path: docs/issues/open/2726-rest-api-https-health-check/ISSUE.md
+spec-path: docs/issues/closed/2726-rest-api-https-health-check/ISSUE.md
 branch: "2726-rest-api-https-health-check"
-related-pr: null
-last-updated-utc: "2026-11-05 13:07"
+related-pr: 2730
+last-updated-utc: "2026-11-05 13:49"
 semantic-links:
   skill-links:
     - create-issue
@@ -184,7 +184,9 @@ the fix; a red test cannot be committed alone because the pre-commit script runs
 
 - [x] Draft written from a finding of #2637 S5.
 - [x] GitHub issue created and linked (#2726).
-- [x] Implementation (PR pending).
+- [x] Implementation (merged in #2730, closed #2726).
+- [x] Spec merged (#2728).
+- [x] Spec archived to `docs/issues/closed/`.
 
 ### Progress Log
 
@@ -205,6 +207,10 @@ the fix; a red test cannot be committed alone because the pre-commit script runs
 - 2026-11-05 13:07 UTC - Claude Sonnet 5.5 - The `Container` workflow failed the TLS test: it read the fixtures from a path fixed at compile time
   (`/build/src/...`), which does not exist where the container test stage runs the tests. The test now embeds the fixtures with
   `include_bytes!`, as the health check API test does.
+- 2026-11-05 13:49 UTC - Claude Sonnet 5.5 - PR #2730 merged and #2726 closed (completed) on 2026-11-05; spec archived to `docs/issues/closed/`.
+  No separate implementation retrospective: the two lessons were small and are recorded above (the workspace enables more
+  than one Rustls provider, so a TLS test installs one; the container test stage runs the tests from a different
+  directory, so a test embeds its fixtures with `include_bytes!` instead of reading them by path).
 
 ## Acceptance Criteria
 
