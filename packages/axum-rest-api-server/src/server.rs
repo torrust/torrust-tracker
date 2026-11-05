@@ -377,17 +377,30 @@ impl ApiServer<Running> {
 #[must_use]
 #[instrument(skip())]
 pub fn check_fn(service_binding: &ServiceBinding) -> ServiceHealthCheckJob {
-    let url = format!("http://{}/api/health_check", service_binding.bind_address()); // DevSkim: ignore DS137138
+    check_fn_with_client(service_binding, reqwest::Client::new())
+}
+
+/// Checks the API health endpoint using the supplied HTTP client.
+///
+/// This preserves normal production certificate validation when called from
+/// [`check_fn`] and allows tests to trust a known test certificate.
+#[must_use]
+pub fn check_fn_with_client(service_binding: &ServiceBinding, client: reqwest::Client) -> ServiceHealthCheckJob {
+    let url = health_check_url(service_binding);
 
     let info = format!("checking api health check at: {url}");
 
     let job = tokio::spawn(async move {
-        match reqwest::get(url).await {
+        match client.get(url).send().await {
             Ok(response) => Ok(response.status().to_string()),
             Err(err) => Err(err.to_string()),
         }
     });
     ServiceHealthCheckJob::new(info, job)
+}
+
+fn health_check_url(service_binding: &ServiceBinding) -> String {
+    format!("http://{}/api/health_check", service_binding.bind_address()) // DevSkim: ignore DS137138
 }
 
 /// A struct responsible for starting the API server.
