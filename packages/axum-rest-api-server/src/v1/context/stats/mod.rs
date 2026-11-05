@@ -1,5 +1,12 @@
 //! Tracker statistics API context.
 //!
+//! This context serves two endpoints with different purposes (see the ADR "Define the stats and metrics endpoints and require
+//! HELP and TYPE in Prometheus output"):
+//!
+//! - `GET /stats` returns the aggregated, unlabelled global statistics as a fixed, flat resource. It is **not deprecated**;
+//!   only the `completed` field is.
+//! - `GET /metrics` returns the extendable labelled metrics of all subsystems. New metrics and labels belong there.
+//!
 //! The tracker collects statistics about the number of torrents, seeders,
 //! leechers, completed downloads, and the number of requests handled. The
 //! legacy `completed` field is deprecated; use `completed_in_session` and
@@ -69,8 +76,10 @@
 //! ```
 //!
 //! Every value is a number: the boolean `completed_persisted_enabled` is printed as `1` (enabled) or `0` (disabled), and the
-//! body ends with a line feed. The text has no `# HELP` or `# TYPE` lines and no labels. For the full Prometheus exposition
-//! format with metric types, descriptions and labels, use `GET /metrics?format=prometheus`.
+//! body ends with a line feed. The text has no `# HELP` or `# TYPE` lines and no labels. That is a known gap, not a
+//! design choice: the ADR requires every Prometheus text of the tracker to carry `# HELP` and `# TYPE`, and adding them here
+//! is a tracked follow-up. The full Prometheus exposition format with metric types, descriptions and labels is
+//! `GET /metrics?format=prometheus`.
 //!
 //! **Resource**
 //!

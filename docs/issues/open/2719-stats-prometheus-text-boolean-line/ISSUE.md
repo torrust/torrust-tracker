@@ -74,9 +74,9 @@ docs, `packages/rest-api-client`, `console/`, Grafana/Prometheus examples). The 
 ### Out of Scope
 
 - Changing the JSON `/stats` response (the boolean stays a JSON boolean, as the ADR says).
-- Adding `# TYPE`/`# HELP` lines (allowed to be absent), or rewriting the endpoint on top of `torrust-metrics`.
+- Adding `# TYPE`/`# HELP` lines, or rewriting the endpoint on top of `torrust-metrics`. The format allows them to be absent, so they are not part of this bug. The maintainer decided they are required for every Prometheus text of the tracker (see the ADR "Define the stats and metrics endpoints and require HELP and TYPE in Prometheus output"), so adding them to this text is a follow-up issue.
 - A dedicated configuration/info endpoint or metric for consumers (design follow-up).
-- Removing or deprecating the endpoint (maintainer decision, separate issue if wanted).
+- Removing or deprecating the endpoint. The ADR above records that `/stats` is not deprecated; changing that needs a new decision.
 - The stale `#[allow(deprecated)]` on `metrics_response` (separate minor cleanup, convenient to fold in only if the maintainer agrees).
 
 ## Options

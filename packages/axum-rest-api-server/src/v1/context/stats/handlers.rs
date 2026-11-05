@@ -25,6 +25,9 @@ pub struct QueryParams {
 }
 
 /// It handles the request to get the tracker global metrics.
+///
+/// `GET /stats` serves the aggregated, unlabelled statistics. The endpoint is not deprecated; see the ADR "Define the stats
+/// and metrics endpoints and require HELP and TYPE in Prometheus output".
 pub async fn get_stats_handler(State(stats_service): State<Arc<StatsApiService>>, params: Query<QueryParams>) -> Response {
     let stats = stats_service.get_stats().await;
 
@@ -38,6 +41,9 @@ pub async fn get_stats_handler(State(stats_service): State<Arc<StatsApiService>>
 }
 
 /// It handles the request to get the tracker extendable metrics.
+///
+/// `GET /metrics` serves the extendable labelled metrics of all subsystems; new metrics and labels belong here, not in
+/// `GET /stats`.
 pub async fn get_metrics_handler(State(stats_service): State<Arc<StatsApiService>>, params: Query<QueryParams>) -> Response {
     let labeled_stats = stats_service.get_labeled_stats().await;
 
