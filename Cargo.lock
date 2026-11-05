@@ -5067,6 +5067,7 @@ dependencies = [
  "hyper",
  "reqwest",
  "rstest",
+ "rustls",
  "secrecy",
  "serde",
  "serde_json",

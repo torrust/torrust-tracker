@@ -520,7 +520,7 @@ impl Launcher {
 #[cfg(test)]
 mod tests {
     use std::net::{Ipv4Addr, SocketAddr, TcpListener};
-    use std::sync::Arc;
+    use std::sync::{Arc, Once};
     use std::time::Duration;
 
     use axum_server::tls_rustls::RustlsConfig;
@@ -747,6 +747,18 @@ mod tests {
     }
 
     const TEST_CERTIFICATE_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/fixtures/https-health-check-cert.pem");
+    static RUSTLS_CRYPTO_PROVIDER: Once = Once::new();
+
+    /// Selects `ring` as the process-level provider: with more than one provider enabled in the
+    /// workspace, Rustls cannot choose one itself.
+    fn install_rustls_crypto_provider() {
+        RUSTLS_CRYPTO_PROVIDER.call_once(|| {
+            rustls::crypto::ring::default_provider()
+                .install_default()
+                .expect("ring should be the Rustls crypto provider for the tests");
+        });
+    }
+
     const TEST_KEY_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/fixtures/https-health-check-key.pem");
 
     #[test]
@@ -768,6 +780,7 @@ mod tests {
         // Arrange
         let configuration = Arc::new(ephemeral_public());
         initialize_global_services(&configuration);
+        install_rustls_crypto_provider();
         let http_api_config = configuration.http_api.as_ref().expect("missing HTTP API configuration");
         let tls = RustlsConfig::from_pem_file(TEST_CERTIFICATE_PATH, TEST_KEY_PATH)
             .await

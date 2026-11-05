@@ -9,7 +9,7 @@ github-issue: 2726
 spec-path: docs/issues/open/2726-rest-api-https-health-check/ISSUE.md
 branch: "2726-rest-api-https-health-check"
 related-pr: null
-last-updated-utc: "2026-11-05 12:25"
+last-updated-utc: "2026-11-05 12:29"
 semantic-links:
   skill-links:
     - create-issue
@@ -197,6 +197,11 @@ the fix; a red test cannot be committed alone because the pre-commit script runs
   Red and green output and the real-binary recheck are in `manual-verification-evidence.md`.
 - 2026-11-05 12:25 UTC - Claude Sonnet 5.5 - Independent pre-PR review: no blocking findings; reworded AC1, T2 and the commit points to match
   what the tests and history show.
+- 2026-11-05 12:29 UTC - Claude Sonnet 5.5 - The pre-push hook (workspace tests) failed the TLS test: with more than one Rustls provider
+  enabled in the workspace, Rustls cannot pick one. The test now installs `ring` once, as the health check API tests do.
+  This adds `rustls` (`default-features = false`, feature `ring`, version 0.23, the version already in `Cargo.lock`) as a
+  dev-dependency of this package; no new crate enters the lockfile. The certificate decision (copy the fixture, no
+  generator dependency) is unchanged.
 
 ## Acceptance Criteria
 
