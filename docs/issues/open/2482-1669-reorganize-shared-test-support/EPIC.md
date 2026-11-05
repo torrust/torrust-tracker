@@ -525,3 +525,4 @@ Append one line per meaningful update.
   [#2471](../../closed/2471-1488-fix-http-environment-drop-path/ISSUE.md)
 - Earlier review of this spec: PR #2462 (as a draft task), PR #2484 (spec PR), and the #1669
   orchestrator's review of 2026-10-21 (spec refresh PR)
+- 2026-11-05 08:49 UTC - AI assistant (Claude Code, #2482 subissue 5) - The implementation of #2724 is ready for review on branch `2724-2482-gate-axum-http-server-test-environment`: `axum-http-server` gates its test environment behind the `testing` feature. Row 5 stays IN_PROGRESS until the implementation PR is merged and the spec is archived.

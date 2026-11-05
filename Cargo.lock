@@ -5039,6 +5039,7 @@ dependencies = [
  "torrust-net-primitives",
  "torrust-peer-id",
  "torrust-server-lib",
+ "torrust-tracker-axum-http-server",
  "torrust-tracker-axum-server",
  "torrust-tracker-client-lib",
  "torrust-tracker-configuration",

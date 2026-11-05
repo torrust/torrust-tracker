@@ -303,6 +303,7 @@
 //! - [Bencode](https://en.wikipedia.org/wiki/Bencode).
 //! - [Bencode to Json Online converter](https://chocobo1.github.io/bencode_online).
 pub mod server;
+#[cfg(feature = "testing")]
 pub mod testing;
 pub mod v1;
 

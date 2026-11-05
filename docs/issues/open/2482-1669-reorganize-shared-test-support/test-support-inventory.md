@@ -108,7 +108,15 @@ rows above describe the state before the change. A default build of `udp-server`
 dependency on the registry crate (it stays transitive through `tracker-core` and `udp-core`) and no
 `testing` module. The example `examples/udp_only_public_tracker.rs` stays on the test environment
 and a new `examples/udp_only_public_tracker_production_style.rs` starts the server the way the
-binary does. The other three environments are rows 5 to 7.
+binary does.
+
+**`axum-http-server` resolved by #2724.** The same pattern: `testing = ["dep:torrust-clock",
+"dep:torrust-info-hash", "dep:torrust-tracker-swarm-coordination-registry"]`, three optional
+dependencies (direct normal dependencies drop from 26 to 23), the path-only self dev-dependency, the
+`deny.toml` self wrapper, and the `testing` feature enabled from the `[dev-dependencies]` of
+`axum-health-check-api-server`. `examples/http_only_public_tracker.rs` stays on the test environment
+and the new `examples/http_only_public_tracker_production_style.rs` starts the server the way the
+binary does. The other two environments are rows 6 and 7.
 
 The 2026-10-06 coupling report (finding 2) listed four of `axum-rest-api-server`'s six; this
 inventory adds `tracker-core` and `rest-api-client`, and the health check's `configuration`.
@@ -236,7 +244,7 @@ that resolves it.
 | Item | Rule and destination | Subissue spec | Status |
 | --- | --- | --- | --- |
 | A. `udp-server` environment (and its example) | Rule A: behind the `testing` feature of `udp-server` | [Row 4](../../closed/2699-2482-gate-udp-server-test-environment/ISSUE.md) | Resolved by #2699 |
-| A. `axum-http-server` environment (and its example) | Rule A: behind the `testing` feature of `axum-http-server` | [Row 5](../../open/2724-2482-gate-axum-http-server-test-environment/ISSUE.md) | Open |
+| A. `axum-http-server` environment (and its example) | Rule A: behind the `testing` feature of `axum-http-server` | [Row 5](../../open/2724-2482-gate-axum-http-server-test-environment/ISSUE.md) | Resolved by #2724 |
 | A. `axum-rest-api-server` environment | Rule A: behind the `testing` feature of `axum-rest-api-server` | [Row 6](../../drafts/2482-gate-axum-rest-api-server-test-environment/ISSUE.md) | Open |
 | A. `axum-health-check-api-server` environment | Rule A: behind the `testing` feature of `axum-health-check-api-server` | [Row 7](../../drafts/2482-gate-axum-health-check-api-server-test-environment/ISSUE.md) | Open |
 | B. `test-helpers` `http` and `udp` modules | Rule B: the root crate's `tests/common/` | [Row 2](../../closed/2628-2482-move-test-helpers-protocol-helpers/ISSUE.md) | Resolved by #2628 |
