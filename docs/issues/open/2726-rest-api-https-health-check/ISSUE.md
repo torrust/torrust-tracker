@@ -9,7 +9,7 @@ github-issue: 2726
 spec-path: docs/issues/open/2726-rest-api-https-health-check/ISSUE.md
 branch: "2726-rest-api-https-health-check"
 related-pr: null
-last-updated-utc: "2026-11-05 12:29"
+last-updated-utc: "2026-11-05 13:07"
 semantic-links:
   skill-links:
     - create-issue
@@ -202,6 +202,9 @@ the fix; a red test cannot be committed alone because the pre-commit script runs
   This adds `rustls` (`default-features = false`, feature `ring`, version 0.23, the version already in `Cargo.lock`) as a
   dev-dependency of this package; no new crate enters the lockfile. The certificate decision (copy the fixture, no
   generator dependency) is unchanged.
+- 2026-11-05 13:07 UTC - Claude Sonnet 5.5 - The `Container` workflow failed the TLS test: it read the fixtures from a path fixed at compile time
+  (`/build/src/...`), which does not exist where the container test stage runs the tests. The test now embeds the fixtures with
+  `include_bytes!`, as the health check API test does.
 
 ## Acceptance Criteria
 

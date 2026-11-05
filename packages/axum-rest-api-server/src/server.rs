@@ -746,7 +746,8 @@ mod tests {
         TcpListener::bind(bind_to).expect("REST API listener should be released after token-aware registration failure");
     }
 
-    const TEST_CERTIFICATE_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/fixtures/https-health-check-cert.pem");
+    // Embedded at compile time: the container test stage runs the tests from a different directory than the build stage.
+    const TEST_CERTIFICATE: &[u8] = include_bytes!("../tests/fixtures/https-health-check-cert.pem");
     static RUSTLS_CRYPTO_PROVIDER: Once = Once::new();
 
     /// Selects `ring` as the process-level provider: with more than one provider enabled in the
@@ -759,7 +760,7 @@ mod tests {
         });
     }
 
-    const TEST_KEY_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/fixtures/https-health-check-key.pem");
+    const TEST_KEY: &[u8] = include_bytes!("../tests/fixtures/https-health-check-key.pem");
 
     #[test]
     fn it_should_build_a_health_check_url_using_the_service_binding_protocol() {
@@ -782,7 +783,7 @@ mod tests {
         initialize_global_services(&configuration);
         install_rustls_crypto_provider();
         let http_api_config = configuration.http_api.as_ref().expect("missing HTTP API configuration");
-        let tls = RustlsConfig::from_pem_file(TEST_CERTIFICATE_PATH, TEST_KEY_PATH)
+        let tls = RustlsConfig::from_pem(TEST_CERTIFICATE.to_vec(), TEST_KEY.to_vec())
             .await
             .expect("the test certificate and key should load");
         let registar = Registar::<RuntimeServiceMetadata>::default();
@@ -806,10 +807,7 @@ mod tests {
             .first()
             .expect("the REST API should register one service")
             .service_binding();
-        let certificate = reqwest::Certificate::from_pem(
-            &std::fs::read(TEST_CERTIFICATE_PATH).expect("the test certificate should be readable"),
-        )
-        .expect("the test certificate should parse");
+        let certificate = reqwest::Certificate::from_pem(TEST_CERTIFICATE).expect("the test certificate should parse");
         let client = reqwest::Client::builder()
             .add_root_certificate(certificate)
             .build()
