@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2724-2482-gate-axum-http-server-test-environment/ISSUE.md
-last-updated-utc: "2026-11-05 08:49"
+issue-spec: docs/issues/closed/2724-2482-gate-axum-http-server-test-environment/ISSUE.md
+last-updated-utc: "2026-11-05 16:32"
 ---
 
 # Manual Verification Evidence
