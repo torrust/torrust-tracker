@@ -7,6 +7,7 @@ metadata:
   semantic-links:
     related-artifacts:
       - .github/skills/dev/pr-reviews/wait-for-pr-review/tool/Cargo.toml
+      - .github/skills/dev/ci/watch-pull-request-checks/SKILL.md
       - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
       - .github/skills/dev/pr-reviews/fetch-review-threads/SKILL.md
       - .github/skills/dev/git-workflow/merge-pull-request/SKILL.md
@@ -131,8 +132,10 @@ and nothing in that gap is missed.
      [`process-pr-review`](../process-pr-review/SKILL.md) workflow. Fetch every thread with
      [`fetch-review-threads`](../fetch-review-threads/SKILL.md) and read the new review body (a
      finding in a review body has no thread).
-     - If you fixed something, commit, push, reply, and re-request the review (see below). Then go
-       to step 1 with the commit you pushed.
+     - If you fixed something, commit, push, and reply. Then
+       [watch the checks](#watching-the-checks) of the new head and fix any failure. Re-request the
+       review only when the checks are green (see below), then go to step 1 with the commit you
+       pushed.
      - If you pushed nothing, because the review was clean or the comment was informational, do not
        re-request the review. Go to step 1 with your `HEAD` and the `cursor` of this result, so this
        event is not reported again and nothing after it is missed.
@@ -146,6 +149,9 @@ and nothing in that gap is missed.
 4. Check the exit condition after each return. The loop is done when all of these hold:
    - Copilot's latest review is on the current head commit. Copilot never submits `APPROVED`, so its
      last review is `COMMENTED`; do not wait for an approval state.
+   - Every check of the head commit finished and none failed, as
+     [`watch-pull-request-checks`](../../ci/watch-pull-request-checks/SKILL.md) reports (skipped
+     checks do not count as failures).
    - The pull request has no unresolved actionable review thread anywhere, including threads on
      earlier commits. Count them over the whole pull request with `fetch-review-threads`.
    - The other maintainer has commented `ACK <full head commit hash>` on the head commit, or the
@@ -157,11 +163,33 @@ and nothing in that gap is missed.
 The poller returns events and does not decide the exit condition. A review-body finding with no
 thread is not counted by the thread check, so read each new review body through the audit workflow.
 
+## Watching the Checks
+
+CI is part of the loop, not a separate task. Checks finish in minutes, long before Copilot answers,
+so run them first:
+
+1. After the first push, and after every later push, run `gh pr checks <PR> --watch --fail-fast`
+   as [`watch-pull-request-checks`](../../ci/watch-pull-request-checks/SKILL.md) describes. It
+   spends no tokens while it waits.
+2. If a check failed, follow "When a Check Fails" in that skill: read the log, fix the change (or
+   re-run the jobs when the cause is outside it), push, and watch again.
+3. Only when every check is green, request the review (Copilot reviews the head as of the request,
+   so a push after it is not covered) and run the poller.
+
+A review that arrives while checks are failing is still processed, but its fixes and the check fixes
+go in the same push when possible, so the checks run once.
+
 ## Round Limit
 
 A round is one push of fixes made in response to a review event. Stop the loop and ask the
 contributor before starting round 6, that is, when more than 5 rounds of fixes have been pushed.
-Rounds that ended with a clean review and no push do not count, and neither do timeouts. A loop that
+Rounds that ended with a clean review and no push do not count, and neither do timeouts.
+
+Pushes that only fix failing checks have their own limit of 5, because a check failure is not a
+review event. Count them as the number of distinct head commits of the pull request whose checks
+failed:
+`gh run list --repo torrust/torrust-tracker --branch <branch> --event pull_request --json headSha,conclusion --jq '[.[] | select(.conclusion == "failure") | .headSha] | unique | length'`.
+A re-run of the same commit does not add to it. Stop and ask the contributor when it exceeds 5. A loop that
 keeps finding new things after 5 rounds usually means something is wrong with the agent or its
 harness (for example a fix that regresses another finding, or a reviewer reacting to the agent's own
 replies), and a person should look before more tokens are spent.

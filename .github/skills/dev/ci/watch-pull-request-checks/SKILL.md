@@ -65,3 +65,6 @@ gh pr checks <PR> --repo torrust/torrust-tracker --json name,bucket,link \
 4. A check that failed on a new toolchain release can pass locally on the default toolchain. Run the
    same command on the toolchain the failing job used (for example `cargo +nightly clippy`) and
    cover the whole workspace, not one package.
+5. Do not loop forever: the review loop's
+   [Round Limit](../../pr-reviews/wait-for-pr-review/SKILL.md#round-limit) stops and asks the
+   contributor after 5 pushes that fixed failing checks.

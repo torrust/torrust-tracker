@@ -276,9 +276,9 @@ When MCP pull request management tools are available, create the PR with:
 Opening the pull request does not end the task. Unless the contributor said otherwise, do not stop
 and do not ask them to tell you when to look: run the review loop in
 [`wait-for-pr-review`](../../pr-reviews/wait-for-pr-review/SKILL.md). It waits for the reviewers
-without spending tokens, processes each review with
+without spending tokens, watches the CI checks and fixes the ones that fail, processes each review with
 [`process-pr-review`](../../pr-reviews/process-pr-review/SKILL.md), pushes fixes, and waits again.
-The loop stops and asks the contributor after the round limit that skill defines, because that many
+The loop stops and asks the contributor after the round limits that skill defines (review rounds and failed-check pushes), because that many
 rounds usually point at a problem with the agent or the harness, not with the code.
 
 ## Post-creation Validation
