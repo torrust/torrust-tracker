@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: in-progress
+status: done
 priority: p2
 epic: null
 github-issue: 2719
-spec-path: docs/issues/open/2719-stats-prometheus-text-boolean-line/ISSUE.md
+spec-path: docs/issues/closed/2719-stats-prometheus-text-boolean-line/ISSUE.md
 branch: "2719-stats-prometheus-text-boolean-line-spec"
-related-pr: null
-last-updated-utc: "2026-11-05 07:13"
+related-pr: 2727
+last-updated-utc: "2026-11-05 17:25"
 semantic-links:
   skill-links:
     - create-issue
@@ -154,15 +154,15 @@ purpose in the PR that fixes this. Red and green output go to `manual-verificati
 - [x] Folder-style spec drafted in `docs/issues/drafts/stats-prometheus-text-boolean-line/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] (Optional) Spec-only PR merged into `develop` before implementation
+- [x] (Optional) Spec-only PR merged into `develop` before implementation
 - [x] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded
+- [x] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Committer verified spec progress is up to date before commit
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -170,6 +170,7 @@ purpose in the PR that fixes this. Red and green output go to `manual-verificati
   Prometheus 3.5.0, `promtool` and `prometheus_client` against the body; drafted this spec - `manual-verification-evidence.md`
 - 2026-11-04 15:34 UTC - Claude Code (Claude Sonnet 5.5) - Spec approved by the maintainer; GitHub issue #2719 created; spec moved to `open/` on branch `2719-stats-prometheus-text-boolean-line-spec`
 - 2026-11-05 07:13 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer chose `1`/`0`; red test, fix, module docs and like-for-like recheck done on branch `2719-stats-prometheus-text-boolean-line` - `manual-verification-evidence.md` V4, V5
+- 2026-11-05 17:25 UTC - Claude Code (Claude Sonnet 5.5) - PR #2727 merged and issue #2719 closed; spec archived to `docs/issues/closed/`; follow-up HELP/TYPE work tracked in #2734
 
 ## Acceptance Criteria
 
@@ -178,10 +179,10 @@ purpose in the PR that fixes this. Red and green output go to `manual-verificati
 - [x] AC3: A Prometheus 3.x server scraping the endpoint reports the target `up` with all samples ingested.
 - [x] AC4: A unit test fails on the old output and passes on the new one.
 - [x] AC5: The `stats` module docs describe the legacy text and point to `/metrics?format=prometheus`.
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] `linter all` exits with code `0`
+- [x] Relevant tests pass
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
 
 ## Verification Plan
 
@@ -218,7 +219,7 @@ purpose in the PR that fixes this. Red and green output go to `manual-verificati
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
+- Retrospective: Not needed. The change was small and matched the plan. The one design question (whether the boolean belongs in the text) is recorded in the spec, and the follow-up decisions are in the ADR `docs/adrs/20261105132341_define_the_stats_and_metrics_endpoints_and_require_help_and_type_in_prometheus_output.md` and issue #2734.
 
 ## References
 
