@@ -84,6 +84,7 @@ pub fn metrics_response(stats: &Stats) -> Response {
 #[cfg(test)]
 mod tests {
     use axum::http::StatusCode;
+    use torrust_tracker_rest_api_protocol::v1::context::stats::resources::stats::Stats;
 
     use super::{labeled_metrics_response, labeled_stats_response, metrics_response, stats_response};
     use crate::test_support::{Observed, a_labeled_stats, a_stats, observed};
@@ -117,10 +118,6 @@ mod tests {
         );
     }
 
-    /// TODO(#2637): the boolean line `completed_persisted_enabled true` is not a number, so a strict Prometheus parser may
-    /// reject it, and the text has no trailing newline. Whether that is a bug is pending re-evaluation (see `lessons.md` in
-    /// `docs/issues/open/2637-1347-add-tests-axum-rest-api-server/`); this test pins the current text and must be updated on
-    /// purpose if it changes.
     #[tokio::test]
     async fn it_should_answer_the_statistics_as_one_name_and_value_line_per_statistic() {
         let response = metrics_response(&a_stats());
@@ -136,7 +133,7 @@ mod tests {
                     "completed 3\n",
                     "completed_in_session 4\n",
                     "completed_persisted 5\n",
-                    "completed_persisted_enabled true\n",
+                    "completed_persisted_enabled 1\n",
                     "leechers 7\n",
                     "tcp4_connections_handled 8\n",
                     "tcp4_announces_handled 9\n",
@@ -162,10 +159,22 @@ mod tests {
                     "udp6_announces_handled 29\n",
                     "udp6_scrapes_handled 30\n",
                     "udp6_responses 31\n",
-                    "udp6_errors_handled 32"
+                    "udp6_errors_handled 32\n"
                 )
             )
         );
+    }
+
+    #[tokio::test]
+    async fn it_should_print_the_persistence_flag_as_zero_when_persisted_completed_statistics_are_disabled() {
+        let response = metrics_response(&Stats {
+            completed_persisted_enabled: false,
+            ..a_stats()
+        });
+
+        let body = observed(response).await.body;
+
+        assert!(body.contains("\ncompleted_persisted_enabled 0\n"), "{body}");
     }
 
     #[tokio::test]
