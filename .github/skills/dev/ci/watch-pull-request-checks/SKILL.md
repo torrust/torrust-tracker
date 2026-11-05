@@ -55,6 +55,23 @@ gh pr checks <PR> --repo torrust/torrust-tracker --json name,bucket,link \
   --jq '.[] | select(.bucket == "fail") | "\(.name) \(.link)"'
 ```
 
+## When Checks Never Start
+
+A pull request from a fork can stop at `conclusion: action_required` until a maintainer approves its
+workflow runs. This depends on the author's account, not on the change: a contributor without write
+access to the repository is affected, and a maintainer pushing from a branch in the repository is not.
+`gh pr checks` then reports no checks, or none that finish. It is not a failure, and the author
+cannot approve the run. Confirm it with:
+
+```sh
+gh run list --repo torrust/torrust-tracker --branch <branch> --limit 5 \
+  --json headSha,conclusion --jq '.[] | select(.conclusion == "action_required") | .headSha'
+```
+
+Do not push an empty commit or re-run jobs to get around it. Ask a maintainer to use "Approve and run
+workflows" on the pull request, say which head commit is waiting, and watch the checks again once
+they approve. Every new push can need a new approval, so batch fixes into one push where possible.
+
 ## When a Check Fails
 
 1. Open the failing job's `link` and read its log before changing anything.

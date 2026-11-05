@@ -179,9 +179,12 @@ so run them first:
 1. After the first push, and after every later push, run `gh pr checks <PR> --watch --fail-fast`
    as [`watch-pull-request-checks`](../../ci/watch-pull-request-checks/SKILL.md) describes. It
    spends no tokens while it waits.
-2. If a check failed, follow "When a Check Fails" in that skill: read the log, fix the change (or
+2. If no check starts and the runs say `action_required`, a maintainer has to approve them (see
+   "When Checks Never Start" in that skill). Ask for it and wait; this is not a failure and does not
+   count toward the check limit.
+3. If a check failed, follow "When a Check Fails" in that skill: read the log, fix the change (or
    re-run the jobs when the cause is outside it), push, and watch again.
-3. Only when every check is green, request the review (Copilot reviews the head as of the request,
+4. Only when every check is green, request the review (Copilot reviews the head as of the request,
    so a push after it is not covered) and run the poller.
 
 A review that arrives while checks are failing is still processed, but its fixes and the check fixes
