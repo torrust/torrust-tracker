@@ -98,11 +98,11 @@ existing pinned test for the exact text changes on purpose in the same PR.
 
 | ID  | Status  | Task                                                  | Notes / Expected Output                                   |
 | --- | ------- | ----------------------------------------------------- | --------------------------------------------------------- |
-| T1  | PENDING | Maintainer decides the option and the types           | Decision recorded in this spec                            |
-| T2  | PENDING | Add the failing tests (red)                           | Fail on the missing `# HELP` and `# TYPE` lines           |
-| T3  | PENDING | Implement the single source and the renderer change   | Tests green; JSON `/stats` untouched                      |
-| T4  | PENDING | Update the module docs example                        | Text with `# HELP` and `# TYPE`; remove the "known gap"   |
-| T5  | PENDING | Like-for-like recheck with real artifacts             | Prometheus 3.5.0 target `up`, 32 samples; `promtool` exit 0 |
+| T1  | DONE    | Maintainer decides the option and the types           | Decision: option 2, types as proposed (2026-11-05)                            |
+| T2  | DONE    | Add the failing tests (red)                           | Fail on the missing `# HELP` and `# TYPE` lines           |
+| T3  | DONE    | Implement the single source and the renderer change   | Tests green; JSON `/stats` untouched                      |
+| T4  | DONE    | Update the module docs example                        | Text with `# HELP` and `# TYPE`; remove the "known gap"   |
+| T5  | DONE    | Like-for-like recheck with real artifacts             | Prometheus 3.5.0 target `up`, 32 samples; `promtool` exit 0 |
 
 ## Commit Points
 
@@ -120,11 +120,11 @@ existing pinned test for the exact text changes on purpose in the same PR.
 - [x] Folder-style spec drafted in `docs/issues/drafts/stats-prometheus-text-help-and-type/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] (Optional) Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
+- [x] (Optional) Spec-only PR merged into `develop` before implementation
+- [x] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Evidence-based implementation completion review recorded
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Committer verified spec progress is up to date before commit
@@ -134,18 +134,19 @@ existing pinned test for the exact text changes on purpose in the same PR.
 
 - 2026-11-05 16:25 UTC - Claude Code (Claude Sonnet 5.5) - Drafted this spec after the ADR merged; awaiting maintainer review
 - 2026-11-05 16:32 UTC - Claude Code (Claude Sonnet 5.5) - Spec approved by the maintainer; GitHub issue #2734 created; spec moved to `open/`
+- 2026-11-05 18:00 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer chose option 2 and confirmed the types; implemented and verified; promtool naming lint recorded, AC4 amended
 
 ## Acceptance Criteria
 
-- [ ] AC1: Every metric of `GET /api/v1/stats?format=prometheus` has one `# HELP` and one `# TYPE` line before its sample.
-- [ ] AC2: Names and values are unchanged from the current text.
-- [ ] AC3: The descriptions have one source shared with the `Stats` documentation.
-- [ ] AC4: `promtool check metrics` reports no warnings (exit code `0`) and Prometheus 3.x scrapes 32 samples with the target `up`.
-- [ ] AC5: The `stats` module docs show the new text and no longer call the missing lines a known gap.
+- [x] AC1: Every metric of `GET /api/v1/stats?format=prometheus` has one `# HELP` and one `# TYPE` line before its sample.
+- [x] AC2: Names and values are unchanged from the current text.
+- [x] AC3: The descriptions have one source shared with the `Stats` documentation.
+- [x] AC4: `promtool check metrics` reports no missing HELP or TYPE (only the naming-convention warnings of the frozen API v1 names, exit code `3`; amended by the maintainer, see "Next API version") and Prometheus 3.x scrapes 32 samples with the target `up`.
+- [x] AC5: The `stats` module docs show the new text and no longer call the missing lines a known gap.
 - [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] Relevant tests pass
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
 
 ## Verification Plan
 
@@ -159,19 +160,28 @@ existing pinned test for the exact text changes on purpose in the same PR.
 
 | ID  | Scenario                       | Human-oriented command/steps                                                     | Expected Result                                  | Status  | Evidence |
 | --- | ------------------------------ | -------------------------------------------------------------------------------- | ------------------------------------------------ | ------- | -------- |
-| M1  | Raw text with persistence off and on | Run the tracker; `curl` `/api/v1/stats?format=prometheus`                    | `# HELP` and `# TYPE` before every sample        | PENDING | -        |
-| M2  | Lint the body                  | `promtool check metrics` 3.5.0 on the saved body                                 | Exit code `0`, no warnings                       | PENDING | -        |
-| M3  | Real Prometheus scrape         | Prometheus 3.5.0 scraping the tracker                                            | Target `up`, 32 samples, types visible in the UI | PENDING | -        |
+| M1  | Raw text with persistence off and on | Run the tracker; `curl` `/api/v1/stats?format=prometheus`                    | `# HELP` and `# TYPE` before every sample        | DONE    | `manual-verification-evidence.md` M1 |
+| M2  | Lint the body                  | `promtool check metrics` 3.5.0 on the saved body                                 | No HELP/TYPE warnings; naming lint only (exit `3`) | DONE    | `manual-verification-evidence.md` M2 |
+| M3  | Real Prometheus scrape         | Prometheus 3.5.0 scraping the tracker                                            | Target `up`, 32 samples, types visible in the UI | DONE    | `manual-verification-evidence.md` M3 |
 
 ### Acceptance Verification
 
 | AC ID | Status  | Evidence |
 | ----- | ------- | -------- |
-| AC1   | PENDING | -        |
-| AC2   | PENDING | -        |
-| AC3   | PENDING | -        |
-| AC4   | PENDING | -        |
-| AC5   | PENDING | -        |
+| AC1   | DONE    | `manual-verification-evidence.md`; unit tests |
+| AC2   | DONE    | `manual-verification-evidence.md`; unit tests |
+| AC3   | DONE    | `manual-verification-evidence.md`; unit tests |
+| AC4   | DONE    | `manual-verification-evidence.md`; unit tests |
+| AC5   | DONE    | `manual-verification-evidence.md`; unit tests |
+
+## Next API version
+
+`promtool check metrics` 3.5.0 exits with `3` on the new text: 24 counters have no `_total` suffix, `udp_avg_*_processing_time_ns` use an
+abbreviated unit, and `udp_banned_ips_total` is a gauge with a `_total` name. Renaming them would be a breaking change of API v1
+(scrape configs, dashboards and alerts use the names, and the JSON fields carry the same names), so it is out of scope. The
+maintainer decided on 2026-11-05 to keep the names and write the rename down for the next API version: counters get `_total`,
+the average times become `*_seconds` (or similar) and `udp_banned_ips_total` loses its suffix. The note is also in the doc comment of
+`STATS_DESCRIPTIONS`.
 
 ## Risks and Trade-offs
 
