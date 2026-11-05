@@ -1,3 +1,11 @@
+---
+spec-path: docs/issues/closed/2719-stats-prometheus-text-boolean-line/manual-verification-evidence.md
+last-updated-utc: "2026-11-05 17:25"
+semantic-links:
+  related-artifacts:
+    - docs/issues/closed/2719-stats-prometheus-text-boolean-line/ISSUE.md
+---
+
 # Manual Verification Evidence
 
 Recorded 2026-11-04 (UTC) by Claude Code (Claude Sonnet 5.5) at `torrust/develop` commit `08efcf763`, Rust dev profile build of

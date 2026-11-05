@@ -3,7 +3,7 @@ semantic-links:
   skill-links:
     - create-adr
   related-artifacts:
-    - docs/issues/open/2719-stats-prometheus-text-boolean-line/ISSUE.md
+    - docs/issues/closed/2719-stats-prometheus-text-boolean-line/ISSUE.md
     - docs/adrs/20260901113500_define_completed_download_metric_retention_names.md
     - packages/axum-rest-api-server/src/v1/context/stats/mod.rs
     - packages/axum-rest-api-server/src/v1/context/stats/handlers.rs
@@ -89,7 +89,7 @@ issue lands, `/stats?format=prometheus` is a known exception, recorded here and 
 
 ## References
 
-- Issue #2719 and its specification `docs/issues/open/2719-stats-prometheus-text-boolean-line/ISSUE.md`
+- Issue #2719 and its specification `docs/issues/closed/2719-stats-prometheus-text-boolean-line/ISSUE.md`
 - Pull request #1414, "New API endpoint with extendable metrics"
 - Commit "refactor: [#1581] finished. Global metrics in API loaded from labeled metrics"
 - ADR [Define completed-download metric retention names](20260901113500_define_completed_download_metric_retention_names.md)
