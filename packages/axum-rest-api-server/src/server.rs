@@ -845,13 +845,16 @@ mod tests {
         let address = serve_status(status_line);
         let service_binding = ServiceBinding::new(Protocol::HTTP, address).expect("service binding should be valid");
 
-        check_fn_with_client(
-            &service_binding,
-            reqwest::Client::builder().no_proxy().build().expect("client should build"),
-        )
-        .job
-        .await
-        .expect("the health check job should not panic")
+        let client = reqwest::Client::builder()
+            .no_proxy()
+            .timeout(Duration::from_secs(5))
+            .build()
+            .expect("client should build");
+
+        tokio::time::timeout(Duration::from_secs(10), check_fn_with_client(&service_binding, client).job)
+            .await
+            .expect("the health check job should finish before the test deadline")
+            .expect("the health check job should not panic")
     }
 
     #[tokio::test]
