@@ -48,6 +48,9 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F6 | review-finding:pr-2752-f6 | Copilot | Nit (inferred) | metadata | ORIGINAL | FIXED | RESOLVED |
 | F7 | review-finding:pr-2752-f7 | Copilot | Nit (inferred) | metadata | ORIGINAL | FIXED | RESOLVED |
 | F8 | review-finding:pr-2752-f8 | Copilot | Nit (inferred) | formatting | ORIGINAL | FIXED | RESOLVED |
+| F9 | review-finding:pr-2752-f9 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F10 | review-finding:pr-2752-f10 | Copilot | Minor | metadata | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F11 | review-finding:pr-2752-f11 | Copilot | Major (inferred) | correctness | ORIGINAL | FIXED | NON_RESOLVABLE |
 
 ## Finding Details
 
@@ -155,12 +158,54 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4494420960
 
+### F9 - Update the cleared external eligibility gate
+
+- PR number: 2752
+- Source review ID: 5803331264
+- Reviewer finding ID: F1
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4494797047
+- Concern: The eligibility gate still marks the `torrust-server-lib` item as blocked on 0.4.0, although the split section and the evidence record the published 0.5.0 release with migration guidance and the support window.
+- Solution: Ticked the item and replaced the blocker text with the 0.5.0 guidance. The reviewer's ID F1 collided with audit finding F1, so the audit assigned F9.
+- Current-tree verification: the gate item is `[x]` and cites 0.5.0 and its `CHANGELOG.md`; the changelog read from the local torrust-server-lib clone lists migration steps and says the items stay for all 0.5.x releases and are removed in 0.6.0.
+- Resolution reference: docs(issues): [#2751] mark the torrust-server-lib gate item complete with the 0.5.0 guidance
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4495030346
+
+### F10 - Record the spec-only branch name
+
+- PR number: 2752
+- Source review ID: 5803331264
+- Reviewer finding ID: F10
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#pullrequestreview-5803331264
+- Concern: The spec's `branch:` frontmatter uses the suffix-free name reserved for the implementation branch, but the `create-issue` skill requires the `-spec` branch name for the spec-only stage.
+- Solution: Set `branch:` to `2751-deprecate-legacy-shutdown-api-spec`.
+- Current-tree verification: line 10 of `ISSUE.md` is `branch: "2751-deprecate-legacy-shutdown-api-spec"`, the name of this PR's head branch.
+- Resolution reference: docs(issues): [#2751] record the spec-only branch name in the SI-18 spec
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#issuecomment-6690075811
+
+### F11 - Resolve the deprecation release dependency cycle
+
+- PR number: 2752
+- Source review ID: 5803331264
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#pullrequestreview-5803331264
+- Concern: #2583 publishes the unpublished crates only after EPIC #1488 closes, but SI-19 is part of that EPIC and requires the public support window to have ended, so the crates cannot publish the promised deprecations before removal.
+- Solution: Confirmed against #2583 (prerequisite "EPIC #1488 closed"). The maintainer chose Option A: the five unpublished crates have no public support window, so SI-19 may remove their symbols without waiting; the window applies only to `torrust-server-lib` and the root `HaltSignal` and `NestedServerTask`. Updated SI-18 (Versioning Decisions, requirement 5, risks) and the SI-19 draft, and told the EPIC #1669 coordinator that #2583 needs no change.
+- Current-tree verification: `grep -n "support window" ISSUE.md` in SI-18 shows the Versioning Decisions entry; the SI-19 draft start gate names the already-public symbols only.
+- Resolution reference: docs(issues): [#2751] resolve the SI-18 and SI-19 release-order cycle
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#issuecomment-6690075811
+
 ## Processing Log
 
 - 2026-11-06 14:26 UTC - Copilot review 5801499766 submitted with 8 inline findings (F1 to F8); F5 re-raises F4.
 - 2026-11-06 15:46 UTC - Five fix commits for F3 to F8 were made (committer times 15:44:22 to 15:46:14 UTC); they were pushed before the replies below.
 - 2026-11-06 15:50 UTC - Replied on all 8 threads (the replies were created between 15:49:39 and 15:49:57 UTC after the fixes were pushed).
 - 2026-11-06 16:27 UTC - Resolved all 8 threads; each mutation returned `isResolved: true`.
+- 2026-11-06 16:30 UTC - Found Copilot review 5803331264 (submitted 16:21 UTC) with one inline finding (F9, reviewer ID F1, renumbered because F1 was taken) and two review-body findings (F10, F11).
+- 2026-11-06 16:36 UTC - Fix commits for F9 to F11 were made (committer times 16:31:22 to 16:36:50 UTC) and pushed before the replies below.
+- 2026-11-06 16:39 UTC - Replied on the F9 thread (16:39:20 UTC) and posted one PR conversation response covering F9 to F11 (16:39:23 UTC); resolved the F9 thread, which returned `isResolved: true`. F10 and F11 have no thread (`NON_RESOLVABLE`).
 
 ## Completion Rules
 
