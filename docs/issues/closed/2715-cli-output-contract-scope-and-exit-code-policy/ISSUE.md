@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: done
 priority: p3
 epic: null
 github-issue: 2715
-spec-path: docs/issues/open/2715-cli-output-contract-scope-and-exit-code-policy/ISSUE.md
+spec-path: docs/issues/closed/2715-cli-output-contract-scope-and-exit-code-policy/ISSUE.md
 branch: "2712-wait-for-pr-review-bug-and-adr-specs-spec"
 related-pr: null
-last-updated-utc: "2026-11-04 13:41"
+last-updated-utc: "2026-11-06 16:24"
 semantic-links:
   skill-links:
     - create-issue
@@ -147,9 +147,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] GitHub issue created (#2715) and issue number added to this spec
 - [x] Decisions recorded in an ADR
 - [x] Automatic verification completed (`linter all`)
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence (AC3 stays open: see the progress log)
+- [x] Evidence-based implementation completion review recorded (no retrospective needed: see the progress log)
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -172,6 +172,13 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-06 10:27 UTC - AI assistant (Claude Code) - Wrote ADR `20261106102632` and the "amended by" note in ADR
   `20260519000000`, and registered the ADR in `docs/adrs/index.md`. `linter all` and the frontmatter validator pass
   (stable toolchain). T4 (follow-up issue for `github-review-threads reply-status`) is waiting for the maintainer.
+
+- 2026-11-06 14:25 UTC - AI assistant (Claude Code) - Pull request #2748 merged and issue #2715 closed on GitHub, which delivered AC1 and AC2.
+- 2026-11-06 16:24 UTC - AI assistant (Claude Code) - Archived this spec to `docs/issues/closed/`. AC3 and task T4 are not done:
+  no follow-up issue exists yet for `github-review-threads reply-status` and `package-coverage-check`, and the ADR
+  points here for them. The maintainer moved that work to a new migration EPIC, whose coordinator session creates the
+  follow-up issues; they are not tracked in this spec any more. No retrospective is needed: the task was a single ADR
+  with no code, and the review rounds are in `docs/pr-reviews/pr-2748-review/PR-REVIEW.md`.
 
 ## Acceptance Criteria
 
