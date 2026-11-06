@@ -1,7 +1,7 @@
 ---
 pr-number: 2747
 pr-url: https://github.com/torrust/torrust-tracker/pull/2747
-last-updated-utc: "2026-11-06 10:51"
+last-updated-utc: "2026-11-06 13:40"
 ---
 
 # PR #2747 Review Audit
@@ -30,16 +30,31 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
+| F1 | review-finding:pr-2747-f1 | Copilot | Minor | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
 
 Round 1: Copilot review 5799067664 on the head `35acbaf70` (a review body only: "No open issues"; Copilot reported that its full agentic review timed out, so this was a lite review). It raised no finding and no inline thread.
 
+Round 2: Copilot review 5799327636 on the head `fb782194f` (a review body only, no inline thread): one Minor finding, F1.
+
 ## Finding Details
 
-No findings have been normalized.
+### F1 - Dependency diagram still draws the seven testing-only axum-rest edges
+
+- PR number: 2747
+- Source review ID: 5799327636
+- Reviewer finding ID: R1
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2747#pullrequestreview-5799327636
+- Concern: T4 was marked DONE, but `docs/media/packages/dependencies-workspace-packages.md` still drew the seven `axum-rest` edges (`clock`, `tracker-core`, `http-core`, `rest-client`, `swarm`, `udp-core`, `udp-srv`) that this PR made optional, although the diagram's legend excludes edges enabled only by `testing`.
+- Solution: Valid. The seven edges are removed and the legend paragraph now names them as the example (it said no such edge existed yet). The finding was in the review body, so there is no thread to resolve; a PR conversation comment names the review and the fix.
+- Current-tree verification: `grep -c "axum-rest -->" docs/media/packages/dependencies-workspace-packages.md` is 10 (was 17), none of the seven remains, and the edges that stay match `cargo tree -p torrust-tracker-axum-rest-api-server -e normal --depth 1`.
+- Resolution reference: docs(packages): [#2745] remove the seven testing-only axum-rest edges from the dependency diagram
+- Follow-up PR URL: N/A
 
 ## Processing Log
 
 - 2026-11-06 10:51 UTC - Started audit. Round 1 (Copilot review 5799067664, 2026-11-06T10:49:41Z): a review body with no open issues and no inline thread, checked with the reviews API and GraphQL review threads (an empty `reviewThreads` list). Nothing to fix. da2ce7 was requested at 2026-11-06T10:27:26Z and had not reviewed yet.
+
+- 2026-11-06 13:40 UTC - Round 2 (Copilot review 5799327636, 2026-11-06T11:15:10Z): I first counted this review as "no findings" because I only listed inline comments; the finding is in the review body. Valid, fixed, and answered in a PR conversation comment. I missed it for about two hours until the maintainer asked; from now on each poll reads the review bodies, not only the inline comments. da2ce7 had still not reviewed.
 
 ## Completion Rules
 
