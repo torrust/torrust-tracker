@@ -15,6 +15,7 @@ semantic-links:
     - create-issue
   related-artifacts:
     - .github/skills/dev/planning/create-issue/SKILL.md
+    - .github/skills/dev/debugging/fix-bug/SKILL.md
     - docs/adrs/20260519000000_define_global_cli_output_contract.md
     - docs/adrs/20261106102632_scope_the_cli_output_contract_and_keep_exit_codes_to_zero_one_two.md
     - docs/issues/open/2758-cli-output-contract-tools-migration/EPIC.md
@@ -68,11 +69,17 @@ Not applicable.
 
 ## Bug-Fix Process
 
-Not applicable.
+This issue fixes a deviation from the CLI output contract, so it is bug work in substance. Follow the [fix-bug](../../../../.github/skills/dev/debugging/fix-bug/SKILL.md) skill:
+
+- analysis of the defect: the tool's current behavior against the contract (see Background);
+- real-artifact reproduction: run the real binary, record the commands and output of the deviation in `manual-verification-evidence.md` before changing code;
+- regression-test boundary: see Regression Test Strategy;
+- red regression test, then the production fix;
+- green test evidence and a like-for-like recheck of the same real-artifact commands.
 
 ## Regression Test Strategy
 
-Not applicable.
+Unit tests of the error and exit-code mapping in `package-coverage-check`, plus a CLI test for the TTY refusal and the `summary` JSON shape. They fail today (plain-text errors, exit `1` for usage). If a higher boundary is used instead, record why it is clearer or the only practical option; link red and green output and the final recheck to `manual-verification-evidence.md`.
 
 ## Implementation Plan
 
@@ -147,8 +154,8 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | -------- | ---------------------------- | --------------- | ------ | -------- |
-| M1 | Usage error | `cargo run -p package-coverage-check -- bogus \| cat; echo $?` | JSON record on stderr, exit `2` | TODO | `manual-verification-evidence.md` section V1 |
-| M2 | Summary round trip | Run `summary` on a sample discovery and results folder, pipe to `jq -r .markdown` | Markdown identical to the previous output | TODO | `manual-verification-evidence.md` section V2 |
+| M1 | Usage error | `cargo run -p package-coverage-check -- bogus > out 2> err; echo "exit=$?"; wc -c out` | JSON record in `err`, `out` empty, exit `2` | TODO | `manual-verification-evidence.md` section V1 |
+| M2 | Summary round trip | Run `summary` on a sample discovery and results folder, redirect stdout to a file and run `jq -r .markdown` on it | Markdown identical to the previous output | TODO | `manual-verification-evidence.md` section V2 |
 | M3 | Workflow syntax | `actionlint` (or the repo's workflow linter) on the workflow | No findings | TODO | `manual-verification-evidence.md` section V3 |
 
 Manual verification is mandatory even when automated tests pass. Record actual commands, output and the toolchain that produced each result in `manual-verification-evidence.md` (from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`).
@@ -165,7 +172,7 @@ Manual verification is mandatory even when automated tests pass. Record actual c
 
 ## Risks and Trade-offs
 
-- The workflow change cannot run in CI before merge. Mitigation: reproduce the three calls locally and keep the diff to the one extraction.
+- The workflow change is exercised by this PR's own `pull_request` run (`generate_coverage_pr.yaml` checks out the head sha), but the `summary` step only shows its result in the job summary. Mitigation: also reproduce the three calls locally and keep the diff to the one extraction.
 
 ## Implementation Completion Review
 

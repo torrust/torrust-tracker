@@ -15,6 +15,7 @@ semantic-links:
     - create-issue
   related-artifacts:
     - .github/skills/dev/planning/create-issue/SKILL.md
+    - .github/skills/dev/debugging/fix-bug/SKILL.md
     - docs/adrs/20260519000000_define_global_cli_output_contract.md
     - docs/adrs/20261106102632_scope_the_cli_output_contract_and_keep_exit_codes_to_zero_one_two.md
     - docs/issues/open/2758-cli-output-contract-tools-migration/EPIC.md
@@ -44,6 +45,8 @@ The global CLI output contract (`docs/adrs/20260519000000_define_global_cli_outp
 - Make JSON the default style (or the agreed alternative) and keep the other `trace_style` values only if the decision keeps them.
 - Startup failure as one JSON record on stderr, exit `1`; usage and config errors exit `2` if they are usage errors.
 - Update `logs_parser.rs` and its tests; update docs, default configs and the changelog or release-note convention.
+- `Docker::logs` in `src/console/ci/e2e/docker.rs` returns only the container's stdout; the daemon's logs move to stderr, so it must capture stderr too (or both streams) and its tests must follow.
+- Exit codes for a startup failure: configuration, semantic-validation and persistence-requirement errors are usage errors, exit `2`; a runtime failure such as a bind error or a composition failure is exit `1`. Today every startup failure returns `ExitCode::FAILURE` (`1`), so `src/main.rs` needs the mapping.
 - Keep test-helper logging working (`packages/test-helpers/src/logging.rs`).
 
 ### Out of Scope
@@ -57,6 +60,7 @@ Files this issue may touch (a sibling issue in the same wave must not touch them
 - `packages/configuration/src/v3_0_0/logging.rs` (and v2_0_0 if still supported)
 - `src/main.rs`
 - `src/console/ci/e2e/logs_parser.rs`
+- `src/console/ci/e2e/docker.rs`
 - `share/default/config/**`
 - the docs that show the log format
 
@@ -72,11 +76,17 @@ Not applicable.
 
 ## Bug-Fix Process
 
-Not applicable.
+This issue fixes a deviation from the CLI output contract, so it is bug work in substance. Follow the [fix-bug](../../../../.github/skills/dev/debugging/fix-bug/SKILL.md) skill:
+
+- analysis of the defect: the tool's current behavior against the contract (see Background);
+- real-artifact reproduction: run the real binary, record the commands and output of the deviation in `manual-verification-evidence.md` before changing code;
+- regression-test boundary: see Regression Test Strategy;
+- red regression test, then the production fix;
+- green test evidence and a like-for-like recheck of the same real-artifact commands.
 
 ## Regression Test Strategy
 
-Not applicable.
+Unit tests of the logging initialization (writer and format) and of the startup-failure record and exit-code mapping, plus the updated `logs_parser.rs` tests. They fail today (stdout, plain text, exit `1` for configuration errors). If a higher boundary is used instead, record why it is clearer or the only practical option; link red and green output and the final recheck to `manual-verification-evidence.md`.
 
 ## Implementation Plan
 
@@ -128,7 +138,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 
 - [ ] AC1: Running the tracker writes nothing to stdout.
 - [ ] AC2: Every stderr line is a JSON object.
-- [ ] AC3: A startup failure prints one JSON record and exits `1`.
+- [ ] AC3: A configuration error prints one JSON record and exits `2`; a runtime startup failure (for example a bind error) prints one JSON record and exits `1`.
 - [ ] AC4: `logs_parser.rs` and its tests follow the new format.
 - [ ] AC5: The operator-visible change is documented.
 - [ ] `linter all` exits with code `0`
@@ -152,7 +162,8 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | ID  | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | -------- | ---------------------------- | --------------- | ------ | -------- |
 | M1 | Normal run | `torrust-tracker 2>err >out`, then stop it | `out` empty; `jq . err` parses every line | TODO | `manual-verification-evidence.md` section V1 |
-| M2 | Startup failure | Run with a bad config path or occupied port | One JSON record, exit `1` | TODO | `manual-verification-evidence.md` section V2 |
+| M2 | Configuration error | Run with a bad config path | One JSON record, exit `2` | TODO | `manual-verification-evidence.md` section V2 |
+| M2b | Runtime startup failure | Run with a port already in use | One JSON record, exit `1` | TODO | `manual-verification-evidence.md` section V2b |
 | M3 | Container | Run the container image and read `docker logs` | JSON lines; e2e parser still finds the services | TODO | `manual-verification-evidence.md` section V3 |
 
 Manual verification is mandatory even when automated tests pass. Record actual commands, output and the toolchain that produced each result in `manual-verification-evidence.md` (from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`).

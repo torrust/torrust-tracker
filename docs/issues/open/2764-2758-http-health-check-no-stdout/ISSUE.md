@@ -15,6 +15,7 @@ semantic-links:
     - create-issue
   related-artifacts:
     - .github/skills/dev/planning/create-issue/SKILL.md
+    - .github/skills/dev/debugging/fix-bug/SKILL.md
     - docs/adrs/20260519000000_define_global_cli_output_contract.md
     - docs/adrs/20261106102632_scope_the_cli_output_contract_and_keep_exit_codes_to_zero_one_two.md
     - docs/issues/open/2758-cli-output-contract-tools-migration/EPIC.md
@@ -68,11 +69,17 @@ Not applicable.
 
 ## Bug-Fix Process
 
-Not applicable.
+This issue fixes a deviation from the CLI output contract, so it is bug work in substance. Follow the [fix-bug](../../../../.github/skills/dev/debugging/fix-bug/SKILL.md) skill:
+
+- analysis of the defect: the tool's current behavior against the contract (see Background);
+- real-artifact reproduction: run the real binary, record the commands and output of the deviation in `manual-verification-evidence.md` before changing code;
+- regression-test boundary: see Regression Test Strategy;
+- red regression test, then the production fix;
+- green test evidence and a like-for-like recheck of the same real-artifact commands.
 
 ## Regression Test Strategy
 
-Not applicable.
+A test that runs the binary against a local test server and a closed port and asserts stdout empty, JSON records on stderr and the exit codes. It fails today (plain text on stdout, exit `1` for usage). If a higher boundary is used instead, record why it is clearer or the only practical option; link red and green output and the final recheck to `manual-verification-evidence.md`.
 
 ## Implementation Plan
 

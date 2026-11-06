@@ -15,6 +15,7 @@ semantic-links:
     - create-issue
   related-artifacts:
     - .github/skills/dev/planning/create-issue/SKILL.md
+    - .github/skills/dev/debugging/fix-bug/SKILL.md
     - docs/adrs/20260519000000_define_global_cli_output_contract.md
     - docs/adrs/20261106102632_scope_the_cli_output_contract_and_keep_exit_codes_to_zero_one_two.md
     - docs/issues/open/2758-cli-output-contract-tools-migration/EPIC.md
@@ -42,6 +43,7 @@ The global CLI output contract (`docs/adrs/20260519000000_define_global_cli_outp
 
 - `tracing` to stderr as JSON; nothing on stdout.
 - Failures as one JSON record with a `kind`; usage errors exit `2`.
+- `src/console/ci/e2e/runner.rs` logs the tracker configuration verbatim (`tracing::info!("tracker config:\n{tracker_config}")`), which can include credentials. ADR section 7 forbids secrets in output: mask secret values before logging (same for the qBittorrent runner) and add a test.
 - Update tests and docs that show the runner output.
 
 ### Out of Scope
@@ -66,11 +68,17 @@ Not applicable.
 
 ## Bug-Fix Process
 
-Not applicable.
+This issue fixes a deviation from the CLI output contract, so it is bug work in substance. Follow the [fix-bug](../../../../.github/skills/dev/debugging/fix-bug/SKILL.md) skill:
+
+- analysis of the defect: the tool's current behavior against the contract (see Background);
+- real-artifact reproduction: run the real binary, record the commands and output of the deviation in `manual-verification-evidence.md` before changing code;
+- regression-test boundary: see Regression Test Strategy;
+- red regression test, then the production fix;
+- green test evidence and a like-for-like recheck of the same real-artifact commands.
 
 ## Regression Test Strategy
 
-Not applicable.
+Unit tests of the runners' error reporting and of the config masking, and a run of each runner asserting empty stdout and NDJSON on stderr. If a higher boundary is used instead, record why it is clearer or the only practical option; link red and green output and the final recheck to `manual-verification-evidence.md`.
 
 ## Implementation Plan
 
@@ -139,8 +147,8 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | -------- | ---------------------------- | --------------- | ------ | -------- |
-| M1 | e2e run | `cargo run --bin e2e_tests_runner -- ... >out 2>err` | `out` empty, `err` NDJSON, exit as expected | TODO | `manual-verification-evidence.md` section V1 |
-| M2 | qBittorrent run | Same for `qbittorrent_e2e_runner` | Same | TODO | `manual-verification-evidence.md` section V2 |
+| M1 | e2e run | `cargo build -p e2e-tools --bins`, then `target/debug/e2e_tests_runner ... >out 2>err` (not `cargo run`, which adds plain cargo messages on stderr; `e2e-tools` is not a default workspace member) | `out` empty, `err` NDJSON, exit as expected | TODO | `manual-verification-evidence.md` section V1 |
+| M2 | qBittorrent run | Same with `target/debug/qbittorrent_e2e_runner` | Same | TODO | `manual-verification-evidence.md` section V2 |
 
 Manual verification is mandatory even when automated tests pass. Record actual commands, output and the toolchain that produced each result in `manual-verification-evidence.md` (from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`).
 

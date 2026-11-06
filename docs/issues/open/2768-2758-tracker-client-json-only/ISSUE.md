@@ -15,6 +15,7 @@ semantic-links:
     - create-issue
   related-artifacts:
     - .github/skills/dev/planning/create-issue/SKILL.md
+    - .github/skills/dev/debugging/fix-bug/SKILL.md
     - docs/adrs/20260519000000_define_global_cli_output_contract.md
     - docs/adrs/20261106102632_scope_the_cli_output_contract_and_keep_exit_codes_to_zero_one_two.md
     - docs/issues/open/2758-cli-output-contract-tools-migration/EPIC.md
@@ -32,7 +33,7 @@ semantic-links:
 
 ## Background
 
-Depends on the removal of the deprecated binaries (EPIC issue 6), which shares `console/tracker-client/**`. `console/tracker-client/src/bin/tracker_client.rs` has no TTY refusal (the repo has no `is_terminal` check). `unified/app.rs` initializes `tracing_subscriber::fmt()` whose default writer is stdout, in plain text. `check --format text` and the `--format`/pretty output options print plain text; the console layer (`checker/console.rs`, `checker/monitor/udp.rs`, `http/app.rs`, `udp/app.rs`, `unified/{check,http,udp}.rs`, `lib.rs`) still uses direct prints under `allow`s. The ADR table says `tracker_client` is `stdout-result-data` with monitor progress as NDJSON on stderr. Decide, with the maintainer, whether pretty-printed JSON stays allowed (it is JSON) and whether the `Text` format is removed or becomes JSON.
+Depends on the removal of the deprecated binaries (EPIC issue 6), which shares `console/tracker-client/**`. `console/tracker-client/src/bin/tracker_client.rs` has no TTY refusal (`tracker_client` has no `is_terminal` check; `ci-gate`, `wait-for-pr-review` and `github-review-threads` do). `unified/app.rs` initializes `tracing_subscriber::fmt()` whose default writer is stdout, in plain text. `check --format text` is not plain text: the `Text` format renders pretty-printed JSON (`unified/check.rs`), so it already satisfies the contract and only needs to keep doing so; the console layer (`checker/console.rs`, `checker/monitor/udp.rs`, `http/app.rs`, `udp/app.rs`, `unified/{check,http,udp}.rs`, `lib.rs`) still uses direct prints under `allow`s. The ADR table says `tracker_client` is `stdout-result-data` with monitor progress as NDJSON on stderr. Pretty-printed JSON stays allowed (it is JSON); the maintainer may still prefer to rename the misleading `Text` format value.
 
 The global CLI output contract (`docs/adrs/20260519000000_define_global_cli_output_contract.md`), as amended by `docs/adrs/20261106102632_scope_the_cli_output_contract_and_keep_exit_codes_to_zero_one_two.md`, requires: result data only on stdout (one JSON object) for `stdout-result-data` commands, nothing on stdout for `no-stdout-result` commands; every stderr record is one JSON object per line (NDJSON) with a `kind`; no plain text on either channel; exit codes only `0` (did its job, the answer is in the result), `1` (could not do its job) and `2` (usage error or TTY refusal); and TTY refusal for `stdout-result-data` commands. A distinct outcome is a `kind` field: an answer to what the caller asked is a stdout result with exit `0`; "could not answer" is a stderr diagnostic with exit `1`. This issue is part of EPIC #2758, which migrates the tools found non-compliant by the 2026-11-06 audit. The reference implementations are `contrib/dev-tools/checks/ci-gate/src/main.rs` (`stdout-result-data`) and `contrib/dev-tools/checks/shipped-features-check/src/main.rs` (`no-stdout-result`).
 
@@ -42,7 +43,7 @@ The global CLI output contract (`docs/adrs/20260519000000_define_global_cli_outp
 
 - TTY refusal at entry (exit `2`, `tty_refusal` record).
 - `tracing` to stderr as JSON; stdout carries only the result object.
-- Remove or convert the plain-text output paths and the `print_*` allows.
+- Remove the direct print macros and the `print_*` allows in the console layer, writing results through one JSON emitter; check `checker/console.rs`, `checker/monitor/udp.rs`, `http/app.rs`, `udp/app.rs` and `unified/*` for any output that is not JSON.
 - Update the tracker-client I/O contract doc and README; keep tests green.
 
 ### Out of Scope
@@ -67,11 +68,17 @@ Not applicable.
 
 ## Bug-Fix Process
 
-Not applicable.
+This issue fixes a deviation from the CLI output contract, so it is bug work in substance. Follow the [fix-bug](../../../../.github/skills/dev/debugging/fix-bug/SKILL.md) skill:
+
+- analysis of the defect: the tool's current behavior against the contract (see Background);
+- real-artifact reproduction: run the real binary, record the commands and output of the deviation in `manual-verification-evidence.md` before changing code;
+- regression-test boundary: see Regression Test Strategy;
+- red regression test, then the production fix;
+- green test evidence and a like-for-like recheck of the same real-artifact commands.
 
 ## Regression Test Strategy
 
-Not applicable.
+CLI tests for the TTY refusal and for stdout/stderr content of `tracker_client` subcommands (stdout one JSON object, stderr JSON). The TTY test needs a pseudo-terminal or an injected check; record which. If a higher boundary is used instead, record why it is clearer or the only practical option; link red and green output and the final recheck to `manual-verification-evidence.md`.
 
 ## Implementation Plan
 
@@ -162,7 +169,7 @@ Manual verification is mandatory even when automated tests pass. Record actual c
 
 ## Risks and Trade-offs
 
-- Callers use `--format text`. Mitigation: decide removal versus conversion in review, note it as a breaking change.
+- Callers use `--format text`. Mitigation: it already prints JSON, so keep it working; only a rename would be a breaking change.
 
 ## Implementation Completion Review
 
