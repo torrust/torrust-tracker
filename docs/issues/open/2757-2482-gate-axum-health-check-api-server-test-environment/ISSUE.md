@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: draft
+status: in-progress
 priority: p2
 epic: 2482
-github-issue: null
-spec-path: docs/issues/drafts/2482-gate-axum-health-check-api-server-test-environment/ISSUE.md
-branch: "{issue-number}-2482-gate-axum-health-check-api-server-test-environment"
+github-issue: 2757
+spec-path: docs/issues/open/2757-2482-gate-axum-health-check-api-server-test-environment/ISSUE.md
+branch: "2757-2482-gate-axum-health-check-api-server-test-environment-spec"
 related-pr: null
-last-updated-utc: "2026-11-06 16:40"
+last-updated-utc: "2026-11-06 16:39"
 semantic-links:
   skill-links:
     - create-issue
@@ -25,7 +25,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - Gate the `axum-health-check-api-server` test environment behind a `testing` feature
+# Issue #2757 - Gate the `axum-health-check-api-server` test environment behind a `testing` feature
 
 Parent EPIC: #2482 (Reorganize test support code shared between workspace packages), row 7 of its
 Subissues table, the last one. Draft written by subissue 1 (#2618), refreshed on 2026-11-06
@@ -169,9 +169,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ### Workflow Checkpoints
 
-- [x] Folder-style spec drafted in `docs/issues/drafts/2482-gate-axum-health-check-api-server-test-environment/ISSUE.md`
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created, linked as a sub-issue of #2482, and its number added to this spec
+- [x] Folder-style spec drafted in `docs/issues/open/2757-2482-gate-axum-health-check-api-server-test-environment/ISSUE.md`
+- [x] Spec reviewed and approved by user/maintainer (2026-11-06)
+- [ ] GitHub issue created (#2757), linked as a sub-issue of #2482, and its number added to this spec
 - [ ] Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
@@ -186,6 +186,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   the #2482 Subissues table and rule A of the ADR; gated by #2450 and rows 4 to 6.
 - 2026-10-22 18:10 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 1) - Changed after PR #2624's review: AC1 and M1 check direct dependencies (`--depth 1`) because `configuration` stays reachable through `axum-server`; added the dependency audit to the scope.
 - 2026-11-06 16:40 UTC - AI assistant (Claude Code, #2482 row 7) - Refreshed the draft against `torrust/develop` at `35ec81000`: #2450 and rows 4 to 6 are done, so the gate is satisfied; `environment.rs` is 497 lines (not 118); `configuration` is the only dependency to make optional; baseline 17 direct dependencies, 15 + 11 tests. Recorded the maintainer's decisions: no runtime-edge counter, `configuration` optional behind `testing`, labels and the sub-issue link with the `josecelano` account on his explicit OK. Out of scope: the #2482 close-out steps (a coordinator proposes them).
+- 2026-11-06 16:39 UTC - AI assistant (Claude Code, #2482 row 7) - The maintainer approved the spec. Created issue #2757 as `josecelano-bot`; the maintainer added the labels (`task`, `packages`) himself. The sub-issue link under #2482 is pending his action. The spec moved to `docs/issues/open/`; the #2482 EPIC row, the inventory and the 2026-10-06 coupling report link to it.
 
 ## Acceptance Criteria
 
