@@ -7,7 +7,7 @@ priority: p2
 epic: 1488
 github-issue: 2751
 spec-path: docs/issues/open/2751-1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md
-branch: "2751-deprecate-legacy-shutdown-api"
+branch: "2751-deprecate-legacy-shutdown-api-spec"
 related-pr: null
 last-updated-utc: "2026-11-06 12:00"
 semantic-links:
