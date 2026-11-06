@@ -69,15 +69,14 @@ carried this run together with the 58 integration tests.
 
 ### Unviable
 
-All 44 failed to build; none is a lint failure (see the configuration). The compiler errors in the per-mutant logs
-fall into three kinds:
+All 44 failed to build; none is a lint failure (see the configuration). The first compiler error of each per-mutant log
+gives these kinds, which add up to 44:
 
-- **No `Default` for the returned type** (`ApiServer`, `Environment`, `Launcher`, `ServiceHealthCheckJob`,
-  `ConnectionInfo`, `SocketAddr`, `EnvContainer`, `CancellationRunning`): 28 mutants in `server.rs` and
-  `testing/environment.rs`, plus `check_fn`, `check_fn_with_client` and `join_owned_tasks`.
-- **No such associated function** (`axum::Json::new`, `Json::from_iter`, `Json::from(...)` do not exist):
-  `health_check_handler` (4), `torrent_list_response` (7) and `torrent_info_response` (4).
-- **Ambiguous `new`** (`E0034`, `Environment::new` exists for two states): the `Environment` start and stop mutants.
-
-One more, `empty_string_as_none` returning `Ok(Some(Default::default()))`, fails to build because the generic `T`
-has no `Default` bound.
+- **No `Default` for the returned type** (16): `ApiServer`, `Environment`, `Launcher`, `ServiceHealthCheckJob`,
+  `ConnectionInfo`, `SocketAddr`, `EnvContainer`, `CancellationRunning` and the `join_owned_tasks` result.
+- **No such associated function** (16): the `Json::new`, `Json::from_iter` and `Json::from(...)` replacements of
+  `health_check_handler` (4), `torrent_list_response` (7) and `torrent_info_response` (4), and one more of the same kind.
+- **Ambiguous `new`** (4, `E0034`): `Environment::new` exists for two states (the `Environment` start and stop).
+- **Other type errors** (8): a wrong argument count for `new()` (2), `new` on `Pin<Box<dyn Future>>` (2 plus 1), missing
+  type annotations (2) and a non-const call (1). One of them is `empty_string_as_none` returning
+  `Ok(Some(Default::default()))`, because the generic `T` has no `Default` bound.

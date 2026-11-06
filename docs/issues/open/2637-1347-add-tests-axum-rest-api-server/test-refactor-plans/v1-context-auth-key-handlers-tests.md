@@ -173,4 +173,4 @@ exercised by every forwarding test, and mutation F1 breaks it.
 - **Validation:** `cargo +nightly fmt --all -- --check` (nightly Rust toolchain), `cargo clippy -p
   torrust-tracker-axum-rest-api-server --all-targets` (stable), `cargo machete --with-metadata`, `git diff --check` and
   `cargo test -p torrust-tracker-axum-rest-api-server` (94 unit and 58 integration tests) pass.
-- **Review outcome:** pending the maintainer's completed-file review.
+- **Review outcome:** the maintainer approved the completed file on 2026-10-29 (the figures above are the snapshot at that point).

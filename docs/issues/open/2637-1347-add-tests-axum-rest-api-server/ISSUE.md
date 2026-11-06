@@ -9,7 +9,7 @@ github-issue: 2637
 spec-path: docs/issues/open/2637-1347-add-tests-axum-rest-api-server/ISSUE.md
 branch: "2637-1347-add-tests-axum-rest-api-server-final"
 related-pr: null
-last-updated-utc: "2026-11-06 16:37"
+last-updated-utc: "2026-11-06 16:44"
 semantic-links:
   skill-links:
     - create-issue
@@ -366,7 +366,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 | T5 | DONE | Implement integration-test increments selected by file test plans | None was selected: every plan found a unit seam (the TLS startup is covered by `server.rs` unit tests with the shared fixtures). |
 | T6 | DONE | Perform bounded mutation assessment | `mutation-evidence.md` records the run, the survivors and the reason for each unviable mutant. |
 | T7 | DONE | Reconcile evidence and progress state | Ledger, plans, plan index, slice table, coverage evidence, acceptance rows, and both EPIC coverage tables agree. Grep for `status: proposed`, stray `TODO`/`IN_PROGRESS` labels in completed records, and stale checkpoint names. |
-| T8 | TODO | Complete verification and acceptance review | Automatic checks, manual verification, the final Task Reviewer review (`agent-review-reports.md`), the acceptance review below, and the retrospective (`implementation-retrospective.md`) are recorded. |
+| T8 | DONE | Complete verification and acceptance review | Automatic checks, manual verification, the final Task Reviewer review (`agent-review-reports.md`), the acceptance review below, and the retrospective (`implementation-retrospective.md`) are recorded. |
 
 The specification frontmatter `status` stays `planned`, and the EPIC #1347 subissue row stays
 `TODO`, until the spec-only PR merges and the first implementation slice starts; both then change
@@ -592,9 +592,9 @@ once. If the slicing changes, the Slice column changes with it.
 - [x] Automatic verification completed with toolchain-qualified evidence.
 - [x] Manual verification recorded in `manual-verification-evidence.md`.
 - [x] Bounded mutation assessment recorded in `mutation-evidence.md`.
-- [ ] Task Reviewer reports for every slice recorded in `agent-review-reports.md`.
-- [ ] Acceptance criteria reviewed after implementation.
-- [ ] Implementation completion review recorded (`implementation-retrospective.md`).
+- [x] Task Reviewer reports for every slice recorded in `agent-review-reports.md`.
+- [x] Acceptance criteria reviewed after implementation.
+- [x] Implementation completion review recorded (`implementation-retrospective.md`).
 - [ ] Issue closed and spec moved to `docs/issues/closed/`.
 
 ### Progress Log
@@ -747,39 +747,40 @@ once. If the slicing changes, the Slice column changes with it.
 - 2026-11-06 11:15 UTC - Claude Code (Sonnet 5.5) - Row 21 (`lib.rs`) is `DONE`: the maintainer approved the plan on 2026-11-06. No test; the crate documentation now spells `tls_config` in the three places (the corrected example parses into the v3 `HttpApi`, the old spelling is rejected). Mutation L1 (`API_LOG_TARGET`) was wrongly expected to survive: 21 integration tests assert the `API` log target, so it is pinned there; L2 does not compile; L3 (`Version`) survives because `Version` has no consumer. Production documentation only; no code changed.
 - 2026-11-06 11:17 UTC - Claude Code (Sonnet 5.5) - Rows 22-31 (the wiring-only files) are `DONE` with a no-change decision, approved by the maintainer with the S6 plans on 2026-11-06: no test. The declaration mutations were run again: 23 of the 25 `pub mod` removals break the build; the two survivors are the empty modules `torrent/resources` and `resources/torrent`, recorded in `lessons.md` as a clean-up candidate. All thirteen S6 ledger rows (19-31) are `DONE`.
 - 2026-11-06 16:37 UTC - Claude Code (Sonnet 5.5) - T6 and T8 evidence recorded: the whole-package mutation run (118 mutants: 70 caught, 4 missed, 44 unviable) is in `mutation-evidence.md`; manual scenarios M1-M5 passed ([evidence](manual-verification-evidence.md)). The one real survivor (`|` replaced by `^` in `authenticate`, only visible with a duplicated token value) got a plan (approved by the maintainer) and one test of three cases, committed as `test(axum-rest-api-server): [#2637] authenticate a token configured under more than one label`; the mutation is now killed. The observation that a missing or invalid token answers `500` is not changed here: the maintainer decided it belongs to REST API v2 (after 4.0.0), recorded in `lessons.md`. Final measurement: unit-only lines 2,324 / 2,404 (96.67%), aggregate 2,348 / 2,404 (97.67%); 170 unit and 58 integration tests.
+- 2026-11-06 16:44 UTC - Claude Code (Sonnet 5.5) - The final independent review of S6 passed (three LOW findings, fixed: the unviable-mutant categories were recounted and a stale review outcome corrected). T7 and T8 are `DONE`, the acceptance criteria AC1-AC17 are re-reviewed and checked, and the implementation retrospective is written. The S6 pull request awaits the maintainer's approval; the issue closes and the spec moves to `docs/issues/closed/` in the clean-up pull request after the merge.
 
 ## Acceptance Criteria
 
-- [ ] AC1: A complete `packages/axum-rest-api-server/src/` module inventory is recorded with
+- [x] AC1: A complete `packages/axum-rest-api-server/src/` module inventory is recorded with
       unit-only coverage, property-test candidacy, selected behavior, and an initial hypothesis for
       every source file, plus the final test-technique assessment.
-- [ ] AC2: Every source file has its own file test plan (or a shared declaration-only plan)
+- [x] AC2: Every source file has its own file test plan (or a shared declaration-only plan)
       processed through the per-file workflow, with its resulting unit-only coverage recorded in
       `coverage-evidence.md`.
-- [ ] AC3: Fresh aggregate/global, unit-only and integration-only coverage evidence is recorded with
+- [x] AC3: Fresh aggregate/global, unit-only and integration-only coverage evidence is recorded with
       clean reproducible commands and toolchain-qualified results.
-- [ ] AC4: Selected tests protect package-owned behavior at the narrowest maintainable boundary.
-- [ ] AC5: Any package integration test has a reviewed rationale.
-- [ ] AC6: No-change and deferral decisions enumerate uncovered lines or behavior groups and name
+- [x] AC4: Selected tests protect package-owned behavior at the narrowest maintainable boundary.
+- [x] AC5: Any package integration test has a reviewed rationale.
+- [x] AC6: No-change and deferral decisions enumerate uncovered lines or behavior groups and name
       the owner or reason.
-- [ ] AC7: Test-producing increments record the prose-first AAA review and focused validation in
+- [x] AC7: Test-producing increments record the prose-first AAA review and focused validation in
       their plan before the next file begins.
-- [ ] AC8: Bounded mutation assessment is completed without a score target or CI gate.
-- [ ] AC9: Reconciliation confirms plans, evidence, the slice table, acceptance rows, and EPIC
+- [x] AC8: Bounded mutation assessment is completed without a score target or CI gate.
+- [x] AC9: Reconciliation confirms plans, evidence, the slice table, acceptance rows, and EPIC
       tables agree; the EPIC aggregate and unit-only tables record this package's baseline and
       final measurement.
-- [ ] AC10: Every highest-risk and high objective in Coverage Objectives is protected by a unit test
+- [x] AC10: Every highest-risk and high objective in Coverage Objectives is protected by a unit test
       or has a recorded owner-based reason.
-- [ ] AC11: The work is merged through the planned slices (or their recorded re-slicing), each with
+- [x] AC11: The work is merged through the planned slices (or their recorded re-slicing), each with
       a Task Reviewer report, and only the last PR closes #2637.
-- [ ] AC12: Every finding that needs a production change has a draft specification, a progress-log
+- [x] AC12: Every finding that needs a production change has a draft specification, a progress-log
       entry, and a `lessons.md` row naming its draft path or issue, and no test pins its reported
       behavior without a recorded maintainer decision.
-- [ ] AC13: `cargo +nightly fmt --all -- --check` passes.
-- [ ] AC14: `linter all` exits with code `0`.
-- [ ] AC15: `cargo test -p torrust-tracker-axum-rest-api-server` passes.
-- [ ] AC16: Manual verification scenarios are executed and recorded.
-- [ ] AC17: Acceptance criteria are re-reviewed after implementation.
+- [x] AC13: `cargo +nightly fmt --all -- --check` passes.
+- [x] AC14: `linter all` exits with code `0`.
+- [x] AC15: `cargo test -p torrust-tracker-axum-rest-api-server` passes.
+- [x] AC16: Manual verification scenarios are executed and recorded.
+- [x] AC17: Acceptance criteria are re-reviewed after implementation.
 
 ## Verification Plan
 
@@ -827,23 +828,23 @@ here before writing it.
 
 | AC ID | Status | Evidence |
 | ----- | ------ | -------- |
-| AC1 | TODO | Inventory and T1 hypotheses in `coverage-evidence.md`; the final test-technique assessment. |
-| AC2 | TODO | All ledger rows `DONE`; plans in `test-refactor-plans/README.md`; per-file results in `coverage-evidence.md`. |
-| AC3 | TODO | Commands, toolchains and figures in the final measurement section of `coverage-evidence.md`. |
-| AC4 | TODO | Test boundaries recorded in the file plans. |
-| AC5 | TODO | The T5 row and the final assessment. |
-| AC6 | TODO | The uncovered-line tables and wiring-only plan conclusions. |
-| AC7 | TODO | Each plan's prose-first AAA review and focused validation; one independent review per slice in `agent-review-reports.md`. |
-| AC8 | TODO | `mutation-evidence.md`. |
-| AC9 | TODO | The T7 reconciliation and both EPIC tables. |
-| AC10 | TODO | Unit tests with named mutation proofs in the plans, or recorded owners. |
-| AC11 | TODO | The slice table, merged pull requests and reviewer reports. |
-| AC12 | TODO | Draft specifications, progress-log entries and `lessons.md` rows, or a recorded absence of findings. |
-| AC13 | TODO | `cargo +nightly fmt --all -- --check` output (nightly Rust toolchain). |
-| AC14 | TODO | `linter all` output. |
-| AC15 | TODO | `cargo test -p torrust-tracker-axum-rest-api-server` output (stable Rust toolchain). |
-| AC16 | TODO | `manual-verification-evidence.md`. |
-| AC17 | TODO | This table, after the final independent review. |
+| AC1 | DONE | Inventory and T1 hypotheses in `coverage-evidence.md`; the final test-technique assessment. |
+| AC2 | DONE | All ledger rows `DONE`; plans in `test-refactor-plans/README.md`; per-file results in `coverage-evidence.md`. |
+| AC3 | DONE | Commands, toolchains and figures in the final measurement section of `coverage-evidence.md`. |
+| AC4 | DONE | Test boundaries recorded in the file plans. |
+| AC5 | DONE | The T5 row and the final assessment. |
+| AC6 | DONE | The uncovered-line tables and wiring-only plan conclusions. |
+| AC7 | DONE | Each plan's prose-first AAA review and focused validation; one independent review per slice in `agent-review-reports.md`. |
+| AC8 | DONE | `mutation-evidence.md`. |
+| AC9 | DONE | The T7 reconciliation and both EPIC tables. |
+| AC10 | DONE | Unit tests with named mutation proofs in the plans, or recorded owners. |
+| AC11 | DONE | The slice table, merged pull requests and reviewer reports. |
+| AC12 | DONE | Draft specifications, progress-log entries and `lessons.md` rows, or a recorded absence of findings. |
+| AC13 | DONE | `cargo +nightly fmt --all -- --check` output (nightly Rust toolchain). |
+| AC14 | DONE | `linter all` output. |
+| AC15 | DONE | `cargo test -p torrust-tracker-axum-rest-api-server` output (stable Rust toolchain). |
+| AC16 | DONE | `manual-verification-evidence.md`. |
+| AC17 | DONE | This table, after the final independent review. |
 
 ## Risks and Trade-offs
 
