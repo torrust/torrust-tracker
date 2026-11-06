@@ -4,6 +4,7 @@ semantic-links:
     - create-adr
   related-artifacts:
     - docs/issues/closed/2719-stats-prometheus-text-boolean-line/ISSUE.md
+    - docs/issues/closed/2734-stats-prometheus-text-help-and-type/ISSUE.md
     - docs/adrs/20260901113500_define_completed_download_metric_retention_names.md
     - packages/axum-rest-api-server/src/v1/context/stats/mod.rs
     - packages/axum-rest-api-server/src/v1/context/stats/handlers.rs
@@ -41,7 +42,7 @@ The only deprecated items are the `completed` field and the
 `tracker_core_persistent_torrents_downloads_total` metric (see the ADR "Define completed-download
 metric retention names").
 
-The text of `/stats?format=prometheus` has no `# HELP` and no `# TYPE` lines. The Prometheus text
+Before #2734, the text of `/stats?format=prometheus` had no `# HELP` and no `# TYPE` lines. The Prometheus text
 format makes both optional, so a server scrapes it, but a metric without `# TYPE` is `untyped` and
 the lint of `promtool check metrics` warns about the missing help. Issue #2719 fixed the parts that
 broke scrapers (a boolean value and the missing final line feed) and left the metadata open.
@@ -62,10 +63,12 @@ broke scrapers (a boolean value and the missing final line feed) and left the me
    The type is the real Prometheus type of the value (`counter` or `gauge`), and the help is a
    one-line description that is written once and shared with the other formats, not copied by hand
    into each renderer.
-5. **The legacy text of `/stats?format=prometheus` does not yet follow rule 4.** It prints numeric
-   values only, as fixed by #2719. Adding `# HELP` and `# TYPE` to it is a follow-up issue. Metric
+5. **The legacy text of `/stats?format=prometheus` follows rule 4 since #2741 (amended 2026-11-06).**
+   It printed numeric values only, as fixed by #2719, and #2734 added `# HELP` and `# TYPE`. Metric
    names of the legacy text do not change, because they are part of API v1; the types are chosen
-   for the existing names (a counter keeps its name even when it has no `_total` suffix).
+   for the existing names (a counter keeps its name even when it has no `_total` suffix), so
+   `promtool check metrics` still reports naming-convention warnings for them. Renaming them is for
+   the next API version.
 
 ## Alternatives Considered
 
@@ -80,8 +83,8 @@ broke scrapers (a boolean value and the missing final line feed) and left the me
 ## Consequences
 
 Contributors who touch either endpoint know what each one is for and do not need to re-derive its
-status from the history. New Prometheus output must ship with help and type. Until the follow-up
-issue lands, `/stats?format=prometheus` is a known exception, recorded here and in the module docs.
+status from the history. New Prometheus output must ship with help and type. The one known
+exception, the legacy `/stats?format=prometheus`, was closed by #2734.
 
 ## Date
 
