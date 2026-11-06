@@ -5,8 +5,8 @@ status: planned
 epic: null
 github-issue: 2003
 spec-path: docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
-epic-owner: da2ce7
-last-updated-utc: "2026-10-13 14:35"
+epic-owner: josecelano
+last-updated-utc: "2026-11-06 11:00"
 semantic-links:
   skill-links:
     - create-issue
@@ -43,7 +43,7 @@ semantic-links:
 
 # EPIC #2003 - Overhaul: Automation Tools and AI Agent Guardrails
 
-**EPIC owner:** da2ce7, since 2026-09-28 ([hand-off](https://github.com/torrust/torrust-tracker/issues/2003#issuecomment-5873655520), [acknowledgement](https://github.com/torrust/torrust-tracker/issues/2003#issuecomment-5874065152)); josecelano owned it from its creation until then.
+**EPIC owner:** josecelano, from its creation until 2026-09-28 and again since 2026-11-06. da2ce7 held it from 2026-09-28 to 2026-11-06 ([hand-off](https://github.com/torrust/torrust-tracker/issues/2003#issuecomment-5873655520), [acknowledgement](https://github.com/torrust/torrust-tracker/issues/2003#issuecomment-5874065152)) to reorganize it and file the friction register.
 
 ## Goal
 
@@ -182,10 +182,14 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | 9 | #2233 - Tune unified PR-review process | `docs/issues/closed/2233-2003-tune-unified-pr-review-process/ISSUE.md` | DONE | Evidence-driven follow-up to #2219; refines skills, templates, audit process, and design notes without selecting shared automation architecture. |
 | 10 | #2264 - Refactor semantic-link and frontmatter conventions (child EPIC) | `docs/issues/open/2264-2003-refactor-semantic-link-conventions/EPIC.md` | IN_PROGRESS | Defines document metadata and reference semantics. Its read-only frontmatter validator may use pre-commit as its single integration tier but must remain replaceable by the architecture selected here. #2266, #2280 and #2281 (the validator command and its pre-commit rollout) are closed. |
 | 11 | #2278 - Strengthen PR review author self-audit and evidence generation (child EPIC) | `docs/issues/open/2278-2003-strengthen-pr-review-author-self-audit/EPIC.md` | IN_PROGRESS | Converted from a task by #2288 after its improvement matrix showed several independently reviewable artifacts; split into one-PR subissues. It owns the author-side register items (see Decisions Recorded on This EPIC) and, from #2347, its order 8 and #2362 (order 11). It remains read-only at the helper boundary and selects no model, shared runner, cache, policy engine, or CI integration. Evidence: PR #2270, #2271 and #2272 retrospectives, #2219 and #2233, and #2266 for check-crate placement. |
-| 12 | #2347 - Triage post-merge review findings on PRs #2290, #2293, #2300, #2313, and #2320 | `docs/issues/open/2347-2003-triage-post-merge-review-findings/ISSUE.md` | IN_PROGRESS | Processes the 32 findings through the existing `process-pr-review` post-merge workflow: audits, approved dispositions and documentation fixes only; workflow, CI and Rust changes become their own issues. Every finding has an approved disposition, a disposition reply and an audit row; the implementation is PR #2363. The close-out is pending; see Order 12 Close-Out. |
+| 12 | #2347 - Triage post-merge review findings on PRs #2290, #2293, #2300, #2313, and #2320 | `docs/issues/open/2347-2003-triage-post-merge-review-findings/ISSUE.md` | IN_PROGRESS | Processes the 32 findings through the existing `process-pr-review` post-merge workflow: audits, approved dispositions and documentation fixes only; workflow, CI and Rust changes become their own issues. Every finding has an approved disposition, a disposition reply and an audit row; the implementation is PR #2363. The close-out PR #2367 merged; the issue and its specification were still open on 2026-11-06, so archiving needs checking against the #2347 specification, which is the record. See Order 12 Close-Out. |
 | 13 | #2360 - Resolve the crate-level scope of the UDP protocol `empty_enums` allowance | `docs/issues/open/2360-2003-resolve-udp-protocol-empty-enums-allowance-scope/ISSUE.md` | TODO | Follow-up of #2347 (`review-finding:pr-2290-f4`); approved 2026-09-28 and landed with PR #2363. |
 | 14 | #2375 - Define unambiguous issue specification directory names | `docs/issues/open/2375-2003-unambiguous-issue-spec-names/ISSUE.md` | TODO | Documentation convention, a name-consistency check at the existing `frontmatter-validator` tier, and a mechanical rename of `drafts/` and `open/` specs. Selects no automation architecture; coordinates validator placement and path references with #2264 (frontmatter and semantic-link conventions). Scheduling: implementation starts only after a fresh review of the spec against the current tree, the rule the spec itself introduces. That review settles two open points from the #2377 review: whether a slug may begin with a reserved `i<digits>-` or `e<digits>-` prefix, and whether the guarantee covers `closed/` names. The name check's placement follows #2264. |
 | 15 | #2473 - Run design discussions as asynchronous, attributed rounds | `docs/issues/closed/2473-2003-asynchronous-discussion-rounds/ISSUE.md` | DONE | Documentation process and a Markdown template only: rewrites the `docs/discussions/` lifecycle so participants contribute through attributed rounds and only the decision needs agreement. Selects no automation architecture. No dependencies; proposed in PR #2467. |
+| 16 | #2581 - Deterministic `wait-for-pr-review` poller for AI agents | `docs/issues/closed/2581-2003-pr-review-wait-poller/ISSUE.md` | DONE | A self-contained Rust poller inside the skill that uses it, so agents wait for PR reviewers without spending tokens. Selects no shared runner, cache or policy engine; closed by PR #2683. |
+| 17 | #2712 - `wait-for-pr-review` waits without limit after a `gh` call that already exited | `docs/issues/open/2712-2003-wait-for-pr-review-pipe-wait-after-exit/ISSUE.md` | TODO | Bug in the #2581 poller: the timeout and signal handling must hold on every path of a `gh` call. Independent of the other poller bugs. |
+| 18 | #2713 - `wait-for-pr-review` panics when `--timeout-seconds` is too large | `docs/issues/open/2713-2003-wait-for-pr-review-timeout-overflow-panic/ISSUE.md` | TODO | Bug in the #2581 poller: an oversized timeout overflows the deadline. |
+| 19 | #2714 - `wait-for-pr-review` can report a review of a newer commit than the head it reports | `docs/issues/open/2714-2003-wait-for-pr-review-head-race-between-requests/ISSUE.md` | TODO | Bug in the #2581 poller: a race between its two requests. |
 
 Also linked as GitHub sub-issues, outside the order:
 
@@ -194,6 +198,8 @@ Also linked as GitHub sub-issues, outside the order:
 - #2261: the review of the UDP protocol Clippy baseline (DONE, `docs/issues/closed/2261-2003-review-udp-protocol-clippy-baseline/ISSUE.md`).
 
 ### Order 12 Close-Out
+
+**Historical plan, as of 2026-09-28; not current work.** The #2347 specification is the current record of this close-out: it logs T7 as done in PR #2367 and AC4 as `DONE`. The unchecked checklist below is kept for history only.
 
 Issue #2347 closes through one close-out PR. PR #2363, which carries the #2347 implementation, merged on 2026-09-28 at 17:00 UTC as `bc90cde1b` after seven review rounds; the last approval (review 5341908562) and its ACK stand on the merged head, whose commit records rounds 4 and 5 in the PR's own audit.
 
@@ -263,6 +269,7 @@ These are proposed planning subissues; none has been created. Titles and boundar
 
   The register's index records where each of these numbers stands now.
 - **Frictions are filed under semantic labels (2026-09-26).** The F series is closed at F102, and the index is the register; see Friction Register.
+- **Ownership returns to josecelano (2026-11-06).** da2ce7 held the EPIC to reorganize it and file the friction register and is no longer working on it actively. josecelano owns it again and coordinates it with one implementation session per sub-issue, one at a time. The EPIC is the specification of the repository's AI harness, the software factory that builds the tracker, so its decisions are the maintainer's.
 - **Ownership (2026-09-28).** This EPIC and #2347 pass to da2ce7, per the [hand-off](https://github.com/torrust/torrust-tracker/issues/2003#issuecomment-5873655520) and the [acknowledgement](https://github.com/torrust/torrust-tracker/issues/2003#issuecomment-5874065152); the assignees changed at 16:17 UTC. The #2347 close-out, the follow-up owners and the five improvement candidates are taken as listed and placed from this EPIC.
 - **Draft placement (2026-10-01).** The memories draft (`2003-mine-ai-agent-memories`) proceeds under the Scope exception and takes the next order when its issue is created; its report feeds Proposed Subissues 1 and 2. The harness-workspace draft (`2003-separate-ai-harness-cargo-workspace`) is an implementation subissue gated on the five decisions it lists, which are pending and are recorded here before its issue is created. Order 14 (#2375) is scheduled behind a fresh review of its spec against the current tree; see Drafts Awaiting Issues and the Subissues table.
 - **Four-aspect frame (2026-10-03, [review 5400754664](https://github.com/torrust/torrust-tracker/pull/2428#pullrequestreview-5400754664), [Outcome](../../../discussions/2003-overhaul-guardrails-and-automation/20261003-goals-and-boundaries/README.md#outcome)).** The four-aspect frame of the goals-and-boundaries discussion is this EPIC's structure for sorting proposals.
@@ -428,6 +435,7 @@ For each completed subissue in this EPIC, the default completion policy is:
 - 2026-10-09 10:25 UTC - da2ce7 - Answered review 5468071770 on PR #2366: the Friction Register describes the index's four comments at v31 and keeps the 2026-09-28 counts as a snapshot, and the order range is dropped from the checkpoint and the Delivery Strategy
 - 2026-10-13 14:29 UTC - da2ce7 - Rebased PR #2366 onto `develop` `5d05fefdd` at the maintainer's request after his approval (review 5505015377). The AI-model-provenance discussion now holds two rounds on `develop`: PR #2486 (da2ce7's round on Q1 to Q11, merged 2026-10-13 11:28 UTC) and PR #2502 (josecelano's reply on Q1 and Q11 and a new Q12, merged 12:35 UTC). Its Outcome is pending and the decision round is the decision owner's, so nothing enters Decisions Recorded on This EPIC; no other section changes. The Friction Register names the index revision by its timestamp alone
 - 2026-10-13 14:35 UTC - da2ce7 - The Friction Register describes the register's index as batch 32 filed it on 2026-10-11 at 09:08 UTC: five comments holding 13 artifact groups and 255 labels, 253 frictions and two CI findings, with each part's groups re-described and a bullet for index part 5; References links all five parts - [batch 32](https://github.com/torrust/torrust-tracker/issues/2003#issuecomment-6107435063)
+- 2026-11-06 11:00 UTC - josecelano (via the Claude EPIC coordinator session) - Refreshed the spec against GitHub at `develop` `c5a6dbaa6`: josecelano is the owner again; added rows 16 to 19 (#2581 done, #2712 to #2714 open); noted that #2347's close-out PR #2367 merged. The register, the Phase 1 status and the proposed subissues are unchanged
 
 ## Acceptance Criteria
 
