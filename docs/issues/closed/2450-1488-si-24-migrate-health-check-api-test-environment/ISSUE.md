@@ -25,7 +25,7 @@ semantic-links:
     - docs/issues/closed/2412-1488-si-16-migrate-standalone-http-environment/ISSUE.md
     - docs/issues/closed/2471-1488-fix-http-environment-drop-path/ISSUE.md
     - docs/issues/closed/2449-1488-si-23-migrate-rest-api-test-environment/ISSUE.md
-    - docs/issues/drafts/1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md
+    - "issue #2751"
     - docs/issues/drafts/1488-si-19-remove-legacy-shutdown-api/ISSUE.md
     - "issue #2697"
     - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
