@@ -5081,6 +5081,7 @@ dependencies = [
  "torrust-metrics",
  "torrust-net-primitives",
  "torrust-server-lib",
+ "torrust-tracker-axum-rest-api-server",
  "torrust-tracker-axum-server",
  "torrust-tracker-configuration",
  "torrust-tracker-core",
