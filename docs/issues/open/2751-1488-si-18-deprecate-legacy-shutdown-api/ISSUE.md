@@ -62,10 +62,11 @@ Evidence checked on 2026-11-06 against `torrust/develop` at `da8bd15d1`:
 - [x] The task inventory confirms no supported in-workspace consumer depends on
       the legacy shutdown path. The remaining callers are unit tests that
       exercise the legacy path on purpose.
-- [ ] The external `torrust-server-lib` release notes identify external consumer
-      migration guidance and a compatible deprecation version. **Blocked**:
-      0.4.0 (2026-10-26) is the latest release, has no `#[deprecated]`
-      attributes on the legacy symbols, and publishes no release notes. See
+- [x] The external `torrust-server-lib` release notes identify external consumer
+      migration guidance and a compatible deprecation version: 0.5.0
+      (published 2026-11-06) deprecates the legacy symbols, and its
+      `CHANGELOG.md` gives the migration steps and the support window (the
+      items stay for all 0.5.x releases and are removed in 0.6.0). See
       [Split with the external crate](#split-with-the-external-crate).
 - [x] Process-wrapper documentation follows Q5 (`questions.md` Q5 is resolved;
       the deployment contract is in `docs/containers.md#stopping-the-tracker`).
