@@ -112,3 +112,22 @@ semantic-links:
 - Verdict: REVIEW PASSED
 - Follow-up actions:
   - The three plan and evidence wording items were corrected, and the doc comment observation was added to `lessons.md`; the boolean assertion note was declined as deliberate. No further review is required.
+
+### 2026-11-06 08:23 UTC - independent reviewer (slice S5, first review)
+
+Written by the implementing agent (Claude Code, Sonnet 5.5) from the report of an independent review subagent that ran in an isolated worktree and changed no tracked file.
+
+- Invocation scope: slice S5 of #2637 on branch `2637-1347-add-tests-axum-rest-api-server-lifecycle`: the commits above `torrust/develop` (the post-merge records, the F3 and F4 test-only fix, the row 18 plan and tests, and the re-measure after the rebase). Ledger row 18.
+- Inputs: the issue folder, the EPIC, the write-unit-test and review-task skills, and the changed Rust files (`server.rs`, `test_support.rs`, `routes.rs`, `v1/routes.rs`, `Cargo.toml`).
+- Evidence: clean `cargo llvm-cov` runs (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`) matched every recorded figure (unit-only lines 2,321 / 2,400, aggregate 2,345 / 2,400, integration-only 682 / 903, 167 unit and 58 integration tests, 45 uncovered `server.rs` lines); the EPIC deltas are arithmetically correct; mutations S1-S7, S8b and S9 were killed by assertions or the deadline, S8 survived; the F3 and F4 checks reproduced (a pending future failed 19 `v1::routes` tests and 8 `routes` tests with the deadline message, and the `data_*.db` count in the temporary directory did not change); fmt, clippy, machete, `git diff --check`, markdown and cspell passed; only test code, `test_support`, a dev-dependency and docs changed; stamps are not later than their commits; no closing keywords or commit SHAs.
+- Findings:
+  - MEDIUM: the S8 "equivalent mutant" claim was wrong. `cancel()` cancels the caller's token (the production caller passes a clone), which the registration-failure test never inspected.
+  - LOW: the plan index showed row 18 as `IN_PROGRESS` while the plan and ledger said `DONE`.
+  - LOW: the body of `server-tests.md` (Results, expected effect, the #2733 row) still carried pre-rebase figures; only the log corrected them.
+  - LOW: the `check_fn` tests (N2, N3) use `reqwest::Client::new()`, which honors a proxy in the environment.
+  - INFO: `routes.rs` keeps its own `DEADLINE` next to the shared `TEST_DEADLINE`; it predates the slice.
+- Verdict: REVIEW PASSED
+- Follow-up actions:
+  - The registration-failure test now asserts that the caller's token is cancelled (`test(axum-rest-api-server): [#2637] assert that a failed registration cancels the caller's token`); S8 and S8b are killed.
+  - The plan index, the plan body and the figures were refreshed in one documentation commit; the proxy note is recorded in the plan's review outcome.
+  - The `DEADLINE` of `routes.rs` is declined as out of scope (not touched by this slice).

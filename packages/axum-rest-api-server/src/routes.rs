@@ -177,7 +177,7 @@ mod tests {
     use uuid::Uuid;
 
     use super::{router, with_layers};
-    use crate::test_support::{api_container, read_body};
+    use crate::test_support::{api_container, read_body, within_deadline};
 
     const TOKEN: &str = "test-token";
     const DEADLINE: Duration = Duration::from_secs(5);
@@ -219,10 +219,13 @@ mod tests {
 
     /// Sends the request through the API router built for a default tracker.
     async fn through_the_router(request: Request<Body>) -> Received {
-        let container = api_container(&ephemeral()).await;
-        let router = router(&container, access_tokens(), &service_binding());
+        within_deadline(async {
+            let api = api_container(&ephemeral()).await;
+            let router = router(&api.container, access_tokens(), &service_binding());
 
-        into_received(router.oneshot(request).await.expect("the router never fails")).await
+            into_received(router.oneshot(request).await.expect("the router never fails")).await
+        })
+        .await
     }
 
     #[tokio::test]

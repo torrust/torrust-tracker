@@ -3,17 +3,21 @@
 //!
 //! This module is compiled only for unit tests and is not part of the public API. Code that other packages' tests
 //! use lives in [`crate::testing`] instead.
+use std::future::Future;
 use std::sync::Arc;
+use std::time::Duration;
 
 use axum::body::{Body, Bytes, to_bytes};
 use axum::http::StatusCode;
 use axum::http::header::CONTENT_TYPE;
 use axum::response::Response;
+use tempfile::TempDir;
 use torrust_clock::DurationSinceUnixEpoch;
 use torrust_metrics::label::LabelSet;
 use torrust_metrics::metric_collection::MetricCollection;
 use torrust_metrics::metric_name;
 use torrust_tracker_configuration::v3_0_0::Configuration;
+use torrust_tracker_configuration::v3_0_0::database::Database;
 use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
 use torrust_tracker_rest_api_protocol::v1::context::stats::resources::stats::{LabeledStats, Stats};
 use torrust_tracker_rest_api_runtime_adapter::v1::container::TrackerHttpApiCoreContainer;
@@ -73,12 +77,47 @@ pub async fn observed(response: Response) -> Observed {
     }
 }
 
-/// Builds the REST API container for a configuration, as the application does at startup.
+/// The absolute time that one test may spend awaiting I/O (container setup, a request and its body).
+pub const TEST_DEADLINE: Duration = Duration::from_secs(5);
+
+/// Awaits a future that does real I/O, failing the test instead of hanging it if the work does not finish within
+/// [`TEST_DEADLINE`].
 ///
 /// # Panics
 ///
-/// Panics if the configuration enables no HTTP tracker, no UDP tracker or no HTTP API.
-pub async fn api_container(configuration: &Configuration) -> Arc<TrackerHttpApiCoreContainer> {
+/// Panics if the future does not complete within the deadline.
+pub async fn within_deadline<T>(future: impl Future<Output = T>) -> T {
+    tokio::time::timeout(TEST_DEADLINE, future)
+        .await
+        .unwrap_or_else(|_| panic!("the awaited work finishes within the test deadline of {TEST_DEADLINE:?}"))
+}
+
+/// A REST API container together with the temporary directory that holds its SQLite database.
+///
+/// The container is declared first so it is dropped (and the database released) before the directory is removed, also
+/// when the test fails by panicking.
+pub struct TestApiContainer {
+    pub container: Arc<TrackerHttpApiCoreContainer>,
+    _database_directory: TempDir,
+}
+
+/// Builds the REST API container for a configuration, as the application does at startup.
+///
+/// A SQLite database of the configuration is moved into a temporary directory that the returned value removes when it
+/// is dropped, so a test run leaves no database file behind.
+///
+/// # Panics
+///
+/// Panics if the configuration enables no HTTP tracker, no UDP tracker or no HTTP API, or the temporary directory
+/// cannot be created.
+pub async fn api_container(configuration: &Configuration) -> TestApiContainer {
+    let database_directory = tempfile::tempdir().expect("a temporary directory can be created");
+    let mut configuration = configuration.clone();
+    if let Some(Database::Sqlite3 { path }) = configuration.core.database.as_mut() {
+        *path = database_directory.path().join("tracker.db").to_string_lossy().into_owned();
+    }
+    let configuration = &configuration;
+
     let core_config = Arc::new(configuration.core.clone());
     let http_tracker_config = Arc::new(
         configuration
@@ -103,7 +142,7 @@ pub async fn api_container(configuration: &Configuration) -> Arc<TrackerHttpApiC
             .expect("the configuration enables the HTTP API"),
     );
 
-    TrackerHttpApiCoreContainer::initialize(
+    let container = TrackerHttpApiCoreContainer::initialize(
         &core_config,
         &http_tracker_config,
         ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0),
@@ -112,7 +151,12 @@ pub async fn api_container(configuration: &Configuration) -> Arc<TrackerHttpApiC
         ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
         &http_api_config,
     )
-    .await
+    .await;
+
+    TestApiContainer {
+        container,
+        _database_directory: database_directory,
+    }
 }
 
 /// Statistics whose fields are all different (the value is the position of the field, from 1 to 32), so a field that a

@@ -84,7 +84,7 @@ mod tests {
     use tower::ServiceExt;
 
     use super::add;
-    use crate::test_support::{Observed, api_container, observed};
+    use crate::test_support::{Observed, api_container, observed, within_deadline};
 
     const KEY_PATH: &str = "/api/v1/key/60";
     const WHITELIST_RELOAD_PATH: &str = "/api/v1/whitelist/reload";
@@ -109,15 +109,18 @@ mod tests {
 
     /// Sends one request to the v1 routes composed for the configuration and returns what the client receives.
     async fn call(configuration: &Configuration, method: Method, uri: &str) -> Observed {
-        let container = api_container(configuration).await;
-        let router = add("/api", Router::new(), &container);
-        let request = Request::builder()
-            .method(method)
-            .uri(uri)
-            .body(Body::empty())
-            .expect("the request is well formed");
+        within_deadline(async {
+            let api = api_container(configuration).await;
+            let router = add("/api", Router::new(), &api.container);
+            let request = Request::builder()
+                .method(method)
+                .uri(uri)
+                .body(Body::empty())
+                .expect("the request is well formed");
 
-        observed(router.oneshot(request).await.expect("the router never fails")).await
+            observed(router.oneshot(request).await.expect("the router never fails")).await
+        })
+        .await
     }
 
     #[tokio::test]

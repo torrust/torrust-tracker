@@ -529,15 +529,12 @@ mod tests {
     use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
     use torrust_server_lib::registar::{Registar, RegistrationError, ServiceRegistration};
     use torrust_tracker_axum_server::signals::GracefulShutdownOutcome;
-    use torrust_tracker_axum_server::tls::make_rust_tls;
     use torrust_tracker_configuration::v3_0_0::{Configuration, logging};
     use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
-    use torrust_tracker_rest_api_runtime_adapter::v1::container::TrackerHttpApiCoreContainer;
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
 
-    use crate::server::{ApiServer, Error, Launcher, check_fn_with_client, health_check_url};
-
-    const TEST_COMPLETION_TIMEOUT: Duration = Duration::from_secs(5);
+    use crate::server::{ApiServer, CancellationRunning, Error, Launcher, check_fn, check_fn_with_client, health_check_url};
+    use crate::test_support::{TEST_DEADLINE, TestApiContainer, api_container, within_deadline};
 
     fn initialize_global_services(configuration: &Configuration) {
         initialize_static();
@@ -548,28 +545,48 @@ mod tests {
         torrust_clock::initialize_static();
     }
 
-    async fn api_container(configuration: &Configuration) -> Arc<TrackerHttpApiCoreContainer> {
-        let core_config = Arc::new(configuration.core.clone());
-        let http_tracker_config = configuration
-            .http_trackers
-            .clone()
-            .expect("missing HTTP tracker configuration");
-        let http_tracker_config = Arc::new(http_tracker_config[0].clone());
-        let udp_tracker_configurations = configuration.udp_trackers.clone().expect("missing UDP tracker configuration");
-        let udp_tracker_config = Arc::new(udp_tracker_configurations[0].clone());
-        let udp_tracker_server_config = configuration.udp_tracker_server.clone();
-        let http_api_config = Arc::new(configuration.http_api.clone().expect("missing HTTP API configuration"));
-
-        TrackerHttpApiCoreContainer::initialize(
-            &core_config,
-            &http_tracker_config,
-            ConfigurationInstanceId::new(ServiceRole::HttpTracker, 0),
-            &udp_tracker_config,
-            &udp_tracker_server_config,
-            ConfigurationInstanceId::new(ServiceRole::UdpTracker, 0),
-            &http_api_config,
+    /// Starts the plain token-aware REST API on the configured address and registers it in the given registar.
+    ///
+    /// The returned container owns the database directory and must live as long as the server runs.
+    async fn start_plain(
+        configuration: &Configuration,
+        registar: &Registar<RuntimeServiceMetadata>,
+        cancellation_token: &CancellationToken,
+    ) -> (TestApiContainer, CancellationRunning) {
+        let http_api_config = configuration.http_api.as_ref().expect("missing HTTP API configuration");
+        let api = within_deadline(api_container(configuration)).await;
+        let running = within_deadline(
+            ApiServer::new(Launcher::new(
+                http_api_config.bind_address,
+                None,
+                configuration.application.shutdown.http_drain(),
+            ))
+            .start_with_cancellation(
+                api.container.clone(),
+                registar.give_form(),
+                RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::RestApi, 0)),
+                Arc::new(http_api_config.access_tokens.clone()),
+                cancellation_token.clone(),
+            ),
         )
         .await
+        .expect("the token-aware REST API should start");
+
+        (api, running)
+    }
+
+    /// Cancels the token and joins the runtime task and the drain controller, each within the test deadline.
+    async fn stop(running: CancellationRunning, cancellation_token: &CancellationToken) {
+        cancellation_token.cancel();
+        tokio::time::timeout(TEST_DEADLINE, running.task)
+            .await
+            .expect("the REST API task should stop after token cancellation")
+            .expect("the REST API task should not panic")
+            .expect("the REST API task should stop without an error");
+        tokio::time::timeout(TEST_DEADLINE, running.shutdown_controller)
+            .await
+            .expect("the REST API drain controller should complete after token cancellation")
+            .expect("the REST API drain controller should not panic");
     }
 
     #[tokio::test]
@@ -581,30 +598,23 @@ mod tests {
 
         let bind_to = http_api_config.bind_address;
 
-        let tls = if let Some(tls_config) = &http_api_config.tls_config {
-            Some(make_rust_tls(tls_config).await.expect("tls config failed"))
-        } else {
-            None
-        };
-
         let access_tokens = Arc::new(http_api_config.access_tokens.clone());
 
-        let stopped = ApiServer::new(Launcher::new(bind_to, tls, cfg.application.shutdown.http_drain()));
+        let stopped = ApiServer::new(Launcher::new(bind_to, None, cfg.application.shutdown.http_drain()));
 
         let register = &Registar::<RuntimeServiceMetadata>::default();
 
-        let http_api_container = api_container(&cfg).await;
+        let api = within_deadline(api_container(&cfg)).await;
 
-        let started = stopped
-            .start(
-                http_api_container,
-                register.give_form(),
-                RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::RestApi, 0)),
-                access_tokens,
-            )
-            .await
-            .expect("it should start the server");
-        let stopped = started.stop().await.expect("it should stop the server");
+        let started = within_deadline(stopped.start(
+            api.container.clone(),
+            register.give_form(),
+            RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::RestApi, 0)),
+            access_tokens,
+        ))
+        .await
+        .expect("it should start the server");
+        let stopped = within_deadline(started.stop()).await.expect("it should stop the server");
 
         assert_eq!(stopped.state.launcher.bind_to, bind_to);
     }
@@ -616,29 +626,16 @@ mod tests {
         initialize_global_services(&configuration);
         let http_api_config = configuration.http_api.as_ref().expect("missing HTTP API configuration");
         let cancellation_token = CancellationToken::new();
-        let running = ApiServer::new(Launcher::new(
-            http_api_config.bind_address,
-            None,
-            configuration.application.shutdown.http_drain(),
-        ))
-        .start_with_cancellation(
-            api_container(&configuration).await,
-            Registar::default().give_form(),
-            RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::RestApi, 0)),
-            Arc::new(http_api_config.access_tokens.clone()),
-            cancellation_token.clone(),
-        )
-        .await
-        .expect("the token-aware REST API should start");
+        let (_api, running) = start_plain(&configuration, &Registar::default(), &cancellation_token).await;
 
         // Act
         cancellation_token.cancel();
-        let launcher = tokio::time::timeout(TEST_COMPLETION_TIMEOUT, running.task)
+        let launcher = tokio::time::timeout(TEST_DEADLINE, running.task)
             .await
             .expect("the REST API task should stop after token cancellation")
             .expect("the REST API task should not panic")
             .expect("the REST API task should stop without an error");
-        let drain_outcome = tokio::time::timeout(TEST_COMPLETION_TIMEOUT, running.shutdown_controller)
+        let drain_outcome = tokio::time::timeout(TEST_DEADLINE, running.shutdown_controller)
             .await
             .expect("the REST API drain controller should complete after token cancellation")
             .expect("the REST API drain controller should not panic");
@@ -659,21 +656,23 @@ mod tests {
         initialize_global_services(&configuration);
         let http_api_config = configuration.http_api.as_ref().expect("missing HTTP API configuration");
         let cancellation_token = CancellationToken::new();
-        let running = ApiServer::new(Launcher::new(http_api_config.bind_address, None, configured_drain_timeout))
-            .start_with_cancellation(
-                api_container(&configuration).await,
+        let api = within_deadline(api_container(&configuration)).await;
+        let running = within_deadline(
+            ApiServer::new(Launcher::new(http_api_config.bind_address, None, configured_drain_timeout)).start_with_cancellation(
+                api.container.clone(),
                 Registar::default().give_form(),
                 RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::RestApi, 0)),
                 Arc::new(http_api_config.access_tokens.clone()),
                 cancellation_token.clone(),
-            )
-            .await
-            .expect("the token-aware REST API should start");
+            ),
+        )
+        .await
+        .expect("the token-aware REST API should start");
         let mut held_connection = std::net::TcpStream::connect(running.local_addr).expect("open the connection to hold");
         std::io::Write::write_all(&mut held_connection, b"GET /api/health_check HTTP/1.1\r\nHost: tracker\r\n")
             .expect("send a partial request header");
         tokio::time::timeout(
-            TEST_COMPLETION_TIMEOUT,
+            TEST_DEADLINE,
             reqwest::get(format!("http://{}/api/health_check", running.local_addr)),
         )
         .await
@@ -682,7 +681,7 @@ mod tests {
 
         // Act
         cancellation_token.cancel();
-        let drain_outcome = tokio::time::timeout(TEST_COMPLETION_TIMEOUT, running.shutdown_controller)
+        let drain_outcome = tokio::time::timeout(TEST_DEADLINE, running.shutdown_controller)
             .await
             .expect("the drain should end by the configured timeout, not the default one")
             .expect("the REST API drain controller should not panic");
@@ -724,16 +723,21 @@ mod tests {
             .expect("reserve the REST API service registration");
         let http_api_config = configuration.http_api.as_ref().expect("missing HTTP API configuration");
 
+        let cancellation_token = CancellationToken::new();
+
         // Act
-        let result = ApiServer::new(Launcher::new(bind_to, None, configuration.application.shutdown.http_drain()))
-            .start_with_cancellation(
-                api_container(&configuration).await,
-                registar.give_form(),
-                RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::RestApi, 0)),
-                Arc::new(http_api_config.access_tokens.clone()),
-                CancellationToken::new(),
-            )
-            .await;
+        let api = within_deadline(api_container(&configuration)).await;
+        let result = within_deadline(
+            ApiServer::new(Launcher::new(bind_to, None, configuration.application.shutdown.http_drain()))
+                .start_with_cancellation(
+                    api.container.clone(),
+                    registar.give_form(),
+                    RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::RestApi, 0)),
+                    Arc::new(http_api_config.access_tokens.clone()),
+                    cancellation_token.clone(),
+                ),
+        )
+        .await;
 
         // Assert
         let binding = match result {
@@ -744,6 +748,10 @@ mod tests {
             Ok(_) => panic!("duplicate registration should fail"),
         };
         assert_eq!(binding.bind_address(), bind_to);
+        assert!(
+            cancellation_token.is_cancelled(),
+            "a failed registration should cancel the caller's token so the caller's other tasks stop too"
+        );
         TcpListener::bind(bind_to).expect("REST API listener should be released after token-aware registration failure");
     }
 
@@ -789,21 +797,24 @@ mod tests {
             .expect("the test certificate and key should load");
         let registar = Registar::<RuntimeServiceMetadata>::default();
         let cancellation_token = CancellationToken::new();
-        let running = ApiServer::new(Launcher::new(
-            http_api_config.bind_address,
-            Some(tls),
-            configuration.application.shutdown.http_drain(),
-        ))
-        .start_with_cancellation(
-            api_container(&configuration).await,
-            registar.give_form(),
-            RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::RestApi, 0)),
-            Arc::new(http_api_config.access_tokens.clone()),
-            cancellation_token.clone(),
+        let api = within_deadline(api_container(&configuration)).await;
+        let running = within_deadline(
+            ApiServer::new(Launcher::new(
+                http_api_config.bind_address,
+                Some(tls),
+                configuration.application.shutdown.http_drain(),
+            ))
+            .start_with_cancellation(
+                api.container.clone(),
+                registar.give_form(),
+                RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::RestApi, 0)),
+                Arc::new(http_api_config.access_tokens.clone()),
+                cancellation_token.clone(),
+            ),
         )
         .await
         .expect("the token-aware REST API should start with TLS");
-        let services = registar.services().await;
+        let services = within_deadline(registar.services()).await;
         let service_binding = services
             .first()
             .expect("the REST API should register one service")
@@ -815,16 +826,147 @@ mod tests {
             .expect("the client trusting the test certificate should build");
 
         // Act
-        let result = check_fn_with_client(service_binding, client)
-            .job
+        let result = within_deadline(check_fn_with_client(service_binding, client).job)
             .await
             .expect("the health check job should not panic");
 
         // Assert
         assert_eq!(result, Ok("200 OK".to_string()));
 
-        cancellation_token.cancel();
-        drop(tokio::time::timeout(TEST_COMPLETION_TIMEOUT, running.task).await);
+        stop(running, &cancellation_token).await;
+    }
+
+    #[tokio::test]
+    async fn it_should_fail_to_start_with_a_bind_error_when_the_address_is_already_in_use() {
+        // Arrange
+        let configuration = Arc::new(ephemeral_public());
+        initialize_global_services(&configuration);
+        let http_api_config = configuration.http_api.as_ref().expect("missing HTTP API configuration");
+        let occupying_listener = TcpListener::bind((Ipv4Addr::LOCALHOST, 0)).expect("select an address to occupy");
+        let occupied_address = occupying_listener.local_addr().expect("read the occupied address");
+        let api = within_deadline(api_container(&configuration)).await;
+
+        // Act
+        let result = within_deadline(
+            ApiServer::new(Launcher::new(
+                occupied_address,
+                None,
+                configuration.application.shutdown.http_drain(),
+            ))
+            .start_with_cancellation(
+                api.container.clone(),
+                Registar::default().give_form(),
+                RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::RestApi, 0)),
+                Arc::new(http_api_config.access_tokens.clone()),
+                CancellationToken::new(),
+            ),
+        )
+        .await;
+
+        // Assert
+        let kind = match result {
+            Err(Error::Bind { source }) => source.kind(),
+            Err(error) => panic!("an occupied address should be a bind error: {error}"),
+            Ok(_) => panic!("an occupied address should not start the server"),
+        };
+        assert_eq!(kind, std::io::ErrorKind::AddrInUse);
+        drop(occupying_listener);
+    }
+
+    #[tokio::test]
+    async fn it_should_register_the_plain_rest_api_with_an_http_binding_on_the_address_it_serves() {
+        // Arrange
+        let configuration = ephemeral_public();
+        initialize_global_services(&configuration);
+        let registar = Registar::<RuntimeServiceMetadata>::default();
+        let cancellation_token = CancellationToken::new();
+
+        // Act
+        let (_api, running) = start_plain(&configuration, &registar, &cancellation_token).await;
+        let services = within_deadline(registar.services()).await;
+
+        // Assert
+        let binding = services
+            .first()
+            .expect("the REST API should register one service")
+            .service_binding();
+        assert_eq!(
+            (services.len(), binding.protocol(), binding.bind_address()),
+            (1, Protocol::HTTP, running.local_addr)
+        );
+
+        stop(running, &cancellation_token).await;
+    }
+
+    #[tokio::test]
+    async fn it_should_report_a_plain_rest_api_as_healthy_with_the_default_health_check() {
+        // Arrange
+        let configuration = ephemeral_public();
+        initialize_global_services(&configuration);
+        let registar = Registar::<RuntimeServiceMetadata>::default();
+        let cancellation_token = CancellationToken::new();
+        let (_api, running) = start_plain(&configuration, &registar, &cancellation_token).await;
+        let services = within_deadline(registar.services()).await;
+        let service_binding = services
+            .first()
+            .expect("the REST API should register one service")
+            .service_binding();
+        let expected_info = format!("checking api health check at: http://{}/api/health_check", running.local_addr); // DevSkim: ignore DS137138
+
+        // Act
+        let job = check_fn(service_binding);
+        let info = job.info.clone();
+        let result = within_deadline(job.job).await.expect("the health check job should not panic");
+
+        // Assert
+        assert_eq!((info, result), (expected_info, Ok("200 OK".to_string())));
+
+        stop(running, &cancellation_token).await;
+    }
+
+    #[tokio::test]
+    async fn it_should_report_an_error_with_the_checked_url_when_nothing_listens_on_the_checked_address() {
+        // Arrange
+        let free_listener = TcpListener::bind((Ipv4Addr::LOCALHOST, 0)).expect("select a free address");
+        let dead_address = free_listener.local_addr().expect("read the free address");
+        drop(free_listener);
+        let service_binding = ServiceBinding::new(Protocol::HTTP, dead_address).expect("service binding should be valid");
+
+        // Act
+        let result = within_deadline(check_fn(&service_binding).job)
+            .await
+            .expect("the health check job should not panic");
+
+        // Assert
+        let message = result.expect_err("a dead address should fail the health check");
+        assert!(
+            message.contains(&format!("{dead_address}/api/health_check")),
+            "the error should name the checked URL, got: {message}"
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_display_the_launcher_with_its_socket_and_whether_it_uses_tls() {
+        // Arrange
+        install_rustls_crypto_provider();
+        let address = SocketAddr::from((Ipv4Addr::LOCALHOST, 1212));
+        let tls = RustlsConfig::from_pem(TEST_CERTIFICATE.to_vec(), TEST_KEY.to_vec())
+            .await
+            .expect("the test certificate and key should load");
+        let with_tls = Launcher::new(address, Some(tls), Duration::from_secs(1));
+        let without_tls = Launcher::new(address, None, Duration::from_secs(1));
+
+        // Act
+        let displayed = (with_tls.to_string(), without_tls.to_string());
+
+        // Assert
+        assert_eq!(
+            displayed,
+            (
+                "(with socket): 127.0.0.1:1212, using TLS".to_string(),
+                "(with socket): 127.0.0.1:1212, without TLS".to_string()
+            )
+        );
     }
 
     /// Serves a canned HTTP response to one connection on a local port, then stops and returns its address.
