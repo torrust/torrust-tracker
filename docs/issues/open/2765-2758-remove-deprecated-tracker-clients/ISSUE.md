@@ -57,7 +57,7 @@ Files this issue may touch (a sibling issue in the same wave must not touch them
 - `console/tracker-client/README.md`
 - `console/tracker-client/tests/tracker_checker*`
 - `docs/packages.md`
-- share/default/config/tracker_checker.json (if only used by the old binary)
+- `share/default/config/tracker_checker.json` (if only used by the old binary)
 
 ## Architectural Decisions
 

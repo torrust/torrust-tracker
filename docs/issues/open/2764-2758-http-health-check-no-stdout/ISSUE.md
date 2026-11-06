@@ -53,8 +53,8 @@ The global CLI output contract (`docs/adrs/20260519000000_define_global_cli_outp
 
 Files this issue may touch (a sibling issue in the same wave must not touch them):
 
-- src/bin/http_health_check.rs (and its tests)
-- Containerfile (verify only; edit only if the command line must change)
+- `src/bin/http_health_check.rs` (and its tests)
+- `Containerfile` (verify only; edit only if the command line must change)
 
 ## Architectural Decisions
 

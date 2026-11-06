@@ -54,10 +54,11 @@ The global CLI output contract (`docs/adrs/20260519000000_define_global_cli_outp
 Files this issue may touch (a sibling issue in the same wave must not touch them):
 
 - `packages/configuration/src/logging.rs`
-- packages/configuration/src/v3_0_0/logging.rs (and v2_0_0 if still supported)
+- `packages/configuration/src/v3_0_0/logging.rs` (and v2_0_0 if still supported)
 - `src/main.rs`
 - `src/console/ci/e2e/logs_parser.rs`
-- `share/default/config/**, docs that show the log format`
+- `share/default/config/**`
+- the docs that show the log format
 
 ## Architectural Decisions
 

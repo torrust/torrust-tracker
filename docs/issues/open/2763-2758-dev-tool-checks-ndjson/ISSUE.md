@@ -53,7 +53,7 @@ The global CLI output contract (`docs/adrs/20260519000000_define_global_cli_outp
 Files this issue may touch (a sibling issue in the same wave must not touch them):
 
 - `contrib/dev-tools/checks/agent-review-report-contract/**`
-- contrib/dev-tools/checks/frontmatter-validator/src/bin/frontmatter-schema.rs (and its tests)
+- `contrib/dev-tools/checks/frontmatter-validator/src/bin/frontmatter-schema.rs` (and its tests)
 - `contrib/dev-tools/analysis/workspace-coupling/**`
 
 ## Architectural Decisions
