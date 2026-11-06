@@ -9,7 +9,7 @@ github-issue: 2637
 spec-path: docs/issues/open/2637-1347-add-tests-axum-rest-api-server/ISSUE.md
 branch: "2637-1347-add-tests-axum-rest-api-server-final"
 related-pr: null
-last-updated-utc: "2026-11-06 10:39"
+last-updated-utc: "2026-11-06 11:13"
 semantic-links:
   skill-links:
     - create-issue
@@ -552,8 +552,8 @@ declaration-only rows have no executable entries.
 | 16 | `v1/context/stats/responses.rs` | 5 | S4 | 0 / 45 (0.00%) | 0 | Test candidate | DONE | [v1-context-stats-responses-tests.md](test-refactor-plans/v1-context-stats-responses-tests.md) (done; 155 / 155 lines after and now asserted, 4 tests, 10 mutants killed) |
 | 17 | `v1/context/stats/routes.rs` | 5 | S4 | 9 / 9 (100.00%) | 0 | Probably no change | DONE | [v1-context-stats-routes-tests.md](test-refactor-plans/v1-context-stats-routes-tests.md) (done: no change; 9 / 9 lines, 4 mutants killed by existing tests) |
 | 18 | `server.rs` | 6 | S5 | 403 / 458 (87.99%) | 3 | Test candidate (TLS, errors, `check_fn`); legacy path owned by #1488 | DONE | [plan](test-refactor-plans/server-tests.md) |
-| 19 | `testing/environment.rs` | 7 | S6 | 301 / 332 (90.66%) | 8 | Out of scope (test support; #2482, #2449) | PENDING | - |
-| 20 | `testing/mod.rs` | 7 | S6 | No executable entries | 0 | Out of scope (test support) | PENDING | - |
+| 19 | `testing/environment.rs` | 7 | S6 | 301 / 332 (90.66%) | 8 | Out of scope (test support; #2482, #2449) | DONE | [plan](test-refactor-plans/testing-support-tests.md) |
+| 20 | `testing/mod.rs` | 7 | S6 | No executable entries | 0 | Out of scope (test support) | DONE | [plan](test-refactor-plans/testing-support-tests.md) |
 | 21 | `lib.rs` | 8 | S6 | No executable entries | 0 | Wiring only | PENDING | - |
 | 22 | `v1/mod.rs` | 8 | S6 | No executable entries | 0 | Wiring only | PENDING | - |
 | 23 | `v1/context/mod.rs` | 8 | S6 | No executable entries | 0 | Wiring only | PENDING | - |
@@ -743,6 +743,7 @@ once. If the slicing changes, the Slice column changes with it.
 - 2026-11-06 09:06 UTC - Claude Code (Sonnet 5.5) - Pre-push passed and S5 pull request #2744 (<https://github.com/torrust/torrust-tracker/pull/2744>, `Related to #2637`) was opened, as `josecelano-bot` from its fork; recorded it in the frontmatter, the slice table and the EPIC row.
 - 2026-11-06 10:31 UTC - Claude Code (Sonnet 5.5) - S5 merged through #2744 (2026-11-06 10:26 UTC; Copilot's one finding was fixed and its thread resolved before the merge, and no late review exists). Started S6 on branch `2637-1347-add-tests-axum-rest-api-server-final` from `develop` at the merge of #2744. The package and its `rest-api-*` collaborators are unchanged since the S5 head, so the S5 final re-measurement is the S6 baseline (unit-only lines 2,324 / 2,403, 96.71%; aggregate 2,348 / 2,403, 97.71%). Ledger rows 19-31 are next (decide and record the out-of-scope and wiring-only files, the `lib.rs` documentation fix of `tsl_config`), then T5-T8; the first plan awaits the maintainer.
 - 2026-11-06 10:39 UTC - Claude Code (Sonnet 5.5) - Drafted the S6 plans for rows 19-31, all proposing no new test and waiting for the maintainer's approval: `testing-support-tests.md` (rows 19-20, out of scope, owned by #2482 and #2449), `lib-tests.md` (row 21, plus the `tsl_config` to `tls_config` documentation fix in three places) and `wiring-modules-tests.md` (rows 22-31). Evidence gathered: 23 of the 25 `pub mod` declarations of rows 22-29 break the build when removed; the two survivors are the empty documentation modules `torrent/resources` and `resources/torrent`, which no package imports (a clean-up candidate, not a #2637 change). `Version` in `lib.rs` has no consumer.
+- 2026-11-06 11:13 UTC - Claude Code (Sonnet 5.5) - Rows 19 (`testing/environment.rs`) and 20 (`testing/mod.rs`) are `DONE` with an out-of-scope decision, approved by the maintainer with the S6 plans on 2026-11-06: test support owned by #2482 and #2449 is not tested here; no test, no mutation and no change.
 
 ## Acceptance Criteria
 

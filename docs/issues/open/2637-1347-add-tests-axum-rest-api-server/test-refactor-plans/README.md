@@ -43,7 +43,7 @@ approves it. A group of declaration-only files may share one plan.
 | 16 | [v1-context-stats-responses-tests.md](v1-context-stats-responses-tests.md) | DONE | Directed 2026-11-04 (pin the text, investigate the boolean line apart); completed file approved 2026-11-04 |
 | 17 | [v1-context-stats-routes-tests.md](v1-context-stats-routes-tests.md) | DONE | No-change decision approved 2026-11-04 |
 | 18 | [server-tests.md](server-tests.md) | DONE | Approved 2026-11-06; completed file approved 2026-11-06 |
-| 19-20 | [testing-support-tests.md](testing-support-tests.md) | PROPOSED | Out-of-scope decision for `testing/environment.rs` and `testing/mod.rs`; waiting for the maintainer's approval |
+| 19-20 | [testing-support-tests.md](testing-support-tests.md) | DONE | Approved 2026-11-06 |
 | 21 | [lib-tests.md](lib-tests.md) | PROPOSED | No new test, and the `tsl_config` to `tls_config` documentation fix; waiting for the maintainer's approval |
 | 22-31 | [wiring-modules-tests.md](wiring-modules-tests.md) | PROPOSED | One plan for the declaration-only group; no test; waiting for the maintainer's approval |
 

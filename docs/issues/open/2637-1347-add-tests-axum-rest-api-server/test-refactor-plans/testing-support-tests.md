@@ -3,7 +3,7 @@ doc-type: file-test-plan
 issue: 2637
 package: torrust-tracker-axum-rest-api-server
 target-file: packages/axum-rest-api-server/src/testing/
-status: proposed
+status: done
 semantic-links:
   related-artifacts:
     - packages/axum-rest-api-server/src/testing/environment.rs
@@ -16,7 +16,7 @@ semantic-links:
 
 Follow the shared [guidance](README.md). This plan covers ledger rows 19 (`testing/environment.rs`) and 20
 (`testing/mod.rs`), the two files that are test support, not production behavior. It is one plan for the pair because the
-decision is the same and no test is proposed. Status: proposed, waiting for the maintainer's approval.
+decision is the same and no test is proposed. Status: done; the maintainer approved the plan on 2026-11-06.
 
 ## Current State
 
@@ -59,7 +59,7 @@ None.
 | R1 | SKIPPED | No tests to refactor under this decision. | None. |
 | R2 | SKIPPED | No tests added. | None. |
 | R3 | SKIPPED | Integration increment: `none`. | None. |
-| R4 | TODO | Record the figures at the slice close. | `coverage-evidence.md`. |
+| R4 | DONE | Record the figures at the slice close. | `coverage-evidence.md`. |
 
 ## Prose-First AAA Review
 
@@ -67,8 +67,9 @@ No test is added or changed.
 
 ## Results
 
-To be filled when the maintainer approves the decision.
+The maintainer approved the out-of-scope decision on 2026-11-06: no test, no mutation, no change of the two files. `testing/environment.rs` stays at 301 / 332 unit-only lines (S6 baseline) and `testing/mod.rs` has no executable entry. The decision stays valid if #2745 (gating behind a `testing` feature) lands; the figures are re-measured at the slice close.
 
 ## Progress Log
 
 - 2026-11-06 10:39 UTC - Claude Code - Plan drafted; waiting for the maintainer's approval.
+- 2026-11-06 11:13 UTC - Claude Code - Plan approved by the maintainer; decision recorded, rows `DONE`.
