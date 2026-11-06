@@ -1,7 +1,7 @@
 ---
 pr-number: 2748
 pr-url: https://github.com/torrust/torrust-tracker/pull/2748
-last-updated-utc: "2026-11-06 13:43"
+last-updated-utc: "2026-11-06 14:14"
 ---
 
 # PR #2748 Review Audit
@@ -28,7 +28,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-One row per independent concern from Copilot's reviews of this pull request (round 1: reviews 5799093230 and 5799313195).
+One row per independent concern from Copilot's reviews of this pull request (round 1: reviews 5799093230 and 5799313195; round 2: review 5801235274).
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -36,6 +36,8 @@ One row per independent concern from Copilot's reviews of this pull request (rou
 | F2 | review-finding:pr-2748-f2 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 | F3 | review-finding:pr-2748-f3 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
 | F4 | review-finding:pr-2748-f4 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
+| F5 | review-finding:pr-2748-f5 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F6 | review-finding:pr-2748-f6 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -91,9 +93,36 @@ One row per independent concern from Copilot's reviews of this pull request (rou
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2748#discussion_r4493022682
 
+### F5 - Non-canonical severity labels in the audit
+
+- PR number: 2748
+- Source review ID: 5801235274
+- Reviewer finding ID: F5
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2748#discussion_r4493281564
+- Concern: The audit used `Medium` and `Low`, which are outside the severity vocabulary; the source comments state no severity, so the canonical level must be marked inferred.
+- Solution: Valid. F1 is `Major (inferred)` and F2 to F4 are `Minor (inferred)`.
+- Current-tree verification: `grep -n "^| F" docs/pr-reviews/pr-2748-review/PR-REVIEW.md` shows only canonical labels.
+- Resolution reference: docs(pr-reviews): [#2715] use canonical severity labels in the PR 2748 audit
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2748#discussion_r4493304493
+
+### F6 - Summary JSON requirement left open
+
+- PR number: 2748
+- Source review ID: 5801235274
+- Reviewer finding ID: F6
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2748#discussion_r4493281446
+- Concern: The ADR left open whether `package-coverage-check summary` must emit JSON, which contradicts its `stdout-result-data` class.
+- Solution: Valid. The ADR now requires one JSON result, with the Markdown report carried inside it and extracted by the workflow, and records no exception.
+- Current-tree verification: Read the `package-coverage-check` bullet in section 3 of the ADR.
+- Resolution reference: docs(adrs): [#2715] require the package-coverage-check summary to be a JSON result
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2748#discussion_r4493304043
+
 ## Processing Log
 
 - 2026-11-06 13:43 UTC - Started audit; round 1 (Copilot reviews 5799093230 and 5799313195) processed: F1 to F4 fixed in the four commits cited above, pushed, and replied. The review loop should have started right after the PR was opened; it started when the maintainer asked.
+- 2026-11-06 14:14 UTC - Round 2 (Copilot review 5801235274, poller result at 14:09 UTC) processed: F5 and F6 fixed in the two commits cited above, pushed, replied and resolved; zero unresolved threads after refreshing GraphQL.
 
 ## Completion Rules
 
