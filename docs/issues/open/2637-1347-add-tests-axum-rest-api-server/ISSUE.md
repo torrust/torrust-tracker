@@ -9,7 +9,7 @@ github-issue: 2637
 spec-path: docs/issues/open/2637-1347-add-tests-axum-rest-api-server/ISSUE.md
 branch: "2637-1347-add-tests-axum-rest-api-server-final"
 related-pr: null
-last-updated-utc: "2026-11-06 11:15"
+last-updated-utc: "2026-11-06 11:17"
 semantic-links:
   skill-links:
     - create-issue
@@ -555,16 +555,16 @@ declaration-only rows have no executable entries.
 | 19 | `testing/environment.rs` | 7 | S6 | 301 / 332 (90.66%) | 8 | Out of scope (test support; #2482, #2449) | DONE | [plan](test-refactor-plans/testing-support-tests.md) |
 | 20 | `testing/mod.rs` | 7 | S6 | No executable entries | 0 | Out of scope (test support) | DONE | [plan](test-refactor-plans/testing-support-tests.md) |
 | 21 | `lib.rs` | 8 | S6 | No executable entries | 0 | Wiring only | DONE | [plan](test-refactor-plans/lib-tests.md) |
-| 22 | `v1/mod.rs` | 8 | S6 | No executable entries | 0 | Wiring only | PENDING | - |
-| 23 | `v1/context/mod.rs` | 8 | S6 | No executable entries | 0 | Wiring only | PENDING | - |
-| 24 | `v1/middlewares/mod.rs` | 8 | S6 | No executable entries | 0 | Wiring only | PENDING | - |
-| 25 | `v1/context/auth_key/mod.rs` | 8 | S6 | No executable entries | 0 | Wiring only | PENDING | - |
-| 26 | `v1/context/health_check/mod.rs` | 8 | S6 | No executable entries | 0 | Wiring only | PENDING | - |
-| 27 | `v1/context/stats/mod.rs` | 8 | S6 | No executable entries | 0 | Wiring only | PENDING | - |
-| 28 | `v1/context/torrent/mod.rs` | 8 | S6 | No executable entries | 0 | Wiring only | PENDING | - |
-| 29 | `v1/context/torrent/resources/mod.rs` | 8 | S6 | No executable entries | 0 | Wiring only | PENDING | - |
-| 30 | `v1/context/torrent/resources/torrent.rs` | 8 | S6 | No executable entries | 0 | Wiring only | PENDING | - |
-| 31 | `v1/context/whitelist/mod.rs` | 8 | S6 | No executable entries | 0 | Wiring only | PENDING | - |
+| 22 | `v1/mod.rs` | 8 | S6 | No executable entries | 0 | Wiring only | DONE | [plan](test-refactor-plans/wiring-modules-tests.md) |
+| 23 | `v1/context/mod.rs` | 8 | S6 | No executable entries | 0 | Wiring only | DONE | [plan](test-refactor-plans/wiring-modules-tests.md) |
+| 24 | `v1/middlewares/mod.rs` | 8 | S6 | No executable entries | 0 | Wiring only | DONE | [plan](test-refactor-plans/wiring-modules-tests.md) |
+| 25 | `v1/context/auth_key/mod.rs` | 8 | S6 | No executable entries | 0 | Wiring only | DONE | [plan](test-refactor-plans/wiring-modules-tests.md) |
+| 26 | `v1/context/health_check/mod.rs` | 8 | S6 | No executable entries | 0 | Wiring only | DONE | [plan](test-refactor-plans/wiring-modules-tests.md) |
+| 27 | `v1/context/stats/mod.rs` | 8 | S6 | No executable entries | 0 | Wiring only | DONE | [plan](test-refactor-plans/wiring-modules-tests.md) |
+| 28 | `v1/context/torrent/mod.rs` | 8 | S6 | No executable entries | 0 | Wiring only | DONE | [plan](test-refactor-plans/wiring-modules-tests.md) |
+| 29 | `v1/context/torrent/resources/mod.rs` | 8 | S6 | No executable entries | 0 | Wiring only | DONE | [plan](test-refactor-plans/wiring-modules-tests.md) |
+| 30 | `v1/context/torrent/resources/torrent.rs` | 8 | S6 | No executable entries | 0 | Wiring only | DONE | [plan](test-refactor-plans/wiring-modules-tests.md) |
+| 31 | `v1/context/whitelist/mod.rs` | 8 | S6 | No executable entries | 0 | Wiring only | DONE | [plan](test-refactor-plans/wiring-modules-tests.md) |
 
 The 31 rows are every `.rs` file under `packages/axum-rest-api-server/src/` (`git ls-files`), each
 once. If the slicing changes, the Slice column changes with it.
@@ -745,6 +745,7 @@ once. If the slicing changes, the Slice column changes with it.
 - 2026-11-06 10:39 UTC - Claude Code (Sonnet 5.5) - Drafted the S6 plans for rows 19-31, all proposing no new test and waiting for the maintainer's approval: `testing-support-tests.md` (rows 19-20, out of scope, owned by #2482 and #2449), `lib-tests.md` (row 21, plus the `tsl_config` to `tls_config` documentation fix in three places) and `wiring-modules-tests.md` (rows 22-31). Evidence gathered: 23 of the 25 `pub mod` declarations of rows 22-29 break the build when removed; the two survivors are the empty documentation modules `torrent/resources` and `resources/torrent`, which no package imports (a clean-up candidate, not a #2637 change). `Version` in `lib.rs` has no consumer.
 - 2026-11-06 11:13 UTC - Claude Code (Sonnet 5.5) - Rows 19 (`testing/environment.rs`) and 20 (`testing/mod.rs`) are `DONE` with an out-of-scope decision, approved by the maintainer with the S6 plans on 2026-11-06: test support owned by #2482 and #2449 is not tested here; no test, no mutation and no change.
 - 2026-11-06 11:15 UTC - Claude Code (Sonnet 5.5) - Row 21 (`lib.rs`) is `DONE`: the maintainer approved the plan on 2026-11-06. No test; the crate documentation now spells `tls_config` in the three places (the corrected example parses into the v3 `HttpApi`, the old spelling is rejected). Mutation L1 (`API_LOG_TARGET`) was wrongly expected to survive: 21 integration tests assert the `API` log target, so it is pinned there; L2 does not compile; L3 (`Version`) survives because `Version` has no consumer. Production documentation only; no code changed.
+- 2026-11-06 11:17 UTC - Claude Code (Sonnet 5.5) - Rows 22-31 (the wiring-only files) are `DONE` with a no-change decision, approved by the maintainer with the S6 plans on 2026-11-06: no test. The declaration mutations were run again: 23 of the 25 `pub mod` removals break the build; the two survivors are the empty modules `torrent/resources` and `resources/torrent`, recorded in `lessons.md` as a clean-up candidate. All thirteen S6 ledger rows (19-31) are `DONE`.
 
 ## Acceptance Criteria
 

@@ -3,7 +3,7 @@ doc-type: file-test-plan
 issue: 2637
 package: torrust-tracker-axum-rest-api-server
 target-file: packages/axum-rest-api-server/src/v1/ (module declaration files)
-status: proposed
+status: done
 semantic-links:
   related-artifacts:
     - packages/axum-rest-api-server/src/v1/mod.rs
@@ -65,7 +65,7 @@ None.
 | R1 | SKIPPED | No tests to refactor. | None. |
 | R2 | SKIPPED | No tests added. | None. |
 | R3 | SKIPPED | Integration increment: `none`. | None. |
-| R4 | TODO | Re-run the declaration mutations; record the rows `DONE` with the decision and the clean-up candidate in `lessons.md`. | `coverage-evidence.md`, `lessons.md`. |
+| R4 | DONE | Re-run the declaration mutations; record the rows `DONE` with the decision and the clean-up candidate in `lessons.md`. | `coverage-evidence.md`, `lessons.md`. |
 
 ## Prose-First AAA Review
 
@@ -73,8 +73,9 @@ No test is added or changed.
 
 ## Results
 
-To be filled after approval.
+The maintainer approved the plan on 2026-11-06 (no test). The declaration mutations were run again on the S6 branch (`cargo check -p torrust-tracker-axum-rest-api-server --all-targets` after deleting one `pub mod` line at a time, each file restored afterwards): 23 of 25 removals break the build, and the two survivors are `pub mod resources;` in `torrent/mod.rs` and `pub mod torrent;` in `resources/mod.rs`, the empty documentation modules. `torrent/resources/torrent.rs` has no declaration to remove. The clean-up candidate is in `lessons.md`.
 
 ## Progress Log
 
 - 2026-11-06 10:39 UTC - Claude Code - Plan drafted; waiting for the maintainer's approval.
+- 2026-11-06 11:17 UTC - Claude Code - Plan approved by the maintainer; decision recorded, rows `DONE`.

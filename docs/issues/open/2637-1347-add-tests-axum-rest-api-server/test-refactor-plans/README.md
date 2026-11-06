@@ -45,7 +45,7 @@ approves it. A group of declaration-only files may share one plan.
 | 18 | [server-tests.md](server-tests.md) | DONE | Approved 2026-11-06; completed file approved 2026-11-06 |
 | 19-20 | [testing-support-tests.md](testing-support-tests.md) | DONE | Approved 2026-11-06 |
 | 21 | [lib-tests.md](lib-tests.md) | DONE | Approved 2026-11-06 |
-| 22-31 | [wiring-modules-tests.md](wiring-modules-tests.md) | PROPOSED | One plan for the declaration-only group; no test; waiting for the maintainer's approval |
+| 22-31 | [wiring-modules-tests.md](wiring-modules-tests.md) | DONE | Approved 2026-11-06 |
 
 Add a row when a plan is created; the remaining files and their order are in the ledger.
 
