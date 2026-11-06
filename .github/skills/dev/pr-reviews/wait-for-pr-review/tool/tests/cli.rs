@@ -20,6 +20,7 @@ case "$*" in
   "auth status")
     if [ -f "$dir/auth-fails" ]; then echo "You are not logged in" >&2; exit 1; fi
     if [ -f "$dir/auth-hangs" ]; then sleep 30; fi
+    if [ -f "$dir/auth-leaves-pipe-open" ]; then (sleep 20 &); fi
     exit 0 ;;
   "api repos/torrust/torrust-tracker/pulls/7")
     if [ -f "$dir/api-fails" ]; then echo "HTTP 502" >&2; exit 1; fi
@@ -452,5 +453,47 @@ fn it_should_not_wait_for_a_hung_gh_call_when_a_signal_arrives() {
     assert!(
         started.elapsed() < Duration::from_secs(10),
         "the hung gh call should be killed, not awaited"
+    );
+}
+
+/// How long the fake `gh` of the pipe scenarios lets its detached descendant live. The tests must end
+/// well before it, so a poller that waits for the descendant fails them.
+const DESCENDANT_LIFETIME: Duration = Duration::from_secs(20);
+
+#[test]
+fn it_should_end_at_the_deadline_when_gh_exits_but_a_descendant_keeps_its_pipes_open() {
+    let sandbox = Sandbox::with_pull(OPEN_PULL);
+    sandbox.flag("auth-leaves-pipe-open");
+    let started = Instant::now();
+
+    let output = sandbox.run(&["--pr-number", "7", "--timeout-seconds", "2"]);
+
+    assert_eq!(output.status.code(), Some(1));
+    assert_eq!(output.stdout, b"");
+    assert_eq!(kinds(&output).last().map(String::as_str), Some("deadline_exceeded"));
+    assert!(
+        started.elapsed() < DESCENDANT_LIFETIME / 2,
+        "the wait for the readers must be bounded by the deadline, not by the descendant"
+    );
+}
+
+#[test]
+fn it_should_stop_on_sigterm_when_gh_exits_but_a_descendant_keeps_its_pipes_open() {
+    let sandbox = Sandbox::with_pull(OPEN_PULL);
+    sandbox.flag("auth-leaves-pipe-open");
+    let (child, stderr) = start_and_wait_until_running(&sandbox, &["--pr-number", "7", "--timeout-seconds", "900"]);
+    // Let the poller reach the point where `gh` has exited and only the descendant is left.
+    std::thread::sleep(Duration::from_millis(500));
+    let started = Instant::now();
+
+    send("-TERM", &child);
+    let (code, stdout, rest) = finish(child, stderr);
+
+    assert_eq!(code, Some(1));
+    assert_eq!(stdout, "");
+    assert_eq!(json(rest.trim().as_bytes())["kind"], "interrupted");
+    assert!(
+        started.elapsed() < DESCENDANT_LIFETIME / 2,
+        "the signal must end the wait for the readers promptly"
     );
 }

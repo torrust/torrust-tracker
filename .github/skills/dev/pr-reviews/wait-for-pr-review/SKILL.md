@@ -114,7 +114,9 @@ On exit `1`, read the `message` of the last stderr record. A signal (`SIGINT` or
 poller and any `gh` call in flight and reports `interrupted`.
 
 The `--timeout-seconds` budget is a hard bound. No request starts once it is spent, and a `gh` call
-still running at that moment is killed. If that happens after the first look at the pull request, the
+still running at that moment is killed. The bound also covers reading the output of a `gh` call that has
+already exited: if a process `gh` started still holds its output pipes open when the budget ends or a signal
+arrives, the call fails with `deadline_exceeded` or `interrupted` and no partial output is used. If that happens after the first look at the pull request, the
 result is `timeout` (exit `0`). If it happens before, nothing was observed, so it is a
 `deadline_exceeded` failure (exit `1`), not a `timeout` that would suggest a quiet pull request. The
 last look is taken one poll interval or less before the budget ends, so rerun with `--since-head-sha`

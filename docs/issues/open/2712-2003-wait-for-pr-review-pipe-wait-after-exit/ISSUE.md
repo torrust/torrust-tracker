@@ -162,11 +162,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                                                 | Notes / Expected Output                                                    |
 | --- | ------ | -------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| T1  | TODO   | Add the deadline integration test and run it red                     | Red output recorded in `manual-verification-evidence.md`.                  |
-| T2  | TODO   | Add the signal integration test and run it red                       | Red output recorded.                                                       |
-| T3  | TODO   | Bound the reader wait on the success path by the deadline and signal | One collection routine used by both paths, or a recorded reason it is not. |
-| T4  | TODO   | Run the tests green, then repeat V1 on the final build               | Green output and the recheck recorded, naming the commit subject it ran on.|
-| T5  | TODO   | Update the skill and the #2581 spec text that describe this behavior | Links and wording only where the behavior changed.                         |
+| T1  | DONE   | Add the deadline integration test and run it red                     | Red output recorded in `manual-verification-evidence.md`.                  |
+| T2  | DONE   | Add the signal integration test and run it red                       | Red output recorded.                                                       |
+| T3  | DONE   | Bound the reader wait on the success path by the deadline and signal | One collection routine used by both paths, or a recorded reason it is not. |
+| T4  | DONE   | Run the tests green, then repeat V1 on the final build               | Green output and the recheck recorded, naming the commit subject it ran on.|
+| T5  | DONE   | Update the skill and the #2581 spec text that describe this behavior | Links and wording only where the behavior changed.                         |
 
 ## Commit Points
 
@@ -227,7 +227,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID | Scenario                                                | Human-oriented command/steps                                                                                   | Expected Result                                                                  | Status | Evidence                                     |
 | -- | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ------ | -------------------------------------------- |
 | M1 | A descendant holds the pipes after `gh` exits (before)  | `evidence/fake-gh-leaves-pipe-open.sh` as `gh` on `PATH`, `wait-for-pr-review --pr-number 7 --timeout-seconds 3` | The run takes about 25 s instead of 3 s                                          | DONE   | `manual-verification-evidence.md` section V1 |
-| M2 | The same, after the fix                                 | The same command on the final build                                                                            | Ends at about 3 s with `deadline_exceeded` and exit `1`; `SIGTERM` at 3 s ends it at about 3 s | TODO   | `manual-verification-evidence.md` section V2 |
+| M2 | The same, after the fix                                 | The same command on the final build                                                                            | Ends at about 3 s with `deadline_exceeded` and exit `1`; `SIGTERM` at 3 s ends it at about 3 s | DONE   | `manual-verification-evidence.md` section V2 |
 
 Every recorded command result names the toolchain that produced it.
 
@@ -244,9 +244,9 @@ It is shell, not Python.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1   | TODO                   |          |
-| AC2   | TODO                   |          |
-| AC3   | TODO                   |          |
+| AC1   | DONE                   | Test `it_should_end_at_the_deadline_when_gh_exits_but_a_descendant_keeps_its_pipes_open`; V2 run 1 |
+| AC2   | DONE                   | Test `it_should_stop_on_sigterm_when_gh_exits_but_a_descendant_keeps_its_pipes_open`; V2 run 2 (SIGINT shares the flag, covered by the unit test of `collect`) |
+| AC3   | DONE                   | Existing `tests/cli.rs` scenarios and `it_should_return_what_a_reader_sends_while_the_wait_is_in_progress` |
 
 ## Risks and Trade-offs
 

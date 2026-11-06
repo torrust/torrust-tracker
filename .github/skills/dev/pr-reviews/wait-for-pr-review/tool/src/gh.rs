@@ -5,7 +5,7 @@ use std::io::Read;
 use std::process::{Child, Command, ExitStatus, Stdio};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::mpsc::{self, Receiver};
+use std::sync::mpsc::{self, Receiver, RecvTimeoutError};
 use std::thread;
 use std::time::{Duration, Instant};
 
@@ -85,10 +85,24 @@ impl GhCli {
 
         let outcome = self.wait_for(&mut child);
 
-        let grace = outcome.is_err().then_some(RECLAIM_GRACE);
-        let (stdout, stderr) = (collect(stdout, grace), collect(stderr, grace));
+        let status = match outcome {
+            Ok(status) => status,
+            Err(failure) => {
+                // The child was killed. Reclaim what the readers finished, but never wait for a
+                // descendant that still holds a pipe: the grace is the only bound here.
+                let reclaim_deadline = Instant::now() + RECLAIM_GRACE;
+                drop(collect(stdout, reclaim_deadline, &AtomicBool::new(false)));
+                drop(collect(stderr, reclaim_deadline, &AtomicBool::new(false)));
+                return Err(failure);
+            }
+        };
 
-        Ok((outcome?, stdout, stderr))
+        // The child exited, but a descendant may still hold its pipes. Output that is not complete
+        // when the budget ends or a signal arrives is a failure, never partial data.
+        let stdout = collect(stdout, self.deadline, &self.interrupted)?;
+        let stderr = collect(stderr, self.deadline, &self.interrupted)?;
+
+        Ok((status, stdout, stderr))
     }
 
     /// Waits for `child`, killing and reaping it when a signal arrives or the deadline passes, so a
@@ -194,59 +208,115 @@ fn drain(mut pipe: impl Read + Send + 'static) -> Receiver<Vec<u8>> {
     receiver
 }
 
-/// What a reader read. Without `grace` it waits until the pipe closes; with it, it gives up after
-/// `grace` and returns nothing, leaving the reader to finish on its own.
-fn collect(reader: Option<Receiver<Vec<u8>>>, grace: Option<Duration>) -> Vec<u8> {
+/// What a reader read, waiting in slices of at most `CHILD_POLL_INTERVAL` until the pipe closes.
+///
+/// A reader that has not finished when `deadline` passes or `interrupted` is set fails with
+/// `DeadlineExceeded` or `Interrupted`, and is left to finish on its own: a descendant that inherited
+/// the pipe can keep it open long after the child exited.
+fn collect(reader: Option<Receiver<Vec<u8>>>, deadline: Instant, interrupted: &AtomicBool) -> Result<Vec<u8>, Error> {
     let Some(reader) = reader else {
-        return Vec::new();
+        return Ok(Vec::new());
     };
 
-    grace.map_or_else(
-        || reader.recv().unwrap_or_default(),
-        |grace| reader.recv_timeout(grace).unwrap_or_default(),
-    )
+    loop {
+        let slice = deadline.saturating_duration_since(Instant::now()).min(CHILD_POLL_INTERVAL);
+
+        match reader.recv_timeout(slice) {
+            Ok(bytes) => return Ok(bytes),
+            Err(RecvTimeoutError::Disconnected) => return Ok(Vec::new()),
+            Err(RecvTimeoutError::Timeout) => {}
+        }
+
+        if interrupted.load(Ordering::Relaxed) {
+            return Err(Error::Interrupted);
+        }
+        if Instant::now() >= deadline {
+            return Err(Error::DeadlineExceeded);
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use std::sync::mpsc;
+    use std::sync::atomic::{AtomicBool, Ordering};
+    use std::sync::{Arc, mpsc};
+    use std::thread;
     use std::time::{Duration, Instant};
 
     use super::collect;
+    use crate::error::Error;
 
-    #[test]
-    fn it_should_return_what_a_reader_sent_when_there_is_no_grace_period() {
-        let (sender, receiver) = mpsc::channel();
-        sender.send(b"output".to_vec()).unwrap();
-
-        assert_eq!(collect(Some(receiver), None), b"output");
+    fn far() -> Instant {
+        Instant::now() + Duration::from_secs(60)
     }
 
     #[test]
-    fn it_should_return_what_a_reader_sent_within_the_grace_period() {
+    fn it_should_return_what_a_reader_sent_before_the_deadline() {
         let (sender, receiver) = mpsc::channel();
         sender.send(b"output".to_vec()).unwrap();
 
-        assert_eq!(collect(Some(receiver), Some(Duration::from_secs(5))), b"output");
+        let bytes = collect(Some(receiver), far(), &AtomicBool::new(false));
+
+        assert_eq!(bytes.unwrap(), b"output");
     }
 
     #[test]
-    fn it_should_give_up_on_a_reader_that_stays_silent_once_the_grace_period_is_over() {
-        // The sender stays alive, like a reader whose pipe a grandchild keeps open.
+    fn it_should_return_what_a_reader_sent_even_when_the_deadline_has_already_passed() {
+        let (sender, receiver) = mpsc::channel();
+        sender.send(b"output".to_vec()).unwrap();
+
+        let bytes = collect(Some(receiver), Instant::now(), &AtomicBool::new(false));
+
+        assert_eq!(bytes.unwrap(), b"output");
+    }
+
+    #[test]
+    fn it_should_fail_at_the_deadline_for_a_reader_whose_pipe_stays_open() {
+        // The sender stays alive, like a reader whose pipe a descendant keeps open.
         let (_sender, receiver) = mpsc::channel::<Vec<u8>>();
         let started = Instant::now();
 
-        let bytes = collect(Some(receiver), Some(Duration::from_millis(50)));
+        let result = collect(Some(receiver), started + Duration::from_millis(50), &AtomicBool::new(false));
 
-        assert_eq!(bytes, b"");
+        assert!(matches!(result, Err(Error::DeadlineExceeded)));
         assert!(
             started.elapsed() < Duration::from_secs(5),
-            "the wait must be bounded by the grace period"
+            "the wait must be bounded by the deadline"
         );
     }
 
     #[test]
+    fn it_should_fail_promptly_when_interrupted_while_a_reader_stays_silent() {
+        let (_sender, receiver) = mpsc::channel::<Vec<u8>>();
+        let interrupted = Arc::new(AtomicBool::new(false));
+        let flag = Arc::clone(&interrupted);
+        thread::spawn(move || {
+            thread::sleep(Duration::from_millis(50));
+            flag.store(true, Ordering::Relaxed);
+        });
+        let started = Instant::now();
+
+        let result = collect(Some(receiver), far(), &interrupted);
+
+        assert!(matches!(result, Err(Error::Interrupted)));
+        assert!(started.elapsed() < Duration::from_secs(5), "the signal must end the wait");
+    }
+
+    #[test]
+    fn it_should_return_what_a_reader_sends_while_the_wait_is_in_progress() {
+        let (sender, receiver) = mpsc::channel();
+        thread::spawn(move || {
+            thread::sleep(Duration::from_millis(60));
+            sender.send(b"late".to_vec()).unwrap();
+        });
+
+        let bytes = collect(Some(receiver), far(), &AtomicBool::new(false));
+
+        assert_eq!(bytes.unwrap(), b"late");
+    }
+
+    #[test]
     fn it_should_return_nothing_for_a_pipe_that_does_not_exist() {
-        assert_eq!(collect(None, None), b"");
+        assert_eq!(collect(None, Instant::now(), &AtomicBool::new(false)).unwrap(), b"");
     }
 }
