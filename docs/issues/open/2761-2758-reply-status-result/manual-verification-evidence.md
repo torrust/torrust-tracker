@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2761-2758-reply-status-result/ISSUE.md
-last-updated-utc: 2026-11-06 17:18
+last-updated-utc: 2026-11-06 21:04
 ---
 
 # Manual Verification Evidence
@@ -67,6 +67,28 @@ exit 2
 #### Conclusion
 
 Met: stdout was empty (0 bytes) in both cases; exit codes 1 and 2 with JSON diagnostics on stderr.
+
+### V3 - Real PR capture (review finding F5)
+
+- Goal: run `reply-status` against a real fetched PR response, not the synthetic fixture.
+- Initial state: `github-review-threads fetch --pr-number 2775` (as `josecelano-bot`) wrote `/tmp/pr_threads_2775.json` at about 20:59 UTC, after Copilot's first review of PR #2775 left 6 unresolved threads and before any reply was posted.
+- Status: `DONE`
+
+#### Steps Performed
+
+1. `reply-status --threads-file /tmp/pr_threads_2775.json --login josecelano-bot`.
+2. The one login that authored comments in the capture was found with `jq` over `.author.login` (`copilot-pull-request-reviewer`), then `reply-status ... --login copilot-pull-request-reviewer`. Both ran at 21:02:17 UTC.
+
+#### Observed Result
+
+```text
+{"kind":"missing_reply","summary":{"total":6,"with_reply":0,"without_reply":6}}   (login josecelano-bot, exit 0)
+{"kind":"all_replied","summary":{"total":6,"with_reply":6,"without_reply":0}}     (login copilot-pull-request-reviewer, exit 0)
+```
+
+#### Conclusion
+
+Met: on a real GraphQL capture both kinds are results with exit 0 and the counts match the 6 unresolved threads. The capture itself is not stored in the repository (it changes as the PR is reviewed).
 
 ## Failures and Follow-up
 

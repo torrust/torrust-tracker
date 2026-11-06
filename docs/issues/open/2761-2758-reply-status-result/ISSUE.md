@@ -9,7 +9,7 @@ github-issue: 2761
 spec-path: docs/issues/open/2761-2758-reply-status-result/ISSUE.md
 branch: "2761-reply-status-result"
 related-pr: null
-last-updated-utc: "2026-11-06 17:18"
+last-updated-utc: "2026-11-06 21:04"
 semantic-links:
   skill-links:
     - create-issue
@@ -85,6 +85,18 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2 | DONE | Change `reply-status` to emit the result and exit `0` | Green tests; diagnostics only for could-not-answer. |
 | T3 | DONE | Update the skills and any other consumer | `grep -rn 'missing_reply\|reply-status'` shows no stale exit-1 claim. |
 | T4 | DONE | Verify against a real PR thread file | Evidence recorded. |
+
+## Test Design Review (Prose-First AAA)
+
+Completed on 2026-11-06 at about 21:03 UTC, in review round 1 of PR #2775 (it was not recorded before the first commit, as the `write-unit-test` skill requires; this closes that gap). For each new or changed test in `contrib/dev-tools/github/github-review-threads/tests/cli.rs` the prose Arrange, Act and Assert were written and compared with the code:
+
+| Test | Prose (Arrange / Act / Assert) | Outcome of the comparison |
+| ---- | ------------------------------ | ------------------------- |
+| `it_should_report_the_threads_without_a_reply_as_a_result_with_exit_zero` | The fixture has two unresolved threads and `author` replied to one; ask `reply-status` for `author`; exit 0, empty stderr, `kind` `missing_reply`, rows and counts equal to the retired script's capture. | Code states each paragraph; expected rows come from the capture, not from production code. No change. |
+| `it_should_report_all_replied_as_a_result_with_exit_zero_when_every_thread_has_a_reply` | `reviewer` commented on both unresolved threads; ask for `reviewer`; exit 0, `kind` `all_replied`, zero without reply, empty stderr. | Matches. No change. |
+| `it_should_fail_with_exit_one_and_a_diagnostic_when_the_threads_file_cannot_be_read` | A path that does not exist; ask for the status; exit 1, empty stdout, `reply_status_error`. | Matches. No change. |
+| `it_should_fail_with_exit_one_and_a_diagnostic_when_the_threads_file_is_not_valid_json` | A readable file with malformed JSON; same action; same result. | Added after Copilot finding F1. |
+| `it_should_report_a_missing_login_argument_as_a_usage_error` | A valid threads file and no `--login`; run; exit 2, empty stdout, a usage error that names `--login` as the only missing argument. | Arrange was too broad (it also omitted `--threads-file`); narrowed after Copilot finding F2. |
 
 ## Commit Points
 
