@@ -9,12 +9,15 @@ github-issue: null
 spec-path: docs/issues/drafts/1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md
 branch: "{issue-number}-deprecate-legacy-shutdown-api"
 related-pr: null
-last-updated-utc: "2026-10-08 07:36"
+last-updated-utc: "2026-11-06 12:00"
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
     - packages/axum-server/src/signals.rs
+    - packages/axum-health-check-api-server/src/server.rs
+    - packages/udp-server/src/server/spawner.rs
+    - src/bootstrap/jobs/manager.rs
     - packages/axum-http-server/src/server.rs
     - packages/axum-rest-api-server/src/server.rs
     - packages/axum-health-check-api-server/src/server.rs
@@ -48,27 +51,67 @@ behavior after deprecation warnings are addressed or explicitly allowed.
 
 ## Eligibility Gate
 
-Do not start this work until the following evidence is recorded:
+Evidence checked on 2026-11-06 against `torrust/develop` at `da8bd15d1`:
 
-- [ ] HTTP tracker, REST API, health-check API, and UDP tracker application
-      components use token-aware lifecycle paths.
-- [ ] Standalone HTTP and UDP environments/examples use token-aware lifecycle
-      paths.
-- [ ] REST API and health-check API test environments use token-aware
-      lifecycle paths (SI-23, SI-24).
-- [ ] The task inventory confirms no supported in-workspace consumer depends on
-      the legacy shutdown path.
+- [x] HTTP tracker, REST API, health-check API, and UDP tracker application
+      components use token-aware lifecycle paths (`src/bootstrap/jobs/*` call
+      `start_with_cancellation`).
+- [x] Standalone HTTP and UDP environments/examples use token-aware lifecycle
+      paths (SI-16 #2412, SI-17 #2448).
+- [x] REST API and health-check API test environments use token-aware
+      lifecycle paths (SI-23 #2449, SI-24 #2450).
+- [x] The task inventory confirms no supported in-workspace consumer depends on
+      the legacy shutdown path. The remaining callers are unit tests that
+      exercise the legacy path on purpose.
 - [ ] The external `torrust-server-lib` release notes identify external consumer
-      migration guidance and a compatible deprecation version.
-- [ ] Process-wrapper documentation follows Q5: no same-process Tokio task is
-      treated as surviving SIGKILL, and verification targets the actual tracker
-      process or a deliberately selected process group.
+      migration guidance and a compatible deprecation version. **Blocked**:
+      0.4.0 (2026-10-26) is the latest release, has no `#[deprecated]`
+      attributes on the legacy symbols, and publishes no release notes. See
+      [Split with the external crate](#split-with-the-external-crate).
+- [x] Process-wrapper documentation follows Q5 (`questions.md` Q5 is resolved;
+      the deployment contract is in `docs/containers.md#stopping-the-tracker`).
+
+## Split with the External Crate
+
+The maintainer decided on 2026-11-06 to deprecate in the library first. The
+symbols below are defined in the external `torrust-server-lib` crate, so this
+repository cannot deprecate them.
+
+| Symbol (external, `torrust_server_lib::signals`) | Replacement                                      |
+| ------------------------------------------------ | ------------------------------------------------ |
+| `Halted`                                         | `CancellationToken` (injected by the caller)     |
+| `shutdown_signal`                                | `cancellation_signal`                            |
+| `shutdown_signal_with_message`                   | `cancellation_signal` plus a log line            |
+| `global_shutdown_signal`                         | an OS-signal subscription in the executable only |
+
+Order of work:
+
+1. **Library release** (separate repository and issue): add `#[deprecated]`
+   attributes naming the replacement and the removal release, a changelog and
+   release notes, and publish a new version (the "compatible deprecation
+   version"). `Started` and `cancellation_signal` stay.
+2. **This issue**: bump `torrust-server-lib` in the workspace to that version,
+   then deprecate the in-repo symbols listed under Scope.
+
+This issue stays a draft until step 1 is released.
 
 ## Scope
 
 ### In scope
 
-- Add Rust `#[deprecated]` attributes and documentation to legacy public APIs.
+- Add Rust `#[deprecated]` attributes and documentation to legacy public APIs
+  defined in this repository:
+  - `axum-http-server`: `HttpServer<Stopped>::start`, `start_with_health_check`,
+    `Running.halt_task`, `Running::stop`, `Launcher::start` (with `rx_halt`).
+  - `axum-rest-api-server`: `ApiServer::start`, `Running.halt_task`,
+    `Running::stop`, `Launcher::start` (with `rx_halt`).
+  - `axum-health-check-api-server`: `server::start` (with `rx_halt`).
+  - `udp-server`: `Server<Stopped>::start`, `Running.halt_task`,
+    `Running::stop`, `Launcher::run_with_graceful_shutdown`, and the
+    `rx_halt` field of the spawner.
+  - `axum-server`: `graceful_shutdown`.
+  - `src/bootstrap/jobs/manager.rs`: `HaltSignal`, `NestedServerTask` (public,
+    used only by their own tests).
 - Document the token-aware replacement API and required migration steps.
 - Update in-workspace call sites that remain only in tests, examples, or
   compatibility checks to suppress/allow the warning locally with a rationale.
@@ -114,9 +157,9 @@ Do not start this work until the following evidence is recorded:
 
 ## Dependencies
 
-- SI-11 through SI-17, SI-23, and SI-24 are complete for the HTTP, REST,
-  health-check, UDP, and
-  standalone migrations.
+- SI-11 through SI-17, SI-23, and SI-24 are complete (verified 2026-11-06).
+- A `torrust-server-lib` release that deprecates its legacy signal API (see
+  the split above). Not yet available.
 - SI-2's additive server lifecycle API is released and documented.
 - #1588 revalidates the final supported-consumer inventory.
 - Q5's process-wrapper verification rule is reflected in release notes and
