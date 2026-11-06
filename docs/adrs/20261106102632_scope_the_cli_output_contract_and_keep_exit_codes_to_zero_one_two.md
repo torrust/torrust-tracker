@@ -5,7 +5,7 @@ semantic-links:
   related-artifacts:
     - .github/skills/dev/planning/create-adr/SKILL.md
     - docs/adrs/20260519000000_define_global_cli_output_contract.md
-    - docs/issues/open/2715-cli-output-contract-scope-and-exit-code-policy/ISSUE.md
+    - docs/issues/closed/2715-cli-output-contract-scope-and-exit-code-policy/ISSUE.md
 ---
 
 <!-- skill-link: create-adr -->
@@ -138,7 +138,7 @@ rule were settled; the original gets a short pointer so that it does not mislead
 ## References
 
 - Issue: [#2715](https://github.com/torrust/torrust-tracker/issues/2715), spec
-  `docs/issues/open/2715-cli-output-contract-scope-and-exit-code-policy/ISSUE.md`
+  `docs/issues/closed/2715-cli-output-contract-scope-and-exit-code-policy/ISSUE.md`
 - Amended ADR: [Define the Global CLI Output Contract](20260519000000_define_global_cli_output_contract.md)
 - Original issue: #1798; poller that raised the questions: #2581
 - Torrust Index ADR-T-010:
