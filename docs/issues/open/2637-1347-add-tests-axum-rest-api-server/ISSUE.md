@@ -69,10 +69,10 @@ were not reused. Since it was written:
   A hand-written port fake and an in-process request reach every handler arm.
 - **The server gained a token-aware lifecycle** (`ApiServer::start_with_cancellation`, #2309) next
   to the legacy `Halted` path. #1488 deprecates (SI-18) and removes (SI-19) the legacy path after
-  #2449 migrates the test environment.
+  #2449 migrated the test environment (closed).
 - **Test-support code is being reorganized.** `src/testing/` is compiled unconditionally today;
   the spec `docs/issues/open/2745-2482-gate-axum-rest-api-server-test-environment/ISSUE.md` gates it
-  behind a `testing` feature, and #2449 changes its lifecycle. Neither is this issue's work.
+  behind a `testing` feature, and #2449 (closed) changed its lifecycle. Neither is this issue's work.
 - **Public error enums became `#[non_exhaustive]`** (#2454), which adds wildcard arms to the
   handler `match` expressions.
 - **Independent subissues set the template.** #1348 (`udp-core`) and #1349 (`http-core`) added the
