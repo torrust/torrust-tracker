@@ -8,8 +8,8 @@ epic: 2482
 github-issue: 2757
 spec-path: docs/issues/open/2757-2482-gate-axum-health-check-api-server-test-environment/ISSUE.md
 branch: "2757-2482-gate-axum-health-check-api-server-test-environment-spec"
-related-pr: null
-last-updated-utc: "2026-11-06 16:39"
+related-pr: 2759
+last-updated-utc: "2026-11-06 17:12"
 semantic-links:
   skill-links:
     - create-issue
@@ -124,9 +124,10 @@ Rejected: also listing it as a dev-dependency (redundant entry, departs from row
 
 ### Decision: issue labels and sub-issue link
 
-Decided by the maintainer on 2026-11-06: the bot account cannot add labels or link sub-issues on
-`torrust/torrust-tracker`; the agent runs those commands with the `josecelano` account only after
-showing them and receiving his explicit OK in this session, as in rows 5 and 6.
+Decided by the maintainer on 2026-11-06: the issue is created as `josecelano-bot`; the bot account
+cannot add labels or link sub-issues on `torrust/torrust-tracker`, so those two commands run with the
+`josecelano` account, shown first and only on his explicit OK in this session, as in rows 5 and 6.
+In this row the maintainer ran both commands himself (recorded in the progress log).
 
 ## Design and Ownership Review
 
@@ -171,7 +172,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 - [x] Folder-style spec drafted in `docs/issues/open/2757-2482-gate-axum-health-check-api-server-test-environment/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer (2026-11-06)
-- [ ] GitHub issue created (#2757), linked as a sub-issue of #2482, and its number added to this spec
+- [x] GitHub issue created (#2757), linked as a sub-issue of #2482, and its number added to this spec
 - [ ] Spec-only PR merged into `develop` before implementation
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
@@ -185,8 +186,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-10-21 19:16 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 1) - Drafted from row 7 of
   the #2482 Subissues table and rule A of the ADR; gated by #2450 and rows 4 to 6.
 - 2026-10-22 18:10 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 1) - Changed after PR #2624's review: AC1 and M1 check direct dependencies (`--depth 1`) because `configuration` stays reachable through `axum-server`; added the dependency audit to the scope.
-- 2026-11-06 16:40 UTC - AI assistant (Claude Code, #2482 row 7) - Refreshed the draft against `torrust/develop` at `35ec81000`: #2450 and rows 4 to 6 are done, so the gate is satisfied; `environment.rs` is 497 lines (not 118); `configuration` is the only dependency to make optional; baseline 17 direct dependencies, 15 + 11 tests. Recorded the maintainer's decisions: no runtime-edge counter, `configuration` optional behind `testing`, labels and the sub-issue link with the `josecelano` account on his explicit OK. Out of scope: the #2482 close-out steps (a coordinator proposes them).
+- 2026-11-06 16:34 UTC - AI assistant (Claude Code, #2482 row 7) - Refreshed the draft against `torrust/develop` at `35ec81000`: #2450 and rows 4 to 6 are done, so the gate is satisfied; `environment.rs` is 497 lines (not 118); `configuration` is the only dependency to make optional; baseline 17 direct dependencies, 15 + 11 tests. Recorded the maintainer's decisions: no runtime-edge counter, `configuration` optional behind `testing`, labels and the sub-issue link with the `josecelano` account on his explicit OK. Out of scope: the #2482 close-out steps (a coordinator proposes them).
 - 2026-11-06 16:39 UTC - AI assistant (Claude Code, #2482 row 7) - The maintainer approved the spec. Created issue #2757 as `josecelano-bot`; the maintainer added the labels (`task`, `packages`) himself. The sub-issue link under #2482 is pending his action. The spec moved to `docs/issues/open/`; the #2482 EPIC row, the inventory and the 2026-10-06 coupling report link to it.
+- 2026-11-06 17:12 UTC - AI assistant (Claude Code, #2482 row 7) - The maintainer added the labels (`task`, `packages`) and the sub-issue link under #2482 with his own account (verified: `parent_issue_url` is #2482). Opened spec-only PR #2759 (`Related to #2757`); `related-pr` is set to 2759. The 16:40 entry above was dated 16:34, the time the draft was committed; the earlier 16:40 was a mistake found in PR #2759 review round 1.
 
 ## Acceptance Criteria
 
