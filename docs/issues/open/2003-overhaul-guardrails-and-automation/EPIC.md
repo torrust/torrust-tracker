@@ -43,7 +43,7 @@ semantic-links:
 
 # EPIC #2003 - Overhaul: Automation Tools and AI Agent Guardrails
 
-**EPIC owner:** josecelano, from its creation until 2026-09-28 and again since 2026-11-06. da2ce7 held it from 2026-09-28 ([hand-off](https://github.com/torrust/torrust-tracker/issues/2003#issuecomment-5873655520), [acknowledgement](https://github.com/torrust/torrust-tracker/issues/2003#issuecomment-5874065152)) to reorganize it and file the friction register.
+**EPIC owner:** josecelano, from its creation until 2026-09-28 and again since 2026-11-06. da2ce7 held it from 2026-09-28 to 2026-11-06 ([hand-off](https://github.com/torrust/torrust-tracker/issues/2003#issuecomment-5873655520), [acknowledgement](https://github.com/torrust/torrust-tracker/issues/2003#issuecomment-5874065152)) to reorganize it and file the friction register.
 
 ## Goal
 
