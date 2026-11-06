@@ -40,15 +40,20 @@ comments is summarized here; the issue remains the place for discussion.
 
 Problems with the current (v1) API that v1 cannot fix without breaking clients:
 
-- Responses use almost only `200` and `500`. Not-found, created, no-content, unauthorized and
-  conflict cases are not distinguished.
+- Responses use almost only `200` and `500` for resource outcomes. Not-found, created and
+  no-content cases are not distinguished. (Authentication failures and disabled capabilities
+  are already distinguished in v1: `401` and `409`; v2 must preserve that.)
 - Errors are not structured. The demo deployment returns `HTTP 500` with the internal text
   `Unhandled rejection: Err { reason: "unauthorized" }` for `GET /` and `GET /health_check`
   (observed 2026-04-09, see torrust/torrust-tracker-demo#13).
 - Some endpoints behave like remote commands (`GET /api/whitelist/reload`) instead of
   resource operations.
-- Some endpoints can expose whether a torrent exists to an unauthenticated caller (an Insecure
-  Direct Object Reference concern on a possibly private tracker).
+- The original issue raises a privacy concern: a torrent lookup must not reveal whether a
+  private tracker holds a torrent (Insecure Direct Object Reference). This is not a confirmed
+  current vulnerability: v1 protects API routes with the auth middleware, so a missing or
+  invalid token is rejected before any handler runs. v2 must preserve that non-disclosure and
+  keep it when the status codes change (for example `404` for an absent torrent, for any caller
+  that is not authorized to know).
 - Some fields are ambiguous or deprecated but cannot be removed in v1 (see
   [v1 deprecations carried to v2](#v1-deprecations-carried-to-v2)).
 
@@ -168,6 +173,22 @@ For each subissue implementation in this EPIC, the default completion policy is:
    issue-local retrospective for reusable lessons, material design changes, or
    meaningful deviations from the plan; otherwise record why one was unnecessary
    in the issue progress log.
+
+### Manual verification policy
+
+The v2 contracts are still candidates, so this EPIC does not fix concrete commands or expected
+results. Instead, every child spec must define, before implementation starts, concrete manual
+scenarios with steps, expected results, and a status/evidence field per scenario. Commands,
+output and relevant logs are retained in the child's issue-local `manual-verification-evidence.md`.
+Across the EPIC, the scenarios must cover at least:
+
+| Scenario area                    | Expected result to define in the child spec                                            | Status | Evidence |
+| -------------------------------- | -------------------------------------------------------------------------------------- | ------ | -------- |
+| v1 and v2 coexistence            | Both prefixes are served by one process; v1 responses are byte-compatible with before. | TODO   | -        |
+| Unauthorized torrent lookups     | Missing/invalid token: same non-disclosing response for an existing and an absent one. | TODO   | -        |
+| Authorized absent torrent lookup | `404` with the structured error body.                                                  | TODO   | -        |
+| Capability availability          | Disabled whitelist/keys/persistence return the agreed code (`409` in v1), not `404`.   | TODO   | -        |
+| Completed-metric availability    | Session, persisted and unavailable values are distinguishable, no numeric sentinel.    | TODO   | -        |
 
 ### Phase 0 - Specification (allowed now)
 
