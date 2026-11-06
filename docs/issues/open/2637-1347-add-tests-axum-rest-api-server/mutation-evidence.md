@@ -19,15 +19,18 @@ RUSTFLAGS="--cap-lints=warn" cargo mutants \
   --output .tmp/mutants-2637 --timeout-multiplier 5 --jobs 2
 ```
 
-`cargo-mutants 27.0.0`, stable Rust 1.99.1, on the S6 branch (production code identical to `develop` at the merge of
-PR 2744, apart from the `tls_config` documentation fix). The baseline without mutations passed (unit and integration
+`cargo-mutants 27.0.0`, stable Rust 1.99.1. The command ran twice on the S6 branch. The first run (output
+`.tmp/mutants-2637`) found the survivor in `authenticate`; the second (`.tmp/mutants-2637b`) ran after the test that
+kills it and after the rebase onto `develop` with the `testing` feature gate of #2745, and is the final run reported
+below. The baseline without mutations passed (unit and integration
 tests of the package; 32 s build, 3 s test). `--cap-lints=warn` follows the #1348 lesson: the workspace denies
 `unused`, which would turn replaced bodies into unviable mutants. The unit tests of earlier slices therefore
 carried this run together with the 58 integration tests.
 
 ## Results
 
-118 mutants tested: **70 caught, 4 missed, 0 timeouts, 44 unviable.**
+118 mutants tested in the final run: **71 caught, 3 missed, 0 timeouts, 44 unviable.** The first run, before the
+`authenticate` test, gave 70 caught, 4 missed and the same 44 unviable.
 
 | File | Caught | Missed | Unviable |
 | --- | ---: | ---: | ---: |
@@ -47,23 +50,23 @@ carried this run together with the 58 integration tests.
 | `v1/context/whitelist/handlers.rs` | 4 | 0 | 0 |
 | `v1/context/whitelist/responses.rs` | 3 | 0 | 0 |
 | `v1/context/whitelist/routes.rs` | 1 | 0 | 0 |
-| `v1/middlewares/auth.rs` | 14 | 1 | 0 |
+| `v1/middlewares/auth.rs` | 15 | 0 | 0 |
 | `v1/responses.rs` | 6 | 0 | 0 |
 | `v1/routes.rs` | 1 | 0 | 0 |
 
 ### Missed
 
-1. `v1/middlewares/auth.rs:162`: replace `|` with `^` in `authenticate`. The fold combines one constant-time
-   comparison result per configured token. With distinct token values at most one comparison matches, so `|` and
-   `^` give the same answer; they differ only when two labels hold the **same** token value (two matches XOR to
-   "no match" and a valid token is rejected). No test configures duplicate values. This is a real, cheap gap, not an
-   equivalent mutant: a unit test with two labels sharing one value kills it. Selected action: a test was
-   added after the maintainer approved its plan (`v1-middlewares-auth-tests.md`, update 2026-11-06); the mutation is now
-   killed. The run above predates the test.
-2. `v1/context/auth_key/handlers.rs:154`: replace `<AuthKeyErrorDisplay as Debug>::fmt` with `Ok(Default::default())`.
+Fixed after the first run: `v1/middlewares/auth.rs:162`, replace `|` with `^` in `authenticate`. The fold combines one
+constant-time comparison result per configured token. With distinct token values at most one comparison matches, so
+`|` and `^` give the same answer; they differ only when two labels hold the **same** token value (two matches XOR to
+"no match" and a valid token is rejected). No test configured duplicate values. This was a real, cheap gap, not an
+equivalent mutant. A test was added after the maintainer approved its plan (`v1-middlewares-auth-tests.md`, update
+2026-11-06) and the final run kills the mutant. The three survivors of the final run:
+
+1. `v1/context/auth_key/handlers.rs:154`: replace `<AuthKeyErrorDisplay as Debug>::fmt` with `Ok(Default::default())`.
    The `Debug` impl is the three lines decided as deliberately untested in the row 6 plan. No behavior changes.
    Selected action: none.
-3. `testing/environment.rs:278` `initialize_global_services` and 4. `:283` `initialize_static`: replaced with `()`.
+2. `testing/environment.rs:278` `initialize_global_services` and 3. `:283` `initialize_static`: replaced with `()`.
    This is the shared test support owned by #2482 and #2449 (out of scope, rows 19-20); logging setup and the
    clock initialisation are process-global side effects that the tests do not observe. Selected action: none.
 

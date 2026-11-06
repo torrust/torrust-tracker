@@ -9,7 +9,7 @@ github-issue: 2637
 spec-path: docs/issues/open/2637-1347-add-tests-axum-rest-api-server/ISSUE.md
 branch: "2637-1347-add-tests-axum-rest-api-server-final"
 related-pr: null
-last-updated-utc: "2026-11-06 16:44"
+last-updated-utc: "2026-11-06 16:52"
 semantic-links:
   skill-links:
     - create-issue
@@ -748,6 +748,7 @@ once. If the slicing changes, the Slice column changes with it.
 - 2026-11-06 11:17 UTC - Claude Code (Sonnet 5.5) - Rows 22-31 (the wiring-only files) are `DONE` with a no-change decision, approved by the maintainer with the S6 plans on 2026-11-06: no test. The declaration mutations were run again: 23 of the 25 `pub mod` removals break the build; the two survivors are the empty modules `torrent/resources` and `resources/torrent`, recorded in `lessons.md` as a clean-up candidate. All thirteen S6 ledger rows (19-31) are `DONE`.
 - 2026-11-06 16:37 UTC - Claude Code (Sonnet 5.5) - T6 and T8 evidence recorded: the whole-package mutation run (118 mutants: 70 caught, 4 missed, 44 unviable) is in `mutation-evidence.md`; manual scenarios M1-M5 passed ([evidence](manual-verification-evidence.md)). The one real survivor (`|` replaced by `^` in `authenticate`, only visible with a duplicated token value) got a plan (approved by the maintainer) and one test of three cases, committed as `test(axum-rest-api-server): [#2637] authenticate a token configured under more than one label`; the mutation is now killed. The observation that a missing or invalid token answers `500` is not changed here: the maintainer decided it belongs to REST API v2 (after 4.0.0), recorded in `lessons.md`. Final measurement: unit-only lines 2,324 / 2,404 (96.67%), aggregate 2,348 / 2,404 (97.67%); 170 unit and 58 integration tests.
 - 2026-11-06 16:44 UTC - Claude Code (Sonnet 5.5) - The final independent review of S6 passed (three LOW findings, fixed: the unviable-mutant categories were recounted and a stale review outcome corrected). T7 and T8 are `DONE`, the acceptance criteria AC1-AC17 are re-reviewed and checked, and the implementation retrospective is written. The S6 pull request awaits the maintainer's approval; the issue closes and the spec moves to `docs/issues/closed/` in the clean-up pull request after the merge.
+- 2026-11-06 16:52 UTC - Claude Code (Sonnet 5.5) - S6 rebased onto `develop` (it brought #2745, the `testing` feature gate of the test environment). Coverage re-measured with clean workspaces: unchanged (unit-only lines 2,324 / 2,404, 96.67%; aggregate 2,348 / 2,404, 97.67%). The whole-package mutation run was repeated on the rebased tree after the `authenticate` test: 71 caught, 3 missed, 44 unviable; the `|` to `^` survivor is killed (this corrects the first-run figures of the 2026-11-06 16:37 entry, 70 caught and 4 missed).
 
 ## Acceptance Criteria
 
