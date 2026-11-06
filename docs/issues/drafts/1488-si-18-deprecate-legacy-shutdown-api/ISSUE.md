@@ -96,10 +96,27 @@ Order of work:
 Step 1 is [torrust-server-lib#3](https://github.com/torrust/torrust-server-lib/issues/3),
 implemented by [torrust-server-lib PR 4](https://github.com/torrust/torrust-server-lib/pull/4) (not merged
 yet): the symbols are deprecated since 0.5.0 and the crate removes them in 0.6.0 (the maintainer's choice).
-The crate's removal version is therefore 0.6.0; the in-repo removal release (likely tracker 4.0.0) stays to be
-confirmed.
+The crate's removal version is therefore 0.6.0.
 
-This issue stays a draft until 0.5.0 is published.
+`torrust-server-lib` 0.5.0 was published on 2026-11-06 (merge commit 0ad8ca0), so this blocker is cleared.
+
+## Versioning Decisions
+
+Decided by the maintainer on 2026-11-06, using the EPIC #1669 coordinator's facts
+([#2583](../../open/2583-1669-first-publish-of-workspace-crates/ISSUE.md) publishes each unpublished crate at its
+current version at the end of #1669; the root `torrust-tracker` next releases as 4.0.0):
+
+- Deprecate and then remove, even for the unpublished crates, to stay consistent with the EPIC and with the
+  published `torrust-server-lib` deprecation.
+- `since` for a package crate is the version at which the crate is first published (its `Cargo.toml` version at
+  that time, normally 0.1.0). For the root `torrust-tracker` types `HaltSignal` and `NestedServerTask`,
+  `since = "4.0.0"`.
+- The removal release is worded as "the next breaking release of this package".
+- `HaltSignal` and `NestedServerTask` are deprecated only, not deleted.
+- The `torrust-server-lib` 0.5.0 dependency bump lands in the implementation PR, not the spec PR.
+- Ordering: #2482 rows 6 and 7 edit `axum-rest-api-server` and `axum-health-check-api-server`; the
+  implementation PR must be coordinated with the #2482 coordinator to avoid conflicts in `Cargo.toml` and test
+  environment files.
 
 ## Scope
 
