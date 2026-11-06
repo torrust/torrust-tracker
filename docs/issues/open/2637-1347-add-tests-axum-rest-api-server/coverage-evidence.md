@@ -357,3 +357,15 @@ Measured on the S5 branch after the row 18 tests (stable Rust 1.99.1, `cargo-llv
 | Integration-only (`--test integration`) | 58 integration | 682 / 927 (73.57%) | 949 / 1,376 (68.97%) | 98 / 140 (70.00%) |
 
 `server.rs` is 533 / 578 lines unit-only (it was 403 / 458), 901 / 981 regions and 50 / 65 functions. Its 45 uncovered lines (198, 244-245, 279-280, 289-290, 294, 296, 301-302, 310, 312, 318-319, 358-359, 362-363, 455-457, 469, 471-472, 478-483, 487-488, 490-492, 494, 496, 502, 514, 744-745 and 862-863) are classified in the [row 18 plan](test-refactor-plans/server-tests.md): logging-only, platform faults, runtime error arms owned by `torrust-tracker-axum-server`, the legacy `Halted` path owned by #1488, and `panic!` arms of tests. Files below 100% unit-only lines: `server.rs`, `testing/environment.rs` (out of scope, #2482 and #2449) and `v1/context/auth_key/handlers.rs` (236 / 239, the three untested `Debug` lines).
+
+### Slice S5 Measurement After The Rebase Onto `develop`
+
+The unpushed S5 branch was rebased onto `torrust/develop` at the slice close. `develop` meanwhile fixed #2733 (`check_fn` reports an error for a non-success status, with two tests in `server.rs`) and changed the stats files, so the row 18 figures above are superseded by these (same commands, clean workspace before each report). This is the latest S5 figure.
+
+| Scope | Tests | Lines | Regions | Functions |
+| --- | ---: | ---: | ---: | ---: |
+| Aggregate (all selected test targets) | 167 unit + 58 integration | 2,345 / 2,400 (97.71%) | 3,484 / 3,586 (97.16%) | 380 / 397 (95.72%) |
+| Unit-only (`--lib`) | 167 unit | 2,321 / 2,400 (96.71%) | 3,457 / 3,586 (96.40%) | 374 / 397 (94.21%) |
+| Integration-only (`--test integration`) | 58 integration | 682 / 903 (75.53%) | 949 / 1,299 (73.06%) | 98 / 140 (70.00%) |
+
+`server.rs` is 576 / 621 lines unit-only (981 / 1,061 regions, 58 / 73 functions); its 45 uncovered lines are the same groups as in the row 18 plan, shifted by one line. Files below 100% unit-only lines are `server.rs`, `testing/environment.rs` (out of scope) and `v1/context/auth_key/handlers.rs` (236 / 239).

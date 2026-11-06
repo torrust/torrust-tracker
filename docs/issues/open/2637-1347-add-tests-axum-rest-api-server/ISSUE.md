@@ -9,7 +9,7 @@ github-issue: 2637
 spec-path: docs/issues/open/2637-1347-add-tests-axum-rest-api-server/ISSUE.md
 branch: "2637-1347-add-tests-axum-rest-api-server-lifecycle"
 related-pr: null
-last-updated-utc: "2026-11-06 08:10"
+last-updated-utc: "2026-11-06 08:13"
 semantic-links:
   skill-links:
     - create-issue
@@ -738,6 +738,7 @@ once. If the slicing changes, the Slice column changes with it.
 - 2026-11-05 22:00 UTC - Claude Code (Sonnet 5.5) - Posted the dispositions and fixes as `josecelano-bot` replies on Cameron's threads, with the maintainer's approval: F2 <https://github.com/torrust/torrust-tracker/pull/2667#discussion_r4486578352>, F3 <https://github.com/torrust/torrust-tracker/pull/2687#discussion_r4486578672>, F4 <https://github.com/torrust/torrust-tracker/pull/2687#discussion_r4486579057>. The threads are left unresolved for the maintainer or reviewer to resolve.
 - 2026-11-05 22:03 UTC - Claude Code (Sonnet 5.5) - Row 18 (`server.rs`) is `IN_PROGRESS`: the plan `test-refactor-plans/server-tests.md` is proposed and awaits the maintainer's approval. It classifies the 55 uncovered lines (five groups to test: the bind error, `check_fn` live and dead, the `Launcher` `Display`, the plain protocol selection; the rest is logging-only, unreachable, owned by #1488 or #2733), proposes a small test-only refactor of the existing tests (shared `api_container`, deadlines, a dead branch, a join) and nine named mutations. No test is written.
 - 2026-11-06 08:10 UTC - Claude Code (Sonnet 5.5) - Row 18 (`server.rs`) is `DONE`: the maintainer approved the plan on 2026-11-06 and the completed file after it. Five tests were added and the existing ones refactored (shared `api_container`, one deadline for every awaited operation, the dead TLS branch removed, the TLS test joins both tasks); `server.rs` went from 403 / 458 to 533 / 578 lines unit-only. Mutations S1-S7, S8b and S9 were killed; S8 (removing only `cancellation_token.cancel()`) is an equivalent mutant because the aborts already release the listener. Package unit-only lines 2,326 / 2,405 (96.72%), aggregate 2,350 / 2,405 (97.71%), integration-only unchanged (682 / 927); 164 unit and 58 integration tests.
+- 2026-11-06 08:13 UTC - Claude Code (Sonnet 5.5) - Rebased the unpushed S5 branch onto `develop` (15 new commits) at the slice close. `develop` changed the package meanwhile: #2733 was fixed (`check_fn` now reports `Err` with the status for a non-success answer, with two tests in the `server.rs` test module), and the stats files changed. Correction of the row 18 entry above (append-only): re-measured with clean runs, unit-only lines 2,321 / 2,400 (96.71%), aggregate 2,345 / 2,400 (97.71%), integration-only 682 / 903 (75.53%); 167 unit and 58 integration tests; `server.rs` is 576 / 621 lines unit-only and its 45 uncovered lines are the same groups as before (shifted by one line after 455). The plan's "#2733 is open" rows are now obsolete: the finding is fixed and tested on `develop`.
 
 ## Acceptance Criteria
 
