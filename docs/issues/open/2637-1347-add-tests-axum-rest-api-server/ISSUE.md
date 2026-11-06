@@ -9,7 +9,7 @@ github-issue: 2637
 spec-path: docs/issues/open/2637-1347-add-tests-axum-rest-api-server/ISSUE.md
 branch: "2637-1347-add-tests-axum-rest-api-server-lifecycle"
 related-pr: 2744
-last-updated-utc: "2026-11-06 09:06"
+last-updated-utc: "2026-11-06 14:21"
 semantic-links:
   skill-links:
     - create-issue
@@ -71,7 +71,7 @@ were not reused. Since it was written:
   to the legacy `Halted` path. #1488 deprecates (SI-18) and removes (SI-19) the legacy path after
   #2449 migrated the test environment (closed).
 - **Test-support code is being reorganized.** `src/testing/` is compiled unconditionally today;
-  the spec `docs/issues/open/2745-2482-gate-axum-rest-api-server-test-environment/ISSUE.md` gates it
+  the spec `docs/issues/closed/2745-2482-gate-axum-rest-api-server-test-environment/ISSUE.md` gates it
   behind a `testing` feature, and #2449 (closed) changed its lifecycle. Neither is this issue's work.
 - **Public error enums became `#[non_exhaustive]`** (#2454), which adds wildcard arms to the
   handler `match` expressions.
@@ -880,6 +880,6 @@ from the plan; otherwise add a progress-log entry explaining why none was needed
 - REST contract-first ADR: `docs/adrs/20260623200526_adopt_contract-first_architecture_for_rest_api.md`
 - Token-timing security record: `docs/security/analysis/reports/2026-09-04_rest-api-token-timing.md`
 - Related work: #2449 (migrate the REST API test environment; closed), the spec
-  `docs/issues/open/2745-2482-gate-axum-rest-api-server-test-environment/ISSUE.md`, and #1488
+  `docs/issues/closed/2745-2482-gate-axum-rest-api-server-test-environment/ISSUE.md`, and #1488
   (legacy shutdown removal)
 - Historical test-environment work: `docs/issues/closed/1903-1669-si-23-relocate-axum-rest-api-server-test-environment/ISSUE.md`
