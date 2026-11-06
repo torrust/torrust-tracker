@@ -69,8 +69,8 @@ A distinct outcome is reported with a `kind` field, in one of two places, chosen
   answer to give: stdout is empty, stderr carries a diagnostic with a `kind`, and the exit code is `1` (or `2` for
   usage).
 
-A `no-stdout-result` command has no result channel, so its single outcome that is not success is exit `1` with the
-findings as NDJSON diagnostics on stderr. This covers checks whose purpose is to fail on a finding
+A `no-stdout-result` command has no result channel, so every failure that is not a usage error is exit `1`, with the
+findings as NDJSON diagnostics on stderr. Usage errors keep exit `2`, as in the table above. This covers checks whose purpose is to fail on a finding
 (`clippy-allow-reasons`, `frontmatter-validator`, `shipped-features-check`) and the CI orchestrators.
 
 A caller branches on the exit code to learn whether the command worked, and on `kind` to learn which outcome it
