@@ -89,7 +89,7 @@ pub const TEST_DEADLINE: Duration = Duration::from_secs(5);
 pub async fn within_deadline<T>(future: impl Future<Output = T>) -> T {
     tokio::time::timeout(TEST_DEADLINE, future)
         .await
-        .expect("the awaited work finishes within the test deadline")
+        .unwrap_or_else(|_| panic!("the awaited work finishes within the test deadline of {TEST_DEADLINE:?}"))
 }
 
 /// A REST API container together with the temporary directory that holds its SQLite database.
