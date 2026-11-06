@@ -126,9 +126,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                                                                  | Notes / Expected Output                                                   |
 | --- | ------ | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| T1  | TODO   | Inventory how each tool in the ADR table reports outcomes and exit codes               | A short table in the issue folder: tool, outcomes, exit codes, class.     |
-| T2  | TODO   | Gather the options and trade-offs for each question, with the maintainer              | Options recorded with their consequences for existing tools.              |
-| T3  | TODO   | Write the ADR with the `create-adr` skill and register it in the index                 | ADR merged; the existing ADR table and scope text agree with it.          |
+| T1  | DONE   | Inventory how each tool in the ADR table reports outcomes and exit codes               | A short table in the issue folder: tool, outcomes, exit codes, class.     |
+| T2  | DONE   | Gather the options and trade-offs for each question, with the maintainer              | Options recorded with their consequences for existing tools.              |
+| T3  | DONE   | Write the ADR with the `create-adr` skill and register it in the index                 | ADR merged; the existing ADR table and scope text agree with it.          |
 | T4  | TODO   | Open follow-up issues for tools whose behavior the decision changes                    | One issue per tool, or a recorded reason there is none.                   |
 
 ## Commit Points
@@ -145,8 +145,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Folder-style spec drafted in `docs/issues/open/2715-cli-output-contract-scope-and-exit-code-policy/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created (#2715) and issue number added to this spec
-- [ ] Decisions recorded in an ADR
-- [ ] Automatic verification completed (`linter all`)
+- [x] Decisions recorded in an ADR
+- [x] Automatic verification completed (`linter all`)
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Evidence-based implementation completion review recorded
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
@@ -169,15 +169,18 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   entry text is unchanged.
 - 2026-11-06 UTC - AI assistant (Claude Code) - Recorded the maintainer's decisions on scope, exit codes and ADR form
   in the "Maintainer Decisions" section before implementation.
+- 2026-11-06 UTC - AI assistant (Claude Code) - Wrote ADR `20261106102632` and the "amended by" note in ADR
+  `20260519000000`, and registered the ADR in `docs/adrs/index.md`. `linter all` and the frontmatter validator pass
+  (stable toolchain). T4 (follow-up issue for `github-review-threads reply-status`) is waiting for the maintainer.
 
 ## Acceptance Criteria
 
-- [ ] AC1: An ADR states which programs the contract covers, and the table in the existing ADR agrees with it.
-- [ ] AC2: An ADR states the exit-code policy and the rule for outcomes beyond success, runtime failure and usage
+- [x] AC1: An ADR states which programs the contract covers, and the table in the existing ADR agrees with it.
+- [x] AC2: An ADR states the exit-code policy and the rule for outcomes beyond success, runtime failure and usage
       error, with the reasons and the alternatives considered.
 - [ ] AC3: Every tool in the ADR table is either consistent with the decisions or has a follow-up issue.
-- [ ] `linter all` exits with code `0`
-- [ ] The ADR index lists the new ADR
+- [x] `linter all` exits with code `0`
+- [x] The ADR index lists the new ADR
 
 ## Verification Plan
 
@@ -203,8 +206,8 @@ None.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1   | TODO                   |          |
-| AC2   | TODO                   |          |
+| AC1   | DONE                   | ADR `20261106102632` section 1; pointer note in ADR `20260519000000` |
+| AC2   | DONE                   | ADR `20261106102632` section 2 and Alternatives Considered |
 | AC3   | TODO                   |          |
 
 ## Risks and Trade-offs
