@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-progress
+status: done
 priority: p2
 epic: 2482
 github-issue: 2745
-spec-path: docs/issues/open/2745-2482-gate-axum-rest-api-server-test-environment/ISSUE.md
+spec-path: docs/issues/closed/2745-2482-gate-axum-rest-api-server-test-environment/ISSUE.md
 branch: "2745-2482-gate-axum-rest-api-server-test-environment-spec"
-related-pr: 2746
-last-updated-utc: "2026-11-06 10:20"
+related-pr: 2747
+last-updated-utc: "2026-11-06 14:21"
 semantic-links:
   skill-links:
     - create-issue
@@ -183,7 +183,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ### Workflow Checkpoints
 
-- [x] Folder-style spec drafted in `docs/issues/open/2745-2482-gate-axum-rest-api-server-test-environment/ISSUE.md`
+- [x] Folder-style spec drafted in `docs/issues/closed/2745-2482-gate-axum-rest-api-server-test-environment/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer (2026-11-06)
 - [x] GitHub issue created (#2745), linked as a sub-issue of #2482, and its number added to this spec
 - [x] Spec-only PR merged into `develop` before implementation
@@ -192,7 +192,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -205,6 +205,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-06 09:19 UTC - AI assistant (Claude Code, #2482 row 6) - At the maintainer's explicit OK in this session, the labels (`task`, `packages`) and the sub-issue link under #2482 were done with the `josecelano` account, because the bot account lacks those permissions. The link is verified (`parent_issue_url` is #2482).
 - 2026-11-06 09:24 UTC - AI assistant (Claude Code, #2482 row 6) - Opened spec-only PR #2746 (`Related to #2745`); `related-pr` is set to 2746.
 - 2026-11-06 10:20 UTC - AI assistant (Claude Code, #2482 row 6) - Implemented T2 to T5 on branch `2745-2482-gate-axum-rest-api-server-test-environment`: the `testing` feature, seven optional dependencies, the deleted `CurrentClock` alias, the path-only self dev-dependency with its `deny.toml` wrapper, the health check dev-dependency feature and the replaced module note. Plain package tests keep the baseline counts (162 + 58, 15 + 11); the evidence is in `manual-verification-evidence.md`. The baseline direct dependency count is corrected to 35 (the spec said 34). No retrospective is needed (see the completion review).
+- 2026-11-06 14:21 UTC - AI assistant (Claude Code, #2482 row 6) - PR #2747 was merged and issue #2745 is closed. The spec is archived to `docs/issues/closed/` with `status: done` and `related-pr: 2747` (the implementation PR; the spec-only PR was #2746).
 
 ## Acceptance Criteria
 
