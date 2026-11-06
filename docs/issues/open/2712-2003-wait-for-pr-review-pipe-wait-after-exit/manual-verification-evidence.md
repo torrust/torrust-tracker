@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2712-2003-wait-for-pr-review-pipe-wait-after-exit/ISSUE.md
-last-updated-utc: "2026-11-04 13:07"
+last-updated-utc: "2026-11-06 12:30"
 ---
 
 # Manual Verification Evidence
@@ -61,7 +61,44 @@ observed with the real `gh`.
 ### V2 - The same scenario after the fix
 
 - Goal: repeat V1 on the final build.
-- Status: `TODO`
+- Status: `DONE`
+- Outcome: **Fixed**. Both runs end at their bound.
+
+#### Steps Performed
+
+Same as V1, with `target/debug/wait-for-pr-review` built from the branch `2712-wait-for-pr-review-pipe-wait`
+on top of commit `docs(wait-for-pr-review): [#2712] record the partial-output design decision` plus the
+uncommitted fix (committed afterwards as `fix(wait-for-pr-review): [#2712] bound the reader wait by the
+deadline and signals`). Toolchain: stable `rustc 1.99.1 (58cf8f9c3 2026-10-13)`, Linux 7.0.0-38-generic.
+
+#### Observed Result
+
+```text
+run 1: exit 1 after 3.0 s (budget 3 s)
+stdout bytes: 0 | last stderr record: {"kind":"deadline_exceeded","message":"the wait budget ended while a `gh` call was still running"}
+run 2: SIGTERM sent at 3.0 s; exit 1 after 3.0 s
+stdout bytes: 0 | last stderr record: {"kind":"interrupted","message":"interrupted by a signal"}
+```
+
+#### Conclusion
+
+The run that took 25.0 s for a 3 s budget now ends at 3.0 s, and the `SIGTERM` sent at 3.0 s is honored at
+3.0 s, with the same records as before.
+
+### T1 and T2 - Regression tests, red then green
+
+Fake `gh` leaves `sleep 20` holding its pipes (`DESCENDANT_LIFETIME`); the assertions require the run to end
+in under 10 s. `cargo test -p wait-for-pr-review --test cli descendant`:
+
+```text
+Red (unfixed code):
+test it_should_stop_on_sigterm_when_gh_exits_but_a_descendant_keeps_its_pipes_open ... FAILED
+test it_should_end_at_the_deadline_when_gh_exits_but_a_descendant_keeps_its_pipes_open ... FAILED
+test result: FAILED. 0 passed; 2 failed; 0 ignored; 0 measured; 22 filtered out; finished in 20.01s
+
+Green (fixed code): cargo test -p wait-for-pr-review
+test result: ok. 24 passed; 0 failed (cli)   plus the unit tests of `collect`, all passing
+```
 
 ## Failures and Follow-up
 

@@ -9,7 +9,7 @@ github-issue: 2712
 spec-path: docs/issues/open/2712-2003-wait-for-pr-review-pipe-wait-after-exit/ISSUE.md
 branch: "2712-wait-for-pr-review-bug-and-adr-specs-spec"
 related-pr: null
-last-updated-utc: "2026-11-04 13:07"
+last-updated-utc: "2026-11-06 12:00"
 semantic-links:
   skill-links:
     - create-issue
@@ -100,13 +100,35 @@ implementation.
 - **Design-review checkpoint.** After the first passing vertical slice (the deadline test), review whether the
   success and error paths can share one bounded collection routine before adding the signal test.
 
-Open design question for the maintainer, to settle at implementation: output that has not been fully read when the
-wait ends. A `gh api` response is useful only if complete. Option 1: treat it as a failure (`deadline_exceeded` or
-`interrupted`) and return no data. Option 2: let the readers append to a shared buffer, and return what was read
-when the child exited successfully and only a descendant holds the pipe, on the argument that a successful exit
-means `gh` wrote everything. Option 2 keeps a successful call successful but needs shared state; option 1 is
-simpler. The fix must not discard data that is still unread while the child's pipes are still being closed
-normally.
+### Decision: output not fully read when the wait ends
+
+Question: when `gh` exits successfully but a descendant still holds its pipes open and the budget or a signal ends
+the wait, what does `run()` do with output that has not been fully read?
+
+**Decided (maintainer, 2026-11-06): option 1, treat it as a failure.** `run()` returns `deadline_exceeded` or
+`interrupted` and no data. The wait for the readers is a loop in slices no longer than the 25 ms child poll
+interval that checks the interrupt flag and the call's absolute deadline. The error path keeps its 200 ms grace
+(`RECLAIM_GRACE`) and shares the same routine. A `gh` that closes its pipes normally is unaffected: its readers
+finish and the full output is returned (AC3). The fix must not discard data that is still unread while the
+child's pipes are being closed normally.
+
+Alternatives considered:
+
+| Option | Behavior | Pros | Cons |
+| ------ | -------- | ---- | ---- |
+| 1 (chosen) | Fail with `deadline_exceeded` or `interrupted`, return no data. | Simplest: no shared state, only the wait changes. Matches AC1 and AC2 as written. Never returns partial data, which is worse than none for a `gh api` response. One routine serves both paths. | A lingering descendant makes the call wait out the whole remaining budget and then fail. A call whose `gh` succeeded is reported as a failure. |
+| 2 (rejected) | Readers append to a shared buffer. When `gh` exited 0 and only a descendant holds the pipe, wait a short grace and return the bytes read so far. | A successful call stays successful and does not burn the budget on a descendant. More robust if a real `gh` ever leaves a stray descendant. | Needs shared state (mutex), so a larger change. "Exit 0 means everything was written" does not guarantee the bytes were already read, so truncated data could reach the parser, and a truncated document that still parses would be silently wrong. Contradicts AC1 and AC2 as written. Adds a new fixed grace timeout, which the Risks section warns against. |
+
+Why option 1: the poller is a tool for AI agents that rely on the timeout to get control back, so failing at the
+deadline serves that goal, and the change is the smaller one. This was not observed with the real `gh`; revisit
+option 2 only if it is.
+
+Other implementation decisions (maintainer, 2026-11-06):
+
+- The two failing tests and the fix are committed together, because the pre-commit gate runs the tests. The red
+  runs are recorded in `manual-verification-evidence.md`.
+- The success and error paths share one bounded collection routine.
+- `evidence/fake-gh-leaves-pipe-open.sh` is kept for the V2 recheck and moves with the spec folder at close-out.
 
 ## Bug-Fix Process
 
@@ -140,11 +162,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                                                 | Notes / Expected Output                                                    |
 | --- | ------ | -------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| T1  | TODO   | Add the deadline integration test and run it red                     | Red output recorded in `manual-verification-evidence.md`.                  |
-| T2  | TODO   | Add the signal integration test and run it red                       | Red output recorded.                                                       |
-| T3  | TODO   | Bound the reader wait on the success path by the deadline and signal | One collection routine used by both paths, or a recorded reason it is not. |
-| T4  | TODO   | Run the tests green, then repeat V1 on the final build               | Green output and the recheck recorded, naming the commit subject it ran on.|
-| T5  | TODO   | Update the skill and the #2581 spec text that describe this behavior | Links and wording only where the behavior changed.                         |
+| T1  | DONE   | Add the deadline integration test and run it red                     | Red output recorded in `manual-verification-evidence.md`.                  |
+| T2  | DONE   | Add the signal integration test and run it red                       | Red output recorded.                                                       |
+| T3  | DONE   | Bound the reader wait on the success path by the deadline and signal | One collection routine used by both paths, or a recorded reason it is not. |
+| T4  | DONE   | Run the tests green, then repeat V1 on the final build               | Green output and the recheck recorded, naming the commit subject it ran on.|
+| T5  | DONE   | Update the skill and the #2581 spec text that describe this behavior | Links and wording only where the behavior changed.                         |
 
 ## Commit Points
 
@@ -205,7 +227,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID | Scenario                                                | Human-oriented command/steps                                                                                   | Expected Result                                                                  | Status | Evidence                                     |
 | -- | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ------ | -------------------------------------------- |
 | M1 | A descendant holds the pipes after `gh` exits (before)  | `evidence/fake-gh-leaves-pipe-open.sh` as `gh` on `PATH`, `wait-for-pr-review --pr-number 7 --timeout-seconds 3` | The run takes about 25 s instead of 3 s                                          | DONE   | `manual-verification-evidence.md` section V1 |
-| M2 | The same, after the fix                                 | The same command on the final build                                                                            | Ends at about 3 s with `deadline_exceeded` and exit `1`; `SIGTERM` at 3 s ends it at about 3 s | TODO   | `manual-verification-evidence.md` section V2 |
+| M2 | The same, after the fix                                 | The same command on the final build                                                                            | Ends at about 3 s with `deadline_exceeded` and exit `1`; `SIGTERM` at 3 s ends it at about 3 s | DONE   | `manual-verification-evidence.md` section V2 |
 
 Every recorded command result names the toolchain that produced it.
 
@@ -222,17 +244,16 @@ It is shell, not Python.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1   | TODO                   |          |
-| AC2   | TODO                   |          |
-| AC3   | TODO                   |          |
+| AC1   | DONE                   | Test `it_should_end_at_the_deadline_when_gh_exits_but_a_descendant_keeps_its_pipes_open`; V2 run 1 |
+| AC2   | DONE                   | Test `it_should_stop_on_sigterm_when_gh_exits_but_a_descendant_keeps_its_pipes_open`; V2 run 2 (SIGINT shares the flag, covered by the unit test of `collect`) |
+| AC3   | DONE                   | Existing `tests/cli.rs` scenarios and `it_should_return_what_a_reader_sends_while_the_wait_is_in_progress` |
 
 ## Risks and Trade-offs
 
 - A bound that is too tight could cut off the output of a slow but healthy `gh`. Mitigation: bound by the call's
   own deadline and interrupt flag, not by a new fixed timeout, and keep a short grace only for the case where the
   child has already exited.
-- Returning partial data would be worse than failing. Mitigation: the design question above, decided before
-  the fix.
+- Returning partial data would be worse than failing. Mitigation: the design decision above (option 1).
 
 ## Implementation Completion Review
 
