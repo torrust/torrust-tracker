@@ -589,11 +589,14 @@ storage/http_api/lib/tls
 You have not enabled it in your `tracker.toml` file:
 
 ```toml
-[http_trackers.tsl_config]
+[[http_trackers]]
+bind_address = "0.0.0.0:7070"
+
+[http_trackers.tls_config]
 ssl_cert_path = "./storage/tracker/lib/tls/localhost.crt"
 ssl_key_path = "./storage/tracker/lib/tls/localhost.key"
 
-[http_api.tsl_config]
+[http_api.tls_config]
 ssl_cert_path = "./storage/http_api/lib/tls/localhost.crt"
 ssl_key_path = "./storage/http_api/lib/tls/localhost.key"
 ```
