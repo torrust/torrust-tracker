@@ -41,8 +41,10 @@ comments is summarized here; the issue remains the place for discussion.
 Problems with the current (v1) API that v1 cannot fix without breaking clients:
 
 - Responses use almost only `200` and `500` for resource outcomes. Not-found, created and
-  no-content cases are not distinguished. (Authentication failures and disabled capabilities
-  are already distinguished in v1: `401` and `409`; v2 must preserve that.)
+  no-content cases are not distinguished. Authentication failures (missing token, invalid token,
+  invalid token type) also return `500` with `unhandled rejection` text in v1; mapping them to
+  `401` is proposed v2 work. Disabled key/whitelist capabilities already return `409` in v1
+  (delivered by #2107); v2 must preserve that.
 - Errors are not structured. The demo deployment returns `HTTP 500` with the internal text
   `Unhandled rejection: Err { reason: "unauthorized" }` for `GET /` and `GET /health_check`
   (observed 2026-04-09, see torrust/torrust-tracker-demo#13).
@@ -187,7 +189,8 @@ Across the EPIC, the scenarios must cover at least:
 | v1 and v2 coexistence            | Both prefixes are served by one process; v1 responses are byte-compatible with before. | TODO   | -        |
 | Unauthorized torrent lookups     | Missing/invalid token: same non-disclosing response for an existing and an absent one. | TODO   | -        |
 | Authorized absent torrent lookup | `404` with the structured error body.                                                  | TODO   | -        |
-| Capability availability          | Disabled whitelist/keys/persistence return the agreed code (`409` in v1), not `404`.   | TODO   | -        |
+| Disabled key/whitelist operations | Return the agreed code (`409` in v1), not `404` or an authorization failure.           | TODO   | -        |
+| Persistence-free reads           | Stats and torrent reads stay supported and return `200` (as in v1), not `409`.         | TODO   | -        |
 | Completed-metric availability    | Session, persisted and unavailable values are distinguishable, no numeric sentinel.    | TODO   | -        |
 
 ### Phase 0 - Specification (allowed now)
