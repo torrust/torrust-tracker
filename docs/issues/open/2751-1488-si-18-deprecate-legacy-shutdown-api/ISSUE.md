@@ -112,6 +112,12 @@ current version at the end of #1669; the root `torrust-tracker` next releases as
   that time, normally 0.1.0). For the root `torrust-tracker` types `HaltSignal` and `NestedServerTask`,
   `since = "4.0.0"`.
 - The removal release is worded as "the next breaking release of this package".
+- Support window (maintainer decision of 2026-11-06, resolving a release-order cycle: #2583 publishes the
+  unpublished crates only after EPIC #1488 closes, and SI-19 is part of that EPIC): the five unpublished
+  package crates have no external consumers, so no public support window exists for them. SI-18 still deprecates
+  their symbols as in-repo guidance, and SI-19 may remove them without waiting for a window. The window applies
+  only to what is already public: `torrust-server-lib` (deprecated since 0.5.0, removed in 0.6.0) and the root
+  `torrust-tracker` types `HaltSignal` and `NestedServerTask` (deprecated since 4.0.0). #2583 needs no change.
 - `HaltSignal` and `NestedServerTask` are deprecated only, not deleted.
 - The `torrust-server-lib` 0.5.0 dependency bump lands in the implementation PR, not the spec PR.
 - Ordering: #2482 rows 6 and 7 edit `axum-rest-api-server` and `axum-health-check-api-server`; the
@@ -162,7 +168,9 @@ current version at the end of #1669; the root `torrust-tracker` next releases as
 4. The release notes must state the support window and the evidence required
    before removal.
 5. The final removal task must not proceed merely because in-workspace code has
-   migrated; it also requires the declared external compatibility period to end.
+   migrated; for the already-public symbols (see Versioning Decisions) it also requires the
+   declared external compatibility period to end. Symbols of crates that have never been
+   published need no such period.
 
 ## Acceptance Criteria
 
@@ -300,9 +308,11 @@ None.
 
 - #2482 rows 6 and 7 edit two of the affected crates; ordering is coordinated
   to avoid conflicts in `Cargo.toml` and test environment files.
-- The five package crates are unpublished, so their deprecation ships inside
-  their first release (#2583); the `since` values depend on the version chosen
-  there. Re-check them when #2583 decides every version.
+- The five package crates are unpublished and #2583 publishes them only after
+  EPIC #1488 closes, so SI-19 removes their legacy symbols before any public
+  release and no support window applies to them (see Versioning Decisions).
+  Their `since` values still follow the version chosen in #2583; re-check them
+  when #2583 decides every version.
 - Deprecating test-only call sites needs local `#[allow(deprecated)]` with a
   rationale, or the workspace stops building warning-free.
 
