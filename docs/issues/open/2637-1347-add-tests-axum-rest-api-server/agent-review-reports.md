@@ -131,3 +131,18 @@ Written by the implementing agent (Claude Code, Sonnet 5.5) from the report of a
   - The registration-failure test now asserts that the caller's token is cancelled (`test(axum-rest-api-server): [#2637] assert that a failed registration cancels the caller's token`); S8 and S8b are killed.
   - The plan index, the plan body and the figures were refreshed in one documentation commit; the proxy note is recorded in the plan's review outcome.
   - The `DEADLINE` of `routes.rs` is declined as out of scope (not touched by this slice).
+
+### 2026-11-06 16:44 UTC - independent reviewer (slice S6, final review)
+
+Written by the implementing agent (Claude Code, Sonnet 5.5) from the report of an independent review subagent that ran in an isolated worktree and changed no tracked file.
+
+- Invocation scope: slice S6 of #2637 on branch `2637-1347-add-tests-axum-rest-api-server-final`: ledger rows 19-31, the `lib.rs` documentation fix, the `authenticate` duplicate-token test, the mutation and manual evidence, the final measurement and the retrospective.
+- Inputs: the issue folder, the EPIC rows and tables, the S6 plans, the review-task and write-unit-test skills, and the changed Rust files.
+- Evidence: clean `cargo llvm-cov` runs (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`) matched every recorded figure (aggregate 2,348 / 2,404 lines, 97.67%; unit-only 2,324 / 2,404, 96.67%; integration-only 682 / 903; 170 unit and 58 integration tests) and both EPIC tables with their deltas; `cargo test`, `cargo +nightly fmt --all -- --check` and `linter all` passed; replacing `|` with `^` in `authenticate` made exactly the new shared-value case fail.
+- Findings:
+  - LOW: the unviable-mutant categories of `mutation-evidence.md` overlapped and did not add up to 44.
+  - LOW: the auth-key handlers plan still said "Review outcome: pending" although the maintainer had approved the file.
+  - LOW (INFO): the `500` statements in `lessons.md` and the manual evidence are supported by `unhandled_rejection_response` and the `auth.rs` unit tests.
+- Verdict: REVIEW PASSED
+- Follow-up actions:
+  - The unviable categories were recounted from the per-mutant logs (16, 16, 4 and 8, total 44) and the stale review outcome was corrected, both in the final documentation commit. No further review is required.

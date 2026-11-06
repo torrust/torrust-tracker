@@ -27,7 +27,7 @@
 //! [http_api]
 //! bind_address = "0.0.0.0:1212"
 //!
-//! [http_api.tsl_config]
+//! [http_api.tls_config]
 //! ssl_cert_path = "./storage/tracker/lib/tls/localhost.crt"
 //! ssl_key_path = "./storage/tracker/lib/tls/localhost.key"
 //!
@@ -106,14 +106,14 @@
 //!
 //! # Setup SSL (optional)
 //!
-//! The API server supports SSL. You can enable it by adding the `tsl_config`
+//! The API server supports SSL. You can enable it by adding the `tls_config`
 //! section to the configuration.
 //!
 //! ```toml
 //! [http_api]
 //! bind_address = "0.0.0.0:1212"
 //!
-//! [http_api.tsl_config]
+//! [http_api.tls_config]
 //! ssl_cert_path = "./storage/tracker/lib/tls/localhost.crt"
 //! ssl_key_path = "./storage/tracker/lib/tls/localhost.key"
 //!

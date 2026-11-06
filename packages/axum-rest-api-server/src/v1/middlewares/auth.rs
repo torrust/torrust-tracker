@@ -404,6 +404,20 @@ mod tests {
     }
 
     #[rstest]
+    #[case::the_value_shared_by_two_labels(FIRST_TOKEN, true)]
+    #[case::the_value_of_the_third_label(SECOND_TOKEN, true)]
+    #[case::a_value_that_is_not_configured("unlisted-token-9", false)]
+    fn it_should_authenticate_a_token_configured_under_more_than_one_label(#[case] token: &str, #[case] expected: bool) {
+        let access_tokens = AccessTokens::from([
+            ("first".to_string(), SecretString::from(FIRST_TOKEN)),
+            ("copy".to_string(), SecretString::from(FIRST_TOKEN)),
+            ("other".to_string(), SecretString::from(SECOND_TOKEN)),
+        ]);
+
+        assert_eq!(authenticate(token, &access_tokens), expected);
+    }
+
+    #[rstest]
     #[case::a_different_first_character("xpi-token-12345")]
     #[case::a_different_last_character("api-token-1234x")]
     #[case::a_shorter_token("api-token-1234")]
