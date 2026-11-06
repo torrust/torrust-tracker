@@ -57,8 +57,9 @@ carried this run together with the 58 integration tests.
    comparison result per configured token. With distinct token values at most one comparison matches, so `|` and
    `^` give the same answer; they differ only when two labels hold the **same** token value (two matches XOR to
    "no match" and a valid token is rejected). No test configures duplicate values. This is a real, cheap gap, not an
-   equivalent mutant: a unit test with two labels sharing one value kills it. Selected action: a follow-up test
-   proposed to the maintainer (a test-producing increment needs an approved plan); recorded in `lessons.md`.
+   equivalent mutant: a unit test with two labels sharing one value kills it. Selected action: a test was
+   added after the maintainer approved its plan (`v1-middlewares-auth-tests.md`, update 2026-11-06); the mutation is now
+   killed. The run above predates the test.
 2. `v1/context/auth_key/handlers.rs:154`: replace `<AuthKeyErrorDisplay as Debug>::fmt` with `Ok(Default::default())`.
    The `Debug` impl is the three lines decided as deliberately untested in the row 6 plan. No behavior changes.
    Selected action: none.

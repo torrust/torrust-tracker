@@ -24,5 +24,6 @@ logged `Torrust tracker successfully shutdown.`. No script was used.
 ## Observation (not a #2637 change)
 
 An unauthenticated or wrongly authenticated request to a protected route answers `500` with a plain-text
-`Unhandled rejection` body, not `401`/`403`. The package integration tests pin this legacy behavior, so it was
-recorded in `lessons.md` as a candidate for a separate issue and not changed here.
+`Unhandled rejection` body, not `401`/`403`. The unit tests of the middleware pin this behavior. Changing it would
+be a breaking REST API change; the maintainer decided it belongs to the REST API v2, postponed until after the
+tracker 4.0.0 release. This overhaul only tests the current behavior (see `lessons.md`).
