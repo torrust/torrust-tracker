@@ -9,7 +9,7 @@ github-issue: 2776
 spec-path: docs/issues/open/2776-2411-axum-server-0-9-timeouts/ISSUE.md
 branch: "2776-axum-server-0-9-timeouts-spec"
 related-pr: null
-last-updated-utc: "2026-11-06 18:30"
+last-updated-utc: "2026-11-06 21:10"
 semantic-links:
   skill-links:
     - create-issue
@@ -36,11 +36,27 @@ it is no longer needed.
 
 ## Background
 
-The tracker's Axum listeners have had no idle-connection timeout since the Hyper 1.0 migration
-removed it from `axum-server`. The history is spread over issues that pre-date issue specs:
+The Hyper 1.0 migration removed the idle-connection timeout from `axum-server`. The tracker
+restored it for plaintext listeners with a copy of a gist, `TimeoutAcceptor`, but not for TLS
+listeners and not for the health check API. A connection that is never closed holds a Tokio task
+and a file descriptor for as long as the client keeps it open, so many silent connections can
+exhaust the process's descriptors. The baseline reproduction recorded in
+[manual-verification-evidence.md](manual-verification-evidence.md) shows the current state on
+`develop` (`axum-server` 0.8.0):
 
-- #324 (open): "Denial of Service attack factor". A client that connects (for example with
-  `telnet`) and sends nothing is never disconnected. Reopened to consolidate #612 and #613.
+| Listener                                | Silent connection closed?              |
+| --------------------------------------- | -------------------------------------- |
+| HTTP tracker, plaintext                 | Yes, after 5 s                         |
+| REST API, plaintext                     | Yes, after 5 s                         |
+| HTTP tracker, TLS, after the handshake  | No, still open after 25 s              |
+| Health check API                        | No, still open after 25 s              |
+| TLS port, no handshake bytes            | Yes, after 10 s (fixed upstream value) |
+
+The history is spread over issues that pre-date issue specs:
+
+- #324 (open): "Denial of Service attack factor". The original report: a client that connects
+  (for example with `telnet`) and sends nothing is never disconnected. It is not true of every
+  current listener (see the table). Reopened to consolidate #612 and #613.
 - #612 and #613 (open): the same problem for the Tracker API and the HTTP tracker (TLS handshake,
   waiting for a first request, waiting for headers). Children of #603 "Review missing timeouts".
 - `axum-server` issue #116, opened by the maintainer: "How to set up a timeout for TLS handshake".
@@ -67,12 +83,15 @@ idle TLS connections and health check API connections are not bounded by the tra
 - Breaking: TLS acceptors now return a `TlsService` wrapper service.
 - `accept::TcpConfigAcceptor` applies TCP socket options to accepted connections.
 
-The tracker's lockfile still resolves `axum-server` 0.8.0, and all four packages depend on
-`axum-server = "0"` with `tls-rustls-no-provider`.
+The tracker's lockfile still resolves `axum-server` 0.8.0. Five manifests declare it as
+`axum-server = "0"` with `tls-rustls-no-provider`: the root `Cargo.toml` and the
+`axum-server`, `axum-http-server`, `axum-rest-api-server` and `axum-health-check-api-server`
+packages. The `"0"` requirement permits 0.8, which has no `first_request_timeout`.
 
-Source: facts about `axum-server` come from its 0.9.0 release notes and the two PRs above; they
-have not been reproduced against the tracker. Every "confirmed" or "hypothesis" in this spec is
-resolved by the manual scenarios below.
+Source: facts about `axum-server` 0.9 come from its release notes and the two PRs above and
+have not been exercised against the tracker yet. The current-state table was observed on a
+`develop` build and is recorded in the evidence file. Everything about 0.9 behaviour is resolved
+by the scenarios below.
 
 ## Scope
 
@@ -125,8 +144,8 @@ Follow `.github/skills/dev/debugging/fix-bug/SKILL.md`:
 - Analysis: idle TLS connections and health check API connections are not closed by the tracker.
   Local hypothesis: only the plaintext listeners use `TimeoutAcceptor`; the health check API sets
   no timeout; TLS listeners omit the acceptor.
-- Reproduction: open a raw TCP and a TLS connection to each listener, send nothing, and observe
-  whether the server closes them (see M1 to M3). Record attempted commands.
+- Reproduction: **Reproduced** at baseline for TLS and the health check API; see the evidence
+  file. The probes are repeated unchanged for the final recheck.
 - Regression boundary: see below.
 - Red evidence before the fix when feasible, production change, green evidence, and a
   like-for-like recheck.
@@ -140,20 +159,29 @@ the handshake and then stays silent. Run the same assertion against the health c
 its package test support. If a TLS test needs fixture certificates, use the existing test
 certificates in the repository. Record red and green output in `manual-verification-evidence.md`.
 
+Also add bounded automated tests for the stalled-handshake case (a TCP connection to a TLS
+listener that sends no handshake bytes is closed within the handshake bound) and for the
+post-response idle case (a persistent HTTP/1 connection is closed after its response within the
+idle bound, and an HTTP/2 connection is covered the same way). These cases decide whether the
+wrapper can be removed, so manual checks alone are not enough. If a maintained test is
+impractical for one of them (for example a handshake bound fixed inside `axum-server`), record
+why in the progress log, and what follow-up would make it testable, as `fix-bug` requires.
+
 ## Implementation Plan
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                                                                         | Notes / Expected Output                                                                  |
 | --- | ------ | -------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| T1  | TODO   | Reproduce current behaviour on plaintext, TLS and health check listeners                     | Evidence of which idle connections stay open today (M1 to M3)                             |
-| T2  | TODO   | Bump `axum-server` to 0.9 and fix compile or behaviour breakage                              | Workspace builds; `Cargo.lock` resolves 0.9.x                                            |
-| T3  | TODO   | Add red tests for idle plaintext and TLS connections                                         | Tests fail on the current code for TLS and health check                                  |
+| T1  | DONE   | Reproduce current behaviour on plaintext, TLS and health check listeners                     | Baseline recorded in `manual-verification-evidence.md`: TLS and health check reproduced   |
+| T2  | TODO   | Bump `axum-server` to 0.9 and fix compile or behaviour breakage                              | `"0.9"` required in the root and all four Axum package manifests; `Cargo.lock` 0.9.x    |
+| T3  | TODO   | Add red regression tests: idle plaintext and TLS, stalled handshake, post-response idle      | Recorded red run before the fix; TLS and health check tests fail on the current code     |
 | T4  | TODO   | Apply `first_request_timeout` through one constructor path used by all three server packages | All listeners close idle connections; tests green                                        |
-| T5  | TODO   | Verify idle HTTP/1 keep-alive between requests and decide whether `TimeoutAcceptor` goes     | Evidence from M4; wrapper removed, or kept with a recorded reason                         |
+| T5  | TODO   | Compare idle bounds with and without `TimeoutAcceptor`, HTTP/1 and HTTP/2, then decide      | Evidence from M4 for both builds and both protocols; wrapper removed, or kept with reason |
 | T6  | TODO   | Decide timeout configurability; record the TLS handshake timeout behaviour                   | Progress-log decision; constants or configuration keys documented                         |
 | T7  | TODO   | Update EPIC #2411 case A2 and controls, remove stale comments, update docs                   | EPIC rows match the new behaviour; no stale "TLS does not work" comments                  |
 | T8  | TODO   | Close or link #324, #612, #613 and #603 checklist                                            | Maintainer action; issue links recorded in the progress log                              |
+| T9  | TODO   | Green run and final like-for-like recheck after the last production change                  | T1 probes repeated on the final build, named by its Conventional Commit subject          |
 
 ## Commit Points
 
@@ -165,6 +193,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T5   | Removal of the custom acceptor, or the no-change decision     | Commit after focused validation and required review. |
 | T6   | Constants or configuration plus documentation                 | Commit after focused validation and required review. |
 | T7   | EPIC and documentation updates                                | Commit after focused validation and required review. |
+| T9   | Final recheck evidence (and fixes from review findings)       | Repeat the recheck after any later production change. |
 
 Record a justified no-change decision in the task's evidence without creating an empty commit.
 For test-producing work, use the `write-unit-test` skill and complete the prose-first
@@ -192,16 +221,17 @@ with GPG.
 
 ### Progress Log
 
-- 2026-11-06 18:30 UTC - Claude Code (Claude Sonnet 5.5) - Drafted after `axum-server` issue #116 was closed and 0.9.0 was released; analysed #324, #603, #612, #613 and EPIC #2411 case A2. Nothing was run against the tracker.
+- 2026-11-06 18:30 UTC - Claude Code (Claude Sonnet 5.5) - Drafted after `axum-server` issue #116 was closed and 0.9.0 was released; analysed #324, #603, #612, #613 and EPIC #2411 case A2. Nothing was run against the tracker at that point.
 - 2026-11-06 18:45 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the draft; created issue #2776 and moved the spec to `open/`.
+- 2026-11-06 21:10 UTC - Claude Code (Claude Sonnet 5.5) - Answered the Copilot review on PR #2777: ran the baseline reproduction (Reproduced for TLS and the health check API; plaintext HTTP tracker and REST API close at 5 s), added the evidence file, required `"0.9"` in five manifests, added stalled-handshake and post-response regression tests, a final recheck task (T9), with/without-wrapper comparison for HTTP/1 and HTTP/2, and split M5. - [evidence](manual-verification-evidence.md)
 
 ## Acceptance Criteria
 
 - [ ] AC1: A client that connects to the HTTP tracker, REST API or health check API over plaintext and sends nothing is disconnected within the configured first-request timeout.
 - [ ] AC2: The same holds for TLS connections of the HTTP tracker and REST API after the handshake completes.
 - [ ] AC3: A slow or stalled TLS handshake is bounded, and the bound is recorded in the documentation.
-- [ ] AC4: An idle HTTP/1 keep-alive connection between requests is closed in bounded time, or the gap is recorded as a known limitation in EPIC #2411.
-- [ ] AC5: `TimeoutAcceptor` and its helper types are removed, or the spec records why they stay.
+- [ ] AC4: An idle persistent connection after a response, HTTP/1 and HTTP/2, is closed in bounded time no worse than today's plaintext 5 s, measured on the replacement build; a weaker result blocks the removal in AC5 and is recorded in EPIC #2411.
+- [ ] AC5: `TimeoutAcceptor` and its helper types are removed only after AC4 is shown by a comparison with and without the wrapper for HTTP/1 and HTTP/2; otherwise the spec records why they stay.
 - [ ] AC6: EPIC #2411 case A2 and the existing-controls rows describe the new behaviour; the stale "TLS does not work" comments are gone.
 - [ ] AC7: #324, #612 and #613 are closed or linked to this issue, and the #603 checklist is updated.
 - [ ] `linter all` exits with code `0`
@@ -224,11 +254,13 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario                              | Human-oriented command/steps                                                                  | Expected Result                                                     | Status | Evidence                                     |
 | --- | ------------------------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- | ------ | -------------------------------------------- |
-| M1  | Idle plaintext connection             | Start the tracker; `telnet 127.0.0.1 <port>` to HTTP tracker, REST API and health check API | `Connection closed by foreign host` within the configured timeout   | TODO   | `manual-verification-evidence.md` section V1 |
-| M2  | Idle TLS connection after handshake   | `openssl s_client -connect 127.0.0.1:<tls-port>` and send nothing                             | Connection closed within the configured timeout                     | TODO   | `manual-verification-evidence.md` section V2 |
-| M3  | Stalled TLS handshake                 | Open a TCP connection to a TLS port and send nothing, or one byte                             | Connection closed within the handshake bound                        | TODO   | `manual-verification-evidence.md` section V3 |
-| M4  | Idle HTTP/1 keep-alive between requests | One request over a kept-alive connection, then wait                                         | Connection closed in bounded time                                   | TODO   | `manual-verification-evidence.md` section V4 |
-| M5  | Normal traffic unaffected             | Announce, scrape, REST API call and health check through the e2e runner                       | Same responses as before the change; slow handlers still answer 408 | TODO   | `manual-verification-evidence.md` section V5 |
+| M1  | Idle plaintext connection             | Start the tracker; `telnet 127.0.0.1 <port>` to HTTP tracker, REST API and health check API | `Connection closed by foreign host` within the configured timeout   | Baseline DONE | `manual-verification-evidence.md` V1 to V4 |
+| M2  | Idle TLS connection after handshake   | `openssl s_client -connect 127.0.0.1:<tls-port>` and send nothing                             | Connection closed within the configured timeout                     | Baseline DONE | `manual-verification-evidence.md` V1 to V4 |
+| M3  | Stalled TLS handshake                 | Open a TCP connection to a TLS port and send nothing, or one byte                             | Connection closed within the handshake bound                        | Baseline DONE | `manual-verification-evidence.md` V1 to V4 |
+| M4  | Idle persistent connection after a response | Send one request, keep the connection open and send nothing more, once over HTTP/1 and once over HTTP/2 (`curl --http2-prior-knowledge` with a held connection, or the probe in `evidence/baseline-probe.py`); run on the build with the wrapper and on the build without it | Closed in bounded time, no worse than 5 s, on both builds and both protocols | Baseline DONE (HTTP/1 only) | `manual-verification-evidence.md` V1 to V4 |
+| M5a | Tracker traffic unaffected            | Run the e2e runner, which exercises the HTTP and UDP trackers and the health check API only    | Same results as before the change                                   | TODO   | `manual-verification-evidence.md` section V5 |
+| M5b | REST API call unaffected              | An authenticated REST API request with `curl` and the admin token, separately from the runner | Same response as before the change                                  | TODO   | `manual-verification-evidence.md` section V6 |
+| M5c | Slow handler still answers 408        | A deliberately slow request against a test listener (for example a test route that sleeps past the handler timeout) | `408` after the handler timeout                                      | TODO   | `manual-verification-evidence.md` section V7 |
 
 Notes:
 
