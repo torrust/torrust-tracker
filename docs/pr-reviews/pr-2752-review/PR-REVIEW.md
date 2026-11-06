@@ -54,6 +54,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F9 | review-finding:pr-2752-f9 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F10 | review-finding:pr-2752-f10 | Copilot | Minor | metadata | ORIGINAL | FIXED | NON_RESOLVABLE |
 | F11 | review-finding:pr-2752-f11 | Copilot | Major (inferred) | correctness | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F12 | review-finding:pr-2752-f12 | Copilot | Major | correctness | RE_RAISE_OF:F11 | FIXED | RESOLVED |
+| F13 | review-finding:pr-2752-f13 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -200,6 +202,32 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#issuecomment-6690075811
 
+### F12 - Resolve the remaining root-crate release cycle (re-raise of F11)
+
+- PR number: 2752
+- Source review ID: 5803954711
+- Reviewer finding ID: F11
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4495302631
+- Concern: #2583 publishes the libraries after EPIC #1488 closes and the root 4.0.0 after them, but the SI-19 start gate waits for a root-types support window, so the unpublished-crate exemption left the cycle for `HaltSignal` and `NestedServerTask`. The reviewer reused ID F11, so the audit assigned F12.
+- Solution: Checked the root types against the tree: they first appear in `3ee28b723`, after the published 3.0.0, and are in no published release, so they need no support window. Limited the support window to `torrust-server-lib` in SI-18 (Versioning Decisions) and in the SI-19 draft (start gate and dependencies). This refines the maintainer's Option A decision using the same principle (a window only for already-public symbols).
+- Current-tree verification: `git grep "HaltSignal\|NestedServerTask" v3.0.0` finds nothing; the SI-19 draft start gate now names only `torrust-server-lib` 0.5.x.
+- Resolution reference: docs(issues): [#2751] limit the support window to torrust-server-lib
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4496337482
+
+### F13 - Restore disposition and OPEN status rules
+
+- PR number: 2752
+- Source review ID: 5803954711
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4495302709
+- Concern: The audit's copied Status Values and Completion Rules omit the template rule that a thread the current account cannot resolve keeps its disposition and gets `Thread state=OPEN`.
+- Solution: Added the rule to both sections, copied from `docs/templates/PR-REVIEW-TEMPLATE.md`.
+- Current-tree verification: the audit's Status Values section matches the template (diff shows only a blank line); both sections contain the `viewerCanResolve` rule.
+- Resolution reference: docs(pr-reviews): [#2751] restore the unresolvable-thread rule in the PR 2752 audit
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4496337862
+
 ## Processing Log
 
 - 2026-11-06 14:26 UTC - Copilot review 5801499766 submitted with 8 inline findings (F1 to F8); F5 re-raises F4.
@@ -209,6 +237,9 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-11-06 16:30 UTC - Found Copilot review 5803331264 (submitted 16:21 UTC) with one inline finding (F9, reviewer ID F1, renumbered because F1 was taken) and two review-body findings (F10, F11).
 - 2026-11-06 16:36 UTC - Fix commits for F9 to F11 were made (committer times 16:31:22 to 16:36:50 UTC) and pushed before the replies below.
 - 2026-11-06 16:39 UTC - Replied on the F9 thread (16:39:20 UTC) and posted one PR conversation response covering F9 to F11 (16:39:23 UTC); resolved the F9 thread, which returned `isResolved: true`. F10 and F11 have no thread (`NON_RESOLVABLE`).
+- 2026-11-06 18:12 UTC - Found Copilot review 5803954711 (submitted 17:04 UTC) with two inline findings: F12 (reviewer ID F11, a re-raise of F11) and F13. The fix commits were made at 18:11:35 and 18:12:37 UTC.
+- 2026-11-06 18:51 UTC - Replied on both threads (18:51:36 and 18:51:39 UTC) before the push had succeeded: the first push failed with a network disconnect, so the replies cited commits that were not yet on the remote.
+- 2026-11-06 18:57 UTC - The second push succeeded; resolved both threads, which returned `isResolved: true`.
 
 ## Completion Rules
 
