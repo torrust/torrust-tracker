@@ -21,8 +21,9 @@ An edge that exists only for a package's `testing` feature (an optional normal d
 `testing` enables, labelled `optional (testing)` by the
 [workspace-coupling tool](../../../contrib/dev-tools/analysis/workspace-coupling/src/main.rs)) is test-only,
 not a runtime edge, so it is not drawn in this diagram. A package's dev-dependency on itself, which
-enables its own `testing` feature for its tests, is not drawn either. No such edge exists in the
-workspace yet.
+enables its own `testing` feature for its tests, is not drawn either. For example, `axum-rest-api-server`
+has seven such edges (`clock`, `tracker-core`, `http-core`, `rest-client`, `swarm`, `udp-core` and
+`udp-srv`), so they are absent from the `axum-rest` edges below.
 
 ```mermaid
 flowchart TB
@@ -131,23 +132,16 @@ flowchart TB
     axum-http --> primitives
     axum-http --> swarm
 
-    axum-rest --> clock
     axum-rest --> info-hash
     axum-rest --> metrics
     axum-rest --> net-prim
     axum-rest --> server-lib
     axum-rest --> axum-base
     axum-rest --> config
-    axum-rest --> tracker-core
-    axum-rest --> http-core
     axum-rest --> primitives
     axum-rest --> rest-app
-    axum-rest --> rest-client
     axum-rest --> rest-proto
     axum-rest --> rest-adapter
-    axum-rest --> swarm
-    axum-rest --> udp-core
-    axum-rest --> udp-srv
 
     axum-health --> net-prim
     axum-health --> server-lib
