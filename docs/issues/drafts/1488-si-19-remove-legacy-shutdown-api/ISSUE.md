@@ -51,9 +51,10 @@ Do not start implementation until every item below is complete and linked from
 `verification.md`:
 
 - [ ] SI-18 deprecation evidence confirms every declared deprecation condition
-      and the public support window has ended for the already-public symbols
-      (`torrust-server-lib` and the root `HaltSignal`/`NestedServerTask`). The
-      unpublished package crates have no public window (see SI-18, Versioning Decisions).
+      and the public support window has ended for the only already-public
+      symbols, those of `torrust-server-lib` (0.5.x). The unpublished package
+      crates and the root `HaltSignal`/`NestedServerTask` have never been in a
+      published release and have no public window (see SI-18, Versioning Decisions).
 - [ ] HTTP tracker, REST API, health-check API, and UDP tracker application
       components use only token-aware shutdown paths.
 - [ ] Standalone HTTP and UDP environments/examples use only token-aware
@@ -138,8 +139,8 @@ Do not start implementation until every item below is complete and linked from
 
 ## Dependencies
 
-- SI-18 is complete and the declared external compatibility window has ended for the
-  already-public symbols; the unpublished package crates need no window (SI-18, Versioning Decisions).
+- SI-18 is complete and the `torrust-server-lib` 0.5.x support window has ended; the
+  unpublished package crates and the root types need no window (SI-18, Versioning Decisions).
 - SI-11 through SI-17, SI-23, and SI-24 token-lifecycle migrations are complete.
 - #1588 completes final inventory evidence.
 - Q4 is resolved. Q5's process-wrapper verification rule is required for final
