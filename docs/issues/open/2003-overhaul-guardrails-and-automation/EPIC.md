@@ -197,8 +197,6 @@ Also linked as GitHub sub-issues, outside the order:
 - #2022: the vendored maintainer merge workflow (DONE, `docs/issues/closed/2022-vendor-and-document-maintainer-merge-workflow/ISSUE.md`).
 - #2261: the review of the UDP protocol Clippy baseline (DONE, `docs/issues/closed/2261-2003-review-udp-protocol-clippy-baseline/ISSUE.md`).
 
-GitHub also lists #2581 and #2712 to #2714 as sub-issues; they are rows 16 to 19 above.
-
 ### Order 12 Close-Out
 
 The #2347 specification is the current record of this close-out: it logs T7 as done in PR #2367 and AC4 as `DONE`. The checklist below is the plan as of 2026-09-28 and is kept for history.
