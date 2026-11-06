@@ -84,7 +84,9 @@ got. Bash callers that need the distinction pipe stdout to `jq -e` or read the `
 - `clippy-allow-reasons`, `frontmatter-validator`, `shipped-features-check`: consistent as `no-stdout-result`
   checks.
 
-Changing any tool is out of scope for this ADR and is tracked in a follow-up issue.
+Changing any tool is out of scope for this ADR. The changes are listed as task T4 of
+[#2715](https://github.com/torrust/torrust-tracker/issues/2715) until their follow-up issues exist; this ADR will not
+name those issues.
 
 ## Alternatives Considered
 
@@ -118,8 +120,8 @@ rule were settled; the original gets a short pointer so that it does not mislead
 ### Negative
 
 - A bash script that wants to react to a verdict must read JSON; it cannot test `$?` alone.
-- One existing tool (`github-review-threads reply-status`) must change; until its follow-up lands it is documented
-  non-compliance.
+- Two existing tools must change (`github-review-threads reply-status` and `package-coverage-check`); until their
+  follow-ups land, the non-compliance is documented here and in the binary table of the amended ADR.
 
 ## Date
 
