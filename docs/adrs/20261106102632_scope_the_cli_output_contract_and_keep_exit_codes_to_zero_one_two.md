@@ -47,8 +47,12 @@ It does not apply to developer-only diagnostics: `profiling`, benchmarks, exampl
 covered if a script, a CI job or an AI agent consumes its output or its exit code; it must be added to the binary
 table when it is introduced.
 
-The binary table in the global ADR stays as it is. Its scope sentence, which excludes `contrib/dev-tools/`, is
-corrected by the pointer note added to that ADR.
+The binary table in the global ADR gains one row, for `package-coverage-check`, which the coverage workflow
+(`.github/workflows/generate_coverage_pr.yaml`) calls and whose output it consumes. It is a `stdout-result-data`
+tool: `matrix` and `compare` write a result for the workflow, and `summary` writes a report for a pull-request
+comment. It is not compliant today: its errors are plain text on stderr, and every failure, including a usage
+error, exits `1`. Its scope sentence, which excludes `contrib/dev-tools/`, is corrected by the pointer note added to
+that ADR.
 
 ### 2. Exit codes stay `0`, `1` and `2`; a distinct outcome is a `kind`
 
@@ -81,6 +85,9 @@ got. Bash callers that need the distinction pipe stdout to `jq -e` or read the `
 - `wait-for-pr-review`, `ci-gate`: consistent. A timeout and a failing verdict are results with exit `0`.
 - `github-review-threads reply-status`: not consistent. The missing reply is an answer, so it should be a result with
   exit `0`; follow-up issue.
+- `package-coverage-check`: not consistent. Errors must be JSON, usage errors must exit `2`, and TTY refusal
+  applies; follow-up issue (task T4 of #2715). Whether `summary`, which renders a report for humans, must emit JSON
+  is part of that follow-up.
 - `clippy-allow-reasons`, `frontmatter-validator`, `shipped-features-check`: consistent as `no-stdout-result`
   checks.
 

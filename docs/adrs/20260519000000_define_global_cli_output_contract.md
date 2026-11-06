@@ -86,6 +86,7 @@ All diagnostics go to stderr via the tracing subscriber or direct JSON stderr wr
 | `github-review-threads`  | `stdout-result-data` | GitHub CLI review-thread results and JSON diagnostics                 |
 | `ci-gate`                | `stdout-result-data` | Needed job groups or the merge verdict as JSON; JSON diagnostics      |
 | `wait-for-pr-review`     | `stdout-result-data` | PR review event or timeout as JSON; a timeout is a result (exit 0)    |
+| `package-coverage-check` | `stdout-result-data` | Coverage matrix, comparison and summary; currently non-compliant (plain-text errors, usage error exits 1) |
 
 The `profiling` binary is a developer-only diagnostic harness and is excluded from the
 normative scope of this contract.
