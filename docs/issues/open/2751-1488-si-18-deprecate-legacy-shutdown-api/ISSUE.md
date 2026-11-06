@@ -191,12 +191,6 @@ current version at the end of #1669; the root `torrust-tracker` next releases as
 - Q5's process-wrapper verification rule is reflected in release notes and
   removal planning.
 
-## Rollback
-
-Remove only the deprecation attributes, migration text, and release-note entry.
-Because this task does not remove or alter legacy behavior, reverting it is
-source-compatible and has no runtime impact.
-
 ## Architectural Decisions
 
 - Related ADRs: `docs/adrs/20260629000000_adopt_independent_package_versioning.md`
