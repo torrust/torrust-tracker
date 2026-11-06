@@ -90,10 +90,9 @@ The 55 uncovered lines, by group:
 | 583-584 | Dead TLS branch of the legacy test | Test hygiene | R1 item 3: remove it (it leaves the denominator). |
 | 742-743 | Failure arms (`panic!`) of the `match` in the registration-failure test | Structural | They run only when the test already fails; leave them. |
 | `Error` and `RuntimeError` `Display` texts | `thiserror` messages | Not tested | Same precedent as `QueryParamError` in S4 (maintainer's decision): nothing in the package branches on the wording, and a test would restate the attribute. A candidate for the maintainer's call. |
-| `check_fn` returning `Ok` for a failing HTTP status | Finding | #2733 (open) | No test pins it: do not assert that a `500` gives `Ok`. The arm stays as it is, with #2733 as owner. |
+| `check_fn` returning `Ok` for a failing HTTP status | Finding | #2733 (fixed on `develop` after the slice-close rebase) | No test of mine pins the old behavior; the fix and its own two tests are on `develop`. |
 
-Expected effect (estimate, re-measured at the completed-file review): about 12 uncovered lines are covered (277, 242,
-379-381, 396, 428-434) and 2 are removed; about 40 remain, all owned as above.
+Expected effect (an estimate; the measured result is in Results): about 12 uncovered lines were expected to be covered (277, 242, 379-381, 396, 428-434) and 2 removed, with every remaining line owned as above.
 
 ## Property-Test Decision
 
@@ -126,7 +125,7 @@ failure, not a compile error (`unused = "deny"`).
 | S5 | `check_fn` | Use a client that cannot connect (a `Client` with a proxy at a dead address). | N2 |
 | S6 | `Launcher::fmt` | Swap the two texts. | N4 |
 | S7 | `check_fn_with_client` | Change the info text. | the info assertion of N2, if `info` is public |
-| S8 | `start_with_cancellation` | Remove `cancellation_token.cancel()` from the registration-failure arm. | the existing release-of-the-listener test (expected; to be confirmed by the run) |
+| S8 | `start_with_cancellation` | Remove `cancellation_token.cancel()` from the registration-failure arm. | the token assertion added to the registration-failure test after the review (it survived the first run) |
 | S9 | the new deadline helpers | Place a pending future before the awaited start. | the deadline message, in one test of each kind |
 
 ## Prose-First AAA Review
@@ -147,28 +146,24 @@ branch is gone, and the TLS test now joins both tasks.
 
 ## Results
 
-- **Unit-only coverage** (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): `server.rs` 403 / 458 lines at the
-  S5 baseline; 533 / 578 lines (92.21%), 901 / 981 regions and 50 / 65 functions after (counts include the test module).
-  The remaining 45 uncovered lines are 198, 244-245, 279-280, 289-290, 294, 296, 301-302, 310, 312, 318-319, 358-359,
-  362-363, 455-457, 469, 471-472, 478-483, 487-488, 490-492, 494, 496, 502, 514, 744-745 and 862-863; every one is in a group
-  of the analysis above (logging-only, platform, runtime error arms, legacy #1488) or is a `panic!` arm of a test that runs
-  only when the test already fails (744-745 of the registration-failure test and 862-863 of the bind-error test). Package
-  unit-only lines 2,326 / 2,405 (96.72%), aggregate 2,350 / 2,405 (97.71%), integration-only unchanged at 682 / 927.
-- **Tests:** 5 added (the package went from 159 to 164 unit tests; 58 integration tests unchanged).
+- **Unit-only coverage** (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace, latest figures after the slice-close rebase and the review fix): `server.rs` 403 / 458 lines at the S5 baseline; 579 / 624 lines (92.79%), 987 / 1,067 regions and 58 / 73 functions after (counts include the test module and the tests `develop` added for #2733). The 45 uncovered lines are 198, 244-245, 279-280, 289-290, 294, 296, 301-302, 310, 312, 318-319, 358-359, 362-363, 456-458, 470, 472-473, 479-484, 488-489, 491-493, 495, 497, 503, 515, 747-748 and 869-870; every one is in a group of the analysis above (logging-only, platform, runtime error arms, legacy #1488) or is a `panic!` arm of a test that runs only when the test already fails (747-748 of the registration-failure test and 869-870 of the bind-error test). Package unit-only lines 2,324 / 2,403 (96.71%), aggregate 2,348 / 2,403 (97.71%), integration-only 682 / 903 (75.53%).
+- **Tests:** 5 added by this slice. The package had 159 unit tests at the S5 baseline and has 167 after the rebase (`develop` added tests of its own for #2733); 58 integration tests, unchanged.
 - **Mutations** (each applied alone, stable toolchain, then reverted; the file was identical to the tested one afterwards):
   S1 killed by the bind-error test; S2 by the plain registration test, the plain health check test and the existing
   listener-release test; S3 by the existing TLS health check test; S4 by the dead-address test; S5 by the plain health check
   test; S6 by the `Display` test; S7 by the plain health check test (its info assertion); S9 by three tests that start the
-  plain server, through the deadline. **S8 as planned survived and is an equivalent mutant:** removing only
-  `cancellation_token.cancel()` from the registration-failure arm changes nothing observable, because `task.abort()` and
-  `shutdown_controller.abort()` already stop both tasks and release the listener. The redone mutant S8b removes the cancel,
-  both aborts and both joins; it is killed by the existing listener-release test. Corrections while running: S7's first
+  plain server, through the deadline. **S8 first survived, and the claim that it was an equivalent mutant was wrong** (found
+  by the independent review): removing only `cancellation_token.cancel()` from the registration-failure arm leaves the
+  listener released, because the aborts do that, but it stops cancelling the caller's token, which the production caller
+  passes as a clone. The registration-failure test now keeps a clone of its token and asserts `is_cancelled()`; S8 is
+  killed by it. The mutant S8b (the cancel, both aborts and both joins removed) is killed by the listener-release assertions
+  of the same test. Corrections while running: S7's first
   anchor matched twice (the test text), so it was anchored on the `let info = format!(` line.
 - **Dependency:** none new. **Clippy allows:** none added.
 - **Validation:** `cargo +nightly fmt --all -- --check`, `cargo clippy -p torrust-tracker-axum-rest-api-server
   --all-targets` (stable), `cargo machete --with-metadata`, `git diff --check` and `cargo test -p
   torrust-tracker-axum-rest-api-server` (164 unit and 58 integration tests) pass.
-- **Review outcome:** the maintainer approved the plan on 2026-11-06; the completed file was approved on 2026-11-06.
+- **Review outcome:** the maintainer approved the plan on 2026-11-06; the completed file was approved on 2026-11-06. The independent review (REVIEW PASSED) led to the token assertion above, to this refresh of the figures, and to a note: the `check_fn` tests (N2, N3) use `reqwest::Client::new()`, which honors a proxy set in the environment (`HTTP_PROXY`), whereas the TLS test builds its client with `no_proxy()`; on a machine with a proxy configured for localhost they could fail. Accepted for now: the production `check_fn` has the same property and the tests must exercise it.
 
 ## Progress Log
 
@@ -176,3 +171,4 @@ branch is gone, and the TLS test now joins both tasks.
 - 2026-11-06 08:07 UTC - Claude Code - Plan approved by the maintainer; R1-R4 done; the completed-file review is pending.
 - 2026-11-06 08:10 UTC - Claude Code - Completed file approved by the maintainer; row 18 `DONE`.
 - 2026-11-06 08:13 UTC - Claude Code - Correction after the slice-close rebase: #2733 is fixed on `develop` (`check_fn` reports `Err` for a non-success status and its own two tests cover it), so the plan's finding row for #2733 is obsolete and no test of mine touches that arm. Re-measured: `server.rs` 576 / 621 lines, 981 / 1,061 regions, 58 / 73 functions; the same 45 uncovered lines (198, 244-245, 279-280, 289-290, 294, 296, 301-302, 310, 312, 318-319, 358-359, 362-363, 456-458, 470, 472-473, 479-484, 488-489, 491-493, 495, 497, 503, 515, 745-746, 863-864). Package unit-only lines 2,321 / 2,400 (96.71%), 167 unit tests.
+- 2026-11-06 08:23 UTC - Claude Code - Independent review (REVIEW PASSED, finding 1): S8 is not an equivalent mutant, because `cancel()` cancels the caller's token. Added an `is_cancelled()` assertion to the registration-failure test; S8 and S8b are killed. Refreshed the Results body to the latest figures (see the entry above for the rebase); re-measured: `server.rs` 579 / 624 lines, 987 / 1,067 regions, 58 / 73 functions; package unit-only lines 2,324 / 2,403 (96.71%).

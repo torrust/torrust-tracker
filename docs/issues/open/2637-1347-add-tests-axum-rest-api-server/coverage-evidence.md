@@ -369,3 +369,15 @@ The unpushed S5 branch was rebased onto `torrust/develop` at the slice close. `d
 | Integration-only (`--test integration`) | 58 integration | 682 / 903 (75.53%) | 949 / 1,299 (73.06%) | 98 / 140 (70.00%) |
 
 `server.rs` is 576 / 621 lines unit-only (981 / 1,061 regions, 58 / 73 functions); its 45 uncovered lines are the same groups as in the row 18 plan, shifted by one line. Files below 100% unit-only lines are `server.rs`, `testing/environment.rs` (out of scope) and `v1/context/auth_key/handlers.rs` (236 / 239).
+
+### Slice S5 Measurement After The Review Fix
+
+The review of S5 added an assertion to the registration-failure test (a few test lines), so the figures moved slightly. This is the latest S5 figure (same commands, clean workspace before each report, rebased onto `develop`).
+
+| Scope | Tests | Lines | Regions | Functions |
+| --- | ---: | ---: | ---: | ---: |
+| Aggregate (all selected test targets) | 167 unit + 58 integration | 2,348 / 2,403 (97.71%) | 3,490 / 3,592 (97.16%) | 380 / 397 (95.72%) |
+| Unit-only (`--lib`) | 167 unit | 2,324 / 2,403 (96.71%) | 3,463 / 3,592 (96.41%) | 374 / 397 (94.21%) |
+| Integration-only (`--test integration`) | 58 integration | 682 / 903 (75.53%) | 949 / 1,299 (73.06%) | 98 / 140 (70.00%) |
+
+`server.rs` is 579 / 624 lines unit-only (987 / 1,067 regions, 58 / 73 functions); its 45 uncovered lines are the same groups as in the row 18 plan (the two test `panic!` arms are now 747-748 and 869-870).

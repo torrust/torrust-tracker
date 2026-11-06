@@ -6,7 +6,7 @@ epic: null
 github-issue: 1347
 spec-path: docs/issues/open/1347-overhaul-packages-testing/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-06 08:13"
+last-updated-utc: "2026-11-06 08:23"
 semantic-links:
   skill-links:
     - create-issue
@@ -133,7 +133,7 @@ weak unit-only result with aggregate, integration, example, or end-to-end covera
 | `torrust-tracker-udp-server` | [#2283](../../closed/2283-1347-increase-udp-server-package-coverage/ISSUE.md) | Lines: 96.18%; regions: 95.34%; functions: 94.93% | Lines: 98.18%; regions: 97.04%; functions: 97.70% | Lines: +2.00 pp; regions: +1.70 pp; functions: +2.77 pp | [Coverage evidence](../../closed/2283-1347-increase-udp-server-package-coverage/coverage-evidence.md) |
 | `torrust-tracker-udp-core` | [#1348](../../closed/1348-1347-add-tests-udp-core/ISSUE.md) | Lines: 72.49%; regions: 78.56%; functions: 71.27% | Lines: 98.04%; regions: 98.15%; functions: 97.61% | Lines: +25.55 pp; regions: +19.58 pp; functions: +26.34 pp | [Coverage evidence](../../closed/1348-1347-add-tests-udp-core/coverage-evidence.md) |
 | `torrust-tracker-http-core` | [#1349](../../closed/1349-1347-add-tests-http-core/ISSUE.md) | Lines: 88.88%; regions: 90.41%; functions: 84.29% | Lines: 99.28%; regions: 99.25%; functions: 99.74% | Lines: +10.40 pp; regions: +8.84 pp; functions: +15.45 pp | [Coverage evidence](../../closed/1349-1347-add-tests-http-core/coverage-evidence.md) |
-| `torrust-tracker-axum-rest-api-server` | [#2637](../2637-1347-add-tests-axum-rest-api-server/ISSUE.md) | Lines: 63.87%; regions: 63.98%; functions: 51.34% | Lines: 96.71%; regions: 96.40%; functions: 94.21% | Lines: +32.84 pp; regions: +32.42 pp; functions: +42.87 pp | [Coverage evidence](../2637-1347-add-tests-axum-rest-api-server/coverage-evidence.md) |
+| `torrust-tracker-axum-rest-api-server` | [#2637](../2637-1347-add-tests-axum-rest-api-server/ISSUE.md) | Lines: 63.87%; regions: 63.98%; functions: 51.34% | Lines: 96.71%; regions: 96.41%; functions: 94.21% | Lines: +32.84 pp; regions: +32.43 pp; functions: +42.87 pp | [Coverage evidence](../2637-1347-add-tests-axum-rest-api-server/coverage-evidence.md) |
 
 ## Delivery Strategy
 
@@ -335,6 +335,7 @@ For each subissue implementation, the completion policy is:
 - 2026-11-05 21:44 UTC - Claude Code - #2637 S5 (the `server.rs` lifecycle) taken over from the Copilot agent. The health check (#2726) and stats (#2719) fixes are merged, so S5 is no longer blocked; re-measured on the rebased branch: unit-only lines 96.06% (159 unit tests), aggregate 97.13%. Both "Latest" tables carry the new values; the change is mostly the package's merged `develop` fixes and their tests, not S5 work.
 - 2026-11-06 08:10 UTC - Claude Code - #2637 S5 row 18 (`server.rs`) done: unit-only lines 96.06% to 96.72% (164 unit tests), aggregate 97.13% to 97.71%. Both "Latest" tables carry the new values; S5 is not yet a pull request.
 - 2026-11-06 08:13 UTC - Claude Code - #2637 S5 rebased onto `develop` at the slice close (it brought the #2733 fix and stats changes): unit-only lines 96.71% (167 unit tests), aggregate 97.71%. Both "Latest" tables carry the new values.
+- 2026-11-06 08:23 UTC - Claude Code - #2637 S5 review fix: unit-only regions 96.41% (from 96.40%) after one added test assertion; lines 96.71% and aggregate 97.71% unchanged. The "Latest" unit-only table carries the new values.
 
 ## Acceptance Criteria
 
