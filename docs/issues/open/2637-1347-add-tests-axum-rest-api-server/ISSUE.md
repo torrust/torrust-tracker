@@ -869,7 +869,7 @@ from the plan; otherwise add a progress-log entry explaining why none was needed
 - Package: `packages/axum-rest-api-server/`
 - REST contract-first ADR: `docs/adrs/20260623200526_adopt_contract-first_architecture_for_rest_api.md`
 - Token-timing security record: `docs/security/analysis/reports/2026-09-04_rest-api-token-timing.md`
-- Related open work: #2449 (migrate the REST API test environment), the spec
+- Related work: #2449 (migrate the REST API test environment; closed), the spec
   `docs/issues/open/2745-2482-gate-axum-rest-api-server-test-environment/ISSUE.md`, and #1488
   (legacy shutdown removal)
 - Historical test-environment work: `docs/issues/closed/1903-1669-si-23-relocate-axum-rest-api-server-test-environment/ISSUE.md`
