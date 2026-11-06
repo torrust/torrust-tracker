@@ -7,9 +7,9 @@ priority: p2
 epic: 1347
 github-issue: 2637
 spec-path: docs/issues/open/2637-1347-add-tests-axum-rest-api-server/ISSUE.md
-branch: "2637-1347-add-tests-axum-rest-api-server-lifecycle"
-related-pr: 2744
-last-updated-utc: "2026-11-06 14:21"
+branch: "2637-1347-add-tests-axum-rest-api-server-final"
+related-pr: null
+last-updated-utc: "2026-11-06 10:31"
 semantic-links:
   skill-links:
     - create-issue
@@ -409,8 +409,8 @@ ledger order inside each slice is still confirmed with the first plan (T3).
 | S2 | Route composition, transport layers and the health check (rank 2) | 2-4 | `2637-1347-add-tests-axum-rest-api-server-routes` | #2687 | DONE |
 | S3 | State-changing contexts: auth keys and whitelist (rank 4) | 6-11 | `2637-1347-add-tests-axum-rest-api-server-commands` | #2702 | DONE |
 | S4 | Read-only contexts: torrents and statistics (rank 5) | 12-17 | `2637-1347-add-tests-axum-rest-api-server-queries` | #2718 | DONE |
-| S5 | Server lifecycle (rank 6) | 18 | `2637-1347-add-tests-axum-rest-api-server-lifecycle` | #2744 | IN_PROGRESS |
-| S6 | Crate root, wiring and test-support decisions (ranks 7-8), then T5-T8 | 19-31 | `2637-1347-add-tests-axum-rest-api-server-final` | TBD | PENDING |
+| S5 | Server lifecycle (rank 6) | 18 | `2637-1347-add-tests-axum-rest-api-server-lifecycle` | #2744 | DONE |
+| S6 | Crate root, wiring and test-support decisions (ranks 7-8), then T5-T8 | 19-31 | `2637-1347-add-tests-axum-rest-api-server-final` | TBD | IN_PROGRESS |
 
 Rules:
 
@@ -741,6 +741,7 @@ once. If the slicing changes, the Slice column changes with it.
 - 2026-11-06 08:13 UTC - Claude Code (Sonnet 5.5) - Rebased the unpushed S5 branch onto `develop` (15 new commits) at the slice close. `develop` changed the package meanwhile: #2733 was fixed (`check_fn` now reports `Err` with the status for a non-success answer, with two tests in the `server.rs` test module), and the stats files changed. Correction of the row 18 entry above (append-only): re-measured with clean runs, unit-only lines 2,321 / 2,400 (96.71%), aggregate 2,345 / 2,400 (97.71%), integration-only 682 / 903 (75.53%); 167 unit and 58 integration tests; `server.rs` is 576 / 621 lines unit-only and its 45 uncovered lines are the same groups as before (shifted by one line after 455). The plan's "#2733 is open" rows are now obsolete: the finding is fixed and tested on `develop`.
 - 2026-11-06 08:23 UTC - Claude Code (Sonnet 5.5) - Independent S5 review (see `agent-review-reports.md`): REVIEW PASSED with one medium and three low findings. Fixed: the S8 "equivalent mutant" claim was wrong (`cancel()` cancels the caller's token), so the registration-failure test now asserts `is_cancelled()` and kills S8; the plan index and the stale figures of the plan body were refreshed; the proxy dependence of the `check_fn` tests is recorded. Correction of the figures above (append-only): re-measured with clean runs after the extra test lines, unit-only lines 2,324 / 2,403 (96.71%), aggregate 2,348 / 2,403 (97.71%), integration-only 682 / 903 (75.53%); `server.rs` 579 / 624 lines; 167 unit and 58 integration tests.
 - 2026-11-06 09:06 UTC - Claude Code (Sonnet 5.5) - Pre-push passed and S5 pull request #2744 (<https://github.com/torrust/torrust-tracker/pull/2744>, `Related to #2637`) was opened, as `josecelano-bot` from its fork; recorded it in the frontmatter, the slice table and the EPIC row.
+- 2026-11-06 10:31 UTC - Claude Code (Sonnet 5.5) - S5 merged through #2744 (2026-11-06 10:26 UTC; Copilot's one finding was fixed and its thread resolved before the merge, and no late review exists). Started S6 on branch `2637-1347-add-tests-axum-rest-api-server-final` from `develop` at the merge of #2744. The package and its `rest-api-*` collaborators are unchanged since the S5 head, so the S5 final re-measurement is the S6 baseline (unit-only lines 2,324 / 2,403, 96.71%; aggregate 2,348 / 2,403, 97.71%). Ledger rows 19-31 are next (decide and record the out-of-scope and wiring-only files, the `lib.rs` documentation fix of `tsl_config`), then T5-T8; the first plan awaits the maintainer.
 
 ## Acceptance Criteria
 
