@@ -72,14 +72,17 @@ the batch resolver when `kind` is `all_replied`. This preserves the workflow rul
 resolvable thread is replied to before it is resolved.
 
 ```bash
+set -o pipefail
 cargo run --package github-review-threads -- reply-status \
   --threads-file /tmp/pr_threads_<PR_NUMBER>.json \
   --login <AUTHOR_LOGIN> | jq -e '.kind == "all_replied"' > /dev/null
 ```
 
-`jq -e` exits 0 only when every thread was replied to. To list the threads still needing a reply,
-filter the result: `jq '.threads[] | select(.has_reply | not)'`. With `pipefail`, a command failure
-(exit 1 or 2) also fails the pipeline, so check the tool's own status when the cause matters.
+With `pipefail` the pipeline succeeds only when `reply-status` exited 0 and `jq -e` found `kind` equal
+to `all_replied`. A `reply-status` failure (exit 1 or 2) leaves stdout empty, so `jq -e` exits 4 on
+the empty input and the pipeline fails as well; a `missing_reply` result fails it through `jq -e`
+exit 1. Only a successful pipeline means every thread was replied to. To list the threads still
+needing a reply, filter the result: `jq '.threads[] | select(.has_reply | not)'`.
 
 For multiple threads, resolve them one by one and check each result:
 
