@@ -94,8 +94,8 @@ Order of work:
    then deprecate the in-repo symbols listed under Scope.
 
 Step 1 is [torrust-server-lib#3](https://github.com/torrust/torrust-server-lib/issues/3),
-implemented by [torrust-server-lib PR 4](https://github.com/torrust/torrust-server-lib/pull/4) (not merged
-yet): the symbols are deprecated since 0.5.0 and the crate removes them in 0.6.0 (the maintainer's choice).
+implemented by [torrust-server-lib PR 4](https://github.com/torrust/torrust-server-lib/pull/4) (merged): the
+symbols are deprecated since 0.5.0 and the crate removes them in 0.6.0 (the maintainer's choice).
 The crate's removal version is therefore 0.6.0.
 
 `torrust-server-lib` 0.5.0 was published on 2026-11-06 (merge commit 0ad8ca0), so this blocker is cleared.
