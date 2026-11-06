@@ -8,7 +8,6 @@ const FIXTURE: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/fixtures/revie
 const LIST_CAPTURE: &str = include_str!("fixtures/retired-scripts/list-unresolved.jsonl");
 const SHOW_CAPTURE: &str = include_str!("fixtures/retired-scripts/show-unresolved.txt");
 const REPLY_STATUS_CAPTURE: &str = include_str!("fixtures/retired-scripts/reply-status.stdout");
-const REPLY_STATUS_EXIT_STATUS: &str = include_str!("fixtures/retired-scripts/reply-status.exit-status");
 
 fn run(arguments: &[&str]) -> Output {
     Command::new(env!("CARGO_BIN_EXE_github-review-threads"))
@@ -129,28 +128,27 @@ fn it_should_show_the_threads_and_comments_the_retired_script_printed_when_unres
 }
 
 #[test]
-fn it_should_name_the_threads_without_a_reply_and_keep_the_retired_exit_status() {
-    // Arrange: the retired reply-status script printed every row, a summary line, and exited 1.
+fn it_should_report_the_threads_without_a_reply_as_a_result_with_exit_zero() {
+    // Arrange: the retired reply-status script printed every row and a summary line.
     let mut expected_rows = captured_values(REPLY_STATUS_CAPTURE);
     let expected_summary = expected_rows.pop().unwrap();
-    let expected_exit_status = REPLY_STATUS_EXIT_STATUS.trim().parse::<i32>().unwrap();
 
     // Act: check the fixture for replies from the login that answered only one thread.
     let output = run(&["reply-status", "--threads-file", FIXTURE, "--login", "author"]);
 
-    // Assert: stdout is empty, and the stderr diagnostic carries every row and the counts.
-    assert_eq!(output.status.code(), Some(expected_exit_status));
-    assert_eq!(text(&output.stdout), "");
-    let diagnostic = json(&output.stderr);
-    assert_eq!(diagnostic["kind"], "missing_reply");
-    assert_eq!(diagnostic["threads"], Value::Array(expected_rows));
+    // Assert: a missing reply is an answer, so exit 0, the result on stdout, and no diagnostic.
+    assert_eq!(output.status.code(), Some(0));
+    assert_eq!(text(&output.stderr), "");
+    let result = json(&output.stdout);
+    assert_eq!(result["kind"], "missing_reply");
+    assert_eq!(result["threads"], Value::Array(expected_rows));
     for count in ["total", "with_reply", "without_reply"] {
-        assert_eq!(diagnostic["summary"][count], expected_summary[count]);
+        assert_eq!(result["summary"][count], expected_summary[count]);
     }
 }
 
 #[test]
-fn it_should_emit_the_reply_status_result_when_every_thread_has_a_reply() {
+fn it_should_report_all_replied_as_a_result_with_exit_zero_when_every_thread_has_a_reply() {
     // Arrange: the fixture's unresolved threads each carry a comment from the reviewer.
     let login = "reviewer";
 
@@ -158,9 +156,39 @@ fn it_should_emit_the_reply_status_result_when_every_thread_has_a_reply() {
     let output = run(&["reply-status", "--threads-file", FIXTURE, "--login", login]);
 
     // Assert: the result is one JSON object on stdout with no diagnostics.
-    assert!(output.status.success());
-    assert_eq!(json(&output.stdout)["summary"]["without_reply"], 0);
+    assert_eq!(output.status.code(), Some(0));
+    let result = json(&output.stdout);
+    assert_eq!(result["kind"], "all_replied");
+    assert_eq!(result["summary"]["without_reply"], 0);
     assert_eq!(text(&output.stderr), "");
+}
+
+#[test]
+fn it_should_fail_with_exit_one_and_a_diagnostic_when_the_threads_file_cannot_be_read() {
+    // Arrange: a threads file that does not exist.
+    let missing = "/nonexistent/threads.json";
+
+    // Act: ask for the reply status.
+    let output = run(&["reply-status", "--threads-file", missing, "--login", "author"]);
+
+    // Assert: could not answer, so exit 1, empty stdout, and a JSON diagnostic.
+    assert_eq!(output.status.code(), Some(1));
+    assert_eq!(text(&output.stdout), "");
+    assert_eq!(json(&output.stderr)["kind"], "reply_status_error");
+}
+
+#[test]
+fn it_should_report_a_missing_login_argument_as_a_usage_error() {
+    // Arrange: reply-status without its required arguments.
+    let arguments = ["reply-status"];
+
+    // Act: run it with stdout redirected.
+    let output = run(&arguments);
+
+    // Assert: exit 2, empty stdout, and a usage diagnostic.
+    assert_eq!(output.status.code(), Some(2));
+    assert_eq!(text(&output.stdout), "");
+    assert_eq!(json(&output.stderr)["kind"], "usage_error");
 }
 
 #[test]

@@ -6,7 +6,7 @@ use std::process::ExitCode;
 use std::{fs, process};
 
 use clap::{Parser, Subcommand};
-use github_review_threads::{GhCli, PullRequest, ReplyStatus, ThreadSelection, fetch, list, reply_status, show};
+use github_review_threads::{GhCli, PullRequest, ThreadSelection, fetch, list, reply_status, show};
 use serde::Serialize;
 
 /// Fetch pull-request review threads through the GitHub CLI.
@@ -69,15 +69,6 @@ struct Diagnostic<'a> {
     message: &'a str,
 }
 
-/// The `missing_reply` diagnostic keeps every per-thread row so the operator knows which threads to answer.
-#[derive(Serialize)]
-struct MissingReplyDiagnostic<'a> {
-    kind: &'a str,
-    message: String,
-    #[serde(flatten)]
-    status: &'a ReplyStatus,
-}
-
 fn main() -> ExitCode {
     if io::stdout().is_terminal() {
         return emit_diagnostic("tty_refusal", "stdout is a TTY; pipe the output to consume result data", 2);
@@ -130,18 +121,7 @@ fn main() -> ExitCode {
             .and_then(|response| reply_status(&response, &login).map_err(|error| error.to_string()))
             .map_or_else(
                 |error| emit_diagnostic("reply_status_error", &error, 1),
-                |status| {
-                    if status.has_missing_replies() {
-                        let diagnostic = MissingReplyDiagnostic {
-                            kind: "missing_reply",
-                            message: format!("{} unresolved thread(s) have no reply from {login}", status.without_reply()),
-                            status: &status,
-                        };
-                        write_diagnostic(&diagnostic, 1)
-                    } else {
-                        emit_json(&status)
-                    }
-                },
+                |status| emit_json(&status),
             ),
     }
 }
