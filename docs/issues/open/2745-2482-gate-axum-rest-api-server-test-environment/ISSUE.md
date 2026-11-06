@@ -9,7 +9,7 @@ github-issue: 2745
 spec-path: docs/issues/open/2745-2482-gate-axum-rest-api-server-test-environment/ISSUE.md
 branch: "2745-2482-gate-axum-rest-api-server-test-environment-spec"
 related-pr: 2746
-last-updated-utc: "2026-11-06 09:24"
+last-updated-utc: "2026-11-06 10:20"
 semantic-links:
   skill-links:
     - create-issue
@@ -72,7 +72,7 @@ and a per-crate source grep that cuts each file at its `#[cfg(test)]` module and
 | `torrust-tracker-swarm-coordination-registry` | No: `src/testing/environment.rs` only | Optional behind `testing` |
 | `torrust-tracker-rest-api-client` | No: `src/testing/environment.rs` and `tests/` (it is also already a dev-dependency) | Optional behind `testing`; the duplicate normal entry goes |
 | `torrust-clock` | One unused item: `src/lib.rs:164` imports `torrust_clock::clock` for `pub(crate) type CurrentClock` (`clock::Working` in production, `clock::Stopped` in tests, `#[allow(dead_code)]`). Nothing in `src` uses the alias; `tests/integration.rs` carries its own copy. The other uses are test code (`src/server.rs` unit test, `src/testing/environment.rs`, `src/test_support.rs`, `tests/integration.rs`) | Optional behind `testing` after the dead alias and its import are deleted (maintainer decision, below) |
-| every other direct dependency (34 in total) | Yes | Unchanged |
+| every other direct dependency (28 in total) | Yes | Unchanged |
 
 Each of the seven optional crates stays reachable through production dependencies (five through
 `rest-api-runtime-adapter`); the change removes the direct edges only.
@@ -164,11 +164,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
-| T1 | DONE | Record the baseline | `cargo tree -p torrust-tracker-axum-rest-api-server -e normal --depth 1` (34 direct dependencies); measured on `torrust/develop` at `da8bd15d1` (2026-11-06 09:13 UTC), plain `cargo test` without `--all-features`: axum-rest-api-server 162 unit + 58 integration + 0 doc; axum-health-check-api-server 15 unit + 11 integration + 0 doc. T2 remeasures on the implementation base, with and without `--all-features`, before comparing |
-| T2 | TODO | Delete the dead alias, gate the module, add the feature, make the seven dependencies optional, add the self dev-dependency and its `deny.toml` wrapper | Plain `cargo test -p torrust-tracker-axum-rest-api-server` passes with the baseline counts; `cargo check -p torrust-tracker-axum-rest-api-server --lib` passes with no features; `Cargo.lock` and `deny.toml` in the same commit |
-| T3 | TODO | Enable the feature in the health check package's dev-dependency | Its tests pass with the baseline counts; without the entry they fail to compile |
-| T4 | TODO | Remove the stale comment; update inventory, diagram and docs | Pattern A row resolved for `axum-rest-api-server`; EPIC row note |
-| T5 | TODO | Verify the container recipe and the shipped features | `cargo chef prepare --external-only` then `cargo chef cook --tests --workspace --all-features` exit 0 in a scratch directory; `cargo run -q --package shipped-features-check -- --package torrust-tracker` exits 0 |
+| T1 | DONE | Record the baseline | `cargo tree -p torrust-tracker-axum-rest-api-server -e normal --depth 1` (35 direct dependencies; the first version of this row said 34, a miscount corrected on 2026-11-06); measured on `torrust/develop` at `da8bd15d1` (2026-11-06 09:13 UTC), plain `cargo test` without `--all-features`: axum-rest-api-server 162 unit + 58 integration + 0 doc; axum-health-check-api-server 15 unit + 11 integration + 0 doc. T2 remeasures on the implementation base, with and without `--all-features`, before comparing |
+| T2 | DONE | Delete the dead alias, gate the module, add the feature, make the seven dependencies optional, add the self dev-dependency and its `deny.toml` wrapper | Plain `cargo test -p torrust-tracker-axum-rest-api-server` passes with the baseline counts; `cargo check -p torrust-tracker-axum-rest-api-server --lib` passes with no features; `Cargo.lock` and `deny.toml` in the same commit |
+| T3 | DONE | Enable the feature in the health check package's dev-dependency | Its tests pass with the baseline counts; without the entry they fail to compile |
+| T4 | DONE | Remove the stale comment; update inventory, diagram and docs | Pattern A row resolved for `axum-rest-api-server`; EPIC row note |
+| T5 | DONE | Verify the container recipe and the shipped features | `cargo chef prepare --external-only` then `cargo chef cook --tests --workspace --all-features` exit 0 in a scratch directory; `cargo run -q --package shipped-features-check -- --package torrust-tracker` exits 0 |
 
 ## Commit Points
 
@@ -186,12 +186,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Folder-style spec drafted in `docs/issues/open/2745-2482-gate-axum-rest-api-server-test-environment/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer (2026-11-06)
 - [x] GitHub issue created (#2745), linked as a sub-issue of #2482, and its number added to this spec
-- [ ] Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
+- [x] Spec-only PR merged into `develop` before implementation
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
@@ -204,23 +204,24 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-06 09:16 UTC - AI assistant (Claude Code, #2482 row 6) - The maintainer approved the spec. Created issue #2745 as `josecelano-bot`; the bot cannot add labels or link sub-issues on `torrust/torrust-tracker`, so those two steps are done with the `josecelano` account on the maintainer's explicit OK (recorded in a later entry). The spec moved to `docs/issues/open/`; the #2482 EPIC row, the inventory, the coupling report and the #2637 spec link to it.
 - 2026-11-06 09:19 UTC - AI assistant (Claude Code, #2482 row 6) - At the maintainer's explicit OK in this session, the labels (`task`, `packages`) and the sub-issue link under #2482 were done with the `josecelano` account, because the bot account lacks those permissions. The link is verified (`parent_issue_url` is #2482).
 - 2026-11-06 09:24 UTC - AI assistant (Claude Code, #2482 row 6) - Opened spec-only PR #2746 (`Related to #2745`); `related-pr` is set to 2746.
+- 2026-11-06 10:20 UTC - AI assistant (Claude Code, #2482 row 6) - Implemented T2 to T5 on branch `2745-2482-gate-axum-rest-api-server-test-environment`: the `testing` feature, seven optional dependencies, the deleted `CurrentClock` alias, the path-only self dev-dependency with its `deny.toml` wrapper, the health check dev-dependency feature and the replaced module note. Plain package tests keep the baseline counts (162 + 58, 15 + 11); the evidence is in `manual-verification-evidence.md`. The baseline direct dependency count is corrected to 35 (the spec said 34). No retrospective is needed (see the completion review).
 
 ## Acceptance Criteria
 
-- [ ] AC1: `cargo tree -p torrust-tracker-axum-rest-api-server -e normal --depth 1` shows none of
+- [x] AC1: `cargo tree -p torrust-tracker-axum-rest-api-server -e normal --depth 1` shows none of
       the seven optional crates as a direct dependency (five stay reachable through
       `rest-api-runtime-adapter`), and `src/testing/` is not compiled without the feature.
-- [ ] AC2: `cargo test -p torrust-tracker-axum-rest-api-server` and
+- [x] AC2: `cargo test -p torrust-tracker-axum-rest-api-server` and
       `-p torrust-tracker-axum-health-check-api-server` pass without `--all-features`, with the
       baseline test counts.
-- [ ] AC3: The self dev-dependency has no `version`; `cargo +stable package --workspace
+- [x] AC3: The self dev-dependency has no `version`; `cargo +stable package --workspace
       --no-verify` passes; `cargo deny check bans` passes.
-- [ ] AC4: The stale `rest-api-core` comment and the dead `CurrentClock` alias are gone.
-- [ ] AC5: The inventory row is marked resolved.
-- [ ] AC6: The container recipe cooks (`prepare --external-only` then `cook`) and the Shipped
+- [x] AC4: The stale `rest-api-core` comment and the dead `CurrentClock` alias are gone.
+- [x] AC5: The inventory row is marked resolved.
+- [x] AC6: The container recipe cooks (`prepare --external-only` then `cook`) and the Shipped
       Features check exits 0; no `testing` feature is in a `[dependencies]` entry or a `default`
       chain.
-- [ ] `linter all` exits with code `0`; pre-push checks pass.
+- [x] `linter all` exits with code `0`; pre-push checks pass.
 
 ## Verification Plan
 
@@ -241,23 +242,23 @@ without `--all-features`, and check the test count.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | The production build has no test-only dependency | `cargo tree -p torrust-tracker-axum-rest-api-server -e normal --depth 1` before and after | The seven forced direct dependencies are gone (paths through production dependencies remain) | TODO | `manual-verification-evidence.md` V1 |
-| M2 | Plain package tests | `cargo test -p torrust-tracker-axum-rest-api-server` (no `--all-features`) | Test count equals the baseline | TODO | V2 |
-| M3 | The consumer still works | `cargo test -p torrust-tracker-axum-health-check-api-server` | Passes with the baseline count | TODO | V3 |
-| M4 | Shipped features | `cargo run -q --package shipped-features-check -- --package torrust-tracker`, then with `features = ["testing"]` on the root `axum-rest-api-server` entry (reverted afterwards) | Exit 0 on the real tree, exit 1 with the feature on a `[dependencies]` edge | TODO | V4 |
-| M5 | Deny, machete, packaging, nightly check | The commands of the Verification Plan | All exit 0; `deny` fails without the self wrapper | TODO | V5 |
-| M6 | The container recipe cooks | `cargo chef prepare --external-only --recipe-path <file>` then `cargo chef cook --tests --workspace --all-features --recipe-path <file>` in a scratch directory | Exit 0 | TODO | V6 |
+| M1 | The production build has no test-only dependency | `cargo tree -p torrust-tracker-axum-rest-api-server -e normal --depth 1` before and after | The seven forced direct dependencies are gone (paths through production dependencies remain) | DONE | `manual-verification-evidence.md` V1 |
+| M2 | Plain package tests | `cargo test -p torrust-tracker-axum-rest-api-server` (no `--all-features`) | Test count equals the baseline | DONE | V2 |
+| M3 | The consumer still works | `cargo test -p torrust-tracker-axum-health-check-api-server` | Passes with the baseline count | DONE | V3 |
+| M4 | Shipped features | `cargo run -q --package shipped-features-check -- --package torrust-tracker`, then with `features = ["testing"]` on the root `axum-rest-api-server` entry (reverted afterwards) | Exit 0 on the real tree, exit 1 with the feature on a `[dependencies]` edge | DONE | V4 |
+| M5 | Deny, machete, packaging, nightly check | The commands of the Verification Plan | All exit 0; `deny` fails without the self wrapper | DONE | V5 |
+| M6 | The container recipe cooks | `cargo chef prepare --external-only --recipe-path <file>` then `cargo chef cook --tests --workspace --all-features --recipe-path <file>` in a scratch directory | Exit 0 | DONE | V6 |
 
 ### Acceptance Verification
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1   | TODO                   |          |
-| AC2   | TODO                   |          |
-| AC3   | TODO                   |          |
-| AC4   | TODO                   |          |
-| AC5   | TODO                   |          |
-| AC6   | TODO                   |          |
+| AC1   | DONE                   | `manual-verification-evidence.md` |
+| AC2   | DONE                   | `manual-verification-evidence.md` |
+| AC3   | DONE                   | `manual-verification-evidence.md` |
+| AC4   | DONE                   | `manual-verification-evidence.md` |
+| AC5   | DONE                   | `manual-verification-evidence.md` |
+| AC6   | DONE                   | `manual-verification-evidence.md` |
 
 ## Risks and Trade-offs
 
@@ -276,7 +277,7 @@ without `--all-features`, and check the test count.
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
+- Retrospective: not needed. The implementation matched the spec; the only deviations were a miscounted baseline (34 instead of 35 direct dependencies, corrected) and the need for a scratch `cargo-chef` 0.1.79 for the container recipe check, as in rows 4 and 5. Neither changes the design or the process.
 - If no retrospective is needed, add a progress-log entry saying why.
 
 ## References

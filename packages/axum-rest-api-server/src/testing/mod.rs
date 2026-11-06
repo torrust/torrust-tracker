@@ -4,13 +4,11 @@
 //! the server) for integration tests in this crate and external consumers such as
 //! `axum-health-check-api-server`.
 //!
-//! > **Note**: Like `tracker-core::test_helpers`, this module is exported unconditionally
-//! > from `lib.rs` so that external test packages can import it. It is primarily intended
-//! > for test use, but is compiled in all build profiles.
-//!
-//! > **Note**: The UDP dependencies (`udp-server`, `udp-core`) are still
-//! > needed at runtime because the production handlers in this crate reference
-//! > their types directly. Full demotion to dev-dependencies requires the
-//! > prerequisite decoupling in `rest-api-core` first.
+//! > **Note**: This module is compiled only with the non-default `testing` feature, which
+//! > is test support outside the semver guarantees of this package. Inside this workspace the
+//! > feature is enabled from `[dev-dependencies]` entries only (the `Shipped Features` check
+//! > enforces it), so that it never reaches a shipped build; the package's own targets enable
+//! > it through a path-only self dev-dependency. Anyone else who wants this environment in a
+//! > build opts in knowingly and accepts that it can change in any release.
 
 pub mod environment;

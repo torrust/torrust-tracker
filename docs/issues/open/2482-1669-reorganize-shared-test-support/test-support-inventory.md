@@ -116,7 +116,17 @@ dependencies (direct normal dependencies drop from 26 to 23), the path-only self
 `deny.toml` self wrapper, and the `testing` feature enabled from the `[dev-dependencies]` of
 `axum-health-check-api-server`. `examples/http_only_public_tracker.rs` stays on the test environment
 and the new `examples/http_only_public_tracker_production_style.rs` starts the server the way the
-binary does. The other two environments are rows 6 and 7.
+binary does.
+
+**`axum-rest-api-server` resolved by #2745.** The same pattern: `testing` enables seven optional
+dependencies (`torrust-tracker-core`, `torrust-tracker-http-core`, `torrust-tracker-udp-core`,
+`torrust-tracker-udp-server`, `torrust-tracker-swarm-coordination-registry`,
+`torrust-tracker-rest-api-client` and `torrust-clock`; direct normal dependencies drop from 35 to
+28), with the path-only self dev-dependency, the `deny.toml` self wrapper, and the feature enabled
+from the `[dev-dependencies]` of `axum-health-check-api-server`. `torrust-clock` joined the six
+listed above after an audit of third-party and other workspace dependencies: its only production
+use was an unused `CurrentClock` alias, which #2745 deleted. The package has no examples. Only the
+health check environment (row 7) remains.
 
 The 2026-10-06 coupling report (finding 2) listed four of `axum-rest-api-server`'s six; this
 inventory adds `tracker-core` and `rest-api-client`, and the health check's `configuration`.
@@ -131,10 +141,10 @@ Other observations:
 
 - The two examples, which show how to run a single-protocol tracker, start it through the
   test environment. They teach readers to depend on test infrastructure.
-- `axum-rest-api-server/src/testing/mod.rs` still says the UDP dependencies are needed at
-  runtime until "the prerequisite decoupling in `rest-api-core`". `rest-api-core` no longer
-  exists (#1938), and production source no longer uses those dependencies. The subissue that
-  moves this environment (#2482 row 6) removes the comment.
+- `axum-rest-api-server/src/testing/mod.rs` said the UDP dependencies were needed at runtime
+  until "the prerequisite decoupling in `rest-api-core`". `rest-api-core` no longer exists
+  (#1938), and production source did not use those dependencies. #2745 (#2482 row 6) removed
+  the comment.
 
 ## Pattern B: the shared `test-helpers` crate
 
@@ -245,7 +255,7 @@ that resolves it.
 | --- | --- | --- | --- |
 | A. `udp-server` environment (and its example) | Rule A: behind the `testing` feature of `udp-server` | [Row 4](../../closed/2699-2482-gate-udp-server-test-environment/ISSUE.md) | Resolved by #2699 |
 | A. `axum-http-server` environment (and its example) | Rule A: behind the `testing` feature of `axum-http-server` | [Row 5](../../closed/2724-2482-gate-axum-http-server-test-environment/ISSUE.md) | Resolved by #2724 |
-| A. `axum-rest-api-server` environment | Rule A: behind the `testing` feature of `axum-rest-api-server` | [Row 6](../2745-2482-gate-axum-rest-api-server-test-environment/ISSUE.md) | Open |
+| A. `axum-rest-api-server` environment | Rule A: behind the `testing` feature of `axum-rest-api-server` | [Row 6](../2745-2482-gate-axum-rest-api-server-test-environment/ISSUE.md) | Resolved by #2745 |
 | A. `axum-health-check-api-server` environment | Rule A: behind the `testing` feature of `axum-health-check-api-server` | [Row 7](../../drafts/2482-gate-axum-health-check-api-server-test-environment/ISSUE.md) | Open |
 | B. `test-helpers` `http` and `udp` modules | Rule B: the root crate's `tests/common/` | [Row 2](../../closed/2628-2482-move-test-helpers-protocol-helpers/ISSUE.md) | Resolved by #2628 |
 | B. `test-helpers` `configuration`, `logging`, `random` | Rule B: stay in `test-helpers` | None | Kept by the ADR |

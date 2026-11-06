@@ -157,23 +157,11 @@ pub mod routes;
 pub mod server;
 #[cfg(test)]
 mod test_support;
+#[cfg(feature = "testing")]
 pub mod testing;
 pub mod v1;
 
 use serde::{Deserialize, Serialize};
-use torrust_clock::clock;
-
-/// This code needs to be copied into each crate.
-/// Working version, for production.
-#[cfg(not(test))]
-#[allow(dead_code)]
-pub(crate) type CurrentClock = clock::Working;
-
-/// Stopped version, for testing.
-#[cfg(test)]
-#[allow(dead_code)]
-pub(crate) type CurrentClock = clock::Stopped;
-
 pub const API_LOG_TARGET: &str = "API";
 
 /// The info hash URL path parameter.
