@@ -9,7 +9,7 @@ github-issue: 2637
 spec-path: docs/issues/open/2637-1347-add-tests-axum-rest-api-server/ISSUE.md
 branch: "2637-1347-add-tests-axum-rest-api-server-final"
 related-pr: null
-last-updated-utc: "2026-11-06 10:31"
+last-updated-utc: "2026-11-06 10:39"
 semantic-links:
   skill-links:
     - create-issue
@@ -742,6 +742,7 @@ once. If the slicing changes, the Slice column changes with it.
 - 2026-11-06 08:23 UTC - Claude Code (Sonnet 5.5) - Independent S5 review (see `agent-review-reports.md`): REVIEW PASSED with one medium and three low findings. Fixed: the S8 "equivalent mutant" claim was wrong (`cancel()` cancels the caller's token), so the registration-failure test now asserts `is_cancelled()` and kills S8; the plan index and the stale figures of the plan body were refreshed; the proxy dependence of the `check_fn` tests is recorded. Correction of the figures above (append-only): re-measured with clean runs after the extra test lines, unit-only lines 2,324 / 2,403 (96.71%), aggregate 2,348 / 2,403 (97.71%), integration-only 682 / 903 (75.53%); `server.rs` 579 / 624 lines; 167 unit and 58 integration tests.
 - 2026-11-06 09:06 UTC - Claude Code (Sonnet 5.5) - Pre-push passed and S5 pull request #2744 (<https://github.com/torrust/torrust-tracker/pull/2744>, `Related to #2637`) was opened, as `josecelano-bot` from its fork; recorded it in the frontmatter, the slice table and the EPIC row.
 - 2026-11-06 10:31 UTC - Claude Code (Sonnet 5.5) - S5 merged through #2744 (2026-11-06 10:26 UTC; Copilot's one finding was fixed and its thread resolved before the merge, and no late review exists). Started S6 on branch `2637-1347-add-tests-axum-rest-api-server-final` from `develop` at the merge of #2744. The package and its `rest-api-*` collaborators are unchanged since the S5 head, so the S5 final re-measurement is the S6 baseline (unit-only lines 2,324 / 2,403, 96.71%; aggregate 2,348 / 2,403, 97.71%). Ledger rows 19-31 are next (decide and record the out-of-scope and wiring-only files, the `lib.rs` documentation fix of `tsl_config`), then T5-T8; the first plan awaits the maintainer.
+- 2026-11-06 10:39 UTC - Claude Code (Sonnet 5.5) - Drafted the S6 plans for rows 19-31, all proposing no new test and waiting for the maintainer's approval: `testing-support-tests.md` (rows 19-20, out of scope, owned by #2482 and #2449), `lib-tests.md` (row 21, plus the `tsl_config` to `tls_config` documentation fix in three places) and `wiring-modules-tests.md` (rows 22-31). Evidence gathered: 23 of the 25 `pub mod` declarations of rows 22-29 break the build when removed; the two survivors are the empty documentation modules `torrent/resources` and `resources/torrent`, which no package imports (a clean-up candidate, not a #2637 change). `Version` in `lib.rs` has no consumer.
 
 ## Acceptance Criteria
 
