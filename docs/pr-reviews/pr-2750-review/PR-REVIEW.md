@@ -32,7 +32,7 @@ Round 1: Copilot review 5801009506 on the head `e1b8c40c8` (one inline finding).
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
-| F1 | review-finding:pr-2750-f1 | Copilot | Low | documentation | ORIGINAL | FIXED | RESOLVED |
+| F1 | review-finding:pr-2750-f1 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
