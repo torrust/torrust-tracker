@@ -9,7 +9,7 @@ github-issue: 2637
 spec-path: docs/issues/open/2637-1347-add-tests-axum-rest-api-server/ISSUE.md
 branch: "2637-1347-add-tests-axum-rest-api-server-final"
 related-pr: null
-last-updated-utc: "2026-11-06 16:52"
+last-updated-utc: "2026-11-06 16:57"
 semantic-links:
   skill-links:
     - create-issue
@@ -143,6 +143,26 @@ The unit-only rise is mostly out-of-scope test support: #2449 added 8 unit tests
 and rejected an unreadable `Authorization` header. Excluding `src/testing/environment.rs`, unit-only lines
 are 491 / 908 (54.07%). [coverage-evidence.md](coverage-evidence.md#re-measurement-before-slice-s1)
 has the per-file differences.
+
+## Final Coverage
+
+Measured at the close of slice S6 (2026-11-06) on the branch rebased onto `develop` (with #2745), with the same
+three commands as the baseline, `cargo-llvm-cov 0.6.16` and stable Rust 1.99.1, from a clean workspace for each
+report. Totals include only files under `packages/axum-rest-api-server/src/`, the in-file test modules and the
+`src/testing/` support code included. Details and per-file results: [coverage-evidence.md](coverage-evidence.md#final-measurement-slice-s6).
+
+| Scope | Tests | Lines | Regions | Functions |
+| --- | ---: | ---: | ---: | ---: |
+| Aggregate (all selected test targets) | 170 unit + 58 integration | 2,348 / 2,404 (97.67%) | 3,489 / 3,592 (97.13%) | 380 / 398 (95.48%) |
+| Unit-only (`--lib`) | 170 unit | 2,324 / 2,404 (96.67%) | 3,462 / 3,592 (96.38%) | 374 / 398 (93.97%) |
+| Integration-only (`--test integration`) | 58 integration | 682 / 903 (75.53%) | 949 / 1,299 (73.06%) | 98 / 140 (70.00%) |
+
+Against the S1 baseline (`0b4b2d0d3`, the table above), unit-only lines rose 32.80 pp (63.87% to 96.67%), regions
+32.40 pp and functions 42.63 pp; aggregate lines rose 9.69 pp, regions 13.03 pp and functions 12.06 pp. Excluding
+the out-of-scope test support `src/testing/environment.rs`, unit-only lines are 2,023 / 2,072 (97.64%). The 80
+unit-only uncovered lines are all classified in the file plans: `server.rs` 45 (logging-only, unreachable, or owned
+by #1488 and #2733), `testing/environment.rs` 31 (test support owned by #2482 and #2449), the auth-key `Debug`
+impl 3 (decided untested) and 1 line counted in `test_support.rs` (a counting artefact).
 
 ## Key Package Responsibilities
 
