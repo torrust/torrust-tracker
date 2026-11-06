@@ -42,6 +42,7 @@ The global CLI output contract (`docs/adrs/20260519000000_define_global_cli_outp
 
 - Update the ADR table notes to match the final state.
 - Update the EPIC spec: statuses, acceptance verification, progress log; move it to `docs/issues/closed/`.
+- Repair every live reference to the EPIC's old path: the child specs (open or closed) cite `docs/issues/open/2758-cli-output-contract-tools-migration/EPIC.md` in their `semantic-links.related-artifacts`, and the frontmatter validator reports a moved file as missing. Update them in the same PR as the move, and run the frontmatter validator to confirm.
 - Verify with a fresh audit that no in-scope tool is non-compliant, or that the leftover is recorded with an issue.
 
 ### Out of Scope
@@ -51,7 +52,8 @@ The global CLI output contract (`docs/adrs/20260519000000_define_global_cli_outp
 Files this issue may touch (a sibling issue in the same wave must not touch them):
 
 - `docs/adrs/20260519000000_define_global_cli_output_contract.md`
-- `docs/issues/open/2758-*/EPIC.md`
+- `docs/issues/open/2758-*/EPIC.md` (moved to `docs/issues/closed/`)
+- `docs/issues/{open,closed}/27*-2758-*/ISSUE.md` (only the references to the EPIC path)
 
 ## Architectural Decisions
 
