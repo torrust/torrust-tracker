@@ -8,8 +8,8 @@ epic: 2482
 github-issue: 2745
 spec-path: docs/issues/open/2745-2482-gate-axum-rest-api-server-test-environment/ISSUE.md
 branch: "2745-2482-gate-axum-rest-api-server-test-environment-spec"
-related-pr: null
-last-updated-utc: "2026-11-06 09:19"
+related-pr: 2746
+last-updated-utc: "2026-11-06 09:24"
 semantic-links:
   skill-links:
     - create-issue
@@ -203,6 +203,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 - 2026-11-06 09:16 UTC - AI assistant (Claude Code, #2482 row 6) - The maintainer approved the spec. Created issue #2745 as `josecelano-bot`; the bot cannot add labels or link sub-issues on `torrust/torrust-tracker`, so those two steps are done with the `josecelano` account on the maintainer's explicit OK (recorded in a later entry). The spec moved to `docs/issues/open/`; the #2482 EPIC row, the inventory, the coupling report and the #2637 spec link to it.
 - 2026-11-06 09:19 UTC - AI assistant (Claude Code, #2482 row 6) - At the maintainer's explicit OK in this session, the labels (`task`, `packages`) and the sub-issue link under #2482 were done with the `josecelano` account, because the bot account lacks those permissions. The link is verified (`parent_issue_url` is #2482).
+- 2026-11-06 09:24 UTC - AI assistant (Claude Code, #2482 row 6) - Opened spec-only PR #2746 (`Related to #2745`); `related-pr` is set to 2746.
 
 ## Acceptance Criteria
 
