@@ -345,3 +345,15 @@ Measured on the S5 branch rebased onto `torrust/develop` (it contains the fixes 
 | Integration-only (`--test integration`) | 58 integration | 682 / 927 (73.57%) | 949 / 1,376 (68.97%) | 98 / 140 (70.00%) |
 
 Unit-only files below 100% lines: `server.rs` 403 / 458 (87.99%; 666 / 767 regions; 35 / 53 functions), `testing/environment.rs` 301 / 332 (out of scope, owned by #2482 and #2449) and `v1/context/auth_key/handlers.rs` 236 / 239 (the three deliberately untested `Debug` lines). `server.rs` is 403 / 458 in the aggregate as well: the integration tests add nothing to it (74 / 233 lines alone). Uncovered unit-only line ranges of `server.rs` at this baseline: 198, 242, 244-245, 277, 279-280, 289-290, 294, 296, 301-302, 310, 312, 318-319, 358-359, 362-363, 379-381, 396, 428-430, 432, 434, 455-457, 469, 471-472, 478-483, 487-488, 490-492, 494, 496, 502, 514, 583-584 and 742-743 (55 lines). The row 18 plan re-derives and classifies these groups.
+
+### Row 18 (`server.rs`) Measurement
+
+Measured on the S5 branch after the row 18 tests (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, a clean workspace before each report, the commands of the Measurement Scope section). The S5 slice measurement is taken again at the slice close; this is the figure after the only file of S5.
+
+| Scope | Tests | Lines | Regions | Functions |
+| --- | ---: | ---: | ---: | ---: |
+| Aggregate (all selected test targets) | 164 unit + 58 integration | 2,350 / 2,405 (97.71%) | 3,455 / 3,557 (97.13%) | 370 / 387 (95.61%) |
+| Unit-only (`--lib`) | 164 unit | 2,326 / 2,405 (96.72%) | 3,428 / 3,557 (96.37%) | 364 / 387 (94.06%) |
+| Integration-only (`--test integration`) | 58 integration | 682 / 927 (73.57%) | 949 / 1,376 (68.97%) | 98 / 140 (70.00%) |
+
+`server.rs` is 533 / 578 lines unit-only (it was 403 / 458), 901 / 981 regions and 50 / 65 functions. Its 45 uncovered lines (198, 244-245, 279-280, 289-290, 294, 296, 301-302, 310, 312, 318-319, 358-359, 362-363, 455-457, 469, 471-472, 478-483, 487-488, 490-492, 494, 496, 502, 514, 744-745 and 862-863) are classified in the [row 18 plan](test-refactor-plans/server-tests.md): logging-only, platform faults, runtime error arms owned by `torrust-tracker-axum-server`, the legacy `Halted` path owned by #1488, and `panic!` arms of tests. Files below 100% unit-only lines: `server.rs`, `testing/environment.rs` (out of scope, #2482 and #2449) and `v1/context/auth_key/handlers.rs` (236 / 239, the three untested `Debug` lines).

@@ -3,7 +3,7 @@ doc-type: file-test-plan
 issue: 2637
 package: torrust-tracker-axum-rest-api-server
 target-file: packages/axum-rest-api-server/src/server.rs
-status: in-progress
+status: done
 semantic-links:
   related-artifacts:
     - packages/axum-rest-api-server/src/server.rs
@@ -16,7 +16,7 @@ semantic-links:
 # Server Lifecycle File Test Plan
 
 Follow the shared [guidance](README.md). This plan covers only `packages/axum-rest-api-server/src/server.rs`, ledger
-row 18 (rank 6), the only file of S5. Status: proposed, waiting for the maintainer's approval; no test is written.
+row 18 (rank 6), the only file of S5. Status: done; the maintainer approved the plan and the completed file on 2026-11-06.
 
 ## Current State
 
@@ -107,10 +107,10 @@ None new: `tempfile`, `rustls`, `reqwest` and the fixtures are already available
 
 | ID | Status | Work | Completion evidence |
 | --- | --- | --- | --- |
-| R1 | TODO | Refactor the existing tests as in Current Tests Review (shared `api_container`, deadlines, dead branch, join in the TLS test). | The six existing tests still pass; focused run, `cargo +nightly fmt --all -- --check`, `git diff --check`; prose-first AAA review. |
-| R2 | TODO | Add N1-N5 as in-file tests (a shared start helper for N2 and N5). | Same validation plus the named mutations below. |
-| R3 | TODO | Integration increment: `none` expected (the integration tests already serve the plain REST API over the test environment). | Recorded in Results. |
-| R4 | TODO | Re-run the three coverage scopes; record before and after. | Results and `coverage-evidence.md`. |
+| R1 | DONE | Refactor the existing tests as in Current Tests Review (shared `api_container`, deadlines, dead branch, join in the TLS test). | The six existing tests still pass; focused run, `cargo +nightly fmt --all -- --check`, `git diff --check`; prose-first AAA review. |
+| R2 | DONE | Add N1-N5 as in-file tests (a shared start helper for N2 and N5). | Same validation plus the named mutations below. |
+| R3 | DONE | Integration increment: `none` expected (the integration tests already serve the plain REST API over the test environment). | Recorded in Results. |
+| R4 | DONE | Re-run the three coverage scopes; record before and after. | Results and `coverage-evidence.md`. |
 
 ## Named Mutations
 
@@ -131,13 +131,47 @@ failure, not a compile error (`unused = "deny"`).
 
 ## Prose-First AAA Review
 
-To be written for each added or refactored test before the completed-file review (temporary Arrange, Act and Assert
-prose compared with the code).
+Temporary prose, written before comparing with the code.
+
+| Test | Arrange prose | Act prose | Assert prose | Outcome |
+| --- | --- | --- | --- | --- |
+| `it_should_fail_to_start_with_a_bind_error_when_the_address_is_already_in_use` (N1) | A listener already holds an address; a launcher is told to bind that same address; the container exists. | Start the token-aware server. | The result is a bind error whose cause is "address in use"; the occupying listener is dropped at the end. | Matches the code: one `match` extracts the error kind, one `assert_eq!` on the literal kind. |
+| `it_should_register_the_plain_rest_api_with_an_http_binding_on_the_address_it_serves` (N5) | A plain server is started with a registar. | Read the registered services. | One service, with protocol HTTP and the address the server reports. | Matches; one tuple assertion, then the server is stopped and joined. |
+| `it_should_report_a_plain_rest_api_as_healthy_with_the_default_health_check` (N2) | A plain server is running and registered; the expected info text is a literal built from the served address. | Run the production `check_fn` on the registered binding. | The job's info text and result are the literal text and `200 OK`. | Matches; the info text is built from `local_addr`, not by the production helper. |
+| `it_should_report_an_error_with_the_checked_url_when_nothing_listens_on_the_checked_address` (N3) | An address that was free and is dropped, so nothing listens. | Run `check_fn`. | The job fails and its message names the checked URL. | Matches; the `reqwest` wording is not pinned. |
+| `it_should_display_the_launcher_with_its_socket_and_whether_it_uses_tls` (N4) | A TLS launcher and a plain one for the same socket. | Format both. | The two literal texts. | Matches; needs the process-level crypto provider because it loads the fixture certificate. |
+
+Refactored (R1): `start_plain` and `stop` hide the incidental start and join mechanics for the tests that start the plain
+server, the shared `api_container` and `within_deadline` replace the private container and the bare awaits, the dead TLS
+branch is gone, and the TLS test now joins both tasks.
 
 ## Results
 
-To be filled after R4.
+- **Unit-only coverage** (stable Rust 1.99.1, `cargo-llvm-cov 0.6.16`, clean workspace): `server.rs` 403 / 458 lines at the
+  S5 baseline; 533 / 578 lines (92.21%), 901 / 981 regions and 50 / 65 functions after (counts include the test module).
+  The remaining 45 uncovered lines are 198, 244-245, 279-280, 289-290, 294, 296, 301-302, 310, 312, 318-319, 358-359,
+  362-363, 455-457, 469, 471-472, 478-483, 487-488, 490-492, 494, 496, 502, 514, 744-745 and 862-863; every one is in a group
+  of the analysis above (logging-only, platform, runtime error arms, legacy #1488) or is a `panic!` arm of a test that runs
+  only when the test already fails (744-745 of the registration-failure test and 862-863 of the bind-error test). Package
+  unit-only lines 2,326 / 2,405 (96.72%), aggregate 2,350 / 2,405 (97.71%), integration-only unchanged at 682 / 927.
+- **Tests:** 5 added (the package went from 159 to 164 unit tests; 58 integration tests unchanged).
+- **Mutations** (each applied alone, stable toolchain, then reverted; the file was identical to the tested one afterwards):
+  S1 killed by the bind-error test; S2 by the plain registration test, the plain health check test and the existing
+  listener-release test; S3 by the existing TLS health check test; S4 by the dead-address test; S5 by the plain health check
+  test; S6 by the `Display` test; S7 by the plain health check test (its info assertion); S9 by three tests that start the
+  plain server, through the deadline. **S8 as planned survived and is an equivalent mutant:** removing only
+  `cancellation_token.cancel()` from the registration-failure arm changes nothing observable, because `task.abort()` and
+  `shutdown_controller.abort()` already stop both tasks and release the listener. The redone mutant S8b removes the cancel,
+  both aborts and both joins; it is killed by the existing listener-release test. Corrections while running: S7's first
+  anchor matched twice (the test text), so it was anchored on the `let info = format!(` line.
+- **Dependency:** none new. **Clippy allows:** none added.
+- **Validation:** `cargo +nightly fmt --all -- --check`, `cargo clippy -p torrust-tracker-axum-rest-api-server
+  --all-targets` (stable), `cargo machete --with-metadata`, `git diff --check` and `cargo test -p
+  torrust-tracker-axum-rest-api-server` (164 unit and 58 integration tests) pass.
+- **Review outcome:** the maintainer approved the plan on 2026-11-06; the completed file was approved on 2026-11-06.
 
 ## Progress Log
 
 - 2026-11-05 22:03 UTC - Claude Code - Plan drafted from the S5 baseline; waiting for the maintainer's approval.
+- 2026-11-06 08:07 UTC - Claude Code - Plan approved by the maintainer; R1-R4 done; the completed-file review is pending.
+- 2026-11-06 08:10 UTC - Claude Code - Completed file approved by the maintainer; row 18 `DONE`.

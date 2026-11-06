@@ -9,7 +9,7 @@ github-issue: 2637
 spec-path: docs/issues/open/2637-1347-add-tests-axum-rest-api-server/ISSUE.md
 branch: "2637-1347-add-tests-axum-rest-api-server-lifecycle"
 related-pr: null
-last-updated-utc: "2026-11-05 22:03"
+last-updated-utc: "2026-11-06 08:10"
 semantic-links:
   skill-links:
     - create-issue
@@ -551,7 +551,7 @@ declaration-only rows have no executable entries.
 | 15 | `v1/context/stats/handlers.rs` | 5 | S4 | 0 / 20 (0.00%) | 0 | Test candidate | DONE | [v1-context-stats-handlers-tests.md](test-refactor-plans/v1-context-stats-handlers-tests.md) (done; 40 / 40 lines after, 12 test cases, 8 mutants killed, 1 equivalent) |
 | 16 | `v1/context/stats/responses.rs` | 5 | S4 | 0 / 45 (0.00%) | 0 | Test candidate | DONE | [v1-context-stats-responses-tests.md](test-refactor-plans/v1-context-stats-responses-tests.md) (done; 155 / 155 lines after and now asserted, 4 tests, 10 mutants killed) |
 | 17 | `v1/context/stats/routes.rs` | 5 | S4 | 9 / 9 (100.00%) | 0 | Probably no change | DONE | [v1-context-stats-routes-tests.md](test-refactor-plans/v1-context-stats-routes-tests.md) (done: no change; 9 / 9 lines, 4 mutants killed by existing tests) |
-| 18 | `server.rs` | 6 | S5 | 403 / 458 (87.99%) | 3 | Test candidate (TLS, errors, `check_fn`); legacy path owned by #1488 | IN_PROGRESS | [plan](test-refactor-plans/server-tests.md) |
+| 18 | `server.rs` | 6 | S5 | 403 / 458 (87.99%) | 3 | Test candidate (TLS, errors, `check_fn`); legacy path owned by #1488 | DONE | [plan](test-refactor-plans/server-tests.md) |
 | 19 | `testing/environment.rs` | 7 | S6 | 301 / 332 (90.66%) | 8 | Out of scope (test support; #2482, #2449) | PENDING | - |
 | 20 | `testing/mod.rs` | 7 | S6 | No executable entries | 0 | Out of scope (test support) | PENDING | - |
 | 21 | `lib.rs` | 8 | S6 | No executable entries | 0 | Wiring only | PENDING | - |
@@ -737,6 +737,7 @@ once. If the slicing changes, the Slice column changes with it.
 - 2026-11-05 21:56 UTC - Claude Code (Sonnet 5.5) - The maintainer approved folding F3 and F4 into S5 and they are fixed in `test(axum-rest-api-server): [#2637] give the REST API test database a cleanup owner and bound the router tests` (test-only). F3: `test_support::api_container` moves a SQLite database into a `tempfile` directory owned by the returned `TestApiContainer` (the container drops first, also on panic); a run of the `routes::` and `v1::routes` tests leaves the count of `data_*.db` files in the temporary directory unchanged (68,381 before and after). F4: `within_deadline` (5 s) wraps container setup, the request and the body in the `v1/routes.rs` `call` helper and in `through_the_router`; a pending future placed before the container setup made both fail with the deadline message, then was reverted. The F2 note stays `NO_ACTION`. Still to do: post the approval and the fixes on the #2667 and #2687 threads.
 - 2026-11-05 22:00 UTC - Claude Code (Sonnet 5.5) - Posted the dispositions and fixes as `josecelano-bot` replies on Cameron's threads, with the maintainer's approval: F2 <https://github.com/torrust/torrust-tracker/pull/2667#discussion_r4486578352>, F3 <https://github.com/torrust/torrust-tracker/pull/2687#discussion_r4486578672>, F4 <https://github.com/torrust/torrust-tracker/pull/2687#discussion_r4486579057>. The threads are left unresolved for the maintainer or reviewer to resolve.
 - 2026-11-05 22:03 UTC - Claude Code (Sonnet 5.5) - Row 18 (`server.rs`) is `IN_PROGRESS`: the plan `test-refactor-plans/server-tests.md` is proposed and awaits the maintainer's approval. It classifies the 55 uncovered lines (five groups to test: the bind error, `check_fn` live and dead, the `Launcher` `Display`, the plain protocol selection; the rest is logging-only, unreachable, owned by #1488 or #2733), proposes a small test-only refactor of the existing tests (shared `api_container`, deadlines, a dead branch, a join) and nine named mutations. No test is written.
+- 2026-11-06 08:10 UTC - Claude Code (Sonnet 5.5) - Row 18 (`server.rs`) is `DONE`: the maintainer approved the plan on 2026-11-06 and the completed file after it. Five tests were added and the existing ones refactored (shared `api_container`, one deadline for every awaited operation, the dead TLS branch removed, the TLS test joins both tasks); `server.rs` went from 403 / 458 to 533 / 578 lines unit-only. Mutations S1-S7, S8b and S9 were killed; S8 (removing only `cancellation_token.cancel()`) is an equivalent mutant because the aborts already release the listener. Package unit-only lines 2,326 / 2,405 (96.72%), aggregate 2,350 / 2,405 (97.71%), integration-only unchanged (682 / 927); 164 unit and 58 integration tests.
 
 ## Acceptance Criteria
 
