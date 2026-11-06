@@ -16,8 +16,8 @@ semantic-links:
 
 Follow the shared [guidance](README.md). One plan for the declaration-only group, ledger rows 22-31, as the spec allows:
 `v1/mod.rs`, `v1/context/mod.rs`, `v1/middlewares/mod.rs`, the `mod.rs` of `auth_key`, `health_check`, `stats`, `torrent` and
-`whitelist`, `torrent/resources/mod.rs` and `torrent/resources/torrent.rs`. Status: proposed, waiting for the maintainer's
-approval; no test is proposed.
+`whitelist`, `torrent/resources/mod.rs` and `torrent/resources/torrent.rs`. Status: done; the maintainer approved the plan on
+2026-11-06 (no test is added).
 
 ## Current State
 

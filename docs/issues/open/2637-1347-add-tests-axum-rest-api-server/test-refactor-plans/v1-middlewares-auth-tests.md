@@ -178,7 +178,7 @@ that equals any configured token authenticates", regardless of how many labels c
 
 | Test | Arrange | Act | Assert |
 | --- | --- | --- | --- |
-| `it_should_authenticate_a_token_configured_under_more_than_one_label` | `AccessTokens` with two labels (`first`, `second`) holding the same value, plus a third label with another value. | `authenticate` with the shared value. | `true`. A second case with the third label's value is also `true`; one with an unconfigured value is `false`. |
+| `it_should_authenticate_a_token_configured_under_more_than_one_label` | `AccessTokens` with two labels (`first`, `copy`) holding the same value, plus a third label (`other`) with another value. | `authenticate` with the shared value. | `true`. A second case with the third label's value is also `true`; one with an unconfigured value is `false`. |
 
 Placement: the `authenticate` tests of the existing in-file test module, as one more `rstest` function over a local
 `access_tokens`-style fixture. No new dependency, no production change.
