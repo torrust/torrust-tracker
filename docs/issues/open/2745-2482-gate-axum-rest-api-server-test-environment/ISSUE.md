@@ -9,7 +9,7 @@ github-issue: 2745
 spec-path: docs/issues/open/2745-2482-gate-axum-rest-api-server-test-environment/ISSUE.md
 branch: "2745-2482-gate-axum-rest-api-server-test-environment-spec"
 related-pr: null
-last-updated-utc: "2026-11-06 09:16"
+last-updated-utc: "2026-11-06 09:19"
 semantic-links:
   skill-links:
     - create-issue
@@ -202,6 +202,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-06 09:14 UTC - AI assistant (Claude Code, #2482 row 6) - Refreshed the draft against `torrust/develop` (environment.rs now 536 lines; the gate is satisfied, #2449, #2416 and #2450 are closed; dependency audit re-run). Recorded the maintainer's decisions of 2026-11-06: `torrust-clock` becomes the seventh optional dependency after the dead `CurrentClock` alias is deleted; no examples (the package has none); labels and the sub-issue link are done with the `josecelano` account on his explicit OK.
 
 - 2026-11-06 09:16 UTC - AI assistant (Claude Code, #2482 row 6) - The maintainer approved the spec. Created issue #2745 as `josecelano-bot`; the bot cannot add labels or link sub-issues on `torrust/torrust-tracker`, so those two steps are done with the `josecelano` account on the maintainer's explicit OK (recorded in a later entry). The spec moved to `docs/issues/open/`; the #2482 EPIC row, the inventory, the coupling report and the #2637 spec link to it.
+- 2026-11-06 09:19 UTC - AI assistant (Claude Code, #2482 row 6) - At the maintainer's explicit OK in this session, the labels (`task`, `packages`) and the sub-issue link under #2482 were done with the `josecelano` account, because the bot account lacks those permissions. The link is verified (`parent_issue_url` is #2482).
 
 ## Acceptance Criteria
 
