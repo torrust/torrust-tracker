@@ -86,8 +86,9 @@ got. Bash callers that need the distinction pipe stdout to `jq -e` or read the `
 - `github-review-threads reply-status`: not consistent. The missing reply is an answer, so it should be a result with
   exit `0`; follow-up issue.
 - `package-coverage-check`: not consistent. Errors must be JSON, usage errors must exit `2`, and TTY refusal
-  applies; follow-up issue (task T4 of #2715). Whether `summary`, which renders a report for humans, must emit JSON
-  is part of that follow-up.
+  applies; follow-up issue (task T4 of #2715). `summary` is a `stdout-result-data` subcommand like the others, so its
+  result is one JSON object; the Markdown report it renders today must be carried inside that object (for example in a
+  `markdown` field) and extracted by the workflow that posts it. No exception is recorded.
 - `clippy-allow-reasons`, `frontmatter-validator`, `shipped-features-check`: consistent as `no-stdout-result`
   checks.
 
