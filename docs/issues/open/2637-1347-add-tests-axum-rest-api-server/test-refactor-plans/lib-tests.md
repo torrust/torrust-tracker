@@ -3,7 +3,7 @@ doc-type: file-test-plan
 issue: 2637
 package: torrust-tracker-axum-rest-api-server
 target-file: packages/axum-rest-api-server/src/lib.rs
-status: proposed
+status: done
 semantic-links:
   related-artifacts:
     - packages/axum-rest-api-server/src/lib.rs
@@ -15,7 +15,7 @@ semantic-links:
 # Crate Root File Test Plan
 
 Follow the shared [guidance](README.md). This plan covers only `packages/axum-rest-api-server/src/lib.rs`, ledger row 21.
-It proposes no new test and one documentation correction. Status: proposed, waiting for the maintainer's approval.
+It proposes no new test and one documentation correction. Status: done; the maintainer approved the plan on 2026-11-06.
 
 ## Current State
 
@@ -45,7 +45,7 @@ to `HttpApi::tls_config`; fixing the wording is optional and is a question for t
 ## Challenge Of The No-Change Conclusion
 
 Named mutations to apply after approval, each alone and reverted exactly: L1 change `API_LOG_TARGET` to `"OTHER"` (expected
-to survive, which confirms the decision); L2 remove the `Deserialize` derive of `InfoHashParam` (expected compile error:
+to survive, which confirms the decision (it did not: see Results, the integration tests pin the log target)); L2 remove the `Deserialize` derive of `InfoHashParam` (expected compile error:
 guarded by the compiler); L3 rename `Version::V1` (expected to survive: unused). The documentation fix is verified by
 `grep -n tsl_config packages/axum-rest-api-server/src/lib.rs` returning nothing, and by parsing the corrected TOML example
 into the v3 configuration (a disposable script, not a committed test).
@@ -65,7 +65,7 @@ None.
 | R1 | SKIPPED | No tests to refactor. | None. |
 | R2 | SKIPPED | No tests added. | None. |
 | R3 | SKIPPED | Integration increment: `none`. | None. |
-| R4 | TODO | Fix the three `tsl_config` spellings in the crate documentation; run the mutations; re-run the documentation build (`cargo doc -p torrust-tracker-axum-rest-api-server --no-deps`). | The grep, the mutation results and a clean `cargo doc`. |
+| R4 | DONE | Fix the three `tsl_config` spellings in the crate documentation; run the mutations; re-run the documentation build (`cargo doc -p torrust-tracker-axum-rest-api-server --no-deps`). | The grep, the mutation results and a clean `cargo doc`. |
 
 ## Prose-First AAA Review
 
@@ -73,8 +73,11 @@ No test is added or changed.
 
 ## Results
 
-To be filled after approval.
+The maintainer approved the plan on 2026-11-06. The three `tsl_config` spellings of the crate documentation are now `tls_config`; `grep -n tsl_config packages/axum-rest-api-server/src/lib.rs` returns nothing and `cargo doc -p torrust-tracker-axum-rest-api-server --no-deps` builds. A disposable program outside the repository (not committed) parsed the corrected example into the v3 `HttpApi`: `tls_config` parses and sets the TLS option, while the old `tsl_config` spelling is rejected with a TOML parse error (unknown field), which confirms the defect and the fix. No test was added.
+
+Mutations (each alone, then `lib.rs` restored exactly): **L1** `API_LOG_TARGET` changed to `"OTHER"`: the plan expected a survivor and was wrong. The unit tests pass, but 21 of the 58 integration tests fail: the authentication and the auth-key, whitelist, stats and torrent failure cases assert that the error log contains a line with `ERROR`, `API` and the request id (`logs_contains_a_line_with`), so the target value is pinned end to end. **L2** removing the `Deserialize` derive of `InfoHashParam`: compile error (guarded by the compiler). **L3** renaming `Version::V1`: all 167 unit and 58 integration tests pass, so `Version` has no consumer, as recorded.
 
 ## Progress Log
 
 - 2026-11-06 10:39 UTC - Claude Code - Plan drafted; waiting for the maintainer's approval.
+- 2026-11-06 11:15 UTC - Claude Code - Plan approved by the maintainer; decision recorded, rows `DONE`.

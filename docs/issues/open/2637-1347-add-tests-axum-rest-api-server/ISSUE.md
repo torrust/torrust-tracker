@@ -9,7 +9,7 @@ github-issue: 2637
 spec-path: docs/issues/open/2637-1347-add-tests-axum-rest-api-server/ISSUE.md
 branch: "2637-1347-add-tests-axum-rest-api-server-final"
 related-pr: null
-last-updated-utc: "2026-11-06 11:13"
+last-updated-utc: "2026-11-06 11:15"
 semantic-links:
   skill-links:
     - create-issue
@@ -554,7 +554,7 @@ declaration-only rows have no executable entries.
 | 18 | `server.rs` | 6 | S5 | 403 / 458 (87.99%) | 3 | Test candidate (TLS, errors, `check_fn`); legacy path owned by #1488 | DONE | [plan](test-refactor-plans/server-tests.md) |
 | 19 | `testing/environment.rs` | 7 | S6 | 301 / 332 (90.66%) | 8 | Out of scope (test support; #2482, #2449) | DONE | [plan](test-refactor-plans/testing-support-tests.md) |
 | 20 | `testing/mod.rs` | 7 | S6 | No executable entries | 0 | Out of scope (test support) | DONE | [plan](test-refactor-plans/testing-support-tests.md) |
-| 21 | `lib.rs` | 8 | S6 | No executable entries | 0 | Wiring only | PENDING | - |
+| 21 | `lib.rs` | 8 | S6 | No executable entries | 0 | Wiring only | DONE | [plan](test-refactor-plans/lib-tests.md) |
 | 22 | `v1/mod.rs` | 8 | S6 | No executable entries | 0 | Wiring only | PENDING | - |
 | 23 | `v1/context/mod.rs` | 8 | S6 | No executable entries | 0 | Wiring only | PENDING | - |
 | 24 | `v1/middlewares/mod.rs` | 8 | S6 | No executable entries | 0 | Wiring only | PENDING | - |
@@ -744,6 +744,7 @@ once. If the slicing changes, the Slice column changes with it.
 - 2026-11-06 10:31 UTC - Claude Code (Sonnet 5.5) - S5 merged through #2744 (2026-11-06 10:26 UTC; Copilot's one finding was fixed and its thread resolved before the merge, and no late review exists). Started S6 on branch `2637-1347-add-tests-axum-rest-api-server-final` from `develop` at the merge of #2744. The package and its `rest-api-*` collaborators are unchanged since the S5 head, so the S5 final re-measurement is the S6 baseline (unit-only lines 2,324 / 2,403, 96.71%; aggregate 2,348 / 2,403, 97.71%). Ledger rows 19-31 are next (decide and record the out-of-scope and wiring-only files, the `lib.rs` documentation fix of `tsl_config`), then T5-T8; the first plan awaits the maintainer.
 - 2026-11-06 10:39 UTC - Claude Code (Sonnet 5.5) - Drafted the S6 plans for rows 19-31, all proposing no new test and waiting for the maintainer's approval: `testing-support-tests.md` (rows 19-20, out of scope, owned by #2482 and #2449), `lib-tests.md` (row 21, plus the `tsl_config` to `tls_config` documentation fix in three places) and `wiring-modules-tests.md` (rows 22-31). Evidence gathered: 23 of the 25 `pub mod` declarations of rows 22-29 break the build when removed; the two survivors are the empty documentation modules `torrent/resources` and `resources/torrent`, which no package imports (a clean-up candidate, not a #2637 change). `Version` in `lib.rs` has no consumer.
 - 2026-11-06 11:13 UTC - Claude Code (Sonnet 5.5) - Rows 19 (`testing/environment.rs`) and 20 (`testing/mod.rs`) are `DONE` with an out-of-scope decision, approved by the maintainer with the S6 plans on 2026-11-06: test support owned by #2482 and #2449 is not tested here; no test, no mutation and no change.
+- 2026-11-06 11:15 UTC - Claude Code (Sonnet 5.5) - Row 21 (`lib.rs`) is `DONE`: the maintainer approved the plan on 2026-11-06. No test; the crate documentation now spells `tls_config` in the three places (the corrected example parses into the v3 `HttpApi`, the old spelling is rejected). Mutation L1 (`API_LOG_TARGET`) was wrongly expected to survive: 21 integration tests assert the `API` log target, so it is pinned there; L2 does not compile; L3 (`Version`) survives because `Version` has no consumer. Production documentation only; no code changed.
 
 ## Acceptance Criteria
 
