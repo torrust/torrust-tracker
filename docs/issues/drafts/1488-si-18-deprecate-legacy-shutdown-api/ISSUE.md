@@ -93,7 +93,13 @@ Order of work:
 2. **This issue**: bump `torrust-server-lib` in the workspace to that version,
    then deprecate the in-repo symbols listed under Scope.
 
-This issue stays a draft until step 1 is released.
+Step 1 is [torrust-server-lib#3](https://github.com/torrust/torrust-server-lib/issues/3),
+implemented by [torrust-server-lib PR 4](https://github.com/torrust/torrust-server-lib/pull/4) (not merged
+yet): the symbols are deprecated since 0.5.0 and the crate removes them in 0.6.0 (the maintainer's choice).
+The crate's removal version is therefore 0.6.0; the in-repo removal release (likely tracker 4.0.0) stays to be
+confirmed.
+
+This issue stays a draft until 0.5.0 is published.
 
 ## Scope
 
