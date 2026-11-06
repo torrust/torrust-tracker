@@ -32,10 +32,10 @@ One row per independent concern from Copilot's reviews of this pull request (rou
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
-| F1 | review-finding:pr-2748-f1 | Copilot | Medium | documentation | ORIGINAL | FIXED | RESOLVED |
-| F2 | review-finding:pr-2748-f2 | Copilot | Low | documentation | ORIGINAL | FIXED | RESOLVED |
-| F3 | review-finding:pr-2748-f3 | Copilot | Low | correctness | ORIGINAL | FIXED | RESOLVED |
-| F4 | review-finding:pr-2748-f4 | Copilot | Low | correctness | ORIGINAL | FIXED | RESOLVED |
+| F1 | review-finding:pr-2748-f1 | Copilot | Major (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F2 | review-finding:pr-2748-f2 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F3 | review-finding:pr-2748-f3 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
+| F4 | review-finding:pr-2748-f4 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
