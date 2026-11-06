@@ -167,9 +167,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-04 13:41 UTC - AI assistant (Copilot SDK in VS Code) - The drafting entry is now marked `OUT-OF-ORDER`: the
   file order matches the order of the events, and only its stamp is wrong, as the 13:07 correction states. The
   entry text is unchanged.
-- 2026-11-06 UTC - AI assistant (Claude Code) - Recorded the maintainer's decisions on scope, exit codes and ADR form
+- 2026-11-06 10:25 UTC - AI assistant (Claude Code) - Recorded the maintainer's decisions on scope, exit codes and ADR form
   in the "Maintainer Decisions" section before implementation.
-- 2026-11-06 UTC - AI assistant (Claude Code) - Wrote ADR `20261106102632` and the "amended by" note in ADR
+- 2026-11-06 10:27 UTC - AI assistant (Claude Code) - Wrote ADR `20261106102632` and the "amended by" note in ADR
   `20260519000000`, and registered the ADR in `docs/adrs/index.md`. `linter all` and the frontmatter validator pass
   (stable toolchain). T4 (follow-up issue for `github-review-threads reply-status`) is waiting for the maintainer.
 
