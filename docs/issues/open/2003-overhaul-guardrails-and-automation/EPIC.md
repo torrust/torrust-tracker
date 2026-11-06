@@ -199,7 +199,7 @@ Also linked as GitHub sub-issues, outside the order:
 
 ### Order 12 Close-Out
 
-The #2347 specification is the current record of this close-out: it logs T7 as done in PR #2367 and AC4 as `DONE`. The checklist below is the plan as of 2026-09-28 and is kept for history.
+**Historical plan, as of 2026-09-28; not current work.** The #2347 specification is the current record of this close-out: it logs T7 as done in PR #2367 and AC4 as `DONE`. The unchecked checklist below is kept for history only.
 
 Issue #2347 closes through one close-out PR. PR #2363, which carries the #2347 implementation, merged on 2026-09-28 at 17:00 UTC as `bc90cde1b` after seven review rounds; the last approval (review 5341908562) and its ACK stand on the merged head, whose commit records rounds 4 and 5 in the PR's own audit.
 
