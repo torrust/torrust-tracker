@@ -78,6 +78,21 @@ decision here changes which of its rows apply.
 The `wait-for-pr-review` spec records that it follows the ADR as written (a timeout is a result), and asked for
 these two questions to be tracked separately, because deciding them was not part of building the poller.
 
+## Maintainer Decisions (2026-11-06)
+
+Recorded from the maintainer's answers before implementation. They are the inputs for the ADR; the ADR holds the
+reasoning.
+
+1. **Scope: tracker and AI/CI tools.** The contract covers the tracker's operator binaries and the AI-agent and CI
+   tools (`clippy-allow-reasons`, `frontmatter-validator`, `shipped-features-check`, `github-review-threads`,
+   `ci-gate`, `wait-for-pr-review`), wherever they live. Pure developer diagnostics (`profiling`, benchmarks,
+   examples, tests) stay out. The existing table rows stay, and the scope statements that contradict them are fixed.
+2. **Exit codes: `0`, `1`, `2` plus a `kind` field.** No command-specific non-usage codes. A distinct outcome is a
+   `kind` in the JSON: a result on stdout with exit `0`, or a diagnostic on stderr with exit `1`.
+3. **ADR form: a new ADR plus a pointer in the old one.** A new root ADR in `docs/adrs/` records both decisions and
+   the alternatives. The existing ADR gets an "amended by" note and its scope text and table are aligned. The
+   ADR index lists the new ADR. `epic` stays `null`.
+
 ## Scope
 
 ### In Scope
@@ -152,6 +167,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-04 13:41 UTC - AI assistant (Copilot SDK in VS Code) - The drafting entry is now marked `OUT-OF-ORDER`: the
   file order matches the order of the events, and only its stamp is wrong, as the 13:07 correction states. The
   entry text is unchanged.
+- 2026-11-06 UTC - AI assistant (Claude Code) - Recorded the maintainer's decisions on scope, exit codes and ADR form
+  in the "Maintainer Decisions" section before implementation.
 
 ## Acceptance Criteria
 
