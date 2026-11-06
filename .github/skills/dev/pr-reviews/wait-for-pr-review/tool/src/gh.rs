@@ -91,8 +91,9 @@ impl GhCli {
                 // The child was killed. Reclaim what the readers finished, but never wait for a
                 // descendant that still holds a pipe: the grace is the only bound here.
                 let reclaim_deadline = Instant::now() + RECLAIM_GRACE;
-                drop(collect(stdout, reclaim_deadline, &AtomicBool::new(false)));
-                drop(collect(stderr, reclaim_deadline, &AtomicBool::new(false)));
+                let never_interrupted = AtomicBool::new(false);
+                drop(collect(stdout, reclaim_deadline, &never_interrupted));
+                drop(collect(stderr, reclaim_deadline, &never_interrupted));
                 return Err(failure);
             }
         };
