@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: done
 priority: p2
 epic: null
 github-issue: 2734
-spec-path: docs/issues/open/2734-stats-prometheus-text-help-and-type/ISSUE.md
+spec-path: docs/issues/closed/2734-stats-prometheus-text-help-and-type/ISSUE.md
 branch: "2734-stats-prometheus-text-help-and-type-spec"
-related-pr: null
-last-updated-utc: "2026-11-05 16:32"
+related-pr: 2741
+last-updated-utc: "2026-11-06 00:00"
 semantic-links:
   skill-links:
     - create-issue
@@ -122,19 +122,20 @@ existing pinned test for the exact text changes on purpose in the same PR.
 - [x] GitHub issue created and issue number added to this spec
 - [x] (Optional) Spec-only PR merged into `develop` before implementation
 - [x] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Evidence-based implementation completion review recorded
+- [x] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Committer verified spec progress is up to date before commit
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
 - 2026-11-05 16:25 UTC - Claude Code (Claude Sonnet 5.5) - Drafted this spec after the ADR merged; awaiting maintainer review
 - 2026-11-05 16:32 UTC - Claude Code (Claude Sonnet 5.5) - Spec approved by the maintainer; GitHub issue #2734 created; spec moved to `open/`
 - 2026-11-05 18:00 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer chose option 2 and confirmed the types; implemented and verified; promtool naming lint recorded, AC4 amended
+- 2026-11-06 UTC - Claude Code (Claude Sonnet 5.5) - PR #2741 merged (Copilot review addressed: one `stats!` macro declares fields, docs and table); spec archived to `closed/` and the ADR note updated
 
 ## Acceptance Criteria
 
@@ -143,7 +144,7 @@ existing pinned test for the exact text changes on purpose in the same PR.
 - [x] AC3: The descriptions have one source shared with the `Stats` documentation.
 - [x] AC4: `promtool check metrics` reports no missing HELP or TYPE (only the naming-convention warnings of the frozen API v1 names, exit code `3`; amended by the maintainer, see "Next API version") and Prometheus 3.x scrapes 32 samples with the target `up`.
 - [x] AC5: The `stats` module docs show the new text and no longer call the missing lines a known gap.
-- [ ] `linter all` exits with code `0`
+- [x] `linter all` exits with code `0`
 - [x] Relevant tests pass
 - [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
@@ -190,7 +191,7 @@ the average times become `*_seconds` (or similar) and `udp_banned_ips_total` los
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
+- Retrospective: Delivered as specified with one deviation: AC4 became "no missing HELP or TYPE" because `promtool` still lints the frozen API v1 names (exit 3); the rename is noted for the next API version. A review found the HELP table and the field docs duplicated, so one macro now declares both.
 
 ## References
 
