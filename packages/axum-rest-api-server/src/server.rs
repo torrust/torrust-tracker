@@ -723,6 +723,8 @@ mod tests {
             .expect("reserve the REST API service registration");
         let http_api_config = configuration.http_api.as_ref().expect("missing HTTP API configuration");
 
+        let cancellation_token = CancellationToken::new();
+
         // Act
         let api = within_deadline(api_container(&configuration)).await;
         let result = within_deadline(
@@ -732,7 +734,7 @@ mod tests {
                     registar.give_form(),
                     RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::RestApi, 0)),
                     Arc::new(http_api_config.access_tokens.clone()),
-                    CancellationToken::new(),
+                    cancellation_token.clone(),
                 ),
         )
         .await;
@@ -746,6 +748,10 @@ mod tests {
             Ok(_) => panic!("duplicate registration should fail"),
         };
         assert_eq!(binding.bind_address(), bind_to);
+        assert!(
+            cancellation_token.is_cancelled(),
+            "a failed registration should cancel the caller's token so the caller's other tasks stop too"
+        );
         TcpListener::bind(bind_to).expect("REST API listener should be released after token-aware registration failure");
     }
 
