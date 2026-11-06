@@ -9,7 +9,7 @@ github-issue: 2637
 spec-path: docs/issues/open/2637-1347-add-tests-axum-rest-api-server/ISSUE.md
 branch: "2637-1347-add-tests-axum-rest-api-server-final"
 related-pr: null
-last-updated-utc: "2026-11-06 11:17"
+last-updated-utc: "2026-11-06 16:37"
 semantic-links:
   skill-links:
     - create-issue
@@ -362,10 +362,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 | T1 | DONE | Create coverage evidence and complete module inventory | [coverage-evidence.md](coverage-evidence.md) records the baseline commands and totals from this spec, per-file uncovered groups, property-test candidacy, selected behavior, and an initial hypothesis for every `packages/axum-rest-api-server/src/` file. Delivered with this specification (S0). No tests changed. |
 | T2 | DONE | Create shared plan guidance and the first file test plan | `test-refactor-plans/README.md` holds the shared guardrails and the plan index, including the #1348 and #1349 testing lessons that apply here (see [lessons carried](#lessons-carried-from-1348-and-1349)). The first plan is `v1-middlewares-auth-tests.md`. No tests changed. |
 | T3 | DONE | Review and approve the processing order and slice boundaries | Maintainer approves the ledger order and the pull-request slices; both may change at any time. |
-| T4 | TODO | Process every source file through the per-file workflow | Every ledger row has a completed plan (or a shared declaration-only plan), recorded coverage result, completed-file review, and signed per-file commit, merged through its slice. |
-| T5 | TODO | Implement integration-test increments selected by file test plans | None expected; a plan may select one (TLS startup is the likely candidate). |
-| T6 | TODO | Perform bounded mutation assessment | `mutation-evidence.md` records the run, the survivors and the reason for each unviable mutant. |
-| T7 | TODO | Reconcile evidence and progress state | Ledger, plans, plan index, slice table, coverage evidence, acceptance rows, and both EPIC coverage tables agree. Grep for `status: proposed`, stray `TODO`/`IN_PROGRESS` labels in completed records, and stale checkpoint names. |
+| T4 | DONE | Process every source file through the per-file workflow | Every ledger row has a completed plan (or a shared declaration-only plan), recorded coverage result, completed-file review, and signed per-file commit, merged through its slice. |
+| T5 | DONE | Implement integration-test increments selected by file test plans | None was selected: every plan found a unit seam (the TLS startup is covered by `server.rs` unit tests with the shared fixtures). |
+| T6 | DONE | Perform bounded mutation assessment | `mutation-evidence.md` records the run, the survivors and the reason for each unviable mutant. |
+| T7 | DONE | Reconcile evidence and progress state | Ledger, plans, plan index, slice table, coverage evidence, acceptance rows, and both EPIC coverage tables agree. Grep for `status: proposed`, stray `TODO`/`IN_PROGRESS` labels in completed records, and stale checkpoint names. |
 | T8 | TODO | Complete verification and acceptance review | Automatic checks, manual verification, the final Task Reviewer review (`agent-review-reports.md`), the acceptance review below, and the retrospective (`implementation-retrospective.md`) are recorded. |
 
 The specification frontmatter `status` stays `planned`, and the EPIC #1347 subissue row stays
@@ -584,14 +584,14 @@ once. If the slicing changes, the Slice column changes with it.
 - [x] Complete module inventory recorded (T1).
 - [x] Specification and the proposed slicing reviewed and approved by the maintainer (2026-10-24).
 - [x] GitHub issue #2637 created and linked as a subissue of #1347.
-- [ ] Spec-only PR (S0) merged into `develop` before implementation.
-- [ ] Shared plan guidance and the first file test plan created (T2, done); processing order and slices
+- [x] Spec-only PR (S0) merged into `develop` before implementation.
+- [x] Shared plan guidance and the first file test plan created (T2, done); processing order and slices
       approved (T3).
-- [ ] Every ledger row is `DONE` with its own file test plan, merged through its slice.
-- [ ] Maintainer review after the final test-producing increment.
-- [ ] Automatic verification completed with toolchain-qualified evidence.
-- [ ] Manual verification recorded in `manual-verification-evidence.md`.
-- [ ] Bounded mutation assessment recorded in `mutation-evidence.md`.
+- [x] Every ledger row is `DONE` with its own file test plan, merged through its slice.
+- [x] Maintainer review after the final test-producing increment.
+- [x] Automatic verification completed with toolchain-qualified evidence.
+- [x] Manual verification recorded in `manual-verification-evidence.md`.
+- [x] Bounded mutation assessment recorded in `mutation-evidence.md`.
 - [ ] Task Reviewer reports for every slice recorded in `agent-review-reports.md`.
 - [ ] Acceptance criteria reviewed after implementation.
 - [ ] Implementation completion review recorded (`implementation-retrospective.md`).
@@ -746,6 +746,7 @@ once. If the slicing changes, the Slice column changes with it.
 - 2026-11-06 11:13 UTC - Claude Code (Sonnet 5.5) - Rows 19 (`testing/environment.rs`) and 20 (`testing/mod.rs`) are `DONE` with an out-of-scope decision, approved by the maintainer with the S6 plans on 2026-11-06: test support owned by #2482 and #2449 is not tested here; no test, no mutation and no change.
 - 2026-11-06 11:15 UTC - Claude Code (Sonnet 5.5) - Row 21 (`lib.rs`) is `DONE`: the maintainer approved the plan on 2026-11-06. No test; the crate documentation now spells `tls_config` in the three places (the corrected example parses into the v3 `HttpApi`, the old spelling is rejected). Mutation L1 (`API_LOG_TARGET`) was wrongly expected to survive: 21 integration tests assert the `API` log target, so it is pinned there; L2 does not compile; L3 (`Version`) survives because `Version` has no consumer. Production documentation only; no code changed.
 - 2026-11-06 11:17 UTC - Claude Code (Sonnet 5.5) - Rows 22-31 (the wiring-only files) are `DONE` with a no-change decision, approved by the maintainer with the S6 plans on 2026-11-06: no test. The declaration mutations were run again: 23 of the 25 `pub mod` removals break the build; the two survivors are the empty modules `torrent/resources` and `resources/torrent`, recorded in `lessons.md` as a clean-up candidate. All thirteen S6 ledger rows (19-31) are `DONE`.
+- 2026-11-06 16:37 UTC - Claude Code (Sonnet 5.5) - T6 and T8 evidence recorded: the whole-package mutation run (118 mutants: 70 caught, 4 missed, 44 unviable) is in `mutation-evidence.md`; manual scenarios M1-M5 passed ([evidence](manual-verification-evidence.md)). The one real survivor (`|` replaced by `^` in `authenticate`, only visible with a duplicated token value) got a plan (approved by the maintainer) and one test of three cases, committed as `test(axum-rest-api-server): [#2637] authenticate a token configured under more than one label`; the mutation is now killed. The observation that a missing or invalid token answers `500` is not changed here: the maintainer decided it belongs to REST API v2 (after 4.0.0), recorded in `lessons.md`. Final measurement: unit-only lines 2,324 / 2,404 (96.67%), aggregate 2,348 / 2,404 (97.67%); 170 unit and 58 integration tests.
 
 ## Acceptance Criteria
 
@@ -810,11 +811,11 @@ built from `develop` with every earlier slice merged, following the `use-rest-ap
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | Public and protected routes | Start an isolated tracker. `curl` `/api/health_check` without a token, then `/api/v1/stats` without a token, with a wrong token, and with the configured token. | The health check succeeds without a token; the protected route fails without or with a wrong token and succeeds with the token. | TODO | `manual-verification-evidence.md` V1 |
-| M2 | Token sources and precedence | `curl` `/api/v1/stats` with a valid `Authorization: Bearer` header and an invalid `token` query, then an invalid header and a valid query, then a header without the `Bearer` scheme prefix. | The header token decides when both are present; a header with another scheme is rejected. | TODO | `manual-verification-evidence.md` V2 |
-| M3 | Configuration-gated contexts | With the default (public, unlisted) configuration, `POST` an auth key and a whitelist entry; repeat with `private = true` and with `listed = true`, using `curl`. | `409` with the disabled reason in the default mode; the key and whitelist operations succeed in their modes. | TODO | `manual-verification-evidence.md` V3 |
-| M4 | Statistics formats | `curl` `/api/v1/stats` and `/api/v1/metrics` with `format=json` and `format=prometheus`. | JSON and Prometheus text bodies with the documented fields. | TODO | `manual-verification-evidence.md` V4 |
-| M5 | TLS and graceful shutdown | Start the tracker with a self-signed certificate in `[http_api.tls_config]`, `curl --insecure https://...`, then stop it with `SIGINT`. | The API answers over HTTPS and the process exits cleanly. | TODO | `manual-verification-evidence.md` V5 |
+| M1 | Public and protected routes | Start an isolated tracker. `curl` `/api/health_check` without a token, then `/api/v1/stats` without a token, with a wrong token, and with the configured token. | The health check succeeds without a token; the protected route fails without or with a wrong token and succeeds with the token. | PASS | `manual-verification-evidence.md` V1 |
+| M2 | Token sources and precedence | `curl` `/api/v1/stats` with a valid `Authorization: Bearer` header and an invalid `token` query, then an invalid header and a valid query, then a header without the `Bearer` scheme prefix. | The header token decides when both are present; a header with another scheme is rejected. | PASS | `manual-verification-evidence.md` V2 |
+| M3 | Configuration-gated contexts | With the default (public, unlisted) configuration, `POST` an auth key and a whitelist entry; repeat with `private = true` and with `listed = true`, using `curl`. | `409` with the disabled reason in the default mode; the key and whitelist operations succeed in their modes. | PASS | `manual-verification-evidence.md` V3 |
+| M4 | Statistics formats | `curl` `/api/v1/stats` and `/api/v1/metrics` with `format=json` and `format=prometheus`. | JSON and Prometheus text bodies with the documented fields. | PASS | `manual-verification-evidence.md` V4 |
+| M5 | TLS and graceful shutdown | Start the tracker with a self-signed certificate in `[http_api.tls_config]`, `curl --insecure https://...`, then stop it with `SIGINT`. | The API answers over HTTPS and the process exits cleanly. | PASS | `manual-verification-evidence.md` V5 |
 
 ### Disposable Verification Scripts
 
