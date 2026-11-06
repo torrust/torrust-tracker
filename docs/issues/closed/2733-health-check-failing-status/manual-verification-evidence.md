@@ -1,3 +1,11 @@
+---
+spec-path: docs/issues/closed/2733-health-check-failing-status/manual-verification-evidence.md
+last-updated-utc: "2026-11-05 21:55"
+semantic-links:
+  related-artifacts:
+    - docs/issues/closed/2733-health-check-failing-status/ISSUE.md
+---
+
 # Manual verification evidence - issue #2733
 
 ## Red: regression tests before the fix (temporary uncommitted run)
