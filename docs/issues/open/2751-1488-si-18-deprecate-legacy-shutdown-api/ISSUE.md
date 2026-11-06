@@ -207,9 +207,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status | Task                                                                                                           | Notes / Expected Output                                                                         |
 | --- | ------ | -------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
 | T1  | TODO   | Bump the workspace dependency to `torrust-server-lib` 0.5.0 and list every use of its deprecated symbols.    | Build output of the warnings; coordinate ordering with the #2482 coordinator first.             |
-| T2  | TODO   | Deprecate the legacy public APIs of the five server packages and the root `HaltSignal`/`NestedServerTask`.   | Each message names the replacement, the `since` version and "next breaking release". Behaviour unchanged. |
+| T2  | TODO   | Deprecate the legacy public APIs of the five server packages and the root `HaltSignal`/`NestedServerTask`.   | Each message names the replacement, the `since` version and "next breaking release". Behavior unchanged. |
 | T3  | TODO   | Allow the warning locally, with a rationale, at the remaining legacy call sites (tests, adapters).            | `cargo check --workspace --all-targets` warning-free; migrated paths compile with `-D deprecated`. |
-| T4  | TODO   | Add compile-compat tests for representative legacy consumers.                                                 | Tests compile with `#[allow(deprecated)]` and pass; legacy behaviour unchanged.                  |
+| T4  | TODO   | Add compile-compat tests for representative legacy consumers.                                                 | Tests compile with `#[allow(deprecated)]` and pass; legacy behavior unchanged.                  |
 | T5  | TODO   | Write migration guidance and release notes.                                                                   | Support window, removal prerequisites, replacement table; Rust docs render the guidance.        |
 | T6  | TODO   | Record verification evidence.                                                                                  | `manual-verification-evidence.md`: gate evidence, warning output, rendered docs review.         |
 
@@ -282,7 +282,7 @@ runtime path, follow the EPIC executable-boundary protocol instead.
 | M4  | Documentation review                  | `cargo doc` and read the deprecation text and release notes.                                  | Replacement and support window are accurate.                         | TODO   | `manual-verification-evidence.md` section V4      |
 
 Record every command result with its toolchain or runtime when it can affect
-behaviour. If a scenario fails, record the failure and diagnosis in the progress
+behavior. If a scenario fails, record the failure and diagnosis in the progress
 log before proceeding.
 
 ### Disposable Verification Scripts
