@@ -6,10 +6,16 @@ semantic-links:
     - .github/skills/dev/planning/create-adr/SKILL.md
     - src/main.rs
     - src/bin/
+    - docs/adrs/20261106102632_scope_the_cli_output_contract_and_keep_exit_codes_to_zero_one_two.md
     - console/tracker-client/
 ---
 
 # Define the Global CLI Output Contract
+
+> **Amended by** [Scope the CLI Output Contract and Keep Exit Codes to 0, 1 and 2](20261106102632_scope_the_cli_output_contract_and_keep_exit_codes_to_zero_one_two.md):
+> the contract covers the AI-agent and CI tools in the table below, not only operator binaries, and
+> exit codes stay `0`, `1` and `2` with distinct outcomes reported through a `kind` field. Where the
+> text of this ADR or its issue specification (#1798) excludes `contrib/dev-tools/`, the amendment wins.
 
 ## Description
 
@@ -80,6 +86,7 @@ All diagnostics go to stderr via the tracing subscriber or direct JSON stderr wr
 | `github-review-threads`  | `stdout-result-data` | GitHub CLI review-thread results and JSON diagnostics                 |
 | `ci-gate`                | `stdout-result-data` | Needed job groups or the merge verdict as JSON; JSON diagnostics      |
 | `wait-for-pr-review`     | `stdout-result-data` | PR review event or timeout as JSON; a timeout is a result (exit 0)    |
+| `package-coverage-check` | `stdout-result-data` | Coverage matrix, comparison and summary; currently non-compliant (plain-text errors, usage error exits 1) |
 
 The `profiling` binary is a developer-only diagnostic harness and is excluded from the
 normative scope of this contract.

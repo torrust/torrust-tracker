@@ -78,6 +78,21 @@ decision here changes which of its rows apply.
 The `wait-for-pr-review` spec records that it follows the ADR as written (a timeout is a result), and asked for
 these two questions to be tracked separately, because deciding them was not part of building the poller.
 
+## Maintainer Decisions (2026-11-06)
+
+Recorded from the maintainer's answers before implementation. They are the inputs for the ADR; the ADR holds the
+reasoning.
+
+1. **Scope: tracker and AI/CI tools.** The contract covers the tracker's operator binaries and the AI-agent and CI
+   tools (`clippy-allow-reasons`, `frontmatter-validator`, `shipped-features-check`, `github-review-threads`,
+   `ci-gate`, `wait-for-pr-review`), wherever they live. Pure developer diagnostics (`profiling`, benchmarks,
+   examples, tests) stay out. The existing table rows stay, and the scope statements that contradict them are fixed.
+2. **Exit codes: `0`, `1`, `2` plus a `kind` field.** No command-specific non-usage codes. A distinct outcome is a
+   `kind` in the JSON: a result on stdout with exit `0`, or a diagnostic on stderr with exit `1`.
+3. **ADR form: a new ADR plus a pointer in the old one.** A new root ADR in `docs/adrs/` records both decisions and
+   the alternatives. The existing ADR gets an "amended by" note and its scope text and table are aligned. The
+   ADR index lists the new ADR. `epic` stays `null`.
+
 ## Scope
 
 ### In Scope
@@ -111,9 +126,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                                                                  | Notes / Expected Output                                                   |
 | --- | ------ | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| T1  | TODO   | Inventory how each tool in the ADR table reports outcomes and exit codes               | A short table in the issue folder: tool, outcomes, exit codes, class.     |
-| T2  | TODO   | Gather the options and trade-offs for each question, with the maintainer              | Options recorded with their consequences for existing tools.              |
-| T3  | TODO   | Write the ADR with the `create-adr` skill and register it in the index                 | ADR merged; the existing ADR table and scope text agree with it.          |
+| T1  | DONE   | Inventory how each tool in the ADR table reports outcomes and exit codes               | A short table in the issue folder: tool, outcomes, exit codes, class.     |
+| T2  | DONE   | Gather the options and trade-offs for each question, with the maintainer              | Options recorded with their consequences for existing tools.              |
+| T3  | DONE   | Write the ADR with the `create-adr` skill and register it in the index                 | ADR merged; the existing ADR table and scope text agree with it.          |
 | T4  | TODO   | Open follow-up issues for tools whose behavior the decision changes                    | One issue per tool, or a recorded reason there is none.                   |
 
 ## Commit Points
@@ -130,8 +145,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Folder-style spec drafted in `docs/issues/open/2715-cli-output-contract-scope-and-exit-code-policy/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created (#2715) and issue number added to this spec
-- [ ] Decisions recorded in an ADR
-- [ ] Automatic verification completed (`linter all`)
+- [x] Decisions recorded in an ADR
+- [x] Automatic verification completed (`linter all`)
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Evidence-based implementation completion review recorded
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
@@ -152,15 +167,20 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-04 13:41 UTC - AI assistant (Copilot SDK in VS Code) - The drafting entry is now marked `OUT-OF-ORDER`: the
   file order matches the order of the events, and only its stamp is wrong, as the 13:07 correction states. The
   entry text is unchanged.
+- 2026-11-06 10:25 UTC - AI assistant (Claude Code) - Recorded the maintainer's decisions on scope, exit codes and ADR form
+  in the "Maintainer Decisions" section before implementation.
+- 2026-11-06 10:27 UTC - AI assistant (Claude Code) - Wrote ADR `20261106102632` and the "amended by" note in ADR
+  `20260519000000`, and registered the ADR in `docs/adrs/index.md`. `linter all` and the frontmatter validator pass
+  (stable toolchain). T4 (follow-up issue for `github-review-threads reply-status`) is waiting for the maintainer.
 
 ## Acceptance Criteria
 
-- [ ] AC1: An ADR states which programs the contract covers, and the table in the existing ADR agrees with it.
-- [ ] AC2: An ADR states the exit-code policy and the rule for outcomes beyond success, runtime failure and usage
+- [x] AC1: An ADR states which programs the contract covers, and the table in the existing ADR agrees with it.
+- [x] AC2: An ADR states the exit-code policy and the rule for outcomes beyond success, runtime failure and usage
       error, with the reasons and the alternatives considered.
 - [ ] AC3: Every tool in the ADR table is either consistent with the decisions or has a follow-up issue.
-- [ ] `linter all` exits with code `0`
-- [ ] The ADR index lists the new ADR
+- [x] `linter all` exits with code `0`
+- [x] The ADR index lists the new ADR
 
 ## Verification Plan
 
@@ -186,8 +206,8 @@ None.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1   | TODO                   |          |
-| AC2   | TODO                   |          |
+| AC1   | DONE                   | ADR `20261106102632` section 1; pointer note in ADR `20260519000000` |
+| AC2   | DONE                   | ADR `20261106102632` section 2 and Alternatives Considered |
 | AC3   | TODO                   |          |
 
 ## Risks and Trade-offs
