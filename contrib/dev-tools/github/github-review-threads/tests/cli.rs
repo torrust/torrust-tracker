@@ -178,17 +178,39 @@ fn it_should_fail_with_exit_one_and_a_diagnostic_when_the_threads_file_cannot_be
 }
 
 #[test]
+fn it_should_fail_with_exit_one_and_a_diagnostic_when_the_threads_file_is_not_valid_json() {
+    // Arrange: a threads file that exists and is readable but holds malformed JSON.
+    let malformed = format!("{}/malformed-threads.json", env!("CARGO_TARGET_TMPDIR"));
+    std::fs::write(&malformed, "{ not json").unwrap();
+
+    // Act: ask for the reply status.
+    let output = run(&["reply-status", "--threads-file", &malformed, "--login", "author"]);
+
+    // Assert: could not answer, so exit 1, empty stdout, and a JSON diagnostic.
+    assert_eq!(output.status.code(), Some(1));
+    assert_eq!(text(&output.stdout), "");
+    assert_eq!(json(&output.stderr)["kind"], "reply_status_error");
+}
+
+#[test]
 fn it_should_report_a_missing_login_argument_as_a_usage_error() {
-    // Arrange: reply-status without its required arguments.
-    let arguments = ["reply-status"];
+    // Arrange: a valid threads file, so only the required login is absent.
+    let arguments = ["reply-status", "--threads-file", FIXTURE];
 
     // Act: run it with stdout redirected.
     let output = run(&arguments);
 
-    // Assert: exit 2, empty stdout, and a usage diagnostic.
+    // Assert: exit 2, empty stdout, and a usage diagnostic that names the missing login.
     assert_eq!(output.status.code(), Some(2));
     assert_eq!(text(&output.stdout), "");
-    assert_eq!(json(&output.stderr)["kind"], "usage_error");
+    let diagnostic = json(&output.stderr);
+    assert_eq!(diagnostic["kind"], "usage_error");
+    assert!(
+        diagnostic["message"]
+            .as_str()
+            .unwrap()
+            .contains("required arguments were not provided:\n  --login <LOGIN>\n"),
+    );
 }
 
 #[test]
