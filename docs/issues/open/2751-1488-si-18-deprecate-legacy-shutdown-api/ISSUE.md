@@ -20,7 +20,6 @@ semantic-links:
     - src/bootstrap/jobs/manager.rs
     - packages/axum-http-server/src/server.rs
     - packages/axum-rest-api-server/src/server.rs
-    - packages/axum-health-check-api-server/src/server.rs
     - packages/udp-server/src/server/launcher.rs
     - packages/udp-server/src/server/states.rs
     - docs/features/shutdown-process/README.md
