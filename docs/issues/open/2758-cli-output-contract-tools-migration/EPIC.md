@@ -171,12 +171,12 @@ consumes the old behavior (named in its spec). No issue edits the ADR table exce
   `no-stdout-result` reclassification, and a manual verification that `docker inspect` reports `unhealthy`.
 - **Review load.** Eleven issues is a lot for one reviewer. Mitigation: the maintainer sets the parallelism; waves are
   a limit, not a target.
-- **ADR #2748 is not merged yet.** Specs cite its path. Mitigation: the spec PR is cut after it merges, or rebased onto it.
+- **The ADRs came from PR #2748, now merged.** Specs cite the ADR paths on `develop`; if the ADRs are amended, the close-out issue re-checks the citations.
 
 ## References
 
 - Related issues: #2003, #2715, #1798, #2581
-- Related PRs: #2748 (the ADR)
+- Related PRs: #2748 (merged; added the two ADRs)
 - Related ADRs: `docs/adrs/20260519000000_define_global_cli_output_contract.md`,
   `docs/adrs/20261106102632_scope_the_cli_output_contract_and_keep_exit_codes_to_zero_one_two.md`
 - Superseded draft: `docs/issues/drafts/cli-output-contract-migration/ISSUE.md`
