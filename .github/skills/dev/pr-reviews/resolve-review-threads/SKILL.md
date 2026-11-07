@@ -62,18 +62,27 @@ Successful output should report `isResolved: true`.
 ## Batch Pattern
 
 Before any batch resolution, confirm every targeted thread already has a reply. Run the
-`github-review-threads reply-status` command first; it exits with code 1 and a `missing_reply`
-JSON record on stderr, listing every unresolved thread with its `has_reply` flag, when any thread
-lacks a reply. Provide the GitHub login that must have replied. The binary refuses a terminal on
-stdout, so redirect stdout even when only the exit code matters. Only proceed with the batch
-resolver once it exits 0. This preserves the workflow rule that every resolvable thread is
-replied to before it is resolved.
+`github-review-threads reply-status` command first. Provide the GitHub login that must have
+replied. A missing reply is an answer, not a failure: the command prints one JSON result on stdout
+and exits 0 for both outcomes, with `kind` `all_replied` or `missing_reply`, the unresolved threads
+with their `has_reply` flag, and a `summary`. Branch on `kind`, not on the exit code. Exit code 1
+(JSON diagnostic on stderr, empty stdout) means the command could not answer, for example the
+threads file is unreadable; exit code 2 is a usage error or a terminal on stdout. Only proceed with
+the batch resolver when `kind` is `all_replied`. This preserves the workflow rule that every
+resolvable thread is replied to before it is resolved.
 
 ```bash
+set -o pipefail
 cargo run --package github-review-threads -- reply-status \
   --threads-file /tmp/pr_threads_<PR_NUMBER>.json \
-  --login <AUTHOR_LOGIN> > /dev/null
+  --login <AUTHOR_LOGIN> | jq -e '.kind == "all_replied"' > /dev/null
 ```
+
+With `pipefail` the pipeline succeeds only when `reply-status` exited 0 and `jq -e` found `kind` equal
+to `all_replied`. A `reply-status` failure (exit 1 or 2) leaves stdout empty, so `jq -e` exits 4 on
+the empty input and the pipeline fails as well; a `missing_reply` result fails it through `jq -e`
+exit 1. Only a successful pipeline means every thread was replied to. To list the threads still
+needing a reply, filter the result: `jq '.threads[] | select(.has_reply | not)'`.
 
 For multiple threads, resolve them one by one and check each result:
 
@@ -114,7 +123,7 @@ done
 
 - [ ] All targeted threads were verified against the current branch state
 - [ ] Validation passed before resolution
-- [ ] Every thread had a reply before any batch resolution (`github-review-threads reply-status` exits 0)
+- [ ] Every thread had a reply before any batch resolution (`github-review-threads reply-status` result has `kind` `all_replied`)
 - [ ] `viewerCanResolve` was `true` for every thread resolved; threads the current identity cannot
       resolve got a reply and were left open for the reviewer or PR author
 - [ ] Each resolved mutation returned `isResolved: true`
