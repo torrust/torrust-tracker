@@ -1,7 +1,7 @@
 ---
 pr-number: 2774
 pr-url: https://github.com/torrust/torrust-tracker/pull/2774
-last-updated-utc: "2026-11-06 21:05"
+last-updated-utc: "2026-11-07 07:13"
 ---
 
 # PR #2774 Review Audit
@@ -28,22 +28,22 @@ deliver findings through GitHub and have no repository artifact obligation.
 
 ## Findings
 
-Round 1: Copilot review 5806242087 on the head `bd84e405e` (12 inline findings). F1 and F2 concern this issue's files and are fixed here. F3 to F12 concern the child specs that PR #2771 adds and this PR is stacked on; they are `FOLLOW_UP` with the fix on #2771. Thread resolution is pending the maintainer (the auto mode classifier denied the resolve call), so every thread is `OPEN`.
+Round 1: Copilot review 5806242087 on the head `bd84e405e` (12 inline findings). F1 and F2 concern this issue's files and are fixed here. F3 to F12 concern the child specs that PR #2771 adds and this PR is stacked on; they are `FOLLOW_UP` with the fix on #2771. After the maintainer allowed the force-push and the resolve calls, all 12 threads were resolved.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
-| F1 | review-finding:pr-2774-f1 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | OPEN |
-| F2 | review-finding:pr-2774-f2 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | OPEN |
-| F3 | review-finding:pr-2774-f3 | Copilot | Minor (inferred) | correctness | ORIGINAL | FOLLOW_UP | OPEN |
-| F4 | review-finding:pr-2774-f4 | Copilot | Minor (inferred) | correctness | ORIGINAL | FOLLOW_UP | OPEN |
-| F5 | review-finding:pr-2774-f5 | Copilot | Minor | correctness | ORIGINAL | FOLLOW_UP | OPEN |
-| F6 | review-finding:pr-2774-f6 | Copilot | Minor (inferred) | correctness | ORIGINAL | FOLLOW_UP | OPEN |
-| F7 | review-finding:pr-2774-f7 | Copilot | Minor (inferred) | correctness | ORIGINAL | FOLLOW_UP | OPEN |
-| F8 | review-finding:pr-2774-f8 | Copilot | Minor (inferred) | correctness | ORIGINAL | FOLLOW_UP | OPEN |
-| F9 | review-finding:pr-2774-f9 | Copilot | Minor (inferred) | correctness | ORIGINAL | FOLLOW_UP | OPEN |
-| F10 | review-finding:pr-2774-f10 | Copilot | Minor (inferred) | correctness | ORIGINAL | FOLLOW_UP | OPEN |
-| F11 | review-finding:pr-2774-f11 | Copilot | Minor (inferred) | correctness | ORIGINAL | FOLLOW_UP | OPEN |
-| F12 | review-finding:pr-2774-f12 | Copilot | Minor (inferred) | correctness | ORIGINAL | FOLLOW_UP | OPEN |
+| F1 | review-finding:pr-2774-f1 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F2 | review-finding:pr-2774-f2 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F3 | review-finding:pr-2774-f3 | Copilot | Minor (inferred) | correctness | ORIGINAL | FOLLOW_UP | RESOLVED |
+| F4 | review-finding:pr-2774-f4 | Copilot | Minor (inferred) | correctness | ORIGINAL | FOLLOW_UP | RESOLVED |
+| F5 | review-finding:pr-2774-f5 | Copilot | Minor | correctness | ORIGINAL | FOLLOW_UP | RESOLVED |
+| F6 | review-finding:pr-2774-f6 | Copilot | Minor (inferred) | correctness | ORIGINAL | FOLLOW_UP | RESOLVED |
+| F7 | review-finding:pr-2774-f7 | Copilot | Minor (inferred) | correctness | ORIGINAL | FOLLOW_UP | RESOLVED |
+| F8 | review-finding:pr-2774-f8 | Copilot | Minor (inferred) | correctness | ORIGINAL | FOLLOW_UP | RESOLVED |
+| F9 | review-finding:pr-2774-f9 | Copilot | Minor (inferred) | correctness | ORIGINAL | FOLLOW_UP | RESOLVED |
+| F10 | review-finding:pr-2774-f10 | Copilot | Minor (inferred) | correctness | ORIGINAL | FOLLOW_UP | RESOLVED |
+| F11 | review-finding:pr-2774-f11 | Copilot | Minor (inferred) | correctness | ORIGINAL | FOLLOW_UP | RESOLVED |
+| F12 | review-finding:pr-2774-f12 | Copilot | Minor (inferred) | correctness | ORIGINAL | FOLLOW_UP | RESOLVED |
 
 ## Finding Details
 
@@ -205,7 +205,8 @@ Round 1: Copilot review 5806242087 on the head `bd84e405e` (12 inline findings).
 
 ## Processing Log
 
-- 2026-11-06 21:05 UTC - Started audit; round 1 (Copilot review 5806242087) processed: F1 and F2 fixed and pushed, F3 to F12 handed to the #2771 coordinator and fixed there, all 12 replied. Threads left open, awaiting the maintainer.
+- 2026-11-06 21:05 UTC - Started audit; round 1 (Copilot review 5806242087) processed: F1 and F2 fixed and pushed, F3 to F12 handed to the #2771 coordinator and fixed there, all 12 replied.
+- 2026-11-07 07:13 UTC - Branch rebased onto the fixed #2771 head and force-pushed with lease (maintainer approval in chat); all 12 threads resolved; refreshed GraphQL data shows no unresolved thread.
 
 ## Completion Rules
 
