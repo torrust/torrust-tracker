@@ -71,7 +71,7 @@ Met: stdout was empty (0 bytes) in both cases; exit codes 1 and 2 with JSON diag
 ### V3 - Real PR capture (review finding F5)
 
 - Goal: run `reply-status` against a real fetched PR response, not the synthetic fixture.
-- Initial state: `github-review-threads fetch --pr-number 2775` (as `josecelano-bot`) wrote `/tmp/pr_threads_2775.json` at about 20:59 UTC, after Copilot's first review of PR #2775 left 6 unresolved threads and before any reply was posted.
+- Initial state: `github-review-threads fetch --pr-number 2775` (as `josecelano-bot`) wrote `/tmp/pr_threads_2775.json` at about 21:00 UTC, after Copilot's first review of PR #2775 left 6 unresolved threads and before any reply was posted.
 - Status: `DONE`
 
 #### Steps Performed
