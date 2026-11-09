@@ -9,7 +9,7 @@ github-issue: 2760
 spec-path: docs/issues/open/2760-2758-adr-binary-table/ISSUE.md
 branch: "2760-adr-binary-table"
 related-pr: null
-last-updated-utc: "2026-11-06 20:55"
+last-updated-utc: "2026-11-09 10:40"
 semantic-links:
   skill-links:
     - create-issue
@@ -101,28 +101,27 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - [x] Implementation completed
 - [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
-- 2026-11-06 17:10 UTC - Claude Code (Claude Sonnet 5.5) - Drafted this spec as part of EPIC #2758 from the 2026-11-06 audit.
-- 2026-11-06 17:25 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the spec; GitHub issue #2760 created.
+- 2026-11-06 16:51 UTC - Claude Code (Claude Sonnet 5.5) - Drafted this spec as part of EPIC #2758 from the 2026-11-06 audit; the maintainer approved it and GitHub issue #2760 was created (time from the issue `created_at` on GitHub; PR #2771 commits the spec at 16:54 UTC).
 - 2026-11-06 17:16 UTC - Claude Code (Claude Sonnet 5.5) - T1 decision: `workspace-coupling` is `no-stdout-result` (report goes to a file, only NDJSON status on stderr). T2: table edited; `linter all` passed.
-- 2026-11-06 20:55 UTC - Claude Code (Claude Sonnet 5.5) - Implementation completion review: the result matches the spec; the only decision to make during implementation was the `workspace-coupling` class (`no-stdout-result`, recorded above) and no assumption was invalidated, so no retrospective is needed. Evidence file rewritten to the template after the Copilot review of PR #2774.
+- 2026-11-06 20:53 UTC - Claude Code (Claude Sonnet 5.5) - Implementation completion review: the result matches the spec; the only decision to make during implementation was the `workspace-coupling` class (`no-stdout-result`, recorded above) and no assumption was invalidated, so no retrospective is needed. Evidence file rewritten to the template after the Copilot review of PR #2774.
 
 ## Acceptance Criteria
 
-- [x] AC1: Every program audited in EPIC #2758 appears in the table with a class.
+- [x] AC1: Every program audited in EPIC #2758 appears in the table with a class, or `N/A` for the deprecated binaries that are to be removed.
 - [x] AC2: `http_health_check` is `no-stdout-result` and the note explains the `HEALTHCHECK` reason.
 - [x] AC3: No row claims a tool is compliant when the audit says it is not.
 - [x] `linter all` exits with code `0`
 - [ ] Relevant tests pass
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
 - [ ] Documentation is updated when behavior or workflow changes
 
 ## Verification Plan
@@ -157,7 +156,7 @@ Manual verification is mandatory even when automated tests pass. Record actual c
 
 ## Implementation Completion Review
 
-- Retrospective: Not needed. See the progress log entry of 2026-11-06 20:55 UTC.
+- Retrospective: Not needed. See the progress log entry of 2026-11-06 20:53 UTC.
 - If needed, create `implementation-retrospective.md` from `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this directory; otherwise record in the progress log why none was needed.
 
 ## References

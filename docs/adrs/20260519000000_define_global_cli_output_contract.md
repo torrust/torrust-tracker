@@ -65,7 +65,8 @@ JSON result payload on stdout. They do not cause a non-zero exit code.
 
 ### 3. Binary classification
 
-Every binary is assigned one of two output classes.
+Every binary that is kept is assigned one of two output classes. A deprecated binary that is to be
+removed is not classified: its `Class` cell reads `N/A`.
 
 **`stdout-result-data`** — emits a JSON result object on stdout. TTY refusal applies (see
 section 4). On failure, stdout is empty; the error appears on stderr as a JSON record.
@@ -88,9 +89,9 @@ All diagnostics go to stderr via the tracing subscriber or direct JSON stderr wr
 | `workspace-coupling`            | `no-stdout-result`   | Writes its Markdown report to a file (`OUTPUT_FILE`), nothing on stdout; NDJSON status events on stderr                     |
 | `github-review-threads`         | `stdout-result-data` | GitHub CLI review-thread results and JSON diagnostics; currently non-compliant for `reply-status` (a missing reply exits `1`), migration issue #2761 |
 | `ci-gate`                       | `stdout-result-data` | Needed job groups or the merge verdict as JSON; JSON diagnostics                                                            |
-| `wait-for-pr-review`            | `stdout-result-data` | PR review event or timeout as JSON; a timeout is a result (exit 0)                                                          |
-| `package-coverage-check`        | `stdout-result-data` | Coverage matrix, comparison and summary; currently non-compliant (plain-text errors, usage error exits 1), migration issue #2762 |
-| `http_tracker_client`, `udp_tracker_client`, `tracker_checker` | (deprecated) | Not classified: to be removed, not migrated; migration issue #2765                                       |
+| `wait-for-pr-review`            | `stdout-result-data` | PR review event or timeout as JSON; a timeout is a result (exit `0`)                                                          |
+| `package-coverage-check`        | `stdout-result-data` | Coverage matrix, comparison and summary; currently non-compliant (plain-text errors, usage error exits `1`), migration issue #2762 |
+| `http_tracker_client`, `udp_tracker_client`, `tracker_checker` | `N/A` | Deprecated, not classified: to be removed, not migrated; migration issue #2765                                       |
 
 Notes added on 2026-11-06 (issue #2760, EPIC #2758): the table now lists every program found by the
 2026-11-06 audit. `http_health_check` was reclassified from `stdout-result-data` to
