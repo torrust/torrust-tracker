@@ -256,9 +256,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                                                                                           | Notes / Expected Output                                                                         |
 | --- | ------ | -------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Bump the workspace dependency to `torrust-server-lib` 0.5.0 and list every use of its deprecated symbols.    | Build output of the warnings; coordinate ordering with the #2482 coordinator first.             |
-| T2  | TODO   | Deprecate the legacy public APIs of the five server packages and the root `HaltSignal`/`NestedServerTask`.   | Each message names the replacement and uses the `since` and removal text defined in Versioning Decisions (SI-19 removes them before publication, not "next breaking release", unless SI-19 slips). Behavior unchanged. |
-| T3  | TODO   | Allow the warning locally, with a rationale, at the remaining legacy call sites (tests, adapters).            | `cargo check --workspace --all-targets` warning-free; migrated paths compile with `-D deprecated`. |
+| T1  | TODO   | Bump the workspace dependency to `torrust-server-lib` 0.5.0 and add the local `#[allow(deprecated)]` allowances, with a rationale, that its deprecated symbols need. | `cargo check --workspace --all-targets` warning-free (the workspace denies warnings); coordinate ordering with the #2482 coordinator first. |
+| T2  | TODO   | Deprecate the legacy public APIs of the five server packages and the root `HaltSignal`/`NestedServerTask`, adding in the same increment the local allowances at the call sites that still use them. | Each message names the replacement and uses the `since` and removal text defined in Versioning Decisions (SI-19 removes them before publication, not "next breaking release", unless SI-19 slips). Behavior unchanged; warning-free build. |
+| T3  | TODO   | Review every local allowance added by T1 and T2: each has a rationale and none sits in a migrated production path. | Migrated paths compile with `-D deprecated`; no allowance without a rationale. |
 | T4  | TODO   | Add compile-compat tests for representative legacy consumers.                                                 | Tests compile with `#[allow(deprecated)]` and pass; legacy behavior unchanged.                  |
 | T5  | TODO   | Write migration guidance for the deprecated symbols.                                                          | Replacement table; Rust docs render the guidance. No release note (see Versioning Decisions).   |
 | T6  | TODO   | Record verification evidence.                                                                                  | `manual-verification-evidence.md`: gate evidence, warning output, rendered docs review.         |
@@ -267,9 +267,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | Task | Coherent change set                                  | Commit policy                                        |
 | ---- | ---------------------------------------------------- | ---------------------------------------------------- |
-| T1   | Dependency bump and its call-site notes              | Commit after focused validation and required review. |
-| T2   | Deprecation attributes and messages per package      | Commit after focused validation and required review. |
-| T3   | Local `#[allow(deprecated)]` with rationales         | Commit after focused validation and required review. |
+| T1   | Dependency bump and the allowances its deprecated symbols need | Commit after focused validation and required review. |
+| T2   | Deprecation attributes and messages per package, with the local allowances at their call sites | Commit after focused validation and required review. |
+| T3   | Review of the allowances and the `-D deprecated` check on migrated paths | Commit after focused validation and required review. |
 | T4   | Compile-compat tests                                 | Commit after focused validation and required review. |
 | T5   | Migration guidance                                   | Commit after focused validation and required review. |
 | T6   | Verification evidence                                | Commit after the last production change.             |
