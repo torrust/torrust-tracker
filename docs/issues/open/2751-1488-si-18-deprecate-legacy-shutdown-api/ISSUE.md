@@ -9,7 +9,7 @@ github-issue: 2751
 spec-path: docs/issues/open/2751-1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md
 branch: "2751-deprecate-legacy-shutdown-api-spec"
 related-pr: null
-last-updated-utc: "2026-11-06 12:00"
+last-updated-utc: "2026-11-09 10:57"
 semantic-links:
   skill-links:
     - create-issue
@@ -285,8 +285,11 @@ Arrange-Act-Assert design review in task evidence, and sign every commit with GP
 
 ### Progress Log
 
-- 2026-11-06 - AI agent (Claude Sonnet 5.5) - Checked the eligibility gate against `develop` (`da8bd15d1`): everything met except the external `torrust-server-lib` deprecation, which the maintainer chose to release first (torrust-server-lib#3, PR 4, 0.5.0 published the same day)
-- 2026-11-06 - AI agent (Claude Sonnet 5.5) - Recorded the maintainer's versioning decisions using the EPIC #1669 coordinator's facts, and added the template sections required by the `create-issue` skill
+- 2026-11-06 09:51 UTC - AI agent (Claude Sonnet 5.5) - Checked the eligibility gate against `develop` (`da8bd15d1`): everything met except the external `torrust-server-lib` deprecation, which the maintainer chose to release first (torrust-server-lib#3, PR 4, 0.5.0 published the same day)
+- 2026-11-06 13:32 UTC - AI agent (Claude Sonnet 5.5) - Recorded the maintainer's versioning decisions using the EPIC #1669 coordinator's facts, and added the template sections required by the `create-issue` skill
+- 2026-11-06 16:36 UTC - AI agent (Claude Sonnet 5.5) - Resolved a reviewer-found release-order cycle (#2583 publishes after EPIC #1488 closes; SI-19 is inside it): the maintainer chose Option A, so the unpublished package crates have no support window and only `torrust-server-lib` has one; recorded it in SI-18 and the SI-19 draft
+- 2026-11-06 18:11 UTC - AI agent (Claude Sonnet 5.5) - Narrowed the window further to `torrust-server-lib` only, because the root `HaltSignal` and `NestedServerTask` were never in a published release (derived from the tree; not yet confirmed by the maintainer)
+- 2026-11-09 10:56 UTC - AI agent (Claude Sonnet 5.5) - Edited the spec for the 2026-11-09 review of PR 2752: marked the derived conclusion, listed the adapter types, defined the text for symbols removed before first publication and the end of the 0.5.x window, recorded the gate commands, and corrected paths and the #2482 status
 
 ## Rollback
 
