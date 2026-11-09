@@ -108,10 +108,16 @@ current version at the end of #1669; the root `torrust-tracker` next releases as
 
 - Deprecate and then remove, even for the unpublished crates, to stay consistent with the EPIC and with the
   published `torrust-server-lib` deprecation.
-- `since` for a package crate is the version at which the crate is first published (its `Cargo.toml` version at
-  that time, normally 0.1.0). For the root `torrust-tracker` types `HaltSignal` and `NestedServerTask`,
-  `since = "4.0.0"`.
-- The removal release is worded as "the next breaking release of this package".
+- Attribute and release-note text per symbol group:
+  - `torrust-server-lib` symbols (already public): the library's own `since = "0.5.0"` and `CHANGELOG.md` apply;
+    SI-18 adds nothing there beyond the dependency bump.
+  - Symbols of the five unpublished package crates and the root types, which SI-19 removes before their first
+    publication: `since` is the crate's current `Cargo.toml` version (for the root types `"4.0.0"`), and the
+    note names the replacement and says the symbol is removed by SI-19 (#2751's successor) before the crate's
+    first publication, so it is in-repo guidance only. No release note is written for them, because no release
+    ever contains them; the only release note is the `torrust-server-lib` one.
+  - If SI-19 slips past a crate's first publication, the wording becomes "removed in the next breaking release
+    of this package" and a release note with a support window is then required for that crate.
 - Support window (maintainer decision of 2026-11-06, resolving a release-order cycle: #2583 publishes the
   unpublished crates only after EPIC #1488 closes, and SI-19 is part of that EPIC): the five unpublished
   package crates have no external consumers, so no public support window exists for them. SI-18 still deprecates
@@ -174,12 +180,15 @@ Other decisions of 2026-11-06:
 
 1. A deprecation message must name the token-aware replacement and explain that
    executable entry points, not libraries, own OS-signal subscriptions.
-2. The message must identify the planned breaking removal release according to
-   the package versioning policy.
+2. The message must identify the planned removal: for symbols that will have been
+   published, the next breaking release according to the package versioning policy; for
+   symbols SI-19 removes before their first publication, SI-19 itself (see Versioning
+   Decisions).
 3. Legacy API behavior stays unchanged. Deprecation is source guidance, not a
    behavioral migration.
-4. The release notes must state the support window and the evidence required
-   before removal.
+4. The `torrust-server-lib` release notes must state the support window and the evidence
+   required before removal. Symbols removed before their first publication need no
+   release note (see Versioning Decisions).
 5. The final removal task must not proceed merely because in-workspace code has
    migrated; for the already-public symbols (see Versioning Decisions) it also requires the
    declared external compatibility period to end. Symbols of crates that have never been
@@ -195,8 +204,9 @@ Other decisions of 2026-11-06:
 - [ ] In-workspace compatibility coverage compiles representative legacy
       server-library consumers.
 - [ ] No new production code introduces a legacy shutdown API dependency.
-- [ ] Release notes document migration, support window, and final removal
-      prerequisites.
+- [ ] The `torrust-server-lib` release notes document migration, support window, and final
+      removal prerequisites, and the in-repo deprecation messages follow the attribute text
+      defined in Versioning Decisions.
 - [ ] The workspace depends on `torrust-server-lib` 0.5.0 and every use of its
       deprecated symbols is either migrated or carries a documented
       `#[allow(deprecated)]`.
