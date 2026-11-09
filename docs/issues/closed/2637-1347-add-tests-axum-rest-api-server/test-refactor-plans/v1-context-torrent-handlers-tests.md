@@ -11,8 +11,8 @@ semantic-links:
     - packages/axum-rest-api-server/src/test_support.rs
     - packages/rest-api-application/src/v1/ports/torrent.rs
     - packages/rest-api-application/src/v1/use_cases/torrent.rs
-    - docs/issues/open/2637-1347-add-tests-axum-rest-api-server/coverage-evidence.md
-    - docs/issues/open/2637-1347-add-tests-axum-rest-api-server/test-refactor-plans/v1-context-whitelist-handlers-tests.md
+    - docs/issues/closed/2637-1347-add-tests-axum-rest-api-server/coverage-evidence.md
+    - docs/issues/closed/2637-1347-add-tests-axum-rest-api-server/test-refactor-plans/v1-context-whitelist-handlers-tests.md
 ---
 
 # Torrent Handlers File Test Plan

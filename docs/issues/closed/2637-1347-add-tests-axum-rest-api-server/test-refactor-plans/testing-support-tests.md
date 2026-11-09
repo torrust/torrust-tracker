@@ -9,7 +9,7 @@ semantic-links:
     - packages/axum-rest-api-server/src/testing/environment.rs
     - packages/axum-rest-api-server/src/testing/mod.rs
     - docs/issues/closed/2745-2482-gate-axum-rest-api-server-test-environment/ISSUE.md
-    - docs/issues/open/2637-1347-add-tests-axum-rest-api-server/coverage-evidence.md
+    - docs/issues/closed/2637-1347-add-tests-axum-rest-api-server/coverage-evidence.md
 ---
 
 # Test Support File Test Plan

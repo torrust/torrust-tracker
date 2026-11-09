@@ -21,7 +21,7 @@ semantic-links:
     - packages/axum-http-server/src/server.rs
     - packages/axum-health-check-api-server/src/handlers.rs
     - docs/issues/closed/2089-fix-https-tracker-health-check-protocol/ISSUE.md
-    - docs/issues/open/2637-1347-add-tests-axum-rest-api-server/ISSUE.md
+    - docs/issues/closed/2637-1347-add-tests-axum-rest-api-server/ISSUE.md
 ---
 
 <!-- skill-link: create-issue -->

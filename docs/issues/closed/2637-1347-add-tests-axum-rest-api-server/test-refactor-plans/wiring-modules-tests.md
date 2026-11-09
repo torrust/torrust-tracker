@@ -9,7 +9,7 @@ semantic-links:
     - packages/axum-rest-api-server/src/v1/mod.rs
     - packages/axum-rest-api-server/src/v1/context/mod.rs
     - packages/axum-rest-api-server/src/v1/context/torrent/resources/mod.rs
-    - docs/issues/open/2637-1347-add-tests-axum-rest-api-server/coverage-evidence.md
+    - docs/issues/closed/2637-1347-add-tests-axum-rest-api-server/coverage-evidence.md
 ---
 
 # Wiring Modules File Test Plan

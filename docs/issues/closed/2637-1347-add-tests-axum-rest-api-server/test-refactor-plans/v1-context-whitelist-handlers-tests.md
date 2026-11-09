@@ -8,12 +8,12 @@ semantic-links:
   related-artifacts:
     - packages/axum-rest-api-server/src/v1/context/whitelist/handlers.rs
     - packages/rest-api-application/src/v1/ports/whitelist.rs
-    - docs/issues/open/2637-1347-add-tests-axum-rest-api-server/coverage-evidence.md
+    - docs/issues/closed/2637-1347-add-tests-axum-rest-api-server/coverage-evidence.md
     - packages/axum-rest-api-server/src/v1/context/auth_key/handlers.rs
     - packages/rest-api-protocol/src/v1/context/whitelist/resources/whitelist.rs
     - packages/rest-api-protocol/src/v1/context/auth_key/resources/auth_key.rs
-    - docs/issues/open/2637-1347-add-tests-axum-rest-api-server/lessons.md
-    - docs/issues/open/2637-1347-add-tests-axum-rest-api-server/test-refactor-plans/v1-context-auth-key-handlers-tests.md
+    - docs/issues/closed/2637-1347-add-tests-axum-rest-api-server/lessons.md
+    - docs/issues/closed/2637-1347-add-tests-axum-rest-api-server/test-refactor-plans/v1-context-auth-key-handlers-tests.md
 ---
 
 # Whitelist Handlers File Test Plan

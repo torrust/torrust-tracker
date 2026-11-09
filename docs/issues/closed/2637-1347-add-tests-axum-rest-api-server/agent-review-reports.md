@@ -2,7 +2,7 @@
 semantic-links:
   related-artifacts:
     - .github/agents/task-reviewer.agent.md
-    - docs/issues/open/2637-1347-add-tests-axum-rest-api-server/ISSUE.md
+    - docs/issues/closed/2637-1347-add-tests-axum-rest-api-server/ISSUE.md
 ---
 
 # Agent Review Reports - Issue #2637 Add Tests to the axum-rest-api-server Package

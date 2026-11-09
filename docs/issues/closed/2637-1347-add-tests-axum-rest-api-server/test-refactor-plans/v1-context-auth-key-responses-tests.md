@@ -8,8 +8,8 @@ semantic-links:
   related-artifacts:
     - packages/axum-rest-api-server/src/v1/context/auth_key/responses.rs
     - packages/axum-rest-api-server/src/v1/context/auth_key/handlers.rs
-    - docs/issues/open/2637-1347-add-tests-axum-rest-api-server/coverage-evidence.md
-    - docs/issues/open/2637-1347-add-tests-axum-rest-api-server/test-refactor-plans/v1-context-auth-key-handlers-tests.md
+    - docs/issues/closed/2637-1347-add-tests-axum-rest-api-server/coverage-evidence.md
+    - docs/issues/closed/2637-1347-add-tests-axum-rest-api-server/test-refactor-plans/v1-context-auth-key-handlers-tests.md
 ---
 
 # Auth Key Responses File Test Plan

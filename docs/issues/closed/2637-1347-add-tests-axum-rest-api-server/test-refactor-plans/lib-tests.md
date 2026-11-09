@@ -8,7 +8,7 @@ semantic-links:
   related-artifacts:
     - packages/axum-rest-api-server/src/lib.rs
     - packages/configuration/src/v3_0_0/tracker_api.rs
-    - docs/issues/open/2637-1347-add-tests-axum-rest-api-server/coverage-evidence.md
+    - docs/issues/closed/2637-1347-add-tests-axum-rest-api-server/coverage-evidence.md
     - docs/pr-reviews/pr-2638-review/PR-REVIEW.md
 ---
 

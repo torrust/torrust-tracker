@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-progress
+status: done
 priority: p2
 epic: 1347
 github-issue: 2637
-spec-path: docs/issues/open/2637-1347-add-tests-axum-rest-api-server/ISSUE.md
+spec-path: docs/issues/closed/2637-1347-add-tests-axum-rest-api-server/ISSUE.md
 branch: "2637-1347-add-tests-axum-rest-api-server-final"
 related-pr: 2772
-last-updated-utc: "2026-11-09 10:38"
+last-updated-utc: "2026-11-09 12:10"
 semantic-links:
   skill-links:
     - create-issue
@@ -26,7 +26,7 @@ semantic-links:
     - docs/issues/closed/1349-1347-add-tests-http-core/lessons.md
     - docs/adrs/20260623200526_adopt_contract-first_architecture_for_rest_api.md
     - docs/security/analysis/reports/2026-09-04_rest-api-token-timing.md
-    - docs/issues/open/2637-1347-add-tests-axum-rest-api-server/coverage-evidence.md
+    - docs/issues/closed/2637-1347-add-tests-axum-rest-api-server/coverage-evidence.md
     - packages/axum-rest-api-server
 ---
 
@@ -76,7 +76,7 @@ were not reused. Since it was written:
 - **Public error enums became `#[non_exhaustive]`** (#2454), which adds wildcard arms to the
   handler `match` expressions.
 - **Independent subissues set the template.** #1348 (`udp-core`) and #1349 (`http-core`) added the
-  [EPIC #1347 subissue guidelines](../1347-overhaul-packages-testing/subissue-spec-guidelines.md),
+  [EPIC #1347 subissue guidelines](../../open/1347-overhaul-packages-testing/subissue-spec-guidelines.md),
   the pull-request slices, and the findings procedure used here.
 
 The package exposes the tracker management API below `/api/v1`: statistics, torrents, the
@@ -430,7 +430,7 @@ ledger order inside each slice is still confirmed with the first plan (T3).
 | S3 | State-changing contexts: auth keys and whitelist (rank 4) | 6-11 | `2637-1347-add-tests-axum-rest-api-server-commands` | #2702 | DONE |
 | S4 | Read-only contexts: torrents and statistics (rank 5) | 12-17 | `2637-1347-add-tests-axum-rest-api-server-queries` | #2718 | DONE |
 | S5 | Server lifecycle (rank 6) | 18 | `2637-1347-add-tests-axum-rest-api-server-lifecycle` | #2744 | DONE |
-| S6 | Crate root, wiring and test-support decisions (ranks 7-8), then T5-T8 | 19-31 | `2637-1347-add-tests-axum-rest-api-server-final` | #2772 | IN_PROGRESS |
+| S6 | Crate root, wiring and test-support decisions (ranks 7-8), then T5-T8 | 19-31 | `2637-1347-add-tests-axum-rest-api-server-final` | #2772 | DONE |
 
 Rules:
 
@@ -615,7 +615,7 @@ once. If the slicing changes, the Slice column changes with it.
 - [x] Task Reviewer reports for every slice recorded in `agent-review-reports.md`.
 - [x] Acceptance criteria reviewed after implementation.
 - [x] Implementation completion review recorded (`implementation-retrospective.md`).
-- [ ] Issue closed and spec moved to `docs/issues/closed/`.
+- [x] Issue closed and spec moved to `docs/issues/closed/`.
 
 ### Progress Log
 
@@ -770,6 +770,7 @@ once. If the slicing changes, the Slice column changes with it.
 - 2026-11-06 16:44 UTC - Claude Code (Sonnet 5.5) - The final independent review of S6 passed (three LOW findings: the unviable-mutant categories were recounted and a stale review outcome corrected, and one LOW/INFO finding confirmed existing statements and needed no fix). T7 and T8 are `DONE`, the acceptance criteria AC1-AC17 are re-reviewed and checked, and the implementation retrospective is written. The S6 pull request awaits the maintainer's approval; the issue closes and the spec moves to `docs/issues/closed/` in the clean-up pull request after the merge.
 - 2026-11-06 16:52 UTC - Claude Code (Sonnet 5.5) - S6 rebased onto `develop` (it brought #2745, the `testing` feature gate of the test environment). Coverage re-measured with clean workspaces: unchanged (unit-only lines 2,324 / 2,404, 96.67%; aggregate 2,348 / 2,404, 97.67%). The whole-package mutation run was repeated on the rebased tree after the `authenticate` test: 71 caught, 3 missed, 44 unviable; the `|` to `^` survivor is killed (this corrects the first-run figures of the 2026-11-06 16:37 entry, 70 caught and 4 missed).
 - 2026-11-09 10:38 UTC - Claude Code (Sonnet 5.5) - S6 pull request #2772 (<https://github.com/torrust/torrust-tracker/pull/2772>, `Closes #2637`) was opened on 2026-11-06 16:59 UTC as `josecelano-bot` from its fork; recorded now in the frontmatter and the slice table (the S5 pattern). The reviews of Copilot (one new comment on the test case names) and of the maintainer's reviewer da2ce7 (14 findings) were processed on 2026-11-09; the audit is `docs/pr-reviews/pr-2772-review/PR-REVIEW.md`. Corrections: `Version` is used by the tracker binary (the earlier no-consumer claim, in the lib plan, lessons and two log entries, was wrong); the S5 comparison of the final measurement; the production-code statement (S2 had one behavior-preserving refactor); the manual evidence was redone in the template form.
+- 2026-11-09 12:10 UTC - Claude Code (Sonnet 5.5) - S6 merged through #2772 (2026-11-09 12:08 UTC, `Closes #2637`) and issue #2637 is `CLOSED` on GitHub. Archived the spec to `docs/issues/closed/` (this clean-up pull request): `status: done`, `spec-path` and the artifact paths updated, the EPIC row set to `DONE`, and the live references to the old path repaired.
 
 ## Acceptance Criteria
 
