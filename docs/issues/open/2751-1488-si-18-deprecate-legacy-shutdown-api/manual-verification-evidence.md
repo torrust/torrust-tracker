@@ -24,35 +24,73 @@ last-updated-utc: "2026-11-09 10:55"
 
 #### Steps Performed
 
+All commands ran from the repository root, one after another.
+
 1. `grep -n "start_with_cancellation" src/bootstrap/jobs/*.rs`: the application components.
-2. `grep -n '#\[cfg(test)\]' <file>` for the files holding legacy `start`/`stop`/`Halted::Normal` calls, and
-   `grep -n "\.stop()\.await\|started.stop\|Halted::Normal"` over the same files: where those calls sit.
-3. `git grep -q "HaltSignal\|NestedServerTask" v3.0.0; echo $?`: the root types against the published tag.
-4. `curl -s https://crates.io/api/v1/crates/torrust-server-lib`, then listing the first two versions.
+2. `grep -n "\.stop()\.await\|started\.stop\|Halted::Normal" packages/axum-http-server/src/server.rs
+   packages/axum-rest-api-server/src/server.rs packages/udp-server/src/server/mod.rs
+   packages/udp-server/src/server/states.rs`, then `grep -n "\.start(\s*$"` over the first three of those
+   files, then `grep -n "Halted::Normal\|HaltSignal\|NestedServerTask" src/bootstrap/jobs/manager.rs`, then
+   `grep -n '#\[cfg(test)\]' <file>` for each file: where the legacy calls sit.
+3. `git grep -q "HaltSignal\|NestedServerTask" v3.0.0; echo "git grep exit=$?"`: the root types against the
+   published tag.
+4. The crates.io query, recorded as its own step below.
 5. Reading the cited documents (links below).
 
 #### Observed Result
 
+Step 1:
+
 ```text
-$ grep -n "start_with_cancellation" src/bootstrap/jobs/*.rs
-src/bootstrap/jobs/http_tracker.rs:124:    .start_with_cancellation(http_tracker_container, form, metadata, cancellation_token.clone())
 src/bootstrap/jobs/health_check_api.rs:52:    let server = server::start_with_cancellation(
+src/bootstrap/jobs/http_tracker.rs:124:    .start_with_cancellation(http_tracker_container, form, metadata, cancellation_token.clone())
 src/bootstrap/jobs/tracker_apis.rs:132:        .start_with_cancellation(http_api_container, form, metadata, access_tokens, cancellation_token.clone())
 src/bootstrap/jobs/udp_tracker.rs:72:        .start_with_cancellation(
+```
 
-$ first '#[cfg(test)]' line per file (the legacy calls found by step 2 sit after it)
-packages/axum-http-server/src/server.rs: 528     legacy .stop() call at line 832
-packages/axum-rest-api-server/src/server.rs: 521 legacy .start( at 599, .stop() at 607
-packages/udp-server/src/server/mod.rs: 68        legacy .start( at 127, 176, 230; .stop() at 138, 189
-src/bootstrap/jobs/manager.rs: 1073              HaltSignal and NestedServerTask users in the test module
-(the remaining `Halted::Normal` hits, at server.rs lines 209, 357 and 474, are the legacy adapter
-implementations themselves, not callers)
+Step 2, first command (`Halted::Normal` hits at `states.rs:153,284`, `axum-rest-api-server` `server.rs:209,357` and
+`axum-http-server` `server.rs:357,474` are the legacy adapter implementations in non-test code):
 
-$ git grep -q "HaltSignal\|NestedServerTask" v3.0.0; echo "git grep exit=$?"
+```text
+packages/udp-server/src/server/mod.rs:138:        let stopped = started.stop().await.expect("it should stop the server");
+packages/udp-server/src/server/mod.rs:189:        let stopped = started.stop().await.expect("it should stop the server");
+packages/udp-server/src/server/states.rs:153:            let _ = tx_halt.send(Halted::Normal);
+packages/udp-server/src/server/states.rs:284:            .send(Halted::Normal)
+packages/axum-rest-api-server/src/server.rs:209:            let _ = tx_halt.send(Halted::Normal);
+packages/axum-rest-api-server/src/server.rs:357:        self.state.halt_task.send(Halted::Normal).map_err(|_| Error::Stop {
+packages/axum-rest-api-server/src/server.rs:607:        let stopped = started.stop().await.expect("it should stop the server");
+packages/axum-http-server/src/server.rs:357:            let _ = tx_halt.send(Halted::Normal);
+packages/axum-http-server/src/server.rs:474:        self.state.halt_task.send(Halted::Normal).map_err(|_| Error::Stop {
+packages/axum-http-server/src/server.rs:832:        let stopped = started.stop().await.expect("it should stop the server");
+```
+
+Step 2, second command (legacy `.start(` callers):
+
+```text
+packages/udp-server/src/server/mod.rs:127:            .start(
+packages/udp-server/src/server/mod.rs:176:            .start(
+packages/udp-server/src/server/mod.rs:230:            .start(
+packages/axum-rest-api-server/src/server.rs:599:            .start(
+```
+
+Step 2, third command: `manager.rs:144` (`HaltSignal::signal_shutdown`) is non-test adapter code; its other
+`Halted::Normal` hits (lines 1253, 1292, 1327) are in the test module.
+
+Step 2, first `#[cfg(test)]` line of each file. Every `.start(` and `.stop().await` hit above sits after its
+file's line; the `Halted::Normal` hits before that line are adapter code, not callers:
+
+```text
+packages/axum-http-server/src/server.rs:528
+packages/axum-rest-api-server/src/server.rs:521
+packages/udp-server/src/server/mod.rs:68
+packages/udp-server/src/server/states.rs:302
+src/bootstrap/jobs/manager.rs:1073
+```
+
+Step 3:
+
+```text
 git grep exit=1
-
-$ crates.io torrust-server-lib, first two versions
-[('0.5.0', '2026-11-06'), ('0.4.0', '2026-10-26')]
 ```
 
 #### Conclusion
@@ -60,7 +98,7 @@ $ crates.io torrust-server-lib, first two versions
 Every gate item holds:
 
 - Application components: the four bootstrap jobs call `start_with_cancellation` (step 1).
-- Remaining legacy callers are test modules or the legacy adapter implementations (step 2).
+- Remaining legacy callers are test modules; the other hits are the legacy adapter implementations (step 2).
 - The root `HaltSignal` and `NestedServerTask` are not in tag `v3.0.0` (step 3, exit 1 means no match; they
   first appear in commit `3ee28b723`).
 - `torrust-server-lib` 0.5.0 is published (step 4); its `CHANGELOG.md` gives the migration steps and the
