@@ -132,7 +132,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-11-06 17:25 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the spec; GitHub issue #2761 created.
 - 2026-11-06 17:18 UTC - Claude Code (Claude Sonnet 5.5) - Implemented: kinds `all_replied` / `missing_reply`, result `{kind, threads, summary}` (no `message`), exit 0 for both; batch scripts do not call `reply-status`; both skills updated; manual evidence recorded.
 - 2026-11-09 10:19 UTC - PR #2775 merged (merge commit `646d1cab2`); issue #2761 closed on GitHub.
-- 2026-11-09 10:23 UTC - Claude Code (Claude Sonnet 5.5) - Archived this spec to `docs/issues/closed/`: `status: done`, `spec-path` and `related-pr` updated, checkpoints ticked, EPIC table updated. The "Reviewer validated acceptance criteria" checkpoint stays unticked: reviewers approved in the ACK lines of merge commit `646d1cab2`, but none updated the checkboxes.
+- 2026-11-09 10:23 UTC - Claude Code (Claude Sonnet 5.5) - Archived this spec to `docs/issues/closed/`: `status: done`, `spec-path` and `related-pr` updated, checkpoints ticked, EPIC table updated. No retrospective file was needed: the change was small and matched the spec, and the two process gaps are named in the Implementation Completion Review. The "Reviewer validated acceptance criteria" checkpoint stays unticked: reviewers approved in the ACK lines of merge commit `646d1cab2`, but none updated the checkboxes.
 
 ## Acceptance Criteria
 
