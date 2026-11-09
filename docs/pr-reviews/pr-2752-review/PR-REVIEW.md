@@ -79,6 +79,9 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F34 | review-finding:pr-2752-f34 | Copilot | Minor (inferred) | testing | RE_RAISE_OF:F33 | FIXED | RESOLVED |
 | F35 | review-finding:pr-2752-f35 | Copilot | Nit (inferred) | formatting | ORIGINAL | FIXED | RESOLVED |
 | F36 | review-finding:pr-2752-f36 | Copilot | Nit (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F50 | review-finding:pr-2752-f50 | Copilot | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F53 | review-finding:pr-2752-f53 | Copilot | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| LINK-001 | review-finding:pr-2752-link-001 | Copilot | Minor | link-integrity | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -550,6 +553,45 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512602646
 
+### F50 - Name the controller types that own the stop methods
+
+- PR number: 2752
+- Source review ID: 5825875881
+- Reviewer finding ID: F50
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512739187
+- Concern: The HTTP, REST and UDP scope entries named `Running::stop`, but the methods belong to `HttpServer<Running>`, `ApiServer<Running>` and `Server<Running>`.
+- Solution: Renamed the three entries and kept the state types, fields and constructors listed separately.
+- Current-tree verification: each `stop` is defined in `impl HttpServer<Running>`, `impl ApiServer<Running>` and `impl Server<Running>` (`grep -n "pub async fn stop"` over the three files), and the scope lists those names.
+- Resolution reference: docs(issues): [#2751] name the controller types that own the stop methods in the SI-18 scope
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512844278
+
+### F53 - Include allowances in the commits that introduce deprecations
+
+- PR number: 2752
+- Source review ID: 5825875881
+- Reviewer finding ID: F53
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512739244
+- Concern: The plan separated T1's dependency bump and T2's attributes from T3's allowances, but the workspace denies warnings, so the intermediate commits would fail the per-commit lint gate.
+- Solution: Moved the allowances into the T1 and T2 increments, made T3 a review of them, and aligned the plan and commit-point tables.
+- Current-tree verification: `Cargo.toml:222` sets `warnings = { level = "deny" }`; the T1 and T2 rows in both tables name their allowances.
+- Resolution reference: docs(issues): [#2751] put the deprecation allowances into the T1 and T2 commits of the SI-18 plan
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512844562
+
+### LINK-001 - Repair the duplicated URL prefixes in the audit
+
+- PR number: 2752
+- Source review ID: 5825875881
+- Reviewer finding ID: LINK-001
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512739288
+- Concern: The reply URLs of F24 to F36 repeated the PR URL inside `#discussion_r`, so they did not navigate to the recorded replies.
+- Solution: Removed the doubled prefix from the 12 affected fields; the F26 field was already correct. The validator accepts the malformed form, so it cannot catch this.
+- Current-tree verification: `grep -c "discussion_r[a-z]"` over the audit prints 0 (a letter right after `discussion_r` means a doubled prefix).
+- Resolution reference: docs(pr-reviews): [#2751] repair the duplicated URL prefixes in the PR 2752 audit
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512844880
+
 ## Processing Log
 
 - 2026-11-06 14:26 UTC - Copilot review 5801499766 submitted with 8 inline findings (F1 to F8); F5 re-raises F4.
@@ -572,6 +614,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-11-09 12:16 UTC - Resolved the 12 fixed threads, each returning `isResolved: true`; the F26 thread stays open.
 - 2026-11-09 12:32 UTC - The maintainer posted a comment on PR 2752 (12:32:35 UTC, from `josecelano`, at the maintainer's request) confirming the root-type conclusion and the end of the 0.5.x window. The spec cites it in a commit made at 12:32:55 UTC and pushed; the pull-request head matched the local head afterwards.
 - 2026-11-09 12:36 UTC - Replied on the F26 thread (12:36:09 UTC) and resolved it, which returned `isResolved: true`. All threads of the five rounds are now resolved.
+- 2026-11-09 12:44 UTC - Handled Copilot review 5825875881 (submitted 12:32 UTC, 3 inline findings, F50, F53 and LINK-001, which kept the reviewer's IDs because no audit ID collided). The fix commits were made after 12:32 UTC and pushed; the pull-request head matched the local head at 12:44 UTC, before any reply.
+- 2026-11-09 12:45 UTC - Replied on the three threads (12:45:03 to 12:45:08 UTC) and resolved them, each returning `isResolved: true`.
 
 ## Completion Rules
 
