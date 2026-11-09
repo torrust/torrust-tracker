@@ -165,3 +165,41 @@ Recorded on 2026-10-24 after the first plan review. The maintainer approved the 
 Issues #2653 and #2449 merged. The branch was rebased onto `develop` at `0b4b2d0d3`, the package was measured again
 (see the evidence), and this plan was adjusted: current state, the existing-test review (a fourth test), the
 unreadable-header case (covered), the dependency list (only `rstest` is new) and mutation M8.
+
+## Update 2026-11-06: duplicate token values
+
+**Status: plan and completed file approved by the maintainer on 2026-11-06.**
+
+The T6 mutation run ([evidence](../mutation-evidence.md)) found one survivor in this file: replacing `|` with `^`
+in the fold of `authenticate` (`auth.rs:162`). With distinct token values at most one comparison matches, so the
+two operators agree; they differ when two labels hold the same value (two matches XOR to "no match"), and a valid
+token would then be rejected. No test configures duplicate values. The behavior the module owns is "a supplied token
+that equals any configured token authenticates", regardless of how many labels carry it.
+
+| Test | Arrange | Act | Assert |
+| --- | --- | --- | --- |
+| `it_should_match_a_token_against_every_label_when_two_labels_share_a_value` | `AccessTokens` with two labels (`first`, `copy`) holding the same value, plus a third label (`other`) with another value. | `authenticate` with the shared value. | `true` (case `the_value_shared_by_the_first_and_copy_labels`). Two more cases: the third label's value is also `true` (`the_value_of_the_other_label`); a value no label holds is `false` (`a_value_that_no_label_holds`). |
+
+Placement: the `authenticate` tests of the existing in-file test module, as one more `rstest` function over a local
+`access_tokens`-style fixture. No new dependency, no production change.
+
+Named mutations (apply, run the tests of the module, `cargo test -p torrust-tracker-axum-rest-api-server --lib v1::middlewares::auth`, restore):
+
+| ID | Mutation | Expected |
+| --- | --- | --- |
+| A1 | `\|` to `^` in the fold (the survivor) | killed by the new test (fails on the shared value) |
+| A2 | `\|` to `&` | already killed by the existing configured-token cases; re-run to confirm |
+| A3 | Start the fold from `Choice::from(1)` | killed by the existing unconfigured-token cases; re-run to confirm |
+
+Validation: the module's tests, then `cargo test -p torrust-tracker-axum-rest-api-server`, then a re-measurement of
+the three coverage scopes (no line change is expected: the line is already covered; the unit-test count rises by one).
+The result goes to `coverage-evidence.md` and the final EPIC tables.
+
+### Results
+
+One test function with three cases (`it_should_match_a_token_against_every_label_when_two_labels_share_a_value`; named
+`it_should_authenticate_a_token_configured_under_more_than_one_label` with different case names until the review of PR 2772) was
+added; the package has 170 unit tests (was 167) and 58 integration tests, all passing. Over the 30 tests of the module, A1 is
+killed (one case fails), A2 fails nine and A3 twelve, so both are killed as predicted (a run filtered by the name `authenticate`
+showed one, four and six failures while the test carried its first name; with the current name the filter selects seven
+tests and shows none, two and five). `auth.rs` stays at 133 / 133 lines unit-only.

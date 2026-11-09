@@ -381,3 +381,17 @@ The review of S5 added an assertion to the registration-failure test (a few test
 | Integration-only (`--test integration`) | 58 integration | 682 / 903 (75.53%) | 949 / 1,299 (73.06%) | 98 / 140 (70.00%) |
 
 `server.rs` is 579 / 624 lines unit-only (987 / 1,067 regions, 58 / 73 functions); its 45 uncovered lines are the same groups as in the row 18 plan (the two test `panic!` arms are now 747-748 and 869-870).
+
+### Final Measurement (slice S6)
+
+`cargo-llvm-cov 0.6.16` on stable Rust 1.99.1, the same three commands as above with a clean workspace before each report, on the S6 branch after the duplicate-token test (`authenticate`, the only test added in S6). Figures are filtered to `packages/axum-rest-api-server/src/`; the totals include the in-file test modules.
+
+| Scope | Tests | Lines | Regions | Functions |
+| --- | ---: | ---: | ---: | ---: |
+| Aggregate (all selected test targets) | 170 unit + 58 integration | 2,348 / 2,404 (97.67%) | 3,489 / 3,592 (97.13%) | 380 / 398 (95.48%) |
+| Unit-only (`--lib`) | 170 unit | 2,324 / 2,404 (96.67%) | 3,462 / 3,592 (96.38%) | 374 / 398 (93.97%) |
+| Integration-only (`--test integration`) | 58 integration | 682 / 903 (75.53%) | 949 / 1,299 (73.06%) | 98 / 140 (70.00%) |
+
+The added test function counts as one more function and one more line in `test_support.rs`'s JSON summary (126 lines, 125 covered, with no zero-count line in the text report: a counting artefact, the file was not changed), so against the S5 final figures the line percentages fall 0.04 pp, the region percentages 0.03 pp and the function percentages 0.24 pp (95.72% to 95.48% aggregate, 94.21% to 93.97% unit-only, because the denominator gained a function). The covered lines and functions are unchanged; covered regions are one fewer in both scopes (3,490 to 3,489 and 3,463 to 3,462, over the same 3,592), a difference not traced to a source line. Against the S1 re-measurement (the EPIC baseline: aggregate 87.98%, unit-only 63.87%; the first, T1 table above has 85.31% and 40.24%) the deltas are: aggregate lines +9.69 pp, regions +13.03 pp, functions +12.06 pp; unit-only lines +32.80 pp, regions +32.40 pp, functions +42.63 pp.
+
+Every uncovered line is classified in the row plans: `server.rs` 45 (logging-only, unreachable, or owned by #1488 and #2733), `testing/environment.rs` 31 (test support owned by #2482 and #2449, out of scope), `test_support.rs` 1 (the counting artefact), and `v1/context/auth_key/handlers.rs` 3 (the `Debug` impl decided as untested).
