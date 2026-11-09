@@ -125,7 +125,7 @@ current version at the end of #1669; the root `torrust-tracker` next releases as
 - SI-18 only deprecates `HaltSignal` and `NestedServerTask`; it does not delete them. SI-19 removes them, under
   the conditions in the derived paragraph below.
 
-Derived from the tree, then confirmed by the maintainer on 2026-11-09 ("we do not need a support window"; [comment on PR 2752](https://github.com/torrust/torrust-tracker/pull/2752#issuecomment-6740143243)): the root
+Derived from the tree, then confirmed by the maintainer on 2026-11-09 ("need no support window", item 1 of the [comment on PR 2752](https://github.com/torrust/torrust-tracker/pull/2752#issuecomment-6740143243)): the root
 `HaltSignal` and `NestedServerTask` were added after the published 3.0.0 (commit `3ee28b723`, "adopt JoinSet
 supervision"; `git grep` finds neither in tag `v3.0.0`), so they have never been in a published release and need
 no support window either. Their deprecation is in-repo guidance, with `since = "4.0.0"` (the next root release, which the next tracker application release
