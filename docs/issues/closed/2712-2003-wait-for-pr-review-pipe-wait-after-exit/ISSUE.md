@@ -9,7 +9,7 @@ github-issue: 2712
 spec-path: docs/issues/closed/2712-2003-wait-for-pr-review-pipe-wait-after-exit/ISSUE.md
 branch: "2712-wait-for-pr-review-bug-and-adr-specs-spec"
 related-pr: 2750
-last-updated-utc: "2026-11-09 10:48"
+last-updated-utc: "2026-11-09 11:16"
 semantic-links:
   skill-links:
     - create-issue
@@ -203,6 +203,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   and `last-updated-utc` now holds the time of this edit.
 - 2026-11-06 16:01 UTC - AI assistant (Claude Code) - Pull request #2750 merged: the success path of `run()` now bounds the wait for the readers by the deadline and the interrupt flag, with the two regression tests (red on the unfixed code, green after) and the V2 recheck.
 - 2026-11-09 10:47 UTC - AI assistant (Claude Code) - Pull request #2756 merged: it addressed Copilot's review of #2750, which was submitted 67 s before that merge (fake `gh` descendant ignores `SIGHUP`, one local interrupt flag). The like-for-like recheck of V1 was repeated on that final build, `develop` at `92665ae17`: V3 in `manual-verification-evidence.md`. Spec moved to `docs/issues/closed/` by the close-out pull request.
+- 2026-11-09 11:16 UTC - AI assistant (Claude Code) - Implementation completion review: no retrospective is needed. The design followed the plan (one bounded collection routine for both paths, option 1 for partial output), the regression tests ran red and then green, and V1 was rechecked on the final build as V3. The only deviation was process, not design: Copilot's review of #2750 arrived 67 s before its merge, so its three findings were handled as the post-merge follow-up #2756, as `process-pr-review` prescribes. No other reusable lesson came up.
 
 ## Acceptance Criteria
 
@@ -229,7 +230,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID | Scenario                                                | Human-oriented command/steps                                                                                   | Expected Result                                                                  | Status | Evidence                                     |
 | -- | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ------ | -------------------------------------------- |
 | M1 | A descendant holds the pipes after `gh` exits (before)  | `evidence/fake-gh-leaves-pipe-open.sh` as `gh` on `PATH`, `wait-for-pr-review --pr-number 7 --timeout-seconds 3` | The run takes about 25 s instead of 3 s                                          | DONE   | `manual-verification-evidence.md` section V1 |
-| M2 | The same, after the fix                                 | The same command on the final build                                                                            | Ends at about 3 s with `deadline_exceeded` and exit `1`; `SIGTERM` at 3 s ends it at about 3 s | DONE   | `manual-verification-evidence.md` section V2 |
+| M2 | The same, after the fix                                 | The same command on the final build                                                                            | Ends at about 3 s with `deadline_exceeded` and exit `1`; `SIGTERM` at 3 s ends it at about 3 s | DONE   | `manual-verification-evidence.md` section V3 |
 
 Every recorded command result names the toolchain that produced it.
 
@@ -246,8 +247,8 @@ It is shell, not Python.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1   | DONE                   | Test `it_should_end_at_the_deadline_when_gh_exits_but_a_descendant_keeps_its_pipes_open`; V2 run 1 |
-| AC2   | DONE                   | Test `it_should_stop_on_sigterm_when_gh_exits_but_a_descendant_keeps_its_pipes_open`; V2 run 2 (SIGINT shares the flag, covered by the unit test of `collect`) |
+| AC1   | DONE                   | Test `it_should_end_at_the_deadline_when_gh_exits_but_a_descendant_keeps_its_pipes_open`; V3 run 1 (final build) |
+| AC2   | DONE                   | Test `it_should_stop_on_sigterm_when_gh_exits_but_a_descendant_keeps_its_pipes_open`; V3 run 2 (final build; SIGINT shares the flag, covered by the unit test of `collect`) |
 | AC3   | DONE                   | Existing `tests/cli.rs` scenarios and `it_should_return_what_a_reader_sends_while_the_wait_is_in_progress` |
 
 ## Risks and Trade-offs
@@ -259,7 +260,7 @@ It is shell, not Python.
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
+- Retrospective: Not needed. The reasons are in the progress-log entry of 2026-11-09.
 - If no retrospective is needed, add a concise progress-log entry explaining why.
 
 ## References
