@@ -1,7 +1,8 @@
 #!/bin/bash
 # Verification run for #2757. Run from anywhere inside the checkout; strip ANSI codes from the output.
 # The controls edit deny.toml and the package Cargo.toml and restore them with `git checkout`;
-# run it on a clean tree. `cargo-chef` 0.1.79 must be on PATH for the container recipe step (optional).
+# run it on a clean tree. `torrust-cargo-chef` 0.1.79 must be first on PATH for the container recipe step
+# (the step is skipped with a message otherwise).
 set -u
 cd "$(git rev-parse --show-toplevel)" || exit 1
 P=torrust-tracker-axum-health-check-api-server
@@ -44,7 +45,18 @@ sed -i '/^torrust-tracker-axum-health-check-api-server = { path/d' packages/axum
 run "cargo test -p $P 2>&1 | grep -E '^error|could not compile' | head -3"
 git checkout -q packages/axum-health-check-api-server/Cargo.toml Cargo.lock
 run "git status --short deny.toml Cargo.lock packages/axum-health-check-api-server/Cargo.toml"
+echo; echo "=== V5 container recipe"
+if cargo chef --version 2>/dev/null | grep -q '0.1.79'; then
+  SCRATCH=$(mktemp -d)
+  run "cargo chef --version"
+  run "cargo chef prepare --external-only --recipe-path $SCRATCH/recipe.json"
+  run "cd $SCRATCH && cargo chef cook --tests --workspace --all-features --recipe-path $SCRATCH/recipe.json 2>&1 | tail -1"
+  rm -rf "$SCRATCH"
+else
+  echo "SKIPPED: torrust-cargo-chef 0.1.79 is not first on PATH"
+fi
 echo; echo "=== V6 AC8: coupling report labels and the diagram"
 run "grep -c 'optional (testing)' docs/issues/open/1669-overhaul-packages/workspace-coupling-report-2026-11-09.md"
 run "python3 $SELF/check_diagram.py"
+run "python3 $SELF/check_test_only.py"
 echo; echo "end $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
