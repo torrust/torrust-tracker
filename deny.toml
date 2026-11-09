@@ -32,6 +32,7 @@ deny = [
   # axum server crates — only the root binary and other axum servers may depend on them
   { crate = "torrust-tracker-axum-health-check-api-server", wrappers = [
     "torrust-tracker",
+    # Its own path-only self dev-dependency enabling the `testing` feature (ADR 20261021190318, rule A.3).
     "torrust-tracker-axum-health-check-api-server",
   ] },
   { crate = "torrust-tracker-axum-http-server", wrappers = [

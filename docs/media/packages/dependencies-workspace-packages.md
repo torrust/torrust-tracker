@@ -11,19 +11,20 @@ semantic-links:
 
 Direct normal (non-dev, non-build) dependencies between workspace packages and on external
 `torrust-*` crates, as declared in each `Cargo.toml`. Verified against
-`cargo metadata --no-deps` on 2026-10-06: 153 edges. One more edge,
+`cargo metadata --no-deps` on 2026-11-09: 135 edges. One more edge,
 `torrust-server-lib --> torrust-net-primitives`, is drawn for context: it is a dependency between
 two external crates, so no workspace manifest declares it. See the
-[2026-10-06 coupling report](../../issues/open/1669-overhaul-packages/workspace-coupling-report-2026-10-06.md)
+[2026-11-09 coupling report](../../issues/open/1669-overhaul-packages/workspace-coupling-report-2026-11-09.md)
 for the items each edge imports.
 
 An edge that exists only for a package's `testing` feature (an optional normal dependency that only
 `testing` enables, labelled `optional (testing)` by the
 [workspace-coupling tool](../../../contrib/dev-tools/analysis/workspace-coupling/src/main.rs)) is test-only,
 not a runtime edge, so it is not drawn in this diagram. A package's dev-dependency on itself, which
-enables its own `testing` feature for its tests, is not drawn either. For example, `axum-rest-api-server`
-has seven such edges (`clock`, `tracker-core`, `http-core`, `rest-client`, `swarm`, `udp-core` and
-`udp-srv`), so they are absent from the `axum-rest` edges below.
+enables its own `testing` feature for its tests, is not drawn either. For example, the `axum-rest` node
+(`axum-rest-api-server`) has seven such edges (`clock`, `tracker-core`, `http-core`, `rest-client`, `swarm`,
+`udp-core` and `udp-srv`), the `axum-http` node three (`clock`, `info-hash` and `swarm`), the `udp-srv` node one
+(`swarm`) and the `axum-health` node one (`config`), so none of them is drawn below.
 
 ```mermaid
 flowchart TB
@@ -120,8 +121,6 @@ flowchart TB
     tracker --> udp-srv
 
     %% Server dependencies
-    axum-http --> clock
-    axum-http --> info-hash
     axum-http --> net-prim
     axum-http --> server-lib
     axum-http --> axum-base
@@ -130,7 +129,6 @@ flowchart TB
     axum-http --> http-core
     axum-http --> http-proto
     axum-http --> primitives
-    axum-http --> swarm
 
     axum-rest --> info-hash
     axum-rest --> metrics
@@ -146,7 +144,6 @@ flowchart TB
     axum-health --> net-prim
     axum-health --> server-lib
     axum-health --> axum-base
-    axum-health --> config
     axum-health --> primitives
 
     axum-base --> located-err
@@ -164,7 +161,6 @@ flowchart TB
     udp-srv --> tracker-core
     udp-srv --> events
     udp-srv --> primitives
-    udp-srv --> swarm
     udp-srv --> udp-core
     udp-srv --> udp-proto
 
@@ -261,13 +257,7 @@ flowchart TB
     server-lib --> net-prim
 
     %% Testing / Benchmarking
-    test-helpers --> info-hash
-    test-helpers --> peer-id
-    test-helpers --> client-lib
     test-helpers --> config
-    test-helpers --> http-proto
-    test-helpers --> primitives
-    test-helpers --> udp-proto
 
     torrent-bench --> clock
     torrent-bench --> info-hash

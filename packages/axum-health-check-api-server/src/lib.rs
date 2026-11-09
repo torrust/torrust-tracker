@@ -1,3 +1,4 @@
+#[cfg(feature = "testing")]
 pub mod environment;
 pub mod handlers;
 pub mod resources;

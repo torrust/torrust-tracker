@@ -5003,6 +5003,7 @@ dependencies = [
  "torrust-clock",
  "torrust-net-primitives",
  "torrust-server-lib",
+ "torrust-tracker-axum-health-check-api-server",
  "torrust-tracker-axum-http-server",
  "torrust-tracker-axum-rest-api-server",
  "torrust-tracker-axum-server",
