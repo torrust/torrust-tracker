@@ -15,11 +15,11 @@ Record the two material discoveries of #2757, the last row of #2482. A blameless
 
 ## Outcome
 
-`src/environment.rs` compiles only with the non-default `testing` feature; `torrust-tracker-configuration` is optional behind it; the package's own targets enable the feature through a path-only self dev-dependency with its `deny.toml` wrapper entry. Plain package tests keep the baseline (15 unit + 11 integration), `cargo check --lib` passes with no features, and the container recipe, Shipped Features, deny, machete and packaging checks pass (evidence V1 to V5).
+`src/environment.rs` compiles only with the non-default `testing` feature; `torrust-tracker-configuration` is optional behind it; the package's own targets enable the feature through a path-only self dev-dependency (its `deny.toml` self wrapper entry already existed). Plain package tests keep the baseline (15 unit + 11 integration), `cargo check --lib` passes with no features, and the container recipe, Shipped Features, deny, machete and packaging checks pass (evidence V1 to V5; the `url` cause is corrected in the inventory).
 
 ## What Went Well
 
-1. The row 4 to 6 recipe (gate, optional dependency, self dev-dependency, wrapper in the same commit, chef check) applied unchanged.
+1. The row 4 to 6 recipe (gate, optional dependency, self dev-dependency, wrapper entry listed, chef check) applied unchanged.
 2. Running `cargo check --lib` with no features immediately after the gate found the first discovery below before any test run.
 3. The AC8 check read the generated report and the diagram, and compared the diagram with the report's `optional (testing)` labels.
 
