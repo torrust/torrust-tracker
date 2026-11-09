@@ -29,6 +29,10 @@ use torrust_tracker_udp_core::container::UdpTrackerCoreContainer;
 use torrust_tracker_udp_core::{ConnectionIdValidationPolicy, UDP_TRACKER_LOG_TARGET};
 use tracing::{Level, instrument};
 
+#[allow(
+    deprecated,
+    reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
+)]
 use super::spawner::{LaunchRequest, Spawner};
 use super::{Server, UdpError};
 use crate::container::UdpTrackerServerContainer;
@@ -46,6 +50,10 @@ pub type StoppedUdpServer = Server<Stopped>;
 #[allow(
     clippy::module_name_repetitions,
     reason = "type alias distinguishes the UDP server running state"
+)]
+#[allow(
+    deprecated,
+    reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
 )]
 pub type RunningUdpServer = Server<Running>;
 
@@ -70,9 +78,17 @@ pub struct Stopped {
     deprecated,
     reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
 )]
+#[deprecated(
+    since = "0.1.0",
+    note = "use `CancellationRunning` from `Server<Stopped>::start_with_cancellation` and cancel the injected `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488)"
+)]
 pub struct Running {
     /// The address where the server is bound.
     pub local_addr: SocketAddr,
+    #[deprecated(
+        since = "0.1.0",
+        note = "cancel the injected `CancellationToken` instead of sending `Halted`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488)"
+    )]
     pub halt_task: tokio::sync::oneshot::Sender<Halted>,
     pub task: JoinHandle<Result<Spawner, std::io::Error>>,
 }
@@ -116,6 +132,10 @@ impl Server<Stopped> {
     #[allow(
         deprecated,
         reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
+    )]
+    #[deprecated(
+        since = "0.1.0",
+        note = "use `Server<Stopped>::start_with_cancellation` with a `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488)"
     )]
     pub async fn start(
         self,
@@ -277,6 +297,10 @@ async fn await_startup_notification(
     }
 }
 
+#[allow(
+    deprecated,
+    reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
+)]
 impl Server<Running> {
     /// It stops the server and returns a `UdpServer` controller in `stopped`
     /// state.
@@ -293,6 +317,10 @@ impl Server<Running> {
     #[allow(
         deprecated,
         reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
+    )]
+    #[deprecated(
+        since = "0.1.0",
+        note = "cancel the `CancellationToken` passed to `start_with_cancellation` and join the returned tasks; removal is planned for the next breaking release of this package (SI-19, EPIC #1488)"
     )]
     pub async fn stop(self) -> Result<Server<Stopped>, UdpError> {
         self.state

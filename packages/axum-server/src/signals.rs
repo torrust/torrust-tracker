@@ -77,6 +77,10 @@ pub async fn graceful_shutdown_on_cancellation(
     reason = "the legacy `graceful_shutdown` still uses the deprecated `Halted` channel; SI-19 removes both"
 )]
 #[instrument(skip(handle, rx_halt, message))]
+#[deprecated(
+    since = "0.1.0",
+    note = "use `graceful_shutdown_on_cancellation` with an injected `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488)"
+)]
 pub async fn graceful_shutdown(
     handle: axum_server::Handle<SocketAddr>,
     rx_halt: tokio::sync::oneshot::Receiver<Halted>,

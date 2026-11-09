@@ -23,6 +23,10 @@ use crate::server::bound_socket::BoundSocket;
     deprecated,
     reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
 )]
+#[deprecated(
+    since = "0.1.0",
+    note = "use `Server<Stopped>::start_with_cancellation`, which spawns the launcher with a `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488)"
+)]
 pub struct LaunchRequest {
     pub udp_tracker_core_container: Arc<UdpTrackerCoreContainer>,
     pub udp_tracker_server_container: Arc<UdpTrackerServerContainer>,
@@ -30,6 +34,10 @@ pub struct LaunchRequest {
     pub connection_id_validation: ConnectionIdValidationPolicy,
     pub bound_socket: BoundSocket,
     pub tx_start: oneshot::Sender<Started>,
+    #[deprecated(
+        since = "0.1.0",
+        note = "use a `CancellationToken` instead of a `Halted` receiver; removal is planned for the next breaking release of this package (SI-19, EPIC #1488)"
+    )]
     pub rx_halt: oneshot::Receiver<Halted>,
 }
 
@@ -50,6 +58,14 @@ impl Spawner {
     /// It spawns a new task to run the UDP server instance.
     ///
     #[must_use]
+    #[deprecated(
+        since = "0.1.0",
+        note = "use `Server<Stopped>::start_with_cancellation`, which spawns the launcher with a `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488)"
+    )]
+    #[allow(
+        deprecated,
+        reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
+    )]
     pub fn spawn_launcher(&self, request: LaunchRequest) -> JoinHandle<Result<Self, std::io::Error>> {
         let spawner = Self::new(self.bind_to);
 

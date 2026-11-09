@@ -45,6 +45,10 @@ use torrust_server_lib::registar::{ServiceHealthCheckJob, ServiceRegistration, S
 )]
 use torrust_server_lib::signals::{Halted, Started};
 use torrust_tracker_axum_server::custom_axum_server::{self, TimeoutAcceptor};
+#[allow(
+    deprecated,
+    reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
+)]
 use torrust_tracker_axum_server::signals::{GracefulShutdownOutcome, graceful_shutdown, graceful_shutdown_on_cancellation};
 use torrust_tracker_configuration::v3_0_0::tracker_api::AccessTokens;
 use torrust_tracker_primitives::RuntimeServiceMetadata;
@@ -98,6 +102,10 @@ pub type StoppedApiServer = ApiServer<Stopped>;
     clippy::module_name_repetitions,
     reason = "type alias distinguishes the REST API server running state"
 )]
+#[allow(
+    deprecated,
+    reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
+)]
 pub type RunningApiServer = ApiServer<Running>;
 
 /// A struct responsible for starting and stopping an API server with a
@@ -131,8 +139,16 @@ pub struct Stopped {
     deprecated,
     reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
 )]
+#[deprecated(
+    since = "0.1.0",
+    note = "use `CancellationRunning` from `ApiServer::start_with_cancellation` and cancel the injected `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488)"
+)]
 pub struct Running {
     pub local_addr: SocketAddr,
+    #[deprecated(
+        since = "0.1.0",
+        note = "cancel the injected `CancellationToken` instead of sending `Halted`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488)"
+    )]
     pub halt_task: tokio::sync::oneshot::Sender<Halted>,
     pub task: tokio::task::JoinHandle<Launcher>,
 }
@@ -147,6 +163,10 @@ pub struct CancellationRunning {
     pub shutdown_controller: JoinHandle<GracefulShutdownOutcome>,
 }
 
+#[allow(
+    deprecated,
+    reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
+)]
 impl Running {
     #[must_use]
     #[allow(
@@ -192,6 +212,10 @@ impl ApiServer<Stopped> {
     #[allow(
         deprecated,
         reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
+    )]
+    #[deprecated(
+        since = "0.1.0",
+        note = "use `ApiServer::start_with_cancellation` with a `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488)"
     )]
     pub async fn start(
         self,
@@ -362,6 +386,10 @@ fn start_token_aware_runtime(
     ))
 }
 
+#[allow(
+    deprecated,
+    reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
+)]
 impl ApiServer<Running> {
     /// Stops the API server.
     ///
@@ -372,6 +400,10 @@ impl ApiServer<Running> {
     #[allow(
         deprecated,
         reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
+    )]
+    #[deprecated(
+        since = "0.1.0",
+        note = "cancel the `CancellationToken` passed to `start_with_cancellation` and join `CancellationRunning::task` and `shutdown_controller`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488)"
     )]
     pub async fn stop(self) -> Result<ApiServer<Stopped>, Error> {
         self.state.halt_task.send(Halted::Normal).map_err(|_| Error::Stop {
@@ -469,6 +501,10 @@ impl Launcher {
     #[allow(
         deprecated,
         reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
+    )]
+    #[deprecated(
+        since = "0.1.0",
+        note = "use the token-aware path through `ApiServer::start_with_cancellation`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488)"
     )]
     pub fn start(
         &self,
@@ -614,6 +650,10 @@ mod tests {
     }
 
     #[tokio::test]
+    #[allow(
+        deprecated,
+        reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
+    )]
     async fn it_should_be_able_to_start_and_stop() {
         let cfg = Arc::new(ephemeral_public());
         let http_api_config = Arc::new(cfg.http_api.clone().expect("missing HTTP API configuration"));

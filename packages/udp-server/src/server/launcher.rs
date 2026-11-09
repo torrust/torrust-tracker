@@ -198,6 +198,10 @@ impl Launcher {
         deprecated,
         reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
     )]
+    #[deprecated(
+        since = "0.1.0",
+        note = "use `Server<Stopped>::start_with_cancellation`, which runs the token-aware launcher; removal is planned for the next breaking release of this package (SI-19, EPIC #1488)"
+    )]
     pub async fn run_with_graceful_shutdown(
         udp_tracker_core_container: Arc<UdpTrackerCoreContainer>,
         udp_tracker_server_container: Arc<UdpTrackerServerContainer>,

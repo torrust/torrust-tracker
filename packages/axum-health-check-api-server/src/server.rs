@@ -24,6 +24,10 @@ use torrust_server_lib::registar::{Registar, RegistrationError, ServiceRegistrat
     reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
 )]
 use torrust_server_lib::signals::{Halted, Started};
+#[allow(
+    deprecated,
+    reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
+)]
 use torrust_tracker_axum_server::signals::{GracefulShutdownOutcome, graceful_shutdown, graceful_shutdown_on_cancellation};
 use torrust_tracker_primitives::{Readiness, RuntimeServiceMetadata};
 use tower_http::LatencyUnit;
@@ -69,6 +73,10 @@ pub struct CancellationRunning {
 ///
 /// The caller owns both tasks. It must join them during normal shutdown or
 /// abort them when its enclosing component is aborted.
+#[deprecated(
+    since = "0.2.0",
+    note = "use `CancellationRunning` from `start_with_cancellation`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488)"
+)]
 pub struct RunningServer<F> {
     pub running: F,
     pub shutdown_controller: JoinHandle<()>,
@@ -84,6 +92,10 @@ pub struct RunningServer<F> {
 #[allow(
     deprecated,
     reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
+)]
+#[deprecated(
+    since = "0.2.0",
+    note = "use `start_with_cancellation` with a `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488)"
 )]
 pub fn start(
     bind_to: SocketAddr,

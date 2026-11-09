@@ -92,6 +92,10 @@ mod tests {
     }
 
     #[tokio::test]
+    #[allow(
+        deprecated,
+        reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
+    )]
     async fn it_should_be_able_to_start_and_stop() {
         let cfg = Arc::new(ephemeral_public());
         let core_config = Arc::new(cfg.core.clone());
@@ -143,6 +147,10 @@ mod tests {
     }
 
     #[tokio::test]
+    #[allow(
+        deprecated,
+        reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
+    )]
     async fn it_should_be_able_to_start_and_stop_with_wait() {
         let cfg = Arc::new(ephemeral_public());
         let core_config = Arc::new(cfg.core.clone());
@@ -194,6 +202,10 @@ mod tests {
     }
 
     #[tokio::test]
+    #[allow(
+        deprecated,
+        reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
+    )]
     async fn it_should_preserve_registration_error_and_release_listener_when_registration_fails() {
         // Arrange
         let mut cfg = ephemeral_public();

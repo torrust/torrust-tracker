@@ -133,10 +133,18 @@ pub fn incomplete_components(outcomes: &[JobOutcome]) -> Vec<&str> {
     deprecated,
     reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
 )]
+#[deprecated(
+    since = "4.0.0",
+    note = "use a `CancellationToken` and the token-aware shutdown controller; removal is planned for the next breaking release of this package (SI-19, EPIC #1488)"
+)]
 pub struct HaltSignal {
     sender: Option<Sender<Halted>>,
 }
 
+#[allow(
+    deprecated,
+    reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
+)]
 impl HaltSignal {
     #[must_use]
     #[allow(
@@ -161,6 +169,10 @@ impl HaltSignal {
     }
 }
 
+#[allow(
+    deprecated,
+    reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
+)]
 impl Drop for HaltSignal {
     fn drop(&mut self) {
         let _ = self.signal_shutdown();
@@ -174,12 +186,24 @@ impl Drop for HaltSignal {
 /// The drop implementation sends the normal halt signal and aborts the child,
 /// so the child cannot continue detached from its component owner.
 #[derive(Debug)]
+#[deprecated(
+    since = "4.0.0",
+    note = "use a `CancellationToken` and the token-aware shutdown controller; removal is planned for the next breaking release of this package (SI-19, EPIC #1488)"
+)]
+#[allow(
+    deprecated,
+    reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
+)]
 pub struct NestedServerTask<T> {
     halt_signal: HaltSignal,
     task: JoinHandle<T>,
     shutdown_controller: Option<JoinHandle<()>>,
 }
 
+#[allow(
+    deprecated,
+    reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
+)]
 impl<T> NestedServerTask<T> {
     #[must_use]
     #[allow(
@@ -230,6 +254,10 @@ impl<T> NestedServerTask<T> {
     /// # Errors
     ///
     /// Returns the nested task's join error when it panics or is aborted.
+    #[allow(
+        deprecated,
+        reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
+    )]
     pub async fn join(&mut self) -> Result<T, JoinError> {
         (&mut self.task).await
     }
@@ -239,6 +267,10 @@ impl<T> NestedServerTask<T> {
     /// # Errors
     ///
     /// Returns the controller's join error when it panics or is aborted.
+    #[allow(
+        deprecated,
+        reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
+    )]
     pub async fn join_shutdown_controller(&mut self) -> Result<(), JoinError> {
         if let Some(shutdown_controller) = &mut self.shutdown_controller {
             shutdown_controller.await
@@ -248,7 +280,15 @@ impl<T> NestedServerTask<T> {
     }
 }
 
+#[allow(
+    deprecated,
+    reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
+)]
 impl<T> Drop for NestedServerTask<T> {
+    #[allow(
+        deprecated,
+        reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
+    )]
     fn drop(&mut self) {
         let _ = self.signal_shutdown();
         self.task.abort();
