@@ -1,7 +1,7 @@
 ---
 pr-number: 2771
 pr-url: https://github.com/torrust/torrust-tracker/pull/2771
-last-updated-utc: "2026-11-09 13:28"
+last-updated-utc: "2026-11-09 13:32"
 ---
 
 # PR #2771 Review Audit
@@ -853,7 +853,7 @@ One row per independent concern from Copilot's review of this pull request (roun
 - Current-tree verification: Ran `grep -c -F 'RE_RAISE_OF:F25' docs/pr-reviews/pr-2771-review/PR-REVIEW.md; grep -c -F 'RE_RAISE_OF:F41' docs/pr-reviews/pr-2771-review/PR-REVIEW.md` in the worktree before this commit; it printed `2 / 2`, which confirms the fix.
 - Resolution reference: docs(pr-reviews): [#2758] rework the PR 2771 review audit after review 5826238636
 - Follow-up PR URL: N/A
-- Reply URL: REPLY4513023759
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4513264021
 
 ### F59 - This row keeps `(inferred)` for a bracketed severity
 
@@ -866,7 +866,7 @@ One row per independent concern from Copilot's review of this pull request (roun
 - Current-tree verification: Ran `grep '^| F29 ' docs/pr-reviews/pr-2771-review/PR-REVIEW.md | grep -c inferred` in the worktree before this commit; it printed `0`, which confirms the fix.
 - Resolution reference: docs(pr-reviews): [#2758] rework the PR 2771 review audit after review 5826238636
 - Follow-up PR URL: N/A
-- Reply URL: REPLY4513023763
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4513264431
 
 ### F60 - Forty-five rows record a generic sentence as their verification
 
@@ -879,7 +879,7 @@ One row per independent concern from Copilot's review of this pull request (roun
 - Current-tree verification: Ran `grep -c -E '^- Current-tree verification: (Re-read|Re-derived)' docs/pr-reviews/pr-2771-review/PR-REVIEW.md` in the worktree before this commit; it printed `0`, which confirms the fix.
 - Resolution reference: docs(pr-reviews): [#2758] rework the PR 2771 review audit after review 5826238636
 - Follow-up PR URL: N/A
-- Reply URL: REPLY4513023774
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4513264792
 
 ### F61 - `(F24)` here is the reviewer's ID, and audit-local F24 is a different finding
 
@@ -892,7 +892,7 @@ One row per independent concern from Copilot's review of this pull request (roun
 - Current-tree verification: Ran `grep '^- Solution' docs/pr-reviews/pr-2771-review/PR-REVIEW.md | grep -c -F '(F24)'` in the worktree before this commit; it printed `0`, which confirms the fix.
 - Resolution reference: docs(pr-reviews): [#2758] rework the PR 2771 review audit after review 5826238636
 - Follow-up PR URL: N/A
-- Reply URL: REPLY4513023779
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4513265135
 
 ### F62 - Five resolution references are wrong or ambiguous
 
@@ -905,7 +905,7 @@ One row per independent concern from Copilot's review of this pull request (roun
 - Current-tree verification: Ran `grep -c -E '^- Resolution reference: https' docs/pr-reviews/pr-2771-review/PR-REVIEW.md` in the worktree before this commit; it printed `1`, which confirms the fix.
 - Resolution reference: docs(pr-reviews): [#2758] rework the PR 2771 review audit after review 5826238636
 - Follow-up PR URL: N/A
-- Reply URL: REPLY4513023783
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4513265613
 
 ### F63 - Generated text is left in the record
 
@@ -918,7 +918,7 @@ One row per independent concern from Copilot's review of this pull request (roun
 - Current-tree verification: Ran `grep -c -E '^- Solution: Valid\. (Valid|[a-z])' docs/pr-reviews/pr-2771-review/PR-REVIEW.md; grep '^- Concern' docs/pr-reviews/pr-2771-review/PR-REVIEW.md | grep -c -F 'The full comment is at the source URL'` in the worktree before this commit; it printed `0 / 0`, which confirms the fix.
 - Resolution reference: docs(pr-reviews): [#2758] rework the PR 2771 review audit after review 5826238636
 - Follow-up PR URL: N/A
-- Reply URL: REPLY4513023789
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4513266028
 
 ### F64 - The recorded window does not cover the re-run on line 35
 
@@ -944,7 +944,7 @@ One row per independent concern from Copilot's review of this pull request (roun
 - Current-tree verification: Ran `grep '^- Solution' docs/pr-reviews/pr-2771-review/PR-REVIEW.md | grep -c -F 'and the Scope'` in the worktree before this commit; it printed `0`, which confirms the fix.
 - Resolution reference: docs(pr-reviews): [#2758] rework the PR 2771 review audit after review 5826238636
 - Follow-up PR URL: N/A
-- Reply URL: REPLY4513023799
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4513266431
 
 ### F66 - This stamp is earlier than the replies the commit records
 
@@ -954,10 +954,10 @@ One row per independent concern from Copilot's review of this pull request (roun
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4513023809
 - Concern: This stamp is earlier than the replies the commit records. `last-updated-utc` says 12:46. The commit that set it, at 12:48:04 UTC, also records the reply URLs of F45 to F48, and those replies were created from 12:47:36 to 12:47:43 UTC.
 - Solution: Valid. The `last-updated-utc` stamp is taken when the audit is edited, after the replies it records exist.
-- Current-tree verification: PENDING verification 66
+- Current-tree verification: Ran `gh-bot api repos/torrust/torrust-tracker/pulls/comments/4513266776 --jq .created_at` (the last of the eight replies recorded for F58 to F66), which printed `2026-11-09T13:31:55Z`; the stamp below was set to `2026-11-09 13:32`, after it, in the commit that records the reply URLs.
 - Resolution reference: docs(pr-reviews): [#2758] rework the PR 2771 review audit after review 5826238636
 - Follow-up PR URL: N/A
-- Reply URL: REPLY4513023809
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4513266776
 
 ## Processing Log
 
@@ -966,6 +966,8 @@ One row per independent concern from Copilot's review of this pull request (roun
 - 2026-11-09 12:44 UTC - Copilot review 5825900769 processed: F42 to F44 fixed in the commit cited in their entries; F45 to F48 are about this audit and are fixed by the commit that adds them. F9 (the #2760 spec) is now fixed on `develop` by PR 2774, so F15 is FIXED and RESOLVED. F41 records Copilot's baseline comment of review 5806995671, which had no row.
 
 - 2026-11-09 13:28 UTC - da2ce7's review 5826238636 (Reviewed at f1d7fede9) processed: F49 to F57 and F64 are spec and evidence fixes pushed in the commit cited in their entries and replied; F58 to F63, F65 and F66 are corrections to this record, made in the commit that adds their rows. The verification field of F3 to F48 was rewritten to the commands that were run (F60). Two earlier replies that cited a wrong commit subject (F19 and F32) were edited.
+
+- 2026-11-09 13:32 UTC - The reply URLs of F58 to F66 were recorded after the eight replies were posted (the last at 2026-11-09T13:31:55Z); the two replies of F19 and F32 were edited before that.
 
 ## Completion Rules
 
