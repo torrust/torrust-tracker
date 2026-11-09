@@ -1,0 +1,996 @@
+---
+semantic-links:
+  skill-links:
+    - process-pr-review
+  related-artifacts:
+    - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
+---
+
+<!-- skill-link: process-pr-review -->
+
+# PR #2752 Review Audit
+
+Source: pull-request reviews and inline review threads for https://github.com/torrust/torrust-tracker/pull/2752.
+
+## Ownership
+
+The PR author owns this tracked audit record. Reviewers, including repository review agents,
+deliver findings through GitHub and have no repository-artifact obligation.
+
+- Post-merge workflow approval: N/A
+
+## Status Values
+
+- Relationship: `ORIGINAL`, `RE_RAISE_OF:<FindingId>`
+- Disposition: `FIXED`, `NO_ACTION`, `SUPERSEDED`, `FOLLOW_UP`
+- Thread state: `OPEN`, `RESOLVED`, `NON_RESOLVABLE`, `SUPERSEDED`. `OPEN` applies prospectively
+  to audits created or updated for approved follow-up work; historical audits remain valid without
+  bulk migration.
+- Severity: `Blocker`, `Major`, `Minor`, `Nit`, `Suggestion`; append `(inferred)` when derived
+  from free prose.
+- Author class: `Copilot`, `Human`, `Unknown`
+- Category: `link-integrity`, `formatting`, `metadata`, `testing`, `correctness`,
+  `documentation`, `maintainability`, `security`, `other`
+- An outdated thread whose concern was fixed is `FIXED`/`RESOLVED`, even when GitHub marks the
+  original thread outdated after the push. For in-PR feedback, use `NO_ACTION`/`SUPERSEDED` only
+  for a duplicate, superseded, or no-change concern. A post-merge `NO_ACTION` requires maintainer
+  approval to decline the follow-up work.
+- When the current identity cannot resolve a thread (`viewerCanResolve` is `false`), keep the
+  disposition established from the current tree and record `Thread state=OPEN`. The reviewer or PR
+  author resolves it; permission says nothing about whether the concern was fixed.
+
+## Findings
+
+| Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
+| ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
+| F1 | review-finding:pr-2752-f1 | Copilot | Minor (inferred) | link-integrity | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F2 | review-finding:pr-2752-f2 | Copilot | Minor (inferred) | link-integrity | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F3 | review-finding:pr-2752-f3 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F4 | review-finding:pr-2752-f4 | Copilot | Minor (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F5 | review-finding:pr-2752-f5 | Copilot | Minor (inferred) | maintainability | RE_RAISE_OF:F4 | FIXED | RESOLVED |
+| F6 | review-finding:pr-2752-f6 | Copilot | Nit (inferred) | metadata | ORIGINAL | FIXED | RESOLVED |
+| F7 | review-finding:pr-2752-f7 | Copilot | Nit (inferred) | metadata | ORIGINAL | FIXED | RESOLVED |
+| F8 | review-finding:pr-2752-f8 | Copilot | Nit (inferred) | formatting | ORIGINAL | FIXED | RESOLVED |
+| F9 | review-finding:pr-2752-f9 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F10 | review-finding:pr-2752-f10 | Copilot | Minor | metadata | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F11 | review-finding:pr-2752-f11 | Copilot | Major (inferred) | correctness | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F12 | review-finding:pr-2752-f12 | Copilot | Major | correctness | RE_RAISE_OF:F11 | FIXED | RESOLVED |
+| F13 | review-finding:pr-2752-f13 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F14 | review-finding:pr-2752-f14 | Human | Major | documentation | ORIGINAL | FIXED | RESOLVED |
+| F15 | review-finding:pr-2752-f15 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F16 | review-finding:pr-2752-f16 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F17 | review-finding:pr-2752-f17 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F18 | review-finding:pr-2752-f18 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F19 | review-finding:pr-2752-f19 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F20 | review-finding:pr-2752-f20 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F21 | review-finding:pr-2752-f21 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F22 | review-finding:pr-2752-f22 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F23 | review-finding:pr-2752-f23 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F24 | review-finding:pr-2752-f24 | Human | Major | documentation | ORIGINAL | FIXED | RESOLVED |
+| F25 | review-finding:pr-2752-f25 | Human | Minor | documentation | RE_RAISE_OF:F16 | FIXED | RESOLVED |
+| F26 | review-finding:pr-2752-f26 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F27 | review-finding:pr-2752-f27 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F28 | review-finding:pr-2752-f28 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F29 | review-finding:pr-2752-f29 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F30 | review-finding:pr-2752-f30 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F31 | review-finding:pr-2752-f31 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F32 | review-finding:pr-2752-f32 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
+| F33 | review-finding:pr-2752-f33 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
+| F34 | review-finding:pr-2752-f34 | Copilot | Minor (inferred) | testing | RE_RAISE_OF:F33 | FIXED | RESOLVED |
+| F35 | review-finding:pr-2752-f35 | Copilot | Nit (inferred) | formatting | ORIGINAL | FIXED | RESOLVED |
+| F36 | review-finding:pr-2752-f36 | Copilot | Nit (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F50 | review-finding:pr-2752-f50 | Copilot | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F53 | review-finding:pr-2752-f53 | Copilot | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| LINK-001 | review-finding:pr-2752-link-001 | Copilot | Minor | link-integrity | ORIGINAL | FIXED | RESOLVED |
+| F37 | review-finding:pr-2752-f37 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F38 | review-finding:pr-2752-f38 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F39 | review-finding:pr-2752-f39 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F40 | review-finding:pr-2752-f40 | Human | Nit | documentation | RE_RAISE_OF:F29 | FIXED | RESOLVED |
+| F41 | review-finding:pr-2752-f41 | Human | Nit | metadata | RE_RAISE_OF:F30 | FIXED | RESOLVED |
+| F42 | review-finding:pr-2752-f42 | Human | Nit | link-integrity | ORIGINAL | FIXED | RESOLVED |
+| F43 | review-finding:pr-2752-f43 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F44 | review-finding:pr-2752-f44 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F45 | review-finding:pr-2752-f45 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F46 | review-finding:pr-2752-f46 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F47 | review-finding:pr-2752-f47 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F54 | review-finding:pr-2752-f54 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F55 | review-finding:pr-2752-f55 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F56 | review-finding:pr-2752-f56 | Human | Minor | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F57 | review-finding:pr-2752-f57 | Human | Nit | metadata | RE_RAISE_OF:F41 | FIXED | RESOLVED |
+| F58 | review-finding:pr-2752-f58 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F59 | review-finding:pr-2752-f59 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F60 | review-finding:pr-2752-f60 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F61 | review-finding:pr-2752-f61 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
+| F62 | review-finding:pr-2752-f62 | Copilot | Nit (inferred) | metadata | ORIGINAL | FIXED | RESOLVED |
+| F63 | review-finding:pr-2752-f63 | Human | Major | documentation | ORIGINAL | FIXED | RESOLVED |
+| F64 | review-finding:pr-2752-f64 | Human | Minor | maintainability | RE_RAISE_OF:F56 | FIXED | RESOLVED |
+| F65 | review-finding:pr-2752-f65 | Human | Nit | documentation | RE_RAISE_OF:F36 | FIXED | RESOLVED |
+| F66 | review-finding:pr-2752-f66 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F67 | review-finding:pr-2752-f67 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+
+## Finding Details
+
+### F1 - Keep the stable `issue #2751` reference in the closed SI-23 spec
+
+- PR number: 2752
+- Source review ID: 5801499766
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4493457398
+- Concern: The closed SI-23 specification lists a free-text `"issue #2751"` entry in `semantic-links.related-artifacts`; the reviewer prefers a resolvable path or URL.
+- Solution: No change. The entry is the stable reference format the frontmatter validator accepts, and a path to an `open/` spec breaks when it moves to `closed/`. PR 2698 made the same decision for SI-24 (`review-finding:pr-2698-f1`).
+- Current-tree verification: `docs/issues/closed/2449-1488-si-23-migrate-rest-api-test-environment/ISSUE.md` lists `"issue #2751"`; the pre-commit frontmatter validator passed on the commit that introduced it.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4494417164
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4494417164
+
+### F2 - Keep the stable `issue #2751` reference in the closed SI-24 spec
+
+- PR number: 2752
+- Source review ID: 5801499766
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4493457497
+- Concern: Same concern as F1 for the closed SI-24 specification.
+- Solution: No change, for the reason given for F1.
+- Current-tree verification: `docs/issues/closed/2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md` lists `"issue #2751"`; the frontmatter validator passed.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4494417848
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4494417848
+
+### F3 - Reconcile "not merged yet" with the published 0.5.0 release
+
+- PR number: 2752
+- Source review ID: 5801499766
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4493457562
+- Concern: The paragraph says torrust-server-lib PR 4 is "not merged yet" and then cites a merge commit and the published 0.5.0 release.
+- Solution: Changed the wording to "merged".
+- Current-tree verification: `grep -ni "not merged"` over the spec folder finds nothing.
+- Resolution reference: docs(issues): [#2751] state that the torrust-server-lib deprecation PR is merged
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4494418352
+
+### F4 - Merge the duplicate Rollback sections
+
+- PR number: 2752
+- Source review ID: 5801499766
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4493457639
+- Concern: The spec has two `## Rollback` sections, which is redundant and can diverge.
+- Solution: Removed the first section and kept the later one, which also notes that the dependency bump can be reverted independently.
+- Current-tree verification: `grep -c "^## Rollback" ISSUE.md` prints 1.
+- Resolution reference: docs(issues): [#2751] merge the duplicate Rollback sections of the SI-18 spec
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4494418889
+
+### F5 - Merge the duplicate Rollback sections (re-raise of F4)
+
+- PR number: 2752
+- Source review ID: 5801499766
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4493457701
+- Concern: Same request as F4, raised on the second `## Rollback` heading.
+- Solution: Fixed by the same commit as F4.
+- Current-tree verification: `grep -c "^## Rollback" ISSUE.md` prints 1.
+- Resolution reference: docs(issues): [#2751] merge the duplicate Rollback sections of the SI-18 spec
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4494419433
+
+### F6 - Quote last-updated-utc in the evidence file
+
+- PR number: 2752
+- Source review ID: 5801499766
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4493457759
+- Concern: The evidence file leaves `last-updated-utc` unquoted while `ISSUE.md` quotes it, so a YAML parser can read it as a timestamp.
+- Solution: Quoted the value.
+- Current-tree verification: Line 4 of `manual-verification-evidence.md` is `last-updated-utc: "2026-11-06 14:00"`.
+- Resolution reference: docs(issues): [#2751] quote the last-updated-utc value in the SI-18 evidence file
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4494419950
+
+### F7 - Remove the duplicate related artifact
+
+- PR number: 2752
+- Source review ID: 5801499766
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4493457817
+- Concern: `semantic-links.related-artifacts` lists `packages/axum-health-check-api-server/src/server.rs` twice.
+- Solution: Removed the second entry.
+- Current-tree verification: `grep -c "axum-health-check-api-server/src/server.rs" ISSUE.md` prints 1.
+- Resolution reference: docs(issues): [#2751] remove the duplicate related artifact from the SI-18 spec
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4494420438
+
+### F8 - Use one spelling of behavior
+
+- PR number: 2752
+- Source review ID: 5801499766
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4493457884
+- Concern: The spec writes "Behaviour" in some places and "behavior" in others.
+- Solution: Changed the three "behaviour" spellings to "behavior".
+- Current-tree verification: `grep -ni behaviour` over the spec folder finds nothing.
+- Resolution reference: docs(issues): [#2751] use the American spelling of behavior in the SI-18 spec
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4494420960
+
+### F9 - Update the cleared external eligibility gate
+
+- PR number: 2752
+- Source review ID: 5803331264
+- Reviewer finding ID: F1
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4494797047
+- Concern: The eligibility gate still marks the `torrust-server-lib` item as blocked on 0.4.0, although the split section and the evidence record the published 0.5.0 release with migration guidance and the support window.
+- Solution: Ticked the item and replaced the blocker text with the 0.5.0 guidance. The reviewer's ID F1 collided with audit finding F1, so the audit assigned F9.
+- Current-tree verification: the gate item is `[x]` and cites 0.5.0 and its `CHANGELOG.md`; the changelog read from the local torrust-server-lib clone lists migration steps and says the items stay for all 0.5.x releases and are removed in 0.6.0.
+- Resolution reference: docs(issues): [#2751] mark the torrust-server-lib gate item complete with the 0.5.0 guidance
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4495030346
+
+### F10 - Record the spec-only branch name
+
+- PR number: 2752
+- Source review ID: 5803331264
+- Reviewer finding ID: F10
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#pullrequestreview-5803331264
+- Concern: The spec's `branch:` frontmatter uses the suffix-free name reserved for the implementation branch, but the `create-issue` skill requires the `-spec` branch name for the spec-only stage.
+- Solution: Set `branch:` to `2751-deprecate-legacy-shutdown-api-spec`.
+- Current-tree verification: line 10 of `ISSUE.md` is `branch: "2751-deprecate-legacy-shutdown-api-spec"`, the name of this PR's head branch.
+- Resolution reference: docs(issues): [#2751] record the spec-only branch name in the SI-18 spec
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#issuecomment-6690075811
+
+### F11 - Resolve the deprecation release dependency cycle
+
+- PR number: 2752
+- Source review ID: 5803331264
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#pullrequestreview-5803331264
+- Concern: #2583 publishes the unpublished crates only after EPIC #1488 closes, but SI-19 is part of that EPIC and requires the public support window to have ended, so the crates cannot publish the promised deprecations before removal.
+- Solution: Confirmed against #2583 (prerequisite "EPIC #1488 closed"). The maintainer chose Option A: the five unpublished crates have no public support window, so SI-19 may remove their symbols without waiting; the window applies only to `torrust-server-lib` and the root `HaltSignal` and `NestedServerTask`. Updated SI-18 (Versioning Decisions, requirement 5, risks) and the SI-19 draft, and told the EPIC #1669 coordinator that #2583 needs no change.
+- Current-tree verification: `grep -n "support window" ISSUE.md` in SI-18 shows the Versioning Decisions entry; the SI-19 draft start gate names the already-public symbols only.
+- Resolution reference: docs(issues): [#2751] resolve the SI-18 and SI-19 release-order cycle
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#issuecomment-6690075811
+
+### F12 - Resolve the remaining root-crate release cycle (re-raise of F11)
+
+- PR number: 2752
+- Source review ID: 5803954711
+- Reviewer finding ID: F11
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4495302631
+- Concern: #2583 publishes the libraries after EPIC #1488 closes and the root 4.0.0 after them, but the SI-19 start gate waits for a root-types support window, so the unpublished-crate exemption left the cycle for `HaltSignal` and `NestedServerTask`. The reviewer reused ID F11, so the audit assigned F12.
+- Solution: Checked the root types against the tree: they first appear in `3ee28b723`, after the published 3.0.0, and are in no published release, so they need no support window. Limited the support window to `torrust-server-lib` in SI-18 (Versioning Decisions) and in the SI-19 draft (start gate and dependencies). This refines the maintainer's Option A decision using the same principle (a window only for already-public symbols).
+- Current-tree verification: `git grep "HaltSignal\|NestedServerTask" v3.0.0` finds nothing; the SI-19 draft start gate now names only `torrust-server-lib` 0.5.x.
+- Resolution reference: docs(issues): [#2751] limit the support window to torrust-server-lib
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4496337482
+
+### F13 - Restore disposition and OPEN status rules
+
+- PR number: 2752
+- Source review ID: 5803954711
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4495302709
+- Concern: The audit's copied Status Values and Completion Rules omit the template rule that a thread the current account cannot resolve keeps its disposition and gets `Thread state=OPEN`.
+- Solution: Added the rule to both sections, copied from `docs/templates/PR-REVIEW-TEMPLATE.md`.
+- Current-tree verification: the audit's Status Values section matches the template (diff shows only a blank line); both sections contain the `viewerCanResolve` rule.
+- Resolution reference: docs(pr-reviews): [#2751] restore the unresolvable-thread rule in the PR 2752 audit
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4496337862
+
+### F14 - Keep the maintainer-decision label on what was decided
+
+- PR number: 2752
+- Source review ID: 5823078440
+- Reviewer finding ID: F1
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4510566692
+- Concern: The "maintainer decision" label covered a root-type exemption the record did not attribute to the maintainer; the audit itself called it a refinement.
+- Solution: Moved the root-type conclusion into its own paragraph, marked as derived from the tree and pending confirmation; the maintainer then confirmed it on 2026-11-09 and the spec records that.
+- Current-tree verification: The spec paragraph reads "Derived from the tree, then confirmed by the maintainer on 2026-11-09"; the "Support window" bullet no longer mentions the root types.
+- Resolution reference: docs(issues): [#2751] mark the root-type support window conclusion as derived
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4511987844
+
+### F15 - List the legacy adapter types and constructors SI-19 removes
+
+- PR number: 2752
+- Source review ID: 5823078440
+- Reviewer finding ID: F2
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4510566700
+- Concern: The SI-18 symbol list omitted `Spawner::spawn_launcher`, `LaunchRequest`, the UDP `Running`, REST `Running::new`, the UDP derived `Running::new` and the health-check `RunningServer`, which SI-19 is told to remove.
+- Solution: Added them to the SI-18 scope list.
+- Current-tree verification: The scope list names each of those items; `grep -n "spawn_launcher\|LaunchRequest\|RunningServer" ISSUE.md` finds them.
+- Resolution reference: docs(issues): [#2751] list the legacy adapter types and constructors in the SI-18 scope
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4511988235
+
+### F16 - Define the deprecation text for symbols removed before first publication
+
+- PR number: 2752
+- Source review ID: 5823078440
+- Reviewer finding ID: F3
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4510566708
+- Concern: The `since` and removal-wording bullets and Deprecation Requirements 2 and 4 assumed releases that SI-19 comes before.
+- Solution: Defined the attribute and release-note text per symbol group in Versioning Decisions and aligned requirements 2 and 4 and the release-notes criterion.
+- Current-tree verification: Versioning Decisions lists the three groups; requirement 4 names only the `torrust-server-lib` release notes.
+- Resolution reference: docs(issues): [#2751] define the deprecation text for symbols removed before first publication
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4511988583
+
+### F17 - Define the end of the torrust-server-lib support window
+
+- PR number: 2752
+- Source review ID: 5823078440
+- Reviewer finding ID: F4
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4510566713
+- Concern: The SI-19 start gate waited for a window whose end nothing defined, which could recreate the release-order cycle.
+- Solution: Defined the end: no fixed date, it ends at the maintainer's approval of 0.6.0, and the maintainer publishes 0.6.0 as part of SI-19. The maintainer confirmed this on 2026-11-09.
+- Current-tree verification: Both SI-18 (Versioning Decisions) and the SI-19 start gate state the end condition and the publisher.
+- Resolution reference: docs(issues): [#2751] define the end of the torrust-server-lib support window
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4511988988
+
+### F18 - Record the gate commands and output in the evidence file
+
+- PR number: 2752
+- Source review ID: 5823078440
+- Reviewer finding ID: F5
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4510566718
+- Concern: Scenario M1 was DONE but the evidence file had neither links nor command output, and lacked the template sections.
+- Solution: Rewrote `manual-verification-evidence.md` from the template with the executed commands, their output, a conclusion and repository paths for the linked records.
+- Current-tree verification: The file has Environment, V1 Steps Performed, Observed Result and Conclusion sections.
+- Resolution reference: docs(issues): [#2751] record the gate commands and output in the SI-18 evidence
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4511989349
+
+### F19 - Correct the PR description
+
+- PR number: 2752
+- Source review ID: 5823078440
+- Reviewer finding ID: F6
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4510566725
+- Concern: The description understated the SI-19 change and omitted the audit file.
+- Solution: Rewrote the PR description (a fix outside the tree), then updated it again after the maintainer's confirmations.
+- Current-tree verification: `gh pr view 2752 --json body` shows the SI-19 change, the support-window summary and the audit file.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2752#issuecomment-6738454510
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4511989679
+
+### F20 - Update the timestamps and the progress log
+
+- PR number: 2752
+- Source review ID: 5823078440
+- Reviewer finding ID: F7
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4510566733
+- Concern: `last-updated-utc` of SI-18 and SI-19 was stale and the SI-18 progress log had no time of day or entry for the window change.
+- Solution: Updated both timestamps and added timed progress-log entries.
+- Current-tree verification: Both files carry a 2026-11-09 `last-updated-utc`; the progress log has timed entries for the window change.
+- Resolution reference: docs(issues): [#2751] update the SI-18 and SI-19 timestamps and the SI-18 progress log
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4511990003
+
+### F21 - Name the drafts folder as the drafting location
+
+- PR number: 2752
+- Source review ID: 5823078440
+- Reviewer finding ID: F8
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4510566737
+- Concern: The checkpoint named the open path as the drafting location, reading as a move onto itself.
+- Solution: Restored the checkpoint text so that it names the drafts folder as the drafting location (the draft file itself was moved to `open/`, not restored).
+- Current-tree verification: The checkpoint line names the drafts folder.
+- Resolution reference: docs(issues): [#2751] name the drafts folder as the SI-18 drafting location
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4511990298
+
+### F22 - Attribute the root crate publication to the tracker release
+
+- PR number: 2752
+- Source review ID: 5823078440
+- Reviewer finding ID: F9
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4510566744
+- Concern: The spec said #2583 publishes the root crate, but #2583 lists it as out of scope.
+- Solution: Removed that sentence and stated that the next tracker application release publishes the root crate after the libraries.
+- Current-tree verification: `grep -n "does not publish the root crate" ISSUE.md` finds the corrected sentence.
+- Resolution reference: docs(issues): [#2751] attribute the root crate publication to the tracker release
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4511990598
+
+### F23 - Record that row 6 of #2482 has landed
+
+- PR number: 2752
+- Source review ID: 5823078440
+- Reviewer finding ID: F10
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4510566747
+- Concern: The spec still treated row 6 of #2482 as a future edit; it was merged on 2026-11-06.
+- Solution: Updated the ordering bullet and the Risks bullet: row 6 (#2745) is merged and only row 7 (#2757) remains.
+- Current-tree verification: `grep -n -i "row 6" ISSUE.md` prints the ordering bullet and the Risks bullet, both saying row 6 has landed.
+- Resolution reference: docs(issues): [#2751] record that row 6 of #2482 has landed
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4511990926
+
+### F24 - Mark rules written on 2026-11-09 as proposed, not decided on 2026-11-06
+
+- PR number: 2752
+- Source review ID: 5825152043
+- Reviewer finding ID: F11
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512170061
+- Concern: The deprecation text written in answer to F16 sat under "Decided by the maintainer on 2026-11-06" and replaced the two bullets the maintainer decided.
+- Solution: Moved the text under a "Proposed by the author, not yet confirmed" paragraph and restored the maintainer's since and removal bullets in the decided list.
+- Current-tree verification: `grep -n "Proposed by the author" ISSUE.md` finds the paragraph; the decided list holds the since/removal bullet.
+- Resolution reference: docs(issues): [#2751] mark the unpublished-symbol deprecation text as proposed
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512598467
+
+### F25 - Align T2, T5, M4 and the Risks bullet with the deprecation text (re-raise of F16)
+
+- PR number: 2752
+- Source review ID: 5825152043
+- Reviewer finding ID: F3
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512170069
+- Concern: T2, T5, the release-notes Scope bullet, M4 and the Risks `since` bullet still prescribed the wording the rules replaced.
+- Solution: Rewrote those rows to follow Versioning Decisions.
+- Current-tree verification: T2 (`grep -n "^| T2  " ISSUE.md`) quotes "next breaking release" only through the decided wording it keeps until the proposal is confirmed, and T5 has no release note.
+- Resolution reference: docs(issues): [#2751] align the SI-18 plan and scope with the deprecation text decisions
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512598830
+
+### F26 - Cite the maintainer's confirmation from a PR comment
+
+- PR number: 2752
+- Source review ID: 5825152043
+- Reviewer finding ID: F18
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512170083
+- Concern: The maintainer's two confirmations exist only in the author's own records; the capture holds no comment from the maintainer's account.
+- Solution: A comment was posted on the PR from the maintainer's account `josecelano` (the agent ran the posting command after the maintainer approved the exact text and command in chat), https://github.com/torrust/torrust-tracker/pull/2752#issuecomment-6740143243, and the spec cites it at both confirmations. The first reply was a FOLLOW_UP; the second reply, cited below, reports the fix.
+- Current-tree verification: `grep -n "comment on PR 2752" ISSUE.md` prints three lines: the end-of-window bullet, the derived paragraph and the progress-log entry; the first two cite the comment.
+- Resolution reference: docs(issues): [#2751] cite the maintainer's comment for the support-window confirmations
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512769396
+
+### F27 - Name the LaunchRequest type and its rx_halt field
+
+- PR number: 2752
+- Source review ID: 5825152043
+- Reviewer finding ID: F13
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512170092
+- Concern: `LaunchRequest` has no constructor and the entry left out the type itself, so T2 could not deprecate it.
+- Solution: Changed the entry to name the type and its `rx_halt` field.
+- Current-tree verification: `spawner.rs:18` is a plain struct; the entry reads "`LaunchRequest` (the type and its `rx_halt` field)".
+- Resolution reference: docs(issues): [#2751] name the LaunchRequest type and its rx_halt field in the SI-18 scope
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512599616
+
+### F28 - Word the root-type deprecation note separately
+
+- PR number: 2752
+- Source review ID: 5825152043
+- Reviewer finding ID: F14
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512170105
+- Concern: The prescribed note said "before the crate's first publication", which is untrue for the root crate, published at 3.0.0.
+- Solution: Gave the root types their own note: removed before the next root release; the slip fallback names both cases.
+- Current-tree verification: The Versioning Decisions list has separate bullets for the unpublished crates and the root types.
+- Resolution reference: docs(issues): [#2751] word the root-type deprecation note separately from the unpublished crates
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512599910
+
+### F29 - Record the real output of the gate commands
+
+- PR number: 2752
+- Source review ID: 5825152043
+- Reviewer finding ID: F16
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512170116
+- Concern: The Observed Result block was not the output of the listed commands: wrong order, a written summary, merged lines, and missing hits.
+- Solution: Replaced it with the raw output of each command in print order and added the missing `states.rs` and `manager.rs` hits.
+- Current-tree verification: The evidence file lists each command with its raw output.
+- Resolution reference: docs(issues): [#2751] record the real output of the gate commands in the SI-18 evidence
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512600254
+
+### F30 - Stamp last-updated-utc no later than the carrying commit
+
+- PR number: 2752
+- Source review ID: 5825152043
+- Reviewer finding ID: F17
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512170126
+- Concern: Two `last-updated-utc` stamps differed from their commits' committer times.
+- Solution: Set both stamps from the commit time and left both files unchanged afterwards.
+- Current-tree verification: Both stamps are 12:08 and the carrying commit is at 12:08:50 UTC.
+- Resolution reference: docs(issues): [#2751] set the SI-18 timestamps from the commit time
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512600519
+
+### F31 - Correct the F23 verification command
+
+- PR number: 2752
+- Source review ID: 5825152043
+- Reviewer finding ID: F19
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512170135
+- Concern: `grep -n "row 6"` prints only one of the two bullets because the Risks bullet spells it "Row 6".
+- Solution: Changed the recorded command to a case-insensitive grep.
+- Current-tree verification: `grep -n -i "row 6" ISSUE.md` prints both bullets.
+- Resolution reference: docs(pr-reviews): [#2751] correct the F23 verification command in the PR 2752 audit
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512600843
+
+### F32 - Reconcile "deprecated only, not deleted" with SI-19 removal
+
+- PR number: 2752
+- Source review ID: 5825238769
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512239083
+- Concern: The spec said the root types are deprecated only, not deleted, and later said SI-19 may remove them.
+- Solution: Reworded to say SI-18 only deprecates them and SI-19 removes them under the stated conditions.
+- Current-tree verification: `grep -n "SI-18 only deprecates" ISSUE.md` finds the bullet.
+- Resolution reference: docs(issues): [#2751] state that SI-18 only deprecates the root types and SI-19 removes them
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512601280
+
+### F33 - Record the exact crates.io command and its output
+
+- PR number: 2752
+- Source review ID: 5825238769
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512239154
+- Concern: Step 4 was not reproducible as written: the output was a summarized list and the extraction command was not recorded.
+- Solution: Recorded the full `curl | python3` command and its own output.
+- Current-tree verification: Step 4 of the evidence file holds the command and `[('0.5.0', '2026-11-06'), ('0.4.0', '2026-10-26')]`.
+- Resolution reference: docs(issues): [#2751] record the exact crates.io command and output in the SI-18 evidence
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512601575
+
+### F34 - Record the exact crates.io command and its output (re-raise of F33)
+
+- PR number: 2752
+- Source review ID: 5825238769
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512239197
+- Concern: Same request as F33, raised on a second line of the evidence file.
+- Solution: Fixed by the same commit as F33.
+- Current-tree verification: See F33.
+- Resolution reference: docs(issues): [#2751] record the exact crates.io command and output in the SI-18 evidence
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512601968
+
+### F35 - Change "form" to "format"
+
+- PR number: 2752
+- Source review ID: 5825238769
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512239240
+- Concern: The F1 solution said "reference form" for an accepted reference format.
+- Solution: Changed the word to "format".
+- Current-tree verification: `grep -n "reference for[m] " PR-REVIEW.md` prints nothing, so the old word is gone from every solution line.
+- Resolution reference: docs(pr-reviews): [#2751] fix a word in the F1 solution of the PR 2752 audit
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512602275
+
+### F36 - Make the F21 solution precise
+
+- PR number: 2752
+- Source review ID: 5825238769
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512239279
+- Concern: The F21 solution read as if the draft file itself was restored, but the draft was moved to `open/`.
+- Solution: Reworded to say the checkpoint text was restored to name the drafts folder and the file itself was moved.
+- Current-tree verification: The F21 solution names the drafts folder as the drafting location and says the file was moved, not restored.
+- Resolution reference: docs(pr-reviews): [#2751] make the F21 solution precise in the PR 2752 audit
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512602646
+
+### F50 - Name the controller types that own the stop methods
+
+- PR number: 2752
+- Source review ID: 5825875881
+- Reviewer finding ID: F50
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512739187
+- Concern: The HTTP, REST and UDP scope entries named `Running::stop`, but the methods belong to `HttpServer<Running>`, `ApiServer<Running>` and `Server<Running>`.
+- Solution: Renamed the three entries and kept the state types, fields and constructors listed separately.
+- Current-tree verification: each `stop` is defined in `impl HttpServer<Running>`, `impl ApiServer<Running>` and `impl Server<Running>` (`grep -n "impl .*<Running>\|pub async fn stop"` over `packages/axum-http-server/src/server.rs`, `packages/axum-rest-api-server/src/server.rs` and `packages/udp-server/src/server/states.rs` prints the headers at lines 466, 349 and 268 and the `stop` lines at 473, 356 and 281), and the scope lists those names.
+- Resolution reference: docs(issues): [#2751] name the controller types that own the stop methods in the SI-18 scope
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512844278
+
+### F53 - Include allowances in the commits that introduce deprecations
+
+- PR number: 2752
+- Source review ID: 5825875881
+- Reviewer finding ID: F53
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512739244
+- Concern: The plan separated T1's dependency bump and T2's attributes from T3's allowances, but the workspace denies warnings, so the intermediate commits would fail the per-commit lint gate.
+- Solution: Moved the allowances into the T1 and T2 increments, made T3 a review of them, and aligned the plan and commit-point tables.
+- Current-tree verification: `Cargo.toml:222` reads `warnings = { level = "deny", priority = -1 }` (`grep -n "^warnings" Cargo.toml`); the T1 and T2 rows in both tables name their allowances.
+- Resolution reference: docs(issues): [#2751] put the deprecation allowances into the T1 and T2 commits of the SI-18 plan
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512844562
+
+### LINK-001 - Repair the duplicated URL prefixes in the audit
+
+- PR number: 2752
+- Source review ID: 5825875881
+- Reviewer finding ID: LINK-001
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512739288
+- Concern: The reply URLs of F24 to F36 repeated the PR URL inside `#discussion_r`, so they did not navigate to the recorded replies.
+- Solution: Removed the doubled prefix from the 12 affected fields; the F26 `Resolution reference` and `Reply URL` fields were already correct, because the earlier commit `docs(pr-reviews): [#2751] record the resolution of F26 in the PR 2752 audit` had replaced both before this repair (the reviewer counted 14 fields in all: these 12 plus those 2). The validator accepts the malformed form, so it cannot catch this.
+- Current-tree verification: `grep -c "discussion_r[a-z]"` over the audit prints 0 (a letter right after `discussion_r` means a doubled prefix).
+- Resolution reference: docs(pr-reviews): [#2751] repair the duplicated URL prefixes in the PR 2752 audit
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512844880
+
+### F37 - State which deprecation rule T2 applies while the proposal is unconfirmed
+
+- PR number: 2752
+- Source review ID: 5826094140
+- Reviewer finding ID: F20
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512909167
+- Concern: Two rules covered the same package-crate symbols and nothing said which one applied; T2 treated an unconfirmed proposal as replacing a decided bullet.
+- Solution: The proposal paragraph, T2, Requirement 2 and the release-note Scope bullet now say T2 writes the decided wording until the maintainer confirms, and the proposal then replaces that bullet.
+- Current-tree verification: The proposal paragraph in Versioning Decisions contains the "Until the maintainer confirms it, T2 writes the decided wording" sentence.
+- Resolution reference: docs(issues): [#2751] state what T2 writes while the deprecation text proposal is unconfirmed
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4513036699
+
+### F38 - Align the rollback and the Q5 dependency with the release-note decision
+
+- PR number: 2752
+- Source review ID: 5826094140
+- Reviewer finding ID: F22
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512909179
+- Concern: The rollback still removed a release-note entry that SI-18 no longer writes, and the Q5 dependency still said "reflected in release notes".
+- Solution: Dropped the release-note entry from the rollback and named the `torrust-server-lib` release notes in the Q5 dependency.
+- Current-tree verification: `grep -n "release-note entry" ISSUE.md` prints nothing.
+- Resolution reference: docs(issues): [#2751] drop the release-note entry from the SI-18 rollback and align the Q5 dependency
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4513037082
+
+### F39 - Add the rows for review 5825875881
+
+- PR number: 2752
+- Source review ID: 5826094140
+- Reviewer finding ID: F29
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512909186
+- Concern: Review 5825875881 had no tracking row, detail entry or log entry at the reviewed head.
+- Solution: Already added by the round-6 audit commit, pushed before the reply.
+- Current-tree verification: The audit has rows F50, F53 and LINK-001 and a log entry for review 5825875881.
+- Resolution reference: docs(pr-reviews): [#2751] record round 6 of the reviews of PR 2752
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4513037509
+
+### F40 - Record the gate command output exactly as printed (re-raise of F29)
+
+- PR number: 2752
+- Source review ID: 5826094140
+- Reviewer finding ID: F16
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512909193
+- Concern: Step 2 was not what its commands print: block order, a summary instead of the 16 lines, file names missing from the test-module search, and a `.start(` pattern that missed two callers.
+- Solution: Reran every command and pasted the output as printed, with a corrected `.start(` pattern and a `-Hn` test-module search.
+- Current-tree verification: The evidence file lists steps 1 to 7 with their raw output, including `axum-http-server` lines 829 and 1000.
+- Resolution reference: docs(issues): [#2751] record every gate command and its output exactly in the SI-18 evidence
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4513037899
+
+### F41 - Set the spec stamp from the commit time and log the later edits (re-raise of F30)
+
+- PR number: 2752
+- Source review ID: 5826094140
+- Reviewer finding ID: F17
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512909202
+- Concern: The spec stamp said 12:32 although the file changed at 12:40, and the progress log recorded neither edit.
+- Solution: Set the stamp from the commit time and added a progress-log entry for the 12:40 edits and this round.
+- Current-tree verification: The stamp is 13:00 and the carrying commit is at 13:02.
+- Resolution reference: docs(issues): [#2751] set the SI-18 stamp and progress log from the commit time
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4513038265
+
+### F42 - Cite the finding by its review-finding reference
+
+- PR number: 2752
+- Source review ID: 5826094140
+- Reviewer finding ID: F23
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512909204
+- Concern: The spec said "review finding F3 of PR 2752", which names a different finding in this audit.
+- Solution: Cited `review-finding:pr-2752-f16`.
+- Current-tree verification: The proposal paragraph cites `review-finding:pr-2752-f16`.
+- Resolution reference: docs(issues): [#2751] state what T2 writes while the deprecation text proposal is unconfirmed
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4513038609
+
+### F43 - State when each evidence command ran
+
+- PR number: 2752
+- Source review ID: 5826094140
+- Reviewer finding ID: F24
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512909211
+- Concern: The evidence file gave a run window that predated commands it now lists.
+- Solution: Stated the first run, the full rerun and which commands were added when.
+- Current-tree verification: The Environment section lists the first run and the rerun window.
+- Resolution reference: docs(issues): [#2751] state when each SI-18 gate command ran
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4513038977
+
+### F44 - Correct three recorded verification commands
+
+- PR number: 2752
+- Source review ID: 5826094140
+- Reviewer finding ID: F26
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512909216
+- Concern: Three verification lines did not show what they said: a grep that still matches T2, a line count of two instead of three, and a string that matches its own line.
+- Solution: Rewrote the three lines to describe what the commands print and used a pattern that does not match itself.
+- Current-tree verification: The three lines in the F16, F26 and F35 entries match the command output.
+- Resolution reference: docs(pr-reviews): [#2751] correct three recorded verification commands in the PR 2752 audit
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4513039309
+
+### F45 - Name the reviewer by account in the log
+
+- PR number: 2752
+- Source review ID: 5826094140
+- Reviewer finding ID: F27
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512909224
+- Concern: A log entry named the reviewer by a personal name and a pronoun that appear nowhere else in the record.
+- Solution: Named the account `da2ce7`.
+- Current-tree verification: `grep -n -i "da2ce7" PR-REVIEW.md` finds the account name and the reviewer's personal name is not used anywhere in the file.
+- Resolution reference: docs(pr-reviews): [#2751] name the reviewer by account in the PR 2752 audit log
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4513039705
+
+### F46 - Quote the comment, not a chat sentence
+
+- PR number: 2752
+- Source review ID: 5826094140
+- Reviewer finding ID: F28
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512909231
+- Concern: The quoted words sat next to the comment citation but are not in the comment.
+- Solution: Quoted "need no support window" and named item 1 of the comment.
+- Current-tree verification: The derived paragraph quotes the comment text.
+- Resolution reference: docs(issues): [#2751] quote the maintainer's comment instead of a chat sentence in the SI-18 spec
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4513040197
+
+### F47 - Say who posted the maintainer comment
+
+- PR number: 2752
+- Source review ID: 5826094140
+- Reviewer finding ID: F30
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512909237
+- Concern: An entry called the comment the maintainer's own and also said it was posted at the maintainer's request.
+- Solution: Said it was posted from the maintainer's account `josecelano` and that the agent ran the posting command after the maintainer approved the exact text and command in chat; repeated in the F26 solution and the audit log.
+- Current-tree verification: The spec log entry, the F26 solution and the audit log use the same wording.
+- Resolution reference: docs(issues): [#2751] say who posted the maintainer comment in the SI-18 spec and the PR 2752 audit
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4513040562
+
+### F54 - State one release-note rule
+
+- PR number: 2752
+- Source review ID: 5826504727
+- Reviewer finding ID: F33
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4513226456
+- Concern: Release notes were conditional in Scope and unconditional in Requirement 4 and T5, and the decided bullets said nothing about them.
+- Solution (round 8, superseded by F63): Added a decided release-notes bullet (no release note for the unpublished-crate symbols or the root types, whether or not the proposal is confirmed) and used the same wording in Scope, Requirement 4 and T5.
+- Current-tree verification: read the spec at the head: the release-note rule sits in Versioning Decisions (labelled derived and not yet confirmed, round 9), in the Scope bullet on deprecation text, in Requirement 4 and in the T5 row; the exact wording is the reviewer's to compare, so this row does not quote a command count.
+- Resolution reference: docs(issues): [#2751] state one release-note rule in the SI-18 spec
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4514800411
+
+### F55 - Name the launcher hits as adapter code
+
+- PR number: 2752
+- Source review ID: 5826504727
+- Reviewer finding ID: F34
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4513226467
+- Concern: The Step 5 sentence said every legacy `.start(` hit sits after the first test line, but two `launcher.start` hits in Step 3 do not.
+- Solution: Named the two `launcher.start(..., rx_halt)` hits (`axum-rest-api-server` `server.rs:192`, `axum-http-server` `server.rs:336`) as adapter code inside the legacy `start` methods.
+- Current-tree verification: `grep -n "launcher.start" manual-verification-evidence.md` finds the two Step 3 lines (88 and 90) and the new Step 5 sentence; the first test lines are 521 and 528 per the Step 5 output.
+- Resolution reference: docs(issues): [#2751] make SI-18 evidence step 5 runnable and name the launcher hits as adapter code
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4514800871
+
+### F56 - Drop the PR-branch commit id from the log
+
+- PR number: 2752
+- Source review ID: 5826504727
+- Reviewer finding ID: F35
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4513226479
+- Concern: A log entry cited a PR-branch commit by id, which a rebase would rewrite.
+- Solution: Dropped the id; the forge already records the head on each reply's review.
+- Current-tree verification: read the log: the round 7 entry that named the commit now names none.
+- Resolution reference: docs(pr-reviews): [#2751] correct recorded commands, a commit id and a field count in the PR 2752 audit
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4514801387
+
+### F57 - Set the evidence stamp from the last content commit (re-raise of F41)
+
+- PR number: 2752
+- Source review ID: 5826504727
+- Reviewer finding ID: F17
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4513226497
+- Concern: The evidence file's stamp lagged the file: later commits changed it.
+- Solution: Set the stamp to 15:46, the author time of the last content commit of the file. The stamp commit that follows sets the stamp itself, so a stamp can only name the last content commit.
+- Current-tree verification: `grep -n "^last-updated" manual-verification-evidence.md` prints `2026-11-09 15:46`.
+- Resolution reference: docs(issues): [#2751] set the stamps of the files edited in review round 8 from their commit times
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4514801911
+
+### F58 - Record commands that show what they say
+
+- PR number: 2752
+- Source review ID: 5826504727
+- Reviewer finding ID: F31
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4513226505
+- Concern: Two recorded verifications in the F50 and F53 rows did not show what they said (the `grep` printed no `impl` headers; `Cargo.toml:222` was misquoted).
+- Solution: Recorded a command that prints the `impl` headers (466, 349, 268) and the `stop` lines, and quoted `Cargo.toml:222` in full.
+- Current-tree verification: `grep -n "^warnings" Cargo.toml` prints `222:warnings = { level = "deny", priority = -1 }`; the `impl .*<Running>` grep over the three files prints the headers at 466, 349 and 268.
+- Resolution reference: docs(pr-reviews): [#2751] correct recorded commands, a commit id and a field count in the PR 2752 audit
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4514802347
+
+### F59 - Reconcile the 12 fields with the reviewer's 14
+
+- PR number: 2752
+- Source review ID: 5826504727
+- Reviewer finding ID: F32
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4513226519
+- Concern: The LINK-001 row's 12 fields did not reconcile with the 14 the source comment counts.
+- Solution: Named the earlier commit that had already replaced F26's `Resolution reference` and `Reply URL` and said the 14 are those 2 plus the 12.
+- Current-tree verification: `grep -n "record the resolution of F26" PR-REVIEW.md` finds the LINK-001 solution line.
+- Resolution reference: docs(pr-reviews): [#2751] correct recorded commands, a commit id and a field count in the PR 2752 audit
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4514802849
+
+### F60 - Name the evidence file in the SI-19 start gate
+
+- PR number: 2752
+- Source review ID: 5826631352
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4513324373
+- Concern: The SI-19 start gate says `verification.md`, while SI-18's evidence file is `manual-verification-evidence.md`.
+- Solution: The original reference is SI-19's own `verification.md`, which exists in the SI-19 draft directory, so it was not broken. Reworded to "this issue's own `verification.md`" and named SI-18's `manual-verification-evidence.md` as the evidence the first item refers to.
+- Current-tree verification: `ls docs/issues/drafts/1488-si-19-remove-legacy-shutdown-api/` lists `ISSUE.md` and `verification.md`; the start gate carries the new wording.
+- Resolution reference: docs(issues): [#2751] name the evidence file in the SI-19 start gate
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4514803320
+
+### F61 - Make evidence step 5 runnable
+
+- PR number: 2752
+- Source review ID: 5826631352
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4513324475
+- Concern: Step 5 held a placeholder instead of a runnable command.
+- Solution: Replaced it with the explicit five-file command, reran it, and recorded its real output and run time.
+- Current-tree verification: `grep -n "<the five" manual-verification-evidence.md` prints nothing; the command ran at 15:46:04 UTC and printed the five `#[cfg(test)]` lines.
+- Resolution reference: docs(issues): [#2751] make SI-18 evidence step 5 runnable and name the launcher hits as adapter code
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4514803866
+
+### F62 - Set the EPIC stamp from the carrying commit
+
+- PR number: 2752
+- Source review ID: 5826631352
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4513324557
+- Concern: The EPIC's `last-updated-utc` did not match the carrying commit.
+- Solution: Set it to `2026-11-06 13:49`. It was 14:00, later than the carrying commit (13:49:57 UTC), not earlier as the review says; the fix satisfies both readings.
+- Current-tree verification: `grep -n "^last-updated" docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md` prints `2026-11-06 13:49`.
+- Resolution reference: docs(issues): [#2751] set the stamps of the files edited in review round 8 from their commit times
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4514804277
+
+### F63 - Label the release-note rule as derived and unconfirmed
+
+- PR number: 2752
+- Source review ID: 5829092406
+- Reviewer finding ID: F36
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4515210641
+- Concern: A release-note rule written on 2026-11-09 sat under the list headed as decided by the maintainer on 2026-11-06 and was called a decision, though the maintainer has not confirmed it.
+- Solution: Removed the bullet from the dated list, added a paragraph labelling the rule derived and not yet confirmed (part of the review the maintainer reserved), and aligned Scope, Requirement 4, T5 and the proposal paragraph.
+- Current-tree verification: Read the spec at the head: Versioning Decisions carries the labelled paragraph, and Scope, Requirement 4 and T5 say "derived, not yet confirmed".
+- Resolution reference: docs(issues): [#2751] label the SI-18 release-note rule as derived and unconfirmed
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4515332548
+
+### F64 - State the commit-id check without the id
+
+- PR number: 2752
+- Source review ID: 5829092406
+- Reviewer finding ID: F35
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4515210651
+- Concern: The F56 row's own command quoted the commit id the log entry had dropped, and its recorded count was wrong at the head.
+- Solution: Stated the verification without the id: the round 7 log entry names no commit.
+- Current-tree verification: Read the log entry; no id is quoted in the row.
+- Resolution reference: docs(pr-reviews): [#2751] record only what ran in three PR 2752 audit entries
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4515333045
+
+### F65 - Name the 15:46 UTC run in the evidence
+
+- PR number: 2752
+- Source review ID: 5829092406
+- Reviewer finding ID: F24
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4515210661
+- Concern: "All output in this file is from that rerun" no longer held after Step 5 was rerun at 15:46 UTC.
+- Solution: Named the 15:46:04 UTC run of Step 5 in Environment as the exception and pointed to it from Steps Performed.
+- Current-tree verification: Read Environment and Steps Performed in the evidence file.
+- Resolution reference: docs(issues): [#2751] name the 15:46 UTC run of step 5 in the SI-18 evidence
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4515333587
+
+### F66 - Record the forge's reply window
+
+- PR number: 2752
+- Source review ID: 5829092406
+- Reviewer finding ID: F37
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4515210671
+- Concern: The recorded reply window did not match the forge's created_at times.
+- Solution: Recorded the forge's window for the nine replies (15:55:40 to 15:56:00 UTC) and said the resolves began at 15:56:02 UTC.
+- Current-tree verification: Read the round 8 log entry; the window is the `created_at` of the nine replies as the forge returns them.
+- Resolution reference: docs(pr-reviews): [#2751] record only what ran in three PR 2752 audit entries
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4515334063
+
+### F67 - Record what was read for the release-note rule
+
+- PR number: 2752
+- Source review ID: 5829092406
+- Reviewer finding ID: F38
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4515210677
+- Concern: A verification line claimed a grep output it did not show.
+- Solution: Replaced it with a statement of what was read in the spec.
+- Current-tree verification: Read the F54 row.
+- Resolution reference: docs(pr-reviews): [#2751] record only what ran in three PR 2752 audit entries
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4515334508
+
+## Processing Log
+
+- 2026-11-06 14:26 UTC - Copilot review 5801499766 submitted with 8 inline findings (F1 to F8); F5 re-raises F4.
+- 2026-11-06 15:46 UTC - Five fix commits for F3 to F8 were made (committer times 15:44:22 to 15:46:14 UTC); they were pushed before the replies below.
+- 2026-11-06 15:50 UTC - Replied on all 8 threads (the replies were created between 15:49:39 and 15:49:57 UTC after the fixes were pushed).
+- 2026-11-06 16:27 UTC - Resolved all 8 threads; each mutation returned `isResolved: true`.
+- 2026-11-06 16:30 UTC - Found Copilot review 5803331264 (submitted 16:21 UTC) with one inline finding (F9, reviewer ID F1, renumbered because F1 was taken) and two review-body findings (F10, F11).
+- 2026-11-06 16:36 UTC - Fix commits for F9 to F11 were made (committer times 16:31:22 to 16:36:50 UTC) and pushed before the replies below.
+- 2026-11-06 16:39 UTC - Replied on the F9 thread (16:39:20 UTC) and posted one PR conversation response covering F9 to F11 (16:39:23 UTC); resolved the F9 thread, which returned `isResolved: true`. F10 and F11 have no thread (`NON_RESOLVABLE`).
+- 2026-11-06 18:12 UTC - Found Copilot review 5803954711 (submitted 17:04 UTC) with two inline findings: F12 (reviewer ID F11, a re-raise of F11) and F13. The fix commits were made at 18:11:35 and 18:12:37 UTC.
+- 2026-11-06 18:51 UTC - Replied on both threads (18:51:36 and 18:51:39 UTC) before the push had succeeded: the first push failed with a network disconnect, so the replies cited commits that were not yet on the remote.
+- 2026-11-06 18:57 UTC - The second push succeeded; resolved both threads, which returned `isResolved: true`.
+- 2026-11-09 10:50 UTC - Found review 5823078440 by da2ce7 (submitted 08:04 UTC) with ten inline findings, F1 to F10, renumbered F14 to F23 because those IDs were taken. The fix commits were made between 10:50:11 and 10:57:05 UTC.
+- 2026-11-09 11:00 UTC - Pushed the fix commits (pull-request head checked against the local head afterwards), then replied on all ten threads (11:00:36 to 11:00:58 UTC). The replies for F14 and F17 said the conclusions were pending the maintainer's confirmation.
+- 2026-11-09 11:01 UTC - The maintainer confirmed both in chat; recorded in the spec by a commit made at 11:01:17 UTC and pushed.
+- 2026-11-09 11:04 UTC - Posted one PR conversation response covering F14 to F23 (11:04:31 UTC) and resolved all ten threads, each returning `isResolved: true`.
+- 2026-11-09 12:03 UTC - Started on review 5825152043 by `da2ce7` (submitted 11:22 UTC, 8 inline findings; the reviewer's F11, F3 re-raise, F18, F13, F14, F16, F17, F19, audited as F24 to F31) and Copilot's review 5825238769 (submitted 11:31 UTC, 5 inline findings, audited as F32 to F36). The fix commits were made between 12:03:36 and 12:12:01 UTC.
+- 2026-11-09 12:15 UTC - Pushed the fix commits and checked the pull-request head against the local head, before any reply.
+- 2026-11-09 12:15 UTC - Replied on all 13 threads (12:15:26 to 12:15:56 UTC). The F26 reply is a FOLLOW_UP: it needs the maintainer's comment on the PR.
+- 2026-11-09 12:16 UTC - Resolved the 12 fixed threads, each returning `isResolved: true`; the F26 thread stays open.
+- 2026-11-09 12:32 UTC - A comment was posted on PR 2752 (12:32:35 UTC) from the maintainer's account `josecelano`; the agent ran the posting command after the maintainer approved the exact text and command in chat. It confirms the root-type conclusion and the end of the 0.5.x window. The spec cites it in a commit made at 12:32:55 UTC and pushed; the pull-request head matched the local head afterwards.
+- 2026-11-09 12:36 UTC - Replied on the F26 thread (12:36:09 UTC) and resolved it, which returned `isResolved: true`. All threads of the five rounds are now resolved.
+- 2026-11-09 12:44 UTC - Handled Copilot review 5825875881 (submitted 12:32 UTC, 3 inline findings, F50, F53 and LINK-001, which kept the reviewer's IDs because no audit ID collided). The fix commits were made after 12:32 UTC and pushed; the pull-request head matched the local head at 12:44 UTC, before any reply.
+- 2026-11-09 12:45 UTC - Replied on the three threads (12:45:03 to 12:45:08 UTC) and resolved them, each returning `isResolved: true`.
+- 2026-11-09 12:55 UTC - Started on review 5826094140 by `da2ce7` (submitted 12:52 UTC, 11 inline findings, audited as F37 to F47 because the reviewer's IDs collide with earlier audit IDs). The fix commits were made between 12:55:03 and 13:02:12 UTC.
+- 2026-11-09 13:05 UTC - Pushed the fix commits; the pull-request head matched the local head before any reply.
+- 2026-11-09 13:06 UTC - Replied on all 11 threads (13:06:02 to 13:06:29 UTC) and resolved them, each returning `isResolved: true`.
+- 2026-11-09 15:45 UTC - Started on review 5826504727 by `da2ce7` (6 inline findings, audited as F54 to F59 because the reviewer's IDs collide with earlier audit IDs; the F17 re-raise is F57) and Copilot review 5826631352 (3 inline findings without IDs, audited as F60 to F62). The fix commits were made between 15:45 and 15:52 UTC.
+- 2026-11-09 15:55 UTC - Pushed the fix commits; the pull-request head matched the local head before any reply.
+- 2026-11-09 15:56 UTC - Replied on all nine threads (the forge's `created_at` runs from 15:55:40 to 15:56:00 UTC) and resolved them from 15:56:02 UTC, each returning `isResolved: true`.
+- 2026-11-09 16:35 UTC - Started on review 5829092406 by `da2ce7` (submitted 16:32 UTC, 5 inline findings, audited as F63 to F67 because the reviewer's IDs collide with earlier audit IDs; F64 and F65 are re-raises). The fix commits were made between 16:37 and 16:39 UTC.
+- 2026-11-09 16:41 UTC - Pushed the fix commits; the pull-request head matched the local head before any reply.
+- 2026-11-09 16:44 UTC - Replied on all five threads (the forge's `created_at` runs from 16:44:13 to 16:44:25 UTC) and resolved them, each returning `isResolved: true`.
+
+## Completion Rules
+
+- Re-derive the reply claim against the current tree before replying or resolving a thread.
+- Reply on every resolvable thread before resolving it.
+- For an outdated thread whose concern was fixed, record `Disposition=FIXED` and
+  `Thread state=RESOLVED`, even if GitHub marks the thread outdated after the push. For a
+  duplicate, superseded, or no-change in-PR thread, reply exactly
+  `Superseded by <FindingId>: <reason>.`, record `Disposition=NO_ACTION` and
+  `Thread state=SUPERSEDED`, then resolve it. A post-merge `NO_ACTION` requires maintainer
+  approval to decline the follow-up work. When the current identity cannot resolve a thread
+  (`viewerCanResolve` is `false`), still reply, keep the disposition established from the current
+  tree, and record `Thread state=OPEN`; the reviewer or PR author resolves it.
+- A consolidated PR conversation response may cover multiple review rounds only when it names
+  every review ID and every finding ID with its disposition and resolution reference. Record its
+  durable URL in each related row.
+- Cite a fix by its unique Conventional Commit subject or durable reply URL, never by a branch SHA
+  that can change after a rebase.
+- Refresh review threads using GraphQL and confirm that no unresolved actionable thread remains.

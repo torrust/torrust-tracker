@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/1488-si-19-remove-legacy-shutdown-api/ISSUE.md
 branch: "{issue-number}-remove-legacy-shutdown-api"
 related-pr: null
-last-updated-utc: "2026-10-08 07:36"
+last-updated-utc: "2026-11-09 15:47"
 semantic-links:
   skill-links:
     - create-issue
@@ -24,7 +24,7 @@ semantic-links:
     - docs/features/shutdown-process/README.md
     - docs/features/shutdown-process/questions.md
     - docs/features/shutdown-process/task-inventory.md
-    - docs/issues/drafts/1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md
+    - docs/issues/open/2751-1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md
     - docs/issues/closed/2342-1488-si-14-migrate-udp-receive-reset-token-lifecycle/ISSUE.md
     - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
 ---
@@ -48,10 +48,17 @@ The separate `Started` oneshot startup-notification API remains unchanged.
 ## Start Gate
 
 Do not start implementation until every item below is complete and linked from
-`verification.md`:
+this issue's own `verification.md` (SI-18's gate evidence is its
+`manual-verification-evidence.md`, the evidence the first item refers to):
 
 - [ ] SI-18 deprecation evidence confirms every declared deprecation condition
-      and the public support window has ended.
+      and the public support window has ended for the only already-public
+      symbols, those of `torrust-server-lib` (0.5.x). The window has no fixed
+      date: it ends when the maintainer approves publishing 0.6.0 (the last item
+      below), and the maintainer publishes 0.6.0 from `torrust-server-lib` as part
+      of this task, after that approval. The unpublished package
+      crates and the root `HaltSignal`/`NestedServerTask` have never been in a
+      published release and have no public window (see SI-18, Versioning Decisions).
 - [ ] HTTP tracker, REST API, health-check API, and UDP tracker application
       components use only token-aware shutdown paths.
 - [ ] Standalone HTTP and UDP environments/examples use only token-aware
@@ -136,7 +143,8 @@ Do not start implementation until every item below is complete and linked from
 
 ## Dependencies
 
-- SI-18 is complete and the declared external compatibility window has ended.
+- SI-18 is complete and the `torrust-server-lib` 0.5.x support window has ended; the
+  unpublished package crates and the root types need no window (SI-18, Versioning Decisions).
 - SI-11 through SI-17, SI-23, and SI-24 token-lifecycle migrations are complete.
 - #1588 completes final inventory evidence.
 - Q4 is resolved. Q5's process-wrapper verification rule is required for final
