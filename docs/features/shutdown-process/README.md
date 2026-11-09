@@ -1,11 +1,12 @@
 ---
 doc-type: feature
 status: draft
-last-updated-utc: "2026-10-28 12:12"
+last-updated-utc: "2026-11-09 19:31"
 semantic-links:
   related-artifacts:
     - docs/analysis/20260716-shutdown-process/README.md
     - docs/features/shutdown-process/shutdown-architecture-examples.md
+    - docs/features/shutdown-process/legacy-api-migration.md
     - docs/features/shutdown-process/task-inventory.md
     - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
     - docs/research/20260716-console-shutdown-patterns/README.md

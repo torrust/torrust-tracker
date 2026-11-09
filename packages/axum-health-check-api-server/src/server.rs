@@ -340,6 +340,38 @@ mod tests {
         }
     }
 
+    /// Compile-compatibility and behavior check for the deprecated `Halted`-based `start`, kept until SI-19.
+    #[tokio::test]
+    #[allow(
+        deprecated,
+        reason = "proves the deprecated legacy `start` still compiles and works until SI-19"
+    )]
+    async fn it_should_keep_the_deprecated_halted_start_working_until_it_is_removed() {
+        use torrust_server_lib::signals::{Halted, Started};
+
+        let (tx_start, rx_start) = tokio::sync::oneshot::channel::<Started>();
+        let (tx_halt, rx_halt) = tokio::sync::oneshot::channel::<Halted>();
+
+        let running = crate::server::start(any_available_port(), tx_start, rx_halt, Registar::default())
+            .expect("the legacy health check API should start");
+        let server = tokio::spawn(running.running);
+
+        rx_start.await.expect("the legacy start should report the bound address");
+        tx_halt
+            .send(Halted::Normal)
+            .expect("the legacy halt receiver should be alive");
+
+        tokio::time::timeout(TEST_COMPLETION_TIMEOUT, running.shutdown_controller)
+            .await
+            .expect("the legacy shutdown controller should finish")
+            .expect("the legacy shutdown controller should not panic");
+        tokio::time::timeout(TEST_COMPLETION_TIMEOUT, server)
+            .await
+            .expect("the legacy server should stop after the halt")
+            .expect("the legacy server task should not panic")
+            .expect("the legacy server should stop without an I/O error");
+    }
+
     #[tokio::test]
     async fn it_should_register_the_token_aware_health_check_api_service() {
         // Arrange
