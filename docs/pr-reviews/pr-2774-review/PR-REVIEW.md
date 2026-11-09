@@ -1,7 +1,7 @@
 ---
 pr-number: 2774
 pr-url: https://github.com/torrust/torrust-tracker/pull/2774
-last-updated-utc: "2026-11-09 11:32"
+last-updated-utc: "2026-11-09 11:41"
 ---
 
 # PR #2774 Review Audit
@@ -65,27 +65,27 @@ Round 1: Copilot review 5806242087 (12 inline findings). F1 and F2 concern this 
 | F27 | review-finding:pr-2774-f27 | Human | Nit | maintainability | ORIGINAL | FIXED | RESOLVED |
 | F28 | review-finding:pr-2774-f28 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F29 | review-finding:pr-2774-f29 | Human | Nit | documentation | ORIGINAL | FOLLOW_UP | RESOLVED |
-| F30 | review-finding:pr-2774-f30 | Human | Minor | documentation | RE_RAISE_OF:F18 | FIXED | OPEN |
-| F31 | review-finding:pr-2774-f31 | Human | Minor | documentation | RE_RAISE_OF:F20 | FIXED | OPEN |
-| F32 | review-finding:pr-2774-f32 | Human | Minor | correctness | ORIGINAL | FIXED | OPEN |
-| F33 | review-finding:pr-2774-f33 | Human | Minor | correctness | ORIGINAL | FIXED | OPEN |
-| F34 | review-finding:pr-2774-f34 | Human | Minor | documentation | ORIGINAL | FIXED | OPEN |
-| F35 | review-finding:pr-2774-f35 | Human | Minor | documentation | ORIGINAL | FIXED | OPEN |
-| F36 | review-finding:pr-2774-f36 | Human | Minor | documentation | ORIGINAL | FIXED | OPEN |
-| F37 | review-finding:pr-2774-f37 | Human | Nit | documentation | ORIGINAL | FIXED | OPEN |
-| F38 | review-finding:pr-2774-f38 | Human | Nit | documentation | ORIGINAL | FIXED | OPEN |
-| F39 | review-finding:pr-2774-f39 | Human | Nit | documentation | ORIGINAL | FIXED | OPEN |
-| F40 | review-finding:pr-2774-f40 | Human | Minor | correctness | ORIGINAL | FIXED | OPEN |
-| F41 | review-finding:pr-2774-f41 | Human | Minor | correctness | RE_RAISE_OF:F33 | FIXED | OPEN |
-| F42 | review-finding:pr-2774-f42 | Human | Minor | documentation | ORIGINAL | FIXED | OPEN |
-| F43 | review-finding:pr-2774-f43 | Human | Minor | documentation | ORIGINAL | FOLLOW_UP | OPEN |
-| F44 | review-finding:pr-2774-f44 | Human | Minor | documentation | RE_RAISE_OF:F21 | FIXED | OPEN |
+| F30 | review-finding:pr-2774-f30 | Human | Minor | documentation | RE_RAISE_OF:F18 | FIXED | RESOLVED |
+| F31 | review-finding:pr-2774-f31 | Human | Minor | documentation | RE_RAISE_OF:F20 | FIXED | RESOLVED |
+| F32 | review-finding:pr-2774-f32 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F33 | review-finding:pr-2774-f33 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F34 | review-finding:pr-2774-f34 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F35 | review-finding:pr-2774-f35 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F36 | review-finding:pr-2774-f36 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F37 | review-finding:pr-2774-f37 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F38 | review-finding:pr-2774-f38 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F39 | review-finding:pr-2774-f39 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F40 | review-finding:pr-2774-f40 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F41 | review-finding:pr-2774-f41 | Human | Minor | correctness | RE_RAISE_OF:F33 | FIXED | RESOLVED |
+| F42 | review-finding:pr-2774-f42 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F43 | review-finding:pr-2774-f43 | Human | Minor | documentation | ORIGINAL | FOLLOW_UP | RESOLVED |
+| F44 | review-finding:pr-2774-f44 | Human | Minor | documentation | RE_RAISE_OF:F21 | FIXED | RESOLVED |
 | F45 | review-finding:pr-2774-f45 | Human | Nit | maintainability | ORIGINAL | FOLLOW_UP | OPEN |
-| F46 | review-finding:pr-2774-f46 | Copilot | Minor | correctness | ORIGINAL | FOLLOW_UP | OPEN |
-| F47 | review-finding:pr-2774-f47 | Copilot | Minor (inferred) | documentation | RE_RAISE_OF:F37 | FIXED | OPEN |
-| F48 | review-finding:pr-2774-f48 | Copilot | Minor (inferred) | documentation | RE_RAISE_OF:F34 | FIXED | OPEN |
-| F49 | review-finding:pr-2774-f49 | Copilot | Minor | testing | ORIGINAL | FOLLOW_UP | OPEN |
-| F50 | review-finding:pr-2774-f50 | Copilot | Minor | correctness | RE_RAISE_OF:F10 | FOLLOW_UP | OPEN |
+| F46 | review-finding:pr-2774-f46 | Copilot | Minor | correctness | ORIGINAL | FOLLOW_UP | RESOLVED |
+| F47 | review-finding:pr-2774-f47 | Copilot | Minor (inferred) | documentation | RE_RAISE_OF:F37 | FIXED | RESOLVED |
+| F48 | review-finding:pr-2774-f48 | Copilot | Minor (inferred) | documentation | RE_RAISE_OF:F34 | FIXED | RESOLVED |
+| F49 | review-finding:pr-2774-f49 | Copilot | Minor | testing | ORIGINAL | FOLLOW_UP | RESOLVED |
+| F50 | review-finding:pr-2774-f50 | Copilot | Minor | correctness | RE_RAISE_OF:F10 | FOLLOW_UP | RESOLVED |
 
 ## Finding Details
 
@@ -750,6 +750,8 @@ Round 1: Copilot review 5806242087 (12 inline findings). F1 and F2 concern this 
 
 - 2026-11-09 11:32 UTC - Correction: the first entry's `21:05` stamp is later than the commit that carries it (dated 21:02:32Z), so the real time of that entry is before 21:02:32Z. It had been rewritten in place to `21:02` and the later `10:33` entry's sentence on pending resolution had been replaced; both are restored to their original text by this commit.
 - 2026-11-09 11:32 UTC - Round 3 (maintainer reviews 5824868731 and 5825123886, Copilot review 5825128396) processed: fixes pushed, PR body updated, all 21 threads replied to; F43, F46, F49 and F50 fixed on PR #2771 by the coordinator. Thread resolution is pending the maintainer (resolve calls need approval), so the rows still `OPEN` here stay open until then; F45 stays open for the rebase.
+
+- 2026-11-09 11:41 UTC - The maintainer allowed the resolve calls in chat; the 20 round-3 threads other than F45 were resolved; refreshed GraphQL data lists one unresolved thread, F45, which stays open until the branch is rebased onto `develop`.
 
 ## Completion Rules
 
