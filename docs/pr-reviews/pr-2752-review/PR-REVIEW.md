@@ -93,6 +93,15 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F45 | review-finding:pr-2752-f45 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F46 | review-finding:pr-2752-f46 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F47 | review-finding:pr-2752-f47 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F54 | review-finding:pr-2752-f54 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F55 | review-finding:pr-2752-f55 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F56 | review-finding:pr-2752-f56 | Human | Minor | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F57 | review-finding:pr-2752-f57 | Human | Nit | metadata | RE_RAISE_OF:F41 | FIXED | RESOLVED |
+| F58 | review-finding:pr-2752-f58 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F59 | review-finding:pr-2752-f59 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F60 | review-finding:pr-2752-f60 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F61 | review-finding:pr-2752-f61 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
+| F62 | review-finding:pr-2752-f62 | Copilot | Nit (inferred) | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -746,6 +755,123 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4513040562
 
+### F54 - State one release-note rule
+
+- PR number: 2752
+- Source review ID: 5826504727
+- Reviewer finding ID: F33
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4513226456
+- Concern: Release notes were conditional in Scope and unconditional in Requirement 4 and T5, and the decided bullets said nothing about them.
+- Solution: Added a decided release-notes bullet (no release note for the unpublished-crate symbols or the root types, whether or not the proposal is confirmed) and used the same wording in Scope, Requirement 4 and T5.
+- Current-tree verification: `grep -n -i "release note" ISSUE.md` over the spec prints the decided bullet (line 125), the Scope bullet (192 to 194), Requirement 4 (215 to 217) and T5 (271) with the same wording.
+- Resolution reference: docs(issues): [#2751] state one release-note rule in the SI-18 spec
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4514800411
+
+### F55 - Name the launcher hits as adapter code
+
+- PR number: 2752
+- Source review ID: 5826504727
+- Reviewer finding ID: F34
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4513226467
+- Concern: The Step 5 sentence said every legacy `.start(` hit sits after the first test line, but two `launcher.start` hits in Step 3 do not.
+- Solution: Named the two `launcher.start(..., rx_halt)` hits (`axum-rest-api-server` `server.rs:192`, `axum-http-server` `server.rs:336`) as adapter code inside the legacy `start` methods.
+- Current-tree verification: `grep -n "launcher.start" manual-verification-evidence.md` finds the two Step 3 lines (88 and 90) and the new Step 5 sentence; the first test lines are 521 and 528 per the Step 5 output.
+- Resolution reference: docs(issues): [#2751] make SI-18 evidence step 5 runnable and name the launcher hits as adapter code
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4514800871
+
+### F56 - Drop the PR-branch commit id from the log
+
+- PR number: 2752
+- Source review ID: 5826504727
+- Reviewer finding ID: F35
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4513226479
+- Concern: A log entry cited a PR-branch commit by id, which a rebase would rewrite.
+- Solution: Dropped the id; the forge already records the head on each reply's review.
+- Current-tree verification: `grep -c "57d95a16e" PR-REVIEW.md` prints 0 after the edit.
+- Resolution reference: docs(pr-reviews): [#2751] correct recorded commands, a commit id and a field count in the PR 2752 audit
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4514801387
+
+### F57 - Set the evidence stamp from the last content commit (re-raise of F41)
+
+- PR number: 2752
+- Source review ID: 5826504727
+- Reviewer finding ID: F17
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4513226497
+- Concern: The evidence file's stamp lagged the file: later commits changed it.
+- Solution: Set the stamp to 15:46, the author time of the last content commit of the file. The stamp commit that follows sets the stamp itself, so a stamp can only name the last content commit.
+- Current-tree verification: `grep -n "^last-updated" manual-verification-evidence.md` prints `2026-11-09 15:46`.
+- Resolution reference: docs(issues): [#2751] set the stamps of the files edited in review round 8 from their commit times
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4514801911
+
+### F58 - Record commands that show what they say
+
+- PR number: 2752
+- Source review ID: 5826504727
+- Reviewer finding ID: F31
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4513226505
+- Concern: Two recorded verifications in the F50 and F53 rows did not show what they said (the `grep` printed no `impl` headers; `Cargo.toml:222` was misquoted).
+- Solution: Recorded a command that prints the `impl` headers (466, 349, 268) and the `stop` lines, and quoted `Cargo.toml:222` in full.
+- Current-tree verification: `grep -n "^warnings" Cargo.toml` prints `222:warnings = { level = "deny", priority = -1 }`; the `impl .*<Running>` grep over the three files prints the headers at 466, 349 and 268.
+- Resolution reference: docs(pr-reviews): [#2751] correct recorded commands, a commit id and a field count in the PR 2752 audit
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4514802347
+
+### F59 - Reconcile the 12 fields with the reviewer's 14
+
+- PR number: 2752
+- Source review ID: 5826504727
+- Reviewer finding ID: F32
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4513226519
+- Concern: The LINK-001 row's 12 fields did not reconcile with the 14 the source comment counts.
+- Solution: Named the earlier commit that had already replaced F26's `Resolution reference` and `Reply URL` and said the 14 are those 2 plus the 12.
+- Current-tree verification: `grep -n "record the resolution of F26" PR-REVIEW.md` finds the LINK-001 solution line.
+- Resolution reference: docs(pr-reviews): [#2751] correct recorded commands, a commit id and a field count in the PR 2752 audit
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4514802849
+
+### F60 - Name the evidence file in the SI-19 start gate
+
+- PR number: 2752
+- Source review ID: 5826631352
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4513324373
+- Concern: The SI-19 start gate says `verification.md`, while SI-18's evidence file is `manual-verification-evidence.md`.
+- Solution: The original reference is SI-19's own `verification.md`, which exists in the SI-19 draft directory, so it was not broken. Reworded to "this issue's own `verification.md`" and named SI-18's `manual-verification-evidence.md` as the evidence the first item refers to.
+- Current-tree verification: `ls docs/issues/drafts/1488-si-19-remove-legacy-shutdown-api/` lists `ISSUE.md` and `verification.md`; the start gate carries the new wording.
+- Resolution reference: docs(issues): [#2751] name the evidence file in the SI-19 start gate
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4514803320
+
+### F61 - Make evidence step 5 runnable
+
+- PR number: 2752
+- Source review ID: 5826631352
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4513324475
+- Concern: Step 5 held a placeholder instead of a runnable command.
+- Solution: Replaced it with the explicit five-file command, reran it, and recorded its real output and run time.
+- Current-tree verification: `grep -n "<the five" manual-verification-evidence.md` prints nothing; the command ran at 15:46:04 UTC and printed the five `#[cfg(test)]` lines.
+- Resolution reference: docs(issues): [#2751] make SI-18 evidence step 5 runnable and name the launcher hits as adapter code
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4514803866
+
+### F62 - Set the EPIC stamp from the carrying commit
+
+- PR number: 2752
+- Source review ID: 5826631352
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4513324557
+- Concern: The EPIC's `last-updated-utc` did not match the carrying commit.
+- Solution: Set it to `2026-11-06 13:49`. It was 14:00, later than the carrying commit (13:49:57 UTC), not earlier as the review says; the fix satisfies both readings.
+- Current-tree verification: `grep -n "^last-updated" docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md` prints `2026-11-06 13:49`.
+- Resolution reference: docs(issues): [#2751] set the stamps of the files edited in review round 8 from their commit times
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4514804277
+
 ## Processing Log
 
 - 2026-11-06 14:26 UTC - Copilot review 5801499766 submitted with 8 inline findings (F1 to F8); F5 re-raises F4.
@@ -773,6 +899,9 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-11-09 12:55 UTC - Started on review 5826094140 by `da2ce7` (submitted 12:52 UTC, 11 inline findings, audited as F37 to F47 because the reviewer's IDs collide with earlier audit IDs). The fix commits were made between 12:55:03 and 13:02:12 UTC.
 - 2026-11-09 13:05 UTC - Pushed the fix commits; the pull-request head matched the local head before any reply.
 - 2026-11-09 13:06 UTC - Replied on all 11 threads (13:06:02 to 13:06:29 UTC) and resolved them, each returning `isResolved: true`.
+- 2026-11-09 15:45 UTC - Started on review 5826504727 by `da2ce7` (6 inline findings, audited as F54 to F59 because the reviewer's IDs collide with earlier audit IDs; the F17 re-raise is F57) and Copilot review 5826631352 (3 inline findings without IDs, audited as F60 to F62). The fix commits were made between 15:45 and 15:52 UTC.
+- 2026-11-09 15:55 UTC - Pushed the fix commits; the pull-request head matched the local head before any reply.
+- 2026-11-09 15:56 UTC - Replied on all nine threads (15:56:02 to 15:56:10 UTC) and resolved them, each returning `isResolved: true`.
 
 ## Completion Rules
 
