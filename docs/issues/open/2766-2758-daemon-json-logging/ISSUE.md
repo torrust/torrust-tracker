@@ -9,7 +9,7 @@ github-issue: 2766
 spec-path: docs/issues/open/2766-2758-daemon-json-logging/ISSUE.md
 branch: "2766-daemon-json-logging"
 related-pr: null
-last-updated-utc: "2026-11-09 12:12"
+last-updated-utc: "2026-11-09 13:21"
 semantic-links:
   skill-links:
     - create-issue
@@ -49,7 +49,7 @@ The global CLI output contract (`docs/adrs/20260519000000_define_global_cli_outp
 - Exit codes for a startup failure: configuration, semantic-validation and persistence-requirement errors are usage errors, exit `2`; a runtime failure such as a bind error or a composition failure is exit `1`. Today every startup failure returns `ExitCode::FAILURE` (`1`), so `src/main.rs` needs the mapping.
 - `Cli::parse()` in `src/main.rs` lets clap print plain-text argument errors on stderr and help on stdout. Use fallible parsing and emit JSON diagnostics and help instead (usage errors exit `2`), with automated and manual cases for `--unknown`, `-c ""` and `--help`.
 - The root tests that pin today's behavior: `tests/configuration/cli_configuration/invalid_sources.rs` (lines 60, 76, 92, 109, 127) assert exit `1` through `STARTUP_FAILURE_EXIT_CODE` (`tests/common/native_tracker/failed_start.rs:21`) and become exit `2` for configuration failures; `tests/common/native_tracker/health.rs` (line 68) takes everything after `Started on: http://` as the address, which a JSON line breaks, so the harness's readiness detection must follow the new format; `tests/lifecycle/shutdown_policy.rs:110` asserts `timeout_seconds=25` on the formatted text.
-- A startup failure currently produces two failure reports (`src/main.rs:45` logs `tracing::error!(%error, "Tracker startup failed")` and `src/main.rs:46` writes `report_startup_failure`), after the startup records already written ("Logging initialized" first). Keep exactly one record that carries the failure `kind` (remove the duplicate report) and state in the spec what the stream contains.
+- Startup failure reports. A runtime failure after logging has started produces two failure reports today (`src/main.rs:45` logs `tracing::error!(%error, "Tracker startup failed")` and `src/main.rs:46` writes `report_startup_failure`), after the startup records already written ("Logging initialized" first). A configuration failure happens before logging starts (`bootstrap::app::setup` loads and validates the configuration before `initialize_global_services`, `src/bootstrap/app.rs:56-64`), so only the `:46` line is written, with no "Logging initialized" before it (the evidence file shows this). In both cases keep exactly one record that carries the failure `kind` (remove the duplicate report) and state in the spec what the stream contains.
 - Keep test-helper logging working (`packages/test-helpers/src/logging.rs`).
 
 ### Out of Scope
@@ -90,7 +90,7 @@ This issue fixes a deviation from the CLI output contract, so it is bug work in 
 
 ## Regression Test Strategy
 
-Unit tests of the logging initialization, the root tests listed in Scope, (writer and format) and of the startup-failure record and exit-code mapping, plus the updated `logs_parser.rs` tests. They fail today (stdout, plain text, exit `1` for configuration errors). If a higher boundary is used instead, record why it is clearer or the only practical option; link red and green output and the final recheck to `manual-verification-evidence.md`.
+Unit tests of the logging initialization (writer and format) and of the startup-failure record and exit-code mapping, plus the updated `logs_parser.rs` tests and the root tests listed in Scope, updated to the new output. The new unit tests fail today (stdout, plain text, exit `1` for configuration errors); the existing root tests pass today and pin the old output, so they are changed rather than added. If a higher boundary is used instead, record why it is clearer or the only practical option; link red and green output and the final recheck to `manual-verification-evidence.md`.
 
 ## Implementation Plan
 
@@ -139,6 +139,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-11-06 16:52 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the spec; GitHub issue #2766 created.
 - 2026-11-09 10:25 UTC - Claude Code (Claude Sonnet 5.5) - Corrected details after the review rounds on PR 2771 and PR 2774 and fixed the earlier log stamps from the commit and issue creation times.
 - 2026-11-09 12:12 UTC - Claude Code (Claude Sonnet 5.5) - Addressed the review of PR 2771 (da2ce7 findings F1 to F27 and Copilot's later comments): specs corrected from the code, reproductions recorded where a spec has a bug-fix section.
+- 2026-11-09 13:21 UTC - Claude Code (Claude Sonnet 5.5) - Addressed da2ce7's review 5826238636 of PR 2771 on this spec.
 
 ## Acceptance Criteria
 
@@ -147,6 +148,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - [ ] AC3: A configuration error exits `2` and a runtime startup failure (for example a bind error) exits `1`; in both, exactly one record on stderr carries the failure `kind`.
 - [ ] AC4: `logs_parser.rs` and its tests follow the new format.
 - [ ] AC5: The operator-visible change is documented.
+- [ ] AC6: Argument errors (`--unknown`, `-c ""`) and `--help` follow the contract (JSON, usage errors exit `2`), proven by M2c.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
@@ -170,6 +172,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | M1 | Normal run | `torrust-tracker 2>err >out`, then stop it | `out` empty; `jq . err` parses every line | TODO | `manual-verification-evidence.md` section V1 |
 | M2 | Configuration error | Run with a bad config path | Exactly one failure record, exit `2` | TODO | `manual-verification-evidence.md` section V2 |
 | M2b | Runtime startup failure | Run with a port already in use | Exactly one failure record, exit `1` | TODO | `manual-verification-evidence.md` section V2b |
+| M2c | Argument errors and help | `torrust-tracker --unknown`, `torrust-tracker -c ""` and `torrust-tracker --help`, each with stdout and stderr redirected to files | Usage errors: JSON diagnostic on stderr, exit `2`, stdout empty; help: JSON on stdout, exit `0` (or the form the issue decides), no plain text | TODO | `manual-verification-evidence.md` section V2c |
 | M3 | Container | Run the container image and read `docker logs` | JSON lines; e2e parser still finds the services | TODO | `manual-verification-evidence.md` section V3 |
 
 Manual verification is mandatory even when automated tests pass. Record actual commands, output and the toolchain that produced each result in `manual-verification-evidence.md` (from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`).
@@ -183,6 +186,7 @@ Manual verification is mandatory even when automated tests pass. Record actual c
 | AC3 | TODO |  |
 | AC4 | TODO |  |
 | AC5 | TODO |  |
+| AC6 | TODO |  |
 
 ## Risks and Trade-offs
 

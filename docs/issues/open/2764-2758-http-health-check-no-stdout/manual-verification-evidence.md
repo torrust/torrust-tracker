@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2764-2758-http-health-check-no-stdout/ISSUE.md
-last-updated-utc: 2026-11-09 12:12
+last-updated-utc: 2026-11-09 13:21
 ---
 
 # Manual Verification Evidence
@@ -44,4 +44,4 @@ stderr (0 bytes):
 
 #### Observed Result
 
-Usage error: plain text on stderr and exit `1` (the contract requires JSON and exit `2`). Unreachable endpoint: plain text on stdout (`Health check ...`, `ERROR: ...`), nothing on stderr, exit `1`. The healthy case was not run here (it needs a running tracker). Running the same probe inside a pseudo-terminal (`script -qec`) gives the same output and `rc=1`.
+Usage error: plain text on stderr and exit `1` (the contract requires JSON and exit `2`). Unreachable endpoint: plain text on stdout (`Health check ...`, `ERROR: ...`), nothing on stderr, exit `1`. The healthy case was not run here (it needs a running tracker). The same probe inside a pseudo-terminal, run at 13:20 UTC, gives the same output and `rc=1`: `script -qec 'target/debug/http_health_check http://127.0.0.1:9/health_check; rc=$?; echo "rc=$rc"; exit "$rc"' /dev/null` printed `Health check ...`, `ERROR: error sending request for url (http://127.0.0.1:9/health_check)` and `rc=1`, and `script` exited `1`.

@@ -1,14 +1,14 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2768-2758-tracker-client-json-only/ISSUE.md
-last-updated-utc: 2026-11-09 12:39
+last-updated-utc: 2026-11-09 13:21
 ---
 
 # Manual Verification Evidence
 
 ## Environment and Prerequisites
 
-- Date and time (UTC): 2026-11-09 12:11 to 12:13
+- Date and time (UTC): 2026-11-09 12:11 to 12:13; the pseudo-terminal re-run shown below was done after Copilot's comment of 12:34:57 UTC and before the commit of 12:40:44 UTC (the exact minute was not recorded)
 - Artifact under test: the unchanged tool, built from the tree of the commit `Merge torrust/develop into 2758-cli-output-contract-tools-migration-spec` (develop with the EPIC specs; no code of this issue yet)
 - Operating system / environment: Linux; stable Rust toolchain 1.99.1 (`rustc 1.99.1`, `cargo 1.99.1`); binaries built with `cargo build` (debug) and run directly from `target/debug/`, stdout and stderr redirected to files (stdout is not a terminal)
 - Prerequisites and setup performed: none beyond the build

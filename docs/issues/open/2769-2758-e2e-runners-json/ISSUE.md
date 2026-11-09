@@ -9,7 +9,7 @@ github-issue: 2769
 spec-path: docs/issues/open/2769-2758-e2e-runners-json/ISSUE.md
 branch: "2769-e2e-runners-json"
 related-pr: null
-last-updated-utc: "2026-11-09 12:39"
+last-updated-utc: "2026-11-09 13:21"
 semantic-links:
   skill-links:
     - create-issue
@@ -43,7 +43,7 @@ The global CLI output contract (`docs/adrs/20260519000000_define_global_cli_outp
 
 - `tracing` to stderr as JSON; nothing on stdout.
 - Failures as one JSON record with a `kind`; usage errors exit `2`.
-- `src/console/ci/e2e/runner.rs` logs the tracker configuration verbatim (`tracing::info!("tracker config:\n{tracker_config}")`), and `src/console/ci/e2e/tracker_checker.rs:13` logs the checker configuration; both can include credentials. ADR section 7 forbids secrets in output: mask secret values before logging and add a test. No tracing macro under `src/console/ci/qbittorrent_e2e/` logs a configuration, so nothing to mask there.
+- `src/console/ci/e2e/runner.rs` logs the tracker configuration verbatim (`tracing::info!("tracker config:\n{tracker_config}")`), and `src/console/ci/e2e/tracker_checker.rs:13` logs the checker configuration. Only the tracker configuration can carry a secret: the checker's argument is the JSON of `RunningServices` (`runner.rs:117-118`), three lists of addresses that `logs_parser.rs` matches as scheme, IP and port, so it is masked only as a precaution (same helper, no separate test needed). ADR section 7 forbids secrets in output: mask secret values of the tracker configuration before logging and add a test. No tracing macro under `src/console/ci/qbittorrent_e2e/` logs a configuration, so nothing to mask there.
 - Child processes inherit the runner's streams: `src/console/ci/e2e/tracker_checker.rs` runs `cargo run ...` with `.status()`, and `src/console/ci/e2e/docker.rs` (lines 41, 110, 128) and `src/console/ci/compose.rs` (line 104) run `docker` the same way, so the children's stdout and the plain text of `cargo` and `docker` reach the runner's channels, and `AC1`/`AC2` cannot hold. Capture each child's stdout and stderr and report them as JSON records (or discard them), for every runner path, normal and cleanup. Once `tracker_client` refuses a TTY (issue 2768), a checker child that inherits the terminal exits `2` and the runner panics (`runner.rs` calls `.expect` on it, exit status `101`), so capturing the checker's stdout is required, and an interactive run must be verified.
 - Update tests and docs that show the runner output.
 
@@ -94,7 +94,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | ------ | ---- | ----------------------- |
 | T1 | TODO | Tracing and error output to JSON on stderr | Tests green. |
 | T2 | TODO | Usage errors exit `2` | Test. |
-| T3 | TODO | Run both runners locally | Evidence recorded. |
+| T3 | TODO | Capture the output of the child processes (`cargo`, `docker`, `docker compose`, the checker) and report it as JSON | AC5; the helper from the Design and Ownership Review. |
+| T4 | TODO | Run both runners locally | Evidence recorded. |
 
 ## Commit Points
 
@@ -102,7 +103,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ---- | ------------------- | ------------- |
 | T1 | Tracing and error output to JSON on stderr | Commit after focused validation and required review. |
 | T2 | Usage errors exit `2` | Commit after focused validation and required review. |
-| T3 | Run both runners locally | Commit after focused validation and required review. |
+| T3 | Capture the output of the child processes and report it as JSON | Commit after focused validation and required review. |
+| T4 | Run both runners locally | Commit after focused validation and required review. |
 
 Use a Conventional Commit message with the narrow affected scope, and sign every commit with GPG. For test-producing work, use the `write-unit-test` skill and complete the design review it requires before each commit.
 
@@ -130,6 +132,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-11-09 10:25 UTC - Claude Code (Claude Sonnet 5.5) - Corrected details after the review rounds on PR 2771 and PR 2774 and fixed the earlier log stamps from the commit and issue creation times.
 - 2026-11-09 12:12 UTC - Claude Code (Claude Sonnet 5.5) - Addressed the review of PR 2771 (da2ce7 findings F1 to F27 and Copilot's later comments): specs corrected from the code, reproductions recorded where a spec has a bug-fix section.
 - 2026-11-09 12:39 UTC - Claude Code (Claude Sonnet 5.5) - Addressed Copilot's latest review of PR 2771: filled the Design and Ownership Review for the child-process work and corrected the pseudo-terminal check in the evidence.
+- 2026-11-09 13:21 UTC - Claude Code (Claude Sonnet 5.5) - Addressed da2ce7's review 5826238636 of PR 2771 on this spec.
 
 ## Acceptance Criteria
 
@@ -138,7 +141,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - [ ] AC3: A failure exits `1` with a `kind`; a usage error exits `2`.
 - [ ] AC4: The tracker and checker configurations are logged with secret values masked.
 - [ ] AC5: No child process (`cargo`, `docker`, `docker compose`, the checker) writes to the runner's stdout or stderr; its output is captured and reported as JSON records, in the normal and cleanup paths.
-- [ ] AC6: A run from an interactive terminal works (the checker child does not exit `2`).
+- [ ] AC6: The checker child's stdout is captured, so a run from an interactive terminal does not meet the TTY refusal that issue 2768 adds; the interactive case itself is verified in M4 of issue 2768 and is not a pass condition of this issue alone.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
@@ -161,6 +164,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | --- | -------- | ---------------------------- | --------------- | ------ | -------- |
 | M1 | e2e run | `cargo build -p torrust-tracker-e2e-tools --bins`, then `target/debug/e2e_tests_runner ... >out 2>err` (not `cargo run`, which adds plain cargo messages on stderr; `torrust-tracker-e2e-tools` is not a default workspace member) | `out` empty, `err` NDJSON, exit as expected | TODO | `manual-verification-evidence.md` section V1 |
 | M2 | qBittorrent run | Same with `target/debug/qbittorrent_e2e_runner` | Same | TODO | `manual-verification-evidence.md` section V2 |
+| M3 | Captured child output | Run `target/debug/e2e_tests_runner ... >out 2>err` and check that `out` is empty and every line of `err` parses with `jq -c .`, including the lines that came from `cargo`, `docker` and the checker | No plain `cargo` or `docker` text on either channel | TODO | `manual-verification-evidence.md` section V3 |
 
 Manual verification is mandatory even when automated tests pass. Record actual commands, output and the toolchain that produced each result in `manual-verification-evidence.md` (from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`).
 

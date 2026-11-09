@@ -9,7 +9,7 @@ github-issue: 2765
 spec-path: docs/issues/open/2765-2758-remove-deprecated-tracker-clients/ISSUE.md
 branch: "2765-remove-deprecated-tracker-clients"
 related-pr: null
-last-updated-utc: "2026-11-09 12:39"
+last-updated-utc: "2026-11-09 13:21"
 semantic-links:
   skill-links:
     - create-issue
@@ -44,7 +44,7 @@ The global CLI output contract (`docs/adrs/20260519000000_define_global_cli_outp
 - Delete or migrate their tests so coverage of the shared code is kept through `tracker_client`.
 - Update README, `docs/packages.md` and any doc or config that tells the reader to run them.
 - Add the breaking-change note.
-- Migrate `src/console/ci/e2e/tracker_checker.rs`, which launches `cargo run -p torrust-tracker-client --bin tracker_checker` for the e2e runner, to the unified `tracker_client check` (keeping `TORRUST_CHECKER_CONFIG`), so the e2e runner still works. That helper uses `Command::status()`, so the child inherits the runner's stdout; once issue 2768 adds TTY refusal to `tracker_client`, the checker child of an e2e run from a terminal would exit `2`, `tracker_checker::run` would turn that into an error and `runner.rs` would panic with exit status `101`. Capture the child's stdout (and forward or log it as JSON) when migrating the caller, and verify an interactive invocation of the e2e runner; check the e2e runner and any workflow that calls it.
+- Migrate `src/console/ci/e2e/tracker_checker.rs`, which launches `cargo run -p torrust-tracker-client --bin tracker_checker` for the e2e runner, to the unified `tracker_client check` (keeping `TORRUST_CHECKER_CONFIG`), so the e2e runner still works. That helper uses `Command::status()`, so the child inherits the runner's stdout; once issue 2768 adds TTY refusal to `tracker_client`, the checker child of an e2e run from a terminal would exit `2`, `tracker_checker::run` would turn that into an error and `runner.rs` would panic with exit status `101`. Capture the child's stdout (and forward or log it as JSON) when migrating the caller; check the e2e runner and any workflow that calls it. The interactive-terminal case needs the TTY refusal, which arrives with issue 2768, and is verified there (M4).
 
 ### Out of Scope
 
@@ -130,6 +130,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-11-09 11:26 UTC - Claude Code (Claude Sonnet 5.5) - Corrected details after the round 3 review of PR 2774.
 - 2026-11-09 12:12 UTC - Claude Code (Claude Sonnet 5.5) - Addressed the review of PR 2771 (da2ce7 findings F1 to F27 and Copilot's later comments): specs corrected from the code, reproductions recorded where a spec has a bug-fix section.
 - 2026-11-09 12:39 UTC - Claude Code (Claude Sonnet 5.5) - Addressed Copilot's latest review of PR 2771: filled the Design and Ownership Review for the child-process work and corrected the pseudo-terminal check in the evidence.
+- 2026-11-09 13:21 UTC - Claude Code (Claude Sonnet 5.5) - Addressed da2ce7's review 5826238636 of PR 2771 on this spec.
 
 ## Acceptance Criteria
 
