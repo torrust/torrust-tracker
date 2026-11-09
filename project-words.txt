@@ -482,6 +482,7 @@ rngs
 rollup
 rosegment
 routable
+rqbit
 rsplit
 rstest
 rstrip
@@ -603,6 +604,7 @@ ureq
 urlencode
 uroot
 usize
+utoipa
 valgrind
 valueonly
 valuevec

@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2761-2758-reply-status-result/ISSUE.md
-last-updated-utc: 2026-11-06 21:04
+issue-spec: docs/issues/closed/2761-2758-reply-status-result/ISSUE.md
+last-updated-utc: 2026-11-09 10:23
 ---
 
 # Manual Verification Evidence
