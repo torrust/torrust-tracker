@@ -68,7 +68,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F23 | review-finding:pr-2752-f23 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F24 | review-finding:pr-2752-f24 | Human | Major | documentation | ORIGINAL | FIXED | RESOLVED |
 | F25 | review-finding:pr-2752-f25 | Human | Minor | documentation | RE_RAISE_OF:F16 | FIXED | RESOLVED |
-| F26 | review-finding:pr-2752-f26 | Human | Minor | documentation | ORIGINAL | FOLLOW_UP | OPEN |
+| F26 | review-finding:pr-2752-f26 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F27 | review-finding:pr-2752-f27 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F28 | review-finding:pr-2752-f28 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F29 | review-finding:pr-2752-f29 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
@@ -414,11 +414,11 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Reviewer finding ID: F18
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512170083
 - Concern: The maintainer's two confirmations exist only in the author's own records; the capture holds no comment from the maintainer's account.
-- Solution: Cannot be fixed by an edit. The maintainer is asked to state the confirmations on the PR; the spec will then cite that comment.
-- Current-tree verification: The spec says the confirmations were given in chat on 2026-11-09; no maintainer comment exists on the PR yet.
-- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2752#discussion_rhttps://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512599200
+- Solution: The maintainer posted their own comment on the PR, https://github.com/torrust/torrust-tracker/pull/2752#issuecomment-6740143243, and the spec cites it at both confirmations. The first reply was a FOLLOW_UP; the second reply, cited below, reports the fix.
+- Current-tree verification: `grep -n "comment on PR 2752" ISSUE.md` prints the two lines that cite the maintainer's comment.
+- Resolution reference: docs(issues): [#2751] cite the maintainer's comment for the support-window confirmations
 - Follow-up PR URL: N/A
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_rhttps://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512599200
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512769396
 
 ### F27 - Name the LaunchRequest type and its rx_halt field
 
@@ -570,6 +570,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-11-09 12:15 UTC - Pushed the fix commits and checked the pull-request head against the local head, before any reply.
 - 2026-11-09 12:15 UTC - Replied on all 13 threads (12:15:26 to 12:15:56 UTC). The F26 reply is a FOLLOW_UP: it needs the maintainer's comment on the PR.
 - 2026-11-09 12:16 UTC - Resolved the 12 fixed threads, each returning `isResolved: true`; the F26 thread stays open.
+- 2026-11-09 12:32 UTC - The maintainer posted a comment on PR 2752 (12:32:35 UTC, from `josecelano`, at the maintainer's request) confirming the root-type conclusion and the end of the 0.5.x window. The spec cites it in a commit made at 12:32:55 UTC and pushed; the pull-request head matched the local head afterwards.
+- 2026-11-09 12:36 UTC - Replied on the F26 thread (12:36:09 UTC) and resolved it, which returned `isResolved: true`. All threads of the five rounds are now resolved.
 
 ## Completion Rules
 
