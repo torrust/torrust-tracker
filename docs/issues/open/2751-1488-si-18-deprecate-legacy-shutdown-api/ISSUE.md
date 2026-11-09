@@ -143,9 +143,9 @@ that are already public).
 Other decisions of 2026-11-06:
 
 - The `torrust-server-lib` 0.5.0 dependency bump lands in the implementation PR, not the spec PR.
-- Ordering: #2482 rows 6 and 7 edit `axum-rest-api-server` and `axum-health-check-api-server`; the
-  implementation PR must be coordinated with the #2482 coordinator to avoid conflicts in `Cargo.toml` and test
-  environment files.
+- Ordering: #2482 row 6 (`axum-rest-api-server`, #2745) is merged on `develop`; only row 7
+  (`axum-health-check-api-server`, #2757) remains open. The implementation PR must be coordinated with the #2482
+  coordinator for row 7, to avoid conflicts in `Cargo.toml` and test environment files.
 
 ## Scope
 
@@ -335,8 +335,8 @@ None.
 
 ## Risks and Trade-offs
 
-- #2482 rows 6 and 7 edit two of the affected crates; ordering is coordinated
-  to avoid conflicts in `Cargo.toml` and test environment files.
+- #2482 row 7 (#2757) still edits one of the affected crates, `axum-health-check-api-server`; ordering is
+  coordinated to avoid conflicts in `Cargo.toml` and test environment files. Row 6 has already landed.
 - The five package crates are unpublished and #2583 publishes them only after
   EPIC #1488 closes, so SI-19 removes their legacy symbols before any public
   release and no support window applies to them (see Versioning Decisions).
