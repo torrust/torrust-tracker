@@ -122,7 +122,8 @@ current version at the end of #1669; the root `torrust-tracker` next releases as
   date. The window ends when the maintainer approves publishing 0.6.0, and the maintainer publishes 0.6.0 from the
   `torrust-server-lib` repository as part of SI-19, after that approval. The SI-19 start gate therefore waits for
   the approval, not for the 0.6.0 publication, which SI-19 itself produces.
-- `HaltSignal` and `NestedServerTask` are deprecated only, not deleted.
+- SI-18 only deprecates `HaltSignal` and `NestedServerTask`; it does not delete them. SI-19 removes them, under
+  the conditions in the derived paragraph below.
 
 Derived from the tree, then confirmed by the maintainer on 2026-11-09 ("we do not need a support window"): the root
 `HaltSignal` and `NestedServerTask` were added after the published 3.0.0 (commit `3ee28b723`, "adopt JoinSet
