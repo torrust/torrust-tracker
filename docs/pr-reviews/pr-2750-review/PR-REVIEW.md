@@ -1,7 +1,7 @@
 ---
 pr-number: 2750
 pr-url: https://github.com/torrust/torrust-tracker/pull/2750
-last-updated-utc: "2026-11-09 10:56"
+last-updated-utc: "2026-11-09 11:18"
 ---
 
 # PR #2750 Review Audit
@@ -99,6 +99,7 @@ Round 2: Copilot review 5802998503 on the head `36cc80c49` (three inline finding
 - 2026-11-06 16:50 UTC - Round 2 (Copilot review 5802998503, submitted before the merge, processed after it): maintainer approval comment recorded in Ownership; F2 to F4 fixed in the three commits cited above on the follow-up PR https://github.com/torrust/torrust-tracker/pull/2756, replied on the merged PR's threads; threads stay open and the findings stay `FOLLOW_UP` until the follow-up PR merges.
 - 2026-11-06 16:58 UTC - Correction: the entries stamped 14:10 UTC and 16:50 UTC were already in commits made earlier, so those times are wrong; the entries are kept unchanged. The evidenced times are: round 1 audit committed 14:07:53 UTC (`36cc80c49`); round 2 replies posted 16:35:14 to 16:35:19 UTC and the round 2 audit committed 16:35:44 UTC (`973816c66`). Round 3 (Copilot review 5803833977 on the follow-up PR https://github.com/torrust/torrust-tracker/pull/2756, submitted 16:55:54 UTC): the three findings are valid and fixed in this commit. Resolution references of F2 to F4 are now their reply URLs and the fix commit subjects moved into Solution; the F3 verification command no longer matches itself.
 - 2026-11-09 10:56 UTC - Close-out: the follow-up pull request #2756 merged on 2026-11-09 10:47 UTC (merge commit subject: `Merge torrust/torrust-tracker#2756: fix(wait-for-pr-review): [#2712] address Copilot's review submitted before the merge of #2750`). F2 to F4 changed from `FOLLOW_UP` to `FIXED`, their resolution references are the fix commit subjects, and the three threads were resolved at the maintainer's permission, as shown by a GraphQL mutation result of `isResolved: true` for each.
+- 2026-11-09 11:18 UTC - Addition to the close-out entry: the GraphQL thread query was refreshed after the three threads were resolved and before commit 1dce70e8e (made at 10:56:47 UTC). It returned four threads on PR 2750, all with `isResolved: true`, so zero unresolved actionable threads remained.
 
 ## Completion Rules
 
