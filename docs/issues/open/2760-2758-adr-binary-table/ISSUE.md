@@ -9,7 +9,7 @@ github-issue: 2760
 spec-path: docs/issues/open/2760-2758-adr-binary-table/ISSUE.md
 branch: "2760-adr-binary-table"
 related-pr: null
-last-updated-utc: "2026-11-09 10:40"
+last-updated-utc: "2026-11-09 11:27"
 semantic-links:
   skill-links:
     - create-issue
@@ -112,6 +112,8 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-11-06 16:51 UTC - Claude Code (Claude Sonnet 5.5) - Drafted this spec as part of EPIC #2758 from the 2026-11-06 audit; the maintainer approved it and GitHub issue #2760 was created (time from the issue `created_at` on GitHub; PR #2771 commits the spec at 16:54 UTC).
 - 2026-11-06 17:16 UTC - Claude Code (Claude Sonnet 5.5) - T1 decision: `workspace-coupling` is `no-stdout-result` (report goes to a file, only NDJSON status on stderr). T2: table edited; `linter all` passed.
 - 2026-11-06 20:53 UTC - Claude Code (Claude Sonnet 5.5) - Implementation completion review: the result matches the spec; the only decision to make during implementation was the `workspace-coupling` class (`no-stdout-result`, recorded above) and no assumption was invalidated, so no retrospective is needed. Evidence file rewritten to the template after the Copilot review of PR #2774.
+- 2026-11-09 10:27 UTC - Claude Code (Claude Sonnet 5.5) - Ran `linter all` after the second review round edits (table `N/A` row, exit codes, evidence rewrite): exit 0; the output is pasted in `manual-verification-evidence.md` section V2.
+- 2026-11-09 11:27 UTC - Claude Code (Claude Sonnet 5.5) - Ran `linter all` after the third review round edits (the `github-review-threads` note, evidence wording, audit rows), before adding this entry: exit 0.
 
 ## Acceptance Criteria
 

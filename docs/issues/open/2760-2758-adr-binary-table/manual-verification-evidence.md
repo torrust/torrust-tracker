@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2760-2758-adr-binary-table/ISSUE.md
-last-updated-utc: "2026-11-09 10:30"
+last-updated-utc: "2026-11-09 11:27"
 ---
 
 # Manual Verification Evidence
@@ -27,7 +27,7 @@ Record the real comparison of the ADR binary table with the EPIC #2758 audit and
 
 #### Steps Performed
 
-Run one at a time, in this order, on 2026-11-09 (UTC times in the output below):
+Steps 2 to 5 ran at 10:24:28 UTC on 2026-11-09. Step 1 was rerun at 10:26:01 UTC with the `awk` form, after its first form (`cut`) failed the spell check, so the stamps below are not in the listed order:
 
 1. ``grep -n '^| `' docs/adrs/20260519000000_define_global_cli_output_contract.md | awk -F'|' '{print $1 "|" $2 "|" $3 "|"}'`` to list the table rows and classes (`awk` only drops the notes column).
 2. `grep -n 'println!\|eprintln!' src/bin/http_health_check.rs` to check the `http_health_check` output claim.
@@ -135,7 +135,7 @@ exit=0
 
 #### Conclusion
 
-`linter all` exited 0. Met. The final run after this section was added is recorded in the progress log of the spec.
+`linter all` exited 0. Met. The final run after the later edits is recorded in the progress log of the spec.
 
 ## Failures and Follow-up
 

@@ -87,7 +87,7 @@ All diagnostics go to stderr via the tracing subscriber or direct JSON stderr wr
 | `shipped-features-check`        | `no-stdout-result`   | Shipped-binary feature check; NDJSON diagnostics on stderr                                                                  |
 | `agent-review-report-contract`  | `no-stdout-result`   | Review report check; currently non-compliant (plain-text success line on stdout, plain-text failures on stderr), migration issue #2763 |
 | `workspace-coupling`            | `no-stdout-result`   | Writes its Markdown report to a file (`OUTPUT_FILE`), nothing on stdout; NDJSON status events on stderr                     |
-| `github-review-threads`         | `stdout-result-data` | GitHub CLI review-thread results and JSON diagnostics; currently non-compliant for `reply-status` (a missing reply exits `1`), migration issue #2761 |
+| `github-review-threads`         | `stdout-result-data` | GitHub CLI review-thread results and JSON diagnostics; a missing reply is a result (exit `0`)                                |
 | `ci-gate`                       | `stdout-result-data` | Needed job groups or the merge verdict as JSON; JSON diagnostics                                                            |
 | `wait-for-pr-review`            | `stdout-result-data` | PR review event or timeout as JSON; a timeout is a result (exit `0`)                                                          |
 | `package-coverage-check`        | `stdout-result-data` | Coverage matrix, comparison and summary; currently non-compliant (plain-text errors, usage error exits `1`), migration issue #2762 |
