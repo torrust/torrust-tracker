@@ -241,7 +241,7 @@ Other decisions of 2026-11-06:
   signal API (see the split above).
 - SI-2's additive server lifecycle API is released and documented.
 - #1588 revalidates the final supported-consumer inventory.
-- Q5's process-wrapper verification rule is reflected in release notes and
+- Q5's process-wrapper verification rule is reflected in the `torrust-server-lib` release notes and
   removal planning.
 
 ## Architectural Decisions
@@ -312,7 +312,7 @@ Arrange-Act-Assert design review in task evidence, and sign every commit with GP
 
 ## Rollback
 
-Remove only the deprecation attributes, migration text, and release-note entry.
+Remove only the deprecation attributes and migration text.
 Because this task does not remove or alter legacy behavior, reverting it is
 source-compatible and has no runtime impact. The dependency bump to
 `torrust-server-lib` 0.5.0 can stay or be reverted independently.
