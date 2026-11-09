@@ -102,6 +102,11 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F60 | review-finding:pr-2752-f60 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 | F61 | review-finding:pr-2752-f61 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
 | F62 | review-finding:pr-2752-f62 | Copilot | Nit (inferred) | metadata | ORIGINAL | FIXED | RESOLVED |
+| F63 | review-finding:pr-2752-f63 | Human | Major | documentation | ORIGINAL | FIXED | RESOLVED |
+| F64 | review-finding:pr-2752-f64 | Human | Minor | maintainability | RE_RAISE_OF:F56 | FIXED | RESOLVED |
+| F65 | review-finding:pr-2752-f65 | Human | Nit | documentation | RE_RAISE_OF:F36 | FIXED | RESOLVED |
+| F66 | review-finding:pr-2752-f66 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F67 | review-finding:pr-2752-f67 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -872,6 +877,71 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4514804277
 
+### F63 - Label the release-note rule as derived and unconfirmed
+
+- PR number: 2752
+- Source review ID: 5829092406
+- Reviewer finding ID: F36
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4515210641
+- Concern: A release-note rule written on 2026-11-09 sat under the list headed as decided by the maintainer on 2026-11-06 and was called a decision, though the maintainer has not confirmed it.
+- Solution: Removed the bullet from the dated list, added a paragraph labelling the rule derived and not yet confirmed (part of the review the maintainer reserved), and aligned Scope, Requirement 4, T5 and the proposal paragraph.
+- Current-tree verification: Read the spec at the head: Versioning Decisions carries the labelled paragraph, and Scope, Requirement 4 and T5 say "derived, not yet confirmed".
+- Resolution reference: docs(issues): [#2751] label the SI-18 release-note rule as derived and unconfirmed
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4515332548
+
+### F64 - State the commit-id check without the id
+
+- PR number: 2752
+- Source review ID: 5829092406
+- Reviewer finding ID: F35
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4515210651
+- Concern: The F56 row's own command quoted the commit id the log entry had dropped, and its recorded count was wrong at the head.
+- Solution: Stated the verification without the id: the round 7 log entry names no commit.
+- Current-tree verification: Read the log entry; no id is quoted in the row.
+- Resolution reference: docs(pr-reviews): [#2751] record only what ran in three PR 2752 audit entries
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4515333045
+
+### F65 - Name the 15:46 UTC run in the evidence
+
+- PR number: 2752
+- Source review ID: 5829092406
+- Reviewer finding ID: F24
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4515210661
+- Concern: "All output in this file is from that rerun" no longer held after Step 5 was rerun at 15:46 UTC.
+- Solution: Named the 15:46:04 UTC run of Step 5 in Environment as the exception and pointed to it from Steps Performed.
+- Current-tree verification: Read Environment and Steps Performed in the evidence file.
+- Resolution reference: docs(issues): [#2751] name the 15:46 UTC run of step 5 in the SI-18 evidence
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4515333587
+
+### F66 - Record the forge's reply window
+
+- PR number: 2752
+- Source review ID: 5829092406
+- Reviewer finding ID: F37
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4515210671
+- Concern: The recorded reply window did not match the forge's created_at times.
+- Solution: Recorded the forge's window for the nine replies (15:55:40 to 15:56:00 UTC) and said the resolves began at 15:56:02 UTC.
+- Current-tree verification: Read the round 8 log entry; the window is the `created_at` of the nine replies as the forge returns them.
+- Resolution reference: docs(pr-reviews): [#2751] record only what ran in three PR 2752 audit entries
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4515334063
+
+### F67 - Record what was read for the release-note rule
+
+- PR number: 2752
+- Source review ID: 5829092406
+- Reviewer finding ID: F38
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4515210677
+- Concern: A verification line claimed a grep output it did not show.
+- Solution: Replaced it with a statement of what was read in the spec.
+- Current-tree verification: Read the F54 row.
+- Resolution reference: docs(pr-reviews): [#2751] record only what ran in three PR 2752 audit entries
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4515334508
+
 ## Processing Log
 
 - 2026-11-06 14:26 UTC - Copilot review 5801499766 submitted with 8 inline findings (F1 to F8); F5 re-raises F4.
@@ -902,6 +972,9 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-11-09 15:45 UTC - Started on review 5826504727 by `da2ce7` (6 inline findings, audited as F54 to F59 because the reviewer's IDs collide with earlier audit IDs; the F17 re-raise is F57) and Copilot review 5826631352 (3 inline findings without IDs, audited as F60 to F62). The fix commits were made between 15:45 and 15:52 UTC.
 - 2026-11-09 15:55 UTC - Pushed the fix commits; the pull-request head matched the local head before any reply.
 - 2026-11-09 15:56 UTC - Replied on all nine threads (the forge's `created_at` runs from 15:55:40 to 15:56:00 UTC) and resolved them from 15:56:02 UTC, each returning `isResolved: true`.
+- 2026-11-09 16:35 UTC - Started on review 5829092406 by `da2ce7` (submitted 16:32 UTC, 5 inline findings, audited as F63 to F67 because the reviewer's IDs collide with earlier audit IDs; F64 and F65 are re-raises). The fix commits were made between 16:37 and 16:39 UTC.
+- 2026-11-09 16:41 UTC - Pushed the fix commits; the pull-request head matched the local head before any reply.
+- 2026-11-09 16:44 UTC - Replied on all five threads (the forge's `created_at` runs from 16:44:13 to 16:44:25 UTC) and resolved them, each returning `isResolved: true`.
 
 ## Completion Rules
 
