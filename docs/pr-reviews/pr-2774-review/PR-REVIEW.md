@@ -1,7 +1,7 @@
 ---
 pr-number: 2774
 pr-url: https://github.com/torrust/torrust-tracker/pull/2774
-last-updated-utc: "2026-11-09 10:30"
+last-updated-utc: "2026-11-09 10:33"
 ---
 
 # PR #2774 Review Audit
@@ -233,7 +233,7 @@ Round 1: Copilot review 5806242087 (12 inline findings). F1 and F2 concern this 
 - Current-tree verification: ADR section 3 text and the last table row (`N/A`); the `AC1` line of the 2760 spec says the same.
 - Resolution reference: docs(adrs): [#2760] address the second review round of PR 2774
 - Follow-up PR URL: N/A
-- Reply URL: PENDING_4500658731
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2774#discussion_r4511734776
 
 ### F14 - Progress log entries are out of chronological order
 
@@ -246,7 +246,7 @@ Round 1: Copilot review 5806242087 (12 inline findings). F1 and F2 concern this 
 - Current-tree verification: The 2760 spec log reads 16:51, 17:16, 20:53 UTC in order.
 - Resolution reference: docs(adrs): [#2760] address the second review round of PR 2774
 - Follow-up PR URL: N/A
-- Reply URL: PENDING_4500658759
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2774#discussion_r4511735253
 
 ### F15 - Exit codes in table notes lack backticks
 
@@ -259,7 +259,7 @@ Round 1: Copilot review 5806242087 (12 inline findings). F1 and F2 concern this 
 - Current-tree verification: `grep -n 'exit [0-9]\|exits [0-9]'` on the ADR prints nothing.
 - Resolution reference: docs(adrs): [#2760] address the second review round of PR 2774
 - Follow-up PR URL: N/A
-- Reply URL: PENDING_4500658770
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2774#discussion_r4511735713
 
 ### F16 - The audit stops at round 1: round 2 is unprocessed
 
@@ -272,7 +272,7 @@ Round 1: Copilot review 5806242087 (12 inline findings). F1 and F2 concern this 
 - Current-tree verification: This audit now has rows for review 5810776921; refreshed GraphQL data is recorded in the log.
 - Resolution reference: docs(pr-reviews): [#2760] audit the second review round of PR 2774
 - Follow-up PR URL: N/A
-- Reply URL: PENDING_4510659744
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2774#discussion_r4511736108
 
 ### F17 - `(deprecated)` is a third value in the `Class` column, against the ADR rule
 
@@ -285,7 +285,7 @@ Round 1: Copilot review 5806242087 (12 inline findings). F1 and F2 concern this 
 - Current-tree verification: ADR section 3 text and the 2760 spec `AC1` line.
 - Resolution reference: docs(adrs): [#2760] address the second review round of PR 2774
 - Follow-up PR URL: N/A
-- Reply URL: PENDING_4510659761
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2774#discussion_r4511736531
 
 ### F18 - Progress-log stamps are later than the commit that carries them
 
@@ -298,7 +298,7 @@ Round 1: Copilot review 5806242087 (12 inline findings). F1 and F2 concern this 
 - Current-tree verification: `git log --format=%cI` of the commits and the GitHub issue `created_at` (16:51:39Z) against each stamp.
 - Resolution reference: docs(adrs): [#2760] address the second review round of PR 2774
 - Follow-up PR URL: N/A
-- Reply URL: PENDING_4510659764
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2774#discussion_r4511737694
 
 ### F19 - The wave 1 file sets are not disjoint
 
@@ -309,9 +309,9 @@ Round 1: Copilot review 5806242087 (12 inline findings). F1 and F2 concern this 
 - Concern: 2765 and 2766 both list files under `share/default/config/`; issue 10 depends on issue 6 through `tracker_checker.rs`.
 - Solution: Handed to the #2771 coordinator (EPIC and specs 2765 and 2766 are not files of this issue).
 - Current-tree verification: The review names the lines; the files are outside this issue.
-- Resolution reference: PENDING_4510659773
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2774#discussion_r4511738141
 - Follow-up PR URL: https://github.com/torrust/torrust-tracker/pull/2771
-- Reply URL: PENDING_4510659773
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2774#discussion_r4511738141
 
 ### F20 - The audit cites a former PR-branch head by commit id
 
@@ -324,7 +324,7 @@ Round 1: Copilot review 5806242087 (12 inline findings). F1 and F2 concern this 
 - Current-tree verification: `grep -n 'bd84e405e' docs/pr-reviews/pr-2774-review/PR-REVIEW.md` prints nothing.
 - Resolution reference: docs(pr-reviews): [#2760] audit the second review round of PR 2774
 - Follow-up PR URL: N/A
-- Reply URL: PENDING_4510659779
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2774#discussion_r4511738479
 
 ### F21 - The description understates what this branch carries
 
@@ -335,9 +335,9 @@ Round 1: Copilot review 5806242087 (12 inline findings). F1 and F2 concern this 
 - Concern: The PR body says one spec commit is in the diff; the stack is five commits and 12 of 16 files come from it.
 - Solution: The PR body is rewritten to state the real stack and to drop the promise to rebase once it is kept (outside the tree; durable URL in the reply).
 - Current-tree verification: `gh pr view 2774` body after the edit.
-- Resolution reference: N/A
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2774#discussion_r4511738808
 - Follow-up PR URL: N/A
-- Reply URL: PENDING_4510659785
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2774#discussion_r4511738808
 
 ### F22 - `Current-tree verification` of the ten handed-off findings is second-hand
 
@@ -350,7 +350,7 @@ Round 1: Copilot review 5806242087 (12 inline findings). F1 and F2 concern this 
 - Current-tree verification: Rows F3 to F12 of this audit; the inspection found F12 only partly closed (see F23).
 - Resolution reference: docs(pr-reviews): [#2760] audit the second review round of PR 2774
 - Follow-up PR URL: N/A
-- Reply URL: PENDING_4510659793
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2774#discussion_r4511739169
 
 ### F23 - The replacement command names a package that does not exist
 
@@ -361,9 +361,9 @@ Round 1: Copilot review 5806242087 (12 inline findings). F1 and F2 concern this 
 - Concern: `cargo build -p e2e-tools --bins` should use the package name `torrust-tracker-e2e-tools`.
 - Solution: Handed to the #2771 coordinator (spec 2769 is not a file of this issue).
 - Current-tree verification: `packages/e2e-tools/Cargo.toml` line 4 names `torrust-tracker-e2e-tools`; spec 2769 lines 150-151 still say `e2e-tools`.
-- Resolution reference: PENDING_4510659799
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2774#discussion_r4511739562
 - Follow-up PR URL: https://github.com/torrust/torrust-tracker/pull/2771
-- Reply URL: PENDING_4510659799
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2774#discussion_r4511739562
 
 ### F24 - The spec checkboxes contradict what it records
 
@@ -376,7 +376,7 @@ Round 1: Copilot review 5806242087 (12 inline findings). F1 and F2 concern this 
 - Current-tree verification: `grep -n '^- \[ \]'` on the 2760 spec leaves only the spec-only-PR merge, reviewer, committer and close items.
 - Resolution reference: docs(adrs): [#2760] address the second review round of PR 2774
 - Follow-up PR URL: N/A
-- Reply URL: PENDING_4510659806
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2774#discussion_r4511739940
 
 ### F25 - `fetch-review-threads` does not describe the exit `1`
 
@@ -387,9 +387,9 @@ Round 1: Copilot review 5806242087 (12 inline findings). F1 and F2 concern this 
 - Concern: The EPIC row says both skills describe the exit `1`.
 - Solution: Handed to the #2771 coordinator (EPIC.md).
 - Current-tree verification: The review names the skill line; the file is outside this issue.
-- Resolution reference: PENDING_4510659814
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2774#discussion_r4511740595
 - Follow-up PR URL: https://github.com/torrust/torrust-tracker/pull/2771
-- Reply URL: PENDING_4510659814
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2774#discussion_r4511740595
 
 ### F26 - "plus the PR #2748 head" adds nothing
 
@@ -400,9 +400,9 @@ Round 1: Copilot review 5806242087 (12 inline findings). F1 and F2 concern this 
 - Concern: The audited base already contains PR #2748.
 - Solution: Handed to the #2771 coordinator (EPIC.md).
 - Current-tree verification: The review names the lines; the file is outside this issue.
-- Resolution reference: PENDING_4510659822
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2774#discussion_r4511740913
 - Follow-up PR URL: https://github.com/torrust/torrust-tracker/pull/2771
-- Reply URL: PENDING_4510659822
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2774#discussion_r4511740913
 
 ### F27 - The subject scope `docs(adr)` departs from `docs(adrs)`
 
@@ -413,9 +413,9 @@ Round 1: Copilot review 5806242087 (12 inline findings). F1 and F2 concern this 
 - Concern: The commit subject, and with it the PR title, use `docs(adr)`.
 - Solution: The PR title is changed to `docs(adrs)`. The existing commit subject is kept to avoid rewriting the branch history again; the merge subject comes from the title.
 - Current-tree verification: `git log --oneline` on `develop` uses `docs(adrs)`; the PR title now matches.
-- Resolution reference: PENDING_4510659839
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2774#discussion_r4511741226
 - Follow-up PR URL: N/A
-- Reply URL: PENDING_4510659839
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2774#discussion_r4511741226
 
 ### F28 - `Observed Result` is a digest rather than program output
 
@@ -428,7 +428,7 @@ Round 1: Copilot review 5806242087 (12 inline findings). F1 and F2 concern this 
 - Current-tree verification: `manual-verification-evidence.md` V1.
 - Resolution reference: docs(adrs): [#2760] address the second review round of PR 2774
 - Follow-up PR URL: N/A
-- Reply URL: PENDING_4510659843
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2774#discussion_r4511742309
 
 ### F29 - "epic-coordination process" names nothing in the tree
 
@@ -439,14 +439,16 @@ Round 1: Copilot review 5806242087 (12 inline findings). F1 and F2 concern this 
 - Concern: Spec 2770 cites a process that no document names.
 - Solution: Handed to the #2771 coordinator (spec 2770).
 - Current-tree verification: The review names the line; the file is outside this issue.
-- Resolution reference: PENDING_4510659856
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2774#discussion_r4511742655
 - Follow-up PR URL: https://github.com/torrust/torrust-tracker/pull/2771
-- Reply URL: PENDING_4510659856
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2774#discussion_r4511742655
 
 ## Processing Log
 
 - 2026-11-06 21:02 UTC - Started audit; round 1 (Copilot review 5806242087) processed: F1 and F2 fixed and pushed, F3 to F12 handed to the #2771 coordinator and fixed there, all 12 replied.
 - 2026-11-07 07:13 UTC - Branch rebased onto the fixed #2771 head and force-pushed with lease (maintainer approval in chat); all 12 threads resolved; refreshed GraphQL data shows no unresolved thread.
+
+- 2026-11-09 10:33 UTC - Round 2 (Copilot review 5810776921 and maintainer review 5823193599) processed: fixes pushed, PR title and body updated, all 17 threads replied to; F19, F23, F25, F26 and F29 fixed on PR #2771 by the coordinator. Thread resolution is pending the maintainer (the auto mode classifier denied the resolve call), so rows F13 to F29 stay `OPEN`.
 
 ## Completion Rules
 
