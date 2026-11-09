@@ -11,4 +11,4 @@ follows the CLI output contract (one JSON object on stdout, JSON diagnostics on 
 | `fetch.stdout`, `fetch.stderr` | `get-pr-review-threads.sh` | No; `fetch` needs `gh`, and the progress line on stderr was dropped |
 | `list-unresolved.jsonl` | `list-unresolved-threads.sh` | Yes; each NDJSON line is one `threads` element |
 | `show-unresolved.txt` | `show-unresolved-thread-bodies.sh` | Yes; thread IDs and comment URLs |
-| `reply-status.stdout`, `reply-status.stderr`, `reply-status.exit-status` | `check-thread-reply-status.sh` | Yes; per-thread rows, summary counts, exit code |
+| `reply-status.stdout`, `reply-status.stderr`, `reply-status.exit-status` | `check-thread-reply-status.sh` | `.stdout` only (per-thread rows, summary counts); the retired exit status `1` is not asserted because a missing reply is now a result with exit `0` |

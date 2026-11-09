@@ -66,7 +66,10 @@ subcommand writes the raw GraphQL response file consumed unchanged by the resolu
 Its `list` and `show` subcommands emit one JSON object whose `threads` array holds every fetched
 thread with `isResolved`, `isOutdated`, `resolvedBy`, `path`, and `line`; `show` adds the comments.
 Pass `--unresolved-only` to either subcommand to select the threads that still need a reply or
-resolution. `reply-status` always checks unresolved threads only, because it guards resolution.
+resolution. `reply-status` always checks unresolved threads only, because it guards resolution. It
+emits one JSON result with a `kind` (`all_replied` or `missing_reply`), the per-thread `has_reply`
+rows and a `summary`, and exits 0 for both; branch on `kind` (for example `jq -e`), not on the exit
+code. Exit code 1 means it could not answer.
 Use `jq` to format or filter their result data.
 
 The binary follows the CLI output contract: it refuses to run when stdout is a terminal (exit

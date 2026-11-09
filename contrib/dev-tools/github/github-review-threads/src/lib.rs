@@ -229,6 +229,11 @@ pub fn reply_status(response: &[u8], login: &str) -> Result<ReplyStatus, Error> 
     let total = threads.len();
 
     Ok(ReplyStatus {
+        kind: if total == with_reply {
+            ReplyStatusKind::AllReplied
+        } else {
+            ReplyStatusKind::MissingReply
+        },
         threads,
         summary: ReplyStatusSummary {
             total,
@@ -284,25 +289,22 @@ pub struct ShownComment {
     body: String,
 }
 
+/// The outcome of a reply-status check, serialized as the result's `kind`.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ReplyStatusKind {
+    /// Every unresolved thread has a reply from the requested login.
+    AllReplied,
+    /// At least one unresolved thread has no reply from the requested login.
+    MissingReply,
+}
+
 /// Reply status for all unresolved threads.
 #[derive(Debug, Eq, PartialEq, Serialize)]
 pub struct ReplyStatus {
+    kind: ReplyStatusKind,
     threads: Vec<ReplyStatusThread>,
     summary: ReplyStatusSummary,
-}
-
-impl ReplyStatus {
-    /// Returns whether at least one unresolved thread lacks the requested reply.
-    #[must_use]
-    pub const fn has_missing_replies(&self) -> bool {
-        self.without_reply() > 0
-    }
-
-    /// Returns how many unresolved threads lack the requested reply.
-    #[must_use]
-    pub const fn without_reply(&self) -> usize {
-        self.summary.without_reply
-    }
 }
 
 /// Reply state for one unresolved thread.
@@ -398,8 +400,8 @@ mod tests {
     use serde_json::{Value, json};
 
     use super::{
-        ListedThread, PullRequest, REVIEW_THREADS_QUERY, ShownThread, ThreadSelection, ThreadSource, fetch, list, reply_status,
-        show,
+        ListedThread, PullRequest, REVIEW_THREADS_QUERY, ReplyStatusKind, ShownThread, ThreadSelection, ThreadSource, fetch,
+        list, reply_status, show,
     };
 
     const THREAD_STATES: &[u8] = include_bytes!("../tests/fixtures/thread-states.json");
@@ -697,7 +699,7 @@ mod tests {
                 .collect::<Vec<_>>(),
             ["THREAD_UNRESOLVED_CURRENT", "THREAD_UNRESOLVED_OUTDATED"],
         );
-        assert!(!status.has_missing_replies());
+        assert_eq!(status.kind, ReplyStatusKind::AllReplied);
     }
 
     #[test]
@@ -712,6 +714,7 @@ mod tests {
         assert_eq!(
             serde_json::to_value(status).unwrap(),
             json!({
+                "kind":"missing_reply",
                 "threads":[
                     {"thread_id":"THREAD_UNRESOLVED_CURRENT","path":"src/example.rs","url":"https://example.test/pull/42#discussion-3","has_reply":false},
                     {"thread_id":"THREAD_UNRESOLVED_OUTDATED","path":"src/legacy.rs","url":"https://example.test/pull/42#discussion-4","has_reply":true}

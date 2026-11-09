@@ -20,7 +20,7 @@ case "$*" in
   "auth status")
     if [ -f "$dir/auth-fails" ]; then echo "You are not logged in" >&2; exit 1; fi
     if [ -f "$dir/auth-hangs" ]; then sleep 30; fi
-    if [ -f "$dir/auth-leaves-pipe-open" ]; then (sleep 20 &); fi
+    if [ -f "$dir/auth-leaves-pipe-open" ]; then (trap '' HUP; sleep 20 &); fi
     exit 0 ;;
   "api repos/torrust/torrust-tracker/pulls/7")
     if [ -f "$dir/api-fails" ]; then echo "HTTP 502" >&2; exit 1; fi
