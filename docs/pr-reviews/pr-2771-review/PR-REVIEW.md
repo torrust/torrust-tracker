@@ -1,7 +1,7 @@
 ---
 pr-number: 2771
 pr-url: https://github.com/torrust/torrust-tracker/pull/2771
-last-updated-utc: "2026-11-09 12:19"
+last-updated-utc: "2026-11-09 12:44"
 ---
 
 # PR #2771 Review Audit
@@ -28,16 +28,16 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-One row per independent concern from Copilot's review of this pull request (round 1: review 5804134932; later rounds: Copilot reviews 5806995671 and 5825242595, da2ce7 reviews 5823128808, 5824728682, 5825027438 and 5825408118).
+One row per independent concern from Copilot's review of this pull request (round 1: review 5804134932; later rounds: Copilot reviews 5806995671, 5825242595 and 5825900769, da2ce7 reviews 5823128808, 5824728682, 5825027438 and 5825408118).
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2771-f1 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 | F2 | review-finding:pr-2771-f2 | Copilot | Nit (inferred) | formatting | ORIGINAL | FIXED | RESOLVED |
-| F3 | review-finding:pr-2771-f3 | Unknown | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
-| F4 | review-finding:pr-2771-f4 | Unknown | Nit (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
-| F5 | review-finding:pr-2771-f5 | Unknown | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
-| F6 | review-finding:pr-2771-f6 | Unknown | Nit (inferred) | formatting | ORIGINAL | FIXED | RESOLVED |
+| F3 | review-finding:pr-2771-f3 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F4 | review-finding:pr-2771-f4 | Copilot | Nit (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F5 | review-finding:pr-2771-f5 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F6 | review-finding:pr-2771-f6 | Copilot | Nit (inferred) | formatting | ORIGINAL | FIXED | RESOLVED |
 | F7 | review-finding:pr-2771-f7 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F8 | review-finding:pr-2771-f8 | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
 | F9 | review-finding:pr-2771-f9 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -46,7 +46,7 @@ One row per independent concern from Copilot's review of this pull request (roun
 | F12 | review-finding:pr-2771-f12 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F13 | review-finding:pr-2771-f13 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F14 | review-finding:pr-2771-f14 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
-| F15 | review-finding:pr-2771-f15 | Human | Minor | correctness | ORIGINAL | FOLLOW_UP | OPEN |
+| F15 | review-finding:pr-2771-f15 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F16 | review-finding:pr-2771-f16 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F17 | review-finding:pr-2771-f17 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F18 | review-finding:pr-2771-f18 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -58,13 +58,13 @@ One row per independent concern from Copilot's review of this pull request (roun
 | F24 | review-finding:pr-2771-f24 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F25 | review-finding:pr-2771-f25 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F26 | review-finding:pr-2771-f26 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
-| F27 | review-finding:pr-2771-f27 | Unknown | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
-| F28 | review-finding:pr-2771-f28 | Unknown | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
-| F29 | review-finding:pr-2771-f29 | Unknown | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
-| F30 | review-finding:pr-2771-f30 | Unknown | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
-| F31 | review-finding:pr-2771-f31 | Unknown | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
-| F32 | review-finding:pr-2771-f32 | Unknown | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
-| F33 | review-finding:pr-2771-f33 | Unknown | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
+| F27 | review-finding:pr-2771-f27 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
+| F28 | review-finding:pr-2771-f28 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
+| F29 | review-finding:pr-2771-f29 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
+| F30 | review-finding:pr-2771-f30 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
+| F31 | review-finding:pr-2771-f31 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
+| F32 | review-finding:pr-2771-f32 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
+| F33 | review-finding:pr-2771-f33 | Copilot | Minor (inferred) | correctness | RE_RAISE_OF:F9 | FIXED | RESOLVED |
 | F34 | review-finding:pr-2771-f34 | Human | Minor | maintainability | ORIGINAL | FIXED | RESOLVED |
 | F35 | review-finding:pr-2771-f35 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F36 | review-finding:pr-2771-f36 | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
@@ -72,6 +72,14 @@ One row per independent concern from Copilot's review of this pull request (roun
 | F38 | review-finding:pr-2771-f38 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F39 | review-finding:pr-2771-f39 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 | F40 | review-finding:pr-2771-f40 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F41 | review-finding:pr-2771-f41 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F42 | review-finding:pr-2771-f42 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F43 | review-finding:pr-2771-f43 | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F44 | review-finding:pr-2771-f44 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F45 | review-finding:pr-2771-f45 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F46 | review-finding:pr-2771-f46 | Copilot | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F47 | review-finding:pr-2771-f47 | Copilot | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F48 | review-finding:pr-2771-f48 | Copilot | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -264,11 +272,11 @@ One row per independent concern from Copilot's review of this pull request (roun
 - Reviewer finding ID: F9
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4510604800
 - Concern: AC1 requires table rows the scope does not add. The full comment is at the source URL.
-- Solution: Follow-up; Follow-up: #2760's spec is owned by the #2760 session (PR 2774), which fixes it there; this PR does not edit it. Tracked as FOLLOW_UP in the audit.
-- Current-tree verification: Re-derived against the code or the current spec text when fixing, and re-read in the commit that fixed it; the claim no longer holds (not applicable: the file belongs to PR 2774).
-- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4512616447
+- Solution: Valid. The #2760 session fixed it on `develop`: AC1 of the #2760 spec now says every audited program appears in the table with a class, or `N/A` for the deprecated binaries that are to be removed, which matches the table row and the Scope.
+- Current-tree verification: Read AC1 of `docs/issues/open/2760-2758-adr-binary-table/ISSUE.md` and the deprecated-binaries row of the ADR table on `develop`; they agree.
+- Resolution reference: docs(adrs): [#2760] address the second review round of PR 2774
 - Follow-up PR URL: https://github.com/torrust/torrust-tracker/pull/2774
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4512616447
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4512835545
 
 ### F16 - `Not applicable` for the design review, while the test plan spawns a child process
 
@@ -443,7 +451,7 @@ One row per independent concern from Copilot's review of this pull request (roun
 
 - PR number: 2771
 - Source review ID: 5825242595
-- Reviewer finding ID: N/A
+- Reviewer finding ID: F4
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4512242380
 - Concern: #2762 verification captures cargo's stderr. The full comment is at the source URL.
 - Solution: Valid. #2762 builds first and runs the binary directly.
@@ -595,10 +603,115 @@ One row per independent concern from Copilot's review of this pull request (roun
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4512625186
 
+### F41 - The audit baseline description is ambiguous (the PR head versus the merged develop)
+
+- PR number: 2771
+- Source review ID: 5806995671
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4497597990
+- Concern: The audit baseline description is ambiguous (the PR head versus the merged develop). The full comment is at the source URL.
+- Solution: Valid. Fixed: the baseline names only the `develop` commit `35ec81000`, which already contains #2748.
+- Current-tree verification: Re-read the cited text in the current tree after the commit; the claim no longer holds.
+- Resolution reference: docs(issues): [#2758] address the round 2 review of PR 2774 on the EPIC and child specs
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4512835226
+
+### F42 - #2765 needs a Design and Ownership Review for the checker subprocess capture
+
+- PR number: 2771
+- Source review ID: 5825900769
+- Reviewer finding ID: PLAN-001
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4512758935
+- Concern: #2765 needs a Design and Ownership Review for the checker subprocess capture. The full comment is at the source URL.
+- Solution: Valid. Fixed: the section is filled for the checker helper.
+- Current-tree verification: Re-read the cited text in the current tree after the commit; the claim no longer holds.
+- Resolution reference: docs(issues): [#2758] address the latest Copilot review of PR 2771 on the specs and evidence
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4512834198
+
+### F43 - The #2768 pseudo-terminal check expanded `$?` before `script` started
+
+- PR number: 2771
+- Source review ID: 5825900769
+- Reviewer finding ID: CC-004
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4512758977
+- Concern: The #2768 pseudo-terminal check expanded `$?` before `script` started. The full comment is at the source URL.
+- Solution: Valid. Fixed: the check was rerun with the exit status captured inside `script`; the output is `[]`, `rc=0`.
+- Current-tree verification: Re-read the cited text in the current tree after the commit; the claim no longer holds.
+- Resolution reference: docs(issues): [#2758] address the latest Copilot review of PR 2771 on the specs and evidence
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4512834563
+
+### F44 - #2769 needs a Design and Ownership Review for the child-output capture
+
+- PR number: 2771
+- Source review ID: 5825900769
+- Reviewer finding ID: CC-005
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4512759027
+- Concern: #2769 needs a Design and Ownership Review for the child-output capture. The full comment is at the source URL.
+- Solution: Valid. Fixed: the section is filled for the capture helper.
+- Current-tree verification: Re-read the cited text in the current tree after the commit; the claim no longer holds.
+- Resolution reference: docs(issues): [#2758] address the latest Copilot review of PR 2771 on the specs and evidence
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4512834912
+
+### F45 - The baseline comment of review 5806995671 has no audit row and no reply
+
+- PR number: 2771
+- Source review ID: 5825900769
+- Reviewer finding ID: CC-001
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4512759078
+- Concern: The baseline comment of review 5806995671 has no audit row and no reply. The full comment is at the source URL.
+- Solution: Valid. Fixed: F41 records it and the original thread has a reply.
+- Current-tree verification: Re-read the cited text in the current tree after the commit; the claim no longer holds.
+- Resolution reference: docs(pr-reviews): [#2758] add the missing findings and corrections to the PR 2771 review audit
+- Follow-up PR URL: N/A
+- Reply URL: PENDING
+
+### F46 - The author class of F3 to F6 and F27 to F33 should be Copilot, not Unknown
+
+- PR number: 2771
+- Source review ID: 5825900769
+- Reviewer finding ID: CC-002
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4512759122
+- Concern: The author class of F3 to F6 and F27 to F33 should be Copilot, not Unknown. The full comment is at the source URL.
+- Solution: Valid. Fixed: the tracking rows say `Copilot`.
+- Current-tree verification: Re-read the cited text in the current tree after the commit; the claim no longer holds.
+- Resolution reference: docs(pr-reviews): [#2758] add the missing findings and corrections to the PR 2771 review audit
+- Follow-up PR URL: N/A
+- Reply URL: PENDING
+
+### F47 - F33 repeats F9 and should be a re-raise
+
+- PR number: 2771
+- Source review ID: 5825900769
+- Reviewer finding ID: DOC-006
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4512759169
+- Concern: F33 repeats F9 and should be a re-raise. The full comment is at the source URL.
+- Solution: Valid. Fixed: F33 is `RE_RAISE_OF:F9`; both rows are kept.
+- Current-tree verification: Re-read the cited text in the current tree after the commit; the claim no longer holds.
+- Resolution reference: docs(pr-reviews): [#2758] add the missing findings and corrections to the PR 2771 review audit
+- Follow-up PR URL: N/A
+- Reply URL: PENDING
+
+### F48 - F29 lost its reviewer-provided finding ID
+
+- PR number: 2771
+- Source review ID: 5825900769
+- Reviewer finding ID: DOC-007
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4512759208
+- Concern: F29 lost its reviewer-provided finding ID. The full comment is at the source URL.
+- Solution: Valid. Fixed: F29 records the reviewer finding ID `F4`.
+- Current-tree verification: Re-read the cited text in the current tree after the commit; the claim no longer holds.
+- Resolution reference: docs(pr-reviews): [#2758] add the missing findings and corrections to the PR 2771 review audit
+- Follow-up PR URL: N/A
+- Reply URL: PENDING
+
 ## Processing Log
 
 - 2026-11-06 18:57 UTC - Started audit; round 1 (Copilot review 5804134932) processed: F1 and F2 fixed in the two commits cited above, pushed and replied. The replies were posted before the push had completed (it failed once on an SSH disconnect); the push succeeded afterwards and the threads are resolved only after it.
 - 2026-11-09 12:19 UTC - Later rounds (Copilot reviews 5806995671 and 5825242595; da2ce7 reviews 5823128808, 5824728682, 5825027438 and 5825408118) processed: F3 to F40 fixed in the commits cited above, pushed and replied; F15 (the #2760 spec) is a follow-up owned by PR 2774 and stays open. This audit was extended after those replies were posted, not while they were processed (the finding F18 of review 5824728682 asked for it).
+- 2026-11-09 12:44 UTC - Copilot review 5825900769 processed: F42 to F44 fixed in the commit cited in their entries; F45 to F48 are about this audit and are fixed by the commit that adds them. F9 (the #2760 spec) is now fixed on `develop` by PR 2774, so F15 is FIXED and RESOLVED. F41 records Copilot's baseline comment of review 5806995671, which had no row.
 
 ## Completion Rules
 
