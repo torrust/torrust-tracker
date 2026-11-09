@@ -1,7 +1,7 @@
 ---
 pr-number: 2771
 pr-url: https://github.com/torrust/torrust-tracker/pull/2771
-last-updated-utc: "2026-11-09 12:44"
+last-updated-utc: "2026-11-09 12:46"
 ---
 
 # PR #2771 Review Audit
@@ -666,7 +666,7 @@ One row per independent concern from Copilot's review of this pull request (roun
 - Current-tree verification: Re-read the cited text in the current tree after the commit; the claim no longer holds.
 - Resolution reference: docs(pr-reviews): [#2758] add the missing findings and corrections to the PR 2771 review audit
 - Follow-up PR URL: N/A
-- Reply URL: PENDING
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4512865984
 
 ### F46 - The author class of F3 to F6 and F27 to F33 should be Copilot, not Unknown
 
@@ -679,7 +679,7 @@ One row per independent concern from Copilot's review of this pull request (roun
 - Current-tree verification: Re-read the cited text in the current tree after the commit; the claim no longer holds.
 - Resolution reference: docs(pr-reviews): [#2758] add the missing findings and corrections to the PR 2771 review audit
 - Follow-up PR URL: N/A
-- Reply URL: PENDING
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4512866405
 
 ### F47 - F33 repeats F9 and should be a re-raise
 
@@ -692,7 +692,7 @@ One row per independent concern from Copilot's review of this pull request (roun
 - Current-tree verification: Re-read the cited text in the current tree after the commit; the claim no longer holds.
 - Resolution reference: docs(pr-reviews): [#2758] add the missing findings and corrections to the PR 2771 review audit
 - Follow-up PR URL: N/A
-- Reply URL: PENDING
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4512866702
 
 ### F48 - F29 lost its reviewer-provided finding ID
 
@@ -705,7 +705,7 @@ One row per independent concern from Copilot's review of this pull request (roun
 - Current-tree verification: Re-read the cited text in the current tree after the commit; the claim no longer holds.
 - Resolution reference: docs(pr-reviews): [#2758] add the missing findings and corrections to the PR 2771 review audit
 - Follow-up PR URL: N/A
-- Reply URL: PENDING
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4512867002
 
 ## Processing Log
 
