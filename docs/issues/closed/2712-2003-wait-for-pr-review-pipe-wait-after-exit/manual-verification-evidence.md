@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2712-2003-wait-for-pr-review-pipe-wait-after-exit/ISSUE.md
-last-updated-utc: "2026-11-06 12:30"
+issue-spec: docs/issues/closed/2712-2003-wait-for-pr-review-pipe-wait-after-exit/ISSUE.md
+last-updated-utc: "2026-11-09 10:48"
 ---
 
 # Manual Verification Evidence
@@ -100,6 +100,28 @@ Green (fixed code): cargo test -p wait-for-pr-review
 test result: ok. 24 passed; 0 failed (cli)   plus the unit tests of `collect`, all passing
 ```
 
+### V3 - Like-for-like recheck on the final build
+
+- Goal: repeat V1 after the last production change, which is pull request #2756.
+- Status: `DONE`
+- Outcome: **Fixed**. Same result as V2.
+
+#### Steps Performed
+
+Same as V1 and V2, with `target/debug/wait-for-pr-review` built from `develop` at `92665ae17` (`Merge
+torrust/torrust-tracker#2756`), the fix commit of #2750 and the follow-up of #2756 both included. Toolchain: stable
+`rustc 1.99.1 (58cf8f9c3 2026-10-13)`, Linux 7.0.0-43-generic.
+
+#### Observed Result
+
+```text
+run 1: exit 1 after 3.0 s (budget 3 s)
+stdout bytes: 0 | last stderr record: {"kind":"deadline_exceeded","message":"the wait budget ended while a `gh` call was still running"}
+run 2: SIGTERM sent at 3.0 s; exit 1 after 3.0 s
+stdout bytes: 0 | last stderr record: {"kind":"interrupted","message":"interrupted by a signal"}
+cargo test -p wait-for-pr-review: 62 unit and 24 integration tests passed, 0 failed
+```
+
 ## Failures and Follow-up
 
-None yet.
+None. Review findings of #2750 and #2756 are recorded in `docs/pr-reviews/pr-2750-review/PR-REVIEW.md` and `docs/pr-reviews/pr-2756-review/PR-REVIEW.md`.
