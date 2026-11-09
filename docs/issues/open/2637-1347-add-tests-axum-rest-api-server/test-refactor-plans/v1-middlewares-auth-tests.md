@@ -201,4 +201,5 @@ One test function with three cases (`it_should_match_a_token_against_every_label
 `it_should_authenticate_a_token_configured_under_more_than_one_label` with different case names until the review of PR 2772) was
 added; the package has 170 unit tests (was 167) and 58 integration tests, all passing. Over the 30 tests of the module, A1 is
 killed (one case fails), A2 fails nine and A3 twelve, so both are killed as predicted (a run filtered by the name `authenticate`
-shows one, four and six failures). `auth.rs` stays at 133 / 133 lines unit-only.
+showed one, four and six failures while the test carried its first name; with the current name the filter selects seven
+tests and shows none, two and five). `auth.rs` stays at 133 / 133 lines unit-only.

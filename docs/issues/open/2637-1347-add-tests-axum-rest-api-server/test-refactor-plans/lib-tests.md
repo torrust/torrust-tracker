@@ -46,7 +46,7 @@ to `HttpApi::tls_config`; fixing the wording is optional and is a question for t
 
 Named mutations to apply after approval, each alone and reverted exactly: L1 change `API_LOG_TARGET` to `"OTHER"` (expected
 to survive, which confirms the decision (it did not: see Results, the integration tests pin the log target)); L2 remove the `Deserialize` derive of `InfoHashParam` (expected compile error:
-guarded by the compiler); L3 rename `Version::V1` (expected to survive: unused). The documentation fix is verified by
+guarded by the compiler); L3 rename `Version::V1` (expected to survive: unused (wrong: the tracker binary uses it, see Results)). The documentation fix is verified by
 `grep -n tsl_config packages/axum-rest-api-server/src/lib.rs` returning nothing, and by parsing the corrected TOML example
 into the v3 configuration (a disposable script, not a committed test).
 
@@ -73,7 +73,7 @@ No test is added or changed.
 
 ## Results
 
-The maintainer approved the plan on 2026-11-06. The three `tsl_config` spellings of the crate documentation are now `tls_config`; `grep -n tsl_config packages/axum-rest-api-server/src/lib.rs` returns nothing and `cargo doc -p torrust-tracker-axum-rest-api-server --no-deps` builds. A disposable program outside the repository (not committed) parsed the corrected example into the v3 `HttpApi`: `tls_config` parses and sets the TLS option, while the old `tsl_config` spelling is rejected with a TOML parse error (unknown field), which confirms the defect and the fix. No test was added.
+The maintainer approved the plan on 2026-11-06. The three `tsl_config` spellings of the crate documentation are now `tls_config`; `grep -n tsl_config packages/axum-rest-api-server/src/lib.rs` returns nothing and `cargo doc -p torrust-tracker-axum-rest-api-server --no-deps` builds. A disposable program outside the repository (not committed) parsed the corrected example into the v3 `HttpApi`: `tls_config` parses and sets the TLS option, while the old `tsl_config` spelling is rejected with a deserialization error (unknown field, from `deny_unknown_fields`), which confirms the defect and the fix. No test was added.
 
 Mutations (each alone, then `lib.rs` restored exactly): **L1** `API_LOG_TARGET` changed to `"OTHER"`: the plan expected a survivor and was wrong. The unit tests pass, but 21 of the 58 integration tests fail: the authentication and the auth-key, whitelist, stats and torrent failure cases assert that the error log contains a line with `ERROR`, `API` and the request id (`logs_contains_a_line_with`), so the target value is pinned end to end. **L2** removing the `Deserialize` derive of `InfoHashParam`: compile error (guarded by the compiler). **L3** renaming `Version::V1`: all 167 unit and 58 integration tests of this package pass, but the root crate (`src/app.rs`, `src/bootstrap/jobs/tracker_apis.rs`) uses `Version::V1` and would no longer build; a test run of this package does not compile it, so the surviving mutant says nothing about consumers.
 

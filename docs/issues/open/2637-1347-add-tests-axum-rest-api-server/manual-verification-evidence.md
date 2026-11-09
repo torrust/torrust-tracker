@@ -12,9 +12,12 @@ last-updated-utc: 2026-11-09 10:36
 
 Real use of the built tracker against the behavior `torrust-tracker-axum-rest-api-server` owns: the public and
 protected routes, the token sources, the configuration-gated contexts, the statistics formats, and TLS with a
-graceful shutdown. Scenarios M1-M5 of the issue spec are recorded as V1-V5 below. Everything was run by hand with
-`curl` against the tracker binary; the outputs are copied from the terminal run (long bodies are cut at the length
-shown by the command, not edited).
+graceful shutdown. Scenarios M1-M5 of the issue spec are recorded as V1-V5 below. The commands were typed for this
+run and executed one after another by a sequential shell script against the tracker binary; the output is copied from
+the script's transcript. Each transcript line is the `curl` command as executed. The response bodies are cut to the
+first characters by the script (120 to 330 characters, chosen per command: 200 for most, 160 for the stats JSON, 330
+for the Prometheus bodies); the status code, the timestamps and the shutdown lines are complete and nothing is
+edited.
 
 ## Environment and Prerequisites
 
@@ -28,8 +31,7 @@ shown by the command, not edited).
   only place the run wrote to) and a distinct loopback API port; UDP and HTTP trackers on port 0. The tracker was
   started in the background, polled until `/api/health_check` answered, probed, stopped with `SIGINT` and waited for
   before the next one started. The commands ran one after another in one shell script that stamped each step with
-  `date -u +%T.%3N`; no dependent step ran in parallel. The `-H` arguments below were passed to `curl` as
-  `-H "Authorization: Bearer MyAccessToken"`; the transcript shows them after quote removal.
+  `date -u +%T.%3N`; no dependent step ran in parallel.
 
 `public.toml` (V1, V2, V3 default mode, V4; API on `127.0.0.1:41212`):
 
@@ -65,7 +67,7 @@ bind_address = "127.0.0.1:41212"
 admin = "MyAccessToken"
 ```
 
-The other configurations differ from it only as `diff public.toml <file>` shows (the line numbers are those of
+The other configurations differ from it only as `diff --suppress-blank-empty public.toml <file>` shows (the line numbers are those of
 `public.toml`):
 
 `private.toml` (V3, `private = true`; API on port 41213):
@@ -102,8 +104,8 @@ The other configurations differ from it only as `diff public.toml <file>` shows 
 > bind_address = "127.0.0.1:41214"
 ```
 
-`tls.toml` (V5, API on port 41215 with a certificate generated for the run:
-`openssl req -x509 -newkey rsa:2048 -nodes -sha256 -days 1 -subj '/CN=localhost' -addext 'subjectAltName=DNS:localhost,IP:127.0.0.1'`):
+`tls.toml` (V5, API on port 41215 with a self-signed certificate,
+generated for the run with `openssl req -x509 -out .tmp/2637-manual/localhost.crt -keyout .tmp/2637-manual/localhost.key -newkey rsa:2048 -nodes -sha256 -days 1 -subj '/CN=localhost' -addext 'subjectAltName=DNS:localhost,IP:127.0.0.1' -addext 'keyUsage=digitalSignature' -addext 'extendedKeyUsage=serverAuth'`):
 
 ```text
 17c17
@@ -115,7 +117,7 @@ The other configurations differ from it only as `diff public.toml <file>` shows 
 ---
 > bind_address = "127.0.0.1:41215"
 29a30,33
-> 
+>
 > [http_api.tls_config]
 > ssl_cert_path = ".tmp/2637-manual/localhost.crt"
 > ssl_key_path = ".tmp/2637-manual/localhost.key"
@@ -148,11 +150,11 @@ HTTP 200 (curl exit 0)
 HTTP 500 (curl exit 0)
 Unhandled rejection: Err { reason: "unauthorized" }
 [10:36:12.174] done
-[10:36:12.176] $ curl -H Authorization: Bearer wrong http://127.0.0.1:41212/api/v1/stats
+[10:36:12.176] $ curl -H "Authorization: Bearer wrong" http://127.0.0.1:41212/api/v1/stats
 HTTP 500 (curl exit 0)
 Unhandled rejection: Err { reason: "token not valid" }
 [10:36:12.184] done
-[10:36:12.185] $ curl -H Authorization: Bearer MyAccessToken http://127.0.0.1:41212/api/v1/stats
+[10:36:12.185] $ curl -H "Authorization: Bearer MyAccessToken" http://127.0.0.1:41212/api/v1/stats
 HTTP 200 (curl exit 0)
 {"torrents":0,"seeders":0,"completed":0,"completed_in_session":0,"completed_persisted":0,"completed_persisted_enabled":false,"leechers":0,"tcp4_connections_hand
 [10:36:12.193] done
@@ -177,19 +179,19 @@ with `Authorization: Basic MyAccessToken`; and with a bare `Authorization: MyAcc
 #### Observed Result
 
 ```text
-[10:36:12.195] $ curl -H Authorization: Bearer MyAccessToken http://127.0.0.1:41212/api/v1/stats?token=bad
+[10:36:12.195] $ curl -H "Authorization: Bearer MyAccessToken" http://127.0.0.1:41212/api/v1/stats?token=bad
 HTTP 200 (curl exit 0)
 {"torrents":0,"seeders":0,"completed":0,"completed_in_session":0,"completed_persisted":0,"completed_persisted_enabled":f
 [10:36:12.203] done
-[10:36:12.205] $ curl -H Authorization: Bearer bad http://127.0.0.1:41212/api/v1/stats?token=MyAccessToken
+[10:36:12.205] $ curl -H "Authorization: Bearer bad" http://127.0.0.1:41212/api/v1/stats?token=MyAccessToken
 HTTP 500 (curl exit 0)
 Unhandled rejection: Err { reason: "token not valid" }
 [10:36:12.213] done
-[10:36:12.215] $ curl -H Authorization: Basic MyAccessToken http://127.0.0.1:41212/api/v1/stats
+[10:36:12.215] $ curl -H "Authorization: Basic MyAccessToken" http://127.0.0.1:41212/api/v1/stats
 HTTP 500 (curl exit 0)
 Unhandled rejection: Err { reason: "unknown token provided" }
 [10:36:12.222] done
-[10:36:12.225] $ curl -H Authorization: MyAccessToken http://127.0.0.1:41212/api/v1/stats
+[10:36:12.225] $ curl -H "Authorization: MyAccessToken" http://127.0.0.1:41212/api/v1/stats
 HTTP 500 (curl exit 0)
 Unhandled rejection: Err { reason: "unknown token provided" }
 [10:36:12.232] done
@@ -216,11 +218,11 @@ Met. A valid header won over an invalid query (`200`); an invalid header was not
 Default mode (`public.toml`, the same run as V1, V2 and V4):
 
 ```text
-[10:36:12.234] $ curl -X POST -H Authorization: Bearer MyAccessToken http://127.0.0.1:41212/api/v1/key/60
+[10:36:12.234] $ curl -X POST -H "Authorization: Bearer MyAccessToken" http://127.0.0.1:41212/api/v1/key/60
 HTTP 409 (curl exit 0)
 {"status":"err","reason":"private capability is disabled by configuration"}
 [10:36:12.242] done
-[10:36:12.244] $ curl -X POST -H Authorization: Bearer MyAccessToken http://127.0.0.1:41212/api/v1/whitelist/9c38422213e30bff212b30c360d26f9a02136422
+[10:36:12.244] $ curl -X POST -H "Authorization: Bearer MyAccessToken" http://127.0.0.1:41212/api/v1/whitelist/9c38422213e30bff212b30c360d26f9a02136422
 HTTP 409 (curl exit 0)
 {"status":"err","reason":"listed capability is disabled by configuration"}
 [10:36:12.252] done
@@ -231,11 +233,11 @@ HTTP 409 (curl exit 0)
 ```text
 [10:36:12.807] $ target/debug/torrust-tracker --config-toml-path .tmp/2637-manual/private.toml
 [10:36:13.324] API answering on http://127.0.0.1:41213
-[10:36:13.326] $ curl -X POST -H Authorization: Bearer MyAccessToken http://127.0.0.1:41213/api/v1/key/60
+[10:36:13.326] $ curl -X POST -H "Authorization: Bearer MyAccessToken" http://127.0.0.1:41213/api/v1/key/60
 HTTP 200 (curl exit 0)
 {"key":"AiqnhY5rsOHCKTr0clwZSd3KDWv6Hgzn","valid_until":1794220633,"expiry_time":"2026-11-09 10:37:13 UTC"}
 [10:36:13.347] done
-[10:36:13.349] $ curl -X POST -H Authorization: Bearer MyAccessToken http://127.0.0.1:41213/api/v1/whitelist/9c38422213e30bff212b30c360d26f9a02136422
+[10:36:13.349] $ curl -X POST -H "Authorization: Bearer MyAccessToken" http://127.0.0.1:41213/api/v1/whitelist/9c38422213e30bff212b30c360d26f9a02136422
 HTTP 409 (curl exit 0)
 {"status":"err","reason":"listed capability is disabled by configuration"}
 [10:36:13.358] done
@@ -246,11 +248,11 @@ HTTP 409 (curl exit 0)
 ```text
 [10:36:13.873] $ target/debug/torrust-tracker --config-toml-path .tmp/2637-manual/listed.toml
 [10:36:14.391] API answering on http://127.0.0.1:41214
-[10:36:14.394] $ curl -X POST -H Authorization: Bearer MyAccessToken http://127.0.0.1:41214/api/v1/key/60
+[10:36:14.394] $ curl -X POST -H "Authorization: Bearer MyAccessToken" http://127.0.0.1:41214/api/v1/key/60
 HTTP 409 (curl exit 0)
 {"status":"err","reason":"private capability is disabled by configuration"}
 [10:36:14.404] done
-[10:36:14.406] $ curl -X POST -H Authorization: Bearer MyAccessToken http://127.0.0.1:41214/api/v1/whitelist/9c38422213e30bff212b30c360d26f9a02136422
+[10:36:14.406] $ curl -X POST -H "Authorization: Bearer MyAccessToken" http://127.0.0.1:41214/api/v1/whitelist/9c38422213e30bff212b30c360d26f9a02136422
 HTTP 200 (curl exit 0)
 {"status":"ok"}
 [10:36:14.429] done
@@ -274,11 +276,11 @@ operation succeeded (`200`, a key); with `listed = true` only the whitelist oper
 #### Observed Result
 
 ```text
-[10:36:12.254] $ curl -H Authorization: Bearer MyAccessToken http://127.0.0.1:41212/api/v1/stats?format=json
+[10:36:12.254] $ curl -H "Authorization: Bearer MyAccessToken" http://127.0.0.1:41212/api/v1/stats?format=json
 HTTP 200 (curl exit 0)
 {"torrents":0,"seeders":0,"completed":0,"completed_in_session":0,"completed_persisted":0,"completed_persisted_enabled":false,"leechers":0,"tcp4_connections_hand
 [10:36:12.261] done
-[10:36:12.263] $ curl -H Authorization: Bearer MyAccessToken http://127.0.0.1:41212/api/v1/stats?format=prometheus
+[10:36:12.263] $ curl -H "Authorization: Bearer MyAccessToken" http://127.0.0.1:41212/api/v1/stats?format=prometheus
 HTTP 200 (curl exit 0)
 # HELP torrents Total number of torrents.
 # TYPE torrents gauge
@@ -291,11 +293,11 @@ seeders 0
 completed 0
 # HELP c
 [10:36:12.270] done
-[10:36:12.272] $ curl -H Authorization: Bearer MyAccessToken http://127.0.0.1:41212/api/v1/metrics?format=json
+[10:36:12.272] $ curl -H "Authorization: Bearer MyAccessToken" http://127.0.0.1:41212/api/v1/metrics?format=json
 HTTP 200 (curl exit 0)
 {"metrics":[{"type":"counter","name":"udp_tracker_server_responses_sent_total","unit":"count","description":"Total number of UDP responses sent","samples":[]},{
 [10:36:12.280] done
-[10:36:12.282] $ curl -H Authorization: Bearer MyAccessToken http://127.0.0.1:41212/api/v1/metrics?format=prometheus
+[10:36:12.282] $ curl -H "Authorization: Bearer MyAccessToken" http://127.0.0.1:41212/api/v1/metrics?format=prometheus
 HTTP 200 (curl exit 0)
 # HELP tracker_core_in_session_torrents_downloads_total The number of torrent downloads completed since this tracker process started.
 # TYPE tracker_core_in_session_torrents_downloads_total counter
@@ -341,7 +343,7 @@ Met. All four answered `200`; the `json` bodies are JSON (`{"torrents":...}`, `{
 HTTP 200 (curl exit 0)
 {"status":"Ok"}
 [10:36:15.582] done
-[10:36:15.584] $ curl --insecure -H Authorization: Bearer MyAccessToken https://127.0.0.1:41215/api/v1/stats
+[10:36:15.584] $ curl --insecure -H "Authorization: Bearer MyAccessToken" https://127.0.0.1:41215/api/v1/stats
 HTTP 200 (curl exit 0)
 {"torrents":0,"seeders":0,"completed":0,"completed_in_session":0,"completed_persisted":0,"completed_persisted_enabled":false,"leechers":0,"tcp4_connections_hand
 [10:36:15.637] done
