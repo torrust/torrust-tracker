@@ -48,7 +48,8 @@ The separate `Started` oneshot startup-notification API remains unchanged.
 ## Start Gate
 
 Do not start implementation until every item below is complete and linked from
-`verification.md`:
+this issue's own `verification.md` (SI-18's gate evidence is its
+`manual-verification-evidence.md`, the evidence the first item refers to):
 
 - [ ] SI-18 deprecation evidence confirms every declared deprecation condition
       and the public support window has ended for the only already-public
