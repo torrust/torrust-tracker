@@ -9,7 +9,7 @@ github-issue: 2751
 spec-path: docs/issues/open/2751-1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md
 branch: "2751-deprecate-legacy-shutdown-api-spec"
 related-pr: null
-last-updated-utc: "2026-11-09 13:00"
+last-updated-utc: "2026-11-09 15:48"
 semantic-links:
   skill-links:
     - create-issue
@@ -314,6 +314,7 @@ Arrange-Act-Assert design review in task evidence, and sign every commit with GP
 - 2026-11-09 12:08 UTC - AI agent (Claude Sonnet 5.5) - Edited the spec for the 2026-11-09 11:22 and 11:31 UTC reviews of PR 2752: marked the unpublished-symbol deprecation text as proposed, aligned the plan and scope with it, and corrected the scope list and the evidence
 - 2026-11-09 12:32 UTC - AI agent (Claude Sonnet 5.5) - Cited the comment on PR 2752 posted at 12:32 UTC from the maintainer's account `josecelano`; the agent ran the posting command after the maintainer approved the exact text and command in chat. It is cited for the two confirmations; the deprecation text for symbols removed before first publication is still not confirmed
 - 2026-11-09 13:00 UTC - AI agent (Claude Sonnet 5.5) - Edited the spec for the 12:52 UTC review of PR 2752 by `da2ce7` and the 12:32 UTC Copilot review: named the controller types of the stop methods (12:40 UTC), moved the allowances into the T1 and T2 commits (12:40 UTC), stated what T2 writes while the deprecation text proposal is unconfirmed, aligned the rollback and the Q5 dependency, cited `review-finding:pr-2752-f16`, quoted the maintainer's comment, and said who posted it
+- 2026-11-09 15:48 UTC - AI agent (Claude Sonnet 5.5) - Edited the spec for the 2026-11-09 review of PR 2752 by `da2ce7` and Copilot: one release-note rule in Versioning Decisions, Scope, Requirement 4 and T5 (15:45 UTC); the evidence file's Step 5 made runnable (15:46 UTC) and the SI-19 start gate names its evidence file (15:47 UTC)
 
 ## Rollback
 
