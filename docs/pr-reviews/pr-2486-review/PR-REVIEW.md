@@ -103,9 +103,9 @@ Jose Celano's review 5469325284 (COMMENTED, at `30b601421`) left five inline fin
 - Concern: The pull-request description's Verification section said that the sixteen points rendered whole are identical to the posted comment and that the entries are unchanged since, which no longer held for `B4` after the F1 fix; the merge tool appends the description to the merge commit, so the claim could not be corrected after merge.
 - Solution: The description was replaced at 11:21 UTC, outside the repository tree: its Verification section now says that fifteen of the sixteen points rendered whole are identical and that `B4`'s opening sentence was revised for review finding F1.
 - Current-tree verification: `contrib/dev-tools/git/github-merge.py` line 647 at `686a42f45` appends the description to the merge message; the description captured after the replacement reads "Fifteen of the sixteen points rendered whole are identical; B4's opening sentence was revised afterwards for review finding F1".
-- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2486#issuecomment-{response-R3}>
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2486#issuecomment-6107186888>
 - Follow-up PR URL: N/A
-- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2486#issuecomment-{response-R3}>
+- Reply URL: <https://github.com/torrust/torrust-tracker/pull/2486#issuecomment-6107186888>
 
 ### R4 - Whether an AI assistant drafted entry text
 

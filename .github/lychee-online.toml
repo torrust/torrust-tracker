@@ -18,8 +18,6 @@ exclude = [
   "^https://github\\.com/torrust/torrust-tracker/pull/[0-9]+#discussion_r[0-9]+$",
   "^https://github\\.com/torrust/torrust-tracker/pull/[0-9]+#issuecomment-[0-9]+$",
   "^https://github\\.com/torrust/torrust-tracker/pull/[0-9]+#pullrequestreview-[0-9]+$",
-  # Unfilled reply-URL placeholder in a recorded PR review (docs/pr-reviews/pr-2486-review).
-  "^https://github\\.com/torrust/torrust-tracker/pull/2486#issuecomment-\\{response-R3\\}$",
   # Pages that need repository admin authentication return 404 to anonymous runners.
   "^https://github\\.com/torrust/torrust-tracker/security/code-scanning/[0-9]+$",
   "^https://github\\.com/torrust/torrust-tracker/settings/",
@@ -27,7 +25,7 @@ exclude = [
   "^https://stackoverflow\\.com/a/56768087/3012842$",
   # Medium rejects automated clients with 403 (write-unit-test skill).
   "^https://medium\\.com/@kentbeck_7670/(test-desiderata-94150638a4b3|programmer-test-principles-d01c064d7934)$",
-  # The runner cannot complete the TLS handshake with www.fsf.org (HandshakeFailure).
+  # Lychee cannot complete the TLS handshake with www.fsf.org (HandshakeFailure).
   "^https://www\\.fsf\\.org/$",
   "^https://star-history\\.dera\\.page/#torrust/torrust-tracker$",
 ]
