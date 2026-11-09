@@ -34,7 +34,8 @@ All commands ran from the repository root, one after another.
    `grep -n '#\[cfg(test)\]' <file>` for each file: where the legacy calls sit.
 3. `git grep -q "HaltSignal\|NestedServerTask" v3.0.0; echo "git grep exit=$?"`: the root types against the
    published tag.
-4. The crates.io query, recorded as its own step below.
+4. The crates.io query, run as one command:
+   `curl -s https://crates.io/api/v1/crates/torrust-server-lib -A x | python3 -c "import json,sys;print([(v['num'],v['created_at'][:10]) for v in json.load(sys.stdin)['versions']][:2])"`
 5. Reading the cited documents (links below).
 
 #### Observed Result
@@ -91,6 +92,12 @@ Step 3:
 
 ```text
 git grep exit=1
+```
+
+Step 4 (the command's own output; the list holds the two newest versions, as the crates.io API returns them):
+
+```text
+[('0.5.0', '2026-11-06'), ('0.4.0', '2026-10-26')]
 ```
 
 #### Conclusion
