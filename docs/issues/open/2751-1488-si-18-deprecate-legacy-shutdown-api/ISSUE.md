@@ -172,7 +172,7 @@ Other decisions of 2026-11-06:
   - `udp-server`: `Server<Stopped>::start`, `Running` (the legacy state type, its
     `halt_task` field, its derived `Running::new` and `Running::stop`),
     `Launcher::run_with_graceful_shutdown`, `Spawner::spawn_launcher`, and
-    `LaunchRequest` (its `rx_halt` field and its constructor).
+    `LaunchRequest` (the type and its `rx_halt` field).
   - `axum-server`: `graceful_shutdown`.
   - `src/bootstrap/jobs/manager.rs`: `HaltSignal`, `NestedServerTask` (public,
     used only by their own tests).
