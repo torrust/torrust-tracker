@@ -65,7 +65,8 @@ JSON result payload on stdout. They do not cause a non-zero exit code.
 
 ### 3. Binary classification
 
-Every binary is assigned one of two output classes.
+Every binary that is kept is assigned one of two output classes. A deprecated binary that is to be
+removed is not classified: its `Class` cell reads `N/A`.
 
 **`stdout-result-data`** — emits a JSON result object on stdout. TTY refusal applies (see
 section 4). On failure, stdout is empty; the error appears on stderr as a JSON record.
@@ -73,20 +74,33 @@ section 4). On failure, stdout is empty; the error appears on stderr as a JSON r
 **`no-stdout-result`** — emits nothing on stdout. Pass/fail is communicated via exit code.
 All diagnostics go to stderr via the tracing subscriber or direct JSON stderr writes.
 
-| Binary                   | Class                | Notes                                                                 |
-| ------------------------ | -------------------- | --------------------------------------------------------------------- |
-| `torrust-tracker`        | `no-stdout-result`   | Long-running daemon; tracing events to stderr                         |
-| `http_health_check`      | `stdout-result-data` | Health status JSON on stdout; currently non-compliant (plain text)    |
-| `e2e_tests_runner`       | `no-stdout-result`   | CI orchestrator; pass/fail via exit code                              |
-| `qbittorrent_e2e_runner` | `no-stdout-result`   | CI orchestrator; pass/fail via exit code                              |
-| `tracker_client`         | `stdout-result-data` | Announce/scrape results as JSON; monitor progress as NDJSON on stderr |
-| `clippy-allow-reasons`   | `no-stdout-result`   | Prospective repository check; pass/fail via exit code                 |
-| `frontmatter-validator`  | `no-stdout-result`   | Markdown frontmatter check; NDJSON diagnostics on stderr              |
-| `shipped-features-check` | `no-stdout-result`   | Shipped-binary feature check; NDJSON diagnostics on stderr            |
-| `github-review-threads`  | `stdout-result-data` | GitHub CLI review-thread results and JSON diagnostics                 |
-| `ci-gate`                | `stdout-result-data` | Needed job groups or the merge verdict as JSON; JSON diagnostics      |
-| `wait-for-pr-review`     | `stdout-result-data` | PR review event or timeout as JSON; a timeout is a result (exit 0)    |
-| `package-coverage-check` | `stdout-result-data` | Coverage matrix, comparison and summary; currently non-compliant (plain-text errors, usage error exits 1) |
+| Binary                          | Class                | Notes                                                                                                                       |
+| ------------------------------- | -------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `torrust-tracker`               | `no-stdout-result`   | Long-running daemon; tracing events to stderr; currently non-compliant (plain-text logs on stdout), migration issue #2766   |
+| `http_health_check`             | `no-stdout-result`   | Container `HEALTHCHECK`: pass/fail by exit code (`1` when unhealthy), NDJSON diagnostics on stderr; currently non-compliant (plain text on stdout, usage error exits `1`), migration issue #2764 |
+| `e2e_tests_runner`              | `no-stdout-result`   | CI orchestrator; pass/fail via exit code; currently non-compliant (plain-text tracing on stdout), migration issue #2769     |
+| `qbittorrent_e2e_runner`        | `no-stdout-result`   | CI orchestrator; pass/fail via exit code; currently non-compliant (plain-text tracing on stdout), migration issue #2769     |
+| `tracker_client`                | `stdout-result-data` | Announce/scrape results as JSON; monitor progress as NDJSON on stderr; currently non-compliant (no TTY refusal, plain-text output), migration issue #2768 |
+| `clippy-allow-reasons`          | `no-stdout-result`   | Prospective repository check; pass/fail via exit code                                                                       |
+| `frontmatter-validator`         | `no-stdout-result`   | Markdown frontmatter check; NDJSON diagnostics on stderr                                                                    |
+| `frontmatter-schema`            | `no-stdout-result`   | Frontmatter schema check; currently non-compliant (plain-text diagnostics on stderr), migration issue #2763                 |
+| `shipped-features-check`        | `no-stdout-result`   | Shipped-binary feature check; NDJSON diagnostics on stderr                                                                  |
+| `agent-review-report-contract`  | `no-stdout-result`   | Review report check; currently non-compliant (plain-text success line on stdout, plain-text failures on stderr), migration issue #2763 |
+| `workspace-coupling`            | `no-stdout-result`   | Writes its Markdown report to a file (`OUTPUT_FILE`), nothing on stdout; NDJSON status events on stderr                     |
+| `github-review-threads`         | `stdout-result-data` | GitHub CLI review-thread results and JSON diagnostics; a missing reply is a result (exit `0`)                                |
+| `ci-gate`                       | `stdout-result-data` | Needed job groups or the merge verdict as JSON; JSON diagnostics                                                            |
+| `wait-for-pr-review`            | `stdout-result-data` | PR review event or timeout as JSON; a timeout is a result (exit `0`)                                                          |
+| `package-coverage-check`        | `stdout-result-data` | Coverage matrix, comparison and summary; currently non-compliant (plain-text errors, usage error exits `1`), migration issue #2762 |
+| `http_tracker_client`, `udp_tracker_client`, `tracker_checker` | `N/A` | Deprecated, not classified: to be removed, not migrated; migration issue #2765                                       |
+
+Notes added on 2026-11-06 (issue #2760, EPIC #2758): the table now lists every program found by the
+2026-11-06 audit. `http_health_check` was reclassified from `stdout-result-data` to
+`no-stdout-result` (maintainer decision): it is the container `HEALTHCHECK`, which needs a
+non-zero exit when the service is unhealthy, so the verdict is the exit code and not a result on
+stdout. `workspace-coupling` is `no-stdout-result` because it writes its report to a file and
+emits only NDJSON status events on stderr. `agent-review-report-contract` and `frontmatter-schema`
+are `no-stdout-result` checks. Each "currently non-compliant" note names the issue that migrates
+the tool; the close-out issue (#2770) removes the notes once the tools are migrated.
 
 The `profiling` binary is a developer-only diagnostic harness and is excluded from the
 normative scope of this contract.
@@ -208,6 +222,8 @@ is JSON — is prescribed here; verbosity levels are left to each command.
 ## Date
 
 2026-05-19
+
+Binary table aligned with the audit: 2026-11-06 (issue #2760).
 
 ## References
 
