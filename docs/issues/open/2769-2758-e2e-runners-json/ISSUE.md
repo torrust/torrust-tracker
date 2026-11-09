@@ -9,7 +9,7 @@ github-issue: 2769
 spec-path: docs/issues/open/2769-2758-e2e-runners-json/ISSUE.md
 branch: "2769-e2e-runners-json"
 related-pr: null
-last-updated-utc: "2026-11-09 12:12"
+last-updated-utc: "2026-11-09 12:39"
 semantic-links:
   skill-links:
     - create-issue
@@ -65,7 +65,12 @@ During implementation, stop and create an ADR when a decision affects project ar
 
 ## Design and Ownership Review
 
-Not applicable.
+This issue changes child-process I/O in the e2e runners (`cargo`, `docker`, `docker compose` and the checker), in the normal and the cleanup paths, so this section applies.
+
+- Responsibilities: one small helper owns running a child command with captured stdout and stderr and reporting them as JSON records on the runner's stderr; the call sites (`docker.rs`, `compose.rs`, `tracker_checker.rs`) only ask it to run a command and use its result. The helper owns the child, its pipes and their reaping; the runner owns the tracker container and compose stack lifetimes (the existing RAII guards).
+- Lifetime invariants: every spawned child is waited for or killed and reaped before the helper returns, on success, on failure and on a panic in the caller; the pipes are drained so a full pipe cannot block the child; cleanup commands (`docker compose down --volumes`, container removal) use the same helper on the drop path and must not panic.
+- Deadlines: every child wait has an absolute deadline (a hung `docker` or checker must not hang the runner); every readiness wait the runners already do keeps its own absolute deadline.
+- Design-review checkpoint: after the first passing vertical slice (one captured child in the normal path), review the helper's ownership and the drop-path behavior before converting the remaining call sites.
 
 ## Bug-Fix Process
 
@@ -124,6 +129,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-11-06 16:52 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the spec; GitHub issue #2769 created.
 - 2026-11-09 10:25 UTC - Claude Code (Claude Sonnet 5.5) - Corrected details after the review rounds on PR 2771 and PR 2774 and fixed the earlier log stamps from the commit and issue creation times.
 - 2026-11-09 12:12 UTC - Claude Code (Claude Sonnet 5.5) - Addressed the review of PR 2771 (da2ce7 findings F1 to F27 and Copilot's later comments): specs corrected from the code, reproductions recorded where a spec has a bug-fix section.
+- 2026-11-09 12:39 UTC - Claude Code (Claude Sonnet 5.5) - Addressed Copilot's latest review of PR 2771: filled the Design and Ownership Review for the child-process work and corrected the pseudo-terminal check in the evidence.
 
 ## Acceptance Criteria
 

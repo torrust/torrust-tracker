@@ -9,7 +9,7 @@ github-issue: 2765
 spec-path: docs/issues/open/2765-2758-remove-deprecated-tracker-clients/ISSUE.md
 branch: "2765-remove-deprecated-tracker-clients"
 related-pr: null
-last-updated-utc: "2026-11-09 12:12"
+last-updated-utc: "2026-11-09 12:39"
 semantic-links:
   skill-links:
     - create-issue
@@ -68,7 +68,12 @@ During implementation, stop and create an ADR when a decision affects project ar
 
 ## Design and Ownership Review
 
-Not applicable.
+The checker caller migration in `src/console/ci/e2e/tracker_checker.rs` spawns a child process and captures its output, so this section applies to that helper.
+
+- Responsibilities: `tracker_checker::run` owns launching `tracker_client check` (with `TORRUST_CHECKER_CONFIG` in the child's environment), the pipes for the child's stdout and stderr, and turning the exit status and captured output into a result for the runner; the runner owns what it does with that result.
+- Lifetime invariants: the child is always waited for (or killed and reaped) before `run` returns, on success, on a non-zero exit, on a read error and on a panic in the caller; both pipes are read to the end (or on separate threads) so a full pipe cannot block the child.
+- Deadline: the checker has its own network timeout, and `run` adds an absolute deadline to the wait on the child so a hung checker cannot hang the runner; a missing deadline is a defect.
+- Design-review checkpoint: after the first passing vertical slice (the helper captures a successful `check` run), review the ownership of the child and the pipes before handling the failure paths.
 
 ## Bug-Fix Process
 
@@ -124,6 +129,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-11-09 10:25 UTC - Claude Code (Claude Sonnet 5.5) - Corrected details after the review rounds on PR 2771 and PR 2774 and fixed the earlier log stamps from the commit and issue creation times.
 - 2026-11-09 11:26 UTC - Claude Code (Claude Sonnet 5.5) - Corrected details after the round 3 review of PR 2774.
 - 2026-11-09 12:12 UTC - Claude Code (Claude Sonnet 5.5) - Addressed the review of PR 2771 (da2ce7 findings F1 to F27 and Copilot's later comments): specs corrected from the code, reproductions recorded where a spec has a bug-fix section.
+- 2026-11-09 12:39 UTC - Claude Code (Claude Sonnet 5.5) - Addressed Copilot's latest review of PR 2771: filled the Design and Ownership Review for the child-process work and corrected the pseudo-terminal check in the evidence.
 
 ## Acceptance Criteria
 

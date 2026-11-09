@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2768-2758-tracker-client-json-only/ISSUE.md
-last-updated-utc: 2026-11-09 12:12
+last-updated-utc: 2026-11-09 12:39
 ---
 
 # Manual Verification Evidence
@@ -32,9 +32,10 @@ stderr (0 bytes):
 ```
 
 ```text
-$ same command inside a pseudo-terminal: script -qec "target/debug/tracker_client check; echo rc=$?" /dev/null
+$ TORRUST_CHECKER_CONFIG='{"udp_trackers":[],"http_trackers":[],"health_checks":[]}' script -qec 'target/debug/tracker_client check; rc=$?; echo "rc=$rc"; exit "$rc"' /dev/null
 []
 rc=0
+script exit status: 0
 ```
 
 #### Observed Result
