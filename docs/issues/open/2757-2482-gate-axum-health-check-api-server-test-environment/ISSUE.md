@@ -9,7 +9,7 @@ github-issue: 2757
 spec-path: docs/issues/open/2757-2482-gate-axum-health-check-api-server-test-environment/ISSUE.md
 branch: "2757-2482-gate-axum-health-check-api-server-test-environment-spec"
 related-pr: 2759
-last-updated-utc: "2026-11-06 17:12"
+last-updated-utc: "2026-11-09 15:53"
 semantic-links:
   skill-links:
     - create-issue
@@ -152,10 +152,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
 | T1 | DONE | Record the baseline | `cargo tree -p torrust-tracker-axum-health-check-api-server -e normal --depth 1` (17 direct dependencies); plain `cargo test -p torrust-tracker-axum-health-check-api-server` on `torrust/develop` at `35ec81000` (2026-11-06): 15 unit + 11 integration + 0 doc. T2 remeasures with and without `--all-features` before comparing |
-| T2 | TODO | Gate the module, add the feature, make `configuration` optional, add the self dev-dependency and its `deny.toml` wrapper | Plain `cargo test -p torrust-tracker-axum-health-check-api-server` passes with the baseline counts; `cargo check -p torrust-tracker-axum-health-check-api-server --lib` passes with no features; `Cargo.lock` and `deny.toml` in the same commit |
-| T3 | TODO | Update inventory, diagram and docs | Pattern A row resolved; stale 118-line figure corrected; EPIC row |
-| T4 | TODO | Verify the container recipe and the shipped features | `cargo chef prepare --external-only` then `cargo chef cook --tests --workspace --all-features` exit 0 in a scratch directory; `cargo run -q --package shipped-features-check -- --package torrust-tracker` exits 0 |
-| T5 | TODO | Regenerate the coupling report and check AC8 | New dated report under `docs/issues/open/1669-overhaul-packages/`; the result recorded in the #2482 EPIC as evidence, without ticking AC8 |
+| T2 | DONE | Gate the module, add the feature, make `configuration` optional, add the self dev-dependency and its `deny.toml` wrapper | Plain `cargo test -p torrust-tracker-axum-health-check-api-server` passes with the baseline counts; `cargo check -p torrust-tracker-axum-health-check-api-server --lib` passes with no features; `Cargo.lock` and `deny.toml` in the same commit |
+| T3 | DONE | Update inventory, diagram and docs | Pattern A row resolved; stale 118-line figure corrected; EPIC row |
+| T4 | DONE | Verify the container recipe and the shipped features | `cargo chef prepare --external-only` then `cargo chef cook --tests --workspace --all-features` exit 0 in a scratch directory; `cargo run -q --package shipped-features-check -- --package torrust-tracker` exits 0 |
+| T5 | DONE | Regenerate the coupling report and check AC8 | New dated report under `docs/issues/open/1669-overhaul-packages/`; the result recorded in the #2482 EPIC as evidence, without ticking AC8 |
 
 ## Commit Points
 
@@ -173,12 +173,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Folder-style spec drafted in `docs/issues/open/2757-2482-gate-axum-health-check-api-server-test-environment/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer (2026-11-06)
 - [x] GitHub issue created (#2757), linked as a sub-issue of #2482, and its number added to this spec
-- [ ] Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
+- [x] Spec-only PR merged into `develop` before implementation (PR #2759)
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and pre-push checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
@@ -189,24 +189,25 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-06 16:34 UTC - AI assistant (Claude Code, #2482 row 7) - Refreshed the draft against `torrust/develop` at `35ec81000`: #2450 and rows 4 to 6 are done, so the gate is satisfied; `environment.rs` is 497 lines (not 118); `configuration` is the only dependency to make optional; baseline 17 direct dependencies, 15 + 11 tests. Recorded the maintainer's decisions: no runtime-edge counter, `configuration` optional behind `testing`, labels and the sub-issue link with the `josecelano` account on his explicit OK. Out of scope: the #2482 close-out steps (a coordinator proposes them).
 - 2026-11-06 16:39 UTC - AI assistant (Claude Code, #2482 row 7) - The maintainer approved the spec. Created issue #2757 as `josecelano-bot`; the maintainer added the labels (`task`, `packages`) himself. The sub-issue link under #2482 is pending his action. The spec moved to `docs/issues/open/`; the #2482 EPIC row, the inventory and the 2026-10-06 coupling report link to it.
 - 2026-11-06 17:12 UTC - AI assistant (Claude Code, #2482 row 7) - The maintainer added the labels (`task`, `packages`) and the sub-issue link under #2482 with his own account (verified: `parent_issue_url` is #2482). Opened spec-only PR #2759 (`Related to #2757`); `related-pr` is set to 2759. The 16:40 entry above was dated 16:34, the time the draft was committed; the earlier 16:40 was a mistake found in PR #2759 review round 1.
+- 2026-11-09 15:53 UTC - AI assistant (Claude Code, #2482 row 7) - Implemented T2 to T5 on branch `2757-2482-gate-axum-health-check-api-server-test-environment`: the `testing` feature, `configuration` optional, the path-only self dev-dependency with its `deny.toml` wrapper, and `url` now declared with `features = ["serde"]` (the move exposed that the package only got it through `configuration`). Plain package tests keep the baseline (15 + 11); the direct dependency count is 17 before and 16 after. The coupling report of 2026-11-09 was regenerated and AC8 was checked: no test-only runtime edge remains once five stale diagram edges are removed (four from rows 4 and 5, one from this row). The evidence is in `manual-verification-evidence.md`; the AC8 result is recorded in the EPIC without ticking it. The #2482 close-out steps are not part of this row.
 
 ## Acceptance Criteria
 
-- [ ] AC1: `cargo tree -p torrust-tracker-axum-health-check-api-server -e normal --depth 1` shows no
+- [x] AC1: `cargo tree -p torrust-tracker-axum-health-check-api-server -e normal --depth 1` shows no
       direct dependency on `torrust-tracker-configuration` (it stays reachable through
       `axum-server`), and `src/environment.rs` is not compiled without the feature.
-- [ ] AC2: `cargo test -p torrust-tracker-axum-health-check-api-server` passes without
+- [x] AC2: `cargo test -p torrust-tracker-axum-health-check-api-server` passes without
       `--all-features`, with the baseline test counts (15 unit + 11 integration).
-- [ ] AC3: The self dev-dependency has no `version`; `cargo +stable package --workspace
+- [x] AC3: The self dev-dependency has no `version`; `cargo +stable package --workspace
       --no-verify` passes; `cargo deny check bans` passes.
-- [ ] AC4: The container recipe cooks (`prepare --external-only` then `cook`) and the Shipped
+- [x] AC4: The container recipe cooks (`prepare --external-only` then `cook`) and the Shipped
       Features check exits 0; no `testing` feature is in a `[dependencies]` entry or a `default`
       chain.
-- [ ] AC5: The inventory has no pattern A, B, C or D item left unresolved, unless the ADR keeps it.
-- [ ] AC6: A coupling report regenerated on the merged state of rows 1 to 7 and the diagram show no
+- [x] AC5: The inventory has no pattern A, B, C or D item left unresolved, unless the ADR keeps it.
+- [x] AC6: A coupling report regenerated on the merged state of rows 1 to 7 and the diagram show no
       test-only runtime edge, and the AC8 result is recorded in the #2482 EPIC as evidence (the
       criterion itself is ticked by the close-out, not here).
-- [ ] `linter all` exits with code `0`; pre-push checks pass.
+- [x] `linter all` exits with code `0`; pre-push checks pass.
 
 ## Verification Plan
 
@@ -224,23 +225,23 @@ without `--all-features`, and check the test count.
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| M1 | The production build has no test-only dependency | `cargo tree -p torrust-tracker-axum-health-check-api-server -e normal --depth 1` before and after | The forced direct `configuration` edge is gone (the path through `axum-server` remains) | TODO | `manual-verification-evidence.md` V1 |
-| M2 | Plain package tests | `cargo test -p torrust-tracker-axum-health-check-api-server` (no `--all-features`) | Test counts equal the baseline | TODO | V2 |
-| M3 | Shipped features | `cargo run -q --package shipped-features-check -- --package torrust-tracker` | Exit 0 | TODO | V3 |
-| M4 | Deny, machete, packaging, nightly check | The commands of the Automatic Checks | All exit 0; `deny` fails without the self wrapper | TODO | V4 |
-| M5 | Container recipe | `cargo chef prepare --external-only`, then `cargo chef cook --tests --workspace --all-features` in a scratch directory | Exit 0 | TODO | V5 |
-| M6 | AC8 on the whole workspace | Run the coupling tool and read the report and diagram | No test-only runtime edge | TODO | V6 |
+| M1 | The production build has no test-only dependency | `cargo tree -p torrust-tracker-axum-health-check-api-server -e normal --depth 1` before and after | The forced direct `configuration` edge is gone (the path through `axum-server` remains) | DONE | `manual-verification-evidence.md` V1 |
+| M2 | Plain package tests | `cargo test -p torrust-tracker-axum-health-check-api-server` (no `--all-features`) | Test counts equal the baseline | DONE | V2 |
+| M3 | Shipped features | `cargo run -q --package shipped-features-check -- --package torrust-tracker` | Exit 0 | DONE | V3 |
+| M4 | Deny, machete, packaging, nightly check | The commands of the Automatic Checks | All exit 0; `deny` fails without the self wrapper | DONE | V4 |
+| M5 | Container recipe | `cargo chef prepare --external-only`, then `cargo chef cook --tests --workspace --all-features` in a scratch directory | Exit 0 | DONE | V5 |
+| M6 | AC8 on the whole workspace | Run the coupling tool and read the report and diagram | No test-only runtime edge | DONE | V6 |
 
 ### Acceptance Verification
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1   | TODO                   |          |
-| AC2   | TODO                   |          |
-| AC3   | TODO                   |          |
-| AC4   | TODO                   |          |
-| AC5   | TODO                   |          |
-| AC6   | TODO                   |          |
+| AC1   | DONE                   | [`manual-verification-evidence.md`](manual-verification-evidence.md) |
+| AC2   | DONE                   | [`manual-verification-evidence.md`](manual-verification-evidence.md) |
+| AC3   | DONE                   | [`manual-verification-evidence.md`](manual-verification-evidence.md) |
+| AC4   | DONE                   | [`manual-verification-evidence.md`](manual-verification-evidence.md) |
+| AC5   | DONE                   | [`manual-verification-evidence.md`](manual-verification-evidence.md) |
+| AC6   | DONE                   | [`manual-verification-evidence.md`](manual-verification-evidence.md) |
 
 ## Risks and Trade-offs
 
@@ -251,8 +252,7 @@ without `--all-features`, and check the test count.
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
-- If no retrospective is needed, add a progress-log entry saying why.
+- Retrospective: [`implementation-retrospective.md`](implementation-retrospective.md): the move exposed a missing `serde` feature on the package's own `url` dependency, and the AC8 check found four stale test-only edges in the diagram from rows 4 and 5.
 
 ## References
 
