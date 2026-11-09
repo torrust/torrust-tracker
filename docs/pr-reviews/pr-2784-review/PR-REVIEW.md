@@ -1,7 +1,7 @@
 ---
 pr-number: 2784
 pr-url: https://github.com/torrust/torrust-tracker/pull/2784
-last-updated-utc: "2026-11-09 16:47"
+last-updated-utc: "2026-11-09 17:24"
 ---
 
 # PR #2784 Review Audit
@@ -28,7 +28,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Round 1: Copilot review 5828888059 on the head `c549357a1` (three inline findings; the review body reports that Copilot full agentic review timed out, so this was a lite review). F2 is valid and fixed; F1 and F3 need no change, with reasons. Thread state is OPEN for all three: the auto mode classifier denied the bot resolveReviewThread mutation again, so the maintainer or reviewer resolves them.
+Round 1: Copilot review 5828888059 on the head then under review (three inline findings; the review body reports that Copilot full agentic review timed out, so this was a lite review). F2 is valid and fixed; F1 and F3 need no change, with reasons. Thread state is OPEN for all three: the auto mode classifier denied the bot resolveReviewThread mutation again, so the maintainer or reviewer resolves them.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -43,8 +43,16 @@ Round 1: Copilot review 5828888059 on the head `c549357a1` (three inline finding
 | F9 | review-finding:pr-2784-f9 | Human | Nit | documentation | ORIGINAL | FIXED | OPEN |
 | F10 | review-finding:pr-2784-f10 | Human | Nit | documentation | ORIGINAL | FIXED | OPEN |
 | F11 | review-finding:pr-2784-f11 | Human | Nit | documentation | ORIGINAL | FIXED | OPEN |
+| F12 | review-finding:pr-2784-f12 | Human | Minor | documentation | ORIGINAL | FIXED | OPEN |
+| F13 | review-finding:pr-2784-f13 | Human | Minor | documentation | ORIGINAL | FIXED | OPEN |
+| F14 | review-finding:pr-2784-f14 | Human | Minor | documentation | ORIGINAL | FIXED | OPEN |
+| F15 | review-finding:pr-2784-f15 | Human | Minor | documentation | ORIGINAL | FIXED | OPEN |
+| F16 | review-finding:pr-2784-f16 | Human | Nit | documentation | ORIGINAL | FIXED | OPEN |
+| F17 | review-finding:pr-2784-f17 | Human | Nit | maintainability | ORIGINAL | NO_ACTION | OPEN |
 
-Round 2: da2ce7 review 5829122067 (CHANGES_REQUESTED) on the head `c549357a1`: eight inline findings (F4 blocks, F5 to F11 do not), all valid and fixed. The reviewer also checked the three Copilot threads and agrees with the dispositions of F1 and F3 and the node-name wording of F2. Thread state is OPEN for all eleven: the auto mode classifier denied the bot resolveReviewThread mutation, so the maintainer or reviewer resolves them.
+Round 2: da2ce7 review 5829122067 (CHANGES_REQUESTED) on the head then under review: eight inline findings (F4 blocks, F5 to F11 do not), all valid and fixed. The reviewer also checked the three Copilot threads; the review says only that the diagram note's names follow the sentence already there, that `default = [  ]` is the form of the sibling manifests, and that rows 5 and 6 reached DONE in their archive commits. Thread state is OPEN for all eleven: the auto mode classifier denied the bot resolveReviewThread mutation, so the maintainer or reviewer resolves them.
+
+Round 3: da2ce7 review 5829737162 (COMMENTED, no approval) on the head then under review: six inline findings, none blocking (F12 to F17; the review labels them F9 to F14), and a failing audit validator on rows F1 and F3. All valid; five fixed, one acknowledged. Thread state is OPEN for all seventeen: the auto mode classifier denies the bot resolveReviewThread mutation.
 
 ## Finding Details
 
@@ -57,9 +65,9 @@ Round 2: da2ce7 review 5829122067 (CHANGES_REQUESTED) on the head `c549357a1`: e
 - Concern: EPIC row 7 stays IN_PROGRESS although the PR closes #2757.
 - Solution: No change: the archive PR after the merge sets the row to DONE and moves the spec (precedent: row 6, archive commit "chore(issues): [#2745] archive the closed issue spec to docs/issues/closed").
 - Current-tree verification: git log -S shows the DONE text for row 6 arrived in the archive commit, not in the implementation PR.
-- Resolution reference: None
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2784#discussion_r4515745583
 - Follow-up PR URL: N/A
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/2784#discussion_r4515198100
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2784#discussion_r4515745583
 
 ### F2 - The diagram note mixes node names (udp-srv) and package names (udp-server).
 
@@ -82,10 +90,10 @@ Round 2: da2ce7 review 5829122067 (CHANGES_REQUESTED) on the head `c549357a1`: e
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2784#discussion_r4515052807
 - Concern: Use default = [] instead of default = [  ].
 - Solution: No change: default = [  ] is taplo output; four sibling crates use it and the pre-commit TOML check passes.
-- Current-tree verification: grep -rn "default = \[" packages/*/Cargo.toml lists the same form in four crates.
-- Resolution reference: None
+- Current-tree verification: grep -rn "default = \[" packages/*/Cargo.toml lists the same form in six lines: this package and five siblings.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2784#discussion_r4515746031
 - Follow-up PR URL: N/A
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/2784#discussion_r4515199074
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2784#discussion_r4515746031
 
 ### F4 - The stated cause of the url serde change (dropping the configuration edge) is wrong; the no-features lib build failed at the merge base.
 
@@ -191,10 +199,89 @@ Round 2: da2ce7 review 5829122067 (CHANGES_REQUESTED) on the head `c549357a1`: e
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2784#discussion_r4515367046
 
+### F12 - The audit cites a PR-branch commit by id.
+
+- PR number: 2784
+- Source review ID: 5829737162
+- Reviewer finding ID: F9 (Minor, as labelled in the review)
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2784#discussion_r4515668450
+- Concern: The audit cites a PR-branch commit by id.
+- Solution: Valid. The audit says "the head then under review" and cites fixes by subject.
+- Current-tree verification: grep for a 9-hex id in PR-REVIEW.md prints nothing.
+- Resolution reference: docs(pr-reviews): [#2757] record the PR 2784 review round 3 audit
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2784#discussion_r4515746443
+
+### F13 - The two no-change threads do not use the prescribed Superseded by reply and form.
+
+- PR number: 2784
+- Source review ID: 5829737162
+- Reviewer finding ID: F10 (Minor, as labelled in the review)
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2784#discussion_r4515668458
+- Concern: The two no-change threads do not use the prescribed Superseded by reply and form.
+- Solution: Valid. The prescribed replies are posted on both threads; rows F1 and F3 cite them with NO_ACTION. The thread state stays OPEN until the threads are resolved.
+- Current-tree verification: The two Superseded by replies exist (see the reply URLs of F1 and F3); the audit validator no longer reports F1 and F3.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2784#discussion_r4515746945
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2784#discussion_r4515746945
+
+### F14 - The claim that every command is in evidence/verify.sh does not hold (no cargo chef step; the metadata scan has no command).
+
+- PR number: 2784
+- Source review ID: 5829737162
+- Reviewer finding ID: F11 (Minor, as labelled in the review)
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2784#discussion_r4515668468
+- Concern: The claim that every command is in evidence/verify.sh does not hold (no cargo chef step; the metadata scan has no command).
+- Solution: Valid. verify.sh runs the V5 recipe steps and evidence/check_test_only.py (the scan); the evidence text names them.
+- Current-tree verification: evidence/verify.sh has a V5 block and runs check_test_only.py.
+- Resolution reference: docs(issues): [#2757] add the container recipe and the test-only scan to the verification script; docs(issues): [#2757] refresh the evidence transcript with the container recipe and the scan
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2784#discussion_r4515747375
+
+### F15 - Two retrospective statements do not match the record (rows 4 to 6 baseline; who found the six test-helpers arrows).
+
+- PR number: 2784
+- Source review ID: 5829737162
+- Reviewer finding ID: F12 (Minor, as labelled in the review)
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2784#discussion_r4515668477
+- Concern: Two retrospective statements do not match the record (rows 4 to 6 baseline; who found the six test-helpers arrows).
+- Solution: Valid. The retrospective says T1 ran only cargo test and no check builds this package alone, and credits the six arrows to the review.
+- Current-tree verification: Root Cause 1 and What Changed 2 of the retrospective.
+- Resolution reference: docs(issues): [#2757] align the retrospective with the record
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2784#discussion_r4515747893
+
+### F16 - Two audit statements go further than their sources (grep lines; the reviewer agreeing with the F2 wording).
+
+- PR number: 2784
+- Source review ID: 5829737162
+- Reviewer finding ID: F13 (Nit, as labelled in the review)
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2784#discussion_r4515668488
+- Concern: Two audit statements go further than their sources (grep lines; the reviewer agreeing with the F2 wording).
+- Solution: Valid. The audit says six lines (this package and five siblings) and quotes only what the review said.
+- Current-tree verification: The Finding Details of F3 and the Round 2 paragraph.
+- Resolution reference: docs(pr-reviews): [#2757] record the PR 2784 review round 3 audit
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2784#discussion_r4515748312
+
+### F17 - One commit carries the fixes of seven audit rows.
+
+- PR number: 2784
+- Source review ID: 5829737162
+- Reviewer finding ID: F14 (Nit, as labelled in the review)
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2784#discussion_r4515668496
+- Concern: One commit carries the fixes of seven audit rows.
+- Solution: Acknowledged; history is not rewritten. Every fix of this round is its own Conventional Commit.
+- Current-tree verification: git log shows one commit per fix in this round.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2784#discussion_r4515748751
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2784#discussion_r4515748751
+
 ## Processing Log
 
 - 2026-11-09 16:32 UTC - Started audit; round 1 (Copilot review 5828888059) processed: F2 fixed in the commit cited above, all three threads replied. Resolving the threads was denied by the auto mode classifier, so they stay OPEN for the maintainer. The fix and this audit go in one push.
 - 2026-11-09 16:47 UTC - Round 2 (da2ce7 review 5829122067) processed: F4 to F11 fixed in the commits cited above (the measurement at the merge base settles F4), all eight threads replied, the PR description corrected for F4 and F10. Resolving the threads is again blocked by the classifier. One push for both rounds; Copilot and da2ce7 are to be re-requested by the maintainer after it.
+- 2026-11-09 17:24 UTC - Round 3 (da2ce7 review 5829737162) processed: F12 to F16 fixed, F17 acknowledged; the prescribed Superseded by replies are posted on the two Copilot threads and rows F1 and F3 cite them; all six threads of this round replied. Resolving the threads is still blocked by the classifier. Each fix is its own commit; one push.
 
 ## Completion Rules
 
