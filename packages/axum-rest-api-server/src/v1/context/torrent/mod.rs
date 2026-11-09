@@ -115,6 +115,5 @@
 //!
 //! > **NOTICE**: this endpoint does not include the `peers` list.
 pub mod handlers;
-pub mod resources;
 pub mod responses;
 pub mod routes;
