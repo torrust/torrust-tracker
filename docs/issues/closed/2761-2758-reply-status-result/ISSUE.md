@@ -180,7 +180,7 @@ Manual verification is mandatory even when automated tests pass. Record actual c
 
 ## Implementation Completion Review
 
-- Retrospective: Not needed; the change was small and matched the spec. The one process gap (the prose-first test design review recorded only in review round 1 of PR #2775) is described in the "Test Design Review" section.
+- Retrospective: Not needed; the change was small and matched the spec. Two process gaps: the spec reached `develop` only together with the implementation (not through its own spec-only PR), and the prose-first test design review was recorded only in review round 1 of PR #2775 (see the "Test Design Review" section).
 - If needed, create `implementation-retrospective.md` from `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this directory; otherwise record in the progress log why none was needed.
 
 ## References
