@@ -572,7 +572,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512739187
 - Concern: The HTTP, REST and UDP scope entries named `Running::stop`, but the methods belong to `HttpServer<Running>`, `ApiServer<Running>` and `Server<Running>`.
 - Solution: Renamed the three entries and kept the state types, fields and constructors listed separately.
-- Current-tree verification: each `stop` is defined in `impl HttpServer<Running>`, `impl ApiServer<Running>` and `impl Server<Running>` (`grep -n "pub async fn stop"` over the three files), and the scope lists those names.
+- Current-tree verification: each `stop` is defined in `impl HttpServer<Running>`, `impl ApiServer<Running>` and `impl Server<Running>` (`grep -n "impl .*<Running>\|pub async fn stop"` over `packages/axum-http-server/src/server.rs`, `packages/axum-rest-api-server/src/server.rs` and `packages/udp-server/src/server/states.rs` prints the headers at lines 466, 349 and 268 and the `stop` lines at 473, 356 and 281), and the scope lists those names.
 - Resolution reference: docs(issues): [#2751] name the controller types that own the stop methods in the SI-18 scope
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512844278
@@ -585,7 +585,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512739244
 - Concern: The plan separated T1's dependency bump and T2's attributes from T3's allowances, but the workspace denies warnings, so the intermediate commits would fail the per-commit lint gate.
 - Solution: Moved the allowances into the T1 and T2 increments, made T3 a review of them, and aligned the plan and commit-point tables.
-- Current-tree verification: `Cargo.toml:222` sets `warnings = { level = "deny" }`; the T1 and T2 rows in both tables name their allowances.
+- Current-tree verification: `Cargo.toml:222` reads `warnings = { level = "deny", priority = -1 }` (`grep -n "^warnings" Cargo.toml`); the T1 and T2 rows in both tables name their allowances.
 - Resolution reference: docs(issues): [#2751] put the deprecation allowances into the T1 and T2 commits of the SI-18 plan
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512844562
@@ -597,7 +597,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Reviewer finding ID: LINK-001
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512739288
 - Concern: The reply URLs of F24 to F36 repeated the PR URL inside `#discussion_r`, so they did not navigate to the recorded replies.
-- Solution: Removed the doubled prefix from the 12 affected fields; the F26 field was already correct. The validator accepts the malformed form, so it cannot catch this.
+- Solution: Removed the doubled prefix from the 12 affected fields; the F26 `Resolution reference` and `Reply URL` fields were already correct, because the earlier commit `docs(pr-reviews): [#2751] record the resolution of F26 in the PR 2752 audit` had replaced both before this repair (the reviewer counted 14 fields in all: these 12 plus those 2). The validator accepts the malformed form, so it cannot catch this.
 - Current-tree verification: `grep -c "discussion_r[a-z]"` over the audit prints 0 (a letter right after `discussion_r` means a doubled prefix).
 - Resolution reference: docs(pr-reviews): [#2751] repair the duplicated URL prefixes in the PR 2752 audit
 - Follow-up PR URL: N/A
@@ -771,7 +771,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-11-09 12:44 UTC - Handled Copilot review 5825875881 (submitted 12:32 UTC, 3 inline findings, F50, F53 and LINK-001, which kept the reviewer's IDs because no audit ID collided). The fix commits were made after 12:32 UTC and pushed; the pull-request head matched the local head at 12:44 UTC, before any reply.
 - 2026-11-09 12:45 UTC - Replied on the three threads (12:45:03 to 12:45:08 UTC) and resolved them, each returning `isResolved: true`.
 - 2026-11-09 12:55 UTC - Started on review 5826094140 by `da2ce7` (submitted 12:52 UTC, 11 inline findings, audited as F37 to F47 because the reviewer's IDs collide with earlier audit IDs). The fix commits were made between 12:55:03 and 13:02:12 UTC.
-- 2026-11-09 13:05 UTC - Pushed the fix commits; the pull-request head matched the local head (`57d95a16e`) before any reply.
+- 2026-11-09 13:05 UTC - Pushed the fix commits; the pull-request head matched the local head before any reply.
 - 2026-11-09 13:06 UTC - Replied on all 11 threads (13:06:02 to 13:06:29 UTC) and resolved them, each returning `isResolved: true`.
 
 ## Completion Rules
