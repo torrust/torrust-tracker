@@ -82,7 +82,7 @@ servers through its own bootstrap jobs in `src/bootstrap/jobs/`.
 | `axum-http-server` | `src/testing/environment.rs` (484) | HTTP tracker on `Core` + `HttpTracker` config; `add_torrent_peer`, `base_url` | Own `tests/` (9 files), `examples/http_only_public_tracker.rs`, `axum-health-check-api-server` tests |
 | `axum-rest-api-server` | `src/testing/environment.rs` (232) | REST API on the full `Configuration`, wiring the HTTP and UDP cores; `add_torrent_peer`, `get_connection_info` | Own `tests/` (6 files), `axum-health-check-api-server` tests |
 | `udp-server` | `src/testing/environment.rs` (878) | UDP tracker on `Core` + `UdpTracker` config | Own `tests/server/contract.rs`, own `#[cfg(test)]` unit tests (`handlers/mod.rs`, `server/processor.rs`), `examples/udp_only_public_tracker.rs`, `axum-health-check-api-server` tests |
-| `axum-health-check-api-server` | `src/environment.rs` (118) | Health check API on `HealthCheckApi` config and a `Registar` | Own `tests/server/contract.rs` |
+| `axum-health-check-api-server` | `src/environment.rs` (497) | Health check API on `HealthCheckApi` config and a `Registar` | Own `tests/server/contract.rs` |
 
 Normal dependencies that production source does not use, only the module above:
 
@@ -126,7 +126,15 @@ dependencies (`torrust-tracker-core`, `torrust-tracker-http-core`, `torrust-trac
 from the `[dev-dependencies]` of `axum-health-check-api-server`. `torrust-clock` joined the six
 listed above after an audit of third-party and other workspace dependencies: its only production
 use was an unused `CurrentClock` alias, which #2745 deleted. The package has no examples. Only the
-health check environment (row 7) remains.
+health check environment (row 7) remained.
+
+**`axum-health-check-api-server` resolved by #2757.** The same pattern with one optional
+dependency: `testing = ["dep:torrust-tracker-configuration"]`, the path-only self dev-dependency, the
+`deny.toml` self wrapper (direct normal dependencies drop from 17 to 16; `configuration` stays
+reachable through `axum-server`). The package has no examples. The move exposed a latent defect:
+`url = "2.5.4"` had no `serde` feature, and `CheckReport` (`src/resources.rs`) derives `Serialize` and
+`Deserialize` on a `Url`; the feature only came from `torrust-tracker-configuration`, so the package
+did not compile without it. The package now declares `url` with `features = ["serde"]`.
 
 The 2026-10-06 coupling report (finding 2) listed four of `axum-rest-api-server`'s six; this
 inventory adds `tracker-core` and `rest-api-client`, and the health check's `configuration`.
@@ -256,7 +264,7 @@ that resolves it.
 | A. `udp-server` environment (and its example) | Rule A: behind the `testing` feature of `udp-server` | [Row 4](../../closed/2699-2482-gate-udp-server-test-environment/ISSUE.md) | Resolved by #2699 |
 | A. `axum-http-server` environment (and its example) | Rule A: behind the `testing` feature of `axum-http-server` | [Row 5](../../closed/2724-2482-gate-axum-http-server-test-environment/ISSUE.md) | Resolved by #2724 |
 | A. `axum-rest-api-server` environment | Rule A: behind the `testing` feature of `axum-rest-api-server` | [Row 6](../../closed/2745-2482-gate-axum-rest-api-server-test-environment/ISSUE.md) | Resolved by #2745 |
-| A. `axum-health-check-api-server` environment | Rule A: behind the `testing` feature of `axum-health-check-api-server` | [Row 7](../../open/2757-2482-gate-axum-health-check-api-server-test-environment/ISSUE.md) | Open |
+| A. `axum-health-check-api-server` environment | Rule A: behind the `testing` feature of `axum-health-check-api-server` | [Row 7](../../open/2757-2482-gate-axum-health-check-api-server-test-environment/ISSUE.md) | Resolved by #2757 |
 | B. `test-helpers` `http` and `udp` modules | Rule B: the root crate's `tests/common/` | [Row 2](../../closed/2628-2482-move-test-helpers-protocol-helpers/ISSUE.md) | Resolved by #2628 |
 | B. `test-helpers` `configuration`, `logging`, `random` | Rule B: stay in `test-helpers` | None | Kept by the ADR |
 | C. `tracker-core` `pub mod` test declarations | Rule C: private `#[cfg(test)] mod` | [Row 3](../../closed/2681-2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md) | Resolved by #2681 |

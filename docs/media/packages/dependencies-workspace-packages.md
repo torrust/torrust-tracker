@@ -23,7 +23,9 @@ An edge that exists only for a package's `testing` feature (an optional normal d
 not a runtime edge, so it is not drawn in this diagram. A package's dev-dependency on itself, which
 enables its own `testing` feature for its tests, is not drawn either. For example, `axum-rest-api-server`
 has seven such edges (`clock`, `tracker-core`, `http-core`, `rest-client`, `swarm`, `udp-core` and
-`udp-srv`), so they are absent from the `axum-rest` edges below.
+`udp-srv`), so they are absent from the `axum-rest` edges below. `axum-http-server` has three (`clock`,
+`info-hash` and `swarm`), `udp-server` has one (`swarm`) and `axum-health-check-api-server` has one (`config`), so
+they are absent from the `axum-http`, `udp-srv` and `axum-health` edges.
 
 ```mermaid
 flowchart TB
@@ -120,8 +122,6 @@ flowchart TB
     tracker --> udp-srv
 
     %% Server dependencies
-    axum-http --> clock
-    axum-http --> info-hash
     axum-http --> net-prim
     axum-http --> server-lib
     axum-http --> axum-base
@@ -130,7 +130,6 @@ flowchart TB
     axum-http --> http-core
     axum-http --> http-proto
     axum-http --> primitives
-    axum-http --> swarm
 
     axum-rest --> info-hash
     axum-rest --> metrics
@@ -146,7 +145,6 @@ flowchart TB
     axum-health --> net-prim
     axum-health --> server-lib
     axum-health --> axum-base
-    axum-health --> config
     axum-health --> primitives
 
     axum-base --> located-err
@@ -164,7 +162,6 @@ flowchart TB
     udp-srv --> tracker-core
     udp-srv --> events
     udp-srv --> primitives
-    udp-srv --> swarm
     udp-srv --> udp-core
     udp-srv --> udp-proto
 
