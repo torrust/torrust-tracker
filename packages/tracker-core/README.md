@@ -32,7 +32,7 @@ Export coverage report to `lcov` format:
 TORRUST_TRACKER_CORE_RUN_MYSQL_DRIVER_TEST=true cargo +stable llvm-cov --lcov --output-path=./.coverage/lcov.info
 ```
 
-If you use Visual Studio Code, you can use the [Coverage Gutters](https://marketplace.visualstudio.com/items?itemName=semasquare.vscode-coverage-gutters) extension to view the coverage lines.
+If you use Visual Studio Code, you can use the [Coverage Gutters](https://marketplace.visualstudio.com/items?itemName=ryanluker.vscode-coverage-gutters) extension to view the coverage lines.
 
 ## License
 
