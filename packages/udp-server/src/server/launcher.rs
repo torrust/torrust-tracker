@@ -12,6 +12,10 @@ use tokio_util::sync::CancellationToken;
 use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
 use torrust_server_lib::logging::STARTED_ON;
 use torrust_server_lib::registar::ServiceHealthCheckJob;
+#[allow(
+    deprecated,
+    reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
+)]
 use torrust_server_lib::signals::{Halted, Started, global_shutdown_signal};
 use torrust_tracker_client::udp::client::check;
 use torrust_tracker_configuration::v3_0_0::shutdown::Shutdown;
@@ -190,6 +194,10 @@ impl Launcher {
     /// Returns an error if the startup notification receiver is dropped or the
     /// receive loop stops with an error.
     #[instrument(skip(udp_tracker_core_container, udp_tracker_server_container, bound_socket, tx_start, rx_halt))]
+    #[allow(
+        deprecated,
+        reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
+    )]
     pub async fn run_with_graceful_shutdown(
         udp_tracker_core_container: Arc<UdpTrackerCoreContainer>,
         udp_tracker_server_container: Arc<UdpTrackerServerContainer>,
@@ -498,6 +506,10 @@ impl Launcher {
 ///
 /// A dropped halt sender counts as a stop request instead of a panic. The
 /// global OS signal is still observed until the legacy API is removed (SI-19).
+#[allow(
+    deprecated,
+    reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
+)]
 async fn legacy_stop_requested(rx_halt: oneshot::Receiver<Halted>, message: String) {
     select! {
         () = halt_requested(rx_halt) => (),
@@ -507,6 +519,10 @@ async fn legacy_stop_requested(rx_halt: oneshot::Receiver<Halted>, message: Stri
     tracing::info!(target: UDP_TRACKER_LOG_TARGET, "{message}");
 }
 
+#[allow(
+    deprecated,
+    reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
+)]
 async fn halt_requested(rx_halt: oneshot::Receiver<Halted>) {
     if let Ok(signal) = rx_halt.await {
         tracing::debug!(target: UDP_TRACKER_LOG_TARGET, "Halt signal processed: {signal}");
@@ -576,6 +592,10 @@ mod tests {
 
     use tokio::sync::oneshot;
     use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
+    #[allow(
+        deprecated,
+        reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
+    )]
     use torrust_server_lib::signals::{Halted, Started};
     use torrust_tracker_configuration::v3_0_0::logging;
     use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
@@ -722,6 +742,10 @@ mod tests {
     }
 
     #[tokio::test]
+    #[allow(
+        deprecated,
+        reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
+    )]
     async fn it_should_report_a_broken_pipe_when_the_startup_notification_receiver_is_dropped() {
         // Arrange
         let launcher = UdpLauncherTestContext::new().await;
@@ -750,6 +774,10 @@ mod tests {
     }
 
     #[tokio::test]
+    #[allow(
+        deprecated,
+        reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
+    )]
     async fn it_should_release_the_socket_when_the_startup_notification_receiver_is_dropped() {
         // Arrange
         let launcher = UdpLauncherTestContext::new().await;
@@ -776,6 +804,10 @@ mod tests {
     }
 
     /// A legacy launcher that has sent its startup notification and is waiting for a halt.
+    #[allow(
+        deprecated,
+        reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
+    )]
     struct RunningLegacyLauncher {
         bound_address: SocketAddr,
         halt_sender: oneshot::Sender<Halted>,
@@ -783,6 +815,10 @@ mod tests {
     }
 
     impl RunningLegacyLauncher {
+        #[allow(
+            deprecated,
+            reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
+        )]
         async fn start() -> Self {
             let launcher = UdpLauncherTestContext::new().await;
             let bound_socket = BoundSocket::bind(launcher.bind_address, false).expect("UDP socket should bind");

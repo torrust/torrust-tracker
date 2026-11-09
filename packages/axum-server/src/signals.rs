@@ -3,6 +3,10 @@ use std::time::Duration;
 
 use tokio::time::{Instant, sleep, sleep_until};
 use tokio_util::sync::CancellationToken;
+#[allow(
+    deprecated,
+    reason = "the legacy `graceful_shutdown` still uses the deprecated `Halted` channel; SI-19 removes both"
+)]
 use torrust_server_lib::signals::{Halted, shutdown_signal_with_message};
 use tracing::instrument;
 
@@ -68,6 +72,10 @@ pub async fn graceful_shutdown_on_cancellation(
     }
 }
 
+#[allow(
+    deprecated,
+    reason = "the legacy `graceful_shutdown` still uses the deprecated `Halted` channel; SI-19 removes both"
+)]
 #[instrument(skip(handle, rx_halt, message))]
 pub async fn graceful_shutdown(
     handle: axum_server::Handle<SocketAddr>,

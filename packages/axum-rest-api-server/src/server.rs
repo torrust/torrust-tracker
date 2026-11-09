@@ -39,6 +39,10 @@ use tokio_util::sync::CancellationToken;
 use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
 use torrust_server_lib::logging::STARTED_ON;
 use torrust_server_lib::registar::{ServiceHealthCheckJob, ServiceRegistration, ServiceRegistrationForm};
+#[allow(
+    deprecated,
+    reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
+)]
 use torrust_server_lib::signals::{Halted, Started};
 use torrust_tracker_axum_server::custom_axum_server::{self, TimeoutAcceptor};
 use torrust_tracker_axum_server::signals::{GracefulShutdownOutcome, graceful_shutdown, graceful_shutdown_on_cancellation};
@@ -123,6 +127,10 @@ pub struct Stopped {
 /// The `Running` state of the `ApiServer` struct.
 #[derive(Debug, Display)]
 #[display("Running (with local address): {local_addr}")]
+#[allow(
+    deprecated,
+    reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
+)]
 pub struct Running {
     pub local_addr: SocketAddr,
     pub halt_task: tokio::sync::oneshot::Sender<Halted>,
@@ -141,6 +149,10 @@ pub struct CancellationRunning {
 
 impl Running {
     #[must_use]
+    #[allow(
+        deprecated,
+        reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
+    )]
     pub const fn new(
         local_addr: SocketAddr,
         halt_task: tokio::sync::oneshot::Sender<Halted>,
@@ -176,6 +188,10 @@ impl ApiServer<Stopped> {
         ),
         err,
         ret(Display, level = Level::INFO)
+    )]
+    #[allow(
+        deprecated,
+        reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
     )]
     pub async fn start(
         self,
@@ -353,6 +369,10 @@ impl ApiServer<Running> {
     ///
     /// It would return an error if the channel for the task killer signal was closed.
     #[instrument(skip(self), err, ret(Display, level = Level::INFO))]
+    #[allow(
+        deprecated,
+        reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
+    )]
     pub async fn stop(self) -> Result<ApiServer<Stopped>, Error> {
         self.state.halt_task.send(Halted::Normal).map_err(|_| Error::Stop {
             message: "task killer channel was closed".to_string(),
@@ -446,6 +466,10 @@ impl Launcher {
     ///
     /// Returns an error when the listener cannot bind or be configured.
     #[instrument(skip(self, http_api_container, access_tokens, tx_start, rx_halt))]
+    #[allow(
+        deprecated,
+        reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
+    )]
     pub fn start(
         &self,
         http_api_container: &Arc<TrackerHttpApiCoreContainer>,

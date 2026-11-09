@@ -19,6 +19,10 @@ use tokio_util::sync::CancellationToken;
 use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
 use torrust_server_lib::logging::{Latency, STARTED_ON};
 use torrust_server_lib::registar::{Registar, RegistrationError, ServiceRegistration};
+#[allow(
+    deprecated,
+    reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
+)]
 use torrust_server_lib::signals::{Halted, Started};
 use torrust_tracker_axum_server::signals::{GracefulShutdownOutcome, graceful_shutdown, graceful_shutdown_on_cancellation};
 use torrust_tracker_primitives::{Readiness, RuntimeServiceMetadata};
@@ -77,6 +81,10 @@ pub struct RunningServer<F> {
 /// Returns an error if the listener cannot bind or be configured, or if the
 /// startup receiver is dropped before the listener is reported.
 #[instrument(skip(bind_to, tx, rx_halt, registar))]
+#[allow(
+    deprecated,
+    reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
+)]
 pub fn start(
     bind_to: SocketAddr,
     tx: Sender<Started>,

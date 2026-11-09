@@ -7,6 +7,10 @@ use derive_more::Constructor;
 use derive_more::derive::Display;
 use tokio::sync::oneshot;
 use tokio::task::JoinHandle;
+#[allow(
+    deprecated,
+    reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
+)]
 use torrust_server_lib::signals::{Halted, Started};
 use torrust_tracker_udp_core::ConnectionIdValidationPolicy;
 use torrust_tracker_udp_core::container::UdpTrackerCoreContainer;
@@ -15,6 +19,10 @@ use super::launcher::Launcher;
 use crate::container::UdpTrackerServerContainer;
 use crate::server::bound_socket::BoundSocket;
 
+#[allow(
+    deprecated,
+    reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
+)]
 pub struct LaunchRequest {
     pub udp_tracker_core_container: Arc<UdpTrackerCoreContainer>,
     pub udp_tracker_server_container: Arc<UdpTrackerServerContainer>,

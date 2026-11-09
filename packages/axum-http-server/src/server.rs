@@ -16,6 +16,10 @@ use torrust_server_lib::logging::STARTED_ON;
 use torrust_server_lib::registar::{
     FnSpawnServiceHeathCheck, ServiceHealthCheckJob, ServiceRegistration, ServiceRegistrationForm,
 };
+#[allow(
+    deprecated,
+    reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
+)]
 use torrust_server_lib::signals::{Halted, Started};
 use torrust_tracker_axum_server::custom_axum_server::{self, TimeoutAcceptor};
 use torrust_tracker_axum_server::signals::{GracefulShutdownOutcome, graceful_shutdown, graceful_shutdown_on_cancellation};
@@ -155,6 +159,10 @@ impl Launcher {
     }
 
     #[instrument(skip(self, http_tracker_container, tx_start, rx_halt))]
+    #[allow(
+        deprecated,
+        reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
+    )]
     fn start(
         &self,
         http_tracker_container: &Arc<HttpTrackerCoreContainer>,
@@ -240,6 +248,10 @@ pub struct Stopped {
 }
 
 /// A running HTTP server state.
+#[allow(
+    deprecated,
+    reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
+)]
 pub struct Running {
     /// The address where the server is bound.
     pub binding: SocketAddr,
@@ -321,6 +333,10 @@ impl HttpServer<Stopped> {
     /// Returns an error if no `SocketAddr` is returned after launching the
     /// server.
     ///
+    #[allow(
+        deprecated,
+        reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
+    )]
     pub async fn start_with_health_check(
         self,
         http_tracker_container: Arc<HttpTrackerCoreContainer>,
@@ -470,6 +486,10 @@ impl HttpServer<Running> {
     /// # Errors
     ///
     /// It would return an error if the channel for the task killer signal was closed.
+    #[allow(
+        deprecated,
+        reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
+    )]
     pub async fn stop(self) -> Result<HttpServer<Stopped>, Error> {
         self.state.halt_task.send(Halted::Normal).map_err(|_| Error::Stop {
             message: "task killer channel was closed".to_string(),

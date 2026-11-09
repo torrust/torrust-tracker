@@ -19,6 +19,10 @@ use derive_more::derive::Display;
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 use torrust_server_lib::registar::{ServiceRegistration, ServiceRegistrationForm};
+#[allow(
+    deprecated,
+    reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
+)]
 use torrust_server_lib::signals::{Halted, Started};
 use torrust_tracker_primitives::RuntimeServiceMetadata;
 use torrust_tracker_udp_core::container::UdpTrackerCoreContainer;
@@ -62,6 +66,10 @@ pub struct Stopped {
 )]
 #[derive(Debug, Display, Constructor)]
 #[display("Running (with local address): {local_addr}")]
+#[allow(
+    deprecated,
+    reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
+)]
 pub struct Running {
     /// The address where the server is bound.
     pub local_addr: SocketAddr,
@@ -104,6 +112,10 @@ impl Server<Stopped> {
         ),
         err,
         ret(Display, level = Level::INFO)
+    )]
+    #[allow(
+        deprecated,
+        reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
     )]
     pub async fn start(
         self,
@@ -278,6 +290,10 @@ impl Server<Running> {
     ///
     /// It panics if unable to shutdown service.
     #[instrument(skip(self), err, ret(Display, level = Level::INFO))]
+    #[allow(
+        deprecated,
+        reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
+    )]
     pub async fn stop(self) -> Result<Server<Stopped>, UdpError> {
         self.state
             .halt_task

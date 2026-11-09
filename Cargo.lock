@@ -4921,9 +4921,9 @@ dependencies = [
 
 [[package]]
 name = "torrust-server-lib"
-version = "0.4.0"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0f148517af29a7bd8212773623935dcfd8b21e00518693ec4b8429b0bcb363ce"
+checksum = "93819242b8132dfed96890ef7011ce954b12784bb8011db9968faa174919f785"
 dependencies = [
  "derive_more 2.1.1",
  "tokio",
