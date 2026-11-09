@@ -9,7 +9,7 @@ github-issue: 2770
 spec-path: docs/issues/open/2770-2758-close-out-adr-and-epic/ISSUE.md
 branch: "2770-close-out-adr-and-epic"
 related-pr: null
-last-updated-utc: "2026-11-06 17:10"
+last-updated-utc: "2026-11-09 10:25"
 semantic-links:
   skill-links:
     - create-issue
@@ -32,7 +32,7 @@ After the migration issues are merged, remove the 'currently non-compliant' note
 
 ## Background
 
-Sibling issues do not edit the ADR table (only issue 1 and this one do), so the table still says some tools are non-compliant when they are done. This is the close-out PR described by the epic-coordination process: move the EPIC spec to `docs/issues/closed/`, update the Subissues table and acceptance verification. Also remove the scripts-audit follow-ups that became issues, and record leftover non-compliance with its issue.
+Sibling issues do not edit the ADR table (only issue 1 and this one do), so the table still says some tools are non-compliant when they are done. This is the EPIC's close-out PR, the last one: move the EPIC spec to `docs/issues/closed/`, update the Subissues table and acceptance verification. Also remove the scripts-audit follow-ups that became issues, and record leftover non-compliance with its issue.
 
 The global CLI output contract (`docs/adrs/20260519000000_define_global_cli_output_contract.md`), as amended by `docs/adrs/20261106102632_scope_the_cli_output_contract_and_keep_exit_codes_to_zero_one_two.md`, requires: result data only on stdout (one JSON object) for `stdout-result-data` commands, nothing on stdout for `no-stdout-result` commands; every stderr record is one JSON object per line (NDJSON) with a `kind`; no plain text on either channel; exit codes only `0` (did its job, the answer is in the result), `1` (could not do its job) and `2` (usage error or TTY refusal); and TTY refusal for `stdout-result-data` commands. A distinct outcome is a `kind` field: an answer to what the caller asked is a stdout result with exit `0`; "could not answer" is a stderr diagnostic with exit `1`. This issue is part of EPIC #2758, which migrates the tools found non-compliant by the 2026-11-06 audit. The reference implementations are `contrib/dev-tools/checks/ci-gate/src/main.rs` (`stdout-result-data`) and `contrib/dev-tools/checks/shipped-features-check/src/main.rs` (`no-stdout-result`).
 
@@ -112,8 +112,9 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 
 ### Progress Log
 
-- 2026-11-06 17:10 UTC - Claude Code (Claude Sonnet 5.5) - Drafted this spec as part of EPIC #2758 from the 2026-11-06 audit.
-- 2026-11-06 17:25 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the spec; GitHub issue #2770 created.
+- 2026-11-06 16:43 UTC - Claude Code (Claude Sonnet 5.5) - Drafted this spec as part of EPIC #2758 from the 2026-11-06 audit.
+- 2026-11-06 16:52 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the spec; GitHub issue #2770 created.
+- 2026-11-09 10:25 UTC - Claude Code (Claude Sonnet 5.5) - Corrected details after the review rounds on PR 2771 and PR 2774 and fixed the earlier log stamps from the commit and issue creation times.
 
 ## Acceptance Criteria
 

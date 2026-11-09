@@ -9,7 +9,7 @@ github-issue: 2763
 spec-path: docs/issues/open/2763-2758-dev-tool-checks-ndjson/ISSUE.md
 branch: "2763-dev-tool-checks-ndjson"
 related-pr: null
-last-updated-utc: "2026-11-06 17:10"
+last-updated-utc: "2026-11-09 10:25"
 semantic-links:
   skill-links:
     - create-issue
@@ -122,8 +122,9 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 
 ### Progress Log
 
-- 2026-11-06 17:10 UTC - Claude Code (Claude Sonnet 5.5) - Drafted this spec as part of EPIC #2758 from the 2026-11-06 audit.
-- 2026-11-06 17:25 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the spec; GitHub issue #2763 created.
+- 2026-11-06 16:43 UTC - Claude Code (Claude Sonnet 5.5) - Drafted this spec as part of EPIC #2758 from the 2026-11-06 audit.
+- 2026-11-06 16:51 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the spec; GitHub issue #2763 created.
+- 2026-11-09 10:25 UTC - Claude Code (Claude Sonnet 5.5) - Corrected details after the review rounds on PR 2771 and PR 2774 and fixed the earlier log stamps from the commit and issue creation times.
 
 ## Acceptance Criteria
 

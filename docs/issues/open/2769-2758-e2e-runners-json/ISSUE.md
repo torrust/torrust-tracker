@@ -9,7 +9,7 @@ github-issue: 2769
 spec-path: docs/issues/open/2769-2758-e2e-runners-json/ISSUE.md
 branch: "2769-e2e-runners-json"
 related-pr: null
-last-updated-utc: "2026-11-06 17:10"
+last-updated-utc: "2026-11-09 10:25"
 semantic-links:
   skill-links:
     - create-issue
@@ -33,7 +33,7 @@ The two e2e runners are compliant `no-stdout-result` programs: empty stdout, NDJ
 
 ## Background
 
-Depends on the daemon logging change (EPIC issue 7), which edits `src/console/ci/e2e/logs_parser.rs`. `src/console/ci/e2e/runner.rs` initializes `tracing_subscriber::fmt()` (stdout, plain text) and both runners return `anyhow::Result` from `main`, so a failure prints `Error: <debug text>` and exits `1`. The runners are in `packages/e2e-tools/src/bin/` and `src/console/ci/{e2e,qbittorrent_e2e}/`.
+Depends on the deprecated-client removal (EPIC issue 6, #2765), which edits `src/console/ci/e2e/tracker_checker.rs`, and on the daemon logging change (EPIC issue 7), which edits `src/console/ci/e2e/docker.rs` and `src/console/ci/e2e/logs_parser.rs`. `src/console/ci/e2e/runner.rs` initializes `tracing_subscriber::fmt()` (stdout, plain text) and both runners return `anyhow::Result` from `main`, so a failure prints `Error: <debug text>` and exits `1`. The runners are in `packages/e2e-tools/src/bin/` and `src/console/ci/{e2e,qbittorrent_e2e}/`.
 
 The global CLI output contract (`docs/adrs/20260519000000_define_global_cli_output_contract.md`), as amended by `docs/adrs/20261106102632_scope_the_cli_output_contract_and_keep_exit_codes_to_zero_one_two.md`, requires: result data only on stdout (one JSON object) for `stdout-result-data` commands, nothing on stdout for `no-stdout-result` commands; every stderr record is one JSON object per line (NDJSON) with a `kind`; no plain text on either channel; exit codes only `0` (did its job, the answer is in the result), `1` (could not do its job) and `2` (usage error or TTY refusal); and TTY refusal for `stdout-result-data` commands. A distinct outcome is a `kind` field: an answer to what the caller asked is a stdout result with exit `0`; "could not answer" is a stderr diagnostic with exit `1`. This issue is part of EPIC #2758, which migrates the tools found non-compliant by the 2026-11-06 audit. The reference implementations are `contrib/dev-tools/checks/ci-gate/src/main.rs` (`stdout-result-data`) and `contrib/dev-tools/checks/shipped-features-check/src/main.rs` (`no-stdout-result`).
 
@@ -119,8 +119,9 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 
 ### Progress Log
 
-- 2026-11-06 17:10 UTC - Claude Code (Claude Sonnet 5.5) - Drafted this spec as part of EPIC #2758 from the 2026-11-06 audit.
-- 2026-11-06 17:25 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the spec; GitHub issue #2769 created.
+- 2026-11-06 16:43 UTC - Claude Code (Claude Sonnet 5.5) - Drafted this spec as part of EPIC #2758 from the 2026-11-06 audit.
+- 2026-11-06 16:52 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the spec; GitHub issue #2769 created.
+- 2026-11-09 10:25 UTC - Claude Code (Claude Sonnet 5.5) - Corrected details after the review rounds on PR 2771 and PR 2774 and fixed the earlier log stamps from the commit and issue creation times.
 
 ## Acceptance Criteria
 
@@ -147,7 +148,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | -------- | ---------------------------- | --------------- | ------ | -------- |
-| M1 | e2e run | `cargo build -p e2e-tools --bins`, then `target/debug/e2e_tests_runner ... >out 2>err` (not `cargo run`, which adds plain cargo messages on stderr; `e2e-tools` is not a default workspace member) | `out` empty, `err` NDJSON, exit as expected | TODO | `manual-verification-evidence.md` section V1 |
+| M1 | e2e run | `cargo build -p torrust-tracker-e2e-tools --bins`, then `target/debug/e2e_tests_runner ... >out 2>err` (not `cargo run`, which adds plain cargo messages on stderr; `torrust-tracker-e2e-tools` is not a default workspace member) | `out` empty, `err` NDJSON, exit as expected | TODO | `manual-verification-evidence.md` section V1 |
 | M2 | qBittorrent run | Same with `target/debug/qbittorrent_e2e_runner` | Same | TODO | `manual-verification-evidence.md` section V2 |
 
 Manual verification is mandatory even when automated tests pass. Record actual commands, output and the toolchain that produced each result in `manual-verification-evidence.md` (from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`).
