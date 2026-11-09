@@ -404,10 +404,10 @@ mod tests {
     }
 
     #[rstest]
-    #[case::the_value_shared_by_two_labels(FIRST_TOKEN, true)]
-    #[case::the_value_of_the_third_label(SECOND_TOKEN, true)]
-    #[case::a_value_that_is_not_configured("unlisted-token-9", false)]
-    fn it_should_authenticate_a_token_configured_under_more_than_one_label(#[case] token: &str, #[case] expected: bool) {
+    #[case::the_value_shared_by_the_first_and_copy_labels(FIRST_TOKEN, true)]
+    #[case::the_value_of_the_other_label(SECOND_TOKEN, true)]
+    #[case::a_value_that_no_label_holds("unlisted-token-9", false)]
+    fn it_should_match_a_token_against_every_label_when_two_labels_share_a_value(#[case] token: &str, #[case] expected: bool) {
         let access_tokens = AccessTokens::from([
             ("first".to_string(), SecretString::from(FIRST_TOKEN)),
             ("copy".to_string(), SecretString::from(FIRST_TOKEN)),

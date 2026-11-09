@@ -178,12 +178,12 @@ that equals any configured token authenticates", regardless of how many labels c
 
 | Test | Arrange | Act | Assert |
 | --- | --- | --- | --- |
-| `it_should_authenticate_a_token_configured_under_more_than_one_label` | `AccessTokens` with two labels (`first`, `copy`) holding the same value, plus a third label (`other`) with another value. | `authenticate` with the shared value. | `true`. A second case with the third label's value is also `true`; one with an unconfigured value is `false`. |
+| `it_should_match_a_token_against_every_label_when_two_labels_share_a_value` | `AccessTokens` with two labels (`first`, `copy`) holding the same value, plus a third label (`other`) with another value. | `authenticate` with the shared value. | `true` (case `the_value_shared_by_the_first_and_copy_labels`). Two more cases: the third label's value is also `true` (`the_value_of_the_other_label`); a value no label holds is `false` (`a_value_that_no_label_holds`). |
 
 Placement: the `authenticate` tests of the existing in-file test module, as one more `rstest` function over a local
 `access_tokens`-style fixture. No new dependency, no production change.
 
-Named mutations (apply, run the module's tests, restore):
+Named mutations (apply, run the tests of the module, `cargo test -p torrust-tracker-axum-rest-api-server --lib v1::middlewares::auth`, restore):
 
 | ID | Mutation | Expected |
 | --- | --- | --- |
@@ -197,6 +197,8 @@ The result goes to `coverage-evidence.md` and the final EPIC tables.
 
 ### Results
 
-One test function with three cases (`it_should_authenticate_a_token_configured_under_more_than_one_label`) was added;
-the package has 170 unit tests (was 167) and 58 integration tests, all passing. A1 is killed (one case fails), and A2
-(four failures) and A3 (six failures) are killed as predicted. `auth.rs` stays at 133 / 133 lines unit-only.
+One test function with three cases (`it_should_match_a_token_against_every_label_when_two_labels_share_a_value`; named
+`it_should_authenticate_a_token_configured_under_more_than_one_label` with different case names until the review of PR 2772) was
+added; the package has 170 unit tests (was 167) and 58 integration tests, all passing. Over the 30 tests of the module, A1 is
+killed (one case fails), A2 fails nine and A3 twelve, so both are killed as predicted (a run filtered by the name `authenticate`
+shows one, four and six failures). `auth.rs` stays at 133 / 133 lines unit-only.
