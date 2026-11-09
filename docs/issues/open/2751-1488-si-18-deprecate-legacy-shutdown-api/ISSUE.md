@@ -9,7 +9,7 @@ github-issue: 2751
 spec-path: docs/issues/open/2751-1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md
 branch: "2751-deprecate-legacy-shutdown-api-spec"
 related-pr: null
-last-updated-utc: "2026-11-09 12:08"
+last-updated-utc: "2026-11-09 12:32"
 semantic-links:
   skill-links:
     - create-issue
@@ -118,14 +118,14 @@ current version at the end of #1669; the root `torrust-tracker` next releases as
   only to what is already public: `torrust-server-lib` (deprecated since 0.5.0, removed in 0.6.0), which is
   released independently of #2583 and of the tracker release. #2583 needs no change.
 - End of the `torrust-server-lib` 0.5.x window (proposed from SI-19's existing start-gate item "a maintainer
-  explicitly approves the breaking-release timing"; confirmed by the maintainer on 2026-11-09): there is no fixed
+  explicitly approves the breaking-release timing"; confirmed by the maintainer on 2026-11-09, [comment on PR 2752](https://github.com/torrust/torrust-tracker/pull/2752#issuecomment-6740143243)): there is no fixed
   date. The window ends when the maintainer approves publishing 0.6.0, and the maintainer publishes 0.6.0 from the
   `torrust-server-lib` repository as part of SI-19, after that approval. The SI-19 start gate therefore waits for
   the approval, not for the 0.6.0 publication, which SI-19 itself produces.
 - SI-18 only deprecates `HaltSignal` and `NestedServerTask`; it does not delete them. SI-19 removes them, under
   the conditions in the derived paragraph below.
 
-Derived from the tree, then confirmed by the maintainer on 2026-11-09 ("we do not need a support window"): the root
+Derived from the tree, then confirmed by the maintainer on 2026-11-09 ("we do not need a support window"; [comment on PR 2752](https://github.com/torrust/torrust-tracker/pull/2752#issuecomment-6740143243)): the root
 `HaltSignal` and `NestedServerTask` were added after the published 3.0.0 (commit `3ee28b723`, "adopt JoinSet
 supervision"; `git grep` finds neither in tag `v3.0.0`), so they have never been in a published release and need
 no support window either. Their deprecation is in-repo guidance, with `since = "4.0.0"` (the next root release, which the next tracker application release
@@ -304,6 +304,7 @@ Arrange-Act-Assert design review in task evidence, and sign every commit with GP
 - 2026-11-09 10:56 UTC - AI agent (Claude Sonnet 5.5) - Edited the spec for the 2026-11-09 review of PR 2752: marked the derived conclusion, listed the adapter types, defined the text for symbols removed before first publication and the end of the 0.5.x window, recorded the gate commands, and corrected paths and the #2482 status
 - 2026-11-09 11:01 UTC - AI agent (Claude Sonnet 5.5) - Recorded the maintainer's confirmation (chat, 2026-11-09) that the root `HaltSignal` and `NestedServerTask` need no support window and that the 0.5.x window ends at the maintainer's approval of 0.6.0
 - 2026-11-09 12:08 UTC - AI agent (Claude Sonnet 5.5) - Edited the spec for the 2026-11-09 11:22 and 11:31 UTC reviews of PR 2752: marked the unpublished-symbol deprecation text as proposed, aligned the plan and scope with it, and corrected the scope list and the evidence
+- 2026-11-09 12:32 UTC - AI agent (Claude Sonnet 5.5) - Cited the maintainer's own comment on PR 2752 (posted 12:32 UTC as josecelano, at the maintainer's request) for the two confirmations; the deprecation text for symbols removed before first publication is still not confirmed
 
 ## Rollback
 
