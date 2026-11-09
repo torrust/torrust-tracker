@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2757-2482-gate-axum-health-check-api-server-test-environment/ISSUE.md
-last-updated-utc: "2026-11-09 17:22"
+last-updated-utc: "2026-11-09 19:25"
 ---
 
 # Manual Verification Evidence
@@ -9,6 +9,8 @@ last-updated-utc: "2026-11-09 17:22"
 ## Purpose
 
 Record the commands run to verify the scenarios of the [spec](ISSUE.md). Every command is in [`evidence/verify.sh`](evidence/verify.sh), with two helper scripts it runs: [`evidence/check_diagram.py`](evidence/check_diagram.py) and [`evidence/check_test_only.py`](evidence/check_test_only.py); the transcript below is the output of one run of that script on a clean tree (with `torrust-cargo-chef` 0.1.79 first on `PATH`), ANSI codes stripped and the checkout path shown as `<repo>`. A line `[exit N]` is the exit code of the whole command, with `pipefail` set; the exit 1 of a `grep -c` that counts zero is the expected result, and exits 2 and 101 mark the failing controls and the merge-base check.
+
+Note: the transcript ran from `docs/issues/open/2757-2482-gate-axum-health-check-api-server-test-environment/evidence/`; the folder moved to `docs/issues/closed/` afterwards, and `verify.sh` and the references were updated to the new path.
 
 ## Environment
 
