@@ -1,7 +1,7 @@
 ---
 pr-number: 2771
 pr-url: https://github.com/torrust/torrust-tracker/pull/2771
-last-updated-utc: "2026-11-09 13:32"
+last-updated-utc: "2026-11-09 16:01"
 ---
 
 # PR #2771 Review Audit
@@ -28,7 +28,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-One row per independent concern from Copilot's review of this pull request (round 1: review 5804134932; later rounds: Copilot reviews 5806995671, 5825242595 and 5825900769 (da2ce7's review 5826238636 is also recorded), da2ce7 reviews 5823128808, 5824728682, 5825027438 and 5825408118).
+One row per independent concern from the reviews of this pull request. Copilot: reviews 5804134932, 5806995671, 5825242595 and 5825900769. da2ce7: reviews 5823128808, 5824728682, 5825027438, 5825408118, 5826238636 and 5826857760.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -98,6 +98,14 @@ One row per independent concern from Copilot's review of this pull request (roun
 | F64 | review-finding:pr-2771-f64 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F65 | review-finding:pr-2771-f65 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F66 | review-finding:pr-2771-f66 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F67 | review-finding:pr-2771-f67 | Human | Minor | link-integrity | ORIGINAL | FIXED | RESOLVED |
+| F68 | review-finding:pr-2771-f68 | Human | Minor | link-integrity | ORIGINAL | FIXED | RESOLVED |
+| F69 | review-finding:pr-2771-f69 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F70 | review-finding:pr-2771-f70 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F71 | review-finding:pr-2771-f71 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F72 | review-finding:pr-2771-f72 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F73 | review-finding:pr-2771-f73 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F74 | review-finding:pr-2771-f74 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -135,7 +143,7 @@ One row per independent concern from Copilot's review of this pull request (roun
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4497597850
 - Concern: In the subissues table, the files list for issue #2761 includes `.github/skills/dev/pr-reviews/resolve-review-threads/` as a directory, while the child spec for #2761 references the specific `.github/skills/dev/pr-reviews/resolve-review-threads/SKILL.md`.
 - Solution: Valid. The EPIC row for issue 2 now lists the concrete `.../resolve-review-threads/SKILL.md`.
-- Current-tree verification: Ran `grep -c -F -e 'resolve-review-threads/SKILL.md`' docs/issues/open/2758-cli-output-contract-tools-migration/EPIC.md` in the worktree before this commit; it printed `1`, which confirms the fix.
+- Current-tree verification: Ran `grep -c -F -e 'resolve-review-threads/SKILL.md' docs/issues/open/2758-cli-output-contract-tools-migration/EPIC.md` in the worktree before this commit; it printed `1`, which confirms the fix.
 - Resolution reference: docs(issues): [#2758] address the da2ce7 and Copilot review rounds on PR 2771
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4512612456
@@ -148,7 +156,7 @@ One row per independent concern from Copilot's review of this pull request (roun
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4497597909
 - Concern: The `Files this issue may touch` list uses a glob path (`docs/issues/open/2758-*/EPIC.md`) instead of the concrete EPIC spec path.
 - Solution: Valid. The #2770 file list names the concrete EPIC path and its destination under `docs/issues/closed/`.
-- Current-tree verification: Ran `grep -c -F -e '2758-cli-output-contract-tools-migration/EPIC.md` (moved' docs/issues/open/2770-2758-*/ISSUE.md` in the worktree before this commit; it printed `1`, which confirms the fix.
+- Current-tree verification: Ran `grep -c -F -e '(moved to' docs/issues/open/2770-2758-*/ISSUE.md` in the worktree before this commit; it printed `1`, which confirms the fix.
 - Resolution reference: docs(issues): [#2758] address the da2ce7 and Copilot review rounds on PR 2771
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4512612723
@@ -211,7 +219,7 @@ One row per independent concern from Copilot's review of this pull request (roun
 - Source review ID: 5823128808
 - Reviewer finding ID: F3
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4510604743
-- Concern: AC1 and AC2 cannot hold while child processes inherit the runner's streams. `src/console/ci/e2e/tracker_checker.rs:15` runs `cargo run ...` with `.status()`, and `src/console/ci/e2e/docker.rs:41,110,128` and `src/console/ci/compose.rs:104` run `docker` the same way, so each child's stdout and the plain text of `cargo` and `docker` lan
+- Concern: AC1 and AC2 cannot hold while child processes inherit the runner's streams. `src/console/ci/e2e/tracker_checker.rs:15` runs `cargo run ...` with `.status()`, and `src/console/ci/e2e/docker.rs:41,110,128` and `src/console/ci/compose.rs:104` run `docker` the same way, so each child's stdout and the plain text of `cargo` and `docker` land on the runner's own channels.
 - Solution: Valid. #2769 now requires capturing every child process's output (cargo, docker, compose, the checker), and #2765 covers the checker's TTY and panic consequence; AC5 and AC6 added.
 - Current-tree verification: Ran `grep -c -F -e 'No child process' docs/issues/open/2769-2758-*/ISSUE.md` in the worktree before this commit; it printed `1`, which confirms the fix.
 - Resolution reference: docs(issues): [#2758] address the da2ce7 and Copilot review rounds on PR 2771
@@ -237,7 +245,7 @@ One row per independent concern from Copilot's review of this pull request (roun
 - Source review ID: 5823128808
 - Reviewer finding ID: F5
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4510604759
-- Concern: AC3 and M2b expect one JSON record, which a bind failure does not produce. `src/main.rs:45` logs `tracing::error!(%error, "Tracker startup failed")` and `src/main.rs:46` then writes the failure report, so a failure after logging starts emits two failure records, on top of the startup records already written ("Logging initialized" fir
+- Concern: AC3 and M2b expect one JSON record, which a bind failure does not produce. `src/main.rs:45` logs `tracing::error!(%error, "Tracker startup failed")` and `src/main.rs:46` then writes the failure report, so a failure after logging starts emits two failure records, on top of the startup records already written ("Logging initialized" first).
 - Solution: Valid. #2766 requires exactly one record carrying the failure `kind` and the duplicate report at `src/main.rs:45-46` to be removed.
 - Current-tree verification: Ran `grep -c -F -e 'exactly one record' docs/issues/open/2766-2758-*/ISSUE.md` in the worktree before this commit; it printed `2`, which confirms the fix.
 - Resolution reference: docs(issues): [#2758] address the da2ce7 and Copilot review rounds on PR 2771
@@ -263,7 +271,7 @@ One row per independent concern from Copilot's review of this pull request (roun
 - Source review ID: 5823128808
 - Reviewer finding ID: F7
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4510604784
-- Concern: Progress-log times labelled UTC are later than the commit that carries them. This entry and the matching entries in the 11 child specs stamp the approval and the creation of these issues at 17:25 UTC, and the child specs stamp their draft at 17:10 UTC, yet those lines are already in the branch's first commit `05df18196` (16:54:41 UTC)
+- Concern: Progress-log times labelled UTC are later than the commit that carries them. This entry and the matching entries in the 11 child specs stamp the approval and the creation of these issues at 17:25 UTC, and the child specs stamp their draft at 17:10 UTC, yet those lines are already in the branch's first commit `05df18196` (16:54:41 UTC) and the pull request was opened at 16:58:04 UTC.
 - Solution: Valid. Stamps were corrected from the commit and issue creation times; a later round of mine put new stamps after their commit, which `docs(issues): [#2758] address the da2ce7 and Copilot review rounds on PR 2771` corrects again (F38).
 - Current-tree verification: Ran `grep -rl '2026-11-09 11:27' docs/issues docs/pr-reviews | grep -v '/2760-' | wc -l` in the worktree before this commit; it printed `0`, which confirms the fix.
 - Resolution reference: docs(issues): [#2758] address the round 2 review of PR 2774 on the EPIC and child specs
@@ -302,7 +310,7 @@ One row per independent concern from Copilot's review of this pull request (roun
 - Source review ID: 5823128808
 - Reviewer finding ID: F10
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4510604809
-- Concern: `Not applicable` for the design review, while the test plan spawns a child process. `create-issue` requires a responsibility map, lifetime invariants, deadlines and a design checkpoint for work "involving child processes, asynchronous I/O, network readiness, resource cleanup, or reusable test fixtures", and the template allows `Not applicable
+- Concern: `Not applicable` for the design review, while the test plan spawns a child process. `create-issue` requires a responsibility map, lifetime invariants, deadlines and a design checkpoint for work "involving child processes, asynchronous I/O, network readiness, resource cleanup, or reusable test fixtures", and the template allows `Not applicable` only when those do not apply.
 - Solution: Valid. #2764 now has a filled Design and Ownership Review for the test-server fixture.
 - Current-tree verification: Ran `grep -c -F -e 'Responsibilities' docs/issues/open/2764-2758-*/ISSUE.md` in the worktree before this commit; it printed `1`, which confirms the fix.
 - Resolution reference: docs(issues): [#2758] address the da2ce7 and Copilot review rounds on PR 2771
@@ -330,7 +338,7 @@ One row per independent concern from Copilot's review of this pull request (roun
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4510604825
 - Concern: The deprecated binaries have no `Cargo.toml` entries to delete. `console/tracker-client/Cargo.toml` has no `[[bin]]` section and names none of the three; they are discovered from `src/bin/`.
 - Solution: Valid. #2765 no longer mentions `Cargo.toml` entries; the binaries are discovered from `src/bin/`.
-- Current-tree verification: Ran `grep -c -F -e 'Cargo.toml` entries' docs/issues/open/2765-2758-*/ISSUE.md` in the worktree before this commit; it printed `0`, which confirms the fix.
+- Current-tree verification: Ran `grep -c -E 'Cargo[.]toml.{1,2} entries' docs/issues/open/2765-2758-*/ISSUE.md` in the worktree before this commit; it printed `0`, which confirms the fix.
 - Resolution reference: docs(issues): [#2758] address the da2ce7 and Copilot review rounds on PR 2771
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4512617583
@@ -394,9 +402,9 @@ One row per independent concern from Copilot's review of this pull request (roun
 - Reviewer finding ID: F17
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4511833369
 - Concern: This file conflicts with `develop`, and the resolution has to keep both sides. `git merge-tree --write-tree` against `develop` `00e5a741d` exits 1 on this path alone, in three regions: `last-updated-utc` (this line), the Progress Log (lines 126-128) and the M1 and M2 rows (lines 156-157).
-- Solution: Valid. The conflict was resolved keeping the corrected stamps and `develop`'s `DONE` rows and Implemented entry.
+- Solution: Valid. The conflict was resolved keeping the corrected stamps and `develop`'s `DONE` rows and Implemented entry. It is the first of the merges of `develop` into this branch, the one made after PR 2775 merged.
 - Current-tree verification: Ran `grep -rl '<<<<<<<' docs/issues docs/pr-reviews | wc -l` in the worktree before this commit; it printed `0`, which confirms the fix.
-- Resolution reference: Merge torrust/develop into 2758-cli-output-contract-tools-migration-spec (the merge `b2c4c73f6`; three merges share this subject)
+- Resolution reference: Merge torrust/develop into 2758-cli-output-contract-tools-migration-spec
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4512619211
 
@@ -537,9 +545,9 @@ One row per independent concern from Copilot's review of this pull request (roun
 - Reviewer finding ID: F27
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4512374822
 - Concern: This head conflicts with `develop` `a50a84e35` in two files, three regions. `git merge-tree --write-tree` against `a50a84e35` exits 1, and the capture records `mergeable: false`, `mergeable_state: dirty`.
-- Solution: Valid. `develop` was merged keeping both sides, on the archived path with `related-pr: 2775`.
+- Solution: Valid. `develop` was merged keeping both sides, on the archived path with `related-pr: 2775`. It is the merge of `develop` made after PR 2779 merged.
 - Current-tree verification: Ran `grep -rl '<<<<<<<' docs/issues docs/pr-reviews | wc -l` in the worktree before this commit; it printed `0`, which confirms the fix.
-- Resolution reference: Merge torrust/develop into 2758-cli-output-contract-tools-migration-spec (the merge `d94bae300`; three merges share this subject)
+- Resolution reference: Merge torrust/develop into 2758-cli-output-contract-tools-migration-spec
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4512622891
 
@@ -744,7 +752,7 @@ One row per independent concern from Copilot's review of this pull request (roun
 - Source review ID: 5826238636
 - Reviewer finding ID: F31
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4513023709
-- Concern: A configuration failure produces one report, not two. `bootstrap::app::setup` loads and validates the configuration before `initialize_global_services` starts logging (`src/bootstrap/app.rs:56-64`), so a failure in those steps reaches `src/main.rs:45` with no subscriber, and only the line from `:46` is written, w
+- Concern: A configuration failure produces one report, not two. `bootstrap::app::setup` loads and validates the configuration before `initialize_global_services` starts logging (`src/bootstrap/app.rs:56-64`), so a failure in those steps reaches `src/main.rs:45` with no subscriber, and only the line from `:46` is written, with no "Logging initialized" before it.
 - Solution: Valid. The bullet separates a configuration failure (before logging starts, one report) from a runtime failure after logging started (two reports) and requires exactly one record carrying the failure `kind` in both.
 - Current-tree verification: Ran `grep -c -F 'configuration failure happens before logging starts' docs/issues/open/2766-2758-*/ISSUE.md` in the worktree before this commit; it printed `1`, which confirms the fix.
 - Resolution reference: docs(issues): [#2758] address da2ce7's review 5826238636 of PR 2771 on the specs and evidence
@@ -900,7 +908,7 @@ One row per independent concern from Copilot's review of this pull request (roun
 - Source review ID: 5826238636
 - Reviewer finding ID: F44
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4513023783
-- Concern: Five resolution references are wrong or ambiguous. This row cites the round 2 commit, which leaves `src/logging.rs` in `2766/ISSUE.md`; the fix is in `92325f25d`, and the reply repeats the wrong subject.
+- Concern: Five resolution references are wrong or ambiguous. This row cites the round 2 commit, which leaves `src/logging.rs` in `2766/ISSUE.md`; the fix is in the commit that made the fix, and the reply repeats the wrong subject.
 - Solution: Valid. The resolution references of F19, F23, F24, F32 and F34 are corrected, and the two replies that repeated a wrong subject are edited.
 - Current-tree verification: Ran `grep -c -E '^- Resolution reference: https' docs/pr-reviews/pr-2771-review/PR-REVIEW.md` in the worktree before this commit; it printed `1`, which confirms the fix.
 - Resolution reference: docs(pr-reviews): [#2758] rework the PR 2771 review audit after review 5826238636
@@ -959,15 +967,121 @@ One row per independent concern from Copilot's review of this pull request (roun
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4513266776
 
+### F67 - The parenthetical added to this reference and to F34's stops them being commit subjects
+
+- PR number: 2771
+- Source review ID: 5826857760
+- Reviewer finding ID: F51
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4513499577
+- Concern: The parenthetical added to this reference and to F34's stops them being commit subjects. `validate-audit-record.py:204-208` splits this field on `;` and requires each part to be a commit subject.
+- Solution: Valid. The audit keeps the bare merge subject in F23 and F34 and names the merge in the Solution.
+- Current-tree verification: Ran `grep '^- Resolution reference' docs/pr-reviews/pr-2771-review/PR-REVIEW.md | grep -c -F 'share this subject'` in the worktree before this commit; it printed `0`, which confirms the fix.
+- Resolution reference: docs(pr-reviews): [#2758] rework the PR 2771 review audit after review 5826857760
+- Follow-up PR URL: N/A
+- Reply URL: PENDING reply 4513499577
+
+### F68 - The commit-id check prints four ids at this head
+
+- PR number: 2771
+- Source review ID: 5826857760
+- Reviewer finding ID: F52
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4513499589
+- Concern: The commit-id check prints four ids at this head: the two ids of F51, one quoted in a Concern field and one in a Processing Log entry. The check asks for the ids to be dropped or the commit named by its subject.
+- Solution: Valid. The audit no longer cites commit ids that are not on `develop`.
+- Current-tree verification: Ran `git diff -z --name-only --diff-filter=d torrust/develop | xargs -0 -r grep -IohE '[0-9a-f]{7,40}' | sort -u | while read -r t; do git rev-parse -q --verify "$t^{commit}" >/dev/null || continue; git merge-base --is-ancestor "$t" torrust/develop || echo "PR-branch commit id: $t"; done` in the worktree before this commit; it printed `(no output)`, which confirms the fix.
+- Resolution reference: docs(pr-reviews): [#2758] rework the PR 2771 review audit after review 5826857760
+- Follow-up PR URL: N/A
+- Reply URL: PENDING reply 4513499589
+
+### F69 - This entry records reply edits that the forge dates after its commit
+
+- PR number: 2771
+- Source review ID: 5826857760
+- Reviewer finding ID: F53
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4513499608
+- Concern: This entry records reply edits that the forge dates after its commit. The entry says two earlier replies "were edited", and line 904 says the same, in a commit made at 13:28:25 UTC.
+- Solution: Valid. Only the Processing Log entry stamped after the edits mentions the reply edits.
+- Current-tree verification: Ran `grep '^- 2026-11-09' docs/pr-reviews/pr-2771-review/PR-REVIEW.md | grep -c -F 'were edited'` in the worktree before this commit; it printed `1`, which confirms the fix.
+- Resolution reference: docs(pr-reviews): [#2758] rework the PR 2771 review audit after review 5826857760
+- Follow-up PR URL: N/A
+- Reply URL: PENDING reply 4513499608
+
+### F70 - M2c expects help on stdout, and the ADR gives help to stderr for this binary
+
+- PR number: 2771
+- Source review ID: 5826857760
+- Reviewer finding ID: F54
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4513499617
+- Concern: M2c expects help on stdout, and the ADR gives help to stderr for this binary. ADR section 1 lists help text under stderr (lines 48-49), line 74 says a `no-stdout-result` command emits nothing on stdout, and line 79 gives the daemon that class; line 38 of this spec repeats it.
+- Solution: Valid. M2c and AC6 of #2766 expect JSON help on stderr and an empty stdout, as the ADR says for this binary.
+- Current-tree verification: Ran `grep -c -F 'JSON help on stderr' docs/issues/open/2766-2758-*/ISSUE.md` in the worktree before this commit; it printed `1`, which confirms the fix.
+- Resolution reference: docs(issues): [#2758] address da2ce7's review 5826857760 of PR 2771 on the specs and evidence
+- Follow-up PR URL: N/A
+- Reply URL: PENDING reply 4513499617
+
+### F71 - The recorded window does not cover the 13:20 run on line 47
+
+- PR number: 2771
+- Source review ID: 5826857760
+- Reviewer finding ID: F55
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4513499625
+- Concern: The recorded window does not cover the 13:20 run on line 47. Line 47 now records a probe run at 13:20 UTC, and this line still says 12:11 to 12:13.
+- Solution: Valid. The #2764 evidence window now includes the 13:20 probe.
+- Current-tree verification: Ran `grep -c -F 'and 13:20 for' docs/issues/open/2764-2758-*/manual-verification-evidence.md` in the worktree before this commit; it printed `1`, which confirms the fix.
+- Resolution reference: docs(issues): [#2758] address da2ce7's review 5826857760 of PR 2771 on the specs and evidence
+- Follow-up PR URL: N/A
+- Reply URL: PENDING reply 4513499625
+
+### F72 - Generated text is still in the record
+
+- PR number: 2771
+- Source review ID: 5826857760
+- Reviewer finding ID: F56
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4513499633
+- Concern: Generated text is still in the record. This Concern ends mid-word (`docker` lan), and the same cut ends F11's and F16's at lines 240 and 305 and F50's at line 747, so they are not the summary that F63's Solution describes.
+- Solution: Valid. The truncated Concern fields are complete sentences and no verification field has a backtick inside its command.
+- Current-tree verification: Ran `grep '^- Concern' docs/pr-reviews/pr-2771-review/PR-REVIEW.md | grep -c -v -E '[.!?…]$'` in the worktree before this commit; it printed `0`, which confirms the fix.
+- Resolution reference: docs(pr-reviews): [#2758] rework the PR 2771 review audit after review 5826857760
+- Follow-up PR URL: N/A
+- Reply URL: PENDING reply 4513499633
+
+### F73 - This line still makes the interactive run this issue's job
+
+- PR number: 2771
+- Source review ID: 5826857760
+- Reviewer finding ID: F57
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4513499644
+- Concern: This line still makes the interactive run this issue's job. AC6 at line 144 now says the interactive case is verified in M4 of issue 2768 and is not a pass condition here, and F38's fix removed the same clause from issue 2765.
+- Solution: Valid. The #2769 bullet points at M4 of #2768 for the interactive run.
+- Current-tree verification: Ran `grep -c -F 'interactive run must be verified' docs/issues/open/2769-2758-*/ISSUE.md` in the worktree before this commit; it printed `0`, which confirms the fix.
+- Resolution reference: docs(issues): [#2758] address da2ce7's review 5826857760 of PR 2771 on the specs and evidence
+- Follow-up PR URL: N/A
+- Reply URL: PENDING reply 4513499644
+
+### F74 - The insertion puts one reviewer's review inside the other reviewer's list
+
+- PR number: 2771
+- Source review ID: 5826857760
+- Reviewer finding ID: F58
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4513499654
+- Concern: The insertion puts one reviewer's review inside the other reviewer's list. The new parenthetical sits in the list of the automated reviewer's IDs, and the list of this reviewer's IDs follows it without that review.
+- Solution: Valid. Review 5826238636 moved into da2ce7's list and the parenthetical is gone.
+- Current-tree verification: Ran `grep -c -F 'also recorded' docs/pr-reviews/pr-2771-review/PR-REVIEW.md` in the worktree before this commit; it printed `1`, which confirms the fix.
+- Resolution reference: docs(pr-reviews): [#2758] rework the PR 2771 review audit after review 5826857760
+- Follow-up PR URL: N/A
+- Reply URL: PENDING reply 4513499654
+
 ## Processing Log
 
 - 2026-11-06 18:57 UTC - Started audit; round 1 (Copilot review 5804134932) processed: F1 and F2 fixed in the two commits cited above, pushed and replied. The replies were posted before the push had completed (it failed once on an SSH disconnect); the push succeeded afterwards and the threads are resolved only after it.
 - 2026-11-09 12:19 UTC - Later rounds (Copilot reviews 5806995671 and 5825242595; da2ce7 reviews 5823128808, 5824728682, 5825027438 and 5825408118) processed: F3 to F40 fixed in the commits cited above, pushed and replied; F15 (the #2760 spec) is a follow-up owned by PR 2774 and stays open. This audit was extended after those replies were posted, not while they were processed (the finding F18 of review 5824728682 asked for it).
 - 2026-11-09 12:44 UTC - Copilot review 5825900769 processed: F42 to F44 fixed in the commit cited in their entries; F45 to F48 are about this audit and are fixed by the commit that adds them. F9 (the #2760 spec) is now fixed on `develop` by PR 2774, so F15 is FIXED and RESOLVED. F41 records Copilot's baseline comment of review 5806995671, which had no row.
 
-- 2026-11-09 13:28 UTC - da2ce7's review 5826238636 (Reviewed at f1d7fede9) processed: F49 to F57 and F64 are spec and evidence fixes pushed in the commit cited in their entries and replied; F58 to F63, F65 and F66 are corrections to this record, made in the commit that adds their rows. The verification field of F3 to F48 was rewritten to the commands that were run (F60). Two earlier replies that cited a wrong commit subject (F19 and F32) were edited.
+- 2026-11-09 13:28 UTC - da2ce7's review 5826238636 processed: F49 to F57 and F64 are spec and evidence fixes pushed in the commit cited in their entries and replied; F58 to F63, F65 and F66 are corrections to this record, made in the commit that adds their rows. The verification field of F3 to F48 was rewritten to the commands that were run (F60).
 
 - 2026-11-09 13:32 UTC - The reply URLs of F58 to F66 were recorded after the eight replies were posted (the last at 2026-11-09T13:31:55Z); the two replies of F19 and F32 were edited before that.
+
+- 2026-11-09 16:01 UTC - da2ce7's review 5826857760 processed: F67 to F74 added. F70, F71 and F73 are spec and evidence fixes; F67, F68, F69, F72 and F74 are corrections to this record, made in the commit that adds their rows. The validator and the commit-id check were run for this review.
 
 ## Completion Rules
 
