@@ -1,0 +1,32 @@
+[metadata]
+app = "torrust-tracker"
+purpose = "configuration"
+schema_version = "3.0.0"
+
+[logging]
+trace_filter = "info"
+trace_style = "full"
+
+[core]
+listed = false
+private = false
+
+[core.database]
+driver = "sqlite3"
+path = "<scratch>/sqlite3.db"
+
+[[http_trackers]]
+bind_address = "127.0.0.1:7070"
+
+[[http_trackers]]
+bind_address = "127.0.0.1:7171"
+tls_config = { ssl_cert_path = "<scratch>/cert.pem", ssl_key_path = "<scratch>/key.pem" }
+
+[http_api]
+bind_address = "127.0.0.1:1212"
+
+[http_api.access_tokens]
+admin = "MyAccessToken"
+
+[health_check_api]
+bind_address = "127.0.0.1:1313"
