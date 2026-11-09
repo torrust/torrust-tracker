@@ -417,7 +417,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Reviewer finding ID: F18
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512170083
 - Concern: The maintainer's two confirmations exist only in the author's own records; the capture holds no comment from the maintainer's account.
-- Solution: The maintainer posted their own comment on the PR, https://github.com/torrust/torrust-tracker/pull/2752#issuecomment-6740143243, and the spec cites it at both confirmations. The first reply was a FOLLOW_UP; the second reply, cited below, reports the fix.
+- Solution: A comment was posted on the PR from the maintainer's account `josecelano` (the agent ran the posting command after the maintainer approved the exact text and command in chat), https://github.com/torrust/torrust-tracker/pull/2752#issuecomment-6740143243, and the spec cites it at both confirmations. The first reply was a FOLLOW_UP; the second reply, cited below, reports the fix.
 - Current-tree verification: `grep -n "comment on PR 2752" ISSUE.md` prints the two lines that cite the maintainer's comment.
 - Resolution reference: docs(issues): [#2751] cite the maintainer's comment for the support-window confirmations
 - Follow-up PR URL: N/A
@@ -612,7 +612,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-11-09 12:15 UTC - Pushed the fix commits and checked the pull-request head against the local head, before any reply.
 - 2026-11-09 12:15 UTC - Replied on all 13 threads (12:15:26 to 12:15:56 UTC). The F26 reply is a FOLLOW_UP: it needs the maintainer's comment on the PR.
 - 2026-11-09 12:16 UTC - Resolved the 12 fixed threads, each returning `isResolved: true`; the F26 thread stays open.
-- 2026-11-09 12:32 UTC - The maintainer posted a comment on PR 2752 (12:32:35 UTC, from `josecelano`, at the maintainer's request) confirming the root-type conclusion and the end of the 0.5.x window. The spec cites it in a commit made at 12:32:55 UTC and pushed; the pull-request head matched the local head afterwards.
+- 2026-11-09 12:32 UTC - A comment was posted on PR 2752 (12:32:35 UTC) from the maintainer's account `josecelano`; the agent ran the posting command after the maintainer approved the exact text and command in chat. It confirms the root-type conclusion and the end of the 0.5.x window. The spec cites it in a commit made at 12:32:55 UTC and pushed; the pull-request head matched the local head afterwards.
 - 2026-11-09 12:36 UTC - Replied on the F26 thread (12:36:09 UTC) and resolved it, which returned `isResolved: true`. All threads of the five rounds are now resolved.
 - 2026-11-09 12:44 UTC - Handled Copilot review 5825875881 (submitted 12:32 UTC, 3 inline findings, F50, F53 and LINK-001, which kept the reviewer's IDs because no audit ID collided). The fix commits were made after 12:32 UTC and pushed; the pull-request head matched the local head at 12:44 UTC, before any reply.
 - 2026-11-09 12:45 UTC - Replied on the three threads (12:45:03 to 12:45:08 UTC) and resolved them, each returning `isResolved: true`.
