@@ -1,7 +1,7 @@
 ---
 pr-number: 2771
 pr-url: https://github.com/torrust/torrust-tracker/pull/2771
-last-updated-utc: "2026-11-09 16:01"
+last-updated-utc: "2026-11-09 16:37"
 ---
 
 # PR #2771 Review Audit
@@ -908,8 +908,8 @@ One row per independent concern from the reviews of this pull request. Copilot: 
 - Source review ID: 5826238636
 - Reviewer finding ID: F44
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4513023783
-- Concern: Five resolution references are wrong or ambiguous. This row cites the round 2 commit, which leaves `src/logging.rs` in `2766/ISSUE.md`; the fix is in the commit that made the fix, and the reply repeats the wrong subject.
-- Solution: Valid. The resolution references of F19, F23, F24, F32 and F34 are corrected, and the two replies that repeated a wrong subject are edited.
+- Concern: Five resolution references are wrong or ambiguous. This row cites the round 2 commit, which leaves `src/logging.rs` in `2766/ISSUE.md`; the fix is in the commit with subject `docs(issues): [#2758] address the da2ce7 and Copilot review rounds on PR 2771`, and the reply repeats the wrong subject.
+- Solution: Valid. The resolution references of F19, F23, F24, F32 and F34 are corrected.
 - Current-tree verification: Ran `grep -c -E '^- Resolution reference: https' docs/pr-reviews/pr-2771-review/PR-REVIEW.md` in the worktree before this commit; it printed `1`, which confirms the fix.
 - Resolution reference: docs(pr-reviews): [#2758] rework the PR 2771 review audit after review 5826238636
 - Follow-up PR URL: N/A
@@ -921,7 +921,7 @@ One row per independent concern from the reviews of this pull request. Copilot: 
 - Source review ID: 5826238636
 - Reviewer finding ID: F45
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4513023789
-- Concern: Generated text is left in the record. This Solution starts "Valid. Valid.", as does F24's; fifteen others start "Valid.
+- Concern: Generated text is left in the record: the Solution of F24 and of one more row starts "Valid. Valid.", fifteen others start "Valid. the", and the Concern of F3 to F48 is the source heading plus a stock sentence, not the summary the skill asks for.
 - Solution: Valid. The Concern of F3 to F48 is a summary of the source comment and the doubled or lower-case starts of the Solution fields are fixed.
 - Current-tree verification: Ran `grep -c -E '^- Solution: Valid\. (Valid|[a-z])' docs/pr-reviews/pr-2771-review/PR-REVIEW.md; grep '^- Concern' docs/pr-reviews/pr-2771-review/PR-REVIEW.md | grep -c -F 'The full comment is at the source URL'` in the worktree before this commit; it printed `0 / 0`, which confirms the fix.
 - Resolution reference: docs(pr-reviews): [#2758] rework the PR 2771 review audit after review 5826238636
@@ -978,7 +978,7 @@ One row per independent concern from the reviews of this pull request. Copilot: 
 - Current-tree verification: Ran `grep '^- Resolution reference' docs/pr-reviews/pr-2771-review/PR-REVIEW.md | grep -c -F 'share this subject'` in the worktree before this commit; it printed `0`, which confirms the fix.
 - Resolution reference: docs(pr-reviews): [#2758] rework the PR 2771 review audit after review 5826857760
 - Follow-up PR URL: N/A
-- Reply URL: PENDING reply 4513499577
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4515148480
 
 ### F68 - The commit-id check prints four ids at this head
 
@@ -991,7 +991,7 @@ One row per independent concern from the reviews of this pull request. Copilot: 
 - Current-tree verification: Ran `git diff -z --name-only --diff-filter=d torrust/develop | xargs -0 -r grep -IohE '[0-9a-f]{7,40}' | sort -u | while read -r t; do git rev-parse -q --verify "$t^{commit}" >/dev/null || continue; git merge-base --is-ancestor "$t" torrust/develop || echo "PR-branch commit id: $t"; done` in the worktree before this commit; it printed `(no output)`, which confirms the fix.
 - Resolution reference: docs(pr-reviews): [#2758] rework the PR 2771 review audit after review 5826857760
 - Follow-up PR URL: N/A
-- Reply URL: PENDING reply 4513499589
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4515148905
 
 ### F69 - This entry records reply edits that the forge dates after its commit
 
@@ -1004,7 +1004,7 @@ One row per independent concern from the reviews of this pull request. Copilot: 
 - Current-tree verification: Ran `grep '^- 2026-11-09' docs/pr-reviews/pr-2771-review/PR-REVIEW.md | grep -c -F 'were edited'` in the worktree before this commit; it printed `1`, which confirms the fix.
 - Resolution reference: docs(pr-reviews): [#2758] rework the PR 2771 review audit after review 5826857760
 - Follow-up PR URL: N/A
-- Reply URL: PENDING reply 4513499608
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4515149354
 
 ### F70 - M2c expects help on stdout, and the ADR gives help to stderr for this binary
 
@@ -1017,7 +1017,7 @@ One row per independent concern from the reviews of this pull request. Copilot: 
 - Current-tree verification: Ran `grep -c -F 'JSON help on stderr' docs/issues/open/2766-2758-*/ISSUE.md` in the worktree before this commit; it printed `1`, which confirms the fix.
 - Resolution reference: docs(issues): [#2758] address da2ce7's review 5826857760 of PR 2771 on the specs and evidence
 - Follow-up PR URL: N/A
-- Reply URL: PENDING reply 4513499617
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4515149829
 
 ### F71 - The recorded window does not cover the 13:20 run on line 47
 
@@ -1030,7 +1030,7 @@ One row per independent concern from the reviews of this pull request. Copilot: 
 - Current-tree verification: Ran `grep -c -F 'and 13:20 for' docs/issues/open/2764-2758-*/manual-verification-evidence.md` in the worktree before this commit; it printed `1`, which confirms the fix.
 - Resolution reference: docs(issues): [#2758] address da2ce7's review 5826857760 of PR 2771 on the specs and evidence
 - Follow-up PR URL: N/A
-- Reply URL: PENDING reply 4513499625
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4515150402
 
 ### F72 - Generated text is still in the record
 
@@ -1043,7 +1043,7 @@ One row per independent concern from the reviews of this pull request. Copilot: 
 - Current-tree verification: Ran `grep '^- Concern' docs/pr-reviews/pr-2771-review/PR-REVIEW.md | grep -c -v -E '[.!?…]$'` in the worktree before this commit; it printed `0`, which confirms the fix.
 - Resolution reference: docs(pr-reviews): [#2758] rework the PR 2771 review audit after review 5826857760
 - Follow-up PR URL: N/A
-- Reply URL: PENDING reply 4513499633
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4515150981
 
 ### F73 - This line still makes the interactive run this issue's job
 
@@ -1056,7 +1056,7 @@ One row per independent concern from the reviews of this pull request. Copilot: 
 - Current-tree verification: Ran `grep -c -F 'interactive run must be verified' docs/issues/open/2769-2758-*/ISSUE.md` in the worktree before this commit; it printed `0`, which confirms the fix.
 - Resolution reference: docs(issues): [#2758] address da2ce7's review 5826857760 of PR 2771 on the specs and evidence
 - Follow-up PR URL: N/A
-- Reply URL: PENDING reply 4513499644
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4515151551
 
 ### F74 - The insertion puts one reviewer's review inside the other reviewer's list
 
@@ -1069,7 +1069,7 @@ One row per independent concern from the reviews of this pull request. Copilot: 
 - Current-tree verification: Ran `grep -c -F 'also recorded' docs/pr-reviews/pr-2771-review/PR-REVIEW.md` in the worktree before this commit; it printed `1`, which confirms the fix.
 - Resolution reference: docs(pr-reviews): [#2758] rework the PR 2771 review audit after review 5826857760
 - Follow-up PR URL: N/A
-- Reply URL: PENDING reply 4513499654
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2771#discussion_r4515152043
 
 ## Processing Log
 
@@ -1079,9 +1079,11 @@ One row per independent concern from the reviews of this pull request. Copilot: 
 
 - 2026-11-09 13:28 UTC - da2ce7's review 5826238636 processed: F49 to F57 and F64 are spec and evidence fixes pushed in the commit cited in their entries and replied; F58 to F63, F65 and F66 are corrections to this record, made in the commit that adds their rows. The verification field of F3 to F48 was rewritten to the commands that were run (F60).
 
-- 2026-11-09 13:32 UTC - The reply URLs of F58 to F66 were recorded after the eight replies were posted (the last at 2026-11-09T13:31:55Z); the two replies of F19 and F32 were edited before that.
+- 2026-11-09 13:32 UTC - The reply URLs of F58 to F66 were recorded after the eight replies were posted (the last at 2026-11-09T13:31:55Z); the replies of F19 and F32 were edited before that (their `updated_at` is 13:31).
 
 - 2026-11-09 16:01 UTC - da2ce7's review 5826857760 processed: F67 to F74 added. F70, F71 and F73 are spec and evidence fixes; F67, F68, F69, F72 and F74 are corrections to this record, made in the commit that adds their rows. The validator and the commit-id check were run for this review.
+
+- 2026-11-09 16:37 UTC - The eight threads of da2ce7's review 5826857760 were resolved after the replies of F67 to F74 (created 16:27 UTC) existed; their reply URLs are recorded in this commit. F69 and F72 and F74 were corrected for the findings of review 5829100956.
 
 ## Completion Rules
 
