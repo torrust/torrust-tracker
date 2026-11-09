@@ -762,8 +762,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Reviewer finding ID: F33
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4513226456
 - Concern: Release notes were conditional in Scope and unconditional in Requirement 4 and T5, and the decided bullets said nothing about them.
-- Solution: Added a decided release-notes bullet (no release note for the unpublished-crate symbols or the root types, whether or not the proposal is confirmed) and used the same wording in Scope, Requirement 4 and T5.
-- Current-tree verification: `grep -n -i "release note" ISSUE.md` over the spec prints the decided bullet (line 125), the Scope bullet (192 to 194), Requirement 4 (215 to 217) and T5 (271) with the same wording.
+- Solution (round 8, superseded by F63): Added a decided release-notes bullet (no release note for the unpublished-crate symbols or the root types, whether or not the proposal is confirmed) and used the same wording in Scope, Requirement 4 and T5.
+- Current-tree verification: read the spec at the head: the release-note rule sits in Versioning Decisions (labelled derived and not yet confirmed, round 9), in the Scope bullet on deprecation text, in Requirement 4 and in the T5 row; the exact wording is the reviewer's to compare, so this row does not quote a command count.
 - Resolution reference: docs(issues): [#2751] state one release-note rule in the SI-18 spec
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4514800411
@@ -789,7 +789,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4513226479
 - Concern: A log entry cited a PR-branch commit by id, which a rebase would rewrite.
 - Solution: Dropped the id; the forge already records the head on each reply's review.
-- Current-tree verification: `grep -c "57d95a16e" PR-REVIEW.md` prints 0 after the edit.
+- Current-tree verification: read the log: the round 7 entry that named the commit now names none.
 - Resolution reference: docs(pr-reviews): [#2751] correct recorded commands, a commit id and a field count in the PR 2752 audit
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4514801387
@@ -901,7 +901,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-11-09 13:06 UTC - Replied on all 11 threads (13:06:02 to 13:06:29 UTC) and resolved them, each returning `isResolved: true`.
 - 2026-11-09 15:45 UTC - Started on review 5826504727 by `da2ce7` (6 inline findings, audited as F54 to F59 because the reviewer's IDs collide with earlier audit IDs; the F17 re-raise is F57) and Copilot review 5826631352 (3 inline findings without IDs, audited as F60 to F62). The fix commits were made between 15:45 and 15:52 UTC.
 - 2026-11-09 15:55 UTC - Pushed the fix commits; the pull-request head matched the local head before any reply.
-- 2026-11-09 15:56 UTC - Replied on all nine threads (15:56:02 to 15:56:10 UTC) and resolved them, each returning `isResolved: true`.
+- 2026-11-09 15:56 UTC - Replied on all nine threads (the forge's `created_at` runs from 15:55:40 to 15:56:00 UTC) and resolved them from 15:56:02 UTC, each returning `isResolved: true`.
 
 ## Completion Rules
 
