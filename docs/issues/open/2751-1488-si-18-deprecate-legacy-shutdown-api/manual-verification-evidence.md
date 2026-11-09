@@ -8,7 +8,11 @@ last-updated-utc: "2026-11-09 12:08"
 
 ## Environment and Prerequisites
 
-- Date and time (UTC): 2026-11-09 10:50 to 10:52 (V1 rerun for the review of PR 2752)
+- Date and time (UTC): the first run was on 2026-11-09 from 10:50 to 10:52. Every command below was rerun from
+  12:56:11 to 12:56:23 UTC the same day, and all output in this file is from that rerun. Commands that were not
+  in the first run: the `.start(` search (step 3) and the `python3` extraction in step 7 were first listed by
+  commits at 12:07 and 12:08 UTC, and the `manager.rs` and `#[cfg(test)]` searches (steps 4 and 5) were widened
+  at 12:07 UTC.
 - Artifact under test: the specification branch of PR 2752 (the specification only; no code changes yet)
 - Operating system / environment: Linux 7.0, `rustc 1.99.1 (58cf8f9c3 2026-10-13)`
 - Prerequisites and setup performed: a checkout of the branch; network access to crates.io
@@ -135,7 +139,7 @@ Step 7 (the command's own output; the list holds the two newest versions, as the
 Every gate item holds:
 
 - Application components: the four bootstrap jobs call `start_with_cancellation` (step 1).
-- Remaining legacy callers are test modules; the other hits are the legacy adapter implementations (step 2).
+- Remaining legacy callers are test modules; the other hits are the legacy adapter implementations (steps 2 to 5).
 - The root `HaltSignal` and `NestedServerTask` are not in tag `v3.0.0` (step 6, exit 1 means no match; they
   first appear in commit `3ee28b723`).
 - `torrust-server-lib` 0.5.0 is published (step 7); its `CHANGELOG.md` gives the migration steps and the
