@@ -144,11 +144,13 @@ Other decisions of 2026-11-06:
   - `axum-http-server`: `HttpServer<Stopped>::start`, `start_with_health_check`,
     `Running.halt_task`, `Running::stop`, `Launcher::start` (with `rx_halt`).
   - `axum-rest-api-server`: `ApiServer::start`, `Running.halt_task`,
-    `Running::stop`, `Launcher::start` (with `rx_halt`).
-  - `axum-health-check-api-server`: `server::start` (with `rx_halt`).
-  - `udp-server`: `Server<Stopped>::start`, `Running.halt_task`,
-    `Running::stop`, `Launcher::run_with_graceful_shutdown`, and the
-    `rx_halt` field of the spawner.
+    `Running::new` (takes a halt sender), `Running::stop`, `Launcher::start` (with `rx_halt`).
+  - `axum-health-check-api-server`: `server::start` (with `rx_halt`) and the
+    `RunningServer` type that only it returns.
+  - `udp-server`: `Server<Stopped>::start`, `Running` (the legacy state type, its
+    `halt_task` field, its derived `Running::new` and `Running::stop`),
+    `Launcher::run_with_graceful_shutdown`, `Spawner::spawn_launcher`, and
+    `LaunchRequest` (its `rx_halt` field and its constructor).
   - `axum-server`: `graceful_shutdown`.
   - `src/bootstrap/jobs/manager.rs`: `HaltSignal`, `NestedServerTask` (public,
     used only by their own tests).
