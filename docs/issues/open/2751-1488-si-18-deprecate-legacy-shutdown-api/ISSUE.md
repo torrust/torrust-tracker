@@ -9,7 +9,7 @@ github-issue: 2751
 spec-path: docs/issues/open/2751-1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md
 branch: "2751-deprecate-legacy-shutdown-api-spec"
 related-pr: null
-last-updated-utc: "2026-11-09 16:39"
+last-updated-utc: "2026-11-09 19:33"
 semantic-links:
   skill-links:
     - create-issue
@@ -266,12 +266,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                                                                                           | Notes / Expected Output                                                                         |
 | --- | ------ | -------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Bump the workspace dependency to `torrust-server-lib` 0.5.0 and add the local `#[allow(deprecated)]` allowances, with a rationale, that its deprecated symbols need. | `cargo check --workspace --all-targets` warning-free (the workspace denies warnings); coordinate ordering with the #2482 coordinator first. |
-| T2  | TODO   | Deprecate the legacy public APIs of the five server packages and the root `HaltSignal`/`NestedServerTask`, adding in the same increment the local allowances at the call sites that still use them. | Each message names the replacement and uses the decided `since` and removal wording; once the maintainer confirms the proposal in Versioning Decisions, it uses the proposal's text instead. Behavior unchanged; warning-free build. |
-| T3  | TODO   | Review every local allowance added by T1 and T2: each has a rationale and none sits in a migrated production path. | Migrated paths compile with `-D deprecated`; no allowance without a rationale. |
-| T4  | TODO   | Add compile-compat tests for representative legacy consumers.                                                 | Tests compile with `#[allow(deprecated)]` and pass; legacy behavior unchanged.                  |
-| T5  | TODO   | Write migration guidance for the deprecated symbols.                                                          | Replacement table; Rust docs render the guidance. No release note for these symbols (derived, not yet confirmed; see Versioning Decisions). |
-| T6  | TODO   | Record verification evidence.                                                                                  | `manual-verification-evidence.md`: gate evidence, warning output, rendered docs review.         |
+| T1  | DONE   | Bump the workspace dependency to `torrust-server-lib` 0.5.0 and add the local `#[allow(deprecated)]` allowances, with a rationale, that its deprecated symbols need. | `cargo check --workspace --all-targets` warning-free (the workspace denies warnings); coordinate ordering with the #2482 coordinator first. |
+| T2  | DONE   | Deprecate the legacy public APIs of the five server packages and the root `HaltSignal`/`NestedServerTask`, adding in the same increment the local allowances at the call sites that still use them. | Each message names the replacement and uses the decided `since` and removal wording; once the maintainer confirms the proposal in Versioning Decisions, it uses the proposal's text instead. Behavior unchanged; warning-free build. |
+| T3  | DONE   | Review every local allowance added by T1 and T2: each has a rationale and none sits in a migrated production path. | Migrated paths compile with `-D deprecated`; no allowance without a rationale. |
+| T4  | DONE   | Add compile-compat tests for representative legacy consumers.                                                 | Tests compile with `#[allow(deprecated)]` and pass; legacy behavior unchanged.                  |
+| T5  | DONE   | Write migration guidance for the deprecated symbols.                                                          | Replacement table; Rust docs render the guidance. No release note for these symbols (derived, not yet confirmed; see Versioning Decisions). |
+| T6  | DONE   | Record verification evidence.                                                                                  | `manual-verification-evidence.md`: gate evidence, warning output, rendered docs review.         |
 
 ## Commit Points
 
@@ -318,6 +318,7 @@ Arrange-Act-Assert design review in task evidence, and sign every commit with GP
 - 2026-11-09 13:00 UTC - AI agent (Claude Sonnet 5.5) - Edited the spec for the 12:52 UTC review of PR 2752 by `da2ce7` and the 12:32 UTC Copilot review: named the controller types of the stop methods (12:40 UTC), moved the allowances into the T1 and T2 commits (12:40 UTC), stated what T2 writes while the deprecation text proposal is unconfirmed, aligned the rollback and the Q5 dependency, cited `review-finding:pr-2752-f16`, quoted the maintainer's comment, and said who posted it
 - 2026-11-09 15:48 UTC - AI agent (Claude Sonnet 5.5) - Edited the spec for the 2026-11-09 review of PR 2752 by `da2ce7` and Copilot: one release-note rule in Versioning Decisions, Scope, Requirement 4 and T5 (15:45 UTC); the evidence file's Step 5 made runnable (15:46 UTC) and the SI-19 start gate names its evidence file (15:47 UTC)
 - 2026-11-09 16:39 UTC - AI agent (Claude Sonnet 5.5) - Edited the spec for the 2026-11-09 review of PR 2752 by `da2ce7`: the release-note rule moved out of the dated maintainer decisions and is labelled derived and not yet confirmed, with Scope, Requirement 4, T5 and the proposal paragraph aligned (16:37 UTC); the evidence file names the 15:46 UTC run of Step 5 (16:38 UTC)
+- 19:33 UTC - AI agent (Claude Sonnet 5.5) - Implemented T1 to T6 on branch `2751-deprecate-legacy-shutdown-api`: dependency bump with local allowances, deprecation attributes with allowances, review of the allowances (none in the migrated bootstrap jobs), a compat test for the legacy health-check `start`, and the migration guide. Evidence in `manual-verification-evidence.md`.
 
 ## Rollback
 

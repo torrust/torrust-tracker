@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2751-1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md
-last-updated-utc: "2026-11-09 16:38"
+last-updated-utc: "2026-11-09 19:33"
 ---
 
 # Manual Verification Evidence: Deprecate Legacy Shutdown API
@@ -161,6 +161,26 @@ Every gate item holds:
   - Q5: `docs/features/shutdown-process/questions.md` (Resolved) and `docs/containers.md#stopping-the-tracker`.
 - External: torrust-server-lib issue 3 and PR 4 (merge commit `0ad8ca0`) at
   `https://github.com/torrust/torrust-server-lib/pull/4`.
+
+## Implementation Evidence (T6)
+
+Run from the repository root on branch `2751-deprecate-legacy-shutdown-api` (rustc 1.99.1), at 19:33 UTC on
+2026-11-09:
+
+- M3, `RUSTFLAGS="-D deprecated" cargo check --workspace --lib --bins`: exit 0. No migrated production path
+  (the four `src/bootstrap/jobs/{http_tracker,tracker_apis,health_check_api,udp_tracker}.rs` jobs) carries an
+  allowance; the local `#[allow(deprecated, reason = ...)]` attributes sit only on the legacy items, their
+  imports and their test callers.
+- M4, `cargo doc --workspace --no-deps`: finishes without warnings. The deprecation notes name the replacement
+  and the removal wording (`removal is planned for the next breaking release of this package (SI-19, EPIC #1488)`);
+  the replacement table is `docs/features/shutdown-process/legacy-api-migration.md`.
+- M2: the in-crate tests that call the deprecated `start` and `stop` of the HTTP, REST API and UDP servers, and
+  `HaltSignal` and `NestedServerTask`, compile with local allowances and pass (`cargo test --workspace --lib`, all
+  `ok`). The new test `it_should_keep_the_deprecated_halted_start_working_until_it_is_removed` covers the
+  deprecated health-check `start`. The raw "without `allow(deprecated)`" compile of an external consumer was not
+  run as a separate crate.
+- Not deprecated, by design: the private `Launcher::start` of `axum-http-server` (not public API), and the
+  derived `Running::new` of `udp-server` (covered by the deprecation of its struct).
 
 ## Failures and Follow-up
 
