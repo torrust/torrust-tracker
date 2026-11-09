@@ -134,7 +134,8 @@ current version at the end of #1669; the root `torrust-tracker` next releases as
 Derived from the tree, not stated by the maintainer (pending the maintainer's confirmation): the root
 `HaltSignal` and `NestedServerTask` were added after the published 3.0.0 (commit `3ee28b723`, "adopt JoinSet
 supervision"; `git grep` finds neither in tag `v3.0.0`), so they have never been in a published release and need
-no support window either. Their deprecation is in-repo guidance, with `since = "4.0.0"` (the next root release),
+no support window either. Their deprecation is in-repo guidance, with `since = "4.0.0"` (the next root release, which the next tracker application release
+publishes after the libraries; #2583 does not publish the root crate),
 and SI-19 may remove them inside EPIC #1488, before that release. The maintainer's Option A decision named the
 root types as inside the window; this conclusion narrows it with the same principle (a window only for symbols
 that are already public).
