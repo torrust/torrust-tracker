@@ -336,7 +336,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Reviewer finding ID: F8
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4510566737
 - Concern: The checkpoint named the open path as the drafting location, reading as a move onto itself.
-- Solution: Restored `docs/issues/drafts/1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md`.
+- Solution: Restored the checkpoint text so that it names the drafts folder as the drafting location (the draft file itself was moved to `open/`, not restored).
 - Current-tree verification: The checkpoint line names the drafts folder.
 - Resolution reference: docs(issues): [#2751] name the drafts folder as the SI-18 drafting location
 - Follow-up PR URL: N/A
