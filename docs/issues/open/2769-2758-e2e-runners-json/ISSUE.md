@@ -9,7 +9,7 @@ github-issue: 2769
 spec-path: docs/issues/open/2769-2758-e2e-runners-json/ISSUE.md
 branch: "2769-e2e-runners-json"
 related-pr: null
-last-updated-utc: "2026-11-09 13:21"
+last-updated-utc: "2026-11-09 16:03"
 semantic-links:
   skill-links:
     - create-issue
@@ -44,7 +44,7 @@ The global CLI output contract (`docs/adrs/20260519000000_define_global_cli_outp
 - `tracing` to stderr as JSON; nothing on stdout.
 - Failures as one JSON record with a `kind`; usage errors exit `2`.
 - `src/console/ci/e2e/runner.rs` logs the tracker configuration verbatim (`tracing::info!("tracker config:\n{tracker_config}")`), and `src/console/ci/e2e/tracker_checker.rs:13` logs the checker configuration. Only the tracker configuration can carry a secret: the checker's argument is the JSON of `RunningServices` (`runner.rs:117-118`), three lists of addresses that `logs_parser.rs` matches as scheme, IP and port, so it is masked only as a precaution (same helper, no separate test needed). ADR section 7 forbids secrets in output: mask secret values of the tracker configuration before logging and add a test. No tracing macro under `src/console/ci/qbittorrent_e2e/` logs a configuration, so nothing to mask there.
-- Child processes inherit the runner's streams: `src/console/ci/e2e/tracker_checker.rs` runs `cargo run ...` with `.status()`, and `src/console/ci/e2e/docker.rs` (lines 41, 110, 128) and `src/console/ci/compose.rs` (line 104) run `docker` the same way, so the children's stdout and the plain text of `cargo` and `docker` reach the runner's channels, and `AC1`/`AC2` cannot hold. Capture each child's stdout and stderr and report them as JSON records (or discard them), for every runner path, normal and cleanup. Once `tracker_client` refuses a TTY (issue 2768), a checker child that inherits the terminal exits `2` and the runner panics (`runner.rs` calls `.expect` on it, exit status `101`), so capturing the checker's stdout is required, and an interactive run must be verified.
+- Child processes inherit the runner's streams: `src/console/ci/e2e/tracker_checker.rs` runs `cargo run ...` with `.status()`, and `src/console/ci/e2e/docker.rs` (lines 41, 110, 128) and `src/console/ci/compose.rs` (line 104) run `docker` the same way, so the children's stdout and the plain text of `cargo` and `docker` reach the runner's channels, and `AC1`/`AC2` cannot hold. Capture each child's stdout and stderr and report them as JSON records (or discard them), for every runner path, normal and cleanup. Once `tracker_client` refuses a TTY (issue 2768), a checker child that inherits the terminal exits `2` and the runner panics (`runner.rs` calls `.expect` on it, exit status `101`), so capturing the checker's stdout is required; the interactive run itself is verified in M4 of issue 2768.
 - Update tests and docs that show the runner output.
 
 ### Out of Scope
@@ -133,6 +133,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-11-09 12:12 UTC - Claude Code (Claude Sonnet 5.5) - Addressed the review of PR 2771 (da2ce7 findings F1 to F27 and Copilot's later comments): specs corrected from the code, reproductions recorded where a spec has a bug-fix section.
 - 2026-11-09 12:39 UTC - Claude Code (Claude Sonnet 5.5) - Addressed Copilot's latest review of PR 2771: filled the Design and Ownership Review for the child-process work and corrected the pseudo-terminal check in the evidence.
 - 2026-11-09 13:21 UTC - Claude Code (Claude Sonnet 5.5) - Addressed da2ce7's review 5826238636 of PR 2771 on this spec.
+- 2026-11-09 16:03 UTC - Claude Code (Claude Sonnet 5.5) - Addressed da2ce7's review 5826857760 of PR 2771 on this spec.
 
 ## Acceptance Criteria
 
