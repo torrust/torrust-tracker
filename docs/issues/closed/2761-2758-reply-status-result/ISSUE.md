@@ -2,13 +2,13 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: done
 priority: p2
 epic: 2758
 github-issue: 2761
-spec-path: docs/issues/open/2761-2758-reply-status-result/ISSUE.md
+spec-path: docs/issues/closed/2761-2758-reply-status-result/ISSUE.md
 branch: "2761-reply-status-result"
-related-pr: null
+related-pr: 2775
 last-updated-utc: "2026-11-09 11:27"
 semantic-links:
   skill-links:
@@ -123,21 +123,23 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - [x] Folder-style spec drafted in `docs/issues/drafts/2758-reply-status-result/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] Spec-only PR merged into `develop` before implementation
+- [ ] Spec-only PR merged into `develop` before implementation (did not happen: the spec reached `develop` together with the implementation in `646d1cab2`, which was stacked on spec PR #2771)
 - [x] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Committer verified spec progress is up to date before commit
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
 - 2026-11-06 16:43 UTC - Claude Code (Claude Sonnet 5.5) - Drafted this spec as part of EPIC #2758 from the 2026-11-06 audit.
 - 2026-11-06 16:51 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the spec; GitHub issue #2761 created.
 - 2026-11-06 17:18 UTC - Claude Code (Claude Sonnet 5.5) - Implemented: kinds `all_replied` / `missing_reply`, result `{kind, threads, summary}` (no `message`), exit 0 for both; batch scripts do not call `reply-status`; both skills updated; manual evidence recorded.
+- 2026-11-09 10:19 UTC - PR #2775 merged (merge commit `646d1cab2`); issue #2761 closed on GitHub.
+- 2026-11-09 10:23 UTC - Claude Code (Claude Sonnet 5.5) - Archived this spec to `docs/issues/closed/`: `status: done`, `spec-path` and `related-pr` updated, checkpoints ticked, EPIC table updated. No retrospective file was needed: the change was small and matched the spec, and the two process gaps are named in the Implementation Completion Review. The "Reviewer validated acceptance criteria" checkpoint stays unticked: reviewers approved in the ACK lines of merge commit `646d1cab2`, but none updated the checkboxes.
 - 2026-11-09 10:25 UTC - Claude Code (Claude Sonnet 5.5) - Corrected details after the review rounds on PR 2771 and PR 2774 and fixed the earlier log stamps from the commit and issue creation times.
 - 2026-11-09 11:27 UTC - Claude Code (Claude Sonnet 5.5) - Corrected details after the round 3 review of PR 2774.
 
@@ -147,10 +149,10 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - [x] AC2: On a fully replied file it prints the matching `kind` and exits `0`.
 - [x] AC3: A fetch or parse failure exits `1` with empty stdout and a JSON diagnostic; a usage error exits `2`.
 - [x] AC4: The skills describe the new branching and no document claims exit `1` for a missing reply.
-- [ ] `linter all` exits with code `0`
+- [x] `linter all` exits with code `0`
 - [x] Relevant tests pass
 - [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
 - [x] Documentation is updated when behavior or workflow changes
 
 ## Verification Plan
@@ -187,7 +189,7 @@ Manual verification is mandatory even when automated tests pass. Record actual c
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
+- Retrospective: Not needed; the change was small and matched the spec. Two process gaps: the spec reached `develop` only together with the implementation (not through its own spec-only PR), and the prose-first test design review was recorded only in review round 1 of PR #2775 (see the "Test Design Review" section).
 - If needed, create `implementation-retrospective.md` from `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this directory; otherwise record in the progress log why none was needed.
 
 ## References

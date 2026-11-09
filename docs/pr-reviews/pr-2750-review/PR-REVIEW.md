@@ -1,7 +1,7 @@
 ---
 pr-number: 2750
 pr-url: https://github.com/torrust/torrust-tracker/pull/2750
-last-updated-utc: "2026-11-06 16:58"
+last-updated-utc: "2026-11-09 11:18"
 ---
 
 # PR #2750 Review Audit
@@ -30,14 +30,14 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 Round 1: Copilot review 5801009506 on the head `e1b8c40c8` (one inline finding). The finding is valid and fixed.
 
-Round 2: Copilot review 5802998503 on the head `36cc80c49` (three inline findings), submitted 2026-11-06 16:00:51 UTC, 67 s before the merge at 16:01:58 UTC, so it was unprocessed at merge. All three are valid on the merged tree and are fixed in the follow-up PR https://github.com/torrust/torrust-tracker/pull/2756, which is open, so they are `FOLLOW_UP` until it merges.
+Round 2: Copilot review 5802998503 on the head `36cc80c49` (three inline findings), submitted 2026-11-06 16:00:51 UTC, 67 s before the merge at 16:01:58 UTC, so it was unprocessed at merge. All three are valid on the merged tree and are fixed in the follow-up PR https://github.com/torrust/torrust-tracker/pull/2756, which merged on 2026-11-09 10:47 UTC, so they are `FIXED` and their threads are resolved.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2750-f1 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
-| F2 | review-finding:pr-2750-f2 | Copilot | Minor (inferred) | testing | ORIGINAL | FOLLOW_UP | OPEN |
-| F3 | review-finding:pr-2750-f3 | Copilot | Minor (inferred) | documentation | ORIGINAL | FOLLOW_UP | OPEN |
-| F4 | review-finding:pr-2750-f4 | Copilot | Suggestion (inferred) | maintainability | ORIGINAL | FOLLOW_UP | OPEN |
+| F2 | review-finding:pr-2750-f2 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
+| F3 | review-finding:pr-2750-f3 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F4 | review-finding:pr-2750-f4 | Copilot | Suggestion (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -63,7 +63,7 @@ Round 2: Copilot review 5802998503 on the head `36cc80c49` (three inline finding
 - Concern: The `sleep` that holds the pipes open in the fake `gh` of `tests/cli.rs` could be ended by SIGHUP in some shells, making the held-pipe condition unreliable.
 - Solution: Valid. The descendant now starts as `(trap '' HUP; sleep 20 &)`. Fix commit on the follow-up PR: test(wait-for-pr-review): [#2712] make the fake gh descendant ignore SIGHUP.
 - Current-tree verification: On develop at 35ec81000 the line reads `(sleep 20 &)`, so the concern was live; on the follow-up branch it reads `(trap '' HUP; sleep 20 &)` and `cargo test -p wait-for-pr-review` passes.
-- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2750#discussion_r4494962231
+- Resolution reference: test(wait-for-pr-review): [#2712] make the fake gh descendant ignore SIGHUP
 - Follow-up PR URL: https://github.com/torrust/torrust-tracker/pull/2756
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2750#discussion_r4494962231
 
@@ -76,7 +76,7 @@ Round 2: Copilot review 5802998503 on the head `36cc80c49` (three inline finding
 - Concern: The findings table of this audit used `Low`, which is not in the declared severity values.
 - Solution: Valid. F1 now uses `Minor (inferred)`; the new rows use declared values only. Fix commit on the follow-up PR: docs(pr-reviews): [#2712] use a declared severity value in the PR 2750 audit.
 - Current-tree verification: the F1 tracking row now reads `Minor (inferred)` and the new rows use declared values; `grep -nE '^\| F[0-9]+ .*\| Low \|' docs/pr-reviews/pr-2750-review/PR-REVIEW.md`, anchored to table rows so it cannot match this line, finds nothing on the follow-up branch; the validation script reports 0 failures.
-- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2750#discussion_r4494962828
+- Resolution reference: docs(pr-reviews): [#2712] use a declared severity value in the PR 2750 audit
 - Follow-up PR URL: https://github.com/torrust/torrust-tracker/pull/2756
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2750#discussion_r4494962828
 
@@ -89,7 +89,7 @@ Round 2: Copilot review 5802998503 on the head `36cc80c49` (three inline finding
 - Concern: The reclaim path of `GhCli::run` passed `&AtomicBool::new(false)` twice, a reference to a temporary that is easy to misread.
 - Solution: Valid, optional. One local `never_interrupted` is bound and passed to both calls. Fix commit on the follow-up PR: refactor(wait-for-pr-review): [#2712] bind the never-set interrupt flag to a local.
 - Current-tree verification: On develop at 35ec81000 `gh.rs` passes two temporaries; on the follow-up branch it binds `never_interrupted` once; `linter all` and the tests pass.
-- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2750#discussion_r4494963514
+- Resolution reference: refactor(wait-for-pr-review): [#2712] bind the never-set interrupt flag to a local
 - Follow-up PR URL: https://github.com/torrust/torrust-tracker/pull/2756
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2750#discussion_r4494963514
 
@@ -98,6 +98,8 @@ Round 2: Copilot review 5802998503 on the head `36cc80c49` (three inline finding
 - 2026-11-06 14:10 UTC - Started audit; round 1 (Copilot review 5801009506) processed: F1 fixed in the commit cited above, pushed, replied and resolved.
 - 2026-11-06 16:50 UTC - Round 2 (Copilot review 5802998503, submitted before the merge, processed after it): maintainer approval comment recorded in Ownership; F2 to F4 fixed in the three commits cited above on the follow-up PR https://github.com/torrust/torrust-tracker/pull/2756, replied on the merged PR's threads; threads stay open and the findings stay `FOLLOW_UP` until the follow-up PR merges.
 - 2026-11-06 16:58 UTC - Correction: the entries stamped 14:10 UTC and 16:50 UTC were already in commits made earlier, so those times are wrong; the entries are kept unchanged. The evidenced times are: round 1 audit committed 14:07:53 UTC (`36cc80c49`); round 2 replies posted 16:35:14 to 16:35:19 UTC and the round 2 audit committed 16:35:44 UTC (`973816c66`). Round 3 (Copilot review 5803833977 on the follow-up PR https://github.com/torrust/torrust-tracker/pull/2756, submitted 16:55:54 UTC): the three findings are valid and fixed in this commit. Resolution references of F2 to F4 are now their reply URLs and the fix commit subjects moved into Solution; the F3 verification command no longer matches itself.
+- 2026-11-09 10:56 UTC - Close-out: the follow-up pull request #2756 merged on 2026-11-09 10:47 UTC (merge commit subject: `Merge torrust/torrust-tracker#2756: fix(wait-for-pr-review): [#2712] address Copilot's review submitted before the merge of #2750`). F2 to F4 changed from `FOLLOW_UP` to `FIXED`, their resolution references are the fix commit subjects, and the three threads were resolved at the maintainer's permission, as shown by a GraphQL mutation result of `isResolved: true` for each.
+- 2026-11-09 11:18 UTC - Addition to the close-out entry: the GraphQL thread query was refreshed after the three threads were resolved and before commit 1dce70e8e (made at 10:56:47 UTC). It returned four threads on PR 2750, all with `isResolved: true`, so zero unresolved actionable threads remained.
 
 ## Completion Rules
 
