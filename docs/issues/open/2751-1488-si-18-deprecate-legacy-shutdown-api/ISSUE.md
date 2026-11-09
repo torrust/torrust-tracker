@@ -165,13 +165,13 @@ Other decisions of 2026-11-06:
 - Add Rust `#[deprecated]` attributes and documentation to legacy public APIs
   defined in this repository:
   - `axum-http-server`: `HttpServer<Stopped>::start`, `start_with_health_check`,
-    `Running.halt_task`, `Running::stop`, `Launcher::start` (with `rx_halt`).
+    `Running.halt_task`, `HttpServer<Running>::stop`, `Launcher::start` (with `rx_halt`).
   - `axum-rest-api-server`: `ApiServer::start`, `Running.halt_task`,
-    `Running::new` (takes a halt sender), `Running::stop`, `Launcher::start` (with `rx_halt`).
+    `Running::new` (takes a halt sender), `ApiServer<Running>::stop`, `Launcher::start` (with `rx_halt`).
   - `axum-health-check-api-server`: `server::start` (with `rx_halt`) and the
     `RunningServer` type that only it returns.
   - `udp-server`: `Server<Stopped>::start`, `Running` (the legacy state type, its
-    `halt_task` field, its derived `Running::new` and `Running::stop`),
+    `halt_task` field, its derived `Running::new`), `Server<Running>::stop`,
     `Launcher::run_with_graceful_shutdown`, `Spawner::spawn_launcher`, and
     `LaunchRequest` (the type and its `rx_halt` field).
   - `axum-server`: `graceful_shutdown`.
