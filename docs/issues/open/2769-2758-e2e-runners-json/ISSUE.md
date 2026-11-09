@@ -9,7 +9,7 @@ github-issue: 2769
 spec-path: docs/issues/open/2769-2758-e2e-runners-json/ISSUE.md
 branch: "2769-e2e-runners-json"
 related-pr: null
-last-updated-utc: "2026-11-09 10:25"
+last-updated-utc: "2026-11-09 12:12"
 semantic-links:
   skill-links:
     - create-issue
@@ -43,7 +43,8 @@ The global CLI output contract (`docs/adrs/20260519000000_define_global_cli_outp
 
 - `tracing` to stderr as JSON; nothing on stdout.
 - Failures as one JSON record with a `kind`; usage errors exit `2`.
-- `src/console/ci/e2e/runner.rs` logs the tracker configuration verbatim (`tracing::info!("tracker config:\n{tracker_config}")`), which can include credentials. ADR section 7 forbids secrets in output: mask secret values before logging (same for the qBittorrent runner) and add a test.
+- `src/console/ci/e2e/runner.rs` logs the tracker configuration verbatim (`tracing::info!("tracker config:\n{tracker_config}")`), and `src/console/ci/e2e/tracker_checker.rs:13` logs the checker configuration; both can include credentials. ADR section 7 forbids secrets in output: mask secret values before logging and add a test. No tracing macro under `src/console/ci/qbittorrent_e2e/` logs a configuration, so nothing to mask there.
+- Child processes inherit the runner's streams: `src/console/ci/e2e/tracker_checker.rs` runs `cargo run ...` with `.status()`, and `src/console/ci/e2e/docker.rs` (lines 41, 110, 128) and `src/console/ci/compose.rs` (line 104) run `docker` the same way, so the children's stdout and the plain text of `cargo` and `docker` reach the runner's channels, and `AC1`/`AC2` cannot hold. Capture each child's stdout and stderr and report them as JSON records (or discard them), for every runner path, normal and cleanup. Once `tracker_client` refuses a TTY (issue 2768), a checker child that inherits the terminal exits `2` and the runner panics (`runner.rs` calls `.expect` on it, exit status `101`), so capturing the checker's stdout is required, and an interactive run must be verified.
 - Update tests and docs that show the runner output.
 
 ### Out of Scope
@@ -122,12 +123,16 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-11-06 16:43 UTC - Claude Code (Claude Sonnet 5.5) - Drafted this spec as part of EPIC #2758 from the 2026-11-06 audit.
 - 2026-11-06 16:52 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the spec; GitHub issue #2769 created.
 - 2026-11-09 10:25 UTC - Claude Code (Claude Sonnet 5.5) - Corrected details after the review rounds on PR 2771 and PR 2774 and fixed the earlier log stamps from the commit and issue creation times.
+- 2026-11-09 12:12 UTC - Claude Code (Claude Sonnet 5.5) - Addressed the review of PR 2771 (da2ce7 findings F1 to F27 and Copilot's later comments): specs corrected from the code, reproductions recorded where a spec has a bug-fix section.
 
 ## Acceptance Criteria
 
 - [ ] AC1: Both runners write nothing to stdout.
 - [ ] AC2: Every stderr line is JSON.
 - [ ] AC3: A failure exits `1` with a `kind`; a usage error exits `2`.
+- [ ] AC4: The tracker and checker configurations are logged with secret values masked.
+- [ ] AC5: No child process (`cargo`, `docker`, `docker compose`, the checker) writes to the runner's stdout or stderr; its output is captured and reported as JSON records, in the normal and cleanup paths.
+- [ ] AC6: A run from an interactive terminal works (the checker child does not exit `2`).
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
@@ -160,6 +165,9 @@ Manual verification is mandatory even when automated tests pass. Record actual c
 | AC1 | TODO |  |
 | AC2 | TODO |  |
 | AC3 | TODO |  |
+| AC4 | TODO |  |
+| AC5 | TODO |  |
+| AC6 | TODO |  |
 
 ## Risks and Trade-offs
 

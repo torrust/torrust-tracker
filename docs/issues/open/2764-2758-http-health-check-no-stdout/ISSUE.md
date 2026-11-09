@@ -9,7 +9,7 @@ github-issue: 2764
 spec-path: docs/issues/open/2764-2758-http-health-check-no-stdout/ISSUE.md
 branch: "2764-http-health-check-no-stdout"
 related-pr: null
-last-updated-utc: "2026-11-09 10:25"
+last-updated-utc: "2026-11-09 12:12"
 semantic-links:
   skill-links:
     - create-issue
@@ -65,7 +65,12 @@ During implementation, stop and create an ADR when a decision affects project ar
 
 ## Design and Ownership Review
 
-Not applicable.
+The test plan spawns the binary as a child process against a local test server, so this section applies to that fixture.
+
+- Responsibilities: `http_health_check` makes one probe and maps it to an exit code and JSON records; the test fixture owns the test server (an ephemeral port it binds and serves) and the child process it spawns; the test body owns the assertions.
+- Lifetime invariants: the fixture binds the server before the child starts and stops it, and waits for or kills the child, on the normal path and on assertion failure or panic (a guard that cleans up on drop). A closed-port case binds a port, learns its number and closes it before the probe.
+- Deadline: the binary's own request timeout (5 seconds) bounds each probe; the fixture adds an absolute deadline to the child wait, and every readiness wait for the server has an absolute deadline.
+- Design-review checkpoint: after the first passing vertical slice (healthy and unhealthy cases), review the fixture ownership before adding the remaining cases.
 
 ## Bug-Fix Process
 
@@ -123,6 +128,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-11-06 16:43 UTC - Claude Code (Claude Sonnet 5.5) - Drafted this spec as part of EPIC #2758 from the 2026-11-06 audit.
 - 2026-11-06 16:51 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the spec; GitHub issue #2764 created.
 - 2026-11-09 10:25 UTC - Claude Code (Claude Sonnet 5.5) - Corrected details after the review rounds on PR 2771 and PR 2774 and fixed the earlier log stamps from the commit and issue creation times.
+- 2026-11-09 12:12 UTC - Claude Code (Claude Sonnet 5.5) - Addressed the review of PR 2771 (da2ce7 findings F1 to F27 and Copilot's later comments): specs corrected from the code, reproductions recorded where a spec has a bug-fix section.
 
 ## Acceptance Criteria
 

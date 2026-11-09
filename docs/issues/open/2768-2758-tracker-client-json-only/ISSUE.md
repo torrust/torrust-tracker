@@ -9,7 +9,7 @@ github-issue: 2768
 spec-path: docs/issues/open/2768-2758-tracker-client-json-only/ISSUE.md
 branch: "2768-tracker-client-json-only"
 related-pr: null
-last-updated-utc: "2026-11-09 11:27"
+last-updated-utc: "2026-11-09 12:12"
 semantic-links:
   skill-links:
     - create-issue
@@ -44,6 +44,7 @@ The global CLI output contract (`docs/adrs/20260519000000_define_global_cli_outp
 - TTY refusal at entry (exit `2`, `tty_refusal` record).
 - `tracing` to stderr as JSON; stdout carries only the result object.
 - Remove the direct print macros and the `print_*` allows in the console layer, writing results through one JSON emitter; check `checker/console.rs`, `checker/monitor/udp.rs`, `http/app.rs`, `udp/app.rs` and `unified/*` for any output that is not JSON.
+- Wrap the `check` results (a top-level array today, `unified/check.rs`) in an object envelope (for example `{"results": [...]}`) in both formats, and make sure every other subcommand writes one object; update the README (line 118 documents the array) and the contract doc, and note the break for the release.
 - Update the tracker-client I/O contract doc and README; keep tests green.
 
 ### Out of Scope
@@ -88,7 +89,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | ------ | ---- | ----------------------- |
 | T1 | TODO | Wire TTY refusal | Test: exit `2` on a terminal (pty test or injected check). |
 | T2 | TODO | Move tracing to stderr JSON | stdout only has the result. |
-| T3 | TODO | Remove or convert plain-text output | No `print_*` allow left. |
+| T3 | TODO | Remove or convert plain-text output; wrap the `check` array in an object | No `print_*` allow left; `check` writes one object. |
 | T4 | TODO | Update docs and tests | Green. |
 | T5 | TODO | Verify against local UDP and HTTP trackers | Evidence recorded. |
 
@@ -126,7 +127,8 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-11-06 16:43 UTC - Claude Code (Claude Sonnet 5.5) - Drafted this spec as part of EPIC #2758 from the 2026-11-06 audit.
 - 2026-11-06 16:52 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the spec; GitHub issue #2768 created.
 - 2026-11-09 10:25 UTC - Claude Code (Claude Sonnet 5.5) - Corrected details after the review rounds on PR 2771 and PR 2774 and fixed the earlier log stamps from the commit and issue creation times.
-- 2026-11-09 11:27 UTC - Claude Code (Claude Sonnet 5.5) - Corrected details after the round 3 review of PR 2774.
+- 2026-11-09 11:26 UTC - Claude Code (Claude Sonnet 5.5) - Corrected details after the round 3 review of PR 2774.
+- 2026-11-09 12:12 UTC - Claude Code (Claude Sonnet 5.5) - Addressed the review of PR 2771 (da2ce7 findings F1 to F27 and Copilot's later comments): specs corrected from the code, reproductions recorded where a spec has a bug-fix section.
 
 ## Acceptance Criteria
 
@@ -156,7 +158,8 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | --- | -------- | ---------------------------- | --------------- | ------ | -------- |
 | M1 | Announce and scrape | Run `tracker_client http announce ... \| jq .` and the UDP equivalent | One JSON object; stderr JSON | TODO | `manual-verification-evidence.md` section V1 |
 | M2 | TTY refusal | Run in a terminal without piping | Exit `2`, JSON on stderr | TODO | `manual-verification-evidence.md` section V2 |
-| M3 | Check subcommand | `tracker_client check ... \| jq .` | JSON result, no plain text | TODO | `manual-verification-evidence.md` section V3 |
+| M3 | Check subcommand | `tracker_client check ... > out.json; jq -e 'type=="object"' out.json` | One JSON object (not an array), no plain text | TODO | `manual-verification-evidence.md` section V3 |
+| M4 | E2E caller in a terminal | After issue 2765 migrated the e2e checker helper, run the e2e runner from an interactive terminal | The checker step does not exit `2` and the runner does not panic | TODO | `manual-verification-evidence.md` section V4 |
 
 Manual verification is mandatory even when automated tests pass. Record actual commands, output and the toolchain that produced each result in `manual-verification-evidence.md` (from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`).
 

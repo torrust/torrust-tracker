@@ -6,7 +6,7 @@ epic: null
 github-issue: 2758
 spec-path: docs/issues/open/2758-cli-output-contract-tools-migration/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-09 11:27"
+last-updated-utc: "2026-11-09 12:12"
 semantic-links:
   skill-links:
     - create-issue
@@ -93,7 +93,7 @@ parallel; the maintainer sets how many sessions run at once.
 | Order | Issue | Local Spec | Status | Files it touches / notes |
 | ----- | ----- | ---------- | ------ | ------------------------ |
 | 1 | #2760 - Align the ADR binary table with the audit | `docs/issues/open/2760-2758-adr-binary-table/ISSUE.md` | TODO | Wave 0, docs only: `docs/adrs/20260519000000_define_global_cli_output_contract.md`. Must land first; no other issue edits it. |
-| 2 | #2761 - `github-review-threads reply-status`: a missing reply is a result | `docs/issues/closed/2761-2758-reply-status-result/ISSUE.md` | DONE | Implemented in PR #2775. Wave 1: `contrib/dev-tools/github/github-review-threads/**`, `.github/skills/dev/pr-reviews/resolve-review-threads/`, `.github/skills/dev/pr-reviews/fetch-review-threads/SKILL.md` |
+| 2 | #2761 - `github-review-threads reply-status`: a missing reply is a result | `docs/issues/closed/2761-2758-reply-status-result/ISSUE.md` | DONE | Implemented in PR #2775. Wave 1: `contrib/dev-tools/github/github-review-threads/**`, `.github/skills/dev/pr-reviews/resolve-review-threads/SKILL.md`, `.github/skills/dev/pr-reviews/fetch-review-threads/SKILL.md` |
 | 3 | #2762 - `package-coverage-check`: NDJSON errors, usage exit 2, TTY refusal, JSON `summary` | `docs/issues/open/2762-2758-package-coverage-check-contract/ISSUE.md` | TODO | Wave 1: `contrib/dev-tools/checks/package-coverage-check/**`, `.github/workflows/generate_coverage_pr.yaml` |
 | 4 | #2763 - Make `agent-review-report-contract` and `frontmatter-schema` emit NDJSON; classify `workspace-coupling` | `docs/issues/open/2763-2758-dev-tool-checks-ndjson/ISSUE.md` | TODO | Wave 1: `contrib/dev-tools/checks/agent-review-report-contract/**`, `contrib/dev-tools/checks/frontmatter-validator/src/bin/frontmatter-schema.rs`, `contrib/dev-tools/analysis/workspace-coupling/**` |
 | 5 | #2764 - `http_health_check`: NDJSON diagnostics, usage exit 2 | `docs/issues/open/2764-2758-http-health-check-no-stdout/ISSUE.md` | TODO | Wave 1: `src/bin/http_health_check.rs` and its tests; verify `Containerfile` `HEALTHCHECK` |
@@ -108,7 +108,7 @@ parallel; the maintainer sets how many sessions run at once.
 
 Wave 0 first (the table the others cite). Wave 1 issues touch disjoint files and may run in parallel. Wave 2 waits
 for its predecessors because it shares files with them (`console/tracker-client/**` with issue 6 for issue 9; for issue 10,
-`src/console/ci/e2e/tracker_checker.rs` with issue 6 and the e2e log parser and `docker.rs` with issue 7). Issue 11 runs last. Issues 2 to 5 and 9 are independent of the operator-visible changes.
+`src/console/ci/e2e/tracker_checker.rs` with issue 6 and the e2e log parser and `docker.rs` with issue 7). Issue 11 runs last. Issues 2 to 5 do not depend on the operator-visible changes. Issue 9 runs after issue 6, a breaking removal, and itself changes the output shape of `check` (a top-level array becomes an object), which is also breaking.
 
 For each subissue, the default completion policy is:
 
@@ -144,7 +144,8 @@ consumes the old behavior (named in its spec). No issue edits the ADR table exce
 - 2026-11-06 16:41 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the EPIC; created EPIC #2758 as josecelano-bot.
 - 2026-11-06 16:52 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the 11 child specs; created issues #2760 to #2770 as josecelano-bot. Linking them as sub-issues returned 404 for the bot, so the maintainer links them.
 - 2026-11-09 10:25 UTC - Claude Code (Claude Sonnet 5.5) - Corrected details after the review rounds on PR 2771 and PR 2774 and fixed the earlier log stamps from the commit and issue creation times.
-- 2026-11-09 11:27 UTC - Claude Code (Claude Sonnet 5.5) - Corrected details after the round 3 review of PR 2774.
+- 2026-11-09 11:26 UTC - Claude Code (Claude Sonnet 5.5) - Corrected details after the round 3 review of PR 2774.
+- 2026-11-09 12:12 UTC - Claude Code (Claude Sonnet 5.5) - Addressed the review of PR 2771 (da2ce7 findings F1 to F27 and Copilot's later comments): specs corrected from the code, reproductions recorded where a spec has a bug-fix section.
 
 ## Acceptance Criteria
 
@@ -169,7 +170,8 @@ consumes the old behavior (named in its spec). No issue edits the ADR table exce
 ## Risks and Trade-offs
 
 - **The daemon's log format is operator-visible.** Existing deployments parse the plain text. Mitigation: a release
-  note, the `trace_style` option keeps working, and the issue decides the migration detail with the maintainer before code.
+  note, and the issue decides the migration detail with the maintainer before code. Whether the other `trace_style` values keep working depends on that decision: the contract allows no plain text at any verbosity, so the plain styles cannot simply stay.
+- **The `check` output shape changes.** `tracker_client check` emits a top-level array today and the contract requires one object; issue 9 wraps it in an envelope, which breaks consumers of the array (the README documents it). Mitigation: release note and the tracker-client contract doc.
 - **Health check semantics.** The container `HEALTHCHECK` must keep failing on an unhealthy service. Mitigation: the
   `no-stdout-result` reclassification, and a manual verification that `docker inspect` reports `unhealthy`.
 - **Review load.** Eleven issues is a lot for one reviewer. Mitigation: the maintainer sets the parallelism; waves are
