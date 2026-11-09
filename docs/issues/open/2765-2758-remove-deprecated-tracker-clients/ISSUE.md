@@ -44,6 +44,7 @@ The global CLI output contract (`docs/adrs/20260519000000_define_global_cli_outp
 - Delete or migrate their tests so coverage of the shared code is kept through `tracker_client`.
 - Update README, `docs/packages.md` and any doc or config that tells the reader to run them.
 - Add the breaking-change note.
+- Migrate `src/console/ci/e2e/tracker_checker.rs`, which launches `cargo run -p torrust-tracker-client --bin tracker_checker` for the e2e runner, to the unified `tracker_client check` (keeping `TORRUST_CHECKER_CONFIG`), so the e2e runner still works; check the e2e runner and any workflow that calls it.
 
 ### Out of Scope
 
@@ -57,7 +58,8 @@ Files this issue may touch (a sibling issue in the same wave must not touch them
 - `console/tracker-client/README.md`
 - `console/tracker-client/tests/tracker_checker*`
 - `docs/packages.md`
-- share/default/config/tracker_checker.json (if only used by the old binary)
+- `share/default/config/tracker_checker.json` (if only used by the old binary)
+- `src/console/ci/e2e/tracker_checker.rs`
 
 ## Architectural Decisions
 

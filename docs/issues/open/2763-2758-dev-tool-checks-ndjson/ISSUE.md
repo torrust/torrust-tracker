@@ -15,6 +15,7 @@ semantic-links:
     - create-issue
   related-artifacts:
     - .github/skills/dev/planning/create-issue/SKILL.md
+    - .github/skills/dev/debugging/fix-bug/SKILL.md
     - docs/adrs/20260519000000_define_global_cli_output_contract.md
     - docs/adrs/20261106102632_scope_the_cli_output_contract_and_keep_exit_codes_to_zero_one_two.md
     - docs/issues/open/2758-cli-output-contract-tools-migration/EPIC.md
@@ -42,7 +43,7 @@ The global CLI output contract (`docs/adrs/20260519000000_define_global_cli_outp
 
 - `agent-review-report-contract`: nothing on stdout; one NDJSON record per failure on stderr (with `kind`); exit `0` when clean, `1` on a finding or failure.
 - `frontmatter-schema`: NDJSON diagnostics on stderr; usage stays `2`.
-- `workspace-coupling`: fix only what the check finds; record the outcome.
+- `workspace-coupling`: it is `no-stdout-result` (ADR row from #2760): verify stdout stays empty and the report goes only to the output file; fix only what the check finds and record the outcome.
 - Update tests and any docs describing the output.
 
 ### Out of Scope
@@ -53,7 +54,7 @@ The global CLI output contract (`docs/adrs/20260519000000_define_global_cli_outp
 Files this issue may touch (a sibling issue in the same wave must not touch them):
 
 - `contrib/dev-tools/checks/agent-review-report-contract/**`
-- contrib/dev-tools/checks/frontmatter-validator/src/bin/frontmatter-schema.rs (and its tests)
+- `contrib/dev-tools/checks/frontmatter-validator/src/bin/frontmatter-schema.rs` (and its tests)
 - `contrib/dev-tools/analysis/workspace-coupling/**`
 
 ## Architectural Decisions
@@ -68,11 +69,17 @@ Not applicable.
 
 ## Bug-Fix Process
 
-Not applicable.
+This issue fixes a deviation from the CLI output contract, so it is bug work in substance. Follow the [fix-bug](../../../../.github/skills/dev/debugging/fix-bug/SKILL.md) skill:
+
+- analysis of the defect: the tool's current behavior against the contract (see Background);
+- real-artifact reproduction: run the real binary, record the commands and output of the deviation in `manual-verification-evidence.md` before changing code;
+- regression-test boundary: see Regression Test Strategy;
+- red regression test, then the production fix;
+- green test evidence and a like-for-like recheck of the same real-artifact commands.
 
 ## Regression Test Strategy
 
-Not applicable.
+Unit tests of each tool's `run` function with an injected writer (the pattern `frontmatter-schema` already uses), asserting NDJSON on stderr and empty stdout. They fail today (plain text). If a higher boundary is used instead, record why it is clearer or the only practical option; link red and green output and the final recheck to `manual-verification-evidence.md`.
 
 ## Implementation Plan
 
@@ -122,7 +129,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 
 - [ ] AC1: Neither converted tool writes plain text on any channel.
 - [ ] AC2: On success stdout is empty and the exit code is `0`; on a finding the exit code is `1` with NDJSON records.
-- [ ] AC3: `workspace-coupling` leaves stdout empty or is documented as a `stdout-result-data` tool with a JSON result.
+- [ ] AC3: `workspace-coupling` matches its ADR row (`no-stdout-result`): stdout stays empty, the Markdown report goes to the file argument, status events are NDJSON on stderr.
 - [ ] AC4: Callers are unaffected or updated.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass

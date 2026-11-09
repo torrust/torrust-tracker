@@ -9,7 +9,7 @@ github-issue: 2760
 spec-path: docs/issues/open/2760-2758-adr-binary-table/ISSUE.md
 branch: "2760-adr-binary-table"
 related-pr: null
-last-updated-utc: "2026-11-06 17:10"
+last-updated-utc: "2026-11-09 11:27"
 semantic-links:
   skill-links:
     - create-issue
@@ -78,8 +78,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task | Notes / Expected Output |
 | --- | ------ | ---- | ----------------------- |
-| T1 | TODO | Read where `workspace-coupling` writes its report and pick its class | Decision recorded in the progress log. |
-| T2 | TODO | Edit the table and notes in the ADR | Rows added, `http_health_check` reclassified, notes name their issues. |
+| T1 | DONE | Read where `workspace-coupling` writes its report and pick its class | Decision recorded in the progress log. |
+| T2 | DONE | Edit the table and notes in the ADR | Rows added, `http_health_check` reclassified, notes name their issues. |
 
 ## Commit Points
 
@@ -98,29 +98,32 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [ ] Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
-- 2026-11-06 17:10 UTC - Claude Code (Claude Sonnet 5.5) - Drafted this spec as part of EPIC #2758 from the 2026-11-06 audit.
-- 2026-11-06 17:25 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the spec; GitHub issue #2760 created.
+- 2026-11-06 16:51 UTC - Claude Code (Claude Sonnet 5.5) - Drafted this spec as part of EPIC #2758 from the 2026-11-06 audit; the maintainer approved it and GitHub issue #2760 was created (time from the issue `created_at` on GitHub; PR #2771 commits the spec at 16:54 UTC).
+- 2026-11-06 17:16 UTC - Claude Code (Claude Sonnet 5.5) - T1 decision: `workspace-coupling` is `no-stdout-result` (report goes to a file, only NDJSON status on stderr). T2: table edited; `linter all` passed.
+- 2026-11-06 20:53 UTC - Claude Code (Claude Sonnet 5.5) - Implementation completion review: the result matches the spec; the only decision to make during implementation was the `workspace-coupling` class (`no-stdout-result`, recorded above) and no assumption was invalidated, so no retrospective is needed. Evidence file rewritten to the template after the Copilot review of PR #2774.
+- 2026-11-09 10:27 UTC - Claude Code (Claude Sonnet 5.5) - Ran `linter all` after the second review round edits (table `N/A` row, exit codes, evidence rewrite): exit 0; the output is pasted in `manual-verification-evidence.md` section V2.
+- 2026-11-09 11:27 UTC - Claude Code (Claude Sonnet 5.5) - Ran `linter all` after the third review round edits (the `github-review-threads` note, evidence wording, audit rows), before adding this entry: exit 0.
 
 ## Acceptance Criteria
 
-- [ ] AC1: Every program audited in EPIC #2758 appears in the table with a class.
-- [ ] AC2: `http_health_check` is `no-stdout-result` and the note explains the `HEALTHCHECK` reason.
-- [ ] AC3: No row claims a tool is compliant when the audit says it is not.
-- [ ] `linter all` exits with code `0`
+- [x] AC1: Every program audited in EPIC #2758 appears in the table with a class, or `N/A` for the deprecated binaries that are to be removed.
+- [x] AC2: `http_health_check` is `no-stdout-result` and the note explains the `HEALTHCHECK` reason.
+- [x] AC3: No row claims a tool is compliant when the audit says it is not.
+- [x] `linter all` exits with code `0`
 - [ ] Relevant tests pass
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
 - [ ] Documentation is updated when behavior or workflow changes
 
 ## Verification Plan
@@ -137,7 +140,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | -------- | ---------------------------- | --------------- | ------ | -------- |
-| M1 | Compare the table with the audit | Read the table and the EPIC audit table side by side | Every audited program is listed with a matching class | TODO | `manual-verification-evidence.md` section V1 |
+| M1 | Compare the table with the audit | Read the table and the EPIC audit table side by side | Every audited program is listed with a matching class | DONE | `manual-verification-evidence.md` section V1 |
 
 Manual verification is mandatory even when automated tests pass. Record actual commands, output and the toolchain that produced each result in `manual-verification-evidence.md` (from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`).
 
@@ -145,9 +148,9 @@ Manual verification is mandatory even when automated tests pass. Record actual c
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1 | TODO |  |
-| AC2 | TODO |  |
-| AC3 | TODO |  |
+| AC1 | DONE | `manual-verification-evidence.md` V1 |
+| AC2 | DONE | `manual-verification-evidence.md` V1 |
+| AC3 | DONE | `manual-verification-evidence.md` V1 |
 
 ## Risks and Trade-offs
 
@@ -155,7 +158,7 @@ Manual verification is mandatory even when automated tests pass. Record actual c
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
+- Retrospective: Not needed. See the progress log entry of 2026-11-06 20:53 UTC.
 - If needed, create `implementation-retrospective.md` from `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this directory; otherwise record in the progress log why none was needed.
 
 ## References
