@@ -122,10 +122,6 @@ current version at the end of #1669; the root `torrust-tracker` next releases as
   date. The window ends when the maintainer approves publishing 0.6.0, and the maintainer publishes 0.6.0 from the
   `torrust-server-lib` repository as part of SI-19, after that approval. The SI-19 start gate therefore waits for
   the approval, not for the 0.6.0 publication, which SI-19 itself produces.
-- Release notes (follows from the support-window decision): SI-18 writes no release note for the symbols of the
-  five unpublished package crates or for the root `HaltSignal` and `NestedServerTask`, because no published
-  release contains them. This holds whether or not the proposal below is confirmed; the only release note is the
-  `torrust-server-lib` one.
 - SI-18 only deprecates `HaltSignal` and `NestedServerTask`; it does not delete them. SI-19 removes them, under
   the conditions in the derived paragraph below.
 
@@ -138,12 +134,18 @@ and SI-19 may remove them inside EPIC #1488, before that release. The maintainer
 root types as inside the window; this conclusion narrows it with the same principle (a window only for symbols
 that are already public).
 
+Derived by the author from the support-window decision, not yet confirmed by the maintainer (release notes): no
+published release contains the symbols of the five unpublished package crates or the root `HaltSignal` and
+`NestedServerTask`, so SI-18 writes no release note for them; the only release note is the `torrust-server-lib`
+one. Until the maintainer confirms or changes this, it is what Scope, Requirement 4 and T5 say, and it is part
+of the review the maintainer reserved with the proposal below.
+
 Proposed by the author in answer to review finding `review-finding:pr-2752-f16`, not yet confirmed by the
 maintainer (it follows from the decisions above to deprecate then remove and the support-window decision): the
-attribute and release-note text per symbol group. Until the maintainer confirms it, T2 writes the decided wording
+attribute text per symbol group (its release-note lines restate the derived rule above). Until the maintainer confirms it, T2 writes the decided wording
 for the package-crate symbols: `since` is the version at first publication and the removal is "the next breaking
 release of this package". Once confirmed, this proposal replaces that decided bullet for the symbols it covers,
-and T2, Deprecation Requirement 2 and the Scope bullet on release notes apply it as written below.
+and T2 and Deprecation Requirement 2 apply it as written below.
 
 - `torrust-server-lib` symbols (already public): the library's own `since = "0.5.0"` and `CHANGELOG.md` apply;
   SI-18 adds nothing there beyond the dependency bump.
@@ -190,8 +192,8 @@ Other decisions of 2026-11-06:
 - Add compiler/test coverage proving legacy API consumers still compile.
 - Write the deprecation text defined in Versioning Decisions (the decided wording until the maintainer confirms
   the proposal there). The only release note with a support window is the published `torrust-server-lib` one;
-  SI-18 writes no release note for the symbols of the unpublished package crates or the root types (see the
-  release-notes decision in Versioning Decisions).
+  SI-18 writes no release note for the symbols of the unpublished package crates or the root types (derived, not
+  yet confirmed; see Versioning Decisions).
 
 ### Out of scope
 
@@ -214,7 +216,7 @@ Other decisions of 2026-11-06:
    behavioral migration.
 4. The `torrust-server-lib` release notes must state the support window and the evidence
    required before removal. SI-18 writes no release note for the symbols of the unpublished
-   package crates or the root types (see the release-notes decision in Versioning Decisions).
+   package crates or the root types (derived, not yet confirmed; see Versioning Decisions).
 5. The final removal task must not proceed merely because in-workspace code has
    migrated; for the already-public symbols (see Versioning Decisions) it also requires the
    declared external compatibility period to end. Symbols of crates that have never been
@@ -268,7 +270,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2  | TODO   | Deprecate the legacy public APIs of the five server packages and the root `HaltSignal`/`NestedServerTask`, adding in the same increment the local allowances at the call sites that still use them. | Each message names the replacement and uses the decided `since` and removal wording; once the maintainer confirms the proposal in Versioning Decisions, it uses the proposal's text instead. Behavior unchanged; warning-free build. |
 | T3  | TODO   | Review every local allowance added by T1 and T2: each has a rationale and none sits in a migrated production path. | Migrated paths compile with `-D deprecated`; no allowance without a rationale. |
 | T4  | TODO   | Add compile-compat tests for representative legacy consumers.                                                 | Tests compile with `#[allow(deprecated)]` and pass; legacy behavior unchanged.                  |
-| T5  | TODO   | Write migration guidance for the deprecated symbols.                                                          | Replacement table; Rust docs render the guidance. No release note for these symbols (see Versioning Decisions). |
+| T5  | TODO   | Write migration guidance for the deprecated symbols.                                                          | Replacement table; Rust docs render the guidance. No release note for these symbols (derived, not yet confirmed; see Versioning Decisions). |
 | T6  | TODO   | Record verification evidence.                                                                                  | `manual-verification-evidence.md`: gate evidence, warning output, rendered docs review.         |
 
 ## Commit Points
