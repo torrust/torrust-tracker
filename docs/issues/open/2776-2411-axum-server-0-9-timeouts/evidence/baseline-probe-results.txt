@@ -1,0 +1,11 @@
+start 20:58:24
+M1 plaintext HTTP tracker :7070, silent: closed by server after 5.0s
+M1 plaintext REST API :1212, silent: closed by server after 5.0s
+M1 health check API :1313, silent: STILL OPEN after 25.0s (client gave up)
+M2 TLS HTTP tracker :7171, handshake done, silent: STILL OPEN after 25.0s (client gave up)
+M3 TLS HTTP tracker :7171, TCP only, no handshake: closed by server after 10.0s
+M4 plaintext HTTP tracker :7070, keep-alive after GET /health_check: first response: HTTP/1.1 200 OK
+M4 plaintext HTTP tracker :7070, keep-alive after GET /health_check: closed by server after 5.0s
+M4 health check API :1313, keep-alive after GET /health_check: first response: HTTP/1.1 200 OK
+M4 health check API :1313, keep-alive after GET /health_check: STILL OPEN after 25.0s (client gave up)
+end 21:00:04
