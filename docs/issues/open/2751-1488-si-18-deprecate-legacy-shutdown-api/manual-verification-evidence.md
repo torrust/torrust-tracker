@@ -9,7 +9,7 @@ last-updated-utc: "2026-11-09 15:46"
 ## Environment and Prerequisites
 
 - Date and time (UTC): the first run was on 2026-11-09 from 10:50 to 10:52. Every command below was rerun from
-  12:56:11 to 12:56:23 UTC the same day, and all output in this file is from that rerun. Commands that were not
+  12:56:11 to 12:56:23 UTC the same day, and all output in this file is from that rerun, except the Step 5 output, which is from a run at 15:46:04 UTC the same day (the same five lines, in another order). Commands that were not
   in the first run: the `.start(` search (step 3) and the `python3` extraction in step 7 were first listed by
   commits at 12:07 and 12:08 UTC, and the `manager.rs` and `#[cfg(test)]` searches (steps 4 and 5) were widened
   at 12:07 UTC.
@@ -28,7 +28,8 @@ last-updated-utc: "2026-11-09 15:46"
 
 #### Steps Performed
 
-All commands ran from the repository root, one after another, in the rerun described under Environment. The
+All commands ran from the repository root, one after another, in the rerun described under Environment (Step 5
+also ran at 15:46:04 UTC, as Environment says). The
 `grep` output order is whatever this machine's `grep` printed; it does not follow the argument order, so the
 blocks below are copied as printed, not sorted.
 
