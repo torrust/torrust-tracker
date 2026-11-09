@@ -6,7 +6,7 @@ epic: null
 github-issue: 144
 spec-path: docs/issues/open/144-api-v2-correct-response-codes/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-06 12:00"
+last-updated-utc: "2026-11-09 10:48"
 semantic-links:
   skill-links:
     - create-issue
@@ -26,7 +26,8 @@ semantic-links:
 
 ## Goal
 
-Introduce a new major version of the tracker REST API under the `/v2` prefix with correct HTTP
+Introduce a new major version of the tracker REST API under a new version prefix (its form is an
+ADR decision; see [Candidate v2 behavior](#candidate-v2-behavior-from-the-issue-body)) with correct HTTP
 semantics (status codes, error bodies, resource-oriented endpoints, unambiguous field meanings),
 served in parallel with the current `/api/v1` API until the old one is removed in a later major
 release.
@@ -45,10 +46,14 @@ Problems with the current (v1) API that v1 cannot fix without breaking clients:
   invalid token type) also return `500` with `unhandled rejection` text in v1; mapping them to
   `401` is proposed v2 work. Disabled key/whitelist capabilities already return `409` in v1
   (delivered by #2107); v2 must preserve that.
-- Errors are not structured. The demo deployment returns `HTTP 500` with the internal text
+- Most errors are plain text, not structured (the `409` above has a JSON body,
+  `{"status":"err","reason":...}`). The demo deployment returns `HTTP 500` with the internal text
   `Unhandled rejection: Err { reason: "unauthorized" }` for `GET /` and `GET /health_check`
-  (observed 2026-04-09, see torrust/torrust-tracker-demo#13).
-- Some endpoints behave like remote commands (`GET /api/whitelist/reload`) instead of
+  (observed 2026-04-09, see torrust/torrust-tracker-demo#13). These are unmatched paths: the REST
+  API's own health check is `/api/health_check`, outside the auth layer, and answers `200`
+  without a token; `/health_check` belongs to the separate health-check API. The `500` is the
+  auth rejection answering a path no route matches.
+- Some endpoints behave like remote commands (`GET /api/v1/whitelist/reload`) instead of
   resource operations.
 - The original issue raises a privacy concern: a torrent lookup must not reveal whether a
   private tracker holds a torrent (Insecure Direct Object Reference). This is not a confirmed
@@ -80,7 +85,7 @@ Problems with the current (v1) API that v1 cannot fix without breaking clients:
 
 ### In Scope
 
-- A `/v2` API prefix served in parallel with v1.
+- A new version prefix for v2 (form decided by the ADR), served in parallel with v1.
 - Correct HTTP status codes and a structured error body for all v2 endpoints.
 - Resource-oriented replacements for the command-style v1 endpoints.
 - Explicit completed-download metric semantics (session versus persisted versus unavailable).
@@ -106,18 +111,18 @@ Problems with the current (v1) API that v1 cannot fix without breaking clients:
 
 All of these are _candidates_ until a sub-issue or ADR records the decision.
 
-| Area                         | Candidate change                                                                                                            |
-| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| Prefix and URLs              | Use `/v2`, for example `/v2/api/stats`; keep the same URLs where possible and change the response codes.                    |
-| Errors                       | One error type and body for all rejections; `401` when a token is present but not valid, instead of `token not valid` text. |
-| `GET` torrent by info-hash   | `404` when the torrent does not exist, with a valid or an invalid token, so a private tracker does not leak what it holds.  |
-| `DELETE` whitelist entry     | `204 No Content` on delete; `404 Not Found` when the torrent is absent or the token is invalid.                             |
-| `POST` whitelist entry       | `201 Created` with a `Location` header; requires a new `GET` whitelist entry endpoint (or `PUT` as an idempotent add).      |
-| `POST` auth key              | `201 Created`.                                                                                                              |
-| `DELETE` auth key            | `204 No Content`.                                                                                                           |
-| Reload whitelist / keys      | Use `POST`, `PUT` or `PATCH` (not `GET`); later possibly `POST /reload-whitelist` or a commands resource.                   |
-| Root / discovery             | Fix the `500` on `/` and `/health_check`; consider an index listing all APIs (the rqbit `GET /` pattern).                   |
-| Documentation                | Consider generating OpenAPI documents (utoipa was suggested for Axum).                                                      |
+| Area                       | Candidate change                                                                                                                                                                                     |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Prefix and URLs            | Use a new version prefix and keep the same URLs where possible. The issue text said `/v2/api/stats`, but every version is now composed under `/api/<version>` (so `/api/v2/stats`); the ADR decides. |
+| Errors                     | One error type and body for all rejections; `401` when a token is present but not valid, instead of `token not valid` text.                                                                          |
+| `GET` torrent by info-hash | `404` when the torrent does not exist, with a valid or an invalid token, so a private tracker does not leak what it holds.                                                                           |
+| `DELETE` whitelist entry   | `204 No Content` on delete; `404 Not Found` when the torrent is absent or the token is invalid.                                                                                                      |
+| `POST` whitelist entry     | `201 Created` with a `Location` header; requires a new `GET` whitelist entry endpoint (or `PUT` as an idempotent add).                                                                               |
+| `POST` auth key            | `201 Created`.                                                                                                                                                                                       |
+| `DELETE` auth key          | `204 No Content`.                                                                                                                                                                                    |
+| Reload whitelist / keys    | Use `POST`, `PUT` or `PATCH` (not `GET`); later possibly `POST /reload-whitelist` or a commands resource.                                                                                            |
+| Root / discovery           | Fix the `500` that unmatched paths (such as `/` and `/health_check`) get from the auth rejection; consider an index listing all APIs (the rqbit `GET /` pattern).                                    |
+| Documentation              | Consider generating OpenAPI documents (utoipa was suggested for Axum).                                                                                                                               |
 
 Disabled capabilities already return `409` in v1 (delivered by #2107). v2 must keep that
 distinction: a disabled feature is not an authorization failure and not an accidental `404`.
@@ -126,8 +131,10 @@ distinction: a disabled feature is not an authorization failure and not an accid
 
 These items are deprecated in v1 and are removed (not merely renamed) in v2:
 
-- Stats and torrent `completed`: replaced by explicit session/persisted/unavailable semantics
-  (see [ADR: completed-download metric retention names](../../../adrs/20260901113500_define_completed_download_metric_retention_names.md)
+- Stats `completed` (deprecated in v1, with replacement fields): replaced by explicit
+  session/persisted/unavailable semantics. The torrent resources document `completed` as a plain
+  counter with no v1 deprecation and no replacement field, so a migration guide must present its
+  v2 removal as a v2 change, not as a v1 deprecation (see [ADR: completed-download metric retention names](../../../adrs/20260901113500_define_completed_download_metric_retention_names.md)
   and the draft sub-issue below). v2 also drops the legacy
   `tracker_core_persistent_torrents_downloads_total` compatibility path.
 - Peer `updated` and `updated_milliseconds_ago`: v2 uses only `updated_at_ms`
@@ -154,15 +161,15 @@ The EPIC currently has **no created GitHub sub-issues** (the sub-issues API of #
 the time of writing). The list below is the proposed breakdown; order and content need the
 maintainer's approval before issues are created.
 
-| Order | Issue                                                    | Local Spec                                                             | Status | Notes                                                                                                                                |
-| ----- | -------------------------------------------------------- | ---------------------------------------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------ |
-| 1     | #[To be assigned] - Make the REST API persistence-aware  | `docs/issues/drafts/144-make-rest-api-persistence-aware/ISSUE.md`      | TODO   | Draft only, no GitHub issue yet. Defines completed-metric provenance DTOs.                                                           |
-| 2     | #[To be assigned] - ADR: v2 contract and error model     | not drafted                                                            | TODO   | Candidate: prefix, error body, status-code policy, versioning, deprecation/migration policy, I2P collections, stats regrouping.      |
-| 3     | #[To be assigned] - v2 skeleton and error handling       | not drafted                                                            | TODO   | Depends on 2. Candidate: `/v2` module in all five packages, shared error type, fix `500` on `/` and `/health_check`.                 |
-| 4     | #[To be assigned] - v2 health_check, stats, torrent      | not drafted                                                            | TODO   | Depends on 1 and 3.                                                                                                                  |
-| 5     | #[To be assigned] - v2 whitelist and auth keys           | not drafted                                                            | TODO   | Depends on 3. Covers `201`, `204`, `404`, `Location` and the reload endpoints.                                                       |
-| 6     | #[To be assigned] - v2 client and migration guide        | not drafted                                                            | TODO   | Depends on 4 and 5.                                                                                                                  |
-| 7     | #[To be assigned] - v2 I2P peer representation           | not drafted                                                            | TODO   | Depends on the #2491 I2P work and ADR (2).                                                                                           |
+| Order | Issue                                                   | Local Spec                                                        | Status | Notes                                                                                                                                                                                                                                                                      |
+| ----- | ------------------------------------------------------- | ----------------------------------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1     | #[To be assigned] - Make the REST API persistence-aware | `docs/issues/drafts/144-make-rest-api-persistence-aware/ISSUE.md` | TODO   | Draft only, no GitHub issue yet. Defines completed-metric provenance DTOs.                                                                                                                                                                                                 |
+| 2     | #[To be assigned] - ADR: v2 contract and error model    | not drafted                                                       | TODO   | Candidate: prefix form, error body, status-code policy (including the invalid-token response: `401` or `404`, which interacts with the auth middleware that rejects before any handler runs), versioning, deprecation/migration policy, I2P collections, stats regrouping. |
+| 3     | #[To be assigned] - v2 skeleton and error handling      | not drafted                                                       | TODO   | Depends on 2. Candidate: `/v2` module in all five packages, shared error type, fix the `500` on unmatched paths (fallback).                                                                                                                                                |
+| 4     | #[To be assigned] - v2 health_check, stats, torrent     | not drafted                                                       | TODO   | Depends on 1 and 3.                                                                                                                                                                                                                                                        |
+| 5     | #[To be assigned] - v2 whitelist and auth keys          | not drafted                                                       | TODO   | Depends on 3. Covers `201`, `204`, `404`, `Location` and the reload endpoints.                                                                                                                                                                                             |
+| 6     | #[To be assigned] - v2 client and migration guide       | not drafted                                                       | TODO   | Depends on 4 and 5.                                                                                                                                                                                                                                                        |
+| 7     | #[To be assigned] - v2 I2P peer representation          | not drafted                                                       | TODO   | Depends on the #2491 I2P work and ADR (2).                                                                                                                                                                                                                                 |
 
 ## Delivery Strategy
 
@@ -189,7 +196,7 @@ Across the EPIC, the scenarios must cover at least:
 | v1 and v2 coexistence            | Both prefixes are served by one process; v1 responses are byte-compatible with before. | TODO   | -        |
 | Unauthorized torrent lookups     | Missing/invalid token: same non-disclosing response for an existing and an absent one. | TODO   | -        |
 | Authorized absent torrent lookup | `404` with the structured error body.                                                  | TODO   | -        |
-| Disabled key/whitelist operations | Return the agreed code (`409` in v1), not `404` or an authorization failure.           | TODO   | -        |
+| Disabled key/whitelist ops       | Return the agreed code (`409` in v1), not `404` or an authorization failure.           | TODO   | -        |
 | Persistence-free reads           | Stats and torrent reads stay supported and return `200` (as in v1), not `409`.         | TODO   | -        |
 | Completed-metric availability    | Session, persisted and unavailable values are distinguishable, no numeric sentinel.    | TODO   | -        |
 
@@ -217,7 +224,7 @@ Across the EPIC, the scenarios must cover at least:
 ### Parallelism and model/effort
 
 How many sub-issue sessions may run at once, and the model and effort for each, are not decided
-yet. Sub-issue 1-3 touch the same packages, so they run one at a time. Ask the maintainer before
+yet. Sub-issue 2 is an ADR; sub-issues 1 and 3 touch the same packages, so they run one at a time. Ask the maintainer before
 starting parallel sessions. Do not start any implementation session before 4.0.0 is released.
 
 ## Progress Tracking
@@ -241,22 +248,29 @@ starting parallel sessions. Do not start any implementation session before 4.0.0
   spec from the GitHub issue, its comments and existing repository specs/ADRs. Development
   deferred until after tracker 4.0.0 (maintainer decision). Proposed sub-issue breakdown is
   unapproved.
+- 2026-11-06 16:43 UTC - EPIC coordinator session (Claude Sonnet 5.5) - Addressed Copilot's first
+  round (PR #2753, commit 809ea6243): v1 auth/conflict facts, manual verification policy.
+- 2026-11-06 18:07 UTC - EPIC coordinator session (Claude Sonnet 5.5) - Addressed Copilot's
+  second round (commit cd1633382): v1 token failures return `500`; persistence-free reads `200`.
+- 2026-11-09 10:48 UTC - EPIC coordinator session (Claude Sonnet 5.5) - Addressed da2ce7's review
+  F1-F11 (prefix form left to the ADR, torrent `completed` not deprecated, unmatched-path `500`,
+  current whitelist reload path, ADR decision list, acceptance criteria table).
 
 ## Acceptance Criteria
 
-- [ ] All required subissues are created and linked.
-- [ ] Implementation order is explicit and justified.
-- [ ] Dependencies and blockers are documented and current.
-- [ ] Epic status reflects actual state of linked subissues.
-- [ ] v1 and v2 are served in parallel and v1 wire format is unchanged.
-- [ ] Every v2 endpoint uses the agreed status codes and the structured error body.
-- [ ] Deprecated v1 fields and metrics are absent from v2.
-- [ ] A migration guide for v1 clients exists.
-- [ ] Every completed subissue includes automated verification evidence.
-- [ ] Every completed subissue includes manual verification evidence.
-- [ ] Every completed subissue includes post-implementation acceptance criteria review.
-- [ ] Every completed subissue includes an implementation completion review.
-- [ ] Documentation and governance updates are included when required.
+- [ ] AC1: All required subissues are created and linked.
+- [ ] AC2: Implementation order is explicit and justified.
+- [ ] AC3: Dependencies and blockers are documented and current.
+- [ ] AC4: Epic status reflects actual state of linked subissues.
+- [ ] AC5: v1 and v2 are served in parallel and v1 wire format is unchanged.
+- [ ] AC6: Every v2 endpoint uses the agreed status codes and the structured error body.
+- [ ] AC7: Deprecated v1 fields and metrics are absent from v2.
+- [ ] AC8: A migration guide for v1 clients exists.
+- [ ] AC9: Every completed subissue includes automated verification evidence.
+- [ ] AC10: Every completed subissue includes manual verification evidence.
+- [ ] AC11: Every completed subissue includes post-implementation acceptance criteria review.
+- [ ] AC12: Every completed subissue includes an implementation completion review.
+- [ ] AC13: Documentation and governance updates are included when required.
 
 ### Acceptance Verification
 
@@ -264,6 +278,17 @@ starting parallel sessions. Do not start any implementation session before 4.0.0
 | ----- | ---------------------- | -------- |
 | AC1   | TODO                   | -        |
 | AC2   | TODO                   | -        |
+| AC3   | TODO                   | -        |
+| AC4   | TODO                   | -        |
+| AC5   | TODO                   | -        |
+| AC6   | TODO                   | -        |
+| AC7   | TODO                   | -        |
+| AC8   | TODO                   | -        |
+| AC9   | TODO                   | -        |
+| AC10  | TODO                   | -        |
+| AC11  | TODO                   | -        |
+| AC12  | TODO                   | -        |
+| AC13  | TODO                   | -        |
 
 ## Risks and Trade-offs
 
