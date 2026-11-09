@@ -301,7 +301,7 @@ mod tests {
     /// The second case documents a difference with the auth-key handlers: `add_auth_key_handler` maps a service-reported
     /// `AuthKeyError::DisabledByConfiguration` to the disabled `409`, while this handler answers a `500`. The service never
     /// returns that error today, so no client can see it. See the "Documented inconsistency" section of the plan
-    /// `docs/issues/open/2637-1347-add-tests-axum-rest-api-server/test-refactor-plans/v1-context-whitelist-handlers-tests.md`.
+    /// `docs/issues/closed/2637-1347-add-tests-axum-rest-api-server/test-refactor-plans/v1-context-whitelist-handlers-tests.md`.
     #[rstest]
     #[case::a_database_error(database_error as Outcome, "failed to whitelist torrent: boom")]
     #[case::a_capability_disabled_in_the_service(

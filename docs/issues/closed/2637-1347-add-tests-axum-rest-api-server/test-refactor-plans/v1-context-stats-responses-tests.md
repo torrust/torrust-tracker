@@ -10,9 +10,9 @@ semantic-links:
     - packages/axum-rest-api-server/src/v1/context/stats/handlers.rs
     - packages/axum-rest-api-server/src/test_support.rs
     - packages/rest-api-protocol/src/v1/context/stats/resources/stats.rs
-    - docs/issues/open/2637-1347-add-tests-axum-rest-api-server/coverage-evidence.md
-    - docs/issues/open/2637-1347-add-tests-axum-rest-api-server/test-refactor-plans/v1-context-stats-handlers-tests.md
-    - docs/issues/open/2637-1347-add-tests-axum-rest-api-server/test-refactor-plans/v1-responses-tests.md
+    - docs/issues/closed/2637-1347-add-tests-axum-rest-api-server/coverage-evidence.md
+    - docs/issues/closed/2637-1347-add-tests-axum-rest-api-server/test-refactor-plans/v1-context-stats-handlers-tests.md
+    - docs/issues/closed/2637-1347-add-tests-axum-rest-api-server/test-refactor-plans/v1-responses-tests.md
 ---
 
 # Stats Responses File Test Plan

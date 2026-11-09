@@ -12,8 +12,8 @@ semantic-links:
     - packages/rest-api-application/src/v1/ports/stats.rs
     - packages/rest-api-application/src/v1/use_cases/stats.rs
     - packages/rest-api-protocol/src/v1/context/stats/resources/stats.rs
-    - docs/issues/open/2637-1347-add-tests-axum-rest-api-server/coverage-evidence.md
-    - docs/issues/open/2637-1347-add-tests-axum-rest-api-server/test-refactor-plans/v1-context-torrent-handlers-tests.md
+    - docs/issues/closed/2637-1347-add-tests-axum-rest-api-server/coverage-evidence.md
+    - docs/issues/closed/2637-1347-add-tests-axum-rest-api-server/test-refactor-plans/v1-context-torrent-handlers-tests.md
 ---
 
 # Stats Handlers File Test Plan

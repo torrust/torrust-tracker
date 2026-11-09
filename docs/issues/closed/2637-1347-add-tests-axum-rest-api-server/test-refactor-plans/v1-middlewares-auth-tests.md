@@ -8,7 +8,7 @@ semantic-links:
   related-artifacts:
     - packages/axum-rest-api-server/src/v1/middlewares/auth.rs
     - docs/security/analysis/reports/2026-09-04_rest-api-token-timing.md
-    - docs/issues/open/2637-1347-add-tests-axum-rest-api-server/coverage-evidence.md
+    - docs/issues/closed/2637-1347-add-tests-axum-rest-api-server/coverage-evidence.md
 ---
 
 # Authentication Middleware File Test Plan

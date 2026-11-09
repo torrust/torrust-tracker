@@ -8,7 +8,7 @@ package: torrust-tracker-axum-rest-api-server
 
 Candidate lessons and follow-ups collected while working on Issue #2637. Promoting any of them into
 `docs/testing/`, `.github/skills/`, or a production change is a separate decision after this issue, per the
-[subissue guidelines](../1347-overhaul-packages-testing/subissue-spec-guidelines.md).
+[subissue guidelines](../../open/1347-overhaul-packages-testing/subissue-spec-guidelines.md).
 
 ## Follow-Up Candidates
 

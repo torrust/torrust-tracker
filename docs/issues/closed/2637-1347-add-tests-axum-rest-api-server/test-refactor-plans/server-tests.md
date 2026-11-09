@@ -9,8 +9,8 @@ semantic-links:
     - packages/axum-rest-api-server/src/server.rs
     - packages/axum-rest-api-server/src/test_support.rs
     - packages/axum-rest-api-server/tests/fixtures/https-health-check-cert.pem
-    - docs/issues/open/2637-1347-add-tests-axum-rest-api-server/coverage-evidence.md
-    - docs/issues/open/2637-1347-add-tests-axum-rest-api-server/lessons.md
+    - docs/issues/closed/2637-1347-add-tests-axum-rest-api-server/coverage-evidence.md
+    - docs/issues/closed/2637-1347-add-tests-axum-rest-api-server/lessons.md
 ---
 
 # Server Lifecycle File Test Plan

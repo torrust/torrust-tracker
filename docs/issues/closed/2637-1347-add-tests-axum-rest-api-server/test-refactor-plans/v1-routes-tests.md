@@ -11,7 +11,7 @@ semantic-links:
     - src/bootstrap/app.rs
     - docs/adrs/20260825193119_make_persistence_an_optional_application_composition_capability.md
     - docs/adrs/20261021190318_share_workspace_test_support_through_testing_features.md
-    - docs/issues/open/2637-1347-add-tests-axum-rest-api-server/coverage-evidence.md
+    - docs/issues/closed/2637-1347-add-tests-axum-rest-api-server/coverage-evidence.md
 ---
 
 # v1 Route Composition File Test Plan

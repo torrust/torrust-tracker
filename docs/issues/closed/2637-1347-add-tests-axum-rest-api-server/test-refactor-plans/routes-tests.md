@@ -7,8 +7,8 @@ status: done
 semantic-links:
   related-artifacts:
     - packages/axum-rest-api-server/src/routes.rs
-    - docs/issues/open/2637-1347-add-tests-axum-rest-api-server/coverage-evidence.md
-    - docs/issues/open/2637-1347-add-tests-axum-rest-api-server/test-refactor-plans/v1-routes-tests.md
+    - docs/issues/closed/2637-1347-add-tests-axum-rest-api-server/coverage-evidence.md
+    - docs/issues/closed/2637-1347-add-tests-axum-rest-api-server/test-refactor-plans/v1-routes-tests.md
 ---
 
 # Router Layers File Test Plan

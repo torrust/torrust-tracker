@@ -1,6 +1,6 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2637-1347-add-tests-axum-rest-api-server/ISSUE.md
+issue-spec: docs/issues/closed/2637-1347-add-tests-axum-rest-api-server/ISSUE.md
 last-updated-utc: 2026-11-09 10:36
 ---
 
