@@ -28,6 +28,8 @@ deliver findings through GitHub and have no repository artifact obligation.
 
 ## Findings
 
+Round 4: maintainer review 5825509686 (4 findings, reviewer IDs recorded in each entry); all on files of this issue.
+
 Round 3: da2ce7 reviews 5824868731 and 5825123886 (16 findings, reviewer IDs recorded in each entry) and Copilot review 5825128396 (5 findings). F43, F46, F49 and F50 concern child specs that PR #2771 adds and are `FOLLOW_UP`; F45 is dropped by the planned rebase; the rest are on files of this issue.
 
 Round 2: Copilot review 5810776921 (3 findings) and maintainer review 5823193599 (14 findings, reviewer IDs F1 to F14 recorded in each detail entry). F19, F23, F25, F26 and F29 concern child specs that PR #2771 adds and are `FOLLOW_UP`; the rest are on files of this issue.
@@ -86,6 +88,10 @@ Round 1: Copilot review 5806242087 (12 inline findings). F1 and F2 concern this 
 | F48 | review-finding:pr-2774-f48 | Copilot | Minor (inferred) | documentation | RE_RAISE_OF:F34 | FIXED | RESOLVED |
 | F49 | review-finding:pr-2774-f49 | Copilot | Minor | testing | ORIGINAL | FOLLOW_UP | RESOLVED |
 | F50 | review-finding:pr-2774-f50 | Copilot | Minor | correctness | RE_RAISE_OF:F10 | FOLLOW_UP | RESOLVED |
+| F51 | review-finding:pr-2774-f51 | Human | Minor | correctness | RE_RAISE_OF:F32 | FIXED | OPEN |
+| F52 | review-finding:pr-2774-f52 | Human | Minor | documentation | ORIGINAL | FIXED | OPEN |
+| F53 | review-finding:pr-2774-f53 | Human | Minor | documentation | ORIGINAL | FIXED | OPEN |
+| F54 | review-finding:pr-2774-f54 | Human | Nit | documentation | ORIGINAL | FIXED | OPEN |
 
 ## Finding Details
 
@@ -488,7 +494,7 @@ Round 1: Copilot review 5806242087 (12 inline findings). F1 and F2 concern this 
 - Concern: The verification of row F20 quotes the former head's commit id.
 - Solution: The verification no longer quotes an id; it describes the check.
 - Current-tree verification: Row F20 of this audit; no verification quotes a commit id.
-- Resolution reference: docs(pr-reviews): [#2760] audit the third review round of PR 2774
+- Resolution reference: docs(adrs): [#2760] address the third review round of PR 2774
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2774#discussion_r4512236435
 
@@ -540,7 +546,7 @@ Round 1: Copilot review 5806242087 (12 inline findings). F1 and F2 concern this 
 - Concern: Rows F19, F25, F26 and F29 record no inspection.
 - Solution: Each of the four entries now names what was read on the PR #2771 branch.
 - Current-tree verification: Rows F19, F25, F26 and F29 of this audit.
-- Resolution reference: docs(pr-reviews): [#2760] audit the third review round of PR 2774
+- Resolution reference: docs(adrs): [#2760] address the third review round of PR 2774
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2774#discussion_r4512237711
 
@@ -553,7 +559,7 @@ Round 1: Copilot review 5806242087 (12 inline findings). F1 and F2 concern this 
 - Concern: The round-2 log entry was rewritten after it was committed.
 - Solution: The original sentence is restored and the later entry records what followed.
 - Current-tree verification: `git show` of the earlier commit of the audit against the restored line.
-- Resolution reference: docs(pr-reviews): [#2760] audit the third review round of PR 2774
+- Resolution reference: docs(adrs): [#2760] address the third review round of PR 2774
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2774#discussion_r4512238061
 
@@ -579,7 +585,7 @@ Round 1: Copilot review 5806242087 (12 inline findings). F1 and F2 concern this 
 - Concern: Two more unticked boxes were not listed.
 - Solution: Row F24 lists all six and says why each stays open.
 - Current-tree verification: Row F24 of this audit.
-- Resolution reference: docs(pr-reviews): [#2760] audit the third review round of PR 2774
+- Resolution reference: docs(adrs): [#2760] address the third review round of PR 2774
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2774#discussion_r4512238835
 
@@ -592,7 +598,7 @@ Round 1: Copilot review 5806242087 (12 inline findings). F1 and F2 concern this 
 - Concern: Row F27 was `NO_ACTION` although the title was changed.
 - Solution: Row F27 is now `FIXED` with the reply URL as reference (the fix is outside the tree).
 - Current-tree verification: Row F27 of this audit.
-- Resolution reference: docs(pr-reviews): [#2760] audit the third review round of PR 2774
+- Resolution reference: docs(adrs): [#2760] address the third review round of PR 2774
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2774#discussion_r4512239104
 
@@ -631,7 +637,7 @@ Round 1: Copilot review 5806242087 (12 inline findings). F1 and F2 concern this 
 - Concern: The F4 verification said the command saves the output to a file; the merge restored the piped row.
 - Solution: The F4 verification now says the merge restored `develop`'s row and where the safe command lives.
 - Current-tree verification: Row F4 of this audit.
-- Resolution reference: docs(pr-reviews): [#2760] audit the third review round of PR 2774
+- Resolution reference: docs(adrs): [#2760] address the third review round of PR 2774
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2774#discussion_r4512240142
 
@@ -721,7 +727,7 @@ Round 1: Copilot review 5806242087 (12 inline findings). F1 and F2 concern this 
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2774#discussion_r4512151800
 - Concern: The 2762 verification captures `cargo run` stderr.
 - Solution: Handed to the #2771 coordinator, who fixed it in the commit `docs(issues): [#2758] address the round 3 review of PR 2774 on the child specs`.
-- Current-tree verification: The review names the line; the file is outside this issue.
+- Current-tree verification: Read the 2762 spec on the PR #2771 branch on 2026-11-09: M1 (line 159) now says `cargo build -p package-coverage-check` and then runs `target/debug/package-coverage-check bogus > out 2> err`, not `cargo run`.
 - Resolution reference: https://github.com/torrust/torrust-tracker/pull/2774#discussion_r4512242447
 - Follow-up PR URL: https://github.com/torrust/torrust-tracker/pull/2771
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2774#discussion_r4512242447
@@ -738,6 +744,58 @@ Round 1: Copilot review 5806242087 (12 inline findings). F1 and F2 concern this 
 - Resolution reference: https://github.com/torrust/torrust-tracker/pull/2774#discussion_r4512242882
 - Follow-up PR URL: https://github.com/torrust/torrust-tracker/pull/2771
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2774#discussion_r4512242882
+
+### F51 - Re-raise: the forge reports this pull request as not mergeable again
+
+- PR number: 2774
+- Source review ID: 5825509686
+- Reviewer finding ID: F15
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2774#discussion_r4512454151
+- Concern: `develop` archived the 2761 spec to `docs/issues/closed/`, and this branch still modified it at the old path.
+- Solution: Merged `develop` again; the spec stays at the archived path with `develop`'s content, so the stack's edits to the old path give way. The remaining wording in that archived file is `develop`'s and not changed by this PR.
+- Current-tree verification: `git ls-files -u` prints nothing after the merge; `git status` shows the rename to `docs/issues/closed/`; `gh pr view 2774 --json mergeable` is checked after the push.
+- Resolution reference: chore(merge): [#2760] update the branch with develop and keep the archived 2761 spec
+- Follow-up PR URL: N/A
+- Reply URL: PENDING_4512454151
+
+### F52 - Six of these seven rows cite a commit that does not carry their fix
+
+- PR number: 2774
+- Source review ID: 5825509686
+- Reviewer finding ID: F34
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2774#discussion_r4512454173
+- Concern: Rows F31, F35, F36, F38, F39 and F42 cite the audit commit, but their fixes are in the commit of the third round fixes.
+- Solution: The six rows now cite `docs(adrs): [#2760] address the third review round of PR 2774`; F40 keeps the audit subject because its fix is split.
+- Current-tree verification: `git show` of the two commits: each fix is present in the fixes commit and absent before it.
+- Resolution reference: docs(pr-reviews): [#2760] audit the fourth review round of PR 2774
+- Follow-up PR URL: N/A
+- Reply URL: PENDING_4512454173
+
+### F53 - This entry records no inspection
+
+- PR number: 2774
+- Source review ID: 5825509686
+- Reviewer finding ID: F35
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2774#discussion_r4512454182
+- Concern: Row F49 says the coordinator fixed it but records no inspection.
+- Solution: Row F49 now names what was read on the PR #2771 branch.
+- Current-tree verification: Row F49 of this audit.
+- Resolution reference: docs(pr-reviews): [#2760] audit the fourth review round of PR 2774
+- Follow-up PR URL: N/A
+- Reply URL: PENDING_4512454182
+
+### F54 - This correction says `by this commit`, but the restoration is in the commit before it
+
+- PR number: 2774
+- Source review ID: 5825509686
+- Reviewer finding ID: F36
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2774#discussion_r4512454188
+- Concern: The correction entry names the wrong commit and omits the dropped sentence of the first entry.
+- Solution: A later correction entry names both: the restoration is in the commit of the third round fixes, and the dropped sentence of the first entry was `Threads left open, awaiting the maintainer.`. The old entry is not rewritten.
+- Current-tree verification: The log of this audit.
+- Resolution reference: docs(pr-reviews): [#2760] audit the fourth review round of PR 2774
+- Follow-up PR URL: N/A
+- Reply URL: PENDING_4512454188
 
 ## Processing Log
 
