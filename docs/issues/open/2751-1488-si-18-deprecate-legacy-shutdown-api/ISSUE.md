@@ -134,9 +134,12 @@ and SI-19 may remove them inside EPIC #1488, before that release. The maintainer
 root types as inside the window; this conclusion narrows it with the same principle (a window only for symbols
 that are already public).
 
-Proposed by the author in answer to review finding F3 of PR 2752, not yet confirmed by the maintainer (it follows
-from the two decisions above and the maintainer's Option A decision): the attribute and release-note text per
-symbol group.
+Proposed by the author in answer to review finding `review-finding:pr-2752-f16`, not yet confirmed by the
+maintainer (it follows from the decisions above to deprecate then remove and the support-window decision): the
+attribute and release-note text per symbol group. Until the maintainer confirms it, T2 writes the decided wording
+for the package-crate symbols: `since` is the version at first publication and the removal is "the next breaking
+release of this package". Once confirmed, this proposal replaces that decided bullet for the symbols it covers,
+and T2, Deprecation Requirement 2 and the Scope bullet on release notes apply it as written below.
 
 - `torrust-server-lib` symbols (already public): the library's own `since = "0.5.0"` and `CHANGELOG.md` apply;
   SI-18 adds nothing there beyond the dependency bump.
@@ -181,9 +184,10 @@ Other decisions of 2026-11-06:
 - Update in-workspace call sites that remain only in tests, examples, or
   compatibility checks to suppress/allow the warning locally with a rationale.
 - Add compiler/test coverage proving legacy API consumers still compile.
-- Write the deprecation text defined in Versioning Decisions. The only release note with a support
-  window is the published `torrust-server-lib` one; SI-18 writes no release note for symbols removed before
-  their first publication or before the next root release.
+- Write the deprecation text defined in Versioning Decisions (the decided wording until the maintainer confirms
+  the proposal there). The only release note with a support window is the published `torrust-server-lib` one;
+  once the proposal is confirmed, SI-18 writes no release note for symbols removed before their first
+  publication or before the next root release.
 
 ### Out of scope
 
@@ -198,10 +202,10 @@ Other decisions of 2026-11-06:
 
 1. A deprecation message must name the token-aware replacement and explain that
    executable entry points, not libraries, own OS-signal subscriptions.
-2. The message must identify the planned removal: for symbols that will have been
-   published, the next breaking release according to the package versioning policy; for
-   symbols SI-19 removes before their first publication, SI-19 itself (see Versioning
-   Decisions).
+2. The message must identify the planned removal: the next breaking release according to
+   the package versioning policy (the decided wording); once the maintainer confirms the
+   proposal in Versioning Decisions, for symbols SI-19 removes before their first
+   publication it names SI-19 itself.
 3. Legacy API behavior stays unchanged. Deprecation is source guidance, not a
    behavioral migration.
 4. The `torrust-server-lib` release notes must state the support window and the evidence
@@ -257,7 +261,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status | Task                                                                                                           | Notes / Expected Output                                                                         |
 | --- | ------ | -------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
 | T1  | TODO   | Bump the workspace dependency to `torrust-server-lib` 0.5.0 and add the local `#[allow(deprecated)]` allowances, with a rationale, that its deprecated symbols need. | `cargo check --workspace --all-targets` warning-free (the workspace denies warnings); coordinate ordering with the #2482 coordinator first. |
-| T2  | TODO   | Deprecate the legacy public APIs of the five server packages and the root `HaltSignal`/`NestedServerTask`, adding in the same increment the local allowances at the call sites that still use them. | Each message names the replacement and uses the `since` and removal text defined in Versioning Decisions (SI-19 removes them before publication, not "next breaking release", unless SI-19 slips). Behavior unchanged; warning-free build. |
+| T2  | TODO   | Deprecate the legacy public APIs of the five server packages and the root `HaltSignal`/`NestedServerTask`, adding in the same increment the local allowances at the call sites that still use them. | Each message names the replacement and uses the decided `since` and removal wording; once the maintainer confirms the proposal in Versioning Decisions, it uses the proposal's text instead. Behavior unchanged; warning-free build. |
 | T3  | TODO   | Review every local allowance added by T1 and T2: each has a rationale and none sits in a migrated production path. | Migrated paths compile with `-D deprecated`; no allowance without a rationale. |
 | T4  | TODO   | Add compile-compat tests for representative legacy consumers.                                                 | Tests compile with `#[allow(deprecated)]` and pass; legacy behavior unchanged.                  |
 | T5  | TODO   | Write migration guidance for the deprecated symbols.                                                          | Replacement table; Rust docs render the guidance. No release note (see Versioning Decisions).   |
