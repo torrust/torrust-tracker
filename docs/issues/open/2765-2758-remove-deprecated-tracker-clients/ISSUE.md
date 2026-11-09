@@ -9,7 +9,7 @@ github-issue: 2765
 spec-path: docs/issues/open/2765-2758-remove-deprecated-tracker-clients/ISSUE.md
 branch: "2765-remove-deprecated-tracker-clients"
 related-pr: null
-last-updated-utc: "2026-11-09 10:25"
+last-updated-utc: "2026-11-09 11:27"
 semantic-links:
   skill-links:
     - create-issue
@@ -44,7 +44,7 @@ The global CLI output contract (`docs/adrs/20260519000000_define_global_cli_outp
 - Delete or migrate their tests so coverage of the shared code is kept through `tracker_client`.
 - Update README, `docs/packages.md` and any doc or config that tells the reader to run them.
 - Add the breaking-change note.
-- Migrate `src/console/ci/e2e/tracker_checker.rs`, which launches `cargo run -p torrust-tracker-client --bin tracker_checker` for the e2e runner, to the unified `tracker_client check` (keeping `TORRUST_CHECKER_CONFIG`), so the e2e runner still works; check the e2e runner and any workflow that calls it.
+- Migrate `src/console/ci/e2e/tracker_checker.rs`, which launches `cargo run -p torrust-tracker-client --bin tracker_checker` for the e2e runner, to the unified `tracker_client check` (keeping `TORRUST_CHECKER_CONFIG`), so the e2e runner still works. That helper uses `Command::status()`, so the child inherits the runner's stdout; once issue 2768 adds TTY refusal to `tracker_client`, an e2e run from a terminal would exit `2`. Capture the child's stdout (and forward or log it as JSON) when migrating the caller, and verify an interactive invocation of the e2e runner; check the e2e runner and any workflow that calls it.
 
 ### Out of Scope
 
@@ -123,6 +123,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-11-06 16:43 UTC - Claude Code (Claude Sonnet 5.5) - Drafted this spec as part of EPIC #2758 from the 2026-11-06 audit.
 - 2026-11-06 16:52 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the spec; GitHub issue #2765 created.
 - 2026-11-09 10:25 UTC - Claude Code (Claude Sonnet 5.5) - Corrected details after the review rounds on PR 2771 and PR 2774 and fixed the earlier log stamps from the commit and issue creation times.
+- 2026-11-09 11:27 UTC - Claude Code (Claude Sonnet 5.5) - Corrected details after the round 3 review of PR 2774.
 
 ## Acceptance Criteria
 
@@ -150,6 +151,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | ID  | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | -------- | ---------------------------- | --------------- | ------ | -------- |
 | M1 | Unified checker | Run `tracker_client check` against a local tracker as the README documents | Works as before | TODO | `manual-verification-evidence.md` section V1 |
+| M2 | E2E checker caller | Run the e2e runner from an interactive terminal after migrating `tracker_checker.rs` (or exercise the helper with stdout on a TTY) | The checker step runs and does not exit `2` | TODO | `manual-verification-evidence.md` section V2 |
 
 Manual verification is mandatory even when automated tests pass. Record actual commands, output and the toolchain that produced each result in `manual-verification-evidence.md` (from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`).
 

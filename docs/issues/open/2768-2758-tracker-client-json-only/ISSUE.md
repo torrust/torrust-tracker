@@ -9,7 +9,7 @@ github-issue: 2768
 spec-path: docs/issues/open/2768-2758-tracker-client-json-only/ISSUE.md
 branch: "2768-tracker-client-json-only"
 related-pr: null
-last-updated-utc: "2026-11-09 10:25"
+last-updated-utc: "2026-11-09 11:27"
 semantic-links:
   skill-links:
     - create-issue
@@ -33,7 +33,7 @@ semantic-links:
 
 ## Background
 
-Depends on the removal of the deprecated binaries (EPIC issue 6), which shares `console/tracker-client/**`. `console/tracker-client/src/bin/tracker_client.rs` has no TTY refusal (`tracker_client` has no `is_terminal` check; `ci-gate`, `wait-for-pr-review` and `github-review-threads` do). `unified/app.rs` initializes `tracing_subscriber::fmt()` whose default writer is stdout, in plain text. `check --format text` is not plain text: the `Text` format renders pretty-printed JSON (`unified/check.rs`), so it already satisfies the contract and only needs to keep doing so; the console layer (`checker/console.rs`, `checker/monitor/udp.rs`, `http/app.rs`, `udp/app.rs`, `unified/{check,http,udp}.rs`, `lib.rs`) still uses direct prints under `allow`s. The ADR table says `tracker_client` is `stdout-result-data` with monitor progress as NDJSON on stderr. Pretty-printed JSON stays allowed (it is JSON); the maintainer may still prefer to rename the misleading `Text` format value.
+Depends on the removal of the deprecated binaries (EPIC issue 6), which shares `console/tracker-client/**`. `console/tracker-client/src/bin/tracker_client.rs` has no TTY refusal (`tracker_client` has no `is_terminal` check; `ci-gate`, `wait-for-pr-review` and `github-review-threads` do). `unified/app.rs` initializes `tracing_subscriber::fmt()` whose default writer is stdout, in plain text. `check --format text` is not plain text: the `Text` format renders pretty-printed JSON (`unified/check.rs`), but `check` serializes a `Vec` of results (`unified/check.rs`), so both formats emit a JSON array, not the single JSON object the ADR requires; wrap the results in an object envelope (for example `{"results": [...]}`) and check that every other subcommand's stdout is one object; the console layer (`checker/console.rs`, `checker/monitor/udp.rs`, `http/app.rs`, `udp/app.rs`, `unified/{check,http,udp}.rs`, `lib.rs`) still uses direct prints under `allow`s. The ADR table says `tracker_client` is `stdout-result-data` with monitor progress as NDJSON on stderr. Pretty-printed JSON stays allowed (it is JSON); the maintainer may still prefer to rename the misleading `Text` format value.
 
 The global CLI output contract (`docs/adrs/20260519000000_define_global_cli_output_contract.md`), as amended by `docs/adrs/20261106102632_scope_the_cli_output_contract_and_keep_exit_codes_to_zero_one_two.md`, requires: result data only on stdout (one JSON object) for `stdout-result-data` commands, nothing on stdout for `no-stdout-result` commands; every stderr record is one JSON object per line (NDJSON) with a `kind`; no plain text on either channel; exit codes only `0` (did its job, the answer is in the result), `1` (could not do its job) and `2` (usage error or TTY refusal); and TTY refusal for `stdout-result-data` commands. A distinct outcome is a `kind` field: an answer to what the caller asked is a stdout result with exit `0`; "could not answer" is a stderr diagnostic with exit `1`. This issue is part of EPIC #2758, which migrates the tools found non-compliant by the 2026-11-06 audit. The reference implementations are `contrib/dev-tools/checks/ci-gate/src/main.rs` (`stdout-result-data`) and `contrib/dev-tools/checks/shipped-features-check/src/main.rs` (`no-stdout-result`).
 
@@ -126,6 +126,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-11-06 16:43 UTC - Claude Code (Claude Sonnet 5.5) - Drafted this spec as part of EPIC #2758 from the 2026-11-06 audit.
 - 2026-11-06 16:52 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the spec; GitHub issue #2768 created.
 - 2026-11-09 10:25 UTC - Claude Code (Claude Sonnet 5.5) - Corrected details after the review rounds on PR 2771 and PR 2774 and fixed the earlier log stamps from the commit and issue creation times.
+- 2026-11-09 11:27 UTC - Claude Code (Claude Sonnet 5.5) - Corrected details after the round 3 review of PR 2774.
 
 ## Acceptance Criteria
 
@@ -170,7 +171,7 @@ Manual verification is mandatory even when automated tests pass. Record actual c
 
 ## Risks and Trade-offs
 
-- Callers use `--format text`. Mitigation: it already prints JSON, so keep it working; only a rename would be a breaking change.
+- Callers use `--format text` or read the `check` array. Mitigation: `--format text` already prints JSON, so keep it working; the move from a top-level array to an object is a breaking change to the `check` output shape, to be recorded in the release note and the tracker-client contract doc.
 
 ## Implementation Completion Review
 

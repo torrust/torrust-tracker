@@ -9,7 +9,7 @@ github-issue: 2761
 spec-path: docs/issues/open/2761-2758-reply-status-result/ISSUE.md
 branch: "2761-reply-status-result"
 related-pr: null
-last-updated-utc: "2026-11-09 10:25"
+last-updated-utc: "2026-11-09 11:27"
 semantic-links:
   skill-links:
     - create-issue
@@ -73,14 +73,14 @@ Not applicable.
 This issue fixes a deviation from the CLI output contract, so it is bug work in substance. Follow the [fix-bug](../../../../.github/skills/dev/debugging/fix-bug/SKILL.md) skill:
 
 - analysis of the defect: the tool's current behavior against the contract (see Background);
-- real-artifact reproduction: run the real binary, record the commands and output of the deviation in `manual-verification-evidence.md` before changing code;
+- real-artifact reproduction: the real binary was run and the deviation recorded in `manual-verification-evidence.md` before the code changed (done in PR 2775);
 - regression-test boundary: see Regression Test Strategy;
 - red regression test, then the production fix;
 - green test evidence and a like-for-like recheck of the same real-artifact commands.
 
 ## Regression Test Strategy
 
-A CLI integration test in `contrib/dev-tools/github/github-review-threads/tests/cli.rs` that runs `reply-status` on the fixture with a thread lacking a reply and asserts the stdout result `kind` and exit `0`. It fails today (exit `1`, empty stdout). If a higher boundary is used instead, record why it is clearer or the only practical option; link red and green output and the final recheck to `manual-verification-evidence.md`.
+A CLI integration test in `contrib/dev-tools/github/github-review-threads/tests/cli.rs` that runs `reply-status` on the fixture with a thread lacking a reply and asserts the stdout result `kind` and exit `0`. It failed before PR 2775 (exit `1`, empty stdout) and passes since. If a higher boundary is used instead, record why it is clearer or the only practical option; link red and green output and the final recheck to `manual-verification-evidence.md`.
 
 ## Implementation Plan
 
@@ -139,6 +139,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-11-06 16:51 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the spec; GitHub issue #2761 created.
 - 2026-11-06 17:18 UTC - Claude Code (Claude Sonnet 5.5) - Implemented: kinds `all_replied` / `missing_reply`, result `{kind, threads, summary}` (no `message`), exit 0 for both; batch scripts do not call `reply-status`; both skills updated; manual evidence recorded.
 - 2026-11-09 10:25 UTC - Claude Code (Claude Sonnet 5.5) - Corrected details after the review rounds on PR 2771 and PR 2774 and fixed the earlier log stamps from the commit and issue creation times.
+- 2026-11-09 11:27 UTC - Claude Code (Claude Sonnet 5.5) - Corrected details after the round 3 review of PR 2774.
 
 ## Acceptance Criteria
 

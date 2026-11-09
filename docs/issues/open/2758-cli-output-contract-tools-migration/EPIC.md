@@ -6,7 +6,7 @@ epic: null
 github-issue: 2758
 spec-path: docs/issues/open/2758-cli-output-contract-tools-migration/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-09 10:25"
+last-updated-utc: "2026-11-09 11:27"
 semantic-links:
   skill-links:
     - create-issue
@@ -49,7 +49,7 @@ Checked against `develop` at `35ec81000`.
 | `github-review-threads reply-status` | `stdout-result-data` | A thread without a reply is exit `1` plus a `missing_reply` diagnostic; it is an answer and must be a result with exit `0`. The skill `resolve-review-threads` describes the exit `1`; `fetch-review-threads` describes the tool and its exit text, and the issue checks both. |
 | `package-coverage-check` | `stdout-result-data` | Plain-text errors, every failure exits `1` (usage included), no TTY refusal, `summary` prints Markdown. |
 | `http_health_check` | `stdout-result-data` | Plain text on stdout (`Health check ...`, `STATUS: ...`), plain `eprintln!` usage, usage error exits `1`. It is the container `HEALTHCHECK`, so it needs exit `1` when unhealthy: reclassify as `no-stdout-result`. |
-| `tracker_client` | `stdout-result-data` | No TTY refusal; `tracing` writes plain text to stdout; direct prints in the console layer (`check --format text` prints pretty JSON, which is allowed). |
+| `tracker_client` | `stdout-result-data` | No TTY refusal; `tracing` writes plain text to stdout; direct prints in the console layer (`check --format text` prints pretty JSON, which is allowed, but `check` emits a top-level array instead of a single object). |
 | `http_tracker_client`, `udp_tracker_client`, `tracker_checker` | not listed | Deprecated; the ADR says remove them. They still exist and print a plain-text warning. |
 | `torrust-tracker` (daemon) | `no-stdout-result` | `tracing` writes plain text (ANSI, `full` style) to stdout; startup failure is a plain `eprintln!`. |
 | `e2e_tests_runner`, `qbittorrent_e2e_runner` | `no-stdout-result` | Plain `tracing` output on stdout, failures via `anyhow` as plain text. |
@@ -144,6 +144,7 @@ consumes the old behavior (named in its spec). No issue edits the ADR table exce
 - 2026-11-06 16:41 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the EPIC; created EPIC #2758 as josecelano-bot.
 - 2026-11-06 16:52 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the 11 child specs; created issues #2760 to #2770 as josecelano-bot. Linking them as sub-issues returned 404 for the bot, so the maintainer links them.
 - 2026-11-09 10:25 UTC - Claude Code (Claude Sonnet 5.5) - Corrected details after the review rounds on PR 2771 and PR 2774 and fixed the earlier log stamps from the commit and issue creation times.
+- 2026-11-09 11:27 UTC - Claude Code (Claude Sonnet 5.5) - Corrected details after the round 3 review of PR 2774.
 
 ## Acceptance Criteria
 
