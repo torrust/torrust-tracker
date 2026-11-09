@@ -608,7 +608,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-11-09 11:00 UTC - Pushed the fix commits (pull-request head checked against the local head afterwards), then replied on all ten threads (11:00:36 to 11:00:58 UTC). The replies for F14 and F17 said the conclusions were pending the maintainer's confirmation.
 - 2026-11-09 11:01 UTC - The maintainer confirmed both in chat; recorded in the spec by a commit made at 11:01:17 UTC and pushed.
 - 2026-11-09 11:04 UTC - Posted one PR conversation response covering F14 to F23 (11:04:31 UTC) and resolved all ten threads, each returning `isResolved: true`.
-- 2026-11-09 12:03 UTC - Started on Cameron's review 5825152043 (submitted 11:22 UTC, 8 inline findings; his F11, F3 re-raise, F18, F13, F14, F16, F17, F19, audited as F24 to F31) and Copilot's review 5825238769 (submitted 11:31 UTC, 5 inline findings, audited as F32 to F36). The fix commits were made between 12:03:36 and 12:12:01 UTC.
+- 2026-11-09 12:03 UTC - Started on review 5825152043 by `da2ce7` (submitted 11:22 UTC, 8 inline findings; the reviewer's F11, F3 re-raise, F18, F13, F14, F16, F17, F19, audited as F24 to F31) and Copilot's review 5825238769 (submitted 11:31 UTC, 5 inline findings, audited as F32 to F36). The fix commits were made between 12:03:36 and 12:12:01 UTC.
 - 2026-11-09 12:15 UTC - Pushed the fix commits and checked the pull-request head against the local head, before any reply.
 - 2026-11-09 12:15 UTC - Replied on all 13 threads (12:15:26 to 12:15:56 UTC). The F26 reply is a FOLLOW_UP: it needs the maintainer's comment on the PR.
 - 2026-11-09 12:16 UTC - Resolved the 12 fixed threads, each returning `isResolved: true`; the F26 thread stays open.
