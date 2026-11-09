@@ -108,16 +108,9 @@ current version at the end of #1669; the root `torrust-tracker` next releases as
 
 - Deprecate and then remove, even for the unpublished crates, to stay consistent with the EPIC and with the
   published `torrust-server-lib` deprecation.
-- Attribute and release-note text per symbol group:
-  - `torrust-server-lib` symbols (already public): the library's own `since = "0.5.0"` and `CHANGELOG.md` apply;
-    SI-18 adds nothing there beyond the dependency bump.
-  - Symbols of the five unpublished package crates and the root types, which SI-19 removes before their first
-    publication: `since` is the crate's current `Cargo.toml` version (for the root types `"4.0.0"`), and the
-    note names the replacement and says the symbol is removed by SI-19 (EPIC #1488) before the crate's
-    first publication, so it is in-repo guidance only. No release note is written for them, because no release
-    ever contains them; the only release note is the `torrust-server-lib` one.
-  - If SI-19 slips past a crate's first publication, the wording becomes "removed in the next breaking release
-    of this package" and a release note with a support window is then required for that crate.
+- `since` for a package crate is the version at which the crate is first published (its `Cargo.toml` version at
+  that time, normally 0.1.0); for the root `torrust-tracker` types `HaltSignal` and `NestedServerTask`,
+  `since = "4.0.0"`. The removal release is worded as "the next breaking release of this package".
 - Support window (maintainer decision of 2026-11-06, resolving a release-order cycle: #2583 publishes the
   unpublished crates only after EPIC #1488 closes, and SI-19 is part of that EPIC): the five unpublished
   package crates have no external consumers, so no public support window exists for them. SI-18 still deprecates
@@ -139,6 +132,20 @@ publishes after the libraries; #2583 does not publish the root crate),
 and SI-19 may remove them inside EPIC #1488, before that release. The maintainer's Option A decision named the
 root types as inside the window; this conclusion narrows it with the same principle (a window only for symbols
 that are already public).
+
+Proposed by the author in answer to review finding F3 of PR 2752, not yet confirmed by the maintainer (it follows
+from the two decisions above and the maintainer's Option A decision): the attribute and release-note text per
+symbol group.
+
+- `torrust-server-lib` symbols (already public): the library's own `since = "0.5.0"` and `CHANGELOG.md` apply;
+  SI-18 adds nothing there beyond the dependency bump.
+- Symbols of the five unpublished package crates and the root types, which SI-19 removes before their first
+  publication: `since` is the crate's current `Cargo.toml` version (for the root types `"4.0.0"`), and the
+  note names the replacement and says the symbol is removed by SI-19 (EPIC #1488) before the crate's
+  first publication, so it is in-repo guidance only. No release note is written for them, because no release
+  ever contains them; the only release note is the `torrust-server-lib` one.
+- If SI-19 slips past a crate's first publication, the wording becomes "removed in the next breaking release
+  of this package" and a release note with a support window is then required for that crate.
 
 Other decisions of 2026-11-06:
 
