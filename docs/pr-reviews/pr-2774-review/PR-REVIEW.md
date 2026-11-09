@@ -1,7 +1,7 @@
 ---
 pr-number: 2774
 pr-url: https://github.com/torrust/torrust-tracker/pull/2774
-last-updated-utc: "2026-11-09 11:41"
+last-updated-utc: "2026-11-09 12:06"
 ---
 
 # PR #2774 Review Audit
@@ -756,7 +756,7 @@ Round 1: Copilot review 5806242087 (12 inline findings). F1 and F2 concern this 
 - Current-tree verification: `git ls-files -u` prints nothing after the merge; `git status` shows the rename to `docs/issues/closed/`; `gh pr view 2774 --json mergeable` is checked after the push.
 - Resolution reference: chore(merge): [#2760] update the branch with develop and keep the archived 2761 spec
 - Follow-up PR URL: N/A
-- Reply URL: PENDING_4512454151
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2774#discussion_r4512518745
 
 ### F52 - Six of these seven rows cite a commit that does not carry their fix
 
@@ -769,7 +769,7 @@ Round 1: Copilot review 5806242087 (12 inline findings). F1 and F2 concern this 
 - Current-tree verification: `git show` of the two commits: each fix is present in the fixes commit and absent before it.
 - Resolution reference: docs(pr-reviews): [#2760] audit the fourth review round of PR 2774
 - Follow-up PR URL: N/A
-- Reply URL: PENDING_4512454173
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2774#discussion_r4512519075
 
 ### F53 - This entry records no inspection
 
@@ -782,7 +782,7 @@ Round 1: Copilot review 5806242087 (12 inline findings). F1 and F2 concern this 
 - Current-tree verification: Row F49 of this audit.
 - Resolution reference: docs(pr-reviews): [#2760] audit the fourth review round of PR 2774
 - Follow-up PR URL: N/A
-- Reply URL: PENDING_4512454182
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2774#discussion_r4512519397
 
 ### F54 - This correction says `by this commit`, but the restoration is in the commit before it
 
@@ -795,7 +795,7 @@ Round 1: Copilot review 5806242087 (12 inline findings). F1 and F2 concern this 
 - Current-tree verification: The log of this audit.
 - Resolution reference: docs(pr-reviews): [#2760] audit the fourth review round of PR 2774
 - Follow-up PR URL: N/A
-- Reply URL: PENDING_4512454188
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2774#discussion_r4512519916
 
 ## Processing Log
 
@@ -810,6 +810,9 @@ Round 1: Copilot review 5806242087 (12 inline findings). F1 and F2 concern this 
 - 2026-11-09 11:32 UTC - Round 3 (maintainer reviews 5824868731 and 5825123886, Copilot review 5825128396) processed: fixes pushed, PR body updated, all 21 threads replied to; F43, F46, F49 and F50 fixed on PR #2771 by the coordinator. Thread resolution is pending the maintainer (resolve calls need approval), so the rows still `OPEN` here stay open until then; F45 stays open for the rebase.
 
 - 2026-11-09 11:41 UTC - The maintainer allowed the resolve calls in chat; the 20 round-3 threads other than F45 were resolved; refreshed GraphQL data lists one unresolved thread, F45, which stays open until the branch is rebased onto `develop`.
+
+- 2026-11-09 12:06 UTC - Correction to the entry of 2026-11-09 11:32: the restoration of the first entry and of the `10:33` entry's sentence is in the commit `docs(adrs): [#2760] address the third review round of PR 2774`, not in the commit that carries that entry; the sentence dropped from the first entry was `Threads left open, awaiting the maintainer.`. That entry is not rewritten.
+- 2026-11-09 12:06 UTC - Round 4 (maintainer review 5825509686) processed: the branch was updated with `develop` (the 2761 spec stays at its archived path), the audit fixed, the four threads replied to. Thread resolution is pending the maintainer (the auto mode classifier denied the resolve call), so rows F51 to F54 stay `OPEN`.
 
 ## Completion Rules
 
