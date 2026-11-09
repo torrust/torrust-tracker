@@ -39,7 +39,10 @@ blocks below are copied as printed, not sorted.
 3. `grep -n "\.start(" packages/axum-http-server/src/server.rs packages/axum-rest-api-server/src/server.rs
    packages/udp-server/src/server/mod.rs`: every `.start(` call, legacy or token-aware.
 4. `grep -n "Halted::Normal\|HaltSignal\|NestedServerTask" src/bootstrap/jobs/manager.rs`.
-5. `grep -m1 -Hn '#\[cfg(test)\]' <the five files above and below>`: the first test-module line of each file.
+5. `grep -m1 -Hn '#\[cfg(test)\]' packages/axum-http-server/src/server.rs
+   packages/axum-rest-api-server/src/server.rs packages/udp-server/src/server/mod.rs
+   packages/udp-server/src/server/states.rs src/bootstrap/jobs/manager.rs`: the first test-module line of each
+   file.
 6. `git grep -q "HaltSignal\|NestedServerTask" v3.0.0; echo "git grep exit=$?"`: the root types against the
    published tag.
 7. The crates.io query, run as one command:
@@ -111,15 +114,19 @@ later are in the test module):
 1327:        assert!(matches!(halt_receiver.await, Ok(Halted::Normal)));
 ```
 
-Step 5. Every legacy `.start(` and `.stop().await` hit above sits after its file's line, and the `Halted::Normal`
-hits before that line are adapter code, not callers:
+Step 5. Every legacy `.start(` and `.stop().await` caller hit above sits after its file's line, with two
+exceptions that are adapter code, not callers: the `launcher.start(..., rx_halt)` hits at `axum-rest-api-server`
+`server.rs:192` and `axum-http-server` `server.rs:336` sit before their files' lines (521 and 528), inside the
+legacy `ApiServer<Stopped>::start` and `HttpServer<Stopped>::start_with_health_check`. The `Halted::Normal` hits
+before that line are adapter code too. The command was run once more at 15:46:04 UTC, and this is its output,
+in the order grep printed it:
 
 ```text
 packages/udp-server/src/server/mod.rs:68:#[cfg(test)]
-packages/axum-rest-api-server/src/server.rs:521:#[cfg(test)]
 packages/udp-server/src/server/states.rs:302:#[cfg(test)]
-packages/axum-http-server/src/server.rs:528:#[cfg(test)]
+packages/axum-rest-api-server/src/server.rs:521:#[cfg(test)]
 src/bootstrap/jobs/manager.rs:1073:#[cfg(test)]
+packages/axum-http-server/src/server.rs:528:#[cfg(test)]
 ```
 
 Step 6:
