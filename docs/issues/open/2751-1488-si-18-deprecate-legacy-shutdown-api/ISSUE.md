@@ -139,13 +139,16 @@ symbol group.
 
 - `torrust-server-lib` symbols (already public): the library's own `since = "0.5.0"` and `CHANGELOG.md` apply;
   SI-18 adds nothing there beyond the dependency bump.
-- Symbols of the five unpublished package crates and the root types, which SI-19 removes before their first
-  publication: `since` is the crate's current `Cargo.toml` version (for the root types `"4.0.0"`), and the
-  note names the replacement and says the symbol is removed by SI-19 (EPIC #1488) before the crate's
-  first publication, so it is in-repo guidance only. No release note is written for them, because no release
-  ever contains them; the only release note is the `torrust-server-lib` one.
-- If SI-19 slips past a crate's first publication, the wording becomes "removed in the next breaking release
-  of this package" and a release note with a support window is then required for that crate.
+- Symbols of the five unpublished package crates, which SI-19 removes before their first publication: `since` is
+  the crate's current `Cargo.toml` version, and the note names the replacement and says the symbol is removed by
+  SI-19 (EPIC #1488) before the crate's first publication, so it is in-repo guidance only. No release note is
+  written for them, because no release ever contains them; the only release note is the `torrust-server-lib` one.
+- The root `HaltSignal` and `NestedServerTask` (their crate is already published at 3.0.0, but the symbols are not
+  in it): `since = "4.0.0"`, and the note names the replacement and says the symbol is removed by SI-19 before the
+  next root release. No release note is written for them either.
+- If SI-19 slips past a package crate's first publication, or past the next root release, the wording becomes
+  "removed in the next breaking release of this package" and a release note with a support window is then required
+  for that crate.
 
 Other decisions of 2026-11-06:
 
