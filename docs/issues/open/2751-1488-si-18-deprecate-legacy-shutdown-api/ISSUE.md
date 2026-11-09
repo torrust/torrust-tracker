@@ -122,6 +122,10 @@ current version at the end of #1669; the root `torrust-tracker` next releases as
   date. The window ends when the maintainer approves publishing 0.6.0, and the maintainer publishes 0.6.0 from the
   `torrust-server-lib` repository as part of SI-19, after that approval. The SI-19 start gate therefore waits for
   the approval, not for the 0.6.0 publication, which SI-19 itself produces.
+- Release notes (follows from the support-window decision): SI-18 writes no release note for the symbols of the
+  five unpublished package crates or for the root `HaltSignal` and `NestedServerTask`, because no published
+  release contains them. This holds whether or not the proposal below is confirmed; the only release note is the
+  `torrust-server-lib` one.
 - SI-18 only deprecates `HaltSignal` and `NestedServerTask`; it does not delete them. SI-19 removes them, under
   the conditions in the derived paragraph below.
 
@@ -186,8 +190,8 @@ Other decisions of 2026-11-06:
 - Add compiler/test coverage proving legacy API consumers still compile.
 - Write the deprecation text defined in Versioning Decisions (the decided wording until the maintainer confirms
   the proposal there). The only release note with a support window is the published `torrust-server-lib` one;
-  once the proposal is confirmed, SI-18 writes no release note for symbols removed before their first
-  publication or before the next root release.
+  SI-18 writes no release note for the symbols of the unpublished package crates or the root types (see the
+  release-notes decision in Versioning Decisions).
 
 ### Out of scope
 
@@ -209,8 +213,8 @@ Other decisions of 2026-11-06:
 3. Legacy API behavior stays unchanged. Deprecation is source guidance, not a
    behavioral migration.
 4. The `torrust-server-lib` release notes must state the support window and the evidence
-   required before removal. Symbols removed before their first publication need no
-   release note (see Versioning Decisions).
+   required before removal. SI-18 writes no release note for the symbols of the unpublished
+   package crates or the root types (see the release-notes decision in Versioning Decisions).
 5. The final removal task must not proceed merely because in-workspace code has
    migrated; for the already-public symbols (see Versioning Decisions) it also requires the
    declared external compatibility period to end. Symbols of crates that have never been
@@ -264,7 +268,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2  | TODO   | Deprecate the legacy public APIs of the five server packages and the root `HaltSignal`/`NestedServerTask`, adding in the same increment the local allowances at the call sites that still use them. | Each message names the replacement and uses the decided `since` and removal wording; once the maintainer confirms the proposal in Versioning Decisions, it uses the proposal's text instead. Behavior unchanged; warning-free build. |
 | T3  | TODO   | Review every local allowance added by T1 and T2: each has a rationale and none sits in a migrated production path. | Migrated paths compile with `-D deprecated`; no allowance without a rationale. |
 | T4  | TODO   | Add compile-compat tests for representative legacy consumers.                                                 | Tests compile with `#[allow(deprecated)]` and pass; legacy behavior unchanged.                  |
-| T5  | TODO   | Write migration guidance for the deprecated symbols.                                                          | Replacement table; Rust docs render the guidance. No release note (see Versioning Decisions).   |
+| T5  | TODO   | Write migration guidance for the deprecated symbols.                                                          | Replacement table; Rust docs render the guidance. No release note for these symbols (see Versioning Decisions). |
 | T6  | TODO   | Record verification evidence.                                                                                  | `manual-verification-evidence.md`: gate evidence, warning output, rendered docs review.         |
 
 ## Commit Points
