@@ -28,7 +28,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Round 1: da2ce7 review 5829057649 and Copilot review 5829108924 on `1faf075d7`; round 2: da2ce7 review 5829397839 on `bf9557b12`. Copilot reused the reviewer ID `F1` and da2ce7 reused `F5` and `F6`, so audit-local IDs F5 to F7 are assigned and the reviewers' IDs are recorded in the details.
+Round 1: da2ce7 review 5829057649 and Copilot review 5829108924; round 2: da2ce7 review 5829397839; round 3: da2ce7 review 5829762691. Copilot reused the reviewer ID `F1` and da2ce7 reused `F5`, `F6` and `F7`, so audit-local IDs F5 to F8 are assigned and the reviewers' IDs are recorded in the details.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -39,6 +39,7 @@ Round 1: da2ce7 review 5829057649 and Copilot review 5829108924 on `1faf075d7`; 
 | F5 | review-finding:pr-2785-f5 | Copilot | Minor | link-integrity | ORIGINAL | FIXED | RESOLVED |
 | F6 | review-finding:pr-2785-f6 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F7 | review-finding:pr-2785-f7 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F8 | review-finding:pr-2785-f8 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -133,12 +134,26 @@ Round 1: da2ce7 review 5829057649 and Copilot review 5829108924 on `1faf075d7`; 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2785#discussion_r4515458402
 
+### F8 - Cite review ids and commit subjects, not branch ids
+
+- PR number: 2785
+- Source review ID: 5829762691
+- Reviewer finding ID: F7
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2785#discussion_r4515688734
+- Concern: The record cited PR-branch commit ids, which the open-pull-request skill forbids in review audits.
+- Solution: Named the rounds by review ids and the fixes by their commit subjects; no commit id remains in the record.
+- Current-tree verification: `grep -nE "\b[0-9a-f]{9}\b"` over the record matches no commit id (only the 10-digit review and comment ids remain).
+- Resolution reference: docs(pr-reviews): [#2785] cite review ids and commit subjects in the audit record
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2785#discussion_r4515699242
+
 ## Processing Log
 
-- 2026-11-09 16:30 UTC - da2ce7 review 5829057649 (CHANGES_REQUESTED) on `1faf075d7`; Copilot review 5829108924 at 16:34 UTC.
-- 2026-11-09 16:35 UTC - Fixes for F1 to F4 committed (`bf9557b12`, commit time 16:35:17 UTC) and pushed; replies on F1 to F4 posted 16:37:51 to 16:37:58 UTC and the threads resolved. The Copilot thread (F5) was resolved at that time without a reply: a process error, corrected below.
+- 2026-11-09 16:30 UTC - da2ce7 review 5829057649 (CHANGES_REQUESTED) ; Copilot review 5829108924 at 16:34 UTC.
+- 2026-11-09 16:35 UTC - Fixes for F1 to F4 committed (commit `fix(ci): narrow link-check exclusions and add fsf.org and Medium`, commit time 16:35:17 UTC) and pushed; replies on F1 to F4 posted 16:37:51 to 16:37:58 UTC and the threads resolved. The Copilot thread (F5) was resolved at that time without a reply: a process error, corrected below.
 - 2026-11-09 16:52 UTC - da2ce7 review 5829397839 with F5 and F6 (reviewer IDs) at 16:52:18 UTC; the approval was later dismissed by GitHub when the next push landed.
 - 2026-11-09 16:53 UTC - F5 and F7 fixed (commit time 16:53:22 UTC) and pushed; replies on F5 (16:55:44 UTC) and F7 (16:55:47 UTC) posted and the F7 thread resolved. The earlier replies on F1 to F4 were edited to cite the commit subject instead of the branch commit id.
+- 2026-11-09 17:18 UTC - da2ce7 review 5829762691 (APPROVED) with one inline finding (reviewer ID F7, audit F8); replied at 17:19 UTC, fixed in the commit named in F8 after the maintainer approved the push.
 - This audit record (F6) was written after those events, in the commit named in F6.
 
 ## Completion Rules
