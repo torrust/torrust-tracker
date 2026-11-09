@@ -405,7 +405,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512170069
 - Concern: T2, T5, the release-notes Scope bullet, M4 and the Risks `since` bullet still prescribed the wording the rules replaced.
 - Solution: Rewrote those rows to follow Versioning Decisions.
-- Current-tree verification: `grep -n "next breaking release" ISSUE.md` no longer matches T2; T5 has no release note.
+- Current-tree verification: T2 (`grep -n "^| T2  " ISSUE.md`) quotes "next breaking release" only through the decided wording it keeps until the proposal is confirmed, and T5 has no release note.
 - Resolution reference: docs(issues): [#2751] align the SI-18 plan and scope with the deprecation text decisions
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512598830
@@ -418,7 +418,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512170083
 - Concern: The maintainer's two confirmations exist only in the author's own records; the capture holds no comment from the maintainer's account.
 - Solution: A comment was posted on the PR from the maintainer's account `josecelano` (the agent ran the posting command after the maintainer approved the exact text and command in chat), https://github.com/torrust/torrust-tracker/pull/2752#issuecomment-6740143243, and the spec cites it at both confirmations. The first reply was a FOLLOW_UP; the second reply, cited below, reports the fix.
-- Current-tree verification: `grep -n "comment on PR 2752" ISSUE.md` prints the two lines that cite the maintainer's comment.
+- Current-tree verification: `grep -n "comment on PR 2752" ISSUE.md` prints three lines: the end-of-window bullet, the derived paragraph and the progress-log entry; the first two cite the comment.
 - Resolution reference: docs(issues): [#2751] cite the maintainer's comment for the support-window confirmations
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512769396
@@ -535,7 +535,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512239240
 - Concern: The F1 solution said "reference form" for an accepted reference format.
 - Solution: Changed the word to "format".
-- Current-tree verification: `grep -c "reference format the frontmatter" PR-REVIEW.md` prints 1.
+- Current-tree verification: `grep -n "reference for[m] " PR-REVIEW.md` prints nothing, so the old word is gone from every solution line.
 - Resolution reference: docs(pr-reviews): [#2751] fix a word in the F1 solution of the PR 2752 audit
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512602275
