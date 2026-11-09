@@ -268,7 +268,7 @@ Arrange-Act-Assert design review in task evidence, and sign every commit with GP
 
 ### Workflow Checkpoints
 
-- [x] Folder-style spec drafted in `docs/issues/open/2751-1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md`, moved to `docs/issues/open/`
+- [x] Folder-style spec drafted in `docs/issues/drafts/1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md`, moved to `docs/issues/open/`
 - [x] Spec reviewed and approved by user/maintainer (issue creation approved in the review chat, 2026-11-06)
 - [x] GitHub issue created and issue number added to this spec
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
