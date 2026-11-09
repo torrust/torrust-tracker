@@ -116,7 +116,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - [x] Folder-style spec drafted in `docs/issues/drafts/2758-reply-status-result/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [x] Spec-only PR merged into `develop` before implementation
+- [ ] Spec-only PR merged into `develop` before implementation (did not happen: the spec reached `develop` together with the implementation in `646d1cab2`, which was stacked on spec PR #2771)
 - [x] Implementation completed
 - [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
