@@ -1,7 +1,7 @@
 ---
 pr-number: 2774
 pr-url: https://github.com/torrust/torrust-tracker/pull/2774
-last-updated-utc: "2026-11-09 12:06"
+last-updated-utc: "2026-11-09 12:11"
 ---
 
 # PR #2774 Review Audit
@@ -88,10 +88,10 @@ Round 1: Copilot review 5806242087 (12 inline findings). F1 and F2 concern this 
 | F48 | review-finding:pr-2774-f48 | Copilot | Minor (inferred) | documentation | RE_RAISE_OF:F34 | FIXED | RESOLVED |
 | F49 | review-finding:pr-2774-f49 | Copilot | Minor | testing | ORIGINAL | FOLLOW_UP | RESOLVED |
 | F50 | review-finding:pr-2774-f50 | Copilot | Minor | correctness | RE_RAISE_OF:F10 | FOLLOW_UP | RESOLVED |
-| F51 | review-finding:pr-2774-f51 | Human | Minor | correctness | RE_RAISE_OF:F32 | FIXED | OPEN |
-| F52 | review-finding:pr-2774-f52 | Human | Minor | documentation | ORIGINAL | FIXED | OPEN |
-| F53 | review-finding:pr-2774-f53 | Human | Minor | documentation | ORIGINAL | FIXED | OPEN |
-| F54 | review-finding:pr-2774-f54 | Human | Nit | documentation | ORIGINAL | FIXED | OPEN |
+| F51 | review-finding:pr-2774-f51 | Human | Minor | correctness | RE_RAISE_OF:F32 | FIXED | RESOLVED |
+| F52 | review-finding:pr-2774-f52 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F53 | review-finding:pr-2774-f53 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F54 | review-finding:pr-2774-f54 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -813,6 +813,8 @@ Round 1: Copilot review 5806242087 (12 inline findings). F1 and F2 concern this 
 
 - 2026-11-09 12:06 UTC - Correction to the entry of 2026-11-09 11:32: the restoration of the first entry and of the `10:33` entry's sentence is in the commit `docs(adrs): [#2760] address the third review round of PR 2774`, not in the commit that carries that entry; the sentence dropped from the first entry was `Threads left open, awaiting the maintainer.`. That entry is not rewritten.
 - 2026-11-09 12:06 UTC - Round 4 (maintainer review 5825509686) processed: the branch was updated with `develop` (the 2761 spec stays at its archived path), the audit fixed, the four threads replied to. Thread resolution is pending the maintainer (the auto mode classifier denied the resolve call), so rows F51 to F54 stay `OPEN`.
+
+- 2026-11-09 12:11 UTC - The maintainer allowed the resolve calls in chat; the four round-4 threads were resolved; refreshed GraphQL data lists one unresolved thread, F45, which stays open until the rebase onto `develop`.
 
 ## Completion Rules
 
