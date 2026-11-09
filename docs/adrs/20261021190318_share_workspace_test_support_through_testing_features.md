@@ -40,6 +40,20 @@ semantic-links:
 > package adds a second example that does not use the `testing` module and starts the server the way
 > production code does (the `_production_style` example). Both doc headers say which style they
 > follow. The decision for each remaining package is still recorded in its own spec.
+>
+> **Amendment of 2026-11-09 (follow-up of #2637).** The decision stands. Rule C and rule A are clarified
+> with the answers the maintainer confirmed on 2026-11-09 to the questions that came up in the #2637
+> review of `axum-rest-api-server` (the record is the `lessons.md` of the #2637 spec):
+>
+> 1. **Where a rule C helper lives.** A helper used only inside one crate may live at the crate root as a
+>    private `#[cfg(test)] mod` declared in `lib.rs`, with an inner `#![cfg(test)]` in its own file
+>    (`axum-rest-api-server`'s `src/test_support.rs` does this). It needs no `testing` feature and is not
+>    placed under `src/testing/`.
+> 2. **What `src/testing/` holds.** Only test support that other crates use, compiled behind the package's
+>    `testing` feature (rules A and D). Test code used only inside the crate is rule C and does not go there.
+> 3. **Naming.** A file that contains only test code outside a `#[cfg(test)] mod tests` carries the prefix
+>    `test_` (`test_support.rs`, and `tracker-core`'s `test_helpers.rs` and `whitelist/test_helpers.rs`,
+>    which already follow it and need no move).
 
 ## Scope
 
