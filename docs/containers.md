@@ -575,27 +575,33 @@ If the database, user or permissions are not created the reason could be the MyS
 
 You can use a certificate for localhost. You can create your [localhost certificate](https://letsencrypt.org/docs/certificates-for-localhost/#making-and-trusting-your-own-certificates) and use it in the `storage` folder and the configuration file (`tracker.toml`). For example:
 
-The storage folder must contain your certificates:
+The storage folder must contain your certificates. The host-mapped `./storage/tracker/lib` folder is mounted
+in the container as `/var/lib/torrust/tracker`, so both the HTTP tracker and the API can read their certificates from it:
 
 ```s
 storage/tracker/lib/tls
                     ├── localhost.crt
                     └── localhost.key
-storage/http_api/lib/tls
-                     ├── localhost.crt
-                     └── localhost.key
 ```
 
-You have not enabled it in your `tracker.toml` file:
+The `ssl_cert_path` and `ssl_key_path` values are paths **inside the container**. To enable TLS, add the
+`tls_config` tables to the listeners that already exist in your `tracker.toml` file instead of appending new
+listeners (a second `[[http_trackers]]` entry with the same `bind_address` would fail to bind). For example:
 
 ```toml
-[http_trackers.tsl_config]
-ssl_cert_path = "./storage/tracker/lib/tls/localhost.crt"
-ssl_key_path = "./storage/tracker/lib/tls/localhost.key"
+[[http_trackers]]
+bind_address = "0.0.0.0:7070"
 
-[http_api.tsl_config]
-ssl_cert_path = "./storage/http_api/lib/tls/localhost.crt"
-ssl_key_path = "./storage/http_api/lib/tls/localhost.key"
+[http_trackers.tls_config]
+ssl_cert_path = "/var/lib/torrust/tracker/tls/localhost.crt"
+ssl_key_path = "/var/lib/torrust/tracker/tls/localhost.key"
+
+[http_api]
+bind_address = "0.0.0.0:1212"
+
+[http_api.tls_config]
+ssl_cert_path = "/var/lib/torrust/tracker/tls/localhost.crt"
+ssl_key_path = "/var/lib/torrust/tracker/tls/localhost.key"
 ```
 
 > NOTE: you can enable it independently for each HTTP tracker or the API.
