@@ -392,7 +392,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: `grep -n "Proposed by the author" ISSUE.md` finds the paragraph; the decided list holds the since/removal bullet.
 - Resolution reference: docs(issues): [#2751] mark the unpublished-symbol deprecation text as proposed
 - Follow-up PR URL: N/A
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_rhttps://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512598467
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512598467
 
 ### F25 - Align T2, T5, M4 and the Risks bullet with the deprecation text (re-raise of F16)
 
@@ -405,7 +405,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: `grep -n "next breaking release" ISSUE.md` no longer matches T2; T5 has no release note.
 - Resolution reference: docs(issues): [#2751] align the SI-18 plan and scope with the deprecation text decisions
 - Follow-up PR URL: N/A
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_rhttps://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512598830
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512598830
 
 ### F26 - Cite the maintainer's confirmation from a PR comment
 
@@ -431,7 +431,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: `spawner.rs:18` is a plain struct; the entry reads "`LaunchRequest` (the type and its `rx_halt` field)".
 - Resolution reference: docs(issues): [#2751] name the LaunchRequest type and its rx_halt field in the SI-18 scope
 - Follow-up PR URL: N/A
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_rhttps://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512599616
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512599616
 
 ### F28 - Word the root-type deprecation note separately
 
@@ -444,7 +444,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: The Versioning Decisions list has separate bullets for the unpublished crates and the root types.
 - Resolution reference: docs(issues): [#2751] word the root-type deprecation note separately from the unpublished crates
 - Follow-up PR URL: N/A
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_rhttps://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512599910
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512599910
 
 ### F29 - Record the real output of the gate commands
 
@@ -457,7 +457,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: The evidence file lists each command with its raw output.
 - Resolution reference: docs(issues): [#2751] record the real output of the gate commands in the SI-18 evidence
 - Follow-up PR URL: N/A
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_rhttps://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512600254
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512600254
 
 ### F30 - Stamp last-updated-utc no later than the carrying commit
 
@@ -470,7 +470,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: Both stamps are 12:08 and the carrying commit is at 12:08:50 UTC.
 - Resolution reference: docs(issues): [#2751] set the SI-18 timestamps from the commit time
 - Follow-up PR URL: N/A
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_rhttps://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512600519
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512600519
 
 ### F31 - Correct the F23 verification command
 
@@ -483,7 +483,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: `grep -n -i "row 6" ISSUE.md` prints both bullets.
 - Resolution reference: docs(pr-reviews): [#2751] correct the F23 verification command in the PR 2752 audit
 - Follow-up PR URL: N/A
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_rhttps://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512600843
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512600843
 
 ### F32 - Reconcile "deprecated only, not deleted" with SI-19 removal
 
@@ -496,7 +496,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: `grep -n "SI-18 only deprecates" ISSUE.md` finds the bullet.
 - Resolution reference: docs(issues): [#2751] state that SI-18 only deprecates the root types and SI-19 removes them
 - Follow-up PR URL: N/A
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_rhttps://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512601280
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512601280
 
 ### F33 - Record the exact crates.io command and its output
 
@@ -509,7 +509,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: Step 4 of the evidence file holds the command and `[('0.5.0', '2026-11-06'), ('0.4.0', '2026-10-26')]`.
 - Resolution reference: docs(issues): [#2751] record the exact crates.io command and output in the SI-18 evidence
 - Follow-up PR URL: N/A
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_rhttps://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512601575
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512601575
 
 ### F34 - Record the exact crates.io command and its output (re-raise of F33)
 
@@ -522,7 +522,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: See F33.
 - Resolution reference: docs(issues): [#2751] record the exact crates.io command and output in the SI-18 evidence
 - Follow-up PR URL: N/A
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_rhttps://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512601968
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512601968
 
 ### F35 - Change "form" to "format"
 
@@ -535,7 +535,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: `grep -c "reference format the frontmatter" PR-REVIEW.md` prints 1.
 - Resolution reference: docs(pr-reviews): [#2751] fix a word in the F1 solution of the PR 2752 audit
 - Follow-up PR URL: N/A
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_rhttps://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512602275
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512602275
 
 ### F36 - Make the F21 solution precise
 
@@ -548,7 +548,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Current-tree verification: The F21 solution names the drafts folder as the drafting location and says the file was moved, not restored.
 - Resolution reference: docs(pr-reviews): [#2751] make the F21 solution precise in the PR 2752 audit
 - Follow-up PR URL: N/A
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_rhttps://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512602646
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4512602646
 
 ## Processing Log
 
