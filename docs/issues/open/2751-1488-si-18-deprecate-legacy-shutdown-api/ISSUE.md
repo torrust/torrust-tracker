@@ -117,12 +117,19 @@ current version at the end of #1669; the root `torrust-tracker` next releases as
   package crates have no external consumers, so no public support window exists for them. SI-18 still deprecates
   their symbols as in-repo guidance, and SI-19 may remove them without waiting for a window. The window applies
   only to what is already public: `torrust-server-lib` (deprecated since 0.5.0, removed in 0.6.0), which is
-  released independently of #2583 and of the tracker release. The root `HaltSignal` and `NestedServerTask` were
-  added after the published 3.0.0 (commit `3ee28b723`, "adopt JoinSet supervision"; `git grep` finds neither in
-  tag `v3.0.0`), so they have never been in a published release and need no window either: their deprecation is
-  in-repo guidance and SI-19 may remove them inside EPIC #1488, before the root 4.0.0 release (#2583 publishes the
-  root crate after the libraries). #2583 needs no change.
+  released independently of #2583 and of the tracker release. #2583 needs no change.
 - `HaltSignal` and `NestedServerTask` are deprecated only, not deleted.
+
+Derived from the tree, not stated by the maintainer (pending the maintainer's confirmation): the root
+`HaltSignal` and `NestedServerTask` were added after the published 3.0.0 (commit `3ee28b723`, "adopt JoinSet
+supervision"; `git grep` finds neither in tag `v3.0.0`), so they have never been in a published release and need
+no support window either. Their deprecation is in-repo guidance, with `since = "4.0.0"` (the next root release),
+and SI-19 may remove them inside EPIC #1488, before that release. The maintainer's Option A decision named the
+root types as inside the window; this conclusion narrows it with the same principle (a window only for symbols
+that are already public).
+
+Other decisions of 2026-11-06:
+
 - The `torrust-server-lib` 0.5.0 dependency bump lands in the implementation PR, not the spec PR.
 - Ordering: #2482 rows 6 and 7 edit `axum-rest-api-server` and `axum-health-check-api-server`; the
   implementation PR must be coordinated with the #2482 coordinator to avoid conflicts in `Cargo.toml` and test
