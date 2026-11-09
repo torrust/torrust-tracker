@@ -76,7 +76,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4493457398
 - Concern: The closed SI-23 specification lists a free-text `"issue #2751"` entry in `semantic-links.related-artifacts`; the reviewer prefers a resolvable path or URL.
-- Solution: No change. The entry is the stable reference form the frontmatter validator accepts, and a path to an `open/` spec breaks when it moves to `closed/`. PR 2698 made the same decision for SI-24 (`review-finding:pr-2698-f1`).
+- Solution: No change. The entry is the stable reference format the frontmatter validator accepts, and a path to an `open/` spec breaks when it moves to `closed/`. PR 2698 made the same decision for SI-24 (`review-finding:pr-2698-f1`).
 - Current-tree verification: `docs/issues/closed/2449-1488-si-23-migrate-rest-api-test-environment/ISSUE.md` lists `"issue #2751"`; the pre-commit frontmatter validator passed on the commit that introduced it.
 - Resolution reference: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4494417164
 - Follow-up PR URL: N/A
