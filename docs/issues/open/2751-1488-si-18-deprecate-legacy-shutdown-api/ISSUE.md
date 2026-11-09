@@ -180,8 +180,9 @@ Other decisions of 2026-11-06:
 - Update in-workspace call sites that remain only in tests, examples, or
   compatibility checks to suppress/allow the warning locally with a rationale.
 - Add compiler/test coverage proving legacy API consumers still compile.
-- Publish release notes describing deprecation, compatibility duration, and the
-  planned breaking removal release.
+- Write the deprecation text defined in Versioning Decisions. The only release note with a support
+  window is the published `torrust-server-lib` one; SI-18 writes no release note for symbols removed before
+  their first publication or before the next root release.
 
 ### Out of scope
 
@@ -255,10 +256,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status | Task                                                                                                           | Notes / Expected Output                                                                         |
 | --- | ------ | -------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
 | T1  | TODO   | Bump the workspace dependency to `torrust-server-lib` 0.5.0 and list every use of its deprecated symbols.    | Build output of the warnings; coordinate ordering with the #2482 coordinator first.             |
-| T2  | TODO   | Deprecate the legacy public APIs of the five server packages and the root `HaltSignal`/`NestedServerTask`.   | Each message names the replacement, the `since` version and "next breaking release". Behavior unchanged. |
+| T2  | TODO   | Deprecate the legacy public APIs of the five server packages and the root `HaltSignal`/`NestedServerTask`.   | Each message names the replacement and uses the `since` and removal text defined in Versioning Decisions (SI-19 removes them before publication, not "next breaking release", unless SI-19 slips). Behavior unchanged. |
 | T3  | TODO   | Allow the warning locally, with a rationale, at the remaining legacy call sites (tests, adapters).            | `cargo check --workspace --all-targets` warning-free; migrated paths compile with `-D deprecated`. |
 | T4  | TODO   | Add compile-compat tests for representative legacy consumers.                                                 | Tests compile with `#[allow(deprecated)]` and pass; legacy behavior unchanged.                  |
-| T5  | TODO   | Write migration guidance and release notes.                                                                   | Support window, removal prerequisites, replacement table; Rust docs render the guidance.        |
+| T5  | TODO   | Write migration guidance for the deprecated symbols.                                                          | Replacement table; Rust docs render the guidance. No release note (see Versioning Decisions).   |
 | T6  | TODO   | Record verification evidence.                                                                                  | `manual-verification-evidence.md`: gate evidence, warning output, rendered docs review.         |
 
 ## Commit Points
@@ -269,7 +270,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2   | Deprecation attributes and messages per package      | Commit after focused validation and required review. |
 | T3   | Local `#[allow(deprecated)]` with rationales         | Commit after focused validation and required review. |
 | T4   | Compile-compat tests                                 | Commit after focused validation and required review. |
-| T5   | Migration guidance and release notes                 | Commit after focused validation and required review. |
+| T5   | Migration guidance                                   | Commit after focused validation and required review. |
 | T6   | Verification evidence                                | Commit after the last production change.             |
 
 Use the `write-unit-test` skill for every test increment, record the prose-first
@@ -331,7 +332,7 @@ runtime path, follow the EPIC executable-boundary protocol instead.
 | M1  | Gate evidence                         | Link the migration issues, the final task inventory, Q5 and the torrust-server-lib release.    | Every gate item has a link or command output.                        | DONE   | `manual-verification-evidence.md` section V1      |
 | M2  | Legacy consumers still compile        | Compile a representative consumer of each deprecated API without `allow(deprecated)`.         | The expected deprecation warnings, naming replacement and removal.   | TODO   | `manual-verification-evidence.md` section V2      |
 | M3  | Migrated paths have no legacy use     | `RUSTFLAGS="-D deprecated" cargo check --workspace --lib --bins` on migrated code.            | No deprecated-API error in production paths.                         | TODO   | `manual-verification-evidence.md` section V3      |
-| M4  | Documentation review                  | `cargo doc` and read the deprecation text and release notes.                                  | Replacement and support window are accurate.                         | TODO   | `manual-verification-evidence.md` section V4      |
+| M4  | Documentation review                  | `cargo doc` and read the deprecation text and migration guidance.                                  | Replacement and removal wording match Versioning Decisions.                         | TODO   | `manual-verification-evidence.md` section V4      |
 
 Record every command result with its toolchain or runtime when it can affect
 behavior. If a scenario fails, record the failure and diagnosis in the progress
@@ -354,8 +355,8 @@ None.
 - The five package crates are unpublished and #2583 publishes them only after
   EPIC #1488 closes, so SI-19 removes their legacy symbols before any public
   release and no support window applies to them (see Versioning Decisions).
-  Their `since` values still follow the version chosen in #2583; re-check them
-  when #2583 decides every version.
+  Their `since` values are the crate's `Cargo.toml` version at the time (for the root types `4.0.0`); re-check
+  them when #2583 decides every version.
 - Deprecating test-only call sites needs local `#[allow(deprecated)]` with a
   rationale, or the workspace stops building warning-free.
 
