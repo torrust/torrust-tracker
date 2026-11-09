@@ -113,7 +113,7 @@ current version at the end of #1669; the root `torrust-tracker` next releases as
     SI-18 adds nothing there beyond the dependency bump.
   - Symbols of the five unpublished package crates and the root types, which SI-19 removes before their first
     publication: `since` is the crate's current `Cargo.toml` version (for the root types `"4.0.0"`), and the
-    note names the replacement and says the symbol is removed by SI-19 (#2751's successor) before the crate's
+    note names the replacement and says the symbol is removed by SI-19 (EPIC #1488) before the crate's
     first publication, so it is in-repo guidance only. No release note is written for them, because no release
     ever contains them; the only release note is the `torrust-server-lib` one.
   - If SI-19 slips past a crate's first publication, the wording becomes "removed in the next breaking release
@@ -124,6 +124,11 @@ current version at the end of #1669; the root `torrust-tracker` next releases as
   their symbols as in-repo guidance, and SI-19 may remove them without waiting for a window. The window applies
   only to what is already public: `torrust-server-lib` (deprecated since 0.5.0, removed in 0.6.0), which is
   released independently of #2583 and of the tracker release. #2583 needs no change.
+- End of the `torrust-server-lib` 0.5.x window (proposed from SI-19's existing start-gate item "a maintainer
+  explicitly approves the breaking-release timing"; pending the maintainer's confirmation): there is no fixed
+  date. The window ends when the maintainer approves publishing 0.6.0, and the maintainer publishes 0.6.0 from the
+  `torrust-server-lib` repository as part of SI-19, after that approval. The SI-19 start gate therefore waits for
+  the approval, not for the 0.6.0 publication, which SI-19 itself produces.
 - `HaltSignal` and `NestedServerTask` are deprecated only, not deleted.
 
 Derived from the tree, not stated by the maintainer (pending the maintainer's confirmation): the root

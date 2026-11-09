@@ -52,7 +52,10 @@ Do not start implementation until every item below is complete and linked from
 
 - [ ] SI-18 deprecation evidence confirms every declared deprecation condition
       and the public support window has ended for the only already-public
-      symbols, those of `torrust-server-lib` (0.5.x). The unpublished package
+      symbols, those of `torrust-server-lib` (0.5.x). The window has no fixed
+      date: it ends when the maintainer approves publishing 0.6.0 (the last item
+      below), and the maintainer publishes 0.6.0 from `torrust-server-lib` as part
+      of this task, after that approval. The unpublished package
       crates and the root `HaltSignal`/`NestedServerTask` have never been in a
       published release and have no public window (see SI-18, Versioning Decisions).
 - [ ] HTTP tracker, REST API, health-check API, and UDP tracker application
