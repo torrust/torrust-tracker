@@ -25,8 +25,10 @@ lines from 87.98% to 97.67% ([coverage-evidence.md](coverage-evidence.md)). The 
 include the in-file test modules) and keeps its 58 integration tests. Every uncovered line has a recorded owner or
 reason. A whole-package mutation run gave 71 caught, 3 missed and 44 unviable mutants
 ([mutation-evidence.md](mutation-evidence.md)); the one real survivor (found by the first run) got a test in S6 and is killed in the final run. The manual run of M1-M5
-against a built tracker passed ([manual-verification-evidence.md](manual-verification-evidence.md)). Production code
-changed only by documentation: the `tls_config` spelling in `lib.rs`. Bugs found on the way were handed off, not fixed
+against a built tracker passed ([manual-verification-evidence.md](manual-verification-evidence.md)). The behavior of the
+production code did not change: the production files changed only by one refactor with unchanged behavior (S2: the router layers
+moved into a private `with_layers` with a timeout parameter, ledger row 3) and the `tls_config` spelling in the documentation
+of `lib.rs`. Bugs found on the way were handed off, not fixed
 here (#2653, #2719, #2726, #2733).
 
 ## What Went Well

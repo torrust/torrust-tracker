@@ -21,9 +21,9 @@ It proposes no new test and one documentation correction. Status: done; the main
 
 - **Unit-only coverage:** no executable lines. The file declares the modules, a clock type alias, the `API_LOG_TARGET`
   constant, the `InfoHashParam` and `Version` types (derives only) and carries the crate documentation.
-- **Uses:** `InfoHashParam` is the path extractor of the whitelist handlers (real extraction is exercised by the whitelist
+- **Uses:** `InfoHashParam` is the path extractor of the whitelist and the torrent handlers (real extraction is exercised by the whitelist
   integration tests; the handler unit tests build it directly). `API_LOG_TARGET` is the `tracing` target of the router and
-  server logs. `Version` has no use in this repository (a search of all packages finds none).
+  server logs. `Version` is used by the tracker binary (`src/app.rs` passes `Version::V1` to `tracker_apis::start_job`, and `src/bootstrap/jobs/tracker_apis.rs` takes it as a parameter and matches on it); no other package uses it (a search of the packages, which did not cover the root crate, found none).
 - **Documentation defect (recorded by the review of #2638):** the crate documentation spells the TLS table
   `[http_api.tsl_config]` in two TOML examples and names "the `tsl_config` section" once (lines 30, 109 and 116). The v3
   `HttpApi` type defines `tls_config` and denies unknown fields, so a configuration copied from the documentation does not
@@ -34,9 +34,9 @@ It proposes no new test and one documentation correction. Status: done; the main
 | Behavior group | Classification | Decision |
 | --- | --- | --- |
 | Module declarations, the clock aliases | No executable entries | No test. |
-| `InfoHashParam` (`Deserialize` derive) | Collaborator-owned | No test: the derive belongs to `serde`, the value is validated by the handler (tested in S3) and the extraction is exercised by the whitelist integration tests. Removing the derive does not compile, so the compiler guards it. |
-| `API_LOG_TARGET = "API"` | Logging-only | No test: a test would assert the literal against itself. A changed target changes log filtering for operators but not API behavior; recorded here as the decision, not pinned. |
-| `Version` (`Serialize`, `Deserialize`, one variant) | Unused public API | No test: no consumer exists, so a wire-format test would pin a contract nobody uses. A candidate for removal in a separate decision (recorded in `lessons.md`, not a #2637 change). |
+| `InfoHashParam` (`Deserialize` derive) | Collaborator-owned | No test: the derive belongs to `serde`, the value is validated by the handler (tested in S3) and the extraction is exercised by the whitelist and torrent integration tests. Removing the derive does not compile, so the compiler guards it. |
+| `API_LOG_TARGET = "API"` | Logging-only | No test: a test would assert the literal against itself. A changed target changes log filtering for operators but not API behavior; no unit test pins it, but 21 integration tests do (mutation L1 below). |
+| `Version` (`Serialize`, `Deserialize`, one variant) | Public API used by the tracker binary | No test: the compiler guards its use (the root crate matches on `Version::V1`). Whether its `Serialize`/`Deserialize` derives have a consumer is a separate question; no wire-format test is added because nothing in the repository serializes it. Recorded in `lessons.md`, not a #2637 change. |
 | The crate documentation | Documentation correction | Fix `tsl_config` to `tls_config` in the three places (the only change of this plan). The other `tsl_config` spellings of the repository (`docs/containers.md`, a skill) are outside this package and are recorded in `lessons.md` as follow-ups. |
 
 The sentence at lines 130-134 (a dangling "options in the configuration file with the paths ...") reads badly after the link
@@ -75,7 +75,7 @@ No test is added or changed.
 
 The maintainer approved the plan on 2026-11-06. The three `tsl_config` spellings of the crate documentation are now `tls_config`; `grep -n tsl_config packages/axum-rest-api-server/src/lib.rs` returns nothing and `cargo doc -p torrust-tracker-axum-rest-api-server --no-deps` builds. A disposable program outside the repository (not committed) parsed the corrected example into the v3 `HttpApi`: `tls_config` parses and sets the TLS option, while the old `tsl_config` spelling is rejected with a TOML parse error (unknown field), which confirms the defect and the fix. No test was added.
 
-Mutations (each alone, then `lib.rs` restored exactly): **L1** `API_LOG_TARGET` changed to `"OTHER"`: the plan expected a survivor and was wrong. The unit tests pass, but 21 of the 58 integration tests fail: the authentication and the auth-key, whitelist, stats and torrent failure cases assert that the error log contains a line with `ERROR`, `API` and the request id (`logs_contains_a_line_with`), so the target value is pinned end to end. **L2** removing the `Deserialize` derive of `InfoHashParam`: compile error (guarded by the compiler). **L3** renaming `Version::V1`: all 167 unit and 58 integration tests pass, so `Version` has no consumer, as recorded.
+Mutations (each alone, then `lib.rs` restored exactly): **L1** `API_LOG_TARGET` changed to `"OTHER"`: the plan expected a survivor and was wrong. The unit tests pass, but 21 of the 58 integration tests fail: the authentication and the auth-key, whitelist, stats and torrent failure cases assert that the error log contains a line with `ERROR`, `API` and the request id (`logs_contains_a_line_with`), so the target value is pinned end to end. **L2** removing the `Deserialize` derive of `InfoHashParam`: compile error (guarded by the compiler). **L3** renaming `Version::V1`: all 167 unit and 58 integration tests of this package pass, but the root crate (`src/app.rs`, `src/bootstrap/jobs/tracker_apis.rs`) uses `Version::V1` and would no longer build; a test run of this package does not compile it, so the surviving mutant says nothing about consumers.
 
 ## Progress Log
 

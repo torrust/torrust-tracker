@@ -8,7 +8,7 @@ semantic-links:
   related-artifacts:
     - packages/axum-rest-api-server/src/testing/environment.rs
     - packages/axum-rest-api-server/src/testing/mod.rs
-    - docs/issues/open/2745-2482-gate-axum-rest-api-server-test-environment/ISSUE.md
+    - docs/issues/closed/2745-2482-gate-axum-rest-api-server-test-environment/ISSUE.md
     - docs/issues/open/2637-1347-add-tests-axum-rest-api-server/coverage-evidence.md
 ---
 
@@ -24,8 +24,9 @@ decision is the same and no test is proposed. Status: done; the maintainer appro
   executable entry (a module declaration and documentation). The figures include the file's own in-file tests (8 unit tests
   added by #2449 are the reason the file is mostly covered).
 - **What the files are:** a test environment that wires the containers and starts and stops the REST API server for the
-  integration tests of this package and for other packages (`axum-health-check-api-server`). It is exported unconditionally
-  today; the open spec #2745 (under EPIC #2482) gates it behind a `testing` feature, and #2449 (closed) changed its lifecycle.
+  integration tests of this package and for other packages (`axum-health-check-api-server`). It is compiled only with the
+  non-default `testing` feature (`#[cfg(feature = "testing")]` in `lib.rs`, gated by #2745, merged and closed, under EPIC #2482); #2449
+  (closed) changed its lifecycle.
 - **Module-owned decisions:** none of the package's behavior: it only composes what other files decide.
 
 ## Coverage And Decision Analysis
@@ -42,7 +43,7 @@ owner so the ledger rows can close.
 
 Named mutations on the real code would only show that the environment's own tests (or the integration tests that use it)
 fail when it is broken, which is the intended use and says nothing about the REST API server. No mutation is applied to
-these files. If #2745 lands before S6 is merged, re-measure at the slice close and keep the decision.
+these files. #2745 landed before S6 was merged; the figures were re-measured after the rebase and are unchanged, so the decision stands.
 
 ## Property-Test Decision
 
@@ -67,7 +68,7 @@ No test is added or changed.
 
 ## Results
 
-The maintainer approved the out-of-scope decision on 2026-11-06: no test, no mutation, no change of the two files. `testing/environment.rs` stays at 301 / 332 unit-only lines (S6 baseline) and `testing/mod.rs` has no executable entry. The decision stays valid if #2745 (gating behind a `testing` feature) lands; the figures are re-measured at the slice close.
+The maintainer approved the out-of-scope decision on 2026-11-06: no test, no mutation, no change of the two files. `testing/environment.rs` stays at 301 / 332 unit-only lines (S6 baseline) and `testing/mod.rs` has no executable entry. #2745 (gating behind a `testing` feature) landed before the slice closed; the figures were re-measured after the rebase and are unchanged (the package is measured with `--all-features`).
 
 ## Progress Log
 
