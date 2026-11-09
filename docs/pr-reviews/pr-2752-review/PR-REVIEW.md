@@ -363,7 +363,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4510566747
 - Concern: The spec still treated row 6 of #2482 as a future edit; it was merged on 2026-11-06.
 - Solution: Updated the ordering bullet and the Risks bullet: row 6 (#2745) is merged and only row 7 (#2757) remains.
-- Current-tree verification: `grep -n "row 6" ISSUE.md` shows both bullets saying row 6 has landed.
+- Current-tree verification: `grep -n -i "row 6" ISSUE.md` prints the ordering bullet and the Risks bullet, both saying row 6 has landed.
 - Resolution reference: docs(issues): [#2751] record that row 6 of #2482 has landed
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2752#discussion_r4511990926
