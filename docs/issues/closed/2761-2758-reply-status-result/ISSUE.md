@@ -9,7 +9,7 @@ github-issue: 2761
 spec-path: docs/issues/closed/2761-2758-reply-status-result/ISSUE.md
 branch: "2761-reply-status-result"
 related-pr: 2775
-last-updated-utc: "2026-11-09 10:23"
+last-updated-utc: "2026-11-09 12:12"
 semantic-links:
   skill-links:
     - create-issue
@@ -70,17 +70,16 @@ Not applicable.
 
 ## Bug-Fix Process
 
-This issue fixes a deviation from the CLI output contract, so it is bug work in substance. Follow the [fix-bug](../../../../.github/skills/dev/debugging/fix-bug/SKILL.md) skill:
+This issue fixed a deviation from the CLI output contract, so it was bug work in substance ([fix-bug](../../../../.github/skills/dev/debugging/fix-bug/SKILL.md)). What the record shows, as of the implementation in PR 2775:
 
-- analysis of the defect: the tool's current behavior against the contract (see Background);
-- real-artifact reproduction: run the real binary, record the commands and output of the deviation in `manual-verification-evidence.md` before changing code;
-- regression-test boundary: see Regression Test Strategy;
-- red regression test, then the production fix;
-- green test evidence and a like-for-like recheck of the same real-artifact commands.
+- analysis of the defect: `reply-status` exited `1` with a `missing_reply` diagnostic for an answer to what the caller asked (see Background);
+- real-artifact reproduction: not captured. `manual-verification-evidence.md` records only the post-change runs V1 to V3 (its one `exit 1` is the unreadable file in V2); the only trace of the old behavior is the previous test, which pinned exit `1` and empty stdout;
+- regression test and fix: the CLI test in `tests/cli.rs` asserts the new result and exit `0` (it replaced the test that pinned the old behavior); no separate red run was recorded;
+- green evidence: V1 to V3 in the evidence file.
 
 ## Regression Test Strategy
 
-A CLI integration test in `contrib/dev-tools/github/github-review-threads/tests/cli.rs` that runs `reply-status` on the fixture with a thread lacking a reply and asserts the stdout result `kind` and exit `0`. It fails today (exit `1`, empty stdout). If a higher boundary is used instead, record why it is clearer or the only practical option; link red and green output and the final recheck to `manual-verification-evidence.md`.
+A CLI integration test in `contrib/dev-tools/github/github-review-threads/tests/cli.rs` runs `reply-status` on the fixture with a thread lacking a reply and asserts the stdout result `kind` and exit `0`. Before PR 2775 the test of that case pinned the old behavior (exit `1`, empty stdout); no red run of the new assertion against the old code was recorded.
 
 ## Implementation Plan
 
@@ -90,7 +89,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | ------ | ---- | ----------------------- |
 | T1 | DONE | Write failing tests for the new result shape and exit `0` | Red tests for both kinds. |
 | T2 | DONE | Change `reply-status` to emit the result and exit `0` | Green tests; diagnostics only for could-not-answer. |
-| T3 | DONE | Update the skills and any other consumer | `grep -rn 'missing_reply\|reply-status'` shows no stale exit-1 claim. |
+| T3 | DONE | Update the skills and any other consumer | `grep -rnE 'missing_reply\|reply-status'` shows no stale exit-1 claim. |
 | T4 | DONE | Verify against a real PR thread file | Evidence recorded. |
 
 ## Test Design Review (Prose-First AAA)
@@ -135,11 +134,14 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 
 ### Progress Log
 
-- 2026-11-06 17:10 UTC - Claude Code (Claude Sonnet 5.5) - Drafted this spec as part of EPIC #2758 from the 2026-11-06 audit.
-- 2026-11-06 17:25 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the spec; GitHub issue #2761 created.
+- 2026-11-06 16:43 UTC - Claude Code (Claude Sonnet 5.5) - Drafted this spec as part of EPIC #2758 from the 2026-11-06 audit.
+- 2026-11-06 16:51 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the spec; GitHub issue #2761 created.
 - 2026-11-06 17:18 UTC - Claude Code (Claude Sonnet 5.5) - Implemented: kinds `all_replied` / `missing_reply`, result `{kind, threads, summary}` (no `message`), exit 0 for both; batch scripts do not call `reply-status`; both skills updated; manual evidence recorded.
 - 2026-11-09 10:19 UTC - PR #2775 merged (merge commit `646d1cab2`); issue #2761 closed on GitHub.
 - 2026-11-09 10:23 UTC - Claude Code (Claude Sonnet 5.5) - Archived this spec to `docs/issues/closed/`: `status: done`, `spec-path` and `related-pr` updated, checkpoints ticked, EPIC table updated. No retrospective file was needed: the change was small and matched the spec, and the two process gaps are named in the Implementation Completion Review. The "Reviewer validated acceptance criteria" checkpoint stays unticked: reviewers approved in the ACK lines of merge commit `646d1cab2`, but none updated the checkboxes.
+- 2026-11-09 10:25 UTC - Claude Code (Claude Sonnet 5.5) - Corrected details after the review rounds on PR 2771 and PR 2774 and fixed the earlier log stamps from the commit and issue creation times.
+- 2026-11-09 11:26 UTC - Claude Code (Claude Sonnet 5.5) - Corrected details after the round 3 review of PR 2774.
+- 2026-11-09 12:12 UTC - Claude Code (Claude Sonnet 5.5) - Addressed the review of PR 2771 (da2ce7 findings F1 to F27 and Copilot's later comments): specs corrected from the code, reproductions recorded where a spec has a bug-fix section.
 
 ## Acceptance Criteria
 
@@ -167,7 +169,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | -------- | ---------------------------- | --------------- | ------ | -------- |
-| M1 | Thread without a reply | `cargo run -p github-review-threads -- reply-status --threads-file <fixture> --login author \| jq -e '.kind=="missing_reply"'` | jq succeeds and `$?` of the tool was 0 | DONE | `manual-verification-evidence.md` section V1 |
+| M1 | Thread without a reply | `cargo run -p github-review-threads -- reply-status --threads-file <fixture> --login author > out.json; echo "tool exit=$?"; jq -e '.kind=="missing_reply"' out.json` | jq succeeds and `$?` of the tool was 0 | DONE | `manual-verification-evidence.md` section V1 |
 | M2 | Usage error | Run `reply-status` with no arguments, stdout piped | Exit `2`, JSON on stderr, stdout empty | DONE | `manual-verification-evidence.md` section V2 |
 
 Manual verification is mandatory even when automated tests pass. Record actual commands, output and the toolchain that produced each result in `manual-verification-evidence.md` (from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`).

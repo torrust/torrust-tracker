@@ -6,7 +6,7 @@ epic: null
 github-issue: 2758
 spec-path: docs/issues/open/2758-cli-output-contract-tools-migration/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-09 10:23"
+last-updated-utc: "2026-11-09 13:21"
 semantic-links:
   skill-links:
     - create-issue
@@ -33,7 +33,7 @@ only, a distinct outcome reported as a `kind`, and TTY refusal for `stdout-resul
 ## Why This Is Needed
 
 The two ADRs decide what the contract covers and how exit codes work, but change no code. An audit of the tree
-(2026-11-06, base `develop` plus PR #2748) found that many programs still break the contract, including some the
+(2026-11-06, base `develop`) found that many programs still break the contract, including some the
 ADR table already calls compliant or does not list at all. The older migration draft
 (`docs/issues/drafts/cli-output-contract-migration/ISSUE.md`, 2026-05-19, no GitHub issue) is out of date: the
 workspace already denies `clippy::print_stdout` and `clippy::print_stderr`, most of its 46 `print!` sites are gone,
@@ -42,14 +42,14 @@ is left in place as history (it is not edited, to keep older references valid); 
 
 ### Audit result
 
-Checked against `develop` at `35ec81000` plus the PR #2748 head.
+Checked against `develop` at `35ec81000`.
 
 | Program | Class (ADR table) | Finding |
 | --- | --- | --- |
-| `github-review-threads reply-status` | `stdout-result-data` | A thread without a reply is exit `1` plus a `missing_reply` diagnostic; it is an answer and must be a result with exit `0`. The skills `resolve-review-threads` and `fetch-review-threads` describe the exit `1`. |
+| `github-review-threads reply-status` | `stdout-result-data` | A thread without a reply is exit `1` plus a `missing_reply` diagnostic; it is an answer and must be a result with exit `0`. The skill `resolve-review-threads` describes the exit `1`; `fetch-review-threads` describes the tool and its exit text, and the issue checks both. |
 | `package-coverage-check` | `stdout-result-data` | Plain-text errors, every failure exits `1` (usage included), no TTY refusal, `summary` prints Markdown. |
 | `http_health_check` | `stdout-result-data` | Plain text on stdout (`Health check ...`, `STATUS: ...`), plain `eprintln!` usage, usage error exits `1`. It is the container `HEALTHCHECK`, so it needs exit `1` when unhealthy: reclassify as `no-stdout-result`. |
-| `tracker_client` | `stdout-result-data` | No TTY refusal; `tracing` writes plain text to stdout; direct prints in the console layer (`check --format text` prints pretty JSON, which is allowed). |
+| `tracker_client` | `stdout-result-data` | No TTY refusal; `tracing` writes plain text to stdout; direct prints in the console layer (`check --format text` prints pretty JSON, which is allowed, but `check` emits a top-level array instead of a single object). |
 | `http_tracker_client`, `udp_tracker_client`, `tracker_checker` | not listed | Deprecated; the ADR says remove them. They still exist and print a plain-text warning. |
 | `torrust-tracker` (daemon) | `no-stdout-result` | `tracing` writes plain text (ANSI, `full` style) to stdout; startup failure is a plain `eprintln!`. |
 | `e2e_tests_runner`, `qbittorrent_e2e_runner` | `no-stdout-result` | Plain `tracing` output on stdout, failures via `anyhow` as plain text. |
@@ -93,22 +93,22 @@ parallel; the maintainer sets how many sessions run at once.
 | Order | Issue | Local Spec | Status | Files it touches / notes |
 | ----- | ----- | ---------- | ------ | ------------------------ |
 | 1 | #2760 - Align the ADR binary table with the audit | `docs/issues/open/2760-2758-adr-binary-table/ISSUE.md` | TODO | Wave 0, docs only: `docs/adrs/20260519000000_define_global_cli_output_contract.md`. Must land first; no other issue edits it. |
-| 2 | #2761 - `github-review-threads reply-status`: a missing reply is a result | `docs/issues/closed/2761-2758-reply-status-result/ISSUE.md` | DONE | Implemented in PR #2775. Wave 1: `contrib/dev-tools/github/github-review-threads/**`, `.github/skills/dev/pr-reviews/resolve-review-threads/`, `.github/skills/dev/pr-reviews/fetch-review-threads/SKILL.md` |
+| 2 | #2761 - `github-review-threads reply-status`: a missing reply is a result | `docs/issues/closed/2761-2758-reply-status-result/ISSUE.md` | DONE | Implemented in PR #2775. Wave 1: `contrib/dev-tools/github/github-review-threads/**`, `.github/skills/dev/pr-reviews/resolve-review-threads/SKILL.md`, `.github/skills/dev/pr-reviews/fetch-review-threads/SKILL.md` |
 | 3 | #2762 - `package-coverage-check`: NDJSON errors, usage exit 2, TTY refusal, JSON `summary` | `docs/issues/open/2762-2758-package-coverage-check-contract/ISSUE.md` | TODO | Wave 1: `contrib/dev-tools/checks/package-coverage-check/**`, `.github/workflows/generate_coverage_pr.yaml` |
 | 4 | #2763 - Make `agent-review-report-contract` and `frontmatter-schema` emit NDJSON; classify `workspace-coupling` | `docs/issues/open/2763-2758-dev-tool-checks-ndjson/ISSUE.md` | TODO | Wave 1: `contrib/dev-tools/checks/agent-review-report-contract/**`, `contrib/dev-tools/checks/frontmatter-validator/src/bin/frontmatter-schema.rs`, `contrib/dev-tools/analysis/workspace-coupling/**` |
 | 5 | #2764 - `http_health_check`: NDJSON diagnostics, usage exit 2 | `docs/issues/open/2764-2758-http-health-check-no-stdout/ISSUE.md` | TODO | Wave 1: `src/bin/http_health_check.rs` and its tests; verify `Containerfile` `HEALTHCHECK` |
-| 6 | #2765 - Remove the deprecated tracker client binaries | `docs/issues/open/2765-2758-remove-deprecated-tracker-clients/ISSUE.md` | TODO | Wave 1: `console/tracker-client/src/bin/{http_tracker_client,udp_tracker_client,tracker_checker}.rs`, `console/tracker-client/Cargo.toml`, README, tests, docs that name them, and `src/console/ci/e2e/tracker_checker.rs` (the e2e runner launches the old `tracker_checker`; migrate it to `tracker_client check`) |
-| 7 | #2766 - `torrust-tracker` daemon: JSON logs on stderr and JSON startup failure | `docs/issues/open/2766-2758-daemon-json-logging/ISSUE.md` | TODO | Wave 1: `packages/configuration/src/{logging.rs,v3_0_0/logging.rs}`, `src/main.rs`, `src/console/ci/e2e/logs_parser.rs` and `docker.rs` (`Docker::logs` reads stdout only), default configs and docs. Release note: operator-visible change. |
+| 6 | #2765 - Remove the deprecated tracker client binaries | `docs/issues/open/2765-2758-remove-deprecated-tracker-clients/ISSUE.md` | TODO | Wave 1: `console/tracker-client/src/bin/{http_tracker_client,udp_tracker_client,tracker_checker}.rs`, README, tests, docs that name them, and `src/console/ci/e2e/tracker_checker.rs` (the e2e runner launches the old `tracker_checker`; migrate it to `tracker_client check`) |
+| 7 | #2766 - `torrust-tracker` daemon: JSON logs on stderr and JSON startup failure | `docs/issues/open/2766-2758-daemon-json-logging/ISSUE.md` | TODO | Wave 1: `packages/configuration/src/{logging.rs,v3_0_0/logging.rs}`, `src/main.rs`, `src/console/ci/e2e/logs_parser.rs` and `docker.rs` (`Docker::logs` reads stdout only), the default configs that set `[logging]` (not `tracker_checker.json`, which issue 6 owns) and docs. Release note: operator-visible change. |
 | 8 | #2767 - Audit and classify the scripts called by CI and agents | `docs/issues/open/2767-2758-scripts-audit/ISSUE.md` | TODO | Wave 1: a new audit document only; no script changes |
 | 9 | #2768 - `tracker_client`: TTY refusal, JSON-only output | `docs/issues/open/2768-2758-tracker-client-json-only/ISSUE.md` | TODO | Wave 2, after 6: `console/tracker-client/**` |
-| 10 | #2769 - `e2e_tests_runner` and `qbittorrent_e2e_runner`: JSON diagnostics | `docs/issues/open/2769-2758-e2e-runners-json/ISSUE.md` | TODO | Wave 2, after 7: `src/console/ci/**`, `packages/e2e-tools/src/bin/` |
-| 11 | #2770 - Close the migration: update the ADR notes and the EPIC | `docs/issues/open/2770-2758-close-out-adr-and-epic/ISSUE.md` | TODO | Last: ADR "currently non-compliant" notes, `docs/issues/` bookkeeping. The only close-out PR for the EPIC. |
+| 10 | #2769 - `e2e_tests_runner` and `qbittorrent_e2e_runner`: JSON diagnostics | `docs/issues/open/2769-2758-e2e-runners-json/ISSUE.md` | TODO | Wave 2, after 6 and 7: `src/console/ci/**`, `packages/e2e-tools/src/bin/` |
+| 11 | #2770 - Close the migration: update the ADR notes and the EPIC | `docs/issues/open/2770-2758-close-out-adr-and-epic/ISSUE.md` | TODO | Wave 3 (last): ADR "currently non-compliant" notes, `docs/issues/` bookkeeping. The only close-out PR for the EPIC. |
 
 ## Delivery Strategy
 
 Wave 0 first (the table the others cite). Wave 1 issues touch disjoint files and may run in parallel. Wave 2 waits
-for its predecessor because it shares files with it (`console/tracker-client/**` with issue 6; the e2e log parser
-with issue 7). Issue 11 runs last. Issues 2 to 5 and 9 are independent of the operator-visible changes.
+for its predecessors because it shares files with them (`console/tracker-client/**` with issue 6 for issue 9; for issue 10,
+`src/console/ci/e2e/tracker_checker.rs` with issue 6 and the e2e log parser and `docker.rs` with issue 7). Issue 11 runs last, as wave 3. Issues 2 to 5 do not depend on the operator-visible changes. Issue 9 runs after issue 6, a breaking removal, and itself changes the output shape of `check` (a top-level array becomes an object), which is also breaking.
 
 For each subissue, the default completion policy is:
 
@@ -140,8 +140,13 @@ consumes the old behavior (named in its spec). No issue edits the ADR table exce
 
 ### Progress Log
 
-- 2026-11-06 16:45 UTC - Claude Code (Claude Sonnet 5.5) - Drafted the EPIC after auditing `develop` plus PR #2748; the maintainer chose no parent, the `no-stdout-result` reclassification of `http_health_check`, a daemon logging migration in this EPIC, and an audit-only issue for scripts.
-- 2026-11-06 17:25 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the EPIC and the 11 child specs; created EPIC #2758 and issues #2760 to #2770 as josecelano-bot. Linking them as sub-issues returned 404 for the bot, so the maintainer links them.
+- 2026-11-06 16:37 UTC - Claude Code (Claude Sonnet 5.5) - Drafted the EPIC after auditing `develop`; the maintainer chose no parent, the `no-stdout-result` reclassification of `http_health_check`, a daemon logging migration in this EPIC, and an audit-only issue for scripts.
+- 2026-11-06 16:41 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the EPIC; created EPIC #2758 as josecelano-bot.
+- 2026-11-06 16:52 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the 11 child specs; created issues #2760 to #2770 as josecelano-bot. Linking them as sub-issues returned 404 for the bot, so the maintainer links them.
+- 2026-11-09 10:25 UTC - Claude Code (Claude Sonnet 5.5) - Corrected details after the review rounds on PR 2771 and PR 2774 and fixed the earlier log stamps from the commit and issue creation times.
+- 2026-11-09 11:26 UTC - Claude Code (Claude Sonnet 5.5) - Corrected details after the round 3 review of PR 2774.
+- 2026-11-09 12:12 UTC - Claude Code (Claude Sonnet 5.5) - Addressed the review of PR 2771 (da2ce7 findings F1 to F27 and Copilot's later comments): specs corrected from the code, reproductions recorded where a spec has a bug-fix section.
+- 2026-11-09 13:21 UTC - Claude Code (Claude Sonnet 5.5) - Addressed da2ce7's review 5826238636 of PR 2771 on this spec.
 
 ## Acceptance Criteria
 
@@ -166,7 +171,8 @@ consumes the old behavior (named in its spec). No issue edits the ADR table exce
 ## Risks and Trade-offs
 
 - **The daemon's log format is operator-visible.** Existing deployments parse the plain text. Mitigation: a release
-  note, the `trace_style` option keeps working, and the issue decides the migration detail with the maintainer before code.
+  note, and the issue decides the migration detail with the maintainer before code. Whether the other `trace_style` values keep working depends on that decision: the contract allows no plain text at any verbosity, so the plain styles cannot simply stay.
+- **The `check` output shape changes.** `tracker_client check` emits a top-level array today and the contract requires one object; issue 9 wraps it in an envelope, which breaks consumers of the array (the README documents it). Mitigation: release note and the tracker-client contract doc.
 - **Health check semantics.** The container `HEALTHCHECK` must keep failing on an unhealthy service. Mitigation: the
   `no-stdout-result` reclassification, and a manual verification that `docker inspect` reports `unhealthy`.
 - **Review load.** Eleven issues is a lot for one reviewer. Mitigation: the maintainer sets the parallelism; waves are

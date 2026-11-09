@@ -9,7 +9,7 @@ github-issue: 2762
 spec-path: docs/issues/open/2762-2758-package-coverage-check-contract/ISSUE.md
 branch: "2762-package-coverage-check-contract"
 related-pr: null
-last-updated-utc: "2026-11-06 17:10"
+last-updated-utc: "2026-11-09 12:12"
 semantic-links:
   skill-links:
     - create-issue
@@ -124,8 +124,11 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 
 ### Progress Log
 
-- 2026-11-06 17:10 UTC - Claude Code (Claude Sonnet 5.5) - Drafted this spec as part of EPIC #2758 from the 2026-11-06 audit.
-- 2026-11-06 17:25 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the spec; GitHub issue #2762 created.
+- 2026-11-06 16:43 UTC - Claude Code (Claude Sonnet 5.5) - Drafted this spec as part of EPIC #2758 from the 2026-11-06 audit.
+- 2026-11-06 16:51 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the spec; GitHub issue #2762 created.
+- 2026-11-09 10:25 UTC - Claude Code (Claude Sonnet 5.5) - Corrected details after the review rounds on PR 2771 and PR 2774 and fixed the earlier log stamps from the commit and issue creation times.
+- 2026-11-09 11:26 UTC - Claude Code (Claude Sonnet 5.5) - Corrected details after the round 3 review of PR 2774.
+- 2026-11-09 12:12 UTC - Claude Code (Claude Sonnet 5.5) - Addressed the review of PR 2771 (da2ce7 findings F1 to F27 and Copilot's later comments): specs corrected from the code, reproductions recorded where a spec has a bug-fix section.
 
 ## Acceptance Criteria
 
@@ -154,7 +157,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | -------- | ---------------------------- | --------------- | ------ | -------- |
-| M1 | Usage error | `cargo run -p package-coverage-check -- bogus > out 2> err; echo "exit=$?"; wc -c out` | JSON record in `err`, `out` empty, exit `2` | TODO | `manual-verification-evidence.md` section V1 |
+| M1 | Usage error | `cargo build -p package-coverage-check`, then `target/debug/package-coverage-check bogus > out 2> err; echo "exit=$?"; wc -c out` (the built binary, not `cargo run`, which adds plain cargo messages to stderr) | JSON record in `err`, `out` empty, exit `2` | TODO | `manual-verification-evidence.md` section V1 |
 | M2 | Summary round trip | Run `summary` on a sample discovery and results folder, redirect stdout to a file and run `jq -r .markdown` on it | Markdown identical to the previous output | TODO | `manual-verification-evidence.md` section V2 |
 | M3 | Workflow syntax | `actionlint` (or the repo's workflow linter) on the workflow | No findings | TODO | `manual-verification-evidence.md` section V3 |
 

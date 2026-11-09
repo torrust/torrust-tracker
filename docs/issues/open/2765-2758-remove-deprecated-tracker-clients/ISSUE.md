@@ -9,7 +9,7 @@ github-issue: 2765
 spec-path: docs/issues/open/2765-2758-remove-deprecated-tracker-clients/ISSUE.md
 branch: "2765-remove-deprecated-tracker-clients"
 related-pr: null
-last-updated-utc: "2026-11-06 17:10"
+last-updated-utc: "2026-11-09 13:21"
 semantic-links:
   skill-links:
     - create-issue
@@ -40,11 +40,11 @@ The global CLI output contract (`docs/adrs/20260519000000_define_global_cli_outp
 
 ### In Scope
 
-- Delete the three binary entry points and their `Cargo.toml` entries.
+- Delete the three binary entry points (`console/tracker-client/Cargo.toml` has no `[[bin]]` section and names none of them; they are discovered from `src/bin/`).
 - Delete or migrate their tests so coverage of the shared code is kept through `tracker_client`.
 - Update README, `docs/packages.md` and any doc or config that tells the reader to run them.
 - Add the breaking-change note.
-- Migrate `src/console/ci/e2e/tracker_checker.rs`, which launches `cargo run -p torrust-tracker-client --bin tracker_checker` for the e2e runner, to the unified `tracker_client check` (keeping `TORRUST_CHECKER_CONFIG`), so the e2e runner still works; check the e2e runner and any workflow that calls it.
+- Migrate `src/console/ci/e2e/tracker_checker.rs`, which launches `cargo run -p torrust-tracker-client --bin tracker_checker` for the e2e runner, to the unified `tracker_client check` (keeping `TORRUST_CHECKER_CONFIG`), so the e2e runner still works. That helper uses `Command::status()`, so the child inherits the runner's stdout; once issue 2768 adds TTY refusal to `tracker_client`, the checker child of an e2e run from a terminal would exit `2`, `tracker_checker::run` would turn that into an error and `runner.rs` would panic with exit status `101`. Capture the child's stdout (and forward or log it as JSON) when migrating the caller; check the e2e runner and any workflow that calls it. The interactive-terminal case needs the TTY refusal, which arrives with issue 2768, and is verified there (M4).
 
 ### Out of Scope
 
@@ -54,7 +54,6 @@ The global CLI output contract (`docs/adrs/20260519000000_define_global_cli_outp
 Files this issue may touch (a sibling issue in the same wave must not touch them):
 
 - `console/tracker-client/src/bin/{http_tracker_client,udp_tracker_client,tracker_checker}.rs`
-- `console/tracker-client/Cargo.toml`
 - `console/tracker-client/README.md`
 - `console/tracker-client/tests/tracker_checker*`
 - `docs/packages.md`
@@ -69,7 +68,12 @@ During implementation, stop and create an ADR when a decision affects project ar
 
 ## Design and Ownership Review
 
-Not applicable.
+The checker caller migration in `src/console/ci/e2e/tracker_checker.rs` spawns a child process and captures its output, so this section applies to that helper.
+
+- Responsibilities: `tracker_checker::run` owns launching `tracker_client check` (with `TORRUST_CHECKER_CONFIG` in the child's environment), the pipes for the child's stdout and stderr, and turning the exit status and captured output into a result for the runner; the runner owns what it does with that result.
+- Lifetime invariants: the child is always waited for (or killed and reaped) before `run` returns, on success, on a non-zero exit, on a read error and on a panic in the caller; both pipes are read to the end (or on separate threads) so a full pipe cannot block the child.
+- Deadline: the checker has its own network timeout, and `run` adds an absolute deadline to the wait on the child so a hung checker cannot hang the runner; a missing deadline is a defect.
+- Design-review checkpoint: after the first passing vertical slice (the helper captures a successful `check` run), review the ownership of the child and the pipes before handling the failure paths.
 
 ## Bug-Fix Process
 
@@ -86,7 +90,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status | Task | Notes / Expected Output |
 | --- | ------ | ---- | ----------------------- |
 | T1 | TODO | List every reference to the three binaries | `grep` result in the progress log. |
-| T2 | TODO | Remove the binaries and manifest entries | Workspace builds. |
+| T2 | TODO | Remove the binaries | Workspace builds. |
 | T3 | TODO | Keep the test coverage through `tracker_client` | No lost scenarios. |
 | T4 | TODO | Update docs and add the breaking-change note | `grep` finds no stale instruction. |
 
@@ -95,7 +99,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | Task | Coherent change set | Commit policy |
 | ---- | ------------------- | ------------- |
 | T1 | List every reference to the three binaries | Commit after focused validation and required review. |
-| T2 | Remove the binaries and manifest entries | Commit after focused validation and required review. |
+| T2 | Remove the binaries | Commit after focused validation and required review. |
 | T3 | Keep the test coverage through `tracker_client` | Commit after focused validation and required review. |
 | T4 | Update docs and add the breaking-change note | Commit after focused validation and required review. |
 
@@ -120,14 +124,20 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 
 ### Progress Log
 
-- 2026-11-06 17:10 UTC - Claude Code (Claude Sonnet 5.5) - Drafted this spec as part of EPIC #2758 from the 2026-11-06 audit.
-- 2026-11-06 17:25 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the spec; GitHub issue #2765 created.
+- 2026-11-06 16:43 UTC - Claude Code (Claude Sonnet 5.5) - Drafted this spec as part of EPIC #2758 from the 2026-11-06 audit.
+- 2026-11-06 16:52 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the spec; GitHub issue #2765 created.
+- 2026-11-09 10:25 UTC - Claude Code (Claude Sonnet 5.5) - Corrected details after the review rounds on PR 2771 and PR 2774 and fixed the earlier log stamps from the commit and issue creation times.
+- 2026-11-09 11:26 UTC - Claude Code (Claude Sonnet 5.5) - Corrected details after the round 3 review of PR 2774.
+- 2026-11-09 12:12 UTC - Claude Code (Claude Sonnet 5.5) - Addressed the review of PR 2771 (da2ce7 findings F1 to F27 and Copilot's later comments): specs corrected from the code, reproductions recorded where a spec has a bug-fix section.
+- 2026-11-09 12:39 UTC - Claude Code (Claude Sonnet 5.5) - Addressed Copilot's latest review of PR 2771: filled the Design and Ownership Review for the child-process work and corrected the pseudo-terminal check in the evidence.
+- 2026-11-09 13:21 UTC - Claude Code (Claude Sonnet 5.5) - Addressed da2ce7's review 5826238636 of PR 2771 on this spec.
 
 ## Acceptance Criteria
 
 - [ ] AC1: `cargo build --workspace --all-targets` passes without the three binaries.
 - [ ] AC2: No document or script tells the reader to run a removed binary.
 - [ ] AC3: `tracker_client check` still passes the tests that covered the checker.
+- [ ] AC4: `src/console/ci/e2e/tracker_checker.rs` launches `tracker_client check` with `TORRUST_CHECKER_CONFIG`, proven by a runner-level run (M2), because the binary name is a runtime string that the workspace build cannot check.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
@@ -149,6 +159,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | ID  | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | -------- | ---------------------------- | --------------- | ------ | -------- |
 | M1 | Unified checker | Run `tracker_client check` against a local tracker as the README documents | Works as before | TODO | `manual-verification-evidence.md` section V1 |
+| M2 | E2E checker launch | Run the e2e runner (or call the helper) after migrating `tracker_checker.rs` and check that it launches `tracker_client check` with `TORRUST_CHECKER_CONFIG` (for example from the logged command line); the interactive-terminal case is verified in issue 2768 once the TTY refusal exists, and this row is only a smoke test | The checker step runs against the unified binary | TODO | `manual-verification-evidence.md` section V2 |
 
 Manual verification is mandatory even when automated tests pass. Record actual commands, output and the toolchain that produced each result in `manual-verification-evidence.md` (from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`).
 
@@ -159,6 +170,7 @@ Manual verification is mandatory even when automated tests pass. Record actual c
 | AC1 | TODO |  |
 | AC2 | TODO |  |
 | AC3 | TODO |  |
+| AC4 | TODO |  |
 
 ## Risks and Trade-offs
 
