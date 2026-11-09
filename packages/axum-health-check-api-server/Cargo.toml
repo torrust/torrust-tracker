@@ -16,6 +16,12 @@ version = "0.2.0"
 [lints]
 workspace = true
 
+[features]
+default = [  ]
+# Test support outside the semver guarantees of this package: the health check API test environment in
+# `src/environment.rs`, which the package's own tests use. Never enable it from a `[dependencies]` entry.
+testing = [ "dep:torrust-tracker-configuration" ]
+
 [dependencies]
 axum = { version = "0", features = [ "macros" ] }
 axum-server = { version = "0", features = [ "tls-rustls-no-provider" ] }
@@ -29,15 +35,16 @@ tokio-util = "0.7.15"
 torrust-tracker-axum-server = { version = "0.1.0", path = "../axum-server" }
 torrust-server-lib = "0.4.0"
 torrust-tracker-primitives = { version = "3.0.0", path = "../primitives" }
-torrust-tracker-configuration = { version = "3.0.0", path = "../configuration" }
+torrust-tracker-configuration = { version = "3.0.0", path = "../configuration", optional = true }
 torrust-net-primitives = "0.1.0"
 tower-http = { version = "0", features = [ "compression-full", "cors", "propagate-header", "request-id", "trace" ] }
 tracing = "0"
-url = "2.5.4"
+url = { version = "2.5.4", features = [ "serde" ] }
 
 [dev-dependencies]
 reqwest = { version = "0", features = [ "json" ] }
 rustls = { version = "0.23", default-features = false, features = [ "ring" ] }
+torrust-tracker-axum-health-check-api-server = { path = ".", features = [ "testing" ] }
 torrust-tracker-axum-http-server = { version = "0.1.0", path = "../axum-http-server", features = [ "testing" ] }
 torrust-tracker-axum-rest-api-server = { version = "0.1.0", path = "../axum-rest-api-server", features = [ "testing" ] }
 torrust-clock = "3.0.0"
