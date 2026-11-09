@@ -11,10 +11,10 @@ semantic-links:
 
 Direct normal (non-dev, non-build) dependencies between workspace packages and on external
 `torrust-*` crates, as declared in each `Cargo.toml`. Verified against
-`cargo metadata --no-deps` on 2026-10-06: 153 edges. One more edge,
+`cargo metadata --no-deps` on 2026-11-09: 135 edges. One more edge,
 `torrust-server-lib --> torrust-net-primitives`, is drawn for context: it is a dependency between
 two external crates, so no workspace manifest declares it. See the
-[2026-10-06 coupling report](../../issues/open/1669-overhaul-packages/workspace-coupling-report-2026-10-06.md)
+[2026-11-09 coupling report](../../issues/open/1669-overhaul-packages/workspace-coupling-report-2026-11-09.md)
 for the items each edge imports.
 
 An edge that exists only for a package's `testing` feature (an optional normal dependency that only
@@ -257,13 +257,7 @@ flowchart TB
     server-lib --> net-prim
 
     %% Testing / Benchmarking
-    test-helpers --> info-hash
-    test-helpers --> peer-id
-    test-helpers --> client-lib
     test-helpers --> config
-    test-helpers --> http-proto
-    test-helpers --> primitives
-    test-helpers --> udp-proto
 
     torrent-bench --> clock
     torrent-bench --> info-hash

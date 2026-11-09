@@ -79,9 +79,9 @@ the pin `torrust-cargo-chef` 0.1.79 is already in the `Containerfile`.
   re-checks it).
 - Gate `pub mod environment;` with `#[cfg(feature = "testing")]`; add `testing` (not in `default`)
   with `dep:torrust-tracker-configuration`, and make that dependency optional.
-- Add the path-only self dev-dependency (no `version`) with `features = ["testing"]`, and its
-  `deny.toml` `wrappers` entry for `torrust-tracker-axum-health-check-api-server` in the same commit
-  as the manifest.
+- Add the path-only self dev-dependency (no `version`) with `features = ["testing"]`. The
+  `deny.toml` `wrappers` entry that lists the package itself already existed at `ca8efcd4d`; this
+  change only adds the comment explaining it.
 - The feature comment (test support, outside semver); no `testing` in `[package.metadata.docs.rs]`.
 - Run the container recipe check (`cargo chef prepare --external-only`, then `cargo chef cook`) and
   the Shipped Features check before the first push.
@@ -152,7 +152,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
 | T1 | DONE | Record the baseline | `cargo tree -p torrust-tracker-axum-health-check-api-server -e normal --depth 1` (17 direct dependencies); plain `cargo test -p torrust-tracker-axum-health-check-api-server` on `torrust/develop` at `35ec81000` (2026-11-06): 15 unit + 11 integration + 0 doc. T2 remeasures with and without `--all-features` before comparing |
-| T2 | DONE | Gate the module, add the feature, make `configuration` optional, add the self dev-dependency and its `deny.toml` wrapper | Plain `cargo test -p torrust-tracker-axum-health-check-api-server` passes with the baseline counts; `cargo check -p torrust-tracker-axum-health-check-api-server --lib` passes with no features; `Cargo.lock` and `deny.toml` in the same commit |
+| T2 | DONE | Gate the module, add the feature, make `configuration` optional, add the self dev-dependency (the `deny.toml` self wrapper already exists; add its comment) | Plain `cargo test -p torrust-tracker-axum-health-check-api-server` passes with the baseline counts; `cargo check -p torrust-tracker-axum-health-check-api-server --lib` passes with no features; `Cargo.lock` and `deny.toml` in the same commit |
 | T3 | DONE | Update inventory, diagram and docs | Pattern A row resolved; stale 118-line figure corrected; EPIC row |
 | T4 | DONE | Verify the container recipe and the shipped features | `cargo chef prepare --external-only` then `cargo chef cook --tests --workspace --all-features` exit 0 in a scratch directory; `cargo run -q --package shipped-features-check -- --package torrust-tracker` exits 0 |
 | T5 | DONE | Regenerate the coupling report and check AC8 | New dated report under `docs/issues/open/1669-overhaul-packages/`; the result recorded in the #2482 EPIC as evidence, without ticking AC8 |
@@ -161,7 +161,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | Task | Coherent change set | Commit policy |
 | --- | --- | --- |
-| T2 | Gate, feature, optional dependency, self dev-dependency, `deny.toml` wrapper | Commit after the package's tests pass without `--all-features`. |
+| T2 | Gate, feature, optional dependency, self dev-dependency, `deny.toml` comment | Commit after the package's tests pass without `--all-features`. |
 | T3 | Docs | One commit. |
 | T4 | Evidence | One commit with the spec update. |
 | T5 | The regenerated report and the EPIC note | One commit. |
@@ -190,6 +190,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-06 16:39 UTC - AI assistant (Claude Code, #2482 row 7) - The maintainer approved the spec. Created issue #2757 as `josecelano-bot`; the maintainer added the labels (`task`, `packages`) himself. The sub-issue link under #2482 is pending his action. The spec moved to `docs/issues/open/`; the #2482 EPIC row, the inventory and the 2026-10-06 coupling report link to it.
 - 2026-11-06 17:12 UTC - AI assistant (Claude Code, #2482 row 7) - The maintainer added the labels (`task`, `packages`) and the sub-issue link under #2482 with his own account (verified: `parent_issue_url` is #2482). Opened spec-only PR #2759 (`Related to #2757`); `related-pr` is set to 2759. The 16:40 entry above was dated 16:34, the time the draft was committed; the earlier 16:40 was a mistake found in PR #2759 review round 1.
 - 2026-11-09 15:53 UTC - AI assistant (Claude Code, #2482 row 7) - Implemented T2 to T5 on branch `2757-2482-gate-axum-health-check-api-server-test-environment`: the `testing` feature, `configuration` optional, the path-only self dev-dependency with its `deny.toml` wrapper, and `url` now declared with `features = ["serde"]` (the move exposed that the package only got it through `configuration`). Plain package tests keep the baseline (15 + 11); the direct dependency count is 17 before and 16 after. The coupling report of 2026-11-09 was regenerated and AC8 was checked: no test-only runtime edge remains once five stale diagram edges are removed (four from rows 4 and 5, one from this row). The evidence is in `manual-verification-evidence.md`; the AC8 result is recorded in the EPIC without ticking it. The #2482 close-out steps are not part of this row.
+- 2026-11-09 16:38 UTC - AI assistant (Claude Code, #2482 row 7) - Corrections after da2ce7's review of PR #2784: (1) the 15:53 entry says `url` got `serde` only through `configuration` and lost it with the edge; that is wrong. Measured at `ca8efcd4d` (the merge base, with the `configuration` edge still present) `cargo check -p torrust-tracker-axum-health-check-api-server --lib` already failed with E0277, because `url` lacked `serde` there; only crates reached through `[dev-dependencies]` (`udp-server`, `rest-api-client`) request it, so `cargo test -p` passed. The declaration is correct on its own; the defect pre-existed and T1's baseline ran only `cargo test`. (2) The `deny.toml` self wrapper entry already existed at `ca8efcd4d`; this PR adds only a comment. (3) Six `test-helpers` arrows that no manifest declares are removed from the diagram (a script compares every arrow with `cargo metadata`), the edge count is restated as 135, the report gets frontmatter, the module gets its rule A.6 note, and the evidence commands live in `evidence/`.
 
 ## Acceptance Criteria
 
@@ -252,7 +253,7 @@ without `--all-features`, and check the test count.
 
 ## Implementation Completion Review
 
-- Retrospective: [`implementation-retrospective.md`](implementation-retrospective.md): the move exposed a missing `serde` feature on the package's own `url` dependency, and the AC8 check found four stale test-only edges in the diagram from rows 4 and 5.
+- Retrospective: [`implementation-retrospective.md`](implementation-retrospective.md): the no-features build was already broken before the move (the package's own `url` lacked `serde`), and the AC8 check found stale diagram edges from rows 4 and 5.
 
 ## References
 

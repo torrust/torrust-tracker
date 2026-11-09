@@ -129,12 +129,14 @@ use was an unused `CurrentClock` alias, which #2745 deleted. The package has no 
 health check environment (row 7) remained.
 
 **`axum-health-check-api-server` resolved by #2757.** The same pattern with one optional
-dependency: `testing = ["dep:torrust-tracker-configuration"]`, the path-only self dev-dependency, the
-`deny.toml` self wrapper (direct normal dependencies drop from 17 to 16; `configuration` stays
-reachable through `axum-server`). The package has no examples. The move exposed a latent defect:
-`url = "2.5.4"` had no `serde` feature, and `CheckReport` (`src/resources.rs`) derives `Serialize` and
-`Deserialize` on a `Url`; the feature only came from `torrust-tracker-configuration`, so the package
-did not compile without it. The package now declares `url` with `features = ["serde"]`.
+dependency: `testing = ["dep:torrust-tracker-configuration"]`, the path-only self dev-dependency, and the
+existing `deny.toml` self wrapper entry for the package, which now has a comment (direct normal
+dependencies drop from 17 to 16; `configuration` stays reachable through `axum-server`). The package has no
+examples. The no-features library build was already broken before this change, independent of the
+`configuration` edge: `url = "2.5.4"` had no `serde` feature, and `CheckReport` (`src/resources.rs`)
+derives `Serialize` and `Deserialize` on a `Url`. Only crates reached through
+`[dev-dependencies]` (`udp-server`, `rest-api-client`) requested the feature, so `cargo test -p` passed while `cargo check -p ... --lib` failed
+at `ca8efcd4d` (measured there: E0277). The package now declares `url` with `features = ["serde"]`.
 
 The 2026-10-06 coupling report (finding 2) listed four of `axum-rest-api-server`'s six; this
 inventory adds `tracker-core` and `rest-api-client`, and the health check's `configuration`.

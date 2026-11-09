@@ -1,3 +1,15 @@
+//! Test-only infrastructure for `axum-health-check-api-server`.
+//!
+//! This module starts and stops the health check API on a `HealthCheckApi` configuration and a
+//! `Registar` for tests in this crate.
+//!
+//! > **Note**: This module is compiled only with the non-default `testing` feature, which is test
+//! > support outside the semver guarantees of this package. Inside this workspace the feature is
+//! > enabled from a `[dev-dependencies]` entry only (the `Shipped Features` check enforces it), so
+//! > that it never reaches a shipped build; the package's own targets enable it through a path-only
+//! > self dev-dependency. Anyone else who wants this environment in a build opts in knowingly and
+//! > accepts that it can change in any release.
+
 use std::fmt::Display;
 use std::net::SocketAddr;
 use std::sync::Arc;

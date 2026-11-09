@@ -25,22 +25,22 @@ Record the two material discoveries of #2757, the last row of #2482. A blameless
 
 ## What Changed During Implementation
 
-1. Dropping the `configuration` edge broke the build without the feature: `CheckReport` derives `Serialize` and `Deserialize` on a `url::Url`, but the package's own `url = "2.5.4"` had no `serde` feature. The feature had come only through `torrust-tracker-configuration` (Cargo feature unification). The package now declares `url` with `features = ["serde"]`.
-2. The AC8 check found four test-only edges still drawn in the dependency diagram that rows 4 and 5 had made optional (`axum-http --> clock`, `info-hash`, `swarm`; `udp-srv --> swarm`). They are removed here, together with the health check's `config` edge.
+1. The no-features library build of the package was already broken at `ca8efcd4d`, before this change: `CheckReport` derives `Serialize` and `Deserialize` on a `url::Url`, but the package's own `url = "2.5.4"` had no `serde` feature. Only crates reached through `[dev-dependencies]` (`udp-server`, `rest-api-client`) request the feature, so plain `cargo test -p` passed. It surfaced here only because the first no-features `cargo check --lib` of the package was run after the gate. (The first version of this document, the inventory and the PR description wrongly blamed the dropped `configuration` edge; da2ce7's review corrected it with a measurement at the merge base.) The package now declares `url` with `features = ["serde"]`.
+2. The AC8 check found test-only edges still drawn in the dependency diagram that rows 4 and 5 had made optional (`axum-http --> clock`, `info-hash`, `swarm`; `udp-srv --> swarm`), plus six `test-helpers` arrows that no manifest declares. They are removed here, together with the health check's `config` edge.
 
 ## Root Cause
 
-1. The audit per row looks at which dependencies production code uses, not at which features of the remaining dependencies another dependency enables for free. A crate that removes a heavy edge can lose a feature it never declared.
-2. The diagram rule ("test-only edges are not drawn") was applied per row by hand. Rows 4 and 5 predate the rule's wording and nothing compared the diagram with the labelled edges.
+1. Rows 4 to 6 and T1's baseline ran `cargo test`, which builds a package with its dev-dependencies' features; nothing built the package alone without features. Feature unification through dev-dependencies hid a missing declaration.
+2. The diagram rule ("test-only edges are not drawn") was applied per row by hand, and nothing compared the arrows with the manifests.
 
 ## Improvements for Future Work
 
-1. When an environment move removes a dependency edge, build the package with no features (`cargo check -p <package> --lib`) before the tests; this is already in the spec and found the defect.
-2. A check that compares the diagram's edges with the report's `optional (testing)` edges would keep the diagram honest. Not done here (the maintainer chose no counter and no new tool work for this row).
+1. Run `cargo check -p <package> --lib` with no features as part of the baseline (T1), not only after the change, so a pre-existing defect is not confused with one the move causes.
+2. Compare the diagram's arrows with `cargo metadata` (the script in this folder's `evidence/` does it) when a row touches the diagram.
 
 ## Avoiding Overcorrection
 
-A general lint for undeclared transitive features is not justified by one case. The no-features `cargo check` already catches it.
+A general lint for undeclared features is not justified by one case. The no-features `cargo check` already catches it.
 
 ## Evidence
 
