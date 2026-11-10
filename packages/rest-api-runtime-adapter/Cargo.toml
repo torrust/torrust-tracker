@@ -1,9 +1,10 @@
 [package]
 authors.workspace = true
+categories = [ "web-programming" ]
 description = "Tracker-specific runtime adapter for the REST API application layer."
 edition.workspace = true
 homepage.workspace = true
-keywords = [ "adapter", "api", "bittorrent", "runtime", "torrust", "tracker" ]
+keywords = [ "adapter", "bittorrent", "hexagonal", "rest", "runtime" ]
 license.workspace = true
 name = "torrust-tracker-rest-api-runtime-adapter"
 publish.workspace = true
