@@ -14,11 +14,19 @@ exclude_path = [
 # reliably validate them. The Star History project selector is also client-side.
 # Keep all other GitHub URLs, fragments, and Star History targets checked.
 exclude = [
-  "^https://github\\.com/torrust/torrust-tracker/issues/1669#issuecomment-4010991467$",
-  "^https://github\\.com/torrust/torrust-tracker/issues/269#issuecomment-1749443211$",
+  "^https://github\\.com/torrust/torrust-tracker/issues/[0-9]+#issuecomment-[0-9]+$",
   "^https://github\\.com/torrust/torrust-tracker/pull/[0-9]+#discussion_r[0-9]+$",
   "^https://github\\.com/torrust/torrust-tracker/pull/[0-9]+#issuecomment-[0-9]+$",
   "^https://github\\.com/torrust/torrust-tracker/pull/[0-9]+#pullrequestreview-[0-9]+$",
+  # Pages that need repository admin authentication return 404 to anonymous runners.
+  "^https://github\\.com/torrust/torrust-tracker/security/code-scanning/[0-9]+$",
+  "^https://github\\.com/torrust/torrust-tracker/settings/",
+  # Stack Overflow rejects automated clients with 403 (docs/containers.md).
+  "^https://stackoverflow\\.com/a/56768087/3012842$",
+  # Medium rejects automated clients with 403 (write-unit-test skill).
+  "^https://medium\\.com/@kentbeck_7670/(test-desiderata-94150638a4b3|programmer-test-principles-d01c064d7934)$",
+  # Lychee cannot complete the TLS handshake with www.fsf.org (HandshakeFailure).
+  "^https://www\\.fsf\\.org/$",
   "^https://star-history\\.dera\\.page/#torrust/torrust-tracker$",
 ]
 
