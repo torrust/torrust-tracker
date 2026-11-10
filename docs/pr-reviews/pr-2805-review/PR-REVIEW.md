@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Round 1 is da2ce7's review `5842841425` (F1 to F9) and Copilot's review `5842867931` (F17 to F19, numbered after the reviewer-provided IDs). Round 2 is da2ce7's review `5843238357` (F10 to F16). Round 3 is da2ce7's review `5843807142` (F20 to F22; the reviewer numbered them F19 to F21, which collide with Copilot's F19, so the original IDs are recorded in the detail entries).
+Round 1 is da2ce7's review `5842841425` (F1 to F9) and Copilot's review `5842867931` (F17 to F19, numbered after the reviewer-provided IDs). Round 2 is da2ce7's review `5843238357` (F10 to F16). Round 4 is da2ce7's review `5844183589` (F23; the reviewer numbered it F22, which collides with F22). Round 3 is da2ce7's review `5843807142` (F20 to F22; the reviewer numbered them F19 to F21, which collide with Copilot's F19, so the original IDs are recorded in the detail entries).
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -67,6 +67,7 @@ Round 1 is da2ce7's review `5842841425` (F1 to F9) and Copilot's review `5842867
 | F20 | review-finding:pr-2805-f20 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F21 | review-finding:pr-2805-f21 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F22 | review-finding:pr-2805-f22 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F23 | review-finding:pr-2805-f23 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -355,6 +356,19 @@ Round 1 is da2ce7's review `5842841425` (F1 to F9) and Copilot's review `5842867
 - Resolution reference: https://github.com/torrust/torrust-tracker/pull/2805#discussion_r4526350429
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2805#discussion_r4526350429
+
+### F23 - The edited F12 reply states a last-updated-utc value the tree no longer holds
+
+- PR number: 2805
+- Source review ID: 5844183589
+- Reviewer finding ID: F22
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2805#discussion_r4526604757
+- Concern: The F12 reply said last-updated-utc is 14:16 while the spec has said 14:25 since an earlier commit.
+- Solution: Edited the F12 reply to say the field was set to 14:16 in that commit and updated later.
+- Current-tree verification: Read the F12 reply after the edit and the last-updated-utc line of the spec.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2805#discussion_r4526899136
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2805#discussion_r4526899136
 
 ## Processing Log
 
