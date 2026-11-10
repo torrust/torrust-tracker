@@ -192,10 +192,37 @@ For each README in scope:
 | Field           | Rule                                                                                                                       |
 | --------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | `description`   | One accurate plain-text sentence about the crate (crates.io requires it).                                                 |
-| `keywords`      | At most 5; ASCII, at most 20 characters; no filler (`library`, `rust`, `api`); no repeat of words already in the name. |
+| `keywords`      | At most 5; ASCII, at most 20 characters; no filler (`library`, `rust`, `api`); a word of the crate name may repeat only when it is the word users search for (`axum`, `http`, `udp`, `rest`), as in the approved table below. |
 | `categories`    | 1 to 5 valid crates.io slugs (`https://crates.io/category_slugs`).                                                         |
 | `documentation` | Absent, in members and in `[workspace.package]`; crates.io then links the crate's own docs.rs page.                      |
 | `readme`        | `README.md` (already set everywhere; keep).                                                                                |
+
+Approved keywords and categories (maintainer, 2026-11-10; the root crate keeps its existing keywords, including `tracker`). AC2 is checked against this table:
+
+| Crate | Keywords | Categories |
+| ----- | -------- | ---------- |
+| `torrust-tracker-client` | announce, bittorrent, cli, scrape, udp | command-line-utilities, network-programming |
+| `torrust-tracker-client-lib` | announce, bittorrent, http, scrape, udp | network-programming, web-programming::http-client |
+| `torrust-tracker-http-protocol` | announce, bencode, bittorrent, http, scrape | network-programming, parser-implementations |
+| `torrust-tracker-udp-protocol` | announce, bep15, bittorrent, scrape, udp | network-programming, parser-implementations |
+| `torrust-tracker-axum-health-check-api-server` | axum, bittorrent, healthcheck, http, monitoring | web-programming::http-server |
+| `torrust-tracker-axum-server` | axum, graceful-shutdown, http, timeout, tls | web-programming::http-server, asynchronous |
+| `torrust-tracker-configuration` | bittorrent, config, settings, toml | config |
+| `torrust-tracker-primitives` | announce, bittorrent, info-hash, peer, swarm | data-structures, network-programming |
+| `torrust-tracker-axum-http-server` | announce, axum, bittorrent, http, scrape | web-programming::http-server, network-programming |
+| `torrust-tracker-core` | announce, bittorrent, peers, scrape, whitelist | network-programming |
+| `torrust-tracker-events` | async, broadcast, channels, pubsub | asynchronous, data-structures |
+| `torrust-tracker-swarm-coordination-registry` | bittorrent, concurrency, in-memory, peers, torrents | data-structures, network-programming |
+| `torrust-tracker-test-helpers` | bittorrent, fixtures, mock, testing | development-tools::testing |
+| `torrust-tracker-http-core` | announce, bittorrent, http, scrape, whitelist | network-programming |
+| `torrust-tracker-axum-rest-api-server` | axum, bittorrent, http, openapi, rest | web-programming::http-server |
+| `torrust-tracker-rest-api-application` | application, bittorrent, rest, use-cases | web-programming |
+| `torrust-tracker-rest-api-protocol` | bittorrent, contract, dto, rest, serde | web-programming |
+| `torrust-tracker-rest-api-client` | bittorrent, http-client, reqwest, rest | web-programming::http-client |
+| `torrust-tracker-rest-api-runtime-adapter` | adapter, bittorrent, hexagonal, rest, runtime | web-programming |
+| `torrust-tracker-udp-core` | announce, bittorrent, connection-id, scrape, udp | network-programming |
+| `torrust-tracker-udp-server` | announce, bittorrent, scrape, tokio, udp | network-programming, asynchronous |
+| `torrust-tracker` | bittorrent, file-sharing, peer-to-peer, torrent, tracker | network-programming, web-programming::http-server |
 
 ## Architectural Decisions
 
@@ -303,6 +330,10 @@ Commit.
   has a Rust example (examples were optional), so no doctest hook was added and AC8 holds because
   no README has a Rust fence. AC6 holds because nothing was published. See
   `manual-verification-evidence.md`.
+- 2026-11-10 UTC - Claude (Sonnet 5.5) - PR #2812 review finding F1 (da2ce7): 13 crates' keywords
+  repeat a word of the crate name, against the "no repeat" rule. The maintainer had approved the
+  keyword table, so the rule is amended (a repeat is allowed when it is the word users search for)
+  and the approved table is recorded in the metadata rules section.
 
 ## Acceptance Criteria
 
