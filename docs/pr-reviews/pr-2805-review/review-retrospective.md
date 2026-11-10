@@ -12,23 +12,30 @@ semantic-links:
 
 # PR Review Retrospective — PR #2805
 
-Spec-only PR for issue #2804 (`Location::caller()` without `#[track_caller]`). It is carried to
-`develop` by PR #2814, which also holds the first work of the issue; PR #2814 had no review findings
-when this was written. The location follows `docs/templates/PR-REVIEW-TEMPLATE.md`: beside the
-audit record of the PR whose findings it analyses.
+PR #2805 was the spec-only PR for issue #2804 (`Location::caller()` without `#[track_caller]`). It
+was merged into `develop` on its own (`3fe63d04b`). This file analyses its review and is carried to
+`develop` by PR #2814, the next PR of the same issue, because #2805 was already merged when it was
+written. It lives beside the audit record of the reviewed PR, as `PR-REVIEW-RETROSPECTIVE.md`
+asks. It does not cover the review of #2814 itself.
+
+## Purpose
+
+Record, blamelessly and from evidence, why the review of #2805 took 24 findings over five rounds,
+and what would have prevented the avoidable ones. It complements `PR-REVIEW.md`, which records what
+each finding was; this file records why the process cost what it did.
 
 ## Review Summary
 
-| Metric                                     | Value                                                                                |
-| ------------------------------------------ | ------------------------------------------------------------------------------------ |
-| Reviews submitted                          | 7 (6 human, 1 bot); findings came in 5 rounds, and the last 3 human reviews approved |
-| Audit findings                             | 24 (21 human, 3 bot)                                                                 |
-| Re-raised findings (`RE_RAISE_OF`)         | 0                                                                                    |
-| Findings about the audit record or replies | 8 of 24 (F12, F13, F14, F15, F20, F21, F23, F24)                                     |
-| Findings about statements in the spec      | 10 (F1, F2, F5, F6, F7, F8, F10, F11, F16, F17)                                      |
-| Commits on the branch                      | 13 (8 audit-only)                                                                    |
-| First review to last thread resolution     | 13:45 to 15:59 UTC on 2026-11-10 (about 2 h 15 min)                                  |
-| AI models used                             | Claude Sonnet 5.5 (author); reviewers unknown                                        |
+| Metric                                            | Value                                                                                                                                                                                                                                               |
+| ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Reviews submitted                                 | 7 by reviewers (6 human, 1 bot); findings came in 5 rounds and the last review (16:19 UTC) approved with no finding. Source: `gh api repos/torrust/torrust-tracker/pulls/2805/reviews --paginate`, excluding the replies posted as `josecelano-bot` |
+| Audit findings                                    | 24 (21 human, 3 bot)                                                                                                                                                                                                                                |
+| Re-raised findings (`RE_RAISE_OF`)                | 0                                                                                                                                                                                                                                                   |
+| Findings about the audit record or replies        | 6 of 24 (F13, F15, F20, F21, F23, F24)                                                                                                                                                                                                              |
+| Findings about statements in the spec or evidence | 12 (F1, F2, F5, F6, F7, F8, F10, F11, F12, F14, F16, F17)                                                                                                                                                                                           |
+| Commits on the branch                             | 13 (7 audit-only; `406d1bb7d` also changes `ISSUE.md`). Source: `gh api .../pulls/2805/commits` and `git show --stat`                                                                                                                               |
+| First review to last thread resolution            | 13:45:12 UTC (first review, forge) to 15:59 UTC (last resolution, audit Processing Log), 2 h 14 min; the final approval was at 16:19:06 UTC                                                                                                         |
+| AI models used                                    | Claude Sonnet 5.5 (author); reviewers unknown                                                                                                                                                                                                       |
 
 Derived from `PR-REVIEW.md` (rows and Processing Log) and `gh api .../pulls/2805/commits`. The
 grouping of findings by theme is this author's reading, not a reviewer statement.
@@ -47,7 +54,7 @@ grouping of findings by theme is this author's reading, not a reviewer statement
 | F13, F23                                         | Replies cited branch SHAs; an edited reply restated a value the tree later changed                           | Reply text written before the final commit existed; replies are outside the tree, so no check re-reads them   | Process / tooling gap                    | A checker that scans replies for SHAs and for stale values; cite subjects only                                      |
 | F15                                              | No audit record                                                                                              | The author-owned audit step was not part of the first round plan                                              | Process                                  | Create `PR-REVIEW.md` at the first review, not after the second                                                     |
 | F16                                              | Evidence section numbering clashed with scenarios                                                            | Named the drafting section `V1` without checking the scenario table                                           | Doc/code mismatch                        | Number drafting sections apart from scenario IDs from the start                                                     |
-| F17, F18, F19 (bot)                              | Async claim stated as fact; table syntax; test paths not fully specified                                          | F17 and F19 were fair: a claim marked "to verify" was worded as fact; F18 was a false positive                | Missed edge case (F17, F19)              | Word unverified claims as hypotheses; define portable substrings in the first draft                                 |
+| F17, F18, F19 (bot)                              | Async claim stated as fact; table syntax; test paths not fully specified                                     | F17 and F19 were fair: a claim marked "to verify" was worded as fact; F18 was a false positive                | Missed edge case (F17, F19)              | Word unverified claims as hypotheses; define portable substrings in the first draft                                 |
 
 ## What Went Well
 
@@ -61,8 +68,8 @@ grouping of findings by theme is this author's reading, not a reviewer statement
 ## What Made the Review Costly
 
 - **Self-statements without a source check** (F5 to F8, F12, F14, F20, F23, F24): the same cause
-  appeared in rounds 1, 2, 4 and 5. Stamps later than their commits were flagged in round 2 (F12,
-  F14); a restated value that the tree later changed was flagged in round 4 (F23). The sweep rule
+  appeared in all five rounds. Round 1 (F5 to F8), round 2 (F12, F14: stamps later than their commits), round 3 (F20: one of two
+  commits cited); a restated value that the tree later changed was flagged in round 4 (F23), and a misleading order and wording in round 5 (F24). The sweep rule
   (search all records for the same kind of statement) was applied to the value flagged, not to all
   values of the same kind.
 - **Replies outside the tree** (F13, F23): replies are written once, edited later, and read by no
@@ -71,7 +78,7 @@ grouping of findings by theme is this author's reading, not a reviewer statement
   content of the spec, and it was corrected twice; the second correction was caused by following a
   reviewer's suggestion without re-checking the code.
 - **Late audit record** (F15 and its follow-ups): the audit rows then needed a new commit for each
-  later round, and eight of the 13 commits are audit-only.
+  later round, and seven of the 13 commits are audit-only.
 
 ## Root Causes
 
