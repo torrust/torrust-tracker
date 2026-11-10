@@ -7,7 +7,7 @@ priority: p1
 epic: 1488
 github-issue: 2801
 spec-path: docs/issues/open/2801-1488-si-19-remove-legacy-shutdown-api/ISSUE.md
-branch: "2801-remove-legacy-shutdown-api-spec"
+branch: "2801-remove-legacy-shutdown-api"
 related-pr: 2807
 last-updated-utc: "2026-11-10 16:18"
 semantic-links:
