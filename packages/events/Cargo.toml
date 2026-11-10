@@ -1,6 +1,7 @@
 [package]
-description = "A library with functionality to handle events in Torrust tracker packages."
-keywords = [ "events", "library", "rust", "torrust", "tracker" ]
+categories = [ "asynchronous", "data-structures" ]
+description = "Asynchronous event bus used by the Torrust Tracker packages."
+keywords = [ "async", "broadcast", "channels", "pubsub" ]
 name = "torrust-tracker-events"
 readme = "README.md"
 
