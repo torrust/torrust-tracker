@@ -21,6 +21,10 @@ use wait_for_pr_review::{Config, GhCli, PullRequest, SystemClock, wait};
 
 /// Block until a watched reviewer reviews or comments, the head commit changes, or the pull request
 /// closes. Print the event as one JSON object. Stdout must not be a terminal; pipe it, for example `| jq .`.
+/// Largest accepted `--timeout-seconds`: one day. Far above any realistic wait and far below the range of
+/// `Instant` on any platform, so `Instant + Duration` for the deadline cannot overflow.
+const MAX_TIMEOUT_SECONDS: u64 = 86_400;
+
 #[derive(Debug, Parser)]
 #[command(name = "wait-for-pr-review")]
 struct Cli {
@@ -36,8 +40,8 @@ struct Cli {
     /// Login whose reviews and comments count as events. Repeat to watch several. Replaces the defaults.
     #[arg(long = "reviewer", default_values = ["da2ce7", "copilot-pull-request-reviewer[bot]"])]
     reviewers: Vec<String>,
-    /// Longest wait before a `timeout` result, in seconds.
-    #[arg(long, default_value_t = 900, value_parser = value_parser!(u64).range(1..))]
+    /// Longest wait before a `timeout` result, in seconds. At most 86400 (one day).
+    #[arg(long, default_value_t = 900, value_parser = value_parser!(u64).range(1..=MAX_TIMEOUT_SECONDS))]
     timeout_seconds: u64,
     /// Pause between two looks at the pull request, in seconds.
     #[arg(long, default_value_t = 120, value_parser = value_parser!(u64).range(1..))]

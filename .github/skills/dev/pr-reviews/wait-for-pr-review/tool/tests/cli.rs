@@ -73,6 +73,11 @@ impl Sandbox {
         command
     }
 
+    /// How many times the fake `gh` served the pull request endpoint.
+    fn gh_calls(&self) -> u32 {
+        fs::read_to_string(self.directory.path().join("pull-calls")).map_or(0, |count| count.trim().parse().unwrap())
+    }
+
     fn run(&self, arguments: &[&str]) -> Output {
         self.command(arguments).output().unwrap()
     }
@@ -283,6 +288,43 @@ fn it_should_exit_two_when_the_poll_interval_is_zero() {
     let output = sandbox.run(&["--pr-number", "7", "--poll-interval-seconds", "0"]);
 
     assert_eq!(output.status.code(), Some(2));
+}
+
+#[test]
+fn it_should_exit_two_with_a_usage_error_record_when_the_timeout_is_too_large_for_any_deadline() {
+    let sandbox = Sandbox::with_pull(OPEN_PULL);
+
+    let output = sandbox.run(&["--pr-number", "7", "--timeout-seconds", "18446744073709551615"]);
+
+    assert_eq!(output.status.code(), Some(2));
+    assert_eq!(output.stdout, b"");
+    assert_eq!(kinds(&output), ["usage_error"]);
+    assert_eq!(
+        sandbox.gh_calls(),
+        0,
+        "an oversized timeout must be rejected before any API request"
+    );
+}
+
+#[test]
+fn it_should_exit_two_when_the_timeout_is_one_second_above_the_maximum() {
+    let sandbox = Sandbox::with_pull(MERGED_PULL);
+
+    let output = sandbox.run(&["--pr-number", "7", "--timeout-seconds", "86401"]);
+
+    assert_eq!(output.status.code(), Some(2));
+    assert_eq!(output.stdout, b"");
+    assert_eq!(kinds(&output), ["usage_error"]);
+}
+
+#[test]
+fn it_should_run_to_a_result_when_the_timeout_is_the_maximum() {
+    let sandbox = Sandbox::with_pull(MERGED_PULL);
+
+    let output = sandbox.run(&["--pr-number", "7", "--timeout-seconds", "86400"]);
+
+    assert_eq!(output.status.code(), Some(0));
+    assert_eq!(json(&output.stdout)["kind"], "pr_merged");
 }
 
 #[test]

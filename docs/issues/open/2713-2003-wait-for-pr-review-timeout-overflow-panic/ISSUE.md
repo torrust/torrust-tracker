@@ -102,6 +102,9 @@ Design question for the maintainer, to settle at implementation:
 Recommendation: option 1, because a deterministic, documented limit is easier to test and to explain to an agent
 than a platform-dependent one. The maximum is the maintainer's choice.
 
+**Decision (maintainer, 2026-11-10):** option 1, with a maximum of **86400 seconds (one day)**. The bound is the
+clap range `1..=86400` on `--timeout-seconds`; the rejection is the existing `usage_error` (exit `2`).
+
 ## Bug-Fix Process
 
 Use [fix-bug](../../../../.github/skills/dev/debugging/fix-bug/SKILL.md). The sequence:
@@ -132,10 +135,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                                          | Notes / Expected Output                                                    |
 | --- | ------ | ------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| T1  | TODO   | Add the integration test for the oversized value; run it red  | Red output (exit `101`) recorded in `manual-verification-evidence.md`.     |
-| T2  | TODO   | Implement the chosen option; add boundary tests for option 1  | Oversized value is a `usage_error` with exit `2`.                          |
-| T3  | TODO   | Run the tests green, then repeat V1 on the final build        | Green output and the recheck recorded, naming the commit subject it ran on.|
-| T4  | TODO   | Update the skill option table and `--help` text               | The maximum, if any, is documented once.                                   |
+| T1  | DONE   | Add the integration test for the oversized value; run it red  | Red output (exit `101`) recorded in `manual-verification-evidence.md`.     |
+| T2  | DONE   | Implement the chosen option; add boundary tests for option 1  | Oversized value is a `usage_error` with exit `2`.                          |
+| T3  | DONE   | Run the tests green, then repeat V1 on the final build        | Green output and the recheck recorded, naming the commit subject it ran on.|
+| T4  | DONE   | Update the skill option table and `--help` text               | The maximum, if any, is documented once.                                   |
 
 ## Commit Points
 
@@ -170,6 +173,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   describes ran. The reproduction and lint commands ran between 11:49 and 11:56 UTC, as the command output and
   `manual-verification-evidence.md` record, so the drafting stamp is wrong. The earlier entries are kept unchanged,
   and `last-updated-utc` now holds the time of this edit.
+- 2026-11-10 - AI assistant (Claude Code) - The maintainer chose option 1 with a maximum of 86400 s. T1: the new
+  tests failed on the unfixed code (oversized value exit `101`, 86401 exit `0`). T2/T4: added
+  `MAX_TIMEOUT_SECONDS = 86_400` as the clap range upper bound, updated the `--help` text and the skill table.
+  T3: `cargo test -p wait-for-pr-review` and clippy pass; V2 recorded.
 
 ## Acceptance Criteria
 
@@ -197,7 +204,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID | Scenario                          | Human-oriented command/steps                                                           | Expected Result                                  | Status | Evidence                                     |
 | -- | --------------------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------ | ------ | -------------------------------------------- |
 | M1 | Oversized timeout (before)        | `wait-for-pr-review --pr-number 2584 --timeout-seconds 18446744073709551615`           | Exit `101`, plain-text panic on stderr           | DONE   | `manual-verification-evidence.md` section V1 |
-| M2 | The same, after the fix           | The same command on the final build                                                    | Exit `2`, one `usage_error` record, no panic     | TODO   | `manual-verification-evidence.md` section V2 |
+| M2 | The same, after the fix           | The same command on the final build                                                    | Exit `2`, one `usage_error` record, no panic     | DONE   | `manual-verification-evidence.md` section V2 |
 
 Every recorded command result names the toolchain that produced it.
 
@@ -209,9 +216,9 @@ None. The reproduction is a single command on the real binary.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1   | TODO                   |          |
-| AC2   | TODO                   |          |
-| AC3   | TODO                   |          |
+| AC1   | DONE                   | Test `it_should_exit_two_with_a_usage_error_record_when_the_timeout_is_too_large_for_any_deadline` (asserts no `gh` call); V2 |
+| AC2   | DONE                   | The bound `1..=86400` is far below any `Instant` range and platform independent; boundary tests at 86400 and 86401; V2 |
+| AC3   | DONE                   | `--help` text and the skill option table state the maximum |
 
 ## Risks and Trade-offs
 

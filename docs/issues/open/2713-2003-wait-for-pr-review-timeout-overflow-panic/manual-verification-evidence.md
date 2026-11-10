@@ -69,7 +69,22 @@ platform's `Instant` range. A panic is exit `101` with four plain-text stderr li
 ### V2 - The same scenario after the fix
 
 - Goal: repeat V1 on the final build.
-- Status: `TODO`
+- Status: `DONE`
+- Build: `cargo build -p wait-for-pr-review` from the implementation commit on top of `develop` at the merge of
+  #2797; toolchain `rustc 1.99.1 (58cf8f9c3 2026-10-13)`; real `gh`, merged pull request #2584.
+
+```text
+--timeout-seconds 18446744073709551615 -> exit 2 | stdout=0 bytes  | 1 stderr line (usage_error)
+--timeout-seconds 9223372036854775807  -> exit 2 | stdout=0 bytes  | 1 stderr line (usage_error)
+--timeout-seconds 86401                -> exit 2 | stdout=0 bytes  | 1 stderr line (usage_error)
+--timeout-seconds 86400                -> exit 0 | stdout=75 bytes | 1 stderr line (wait_started)
+```
+
+Stderr of the largest value: `{"kind":"usage_error","message":"error: invalid value '18446744073709551615' for
+'--timeout-seconds <TIMEOUT_SECONDS>': 18446744073709551615 is not in 1..=86400 ..."}`.
+
+Red run before the fix (the new tests in `tests/cli.rs`): the oversized value exited `101` instead of `2`, and
+`86401` exited `0` instead of `2`; the test at `86400` passed.
 
 ### V3 - A huge `--poll-interval-seconds` alone does not overflow (scope check)
 
