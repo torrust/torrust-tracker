@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Two rounds: da2ce7 review 5842604545 and Copilot review 5842654119 (round 1), da2ce7 review 5842998748 (round 2). `F13` is the second round's `F4`, a re-raise of the first round's `F4`.
+Three rounds: da2ce7 review 5842604545 and Copilot review 5842654119 (round 1), da2ce7 review 5842998748 (round 2), da2ce7 review 5843390791 (round 3). `F13` is the second round's `F4`, a re-raise of the first round's `F4`. The third round reused the IDs `F4`, `F13`, `F14`, `F15` and `F16`, so its findings are `F14` to `F18`, with the original IDs recorded in the details.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -60,6 +60,11 @@ Two rounds: da2ce7 review 5842604545 and Copilot review 5842654119 (round 1), da
 | F11 | review-finding:pr-2803-f11 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F12 | review-finding:pr-2803-f12 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F13 | review-finding:pr-2803-f13 | Human | Minor | metadata | RE_RAISE_OF:F4 | FIXED | RESOLVED |
+| F14 | review-finding:pr-2803-f14 | Human | Minor | metadata | RE_RAISE_OF:F13 | FIXED | RESOLVED |
+| F15 | review-finding:pr-2803-f15 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F16 | review-finding:pr-2803-f16 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F17 | review-finding:pr-2803-f17 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F18 | review-finding:pr-2803-f18 | Human | Nit | testing | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -123,7 +128,7 @@ Two rounds: da2ce7 review 5842604545 and Copilot review 5842654119 (round 1), da
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2803#discussion_r4525403561
 - Concern: Acceptance Verification, Implementation Completion Review, a verification policy and the design review are missing.
 - Solution: The sections were added to the spec.
-- Current-tree verification: `grep -n "^## " docs/issues/open/2801-1488-si-19-remove-legacy-shutdown-api/ISSUE.md` lists them.
+- Current-tree verification: `grep -n "^##" docs/issues/open/2801-1488-si-19-remove-legacy-shutdown-api/ISSUE.md` lists them, including the Acceptance Verification subsection.
 - Resolution reference: docs(issues): [#2801] address review of the SI-19 specification
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2803#discussion_r4525491135
@@ -175,7 +180,7 @@ Two rounds: da2ce7 review 5842604545 and Copilot review 5842654119 (round 1), da
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2803#discussion_r4525440852
 - Concern: The workflow never requires reviewing discoveries or deciding on a retrospective.
 - Solution: A checkpoint and a requirement before closing were added.
-- Current-tree verification: `grep -n "completion review" docs/issues/open/2801-1488-si-19-remove-legacy-shutdown-api/ISSUE.md` lists the checkpoint and the section.
+- Current-tree verification: `grep -n -i "completion review" docs/issues/open/2801-1488-si-19-remove-legacy-shutdown-api/ISSUE.md` lists the checkpoint and the section.
 - Resolution reference: docs(issues): [#2801] require the implementation completion review
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2803#discussion_r4525505408
@@ -251,19 +256,85 @@ Two rounds: da2ce7 review 5842604545 and Copilot review 5842654119 (round 1), da
 - Source review ID: 5842998748
 - Reviewer finding ID: F4
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2803#discussion_r4525702760
-- Concern: `last-updated-utc` and the 13:04 entry disagree with `d8436d5fe` and the PR creation time.
+- Concern: `last-updated-utc` and the 13:04 entry disagree with the commit "docs(issues): [#2801] require the implementation completion review" and the PR creation time.
 - Solution: The entries and the stamp were corrected.
 - Current-tree verification: `git log --format=%cI` and `gh pr view 2803 --json createdAt` were compared with the log.
 - Resolution reference: docs(issues): [#2801] reconcile the SI-19 spec with the second review
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2803#discussion_r4525747974
 
+### F14 - Still partly open: the new stamp is later than the commit that wrote it
+
+- PR number: 2803
+- Source review ID: 5843390791
+- Reviewer finding ID: F4
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2803#discussion_r4526001802
+- Concern: `last-updated-utc` and the 14:05 log entry were stamped later than the commit that wrote them.
+- Solution: The log entry is stamped 13:59 and `last-updated-utc` carries the time of the commit that changed it.
+- Current-tree verification: `git log --format=%cI` of the commit was compared with the stamp.
+- Resolution reference: docs(issues): [#2801] correct the stamps and wording of the SI-19 spec
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2803#discussion_r4526029195
+
+### F15 - The audit cites a PR-branch commit id
+
+- PR number: 2803
+- Source review ID: 5843390791
+- Reviewer finding ID: F13
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2803#discussion_r4526001815
+- Concern: Row F13 names a short commit id.
+- Solution: The row names the commit subject; no other commit id remains.
+- Current-tree verification: The `open-pull-request` commit-id check and `grep -n "[0-9a-f]\{9\}" docs/pr-reviews/pr-2803-review/PR-REVIEW.md` find none.
+- Resolution reference: docs(pr-reviews): [#2803] correct the review audit record
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2803#discussion_r4526029697
+
+### F16 - The Processing Log entry is stamped before two of the replies it records
+
+- PR number: 2803
+- Source review ID: 5843390791
+- Reviewer finding ID: F14
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2803#discussion_r4526001824
+- Concern: The round 1 entry is stamped 13:36 but the R1 and R2 replies were posted at 13:37.
+- Solution: The entry is stamped 13:37.
+- Current-tree verification: The reply times were read from the forge.
+- Resolution reference: docs(pr-reviews): [#2803] correct the review audit record
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2803#discussion_r4526030146
+
+### F17 - SI-18 omits only the HTTP and REST Running structs as a whole
+
+- PR number: 2803
+- Source review ID: 5843390791
+- Reviewer finding ID: F15
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2803#discussion_r4526001836
+- Concern: The sentence says SI-18 omits the whole `Running` structs; its list names the UDP one.
+- Solution: The bullet says the HTTP and REST `Running` structs as a whole.
+- Current-tree verification: `grep -n "HTTP and REST" docs/issues/open/2801-1488-si-19-remove-legacy-shutdown-api/ISSUE.md` finds it.
+- Resolution reference: docs(issues): [#2801] correct the stamps and wording of the SI-19 spec
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2803#discussion_r4526030611
+
+### F18 - Two verification commands do not print what their rows say
+
+- PR number: 2803
+- Source review ID: 5843390791
+- Reviewer finding ID: F16
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2803#discussion_r4526001849
+- Concern: The grep for the completion review is case-sensitive and the section list omits the Acceptance Verification subsection.
+- Solution: Both commands were changed to print what the rows claim.
+- Current-tree verification: Both changed commands were run and print the headings.
+- Resolution reference: docs(pr-reviews): [#2803] correct the review audit record
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2803#discussion_r4526031112
+
 ## Processing Log
 
 - 2026-11-10 13:27 UTC - Round 1 review of da2ce7 received (seven findings); Copilot review at 13:31 UTC (two comments).
-- 2026-11-10 13:36 UTC - Round 1 replies posted and threads resolved; fixes in the commits named above.
+- 2026-11-10 13:37 UTC - Round 1 replies posted and threads resolved; fixes in the commits named above.
 - 2026-11-10 13:56 UTC - Round 2 review of da2ce7 received (six findings).
 - 2026-11-10 14:00 UTC - Round 2 replies posted (last at 14:00:34 UTC); the audit record was started in this round (F8).
+- 2026-11-10 14:26 UTC - Round 3 review of da2ce7 received (approval at 14:23:15 UTC with five findings, `F14` to `F18` here); replies posted between 14:25:40 and 14:25:50 UTC, and the audit corrected in the commit that carries this entry.
 
 ## Completion Rules
 
