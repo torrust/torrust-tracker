@@ -79,7 +79,7 @@ pub async fn graceful_shutdown_on_cancellation(
 #[instrument(skip(handle, rx_halt, message))]
 #[deprecated(
     since = "0.1.0",
-    note = "use `graceful_shutdown_on_cancellation` with an injected `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488)"
+    note = "use `graceful_shutdown_on_cancellation` with an injected `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
 )]
 pub async fn graceful_shutdown(
     handle: axum_server::Handle<SocketAddr>,

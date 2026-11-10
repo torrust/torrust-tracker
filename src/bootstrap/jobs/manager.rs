@@ -135,7 +135,7 @@ pub fn incomplete_components(outcomes: &[JobOutcome]) -> Vec<&str> {
 )]
 #[deprecated(
     since = "4.0.0",
-    note = "use a `CancellationToken` and the token-aware shutdown controller; removal is planned for the next breaking release of this package (SI-19, EPIC #1488)"
+    note = "use a `CancellationToken` and the token-aware shutdown controller; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
 )]
 pub struct HaltSignal {
     sender: Option<Sender<Halted>>,
@@ -188,7 +188,7 @@ impl Drop for HaltSignal {
 #[derive(Debug)]
 #[deprecated(
     since = "4.0.0",
-    note = "use a `CancellationToken` and the token-aware shutdown controller; removal is planned for the next breaking release of this package (SI-19, EPIC #1488)"
+    note = "use a `CancellationToken` and the token-aware shutdown controller; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
 )]
 #[allow(
     deprecated,

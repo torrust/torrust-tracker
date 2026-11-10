@@ -224,6 +224,10 @@ pub type StoppedHttpServer = HttpServer<Stopped>;
     deprecated,
     reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
 )]
+#[deprecated(
+    since = "0.1.0",
+    note = "use `HttpServer<Stopped>::start_with_cancellation` and keep the returned `CancellationRunning`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
+)]
 pub type RunningHttpServer = HttpServer<Running>;
 
 /// A HTTP server instance controller.
@@ -262,14 +266,14 @@ pub struct Stopped {
 )]
 #[deprecated(
     since = "0.1.0",
-    note = "use `CancellationRunning` from `start_with_cancellation` and cancel the injected `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488)"
+    note = "use `CancellationRunning` from `start_with_cancellation` and cancel the injected `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
 )]
 pub struct Running {
     /// The address where the server is bound.
     pub binding: SocketAddr,
     #[deprecated(
         since = "0.1.0",
-        note = "cancel the injected `CancellationToken` instead of sending `Halted`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488)"
+        note = "cancel the injected `CancellationToken` instead of sending `Halted`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
     )]
     pub halt_task: tokio::sync::oneshot::Sender<Halted>,
     pub task: tokio::task::JoinHandle<Launcher>,
@@ -285,10 +289,6 @@ pub struct CancellationRunning {
     pub shutdown_controller: JoinHandle<GracefulShutdownOutcome>,
 }
 
-#[allow(
-    deprecated,
-    reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
-)]
 impl HttpServer<Stopped> {
     /// It creates a new `HttpServer` controller in `stopped` state.
     #[must_use]
@@ -314,7 +314,7 @@ impl HttpServer<Stopped> {
     )]
     #[deprecated(
         since = "0.1.0",
-        note = "use `HttpServer<Stopped>::start_with_cancellation` with a `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488)"
+        note = "use `HttpServer<Stopped>::start_with_cancellation` with a `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
     )]
     #[allow(
         deprecated,
@@ -367,7 +367,7 @@ impl HttpServer<Stopped> {
     )]
     #[deprecated(
         since = "0.1.0",
-        note = "use `HttpServer<Stopped>::start_with_cancellation_and_health_check` with a `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488)"
+        note = "use `HttpServer<Stopped>::start_with_cancellation_and_health_check` with a `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
     )]
     pub async fn start_with_health_check(
         self,
@@ -528,7 +528,7 @@ impl HttpServer<Running> {
     )]
     #[deprecated(
         since = "0.1.0",
-        note = "cancel the `CancellationToken` passed to `start_with_cancellation` and join `CancellationRunning::task` and `shutdown_controller`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488)"
+        note = "cancel the `CancellationToken` passed to `start_with_cancellation` and join `CancellationRunning::task` and `shutdown_controller`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
     )]
     pub async fn stop(self) -> Result<HttpServer<Stopped>, Error> {
         self.state.halt_task.send(Halted::Normal).map_err(|_| Error::Stop {

@@ -75,7 +75,7 @@ pub struct CancellationRunning {
 /// abort them when its enclosing component is aborted.
 #[deprecated(
     since = "0.2.0",
-    note = "use `CancellationRunning` from `start_with_cancellation`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488)"
+    note = "use `CancellationRunning` from `start_with_cancellation`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
 )]
 pub struct RunningServer<F> {
     pub running: F,
@@ -95,7 +95,7 @@ pub struct RunningServer<F> {
 )]
 #[deprecated(
     since = "0.2.0",
-    note = "use `start_with_cancellation` with a `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488)"
+    note = "use `start_with_cancellation` with a `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
 )]
 pub fn start(
     bind_to: SocketAddr,

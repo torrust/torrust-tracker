@@ -25,7 +25,7 @@ use crate::server::bound_socket::BoundSocket;
 )]
 #[deprecated(
     since = "0.1.0",
-    note = "use `Server<Stopped>::start_with_cancellation`, which spawns the launcher with a `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488)"
+    note = "use `Server<Stopped>::start_with_cancellation`, which spawns the launcher with a `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
 )]
 pub struct LaunchRequest {
     pub udp_tracker_core_container: Arc<UdpTrackerCoreContainer>,
@@ -36,7 +36,7 @@ pub struct LaunchRequest {
     pub tx_start: oneshot::Sender<Started>,
     #[deprecated(
         since = "0.1.0",
-        note = "use a `CancellationToken` instead of a `Halted` receiver; removal is planned for the next breaking release of this package (SI-19, EPIC #1488)"
+        note = "use a `CancellationToken` instead of a `Halted` receiver; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
     )]
     pub rx_halt: oneshot::Receiver<Halted>,
 }
@@ -60,7 +60,7 @@ impl Spawner {
     #[must_use]
     #[deprecated(
         since = "0.1.0",
-        note = "use `Server<Stopped>::start_with_cancellation`, which spawns the launcher with a `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488)"
+        note = "use `Server<Stopped>::start_with_cancellation`, which spawns the launcher with a `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
     )]
     #[allow(
         deprecated,

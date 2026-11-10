@@ -55,6 +55,10 @@ pub type StoppedUdpServer = Server<Stopped>;
     deprecated,
     reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
 )]
+#[deprecated(
+    since = "0.1.0",
+    note = "use `Server<Stopped>::start_with_cancellation` and keep the returned `CancellationRunning`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
+)]
 pub type RunningUdpServer = Server<Running>;
 
 /// A stopped UDP server state.
@@ -80,14 +84,14 @@ pub struct Stopped {
 )]
 #[deprecated(
     since = "0.1.0",
-    note = "use `CancellationRunning` from `Server<Stopped>::start_with_cancellation` and cancel the injected `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488)"
+    note = "use `CancellationRunning` from `Server<Stopped>::start_with_cancellation` and cancel the injected `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
 )]
 pub struct Running {
     /// The address where the server is bound.
     pub local_addr: SocketAddr,
     #[deprecated(
         since = "0.1.0",
-        note = "cancel the injected `CancellationToken` instead of sending `Halted`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488)"
+        note = "cancel the injected `CancellationToken` instead of sending `Halted`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
     )]
     pub halt_task: tokio::sync::oneshot::Sender<Halted>,
     pub task: JoinHandle<Result<Spawner, std::io::Error>>,
@@ -135,7 +139,7 @@ impl Server<Stopped> {
     )]
     #[deprecated(
         since = "0.1.0",
-        note = "use `Server<Stopped>::start_with_cancellation` with a `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488)"
+        note = "use `Server<Stopped>::start_with_cancellation` with a `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
     )]
     pub async fn start(
         self,
@@ -320,7 +324,7 @@ impl Server<Running> {
     )]
     #[deprecated(
         since = "0.1.0",
-        note = "cancel the `CancellationToken` passed to `start_with_cancellation` and join the returned tasks; removal is planned for the next breaking release of this package (SI-19, EPIC #1488)"
+        note = "cancel the `CancellationToken` passed to `start_with_cancellation` and join the returned tasks; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
     )]
     pub async fn stop(self) -> Result<Server<Stopped>, UdpError> {
         self.state

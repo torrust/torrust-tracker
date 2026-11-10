@@ -106,6 +106,10 @@ pub type StoppedApiServer = ApiServer<Stopped>;
     deprecated,
     reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
 )]
+#[deprecated(
+    since = "0.1.0",
+    note = "use `ApiServer::start_with_cancellation` and keep the returned `CancellationRunning`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
+)]
 pub type RunningApiServer = ApiServer<Running>;
 
 /// A struct responsible for starting and stopping an API server with a
@@ -141,13 +145,13 @@ pub struct Stopped {
 )]
 #[deprecated(
     since = "0.1.0",
-    note = "use `CancellationRunning` from `ApiServer::start_with_cancellation` and cancel the injected `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488)"
+    note = "use `CancellationRunning` from `ApiServer::start_with_cancellation` and cancel the injected `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
 )]
 pub struct Running {
     pub local_addr: SocketAddr,
     #[deprecated(
         since = "0.1.0",
-        note = "cancel the injected `CancellationToken` instead of sending `Halted`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488)"
+        note = "cancel the injected `CancellationToken` instead of sending `Halted`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
     )]
     pub halt_task: tokio::sync::oneshot::Sender<Halted>,
     pub task: tokio::task::JoinHandle<Launcher>,
@@ -172,6 +176,10 @@ impl Running {
     #[allow(
         deprecated,
         reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
+    )]
+    #[deprecated(
+        since = "0.1.0",
+        note = "use `ApiServer::start_with_cancellation`, which returns `CancellationRunning`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
     )]
     pub const fn new(
         local_addr: SocketAddr,
@@ -215,7 +223,7 @@ impl ApiServer<Stopped> {
     )]
     #[deprecated(
         since = "0.1.0",
-        note = "use `ApiServer::start_with_cancellation` with a `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488)"
+        note = "use `ApiServer::start_with_cancellation` with a `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
     )]
     pub async fn start(
         self,
@@ -403,7 +411,7 @@ impl ApiServer<Running> {
     )]
     #[deprecated(
         since = "0.1.0",
-        note = "cancel the `CancellationToken` passed to `start_with_cancellation` and join `CancellationRunning::task` and `shutdown_controller`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488)"
+        note = "cancel the `CancellationToken` passed to `start_with_cancellation` and join `CancellationRunning::task` and `shutdown_controller`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
     )]
     pub async fn stop(self) -> Result<ApiServer<Stopped>, Error> {
         self.state.halt_task.send(Halted::Normal).map_err(|_| Error::Stop {
@@ -504,7 +512,7 @@ impl Launcher {
     )]
     #[deprecated(
         since = "0.1.0",
-        note = "use the token-aware path through `ApiServer::start_with_cancellation`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488)"
+        note = "use the token-aware path through `ApiServer::start_with_cancellation`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
     )]
     pub fn start(
         &self,

@@ -200,7 +200,7 @@ impl Launcher {
     )]
     #[deprecated(
         since = "0.1.0",
-        note = "use `Server<Stopped>::start_with_cancellation`, which runs the token-aware launcher; removal is planned for the next breaking release of this package (SI-19, EPIC #1488)"
+        note = "use `Server<Stopped>::start_with_cancellation`, which runs the token-aware launcher; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
     )]
     pub async fn run_with_graceful_shutdown(
         udp_tracker_core_container: Arc<UdpTrackerCoreContainer>,
