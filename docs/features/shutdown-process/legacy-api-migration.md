@@ -1,18 +1,21 @@
 ---
 doc-type: feature-supporting-analysis
 status: draft
-last-updated-utc: "2026-11-10 11:29"
+last-updated-utc: "2026-11-10 15:30"
 semantic-links:
   related-artifacts:
     - docs/features/shutdown-process/README.md
     - docs/issues/closed/2751-1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md
+    - docs/issues/open/2801-1488-si-19-remove-legacy-shutdown-api/ISSUE.md
 ---
 
 # Migrating from the Legacy Shutdown API
 
 EPIC [#1488](../../issues/open/1488-overhaul-tracker-shutdown/ISSUE.md) replaces the `Halted` oneshot-channel
 shutdown with a `tokio_util::sync::CancellationToken` that the caller injects and cancels. SI-18 (issue #2751)
-deprecates the legacy API at the source; nothing is removed and behavior is unchanged. SI-19 removes it.
+deprecated the legacy API at the source, and SI-19 (issue #2801) removed it: the symbols in the first column
+below no longer exist, and `torrust-server-lib` 0.6.0 removes its own. Use this guide to migrate code that still
+calls them.
 
 ## What changed
 
@@ -23,12 +26,13 @@ deprecates the legacy API at the source; nothing is removed and behavior is unch
   the drain outcome. The UDP server differs: its `CancellationRunning` holds only `local_addr` and one receive-loop
   `task`, which returns `Ok(())` after cancellation, so await that task; there is no drain controller.
 - **Do not subscribe to signals in a library.** The executable subscribes to SIGINT and SIGTERM and cancels the
-  token; `global_shutdown_signal` and `shutdown_signal*` are deprecated in `torrust-server-lib` 0.5.0.
+  token; `global_shutdown_signal` and `shutdown_signal*` were deprecated in `torrust-server-lib` 0.5.0 and are
+  removed in 0.6.0. No server library subscribes to operating-system signals.
 
 ## Replacement table
 
-| Deprecated | Replacement |
-| ---------- | ----------- |
+| Removed (SI-19) | Replacement |
+| --------------- | ----------- |
 | `axum-http-server`: `HttpServer<Stopped>::start`, `start_with_health_check`, `RunningHttpServer` | `start_with_cancellation`, `start_with_cancellation_and_health_check` |
 | `axum-http-server`: `Running`, `Running.halt_task`, `HttpServer<Running>::stop` | `CancellationRunning`; cancel the token and join `task` and `shutdown_controller` |
 | `axum-rest-api-server`: `ApiServer<Stopped>::start`, `Launcher::start`, `RunningApiServer` | `ApiServer<Stopped>::start_with_cancellation` |
@@ -41,6 +45,6 @@ deprecates the legacy API at the source; nothing is removed and behavior is unch
 | `torrust-tracker`: `HaltSignal`, `NestedServerTask` | a `CancellationToken` and the token-aware shutdown controller |
 | `torrust-server-lib`: `Halted`, `shutdown_signal*`, `global_shutdown_signal` | `CancellationToken`, `cancellation_signal` (see the library's `CHANGELOG.md`) |
 
-Each deprecation message names its replacement and says the removal is planned for the next breaking release of
-the package. The five server package crates are unpublished and the root types are not in the published 3.0.0, so
-these notes are in-repo guidance; only the `torrust-server-lib` deprecation has a support window (0.5.x).
+The five server package crates are unpublished and the root types were never in a published release, so for them
+this guide is in-repo history; only `torrust-server-lib` had a support window (0.5.x), which ended when the
+maintainer approved 0.6.0 on 2026-11-10.

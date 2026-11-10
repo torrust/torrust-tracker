@@ -354,11 +354,9 @@ use of the root token is the legacy `udp_ban_cleanup` job.
    library-level OS signals for any server component. The HTTP and UDP test
    environments and examples use the token-aware path after SI-16 (#2412)
    and SI-17 (#2448), and the REST API and health-check API test
-   environments do after SI-23 (#2449) and SI-24 (#2450). The legacy `Halted`
-   APIs remain for other legacy callers until deprecation and removal in
-   SI-18 and SI-19.
-   The legacy UDP launcher is now an adapter over
-   the token-aware receive loop, so it can no longer panic or detach it.
+   environments do after SI-23 (#2449) and SI-24 (#2450). SI-18 (#2751)
+   deprecated the legacy `Halted` APIs and SI-19 (#2801) removed them, together
+   with the legacy UDP launcher adapter.
 5. HTTP, REST, and health-check drain controllers are component-owned and
    joined. Aligning their drain budgets with the manager deadline is SI-20.
 6. Health-check lifecycle uses the token-aware path after SI-13 but does not
