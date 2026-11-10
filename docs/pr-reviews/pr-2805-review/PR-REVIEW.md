@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Round 1 is da2ce7's review `5842841425` (F1 to F9) and Copilot's review `5842867931` (F17 to F19, numbered after the reviewer-provided IDs). Round 2 is da2ce7's review `5843238357` (F10 to F16).
+Round 1 is da2ce7's review `5842841425` (F1 to F9) and Copilot's review `5842867931` (F17 to F19, numbered after the reviewer-provided IDs). Round 2 is da2ce7's review `5843238357` (F10 to F16). Round 3 is da2ce7's review `5843807142` (F20 to F22; the reviewer numbered them F19 to F21, which collide with Copilot's F19, so the original IDs are recorded in the detail entries).
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -64,6 +64,9 @@ Round 1 is da2ce7's review `5842841425` (F1 to F9) and Copilot's review `5842867
 | F17 | review-finding:pr-2805-f17 | Copilot | Suggestion (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
 | F18 | review-finding:pr-2805-f18 | Copilot | Suggestion (inferred) | formatting | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F19 | review-finding:pr-2805-f19 | Copilot | Suggestion (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
+| F20 | review-finding:pr-2805-f20 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F21 | review-finding:pr-2805-f21 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F22 | review-finding:pr-2805-f22 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -180,7 +183,7 @@ Round 1 is da2ce7's review `5842841425` (F1 to F9) and Copilot's review `5842867
 - Concern: The PR body had no touched-files line and no validation line.
 - Solution: Edited the PR description to add both.
 - Current-tree verification: Read the PR body after the edit.
-- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2805
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2805#discussion_r4525701019
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2805#discussion_r4525701019
 
@@ -219,7 +222,7 @@ Round 1 is da2ce7's review `5842841425` (F1 to F9) and Copilot's review `5842867
 - Concern: The stamps 13:55 and 14:25 were later than the commits carrying them.
 - Solution: Set 13:45 and 13:50 and last-updated-utc 14:16, from git log.
 - Current-tree verification: git log --format=%cI for the three commits.
-- Resolution reference: docs(issues): record real times and number the reproduction apart in #2804 evidence
+- Resolution reference: docs(issues): list both UDP exposure paths in the #2804 specification; docs(issues): record real times and number the reproduction apart in #2804 evidence
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2805#discussion_r4525985031
 
@@ -313,6 +316,45 @@ Round 1 is da2ce7's review `5842841425` (F1 to F9) and Copilot's review `5842867
 - Resolution reference: docs(issues): address review of the #2804 specification
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2805#discussion_r4525702483
+
+### F20 - The F12 row and reply cite one commit but the 13:45 stamp changed in another
+
+- PR number: 2805
+- Source review ID: 5843807142
+- Reviewer finding ID: F19
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2805#discussion_r4526322306
+- Concern: The F12 row cited only one commit while the 13:45 stamp changed in the other.
+- Solution: Named both commits in the row and edited the reply.
+- Current-tree verification: Compared git show for the two commits.
+- Resolution reference: docs(pr-reviews): correct the F9 and F12 references in the PR #2805 audit
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2805#discussion_r4526349297
+
+### F21 - The F9 resolution reference is the PR's own URL
+
+- PR number: 2805
+- Source review ID: 5843807142
+- Reviewer finding ID: F20
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2805#discussion_r4526322314
+- Concern: The F9 reference was the PR URL, which does not state the edit.
+- Solution: Pointed it at the F9 reply that states the edit.
+- Current-tree verification: Read the F9 entry.
+- Resolution reference: docs(pr-reviews): correct the F9 and F12 references in the PR #2805 audit
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2805#discussion_r4526349938
+
+### F22 - The description's Files list omits the audit record
+
+- PR number: 2805
+- Source review ID: 5843807142
+- Reviewer finding ID: F21
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2805#discussion_r4526322327
+- Concern: The PR description's Files list omitted the audit record.
+- Solution: Edited the PR description to add it.
+- Current-tree verification: Read the PR body after the edit.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2805#discussion_r4526350429
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2805#discussion_r4526350429
 
 ## Processing Log
 
