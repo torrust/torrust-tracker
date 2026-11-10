@@ -7,9 +7,9 @@ priority: p3
 epic: 2003
 github-issue: 2714
 spec-path: docs/issues/open/2714-2003-wait-for-pr-review-head-race-between-requests/ISSUE.md
-branch: "2712-wait-for-pr-review-bug-and-adr-specs-spec"
+branch: "2714-wait-for-pr-review-head-race"
 related-pr: null
-last-updated-utc: "2026-11-04 14:35"
+last-updated-utc: "2026-11-10 12:00"
 semantic-links:
   skill-links:
     - create-issue
@@ -91,7 +91,7 @@ claim a head that is older than the feedback.
 Not applicable: no child process, I/O lifetime or resource ownership change. The question is the order of reads
 in one function.
 
-Design question for the maintainer, to settle at implementation:
+Design question for the maintainer (settled: **option 1**, see the decision below):
 
 - **Option 1, read the head again after the feedback.** After the three feedback calls, read the pull request
   a second time and use that head (and state) for the result. The invariant becomes: the head in a result was read
@@ -104,6 +104,11 @@ Design question for the maintainer, to settle at implementation:
 - **Option 3, both.** Option 1 for every result, and option 2 as a second check on reviews.
 
 Recommendation: option 1. It is the smallest change, covers every kind of feedback, and states a single invariant.
+
+### Decision
+
+2026-11-10, maintainer (josecelano), asked in the implementation session: **option 1**, as recommended. The head
+and state of a result are read after the three feedback calls.
 
 ## Bug-Fix Process
 
@@ -180,6 +185,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-04 14:35 UTC - AI assistant (Copilot SDK in VS Code) - The reproduction script now reports head `bbbb…`
   for a pull-request read made after the second review-list response, so a fix that reads the head again after
   the feedback calls can pass M2. A rerun of the unfixed build at 14:33 UTC gave the same result as V1.
+- 2026-11-10 12:00 UTC - AI assistant (Claude Code) - The maintainer chose option 1 in the implementation session.
 
 ## Acceptance Criteria
 
