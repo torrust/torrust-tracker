@@ -1,11 +1,11 @@
 ---
 doc-type: feature-supporting-analysis
 status: draft
-last-updated-utc: "2026-11-10 09:41"
+last-updated-utc: "2026-11-10 11:29"
 semantic-links:
   related-artifacts:
     - docs/features/shutdown-process/README.md
-    - docs/issues/open/2751-1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md
+    - docs/issues/closed/2751-1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md
 ---
 
 # Migrating from the Legacy Shutdown API

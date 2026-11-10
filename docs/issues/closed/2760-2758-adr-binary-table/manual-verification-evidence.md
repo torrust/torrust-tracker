@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2760-2758-adr-binary-table/ISSUE.md
-last-updated-utc: "2026-11-09 11:27"
+issue-spec: docs/issues/closed/2760-2758-adr-binary-table/ISSUE.md
+last-updated-utc: "2026-11-10 11:28"
 ---
 
 # Manual Verification Evidence
