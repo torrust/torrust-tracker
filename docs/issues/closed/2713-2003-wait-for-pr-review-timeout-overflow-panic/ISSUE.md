@@ -9,7 +9,7 @@ github-issue: 2713
 spec-path: docs/issues/closed/2713-2003-wait-for-pr-review-timeout-overflow-panic/ISSUE.md
 branch: "2713-wait-for-pr-review-timeout-overflow"
 related-pr: 2802
-last-updated-utc: "2026-11-10 16:05"
+last-updated-utc: "2026-11-10 16:09"
 semantic-links:
   skill-links:
     - create-issue

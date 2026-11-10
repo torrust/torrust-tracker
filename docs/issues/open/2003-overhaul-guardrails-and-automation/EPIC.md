@@ -6,7 +6,7 @@ epic: null
 github-issue: 2003
 spec-path: docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-10 15:44"
+last-updated-utc: "2026-11-10 16:09"
 semantic-links:
   skill-links:
     - create-issue
@@ -438,6 +438,7 @@ For each completed subissue in this EPIC, the default completion policy is:
 - 2026-11-06 11:00 UTC - josecelano (via the Claude EPIC coordinator session) - Refreshed the spec against GitHub at `develop` `c5a6dbaa6`: josecelano is the owner again; added rows 16 to 19 (#2581 done, #2712 to #2714 open); noted that #2347's close-out PR #2367 merged. The register, the Phase 1 status and the proposed subissues are unchanged
 - 2026-11-09 10:50 UTC - AI assistant (Claude Code, issue #2712 session) - Row 17 (#2712) is DONE: PR #2750 merged on 2026-11-06 and its follow-up PR #2756 on 2026-11-09; the spec moved to `docs/issues/closed/` in the close-out pull request.
 - 2026-11-09 11:18 UTC - AI assistant (Claude Code, issue #2712 session) - Correction: the entry stamped 2026-11-09 10:50 UTC and the first `last-updated-utc` were already in commit 971f8d847, made at 10:48:59 UTC, so that time is wrong; the entry is kept unchanged. The event is evidenced by that commit time.
+- 2026-11-10 16:09 UTC - AI assistant (Claude Code, Claude Sonnet 5.5, issue #2713 session) - Row 18 (#2713) is DONE: PR #2802 merged on 2026-11-10 and `--timeout-seconds` is bounded to 1..=86400; the spec moved to `docs/issues/closed/` in the close-out pull request.
 
 ## Acceptance Criteria
 
