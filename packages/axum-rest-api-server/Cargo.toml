@@ -1,9 +1,10 @@
 [package]
 authors.workspace = true
-description = "The Torrust Tracker API."
+categories = [ "web-programming::http-server" ]
+description = "Axum transport layer of the Torrust Tracker management REST API."
 edition.workspace = true
 homepage.workspace = true
-keywords = [ "axum", "bittorrent", "http", "server", "torrust", "tracker" ]
+keywords = [ "axum", "bittorrent", "http", "openapi", "rest" ]
 license.workspace = true
 name = "torrust-tracker-axum-rest-api-server"
 publish.workspace = true
