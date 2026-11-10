@@ -24,6 +24,7 @@ use torrust_server_lib::registar::{Registar, RegistrationError, ServiceRegistrat
     reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
 )]
 use torrust_server_lib::signals::{Halted, Started};
+use torrust_tracker_axum_server::custom_axum_server;
 #[allow(
     deprecated,
     reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
@@ -137,7 +138,7 @@ pub fn start(
         address,
     ));
 
-    let running = axum_server::from_tcp(socket)?
+    let running = custom_axum_server::from_tcp_with_timeouts(socket)?
         .handle(handle)
         .serve(router.into_make_service_with_connect_info::<SocketAddr>());
 
@@ -194,7 +195,7 @@ pub async fn start_with_cancellation(
     let service_binding = ServiceBinding::new(protocol.clone(), local_addr).map_err(|error| Error::Listener {
         source: std::io::Error::other(error),
     })?;
-    let server = axum_server::from_tcp(socket).map_err(|source| Error::Listener { source })?;
+    let server = custom_axum_server::from_tcp_with_timeouts(socket).map_err(|source| Error::Listener { source })?;
 
     let handle = Handle::new();
     let serving = server
@@ -449,6 +450,43 @@ mod tests {
             "the health check API task should stop without an error: {server_result:?}"
         );
         assert_eq!(drain_outcome, GracefulShutdownOutcome::Drained);
+    }
+
+    /// A client that connects and sends nothing must be disconnected: an idle connection would hold a
+    /// task and a file descriptor for as long as the client keeps it open (issue #2776).
+    ///
+    /// The server uses the production first-request timeout (5 s), so the bound below is absolute and
+    /// generous instead of waiting without a bound.
+    #[tokio::test]
+    async fn it_should_close_a_connection_that_sends_nothing() {
+        use tokio::io::AsyncReadExt;
+
+        // Arrange
+        let cancellation_token = CancellationToken::new();
+        let running = start_with_cancellation(
+            any_available_port(),
+            Registar::default(),
+            Readiness::default(),
+            health_check_api_metadata(),
+            cancellation_token.clone(),
+            default_drain_timeout(),
+        )
+        .await
+        .expect("the token-aware health check API should start");
+        let mut silent_connection = tokio::net::TcpStream::connect(running.local_addr)
+            .await
+            .expect("open the silent connection");
+
+        // Act
+        let mut buffer = [0_u8; 16];
+        let closed = tokio::time::timeout(Duration::from_secs(8), silent_connection.read(&mut buffer)).await;
+
+        // Assert
+        assert!(
+            matches!(closed, Ok(Ok(0) | Err(_))),
+            "the health check API should close a connection that sends nothing: {closed:?}"
+        );
+        cancellation_token.cancel();
     }
 
     #[tokio::test]

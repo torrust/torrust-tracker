@@ -8,3 +8,4 @@ test it_should_close_an_idle_http2_connection_after_a_response_over_tls ... ok
 test it_should_close_a_plaintext_connection_that_sends_nothing ... FAILED
 test it_should_close_a_tls_connection_that_completes_the_handshake_and_sends_nothing ... FAILED
 test result: FAILED. 7 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.00s
+health check (old axum_server::from_tcp path): it_should_close_a_connection_that_sends_nothing FAILED after 8.00s (still open)

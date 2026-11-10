@@ -119,7 +119,8 @@ fn add_timeouts<Addr: axum_server::Address, Acc>(mut server: Server<Addr, Acc>, 
         .keep_alive_timeout(timeouts.http2_keep_alive_timeout)
         .keep_alive_interval(timeouts.http2_keep_alive_interval);
 
-    server
+    // Closes connections that never send a complete first request, for plaintext and TLS (after the handshake).
+    server.first_request_timeout(timeouts.first_request)
 }
 
 #[derive(Clone)]
