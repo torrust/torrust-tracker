@@ -1,14 +1,22 @@
-# BitTorrent Core Tracker library
+# Torrust Tracker Core
 
-A library with the core functionality needed to implement a BitTorrent tracker.
+`torrust-tracker-core` contains the central logic of the Torrust Tracker, independent of the delivery protocol: announce and scrape handling, peer keys authentication, the whitelist, the database drivers and persistence of torrent statistics. You usually do not need it directly: use the [Torrust Tracker](https://github.com/torrust/torrust-tracker). To build your own tracker, add a delivery layer (HTTP or UDP) on top.
 
-You usually don’t need to use this library directly. Instead, you should use the [Torrust Tracker](https://github.com/torrust/torrust-tracker). If you want to build your own tracker, you can use this library as the core functionality. In that case, you should add the delivery layer (HTTP or UDP) on top of this library.
+## Where it fits
 
-> **Disclaimer**: This library is actively under development. We’re currently extracting and refining common types from the[Torrust Tracker](https://github.com/torrust/torrust-tracker) to make them available to the BitTorrent community in Rust. While these types are functional, they are not yet ready for use in production or third-party projects.
+Core package (`*-core`) below `torrust-tracker-http-core` and `torrust-tracker-udp-core`. Workspace dependencies: `torrust-tracker-configuration`, `torrust-tracker-events`, `torrust-tracker-primitives`, `torrust-tracker-swarm-coordination-registry`. Used by: `torrust-tracker`, `torrust-tracker-axum-http-server`, `torrust-tracker-axum-rest-api-server`, `torrust-tracker-http-core`, `torrust-tracker-rest-api-runtime-adapter`, `torrust-tracker-udp-core` and 1 more. See the [package catalog](https://github.com/torrust/torrust-tracker/blob/develop/docs/packages.md#package-catalog) for the full picture.
+
+## Main API
+
+`announce_handler`, `scrape_handler`, `authentication`, `whitelist`, `databases` and `container`.
+
+## Stability
+
+Versions are independent per package (see the [ADR](https://github.com/torrust/torrust-tracker/blob/develop/docs/adrs/20260629000000_adopt_independent_package_versioning.md)). While the version is `0.x`, the public API can change in any minor release. The crate is developed for the Torrust Tracker first, so use it directly only if you accept that.
 
 ## Documentation
 
-[Crate documentation](https://docs.rs/crate/torrust-tracker/latest).
+- [API documentation](https://docs.rs/torrust-tracker-core)
 
 ## Testing
 
@@ -36,4 +44,4 @@ If you use Visual Studio Code, you can use the [Coverage Gutters](https://market
 
 ## License
 
-The project is licensed under the terms of the [GNU AFFERO GENERAL PUBLIC LICENSE](./LICENSE).
+The project is licensed under the terms of the [GNU AFFERO GENERAL PUBLIC LICENSE](./LICENSE) (`AGPL-3.0-only`).
