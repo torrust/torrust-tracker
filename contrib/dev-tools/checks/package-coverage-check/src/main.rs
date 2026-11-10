@@ -1,9 +1,9 @@
 //! Command-line adapter for package coverage-regression workflow discovery.
 
-use std::io::{self, Write};
+use std::io::{self, IsTerminal, Write};
 use std::path::{Path, PathBuf};
 use std::process::{Command, ExitCode};
-use std::{env, fs};
+use std::{env, fmt, fs};
 
 use package_coverage_check::{
     PackageCoverageResult, PackageMatrix, UnavailablePackage, WorkspacePackage, compare_coverage, discover_coverage_packages,
@@ -11,19 +11,64 @@ use package_coverage_check::{
 };
 use serde::Deserialize;
 use serde::de::DeserializeOwned;
+use serde_json::json;
 
-fn main() -> ExitCode {
-    match run() {
-        Ok(()) => ExitCode::SUCCESS,
-        Err(error) => {
-            let mut stderr = io::stderr().lock();
-            drop(writeln!(stderr, "package-coverage-check: {error}"));
-            ExitCode::FAILURE
+/// Why a run failed, which decides the diagnostic record and the exit code.
+enum Failure {
+    TtyRefusal,
+    Usage(String),
+    Runtime(String),
+}
+
+impl Failure {
+    const fn kind(&self) -> &'static str {
+        match self {
+            Self::TtyRefusal => "tty_refusal",
+            Self::Usage(_) => "usage_error",
+            Self::Runtime(_) => "runtime_error",
+        }
+    }
+
+    fn exit_code(&self) -> ExitCode {
+        match self {
+            Self::TtyRefusal | Self::Usage(_) => ExitCode::from(2),
+            Self::Runtime(_) => ExitCode::FAILURE,
         }
     }
 }
 
-fn run() -> Result<(), String> {
+impl fmt::Display for Failure {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::TtyRefusal => formatter.write_str("stdout is a TTY; pipe the output to consume result data"),
+            Self::Usage(message) | Self::Runtime(message) => formatter.write_str(message),
+        }
+    }
+}
+
+impl From<String> for Failure {
+    fn from(message: String) -> Self {
+        Self::Runtime(message)
+    }
+}
+
+fn main() -> ExitCode {
+    match run() {
+        Ok(()) => ExitCode::SUCCESS,
+        Err(failure) => {
+            let record = json!({ "kind": failure.kind(), "message": failure.to_string() });
+            // A failure to write to stderr cannot be reported anywhere else.
+            drop(writeln!(io::stderr().lock(), "{record}"));
+            failure.exit_code()
+        }
+    }
+}
+
+fn run() -> Result<(), Failure> {
+    if io::stdout().is_terminal() {
+        return Err(Failure::TtyRefusal);
+    }
+
     let output = match arguments()? {
         Arguments::Matrix {
             base_workspace_root,
@@ -49,8 +94,8 @@ fn run() -> Result<(), String> {
             artifacts_directory,
         } => summary(&discovery, &artifacts_directory)?,
     };
-    writeln!(io::stdout().lock(), "{output}").map_err(|error| error.to_string())?;
-    Ok(())
+    writeln!(io::stdout().lock(), "{output}")
+        .map_err(|error| Failure::Runtime(format!("cannot write the result to stdout: {error}")))
 }
 
 enum Arguments {
@@ -73,16 +118,16 @@ enum Arguments {
     },
 }
 
-fn arguments() -> Result<Arguments, String> {
+fn arguments() -> Result<Arguments, Failure> {
     let mut arguments = env::args().skip(1);
     match arguments.next().as_deref() {
         Some("matrix") => {
-            let base_workspace_root = arguments.next().map(PathBuf::from).ok_or_else(usage)?;
-            let head_workspace_root = arguments.next().map(PathBuf::from).ok_or_else(usage)?;
-            let base_sha = arguments.next().ok_or_else(usage)?;
-            let head_sha = arguments.next().ok_or_else(usage)?;
+            let base_workspace_root = arguments.next().map(PathBuf::from).ok_or_else(usage_error)?;
+            let head_workspace_root = arguments.next().map(PathBuf::from).ok_or_else(usage_error)?;
+            let base_sha = arguments.next().ok_or_else(usage_error)?;
+            let head_sha = arguments.next().ok_or_else(usage_error)?;
             if arguments.next().is_some() {
-                return Err(usage());
+                return Err(usage_error());
             }
             Ok(Arguments::Matrix {
                 base_workspace_root,
@@ -92,12 +137,12 @@ fn arguments() -> Result<Arguments, String> {
             })
         }
         Some("compare") => {
-            let package = arguments.next().ok_or_else(usage)?;
+            let package = arguments.next().ok_or_else(usage_error)?;
             let paths = (0..4)
-                .map(|_| arguments.next().map(PathBuf::from).ok_or_else(usage))
+                .map(|_| arguments.next().map(PathBuf::from).ok_or_else(usage_error))
                 .collect::<Result<Vec<_>, _>>()?;
             if arguments.next().is_some() {
-                return Err(usage());
+                return Err(usage_error());
             }
             Ok(Arguments::Compare {
                 package,
@@ -108,24 +153,24 @@ fn arguments() -> Result<Arguments, String> {
             })
         }
         Some("summary") => {
-            let discovery = arguments.next().map(PathBuf::from).ok_or_else(usage)?;
-            let artifacts_directory = arguments.next().map(PathBuf::from).ok_or_else(usage)?;
+            let discovery = arguments.next().map(PathBuf::from).ok_or_else(usage_error)?;
+            let artifacts_directory = arguments.next().map(PathBuf::from).ok_or_else(usage_error)?;
             if arguments.next().is_some() {
-                return Err(usage());
+                return Err(usage_error());
             }
             Ok(Arguments::Summary {
                 discovery,
                 artifacts_directory,
             })
         }
-        _ => Err(usage()),
+        _ => Err(usage_error()),
     }
 }
 
-fn usage() -> String {
-    String::from(
+fn usage_error() -> Failure {
+    Failure::Usage(String::from(
         "usage: <matrix <base-workspace> <head-workspace> <base-sha> <head-sha> | compare <package> <base-report> <base-src> <head-report> <head-src> | summary <discovery-json> <artifacts-directory>>",
-    )
+    ))
 }
 
 fn matrix(base_workspace_root: &Path, head_workspace_root: &Path, base_sha: &str, head_sha: &str) -> Result<String, String> {
@@ -162,7 +207,8 @@ fn summary(discovery: &Path, artifacts_directory: &Path) -> Result<String, Strin
     let discovery = read_json::<SummaryInput>(discovery)?;
     let artifacts = read_comparison_artifacts(artifacts_directory)?;
 
-    Ok(render_summary(&discovery.matrix, &discovery.unavailable, &artifacts))
+    let markdown = render_summary(&discovery.matrix, &discovery.unavailable, &artifacts);
+    serde_json::to_string(&json!({ "markdown": markdown })).map_err(|error| error.to_string())
 }
 
 #[derive(Deserialize)]
@@ -300,6 +346,22 @@ fn parse_changed_path(line: &str) -> Result<ChangedPath, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn it_should_map_each_failure_to_its_record_kind_and_exit_code() {
+        // Arrange
+        let cases = [
+            (Failure::TtyRefusal, "tty_refusal", ExitCode::from(2)),
+            (Failure::Usage(String::new()), "usage_error", ExitCode::from(2)),
+            (Failure::Runtime(String::new()), "runtime_error", ExitCode::FAILURE),
+        ];
+
+        // Act and assert
+        for (failure, kind, exit_code) in cases {
+            assert_eq!(failure.kind(), kind);
+            assert_eq!(failure.exit_code(), exit_code);
+        }
+    }
 
     #[test]
     fn it_should_preserve_old_and_new_paths_for_a_renamed_file() {
