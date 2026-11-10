@@ -321,7 +321,7 @@ Findings F1 to F9 and F10 to F16 are the maintainer's own IDs of two review roun
 ### F21 - Two replies cite the record's commit, and one says it was validated, before either happened
 
 - PR number: 2815
-- Source review ID: 5848499555
+- Source review ID: 5848852874
 - Reviewer finding ID: F17
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2815#discussion_r4530138247
 - Concern: The replies to F10 and F11 (20:07 UTC) cited the audit commit and said the record was validated, before the commit (20:09:01 UTC) and any passing validator run existed.
@@ -350,6 +350,7 @@ Replies cite branch commits by id (finding F11). The ids map to these subjects:
 - 2026-11-10 20:08 UTC - Fixes for F11 to F16 committed one per finding, this record added, and the replies posted (reply creation times).
 - 2026-11-10 20:09 UTC - Correction to the 20:08 entry: this record was committed at 20:09 UTC (commit time of the commit `docs(pr-reviews): add the #2815 review audit record`), not at 20:08; the fixes and the replies were before it. The validator ran with exit 0 after that commit.
 - 2026-11-10 20:29 UTC - Correction (finding F21): the replies to F10 and F11, posted at 20:07 UTC, said the record was validated and cited its commit before either existed. The record was committed at 20:09:01 UTC and the validator first passed after that commit; no passing run could come earlier, because the record cites replies posted until 20:08 UTC. The replies stay as posted.
+- 2026-11-10 20:33 UTC - Correction to the F21 detail entry: its `Source review ID` was first recorded as the previous review (5848499555); the comment belongs to review 5848852874. The validator failed on the first push of the F21 commit and passes after this correction.
 
 Append entries only. If an entry was rewritten in place, restore the prior entries, then append a
 correction that names the rewritten content; do not rewrite the record again.
