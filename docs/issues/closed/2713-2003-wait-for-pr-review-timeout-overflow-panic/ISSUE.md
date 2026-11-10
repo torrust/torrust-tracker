@@ -190,7 +190,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   stamps, edited the PR description, and added the review audit record `docs/pr-reviews/pr-2802-review/PR-REVIEW.md`.
 - 2026-11-10 15:44 UTC - AI assistant (Claude Code, Claude Sonnet 5.5) - Archived: GitHub issue #2713 closed at 15:39 UTC by the merge of
   pull request #2802; the spec moved to `docs/issues/closed/`, the EPIC #2003 row is DONE, and the completion
-  checkpoints and the retrospective are recorded.
+  checkpoints and the retrospective are recorded. No process retrospective is needed because the review findings
+  are recorded in the pull request audit `docs/pr-reviews/pr-2802-review/PR-REVIEW.md` and the one regression the
+  reviews found is guarded by a test.
 - 2026-11-10 16:05 UTC - AI assistant (Claude Code, Claude Sonnet 5.5) - Review of the close-out pull request (Copilot): the
   agent log entries named the tool but not the model; every entry above now names the model.
 
