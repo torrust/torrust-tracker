@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: planned
+status: in-progress
 priority: p3
 epic: 2003
 github-issue: 2713
 spec-path: docs/issues/open/2713-2003-wait-for-pr-review-timeout-overflow-panic/ISSUE.md
-branch: "2712-wait-for-pr-review-bug-and-adr-specs-spec"
+branch: "2713-wait-for-pr-review-timeout-overflow"
 related-pr: 2802
-last-updated-utc: "2026-11-10 13:32"
+last-updated-utc: "2026-11-10 13:31"
 semantic-links:
   skill-links:
     - create-issue
@@ -175,7 +175,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   describes ran. The reproduction and lint commands ran between 11:49 and 11:56 UTC, as the command output and
   `manual-verification-evidence.md` record, so the drafting stamp is wrong. The earlier entries are kept unchanged,
   and `last-updated-utc` now holds the time of this edit.
-- 2026-11-10 - AI assistant (Claude Code) - The maintainer chose option 1 with a maximum of 86400 s. T1: the new
+- 2026-11-10 12:59 UTC - AI assistant (Claude Code) - The maintainer chose option 1 with a maximum of 86400 s. T1: the new
   tests failed on the unfixed code (oversized value exit `101`, 86401 exit `0`). T2/T4: added
   `MAX_TIMEOUT_SECONDS = 86_400` as the clap range upper bound, updated the `--help` text and the skill table.
   T3: `cargo test -p wait-for-pr-review` and clippy pass; V2 recorded.
@@ -183,7 +183,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   `Cli` doc comment so `--help` keeps its description, and added a help-text assertion; renamed `gh_calls` to
   `pull_calls`; V2 rerun on the new build and recorded with the green output; this bookkeeping updated.
 
-- 2026-11-10 13:32 UTC - AI assistant (Claude Code) - Review round 2 (Copilot): reworded the `MAX_TIMEOUT_SECONDS` doc
+- 2026-11-10 13:31 UTC - AI assistant (Claude Code) - Review round 2 (Copilot): reworded the `MAX_TIMEOUT_SECONDS` doc
   comment (no claim of a guarantee), made the `pull_calls` parse failure explicit, put the recorded stderr in a code
   block. A `checked_add` on the deadline was not added: the spec chose option 1 and this is out of scope.
 

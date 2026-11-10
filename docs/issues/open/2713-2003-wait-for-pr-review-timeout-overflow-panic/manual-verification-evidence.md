@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2713-2003-wait-for-pr-review-timeout-overflow-panic/ISSUE.md
-last-updated-utc: "2026-11-10 13:28"
+last-updated-utc: "2026-11-10 13:31"
 ---
 
 # Manual Verification Evidence
