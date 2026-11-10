@@ -6,7 +6,7 @@ epic: null
 github-issue: 2003
 spec-path: docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-09 11:18"
+last-updated-utc: "2026-11-10 15:44"
 semantic-links:
   skill-links:
     - create-issue
@@ -188,7 +188,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | 15 | #2473 - Run design discussions as asynchronous, attributed rounds | `docs/issues/closed/2473-2003-asynchronous-discussion-rounds/ISSUE.md` | DONE | Documentation process and a Markdown template only: rewrites the `docs/discussions/` lifecycle so participants contribute through attributed rounds and only the decision needs agreement. Selects no automation architecture. No dependencies; proposed in PR #2467. |
 | 16 | #2581 - Deterministic `wait-for-pr-review` poller for AI agents | `docs/issues/closed/2581-2003-pr-review-wait-poller/ISSUE.md` | DONE | A self-contained Rust poller inside the skill that uses it, so agents wait for PR reviewers without spending tokens. Selects no shared runner, cache or policy engine; closed by PR #2683. |
 | 17 | #2712 - `wait-for-pr-review` waits without limit after a `gh` call that already exited | `docs/issues/closed/2712-2003-wait-for-pr-review-pipe-wait-after-exit/ISSUE.md` | DONE | Bug in the #2581 poller: the timeout and signal handling must hold on every path of a `gh` call. Independent of the other poller bugs; fixed by PR #2750, with a follow-up for Copilot's late review in PR #2756. |
-| 18 | #2713 - `wait-for-pr-review` panics when `--timeout-seconds` is too large | `docs/issues/open/2713-2003-wait-for-pr-review-timeout-overflow-panic/ISSUE.md` | TODO | Bug in the #2581 poller: an oversized timeout overflows the deadline. |
+| 18 | #2713 - `wait-for-pr-review` panics when `--timeout-seconds` is too large | `docs/issues/closed/2713-2003-wait-for-pr-review-timeout-overflow-panic/ISSUE.md` | DONE | Bug in the #2581 poller: an oversized timeout overflows the deadline. Fixed by PR #2802: `--timeout-seconds` is bounded to 1..=86400. |
 | 19 | #2714 - `wait-for-pr-review` can report a review of a newer commit than the head it reports | `docs/issues/open/2714-2003-wait-for-pr-review-head-race-between-requests/ISSUE.md` | TODO | Bug in the #2581 poller: a race between its two requests. |
 
 Also linked as GitHub sub-issues, outside the order:

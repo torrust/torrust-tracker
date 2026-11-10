@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: in-progress
+status: done
 priority: p3
 epic: 2003
 github-issue: 2713
-spec-path: docs/issues/open/2713-2003-wait-for-pr-review-timeout-overflow-panic/ISSUE.md
+spec-path: docs/issues/closed/2713-2003-wait-for-pr-review-timeout-overflow-panic/ISSUE.md
 branch: "2713-wait-for-pr-review-timeout-overflow"
 related-pr: 2802
-last-updated-utc: "2026-11-10 14:00"
+last-updated-utc: "2026-11-10 15:44"
 semantic-links:
   skill-links:
     - create-issue
@@ -21,7 +21,7 @@ semantic-links:
     - .github/skills/dev/pr-reviews/wait-for-pr-review/tool/src/main.rs
     - docs/adrs/20260519000000_define_global_cli_output_contract.md
     - docs/issues/closed/2581-2003-pr-review-wait-poller/ISSUE.md
-    - docs/issues/open/2713-2003-wait-for-pr-review-timeout-overflow-panic/manual-verification-evidence.md
+    - docs/issues/closed/2713-2003-wait-for-pr-review-timeout-overflow-panic/manual-verification-evidence.md
 ---
 
 <!-- skill-link: create-issue -->
@@ -154,7 +154,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ### Workflow Checkpoints
 
-- [x] Folder-style spec drafted in `docs/issues/open/2713-2003-wait-for-pr-review-timeout-overflow-panic/ISSUE.md`
+- [x] Folder-style spec drafted in `docs/issues/closed/2713-2003-wait-for-pr-review-timeout-overflow-panic/ISSUE.md`
 - [x] Reproduction attempted and recorded before review (outcome: Reproduced)
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created (#2713) and issue number added to this spec
@@ -162,8 +162,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [x] Final like-for-like recheck of V1 recorded after the last production change
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Evidence-based implementation completion review recorded
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -188,6 +188,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   block. A `checked_add` on the deadline was not added: the spec chose option 1 and this is out of scope.
 - 2026-11-10 14:00 UTC - AI assistant (Claude Code) - Review round 3 (da2ce7): fixed the residuals of F2-F5 and the
   stamps, edited the PR description, and added the review audit record `docs/pr-reviews/pr-2802-review/PR-REVIEW.md`.
+- 2026-11-10 15:44 UTC - AI assistant (Claude Code) - Archived: GitHub issue #2713 closed at 15:39 UTC by the merge of
+  pull request #2802; the spec moved to `docs/issues/closed/`, the EPIC #2003 row is DONE, and the completion
+  checkpoints and the retrospective are recorded.
 
 ## Acceptance Criteria
 
@@ -239,7 +242,7 @@ None. The reproduction is a single command on the real binary.
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
+- Retrospective: No process retrospective needed. The fix was one validation bound; the review rounds found a regression in `--help` (the constant took the `Cli` doc comment), which the help test now guards, and record hygiene findings (stamps, build naming, audit record) covered by `docs/pr-reviews/pr-2802-review/PR-REVIEW.md`.
 - If no retrospective is needed, add a concise progress-log entry explaining why.
 
 ## References
