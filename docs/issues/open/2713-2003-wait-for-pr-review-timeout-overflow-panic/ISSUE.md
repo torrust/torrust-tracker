@@ -67,7 +67,7 @@ everywhere. On the Linux machine used for the reproduction, `4611686018427387904
 ### In Scope
 
 - Decide how an oversized `--timeout-seconds` is rejected (see the design question).
-- A maintained regression test that makes no API request.
+- A maintained regression test that makes no pull-request request.
 - Update the option table of the `wait-for-pr-review` skill if a maximum is introduced.
 
 ### Out of Scope
@@ -190,7 +190,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 ## Acceptance Criteria
 
 - [x] AC1: `--timeout-seconds 18446744073709551615` exits `2` with empty stdout and one `usage_error` JSON record
-      on stderr, and makes no API request.
+      on stderr, and makes no pull-request request.
 - [x] AC2: No value the CLI accepts can make `main()` panic; the accepted range and the rejection behavior are
       the same on every supported platform (option 1) or the rejection is reported as a usage error on the
       platform where it happens (option 2).
@@ -225,7 +225,7 @@ None. The reproduction is a single command on the real binary.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1   | DONE                   | Test `it_should_exit_two_with_a_usage_error_record_when_the_timeout_is_too_large_for_any_deadline` (asserts no `gh` call); V2 |
+| AC1   | DONE                   | Test `it_should_exit_two_with_a_usage_error_record_when_the_timeout_is_too_large_for_any_deadline` (asserts no pull-request call); V2 |
 | AC2   | DONE                   | The bound `1..=86400` is far below any `Instant` range and platform independent; boundary tests at 86400 and 86401; V2 |
 | AC3   | DONE                   | `--help` text and the skill option table state the maximum |
 
