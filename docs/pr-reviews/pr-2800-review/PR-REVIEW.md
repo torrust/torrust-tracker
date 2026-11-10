@@ -71,7 +71,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2800#discussion_r4525209694
 - Concern: The spec said the peer_id-only Ord predates 00af70f25 and was already present after the 9a43815d0 move; it was introduced by 00af70f25, replacing an all-field derive added by e18cae46e.
 - Solution: Replaced the history line with the three commits and what each did, and said T1 finds why 00af70f25 changed the ordering.
-- Current-tree verification: Ran `git show 00af70f25`, `git show e18cae46e` and `git log -S`impl Ord for Peer``; read the T1 History bullet.
+- Current-tree verification: Ran `git show 00af70f25`, `git show e18cae46e` and `git log -S'impl Ord for Peer'`; read the T1 History bullet.
 - Resolution reference: docs(issues): [#2798] address review round 1 of the Peer Ord spec
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2800#discussion_r4525271988
