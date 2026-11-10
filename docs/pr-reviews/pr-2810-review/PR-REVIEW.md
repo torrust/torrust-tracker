@@ -1,7 +1,7 @@
 ---
 pr-number: 2810
 pr-url: https://github.com/torrust/torrust-tracker/pull/2810
-last-updated-utc: "2026-11-10 18:15"
+last-updated-utc: "2026-11-10 18:36"
 ---
 
 # PR #2810 Review Audit
@@ -47,8 +47,14 @@ Round 1: da2ce7 review 5846429188 (CHANGES_REQUESTED) on the head that carries t
 | F13 | review-finding:pr-2810-f13 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F14 | review-finding:pr-2810-f14 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F15 | review-finding:pr-2810-f15 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F16 | review-finding:pr-2810-f16 | Human | Minor | documentation | RE_RAISE_OF:F11 | FIXED | RESOLVED |
+| F17 | review-finding:pr-2810-f17 | Human | Nit | metadata | RE_RAISE_OF:F12 | FIXED | RESOLVED |
+| F18 | review-finding:pr-2810-f18 | Human | Nit | metadata | RE_RAISE_OF:F15 | FIXED | RESOLVED |
+| F19 | review-finding:pr-2810-f19 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F20 | review-finding:pr-2810-f20 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F21 | review-finding:pr-2810-f21 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
-Round 1 follow-up: Copilot review 5846504036, on the earlier head, raised the F1 and F2 concerns again as F9 and F10 (reviewer IDs F1 and F2); both were already fixed. Round 2: da2ce7 review 5846796508 on the head after round 1: F11 to F15 (reviewer IDs F3, F8, F9, F10, F11), fixed in the round-2 commit.
+Round 1 follow-up: Copilot review 5846504036, on the earlier head, raised the F1 and F2 concerns again as F9 and F10 (reviewer IDs F1 and F2); both were already fixed. Round 3: da2ce7 review 5847265767 (APPROVED) on the head after round 2: F16 to F21 (reviewer IDs F3, F8, F11, F12, F13, F14), fixed in the round-3 commit. Round 2: da2ce7 review 5846796508 on the head after round 1: F11 to F15 (reviewer IDs F3, F8, F9, F10, F11), fixed in the round-2 commit.
 
 ## Finding Details
 
@@ -247,10 +253,90 @@ Round 1 follow-up: Copilot review 5846504036, on the earlier head, raised the F1
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2810#discussion_r4528657210
 
+### F16 - AC5 stays checked while the hosted summary was not read; the description records no run.
+
+- PR number: 2810
+- Source review ID: 5847265767
+- Reviewer finding ID: F3
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2810#discussion_r4528905298
+- Concern: AC5 stays checked while the hosted summary was not read; the description records no run.
+- Solution: Valid. The hosted summary is not readable here; H1 and the AC5 row state what was observed and what was not; the PR description records the run.
+- Current-tree verification: Evidence H1; ISSUE.md AC5 row.
+- Resolution reference: docs(pr-reviews): [#2762] address PR 2810 review round 3
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2810#discussion_r4528939229
+
+### F17 - The 18:15 stamps postdate the commit carrying them.
+
+- PR number: 2810
+- Source review ID: 5847265767
+- Reviewer finding ID: F8
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2810#discussion_r4528905308
+- Concern: The 18:15 stamps postdate the commit carrying them.
+- Solution: Valid. Round-2 entry stamped 18:10; last-updated fields set before the commit.
+- Current-tree verification: ISSUE.md progress log and last-updated-utc fields.
+- Resolution reference: docs(pr-reviews): [#2762] address PR 2810 review round 3
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2810#discussion_r4528938352
+
+### F18 - The audit last-updated-utc and the new entry postdate their commit.
+
+- PR number: 2810
+- Source review ID: 5847265767
+- Reviewer finding ID: F11
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2810#discussion_r4528905314
+- Concern: The audit last-updated-utc and the new entry postdate their commit.
+- Solution: Valid. Correction entry appended; last-updated-utc set before the commit.
+- Current-tree verification: Processing Log of this file.
+- Resolution reference: docs(pr-reviews): [#2762] address PR 2810 review round 3
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2810#discussion_r4528940218
+
+### F19 - The log says replies follow the push although they were created before the commit.
+
+- PR number: 2810
+- Source review ID: 5847265767
+- Reviewer finding ID: F12
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2810#discussion_r4528905323
+- Concern: The log says replies follow the push although they were created before the commit.
+- Solution: Valid. A correction entry records the replies with their created_at times; resolution times are not captured.
+- Current-tree verification: Processing Log of this file.
+- Resolution reference: docs(pr-reviews): [#2762] address PR 2810 review round 3
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2810#discussion_r4528938744
+
+### F20 - The round-1 log entry was rewritten in place.
+
+- PR number: 2810
+- Source review ID: 5847265767
+- Reviewer finding ID: F13
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2810#discussion_r4528905332
+- Concern: The round-1 log entry was rewritten in place.
+- Solution: Valid. The 17:55 entry is restored and a correction entry names the rewrite.
+- Current-tree verification: Processing Log of this file.
+- Resolution reference: docs(pr-reviews): [#2762] address PR 2810 review round 3
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2810#discussion_r4528940640
+
+### F21 - Ten older replies still name PR-branch commits by id.
+
+- PR number: 2810
+- Source review ID: 5847265767
+- Reviewer finding ID: F14
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2810#discussion_r4528905342
+- Concern: Ten older replies still name PR-branch commits by id.
+- Solution: Valid. The ten replies were edited to cite the Conventional Commit subjects.
+- Current-tree verification: The ten replies no longer contain a commit id.
+- Resolution reference: docs(pr-reviews): [#2762] address PR 2810 review round 3
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2810#discussion_r4528939707
+
 ## Processing Log
 
-- 2026-11-10 17:37 UTC - Started audit; round 1 (da2ce7 review 5846429188) processed: all eight findings fixed in one commit and replied. All eight threads were resolved after the replies and before the audit commit (resolution times are not captured).
+- 2026-11-10 17:55 UTC - Started audit; round 1 (da2ce7 review 5846429188) processed: all eight findings fixed in one commit and replied. All eight threads resolved after the replies.
 - 2026-11-10 18:15 UTC - Round 1 follow-up (Copilot 5846504036) and round 2 (da2ce7 5846796508) added as F9 to F15; replies and resolutions follow the push.
+- 2026-11-10 18:36 UTC - Correction of the entries above (round 3, da2ce7 review 5847265767). The 17:55 entry was rewritten in place in the round-2 commit (to 17:37, with new wording); it is restored above. Both stamps are later than the commits that carry them: the round-1 audit commit is dated 17:37:50Z and the round-2 commit 18:10:38Z, so the events they describe happened at about 17:37 and 18:10. Event times from the GitHub capture: the round-1 replies were created 17:36:28Z to 17:36:45Z, the two replies to Copilot's review 17:40:24Z and 17:40:26Z, the round-2 replies 18:08:33Z to 18:08:41Z (all before the commits that cite them). The resolution times of the threads are not captured.
+- 2026-11-10 18:36 UTC - Round 3 (da2ce7 review 5847265767, APPROVED with six record findings, F16 to F21 below): the ten older replies that named commits by id were edited to cite the subjects (edits at 18:34:19Z to 18:34:32Z), the stamps were corrected and the hosted run was recorded; replies and resolutions follow the push.
 
 ## Completion Rules
 

@@ -9,7 +9,7 @@ github-issue: 2762
 spec-path: docs/issues/open/2762-2758-package-coverage-check-contract/ISSUE.md
 branch: "2762-package-coverage-check-contract"
 related-pr: null
-last-updated-utc: "2026-11-10 18:15"
+last-updated-utc: "2026-11-10 18:36"
 semantic-links:
   skill-links:
     - create-issue
@@ -131,7 +131,8 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-11-09 12:12 UTC - Claude Code (Claude Sonnet 5.5) - Addressed the review of PR 2771 (da2ce7 findings F1 to F27 and Copilot's later comments): specs corrected from the code, reproductions recorded where a spec has a bug-fix section.
 - 2026-11-10 16:54 UTC - Claude Code (Claude Sonnet 5.5) - Implemented: NDJSON errors, usage and TTY exit `2`, JSON `summary` with `markdown`, workflow extracts it; evidence recorded.
 - 2026-11-10 17:35 UTC - Claude Code (Claude Sonnet 5.5) - Addressed review round 1 of PR 2810 (da2ce7, F1 to F8): `shell: bash` on the summary step, evidence corrected and completed.
-- 2026-11-10 18:15 UTC - Claude Code (Claude Sonnet 5.5) - Addressed review round 2 of PR 2810 (da2ce7 F3, F8 to F11; Copilot F1, F2 recorded in the audit): hosted run recorded (H1), stamps taken from the commit times, commits cited by subject.
+- 2026-11-10 18:10 UTC - Claude Code (Claude Sonnet 5.5) - Addressed review round 2 of PR 2810 (da2ce7 F3, F8 to F11; Copilot F1, F2 recorded in the audit): hosted run recorded (H1), stamps taken from the commit times, commits cited by subject.
+- 2026-11-10 18:36 UTC - Claude Code (Claude Sonnet 5.5) - Addressed review round 3 of PR 2810 (da2ce7 approved with record findings): AC5 wording states what was observed, stamps from commit times, audit log corrected, older replies cite subjects, PR description records the hosted run.
 
 ## Acceptance Criteria
 
@@ -174,7 +175,7 @@ Manual verification is mandatory even when automated tests pass. Record actual c
 | AC2 | DONE | V1; `tests/cli.rs`, `main.rs` unit test |
 | AC3 | DONE | V1 (pseudo-terminal via `script`) |
 | AC4 | DONE | V2; `tests/cli.rs` |
-| AC5 | DONE | V2, V3 (same Markdown via `jq -r .markdown`, local, V2; the hosted step passed, H1; the rendered hosted summary was not read) |
+| AC5 | DONE | Observed: the same bytes locally (V2) and a passing hosted step under `pipefail` (H1). Not observed: the rendered hosted summary. AC5 rests on the byte identity of the report, which V2 shows. |
 
 ## Risks and Trade-offs
 

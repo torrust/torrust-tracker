@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2762-2758-package-coverage-check-contract/ISSUE.md
-last-updated-utc: 2026-11-10 18:15
+last-updated-utc: 2026-11-10 18:36
 ---
 
 # Manual Verification Evidence
@@ -112,7 +112,7 @@ The `jq -r .markdown` output is identical to the former plain Markdown output (t
 
 ### H1 - Hosted run of the summary step
 
-Job `Package Coverage Regression` (the job that runs the `Write Report-Only Summary` step) in the pull-request run https://github.com/torrust/torrust-tracker/actions/runs/42867272734, on the PR head after review round 1 (the commit `docs(pr-reviews): [#2762] record the PR 2810 review round 1 audit`; it contains the `shell: bash` fix): job conclusion `success`, step `Write Report-Only Summary` `success`. The log shows the step ran `cargo run -p package-coverage-check -- summary ... | jq -r .markdown >> "$GITHUB_STEP_SUMMARY"` with the shell options `-e -o pipefail`. The rendered step summary is not part of the job log, so what it showed was not read here; the byte-identity of the Markdown is established locally in V2. The `Package Coverage (package-coverage-check)` job, which runs `compare` through the new binary, also succeeded in the same run.
+Job `Package Coverage Regression` (the job that runs the `Write Report-Only Summary` step) in the pull-request run https://github.com/torrust/torrust-tracker/actions/runs/42867272734, on the PR head after review round 1 (the commit `docs(pr-reviews): [#2762] record the PR 2810 review round 1 audit`; it contains the `shell: bash` fix): job conclusion `success`, step `Write Report-Only Summary` `success`. The log shows the step ran `cargo run -p package-coverage-check -- summary ... | jq -r .markdown >> "$GITHUB_STEP_SUMMARY"` with the shell options `-e -o pipefail`. The rendered step summary is not part of the job log or of the run page text, and it was not readable through the API or the browser here, so what it showed was not observed; the byte-identity of the Markdown is established locally in V2. The `Package Coverage (package-coverage-check)` job, which runs `compare` through the new binary, also succeeded in the same run.
 
 ### L1 - `linter all`
 
