@@ -1,9 +1,10 @@
 [package]
 authors.workspace = true
-description = "Application/use-case layer for the Torrust Tracker REST API."
+categories = [ "web-programming" ]
+description = "Application and use-case layer of the Torrust Tracker management REST API."
 edition.workspace = true
 homepage.workspace = true
-keywords = [ "api", "application", "bittorrent", "torrust", "tracker", "use-case" ]
+keywords = [ "application", "bittorrent", "rest", "use-cases" ]
 license.workspace = true
 name = "torrust-tracker-rest-api-application"
 publish.workspace = true
