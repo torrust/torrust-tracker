@@ -9,7 +9,7 @@ github-issue: 2801
 spec-path: docs/issues/open/2801-1488-si-19-remove-legacy-shutdown-api/ISSUE.md
 branch: "2801-remove-legacy-shutdown-api-spec"
 related-pr: null
-last-updated-utc: "2026-11-10 13:30"
+last-updated-utc: "2026-11-10 14:05"
 semantic-links:
   skill-links:
     - create-issue
@@ -58,7 +58,9 @@ evidence goes in this issue's `manual-verification-evidence.md` (SI-18's gate ev
       ends when the maintainer approves publishing 0.6.0 (SI-18, Versioning
       Decisions). The maintainer gave that approval in chat on 2026-11-10 and
       confirmed 0.6.0 as the `torrust-server-lib` removal release and 4.0.0 as the
-      root release target. 0.6.0 itself is an external dependency (below), not part of this task.
+      root release target. SI-18 counted the publication of 0.6.0 as part of SI-19; it was completed in
+      the `torrust-server-lib` repository before implementation, so this task only
+      waits for it (below).
       The unpublished package crates and the root `HaltSignal`/`NestedServerTask`
       have never been in a published release and have no public window.
 - [x] HTTP tracker, REST API, health-check API and UDP tracker application
@@ -75,7 +77,8 @@ evidence goes in this issue's `manual-verification-evidence.md` (SI-18's gate ev
       torrust/torrust-server-lib#5, PR torrust/torrust-server-lib/pull/6 (merged
       into `main` at `2dd04f4`), release notes in its `CHANGELOG.md`; crates.io
       reports `max_version` 0.6.0 (checked 2026-11-10). This is an external
-      dependency this task waits for; the maintainer published it.
+      dependency this task waits for; the maintainer published it, which is the
+      publication SI-18 assigned to SI-19.
 
 ## Scope
 
@@ -98,11 +101,13 @@ evidence goes in this issue's `manual-verification-evidence.md` (SI-18's gate ev
   types, which have no production consumer after SI-14.
 - Bump `torrust-server-lib` to 0.6.0 and remove the `Halted`/`global_shutdown_signal`
   imports and the `#[allow(deprecated)]` markers that guarded them.
-- Remove every item SI-18 deprecated in this repository: the complete list is
-  the in-scope list of the closed SI-18 spec
-  (`docs/issues/closed/2751-1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md`),
-  checked against the `#[deprecated]` attributes in the tree. It includes
-  `axum-server`'s `graceful_shutdown`; the legacy `start`, `start_with_health_check`,
+- Remove every item SI-18 deprecated in this repository. The complete list is the
+  27 shutdown-related `#[deprecated]` attributes in the tree, and T2 to T4 name each
+  one. SI-18's in-scope list
+  (`docs/issues/closed/2751-1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md`) is a
+  starting point, not the complete list: it omits the aliases and the whole `Running`
+  structs, and it names the private HTTP `Launcher::start`, which carries
+  `#[allow(deprecated)]`, not `#[deprecated]`. The set includes `axum-server`'s `graceful_shutdown`; the legacy `start`, `start_with_health_check`,
   `stop`, `Running` state, `Running::new`, `halt_task` and `rx_halt` of the HTTP,
   REST API, health-check API and UDP servers; and the aliases that name the legacy
   states (`RunningHttpServer`, `RunningApiServer`, `RunningUdpServer`). The workspace
@@ -115,9 +120,10 @@ evidence goes in this issue's `manual-verification-evidence.md` (SI-18's gate ev
   the health-check join order. This is a refactor, not a removal of a deprecated
   symbol, so it would widen the breaking surface (Removal Constraint 1). The
   maintainer agreed on 2026-11-10 to split it into its own follow-up issue.
-- The `torrust-server-lib` 0.6.0 removal and its publication: an external
-  dependency this task waits for, done in the `torrust-server-lib` repository
-  (torrust/torrust-server-lib#5, PR 6) and published by the maintainer.
+- The `torrust-server-lib` 0.6.0 removal and its publication: SI-18 assigned the
+  publication to SI-19, but it was done in the `torrust-server-lib` repository
+  (torrust/torrust-server-lib#5, PR 6) and published by the maintainer before
+  implementation, so it is an external dependency this task only waits for.
 - Changing cancellation-tree behavior, component child ownership, timeout
   policy, exit-code policy, or readiness behavior.
 - Removing the `Started` oneshot startup-notification API.
@@ -222,8 +228,11 @@ Sign every commit with GPG.
 ### Progress Log
 
 - 2026-11-10 12:52 UTC - AI agent (Claude Sonnet 5.5) - Refreshed the draft after SI-18: recorded the start-gate evidence and the maintainer's approval (chat, 2026-11-10) ending the `torrust-server-lib` 0.5.x window with 0.6.0 as the removal release and 4.0.0 as the root target; split the supervisor consolidation into a follow-up; companion removal in torrust/torrust-server-lib#5 (PR 6).
-- 2026-11-10 13:04 UTC - AI agent (Claude Sonnet 5.5) - Created issue #2801, moved the spec to `docs/issues/open/` and opened the spec-only PR 2803.
+- 2026-11-10 13:04 UTC - AI agent (Claude Sonnet 5.5) - Created issue #2801 and moved the spec to `docs/issues/open/`.
 - 2026-11-10 13:30 UTC - AI agent (Claude Sonnet 5.5) - Addressed the review of PR 2803 (F1 to F7): full removal list by reference to SI-18, T1 as a wait-only task with the bump in T4, one wording for the 0.6.0 dependency, real timestamps, the verification sections, and the evidence file matched to the gate. `torrust-server-lib` 0.6.0 was published meanwhile (crates.io `max_version` 0.6.0).
+- 2026-11-10 13:06 UTC - AI agent (Claude Sonnet 5.5) - Opened the spec-only PR 2803 (created at 13:06:40 UTC).
+- 2026-11-10 13:36 UTC - AI agent (Claude Sonnet 5.5) - Added the implementation-completion-review checkpoint and requirement for Copilot's finding R2 (commit at 13:36:46 UTC).
+- 2026-11-10 14:05 UTC - AI agent (Claude Sonnet 5.5) - Edited the spec for the second review of PR 2803: the 0.6.0 wording reconciled with SI-18 (F11), the removal list stated as the 27 `#[deprecated]` attributes (F12), and these log entries and the stamp corrected (F4). The audit record `docs/pr-reviews/pr-2803-review/PR-REVIEW.md` is added in the same round (F8).
 
 ## Design and Ownership Review
 
