@@ -9,15 +9,15 @@ github-issue: 2628
 spec-path: docs/issues/closed/2628-2482-move-test-helpers-protocol-helpers/ISSUE.md
 branch: "2628-2482-move-test-helpers-protocol-helpers"
 related-pr: 2636
-last-updated-utc: "2026-10-25 06:20"
+last-updated-utc: "2026-11-10 12:33"
 semantic-links:
   skill-links:
     - create-issue
     - write-unit-test
   related-artifacts:
     - docs/adrs/20261021190318_share_workspace_test_support_through_testing_features.md
-    - docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md
-    - docs/issues/open/2482-1669-reorganize-shared-test-support/test-support-inventory.md
+    - docs/issues/closed/2482-1669-reorganize-shared-test-support/EPIC.md
+    - docs/issues/closed/2482-1669-reorganize-shared-test-support/test-support-inventory.md
     - docs/issues/open/1669-overhaul-packages/workspace-coupling-report-2026-10-06.md
     - packages/test-helpers/Cargo.toml
     - tests/common/mod.rs
@@ -172,7 +172,7 @@ holds the four new ban entries. See the retrospective.
 
 ## Verification Plan
 
-The [#2482 default completion policy](../../open/2482-1669-reorganize-shared-test-support/EPIC.md#how-we-work-in-this-epic)
+The [#2482 default completion policy](../2482-1669-reorganize-shared-test-support/EPIC.md#how-we-work-in-this-epic)
 applies. This move is not an O1 move, so the without-feature check does not apply.
 
 ### Automatic Checks
@@ -212,5 +212,5 @@ applies. This move is not an O1 move, so the without-feature check does not appl
 
 ## References
 
-- Parent EPIC: [`#2482`](../../open/2482-1669-reorganize-shared-test-support/EPIC.md); ADR above
+- Parent EPIC: [`#2482`](../2482-1669-reorganize-shared-test-support/EPIC.md); ADR above
 - Inventory pattern B and the 2026-10-06 coupling report, finding 1

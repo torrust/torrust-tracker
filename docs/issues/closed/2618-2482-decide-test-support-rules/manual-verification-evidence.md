@@ -1,14 +1,14 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/closed/2618-2482-decide-test-support-rules/ISSUE.md
-last-updated-utc: "2026-10-23 07:32"
+last-updated-utc: "2026-11-10 12:33"
 ---
 
 # Manual Verification Evidence
 
 ## Purpose
 
-Record the Cargo behaviour that the options of the [#2482 EPIC](../../open/2482-1669-reorganize-shared-test-support/EPIC.md)
+Record the Cargo behaviour that the options of the [#2482 EPIC](../2482-1669-reorganize-shared-test-support/EPIC.md)
 rely on (scenarios MV1 to MV4 of the [spec](ISSUE.md)), plus a packaging baseline on this
 repository. The scenarios test Cargo, not this repository's code, so they ran in scratch Cargo
 workspaces outside the repository. Every scratch manifest and source file is embedded below,

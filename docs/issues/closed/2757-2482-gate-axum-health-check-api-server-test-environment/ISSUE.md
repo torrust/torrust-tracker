@@ -9,14 +9,14 @@ github-issue: 2757
 spec-path: docs/issues/closed/2757-2482-gate-axum-health-check-api-server-test-environment/ISSUE.md
 branch: "2757-2482-gate-axum-health-check-api-server-test-environment-spec"
 related-pr: 2784
-last-updated-utc: "2026-11-09 19:25"
+last-updated-utc: "2026-11-10 12:33"
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
     - docs/adrs/20261021190318_share_workspace_test_support_through_testing_features.md
-    - docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md
-    - docs/issues/open/2482-1669-reorganize-shared-test-support/test-support-inventory.md
+    - docs/issues/closed/2482-1669-reorganize-shared-test-support/EPIC.md
+    - docs/issues/closed/2482-1669-reorganize-shared-test-support/test-support-inventory.md
     - docs/issues/closed/2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md
     - docs/issues/closed/2745-2482-gate-axum-rest-api-server-test-environment/ISSUE.md
     - docs/issues/open/1669-overhaul-packages/workspace-coupling-report-2026-10-06.md
@@ -213,7 +213,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ## Verification Plan
 
-The [#2482 default completion policy](../../open/2482-1669-reorganize-shared-test-support/EPIC.md#how-we-work-in-this-epic)
+The [#2482 default completion policy](../2482-1669-reorganize-shared-test-support/EPIC.md#how-we-work-in-this-epic)
 applies. This is an O1 move: build the package without the feature, run `cargo test -p <package>`
 without `--all-features`, and check the test count.
 
@@ -258,6 +258,6 @@ without `--all-features`, and check the test count.
 
 ## References
 
-- Parent EPIC: [`#2482`](../../open/2482-1669-reorganize-shared-test-support/EPIC.md); ADR above
+- Parent EPIC: [`#2482`](../2482-1669-reorganize-shared-test-support/EPIC.md); ADR above
 - Inventory pattern A; EPIC #1488 subissue
   [#2450](../../closed/2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md)

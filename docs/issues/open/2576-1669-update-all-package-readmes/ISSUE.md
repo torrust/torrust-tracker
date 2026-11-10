@@ -9,7 +9,7 @@ github-issue: 2576
 spec-path: docs/issues/open/2576-1669-update-all-package-readmes/ISSUE.md
 branch: "2576-1669-update-all-package-readmes-spec"
 related-pr: null
-last-updated-utc: "2026-10-20 20:52"
+last-updated-utc: "2026-11-10 12:33"
 semantic-links:
   skill-links:
     - create-issue
@@ -20,7 +20,7 @@ semantic-links:
     - "issue #2482"
     - docs/issues/open/1669-overhaul-packages/EPIC.md
     - docs/issues/open/1669-overhaul-packages/readme-audit.md
-    - docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md
+    - docs/issues/closed/2482-1669-reorganize-shared-test-support/EPIC.md
     - docs/adrs/20260629000000_adopt_independent_package_versioning.md
     - docs/packages.md
     - Cargo.toml
@@ -392,7 +392,7 @@ evidence.
 
 - Parent EPIC: #1669, [`EPIC.md`](../../open/1669-overhaul-packages/EPIC.md)
 - Input: [`readme-audit.md`](../../open/1669-overhaul-packages/readme-audit.md)
-- Ordering: #2482 ([`EPIC.md`](../../open/2482-1669-reorganize-shared-test-support/EPIC.md)), the
+- Ordering: #2482 ([`EPIC.md`](../../closed/2482-1669-reorganize-shared-test-support/EPIC.md)), the
   publish tracking issue (not yet created)
 - Rename issues: #1816, #1819, #1821, #1823, #1829, #1910
 - Cargo reference: [The Manifest Format](https://doc.rust-lang.org/cargo/reference/manifest.html)

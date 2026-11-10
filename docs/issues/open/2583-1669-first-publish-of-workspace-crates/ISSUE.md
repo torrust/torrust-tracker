@@ -9,7 +9,7 @@ github-issue: 2583
 spec-path: docs/issues/open/2583-1669-first-publish-of-workspace-crates/ISSUE.md
 branch: "2583-1669-first-publish-of-workspace-crates-spec"
 related-pr: null
-last-updated-utc: "2026-10-21 11:25"
+last-updated-utc: "2026-11-10 12:33"
 semantic-links:
   skill-links:
     - create-issue
@@ -27,7 +27,7 @@ semantic-links:
     - "issue #1488"
     - "issue #1347"
     - docs/issues/open/1669-overhaul-packages/EPIC.md
-    - docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md
+    - docs/issues/closed/2482-1669-reorganize-shared-test-support/EPIC.md
     - docs/issues/open/2576-1669-update-all-package-readmes/ISSUE.md
     - docs/issues/closed/2582-1669-remove-health-check-self-dev-dependency/ISSUE.md
     - docs/issues/closed/2454-1669-mark-public-error-enums-non-exhaustive/error-enum-inventory.md
@@ -423,7 +423,7 @@ None planned. The crates.io name check is a `curl` loop recorded in the evidence
 
 - Parent EPIC: #1669, [`EPIC.md`](../../open/1669-overhaul-packages/EPIC.md)
 - Prerequisites: #2482
-  ([`EPIC.md`](../../open/2482-1669-reorganize-shared-test-support/EPIC.md)), #2576
+  ([`EPIC.md`](../../closed/2482-1669-reorganize-shared-test-support/EPIC.md)), #2576
   ([`ISSUE.md`](../../open/2576-1669-update-all-package-readmes/ISSUE.md)), #1488
   ([`ISSUE.md`](../../open/1488-overhaul-tracker-shutdown/ISSUE.md)), #1347
   ([`EPIC.md`](../../open/1347-overhaul-packages-testing/EPIC.md))
