@@ -61,6 +61,8 @@ Three rounds: da2ce7 review 5846465906 (F1 to F8), da2ce7 review 5846866430 (F9 
 | F14 | review-finding:pr-2812-f14 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F15 | review-finding:pr-2812-f15 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F16 | review-finding:pr-2812-f16 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F17 | review-finding:pr-2812-f17 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F18 | review-finding:pr-2812-f18 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -272,6 +274,32 @@ Three rounds: da2ce7 review 5846465906 (F1 to F8), da2ce7 review 5846866430 (F9 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2812#discussion_r4529059492
 
+### F17 - The 18:05 progress-log entry answers F10 and F11 before the audit record existed
+
+- PR number: 2812
+- Source review ID: 5847274601
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2812#discussion_r4528912451
+- Concern: The 18:05 entry names the audit record's F10 and F11 answers, but that record was added at 18:10:49 UTC and its F10 and F11 rows at 18:13:46 UTC.
+- Solution: Left the entry as written and appended a progress-log entry for the audit commits, with times from `git log --format=%cI`.
+- Current-tree verification: Read the progress log of `ISSUE.md` and compared the times with `git log --format=%cI`.
+- Resolution reference: docs(issues): [#2576] append the audit-record entry to the progress log and name F17 in the audit
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2812#discussion_r4529263246
+
+### F18 - The record leaves F17 out of review 5847274601 and its thread was resolved without a reply
+
+- PR number: 2812
+- Source review ID: 5847680359
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2812#discussion_r4529228166
+- Concern: Review 5847274601 carried F15, F16 and F17, but the record named two, had no row for F17, and the F17 thread was resolved with no reply.
+- Solution: Named F17 in the Findings introduction, replied on the F17 thread (late), added rows and detail entries for F17 and F18, and appended a correction to the Processing Log (the 18:32 entry stays, as the log is append only).
+- Current-tree verification: Ran the audit validator; compared the review's comment list with the rows.
+- Resolution reference: docs(pr-reviews): [#2576] record findings F17 and F18 in the PR 2812 audit
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2812#discussion_r4529263606
+
 ## Processing Log
 
 - 2026-11-10 17:35 UTC - Round 1 review of da2ce7 received (review 5846465906, eight findings F1 to F8).
@@ -284,6 +312,9 @@ Three rounds: da2ce7 review 5846465906 (F1 to F8), da2ce7 review 5846866430 (F9 
 - 2026-11-10 18:13 UTC - Audit commit `docs(pr-reviews): [#2576] add the review audit record for PR 2812` (created 18:10:49 UTC) pushed; F10 and F11 replies posted at 18:13:18 and 18:13:20 UTC, after the push.
 - 2026-11-10 18:32 UTC - Round 3 review of da2ce7 received (review 5847274601: approval at the then head, with F15 and F16).
 - 2026-11-10 18:46 UTC - F15 and F16 fixed in commit `docs(pr-reviews): [#2576] drop branch commit ids from the audit introduction and reword F1` (created 18:35:23 UTC) and pushed (the first push attempt failed when GitHub closed the SSH connection during the pre-push hook); replies posted at 18:46:33 and 18:46:35 UTC, after the push.
+- 2026-11-10 19:02 UTC - Round 4 review of da2ce7 received (review 5847680359: F18; it records F15 and F16 as fixed).
+- 2026-11-10 19:03 UTC - Correction: the 18:32 UTC entry above lists F15 and F16, but review 5847274601 also carried F17 (on `ISSUE.md`). I resolved the F17 thread at 18:46 UTC without a reply, because my resolve loop closed every open thread. F17 was fixed in commit `docs(issues): [#2576] append the audit-record entry to the progress log and name F17 in the audit` (created 19:03:06 UTC) and pushed.
+- 2026-11-10 19:05 UTC - F17 and F18 replies posted (19:05:44 and 19:05:46 UTC), after the push.
 
 ## Completion Rules
 
