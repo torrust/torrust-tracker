@@ -9,7 +9,7 @@ github-issue: 2808
 spec-path: docs/issues/open/2808-workspace-package-release-process/ISSUE.md
 branch: "2808-workspace-package-release-process-spec"
 related-pr: null
-last-updated-utc: "2026-11-10 17:00"
+last-updated-utc: "2026-11-10 17:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -66,7 +66,7 @@ Decisions already made by the maintainer (2026-11-10):
 
 - This repository's release documentation stays the single source of truth.
 - `docs/release_process.md` is split into a short index plus one document per process:
-  `docs/release-process/tracker.md` (tracker binary) and `docs/release-process/packages.md`
+  `docs/release-process/tracker.md` (tracker binary) and `docs/release-process/workspace-packages.md`
   (workspace packages and standalone-repository crates). The index keeps a
   `## Publishing a Workspace Package` heading that redirects to the packages document, so existing
   links and anchors keep working.
@@ -78,10 +78,16 @@ Decisions already made by the maintainer (2026-11-10):
   does not need it. The release doc lists this as a standalone-repository difference.
 - Missing `torrust-server-lib` tags (<= 0.5.0) are backfilled, but only for versions whose published
   commit is verified against crates.io. The maintainer pushes the tags.
-- Package READMEs point to `docs/release-process/packages.md` on `develop` (not a permalink, and
+- Package READMEs point to `docs/release-process/workspace-packages.md` on `develop` (not a permalink, and
   not an anchor inside the tracker document). A short "Releasing" section is required only in standalone repositories and in
   workspace READMEs that already describe releasing; other READMEs are not changed.
 - The specification goes through a spec-only PR before implementation.
+- Implementation starts only after #2576 (update all package READMEs and crates.io metadata) is
+  closed. That issue rewrites every package README against a new
+  `docs/templates/PACKAGE-README.md`; doing the README pointers here in parallel would edit the same
+  files, so the whole implementation waits and builds on its result.
+- The packages document is named `docs/release-process/workspace-packages.md`, not `packages.md`,
+  so it is not confused with the existing package catalogue `docs/packages.md`.
 
 ## Scope
 
@@ -89,13 +95,13 @@ Decisions already made by the maintainer (2026-11-10):
 
 - (s) **Split the release document.** Move the tracker binary steps (current steps 1-10 and
   container image tags) to `docs/release-process/tracker.md` and the package section (including
-  the real-world example) to `docs/release-process/packages.md`, unchanged in content. Reduce
+  the real-world example) to `docs/release-process/workspace-packages.md`, unchanged in content. Reduce
   `docs/release_process.md` to an index: the versioning policy, which process to use, links to
   both documents, and the redirecting `## Publishing a Workspace Package` heading. Update live
   references (`AGENTS.md`, `docs/AGENTS.md`, `docs/index.md`, the ADR's related artifacts, both
   deployment workflows, `release-new-version`, and open issue specs such as 2583 and 2183). Closed
   issue specs and PR review records keep their historical paths.
-- (a) **The process.** Define precisely, in `docs/release-process/packages.md`, how a package is released:
+- (a) **The process.** Define precisely, in `docs/release-process/workspace-packages.md`, how a package is released:
   preconditions (own explicit `version`, changelog entry, tests, dry run), who does what (agent:
   PR, dry run, and publish only if cargo is authenticated and the maintainer approved; maintainer:
   signed tag and any upstream push), publish only from the merged commit, tag that exact commit,
@@ -107,7 +113,7 @@ Decisions already made by the maintainer (2026-11-10):
   crates as a variant (preferred: one skill, one variant section) and cross-link it from
   `release-new-version`. Remove the contradicting crate list from `release-new-version` step 6.
 - (c) **Package documentation.** Apply the decided pointer (a link to
-  `docs/release-process/packages.md` on `develop`) to the workspace READMEs that already describe releasing, and specify the short
+  `docs/release-process/workspace-packages.md` on `develop`) to the workspace READMEs that already describe releasing, and specify the short
   "Releasing" section text for standalone repositories. A package doc carries only a pointer plus
   its differences, never a copy of the steps.
 - (d) **Tag convention for standalone repositories**: document `v<semver>` as the
@@ -146,23 +152,23 @@ Not applicable.
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                                                                                        | Notes / Expected Output                                                                              |
-| --- | ------ | ----------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| T1  | DONE   | Record maintainer decisions for the split, (c) pointer format, and (d) tag convention and backfill          | Recorded in Background on 2026-11-10; no ADR needed                                                  |
-| T2  | TODO   | Split `docs/release_process.md` into the index, `tracker.md` and `packages.md` (content moved, not changed) | Old anchors still resolve; live references updated; `git diff -M` shows a move                       |
-| T3  | TODO   | Rewrite the package process in `docs/release-process/packages.md` (process, roles, no GitHub release)       | Steps ordered; tag/branch ambiguity fixed; workspace and standalone variants                         |
-| T4  | TODO   | Add the `release-workspace-package` skill and cross-link it                                                 | Skill links to `packages.md`; `release-new-version` links to `tracker.md` and loses the step 6 drift |
-| T5  | TODO   | Add pointer docs to package READMEs as decided in (c)                                                       | Pointer only; no copied steps                                                                        |
-| T6  | TODO   | Prepare the follow-up `torrust-server-lib` tag-backfill issue text                                          | Text ready for the maintainer; nothing created without approval                                      |
+| ID  | Status | Task                                                                                                                  | Notes / Expected Output                                                                                        |
+| --- | ------ | --------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| T1  | DONE   | Record maintainer decisions for the split, (c) pointer format, and (d) tag convention and backfill                    | Recorded in Background on 2026-11-10; no ADR needed                                                            |
+| T2  | TODO   | Split `docs/release_process.md` into the index, `tracker.md` and `workspace-packages.md` (content moved, not changed) | Old anchors still resolve; live references updated; `git diff -M` shows a move                                 |
+| T3  | TODO   | Rewrite the package process in `docs/release-process/workspace-packages.md` (process, roles, no GitHub release)       | Steps ordered; tag/branch ambiguity fixed; workspace and standalone variants                                   |
+| T4  | TODO   | Add the `release-workspace-package` skill and cross-link it                                                           | Skill links to `workspace-packages.md`; `release-new-version` links to `tracker.md` and loses the step 6 drift |
+| T5  | TODO   | Add pointer docs to package READMEs as decided in (c)                                                                 | Pointer only; no copied steps                                                                                  |
+| T6  | TODO   | Prepare the follow-up `torrust-server-lib` tag-backfill issue text                                                    | Text ready for the maintainer; nothing created without approval                                                |
 
 ## Commit Points
 
-| Task | Coherent change set                                                    | Commit policy                                        |
-| ---- | ---------------------------------------------------------------------- | ---------------------------------------------------- |
-| T2   | Pure move of release doc content plus reference updates (no rewording) | Commit after focused validation and required review. |
-| T3   | Package process rewrite in `docs/release-process/packages.md`          | Commit after focused validation and required review. |
-| T4   | New skill, cross-links, `release-new-version` step 6 fix               | Commit after focused validation and required review. |
-| T5   | Package README pointers                                                | Commit after focused validation and required review. |
+| Task | Coherent change set                                                     | Commit policy                                        |
+| ---- | ----------------------------------------------------------------------- | ---------------------------------------------------- |
+| T2   | Pure move of release doc content plus reference updates (no rewording)  | Commit after focused validation and required review. |
+| T3   | Package process rewrite in `docs/release-process/workspace-packages.md` | Commit after focused validation and required review. |
+| T4   | New skill, cross-links, `release-new-version` step 6 fix                | Commit after focused validation and required review. |
+| T5   | Package README pointers                                                 | Commit after focused validation and required review. |
 
 Keep T2 a pure move so reviewers can check it with `git diff -M` before reading the rewrite in T3.
 
@@ -190,22 +196,23 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 
 - 2026-11-10 12:00 UTC - Claude Code (Claude Sonnet 5.5) - Drafted spec from the maintainer's draft after reading the release process doc, the ADR, `release-new-version` and `deployment-packages.yaml`.
 - 2026-11-10 16:30 UTC - Claude Code (Claude Opus 5.5) - Recorded maintainer decisions: standalone tag `v<semver>`, verified backfill of server-lib <= 0.5.0, README pointer to `develop` with anchor, spec-only PR first. T1 done; ADR task dropped.
-- 2026-11-10 16:45 UTC - Claude Code (Claude Opus 5.5) - Maintainer approved splitting `docs/release_process.md` into an index, `docs/release-process/tracker.md` and `docs/release-process/packages.md`. Added scope (s) and task T2 (pure move); README pointer now targets `packages.md`; tasks renumbered.
+- 2026-11-10 16:45 UTC - Claude Code (Claude Opus 5.5) - Maintainer approved splitting `docs/release_process.md` into an index, `docs/release-process/tracker.md` and `docs/release-process/workspace-packages.md`. Added scope (s) and task T2 (pure move); README pointer now targets `packages.md`; tasks renumbered.
 - 2026-11-10 17:00 UTC - Claude Code (Claude Opus 5.5) - Maintainer approved the spec; created issue #2808 as `josecelano-bot`; moved the spec to `docs/issues/open/2808-workspace-package-release-process/`.
+- 2026-11-10 17:30 UTC - Claude Code (Claude Opus 5.5) - Maintainer decided the whole implementation waits until #2576 is closed (its README rewrite overlaps the README pointers here) and renamed the planned packages document to `docs/release-process/workspace-packages.md` to avoid confusion with `docs/packages.md`.
 
 ## Acceptance Criteria
 
 - [ ] AC0: `docs/release_process.md` is an index linking `docs/release-process/tracker.md` and
-      `docs/release-process/packages.md`; the tracker steps are moved without changes; the
+      `docs/release-process/workspace-packages.md`; the tracker steps are moved without changes; the
       `#publishing-a-workspace-package` anchor still resolves; live references point to the new
       documents.
-- [ ] AC1: `docs/release-process/packages.md` defines the package release process end to end (preconditions,
+- [ ] AC1: `docs/release-process/workspace-packages.md` defines the package release process end to end (preconditions,
       roles, order, publish from the merged commit, tag on the published commit, no GitHub
       release) for both a workspace package and a standalone-repository crate.
-- [ ] AC2: A `release-workspace-package` skill exists, links to `packages.md`, and duplicates none of its steps.
+- [ ] AC2: A `release-workspace-package` skill exists, links to `workspace-packages.md`, and duplicates none of its steps.
 - [ ] AC3: `release-new-version` links to `tracker.md`, no longer contradicts the ADR, and
       cross-links the new skill.
-- [ ] AC4: Package docs carry a pointer to `packages.md` (plus differences) and no copied steps.
+- [ ] AC4: Package docs carry a pointer to `workspace-packages.md` (plus differences) and no copied steps.
 - [ ] AC5: The standalone-repository `v<semver>` tag is documented as a difference, and the
       `torrust-server-lib` tag-backfill issue text is ready for the maintainer.
 - [ ] AC6: A fresh agent can release a workspace package or a standalone crate using only the
@@ -259,7 +266,7 @@ None planned.
 ## Risks and Trade-offs
 
 - A link to `develop` can drift from what a package release actually needs; a permalink goes stale.
-  Mitigation: link to `docs/release-process/packages.md` on `develop` (decided), so readers always
+  Mitigation: link to `docs/release-process/workspace-packages.md` on `develop` (decided), so readers always
   see the current process.
 - Splitting the document breaks links from outside this repository (for example
   `torrust-server-lib` docs). Mitigation: the index keeps the `## Publishing a Workspace Package`
@@ -276,8 +283,9 @@ None planned.
 
 ## References
 
+- Blocked by: #2576 (package READMEs and crates.io metadata)
 - Related issues: torrust/torrust-server-lib#5, torrust/torrust-server-lib#7
 - Related PRs: torrust/torrust-server-lib#6, torrust/torrust-server-lib#8
 - Related ADRs: `docs/adrs/20260629000000_adopt_independent_package_versioning.md`
 - Process docs: `docs/release_process.md` (index after T2), `docs/release-process/tracker.md`,
-  `docs/release-process/packages.md`
+  `docs/release-process/workspace-packages.md`
