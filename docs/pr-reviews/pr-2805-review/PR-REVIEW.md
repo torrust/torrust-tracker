@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Round 1 is da2ce7's review `5842841425` (F1 to F9) and Copilot's review `5842867931` (F17 to F19, numbered after the reviewer-provided IDs). Round 2 is da2ce7's review `5843238357` (F10 to F16). Round 4 is da2ce7's review `5844183589` (F23; the reviewer numbered it F22, which collides with F22). Round 3 is da2ce7's review `5843807142` (F20 to F22; the reviewer numbered them F19 to F21, which collide with Copilot's F19, so the original IDs are recorded in the detail entries).
+Round 1 is da2ce7's review `5842841425` (F1 to F9) and Copilot's review `5842867931` (F17 to F19, numbered after the reviewer-provided IDs). Round 2 is da2ce7's review `5843238357` (F10 to F16). Round 3 is da2ce7's review `5843807142` (F20 to F22; the reviewer numbered them F19 to F21, which collide with Copilot's F19, so the original IDs are recorded in the detail entries). Round 4 is da2ce7's review `5844183589` (F23; the reviewer numbered it F22, which collides with this record's F22). Round 5 is da2ce7's review `5844919212` (F24; the reviewer numbered it F23, which collides with this record's F23).
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -68,6 +68,7 @@ Round 1 is da2ce7's review `5842841425` (F1 to F9) and Copilot's review `5842867
 | F21 | review-finding:pr-2805-f21 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F22 | review-finding:pr-2805-f22 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F23 | review-finding:pr-2805-f23 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
+| F24 | review-finding:pr-2805-f24 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -369,6 +370,19 @@ Round 1 is da2ce7's review `5842841425` (F1 to F9) and Copilot's review `5842867
 - Resolution reference: https://github.com/torrust/torrust-tracker/pull/2805#discussion_r4526899136
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2805#discussion_r4526899136
+
+### F24 - The round-4 sentence precedes round 3 and the collision wording is ambiguous
+
+- PR number: 2805
+- Source review ID: 5844919212
+- Reviewer finding ID: F23
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2805#discussion_r4527161465
+- Concern: The paragraph listed the rounds as 1, 2, 4, 3, and said a reviewer ID collides with F22 without saying that it means this record's F22.
+- Solution: Listed the rounds in order 1 to 5 and wrote "this record's" in the collision wording.
+- Current-tree verification: Read the Findings introduction after the edit.
+- Resolution reference: docs(pr-reviews): fix the round order and the collision wording in the PR #2805 audit
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2805#discussion_r4527188629
 
 ## Processing Log
 
