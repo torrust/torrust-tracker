@@ -1190,7 +1190,7 @@ count grew for the same reason, plus the new `rest-api-protocol`, minus `torrust
 now include `torrust-tracker-client-lib`, `torrust-tracker-http-protocol` and
 `torrust-tracker-udp-protocol`, none of which is published. A new `test-helpers` release cannot
 be published until those crates are, or until the protocol-specific helpers move out. Sub-EPIC: #2482
-([`2482-1669-reorganize-shared-test-support`](../2482-1669-reorganize-shared-test-support/EPIC.md)).
+([`2482-1669-reorganize-shared-test-support`](../../closed/2482-1669-reorganize-shared-test-support/EPIC.md)).
 Subissue (done, #2628):
 [move the `test-helpers` protocol helpers to their consumer](../../closed/2628-2482-move-test-helpers-protocol-helpers/ISSUE.md).
 
@@ -1208,7 +1208,7 @@ they compile into release builds. The report now shows the cost of that trade-of
 
 Gating each `testing` module behind a Cargo feature would make these edges optional. Sub-EPIC #2482
 decides how packages share test support code, with this as one option
-([`2482-1669-reorganize-shared-test-support`](../2482-1669-reorganize-shared-test-support/EPIC.md)).
+([`2482-1669-reorganize-shared-test-support`](../../closed/2482-1669-reorganize-shared-test-support/EPIC.md)).
 Subissue specs (open and drafts), one per package:
 [`udp-server`](../../closed/2699-2482-gate-udp-server-test-environment/ISSUE.md),
 [`axum-http-server`](../../closed/2724-2482-gate-axum-http-server-test-environment/ISSUE.md),

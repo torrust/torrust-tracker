@@ -4,7 +4,7 @@ semantic-links:
     - create-issue
   related-artifacts:
     - docs/issues/open/1669-overhaul-packages/EPIC.md
-    - docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md
+    - docs/issues/closed/2482-1669-reorganize-shared-test-support/EPIC.md
     - docs/issues/closed/2757-2482-gate-axum-health-check-api-server-test-environment/ISSUE.md
     - docs/media/packages/dependencies-workspace-packages.md
     - packages/

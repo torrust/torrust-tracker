@@ -9,14 +9,14 @@ github-issue: 2699
 spec-path: docs/issues/closed/2699-2482-gate-udp-server-test-environment/ISSUE.md
 branch: "2699-2482-gate-udp-server-test-environment"
 related-pr: 2711
-last-updated-utc: "2026-11-04 15:58"
+last-updated-utc: "2026-11-10 12:33"
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
     - docs/adrs/20261021190318_share_workspace_test_support_through_testing_features.md
-    - docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md
-    - docs/issues/open/2482-1669-reorganize-shared-test-support/test-support-inventory.md
+    - docs/issues/closed/2482-1669-reorganize-shared-test-support/EPIC.md
+    - docs/issues/closed/2482-1669-reorganize-shared-test-support/test-support-inventory.md
     - packages/udp-server/src/testing/environment.rs
     - packages/udp-server/examples/udp_only_public_tracker.rs
     - packages/udp-server/examples/udp_only_public_tracker_production_style.rs
@@ -254,7 +254,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ## Verification Plan
 
-The [#2482 default completion policy](../../open/2482-1669-reorganize-shared-test-support/EPIC.md#how-we-work-in-this-epic)
+The [#2482 default completion policy](../2482-1669-reorganize-shared-test-support/EPIC.md#how-we-work-in-this-epic)
 applies. This is an O1 move: build the package without the feature, run `cargo test -p <package>`
 without `--all-features`, and check the test count.
 
@@ -323,5 +323,5 @@ Reviewed by the AI assistant against the acceptance criteria and the evidence on
 
 ## References
 
-- Parent EPIC: [`#2482`](../../open/2482-1669-reorganize-shared-test-support/EPIC.md); ADR above
+- Parent EPIC: [`#2482`](../2482-1669-reorganize-shared-test-support/EPIC.md); ADR above
 - Inventory pattern A; EPIC #1488 subissue #2416

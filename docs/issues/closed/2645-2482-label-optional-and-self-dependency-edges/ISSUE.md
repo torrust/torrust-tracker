@@ -9,14 +9,14 @@ github-issue: 2645
 spec-path: docs/issues/closed/2645-2482-label-optional-and-self-dependency-edges/ISSUE.md
 branch: "2645-2482-label-optional-and-self-dependency-edges"
 related-pr: 2648
-last-updated-utc: "2026-10-26 17:34"
+last-updated-utc: "2026-11-10 12:33"
 semantic-links:
   skill-links:
     - create-issue
     - write-unit-test
   related-artifacts:
     - docs/adrs/20261021190318_share_workspace_test_support_through_testing_features.md
-    - docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md
+    - docs/issues/closed/2482-1669-reorganize-shared-test-support/EPIC.md
     - docs/issues/closed/2618-2482-decide-test-support-rules/manual-verification-evidence.md
     - contrib/dev-tools/analysis/workspace-coupling/src/main.rs
     - contrib/dev-tools/analysis/workspace-coupling/src/lib.rs
@@ -160,7 +160,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ## Verification Plan
 
-The [#2482 default completion policy](../../open/2482-1669-reorganize-shared-test-support/EPIC.md#how-we-work-in-this-epic)
+The [#2482 default completion policy](../2482-1669-reorganize-shared-test-support/EPIC.md#how-we-work-in-this-epic)
 applies; the O1-specific checks do not (this subissue moves no test code).
 
 ### Automatic Checks
@@ -221,5 +221,5 @@ maintainer reviews it in the pull request.
 
 ## References
 
-- Parent EPIC: [`#2482`](../../open/2482-1669-reorganize-shared-test-support/EPIC.md); ADR above
+- Parent EPIC: [`#2482`](../2482-1669-reorganize-shared-test-support/EPIC.md); ADR above
 - Verification evidence: [`manual-verification-evidence.md`](../../closed/2618-2482-decide-test-support-rules/manual-verification-evidence.md) V1 and V4

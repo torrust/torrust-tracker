@@ -9,7 +9,7 @@ github-issue: 2618
 spec-path: docs/issues/closed/2618-2482-decide-test-support-rules/ISSUE.md
 branch: "2618-2482-decide-test-support-rules"
 related-pr: 2624
-last-updated-utc: "2026-10-23 08:07"
+last-updated-utc: "2026-11-10 12:33"
 semantic-links:
   skill-links:
     - create-issue
@@ -17,8 +17,8 @@ semantic-links:
   related-artifacts:
     - .github/skills/dev/planning/create-issue/SKILL.md
     - .github/skills/dev/planning/create-adr/SKILL.md
-    - docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md
-    - docs/issues/open/2482-1669-reorganize-shared-test-support/test-support-inventory.md
+    - docs/issues/closed/2482-1669-reorganize-shared-test-support/EPIC.md
+    - docs/issues/closed/2482-1669-reorganize-shared-test-support/test-support-inventory.md
     - docs/issues/open/1669-overhaul-packages/DECISIONS.md
     - docs/issues/open/1669-overhaul-packages/workspace-coupling-report-2026-10-06.md
     - docs/issues/closed/2582-1669-remove-health-check-self-dev-dependency/ISSUE.md
@@ -34,7 +34,7 @@ semantic-links:
 
 Parent EPIC: #2482 (Reorganize test support code shared between workspace packages), a sub-EPIC
 of #1669 (Overhaul: Packages). This is row 1 of the
-[#2482 Subissues table](../../open/2482-1669-reorganize-shared-test-support/EPIC.md#subissues).
+[#2482 Subissues table](../2482-1669-reorganize-shared-test-support/EPIC.md#subissues).
 It blocks every other row.
 
 ## Goal
@@ -45,14 +45,14 @@ for the other rows of #2482, so no package moves test code before the rules exis
 
 ## Background
 
-[#2482](../../open/2482-1669-reorganize-shared-test-support/EPIC.md) found five test support
+[#2482](../2482-1669-reorganize-shared-test-support/EPIC.md) found five test support
 patterns (A to E) in the workspace, two of which hurt: public `testing` modules that compile test
 infrastructure and nine test-only dependency edges into production builds (pattern A), and a
 shared `test-helpers` crate that has become a coupling hub (pattern B). DEC-13 chose the public
 unconditional module on the premise that `tracker-core/src/test_helpers.rs` was the same pattern;
 that module's content is `#[cfg(test)]` and crate-private (the module is a `pub mod`, empty in a
 non-test build), so the premise was wrong
-(see the [inventory](../../open/2482-1669-reorganize-shared-test-support/test-support-inventory.md)).
+(see the [inventory](../2482-1669-reorganize-shared-test-support/test-support-inventory.md)).
 
 The EPIC lists eight options (O1 to O8) and three ways for a crate's own targets to use its own
 `testing` feature (O1a to O1c). Several of their trade-offs rest on Cargo behaviour that nobody
@@ -429,9 +429,9 @@ assumptions, material design changes, unexpected validation findings, and reusab
 
 ## References
 
-- Parent EPIC: [`#2482`](../../open/2482-1669-reorganize-shared-test-support/EPIC.md) (its Phase 1
+- Parent EPIC: [`#2482`](../2482-1669-reorganize-shared-test-support/EPIC.md) (its Phase 1
   plan and verification table are the source of T1 to T6)
-- Inventory: [`test-support-inventory.md`](../../open/2482-1669-reorganize-shared-test-support/test-support-inventory.md)
+- Inventory: [`test-support-inventory.md`](../2482-1669-reorganize-shared-test-support/test-support-inventory.md)
 - Grandparent EPIC: [`#1669`](../../open/1669-overhaul-packages/EPIC.md)
 - Decision log: DEC-13 in [`DECISIONS.md`](../../open/1669-overhaul-packages/DECISIONS.md)
 - Source findings 1 and 2: [2026-10-06 coupling report](../../open/1669-overhaul-packages/workspace-coupling-report-2026-10-06.md)

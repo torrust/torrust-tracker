@@ -1,18 +1,18 @@
 ---
 schema-version: 1
 doc-type: epic
-status: in-progress
+status: done
 epic: 1669
 github-issue: 2482
-spec-path: docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md
+spec-path: docs/issues/closed/2482-1669-reorganize-shared-test-support/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-09 19:25"
+last-updated-utc: "2026-11-10 12:33"
 semantic-links:
   skill-links:
     - create-issue
     - create-adr
   related-artifacts:
-    - docs/issues/open/2482-1669-reorganize-shared-test-support/test-support-inventory.md
+    - docs/issues/closed/2482-1669-reorganize-shared-test-support/test-support-inventory.md
     - docs/issues/open/1669-overhaul-packages/EPIC.md
     - docs/issues/open/1669-overhaul-packages/DECISIONS.md
     - docs/issues/open/1669-overhaul-packages/workspace-coupling-report-2026-10-06.md
@@ -27,7 +27,7 @@ semantic-links:
 
 # EPIC #2482 - Reorganize test support code shared between workspace packages
 
-Sub-EPIC of EPIC [#1669](../1669-overhaul-packages/EPIC.md) (Overhaul: Packages).
+Sub-EPIC of EPIC [#1669](../../open/1669-overhaul-packages/EPIC.md) (Overhaul: Packages).
 
 ## Goal
 
@@ -77,7 +77,7 @@ examples. Publishability is therefore not the driver. The drivers are coupling a
 production builds. This EPIC replaces the drafts for finding 1 (`test-helpers` depends on
 unpublished crates) and finding 2 (server `testing` modules turn test-only edges into runtime
 dependencies) of the
-[2026-10-06 coupling report](../1669-overhaul-packages/workspace-coupling-report-2026-10-06.md).
+[2026-10-06 coupling report](../../open/1669-overhaul-packages/workspace-coupling-report-2026-10-06.md).
 Those findings exist only in that report; the regenerated 2026-10-17 report has no numbered
 findings.
 
@@ -104,7 +104,7 @@ as a single row and the subissues are tracked here.
 - Apply the rules (subissues 2 onwards): move each package's test support code to its
   destination, one package or small group per subissue.
 - Link the subissues from findings 1 and 2 of the
-  [2026-10-06 coupling report](../1669-overhaul-packages/workspace-coupling-report-2026-10-06.md),
+  [2026-10-06 coupling report](../../open/1669-overhaul-packages/workspace-coupling-report-2026-10-06.md),
   where those findings live. Update the dependency diagram and, if O1 is chosen, the coupling
   tool, so test-only edges are no longer shown as runtime edges. After the last subissue,
   regenerate the coupling report to check AC8. The 2026-10-17 report's "New findings" section
@@ -183,15 +183,15 @@ same pull request.
 
 | Order | Issue | Local Spec | Status | Notes |
 | --- | --- | --- | --- | --- |
-| 1 | #2618 - Decide how packages share test support code | [`docs/issues/closed/2618-2482-decide-test-support-rules/ISSUE.md`](../../closed/2618-2482-decide-test-support-rules/ISSUE.md) | DONE | Tasks D1 to D5; MV1 to MV4. Merged in PR #2624 on 2026-10-23; issue closed. |
-| 2 | #2628 - Move the `test-helpers` protocol helpers to their consumer | [`docs/issues/closed/2628-2482-move-test-helpers-protocol-helpers/ISSUE.md`](../../closed/2628-2482-move-test-helpers-protocol-helpers/ISSUE.md) | DONE | Pattern B; ADR rule B; coupling report finding 1. The `http` and `udp` modules move to the root crate's `tests/common/`. `test-helpers` is published as 3.0.0 with only `configuration` and `random`, so the move alone does not break that API; #2583 decides the bump. Runs first (not an O1 move). Merged in PR #2636 on 2026-10-24; issue closed. |
-| 3 | #2681 - Gate `tracker-core`'s test modules and mocks | [`docs/issues/closed/2681-2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md`](../../closed/2681-2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md) | DONE | Patterns C and D; ADR rules C and D. `MockTorrentMetricsStore` is also used by `http-core` and `udp-core`, so their dev-dependencies enable the feature in the same PR. The first O1 move: after rows 8 and 9. Merged in PR #2688 on 2026-10-29; issue closed. Only `MockTorrentMetricsStore` is behind the new `testing` feature of `tracker-core` (the ADR carries a dated amendment note narrowing rule D.1); the other three mocks use `cfg_attr(test, automock)`. A path-only self dev-dependency needs `torrust-tracker-core` in its own `deny.toml` wrappers entry, in the same commit. The `Shipped Features` job now has a real `testing` feature to check, with red/green evidence. |
-| 4 | #2699 - Gate the `udp-server` test environment behind a `testing` feature | [`docs/issues/closed/2699-2482-gate-udp-server-test-environment/ISSUE.md`](../../closed/2699-2482-gate-udp-server-test-environment/ISSUE.md) | DONE | Pattern A; ADR rule A; includes `examples/udp_only_public_tracker.rs`, which stays on the test environment next to a new production-style example (maintainer decision of 2026-11-03). #2416 has merged (its T9 changed this environment). Merged in PR #2711 on 2026-11-04; issue closed. `src/testing/` is behind the new `testing` feature of `udp-server` (the registry crate, the only dependency only that module used, is optional); the package's own targets use a path-only self dev-dependency (its own `deny.toml` wrappers entry and the `Cargo.lock` line land in the same commit), and `axum-health-check-api-server` enables the feature from its `[dev-dependencies]`. The first server environment, so it hit the container build: `torrust-cargo-chef` 0.1.78 does not prune feature entries that name a stripped path dependency, which broke the third-party cook stages; fixed in the fork (torrust/cargo-chef#1, 0.1.79, published and pinned in the `Containerfile`). Rows 5 to 7 rely on that pin and must run the chef steps before their first push (evidence V9 of #2699). |
-| 5 | #2724 - Gate the `axum-http-server` test environment behind a `testing` feature | [`docs/issues/closed/2724-2482-gate-axum-http-server-test-environment/ISSUE.md`](../../closed/2724-2482-gate-axum-http-server-test-environment/ISSUE.md) | DONE | Pattern A; ADR rule A. `swarm-coordination-registry`, `torrust-clock` and `torrust-info-hash` become optional behind `testing`; the doc-link-only `configuration` edge stays. Includes `examples/http_only_public_tracker.rs`, which stays on the test environment next to a new production-style example (maintainer decision of 2026-11-04, as in row 4). The #1488 gates are all closed. |
-| 6 | #2745 - Gate the `axum-rest-api-server` test environment behind a `testing` feature | [`docs/issues/closed/2745-2482-gate-axum-rest-api-server-test-environment/ISSUE.md`](../../closed/2745-2482-gate-axum-rest-api-server-test-environment/ISSUE.md) | DONE | Pattern A; ADR rule A. The six forced edges plus `torrust-clock` (after the dead `CurrentClock` alias is deleted) become optional behind `testing`; also removes the stale `rest-api-core` comment in `src/testing/mod.rs`. No examples (the package has none; maintainer decision of 2026-11-06). The #1488 gates are all closed. Merged in PR #2747 on 2026-11-06; issue closed. |
-| 7 | #2757 - Gate the `axum-health-check-api-server` test environment behind a `testing` feature | [`docs/issues/closed/2757-2482-gate-axum-health-check-api-server-test-environment/ISSUE.md`](../../closed/2757-2482-gate-axum-health-check-api-server-test-environment/ISSUE.md) | DONE | Pattern A. The last row. #2450 and rows 4 to 6 are done. Makes `torrust-tracker-configuration` optional behind `testing`; then regenerates the coupling report and records the AC8 result (no runtime-edge counter: maintainer decision of 2026-11-06). The close-out of #2482 is not part of this row. Merged in PR #2784 on 2026-11-09; issue closed. `src/environment.rs` is behind the new `testing` feature of `axum-health-check-api-server`; `torrust-tracker-configuration` is optional behind it; the package's own targets use a path-only self dev-dependency (the `deny.toml` self wrapper entry already existed). The move also fixed an existing defect: the no-features library build failed because the package's own `url` lacked the `serde` feature. The regenerated coupling report of 2026-11-09 and the diagram check for AC8 are in the AC8 evidence cell; the diagram lost the test-only edges that rows 4 and 5 had left and six arrows no manifest declares. |
-| 8 | #2645 - Label optional and self dependency edges in the coupling tool and diagram | [`docs/issues/closed/2645-2482-label-optional-and-self-dependency-edges/ISSUE.md`](../../closed/2645-2482-label-optional-and-self-dependency-edges/ISSUE.md) | DONE | Required: the ADR chose O1. Before row 3, the first O1 move. Merged in PR #2648 on 2026-10-26; issue closed. The tool labels `optional (<features>)` (a `default` chain that includes `testing` is a runtime edge) and skips self edges; it has no runtime-edge counter; row 7 decided on 2026-11-06 not to add one. |
-| 9 | #2670 - Build the shipped container binary without test features | [`docs/issues/closed/2670-2482-build-shipped-artifacts-without-test-features/ISSUE.md`](../../closed/2670-2482-build-shipped-artifacts-without-test-features/ISSUE.md) | DONE | Required by the ADR (rule A.5): the release image's binary comes from `cargo nextest archive --tests --all-features --release`, which would ship every `testing` feature. Builds shipped binaries on their own with explicit features and adds a CI check. After row 8, before row 3. Merged in PR #2676 on 2026-10-28; issue closed. The release and debug images ship binaries built by `cargo build` without test flags or features, and the `Shipped Features` job of `testing.yaml` runs `shipped-features-check`, which fails if a workspace `testing` feature is enabled in `torrust-tracker`'s normal or build dependency tree. A shipped package that enables `testing` through `[dependencies]` or `default` fails that job; the dev-dependency edges of rows 3 to 7 do not. The test archives still use `--all-features`. |
+| 1 | #2618 - Decide how packages share test support code | [`docs/issues/closed/2618-2482-decide-test-support-rules/ISSUE.md`](../2618-2482-decide-test-support-rules/ISSUE.md) | DONE | Tasks D1 to D5; MV1 to MV4. Merged in PR #2624 on 2026-10-23; issue closed. |
+| 2 | #2628 - Move the `test-helpers` protocol helpers to their consumer | [`docs/issues/closed/2628-2482-move-test-helpers-protocol-helpers/ISSUE.md`](../2628-2482-move-test-helpers-protocol-helpers/ISSUE.md) | DONE | Pattern B; ADR rule B; coupling report finding 1. The `http` and `udp` modules move to the root crate's `tests/common/`. `test-helpers` is published as 3.0.0 with only `configuration` and `random`, so the move alone does not break that API; #2583 decides the bump. Runs first (not an O1 move). Merged in PR #2636 on 2026-10-24; issue closed. |
+| 3 | #2681 - Gate `tracker-core`'s test modules and mocks | [`docs/issues/closed/2681-2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md`](../2681-2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md) | DONE | Patterns C and D; ADR rules C and D. `MockTorrentMetricsStore` is also used by `http-core` and `udp-core`, so their dev-dependencies enable the feature in the same PR. The first O1 move: after rows 8 and 9. Merged in PR #2688 on 2026-10-29; issue closed. Only `MockTorrentMetricsStore` is behind the new `testing` feature of `tracker-core` (the ADR carries a dated amendment note narrowing rule D.1); the other three mocks use `cfg_attr(test, automock)`. A path-only self dev-dependency needs `torrust-tracker-core` in its own `deny.toml` wrappers entry, in the same commit. The `Shipped Features` job now has a real `testing` feature to check, with red/green evidence. |
+| 4 | #2699 - Gate the `udp-server` test environment behind a `testing` feature | [`docs/issues/closed/2699-2482-gate-udp-server-test-environment/ISSUE.md`](../2699-2482-gate-udp-server-test-environment/ISSUE.md) | DONE | Pattern A; ADR rule A; includes `examples/udp_only_public_tracker.rs`, which stays on the test environment next to a new production-style example (maintainer decision of 2026-11-03). #2416 has merged (its T9 changed this environment). Merged in PR #2711 on 2026-11-04; issue closed. `src/testing/` is behind the new `testing` feature of `udp-server` (the registry crate, the only dependency only that module used, is optional); the package's own targets use a path-only self dev-dependency (its own `deny.toml` wrappers entry and the `Cargo.lock` line land in the same commit), and `axum-health-check-api-server` enables the feature from its `[dev-dependencies]`. The first server environment, so it hit the container build: `torrust-cargo-chef` 0.1.78 does not prune feature entries that name a stripped path dependency, which broke the third-party cook stages; fixed in the fork (torrust/cargo-chef#1, 0.1.79, published and pinned in the `Containerfile`). Rows 5 to 7 rely on that pin and must run the chef steps before their first push (evidence V9 of #2699). |
+| 5 | #2724 - Gate the `axum-http-server` test environment behind a `testing` feature | [`docs/issues/closed/2724-2482-gate-axum-http-server-test-environment/ISSUE.md`](../2724-2482-gate-axum-http-server-test-environment/ISSUE.md) | DONE | Pattern A; ADR rule A. `swarm-coordination-registry`, `torrust-clock` and `torrust-info-hash` become optional behind `testing`; the doc-link-only `configuration` edge stays. Includes `examples/http_only_public_tracker.rs`, which stays on the test environment next to a new production-style example (maintainer decision of 2026-11-04, as in row 4). The #1488 gates are all closed. |
+| 6 | #2745 - Gate the `axum-rest-api-server` test environment behind a `testing` feature | [`docs/issues/closed/2745-2482-gate-axum-rest-api-server-test-environment/ISSUE.md`](../2745-2482-gate-axum-rest-api-server-test-environment/ISSUE.md) | DONE | Pattern A; ADR rule A. The six forced edges plus `torrust-clock` (after the dead `CurrentClock` alias is deleted) become optional behind `testing`; also removes the stale `rest-api-core` comment in `src/testing/mod.rs`. No examples (the package has none; maintainer decision of 2026-11-06). The #1488 gates are all closed. Merged in PR #2747 on 2026-11-06; issue closed. |
+| 7 | #2757 - Gate the `axum-health-check-api-server` test environment behind a `testing` feature | [`docs/issues/closed/2757-2482-gate-axum-health-check-api-server-test-environment/ISSUE.md`](../2757-2482-gate-axum-health-check-api-server-test-environment/ISSUE.md) | DONE | Pattern A. The last row. #2450 and rows 4 to 6 are done. Makes `torrust-tracker-configuration` optional behind `testing`; then regenerates the coupling report and records the AC8 result (no runtime-edge counter: maintainer decision of 2026-11-06). The close-out of #2482 is not part of this row. Merged in PR #2784 on 2026-11-09; issue closed. `src/environment.rs` is behind the new `testing` feature of `axum-health-check-api-server`; `torrust-tracker-configuration` is optional behind it; the package's own targets use a path-only self dev-dependency (the `deny.toml` self wrapper entry already existed). The move also fixed an existing defect: the no-features library build failed because the package's own `url` lacked the `serde` feature. The regenerated coupling report of 2026-11-09 and the diagram check for AC8 are in the AC8 evidence cell; the diagram lost the test-only edges that rows 4 and 5 had left and six arrows no manifest declares. |
+| 8 | #2645 - Label optional and self dependency edges in the coupling tool and diagram | [`docs/issues/closed/2645-2482-label-optional-and-self-dependency-edges/ISSUE.md`](../2645-2482-label-optional-and-self-dependency-edges/ISSUE.md) | DONE | Required: the ADR chose O1. Before row 3, the first O1 move. Merged in PR #2648 on 2026-10-26; issue closed. The tool labels `optional (<features>)` (a `default` chain that includes `testing` is a runtime edge) and skips self edges; it has no runtime-edge counter; row 7 decided on 2026-11-06 not to add one. |
+| 9 | #2670 - Build the shipped container binary without test features | [`docs/issues/closed/2670-2482-build-shipped-artifacts-without-test-features/ISSUE.md`](../2670-2482-build-shipped-artifacts-without-test-features/ISSUE.md) | DONE | Required by the ADR (rule A.5): the release image's binary comes from `cargo nextest archive --tests --all-features --release`, which would ship every `testing` feature. Builds shipped binaries on their own with explicit features and adds a CI check. After row 8, before row 3. Merged in PR #2676 on 2026-10-28; issue closed. The release and debug images ship binaries built by `cargo build` without test flags or features, and the `Shipped Features` job of `testing.yaml` runs `shipped-features-check`, which fails if a workspace `testing` feature is enabled in `torrust-tracker`'s normal or build dependency tree. A shipped package that enables `testing` through `[dependencies]` or `default` fails that job; the dev-dependency edges of rows 3 to 7 do not. The test archives still use `--all-features`. |
 
 ## Delivery Strategy
 
@@ -202,7 +202,7 @@ same pull request.
 - Exit criteria: the maintainer has approved the ADR; rows 2 onwards in the table above are
   drafts with their final scope and order.
 
-Plan for subissue 1. Its own spec, [#2618](../../closed/2618-2482-decide-test-support-rules/ISSUE.md),
+Plan for subissue 1. Its own spec, [#2618](../2618-2482-decide-test-support-rules/ISSUE.md),
 is authoritative where the two differ:
 
 | ID | Task | Notes / Expected Output |
@@ -286,7 +286,7 @@ maintainer's approval), and this folder moves to `docs/issues/closed/`.
 
 | Issue | Relation |
 | --- | --- |
-| #2576 (package README refresh) | Blocked on this EPIC: the READMEs must describe the final API this EPIC leaves and cover any crate it adds |
+| #2576 (package README refresh) | Was blocked on this EPIC (done: the `Blocked` label is removed separately, with the maintainer's approval): the READMEs must describe the final API this EPIC leaves and cover any crate it adds |
 | #2583 (first publish of the unpublished crates) | Its per-crate publish order follows the dependency edges this EPIC removes. Its T4 decides the `test-helpers` bump by comparing the final API with the published 3.0.0 (`configuration` and `random` only) |
 | #2594 (extract the console client) | Blocked on #2583, so it waits on this EPIC too |
 
@@ -307,13 +307,15 @@ affects them.
 - [x] Subissue 1 created and linked in this spec (#2618)
 - [x] Subissues 2 onwards drafted by subissue 1 and linked in this spec (drafts for rows 2 to 9, in
       the pull request of #2618; the maintainer's approval is the merge of that pull request)
-- [ ] Subissue statuses kept up to date in the `Subissues` table
-- [ ] For each implemented subissue: automatic checks completed and recorded
-- [ ] For each implemented subissue: manual verification completed and recorded
-- [ ] For each implemented subissue: acceptance criteria reviewed post-implementation
-- [ ] For each implemented subissue: implementation completion review recorded
-- [ ] Epic acceptance criteria reviewed and checked off
-- [ ] Epic issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Subissue statuses kept up to date in the `Subissues` table
+- [x] For each implemented subissue: automatic checks completed and recorded
+- [x] For each implemented subissue: manual verification completed and recorded
+- [x] For each implemented subissue: acceptance criteria reviewed post-implementation
+- [x] For each implemented subissue: implementation completion review recorded
+- [x] Epic acceptance criteria reviewed and checked off
+- [ ] Epic issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/` (the spec
+      move is in the close-out PR; the maintainer closes issue #2482 after it merges, so this box is
+      ticked only then)
 
 ### Progress Log
 
@@ -441,21 +443,22 @@ Append one line per meaningful update.
 - 2026-11-03 17:11 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 4) - Subissue 4 (#2699) was created and linked under #2482; its spec was refreshed after #2416 merged (T9 added two cancellation tokens and drop guards to the UDP `Running` environment) and approved by the maintainer. Row 4 of the Subissues table is IN_PROGRESS. Example decision: keep `udp_only_public_tracker` on the testing environment and add a production-style example.
 - 2026-11-04 15:58 UTC - AI assistant (Copilot SDK in VS Code, #2482 subissue 4) - Subissue 4 (#2699) is done: PR #2711 merged on 2026-11-04 (merge commit `905401fa9`; spec PR #2700 merged the same day) and #2699 is closed; its spec is archived. Row 4 of the Subissues table is DONE. `udp-server`'s test environment is behind a `testing` feature; the first push failed the container job because `torrust-cargo-chef` 0.1.78 left `[features]` entries that name stripped path dependencies, fixed by `torrust-cargo-chef` 0.1.79 (torrust/cargo-chef#1) and its pin in the `Containerfile`. Rows 5 to 7 need that pin and must run `cargo chef prepare --external-only` and `cargo chef cook --tests --workspace --all-features` in their verification.
 - 2026-11-04 17:41 UTC - AI assistant (Claude Code, #2482 subissue 5) - Subissue 5 (#2724) was created (the bot account could not link or label it, so the maintainer does that) and its spec was refreshed against `develop` and approved by the maintainer. Row 5 of the Subissues table is IN_PROGRESS. Example decision: keep `http_only_public_tracker` on the testing environment and add a production-style example; `swarm-coordination-registry`, `torrust-clock` and `torrust-info-hash` become optional.
+- 2026-11-10 12:33 UTC - AI assistant (Claude Code, #2482 close-out) - Closed out the EPIC in the close-out PR (branch `chore/archive-epic-2482`, no code change). Re-verified AC1, AC4, AC6, AC7 and AC8 against `torrust/develop` at `1df1ecdf0` and ticked them with evidence in the Acceptance Verification table; ticked the closing checklist items except the last one (the maintainer closes issue #2482 after the PR merges; this PR only moves the spec). EPIC `status` is `done`; the folder moved to `docs/issues/closed/` and the links to it were updated (EPIC #1669, #2576, #2583, the ADR, the coupling reports, the closed subissue specs). EPIC #1669 marks its #2482 row `DONE`. Still open outside this PR: the test archives still use `--all-features` (a CI and `Containerfile` change) and #2576 keeps its `Blocked` label until the maintainer removes it.
 
 ## Acceptance Criteria
 
-- [ ] AC1: The inventory covers every workspace member and every pattern found, with consumers
+- [x] AC1: The inventory covers every workspace member and every pattern found, with consumers
       and forced dependencies.
 - [x] AC2: An ADR records the criteria, the options with trade-offs, and one rule per pattern;
       the maintainer has approved it, and `DECISIONS.md` amends DEC-13 and links it.
 - [x] AC3: Each Cargo behaviour the ADR relies on is verified with recorded commands.
-- [ ] AC4: All required subissues are created and linked, and every inventory item has one.
+- [x] AC4: All required subissues are created and linked, and every inventory item has one.
 - [x] AC5: Implementation order is explicit and justified, including the ordering with EPIC
       #1488's environment subissues.
-- [ ] AC6: Epic status reflects the actual state of the linked subissues.
-- [ ] AC7: Every completed subissue includes automated and manual verification evidence, a
+- [x] AC6: Epic status reflects the actual state of the linked subissues.
+- [x] AC7: Every completed subissue includes automated and manual verification evidence, a
       post-implementation acceptance criteria review, and an implementation completion review.
-- [ ] AC8: After the last subissue, no workspace library package's normal build contains
+- [x] AC8: After the last subissue, no workspace library package's normal build contains
       test-only code or dependencies unless the ADR keeps them, and a coupling report regenerated
       after the last subissue, and the dependency diagram, show no test-only runtime edge. The
       root crate's `src/console/ci/` runners and its normal `tempfile` dependency are out of
@@ -465,14 +468,14 @@ Append one line per meaningful update.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1   | TODO                   |          |
-| AC2   | DONE                   | [`2618` spec](../../closed/2618-2482-decide-test-support-rules/ISSUE.md): ADR `20261021190318` in the ADR index and DEC-18 amending DEC-13; the maintainer approved the decision (2026-10-21) and the written ADR by merging PR #2624 (merge commit `bf03425ef`, 2026-10-23) |
-| AC3   | DONE                   | [`manual-verification-evidence.md`](../../closed/2618-2482-decide-test-support-rules/manual-verification-evidence.md): MV1 to MV4 plus a packaging baseline and two follow-up probes, on stable and 1.88.0, commands and output recorded (PR #2624) |
-| AC4   | TODO                   |          |
+| AC1   | DONE                   | Validated by the close-out session (Claude Code, 2026-11-10), re-checked on `torrust/develop` at `1df1ecdf0`. The [inventory](test-support-inventory.md) covers the 31 members of 2026-10-08, refreshed on 2026-10-21 for the 32nd (`ci-gate`), and records patterns A to E with consumers and the nine forced edges; its resolution table maps every item to a row or to a rule that keeps it. `cargo metadata --no-deps` now reports 34 members; the two added since the refresh, `wait-for-pr-review` and `shipped-features-check`, have no shared test support (no `testing` feature, no public test module, only a `tempfile` dev-dependency) |
+| AC2   | DONE                   | [`2618` spec](../2618-2482-decide-test-support-rules/ISSUE.md): ADR `20261021190318` in the ADR index and DEC-18 amending DEC-13; the maintainer approved the decision (2026-10-21) and the written ADR by merging PR #2624 (merge commit `bf03425ef`, 2026-10-23) |
+| AC3   | DONE                   | [`manual-verification-evidence.md`](../2618-2482-decide-test-support-rules/manual-verification-evidence.md): MV1 to MV4 plus a packaging baseline and two follow-up probes, on stable and 1.88.0, commands and output recorded (PR #2624) |
+| AC4   | DONE                   | Validated by the close-out session (2026-11-10). `gh issue view` shows #2618, #2628, #2645, #2670, #2681, #2699, #2724, #2745 and #2757 all `CLOSED`, one for every inventory item (resolution table of the [inventory](test-support-inventory.md)); `grep -rl 'epic: 2482' docs/issues/drafts` finds no draft |
 | AC5   | DONE                   | Execution order 1, 2, 8, 9, 3, 4 to 7 in the Subissues table with the #1488 gates (#2416, #2449, #2450), justified in the ADR and the drafts (PR #2624) |
-| AC6   | TODO                   |          |
-| AC7   | TODO                   |          |
-| AC8   | TODO                   | Check recorded by #2757 (not ticked here; the close-out ticks it): [coupling report of 2026-11-09](../1669-overhaul-packages/workspace-coupling-report-2026-11-09.md), generated on the #2757 implementation branch (rows 1 to 6, 8 and 9 merged). Nine `optional (testing)` edges, no `testing` feature in a `default` chain or a `[dependencies]` entry (`shipped-features-check` exits 0), every library `pub mod testing`/`environment` gated. The check found stale test-only edges in the dependency diagram from rows 4 and 5 (`axum-http --> clock`, `info-hash`, `swarm`; `udp-srv --> swarm`); #2757 removes them. Out of scope as the criterion says: the root crate's runners and `tempfile`; the unpublished `frontmatter-validator` and `persistence-benchmark` tools, whose normal `tempfile` and `testcontainers` dependencies serve their own binaries. Details: [`manual-verification-evidence.md`](../../closed/2757-2482-gate-axum-health-check-api-server-test-environment/manual-verification-evidence.md) V6. |
+| AC6   | DONE                   | Validated by the close-out session (2026-11-10). All nine rows of the Subissues table are `DONE` and match the closed state of their GitHub issues (checked with `gh issue view`); the EPIC `status` is `done` |
+| AC7   | DONE                   | Validated by the close-out session (2026-11-10). Each of the nine closed spec folders has a `manual-verification-evidence.md` with recorded commands and output, and all their workflow checkpoints are ticked except two in [#2618](../2618-2482-decide-test-support-rules/ISSUE.md), which that spec marks not ticked on purpose (a reviewer's own box edit and a Committer-agent step that were not used). Rows 1 to 4, 8, 9 and 7 carry an `implementation-retrospective.md`; rows [5](../2724-2482-gate-axum-http-server-test-environment/ISSUE.md) and [6](../2745-2482-gate-axum-rest-api-server-test-environment/ISSUE.md) record in their `Implementation Completion Review` section why a retrospective was not needed |
+| AC8   | DONE                   | Validated by the close-out session (2026-11-10); the check was recorded by #2757 and the close-out ticks it, as that spec says: [coupling report of 2026-11-09](../../open/1669-overhaul-packages/workspace-coupling-report-2026-11-09.md), generated on the #2757 implementation branch (rows 1 to 6, 8 and 9 merged). Nine `optional (testing)` edges, no `testing` feature in a `default` chain or a `[dependencies]` entry (`shipped-features-check` exits 0), every library `pub mod testing`/`environment` gated. The check found stale test-only edges in the dependency diagram from rows 4 and 5 (`axum-http --> clock`, `info-hash`, `swarm`; `udp-srv --> swarm`); #2757 removes them. Out of scope as the criterion says: the root crate's runners and `tempfile`; the unpublished `frontmatter-validator` and `persistence-benchmark` tools, whose normal `tempfile` and `testcontainers` dependencies serve their own binaries. Details: [`manual-verification-evidence.md`](../2757-2482-gate-axum-health-check-api-server-test-environment/manual-verification-evidence.md) V6. Re-run by the close-out session on `torrust/develop` at `1df1ecdf0`: `check_test_only.py` printed the same list (no `testing` feature in a `default` chain, every `pub mod testing`/`environment` behind `#[cfg(feature = "testing")]`), and `cargo run -q -p shipped-features-check -- --package torrust-tracker` exited 0 (`no workspace package has the testing feature enabled`). The report has nine `optional (testing)` edge headings (the tenth grep hit is its legend). The test archives still build with `--all-features` (a CI change outside this EPIC). |
 
 ## Risks and Trade-offs
 
@@ -507,12 +510,12 @@ Append one line per meaningful update.
 
 ## References
 
-- Parent EPIC: [`docs/issues/open/1669-overhaul-packages/EPIC.md`](../1669-overhaul-packages/EPIC.md)
+- Parent EPIC: [`docs/issues/open/1669-overhaul-packages/EPIC.md`](../../open/1669-overhaul-packages/EPIC.md)
 - Inventory: [`test-support-inventory.md`](test-support-inventory.md)
-- Source findings 1 and 2: [2026-10-06 coupling report](../1669-overhaul-packages/workspace-coupling-report-2026-10-06.md)
+- Source findings 1 and 2: [2026-10-06 coupling report](../../open/1669-overhaul-packages/workspace-coupling-report-2026-10-06.md)
 - Packaging check and the self dev-dependency it removed: #2582
-  ([spec](../../closed/2582-1669-remove-health-check-self-dev-dependency/ISSUE.md))
-- Related decisions: DEC-13 in [`DECISIONS.md`](../1669-overhaul-packages/DECISIONS.md)
+  ([spec](../2582-1669-remove-health-check-self-dev-dependency/ISSUE.md))
+- Related decisions: DEC-13 in [`DECISIONS.md`](../../open/1669-overhaul-packages/DECISIONS.md)
   (relocated the environments to public `src/testing/` modules); its premise that
   `tracker-core/src/test_helpers.rs` was the same pattern does not hold, because that module's
   content is `#[cfg(test)]` and crate-private (the module itself is a `pub mod`, empty in a non-test
@@ -520,9 +523,9 @@ Append one line per meaningful update.
 - Related ADRs: [`20260629000000_adopt_independent_package_versioning.md`](../../../adrs/20260629000000_adopt_independent_package_versioning.md)
 - Baseline issue: #2446
 - Shutdown overhaul EPIC: #1488, with subissues that change the environments (#2449, #2450 and #2471 are closed):
-  [#2449](../../closed/2449-1488-si-23-migrate-rest-api-test-environment/ISSUE.md),
-  [#2450](../../closed/2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md) and
-  [#2471](../../closed/2471-1488-fix-http-environment-drop-path/ISSUE.md)
+  [#2449](../2449-1488-si-23-migrate-rest-api-test-environment/ISSUE.md),
+  [#2450](../2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md) and
+  [#2471](../2471-1488-fix-http-environment-drop-path/ISSUE.md)
 - Earlier review of this spec: PR #2462 (as a draft task), PR #2484 (spec PR), and the #1669
   orchestrator's review of 2026-10-21 (spec refresh PR)
 - 2026-11-05 08:49 UTC - AI assistant (Claude Code, #2482 subissue 5) - The implementation of #2724 is ready for review on branch `2724-2482-gate-axum-http-server-test-environment`: `axum-http-server` gates its test environment behind the `testing` feature. Row 5 stays IN_PROGRESS until the implementation PR is merged and the spec is archived.

@@ -9,7 +9,7 @@ github-issue: 2670
 spec-path: docs/issues/closed/2670-2482-build-shipped-artifacts-without-test-features/ISSUE.md
 branch: "2670-2482-build-shipped-artifacts-without-test-features"
 related-pr: 2676
-last-updated-utc: "2026-10-28 09:37"
+last-updated-utc: "2026-11-10 12:33"
 semantic-links:
   skill-links:
     - create-issue
@@ -19,7 +19,7 @@ semantic-links:
   related-artifacts:
     - docs/adrs/20261021190318_share_workspace_test_support_through_testing_features.md
     - docs/adrs/20260603000000_keep_unit_tests_inside_container_build.md
-    - docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md
+    - docs/issues/closed/2482-1669-reorganize-shared-test-support/EPIC.md
     - docs/issues/closed/2618-2482-decide-test-support-rules/manual-verification-evidence.md
     - Containerfile
     - .dockerignore
@@ -346,7 +346,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ## Verification Plan
 
-The [#2482 default completion policy](../../open/2482-1669-reorganize-shared-test-support/EPIC.md#how-we-work-in-this-epic)
+The [#2482 default completion policy](../2482-1669-reorganize-shared-test-support/EPIC.md#how-we-work-in-this-epic)
 applies, except that this subissue moves no test code. The workflow changes follow the
 `implement-workflow` skill.
 
@@ -441,5 +441,5 @@ request.
 
 ## References
 
-- Parent EPIC: [`#2482`](../../open/2482-1669-reorganize-shared-test-support/EPIC.md); ADRs above
+- Parent EPIC: [`#2482`](../2482-1669-reorganize-shared-test-support/EPIC.md); ADRs above
 - Verification evidence V1 and V4c: [`manual-verification-evidence.md`](../../closed/2618-2482-decide-test-support-rules/manual-verification-evidence.md)

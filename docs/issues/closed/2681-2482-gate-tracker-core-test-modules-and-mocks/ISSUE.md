@@ -9,7 +9,7 @@ github-issue: 2681
 spec-path: docs/issues/closed/2681-2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md
 branch: "2681-2482-gate-tracker-core-test-modules-and-mocks"
 related-pr: 2688
-last-updated-utc: "2026-10-29 12:50"
+last-updated-utc: "2026-11-10 12:33"
 semantic-links:
   skill-links:
     - create-issue
@@ -17,8 +17,8 @@ semantic-links:
     - write-unit-test
   related-artifacts:
     - docs/adrs/20261021190318_share_workspace_test_support_through_testing_features.md
-    - docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md
-    - docs/issues/open/2482-1669-reorganize-shared-test-support/test-support-inventory.md
+    - docs/issues/closed/2482-1669-reorganize-shared-test-support/EPIC.md
+    - docs/issues/closed/2482-1669-reorganize-shared-test-support/test-support-inventory.md
     - docs/issues/closed/2618-2482-decide-test-support-rules/manual-verification-evidence.md
     - docs/issues/closed/2670-2482-build-shipped-artifacts-without-test-features/ISSUE.md
     - packages/tracker-core/Cargo.toml
@@ -54,7 +54,7 @@ public API.
 ## Background
 
 Patterns C and D of the
-[inventory](../../open/2482-1669-reorganize-shared-test-support/test-support-inventory.md). Facts below
+[inventory](../2482-1669-reorganize-shared-test-support/test-support-inventory.md). Facts below
 were re-verified on `develop` at `883cc834c` on 2026-10-28.
 
 ### Pattern C: three `pub mod` declarations of test-only code
@@ -349,7 +349,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ## Verification Plan
 
-The [#2482 default completion policy](../../open/2482-1669-reorganize-shared-test-support/EPIC.md#how-we-work-in-this-epic)
+The [#2482 default completion policy](../2482-1669-reorganize-shared-test-support/EPIC.md#how-we-work-in-this-epic)
 applies. This is an O1 move: build the package without the feature, run `cargo test -p <package>`
 without `--all-features`, compare test counts, and make sure no test is silently skipped
 (`required-features` is not used).
@@ -419,7 +419,7 @@ Reviewed by the AI assistant against the acceptance criteria and the evidence on
 
 ## References
 
-- Parent EPIC: [`#2482`](../../open/2482-1669-reorganize-shared-test-support/EPIC.md); ADR above
+- Parent EPIC: [`#2482`](../2482-1669-reorganize-shared-test-support/EPIC.md); ADR above
 - Inventory patterns C and D
 - [#2618 manual verification evidence](../../closed/2618-2482-decide-test-support-rules/manual-verification-evidence.md) (V1 to V4c)
 - [#2670 spec](../../closed/2670-2482-build-shipped-artifacts-without-test-features/ISSUE.md) (the `Shipped Features` job)

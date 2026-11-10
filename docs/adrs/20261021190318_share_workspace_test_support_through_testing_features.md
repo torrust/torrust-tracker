@@ -5,8 +5,8 @@ semantic-links:
   related-artifacts:
     - docs/issues/closed/2618-2482-decide-test-support-rules/ISSUE.md
     - docs/issues/closed/2618-2482-decide-test-support-rules/manual-verification-evidence.md
-    - docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md
-    - docs/issues/open/2482-1669-reorganize-shared-test-support/test-support-inventory.md
+    - docs/issues/closed/2482-1669-reorganize-shared-test-support/EPIC.md
+    - docs/issues/closed/2482-1669-reorganize-shared-test-support/test-support-inventory.md
     - docs/issues/open/1669-overhaul-packages/DECISIONS.md
     - docs/adrs/20260629000000_adopt_independent_package_versioning.md
     - deny.toml
@@ -65,7 +65,7 @@ so it lives in `docs/adrs/`. It amends DEC-13 of the EPIC #1669 decision log (se
 
 ## Description
 
-The [test support inventory](../issues/open/2482-1669-reorganize-shared-test-support/test-support-inventory.md)
+The [test support inventory](../issues/closed/2482-1669-reorganize-shared-test-support/test-support-inventory.md)
 found five patterns in the workspace (32 members on 2026-10-21):
 
 - **A. Public `testing`/`environment` modules** in `axum-http-server`, `axum-rest-api-server`,
@@ -334,8 +334,8 @@ so it is not an example of public test infrastructure. DEC-18 in the
 
 ## References
 
-- [#2482 sub-EPIC](../issues/open/2482-1669-reorganize-shared-test-support/EPIC.md) and its
-  [inventory](../issues/open/2482-1669-reorganize-shared-test-support/test-support-inventory.md)
+- [#2482 sub-EPIC](../issues/closed/2482-1669-reorganize-shared-test-support/EPIC.md) and its
+  [inventory](../issues/closed/2482-1669-reorganize-shared-test-support/test-support-inventory.md)
 - [#2618 spec](../issues/closed/2618-2482-decide-test-support-rules/ISSUE.md) and
   [manual verification evidence](../issues/closed/2618-2482-decide-test-support-rules/manual-verification-evidence.md)
 - DEC-13 and DEC-18 in the [decision log](../issues/open/1669-overhaul-packages/DECISIONS.md)
