@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-progress
+status: done
 priority: p2
 epic: 1488
 github-issue: 2751
-spec-path: docs/issues/open/2751-1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md
+spec-path: docs/issues/closed/2751-1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md
 branch: "2751-deprecate-legacy-shutdown-api"
 related-pr: 2793
-last-updated-utc: "2026-11-10 09:43"
+last-updated-utc: "2026-11-10 11:14"
 semantic-links:
   skill-links:
     - create-issue

@@ -6,7 +6,7 @@ epic: null
 github-issue: 1488
 spec-path: docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-06 13:49"
+last-updated-utc: "2026-11-10 11:15"
 semantic-links:
   skill-links:
     - create-issue
@@ -66,7 +66,7 @@ status as of 2026-10-07.
    cancellation layers; periodic jobs still ignore `JobManager` cancellation.
    **Status: fixed in the application** (sequences 3 to 11) and in the
    standalone HTTP, UDP, REST API, and health-check API environments (SI-16,
-   SI-17, SI-23, and SI-24); the legacy API is removed by SI-18 and SI-19.
+   SI-17, SI-23, and SI-24); SI-18 (#2751) deprecated the legacy API and SI-19 removes it.
 3. **Torrent cleanup and activity metrics ignore `CancellationToken`** — they
    listen for `ctrl_c` directly instead of using the shared token.
    **Status: fixed** by SI-4 (#2169) and #2221.
@@ -209,7 +209,7 @@ deterministic tests, and manual evidence.
 | 15       | #2410 | [Process queued events before listeners stop](../../closed/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md) | Done | Bug, sub-EPIC (SI-22) with four sub-issues, #2413 to #2416 (docs and ADR draft; listener drain; per-component tokens; stop order): event producers stop before consumers; listeners process queued events within an admission budget. Merged in PRs #2553, #2578, #2591, and #2623, closed by the close-out PR. |
 | 16       | #2449 | [Migrate REST API test environment](../../closed/2449-1488-si-23-migrate-rest-api-test-environment/ISSUE.md) | Done       | SI-23. One test environment migration; found while refreshing SI-17 (2026-10-06). Merged in PR #2643 on 2026-10-25; one token and one `DropGuard`, because the environment owns no listener. |
 | 17       | #2450 | [Migrate health-check API test environment](../../closed/2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md) | Done       | SI-24. One test environment migration; found while refreshing SI-17 (2026-10-06). Merged in PR #2652 on 2026-10-26; one token and one `DropGuard`, because the environment owns no listener. Review found that a fixed-port restart panicked because the registry could not remove a registration, so `torrust-server-lib` 0.4.0 added `Registar::deregister` and `stop()` removes its own binding. |
-| 18       | #2751 | [Deprecate legacy shutdown API](../2751-1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md)                           | Open       | Compatibility-preserving source deprecation only.                                                    |
+| 18       | #2751 | [Deprecate legacy shutdown API](../../closed/2751-1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md)                 | Done       | Compatibility-preserving source deprecation only.                                                    |
 | 19       | SI-19 | [Remove legacy shutdown API and library OS signals](../../drafts/1488-si-19-remove-legacy-shutdown-api/ISSUE.md)          | Draft      | Breaking release after migration, deprecation, and compatibility gates.                              |
 | 20       | #2668 | [Configure shutdown policy and deployment contract](../../closed/2668-1488-si-20-configure-shutdown-policy/ISSUE.md)     | Done       | Apply approved Q3/Q4 outcomes, budgets, configuration, and deployment guidance.                      |
 | 21       | #2697 | [Mark health check unhealthy during shutdown](../../closed/2697-1488-si-21-mark-health-unhealthy-during-shutdown/ISSUE.md)         | Done       | Set readiness to not ready before root cancellation and component drain.                             |

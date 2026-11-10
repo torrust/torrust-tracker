@@ -24,7 +24,7 @@ semantic-links:
     - docs/features/shutdown-process/README.md
     - docs/features/shutdown-process/questions.md
     - docs/features/shutdown-process/task-inventory.md
-    - docs/issues/open/2751-1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md
+    - docs/issues/closed/2751-1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md
     - docs/issues/closed/2342-1488-si-14-migrate-udp-receive-reset-token-lifecycle/ISSUE.md
     - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
 ---

@@ -1,6 +1,6 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2751-1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md
+issue-spec: docs/issues/closed/2751-1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md
 last-updated-utc: "2026-11-10 09:43"
 ---
 
