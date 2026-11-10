@@ -257,7 +257,7 @@ Reviews of da2ce7, in order: 5846465906 (F1 to F8), 5846866430 (F9 to F14), 5847
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2812#discussion_r4528912432
 - Concern: The introduction cited two abbreviated branch commit ids, which a rebase would invalidate.
 - Solution: Named the rounds by review ID only.
-- Current-tree verification: Ran the commit-id check from `open-pull-request`: the only id left is the one quoted from the F1 reply, mapped to its subject.
+- Current-tree verification: Ran the commit-id check from `open-pull-request` at the fixing commit: the only id left was the one quoted from the F1 reply, mapped to its subject. A later round found a second id in a log entry (see F20).
 - Resolution reference: docs(pr-reviews): [#2576] drop branch commit ids from the audit introduction and reword F1
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2812#discussion_r4529059134
@@ -329,7 +329,7 @@ Reviews of da2ce7, in order: 5846465906 (F1 to F8), 5846866430 (F9 to F14), 5847
 - 2026-11-10 19:02 UTC - Round 4 review of da2ce7 received (review 5847680359: F18; it records F15 and F16 as fixed).
 - 2026-11-10 19:03 UTC - Correction: the 18:32 UTC entry above lists F15 and F16, but review 5847274601 also carried F17 (on `ISSUE.md`). I resolved the F17 thread at 18:46 UTC without a reply, because my resolve loop closed every open thread. F17 was fixed in commit `docs(issues): [#2576] append the audit-record entry to the progress log and name F17 in the audit` (created 19:03:06 UTC) and pushed.
 - 2026-11-10 19:05 UTC - F17 and F18 replies posted (19:05:44 and 19:05:46 UTC), after the push.
-- 2026-11-10 19:22 UTC - Round 5 review of da2ce7 received (review 5847973119: approval at head `93bf0e094`, with F19).
+- 2026-11-10 19:22 UTC - Round 5 review of da2ce7 received (review 5847973119: approval at the then head, with F19).
 - 2026-11-10 19:29 UTC - Correction: the 19:05 entry above says both replies came after the push. That holds for the F17 reply (19:05:44 UTC), which cites a pushed commit. The F18 reply (19:05:46 UTC) says the F17 and F18 rows follow "in the next commit", and that commit (`docs(pr-reviews): [#2576] record findings F17 and F18 in the PR 2812 audit`) was created at 19:06:01 UTC, 15 s later; the part of the F18 fix that the reply described as already done (the introduction naming F17) was pushed before it.
 - 2026-11-10 19:32 UTC - F19 fixed in commit `docs(pr-reviews): [#2576] name the fifth review round and correct the F18 reply timing in the audit` (created 19:29:23 UTC) and pushed; the F19 reply was posted at 19:32:14 UTC, after the push.
 
