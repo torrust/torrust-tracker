@@ -582,6 +582,7 @@ udpv
 ulnp
 unconfigured
 underflows
+ungated
 ungetwc
 uninit
 unistd
