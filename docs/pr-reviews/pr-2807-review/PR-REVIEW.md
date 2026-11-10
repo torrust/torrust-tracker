@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Seven reviews: Copilot review 5845178584 (a summary with no actionable finding, so it has no row), da2ce7 review 5845212310 (round 1, eleven findings, which keep the reviewer's IDs) da2ce7 review 5845706883 (round 2, six findings) da2ce7 review 5846280739 (round 3, three findings) da2ce7 review 5846656529 (round 4, two findings) da2ce7 review 5846951116 (round 5, two findings) and da2ce7 review 5847226991 (round 6, one finding, asked by the maintainer after the five-round limit). The round 2 `F10` re-raises `F10` and became `F17`; the other round 2 IDs (`F12` to `F16`) are the reviewer's. In round 3 the reviewer's `F17` (a re-raise of `F14`) became `F20`; its `F18` and `F19` kept their IDs. In round 4 the reviewer's `F20` and `F21` became `F21` and `F22`. In round 5 the reviewer's `F22` and `F23` became `F23` and `F24`. In round 6 the reviewer's `F24` became `F25`.
+Eight reviews: Copilot review 5845178584 (a summary with no actionable finding, so it has no row), da2ce7 review 5845212310 (round 1, eleven findings, which keep the reviewer's IDs) da2ce7 review 5845706883 (round 2, six findings) da2ce7 review 5846280739 (round 3, three findings) da2ce7 review 5846656529 (round 4, two findings) da2ce7 review 5846951116 (round 5, two findings) and da2ce7 review 5847226991 (round 6, one finding, asked by the maintainer after the five-round limit) and da2ce7 review 5848152684 (round 7, one finding, again asked by the maintainer). The round 2 `F10` re-raises `F10` and became `F17`; the other round 2 IDs (`F12` to `F16`) are the reviewer's. In round 3 the reviewer's `F17` (a re-raise of `F14`) became `F20`; its `F18` and `F19` kept their IDs. In round 4 the reviewer's `F20` and `F21` became `F21` and `F22`. In round 5 the reviewer's `F22` and `F23` became `F23` and `F24`. In round 6 the reviewer's `F24` became `F25`; in round 7 the reviewer's `F25` became `F26`.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -70,6 +70,7 @@ Seven reviews: Copilot review 5845178584 (a summary with no actionable finding, 
 | F23 | review-finding:pr-2807-f23 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F24 | review-finding:pr-2807-f24 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F25 | review-finding:pr-2807-f25 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F26 | review-finding:pr-2807-f26 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -366,7 +367,7 @@ Seven reviews: Copilot review 5845178584 (a summary with no actionable finding, 
 - Reviewer finding ID: F22
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2807#discussion_r4528664835
 - Concern: The PR conversation response that is the resolution reference of F21 opens "Third review round" for the review this audit calls round 4.
-- Solution: The response opens "Fourth review round".
+- Solution: The response calls review 5846656529 "Round 4" and opens "Consolidated response for review rounds 4 and 5 of da2ce7" (it opened "Fourth review round" until the edit of F25).
 - Current-tree verification: The comment was read after the edit (`gh api repos/torrust/torrust-tracker/issues/comments/6774847290`).
 - Resolution reference: https://github.com/torrust/torrust-tracker/pull/2807#issuecomment-6774847290
 - Follow-up PR URL: N/A
@@ -398,6 +399,19 @@ Seven reviews: Copilot review 5845178584 (a summary with no actionable finding, 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2807#discussion_r4529400162
 
+### F26 - This Solution and the response both say the response opens "Fourth review round", which it no longer does
+
+- PR number: 2807
+- Source review ID: 5848152684
+- Reviewer finding ID: F25
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2807#discussion_r4529587172
+- Concern: After the consolidating edit, the response no longer opens "Fourth review round", but its Round 5 sentence and the F23 Solution still say it does.
+- Solution: The Round 5 sentence of the response, the F23 Solution and the F22 reply now say what the response says for round 4: it calls review 5846656529 "Round 4" and opens "Consolidated response for review rounds 4 and 5 of da2ce7".
+- Current-tree verification: The response, the F22 reply and the PR description were read after the edits (`gh pr view 2807 --json body` has no "Fourth review round"), and `git grep -n "Fourth review round" docs` finds only the quotations of the phrase in this row and in the F23 Solution.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2807#issuecomment-6774847290
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2807#discussion_r4530701124
+
 ## Processing Log
 
 - 2026-11-10 16:10 UTC - Copilot review received (16:10:42 UTC) (no actionable finding).
@@ -413,6 +427,8 @@ Seven reviews: Copilot review 5845178584 (a summary with no actionable finding, 
 - 2026-11-10 18:11 UTC - The conversation response and the PR description edited and the two replies posted (18:11:30 and 18:11:32 UTC); the audit corrected in the commit that carries this entry.
 - 2026-11-10 18:28 UTC - da2ce7 review received (round 6: approval of the pushed head, one nit, `F25` here; submitted 18:28:45 UTC). The five-round limit was reached, so the maintainer was asked and chose to fix it.
 - 2026-11-10 19:18 UTC - The conversation response edited (19:18:01 UTC) and the reply posted (19:18:03 UTC); the audit corrected in the commit that carries this entry.
+- 2026-11-10 19:35 UTC - da2ce7 review received (round 7: approval of the pushed head, one nit, `F26` here; submitted 19:35:49 UTC). The maintainer chose to fix it.
+- 2026-11-10 21:22 UTC - The conversation response and the F22 reply edited (21:22:44 UTC) and the reply posted (21:22:47 UTC); the audit corrected in the commit that carries this entry.
 
 ## Completion Rules
 
