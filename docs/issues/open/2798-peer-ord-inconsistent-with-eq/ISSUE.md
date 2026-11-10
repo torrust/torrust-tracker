@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: planned
+status: in-progress
 priority: p3
 epic: null
 github-issue: 2798
 spec-path: docs/issues/open/2798-peer-ord-inconsistent-with-eq/ISSUE.md
-branch: "2798-peer-ord-inconsistent-with-eq-spec"
-related-pr: null
-last-updated-utc: "2026-11-10 17:40"
+branch: "2798-peer-ord-inconsistent-with-eq"
+related-pr: 2811
+last-updated-utc: "2026-11-10 17:46"
 semantic-links:
   skill-links:
     - create-issue
@@ -84,19 +84,21 @@ on types that contain a `Peer`.
 
 ## Options
 
-| Option | Change                                                                       | Public API impact                                                                                                                                                                                                                                                                                                          | Verdict                                                                                                                                                             |
-| ------ | ---------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| A      | Remove `Ord`/`PartialOrd` from `Peer`                                        | Breaking: external sorters stop compiling; `PeerList`/`Torrent` must also drop their derived `Ord`                                                                                                                                                                                                                         | **Chosen** by the maintainer (see Decision)                                                                                                                         |
-| B      | Make `Eq`/`Hash` compare `peer_id` only                                      | Breaking in behaviour (silent): `assert_eq!` on peers would ignore state changes; tests such as `should_be_comparable` change meaning                                                                                                                                                                                      | Rejected: equality over the full announce state is relied on by tests and is the safer semantics; a peer with different `left`/`event` is observably different data |
-| C      | Make `Ord`/`PartialOrd` agree with `Eq`: compare all fields, `peer_id` first | Non-breaking for ordering of distinct `peer_id`s (same primary key and order); only ties are now broken by the remaining fields. The derive variant needs new `Ord` impls on `NumberOfBytes` and `AnnounceEvent` (additive, but it makes their order public); the hand-written variant needs none (see the recommendation) | Rejected: keeps an ordering nobody uses                                                                                                                             |
-| D      | Document only                                                                | None                                                                                                                                                                                                                                                                                                                       | Leaves the contract violation; acceptable only as a fallback                                                                                                        |
+| Option | Change                                                                       | Public API impact                                                                                                                                                                                                                                                                                                                  | Verdict                                                                                                                                                             |
+| ------ | ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A      | Remove `Ord`/`PartialOrd` from `Peer`                                        | Breaking: external sorters stop compiling; `PeerList`/`Torrent` must also drop their derived `Ord`                                                                                                                                                                                                                                 | **Chosen** by the maintainer (see Decision)                                                                                                                         |
+| B      | Make `Eq`/`Hash` compare `peer_id` only                                      | Breaking in behaviour (silent): `assert_eq!` on peers would ignore state changes; tests such as `should_be_comparable` change meaning                                                                                                                                                                                              | Rejected: equality over the full announce state is relied on by tests and is the safer semantics; a peer with different `left`/`event` is observably different data |
+| C      | Make `Ord`/`PartialOrd` agree with `Eq`: compare all fields, `peer_id` first | Non-breaking for ordering of distinct `peer_id`s (same primary key and order); only ties are now broken by the remaining fields. The derive variant needs new `Ord` impls on `NumberOfBytes` and `AnnounceEvent` (additive, but it makes their order public); the hand-written variant needs none (see the considered alternative) | Rejected: keeps an ordering nobody uses                                                                                                                             |
+| D      | Document only                                                                | None                                                                                                                                                                                                                                                                                                                               | Leaves the contract violation; acceptable only as a fallback                                                                                                        |
 
 ### Decision: A (maintainer, after T1)
 
 After T1 the maintainer chose **A**: remove `Ord` and `PartialOrd` from `Peer`. Reasons: T1 found
-no production code that orders a `Peer`; breaking changes are acceptable because most workspace
-packages are unpublished and external consumers are unlikely; and removing the ordering is the only
-way to make the contract violation impossible. The ordering of the non-id fields in option C would
+no production code that orders a `Peer`; the breaking change is accepted because few external
+consumers of `Peer: Ord` are expected (not verified), even though `torrust-tracker-primitives` is
+publishable (`publish = true` through the workspace, version 3.1.0), so its next publish must be a
+major version (see Risks and Trade-offs); and removing the ordering is the simplest way to make the
+contract violation impossible, because no ordering is left to keep in step with `Eq`. The ordering of the non-id fields in option C would
 be arbitrary, and the id-only order was an accident of the `AnnounceEvent` swap. The analysis of C
 below is kept as the considered alternative.
 
@@ -156,7 +158,7 @@ Hash` over all fields, consistent with `Eq`.
   (remove `Ord`) becomes attractive for the in-repo code, with its breaking-change cost for the
   published crate, and any id-only comparison becomes an explicit `peer_id` comparison.
 
-### T1 findings (investigation done, awaiting the maintainer's decision)
+### T1 findings (investigation done)
 
 **History.** The old crate-local `AnnounceEvent` wrapper derived `PartialOrd, Ord`
 (`git show 00af70f25^:packages/primitives/src/announce_event.rs`). The replacement,
@@ -207,7 +209,7 @@ meant, code already compares `peer_id` explicitly. The maintainer chose A (see D
 ## Architectural Decisions
 
 - Related ADRs: none known.
-- ADRs to create: None known. Revisit if the maintainer picks A or B (public semantics change).
+- ADRs to create: None. The maintainer chose A (a breaking public API change); the versioning ADR above already covers its version consequence, so no new ADR is needed.
 
 ## Design and Ownership Review
 
@@ -280,12 +282,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Folder-style spec drafted in `docs/issues/open/2798-peer-ord-inconsistent-with-eq/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation (PR 2800)
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation (PR 2800)
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [ ] Committer verified spec progress is up to date before commit
@@ -293,6 +295,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ### Progress Log
 
+- 2026-11-10 17:46 UTC - Claude Code (Claude Sonnet 5.5) - Review round 1 of PR 2811 (the `da2ce7` findings): restored the major-version note and corrected the publishability reason, brought the checkpoints, completion review and frontmatter up to date, fixed stale cross-references and an overstated claim, reworded two commit messages, and fixed the evidence file. No Task Reviewer pass ran before this PR was opened, so `agent-review-reports.md` does not exist; the PR review by `da2ce7` and Copilot is the independent review - `ISSUE.md`, `manual-verification-evidence.md`
 - 2026-11-10 17:40 UTC - Claude Code (Claude Sonnet 5.5) - Review round 1 of PR 2811: changed the doctest bound from `Ord` to `PartialOrd` so it also guards a `PartialOrd`-only implementation - `ISSUE.md`, `peer.rs`, evidence
 - 2026-11-10 16:49 UTC - Claude Code (Claude Sonnet 5.5) - Implemented option A: removed `Ord`/`PartialOrd` from `Peer` and the inherited derives from `PeerList` and `Torrent`; doctest green, workspace builds, V2 recheck recorded - `peer.rs`, `peer_list.rs`, `entry/mod.rs`, evidence
 - 2026-11-10 16:38 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer chose option A; updated the spec (decision, scope, regression strategy as a `compile_fail` doctest, acceptance criteria, risks) - `ISSUE.md`
@@ -309,10 +312,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] AC2: A maintained unit test fails on current code and passes after the fix (red/green recorded).
 - [x] AC3: The workspace builds (`cargo test --workspace --no-run`) with the `Ord` derives dropped from `PeerList` and `Torrent`.
 - [x] AC4: `Peer` rustdoc states that equality is over every field and that there is no ordering.
-- [ ] `linter all` exits with code `0`
-- [ ] `cargo test -p torrust-tracker-primitives` passes
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] `linter all` exits with code `0`
+- [x] `cargo test -p torrust-tracker-primitives` passes
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
 
 ## Verification Plan
 
@@ -340,14 +343,17 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ## Risks and Trade-offs
 
-- Option A is a breaking change for any external user of `Ord` on `Peer`; accepted by the maintainer (most packages are unpublished, few consumers expected, not verified).
+- Option A is a breaking change to the publishable `torrust-tracker-primitives` (3.1.0): its next
+  publish is a major version (ADR `20260629000000_adopt_independent_package_versioning.md`).
+  Accepted by the maintainer because few external consumers of `Peer: Ord` are expected (not
+  verified).
 - Option C (not chosen) changes `cmp` results for peers that share a `peer_id` but differ elsewhere (previously
   `Equal`). Nothing in the workspace depends on it; external users who did are relying on the bug.
 - Option B would silently change equality semantics for every `assert_eq!`/`==` on peers.
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
+- Retrospective: none needed. The one discovery (the id-only `Ord` came from the `AnnounceEvent` swap in `00af70f25`) is recorded in the T1 findings.
 - If needed (material discoveries, invalidated assumptions, or design changes), create
   `implementation-retrospective.md` from `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this
   issue specification's directory.
