@@ -34,9 +34,8 @@
 - [x] Remaining matches are only archived migration history, ADRs, analysis and the migration guide.
 - [x] No server-library module subscribes to SIGINT or SIGTERM.
 
-**Evidence:** raw output at this head (the search in the last command covers the live specs under
-`docs/issues/open` and `docs/issues/drafts`, whose matches are old descriptions of the legacy API in specs of other
-issues, not uses of it; the lines of that last command are cut at 110 characters, and `(…)` marks one cut):
+**Evidence:** output at this head. The last search covers the live specs under `docs/issues/open` and
+`docs/issues/drafts`; its matches are old descriptions of the legacy API in specs of other issues, not uses of it.
 
 ```text
 $ git grep -nE "Halted|shutdown_signal_with_message|global_shutdown_signal|HaltSignal|NestedServerTask|run_with_graceful_shutdown|spawn_launcher|LaunchRequest|RunningHttpServer|RunningApiServer|RunningUdpServer" -- "*.rs" "*.toml"
@@ -58,14 +57,12 @@ docs/media/flamegraph.svg
 docs/media/flamegraph_generated_without_sudo.svg
 docs/research/20260716-console-shutdown-patterns/README.md
 
-$ the same over the live specs: docs/issues/open and docs/issues/drafts, excluding the SI-19 spec, the EPIC and its own evidence
-docs/issues/drafts/1488-si-9-improve-udp-shutdown/ISSUE.md:48:Replace the UDP server's shutdown `Halted` oneshot (…)
-docs/issues/drafts/1488-si-9-improve-udp-shutdown/ISSUE.md:112:      shutdown `Halted` oneshot or OS-signal li
-docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md:420:server wrappers already 
-docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/completion-plan.md:45:`CancellationTo
-
-$ git grep -nE "run_with_graceful_shutdown" -- docs/issues/drafts/simplify-udp-server-main-loop
+$ git grep -nE "Halted|HaltSignal|NestedServerTask|global_shutdown_signal|run_with_graceful_shutdown|shutdown_signal_with_message|spawn_launcher|LaunchRequest" -- docs/issues/open docs/issues/drafts ":!docs/issues/open/2801*" ":!docs/issues/open/1488*" | sed 's/[[:space:]]*$//'
+docs/issues/drafts/1488-si-9-improve-udp-shutdown/ISSUE.md:48:Replace the UDP server's shutdown `Halted` oneshot and OS-signal wait with a
+docs/issues/drafts/1488-si-9-improve-udp-shutdown/ISSUE.md:112:      shutdown `Halted` oneshot or OS-signal listener.
 docs/issues/drafts/simplify-udp-server-main-loop/ISSUE.md:99:- Changes to `run_with_graceful_shutdown`.
+docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md:420:server wrappers already forward the manager token to their private `Halted::Normal` channels, but
+docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/completion-plan.md:45:`CancellationToken`. Each wrapper forwards cancellation to its private `Halted::Normal` channel
 ```
 
 The last search also finds the legacy draft `docs/issues/drafts/simplify-udp-server-main-loop/ISSUE.md`, which lists
