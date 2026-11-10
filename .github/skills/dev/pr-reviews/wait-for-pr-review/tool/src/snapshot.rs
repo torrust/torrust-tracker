@@ -118,8 +118,8 @@ struct Committer {
 
 /// Fetches the current state of `pull_request`.
 ///
-/// The head commit is read after the feedback, so it is at least as new as any commit that the
-/// feedback in the snapshot is about.
+/// The head commit is fetched after the feedback, so it never predates a push that the feedback was
+/// already about when it was fetched. This is about the order of the requests, not commit ordering.
 ///
 /// # Errors
 ///

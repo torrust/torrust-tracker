@@ -85,9 +85,11 @@ not the commit you passed with `--since-head-sha` (or, without it, the head at t
 feedback may then be about commits your checkout does not have; [synchronize](#the-review-loop)
 before processing it.
 
-`head_sha` is read after the reviews and comments in the same result, so it is at least as new as
-any commit that feedback is about; a push made after that read makes it newer than the feedback, so
-`head_moved` can be a false alarm, never a miss.
+`head_sha` is fetched after the reviews and comments in the same result, so it never predates a push
+that the feedback was already about when it was fetched. A push made after the head was fetched is
+not in `head_sha` yet, and the next poll reports it as `head_changed`. A push between the feedback
+fetch and the head fetch makes `head_moved` true for feedback about the older head: a false alarm,
+never a miss.
 
 `cursor` is the GitHub time of the item the result reports. `--since <cursor>` counts only items
 created strictly after it, so the reported item and everything before it are skipped. An item created
