@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Three rounds: da2ce7 review 5846465906 (F1 to F8), da2ce7 review 5846866430 (F9 to F14) and da2ce7 review 5847274601 (approval with F15, F16 and F17; those rows are added in the commit after their replies). Copilot review 5846485416 reported no open issues and has no row.
+Reviews of da2ce7, in order: 5846465906 (F1 to F8), 5846866430 (F9 to F14), 5847274601 (F15 to F17), 5847680359 (F18) and 5847973119 (approval with F19; its row is added in the commit after its reply). Copilot review 5846485416 reported no open issues and has no row.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -315,6 +315,8 @@ Three rounds: da2ce7 review 5846465906 (F1 to F8), da2ce7 review 5846866430 (F9 
 - 2026-11-10 19:02 UTC - Round 4 review of da2ce7 received (review 5847680359: F18; it records F15 and F16 as fixed).
 - 2026-11-10 19:03 UTC - Correction: the 18:32 UTC entry above lists F15 and F16, but review 5847274601 also carried F17 (on `ISSUE.md`). I resolved the F17 thread at 18:46 UTC without a reply, because my resolve loop closed every open thread. F17 was fixed in commit `docs(issues): [#2576] append the audit-record entry to the progress log and name F17 in the audit` (created 19:03:06 UTC) and pushed.
 - 2026-11-10 19:05 UTC - F17 and F18 replies posted (19:05:44 and 19:05:46 UTC), after the push.
+- 2026-11-10 19:22 UTC - Round 5 review of da2ce7 received (review 5847973119: approval at head `93bf0e094`, with F19).
+- 2026-11-10 19:29 UTC - Correction: the 19:05 entry above says both replies came after the push. That holds for the F17 reply (19:05:44 UTC), which cites a pushed commit. The F18 reply (19:05:46 UTC) says the F17 and F18 rows follow "in the next commit", and that commit (`docs(pr-reviews): [#2576] record findings F17 and F18 in the PR 2812 audit`) was created at 19:06:01 UTC, 15 s later; the part of the F18 fix that the reply described as already done (the introduction naming F17) was pushed before it.
 
 ## Completion Rules
 
