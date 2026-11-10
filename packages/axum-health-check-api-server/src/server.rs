@@ -19,7 +19,15 @@ use tokio_util::sync::CancellationToken;
 use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
 use torrust_server_lib::logging::{Latency, STARTED_ON};
 use torrust_server_lib::registar::{Registar, RegistrationError, ServiceRegistration};
+#[allow(
+    deprecated,
+    reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
+)]
 use torrust_server_lib::signals::{Halted, Started};
+#[allow(
+    deprecated,
+    reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
+)]
 use torrust_tracker_axum_server::signals::{GracefulShutdownOutcome, graceful_shutdown, graceful_shutdown_on_cancellation};
 use torrust_tracker_primitives::{Readiness, RuntimeServiceMetadata};
 use tower_http::LatencyUnit;
@@ -65,6 +73,10 @@ pub struct CancellationRunning {
 ///
 /// The caller owns both tasks. It must join them during normal shutdown or
 /// abort them when its enclosing component is aborted.
+#[deprecated(
+    since = "0.2.0",
+    note = "use `CancellationRunning` from `start_with_cancellation`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
+)]
 pub struct RunningServer<F> {
     pub running: F,
     pub shutdown_controller: JoinHandle<()>,
@@ -77,6 +89,28 @@ pub struct RunningServer<F> {
 /// Returns an error if the listener cannot bind or be configured, or if the
 /// startup receiver is dropped before the listener is reported.
 #[instrument(skip(bind_to, tx, rx_halt, registar))]
+#[allow(
+    deprecated,
+    reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
+)]
+///
+/// The deprecation is part of the contract until SI-19 removes this item. Using it without an allowance fails
+/// under `deny(deprecated)`:
+///
+/// ```
+/// use torrust_tracker_axum_health_check_api_server::server::start;
+/// let _ = start;
+/// ```
+///
+/// ```compile_fail
+/// #![deny(deprecated)]
+/// use torrust_tracker_axum_health_check_api_server::server::start;
+/// let _ = start;
+/// ```
+#[deprecated(
+    since = "0.2.0",
+    note = "use `start_with_cancellation` with a `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
+)]
 pub fn start(
     bind_to: SocketAddr,
     tx: Sender<Started>,
@@ -318,6 +352,40 @@ mod tests {
 
             Self { bind_to, registar }
         }
+    }
+
+    /// The deprecated `Halted`-based `start` must keep working until SI-19 removes it.
+    #[tokio::test]
+    #[allow(
+        deprecated,
+        reason = "proves the deprecated legacy `start` still compiles and works until SI-19"
+    )]
+    async fn it_should_stop_the_legacy_server_when_a_normal_halt_is_sent() {
+        use torrust_server_lib::signals::{Halted, Started};
+
+        // Arrange
+        let (tx_start, rx_start) = tokio::sync::oneshot::channel::<Started>();
+        let (tx_halt, rx_halt) = tokio::sync::oneshot::channel::<Halted>();
+        let running = crate::server::start(any_available_port(), tx_start, rx_halt, Registar::default())
+            .expect("the legacy health check API should start");
+        let server = tokio::spawn(running.running);
+        rx_start.await.expect("the legacy start should report the bound address");
+
+        // Act
+        tx_halt
+            .send(Halted::Normal)
+            .expect("the legacy halt receiver should be alive");
+
+        // Assert
+        tokio::time::timeout(TEST_COMPLETION_TIMEOUT, running.shutdown_controller)
+            .await
+            .expect("the legacy shutdown controller should finish")
+            .expect("the legacy shutdown controller should not panic");
+        tokio::time::timeout(TEST_COMPLETION_TIMEOUT, server)
+            .await
+            .expect("the legacy server should stop after the halt")
+            .expect("the legacy server task should not panic")
+            .expect("the legacy server should stop without an I/O error");
     }
 
     #[tokio::test]

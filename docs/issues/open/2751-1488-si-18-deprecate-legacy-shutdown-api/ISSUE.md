@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p2
 epic: 1488
 github-issue: 2751
 spec-path: docs/issues/open/2751-1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md
-branch: "2751-deprecate-legacy-shutdown-api-spec"
-related-pr: null
-last-updated-utc: "2026-11-09 16:39"
+branch: "2751-deprecate-legacy-shutdown-api"
+related-pr: 2793
+last-updated-utc: "2026-11-10 09:43"
 semantic-links:
   skill-links:
     - create-issue
@@ -224,21 +224,21 @@ Other decisions of 2026-11-06:
 
 ## Acceptance Criteria
 
-- [ ] All eligibility-gate evidence is present and linked from this issue's
+- [x] All eligibility-gate evidence is present and linked from this issue's
       `manual-verification-evidence.md`.
-- [ ] Each deprecated legacy public API identifies its token-aware replacement
+- [x] Each deprecated legacy public API identifies its token-aware replacement
       and removal release target.
-- [ ] Deprecated APIs remain source-compatible and preserve runtime behavior.
-- [ ] In-workspace compatibility coverage compiles representative legacy
+- [x] Deprecated APIs remain source-compatible and preserve runtime behavior.
+- [x] In-workspace compatibility coverage compiles representative legacy
       server-library consumers.
-- [ ] No new production code introduces a legacy shutdown API dependency.
-- [ ] The `torrust-server-lib` release notes document migration, support window, and final
+- [x] No new production code introduces a legacy shutdown API dependency.
+- [x] The `torrust-server-lib` release notes document migration, support window, and final
       removal prerequisites, and the in-repo deprecation messages follow the attribute text
       defined in Versioning Decisions.
-- [ ] The workspace depends on `torrust-server-lib` 0.5.0 and every use of its
+- [x] The workspace depends on `torrust-server-lib` 0.5.0 and every use of its
       deprecated symbols is either migrated or carries a documented
       `#[allow(deprecated)]`.
-- [ ] `linter all` passes.
+- [x] `linter all` passes.
 
 ## Dependencies
 
@@ -266,12 +266,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                                                                                           | Notes / Expected Output                                                                         |
 | --- | ------ | -------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Bump the workspace dependency to `torrust-server-lib` 0.5.0 and add the local `#[allow(deprecated)]` allowances, with a rationale, that its deprecated symbols need. | `cargo check --workspace --all-targets` warning-free (the workspace denies warnings); coordinate ordering with the #2482 coordinator first. |
-| T2  | TODO   | Deprecate the legacy public APIs of the five server packages and the root `HaltSignal`/`NestedServerTask`, adding in the same increment the local allowances at the call sites that still use them. | Each message names the replacement and uses the decided `since` and removal wording; once the maintainer confirms the proposal in Versioning Decisions, it uses the proposal's text instead. Behavior unchanged; warning-free build. |
-| T3  | TODO   | Review every local allowance added by T1 and T2: each has a rationale and none sits in a migrated production path. | Migrated paths compile with `-D deprecated`; no allowance without a rationale. |
-| T4  | TODO   | Add compile-compat tests for representative legacy consumers.                                                 | Tests compile with `#[allow(deprecated)]` and pass; legacy behavior unchanged.                  |
-| T5  | TODO   | Write migration guidance for the deprecated symbols.                                                          | Replacement table; Rust docs render the guidance. No release note for these symbols (derived, not yet confirmed; see Versioning Decisions). |
-| T6  | TODO   | Record verification evidence.                                                                                  | `manual-verification-evidence.md`: gate evidence, warning output, rendered docs review.         |
+| T1  | DONE   | Bump the workspace dependency to `torrust-server-lib` 0.5.0 and add the local `#[allow(deprecated)]` allowances, with a rationale, that its deprecated symbols need. | `cargo check --workspace --all-targets` warning-free (the workspace denies warnings); coordinate ordering with the #2482 coordinator first. |
+| T2  | DONE   | Deprecate the legacy public APIs of the five server packages and the root `HaltSignal`/`NestedServerTask`, adding in the same increment the local allowances at the call sites that still use them. | Each message names the replacement and uses the decided `since` and removal wording; once the maintainer confirms the proposal in Versioning Decisions, it uses the proposal's text instead. Behavior unchanged; warning-free build. |
+| T3  | DONE   | Review every local allowance added by T1 and T2: each has a rationale and none sits in a migrated production path. | Migrated paths compile with `-D deprecated`; no allowance without a rationale. |
+| T4  | DONE   | Add compile-compat tests for representative legacy consumers.                                                 | Tests compile with `#[allow(deprecated)]` and pass; legacy behavior unchanged.                  |
+| T5  | DONE   | Write migration guidance for the deprecated symbols.                                                          | Replacement table; Rust docs render the guidance. No release note for these symbols (derived, not yet confirmed; see Versioning Decisions). |
+| T6  | DONE   | Record verification evidence.                                                                                  | `manual-verification-evidence.md`: gate evidence, warning output, rendered docs review.         |
 
 ## Commit Points
 
@@ -318,6 +318,8 @@ Arrange-Act-Assert design review in task evidence, and sign every commit with GP
 - 2026-11-09 13:00 UTC - AI agent (Claude Sonnet 5.5) - Edited the spec for the 12:52 UTC review of PR 2752 by `da2ce7` and the 12:32 UTC Copilot review: named the controller types of the stop methods (12:40 UTC), moved the allowances into the T1 and T2 commits (12:40 UTC), stated what T2 writes while the deprecation text proposal is unconfirmed, aligned the rollback and the Q5 dependency, cited `review-finding:pr-2752-f16`, quoted the maintainer's comment, and said who posted it
 - 2026-11-09 15:48 UTC - AI agent (Claude Sonnet 5.5) - Edited the spec for the 2026-11-09 review of PR 2752 by `da2ce7` and Copilot: one release-note rule in Versioning Decisions, Scope, Requirement 4 and T5 (15:45 UTC); the evidence file's Step 5 made runnable (15:46 UTC) and the SI-19 start gate names its evidence file (15:47 UTC)
 - 2026-11-09 16:39 UTC - AI agent (Claude Sonnet 5.5) - Edited the spec for the 2026-11-09 review of PR 2752 by `da2ce7`: the release-note rule moved out of the dated maintainer decisions and is labelled derived and not yet confirmed, with Scope, Requirement 4, T5 and the proposal paragraph aligned (16:37 UTC); the evidence file names the 15:46 UTC run of Step 5 (16:38 UTC)
+- 2026-11-09 19:33 UTC - AI agent (Claude Sonnet 5.5) - Implemented T1 to T6 on branch `2751-deprecate-legacy-shutdown-api`: dependency bump with local allowances, deprecation attributes with allowances, review of the allowances (none in the migrated bootstrap jobs), a compat test for the legacy health-check `start`, and the migration guide. Evidence in `manual-verification-evidence.md`.
+- 2026-11-10 09:43 UTC - AI agent (Claude Sonnet 5.5) - Addressed the review of PR 2793: ran M2 from scratch consumers and recorded the output, added `compile_fail` doctests so removing an attribute fails `cargo test --doc`, updated M2 to M4, the acceptance rows, the frontmatter and the completion review.
 
 ## Rollback
 
@@ -346,9 +348,9 @@ runtime path, follow the EPIC executable-boundary protocol instead.
 | ID  | Scenario                              | Human-oriented command/steps                                                                  | Expected Result                                                      | Status | Evidence                                          |
 | --- | ------------------------------------- | --------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- | ------ | ------------------------------------------------- |
 | M1  | Gate evidence                         | Link the migration issues, the final task inventory, Q5 and the torrust-server-lib release.    | Every gate item has a link or command output.                        | DONE   | `manual-verification-evidence.md` section V1      |
-| M2  | Legacy consumers still compile        | Compile a representative consumer of each deprecated API without `allow(deprecated)`.         | The expected deprecation warnings, naming replacement and removal.   | TODO   | `manual-verification-evidence.md` section V2      |
-| M3  | Migrated paths have no legacy use     | `RUSTFLAGS="-D deprecated" cargo check --workspace --lib --bins` on migrated code.            | No deprecated-API error in production paths.                         | TODO   | `manual-verification-evidence.md` section V3      |
-| M4  | Documentation review                  | `cargo doc` and read the deprecation text and migration guidance.                                  | Replacement and removal wording match Versioning Decisions.                         | TODO   | `manual-verification-evidence.md` section V4      |
+| M2  | Legacy consumers still compile        | Compile a representative consumer of each deprecated API without `allow(deprecated)`.         | The expected deprecation warnings, naming replacement and removal.   | DONE     | `manual-verification-evidence.md` section M2: Implementation Evidence      |
+| M3  | Migrated paths have no legacy use     | `RUSTFLAGS="-D deprecated" cargo check --workspace --lib --bins` on migrated code.            | No deprecated-API error in production paths.                         | DONE     | `manual-verification-evidence.md` section M3: Implementation Evidence      |
+| M4  | Documentation review                  | `cargo doc` and read the deprecation text and migration guidance.                                  | Replacement and removal wording match Versioning Decisions.                         | DONE     | `manual-verification-evidence.md` section M4: Implementation Evidence      |
 
 Record every command result with its toolchain or runtime when it can affect
 behavior. If a scenario fails, record the failure and diagnosis in the progress
@@ -360,9 +362,16 @@ None.
 
 ### Acceptance Verification
 
-| AC ID                                  | Status | Evidence                               |
-| -------------------------------------- | ------ | -------------------------------------- |
-| Every criterion in Acceptance Criteria | TODO   | Filled in after implementation review. |
+| AC ID | Status | Evidence |
+| ----- | ------ | -------- |
+| AC1 Gate evidence linked | DONE | `manual-verification-evidence.md` steps 1 to 8 (gate), merged with the spec in PR 2752. |
+| AC2 Replacement and removal target named | DONE | M2 output: every deprecated item prints its replacement and the removal wording. |
+| AC3 Source-compatible, behavior preserved | DONE | Only attributes and allowances were added; `cargo test --workspace --lib` passes; the legacy `start` and `stop` tests still run. |
+| AC4 Compatibility coverage | DONE | In-crate legacy tests compile with local allowances; the new health-check legacy `start` test; `compile_fail` doctests fail if an attribute is removed. |
+| AC5 No new production legacy dependency | DONE | M3: `RUSTFLAGS="-D deprecated" cargo check --workspace --lib --bins` exits 0; the four bootstrap jobs carry no allowance. |
+| AC6 Deprecation text and library notes | DONE | The decided wording is applied; the `torrust-server-lib` 0.5.0 `CHANGELOG.md` carries the support window; the unconfirmed proposal is not applied. |
+| AC7 Workspace on 0.5.0, uses migrated or allowed | DONE | `Cargo.toml` pins 0.5.0; every remaining use carries `#[allow(deprecated, reason = ...)]`. |
+| AC8 `linter all` passes | DONE | Passed in the pre-commit hook on every commit of PR 2793. |
 
 ## Risks and Trade-offs
 
@@ -378,13 +387,15 @@ None.
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
+- Retrospective: none needed: the change is attributes, allowances, one test and a guide, with no design surprise
+  beyond the review findings recorded in `docs/pr-reviews/pr-2793-review/`.
 - If needed, create `implementation-retrospective.md` from the repository
   template at `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this issue
   specification's directory; otherwise add a progress-log entry saying why none
   was needed.
 - The independent reviewer records its result in `agent-review-reports.md`
-  using `docs/templates/AGENT-REVIEW-REPORTS.md`.
+  using `docs/templates/AGENT-REVIEW-REPORTS.md`; the reviews of PR 2793 are the independent review, and the
+  close-out PR records their result.
 
 ## References
 

@@ -34,6 +34,10 @@ use tokio::sync::oneshot::Sender;
 use tokio::task::{Id, JoinError, JoinHandle, JoinSet};
 use tokio::time::{Instant, timeout_at};
 use tokio_util::sync::CancellationToken;
+#[allow(
+    deprecated,
+    reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
+)]
 use torrust_server_lib::signals::Halted;
 use tracing::{info, warn};
 
@@ -125,12 +129,28 @@ pub fn incomplete_components(outcomes: &[JobOutcome]) -> Vec<&str> {
 
 /// Delivers a normal halt signal when its component is dropped.
 #[derive(Debug)]
+#[allow(
+    deprecated,
+    reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
+)]
+#[deprecated(
+    since = "4.0.0",
+    note = "use a `CancellationToken` and the token-aware shutdown controller; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
+)]
 pub struct HaltSignal {
     sender: Option<Sender<Halted>>,
 }
 
+#[allow(
+    deprecated,
+    reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
+)]
 impl HaltSignal {
     #[must_use]
+    #[allow(
+        deprecated,
+        reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
+    )]
     pub const fn new(sender: Sender<Halted>) -> Self {
         Self { sender: Some(sender) }
     }
@@ -140,11 +160,19 @@ impl HaltSignal {
     /// # Errors
     ///
     /// Returns the unsent signal when the receiver has already been dropped.
+    #[allow(
+        deprecated,
+        reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
+    )]
     pub fn signal_shutdown(&mut self) -> Result<(), Halted> {
         self.sender.take().map_or(Ok(()), |sender| sender.send(Halted::Normal))
     }
 }
 
+#[allow(
+    deprecated,
+    reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
+)]
 impl Drop for HaltSignal {
     fn drop(&mut self) {
         let _ = self.signal_shutdown();
@@ -158,14 +186,30 @@ impl Drop for HaltSignal {
 /// The drop implementation sends the normal halt signal and aborts the child,
 /// so the child cannot continue detached from its component owner.
 #[derive(Debug)]
+#[deprecated(
+    since = "4.0.0",
+    note = "use a `CancellationToken` and the token-aware shutdown controller; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
+)]
+#[allow(
+    deprecated,
+    reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
+)]
 pub struct NestedServerTask<T> {
     halt_signal: HaltSignal,
     task: JoinHandle<T>,
     shutdown_controller: Option<JoinHandle<()>>,
 }
 
+#[allow(
+    deprecated,
+    reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
+)]
 impl<T> NestedServerTask<T> {
     #[must_use]
+    #[allow(
+        deprecated,
+        reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
+    )]
     pub const fn new(halt_task: Sender<Halted>, task: JoinHandle<T>) -> Self {
         Self {
             halt_signal: HaltSignal::new(halt_task),
@@ -176,6 +220,10 @@ impl<T> NestedServerTask<T> {
 
     /// Creates an owner that also supervises a server's shutdown controller.
     #[must_use]
+    #[allow(
+        deprecated,
+        reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
+    )]
     pub const fn with_shutdown_controller(
         halt_task: Sender<Halted>,
         task: JoinHandle<T>,
@@ -193,6 +241,10 @@ impl<T> NestedServerTask<T> {
     /// # Errors
     ///
     /// Returns the unsent signal when the receiver has already been dropped.
+    #[allow(
+        deprecated,
+        reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
+    )]
     pub fn signal_shutdown(&mut self) -> Result<(), Halted> {
         self.halt_signal.signal_shutdown()
     }
@@ -202,6 +254,10 @@ impl<T> NestedServerTask<T> {
     /// # Errors
     ///
     /// Returns the nested task's join error when it panics or is aborted.
+    #[allow(
+        deprecated,
+        reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
+    )]
     pub async fn join(&mut self) -> Result<T, JoinError> {
         (&mut self.task).await
     }
@@ -211,6 +267,10 @@ impl<T> NestedServerTask<T> {
     /// # Errors
     ///
     /// Returns the controller's join error when it panics or is aborted.
+    #[allow(
+        deprecated,
+        reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
+    )]
     pub async fn join_shutdown_controller(&mut self) -> Result<(), JoinError> {
         if let Some(shutdown_controller) = &mut self.shutdown_controller {
             shutdown_controller.await
@@ -220,7 +280,15 @@ impl<T> NestedServerTask<T> {
     }
 }
 
+#[allow(
+    deprecated,
+    reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
+)]
 impl<T> Drop for NestedServerTask<T> {
+    #[allow(
+        deprecated,
+        reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
+    )]
     fn drop(&mut self) {
         let _ = self.signal_shutdown();
         self.task.abort();
@@ -1077,6 +1145,10 @@ mod tests {
     use tokio::sync::oneshot;
     use tokio::time::{Duration, sleep, timeout};
     use tokio_util::sync::CancellationToken;
+    #[allow(
+        deprecated,
+        reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
+    )]
     use torrust_server_lib::signals::Halted;
 
     use super::{
@@ -1215,6 +1287,10 @@ mod tests {
     }
 
     #[tokio::test]
+    #[allow(
+        deprecated,
+        reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
+    )]
     async fn it_should_abort_a_nested_server_task_when_the_component_is_aborted_after_the_deadline() {
         // Arrange
         let mut manager = JobManager::new();
@@ -1254,6 +1330,10 @@ mod tests {
     }
 
     #[tokio::test]
+    #[allow(
+        deprecated,
+        reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
+    )]
     async fn it_should_abort_a_nested_shutdown_controller_when_the_component_is_aborted_after_the_deadline() {
         // Arrange
         let mut manager = JobManager::new();
@@ -1301,6 +1381,10 @@ mod tests {
     }
 
     #[tokio::test]
+    #[allow(
+        deprecated,
+        reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
+    )]
     async fn it_should_signal_and_drop_an_uncooperative_running_future_when_the_component_is_aborted_after_the_deadline() {
         // Arrange
         let mut manager = JobManager::new();

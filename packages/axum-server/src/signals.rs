@@ -3,6 +3,10 @@ use std::time::Duration;
 
 use tokio::time::{Instant, sleep, sleep_until};
 use tokio_util::sync::CancellationToken;
+#[allow(
+    deprecated,
+    reason = "the legacy `graceful_shutdown` still uses the deprecated `Halted` channel; SI-19 removes both"
+)]
 use torrust_server_lib::signals::{Halted, shutdown_signal_with_message};
 use tracing::instrument;
 
@@ -68,7 +72,29 @@ pub async fn graceful_shutdown_on_cancellation(
     }
 }
 
+#[allow(
+    deprecated,
+    reason = "the legacy `graceful_shutdown` still uses the deprecated `Halted` channel; SI-19 removes both"
+)]
 #[instrument(skip(handle, rx_halt, message))]
+///
+/// The deprecation is part of the contract until SI-19 removes this item. Using it without an allowance fails
+/// under `deny(deprecated)`:
+///
+/// ```
+/// use torrust_tracker_axum_server::signals::graceful_shutdown;
+/// let _ = graceful_shutdown;
+/// ```
+///
+/// ```compile_fail
+/// #![deny(deprecated)]
+/// use torrust_tracker_axum_server::signals::graceful_shutdown;
+/// let _ = graceful_shutdown;
+/// ```
+#[deprecated(
+    since = "0.1.0",
+    note = "use `graceful_shutdown_on_cancellation` with an injected `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
+)]
 pub async fn graceful_shutdown(
     handle: axum_server::Handle<SocketAddr>,
     rx_halt: tokio::sync::oneshot::Receiver<Halted>,

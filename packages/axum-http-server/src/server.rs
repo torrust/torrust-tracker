@@ -16,8 +16,16 @@ use torrust_server_lib::logging::STARTED_ON;
 use torrust_server_lib::registar::{
     FnSpawnServiceHeathCheck, ServiceHealthCheckJob, ServiceRegistration, ServiceRegistrationForm,
 };
+#[allow(
+    deprecated,
+    reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
+)]
 use torrust_server_lib::signals::{Halted, Started};
 use torrust_tracker_axum_server::custom_axum_server::{self, TimeoutAcceptor};
+#[allow(
+    deprecated,
+    reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
+)]
 use torrust_tracker_axum_server::signals::{GracefulShutdownOutcome, graceful_shutdown, graceful_shutdown_on_cancellation};
 use torrust_tracker_http_core::container::HttpTrackerCoreContainer;
 use torrust_tracker_primitives::RuntimeServiceMetadata;
@@ -155,6 +163,10 @@ impl Launcher {
     }
 
     #[instrument(skip(self, http_tracker_container, tx_start, rx_halt))]
+    #[allow(
+        deprecated,
+        reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
+    )]
     fn start(
         &self,
         http_tracker_container: &Arc<HttpTrackerCoreContainer>,
@@ -208,6 +220,14 @@ pub type StoppedHttpServer = HttpServer<Stopped>;
     clippy::module_name_repetitions,
     reason = "type alias distinguishes the HTTP server running state"
 )]
+#[allow(
+    deprecated,
+    reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
+)]
+#[deprecated(
+    since = "0.1.0",
+    note = "use `HttpServer<Stopped>::start_with_cancellation` and keep the returned `CancellationRunning`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
+)]
 pub type RunningHttpServer = HttpServer<Running>;
 
 /// A HTTP server instance controller.
@@ -240,9 +260,21 @@ pub struct Stopped {
 }
 
 /// A running HTTP server state.
+#[allow(
+    deprecated,
+    reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
+)]
+#[deprecated(
+    since = "0.1.0",
+    note = "use `CancellationRunning` from `start_with_cancellation` and cancel the injected `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
+)]
 pub struct Running {
     /// The address where the server is bound.
     pub binding: SocketAddr,
+    #[deprecated(
+        since = "0.1.0",
+        note = "cancel the injected `CancellationToken` instead of sending `Halted`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
+    )]
     pub halt_task: tokio::sync::oneshot::Sender<Halted>,
     pub task: tokio::task::JoinHandle<Launcher>,
 }
@@ -279,6 +311,28 @@ impl HttpServer<Stopped> {
             service_role = metadata.service_role().as_str(),
             instance_index = metadata.configuration_instance_id().instance_index(),
         )
+    )]
+    ///
+    /// The deprecation is part of the contract until SI-19 removes this item. Using it without an allowance fails
+    /// under `deny(deprecated)`:
+    ///
+    /// ```
+    /// use torrust_tracker_axum_http_server::server::{HttpServer, Stopped};
+    /// let _ = HttpServer::<Stopped>::start;
+    /// ```
+    ///
+    /// ```compile_fail
+    /// #![deny(deprecated)]
+    /// use torrust_tracker_axum_http_server::server::{HttpServer, Stopped};
+    /// let _ = HttpServer::<Stopped>::start;
+    /// ```
+    #[deprecated(
+        since = "0.1.0",
+        note = "use `HttpServer<Stopped>::start_with_cancellation` with a `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
+    )]
+    #[allow(
+        deprecated,
+        reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
     )]
     pub async fn start(
         self,
@@ -321,6 +375,14 @@ impl HttpServer<Stopped> {
     /// Returns an error if no `SocketAddr` is returned after launching the
     /// server.
     ///
+    #[allow(
+        deprecated,
+        reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
+    )]
+    #[deprecated(
+        since = "0.1.0",
+        note = "use `HttpServer<Stopped>::start_with_cancellation_and_health_check` with a `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
+    )]
     pub async fn start_with_health_check(
         self,
         http_tracker_container: Arc<HttpTrackerCoreContainer>,
@@ -463,6 +525,10 @@ fn start_token_aware_runtime(
     ))
 }
 
+#[allow(
+    deprecated,
+    reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
+)]
 impl HttpServer<Running> {
     /// It stops the server and returns a `HttpServer` controller in `stopped`
     /// state.
@@ -470,6 +536,14 @@ impl HttpServer<Running> {
     /// # Errors
     ///
     /// It would return an error if the channel for the task killer signal was closed.
+    #[allow(
+        deprecated,
+        reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
+    )]
+    #[deprecated(
+        since = "0.1.0",
+        note = "cancel the `CancellationToken` passed to `start_with_cancellation` and join `CancellationRunning::task` and `shutdown_controller`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
+    )]
     pub async fn stop(self) -> Result<HttpServer<Stopped>, Error> {
         self.state.halt_task.send(Halted::Normal).map_err(|_| Error::Stop {
             message: "task killer channel was closed".to_string(),
@@ -819,6 +893,10 @@ mod tests {
     }
 
     #[tokio::test]
+    #[allow(
+        deprecated,
+        reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
+    )]
     async fn it_should_preserve_the_launcher_bind_address_after_starting_and_stopping() {
         // Arrange
         let scenario = ServerStartWithAvailableHttpBinding::new();
@@ -990,6 +1068,10 @@ mod tests {
     }
 
     #[tokio::test]
+    #[allow(
+        deprecated,
+        reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
+    )]
     async fn it_should_release_the_listener_and_preserve_the_duplicate_binding_error_when_registration_fails() {
         // Arrange
         let scenario = ServerStartWithDuplicateRegistration::new().await;

@@ -1,11 +1,12 @@
 ---
 doc-type: feature
 status: draft
-last-updated-utc: "2026-10-28 12:12"
+last-updated-utc: "2026-11-10 09:41"
 semantic-links:
   related-artifacts:
     - docs/analysis/20260716-shutdown-process/README.md
     - docs/features/shutdown-process/shutdown-architecture-examples.md
+    - docs/features/shutdown-process/legacy-api-migration.md
     - docs/features/shutdown-process/task-inventory.md
     - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
     - docs/research/20260716-console-shutdown-patterns/README.md
@@ -16,7 +17,8 @@ semantic-links:
 ## Status
 
 Draft — implementation in progress under [EPIC #1488](../../issues/open/1488-overhaul-tracker-shutdown/ISSUE.md),
-which tracks each sub-issue's status. The [task inventory](task-inventory.md)
+which tracks each sub-issue's status. The [legacy API migration guide](legacy-api-migration.md) maps each
+deprecated shutdown symbol to its token-aware replacement. The [task inventory](task-inventory.md)
 records the current state; for example, the standalone HTTP test environment
 and example use the token-aware lifecycle after SI-16 (#2412).
 
