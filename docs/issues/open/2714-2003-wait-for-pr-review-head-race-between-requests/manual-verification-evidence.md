@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2714-2003-wait-for-pr-review-head-race-between-requests/ISSUE.md
-last-updated-utc: "2026-11-04 14:35"
+last-updated-utc: "2026-11-10 12:30"
 ---
 
 # Manual Verification Evidence
@@ -69,8 +69,30 @@ practice depends on timing that was not observed.
 ### V2 - The same scenario after the fix
 
 - Goal: repeat V1 on the final build.
-- Status: `TODO`
+- Environment: 2026-11-10, Linux, `rustc 1.99.1 (58cf8f9c3 2026-10-13)`; the build is the fix of this issue on top
+  of `develop` at `4a46f98b2` ("Merge torrust/torrust-tracker#2806: chore(issues): archive closed issue #2713 spec
+  to docs/issues/closed"), debug build. Same fake `gh` and command as V1.
+- Status: `DONE`
+- Outcome: **Fixed.** The head is the newer commit and `head_moved` is true.
+
+#### Observed Result
+
+```text
+exit=0
+{"kind":"review","reviewer":"da2ce7","review_id":1,"state":"COMMENTED","review_commit_id":"bbbb…","url":"https://example.test/review/1","head_sha":"bbbb…","cursor":"2026-11-04T10:00:00Z","head_moved":true}
+```
+
+(`bbbb…` is the 40-character `bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb` in the raw output.)
+
+### Regression tests, red and green (T1, T3)
+
+Three unit tests were added: a review of a newer commit than the first head read, a conversation comment under
+the same condition, and the ordinary case. `FakeGh::replace_after` scripts the head change between two requests.
+
+- Red, with the old read order (head first) restored temporarily: `cargo test` gave 63 passed, 3 failed: the review and the comment
+  tests (`head_sha` `aaaa`, expected `bbbb`) and the `wait` test. The ordinary-case test passed.
+- Green, with the fix: `cargo test` gave 66 passed, 0 failed in the library, 27 passed in the integration tests.
 
 ## Failures and Follow-up
 
-None yet.
+None.
