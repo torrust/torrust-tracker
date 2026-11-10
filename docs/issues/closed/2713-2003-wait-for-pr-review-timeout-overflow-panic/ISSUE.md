@@ -194,7 +194,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   are recorded in the pull request audit `docs/pr-reviews/pr-2802-review/PR-REVIEW.md` and the one regression the
   reviews found is guarded by a test.
 - 2026-11-10 16:05 UTC - AI assistant (Claude Code, Claude Sonnet 5.5) - Review of the close-out pull request (Copilot): the
-  agent log entries named the tool but not the model; every entry above now names the model.
+  agent log entries named the tool but not the model; every entry of 2026-11-10 above now names the model.
 
 ## Acceptance Criteria
 
