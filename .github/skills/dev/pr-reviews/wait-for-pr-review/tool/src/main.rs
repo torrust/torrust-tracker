@@ -19,12 +19,12 @@ use signal_hook::flag;
 use wait_for_pr_review::timestamp::parse_utc;
 use wait_for_pr_review::{Config, GhCli, PullRequest, SystemClock, wait};
 
-/// Block until a watched reviewer reviews or comments, the head commit changes, or the pull request
-/// closes. Print the event as one JSON object. Stdout must not be a terminal; pipe it, for example `| jq .`.
 /// Largest accepted `--timeout-seconds`: one day. Far above any realistic wait and far below the range of
 /// `Instant` on any platform, so `Instant + Duration` for the deadline cannot overflow.
 const MAX_TIMEOUT_SECONDS: u64 = 86_400;
 
+/// Block until a watched reviewer reviews or comments, the head commit changes, or the pull request
+/// closes. Print the event as one JSON object. Stdout must not be a terminal; pipe it, for example `| jq .`.
 #[derive(Debug, Parser)]
 #[command(name = "wait-for-pr-review")]
 struct Cli {

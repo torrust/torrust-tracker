@@ -8,8 +8,8 @@ epic: 2003
 github-issue: 2713
 spec-path: docs/issues/open/2713-2003-wait-for-pr-review-timeout-overflow-panic/ISSUE.md
 branch: "2712-wait-for-pr-review-bug-and-adr-specs-spec"
-related-pr: null
-last-updated-utc: "2026-11-04 13:07"
+related-pr: 2802
+last-updated-utc: "2026-11-10 13:28"
 semantic-links:
   skill-links:
     - create-issue
@@ -102,7 +102,9 @@ Design question for the maintainer, to settle at implementation:
 Recommendation: option 1, because a deterministic, documented limit is easier to test and to explain to an agent
 than a platform-dependent one. The maximum is the maintainer's choice.
 
-**Decision (maintainer, 2026-11-10):** option 1, with a maximum of **86400 seconds (one day)**. The bound is the
+**Decision (maintainer, 2026-11-10):** option 1, with a maximum of **86400 seconds (one day)**, answered by the
+maintainer directly in the implementation session (the choices offered were one day, one week and one year,
+the last being the spec's example); there is no GitHub comment for it, and this paragraph is the record. The bound is the
 clap range `1..=86400` on `--timeout-seconds`; the rejection is the existing `usage_error` (exit `2`).
 
 ## Bug-Fix Process
@@ -156,10 +158,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Reproduction attempted and recorded before review (outcome: Reproduced)
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created (#2713) and issue number added to this spec
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Final like-for-like recheck of V1 recorded after the last production change
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Final like-for-like recheck of V1 recorded after the last production change
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Evidence-based implementation completion review recorded
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
@@ -177,18 +179,21 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   tests failed on the unfixed code (oversized value exit `101`, 86401 exit `0`). T2/T4: added
   `MAX_TIMEOUT_SECONDS = 86_400` as the clap range upper bound, updated the `--help` text and the skill table.
   T3: `cargo test -p wait-for-pr-review` and clippy pass; V2 recorded.
+- 2026-11-10 13:28 UTC - AI assistant (Claude Code) - Review round 1 (da2ce7): moved `MAX_TIMEOUT_SECONDS` above the
+  `Cli` doc comment so `--help` keeps its description, and added a help-text assertion; renamed `gh_calls` to
+  `pull_calls`; V2 rerun on the new build and recorded with the green output; this bookkeeping updated.
 
 ## Acceptance Criteria
 
-- [ ] AC1: `--timeout-seconds 18446744073709551615` exits `2` with empty stdout and one `usage_error` JSON record
+- [x] AC1: `--timeout-seconds 18446744073709551615` exits `2` with empty stdout and one `usage_error` JSON record
       on stderr, and makes no API request.
-- [ ] AC2: No value the CLI accepts can make `main()` panic; the accepted range and the rejection behavior are
+- [x] AC2: No value the CLI accepts can make `main()` panic; the accepted range and the rejection behavior are
       the same on every supported platform (option 1) or the rejection is reported as a usage error on the
       platform where it happens (option 2).
-- [ ] AC3: The skill and `--help` state the maximum, if one is introduced.
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
-- [ ] The final recheck of V1 is recorded in `manual-verification-evidence.md`
+- [x] AC3: The skill and `--help` state the maximum, if one is introduced.
+- [x] `linter all` exits with code `0`
+- [x] Relevant tests pass
+- [x] The final recheck of V1 is recorded in `manual-verification-evidence.md`
 
 ## Verification Plan
 

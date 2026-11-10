@@ -73,8 +73,8 @@ impl Sandbox {
         command
     }
 
-    /// How many times the fake `gh` served the pull request endpoint.
-    fn gh_calls(&self) -> u32 {
+    /// How many times the fake `gh` served the pull request endpoint (not `gh auth status`).
+    fn pull_calls(&self) -> u32 {
         fs::read_to_string(self.directory.path().join("pull-calls")).map_or(0, |count| count.trim().parse().unwrap())
     }
 
@@ -300,7 +300,7 @@ fn it_should_exit_two_with_a_usage_error_record_when_the_timeout_is_too_large_fo
     assert_eq!(output.stdout, b"");
     assert_eq!(kinds(&output), ["usage_error"]);
     assert_eq!(
-        sandbox.gh_calls(),
+        sandbox.pull_calls(),
         0,
         "an oversized timeout must be rejected before any API request"
     );
@@ -336,6 +336,15 @@ fn it_should_print_help_as_a_json_record_on_stderr_and_exit_zero() {
     assert_eq!(output.status.code(), Some(0));
     assert_eq!(output.stdout, b"");
     assert_eq!(kinds(&output), ["help"]);
+    let message = stderr_records(&output)[0]["message"].as_str().unwrap().to_owned();
+    assert!(
+        message.starts_with("Block until a watched reviewer"),
+        "help must keep the program description"
+    );
+    assert!(
+        message.contains("At most 86400 (one day)"),
+        "help must state the maximum timeout"
+    );
 }
 
 #[test]
