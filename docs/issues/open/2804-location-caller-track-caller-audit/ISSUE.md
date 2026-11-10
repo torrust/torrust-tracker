@@ -9,7 +9,7 @@ github-issue: 2804
 spec-path: docs/issues/open/2804-location-caller-track-caller-audit/ISSUE.md
 branch: "2804-location-caller-track-caller-audit-spec"
 related-pr: null
-last-updated-utc: "2026-11-10 14:16"
+last-updated-utc: "2026-11-10 14:25"
 semantic-links:
   skill-links:
     - create-issue
@@ -286,6 +286,7 @@ with the narrow affected scope, and sign every commit with GPG.
 - 2026-11-10 12:00 UTC - Claude Code (Sonnet 5.5) - Drafted spec from the F3 finding of the primitives test session and a first-pass inventory on `torrust/develop`.
 - 2026-11-10 13:45 UTC - Claude Code (Sonnet 5.5) - Corrected the UDP exposure analysis after review F1.
 - 2026-11-10 13:50 UTC - Claude Code (Sonnet 5.5) - Addressed review round 1 (F1-F9 and Copilot): recorded the reproduction, split the red/fix/green tasks, restored template passages, corrected facts and wording. Evidence: `manual-verification-evidence.md`.
+- 2026-11-10 14:25 UTC - Claude Code (Sonnet 5.5) - Addressed review round 2 (F10-F16): UDP paths, timestamps, evidence numbering, audit record `docs/pr-reviews/pr-2805-review/PR-REVIEW.md`.
 
 ## Acceptance Criteria
 
