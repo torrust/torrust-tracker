@@ -52,6 +52,11 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F7 | review-finding:pr-2811-f7 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F8 | review-finding:pr-2811-f8 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 | F9 | review-finding:pr-2811-f9 | Human | Suggestion | testing | RE_RAISE_OF:F1 | NO_ACTION | SUPERSEDED |
+| F10 | review-finding:pr-2811-f10 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F11 | review-finding:pr-2811-f11 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F12 | review-finding:pr-2811-f12 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F13 | review-finding:pr-2811-f13 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F14 | review-finding:pr-2811-f14 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -172,13 +177,80 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2811#discussion_r4528560253
 
+### F10 - Strategy records a red run that did not happen
+
+- PR number: 2811
+- Source review ID: 5847136183
+- Reviewer finding ID: F9
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2811#discussion_r4528803990
+- Concern: The strategy said the red run of the `PartialOrd` doctest was recorded before the fix, but the recorded red run used the earlier `Ord` bound; the scope line still said `Peer` is not `Ord`.
+- Solution: Recorded a red run of the final doctest against the reintroduced id-only impls (mutate, then restore), reworded the strategy to say which bound each red run used, and changed the scope line to neither trait.
+- Current-tree verification: Ran the doctest against the mutated file (failed as `compile_fail`), restored the file (`git diff --quiet HEAD -- packages/primitives/src/peer.rs` exited 0), read the strategy and scope lines.
+- Resolution reference: docs(issues): [#2798] state only the red runs that happened for the doctest
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2811#discussion_r4529494965
+
+### F11 - Versioning ADR is cited above its first mention
+
+- PR number: 2811
+- Source review ID: 5847136183
+- Reviewer finding ID: F11
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2811#discussion_r4528804001
+- Concern: The ADR line said "the versioning ADR above" but no ADR was cited above it, and Related ADRs said none known.
+- Solution: Listed the versioning ADR under Related ADRs and wrote "the versioning ADR listed above".
+- Current-tree verification: Read both lines and checked that the ADR file exists.
+- Resolution reference: docs(issues): [#2798] list the versioning ADR under Related ADRs
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2811#discussion_r4529495517
+
+### F12 - Retrospective rationale not in the progress log
+
+- PR number: 2811
+- Source review ID: 5847136183
+- Reviewer finding ID: F12
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2811#discussion_r4528804010
+- Concern: The retrospective rationale named one discovery and was not in the progress log; Commit Points still planned T4 and T5 apart.
+- Solution: Added a progress-log entry with the reason and both discoveries, updated the Retrospective line, and noted the T4/T5 merge in Commit Points.
+- Current-tree verification: Read the progress log, the Retrospective line and the Commit Points table.
+- Resolution reference: docs(issues): [#2798] record the retrospective rationale and the T4/T5 merge
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2811#discussion_r4529496092
+
+### F13 - Processing Log cites branch commit ids
+
+- PR number: 2811
+- Source review ID: 5847136183
+- Reviewer finding ID: F13
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2811#discussion_r4528804020
+- Concern: The Processing Log quoted three PR-branch commit ids from push output, which durable records must not carry.
+- Solution: Rewrote the two entries to name the pushed states by commit subject and appended a correction entry naming the edit.
+- Current-tree verification: Searched the Processing Log for 9-character ids (none) and ran `validate-audit-record.py --pr-number 2811` (ok, 0 failures).
+- Resolution reference: docs(pr-reviews): [#2798] remove commit ids from the PR 2811 audit log
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2811#discussion_r4529496564
+
+### F14 - Record omits the Completion Rules section
+
+- PR number: 2811
+- Source review ID: 5847136183
+- Reviewer finding ID: F14
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2811#discussion_r4528804029
+- Concern: The audit record lacked the template's `## Completion Rules` section.
+- Solution: Appended the section copied verbatim from the template.
+- Current-tree verification: Compared the section with `docs/templates/PR-REVIEW-TEMPLATE.md` using `diff`: identical.
+- Resolution reference: docs(pr-reviews): [#2798] add the Completion Rules section to the PR 2811 audit
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2811#discussion_r4529497148
+
 ## Processing Log
 
 - 2026-11-10 17:38 UTC - Review 5846498596 (Copilot, `COMMENTED`, submitted 17:38:22 UTC) raised F1; review 5846502890 (`da2ce7`, shown by GitHub as `DISMISSED`, submitted 17:38:41 UTC) raised F2 to F9 (its IDs F1 to F8). F9 repeats F1.
 - 2026-11-10 17:59 UTC - Committed the fixes as "test(primitives): [#2798] also guard against a PartialOrd-only Peer ordering" (F1), "docs(issues): [#2798] name the code state and green output in the evidence" (F3, F4; commit time 17:47:14 UTC) and "docs(issues): [#2798] bring the Peer Ord spec up to date with the decision" (F2, F5, F7, F8; 17:47:53 UTC), reworded two earlier commits for F6, and pushed all with one `--force-with-lease` update (the push printed a forced update of the branch to the head carrying "docs(issues): [#2798] bring the Peer Ord spec up to date with the decision"). Edited the PR description at 17:59:00 UTC to correct the publishability sentence and note the history rewrite.
 - 2026-11-10 17:59 UTC - Posted the replies on the nine threads (`created_at` 17:59:27 to 17:59:49 UTC); F9 got the `Superseded by F1` reply.
 - 2026-11-10 18:05 UTC - Pushed the audit record (commit "docs(pr-reviews): [#2798] record the PR 2811 review audit", commit time 18:01:54 UTC; the push printed a fast-forward update to the head carrying that audit commit; `validate-audit-record.py --pr-number 2811` printed `"status": "ok"` with 0 failures), then resolved all nine threads, each returning `isResolved: true` (the command finished at 18:04:48 UTC). A refreshed GraphQL query showed 0 unresolved threads.
+- 2026-11-10 18:22 UTC - Review 5847136183 (`da2ce7`, `APPROVED`, submitted 18:22:17 UTC) raised F10 to F14 (its IDs F9, F11, F12, F13, F14; its F10 was fixed by the round 1 audit record).
 - 2026-11-10 19:23 UTC - Correction: the entries of 17:59 UTC and 18:05 UTC quoted three PR-branch commit ids from the push output; they were rewritten in place to name the pushed states by commit subject instead (review round 2, F13). No other content of those entries changed.
+- 2026-11-10 19:27 UTC - Committed the fixes as "docs(issues): [#2798] state only the red runs that happened for the doctest" (F10; commit time 19:18:51 UTC), "docs(issues): [#2798] list the versioning ADR under Related ADRs" (F11; 19:21:30 UTC), "docs(issues): [#2798] record the retrospective rationale and the T4/T5 merge" (F12; 19:22:20 UTC), "docs(pr-reviews): [#2798] remove commit ids from the PR 2811 audit log" (F13; 19:23:25 UTC) and "docs(pr-reviews): [#2798] add the Completion Rules section to the PR 2811 audit" (F14; 19:24:06 UTC), pushed them in one fast-forward push, and posted the replies on the five threads (`created_at` 19:27:10 to 19:27:22 UTC).
 
 ## Completion Rules
 
