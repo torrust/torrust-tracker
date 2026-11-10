@@ -58,7 +58,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F13 | review-finding:pr-2800-f13 | Copilot | Minor | testing | RE_RAISE_OF:F4 | NO_ACTION | SUPERSEDED |
 | F14 | review-finding:pr-2800-f14 | Copilot | Minor | documentation | RE_RAISE_OF:F5 | NO_ACTION | SUPERSEDED |
 | F15 | review-finding:pr-2800-f15 | Human | Minor | documentation | RE_RAISE_OF:F6 | FIXED | RESOLVED |
-| F16 | review-finding:pr-2800-f16 | Human | Minor | documentation | ORIGINAL | FIXED | OPEN |
+| F16 | review-finding:pr-2800-f16 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F17 | review-finding:pr-2800-f17 | Human | Nit | maintainability | ORIGINAL | NO_ACTION | OPEN |
 
 ## Finding Details
@@ -293,6 +293,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-11-10 13:34 UTC - Committed the F15 fix as "docs(issues): [#2798] stamp start and end of each reproduction step" (commit time 13:34:15 UTC) and pushed it.
 - 2026-11-10 13:35 UTC - Posted the PR conversation response for F8 (`created_at` 13:35:42 UTC).
 - 2026-11-10 13:38 UTC - Posted the `Superseded by` replies on the threads of F11 to F14 (13:37:33 to 13:37:40 UTC), the replies on F15, F17 (13:37:43 and 13:37:45 UTC) and F16 (13:38:00 UTC).
+- 2026-11-10 13:44 UTC - Pushed the audit record (commit "docs(pr-reviews): [#2798] record the PR 2800 review audit", commit time 13:40:53 UTC; `validate-audit-record.py --pr-number 2800` printed `"status": "ok"` with 0 failures) and then resolved the F15 and F16 threads, each returning `isResolved: true`. The F17 thread stays open for the reviewer.
 
 ## Completion Rules
 
