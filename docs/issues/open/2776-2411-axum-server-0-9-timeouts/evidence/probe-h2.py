@@ -8,7 +8,7 @@ if mode == "tls":
     s = ctx.wrap_socket(s, server_hostname="localhost")
     print(f"{label}: alpn={s.selected_alpn_protocol()}")
 hdr = bytes([0x82, 0x84, 0x86, 0x01, 9]) + b"localhost"
-# use /health_check path as literal? ':path /' is fine (404 is still a response)
+# The request is `GET /` (HPACK static entries), which every listener answers, with a 404 on the trackers.
 req = b"PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n" + bytes([0,0,0,4,0,0,0,0,0]) + len(hdr).to_bytes(3,"big") + bytes([1,0x05,0,0,0,1]) + hdr
 s.sendall(req)
 t0 = time.time(); s.settimeout(25)

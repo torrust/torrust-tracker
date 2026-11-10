@@ -280,6 +280,7 @@ ghac
 ghdata
 ghtoken
 githubmerge
+goaway
 gpgsign
 gzprintf
 gzvprintf

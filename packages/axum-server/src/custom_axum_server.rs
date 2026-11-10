@@ -63,7 +63,10 @@ impl Default for Timeouts {
     }
 }
 
-/// Creates an Axum server from a TCP listener with the default timeouts.
+/// Creates an Axum server from a TCP listener with the default timeouts ([`Timeouts::default`]).
+///
+/// The name says the server has timeouts, not that the caller supplies them; use
+/// [`from_tcp_with`] to choose the values.
 ///
 /// # Errors
 ///
@@ -81,7 +84,9 @@ pub fn from_tcp_with(socket: TcpListener, timeouts: Timeouts) -> ServerResult {
     axum_server::from_tcp(socket).map(|server| add_timeouts(server, &timeouts))
 }
 
-/// Creates an Axum server from a TCP listener with TLS and the default timeouts.
+/// Creates an Axum server from a TCP listener with TLS and the default timeouts ([`Timeouts::default`]).
+///
+/// Use [`from_tcp_rustls_with`] to choose the values.
 ///
 /// # Errors
 ///

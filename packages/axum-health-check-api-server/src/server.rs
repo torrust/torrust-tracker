@@ -473,6 +473,8 @@ mod tests {
         )
         .await
         .expect("the token-aware health check API should start");
+        // Cancels the server even if an assertion below panics, so no task outlives the test.
+        let _cancel_on_drop = cancellation_token.clone().drop_guard();
         let mut silent_connection = tokio::net::TcpStream::connect(running.local_addr)
             .await
             .expect("open the silent connection");
@@ -486,7 +488,6 @@ mod tests {
             matches!(closed, Ok(Ok(0) | Err(_))),
             "the health check API should close a connection that sends nothing: {closed:?}"
         );
-        cancellation_token.cancel();
     }
 
     #[tokio::test]

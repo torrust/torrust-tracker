@@ -8,9 +8,10 @@ last-updated-utc: "2026-11-10 17:25"
 
 ## Purpose
 
-Real evidence for issue #2776. This file holds the baseline reproduction attempted while drafting
-the specification. The final recheck, and the comparisons that decide the wrapper removal, are
-added after implementation.
+Real evidence for issue #2776: the baseline reproduction attempted while drafting the
+specification, the red and green runs, the with/without-wrapper comparison that decides the wrapper
+removal, and the final like-for-like recheck. Toolchain for the sections added after
+implementation: rustc 1.99.1, cargo 1.101.0-nightly (`cargo +nightly fmt`), 2026-11-10 UTC.
 
 ## Environment and Prerequisites
 
@@ -71,20 +72,28 @@ Observations that change the specification:
 - Not run at baseline: the REST API over TLS (same code path as the HTTP tracker TLS listener,
   not separately probed), HTTP/2 clients, and the slow-handler `408` path.
 
-### Red run before the fix (T3)
+### Red and green runs (T3, T4)
 
-Automatic tests, recorded in [red-run.txt](evidence/red-run.txt): with `first_request_timeout`
-declared in `Timeouts` but not applied, the silent plaintext connection and the silent TLS
-connection (after the handshake) tests failed after the 3 s test deadline; the stalled TLS
-handshake, one-byte handshake and post-response idle tests (HTTP/1 and HTTP/2, plaintext and TLS)
-already passed with `axum-server` 0.9. The health check API test, run against the old
-`axum_server::from_tcp` call, failed after its 8 s bound (connection still open). With the fix
-(`fix(axum-server): [#2776] close idle connections with first_request_timeout`) all of them pass.
+Commands, toolchain and the raw output are in [red-run.txt](evidence/red-run.txt) and
+[green-run.txt](evidence/green-run.txt).
+
+- Red, idle-connection tests: at commit `test(axum-server): [#2776] add red idle-connection
+  regression tests` (`first_request` declared in `Timeouts` but not applied) the silent plaintext
+  and the silent TLS (after the handshake) tests fail at the 3 s test deadline; the other seven
+  pass (stalled handshake, one-byte handshake, post-response idle for HTTP/1 and HTTP/2 over
+  plaintext and TLS, and a well-behaved client). Those seven are already bounded with `axum-server`
+  0.9, so they guard against regressions rather than reproduce a defect.
+- Red, health check API: with only its constructor line reverted to `axum_server::from_tcp`, the
+  test fails after its 8 s bound.
+- Green: all four Axum packages pass on the final code (`green-run.txt`).
 
 ### V8 - Comparison with and without `TimeoutAcceptor` (T5, AC4 and AC5)
 
 Both builds contain the `first_request_timeout` fix and differ only in the wrapper on the
-plaintext HTTP tracker and REST API listeners. Probes: `baseline-probe.py` plus
+plaintext HTTP tracker and REST API listeners. "With wrapper" is the build
+`fix(axum-server): [#2776] close idle connections with first_request_timeout`; "without wrapper"
+is the working tree that became `refactor(axum-server): [#2776] remove the TimeoutAcceptor
+wrapper`. The with-wrapper run was repeated after review finding F1 (2026-11-10 UTC). Probes: `baseline-probe.py` plus
 [probe-h2.py](evidence/probe-h2.py) (HTTP/2 prior knowledge or ALPN `h2`, one request, then
 silence; the client never answers pings), run by [run-probes.sh](evidence/run-probes.sh) (the baseline tracker.toml with the ports below) on
 loopback ports 27070, 27171, 21212 and 21313 (the default ports were used by other sessions).
@@ -105,18 +114,28 @@ Raw results: [with wrapper](evidence/results-with-wrapper.txt) and
 | M4 HTTP/2 idle after response, health check       | 10.0 s       | 10.0 s          |
 | M4 HTTP/2 idle after response, REST API plain     | 10.0 s       | 10.0 s          |
 
-Conclusion: the replacement is no worse than the wrapper in any measured case, so the wrapper
-and its helper types were removed (AC5). The HTTP/2 idle bound is 10 s with and without the
-wrapper (5 s keep-alive interval plus 5 s ping reply wait); the wrapper never shortened it, so the
-"5 s" in AC4 is met for HTTP/1 and the HTTP/2 bound is unchanged from today. A client that
-answers HTTP/2 pings keeps the connection open: that is a live, responsive peer, and bounding it is
-the connection-limit work of EPIC #2411 case A1. HTTP/2 ping handling by the client is the one
-case a time-based idle timeout does not cover; recorded as a known limitation.
+Conclusion: the replacement is no worse than the wrapper in any measured case.
+
+HTTP/2 and the wrapper (review F1): the wrapper did not shorten an idle HTTP/2 connection on the
+plaintext listeners; the rerun with the wrapper still gives 10.0 s for the HTTP tracker and REST
+API. Probable cause, read from the removed code and not separately tested: `TimeoutStream::poll_read`
+consumes one `TimerSignal` per call. For `GET /` the service sends `Wait` and the empty response body
+sends `Reset` at once; the first read handles `Wait`, so the timer stays disarmed, and Hyper does not
+read the idle HTTP/2 socket again until the 5 s keep-alive ping goes unanswered and closes it after
+5 s more. For HTTP/1 Hyper reads again right after the response, handles `Reset`, and the wrapper
+closes at 5 s as measured.
+
+The HTTP/2 idle bound is therefore about 10 s (5 s ping interval plus 5 s reply wait) with and
+without the wrapper. Whether that satisfies AC4 ("no worse than today's plaintext 5 s") is for the
+maintainer to rule: the wrapper's own HTTP/2 result is not better, but the 5 s figure in AC4 is
+not met for HTTP/2. A client that answers HTTP/2 pings keeps the connection open; that is a
+responsive peer, and bounding it is the connection-limit work of EPIC #2411 case A1.
+No measurement of `develop` (the build before this change) was made for HTTP/2.
 
 ### V9 - Final like-for-like recheck (T9)
 
-Build: `refactor(axum-server): [#2776] remove the TimeoutAcceptor wrapper` (commit `167841cd3`),
-the last production change. Same probes and ports as V8, raw output in
+Build: `refactor(axum-server): [#2776] remove the TimeoutAcceptor wrapper`, the last production
+change (2026-11-10 UTC, `cargo build --bin torrust-tracker`, dev profile). Same probes and ports as V8, raw output in
 [results-final-build.txt](evidence/results-final-build.txt):
 
 ```text

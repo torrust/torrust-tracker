@@ -25,11 +25,14 @@ const CERTIFICATE: &[u8] = include_bytes!("fixtures/https-health-check-cert.pem"
 const KEY: &[u8] = include_bytes!("fixtures/https-health-check-key.pem");
 
 /// Timeouts injected into the listener under test.
-const SHORT: Duration = Duration::from_millis(300);
+const SHORT: Duration = Duration::from_millis(500);
+
+/// Tolerance for timers that start a little before the client starts measuring.
+const TIMER_SKEW: Duration = Duration::from_millis(50);
 
 /// Absolute bound: a connection the server still keeps open after this long is
 /// reported as not closed.
-const TEST_DEADLINE: Duration = Duration::from_secs(3);
+const TEST_DEADLINE: Duration = Duration::from_secs(5);
 
 const fn short_timeouts() -> Timeouts {
     Timeouts {
@@ -158,6 +161,46 @@ async fn closed_within_deadline(stream: &mut (impl AsyncRead + Unpin)) -> Option
     .map(|()| start.elapsed())
 }
 
+/// Asserts the server closed the connection, and not before the injected timeout elapsed: an
+/// immediate close (for example a protocol error) must not pass as a timeout.
+fn assert_closed_by_timeout(closed_after: Option<Duration>, what: &str) {
+    let elapsed = closed_after.unwrap_or_else(|| panic!("{what}: the connection was still open at the test deadline"));
+
+    assert!(
+        elapsed + TIMER_SKEW >= SHORT,
+        "{what}: closed after {elapsed:?}, before the {SHORT:?} timeout"
+    );
+}
+
+/// Reads HTTP/2 frames until a HEADERS frame on stream 1 (the response) arrives. The client never
+/// acknowledges the server's pings.
+async fn read_http2_response_headers(stream: &mut (impl AsyncRead + Unpin)) {
+    tokio::time::timeout(TEST_DEADLINE, async {
+        loop {
+            let mut header = [0_u8; 9];
+            stream
+                .read_exact(&mut header)
+                .await
+                .expect("the server closed before answering");
+            let length = usize::from(header[0]) << 16 | usize::from(header[1]) << 8 | usize::from(header[2]);
+            let mut payload = vec![0_u8; length];
+            stream
+                .read_exact(&mut payload)
+                .await
+                .expect("the frame payload should arrive");
+
+            let frame_type = header[3];
+            let stream_id = u32::from_be_bytes([header[5] & 0x7f, header[6], header[7], header[8]]);
+            assert_ne!(frame_type, 7, "the server answered with GOAWAY instead of a response");
+            if frame_type == 1 && stream_id == 1 {
+                return;
+            }
+        }
+    })
+    .await
+    .expect("the HTTP/2 response should arrive before the test deadline");
+}
+
 async fn read_until_contains(stream: &mut (impl AsyncRead + Unpin), needle: &[u8]) {
     let mut received = Vec::new();
     let mut buffer = [0_u8; 1024];
@@ -201,7 +244,7 @@ async fn it_should_close_a_plaintext_connection_that_sends_nothing() {
 
     let closed_after = closed_within_deadline(&mut stream).await;
 
-    assert!(closed_after.is_some(), "a silent plaintext connection should be closed");
+    assert_closed_by_timeout(closed_after, "a silent plaintext connection should be closed");
 }
 
 #[tokio::test]
@@ -211,7 +254,7 @@ async fn it_should_close_a_tls_connection_that_completes_the_handshake_and_sends
 
     let closed_after = closed_within_deadline(&mut stream).await;
 
-    assert!(closed_after.is_some(), "a silent TLS connection should be closed");
+    assert_closed_by_timeout(closed_after, "a silent TLS connection should be closed");
 }
 
 // A TLS client that never completes the handshake must be closed (AC3).
@@ -223,7 +266,7 @@ async fn it_should_close_a_tls_connection_that_never_sends_handshake_bytes() {
 
     let closed_after = closed_within_deadline(&mut tcp).await;
 
-    assert!(closed_after.is_some(), "a stalled TLS handshake should be closed");
+    assert_closed_by_timeout(closed_after, "a stalled TLS handshake should be closed");
 }
 
 #[tokio::test]
@@ -234,7 +277,7 @@ async fn it_should_close_a_tls_connection_that_sends_one_handshake_byte_and_stal
 
     let closed_after = closed_within_deadline(&mut tcp).await;
 
-    assert!(closed_after.is_some(), "a half-sent TLS handshake should be closed");
+    assert_closed_by_timeout(closed_after, "a half-sent TLS handshake should be closed");
 }
 
 // A persistent connection that is idle after a response must be closed (AC4).
@@ -248,10 +291,7 @@ async fn it_should_close_an_idle_http1_connection_after_a_response_over_plaintex
 
     let closed_after = closed_within_deadline(&mut stream).await;
 
-    assert!(
-        closed_after.is_some(),
-        "an idle HTTP/1 connection should be closed after its response"
-    );
+    assert_closed_by_timeout(closed_after, "an idle HTTP/1 connection should be closed after its response");
 }
 
 #[tokio::test]
@@ -263,9 +303,9 @@ async fn it_should_close_an_idle_http1_connection_after_a_response_over_tls() {
 
     let closed_after = closed_within_deadline(&mut stream).await;
 
-    assert!(
-        closed_after.is_some(),
-        "an idle HTTP/1 TLS connection should be closed after its response"
+    assert_closed_by_timeout(
+        closed_after,
+        "an idle HTTP/1 TLS connection should be closed after its response",
     );
 }
 
@@ -277,14 +317,12 @@ async fn it_should_close_an_idle_http2_connection_after_a_response_over_plaintex
         .write_all(&http2_request())
         .await
         .expect("the request should be written");
+    read_http2_response_headers(&mut stream).await;
 
     // The client never acknowledges the server's keep-alive pings.
     let closed_after = closed_within_deadline(&mut stream).await;
 
-    assert!(
-        closed_after.is_some(),
-        "an idle HTTP/2 connection should be closed after its response"
-    );
+    assert_closed_by_timeout(closed_after, "an idle HTTP/2 connection should be closed after its response");
 }
 
 #[tokio::test]
@@ -295,12 +333,13 @@ async fn it_should_close_an_idle_http2_connection_after_a_response_over_tls() {
         .write_all(&http2_request())
         .await
         .expect("the request should be written");
+    read_http2_response_headers(&mut stream).await;
 
     let closed_after = closed_within_deadline(&mut stream).await;
 
-    assert!(
-        closed_after.is_some(),
-        "an idle HTTP/2 TLS connection should be closed after its response"
+    assert_closed_by_timeout(
+        closed_after,
+        "an idle HTTP/2 TLS connection should be closed after its response",
     );
 }
 
