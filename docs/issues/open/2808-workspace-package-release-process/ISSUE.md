@@ -9,7 +9,7 @@ github-issue: 2808
 spec-path: docs/issues/open/2808-workspace-package-release-process/ISSUE.md
 branch: "2808-workspace-package-release-process-spec"
 related-pr: null
-last-updated-utc: "2026-11-10 18:04"
+last-updated-utc: "2026-11-10 19:18"
 semantic-links:
   skill-links:
     - create-issue
@@ -211,6 +211,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-11-10 16:58 UTC - Claude Code (Claude Opus 5.5) - Addressed the Copilot review of PR 2809 (audit F6, F7): T4 also makes `release-new-version` steps 2 and 9 bump only `torrust-tracker`; T6 and M2 now cover the checklist that `torrust-server-lib`'s release doc still duplicates, through the follow-up issue text instead of an edit in that repository.
 - 2026-11-10 17:23 UTC - Claude Code (Claude Opus 5.5) - Correction to the 16:49 entry (audit F8): the log times were not uniformly "one hour or more ahead of UTC". Before the F4 fix the first entry read 12:00 for 16:07 (4 h 07 min behind); the next three read 16:30, 16:45 and 17:00 for 16:10, 16:15 and 16:17 (20, 30 and 43 min ahead); only the last read 17:30 for 16:24 (66 min ahead).
 - 2026-11-10 18:04 UTC - Claude Code (Claude Sonnet 5.5) - Addressed the Copilot review of 18:02 UTC on PR 2809 (audit F20): the torrust-server-lib PR references in Background are fully qualified. `related-pr` stays `null` (it names the implementation PR, as in the sibling spec-only PRs).
+- 2026-11-10 19:18 UTC - Claude Code (Claude Sonnet 5.5) - Correction to the 18:04 entry (audit F27): it said `related-pr` "names the implementation PR". The tree does not define the field that way: its schema calls it "the nullable positive related pull request number", the specs introduced by the spec-only PRs for #2798 and #2801 keep it `null`, and the specs of #2393 to #2396 set it to their spec-only PR #2397. This spec keeps it `null` on the first precedent.
 
 ## Acceptance Criteria
 
