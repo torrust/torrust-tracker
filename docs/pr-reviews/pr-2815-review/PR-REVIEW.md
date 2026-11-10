@@ -334,6 +334,7 @@ Replies cite branch commits by id (finding F11). The ids map to these subjects:
 - 2026-11-10 19:40 UTC - The maintainer's first-round threads F1 to F9 were fixed in `3a97a8b84` (commit time); their threads were answered and resolved after it, before this record existed. The first resolve loop also closed the nine threads before they were read; they were reopened, answered and resolved again.
 - 2026-11-10 20:01 UTC - The maintainer's second review (5848499555) arrived with F10 to F16 (cursor of the poller result).
 - 2026-11-10 20:08 UTC - Fixes for F11 to F16 committed one per finding, this record added, and the replies posted (reply creation times).
+- 2026-11-10 20:09 UTC - Correction to the 20:08 entry: this record was committed at 20:09 UTC (commit time of the commit `docs(pr-reviews): add the #2815 review audit record`), not at 20:08; the fixes and the replies were before it. The validator ran with exit 0 after that commit.
 
 Append entries only. If an entry was rewritten in place, restore the prior entries, then append a
 correction that names the rewritten content; do not rewrite the record again.
