@@ -215,6 +215,7 @@ Sign every commit with GPG.
 - [ ] Automatic verification completed (`linter all`, relevant tests, pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in `manual-verification-evidence.md`
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
+- [ ] Evidence-based implementation completion review recorded: an issue-local `implementation-retrospective.md` for material discoveries, or a progress-log entry that says why none was needed
 - [ ] Independent reviewer reports recorded in `agent-review-reports.md`
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
@@ -286,8 +287,11 @@ None.
 
 ## Implementation Completion Review
 
-- Retrospective: decide after implementation; if none is needed, add a progress-log
-  entry saying why.
+- Before closing #2801, review what the implementation discovered. If it found
+  anything material, create `implementation-retrospective.md` from
+  `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this directory; otherwise add
+  a progress-log entry saying why none was needed. The issue is not closed until
+  one of the two exists.
 - The independent reviewer records its result in `agent-review-reports.md` using
   `docs/templates/AGENT-REVIEW-REPORTS.md`.
 
