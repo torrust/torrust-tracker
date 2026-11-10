@@ -19,18 +19,13 @@ workspace = true
 [dependencies]
 axum-server = { version = "0.9", features = [ "tls-rustls-no-provider" ] }
 camino = { version = "1", features = [ "serde", "serde1" ] }
-futures-util = "0"
-http-body = "1"
-hyper = "1"
 hyper-util = { version = "0", features = [ "http1", "http2", "tokio" ] }
-pin-project-lite = "0"
 thiserror = "2"
 tokio = { version = "1", features = [ "macros", "net", "rt-multi-thread", "signal", "sync" ] }
 tokio-util = { version = "0.7", features = [ "rt" ] }
 torrust-server-lib = "0.5.0"
 torrust-tracker-configuration = { version = "3.0.0", path = "../configuration" }
 torrust-located-error = "3.0.0"
-tower = { version = "0", features = [ "timeout" ] }
 tracing = "0"
 
 [dev-dependencies]

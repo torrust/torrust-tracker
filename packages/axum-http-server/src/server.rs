@@ -21,7 +21,7 @@ use torrust_server_lib::registar::{
     reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
 )]
 use torrust_server_lib::signals::{Halted, Started};
-use torrust_tracker_axum_server::custom_axum_server::{self, TimeoutAcceptor};
+use torrust_tracker_axum_server::custom_axum_server;
 #[allow(
     deprecated,
     reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
@@ -152,7 +152,6 @@ impl Launcher {
             Ok(Box::pin(async move {
                 if let Err(error) = server
                     .handle(handle)
-                    .acceptor(TimeoutAcceptor)
                     .serve(app.into_make_service_with_connect_info::<SocketAddr>())
                     .await
                 {

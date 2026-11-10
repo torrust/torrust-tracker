@@ -44,7 +44,7 @@ use torrust_server_lib::registar::{ServiceHealthCheckJob, ServiceRegistration, S
     reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
 )]
 use torrust_server_lib::signals::{Halted, Started};
-use torrust_tracker_axum_server::custom_axum_server::{self, TimeoutAcceptor};
+use torrust_tracker_axum_server::custom_axum_server;
 #[allow(
     deprecated,
     reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
@@ -373,7 +373,6 @@ fn start_token_aware_runtime(
         Box::pin(async move {
             if let Err(error) = server
                 .handle(server_handle)
-                .acceptor(TimeoutAcceptor)
                 .serve(router.into_make_service_with_connect_info::<SocketAddr>())
                 .await
             {
@@ -564,9 +563,6 @@ impl Launcher {
             Box::pin(async move {
                 if let Err(error) = server
                     .handle(handle)
-                    // The TimeoutAcceptor is commented because TLS does not work with it.
-                    // See: https://github.com/torrust/torrust-index/issues/204#issuecomment-2115529214
-                    //.acceptor(TimeoutAcceptor)
                     .serve(router.into_make_service_with_connect_info::<std::net::SocketAddr>())
                     .await
                 {
@@ -578,7 +574,6 @@ impl Launcher {
             Box::pin(async move {
                 if let Err(error) = server
                     .handle(handle)
-                    .acceptor(TimeoutAcceptor)
                     .serve(router.into_make_service_with_connect_info::<std::net::SocketAddr>())
                     .await
                 {

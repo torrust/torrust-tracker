@@ -5073,11 +5073,7 @@ dependencies = [
  "axum",
  "axum-server",
  "camino",
- "futures-util",
- "http-body",
- "hyper",
  "hyper-util",
- "pin-project-lite",
  "rustls",
  "thiserror 2.0.21",
  "tokio",
@@ -5086,7 +5082,6 @@ dependencies = [
  "torrust-located-error",
  "torrust-server-lib",
  "torrust-tracker-configuration",
- "tower",
  "tracing",
 ]
 
