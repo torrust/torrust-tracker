@@ -9,7 +9,7 @@ github-issue: 2801
 spec-path: docs/issues/open/2801-1488-si-19-remove-legacy-shutdown-api/ISSUE.md
 branch: "2801-remove-legacy-shutdown-api"
 related-pr: 2807
-last-updated-utc: "2026-11-10 16:54"
+last-updated-utc: "2026-11-10 16:57"
 semantic-links:
   skill-links:
     - create-issue
@@ -77,8 +77,8 @@ evidence goes in this issue's `manual-verification-evidence.md` (SI-18's gate ev
       torrust/torrust-server-lib#5, PR torrust/torrust-server-lib/pull/6 (merged
       into `main` at `2dd04f4`), release notes in its `CHANGELOG.md`; crates.io
       reports `max_version` 0.6.0 (checked 2026-11-10). This is an external
-      dependency this task waits for; the maintainer published it, which is the
-      publication SI-18 assigned to SI-19.
+      dependency this task waits for; its publication is the step SI-18 assigned to
+      SI-19.
 
 ## Scope
 
@@ -122,7 +122,7 @@ evidence goes in this issue's `manual-verification-evidence.md` (SI-18's gate ev
   maintainer agreed on 2026-11-10 to split it into its own follow-up issue.
 - The `torrust-server-lib` 0.6.0 removal and its publication: SI-18 assigned the
   publication to SI-19, but it was done in the `torrust-server-lib` repository
-  (torrust/torrust-server-lib#5, PR 6) and published by the maintainer before
+  (torrust/torrust-server-lib#5, PR 6) and published before
   implementation, so it is an external dependency this task only waits for.
 - Changing cancellation-tree behavior, component child ownership, timeout
   policy, exit-code policy, or readiness behavior.
@@ -239,6 +239,7 @@ Sign every commit with GPG.
 - 2026-11-10 15:47 UTC - AI agent (Claude Sonnet 5.5) - Implemented T2 to T6 on branch `2801-remove-legacy-shutdown-api` after the spec PR 2803 merged: removed the legacy API from `udp-server` and the three axum servers and `axum-server`, removed `HaltSignal` and `NestedServerTask`, bumped `torrust-server-lib` to 0.6.0, and updated the migration guide. `Started` is no longer used or tested inside this workspace; it stays available in `torrust-server-lib` 0.6.0. The public `Error::Stop`, `StartupNotification` and `StartupNotificationDropped` variants of the HTTP and REST servers are now unused but were not deprecated, so they stay (candidate follow-up). Evidence in `manual-verification-evidence.md`.
 - 2026-11-10 16:18 UTC - AI agent (Claude Sonnet 5.5) - Addressed the first review of PR 2807 (F1 to F11): wording for `Started`, the T5 note, the evidence (raw search output, the script, the approval link), the status and frontmatter, one removed-API line in a live draft, the token-aware owner test, and the docs left by the removal. The audit is `docs/pr-reviews/pr-2807-review/PR-REVIEW.md`.
 - 2026-11-10 16:54 UTC - AI agent (Claude Sonnet 5.5) - Addressed the second review of PR 2807 (F12 to F16): the live-spec search pasted as run, the ten signal invocations and the tracker configuration recorded, the criterion, row and evidence item reworded to match the five live-spec matches, and `branch` pointed at the implementation branch.
+- 2026-11-10 16:57 UTC - AI agent (Claude Sonnet 5.5) - Removed the statements that the maintainer published `torrust-server-lib` 0.6.0 from the gate item, the scope note and the evidence, because the evidence only shows that 0.6.0 is published on crates.io.
 
 ## Design and Ownership Review
 

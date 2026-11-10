@@ -21,8 +21,7 @@
 - [x] #1588 (closed) final task inventory.
 - [x] The maintainer's approval ending the 0.5.x window (given in chat on 2026-11-10, with no issue or PR comment of
       its own) and the `torrust-server-lib` 0.6.0 release notes: torrust/torrust-server-lib#5, PR
-      torrust/torrust-server-lib/pull/6 (`CHANGELOG.md`). The maintainer then merged that PR and published 0.6.0, and
-      merged the spec PR torrust/torrust-tracker#2803, whose start gate records the approval.
+      torrust/torrust-server-lib/pull/6 (`CHANGELOG.md`). The maintainer merged the spec PR torrust/torrust-tracker#2803, whose start gate records the approval.
 - [x] Q4/Q5 decisions and the deployment policy: `docs/features/shutdown-process/questions.md` and
       `docs/containers.md#stopping-the-tracker`.
 
