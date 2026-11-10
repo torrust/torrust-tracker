@@ -1,6 +1,6 @@
 # Verification Evidence — Legacy Shutdown API Removal
 
-> **Status**: Not started — do not populate implementation evidence until every
+> **Status**: Not started - do not populate implementation evidence until every
 > SI-19 start-gate condition and the declared external compatibility window are met.
 
 ## Environment

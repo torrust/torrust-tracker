@@ -2,12 +2,12 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: draft
+status: planned
 priority: p1
 epic: 1488
-github-issue: null
-spec-path: docs/issues/drafts/1488-si-19-remove-legacy-shutdown-api/ISSUE.md
-branch: "{issue-number}-remove-legacy-shutdown-api"
+github-issue: 2801
+spec-path: docs/issues/open/2801-1488-si-19-remove-legacy-shutdown-api/ISSUE.md
+branch: "2801-remove-legacy-shutdown-api-spec"
 related-pr: null
 last-updated-utc: "2026-11-10 14:00"
 semantic-links:
@@ -31,7 +31,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Draft SI-19 — Remove Legacy Shutdown API and Library OS Signals
+# Issue #2801 - Remove Legacy Shutdown API and Library OS Signals
 
 > **EPIC position**: Roadmap step 19. Breaking removal after all declared
 > compatibility, migration, deprecation, and release gates have been satisfied.
@@ -48,7 +48,7 @@ The separate `Started` oneshot startup-notification API remains unchanged.
 ## Start Gate
 
 Evidence checked on 2026-11-10 against `torrust/develop` at `1df1ecdf0`. The full
-evidence goes in this issue's `verification.md` (SI-18's gate evidence is its
+evidence goes in this issue's `manual-verification-evidence.md` (SI-18's gate evidence is its
 `manual-verification-evidence.md`).
 
 - [x] SI-18 (#2751) is done (PRs #2752, #2793, close-out #2797). `torrust-server-lib`
@@ -160,6 +160,60 @@ evidence goes in this issue's `verification.md` (SI-18's gate evidence is its
 - #1588 final inventory evidence is complete (closed).
 - Q4 is resolved. Q5's process-wrapper verification rule is required for final
   end-to-end removal verification.
+
+## Architectural Decisions
+
+- Related ADRs: `docs/adrs/20260902074438_adopt_supervised_cancellation_tree_for_shutdown.md`
+  (the token lifecycle that replaces `Halted`) and
+  `docs/adrs/20260629000000_adopt_independent_package_versioning.md`.
+- ADRs to create: none known.
+
+## Implementation Plan
+
+Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
+
+| ID  | Status | Task | Notes / Expected Output |
+| --- | ------ | ---- | ----------------------- |
+| T1  | TODO | Wait for `torrust-server-lib` 0.6.0 (torrust/torrust-server-lib#5, PR 6) to be merged and published by the maintainer. Develop against a temporary `[patch.crates-io]` override only. | The override is removed before the implementation PR is ready; `cargo check` resolves 0.6.0 from crates.io. |
+| T2  | TODO | `udp-server`: remove `Server<Stopped>::start`, legacy `Running`, `Server<Running>::stop`, `Launcher::run_with_graceful_shutdown`, `Spawner::spawn_launcher`, `LaunchRequest`, `legacy_stop_requested`, `halt_requested`, and the `global_shutdown_signal` use. | Legacy-only tests removed; token lifecycle tests stay. |
+| T3  | TODO | `axum-http-server`, `axum-rest-api-server`, `axum-health-check-api-server`, `axum-server`: remove the legacy `start`/`stop`, `halt_task`, `rx_halt`, `RunningServer` and `graceful_shutdown`. | Token-aware paths keep their child ownership and join behavior. |
+| T4 | TODO | Root: remove `HaltSignal` and `NestedServerTask` and their tests; bump `torrust-server-lib` to 0.6.0 in every `Cargo.toml`; drop every `#[allow(deprecated)]` added by SI-18 and the compat tests that exist only for removed symbols. | `cargo check --workspace --all-targets` warning-free. |
+| T5 | TODO | Update docs: the migration guide `docs/features/shutdown-process/legacy-api-migration.md` (removed, with history), the shutdown-process docs, and the EPIC row. | Workspace search finds legacy symbols only in archived history. |
+| T6 | TODO | Verify and record evidence: searches, deterministic tests, SIGINT/SIGTERM for the tracker and both standalone examples, container check. | `manual-verification-evidence.md`. |
+
+## Commit Points
+
+| Task | Coherent change set | Commit policy |
+| ---- | ------------------- | ------------- |
+| T1 | Dependency bump to 0.6.0 | Commit after focused validation. |
+| T2 | `udp-server` removal | Commit after focused validation and required review. |
+| T3 | Axum packages removal | Commit after focused validation and required review. |
+| T4 | Root types, allowances and compat tests | Commit after focused validation and required review. |
+| T5 | Documentation | Commit after the last production change. |
+| T6 | Verification evidence | Commit after the last production change. |
+
+Sign every commit with GPG.
+
+## Progress Tracking
+
+### Workflow Checkpoints
+
+- [x] Folder-style spec drafted in `docs/issues/drafts/`, moved to `docs/issues/open/`
+- [x] Spec reviewed and approved by the maintainer (issue creation and spec-only PR approved in chat, 2026-11-10)
+- [x] GitHub issue created and issue number added to this spec (#2801)
+- [ ] Spec-only PR merged into `develop` before implementation
+- [ ] `torrust-server-lib` 0.6.0 published
+- [ ] Implementation completed
+- [ ] Automatic verification completed (`linter all`, relevant tests, pre-push checks)
+- [ ] Manual verification scenarios executed and recorded in `manual-verification-evidence.md`
+- [ ] Acceptance criteria reviewed after implementation and updated with evidence
+- [ ] Independent reviewer reports recorded in `agent-review-reports.md`
+- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+
+### Progress Log
+
+- 2026-11-10 14:00 UTC - AI agent (Claude Sonnet 5.5) - Refreshed the draft after SI-18: recorded the start-gate evidence and the maintainer's approval (chat, 2026-11-10) ending the `torrust-server-lib` 0.5.x window with 0.6.0 as the removal release and 4.0.0 as the root target; split the supervisor consolidation into a follow-up; companion removal in torrust/torrust-server-lib#5 (PR 6).
+- 2026-11-10 UTC - AI agent (Claude Sonnet 5.5) - Created issue #2801 and moved the spec to `docs/issues/open/`.
 
 ## Rollback
 
