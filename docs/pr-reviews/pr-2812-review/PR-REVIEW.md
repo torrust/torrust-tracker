@@ -59,6 +59,8 @@ Three rounds: da2ce7 review 5846465906 (F1 to F8), da2ce7 review 5846866430 (F9 
 | F12 | review-finding:pr-2812-f12 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F13 | review-finding:pr-2812-f13 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F14 | review-finding:pr-2812-f14 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F15 | review-finding:pr-2812-f15 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F16 | review-finding:pr-2812-f16 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -244,6 +246,32 @@ Three rounds: da2ce7 review 5846465906 (F1 to F8), da2ce7 review 5846866430 (F9 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2812#discussion_r4528669734
 
+### F15 - The Findings introduction names both review heads by branch commit id
+
+- PR number: 2812
+- Source review ID: 5847274601
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2812#discussion_r4528912432
+- Concern: The introduction cited two abbreviated branch commit ids, which a rebase would invalidate.
+- Solution: Named the rounds by review ID only.
+- Current-tree verification: Ran the commit-id check from `open-pull-request`: the only id left is the one quoted from the F1 reply, mapped to its subject.
+- Resolution reference: docs(pr-reviews): [#2576] drop branch commit ids from the audit introduction and reword F1
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2812#discussion_r4529059134
+
+### F16 - The F1 entry says the cited commit was later pushed
+
+- PR number: 2812
+- Source review ID: 5847274601
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2812#discussion_r4528912441
+- Concern: "Later pushed" suggested the F1 reply had the same timing fault as F2 to F8, which the forge data does not show.
+- Solution: Reworded: the commit was the PR head when the reply was posted.
+- Current-tree verification: Read the F1 entry and the Processing Log entry for 17:39 UTC.
+- Resolution reference: docs(pr-reviews): [#2576] drop branch commit ids from the audit introduction and reword F1
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2812#discussion_r4529059492
+
 ## Processing Log
 
 - 2026-11-10 17:35 UTC - Round 1 review of da2ce7 received (review 5846465906, eight findings F1 to F8).
@@ -254,6 +282,8 @@ Three rounds: da2ce7 review 5846465906 (F1 to F8), da2ce7 review 5846866430 (F9 
 - 2026-11-10 18:05 UTC - F9, F12, F13 and F14 fixed in commit `docs(issues): [#2576] fix the keyword rule, M1 and M3 pointers, stamps and baseline wording` (created 18:05:41 UTC) and pushed.
 - 2026-11-10 18:09 UTC - F9, F12, F13 and F14 replies posted (18:09:43 to 18:09:49 UTC), after the push.
 - 2026-11-10 18:13 UTC - Audit commit `docs(pr-reviews): [#2576] add the review audit record for PR 2812` (created 18:10:49 UTC) pushed; F10 and F11 replies posted at 18:13:18 and 18:13:20 UTC, after the push.
+- 2026-11-10 18:32 UTC - Round 3 review of da2ce7 received (review 5847274601: approval at the then head, with F15 and F16).
+- 2026-11-10 18:46 UTC - F15 and F16 fixed in commit `docs(pr-reviews): [#2576] drop branch commit ids from the audit introduction and reword F1` (created 18:35:23 UTC) and pushed (the first push attempt failed when GitHub closed the SSH connection during the pre-push hook); replies posted at 18:46:33 and 18:46:35 UTC, after the push.
 
 ## Completion Rules
 
