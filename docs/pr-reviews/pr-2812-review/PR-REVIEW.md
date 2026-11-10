@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Two rounds: da2ce7 review 5846465906 (F1 to F8, head `0980ffb`) and da2ce7 review 5846866430 (F9 to F14, head `1b080de`; F10 and F11 are added after the audit commit). Copilot review 5846485416 reported no open issues and has no row.
+Two rounds: da2ce7 review 5846465906 (F1 to F8, head `0980ffb`) and da2ce7 review 5846866430 (F9 to F14, head `1b080de`; F10 and F11 were added in the commit after the audit record). Copilot review 5846485416 reported no open issues and has no row.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -54,6 +54,8 @@ Two rounds: da2ce7 review 5846465906 (F1 to F8, head `0980ffb`) and da2ce7 revie
 | F7 | review-finding:pr-2812-f7 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F8 | review-finding:pr-2812-f8 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F9 | review-finding:pr-2812-f9 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F10 | review-finding:pr-2812-f10 | Human | Minor | other | ORIGINAL | FIXED | RESOLVED |
+| F11 | review-finding:pr-2812-f11 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F12 | review-finding:pr-2812-f12 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F13 | review-finding:pr-2812-f13 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F14 | review-finding:pr-2812-f14 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
@@ -177,6 +179,32 @@ Two rounds: da2ce7 review 5846465906 (F1 to F8, head `0980ffb`) and da2ce7 revie
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2812#discussion_r4528668680
 
+### F10 - F2 to F8 replies posted before the commit they cite
+
+- PR number: 2812
+- Source review ID: 5846866430
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2812#discussion_r4528602662
+- Concern: The seven F2 to F8 replies were posted 17:44:10 to 17:44:21 UTC, before the commit they cite was created (17:45:21 UTC), and the F1 reply cites a branch commit id.
+- Solution: Replies cannot be edited, so the Processing Log records the timing as a correction and the F1 detail entry maps the cited commit id `cb8b8f5` to its subject. Process change: reply only after the commit is pushed.
+- Current-tree verification: Compared the reply `created_at` times from the GitHub API with `git log --format=%cI`; the validator exits 0.
+- Resolution reference: docs(pr-reviews): [#2576] add the review audit record for PR 2812
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2812#discussion_r4528708383
+
+### F11 - No review audit record on the branch
+
+- PR number: 2812
+- Source review ID: 5846866430
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2812#discussion_r4528602667
+- Concern: The threads were answered and resolved without the tracked audit record that `process-pr-review` requires.
+- Solution: Added `docs/pr-reviews/pr-2812-review/PR-REVIEW.md` with one row and one detail entry per finding.
+- Current-tree verification: `python3 .github/skills/dev/pr-reviews/process-pr-review/scripts/validate-audit-record.py --pr-number 2812` exits 0.
+- Resolution reference: docs(pr-reviews): [#2576] add the review audit record for PR 2812
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2812#discussion_r4528708746
+
 ### F12 - last-updated-utc stamps postdate their commit; log entries lack times
 
 - PR number: 2812
@@ -225,6 +253,7 @@ Two rounds: da2ce7 review 5846465906 (F1 to F8, head `0980ffb`) and da2ce7 revie
 - 2026-11-10 18:03 UTC - Round 2 review of da2ce7 received (review 5846866430, six findings F9 to F14).
 - 2026-11-10 18:05 UTC - F9, F12, F13 and F14 fixed in commit `docs(issues): [#2576] fix the keyword rule, M1 and M3 pointers, stamps and baseline wording` (created 18:05:41 UTC) and pushed.
 - 2026-11-10 18:09 UTC - F9, F12, F13 and F14 replies posted (18:09:43 to 18:09:49 UTC), after the push.
+- 2026-11-10 18:13 UTC - Audit commit `docs(pr-reviews): [#2576] add the review audit record for PR 2812` (created 18:10:49 UTC) pushed; F10 and F11 replies posted at 18:13:18 and 18:13:20 UTC, after the push.
 
 ## Completion Rules
 
