@@ -9,7 +9,7 @@ github-issue: 2798
 spec-path: docs/issues/open/2798-peer-ord-inconsistent-with-eq/ISSUE.md
 branch: "2798-peer-ord-inconsistent-with-eq-spec"
 related-pr: null
-last-updated-utc: "2026-11-10 13:34"
+last-updated-utc: "2026-11-10 15:50"
 semantic-links:
   skill-links:
     - create-issue
@@ -149,6 +149,39 @@ Hash` over all fields, consistent with `Eq`.
   (remove `Ord`) becomes attractive for the in-repo code, with its breaking-change cost for the
   published crate, and any id-only comparison becomes an explicit `peer_id` comparison.
 
+### T1 findings (investigation done, awaiting the maintainer's decision)
+
+**History.** The old crate-local `AnnounceEvent` wrapper derived `PartialOrd, Ord`
+(`git show 00af70f25^:packages/primitives/src/announce_event.rs`). The replacement,
+`aquatic_udp_protocol::AnnounceEvent`, has no `Ord`, so the all-field derive on `Peer` stopped
+compiling in `00af70f25`. The commit message is only "dev: remove announce event wrapper" and
+names no reason, so this is an inference from the diff, not a documented intent. The `peer_id`-only
+`Ord` is the smallest code that restores `Ord` and fixes the build; nothing in the commit says
+that id-only ordering was wanted. The ordering was added and replaced without any call site that
+needs it (see below), which fits an accident of the dependency swap rather than a design.
+
+**Call sites** (searched `packages/`, `src/`, `tests/` for `==`, `!=`, `assert_eq!`/`assert_ne!`,
+`cmp`, `sort`, set and map keys, `Hash`; classification by reading the matches):
+
+| Where                                                                                                                                | Kind       | Comparison                                                       | Class                               |
+| ------------------------------------------------------------------------------------------------------------------------------------ | ---------- | ---------------------------------------------------------------- | ----------------------------------- |
+| `Coordinator` (`swarm-coordination-registry`), `peers: BTreeMap<SocketAddr, Arc<PeerAnnouncement>>`                                  | production | filters by address (`get_address(..) != *peer_addr`)             | key is the address, no `Peer` order |
+| `PeerList`, `Torrent` (`torrent-repository-benchmarking`, `publish = false`) derive `Ord` over `BTreeMap<PeerId, Arc<Peer>>`         | production | derived `Ord` inherited from `Peer`'s `Ord`; nothing orders them | unused                              |
+| `Event` enums (`swarm-coordination-registry`, `http-core`, `udp-core`) derive `PartialEq, Eq` over `PeerAnnouncement`                | production | `==` only through `mockall::predicate::eq` in tests              | whole-peer, test-only use           |
+| `assert_eq!`/`assert_ne!`/`contains` on `Peer`, `Arc<Peer>`, `Vec<Peer>` (about 18 files, e.g. `announce_handler.rs`, `registry.rs`) | test       | `Eq` on the whole peer                                           | needs whole-peer equality           |
+| `.cmp()`, `sort`, `BTreeSet<Peer>`, `HashSet<Peer>`, `Hash` on `Peer`                                                                | none       | none found outside `peer.rs` itself                              | unused                              |
+
+Every `assert_eq!` on a peer sits after the first `#[cfg(test)]` line of its file, so all whole-peer
+equality in `assert_eq!` is test code. No production code orders or hashes a `Peer`.
+
+**Conclusion.** The maintainer's hypothesis holds: whole-peer equality is used by tests and by the
+test-only `Event` equality, and the id-only `Ord` is used by nothing. Production does not need any
+ordering of `Peer`. Option A (remove `Ord` and `PartialOrd` from `Peer`) therefore needs no change
+to in-repo call sites; its cost is the breaking change for external users of the published crate
+(none known, not verified). Where only the id is meant, code already compares `peer_id` explicitly.
+Option C remains the non-breaking alternative. The maintainer decides between A and C (T4 to T6
+wait for that decision).
+
 ## Scope
 
 ### In Scope
@@ -214,7 +247,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task                                                                                                                                    | Notes / Expected Output                                                                                                                                                                                                                                                                                                |
 | --- | ------ | --------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Investigate history and intent: why `Eq` compares the whole `Peer` and `Ord` only `peer_id`, and which call sites need which comparison | Findings recorded in this spec (section "Intent and call-site classification"); maintainer reviews them before choosing the fix                                                                                                                                                                                        |
+| T1  | DONE   | Investigate history and intent: why `Eq` compares the whole `Peer` and `Ord` only `peer_id`, and which call sites need which comparison | Findings recorded in this spec (section "Intent and call-site classification"); maintainer reviews them before choosing the fix                                                                                                                                                                                        |
 | T2  | DONE   | Analyse defect and audit usages                                                                                                         | Section "Audit of usages"                                                                                                                                                                                                                                                                                              |
 | T3  | DONE   | Reproduce with a temporary test                                                                                                         | `manual-verification-evidence.md` V1 (reproduced)                                                                                                                                                                                                                                                                      |
 | T4  | TODO   | Add maintained regression tests in `peer.rs`                                                                                            | Red run recorded before the fix. Use the `write-unit-test` skill; one smallest behavior-focused increment at a time; after each passing increment, record a prose-first Arrange-Act-Assert design review in `manual-verification-evidence.md`; then stop for maintainer review before final verification, commit or PR |
@@ -250,6 +283,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ### Progress Log
 
+- 2026-11-10 15:50 UTC - Claude Code (Claude Sonnet 5.5) - Completed T1: recorded the history of the `Ord` change, the call-site table and the conclusion that production needs no `Peer` ordering; waiting for the maintainer to choose the option - `ISSUE.md`
 - 2026-11-10 13:34 UTC - Claude Code (Claude Sonnet 5.5) - Re-ran the V1 reproduction with a start and an end stamp for each of its three steps (review round 2 of PR 2800) - `manual-verification-evidence.md` V1
 - 2026-11-10 13:09 UTC - Claude Code (Claude Sonnet 5.5) - Addressed review round 1 of PR 2800 (findings F1 to F10): corrected T1 history and the production swarm key, stated the hand-written variant's projection, restored template rows and the test-development loop, rebuilt the evidence file from its template - `ISSUE.md`, `manual-verification-evidence.md`
 - 2026-11-10 12:34 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the spec; created GitHub issue 2798; moved spec to `docs/issues/open/` for a spec-only PR - `ISSUE.md`
