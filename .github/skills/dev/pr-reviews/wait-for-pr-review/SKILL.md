@@ -87,7 +87,7 @@ before processing it.
 
 `head_sha` is read after the reviews and comments in the same result, so it is at least as new as
 any commit that feedback is about; a push made after that read makes it newer than the feedback, so
-`head_moved` can be a false alarm, never a miss. Each poll costs one more request for this.
+`head_moved` can be a false alarm, never a miss.
 
 `cursor` is the GitHub time of the item the result reports. `--since <cursor>` counts only items
 created strictly after it, so the reported item and everything before it are skipped. An item created

@@ -108,7 +108,8 @@ Recommendation: option 1. It is the smallest change, covers every kind of feedba
 ### Decision
 
 2026-11-10, maintainer (josecelano), asked in the implementation session: **option 1**, as recommended. The head
-and state of a result are read after the three feedback calls.
+and state of a result are read after the three feedback calls. The implementation moves the one pull-request read
+to the end of the snapshot instead of adding a second read, so there is no extra request per snapshot.
 
 ## Bug-Fix Process
 
