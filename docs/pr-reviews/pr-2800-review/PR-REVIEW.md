@@ -294,6 +294,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-11-10 13:35 UTC - Posted the PR conversation response for F8 (`created_at` 13:35:42 UTC).
 - 2026-11-10 13:38 UTC - Posted the `Superseded by` replies on the threads of F11 to F14 (13:37:33 to 13:37:40 UTC), the replies on F15, F17 (13:37:43 and 13:37:45 UTC) and F16 (13:38:00 UTC).
 - 2026-11-10 13:44 UTC - Pushed the audit record (commit "docs(pr-reviews): [#2798] record the PR 2800 review audit", commit time 13:40:53 UTC; `validate-audit-record.py --pr-number 2800` printed `"status": "ok"` with 0 failures) and then resolved the F15 and F16 threads, each returning `isResolved: true`. The F17 thread stays open for the reviewer.
+- 2026-11-10 14:08 UTC - Correction to the first entry (13:07 UTC), which also named review 5842388394 although that review was submitted at 13:12:14 UTC, after the commit recorded in the second entry (13:10:38 UTC): review 5842388394 (Copilot) was submitted at 13:12 UTC with the four comments that became F11 to F14. The first entry is not rewritten.
 
 ## Completion Rules
 
