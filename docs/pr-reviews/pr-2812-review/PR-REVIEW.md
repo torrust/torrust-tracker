@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Two rounds: da2ce7 review 5846465906 (F1 to F8, head `0980ffb`) and da2ce7 review 5846866430 (F9 to F14, head `1b080de`; F10 and F11 were added in the commit after the audit record). Copilot review 5846485416 reported no open issues and has no row.
+Three rounds: da2ce7 review 5846465906 (F1 to F8), da2ce7 review 5846866430 (F9 to F14) and da2ce7 review 5847274601 (approval with F15 and F16; those two rows are added in the commit after their replies). Copilot review 5846485416 reported no open issues and has no row.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -70,7 +70,7 @@ Two rounds: da2ce7 review 5846465906 (F1 to F8, head `0980ffb`) and da2ce7 revie
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2812#discussion_r4528296861
 - Concern: The metadata rule said no keyword repeats a word of the crate name, yet the approved keyword table did.
 - Solution: The maintainer had approved the table, so the rule was amended and the approved table recorded in the spec.
-- Current-tree verification: Compared `cargo metadata` keywords with the spec table and the rule text at the fixing commit. Reply text cites the branch head by id (`cb8b8f5`, a commit that was later pushed); its subject is the Resolution reference.
+- Current-tree verification: Compared `cargo metadata` keywords with the spec table and the rule text at the fixing commit. Reply text cites the branch head by id (`cb8b8f5`), which was the PR head when the reply was posted; its subject is the Resolution reference.
 - Resolution reference: docs(issues): [#2576] record the approved keyword table and amend the keyword rule
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2812#discussion_r4528332619
