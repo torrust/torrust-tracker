@@ -39,38 +39,85 @@ use tower::Service;
 type RustlsServerResult = Result<Server<SocketAddr, RustlsAcceptor>, std::io::Error>;
 type ServerResult = Result<Server<SocketAddr>, std::io::Error>;
 
-const HTTP1_HEADER_READ_TIMEOUT: Duration = Duration::from_secs(5);
-const HTTP2_KEEP_ALIVE_TIMEOUT: Duration = Duration::from_secs(5);
-const HTTP2_KEEP_ALIVE_INTERVAL: Duration = Duration::from_secs(5);
+/// Connection timeouts applied to every Axum listener.
+///
+/// The defaults are the values the tracker has always used for plaintext
+/// listeners (5 s), plus the `axum-server` default TLS handshake bound (10 s).
+/// The fields are public so tests can inject short values.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Timeouts {
+    /// Time a new connection has to send a complete first request.
+    pub first_request: Duration,
+    /// Hyper HTTP/1 header read timeout.
+    pub http1_header_read: Duration,
+    /// Hyper HTTP/2 keep-alive timeout (wait for a ping acknowledgement).
+    pub http2_keep_alive_timeout: Duration,
+    /// Hyper HTTP/2 keep-alive interval (time between pings).
+    pub http2_keep_alive_interval: Duration,
+    /// Time a TLS client has to complete the handshake.
+    pub tls_handshake: Duration,
+}
 
-/// Creates an Axum server from a TCP listener with configured timeouts.
+impl Default for Timeouts {
+    fn default() -> Self {
+        Self {
+            first_request: Duration::from_secs(5),
+            http1_header_read: Duration::from_secs(5),
+            http2_keep_alive_timeout: Duration::from_secs(5),
+            http2_keep_alive_interval: Duration::from_secs(5),
+            tls_handshake: Duration::from_secs(10),
+        }
+    }
+}
+
+/// Creates an Axum server from a TCP listener with the default timeouts.
 ///
 /// # Errors
 ///
 /// Returns an error if the server cannot be created from the TCP socket.
 pub fn from_tcp_with_timeouts(socket: TcpListener) -> ServerResult {
-    axum_server::from_tcp(socket).map(add_timeouts)
+    from_tcp_with(socket, Timeouts::default())
 }
 
-/// Creates an Axum server from a TCP listener with TLS and configured timeouts.
+/// Creates an Axum server from a TCP listener with the given timeouts.
+///
+/// # Errors
+///
+/// Returns an error if the server cannot be created from the TCP socket.
+pub fn from_tcp_with(socket: TcpListener, timeouts: Timeouts) -> ServerResult {
+    axum_server::from_tcp(socket).map(|server| add_timeouts(server, &timeouts))
+}
+
+/// Creates an Axum server from a TCP listener with TLS and the default timeouts.
 ///
 /// # Errors
 ///
 /// Returns an error if the server cannot be created from the TCP socket or if TLS configuration fails.
 pub fn from_tcp_rustls_with_timeouts(socket: TcpListener, tls: RustlsConfig) -> RustlsServerResult {
-    axum_server::from_tcp_rustls(socket, tls).map(add_timeouts)
+    from_tcp_rustls_with(socket, tls, Timeouts::default())
 }
 
-fn add_timeouts<Addr: axum_server::Address, Acc>(mut server: Server<Addr, Acc>) -> Server<Addr, Acc> {
+/// Creates an Axum server from a TCP listener with TLS and the given timeouts.
+///
+/// # Errors
+///
+/// Returns an error if the server cannot be created from the TCP socket or if TLS configuration fails.
+pub fn from_tcp_rustls_with(socket: TcpListener, tls: RustlsConfig, timeouts: Timeouts) -> RustlsServerResult {
+    let acceptor = RustlsAcceptor::new(tls).handshake_timeout(timeouts.tls_handshake);
+
+    axum_server::from_tcp(socket).map(|server| add_timeouts(server.acceptor(acceptor), &timeouts))
+}
+
+fn add_timeouts<Addr: axum_server::Address, Acc>(mut server: Server<Addr, Acc>, timeouts: &Timeouts) -> Server<Addr, Acc> {
     server.http_builder().http1().timer(TokioTimer::new());
     server.http_builder().http2().timer(TokioTimer::new());
 
-    server.http_builder().http1().header_read_timeout(HTTP1_HEADER_READ_TIMEOUT);
+    server.http_builder().http1().header_read_timeout(timeouts.http1_header_read);
     server
         .http_builder()
         .http2()
-        .keep_alive_timeout(HTTP2_KEEP_ALIVE_TIMEOUT)
-        .keep_alive_interval(HTTP2_KEEP_ALIVE_INTERVAL);
+        .keep_alive_timeout(timeouts.http2_keep_alive_timeout)
+        .keep_alive_interval(timeouts.http2_keep_alive_interval);
 
     server
 }
@@ -86,7 +133,7 @@ impl<I, S> Accept<I, S> for TimeoutAcceptor {
     fn accept(&self, stream: I, service: S) -> Self::Future {
         let (tx, rx) = mpsc::unbounded_channel();
 
-        let stream = TimeoutStream::new(stream, HTTP1_HEADER_READ_TIMEOUT, rx);
+        let stream = TimeoutStream::new(stream, Timeouts::default().http1_header_read, rx);
         let service = TimeoutService::new(service, tx);
 
         std::future::ready(Ok((stream, service)))

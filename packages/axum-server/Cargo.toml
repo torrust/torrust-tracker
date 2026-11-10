@@ -35,4 +35,6 @@ tracing = "0"
 
 [dev-dependencies]
 axum = "0.8.9"
+rustls = { version = "0.23", default-features = false, features = [ "ring" ] }
+tokio-rustls = { version = "0.26", default-features = false, features = [ "ring" ] }
 tokio = { version = "1", features = [ "io-util", "test-util" ] }

@@ -149,6 +149,7 @@ alekitto
 alives
 alloca
 alnum
+alpn
 analyse
 analysed
 appuser
@@ -295,6 +296,7 @@ hostnames
 hotfixes
 hotspot
 hotspots
+hpack
 httpclientpeerid
 hyperium
 hyperthread
