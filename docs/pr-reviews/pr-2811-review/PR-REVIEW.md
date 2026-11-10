@@ -179,3 +179,22 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-11-10 17:59 UTC - Posted the replies on the nine threads (`created_at` 17:59:27 to 17:59:49 UTC); F9 got the `Superseded by F1` reply.
 - 2026-11-10 18:05 UTC - Pushed the audit record (commit "docs(pr-reviews): [#2798] record the PR 2811 review audit", commit time 18:01:54 UTC; the push printed a fast-forward update to the head carrying that audit commit; `validate-audit-record.py --pr-number 2811` printed `"status": "ok"` with 0 failures), then resolved all nine threads, each returning `isResolved: true` (the command finished at 18:04:48 UTC). A refreshed GraphQL query showed 0 unresolved threads.
 - 2026-11-10 19:23 UTC - Correction: the entries of 17:59 UTC and 18:05 UTC quoted three PR-branch commit ids from the push output; they were rewritten in place to name the pushed states by commit subject instead (review round 2, F13). No other content of those entries changed.
+
+## Completion Rules
+
+- Re-derive the reply claim against the current tree before replying or resolving a thread.
+- Reply on every resolvable thread before resolving it.
+- For an outdated thread whose concern was fixed, record `Disposition=FIXED` and
+  `Thread state=RESOLVED`, even if GitHub marks the thread outdated after the push. For a
+  duplicate, superseded, or no-change in-PR thread, reply exactly
+  `Superseded by <FindingId>: <reason>.`, record `Disposition=NO_ACTION` and
+  `Thread state=SUPERSEDED`, then resolve it. A post-merge `NO_ACTION` requires maintainer
+  approval to decline the follow-up work. When the current identity cannot resolve a thread
+  (`viewerCanResolve` is `false`), still reply, keep the disposition established from the current
+  tree, and record `Thread state=OPEN`; the reviewer or PR author resolves it.
+- A consolidated PR conversation response may cover multiple review rounds only when it names
+  every review ID and every finding ID with its disposition and resolution reference. Record its
+  durable URL in each related row.
+- Cite a fix by its unique Conventional Commit subject or durable reply URL, never by a branch SHA
+  that can change after a rebase.
+- Refresh review threads using GraphQL and confirm that no unresolved actionable thread remains.
