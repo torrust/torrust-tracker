@@ -9,7 +9,7 @@ github-issue: 2801
 spec-path: docs/issues/open/2801-1488-si-19-remove-legacy-shutdown-api/ISSUE.md
 branch: "2801-remove-legacy-shutdown-api"
 related-pr: 2807
-last-updated-utc: "2026-11-10 16:18"
+last-updated-utc: "2026-11-10 16:54"
 semantic-links:
   skill-links:
     - create-issue
@@ -238,6 +238,7 @@ Sign every commit with GPG.
 - 2026-11-10 14:25 UTC - AI agent (Claude Sonnet 5.5) - Edited the spec for the third review of PR 2803: the stamps now match the commit times (F4) and the removal bullet says the HTTP and REST `Running` structs (F15).
 - 2026-11-10 15:47 UTC - AI agent (Claude Sonnet 5.5) - Implemented T2 to T6 on branch `2801-remove-legacy-shutdown-api` after the spec PR 2803 merged: removed the legacy API from `udp-server` and the three axum servers and `axum-server`, removed `HaltSignal` and `NestedServerTask`, bumped `torrust-server-lib` to 0.6.0, and updated the migration guide. `Started` is no longer used or tested inside this workspace; it stays available in `torrust-server-lib` 0.6.0. The public `Error::Stop`, `StartupNotification` and `StartupNotificationDropped` variants of the HTTP and REST servers are now unused but were not deprecated, so they stay (candidate follow-up). Evidence in `manual-verification-evidence.md`.
 - 2026-11-10 16:18 UTC - AI agent (Claude Sonnet 5.5) - Addressed the first review of PR 2807 (F1 to F11): wording for `Started`, the T5 note, the evidence (raw search output, the script, the approval link), the status and frontmatter, one removed-API line in a live draft, the token-aware owner test, and the docs left by the removal. The audit is `docs/pr-reviews/pr-2807-review/PR-REVIEW.md`.
+- 2026-11-10 16:54 UTC - AI agent (Claude Sonnet 5.5) - Addressed the second review of PR 2807 (F12 to F16): the live-spec search pasted as run, the ten signal invocations and the tracker configuration recorded, the criterion, row and evidence item reworded to match the five live-spec matches, and `branch` pointed at the implementation branch.
 
 ## Design and Ownership Review
 
