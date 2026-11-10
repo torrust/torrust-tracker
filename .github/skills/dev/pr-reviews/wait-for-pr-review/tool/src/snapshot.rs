@@ -382,7 +382,7 @@ mod tests {
     }
 
     #[test]
-    fn it_should_report_a_head_that_is_not_older_than_a_review_that_arrived_after_the_first_read() {
+    fn it_should_fetch_the_head_after_a_review_that_arrived_after_the_first_request() {
         let gh = FakeGh::new();
         gh.respond(
             "repos/torrust/torrust-tracker/pulls/7",
@@ -407,7 +407,7 @@ mod tests {
     }
 
     #[test]
-    fn it_should_report_a_head_that_is_not_older_than_a_conversation_comment_that_arrived_after_the_first_read() {
+    fn it_should_fetch_the_head_after_a_conversation_comment_that_arrived_after_the_first_request() {
         let gh = FakeGh::new();
         gh.respond(
             "repos/torrust/torrust-tracker/pulls/7",

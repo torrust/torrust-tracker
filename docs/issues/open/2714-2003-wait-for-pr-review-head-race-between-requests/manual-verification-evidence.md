@@ -96,8 +96,8 @@ in `wait.rs`, the race at event level and an ordinary review of the head with `h
 Red, with the old read order (head first) restored temporarily in `take_snapshot`, `cargo test --lib`:
 
 ```text
-test snapshot::tests::it_should_report_a_head_that_is_not_older_than_a_conversation_comment_that_arrived_after_the_first_read ... FAILED
-test snapshot::tests::it_should_report_a_head_that_is_not_older_than_a_review_that_arrived_after_the_first_read ... FAILED
+test snapshot::tests::it_should_fetch_the_head_after_a_conversation_comment_that_arrived_after_the_first_request ... FAILED
+test snapshot::tests::it_should_fetch_the_head_after_a_review_that_arrived_after_the_first_request ... FAILED
 test wait::tests::it_should_flag_a_review_of_a_newer_commit_than_the_head_first_read_when_the_head_moves_mid_snapshot ... FAILED
 test result: FAILED. 64 passed; 3 failed; 0 ignored; 0 measured; 0 filtered out
 ```
