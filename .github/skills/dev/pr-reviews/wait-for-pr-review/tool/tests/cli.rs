@@ -75,7 +75,8 @@ impl Sandbox {
 
     /// How many times the fake `gh` served the pull request endpoint (not `gh auth status`).
     fn pull_calls(&self) -> u32 {
-        fs::read_to_string(self.directory.path().join("pull-calls")).map_or(0, |count| count.trim().parse().unwrap())
+        fs::read_to_string(self.directory.path().join("pull-calls"))
+            .map_or(0, |count| count.trim().parse().expect("`pull-calls` should hold a number"))
     }
 
     fn run(&self, arguments: &[&str]) -> Output {

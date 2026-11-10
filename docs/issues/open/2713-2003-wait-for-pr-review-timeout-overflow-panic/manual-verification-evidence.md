@@ -83,8 +83,11 @@ platform's `Instant` range. A panic is exit `101` with four plain-text stderr li
 --timeout-seconds 86400                -> exit 0 | stdout=75 bytes | 1 stderr line (wait_started)
 ```
 
-Stderr of the largest value: `{"kind":"usage_error","message":"error: invalid value '18446744073709551615' for
-'--timeout-seconds <TIMEOUT_SECONDS>': 18446744073709551615 is not in 1..=86400 ..."}`.
+Stderr of the largest value (the one record, shown on one line):
+
+```text
+{"kind":"usage_error","message":"error: invalid value '18446744073709551615' for '--timeout-seconds <TIMEOUT_SECONDS>': 18446744073709551615 is not in 1..=86400 ..."}
+```
 
 Red run before the fix (the new tests in `tests/cli.rs`, `cargo test -p wait-for-pr-review --test cli timeout_is`):
 `it_should_exit_two_with_a_usage_error_record_when_the_timeout_is_too_large_for_any_deadline` failed with

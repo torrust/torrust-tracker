@@ -9,7 +9,7 @@ github-issue: 2713
 spec-path: docs/issues/open/2713-2003-wait-for-pr-review-timeout-overflow-panic/ISSUE.md
 branch: "2712-wait-for-pr-review-bug-and-adr-specs-spec"
 related-pr: 2802
-last-updated-utc: "2026-11-10 13:28"
+last-updated-utc: "2026-11-10 13:32"
 semantic-links:
   skill-links:
     - create-issue
@@ -182,6 +182,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-10 13:28 UTC - AI assistant (Claude Code) - Review round 1 (da2ce7): moved `MAX_TIMEOUT_SECONDS` above the
   `Cli` doc comment so `--help` keeps its description, and added a help-text assertion; renamed `gh_calls` to
   `pull_calls`; V2 rerun on the new build and recorded with the green output; this bookkeeping updated.
+
+- 2026-11-10 13:32 UTC - AI assistant (Claude Code) - Review round 2 (Copilot): reworded the `MAX_TIMEOUT_SECONDS` doc
+  comment (no claim of a guarantee), made the `pull_calls` parse failure explicit, put the recorded stderr in a code
+  block. A `checked_add` on the deadline was not added: the spec chose option 1 and this is out of scope.
 
 ## Acceptance Criteria
 

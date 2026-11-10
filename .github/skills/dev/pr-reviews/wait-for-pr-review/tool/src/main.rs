@@ -19,8 +19,9 @@ use signal_hook::flag;
 use wait_for_pr_review::timestamp::parse_utc;
 use wait_for_pr_review::{Config, GhCli, PullRequest, SystemClock, wait};
 
-/// Largest accepted `--timeout-seconds`: one day. Far above any realistic wait and far below the range of
-/// `Instant` on any platform, so `Instant + Duration` for the deadline cannot overflow.
+/// Largest accepted `--timeout-seconds`: one day. Far above any realistic wait, and a deadline one day ahead
+/// is far inside the `Instant` range of every platform this tool supports, so the deadline sum does not
+/// overflow in practice. Rust does not guarantee a minimum `Instant` range.
 const MAX_TIMEOUT_SECONDS: u64 = 86_400;
 
 /// Block until a watched reviewer reviews or comments, the head commit changes, or the pull request
