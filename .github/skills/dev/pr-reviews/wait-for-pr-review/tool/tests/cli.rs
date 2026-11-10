@@ -73,6 +73,12 @@ impl Sandbox {
         command
     }
 
+    /// How many times the fake `gh` served the pull request endpoint (not `gh auth status`).
+    fn pull_calls(&self) -> u32 {
+        fs::read_to_string(self.directory.path().join("pull-calls"))
+            .map_or(0, |count| count.trim().parse().expect("`pull-calls` should hold a number"))
+    }
+
     fn run(&self, arguments: &[&str]) -> Output {
         self.command(arguments).output().unwrap()
     }
@@ -286,6 +292,43 @@ fn it_should_exit_two_when_the_poll_interval_is_zero() {
 }
 
 #[test]
+fn it_should_exit_two_with_a_usage_error_record_when_the_timeout_is_too_large_for_any_deadline() {
+    let sandbox = Sandbox::with_pull(OPEN_PULL);
+
+    let output = sandbox.run(&["--pr-number", "7", "--timeout-seconds", "18446744073709551615"]);
+
+    assert_eq!(output.status.code(), Some(2));
+    assert_eq!(output.stdout, b"");
+    assert_eq!(kinds(&output), ["usage_error"]);
+    assert_eq!(
+        sandbox.pull_calls(),
+        0,
+        "an oversized timeout must be rejected before any API request"
+    );
+}
+
+#[test]
+fn it_should_exit_two_when_the_timeout_is_one_second_above_the_maximum() {
+    let sandbox = Sandbox::with_pull(MERGED_PULL);
+
+    let output = sandbox.run(&["--pr-number", "7", "--timeout-seconds", "86401"]);
+
+    assert_eq!(output.status.code(), Some(2));
+    assert_eq!(output.stdout, b"");
+    assert_eq!(kinds(&output), ["usage_error"]);
+}
+
+#[test]
+fn it_should_run_to_a_result_when_the_timeout_is_the_maximum() {
+    let sandbox = Sandbox::with_pull(MERGED_PULL);
+
+    let output = sandbox.run(&["--pr-number", "7", "--timeout-seconds", "86400"]);
+
+    assert_eq!(output.status.code(), Some(0));
+    assert_eq!(json(&output.stdout)["kind"], "pr_merged");
+}
+
+#[test]
 fn it_should_print_help_as_a_json_record_on_stderr_and_exit_zero() {
     let sandbox = Sandbox::with_pull(OPEN_PULL);
 
@@ -294,6 +337,15 @@ fn it_should_print_help_as_a_json_record_on_stderr_and_exit_zero() {
     assert_eq!(output.status.code(), Some(0));
     assert_eq!(output.stdout, b"");
     assert_eq!(kinds(&output), ["help"]);
+    let message = stderr_records(&output)[0]["message"].as_str().unwrap().to_owned();
+    assert!(
+        message.starts_with("Block until a watched reviewer"),
+        "help must keep the program description"
+    );
+    assert!(
+        message.contains("At most 86400 (one day)"),
+        "help must state the maximum timeout"
+    );
 }
 
 #[test]

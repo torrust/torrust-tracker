@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2713-2003-wait-for-pr-review-timeout-overflow-panic/ISSUE.md
-last-updated-utc: "2026-11-04 13:07"
+last-updated-utc: "2026-11-10 13:31"
 ---
 
 # Manual Verification Evidence
@@ -69,7 +69,35 @@ platform's `Instant` range. A panic is exit `101` with four plain-text stderr li
 ### V2 - The same scenario after the fix
 
 - Goal: repeat V1 on the final build.
-- Status: `TODO`
+- Status: `DONE`
+- Date and time (UTC): 2026-11-10 13:27
+- Build: `cargo build -p wait-for-pr-review` on the commit with subject "fix(wait-for-pr-review): keep the --help
+  description and tighten the evidence", the commit that holds the review round's production change; toolchain
+  `rustc 1.99.1 (58cf8f9c3 2026-10-13)`; real `gh`, merged pull request #2584. The later commit "docs(wait-for-pr-review):
+  address Copilot review round on the timeout bound" only rewords a doc comment, so it needs no rerun.
+
+```text
+--timeout-seconds 18446744073709551615 -> exit 2 | stdout=0 bytes  | 1 stderr line (usage_error)
+--timeout-seconds 9223372036854775807  -> exit 2 | stdout=0 bytes  | 1 stderr line (usage_error)
+--timeout-seconds 86401                -> exit 2 | stdout=0 bytes  | 1 stderr line (usage_error)
+--timeout-seconds 86400                -> exit 0 | stdout=75 bytes | 1 stderr line (wait_started)
+```
+
+Stderr of the largest value (the one record, shown on one line):
+
+```text
+{"kind":"usage_error","message":"error: invalid value '18446744073709551615' for '--timeout-seconds <TIMEOUT_SECONDS>': 18446744073709551615 is not in 1..=86400 ..."}
+```
+
+Red run before the fix (the new tests in `tests/cli.rs`, `cargo test -p wait-for-pr-review --test cli timeout_is`):
+`it_should_exit_two_with_a_usage_error_record_when_the_timeout_is_too_large_for_any_deadline` failed with
+`left: Some(101) right: Some(2)`; `it_should_exit_two_when_the_timeout_is_one_second_above_the_maximum` failed with
+`left: Some(0) right: Some(2)`; `it_should_run_to_a_result_when_the_timeout_is_the_maximum` passed (it guards the
+inclusive end and passes with or without the fix). `test result: FAILED. 1 passed; 2 failed`.
+
+Green run after the fix (`cargo test -p wait-for-pr-review`, 2026-11-10 13:27 UTC): unit tests `62 passed; 0 failed`,
+integration tests `27 passed; 0 failed`; `cargo clippy -p wait-for-pr-review --all-targets` clean. The help test now also
+asserts that `--help` keeps the program description and states the maximum.
 
 ### V3 - A huge `--poll-interval-seconds` alone does not overflow (scope check)
 
