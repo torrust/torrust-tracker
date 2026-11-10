@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Five reviews: Copilot review 5845178584 (a summary with no actionable finding, so it has no row), da2ce7 review 5845212310 (round 1, eleven findings, which keep the reviewer's IDs) da2ce7 review 5845706883 (round 2, six findings) da2ce7 review 5846280739 (round 3, three findings) and da2ce7 review 5846656529 (round 4, two findings). The round 2 `F10` re-raises `F10` and became `F17`; the other round 2 IDs (`F12` to `F16`) are the reviewer's. In round 3 the reviewer's `F17` (a re-raise of `F14`) became `F20`; its `F18` and `F19` kept their IDs. In round 4 the reviewer's `F20` and `F21` became `F21` and `F22`.
+Six reviews: Copilot review 5845178584 (a summary with no actionable finding, so it has no row), da2ce7 review 5845212310 (round 1, eleven findings, which keep the reviewer's IDs) da2ce7 review 5845706883 (round 2, six findings) da2ce7 review 5846280739 (round 3, three findings) da2ce7 review 5846656529 (round 4, two findings) and da2ce7 review 5846951116 (round 5, two findings). The round 2 `F10` re-raises `F10` and became `F17`; the other round 2 IDs (`F12` to `F16`) are the reviewer's. In round 3 the reviewer's `F17` (a re-raise of `F14`) became `F20`; its `F18` and `F19` kept their IDs. In round 4 the reviewer's `F20` and `F21` became `F21` and `F22`. In round 5 the reviewer's `F22` and `F23` became `F23` and `F24`.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -67,6 +67,8 @@ Five reviews: Copilot review 5845178584 (a summary with no actionable finding, s
 | F19 | review-finding:pr-2807-f19 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F21 | review-finding:pr-2807-f21 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F22 | review-finding:pr-2807-f22 | Human | Nit | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F23 | review-finding:pr-2807-f23 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F24 | review-finding:pr-2807-f24 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -356,6 +358,32 @@ Five reviews: Copilot review 5845178584 (a summary with no actionable finding, s
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2807#discussion_r4528458638
 
+### F23 - The response this row cites calls round 4 the third review round
+
+- PR number: 2807
+- Source review ID: 5846951116
+- Reviewer finding ID: F22
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2807#discussion_r4528664835
+- Concern: The PR conversation response that is the resolution reference of F21 opens "Third review round" for the review this audit calls round 4.
+- Solution: The response opens "Fourth review round".
+- Current-tree verification: The comment was read after the edit (`gh api repos/torrust/torrust-tracker/issues/comments/6774847290`).
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2807#issuecomment-6774847290
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2807#discussion_r4528688756
+
+### F24 - The description cites a package-test run that no record of the PR names
+
+- PR number: 2807
+- Source review ID: 5846951116
+- Reviewer finding ID: F23
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2807#discussion_r4528664840
+- Concern: The PR description says package tests passed again at the second round head (245 passed) without a source.
+- Solution: The description names the source, the run recorded in review 5845706883, and the conversation response states the edit.
+- Current-tree verification: `gh pr view 2807 --json body` was read after the edit.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2807#issuecomment-6774847290
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2807#discussion_r4528689284
+
 ## Processing Log
 
 - 2026-11-10 16:10 UTC - Copilot review received (16:10:42 UTC) (no actionable finding).
@@ -367,6 +395,8 @@ Five reviews: Copilot review 5845178584 (a summary with no actionable finding, s
 - 2026-11-10 17:27 UTC - Replies posted on the three threads (17:27:51 to 17:27:56 UTC); the audit corrected in the commit that carries this entry.
 - 2026-11-10 17:49 UTC - da2ce7 review received (round 4: approval of the pushed head, two nits, `F21` and `F22` here; submitted 17:49:19 UTC).
 - 2026-11-10 17:50 UTC - The PR description edited, the conversation response posted and the two replies posted (17:50:22 and 17:50:24 UTC); the audit corrected in the commit that carries this entry.
+- 2026-11-10 18:09 UTC - da2ce7 review received (round 5: approval of the pushed head, two nits, `F23` and `F24` here; submitted 18:09:23 UTC).
+- 2026-11-10 18:11 UTC - The conversation response and the PR description edited and the two replies posted (18:11:30 and 18:11:32 UTC); the audit corrected in the commit that carries this entry.
 
 ## Completion Rules
 
