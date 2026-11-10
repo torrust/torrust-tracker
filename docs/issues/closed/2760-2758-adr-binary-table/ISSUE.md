@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: done
 priority: p2
 epic: 2758
 github-issue: 2760
-spec-path: docs/issues/open/2760-2758-adr-binary-table/ISSUE.md
+spec-path: docs/issues/closed/2760-2758-adr-binary-table/ISSUE.md
 branch: "2760-adr-binary-table"
 related-pr: null
-last-updated-utc: "2026-11-09 11:27"
+last-updated-utc: "2026-11-10 11:28"
 semantic-links:
   skill-links:
     - create-issue
@@ -105,7 +105,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - [x] Evidence-based implementation completion review recorded
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -114,6 +114,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-11-06 20:53 UTC - Claude Code (Claude Sonnet 5.5) - Implementation completion review: the result matches the spec; the only decision to make during implementation was the `workspace-coupling` class (`no-stdout-result`, recorded above) and no assumption was invalidated, so no retrospective is needed. Evidence file rewritten to the template after the Copilot review of PR #2774.
 - 2026-11-09 10:27 UTC - Claude Code (Claude Sonnet 5.5) - Ran `linter all` after the second review round edits (table `N/A` row, exit codes, evidence rewrite): exit 0; the output is pasted in `manual-verification-evidence.md` section V2.
 - 2026-11-09 11:27 UTC - Claude Code (Claude Sonnet 5.5) - Ran `linter all` after the third review round edits (the `github-review-threads` note, evidence wording, audit rows), before adding this entry: exit 0.
+- 2026-11-10 11:28 UTC - AI agent (Claude Sonnet 5.5) - Archived the spec: GitHub issue is CLOSED (closed by PR 2774); moved from `docs/issues/open/` to `docs/issues/closed/` and set `status: done`.
 
 ## Acceptance Criteria
 
