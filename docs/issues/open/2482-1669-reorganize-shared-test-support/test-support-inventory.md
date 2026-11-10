@@ -2,7 +2,7 @@
 doc-type: research-report
 parent-issue: 2482
 status: completed
-last-updated-utc: 2026-11-04
+last-updated-utc: 2026-11-10
 semantic-links:
   related-artifacts:
     - docs/issues/open/2482-1669-reorganize-shared-test-support/EPIC.md
@@ -266,7 +266,7 @@ that resolves it.
 | A. `udp-server` environment (and its example) | Rule A: behind the `testing` feature of `udp-server` | [Row 4](../../closed/2699-2482-gate-udp-server-test-environment/ISSUE.md) | Resolved by #2699 |
 | A. `axum-http-server` environment (and its example) | Rule A: behind the `testing` feature of `axum-http-server` | [Row 5](../../closed/2724-2482-gate-axum-http-server-test-environment/ISSUE.md) | Resolved by #2724 |
 | A. `axum-rest-api-server` environment | Rule A: behind the `testing` feature of `axum-rest-api-server` | [Row 6](../../closed/2745-2482-gate-axum-rest-api-server-test-environment/ISSUE.md) | Resolved by #2745 |
-| A. `axum-health-check-api-server` environment | Rule A: behind the `testing` feature of `axum-health-check-api-server` | [Row 7](../../open/2757-2482-gate-axum-health-check-api-server-test-environment/ISSUE.md) | Resolved by #2757 |
+| A. `axum-health-check-api-server` environment | Rule A: behind the `testing` feature of `axum-health-check-api-server` | [Row 7](../../closed/2757-2482-gate-axum-health-check-api-server-test-environment/ISSUE.md) | Resolved by #2757 |
 | B. `test-helpers` `http` and `udp` modules | Rule B: the root crate's `tests/common/` | [Row 2](../../closed/2628-2482-move-test-helpers-protocol-helpers/ISSUE.md) | Resolved by #2628 |
 | B. `test-helpers` `configuration`, `logging`, `random` | Rule B: stay in `test-helpers` | None | Kept by the ADR |
 | C. `tracker-core` `pub mod` test declarations | Rule C: private `#[cfg(test)] mod` | [Row 3](../../closed/2681-2482-gate-tracker-core-test-modules-and-mocks/ISSUE.md) | Resolved by #2681 |

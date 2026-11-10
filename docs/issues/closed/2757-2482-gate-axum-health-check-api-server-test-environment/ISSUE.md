@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-progress
+status: done
 priority: p2
 epic: 2482
 github-issue: 2757
-spec-path: docs/issues/open/2757-2482-gate-axum-health-check-api-server-test-environment/ISSUE.md
+spec-path: docs/issues/closed/2757-2482-gate-axum-health-check-api-server-test-environment/ISSUE.md
 branch: "2757-2482-gate-axum-health-check-api-server-test-environment-spec"
-related-pr: 2759
-last-updated-utc: "2026-11-09 15:53"
+related-pr: 2784
+last-updated-utc: "2026-11-09 19:25"
 semantic-links:
   skill-links:
     - create-issue
@@ -170,7 +170,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ### Workflow Checkpoints
 
-- [x] Folder-style spec drafted in `docs/issues/open/2757-2482-gate-axum-health-check-api-server-test-environment/ISSUE.md`
+- [x] Folder-style spec drafted in `docs/issues/closed/2757-2482-gate-axum-health-check-api-server-test-environment/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer (2026-11-06)
 - [x] GitHub issue created (#2757), linked as a sub-issue of #2482, and its number added to this spec
 - [x] Spec-only PR merged into `develop` before implementation (PR #2759)
@@ -179,7 +179,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -191,6 +191,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-06 17:12 UTC - AI assistant (Claude Code, #2482 row 7) - The maintainer added the labels (`task`, `packages`) and the sub-issue link under #2482 with his own account (verified: `parent_issue_url` is #2482). Opened spec-only PR #2759 (`Related to #2757`); `related-pr` is set to 2759. The 16:40 entry above was dated 16:34, the time the draft was committed; the earlier 16:40 was a mistake found in PR #2759 review round 1.
 - 2026-11-09 15:53 UTC - AI assistant (Claude Code, #2482 row 7) - Implemented T2 to T5 on branch `2757-2482-gate-axum-health-check-api-server-test-environment`: the `testing` feature, `configuration` optional, the path-only self dev-dependency with its `deny.toml` wrapper, and `url` now declared with `features = ["serde"]` (the move exposed that the package only got it through `configuration`). Plain package tests keep the baseline (15 + 11); the direct dependency count is 17 before and 16 after. The coupling report of 2026-11-09 was regenerated and AC8 was checked: no test-only runtime edge remains once five stale diagram edges are removed (four from rows 4 and 5, one from this row). The evidence is in `manual-verification-evidence.md`; the AC8 result is recorded in the EPIC without ticking it. The #2482 close-out steps are not part of this row.
 - 2026-11-09 16:38 UTC - AI assistant (Claude Code, #2482 row 7) - Corrections after da2ce7's review of PR #2784: (1) the 15:53 entry says `url` got `serde` only through `configuration` and lost it with the edge; that is wrong. Measured at `ca8efcd4d` (the merge base, with the `configuration` edge still present) `cargo check -p torrust-tracker-axum-health-check-api-server --lib` already failed with E0277, because `url` lacked `serde` there; only crates reached through `[dev-dependencies]` (`udp-server`, `rest-api-client`) request it, so `cargo test -p` passed. The declaration is correct on its own; the defect pre-existed and T1's baseline ran only `cargo test`. (2) The `deny.toml` self wrapper entry already existed at `ca8efcd4d`; this PR adds only a comment. (3) Six `test-helpers` arrows that no manifest declares are removed from the diagram (a script compares every arrow with `cargo metadata`), the edge count is restated as 135, the report gets frontmatter, the module gets its rule A.6 note, and the evidence commands live in `evidence/`.
+- 2026-11-09 19:25 UTC - AI assistant (Claude Code, #2482 row 7) - PR #2784 was merged (merge commit `de4830c4c`) and issue #2757 is closed under #2482 (verified on GitHub). The spec is archived to `docs/issues/closed/` with `status: done` and `related-pr: 2784` (the implementation PR; the spec-only PR was #2759). The maintainer's approval on the merged head recorded one open minor note (note F15 of the approval review 5830184353, which is not an audit row: the retrospective credits the label comparison with all four stale diagram edges, but it shows only the two `swarm` ones; the other two came from comparing the diagram with the manifests), which stays as written in the merged retrospective. The #2482 close-out steps are not part of this row.
 
 ## Acceptance Criteria
 

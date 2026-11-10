@@ -3,8 +3,8 @@ semantic-links:
   skill-links:
     - write-markdown-docs
   related-artifacts:
-    - docs/issues/open/2757-2482-gate-axum-health-check-api-server-test-environment/ISSUE.md
-    - docs/issues/open/2757-2482-gate-axum-health-check-api-server-test-environment/manual-verification-evidence.md
+    - docs/issues/closed/2757-2482-gate-axum-health-check-api-server-test-environment/ISSUE.md
+    - docs/issues/closed/2757-2482-gate-axum-health-check-api-server-test-environment/manual-verification-evidence.md
 ---
 
 # Implementation Retrospective — Gate the `axum-health-check-api-server` test environment

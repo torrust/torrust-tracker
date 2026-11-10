@@ -6,7 +6,7 @@
 set -u
 cd "$(git rev-parse --show-toplevel)" || exit 1
 P=torrust-tracker-axum-health-check-api-server
-SELF=docs/issues/open/2757-2482-gate-axum-health-check-api-server-test-environment/evidence
+SELF=docs/issues/closed/2757-2482-gate-axum-health-check-api-server-test-environment/evidence
 run() { echo; echo "\$ $*"; bash -c "set -o pipefail; $*" 2>&1; echo "[exit $?]"; }
 echo "start $(date -u '+%Y-%m-%d %H:%M:%S UTC')"; run "git log -1 --format=%s"
 echo; echo "=== Baseline at the merge base (T1, F1): the library without features"
