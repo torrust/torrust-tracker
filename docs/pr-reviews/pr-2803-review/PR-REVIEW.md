@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Three rounds: da2ce7 review 5842604545 and Copilot review 5842654119 (round 1), da2ce7 review 5842998748 (round 2), da2ce7 review 5843390791 (round 3). `F13` is the second round's `F4`, a re-raise of the first round's `F4`. The third round reused the IDs `F4`, `F13`, `F14`, `F15` and `F16`, so its findings are `F14` to `F18`, with the original IDs recorded in the details.
+Four rounds: da2ce7 review 5842604545 and Copilot review 5842654119 (round 1), da2ce7 review 5842998748 (round 2), da2ce7 review 5843390791 (round 3), da2ce7 review 5843761463 (round 4). `F13` is the second round's `F4`, a re-raise of the first round's `F4`. The third round reused `F4` and `F13`, which became `F14` and `F15` in source order, so its `F14` to `F16` became `F16` to `F18`. The fourth round's `F18` and `F17` collided with those and became `F19` and `F20`; the original IDs are recorded in the details.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -65,6 +65,8 @@ Three rounds: da2ce7 review 5842604545 and Copilot review 5842654119 (round 1), 
 | F16 | review-finding:pr-2803-f16 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F17 | review-finding:pr-2803-f17 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F18 | review-finding:pr-2803-f18 | Human | Nit | testing | ORIGINAL | FIXED | RESOLVED |
+| F19 | review-finding:pr-2803-f19 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F20 | review-finding:pr-2803-f20 | Human | Nit | testing | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -284,7 +286,7 @@ Three rounds: da2ce7 review 5842604545 and Copilot review 5842654119 (round 1), 
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2803#discussion_r4526001815
 - Concern: Row F13 names a short commit id.
 - Solution: The row names the commit subject; no other commit id remains.
-- Current-tree verification: The `open-pull-request` commit-id check and `grep -n "[0-9a-f]\{9\}" docs/pr-reviews/pr-2803-review/PR-REVIEW.md` find none.
+- Current-tree verification: The `open-pull-request` commit-id check prints nothing at this head.
 - Resolution reference: docs(pr-reviews): [#2803] correct the review audit record
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2803#discussion_r4526029697
@@ -328,6 +330,32 @@ Three rounds: da2ce7 review 5842604545 and Copilot review 5842654119 (round 1), 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2803#discussion_r4526031112
 
+### F19 - Only F4 and F13 were reused
+
+- PR number: 2803
+- Source review ID: 5843761463
+- Reviewer finding ID: F18
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2803#discussion_r4526286362
+- Concern: The audit says the third round reused five IDs; only `F4` and `F13` collided first.
+- Solution: The sentence now names the two reused IDs and the resulting renumbering.
+- Current-tree verification: The Findings intro sentence was read after the edit.
+- Resolution reference: docs(pr-reviews): [#2803] state only what ran in the audit record
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2803#discussion_r4526307759
+
+### F20 - This grep prints 63 lines, not none
+
+- PR number: 2803
+- Source review ID: 5843761463
+- Reviewer finding ID: F17
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2803#discussion_r4526286383
+- Concern: The F15 verification names a nine-hex grep that prints every review and reply id.
+- Solution: The row names only the `open-pull-request` commit-id check, which prints nothing at this head.
+- Current-tree verification: The check was run and prints nothing; the grep was removed from the row.
+- Resolution reference: docs(pr-reviews): [#2803] state only what ran in the audit record
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2803#discussion_r4526308437
+
 ## Processing Log
 
 - 2026-11-10 13:27 UTC - Round 1 review of da2ce7 received (seven findings); Copilot review at 13:31 UTC (two comments).
@@ -335,6 +363,7 @@ Three rounds: da2ce7 review 5842604545 and Copilot review 5842654119 (round 1), 
 - 2026-11-10 13:56 UTC - Round 2 review of da2ce7 received (six findings).
 - 2026-11-10 14:00 UTC - Round 2 replies posted (last at 14:00:34 UTC); the audit record was started in this round (F8).
 - 2026-11-10 14:26 UTC - Round 3 review of da2ce7 received (approval at 14:23:15 UTC with five findings, `F14` to `F18` here); replies posted between 14:25:40 and 14:25:50 UTC, and the audit corrected in the commit that carries this entry.
+- 2026-11-10 14:46 UTC - Round 4 review of da2ce7 received (approval at 14:45:59 UTC with two nits, `F19` and `F20` here); replies posted at 14:47 UTC and the audit edited in the commit that carries this entry.
 
 ## Completion Rules
 
