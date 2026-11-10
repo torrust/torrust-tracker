@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2576-1669-update-all-package-readmes/ISSUE.md
-last-updated-utc: 2026-11-10 18:10
+last-updated-utc: 2026-11-10 18:05
 ---
 
 # Manual Verification Evidence
@@ -23,7 +23,7 @@ Real verification of the #2576 change, recorded from commands actually run on 20
 
 After #2482 closed (2026-11-10), `cargo metadata --no-deps --format-version 1` shows the tiers of
 the 2026-10-20 check: 22 publishable packages (18 never published plus 4 published), 3
-`publish = false` tracker packages and the developer tools. Before the change every member
+`publish = false` tracker packages and the developer tools. Before the change every tracker package
 inherited `documentation = https://docs.rs/crate/torrust-tracker/`, 7 crates declared 6 or 7
 keywords, 2 crates set categories and 3 crates declared `LGPL-3.0`.
 
@@ -76,8 +76,8 @@ torrust-tracker | 5 | 2 |  | AGPL-3.0-only | A feature rich BitTorrent tracker.
 
 Met: 22 rows, every one with a description, 4 or 5 keywords, 1 or 2 valid categories and an
 empty `documentation`; the three LGPL crates use `LGPL-3.0-only`. The keywords equal the table
-approved by the maintainer and recorded in the spec (which amends the "no repeat" rule for
-`axum`, `http`, `udp` and `rest`).
+approved by the maintainer and recorded in the spec (the rule lets the approved table list a
+keyword that repeats a word of the crate name).
 
 ### V2 - Packaged files and links (M2; AC1)
 

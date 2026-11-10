@@ -9,7 +9,7 @@ github-issue: 2576
 spec-path: docs/issues/open/2576-1669-update-all-package-readmes/ISSUE.md
 branch: "i2576-update-package-readmes"
 related-pr: 2812
-last-updated-utc: "2026-11-10 18:10"
+last-updated-utc: "2026-11-10 18:05"
 semantic-links:
   skill-links:
     - create-issue
@@ -193,7 +193,7 @@ For each README in scope:
 | Field           | Rule                                                                                                                       |
 | --------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | `description`   | One accurate plain-text sentence about the crate (crates.io requires it).                                                 |
-| `keywords`      | At most 5; ASCII, at most 20 characters; no filler (`library`, `rust`, `api`); a word of the crate name may repeat only when it is the word users search for (`axum`, `http`, `udp`, `rest`), as in the approved table below. |
+| `keywords`      | At most 5; ASCII, at most 20 characters; no filler (`library`, `rust`, `api`); a word of the crate name may repeat only where the approved table below lists that keyword. |
 | `categories`    | 1 to 5 valid crates.io slugs (`https://crates.io/category_slugs`).                                                         |
 | `documentation` | Absent, in members and in `[workspace.package]`; crates.io then links the crate's own docs.rs page.                      |
 | `readme`        | `README.md` (already set everywhere; keep).                                                                                |
@@ -320,28 +320,32 @@ Commit.
   `cargo metadata --no-deps`: the workspace has 32 members and seven `contrib/dev-tools/` members;
   the 2026-10-20 count missed `workspace-coupling`. The publishable and published counts are
   unchanged. Found while syncing the package catalogs for #1669.
-- 2026-11-10 UTC - Claude (Sonnet 5.5) - Refreshed against `develop` (#2482 closed, so T2 is
+- 2026-11-10 16:17 UTC - Claude (Sonnet 5.5) - Refreshed against `develop` (#2482 closed, so T2 is
   unblocked): the package tiers are unchanged (22 publishable, 3 `publish = false`, tier P versions
   in the workspace are `configuration` 3.0.0, `primitives` 3.1.0, `test-helpers` 3.0.0, root
   3.0.0-develop); the keyword, `documentation`, LGPL and disclaimer findings still hold.
   Applied the maintainer's answers on the stability notice, README examples, versions and the
   keyword/category approval (see the decisions table).
-- 2026-11-10 UTC - Claude (Sonnet 5.5) - Implemented: template, `documentation` removal, 20
+- 2026-11-10 17:02 UTC - Claude (Sonnet 5.5) - Implemented: template, `documentation` removal, 20
   crate READMEs and metadata (one commit each), tier N README fixes and root categories. No README
   has a Rust example (examples were optional), so no doctest hook was added and AC8 holds because
   no README has a Rust fence. AC6 holds because nothing was published. See
   `manual-verification-evidence.md`.
-- 2026-11-10 UTC - Claude (Sonnet 5.5) - PR #2812 review finding F1 (da2ce7): 13 crates' keywords
+- 2026-11-10 17:37 UTC - Claude (Sonnet 5.5) - PR #2812 review finding F1 (da2ce7): 13 crates' keywords
   repeat a word of the crate name, against the "no repeat" rule. The maintainer had approved the
   keyword table, so the rule is amended (a repeat is allowed when it is the word users search for)
   and the approved table is recorded in the metadata rules section.
-- 2026-11-10 UTC - Claude (Sonnet 5.5) - PR #2812 review (da2ce7) F2-F8: recorded M1 and per-AC
+- 2026-11-10 17:45 UTC - Claude (Sonnet 5.5) - PR #2812 review (da2ce7) F2-F8: recorded M1 and per-AC
   evidence in `manual-verification-evidence.md`; made README examples optional in quality-bar
   item 5 (none added, so no doctest hook; the audit says the same); registered the template in
   `docs/index.md` and the `add-workspace-member` skill and noted why it has no frontmatter;
   corrected two audit notes; removed the deprecated `PeerId` and `DurationSinceUnixEpoch` from the
   `primitives` README; fixed the REST API client license wording; updated the spec bookkeeping.
   AC6 is unticked until the merge.
+- 2026-11-10 18:05 UTC - Claude (Sonnet 5.5) - PR #2812 review round 2 (da2ce7) F9, F12, F13 and F14:
+  the keyword rule now lets the approved table list the exceptions; M1 and M3 point at what ran;
+  the stamps carry a time; the baseline wording is corrected. F10 and F11 are answered by the
+  review audit record `docs/pr-reviews/pr-2812-review/PR-REVIEW.md`.
 
 ## Acceptance Criteria
 
@@ -392,9 +396,9 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario                              | Human-oriented command/steps                                                                                    | Expected Result                                                              | Status | Evidence                                     |
 | --- | ------------------------------------- | --------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | ------ | -------------------------------------------- |
-| M1  | Read each README as a new user        | Open each changed README on the pushed branch on GitHub; follow every link                                     | Quality bar met; title matches the crate; every link resolves, except each tier U crate's own docs.rs link, which matches `https://docs.rs/<crate name>` and is recorded as pending | DONE   | `manual-verification-evidence.md` sections V1 to V4 |
+| M1  | Read each README as a new user        | Read each changed README source in the checkout; follow every absolute link with `curl`                                     | Quality bar met; title matches the crate; every link resolves, except each tier U crate's own docs.rs link, which matches `https://docs.rs/<crate name>` and is recorded as pending | DONE   | `manual-verification-evidence.md` sections V1 to V4 |
 | M2  | Read each README as crates.io shows it | For each tier U crate, run `cargo package -p <crate> --list` and read `README.md` with only the packaged files in mind | No link points to a file that is not packaged unless it is an absolute URL | DONE   | `manual-verification-evidence.md` section V2 |
-| M3  | Re-audit                              | Re-rate every package with the audit's quality scale                                                            | No tier U or P package rated stub or minimal                                 | DONE   | `manual-verification-evidence.md` section V3 |
+| M3  | Re-audit                              | Re-rate every package with the audit's quality scale                                                            | No tier U or P package rated stub or minimal                                 | DONE   | `manual-verification-evidence.md` section V4 |
 
 Notes:
 
