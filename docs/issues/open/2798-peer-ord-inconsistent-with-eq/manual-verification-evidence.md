@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2798-peer-ord-inconsistent-with-eq/ISSUE.md
-last-updated-utc: 2026-11-10 13:34
+last-updated-utc: 2026-11-10 17:46
 ---
 
 # Manual Verification Evidence
@@ -18,7 +18,7 @@ Record real, human-oriented verification of the completed behavior. This is evid
 
 - Symptom: for a seeder `a` and a copy `b` with `left = 5`, `a == b` is `false` but `a.cmp(&b)` is `Ordering::Equal`.
 - Hypothesis: `impl Ord for Peer` compares `peer_id` only, while the derived `PartialEq`/`Eq` compare all seven fields.
-- Regression-test boundary (planned, see the spec): a unit test in `packages/primitives/src/peer.rs` asserting that `cmp` is `Equal` exactly when `==`. It is the smallest deterministic maintained test at the causal seam.
+- Regression-test boundary: a `compile_fail` doctest on `Peer` in `packages/primitives/src/peer.rs` that compiles only while `Peer` implements an ordering trait (see the spec, Regression Test Strategy). Option A (remove the ordering) replaced the first plan, a runtime test that `cmp` is `Equal` exactly when `==`.
 
 ## Environment and Prerequisites
 
@@ -79,13 +79,10 @@ test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 47 filtered out; fin
 
 The test passes only because it asserts the buggy outcome: `a != b` yet `cmp` is `Equal`. This violates the `Ord`/`Eq` contract, so the bug is reproduced.
 
-### V2 - Final like-for-like recheck
-
-- Status: `TODO` (after the fix, on the final commit; to be named by its Conventional Commit subject).
-
 ### V2 - Final recheck on the fixed code
 
 - Goal: rerun the V1 throwaway test like-for-like on the fix.
+- Code state: the working tree that became the commit `fix(primitives): [#2798] remove the Ord impl of Peer that disagreed with Eq` (not yet committed when V2 ran).
 - Initial state: `Ord` and `PartialOrd` removed from `Peer`; the throwaway test of V1 appended to `packages/primitives/src/peer.rs`.
 - Status: `DONE`
 
@@ -108,9 +105,20 @@ inconsistency cannot occur. Met. Also run after the fix: `cargo test -p torrust-
 (47 unit tests and the doctests pass, including the `compile_fail` doctest, now green) and
 `cargo test --workspace --no-run` (exit 0).
 
+### Green regression-test output (after the fix)
+
+Run on `test(primitives): [#2798] also guard against a PartialOrd-only Peer ordering` (the final
+code), `cargo test -p torrust-tracker-primitives --doc`:
+
+```text
+running 1 test
+test packages/primitives/src/peer.rs - peer::Peer (line 117) - compile fail ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+```
+
 ## Regression Test Red Run (T4)
 
-Recorded 2026-11-10 16:39 UTC, on the unfixed code (`Peer` still implements `Ord`).
+Recorded 2026-11-10 16:39 UTC, on the working tree with the doctest added and `Ord` still implemented. That state was never committed, because the pre-commit doctest step rejects a failing doctest; this is why T4 and T5 are one commit, `fix(primitives): [#2798] remove the Ord impl of Peer that disagreed with Eq`.
 
 - Test: `compile_fail` doctest on `Peer` in `packages/primitives/src/peer.rs`. It calls
   `fn assert_ord<T: Ord>() {}` with `Peer`, so it compiles only while `Peer: Ord`.
@@ -141,4 +149,4 @@ it guards both).
 
 ## Failures and Follow-up
 
-No failed or blocked process so far. Red and green regression-test output will be recorded here when T4 to T6 run.
+No failed or blocked process. The red run is in the section "Regression Test Red Run (T4)" and the green run in V2 and "Green regression-test output".
