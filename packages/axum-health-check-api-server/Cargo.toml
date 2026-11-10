@@ -1,9 +1,10 @@
 [package]
 authors.workspace = true
-description = "The Torrust Bittorrent HTTP tracker."
+categories = [ "web-programming::http-server" ]
+description = "Health check API server of the Torrust Tracker, used by the container health check."
 edition.workspace = true
 homepage.workspace = true
-keywords = [ "axum", "bittorrent", "healthcheck", "http", "server", "torrust", "tracker" ]
+keywords = [ "axum", "bittorrent", "healthcheck", "http", "monitoring" ]
 license.workspace = true
 name = "torrust-tracker-axum-health-check-api-server"
 publish.workspace = true
