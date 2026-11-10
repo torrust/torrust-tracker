@@ -9,7 +9,7 @@ github-issue: 2798
 spec-path: docs/issues/open/2798-peer-ord-inconsistent-with-eq/ISSUE.md
 branch: "2798-peer-ord-inconsistent-with-eq-spec"
 related-pr: null
-last-updated-utc: "2026-11-10 16:38"
+last-updated-utc: "2026-11-10 16:49"
 semantic-links:
   skill-links:
     - create-issue
@@ -258,9 +258,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T1  | DONE   | Investigate history and intent: why `Eq` compares the whole `Peer` and `Ord` only `peer_id`, and which call sites need which comparison | Findings recorded in this spec (section "Intent and call-site classification"); maintainer reviews them before choosing the fix                                                                                                                                                                                        |
 | T2  | DONE   | Analyse defect and audit usages                                                                                                         | Section "Audit of usages"                                                                                                                                                                                                                                                                                              |
 | T3  | DONE   | Reproduce with a temporary test                                                                                                         | `manual-verification-evidence.md` V1 (reproduced)                                                                                                                                                                                                                                                                      |
-| T4  | TODO   | Add maintained regression tests in `peer.rs`                                                                                            | Red run recorded before the fix. Use the `write-unit-test` skill; one smallest behavior-focused increment at a time; after each passing increment, record a prose-first Arrange-Act-Assert design review in `manual-verification-evidence.md`; then stop for maintainer review before final verification, commit or PR |
-| T5  | TODO   | Apply the maintainer-chosen fix and update `Peer` rustdoc                                                                               | Regression tests pass                                                                                                                                                                                                                                                                                                  |
-| T6  | TODO   | Green run and like-for-like recheck on the final commit                                                                                 | `manual-verification-evidence.md` V2                                                                                                                                                                                                                                                                                   |
+| T4  | DONE   | Add maintained regression tests in `peer.rs`                                                                                            | Red run recorded before the fix. Use the `write-unit-test` skill; one smallest behavior-focused increment at a time; after each passing increment, record a prose-first Arrange-Act-Assert design review in `manual-verification-evidence.md`; then stop for maintainer review before final verification, commit or PR |
+| T5  | DONE   | Apply the maintainer-chosen fix and update `Peer` rustdoc                                                                               | Regression tests pass                                                                                                                                                                                                                                                                                                  |
+| T6  | DONE   | Green run and like-for-like recheck on the final commit                                                                                 | `manual-verification-evidence.md` V2                                                                                                                                                                                                                                                                                   |
 
 ## Commit Points
 
@@ -291,6 +291,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ### Progress Log
 
+- 2026-11-10 16:49 UTC - Claude Code (Claude Sonnet 5.5) - Implemented option A: removed `Ord`/`PartialOrd` from `Peer` and the inherited derives from `PeerList` and `Torrent`; doctest green, workspace builds, V2 recheck recorded - `peer.rs`, `peer_list.rs`, `entry/mod.rs`, evidence
 - 2026-11-10 16:38 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer chose option A; updated the spec (decision, scope, regression strategy as a `compile_fail` doctest, acceptance criteria, risks) - `ISSUE.md`
 - 2026-11-10 15:50 UTC - Claude Code (Claude Sonnet 5.5) - Completed T1: recorded the history of the `Ord` change, the call-site table and the conclusion that production needs no `Peer` ordering; waiting for the maintainer to choose the option - `ISSUE.md`
 - 2026-11-10 13:34 UTC - Claude Code (Claude Sonnet 5.5) - Re-ran the V1 reproduction with a start and an end stamp for each of its three steps (review round 2 of PR 2800) - `manual-verification-evidence.md` V1
@@ -301,10 +302,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ## Acceptance Criteria
 
-- [ ] AC1: `Peer` implements neither `Ord` nor `PartialOrd`, so no ordering can disagree with `==`.
-- [ ] AC2: A maintained unit test fails on current code and passes after the fix (red/green recorded).
-- [ ] AC3: The workspace builds (`cargo test --workspace --no-run`) with the `Ord` derives dropped from `PeerList` and `Torrent`.
-- [ ] AC4: `Peer` rustdoc states that equality is over every field and that there is no ordering.
+- [x] AC1: `Peer` implements neither `Ord` nor `PartialOrd`, so no ordering can disagree with `==`.
+- [x] AC2: A maintained unit test fails on current code and passes after the fix (red/green recorded).
+- [x] AC3: The workspace builds (`cargo test --workspace --no-run`) with the `Ord` derives dropped from `PeerList` and `Torrent`.
+- [x] AC4: `Peer` rustdoc states that equality is over every field and that there is no ordering.
 - [ ] `linter all` exits with code `0`
 - [ ] `cargo test -p torrust-tracker-primitives` passes
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
@@ -323,16 +324,16 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Scenario                                     | Human-oriented command/steps                                                                    | Expected Result                              | Status | Evidence                                     |
 | --- | -------------------------------------------- | ----------------------------------------------------------------------------------------------- | -------------------------------------------- | ------ | -------------------------------------------- |
 | M1  | Reproduce: `eq` false but `cmp` Equal        | Temporary test: `cargo test -p torrust-tracker-primitives --lib throwaway_repro -- --nocapture` | `a == b: false`, `a.cmp(&b): Equal`          | DONE   | `manual-verification-evidence.md` section V1 |
-| M2  | Final recheck, same test on the final commit | Same temporary test re-run on the fixed code                                                    | Test no longer compiles: `Peer` has no `cmp` | TODO   | `manual-verification-evidence.md` section V2 |
+| M2  | Final recheck, same test on the final commit | Same temporary test re-run on the fixed code                                                    | Test no longer compiles: `Peer` has no `cmp` | DONE   | `manual-verification-evidence.md` section V2 |
 
 ### Acceptance Verification
 
 | AC ID | Status | Evidence |
 | ----- | ------ | -------- |
-| AC1   | TODO   | tests    |
-| AC2   | TODO   | evidence |
-| AC3   | TODO   | tests    |
-| AC4   | TODO   | diff     |
+| AC1   | DONE   | tests    |
+| AC2   | DONE   | evidence |
+| AC3   | DONE   | tests    |
+| AC4   | DONE   | diff     |
 
 ## Risks and Trade-offs
 

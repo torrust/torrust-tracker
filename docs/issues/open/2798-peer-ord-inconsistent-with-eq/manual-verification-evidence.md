@@ -83,6 +83,31 @@ The test passes only because it asserts the buggy outcome: `a != b` yet `cmp` is
 
 - Status: `TODO` (after the fix, on the final commit; to be named by its Conventional Commit subject).
 
+### V2 - Final recheck on the fixed code
+
+- Goal: rerun the V1 throwaway test like-for-like on the fix.
+- Initial state: `Ord` and `PartialOrd` removed from `Peer`; the throwaway test of V1 appended to `packages/primitives/src/peer.rs`.
+- Status: `DONE`
+
+Steps, run one at a time (stamps from `date -u +%T.%3N`, 2026-11-10):
+
+1. Append the V1 throwaway test: 16:49:27.816 to 16:49:27.821.
+2. `cargo test -p torrust-tracker-primitives --lib throwaway_repro`: 16:49:27.823 to 16:49:28.893.
+3. Restore the file from a copy taken before step 1 and check it (`cmp` of the copy and the file exited 0, `grep -c throwaway_repro` printed 0): 16:49:33.545 to 16:49:33.551.
+
+Observed result of step 2:
+
+```text
+error[E0599]: `Peer` is not an iterator
+error[E0599]: `Peer` is not an iterator
+error: could not compile `torrust-tracker-primitives` (lib test) due to 2 previous errors
+```
+
+Conclusion: the V1 test no longer compiles, because `Peer` has no `cmp` (`Ord` is gone). The
+inconsistency cannot occur. Met. Also run after the fix: `cargo test -p torrust-tracker-primitives`
+(47 unit tests and the doctests pass, including the `compile_fail` doctest, now green) and
+`cargo test --workspace --no-run` (exit 0).
+
 ## Regression Test Red Run (T4)
 
 Recorded 2026-11-10 16:39 UTC, on the unfixed code (`Peer` still implements `Ord`).
