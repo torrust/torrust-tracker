@@ -1,9 +1,10 @@
 [package]
 authors.workspace = true
-description = "Contract/protocol types for the Torrust Tracker REST API."
+categories = [ "web-programming" ]
+description = "Versioned contract types of the Torrust Tracker management REST API."
 edition.workspace = true
 homepage.workspace = true
-keywords = [ "api", "bittorrent", "contract", "protocol", "torrust", "tracker" ]
+keywords = [ "bittorrent", "contract", "dto", "rest", "serde" ]
 license.workspace = true
 name = "torrust-tracker-rest-api-protocol"
 publish.workspace = true
