@@ -9,7 +9,7 @@ github-issue: 2713
 spec-path: docs/issues/closed/2713-2003-wait-for-pr-review-timeout-overflow-panic/ISSUE.md
 branch: "2713-wait-for-pr-review-timeout-overflow"
 related-pr: 2802
-last-updated-utc: "2026-11-10 15:44"
+last-updated-utc: "2026-11-10 16:05"
 semantic-links:
   skill-links:
     - create-issue
@@ -175,22 +175,24 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   describes ran. The reproduction and lint commands ran between 11:49 and 11:56 UTC, as the command output and
   `manual-verification-evidence.md` record, so the drafting stamp is wrong. The earlier entries are kept unchanged,
   and `last-updated-utc` now holds the time of this edit.
-- 2026-11-10 12:59 UTC - AI assistant (Claude Code) - The maintainer chose option 1 with a maximum of 86400 s. T1: the new
+- 2026-11-10 12:59 UTC - AI assistant (Claude Code, Claude Sonnet 5.5) - The maintainer chose option 1 with a maximum of 86400 s. T1: the new
   tests failed on the unfixed code (oversized value exit `101`, 86401 exit `0`). T2/T4: added
   `MAX_TIMEOUT_SECONDS = 86_400` as the clap range upper bound, updated the `--help` text and the skill table.
   T3: `cargo test -p wait-for-pr-review` and clippy pass; V2 recorded.
-- 2026-11-10 13:28 UTC - AI assistant (Claude Code) - Review round 1 (da2ce7): moved `MAX_TIMEOUT_SECONDS` above the
+- 2026-11-10 13:28 UTC - AI assistant (Claude Code, Claude Sonnet 5.5) - Review round 1 (da2ce7): moved `MAX_TIMEOUT_SECONDS` above the
   `Cli` doc comment so `--help` keeps its description, and added a help-text assertion; renamed `gh_calls` to
   `pull_calls`; V2 rerun on the new build and recorded with the green output; this bookkeeping updated.
 
-- 2026-11-10 13:31 UTC - AI assistant (Claude Code) - Review round 2 (Copilot): reworded the `MAX_TIMEOUT_SECONDS` doc
+- 2026-11-10 13:31 UTC - AI assistant (Claude Code, Claude Sonnet 5.5) - Review round 2 (Copilot): reworded the `MAX_TIMEOUT_SECONDS` doc
   comment (no claim of a guarantee), made the `pull_calls` parse failure explicit, put the recorded stderr in a code
   block. A `checked_add` on the deadline was not added: the spec chose option 1 and this is out of scope.
-- 2026-11-10 14:00 UTC - AI assistant (Claude Code) - Review round 3 (da2ce7): fixed the residuals of F2-F5 and the
+- 2026-11-10 14:00 UTC - AI assistant (Claude Code, Claude Sonnet 5.5) - Review round 3 (da2ce7): fixed the residuals of F2-F5 and the
   stamps, edited the PR description, and added the review audit record `docs/pr-reviews/pr-2802-review/PR-REVIEW.md`.
-- 2026-11-10 15:44 UTC - AI assistant (Claude Code) - Archived: GitHub issue #2713 closed at 15:39 UTC by the merge of
+- 2026-11-10 15:44 UTC - AI assistant (Claude Code, Claude Sonnet 5.5) - Archived: GitHub issue #2713 closed at 15:39 UTC by the merge of
   pull request #2802; the spec moved to `docs/issues/closed/`, the EPIC #2003 row is DONE, and the completion
   checkpoints and the retrospective are recorded.
+- 2026-11-10 16:05 UTC - AI assistant (Claude Code, Claude Sonnet 5.5) - Review of the close-out pull request (Copilot): the
+  agent log entries named the tool but not the model; every entry above now names the model.
 
 ## Acceptance Criteria
 
