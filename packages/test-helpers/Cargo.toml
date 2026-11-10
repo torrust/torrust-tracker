@@ -1,6 +1,7 @@
 [package]
+categories = [ "development-tools::testing" ]
 description = "A library providing helpers for testing the Torrust tracker."
-keywords = [ "helper", "library", "testing" ]
+keywords = [ "bittorrent", "fixtures", "mock", "testing" ]
 name = "torrust-tracker-test-helpers"
 readme = "README.md"
 
