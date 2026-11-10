@@ -59,7 +59,11 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F14 | review-finding:pr-2800-f14 | Copilot | Minor | documentation | RE_RAISE_OF:F5 | NO_ACTION | SUPERSEDED |
 | F15 | review-finding:pr-2800-f15 | Human | Minor | documentation | RE_RAISE_OF:F6 | FIXED | RESOLVED |
 | F16 | review-finding:pr-2800-f16 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
-| F17 | review-finding:pr-2800-f17 | Human | Nit | maintainability | ORIGINAL | NO_ACTION | OPEN |
+| F17 | review-finding:pr-2800-f17 | Human | Nit | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F18 | review-finding:pr-2800-f18 | Human | Minor | documentation | ORIGINAL | FIXED | OPEN |
+| F19 | review-finding:pr-2800-f19 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F20 | review-finding:pr-2800-f20 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F21 | review-finding:pr-2800-f21 | Human | Nit | formatting | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -278,11 +282,63 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Reviewer finding ID: F12
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2800#discussion_r4525443706
 - Concern: One commit carried every fix of round 1.
-- Solution: Not changed for pushed commits: rewriting history is not offered by the push wrapper. Round 2 used one commit per fix.
-- Current-tree verification: `git log` shows the F15 fix and this record as separate commits.
-- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2800#discussion_r4525508087
+- Solution: Pushed commits cannot be rewritten (the push wrapper has no force option). Round 2 used one commit per independent fix; the thread was first left open (round 2) and then replied to as the reviewer suggested (round 3, see F18).
+- Current-tree verification: `git log` shows the F15 fix, the audit record, the pickaxe fix and the log correction as separate commits.
+- Resolution reference: docs(issues): [#2798] stamp start and end of each reproduction step
 - Follow-up PR URL: N/A
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/2800#discussion_r4525508087
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2800#discussion_r4525878160
+
+### F18 - Record F17 as FIXED and resolve its thread
+
+- PR number: 2800
+- Source review ID: 5843126907
+- Reviewer finding ID: F13
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2800#discussion_r4525800461
+- Concern: F17 was recorded NO_ACTION/OPEN, a state the skill keeps for an identity that cannot resolve, and the thread was left unresolved.
+- Solution: Replied on the F17 thread citing a round 2 commit, resolved it, and changed the F17 row to FIXED/RESOLVED.
+- Current-tree verification: Read the F17 row and entry; `isResolved` is true on the F17 thread.
+- Resolution reference: docs(pr-reviews): [#2798] record the round 3 findings
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2800#discussion_r4525878680
+
+### F19 - Update the PR description files and validation
+
+- PR number: 2800
+- Source review ID: 5843126907
+- Reviewer finding ID: F14
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2800#discussion_r4525800474
+- Concern: The description listed two files while the head changes three, and its validation lines were written for an earlier head.
+- Solution: Edited the PR description: added the audit record to Files touched and named the commit the checks last ran on.
+- Current-tree verification: `gh pr view 2800 --json body` shows three files and the named commit.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2800#issuecomment-6769565424
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2800#discussion_r4525879159
+
+### F20 - Correct two statements that came before their events
+
+- PR number: 2800
+- Source review ID: 5843126907
+- Reviewer finding ID: F15
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2800#discussion_r4525800485
+- Concern: The first log entry also recorded review 5842388394, submitted after the next entry commit, and the F16 reply named a commit before it existed.
+- Solution: Appended a log correction (the first entry is not rewritten) and replied on the F16 thread with the validator result.
+- Current-tree verification: Read the end of the Processing Log; `validate-audit-record.py` accepts the ordering.
+- Resolution reference: docs(pr-reviews): [#2798] append a log correction for the first round 1 entry
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2800#discussion_r4525879771
+
+### F21 - Quote the pickaxe command in one code span
+
+- PR number: 2800
+- Source review ID: 5843126907
+- Reviewer finding ID: F16
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2800#discussion_r4525800493
+- Concern: Nested backticks garbled the recorded command.
+- Solution: Quoted the argument inside one code span and searched the records for other nested backticks.
+- Current-tree verification: Read the F1 verification line; `grep` for doubled backticks in the audit and the spec finds none outside code fences.
+- Resolution reference: docs(pr-reviews): [#2798] quote the pickaxe command in one code span
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2800#discussion_r4525880763
 
 ## Processing Log
 
@@ -295,6 +351,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-11-10 13:38 UTC - Posted the `Superseded by` replies on the threads of F11 to F14 (13:37:33 to 13:37:40 UTC), the replies on F15, F17 (13:37:43 and 13:37:45 UTC) and F16 (13:38:00 UTC).
 - 2026-11-10 13:44 UTC - Pushed the audit record (commit "docs(pr-reviews): [#2798] record the PR 2800 review audit", commit time 13:40:53 UTC; `validate-audit-record.py --pr-number 2800` printed `"status": "ok"` with 0 failures) and then resolved the F15 and F16 threads, each returning `isResolved: true`. The F17 thread stays open for the reviewer.
 - 2026-11-10 14:08 UTC - Correction to the first entry (13:07 UTC), which also named review 5842388394 although that review was submitted at 13:12:14 UTC, after the commit recorded in the second entry (13:10:38 UTC): review 5842388394 (Copilot) was submitted at 13:12 UTC with the four comments that became F11 to F14. The first entry is not rewritten.
+- 2026-11-10 14:13 UTC - Review 5843126907 (`da2ce7`, `APPROVED`, submitted 14:05:34 UTC) raised F18 to F21 (its IDs F13 to F16). Committed the F21 fix as "docs(pr-reviews): [#2798] quote the pickaxe command in one code span" (commit time 14:08:12 UTC) and the F20 correction as "docs(pr-reviews): [#2798] append a log correction for the first round 1 entry" (14:09:28 UTC), pushed both, edited the PR description for F19 and posted the PR conversation response (`created_at` 14:12:39 UTC).
+- 2026-11-10 14:13 UTC - Replied on the five threads of F17 to F21 and the F16 thread (`created_at` 14:12:50 to 14:13:04 UTC) and resolved the F17, F19, F20 and F21 threads, each returning `isResolved: true`. The F18 thread stays open until this record is pushed.
 
 ## Completion Rules
 
