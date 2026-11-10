@@ -9,7 +9,7 @@ github-issue: 2798
 spec-path: docs/issues/open/2798-peer-ord-inconsistent-with-eq/ISSUE.md
 branch: "2798-peer-ord-inconsistent-with-eq-spec"
 related-pr: null
-last-updated-utc: "2026-11-10 16:49"
+last-updated-utc: "2026-11-10 17:40"
 semantic-links:
   skill-links:
     - create-issue
@@ -233,10 +233,12 @@ Follows `.github/skills/dev/debugging/fix-bug/SKILL.md`:
 ## Regression Test Strategy
 
 A `compile_fail` doctest on `Peer` (in `peer.rs`), deterministic and with no I/O: it asserts at
-compile time that `Peer` does not implement `Ord`, using a generic function with an `Ord` bound
-(`fn assert_ord<T: Ord>() {}` called with `Peer`). With the buggy code `Peer: Ord` holds, so the
-doctest compiles and `compile_fail` reports a failure: that is the red run, recorded before the
-fix. After the fix the doctest fails to compile as required and passes. A runtime test is not
+compile time that `Peer` implements neither ordering trait, using a generic function with a
+`PartialOrd` bound (`fn assert_partial_ord<T: PartialOrd>() {}` called with `Peer`). `Ord` requires
+`PartialOrd`, so this one bound guards both removals, including a `PartialOrd`-only implementation.
+With the buggy code `Peer: PartialOrd` holds, so the doctest compiles and `compile_fail` reports a
+failure: that is the red run, recorded before the fix. After the fix the doctest fails to compile
+as required and passes. A runtime test is not
 possible for A because there is no ordering left to call. The existing tests that compare whole
 peers with `assert_eq!` keep guarding equality over every field. The workspace build
 (`cargo test --workspace --no-run`) is the guard for the dropped derives in
@@ -291,6 +293,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ### Progress Log
 
+- 2026-11-10 17:40 UTC - Claude Code (Claude Sonnet 5.5) - Review round 1 of PR 2811: changed the doctest bound from `Ord` to `PartialOrd` so it also guards a `PartialOrd`-only implementation - `ISSUE.md`, `peer.rs`, evidence
 - 2026-11-10 16:49 UTC - Claude Code (Claude Sonnet 5.5) - Implemented option A: removed `Ord`/`PartialOrd` from `Peer` and the inherited derives from `PeerList` and `Torrent`; doctest green, workspace builds, V2 recheck recorded - `peer.rs`, `peer_list.rs`, `entry/mod.rs`, evidence
 - 2026-11-10 16:38 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer chose option A; updated the spec (decision, scope, regression strategy as a `compile_fail` doctest, acceptance criteria, risks) - `ISSUE.md`
 - 2026-11-10 15:50 UTC - Claude Code (Claude Sonnet 5.5) - Completed T1: recorded the history of the `Ord` change, the call-site table and the conclusion that production needs no `Peer` ordering; waiting for the maintainer to choose the option - `ISSUE.md`

@@ -117,9 +117,10 @@ pub enum ParsePeerRoleError {
 /// ```compile_fail
 /// use torrust_tracker_primitives::peer::Peer;
 ///
-/// fn assert_ord<T: Ord>() {}
+/// // `Ord` requires `PartialOrd`, so this bound guards both traits.
+/// fn assert_partial_ord<T: PartialOrd>() {}
 ///
-/// assert_ord::<Peer>();
+/// assert_partial_ord::<Peer>();
 /// ```
 #[derive(Debug, Clone, Serialize, Copy, PartialEq, Eq, Hash)]
 pub struct Peer {

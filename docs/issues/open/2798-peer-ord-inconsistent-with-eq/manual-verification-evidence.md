@@ -127,6 +127,18 @@ There is no fixture. The Act is the production type used as the `Ord` bound, and
 result (compilation must fail) is specified independently of the implementation. The red result
 is the contract violation itself: an `Ord` exists that cannot agree with `==`.
 
+## Regression Test Revision (PR 2811 review round 1)
+
+Recorded 2026-11-10 17:40 UTC. A reviewer found that the doctest above checks `Ord` only, so a `PartialOrd`-only
+implementation would keep it green. The bound is now `PartialOrd` (`Ord` requires `PartialOrd`, so
+it guards both).
+
+- `cargo test -p torrust-tracker-primitives --doc` on the fixed code: doctests pass, including the
+  `compile_fail` one.
+- With a temporary id-only `impl PartialOrd for Peer` appended to `peer.rs` (and no `Ord`), the same
+  command fails: "Test compiled successfully, but it's marked `compile_fail`." The temporary
+  implementation was then removed by restoring the file from a copy taken before it.
+
 ## Failures and Follow-up
 
 No failed or blocked process so far. Red and green regression-test output will be recorded here when T4 to T6 run.
