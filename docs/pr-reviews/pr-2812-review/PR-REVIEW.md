@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Reviews of da2ce7, in order: 5846465906 (F1 to F8), 5846866430 (F9 to F14), 5847274601 (F15 to F17), 5847680359 (F18) and 5847973119 (approval with F19; its row is added in the commit after its reply). Copilot review 5846485416 reported no open issues and has no row.
+Reviews of da2ce7, in order: 5846465906 (F1 to F8), 5846866430 (F9 to F14), 5847274601 (F15 to F17), 5847680359 (F18) and 5847973119 (approval with F19) and 5848344870 (approval with F20). Copilot review 5846485416 reported no open issues and has no row.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -64,6 +64,7 @@ Reviews of da2ce7, in order: 5846465906 (F1 to F8), 5846866430 (F9 to F14), 5847
 | F17 | review-finding:pr-2812-f17 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F18 | review-finding:pr-2812-f18 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F19 | review-finding:pr-2812-f19 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F20 | review-finding:pr-2812-f20 | Human | Minor | link-integrity | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -314,6 +315,19 @@ Reviews of da2ce7, in order: 5846465906 (F1 to F8), 5846866430 (F9 to F14), 5847
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2812#discussion_r4529548122
 
+### F20 - The 19:22 log entry names the review head by its branch commit id
+
+- PR number: 2812
+- Source review ID: 5848344870
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2812#discussion_r4529738221
+- Concern: The 19:22 Processing Log entry named a review head by a branch commit id, which a rebase would invalidate, and the F15 verification sentence no longer held.
+- Solution: Replaced the id with "the then head" and corrected the F15 verification sentence. Searched the whole audit for other ids: only the one quoted from the F1 reply is left.
+- Current-tree verification: Ran the commit-id check from `open-pull-request` after the fix; it printed only the F1 reply's id, mapped to its subject in the F1 entry and the log.
+- Resolution reference: docs(pr-reviews): [#2576] remove the branch commit id from the round 5 log entry
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2812#discussion_r4530732328
+
 ## Processing Log
 
 - 2026-11-10 17:35 UTC - Round 1 review of da2ce7 received (review 5846465906, eight findings F1 to F8).
@@ -332,6 +346,8 @@ Reviews of da2ce7, in order: 5846465906 (F1 to F8), 5846866430 (F9 to F14), 5847
 - 2026-11-10 19:22 UTC - Round 5 review of da2ce7 received (review 5847973119: approval at the then head, with F19).
 - 2026-11-10 19:29 UTC - Correction: the 19:05 entry above says both replies came after the push. That holds for the F17 reply (19:05:44 UTC), which cites a pushed commit. The F18 reply (19:05:46 UTC) says the F17 and F18 rows follow "in the next commit", and that commit (`docs(pr-reviews): [#2576] record findings F17 and F18 in the PR 2812 audit`) was created at 19:06:01 UTC, 15 s later; the part of the F18 fix that the reply described as already done (the introduction naming F17) was pushed before it.
 - 2026-11-10 19:32 UTC - F19 fixed in commit `docs(pr-reviews): [#2576] name the fifth review round and correct the F18 reply timing in the audit` (created 19:29:23 UTC) and pushed; the F19 reply was posted at 19:32:14 UTC, after the push.
+- 2026-11-10 19:50 UTC - Round 6 review of da2ce7 received (review 5848344870: approval at the then head, with F20).
+- 2026-11-10 21:26 UTC - F20 fixed in commit `docs(pr-reviews): [#2576] remove the branch commit id from the round 5 log entry` (created 21:22:44 UTC) and pushed; the F20 reply was posted at 21:26:02 UTC, after the push. Correction: the 19:22 entry above was edited in place under F20 (it named the review head by a branch commit id; the text now reads "the then head").
 
 ## Completion Rules
 
