@@ -208,8 +208,8 @@ meant, code already compares `peer_id` explicitly. The maintainer chose A (see D
 
 ## Architectural Decisions
 
-- Related ADRs: none known.
-- ADRs to create: None. The maintainer chose A (a breaking public API change); the versioning ADR above already covers its version consequence, so no new ADR is needed.
+- Related ADRs: `docs/adrs/20260629000000_adopt_independent_package_versioning.md` (the major-version consequence of the breaking change).
+- ADRs to create: None. The maintainer chose A (a breaking public API change); the versioning ADR listed above already covers its version consequence, so no new ADR is needed.
 
 ## Design and Ownership Review
 
