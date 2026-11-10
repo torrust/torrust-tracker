@@ -60,7 +60,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F15 | review-finding:pr-2800-f15 | Human | Minor | documentation | RE_RAISE_OF:F6 | FIXED | RESOLVED |
 | F16 | review-finding:pr-2800-f16 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F17 | review-finding:pr-2800-f17 | Human | Nit | maintainability | ORIGINAL | FIXED | RESOLVED |
-| F18 | review-finding:pr-2800-f18 | Human | Minor | documentation | ORIGINAL | FIXED | OPEN |
+| F18 | review-finding:pr-2800-f18 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F19 | review-finding:pr-2800-f19 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F20 | review-finding:pr-2800-f20 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F21 | review-finding:pr-2800-f21 | Human | Nit | formatting | ORIGINAL | FIXED | RESOLVED |
@@ -353,6 +353,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - 2026-11-10 14:08 UTC - Correction to the first entry (13:07 UTC), which also named review 5842388394 although that review was submitted at 13:12:14 UTC, after the commit recorded in the second entry (13:10:38 UTC): review 5842388394 (Copilot) was submitted at 13:12 UTC with the four comments that became F11 to F14. The first entry is not rewritten.
 - 2026-11-10 14:13 UTC - Review 5843126907 (`da2ce7`, `APPROVED`, submitted 14:05:34 UTC) raised F18 to F21 (its IDs F13 to F16). Committed the F21 fix as "docs(pr-reviews): [#2798] quote the pickaxe command in one code span" (commit time 14:08:12 UTC) and the F20 correction as "docs(pr-reviews): [#2798] append a log correction for the first round 1 entry" (14:09:28 UTC), pushed both, edited the PR description for F19 and posted the PR conversation response (`created_at` 14:12:39 UTC).
 - 2026-11-10 14:13 UTC - Replied on the five threads of F17 to F21 and the F16 thread (`created_at` 14:12:50 to 14:13:04 UTC) and resolved the F17, F19, F20 and F21 threads, each returning `isResolved: true`. The F18 thread stays open until this record is pushed.
+- 2026-11-10 14:18 UTC - Pushed this record (commit "docs(pr-reviews): [#2798] record the round 3 findings", commit time 14:14:32 UTC; `validate-audit-record.py --pr-number 2800` printed `"status": "ok"` with 21 rows and 0 failures), then resolved the F18 thread, returning `isResolved: true`. Every thread of this pull request is now resolved.
 
 ## Completion Rules
 
