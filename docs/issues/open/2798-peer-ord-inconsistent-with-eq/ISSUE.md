@@ -9,7 +9,7 @@ github-issue: 2798
 spec-path: docs/issues/open/2798-peer-ord-inconsistent-with-eq/ISSUE.md
 branch: "2798-peer-ord-inconsistent-with-eq"
 related-pr: 2811
-last-updated-utc: "2026-11-10 17:46"
+last-updated-utc: "2026-11-10 19:22"
 semantic-links:
   skill-links:
     - create-issue
@@ -268,12 +268,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ## Commit Points
 
-| Task | Coherent change set                      | Commit policy                                                                                                                   |
-| ---- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| T1   | Spec update with the T1 findings         | Commit after focused validation and required review.                                                                            |
-| T4   | Regression tests, failing before the fix | Commit each reviewed test-design increment (design review recorded) after focused validation, and only after maintainer review. |
-| T5   | `Ord` fix and rustdoc                    | Commit after focused validation and required review.                                                                            |
-| T6   | Evidence update                          | Commit after focused validation and required review.                                                                            |
+| Task | Coherent change set                      | Commit policy                                                                                                                                                                 |
+| ---- | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T1   | Spec update with the T1 findings         | Commit after focused validation and required review.                                                                                                                          |
+| T4   | Regression tests, failing before the fix | Commit each reviewed test-design increment (design review recorded) after focused validation, and only after maintainer review.                                               |
+| T5   | `Ord` fix and rustdoc                    | Commit after focused validation and required review. Committed together with T4: the pre-commit doctest step rejects the failing doctest, so it could not be committed alone. |
+| T6   | Evidence update                          | Commit after focused validation and required review.                                                                                                                          |
 
 ## Progress Tracking
 
@@ -295,6 +295,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ### Progress Log
 
+- 2026-11-10 19:22 UTC - Claude Code (Claude Sonnet 5.5) - Review round 2 of PR 2811: stated only the red runs that happened for the doctest and recorded a new red run against the reintroduced id-only impls, listed the versioning ADR under Related ADRs, and recorded why no retrospective is needed: the two discoveries (the id-only `Ord` came from the `AnnounceEvent` swap, and the red doctest could not be committed alone so T4 and T5 became one commit) are already recorded in the T1 findings and the evidence, so nothing remains for a separate retrospective - `ISSUE.md`, `manual-verification-evidence.md`
 - 2026-11-10 17:46 UTC - Claude Code (Claude Sonnet 5.5) - Review round 1 of PR 2811 (the `da2ce7` findings): restored the major-version note and corrected the publishability reason, brought the checkpoints, completion review and frontmatter up to date, fixed stale cross-references and an overstated claim, reworded two commit messages, and fixed the evidence file. No Task Reviewer pass ran before this PR was opened, so `agent-review-reports.md` does not exist; the PR review by `da2ce7` and Copilot is the independent review - `ISSUE.md`, `manual-verification-evidence.md`
 - 2026-11-10 17:40 UTC - Claude Code (Claude Sonnet 5.5) - Review round 1 of PR 2811: changed the doctest bound from `Ord` to `PartialOrd` so it also guards a `PartialOrd`-only implementation - `ISSUE.md`, `peer.rs`, evidence
 - 2026-11-10 16:49 UTC - Claude Code (Claude Sonnet 5.5) - Implemented option A: removed `Ord`/`PartialOrd` from `Peer` and the inherited derives from `PeerList` and `Torrent`; doctest green, workspace builds, V2 recheck recorded - `peer.rs`, `peer_list.rs`, `entry/mod.rs`, evidence
@@ -353,7 +354,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ## Implementation Completion Review
 
-- Retrospective: none needed. The one discovery (the id-only `Ord` came from the `AnnounceEvent` swap in `00af70f25`) is recorded in the T1 findings.
+- Retrospective: none needed; the reason is in the progress log (entry on review round 2). Two discoveries are already recorded: the id-only `Ord` came from the `AnnounceEvent` swap in `00af70f25` (T1 findings), and the red doctest could not be committed alone, so T4 and T5 became one commit (evidence, red run).
 - If needed (material discoveries, invalidated assumptions, or design changes), create
   `implementation-retrospective.md` from `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this
   issue specification's directory.
