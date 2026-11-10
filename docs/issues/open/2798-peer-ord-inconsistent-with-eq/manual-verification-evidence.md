@@ -83,6 +83,25 @@ The test passes only because it asserts the buggy outcome: `a != b` yet `cmp` is
 
 - Status: `TODO` (after the fix, on the final commit; to be named by its Conventional Commit subject).
 
+## Regression Test Red Run (T4)
+
+Recorded 2026-11-10 16:39 UTC, on the unfixed code (`Peer` still implements `Ord`).
+
+- Test: `compile_fail` doctest on `Peer` in `packages/primitives/src/peer.rs`. It calls
+  `fn assert_ord<T: Ord>() {}` with `Peer`, so it compiles only while `Peer: Ord`.
+- Command: `cargo test -p torrust-tracker-primitives --doc`
+
+```text
+test packages/primitives/src/peer.rs - peer::Peer (line 117) - compile fail ... FAILED
+Test compiled successfully, but it's marked `compile_fail`.
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out
+```
+
+Design review (Arrange-Act-Assert, prose): the one causal difference is whether `Peer` is `Ord`.
+There is no fixture. The Act is the production type used as the `Ord` bound, and the expected
+result (compilation must fail) is specified independently of the implementation. The red result
+is the contract violation itself: an `Ord` exists that cannot agree with `==`.
+
 ## Failures and Follow-up
 
 No failed or blocked process so far. Red and green regression-test output will be recorded here when T4 to T6 run.

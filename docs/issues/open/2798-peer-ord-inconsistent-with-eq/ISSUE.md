@@ -9,7 +9,7 @@ github-issue: 2798
 spec-path: docs/issues/open/2798-peer-ord-inconsistent-with-eq/ISSUE.md
 branch: "2798-peer-ord-inconsistent-with-eq-spec"
 related-pr: null
-last-updated-utc: "2026-11-10 15:50"
+last-updated-utc: "2026-11-10 16:38"
 semantic-links:
   skill-links:
     - create-issue
@@ -86,12 +86,21 @@ on types that contain a `Peer`.
 
 | Option | Change                                                                       | Public API impact                                                                                                                                                                                                                                                                                                          | Verdict                                                                                                                                                             |
 | ------ | ---------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| A      | Remove `Ord`/`PartialOrd` from `Peer`                                        | Breaking: external sorters stop compiling; `PeerList`/`Torrent` must also drop their derived `Ord`                                                                                                                                                                                                                         | Correct but costs a major version for no in-repo gain                                                                                                               |
+| A      | Remove `Ord`/`PartialOrd` from `Peer`                                        | Breaking: external sorters stop compiling; `PeerList`/`Torrent` must also drop their derived `Ord`                                                                                                                                                                                                                         | **Chosen** by the maintainer (see Decision)                                                                                                                         |
 | B      | Make `Eq`/`Hash` compare `peer_id` only                                      | Breaking in behaviour (silent): `assert_eq!` on peers would ignore state changes; tests such as `should_be_comparable` change meaning                                                                                                                                                                                      | Rejected: equality over the full announce state is relied on by tests and is the safer semantics; a peer with different `left`/`event` is observably different data |
-| C      | Make `Ord`/`PartialOrd` agree with `Eq`: compare all fields, `peer_id` first | Non-breaking for ordering of distinct `peer_id`s (same primary key and order); only ties are now broken by the remaining fields. The derive variant needs new `Ord` impls on `NumberOfBytes` and `AnnounceEvent` (additive, but it makes their order public); the hand-written variant needs none (see the recommendation) | **Recommended**                                                                                                                                                     |
+| C      | Make `Ord`/`PartialOrd` agree with `Eq`: compare all fields, `peer_id` first | Non-breaking for ordering of distinct `peer_id`s (same primary key and order); only ties are now broken by the remaining fields. The derive variant needs new `Ord` impls on `NumberOfBytes` and `AnnounceEvent` (additive, but it makes their order public); the hand-written variant needs none (see the recommendation) | Rejected: keeps an ordering nobody uses                                                                                                                             |
 | D      | Document only                                                                | None                                                                                                                                                                                                                                                                                                                       | Leaves the contract violation; acceptable only as a fallback                                                                                                        |
 
-### Recommendation: C (tentative, pending T1)
+### Decision: A (maintainer, after T1)
+
+After T1 the maintainer chose **A**: remove `Ord` and `PartialOrd` from `Peer`. Reasons: T1 found
+no production code that orders a `Peer`; breaking changes are acceptable because most workspace
+packages are unpublished and external consumers are unlikely; and removing the ordering is the only
+way to make the contract violation impossible. The ordering of the non-id fields in option C would
+be arbitrary, and the id-only order was an accident of the `AnnounceEvent` swap. The analysis of C
+below is kept as the considered alternative.
+
+### Considered alternative: C (not chosen)
 
 It restores the contract with the smallest blast radius: no removal of public API, no change to
 equality or hashing, and the existing order of peers with different ids is unchanged because
@@ -109,8 +118,6 @@ equality or hashing, and the existing order of peers with different ids is uncha
   consistent because the projection is one-to-one. No new impls on other types and no new public
   ordering, at the cost of a private rank that must be kept in step with `AnnounceEvent`'s variants
   (a `match` without a wildcard makes the compiler flag new variants).
-
-**Maintainer decides** (after T1) between A/B/C/D and, for C, between the two variants.
 
 ## Intent and call-site classification
 
@@ -177,26 +184,25 @@ equality in `assert_eq!` is test code. No production code orders or hashes a `Pe
 **Conclusion.** The maintainer's hypothesis holds: whole-peer equality is used by tests and by the
 test-only `Event` equality, and the id-only `Ord` is used by nothing. Production does not need any
 ordering of `Peer`. Option A (remove `Ord` and `PartialOrd` from `Peer`) therefore needs no change
-to in-repo call sites; its cost is the breaking change for external users of the published crate
-(none known, not verified). Where only the id is meant, code already compares `peer_id` explicitly.
-Option C remains the non-breaking alternative. The maintainer decides between A and C (T4 to T6
-wait for that decision).
+to in-repo call sites except the derived `Ord` on `PeerList` and `Torrent`, which only inherited it.
+Its cost is the breaking change for external users (none known, not verified). Where only the id is
+meant, code already compares `peer_id` explicitly. The maintainer chose A (see Decision).
 
 ## Scope
 
 ### In Scope
 
 - Investigate why the two comparisons differ and classify call sites (T1).
-- Make `Peer::cmp` equal exactly when `==` (per the option the maintainer picks).
+- Remove `Ord` and `PartialOrd` from `Peer` (option A, chosen by the maintainer), so no ordering can disagree with `==`.
+- Remove the derived `Ord`/`PartialOrd` from `PeerList` and `Torrent` in `torrent-repository-benchmarking`, which only inherited it.
 - Use explicit `peer_id` comparisons where only the id is meant.
-- A maintained regression test in `packages/primitives`.
-- Update the rustdoc of `Peer` to state the ordering/equality contract.
+- A maintained regression test in `packages/primitives`: a `compile_fail` doctest asserting that `Peer` is not `Ord`.
+- Update the rustdoc of `Peer` to state that equality is over every field and that `Peer` has no ordering.
 
 ### Out of Scope
 
 - The `packages/primitives` test-coverage work (EPIC #1347, separate session).
 - Changing `PeerList`'s keying by `PeerId` or the "duplicate peers with different ids" review note (the `code-review:` comment above `PeerList` in `packages/torrent-repository-benchmarking/src/entry/peer_list.rs`).
-- Dropping the derived `Ord` from `PeerList`/`Torrent` (unrelated unless option A is chosen).
 
 ## Architectural Decisions
 
@@ -226,13 +232,15 @@ Follows `.github/skills/dev/debugging/fix-bug/SKILL.md`:
 
 ## Regression Test Strategy
 
-Unit test at the causal seam (`peer.rs`, existing `test` module), deterministic and with no I/O.
-Inputs: a seeder `a` and a copy `b` with `left = 5`. Asserts, for option C: `a != b` implies
-`a.cmp(&b) != Equal`; `a.cmp(&b)` and `b.cmp(&a)` are reverse of each other; and a peer compares
-`Equal` to an identical copy. A second case checks that peers with different `peer_id`s keep the
-order of their ids regardless of other fields (guards the "ordering of distinct ids unchanged"
-claim). Red run is recorded before the fix; no infeasibility constraints are expected. For
-option A the test becomes a compile-fail/removal check, to be redefined if chosen.
+A `compile_fail` doctest on `Peer` (in `peer.rs`), deterministic and with no I/O: it asserts at
+compile time that `Peer` does not implement `Ord`, using a generic function with an `Ord` bound
+(`fn assert_ord<T: Ord>() {}` called with `Peer`). With the buggy code `Peer: Ord` holds, so the
+doctest compiles and `compile_fail` reports a failure: that is the red run, recorded before the
+fix. After the fix the doctest fails to compile as required and passes. A runtime test is not
+possible for A because there is no ordering left to call. The existing tests that compare whole
+peers with `assert_eq!` keep guarding equality over every field. The workspace build
+(`cargo test --workspace --no-run`) is the guard for the dropped derives in
+`torrent-repository-benchmarking`.
 
 The tests are written with the `write-unit-test` skill, in the smallest behavior-focused increments.
 After each increment passes focused validation, a prose-first Arrange-Act-Assert design review is
@@ -283,6 +291,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ### Progress Log
 
+- 2026-11-10 16:38 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer chose option A; updated the spec (decision, scope, regression strategy as a `compile_fail` doctest, acceptance criteria, risks) - `ISSUE.md`
 - 2026-11-10 15:50 UTC - Claude Code (Claude Sonnet 5.5) - Completed T1: recorded the history of the `Ord` change, the call-site table and the conclusion that production needs no `Peer` ordering; waiting for the maintainer to choose the option - `ISSUE.md`
 - 2026-11-10 13:34 UTC - Claude Code (Claude Sonnet 5.5) - Re-ran the V1 reproduction with a start and an end stamp for each of its three steps (review round 2 of PR 2800) - `manual-verification-evidence.md` V1
 - 2026-11-10 13:09 UTC - Claude Code (Claude Sonnet 5.5) - Addressed review round 1 of PR 2800 (findings F1 to F10): corrected T1 history and the production swarm key, stated the hand-written variant's projection, restored template rows and the test-development loop, rebuilt the evidence file from its template - `ISSUE.md`, `manual-verification-evidence.md`
@@ -292,10 +301,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ## Acceptance Criteria
 
-- [ ] AC1: For any two `Peer`s `a`, `b`: `a.cmp(&b) == Equal` if and only if `a == b`.
+- [ ] AC1: `Peer` implements neither `Ord` nor `PartialOrd`, so no ordering can disagree with `==`.
 - [ ] AC2: A maintained unit test fails on current code and passes after the fix (red/green recorded).
-- [ ] AC3: Peers with different `peer_id`s keep the ordering of their ids (option C).
-- [ ] AC4: `Peer` rustdoc states the equality/ordering contract.
+- [ ] AC3: The workspace builds (`cargo test --workspace --no-run`) with the `Ord` derives dropped from `PeerList` and `Torrent`.
+- [ ] AC4: `Peer` rustdoc states that equality is over every field and that there is no ordering.
 - [ ] `linter all` exits with code `0`
 - [ ] `cargo test -p torrust-tracker-primitives` passes
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
@@ -307,14 +316,14 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 - `linter all`
 - `cargo test -p torrust-tracker-primitives`
-- `cargo test --workspace --no-run` (confirms no other package breaks, important for A and C)
+- `cargo test --workspace --no-run` (confirms no other package breaks)
 
 ### Manual Verification Scenarios
 
-| ID  | Scenario                                     | Human-oriented command/steps                                                                    | Expected Result                       | Status | Evidence                                     |
-| --- | -------------------------------------------- | ----------------------------------------------------------------------------------------------- | ------------------------------------- | ------ | -------------------------------------------- |
-| M1  | Reproduce: `eq` false but `cmp` Equal        | Temporary test: `cargo test -p torrust-tracker-primitives --lib throwaway_repro -- --nocapture` | `a == b: false`, `a.cmp(&b): Equal`   | DONE   | `manual-verification-evidence.md` section V1 |
-| M2  | Final recheck, same test on the final commit | Same temporary test re-run on the fixed code                                                    | `cmp` no longer `Equal` when `a != b` | TODO   | `manual-verification-evidence.md` section V2 |
+| ID  | Scenario                                     | Human-oriented command/steps                                                                    | Expected Result                              | Status | Evidence                                     |
+| --- | -------------------------------------------- | ----------------------------------------------------------------------------------------------- | -------------------------------------------- | ------ | -------------------------------------------- |
+| M1  | Reproduce: `eq` false but `cmp` Equal        | Temporary test: `cargo test -p torrust-tracker-primitives --lib throwaway_repro -- --nocapture` | `a == b: false`, `a.cmp(&b): Equal`          | DONE   | `manual-verification-evidence.md` section V1 |
+| M2  | Final recheck, same test on the final commit | Same temporary test re-run on the fixed code                                                    | Test no longer compiles: `Peer` has no `cmp` | TODO   | `manual-verification-evidence.md` section V2 |
 
 ### Acceptance Verification
 
@@ -327,11 +336,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ## Risks and Trade-offs
 
-- Option C changes `cmp` results for peers that share a `peer_id` but differ elsewhere (previously
+- Option A is a breaking change for any external user of `Ord` on `Peer`; accepted by the maintainer (most packages are unpublished, few consumers expected, not verified).
+- Option C (not chosen) changes `cmp` results for peers that share a `peer_id` but differ elsewhere (previously
   `Equal`). Nothing in the workspace depends on it; external users who did are relying on the bug.
 - Option B would silently change equality semantics for every `assert_eq!`/`==` on peers.
-- Option A is a breaking change to a published crate (major version, per ADR
-  `20260629000000_adopt_independent_package_versioning.md`).
 
 ## Implementation Completion Review
 
