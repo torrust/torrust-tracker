@@ -115,6 +115,10 @@ The maintainer's answers of 2026-10-20 set this scope:
 | LGPL crates                 | Fix the license links and use `LGPL-3.0-only`.                                                                 |
 | Start                       | After #2482 is closed.                                                                                         |
 | Template                    | Add a reusable `docs/templates/PACKAGE-README.md`.                                                             |
+| Stability notice            | Replace the "not ready for production" disclaimers (`http-core`, `tracker-core`, `udp-core`, `tracker-client`, console client) with a version-based note: `0.x` APIs may change in any minor release, versions are independent, built for the tracker first (2026-11-10). |
+| README Rust examples        | Few: only crates meant for reuse (protocol crates, `primitives`, `rest-api-client`, `tracker-client`) and only when the example compiles without a running tracker (2026-11-10). |
+| Versions                    | No version bump here; the publish tracking issue (#2583) releases the new README and metadata of tier P (2026-11-10). |
+| Keywords and categories     | The agent proposes a per-crate table in chat; the maintainer approves it before manifests change (2026-11-10).  |
 
 ### In Scope
 
@@ -222,7 +226,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status  | Task                                                               | Notes / Expected Output                                                                                                                                      |
 | --- | ------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | T1  | DONE    | Confirm the rename issues are closed                               | #1816, #1819, #1821, #1823, #1829 and #1910 are closed (checked 2026-10-20).                                                                                 |
-| T2  | BLOCKED | Wait for #2482 to close, then re-baseline the package set          | Blocked on #2482. Record the `cargo metadata` tiers (including any crate #2482 adds) and the README baseline in `manual-verification-evidence.md`.           |
+| T2  | TODO    | Re-baseline the package set (#2482 closed, verified 2026-11-10)    | Unblocked. Record the `cargo metadata` tiers (including any crate #2482 adds) and the README baseline in `manual-verification-evidence.md`.           |
 | T3  | TODO    | Add the package README template                                    | `docs/templates/PACKAGE-README.md` encodes the quality bar (use the `create-markdown-template` skill); listed in `docs/templates/README.md`.                  |
 | T4  | TODO    | Remove the inherited `documentation` field                         | No member sets or inherits `documentation`; `[workspace.package]` has no `documentation` key; the workspace builds.                                         |
 | T5  | TODO    | Update each tier U and P crate, stubs first, then minimal, then good | Per crate: README from the template, metadata rules, license section, doctest hook when the README has Rust examples. Root crate: metadata only. Console client: metadata and license fix only. |
@@ -252,7 +256,7 @@ Commit.
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [ ] Spec-only PR merged into `develop` before implementation
-- [ ] #2482 closed before implementation starts
+- [x] #2482 closed before implementation starts
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, metadata check, `cargo package --list`, pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
@@ -288,6 +292,12 @@ Commit.
   `cargo metadata --no-deps`: the workspace has 32 members and seven `contrib/dev-tools/` members;
   the 2026-10-20 count missed `workspace-coupling`. The publishable and published counts are
   unchanged. Found while syncing the package catalogs for #1669.
+- 2026-11-10 UTC - Claude (Sonnet 5.5) - Refreshed against `develop` (#2482 closed, so T2 is
+  unblocked): the package tiers are unchanged (22 publishable, 3 `publish = false`, tier P versions
+  in the workspace are `configuration` 3.0.0, `primitives` 3.1.0, `test-helpers` 3.0.0, root
+  3.0.0-develop); the keyword, `documentation`, LGPL and disclaimer findings still hold.
+  Applied the maintainer's answers on the stability notice, README examples, versions and the
+  keyword/category approval (see the decisions table).
 
 ## Acceptance Criteria
 
