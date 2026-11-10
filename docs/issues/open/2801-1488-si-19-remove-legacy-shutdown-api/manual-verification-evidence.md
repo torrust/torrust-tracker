@@ -1,3 +1,5 @@
+<!-- cspell:ignore ltnup -->
+
 # Verification Evidence — Legacy Shutdown API Removal (#2801)
 
 > **Status**: Verified on 2026-11-10 (M1 to M5).
@@ -17,8 +19,10 @@
 - [x] Token-lifecycle migrations: SI-11 to SI-17, SI-23 (#2449) and SI-24 (#2450), all Done in the EPIC table
       `docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md`.
 - [x] #1588 (closed) final task inventory.
-- [x] The maintainer's approval ending the 0.5.x window (chat, 2026-11-10) and the `torrust-server-lib` 0.6.0
-      release notes: torrust/torrust-server-lib#5, PR torrust/torrust-server-lib/pull/6 (`CHANGELOG.md`).
+- [x] The maintainer's approval ending the 0.5.x window (given in chat on 2026-11-10, with no issue or PR comment of
+      its own) and the `torrust-server-lib` 0.6.0 release notes: torrust/torrust-server-lib#5, PR
+      torrust/torrust-server-lib/pull/6 (`CHANGELOG.md`). The maintainer then merged that PR and published 0.6.0, and
+      merged the spec PR torrust/torrust-tracker#2803, whose start gate records the approval.
 - [x] Q4/Q5 decisions and the deployment policy: `docs/features/shutdown-process/questions.md` and
       `docs/containers.md#stopping-the-tracker`.
 
@@ -30,20 +34,44 @@
 - [x] Remaining matches are only archived migration history, ADRs, analysis and the migration guide.
 - [x] No server-library module subscribes to SIGINT or SIGTERM.
 
-**Evidence:**
+**Evidence:** raw output at this head (the search in the last command covers the live specs under
+`docs/issues/open` and `docs/issues/drafts`, whose matches are old descriptions of the legacy API in specs of other
+issues, not uses of it; the lines of that last command are cut at 110 characters, and `(…)` marks one cut):
 
 ```text
-$ git grep -nE "Halted|shutdown_signal_with_message|global_shutdown_signal|HaltSignal|NestedServerTask|run_with_graceful_shutdown|spawn_launcher|LaunchRequest|RunningHttpServer|RunningApiServer|RunningUdpServer" -- '*.rs' '*.toml'
-(no output, exit 1)
+$ git grep -nE "Halted|shutdown_signal_with_message|global_shutdown_signal|HaltSignal|NestedServerTask|run_with_graceful_shutdown|spawn_launcher|LaunchRequest|RunningHttpServer|RunningApiServer|RunningUdpServer" -- "*.rs" "*.toml"
+(exit 1)
 
-$ git grep -nE "tokio::signal|SignalKind|ctrl_c" -- '*.rs' | grep -vE "^(src/main.rs|src/console/profiling.rs|packages/[a-z-]+/examples/)"
-console/tracker-client/src/console/clients/checker/monitor/udp.rs:178:  tokio::signal::ctrl_c()
-console/tracker-client/src/console/clients/checker/monitor/udp.rs:231:  tokio::signal::ctrl_c()
+$ git grep -nE "tokio::signal|SignalKind|ctrl_c" -- "*.rs" | grep -vE "^(src/main.rs|src/console/profiling.rs|packages/[a-z-]+/examples/)"
+console/tracker-client/src/console/clients/checker/monitor/udp.rs:178:            _ = tokio::signal::ctrl_c() => {
+console/tracker-client/src/console/clients/checker/monitor/udp.rs:231:            _ = tokio::signal::ctrl_c() => {
 
-$ git grep -nlE "Halted|HaltSignal|NestedServerTask|global_shutdown_signal|run_with_graceful_shutdown" -- . ':!docs/issues' ':!docs/pr-reviews'
-docs/adrs/ (3 files), docs/analysis/..., docs/features/shutdown-process/ (README, legacy-api-migration, questions, task-inventory),
-docs/media/*.svg, docs/research/...
+$ git grep -nlE "Halted|HaltSignal|NestedServerTask|global_shutdown_signal|run_with_graceful_shutdown" -- . ":!docs/issues" ":!docs/pr-reviews"
+docs/adrs/20260902074438_adopt_supervised_cancellation_tree_for_shutdown.md
+docs/adrs/20261021184946_order_shutdown_by_event_flow_and_drain_event_listeners.md
+docs/analysis/20260716-shutdown-process/README.md
+docs/features/shutdown-process/README.md
+docs/features/shutdown-process/legacy-api-migration.md
+docs/features/shutdown-process/questions.md
+docs/features/shutdown-process/task-inventory.md
+docs/media/flamegraph.svg
+docs/media/flamegraph_generated_without_sudo.svg
+docs/research/20260716-console-shutdown-patterns/README.md
+
+$ the same over the live specs: docs/issues/open and docs/issues/drafts, excluding the SI-19 spec, the EPIC and its own evidence
+docs/issues/drafts/1488-si-9-improve-udp-shutdown/ISSUE.md:48:Replace the UDP server's shutdown `Halted` oneshot (…)
+docs/issues/drafts/1488-si-9-improve-udp-shutdown/ISSUE.md:112:      shutdown `Halted` oneshot or OS-signal li
+docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/ISSUE.md:420:server wrappers already 
+docs/issues/open/1419-allow-multiple-integration-tests-at-main-app-level/completion-plan.md:45:`CancellationTo
+
+$ git grep -nE "run_with_graceful_shutdown" -- docs/issues/drafts/simplify-udp-server-main-loop
+docs/issues/drafts/simplify-udp-server-main-loop/ISSUE.md:99:- Changes to `run_with_graceful_shutdown`.
 ```
+
+The last search also finds the legacy draft `docs/issues/drafts/simplify-udp-server-main-loop/ISSUE.md`, which lists
+`run_with_graceful_shutdown` as out of scope for a UDP main-loop refactor. The pre-commit frontmatter validator refuses to
+stage that file (it has the legacy frontmatter shape and needs a full migration), so the line stays; it describes a
+removed function and is not a use of it.
 
 The two `ctrl_c` hits belong to the `tracker_client check` monitor, a command-line executable and not a server
 library, so they stay at an executable boundary. `src/main.rs`, `src/console/profiling.rs` and the four examples
@@ -73,8 +101,36 @@ $ cargo check --workspace --all-targets
 - [x] Container/service-manager evidence uses the deadlines specified by Q4 (M5).
 - [x] Process results match the Q3 exit-code policy (exit 0 for each stop).
 
-**Evidence:** the script `e2e.sh` execs the binary in the background (so `$!` is the direct PID), waits for readiness,
-sends the signal to that PID, waits at most 20 s, then records the exit status and the listeners left for the PID.
+**Evidence:** the script below (`e2e.sh`, run from the repository root as
+`e2e.sh <name> <SIGINT|SIGTERM as INT|TERM> <command...>`) execs the binary in the background (so `$!` is the direct
+PID), waits for readiness, sends the signal to that PID, waits at most 20 s, then records the exit status and the
+listeners left for the PID. The tracker used `.tmp/2801-tracker.toml`, a copy of the development template with the
+ports `28969`, `28070`, `28212` and `28313` on `127.0.0.1` and a temporary SQLite file.
+
+```sh
+#!/usr/bin/env bash
+# usage: e2e.sh <name> <SIGNAL> <command...>   (run from repo root; command is exec'd so $! is the direct PID)
+name=$1; sig=$2; shift 2
+log=.tmp/2801-$name-$sig.log
+env -u TORRUST_TRACKER_CONFIG_TOML -u TORRUST_TRACKER_CONFIG_TOML_PATH RUST_LOG=info "$@" > "$log" 2>&1 &
+pid=$!
+for i in $(seq 1 100); do
+  if grep -qE "Listening on|Started health check API|started: " "$log" 2>/dev/null; then break; fi
+  sleep 0.2
+done
+sleep 1
+echo "$name/$sig: PID=$pid comm=$(cat /proc/$pid/comm 2>/dev/null)"
+ss -ltnup 2>/dev/null | grep "pid=$pid," | awk '{print "  bound: "$1" "$5}'
+kill -s "$sig" "$pid"
+start=$(date +%s.%N)
+for i in $(seq 1 200); do kill -0 "$pid" 2>/dev/null || break; sleep 0.1; done
+if kill -0 "$pid" 2>/dev/null; then echo "  STILL RUNNING after 20s"; kill -KILL "$pid"; fi
+wait "$pid"; code=$?
+end=$(date +%s.%N)
+LC_ALL=C printf "  exit=%s elapsed=%.1fs\n" "$code" "$(echo "$end - $start" | bc)"
+echo "  remaining listeners for pid: $(ss -ltnup 2>/dev/null | grep -c "pid=$pid,")"
+echo "  shutdown log lines: $(grep -ciE 'shutting down|shutdown' "$log")"
+```
 
 ```text
 tracker/INT: PID=2792986 comm=torrust-tracker

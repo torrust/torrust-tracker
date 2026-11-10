@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p1
 epic: 1488
 github-issue: 2801
 spec-path: docs/issues/open/2801-1488-si-19-remove-legacy-shutdown-api/ISSUE.md
 branch: "2801-remove-legacy-shutdown-api-spec"
-related-pr: null
-last-updated-utc: "2026-11-10 15:47"
+related-pr: 2807
+last-updated-utc: "2026-11-10 16:18"
 semantic-links:
   skill-links:
     - create-issue
@@ -151,7 +151,8 @@ evidence goes in this issue's `manual-verification-evidence.md` (SI-18's gate ev
 
 - [ ] All start-gate evidence is complete and independently reviewed.
 - [x] `Halted` shutdown API and legacy shutdown helpers are removed from their
-      declared packages; `Started` remains available and tested.
+      declared packages; `Started` remains available in `torrust-server-lib` 0.6.0 and
+      is no longer used in this workspace.
 - [x] Server-library code contains no OS-signal subscription.
 - [x] Workspace searches find no legacy shutdown API reference outside archived
       documentation describing the migration history.
@@ -192,7 +193,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2  | DONE | `udp-server`: remove `Server<Stopped>::start`, legacy `Running` and `RunningUdpServer`, `Server<Running>::stop`, `Launcher::run_with_graceful_shutdown`, `Spawner::spawn_launcher`, `LaunchRequest`, `legacy_stop_requested`, `halt_requested`, and the `global_shutdown_signal` use. | Legacy-only tests removed; token lifecycle tests stay. |
 | T3  | DONE | `axum-http-server`, `axum-rest-api-server`, `axum-health-check-api-server`, `axum-server`: remove the legacy `start`, `start_with_health_check`, `stop`, `Running` structs and aliases, `Running::new`, `halt_task`, `rx_halt`, `RunningServer` and `graceful_shutdown`. | Token-aware paths keep their child ownership and join behavior. |
 | T4  | DONE | Root: remove `HaltSignal` and `NestedServerTask` and their tests; bump `torrust-server-lib` to 0.6.0 in every `Cargo.toml`; drop every `#[allow(deprecated)]` added by SI-18 and the compat tests that exist only for removed symbols. | The bump lands with the removals, since 0.6.0 removes `Halted` and an earlier bump would not build. `cargo check --workspace --all-targets` warning-free. |
-| T5 | DONE | Update docs: the migration guide `docs/features/shutdown-process/legacy-api-migration.md` (removed, with history), the shutdown-process docs, and the EPIC row. | Workspace search finds legacy symbols only in archived history. |
+| T5 | DONE | Update docs: the migration guide `docs/features/shutdown-process/legacy-api-migration.md` (removed, with history), and the shutdown-process docs. The EPIC row 19 is flipped to Done by the close-out archive step, as for SI-18 row 18. | Workspace search finds legacy symbols only in archived history. |
 | T6 | DONE | Verify and record evidence: searches, deterministic tests, SIGINT/SIGTERM for the tracker and both standalone examples, container check. | `manual-verification-evidence.md`. |
 
 ## Commit Points
@@ -215,7 +216,7 @@ Sign every commit with GPG.
 - [x] Folder-style spec drafted in `docs/issues/drafts/`, moved to `docs/issues/open/`
 - [x] Spec reviewed and approved by the maintainer (issue creation and spec-only PR approved in chat, 2026-11-10)
 - [x] GitHub issue created and issue number added to this spec (#2801)
-- [ ] Spec-only PR merged into `develop` before implementation
+- [x] Spec-only PR merged into `develop` before implementation (PR 2803)
 - [x] `torrust-server-lib` 0.6.0 published (external dependency, 2026-11-10)
 - [x] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, pre-push checks)
@@ -234,7 +235,8 @@ Sign every commit with GPG.
 - 2026-11-10 13:36 UTC - AI agent (Claude Sonnet 5.5) - Added the implementation-completion-review checkpoint and requirement for Copilot's finding R2 (commit at 13:36:46 UTC).
 - 2026-11-10 13:59 UTC - AI agent (Claude Sonnet 5.5) - Edited the spec for the second review of PR 2803: the 0.6.0 wording reconciled with SI-18 (F11), the removal list stated as the 27 `#[deprecated]` attributes (F12), and these log entries and the stamp corrected (F4). The audit record `docs/pr-reviews/pr-2803-review/PR-REVIEW.md` is added in the same round (F8).
 - 2026-11-10 14:25 UTC - AI agent (Claude Sonnet 5.5) - Edited the spec for the third review of PR 2803: the stamps now match the commit times (F4) and the removal bullet says the HTTP and REST `Running` structs (F15).
-- 2026-11-10 15:47 UTC - AI agent (Claude Sonnet 5.5) - Implemented T2 to T6 on branch `2801-remove-legacy-shutdown-api` after the spec PR 2803 merged: removed the legacy API from `udp-server` and the three axum servers and `axum-server`, removed `HaltSignal` and `NestedServerTask`, bumped `torrust-server-lib` to 0.6.0, and updated the migration guide. `Started` is no longer used inside this workspace; it stays in `torrust-server-lib` 0.6.0. The public `Error::Stop`, `StartupNotification` and `StartupNotificationDropped` variants of the HTTP and REST servers are now unused but were not deprecated, so they stay (candidate follow-up). Evidence in `manual-verification-evidence.md`.
+- 2026-11-10 15:47 UTC - AI agent (Claude Sonnet 5.5) - Implemented T2 to T6 on branch `2801-remove-legacy-shutdown-api` after the spec PR 2803 merged: removed the legacy API from `udp-server` and the three axum servers and `axum-server`, removed `HaltSignal` and `NestedServerTask`, bumped `torrust-server-lib` to 0.6.0, and updated the migration guide. `Started` is no longer used or tested inside this workspace; it stays available in `torrust-server-lib` 0.6.0. The public `Error::Stop`, `StartupNotification` and `StartupNotificationDropped` variants of the HTTP and REST servers are now unused but were not deprecated, so they stay (candidate follow-up). Evidence in `manual-verification-evidence.md`.
+- 2026-11-10 16:18 UTC - AI agent (Claude Sonnet 5.5) - Addressed the first review of PR 2807 (F1 to F11): wording for `Started`, the T5 note, the evidence (raw search output, the script, the approval link), the status and frontmatter, one removed-API line in a live draft, the token-aware owner test, and the docs left by the removal. The audit is `docs/pr-reviews/pr-2807-review/PR-REVIEW.md`.
 
 ## Design and Ownership Review
 
@@ -277,8 +279,8 @@ None.
 
 | AC | Status | Evidence |
 | -- | ------ | -------- |
-| Start-gate evidence complete and reviewed | DONE | M1; independent review: the PR reviews |
-| Legacy API removed, `Started` kept and tested | DONE | M2 and the package tests |
+| Start-gate evidence complete and reviewed | IN_PROGRESS | M1 is DONE; the independent review is the review of the implementation PR 2807, to be recorded in `agent-review-reports.md` or the audit |
+| Legacy API removed; `Started` remains available in `torrust-server-lib` 0.6.0 and is no longer used here | DONE | M2 |
 | No OS-signal subscription in server libraries | DONE | M2 |
 | No legacy reference outside archived history | DONE | M2 |
 | Binaries handle SIGINT/SIGTERM only at their boundaries | DONE | M4 |

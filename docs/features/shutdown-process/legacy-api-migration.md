@@ -47,4 +47,4 @@ calls them.
 
 The five server package crates are unpublished and the root types were never in a published release, so for them
 this guide is in-repo history; only `torrust-server-lib` had a support window (0.5.x), which ended when the
-maintainer approved 0.6.0 on 2026-11-10.
+maintainer approved 0.6.0 on 2026-11-10 (recorded in the start gate of the [SI-19 spec](../../issues/open/2801-1488-si-19-remove-legacy-shutdown-api/ISSUE.md), merged in torrust/torrust-tracker#2803).
