@@ -101,8 +101,10 @@ $ cargo check --workspace --all-targets
 **Evidence:** the script below (`e2e.sh`, run from the repository root as
 `e2e.sh <name> <SIGINT|SIGTERM as INT|TERM> <command...>`) execs the binary in the background (so `$!` is the direct
 PID), waits for readiness, sends the signal to that PID, waits at most 20 s, then records the exit status and the
-listeners left for the PID. The tracker used `.tmp/2801-tracker.toml`, a copy of the development template with the
-ports `28969`, `28070`, `28212` and `28313` on `127.0.0.1` and a temporary SQLite file.
+listeners left for the PID. The tracker used `.tmp/2801-tracker.toml`, a reduced copy of the development template (one UDP
+and one HTTP tracker, the REST API and the health-check API on the ports `28969`, `28070`, `28212` and `28313` on
+`127.0.0.1`, and a temporary SQLite file; the second UDP and HTTP trackers, `[udp_tracker_server]` and
+`[core.tracker_policy]` are left out, and `[health_check_api]` is added).
 
 ```sh
 #!/usr/bin/env bash
