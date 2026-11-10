@@ -87,7 +87,7 @@ before processing it.
 
 `head_sha` is fetched after the reviews and comments in the same result, so it never predates a push
 that the feedback was already about when it was fetched. A push made after the head was fetched is
-not in `head_sha` yet, and the next poll reports it as `head_changed`. A push between the feedback
+not in `head_sha`, and the next poll reports it as `head_changed`. A push between the feedback
 fetch and the head fetch makes `head_moved` true for feedback about the older head: a false alarm,
 never a miss.
 

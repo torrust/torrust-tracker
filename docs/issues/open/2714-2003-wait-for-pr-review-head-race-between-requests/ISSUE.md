@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: planned
+status: in-progress
 priority: p3
 epic: 2003
 github-issue: 2714
 spec-path: docs/issues/open/2714-2003-wait-for-pr-review-head-race-between-requests/ISSUE.md
 branch: "2714-wait-for-pr-review-head-race"
 related-pr: null
-last-updated-utc: "2026-11-10 12:30"
+last-updated-utc: "2026-11-10 14:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -188,6 +188,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   the feedback calls can pass M2. A rerun of the unfixed build at 14:33 UTC gave the same result as V1.
 - 2026-11-10 12:00 UTC - AI assistant (Claude Code) - The maintainer chose option 1 in the implementation session.
 - 2026-11-10 12:30 UTC - AI assistant (Claude Code) - Implemented option 1; tests red then green; V2 recorded.
+- 2026-11-10 14:30 UTC - AI assistant (Claude Code) - Addressed the review of the pull request: spec risks, evidence, an ordinary-case wait test, comment-test trigger, wording.
 
 ## Acceptance Criteria
 
@@ -196,7 +197,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
       and `head_moved` is true for a checkout of the older one.
 - [x] AC2: The ordinary case is unchanged: feedback on the head that was read yields the same result as before.
 - [x] AC3: The skill describes `head_sha` and `head_moved` as they behave after the fix.
-- [ ] `linter all` exits with code `0`
+- [x] `linter all` exits with code `0`
 - [x] Relevant tests pass
 - [x] The final recheck of V1 is recorded in `manual-verification-evidence.md`
 
@@ -231,14 +232,13 @@ It is shell, not Python.
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
 | AC1   | DONE                   | Unit tests in `snapshot.rs` and `wait.rs`; V2 |
-| AC2   | DONE                   | Ordinary-case unit test; existing tests green |
+| AC2   | DONE                   | Ordinary-case tests in `snapshot.rs` and `wait.rs`; existing tests green |
 | AC3   | DONE                   | `SKILL.md` paragraph after the result table |
 
 ## Risks and Trade-offs
 
-- Option 1 adds one request per snapshot, which matters for the rate limit only at a poll interval far below the
-  default of two minutes. Mitigation: none needed at the default; note it in the skill.
-- Option 1 narrows the window but does not close it: a push between the feedback read and the second head read
+- Option 1, as implemented, adds no request: the one pull-request read moves to the end of the snapshot.
+- Option 1 narrows the window but does not close it: a push between the feedback reads and the head read
   makes `head_moved` true for feedback that was about the older head. That is a safe false alarm: the loop
   synchronizes and reads the pull request again.
 - The reproduction is scripted. The spec does not claim to have seen the race on GitHub.

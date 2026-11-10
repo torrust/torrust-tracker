@@ -475,6 +475,38 @@ mod tests {
     }
 
     #[test]
+    fn it_should_not_flag_a_review_of_the_head_that_was_read_when_nothing_moves() {
+        let gh = FakeGh::new();
+        gh.respond(PULL, pull("aaaa", "open", false));
+        gh.respond(
+            REVIEWS,
+            json!([{"id": 2, "user": {"login": "da2ce7"}, "state": "COMMENTED", "commit_id": "aaaa", "html_url": "u", "submitted_at": "2026-10-28T07:00:00Z"}]),
+        );
+        gh.respond(ISSUE_COMMENTS, json!([]));
+        gh.respond(REVIEW_COMMENTS, json!([]));
+        gh.respond(
+            "repos/torrust/torrust-tracker/commits/aaaa",
+            json!({"sha": "aaaa", "commit": {"committer": {"date": "2026-10-28T06:00:00Z"}}}),
+        );
+        let config = Config {
+            since_head_sha: Some("aaaa".to_owned()),
+            ..config()
+        };
+
+        let event = wait(&gh, &FakeClock::default(), &pull_request(), &config).unwrap();
+
+        match event {
+            Event::Review {
+                head_sha, head_moved, ..
+            } => {
+                assert_eq!(head_sha, "aaaa");
+                assert!(!head_moved);
+            }
+            other => panic!("expected a review, got {other:?}"),
+        }
+    }
+
+    #[test]
     fn it_should_not_report_a_head_change_when_the_commit_is_given_as_an_abbreviated_uppercase_sha() {
         let gh = FakeGh::new();
         gh.respond(PULL, pull("abc1234fedcba", "open", false));

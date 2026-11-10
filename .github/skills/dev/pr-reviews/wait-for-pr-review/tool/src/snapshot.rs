@@ -134,8 +134,9 @@ pub fn take_snapshot(gh: &impl Gh, pull_request: &PullRequest) -> Result<Snapsho
     let review_comments = fetch_all(gh, &format!("{pull_endpoint}/comments?per_page=100"))?;
 
     // The head is read after the feedback, not before: a push that a reviewer reviewed while the
-    // feedback was being read is then already in the head, so the head is never older than the
-    // feedback. A push after this read makes the head newer than the feedback, a safe false alarm.
+    // feedback was being read is then already in the head, so the head never predates the feedback.
+    // A push between the feedback reads and this read makes the head newer than the feedback, a safe
+    // false alarm. A push after this read is not in the snapshot; the next poll reports it.
     let pull: PullResponse = decode(&pull_endpoint, gh.get(&pull_endpoint)?)?;
 
     let state = if pull.merged {
@@ -413,7 +414,7 @@ mod tests {
             json!({"head": {"sha": "aaaa"}, "state": "open", "merged": false}),
         );
         gh.replace_after(
-            "repos/torrust/torrust-tracker/pulls/7/reviews?per_page=100",
+            "repos/torrust/torrust-tracker/issues/7/comments?per_page=100",
             "repos/torrust/torrust-tracker/pulls/7",
             json!({"head": {"sha": "bbbb"}, "state": "open", "merged": false}),
         );
@@ -433,10 +434,20 @@ mod tests {
     #[test]
     fn it_should_report_the_head_that_was_read_when_nothing_changed_while_taking_the_snapshot() {
         let gh = FakeGh::new();
-        script(&gh, &json!({"head": {"sha": "aaaa"}, "state": "open", "merged": false}));
+        gh.respond(
+            "repos/torrust/torrust-tracker/pulls/7",
+            json!({"head": {"sha": "aaaa"}, "state": "open", "merged": false}),
+        );
+        gh.respond(
+            "repos/torrust/torrust-tracker/pulls/7/reviews?per_page=100",
+            json!([{"id": 1, "user": {"login": "da2ce7"}, "state": "COMMENTED", "commit_id": "aaaa", "html_url": "u", "submitted_at": "2026-10-28T07:00:00Z"}]),
+        );
+        gh.respond("repos/torrust/torrust-tracker/issues/7/comments?per_page=100", json!([]));
+        gh.respond("repos/torrust/torrust-tracker/pulls/7/comments?per_page=100", json!([]));
 
         let snapshot = take_snapshot(&gh, &pull_request()).unwrap();
 
+        assert_eq!(snapshot.reviews[0].commit_id.as_deref(), Some("aaaa"));
         assert_eq!(snapshot.head_sha, "aaaa");
         assert_eq!(snapshot.state, PullState::Open);
     }
