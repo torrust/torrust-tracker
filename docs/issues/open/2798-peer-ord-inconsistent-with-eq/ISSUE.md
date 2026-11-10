@@ -9,7 +9,7 @@ github-issue: 2798
 spec-path: docs/issues/open/2798-peer-ord-inconsistent-with-eq/ISSUE.md
 branch: "2798-peer-ord-inconsistent-with-eq-spec"
 related-pr: null
-last-updated-utc: "2026-11-10 13:09"
+last-updated-utc: "2026-11-10 13:34"
 semantic-links:
   skill-links:
     - create-issue
@@ -250,6 +250,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ### Progress Log
 
+- 2026-11-10 13:34 UTC - Claude Code (Claude Sonnet 5.5) - Re-ran the V1 reproduction with a start and an end stamp for each of its three steps (review round 2 of PR 2800) - `manual-verification-evidence.md` V1
 - 2026-11-10 13:09 UTC - Claude Code (Claude Sonnet 5.5) - Addressed review round 1 of PR 2800 (findings F1 to F10): corrected T1 history and the production swarm key, stated the hand-written variant's projection, restored template rows and the test-development loop, rebuilt the evidence file from its template - `ISSUE.md`, `manual-verification-evidence.md`
 - 2026-11-10 12:34 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the spec; created GitHub issue 2798; moved spec to `docs/issues/open/` for a spec-only PR - `ISSUE.md`
 - 2026-11-10 12:20 UTC - Claude Code (Claude Sonnet 5.5) - Added T1 (history and intent investigation) and the maintainer position, per maintainer request - `ISSUE.md`

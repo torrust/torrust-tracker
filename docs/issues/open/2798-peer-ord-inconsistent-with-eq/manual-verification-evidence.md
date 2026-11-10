@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2798-peer-ord-inconsistent-with-eq/ISSUE.md
-last-updated-utc: 2026-11-10 13:09
+last-updated-utc: 2026-11-10 13:34
 ---
 
 # Manual Verification Evidence
@@ -32,15 +32,15 @@ Record real, human-oriented verification of the completed behavior. This is evid
 ### V1 - Reproduce: `eq` false but `cmp` Equal
 
 - Goal: observe the wrong outcome.
-- Initial state: `git diff --quiet HEAD -- packages/primitives/src/peer.rs` exited 0 before the test was appended.
+- Initial state: `git diff --quiet HEAD -- packages/primitives/src/peer.rs` exited 0 before step 1 started.
 - Status: `DONE`
 - Outcome: **Reproduced**
 
 #### Steps Performed
 
-Dependent steps ran one at a time, in this order.
+Dependent steps ran one at a time, in this order, each starting after the previous one ended. Stamps are UTC, taken with `date -u +%T.%3N` on 2026-11-10 around each step.
 
-1. 13:09:27.365 UTC: appended this temporary test to `packages/primitives/src/peer.rs`:
+1. Start 13:33:30.331, end 13:33:30.334: appended this temporary test to `packages/primitives/src/peer.rs`:
 
    ```rust
    #[cfg(test)]
@@ -62,8 +62,8 @@ Dependent steps ran one at a time, in this order.
    }
    ```
 
-2. 13:09:27.365 to 13:09:27.754 UTC: ran `cargo test -p torrust-tracker-primitives --lib throwaway_repro -- --nocapture`.
-3. 13:09:27.761 UTC: reverted with `git checkout -- packages/primitives/src/peer.rs`. Afterwards `git diff --quiet HEAD -- packages/primitives/src/peer.rs` exited 0, so the file equals `HEAD` again.
+2. Start 13:33:31.339, end 13:33:31.692: ran `cargo test -p torrust-tracker-primitives --lib throwaway_repro -- --nocapture`.
+3. Start 13:33:32.696, end 13:33:32.703: reverted with `git checkout -- packages/primitives/src/peer.rs`. After it ended, `git diff --quiet HEAD -- packages/primitives/src/peer.rs` exited 0, so the file equals `HEAD` again.
 
 #### Observed Result
 
@@ -77,7 +77,7 @@ test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 47 filtered out; fin
 
 #### Conclusion
 
-The test passes only because it asserts the buggy outcome: `a != b` yet `cmp` is `Equal`. This violates the `Ord`/`Eq` contract, so the bug is reproduced. The first reproduction of this bug, run earlier in the session on an older base, printed the same two lines; this timestamped run supersedes it.
+The test passes only because it asserts the buggy outcome: `a != b` yet `cmp` is `Equal`. This violates the `Ord`/`Eq` contract, so the bug is reproduced.
 
 ### V2 - Final like-for-like recheck
 
