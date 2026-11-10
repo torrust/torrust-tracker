@@ -62,7 +62,7 @@ pub struct CancellationRunning {
 /// `readiness` is read on every `/health_check` request: while it is not ready the endpoint
 /// answers `503 Service Unavailable` without probing any registered service.
 ///
-/// This additive path does not subscribe to operating-system signals. It
+/// This path does not subscribe to operating-system signals. It
 /// registers the service and, if registration fails, cancels
 /// `cancellation_token`, stops both children, and releases the listener before
 /// returning. Otherwise the caller owns the returned runtime task and drain

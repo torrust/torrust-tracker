@@ -60,7 +60,7 @@ impl Server<Stopped> {
 
     /// Starts the UDP server using an injected cancellation token.
     ///
-    /// This additive path does not subscribe to operating-system signals and
+    /// This path does not subscribe to operating-system signals and
     /// has no launcher task. It registers the service and, if registration
     /// fails, cancels `cancellation_token`, stops the receive loop, and
     /// releases the socket before returning. Otherwise the caller owns the

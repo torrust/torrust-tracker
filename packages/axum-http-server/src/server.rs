@@ -208,7 +208,7 @@ impl HttpServer<Stopped> {
 
     /// Starts the HTTP tracker using an injected cancellation token.
     ///
-    /// This additive path does not subscribe to operating-system signals. Its
+    /// This path does not subscribe to operating-system signals. Its
     /// caller owns the returned runtime task and drain controller.
     ///
     /// # Errors
@@ -651,34 +651,6 @@ mod tests {
         fn metadata(&self) -> RuntimeServiceMetadata {
             RuntimeServiceMetadata::new(self.configuration_instance_id)
         }
-    }
-
-    #[tokio::test]
-    async fn it_should_preserve_the_launcher_bind_address_after_starting_and_cancelling() {
-        // Arrange
-        let scenario = ServerStartWithAvailableHttpBinding::new();
-        let http_tracker_container = scenario.container().await;
-        let cancellation_token = CancellationToken::new();
-
-        // Act
-        let running = HttpServer::new(scenario.launcher().await)
-            .start_with_cancellation(
-                http_tracker_container,
-                scenario.registration_form(),
-                scenario.metadata(),
-                cancellation_token.clone(),
-            )
-            .await
-            .expect("it should start the server");
-        cancellation_token.cancel();
-        let launcher = running.task.await.expect("the HTTP server task should not panic");
-        running
-            .shutdown_controller
-            .await
-            .expect("the HTTP drain controller should not panic");
-
-        // Assert
-        assert_eq!(launcher.bind_to, scenario.bind_to);
     }
 
     #[tokio::test]

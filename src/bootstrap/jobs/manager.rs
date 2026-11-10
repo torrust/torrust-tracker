@@ -1104,6 +1104,51 @@ mod tests {
         assert!(completion_sender.send(()).is_err());
     }
 
+    #[tokio::test]
+    async fn it_should_abort_a_token_aware_server_task_and_its_shutdown_controller_when_the_component_is_aborted_after_the_deadline()
+     {
+        // Arrange
+        let mut manager = JobManager::new();
+        let (server_completion_sender, server_completion_receiver) = oneshot::channel::<()>();
+        let (controller_completion_sender, controller_completion_receiver) = oneshot::channel::<()>();
+        let (server_ready_sender, server_ready_receiver) = oneshot::channel();
+        reserve_and_spawn(&mut manager, "server-component", async move {
+            let mut server = super::TokenAwareServerTask::new(
+                tokio::spawn(async move {
+                    let _ = server_completion_receiver.await;
+                }),
+                tokio::spawn(async move {
+                    let _ = controller_completion_receiver.await;
+                }),
+            );
+            server_ready_sender
+                .send(())
+                .expect("the test waits until the nested server owner is constructed");
+            server
+                .join()
+                .await
+                .map_err(|error| ComponentError::new(format!("server task failed: {error}")))?;
+            Ok(ComponentCompletion::Completed)
+        });
+
+        // Act
+        server_ready_receiver
+            .await
+            .expect("the nested server owner must be constructed before the deadline starts");
+        let outcomes = manager.wait_for_all(Duration::ZERO).await;
+
+        // Assert
+        assert_eq!(outcomes[0].status, JobStatus::Aborted);
+        assert!(
+            server_completion_sender.send(()).is_err(),
+            "the nested server receiver must be dropped after the outer task abort"
+        );
+        assert!(
+            controller_completion_sender.send(()).is_err(),
+            "the shutdown controller receiver must be dropped after the outer task abort"
+        );
+    }
+
     #[tokio::test(start_paused = true)]
     async fn it_should_apply_the_same_deadline_to_direct_and_legacy_jobs() {
         // Arrange

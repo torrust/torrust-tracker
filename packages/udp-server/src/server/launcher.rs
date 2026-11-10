@@ -37,7 +37,7 @@ pub(crate) struct StartedReceiveLoop {
     pub task: JoinHandle<Result<(), std::io::Error>>,
 }
 
-/// Aborts the receive loop if its owner is dropped before joining it or handing it on.
+/// Aborts the receive loop if its owner is dropped before handing it on.
 pub(crate) struct OwnedReceiveLoop(Option<JoinHandle<Result<(), std::io::Error>>>);
 
 impl OwnedReceiveLoop {

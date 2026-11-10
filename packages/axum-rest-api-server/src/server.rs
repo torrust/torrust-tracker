@@ -1,28 +1,20 @@
 //! Logic to run the HTTP API server.
 //!
-//! It contains two main structs: `ApiServer` and `Launcher`,
-//! and two main functions: `start` and `start_tls`.
+//! It contains two main structs: `ApiServer` and `Launcher`.
 //!
 //! The `ApiServer` struct is responsible for:
-//! - Starting and stopping the server.
+//! - Starting the server with an injected `CancellationToken`.
 //! - Storing the configuration.
 //!
-//! `ApiServer` relies on a launcher to start the actual server.
-///
-/// 1. `ApiServer::start` -> spawns new asynchronous task.
-/// 2. `Launcher::start` -> starts the server on the spawned task.
-///
-/// The `Launcher` struct is responsible for:
-///
-/// - Knowing how to start the server with graceful shutdown.
-///
-/// For the time being the `ApiServer` and `Launcher` are only used in tests
-/// where we need to start and stop the server multiple times. In production
-/// code and the main application uses the `start` and `start_tls` functions
-/// to start the servers directly since we do not need to control the server
-/// when it's running. In the future we might need to control the server,
-/// for example, to restart it to apply new configuration changes, to remotely
-/// shutdown the server, etc.
+//! `ApiServer::start_with_cancellation` starts the server and returns a
+//! `CancellationRunning`, whose `task` and `shutdown_controller` the caller
+//! owns and joins after cancelling the token.
+//!
+//! The `Launcher` struct holds the bind address, the optional TLS
+//! configuration and the drain timeout.
+//!
+//! The application starts the server through `start_with_cancellation`. Tests
+//! use the same path and start and stop the server multiple times.
 use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::Duration;
@@ -130,7 +122,7 @@ impl ApiServer<Stopped> {
 
     /// Starts the REST API using an injected cancellation token.
     ///
-    /// This additive path does not subscribe to operating-system signals. Its
+    /// This path does not subscribe to operating-system signals. Its
     /// caller owns the returned runtime task and drain controller.
     ///
     /// # Errors

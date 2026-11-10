@@ -12,16 +12,17 @@ pub mod request_buffer;
 pub mod spawner;
 pub mod states;
 
-/// Error that can occur when starting or stopping the UDP server.
+/// Error that can occur when starting the UDP server.
 ///
 /// Some errors triggered while starting the server are:
 ///
 /// - The server cannot bind to the given address.
-/// - It cannot get the bound address.
+/// - The service cannot be registered.
 ///
-/// Some errors triggered while stopping the server are:
-///
-/// - The [`Server`] cannot send the shutdown signal to the spawned UDP service thread.
+/// `StartupNotification`, `Launcher` and `FailedToStartOrStopServer` belong to
+/// the legacy start and stop path that SI-19 removed. They are no longer
+/// constructed and stay only to keep the enum's public surface unchanged until
+/// the next breaking cleanup.
 #[derive(Debug, Error)]
 #[non_exhaustive]
 pub enum UdpError {
