@@ -154,8 +154,9 @@ evidence goes in this issue's `manual-verification-evidence.md` (SI-18's gate ev
       declared packages; `Started` remains available in `torrust-server-lib` 0.6.0 and
       is no longer used in this workspace.
 - [x] Server-library code contains no OS-signal subscription.
-- [x] Workspace searches find no legacy shutdown API reference outside archived
-      documentation describing the migration history.
+- [x] Workspace searches find no use of the legacy shutdown API. Descriptions of it
+      remain only in archived documentation and migration history, and in five lines
+      of live specs of other issues (see the evidence, Test 1).
 - [x] The tracker binary and standalone HTTP/UDP examples handle SIGINT and
       Unix SIGTERM only at their executable boundaries.
 - [x] Deterministic tests request cancellation through tokens/lifecycle APIs and
@@ -193,7 +194,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2  | DONE | `udp-server`: remove `Server<Stopped>::start`, legacy `Running` and `RunningUdpServer`, `Server<Running>::stop`, `Launcher::run_with_graceful_shutdown`, `Spawner::spawn_launcher`, `LaunchRequest`, `legacy_stop_requested`, `halt_requested`, and the `global_shutdown_signal` use. | Legacy-only tests removed; token lifecycle tests stay. |
 | T3  | DONE | `axum-http-server`, `axum-rest-api-server`, `axum-health-check-api-server`, `axum-server`: remove the legacy `start`, `start_with_health_check`, `stop`, `Running` structs and aliases, `Running::new`, `halt_task`, `rx_halt`, `RunningServer` and `graceful_shutdown`. | Token-aware paths keep their child ownership and join behavior. |
 | T4  | DONE | Root: remove `HaltSignal` and `NestedServerTask` and their tests; bump `torrust-server-lib` to 0.6.0 in every `Cargo.toml`; drop every `#[allow(deprecated)]` added by SI-18 and the compat tests that exist only for removed symbols. | The bump lands with the removals, since 0.6.0 removes `Halted` and an earlier bump would not build. `cargo check --workspace --all-targets` warning-free. |
-| T5 | DONE | Update docs: the migration guide `docs/features/shutdown-process/legacy-api-migration.md` (removed, with history), and the shutdown-process docs. The EPIC row 19 is flipped to Done by the close-out archive step, as for SI-18 row 18. | Workspace search finds legacy symbols only in archived history. |
+| T5 | DONE | Update docs: the migration guide `docs/features/shutdown-process/legacy-api-migration.md` (removed, with history), and the shutdown-process docs. The EPIC row 19 is flipped to Done by the close-out archive step, as for SI-18 row 18. | Workspace search finds no use of the legacy symbols; descriptions remain in archived docs and the listed live specs. |
 | T6 | DONE | Verify and record evidence: searches, deterministic tests, SIGINT/SIGTERM for the tracker and both standalone examples, container check. | `manual-verification-evidence.md`. |
 
 ## Commit Points
@@ -263,7 +264,7 @@ Executable-boundary verification follows the EPIC protocol (signal each direct P
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | -- | -------- | ---------------------------- | --------------- | ------ | -------- |
 | M1 | Start-gate evidence | Link SI-18 evidence, the migration issues, #1588, Q5, the approval and the 0.6.0 release. | Every gate item has a link or command output. | DONE | `manual-verification-evidence.md` |
-| M2 | Legacy symbols removed | `git grep` for `Halted`, `shutdown_signal`, `global_shutdown_signal`, `HaltSignal`, `NestedServerTask`, `run_with_graceful_shutdown`, `spawn_launcher`, `LaunchRequest` and `tokio::signal` outside executables. | Only archived history matches. | DONE | `manual-verification-evidence.md` |
+| M2 | Legacy symbols removed | `git grep` for `Halted`, `shutdown_signal`, `global_shutdown_signal`, `HaltSignal`, `NestedServerTask`, `run_with_graceful_shutdown`, `spawn_launcher`, `LaunchRequest` and `tokio::signal` outside executables. | No use remains; descriptions match only in archived history and the live specs the evidence lists. | DONE | `manual-verification-evidence.md` |
 | M3 | Token lifecycle owns completion | Run the component tests that cancel an injected token. | Owned children joined; no OS signal needed. | DONE | `manual-verification-evidence.md` |
 | M4 | Tracker and standalone binaries | SIGINT and SIGTERM to the tracker and both standalone examples. | One application-owned shutdown sequence each; bindings released. | DONE | `manual-verification-evidence.md` |
 | M5 | Container / service manager | Stop the container per `docs/containers.md#stopping-the-tracker`. | Orderly shutdown within the Q4 deadline; result per Q3. | DONE | `manual-verification-evidence.md` |
@@ -282,7 +283,7 @@ None.
 | Start-gate evidence complete and reviewed | IN_PROGRESS | M1 is DONE; the independent review is the review of the implementation PR 2807, to be recorded in `agent-review-reports.md` or the audit |
 | Legacy API removed; `Started` remains available in `torrust-server-lib` 0.6.0 and is no longer used here | DONE | M2 |
 | No OS-signal subscription in server libraries | DONE | M2 |
-| No legacy reference outside archived history | DONE | M2 |
+| No use of the removed API remains; descriptions remain in archived docs and five lines of live specs | DONE | M2 |
 | Binaries handle SIGINT/SIGTERM only at their boundaries | DONE | M4 |
 | Deterministic token tests | DONE | M3 |
 | End-to-end SIGINT/SIGTERM, one sequence | DONE | M4 |

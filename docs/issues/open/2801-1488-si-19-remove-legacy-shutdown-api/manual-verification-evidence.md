@@ -31,7 +31,7 @@
 ### Test 1: Legacy symbols and library signal handling are gone
 
 - [x] Search the workspace for removed `Halted` shutdown symbols and legacy signal helpers.
-- [x] Remaining matches are only archived migration history, ADRs, analysis and the migration guide.
+- [x] No use of the removed API remains. Descriptions of it match in archived migration history, ADRs, analysis and the migration guide, and in five lines of four live specs of other issues (listed below).
 - [x] No server-library module subscribes to SIGINT or SIGTERM.
 
 **Evidence:** output at this head. The last search covers the live specs under `docs/issues/open` and
