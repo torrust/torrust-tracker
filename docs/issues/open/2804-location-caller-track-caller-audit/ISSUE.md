@@ -9,7 +9,7 @@ github-issue: 2804
 spec-path: docs/issues/open/2804-location-caller-track-caller-audit/ISSUE.md
 branch: "2804-location-caller-track-caller-audit-spec"
 related-pr: null
-last-updated-utc: "2026-11-10 13:55"
+last-updated-utc: "2026-11-10 14:25"
 semantic-links:
   skill-links:
     - create-issue
@@ -31,16 +31,21 @@ those locations reach production output, and fix them with one consistent, teste
 
 ## Background
 
-Reported while adding tests to `packages/primitives` (EPIC #1347, finding F3). Confirmed with
-throwaway tests on 2026-11-10:
+Reported while adding tests to `packages/primitives` under EPIC #1347
+(`docs/issues/open/1347-overhaul-packages-testing/EPIC.md`); the reporting session recorded it as its
+finding F3. That finding is not in the repository yet, so this spec quotes it: `"x".parse::<PeerRole>()`
+reports a fixed line in `peer.rs`, and `#[track_caller]` on `from_str` does not fix calls through
+`str::parse`. Reproduced on 2026-11-10 (see
+[`manual-verification-evidence.md`](manual-verification-evidence.md), V1; outcome: Reproduced):
 
-- `impl FromStr for PeerRole` builds `ParsePeerRoleError::InvalidPeerRole { location:
-Location::caller(), .. }` inside `from_str`, which is not `#[track_caller]`.
+- `impl FromStr for PeerRole` builds `ParsePeerRoleError::InvalidPeerRole` with
+  `location: Location::caller()` inside `from_str`, which is not `#[track_caller]`.
   `"x".parse::<PeerRole>()` therefore reports `packages/primitives/src/peer.rs:73:27` for every
-  caller.
+  caller (stable `rustc 1.99.1`).
 - Adding `#[track_caller]` to `from_str` is only a partial fix. A direct `PeerRole::from_str("x")`
   then reports the caller's line, but `str::parse` is not `#[track_caller]`, so
-  `"x".parse::<PeerRole>()` reports `core/src/str/mod.rs:2783:9` inside the standard library.
+  `"x".parse::<PeerRole>()` reports `core/src/str/mod.rs:2783:9` inside the standard library (stable `rustc 1.99.1`; the std path and line depend on
+  the toolchain, and the workspace sets only `rust-version = "1.88"`).
 
 Without `#[track_caller]`, `Location::caller()` is just "the line where it is written" (the same
 information as `file!()`/`line!()`). It is not wrong as a _detection site_, but it is wrong when the
@@ -50,34 +55,37 @@ error is meant to say _who called_, and it is noise when the text reaches users.
 
 A first pass over `torrust/develop` (2026-11-10) found 68 lines matching
 `Location::caller()|track_caller` in 30 files (the count includes 6 in
-`packages/axum-http-server/tests/server/asserts.rs`; roughly half of the remaining production-looking
-sites are in `#[cfg(test)]` code and must be re-checked). `#[track_caller]` appears only 3 times:
+`packages/axum-http-server/tests/server/asserts.rs`; of the other 62 lines, 21 are in `#[cfg(test)]` modules, one of them a comment, and 41 are
+production: 38 `Location::caller()` lines plus the 3 attributes; T1 must confirm the split). `#[track_caller]` appears only 3 times:
 `packages/configuration/src/lib.rs:348` and `packages/tracker-core/src/databases/error.rs:112` and
-`:139`. All three are `From` impls that call `Located(..).into()`, which is the correct pattern
-(`Into::into` in `torrust-located-error` is `#[track_caller]`).
+`:139`. All three are `From` impls that call `(Arc::new(err) as DynError).into()`, the crate's `DynError`
+conversion. In `torrust-located-error` 3.0.0 both the `Located` and the `DynError` `Into` impls are
+`#[track_caller]`, so this is the correct pattern.
 
 Candidate wrong sites in non-test code (none is `#[track_caller]`):
 
-| Area                          | Examples                                                                                                                                                                                  | Why the location is not the caller's                                                                             |
-| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| trait impls                   | `PeerRole::from_str`, `NameValuePair::from_str`, announce `FromStr` impls (`primitives/src/peer.rs`, `http-protocol/src/v1/query.rs`, `requests/announce.rs`)                             | Reached through `str::parse`, which is not `#[track_caller]`; trait dispatch hides the real caller               |
-| trait impls                   | `peer::Id::try_from(Vec<u8>)`                                                                                                                                                             | `TryFrom::try_from` called via `.try_into()` or generics                                                         |
-| private helpers               | `extract_info_hash`, `extract_peer_id`, `extract_port`, `extract_numwant`, `extract_number_of_bytes_from_param` (`http-protocol/.../announce.rs`), scrape equivalent                      | Location is the helper line, never the request                                                                   |
-| `const fn` and small helpers  | `ClientIpSources::try_client_ip_from_*` (`peer_ip_resolver.rs`)                                                                                                                           | Fixed line                                                                                                       |
-| async fns                     | database drivers (`sqlite`/`mysql`/`postgres` `whitelist_store.rs`, `auth_key_store.rs`: `InsertFailed`, `DeleteFailed`), `authorize`, `verify_auth_key`, `make_rust_tls`, `authenticate` | `#[track_caller]` is not usable on async fns in stable Rust (to verify in T1); the location is inside the future |
-| HTTP extractors               | `parse_key`, `custom_error`, `extract_announce_from`, `extract_scrape_from` (`axum-http-server`)                                                                                          | Fixed line in the extractor                                                                                      |
-| sync fns that return an error | `verify_key_expiration` (`tracker-core/.../key/mod.rs`)                                                                                                                                   | Fixed line                                                                                                       |
+| Area                          | Examples                                                                                                                                                                                  | Why the location is not the caller's                                                                                                                                                                                 |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| trait impls                   | `PeerRole::from_str`, `NameValuePair::from_str`, announce `FromStr` impls (`primitives/src/peer.rs`, `http-protocol/src/v1/query.rs`, `requests/announce.rs`)                             | Reached through `str::parse`, which is not `#[track_caller]`; trait dispatch hides the real caller                                                                                                                   |
+| trait impls                   | `peer::Id::try_from(Vec<u8>)`                                                                                                                                                             | `TryFrom::try_from` called via `.try_into()` or generics                                                                                                                                                             |
+| private helpers               | `extract_info_hash`, `extract_peer_id`, `extract_port`, `extract_numwant`, `extract_number_of_bytes_from_param` (`http-protocol/.../announce.rs`), scrape equivalent                      | Location is the helper line, never the request                                                                                                                                                                       |
+| `const fn` and small helpers  | `ClientIpSources::try_client_ip_from_*` (`peer_ip_resolver.rs`)                                                                                                                           | Fixed line                                                                                                                                                                                                           |
+| async fns                     | database drivers (`sqlite`/`mysql`/`postgres` `whitelist_store.rs`, `auth_key_store.rs`: `InsertFailed`, `DeleteFailed`), `authorize`, `verify_auth_key`, `make_rust_tls`, `authenticate` | Hypothesis for T1 to confirm with a small experiment: `#[track_caller]` may not yield a meaningful caller for async call paths, because the body runs inside a polled future; the location is then inside the future |
+| HTTP extractors               | `parse_key`, `custom_error`, `extract_announce_from`, `extract_scrape_from` (`axum-http-server`)                                                                                          | Fixed line in the extractor                                                                                                                                                                                          |
+| sync fns that return an error | `verify_key_expiration` (`tracker-core/.../key/mod.rs`)                                                                                                                                   | Fixed line                                                                                                                                                                                                           |
 
 ### Which locations reach production output (preliminary)
 
 `Display` of these errors includes `{location}` (for example
 `#[error("invalid param {raw_param} in {location}")]`). The text then reaches:
 
-- **HTTP tracker responses**: `responses::error::Error::from(ParseAnnounceQueryError|ParseScrapeQueryError|
-auth::Error|PeerIpResolutionError)` builds `failure_reason: format!("Bad request. Cannot parse query
-params: {err}")` and similar (`http-protocol/src/v1/requests/{announce,scrape}.rs`,
-  `responses/error.rs`). The bencoded response sent to the BitTorrent client contains a library
-  source path and line.
+- **HTTP tracker responses**: the `failure_reason` of `responses::error::Error` embeds the error text.
+  The impls are `From<ParseQueryError>` ("Bad request. Cannot parse query params: {err}",
+  `requests/announce.rs:318-323`), `From<ParseAnnounceQueryError>` ("... for announce request: {err}",
+  `announce.rs:329`), `From<ParseScrapeQueryError>` ("... for scrape request: {err}", `scrape.rs:59`),
+  and in `responses/error.rs` `From<auth::Error>` ("Tracker authentication error: {err}") and
+  `From<PeerIpResolutionError>` ("Error resolving peer IP: {err}"). The bencoded response sent to the
+  BitTorrent client contains a library source path and line.
 - **UDP tracker responses**: `ErrorResponse { message: error.to_string() }`
   (`udp-server/src/handlers/error.rs:57-59`). The location that reaches it is the tracker-core
   `WhitelistError::TorrentNotWhitelisted` built in `whitelist/authorization.rs:61`, wrapped by
@@ -85,7 +93,7 @@ params: {err}")` and similar (`http-protocol/src/v1/requests/{announce,scrape}.r
   `Error::AuthRequired` are built only in `#[cfg(test)]` code, `event::ErrorKind::InternalServer` has
   no location, a malformed request becomes `InvalidRequest` (no location) and the UDP path has no key
   authentication, so key expiry cannot occur there. T2 must confirm this.
-- **Logs**: `tracing` output of the same errors; `LocatedError::into()` also logs at `debug`.
+- **Logs**: `tracing` output of the same errors; the `Located` conversion also logs at `debug` (the `DynError` conversion does not).
 - **Library consumers**: `torrust-tracker-primitives`, `-http-protocol`, `-tracker-core` and others are
   published crates, so the location can be a path inside a `~/.cargo/registry` checkout or a CI
   build path.
@@ -126,7 +134,7 @@ interactions with a small experiment, not from memory.
 - Changing the `torrust-located-error` crate itself (separate repository). Propose upstream changes
   in an issue there if needed.
 - Adding new error variants or changing error messages unrelated to `location`.
-- The `docs/issues/drafts/1347-add-tests-primitives/` work of EPIC #1347 (it only records the finding).
+- The primitives test work of EPIC #1347 (it only reported the finding).
 
 ## Issue Type Decision
 
@@ -168,11 +176,14 @@ For T1 to T5 (research, no code) this section is `Not applicable`.
 ## Regression Test Strategy
 
 - **Smallest boundary**: a unit test at the error's constructor or `FromStr`/`TryFrom` seam that
-  asserts the rendered `Display` (and, where a location is kept, `Debug`) does not contain the
-  library path (for example `src/`) and does contain the useful context (the offending input).
+  asserts the rendered `Display` (and, where a location is kept, `Debug`) does not contain a source
+  path and does contain the useful context (the offending input).
   This is the causal seam; it needs no server.
 - **Trait-dispatch case**: the test must call through `str::parse::<T>()` (not `T::from_str`)
   because that is the call shape where `#[track_caller]` fails.
+- **Portable path check**: a helper forbids these substrings: `.rs:` (any `file:line`), `packages/`,
+  `packages\`, `src/`, `src\`, `.cargo/registry` and `rustlib/src`, so Windows paths, workspace paths,
+  registry checkouts and CI checkout paths are all caught without depending on one layout.
 - **Real boundary for output**: one collaboration test per protocol (HTTP, UDP) asserting the
   response body of a malformed request has no library path. Use the existing test servers in
   `packages/axum-http-server/tests` and `packages/udp-server`.
@@ -183,25 +194,24 @@ For T1 to T5 (research, no code) this section is `Not applicable`.
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                                          | Notes / Expected Output                                                                                                                                                                                                                                                                                        |
-| --- | ------ | ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T1  | TODO   | Inventory and classify every site                             | Issue-local `inventory.md` with one row per `Location::caller()`/`#[track_caller]`/`Located(..).into()`: package, file:line, enclosing fn (async, closure, trait impl), test or production, class (correct/wrong/internal). Includes the small experiments on `parse`, async fn, closures and `Located::into`. |
-| T2  | TODO   | Trace production exposure                                     | For each wrong site, the path to output (HTTP failure reason, UDP error message, REST API, CLI, logs, metrics, events), with the exact line that formats it. Mark "user-visible" or "developer-only".                                                                                                          |
-| T3  | TODO   | Check guidance and enforceability                             | What the skill, ADRs, `Cargo.toml` lints and clippy config say. Is there a clippy lint (candidates: none known for this; verify) or a test that can enforce the rule? Record the answer even if "no".                                                                                                          |
-| T4  | TODO   | Analyse fix options, recommend one                            | See options below; semver impact per published crate; recommended option with reasoning. Maintainer approves before any fix.                                                                                                                                                                                   |
-| T5  | TODO   | Write the ADR and the slicing plan                            | ADR if the convention changes. Create sub-issues or fix PRs per package from the slicing below.                                                                                                                                                                                                                |
-| T6  | TODO   | Fix slice: `primitives`                                       | `PeerRole`, `peer::Id`. Regression tests through `parse`/`try_into`. Reporting finding F3 closes here.                                                                                                                                                                                                         |
-| T7  | TODO   | Fix slice: `http-protocol`, `http-core`, `axum-http-server`   | Query/announce/scrape parse errors, auth, peer IP. Client-visible bencoded responses. Real-artifact reproduction.                                                                                                                                                                                              |
-| T8  | TODO   | Fix slice: `tracker-core`, database drivers                   | `InsertFailed`/`DeleteFailed`, key expiry, whitelist, `authorize`.                                                                                                                                                                                                                                             |
-| T9  | TODO   | Fix slice: `udp-server`, `axum-server`, `configuration`, rest | UDP error messages, TLS, others found by T1.                                                                                                                                                                                                                                                                   |
-| T10 | TODO   | Enforcement and docs                                          | Lint or test from T3, update the `handle-errors-in-code` skill, close the issue.                                                                                                                                                                                                                               |
+| ID  | Status | Task                                      | Notes / Expected Output                                                                                                                                                                                                                                                                                                                                             |
+| --- | ------ | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T1  | TODO   | Inventory and classify every site         | Issue-local `inventory.md` with one row per `Location::caller()`/`#[track_caller]`/`Located(..).into()`: package, file:line, enclosing fn (async, closure, trait impl), test or production, class (correct/wrong/internal). Includes the small experiments on `parse`, async fn, closures and `Located::into`.                                                      |
+| T2  | TODO   | Trace production exposure                 | For each wrong site, the path to output (HTTP failure reason, UDP error message, REST API, CLI, logs, metrics, events), with the exact line that formats it. Mark "user-visible" or "developer-only".                                                                                                                                                               |
+| T3  | TODO   | Check guidance and enforceability         | What the skill, ADRs, `Cargo.toml` lints and clippy config say. Is there a clippy lint (candidates: none known for this; verify) or a test that can enforce the rule? Record the answer even if "no".                                                                                                                                                               |
+| T4  | TODO   | Analyse fix options, recommend one        | See options below; semver impact per published crate; recommended option with reasoning. Maintainer approves before any fix.                                                                                                                                                                                                                                        |
+| T5  | TODO   | Write the ADR and the slicing plan        | ADR if the convention changes. Create sub-issues or fix PRs per package from the slicing below.                                                                                                                                                                                                                                                                     |
+| T6  | TODO   | Red regression tests per slice            | For each slice (primitives; http-protocol, http-core, axum-http-server; tracker-core and database drivers; udp-server, axum-server, configuration and the rest from T1), a maintained test that fails against current code, with the red output recorded. Primitives first: `PeerRole`, `peer::Id` through `parse`/`try_into`; this closes the reported finding F3. |
+| T7  | TODO   | Fix slices, one PR per package group      | Production fix per slice, the smallest change that makes its red test pass. http-protocol group changes the client-visible bencoded responses; tracker-core group covers `InsertFailed`/`DeleteFailed`, key expiry, whitelist, `authorize`; udp-server group covers the whitelist error shown in UDP replies.                                                       |
+| T8  | TODO   | Green and like-for-like recheck per slice | Green test output, then the same real-artifact reproduction as in `manual-verification-evidence.md` run again after the last production change of the slice.                                                                                                                                                                                                        |
+| T9  | TODO   | Enforcement and docs                      | Lint or test from T3, update the `handle-errors-in-code` skill, close the issue.                                                                                                                                                                                                                                                                                    |
 
 ### Fix options to compare in T4 (research plan)
 
 1. **`#[track_caller]` along the whole call chain.** Cheap and keeps the field. Fails through trait
    methods called via `str::parse`/`.try_into()`, through async fns and through closures. Only
    works where every caller is under our control and non-async. Good for `From` impls that call
-   `Located(..).into()` (already done in 3 places).
+   `.into()` on a `Located` or `DynError` (already done in 3 places).
 2. **Capture the location at the call site** with a constructor that is `#[track_caller]` or a
    macro. Works for sync helper chains (`extract_*`), not for trait methods reached through std.
 3. **Replace the location with context** (the offending input, the parameter name, the operation).
@@ -209,7 +219,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
    hint (which line), which is already available from the message and `tracing` spans.
 4. **Remove the field.** Simplest; a breaking change for public `#[non_exhaustive]` enums (the
    variants gain/lose fields; `#[non_exhaustive]` protects against new variants, not against changed
-   fields of existing ones), so it needs a major bump of every affected published crate.
+   fields of existing ones), so it needs a breaking release of every affected published crate (a major bump for
+   `torrust-tracker-primitives` 3.1.0 and `torrust-tracker-configuration` 3.0.0, a minor bump for the
+   0.1.0 crates); AC6 settles the step per crate.
 
 Initial recommendation (to be confirmed by T4): option 3 for errors that reach clients (HTTP/UDP),
 option 1/2 where the chain is purely synchronous and the location only appears in `Debug`/logs,
@@ -218,14 +230,28 @@ is the main rule.
 
 ## Commit Points
 
-| Task  | Coherent change set                                                                  | Commit policy                                        |
-| ----- | ------------------------------------------------------------------------------------ | ---------------------------------------------------- |
-| T1-T3 | `inventory.md` and findings notes                                                    | Commit after focused validation and required review. |
-| T4-T5 | Options analysis, ADR, slicing                                                       | Commit after focused validation and required review. |
-| T6-T9 | One package slice per PR: failing test, then fix (separate commits when independent) | Commit after focused validation and required review. |
-| T10   | Enforcement and skill update                                                         | Commit after focused validation and required review. |
+| Task  | Coherent change set                      | Commit policy                                        |
+| ----- | ---------------------------------------- | ---------------------------------------------------- |
+| T1-T3 | `inventory.md` and findings notes        | Commit after focused validation and required review. |
+| T4-T5 | Options analysis, ADR, slicing           | Commit after focused validation and required review. |
+| T6    | Red regression tests of one slice        | Commit after focused validation and required review. |
+| T7    | Production fix of that slice             | Commit after focused validation and required review. |
+| T8    | Green and recheck evidence of that slice | Commit after focused validation and required review. |
+| T9    | Enforcement and skill update             | Commit after focused validation and required review. |
 
-Use a Conventional Commit message with the narrow affected scope, and sign every commit with GPG.
+Record a justified no-change decision in the task's evidence without creating an empty commit. For
+test-producing work, use the `write-unit-test` skill and complete an explicit design review after
+each passing test increment, before maintainer review and commit. Confirm that the test exposes the
+one causal initial-state difference; its fixture owns only incidental mechanics; and the production
+Act plus independently specified expected result remain visible. The review must use the mandatory
+prose-first Arrange-Act-Assert comparison: write temporary prose for each section, refactor until
+the code expresses it, remove redundant prose, and retain only irreducible context. Record this
+review in task evidence or a file-local test plan. Assess helper boundaries by meaningful named
+actions and abstraction-level alignment, not caller count: a single-use helper is valid when it
+keeps the test readable and hides only incidental mechanics. Commit each reviewed test-design
+increment before starting the next planned file or behavior area. Keep final verification and
+completion evidence separate when it improves reviewability. Use a Conventional Commit message
+with the narrow affected scope, and sign every commit with GPG.
 
 ## Progress Tracking
 
@@ -239,7 +265,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
+- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [ ] Committer verified spec progress is up to date before commit
@@ -249,6 +275,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 
 - 2026-11-10 12:00 UTC - Claude Code (Sonnet 5.5) - Drafted spec from the F3 finding of the primitives test session and a first-pass inventory on `torrust/develop`.
 - 2026-11-10 13:55 UTC - Claude Code (Sonnet 5.5) - Corrected the UDP exposure analysis after review F1: only the whitelist error reaches UDP responses.
+- 2026-11-10 14:25 UTC - Claude Code (Sonnet 5.5) - Addressed review round 1 (F1-F9 and Copilot): recorded the reproduction, split the red/fix/green tasks, restored template passages, corrected facts and wording. Evidence: `manual-verification-evidence.md`.
 
 ## Acceptance Criteria
 
@@ -257,7 +284,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - [ ] AC3: The chosen approach is recorded (ADR when the convention changes) and the maintainer approved it before fixes.
 - [ ] AC4: No client-visible HTTP or UDP response and no `Display` of a public error contains a library source path, proven by regression tests that go through `str::parse`/`try_into` where relevant.
 - [ ] AC5: Remaining `Location::caller()` uses are either in a `#[track_caller]` chain that reaches a meaningful call site or on an allow-list with a reason.
-- [ ] AC6: Semver impact is documented per published crate and version bumps are planned.
+- [ ] AC6: Semver impact is documented per published crate and the breaking release per crate is planned.
 - [ ] AC7: The `handle-errors-in-code` skill states the rule, and an enforcement check exists or its infeasibility is recorded.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
@@ -315,11 +342,25 @@ issue folder only if they explain a decision.
 
 ## Implementation Completion Review
 
+After implementation, compare the result with this specification. Record
+invalidated assumptions, material design changes, unexpected validation
+findings, and reusable lessons.
+
 - Retrospective: `Not yet assessed`
+- If needed, create `implementation-retrospective.md` from the repository
+  template at `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this issue
+  specification's directory.
+- If no retrospective is needed, add a concise progress-log entry explaining
+  why the work had no material discovery.
+- When an independent reviewer receives this folder-style specification, it
+  records its result in `agent-review-reports.md` using
+  `docs/templates/AGENT-REVIEW-REPORTS.md`. Do not create that artifact for a
+  legacy standalone specification or when no folder-style specification was
+  supplied.
 
 ## References
 
-- Reporting session: EPIC #1347 (primitives tests), finding F3.
+- Reporting work: EPIC #1347 (`docs/issues/open/1347-overhaul-packages-testing/EPIC.md`), primitives test session, finding F3.
 - Related issues: #2804, #1894 (`torrust-located-error` extraction).
 - Related ADRs: `docs/adrs/20261005145329_return_result_only_for_concretely_fallible_public_apis.md`
 - Skill: `.github/skills/dev/rust-code-quality/handle-errors-in-code/SKILL.md`
