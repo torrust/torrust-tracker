@@ -2,38 +2,24 @@
 //!
 //! # Test ownership
 //!
-//! Colocated tests cover deterministic `await_startup_notification` error
-//! mappings. The public `server` module owns registration-error preservation
-//! and listener-release coverage for both start paths, and token-aware stop
-//! coverage. The launcher owns the legacy halt and drop-path regression tests.
-//! Bind failures and `Running::stop` remain legacy lifecycle behavior slated
-//! for removal in SI-19 (Issue #1488); do not add coverage-only tests for
-//! those paths here.
+//! The public `server` module owns registration-error preservation,
+//! listener-release coverage and token-aware stop coverage. Bind failures are
+//! not covered by coverage-only tests here.
 use std::fmt::Debug;
 use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::Duration;
 
-use derive_more::Constructor;
 use derive_more::derive::Display;
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 use torrust_server_lib::registar::{ServiceRegistration, ServiceRegistrationForm};
-#[allow(
-    deprecated,
-    reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
-)]
-use torrust_server_lib::signals::{Halted, Started};
 use torrust_tracker_primitives::RuntimeServiceMetadata;
 use torrust_tracker_udp_core::container::UdpTrackerCoreContainer;
 use torrust_tracker_udp_core::{ConnectionIdValidationPolicy, UDP_TRACKER_LOG_TARGET};
-use tracing::{Level, instrument};
+use tracing::instrument;
 
-#[allow(
-    deprecated,
-    reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
-)]
-use super::spawner::{LaunchRequest, Spawner};
+use super::spawner::Spawner;
 use super::{Server, UdpError};
 use crate::container::UdpTrackerServerContainer;
 use crate::server::bound_socket::BoundSocket;
@@ -46,21 +32,6 @@ use crate::server::launcher::{Launcher, OwnedReceiveLoop, StartedReceiveLoop};
 )]
 pub type StoppedUdpServer = Server<Stopped>;
 
-/// A UDP server instance controller with a running UDP instance.
-#[allow(
-    clippy::module_name_repetitions,
-    reason = "type alias distinguishes the UDP server running state"
-)]
-#[allow(
-    deprecated,
-    reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
-)]
-#[deprecated(
-    since = "0.1.0",
-    note = "use `Server<Stopped>::start_with_cancellation` and keep the returned `CancellationRunning`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
-)]
-pub type RunningUdpServer = Server<Running>;
-
 /// A stopped UDP server state.
 #[derive(Debug, Display)]
 #[display("Stopped: {spawner}")]
@@ -68,40 +39,10 @@ pub struct Stopped {
     pub spawner: Spawner,
 }
 
-/// A running UDP server state.
-// `derive_more::Constructor` generates `field: field` initializers on this MSRV-compatible version.
-// Nightly Clippy diagnoses that proc-macro expansion; remove this allowance once derive_more emits
-// field-init shorthand.
-#[allow(
-    clippy::redundant_field_names,
-    reason = "derive_more::Constructor emits field initializers on this MSRV-compatible version"
-)]
-#[derive(Debug, Display, Constructor)]
-#[display("Running (with local address): {local_addr}")]
-#[allow(
-    deprecated,
-    reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
-)]
-#[deprecated(
-    since = "0.1.0",
-    note = "use `CancellationRunning` from `Server<Stopped>::start_with_cancellation` and cancel the injected `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
-)]
-pub struct Running {
-    /// The address where the server is bound.
-    pub local_addr: SocketAddr,
-    #[deprecated(
-        since = "0.1.0",
-        note = "cancel the injected `CancellationToken` instead of sending `Halted`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
-    )]
-    pub halt_task: tokio::sync::oneshot::Sender<Halted>,
-    pub task: JoinHandle<Result<Spawner, std::io::Error>>,
-}
-
 /// A token-aware UDP runtime: the receive-loop task, owned by the caller.
 ///
 /// The task returns `Ok(())` after cancellation and an error when the receive
-/// loop stops for any other reason. [`Running`] remains the compatibility path
-/// for consumers using [`Halted`].
+/// loop stops for any other reason.
 pub struct CancellationRunning {
     /// The address where the server is bound.
     pub local_addr: SocketAddr,
@@ -115,108 +56,6 @@ impl Server<Stopped> {
         Self {
             state: Stopped { spawner },
         }
-    }
-
-    /// It starts the server and returns a `UdpServer` controller in `running`
-    /// state.
-    ///
-    /// # Errors
-    ///
-    /// Will return `Err` if UDP can't bind to given bind address.
-    ///
-    #[instrument(
-        skip(self, udp_tracker_core_container, udp_tracker_server_container, form, metadata),
-        fields(
-            service_role = metadata.service_role().as_str(),
-            instance_index = metadata.configuration_instance_id().instance_index(),
-        ),
-        err,
-        ret(Display, level = Level::INFO)
-    )]
-    #[allow(
-        deprecated,
-        reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
-    )]
-    ///
-    /// The deprecation is part of the contract until SI-19 removes this item. Using it without an allowance fails
-    /// under `deny(deprecated)`:
-    ///
-    /// ```
-    /// use torrust_tracker_udp_server::server::{Server, states::Stopped};
-    /// let _ = Server::<Stopped>::start;
-    /// ```
-    ///
-    /// ```compile_fail
-    /// #![deny(deprecated)]
-    /// use torrust_tracker_udp_server::server::{Server, states::Stopped};
-    /// let _ = Server::<Stopped>::start;
-    /// ```
-    #[deprecated(
-        since = "0.1.0",
-        note = "use `Server<Stopped>::start_with_cancellation` with a `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
-    )]
-    pub async fn start(
-        self,
-        udp_tracker_core_container: Arc<UdpTrackerCoreContainer>,
-        udp_tracker_server_container: Arc<UdpTrackerServerContainer>,
-        form: ServiceRegistrationForm<RuntimeServiceMetadata>,
-        metadata: RuntimeServiceMetadata,
-        cookie_lifetime: Duration,
-        connection_id_validation: ConnectionIdValidationPolicy,
-    ) -> Result<Server<Running>, UdpError> {
-        let (tx_start, rx_start) = tokio::sync::oneshot::channel::<Started>();
-        let (tx_halt, rx_halt) = tokio::sync::oneshot::channel::<Halted>();
-
-        assert!(!tx_halt.is_closed(), "Halt channel for UDP tracker should be open");
-
-        // May need to wrap in a task to about a tokio bug.
-        let bound_socket = BoundSocket::bind(
-            self.state.spawner.bind_to,
-            udp_tracker_core_container.udp_tracker_config.network.ipv6_v6only,
-        )
-        .map_err(|source| UdpError::Bind { source: *source })?;
-        let mut task = self.state.spawner.spawn_launcher(LaunchRequest {
-            udp_tracker_core_container,
-            udp_tracker_server_container,
-            cookie_lifetime,
-            connection_id_validation,
-            bound_socket,
-            tx_start,
-            rx_halt,
-        });
-
-        let started = await_startup_notification(rx_start, &mut task).await?;
-
-        let service_binding = started.service_binding;
-        let local_addr = started.address;
-
-        if let Some(public_url) = metadata.public_url() {
-            tracing::info!(target: UDP_TRACKER_LOG_TARGET, service_binding = %service_binding, public_url = %public_url, "Started UDP tracker");
-        } else {
-            tracing::info!(target: UDP_TRACKER_LOG_TARGET, service_binding = %service_binding, "Started UDP tracker");
-        }
-
-        if let Err(error) = form
-            .register(ServiceRegistration::new(service_binding, metadata, Some(Launcher::check)))
-            .await
-        {
-            let _ = tx_halt.send(Halted::Normal);
-            drop(task.await);
-            return Err(UdpError::Registration { source: error });
-        }
-
-        let running_udp_server: Server<Running> = Server {
-            state: Running {
-                local_addr,
-                halt_task: tx_halt,
-                task,
-            },
-        };
-
-        let local_addr = format!("udp://{local_addr}");
-        tracing::trace!(target: UDP_TRACKER_LOG_TARGET, local_addr, "UdpServer<Stopped>::start (running)");
-
-        Ok(running_udp_server)
     }
 
     /// Starts the UDP server using an injected cancellation token.
@@ -296,133 +135,5 @@ impl Server<Stopped> {
             local_addr,
             task: receive_loop.into_task(),
         })
-    }
-}
-
-async fn await_startup_notification(
-    rx_start: tokio::sync::oneshot::Receiver<Started>,
-    task: &mut JoinHandle<Result<Spawner, std::io::Error>>,
-) -> Result<Started, UdpError> {
-    match rx_start.await {
-        Ok(started) => Ok(started),
-        Err(notification_error) => match task.await {
-            Ok(Err(source)) => Err(UdpError::Launcher { source }),
-            Ok(Ok(_)) => Err(UdpError::StartupNotification {
-                source: notification_error,
-            }),
-            Err(error) => Err(UdpError::FailedToStartOrStopServer(error.to_string())),
-        },
-    }
-}
-
-#[allow(
-    deprecated,
-    reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
-)]
-impl Server<Running> {
-    /// It stops the server and returns a `UdpServer` controller in `stopped`
-    /// state.
-    ///     
-    /// # Errors
-    ///
-    /// Will return `Err` if the oneshot channel to send the stop signal
-    /// has already been called once.
-    ///
-    /// # Panics
-    ///
-    /// It panics if unable to shutdown service.
-    #[instrument(skip(self), err, ret(Display, level = Level::INFO))]
-    #[allow(
-        deprecated,
-        reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
-    )]
-    #[deprecated(
-        since = "0.1.0",
-        note = "cancel the `CancellationToken` passed to `start_with_cancellation` and await the returned `task`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
-    )]
-    pub async fn stop(self) -> Result<Server<Stopped>, UdpError> {
-        self.state
-            .halt_task
-            .send(Halted::Normal)
-            .map_err(|e| UdpError::FailedToStartOrStopServer(e.to_string()))?;
-
-        let launcher = self
-            .state
-            .task
-            .await
-            .map_err(|error| UdpError::FailedToStartOrStopServer(error.to_string()))?
-            .map_err(|source| UdpError::Launcher { source })?;
-
-        let stopped_api_server: Server<Stopped> = Server {
-            state: Stopped { spawner: launcher },
-        };
-
-        Ok(stopped_api_server)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use std::net::SocketAddr;
-
-    use tokio::sync::oneshot;
-    use tokio::task::JoinHandle;
-
-    use super::{UdpError, await_startup_notification};
-    use crate::server::spawner::Spawner;
-
-    fn launcher_task_with_successful_result() -> JoinHandle<Result<Spawner, std::io::Error>> {
-        tokio::spawn(async { Ok(Spawner::new(SocketAddr::from(([127, 0, 0, 1], 6969)))) })
-    }
-
-    #[tokio::test]
-    async fn it_should_preserve_a_broken_pipe_launcher_error_when_startup_notification_fails() {
-        // Arrange
-        let (tx_start, rx_start) = oneshot::channel();
-        drop(tx_start);
-        let mut task = tokio::spawn(async {
-            Err::<Spawner, _>(std::io::Error::new(
-                std::io::ErrorKind::BrokenPipe,
-                "UDP startup receiver was dropped",
-            ))
-        });
-
-        // Act
-        let result = await_startup_notification(rx_start, &mut task).await;
-
-        // Assert
-        let UdpError::Launcher { source } = result.expect_err("launcher startup failure should be returned") else {
-            panic!("launcher error should not be collapsed into a startup-notification error");
-        };
-        assert_eq!(source.kind(), std::io::ErrorKind::BrokenPipe);
-    }
-
-    #[tokio::test]
-    async fn it_should_return_a_startup_notification_error_when_the_launcher_finishes_successfully() {
-        // Arrange
-        let (tx_start, rx_start) = oneshot::channel();
-        drop(tx_start);
-        let mut task = launcher_task_with_successful_result();
-
-        // Act
-        let result = await_startup_notification(rx_start, &mut task).await;
-
-        // Assert
-        assert!(matches!(result, Err(UdpError::StartupNotification { .. })));
-    }
-
-    #[tokio::test]
-    async fn it_should_return_a_server_failure_error_when_the_launcher_task_is_aborted() {
-        // Arrange
-        let (tx_start, rx_start) = oneshot::channel();
-        drop(tx_start);
-        let mut task = launcher_task_with_successful_result();
-        task.abort();
-
-        // Act
-        let result = await_startup_notification(rx_start, &mut task).await;
-
-        // Assert
-        assert!(matches!(result, Err(UdpError::FailedToStartOrStopServer(_))));
     }
 }
