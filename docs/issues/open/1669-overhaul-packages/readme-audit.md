@@ -11,7 +11,9 @@ semantic-links:
 
 Point-in-time audit of README quality across the tracker packages. First generated manually on
 2026-05-18 as part of SI-01 (baseline analysis); refreshed on 2026-10-06 for issue
-[#2446](https://github.com/torrust/torrust-tracker/issues/2446).
+[#2446](https://github.com/torrust/torrust-tracker/issues/2446) and re-audited on 2026-11-10 for
+issue [#2576](https://github.com/torrust/torrust-tracker/issues/2576) (last section; the earlier
+tables are the pre-#2576 baseline).
 
 The audited set is the 25 tracker packages listed in the EPIC #1669 Package Inventory: the root
 `torrust-tracker` crate, `console/tracker-client` and the 23 `packages/*` members. The
@@ -100,3 +102,41 @@ crate's page. Three titles are wrong:
 | `test-helpers`                 | Torrust Tracker Configuration      | Torrust Tracker Test Helpers                |
 
 Fixing these is in scope for the "Update all package READMEs" draft under EPIC #1669.
+
+## Re-audit 2026-11-10 (issue #2576)
+
+Re-rated after #2576. Every tier U and P README now follows `docs/templates/PACKAGE-README.md` (purpose, where it fits, main API, stability, own docs.rs link, license) and is rated **good**, although none has a Rust usage example: the maintainer decided that examples are optional and compile-checked only through a README doctest hook, and none was needed. No tier U or P package is rated stub or minimal. The wrong titles, the 14 links to the root crate documentation and the LGPL license links are fixed, and the stale `cargo bench` command is corrected.
+
+| Package | Lines | Rating | Notes |
+| ------- | ----- | ------ | ----- |
+| `axum-health-check-api-server` | 72 | good | Title fixed; endpoint example and shutdown readiness kept |
+| `axum-http-server` | 49 | good | Template: purpose, where it fits, main API, stability, docs.rs link, license |
+| `axum-rest-api-server` | 23 | good | Template: purpose, where it fits, main API, stability, docs.rs link, license |
+| `axum-server` | 41 | good | Template: purpose, where it fits, main API, stability, docs.rs link, license |
+| `configuration` | 24 | good | Template; links the v2-to-v3 migration guide |
+| `e2e-tools` | 26 | good | Tier N (`publish = false`): title, command and links fixed by #2576 |
+| `events` | 23 | good | Template: purpose, where it fits, main API, stability, docs.rs link, license |
+| `http-core` | 23 | good | Template: purpose, where it fits, main API, stability, docs.rs link, license |
+| `http-protocol` | 23 | good | Template: purpose, where it fits, main API, stability, docs.rs link, license |
+| `persistence-benchmark` | 18 | good | Tier N (`publish = false`): title, command and links fixed by #2576 |
+| `primitives` | 23 | good | Template: purpose, where it fits, main API, stability, docs.rs link, license |
+| `rest-api-application` | 23 | good | Template: purpose, where it fits, main API, stability, docs.rs link, license |
+| `rest-api-client` | 41 | good | LGPL license links fixed |
+| `rest-api-protocol` | 23 | good | Template: purpose, where it fits, main API, stability, docs.rs link, license |
+| `rest-api-runtime-adapter` | 23 | good | Template: purpose, where it fits, main API, stability, docs.rs link, license |
+| `swarm-coordination-registry` | 23 | good | Template: purpose, where it fits, main API, stability, docs.rs link, license |
+| `test-helpers` | 23 | good | Template: purpose, where it fits, main API, stability, docs.rs link, license |
+| `torrent-repository-benchmarking` | 28 | minimal | Tier N (`publish = false`): title, command and links fixed by #2576 |
+| `tracker-client` | 41 | good | LGPL license links fixed; stability note replaces the disclaimer |
+| `tracker-core` | 47 | good | Testing notes kept; stability note replaces the disclaimer |
+| `udp-core` | 25 | good | Template: purpose, where it fits, main API, stability, docs.rs link, license |
+| `udp-protocol` | 50 | good | Origin and licensing notices kept |
+| `udp-server` | 28 | good | Template: purpose, where it fits, main API, stability, docs.rs link, license |
+| `console/tracker-client` | 206 | good | Disclaimer replaced, LGPL links fixed |
+| `(repository root)` | 318 | good | Unchanged |
+
+| Rating | Count |
+| ------ | ----- |
+| **good** | 24 |
+| **minimal** | 1 (tier N `torrent-repository-benchmarking`) |
+| **stub** | 0 |
