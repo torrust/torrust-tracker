@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2751-1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md
-last-updated-utc: "2026-11-09 19:33"
+last-updated-utc: "2026-11-10 09:45"
 ---
 
 # Manual Verification Evidence: Deprecate Legacy Shutdown API
@@ -164,24 +164,99 @@ Every gate item holds:
 
 ## Implementation Evidence (T6)
 
-Run from the repository root on branch `2751-deprecate-legacy-shutdown-api` (rustc 1.99.1), at 19:33 UTC on
-2026-11-09:
+Toolchain: rustc 1.99.1. Run from the repository root on branch `2751-deprecate-legacy-shutdown-api` on
+2026-11-10 (09:42 UTC for M3, M4 and the doctests; the M2 consumers ran earlier the same session).
 
-- M3, `RUSTFLAGS="-D deprecated" cargo check --workspace --lib --bins`: exit 0. No migrated production path
-  (the four `src/bootstrap/jobs/{http_tracker,tracker_apis,health_check_api,udp_tracker}.rs` jobs) carries an
-  allowance; the local `#[allow(deprecated, reason = ...)]` attributes sit only on the legacy items, their
-  imports and their test callers.
-- M4, `cargo doc --workspace --no-deps`: finishes without warnings. The deprecation notes name the replacement
-  and the removal wording (`removal is planned for the next breaking release of this package (SI-19, EPIC #1488)`);
-  the replacement table is `docs/features/shutdown-process/legacy-api-migration.md`.
-- M2: the in-crate tests that call the deprecated `start` and `stop` of the HTTP, REST API and UDP servers, and
-  `HaltSignal` and `NestedServerTask`, compile with local allowances and pass (`cargo test --workspace --lib`, all
-  `ok`). The new test `it_should_keep_the_deprecated_halted_start_working_until_it_is_removed` covers the
-  deprecated health-check `start`. The raw "without `allow(deprecated)`" compile of an external consumer was not
-  run as a separate crate.
-- Not deprecated, by design: the private `Launcher::start` of `axum-http-server` (not public API), and the
-  derived `Running::new` of `udp-server` (covered by the deprecation of its struct).
+### M2: legacy consumers compile with the expected warnings
+
+A scratch `examples/m2.rs` in each package (and in the root crate) imported and named every deprecated item without
+`allow(deprecated)`, then `cargo check -p <package> --example m2 --message-format short` ran. The workspace denies
+warnings, so each deprecation is printed as an `error: use of deprecated ...` line that names the replacement, the
+removal wording and the signal-ownership note (the lines are cut at the end of the replacement note; the
+scratch files were deleted afterwards and are not in the PR):
+
+```text
+### axum-http-server
+packages/axum-http-server/examples/m2.rs:1:60: error: use of deprecated struct `torrust_tracker_axum_http_server::server::Running`: use `CancellationRunning` from `start_with_cancellation` and cancel the injected `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)
+packages/axum-http-server/examples/m2.rs:1:69: error: use of deprecated type alias `torrust_tracker_axum_http_server::server::RunningHttpServer`: use `HttpServer<Stopped>::start_with_cancellation` and keep the returned `CancellationRunning`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)
+packages/axum-http-server/examples/m2.rs:5:26: error: use of deprecated struct `torrust_tracker_axum_http_server::server::Running`: use `CancellationRunning` from `start_with_cancellation` and cancel the injected `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)
+packages/axum-http-server/examples/m2.rs:6:19: error: use of deprecated type alias `torrust_tracker_axum_http_server::server::RunningHttpServer`: use `HttpServer<Stopped>::start_with_cancellation` and keep the returned `CancellationRunning`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)
+packages/axum-http-server/examples/m2.rs:3:36: error: use of deprecated method `torrust_tracker_axum_http_server::server::HttpServer::<torrust_tracker_axum_http_server::server::Stopped>::start`: use `HttpServer<Stopped>::start_with_cancellation` with a `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)
+packages/axum-http-server/examples/m2.rs:4:36: error: use of deprecated method `torrust_tracker_axum_http_server::server::HttpServer::<torrust_tracker_axum_http_server::server::Stopped>::start_with_health_check`: use `HttpServer<Stopped>::start_with_cancellation_and_health_check` with a `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)
+packages/axum-http-server/examples/m2.rs:5:36: error: use of deprecated method `torrust_tracker_axum_http_server::server::HttpServer::<torrust_tracker_axum_http_server::server::Running>::stop`: cancel the `CancellationToken` passed to `start_with_cancellation` and join `CancellationRunning::task` and `shutdown_controller`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)
+error: could not compile `torrust-tracker-axum-http-server` (example "m2") due to 8 previous errors
+### axum-rest-api-server
+packages/axum-rest-api-server/examples/m2.rs:1:73: error: use of deprecated struct `torrust_tracker_axum_rest_api_server::server::Running`: use `CancellationRunning` from `ApiServer::start_with_cancellation` and cancel the injected `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)
+packages/axum-rest-api-server/examples/m2.rs:1:82: error: use of deprecated type alias `torrust_tracker_axum_rest_api_server::server::RunningApiServer`: use `ApiServer::start_with_cancellation` and keep the returned `CancellationRunning`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)
+packages/axum-rest-api-server/examples/m2.rs:4:25: error: use of deprecated struct `torrust_tracker_axum_rest_api_server::server::Running`: use `CancellationRunning` from `ApiServer::start_with_cancellation` and cancel the injected `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)
+packages/axum-rest-api-server/examples/m2.rs:5:13: error: use of deprecated struct `torrust_tracker_axum_rest_api_server::server::Running`: use `CancellationRunning` from `ApiServer::start_with_cancellation` and cancel the injected `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)
+packages/axum-rest-api-server/examples/m2.rs:7:19: error: use of deprecated type alias `torrust_tracker_axum_rest_api_server::server::RunningApiServer`: use `ApiServer::start_with_cancellation` and keep the returned `CancellationRunning`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)
+packages/axum-rest-api-server/examples/m2.rs:3:35: error: use of deprecated method `torrust_tracker_axum_rest_api_server::server::ApiServer::<torrust_tracker_axum_rest_api_server::server::Stopped>::start`: use `ApiServer::start_with_cancellation` with a `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)
+packages/axum-rest-api-server/examples/m2.rs:4:35: error: use of deprecated method `torrust_tracker_axum_rest_api_server::server::ApiServer::<torrust_tracker_axum_rest_api_server::server::Running>::stop`: cancel the `CancellationToken` passed to `start_with_cancellation` and join `CancellationRunning::task` and `shutdown_controller`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)
+packages/axum-rest-api-server/examples/m2.rs:5:22: error: use of deprecated associated function `torrust_tracker_axum_rest_api_server::server::Running::new`: use `ApiServer::start_with_cancellation`, which returns `CancellationRunning`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)
+packages/axum-rest-api-server/examples/m2.rs:6:23: error: use of deprecated method `torrust_tracker_axum_rest_api_server::server::Launcher::start`: use the token-aware path through `ApiServer::start_with_cancellation`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)
+error: could not compile `torrust-tracker-axum-rest-api-server` (example "m2") due to 10 previous errors
+### axum-health-check-api-server
+packages/axum-health-check-api-server/examples/m2.rs:1:60: error: use of deprecated struct `torrust_tracker_axum_health_check_api_server::server::RunningServer`: use `CancellationRunning` from `start_with_cancellation`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)
+packages/axum-health-check-api-server/examples/m2.rs:1:75: error: use of deprecated function `torrust_tracker_axum_health_check_api_server::server::start`: use `start_with_cancellation` with a `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)
+packages/axum-health-check-api-server/examples/m2.rs:3:13: error: use of deprecated function `torrust_tracker_axum_health_check_api_server::server::start`: use `start_with_cancellation` with a `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)
+packages/axum-health-check-api-server/examples/m2.rs:4:19: error: use of deprecated struct `torrust_tracker_axum_health_check_api_server::server::RunningServer`: use `CancellationRunning` from `start_with_cancellation`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)
+error: could not compile `torrust-tracker-axum-health-check-api-server` (example "m2") due to 5 previous errors
+### udp-server
+packages/udp-server/examples/m2.rs:3:51: error: use of deprecated struct `torrust_tracker_udp_server::server::spawner::LaunchRequest`: use `Server<Stopped>::start_with_cancellation`, which spawns the launcher with a `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)
+packages/udp-server/examples/m2.rs:4:50: error: use of deprecated struct `torrust_tracker_udp_server::server::states::Running`: use `CancellationRunning` from `Server<Stopped>::start_with_cancellation` and cancel the injected `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)
+packages/udp-server/examples/m2.rs:4:59: error: use of deprecated type alias `torrust_tracker_udp_server::server::states::RunningUdpServer`: use `Server<Stopped>::start_with_cancellation` and keep the returned `CancellationRunning`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)
+packages/udp-server/examples/m2.rs:7:22: error: use of deprecated struct `torrust_tracker_udp_server::server::states::Running`: use `CancellationRunning` from `Server<Stopped>::start_with_cancellation` and cancel the injected `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)
+packages/udp-server/examples/m2.rs:10:19: error: use of deprecated struct `torrust_tracker_udp_server::server::spawner::LaunchRequest`: use `Server<Stopped>::start_with_cancellation`, which spawns the launcher with a `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)
+packages/udp-server/examples/m2.rs:11:19: error: use of deprecated type alias `torrust_tracker_udp_server::server::states::RunningUdpServer`: use `Server<Stopped>::start_with_cancellation` and keep the returned `CancellationRunning`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)
+packages/udp-server/examples/m2.rs:6:32: error: use of deprecated method `torrust_tracker_udp_server::server::states::<impl torrust_tracker_udp_server::server::Server<torrust_tracker_udp_server::server::states::Stopped>>::start`: use `Server<Stopped>::start_with_cancellation` with a `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)
+packages/udp-server/examples/m2.rs:7:32: error: use of deprecated method `torrust_tracker_udp_server::server::states::<impl torrust_tracker_udp_server::server::Server<torrust_tracker_udp_server::server::states::Running>>::stop`: cancel the `CancellationToken` passed to `start_with_cancellation` and join the returned tasks; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)
+packages/udp-server/examples/m2.rs:8:23: error: use of deprecated associated function `torrust_tracker_udp_server::server::launcher::Launcher::run_with_graceful_shutdown`: use `Server<Stopped>::start_with_cancellation`, which runs the token-aware launcher; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)
+packages/udp-server/examples/m2.rs:9:22: error: use of deprecated method `torrust_tracker_udp_server::server::spawner::Spawner::spawn_launcher`: use `Server<Stopped>::start_with_cancellation`, which spawns the launcher with a `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)
+error: could not compile `torrust-tracker-udp-server` (example "m2") due to 12 previous errors
+### axum-server
+packages/axum-server/examples/m2.rs:1:43: error: use of deprecated function `torrust_tracker_axum_server::signals::graceful_shutdown`: use `graceful_shutdown_on_cancellation` with an injected `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)
+packages/axum-server/examples/m2.rs:3:13: error: use of deprecated function `torrust_tracker_axum_server::signals::graceful_shutdown`: use `graceful_shutdown_on_cancellation` with an injected `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)
+error: could not compile `torrust-tracker-axum-server` (example "m2") due to 2 previous errors
+### torrust-tracker (root)
+examples/m2.rs:1:53: error: use of deprecated struct `torrust_tracker_lib::bootstrap::jobs::manager::HaltSignal`: use a `CancellationToken` and the token-aware shutdown controller; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)
+examples/m2.rs:1:65: error: use of deprecated struct `torrust_tracker_lib::bootstrap::jobs::manager::NestedServerTask`: use a `CancellationToken` and the token-aware shutdown controller; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)
+examples/m2.rs:3:19: error: use of deprecated struct `torrust_tracker_lib::bootstrap::jobs::manager::HaltSignal`: use a `CancellationToken` and the token-aware shutdown controller; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)
+examples/m2.rs:4:19: error: use of deprecated struct `torrust_tracker_lib::bootstrap::jobs::manager::NestedServerTask`: use a `CancellationToken` and the token-aware shutdown controller; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)
+error: could not compile `torrust-tracker` (example "m2") due to 6 previous errors
+```
+
+The same check runs on every `cargo test --doc`: the `compile_fail` example on each package's deprecated `start`
+(and on `graceful_shutdown`) fails when the attribute is removed. Removing the attribute from `graceful_shutdown`
+made its doctest report `FAILED`, then the attribute was restored.
+
+### M3: migrated paths have no legacy use
+
+`RUSTFLAGS="-D deprecated" cargo check --workspace --lib --bins` printed `Finished` with exit 0 (09:42:37 UTC). The
+four `src/bootstrap/jobs/{http_tracker,tracker_apis,health_check_api,udp_tracker}.rs` jobs carry no allowance, and the
+impl-wide allowance on `HttpServer<Stopped>` was removed so the token-aware start methods stay checked.
+
+### M4: documentation review
+
+`cargo doc --workspace --no-deps` printed 0 warnings (09:42:43 UTC). The notes read: replacement, "removal is planned
+for the next breaking release of this package (SI-19, EPIC #1488)" and the signal-ownership sentence pointing to
+`docs/features/shutdown-process/legacy-api-migration.md`, which holds the replacement table (UDP's single `task` form
+included).
+
+### Behavior
+
+`cargo test --workspace --lib` passes. The in-crate tests that call the deprecated `start` and `stop` of the HTTP,
+REST API and UDP servers, `HaltSignal` and `NestedServerTask` compile with local allowances. The new test
+`it_should_stop_the_legacy_server_when_a_normal_halt_is_sent` covers the deprecated health-check `start`. Its
+design, in prose: arrange a legacy server with the `Started` and `Halted` channels and wait for the bound address;
+act by sending `Halted::Normal`; assert that the drain controller and the server task finish within the test
+timeout without error.
+
+### Not deprecated, by design
+
+The private `Launcher::start` of `axum-http-server` (not public API) and the derived `Running::new` of
+`udp-server` (covered by the deprecation of its struct).
 
 ## Failures and Follow-up
 
-None. V2 to V4 (see the issue's Manual Verification Scenarios) run after implementation.
+None.
