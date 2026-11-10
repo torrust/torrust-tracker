@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Three rounds: da2ce7 review 5845757723 (approval with findings F1 to F5) and Copilot review 5845810205 (two comments) in round 1; da2ce7 review 5846259189 (approval with findings F6 to F9) in round 2; Copilot review 5846488382 (two comments, run on the round-1 head) in round 3. Copilot's `F1` and `F2` collided with da2ce7's and became `F6` and `F7`; round 2's `F6` to `F9` became `F8` to `F11`; round 3's two comments are `F12` and `F13`. The original IDs are recorded in the details.
+Three rounds: da2ce7 review 5845757723 (approval with findings F1 to F5) and Copilot review 5845810205 (two comments) in round 1; da2ce7 review 5846259189 (approval with findings F6 to F9) in round 2; Copilot review 5846488382 (two comments, run on the head that review 5846259189 read) in round 3. Copilot's `F1` and `F2` collided with da2ce7's and became `F6` and `F7`; round 2's `F6` to `F9` became `F8` to `F11`; round 3's two comments are `F12` and `F13`. The original IDs are recorded in the details.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -56,8 +56,8 @@ Three rounds: da2ce7 review 5845757723 (approval with findings F1 to F5) and Cop
 | F9 | review-finding:pr-2809-f9 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F10 | review-finding:pr-2809-f10 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F11 | review-finding:pr-2809-f11 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
-| F12 | review-finding:pr-2809-f12 | Copilot | Suggestion (inferred) | documentation | ORIGINAL | NO_ACTION | RESOLVED |
-| F13 | review-finding:pr-2809-f13 | Copilot | Suggestion (inferred) | documentation | ORIGINAL | NO_ACTION | RESOLVED |
+| F12 | review-finding:pr-2809-f12 | Copilot | Suggestion (inferred) | documentation | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F13 | review-finding:pr-2809-f13 | Copilot | Suggestion (inferred) | documentation | ORIGINAL | NO_ACTION | SUPERSEDED |
 
 ## Finding Details
 
@@ -160,7 +160,7 @@ Three rounds: da2ce7 review 5845757723 (approval with findings F1 to F5) and Cop
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2809#discussion_r4528137439
 - Concern: The earlier fix and reply described the offsets wrongly: one time was behind, three less than an hour ahead, one more than an hour ahead.
 - Solution: An appended spec progress-log entry states the actual offsets; the earlier entry is not rewritten.
-- Current-tree verification: `grep -n 'Correction to the 16:49 entry' docs/issues/open/2808-workspace-package-release-process/ISSUE.md` shows the entry. The F4 thread reply keeps its wording, since review replies are not rewritten; this finding's reply states the offsets.
+- Current-tree verification: `grep -n 'Correction to the 16:49 entry' docs/issues/open/2808-workspace-package-release-process/ISSUE.md` shows the entry. The F4 thread reply and this finding's reply carry edit notes pointing to the exact offsets (see F16).
 - Resolution reference: docs(issues): [#2808] state the actual offsets of the corrected log times
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2809#discussion_r4528257509
@@ -186,8 +186,8 @@ Three rounds: da2ce7 review 5845757723 (approval with findings F1 to F5) and Cop
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2809#discussion_r4528137456
 - Concern: A reply on the PR cited the first commit by abbreviated id, which a rebase would invalidate.
 - Solution: The reply cites the commit subject and carries a one-line note of the edit (made at 17:22 UTC).
-- Current-tree verification: Every reply of this account on the PR was matched against local commits: only that reply cited an id, and it no longer does. The fix is the reply edit, so the reference is the commit that records it.
-- Resolution reference: docs(pr-reviews): [#2808] record round 2 of the review audit of PR 2809
+- Current-tree verification: Every reply of this account on the PR was matched against local commits: only that reply cited an id, and it no longer does. The fix is the reply edit, outside the tree, so the reference is the durable URL of that reply (see F17).
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2809#discussion_r4528258393>
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2809#discussion_r4528258393
 
@@ -211,7 +211,7 @@ Three rounds: da2ce7 review 5845757723 (approval with findings F1 to F5) and Cop
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2809#discussion_r4528314930
 - Concern: The 16:10 entry records an anchor pointer while the Background decisions say the pointer is not an anchor inside the tracker document.
-- Solution: None. The entry records the decision as it stood at 16:10 UTC; the 16:15 and 16:24 entries record the later changes, which is the reviewer's own option (b), and rewriting the entry would repeat finding F3.
+- Solution: None, recorded as `Superseded by F3` in the reply (the prescribed form for a no-change thread; see F14). The entry records the decision as it stood at 16:10 UTC; the 16:15 and 16:24 entries record the later changes, which is the reviewer's own option (b), and rewriting the entry would repeat finding F3.
 - Current-tree verification: `grep -n '^- 2026-11-10 16:1[05]' docs/issues/open/2808-workspace-package-release-process/ISSUE.md` shows the 16:10 and 16:15 entries, and the 16:24 entry records the rename; the Background decisions list holds the final decision.
 - Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2809#discussion_r4528341871>
 - Follow-up PR URL: N/A
@@ -224,7 +224,7 @@ Three rounds: da2ce7 review 5845757723 (approval with findings F1 to F5) and Cop
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2809#discussion_r4528315016
 - Concern: The 17:23 spec entry cites audit F8 while the audit defined findings only up to F7.
-- Solution: None. The review was written at head `07201367b`, before round 2 added F8 to the audit; at the current head F8 exists and is the finding that entry corrects.
+- Solution: None, recorded as `Superseded by F8` in the reply (the prescribed form for a no-change thread; see F14). The review was written before round 2 added F8 to the audit (the head it read is the one of da2ce7's round-2 review 5846259189); at the current head F8 exists and is the finding that entry corrects.
 - Current-tree verification: `grep -n '^### F8' docs/pr-reviews/pr-2809-review/PR-REVIEW.md` prints the detail entry, and the spec entry stamped 17:23 UTC cites it.
 - Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2809#discussion_r4528342295>
 - Follow-up PR URL: N/A
@@ -237,7 +237,7 @@ Three rounds: da2ce7 review 5845757723 (approval with findings F1 to F5) and Cop
 - 2026-11-10 17:01 UTC - Replies to F6 and F7 posted (17:01:30 and 17:01:33 UTC) after their fix commit was pushed, and their threads resolved; this audit record was added in the commit that carries this entry.
 - 2026-11-10 17:26 UTC - Correction to the log above: the Copilot review in the 16:46 entry was submitted at 16:50:05 UTC, after that entry's stamp, and the commit that added this audit record is dated 17:03:08 UTC, after the 17:01 entry's stamp. The entries are not rewritten; later events are stamped when they are recorded.
 - 2026-11-10 17:33 UTC - Round 2 review of da2ce7 received (approval at 17:21:07 UTC with four findings, `F8` to `F11` here); fixes committed at 17:23:43 and 17:27:00 UTC and pushed, replies posted at 17:32:12 to 17:32:20 UTC and the threads resolved; the audit edited in the commit that carries this entry.
-- 2026-11-10 17:42 UTC - Round 3 review of Copilot received (submitted at 17:37:35 UTC on the round-1 head, two comments, `F12` and `F13` here); both closed with no change, replies posted at 17:40:09 and 17:40:11 UTC and the threads resolved. The F12 reply was edited at 17:40:29 UTC to correct a cited time. The audit was edited in the commit that carries this entry.
+- 2026-11-10 17:42 UTC - Round 3 review of Copilot received (submitted at 17:37:35 UTC on the head that da2ce7's round-2 review 5846259189 read, two comments, `F12` and `F13` here); both closed with no change, replies posted at 17:40:09 and 17:40:11 UTC and the threads resolved. The F12 reply was edited at 17:40:29 UTC to correct a cited time. The audit was edited in the commit that carries this entry.
 
 ## Completion Rules
 
