@@ -1,6 +1,6 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/drafts/peer-ord-inconsistent-with-eq/ISSUE.md
+issue-spec: docs/issues/open/2798-peer-ord-inconsistent-with-eq/ISSUE.md
 last-updated-utc: 2026-11-10 11:55
 ---
 

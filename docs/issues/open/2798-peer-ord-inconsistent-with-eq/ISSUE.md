@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: draft
+status: planned
 priority: p3
 epic: null
-github-issue: null
-spec-path: docs/issues/drafts/peer-ord-inconsistent-with-eq/ISSUE.md
-branch: "{issue-number}-peer-ord-inconsistent-with-eq"
+github-issue: 2798
+spec-path: docs/issues/open/2798-peer-ord-inconsistent-with-eq/ISSUE.md
+branch: "2798-peer-ord-inconsistent-with-eq-spec"
 related-pr: null
-last-updated-utc: "2026-11-10 12:20"
+last-updated-utc: "2026-11-10 12:45"
 semantic-links:
   skill-links:
     - create-issue
@@ -21,7 +21,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - `Peer`'s `Ord` is inconsistent with its `Eq`
+# Issue #2798 - `Peer`'s `Ord` is inconsistent with its `Eq`
 
 ## Goal
 
@@ -197,9 +197,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ### Workflow Checkpoints
 
-- [x] Folder-style spec drafted in `docs/issues/drafts/peer-ord-inconsistent-with-eq/ISSUE.md`
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created and issue number added to this spec
+- [x] Folder-style spec drafted in `docs/issues/open/2798-peer-ord-inconsistent-with-eq/ISSUE.md`
+- [x] Spec reviewed and approved by user/maintainer
+- [x] GitHub issue created and issue number added to this spec
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
@@ -210,6 +210,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ### Progress Log
 
+- 2026-11-10 12:45 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the spec; created GitHub issue 2798; moved spec to `docs/issues/open/` for a spec-only PR - `ISSUE.md`
 - 2026-11-10 12:20 UTC - Claude Code (Claude Sonnet 5.5) - Added T1 (history and intent investigation) and the maintainer position, per maintainer request - `ISSUE.md`
 - 2026-11-10 11:55 UTC - Claude Code (Claude Sonnet 5.5) - Drafted spec, audited usages, reproduced the bug - `manual-verification-evidence.md` V1
 
