@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Two reviews: Copilot review 5845178584 (a summary with no actionable finding, so it has no row) and da2ce7 review 5845212310 (round 1, eleven findings, which keep the reviewer's IDs).
+Three reviews: Copilot review 5845178584 (a summary with no actionable finding, so it has no row), da2ce7 review 5845212310 (round 1, eleven findings, which keep the reviewer's IDs) and da2ce7 review 5845706883 (round 2, six findings). The round 2 `F10` re-raises `F10` and became `F17`; the other round 2 IDs (`F12` to `F16`) are the reviewer's.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -56,6 +56,12 @@ Two reviews: Copilot review 5845178584 (a summary with no actionable finding, so
 | F9 | review-finding:pr-2807-f9 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F10 | review-finding:pr-2807-f10 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F11 | review-finding:pr-2807-f11 | Human | Suggestion | testing | ORIGINAL | FIXED | RESOLVED |
+| F12 | review-finding:pr-2807-f12 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F17 | review-finding:pr-2807-f17 | Human | Nit | documentation | RE_RAISE_OF:F10 | FIXED | RESOLVED |
+| F13 | review-finding:pr-2807-f13 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F14 | review-finding:pr-2807-f14 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F15 | review-finding:pr-2807-f15 | Human | Nit | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F16 | review-finding:pr-2807-f16 | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -66,7 +72,7 @@ Two reviews: Copilot review 5845178584 (a summary with no actionable finding, so
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2807#discussion_r4527363973
 - Concern: The acceptance row, the criterion and the log say `Started` remains available and tested; no `.rs` file imports `torrust_server_lib::signals`.
-- Solution: The three places now say it remains available in `torrust-server-lib` 0.6.0 and is no longer used or tested here.
+- Solution: The acceptance row and the criterion say it remains available in `torrust-server-lib` 0.6.0 and is no longer used here, and the progress-log entry says it is no longer used or tested here.
 - Current-tree verification: `git grep -n "no longer used" docs/issues/open/2801-1488-si-19-remove-legacy-shutdown-api/ISSUE.md` finds the three statements.
 - Resolution reference: docs(issues): [#2801] correct the SI-19 spec and evidence after the review
 - Follow-up PR URL: N/A
@@ -92,7 +98,7 @@ Two reviews: Copilot review 5845178584 (a summary with no actionable finding, so
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2807#discussion_r4527363993
 - Concern: The row is DONE while the criterion is open and no review has concluded; the approval cites only a chat.
-- Solution: The row is IN_PROGRESS and the approval item links the merged PR 6, the publication and PR 2803.
+- Solution: The row is IN_PROGRESS and the approval item links the merged `torrust-server-lib` PR 6 and PR 2803; the migration guide cites the spec's start gate and PR 2803.
 - Current-tree verification: The row and the first evidence section were read after the edit.
 - Resolution reference: docs(issues): [#2801] correct the SI-19 spec and evidence after the review
 - Follow-up PR URL: N/A
@@ -202,11 +208,91 @@ Two reviews: Copilot review 5845178584 (a summary with no actionable finding, so
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2807#discussion_r4527439588
 
+### F12 - The live-spec block is not a runnable command, and its output drops one of the five matches
+
+- PR number: 2807
+- Source review ID: 5845706883
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2807#discussion_r4527713351
+- Concern: The block is prose, shows four of five matches, rewrites a line and leaves a trailing space.
+- Solution: The evidence pastes the real command with its full output (five lines).
+- Current-tree verification: `git diff --check` prints nothing and the command prints the five lines.
+- Resolution reference: docs(issues): [#2801] paste the real live-spec search and its full output
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2807#discussion_r4527857390
+
+### F17 - Re-raise: the criterion still says only archived history matches, but the new search finds live specs
+
+- PR number: 2807
+- Source review ID: 5845706883
+- Reviewer finding ID: F10
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2807#discussion_r4527713365
+- Concern: The criterion, the acceptance row and the evidence item say nothing remains outside archived history, but five live-spec lines match.
+- Solution: The three places (and the M2 expectation and T5 note) now say no use remains and descriptions match in archived docs and five live-spec lines.
+- Current-tree verification: `git grep -n "five lines" docs/issues/open/2801-1488-si-19-remove-legacy-shutdown-api` lists the places.
+- Resolution reference: docs(issues): [#2801] say that live specs still describe the removed API
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2807#discussion_r4527857932
+
+### F13 - branch still names the spec branch, while related-pr names the implementation PR
+
+- PR number: 2807
+- Source review ID: 5845706883
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2807#discussion_r4527713374
+- Concern: The frontmatter `branch` names the merged spec branch.
+- Solution: `branch` is `2801-remove-legacy-shutdown-api`.
+- Current-tree verification: Line 10 of the spec was read after the edit.
+- Resolution reference: docs(issues): [#2801] point the spec branch at the implementation branch
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2807#discussion_r4527858338
+
+### F14 - Two Solutions say more than the bytes
+
+- PR number: 2807
+- Source review ID: 5845706883
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2807#discussion_r4527713383
+- Concern: F1 and F3 Solutions and the F3 reply claimed wording and links the files do not have.
+- Solution: The two Solutions and two replies now match the files. In the same sweep the statements that the maintainer published 0.6.0 were removed from the spec and the evidence, because the evidence only shows it is published (commit "docs(issues): [#2801] state only what the evidence shows about the 0.6.0 publication").
+- Current-tree verification: The Solutions, the replies and `git grep -n "maintainer published" docs/issues/open/2801-1488-si-19-remove-legacy-shutdown-api` (no output) were checked.
+- Resolution reference: docs(pr-reviews): [#2807] align the audit with the bytes and record the second round
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2807#discussion_r4527858834
+
+### F15 - Two commits each carry several independent fixes
+
+- PR number: 2807
+- Source review ID: 5845706883
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2807#discussion_r4527713390
+- Concern: Two commits of round 1 fix several findings each.
+- Solution: No change: the reviewer notes a rewrite is not needed; the fixes of round 2 are in separate commits.
+- Current-tree verification: The reply states the decision.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2807#discussion_r4527859329
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2807#discussion_r4527859329
+
+### F16 - Record the ten invocations so M4 can be re-run from this file
+
+- PR number: 2807
+- Source review ID: 5845706883
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2807#discussion_r4527713414
+- Concern: The evidence does not record the ten commands or the tracker configuration.
+- Solution: The evidence records the ten invocations as one loop and inlines the tracker configuration.
+- Current-tree verification: The evidence was read after the edit.
+- Resolution reference: docs(issues): [#2801] record the ten signal verification invocations
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2807#discussion_r4527859808
+
 ## Processing Log
 
 - 2026-11-10 16:10 UTC - Copilot review received (16:10:42 UTC) (no actionable finding).
 - 2026-11-10 16:12 UTC - da2ce7 review received (16:12:39 UTC) (approval with eleven findings, `F1` to `F11`).
 - 2026-11-10 16:19 UTC - Replies posted on all eleven threads (16:18:48 to 16:19:14 UTC); the audit started in the commit that carries this entry.
+- 2026-11-10 16:43 UTC - da2ce7 review received (round 2: approval of the pushed head, six findings, `F12` to `F17` here; submitted 16:43:09 UTC).
+- 2026-11-10 16:56 UTC - Replies posted on the six threads (16:55:52 to 16:56:05 UTC) and two earlier replies edited; the audit corrected in the commit that carries this entry.
 
 ## Completion Rules
 
