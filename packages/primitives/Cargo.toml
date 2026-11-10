@@ -1,6 +1,7 @@
 [package]
+categories = [ "data-structures", "network-programming" ]
 description = "A library with the primitive types shared by the Torrust tracker packages."
-keywords = [ "api", "library", "primitives" ]
+keywords = [ "announce", "bittorrent", "info-hash", "peer", "swarm" ]
 name = "torrust-tracker-primitives"
 readme = "README.md"
 
