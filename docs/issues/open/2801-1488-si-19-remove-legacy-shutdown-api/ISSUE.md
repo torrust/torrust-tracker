@@ -9,7 +9,7 @@ github-issue: 2801
 spec-path: docs/issues/open/2801-1488-si-19-remove-legacy-shutdown-api/ISSUE.md
 branch: "2801-remove-legacy-shutdown-api-spec"
 related-pr: null
-last-updated-utc: "2026-11-10 14:05"
+last-updated-utc: "2026-11-10 14:25"
 semantic-links:
   skill-links:
     - create-issue
@@ -105,8 +105,8 @@ evidence goes in this issue's `manual-verification-evidence.md` (SI-18's gate ev
   27 shutdown-related `#[deprecated]` attributes in the tree, and T2 to T4 name each
   one. SI-18's in-scope list
   (`docs/issues/closed/2751-1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md`) is a
-  starting point, not the complete list: it omits the aliases and the whole `Running`
-  structs, and it names the private HTTP `Launcher::start`, which carries
+  starting point, not the complete list: it omits the aliases and the HTTP and REST `Running`
+  structs as a whole, and it names the private HTTP `Launcher::start`, which carries
   `#[allow(deprecated)]`, not `#[deprecated]`. The set includes `axum-server`'s `graceful_shutdown`; the legacy `start`, `start_with_health_check`,
   `stop`, `Running` state, `Running::new`, `halt_task` and `rx_halt` of the HTTP,
   REST API, health-check API and UDP servers; and the aliases that name the legacy
@@ -232,7 +232,8 @@ Sign every commit with GPG.
 - 2026-11-10 13:30 UTC - AI agent (Claude Sonnet 5.5) - Addressed the review of PR 2803 (F1 to F7): full removal list by reference to SI-18, T1 as a wait-only task with the bump in T4, one wording for the 0.6.0 dependency, real timestamps, the verification sections, and the evidence file matched to the gate. `torrust-server-lib` 0.6.0 was published meanwhile (crates.io `max_version` 0.6.0).
 - 2026-11-10 13:06 UTC - AI agent (Claude Sonnet 5.5) - Opened the spec-only PR 2803 (created at 13:06:40 UTC).
 - 2026-11-10 13:36 UTC - AI agent (Claude Sonnet 5.5) - Added the implementation-completion-review checkpoint and requirement for Copilot's finding R2 (commit at 13:36:46 UTC).
-- 2026-11-10 14:05 UTC - AI agent (Claude Sonnet 5.5) - Edited the spec for the second review of PR 2803: the 0.6.0 wording reconciled with SI-18 (F11), the removal list stated as the 27 `#[deprecated]` attributes (F12), and these log entries and the stamp corrected (F4). The audit record `docs/pr-reviews/pr-2803-review/PR-REVIEW.md` is added in the same round (F8).
+- 2026-11-10 13:59 UTC - AI agent (Claude Sonnet 5.5) - Edited the spec for the second review of PR 2803: the 0.6.0 wording reconciled with SI-18 (F11), the removal list stated as the 27 `#[deprecated]` attributes (F12), and these log entries and the stamp corrected (F4). The audit record `docs/pr-reviews/pr-2803-review/PR-REVIEW.md` is added in the same round (F8).
+- 2026-11-10 14:25 UTC - AI agent (Claude Sonnet 5.5) - Edited the spec for the third review of PR 2803: the stamps now match the commit times (F4) and the removal bullet says the HTTP and REST `Running` structs (F15).
 
 ## Design and Ownership Review
 
