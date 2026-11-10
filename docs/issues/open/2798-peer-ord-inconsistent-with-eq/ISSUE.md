@@ -198,7 +198,7 @@ meant, code already compares `peer_id` explicitly. The maintainer chose A (see D
 - Remove `Ord` and `PartialOrd` from `Peer` (option A, chosen by the maintainer), so no ordering can disagree with `==`.
 - Remove the derived `Ord`/`PartialOrd` from `PeerList` and `Torrent` in `torrent-repository-benchmarking`, which only inherited it.
 - Use explicit `peer_id` comparisons where only the id is meant.
-- A maintained regression test in `packages/primitives`: a `compile_fail` doctest asserting that `Peer` is not `Ord`.
+- A maintained regression test in `packages/primitives`: a `compile_fail` doctest asserting that `Peer` implements neither `Ord` nor `PartialOrd`.
 - Update the rustdoc of `Peer` to state that equality is over every field and that `Peer` has no ordering.
 
 ### Out of Scope
@@ -238,8 +238,8 @@ A `compile_fail` doctest on `Peer` (in `peer.rs`), deterministic and with no I/O
 compile time that `Peer` implements neither ordering trait, using a generic function with a
 `PartialOrd` bound (`fn assert_partial_ord<T: PartialOrd>() {}` called with `Peer`). `Ord` requires
 `PartialOrd`, so this one bound guards both removals, including a `PartialOrd`-only implementation.
-With the buggy code `Peer: PartialOrd` holds, so the doctest compiles and `compile_fail` reports a
-failure: that is the red run, recorded before the fix. After the fix the doctest fails to compile
+The red run before the fix used an `Ord` bound (evidence, T4); the `PartialOrd` bound was then shown
+red against the reintroduced id-only `Ord` and `PartialOrd` impls (evidence, revision section). After the fix the doctest fails to compile
 as required and passes. A runtime test is not
 possible for A because there is no ordering left to call. The existing tests that compare whole
 peers with `assert_eq!` keep guarding equality over every field. The workspace build

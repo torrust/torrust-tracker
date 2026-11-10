@@ -146,6 +146,17 @@ it guards both).
 - With a temporary id-only `impl PartialOrd for Peer` appended to `peer.rs` (and no `Ord`), the same
   command fails: "Test compiled successfully, but it's marked `compile_fail`." The temporary
   implementation was then removed by restoring the file from a copy taken before it.
+- Red run of the final doctest against the pre-fix behaviour, recorded 2026-11-10 after review round 2
+  asked for it (mutate, then restore; stamps from `date -u +%T.%3N`, one step at a time):
+  1. Appended the removed id-only `impl Ord for Peer` and `impl PartialOrd for Peer` to `peer.rs`: 19:18:22.265 to 19:18:22.409.
+  2. `cargo test -p torrust-tracker-primitives --doc`: 19:18:22.552 to 19:18:23.585.
+  3. Restored `peer.rs` from a copy taken before step 1; `git diff --quiet HEAD -- packages/primitives/src/peer.rs` exited 0 afterwards: 19:18:23.590 to 19:18:23.608.
+
+  ```text
+  test packages/primitives/src/peer.rs - peer::Peer (line 117) - compile fail ... FAILED
+  Test compiled successfully, but it's marked `compile_fail`.
+  test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out
+  ```
 
 ## Failures and Follow-up
 
