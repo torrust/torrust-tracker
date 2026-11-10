@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Six rounds: da2ce7 review 5845757723 (approval with findings F1 to F5) and Copilot review 5845810205 (two comments) in round 1; da2ce7 review 5846259189 (approval with findings F6 to F9) in round 2; Copilot review 5846488382 (two comments, run on the head that review 5846259189 read) in round 3. Copilot's `F1` and `F2` collided with da2ce7's and became `F6` and `F7`; round 2's `F6` to `F9` became `F8` to `F11`; round 3's two comments are `F12` and `F13`; round 4's da2ce7 review 5846762716 (approval with findings F12 to F16) collided with those and became `F14` to `F18`; round 5's Copilot review 5846854848 (three comments, run on the head that review 5846762716 read) is `F19` to `F21`; round 6's da2ce7 review 5847241969 (approval with findings F17 to F22) collided with those and became `F22` to `F27`. The original IDs are recorded in the details.
+Six rounds: da2ce7 review 5845757723 (approval with findings F1 to F5) and Copilot review 5845810205 (two comments) in round 1; da2ce7 review 5846259189 (approval with findings F6 to F9) in round 2; Copilot review 5846488382 (two comments, run on the head that review 5846259189 read) in round 3. Copilot's `F1` and `F2` collided with da2ce7's and became `F6` and `F7`; round 2's `F6` to `F9` became `F8` to `F11`; round 3's two comments are `F12` and `F13`; round 4's da2ce7 review 5846762716 (approval with findings F12 to F16) collided with those and became `F14` to `F18`; round 5's Copilot review 5846854848 (three comments, run on the head that review 5846762716 read) is `F19` to `F21`; round 6's da2ce7 review 5847241969 (approval with findings F17 to F22) collided with those and became `F22` to `F27`. The original IDs are recorded in the details. The body of the commit `docs(pr-reviews): [#2808] correct the PR 2809 audit record again` calls round 6 "round 5"; this audit numbers it round 6.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -369,7 +369,7 @@ Six rounds: da2ce7 review 5845757723 (approval with findings F1 to F5) and Copil
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2809#discussion_r4528886214
 - Concern: The audit header said Copilot's round-5 review ran on the head after round 4's fixes, but the forge records it against the head that review 5846762716 read.
 - Solution: The header text names that head by review 5846762716.
-- Current-tree verification: `grep -n 'head after' docs/pr-reviews/pr-2809-review/PR-REVIEW.md` prints nothing; the forge `commit_id` of reviews 5846854848 and 5846762716 is the same.
+- Current-tree verification: `grep -n 'head after' docs/pr-reviews/pr-2809-review/PR-REVIEW.md` prints only the F23 heading, its Concern and this line, which quote the phrase, and no line of the header text or of the log; the forge `commit_id` of reviews 5846854848 and 5846762716 is the same.
 - Resolution reference: docs(pr-reviews): [#2808] correct the PR 2809 audit record again
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2809#discussion_r4529464630
