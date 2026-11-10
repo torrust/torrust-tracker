@@ -1,7 +1,7 @@
 //! End-to-end checks of the `package-coverage-check` binary against the global CLI output contract.
 //!
 //! The TTY refusal is not covered here: the test harness always pipes stdout, so the refusal cannot
-//! be triggered without a pseudo-terminal. Its code is one early return in `main`, and manual
+//! be triggered without a pseudo-terminal. Its code is one early return in `run`, and manual
 //! verification covers it (issue #2762).
 
 use std::ffi::OsStr;

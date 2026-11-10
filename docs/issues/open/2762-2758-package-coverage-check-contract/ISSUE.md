@@ -9,7 +9,7 @@ github-issue: 2762
 spec-path: docs/issues/open/2762-2758-package-coverage-check-contract/ISSUE.md
 branch: "2762-package-coverage-check-contract"
 related-pr: null
-last-updated-utc: "2026-11-10 12:00"
+last-updated-utc: "2026-11-10 17:45"
 semantic-links:
   skill-links:
     - create-issue
@@ -79,7 +79,7 @@ This issue fixes a deviation from the CLI output contract, so it is bug work in 
 
 ## Regression Test Strategy
 
-Unit tests of the error and exit-code mapping in `package-coverage-check`, plus a CLI test for the TTY refusal and the `summary` JSON shape. They fail today (plain-text errors, exit `1` for usage). If a higher boundary is used instead, record why it is clearer or the only practical option; link red and green output and the final recheck to `manual-verification-evidence.md`.
+Unit tests of the error and exit-code mapping in `package-coverage-check`, plus CLI tests for the usage and runtime errors and the `summary` JSON shape. They fail today (plain-text errors, exit `1` for usage). The TTY refusal has no automated CLI test: the test harness always pipes stdout, and a pseudo-terminal test would need a new dev-dependency (a pty crate), which this issue does not add. It is covered by the `Failure` unit test (kind and exit code) and by manual verification V1 with `script`; a pty-based test is a possible follow-up for all the CLI tools together. If a higher boundary is used instead, record why it is clearer or the only practical option; link red and green output and the final recheck to `manual-verification-evidence.md`.
 
 ## Implementation Plan
 
@@ -87,10 +87,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task | Notes / Expected Output |
 | --- | ------ | ---- | ----------------------- |
-| T1 | DONE | Failing tests for NDJSON errors, exit codes and TTY refusal | Red tests. |
+| T1 | DONE | Failing tests for NDJSON errors, exit codes and TTY refusal | Red tests; the TTY refusal is manual-only (see Regression Test Strategy). |
 | T2 | DONE | Implement the error and exit-code changes | Green tests. |
 | T3 | DONE | Change `summary` to a JSON result with `markdown` | Test asserts the field. |
-| T4 | DONE | Update the workflow to extract the field | `actionlint`-clean; step summary still renders. |
+| T4 | DONE | Update the workflow to extract the field | `linter yaml` clean (`actionlint` not available locally); `shell: bash` keeps `pipefail`. Hosted render checked on the PR run. |
 | T5 | DONE | Exercise the three subcommands locally on two real revisions | Evidence recorded. |
 
 ## Commit Points
@@ -114,7 +114,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - [x] GitHub issue created and issue number added to this spec
 - [x] Spec-only PR merged into `develop` before implementation
 - [x] Implementation completed
-- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks; see evidence L1 and G1)
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Evidence-based implementation completion review recorded
@@ -129,7 +129,8 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-11-09 10:25 UTC - Claude Code (Claude Sonnet 5.5) - Corrected details after the review rounds on PR 2771 and PR 2774 and fixed the earlier log stamps from the commit and issue creation times.
 - 2026-11-09 11:26 UTC - Claude Code (Claude Sonnet 5.5) - Corrected details after the round 3 review of PR 2774.
 - 2026-11-09 12:12 UTC - Claude Code (Claude Sonnet 5.5) - Addressed the review of PR 2771 (da2ce7 findings F1 to F27 and Copilot's later comments): specs corrected from the code, reproductions recorded where a spec has a bug-fix section.
-- 2026-11-10 12:00 UTC - Claude Code (Claude Sonnet 5.5) - Implemented: NDJSON errors, usage and TTY exit `2`, JSON `summary` with `markdown`, workflow extracts it; evidence recorded.
+- 2026-11-10 16:55 UTC - Claude Code (Claude Sonnet 5.5) - Implemented: NDJSON errors, usage and TTY exit `2`, JSON `summary` with `markdown`, workflow extracts it; evidence recorded.
+- 2026-11-10 17:45 UTC - Claude Code (Claude Sonnet 5.5) - Addressed review round 1 of PR 2810 (da2ce7, F1 to F8): `shell: bash` on the summary step, evidence corrected and completed.
 
 ## Acceptance Criteria
 
@@ -138,7 +139,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - [x] AC3: Running with stdout on a TTY exits `2` with a `tty_refusal` record.
 - [x] AC4: `summary` prints one JSON object whose `markdown` field is the former report.
 - [x] AC5: The workflow step summary shows the same Markdown as before.
-- [ ] `linter all` exits with code `0`
+- [x] `linter all` exits with code `0` (evidence L1)
 - [x] Relevant tests pass
 - [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
@@ -160,7 +161,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 | --- | -------- | ---------------------------- | --------------- | ------ | -------- |
 | M1 | Usage error | `cargo build -p package-coverage-check`, then `target/debug/package-coverage-check bogus > out 2> err; echo "exit=$?"; wc -c out` (the built binary, not `cargo run`, which adds plain cargo messages to stderr) | JSON record in `err`, `out` empty, exit `2` | DONE | `manual-verification-evidence.md` section V1 |
 | M2 | Summary round trip | Run `summary` on a sample discovery and results folder, redirect stdout to a file and run `jq -r .markdown` on it | Markdown identical to the previous output | DONE | `manual-verification-evidence.md` section V2 |
-| M3 | Workflow syntax | `actionlint` (or the repo's workflow linter) on the workflow | No findings | DONE | `manual-verification-evidence.md` section V3 |
+| M3 | Workflow syntax | `actionlint` (or the repo's workflow linter) on the workflow | No findings | DONE (`linter yaml`; `actionlint` unavailable) | `manual-verification-evidence.md` section V3 |
 
 Manual verification is mandatory even when automated tests pass. Record actual commands, output and the toolchain that produced each result in `manual-verification-evidence.md` (from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`).
 
@@ -172,7 +173,7 @@ Manual verification is mandatory even when automated tests pass. Record actual c
 | AC2 | DONE | V1; `tests/cli.rs`, `main.rs` unit test |
 | AC3 | DONE | V1 (pseudo-terminal via `script`) |
 | AC4 | DONE | V2; `tests/cli.rs` |
-| AC5 | DONE | V2, V3 (same Markdown via `jq -r .markdown`; confirmed on the PR run) |
+| AC5 | DONE | V2, V3 (same Markdown via `jq -r .markdown`, local; the hosted render is noted in the PR) |
 
 ## Risks and Trade-offs
 

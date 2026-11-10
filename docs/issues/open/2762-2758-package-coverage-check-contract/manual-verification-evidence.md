@@ -1,15 +1,15 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2762-2758-package-coverage-check-contract/ISSUE.md
-last-updated-utc: 2026-11-10 12:00
+last-updated-utc: 2026-11-10 17:45
 ---
 
 # Manual Verification Evidence
 
 ## Environment and Prerequisites
 
-- Date and time (UTC): 2026-11-09 12:11 to 12:13
-- Artifact under test: the unchanged tool, built from the tree of the commit `Merge torrust/develop into 2758-cli-output-contract-tools-migration-spec` (develop with the EPIC specs; no code of this issue yet)
+- Date and time (UTC): R0: 2026-11-09 12:11 to 12:13; R1, V1 to V3 and the round-1 rechecks: 2026-11-10 16:40 to 17:45
+- Artifact under test: R0: the unchanged tool, built from the tree of the commit `Merge torrust/develop into 2758-cli-output-contract-tools-migration-spec` (develop with the EPIC specs; no code of this issue yet). R1: commit `70f41431d` (red tests). V1, V2 and the green run: commit `304b7c2cd` (the fix, with the later docs commit) rebuilt with `cargo build -p package-coverage-check`; the TTY and mutation rechecks below ran on the round-1 fix tree, whose Rust source equals `304b7c2cd` apart from one comment in `tests/cli.rs`
 - Operating system / environment: Linux; stable Rust toolchain 1.99.1 (`rustc 1.99.1`, `cargo 1.99.1`); binaries built with `cargo build` (debug) and run directly from `target/debug/`, stdout and stderr redirected to files (stdout is not a terminal)
 - Prerequisites and setup performed: none beyond the build
 
@@ -37,7 +37,35 @@ A usage error is plain text on stderr (not JSON) and the exit code is `1`, not `
 
 ### R1 - Red regression tests (before the fix)
 
-`cargo test -p package-coverage-check --test cli` on commit `test(package-coverage-check): [#2762] failing tests for the CLI output contract`: 5 failed, 0 passed (usage error exited `1` instead of `2`, stderr was not JSON, `summary` printed Markdown, not JSON).
+`cargo test -p package-coverage-check --test cli` at commit `70f41431d` (tests only, binary unchanged): 5 failed, 0 passed.
+
+```text
+it_should_report_an_unknown_subcommand_as_a_usage_error_with_exit_code_two
+  assertion `left == right` failed
+    left: Some(1)
+   right: Some(2)
+it_should_report_missing_arguments_as_a_usage_error_with_exit_code_two      (same: Some(1) vs Some(2))
+it_should_report_an_unreadable_input_as_a_runtime_error_with_exit_code_one
+  the stderr record is JSON: Error("expected value", line: 1, column: 1)
+it_should_report_a_missing_subcommand_as_a_usage_error_with_exit_code_two   (failed)
+it_should_print_the_summary_markdown_in_the_markdown_field_of_one_json_object (failed)
+test result: FAILED. 0 passed; 5 failed
+```
+
+The unit test `it_should_map_each_failure_to_its_record_kind_and_exit_code` arrived with the fix (the `Failure` type does not exist before it). Mutation check, recorded in round 1 of the review: changing the `Usage` and `TtyRefusal` exit code in `Failure::exit_code` from `ExitCode::from(2)` to `ExitCode::FAILURE` makes it fail:
+
+```text
+tests::it_should_map_each_failure_to_its_record_kind_and_exit_code --- FAILED
+  left: ExitCode(unix_exit_status(1))
+ right: ExitCode(unix_exit_status(2))
+test result: FAILED. 2 passed; 1 failed
+```
+
+The mutation was reverted (`git checkout`); the tree equals the fix again.
+
+### G1 - Green tests
+
+`cargo test -p package-coverage-check` after the fix: lib 16 passed, `main.rs` unit tests 3 passed, `tests/cli.rs` 5 passed, `tests/summary.rs` 1 passed, doc-tests 0; 0 failed in every target.
 
 ### V1 - Usage error and runtime error after the change (M1)
 
@@ -54,7 +82,7 @@ exit=1
 stdout: 0 bytes
 stderr: {"kind":"runtime_error","message":"/nonexistent: No such file or directory (os error 2)"}
 
-$ script -qec "target/debug/package-coverage-check matrix a b c d; echo exit=$?" /dev/null
+$ script -qec 'target/debug/package-coverage-check matrix a b c d; echo exit=$?' /dev/null
 {"kind":"tty_refusal","message":"stdout is a TTY; pipe the output to consume result data"}
 exit=2
 ```
@@ -80,4 +108,8 @@ The `jq -r .markdown` output is identical to the former plain Markdown output (t
 
 ### V3 - Workflow syntax (M3)
 
-`actionlint` is not installed here; the workflow was parsed with Python `yaml.safe_load` (valid), and the one change is `| jq -r .markdown` on the `summary` step (GitHub Actions bash runs with `pipefail`, so a failing `cargo run` still fails the step; `jq` is preinstalled on `ubuntu-latest`). The workflow runs on this PR itself.
+`actionlint` is not installed here, so it did not run. What ran: `linter all` (which includes `linter yaml`) exited `0` on the round-1 tree, and the workflow parses with Python `yaml.safe_load`. The step runs `summary` through `| jq -r .markdown >> "$GITHUB_STEP_SUMMARY"`. Review finding F1 showed that a step without an explicit `shell:` runs `bash -e {0}` without `pipefail`, so a failing `summary` (empty stdout, exit `1`) would have left the step green with an empty report; the step now sets `shell: bash` (bash with `-e` and `-o pipefail`), so the pipeline fails with the tool's status. The hosted run of this step is the only full check of the workflow; its result is noted in the PR.
+
+### L1 - `linter all`
+
+`linter all` on the round-1 tree: `All linters passed` (exit `0`).

@@ -148,6 +148,7 @@ jobs:
 
       - name: Write Report-Only Summary
         working-directory: head
+        shell: bash
         env:
           DISCOVERY: ${{ needs.discover-package-coverage.outputs.discovery }}
         run: |
