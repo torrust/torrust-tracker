@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Four reviews: Copilot review 5845178584 (a summary with no actionable finding, so it has no row), da2ce7 review 5845212310 (round 1, eleven findings, which keep the reviewer's IDs) da2ce7 review 5845706883 (round 2, six findings) and da2ce7 review 5846280739 (round 3, three findings). The round 2 `F10` re-raises `F10` and became `F17`; the other round 2 IDs (`F12` to `F16`) are the reviewer's. In round 3 the reviewer's `F17` (a re-raise of `F14`) became `F20`; its `F18` and `F19` kept their IDs.
+Five reviews: Copilot review 5845178584 (a summary with no actionable finding, so it has no row), da2ce7 review 5845212310 (round 1, eleven findings, which keep the reviewer's IDs) da2ce7 review 5845706883 (round 2, six findings) da2ce7 review 5846280739 (round 3, three findings) and da2ce7 review 5846656529 (round 4, two findings). The round 2 `F10` re-raises `F10` and became `F17`; the other round 2 IDs (`F12` to `F16`) are the reviewer's. In round 3 the reviewer's `F17` (a re-raise of `F14`) became `F20`; its `F18` and `F19` kept their IDs. In round 4 the reviewer's `F20` and `F21` became `F21` and `F22`.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -65,6 +65,8 @@ Four reviews: Copilot review 5845178584 (a summary with no actionable finding, s
 | F20 | review-finding:pr-2807-f20 | Human | Nit | documentation | RE_RAISE_OF:F14 | FIXED | RESOLVED |
 | F18 | review-finding:pr-2807-f18 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F19 | review-finding:pr-2807-f19 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F21 | review-finding:pr-2807-f21 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F22 | review-finding:pr-2807-f22 | Human | Nit | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
 
 ## Finding Details
 
@@ -328,6 +330,32 @@ Four reviews: Copilot review 5845178584 (a summary with no actionable finding, s
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2807#discussion_r4528212187
 
+### F21 - The PR description still says the converted HTTP test runs on the token path
+
+- PR number: 2807
+- Source review ID: 5846656529
+- Reviewer finding ID: F20
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2807#discussion_r4528446814
+- Concern: The description says a deleted test runs on the token path.
+- Solution: The description says the token-path drain test asserts that the HTTP server keeps its bind address; its Verification section says the 3947-test run was made before the review rounds and what changed since.
+- Current-tree verification: `gh pr view 2807 --json body` was read after the edit.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2807#issuecomment-6774847290
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2807#discussion_r4528458114
+
+### F22 - The commit that adds this entry is named for the restamp only
+
+- PR number: 2807
+- Source review ID: 5846656529
+- Reviewer finding ID: F21
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2807#discussion_r4528446826
+- Concern: One commit restamps an entry, adds a log entry and moves the stamp, under a subject that names only the restamp.
+- Solution: No change: the reviewer notes no rewrite is needed; as for F15, the branch is not rewritten.
+- Current-tree verification: The reply states the decision.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2807#discussion_r4528458638
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2807#discussion_r4528458638
+
 ## Processing Log
 
 - 2026-11-10 16:10 UTC - Copilot review received (16:10:42 UTC) (no actionable finding).
@@ -337,6 +365,8 @@ Four reviews: Copilot review 5845178584 (a summary with no actionable finding, s
 - 2026-11-10 16:56 UTC - Replies posted on the six threads (16:55:52 to 16:56:05 UTC) and two earlier replies edited; the audit corrected in the commit that carries this entry.
 - 2026-11-10 17:22 UTC - da2ce7 review received (round 3: approval of the pushed head, three nits, `F18` to `F20` here; submitted 17:22:39 UTC).
 - 2026-11-10 17:27 UTC - Replies posted on the three threads (17:27:51 to 17:27:56 UTC); the audit corrected in the commit that carries this entry.
+- 2026-11-10 17:49 UTC - da2ce7 review received (round 4: approval of the pushed head, two nits, `F21` and `F22` here; submitted 17:49:19 UTC).
+- 2026-11-10 17:50 UTC - The PR description edited, the conversation response posted and the two replies posted (17:50:22 and 17:50:24 UTC); the audit corrected in the commit that carries this entry.
 
 ## Completion Rules
 
