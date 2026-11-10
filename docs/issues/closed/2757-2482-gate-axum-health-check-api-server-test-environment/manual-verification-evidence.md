@@ -1,6 +1,6 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2757-2482-gate-axum-health-check-api-server-test-environment/ISSUE.md
+issue-spec: docs/issues/closed/2757-2482-gate-axum-health-check-api-server-test-environment/ISSUE.md
 last-updated-utc: "2026-11-09 19:25"
 ---
 
