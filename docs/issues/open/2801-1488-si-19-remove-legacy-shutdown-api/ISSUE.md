@@ -9,7 +9,7 @@ github-issue: 2801
 spec-path: docs/issues/open/2801-1488-si-19-remove-legacy-shutdown-api/ISSUE.md
 branch: "2801-remove-legacy-shutdown-api-spec"
 related-pr: null
-last-updated-utc: "2026-11-10 14:00"
+last-updated-utc: "2026-11-10 13:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -58,7 +58,7 @@ evidence goes in this issue's `manual-verification-evidence.md` (SI-18's gate ev
       ends when the maintainer approves publishing 0.6.0 (SI-18, Versioning
       Decisions). The maintainer gave that approval in chat on 2026-11-10 and
       confirmed 0.6.0 as the `torrust-server-lib` removal release and 4.0.0 as the
-      root release target. The maintainer publishes 0.6.0 as part of this task.
+      root release target. 0.6.0 itself is an external dependency (below), not part of this task.
       The unpublished package crates and the root `HaltSignal`/`NestedServerTask`
       have never been in a published release and have no public window.
 - [x] HTTP tracker, REST API, health-check API and UDP tracker application
@@ -71,10 +71,11 @@ evidence goes in this issue's `manual-verification-evidence.md` (SI-18's gate ev
       users of the legacy API are the deprecated symbols themselves, their own
       tests and compat tests, each marked `#[allow(deprecated)]`.
 - [x] Q5's process-wrapper rule is resolved (`docs/containers.md#stopping-the-tracker`).
-- [ ] `torrust-server-lib` 0.6.0 (removal release) is ready: companion issue and
-      PR in that repository (session `server-lib-060`), release notes in its
-      `CHANGELOG.md`. The maintainer publishes it to crates.io after merge.
-      The implementation PR here cannot go green before publication.
+- [x] `torrust-server-lib` 0.6.0, the removal release, is published: issue
+      torrust/torrust-server-lib#5, PR torrust/torrust-server-lib/pull/6 (merged
+      into `main` at `2dd04f4`), release notes in its `CHANGELOG.md`; crates.io
+      reports `max_version` 0.6.0 (checked 2026-11-10). This is an external
+      dependency this task waits for; the maintainer published it.
 
 ## Scope
 
@@ -82,8 +83,9 @@ evidence goes in this issue's `manual-verification-evidence.md` (SI-18's gate ev
 
 - Remove deprecated `Halted` shutdown channels, legacy server stop triggers,
   and `shutdown_signal`/`shutdown_signal_with_message` helpers.
-- Remove `global_shutdown_signal()` and any library-level SIGINT/SIGTERM
-  subscription from `torrust-server-lib` and server packages.
+- Remove `global_shutdown_signal()` (removed upstream in `torrust-server-lib`
+  0.6.0; here, its last use in `udp-server`) and any library-level SIGINT/SIGTERM
+  subscription from the server packages.
 - Remove legacy-only compatibility tests and documentation.
 - Update Rust documentation, package release notes, and migration guidance to
   state that executables own OS signals and servers accept in-process
@@ -96,9 +98,15 @@ evidence goes in this issue's `manual-verification-evidence.md` (SI-18's gate ev
   types, which have no production consumer after SI-14.
 - Bump `torrust-server-lib` to 0.6.0 and remove the `Halted`/`global_shutdown_signal`
   imports and the `#[allow(deprecated)]` markers that guarded them.
-- Remove `axum-server`'s `graceful_shutdown` and the legacy `start`/`stop`,
-  `Running.halt_task` and `rx_halt` entry points of the HTTP, REST API and
-  health-check API servers (the list SI-18 deprecated).
+- Remove every item SI-18 deprecated in this repository: the complete list is
+  the in-scope list of the closed SI-18 spec
+  (`docs/issues/closed/2751-1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md`),
+  checked against the `#[deprecated]` attributes in the tree. It includes
+  `axum-server`'s `graceful_shutdown`; the legacy `start`, `start_with_health_check`,
+  `stop`, `Running` state, `Running::new`, `halt_task` and `rx_halt` of the HTTP,
+  REST API, health-check API and UDP servers; and the aliases that name the legacy
+  states (`RunningHttpServer`, `RunningApiServer`, `RunningUdpServer`). The workspace
+  search in Acceptance Criteria catches any residue.
 
 ### Out of scope
 
@@ -107,9 +115,9 @@ evidence goes in this issue's `manual-verification-evidence.md` (SI-18's gate ev
   the health-check join order. This is a refactor, not a removal of a deprecated
   symbol, so it would widen the breaking surface (Removal Constraint 1). The
   maintainer agreed on 2026-11-10 to split it into its own follow-up issue.
-- Publishing `torrust-server-lib` 0.6.0 (the maintainer does it; its removal PR
-  lives in the `torrust-server-lib` repository).
-
+- The `torrust-server-lib` 0.6.0 removal and its publication: an external
+  dependency this task waits for, done in the `torrust-server-lib` repository
+  (torrust/torrust-server-lib#5, PR 6) and published by the maintainer.
 - Changing cancellation-tree behavior, component child ownership, timeout
   policy, exit-code policy, or readiness behavior.
 - Removing the `Started` oneshot startup-notification API.
@@ -156,7 +164,7 @@ evidence goes in this issue's `manual-verification-evidence.md` (SI-18's gate ev
 - SI-18 is complete and the `torrust-server-lib` 0.5.x support window has ended (approved 2026-11-10); the
   unpublished package crates and the root types need no window (SI-18, Versioning Decisions).
 - SI-11 through SI-17, SI-23, and SI-24 token-lifecycle migrations are complete.
-- `torrust-server-lib` 0.6.0 published to crates.io (companion issue and PR in that repository).
+- `torrust-server-lib` 0.6.0 published to crates.io (external dependency; done 2026-11-10, torrust/torrust-server-lib#5 and PR 6).
 - #1588 final inventory evidence is complete (closed).
 - Q4 is resolved. Q5's process-wrapper verification rule is required for final
   end-to-end removal verification.
@@ -174,10 +182,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task | Notes / Expected Output |
 | --- | ------ | ---- | ----------------------- |
-| T1  | TODO | Wait for `torrust-server-lib` 0.6.0 (torrust/torrust-server-lib#5, PR 6) to be merged and published by the maintainer. Develop against a temporary `[patch.crates-io]` override only. | The override is removed before the implementation PR is ready; `cargo check` resolves 0.6.0 from crates.io. |
-| T2  | TODO | `udp-server`: remove `Server<Stopped>::start`, legacy `Running`, `Server<Running>::stop`, `Launcher::run_with_graceful_shutdown`, `Spawner::spawn_launcher`, `LaunchRequest`, `legacy_stop_requested`, `halt_requested`, and the `global_shutdown_signal` use. | Legacy-only tests removed; token lifecycle tests stay. |
-| T3  | TODO | `axum-http-server`, `axum-rest-api-server`, `axum-health-check-api-server`, `axum-server`: remove the legacy `start`/`stop`, `halt_task`, `rx_halt`, `RunningServer` and `graceful_shutdown`. | Token-aware paths keep their child ownership and join behavior. |
-| T4 | TODO | Root: remove `HaltSignal` and `NestedServerTask` and their tests; bump `torrust-server-lib` to 0.6.0 in every `Cargo.toml`; drop every `#[allow(deprecated)]` added by SI-18 and the compat tests that exist only for removed symbols. | `cargo check --workspace --all-targets` warning-free. |
+| T1  | TODO | Wait for `torrust-server-lib` 0.6.0 (done) and branch from the merged spec. No change and no commit. | Recorded in the progress log only. |
+| T2  | TODO | `udp-server`: remove `Server<Stopped>::start`, legacy `Running` and `RunningUdpServer`, `Server<Running>::stop`, `Launcher::run_with_graceful_shutdown`, `Spawner::spawn_launcher`, `LaunchRequest`, `legacy_stop_requested`, `halt_requested`, and the `global_shutdown_signal` use. | Legacy-only tests removed; token lifecycle tests stay. |
+| T3  | TODO | `axum-http-server`, `axum-rest-api-server`, `axum-health-check-api-server`, `axum-server`: remove the legacy `start`, `start_with_health_check`, `stop`, `Running` structs and aliases, `Running::new`, `halt_task`, `rx_halt`, `RunningServer` and `graceful_shutdown`. | Token-aware paths keep their child ownership and join behavior. |
+| T4  | TODO | Root: remove `HaltSignal` and `NestedServerTask` and their tests; bump `torrust-server-lib` to 0.6.0 in every `Cargo.toml`; drop every `#[allow(deprecated)]` added by SI-18 and the compat tests that exist only for removed symbols. | The bump lands with the removals, since 0.6.0 removes `Halted` and an earlier bump would not build. `cargo check --workspace --all-targets` warning-free. |
 | T5 | TODO | Update docs: the migration guide `docs/features/shutdown-process/legacy-api-migration.md` (removed, with history), the shutdown-process docs, and the EPIC row. | Workspace search finds legacy symbols only in archived history. |
 | T6 | TODO | Verify and record evidence: searches, deterministic tests, SIGINT/SIGTERM for the tracker and both standalone examples, container check. | `manual-verification-evidence.md`. |
 
@@ -185,10 +193,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | Task | Coherent change set | Commit policy |
 | ---- | ------------------- | ------------- |
-| T1 | Dependency bump to 0.6.0 | Commit after focused validation. |
+| T1 | None (wait only) | No commit. |
 | T2 | `udp-server` removal | Commit after focused validation and required review. |
 | T3 | Axum packages removal | Commit after focused validation and required review. |
-| T4 | Root types, allowances and compat tests | Commit after focused validation and required review. |
+| T4 | Root types, allowances, compat tests and the `torrust-server-lib` 0.6.0 bump | Commit after focused validation and required review. Bumping in the same commit keeps the tree building. |
 | T5 | Documentation | Commit after the last production change. |
 | T6 | Verification evidence | Commit after the last production change. |
 
@@ -202,7 +210,7 @@ Sign every commit with GPG.
 - [x] Spec reviewed and approved by the maintainer (issue creation and spec-only PR approved in chat, 2026-11-10)
 - [x] GitHub issue created and issue number added to this spec (#2801)
 - [ ] Spec-only PR merged into `develop` before implementation
-- [ ] `torrust-server-lib` 0.6.0 published
+- [x] `torrust-server-lib` 0.6.0 published (external dependency, 2026-11-10)
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in `manual-verification-evidence.md`
@@ -212,8 +220,83 @@ Sign every commit with GPG.
 
 ### Progress Log
 
-- 2026-11-10 14:00 UTC - AI agent (Claude Sonnet 5.5) - Refreshed the draft after SI-18: recorded the start-gate evidence and the maintainer's approval (chat, 2026-11-10) ending the `torrust-server-lib` 0.5.x window with 0.6.0 as the removal release and 4.0.0 as the root target; split the supervisor consolidation into a follow-up; companion removal in torrust/torrust-server-lib#5 (PR 6).
-- 2026-11-10 UTC - AI agent (Claude Sonnet 5.5) - Created issue #2801 and moved the spec to `docs/issues/open/`.
+- 2026-11-10 12:52 UTC - AI agent (Claude Sonnet 5.5) - Refreshed the draft after SI-18: recorded the start-gate evidence and the maintainer's approval (chat, 2026-11-10) ending the `torrust-server-lib` 0.5.x window with 0.6.0 as the removal release and 4.0.0 as the root target; split the supervisor consolidation into a follow-up; companion removal in torrust/torrust-server-lib#5 (PR 6).
+- 2026-11-10 13:04 UTC - AI agent (Claude Sonnet 5.5) - Created issue #2801, moved the spec to `docs/issues/open/` and opened the spec-only PR 2803.
+- 2026-11-10 13:30 UTC - AI agent (Claude Sonnet 5.5) - Addressed the review of PR 2803 (F1 to F7): full removal list by reference to SI-18, T1 as a wait-only task with the bump in T4, one wording for the 0.6.0 dependency, real timestamps, the verification sections, and the evidence file matched to the gate. `torrust-server-lib` 0.6.0 was published meanwhile (crates.io `max_version` 0.6.0).
+
+## Design and Ownership Review
+
+Not applicable: this task only removes deprecated entry points and their tests. It
+adds no task, process, readiness wait or resource owner. Removal Constraint 3
+requires each token-aware lifecycle path to keep owning and joining its children;
+the deterministic tests in the Verification Plan prove it.
+
+## Verification Plan
+
+### Automatic Checks
+
+- `linter all`
+- `cargo check --workspace --all-targets` warning-free, with no `#[allow(deprecated)]` left
+- `cargo test --workspace` and the focused tests of the changed packages
+- Pre-push checks before the implementation push
+
+### Manual Verification Scenarios
+
+Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
+
+Executable-boundary verification follows the EPIC protocol (signal each direct PID, bounded wait, exit status, bindings released).
+
+| ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
+| -- | -------- | ---------------------------- | --------------- | ------ | -------- |
+| M1 | Start-gate evidence | Link SI-18 evidence, the migration issues, #1588, Q5, the approval and the 0.6.0 release. | Every gate item has a link or command output. | TODO | `manual-verification-evidence.md` |
+| M2 | Legacy symbols removed | `git grep` for `Halted`, `shutdown_signal`, `global_shutdown_signal`, `HaltSignal`, `NestedServerTask`, `run_with_graceful_shutdown`, `spawn_launcher`, `LaunchRequest` and `tokio::signal` outside executables. | Only archived history matches. | TODO | `manual-verification-evidence.md` |
+| M3 | Token lifecycle owns completion | Run the component tests that cancel an injected token. | Owned children joined; no OS signal needed. | TODO | `manual-verification-evidence.md` |
+| M4 | Tracker and standalone binaries | SIGINT and SIGTERM to the tracker and both standalone examples. | One application-owned shutdown sequence each; bindings released. | TODO | `manual-verification-evidence.md` |
+| M5 | Container / service manager | Stop the container per `docs/containers.md#stopping-the-tracker`. | Orderly shutdown within the Q4 deadline; result per Q3. | TODO | `manual-verification-evidence.md` |
+
+Record every command result with its toolchain or runtime. If a scenario fails,
+record the failure and diagnosis in the progress log before proceeding.
+
+### Disposable Verification Scripts
+
+None.
+
+### Acceptance Verification
+
+| AC | Status | Evidence |
+| -- | ------ | -------- |
+| Start-gate evidence complete and reviewed | TODO | M1 |
+| Legacy API removed, `Started` kept and tested | TODO | M2 and the package tests |
+| No OS-signal subscription in server libraries | TODO | M2 |
+| No legacy reference outside archived history | TODO | M2 |
+| Binaries handle SIGINT/SIGTERM only at their boundaries | TODO | M4 |
+| Deterministic token tests | TODO | M3 |
+| End-to-end SIGINT/SIGTERM, one sequence | TODO | M4 |
+| Container and service-manager verification | TODO | M5 |
+| `linter all` passes | TODO | Pre-commit hook output |
+
+## Risks and Trade-offs
+
+- A breaking removal: external consumers of `torrust-server-lib` 0.5.x that did not
+  migrate stop compiling against 0.6.0. The 0.5.0 changelog told them.
+- Removing the legacy-only tests removes coverage of paths that no longer exist; the
+  token lifecycle tests keep the coverage of the supported paths.
+- The five package crates are unpublished, so their removal needs no support window
+  (SI-18, Versioning Decisions); re-check if #2583 publishes before SI-19 lands.
+
+## Implementation Completion Review
+
+- Retrospective: decide after implementation; if none is needed, add a progress-log
+  entry saying why.
+- The independent reviewer records its result in `agent-review-reports.md` using
+  `docs/templates/AGENT-REVIEW-REPORTS.md`.
+
+## References
+
+- Parent EPIC: #1488 (roadmap row 19)
+- Related issues: #2751 (SI-18), #1588, #2482, #2583
+- External: torrust/torrust-server-lib#5 and PR 6 (0.6.0 removal)
+- Q4 and Q5: `docs/features/shutdown-process/questions.md`
 
 ## Rollback
 

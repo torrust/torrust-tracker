@@ -9,14 +9,14 @@
 - OS:
 - Rust version (`rustc --version`):
 - Tracker commit/branch:
-- `torrust-server-lib` breaking release/version:
+- `torrust-server-lib` breaking release/version: 0.6.0
 
 ## Start-Gate Evidence
 
-- [ ] Link completed SI-18 deprecation evidence and support-window end date.
-- [ ] Link every completed token-lifecycle migration (SI-11 through SI-17).
+- [ ] Link completed SI-18 deprecation evidence (#2751, PRs 2752, 2793, 2797).
+- [ ] Link the completed token-lifecycle migrations (SI-11 through SI-17, SI-23 #2449, SI-24 #2450).
 - [ ] Link #1588 final task inventory.
-- [ ] Link external breaking-release notes and maintainer timing approval.
+- [ ] Link the maintainer approval ending the 0.5.x window (no fixed end date) and the `torrust-server-lib` 0.6.0 release notes (torrust/torrust-server-lib#5, PR 6).
 - [ ] Link Q4/Q5 decisions and deployment/process-wrapper policy.
 
 ## Source and Deterministic Tests
