@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Three reviews: Copilot review 5845178584 (a summary with no actionable finding, so it has no row), da2ce7 review 5845212310 (round 1, eleven findings, which keep the reviewer's IDs) and da2ce7 review 5845706883 (round 2, six findings). The round 2 `F10` re-raises `F10` and became `F17`; the other round 2 IDs (`F12` to `F16`) are the reviewer's.
+Four reviews: Copilot review 5845178584 (a summary with no actionable finding, so it has no row), da2ce7 review 5845212310 (round 1, eleven findings, which keep the reviewer's IDs) da2ce7 review 5845706883 (round 2, six findings) and da2ce7 review 5846280739 (round 3, three findings). The round 2 `F10` re-raises `F10` and became `F17`; the other round 2 IDs (`F12` to `F16`) are the reviewer's. In round 3 the reviewer's `F17` (a re-raise of `F14`) became `F20`; its `F18` and `F19` kept their IDs.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -62,6 +62,9 @@ Three reviews: Copilot review 5845178584 (a summary with no actionable finding, 
 | F14 | review-finding:pr-2807-f14 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F15 | review-finding:pr-2807-f15 | Human | Nit | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F16 | review-finding:pr-2807-f16 | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
+| F20 | review-finding:pr-2807-f20 | Human | Nit | documentation | RE_RAISE_OF:F14 | FIXED | RESOLVED |
+| F18 | review-finding:pr-2807-f18 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F19 | review-finding:pr-2807-f19 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -255,7 +258,7 @@ Three reviews: Copilot review 5845178584 (a summary with no actionable finding, 
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2807#discussion_r4527713383
 - Concern: F1 and F3 Solutions and the F3 reply claimed wording and links the files do not have.
 - Solution: The two Solutions and two replies now match the files. In the same sweep the statements that the maintainer published 0.6.0 were removed from the spec and the evidence, because the evidence only shows it is published (commit "docs(issues): [#2801] state only what the evidence shows about the 0.6.0 publication").
-- Current-tree verification: The Solutions, the replies and `git grep -n "maintainer published" docs/issues/open/2801-1488-si-19-remove-legacy-shutdown-api` (no output) were checked.
+- Current-tree verification: The Solutions, the replies and `git grep -n "maintainer published" docs/issues/open/2801-1488-si-19-remove-legacy-shutdown-api` (which prints only the progress-log entry that describes the removal, `ISSUE.md:242`) were checked.
 - Resolution reference: docs(pr-reviews): [#2807] align the audit with the bytes and record the second round
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2807#discussion_r4527858834
@@ -286,6 +289,45 @@ Three reviews: Copilot review 5845178584 (a summary with no actionable finding, 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2807#discussion_r4527859808
 
+### F20 - Two statements of this round's sweep go further than the bytes
+
+- PR number: 2807
+- Source review ID: 5846280739
+- Reviewer finding ID: F17
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2807#discussion_r4528154725
+- Concern: The F14 verification says a grep prints nothing but it prints the progress-log entry, and the F3 reply cites a merge the evidence no longer cites.
+- Solution: The verification says what the grep prints; the evidence now says the `torrust-server-lib` PR is merged (commit "docs(issues): [#2801] cite the merge of the torrust-server-lib PR in the evidence"), so the F3 reply is true again.
+- Current-tree verification: The grep was re-run, and the other grep commands named in this audit were re-run and print what their rows say.
+- Resolution reference: docs(pr-reviews): [#2807] correct the audit verification of the 0.6.0 sweep
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2807#discussion_r4528211310
+
+### F18 - The 16:54 stamp matches no commit or forge time
+
+- PR number: 2807
+- Source review ID: 5846280739
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2807#discussion_r4528154746
+- Concern: The second-round log entry of the spec is stamped 16:54, but its commit was made at 16:55.
+- Solution: The entry is stamped 16:55.
+- Current-tree verification: `git log --format=%cI` of the commit was compared with the stamp.
+- Resolution reference: docs(issues): [#2801] stamp the second round log entry at its commit minute
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2807#discussion_r4528211789
+
+### F19 - The inlined configuration is not the copy of the development template the line describes
+
+- PR number: 2807
+- Source review ID: 5846280739
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2807#discussion_r4528154758
+- Concern: The line says a copy of the development template, but the inlined file leaves out sections and adds one.
+- Solution: The line describes a reduced copy and names what was left out and added.
+- Current-tree verification: The line and the inlined file were compared.
+- Resolution reference: docs(issues): [#2801] describe the verification configuration as a reduced copy
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2807#discussion_r4528212187
+
 ## Processing Log
 
 - 2026-11-10 16:10 UTC - Copilot review received (16:10:42 UTC) (no actionable finding).
@@ -293,6 +335,8 @@ Three reviews: Copilot review 5845178584 (a summary with no actionable finding, 
 - 2026-11-10 16:19 UTC - Replies posted on all eleven threads (16:18:48 to 16:19:14 UTC); the audit started in the commit that carries this entry.
 - 2026-11-10 16:43 UTC - da2ce7 review received (round 2: approval of the pushed head, six findings, `F12` to `F17` here; submitted 16:43:09 UTC).
 - 2026-11-10 16:56 UTC - Replies posted on the six threads (16:55:52 to 16:56:05 UTC) and two earlier replies edited; the audit corrected in the commit that carries this entry.
+- 2026-11-10 17:22 UTC - da2ce7 review received (round 3: approval of the pushed head, three nits, `F18` to `F20` here; submitted 17:22:39 UTC).
+- 2026-11-10 17:27 UTC - Replies posted on the three threads (17:27:51 to 17:27:56 UTC); the audit corrected in the commit that carries this entry.
 
 ## Completion Rules
 
