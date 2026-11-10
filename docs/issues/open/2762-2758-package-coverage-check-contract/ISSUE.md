@@ -9,7 +9,7 @@ github-issue: 2762
 spec-path: docs/issues/open/2762-2758-package-coverage-check-contract/ISSUE.md
 branch: "2762-package-coverage-check-contract"
 related-pr: null
-last-updated-utc: "2026-11-10 17:45"
+last-updated-utc: "2026-11-10 18:15"
 semantic-links:
   skill-links:
     - create-issue
@@ -90,7 +90,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T1 | DONE | Failing tests for NDJSON errors, exit codes and TTY refusal | Red tests; the TTY refusal is manual-only (see Regression Test Strategy). |
 | T2 | DONE | Implement the error and exit-code changes | Green tests. |
 | T3 | DONE | Change `summary` to a JSON result with `markdown` | Test asserts the field. |
-| T4 | DONE | Update the workflow to extract the field | `linter yaml` clean (`actionlint` not available locally); `shell: bash` keeps `pipefail`. Hosted render checked on the PR run. |
+| T4 | DONE | Update the workflow to extract the field | `linter yaml` clean (`actionlint` not available locally); `shell: bash` keeps `pipefail`. Hosted run of the step passed under `pipefail` (evidence H1); the rendered summary itself was not read. |
 | T5 | DONE | Exercise the three subcommands locally on two real revisions | Evidence recorded. |
 
 ## Commit Points
@@ -129,8 +129,9 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-11-09 10:25 UTC - Claude Code (Claude Sonnet 5.5) - Corrected details after the review rounds on PR 2771 and PR 2774 and fixed the earlier log stamps from the commit and issue creation times.
 - 2026-11-09 11:26 UTC - Claude Code (Claude Sonnet 5.5) - Corrected details after the round 3 review of PR 2774.
 - 2026-11-09 12:12 UTC - Claude Code (Claude Sonnet 5.5) - Addressed the review of PR 2771 (da2ce7 findings F1 to F27 and Copilot's later comments): specs corrected from the code, reproductions recorded where a spec has a bug-fix section.
-- 2026-11-10 16:55 UTC - Claude Code (Claude Sonnet 5.5) - Implemented: NDJSON errors, usage and TTY exit `2`, JSON `summary` with `markdown`, workflow extracts it; evidence recorded.
-- 2026-11-10 17:45 UTC - Claude Code (Claude Sonnet 5.5) - Addressed review round 1 of PR 2810 (da2ce7, F1 to F8): `shell: bash` on the summary step, evidence corrected and completed.
+- 2026-11-10 16:54 UTC - Claude Code (Claude Sonnet 5.5) - Implemented: NDJSON errors, usage and TTY exit `2`, JSON `summary` with `markdown`, workflow extracts it; evidence recorded.
+- 2026-11-10 17:35 UTC - Claude Code (Claude Sonnet 5.5) - Addressed review round 1 of PR 2810 (da2ce7, F1 to F8): `shell: bash` on the summary step, evidence corrected and completed.
+- 2026-11-10 18:15 UTC - Claude Code (Claude Sonnet 5.5) - Addressed review round 2 of PR 2810 (da2ce7 F3, F8 to F11; Copilot F1, F2 recorded in the audit): hosted run recorded (H1), stamps taken from the commit times, commits cited by subject.
 
 ## Acceptance Criteria
 
@@ -173,7 +174,7 @@ Manual verification is mandatory even when automated tests pass. Record actual c
 | AC2 | DONE | V1; `tests/cli.rs`, `main.rs` unit test |
 | AC3 | DONE | V1 (pseudo-terminal via `script`) |
 | AC4 | DONE | V2; `tests/cli.rs` |
-| AC5 | DONE | V2, V3 (same Markdown via `jq -r .markdown`, local; the hosted render is noted in the PR) |
+| AC5 | DONE | V2, V3 (same Markdown via `jq -r .markdown`, local, V2; the hosted step passed, H1; the rendered hosted summary was not read) |
 
 ## Risks and Trade-offs
 

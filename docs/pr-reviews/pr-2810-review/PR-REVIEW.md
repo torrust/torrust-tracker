@@ -1,7 +1,7 @@
 ---
 pr-number: 2810
 pr-url: https://github.com/torrust/torrust-tracker/pull/2810
-last-updated-utc: "2026-11-10 17:55"
+last-updated-utc: "2026-11-10 18:15"
 ---
 
 # PR #2810 Review Audit
@@ -28,7 +28,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Round 1: da2ce7 review 5846429188 (CHANGES_REQUESTED) on the head `304b7c2cd`: one Major, five Minor, two Nit. All eight are valid and fixed in `7831de126`.
+Round 1: da2ce7 review 5846429188 (CHANGES_REQUESTED) on the head that carries the commit `docs(issues): [#2762] record verification evidence and progress`: one Major, five Minor, two Nit. All eight are valid and fixed in the commit `fix(package-coverage-check): [#2762] keep pipefail on the summary step and correct the evidence`.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -40,6 +40,15 @@ Round 1: da2ce7 review 5846429188 (CHANGES_REQUESTED) on the head `304b7c2cd`: o
 | F6 | review-finding:pr-2810-f6 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F7 | review-finding:pr-2810-f7 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F8 | review-finding:pr-2810-f8 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F9 | review-finding:pr-2810-f9 | Copilot | Major | correctness | RE_RAISE_OF:F1 | FIXED | RESOLVED |
+| F10 | review-finding:pr-2810-f10 | Copilot | Minor | documentation | RE_RAISE_OF:F2 | FIXED | RESOLVED |
+| F11 | review-finding:pr-2810-f11 | Human | Minor | documentation | RE_RAISE_OF:F3 | FIXED | RESOLVED |
+| F12 | review-finding:pr-2810-f12 | Human | Nit | metadata | RE_RAISE_OF:F8 | FIXED | RESOLVED |
+| F13 | review-finding:pr-2810-f13 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F14 | review-finding:pr-2810-f14 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F15 | review-finding:pr-2810-f15 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+
+Round 1 follow-up: Copilot review 5846504036, on the earlier head, raised the F1 and F2 concerns again as F9 and F10 (reviewer IDs F1 and F2); both were already fixed. Round 2: da2ce7 review 5846796508 on the head after round 1: F11 to F15 (reviewer IDs F3, F8, F9, F10, F11), fixed in the round-2 commit.
 
 ## Finding Details
 
@@ -147,9 +156,101 @@ Round 1: da2ce7 review 5846429188 (CHANGES_REQUESTED) on the head `304b7c2cd`: o
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2810#discussion_r4528306362
 
+### F9 - The summary step has no pipefail, so a failing summary passes (re-raise of F1).
+
+- PR number: 2810
+- Source review ID: 5846504036
+- Reviewer finding ID: F1
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2810#discussion_r4528327554
+- Concern: The summary step has no pipefail, so a failing summary passes (re-raise of F1).
+- Solution: Already fixed by the F1 change (shell: bash); replied and resolved.
+- Current-tree verification: Workflow step sets shell: bash; the hosted log shows pipefail.
+- Resolution reference: fix(package-coverage-check): [#2762] keep pipefail on the summary step and correct the evidence
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2810#discussion_r4528344636
+
+### F10 - The TTY exit status is expanded by the outer shell (re-raise of F2).
+
+- PR number: 2810
+- Source review ID: 5846504036
+- Reviewer finding ID: F2
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2810#discussion_r4528327650
+- Concern: The TTY exit status is expanded by the outer shell (re-raise of F2).
+- Solution: Already fixed by the F2 change (single quotes); replied and resolved.
+- Current-tree verification: Evidence V1 shows the single-quoted command.
+- Resolution reference: fix(package-coverage-check): [#2762] keep pipefail on the summary step and correct the evidence
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2810#discussion_r4528345067
+
+### F11 - T4, AC5 and V3 cite a hosted-run note the PR does not carry.
+
+- PR number: 2810
+- Source review ID: 5846796508
+- Reviewer finding ID: F3
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2810#discussion_r4528549737
+- Concern: T4, AC5 and V3 cite a hosted-run note the PR does not carry.
+- Solution: Valid. Recorded the hosted run as H1 (job, run, what it showed and what was not read) and reworded T4, AC5 and V3.
+- Current-tree verification: Evidence H1; ISSUE.md T4 and AC5 rows.
+- Resolution reference: docs(pr-reviews): [#2762] address PR 2810 review round 2
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2810#discussion_r4528657876
+
+### F12 - Corrected stamps are later than the commits carrying them.
+
+- PR number: 2810
+- Source review ID: 5846796508
+- Reviewer finding ID: F8
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2810#discussion_r4528549751
+- Concern: Corrected stamps are later than the commits carrying them.
+- Solution: Valid. Stamps now come from the commit times (16:54 and 17:35).
+- Current-tree verification: git log --format=%cI of the fix commits.
+- Resolution reference: docs(pr-reviews): [#2762] address PR 2810 review round 2
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2810#discussion_r4528656446
+
+### F13 - The audit has no rows for the two findings of review 5846504036.
+
+- PR number: 2810
+- Source review ID: 5846796508
+- Reviewer finding ID: F9
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2810#discussion_r4528549758
+- Concern: The audit has no rows for the two findings of review 5846504036.
+- Solution: Valid. Added F9 and F10 with their details.
+- Current-tree verification: This file.
+- Resolution reference: docs(pr-reviews): [#2762] address PR 2810 review round 2
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2810#discussion_r4528656880
+
+### F14 - Evidence and audit cite PR-branch commits by id.
+
+- PR number: 2810
+- Source review ID: 5846796508
+- Reviewer finding ID: F10
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2810#discussion_r4528549762
+- Concern: Evidence and audit cite PR-branch commits by id.
+- Solution: Valid. Cited by subject; V1 and V2 are placed on the first fix commit build.
+- Current-tree verification: grep for the ids in the spec folder and this audit prints nothing.
+- Resolution reference: docs(pr-reviews): [#2762] address PR 2810 review round 2
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2810#discussion_r4528657554
+
+### F15 - Audit log entry and stamp postdate its commit; resolution times unrecorded.
+
+- PR number: 2810
+- Source review ID: 5846796508
+- Reviewer finding ID: F11
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2810#discussion_r4528549772
+- Concern: Audit log entry and stamp postdate its commit; resolution times unrecorded.
+- Solution: Valid. Stamps from the commit time (17:37); the resolution times are stated as not captured.
+- Current-tree verification: git log --format=%cI of the audit commit.
+- Resolution reference: docs(pr-reviews): [#2762] address PR 2810 review round 2
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2810#discussion_r4528657210
+
 ## Processing Log
 
-- 2026-11-10 17:55 UTC - Started audit; round 1 (da2ce7 review 5846429188) processed: all eight findings fixed in one commit and replied. All eight threads resolved after the replies.
+- 2026-11-10 17:37 UTC - Started audit; round 1 (da2ce7 review 5846429188) processed: all eight findings fixed in one commit and replied. All eight threads were resolved after the replies and before the audit commit (resolution times are not captured).
+- 2026-11-10 18:15 UTC - Round 1 follow-up (Copilot 5846504036) and round 2 (da2ce7 5846796508) added as F9 to F15; replies and resolutions follow the push.
 
 ## Completion Rules
 

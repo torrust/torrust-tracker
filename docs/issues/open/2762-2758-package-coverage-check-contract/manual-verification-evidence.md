@@ -1,15 +1,15 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2762-2758-package-coverage-check-contract/ISSUE.md
-last-updated-utc: 2026-11-10 17:45
+last-updated-utc: 2026-11-10 18:15
 ---
 
 # Manual Verification Evidence
 
 ## Environment and Prerequisites
 
-- Date and time (UTC): R0: 2026-11-09 12:11 to 12:13; R1, V1 to V3 and the round-1 rechecks: 2026-11-10 16:40 to 17:45
-- Artifact under test: R0: the unchanged tool, built from the tree of the commit `Merge torrust/develop into 2758-cli-output-contract-tools-migration-spec` (develop with the EPIC specs; no code of this issue yet). R1: commit `70f41431d` (red tests). V1, V2 and the green run: commit `304b7c2cd` (the fix, with the later docs commit) rebuilt with `cargo build -p package-coverage-check`; the TTY and mutation rechecks below ran on the round-1 fix tree, whose Rust source equals `304b7c2cd` apart from one comment in `tests/cli.rs`
+- Date and time (UTC): R0: 2026-11-09 12:11 to 12:13; R1, V1 to V3 and the round-1 rechecks: 2026-11-10 16:40 to 17:35
+- Artifact under test: R0: the unchanged tool, built from the tree of the commit `Merge torrust/develop into 2758-cli-output-contract-tools-migration-spec` (develop with the EPIC specs; no code of this issue yet). R1: the commit `test(package-coverage-check): [#2762] failing tests for the CLI output contract`. V1, V2 and the green run: the build of the commit `fix(package-coverage-check): [#2762] follow the CLI output contract`, rebuilt with `cargo build -p package-coverage-check`; the TTY and mutation rechecks below ran on the tree of the commit `fix(package-coverage-check): [#2762] keep pipefail on the summary step and correct the evidence`, whose Rust source equals the first fix commit apart from one comment in `tests/cli.rs`
 - Operating system / environment: Linux; stable Rust toolchain 1.99.1 (`rustc 1.99.1`, `cargo 1.99.1`); binaries built with `cargo build` (debug) and run directly from `target/debug/`, stdout and stderr redirected to files (stdout is not a terminal)
 - Prerequisites and setup performed: none beyond the build
 
@@ -37,7 +37,7 @@ A usage error is plain text on stderr (not JSON) and the exit code is `1`, not `
 
 ### R1 - Red regression tests (before the fix)
 
-`cargo test -p package-coverage-check --test cli` at commit `70f41431d` (tests only, binary unchanged): 5 failed, 0 passed.
+`cargo test -p package-coverage-check --test cli` at the commit `test(package-coverage-check): [#2762] failing tests for the CLI output contract` (tests only, binary unchanged): 5 failed, 0 passed.
 
 ```text
 it_should_report_an_unknown_subcommand_as_a_usage_error_with_exit_code_two
@@ -108,7 +108,11 @@ The `jq -r .markdown` output is identical to the former plain Markdown output (t
 
 ### V3 - Workflow syntax (M3)
 
-`actionlint` is not installed here, so it did not run. What ran: `linter all` (which includes `linter yaml`) exited `0` on the round-1 tree, and the workflow parses with Python `yaml.safe_load`. The step runs `summary` through `| jq -r .markdown >> "$GITHUB_STEP_SUMMARY"`. Review finding F1 showed that a step without an explicit `shell:` runs `bash -e {0}` without `pipefail`, so a failing `summary` (empty stdout, exit `1`) would have left the step green with an empty report; the step now sets `shell: bash` (bash with `-e` and `-o pipefail`), so the pipeline fails with the tool's status. The hosted run of this step is the only full check of the workflow; its result is noted in the PR.
+`actionlint` is not installed here, so it did not run. What ran: `linter all` (which includes `linter yaml`) exited `0` on the round-1 tree, and the workflow parses with Python `yaml.safe_load`. The step runs `summary` through `| jq -r .markdown >> "$GITHUB_STEP_SUMMARY"`. Review finding F1 showed that a step without an explicit `shell:` runs `bash -e {0}` without `pipefail`, so a failing `summary` (empty stdout, exit `1`) would have left the step green with an empty report; the step now sets `shell: bash` (bash with `-e` and `-o pipefail`), so the pipeline fails with the tool's status.
+
+### H1 - Hosted run of the summary step
+
+Job `Package Coverage Regression` (the job that runs the `Write Report-Only Summary` step) in the pull-request run https://github.com/torrust/torrust-tracker/actions/runs/42867272734, on the PR head after review round 1 (the commit `docs(pr-reviews): [#2762] record the PR 2810 review round 1 audit`; it contains the `shell: bash` fix): job conclusion `success`, step `Write Report-Only Summary` `success`. The log shows the step ran `cargo run -p package-coverage-check -- summary ... | jq -r .markdown >> "$GITHUB_STEP_SUMMARY"` with the shell options `-e -o pipefail`. The rendered step summary is not part of the job log, so what it showed was not read here; the byte-identity of the Markdown is established locally in V2. The `Package Coverage (package-coverage-check)` job, which runs `compare` through the new binary, also succeeded in the same run.
 
 ### L1 - `linter all`
 
