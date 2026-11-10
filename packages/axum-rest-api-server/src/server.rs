@@ -33,27 +33,17 @@ use derive_more::Constructor;
 use derive_more::derive::Display;
 use futures::future::BoxFuture;
 use thiserror::Error;
-use tokio::sync::oneshot::{Receiver, Sender};
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
 use torrust_server_lib::logging::STARTED_ON;
 use torrust_server_lib::registar::{ServiceHealthCheckJob, ServiceRegistration, ServiceRegistrationForm};
-#[allow(
-    deprecated,
-    reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
-)]
-use torrust_server_lib::signals::{Halted, Started};
 use torrust_tracker_axum_server::custom_axum_server::{self, TimeoutAcceptor};
-#[allow(
-    deprecated,
-    reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
-)]
-use torrust_tracker_axum_server::signals::{GracefulShutdownOutcome, graceful_shutdown, graceful_shutdown_on_cancellation};
+use torrust_tracker_axum_server::signals::{GracefulShutdownOutcome, graceful_shutdown_on_cancellation};
 use torrust_tracker_configuration::v3_0_0::tracker_api::AccessTokens;
 use torrust_tracker_primitives::RuntimeServiceMetadata;
 use torrust_tracker_rest_api_runtime_adapter::v1::container::TrackerHttpApiCoreContainer;
-use tracing::{Level, instrument};
+use tracing::instrument;
 
 use super::routes::router;
 use crate::API_LOG_TARGET;
@@ -97,21 +87,6 @@ pub struct RuntimeError {
 )]
 pub type StoppedApiServer = ApiServer<Stopped>;
 
-/// An alias for the `ApiServer` struct with the `Running` state.
-#[allow(
-    clippy::module_name_repetitions,
-    reason = "type alias distinguishes the REST API server running state"
-)]
-#[allow(
-    deprecated,
-    reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
-)]
-#[deprecated(
-    since = "0.1.0",
-    note = "use `ApiServer::start_with_cancellation` and keep the returned `CancellationRunning`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
-)]
-pub type RunningApiServer = ApiServer<Running>;
-
 /// A struct responsible for starting and stopping an API server with a
 /// specific configuration and keeping track of the started server.
 ///
@@ -136,62 +111,13 @@ pub struct Stopped {
     launcher: Launcher,
 }
 
-/// The `Running` state of the `ApiServer` struct.
-#[derive(Debug, Display)]
-#[display("Running (with local address): {local_addr}")]
-#[allow(
-    deprecated,
-    reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
-)]
-#[deprecated(
-    since = "0.1.0",
-    note = "use `CancellationRunning` from `ApiServer::start_with_cancellation` and cancel the injected `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
-)]
-pub struct Running {
-    pub local_addr: SocketAddr,
-    #[deprecated(
-        since = "0.1.0",
-        note = "cancel the injected `CancellationToken` instead of sending `Halted`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
-    )]
-    pub halt_task: tokio::sync::oneshot::Sender<Halted>,
-    pub task: tokio::task::JoinHandle<Launcher>,
-}
-
 /// A token-aware REST API runtime and its owned drain controller.
 ///
-/// The caller must retain and join both handles. The existing [`Running`] state
-/// remains the compatibility path for consumers using [`Halted`].
+/// The caller must retain and join both handles.
 pub struct CancellationRunning {
     pub local_addr: SocketAddr,
     pub task: JoinHandle<Result<Launcher, RuntimeError>>,
     pub shutdown_controller: JoinHandle<GracefulShutdownOutcome>,
-}
-
-#[allow(
-    deprecated,
-    reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
-)]
-impl Running {
-    #[must_use]
-    #[allow(
-        deprecated,
-        reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
-    )]
-    #[deprecated(
-        since = "0.1.0",
-        note = "use `ApiServer::start_with_cancellation`, which returns `CancellationRunning`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
-    )]
-    pub const fn new(
-        local_addr: SocketAddr,
-        halt_task: tokio::sync::oneshot::Sender<Halted>,
-        task: tokio::task::JoinHandle<Launcher>,
-    ) -> Self {
-        Self {
-            local_addr,
-            halt_task,
-            task,
-        }
-    }
 }
 
 impl ApiServer<Stopped> {
@@ -200,84 +126,6 @@ impl ApiServer<Stopped> {
         Self {
             state: Stopped { launcher },
         }
-    }
-
-    /// Starts the API server with the given configuration.
-    ///
-    /// # Errors
-    ///
-    /// It would return an error if no `SocketAddr` is returned after launching the server.
-    ///
-    #[instrument(
-        skip(self, http_api_container, form, metadata, access_tokens),
-        fields(
-            service_role = metadata.service_role().as_str(),
-            instance_index = metadata.configuration_instance_id().instance_index(),
-        ),
-        err,
-        ret(Display, level = Level::INFO)
-    )]
-    #[allow(
-        deprecated,
-        reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
-    )]
-    ///
-    /// The deprecation is part of the contract until SI-19 removes this item. Using it without an allowance fails
-    /// under `deny(deprecated)`:
-    ///
-    /// ```
-    /// use torrust_tracker_axum_rest_api_server::server::{ApiServer, Stopped};
-    /// let _ = ApiServer::<Stopped>::start;
-    /// ```
-    ///
-    /// ```compile_fail
-    /// #![deny(deprecated)]
-    /// use torrust_tracker_axum_rest_api_server::server::{ApiServer, Stopped};
-    /// let _ = ApiServer::<Stopped>::start;
-    /// ```
-    #[deprecated(
-        since = "0.1.0",
-        note = "use `ApiServer::start_with_cancellation` with a `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
-    )]
-    pub async fn start(
-        self,
-        http_api_container: Arc<TrackerHttpApiCoreContainer>,
-        form: ServiceRegistrationForm<RuntimeServiceMetadata>,
-        metadata: RuntimeServiceMetadata,
-        access_tokens: Arc<AccessTokens>,
-    ) -> Result<ApiServer<Running>, Error> {
-        let (tx_start, rx_start) = tokio::sync::oneshot::channel::<Started>();
-        let (tx_halt, rx_halt) = tokio::sync::oneshot::channel::<Halted>();
-
-        let launcher = self.state.launcher;
-
-        let running = launcher.start(&http_api_container, access_tokens, tx_start, rx_halt)?;
-        let task = tokio::spawn(async move {
-            running.await;
-            launcher
-        });
-
-        let started = rx_start.await.map_err(|source| Error::StartupNotification { source })?;
-        if let Some(public_url) = metadata.public_url() {
-            tracing::info!(target: API_LOG_TARGET, service_binding = %started.service_binding, public_url = %public_url, "Started tracker API");
-        } else {
-            tracing::info!(target: API_LOG_TARGET, service_binding = %started.service_binding, "Started tracker API");
-        }
-
-        if let Err(source) = form
-            .register(ServiceRegistration::new(started.service_binding, metadata, Some(check_fn)))
-            .await
-        {
-            let _ = tx_halt.send(Halted::Normal);
-            drop(task.await);
-            return Err(Error::Registration { source });
-        }
-
-        let api_server = ApiServer {
-            state: Running::new(started.address, tx_halt, task),
-        };
-
-        Ok(api_server)
     }
 
     /// Starts the REST API using an injected cancellation token.
@@ -408,40 +256,6 @@ fn start_token_aware_runtime(
     ))
 }
 
-#[allow(
-    deprecated,
-    reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
-)]
-impl ApiServer<Running> {
-    /// Stops the API server.
-    ///
-    /// # Errors
-    ///
-    /// It would return an error if the channel for the task killer signal was closed.
-    #[instrument(skip(self), err, ret(Display, level = Level::INFO))]
-    #[allow(
-        deprecated,
-        reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
-    )]
-    #[deprecated(
-        since = "0.1.0",
-        note = "cancel the `CancellationToken` passed to `start_with_cancellation` and join `CancellationRunning::task` and `shutdown_controller`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
-    )]
-    pub async fn stop(self) -> Result<ApiServer<Stopped>, Error> {
-        self.state.halt_task.send(Halted::Normal).map_err(|_| Error::Stop {
-            message: "task killer channel was closed".to_string(),
-        })?;
-
-        let launcher = self.state.task.await.map_err(|error| Error::Stop {
-            message: error.to_string(),
-        })?;
-
-        Ok(ApiServer {
-            state: Stopped { launcher },
-        })
-    }
-}
-
 /// Checks the Health by connecting to the API service endpoint.
 ///
 /// # Errors
@@ -506,97 +320,6 @@ impl std::fmt::Display for Launcher {
         } else {
             write!(f, "(with socket): {}, without TLS", self.bind_to)
         }
-    }
-}
-
-impl Launcher {
-    /// Starts the API server with graceful shutdown.
-    ///
-    /// If TLS is enabled in the configuration, it will start the server with
-    /// TLS. See [`torrust-tracker-configuration`](torrust_tracker_configuration)
-    /// for more  information about configuration.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error when the listener cannot bind or be configured.
-    #[instrument(skip(self, http_api_container, access_tokens, tx_start, rx_halt))]
-    #[allow(
-        deprecated,
-        reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
-    )]
-    #[deprecated(
-        since = "0.1.0",
-        note = "use the token-aware path through `ApiServer::start_with_cancellation`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
-    )]
-    pub fn start(
-        &self,
-        http_api_container: &Arc<TrackerHttpApiCoreContainer>,
-        access_tokens: Arc<AccessTokens>,
-        tx_start: Sender<Started>,
-        rx_halt: Receiver<Halted>,
-    ) -> Result<BoxFuture<'static, ()>, Error> {
-        let socket = std::net::TcpListener::bind(self.bind_to).map_err(|source| Error::Bind { source })?;
-        socket.set_nonblocking(true).map_err(|source| Error::Listener { source })?;
-        let address = socket.local_addr().map_err(|source| Error::Listener { source })?;
-
-        let handle = Handle::new();
-
-        tokio::task::spawn(graceful_shutdown(
-            handle.clone(),
-            rx_halt,
-            format!("Shutting down tracker API server on socket address: {address}"),
-            address,
-        ));
-
-        let tls = self.tls.clone();
-        let protocol = if tls.is_some() { Protocol::HTTPS } else { Protocol::HTTP };
-        let service_binding = ServiceBinding::new(protocol.clone(), address).map_err(|error| Error::Listener {
-            source: std::io::Error::other(error),
-        })?;
-
-        let router = router(http_api_container, access_tokens, &service_binding);
-
-        tracing::info!(target: API_LOG_TARGET, "Starting on: {protocol}://{address}");
-
-        let running: BoxFuture<'static, ()> = if let Some(tls) = tls {
-            let server =
-                custom_axum_server::from_tcp_rustls_with_timeouts(socket, tls).map_err(|source| Error::Listener { source })?;
-            Box::pin(async move {
-                if let Err(error) = server
-                    .handle(handle)
-                    // The TimeoutAcceptor is commented because TLS does not work with it.
-                    // See: https://github.com/torrust/torrust-index/issues/204#issuecomment-2115529214
-                    //.acceptor(TimeoutAcceptor)
-                    .serve(router.into_make_service_with_connect_info::<std::net::SocketAddr>())
-                    .await
-                {
-                    tracing::error!(%error, "Tracker API TLS server stopped with an error");
-                }
-            })
-        } else {
-            let server = custom_axum_server::from_tcp_with_timeouts(socket).map_err(|source| Error::Listener { source })?;
-            Box::pin(async move {
-                if let Err(error) = server
-                    .handle(handle)
-                    .acceptor(TimeoutAcceptor)
-                    .serve(router.into_make_service_with_connect_info::<std::net::SocketAddr>())
-                    .await
-                {
-                    tracing::error!(%error, "Tracker API server stopped with an error");
-                }
-            })
-        };
-
-        tracing::info!(target: API_LOG_TARGET, "{STARTED_ON}: {protocol}://{}", address);
-
-        tx_start
-            .send(Started {
-                service_binding,
-                address,
-            })
-            .map_err(|_| Error::StartupNotificationDropped)?;
-
-        Ok(running)
     }
 }
 
@@ -669,40 +392,6 @@ mod tests {
             .await
             .expect("the REST API drain controller should complete after token cancellation")
             .expect("the REST API drain controller should not panic");
-    }
-
-    #[tokio::test]
-    #[allow(
-        deprecated,
-        reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
-    )]
-    async fn it_should_be_able_to_start_and_stop() {
-        let cfg = Arc::new(ephemeral_public());
-        let http_api_config = Arc::new(cfg.http_api.clone().expect("missing HTTP API configuration"));
-
-        initialize_global_services(&cfg);
-
-        let bind_to = http_api_config.bind_address;
-
-        let access_tokens = Arc::new(http_api_config.access_tokens.clone());
-
-        let stopped = ApiServer::new(Launcher::new(bind_to, None, cfg.application.shutdown.http_drain()));
-
-        let register = &Registar::<RuntimeServiceMetadata>::default();
-
-        let api = within_deadline(api_container(&cfg)).await;
-
-        let started = within_deadline(stopped.start(
-            api.container.clone(),
-            register.give_form(),
-            RuntimeServiceMetadata::new(ConfigurationInstanceId::new(ServiceRole::RestApi, 0)),
-            access_tokens,
-        ))
-        .await
-        .expect("it should start the server");
-        let stopped = within_deadline(started.stop()).await.expect("it should stop the server");
-
-        assert_eq!(stopped.state.launcher.bind_to, bind_to);
     }
 
     #[tokio::test]
