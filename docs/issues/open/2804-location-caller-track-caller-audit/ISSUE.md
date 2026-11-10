@@ -87,12 +87,22 @@ Candidate wrong sites in non-test code (none is `#[track_caller]`):
   `From<PeerIpResolutionError>` ("Error resolving peer IP: {err}"). The bencoded response sent to the
   BitTorrent client contains a library source path and line.
 - **UDP tracker responses**: `ErrorResponse { message: error.to_string() }`
-  (`udp-server/src/handlers/error.rs:57-59`). The location that reaches it is the tracker-core
-  `WhitelistError::TorrentNotWhitelisted` built in `whitelist/authorization.rs:61`, wrapped by
-  `UdpAnnounceError`/`UdpScrapeError::TrackerCoreWhitelistError`. `udp-server` `Error::Internal` and
-  `Error::AuthRequired` are built only in `#[cfg(test)]` code, `event::ErrorKind::InternalServer` has
-  no location, a malformed request becomes `InvalidRequest` (no location) and the UDP path has no key
-  authentication, so key expiry cannot occur there. T2 must confirm this.
+  (`udp-server/src/handlers/error.rs:57-59`). T2 must confirm these two paths and look for others:
+  - A whitelist error. An announce for a non-whitelisted info-hash on a listed tracker fails in
+    `AnnounceService::handle_announce` (`udp-core/src/services/announce.rs:109`) with the tracker-core
+    `WhitelistError::TorrentNotWhitelisted` built in `whitelist/authorization.rs:61`, wrapped by
+    `UdpAnnounceError::TrackerCoreWhitelistError`. A UDP scrape does not take this path: the UDP scrape
+    service never calls `authorize` and the tracker-core scrape handler maps a failed `authorize` to
+    zeroed statistics, so `UdpScrapeError::TrackerCoreWhitelistError` is not built by production code.
+  - A database error. With `core.tracker_policy.persistent_torrent_completed_stat` enabled, an
+    announce or scrape for a torrent absent from memory loads its stats from the database. A driver
+    failure becomes a `databases::error::Error` through the `#[track_caller]`
+    `From<(SqlxError, Driver)>`, whose `LocatedError` source prints `{source}, {location}`, and
+    travels as `AnnounceError::Database` or `ScrapeError::Database` inside
+    `UdpAnnounceError::TrackerCoreAnnounceError` or `UdpScrapeError::TrackerCoreScrapeError`.
+  - `udp-server` `Error::Internal` and `Error::AuthRequired` are built only in `#[cfg(test)]` code,
+    `event::ErrorKind::InternalServer` has no location, a malformed request becomes `InvalidRequest`
+    (no location) and the UDP path has no key authentication, so key expiry cannot occur there.
 - **Logs**: `tracing` output of the same errors; the `Located` conversion also logs at `debug` (the `DynError` conversion does not).
 - **Library consumers**: `torrust-tracker-primitives`, `-http-protocol`, `-tracker-core` and others are
   published crates, so the location can be a path inside a `~/.cargo/registry` checkout or a CI
@@ -166,7 +176,7 @@ following `.github/skills/dev/debugging/fix-bug/SKILL.md`:
 
 - analysis: which call path builds the error and who sees the text;
 - real-artifact reproduction: run the tracker and send a request that triggers the error (for
-  example an announce with a bad `numwant`, or a UDP announce or scrape for a non-whitelisted info-hash on a tracker configured as listed); record
+  example an announce with a bad `numwant`, or a UDP announce for a non-whitelisted info-hash on a tracker configured as listed); record
   the response containing the library path in `manual-verification-evidence.md`;
 - regression-test boundary: see below;
 - red test, production fix, green test, repeat the same request after the last production change.
@@ -202,7 +212,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T4  | TODO   | Analyse fix options, recommend one        | See options below; semver impact per published crate; recommended option with reasoning. Maintainer approves before any fix.                                                                                                                                                                                                                                        |
 | T5  | TODO   | Write the ADR and the slicing plan        | ADR if the convention changes. Create sub-issues or fix PRs per package from the slicing below.                                                                                                                                                                                                                                                                     |
 | T6  | TODO   | Red regression tests per slice            | For each slice (primitives; http-protocol, http-core, axum-http-server; tracker-core and database drivers; udp-server, axum-server, configuration and the rest from T1), a maintained test that fails against current code, with the red output recorded. Primitives first: `PeerRole`, `peer::Id` through `parse`/`try_into`; this closes the reported finding F3. |
-| T7  | TODO   | Fix slices, one PR per package group      | Production fix per slice, the smallest change that makes its red test pass. http-protocol group changes the client-visible bencoded responses; tracker-core group covers `InsertFailed`/`DeleteFailed`, key expiry, whitelist, `authorize`; udp-server group covers the whitelist error shown in UDP replies.                                                       |
+| T7  | TODO   | Fix slices, one PR per package group      | Production fix per slice, the smallest change that makes its red test pass. http-protocol group changes the client-visible bencoded responses; tracker-core group covers `InsertFailed`/`DeleteFailed`, key expiry, whitelist, `authorize`; udp-server group covers the whitelist and database errors shown in UDP replies (paths from T2).                         |
 | T8  | TODO   | Green and like-for-like recheck per slice | Green test output, then the same real-artifact reproduction as in `manual-verification-evidence.md` run again after the last production change of the slice.                                                                                                                                                                                                        |
 | T9  | TODO   | Enforcement and docs                      | Lint or test from T3, update the `handle-errors-in-code` skill, close the issue.                                                                                                                                                                                                                                                                                    |
 
@@ -274,7 +284,7 @@ with the narrow affected scope, and sign every commit with GPG.
 ### Progress Log
 
 - 2026-11-10 12:00 UTC - Claude Code (Sonnet 5.5) - Drafted spec from the F3 finding of the primitives test session and a first-pass inventory on `torrust/develop`.
-- 2026-11-10 13:55 UTC - Claude Code (Sonnet 5.5) - Corrected the UDP exposure analysis after review F1: only the whitelist error reaches UDP responses.
+- 2026-11-10 13:45 UTC - Claude Code (Sonnet 5.5) - Corrected the UDP exposure analysis after review F1.
 - 2026-11-10 14:25 UTC - Claude Code (Sonnet 5.5) - Addressed review round 1 (F1-F9 and Copilot): recorded the reproduction, split the red/fix/green tasks, restored template passages, corrected facts and wording. Evidence: `manual-verification-evidence.md`.
 
 ## Acceptance Criteria
@@ -302,11 +312,11 @@ with the narrow affected scope, and sign every commit with GPG.
 
 ### Manual Verification Scenarios
 
-| ID  | Scenario                                  | Human-oriented command/steps                                                                                                  | Expected Result                                                           | Status | Evidence                                     |
-| --- | ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- | ------ | -------------------------------------------- |
-| M1  | HTTP announce with an invalid `numwant`   | Run the tracker, `curl` an announce with `numwant=abc`, capture the bencoded failure reason before and after the fix          | After: reason names the parameter and value, contains no `packages/` path | TODO   | `manual-verification-evidence.md` section V1 |
-| M2  | UDP request that yields an error response | Run the tracker, send a UDP announce or scrape for a non-whitelisted info-hash to a listed tracker, capture the error message | After: message has no library path                                        | TODO   | `manual-verification-evidence.md` section V2 |
-| M3  | `"x".parse::<PeerRole>()`                 | Run the regression test through `str::parse` against the old and the fixed code                                               | Old: `peer.rs` path or std path. After: no path, input echoed             | TODO   | `manual-verification-evidence.md` section V3 |
+| ID  | Scenario                                  | Human-oriented command/steps                                                                                         | Expected Result                                                           | Status | Evidence                                     |
+| --- | ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- | ------ | -------------------------------------------- |
+| M1  | HTTP announce with an invalid `numwant`   | Run the tracker, `curl` an announce with `numwant=abc`, capture the bencoded failure reason before and after the fix | After: reason names the parameter and value, contains no `packages/` path | TODO   | `manual-verification-evidence.md` section V1 |
+| M2  | UDP request that yields an error response | Run the tracker, send a UDP announce for a non-whitelisted info-hash to a listed tracker, capture the error message  | After: message has no library path                                        | TODO   | `manual-verification-evidence.md` section V2 |
+| M3  | `"x".parse::<PeerRole>()`                 | Run the regression test through `str::parse` against the old and the fixed code                                      | Old: `peer.rs` path or std path. After: no path, input echoed             | TODO   | `manual-verification-evidence.md` section V3 |
 
 Notes: use the nightly/stable toolchain label for every recorded command. Create
 `manual-verification-evidence.md` from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md` when
