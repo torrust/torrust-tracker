@@ -9,7 +9,7 @@ github-issue: 2808
 spec-path: docs/issues/open/2808-workspace-package-release-process/ISSUE.md
 branch: "2808-workspace-package-release-process-spec"
 related-pr: null
-last-updated-utc: "2026-11-10 17:30"
+last-updated-utc: "2026-11-10 16:49"
 semantic-links:
   skill-links:
     - create-issue
@@ -34,7 +34,7 @@ it, and package-level docs that only point to it.
 
 ## Background
 
-Releasing `torrust-server-lib` 0.6.0 (torrust/torrust-server-lib#5, PR 6; release docs issue #7,
+Releasing `torrust-server-lib` 0.6.0 (torrust/torrust-server-lib#5, PR 6; release docs torrust/torrust-server-lib#7,
 PR 8) exposed gaps in how this repository documents package releases:
 
 - The only release skill, [release-new-version](../../../../.github/skills/dev/git-workflow/release-new-version/SKILL.md),
@@ -150,16 +150,16 @@ Not applicable.
 
 ## Implementation Plan
 
-Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
+Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`. T2-T6 are `BLOCKED` until #2576 is closed (see Background).
 
-| ID  | Status | Task                                                                                                                  | Notes / Expected Output                                                                                        |
-| --- | ------ | --------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| T1  | DONE   | Record maintainer decisions for the split, (c) pointer format, and (d) tag convention and backfill                    | Recorded in Background on 2026-11-10; no ADR needed                                                            |
-| T2  | TODO   | Split `docs/release_process.md` into the index, `tracker.md` and `workspace-packages.md` (content moved, not changed) | Old anchors still resolve; live references updated; `git diff -M` shows a move                                 |
-| T3  | TODO   | Rewrite the package process in `docs/release-process/workspace-packages.md` (process, roles, no GitHub release)       | Steps ordered; tag/branch ambiguity fixed; workspace and standalone variants                                   |
-| T4  | TODO   | Add the `release-workspace-package` skill and cross-link it                                                           | Skill links to `workspace-packages.md`; `release-new-version` links to `tracker.md` and loses the step 6 drift |
-| T5  | TODO   | Add pointer docs to package READMEs as decided in (c)                                                                 | Pointer only; no copied steps                                                                                  |
-| T6  | TODO   | Prepare the follow-up `torrust-server-lib` tag-backfill issue text                                                    | Text ready for the maintainer; nothing created without approval                                                |
+| ID  | Status  | Task                                                                                                                  | Notes / Expected Output                                                                                        |
+| --- | ------- | --------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| T1  | DONE    | Record maintainer decisions for the split, (c) pointer format, and (d) tag convention and backfill                    | Recorded in Background on 2026-11-10; no ADR needed                                                            |
+| T2  | BLOCKED | Split `docs/release_process.md` into the index, `tracker.md` and `workspace-packages.md` (content moved, not changed) | Old anchors still resolve; live references updated; `git diff --color-moved` marks the moved lines             |
+| T3  | BLOCKED | Rewrite the package process in `docs/release-process/workspace-packages.md` (process, roles, no GitHub release)       | Steps ordered; tag/branch ambiguity fixed; workspace and standalone variants                                   |
+| T4  | BLOCKED | Add the `release-workspace-package` skill and cross-link it                                                           | Skill links to `workspace-packages.md`; `release-new-version` links to `tracker.md` and loses the step 6 drift |
+| T5  | BLOCKED | Add pointer docs to package READMEs as decided in (c)                                                                 | Pointer only; no copied steps                                                                                  |
+| T6  | BLOCKED | Prepare the follow-up `torrust-server-lib` tag-backfill issue text                                                    | Text ready for the maintainer; nothing created without approval                                                |
 
 ## Commit Points
 
@@ -170,7 +170,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T4   | New skill, cross-links, `release-new-version` step 6 fix                | Commit after focused validation and required review. |
 | T5   | Package README pointers                                                 | Commit after focused validation and required review. |
 
-Keep T2 a pure move so reviewers can check it with `git diff -M` before reading the rewrite in T3.
+Keep T2 a pure move so reviewers can check it with `git diff --color-moved` before reading the rewrite in T3. Rename detection (`git diff -M`) cannot pair it, because the index keeps the old path.
 
 Use a Conventional Commit message with the narrow affected scope, and sign every commit with GPG.
 
@@ -194,11 +194,12 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 
 ### Progress Log
 
-- 2026-11-10 12:00 UTC - Claude Code (Claude Sonnet 5.5) - Drafted spec from the maintainer's draft after reading the release process doc, the ADR, `release-new-version` and `deployment-packages.yaml`.
-- 2026-11-10 16:30 UTC - Claude Code (Claude Opus 5.5) - Recorded maintainer decisions: standalone tag `v<semver>`, verified backfill of server-lib <= 0.5.0, README pointer to `develop` with anchor, spec-only PR first. T1 done; ADR task dropped.
-- 2026-11-10 16:45 UTC - Claude Code (Claude Opus 5.5) - Maintainer approved splitting `docs/release_process.md` into an index, `docs/release-process/tracker.md` and `docs/release-process/workspace-packages.md`. Added scope (s) and task T2 (pure move); README pointer now targets `packages.md`; tasks renumbered.
-- 2026-11-10 17:00 UTC - Claude Code (Claude Opus 5.5) - Maintainer approved the spec; created issue #2808 as `josecelano-bot`; moved the spec to `docs/issues/open/2808-workspace-package-release-process/`.
-- 2026-11-10 17:30 UTC - Claude Code (Claude Opus 5.5) - Maintainer decided the whole implementation waits until #2576 is closed (its README rewrite overlaps the README pointers here) and renamed the planned packages document to `docs/release-process/workspace-packages.md` to avoid confusion with `docs/packages.md`.
+- 2026-11-10 16:07 UTC - Claude Code (Claude Sonnet 5.5) - Drafted spec from the maintainer's draft after reading the release process doc, the ADR, `release-new-version` and `deployment-packages.yaml`.
+- 2026-11-10 16:10 UTC - Claude Code (Claude Opus 5.5) - Recorded maintainer decisions: standalone tag `v<semver>`, verified backfill of server-lib <= 0.5.0, README pointer to `develop` with anchor, spec-only PR first. T1 done; ADR task dropped.
+- 2026-11-10 16:15 UTC - Claude Code (Claude Opus 5.5) - Maintainer approved splitting `docs/release_process.md` into an index, `docs/release-process/tracker.md` and `docs/release-process/packages.md`. Added scope (s) and task T2 (pure move); README pointer now targets `packages.md`; tasks renumbered.
+- 2026-11-10 16:17 UTC - Claude Code (Claude Opus 5.5) - Maintainer approved the spec; created issue #2808 as `josecelano-bot`; moved the spec to `docs/issues/open/2808-workspace-package-release-process/`.
+- 2026-11-10 16:24 UTC - Claude Code (Claude Opus 5.5) - Maintainer decided the whole implementation waits until #2576 is closed (its README rewrite overlaps the README pointers here) and renamed the planned packages document to `docs/release-process/workspace-packages.md` to avoid confusion with `docs/packages.md`.
+- 2026-11-10 16:49 UTC - Claude Code (Claude Opus 5.5) - Addressed the PR 2809 review of da2ce7 (F1-F5): T2 evidence is `git diff --color-moved` (the index keeps the old path, so `git diff -M` cannot pair a rename); the server-lib issue reference is qualified; the 16:15 entry, which the previous commit had rewritten, is restored to its original wording; the log times, which had been written one hour or more ahead of UTC, are corrected to UTC from the lint runs, the issue creation and the commit times; T2-T6 are `BLOCKED` by #2576.
 
 ## Acceptance Criteria
 
