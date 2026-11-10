@@ -490,6 +490,7 @@ rusqlite
 rustc
 rustdoc
 rustfmt
+rustlib
 rustup
 rwxrwxr
 samv
