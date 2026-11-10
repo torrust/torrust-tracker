@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/peer-ord-inconsistent-with-eq/ISSUE.md
 branch: "{issue-number}-peer-ord-inconsistent-with-eq"
 related-pr: null
-last-updated-utc: "2026-11-10 11:55"
+last-updated-utc: "2026-11-10 12:20"
 semantic-links:
   skill-links:
     - create-issue
@@ -85,7 +85,7 @@ on types that contain a `Peer`.
 | C      | Make `Ord`/`PartialOrd` agree with `Eq`: compare all fields, `peer_id` first | Non-breaking for ordering of distinct `peer_id`s (same primary key and order); only ties are now broken by the remaining fields; needs `Ord` on `NumberOfBytes` and `AnnounceEvent` (additive) | **Recommended**                                                                                                                                                     |
 | D      | Document only                                                                | None                                                                                                                                                                                           | Leaves the contract violation; acceptable only as a fallback                                                                                                        |
 
-### Recommendation: C
+### Recommendation: C (tentative, pending T1)
 
 It restores the contract with the smallest blast radius: no removal of public API, no change to
 equality or hashing, and the existing order of peers with different ids is unchanged because
@@ -94,13 +94,39 @@ equality or hashing, and the existing order of peers with different ids is uncha
 `AnnounceEvent`, which makes the order depend on field and variant order) versus a hand-written
 `cmp` over a tuple of the seven fields (no new derives on other types, explicit order). The
 spec leans to the hand-written tuple to avoid committing `AnnounceEvent`'s variant order as a
-public ordering. **Maintainer decides** between A/B/C/D and between the two C variants.
+public ordering. **Maintainer decides** (after T1) between A/B/C/D and between the two C variants.
+
+## Intent and call-site classification
+
+Maintainer position (hypothesis to verify in T1, not yet a finding): whole-`Peer` equality is
+probably used only by tests (`assert_eq!` on peers), and the `peer_id`-only ordering probably
+exists for the few places that really meant "same peer id". Production should compare the whole
+structure and say so explicitly (`a.peer_id == b.peer_id`) where only the id matters. `peer_id`
+is chosen by each client in a decentralized way, so the tracker does not control it. Two peers
+with the same `peer_id` but different other fields are either a bug or a (very unlikely)
+collision, or deliberate spoofing, and an implicit id-only comparison would hide that. Comparing
+only the id may be marginally cheaper, but that is not worth the risk of silent behavior.
+
+T1 must produce, before the fix is chosen:
+
+- **History**: when and why `Ord` by `peer_id` was added (it predates `00af70f25`, 2024-07-14, and
+  was already in `packages/primitives/src/peer.rs` after the move in `9a43815d0`, 2024-02-13;
+  trace it further back through `src/core` and the original PR/issue), and the same for the derived
+  `Eq`. Record what the authors intended.
+- **Call-site table**: every place in the workspace that compares peers (`==`, `!=`, `assert_eq!`,
+  `assert_ne!`, `cmp`, `sort`, set/map keys, `Hash`), split into production vs test code, and each
+  classified as "needs whole-peer equality", "only wanted the peer id", or "unused".
+- **Conclusion** on whether production code needs any ordering of `Peer` at all. If not, option A
+  (remove `Ord`) becomes attractive for the in-repo code, with its breaking-change cost for the
+  published crate, and any id-only comparison becomes an explicit `peer_id` comparison.
 
 ## Scope
 
 ### In Scope
 
+- Investigate why the two comparisons differ and classify call sites (T1).
 - Make `Peer::cmp` equal exactly when `==` (per the option the maintainer picks).
+- Use explicit `peer_id` comparisons where only the id is meant.
 - A maintained regression test in `packages/primitives`.
 - Update the rustdoc of `Peer` to state the ordering/equality contract.
 
@@ -150,21 +176,22 @@ option A the test becomes a compile-fail/removal check, to be redefined if chose
 
 Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
-| ID  | Status | Task                                                      | Notes / Expected Output                           |
-| --- | ------ | --------------------------------------------------------- | ------------------------------------------------- |
-| T1  | DONE   | Analyse defect and audit usages                           | Section "Audit of usages"                         |
-| T2  | DONE   | Reproduce with a temporary test                           | `manual-verification-evidence.md` V1 (reproduced) |
-| T3  | TODO   | Add maintained regression tests in `peer.rs`              | Red run recorded before the fix                   |
-| T4  | TODO   | Apply the maintainer-chosen fix and update `Peer` rustdoc | Regression tests pass                             |
-| T5  | TODO   | Green run and like-for-like recheck on the final commit   | `manual-verification-evidence.md` V2              |
+| ID  | Status | Task                                                                                                                                    | Notes / Expected Output                                                                                                         |
+| --- | ------ | --------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| T1  | TODO   | Investigate history and intent: why `Eq` compares the whole `Peer` and `Ord` only `peer_id`, and which call sites need which comparison | Findings recorded in this spec (section "Intent and call-site classification"); maintainer reviews them before choosing the fix |
+| T2  | DONE   | Analyse defect and audit usages                                                                                                         | Section "Audit of usages"                                                                                                       |
+| T3  | DONE   | Reproduce with a temporary test                                                                                                         | `manual-verification-evidence.md` V1 (reproduced)                                                                               |
+| T4  | TODO   | Add maintained regression tests in `peer.rs`                                                                                            | Red run recorded before the fix                                                                                                 |
+| T5  | TODO   | Apply the maintainer-chosen fix and update `Peer` rustdoc                                                                               | Regression tests pass                                                                                                           |
+| T6  | TODO   | Green run and like-for-like recheck on the final commit                                                                                 | `manual-verification-evidence.md` V2                                                                                            |
 
 ## Commit Points
 
 | Task | Coherent change set                      | Commit policy                                        |
 | ---- | ---------------------------------------- | ---------------------------------------------------- |
-| T3   | Regression tests, failing before the fix | Commit after focused validation and required review. |
-| T4   | `Ord` fix and rustdoc                    | Commit after focused validation and required review. |
-| T5   | Evidence update                          | Commit after focused validation and required review. |
+| T4   | Regression tests, failing before the fix | Commit after focused validation and required review. |
+| T5   | `Ord` fix and rustdoc                    | Commit after focused validation and required review. |
+| T6   | Evidence update                          | Commit after focused validation and required review. |
 
 ## Progress Tracking
 
@@ -183,6 +210,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ### Progress Log
 
+- 2026-11-10 12:20 UTC - Claude Code (Claude Sonnet 5.5) - Added T1 (history and intent investigation) and the maintainer position, per maintainer request - `ISSUE.md`
 - 2026-11-10 11:55 UTC - Claude Code (Claude Sonnet 5.5) - Drafted spec, audited usages, reproduced the bug - `manual-verification-evidence.md` V1
 
 ## Acceptance Criteria
