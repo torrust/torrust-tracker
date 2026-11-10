@@ -9,7 +9,7 @@ github-issue: 2576
 spec-path: docs/issues/open/2576-1669-update-all-package-readmes/ISSUE.md
 branch: "i2576-update-package-readmes"
 related-pr: 2812
-last-updated-utc: "2026-11-10 18:05"
+last-updated-utc: "2026-11-10 19:03"
 semantic-links:
   skill-links:
     - create-issue
@@ -346,6 +346,7 @@ Commit.
   the keyword rule now lets the approved table list the exceptions; M1 and M3 point at what ran;
   the stamps carry a time; the baseline wording is corrected. F10 and F11 are answered by the
   review audit record `docs/pr-reviews/pr-2812-review/PR-REVIEW.md`.
+- 2026-11-10 19:03 UTC - Claude (Sonnet 5.5) - PR #2812 review round 3 (da2ce7) F17: the 18:05 entry above names the audit record's F10 and F11 answers before that record existed. It stays as written. The audit record `docs/pr-reviews/pr-2812-review/PR-REVIEW.md` was added by commit `docs(pr-reviews): [#2576] add the review audit record for PR 2812` (created 18:10:49 UTC) and its F10 and F11 rows by commit `docs(pr-reviews): [#2576] record findings F10 and F11 in the PR 2812 audit` (created 18:13:46 UTC); times from `git log --format=%cI`.
 
 ## Acceptance Criteria
 

@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Three rounds: da2ce7 review 5846465906 (F1 to F8), da2ce7 review 5846866430 (F9 to F14) and da2ce7 review 5847274601 (approval with F15 and F16; those two rows are added in the commit after their replies). Copilot review 5846485416 reported no open issues and has no row.
+Three rounds: da2ce7 review 5846465906 (F1 to F8), da2ce7 review 5846866430 (F9 to F14) and da2ce7 review 5847274601 (approval with F15, F16 and F17; those rows are added in the commit after their replies). Copilot review 5846485416 reported no open issues and has no row.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
