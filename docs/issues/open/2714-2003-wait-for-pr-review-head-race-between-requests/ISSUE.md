@@ -9,7 +9,7 @@ github-issue: 2714
 spec-path: docs/issues/open/2714-2003-wait-for-pr-review-head-race-between-requests/ISSUE.md
 branch: "2714-wait-for-pr-review-head-race"
 related-pr: null
-last-updated-utc: "2026-11-10 14:30"
+last-updated-utc: "2026-11-10 20:06"
 semantic-links:
   skill-links:
     - create-issue
@@ -189,6 +189,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-10 12:00 UTC - AI assistant (Claude Code) - The maintainer chose option 1 in the implementation session.
 - 2026-11-10 12:30 UTC - AI assistant (Claude Code) - Implemented option 1; tests red then green; V2 recorded.
 - 2026-11-10 14:30 UTC - AI assistant (Claude Code) - Addressed the review of the pull request: spec risks, evidence, an ordinary-case wait test, comment-test trigger, wording.
+- 2026-11-10 20:06 UTC - AI assistant (Claude Code) - Correction: the stamps of the three 2026-11-10 entries above (12:00, 12:30 and 14:30 UTC) and the `last-updated-utc` of this spec and of the evidence were not taken from the commits they record. By commit time the decision was committed at 17:59 UTC, the fix and its evidence at 18:01 to 18:02 UTC, and the review-round fixes at 19:36 and 19:40 UTC (`git log --format=%cI`); the stamps are wrong and the entries are kept unchanged. `last-updated-utc` now holds the time of this edit.
 
 ## Acceptance Criteria
 
