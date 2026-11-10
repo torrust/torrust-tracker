@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/1488-si-19-remove-legacy-shutdown-api/ISSUE.md
 branch: "{issue-number}-remove-legacy-shutdown-api"
 related-pr: null
-last-updated-utc: "2026-11-10 11:29"
+last-updated-utc: "2026-11-10 14:00"
 semantic-links:
   skill-links:
     - create-issue
@@ -47,32 +47,34 @@ The separate `Started` oneshot startup-notification API remains unchanged.
 
 ## Start Gate
 
-Do not start implementation until every item below is complete and linked from
-this issue's own `verification.md` (SI-18's gate evidence is its
-`manual-verification-evidence.md`, the evidence the first item refers to):
+Evidence checked on 2026-11-10 against `torrust/develop` at `1df1ecdf0`. The full
+evidence goes in this issue's `verification.md` (SI-18's gate evidence is its
+`manual-verification-evidence.md`).
 
-- [ ] SI-18 deprecation evidence confirms every declared deprecation condition
-      and the public support window has ended for the only already-public
-      symbols, those of `torrust-server-lib` (0.5.x). The window has no fixed
-      date: it ends when the maintainer approves publishing 0.6.0 (the last item
-      below), and the maintainer publishes 0.6.0 from `torrust-server-lib` as part
-      of this task, after that approval. The unpublished package
-      crates and the root `HaltSignal`/`NestedServerTask` have never been in a
-      published release and have no public window (see SI-18, Versioning Decisions).
-- [ ] HTTP tracker, REST API, health-check API, and UDP tracker application
-      components use only token-aware shutdown paths.
-- [ ] Standalone HTTP and UDP environments/examples use only token-aware
-      shutdown paths.
-- [ ] REST API and health-check API test environments use only token-aware
-      shutdown paths (SI-23, SI-24).
-- [ ] #1588 revalidates the final task inventory and records no supported
-      in-workspace legacy shutdown consumer.
-- [ ] `torrust-server-lib` release notes confirm the planned breaking release
-      and communicate the migration deadline to external consumers.
-- [ ] Q5's process-wrapper verification rule is documented: same-process Tokio
-      tasks do not survive SIGKILL, and tests target the tracker process or a
-      deliberately selected process group.
-- [ ] A maintainer explicitly approves the breaking-release timing.
+- [x] SI-18 (#2751) is done (PRs #2752, #2793, close-out #2797). `torrust-server-lib`
+      0.5.0 (published 2026-11-06, torrust-server-lib#3 / PR 4) deprecates the
+      legacy symbols and removes them in 0.6.0.
+- [x] The end of the `torrust-server-lib` 0.5.x window. It has no fixed date: it
+      ends when the maintainer approves publishing 0.6.0 (SI-18, Versioning
+      Decisions). The maintainer gave that approval in chat on 2026-11-10 and
+      confirmed 0.6.0 as the `torrust-server-lib` removal release and 4.0.0 as the
+      root release target. The maintainer publishes 0.6.0 as part of this task.
+      The unpublished package crates and the root `HaltSignal`/`NestedServerTask`
+      have never been in a published release and have no public window.
+- [x] HTTP tracker, REST API, health-check API and UDP tracker application
+      components use only token-aware shutdown paths (`src/bootstrap/jobs/*`).
+- [x] Standalone HTTP and UDP examples use only token-aware shutdown paths
+      (SI-16 #2412, SI-17 #2448).
+- [x] REST API and health-check API test environments use only token-aware
+      shutdown paths (SI-23 #2449, SI-24 #2450).
+- [x] #1588 (closed) revalidated the task inventory. The remaining in-workspace
+      users of the legacy API are the deprecated symbols themselves, their own
+      tests and compat tests, each marked `#[allow(deprecated)]`.
+- [x] Q5's process-wrapper rule is resolved (`docs/containers.md#stopping-the-tracker`).
+- [ ] `torrust-server-lib` 0.6.0 (removal release) is ready: companion issue and
+      PR in that repository (session `server-lib-060`), release notes in its
+      `CHANGELOG.md`. The maintainer publishes it to crates.io after merge.
+      The implementation PR here cannot go green before publication.
 
 ## Scope
 
@@ -92,13 +94,21 @@ this issue's own `verification.md` (SI-18's gate evidence is its
   `Spawner::spawn_launcher`, `LaunchRequest`, and `Running`) added or kept by
   SI-14 (#2342), and the bootstrap `NestedServerTask` and `HaltSignal` owner
   types, which have no production consumer after SI-14.
-- Consolidate the three token-aware component supervisors (HTTP, REST, and
-  health check) and adopt the health-check join order: join the drain
-  controller before mapping a server-task join error. Review the owner types
-  together at the same time: bootstrap `OwnedTask` and `TokenAwareServerTask`,
-  and the UDP package's private `OwnedReceiveLoop`.
+- Bump `torrust-server-lib` to 0.6.0 and remove the `Halted`/`global_shutdown_signal`
+  imports and the `#[allow(deprecated)]` markers that guarded them.
+- Remove `axum-server`'s `graceful_shutdown` and the legacy `start`/`stop`,
+  `Running.halt_task` and `rx_halt` entry points of the HTTP, REST API and
+  health-check API servers (the list SI-18 deprecated).
 
 ### Out of scope
+
+- Consolidating the token-aware component supervisors and reviewing the owner
+  types (`OwnedTask`, `TokenAwareServerTask`, `OwnedReceiveLoop`), and adopting
+  the health-check join order. This is a refactor, not a removal of a deprecated
+  symbol, so it would widen the breaking surface (Removal Constraint 1). The
+  maintainer agreed on 2026-11-10 to split it into its own follow-up issue.
+- Publishing `torrust-server-lib` 0.6.0 (the maintainer does it; its removal PR
+  lives in the `torrust-server-lib` repository).
 
 - Changing cancellation-tree behavior, component child ownership, timeout
   policy, exit-code policy, or readiness behavior.
@@ -143,10 +153,11 @@ this issue's own `verification.md` (SI-18's gate evidence is its
 
 ## Dependencies
 
-- SI-18 is complete and the `torrust-server-lib` 0.5.x support window has ended; the
+- SI-18 is complete and the `torrust-server-lib` 0.5.x support window has ended (approved 2026-11-10); the
   unpublished package crates and the root types need no window (SI-18, Versioning Decisions).
 - SI-11 through SI-17, SI-23, and SI-24 token-lifecycle migrations are complete.
-- #1588 completes final inventory evidence.
+- `torrust-server-lib` 0.6.0 published to crates.io (companion issue and PR in that repository).
+- #1588 final inventory evidence is complete (closed).
 - Q4 is resolved. Q5's process-wrapper verification rule is required for final
   end-to-end removal verification.
 
