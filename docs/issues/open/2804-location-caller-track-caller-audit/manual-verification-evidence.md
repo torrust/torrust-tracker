@@ -1,18 +1,18 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2804-location-caller-track-caller-audit/ISSUE.md
-last-updated-utc: "2026-11-10 14:20"
+last-updated-utc: "2026-11-10 14:16"
 ---
 
 # Manual Verification Evidence
 
 ## Purpose
 
-Drafting-time reproduction of the defect, recorded before the spec review as `fix-bug` requires. Verification of the fixes (M1-M3 in the specification) is not started and will be added here by the fix slices.
+Drafting-time reproduction of the defect (section D1), as `fix-bug` requires. It was recorded after the first review round, not before it. Verification of the fixes (M1-M3 in the specification, sections V1-V3) is not started and will be added here by the fix slices.
 
 ## Environment and Prerequisites
 
-- Date and time (UTC): 2026-11-10, about 14:10.
+- Date and time (UTC): 2026-11-10, between 13:45:39 (commit `docs(issues): correct UDP exposure analysis in #2804 spec`) and 13:50:44 (commit `docs(issues): address review of the #2804 specification`). Exact times were not recorded. The reporting session's earlier throwaway tests (the spec's first commit already quoted their output) are not part of this evidence; steps 1 and 2 below depend on each other and ran in that order.
 - Artifact under test: `torrust/develop` at the commit this spec branch was cut from, with no local changes except the temporary files named below.
 - Operating system / environment: Linux 7.0.0-43-generic, x86_64.
 - Toolchain: stable `rustc 1.99.1 (58cf8f9c3 2026-10-13)`, `cargo 1.99.1`. The workspace sets only `rust-version = "1.88"`.
@@ -20,7 +20,7 @@ Drafting-time reproduction of the defect, recorded before the spec review as `fi
 
 ## Drafting-Time Reproduction
 
-### V1 - `PeerRole` parse reports a fixed library line
+### D1 - `PeerRole` parse reports a fixed library line
 
 - Goal: observe the location reported for `"x".parse::<PeerRole>()` and `PeerRole::from_str("x")`.
 - Initial state: `packages/primitives/src/peer.rs` unmodified.

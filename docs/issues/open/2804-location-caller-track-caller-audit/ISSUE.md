@@ -9,7 +9,7 @@ github-issue: 2804
 spec-path: docs/issues/open/2804-location-caller-track-caller-audit/ISSUE.md
 branch: "2804-location-caller-track-caller-audit-spec"
 related-pr: null
-last-updated-utc: "2026-11-10 14:25"
+last-updated-utc: "2026-11-10 14:16"
 semantic-links:
   skill-links:
     - create-issue
@@ -36,7 +36,7 @@ Reported while adding tests to `packages/primitives` under EPIC #1347
 finding F3. That finding is not in the repository yet, so this spec quotes it: `"x".parse::<PeerRole>()`
 reports a fixed line in `peer.rs`, and `#[track_caller]` on `from_str` does not fix calls through
 `str::parse`. Reproduced on 2026-11-10 (see
-[`manual-verification-evidence.md`](manual-verification-evidence.md), V1; outcome: Reproduced):
+[`manual-verification-evidence.md`](manual-verification-evidence.md), section D1; outcome: Reproduced):
 
 - `impl FromStr for PeerRole` builds `ParsePeerRoleError::InvalidPeerRole` with
   `location: Location::caller()` inside `from_str`, which is not `#[track_caller]`.
@@ -285,7 +285,7 @@ with the narrow affected scope, and sign every commit with GPG.
 
 - 2026-11-10 12:00 UTC - Claude Code (Sonnet 5.5) - Drafted spec from the F3 finding of the primitives test session and a first-pass inventory on `torrust/develop`.
 - 2026-11-10 13:45 UTC - Claude Code (Sonnet 5.5) - Corrected the UDP exposure analysis after review F1.
-- 2026-11-10 14:25 UTC - Claude Code (Sonnet 5.5) - Addressed review round 1 (F1-F9 and Copilot): recorded the reproduction, split the red/fix/green tasks, restored template passages, corrected facts and wording. Evidence: `manual-verification-evidence.md`.
+- 2026-11-10 13:50 UTC - Claude Code (Sonnet 5.5) - Addressed review round 1 (F1-F9 and Copilot): recorded the reproduction, split the red/fix/green tasks, restored template passages, corrected facts and wording. Evidence: `manual-verification-evidence.md`.
 
 ## Acceptance Criteria
 
@@ -318,9 +318,9 @@ with the narrow affected scope, and sign every commit with GPG.
 | M2  | UDP request that yields an error response | Run the tracker, send a UDP announce for a non-whitelisted info-hash to a listed tracker, capture the error message  | After: message has no library path                                        | TODO   | `manual-verification-evidence.md` section V2 |
 | M3  | `"x".parse::<PeerRole>()`                 | Run the regression test through `str::parse` against the old and the fixed code                                      | Old: `peer.rs` path or std path. After: no path, input echoed             | TODO   | `manual-verification-evidence.md` section V3 |
 
-Notes: use the nightly/stable toolchain label for every recorded command. Create
-`manual-verification-evidence.md` from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md` when
-executing the scenarios.
+Notes: use the nightly/stable toolchain label for every recorded command. Add
+the scenarios' sections to the existing `manual-verification-evidence.md` (created from
+`docs/templates/MANUAL-VERIFICATION-EVIDENCE.md`; it already holds the drafting-time section D1).
 
 ### Disposable Verification Scripts
 
