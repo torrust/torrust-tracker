@@ -1,9 +1,10 @@
 [package]
 authors.workspace = true
+categories = [ "web-programming::http-server", "asynchronous" ]
 description = "A wrapper for the Axum server for Torrust HTTP servers to add timeouts."
 edition.workspace = true
 homepage.workspace = true
-keywords = [ "axum", "server", "torrust", "wrapper" ]
+keywords = [ "axum", "graceful-shutdown", "http", "timeout", "tls" ]
 license.workspace = true
 name = "torrust-tracker-axum-server"
 publish.workspace = true
