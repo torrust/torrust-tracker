@@ -9,7 +9,7 @@ github-issue: 2801
 spec-path: docs/issues/open/2801-1488-si-19-remove-legacy-shutdown-api/ISSUE.md
 branch: "2801-remove-legacy-shutdown-api-spec"
 related-pr: null
-last-updated-utc: "2026-11-10 14:25"
+last-updated-utc: "2026-11-10 15:47"
 semantic-links:
   skill-links:
     - create-issue
@@ -150,20 +150,20 @@ evidence goes in this issue's `manual-verification-evidence.md` (SI-18's gate ev
 ## Acceptance Criteria
 
 - [ ] All start-gate evidence is complete and independently reviewed.
-- [ ] `Halted` shutdown API and legacy shutdown helpers are removed from their
+- [x] `Halted` shutdown API and legacy shutdown helpers are removed from their
       declared packages; `Started` remains available and tested.
-- [ ] Server-library code contains no OS-signal subscription.
-- [ ] Workspace searches find no legacy shutdown API reference outside archived
+- [x] Server-library code contains no OS-signal subscription.
+- [x] Workspace searches find no legacy shutdown API reference outside archived
       documentation describing the migration history.
-- [ ] The tracker binary and standalone HTTP/UDP examples handle SIGINT and
+- [x] The tracker binary and standalone HTTP/UDP examples handle SIGINT and
       Unix SIGTERM only at their executable boundaries.
-- [ ] Deterministic tests request cancellation through tokens/lifecycle APIs and
+- [x] Deterministic tests request cancellation through tokens/lifecycle APIs and
       verify owned child completion without OS signals.
-- [ ] End-to-end SIGINT and SIGTERM tests verify one orderly shutdown sequence
+- [x] End-to-end SIGINT and SIGTERM tests verify one orderly shutdown sequence
       per component with no duplicate library signal handling.
-- [ ] Container and service-manager verification follows the deadline policy
+- [x] Container and service-manager verification follows the deadline policy
       defined by Q4 and the deployment guidance defined by the final policy task.
-- [ ] `linter all` passes.
+- [x] `linter all` passes.
 
 ## Dependencies
 
@@ -188,12 +188,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status | Task | Notes / Expected Output |
 | --- | ------ | ---- | ----------------------- |
-| T1  | TODO | Wait for `torrust-server-lib` 0.6.0 (done) and branch from the merged spec. No change and no commit. | Recorded in the progress log only. |
-| T2  | TODO | `udp-server`: remove `Server<Stopped>::start`, legacy `Running` and `RunningUdpServer`, `Server<Running>::stop`, `Launcher::run_with_graceful_shutdown`, `Spawner::spawn_launcher`, `LaunchRequest`, `legacy_stop_requested`, `halt_requested`, and the `global_shutdown_signal` use. | Legacy-only tests removed; token lifecycle tests stay. |
-| T3  | TODO | `axum-http-server`, `axum-rest-api-server`, `axum-health-check-api-server`, `axum-server`: remove the legacy `start`, `start_with_health_check`, `stop`, `Running` structs and aliases, `Running::new`, `halt_task`, `rx_halt`, `RunningServer` and `graceful_shutdown`. | Token-aware paths keep their child ownership and join behavior. |
-| T4  | TODO | Root: remove `HaltSignal` and `NestedServerTask` and their tests; bump `torrust-server-lib` to 0.6.0 in every `Cargo.toml`; drop every `#[allow(deprecated)]` added by SI-18 and the compat tests that exist only for removed symbols. | The bump lands with the removals, since 0.6.0 removes `Halted` and an earlier bump would not build. `cargo check --workspace --all-targets` warning-free. |
-| T5 | TODO | Update docs: the migration guide `docs/features/shutdown-process/legacy-api-migration.md` (removed, with history), the shutdown-process docs, and the EPIC row. | Workspace search finds legacy symbols only in archived history. |
-| T6 | TODO | Verify and record evidence: searches, deterministic tests, SIGINT/SIGTERM for the tracker and both standalone examples, container check. | `manual-verification-evidence.md`. |
+| T1  | DONE | Wait for `torrust-server-lib` 0.6.0 (done) and branch from the merged spec. No change and no commit. | Recorded in the progress log only. |
+| T2  | DONE | `udp-server`: remove `Server<Stopped>::start`, legacy `Running` and `RunningUdpServer`, `Server<Running>::stop`, `Launcher::run_with_graceful_shutdown`, `Spawner::spawn_launcher`, `LaunchRequest`, `legacy_stop_requested`, `halt_requested`, and the `global_shutdown_signal` use. | Legacy-only tests removed; token lifecycle tests stay. |
+| T3  | DONE | `axum-http-server`, `axum-rest-api-server`, `axum-health-check-api-server`, `axum-server`: remove the legacy `start`, `start_with_health_check`, `stop`, `Running` structs and aliases, `Running::new`, `halt_task`, `rx_halt`, `RunningServer` and `graceful_shutdown`. | Token-aware paths keep their child ownership and join behavior. |
+| T4  | DONE | Root: remove `HaltSignal` and `NestedServerTask` and their tests; bump `torrust-server-lib` to 0.6.0 in every `Cargo.toml`; drop every `#[allow(deprecated)]` added by SI-18 and the compat tests that exist only for removed symbols. | The bump lands with the removals, since 0.6.0 removes `Halted` and an earlier bump would not build. `cargo check --workspace --all-targets` warning-free. |
+| T5 | DONE | Update docs: the migration guide `docs/features/shutdown-process/legacy-api-migration.md` (removed, with history), the shutdown-process docs, and the EPIC row. | Workspace search finds legacy symbols only in archived history. |
+| T6 | DONE | Verify and record evidence: searches, deterministic tests, SIGINT/SIGTERM for the tracker and both standalone examples, container check. | `manual-verification-evidence.md`. |
 
 ## Commit Points
 
@@ -217,9 +217,9 @@ Sign every commit with GPG.
 - [x] GitHub issue created and issue number added to this spec (#2801)
 - [ ] Spec-only PR merged into `develop` before implementation
 - [x] `torrust-server-lib` 0.6.0 published (external dependency, 2026-11-10)
-- [ ] Implementation completed
+- [x] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in `manual-verification-evidence.md`
+- [x] Manual verification scenarios executed and recorded in `manual-verification-evidence.md`
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Evidence-based implementation completion review recorded: an issue-local `implementation-retrospective.md` for material discoveries, or a progress-log entry that says why none was needed
 - [ ] Independent reviewer reports recorded in `agent-review-reports.md`
@@ -234,6 +234,7 @@ Sign every commit with GPG.
 - 2026-11-10 13:36 UTC - AI agent (Claude Sonnet 5.5) - Added the implementation-completion-review checkpoint and requirement for Copilot's finding R2 (commit at 13:36:46 UTC).
 - 2026-11-10 13:59 UTC - AI agent (Claude Sonnet 5.5) - Edited the spec for the second review of PR 2803: the 0.6.0 wording reconciled with SI-18 (F11), the removal list stated as the 27 `#[deprecated]` attributes (F12), and these log entries and the stamp corrected (F4). The audit record `docs/pr-reviews/pr-2803-review/PR-REVIEW.md` is added in the same round (F8).
 - 2026-11-10 14:25 UTC - AI agent (Claude Sonnet 5.5) - Edited the spec for the third review of PR 2803: the stamps now match the commit times (F4) and the removal bullet says the HTTP and REST `Running` structs (F15).
+- 2026-11-10 15:47 UTC - AI agent (Claude Sonnet 5.5) - Implemented T2 to T6 on branch `2801-remove-legacy-shutdown-api` after the spec PR 2803 merged: removed the legacy API from `udp-server` and the three axum servers and `axum-server`, removed `HaltSignal` and `NestedServerTask`, bumped `torrust-server-lib` to 0.6.0, and updated the migration guide. `Started` is no longer used inside this workspace; it stays in `torrust-server-lib` 0.6.0. The public `Error::Stop`, `StartupNotification` and `StartupNotificationDropped` variants of the HTTP and REST servers are now unused but were not deprecated, so they stay (candidate follow-up). Evidence in `manual-verification-evidence.md`.
 
 ## Design and Ownership Review
 
@@ -259,11 +260,11 @@ Executable-boundary verification follows the EPIC protocol (signal each direct P
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | -- | -------- | ---------------------------- | --------------- | ------ | -------- |
-| M1 | Start-gate evidence | Link SI-18 evidence, the migration issues, #1588, Q5, the approval and the 0.6.0 release. | Every gate item has a link or command output. | TODO | `manual-verification-evidence.md` |
-| M2 | Legacy symbols removed | `git grep` for `Halted`, `shutdown_signal`, `global_shutdown_signal`, `HaltSignal`, `NestedServerTask`, `run_with_graceful_shutdown`, `spawn_launcher`, `LaunchRequest` and `tokio::signal` outside executables. | Only archived history matches. | TODO | `manual-verification-evidence.md` |
-| M3 | Token lifecycle owns completion | Run the component tests that cancel an injected token. | Owned children joined; no OS signal needed. | TODO | `manual-verification-evidence.md` |
-| M4 | Tracker and standalone binaries | SIGINT and SIGTERM to the tracker and both standalone examples. | One application-owned shutdown sequence each; bindings released. | TODO | `manual-verification-evidence.md` |
-| M5 | Container / service manager | Stop the container per `docs/containers.md#stopping-the-tracker`. | Orderly shutdown within the Q4 deadline; result per Q3. | TODO | `manual-verification-evidence.md` |
+| M1 | Start-gate evidence | Link SI-18 evidence, the migration issues, #1588, Q5, the approval and the 0.6.0 release. | Every gate item has a link or command output. | DONE | `manual-verification-evidence.md` |
+| M2 | Legacy symbols removed | `git grep` for `Halted`, `shutdown_signal`, `global_shutdown_signal`, `HaltSignal`, `NestedServerTask`, `run_with_graceful_shutdown`, `spawn_launcher`, `LaunchRequest` and `tokio::signal` outside executables. | Only archived history matches. | DONE | `manual-verification-evidence.md` |
+| M3 | Token lifecycle owns completion | Run the component tests that cancel an injected token. | Owned children joined; no OS signal needed. | DONE | `manual-verification-evidence.md` |
+| M4 | Tracker and standalone binaries | SIGINT and SIGTERM to the tracker and both standalone examples. | One application-owned shutdown sequence each; bindings released. | DONE | `manual-verification-evidence.md` |
+| M5 | Container / service manager | Stop the container per `docs/containers.md#stopping-the-tracker`. | Orderly shutdown within the Q4 deadline; result per Q3. | DONE | `manual-verification-evidence.md` |
 
 Record every command result with its toolchain or runtime. If a scenario fails,
 record the failure and diagnosis in the progress log before proceeding.
@@ -276,15 +277,15 @@ None.
 
 | AC | Status | Evidence |
 | -- | ------ | -------- |
-| Start-gate evidence complete and reviewed | TODO | M1 |
-| Legacy API removed, `Started` kept and tested | TODO | M2 and the package tests |
-| No OS-signal subscription in server libraries | TODO | M2 |
-| No legacy reference outside archived history | TODO | M2 |
-| Binaries handle SIGINT/SIGTERM only at their boundaries | TODO | M4 |
-| Deterministic token tests | TODO | M3 |
-| End-to-end SIGINT/SIGTERM, one sequence | TODO | M4 |
-| Container and service-manager verification | TODO | M5 |
-| `linter all` passes | TODO | Pre-commit hook output |
+| Start-gate evidence complete and reviewed | DONE | M1; independent review: the PR reviews |
+| Legacy API removed, `Started` kept and tested | DONE | M2 and the package tests |
+| No OS-signal subscription in server libraries | DONE | M2 |
+| No legacy reference outside archived history | DONE | M2 |
+| Binaries handle SIGINT/SIGTERM only at their boundaries | DONE | M4 |
+| Deterministic token tests | DONE | M3 |
+| End-to-end SIGINT/SIGTERM, one sequence | DONE | M4 |
+| Container and service-manager verification | DONE | M5 |
+| `linter all` passes | DONE | `linter all` run on 2026-11-10 after the evidence edit (below) |
 
 ## Risks and Trade-offs
 
