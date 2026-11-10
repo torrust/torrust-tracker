@@ -9,7 +9,7 @@ github-issue: 2751
 spec-path: docs/issues/open/2751-1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md
 branch: "2751-deprecate-legacy-shutdown-api"
 related-pr: 2793
-last-updated-utc: "2026-11-10 09:45"
+last-updated-utc: "2026-11-10 09:43"
 semantic-links:
   skill-links:
     - create-issue
@@ -319,7 +319,7 @@ Arrange-Act-Assert design review in task evidence, and sign every commit with GP
 - 2026-11-09 15:48 UTC - AI agent (Claude Sonnet 5.5) - Edited the spec for the 2026-11-09 review of PR 2752 by `da2ce7` and Copilot: one release-note rule in Versioning Decisions, Scope, Requirement 4 and T5 (15:45 UTC); the evidence file's Step 5 made runnable (15:46 UTC) and the SI-19 start gate names its evidence file (15:47 UTC)
 - 2026-11-09 16:39 UTC - AI agent (Claude Sonnet 5.5) - Edited the spec for the 2026-11-09 review of PR 2752 by `da2ce7`: the release-note rule moved out of the dated maintainer decisions and is labelled derived and not yet confirmed, with Scope, Requirement 4, T5 and the proposal paragraph aligned (16:37 UTC); the evidence file names the 15:46 UTC run of Step 5 (16:38 UTC)
 - 2026-11-09 19:33 UTC - AI agent (Claude Sonnet 5.5) - Implemented T1 to T6 on branch `2751-deprecate-legacy-shutdown-api`: dependency bump with local allowances, deprecation attributes with allowances, review of the allowances (none in the migrated bootstrap jobs), a compat test for the legacy health-check `start`, and the migration guide. Evidence in `manual-verification-evidence.md`.
-- 2026-11-10 09:45 UTC - AI agent (Claude Sonnet 5.5) - Addressed the review of PR 2793: ran M2 from scratch consumers and recorded the output, added `compile_fail` doctests so removing an attribute fails `cargo test --doc`, updated M2 to M4, the acceptance rows, the frontmatter and the completion review.
+- 2026-11-10 09:43 UTC - AI agent (Claude Sonnet 5.5) - Addressed the review of PR 2793: ran M2 from scratch consumers and recorded the output, added `compile_fail` doctests so removing an attribute fails `cargo test --doc`, updated M2 to M4, the acceptance rows, the frontmatter and the completion review.
 
 ## Rollback
 
