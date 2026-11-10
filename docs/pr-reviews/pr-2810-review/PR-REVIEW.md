@@ -1,7 +1,7 @@
 ---
 pr-number: 2810
 pr-url: https://github.com/torrust/torrust-tracker/pull/2810
-last-updated-utc: "2026-11-10 18:36"
+last-updated-utc: "2026-11-10 21:33"
 ---
 
 # PR #2810 Review Audit
@@ -53,8 +53,10 @@ Round 1: da2ce7 review 5846429188 (CHANGES_REQUESTED) on the head that carries t
 | F19 | review-finding:pr-2810-f19 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F20 | review-finding:pr-2810-f20 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F21 | review-finding:pr-2810-f21 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F22 | review-finding:pr-2810-f22 | Human | Nit | documentation | RE_RAISE_OF:F19 | FIXED | RESOLVED |
+| F23 | review-finding:pr-2810-f23 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
-Round 1 follow-up: Copilot review 5846504036, on the earlier head, raised the F1 and F2 concerns again as F9 and F10 (reviewer IDs F1 and F2); both were already fixed. Round 3: da2ce7 review 5847265767 (APPROVED) on the head after round 2: F16 to F21 (reviewer IDs F3, F8, F11, F12, F13, F14), fixed in the round-3 commit. Round 2: da2ce7 review 5846796508 on the head after round 1: F11 to F15 (reviewer IDs F3, F8, F9, F10, F11), fixed in the round-2 commit.
+Round 1 follow-up: Copilot review 5846504036, on the earlier head, raised the F1 and F2 concerns again as F9 and F10 (reviewer IDs F1 and F2); both were already fixed. Round 2: da2ce7 review 5846796508 on the head after round 1: F11 to F15 (reviewer IDs F3, F8, F9, F10, F11), fixed in the round-2 commit. Round 3: da2ce7 review 5847265767 (APPROVED) on the head after round 2: F16 to F21 (reviewer IDs F3, F8, F11, F12, F13, F14), fixed in the round-3 commit. Round 4: da2ce7 review 5847623438 (APPROVED) on the head after round 3: F22 and F23 (reviewer IDs F12 and F15), fixed in the round-4 commit.
 
 ## Finding Details
 
@@ -331,12 +333,39 @@ Round 1 follow-up: Copilot review 5846504036, on the earlier head, raised the F1
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2810#discussion_r4528939707
 
+### F22 - The round-3 log entry again says replies follow the push.
+
+- PR number: 2810
+- Source review ID: 5847623438
+- Reviewer finding ID: F12
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2810#discussion_r4529184349
+- Concern: The round-3 log entry again says replies and resolutions follow the push, though the six round-3 replies were created before the commit.
+- Solution: Valid. A correction entry records the round-3 reply times (18:34:58Z to 18:35:12Z) and the resolutions' state.
+- Current-tree verification: Processing Log of this file.
+- Resolution reference: docs(pr-reviews): [#2762] add the PR 2810 review retrospective
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2810#discussion_r4529839947
+
+### F23 - Round sentences out of order and a wrong "below".
+
+- PR number: 2810
+- Source review ID: 5847623438
+- Reviewer finding ID: F15
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2810#discussion_r4529184361
+- Concern: The round-3 sentence sits between the round-1 follow-up and round 2, and the round-3 log entry says "below" for rows that are above it.
+- Solution: Valid. The sentences are in round order and the log entry text now says "above" (named in the correction entry).
+- Current-tree verification: The paragraph after the findings table and the round-3 log entry.
+- Resolution reference: docs(pr-reviews): [#2762] add the PR 2810 review retrospective
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2810#discussion_r4529840289
+
 ## Processing Log
 
 - 2026-11-10 17:55 UTC - Started audit; round 1 (da2ce7 review 5846429188) processed: all eight findings fixed in one commit and replied. All eight threads resolved after the replies.
 - 2026-11-10 18:15 UTC - Round 1 follow-up (Copilot 5846504036) and round 2 (da2ce7 5846796508) added as F9 to F15; replies and resolutions follow the push.
 - 2026-11-10 18:36 UTC - Correction of the entries above (round 3, da2ce7 review 5847265767). The 17:55 entry was rewritten in place in the round-2 commit (to 17:37, with new wording); it is restored above. Both stamps are later than the commits that carry them: the round-1 audit commit is dated 17:37:50Z and the round-2 commit 18:10:38Z, so the events they describe happened at about 17:37 and 18:10. Event times from the GitHub capture: the round-1 replies were created 17:36:28Z to 17:36:45Z, the two replies to Copilot's review 17:40:24Z and 17:40:26Z, the round-2 replies 18:08:33Z to 18:08:41Z (all before the commits that cite them). The resolution times of the threads are not captured.
-- 2026-11-10 18:36 UTC - Round 3 (da2ce7 review 5847265767, APPROVED with six record findings, F16 to F21 below): the ten older replies that named commits by id were edited to cite the subjects (edits at 18:34:19Z to 18:34:32Z), the stamps were corrected and the hosted run was recorded; replies and resolutions follow the push.
+- 2026-11-10 18:36 UTC - Round 3 (da2ce7 review 5847265767, APPROVED with six record findings, F16 to F21 above): the ten older replies that named commits by id were edited to cite the subjects (edits at 18:34:19Z to 18:34:32Z), the stamps were corrected and the hosted run was recorded; replies and resolutions follow the push.
+- 2026-11-10 21:33 UTC - Round 4 (da2ce7 review 5847623438, APPROVED with two Nit findings F22, F23) and a retrospective requested by the maintainer's retrospective session. Corrections: the round-3 replies were created 18:34:58Z to 18:35:12Z, before the round-3 commit (18:36:39Z), so the round-3 entry's "replies and resolutions follow the push" was wrong; the round-3 entry's "F16 to F21 below" was edited in place to "above" and the round sentences were reordered. The two round-4 replies (20:00:06Z and 20:00:09Z) said the change would wait for the archive PR; this commit makes it now instead, at the maintainer's request. The resolution times of the threads are not captured. The retrospective is `docs/pr-reviews/pr-2810-review/review-retrospective.md`.
 
 ## Completion Rules
 
