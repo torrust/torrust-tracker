@@ -338,7 +338,7 @@ impl Server<Running> {
     )]
     #[deprecated(
         since = "0.1.0",
-        note = "cancel the `CancellationToken` passed to `start_with_cancellation` and join the returned tasks; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
+        note = "cancel the `CancellationToken` passed to `start_with_cancellation` and await the returned `task`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
     )]
     pub async fn stop(self) -> Result<Server<Stopped>, UdpError> {
         self.state
