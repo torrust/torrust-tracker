@@ -1,9 +1,10 @@
 [package]
 authors.workspace = true
+categories = [ "network-programming" ]
 description = "A library with the core functionality needed to implement a BitTorrent UDP tracker."
 edition.workspace = true
 homepage.workspace = true
-keywords = [ "api", "bittorrent", "core", "library", "tracker" ]
+keywords = [ "announce", "bittorrent", "connection-id", "scrape", "udp" ]
 license.workspace = true
 name = "torrust-tracker-udp-core"
 publish.workspace = true
