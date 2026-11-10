@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Six rounds: da2ce7 review 5845757723 (approval with findings F1 to F5) and Copilot review 5845810205 (two comments) in round 1; da2ce7 review 5846259189 (approval with findings F6 to F9) in round 2; Copilot review 5846488382 (two comments, run on the head that review 5846259189 read) in round 3. Copilot's `F1` and `F2` collided with da2ce7's and became `F6` and `F7`; round 2's `F6` to `F9` became `F8` to `F11`; round 3's two comments are `F12` and `F13`; round 4's da2ce7 review 5846762716 (approval with findings F12 to F16) collided with those and became `F14` to `F18`; round 5's Copilot review 5846854848 (three comments, run on the head that review 5846762716 read) is `F19` to `F21`; round 6's da2ce7 review 5847241969 (approval with findings F17 to F22) collided with those and became `F22` to `F27`. The original IDs are recorded in the details. The body of the commit `docs(pr-reviews): [#2808] correct the PR 2809 audit record again` calls round 6 "round 5"; this audit numbers it round 6.
+Seven rounds: da2ce7 review 5845757723 (approval with findings F1 to F5) and Copilot review 5845810205 (two comments) in round 1; da2ce7 review 5846259189 (approval with findings F6 to F9) in round 2; Copilot review 5846488382 (two comments, run on the head that review 5846259189 read) in round 3. Copilot's `F1` and `F2` collided with da2ce7's and became `F6` and `F7`; round 2's `F6` to `F9` became `F8` to `F11`; round 3's two comments are `F12` and `F13`; round 4's da2ce7 review 5846762716 (approval with findings F12 to F16) collided with those and became `F14` to `F18`; round 5's Copilot review 5846854848 (three comments, run on the head that review 5846762716 read) is `F19` to `F21`; round 6's da2ce7 review 5847241969 (approval with findings F17 to F22) collided with those and became `F22` to `F27`; round 7's da2ce7 review 5848242364 (approval with findings F24 to F27) collided with those and became `F28` to `F31`. The original IDs are recorded in the details. The body of the commit `docs(pr-reviews): [#2808] correct the PR 2809 audit record again` calls round 6 "round 5"; this audit numbers it round 6.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -72,6 +72,10 @@ Six rounds: da2ce7 review 5845757723 (approval with findings F1 to F5) and Copil
 | F25 | review-finding:pr-2809-f25 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 | F26 | review-finding:pr-2809-f26 | Human | Nit | link-integrity | ORIGINAL | FIXED | RESOLVED |
 | F27 | review-finding:pr-2809-f27 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
+| F28 | review-finding:pr-2809-f28 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
+| F29 | review-finding:pr-2809-f29 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
+| F30 | review-finding:pr-2809-f30 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F31 | review-finding:pr-2809-f31 | Human | Nit | maintainability | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -426,6 +430,58 @@ Six rounds: da2ce7 review 5845757723 (approval with findings F1 to F5) and Copil
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2809#discussion_r4529466309
 
+### F28 - A grep in the F23 verification prints the lines that quote its own pattern
+
+- PR number: 2809
+- Source review ID: 5848242364
+- Reviewer finding ID: F27
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2809#discussion_r4529658072
+- Concern: The F23 verification said its grep prints nothing, but the grep prints the lines of the F23 detail that quote its pattern.
+- Solution: The F23 verification says what the grep prints: only the F23 heading, its Concern and the verification line, and no line of the header text or of the log.
+- Current-tree verification: I ran the grep after the edit: it prints exactly those three lines. The grep of F16 still prints the five lines F25 names.
+- Resolution reference: docs(pr-reviews): [#2808] correct two statements of the PR 2809 audit record
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2809#discussion_r4530738510
+
+### F29 - The F18 reply says the 17:42 entry uses the new head wording
+
+- PR number: 2809
+- Source review ID: 5848242364
+- Reviewer finding ID: F24
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2809#discussion_r4529658090
+- Concern: The F18 thread reply said the 17:42 entry and the header text use the same wording, but the 17:42 entry was restored to its original wording.
+- Solution: The F18 thread reply now names the header text only and says the 17:42 entry keeps its original wording, with an edit note.
+- Current-tree verification: I read the reply back from GitHub after the edit; it contains the corrected sentence and the note.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2809#discussion_r4528601560>
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2809#discussion_r4530738893
+
+### F30 - A reply gives the stamp of the spec entry as 19:19 UTC instead of 19:18
+
+- PR number: 2809
+- Source review ID: 5848242364
+- Reviewer finding ID: F25
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2809#discussion_r4529658105
+- Concern: The F27 thread reply said the spec's correction entry is stamped 19:19 UTC; the spec entry and its last-updated field read 19:18, and 19:19 is the stamp of the audit's own correction entry.
+- Solution: The F27 thread reply states 19:18 UTC and says what 19:19 UTC stamps, with an edit note.
+- Current-tree verification: `grep -n '^- 2026-11-10 19:1' docs/issues/open/2808-workspace-package-release-process/ISSUE.md` prints the 19:18 entry only; the audit's 19:19 entry is its own correction.
+- Resolution reference: <https://github.com/torrust/torrust-tracker/pull/2809#discussion_r4529466309>
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2809#discussion_r4530739346
+
+### F31 - A spec fix rode in an audit commit whose body misnumbers the round
+
+- PR number: 2809
+- Source review ID: 5848242364
+- Reviewer finding ID: F26
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2809#discussion_r4529658110
+- Concern: One earlier commit changed the spec and the audit together under an audit subject, and its body numbers the round differently from the audit.
+- Solution: The audit header records the misnumbering. No rewrite was asked. This round's fix commit and the commit that records the round change only the audit record.
+- Current-tree verification: `git show --stat` of this round's fix commit lists only the audit file.
+- Resolution reference: docs(pr-reviews): [#2808] correct two statements of the PR 2809 audit record
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2809#discussion_r4530739744
+
 ## Processing Log
 
 - 2026-11-10 16:46 UTC - Round 1 review of da2ce7 received (approval at 16:46:32 UTC with five findings, F1 to F5); Copilot review at 16:50:05 UTC (two comments, F6 and F7 here).
@@ -437,6 +493,7 @@ Six rounds: da2ce7 review 5845757723 (approval with findings F1 to F5) and Copil
 - 2026-11-10 18:08 UTC - Round 4 review of da2ce7 received (approval at 17:56:24 UTC with five findings, `F14` to `F18` here) and round 5 review of Copilot (submitted at 18:02:42 UTC, three comments, `F19` to `F21` here). Round 4 fixes were committed at 18:00:08 UTC and pushed; the F20 fix was committed at 18:04:51 UTC and pushed. Replies were posted at 18:03:12 to 18:03:23 UTC (round 4) and 18:07:39 to 18:07:43 UTC (round 5), and the threads resolved. One batch resolution at 18:03 UTC resolved the three round-5 threads before they had replies; they were reopened as soon as I noticed and resolved again after their replies. The audit was edited in the commit that carries this entry.
 - 2026-11-10 19:19 UTC - Correction to the 17:42 entry (audit F24): an earlier commit of this branch had rewritten the phrase "on the round-1 head" in that entry in place; the original wording is restored here. That phrase is inexact: review 5846488382 was submitted against the head that da2ce7's round-2 review 5846259189 read, as header text above states.
 - 2026-11-10 19:25 UTC - Round 6 review of da2ce7 received (approval at 18:29:52 UTC with six findings, `F22` to `F27` here). Fixes were committed at 19:20:58 UTC and pushed. Two of the four reply edits failed first because I used the wrong comment ids and were redone at 19:18:28 and 19:18:30 UTC; the other two were edited at 19:18:10 and 19:18:12 UTC. Replies to the six threads were posted at 19:24:10 to 19:24:22 UTC and the threads resolved. The audit was edited in the commit that carries this entry.
+- 2026-11-10 21:27 UTC - Round 7 review of da2ce7 received (comments at 19:42:26 UTC, approval with four findings, `F28` to `F31` here). Two replies were edited at 21:22:53 and 21:22:55 UTC, the fix commit was made at 21:23:48 UTC and pushed, replies to the four threads were posted at 21:26:40 to 21:26:47 UTC and the threads resolved. The audit was edited in the commit that carries this entry.
 
 ## Completion Rules
 
