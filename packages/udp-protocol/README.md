@@ -1,6 +1,22 @@
-# BitTorrent UDP Tracker Protocol
+# Torrust Tracker UDP Protocol
 
-A library with the primitive types and functions used by BitTorrent UDP trackers.
+`torrust-tracker-udp-protocol` provides the types and functions for the BitTorrent UDP tracker protocol (BEP 15): connect, announce and scrape requests and responses with their binary parsing and writing. It has no socket or tracker logic, so other BitTorrent tools can reuse it.
+
+## Where it fits
+
+Protocol package (`*-protocol`) used by `torrust-tracker-udp-core`, the UDP server and the client library. Used by: `torrust-tracker-client`, `torrust-tracker-client-lib`, `torrust-tracker-udp-core`, `torrust-tracker-udp-server`. See the [package catalog](https://github.com/torrust/torrust-tracker/blob/develop/docs/packages.md#package-catalog) for the full picture.
+
+## Main API
+
+`request` and `response` are the entry points, and `connect`, `announce` and `scrape` hold the message types.
+
+## Stability
+
+Versions are independent per package (see the [ADR](https://github.com/torrust/torrust-tracker/blob/develop/docs/adrs/20260629000000_adopt_independent_package_versioning.md)). While the version is `0.x`, the public API can change in any minor release. The crate is developed for the Torrust Tracker first, so use it directly only if you accept that.
+
+## Documentation
+
+- [API documentation](https://docs.rs/torrust-tracker-udp-protocol)
 
 ## Origin and In-House Maintenance
 
@@ -29,10 +45,6 @@ Special thanks to [greatest-ape](https://github.com/greatest-ape)
 (Joakim Frostegård) for his contributions to the BitTorrent ecosystem and the original
 implementation this crate builds upon.
 
-## Documentation
-
-[Crate documentation](https://docs.rs/crate/torrust-tracker/latest).
-
 ## License
 
-The project is licensed under the terms of the [GNU AFFERO GENERAL PUBLIC LICENSE](./LICENSE).
+The project is licensed under the terms of the [GNU AFFERO GENERAL PUBLIC LICENSE](./LICENSE) (`AGPL-3.0-only`).
