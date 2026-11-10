@@ -102,11 +102,12 @@ test wait::tests::it_should_flag_a_review_of_a_newer_commit_than_the_head_first_
 test result: FAILED. 64 passed; 3 failed; 0 ignored; 0 measured; 0 filtered out
 ```
 
-Green, with the fix, `cargo test`:
+Green, with the fix, `cargo test`, an excerpt: the result lines of the library tests and of the integration tests
+(the binary's unit tests and the doc-tests print their own result lines, left out here):
 
 ```text
 test result: ok. 67 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
-test result: ok. 27 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out   (integration tests)
+test result: ok. 27 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 ```
 
 The two ordinary-case tests pass in both runs, as they should: AC2 says the ordinary case is unchanged.
