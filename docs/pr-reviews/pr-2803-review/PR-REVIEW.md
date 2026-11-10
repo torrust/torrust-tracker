@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Four rounds: da2ce7 review 5842604545 and Copilot review 5842654119 (round 1), da2ce7 review 5842998748 (round 2), da2ce7 review 5843390791 (round 3), da2ce7 review 5843761463 (round 4). `F13` is the second round's `F4`, a re-raise of the first round's `F4`. The third round reused `F4` and `F13`, which became `F14` and `F15` in source order, so its `F14` to `F16` became `F16` to `F18`. The fourth round's `F18` and `F17` collided with those and became `F19` and `F20`; the original IDs are recorded in the details.
+Five rounds: da2ce7 review 5842604545 and Copilot review 5842654119 (round 1), da2ce7 review 5842998748 (round 2), da2ce7 review 5843390791 (round 3), da2ce7 review 5843761463 (round 4), da2ce7 review 5844068957 (round 5). `F13` is the second round's `F4`, a re-raise of the first round's `F4`. The third round reused `F4` and `F13`, which became `F14` and `F15` in source order, so its `F14` to `F16` became `F16` to `F18`. The fourth round's `F18` and `F17` collided with those and became `F19` and `F20`; the fifth round's `F19` became `F21`. The original IDs are recorded in the details.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -67,6 +67,7 @@ Four rounds: da2ce7 review 5842604545 and Copilot review 5842654119 (round 1), d
 | F18 | review-finding:pr-2803-f18 | Human | Nit | testing | ORIGINAL | FIXED | RESOLVED |
 | F19 | review-finding:pr-2803-f19 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F20 | review-finding:pr-2803-f20 | Human | Nit | testing | ORIGINAL | FIXED | RESOLVED |
+| F21 | review-finding:pr-2803-f21 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -356,6 +357,19 @@ Four rounds: da2ce7 review 5842604545 and Copilot review 5842654119 (round 1), d
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2803#discussion_r4526308437
 
+### F21 - This entry is stamped before the replies and the commit it records
+
+- PR number: 2803
+- Source review ID: 5844068957
+- Reviewer finding ID: F19
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2803#discussion_r4526520408
+- Concern: The round 4 entry is stamped 14:46, before the replies at 14:47:28 and 14:47:30.
+- Solution: The entry is stamped 14:47, the time of the replies.
+- Current-tree verification: The reply times were read from the forge and compared with the entry.
+- Resolution reference: docs(pr-reviews): [#2803] stamp the round 4 log entry at its last reply
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2803#discussion_r4526544980
+
 ## Processing Log
 
 - 2026-11-10 13:27 UTC - Round 1 review of da2ce7 received (seven findings); Copilot review at 13:31 UTC (two comments).
@@ -363,7 +377,8 @@ Four rounds: da2ce7 review 5842604545 and Copilot review 5842654119 (round 1), d
 - 2026-11-10 13:56 UTC - Round 2 review of da2ce7 received (six findings).
 - 2026-11-10 14:00 UTC - Round 2 replies posted (last at 14:00:34 UTC); the audit record was started in this round (F8).
 - 2026-11-10 14:26 UTC - Round 3 review of da2ce7 received (approval at 14:23:15 UTC with five findings, `F14` to `F18` here); replies posted between 14:25:40 and 14:25:50 UTC, and the audit corrected in the commit that carries this entry.
-- 2026-11-10 14:46 UTC - Round 4 review of da2ce7 received (approval at 14:45:59 UTC with two nits, `F19` and `F20` here); replies posted at 14:47 UTC and the audit edited in the commit that carries this entry.
+- 2026-11-10 14:47 UTC - Round 4 review of da2ce7 received (approval at 14:45:59 UTC with two nits, `F19` and `F20` here); replies posted at 14:47 UTC and the audit edited in the commit that carries this entry.
+- 2026-11-10 15:06 UTC - Round 5 review of da2ce7 received (approval at 15:04:08 UTC with one finding, `F21` here); the reply was posted at the time stamped here and the audit edited in the commit that carries this entry.
 
 ## Completion Rules
 
