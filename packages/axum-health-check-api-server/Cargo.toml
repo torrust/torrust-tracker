@@ -24,7 +24,7 @@ testing = [ "dep:torrust-tracker-configuration" ]
 
 [dependencies]
 axum = { version = "0", features = [ "macros" ] }
-axum-server = { version = "0", features = [ "tls-rustls-no-provider" ] }
+axum-server = { version = "0.9", features = [ "tls-rustls-no-provider" ] }
 futures = "0"
 hyper = "1"
 serde = { version = "1", features = [ "derive" ] }

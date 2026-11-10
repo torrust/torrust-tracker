@@ -25,7 +25,7 @@ testing = [ "dep:torrust-clock", "dep:torrust-info-hash", "dep:torrust-tracker-s
 [dependencies]
 axum = { version = "0", features = [ "macros" ] }
 axum-client-ip = "1"
-axum-server = { version = "0", features = [ "tls-rustls-no-provider" ] }
+axum-server = { version = "0.9", features = [ "tls-rustls-no-provider" ] }
 torrust-tracker-http-core = { version = "0.1.0", path = "../http-core" }
 torrust-tracker-http-protocol = { version = "0.1.0", path = "../http-protocol" }
 torrust-info-hash = { version = "=0.2.0", optional = true }

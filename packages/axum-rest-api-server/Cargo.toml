@@ -33,7 +33,7 @@ testing = [
 [dependencies]
 axum = { version = "0", features = [ "macros" ] }
 axum-extra = { version = "0", features = [ "query" ] }
-axum-server = { version = "0", features = [ "tls-rustls-no-provider" ] }
+axum-server = { version = "0.9", features = [ "tls-rustls-no-provider" ] }
 torrust-tracker-http-core = { version = "0.1.0", path = "../http-core", optional = true }
 torrust-info-hash = "=0.2.0"
 torrust-tracker-core = { version = "0.1.0", path = "../tracker-core", optional = true }
