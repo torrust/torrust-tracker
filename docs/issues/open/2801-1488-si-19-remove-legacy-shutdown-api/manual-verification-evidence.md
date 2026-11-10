@@ -189,6 +189,65 @@ udp_only_public_tracker_production_style/TERM: PID=2797268 comm=udp_only_pub
 
 ```
 
+The ten invocations (the script removes the two config environment variables, so the tracker reads its configuration
+only from `--config-toml-path`; `target/debug` holds the artifacts of `cargo build --bin torrust-tracker` and
+`cargo build -p torrust-tracker-axum-http-server -p torrust-tracker-udp-server --examples`):
+
+```sh
+for s in INT TERM; do
+  e2e.sh tracker $s ./target/debug/torrust-tracker --config-toml-path .tmp/2801-tracker.toml
+  for ex in http_only_public_tracker http_only_public_tracker_production_style \
+            udp_only_public_tracker udp_only_public_tracker_production_style; do
+    e2e.sh $ex $s ./target/debug/examples/$ex
+  done
+done
+```
+
+The configuration file `.tmp/2801-tracker.toml`:
+
+```toml
+[metadata]
+app = "torrust-tracker"
+purpose = "configuration"
+schema_version = "3.0.0"
+
+[logging]
+trace_filter = "info"
+trace_style = "full"
+
+[core]
+inactive_peer_cleanup_interval = 120
+listed = false
+private = false
+
+[core.database]
+driver = "sqlite3"
+path = ".tmp/2801-sqlite3.db"
+
+[application.shutdown]
+deadline_in_secs = 25
+http_drain_in_secs = 15
+udp_request_drain_in_secs = 5
+event_listener_drain_in_secs = 5
+
+[[udp_trackers]]
+bind_address = "127.0.0.1:28969"
+tracker_usage_statistics = true
+
+[[http_trackers]]
+bind_address = "127.0.0.1:28070"
+tracker_usage_statistics = true
+
+[http_api]
+bind_address = "127.0.0.1:28212"
+
+[http_api.access_tokens]
+admin = "MyAccessToken"
+
+[health_check_api]
+bind_address = "127.0.0.1:28313"
+```
+
 Tracker shutdown sequence for SIGTERM (filtered; one `shutting down` line):
 
 ```text
