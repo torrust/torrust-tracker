@@ -34,7 +34,7 @@ Some files include explicit copyright notices and/or license notices.
 
 ### Legacy Exception
 
-For prosperity, versions of Torrust BitTorrent Tracker Client that are older than five years are automatically granted the [MIT-0][MIT_0] license in addition to the existing [LGPL-3.0-only][LGPL_3_0] license.
+For posterity, versions of the Torrust Tracker REST API Client that are older than five years are automatically granted the [MIT-0][MIT_0] license in addition to the existing [LGPL-3.0-only][LGPL_3_0] license.
 
 [LGPL_3_0]: https://www.gnu.org/licenses/lgpl-3.0.html
 [MIT_0]: https://github.com/torrust/torrust-tracker/blob/develop/docs/licenses/LICENSE-MIT_0

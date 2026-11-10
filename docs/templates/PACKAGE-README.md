@@ -6,6 +6,8 @@ sections that do not apply and delete these comments. See the quality bar in
 docs/issues/open/2576-1669-update-all-package-readmes/ISSUE.md.
 
 Rules:
+- This template has no YAML frontmatter on purpose: a copied README would show it on crates.io
+  and docs.rs. For the same reason it carries no `semantic-links`.
 - Only the package directory is published, so link files outside it with absolute
   https://github.com/torrust/torrust-tracker/... URLs.
 - A Rust code block is allowed only when the crate root includes this README in a

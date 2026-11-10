@@ -105,7 +105,7 @@ Fixing these is in scope for the "Update all package READMEs" draft under EPIC #
 
 ## Re-audit 2026-11-10 (issue #2576)
 
-Re-rated after #2576. Every tier U and P README now follows `docs/templates/PACKAGE-README.md` (purpose, where it fits, main API, stability, own docs.rs link, license) and is rated **good**, although none has a Rust usage example: the maintainer decided that examples are optional and compile-checked only through a README doctest hook, and none was needed. No tier U or P package is rated stub or minimal. The wrong titles, the 14 links to the root crate documentation and the LGPL license links are fixed, and the stale `cargo bench` command is corrected.
+Re-rated after #2576. Every in-scope tier U and P README now follows `docs/templates/PACKAGE-README.md` (purpose, where it fits, main API, stability, own docs.rs link, license) and is rated **good**, although none has a Rust usage example: a short example is optional, allowed only when compiled by a README doctest hook, and none was added (see the spec). No tier U or P package is rated stub or minimal. The wrong titles, the 14 links to the root crate documentation and the LGPL license links are fixed, and the stale `cargo bench` command is corrected.
 
 | Package | Lines | Rating | Notes |
 | ------- | ----- | ------ | ----- |
@@ -114,11 +114,11 @@ Re-rated after #2576. Every tier U and P README now follows `docs/templates/PACK
 | `axum-rest-api-server` | 23 | good | Template: purpose, where it fits, main API, stability, docs.rs link, license |
 | `axum-server` | 41 | good | Template: purpose, where it fits, main API, stability, docs.rs link, license |
 | `configuration` | 24 | good | Template; links the v2-to-v3 migration guide |
-| `e2e-tools` | 26 | good | Tier N (`publish = false`): title, command and links fixed by #2576 |
+| `e2e-tools` | 26 | good | Tier N (`publish = false`): unchanged by #2576, already correct |
 | `events` | 23 | good | Template: purpose, where it fits, main API, stability, docs.rs link, license |
 | `http-core` | 23 | good | Template: purpose, where it fits, main API, stability, docs.rs link, license |
 | `http-protocol` | 23 | good | Template: purpose, where it fits, main API, stability, docs.rs link, license |
-| `persistence-benchmark` | 18 | good | Tier N (`publish = false`): title, command and links fixed by #2576 |
+| `persistence-benchmark` | 18 | good | Tier N (`publish = false`): unchanged by #2576, already correct |
 | `primitives` | 23 | good | Template: purpose, where it fits, main API, stability, docs.rs link, license |
 | `rest-api-application` | 23 | good | Template: purpose, where it fits, main API, stability, docs.rs link, license |
 | `rest-api-client` | 41 | good | LGPL license links fixed |
@@ -126,7 +126,7 @@ Re-rated after #2576. Every tier U and P README now follows `docs/templates/PACK
 | `rest-api-runtime-adapter` | 23 | good | Template: purpose, where it fits, main API, stability, docs.rs link, license |
 | `swarm-coordination-registry` | 23 | good | Template: purpose, where it fits, main API, stability, docs.rs link, license |
 | `test-helpers` | 23 | good | Template: purpose, where it fits, main API, stability, docs.rs link, license |
-| `torrent-repository-benchmarking` | 28 | minimal | Tier N (`publish = false`): title, command and links fixed by #2576 |
+| `torrent-repository-benchmarking` | 28 | minimal | Tier N (`publish = false`): title, `cargo bench` command and license link fixed by #2576 |
 | `tracker-client` | 41 | good | LGPL license links fixed; stability note replaces the disclaimer |
 | `tracker-core` | 47 | good | Testing notes kept; stability note replaces the disclaimer |
 | `udp-core` | 25 | good | Template: purpose, where it fits, main API, stability, docs.rs link, license |

@@ -40,7 +40,11 @@ Do not edit the `Containerfile` for a package change; it contains no per-package
    - A crate anywhere else (for example `contrib/dev-tools/…`) needs its own `!/path/to/crate/`
      line in the interim AI-harness block. Remove the line when the crate leaves the workspace.
    - Never add a broad negation; admit the crate directory only.
-4. Removing a member: delete it from `members`, from `default-members` if present, and its
+4. For a publishable crate, write its `README.md` from
+   [`docs/templates/PACKAGE-README.md`](../../../../../docs/templates/PACKAGE-README.md) and set
+   `description`, `keywords` and `categories` (no `documentation` field: crates.io then links the
+   crate's own docs.rs page).
+5. Removing a member: delete it from `members`, from `default-members` if present, and its
    `.dockerignore` line if it had one.
 
 ## Verification

@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p2
 epic: 1669
 github-issue: 2576
 spec-path: docs/issues/open/2576-1669-update-all-package-readmes/ISSUE.md
-branch: "2576-1669-update-all-package-readmes-spec"
-related-pr: null
-last-updated-utc: "2026-11-10 12:33"
+branch: "i2576-update-package-readmes"
+related-pr: 2812
+last-updated-utc: "2026-11-10 18:10"
 semantic-links:
   skill-links:
     - create-issue
@@ -171,10 +171,11 @@ For each README in scope:
    `docs/packages.md` for the full picture.
 4. **Main API.** The few public types, traits or modules a user starts from, or a link to
    docs.rs when the list would only repeat it.
-5. **Usage.** A short example for crates meant for reuse outside the tracker (for example the
-   protocol crates, `primitives`, `rest-api-client`, `tracker-client`). Rust examples are
-   compile-checked through the README doctest hook; a crate without the hook has no Rust code
-   blocks in its README.
+5. **Usage.** Optional. A short example for crates meant for reuse outside the tracker (for
+   example the protocol crates, `primitives`, `rest-api-client`, `tracker-client`), added only
+   when it compiles without a running tracker. Rust examples are compile-checked through the
+   README doctest hook; a crate without the hook has no Rust code blocks in its README. This PR
+   adds no example (a follow-up can add them), so no README doctest hook exists yet.
 6. **Stability.** An accurate statement for a `0.x` or `3.x` crate, replacing the current
    disclaimers.
 7. **Documentation.** A link to the crate's own docs.rs page (`https://docs.rs/<crate>`), plus
@@ -282,7 +283,7 @@ Commit.
 - [x] Folder-style spec drafted in `docs/issues/drafts/1669-update-all-package-readmes/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] Spec-only PR merged into `develop` before implementation
+- [x] Spec-only PR merged into `develop` before implementation
 - [x] #2482 closed before implementation starts
 - [x] Implementation completed
 - [ ] Automatic verification completed (`linter all`, metadata check, `cargo package --list`, pre-push checks)
@@ -334,6 +335,13 @@ Commit.
   repeat a word of the crate name, against the "no repeat" rule. The maintainer had approved the
   keyword table, so the rule is amended (a repeat is allowed when it is the word users search for)
   and the approved table is recorded in the metadata rules section.
+- 2026-11-10 UTC - Claude (Sonnet 5.5) - PR #2812 review (da2ce7) F2-F8: recorded M1 and per-AC
+  evidence in `manual-verification-evidence.md`; made README examples optional in quality-bar
+  item 5 (none added, so no doctest hook; the audit says the same); registered the template in
+  `docs/index.md` and the `add-workspace-member` skill and noted why it has no frontmatter;
+  corrected two audit notes; removed the deprecated `PeerId` and `DurationSinceUnixEpoch` from the
+  `primitives` README; fixed the REST API client license wording; updated the spec bookkeeping.
+  AC6 is unticked until the merge.
 
 ## Acceptance Criteria
 
@@ -345,7 +353,7 @@ Commit.
       license's text; no crate uses the deprecated `LGPL-3.0` identifier.
 - [x] AC4: READMEs of crates whose public API #2482 changed describe the post-#2482 API.
 - [x] AC5: `readme-audit.md` is refreshed and rates no tier U or P package as stub or minimal.
-- [x] AC6: The issue is merged before the first publish of any tier U crate.
+- [ ] AC6: The issue is merged before the first publish of any tier U crate.
 - [x] AC7: `docs/templates/PACKAGE-README.md` exists, encodes the quality bar and is listed in
       `docs/templates/README.md`.
 - [x] AC8: Every README with Rust code examples is compile-checked by the README doctest hook,
@@ -384,7 +392,7 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario                              | Human-oriented command/steps                                                                                    | Expected Result                                                              | Status | Evidence                                     |
 | --- | ------------------------------------- | --------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | ------ | -------------------------------------------- |
-| M1  | Read each README as a new user        | Open each changed README on the pushed branch on GitHub; follow every link                                     | Quality bar met; title matches the crate; every link resolves, except each tier U crate's own docs.rs link, which matches `https://docs.rs/<crate name>` and is recorded as pending | DONE   | `manual-verification-evidence.md` sections V1 and V2 |
+| M1  | Read each README as a new user        | Open each changed README on the pushed branch on GitHub; follow every link                                     | Quality bar met; title matches the crate; every link resolves, except each tier U crate's own docs.rs link, which matches `https://docs.rs/<crate name>` and is recorded as pending | DONE   | `manual-verification-evidence.md` sections V1 to V4 |
 | M2  | Read each README as crates.io shows it | For each tier U crate, run `cargo package -p <crate> --list` and read `README.md` with only the packaged files in mind | No link points to a file that is not packaged unless it is an absolute URL | DONE   | `manual-verification-evidence.md` section V2 |
 | M3  | Re-audit                              | Re-rate every package with the audit's quality scale                                                            | No tier U or P package rated stub or minimal                                 | DONE   | `manual-verification-evidence.md` section V3 |
 
@@ -404,14 +412,14 @@ evidence.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1   | DONE                    | See `manual-verification-evidence.md` |
-| AC2   | DONE                    | See `manual-verification-evidence.md` |
-| AC3   | DONE                    | See `manual-verification-evidence.md` |
-| AC4   | DONE                    | See `manual-verification-evidence.md` |
-| AC5   | DONE                    | See `manual-verification-evidence.md` |
-| AC6   | DONE                    | See `manual-verification-evidence.md` |
-| AC7   | DONE                    | See `manual-verification-evidence.md` |
-| AC8   | DONE                    | See `manual-verification-evidence.md` |
+| AC1   | DONE                    | `manual-verification-evidence.md`: V2 and V3 |
+| AC2   | DONE                    | `manual-verification-evidence.md`: V1 |
+| AC3   | DONE                    | `manual-verification-evidence.md`: V1 and V3 |
+| AC4   | DONE                    | `manual-verification-evidence.md`: V3 step 1 |
+| AC5   | DONE                    | `manual-verification-evidence.md`: V4 |
+| AC6   | TODO                    | `manual-verification-evidence.md`: Pending the merge; nothing was published |
+| AC7   | DONE                    | `manual-verification-evidence.md`: Template file and the rows in `docs/templates/README.md` and `docs/index.md` |
+| AC8   | DONE                    | `manual-verification-evidence.md`: V5 (no README has a Rust fence) |
 
 ## Risks and Trade-offs
 

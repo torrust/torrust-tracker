@@ -1,6 +1,6 @@
 # Torrust Tracker Primitives
 
-`torrust-tracker-primitives` defines the domain types shared by the Torrust Tracker packages: peers, announce and scrape data, swarm metadata, tracker policy and related value types, and re-exports `PeerId` and `DurationSinceUnixEpoch`. It has no I/O.
+`torrust-tracker-primitives` defines the domain types shared by the Torrust Tracker packages: peers, announce and scrape data, swarm metadata, tracker policy and related value types. It has no I/O.
 
 ## Where it fits
 
@@ -8,7 +8,7 @@ Domain package at the bottom of the tracker dependency graph. Used by: `torrust-
 
 ## Main API
 
-`peer::Peer`, `AnnounceData`, `ScrapeData`, `swarm_metadata::SwarmMetadata`, `TrackerPolicy`, `Readiness` and `PeerId`.
+`peer::Peer`, `AnnounceData`, `ScrapeData`, `swarm_metadata::SwarmMetadata`, `TrackerPolicy` and `Readiness`.
 
 ## Stability
 
