@@ -63,6 +63,7 @@ Reviews of da2ce7, in order: 5846465906 (F1 to F8), 5846866430 (F9 to F14), 5847
 | F16 | review-finding:pr-2812-f16 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F17 | review-finding:pr-2812-f17 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F18 | review-finding:pr-2812-f18 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F19 | review-finding:pr-2812-f19 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -300,6 +301,19 @@ Reviews of da2ce7, in order: 5846465906 (F1 to F8), 5846866430 (F9 to F14), 5847
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2812#discussion_r4529263606
 
+### F19 - The Findings introduction still counts three rounds and the log omits the F18 reply timing
+
+- PR number: 2812
+- Source review ID: 5847973119
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2812#discussion_r4529447082
+- Concern: The introduction still said "Three rounds" and did not name review 5847680359, and the 19:05 log entry said both replies came after the push although the F18 reply came 15 s before the commit it said would follow.
+- Solution: The introduction lists the reviews in order without a count, and an appended Processing Log correction records the F18 reply timing.
+- Current-tree verification: Compared the reply `created_at` times with `git log --format=%cI` and ran the audit validator.
+- Resolution reference: docs(pr-reviews): [#2576] name the fifth review round and correct the F18 reply timing in the audit
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2812#discussion_r4529548122
+
 ## Processing Log
 
 - 2026-11-10 17:35 UTC - Round 1 review of da2ce7 received (review 5846465906, eight findings F1 to F8).
@@ -317,6 +331,7 @@ Reviews of da2ce7, in order: 5846465906 (F1 to F8), 5846866430 (F9 to F14), 5847
 - 2026-11-10 19:05 UTC - F17 and F18 replies posted (19:05:44 and 19:05:46 UTC), after the push.
 - 2026-11-10 19:22 UTC - Round 5 review of da2ce7 received (review 5847973119: approval at head `93bf0e094`, with F19).
 - 2026-11-10 19:29 UTC - Correction: the 19:05 entry above says both replies came after the push. That holds for the F17 reply (19:05:44 UTC), which cites a pushed commit. The F18 reply (19:05:46 UTC) says the F17 and F18 rows follow "in the next commit", and that commit (`docs(pr-reviews): [#2576] record findings F17 and F18 in the PR 2812 audit`) was created at 19:06:01 UTC, 15 s later; the part of the F18 fix that the reply described as already done (the introduction naming F17) was pushed before it.
+- 2026-11-10 19:32 UTC - F19 fixed in commit `docs(pr-reviews): [#2576] name the fifth review round and correct the F18 reply timing in the audit` (created 19:29:23 UTC) and pushed; the F19 reply was posted at 19:32:14 UTC, after the push.
 
 ## Completion Rules
 
