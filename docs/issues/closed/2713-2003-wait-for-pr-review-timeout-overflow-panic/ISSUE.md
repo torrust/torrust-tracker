@@ -154,7 +154,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ### Workflow Checkpoints
 
-- [x] Folder-style spec drafted in `docs/issues/closed/2713-2003-wait-for-pr-review-timeout-overflow-panic/ISSUE.md`
+- [x] Folder-style spec drafted in `docs/issues/drafts/`, then moved to `docs/issues/open/2713-2003-wait-for-pr-review-timeout-overflow-panic/ISSUE.md` when the issue was created
 - [x] Reproduction attempted and recorded before review (outcome: Reproduced)
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created (#2713) and issue number added to this spec
