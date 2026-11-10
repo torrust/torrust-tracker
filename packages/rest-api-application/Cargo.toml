@@ -1,7 +1,6 @@
 [package]
 authors.workspace = true
 description = "Application/use-case layer for the Torrust Tracker REST API."
-documentation.workspace = true
 edition.workspace = true
 homepage.workspace = true
 keywords = [ "api", "application", "bittorrent", "torrust", "tracker", "use-case" ]

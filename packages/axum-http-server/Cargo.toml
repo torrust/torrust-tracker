@@ -1,7 +1,6 @@
 [package]
 authors.workspace = true
 description = "The Torrust Bittorrent HTTP tracker."
-documentation.workspace = true
 edition.workspace = true
 homepage.workspace = true
 keywords = [ "axum", "bittorrent", "http", "server", "torrust", "tracker" ]

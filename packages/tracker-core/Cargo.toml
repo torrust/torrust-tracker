@@ -1,7 +1,6 @@
 [package]
 authors.workspace = true
 description = "A library with the core functionality needed to implement a BitTorrent tracker."
-documentation.workspace = true
 edition.workspace = true
 homepage.workspace = true
 keywords = [ "api", "bittorrent", "core", "library", "tracker" ]

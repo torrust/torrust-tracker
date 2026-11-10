@@ -1,7 +1,6 @@
 [package]
 authors.workspace = true
 description = "Contract/protocol types for the Torrust Tracker REST API."
-documentation.workspace = true
 edition.workspace = true
 homepage.workspace = true
 keywords = [ "api", "bittorrent", "contract", "protocol", "torrust", "tracker" ]

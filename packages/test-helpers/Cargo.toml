@@ -5,7 +5,6 @@ name = "torrust-tracker-test-helpers"
 readme = "README.md"
 
 authors.workspace = true
-documentation.workspace = true
 edition.workspace = true
 homepage.workspace = true
 license.workspace = true

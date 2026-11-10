@@ -6,7 +6,6 @@ name = "torrust-tracker-client-lib"
 readme = "README.md"
 
 authors.workspace = true
-documentation.workspace = true
 edition.workspace = true
 homepage.workspace = true
 publish.workspace = true

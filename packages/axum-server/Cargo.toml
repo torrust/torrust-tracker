@@ -1,7 +1,6 @@
 [package]
 authors.workspace = true
 description = "A wrapper for the Axum server for Torrust HTTP servers to add timeouts."
-documentation.workspace = true
 edition.workspace = true
 homepage.workspace = true
 keywords = [ "axum", "server", "torrust", "wrapper" ]
