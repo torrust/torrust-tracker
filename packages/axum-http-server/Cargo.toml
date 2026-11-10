@@ -1,9 +1,10 @@
 [package]
 authors.workspace = true
-description = "The Torrust Bittorrent HTTP tracker."
+categories = [ "web-programming::http-server", "network-programming" ]
+description = "BitTorrent HTTP tracker server (BEP 3 and BEP 23) built on Axum for the Torrust Tracker."
 edition.workspace = true
 homepage.workspace = true
-keywords = [ "axum", "bittorrent", "http", "server", "torrust", "tracker" ]
+keywords = [ "announce", "axum", "bittorrent", "http", "scrape" ]
 license.workspace = true
 name = "torrust-tracker-axum-http-server"
 publish.workspace = true
