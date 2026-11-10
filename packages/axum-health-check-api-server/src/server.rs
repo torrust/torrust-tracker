@@ -93,6 +93,20 @@ pub struct RunningServer<F> {
     deprecated,
     reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
 )]
+///
+/// The deprecation is part of the contract until SI-19 removes this item. Using it without an allowance fails
+/// under `deny(deprecated)`:
+///
+/// ```
+/// use torrust_tracker_axum_health_check_api_server::server::start;
+/// let _ = start;
+/// ```
+///
+/// ```compile_fail
+/// #![deny(deprecated)]
+/// use torrust_tracker_axum_health_check_api_server::server::start;
+/// let _ = start;
+/// ```
 #[deprecated(
     since = "0.2.0",
     note = "use `start_with_cancellation` with a `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"

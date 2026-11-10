@@ -137,6 +137,20 @@ impl Server<Stopped> {
         deprecated,
         reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
     )]
+    ///
+    /// The deprecation is part of the contract until SI-19 removes this item. Using it without an allowance fails
+    /// under `deny(deprecated)`:
+    ///
+    /// ```
+    /// use torrust_tracker_udp_server::server::{Server, states::Stopped};
+    /// let _ = Server::<Stopped>::start;
+    /// ```
+    ///
+    /// ```compile_fail
+    /// #![deny(deprecated)]
+    /// use torrust_tracker_udp_server::server::{Server, states::Stopped};
+    /// let _ = Server::<Stopped>::start;
+    /// ```
     #[deprecated(
         since = "0.1.0",
         note = "use `Server<Stopped>::start_with_cancellation` with a `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"

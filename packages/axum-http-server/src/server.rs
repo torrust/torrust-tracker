@@ -312,6 +312,20 @@ impl HttpServer<Stopped> {
             instance_index = metadata.configuration_instance_id().instance_index(),
         )
     )]
+    ///
+    /// The deprecation is part of the contract until SI-19 removes this item. Using it without an allowance fails
+    /// under `deny(deprecated)`:
+    ///
+    /// ```
+    /// use torrust_tracker_axum_http_server::server::{HttpServer, Stopped};
+    /// let _ = HttpServer::<Stopped>::start;
+    /// ```
+    ///
+    /// ```compile_fail
+    /// #![deny(deprecated)]
+    /// use torrust_tracker_axum_http_server::server::{HttpServer, Stopped};
+    /// let _ = HttpServer::<Stopped>::start;
+    /// ```
     #[deprecated(
         since = "0.1.0",
         note = "use `HttpServer<Stopped>::start_with_cancellation` with a `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
