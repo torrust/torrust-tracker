@@ -9,7 +9,7 @@ github-issue: 2804
 spec-path: docs/issues/open/2804-location-caller-track-caller-audit/ISSUE.md
 branch: "2804-location-caller-track-caller-audit-spec"
 related-pr: null
-last-updated-utc: "2026-11-10 12:00"
+last-updated-utc: "2026-11-10 13:55"
 semantic-links:
   skill-links:
     - create-issue
@@ -79,8 +79,12 @@ params: {err}")` and similar (`http-protocol/src/v1/requests/{announce,scrape}.r
   `responses/error.rs`). The bencoded response sent to the BitTorrent client contains a library
   source path and line.
 - **UDP tracker responses**: `ErrorResponse { message: error.to_string() }`
-  (`udp-server/src/handlers/error.rs`), for `AuthRequired`, `InternalServer` and wrapped
-  tracker-core errors (whitelist, key expired).
+  (`udp-server/src/handlers/error.rs:57-59`). The location that reaches it is the tracker-core
+  `WhitelistError::TorrentNotWhitelisted` built in `whitelist/authorization.rs:61`, wrapped by
+  `UdpAnnounceError`/`UdpScrapeError::TrackerCoreWhitelistError`. `udp-server` `Error::Internal` and
+  `Error::AuthRequired` are built only in `#[cfg(test)]` code, `event::ErrorKind::InternalServer` has
+  no location, a malformed request becomes `InvalidRequest` (no location) and the UDP path has no key
+  authentication, so key expiry cannot occur there. T2 must confirm this.
 - **Logs**: `tracing` output of the same errors; `LocatedError::into()` also logs at `debug`.
 - **Library consumers**: `torrust-tracker-primitives`, `-http-protocol`, `-tracker-core` and others are
   published crates, so the location can be a path inside a `~/.cargo/registry` checkout or a CI
@@ -154,7 +158,7 @@ following `.github/skills/dev/debugging/fix-bug/SKILL.md`:
 
 - analysis: which call path builds the error and who sees the text;
 - real-artifact reproduction: run the tracker and send a request that triggers the error (for
-  example an announce with a bad `numwant`, or a UDP request that triggers `InternalServer`); record
+  example an announce with a bad `numwant`, or a UDP announce or scrape for a non-whitelisted info-hash on a tracker configured as listed); record
   the response containing the library path in `manual-verification-evidence.md`;
 - regression-test boundary: see below;
 - red test, production fix, green test, repeat the same request after the last production change.
@@ -244,6 +248,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 ### Progress Log
 
 - 2026-11-10 12:00 UTC - Claude Code (Sonnet 5.5) - Drafted spec from the F3 finding of the primitives test session and a first-pass inventory on `torrust/develop`.
+- 2026-11-10 13:55 UTC - Claude Code (Sonnet 5.5) - Corrected the UDP exposure analysis after review F1: only the whitelist error reaches UDP responses.
 
 ## Acceptance Criteria
 
@@ -270,11 +275,11 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 
 ### Manual Verification Scenarios
 
-| ID  | Scenario                                  | Human-oriented command/steps                                                                                         | Expected Result                                                           | Status | Evidence                                     |
-| --- | ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- | ------ | -------------------------------------------- |
-| M1  | HTTP announce with an invalid `numwant`   | Run the tracker, `curl` an announce with `numwant=abc`, capture the bencoded failure reason before and after the fix | After: reason names the parameter and value, contains no `packages/` path | TODO   | `manual-verification-evidence.md` section V1 |
-| M2  | UDP request that yields an error response | Run the tracker, send a malformed or unauthorized UDP request with the tracker client, capture the error message     | After: message has no library path                                        | TODO   | `manual-verification-evidence.md` section V2 |
-| M3  | `"x".parse::<PeerRole>()`                 | Run the regression test through `str::parse` against the old and the fixed code                                      | Old: `peer.rs` path or std path. After: no path, input echoed             | TODO   | `manual-verification-evidence.md` section V3 |
+| ID  | Scenario                                  | Human-oriented command/steps                                                                                                  | Expected Result                                                           | Status | Evidence                                     |
+| --- | ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- | ------ | -------------------------------------------- |
+| M1  | HTTP announce with an invalid `numwant`   | Run the tracker, `curl` an announce with `numwant=abc`, capture the bencoded failure reason before and after the fix          | After: reason names the parameter and value, contains no `packages/` path | TODO   | `manual-verification-evidence.md` section V1 |
+| M2  | UDP request that yields an error response | Run the tracker, send a UDP announce or scrape for a non-whitelisted info-hash to a listed tracker, capture the error message | After: message has no library path                                        | TODO   | `manual-verification-evidence.md` section V2 |
+| M3  | `"x".parse::<PeerRole>()`                 | Run the regression test through `str::parse` against the old and the fixed code                                               | Old: `peer.rs` path or std path. After: no path, input echoed             | TODO   | `manual-verification-evidence.md` section V3 |
 
 Notes: use the nightly/stable toolchain label for every recorded command. Create
 `manual-verification-evidence.md` from `docs/templates/MANUAL-VERIFICATION-EVIDENCE.md` when
