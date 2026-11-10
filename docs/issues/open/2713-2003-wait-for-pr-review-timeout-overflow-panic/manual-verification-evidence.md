@@ -71,10 +71,10 @@ platform's `Instant` range. A panic is exit `101` with four plain-text stderr li
 - Goal: repeat V1 on the final build.
 - Status: `DONE`
 - Date and time (UTC): 2026-11-10 13:27
-- Build: `cargo build -p wait-for-pr-review` from the working tree on top of the commit with subject
-  "fix(wait-for-pr-review): reject --timeout-seconds above one day instead of panicking (#2713)", plus the
-  review-round fixes (the `--help` description and the test rename); toolchain `rustc 1.99.1 (58cf8f9c3
-  2026-10-13)`; real `gh`, merged pull request #2584.
+- Build: `cargo build -p wait-for-pr-review` on the commit with subject "fix(wait-for-pr-review): keep the --help
+  description and tighten the evidence", the commit that holds the review round's production change; toolchain
+  `rustc 1.99.1 (58cf8f9c3 2026-10-13)`; real `gh`, merged pull request #2584. The later commit "docs(wait-for-pr-review):
+  address Copilot review round on the timeout bound" only rewords a doc comment, so it needs no rerun.
 
 ```text
 --timeout-seconds 18446744073709551615 -> exit 2 | stdout=0 bytes  | 1 stderr line (usage_error)
