@@ -60,7 +60,7 @@ Rows F1-F12 come from review 5858450371 (`da2ce7`). Rows F13, R1 and R2 come fro
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2828#discussion_r4537662831
 - Concern: The spec and the evidence defer the uncovered `peer::fixture` lines to EPIC #2482, which is closed and did not reorganize the fixture, so no live owner exists.
-- Solution: Named the F5 follow-up as the owner of any move behind a `testing` feature, classified the fixture lines as test support in the `peer.rs` record, and corrected the four places.
+- Solution: Named the F5 follow-up as the owner of any move behind a `testing` feature, planned the classification of the fixture lines as test support in the S2 `peer.rs` record, and corrected the four places.
 - Current-tree verification: `grep -n 2482` over the spec and the evidence file shows only the corrected statements; the EPIC spec reads `status: done`; `peer.rs` declares `pub mod fixture` without a feature gate.
 - Resolution reference: `docs(issues): [#2824] name a live owner for the peer fixture lines`
 - Follow-up PR URL: N/A
