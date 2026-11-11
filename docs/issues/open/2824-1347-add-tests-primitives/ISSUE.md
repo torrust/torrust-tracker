@@ -357,7 +357,7 @@ Human-oriented interaction with the built tracker, run once in S4 with an isolat
 
 | ID | Scenario | Steps | Expected |
 | --- | --- | --- | --- |
-| M1 | Defaults and partial config | Start the tracker with a minimal configuration; read the effective announce interval and policy defaults from an announce response. | The announce response carries the documented default interval (120 s) and peer cap (74). |
+| M1 | Default announce interval | Start the tracker with a minimal configuration (no announce policy section); announce once and read the interval from the announce response. | The announce response carries the documented default interval (120 s). The peer cap (74) is not a response field and is protected by the unit test of the default in S3. |
 | M2 | Seeder and leecher counts | Announce one seeder and one leecher with `tracker_client`, then scrape and call the REST API torrent endpoint. | Complete/incomplete counts and the peer JSON match the announces. |
 
 ## Risks and Trade-offs
