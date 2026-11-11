@@ -26,6 +26,26 @@ scope by construction; only one report exists. Totals are filtered to
 | --- | ---: | ---: | ---: | ---: |
 | Unit-only (`--lib`) = aggregate | 47 unit | 453 / 748 (60.56%) | 712 / 1,048 (67.94%) | 91 / 159 (57.23%) |
 
+## Slice Measurements
+
+### S1 (PR #2834), 2026-11-11
+
+Measured on branch `2824-1347-add-tests-primitives-fixes` at the commit with subject
+`test(primitives): [#2824] compare the PeerRole JSON with its Display form`, branched from
+`develop` at the merge of #2828, with `cargo-llvm-cov 0.6.16` and stable Rust 1.99.1, same command
+as the baseline (after `cargo llvm-cov clean --workspace`, with a separate
+`CARGO_LLVM_COV_TARGET_DIR`):
+
+| Scope | Tests | Lines | Regions | Functions |
+| --- | ---: | ---: | ---: | ---: |
+| Unit-only (`--lib`) = aggregate | 49 unit | 468 / 746 (62.73%) | 743 / 1,057 (70.29%) | 94 / 158 (59.49%) |
+
+Change from the baseline: lines +2.17 pp, regions +2.35 pp, functions +2.26 pp. The slice adds two
+tests; most of the change is not from them: `develop` moved since the baseline (`Peer` lost its
+`Ord` through #2811, which removed the uncovered `Ord` code, and the unused `AddAssign` was deleted
+through #2827, which took 6 uncovered lines from `swarm_metadata.rs`, now 3 / 12 lines). `peer.rs`
+is 130 / 329 lines (baseline 115 / 325). The other files are unchanged.
+
 ## Module Inventory
 
 Every `.rs` file under `packages/primitives/src/` (16 files), once. "Initial hypothesis" is a
