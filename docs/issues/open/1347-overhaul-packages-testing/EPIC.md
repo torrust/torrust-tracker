@@ -6,7 +6,7 @@ epic: null
 github-issue: 1347
 spec-path: docs/issues/open/1347-overhaul-packages-testing/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-09 12:10"
+last-updated-utc: "2026-11-11 11:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -96,7 +96,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | 8     | #2301 - Review package coverage rollout           | `docs/issues/open/2301-1347-review-package-coverage-rollout/ISSUE.md`             | TODO   | After the EPIC completes, review real rollout evidence before retaining, revising, or proposing a required coverage check. |
 | 9     | #2361 - Keep the report-only package coverage summary from failing on a discovery failure | `docs/issues/open/2361-1347-package-coverage-summary-discovery-failure/ISSUE.md` | TODO | Bug follow-up of #2347 (`review-finding:pr-2293-f1`): the #2222 summary check goes red with a JSON parse error when discovery fails. |
 | 10    | #2637 - Add tests to the axum-rest-api-server package | `docs/issues/closed/2637-1347-add-tests-axum-rest-api-server/ISSUE.md` | DONE | S0 (spec and T1 baseline) merged through #2638; S1 (authentication and shared responses) merged through #2667; S2 (routes) merged through #2687; S3 (auth-key and whitelist contexts) merged through #2702; S4 (torrent and stats contexts) merged through #2718; S5 (server lifecycle) merged through #2744; S6 (crate root, wiring and final tasks) merged through #2772; the issue is closed. Replaces the former draft that was misfiled under #1349. |
-| 11    | Additional package-testing subissues              | Create a folder-style spec when a concrete package need is identified             | TODO   | Permitted but not required upfront; retain scope in this EPIC.                                                       |
+| 11    | #2824 - Add tests to the primitives package | `docs/issues/open/2824-1347-add-tests-primitives/ISSUE.md` | TODO | Spec-only PR carries the specification and the T1 baseline and inventory; delivered in slices S1-S4 after it merges. Findings F1 (fixed through #2811), F3 (#2804) and the `AddAssign` and `peer::Id::new` follow-ups are handed off to their own issues. |
+| 12    | Additional package-testing subissues              | Create a folder-style spec when a concrete package need is identified             | TODO   | Permitted but not required upfront; retain scope in this EPIC.                                                       |
 
 ## Package Coverage Tracking
 
@@ -120,6 +121,7 @@ level or determine whether unit coverage is adequate.
 | `torrust-tracker-udp-core`         | [#1348](../../closed/1348-1347-add-tests-udp-core/ISSUE.md) | Lines: 72.49%; regions: 78.56%; functions: 71.27% | Lines: 98.04%; regions: 98.15%; functions: 97.61% | Lines: +25.55 pp; regions: +19.58 pp; functions: +26.34 pp | [Coverage evidence](../../closed/1348-1347-add-tests-udp-core/coverage-evidence.md) |
 | `torrust-tracker-http-core`        | [#1349](../../closed/1349-1347-add-tests-http-core/ISSUE.md) | Lines: 88.88%; regions: 90.41%; functions: 84.29% | Lines: 99.28%; regions: 99.25%; functions: 99.74% | Lines: +10.40 pp; regions: +8.84 pp; functions: +15.45 pp | [Coverage evidence](../../closed/1349-1347-add-tests-http-core/coverage-evidence.md) |
 | `torrust-tracker-axum-rest-api-server` | [#2637](../../closed/2637-1347-add-tests-axum-rest-api-server/ISSUE.md) | Lines: 87.98%; regions: 84.10%; functions: 83.42% | Lines: 97.67%; regions: 97.13%; functions: 95.48% | Lines: +9.69 pp; regions: +13.03 pp; functions: +12.06 pp | [Coverage evidence](../../closed/2637-1347-add-tests-axum-rest-api-server/coverage-evidence.md) |
+| `torrust-tracker-primitives` | [#2824](../2824-1347-add-tests-primitives/ISSUE.md) | Lines: 60.56%; regions: 67.94%; functions: 57.23% | Not measured yet | Not comparable yet | [Coverage evidence](../2824-1347-add-tests-primitives/coverage-evidence.md) |
 
 ### Unit-Only Coverage
 
@@ -134,6 +136,7 @@ weak unit-only result with aggregate, integration, example, or end-to-end covera
 | `torrust-tracker-udp-core` | [#1348](../../closed/1348-1347-add-tests-udp-core/ISSUE.md) | Lines: 72.49%; regions: 78.56%; functions: 71.27% | Lines: 98.04%; regions: 98.15%; functions: 97.61% | Lines: +25.55 pp; regions: +19.58 pp; functions: +26.34 pp | [Coverage evidence](../../closed/1348-1347-add-tests-udp-core/coverage-evidence.md) |
 | `torrust-tracker-http-core` | [#1349](../../closed/1349-1347-add-tests-http-core/ISSUE.md) | Lines: 88.88%; regions: 90.41%; functions: 84.29% | Lines: 99.28%; regions: 99.25%; functions: 99.74% | Lines: +10.40 pp; regions: +8.84 pp; functions: +15.45 pp | [Coverage evidence](../../closed/1349-1347-add-tests-http-core/coverage-evidence.md) |
 | `torrust-tracker-axum-rest-api-server` | [#2637](../../closed/2637-1347-add-tests-axum-rest-api-server/ISSUE.md) | Lines: 63.87%; regions: 63.98%; functions: 51.34% | Lines: 96.67%; regions: 96.38%; functions: 93.97% | Lines: +32.80 pp; regions: +32.40 pp; functions: +42.63 pp | [Coverage evidence](../../closed/2637-1347-add-tests-axum-rest-api-server/coverage-evidence.md) |
+| `torrust-tracker-primitives` | [#2824](../2824-1347-add-tests-primitives/ISSUE.md) | Lines: 60.56%; regions: 67.94%; functions: 57.23% | Not measured yet | Not comparable yet | [Coverage evidence](../2824-1347-add-tests-primitives/coverage-evidence.md) |
 
 ## Delivery Strategy
 
@@ -310,6 +313,7 @@ For each subissue implementation, the completion policy is:
   lines 40.24%, regions 42.65%, functions 24.16% (6 unit tests); aggregate lines 85.31%, regions 80.99%,
   functions 79.19% (plus 58 integration tests; integration-only lines 74.39%). Delivered in slices S0-S6;
   the row stays `TODO` until the first implementation slice starts.
+- 2026-11-11 11:30 UTC - Claude Code - Created #2824 (`primitives`) as a subissue of this EPIC (the link under #1347 is set by the maintainer). Clean baseline at `eaae0e487`, filtered to the package source: unit-only = aggregate lines 60.56% (453/748), regions 67.94% (712/1,048), functions 57.23% (91/159), 47 unit tests, no integration tests. Delivered in slices S0-S4; the row stays `TODO` until the first implementation slice starts.
 - 2026-10-26 17:50 UTC - GitHub Copilot - #2637 (`axum-rest-api-server`) S1: `develop` changed the package after the
   spec baseline (#2449 test-environment unit tests; #2653, merged through #2656, the unreadable `Authorization`
   header fix and its test), so it was measured again at `0b4b2d0d3`. Both baseline rows now read: aggregate lines
@@ -377,7 +381,7 @@ For each subissue implementation, the completion policy is:
 ## References
 
 - GitHub EPIC: https://github.com/torrust/torrust-tracker/issues/1347
-- Related issues: #1348, #1349, #2136, #2149, #2637
+- Related issues: #1348, #1349, #2136, #2149, #2637, #2824
 - 2026-11-09 12:10 UTC - Claude Code - #2637 S6 merged through #2772 (2026-11-09 12:08 UTC) and issue #2637 closed: the `axum-rest-api-server` package is DONE. Final figures (unchanged): unit-only lines 96.67%, aggregate 97.67%. The spec was archived to `docs/issues/closed/` and the subissue row is `DONE`.
 - Package inventory: `docs/packages.md`
 - Reference package: `packages/tracker-core/`
