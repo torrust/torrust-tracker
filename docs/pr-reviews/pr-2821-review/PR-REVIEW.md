@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Round 1 is da2ce7's review `5857799147` (F1 to F11) and Copilot's review `5857834791` (F12 to F16, numbered after the reviewer-provided IDs). Both were processed together. Round 2 is da2ce7's review `5858134220` (F17 to F22, reviewer IDs F13 to F18 reassigned on collision) and Copilot's review `5858293840` (F23 to F26).
+Round 1 is da2ce7's review `5857799147` (F1 to F11) and Copilot's review `5857834791` (F12 to F16, numbered after the reviewer-provided IDs). Both were processed together. Round 2 is da2ce7's review `5858134220` (F17 to F22, reviewer IDs F13 to F18 reassigned on collision) and Copilot's review `5858293840` (F23 to F26). Round 3 is da2ce7's review `5858622341` (F27, reviewer ID F20 reassigned on collision), approved at the head of round 2.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -71,6 +71,7 @@ Round 1 is da2ce7's review `5857799147` (F1 to F11) and Copilot's review `585783
 | F24 | review-finding:pr-2821-f24 | Copilot | Minor (inferred) | testing | RE_RAISE_OF:F17 | NO_ACTION | SUPERSEDED |
 | F25 | review-finding:pr-2821-f25 | Copilot | Minor (inferred) | correctness | RE_RAISE_OF:F18 | NO_ACTION | SUPERSEDED |
 | F26 | review-finding:pr-2821-f26 | Copilot | Minor (inferred) | metadata | RE_RAISE_OF:F21 | NO_ACTION | SUPERSEDED |
+| F27 | review-finding:pr-2821-f27 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -412,6 +413,19 @@ Round 1 is da2ce7's review `5857799147` (F1 to F11) and Copilot's review `585783
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2821#discussion_r4537597501
 
+### F27 - The round 2 start stamp is later than the round 2 commits
+
+- PR number: 2821
+- Source review ID: 5858622341
+- Reviewer finding ID: F20
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2821#discussion_r4537798732
+- Concern: The log dated the start of round 2 at 12:00, after commits it records at 11:56.
+- Solution: Added a correction entry naming the commit subjects and times and the reply times.
+- Current-tree verification: Read git log commit times (11:55:55Z and 11:57:01Z) and the forge created_at of the replies.
+- Resolution reference: docs(pr-reviews): correct the round 2 start stamp in the PR #2821 audit
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2821#discussion_r4537842472
+
 ## Processing Log
 
 - 2026-11-11 11:19 UTC - Started audit for round 1 (both reviews).
@@ -420,6 +434,7 @@ Round 1 is da2ce7's review `5857799147` (F1 to F11) and Copilot's review `585783
 - 2026-11-11 11:56 UTC - Corrected the `Reviewer finding ID` of F1 to F16, the severity of F12 to F16 and the relationship of F12 after the second review (F20, F21 and F22 of the round 2 findings below).
 - 2026-11-11 12:00 UTC - Started round 2 (reviews 5858134220 and 5858293840); replied on the ten threads (forge `created_at` 11:59:50Z to 12:00:14Z) and resolved them; a GraphQL refresh showed 0 unresolved threads.
 - 2026-11-11 12:23 UTC - Correction of the 12:00 entry for round 2: round 2 started by 11:55:55Z, the commit time of `docs(issues): correct the S3 and S5 slices of the T4 options after review of PR #2821`; the second fix commit, `docs(pr-reviews): correct the relationships, IDs and stamps in the PR #2821 audit`, was committed at 11:57:01Z. Only the replies (11:59:50Z to 12:00:14Z) and their resolution fit the 12:00 stamp.
+- 2026-11-11 12:26 UTC - Round 3 (review 5858622341, approved): replied on the F27 thread at 12:26:27Z (forge `created_at`) and resolved it; a GraphQL refresh showed 0 unresolved threads.
 
 ## Completion Rules
 
