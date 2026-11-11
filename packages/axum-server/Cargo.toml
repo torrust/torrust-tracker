@@ -1,6 +1,6 @@
 [package]
 authors.workspace = true
-description = "A wrapper for the Axum server for Torrust HTTP servers to add timeouts."
+description = "Shared Axum server infrastructure for Torrust HTTP servers: listener timeouts, graceful shutdown and TLS configuration."
 documentation.workspace = true
 edition.workspace = true
 homepage.workspace = true
