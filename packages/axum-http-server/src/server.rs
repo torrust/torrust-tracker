@@ -8,7 +8,6 @@ use axum_server::tls_rustls::RustlsConfig;
 use derive_more::Constructor;
 use futures::future::BoxFuture;
 use socket2::{Domain, Socket, Type};
-use tokio::sync::oneshot::{Receiver, Sender};
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
@@ -16,20 +15,10 @@ use torrust_server_lib::logging::STARTED_ON;
 use torrust_server_lib::registar::{
     FnSpawnServiceHeathCheck, ServiceHealthCheckJob, ServiceRegistration, ServiceRegistrationForm,
 };
-#[allow(
-    deprecated,
-    reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
-)]
-use torrust_server_lib::signals::{Halted, Started};
 use torrust_tracker_axum_server::custom_axum_server::{self, TimeoutAcceptor};
-#[allow(
-    deprecated,
-    reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
-)]
-use torrust_tracker_axum_server::signals::{GracefulShutdownOutcome, graceful_shutdown, graceful_shutdown_on_cancellation};
+use torrust_tracker_axum_server::signals::{GracefulShutdownOutcome, graceful_shutdown_on_cancellation};
 use torrust_tracker_http_core::container::HttpTrackerCoreContainer;
 use torrust_tracker_primitives::RuntimeServiceMetadata;
-use tracing::instrument;
 
 use super::v1::routes::router;
 use crate::HTTP_TRACKER_LOG_TARGET;
@@ -161,51 +150,6 @@ impl Launcher {
             }))
         }
     }
-
-    #[instrument(skip(self, http_tracker_container, tx_start, rx_halt))]
-    #[allow(
-        deprecated,
-        reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
-    )]
-    fn start(
-        &self,
-        http_tracker_container: &Arc<HttpTrackerCoreContainer>,
-        tx_start: Sender<Started>,
-        rx_halt: Receiver<Halted>,
-    ) -> Result<BoxFuture<'static, ()>, Error> {
-        let socket = Self::create_tcp_listener(self.bind_to, self.ipv6_v6only).map_err(|source| Error::Bind { source })?;
-        let address = socket.local_addr().map_err(|source| Error::Listener { source })?;
-
-        let handle = Handle::new();
-
-        tokio::task::spawn(graceful_shutdown(
-            handle.clone(),
-            rx_halt,
-            format!("Shutting down HTTP server on socket address: {address}"),
-            address,
-        ));
-
-        let tls = self.tls.clone();
-        let protocol = if tls.is_some() { Protocol::HTTPS } else { Protocol::HTTP };
-        let service_binding = ServiceBinding::new(protocol.clone(), address).map_err(|error| Error::Listener {
-            source: std::io::Error::other(error),
-        })?;
-
-        tracing::info!(target: HTTP_TRACKER_LOG_TARGET, "Starting on: {protocol}://{address}");
-
-        let running = self.server_future(socket, handle, http_tracker_container, &service_binding)?;
-
-        tracing::info!(target: HTTP_TRACKER_LOG_TARGET, "{STARTED_ON}: {protocol}://{}", address);
-
-        tx_start
-            .send(Started {
-                service_binding,
-                address,
-            })
-            .map_err(|_| Error::StartupNotificationDropped)?;
-
-        Ok(running)
-    }
 }
 
 /// A HTTP server instance controller with no HTTP instance running.
@@ -214,21 +158,6 @@ impl Launcher {
     reason = "type alias distinguishes the HTTP server stopped state"
 )]
 pub type StoppedHttpServer = HttpServer<Stopped>;
-
-/// A HTTP server instance controller with a running HTTP instance.
-#[allow(
-    clippy::module_name_repetitions,
-    reason = "type alias distinguishes the HTTP server running state"
-)]
-#[allow(
-    deprecated,
-    reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
-)]
-#[deprecated(
-    since = "0.1.0",
-    note = "use `HttpServer<Stopped>::start_with_cancellation` and keep the returned `CancellationRunning`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
-)]
-pub type RunningHttpServer = HttpServer<Running>;
 
 /// A HTTP server instance controller.
 ///
@@ -259,30 +188,9 @@ pub struct Stopped {
     launcher: Launcher,
 }
 
-/// A running HTTP server state.
-#[allow(
-    deprecated,
-    reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
-)]
-#[deprecated(
-    since = "0.1.0",
-    note = "use `CancellationRunning` from `start_with_cancellation` and cancel the injected `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
-)]
-pub struct Running {
-    /// The address where the server is bound.
-    pub binding: SocketAddr,
-    #[deprecated(
-        since = "0.1.0",
-        note = "cancel the injected `CancellationToken` instead of sending `Halted`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
-    )]
-    pub halt_task: tokio::sync::oneshot::Sender<Halted>,
-    pub task: tokio::task::JoinHandle<Launcher>,
-}
-
 /// A token-aware HTTP tracker runtime and its owned drain controller.
 ///
-/// The caller must retain and join both handles. The existing [`Running`] state
-/// remains the compatibility path for consumers using [`Halted`].
+/// The caller must retain and join both handles.
 pub struct CancellationRunning {
     pub binding: SocketAddr,
     pub task: JoinHandle<Launcher>,
@@ -298,55 +206,9 @@ impl HttpServer<Stopped> {
         }
     }
 
-    /// It starts the server and returns a `HttpServer` controller in `running`
-    /// state.
-    ///
-    /// # Errors
-    ///
-    /// It would return an error if no `SocketAddr` is returned after launching the server.
-    ///
-    #[instrument(
-        skip(self, http_tracker_container, form, metadata),
-        fields(
-            service_role = metadata.service_role().as_str(),
-            instance_index = metadata.configuration_instance_id().instance_index(),
-        )
-    )]
-    ///
-    /// The deprecation is part of the contract until SI-19 removes this item. Using it without an allowance fails
-    /// under `deny(deprecated)`:
-    ///
-    /// ```
-    /// use torrust_tracker_axum_http_server::server::{HttpServer, Stopped};
-    /// let _ = HttpServer::<Stopped>::start;
-    /// ```
-    ///
-    /// ```compile_fail
-    /// #![deny(deprecated)]
-    /// use torrust_tracker_axum_http_server::server::{HttpServer, Stopped};
-    /// let _ = HttpServer::<Stopped>::start;
-    /// ```
-    #[deprecated(
-        since = "0.1.0",
-        note = "use `HttpServer<Stopped>::start_with_cancellation` with a `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
-    )]
-    #[allow(
-        deprecated,
-        reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
-    )]
-    pub async fn start(
-        self,
-        http_tracker_container: Arc<HttpTrackerCoreContainer>,
-        form: ServiceRegistrationForm<RuntimeServiceMetadata>,
-        metadata: RuntimeServiceMetadata,
-    ) -> Result<HttpServer<Running>, Error> {
-        self.start_with_health_check(http_tracker_container, form, metadata, check_fn)
-            .await
-    }
-
     /// Starts the HTTP tracker using an injected cancellation token.
     ///
-    /// This additive path does not subscribe to operating-system signals. Its
+    /// This path does not subscribe to operating-system signals. Its
     /// caller owns the returned runtime task and drain controller.
     ///
     /// # Errors
@@ -364,76 +226,9 @@ impl HttpServer<Stopped> {
             .await
     }
 
-    /// Starts the server and registers the supplied health-check callback.
-    ///
-    /// The application uses [`check_fn`]. This explicit callback seam lets
-    /// integration tests use a client that trusts their test certificate
-    /// without altering production certificate validation.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if no `SocketAddr` is returned after launching the
-    /// server.
-    ///
-    #[allow(
-        deprecated,
-        reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
-    )]
-    #[deprecated(
-        since = "0.1.0",
-        note = "use `HttpServer<Stopped>::start_with_cancellation_and_health_check` with a `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
-    )]
-    pub async fn start_with_health_check(
-        self,
-        http_tracker_container: Arc<HttpTrackerCoreContainer>,
-        form: ServiceRegistrationForm<RuntimeServiceMetadata>,
-        metadata: RuntimeServiceMetadata,
-        health_check: FnSpawnServiceHeathCheck,
-    ) -> Result<HttpServer<Running>, Error> {
-        let (tx_start, rx_start) = tokio::sync::oneshot::channel::<Started>();
-        let (tx_halt, rx_halt) = tokio::sync::oneshot::channel::<Halted>();
-
-        let launcher = self.state.launcher;
-
-        let server = launcher.start(&http_tracker_container, tx_start, rx_halt)?;
-        let task = tokio::spawn(async move {
-            server.await;
-            launcher
-        });
-
-        let started = rx_start.await.map_err(|source| Error::StartupNotification { source })?;
-
-        let service_binding = started.service_binding;
-        let binding = started.address;
-
-        if let Some(public_url) = metadata.public_url() {
-            tracing::info!(service_binding = %service_binding, public_url = %public_url, "Started HTTP tracker");
-        } else {
-            tracing::info!(service_binding = %service_binding, "Started HTTP tracker");
-        }
-
-        if let Err(source) = form
-            .register(ServiceRegistration::new(service_binding, metadata, Some(health_check)))
-            .await
-        {
-            let _ = tx_halt.send(Halted::Normal);
-            drop(task.await);
-            return Err(Error::Registration { source });
-        }
-
-        Ok(HttpServer {
-            state: Running {
-                binding,
-                halt_task: tx_halt,
-                task,
-            },
-        })
-    }
-
     /// Starts the HTTP tracker using an injected cancellation token and
     /// registers the supplied health-check callback.
     ///
-    /// This is the token-aware counterpart of [`Self::start_with_health_check`].
     /// The application uses [`check_fn`] through [`Self::start_with_cancellation`];
     /// this seam lets integration tests use a client that trusts their test
     /// certificate. It does not subscribe to operating-system signals; the caller
@@ -523,40 +318,6 @@ fn start_token_aware_runtime(
         },
         service_binding,
     ))
-}
-
-#[allow(
-    deprecated,
-    reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
-)]
-impl HttpServer<Running> {
-    /// It stops the server and returns a `HttpServer` controller in `stopped`
-    /// state.
-    ///
-    /// # Errors
-    ///
-    /// It would return an error if the channel for the task killer signal was closed.
-    #[allow(
-        deprecated,
-        reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
-    )]
-    #[deprecated(
-        since = "0.1.0",
-        note = "cancel the `CancellationToken` passed to `start_with_cancellation` and join `CancellationRunning::task` and `shutdown_controller`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
-    )]
-    pub async fn stop(self) -> Result<HttpServer<Stopped>, Error> {
-        self.state.halt_task.send(Halted::Normal).map_err(|_| Error::Stop {
-            message: "task killer channel was closed".to_string(),
-        })?;
-
-        let launcher = self.state.task.await.map_err(|error| Error::Stop {
-            message: error.to_string(),
-        })?;
-
-        Ok(HttpServer {
-            state: Stopped { launcher },
-        })
-    }
 }
 
 /// Checks the Health by connecting to the HTTP tracker endpoint.
@@ -893,27 +654,6 @@ mod tests {
     }
 
     #[tokio::test]
-    #[allow(
-        deprecated,
-        reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
-    )]
-    async fn it_should_preserve_the_launcher_bind_address_after_starting_and_stopping() {
-        // Arrange
-        let scenario = ServerStartWithAvailableHttpBinding::new();
-        let http_tracker_container = scenario.container().await;
-
-        // Act
-        let started = HttpServer::new(scenario.launcher().await)
-            .start(http_tracker_container, scenario.registration_form(), scenario.metadata())
-            .await
-            .expect("it should start the server");
-        let stopped = started.stop().await.expect("it should stop the server");
-
-        // Assert
-        assert_eq!(stopped.state.launcher.bind_to, scenario.bind_to);
-    }
-
-    #[tokio::test]
     async fn it_should_drain_the_token_aware_http_server_when_its_cancellation_token_is_cancelled() {
         // Arrange
         let scenario = ServerStartWithAvailableHttpBinding::new();
@@ -1065,33 +805,6 @@ mod tests {
         };
         assert_eq!(binding.bind_address(), scenario.bind_to);
         TcpListener::bind(scenario.bind_to).expect("HTTP listener should be released after token-aware registration failure");
-    }
-
-    #[tokio::test]
-    #[allow(
-        deprecated,
-        reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
-    )]
-    async fn it_should_release_the_listener_and_preserve_the_duplicate_binding_error_when_registration_fails() {
-        // Arrange
-        let scenario = ServerStartWithDuplicateRegistration::new().await;
-        let http_tracker_container = scenario.container().await;
-
-        // Act
-        let result = HttpServer::new(scenario.launcher())
-            .start(http_tracker_container, scenario.registration_form(), scenario.metadata())
-            .await;
-
-        // Assert
-        let binding = match result {
-            Err(Error::Registration {
-                source: RegistrationError::DuplicateBinding(binding),
-            }) => binding,
-            Err(error) => panic!("HTTP starter should retain the registration failure source: {error}"),
-            Ok(_) => panic!("duplicate registration should fail"),
-        };
-        assert_eq!(binding.bind_address(), scenario.bind_to);
-        TcpListener::bind(scenario.bind_to).expect("HTTP listener should be released after registration failure");
     }
 
     /// Serves a canned HTTP response to one connection on a local port, then stops and returns its address.

@@ -4883,11 +4883,10 @@ dependencies = [
 
 [[package]]
 name = "torrust-server-lib"
-version = "0.5.0"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "93819242b8132dfed96890ef7011ce954b12784bb8011db9968faa174919f785"
+checksum = "8aef800d3f20c6c35fc18f1d6405271dcebabe7e88fe4b14f31105dd23b4321f"
 dependencies = [
- "derive_more 2.1.1",
  "tokio",
  "tokio-util",
  "torrust-net-primitives",
@@ -5082,7 +5081,6 @@ dependencies = [
  "tokio",
  "tokio-util",
  "torrust-located-error",
- "torrust-server-lib",
  "torrust-tracker-configuration",
  "tower",
  "tracing",

@@ -3,11 +3,6 @@ use std::time::Duration;
 
 use tokio::time::{Instant, sleep, sleep_until};
 use tokio_util::sync::CancellationToken;
-#[allow(
-    deprecated,
-    reason = "the legacy `graceful_shutdown` still uses the deprecated `Halted` channel; SI-19 removes both"
-)]
-use torrust_server_lib::signals::{Halted, shutdown_signal_with_message};
 use tracing::instrument;
 
 /// Longest drain the timer accepts; a longer request is shortened to it. One year is far beyond any
@@ -69,71 +64,6 @@ pub async fn graceful_shutdown_on_cancellation(
             // bottleneck: wake on connection-count changes, or add a cancellation kind that skips the drain.
             () = sleep(Duration::from_secs(1)) => (),
         }
-    }
-}
-
-#[allow(
-    deprecated,
-    reason = "the legacy `graceful_shutdown` still uses the deprecated `Halted` channel; SI-19 removes both"
-)]
-#[instrument(skip(handle, rx_halt, message))]
-///
-/// The deprecation is part of the contract until SI-19 removes this item. Using it without an allowance fails
-/// under `deny(deprecated)`:
-///
-/// ```
-/// use torrust_tracker_axum_server::signals::graceful_shutdown;
-/// let _ = graceful_shutdown;
-/// ```
-///
-/// ```compile_fail
-/// #![deny(deprecated)]
-/// use torrust_tracker_axum_server::signals::graceful_shutdown;
-/// let _ = graceful_shutdown;
-/// ```
-#[deprecated(
-    since = "0.1.0",
-    note = "use `graceful_shutdown_on_cancellation` with an injected `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
-)]
-pub async fn graceful_shutdown(
-    handle: axum_server::Handle<SocketAddr>,
-    rx_halt: tokio::sync::oneshot::Receiver<Halted>,
-    message: String,
-    address: SocketAddr,
-) {
-    shutdown_signal_with_message(rx_halt, message.clone()).await;
-
-    let grace_period = Duration::from_secs(90);
-    let max_wait = Duration::from_secs(95);
-    let start = Instant::now();
-
-    handle.graceful_shutdown(Some(grace_period));
-
-    tracing::info!("!! {} in {} seconds !!", message, grace_period.as_secs());
-
-    loop {
-        if handle.connection_count() == 0 {
-            tracing::info!("All connections closed, shutting down server in address {}", address);
-            break;
-        }
-
-        if start.elapsed() >= max_wait {
-            tracing::warn!(
-                "Shutdown timeout of {} seconds reached. Forcing shutdown in address {} with {} active connections.",
-                max_wait.as_secs(),
-                address,
-                handle.connection_count()
-            );
-            break;
-        }
-
-        tracing::info!(
-            "Remaining alive connections: {} ({}s elapsed)",
-            handle.connection_count(),
-            start.elapsed().as_secs()
-        );
-
-        sleep(Duration::from_secs(1)).await;
     }
 }
 
