@@ -655,6 +655,26 @@ pub mod test {
         }
     }
 
+    mod peer_role_serialization {
+        use serde_json::json;
+
+        use crate::peer::PeerRole;
+
+        #[test]
+        fn it_should_serialize_a_seeder_in_lowercase_like_its_display_format() {
+            let serialized = serde_json::to_value(PeerRole::Seeder).unwrap();
+
+            assert_eq!(serialized, json!("seeder"));
+        }
+
+        #[test]
+        fn it_should_serialize_a_leecher_in_lowercase_like_its_display_format() {
+            let serialized = serde_json::to_value(PeerRole::Leecher).unwrap();
+
+            assert_eq!(serialized, json!("leecher"));
+        }
+    }
+
     mod unix_time_value_serialization {
         use std::time::Duration;
 
