@@ -9,7 +9,7 @@ github-issue: 2583
 spec-path: docs/issues/open/2583-1669-first-publish-of-workspace-crates/ISSUE.md
 branch: "2583-1669-first-publish-of-workspace-crates-spec"
 related-pr: null
-last-updated-utc: "2026-11-11 08:59"
+last-updated-utc: "2026-11-11 12:34"
 semantic-links:
   skill-links:
     - create-issue
@@ -330,6 +330,7 @@ release branch and a signed tag.
 - 2026-10-21 07:44 UTC - GitHub Copilot (Claude Opus 5.5) - The client-extraction issue is #2594, blocked by this
   issue on GitHub. With the maintainer's approval, T6 and the References name it and link its
   spec instead of the removed draft.
+- 2026-11-11 12:34 UTC - Claude Code (Claude Sonnet 5.5) - PR torrust/torrust-tracker#2825 (issue #2808) re-scoped T2 to what the release-process spec #2808 left (the `torrust/main` push, the old step 6 and the `release-new-version` crate list were fixed there).
 
 ## Acceptance Criteria
 

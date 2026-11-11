@@ -9,7 +9,7 @@ github-issue: 2594
 spec-path: docs/issues/open/2594-1669-extract-torrust-tracker-client-to-standalone-repo/ISSUE.md
 branch: "2594-1669-extract-torrust-tracker-client-to-standalone-repo-spec"
 related-pr: null
-last-updated-utc: "2026-11-11 08:59"
+last-updated-utc: "2026-11-11 12:34"
 semantic-links:
   skill-links:
     - create-issue
@@ -253,6 +253,7 @@ Every commit is a signed Conventional Commit.
   on GitHub. Moved the spec to `docs/issues/open/` for a spec-only PR on branch
   `2594-1669-extract-torrust-tracker-client-to-standalone-repo-spec`; repaired the links to the
   draft in the #1669, #2583 and #269 documents.
+- 2026-11-11 12:34 UTC - Claude Code (Claude Sonnet 5.5) - PR torrust/torrust-tracker#2825 (issue #2808) updated the `release-new-version` file-list statements, because #2808 removed that list.
 
 ## Acceptance Criteria
 
