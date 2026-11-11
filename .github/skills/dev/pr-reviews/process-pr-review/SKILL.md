@@ -43,6 +43,10 @@ feedback is prevented earlier and future review processing consumes fewer tokens
 
 ## Workflow
 
+Start this workflow, and create the audit record `PR-REVIEW.md` from
+`docs/templates/PR-REVIEW-TEMPLATE.md` (not from an earlier audit), when the first review or
+comment arrives, before the first reply. Do not start it after a later round.
+
 1. **Fetch the source of truth.** Use `fetch-review-threads`' GitHub CLI-backed Rust tool to
    collect all threads, including resolved and outdated threads. Also fetch each
    submitted review and its review-specific comments by review ID. REST comment

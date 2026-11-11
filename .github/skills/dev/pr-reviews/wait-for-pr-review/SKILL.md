@@ -138,8 +138,11 @@ and nothing in that gap is missed.
    - `review` or `comment`: first make sure you are working on the commit the feedback is about.
      If `head_moved` is `true`, or `head_sha` differs from `git rev-parse HEAD`, run `git fetch` and
      bring the branch up to date with `git pull --ff-only` (or rebase your unpushed commits onto it)
-     before processing; if that cannot be done safely, stop and tell the contributor. Then run the
-     [`process-pr-review`](../process-pr-review/SKILL.md) workflow. Fetch every thread with
+     before processing; if that cannot be done safely, stop and tell the contributor. Then open
+     [`process-pr-review`](../process-pr-review/SKILL.md) and run its workflow. On the first
+     `review` or `comment` of the pull request, before replying to anything, read that skill and
+     create the audit record `PR-REVIEW.md` from `docs/templates/PR-REVIEW-TEMPLATE.md`, not from
+     an earlier audit or from memory. Fetch every thread with
      [`fetch-review-threads`](../fetch-review-threads/SKILL.md) and read the new review body (a
      finding in a review body has no thread).
      - If you fixed something, commit, push, and reply. Then
