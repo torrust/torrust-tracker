@@ -24,6 +24,13 @@ use wait_for_pr_review::{Config, GhCli, PullRequest, SystemClock, wait};
 /// overflow in practice. Rust does not guarantee a minimum `Instant` range.
 const MAX_TIMEOUT_SECONDS: u64 = 86_400;
 
+/// The command run when `--gh-command` is not given.
+const DEFAULT_GH_COMMAND: &str = "gh";
+
+/// Longest the best-effort identity lookup may take. It also never takes more than a quarter of
+/// `--timeout-seconds`, so a stalled lookup leaves the rest of the budget to the wait.
+const MAX_LOOKUP_SECONDS: u64 = 10;
+
 /// Block until a watched reviewer reviews or comments, the head commit changes, or the pull request
 /// closes. Print the event as one JSON object. Stdout must not be a terminal; pipe it, for example `| jq .`.
 #[derive(Debug, Parser)]
@@ -59,6 +66,20 @@ struct Cli {
     /// head that moved is not adopted silently.
     #[arg(long, value_parser = utc_timestamp)]
     since: Option<i64>,
+    /// The GitHub CLI command to run for every call to GitHub: one program name or a path, never split on
+    /// spaces and never run through a shell. It must accept the `gh` command line (`api ...`). The default
+    /// `gh` is checked with `gh auth status` first; a command you name is not. The `wait_started` and
+    /// `gh_identity` records on stderr report the command and the login it runs as.
+    #[arg(long, default_value = DEFAULT_GH_COMMAND, value_parser = gh_command)]
+    gh_command: String,
+}
+
+fn gh_command(text: &str) -> Result<String, String> {
+    if text.is_empty() {
+        Err("expected a program name or path".to_owned())
+    } else {
+        Ok(text.to_owned())
+    }
 }
 
 fn utc_timestamp(text: &str) -> Result<i64, String> {
@@ -82,10 +103,18 @@ struct Diagnostic<'a> {
 #[derive(Serialize)]
 struct WaitStarted<'a> {
     kind: &'static str,
+    gh_command: &'a str,
     pr_number: u64,
     reviewers: &'a [String],
     timeout_seconds: u64,
     poll_interval_seconds: u64,
+}
+
+#[derive(Serialize)]
+struct GhIdentity<'a> {
+    kind: &'static str,
+    gh_command: &'a str,
+    gh_login: Option<&'a str>,
 }
 
 fn main() -> ExitCode {
@@ -115,11 +144,16 @@ fn main() -> ExitCode {
     // is what the caller relies on.
     drop(write_diagnostic(&WaitStarted {
         kind: "wait_started",
+        gh_command: &cli.gh_command,
         pr_number: cli.pr_number,
         reviewers: &cli.reviewers,
         timeout_seconds: cli.timeout_seconds,
         poll_interval_seconds: cli.poll_interval_seconds,
     }));
+
+    let started = Instant::now();
+    let timeout = Duration::from_secs(cli.timeout_seconds);
+    report_identity(&cli.gh_command, &interrupted, started, timeout);
 
     let pull_request = PullRequest {
         owner: cli.owner,
@@ -128,19 +162,43 @@ fn main() -> ExitCode {
     };
     let config = Config {
         reviewers: cli.reviewers,
-        timeout: Duration::from_secs(cli.timeout_seconds),
+        timeout,
         poll_interval: Duration::from_secs(cli.poll_interval_seconds),
         since_head_sha: cli.since_head_sha,
         since_moment: cli.since,
     };
-    let started = Instant::now();
-    let gh = GhCli::new("gh", Arc::clone(&interrupted), started + config.timeout);
+    let gh = GhCli::new(&cli.gh_command, Arc::clone(&interrupted), started + config.timeout);
+    let gh = if cli.gh_command == DEFAULT_GH_COMMAND {
+        gh
+    } else {
+        gh.without_auth_check()
+    };
     let clock = SystemClock::starting_at(started, interrupted);
 
     match wait(&gh, &clock, &pull_request, &config) {
         Ok(event) => emit_json(&event),
         Err(error) => emit_diagnostic(error.kind(), &error.to_string(), 1),
     }
+}
+
+/// Writes the `gh_identity` record: the command and the login it runs as. The lookup is best effort and
+/// has its own bound, `min(10 s, timeout / 4)`, so a stalled or failing lookup never changes the result: its
+/// login is then `null`. A signal ends it and the wait reports the interruption, so no record is written.
+fn report_identity(command: &str, interrupted: &Arc<AtomicBool>, started: Instant, timeout: Duration) {
+    let bound = Duration::from_secs(MAX_LOOKUP_SECONDS).min(timeout / 4);
+    let lookup = GhCli::new(command, Arc::clone(interrupted), started + bound);
+
+    let login = match lookup.login() {
+        Ok(login) => Some(login),
+        Err(wait_for_pr_review::Error::Interrupted) => return,
+        Err(_) => None,
+    };
+
+    drop(write_diagnostic(&GhIdentity {
+        kind: "gh_identity",
+        gh_command: command,
+        gh_login: login.as_deref(),
+    }));
 }
 
 fn emit_json(value: &impl Serialize) -> ExitCode {

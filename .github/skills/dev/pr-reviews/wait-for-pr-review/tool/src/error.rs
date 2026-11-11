@@ -5,8 +5,8 @@ use thiserror::Error;
 /// A failure that stops the poller before it can report a result.
 #[derive(Debug, Error)]
 pub enum Error {
-    /// The GitHub CLI executable could not be started.
-    #[error("the GitHub CLI `{program}` cannot be started: {reason}")]
+    /// The GitHub CLI command could not be started.
+    #[error("`{program}` cannot be started: {reason}")]
     GhUnavailable {
         /// The program that was started.
         program: String,
@@ -17,8 +17,10 @@ pub enum Error {
     #[error("the GitHub CLI is not authenticated; run `gh auth login`: {0}")]
     GhNotAuthenticated(String),
     /// A GitHub API request made through the CLI failed.
-    #[error("`gh api {endpoint}` failed: {message}")]
+    #[error("`{program} api {endpoint}` failed: {message}")]
     GhApi {
+        /// The command that was run.
+        program: String,
         /// The requested endpoint.
         endpoint: String,
         /// The error text printed by `gh`.

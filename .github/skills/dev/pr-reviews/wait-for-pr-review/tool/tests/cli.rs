@@ -16,7 +16,11 @@ use tempfile::TempDir;
 
 const FAKE_GH: &str = r#"#!/bin/sh
 dir="$(dirname "$0")"
+echo "$*" >> "$dir/calls"
 case "$*" in
+  "api user")
+    if [ -f "$dir/user-hangs" ]; then sleep 30; fi
+    if [ -f "$dir/user.json" ]; then cat "$dir/user.json"; else echo "no user" >&2; exit 1; fi ;;
   "auth status")
     if [ -f "$dir/auth-fails" ]; then echo "You are not logged in" >&2; exit 1; fi
     if [ -f "$dir/auth-hangs" ]; then sleep 30; fi
@@ -73,6 +77,27 @@ impl Sandbox {
         command
     }
 
+    /// The path of the fake `gh`, for `--gh-command`.
+    fn fake_path(&self) -> String {
+        self.directory.path().join("gh").display().to_string()
+    }
+
+    /// A poller command whose `PATH` does not contain the fake `gh`, so `--gh-command` is the only route to it.
+    fn command_without_fake_on_path(arguments: &[&str]) -> Command {
+        let mut command = Command::new(env!("CARGO_BIN_EXE_wait-for-pr-review"));
+        command.args(arguments).env("PATH", "/usr/bin:/bin").stdin(Stdio::null());
+        command
+    }
+
+    /// The calls the fake `gh` served, one per line.
+    fn calls(&self) -> Vec<String> {
+        fs::read_to_string(self.directory.path().join("calls"))
+            .unwrap_or_default()
+            .lines()
+            .map(str::to_owned)
+            .collect()
+    }
+
     /// How many times the fake `gh` served the pull request endpoint (not `gh auth status`).
     fn pull_calls(&self) -> u32 {
         fs::read_to_string(self.directory.path().join("pull-calls"))
@@ -115,7 +140,7 @@ fn it_should_print_the_review_that_arrives_after_the_wait_began_as_one_json_obje
     assert_eq!(event["state"], "APPROVED");
     assert_eq!(event["head_sha"], "abc1234");
     assert_eq!(event["cursor"], "2026-10-28T07:00:00Z");
-    assert_eq!(kinds(&output), ["wait_started"]);
+    assert_eq!(kinds(&output), ["wait_started", "gh_identity"]);
 }
 
 #[test]
@@ -183,7 +208,7 @@ fn it_should_leave_stdout_empty_and_exit_one_when_gh_is_not_authenticated() {
 
     assert_eq!(output.status.code(), Some(1));
     assert_eq!(output.stdout, b"");
-    assert_eq!(kinds(&output), ["wait_started", "gh_not_authenticated"]);
+    assert_eq!(kinds(&output), ["wait_started", "gh_identity", "gh_not_authenticated"]);
 }
 
 #[test]
@@ -448,6 +473,10 @@ fn start_and_wait_until_running(sandbox: &Sandbox, arguments: &[&str]) -> (Child
     let mut first = String::new();
     stderr.read_line(&mut first).unwrap();
     assert_eq!(json(first.as_bytes())["kind"], "wait_started");
+    // The identity record follows at once: the fake answers `api user` immediately.
+    let mut identity = String::new();
+    stderr.read_line(&mut identity).unwrap();
+    assert_eq!(json(identity.as_bytes())["kind"], "gh_identity");
 
     (child, stderr)
 }
@@ -548,4 +577,146 @@ fn it_should_stop_on_sigterm_when_gh_exits_but_a_descendant_keeps_its_pipes_open
         started.elapsed() < DESCENDANT_LIFETIME / 2,
         "the signal must end the wait for the readers promptly"
     );
+}
+
+#[test]
+fn it_should_run_the_command_named_by_gh_command_for_every_call_when_it_is_not_on_the_path() {
+    let sandbox = Sandbox::with_pull(MERGED_PULL);
+
+    let output = Sandbox::command_without_fake_on_path(&["--pr-number", "7", "--gh-command", &sandbox.fake_path()])
+        .output()
+        .unwrap();
+
+    assert_eq!(output.status.code(), Some(0));
+    assert_eq!(json(&output.stdout)["kind"], "pr_merged");
+    assert!(
+        sandbox.pull_calls() >= 1,
+        "the fake command should have served the pull request"
+    );
+}
+
+#[test]
+fn it_should_not_run_auth_status_for_a_command_named_by_gh_command() {
+    let sandbox = Sandbox::with_pull(MERGED_PULL);
+    sandbox.flag("auth-fails");
+
+    let output = Sandbox::command_without_fake_on_path(&["--pr-number", "7", "--gh-command", &sandbox.fake_path()])
+        .output()
+        .unwrap();
+
+    assert_eq!(
+        output.status.code(),
+        Some(0),
+        "a custom command is not checked with `auth status`"
+    );
+    assert!(!sandbox.calls().iter().any(|call| call == "auth status"));
+}
+
+#[test]
+fn it_should_run_auth_status_for_the_default_gh() {
+    let sandbox = Sandbox::with_pull(MERGED_PULL);
+
+    let output = sandbox.run(&["--pr-number", "7"]);
+
+    assert_eq!(output.status.code(), Some(0));
+    assert!(sandbox.calls().iter().any(|call| call == "auth status"));
+}
+
+#[test]
+fn it_should_report_the_command_in_wait_started_and_the_login_in_gh_identity() {
+    let sandbox = Sandbox::with_pull(MERGED_PULL);
+    fs::write(sandbox.directory.path().join("user.json"), r#"{"login": "some-account"}"#).unwrap();
+    let fake = sandbox.fake_path();
+
+    let output = Sandbox::command_without_fake_on_path(&["--pr-number", "7", "--gh-command", &fake])
+        .output()
+        .unwrap();
+
+    let records = stderr_records(&output);
+    assert_eq!(records[0]["kind"], "wait_started");
+    assert_eq!(records[0]["gh_command"], fake.as_str());
+    assert_eq!(records[1]["kind"], "gh_identity");
+    assert_eq!(records[1]["gh_command"], fake.as_str());
+    assert_eq!(records[1]["gh_login"], "some-account");
+}
+
+#[test]
+fn it_should_report_a_null_login_when_the_lookup_fails_and_still_print_the_result() {
+    let sandbox = Sandbox::with_pull(MERGED_PULL);
+
+    let output = sandbox.run(&["--pr-number", "7"]);
+
+    assert_eq!(output.status.code(), Some(0));
+    assert_eq!(json(&output.stdout)["kind"], "pr_merged");
+    let records = stderr_records(&output);
+    assert_eq!(records[1]["kind"], "gh_identity");
+    assert_eq!(records[1]["gh_command"], "gh");
+    assert!(records[1]["gh_login"].is_null());
+}
+
+#[test]
+fn it_should_end_a_stalled_lookup_at_its_own_bound_and_still_print_the_result() {
+    let sandbox = Sandbox::with_pull(MERGED_PULL);
+    sandbox.flag("user-hangs");
+    let started = Instant::now();
+
+    // The bound is a quarter of the timeout: two seconds here, far below the fake's 30 second stall.
+    let output = sandbox.run(&["--pr-number", "7", "--timeout-seconds", "8"]);
+
+    assert_eq!(output.status.code(), Some(0));
+    assert_eq!(json(&output.stdout)["kind"], "pr_merged");
+    assert!(stderr_records(&output)[1]["gh_login"].is_null());
+    assert!(
+        started.elapsed() < Duration::from_secs(7),
+        "the lookup must end at its own bound"
+    );
+}
+
+#[test]
+fn it_should_exit_one_with_gh_unavailable_naming_the_command_when_the_command_cannot_start() {
+    let output = Sandbox::command_without_fake_on_path(&["--pr-number", "7", "--gh-command", "/nonexistent/gh-command"])
+        .output()
+        .unwrap();
+
+    assert_eq!(output.status.code(), Some(1));
+    assert_eq!(output.stdout, b"");
+    let last = stderr_records(&output).pop().unwrap();
+    assert_eq!(last["kind"], "gh_unavailable");
+    assert!(last["message"].as_str().unwrap().contains("/nonexistent/gh-command"));
+}
+
+#[test]
+fn it_should_name_the_command_in_a_gh_api_error() {
+    let sandbox = Sandbox::with_pull(OPEN_PULL);
+    sandbox.flag("api-fails");
+    let fake = sandbox.fake_path();
+
+    let output = Sandbox::command_without_fake_on_path(&["--pr-number", "7", "--gh-command", &fake])
+        .output()
+        .unwrap();
+
+    assert_eq!(output.status.code(), Some(1));
+    let last = stderr_records(&output).pop().unwrap();
+    assert_eq!(last["kind"], "gh_api_error");
+    assert!(last["message"].as_str().unwrap().contains(&fake));
+}
+
+#[test]
+fn it_should_document_gh_command_in_the_help() {
+    let sandbox = Sandbox::with_pull(OPEN_PULL);
+
+    let output = sandbox.run(&["--help"]);
+
+    let message = stderr_records(&output)[0]["message"].as_str().unwrap().to_owned();
+    assert!(message.contains("--gh-command"), "help must document the option");
+}
+
+#[test]
+fn it_should_exit_two_when_gh_command_is_empty() {
+    let sandbox = Sandbox::with_pull(OPEN_PULL);
+
+    let output = sandbox.run(&["--pr-number", "7", "--gh-command", ""]);
+
+    assert_eq!(output.status.code(), Some(2));
+    assert_eq!(kinds(&output), ["usage_error"]);
 }

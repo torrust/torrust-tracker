@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: enhancement
-status: planned
+status: in-progress
 priority: p2
 epic: 2003
 github-issue: 2822
 spec-path: docs/issues/open/2822-2003-wait-for-pr-review-gh-option/ISSUE.md
 branch: "2822-wait-for-pr-review-gh-option-spec"
 related-pr: 2826
-last-updated-utc: "2026-11-11 14:20"
+last-updated-utc: "2026-11-11 16:46"
 semantic-links:
   skill-links:
     - create-issue
@@ -174,9 +174,9 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status | Task                                                                    | Notes / Expected Output                                                     |
 | --- | ------ | ----------------------------------------------------------------------- | --------------------------------------------------------------------------- |
 | T1  | DONE   | Record the design decisions with pros and cons                          | D1 and D2 recorded.                                                         |
-| T2  | TODO   | Add the failing tests for `--gh-command` (progressive loop)             | Red run recorded in `manual-verification-evidence.md`.                      |
-| T3  | TODO   | Add the option, the auth pre-check rule, `gh_command` and the lookup    | Tests green; `--help` documents the option; design review after this slice. |
-| T4  | TODO   | Document the option and the reported fields in the skill; run M1 to M4| `SKILL.md` describes `--gh-command`, `gh_command` and `gh_identity`; evidence recorded. |
+| T2  | DONE   | Add the failing tests for `--gh-command` (progressive loop)             | Red run recorded in `manual-verification-evidence.md`.                      |
+| T3  | DONE   | Add the option, the auth pre-check rule, `gh_command` and the lookup    | Tests green; `--help` documents the option; design review after this slice. |
+| T4  | DONE   | Document the option and the reported fields in the skill; run M1 to M4| `SKILL.md` describes `--gh-command`, `gh_command` and `gh_identity`; evidence recorded. |
 
 Test development uses the `write-unit-test` skill. Each test is the smallest behaviour-focused increment. After
 each passes focused validation, a recorded design review (prose-first Arrange-Act-Assert: temporary prose per
@@ -202,9 +202,9 @@ increment, before final verification, commit and pull request.
       instruction, before spec review, because the maintainer approved the sub-issue and its order)
 - [x] Design decisions recorded
 - [ ] Spec reviewed and approved by the maintainer (PR #2826)
-- [ ] Implementation completed
+- [x] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification recorded
+- [x] Manual verification recorded
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Evidence-based implementation completion review recorded
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
@@ -228,23 +228,25 @@ increment, before final verification, commit and pull request.
   the D2 test bullet names the six scenarios that change, and the Baseline bullet says `--since-head-sha` takes the head.
 - 2026-11-11 14:20 UTC - AI assistant (Claude Code, Claude Sonnet 5.5) - Addressed the fifth review of PR #2826: this
   log and `last-updated-utc` now cover the fourth round.
+- 2026-11-11 16:46 UTC - AI assistant (Claude Code, Claude Sonnet 5.5) - Implemented the option on branch
+  `2822-wait-for-pr-review-gh-option` (tests red then green, M1 to M4b recorded); the spec PR #2826 had merged.
 
 ## Acceptance Criteria
 
-- [ ] AC1: `--gh-command <command>` makes the poller run that command for every GitHub call; with no option it
+- [x] AC1: `--gh-command <command>` makes the poller run that command for every GitHub call; with no option it
       runs `gh` as before.
-- [ ] AC2: With a custom command, the poller does not run `auth status`; with the default it does, as before.
-- [ ] AC3: The exit codes `0`, `1`, `2`, the existing record kinds and the JSON-only stderr are unchanged; a
+- [x] AC2: With a custom command, the poller does not run `auth status`; with the default it does, as before.
+- [x] AC3: The exit codes `0`, `1`, `2`, the existing record kinds and the JSON-only stderr are unchanged; a
       command that cannot be started is reported as `gh_unavailable` with exit code `1`.
-- [ ] AC4: `wait_started` carries `gh_command`, and a `gh_identity` record carries `gh_command` and `gh_login`
+- [x] AC4: `wait_started` carries `gh_command`, and a `gh_identity` record carries `gh_command` and `gh_login`
       (`null` when the lookup fails or times out). A failed or stalled lookup adds no error kind or exit code, and a stalled lookup
       ends at `min(10 s, timeout / 4)`; the budget it spends and the baseline limit are stated in the
       design review.
-- [ ] AC5: The tests reach the fake command only through `--gh-command`, with no `PATH` shim, and the existing
+- [x] AC5: The tests reach the fake command only through `--gh-command`, with no `PATH` shim, and the existing
       scenarios are no less reliable.
-- [ ] AC6: `--help` and the skill document the option and the reported fields.
+- [x] AC6: `--help` and the skill document the option and the reported fields.
 - [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
+- [x] Relevant tests pass
 
 ## Verification Plan
 
@@ -259,10 +261,10 @@ increment, before final verification, commit and pull request.
 
 | ID | Scenario                                | Human-oriented command/steps                                                                                              | Expected Result                                                                 | Status | Evidence |
 | -- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- | ------ | -------- |
-| M1 | A fake command passed through the option | `wait-for-pr-review --pr-number 7 --gh-command <path to fake script> --timeout-seconds 5 \| jq .` with `PATH` lacking the script | One JSON result on stdout, no `auth status` call, exit code `0`                 | TODO   |          |
-| M2 | A command that does not exist           | `wait-for-pr-review --pr-number 7 --gh-command /nonexistent > out.json 2> err.ndjson; echo "exit=$?"`                       | `out.json` empty, `gh_unavailable` in `err.ndjson`, `exit=1` (stdout is not a terminal, so no `tty_refusal`) | TODO   |          |
-| M3 | The reported identity                   | Run M1's command with a fake that answers `api user` with a login, then with one that fails it                              | `gh_identity` shows `gh_command` and the login, then `gh_login: null`; the result and exit code are the same | TODO   |          |
-| M4 | A stalled lookup                        | Run M1's command with `--timeout-seconds 60` and a fake whose `api user` call sleeps past 10 seconds                                                   | `gh_login: null` after about 10 seconds; the wait continues and the result is unchanged (a second run with `--timeout-seconds 10` shows the lookup ending at about 2.5 seconds) | TODO   |          |
+| M1 | A fake command passed through the option | `wait-for-pr-review --pr-number 7 --gh-command <path to fake script> --timeout-seconds 5 \| jq .` with `PATH` lacking the script | One JSON result on stdout, no `auth status` call, exit code `0`                 | DONE   | `manual-verification-evidence.md` |
+| M2 | A command that does not exist           | `wait-for-pr-review --pr-number 7 --gh-command /nonexistent > out.json 2> err.ndjson; echo "exit=$?"`                       | `out.json` empty, `gh_unavailable` in `err.ndjson`, `exit=1` (stdout is not a terminal, so no `tty_refusal`) | DONE   | `manual-verification-evidence.md` |
+| M3 | The reported identity                   | Run M1's command with a fake that answers `api user` with a login, then with one that fails it                              | `gh_identity` shows `gh_command` and the login, then `gh_login: null`; the result and exit code are the same | DONE   | `manual-verification-evidence.md` |
+| M4 | A stalled lookup                        | Run M1's command with `--timeout-seconds 60` and a fake whose `api user` call sleeps past 10 seconds                                                   | `gh_login: null` after about 10 seconds; the wait continues and the result is unchanged (a second run with `--timeout-seconds 10` shows the lookup ending at about 2.5 seconds) | DONE   | `manual-verification-evidence.md` |
 
 Evidence goes in issue-local `manual-verification-evidence.md`, naming the toolchain of each command.
 
@@ -270,12 +272,12 @@ Evidence goes in issue-local `manual-verification-evidence.md`, naming the toolc
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1   | TODO                   |          |
-| AC2   | TODO                   |          |
-| AC3   | TODO                   |          |
-| AC4   | TODO                   |          |
-| AC5   | TODO                   |          |
-| AC6   | TODO                   |          |
+| AC1   | DONE                   | `tests/cli.rs` (`..._when_it_is_not_on_the_path`, `..._for_the_default_gh`); M1 |
+| AC2   | DONE                   | `tests/cli.rs` (`it_should_not_run_auth_status_for_a_command_named_by_gh_command`, `it_should_run_auth_status_for_the_default_gh`); M1 |
+| AC3   | DONE                   | Existing scenarios green; `it_should_exit_one_with_gh_unavailable_naming_the_command...`; M2 |
+| AC4   | DONE                   | `tests/cli.rs` (`..._login_in_gh_identity`, `..._a_null_login...`, `..._stalled_lookup...`); M3, M4, M4b |
+| AC5   | DONE                   | New scenarios pass the fake only through `--gh-command` with `PATH=/usr/bin:/bin`; flakiness note in the evidence file |
+| AC6   | DONE                   | `it_should_document_gh_command_in_the_help`; `SKILL.md` option row and stderr paragraph |
 
 ## Risks and Trade-offs
 
