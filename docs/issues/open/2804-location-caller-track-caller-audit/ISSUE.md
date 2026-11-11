@@ -9,7 +9,7 @@ github-issue: 2804
 spec-path: docs/issues/open/2804-location-caller-track-caller-audit/ISSUE.md
 branch: "2804-location-caller-track-caller-audit-spec"
 related-pr: null
-last-updated-utc: "2026-11-10 21:51"
+last-updated-utc: "2026-11-11 11:11"
 semantic-links:
   skill-links:
     - create-issue
@@ -209,7 +209,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T1  | DONE   | Inventory and classify every site         | Issue-local `inventory.md` with one row per `Location::caller()`/`#[track_caller]`/`Located(..).into()`: package, file:line, enclosing fn (async, closure, trait impl), test or production, class (correct/wrong/internal). Includes the small experiments on `parse`, async fn, closures and `Located::into`.                                                      |
 | T2  | DONE   | Trace production exposure                 | For each wrong site, the path to output (HTTP failure reason, UDP error message, REST API, CLI, logs, metrics, events), with the exact line that formats it. Mark "user-visible" or "developer-only".                                                                                                                                                               |
 | T3  | DONE   | Check guidance and enforceability         | What the skill, ADRs, `Cargo.toml` lints and clippy config say. Is there a clippy lint (candidates: none known for this; verify) or a test that can enforce the rule? Record the answer even if "no".                                                                                                                                                               |
-| T4  | DONE   | Analyse fix options, recommend one | Recommendation in `options.md`: option 3 in its non-breaking form (stop printing `{location}` in `Display`, keep the field), option 1 only where the chain is plain and synchronous. Awaiting maintainer approval before any fix. |
+| T4  | DONE   | Analyse fix options, recommend one        | Recommendation in `options.md`: stop printing `{location}` in `Display` (option 3); option 1 fixes no production site (all 38 are reached through trait impls, closures, `TryFrom` or `async` code). Open for the maintainer: keep or remove the field, and the `LocatedError` decision. Awaiting approval before any fix.                                          |
 | T5  | TODO   | Write the ADR and the slicing plan        | ADR if the convention changes. Create sub-issues or fix PRs per package from the slicing below.                                                                                                                                                                                                                                                                     |
 | T6  | TODO   | Red regression tests per slice            | For each slice (primitives; http-protocol, http-core, axum-http-server; tracker-core and database drivers; udp-server, axum-server, configuration and the rest from T1), a maintained test that fails against current code, with the red output recorded. Primitives first: `PeerRole`, `peer::Id` through `parse`/`try_into`; this closes the reported finding F3. |
 | T7  | TODO   | Fix slices, one PR per package group      | Production fix per slice, the smallest change that makes its red test pass. http-protocol group changes the client-visible bencoded responses; tracker-core group covers `InsertFailed`/`DeleteFailed`, key expiry, whitelist, `authorize`; udp-server group covers the whitelist and database errors shown in UDP replies (paths from T2).                         |
@@ -290,6 +290,7 @@ with the narrow affected scope, and sign every commit with GPG.
 - 2026-11-10 17:49 UTC - Claude Code (Sonnet 5.5) - T1 to T3 done: `inventory.md` (classification, experiments, exposure trace, guidance and enforceability check).
 - 2026-11-10 21:51 UTC - Claude Code (Sonnet 5.5) - Reworked the T2 trace, the closure and class columns, the standalone-crate scan and the experiment record after review of PR #2814 (`experiments.md`).
 - 2026-11-11 10:44 UTC - Claude Code (Sonnet 5.5) - T4 done: option comparison, semver estimate per crate and slicing proposal in `options.md`; recommendation awaits maintainer approval.
+- 2026-11-11 11:11 UTC - Claude Code (Sonnet 5.5) - Reworked T4 after review of PR #2821: count of 23 printed locations, option 1 reaches no production site, semver against the first-publish plan, slices S1 to S7 (`options.md`).
 
 ## Acceptance Criteria
 
