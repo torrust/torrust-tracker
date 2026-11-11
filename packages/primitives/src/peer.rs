@@ -36,7 +36,7 @@ use crate::{AnnounceEvent, NumberOfBytes, PeerId};
 pub type PeerAnnouncement = Peer;
 
 #[derive(Debug, Serialize, Copy, Clone, PartialEq, Eq, Hash)]
-#[serde(rename_all_fields = "lowercase")]
+#[serde(rename_all = "lowercase")]
 pub enum PeerRole {
     Seeder,
     Leecher,
