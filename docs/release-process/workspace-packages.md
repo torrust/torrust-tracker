@@ -38,7 +38,7 @@ The `pkg/<crate-name>/` prefix only tells workspace crates apart. A crate in its
 repository has a single package, so its tag is `v<semver>`.
 
 **No GitHub release is created for a package.** GitHub Releases are used only for tracker
-application releases (see the ADR above). A package is documented by its crate README and
+application releases (see the [ADR](../adrs/20260629000000_adopt_independent_package_versioning.md)). A package is documented by its crate README and
 `Cargo.toml` metadata, and tracked by crates.io and the signed tag.
 
 ### Who Does What
@@ -70,6 +70,13 @@ Whenever a workspace crate's version changes. Examples:
    new version.
 2. The version bump and the changelog entry (when the package keeps one) are merged. **The
    commit that gets published is the merged commit that carries both.**
+   - In the same PR, raise the `version` requirement of the crate in **every manifest that
+     depends on it** (the root `Cargo.toml` and the packages that list it, for example
+     `torrust-tracker-primitives = { version = "3.0.0", path = "..." }`). Cargo checks the
+     `version` of a path dependency against the local package, so an incompatible bump does
+     not build until every dependent is updated. A dependent that starts using a newer API
+     must raise its requirement before it is published. For a compatible bump that no
+     dependent needs, the update is optional. Keep each `path = "..."`.
 3. Tests pass:
 
    ```sh
@@ -107,11 +114,6 @@ Whenever a workspace crate's version changes. Examples:
    git tag --sign pkg/<crate-name>/v<semver> <merged-commit-sha>
    git push torrust refs/tags/pkg/<crate-name>/v<semver>
    ```
-
-5. Update the `version` field in the workspace root `Cargo.toml` dependency entry for
-   the published crate (e.g., from `3.0.0-develop` to `0.1.0`) in a follow-up PR. Do **not**
-   remove the `path = "..."` — it ensures workspace builds always use the local copy regardless
-   of the published version.
 
 ### Standalone-Repository Crate
 
@@ -162,9 +164,6 @@ approved.
 This example shows how independent package publishing works in practice over a typical
 release cycle, from development through tracker release.
 
-> The commands below are abbreviated. The steps above are authoritative: push the merged
-> commit that carries the version bump, and tag that same commit.
-
 #### Starting Point
 
 Workspace has three packages:
@@ -182,10 +181,12 @@ A bug is discovered in `torrust-tracker-primitives`. Fix is merged to `develop`,
 version bumped to `0.1.1`.
 
 ```sh
-# Publish independently — no need to wait for tracker release
-git push torrust develop:releases/pkg/torrust-tracker-primitives/v0.1.1
+# Publish independently — no need to wait for tracker release.
+# <sha> is the merged commit that carries the version bump.
+git push torrust <sha>:refs/heads/releases/pkg/torrust-tracker-primitives/v0.1.1
 # CI publishes v0.1.1 to crates.io
-git tag --sign pkg/torrust-tracker-primitives/v0.1.1 && git push --tags torrust
+git tag --sign pkg/torrust-tracker-primitives/v0.1.1 <sha>
+git push torrust refs/tags/pkg/torrust-tracker-primitives/v0.1.1
 ```
 
 External consumers can now use `primitives 0.1.1`. The tracker still uses the
@@ -196,9 +197,11 @@ External consumers can now use `primitives 0.1.1`. The tracker still uses the
 A new API is added to `torrust-tracker-core`. Version bumped to `0.3.0`.
 
 ```sh
-git push torrust develop:releases/pkg/torrust-tracker-core/v0.3.0
+# <sha> is the merged commit that carries the version bump.
+git push torrust <sha>:refs/heads/releases/pkg/torrust-tracker-core/v0.3.0
 # CI publishes v0.3.0 to crates.io
-git tag --sign pkg/torrust-tracker-core/v0.3.0 && git push --tags torrust
+git tag --sign pkg/torrust-tracker-core/v0.3.0 <sha>
+git push torrust refs/tags/pkg/torrust-tracker-core/v0.3.0
 ```
 
 External consumers of `core` can now use the new feature. The tracker workspace
