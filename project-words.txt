@@ -235,6 +235,7 @@ dler
 dockerhub
 doctest
 doctests
+dotall
 downloadedi
 dpkg
 dport
