@@ -145,20 +145,18 @@ added as in #1348 following the `add-rust-dependency` skill.
 
 ## Design and Ownership Review
 
-Questions each file's plan must answer. Any could be a finding rather than a test; none is a claim
-yet, and each is first confirmed with a throwaway test:
+Questions each file's plan must answer. Each was first confirmed with a throwaway test and is now
+recorded in the [Findings Register](#findings-register); each file's plan only needs to check that
+its tests do not pin behavior a finding reports as wrong:
 
-- `Peer` derives `Eq` and `Hash` over every field but implements `Ord` by `peer_id` only, so `Ord`
-  and `Eq` disagree. Is that a deliberate contract (peers keyed by id) or a defect?
-- `PeerRole` derives `Serialize` with `#[serde(rename_all_fields = "lowercase")]`, an attribute that
-  applies to struct-like variants, while `Display` prints lowercase. What does the JSON actually
-  print for a unit variant?
-- `ParsePeerRoleError` records `Location::caller()` without `#[track_caller]` on `from_str`: what
-  location does the error report?
-- `AggregateActiveSwarmMetadata::add_assign` uses unchecked `+`: it panics on overflow in debug
-  builds and wraps in release. Is saturating or checked behavior intended?
-- `Id::new` builds bytes from a little-endian `i128`: what is the documented contract for negative
-  numbers?
+- `Peer` `Ord` versus `Eq`: finding F1, fixed upstream (`Ord` and `PartialOrd` were removed from
+  `Peer`; a `compile_fail` doctest guards it).
+- `PeerRole` JSON casing: finding F2, fixed in slice S1.
+- `ParsePeerRoleError` location: finding F3, handed off to #2804.
+- `AggregateActiveSwarmMetadata::add_assign` overflow: finding F4, handed off to #2823, which deletes
+  the unused impl.
+- `Id::new` contract for negative numbers: finding F5, handed off (the behavior is correct and
+  lossless; the design question is whether it belongs in a production crate).
 
 ## Bug-Fix Process
 
