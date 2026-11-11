@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-R1 to R6 are Copilot's review 5858141026 (R1, R5 and R6 are its own IDs; R2 and R4 are audit-assigned to its unlabelled findings). F1 to F16 are da2ce7's review 5858207086, F17 to F23 his review 5859095235 and F24 to F30 his review 5859464376. Every row is an inline thread.
+R1 to R6 are Copilot's review 5858141026 (R1, R5 and R6 are its own IDs; R2 and R4 are audit-assigned to its unlabelled findings). F1 to F16 are da2ce7's review 5858207086, F17 to F23 his review 5859095235, F24 to F30 his review 5859464376 and F32 to F35 his review 5859817911. Every row is an inline thread.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -80,6 +80,10 @@ R1 to R6 are Copilot's review 5858141026 (R1, R5 and R6 are its own IDs; R2 and 
 | F28 | review-finding:pr-2826-f28 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F29 | review-finding:pr-2826-f29 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F30 | review-finding:pr-2826-f30 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F32 | review-finding:pr-2826-f32 | Human | Nit | testing | ORIGINAL | FIXED | RESOLVED |
+| F33 | review-finding:pr-2826-f33 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
+| F34 | review-finding:pr-2826-f34 | Human | Minor | documentation | RE_RAISE_OF:F28 | FIXED | RESOLVED |
+| F35 | review-finding:pr-2826-f35 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -479,7 +483,7 @@ R1 to R6 are Copilot's review 5858141026 (R1, R5 and R6 are its own IDs; R2 and 
 - Source review ID: 5859464376
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2826#discussion_r4538446501
-- Concern: The signal scenarios and the scenario that parses the rest of stderr as one JSON value are affected, and the `/dev/full` scenario depends on best-effort writing.
+- Concern: The signal scenarios and the four signal scenarios, which parse the rest of stderr as one JSON value, are affected, and the `/dev/full` scenario depends on best-effort writing.
 - Solution: D2 names every affected scenario, and a Best effort bullet says `gh_identity` is written best effort like `wait_started`.
 - Current-tree verification: D2 test bullet and the Best effort bullet.
 - Resolution reference: docs(issues): [#2822] state the lookup budget, the baseline limit and the scenarios it changes
@@ -538,16 +542,70 @@ R1 to R6 are Copilot's review 5858141026 (R1, R5 and R6 are its own IDs; R2 and 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2826#discussion_r4538507026
 
+### F32 - The test bullet names a scenario that does not exist
+
+- PR number: 2826
+- Source review ID: 5859817911
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2826#discussion_r4538722938
+- Concern: The bullet named a fifth scenario and its opening clause took in four scenarios that do not change.
+- Solution: The bullet names the six scenarios that change (two sequence scenarios, four signal scenarios) and says the scenarios that assert only the last kind are unchanged; the F26 entry says the same.
+- Current-tree verification: D2 test bullet; `tests/cli.rs` scenarios read by the reviewer.
+- Resolution reference: docs(issues): [#2822] name the scenarios that gh_identity changes and the head that --since-head-sha sets
+- Follow-up PR URL: N/A
+- Reply URL: N/A
+
+### F33 - --since-head-sha takes the head, not always the cutoff
+
+- PR number: 2826
+- Source review ID: 5859817911
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2826#discussion_r4538722948
+- Concern: With `--since` also given, the cutoff is `--since`.
+- Solution: The Baseline bullet says `--since-head-sha` takes the head from the caller's commit.
+- Current-tree verification: Baseline bullet; `wait.rs:101-104`.
+- Resolution reference: docs(issues): [#2822] name the scenarios that gh_identity changes and the head that --since-head-sha sets
+- Follow-up PR URL: N/A
+- Reply URL: N/A
+
+### F34 - Re-raise of F28: the log says six edited replies
+
+- PR number: 2826
+- Source review ID: 5859817911
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2826#discussion_r4538722912
+- Concern: The 13:04 log entry still said six edited replies.
+- Solution: It says 20 round-1 replies were edited to drop the branch id and that F7's reply needed no edit.
+- Current-tree verification: The 13:04 entry of the Processing Log.
+- Resolution reference: docs(pr-reviews): [#2822] record the fourth review round of PR #2826
+- Follow-up PR URL: N/A
+- Reply URL: N/A
+
+### F35 - The log records a push of the commit that carries it and the replies preceded the commit
+
+- PR number: 2826
+- Source review ID: 5859817911
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2826#discussion_r4538722924
+- Concern: The replies to F27, F28 and F30 preceded the commit that fixes them, and the entry said it was pushed.
+- Solution: The log says the replies were posted before the commit was made, logs its push in a later entry, and names the head as the one that carried the second round's fixes.
+- Current-tree verification: The 13:32 to 13:36 entries of the Processing Log.
+- Resolution reference: docs(pr-reviews): [#2822] record the fourth review round of PR #2826
+- Follow-up PR URL: N/A
+- Reply URL: N/A
+
 ## Processing Log
 
 - 2026-11-11 11:39 UTC - Review 5858141026 (Copilot) submitted on the first round's head; review 5858207086 (da2ce7) followed at 11:45 UTC.
 - 2026-11-11 12:46 UTC - Replied to and resolved the 21 threads of those reviews after the squashed commit `docs(issues): [#2822] add issue specification for the wait-for-pr-review --gh-command option` (the reply times are the GitHub `created_at` of the replies).
 - 2026-11-11 12:59 UTC - Review 5859095235 (da2ce7) submitted on the new head: F17 to F23.
-- 2026-11-11 13:04 UTC - Replied to and resolved F17 to F21 and F23 after the commit `docs(issues): [#2822] align the spec with the identity-record design and the lookup bound` was pushed; the six round-1 replies that cited a branch id were edited to cite the commit subject.
+- 2026-11-11 13:04 UTC - Replied to and resolved F17 to F21 and F23 after the commit `docs(issues): [#2822] align the spec with the identity-record design and the lookup bound` was pushed; 20 round-1 replies were edited to drop the branch id; the reply on F7's thread cited none and needed no edit.
 - 2026-11-11 13:05 UTC - Started the audit record from the GitHub review data.
 - 2026-11-11 13:10 UTC - Replied to and resolved F22. The reply was posted before the audit commit reached GitHub: the first push of it at about 13:08 was blocked by two failing fake-`gh` scenarios of the poller's `tests/cli.rs` (unrelated to this change), and the retry succeeded at about 13:12 UTC.
-- 2026-11-11 13:27 UTC - Review 5859464376 (da2ce7, `APPROVED`) submitted on the second round's head: F24 to F30, none blocking.
-- 2026-11-11 13:32 UTC - Replied to and resolved the seven threads of that review and edited the replies on F5 and F16. The replies on F24 to F26 cite the pushed commit `docs(issues): [#2822] state the lookup budget, the baseline limit and the scenarios it changes`; the replies on F27, F28 and F30 were posted just before the commit that fixes them was pushed.
+- 2026-11-11 13:27 UTC - Review 5859464376 (da2ce7, `APPROVED`) submitted on the head that carried the second round's fixes: F24 to F30, none blocking.
+- 2026-11-11 13:32 UTC - Replied to and resolved the seven threads of that review and edited the replies on F5 and F16. The replies on F24 to F26 cite the pushed commit `docs(issues): [#2822] state the lookup budget, the baseline limit and the scenarios it changes`; the replies on F27, F28 and F30 (13:32:42 to 13:32:53 UTC) were posted before the commit that fixes them was made (13:33 UTC), so no commit held their fix when they said "Fixed in" it.
+- 2026-11-11 13:36 UTC - Pushed that commit, `docs(pr-reviews): [#2822] correct the audit after the third review of PR #2826` (push log time).
+- 2026-11-11 13:53 UTC - Review 5859817911 (da2ce7, `APPROVED`) submitted on the head of that push: F32 to F35, none blocking.
 
 ## Completion Rules
 
