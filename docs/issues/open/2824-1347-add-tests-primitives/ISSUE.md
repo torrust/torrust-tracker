@@ -375,7 +375,7 @@ Reviewed against observed behavior after the last slice, before the issue is clo
 
 | AC ID | Status | Evidence |
 | ----- | ------ | -------- |
-| AC1 | DONE | Inventory and T1 hypotheses in `coverage-evidence.md`. |
+| AC1 | TODO | Inventory and T1 hypotheses in `coverage-evidence.md`. |
 | AC2 | TODO | All ledger rows `DONE`; plans in `test-refactor-plans/`; per-file results in `coverage-evidence.md`. |
 | AC3 | TODO | Commands, toolchains and figures in the final measurement section of `coverage-evidence.md`. |
 | AC4 | TODO | Decision records of the highest and high objectives. |
