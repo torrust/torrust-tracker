@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Round 1 is da2ce7's review `5860290788` (F1 to F5) and Copilot's review `5860342629` (F6 to F8, numbered after F5), both submitted on head `0f785bbdf`. F6 and F7 re-raise F1 and F3.
+Round 1 is da2ce7's review `5860290788` (F1 to F5) and Copilot's review `5860342629` (F6 to F8, numbered after F5), both submitted on the head whose last commit has the subject `docs(issues): [#2824] record the S1 PeerRole fix in the spec`. F6 and F7 re-raise F1 and F3.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -163,7 +163,7 @@ Round 1 is da2ce7's review `5860290788` (F1 to F5) and Copilot's review `5860342
 ## Processing Log
 
 - 2026-11-11 14:35 UTC - Started audit after da2ce7's review `5860290788` (changes requested, 5 findings).
-- 2026-11-11 14:36 UTC - Replied on the five threads of da2ce7's review (F1 to F5) against head `1fd6c86ee`; the audit validator passed (5 rows).
+- 2026-11-11 14:36 UTC - Replied on the five threads of da2ce7's review (F1 to F5) against the head whose last commit has the subject `docs(issues): [#2824] record the S1 coverage measurement and the EPIC update`; the audit validator passed (5 rows).
 - 2026-11-11 14:38 UTC - Copilot's review `5860342629` (3 findings on the same head) processed: F6 and F7 re-raise F1 and F3, F8 is new. Replied on its three threads and resolved all eight threads; the fixes for F4 and F8 and this audit are in the next push.
 
 ## Completion Rules
