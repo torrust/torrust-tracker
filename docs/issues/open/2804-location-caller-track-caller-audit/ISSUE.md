@@ -9,7 +9,7 @@ github-issue: 2804
 spec-path: docs/issues/open/2804-location-caller-track-caller-audit/ISSUE.md
 branch: "2804-location-caller-track-caller-audit-spec"
 related-pr: null
-last-updated-utc: "2026-11-11 17:03"
+last-updated-utc: "2026-11-11 17:39"
 semantic-links:
   skill-links:
     - create-issue
@@ -223,7 +223,7 @@ the EPIC draft `docs/issues/drafts/remove-source-locations-from-errors/EPIC.md`:
 | --- | --- |
 | T6 Red regression tests per slice, T7 Fix slices, T8 Green and like-for-like recheck per slice | Sub-issue drafts SI-2 (`primitives`), SI-3 (HTTP tracker request errors), SI-4 (`tracker-core`), SI-5 (configuration, TLS and UDP server errors), each with its own red test, fix and recheck |
 | T9 Enforcement and docs | SI-1 (ADR and `handle-errors-in-code` skill) and SI-6 (drop `torrust-located-error`, repository check, upstream issue drafts) |
-| Client-side verification (M1, M2) | `docs/issues/open/384-strip-location-from-errors-sent-to-clients/ISSUE.md` (SI-7) |
+| Manual scenarios M1 and M2 of this specification (HTTP and UDP replies); M3 (`parse`) is covered by SI-2 | `docs/issues/open/384-strip-location-from-errors-sent-to-clients/ISSUE.md` (SI-7) |
 
 The EPIC and its sub-issues are drafts: no GitHub issue exists for them yet. This issue can be
 closed when the maintainer creates the EPIC issue; until then it stays open as the record of the
@@ -307,6 +307,7 @@ with the narrow affected scope, and sign every commit with GPG.
 - 2026-11-11 11:16 UTC - Claude Code (Sonnet 5.5) - Added the Copilot findings of PR #2821 to T4: additive constructors are not breaking, the `configuration` `LocatedError` sources, the peer-id wrapping site, and direct tests for S5 and S6 (`options.md`).
 - 2026-11-11 11:55 UTC - Claude Code (Sonnet 5.5) - Corrected the S3 and S5 slices of T4 after the second review of PR #2821: `MissingTlsConfig` needs no change, version steps per crate, the info-hash paths need source suppression or an upstream fix (`options.md`).
 - 2026-11-11 17:03 UTC - Claude Code (Fable 5.2) - T5 done as a slicing plan: the maintainer proposed to remove the feature, so the fix tasks moved to an EPIC draft with six sub-issue drafts and the specification for #384. The ADR is sub-issue SI-1 of that EPIC. AC1, AC2 and AC6 recorded as done with their evidence.
+- 2026-11-11 17:39 UTC - Claude Code (Fable 5.2) - After review of PR #2836: the moved-tasks table names this specification's own scenarios M1 to M3, and the duplicated `Disposable Verification Scripts` heading is removed from the seven new specifications.
 
 ## Acceptance Criteria
 

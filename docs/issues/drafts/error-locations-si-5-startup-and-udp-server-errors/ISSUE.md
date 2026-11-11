@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/error-locations-si-5-startup-and-udp-server-errors/ISSUE.md
 branch: "{issue-number}-error-locations-si-5-startup-and-udp-server-errors"
 related-pr: null
-last-updated-utc: "2026-11-11 17:05"
+last-updated-utc: "2026-11-11 17:39"
 semantic-links:
   skill-links:
     - create-issue
@@ -248,10 +248,7 @@ Keep the script in the issue-specification folder so later reviewers can inspect
 the verification performed. Promote durable product-behavior checks into Rust
 automatic tests when practical, then remove the disposable script.
 
-### Disposable Verification Scripts
-
-None planned. If one is needed, record here why it is better than a maintained Rust test, its
-issue-local path, what it verifies and who removes it, before creating it.
+None planned for this issue.
 
 ### Acceptance Verification
 
