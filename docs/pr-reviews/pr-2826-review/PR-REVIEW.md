@@ -70,7 +70,7 @@ R1 to R6 are Copilot's review 5858141026 (R1, R5 and R6 are its own IDs; R2 and 
 | F18 | review-finding:pr-2826-f18 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F20 | review-finding:pr-2826-f20 | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
 | F19 | review-finding:pr-2826-f19 | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
-| F22 | review-finding:pr-2826-f22 | Human | Minor | documentation | ORIGINAL | FIXED | OPEN |
+| F22 | review-finding:pr-2826-f22 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F21 | review-finding:pr-2826-f21 | Human | Nit | formatting | ORIGINAL | FIXED | RESOLVED |
 | F23 | review-finding:pr-2826-f23 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
@@ -412,7 +412,7 @@ R1 to R6 are Copilot's review 5858141026 (R1, R5 and R6 are its own IDs; R2 and 
 - Current-tree verification: GraphQL review threads: every thread has a reply and is resolved.
 - Resolution reference: docs(pr-reviews): [#2822] add the review audit for PR #2826
 - Follow-up PR URL: N/A
-- Reply URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2826#discussion_r4538275633
 
 ### F21 - Decisions nest under Regression Test Strategy
 
@@ -445,6 +445,8 @@ R1 to R6 are Copilot's review 5858141026 (R1, R5 and R6 are its own IDs; R2 and 
 - 2026-11-11 11:39 UTC - Review 5858141026 (Copilot) submitted on head `7acb21216`; review 5858207086 (da2ce7) followed at 11:45 UTC. Audit started at 13:05 UTC from the GitHub review data.
 - 2026-11-11 12:46 UTC - Replied to and resolved the 21 threads of those reviews after the squashed commit `docs(issues): [#2822] add issue specification for the wait-for-pr-review --gh-command option` (the reply times are the GitHub `created_at` of the replies).
 - 2026-11-11 12:59 UTC - Review 5859095235 (da2ce7) submitted on the new head: F17 to F23.
+- 2026-11-11 13:04 UTC - Replied to and resolved F17 to F21 and F23 after the commit `docs(issues): [#2822] align the spec with the identity-record design and the lookup bound` was pushed; the 21 round-1 replies that cited a branch id were edited to cite the commit subject.
+- 2026-11-11 13:10 UTC - Replied to and resolved F22. The reply was posted before the audit commit reached GitHub: the first push of it at about 13:08 was blocked by two failing fake-`gh` scenarios of the poller's `tests/cli.rs` (unrelated to this change), and the retry succeeded at about 13:12 UTC.
 
 ## Completion Rules
 
