@@ -1,7 +1,7 @@
 ---
 doc-type: issue-options
 issue-spec: docs/issues/open/2804-location-caller-track-caller-audit/ISSUE.md
-last-updated-utc: "2026-11-11 11:16"
+last-updated-utc: "2026-11-11 11:55"
 ---
 
 # Issue #2804 - T4: fix options and recommendation
@@ -78,7 +78,7 @@ published at 3.0.0 and already owe 4.0.0 (`:196`, `:201`). "Display only" change
 | Crate | Version now, version planned | Variants printing a location | Option 3 (Display only, field kept) | Option 4 (field removed) |
 | --- | --- | --- | --- | --- |
 | `torrust-tracker-primitives` | 3.1.0, planned 4.0.0 | 3 (`peer.rs`) | patch, inside the planned 4.0.0 | none beyond the planned 4.0.0 |
-| `torrust-tracker-configuration` | 3.0.0, planned 4.0.0 | 0 own, but 4 public variants print a `LocatedError` source (`lib.rs:305-337`: `UnableToProcessExplicitConfigFile`, `UnableToLoadFromEnvironmentVariable`, `UnableToLoadFromConfigFile`, `ConfigError`) | patch if the `LocatedError` text changes (decision b); a source-type change (decision a) is breaking, inside the planned 4.0.0 | breaking for those sources, inside the planned 4.0.0 |
+| `torrust-tracker-configuration` | 3.0.0, planned 4.0.0 | 0 own, but 4 public variants print a `LocatedError` source (`lib.rs:312-337`: `UnableToProcessExplicitConfigFile`, `UnableToLoadFromEnvironmentVariable`, `UnableToLoadFromConfigFile`, `ConfigError`) | patch if the `LocatedError` text changes (decision b); a source-type change (decision a) is breaking, inside the planned 4.0.0 | breaking for those sources, inside the planned 4.0.0 |
 | `torrust-tracker-http-protocol` | 0.1.0, first publish | 11 | none (first publish) | none (first publish) |
 | `torrust-tracker-core` | 0.1.0, first publish | 7 | none (first publish) | none (first publish) |
 | `torrust-tracker-udp-server` | 0.1.0, first publish | 2 | none (first publish) | none (first publish) |
@@ -105,7 +105,11 @@ is nowhere in production today (fact 6).** Option 1 is not part of the recommend
    is a `LocatedError` still shows a path. Decide per path in T5, with the maintainer, between:
    (a) not formatting the located source into client text (use the variant's own message), or
    (b) a new `torrust-located-error` release whose `Display` omits the location and keeps it in
-   `Debug`. (b) is the smallest per-site change but touches a standalone repository.
+   `Debug`. (b) is the smallest per-site change but touches a standalone repository. (b) alone does
+   not cover the malformed `info_hash` paths: `torrust_info_hash::ConversionError` prints its own
+   location (`inventory.md`, T2 row for the standalone crates), so a response there keeps one library
+   path after the wrapper is fixed. Those paths need (a), suppressing the source in the client text,
+   or an upstream `torrust-info-hash` fix and a dependency update.
 3. **Never write `Location::caller()` in a trait impl, a closure, an `async fn` or code reached from
    them.** That is the rule T9 enforces and the ADR records; with fact 6 it means no new production
    capture of a location.
@@ -125,7 +129,8 @@ is nowhere in production today (fact 6).** Option 1 is not part of the recommend
 1. Keep the field and stop printing it (option 3), or remove the field as well (option 4) in the
    same slices, given that the publish plan makes the semver step free for every crate that is not yet
    published. This is the main decision for T5.
-2. For `LocatedError`: (a) per-path message, or (b) a new `torrust-located-error` release.
+2. For `LocatedError`: (a) per-path message, or (b) a new `torrust-located-error` release. The
+   malformed `info_hash` paths need (a) or an upstream `torrust-info-hash` fix even under (b).
 3. If the field is kept, whether a wrong `Debug` location in logs is acceptable until it is removed.
 
 ## Slicing proposal for T5 (to confirm)
@@ -134,9 +139,9 @@ is nowhere in production today (fact 6).** Option 1 is not part of the recommend
 | --- | --- | --- | --- | --- |
 | S1 | `primitives` | `Display` of `ParsePeerRoleError`, `IdConversionError` without location | `"x".parse::<PeerRole>()` message has no library path; `Id::try_from` likewise. Closes finding F3 | inside the planned 4.0.0 |
 | S2 | `http-protocol` | 11 variants. The three `Located(err).into()` wrapping sites (`announce.rs:543` info hash, `:560` peer id; `scrape.rs:84` info hash) are excluded: their source is a `LocatedError`, which prints a second location until S3 settles it, and the two info-hash sources are in a registry crate (`inventory.md`, standalone crates) | response body of a malformed announce and scrape has no library path, for the `Display` variants of the slice | first publish |
-| S3 | `http-core`, `axum-http-server`, `http-protocol` wrapping sites | `LocatedError` decision (a or b), key and whitelist reasons, and the three wrapping sites of S2 | same, through the HTTP server, including a malformed `info_hash` and a short `peer_id` | first publish |
+| S3 | `http-core`, `axum-http-server`, `http-protocol` wrapping sites | `LocatedError` decision (a or b), key and whitelist reasons, and the three wrapping sites of S2. The malformed `info_hash` paths use (a) (suppress the inner source in the client text) or wait for an upstream `torrust-info-hash` fix, since (b) leaves its own location | same, through the HTTP server, including a malformed `info_hash` (green only under (a) or after the upstream fix) and a short `peer_id` | first publish |
 | S4 | `tracker-core` | 7 variants, database conversion (class C reaches REST and UDP); the whitelist variant also reaches UDP announce replies | REST reply for a whitelist/database failure and UDP reply for a non-whitelisted announce have no library path | first publish |
-| S5 | `axum-server`, `configuration` | TLS startup text (`MissingTlsConfig`, `BadTlsConfig`) and the four `LocatedError`-source variants of `Error` in `configuration` | direct `to_string()` tests: a missing certificate and a bad configuration file give text with no library path | first publish |
+| S5 | `axum-server`, `configuration` | `BadTlsConfig` (a `LocatedError` source) and the four `LocatedError`-source variants of `Error` in `configuration`. `MissingTlsConfig` already prints no location (`tls.rs:15`), so it needs no `Display` change and is left to the field decision | direct `to_string()` tests: invalid PEM files through `make_rust_tls` (`BadTlsConfig`, `tls.rs:50-54`) and a bad configuration file give text with no library path | `axum-server`: first publish; `configuration`: inside the planned 4.0.0 (a patch under decision b) |
 | S6 | `udp-server` | `Internal` and `AuthRequired` are built only in `#[cfg(test)]` code, so no UDP reply exercises them; they get direct formatting tests | `to_string()` of each variant has no library path | first publish |
 | S7 | all | Enforcement test and skill update | grep or test from T3 fails on a new `Location::caller()` in a trait impl, closure or `async fn` | none |
 
