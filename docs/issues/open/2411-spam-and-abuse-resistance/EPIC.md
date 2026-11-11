@@ -6,7 +6,7 @@ epic: null
 github-issue: 2411
 spec-path: docs/issues/open/2411-spam-and-abuse-resistance/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-11 13:50"
+last-updated-utc: "2026-11-11 16:08"
 semantic-links:
   skill-links:
     - create-issue
