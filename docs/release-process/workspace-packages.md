@@ -194,7 +194,8 @@ External consumers can now use `primitives 0.1.1`. The tracker still uses the
 
 #### Week 3 — New feature in `core`
 
-A new API is added to `torrust-tracker-core`. Version bumped to `0.3.0`.
+A new API is added to `torrust-tracker-core`. Version bumped to `0.3.0`, and the tracker's
+`core` requirement raised to `0.3.0` in the same PR (precondition 2).
 
 ```sh
 # <sha> is the merged commit that carries the version bump.
