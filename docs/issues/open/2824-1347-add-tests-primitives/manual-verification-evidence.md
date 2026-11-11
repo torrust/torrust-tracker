@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2824-1347-add-tests-primitives/ISSUE.md
-last-updated-utc: "2026-11-11 14:35"
+last-updated-utc: "2026-11-11 14:31"
 ---
 
 # Manual Verification Evidence
