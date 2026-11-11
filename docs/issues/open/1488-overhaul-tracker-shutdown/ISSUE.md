@@ -6,7 +6,7 @@ epic: null
 github-issue: 1488
 spec-path: docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-11 09:40"
+last-updated-utc: "2026-11-11 11:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -213,11 +213,18 @@ deterministic tests, and manual evidence.
 | 19       | #2801 | [Remove legacy shutdown API and library OS signals](../../closed/2801-1488-si-19-remove-legacy-shutdown-api/ISSUE.md)     | Done       | Removed the legacy API; merged in PR #2807 with `torrust-server-lib` 0.6.0.                  |
 | 20       | #2668 | [Configure shutdown policy and deployment contract](../../closed/2668-1488-si-20-configure-shutdown-policy/ISSUE.md)     | Done       | Apply approved Q3/Q4 outcomes, budgets, configuration, and deployment guidance.                      |
 | 21       | #2697 | [Mark health check unhealthy during shutdown](../../closed/2697-1488-si-21-mark-health-unhealthy-during-shutdown/ISSUE.md)         | Done       | Set readiness to not ready before root cancellation and component drain.                             |
+| 22       | SI-25 | [Remove the unused public error variants](../../drafts/1488-si-25-remove-unused-error-variants/ISSUE.md) | Draft | Follow-up of SI-19. Remove the shutdown error variants nothing constructs (`Error::Stop`, `StartupNotification`, `StartupNotificationDropped` of the HTTP and REST servers; three `UdpError` variants). Breaking change to public enums. |
+| 23       | SI-26 | [Consolidate the shutdown supervisors and review the owner types](../../drafts/1488-si-26-consolidate-shutdown-supervisor/ISSUE.md) | Draft | Follow-up of SI-19. Consolidate the token-aware supervisors, review `OwnedTask`, `TokenAwareServerTask` and `OwnedReceiveLoop`, and adopt the health-check join order. |
 | —        | SI-3  | [Combined standalone environment migration](../../drafts/1488-si-3-fix-environment-stop/ISSUE.md)                         | Superseded | Replaced by SI-16 and SI-17. Do not implement.                                                       |
 | —        | SI-6  | [Concurrent supervisor outcomes](../../drafts/1488-si-6-align-grace-periods/ISSUE.md)                                     | Superseded | Replaced by existing issue #1586. Do not implement separately.                                       |
 | —        | SI-7  | [Standalone shutdown-progress reporting](../../drafts/1488-si-7-observable-shutdown-progress/ISSUE.md)                    | Superseded | Structured outcomes are incorporated into issue #1586. Do not implement.                             |
 | —        | SI-8  | [Original shutdown configuration](../../drafts/1488-si-8-configurable-grace-periods/ISSUE.md)                             | Superseded | Replaced by SI-20 after Q3/Q4 decisions. Do not implement.                                           |
 | —        | SI-9  | [Combined UDP shutdown migration](../../drafts/1488-si-9-improve-udp-shutdown/ISSUE.md)                                   | Superseded | Replaced by SI-14 and SI-15. Do not implement.                                                       |
+
+SI-25 and SI-26 were added on 2026-11-11 as follow-ups split out of SI-19 scope: the
+public error variants that nothing constructs after the legacy API removal, and the
+supervisor and owner-type consolidation. They are drafts and do not change the shutdown
+contract, which is implemented; the EPIC stays open until they are done or dropped.
 
 **Why SI-16 and SI-17 come before SI-20 and SI-21**: the HTTP and UDP package
 integration tests run through the standalone test environments, which still use

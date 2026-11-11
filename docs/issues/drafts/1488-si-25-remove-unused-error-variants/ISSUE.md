@@ -4,37 +4,38 @@ doc-type: issue
 issue-type: task
 status: draft
 priority: p3
-epic: null
+epic: 1488
 github-issue: null
-spec-path: docs/issues/drafts/follow-up-si-19-consolidate-shutdown-supervisor/ISSUE.md
-branch: "follow-up-si-19-consolidate-shutdown-supervisor"
+spec-path: docs/issues/drafts/1488-si-25-remove-unused-error-variants/ISSUE.md
+branch: "1488-si-25-remove-unused-error-variants"
 related-pr: null
-last-updated-utc: "2026-11-11 10:59"
+last-updated-utc: "2026-11-11 11:30"
 semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
     - docs/issues/closed/2801-1488-si-19-remove-legacy-shutdown-api/ISSUE.md
+    - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
 ---
 
 <!-- skill-link: create-issue -->
 
-# Draft: Consolidate the shutdown supervisors and review the owner types
+# Draft: Remove the unused public error variants
 
-> **Status**: Draft follow-up of [SI-19](../../closed/2801-1488-si-19-remove-legacy-shutdown-api/ISSUE.md). Not yet a GitHub issue.
+> **Status**: Draft SI-25 of [EPIC #1488](../../open/1488-overhaul-tracker-shutdown/ISSUE.md), a follow-up of [SI-19](../../closed/2801-1488-si-19-remove-legacy-shutdown-api/ISSUE.md). Not yet a GitHub issue.
 
 ## Goal
 
-Split out of SI-19 scope (Removal Constraint 1): consolidate the token-aware component supervisors, review the owner types (`OwnedTask`, `TokenAwareServerTask`, `OwnedReceiveLoop`) and adopt the health-check join order, a refactor that would widen the breaking surface.
+SI-19 removed the legacy shutdown API and left public error variants that nothing constructs. Remove them in the next breaking release.
 
 ## Scope
 
-The three parts (the supervisors, the owner types and the health-check join order) described in the Out of scope section of the SI-19 spec.
+`Error::Stop`, `Error::StartupNotification` and `Error::StartupNotificationDropped` of the HTTP and REST servers, and the `UdpError` variants `StartupNotification`, `Launcher` and `FailedToStartOrStopServer`. This is a breaking change to public enums, so it needs its own release decision.
 
 ## Acceptance Criteria
 
 - [ ] The change is made and `linter all` passes.
-- [ ] The maintainer's decision on the design is recorded before implementation.
+- [ ] A search for each variant finds no use in the tree.
 
 ## Architectural Decisions
 
@@ -62,6 +63,7 @@ To be written when the draft is refined into an issue.
 
 - 2026-11-11 09:40 UTC - AI agent (Claude Sonnet 5.5) - Draft created as a follow-up of SI-19; not yet a GitHub issue.
 - 2026-11-11 10:59 UTC - AI agent (Claude Sonnet 5.5) - Renamed to an unnumbered folder with `epic: null` and added the Architectural Decisions, Verification Plan and the other initialization sections as placeholders.
+- 2026-11-11 11:30 UTC - AI agent (Claude Sonnet 5.5) - Registered as SI-25 of EPIC 1488: renamed the folder to `1488-si-25-remove-unused-error-variants`, set `epic: 1488` and added the EPIC roadmap row (sequence 22, Draft).
 
 ## Acceptance Verification
 
