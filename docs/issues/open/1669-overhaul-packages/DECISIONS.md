@@ -278,6 +278,12 @@ production code (not test-only) and belongs in the client library alongside
 
 - Any change to the client health-check API can affect the server's launcher module.
 - The health-check function is small enough that its current location is pragmatic.
+- The HTTP side does not follow the same pattern: `torrust-tracker-axum-http-server` does its
+  health check with `reqwest` and has `client-lib` only as a dev-dependency. As a result
+  `udp-server` pulls `client-lib`, `http-protocol` and the client's `reqwest`/`hyper` stack into a
+  production build for one function. Accepted on 2026-11-11 (see "New findings" in
+  [workspace-coupling-report-2026-11-09.md](workspace-coupling-report-2026-11-09.md)); moving
+  `check` next to the UDP protocol or into `udp-core` would remove it if it ever matters.
 
 ### Supporting artifacts
 
