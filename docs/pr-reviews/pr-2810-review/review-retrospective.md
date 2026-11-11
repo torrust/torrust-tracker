@@ -16,17 +16,17 @@ semantic-links:
 
 A blameless, evidence-based look at how PR #2810 (issue #2762, EPIC #2758: `package-coverage-check` follows the CLI output
 contract) was reviewed and how its findings were processed. The audit record is
-[`PR-REVIEW.md`](PR-REVIEW.md); finding IDs below are its IDs (F1 to F23), not the reviewers'.
+[`PR-REVIEW.md`](PR-REVIEW.md); finding IDs below are its IDs (F1 to F26), not the reviewers'.
 
 ## Review Summary
 
 | Metric | Value |
 | ------ | ----- |
-| Review rounds | 5 (4 human, 1 bot): da2ce7 reviews 5846429188, 5846796508, 5847265767 and 5847623438; Copilot review 5846504036 |
-| Audit findings | 23 |
+| Review rounds | 6 (5 human, 1 bot): da2ce7 reviews 5846429188, 5846796508, 5847265767, 5847623438 and 5850003910; Copilot review 5846504036 |
+| Audit findings | 26 |
 | Re-raised findings (`RE_RAISE_OF`) | 8 (F9 to F12, F16, F17, F18, F22) |
-| Findings about the audit record itself | 9 (F13 to F15, F18 to F23) |
-| Commits on the branch | 8 (4 audit-only: the four `docs(pr-reviews)` commits) |
+| Findings about the audit record itself | 10 (F13 to F15, F18 to F24) |
+| Commits on the branch | 8 (1 audit-only, the round-1 audit commit; the other three `docs(pr-reviews)` commits, rounds 2 to 4, also change `ISSUE.md` and the evidence; from `git show --name-status`) |
 | First review to last thread resolution | about 17:33Z to 20:00Z on 2026-11-10 (the resolution times are not captured; 20:00Z is the last reply) |
 | AI models used | Claude Sonnet 5.5 (author), unknown (reviewers) |
 
@@ -67,6 +67,9 @@ audit, replies), and most of it recurred across rounds. Per finding:
 | F21 | 3 | Ten older replies still name commits by id. | F14 was fixed in the files only, not in the replies the audit cites. | Process (incomplete sweep) | Sweep review replies as well as the tree; edit the replies through the API. |
 | F22 | 4 | The round-3 entry again says replies follow the push. | F19 was corrected in the older entry only, and the new entry repeated the mistake. | Process (repeat of F19) | Write the entry after its events and check the new text against the same rule. |
 | F23 | 4 | Round sentences out of order; "below" points the wrong way. | Appended text without rereading its position. | Doc | Reread the paragraph and the cross-references after each insertion. |
+| F24 | 5 | Rows F22 and F23 point to replies that defer the fix; the F22 Solution overstates the log. | Replies were posted before the fix, and the row text was written from the plan, not from the entry. | Process (event order, claim before evidence) | Reply after the fix, and reread each Solution against the entry it names. |
+| F25 | 5 | "4 audit-only" commits does not match `git show --name-status`. | The count was inferred from commit subjects, not derived from the diffs. | Doc (number not derived) | Derive each number as the template asks, and say how. |
+| F26 | 5 | The retro understates what the audit validator checks. | The validator was described from memory, not read. | Unverified claim | Read the tool before describing it. |
 
 Patterns across the table:
 
@@ -78,7 +81,7 @@ Patterns across the table:
 ## Root Causes
 
 - Evidence and audit text were drafted ahead of the work (expected results, planned times) and corrected later, in place.
-- No mechanical check relates review threads to audit rows, stamps to commit times, or commit ids in replies; the validator checks the table shape only.
+- No mechanical check relates review threads to audit rows, stamps to commit times, or commit ids in replies; `validate-audit-record.py` ties each row to its source comment, its own reply thread, a Resolution reference among the PR's commits, the severity and the log order, but it has no reverse check (every thread has a row), no stamp-against-commit-time check and no commit-id check.
 - A fix was scoped to the cited lines; no step asked "where else does this mistake occur" (the `process-pr-review` sweep rule exists but was applied late).
 - The failure path of the pipe was not exercised, and the runner's default shell was assumed.
 
@@ -91,7 +94,7 @@ Patterns across the table:
 
 ## Improvements for Future Reviews
 
-1. Check that every review thread has an audit row, that no `last-updated-utc` or log stamp is later than its commit, and that no commit id appears in the audit or evidence — `frontmatter-validator` or a new audit checker — PROPOSED
+1. Extend `validate-audit-record.py` with the three checks it lacks (every review thread has a row, no `last-updated-utc` or log stamp is later than its commit, no commit id in the audit or evidence) — `validate-audit-record.py` — PROPOSED
 2. Add a failure-path step for changed pipes and exit codes to the `implement-workflow` skill — `.github/skills` — PROPOSED
 3. Put "write the log entry after the replies" and "sweep replies as well as the tree" into the `process-pr-review` checklist — `process-pr-review` skill — PROPOSED
 
