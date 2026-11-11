@@ -160,12 +160,17 @@ its tests do not pin behavior a finding reports as wrong:
 
 ## Bug-Fix Process
 
-Not applicable: coverage and test-design work, not a known defect. A defect found is handed off
-through the findings procedure and fixed in its own issue under the `fix-bug` skill.
+The issue as a whole is coverage and test-design work, not a known defect, and a defect found is
+handed off through the findings procedure and fixed in its own issue under the `fix-bug` skill. The
+one exception is F2 (`PeerRole` JSON casing), a confirmed defect the maintainer decided to fix here,
+in slice S1: S1 follows the [fix-bug](../../../../.github/skills/dev/debugging/fix-bug/SKILL.md)
+workflow and records, in `manual-verification-evidence.md`, the initial reproduction, the red and
+green regression-test results and the final like-for-like recheck (or the documented infeasibility
+and the strongest substitute evidence).
 
 ## Regression Test Strategy
 
-Not applicable as a bug-fix strategy. For each increment choose the smallest deterministic test that
+For F2 the regression test fails before the `fix` commit and passes after it (slice S1). For each other increment choose the smallest deterministic test that
 protects the package-owned behavior and record it in the plan. Never pin behavior that a handed-off
 finding reports as wrong without a recorded maintainer decision: leave it uncovered with the finding
 as owner until the fix merges.
@@ -233,8 +238,9 @@ Rules: S0 to S3 use `Related to #2824`; only S4 uses `Closes #2824`. Do not stac
 branches; keep at most one implementation PR open. Titles follow the repository convention, for
 example `test(primitives): [#2824] cover the peer seeder and leecher classification`. Each PR
 updates the ledger, plan index, slice table, the slice measurement in `coverage-evidence.md`, and the
-EPIC "Latest" values. Manual verification and the mutation run happen once, in S4 (S2 and S3
-change tests and documentation only; S1 changes behavior and is covered by its own regression tests). Re-measure the baseline at the start of every slice.
+EPIC "Latest" values. The tracker-wide manual scenarios (M1, M2) and the mutation run happen once, in S4 (S2 and S3
+change tests and documentation only). S1 changes behavior, so it records its own F2 reproduction,
+regression results and recheck in `manual-verification-evidence.md` before it merges. Re-measure the baseline at the start of every slice.
 
 ## Commit Points
 
