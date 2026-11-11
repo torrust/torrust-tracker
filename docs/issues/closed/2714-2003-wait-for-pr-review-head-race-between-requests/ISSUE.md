@@ -247,7 +247,7 @@ It is shell, not Python.
 
 ## Implementation Completion Review
 
-- Retrospective: the implementation needed none; the review process produced one, at `docs/pr-reviews/pr-2815-review/review-retrospective.md`. The implementation matched the spec (option 1, one moved read); no deviations.
+- Retrospective: the implementation needed none; the review process produced one, at `docs/pr-reviews/pr-2815-review/review-retrospective.md`. The implementation matched the spec (option 1, as the Decision records it: one moved read instead of a second one); no deviations from it.
 - Review of the evidence: AC1 and AC2 and the final V1 recheck are recorded in `manual-verification-evidence.md` (V2) and in the tests; the tests were run red and green. AC3 is evidenced by the `SKILL.md` paragraph after the result table.
 
 ## References
