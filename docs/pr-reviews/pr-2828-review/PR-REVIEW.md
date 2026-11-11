@@ -344,7 +344,7 @@ Rows F1-F12 come from review 5858450371 (`da2ce7`). Rows F13, R1 and R2 come fro
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2828#discussion_r4538021897
 
-### F20 - This log entry cites the PR-branch commit `29dc3421d`
+### F20 - This log entry cites a PR-branch commit by its id
 
 - PR number: 2828
 - Source review ID: 5859145551
