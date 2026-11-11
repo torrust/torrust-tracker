@@ -9,7 +9,7 @@ github-issue: 2823
 spec-path: docs/issues/open/2823-addassign-aggregate-swarm-metadata/ISSUE.md
 branch: "2823-addassign-aggregate-swarm-metadata"
 related-pr: 2827
-last-updated-utc: "2026-11-11 00:00"
+last-updated-utc: "2026-11-11 13:15"
 semantic-links:
   skill-links:
     - create-issue
@@ -45,8 +45,8 @@ But unused code should not be kept. The in-tree callers that build an `Aggregate
 (`swarm-coordination-registry` `Registry::get_aggregate_swarm_metadata`, and the ten
 `get_metrics` implementations in eight modules of `torrent-repository-benchmarking`) sum the four fields by hand
 (`metrics.total_complete += u64::from(stats.complete)` …) and never use `AddAssign`. So the impl
-looks like dead code, and the aggregation logic is duplicated in eleven production copies (plus a hand-written one in
-`torrent-repository-benchmarking/tests/repository/mod.rs`).
+looks like dead code, and the aggregation logic is duplicated in eleven production copies (plus a hand-written one in the test
+`it_should_get_metrics` in `torrent-repository-benchmarking/tests/repository/mod.rs`).
 
 The live summations use the same unchecked `u64 +=`, so they also panic in debug and wrap in
 release. Removing the impl removes one unused copy of that behaviour, not the behaviour itself;
@@ -55,8 +55,8 @@ the live summations are out of scope here (see Out of Scope).
 ### Investigation results
 
 - **Removal experiment**: deleted the impl and the `use std::ops::AddAssign;` import, then ran
-  `cargo check --workspace --all-targets --all-features` (stable Rust toolchain). Result: **compiles cleanly** (all workspace crates, tests, benches, examples). `cargo test --doc --workspace`
-  (`cargo test --doc --workspace`, stable Rust toolchain) also passes. Nothing uses the impl. The experiment edit was reverted afterwards.
+  `cargo check --workspace --all-targets --all-features` (stable Rust toolchain). Result: **compiles cleanly** (all workspace crates, tests, benches, examples). `cargo test --doc --workspace` (stable Rust
+  toolchain) also passes. Nothing uses the impl. The experiment edit was reverted afterwards.
 - **History**: `git log -S'impl AddAssign for'` first hits `9a43815d0` (2024-02-13, "move
   torrent/repository to packages"), so that commit added the impl for `TorrentsMetrics`; in the tree
   just before it no `.rs` file names `AddAssign` and `TorrentsMetrics` in `src/core/mod.rs` has no
@@ -130,8 +130,9 @@ Not applicable for the delete branch. For the harden branch: a `#[should_panic(e
 
 ### Progress Log
 
-- 2026-11-11 00:00 UTC - Claude Code (Sonnet 5.5) - Drafted spec; ran removal experiment (check all targets/features + doctests: pass) and history check. Recommendation: delete.
-- 2026-11-11 UTC - Claude Code (Sonnet 5.5) - Maintainer approved deletion; created #2823 and PR #2827; review round 1 of PR 2827 (da2ce7 F1-F6): recorded the breaking-change/major-version consequence, corrected counts and history, set `epic: null` like #2798/#2804, ticked the checkpoints and criteria, added the Acceptance Verification table, noted that the live summation keeps the same wrap, dropped the session-addressed task, reworded the commit body.
+- 2026-11-11 11:21 UTC - Claude Code (Sonnet 5.5) - Drafted spec; ran removal experiment (check all targets/features + doctests: pass) and history check. Recommendation: delete.
+- 2026-11-11 12:46 UTC - Claude Code (Sonnet 5.5) - Maintainer approved deletion; created #2823 and PR #2827; review round 1 of PR 2827 (da2ce7 F1-F6): recorded the breaking-change/major-version consequence, corrected counts and history, set `epic: null` like #2798/#2804, ticked the checkpoints and criteria, added the Acceptance Verification table, noted that the live summation keeps the same wrap, dropped the session-addressed task, corrected the PR description. The body of the first commit still has the old sentence about the release-mode wrap (not amended: no force-push).
+- 2026-11-11 13:15 UTC - Claude Code (Sonnet 5.5) - Review round 2 of PR 2827 (da2ce7 F7-F10): corrected the stamps of the two log entries above, replaced the branch commit id in the AC3 evidence with the commit subject, fixed two wording slips, and added the review audit record `docs/pr-reviews/pr-2827-review/PR-REVIEW.md`.
 
 ## Acceptance Criteria
 
@@ -156,7 +157,7 @@ Not applicable: no user-visible behaviour changes.
 | ----- | ---------------------- | -------------------------------------------------------------------------------------------------- |
 | AC1   | DONE                   | PR #2827 diff removes the impl and import                                                          |
 | AC2   | DONE                   | `cargo check --workspace --all-targets --all-features` and `cargo test --doc --workspace`, stable  |
-| AC3   | DONE                   | `linter all` exit 0 at `80ac60d7c`                                                                 |
+| AC3   | DONE                   | `linter all` exit 0 on the commit `refactor(primitives): [#2823] remove unused AddAssign for AggregateActiveSwarmMetadata`                                                                 |
 
 ## Risks and Trade-offs
 
@@ -175,8 +176,8 @@ Not applicable: no user-visible behaviour changes.
 ### Lessons (lessons.md-style note)
 
 - `Registry::get_aggregate_swarm_metadata` (swarm-coordination-registry) and the ten
-  `get_metrics` implementations in `torrent-repository-benchmarking` (eight modules; the test helper in
-  `tests/repository/mod.rs` has another copy) each re-implement the
+  `get_metrics` implementations in `torrent-repository-benchmarking` (eight modules; the body of the test
+  `it_should_get_metrics` in `tests/repository/mod.rs` has another copy) each re-implement the
   summation of the four aggregate fields by hand. This duplication is why the `AddAssign` impl
   became unused. If the summation is ever consolidated, a single helper in `primitives` (with
   explicit overflow behaviour) is the natural home. The live summations keep the unchecked `u64 +=` (panic in debug, wrap in release);
