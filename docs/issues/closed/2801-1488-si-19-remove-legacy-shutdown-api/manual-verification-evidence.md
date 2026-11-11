@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/closed/2801-1488-si-19-remove-legacy-shutdown-api/ISSUE.md
-last-updated-utc: "2026-11-11 09:45"
+last-updated-utc: "2026-11-11 09:40"
 ---
 
 <!-- cspell:ignore ltnup -->

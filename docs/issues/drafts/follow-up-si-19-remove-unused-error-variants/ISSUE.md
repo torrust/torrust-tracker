@@ -4,12 +4,12 @@ doc-type: issue
 issue-type: task
 status: draft
 priority: p3
-epic: 1488
+epic: null
 github-issue: null
-spec-path: docs/issues/drafts/2801-follow-up-remove-unused-error-variants/ISSUE.md
-branch: "2801-follow-up-remove-unused-error-variants"
+spec-path: docs/issues/drafts/follow-up-si-19-remove-unused-error-variants/ISSUE.md
+branch: "follow-up-si-19-remove-unused-error-variants"
 related-pr: null
-last-updated-utc: "2026-11-11 09:45"
+last-updated-utc: "2026-11-11 10:19"
 semantic-links:
   skill-links:
     - create-issue
@@ -35,3 +35,29 @@ SI-19 removed the legacy shutdown API and left public error variants that nothin
 
 - [ ] The change is made and `linter all` passes.
 - [ ] A search for each variant finds no use in the tree.
+
+## Implementation Plan
+
+To be written when the draft is refined into an issue.
+
+## Commit Points
+
+To be written when the draft is refined into an issue.
+
+## Progress Tracking
+
+### Workflow Checkpoints
+
+- [ ] Draft refined and the GitHub issue created
+
+### Progress Log
+
+- 2026-11-11 10:19 UTC - AI agent (Claude Sonnet 5.5) - Draft created as a follow-up of SI-19; not yet a GitHub issue.
+
+## Acceptance Verification
+
+To be written when the draft is refined into an issue.
+
+## Implementation Completion Review
+
+To be completed when the work is done.

@@ -9,7 +9,7 @@ github-issue: 2450
 spec-path: docs/issues/closed/2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md
 branch: "2450-migrate-health-check-api-test-environment"
 related-pr: 2652
-last-updated-utc: "2026-11-11 09:45"
+last-updated-utc: "2026-11-11 09:40"
 semantic-links:
   skill-links:
     - create-issue

@@ -9,7 +9,7 @@ github-issue: 2449
 spec-path: docs/issues/closed/2449-1488-si-23-migrate-rest-api-test-environment/ISSUE.md
 branch: "2449-migrate-rest-api-test-environment"
 related-pr: 2643
-last-updated-utc: "2026-11-11 09:45"
+last-updated-utc: "2026-11-11 09:40"
 semantic-links:
   skill-links:
     - create-issue
