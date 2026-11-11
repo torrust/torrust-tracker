@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Round 1: da2ce7's review `5856655819` (F1 to F3), processed after the replies were posted. The record is therefore late, which is the pattern this pull request describes; the replies were posted first because I read the validator's "before replying" line as requiring reply URLs that do not exist yet. The line now says to run the validator once the reply URLs are recorded. Round 2: Copilot's review `5856716279` (F4, F5), on the first commit, processed with the record already present. Round 3: da2ce7's review `5857046891`, whose reviewer IDs F4 to F7 collide with existing rows and are recorded as F6 to F9. Round 4: da2ce7's review `5857359407`, whose IDs F9 to F11 are recorded as F10 to F12.
+Round 1: da2ce7's review `5856655819` (F1 to F3), processed after the replies were posted. The record is therefore late, which is the pattern this pull request describes; the replies were posted first because I read the validator's "before replying" line as requiring reply URLs that do not exist yet. The line now says to run the validator once the reply URLs are recorded. Round 2: Copilot's review `5856716279` (F4, F5), on the first commit, processed with the record already present. Round 3: da2ce7's review `5857046891`, whose reviewer IDs F4 to F7 collide with existing rows and are recorded as F6 to F9. Round 4: da2ce7's review `5857359407`, whose IDs F9 to F11 are recorded as F10 to F12. Round 5: da2ce7's review `5857689660`; his F12 is recorded as F13 because F12 exists, and his F15 to F17 keep their IDs.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -57,6 +57,10 @@ Round 1: da2ce7's review `5856655819` (F1 to F3), processed after the replies we
 | F10 | review-finding:pr-2818-f10 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 | F11 | review-finding:pr-2818-f11 | Human | Nit | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F12 | review-finding:pr-2818-f12 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F13 | review-finding:pr-2818-f13 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F15 | review-finding:pr-2818-f15 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F16 | review-finding:pr-2818-f16 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F17 | review-finding:pr-2818-f17 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -216,6 +220,58 @@ Round 1: da2ce7's review `5856655819` (F1 to F3), processed after the replies we
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4536844415
 
+### F13 - Row F8's Solution still describes the removed 09:40 entry
+
+- PR number: 2818
+- Source review ID: 5857689660
+- Reviewer finding ID: F12
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4537053538
+- Concern: The F8 Solution described an arrival entry that was removed, and the F10 Solution named a correction that landed in another commit.
+- Solution: Restated both Solutions as the current tree and named the commits by subject.
+- Current-tree verification: Read the F8 and F10 detail entries.
+- Resolution reference: docs(pr-reviews): cite subjects and state the current tree in the PR 2818 record
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4537106365
+
+### F15 - The record cites two branch commit ids
+
+- PR number: 2818
+- Source review ID: 5857689660
+- Reviewer finding ID: F15
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4537053552
+- Concern: The record cited two branch commit ids, which a rebase changes.
+- Solution: Cited the commits by subject, in the log correction and the F11 entry.
+- Current-tree verification: The commit-id check prints nothing for the record.
+- Resolution reference: docs(pr-reviews): cite subjects and state the current tree in the PR 2818 record
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4537106768
+
+### F16 - Row F11 pairs NO_ACTION with RESOLVED
+
+- PR number: 2818
+- Source review ID: 5857689660
+- Reviewer finding ID: F16
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4537053559
+- Concern: A no-change thread is recorded SUPERSEDED, and its reply is in the prescribed form.
+- Solution: Recorded F11 as SUPERSEDED; the reply wording gap is in the skill and is left unchanged.
+- Current-tree verification: Read the F11 row.
+- Resolution reference: docs(pr-reviews): cite subjects and state the current tree in the PR 2818 record
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4537107196
+
+### F17 - The round-4 update times resolutions that had not happened
+
+- PR number: 2818
+- Source review ID: 5857689660
+- Reviewer finding ID: F17
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4537053564
+- Concern: The retrospective stamped a resolution time before the threads were resolved and its narrative stopped at round 3.
+- Solution: Reported the resolution time as not captured and added a paragraph on rounds 4 and 5.
+- Current-tree verification: Read the Review Summary and What Made the Review Costly sections.
+- Resolution reference: docs(pr-reviews): cite subjects and state the current tree in the PR 2818 record
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4537107463
+
 ## Processing Log
 
 - 2026-11-11 09:35 UTC - Review 5856655819 arrived with three findings.
@@ -227,6 +283,9 @@ Round 1: da2ce7's review `5856655819` (F1 to F3), processed after the replies we
 - 2026-11-11 10:33 UTC - Review 5857359407 arrived with three findings.
 - 2026-11-11 10:38 UTC - Fixed, replied, and added F10 to F12.
 - 2026-11-11 10:38 UTC - Correction: the commit `docs(skills): fill in reply URLs after replying in the audit start rule` rewrote this log in place (it inserted a 09:40 entry and reworded the 09:45 entry); the entries were restored, review 5856716279 arrived at 09:40 and was processed at 09:45.
+- 2026-11-11 10:59 UTC - Review 5857689660 arrived with four findings.
+- 2026-11-11 11:05 UTC - Fixed, replied, and added F13 and F15 to F17.
+- 2026-11-11 11:05 UTC - Correction: the commit-id replacement in the 10:38 correction entry, made in the commit `docs(pr-reviews): cite subjects and state the current tree in the PR 2818 record`, edited that entry in place; its content is otherwise unchanged.
 
 ## Completion Rules
 

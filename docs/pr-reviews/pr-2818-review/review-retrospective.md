@@ -19,11 +19,11 @@ Written by the PR author from the audit record and `git log`, following
 
 | Metric | Value |
 | ------ | ----- |
-| Review rounds | 4 (3 human, 1 bot) |
-| Audit findings | 12 |
+| Review rounds | 5 (4 human, 1 bot) |
+| Audit findings | 16 |
 | Re-raised findings (`RE_RAISE_OF`) | 0 |
-| Findings about the audit record itself | 5 (F6, F7, F8, F10, F12) |
-| Commits on the branch | 9 at the time of writing (5 audit and retrospective only) |
+| Findings about the audit record itself | 8 (F6, F7, F8, F10, F12, F13, F15, F17) |
+| Commits on the branch | 11 at the time of writing (7 audit and retrospective only) |
 | First review to last thread resolution | not captured (first review 09:35 UTC, 2026-11-11; the forge's resolution times were not recorded) |
 | AI models used | Claude Sonnet 5.5 (author), unknown (reviewer) |
 
@@ -31,7 +31,7 @@ Numbers: the table in `PR-REVIEW.md`, `git log torrust/develop..HEAD`, and the r
 
 ## What Went Well
 
-1. The change was small (two skills, 13 lines added and 4 removed), so there were four rounds and every finding was minor.
+1. The change was small (two skills, 13 lines added and 4 removed), so there were five rounds and every finding was minor.
 2. The reviewer re-checked the motivation against the audits and found that the description overstated it
    (F3); the description now states only what the audits show.
 
