@@ -9,7 +9,7 @@ github-issue: 2808
 spec-path: docs/issues/closed/2808-workspace-package-release-process/ISSUE.md
 branch: "2808-workspace-package-release-process"
 related-pr: 2825
-last-updated-utc: "2026-11-11 15:07"
+last-updated-utc: "2026-11-11 17:26"
 semantic-links:
   skill-links:
     - create-issue
@@ -217,6 +217,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-11-11 12:34 UTC - Claude Code (Claude Sonnet 5.5) - Correction to the 11:57 entry (audit F17): the discovery in audit F1 is material (a retained step that a review had to remove), so the completion review creates `implementation-retrospective.md` instead of the "no separate retrospective" the 11:57 entry stated.
 - 2026-11-11 13:51 UTC - Claude Code (Claude Sonnet 5.5) - Archived after PR 2825 merged (issue #2808 closed on GitHub): spec moved to `docs/issues/closed/`, `status: done`, `related-pr: 2825`; da2ce7 approved the final head. The torrust-server-lib issue (tag backfill and checklist cleanup) is still to be created by the maintainer from `torrust-server-lib-followup-issue.md`.
 - 2026-11-11 14:19 UTC - Claude Code (Claude Sonnet 5.5) - Correction to the archive commit's checkpoint ticks (close-out review F2, F3; the 13:51 entry above says nothing about checkpoints): the checkpoint "Reviewer validated acceptance criteria" is left open, because no reviewer edited this spec, and the checkpoint "Independent reviewer reports recorded" is ticked, because the reviews of PR 2809 and PR 2825 are recorded in `docs/pr-reviews/pr-2809-review/PR-REVIEW.md` and `docs/pr-reviews/pr-2825-review/PR-REVIEW.md`. The 16:17 entry named `docs/issues/open/` correctly and is restored.
+- 2026-11-11 17:26 UTC - Claude Code (Claude Sonnet 5.5) - Correction to Background ("Known candidate: 0.5.0 -> 2df974f") and to the first follow-up text: reading `.cargo_vcs_info.json` of each crate on crates.io shows the published commits are `b87f6fa` (0.1.0), `d17fdb1` (0.2.0), `2b3f8ec` (0.3.0, a merge commit), `f3690ed` (0.4.0) and `0ad8ca0` (0.5.0, a merge commit); `2df974f` is the pre-merge feature commit. The follow-up was created as torrust/torrust-server-lib#9 with the verified table, and `torrust-server-lib-followup-issue.md` now holds that text.
 
 ## Acceptance Criteria
 
