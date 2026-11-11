@@ -9,7 +9,7 @@ github-issue: 2822
 spec-path: docs/issues/open/2822-2003-wait-for-pr-review-gh-option/ISSUE.md
 branch: "2822-wait-for-pr-review-gh-option-spec"
 related-pr: 2826
-last-updated-utc: "2026-11-11 13:28"
+last-updated-utc: "2026-11-11 14:20"
 semantic-links:
   skill-links:
     - create-issue
@@ -224,6 +224,10 @@ increment, before final verification, commit and pull request.
   scope and risks match D2, the lookup bound and baseline limit are stated, the test changes and M4 are fixed.
 - 2026-11-11 13:28 UTC - AI assistant (Claude Code, Claude Sonnet 5.5) - Addressed the third review of PR #2826:
   the lookup's budget and baseline limit are stated exactly, and the scenarios that `gh_identity` changes are named.
+- 2026-11-11 13:54 UTC - AI assistant (Claude Code, Claude Sonnet 5.5) - Addressed the fourth review of PR #2826:
+  the D2 test bullet names the six scenarios that change, and the Baseline bullet says `--since-head-sha` takes the head.
+- 2026-11-11 14:20 UTC - AI assistant (Claude Code, Claude Sonnet 5.5) - Addressed the fifth review of PR #2826: this
+  log and `last-updated-utc` now cover the fourth round.
 
 ## Acceptance Criteria
 
