@@ -64,6 +64,8 @@ Four reviews carry findings: da2ce7 review 5856686186 and Copilot review 5856712
 | F13 | review-finding:pr-2819-f13 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F14 | review-finding:pr-2819-f14 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F15 | review-finding:pr-2819-f15 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F16 | review-finding:pr-2819-f16 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F17 | review-finding:pr-2819-f17 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -314,6 +316,32 @@ Four reviews carry findings: da2ce7 review 5856686186 and Copilot review 5856712
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2819#discussion_r4537067400
 
+### F16 - The round 2 log entry is stamped before its commit, and the F7 reply preceded the commit it names.
+
+- PR number: 2819
+- Source review ID: 5857539856
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2819#discussion_r4536935111
+- Concern: The round 2 log entry is stamped before its commit, and the F7 reply preceded the commit it names.
+- Solution: An appended correction entry names the commit time, the F7 reply order and the Copilot timeout notice.
+- Current-tree verification: The last Processing Log entry.
+- Resolution reference: docs(pr-reviews): [#2819] record the third review round in the audit
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2819#discussion_r4537105878
+
+### F17 - The F4 entry restates the finding without its commit-subject half and records it as fixed.
+
+- PR number: 2819
+- Source review ID: 5857539856
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2819#discussion_r4536935127
+- Concern: The F4 entry restates the finding without its commit-subject half and records it as fixed.
+- Solution: The F4 concern is restated as raised and the Solution records that only the title was changed.
+- Current-tree verification: `grep -n "fixed for the title only"` in this file.
+- Resolution reference: docs(pr-reviews): [#2819] record the third review round in the audit
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2819#discussion_r4537106207
+
 ## Processing Log
 
 - 2026-11-11 09:43 UTC - Round 1 reviews received (da2ce7 at 09:37, Copilot at 09:40); replies posted and threads resolved between 09:42 and 09:43 UTC. The replies say "Fixed in 4a6e476d6"; that id is the commit `docs(issues): [#2801] address the review of the close-out PR`, mapped here because review comments cannot be edited (F8).
@@ -321,6 +349,7 @@ Four reviews carry findings: da2ce7 review 5856686186 and Copilot review 5856712
 - 2026-11-11 10:23 UTC - Round 2 replies posted after the fix commit `docs(issues): [#2801] address the second review of the close-out PR`, and this audit added in the commit that carries this entry.
 - 2026-11-11 11:01 UTC - Round 3 review of da2ce7 received at 10:47 UTC (approval with five findings, `F13` to `F17`); replies for `F13` to `F15` posted between 11:01:13 and 11:01:19 UTC after the fix commit `docs(issues): [#2801] address the third review of the close-out PR`.
 - 2026-11-11 11:03 UTC - Correction of the two round 2 entries above, as the log is append-only: the round 2 entry stamped 10:23 is carried by a commit made at 10:25:05 (its author time is 10:23:24); the `F7` reply (10:22:04) called the audit fixed before that commit existed, and the replies of `F9` to `F12` followed their fix commit; and the Copilot review at 10:04 UTC says its full agentic review did not start before the timeout.
+- 2026-11-11 11:07 UTC - Replies for `F16` and `F17` posted at 11:05 UTC after the fix commit `docs(pr-reviews): [#2819] record the third review round in the audit`; their audit rows are added in the commit that carries this entry.
 
 ## Completion Rules
 
