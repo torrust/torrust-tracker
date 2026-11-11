@@ -131,7 +131,7 @@ added as in #1348 following the `add-rust-dependency` skill.
 - Production behavior changes in `packages/primitives/src/`, except the F2 fix (`PeerRole` JSON
   casing) planned for slice S1 and listed in In Scope.
 - Tests of other packages that use these types; shared test-support reorganization
-  (`peer::fixture`: classified as test support in the `peer.rs` record; any move behind a `testing`
+  (`peer::fixture`: to be classified as test support in the S2 `peer.rs` record; any move behind a `testing`
   feature belongs to the F5 follow-up, not to this issue); #2301 and #2361.
 - Removing the deprecated re-exports (EPIC #1669).
 - Coverage-percentage targets and tests added only to move line totals.
@@ -397,8 +397,8 @@ Reviewed against observed behavior after the last slice, before the issue is clo
 - `peer::fixture` is compiled unconditionally and imported by six other packages, although the ADR
   `20261021190318_share_workspace_test_support_through_testing_features.md` puts shared test support
   behind a `testing` feature. EPIC #2482 (closed, `status: done`) did not reorganize it. Its lines are
-  classified as test support in the `peer.rs` record (S2): no package-owned behavior, so no unit test
-  by decision; the live owner of any move is the F5 follow-up (issue number to be filled in).
+  planned to be classified as test support in the `peer.rs` record (S2): no package-owned behavior, so
+  no unit test by decision; the live owner of any move is the F5 follow-up (issue number to be filled in).
 - `develop` moves under the work; mitigate by re-measuring at every slice start.
 
 ## Implementation Completion Review
