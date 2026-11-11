@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-All four findings are in the body of review 5856630973: a rename without changes has no diff line to anchor on, so there are no review threads and every row is `NON_RESOLVABLE`.
+F1 to F4 are in the body of review 5856630973 and F5 to F10 in the body of review 5856904371: the first review found a rename without changes, which has no diff line to anchor on, and neither review has threads and every row is `NON_RESOLVABLE`.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -49,6 +49,12 @@ All four findings are in the body of review 5856630973: a rename without changes
 | F2 | review-finding:pr-2817-f2 | Human | Major | metadata | ORIGINAL | FIXED | NON_RESOLVABLE |
 | F3 | review-finding:pr-2817-f3 | Human | Minor | link-integrity | ORIGINAL | FIXED | NON_RESOLVABLE |
 | F4 | review-finding:pr-2817-f4 | Human | Nit | metadata | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F5 | review-finding:pr-2817-f5 | Human | Minor | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F6 | review-finding:pr-2817-f6 | Human | Nit | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F7 | review-finding:pr-2817-f7 | Human | Minor | maintainability | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F8 | review-finding:pr-2817-f8 | Human | Nit | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F9 | review-finding:pr-2817-f9 | Human | Nit | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
+| F10 | review-finding:pr-2817-f10 | Human | Nit | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
 
 ## Finding Details
 
@@ -104,6 +110,85 @@ All four findings are in the body of review 5856630973: a rename without changes
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2817#issuecomment-6792409028
 
+### F5 - AC3 is placed in the evidence file
+
+- PR number: 2817
+- Source review ID: 5856904371
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2817#pullrequestreview-5856904371
+- Concern: The completion review said AC1 to AC3 are recorded in the evidence file; AC3 is evidenced by the skill paragraph.
+- Solution: The review now names AC1 and AC2 with the evidence file and tests, and AC3 with the `SKILL.md` paragraph.
+- Current-tree verification: `grep -n "AC3 is evidenced" ISSUE.md` finds it.
+- Resolution reference: docs(issues): [#2714] name the skill paragraph as the evidence of AC3
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2817#issuecomment-6792835235
+
+### F6 - "no deviations" against the Decision wording
+
+- PR number: 2817
+- Source review ID: 5856904371
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2817#pullrequestreview-5856904371
+- Concern: The review said "no deviations" while the Decision records a moved read instead of a second one.
+- Solution: The review states the moved read as the Decision does.
+- Current-tree verification: `grep -n "instead of a second one" ISSUE.md` finds it.
+- Resolution reference: docs(issues): [#2714] state the completion review against the Decision wording
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2817#issuecomment-6792835235
+
+### F7 - The audit log cites a PR-branch commit id
+
+- PR number: 2817
+- Source review ID: 5856904371
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2817#pullrequestreview-5856904371
+- Concern: The audit log cited `dce968aa8`, which is not on `develop`.
+- Solution: The log cites the first close-out commit by its subject.
+- Current-tree verification: `grep -n "dce968aa8" PR-REVIEW.md` prints nothing.
+- Resolution reference: docs(pr-reviews): [#2714] cite the first close-out commit by its subject
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2817#issuecomment-6792835235
+
+### F8 - The audit drops template text marked as copied verbatim
+
+- PR number: 2817
+- Source review ID: 5856904371
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2817#pullrequestreview-5856904371
+- Concern: The Status Values section lost lines of the template.
+- Solution: The section is copied verbatim from the template.
+- Current-tree verification: The section matches `docs/templates/PR-REVIEW-TEMPLATE.md` up to the guidance comment.
+- Resolution reference: docs(pr-reviews): [#2714] keep the status values text of the audit template
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2817#issuecomment-6792835235
+
+### F9 - The checkpoint says the spec was drafted in `closed/`
+
+- PR number: 2817
+- Source review ID: 5856904371
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2817#pullrequestreview-5856904371
+- Concern: The checkpoint named the closed path for where the spec was drafted.
+- Solution: It says the spec was drafted in `docs/issues/open/` and moved at close-out.
+- Current-tree verification: `grep -n "Folder-style spec drafted" ISSUE.md` shows the new text.
+- Resolution reference: docs(issues): [#2714] record where the spec was drafted, not where it is now
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2817#issuecomment-6792835235
+
+### F10 - The description omits the audit commit
+
+- PR number: 2817
+- Source review ID: 5856904371
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2817#pullrequestreview-5856904371
+- Concern: The description listed four commits and not the audit commit.
+- Solution: The description lists the audit commit and the round-2 commits.
+- Current-tree verification: `gh-bot pr view 2817 --json body` shows the list.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2817#issuecomment-6792835235
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2817#issuecomment-6792835235
+
 ## Processing Log
 
 - 2026-11-11 09:38 UTC - AI assistant (Claude Code, Claude Sonnet 5.5) - Read review 5856630973 at the head of the first close-out commit (`docs(issues): [#2714] archive the closed spec and mark EPIC row 19 done`): my first commit held only the renames and the edits were never committed. Fixed in three commits and a title change; the three commits were pushed before the conversation reply (comment created at 2026-11-11T09:38:44Z) that answers all four findings.
+- 2026-11-11 10:00 UTC - AI assistant (Claude Code, Claude Sonnet 5.5) - Read review 5856904371 (APPROVED at `docs(pr-reviews): [#2714] add the review audit record of PR 2817`, six non-blocking findings F5 to F10). Fixed in five commits and a description change, pushed before the conversation reply (comment created at 2026-11-11T10:00:25Z) that answers them.
