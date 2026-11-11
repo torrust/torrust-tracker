@@ -6,7 +6,7 @@ epic: null
 github-issue: 2003
 spec-path: docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-11 11:53"
+last-updated-utc: "2026-11-11 12:59"
 semantic-links:
   skill-links:
     - create-issue
@@ -441,7 +441,7 @@ For each completed subissue in this EPIC, the default completion policy is:
 - 2026-11-09 11:18 UTC - AI assistant (Claude Code, issue #2712 session) - Correction: the entry stamped 2026-11-09 10:50 UTC and the first `last-updated-utc` were already in commit 971f8d847, made at 10:48:59 UTC, so that time is wrong; the entry is kept unchanged. The event is evidenced by that commit time.
 - 2026-11-10 16:09 UTC - AI assistant (Claude Code, Claude Sonnet 5.5, issue #2713 session) - Row 18 (#2713) is DONE: PR #2802 merged on 2026-11-10 and `--timeout-seconds` is bounded to 1..=86400; the spec moved to `docs/issues/closed/` in the close-out pull request.
 - 2026-11-11 09:34 UTC - AI assistant (Claude Code, Claude Sonnet 5.5, issue #2714 session) - Row 19 (#2714) is DONE: PR #2815 merged on 2026-11-11; the head in a `wait-for-pr-review` result is now fetched after the feedback. The spec moved to `docs/issues/closed/` in the close-out pull request.
-- 2026-11-11 11:53 UTC - AI assistant (Claude Code, Claude Sonnet 5.5, issue #2822 session) - Added row 20 (#2822, `--gh-command` option for `wait-for-pr-review`); the spec is in PR #2826.
+- 2026-11-11 11:00 UTC - AI assistant (Claude Code, Claude Sonnet 5.5, issue #2822 session) - Added row 20 (#2822, `--gh-command` option for `wait-for-pr-review`); the spec is in PR #2826.
 
 ## Acceptance Criteria
 
