@@ -67,7 +67,7 @@ git push torrust
 ```
 
 Bump only the `torrust-tracker` version and every requirement on it (a pre-release such as
-`3.0.1-develop` matches only a requirement with the same pre-release). Workspace packages version independently (see
+`3.0.1-develop` matches only a requirement that names a pre-release of `3.0.1`). Workspace packages version independently (see
 [the ADR](../../../../../docs/adrs/20260629000000_adopt_independent_package_versioning.md)),
 so do not edit their versions here.
 
