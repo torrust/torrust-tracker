@@ -159,7 +159,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ### Workflow Checkpoints
 
-- [x] Folder-style spec drafted in `docs/issues/closed/2714-2003-wait-for-pr-review-head-race-between-requests/ISSUE.md`
+- [x] Folder-style spec drafted (in `docs/issues/open/` at the time; moved to `docs/issues/closed/` at close-out)
 - [x] Reproduction attempted and recorded before review (outcome: Reproduced, with scripted timing)
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created (#2714) and issue number added to this spec
