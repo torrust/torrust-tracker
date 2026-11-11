@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Round 1: da2ce7's review `5856655819` (F1 to F3), processed after the replies were posted. The record is therefore late, which is the pattern this pull request describes; the replies were posted first because I read the validator's "before replying" line as requiring reply URLs that do not exist yet. The line now says to run the validator once the reply URLs are recorded. Round 2: Copilot's review `5856716279` (F4, F5), on the first commit, processed with the record already present. Round 3: da2ce7's review `5857046891`, whose reviewer IDs F4 to F7 collide with existing rows and are recorded as F6 to F9. Round 4: da2ce7's review `5857359407`, whose IDs F9 to F11 are recorded as F10 to F12. Round 5: da2ce7's review `5857689660`; his F12 is recorded as F13 because F12 exists, and his F15 to F17 keep their IDs.
+Round 1: da2ce7's review `5856655819` (F1 to F3), processed after the replies were posted. The record is therefore late, which is the pattern this pull request describes; the replies were posted first because I read the validator's "before replying" line as requiring reply URLs that do not exist yet. The line now says to run the validator once the reply URLs are recorded. Round 2: Copilot's review `5856716279` (F4, F5), on the first commit, processed with the record already present. Round 3: da2ce7's review `5857046891`, whose reviewer IDs F4 to F7 collide with existing rows and are recorded as F6 to F9. Round 4: da2ce7's review `5857359407`, whose IDs F9 to F11 are recorded as F10 to F12. Round 5: da2ce7's review `5857689660`; his F12 is recorded as F13 because F12 exists, and his F15 to F17 keep their IDs. Round 6: da2ce7's review `5857985681`; his F12 is recorded as F18 because F12 exists, and his F19 to F21 keep their IDs.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -61,6 +61,10 @@ Round 1: da2ce7's review `5856655819` (F1 to F3), processed after the replies we
 | F15 | review-finding:pr-2818-f15 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F16 | review-finding:pr-2818-f16 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F17 | review-finding:pr-2818-f17 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F18 | review-finding:pr-2818-f18 | Human | Minor | correctness | RE_RAISE_OF:F13 | FIXED | RESOLVED |
+| F19 | review-finding:pr-2818-f19 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F20 | review-finding:pr-2818-f20 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F21 | review-finding:pr-2818-f21 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -272,6 +276,58 @@ Round 1: da2ce7's review `5856655819` (F1 to F3), processed after the replies we
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4537107463
 
+### F18 - Row F8's Resolution reference names a change that was reverted
+
+- PR number: 2818
+- Source review ID: 5857985681
+- Reviewer finding ID: F12
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4537286151
+- Concern: The F8 Resolution reference named a commit whose F8 change was removed; the correction landed in another commit.
+- Solution: Pointed the Resolution reference at the round 4 commit and named the three commits in the F8 Solution.
+- Current-tree verification: Read the F8 detail entry.
+- Resolution reference: docs(pr-reviews): align the PR 2818 record references and counts
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4537330005
+
+### F19 - The count of findings about the record omits F16
+
+- PR number: 2818
+- Source review ID: 5857985681
+- Reviewer finding ID: F19
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4537286157
+- Concern: The retrospective counted 8 findings about the record and left out F16.
+- Solution: Counted F16 (9 findings) and added it to the round 5 sentence.
+- Current-tree verification: Read the Review Summary and What Made the Review Costly sections.
+- Resolution reference: docs(pr-reviews): align the PR 2818 record references and counts
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4537330359
+
+### F20 - Row F16's Concern states the rule as if it held
+
+- PR number: 2818
+- Source review ID: 5857985681
+- Reviewer finding ID: F20
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4537286166
+- Concern: The F16 Concern described the rule as holding for row F11, which was the opposite of the finding.
+- Solution: Restated the Concern as the finding.
+- Current-tree verification: Read the F16 detail entry.
+- Resolution reference: docs(pr-reviews): align the PR 2818 record references and counts
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4537330628
+
+### F21 - Two 11:05 entries stamp acts committed at 11:06:37
+
+- PR number: 2818
+- Source review ID: 5857985681
+- Reviewer finding ID: F21
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4537286174
+- Concern: Two entries stamped 11:05 describe acts committed at 11:06:37.
+- Solution: Appended a correction entry instead of editing the two entries.
+- Current-tree verification: Read the Processing Log.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4537330943
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4537330943
+
 ## Processing Log
 
 - 2026-11-11 09:35 UTC - Review 5856655819 arrived with three findings.
@@ -286,6 +342,9 @@ Round 1: da2ce7's review `5856655819` (F1 to F3), processed after the replies we
 - 2026-11-11 10:59 UTC - Review 5857689660 arrived with four findings.
 - 2026-11-11 11:05 UTC - Fixed, replied, and added F13 and F15 to F17.
 - 2026-11-11 11:05 UTC - Correction: the commit-id replacement in the 10:38 correction entry, made in the commit `docs(pr-reviews): cite subjects and state the current tree in the PR 2818 record`, edited that entry in place; its content is otherwise unchanged.
+- 2026-11-11 11:25 UTC - Review 5857985681 arrived with four findings.
+- 2026-11-11 11:30 UTC - Fixed, replied, and added F18 to F21.
+- 2026-11-11 11:30 UTC - Correction: the two 11:05 entries above ("Fixed, replied, and added F13 and F15 to F17" and the correction) were made in the commit `docs(pr-reviews): record round 5 for PR 2818`, committed at 11:06; the fix was at 11:02 and the replies at 11:05.
 
 ## Completion Rules
 

@@ -19,11 +19,11 @@ Written by the PR author from the audit record and `git log`, following
 
 | Metric | Value |
 | ------ | ----- |
-| Review rounds | 5 (4 human, 1 bot) |
-| Audit findings | 16 |
+| Review rounds | 6 (5 human, 1 bot) |
+| Audit findings | 20 |
 | Re-raised findings (`RE_RAISE_OF`) | 0 |
-| Findings about the audit record itself | 9 (F6, F7, F8, F10, F12, F13, F15, F16, F17) |
-| Commits on the branch | 11 at the time of writing (7 audit and retrospective only) |
+| Findings about the audit record itself | 12 (F6, F7, F8, F10, F12, F13, F15, F16, F17, F18, F20, F21) |
+| Commits on the branch | 13 at the time of writing (9 audit and retrospective only) |
 | First review to last thread resolution | not captured (first review 09:35 UTC, 2026-11-11; the forge's resolution times were not recorded) |
 | AI models used | Claude Sonnet 5.5 (author), unknown (reviewer) |
 
@@ -31,7 +31,7 @@ Numbers: the table in `PR-REVIEW.md`, `git log torrust/develop..HEAD`, and the r
 
 ## What Went Well
 
-1. The change was small (two skills, 13 lines added and 4 removed), so there were five rounds and every finding was minor.
+1. The change was small (two skills, 13 lines added and 4 removed), so there were six rounds and every finding was minor.
 2. The reviewer re-checked the motivation against the audits and found that the description overstated it
    (F3); the description now states only what the audits show.
 
@@ -50,6 +50,8 @@ arrival (F8). These are recording defects, not defects in the skills' intent.
 Round 4 (F10, F12) and round 5 (F13, F15, F16, F17) were again about the record: an in-place log rewrite, a
 Solution describing removed bytes, branch commit ids, and a resolution time written before it happened. Each fix
 created the next nit because I edited the record without re-reading every claim in it against the tree.
+
+Round 6 (F18 to F21) was again recording detail: a Resolution reference, a count, a Concern and two log stamps; F19 was about this retrospective's own count.
 
 ## Root Causes
 
