@@ -9,7 +9,7 @@ github-issue: 2576
 spec-path: docs/issues/closed/2576-1669-update-all-package-readmes/ISSUE.md
 branch: "i2576-update-package-readmes"
 related-pr: 2812
-last-updated-utc: "2026-11-11 08:24"
+last-updated-utc: "2026-11-11 08:59"
 semantic-links:
   skill-links:
     - create-issue
@@ -347,7 +347,7 @@ Commit.
   the stamps carry a time; the baseline wording is corrected. F10 and F11 are answered by the
   review audit record `docs/pr-reviews/pr-2812-review/PR-REVIEW.md`.
 - 2026-11-10 19:03 UTC - Claude (Sonnet 5.5) - PR #2812 review round 3 (da2ce7) F17: the 18:05 entry above names the audit record's F10 and F11 answers before that record existed. It stays as written. The audit record `docs/pr-reviews/pr-2812-review/PR-REVIEW.md` was added by commit `docs(pr-reviews): [#2576] add the review audit record for PR 2812` (created 18:10:49 UTC) and its F10 and F11 rows by commit `docs(pr-reviews): [#2576] record findings F10 and F11 in the PR 2812 audit` (created 18:13:46 UTC); times from `git log --format=%cI`.
-- 2026-11-11 08:24 UTC - Claude (Sonnet 5.5) - PR #2812 merged (2026-11-11 08:23 UTC) and issue #2576 closed; nothing was published, so AC6 holds. Spec archived to `docs/issues/closed/`. The review audit is `docs/pr-reviews/pr-2812-review/PR-REVIEW.md`; eight findings of the last review (F21 to F28) were not addressed before the merge by the maintainer's decision.
+- 2026-11-11 08:24 UTC - Claude (Sonnet 5.5) - PR #2812 merged (2026-11-11 08:23 UTC) and issue #2576 closed; nothing was published, so AC6 holds. Spec archived to `docs/issues/closed/`. No implementation retrospective was needed: the implementation had no material discovery, and the lessons of the review process are in `docs/pr-reviews/pr-2812-review/review-retrospective.md`. The review audit is `docs/pr-reviews/pr-2812-review/PR-REVIEW.md`. The last review of PR #2812 (review 5850042659) left eight findings, mostly audit and retrospective wording, unaddressed at the merge.
 
 ## Acceptance Criteria
 
@@ -423,7 +423,7 @@ evidence.
 | AC3   | DONE                    | `manual-verification-evidence.md`: V1 and V3 |
 | AC4   | DONE                    | `manual-verification-evidence.md`: V3 step 1 |
 | AC5   | DONE                    | `manual-verification-evidence.md`: V4 |
-| AC6   | TODO                    | `manual-verification-evidence.md`: Pending the merge; nothing was published |
+| AC6   | DONE                    | PR #2812 merged 2026-11-11 08:23 UTC; no crate was published (#2583 checklist untouched) |
 | AC7   | DONE                    | `manual-verification-evidence.md`: Template file and the rows in `docs/templates/README.md` and `docs/index.md` |
 | AC8   | DONE                    | `manual-verification-evidence.md`: V5 (no README has a Rust fence) |
 

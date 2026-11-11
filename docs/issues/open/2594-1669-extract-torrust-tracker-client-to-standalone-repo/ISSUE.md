@@ -9,7 +9,7 @@ github-issue: 2594
 spec-path: docs/issues/open/2594-1669-extract-torrust-tracker-client-to-standalone-repo/ISSUE.md
 branch: "2594-1669-extract-torrust-tracker-client-to-standalone-repo-spec"
 related-pr: null
-last-updated-utc: "2026-10-21 07:44"
+last-updated-utc: "2026-11-11 08:59"
 semantic-links:
   skill-links:
     - create-issue

@@ -6,7 +6,7 @@ epic: null
 github-issue: 1669
 spec-path: docs/issues/open/1669-overhaul-packages/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-11 08:24"
+last-updated-utc: "2026-11-11 08:59"
 semantic-links:
   skill-links:
     - create-issue
@@ -1096,6 +1096,7 @@ Previously referenced tools (screenshots from CodeScene already in the issue com
   `docs/issues/closed/2582-1669-remove-health-check-self-dev-dependency/`. The `Workspace Packaging`
   CI job now exists on `develop`; the maintainer plans to make it a required status check.
 - 2026-11-10 12:33 UTC - AI assistant (Claude Code, #2482 close-out) - Sub-EPIC #2482 is DONE: its nine subissues (#2618, #2628, #2645, #2670, #2681, #2699, #2724, #2745, #2757) are merged and closed, and its acceptance criteria are ticked with evidence (AC8: the 2026-11-09 coupling report has nine `optional (testing)` edges and no `testing` feature in a `default` chain). Its spec moved to `docs/issues/closed/2482-1669-reorganize-shared-test-support/` and the links here, in #2576, #2583, the ADR and the closed specs were updated. The #2482 row and checklist box are `DONE`; #2576 is no longer blocked by #2482 (its `Blocked` label is removed separately, by the maintainer). The maintainer closes issue #2482.
+- 2026-11-11 08:59 UTC - Claude (Sonnet 5.5, #2576 close-out) - #2576 is DONE: PR #2812 merged 2026-11-11 08:23 UTC, issue closed, spec archived to `docs/issues/closed/2576-1669-update-all-package-readmes/`. Nothing was published. The remaining order is #2583 (first publish), then #2594. The last review of PR #2812 (review 5850042659) left eight findings, mostly audit and retrospective wording, unaddressed at the merge.
 
 ## Acceptance Criteria
 
@@ -1146,4 +1147,3 @@ entire EPIC at once. The EPIC is considered healthy (not stale) when:
 - `cargo-depgraph`: <https://sr.ht/~jplatte/cargo-depgraph/>
 - GitNexus: <https://github.com/abhigyanpatwari/GitNexus>
 - CodeScene: <https://codescene.io/>
-- 2026-11-11 08:24 UTC - Claude (Sonnet 5.5, #2576 close-out) - #2576 is DONE: PR #2812 merged 2026-11-11 08:23 UTC, issue closed, spec archived to `docs/issues/closed/2576-1669-update-all-package-readmes/`. Nothing was published. The remaining order is #2583 (first publish), then #2594. Not addressed before the merge: eight findings of the last review (F21 to F28), see `docs/pr-reviews/pr-2812-review/PR-REVIEW.md`.
