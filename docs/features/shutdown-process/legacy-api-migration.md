@@ -6,7 +6,7 @@ semantic-links:
   related-artifacts:
     - docs/features/shutdown-process/README.md
     - docs/issues/closed/2751-1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md
-    - docs/issues/open/2801-1488-si-19-remove-legacy-shutdown-api/ISSUE.md
+    - docs/issues/closed/2801-1488-si-19-remove-legacy-shutdown-api/ISSUE.md
 ---
 
 # Migrating from the Legacy Shutdown API
@@ -47,4 +47,4 @@ calls them.
 
 The five server package crates are unpublished and the root types were never in a published release, so for them
 this guide is in-repo history; only `torrust-server-lib` had a support window (0.5.x), which ended when the
-maintainer approved 0.6.0 on 2026-11-10 (recorded in the start gate of the [SI-19 spec](../../issues/open/2801-1488-si-19-remove-legacy-shutdown-api/ISSUE.md), merged in torrust/torrust-tracker#2803).
+maintainer approved 0.6.0 on 2026-11-10 (recorded in the start gate of the [SI-19 spec](../../issues/closed/2801-1488-si-19-remove-legacy-shutdown-api/ISSUE.md), merged in torrust/torrust-tracker#2803).

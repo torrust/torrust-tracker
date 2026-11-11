@@ -27,7 +27,7 @@ semantic-links:
     - docs/issues/closed/2448-1488-si-17-migrate-standalone-udp-environment/ISSUE.md
     - docs/issues/closed/2471-1488-fix-http-environment-drop-path/ISSUE.md
     - "issue #2751"
-    - docs/issues/open/2801-1488-si-19-remove-legacy-shutdown-api/ISSUE.md
+    - docs/issues/closed/2801-1488-si-19-remove-legacy-shutdown-api/ISSUE.md
     - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
 ---
 
