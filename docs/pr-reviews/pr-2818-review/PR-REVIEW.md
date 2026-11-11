@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Round 1: da2ce7's review `5856655819` (F1 to F3), processed after the replies were posted. The record is therefore late, which is the pattern this pull request describes; the replies were posted first because the validator requires reply URLs. Round 2: Copilot's review `5856716279` (F4, F5), on the first commit, processed with the record already present.
+Round 1: da2ce7's review `5856655819` (F1 to F3), processed after the replies were posted. The record is therefore late, which is the pattern this pull request describes; the replies were posted first because I read the validator's "before replying" line as requiring reply URLs that do not exist yet. The line now says to run the validator once the reply URLs are recorded. Round 2: Copilot's review `5856716279` (F4, F5), on the first commit, processed with the record already present. Round 3: da2ce7's review `5857046891`, whose reviewer IDs F4 to F7 collide with existing rows and are recorded as F6 to F9.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -73,8 +73,8 @@ Round 1: da2ce7's review `5856655819` (F1 to F3), processed after the replies we
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4536225718
 - Concern: The record was created on the first review or comment whatever it carried, so a clean review, informational comment or ACK left an uncommitted record or an extra push that moves the head.
-- Solution: Scoped the trigger to the first review or comment that needs a reply or a fix, and said a clean review, informational comment or ACK needs no record yet, in both skills.
-- Current-tree verification: Read the wait-for-pr-review loop step 2 and the process-pr-review preface.
+- Solution: Scoped the trigger in `process-pr-review` to the first review or comment that needs a reply or a fix; `wait-for-pr-review` points there. An earlier wording of the clean-event sentence in `wait-for-pr-review` was removed by a later commit.
+- Current-tree verification: Read the process-pr-review preface ("that needs a reply or a fix").
 - Resolution reference: docs(skills): scope the audit record start to events that need action
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4536269640
@@ -122,8 +122,9 @@ Round 1: da2ce7's review `5856655819` (F1 to F3), processed after the replies we
 
 - 2026-11-11 09:35 UTC - Review 5856655819 arrived with three findings.
 - 2026-11-11 09:40 UTC - Replied to the three threads after pushing the fix and editing the description.
+- 2026-11-11 09:40 UTC - Copilot review 5856716279 arrived with two findings.
 - 2026-11-11 09:41 UTC - Started audit late, after the replies, because the validator needs the reply URLs.
-- 2026-11-11 09:45 UTC - Copilot review 5856716279 arrived with two findings; fixed, replied, and added F4 and F5.
+- 2026-11-11 09:45 UTC - Copilot review 5856716279 findings fixed, replied, and F4 and F5 added.
 
 ## Completion Rules
 

@@ -48,6 +48,7 @@ Start this workflow, and create the audit record `PR-REVIEW.md` from
 `comment` on the pull request (a submitted review, or a PR, review or inline comment) that needs a
 reply or a fix arrives, before the first reply. If a reply was already posted
 without it, create the record now from the template and log the late start in the Processing Log.
+A row's reply URL exists only after replying: create the record, reply, then fill in the reply URLs.
 
 1. **Fetch the source of truth.** Use `fetch-review-threads`' GitHub CLI-backed Rust tool to
    collect all threads, including resolved and outdated threads. Also fetch each
@@ -272,8 +273,8 @@ records remain valid without the analysis fields.
 ## Validation Script
 
 `scripts/validate-audit-record.py` mechanically checks the audit record against GitHub review
-comments and branch history. Run it before every audit commit and before replying to or
-resolving any thread:
+comments and branch history. Run it before every audit commit and before resolving any thread,
+once the reply URLs of its rows are recorded:
 
 ```bash
 python3 .github/skills/dev/pr-reviews/process-pr-review/scripts/validate-audit-record.py \

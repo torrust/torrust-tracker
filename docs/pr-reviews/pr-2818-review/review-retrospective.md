@@ -47,8 +47,9 @@ terms, the rule stated in full in two skills) are the same kind: wording and dup
 
 1. A new rule was written without listing its cases, as in earlier retrospectives (PR 2815, wording of an invariant).
 2. A motivation claim was not checked against each cited source.
-3. The record again started after the replies, because the validator needs reply URLs that exist only after
-   replying: the sequence "create the record before the first reply" cannot end validated.
+3. The record again started after the replies. The validator step said to run it "before replying", which I
+   read as requiring reply URLs that exist only after replying. The sequence create, reply, fill in the reply
+   URLs, validate works; the conflicting line now says to validate once the reply URLs are recorded.
 
 ## What We Learnt
 
@@ -57,8 +58,8 @@ terms, the rule stated in full in two skills) are the same kind: wording and dup
 
 ## Improvements for Future Reviews
 
-1. Let the validator accept a record whose reply URLs are not yet posted, or document that the record is
-   created before the replies and validated after them. — `process-pr-review` skill and validator — PROPOSED
+1. Scope the validator step to rows whose reply URLs are recorded, and say in the start rule that reply URLs
+   are filled in after replying. — `process-pr-review` skill — APPLIED_IN_THIS_PR
 
 ## Avoiding Overcorrection
 
