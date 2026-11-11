@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Round 1 is da2ce7's review `5857799147` (F1 to F11) and Copilot's review `5857834791` (F12 to F16, numbered after the reviewer-provided IDs). Both were processed together.
+Round 1 is da2ce7's review `5857799147` (F1 to F11) and Copilot's review `5857834791` (F12 to F16, numbered after the reviewer-provided IDs). Both were processed together. Round 2 is da2ce7's review `5858134220` (F17 to F22, reviewer IDs F13 to F18 reassigned on collision) and Copilot's review `5858293840` (F23 to F26).
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -61,6 +61,16 @@ Round 1 is da2ce7's review `5857799147` (F1 to F11) and Copilot's review `585783
 | F14 | review-finding:pr-2821-f14 | Copilot | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F15 | review-finding:pr-2821-f15 | Copilot | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F16 | review-finding:pr-2821-f16 | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F17 | review-finding:pr-2821-f17 | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F18 | review-finding:pr-2821-f18 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F19 | review-finding:pr-2821-f19 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F20 | review-finding:pr-2821-f20 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F21 | review-finding:pr-2821-f21 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F22 | review-finding:pr-2821-f22 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F23 | review-finding:pr-2821-f23 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
+| F24 | review-finding:pr-2821-f24 | Copilot | Minor (inferred) | testing | RE_RAISE_OF:F17 | NO_ACTION | SUPERSEDED |
+| F25 | review-finding:pr-2821-f25 | Copilot | Minor (inferred) | correctness | RE_RAISE_OF:F18 | NO_ACTION | SUPERSEDED |
+| F26 | review-finding:pr-2821-f26 | Copilot | Minor (inferred) | metadata | RE_RAISE_OF:F21 | NO_ACTION | SUPERSEDED |
 
 ## Finding Details
 
@@ -272,12 +282,143 @@ Round 1 is da2ce7's review `5857799147` (F1 to F11) and Copilot's review `585783
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2821#discussion_r4537229220
 
+### F17 - Half of S5's red test is already green
+
+- PR number: 2821
+- Source review ID: 5858134220
+- Reviewer finding ID: F13
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2821#discussion_r4537408388
+- Concern: A missing certificate gives MissingTlsConfig, whose text holds no location.
+- Solution: S5 tests invalid PEM files (BadTlsConfig) and a bad configuration file; MissingTlsConfig is left to the field decision.
+- Current-tree verification: Read tls.rs:10-55.
+- Resolution reference: docs(issues): correct the S3 and S5 slices of the T4 options after review of PR #2821
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2821#discussion_r4537594073
+
+### F18 - S5 version step is wrong for configuration
+
+- PR number: 2821
+- Source review ID: 5858134220
+- Reviewer finding ID: F14
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2821#discussion_r4537408394
+- Concern: configuration is published at 3.0.0 and planned at 4.0.0; only axum-server is a first publish.
+- Solution: S5 gives a step per crate.
+- Current-tree verification: Read the publish plan row for configuration.
+- Resolution reference: docs(issues): correct the S3 and S5 slices of the T4 options after review of PR #2821
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2821#discussion_r4537594549
+
+### F19 - Line range starts inside another variant
+
+- PR number: 2821
+- Source review ID: 5858134220
+- Reviewer finding ID: F15
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2821#discussion_r4537408400
+- Concern: The four LocatedError variants span lib.rs:312-337, not 305-337.
+- Solution: Corrected in options.md and in the F14 audit entry.
+- Current-tree verification: Read configuration/src/lib.rs:300-340.
+- Resolution reference: docs(issues): correct the S3 and S5 slices of the T4 options after review of PR #2821; docs(pr-reviews): correct the relationships, IDs and stamps in the PR #2821 audit
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2821#discussion_r4537594939
+
+### F20 - Reviewer finding ID is inverted and severities are marked inferred
+
+- PR number: 2821
+- Source review ID: 5858134220
+- Reviewer finding ID: F16
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2821#discussion_r4537408405
+- Concern: The ID is recorded only when reassigned; bracketed severities are not inferred.
+- Solution: F1 to F11 carry N/A, F12 to F16 their original IDs; F12 to F16 are Minor.
+- Current-tree verification: Read the skill's Required Audit Fields.
+- Resolution reference: docs(pr-reviews): correct the relationships, IDs and stamps in the PR #2821 audit
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2821#discussion_r4537595240
+
+### F21 - F12 is a re-raise of F1 recorded as ORIGINAL
+
+- PR number: 2821
+- Source review ID: 5858134220
+- Reviewer finding ID: F17
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2821#discussion_r4537408409
+- Concern: A later request for the same change is RE_RAISE_OF.
+- Solution: F12 is RE_RAISE_OF:F1 with NO_ACTION and SUPERSEDED kept.
+- Current-tree verification: Read skill step 3.
+- Resolution reference: docs(pr-reviews): correct the relationships, IDs and stamps in the PR #2821 audit
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2821#discussion_r4537595650
+
+### F22 - Log stamps precede the replies they follow
+
+- PR number: 2821
+- Source review ID: 5858134220
+- Reviewer finding ID: F18
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2821#discussion_r4537408415
+- Concern: Replies were posted 11:18:23Z to 11:18:59Z, before the 11:19 entries.
+- Solution: Added a correction entry naming both stamps.
+- Current-tree verification: Read the replies' created_at with the forge API.
+- Resolution reference: docs(pr-reviews): correct the relationships, IDs and stamps in the PR #2821 audit
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2821#discussion_r4537595976
+
+### F23 - Option (b) cannot fix the info-hash paths
+
+- PR number: 2821
+- Source review ID: 5858293840
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2821#discussion_r4537536719
+- Concern: torrust_info_hash::ConversionError prints its own location, so S3's test cannot pass under (b) alone.
+- Solution: Recommendation, decision 2 and S3 require (a) or an upstream fix for those paths.
+- Current-tree verification: Read inventory.md T2 row for the standalone crates.
+- Resolution reference: docs(issues): correct the S3 and S5 slices of the T4 options after review of PR #2821
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2821#discussion_r4537596366
+
+### F24 - S5 missing-certificate case is already green
+
+- PR number: 2821
+- Source review ID: 5858293840
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2821#discussion_r4537536775
+- Concern: Same finding as F17.
+- Solution: Superseded by F17.
+- Current-tree verification: Compared with F17.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2821#discussion_r4537596725
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2821#discussion_r4537596725
+
+### F25 - S5 version step is wrong for configuration
+
+- PR number: 2821
+- Source review ID: 5858293840
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2821#discussion_r4537536827
+- Concern: Same finding as F18.
+- Solution: Superseded by F18.
+- Current-tree verification: Compared with F18.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2821#discussion_r4537597092
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2821#discussion_r4537597092
+
+### F26 - F12 relationship is ORIGINAL
+
+- PR number: 2821
+- Source review ID: 5858293840
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2821#discussion_r4537536876
+- Concern: Same finding as F21.
+- Solution: Superseded by F21.
+- Current-tree verification: Compared with F21.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2821#discussion_r4537597501
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2821#discussion_r4537597501
+
 ## Processing Log
 
 - 2026-11-11 11:19 UTC - Started audit for round 1 (both reviews).
 - 2026-11-11 11:19 UTC - Replied on the sixteen threads and resolved them; a GraphQL refresh showed 0 unresolved threads.
 - 2026-11-11 11:56 UTC - Correction of the two entries above, which are stamped 11:19: the sixteen replies were posted between 11:18:23Z and 11:18:59Z (forge `created_at`), before the audit record was started, because the record holds the reply URLs; the entry order shows the start first. The thread resolution was read back at 11:19; the individual resolution times were not captured.
 - 2026-11-11 11:56 UTC - Corrected the `Reviewer finding ID` of F1 to F16, the severity of F12 to F16 and the relationship of F12 after the second review (F20, F21 and F22 of the round 2 findings below).
+- 2026-11-11 12:00 UTC - Started round 2 (reviews 5858134220 and 5858293840); replied on the ten threads (forge `created_at` 11:59:50Z to 12:00:14Z) and resolved them; a GraphQL refresh showed 0 unresolved threads.
 
 ## Completion Rules
 
