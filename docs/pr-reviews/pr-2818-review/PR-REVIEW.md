@@ -162,9 +162,9 @@ Round 1: da2ce7's review `5856655819` (F1 to F3), processed after the replies we
 - Reviewer finding ID: F6
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4536535955
 - Concern: The arrival of review 5856716279 was stamped 09:45, the time of the replies.
-- Solution: The arrival of review 5856716279 at 09:40 is stated by the correction entry at 10:38 in the Processing Log; an arrival entry inserted earlier was removed because it rewrote the log.
+- Solution: The arrival of review 5856716279 at 09:40 is stated by the correction entry at 10:38 in the Processing Log, appended in the commit `docs(pr-reviews): record round 4 for PR 2818`. An arrival entry inserted earlier in the commit `docs(skills): fill in reply URLs after replying in the audit start rule` was removed in the commit `docs(pr-reviews): restore the PR 2818 log and update the retrospective narrative` because it rewrote the log.
 - Current-tree verification: Read the Processing Log.
-- Resolution reference: docs(skills): fill in reply URLs after replying in the audit start rule
+- Resolution reference: docs(pr-reviews): record round 4 for PR 2818
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4536569598
 
@@ -252,7 +252,7 @@ Round 1: da2ce7's review `5856655819` (F1 to F3), processed after the replies we
 - Source review ID: 5857689660
 - Reviewer finding ID: F16
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4537053559
-- Concern: A no-change thread is recorded SUPERSEDED, and its reply is in the prescribed form.
+- Concern: Row F11 recorded NO_ACTION with RESOLVED, and its reply was not in the prescribed form.
 - Solution: Recorded F11 as SUPERSEDED; the reply wording gap is in the skill and is left unchanged.
 - Current-tree verification: Read the F11 row.
 - Resolution reference: docs(pr-reviews): cite subjects and state the current tree in the PR 2818 record

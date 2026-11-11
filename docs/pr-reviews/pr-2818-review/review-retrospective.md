@@ -22,7 +22,7 @@ Written by the PR author from the audit record and `git log`, following
 | Review rounds | 5 (4 human, 1 bot) |
 | Audit findings | 16 |
 | Re-raised findings (`RE_RAISE_OF`) | 0 |
-| Findings about the audit record itself | 8 (F6, F7, F8, F10, F12, F13, F15, F17) |
+| Findings about the audit record itself | 9 (F6, F7, F8, F10, F12, F13, F15, F16, F17) |
 | Commits on the branch | 11 at the time of writing (7 audit and retrospective only) |
 | First review to last thread resolution | not captured (first review 09:35 UTC, 2026-11-11; the forge's resolution times were not recorded) |
 | AI models used | Claude Sonnet 5.5 (author), unknown (reviewer) |
@@ -47,7 +47,7 @@ Round 3 (F6 to F9) was about the record: a conflict between the start rule and t
 that described removed bytes (F7), and a log stamp that was the time of my replies instead of the review's
 arrival (F8). These are recording defects, not defects in the skills' intent.
 
-Round 4 (F10, F12) and round 5 (F13, F15, F17) were again about the record: an in-place log rewrite, a
+Round 4 (F10, F12) and round 5 (F13, F15, F16, F17) were again about the record: an in-place log rewrite, a
 Solution describing removed bytes, branch commit ids, and a resolution time written before it happened. Each fix
 created the next nit because I edited the record without re-reading every claim in it against the tree.
 
