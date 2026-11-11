@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p2
 epic: 1347
 github-issue: 2824
 spec-path: docs/issues/open/2824-1347-add-tests-primitives/ISSUE.md
-branch: "2824-1347-add-tests-primitives-spec"
-related-pr: 2828
-last-updated-utc: "2026-11-11 12:41"
+branch: "2824-1347-add-tests-primitives-fixes"
+related-pr: 2834
+last-updated-utc: "2026-11-11 14:31"
 semantic-links:
   skill-links:
     - create-issue
@@ -201,7 +201,7 @@ maintainer decides to fix in this issue are not handed off: they go to the T2a s
 | F3 | `ParsePeerRoleError::InvalidPeerRole` records `Location::caller()` inside `PeerRole::from_str`, which has no `#[track_caller]`, so every error reports the same line inside `peer.rs` (`peer.rs:73:27`) instead of the caller's. Adding `#[track_caller]` fixes only a direct `from_str` call: through `str::parse` the location is a line in Rust's standard library. The pattern is wider than this type: `Location::caller()` appears 65 times across the packages and `#[track_caller]` 3 times, and the located error may reach production output. | Throwaway test, 2026-11-10: `"x".parse::<PeerRole>()` reports `peer.rs:73:27`; with `#[track_caller]`, `parse` reports `core/src/str/mod.rs:2783:9` and a direct `from_str` call reports the caller's line. | Handed off to a follow-up issue that audits every use of `Location::caller()` (maintainer decision, 2026-11-10). Follow-up issue: #2804 (spec PR #2805). Nothing is fixed in this issue. | HANDED OFF |
 | F4 | `AggregateActiveSwarmMetadata::add_assign` uses plain `+=` on four `u64` fields (panic in debug, wrap in release on overflow; practically unreachable). The registry and `torrent-repository-benchmarking` sum the fields by hand, so the impl may be dead code. | Code reading, 2026-11-11. | Handed off to a follow-up issue/session `aggregate-addassign` (maintainer decision, 2026-11-11): check whether the impl is used (remove it and run all tests, check git history); delete it if unused, otherwise make overflow explicit (`checked_add` + panic, test, comment). Follow-up issue: #2823. Outcome (maintainer approved, 2026-11-11): the unused `AddAssign` impl is being deleted, so the `AddAssign` lines of `swarm_metadata.rs` are not tested here. Nothing is fixed in this issue. | HANDED OFF |
 | F5 | `peer::Id::new` (public, in a production crate) builds a 20-byte id from a little-endian `i128` (4 zero bytes + 16 bytes). Behavior is correct and lossless, including negatives (two's complement). But it is a test-only helper: the only callers found are `torrent-repository-benchmarking` tests, and its ids look like no real client (`get_client_name()` is `None`). It has no doc comment and no tests. | Code reading and caller search, 2026-11-11 (not a behavior defect; a design problem). | Handed off to a follow-up issue/session `peer-id-test-helper` (maintainer decision, 2026-11-11): prove it is unused in production, move it to a testing helper that generates realistic ids, decide with it whether `peer::fixture` (and `Id::new`) move behind a `testing` feature, as the ADR on shared test support asks (EPIC #2482 is closed and did not reorganize `peer::fixture`). Follow-up issue: not yet created when S0 was written (proposal `peer-id-test-helper`); fill in its number. The `Id::new` tests in `peer.rs` wait on its outcome. | HANDED OFF |
-| F2 | `PeerRole` derives `Serialize` with `#[serde(rename_all_fields = "lowercase")]`, which does not apply to unit variants, so it serializes as `"Seeder"` and `"Leecher"` while `Display` and the `peer_role` metric label use `seeder` and `leecher`. No production code serializes `PeerRole` today. | Throwaway test, 2026-11-10: `serde_json::to_string(&PeerRole::Seeder)` gives `"Seeder"`. | Fixed in this issue, in slice S1 (maintainer decision, 2026-11-10): `rename_all = "lowercase"` plus a regression test, in its own `fix` commit. | DECIDED, TODO |
+| F2 | `PeerRole` derives `Serialize` with `#[serde(rename_all_fields = "lowercase")]`, which does not apply to unit variants, so it serializes as `"Seeder"` and `"Leecher"` while `Display` and the `peer_role` metric label use `seeder` and `leecher`. No production code serializes `PeerRole` today. | Throwaway test, 2026-11-10: `serde_json::to_string(&PeerRole::Seeder)` gives `"Seeder"`. | Fixed in this issue, in slice S1 (maintainer decision, 2026-11-10): `rename_all = "lowercase"` plus a regression test, in its own `fix` commit. | FIXED through #2834 |
 
 While F3 is open, no test pins the reported `location` of `ParsePeerRoleError`; the `peer.rs` record tests only that the error carries the rejected input (`raw_param`).
 
@@ -215,7 +215,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`, `DEFERRED`.
 | ID | Status | Task | Notes / Expected Output |
 | --- | ------ | ---- | ----------------------- |
 | T1 | DONE | Coverage evidence and complete module inventory | [coverage-evidence.md](coverage-evidence.md): baseline, per-file uncovered groups, property candidacy, initial hypothesis for the 16 files. Delivered with this spec (S0). |
-| T2a | TODO | Fix the small defects decided in this issue (slice S1) | F2 only: F1 is fixed upstream and F3, F4, F5 are handed off to their own issues. Each fix: failing regression test first, then a separate `fix` commit, per the `fix-bug` skill. Merged before the test slices. |
+| T2a | DONE | Fix the small defects decided in this issue (slice S1) | F2 only: F1 is fixed upstream and F3, F4, F5 are handed off to their own issues. Each fix: failing regression test first, then a separate `fix` commit, per the `fix-bug` skill. Merged before the test slices. Done: the commits `test(primitives): [#2824] pin the lowercase JSON form of PeerRole` (fails before the fix) and `fix(primitives): [#2824] serialize PeerRole in lowercase`. |
 | T2 | TODO | Shared plan guidance | `test-refactor-plans/README.md`: two-phase sequence, guardrails, toolchain-pinned commands. First test slice (S2). |
 | T3 | TODO | Process every ledger row through the per-file workflow | Each row ends in exactly one of: test added, no-change with reason, deferred with owner. |
 | T4 | TODO | Bounded mutation assessment | `mutation-evidence.md`: configuration, survivors, reason for each unviable mutant. |
@@ -231,8 +231,8 @@ the maintainer (2026-11-10):
 
 | Slice | Content | Ledger rows | Branch | PR | Status |
 | --- | --- | --- | --- | --- | --- |
-| S0 | This specification, the T1 evidence, and the EPIC registration with the baseline | - | `2824-1347-add-tests-primitives-spec` | #2828 | IN_PROGRESS |
-| S1 | Defect fixes decided in this issue (T2a): F2 `PeerRole` JSON casing, only (F1 fixed upstream; F3, F4, F5 handed off). Merged first, so the test slices pin the fixed behavior. | - | `2824-1347-add-tests-primitives-fixes` | - | TODO |
+| S0 | This specification, the T1 evidence, and the EPIC registration with the baseline | - | `2824-1347-add-tests-primitives-spec` | #2828 | DONE |
+| S1 | Defect fixes decided in this issue (T2a): F2 `PeerRole` JSON casing, only (F1 fixed upstream; F3, F4, F5 handed off). Merged first, so the test slices pin the fixed behavior. | - | `2824-1347-add-tests-primitives-fixes` | #2834 | IN_PROGRESS |
 | S2 | T2, then `peer.rs` (rank 1, the largest gap) | 1 | `2824-1347-add-tests-primitives-peer` | - | TODO |
 | S3 | Configuration defaults and bounded values: `announce.rs`, `policy.rs`, `mode.rs`, `pagination.rs`, `announce_interval.rs` | 2-6 | `2824-1347-add-tests-primitives-defaults` | - | TODO |
 | S4 | `swarm_metadata.rs`, no-change decisions for the covered and wiring files, then T4-T6; the clean-up moves the spec to `docs/issues/closed/` and updates the EPIC tables | 7-16 | `2824-1347-add-tests-primitives-final` | - | TODO |
@@ -309,7 +309,7 @@ The 16 rows are every `.rs` file under `packages/primitives/src/`, each once.
 - [x] Clean baseline coverage measured and the complete module inventory recorded (T1).
 - [x] Specification and slicing reviewed and approved by the maintainer.
 - [x] GitHub issue #2824 created. Linking it as a subissue of #1347 needs the maintainer (the bot account gets 404 from the sub-issues API).
-- [ ] Spec-only PR (S0) merged before implementation.
+- [x] Spec-only PR (S0) merged before implementation (#2828).
 - [ ] Every ledger row `DONE` with a decision record, merged through its slice.
 - [ ] Maintainer review after the final test-producing increment.
 - [ ] Automatic verification with toolchain-qualified evidence.
@@ -324,6 +324,7 @@ The 16 rows are every `.rs` file under `packages/primitives/src/`, each once.
 - 2026-11-10 (time not recorded) - Claude Code (session `i1347 primitives tests`) - Draft written; baseline measured at `eaae0e487`; waiting for maintainer answers.
 - 2026-11-10 (time not recorded) - Claude Code (session `i1347 primitives tests`) - Maintainer approved slicing, `quickcheck` for two seams, the `peer::fixture` and `driver.rs`/`service_role.rs` decisions. Finding F1 (`Peer` `Ord` vs `Eq`) confirmed and handed to a separate bug session.
 - 2026-11-11 11:22 UTC - Claude Code (Sonnet 5.5) - Created issue #2824, moved the spec to `docs/issues/open/`, registered the subissue and baseline in EPIC #1347. S0 branch `2824-1347-add-tests-primitives-spec`.
+- 2026-11-11 14:07 UTC - Claude Code (Sonnet 5.5) - S1: two regression tests for the `PeerRole` JSON casing failed before the fix (`"Seeder"`, `"Leecher"`) and pass after `rename_all = "lowercase"`; unit tests 49 passed. No other package serializes `PeerRole` to JSON.
 
 ## Acceptance Criteria
 

@@ -36,7 +36,7 @@ use crate::{AnnounceEvent, NumberOfBytes, PeerId};
 pub type PeerAnnouncement = Peer;
 
 #[derive(Debug, Serialize, Copy, Clone, PartialEq, Eq, Hash)]
-#[serde(rename_all_fields = "lowercase")]
+#[serde(rename_all = "lowercase")]
 pub enum PeerRole {
     Seeder,
     Leecher,
@@ -652,6 +652,28 @@ pub mod test {
 
             assert_eq!(seeder1, seeder2);
             assert_ne!(seeder1, leecher1);
+        }
+    }
+
+    mod peer_role_serialization {
+        use serde_json::json;
+
+        use crate::peer::PeerRole;
+
+        #[test]
+        fn it_should_serialize_a_seeder_in_lowercase_like_its_display_format() {
+            let serialized = serde_json::to_value(PeerRole::Seeder).unwrap();
+
+            assert_eq!(serialized, json!("seeder"));
+            assert_eq!(serialized, json!(PeerRole::Seeder.to_string()));
+        }
+
+        #[test]
+        fn it_should_serialize_a_leecher_in_lowercase_like_its_display_format() {
+            let serialized = serde_json::to_value(PeerRole::Leecher).unwrap();
+
+            assert_eq!(serialized, json!("leecher"));
+            assert_eq!(serialized, json!(PeerRole::Leecher.to_string()));
         }
     }
 
