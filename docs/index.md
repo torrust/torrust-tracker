@@ -194,6 +194,7 @@ that type.
 | [templates/REFACTOR-PLAN.md](templates/REFACTOR-PLAN.md)                               | Template for refactor plan specifications                         |
 | [templates/SECURITY-ANALYSIS.md](templates/SECURITY-ANALYSIS.md)                       | Template for public scanner-finding and vulnerability analysis    |
 | [templates/SECURITY-REPORT.md](templates/SECURITY-REPORT.md)                           | Template for handled coordinated-disclosure records               |
+| [templates/PACKAGE-README.md](templates/PACKAGE-README.md)                             | Template for the README of a workspace package (crates.io, docs.rs) |
 | [templates/PR-REVIEW-RETROSPECTIVE.md](templates/PR-REVIEW-RETROSPECTIVE.md)           | Template for PR review retrospectives, when warranted             |
 | [templates/PR-REVIEW-TEMPLATE.md](templates/PR-REVIEW-TEMPLATE.md)                     | Template for tracking all PR review findings and responses        |
 | [templates/REVIEW-FINDINGS.md](templates/REVIEW-FINDINGS.md)                           | Advisory reviewer finding format for inline review threads        |

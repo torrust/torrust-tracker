@@ -1,10 +1,10 @@
 [package]
 authors.workspace = true
+categories = [ "network-programming" ]
 description = "A library with the core functionality needed to implement a BitTorrent HTTP tracker."
-documentation.workspace = true
 edition.workspace = true
 homepage.workspace = true
-keywords = [ "api", "bittorrent", "core", "library", "tracker" ]
+keywords = [ "announce", "bittorrent", "http", "scrape", "whitelist" ]
 license.workspace = true
 name = "torrust-tracker-http-core"
 publish.workspace = true

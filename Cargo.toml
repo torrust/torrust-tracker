@@ -4,8 +4,8 @@ name = "torrust-tracker"
 readme = "README.md"
 
 authors.workspace = true
+categories.workspace = true
 description.workspace = true
-documentation.workspace = true
 edition.workspace = true
 homepage.workspace = true
 keywords.workspace = true
@@ -71,9 +71,8 @@ workspace = true
 
 [workspace.package]
 authors = [ "Nautilus Cyberneering <info@nautilus-cyberneering.de>, Mick van Dijke <mick@dutchbits.nl>" ]
-categories = [ "network-programming", "web-programming" ]
+categories = [ "network-programming", "web-programming::http-server" ]
 description = "A feature rich BitTorrent tracker."
-documentation = "https://docs.rs/crate/torrust-tracker/"
 edition = "2024"
 homepage = "https://torrust.com/"
 keywords = [ "bittorrent", "file-sharing", "peer-to-peer", "torrent", "tracker" ]

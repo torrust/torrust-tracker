@@ -1,12 +1,11 @@
 [package]
-description = "A library that provides a repository of torrents files and their peers."
-keywords = [ "library", "repository", "torrents" ]
+categories = [ "data-structures", "network-programming" ]
+description = "In-memory registry of the torrent swarms and peers tracked by the Torrust Tracker."
+keywords = [ "bittorrent", "concurrency", "in-memory", "peers", "torrents" ]
 name = "torrust-tracker-swarm-coordination-registry"
 readme = "README.md"
 
 authors.workspace = true
-categories.workspace = true
-documentation.workspace = true
 edition.workspace = true
 homepage.workspace = true
 license.workspace = true

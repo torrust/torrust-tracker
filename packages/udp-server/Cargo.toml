@@ -1,10 +1,10 @@
 [package]
 authors.workspace = true
-description = "The Torrust Bittorrent UDP tracker."
-documentation.workspace = true
+categories = [ "network-programming", "asynchronous" ]
+description = "BitTorrent UDP tracker server (BEP 15) for the Torrust Tracker."
 edition.workspace = true
 homepage.workspace = true
-keywords = [ "axum", "bittorrent", "server", "torrust", "tracker", "udp" ]
+keywords = [ "announce", "bittorrent", "scrape", "tokio", "udp" ]
 license.workspace = true
 name = "torrust-tracker-udp-server"
 publish.workspace = true

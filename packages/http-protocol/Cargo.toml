@@ -1,11 +1,11 @@
 [package]
-description = "A library with the primitive types and functions for the BitTorrent HTTP tracker protocol."
-keywords = [ "api", "library", "primitives" ]
+categories = [ "network-programming", "parser-implementations" ]
+description = "Types and functions for the BitTorrent HTTP tracker protocol (BEP 3 and BEP 23)."
+keywords = [ "announce", "bencode", "bittorrent", "http", "scrape" ]
 name = "torrust-tracker-http-protocol"
 readme = "README.md"
 
 authors.workspace = true
-documentation.workspace = true
 edition.workspace = true
 homepage.workspace = true
 license.workspace = true

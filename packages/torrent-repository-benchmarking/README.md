@@ -1,11 +1,11 @@
-# Torrust Tracker Swarm Coordination Registry Benchmarking
+# Torrust Tracker Torrent Repository Benchmarking
 
-A library to runt benchmarking for different implementations of a repository of torrents files and their peers. Torrent repositories are used by the [Torrust Tracker](https://github.com/torrust/torrust-tracker).
+A library to run benchmarks for different implementations of a repository of torrents and their peers. It is not published to crates.io. Torrent repositories are used by the [Torrust Tracker](https://github.com/torrust/torrust-tracker).
 
 ## Benchmarking
 
 ```console
-cargo bench -p torrust-tracker-torrent-repository
+cargo bench -p torrust-tracker-torrent-repository-benchmarking
 ```
 
 Example partial output:
@@ -23,10 +23,6 @@ add_one_torrent/RwLockStdMutexStd
                         time:   [62.505 ns 63.077 ns 63.817 ns]
 ```
 
-## Documentation
-
-[Crate documentation](https://docs.rs/torrust-tracker-torrent-repository).
-
 ## License
 
-The project is licensed under the terms of the [GNU AFFERO GENERAL PUBLIC LICENSE](../../LICENSE).
+The project is licensed under the terms of the [GNU AFFERO GENERAL PUBLIC LICENSE](https://github.com/torrust/torrust-tracker/blob/develop/LICENSE).

@@ -1,11 +1,11 @@
 [package]
+categories = [ "config" ]
 description = "A library to provide configuration to the Torrust Tracker."
-keywords = [ "config", "library", "settings" ]
+keywords = [ "bittorrent", "config", "settings", "toml" ]
 name = "torrust-tracker-configuration"
 readme = "README.md"
 
 authors.workspace = true
-documentation.workspace = true
 edition.workspace = true
 homepage.workspace = true
 license.workspace = true
