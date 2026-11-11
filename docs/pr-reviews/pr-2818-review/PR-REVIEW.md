@@ -50,6 +50,10 @@ Round 1: da2ce7's review `5856655819` (F1 to F3), processed after the replies we
 | F3 | review-finding:pr-2818-f3 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F4 | review-finding:pr-2818-f4 | Copilot | Minor (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
 | F5 | review-finding:pr-2818-f5 | Copilot | Suggestion (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F6 | review-finding:pr-2818-f6 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F7 | review-finding:pr-2818-f7 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F8 | review-finding:pr-2818-f8 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
+| F9 | review-finding:pr-2818-f9 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -118,6 +122,58 @@ Round 1: da2ce7's review `5856655819` (F1 to F3), processed after the replies we
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4536321795
 
+### F6 - The retrospective says the new start rule cannot end validated
+
+- PR number: 2818
+- Source review ID: 5857046891
+- Reviewer finding ID: F4
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4536535928
+- Concern: Root cause 3, the Findings introduction and the 09:41 entry said the rule cannot end validated, but the validator only fails rows whose replies do not exist; the conflict is the "before replying" line of the validation step.
+- Solution: Said in the start rule that reply URLs are filled in after replying, scoped the validator step to recorded reply URLs, and corrected the introduction and retrospective.
+- Current-tree verification: Read the preface and Validation Script paragraph in process-pr-review/SKILL.md.
+- Resolution reference: docs(skills): fill in reply URLs after replying in the audit start rule
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4536568853
+
+### F7 - The F2 Solution cites a sentence that a later commit removed
+
+- PR number: 2818
+- Source review ID: 5857046891
+- Reviewer finding ID: F5
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4536535943
+- Concern: The F2 Solution and verification described a sentence in wait-for-pr-review that a later commit removed.
+- Solution: Restated the F2 Solution and verification as the trigger scope in process-pr-review.
+- Current-tree verification: Read the F2 detail entry and the process-pr-review preface.
+- Resolution reference: docs(skills): fill in reply URLs after replying in the audit start rule
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4536569250
+
+### F8 - The 09:45 entry stamps the second review arrival late
+
+- PR number: 2818
+- Source review ID: 5857046891
+- Reviewer finding ID: F6
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4536535955
+- Concern: The arrival of review 5856716279 was stamped 09:45, the time of the replies.
+- Solution: Added an arrival entry at 09:40 and kept 09:45 for the fix and replies.
+- Current-tree verification: Read the Processing Log.
+- Resolution reference: docs(skills): fill in reply URLs after replying in the audit start rule
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4536569598
+
+### F9 - The description omits the two new files
+
+- PR number: 2818
+- Source review ID: 5857046891
+- Reviewer finding ID: F7
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4536535973
+- Concern: The description did not name the audit record and retrospective files the branch adds.
+- Solution: Edited the PR description to name them.
+- Current-tree verification: gh pr view 2818 shows the edited body.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4536569994
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4536569994
+
 ## Processing Log
 
 - 2026-11-11 09:35 UTC - Review 5856655819 arrived with three findings.
@@ -125,6 +181,8 @@ Round 1: da2ce7's review `5856655819` (F1 to F3), processed after the replies we
 - 2026-11-11 09:40 UTC - Copilot review 5856716279 arrived with two findings.
 - 2026-11-11 09:41 UTC - Started audit late, after the replies, because the validator needs the reply URLs.
 - 2026-11-11 09:45 UTC - Copilot review 5856716279 findings fixed, replied, and F4 and F5 added.
+- 2026-11-11 10:07 UTC - Review 5857046891 arrived with four findings.
+- 2026-11-11 10:10 UTC - Fixed, replied, and added F6 to F9.
 
 ## Completion Rules
 
