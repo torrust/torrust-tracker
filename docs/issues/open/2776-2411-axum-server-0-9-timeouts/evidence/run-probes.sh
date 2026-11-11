@@ -25,4 +25,3 @@ python3 -I "$probe_h2" M4-h2-http-plain 27070 plain
 python3 -I "$probe_h2" M4-h2-http-tls 27171 tls
 python3 -I "$probe_h2" M4-h2-health-plain 21313 plain
 python3 -I "$probe_h2" M4-h2-rest-plain 21212 plain
-

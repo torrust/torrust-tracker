@@ -24,7 +24,7 @@
 //! Every Axum listener of the tracker must be built here. `clippy.toml` forbids calling the
 //! `axum-server` constructors elsewhere, because a listener built without these timeouts keeps idle
 //! connections open and lets silent connections exhaust the process's file descriptors. See the ADR
-//! `packages/axum-server/docs/adrs/20261111095222_close_idle_connections_without_a_408_response.md`.
+//! `docs/adrs/20261111095222_close_idle_connections_without_a_408_response.md`.
 //!
 //! If you want to know more about Axum and timeouts see <https://github.com/josecelano/axum-server-timeout>.
 use std::net::{SocketAddr, TcpListener};

@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2776-2411-axum-server-0-9-timeouts/ISSUE.md
-last-updated-utc: "2026-11-10 17:25"
+last-updated-utc: "2026-11-11 11:03"
 ---
 
 # Manual Verification Evidence
@@ -74,7 +74,7 @@ Observations that change the specification:
 
 ### Red and green runs (T3, T4)
 
-Commands, toolchain and the raw output are in [red-run.txt](evidence/red-run.txt) and
+Commands, toolchain and the output (filtered to test lines) are in [red-run.txt](evidence/red-run.txt), [red-run-service-tests.txt](evidence/red-run-service-tests.txt) (the HTTP tracker and REST API silent-connection tests, red with the shared constructor bypassed) and
 [green-run.txt](evidence/green-run.txt).
 
 - Red, idle-connection tests: at commit `test(axum-server): [#2776] add red idle-connection
@@ -126,10 +126,11 @@ read the idle HTTP/2 socket again until the 5 s keep-alive ping goes unanswered 
 closes at 5 s as measured.
 
 The HTTP/2 idle bound is therefore about 10 s (5 s ping interval plus 5 s reply wait) with and
-without the wrapper. The maintainer ruled on 2026-11-11 that about 10 s for HTTP/2 is accepted (AC4). Context: whether that satisfies AC4 ("no worse than today's plaintext 5 s") was for the
-maintainer to rule: the wrapper's own HTTP/2 result is not better, but the 5 s figure in AC4 is
-not met for HTTP/2. A client that answers HTTP/2 pings keeps the connection open; that is a
-responsive peer, and bounding it is the connection-limit work of EPIC #2411 case A1.
+without the wrapper. AC4 was reworded to "no worse than with the wrapper (V8)": HTTP/1 closes after 5 s and HTTP/2
+after about 10 s, the same as with the wrapper. The maintainer's ACK on the pull request is taken
+as the ruling that this is acceptable. A client that answers HTTP/2 pings keeps the connection
+open; that is a responsive peer, and bounding it is the connection-limit work of EPIC #2411
+case A1.
 No measurement of `develop` (the build before this change) was made for HTTP/2.
 
 ### V9 - Final like-for-like recheck (T9)

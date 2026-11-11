@@ -4,6 +4,8 @@ semantic-links:
     - create-adr
   related-artifacts:
     - packages/axum-server/src/custom_axum_server.rs
+    - clippy.toml
+    - docs/adrs/20260830124000_place_adrs_by_decision_scope.md
     - docs/issues/open/2776-2411-axum-server-0-9-timeouts/ISSUE.md
     - .github/skills/dev/planning/create-adr/SKILL.md
 ---
@@ -14,11 +16,12 @@ semantic-links:
 
 ## Scope
 
-Package-local. The behaviour belongs to the listener constructors in `packages/axum-server`
-(`custom_axum_server`), which the HTTP tracker, REST API and health check API packages only call.
-It is not shared configuration or an inter-package contract, so the ADR lives in
-`packages/axum-server/docs/adrs/`. A future decision to make the timeouts configurable would be
-repository-level and should reference this one.
+Repository-level. The decision is about protocol behaviour: whether the HTTP tracker, the REST API
+and the health check API answer `408 Request Timeout` before closing an idle connection. The
+listener constructors it describes live in `packages/axum-server`, but three server packages depend
+on them, and the root `clippy.toml` that enforces their use binds every crate in the workspace. The
+placement ADR (`20260830124000_place_adrs_by_decision_scope.md`) requires root placement for
+protocol behaviour and shared configuration, even when one package implements it.
 
 ## Description
 
@@ -64,6 +67,7 @@ A request that has arrived and whose handler is too slow still gets `408`, from 
 - Positive: no extra code to maintain; no response traffic for idle connections.
 - Negative: clients and proxies see a reset or close instead of a `408`, and a reverse proxy may log
   an upstream close. This is a known limitation.
+- A client that answers the HTTP/2 keep-alive pings is not time-bounded by these timeouts; bounding it is the connection-limit work of EPIC #2411 case A1.
 - Revisit this decision if real users report confusing logs behind a proxy. The preferred route is
   an optional `408` in `axum-server` upstream, not custom tracker code.
 

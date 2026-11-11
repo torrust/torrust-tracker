@@ -92,7 +92,7 @@ pub async fn start_with_cancellation(
         source: std::io::Error::other(error),
     })?;
     // Build listeners only through `custom_axum_server`: it applies the connection timeouts that close
-    // silent connections, which protects against idle-connection floods (#2776, ADR in `packages/axum-server/docs/adrs/`).
+    // silent connections, which protects against idle-connection floods (#2776, ADR in `docs/adrs/`).
     let server = custom_axum_server::from_tcp_with_timeouts(socket).map_err(|source| Error::Listener { source })?;
 
     let handle = Handle::new();

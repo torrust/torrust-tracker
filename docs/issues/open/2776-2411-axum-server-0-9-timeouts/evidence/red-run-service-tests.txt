@@ -1,0 +1,12 @@
+# Red run of the service silent-connection tests, 2026-11-11 UTC. Toolchain: rustc 1.99.1.
+# Listeners temporarily built with axum_server::from_tcp and axum_server::tls_rustls::from_tcp_rustls instead of the shared constructors (the change was reverted).
+# $ RUSTFLAGS="--cap-lints warn" cargo test --no-fail-fast -p torrust-tracker-axum-http-server -p torrust-tracker-axum-rest-api-server --lib it_should_close
+# Output filtered to the test result lines.
+     Running unittests src/lib.rs
+test server::tests::it_should_close_a_plaintext_connection_that_sends_nothing ... FAILED
+test server::tests::it_should_close_a_tls_connection_that_completes_the_handshake_and_sends_nothing ... FAILED
+test result: FAILED. 0 passed; 2 failed; 0 ignored; 0 measured; 49 filtered out; finished in 8.06s
+     Running unittests src/lib.rs
+test server::tests::it_should_close_a_tls_connection_that_completes_the_handshake_and_sends_nothing ... FAILED
+test server::tests::it_should_close_a_plaintext_connection_that_sends_nothing ... FAILED
+test result: FAILED. 0 passed; 2 failed; 0 ignored; 0 measured; 169 filtered out; finished in 8.09s
