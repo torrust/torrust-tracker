@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Round 1 is da2ce7's review `5860290788` (F1 to F5) and Copilot's review `5860342629` (F6 to F8, numbered after F5), both submitted on the head whose last commit has the subject `docs(issues): [#2824] record the S1 PeerRole fix in the spec`. F6 and F7 re-raise F1 and F3.
+Round 1 is da2ce7's review `5860290788` (F1 to F5) and Copilot's review `5860342629` (F6 to F8, numbered after F5), both submitted on the head whose last commit has the subject `docs(issues): [#2824] record the S1 PeerRole fix in the spec`. F6 and F7 re-raise F1 and F3. Round 2 is da2ce7's approving review `5860726992` (F9 and F10) on the head whose last commit has the subject `docs(pr-reviews): [#2824] record the review of PR 2834 round 1`.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -53,6 +53,8 @@ Round 1 is da2ce7's review `5860290788` (F1 to F5) and Copilot's review `5860342
 | F6 | review-finding:pr-2834-f6 | Copilot | Minor (inferred) | documentation | RE_RAISE_OF:F1 | FIXED | RESOLVED |
 | F7 | review-finding:pr-2834-f7 | Copilot | Minor (inferred) | documentation | RE_RAISE_OF:F3 | FIXED | RESOLVED |
 | F8 | review-finding:pr-2834-f8 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
+| F9 | review-finding:pr-2834-f9 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F10 | review-finding:pr-2834-f10 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -160,11 +162,38 @@ Round 1 is da2ce7's review `5860290788` (F1 to F5) and Copilot's review `5860342
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2834#discussion_r4539209752
 
+### F9 - Audit cites two branch commits by id
+
+- PR number: 2834
+- Source review ID: 5860726992
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2834#discussion_r4539438689
+- Concern: The audit cited two branch commits by id (one in the Findings intro, one in the 14:36 log entry); branch ids are rewritten by a rebase and the repository keeps them out of review audits.
+- Solution: Replaced both ids by the subject of the last commit of each head. The residual ids in the records are commits already on `develop` and toolchain versions.
+- Current-tree verification: A search of the audit for the three branch heads cited in this PR printed nothing after the edit.
+- Resolution reference: docs(pr-reviews): [#2824] name the PR 2834 heads by commit subject
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2834#discussion_r4539455737
+
+### F10 - PR description lists only the first three commits
+
+- PR number: 2834
+- Source review ID: 5860726992
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2834#discussion_r4539438702
+- Concern: The PR description listed only the first three commits and did not mention the evidence file, the coverage and EPIC updates, the test review or the audit.
+- Solution: Edited the PR description (outside the repository tree) to list every commit by subject, grouped, with the files touched and the validation run. A PR conversation comment states the edit.
+- Current-tree verification: The description was read back through the API after the edit and lists the evidence file and the later commits.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2834#issuecomment-6799216339
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2834#discussion_r4539456164
+
 ## Processing Log
 
 - 2026-11-11 14:35 UTC - Started audit after da2ce7's review `5860290788` (changes requested, 5 findings).
 - 2026-11-11 14:36 UTC - Replied on the five threads of da2ce7's review (F1 to F5) against the head whose last commit has the subject `docs(issues): [#2824] record the S1 coverage measurement and the EPIC update`; the audit validator passed (5 rows).
 - 2026-11-11 14:38 UTC - Copilot's review `5860342629` (3 findings on the same head) processed: F6 and F7 re-raise F1 and F3, F8 is new. Replied on its three threads and resolved all eight threads; the fixes for F4 and F8 and this audit are in the next push.
+- 2026-11-11 14:59 UTC - da2ce7's approving review `5860726992` (2 findings) processed: F9 (the audit cited two branch commits by id) fixed in the audit text, which also corrected the ids in the 14:36 entry above; F10 (PR description) fixed by editing the description. Replied on both threads and resolved them; the audit rows and the fix for F9 are in the next push.
 
 ## Completion Rules
 
