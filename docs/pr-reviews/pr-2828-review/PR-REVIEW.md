@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Rows F1-F12 come from review 5858450371 (`da2ce7`). Rows F13, R1 and R2 come from review 5858504509 (Copilot); R1 and R2 re-raise F2 and F8. Rows F19, F15, F14, F16, F17 and F18 come from the comments of review 5858813320 (`da2ce7`, approved); the reviewer's `F9` there repeats the earlier F9, so it is recorded as F19 with `Reviewer finding ID` F9.
+Rows F1-F12 come from review 5858450371 (`da2ce7`). Rows F13, R1 and R2 come from review 5858504509 (Copilot); R1 and R2 re-raise F2 and F8. Rows F19, F15, F14, F16, F17 and F18 come from the comments of review 5858813320 (`da2ce7`, approved); the reviewer's `F9` there repeats the earlier F9, so it is recorded as F19 with `Reviewer finding ID` F9. Rows F20 and F21 come from review 5859145551 (`da2ce7`, approved).
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -66,6 +66,8 @@ Rows F1-F12 come from review 5858450371 (`da2ce7`). Rows F13, R1 and R2 come fro
 | F16 | review-finding:pr-2828-f16 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F17 | review-finding:pr-2828-f17 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F18 | review-finding:pr-2828-f18 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F20 | review-finding:pr-2828-f20 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F21 | review-finding:pr-2828-f21 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -342,6 +344,32 @@ Rows F1-F12 come from review 5858450371 (`da2ce7`). Rows F13, R1 and R2 come fro
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2828#discussion_r4538021897
 
+### F20 - This log entry cites the PR-branch commit `29dc3421d`
+
+- PR number: 2828
+- Source review ID: 5859145551
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2828#discussion_r4538201992
+- Concern: The 12:37 log entry named the head by a PR-branch commit id, which a rebase would make wrong.
+- Solution: Appended a correction naming the head by the commit subject that added the audit; the original entry is left because the log is append-only.
+- Current-tree verification: Read the log tail; the correction entry cites no commit id.
+- Resolution reference: `docs(pr-reviews): correct the log entry that cites a branch commit id`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2828#discussion_r4538251726
+
+### F21 - The 12:43 entry stamps the push with the commit time; the timeline shows the push at 12:44
+
+- PR number: 2828
+- Source review ID: 5859145551
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2828#discussion_r4538201999
+- Concern: The 12:43 entry gave the commit time as the push time.
+- Solution: Appended a correction giving 12:44 UTC from the timeline (stale-review dismissal at 12:44:56 UTC); the original entry is left because the log is append-only.
+- Current-tree verification: The 12:44:56 UTC time is the reviewer-supplied timeline time of the stale-review dismissal; read the log tail.
+- Resolution reference: `docs(pr-reviews): correct the log entry that stamps the push with the commit time`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2828#discussion_r4538252095
+
 ## Processing Log
 
 - 2026-11-11 12:07 UTC - Started audit. Review 5858450371 (`da2ce7`, changes requested) arrived with 12 inline findings, F1-F12.
@@ -354,6 +382,8 @@ Rows F1-F12 come from review 5858450371 (`da2ce7`). Rows F13, R1 and R2 come fro
 - 2026-11-11 12:45 UTC - Replied on the 6 threads (12:45:04 to 12:45:15 UTC) and resolved them; a GraphQL refresh showed no unresolved thread.
 - 2026-11-11 13:05 UTC - Correction (F20): the 12:37 entry named the head by a PR-branch commit id; it means the head that added this audit, `docs(pr-reviews): add the PR 2828 review audit`. The entry is left as written, as the log is append-only.
 - 2026-11-11 13:06 UTC - Correction (F21): the 12:43 entry says the fixes were committed and pushed at 12:43. The last of them was committed at 12:43:03 UTC; the push is traced in the GitHub timeline by the stale-review dismissal of review 5858813320 at 12:44:56 UTC, so the push was at 12:44. The entry is left as written, as the log is append-only.
+- 2026-11-11 13:03 UTC - Review 5859145551 (`da2ce7`, approved) arrived with 2 inline findings, F20 and F21, both about two Processing Log entries.
+- 2026-11-11 13:08 UTC - Replied on the 2 threads and resolved them (replies created 13:08:18 and 13:08:20 UTC); a GraphQL refresh showed no unresolved thread.
 
 ## Completion Rules
 
