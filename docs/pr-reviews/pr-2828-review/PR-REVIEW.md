@@ -385,6 +385,7 @@ Rows F1-F12 come from review 5858450371 (`da2ce7`). Rows F13, R1 and R2 come fro
 - 2026-11-11 13:06 UTC - Correction (F21): the 12:43 entry says the fixes were committed and pushed at 12:43. The last of them was committed at 12:43:03 UTC; the push is traced in the GitHub timeline by the stale-review dismissal of review 5858813320 at 12:44:56 UTC, so the push was at 12:44. The entry is left as written, as the log is append-only.
 - 2026-11-11 13:08 UTC - Replied on the 2 threads and resolved them (replies created 13:08:18 and 13:08:20 UTC); a GraphQL refresh showed no unresolved thread.
 - 2026-11-11 13:28 UTC - Review 5859484596 (`da2ce7`, approved) arrived on the head that moved the round 3 log entry, with 2 inline findings: F22 (the reviewer's F20 again) and F23.
+- 2026-11-11 13:30 UTC - Correction (F23): the 13:03 entry, which the commit `docs(pr-reviews): record round 3 of the PR 2828 review` appended after the 13:06 correction and which was pushed, was then moved above the 13:05 and 13:06 entries by the commit `docs(pr-reviews): order the PR 2828 round 3 log entries chronologically`. That move rewrote the pushed log in place. The log is left in the moved order, because restoring the earlier order fails the validator's order check; this entry records the move.
 
 ## Completion Rules
 
