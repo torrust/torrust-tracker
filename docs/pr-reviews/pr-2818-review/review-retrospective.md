@@ -24,14 +24,14 @@ Written by the PR author from the audit record and `git log`, following
 | Re-raised findings (`RE_RAISE_OF`) | 0 |
 | Findings about the audit record itself | 3 (F6, F7, F8) |
 | Commits on the branch | 7 at the time of writing (3 audit and retrospective only) |
-| First review to last thread resolution | a few minutes (09:35 to about 10:11 UTC, 2026-11-11) |
+| First review to last thread resolution | about 36 minutes (09:35 to about 10:11 UTC, 2026-11-11) |
 | AI models used | Claude Sonnet 5.5 (author), unknown (reviewer) |
 
 Numbers: the table in `PR-REVIEW.md`, `git log torrust/develop..HEAD`, and the review times from the GitHub API.
 
 ## What Went Well
 
-1. The change was small (two skills, nine lines), so there were three rounds and every finding was minor.
+1. The change was small (two skills, 13 lines added and 4 removed), so there were three rounds and every finding was minor.
 2. The reviewer re-checked the motivation against the audits and found that the description overstated it
    (F3); the description now states only what the audits show.
 
@@ -42,6 +42,10 @@ trigger fired on events that need no record. Both came from writing the rule for
 walking the other cases (a takeover after round 1, a clean first review). F3 came from summarizing six
 retrospectives from memory of the task brief instead of from each audit. Copilot's F4 and F5 (ambiguous
 terms, the rule stated in full in two skills) are the same kind: wording and duplication I could have checked before pushing.
+
+Round 3 (F6 to F9) was about the record: a conflict between the start rule and the validator step, a Solution
+that described removed bytes (F7), and a log stamp that was the time of my replies instead of the review's
+arrival (F8). These are recording defects, not defects in the skills' intent.
 
 ## Root Causes
 

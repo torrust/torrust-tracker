@@ -178,9 +178,8 @@ Round 1: da2ce7's review `5856655819` (F1 to F3), processed after the replies we
 
 - 2026-11-11 09:35 UTC - Review 5856655819 arrived with three findings.
 - 2026-11-11 09:40 UTC - Replied to the three threads after pushing the fix and editing the description.
-- 2026-11-11 09:40 UTC - Copilot review 5856716279 arrived with two findings.
 - 2026-11-11 09:41 UTC - Started audit late, after the replies, because the validator needs the reply URLs.
-- 2026-11-11 09:45 UTC - Copilot review 5856716279 findings fixed, replied, and F4 and F5 added.
+- 2026-11-11 09:45 UTC - Copilot review 5856716279 arrived with two findings; fixed, replied, and added F4 and F5.
 - 2026-11-11 10:07 UTC - Review 5857046891 arrived with four findings.
 - 2026-11-11 10:10 UTC - Fixed, replied, and added F6 to F9.
 
