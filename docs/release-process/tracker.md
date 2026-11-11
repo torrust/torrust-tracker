@@ -9,17 +9,17 @@ semantic-links:
     - Cargo.toml
 ---
 
-# Torrust Tracker Release Process (v2.2.2)
+# Torrust Tracker Release Process
 
 ## Process
 
-**Note**: this guide assumes that the your git `torrust` remote is like this:
+**Note**: this guide assumes that your git `torrust` remote is like this:
 
 ```sh
 git remote show torrust
 ```
 
-```s
+```text
 * remote torrust
   Fetch URL: git@github.com:torrust/torrust-tracker.git
   Push  URL: git@github.com:torrust/torrust-tracker.git
@@ -109,7 +109,7 @@ git fetch --all
 git push --force torrust main:staging/develop
 ```
 
-### 9. Create Comment that bumps next development version
+### 9. Create Commit that bumps next development version
 
 ```sh
 git stash
