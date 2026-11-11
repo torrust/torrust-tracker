@@ -9,7 +9,7 @@ github-issue: 2822
 spec-path: docs/issues/open/2822-2003-wait-for-pr-review-gh-option/ISSUE.md
 branch: "2822-wait-for-pr-review-gh-option-spec"
 related-pr: 2826
-last-updated-utc: "2026-11-11 12:59"
+last-updated-utc: "2026-11-11 13:28"
 semantic-links:
   skill-links:
     - create-issue
@@ -98,12 +98,16 @@ is a child process and so needs an explicit bound and cancellation:
 - **Budget.** The lookup has its own short bound, `min(10 s, timeout / 4)`, so a stalled lookup leaves at least
   three quarters of the wait's budget, and the ordinary calls then run on the original deadline: at
   `--timeout-seconds 10` the lookup ends at 2.5 seconds and the baseline calls keep the rest. A failed or
-  stalled lookup therefore never changes the result for any valid timeout.
-- **Baseline.** The lookup runs before the baseline snapshot. Without `--since-head-sha` or `--since`, the
-  baseline is whatever the first snapshot holds, so a review or push that lands during a stalled lookup (up
-  to the bound) is absorbed and not reported. The skill already tells agents to pass `--since-head-sha`,
-  which sets the baseline from the checked-out commit; the spec records this as a known limit for callers
-  that pass neither.
+  stalled lookup therefore adds no error kind or exit code of its own and ends at its bound. It does spend up
+  to a quarter of the budget before the baseline: a run whose baseline needs more than the remaining three
+  quarters can end in `deadline_exceeded` (exit 1) where it would otherwise have finished.
+- **Baseline.** The lookup runs before the baseline snapshot. Without `--since-head-sha` or `--since`, a review
+  or comment that lands during a stalled lookup (up to the bound) is absorbed into the baseline and not
+  reported. A push is absorbed unless `--since-head-sha` is given: `--since` alone keeps the first snapshot's
+  head, and only `--since-head-sha` takes the head and the cutoff from the caller's commit. The skill already
+  tells agents to pass `--since-head-sha`; the spec records the rest as a known limit.
+- **Best effort.** `gh_identity` is written best effort, like `wait_started`: a failure to write it never
+  changes the result or the exit code (the scenario that fills stderr with `/dev/full` keeps exit 0).
 - **Place.** `wait_started` is written first, with `gh_command` only, as today, so callers and the signal
   scenarios that read it as "running" are not delayed. The lookup then runs and its result is written as a
   second stderr record `gh_identity` with `gh_command` and `gh_login`. (Decision D2.)
@@ -146,10 +150,12 @@ sub-issue and can be its own issue once the skill text exists.
   out). Putting the login in its own record keeps `wait_started` immediate (see the design review). The lookup is
   best effort and bounded as described above.
 - Tests pass a fake script's path through `--gh-command` while `PATH` does not contain it, so the option is the
-  only route to it. The existing scenarios keep their `PATH`-based fake, but the two that assert the exact stderr kinds (the
-  result scenario and the not-authenticated scenario in `tests/cli.rs`) gain the `gh_identity` record in
-  their expected sequence, because the record is written on every run and the fake's `api user` fails, so
-  `gh_login` is `null`. Those assertion updates are the only change to them. No `PATH` shim
+  only route to it. The existing scenarios keep their `PATH`-based fake, but every one that asserts or parses the stderr after
+  `wait_started` changes because the `gh_identity` record is written on every run and the fake's `api user`
+  fails, so `gh_login` is `null`: the two kind-sequence scenarios (the result scenario and the
+  not-authenticated scenario) gain the record in their expected sequence, and the signal scenarios and the
+  scenario that parses the rest of stderr as one JSON value must read or skip it. Those assertion updates are
+  the only change to them. No `PATH` shim
   is ever used.
 
 ## Bug-Fix Process
@@ -215,6 +221,8 @@ increment, before final verification, commit and pull request.
   and addressed the first review of PR #2826.
 - 2026-11-11 12:59 UTC - AI assistant (Claude Code, Claude Sonnet 5.5) - Addressed the second review of PR #2826:
   scope and risks match D2, the lookup bound and baseline limit are stated, the test changes and M4 are fixed.
+- 2026-11-11 13:28 UTC - AI assistant (Claude Code, Claude Sonnet 5.5) - Addressed the third review of PR #2826:
+  the lookup's budget and baseline limit are stated exactly, and the scenarios that `gh_identity` changes are named.
 
 ## Acceptance Criteria
 
@@ -224,8 +232,9 @@ increment, before final verification, commit and pull request.
 - [ ] AC3: The exit codes `0`, `1`, `2`, the existing record kinds and the JSON-only stderr are unchanged; a
       command that cannot be started is reported as `gh_unavailable` with exit code `1`.
 - [ ] AC4: `wait_started` carries `gh_command`, and a `gh_identity` record carries `gh_command` and `gh_login`
-      (`null` when the lookup fails or times out). A failed or stalled lookup does not change the result or the exit
-      code for any valid `--timeout-seconds`; a stalled lookup ends at `min(10 s, timeout / 4)`.
+      (`null` when the lookup fails or times out). A failed or stalled lookup adds no error kind or exit code, and a stalled lookup
+      ends at `min(10 s, timeout / 4)`; the budget it spends and the baseline limit are stated in the
+      design review.
 - [ ] AC5: The tests reach the fake command only through `--gh-command`, with no `PATH` shim, and the existing
       scenarios are no less reliable.
 - [ ] AC6: `--help` and the skill document the option and the reported fields.
@@ -271,8 +280,10 @@ Evidence goes in issue-local `manual-verification-evidence.md`, naming the toolc
 - The `gh_identity` record is new stderr surface. It fits the decided output contract (every record has a
   `kind`) and changes no existing record, but later contract changes must account for it.
 - `gh_login` is information, not proof of the right role: the poller cannot know which login is intended.
-- Without `--since-head-sha` or `--since`, an event that lands during a stalled lookup is absorbed into the baseline.
-  The skill tells agents to pass `--since-head-sha`.
+- Without `--since-head-sha` or `--since`, a review or comment that lands during a stalled lookup is absorbed into
+  the baseline, and a push is absorbed unless `--since-head-sha` is given. The skill tells agents to pass it.
+- A stalled lookup spends up to a quarter of the budget before the baseline, so a tight timeout can end in
+  `deadline_exceeded` where it would otherwise have finished.
 
 ## Implementation Completion Review
 
