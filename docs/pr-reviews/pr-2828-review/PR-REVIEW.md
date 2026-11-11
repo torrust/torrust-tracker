@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Rows F1-F12 come from review 5858450371 (`da2ce7`). Rows F13, R1 and R2 come from review 5858504509 (Copilot); R1 and R2 re-raise F2 and F8.
+Rows F1-F12 come from review 5858450371 (`da2ce7`). Rows F13, R1 and R2 come from review 5858504509 (Copilot); R1 and R2 re-raise F2 and F8. Rows F19, F15, F14, F16, F17 and F18 come from the comments of review 5858813320 (`da2ce7`, approved); the reviewer's `F9` there repeats the earlier F9, so it is recorded as F19 with `Reviewer finding ID` F9.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -60,6 +60,12 @@ Rows F1-F12 come from review 5858450371 (`da2ce7`). Rows F13, R1 and R2 come fro
 | F13 | review-finding:pr-2828-f13 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
 | R1 | review-finding:pr-2828-r1 | Copilot | Minor | correctness | RE_RAISE_OF:F2 | NO_ACTION | SUPERSEDED |
 | R2 | review-finding:pr-2828-r2 | Copilot | Minor | testing | RE_RAISE_OF:F8 | NO_ACTION | SUPERSEDED |
+| F19 | review-finding:pr-2828-f19 | Human | Minor | documentation | RE_RAISE_OF:F9 | FIXED | RESOLVED |
+| F15 | review-finding:pr-2828-f15 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F14 | review-finding:pr-2828-f14 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F16 | review-finding:pr-2828-f16 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F17 | review-finding:pr-2828-f17 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F18 | review-finding:pr-2828-f18 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -258,6 +264,84 @@ Rows F1-F12 come from review 5858450371 (`da2ce7`). Rows F13, R1 and R2 come fro
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2828#discussion_r4537769647
 
+### F19 - Partly fixed: the spec's `last-updated-utc` still reads 11:30
+
+- PR number: 2828
+- Source review ID: 5858813320
+- Reviewer finding ID: F9
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2828#discussion_r4537948631
+- Concern: F9's fix left the spec's `last-updated-utc` at 11:30, which matches no commit that touched the file.
+- Solution: Stamped it with the commit time of the last commit that changes the spec (12:41).
+- Current-tree verification: `git log -1 --format=%cI` for that commit read 2026-11-11T12:41:47Z; the frontmatter reads `2026-11-11 12:41`.
+- Resolution reference: `docs(issues): [#2824] stamp the spec last-updated-utc from its last change`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2828#discussion_r4538020220
+
+### F15 - Out of Scope still excludes production behavior changes, but S1 changes `peer.rs`
+
+- PR number: 2828
+- Source review ID: 5858813320
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2828#discussion_r4537948639
+- Concern: Out of Scope excluded every production behavior change while slice S1 fixes F2 in `peer.rs`, and In Scope did not list the fix.
+- Solution: Out of Scope now excepts the F2 fix and In Scope lists it.
+- Current-tree verification: Read both bullets in the spec.
+- Resolution reference: `docs(issues): [#2824] list the S1 fix as the one production change in scope`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2828#discussion_r4538020504
+
+### F14 - The intro says every finding was confirmed with a throwaway test; F4 and F5 were not
+
+- PR number: 2828
+- Source review ID: 5858813320
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2828#discussion_r4537948648
+- Concern: The design review intro said every finding was confirmed with a throwaway test, but the register records code reading for F4 and F5.
+- Solution: The intro now says a throwaway test or code reading.
+- Current-tree verification: Read the intro against the register's Evidence column.
+- Resolution reference: `docs(issues): [#2824] say findings were confirmed by a test or by code reading`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2828#discussion_r4538020836
+
+### F16 - AC1 is `DONE` here while its criterion is unticked and the table is reviewed "after the last slice"
+
+- PR number: 2828
+- Source review ID: 5858813320
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2828#discussion_r4537948664
+- Concern: The verification table marked AC1 DONE while the criterion was unticked and the table is reviewed after the last slice.
+- Solution: The AC1 row now reads `TODO`.
+- Current-tree verification: Read the AC1 row and the criterion.
+- Resolution reference: `docs(issues): [#2824] keep AC1 TODO until the final acceptance review`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2828#discussion_r4538021231
+
+### F17 - The audit has no frontmatter, unlike the other recent audits
+
+- PR number: 2828
+- Source review ID: 5858813320
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2828#discussion_r4537948670
+- Concern: The audit opened without the template's frontmatter and skill-link comment.
+- Solution: Added both from the template.
+- Current-tree verification: Read the first lines of this file.
+- Resolution reference: `docs(pr-reviews): add the template frontmatter to the PR 2828 audit`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2828#discussion_r4538021657
+
+### F18 - F1's Solution says the fixture lines were classified in the `peer.rs` record, which does not exist yet
+
+- PR number: 2828
+- Source review ID: 5858813320
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2828#discussion_r4537948673
+- Concern: The audit, the spec and the evidence said the fixture lines were classified in the `peer.rs` record, which does not exist yet.
+- Solution: All three now say the S2 `peer.rs` record will classify them (the audit text through the commit `docs(pr-reviews): say the F1 fixture classification is planned, not done`).
+- Current-tree verification: `grep -n classified` over the audit, spec and evidence shows no present-tense claim about the fixture lines.
+- Resolution reference: `docs(issues): [#2824] say the fixture classification is planned for the S2 record`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2828#discussion_r4538021897
+
 ## Processing Log
 
 - 2026-11-11 12:07 UTC - Started audit. Review 5858450371 (`da2ce7`, changes requested) arrived with 12 inline findings, F1-F12.
@@ -265,6 +349,9 @@ Rows F1-F12 come from review 5858450371 (`da2ce7`). Rows F13, R1 and R2 come fro
 - 2026-11-11 12:15 UTC - Committed one signed fix per finding group (F1-F13); the last commit is `docs(issues): [#2824] require fix-bug verification evidence in slice S1`.
 - 2026-11-11 12:18 UTC - Pushed the fixes and replied on all 15 threads (replies created between 12:18:16 and 12:18:50 UTC).
 - 2026-11-11 12:19 UTC - Resolved the 15 threads; a GraphQL refresh at 12:19:37 UTC showed no unresolved thread.
+- 2026-11-11 12:37 UTC - Review 5858813320 (`da2ce7`, approved) arrived on head `29dc3421d` with 6 inline findings: F19 (the reviewer's F9 again), F15, F14, F16, F17 and F18.
+- 2026-11-11 12:43 UTC - Committed the fixes (the last: `docs(pr-reviews): add the template frontmatter to the PR 2828 audit`) and pushed them.
+- 2026-11-11 12:45 UTC - Replied on the 6 threads (12:45:04 to 12:45:15 UTC) and resolved them; a GraphQL refresh showed no unresolved thread.
 
 ## Completion Rules
 
