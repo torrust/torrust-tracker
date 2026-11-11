@@ -6,7 +6,7 @@ epic: null
 github-issue: 1347
 spec-path: docs/issues/open/1347-overhaul-packages-testing/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-11 11:30"
+last-updated-utc: "2026-11-11 11:22"
 semantic-links:
   skill-links:
     - create-issue
@@ -313,7 +313,6 @@ For each subissue implementation, the completion policy is:
   lines 40.24%, regions 42.65%, functions 24.16% (6 unit tests); aggregate lines 85.31%, regions 80.99%,
   functions 79.19% (plus 58 integration tests; integration-only lines 74.39%). Delivered in slices S0-S6;
   the row stays `TODO` until the first implementation slice starts.
-- 2026-11-11 11:30 UTC - Claude Code - Created #2824 (`primitives`) as a subissue of this EPIC (the link under #1347 is set by the maintainer). Clean baseline at `eaae0e487`, filtered to the package source: unit-only = aggregate lines 60.56% (453/748), regions 67.94% (712/1,048), functions 57.23% (91/159), 47 unit tests, no integration tests. Delivered in slices S0-S4; the row stays `TODO` until the first implementation slice starts.
 - 2026-10-26 17:50 UTC - GitHub Copilot - #2637 (`axum-rest-api-server`) S1: `develop` changed the package after the
   spec baseline (#2449 test-environment unit tests; #2653, merged through #2656, the unreadable `Authorization`
   header fix and its test), so it was measured again at `0b4b2d0d3`. Both baseline rows now read: aggregate lines
@@ -343,6 +342,7 @@ For each subissue implementation, the completion policy is:
 - 2026-11-06 09:06 UTC - Claude Code - #2637 S5 (the `server.rs` lifecycle) pull request #2744 opened.
 - 2026-11-06 10:31 UTC - Claude Code - #2637 S5 merged through #2744 (2026-11-06 10:26 UTC). S6 (rows 19-31, then the final tasks) started; its baseline is the S5 re-measurement (unit-only lines 96.71%, aggregate 97.71%).
 - 2026-11-06 16:37 UTC - Claude Code - #2637 S6 (crate root, wiring and final tasks) finished: ledger rows 19-31 done, one test added (`authenticate` with a duplicated token value, found by the mutation run), manual scenarios M1-M5 passed. Final figures: unit-only lines 96.67% (170 unit tests), aggregate 97.67%; both "Latest" tables carry them.
+- 2026-11-11 11:22 UTC - Claude Code - Created #2824 (`primitives`) as a subissue of this EPIC (the link under #1347 is set by the maintainer). Clean baseline at `eaae0e487`, filtered to the package source: unit-only = aggregate lines 60.56% (453/748), regions 67.94% (712/1,048), functions 57.23% (91/159), 47 unit tests, no integration tests. Delivered in slices S0-S4; the row stays `TODO` until the first implementation slice starts.
 
 ## Acceptance Criteria
 
