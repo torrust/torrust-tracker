@@ -1270,7 +1270,7 @@ None — previously known thin dependencies have been resolved:
 ### New findings
 
 No new thin-dependency or cluster-dependency finding needs a sub-issue **as a blocker for the
-first publish**. Two claims carried over from earlier handoffs were verified, and a few edges are
+first publish**. Two claims, the `udp-server` → `client-lib` edge (DEC-11) and the `rest-api-runtime-adapter` → `udp-server` edge (EPIC known smells), were verified, and a few edges are
 worth recording. Nothing here is a forbidden edge.
 
 | # | Finding | Verified | Classification |
