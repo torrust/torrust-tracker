@@ -9,7 +9,7 @@ github-issue: 2776
 spec-path: docs/issues/open/2776-2411-axum-server-0-9-timeouts/ISSUE.md
 branch: "2776-axum-server-0-9-timeouts-spec"
 related-pr: null
-last-updated-utc: "2026-11-11 09:00"
+last-updated-utc: "2026-11-11 10:00"
 semantic-links:
   skill-links:
     - create-issue
@@ -120,7 +120,7 @@ by the scenarios below.
 ## Architectural Decisions
 
 - Related ADRs: none known for timeouts.
-- ADRs to create: none known. Create one if the tracker keeps a custom acceptor (or drops it)
+- ADRs created: [Close idle connections without a 408 response](../../../../packages/axum-server/docs/adrs/20261111095222_close_idle_connections_without_a_408_response.md) (package-local, 2026-11-11). None other known. Create another if the tracker keeps a custom acceptor (or drops it)
   with consequences worth recording, or if timeouts become configuration keys.
 
 ## Design and Ownership Review
@@ -227,6 +227,7 @@ with GPG.
 - 2026-11-10 17:30 UTC - Claude Code (Claude Sonnet 5.5) - Implemented. T2: `axum-server` 0.9.0 required in five manifests (no source change needed; the tracker does not wrap a TLS acceptor, so `TlsService` did not matter). T3/T4: `custom_axum_server::Timeouts` (injectable) with `from_tcp_with`/`from_tcp_rustls_with`; `first_request_timeout` applied in the shared constructor path, and the health check API now uses it; red run recorded, tests green. Checkpoint after the plaintext HTTP slice: the design held for all listeners without change. T5: with/without-wrapper comparison identical for HTTP/1 and HTTP/2, so `TimeoutAcceptor`, `TimeoutStream`, `TimeoutService`, `TimeoutBody` were removed (no ADR: the replacement is the upstream feature and the behaviour is recorded in the EPIC controls). T6 decision: the values stay constants in `Timeouts::default` (5 s first request, header read and HTTP/2 keep-alive; 10 s TLS handshake), injectable in code for tests, not configuration keys, because nothing in the evidence asks operators to tune them; revisit under EPIC #2411 case A1. Known limitations: the server closes without `408`; HTTP/2 idle bound is 10 s; a client that answers HTTP/2 pings is not time-bounded. T7: EPIC case A2 and controls updated. T9: final recheck on `refactor(axum-server): [#2776] remove the TimeoutAcceptor wrapper`. T8 is the maintainer's. No retrospective needed: no discovery changed the design beyond the HTTP/2 measurement already recorded in the evidence. - [evidence](manual-verification-evidence.md)
 - 2026-11-10 21:40 UTC - Claude Code (Claude Sonnet 5.5) - Review round 1 (PR 2813: Copilot lite review and da2ce7, 14 findings). F1: reran the HTTP/2 probes with the wrapper; the wrapper does not shorten idle HTTP/2 (10.0 s, probable cause in the evidence), so the removal stands, but AC4 and AC5 are reopened (F5) for the maintainer's ruling and the unmeasured "already 10 s on develop" claim is dropped. Also: lockfile restored to develop's resolution for the two unrelated edges (F4), citations by symbol in the EPIC (F3), commit ids dropped (F2), red and green output with commands recorded (F6), HTTP/2 tests now require a response and a close no earlier than the injected timeout (F7), probe note replaced (F8), plus the Copilot suggestions (probe script trap, drop guard in the health check test, longer test timeouts, fixture README, doc note on `from_tcp_with_timeouts`). Audit: `docs/pr-reviews/pr-2813-review/PR-REVIEW.md`.
 - 2026-11-11 09:00 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer ruling on AC4: an idle HTTP/2 connection closed after about 10 s is accepted (the extra 5 s changes the cost of a descriptor-exhaustion attack little; the real bound is a connection limit, EPIC #2411 case A1). AC4 reworded to match what ships, AC4 and AC5 ticked.
+- 2026-11-11 10:00 UTC - Claude Code (Claude Sonnet 5.5) - Added the package ADR on closing idle connections without a `408` (maintainer discussion: silent close kept; revisit via an upstream `axum-server` feature if proxies report confusing logs). Develop merged into the branch to resolve conflicts with #2801 and #2812.
 
 ## Acceptance Criteria
 
