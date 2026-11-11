@@ -1294,5 +1294,8 @@ the asymmetry is recorded in DEC-11 as an acknowledged trade-off.
 **Finding 2.** The adapter reads the UDP server's statistics repository for the REST `stats`
 endpoint. `axum-rest-api-server` therefore depends on `udp-server` in its default build, even
 though the REST API is otherwise independent of UDP delivery. The EPIC already classifies the
-remaining `udp-server` consumers as runtime/server packages. Recommendation: no sub-issue now; a
-narrow stats read trait in `udp-core` would remove the edge if it ever matters for publication.
+remaining `udp-server` consumers as runtime/server packages. Recommendation: no sub-issue now; the
+adapter also builds and accepts the concrete `UdpTrackerServerContainer` (`v1/container.rs`), so a
+stats read trait alone would not remove the edge: removing it would also need that container
+wiring moved to the composition root or abstracted. Not worth it unless the edge matters for
+publication.
