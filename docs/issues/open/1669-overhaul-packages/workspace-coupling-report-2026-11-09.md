@@ -1282,13 +1282,14 @@ worth recording. Nothing here is a forbidden edge.
 
 **Finding 1.** DEC-11 argues that a server depending on its client is the "normal" direction. The
 HTTP side does not follow it: `axum-http-server` implements its health check with `reqwest`
-directly and has `client-lib` only as a dev-dependency. Consequence: `udp-server` (and, through
-finding 2, `rest-api-runtime-adapter` and the default build of `axum-rest-api-server`) pulls
+directly and has `client-lib` only as a dev-dependency. Consequence: `udp-server` pulls
 `client-lib`, `http-protocol` and the client's `reqwest`/`hyper` stack into a production build for
-one small function. It is accepted, not blocking. If the UDP health check is ever made
+one small function. Through finding 2 the edge also reaches `rest-api-runtime-adapter` and the
+default build of `axum-rest-api-server`, but there it adds only `client-lib` itself: both already
+have `http-protocol` (through `http-core`) and `reqwest`/`hyper`. It is accepted, not blocking. If the UDP health check is ever made
 self-contained (for example by moving `check` next to the UDP protocol or into `udp-core`), the edge
-and the transitive weight both disappear. Recommendation: no sub-issue now; add this asymmetry to
-DEC-11 as an acknowledged trade-off.
+and, for `udp-server`, the transitive weight both disappear. Recommendation: no sub-issue now;
+the asymmetry is recorded in DEC-11 as an acknowledged trade-off.
 
 **Finding 2.** The adapter reads the UDP server's statistics repository for the REST `stats`
 endpoint. `axum-rest-api-server` therefore depends on `udp-server` in its default build, even
