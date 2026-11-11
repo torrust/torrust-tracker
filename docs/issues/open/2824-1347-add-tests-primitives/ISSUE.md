@@ -148,7 +148,7 @@ added as in #1348 following the `add-rust-dependency` skill.
 
 ## Design and Ownership Review
 
-Questions each file's plan must answer. Each was first confirmed with a throwaway test and is now
+Questions each file's plan must answer. Each was confirmed by a throwaway test or by code reading and is now
 recorded in the [Findings Register](#findings-register); each file's plan only needs to check that
 its tests do not pin behavior a finding reports as wrong:
 
