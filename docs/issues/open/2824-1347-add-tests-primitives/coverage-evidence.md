@@ -59,7 +59,7 @@ unselected) is recorded in each file's plan.
 | --- | --- |
 | Unit tests | Selected; primary objective, in-file `#[cfg(test)]` modules. |
 | Package integration tests | Not applicable: the package is pure types with no I/O and no `tests/` directory. |
-| Runnable examples / doctests | `peer.rs` has one `no_run` example; not evidence for behavior. No change. |
+| Runnable examples / doctests | `peer.rs` has two `no_run` examples (module docs, line 5; `Peer` docs, line 94), which are not evidence for behavior, and, since the F1 fix, a `compile_fail` doctest (line 117) that guards `Peer` against implementing `Ord`; that doctest is behavior evidence and is not changed. |
 | Property-based testing | Assessed per seam (inventory column). Proposed: `AnnounceIntervalInSecs` bounds and `peer::Id` byte round-trip, with `quickcheck` as in #1348. Needs the maintainer's decision. |
 | Mutation testing | Bounded whole-package run in the final slice (about 160 functions). |
 | Fuzzing, benchmarks | Not selected / out of scope. |
