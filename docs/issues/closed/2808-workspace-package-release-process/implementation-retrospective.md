@@ -4,7 +4,7 @@ semantic-links:
     - create-issue
     - write-markdown-docs
   related-artifacts:
-    - docs/issues/open/2808-workspace-package-release-process/ISSUE.md
+    - docs/issues/closed/2808-workspace-package-release-process/ISSUE.md
     - docs/release-process/workspace-packages.md
 ---
 
@@ -57,5 +57,5 @@ now states the rule, and Cargo itself rejects an incompatible bump at build time
 
 ## Evidence
 
-- Issue specification: `docs/issues/open/2808-workspace-package-release-process/ISSUE.md`
+- Issue specification: `docs/issues/closed/2808-workspace-package-release-process/ISSUE.md`
 - Review audit: `docs/pr-reviews/pr-2825-review/PR-REVIEW.md` (F1, F2)

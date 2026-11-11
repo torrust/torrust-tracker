@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: done
 priority: p2
 epic: null
 github-issue: 2808
-spec-path: docs/issues/open/2808-workspace-package-release-process/ISSUE.md
+spec-path: docs/issues/closed/2808-workspace-package-release-process/ISSUE.md
 branch: "2808-workspace-package-release-process"
-related-pr: null
-last-updated-utc: "2026-11-11 12:34"
+related-pr: 2825
+last-updated-utc: "2026-11-11 13:51"
 semantic-links:
   skill-links:
     - create-issue
@@ -195,17 +195,17 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
-- [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Committer verified spec progress is up to date before commit
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
 - 2026-11-10 16:07 UTC - Claude Code (Claude Sonnet 5.5) - Drafted spec from the maintainer's draft after reading the release process doc, the ADR, `release-new-version` and `deployment-packages.yaml`.
 - 2026-11-10 16:10 UTC - Claude Code (Claude Opus 5.5) - Recorded maintainer decisions: standalone tag `v<semver>`, verified backfill of server-lib <= 0.5.0, README pointer to `develop` with anchor, spec-only PR first. T1 done; ADR task dropped.
 - 2026-11-10 16:15 UTC - Claude Code (Claude Opus 5.5) - Maintainer approved splitting `docs/release_process.md` into an index, `docs/release-process/tracker.md` and `docs/release-process/packages.md`. Added scope (s) and task T2 (pure move); README pointer now targets `packages.md`; tasks renumbered.
-- 2026-11-10 16:17 UTC - Claude Code (Claude Opus 5.5) - Maintainer approved the spec; created issue #2808 as `josecelano-bot`; moved the spec to `docs/issues/open/2808-workspace-package-release-process/`.
+- 2026-11-10 16:17 UTC - Claude Code (Claude Opus 5.5) - Maintainer approved the spec; created issue #2808 as `josecelano-bot`; moved the spec to `docs/issues/closed/2808-workspace-package-release-process/`.
 - 2026-11-10 16:24 UTC - Claude Code (Claude Opus 5.5) - Maintainer decided the whole implementation waits until #2576 is closed (its README rewrite overlaps the README pointers here) and renamed the planned packages document to `docs/release-process/workspace-packages.md` to avoid confusion with `docs/packages.md`.
 - 2026-11-10 16:49 UTC - Claude Code (Claude Opus 5.5) - Addressed the PR 2809 review of da2ce7 (F1-F5): T2 evidence is `git diff --color-moved` (the index keeps the old path, so `git diff -M` cannot pair a rename); the server-lib issue reference is qualified; the 16:15 entry, which the previous commit had rewritten, is restored to its original wording; the log times, which had been written one hour or more ahead of UTC, are corrected to UTC from the lint runs, the issue creation and the commit times; T2-T6 are `BLOCKED` by #2576.
 - 2026-11-10 16:58 UTC - Claude Code (Claude Opus 5.5) - Addressed the Copilot review of PR 2809 (audit F6, F7): T4 also makes `release-new-version` steps 2 and 9 bump only `torrust-tracker`; T6 and M2 now cover the checklist that `torrust-server-lib`'s release doc still duplicates, through the follow-up issue text instead of an edit in that repository.
@@ -215,6 +215,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-11-11 11:17 UTC - Claude Code (Claude Sonnet 5.5) - #2576 closed; implemented T2-T6 in the implementation PR: pure-move split (T2), process rewrite (T3), `release-workspace-package` skill and `release-new-version` fixes (T4), no README describes releasing so none changed and the standalone "Releasing" text is in `workspace-packages.md` (T5), `torrust-server-lib-followup-issue.md` (T6); manual verification recorded in `manual-verification-evidence.md`. Open specs #2583 (T2 overlaps T3 here) and #2183 now name the new documents.
 - 2026-11-11 11:57 UTC - Claude Code (Claude Sonnet 5.5) - Implementation completion review, after the review of PR 2825: the one material discovery (audit F1) was that a published crate's version bump must raise the `version` requirement in every dependent manifest in the same PR; it is now precondition 2 of `workspace-packages.md`, so no separate retrospective is needed. The PR description uses `Closes #2808`: the issue closes on merge, and the spec move to `docs/issues/closed/` and the torrust-server-lib issue creation are done by the maintainer's close-out afterwards.
 - 2026-11-11 12:34 UTC - Claude Code (Claude Sonnet 5.5) - Correction to the 11:57 entry (audit F17): the discovery in audit F1 is material (a retained step that a review had to remove), so the completion review creates `implementation-retrospective.md` instead of the "no separate retrospective" the 11:57 entry stated.
+- 2026-11-11 13:51 UTC - Claude Code (Claude Sonnet 5.5) - Archived after PR 2825 merged (issue #2808 closed on GitHub): spec moved to `docs/issues/closed/`, `status: done`, `related-pr: 2825`; da2ce7 approved the final head. The torrust-server-lib issue (tag backfill and checklist cleanup) is still to be created by the maintainer from `torrust-server-lib-followup-issue.md`.
 
 ## Acceptance Criteria
 
