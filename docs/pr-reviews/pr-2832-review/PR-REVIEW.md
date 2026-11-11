@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Round 1: da2ce7 review 5860110297 (changes requested, submitted 14:14:48Z), findings F1 to F5. Round 2: da2ce7 review 5860471258 (approved, submitted 14:40:32Z), findings F6, F8 and F9 (his `F7`, the missing audit record, was fixed in round 1 and is not a separate row). The automated review 5860133630 (14:16:32Z, on the first head) is a notice that its full review did not start before a timeout; it makes no request and has no row. F5 is a review-body finding without an inline thread, so it is `NON_RESOLVABLE`.
+Round 1: da2ce7 review 5860110297 (changes requested, submitted 14:14:48Z), findings F1 to F5. Round 2: da2ce7 review 5860471258 (approved, submitted 14:40:32Z), findings F6, F8 and F9 (the review's `F7`, the missing audit record, was fixed in round 1 and is not a separate row). Round 3: da2ce7 review 5860851382 (approved, submitted 15:06:00Z by the poller cursor), findings F11 to F13 (the review's `F10`, round 2 unrecorded, was fixed by the round 2 audit commit and is not a separate row). The automated review 5860133630 (14:16:32Z, on the first head) is a notice that its full review did not start before a timeout; it makes no request and has no row. F5 is a review-body finding without an inline thread, so it is `NON_RESOLVABLE`.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -53,6 +53,9 @@ Round 1: da2ce7 review 5860110297 (changes requested, submitted 14:14:48Z), find
 | F6 | review-finding:pr-2832-f6 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F8 | review-finding:pr-2832-f8 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F9 | review-finding:pr-2832-f9 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F11 | review-finding:pr-2832-f11 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F12 | review-finding:pr-2832-f12 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F13 | review-finding:pr-2832-f13 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -160,12 +163,53 @@ Round 1: da2ce7 review 5860110297 (changes requested, submitted 14:14:48Z), find
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2832#discussion_r4539290926
 
+### F11 - The correction entry says the 13:51 entry is below
+
+- PR number: 2832
+- Source review ID: 5860851382
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2832#discussion_r4539536186
+- Concern: The 13:51 entry is directly above the moved correction entry, not below it.
+- Solution: Changed "below" to "above" and bumped `last-updated-utc`.
+- Current-tree verification: `grep -n "13:51 entry above" docs/issues/closed/2808-*/ISSUE.md` finds it.
+- Resolution reference: docs(issues): [#2808] say that the 13:51 entry is above the correction
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2832#discussion_r4539586897
+
+### F12 - The round 2 log entry does not say the F9 reply preceded its commit
+
+- PR number: 2832
+- Source review ID: 5860851382
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2832#discussion_r4539536203
+- Concern: The F9 reply (14:45:07Z) names the round 2 audit commit, whose time is 14:45:34Z, and the log did not say the reply and resolution came first.
+- Solution: Appended a log entry that states the order.
+- Current-tree verification: The Processing Log ends with the round 3 entries.
+- Resolution reference: docs(pr-reviews): [#2808] record round 3 of the PR 2832 review audit
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2832#discussion_r4539587328
+
+### F13 - The intro uses a pronoun for the reviewer
+
+- PR number: 2832
+- Source review ID: 5860851382
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2832#discussion_r4539536214
+- Concern: The intro said "his `F7`" in a record that names accounts.
+- Solution: Changed it to "the review's `F7`".
+- Current-tree verification: `grep -n "the review's" docs/pr-reviews/pr-2832-review/PR-REVIEW.md` finds it.
+- Resolution reference: docs(pr-reviews): [#2808] record round 3 of the PR 2832 review audit
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2832#discussion_r4539587734
+
 ## Processing Log
 
 - 2026-11-11 14:14 UTC - Started audit: da2ce7 review 5860110297 (submitted 14:14:48Z) with four inline threads and one review-body finding.
 - 2026-11-11 14:19 UTC - Fix commits at 14:17:12Z, 14:17:43Z, 14:18:12Z and 14:19:50Z, and the log commit at 14:19:51Z (`git log --format=%cI`); pushed after the last.
 - 2026-11-11 14:23 UTC - Replied on the four threads (reply `created_at` 14:23:12Z to 14:23:20Z) and posted the F5 explanation on the PR conversation (14:23:22Z), then resolved the four threads through GraphQL (four results, each `isResolved: true`).
 - 2026-11-11 14:45 UTC - Round 2: da2ce7 review 5860471258 (approved, submitted 14:40:32Z) with three comments. Fix commit `docs(issues): [#2808] move the 14:19 correction into the progress log of the archived spec` at 14:42:43Z (`git log --format=%cI`), pushed after it; the PR description was edited for F8 after that. Replied on the three threads (reply `created_at` 14:45:02Z to 14:45:07Z) and resolved them through GraphQL (three results, each `isResolved: true`). The automated review 5860133630 (14:16:32Z) was read: a timeout notice with no request, so no row (finding F9).
+- 2026-11-11 15:10 UTC - Round 3: da2ce7 review 5860851382 (approved; the poller cursor is 15:06:00Z) with three comments. The F11 fix commit `docs(issues): [#2808] say that the 13:51 entry is above the correction` is at 15:07:29Z (`git log --format=%cI`), pushed after it. Replied on the three threads (reply `created_at` 15:10:32Z to 15:10:37Z) and resolved them through GraphQL (three results, each `isResolved: true`).
+- 2026-11-11 15:10 UTC - Correction (audit F12): in round 2 the F9 reply (14:45:07Z) and its resolution came before the round 2 audit commit `docs(pr-reviews): [#2808] record round 2 of the PR 2832 review audit` (14:45:34Z) that the reply names. The round 3 replies for F12 and F13 likewise name the round 3 audit commit before it exists.
 
 ## Completion Rules
 
