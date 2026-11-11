@@ -380,9 +380,9 @@ Rows F1-F12 come from review 5858450371 (`da2ce7`). Rows F13, R1 and R2 come fro
 - 2026-11-11 12:37 UTC - Review 5858813320 (`da2ce7`, approved) arrived on head `29dc3421d` with 6 inline findings: F19 (the reviewer's F9 again), F15, F14, F16, F17 and F18.
 - 2026-11-11 12:43 UTC - Committed the fixes (the last: `docs(pr-reviews): add the template frontmatter to the PR 2828 audit`) and pushed them.
 - 2026-11-11 12:45 UTC - Replied on the 6 threads (12:45:04 to 12:45:15 UTC) and resolved them; a GraphQL refresh showed no unresolved thread.
+- 2026-11-11 13:03 UTC - Review 5859145551 (`da2ce7`, approved) arrived with 2 inline findings, F20 and F21, both about two Processing Log entries.
 - 2026-11-11 13:05 UTC - Correction (F20): the 12:37 entry named the head by a PR-branch commit id; it means the head that added this audit, `docs(pr-reviews): add the PR 2828 review audit`. The entry is left as written, as the log is append-only.
 - 2026-11-11 13:06 UTC - Correction (F21): the 12:43 entry says the fixes were committed and pushed at 12:43. The last of them was committed at 12:43:03 UTC; the push is traced in the GitHub timeline by the stale-review dismissal of review 5858813320 at 12:44:56 UTC, so the push was at 12:44. The entry is left as written, as the log is append-only.
-- 2026-11-11 13:03 UTC - Review 5859145551 (`da2ce7`, approved) arrived with 2 inline findings, F20 and F21, both about two Processing Log entries.
 - 2026-11-11 13:08 UTC - Replied on the 2 threads and resolved them (replies created 13:08:18 and 13:08:20 UTC); a GraphQL refresh showed no unresolved thread.
 
 ## Completion Rules
