@@ -226,3 +226,29 @@ one crate: `torrust-tracker` itself.
 - External consumers get fixes and features immediately, not whenever the next
   tracker release happens.
 - The tracker release is a lightweight final step, not a batch bottleneck.
+
+## Pointing to This Process from Package Documentation
+
+This document is the single source of truth. Package documentation carries only a pointer and
+the package's own differences, never a copy of the steps.
+
+- **Workspace packages**: the package README does not describe releasing and is not changed.
+  A workspace README that already describes releasing links to this document instead.
+- **Standalone repositories**: the repository's release document (or README) has a short
+  "Releasing" section with this text, then lists only its own differences (default branch, no
+  workflow, tag name):
+
+  ```markdown
+  ## Releasing
+
+  Releases follow the process defined for workspace packages in the Torrust Tracker, which is the
+  source of truth:
+  [Releasing Workspace Packages](https://github.com/torrust/torrust-tracker/blob/develop/docs/release-process/workspace-packages.md).
+  Do not copy its steps here.
+
+  Differences in this repository: <default branch>; <no `releases/pkg/**` workflow>; tags are
+  `v<semver>`.
+  ```
+
+The link targets `develop` on purpose: readers always see the current process, and a permalink
+would go stale.
