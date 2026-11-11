@@ -17,6 +17,8 @@ semantic-links:
     - docs/packages.md
     - docs/profiling.md
     - docs/release_process.md
+    - docs/release-process/tracker.md
+    - docs/release-process/workspace-packages.md
     - docs/self-hosted-runner.md
     - docs/self-hosted-runner-reports/README.md
     - docs/testing/README.md
@@ -49,6 +51,8 @@ Operational and development guides for working with the tracker.
 | [Configuration v2-to-v3 migration guide](../packages/configuration/docs/migrate-v2-to-v3.md)                                                                                       | Upgrade tracker configuration files to active schema v3                    |
 | [profiling.md](profiling.md)                                                                                                                                                       | CPU and memory profiling with Valgrind / kcachegrind                       |
 | [release_process.md](release_process.md)                                                                                                                                           | Branch strategy, versioning, and the staging → main release pipeline       |
+| [release-process/tracker.md](release-process/tracker.md)                                                                                                                           | Tracker binary release: staging branches, tag, and deployment              |
+| [release-process/workspace-packages.md](release-process/workspace-packages.md)                                                                                                     | Workspace package and standalone crate release                             |
 | [schemas/README.md](schemas/README.md)                                                                                                                                             | Generated frontmatter JSON Schema: regeneration, drift check, Rust-only invariants |
 | [security/README.md](security/README.md)                                                                                                                                           | Security processes, analysis catalogs, scanning, and disclosure routing    |
 | [self-hosted-runner.md](self-hosted-runner.md)                                                                                                                                     | Set up and operate the self-hosted CI runner for the container test jobs   |

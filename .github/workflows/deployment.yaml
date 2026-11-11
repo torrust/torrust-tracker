@@ -8,7 +8,7 @@ name: Deployment (Tracker)
 # as they evolve. By the time a tracker release happens, they are already on
 # crates.io — this workflow only needs to publish the final binary crate.
 #
-# See docs/release_process.md for the full release workflow.
+# See docs/release-process/tracker.md for the full release workflow.
 
 on:
   push:

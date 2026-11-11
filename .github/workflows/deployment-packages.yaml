@@ -26,7 +26,7 @@
 #   Branch: releases/pkg/<crate-name>/v<semver>
 #   Tag:    pkg/<crate-name>/v<semver> (signed, created manually after CI success)
 #
-# See docs/release_process.md for the full manual workflow.
+# See docs/release-process/workspace-packages.md for the full manual workflow.
 
 name: Deployment (Packages)
 

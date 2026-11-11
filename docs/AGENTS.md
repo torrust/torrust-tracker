@@ -28,7 +28,9 @@ For the full project context see the [root AGENTS.md](../AGENTS.md).
 | `containers.md`                                                                           | Running the tracker with Docker / Podman                                                                |
 | `packages.md`                                                                             | Workspace package catalog, architecture layers, dependency rules                                        |
 | `profiling.md`                                                                            | CPU and memory profiling with Valgrind / kcachegrind                                                    |
-| `release_process.md`                                                                      | Branch strategy, versioning, and the release pipeline                                                   |
+| `release_process.md`                                                                      | Release index: versioning policy and which release process to use                                       |
+| `release-process/tracker.md`                                                               | Tracker binary release: staging branches, tag, and deployment                                           |
+| `release-process/workspace-packages.md`                                                   | Workspace package and standalone crate release                                                          |
 | `adrs/20260821172000_establish_ai_agent_context_capability_and_portability_governance.md` | Authority and portability governance for AI-agent workflows and retained context                        |
 | `adrs/`                                                                                   | Architectural Decision Records (ADRs)                                                                   |
 | `analysis/`                                                                               | In-depth analysis of features, components, or aspects of the app                                        |
