@@ -25,7 +25,7 @@ process, the standalone-crate variant, the `release-workspace-package` skill and
 ## What Went Well
 
 1. Keeping the split a pure move in its own commit let the reviewer check it byte for byte.
-2. Dry runs of a real workspace package and of `torrust-server-lib` showed the documented path works.
+2. Dry runs of a real workspace package and of `torrust-server-lib` showed that every step up to `cargo publish --dry-run` can be followed.
 
 ## What Changed During Implementation
 
