@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Rows F1-F12 come from review 5858450371 (`da2ce7`). Rows F13, R1 and R2 come from review 5858504509 (Copilot); R1 and R2 re-raise F2 and F8. Rows F19, F15, F14, F16, F17 and F18 come from the comments of review 5858813320 (`da2ce7`, approved); the reviewer's `F9` there repeats the earlier F9, so it is recorded as F19 with `Reviewer finding ID` F9. Rows F20 and F21 come from review 5859145551 (`da2ce7`, approved).
+Rows F1-F12 come from review 5858450371 (`da2ce7`). Rows F13, R1 and R2 come from review 5858504509 (Copilot); R1 and R2 re-raise F2 and F8. Rows F19, F15, F14, F16, F17 and F18 come from the comments of review 5858813320 (`da2ce7`, approved); the reviewer's `F9` there repeats the earlier F9, so it is recorded as F19 with `Reviewer finding ID` F9. Rows F20 and F21 come from review 5859145551 (`da2ce7`, approved). Rows F22 and F23 come from review 5859484596 (`da2ce7`, approved); the reviewer's `F20` there repeats the earlier F20, so it is recorded as F22 with `Reviewer finding ID` F20.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -68,6 +68,8 @@ Rows F1-F12 come from review 5858450371 (`da2ce7`). Rows F13, R1 and R2 come fro
 | F18 | review-finding:pr-2828-f18 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F20 | review-finding:pr-2828-f20 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F21 | review-finding:pr-2828-f21 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F22 | review-finding:pr-2828-f22 | Human | Minor | documentation | RE_RAISE_OF:F20 | FIXED | OPEN |
+| F23 | review-finding:pr-2828-f23 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -370,6 +372,32 @@ Rows F1-F12 come from review 5858450371 (`da2ce7`). Rows F13, R1 and R2 come fro
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2828#discussion_r4538252095
 
+### F22 - Re-raise: the audit still cites a PR-branch commit id, here and at 380
+
+- PR number: 2828
+- Source review ID: 5859484596
+- Reviewer finding ID: F20
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2828#discussion_r4538461748
+- Concern: The audit still cited a PR-branch commit id in the F20 detail heading and in the pushed 12:37 log entry.
+- Solution: Removed the id from the heading. The 12:37 log entry still cites it: the append-only rule and the commit-id rule collide there, the reviewer left the choice to the maintainer, and the 13:05 correction maps the id to a commit subject. The thread stays open for that decision.
+- Current-tree verification: `grep` of the audit for a 9-character hex id outside review-finding references and discussion URLs finds only the 12:37 log entry.
+- Resolution reference: `docs(pr-reviews): name no branch commit id in the F20 detail heading`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2828#discussion_r4538513563
+
+### F23 - Moving this entry rewrote the pushed log in place
+
+- PR number: 2828
+- Source review ID: 5859484596
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2828#discussion_r4538461756
+- Concern: Moving the 13:03 entry above the two corrections rewrote the pushed Processing Log in place.
+- Solution: Appended a correction naming the move and its two commits; left the log in the moved order, because restoring it fails the validator's order check.
+- Current-tree verification: Read the log tail; `validate-audit-record.py` exits 0.
+- Resolution reference: `docs(pr-reviews): record that the round 3 log entry was moved`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2828#discussion_r4538513914
+
 ## Processing Log
 
 - 2026-11-11 12:07 UTC - Started audit. Review 5858450371 (`da2ce7`, changes requested) arrived with 12 inline findings, F1-F12.
@@ -386,6 +414,7 @@ Rows F1-F12 come from review 5858450371 (`da2ce7`). Rows F13, R1 and R2 come fro
 - 2026-11-11 13:08 UTC - Replied on the 2 threads and resolved them (replies created 13:08:18 and 13:08:20 UTC); a GraphQL refresh showed no unresolved thread.
 - 2026-11-11 13:28 UTC - Review 5859484596 (`da2ce7`, approved) arrived on the head that moved the round 3 log entry, with 2 inline findings: F22 (the reviewer's F20 again) and F23.
 - 2026-11-11 13:30 UTC - Correction (F23): the 13:03 entry, which the commit `docs(pr-reviews): record round 3 of the PR 2828 review` appended after the 13:06 correction and which was pushed, was then moved above the 13:05 and 13:06 entries by the commit `docs(pr-reviews): order the PR 2828 round 3 log entries chronologically`. That move rewrote the pushed log in place. The log is left in the moved order, because restoring the earlier order fails the validator's order check; this entry records the move.
+- 2026-11-11 13:33 UTC - Replied on the 2 threads (13:33:33 and 13:33:35 UTC) and resolved F23's. F22's thread stays open: the choice for the pushed 12:37 entry is the maintainer's.
 
 ## Completion Rules
 
