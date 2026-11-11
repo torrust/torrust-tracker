@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-progress
+status: done
 priority: p3
 epic: null
 github-issue: 2823
-spec-path: docs/issues/open/2823-addassign-aggregate-swarm-metadata/ISSUE.md
+spec-path: docs/issues/closed/2823-addassign-aggregate-swarm-metadata/ISSUE.md
 branch: "2823-addassign-aggregate-swarm-metadata"
 related-pr: 2827
-last-updated-utc: "2026-11-11 13:15"
+last-updated-utc: "2026-11-11 13:44"
 semantic-links:
   skill-links:
     - create-issue
@@ -126,13 +126,14 @@ Not applicable for the delete branch. For the harden branch: a `#[should_panic(e
 - [x] Implementation completed
 - [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
 - 2026-11-11 11:21 UTC - Claude Code (Sonnet 5.5) - Drafted spec; ran removal experiment (check all targets/features + doctests: pass) and history check. Recommendation: delete.
 - 2026-11-11 12:46 UTC - Claude Code (Sonnet 5.5) - Maintainer approved deletion; created #2823 and PR #2827; review round 1 of PR 2827 (da2ce7 F1-F6): recorded the breaking-change/major-version consequence, corrected counts and history, set `epic: null` like #2798/#2804, ticked the checkpoints and criteria, added the Acceptance Verification table, noted that the live summation keeps the same wrap, dropped the session-addressed task, corrected the PR description. The body of the first commit still has the old sentence about the release-mode wrap (not amended: no force-push).
 - 2026-11-11 13:15 UTC - Claude Code (Sonnet 5.5) - Review round 2 of PR 2827 (da2ce7 F7-F10): corrected the stamps of the two log entries above, replaced the branch commit id in the AC3 evidence with the commit subject, fixed two wording slips, and added the review audit record `docs/pr-reviews/pr-2827-review/PR-REVIEW.md`.
+- 2026-11-11 13:44 UTC - Claude Code (Sonnet 5.5) - PR 2827 merged at 2026-11-11 13:43 UTC and issue #2823 is closed; archived the spec to `docs/issues/closed/`. No retrospective is needed: the only discovery (the impl was unused, found by the removal experiment) is already recorded in the Investigation results.
 
 ## Acceptance Criteria
 
@@ -171,7 +172,7 @@ Not applicable: no user-visible behaviour changes.
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
+- Retrospective: not needed; see the 2026-11-11 archive entry in the Progress Log.
 
 ### Lessons (lessons.md-style note)
 
