@@ -1,0 +1,19 @@
+# Every Axum listener must be built through `torrust_tracker_axum_server::custom_axum_server`, which
+# applies the connection timeouts (the first-request timeout closes silent connections). A listener
+# built with these `axum-server` constructors directly keeps idle connections open forever, which
+# lets a flood of silent connections exhaust the process's file descriptors (issue #2776, EPIC
+# #2411 case A2). See `packages/axum-server/README.md`.
+#
+# Only the two constructors in `custom_axum_server.rs` call them, each with a documented `allow`.
+# The decision is recorded in `docs/adrs/` (see the ADR on closing idle connections).
+disallowed-methods = [
+  { path = "axum_server::from_tcp", reason = "build listeners with torrust_tracker_axum_server::custom_axum_server so they get the connection timeouts (#2776)" },
+  { path = "axum_server::tls_rustls::from_tcp_rustls", reason = "build listeners with torrust_tracker_axum_server::custom_axum_server so they get the connection timeouts (#2776)" },
+  { path = "axum_server::bind", reason = "build listeners with torrust_tracker_axum_server::custom_axum_server so they get the connection timeouts (#2776)" },
+  { path = "axum_server::tls_rustls::bind_rustls", reason = "build listeners with torrust_tracker_axum_server::custom_axum_server so they get the connection timeouts (#2776)" },
+  { path = "axum_server::Server::bind", reason = "build listeners with torrust_tracker_axum_server::custom_axum_server so they get the connection timeouts (#2776)" },
+  { path = "axum_server::Server::from_listener", reason = "build listeners with torrust_tracker_axum_server::custom_axum_server so they get the connection timeouts (#2776)" },
+  { path = "axum_server::from_unix", reason = "build listeners with torrust_tracker_axum_server::custom_axum_server so they get the connection timeouts (#2776)" },
+  { path = "axum_server::tls_rustls::from_unix_rustls", reason = "build listeners with torrust_tracker_axum_server::custom_axum_server so they get the connection timeouts (#2776)" },
+  { path = "axum::serve", reason = "axum::serve has none of the connection timeouts; build listeners with torrust_tracker_axum_server::custom_axum_server (#2776)" },
+]

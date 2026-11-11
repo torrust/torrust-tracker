@@ -1,0 +1,26 @@
+# Red run, T3. Toolchain: rustc 1.99.1, cargo 1.101.0-nightly, 2026-11-10.
+
+## Commit `test(axum-server): [#2776] add red idle-connection regression tests` (first_request declared, not applied)
+$ cargo test -p torrust-tracker-axum-server --test idle_connections
+test it_should_answer_a_request_sent_within_the_first_request_timeout ... ok
+test it_should_close_an_idle_http1_connection_after_a_response_over_plaintext ... ok
+test it_should_close_a_tls_connection_that_never_sends_handshake_bytes ... ok
+test it_should_close_a_tls_connection_that_sends_one_handshake_byte_and_stalls ... ok
+test it_should_close_an_idle_http1_connection_after_a_response_over_tls ... ok
+test it_should_close_an_idle_http2_connection_after_a_response_over_tls ... ok
+test it_should_close_an_idle_http2_connection_after_a_response_over_plaintext ... ok
+test it_should_close_a_plaintext_connection_that_sends_nothing ... FAILED
+test it_should_close_a_tls_connection_that_completes_the_handshake_and_sends_nothing ... FAILED
+thread 'it_should_close_a_plaintext_connection_that_sends_nothing' (1761166) panicked at packages/axum-server/tests/idle_connections.rs:204:5:
+a silent plaintext connection should be closed
+thread 'it_should_close_a_tls_connection_that_completes_the_handshake_and_sends_nothing' (1761167) panicked at packages/axum-server/tests/idle_connections.rs:214:5:
+a silent TLS connection should be closed
+test result: FAILED. 7 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.00s
+
+## Commit `fix(axum-server): [#2776] close idle connections with first_request_timeout`, with only the health check
+## constructor line reverted to `axum_server::from_tcp(socket)`
+$ cargo test -p torrust-tracker-axum-health-check-api-server --lib it_should_close_a_connection_that_sends_nothing
+test server::tests::it_should_close_a_connection_that_sends_nothing ... FAILED
+thread 'server::tests::it_should_close_a_connection_that_sends_nothing' (1771440) panicked at packages/axum-health-check-api-server/src/server.rs:485:9:
+the health check API should close a connection that sends nothing: Err(Elapsed(()))
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 16 filtered out; finished in 8.00s

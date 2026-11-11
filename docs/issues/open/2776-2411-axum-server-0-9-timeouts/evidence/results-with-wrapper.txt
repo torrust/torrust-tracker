@@ -1,0 +1,17 @@
+# Build `fix(axum-server): [#2776] close idle connections with first_request_timeout` (TimeoutAcceptor still on the plaintext listeners). Clean rerun after review F1 (an earlier rerun was discarded: the script was edited while it ran).
+# Date: 2026-11-10 (UTC), rustc 1.99.1, `cargo build --bin torrust-tracker` (dev profile), loopback ports 27070 27171 21212 21313
+# Command: evidence/run-probes.sh <scratch> <tracker> evidence/baseline-probe.py evidence/probe-h2.py
+M1-http-plain: closed by server after 5.0s
+M1-rest-plain: closed by server after 5.0s
+M1-health: closed by server after 5.0s
+M2-tls-silent: closed by server after 5.0s
+M3-tls-no-handshake: closed by server after 10.0s
+M4-http-keep-alive: first response: HTTP/1.1 200 OK
+M4-http-keep-alive: closed by server after 5.0s
+M4-health-keep-alive: first response: HTTP/1.1 200 OK
+M4-health-keep-alive: closed by server after 5.0s
+M4-h2-http-plain: closed by server after 10.0s from request
+M4-h2-http-tls: alpn=h2
+M4-h2-http-tls: closed by server after 10.0s from request
+M4-h2-health-plain: closed by server after 10.0s from request
+M4-h2-rest-plain: closed by server after 10.0s from request

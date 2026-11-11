@@ -15,7 +15,7 @@ use torrust_server_lib::logging::STARTED_ON;
 use torrust_server_lib::registar::{
     FnSpawnServiceHeathCheck, ServiceHealthCheckJob, ServiceRegistration, ServiceRegistrationForm,
 };
-use torrust_tracker_axum_server::custom_axum_server::{self, TimeoutAcceptor};
+use torrust_tracker_axum_server::custom_axum_server;
 use torrust_tracker_axum_server::signals::{GracefulShutdownOutcome, graceful_shutdown_on_cancellation};
 use torrust_tracker_http_core::container::HttpTrackerCoreContainer;
 use torrust_tracker_primitives::RuntimeServiceMetadata;
@@ -123,6 +123,8 @@ impl Launcher {
         let app = router(http_tracker_container, service_binding);
 
         if let Some(tls) = self.tls.clone() {
+            // Build listeners only through `custom_axum_server`: it applies the connection timeouts that close
+            // silent connections, which protects against idle-connection floods (#2776, ADR in `docs/adrs/`).
             let server =
                 custom_axum_server::from_tcp_rustls_with_timeouts(socket, tls).map_err(|source| Error::Listener { source })?;
 
@@ -136,12 +138,13 @@ impl Launcher {
                 }
             }))
         } else {
+            // Build listeners only through `custom_axum_server`: it applies the connection timeouts that close
+            // silent connections, which protects against idle-connection floods (#2776, ADR in `docs/adrs/`).
             let server = custom_axum_server::from_tcp_with_timeouts(socket).map_err(|source| Error::Listener { source })?;
 
             Ok(Box::pin(async move {
                 if let Err(error) = server
                     .handle(handle)
-                    .acceptor(TimeoutAcceptor)
                     .serve(app.into_make_service_with_connect_info::<SocketAddr>())
                     .await
                 {
@@ -366,6 +369,7 @@ mod tests {
     use std::sync::Arc;
     use std::time::Duration;
 
+    use rustls::pki_types::pem::PemObject;
     use tokio_util::sync::CancellationToken;
     use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
     use torrust_server_lib::registar::{
@@ -681,6 +685,97 @@ mod tests {
         assert_eq!(launcher.bind_to, scenario.bind_to);
         assert_eq!(drain_outcome, GracefulShutdownOutcome::Drained);
     }
+
+    /// A client that connects and sends nothing must be disconnected. An idle connection would
+    /// hold a task and a file descriptor for as long as the client keeps it open, which is how a
+    /// flood of silent connections exhausts the process (issue #2776, EPIC #2411 case A2).
+    ///
+    /// The listener uses the production first-request timeout (5 s), so the bound is an absolute,
+    /// generous deadline instead of an open-ended wait.
+    const SILENT_CONNECTION_DEADLINE: Duration = Duration::from_secs(8);
+
+    async fn assert_closed_when_silent(mut stream: impl tokio::io::AsyncRead + Unpin, what: &str) {
+        use tokio::io::AsyncReadExt;
+
+        let mut buffer = [0_u8; 16];
+        let closed = tokio::time::timeout(SILENT_CONNECTION_DEADLINE, stream.read(&mut buffer)).await;
+
+        assert!(
+            matches!(closed, Ok(Ok(0) | Err(_))),
+            "the HTTP tracker should close {what}: {closed:?}"
+        );
+    }
+
+    #[tokio::test]
+    async fn it_should_close_a_plaintext_connection_that_sends_nothing() {
+        // Arrange
+        let scenario = ServerStartWithAvailableHttpBinding::new();
+        let cancellation_token = CancellationToken::new();
+        let running = HttpServer::new(scenario.launcher().await)
+            .start_with_cancellation(
+                scenario.container().await,
+                scenario.registration_form(),
+                scenario.metadata(),
+                cancellation_token.clone(),
+            )
+            .await
+            .expect("the token-aware HTTP server should start");
+        // Cancels the server even if an assertion below panics, so no task outlives the test.
+        let _cancel_on_drop = cancellation_token.clone().drop_guard();
+        let silent_connection = tokio::net::TcpStream::connect(running.binding)
+            .await
+            .expect("open the silent connection");
+
+        // Act and assert
+        assert_closed_when_silent(silent_connection, "a plaintext connection that sends nothing").await;
+    }
+
+    #[tokio::test]
+    async fn it_should_close_a_tls_connection_that_completes_the_handshake_and_sends_nothing() {
+        // Arrange
+        rustls::crypto::ring::default_provider().install_default().ok();
+        let scenario = ServerStartWithAvailableHttpBinding::new();
+        let cancellation_token = CancellationToken::new();
+        let mut launcher = scenario.launcher().await;
+        launcher.tls = Some(
+            axum_server::tls_rustls::RustlsConfig::from_pem(TEST_CERTIFICATE.to_vec(), TEST_KEY.to_vec())
+                .await
+                .expect("the test certificate and key should load"),
+        );
+        let running = HttpServer::new(launcher)
+            .start_with_cancellation(
+                scenario.container().await,
+                scenario.registration_form(),
+                scenario.metadata(),
+                cancellation_token.clone(),
+            )
+            .await
+            .expect("the token-aware HTTP server should start with TLS");
+        // Cancels the server even if an assertion below panics, so no task outlives the test.
+        let _cancel_on_drop = cancellation_token.clone().drop_guard();
+        let tcp = tokio::net::TcpStream::connect(running.binding)
+            .await
+            .expect("open the connection");
+        let mut roots = rustls::RootCertStore::empty();
+        roots
+            .add(rustls::pki_types::CertificateDer::from_pem_slice(TEST_CERTIFICATE).expect("the test certificate should parse"))
+            .expect("the test certificate should be a valid root");
+        let client_config = rustls::ClientConfig::builder()
+            .with_root_certificates(roots)
+            .with_no_client_auth();
+        let server_name = rustls::pki_types::ServerName::try_from("127.0.0.1").expect("an IP address is a valid server name");
+        let silent_connection = tokio_rustls::TlsConnector::from(Arc::new(client_config))
+            .connect(server_name, tcp)
+            .await
+            .expect("the TLS handshake should complete");
+
+        // Act and assert
+        assert_closed_when_silent(silent_connection, "a TLS connection that sends nothing after the handshake").await;
+    }
+
+    // Embedded at compile time: the container test stage runs the tests from a different directory than the build stage.
+    const TEST_CERTIFICATE: &[u8] = include_bytes!("../tests/fixtures/https-health-check-cert.pem");
+    const TEST_KEY: &[u8] = include_bytes!("../tests/fixtures/https-health-check-key.pem");
 
     #[tokio::test]
     async fn it_should_time_out_the_drain_after_the_configured_drain_timeout_when_a_connection_stays_open() {

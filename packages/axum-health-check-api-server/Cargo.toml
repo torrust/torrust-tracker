@@ -24,7 +24,7 @@ testing = [ "dep:torrust-tracker-configuration" ]
 
 [dependencies]
 axum = { version = "0", features = [ "macros" ] }
-axum-server = { version = "0", features = [ "tls-rustls-no-provider" ] }
+axum-server = { version = "0.9", features = [ "tls-rustls-no-provider" ] }
 futures = "0"
 hyper = "1"
 serde = { version = "1", features = [ "derive" ] }
@@ -44,6 +44,7 @@ url = { version = "2.5.4", features = [ "serde" ] }
 [dev-dependencies]
 reqwest = { version = "0", features = [ "json" ] }
 rustls = { version = "0.23", default-features = false, features = [ "ring" ] }
+tokio = { version = "1", features = [ "io-util", "time" ] }
 torrust-tracker-axum-health-check-api-server = { path = ".", features = [ "testing" ] }
 torrust-tracker-axum-http-server = { version = "0.1.0", path = "../axum-http-server", features = [ "testing" ] }
 torrust-tracker-axum-rest-api-server = { version = "0.1.0", path = "../axum-rest-api-server", features = [ "testing" ] }

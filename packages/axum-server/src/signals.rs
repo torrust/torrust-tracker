@@ -83,6 +83,7 @@ mod tests {
     use tokio_util::sync::CancellationToken;
 
     use super::{GracefulShutdownOutcome, graceful_shutdown_on_cancellation};
+    use crate::custom_axum_server;
 
     #[tokio::test(start_paused = true)]
     async fn it_should_return_drained_when_the_token_is_cancelled_with_no_active_connections() {
@@ -280,8 +281,12 @@ mod tests {
                 }
             }),
         );
+        let socket =
+            std::net::TcpListener::bind(SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 0)).expect("socket should bind");
+        socket.set_nonblocking(true).expect("socket should be non-blocking");
+        let listener = custom_axum_server::from_tcp_with_timeouts(socket).expect("server should be created");
         let server = tokio::spawn(async move {
-            axum_server::bind(SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 0))
+            listener
                 .handle(server_handle)
                 .serve(router.into_make_service())
                 .await

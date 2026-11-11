@@ -149,6 +149,7 @@ alekitto
 alives
 alloca
 alnum
+alpn
 analyse
 analysed
 appuser
@@ -279,6 +280,7 @@ ghac
 ghdata
 ghtoken
 githubmerge
+goaway
 gpgsign
 gzprintf
 gzvprintf
@@ -295,6 +297,7 @@ hostnames
 hotfixes
 hotspot
 hotspots
+hpack
 httpclientpeerid
 hyperium
 hyperthread
