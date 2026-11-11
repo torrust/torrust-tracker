@@ -45,7 +45,8 @@ feedback is prevented earlier and future review processing consumes fewer tokens
 
 Start this workflow, and create the audit record `PR-REVIEW.md` from
 `docs/templates/PR-REVIEW-TEMPLATE.md` (not from an earlier audit), when the first review or
-comment arrives, before the first reply. Do not start it after a later round.
+comment that needs a reply or a fix arrives, before the first reply. If a reply was already posted
+without it, create the record now from the template and log the late start in the Processing Log.
 
 1. **Fetch the source of truth.** Use `fetch-review-threads`' GitHub CLI-backed Rust tool to
    collect all threads, including resolved and outdated threads. Also fetch each
