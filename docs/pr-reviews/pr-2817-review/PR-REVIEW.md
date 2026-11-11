@@ -95,4 +95,4 @@ All four findings are in the body of review 5856630973: a rename without changes
 
 ## Processing Log
 
-- 2026-11-11 09:38 UTC - AI assistant (Claude Code, Claude Sonnet 5.5) - Read review 5856630973 at head `dce968aa8`: my first commit held only the renames and the edits were never committed. Fixed in three commits and a title change; the three commits were pushed before the conversation reply (comment created at 2026-11-11T09:38:44Z) that answers all four findings.
+- 2026-11-11 09:38 UTC - AI assistant (Claude Code, Claude Sonnet 5.5) - Read review 5856630973 at the head of the first close-out commit (`docs(issues): [#2714] archive the closed spec and mark EPIC row 19 done`): my first commit held only the renames and the edits were never committed. Fixed in three commits and a title change; the three commits were pushed before the conversation reply (comment created at 2026-11-11T09:38:44Z) that answers all four findings.
