@@ -9,7 +9,7 @@ github-issue: 2822
 spec-path: docs/issues/open/2822-2003-wait-for-pr-review-gh-option/ISSUE.md
 branch: "2822-wait-for-pr-review-gh-option-spec"
 related-pr: 2826
-last-updated-utc: "2026-11-11 16:46"
+last-updated-utc: "2026-11-11 17:26"
 semantic-links:
   skill-links:
     - create-issue
@@ -230,6 +230,9 @@ increment, before final verification, commit and pull request.
   log and `last-updated-utc` now cover the fourth round.
 - 2026-11-11 16:46 UTC - AI assistant (Claude Code, Claude Sonnet 5.5) - Implemented the option on branch
   `2822-wait-for-pr-review-gh-option` (tests red then green, M1 to M4b recorded); the spec PR #2826 had merged.
+- 2026-11-11 17:26 UTC - AI assistant (Claude Code, Claude Sonnet 5.5) - Addressed the first review of PR #2835:
+  a signal during the identity lookup now stops the run, the lookup bound is tested on both branches, and the
+  fake and the M4 reruns are kept in the evidence.
 
 ## Acceptance Criteria
 
