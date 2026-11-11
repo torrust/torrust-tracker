@@ -139,11 +139,9 @@ and nothing in that gap is missed.
      If `head_moved` is `true`, or `head_sha` differs from `git rev-parse HEAD`, run `git fetch` and
      bring the branch up to date with `git pull --ff-only` (or rebase your unpushed commits onto it)
      before processing; if that cannot be done safely, stop and tell the contributor. Then open
-     [`process-pr-review`](../process-pr-review/SKILL.md) and run its workflow. On the first
-     `review` or `comment` that needs a reply or a fix, before replying to anything, read that skill
-     and create the audit record `PR-REVIEW.md` from `docs/templates/PR-REVIEW-TEMPLATE.md`, not
-     from an earlier audit or from memory. A clean review, an informational comment or an `ACK`
-     needs no record yet; the record is created with the first event that does. Fetch every thread with
+     [`process-pr-review`](../process-pr-review/SKILL.md) and run its workflow, including its rule
+     for when to create the audit record `PR-REVIEW.md` (the first event that needs a reply or a
+     fix, before replying, from the template). Fetch every thread with
      [`fetch-review-threads`](../fetch-review-threads/SKILL.md) and read the new review body (a
      finding in a review body has no thread).
      - If you fixed something, commit, push, and reply. Then
