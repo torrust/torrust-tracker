@@ -12,7 +12,7 @@ semantic-links:
     - docs/adrs/20260629000000_adopt_independent_package_versioning.md
 ---
 
-# Torrust Tracker Release Process (v2.2.2)
+# Torrust Tracker Release Process
 
 > **Per-package versioning policy**: as of ADR [20260629000000](adrs/20260629000000_adopt_independent_package_versioning.md),
 > all publishable workspace packages version **and are published** independently.

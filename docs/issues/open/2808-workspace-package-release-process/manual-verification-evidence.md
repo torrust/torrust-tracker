@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2808-workspace-package-release-process/ISSUE.md
-last-updated-utc: "2026-11-11 11:16"
+last-updated-utc: "2026-11-11 11:57"
 ---
 
 # Manual Verification Evidence
@@ -80,8 +80,7 @@ The standalone variant is complete on its own. The duplicate checklist left in `
 
 - Status: `DONE`
 - Steps: `grep -n "^## Publishing a Workspace Package" docs/release_process.md` found the redirect heading, so
-  `#publishing-a-workspace-package` still resolves; `linter markdown` exited 0 (it checks the links of
-  `AGENTS.md`, `docs/index.md`, `docs/AGENTS.md` and the new documents); both workflow comments name the new documents.
+  `#publishing-a-workspace-package` still resolves; `linter lychee` (local Markdown file and fragment links) exited 0 at the review-fix head, and `linter markdown` exited 0; both workflow comments name the new documents.
 - Conclusion: no dead link.
 
 ## Failures and Follow-up
