@@ -228,8 +228,8 @@ Each slice is one PR, merged before the next slice branch is cut from `develop`.
 | S0 | This specification, the T1 evidence, and the EPIC registration with the baseline | - | `2824-1347-add-tests-primitives-spec` | TBD | IN_PROGRESS |
 | S1 | Defect fixes decided in this issue (T2a): F2 `PeerRole` JSON casing, only (F1 fixed upstream; F3, F4, F5 handed off). Merged first, so the test slices pin the fixed behavior. | - | `2824-1347-add-tests-primitives-fixes` | - | TODO |
 | S2 | T2, then `peer.rs` (rank 1, the largest gap) | 1 | `2824-1347-add-tests-primitives-peer` | - | TODO |
-| S3 | Configuration defaults and bounded values: `announce.rs`, `policy.rs`, `mode.rs`, `pagination.rs`, `announce_interval.rs` | 2-5, 7 | `2824-1347-add-tests-primitives-defaults` | - | TODO |
-| S4 | `swarm_metadata.rs`, no-change decisions for the covered and wiring files, then T4-T6; the clean-up moves the spec to `docs/issues/closed/` and updates the EPIC tables | 6, 8-16 | `2824-1347-add-tests-primitives-final` | - | TODO |
+| S3 | Configuration defaults and bounded values: `announce.rs`, `policy.rs`, `mode.rs`, `pagination.rs`, `announce_interval.rs` | 2-6 | `2824-1347-add-tests-primitives-defaults` | - | TODO |
+| S4 | `swarm_metadata.rs`, no-change decisions for the covered and wiring files, then T4-T6; the clean-up moves the spec to `docs/issues/closed/` and updates the EPIC tables | 7-16 | `2824-1347-add-tests-primitives-final` | - | TODO |
 
 Rules: S0 to S3 use `Related to #2824`; only S4 uses `Closes #2824`. Do not stack
 branches; keep at most one implementation PR open. Titles follow the repository convention, for
