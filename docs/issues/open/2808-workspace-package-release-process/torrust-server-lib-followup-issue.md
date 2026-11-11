@@ -39,7 +39,9 @@ versions untagged and say so here.
 
 In `docs/release_process.md`, delete the "Checklist" section and keep the pointer plus the
 differences (no `develop` branch, no workflow, tag `v<semver>`), as the "Standalone repositories"
-text in the Tracker document prescribes.
+text in the "Pointing to This Process from Package Documentation" section of
+[Releasing Workspace Packages](https://github.com/torrust/torrust-tracker/blob/develop/docs/release-process/workspace-packages.md)
+prescribes.
 
 ### Acceptance criteria
 

@@ -58,14 +58,16 @@ git push --force torrust develop:staging/main
 git stash
 git switch staging/main
 git reset --hard torrust/staging/main
-# Edit the `torrust-tracker` version (root Cargo.toml):
+# Edit the `torrust-tracker` version in the root `Cargo.toml` and in the
+# `torrust-tracker` requirement of `packages/e2e-tools/Cargo.toml`:
 #   change X.Y.Z-develop → X.Y.Z
 git add -A
 git commit -S -m "release: version X.Y.Z"
 git push torrust
 ```
 
-Bump only the `torrust-tracker` version. Workspace packages version independently (see
+Bump only the `torrust-tracker` version and every requirement on it (a pre-release such as
+`3.0.1-develop` matches only a requirement with the same pre-release). Workspace packages version independently (see
 [the ADR](../../../../../docs/adrs/20260629000000_adopt_independent_package_versioning.md)),
 so do not edit their versions here.
 
@@ -117,7 +119,8 @@ git push --force torrust main:staging/develop
 git stash
 git switch staging/develop
 git reset --hard torrust/staging/develop
-# Edit the `torrust-tracker` version (root Cargo.toml):
+# Edit the `torrust-tracker` version in the root `Cargo.toml` and in the
+# `torrust-tracker` requirement of `packages/e2e-tools/Cargo.toml`:
 #   change X.Y.Z → (next)X.Y.Z-develop (e.g. 3.0.0 → 3.0.1-develop)
 git add -A
 git commit -S -m "develop: bump to version (next)X.Y.Z-develop"

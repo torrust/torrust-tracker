@@ -37,3 +37,10 @@ tracker binary instead, use [`release-new-version`](../release-new-version/SKILL
 - Publish only from the merged commit; tag that exact commit.
 - Never move or delete a pushed tag; never republish a published version.
 - If the document and this skill disagree, the document wins; fix this skill.
+
+## Skill Links
+
+Review this skill when changing:
+
+- `docs/release-process/workspace-packages.md` — the process this skill drives.
+- `.github/workflows/deployment-packages.yaml` — the workflow that publishes a workspace package.
