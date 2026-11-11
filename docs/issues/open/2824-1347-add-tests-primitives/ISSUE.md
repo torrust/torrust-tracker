@@ -220,8 +220,8 @@ After the last test-producing increment, stop for maintainer review before T4-T6
 
 ## Pull-Request Slices
 
-Each slice is one PR, merged before the next slice branch is cut from `develop`. Proposed slicing
-(awaiting maintainer approval):
+Each slice is one PR, merged before the next slice branch is cut from `develop`. Slicing approved by
+the maintainer (2026-11-10):
 
 | Slice | Content | Ledger rows | Branch | PR | Status |
 | --- | --- | --- | --- | --- | --- |
