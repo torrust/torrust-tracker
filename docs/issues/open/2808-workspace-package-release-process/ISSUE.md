@@ -9,7 +9,7 @@ github-issue: 2808
 spec-path: docs/issues/open/2808-workspace-package-release-process/ISSUE.md
 branch: "2808-workspace-package-release-process"
 related-pr: null
-last-updated-utc: "2026-11-11 11:57"
+last-updated-utc: "2026-11-11 12:34"
 semantic-links:
   skill-links:
     - create-issue
@@ -194,7 +194,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [ ] Committer verified spec progress is up to date before commit
@@ -214,6 +214,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-11-10 19:18 UTC - Claude Code (Claude Sonnet 5.5) - Correction to the 18:04 entry (audit F27): it said `related-pr` "names the implementation PR". The tree does not define the field that way: its schema calls it "the nullable positive related pull request number", the specs introduced by the spec-only PRs for #2798 and #2801 keep it `null`, and the specs of #2393 to #2396 set it to their spec-only PR #2397. This spec keeps it `null` on the first precedent.
 - 2026-11-11 11:17 UTC - Claude Code (Claude Sonnet 5.5) - #2576 closed; implemented T2-T6 in the implementation PR: pure-move split (T2), process rewrite (T3), `release-workspace-package` skill and `release-new-version` fixes (T4), no README describes releasing so none changed and the standalone "Releasing" text is in `workspace-packages.md` (T5), `torrust-server-lib-followup-issue.md` (T6); manual verification recorded in `manual-verification-evidence.md`. Open specs #2583 (T2 overlaps T3 here) and #2183 now name the new documents.
 - 2026-11-11 11:57 UTC - Claude Code (Claude Sonnet 5.5) - Implementation completion review, after the review of PR 2825: the one material discovery (audit F1) was that a published crate's version bump must raise the `version` requirement in every dependent manifest in the same PR; it is now precondition 2 of `workspace-packages.md`, so no separate retrospective is needed. The PR description uses `Closes #2808`: the issue closes on merge, and the spec move to `docs/issues/closed/` and the torrust-server-lib issue creation are done by the maintainer's close-out afterwards.
+- 2026-11-11 12:34 UTC - Claude Code (Claude Sonnet 5.5) - Correction to the 11:57 entry (audit F17): the discovery in audit F1 is material (a retained step that a review had to remove), so the completion review creates `implementation-retrospective.md` instead of the "no separate retrospective" the 11:57 entry stated.
 
 ## Acceptance Criteria
 
@@ -293,7 +294,7 @@ None planned.
 
 ## Implementation Completion Review
 
-- Retrospective: none needed; see the progress log entry of 2026-11-11 (completion review)
+- Retrospective: `implementation-retrospective.md`
 - If needed, create `implementation-retrospective.md` from `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md`.
 - If none is needed, add a progress-log entry explaining why.
 
