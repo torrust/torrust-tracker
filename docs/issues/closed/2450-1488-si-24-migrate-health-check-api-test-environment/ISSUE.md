@@ -9,7 +9,7 @@ github-issue: 2450
 spec-path: docs/issues/closed/2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md
 branch: "2450-migrate-health-check-api-test-environment"
 related-pr: 2652
-last-updated-utc: "2026-11-03 17:45"
+last-updated-utc: "2026-11-11 09:40"
 semantic-links:
   skill-links:
     - create-issue
@@ -26,7 +26,7 @@ semantic-links:
     - docs/issues/closed/2471-1488-fix-http-environment-drop-path/ISSUE.md
     - docs/issues/closed/2449-1488-si-23-migrate-rest-api-test-environment/ISSUE.md
     - "issue #2751"
-    - docs/issues/open/2801-1488-si-19-remove-legacy-shutdown-api/ISSUE.md
+    - docs/issues/closed/2801-1488-si-19-remove-legacy-shutdown-api/ISSUE.md
     - "issue #2697"
     - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
 ---

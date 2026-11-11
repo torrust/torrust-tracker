@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-progress
+status: done
 priority: p1
 epic: 1488
 github-issue: 2801
-spec-path: docs/issues/open/2801-1488-si-19-remove-legacy-shutdown-api/ISSUE.md
+spec-path: docs/issues/closed/2801-1488-si-19-remove-legacy-shutdown-api/ISSUE.md
 branch: "2801-remove-legacy-shutdown-api"
 related-pr: 2807
-last-updated-utc: "2026-11-10 17:27"
+last-updated-utc: "2026-11-11 10:19"
 semantic-links:
   skill-links:
     - create-issue
@@ -149,7 +149,7 @@ evidence goes in this issue's `manual-verification-evidence.md` (SI-18's gate ev
 
 ## Acceptance Criteria
 
-- [ ] All start-gate evidence is complete and independently reviewed.
+- [x] All start-gate evidence is complete and independently reviewed (the reviews of PR 2807).
 - [x] `Halted` shutdown API and legacy shutdown helpers are removed from their
       declared packages; `Started` remains available in `torrust-server-lib` 0.6.0 and
       is no longer used in this workspace.
@@ -220,12 +220,12 @@ Sign every commit with GPG.
 - [x] Spec-only PR merged into `develop` before implementation (PR 2803)
 - [x] `torrust-server-lib` 0.6.0 published (external dependency, 2026-11-10)
 - [x] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, pre-push checks)
+- [x] Automatic verification completed (`linter all`, relevant tests, pre-push checks)
 - [x] Manual verification scenarios executed and recorded in `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: an issue-local `implementation-retrospective.md` for material discoveries, or a progress-log entry that says why none was needed
-- [ ] Independent reviewer reports recorded in `agent-review-reports.md`
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded: an issue-local `implementation-retrospective.md` for material discoveries, or a progress-log entry that says why none was needed
+- [x] Independent reviewer reports recorded (the reviews of PR 2807 and the audit `docs/pr-reviews/pr-2807-review/PR-REVIEW.md`)
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -241,6 +241,7 @@ Sign every commit with GPG.
 - 2026-11-10 16:55 UTC - AI agent (Claude Sonnet 5.5) - Addressed the second review of PR 2807 (F12 to F16): the live-spec search pasted as run, the ten signal invocations and the tracker configuration recorded, the criterion, row and evidence item reworded to match the five live-spec matches, and `branch` pointed at the implementation branch.
 - 2026-11-10 16:57 UTC - AI agent (Claude Sonnet 5.5) - Removed the statements that the maintainer published `torrust-server-lib` 0.6.0 from the gate item, the scope note and the evidence, because the evidence only shows that 0.6.0 is published on crates.io.
 - 2026-11-10 17:27 UTC - AI agent (Claude Sonnet 5.5) - Addressed the third review of PR 2807 (F17 to F19): the evidence cites the merge of the `torrust-server-lib` PR and describes the verification configuration as a reduced copy, and the second-round entry above is stamped at its commit minute.
+- 2026-11-11 07:17 UTC - AI agent (Claude Sonnet 5.5) - Archived the spec: the GitHub issue is CLOSED (closed by PR 2807, merged 2026-11-11 with `torrust-server-lib` 0.6.0), so the spec moved from `docs/issues/open/` to `docs/issues/closed/`, `status` is `done`, and EPIC row 19 is Done. No retrospective was needed: the change is a removal with no design surprise. Left for follow-ups: the now-unused public error variants (`Error::Stop`, `StartupNotification` and `StartupNotificationDropped` of the HTTP and REST servers, and three `UdpError` variants) and the supervisor consolidation split out of scope. A flaky `axum-health-check-api-server` test failed once in a container build and passed on rerun. The completion review was recorded after the issue closed (PR 2807 merged at 07:08 UTC), so the order the checklist asks for was not kept. Follow-ups are tracked in the drafts `docs/issues/drafts/follow-up-si-19-remove-unused-error-variants/` and `docs/issues/drafts/follow-up-si-19-consolidate-shutdown-supervisor/`.
 
 ## Design and Ownership Review
 
@@ -283,7 +284,7 @@ None.
 
 | AC | Status | Evidence |
 | -- | ------ | -------- |
-| Start-gate evidence complete and reviewed | IN_PROGRESS | M1 is DONE; the independent review is the review of the implementation PR 2807, to be recorded in `agent-review-reports.md` or the audit |
+| Start-gate evidence complete and reviewed | DONE | M1, and the reviews of PR 2807 (eight rounds by da2ce7; the audit records rounds 1 to 7, and the final approval, review 5849873024, is on the forge) |
 | Legacy API removed; `Started` remains available in `torrust-server-lib` 0.6.0 and is no longer used here | DONE | M2 |
 | No OS-signal subscription in server libraries | DONE | M2 |
 | No use of the removed API remains; descriptions remain in archived docs and five lines of live specs | DONE | M2 |
@@ -309,8 +310,8 @@ None.
   `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this directory; otherwise add
   a progress-log entry saying why none was needed. The issue is not closed until
   one of the two exists.
-- The independent reviewer records its result in `agent-review-reports.md` using
-  `docs/templates/AGENT-REVIEW-REPORTS.md`.
+- The independent reviews are the reviews of PR 2807 (eight rounds by da2ce7 and a Copilot summary; the audit records the summary and rounds 1 to 7, the eighth being the final approval after the last commit), recorded in `docs/pr-reviews/pr-2807-review/PR-REVIEW.md`; the audit of the spec PR 2803 is `docs/pr-reviews/pr-2803-review/PR-REVIEW.md`.
+- Retrospective: none needed. The change removes deprecated symbols and their tests with no design surprise. The discoveries are recorded in the progress log: a flaky health-check test that passes on rerun, and unused public error variants left in place.
 
 ## References
 

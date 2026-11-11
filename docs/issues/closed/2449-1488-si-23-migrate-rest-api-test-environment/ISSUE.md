@@ -9,7 +9,7 @@ github-issue: 2449
 spec-path: docs/issues/closed/2449-1488-si-23-migrate-rest-api-test-environment/ISSUE.md
 branch: "2449-migrate-rest-api-test-environment"
 related-pr: 2643
-last-updated-utc: "2026-10-25 08:09"
+last-updated-utc: "2026-11-11 09:40"
 semantic-links:
   skill-links:
     - create-issue
@@ -27,7 +27,7 @@ semantic-links:
     - docs/issues/closed/2448-1488-si-17-migrate-standalone-udp-environment/ISSUE.md
     - docs/issues/closed/2471-1488-fix-http-environment-drop-path/ISSUE.md
     - "issue #2751"
-    - docs/issues/open/2801-1488-si-19-remove-legacy-shutdown-api/ISSUE.md
+    - docs/issues/closed/2801-1488-si-19-remove-legacy-shutdown-api/ISSUE.md
     - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
 ---
 

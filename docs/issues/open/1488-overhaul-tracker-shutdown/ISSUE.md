@@ -6,7 +6,7 @@ epic: null
 github-issue: 1488
 spec-path: docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-10 11:29"
+last-updated-utc: "2026-11-11 09:40"
 semantic-links:
   skill-links:
     - create-issue
@@ -210,7 +210,7 @@ deterministic tests, and manual evidence.
 | 16       | #2449 | [Migrate REST API test environment](../../closed/2449-1488-si-23-migrate-rest-api-test-environment/ISSUE.md) | Done       | SI-23. One test environment migration; found while refreshing SI-17 (2026-10-06). Merged in PR #2643 on 2026-10-25; one token and one `DropGuard`, because the environment owns no listener. |
 | 17       | #2450 | [Migrate health-check API test environment](../../closed/2450-1488-si-24-migrate-health-check-api-test-environment/ISSUE.md) | Done       | SI-24. One test environment migration; found while refreshing SI-17 (2026-10-06). Merged in PR #2652 on 2026-10-26; one token and one `DropGuard`, because the environment owns no listener. Review found that a fixed-port restart panicked because the registry could not remove a registration, so `torrust-server-lib` 0.4.0 added `Registar::deregister` and `stop()` removes its own binding. |
 | 18       | #2751 | [Deprecate legacy shutdown API](../../closed/2751-1488-si-18-deprecate-legacy-shutdown-api/ISSUE.md)                           | Done       | Compatibility-preserving source deprecation only.                                                    |
-| 19       | #2801 | [Remove legacy shutdown API and library OS signals](../2801-1488-si-19-remove-legacy-shutdown-api/ISSUE.md)          | Planned    | Breaking release after migration, deprecation, and compatibility gates.                              |
+| 19       | #2801 | [Remove legacy shutdown API and library OS signals](../../closed/2801-1488-si-19-remove-legacy-shutdown-api/ISSUE.md)     | Done       | Removed the legacy API; merged in PR #2807 with `torrust-server-lib` 0.6.0.                  |
 | 20       | #2668 | [Configure shutdown policy and deployment contract](../../closed/2668-1488-si-20-configure-shutdown-policy/ISSUE.md)     | Done       | Apply approved Q3/Q4 outcomes, budgets, configuration, and deployment guidance.                      |
 | 21       | #2697 | [Mark health check unhealthy during shutdown](../../closed/2697-1488-si-21-mark-health-unhealthy-during-shutdown/ISSUE.md)         | Done       | Set readiness to not ready before root cancellation and component drain.                             |
 | —        | SI-3  | [Combined standalone environment migration](../../drafts/1488-si-3-fix-environment-stop/ISSUE.md)                         | Superseded | Replaced by SI-16 and SI-17. Do not implement.                                                       |
