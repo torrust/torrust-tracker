@@ -9,7 +9,7 @@ github-issue: 2804
 spec-path: docs/issues/open/2804-location-caller-track-caller-audit/ISSUE.md
 branch: "2804-location-caller-track-caller-audit-spec"
 related-pr: null
-last-updated-utc: "2026-11-11 11:55"
+last-updated-utc: "2026-11-11 17:03"
 semantic-links:
   skill-links:
     - create-issue
@@ -210,11 +210,24 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T2  | DONE   | Trace production exposure                 | For each wrong site, the path to output (HTTP failure reason, UDP error message, REST API, CLI, logs, metrics, events), with the exact line that formats it. Mark "user-visible" or "developer-only".                                                                                                                                                               |
 | T3  | DONE   | Check guidance and enforceability         | What the skill, ADRs, `Cargo.toml` lints and clippy config say. Is there a clippy lint (candidates: none known for this; verify) or a test that can enforce the rule? Record the answer even if "no".                                                                                                                                                               |
 | T4  | DONE   | Analyse fix options, recommend one        | Recommendation in `options.md`: stop printing `{location}` in `Display` (option 3); option 1 fixes no production site (all 38 are reached through trait impls, closures, `TryFrom` or `async` code). Open for the maintainer: keep or remove the field, and the `LocatedError` decision. Awaiting approval before any fix.                                          |
-| T5  | TODO   | Write the ADR and the slicing plan        | ADR if the convention changes. Create sub-issues or fix PRs per package from the slicing below.                                                                                                                                                                                                                                                                     |
-| T6  | TODO   | Red regression tests per slice            | For each slice (primitives; http-protocol, http-core, axum-http-server; tracker-core and database drivers; udp-server, axum-server, configuration and the rest from T1), a maintained test that fails against current code, with the red output recorded. Primitives first: `PeerRole`, `peer::Id` through `parse`/`try_into`; this closes the reported finding F3. |
-| T7  | TODO   | Fix slices, one PR per package group      | Production fix per slice, the smallest change that makes its red test pass. http-protocol group changes the client-visible bencoded responses; tracker-core group covers `InsertFailed`/`DeleteFailed`, key expiry, whitelist, `authorize`; udp-server group covers the whitelist and database errors shown in UDP replies (paths from T2).                         |
-| T8  | TODO   | Green and like-for-like recheck per slice | Green test output, then the same real-artifact reproduction as in `manual-verification-evidence.md` run again after the last production change of the slice.                                                                                                                                                                                                        |
-| T9  | TODO   | Enforcement and docs                      | Lint or test from T3, update the `handle-errors-in-code` skill, close the issue.                                                                                                                                                                                                                                                                                    |
+| T5  | DONE   | Write the ADR and the slicing plan        | Slicing done as an EPIC draft with six sub-issue drafts and the specification for #384 (see below). The ADR moved to sub-issue SI-1 of that EPIC, because the maintainer proposed to remove the feature and that decision is still under review.                                                                                                                    |
+
+### Tasks moved to the EPIC draft
+
+After T4 the maintainer proposed to remove source locations from errors altogether, instead of the
+options compared in `options.md`. The work is then larger than this issue and cuts across the
+workspace, so the fix tasks that this plan listed as T6 to T9 are not done here. They are planned in
+the EPIC draft `docs/issues/drafts/remove-source-locations-from-errors/EPIC.md`:
+
+| Former task | Now in |
+| --- | --- |
+| T6 Red regression tests per slice, T7 Fix slices, T8 Green and like-for-like recheck per slice | Sub-issue drafts SI-2 (`primitives`), SI-3 (HTTP tracker request errors), SI-4 (`tracker-core`), SI-5 (configuration, TLS and UDP server errors), each with its own red test, fix and recheck |
+| T9 Enforcement and docs | SI-1 (ADR and `handle-errors-in-code` skill) and SI-6 (drop `torrust-located-error`, repository check, upstream issue drafts) |
+| Client-side verification (M1, M2) | `docs/issues/open/384-strip-location-from-errors-sent-to-clients/ISSUE.md` (SI-7) |
+
+The EPIC and its sub-issues are drafts: no GitHub issue exists for them yet. This issue can be
+closed when the maintainer creates the EPIC issue; until then it stays open as the record of the
+audit.
 
 ### Fix options to compare in T4 (research plan)
 
@@ -268,9 +281,9 @@ with the narrow affected scope, and sign every commit with GPG.
 ### Workflow Checkpoints
 
 - [x] Folder-style spec drafted in `docs/issues/open/2804-location-caller-track-caller-audit/ISSUE.md`
-- [ ] Spec reviewed and approved by user/maintainer
+- [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
+- [x] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation (#2805)
 - [ ] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
@@ -293,16 +306,17 @@ with the narrow affected scope, and sign every commit with GPG.
 - 2026-11-11 11:11 UTC - Claude Code (Sonnet 5.5) - Reworked T4 after review of PR #2821: count of 23 printed locations, option 1 reaches no production site, semver against the first-publish plan, slices S1 to S7 (`options.md`).
 - 2026-11-11 11:16 UTC - Claude Code (Sonnet 5.5) - Added the Copilot findings of PR #2821 to T4: additive constructors are not breaking, the `configuration` `LocatedError` sources, the peer-id wrapping site, and direct tests for S5 and S6 (`options.md`).
 - 2026-11-11 11:55 UTC - Claude Code (Sonnet 5.5) - Corrected the S3 and S5 slices of T4 after the second review of PR #2821: `MissingTlsConfig` needs no change, version steps per crate, the info-hash paths need source suppression or an upstream fix (`options.md`).
+- 2026-11-11 17:03 UTC - Claude Code (Fable 5.2) - T5 done as a slicing plan: the maintainer proposed to remove the feature, so the fix tasks moved to an EPIC draft with six sub-issue drafts and the specification for #384. The ADR is sub-issue SI-1 of that EPIC. AC1, AC2 and AC6 recorded as done with their evidence.
 
 ## Acceptance Criteria
 
-- [ ] AC1: `inventory.md` classifies every `Location::caller()` and `#[track_caller]` in the workspace and the dependency-tree standalone crates.
-- [ ] AC2: Every wrong site is marked user-visible or developer-only with the output path that proves it.
-- [ ] AC3: The chosen approach is recorded (ADR when the convention changes) and the maintainer approved it before fixes.
-- [ ] AC4: No client-visible HTTP or UDP response and no `Display` of a public error contains a library source path, proven by regression tests that go through `str::parse`/`try_into` where relevant.
-- [ ] AC5: Remaining `Location::caller()` uses are either in a `#[track_caller]` chain that reaches a meaningful call site or on an allow-list with a reason.
-- [ ] AC6: Semver impact is documented per published crate and the breaking release per crate is planned.
-- [ ] AC7: The `handle-errors-in-code` skill states the rule, and an enforcement check exists or its infeasibility is recorded.
+- [x] AC1: `inventory.md` classifies every `Location::caller()` and `#[track_caller]` in the workspace and the dependency-tree standalone crates.
+- [x] AC2: Every wrong site is marked user-visible or developer-only with the output path that proves it.
+- [ ] AC3 (moved to the EPIC draft, SI-1): The chosen approach is recorded (ADR when the convention changes) and the maintainer approved it before fixes.
+- [ ] AC4 (moved to the EPIC draft, SI-2 to SI-5 and #384): No client-visible HTTP or UDP response and no `Display` of a public error contains a library source path, proven by regression tests that go through `str::parse`/`try_into` where relevant.
+- [ ] AC5 (moved to the EPIC draft, SI-6): Remaining `Location::caller()` uses are either in a `#[track_caller]` chain that reaches a meaningful call site or on an allow-list with a reason.
+- [x] AC6: Semver impact is documented per published crate and the breaking release per crate is planned.
+- [ ] AC7 (moved to the EPIC draft, SI-1 and SI-6): The `handle-errors-in-code` skill states the rule, and an enforcement check exists or its infeasibility is recorded.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
@@ -336,15 +350,15 @@ issue folder only if they explain a decision.
 
 ### Acceptance Verification
 
-| AC ID | Status | Evidence           |
-| ----- | ------ | ------------------ |
-| AC1   | TODO   | {inventory link}   |
-| AC2   | TODO   | {inventory link}   |
-| AC3   | TODO   | {ADR / PR link}    |
-| AC4   | TODO   | {test/log/PR link} |
-| AC5   | TODO   | {inventory link}   |
-| AC6   | TODO   | {ADR / PR link}    |
-| AC7   | TODO   | {PR link}          |
+| AC ID | Status | Evidence                              |
+| ----- | ------ | ------------------------------------- |
+| AC1   | DONE   | `inventory.md` (PR #2814)             |
+| AC2   | DONE   | `inventory.md`, T2 table (PR #2814)   |
+| AC3   | TODO   | Moved: ADR of SI-1 in the EPIC draft  |
+| AC4   | TODO   | Moved: SI-2 to SI-5 and #384          |
+| AC5   | TODO   | Moved: SI-6                           |
+| AC6   | DONE   | `options.md`, semver table (PR #2821) |
+| AC7   | TODO   | Moved: SI-1 and SI-6                  |
 
 ## Risks and Trade-offs
 
