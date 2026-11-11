@@ -1,6 +1,6 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2776-2411-axum-server-0-9-timeouts/ISSUE.md
+issue-spec: docs/issues/closed/2776-2411-axum-server-0-9-timeouts/ISSUE.md
 last-updated-utc: "2026-11-11 11:03"
 ---
 

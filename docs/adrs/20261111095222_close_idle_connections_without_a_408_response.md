@@ -6,7 +6,7 @@ semantic-links:
     - packages/axum-server/src/custom_axum_server.rs
     - clippy.toml
     - docs/adrs/20260830124000_place_adrs_by_decision_scope.md
-    - docs/issues/open/2776-2411-axum-server-0-9-timeouts/ISSUE.md
+    - docs/issues/closed/2776-2411-axum-server-0-9-timeouts/ISSUE.md
     - .github/skills/dev/planning/create-adr/SKILL.md
 ---
 
@@ -78,7 +78,7 @@ A request that has arrived and whose handler is too slow still gets `408`, from 
 ## References
 
 - Issue [#2776](https://github.com/torrust/torrust-tracker/issues/2776) and its spec,
-  `docs/issues/open/2776-2411-axum-server-0-9-timeouts/ISSUE.md`
+  `docs/issues/closed/2776-2411-axum-server-0-9-timeouts/ISSUE.md`
 - `axum-server` 0.9.0, `Server::first_request_timeout`
 - Reproduction repository: <https://github.com/josecelano/axum-server-timeout>
 - RFC 9110, section 15.5.9 (`408 Request Timeout`)
