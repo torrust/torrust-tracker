@@ -24,7 +24,7 @@ Written by the PR author from the audit record and `git log`, following
 | Re-raised findings (`RE_RAISE_OF`) | 0 |
 | Findings about the audit record itself | 5 (F6, F7, F8, F10, F12) |
 | Commits on the branch | 9 at the time of writing (5 audit and retrospective only) |
-| First review to last thread resolution | about 65 minutes (09:35 to about 10:40 UTC, 2026-11-11) |
+| First review to last thread resolution | not captured (first review 09:35 UTC, 2026-11-11; the forge's resolution times were not recorded) |
 | AI models used | Claude Sonnet 5.5 (author), unknown (reviewer) |
 
 Numbers: the table in `PR-REVIEW.md`, `git log torrust/develop..HEAD`, and the review times from the GitHub API.
@@ -46,6 +46,10 @@ terms, the rule stated in full in two skills) are the same kind: wording and dup
 Round 3 (F6 to F9) was about the record: a conflict between the start rule and the validator step, a Solution
 that described removed bytes (F7), and a log stamp that was the time of my replies instead of the review's
 arrival (F8). These are recording defects, not defects in the skills' intent.
+
+Round 4 (F10, F12) and round 5 (F13, F15, F17) were again about the record: an in-place log rewrite, a
+Solution describing removed bytes, branch commit ids, and a resolution time written before it happened. Each fix
+created the next nit because I edited the record without re-reading every claim in it against the tree.
 
 ## Root Causes
 

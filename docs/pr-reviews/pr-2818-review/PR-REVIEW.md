@@ -55,7 +55,7 @@ Round 1: da2ce7's review `5856655819` (F1 to F3), processed after the replies we
 | F8 | review-finding:pr-2818-f8 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 | F9 | review-finding:pr-2818-f9 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F10 | review-finding:pr-2818-f10 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
-| F11 | review-finding:pr-2818-f11 | Human | Nit | maintainability | ORIGINAL | NO_ACTION | RESOLVED |
+| F11 | review-finding:pr-2818-f11 | Human | Nit | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F12 | review-finding:pr-2818-f12 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
@@ -158,7 +158,7 @@ Round 1: da2ce7's review `5856655819` (F1 to F3), processed after the replies we
 - Reviewer finding ID: F6
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4536535955
 - Concern: The arrival of review 5856716279 was stamped 09:45, the time of the replies.
-- Solution: Added an arrival entry at 09:40 and kept 09:45 for the fix and replies.
+- Solution: The arrival of review 5856716279 at 09:40 is stated by the correction entry at 10:38 in the Processing Log; an arrival entry inserted earlier was removed because it rewrote the log.
 - Current-tree verification: Read the Processing Log.
 - Resolution reference: docs(skills): fill in reply URLs after replying in the audit start rule
 - Follow-up PR URL: N/A
@@ -184,7 +184,7 @@ Round 1: da2ce7's review `5856655819` (F1 to F3), processed after the replies we
 - Reviewer finding ID: F9
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4536790786
 - Concern: The previous commit inserted a log entry between existing ones and reworded the 09:45 entry, which the skill treats as a rewrite to undo.
-- Solution: Restored the 09:45 entry, removed the inserted 09:40 entry, and appended a correction entry.
+- Solution: Restored the 09:45 entry and removed the inserted 09:40 entry in the commit `docs(pr-reviews): restore the PR 2818 log and update the retrospective narrative`; the correction entry was appended in the commit `docs(pr-reviews): record round 4 for PR 2818`.
 - Current-tree verification: Read the Processing Log.
 - Resolution reference: docs(pr-reviews): restore the PR 2818 log and update the retrospective narrative
 - Follow-up PR URL: N/A
@@ -196,9 +196,9 @@ Round 1: da2ce7's review `5856655819` (F1 to F3), processed after the replies we
 - Source review ID: 5857359407
 - Reviewer finding ID: F10
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4536790803
-- Concern: Commit 8d5a6e90a changes a skill and the record files and its body omits some record edits; the reviewer suggests splitting it before merge.
+- Concern: The commit `docs(skills): fill in reply URLs after replying in the audit start rule` changes a skill and the record files and its body omits some record edits; the reviewer suggests splitting it before merge.
 - Solution: No change: splitting a pushed, reviewed commit needs a force-push that moves every reviewed commit and invalidates the earlier ACK. Later commits keep skill and record edits apart.
-- Current-tree verification: git log shows e267b2971 and this record commit touch only docs/pr-reviews.
+- Current-tree verification: git log shows the commits `docs(pr-reviews): restore the PR 2818 log and update the retrospective narrative` and `docs(pr-reviews): record round 4 for PR 2818` touch only docs/pr-reviews.
 - Resolution reference: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4536843915
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4536843915
@@ -226,7 +226,7 @@ Round 1: da2ce7's review `5856655819` (F1 to F3), processed after the replies we
 - 2026-11-11 10:10 UTC - Fixed, replied, and added F6 to F9.
 - 2026-11-11 10:33 UTC - Review 5857359407 arrived with three findings.
 - 2026-11-11 10:38 UTC - Fixed, replied, and added F10 to F12.
-- 2026-11-11 10:38 UTC - Correction: commit 8d5a6e90a rewrote this log in place (it inserted a 09:40 entry and reworded the 09:45 entry); the entries were restored, review 5856716279 arrived at 09:40 and was processed at 09:45.
+- 2026-11-11 10:38 UTC - Correction: the commit `docs(skills): fill in reply URLs after replying in the audit start rule` rewrote this log in place (it inserted a 09:40 entry and reworded the 09:45 entry); the entries were restored, review 5856716279 arrived at 09:40 and was processed at 09:45.
 
 ## Completion Rules
 
