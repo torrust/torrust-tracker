@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2576-1669-update-all-package-readmes/ISSUE.md
-last-updated-utc: 2026-11-10 18:05
+issue-spec: docs/issues/closed/2576-1669-update-all-package-readmes/ISSUE.md
+last-updated-utc: 2026-11-11 08:59
 ---
 
 # Manual Verification Evidence
@@ -142,7 +142,7 @@ after each publish. The console client README has no docs.rs link (out of scope 
 #### Steps Performed
 
 1. Re-read each README against the quality bar and recorded the result in the "Re-audit
-   2026-11-10" section of [`readme-audit.md`](../1669-overhaul-packages/readme-audit.md).
+   2026-11-10" section of [`readme-audit.md`](../../open/1669-overhaul-packages/readme-audit.md).
 
 #### Observed Result
 
@@ -177,7 +177,7 @@ Met: no README has a Rust fence, so no README doctest hook is needed or present.
 ## Per-AC evidence
 
 - AC1: V2, V3. AC2: V1. AC3: V1, V3. AC4: V3 step 1 (module names checked against the post-#2482
-  sources). AC5: V4. AC6: pending the merge (nothing was published). AC7: the template file and
+  sources). AC5: V4. AC6: PR #2812 merged 2026-11-11 08:23 UTC and no crate was published. AC7: the template file and
   its row in `docs/templates/README.md` and `docs/index.md`. AC8: V5.
 
 ## Failures and Follow-up
