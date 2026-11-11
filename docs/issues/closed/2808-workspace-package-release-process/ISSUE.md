@@ -9,7 +9,7 @@ github-issue: 2808
 spec-path: docs/issues/closed/2808-workspace-package-release-process/ISSUE.md
 branch: "2808-workspace-package-release-process"
 related-pr: 2825
-last-updated-utc: "2026-11-11 13:51"
+last-updated-utc: "2026-11-11 14:19"
 semantic-links:
   skill-links:
     - create-issue
@@ -307,3 +307,4 @@ None planned.
 - Related ADRs: `docs/adrs/20260629000000_adopt_independent_package_versioning.md`
 - Process docs: `docs/release_process.md` (index after T2), `docs/release-process/tracker.md`,
   `docs/release-process/workspace-packages.md`
+- 2026-11-11 14:19 UTC - Claude Code (Claude Sonnet 5.5) - Correction to the 13:51 entry (close-out review F2, F3): the checkpoint "Reviewer validated acceptance criteria" is left open, because no reviewer edited this spec, and the checkpoint "Independent reviewer reports recorded" is ticked, because the reviews of PR 2809 and PR 2825 are recorded in `docs/pr-reviews/pr-2809-review/PR-REVIEW.md` and `docs/pr-reviews/pr-2825-review/PR-REVIEW.md`. The 16:17 entry named `docs/issues/open/` correctly and is restored.
