@@ -6,7 +6,7 @@ epic: null
 github-issue: 2003
 spec-path: docs/issues/open/2003-overhaul-guardrails-and-automation/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-11 09:34"
+last-updated-utc: "2026-11-11 11:53"
 semantic-links:
   skill-links:
     - create-issue
@@ -190,6 +190,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | 17 | #2712 - `wait-for-pr-review` waits without limit after a `gh` call that already exited | `docs/issues/closed/2712-2003-wait-for-pr-review-pipe-wait-after-exit/ISSUE.md` | DONE | Bug in the #2581 poller: the timeout and signal handling must hold on every path of a `gh` call. Independent of the other poller bugs; fixed by PR #2750, with a follow-up for Copilot's late review in PR #2756. |
 | 18 | #2713 - `wait-for-pr-review` panics when `--timeout-seconds` is too large | `docs/issues/closed/2713-2003-wait-for-pr-review-timeout-overflow-panic/ISSUE.md` | DONE | Bug in the #2581 poller: an oversized timeout overflows the deadline. Fixed by PR #2802: `--timeout-seconds` is bounded to 1..=86400. |
 | 19 | #2714 - `wait-for-pr-review` can report a review of a newer commit than the head it reports | `docs/issues/closed/2714-2003-wait-for-pr-review-head-race-between-requests/ISSUE.md` | DONE | Bug in the #2581 poller: a race between its two requests. Fixed by PR #2815: the head is fetched after the feedback. |
+| 20 | #2822 - `wait-for-pr-review`: add a `--gh-command` option to name the GitHub CLI command | `docs/issues/open/2822-2003-wait-for-pr-review-gh-option/ISSUE.md` | TODO | Enhancement to the #2581 poller: the caller names the command, so no `gh` stand-in on `PATH` is needed, and the identity it runs as is reported. Selects no shared runner, cache or policy engine. Independent of the other poller work. |
 
 Also linked as GitHub sub-issues, outside the order:
 
@@ -440,6 +441,7 @@ For each completed subissue in this EPIC, the default completion policy is:
 - 2026-11-09 11:18 UTC - AI assistant (Claude Code, issue #2712 session) - Correction: the entry stamped 2026-11-09 10:50 UTC and the first `last-updated-utc` were already in commit 971f8d847, made at 10:48:59 UTC, so that time is wrong; the entry is kept unchanged. The event is evidenced by that commit time.
 - 2026-11-10 16:09 UTC - AI assistant (Claude Code, Claude Sonnet 5.5, issue #2713 session) - Row 18 (#2713) is DONE: PR #2802 merged on 2026-11-10 and `--timeout-seconds` is bounded to 1..=86400; the spec moved to `docs/issues/closed/` in the close-out pull request.
 - 2026-11-11 09:34 UTC - AI assistant (Claude Code, Claude Sonnet 5.5, issue #2714 session) - Row 19 (#2714) is DONE: PR #2815 merged on 2026-11-11; the head in a `wait-for-pr-review` result is now fetched after the feedback. The spec moved to `docs/issues/closed/` in the close-out pull request.
+- 2026-11-11 11:53 UTC - AI assistant (Claude Code, Claude Sonnet 5.5, issue #2822 session) - Added row 20 (#2822, `--gh-command` option for `wait-for-pr-review`); the spec is in PR #2826.
 
 ## Acceptance Criteria
 
