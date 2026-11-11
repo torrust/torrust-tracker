@@ -137,7 +137,7 @@ Round 1: da2ce7 review 5859800072 (`F1` to `F5`) and Copilot review 5859882741 (
 - Current-tree verification: This file exists.
 - Resolution reference: docs(pr-reviews): [#2830] add the PR audit record
 - Follow-up PR URL: N/A
-- Reply URL: PENDING
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2830#discussion_r4540274432
 
 ### F7 - The `last-updated-utc` of the EPIC and the spec (13:50) is earlier than the edits it dates (committed 14:08).
 
@@ -150,7 +150,7 @@ Round 1: da2ce7 review 5859800072 (`F1` to `F5`) and Copilot review 5859882741 (
 - Current-tree verification: `git grep -n last-updated-utc` on the EPIC and the spec.
 - Resolution reference: docs(issues): [#2776] stamp the EPIC and the spec with the time of the fix
 - Follow-up PR URL: N/A
-- Reply URL: PENDING
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2830#discussion_r4540274915
 
 ### F8 - One commit carried four independent fixes.
 
@@ -163,12 +163,13 @@ Round 1: da2ce7 review 5859800072 (`F1` to `F5`) and Copilot review 5859882741 (
 - Current-tree verification: `git log --oneline` of the branch.
 - Resolution reference: docs(issues): [#2776] stamp the EPIC and the spec with the time of the fix
 - Follow-up PR URL: N/A
-- Reply URL: PENDING
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2830#discussion_r4540275325
 
 ## Processing Log
 
 - 2026-11-11 14:13 UTC - Round 1 received (da2ce7 at 13:52, Copilot at 13:58); replies for `F1` to `F5` and `R1` posted at 14:13 UTC after the fix commit `docs(issues): [#2776] address PR 2830 review`. The replies say "Fixed in 615e8d84d"; that id is that commit, mapped here because review comments cannot be edited. This audit was not created before the first replies, as `F6` points out; it is added in round 2.
 - 2026-11-11 16:08 UTC - Round 2 review of da2ce7 received at 14:26 UTC (`F6` to `F8`); this audit and the stamp fix are the commits of the round.
+- 2026-11-11 16:11 UTC - Round 2 replies for `F6` to `F8` posted after the two fix commits; their reply URLs are recorded in the commit that carries this entry.
 
 ## Completion Rules
 
