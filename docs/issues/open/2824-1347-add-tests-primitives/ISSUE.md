@@ -355,10 +355,29 @@ Every evidence row names the toolchain that produced it. Raw JSON stays in git-i
 Human-oriented interaction with the built tracker, run once in S4 with an isolated configuration
 (automated tests never satisfy it):
 
-| ID | Scenario | Steps | Expected |
-| --- | --- | --- | --- |
-| M1 | Default announce interval | Start the tracker with a minimal configuration (no announce policy section); announce once and read the interval from the announce response. | The announce response carries the documented default interval (120 s). The peer cap (74) is not a response field and is protected by the unit test of the default in S3. |
-| M2 | Seeder and leecher counts | Announce one seeder and one leecher with `tracker_client`, then scrape and call the REST API torrent endpoint. | Complete/incomplete counts and the peer JSON match the announces. |
+| ID | Scenario | Steps | Expected | Status | Evidence |
+| --- | --- | --- | --- | --- | --- |
+| M1 | Default announce interval | Start the tracker with a minimal configuration (no announce policy section); announce once and read the interval from the announce response. | The announce response carries the documented default interval (120 s). The peer cap (74) is not a response field and is protected by the unit test of the default in S3. | TODO | `manual-verification-evidence.md` (S4) |
+| M2 | Seeder and leecher counts | Announce one seeder and one leecher with `tracker_client`, then scrape and call the REST API torrent endpoint. | Complete/incomplete counts and the peer JSON match the announces. | TODO | `manual-verification-evidence.md` (S4) |
+
+### Acceptance Verification
+
+Reviewed against observed behavior after the last slice, before the issue is closed.
+
+| AC ID | Status | Evidence |
+| ----- | ------ | -------- |
+| AC1 | DONE | Inventory and T1 hypotheses in `coverage-evidence.md`. |
+| AC2 | TODO | All ledger rows `DONE`; plans in `test-refactor-plans/`; per-file results in `coverage-evidence.md`. |
+| AC3 | TODO | Commands, toolchains and figures in the final measurement section of `coverage-evidence.md`. |
+| AC4 | TODO | Decision records of the highest and high objectives. |
+| AC5 | TODO | No-change and deferral records with per-group reasons. |
+| AC6 | TODO | Prose-first AAA review in each decision record. |
+| AC7 | TODO | `mutation-evidence.md`. |
+| AC8 | TODO | The T5 reconciliation and both EPIC tables. |
+| AC9 | TODO | Draft specs, progress-log entries and `lessons.md` rows, or a recorded absence of findings. |
+| AC10 | TODO | The slice table and the merged pull requests. |
+| AC11 | TODO | `cargo +nightly fmt --all -- --check` (nightly Rust), `linter all`, `cargo test -p torrust-tracker-primitives` (stable Rust) output. |
+| AC12 | TODO | `manual-verification-evidence.md`. |
 
 ## Risks and Trade-offs
 
