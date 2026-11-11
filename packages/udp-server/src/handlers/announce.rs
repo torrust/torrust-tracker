@@ -267,6 +267,11 @@ pub(crate) mod tests {
                 self
             }
 
+            pub fn with_bytes_left(mut self, bytes_left: i64) -> Self {
+                self.request.bytes_left = NumberOfBytes(bytes_left.into());
+                self
+            }
+
             pub fn into(self) -> AnnounceRequest {
                 self.request
             }
@@ -557,6 +562,42 @@ pub(crate) mod tests {
                     .await;
 
                 assert_eq!(peers[0].peer_addr, SocketAddr::new(IpAddr::V4(remote_client_ip), client_port));
+            }
+
+            #[tokio::test]
+            async fn it_should_reject_an_announce_with_a_negative_number_of_bytes_left() {
+                // Arrange
+                let (core_tracker_services, core_udp_tracker_services, server_udp_tracker_services) =
+                    initialize_core_tracker_services_for_public_tracker().await;
+                let client_socket_addr = sample_ipv4_socket_address();
+                let server_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(203, 0, 113, 196)), 6969);
+                let server_service_binding = ServiceBinding::new(Protocol::UDP, server_socket_addr).unwrap();
+                let info_hash = AquaticInfoHash([0u8; 20]);
+                let request = AnnounceRequestBuilder::default()
+                    .with_connection_id(connection_id_issued_to(&client_socket_addr))
+                    .with_info_hash(info_hash)
+                    .with_bytes_left(-5)
+                    .into();
+
+                // Act
+                let actual = handle_announce(
+                    &core_udp_tracker_services.announce_service,
+                    client_socket_addr,
+                    server_service_binding,
+                    &request,
+                    &core_tracker_services.core_config,
+                    &server_udp_tracker_services.udp_server_stats_event_sender,
+                    sample_strict_cookie_validation(),
+                )
+                .await;
+
+                // Assert: the announce is refused (the HTTP tracker refuses the same value) and no peer is stored.
+                assert!(actual.is_err(), "a negative `left` must be rejected, got: {actual:?}");
+                let peers = core_tracker_services
+                    .in_memory_torrent_repository
+                    .get_torrent_peers(&info_hash.0.into(), usize::MAX)
+                    .await;
+                assert!(peers.is_empty(), "a rejected announce must not register a peer");
             }
 
             #[tokio::test]
