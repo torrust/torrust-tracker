@@ -120,13 +120,16 @@ added as in #1348 following the `add-rust-dependency` skill.
 - Add dev-dependencies a plan justifies (`quickcheck`), following `add-rust-dependency` and
   `cargo machete --with-metadata`.
 - Documentation-comment corrections in the files under test.
+- The F2 production fix (`rename_all = "lowercase"` on `PeerRole`, in `peer.rs`) with its regression
+  test, in slice S1, per the `fix-bug` skill.
 - Hand off production findings through the [findings procedure](#findings-during-implementation).
 - A bounded mutation sample after the last test increment.
 - Issue-local `lessons.md` for reusable lessons; promoting them elsewhere is a separate small PR.
 
 ### Out of Scope
 
-- Production behavior changes in `packages/primitives/src/`.
+- Production behavior changes in `packages/primitives/src/`, except the F2 fix (`PeerRole` JSON
+  casing) planned for slice S1 and listed in In Scope.
 - Tests of other packages that use these types; shared test-support reorganization
   (`peer::fixture`: classified as test support in the `peer.rs` record; any move behind a `testing`
   feature belongs to the F5 follow-up, not to this issue); #2301 and #2361.
