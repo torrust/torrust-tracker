@@ -553,7 +553,7 @@ R1 to R6 are Copilot's review 5858141026 (R1, R5 and R6 are its own IDs; R2 and 
 - Current-tree verification: D2 test bullet; `tests/cli.rs` scenarios read by the reviewer.
 - Resolution reference: docs(issues): [#2822] name the scenarios that gh_identity changes and the head that --since-head-sha sets
 - Follow-up PR URL: N/A
-- Reply URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2826#discussion_r4538775740
 
 ### F33 - --since-head-sha takes the head, not always the cutoff
 
@@ -566,7 +566,7 @@ R1 to R6 are Copilot's review 5858141026 (R1, R5 and R6 are its own IDs; R2 and 
 - Current-tree verification: Baseline bullet; `wait.rs:101-104`.
 - Resolution reference: docs(issues): [#2822] name the scenarios that gh_identity changes and the head that --since-head-sha sets
 - Follow-up PR URL: N/A
-- Reply URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2826#discussion_r4538776420
 
 ### F34 - Re-raise of F28: the log says six edited replies
 
@@ -579,7 +579,7 @@ R1 to R6 are Copilot's review 5858141026 (R1, R5 and R6 are its own IDs; R2 and 
 - Current-tree verification: The 13:04 entry of the Processing Log.
 - Resolution reference: docs(pr-reviews): [#2822] record the fourth review round of PR #2826
 - Follow-up PR URL: N/A
-- Reply URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2826#discussion_r4538774429
 
 ### F35 - The log records a push of the commit that carries it and the replies preceded the commit
 
@@ -592,7 +592,7 @@ R1 to R6 are Copilot's review 5858141026 (R1, R5 and R6 are its own IDs; R2 and 
 - Current-tree verification: The 13:32 to 13:36 entries of the Processing Log.
 - Resolution reference: docs(pr-reviews): [#2822] record the fourth review round of PR #2826
 - Follow-up PR URL: N/A
-- Reply URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2826#discussion_r4538775053
 
 ## Processing Log
 
@@ -606,6 +606,8 @@ R1 to R6 are Copilot's review 5858141026 (R1, R5 and R6 are its own IDs; R2 and 
 - 2026-11-11 13:32 UTC - Replied to and resolved the seven threads of that review and edited the replies on F5 and F16. The replies on F24 to F26 cite the pushed commit `docs(issues): [#2822] state the lookup budget, the baseline limit and the scenarios it changes`; the replies on F27, F28 and F30 (13:32:42 to 13:32:53 UTC) were posted before the commit that fixes them was made (13:33 UTC), so no commit held their fix when they said "Fixed in" it.
 - 2026-11-11 13:36 UTC - Pushed that commit, `docs(pr-reviews): [#2822] correct the audit after the third review of PR #2826` (push log time).
 - 2026-11-11 13:53 UTC - Review 5859817911 (da2ce7, `APPROVED`) submitted on the head of that push: F32 to F35, none blocking.
+- 2026-11-11 13:58 UTC - Pushed the two commits that fix F32 to F35 (push log time).
+- 2026-11-11 13:58 UTC - Replied to and resolved F32 to F35 after that push; the replies cite the pushed commit subjects and their URLs are in the entries.
 
 ## Completion Rules
 
