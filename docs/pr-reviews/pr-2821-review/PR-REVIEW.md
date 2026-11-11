@@ -56,11 +56,11 @@ Round 1 is da2ce7's review `5857799147` (F1 to F11) and Copilot's review `585783
 | F9 | review-finding:pr-2821-f9 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F10 | review-finding:pr-2821-f10 | Human | Nit | formatting | ORIGINAL | FIXED | RESOLVED |
 | F11 | review-finding:pr-2821-f11 | Human | Suggestion | metadata | ORIGINAL | FIXED | RESOLVED |
-| F12 | review-finding:pr-2821-f12 | Copilot | Minor (inferred) | correctness | ORIGINAL | NO_ACTION | SUPERSEDED |
-| F13 | review-finding:pr-2821-f13 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
-| F14 | review-finding:pr-2821-f14 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
-| F15 | review-finding:pr-2821-f15 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
-| F16 | review-finding:pr-2821-f16 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
+| F12 | review-finding:pr-2821-f12 | Copilot | Minor | correctness | RE_RAISE_OF:F1 | NO_ACTION | SUPERSEDED |
+| F13 | review-finding:pr-2821-f13 | Copilot | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F14 | review-finding:pr-2821-f14 | Copilot | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F15 | review-finding:pr-2821-f15 | Copilot | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F16 | review-finding:pr-2821-f16 | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -68,7 +68,7 @@ Round 1 is da2ce7's review `5857799147` (F1 to F11) and Copilot's review `585783
 
 - PR number: 2821
 - Source review ID: 5857799147
-- Reviewer finding ID: F1
+- Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2821#discussion_r4537138758
 - Concern: The one-line grep missed the three-line attribute in peer_ip_resolver.rs, so the counts and the S2 list were short by one variant.
 - Solution: Recounted with a multiline search, updated every derived count and the evidence command.
@@ -81,7 +81,7 @@ Round 1 is da2ce7's review `5857799147` (F1 to F11) and Copilot's review `585783
 
 - PR number: 2821
 - Source review ID: 5857799147
-- Reviewer finding ID: F2
+- Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2821#discussion_r4537138772
 - Concern: P5a, P6 and P7 to P10 are reached through TryFrom or async blocks, so a track_caller chain ends at a library line.
 - Solution: Added fact 6, removed option 1 from the recommendation and corrected the comparison row.
@@ -94,7 +94,7 @@ Round 1 is da2ce7's review `5857799147` (F1 to F11) and Copilot's review `585783
 
 - PR number: 2821
 - Source review ID: 5857799147
-- Reviewer finding ID: F3
+- Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2821#discussion_r4537138781
 - Concern: The 0.1.0 crates are unpublished and primitives and configuration already owe 4.0.0; axum-server was missing and two rows named a LocatedError that is not in src.
 - Solution: Restated the table against the publish plan, added axum-server, corrected the http-core and axum-http-server rows and decision 1.
@@ -107,7 +107,7 @@ Round 1 is da2ce7's review `5857799147` (F1 to F11) and Copilot's review `585783
 
 - PR number: 2821
 - Source review ID: 5857799147
-- Reviewer finding ID: F4
+- Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2821#discussion_r4537138788
 - Concern: The torrust-info-hash sites cannot be changed in the workspace and the wrapping sites print a second location until S3.
 - Solution: S2 excludes the three wrapping sites; S3 carries them with its LocatedError decision.
@@ -120,7 +120,7 @@ Round 1 is da2ce7's review `5857799147` (F1 to F11) and Copilot's review `585783
 
 - PR number: 2821
 - Source review ID: 5857799147
-- Reviewer finding ID: F5
+- Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2821#discussion_r4537138800
 - Concern: The UDP variants are built only in test code and the whitelist rejection is S4's change.
 - Solution: S5 tests the TLS and configuration errors directly; S6 gives the UDP variants direct formatting tests.
@@ -133,7 +133,7 @@ Round 1 is da2ce7's review `5857799147` (F1 to F11) and Copilot's review `585783
 
 - PR number: 2821
 - Source review ID: 5857799147
-- Reviewer finding ID: F6
+- Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2821#discussion_r4537138806
 - Concern: Only some of the 23 formats print the offending input.
 - Solution: Recounted as 8 with input, 3 with free text and 12 with neither; churn row updated.
@@ -146,7 +146,7 @@ Round 1 is da2ce7's review `5857799147` (F1 to F11) and Copilot's review `585783
 
 - PR number: 2821
 - Source review ID: 5857799147
-- Reviewer finding ID: F7
+- Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2821#discussion_r4537138812
 - Concern: The three existing track_caller impls still print the location.
 - Solution: The cell now says No.
@@ -159,7 +159,7 @@ Round 1 is da2ce7's review `5857799147` (F1 to F11) and Copilot's review `585783
 
 - PR number: 2821
 - Source review ID: 5857799147
-- Reviewer finding ID: F8
+- Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2821#discussion_r4537138819
 - Concern: Wrong issue link and no validation section.
 - Solution: Edited the PR body: Related to #2804 and a Validation section.
@@ -172,7 +172,7 @@ Round 1 is da2ce7's review `5857799147` (F1 to F11) and Copilot's review `585783
 
 - PR number: 2821
 - Source review ID: 5857799147
-- Reviewer finding ID: F9
+- Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2821#discussion_r4537138824
 - Concern: The field was older than the latest progress-log entry.
 - Solution: Updated the field with the entry.
@@ -185,7 +185,7 @@ Round 1 is da2ce7's review `5857799147` (F1 to F11) and Copilot's review `585783
 
 - PR number: 2821
 - Source review ID: 5857799147
-- Reviewer finding ID: F10
+- Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2821#discussion_r4537138826
 - Concern: Unlike the other rows of the plan table.
 - Solution: Padded to the column widths.
@@ -198,7 +198,7 @@ Round 1 is da2ce7's review `5857799147` (F1 to F11) and Copilot's review `585783
 
 - PR number: 2821
 - Source review ID: 5857799147
-- Reviewer finding ID: F11
+- Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2821#discussion_r4537138834
 - Concern: Siblings carry doc-type, issue-spec and last-updated-utc.
 - Solution: Added the block.
@@ -211,7 +211,7 @@ Round 1 is da2ce7's review `5857799147` (F1 to F11) and Copilot's review `585783
 
 - PR number: 2821
 - Source review ID: 5857834791
-- Reviewer finding ID: N/A
+- Reviewer finding ID: F1
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2821#discussion_r4537167723
 - Concern: Same finding as F1.
 - Solution: Superseded by F1.
@@ -224,7 +224,7 @@ Round 1 is da2ce7's review `5857799147` (F1 to F11) and Copilot's review `585783
 
 - PR number: 2821
 - Source review ID: 5857834791
-- Reviewer finding ID: N/A
+- Reviewer finding ID: F2
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2821#discussion_r4537167771
 - Concern: Option 2 cell assigned a break to a constructor that adds no field change.
 - Solution: Cell now says none for an additive constructor.
@@ -237,11 +237,11 @@ Round 1 is da2ce7's review `5857799147` (F1 to F11) and Copilot's review `585783
 
 - PR number: 2821
 - Source review ID: 5857834791
-- Reviewer finding ID: N/A
+- Reviewer finding ID: F2
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2821#discussion_r4537167816
 - Concern: The table said none for configuration.
 - Solution: Row lists the four variants and the patch versus breaking distinction; axum-server has its own row.
-- Current-tree verification: Read configuration/src/lib.rs:305-337.
+- Current-tree verification: Read configuration/src/lib.rs:312-337.
 - Resolution reference: docs(issues): add the Copilot findings of PR #2821 to the T4 options
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2821#discussion_r4537228373
@@ -250,7 +250,7 @@ Round 1 is da2ce7's review `5857799147` (F1 to F11) and Copilot's review `585783
 
 - PR number: 2821
 - Source review ID: 5857834791
-- Reviewer finding ID: N/A
+- Reviewer finding ID: F2
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2821#discussion_r4537167857
 - Concern: announce.rs:560 wraps with Located(err).into().
 - Solution: Added to the S3 wrapping sites with a short peer_id case.
@@ -263,7 +263,7 @@ Round 1 is da2ce7's review `5857799147` (F1 to F11) and Copilot's review `585783
 
 - PR number: 2821
 - Source review ID: 5857834791
-- Reviewer finding ID: N/A
+- Reviewer finding ID: F4
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2821#discussion_r4537167896
 - Concern: Same area as F5; asked for direct formatting and startup-error tests.
 - Solution: S5 and S6 use direct tests.
@@ -276,6 +276,8 @@ Round 1 is da2ce7's review `5857799147` (F1 to F11) and Copilot's review `585783
 
 - 2026-11-11 11:19 UTC - Started audit for round 1 (both reviews).
 - 2026-11-11 11:19 UTC - Replied on the sixteen threads and resolved them; a GraphQL refresh showed 0 unresolved threads.
+- 2026-11-11 11:56 UTC - Correction of the two entries above, which are stamped 11:19: the sixteen replies were posted between 11:18:23Z and 11:18:59Z (forge `created_at`), before the audit record was started, because the record holds the reply URLs; the entry order shows the start first. The thread resolution was read back at 11:19; the individual resolution times were not captured.
+- 2026-11-11 11:56 UTC - Corrected the `Reviewer finding ID` of F1 to F16, the severity of F12 to F16 and the relationship of F12 after the second review (F20, F21 and F22 of the round 2 findings below).
 
 ## Completion Rules
 
