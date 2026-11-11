@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/follow-up-si-19-consolidate-shutdown-supervisor/ISSUE.md
 branch: "follow-up-si-19-consolidate-shutdown-supervisor"
 related-pr: null
-last-updated-utc: "2026-11-11 10:19"
+last-updated-utc: "2026-11-11 10:59"
 semantic-links:
   skill-links:
     - create-issue
@@ -36,6 +36,14 @@ The three parts (the supervisors, the owner types and the health-check join orde
 - [ ] The change is made and `linter all` passes.
 - [ ] The maintainer's decision on the design is recorded before implementation.
 
+## Architectural Decisions
+
+To be written when the draft is refined into an issue.
+
+## Verification Plan
+
+To be written when the draft is refined into an issue.
+
 ## Implementation Plan
 
 To be written when the draft is refined into an issue.
@@ -52,7 +60,8 @@ To be written when the draft is refined into an issue.
 
 ### Progress Log
 
-- 2026-11-11 10:19 UTC - AI agent (Claude Sonnet 5.5) - Draft created as a follow-up of SI-19; not yet a GitHub issue.
+- 2026-11-11 09:40 UTC - AI agent (Claude Sonnet 5.5) - Draft created as a follow-up of SI-19; not yet a GitHub issue.
+- 2026-11-11 10:59 UTC - AI agent (Claude Sonnet 5.5) - Renamed to an unnumbered folder with `epic: null` and added the Architectural Decisions, Verification Plan and the other initialization sections as placeholders.
 
 ## Acceptance Verification
 
