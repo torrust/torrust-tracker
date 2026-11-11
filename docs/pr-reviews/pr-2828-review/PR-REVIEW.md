@@ -1,3 +1,13 @@
+---
+semantic-links:
+  skill-links:
+    - process-pr-review
+  related-artifacts:
+    - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
+---
+
+<!-- skill-link: process-pr-review -->
+
 # PR #2828 Review Audit
 
 Source: pull-request reviews and inline review threads for https://github.com/torrust/torrust-tracker/pull/2828.
