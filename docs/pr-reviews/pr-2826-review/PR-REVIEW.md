@@ -41,11 +41,11 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-R1 to R6 are Copilot's review 5858141026 (R1, R5 and R6 are its own IDs; R2 and R4 are audit-assigned to its unlabelled findings). F1 to F16 are da2ce7's review 5858207086 and F17 to F23 his review 5859095235. Every row is an inline thread.
+R1 to R6 are Copilot's review 5858141026 (R1, R5 and R6 are its own IDs; R2 and R4 are audit-assigned to its unlabelled findings). F1 to F16 are da2ce7's review 5858207086, F17 to F23 his review 5859095235 and F24 to F30 his review 5859464376. Every row is an inline thread.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
-| R1 | review-finding:pr-2826-r1 | Copilot | Minor (inferred) | metadata | ORIGINAL | FIXED | RESOLVED |
+| R1 | review-finding:pr-2826-r1 | Copilot | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | R2 | review-finding:pr-2826-r2 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
 | R5 | review-finding:pr-2826-r5 | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
 | R4 | review-finding:pr-2826-r4 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -73,6 +73,13 @@ R1 to R6 are Copilot's review 5858141026 (R1, R5 and R6 are its own IDs; R2 and 
 | F22 | review-finding:pr-2826-f22 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F21 | review-finding:pr-2826-f21 | Human | Nit | formatting | ORIGINAL | FIXED | RESOLVED |
 | F23 | review-finding:pr-2826-f23 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F24 | review-finding:pr-2826-f24 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F25 | review-finding:pr-2826-f25 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F26 | review-finding:pr-2826-f26 | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F27 | review-finding:pr-2826-f27 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F28 | review-finding:pr-2826-f28 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F29 | review-finding:pr-2826-f29 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F30 | review-finding:pr-2826-f30 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -93,7 +100,7 @@ R1 to R6 are Copilot's review 5858141026 (R1, R5 and R6 are its own IDs; R2 and 
 
 - PR number: 2826
 - Source review ID: 5858141026
-- Reviewer finding ID: none (audit-assigned)
+- Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2826#discussion_r4537414064
 - Concern: The `api user` lookup shares one deadline, so a stall can consume the wait budget; no budget, cancellation or scenario was specified.
 - Solution: The lookup has its own bound, shares the `interrupted` flag, and is covered by M4.
@@ -119,7 +126,7 @@ R1 to R6 are Copilot's review 5858141026 (R1, R5 and R6 are its own IDs; R2 and 
 
 - PR number: 2826
 - Source review ID: 5858141026
-- Reviewer finding ID: none (audit-assigned)
+- Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2826#discussion_r4537414157
 - Concern: M2 run in a terminal ends in `tty_refusal`, exit 2.
 - Solution: M2 redirects stdout and stderr to files and prints the exit status.
@@ -440,13 +447,107 @@ R1 to R6 are Copilot's review 5858141026 (R1, R5 and R6 are its own IDs; R2 and 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2826#discussion_r4538214957
 
+### F24 - AC4 and the Budget bullet promise a stalled lookup never changes the result
+
+- PR number: 2826
+- Source review ID: 5859464376
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2826#discussion_r4538446476
+- Concern: The spec promised no change while the Baseline bullet and the Risks said otherwise, and a spent quarter of the budget can end in `deadline_exceeded`.
+- Solution: The Budget bullet and AC4 state what holds: no error kind or exit code of its own, ends at its bound, spends up to a quarter of the budget, and the baseline limit applies.
+- Current-tree verification: Budget bullet, AC4 and Risks in the spec.
+- Resolution reference: docs(issues): [#2822] state the lookup budget, the baseline limit and the scenarios it changes
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2826#discussion_r4538503387
+
+### F25 - The baseline limit names the wrong condition for a push
+
+- PR number: 2826
+- Source review ID: 5859464376
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2826#discussion_r4538446489
+- Concern: `--since` alone does not close the push case; only `--since-head-sha` does.
+- Solution: The Baseline bullet and the Risks say reviews and comments are absorbed without either flag, and a push without `--since-head-sha`.
+- Current-tree verification: Baseline bullet; `wait.rs:100-104` and the `--since` help in `main.rs`.
+- Resolution reference: docs(issues): [#2822] state the lookup budget, the baseline limit and the scenarios it changes
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2826#discussion_r4538503961
+
+### F26 - Four more existing scenarios are changed by gh_identity
+
+- PR number: 2826
+- Source review ID: 5859464376
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2826#discussion_r4538446501
+- Concern: The signal scenarios and the scenario that parses the rest of stderr as one JSON value are affected, and the `/dev/full` scenario depends on best-effort writing.
+- Solution: D2 names every affected scenario, and a Best effort bullet says `gh_identity` is written best effort like `wait_started`.
+- Current-tree verification: D2 test bullet and the Best effort bullet.
+- Resolution reference: docs(issues): [#2822] state the lookup budget, the baseline limit and the scenarios it changes
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2826#discussion_r4538504503
+
+### F27 - The first Processing Log entry cites a rewritten branch commit by id
+
+- PR number: 2826
+- Source review ID: 5859464376
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2826#discussion_r4538446509
+- Concern: The log cited a branch id and folded the audit start under another stamp.
+- Solution: The log says "the first round's head" without the id, and the audit start has its own entry.
+- Current-tree verification: The Processing Log of this record.
+- Resolution reference: docs(pr-reviews): [#2822] correct the audit after the third review of PR #2826
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2826#discussion_r4538505125
+
+### F28 - The count of edited replies is 21, the forge shows 20
+
+- PR number: 2826
+- Source review ID: 5859464376
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2826#discussion_r4538446517
+- Concern: The reply on F7's thread cites no commit id and needed no edit.
+- Solution: The log says 20 replies were edited and that F7's reply needed no edit.
+- Current-tree verification: The Processing Log of this record.
+- Resolution reference: docs(pr-reviews): [#2822] correct the audit after the third review of PR #2826
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2826#discussion_r4538505859
+
+### F29 - The replies on F5 and F16 describe the first commit's fix
+
+- PR number: 2826
+- Source review ID: 5859464376
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2826#discussion_r4538446521
+- Concern: The replies cited the first commit while their rows cite the second.
+- Solution: Both replies were edited to cite the second commit and its content.
+- Current-tree verification: The F5 and F16 replies read on the forge.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2826#discussion_r4538037380; https://github.com/torrust/torrust-tracker/pull/2826#discussion_r4538040664
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2826#discussion_r4538506500
+
+### F30 - R1 severity is stated, not inferred; N/A for audit-assigned IDs
+
+- PR number: 2826
+- Source review ID: 5859464376
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2826#discussion_r4538446528
+- Concern: R1's source opens with `[Minor][R1]`, and R2 and R4 should record `N/A`.
+- Solution: R1 is `Minor`; R2 and R4 record `N/A`.
+- Current-tree verification: Rows and entries of R1, R2 and R4 in this record.
+- Resolution reference: docs(pr-reviews): [#2822] correct the audit after the third review of PR #2826
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2826#discussion_r4538507026
+
 ## Processing Log
 
-- 2026-11-11 11:39 UTC - Review 5858141026 (Copilot) submitted on head `7acb21216`; review 5858207086 (da2ce7) followed at 11:45 UTC. Audit started at 13:05 UTC from the GitHub review data.
+- 2026-11-11 11:39 UTC - Review 5858141026 (Copilot) submitted on the first round's head; review 5858207086 (da2ce7) followed at 11:45 UTC.
 - 2026-11-11 12:46 UTC - Replied to and resolved the 21 threads of those reviews after the squashed commit `docs(issues): [#2822] add issue specification for the wait-for-pr-review --gh-command option` (the reply times are the GitHub `created_at` of the replies).
 - 2026-11-11 12:59 UTC - Review 5859095235 (da2ce7) submitted on the new head: F17 to F23.
-- 2026-11-11 13:04 UTC - Replied to and resolved F17 to F21 and F23 after the commit `docs(issues): [#2822] align the spec with the identity-record design and the lookup bound` was pushed; the 21 round-1 replies that cited a branch id were edited to cite the commit subject.
+- 2026-11-11 13:04 UTC - Replied to and resolved F17 to F21 and F23 after the commit `docs(issues): [#2822] align the spec with the identity-record design and the lookup bound` was pushed; the six round-1 replies that cited a branch id were edited to cite the commit subject.
+- 2026-11-11 13:05 UTC - Started the audit record from the GitHub review data.
 - 2026-11-11 13:10 UTC - Replied to and resolved F22. The reply was posted before the audit commit reached GitHub: the first push of it at about 13:08 was blocked by two failing fake-`gh` scenarios of the poller's `tests/cli.rs` (unrelated to this change), and the retry succeeded at about 13:12 UTC.
+- 2026-11-11 13:27 UTC - Review 5859464376 (da2ce7, `APPROVED`) submitted on the second round's head: F24 to F30, none blocking.
+- 2026-11-11 13:32 UTC - Replied to and resolved the seven threads of that review and edited the replies on F5 and F16. The replies on F24 to F26 cite the pushed commit `docs(issues): [#2822] state the lookup budget, the baseline limit and the scenarios it changes`; the replies on F27, F28 and F30 were posted just before the commit that fixes them was pushed.
 
 ## Completion Rules
 
