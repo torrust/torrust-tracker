@@ -419,6 +419,7 @@ Round 1 is da2ce7's review `5857799147` (F1 to F11) and Copilot's review `585783
 - 2026-11-11 11:56 UTC - Correction of the two entries above, which are stamped 11:19: the sixteen replies were posted between 11:18:23Z and 11:18:59Z (forge `created_at`), before the audit record was started, because the record holds the reply URLs; the entry order shows the start first. The thread resolution was read back at 11:19; the individual resolution times were not captured.
 - 2026-11-11 11:56 UTC - Corrected the `Reviewer finding ID` of F1 to F16, the severity of F12 to F16 and the relationship of F12 after the second review (F20, F21 and F22 of the round 2 findings below).
 - 2026-11-11 12:00 UTC - Started round 2 (reviews 5858134220 and 5858293840); replied on the ten threads (forge `created_at` 11:59:50Z to 12:00:14Z) and resolved them; a GraphQL refresh showed 0 unresolved threads.
+- 2026-11-11 12:23 UTC - Correction of the 12:00 entry for round 2: round 2 started by 11:55:55Z, the commit time of `docs(issues): correct the S3 and S5 slices of the T4 options after review of PR #2821`; the second fix commit, `docs(pr-reviews): correct the relationships, IDs and stamps in the PR #2821 audit`, was committed at 11:57:01Z. Only the replies (11:59:50Z to 12:00:14Z) and their resolution fit the 12:00 stamp.
 
 ## Completion Rules
 
