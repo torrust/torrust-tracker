@@ -153,7 +153,9 @@ fn main() -> ExitCode {
 
     let started = Instant::now();
     let timeout = Duration::from_secs(cli.timeout_seconds);
-    report_identity(&cli.gh_command, &interrupted, started, timeout);
+    if let Err(error) = report_identity(&cli.gh_command, &interrupted, started, timeout) {
+        return emit_diagnostic(error.kind(), &error.to_string(), 1);
+    }
 
     let pull_request = PullRequest {
         owner: cli.owner,
@@ -181,16 +183,31 @@ fn main() -> ExitCode {
     }
 }
 
+/// The deadline of the identity lookup: `min(10 s, timeout / 4)` after the start, so a stalled lookup leaves
+/// at least three quarters of the wait budget.
+fn lookup_bound(timeout: Duration) -> Duration {
+    Duration::from_secs(MAX_LOOKUP_SECONDS).min(timeout / 4)
+}
+
 /// Writes the `gh_identity` record: the command and the login it runs as. The lookup is best effort and
-/// has its own bound, `min(10 s, timeout / 4)`, so a stalled or failing lookup never changes the result: its
-/// login is then `null`. A signal ends it and the wait reports the interruption, so no record is written.
-fn report_identity(command: &str, interrupted: &Arc<AtomicBool>, started: Instant, timeout: Duration) {
-    let bound = Duration::from_secs(MAX_LOOKUP_SECONDS).min(timeout / 4);
-    let lookup = GhCli::new(command, Arc::clone(interrupted), started + bound);
+/// has its own bound, [`lookup_bound`], so a stalled or failing lookup never changes the result: its login is
+/// then `null`.
+///
+/// # Errors
+///
+/// Returns [`wait_for_pr_review::Error::Interrupted`] when a signal ended the lookup. The caller reports the
+/// interruption and does not start the wait, so no other command is run after the signal.
+fn report_identity(
+    command: &str,
+    interrupted: &Arc<AtomicBool>,
+    started: Instant,
+    timeout: Duration,
+) -> Result<(), wait_for_pr_review::Error> {
+    let lookup = GhCli::new(command, Arc::clone(interrupted), started + lookup_bound(timeout));
 
     let login = match lookup.login() {
         Ok(login) => Some(login),
-        Err(wait_for_pr_review::Error::Interrupted) => return,
+        Err(error @ wait_for_pr_review::Error::Interrupted) => return Err(error),
         Err(_) => None,
     };
 
@@ -199,6 +216,8 @@ fn report_identity(command: &str, interrupted: &Arc<AtomicBool>, started: Instan
         gh_command: command,
         gh_login: login.as_deref(),
     }));
+
+    Ok(())
 }
 
 fn emit_json(value: &impl Serialize) -> ExitCode {
@@ -230,4 +249,25 @@ fn write_diagnostic(diagnostic: &impl Serialize) -> io::Result<()> {
     line.push(b'\n');
 
     io::stderr().lock().write_all(&line)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn it_should_bound_the_lookup_at_a_quarter_of_a_short_timeout() {
+        assert_eq!(lookup_bound(Duration::from_secs(8)), Duration::from_secs(2));
+        assert_eq!(lookup_bound(Duration::from_secs(10)), Duration::from_millis(2500));
+    }
+
+    #[test]
+    fn it_should_cap_the_lookup_bound_at_ten_seconds_for_a_long_timeout() {
+        assert_eq!(lookup_bound(Duration::from_secs(40)), Duration::from_secs(10));
+        assert_eq!(lookup_bound(Duration::from_secs(900)), Duration::from_secs(10));
+        assert_eq!(
+            lookup_bound(Duration::from_secs(MAX_TIMEOUT_SECONDS)),
+            Duration::from_secs(10)
+        );
+    }
 }

@@ -666,10 +666,12 @@ fn it_should_end_a_stalled_lookup_at_its_own_bound_and_still_print_the_result() 
     assert_eq!(output.status.code(), Some(0));
     assert_eq!(json(&output.stdout)["kind"], "pr_merged");
     assert!(stderr_records(&output)[1]["gh_login"].is_null());
+    let elapsed = started.elapsed();
     assert!(
-        started.elapsed() < Duration::from_secs(7),
-        "the lookup must end at its own bound"
+        elapsed >= Duration::from_millis(1900),
+        "the lookup must run to its two second bound, not end early"
     );
+    assert!(elapsed < Duration::from_secs(5), "the lookup must end at its own bound");
 }
 
 #[test]
@@ -719,4 +721,31 @@ fn it_should_exit_two_when_gh_command_is_empty() {
 
     assert_eq!(output.status.code(), Some(2));
     assert_eq!(kinds(&output), ["usage_error"]);
+}
+
+#[test]
+fn it_should_stop_on_sigterm_during_the_lookup_without_running_another_command() {
+    let sandbox = Sandbox::with_pull(OPEN_PULL);
+    sandbox.flag("user-hangs");
+    let mut child = sandbox
+        .command(&["--pr-number", "7", "--timeout-seconds", "900"])
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .unwrap();
+    let mut stderr = BufReader::new(child.stderr.take().unwrap());
+    let mut first = String::new();
+    stderr.read_line(&mut first).unwrap();
+    assert_eq!(json(first.as_bytes())["kind"], "wait_started");
+    // The lookup stalls for 30 seconds, so the poller is inside it now.
+    std::thread::sleep(Duration::from_millis(500));
+
+    send("-TERM", &child);
+    let (code, stdout, rest) = finish(child, stderr);
+
+    assert_eq!(code, Some(1));
+    assert_eq!(stdout, "");
+    assert_eq!(json(rest.trim().as_bytes())["kind"], "interrupted");
+    assert_eq!(sandbox.pull_calls(), 0, "no command may run after the signal");
+    assert!(!sandbox.calls().iter().any(|call| call == "auth status"));
 }
