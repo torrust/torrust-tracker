@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2714-2003-wait-for-pr-review-head-race-between-requests/ISSUE.md
-last-updated-utc: "2026-11-10 20:06"
+issue-spec: docs/issues/closed/2714-2003-wait-for-pr-review-head-race-between-requests/ISSUE.md
+last-updated-utc: "2026-11-11 09:34"
 ---
 
 # Manual Verification Evidence

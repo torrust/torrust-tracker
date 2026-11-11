@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: in-progress
+status: done
 priority: p3
 epic: 2003
 github-issue: 2714
-spec-path: docs/issues/open/2714-2003-wait-for-pr-review-head-race-between-requests/ISSUE.md
+spec-path: docs/issues/closed/2714-2003-wait-for-pr-review-head-race-between-requests/ISSUE.md
 branch: "2714-wait-for-pr-review-head-race"
-related-pr: null
-last-updated-utc: "2026-11-10 20:06"
+related-pr: 2815
+last-updated-utc: "2026-11-11 09:34"
 semantic-links:
   skill-links:
     - create-issue
@@ -21,7 +21,7 @@ semantic-links:
     - .github/skills/dev/pr-reviews/wait-for-pr-review/tool/src/snapshot.rs
     - .github/skills/dev/pr-reviews/wait-for-pr-review/tool/src/event.rs
     - docs/issues/closed/2581-2003-pr-review-wait-poller/ISSUE.md
-    - docs/issues/open/2714-2003-wait-for-pr-review-head-race-between-requests/manual-verification-evidence.md
+    - docs/issues/closed/2714-2003-wait-for-pr-review-head-race-between-requests/manual-verification-evidence.md
 ---
 
 <!-- skill-link: create-issue -->
@@ -159,7 +159,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ### Workflow Checkpoints
 
-- [x] Folder-style spec drafted in `docs/issues/open/2714-2003-wait-for-pr-review-head-race-between-requests/ISSUE.md`
+- [x] Folder-style spec drafted (in `docs/issues/open/` at the time; moved to `docs/issues/closed/` at close-out)
 - [x] Reproduction attempted and recorded before review (outcome: Reproduced, with scripted timing)
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created (#2714) and issue number added to this spec
@@ -167,8 +167,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [x] Final like-for-like recheck of V1 recorded after the last production change
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Evidence-based implementation completion review recorded
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -190,6 +190,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-10 12:30 UTC - AI assistant (Claude Code) - Implemented option 1; tests red then green; V2 recorded.
 - 2026-11-10 14:30 UTC - AI assistant (Claude Code) - Addressed the review of the pull request: spec risks, evidence, an ordinary-case wait test, comment-test trigger, wording.
 - 2026-11-10 20:06 UTC - AI assistant (Claude Code) - Correction: the stamps of the three 2026-11-10 entries above (12:00, 12:30 and 14:30 UTC) and the `last-updated-utc` of this spec and of the evidence were not taken from the commits they record. By commit time the decision was committed at 17:59 UTC, the fix and its evidence at 18:01 to 18:02 UTC, and the review-round fixes at 19:36 and 19:40 UTC (`git log --format=%cI`); the stamps are wrong and the entries are kept unchanged. `last-updated-utc` now holds the time of this edit.
+- 2026-11-11 09:34 UTC - AI assistant (Claude Code, Claude Sonnet 5.5) - PR #2815 merged on 2026-11-11 (merge commit `8bf837916`); issue #2714 is closed. The spec moved from `docs/issues/open/` to `docs/issues/closed/` in the close-out pull request.
 
 ## Acceptance Criteria
 
@@ -246,8 +247,8 @@ It is shell, not Python.
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
-- If no retrospective is needed, add a concise progress-log entry explaining why.
+- Retrospective: the implementation needed none; the review process produced one, at `docs/pr-reviews/pr-2815-review/review-retrospective.md`. The implementation matched the spec (option 1, as the Decision records it: one moved read instead of a second one); no deviations from it.
+- Review of the evidence: AC1 and AC2 and the final V1 recheck are recorded in `manual-verification-evidence.md` (V2) and in the tests; the tests were run red and green. AC3 is evidenced by the `SKILL.md` paragraph after the result table.
 
 ## References
 
