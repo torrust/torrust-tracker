@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Round 1: da2ce7's review `5856655819` (F1 to F3), processed after the replies were posted. The record is therefore late, which is the pattern this pull request describes; the replies were posted first because I read the validator's "before replying" line as requiring reply URLs that do not exist yet. The line now says to run the validator once the reply URLs are recorded. Round 2: Copilot's review `5856716279` (F4, F5), on the first commit, processed with the record already present. Round 3: da2ce7's review `5857046891`, whose reviewer IDs F4 to F7 collide with existing rows and are recorded as F6 to F9.
+Round 1: da2ce7's review `5856655819` (F1 to F3), processed after the replies were posted. The record is therefore late, which is the pattern this pull request describes; the replies were posted first because I read the validator's "before replying" line as requiring reply URLs that do not exist yet. The line now says to run the validator once the reply URLs are recorded. Round 2: Copilot's review `5856716279` (F4, F5), on the first commit, processed with the record already present. Round 3: da2ce7's review `5857046891`, whose reviewer IDs F4 to F7 collide with existing rows and are recorded as F6 to F9. Round 4: da2ce7's review `5857359407`, whose IDs F9 to F11 are recorded as F10 to F12.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -54,6 +54,9 @@ Round 1: da2ce7's review `5856655819` (F1 to F3), processed after the replies we
 | F7 | review-finding:pr-2818-f7 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F8 | review-finding:pr-2818-f8 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 | F9 | review-finding:pr-2818-f9 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F10 | review-finding:pr-2818-f10 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
+| F11 | review-finding:pr-2818-f11 | Human | Nit | maintainability | ORIGINAL | NO_ACTION | RESOLVED |
+| F12 | review-finding:pr-2818-f12 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -174,6 +177,45 @@ Round 1: da2ce7's review `5856655819` (F1 to F3), processed after the replies we
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4536569994
 
+### F10 - The F6 fix rewrites the Processing Log in place
+
+- PR number: 2818
+- Source review ID: 5857359407
+- Reviewer finding ID: F9
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4536790786
+- Concern: The previous commit inserted a log entry between existing ones and reworded the 09:45 entry, which the skill treats as a rewrite to undo.
+- Solution: Restored the 09:45 entry, removed the inserted 09:40 entry, and appended a correction entry.
+- Current-tree verification: Read the Processing Log.
+- Resolution reference: docs(pr-reviews): restore the PR 2818 log and update the retrospective narrative
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4536843499
+
+### F11 - One commit mixes the skill fix with record edits
+
+- PR number: 2818
+- Source review ID: 5857359407
+- Reviewer finding ID: F10
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4536790803
+- Concern: Commit 8d5a6e90a changes a skill and the record files and its body omits some record edits; the reviewer suggests splitting it before merge.
+- Solution: No change: splitting a pushed, reviewed commit needs a force-push that moves every reviewed commit and invalidates the earlier ACK. Later commits keep skill and record edits apart.
+- Current-tree verification: git log shows e267b2971 and this record commit touch only docs/pr-reviews.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4536843915
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4536843915
+
+### F12 - The retrospective's round-3 update changes counts but not narrative
+
+- PR number: 2818
+- Source review ID: 5857359407
+- Reviewer finding ID: F11
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4536790814
+- Concern: The duration said a few minutes for 36, the line count was stale, and round 3 was not described.
+- Solution: Gave the exact duration, the current skill diff size and a paragraph on round 3.
+- Current-tree verification: Read the Review Summary and What Made the Review Costly sections.
+- Resolution reference: docs(pr-reviews): restore the PR 2818 log and update the retrospective narrative
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4536844415
+
 ## Processing Log
 
 - 2026-11-11 09:35 UTC - Review 5856655819 arrived with three findings.
@@ -182,6 +224,9 @@ Round 1: da2ce7's review `5856655819` (F1 to F3), processed after the replies we
 - 2026-11-11 09:45 UTC - Copilot review 5856716279 arrived with two findings; fixed, replied, and added F4 and F5.
 - 2026-11-11 10:07 UTC - Review 5857046891 arrived with four findings.
 - 2026-11-11 10:10 UTC - Fixed, replied, and added F6 to F9.
+- 2026-11-11 10:33 UTC - Review 5857359407 arrived with three findings.
+- 2026-11-11 10:38 UTC - Fixed, replied, and added F10 to F12.
+- 2026-11-11 10:38 UTC - Correction: commit 8d5a6e90a rewrote this log in place (it inserted a 09:40 entry and reworded the 09:45 entry); the entries were restored, review 5856716279 arrived at 09:40 and was processed at 09:45.
 
 ## Completion Rules
 
