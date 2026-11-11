@@ -38,7 +38,7 @@ arithmetic/encoding logic with round-trip or bounds properties.
 | 3 | `policy.rs` | 0 / 16 | 0 | `TrackerPolicy` defaults, serde defaults (49-69) | No | Test candidate (documented defaults) |
 | 4 | `announce.rs` | 0 / 16 | 0 | `AnnouncePolicy` defaults and serde defaults, `AnnounceData` default (64-84) | No | Test candidate |
 | 5 | `mode.rs` | 0 / 8 | 0 | `PrivateMode` default, serde default (27-37) | No | Test candidate (small) |
-| 6 | `swarm_metadata.rs` | 3 / 18 (16.7%) | 0 | `zeroed`, accessors, `AggregateActiveSwarmMetadata::add_assign` (41-53, 75-80) | Weak (`add_assign` is a field-wise sum) | Test candidate (small) |
+| 6 | `swarm_metadata.rs` | 3 / 18 (16.7%) | 0 | the three accessors (41-53) and `AggregateActiveSwarmMetadata::add_assign` (75-80); `zeroed` (36-38) is the covered part, reached through the `scrape.rs` tests | Weak (`add_assign` is a field-wise sum; #2823 deletes it) | Test candidate (small); `add_assign` is not tested |
 | 7 | `announce_interval.rs` | 79 / 88 (89.8%) | 10 | `TryFrom<u32>`, `From<_> for u32`, `Display` (70-72, 83-85, 101-103) | Yes: accepts iff `<= MAX`; serde round-trip | Test candidate (3 trivial gaps); property decision in plan |
 | 8 | `configuration_instance_id.rs` | 42 / 42 | 5 | none | No | No change (clean) |
 | 9 | `driver.rs` | 59 / 59 | 13 | none | No | No change; one-test-per-variant style reviewed in plan |
