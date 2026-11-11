@@ -148,6 +148,7 @@ jobs:
 
       - name: Write Report-Only Summary
         working-directory: head
+        shell: bash
         env:
           DISCOVERY: ${{ needs.discover-package-coverage.outputs.discovery }}
         run: |
@@ -155,7 +156,7 @@ jobs:
           cargo run -p package-coverage-check -- summary \
             "$GITHUB_WORKSPACE/package-coverage-discovery.json" \
             "$GITHUB_WORKSPACE/package-coverage-results" \
-            >> "$GITHUB_STEP_SUMMARY"
+            | jq -r .markdown >> "$GITHUB_STEP_SUMMARY"
 
   coverage:
     name: Generate Coverage Report
