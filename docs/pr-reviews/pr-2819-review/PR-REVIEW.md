@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Three reviews carry findings: da2ce7 review 5856686186 and Copilot review 5856712271 (round 1), and da2ce7 review 5857049397 (round 2). Copilot review 5857015571 of round 2 reports no open issues. Copilot's four comments are `R1` to `R4` here, because its own labels `F2` to `F5` collide with the da2ce7 labels. Round 2 da2ce7 labels `F7` to `F12` are used as they are.
+Four reviews carry findings: da2ce7 review 5856686186 and Copilot review 5856712271 (round 1), da2ce7 review 5857049397 (round 2) and da2ce7 review 5857539856 (round 3). Copilot review 5857015571 of round 2 reports no open issues. Copilot's four comments are `R1` to `R4` here, because its own labels `F2` to `F5` collide with the da2ce7 labels. Round 2 da2ce7 labels `F7` to `F12` are used as they are.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -61,6 +61,9 @@ Three reviews carry findings: da2ce7 review 5856686186 and Copilot review 585671
 | F10 | review-finding:pr-2819-f10 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 | F11 | review-finding:pr-2819-f11 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F12 | review-finding:pr-2819-f12 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F13 | review-finding:pr-2819-f13 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F14 | review-finding:pr-2819-f14 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F15 | review-finding:pr-2819-f15 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -103,14 +106,14 @@ Three reviews carry findings: da2ce7 review 5856686186 and Copilot review 585671
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2819#discussion_r4536298137
 
-### F4 - The title carries `[#2801]` for an already closed issue.
+### F4 - The title and the commit subject carry `[#2801]` for an already closed issue.
 
 - PR number: 2819
 - Source review ID: 5856686186
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2819#discussion_r4536250156
-- Concern: The title carries `[#2801]` for an already closed issue.
-- Solution: The PR title is changed to drop it; the commit subjects keep it, as the reply says.
+- Concern: The title and the commit subject carry `[#2801]` for an already closed issue.
+- Solution: The PR title is changed to drop it. Declined for the commit subjects, which keep `[#2801]` (the merge subject comes from the title), so this row is fixed for the title only.
 - Current-tree verification: `gh pr view 2819 --json title`.
 - Resolution reference: https://github.com/torrust/torrust-tracker/pull/2819#discussion_r4536298477
 - Follow-up PR URL: N/A
@@ -272,11 +275,52 @@ Three reviews carry findings: da2ce7 review 5856686186 and Copilot review 585671
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2819#discussion_r4536679519
 
+### F13 - The drafts date their creation at 10:19, but they were created at 09:40.
+
+- PR number: 2819
+- Source review ID: 5857539856
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2819#discussion_r4536935086
+- Concern: The drafts date their creation at 10:19, but they were created at 09:40.
+- Solution: Both drafts log a 09:40 creation entry and a separate entry for the rename and the added sections.
+- Current-tree verification: `grep -n "UTC - AI"` in both drafts.
+- Resolution reference: docs(issues): [#2801] address the third review of the close-out PR
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2819#discussion_r4537066553
+
+### F14 - Both drafts lack the Architectural Decisions section and a verification policy.
+
+- PR number: 2819
+- Source review ID: 5857539856
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2819#discussion_r4536935098
+- Concern: Both drafts lack the Architectural Decisions section and a verification policy.
+- Solution: Both drafts carry placeholders for Architectural Decisions and Verification Plan.
+- Current-tree verification: `grep -n "^## "` in both drafts.
+- Resolution reference: docs(issues): [#2801] address the third review of the close-out PR
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2819#discussion_r4537066967
+
+### F15 - The description does not mention the drafts, the evidence frontmatter or the audit.
+
+- PR number: 2819
+- Source review ID: 5857539856
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2819#discussion_r4536935105
+- Concern: The description does not mention the drafts, the evidence frontmatter or the audit.
+- Solution: The description has one bullet for each.
+- Current-tree verification: `gh pr view 2819 --json body`.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2819#discussion_r4537067400
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2819#discussion_r4537067400
+
 ## Processing Log
 
 - 2026-11-11 09:43 UTC - Round 1 reviews received (da2ce7 at 09:37, Copilot at 09:40); replies posted and threads resolved between 09:42 and 09:43 UTC. The replies say "Fixed in 4a6e476d6"; that id is the commit `docs(issues): [#2801] address the review of the close-out PR`, mapped here because review comments cannot be edited (F8).
 - 2026-11-11 10:07 UTC - Round 2 review of da2ce7 received (six findings, `F7` to `F12`); the Copilot review at 10:04 UTC reported no open issues.
 - 2026-11-11 10:23 UTC - Round 2 replies posted after the fix commit `docs(issues): [#2801] address the second review of the close-out PR`, and this audit added in the commit that carries this entry.
+- 2026-11-11 11:01 UTC - Round 3 review of da2ce7 received at 10:47 UTC (approval with five findings, `F13` to `F17`); replies for `F13` to `F15` posted between 11:01:13 and 11:01:19 UTC after the fix commit `docs(issues): [#2801] address the third review of the close-out PR`.
+- 2026-11-11 11:03 UTC - Correction of the two round 2 entries above, as the log is append-only: the round 2 entry stamped 10:23 is carried by a commit made at 10:25:05 (its author time is 10:23:24); the `F7` reply (10:22:04) called the audit fixed before that commit existed, and the replies of `F9` to `F12` followed their fix commit; and the Copilot review at 10:04 UTC says its full agentic review did not start before the timeout.
 
 ## Completion Rules
 
