@@ -1246,7 +1246,19 @@ Workspace deps: 9
 
 ## Observations
 
-To be filled in after reviewing the report above.
+Reviewed 2026-11-11 against `torrust/develop` (head `850e95e35`). Method: the report's per-edge
+import counts, cross-checked with `cargo metadata` (edge kinds, feature gating), `cargo tree -e normal`
+(default build chains) and `deny.toml`.
+
+- The workspace has no normal-dependency cycles and none of the forbidden edges of the layer
+  guardrails in [EPIC.md](EPIC.md) (`core -> server`, `tracker-core -> core/protocol/server`,
+  `protocol -> core/tracker-core/server`), directly or transitively.
+- There are exactly 9 `optional (testing)` edges (`axum-health-check-api-server` -> `configuration`;
+  `axum-http-server` -> `swarm-coordination-registry`; `axum-rest-api-server` -> `core`, `http-core`,
+  `rest-api-client`, `swarm-coordination-registry`, `udp-core`, `udp-server`; `udp-server` ->
+  `swarm-coordination-registry`). No package has `testing` in its `default` features, so none is in a
+  default chain. This is the result of [#2482](../../closed/2482-1669-reorganize-shared-test-support/EPIC.md).
+- `torrust-tracker-test-helpers` depends only on `configuration` (ADR 20261021190318, rule B).
 
 ### Known thin dependencies (pre-existing)
 
@@ -1257,5 +1269,29 @@ None — previously known thin dependencies have been resolved:
 
 ### New findings
 
-Record any new thin-dependency or cluster-dependency findings here, with a
-reference to the subissue opened for each.
+No new thin-dependency or cluster-dependency finding needs a sub-issue **as a blocker for the
+first publish**. Two claims carried over from earlier handoffs were verified, and a few edges are
+worth recording. Nothing here is a forbidden edge.
+
+| # | Finding | Verified | Classification |
+| - | ------- | -------- | -------------- |
+| 1 | `udp-server` → `client-lib` (normal, 2 imports: `udp::client::check` in `server/launcher.rs`; `UdpTrackerClient` only in tests and a `#[cfg(test)]` module of `testing/environment.rs`) | Yes | Accepted, [DEC-11](DECISIONS.md#dec-11--accept-server--client-library-dependency-for-health-checks). Note below. |
+| 2 | `rest-api-runtime-adapter` → `udp-server` (normal, 2 imports: `container::UdpTrackerServerContainer`, `statistics::repository::Repository`) | Yes | Accepted: runtime/server package, allowed by the `udp-server` rule in `deny.toml`, recorded in the EPIC "known smells". Note below. |
+| 3 | `axum-rest-api-server` has `optional (testing)` edges to `core`, `http-core`, `swarm-coordination-registry`, `udp-core`, `udp-server` that are also reached through its normal edge to `rest-api-runtime-adapter` | Yes | Already covered by #2482 (the `testing` edges are test-only by design; the normal chain is finding 2). |
+| 4 | Normal edges with 1-3 imports: `axum-health-check-api-server` → `axum-server`, `rest-api-runtime-adapter` → `http-core`/`swarm-coordination-registry`/`udp-core`, `udp-core`/`http-core` → `swarm-coordination-registry`, `torrust-tracker` → `events`/`axum-server`/`http-core`/`rest-api-client`, `axum-server` → `configuration`, `rest-api-application` → `primitives`, `persistence-benchmark` → `primitives`/`configuration` | Yes | Accepted: composition root wiring, container composition or shared types, as in the [2026-10-06 report](workspace-coupling-report-2026-10-06.md). |
+
+**Finding 1.** DEC-11 argues that a server depending on its client is the "normal" direction. The
+HTTP side does not follow it: `axum-http-server` implements its health check with `reqwest`
+directly and has `client-lib` only as a dev-dependency. Consequence: `udp-server` (and, through
+finding 2, `rest-api-runtime-adapter` and the default build of `axum-rest-api-server`) pulls
+`client-lib`, `http-protocol` and the client's `reqwest`/`hyper` stack into a production build for
+one small function. It is accepted, not blocking. If the UDP health check is ever made
+self-contained (for example by moving `check` next to the UDP protocol or into `udp-core`), the edge
+and the transitive weight both disappear. Recommendation: no sub-issue now; add this asymmetry to
+DEC-11 as an acknowledged trade-off.
+
+**Finding 2.** The adapter reads the UDP server's statistics repository for the REST `stats`
+endpoint. `axum-rest-api-server` therefore depends on `udp-server` in its default build, even
+though the REST API is otherwise independent of UDP delivery. The EPIC already classifies the
+remaining `udp-server` consumers as runtime/server packages. Recommendation: no sub-issue now; a
+narrow stats read trait in `udp-core` would remove the edge if it ever matters for publication.
