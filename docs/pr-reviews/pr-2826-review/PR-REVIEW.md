@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-R1 to R6 are Copilot's review 5858141026 (R1, R5 and R6 are its own IDs; R2 and R4 are audit-assigned to its unlabelled findings). F1 to F16 are da2ce7's review 5858207086, F17 to F23 his review 5859095235, F24 to F30 his review 5859464376 and F32 to F35 his review 5859817911. Every row is an inline thread.
+R1 to R6 are Copilot's review 5858141026 (R1, R5 and R6 are its own IDs; R2 and R4 are audit-assigned to its unlabelled findings). F1 to F16 are da2ce7's review 5858207086, F17 to F23 his review 5859095235, F24 to F30 his review 5859464376 F32 to F35 his review 5859817911 and F37 and F38 his review 5860192787. Every row is an inline thread.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -84,6 +84,8 @@ R1 to R6 are Copilot's review 5858141026 (R1, R5 and R6 are its own IDs; R2 and 
 | F33 | review-finding:pr-2826-f33 | Human | Nit | correctness | ORIGINAL | FIXED | RESOLVED |
 | F34 | review-finding:pr-2826-f34 | Human | Minor | documentation | RE_RAISE_OF:F28 | FIXED | RESOLVED |
 | F35 | review-finding:pr-2826-f35 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F37 | review-finding:pr-2826-f37 | Human | Nit | documentation | RE_RAISE_OF:F32 | FIXED | RESOLVED |
+| F38 | review-finding:pr-2826-f38 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -483,7 +485,7 @@ R1 to R6 are Copilot's review 5858141026 (R1, R5 and R6 are its own IDs; R2 and 
 - Source review ID: 5859464376
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2826#discussion_r4538446501
-- Concern: The signal scenarios and the four signal scenarios, which parse the rest of stderr as one JSON value, are affected, and the `/dev/full` scenario depends on best-effort writing.
+- Concern: The four signal scenarios, which parse the rest of stderr as one JSON value, are affected, and the `/dev/full` scenario depends on best-effort writing.
 - Solution: D2 names every affected scenario, and a Best effort bullet says `gh_identity` is written best effort like `wait_started`.
 - Current-tree verification: D2 test bullet and the Best effort bullet.
 - Resolution reference: docs(issues): [#2822] state the lookup budget, the baseline limit and the scenarios it changes
@@ -593,6 +595,32 @@ R1 to R6 are Copilot's review 5858141026 (R1, R5 and R6 are its own IDs; R2 and 
 - Resolution reference: docs(pr-reviews): [#2822] record the fourth review round of PR #2826
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2826#discussion_r4538775053
+
+### F37 - Residual of F32: the F26 entry counts one group twice
+
+- PR number: 2826
+- Source review ID: 5860192787
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2826#discussion_r4539016215
+- Concern: The F26 entry read "The signal scenarios and the four signal scenarios".
+- Solution: The F26 entry says "The four signal scenarios, which parse the rest of stderr as one JSON value, are affected".
+- Current-tree verification: The F26 entry of this record; the commit body names this edit.
+- Resolution reference: docs(pr-reviews): [#2822] record the fifth review round of PR #2826
+- Follow-up PR URL: N/A
+- Reply URL: N/A
+
+### F38 - last-updated-utc and the Progress Log stop at the third review
+
+- PR number: 2826
+- Source review ID: 5860192787
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2826#discussion_r4539016222
+- Concern: The stamp predated the last spec change and the log had no fourth-round entry.
+- Solution: The spec's stamp is the time of the change and its Progress Log has entries for the fourth and fifth reviews.
+- Current-tree verification: Spec frontmatter and Progress Log.
+- Resolution reference: docs(issues): [#2822] log the fourth review round and refresh the stamp
+- Follow-up PR URL: N/A
+- Reply URL: N/A
 
 ## Processing Log
 
