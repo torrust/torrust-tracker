@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Round 1: da2ce7's review `5856655819` (F1 to F3), processed after the replies were posted. The record is therefore late, which is the pattern this pull request describes; the replies were posted first because I read the validator's "before replying" line as requiring reply URLs that do not exist yet. The line now says to run the validator once the reply URLs are recorded. Round 2: Copilot's review `5856716279` (F4, F5), on the first commit, processed with the record already present. Round 3: da2ce7's review `5857046891`, whose reviewer IDs F4 to F7 collide with existing rows and are recorded as F6 to F9. Round 4: da2ce7's review `5857359407`, whose IDs F9 to F11 are recorded as F10 to F12. Round 5: da2ce7's review `5857689660`; his F12 is recorded as F13 because F12 exists, and his F15 to F17 keep their IDs. Round 6: da2ce7's review `5857985681`; his F12 is recorded as F18 because F12 exists, and his F19 to F21 keep their IDs.
+Round 1: da2ce7's review `5856655819` (F1 to F3), processed after the replies were posted. The record is therefore late, which is the pattern this pull request describes; the replies were posted first because I read the validator's "before replying" line as requiring reply URLs that do not exist yet. The line now says to run the validator once the reply URLs are recorded. Round 2: Copilot's review `5856716279` (F4, F5), on the first commit, processed with the record already present. Round 3: da2ce7's review `5857046891`, whose reviewer IDs F4 to F7 collide with existing rows and are recorded as F6 to F9. Round 4: da2ce7's review `5857359407`, whose IDs F9 to F11 are recorded as F10 to F12. Round 5: da2ce7's review `5857689660`; his F12 is recorded as F13 because F12 exists, and his F15 to F17 keep their IDs. Round 6: da2ce7's review `5857985681`; his F12 is recorded as F18 because F12 exists, and his F19 to F21 keep their IDs. Round 7: da2ce7's review `5858142102` (F22, F23), written against the head before the round 6 record was pushed.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -65,6 +65,8 @@ Round 1: da2ce7's review `5856655819` (F1 to F3), processed after the replies we
 | F19 | review-finding:pr-2818-f19 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F20 | review-finding:pr-2818-f20 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F21 | review-finding:pr-2818-f21 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F22 | review-finding:pr-2818-f22 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F23 | review-finding:pr-2818-f23 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -328,6 +330,32 @@ Round 1: da2ce7's review `5856655819` (F1 to F3), processed after the replies we
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4537330943
 
+### F22 - Round 6 was answered but not recorded
+
+- PR number: 2818
+- Source review ID: 5858142102
+- Reviewer finding ID: F22
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4537414862
+- Concern: Review 5857985681 was answered at 11:30 but the record at the reviewed head had no rows, introduction or log entries for it.
+- Solution: Recorded rows F18 to F21 (F18 as a re-raise of F13), the introduction, log entries and retrospective counts in the commit that was pushed after the reviewed head.
+- Current-tree verification: Read the Findings table and the Processing Log.
+- Resolution reference: docs(pr-reviews): record round 6 for PR 2818
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4537591788
+
+### F23 - The F21 reply calls it fixed by a commit that is not on the branch
+
+- PR number: 2818
+- Source review ID: 5858142102
+- Reviewer finding ID: F23
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4537414875
+- Concern: The F21 reply cited a commit subject that was not yet on the branch.
+- Solution: The commit with that subject is now on the branch; replied to say so.
+- Current-tree verification: git log shows the commit subject on the branch.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4537592119
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4537592119
+
 ## Processing Log
 
 - 2026-11-11 09:35 UTC - Review 5856655819 arrived with three findings.
@@ -345,6 +373,8 @@ Round 1: da2ce7's review `5856655819` (F1 to F3), processed after the replies we
 - 2026-11-11 11:25 UTC - Review 5857985681 arrived with four findings.
 - 2026-11-11 11:30 UTC - Fixed, replied, and added F18 to F21.
 - 2026-11-11 11:30 UTC - Correction: the two 11:05 entries above ("Fixed, replied, and added F13 and F15 to F17" and the correction) were made in the commit `docs(pr-reviews): record round 5 for PR 2818`, committed at 11:06; the fix was at 11:02 and the replies at 11:05.
+- 2026-11-11 11:39 UTC - Review 5858142102 arrived with two findings.
+- 2026-11-11 11:57 UTC - Fixed (the round 6 record was pushed), replied, and added F22 and F23.
 
 ## Completion Rules
 
