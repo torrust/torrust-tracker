@@ -1,5 +1,3 @@
-use std::ops::AddAssign;
-
 use derive_more::Constructor;
 
 use crate::NumberOfDownloads;
@@ -69,13 +67,4 @@ pub struct AggregateActiveSwarmMetadata {
 
     /// Total number of torrents.
     pub total_torrents: u64,
-}
-
-impl AddAssign for AggregateActiveSwarmMetadata {
-    fn add_assign(&mut self, rhs: Self) {
-        self.total_complete += rhs.total_complete;
-        self.total_downloaded += rhs.total_downloaded;
-        self.total_incomplete += rhs.total_incomplete;
-        self.total_torrents += rhs.total_torrents;
-    }
 }
