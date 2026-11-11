@@ -160,7 +160,7 @@ Round 2: da2ce7 reviews 5850237912, 5856329614, 5856670353, 5856843868, 58570932
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2813#discussion_r4528636470
 - Concern: The PR-branch commit id is cited in the evidence and progress log.
 - Solution: Dropped; builds are named by Conventional Commit subject.
-- Current-tree verification: the commit-id check prints nothing for docs/issues/closed/2776-2411-axum-server-0-9-timeouts.
+- Current-tree verification: the commit-id check prints nothing for docs/issues/open/2776-2411-axum-server-0-9-timeouts.
 - Resolution reference: fix(axum-server): [#2776] address PR review round 1
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2813#discussion_r4530835616
@@ -199,7 +199,7 @@ Round 2: da2ce7 reviews 5850237912, 5856329614, 5856670353, 5856843868, 58570932
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2813#discussion_r4528636497
 - Concern: AC4 is ticked although HTTP/2 measures 10 s, and "already 10 s today" was not measured.
 - Solution: AC4 and AC5 unticked; the claim dropped and the missing develop measurement stated.
-- Current-tree verification: grep -n "AC4\|AC5" docs/issues/closed/2776-2411-axum-server-0-9-timeouts/ISSUE.md.
+- Current-tree verification: grep -n "AC4\|AC5" docs/issues/open/2776-2411-axum-server-0-9-timeouts/ISSUE.md.
 - Resolution reference: fix(axum-server): [#2776] address PR review round 1
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2813#discussion_r4530836683
@@ -277,7 +277,7 @@ Round 2: da2ce7 reviews 5850237912, 5856329614, 5856670353, 5856843868, 58570932
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2813#discussion_r4531153207
 - Concern: The spec log says 14 findings; round 1 had thirteen.
 - Solution: Corrected to 13.
-- Current-tree verification: grep -n "13 findings" docs/issues/closed/2776-2411-axum-server-0-9-timeouts/ISSUE.md.
+- Current-tree verification: grep -n "13 findings" docs/issues/open/2776-2411-axum-server-0-9-timeouts/ISSUE.md.
 - Resolution reference: fix(axum-server): [#2776] address PR review round 2
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2813#discussion_r4537113016
@@ -342,7 +342,7 @@ Round 2: da2ce7 reviews 5850237912, 5856329614, 5856670353, 5856843868, 58570932
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2813#discussion_r4535969665
 - Concern: AC4 says "no worse than before the change" but only the wrapper build (V8) was measured; M4 still says 5 s.
 - Solution: AC4 says "no worse than with the wrapper (V8)"; M4 gives AC4 figures.
-- Current-tree verification: grep -n "no worse than with the wrapper" docs/issues/closed/2776-2411-axum-server-0-9-timeouts/ISSUE.md.
+- Current-tree verification: grep -n "no worse than with the wrapper" docs/issues/open/2776-2411-axum-server-0-9-timeouts/ISSUE.md.
 - Resolution reference: fix(axum-server): [#2776] address PR review round 2
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2813#discussion_r4537118022
