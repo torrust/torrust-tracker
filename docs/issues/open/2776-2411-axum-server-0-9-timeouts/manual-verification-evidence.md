@@ -126,7 +126,7 @@ read the idle HTTP/2 socket again until the 5 s keep-alive ping goes unanswered 
 closes at 5 s as measured.
 
 The HTTP/2 idle bound is therefore about 10 s (5 s ping interval plus 5 s reply wait) with and
-without the wrapper. Whether that satisfies AC4 ("no worse than today's plaintext 5 s") is for the
+without the wrapper. The maintainer ruled on 2026-11-11 that about 10 s for HTTP/2 is accepted (AC4). Context: whether that satisfies AC4 ("no worse than today's plaintext 5 s") was for the
 maintainer to rule: the wrapper's own HTTP/2 result is not better, but the 5 s figure in AC4 is
 not met for HTTP/2. A client that answers HTTP/2 pings keeps the connection open; that is a
 responsive peer, and bounding it is the connection-limit work of EPIC #2411 case A1.
