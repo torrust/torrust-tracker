@@ -47,6 +47,8 @@ Round 2: da2ce7 review 5858720859 (approved, with findings F17 to F24; his `F11`
 
 Round 3: da2ce7 review 5859105345 (approved, submitted 13:00:34Z by the poller cursor), findings F26 to F30.
 
+Round 4: da2ce7 review 5859423738 (approved; the poller cursor is 13:23:51Z), finding F31.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2825-f1 | Human | Major | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -79,6 +81,7 @@ Round 3: da2ce7 review 5859105345 (approved, submitted 13:00:34Z by the poller c
 | F28 | review-finding:pr-2825-f28 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F29 | review-finding:pr-2825-f29 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F30 | review-finding:pr-2825-f30 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F31 | review-finding:pr-2825-f31 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -472,6 +475,19 @@ Round 3: da2ce7 review 5859105345 (approved, submitted 13:00:34Z by the poller c
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2825#discussion_r4538209028
 
+### F31 - The two round 3 log entries are stamped later than their commit
+
+- PR number: 2825
+- Source review ID: 5859423738
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2825#discussion_r4538415140
+- Concern: Both round 3 entries are stamped 13:06 while the commit that carries them has a commit time of 13:05:14Z.
+- Solution: Appended a correction entry that dates both from their last events (the replies at 13:04:16Z and the resolutions after them), stamped no later than its own commit.
+- Current-tree verification: The Processing Log ends with the correction entry; the validator exits 0.
+- Resolution reference: docs(pr-reviews): [#2808] record round 4 of the PR 2825 review audit
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2825#discussion_r4538423078
+
 ## Processing Log
 
 - 2026-11-11 11:41 UTC - Started audit: da2ce7 review 5858161814 (submitted 11:41:44Z) and Copilot review 5858165805 (11:42:06Z), both on the head of the PR when opened; 16 inline threads, all unresolved.
@@ -485,6 +501,8 @@ Round 3: da2ce7 review 5859105345 (approved, submitted 13:00:34Z by the poller c
 - Correction (audit F18, F24): the F2 Concern wording and the F13 Resolution reference were edited in place in round 2; the earlier text said "a pre-release only matches a requirement with the same pre-release" and cited only the `tracker.md` commit.
 - 2026-11-11 13:06 UTC - Round 3: da2ce7 review 5859105345 (approved; the poller cursor is 13:00:34Z) with five comments. The fix commit for F26 is at 13:01:44Z (`git log --format=%cI`) and was pushed after it; the PR description was edited for F27 before the replies. Replied on the five threads (reply `created_at` 13:04:06Z to 13:04:16Z) and resolved them through GraphQL (five results, each `isResolved: true`).
 - 2026-11-11 13:06 UTC - Correction (audit F29): the round 2 entry stamped 12:32 covers events up to the push after the last fix commit (12:35:13Z), and its audit commit is `docs(pr-reviews): [#2808] record round 2 of the PR 2825 review audit` at 12:40:06Z. The entry that begins "Correction (audit F18, F24)" had no stamp; it dates from that audit commit, 12:40:06Z. In round 3 the F21 Concern, the F18 Resolution reference and this log were edited, the first two in place, as the entries above and this one record.
+- 2026-11-11 13:24 UTC - Round 4: da2ce7 review 5859423738 (approved; the poller cursor is 13:23:51Z) with one comment. Replied on the thread (reply `created_at` 13:24:42Z) and resolved it through GraphQL (`isResolved: true`).
+- 2026-11-11 13:24 UTC - Correction (audit F31): the two round 3 entries above, both stamped 13:06, are later than the commit that carries them (13:05:14Z). Their events were the five replies (13:04:06Z to 13:04:16Z) and the resolutions after them, so they date from about 13:04 UTC; they are left as written.
 
 ## Completion Rules
 
