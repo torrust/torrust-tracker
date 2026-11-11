@@ -9,7 +9,7 @@ github-issue: 2762
 spec-path: docs/issues/closed/2762-2758-package-coverage-check-contract/ISSUE.md
 branch: "2762-package-coverage-check-contract"
 related-pr: 2810
-last-updated-utc: "2026-11-11 09:25"
+last-updated-utc: "2026-11-11 10:01"
 semantic-links:
   skill-links:
     - create-issue
@@ -118,7 +118,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded
-- [x] Reviewer validated acceptance criteria and updated checkboxes
+- [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [x] Committer verified spec progress is up to date before commit
 - [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
@@ -135,6 +135,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-11-10 18:36 UTC - Claude Code (Claude Sonnet 5.5) - Addressed review round 3 of PR 2810 (da2ce7 approved with record findings): AC5 wording states what was observed, stamps from commit times, audit log corrected, older replies cite subjects, PR description records the hosted run.
 - 2026-11-10 21:33 UTC - Claude Code (Claude Sonnet 5.5) - Addressed review round 4 of PR 2810 (two Nit findings in the audit) and added the review retrospective `docs/pr-reviews/pr-2810-review/review-retrospective.md`.
 - 2026-11-11 09:25 UTC - Claude Code (Claude Sonnet 5.5) - PR 2810 merged into `develop` on 2026-11-11 and issue #2762 closed; spec archived to `docs/issues/closed/`, the EPIC row set to DONE, and the deferred review findings fixed in the close-out PR.
+- 2026-11-11 10:01 UTC - Claude Code (Claude Sonnet 5.5) - Review of the close-out PR 2820: the checkpoint "Reviewer validated acceptance criteria and updated checkboxes" is left open, because no reviewer edited this spec (the approvals are ACK comments on PR 2810, and the acceptance boxes were ticked by the author); no implementation retrospective was written because the contract change matched the spec and the `ci-gate` reference and the one code defect was fixed in one line in round 1.
 
 ## Acceptance Criteria
 

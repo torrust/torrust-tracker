@@ -1,7 +1,7 @@
 ---
 pr-number: 2810
 pr-url: https://github.com/torrust/torrust-tracker/pull/2810
-last-updated-utc: "2026-11-11 09:25"
+last-updated-utc: "2026-11-11 10:01"
 ---
 
 # PR #2810 Review Audit
@@ -13,7 +13,7 @@ Source: pull-request reviews and inline review threads for https://github.com/to
 The PR author owns this tracked audit record. Reviewers, including repository review agents,
 deliver findings through GitHub and have no repository-artifact obligation.
 
-- Post-merge workflow approval: N/A
+- Post-merge workflow approval: N/A for the PR 2810 workflow runs. The after-merge replies and the close-out PR 2820 were requested by the maintainer in this session's chat ("Yes, do it", 2026-11-11); no GitHub comment URL exists for it. The maintainer can add one to PR 2820.
 
 ## Status Values
 
@@ -55,11 +55,11 @@ Round 1: da2ce7 review 5846429188 (CHANGES_REQUESTED) on the head that carries t
 | F21 | review-finding:pr-2810-f21 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F22 | review-finding:pr-2810-f22 | Human | Nit | documentation | RE_RAISE_OF:F19 | FIXED | RESOLVED |
 | F23 | review-finding:pr-2810-f23 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
-| F24 | review-finding:pr-2810-f24 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
-| F25 | review-finding:pr-2810-f25 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
-| F26 | review-finding:pr-2810-f26 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F24 | review-finding:pr-2810-f24 | Human | Minor | documentation | ORIGINAL | FOLLOW_UP | OPEN |
+| F25 | review-finding:pr-2810-f25 | Human | Nit | documentation | ORIGINAL | FOLLOW_UP | OPEN |
+| F26 | review-finding:pr-2810-f26 | Human | Minor | documentation | ORIGINAL | FOLLOW_UP | OPEN |
 
-Round 1 follow-up: Copilot review 5846504036, on the earlier head, raised the F1 and F2 concerns again as F9 and F10 (reviewer IDs F1 and F2); both were already fixed. Round 2: da2ce7 review 5846796508 on the head after round 1: F11 to F15 (reviewer IDs F3, F8, F9, F10, F11), fixed in the round-2 commit. Round 3: da2ce7 review 5847265767 (APPROVED) on the head after round 2: F16 to F21 (reviewer IDs F3, F8, F11, F12, F13, F14), fixed in the round-3 commit. Round 4: da2ce7 review 5847623438 (APPROVED) on the head after round 3: F22 and F23 (reviewer IDs F12 and F15), fixed in the round-4 commit. Round 5: da2ce7 review 5850003910 (APPROVED) on the head after round 4: F24 to F26 (reviewer IDs F16, F17, F18), fixed in the close-out PR.
+Round 1 follow-up: Copilot review 5846504036, on the earlier head, raised the F1 and F2 concerns again as F9 and F10 (reviewer IDs F1 and F2); both were already fixed. Round 2: da2ce7 review 5846796508 on the head after round 1: F11 to F15 (reviewer IDs F3, F8, F9, F10, F11), fixed in the round-2 commit. Round 3: da2ce7 review 5847265767 (APPROVED) on the head after round 2: F16 to F21 (reviewer IDs F3, F8, F11, F12, F13, F14), fixed in the round-3 commit. Round 4: da2ce7 review 5847623438 (APPROVED) on the head after round 3: F22 and F23 (reviewer IDs F12 and F15), fixed in the round-4 commit. Round 5: da2ce7 review 5850003910 (APPROVED) on the head after round 4: F24 to F26 (reviewer IDs F16, F17, F18), in the close-out PR https://github.com/torrust/torrust-tracker/pull/2820 (a follow-up, open until it merges).
 
 ## Finding Details
 
@@ -369,10 +369,10 @@ Round 1 follow-up: Copilot review 5846504036, on the earlier head, raised the F1
 - Reviewer finding ID: F16
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2810#discussion_r4530967267
 - Concern: Rows F22 and F23 are FIXED and RESOLVED, but their Reply URLs point to replies that defer the fix; the F22 Solution overstates the log entry.
-- Solution: Valid. Replies posted on both threads after the fix commit, the reply URLs point to them, and the F22 Solution now matches the log entry.
+- Solution: Valid. The replies on the F22 and F23 threads were posted on 2026-11-11 at 09:24Z (before the commit that cites them, which is dated 09:25:41Z); the row reply URLs point to them, and the F22 Solution now matches the log entry. The fix is in the close-out PR.
 - Current-tree verification: Rows F22 and F23 and the F22 detail.
 - Resolution reference: docs(issues): [#2762] close out the package-coverage-check issue
-- Follow-up PR URL: N/A
+- Follow-up PR URL: https://github.com/torrust/torrust-tracker/pull/2820
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2810#discussion_r4530990398
 
 ### F25 - "4 audit-only" does not match git show --name-status: only one commit changes the audit alone.
@@ -385,7 +385,7 @@ Round 1 follow-up: Copilot review 5846504036, on the earlier head, raised the F1
 - Solution: Valid. The retrospective now says 1 audit-only commit and names the three that also change ISSUE.md and the evidence.
 - Current-tree verification: Review Summary of the retrospective.
 - Resolution reference: docs(issues): [#2762] close out the package-coverage-check issue
-- Follow-up PR URL: N/A
+- Follow-up PR URL: https://github.com/torrust/torrust-tracker/pull/2820
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2810#discussion_r4530990807
 
 ### F26 - The retrospective says the validator checks the table shape only, which understates validate-audit-record.py.
@@ -398,7 +398,7 @@ Round 1 follow-up: Copilot review 5846504036, on the earlier head, raised the F1
 - Solution: Valid. The retrospective now lists what the validator checks and what it lacks.
 - Current-tree verification: Root Causes and Improvements in the retrospective.
 - Resolution reference: docs(issues): [#2762] close out the package-coverage-check issue
-- Follow-up PR URL: N/A
+- Follow-up PR URL: https://github.com/torrust/torrust-tracker/pull/2820
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2810#discussion_r4530991145
 
 ## Processing Log

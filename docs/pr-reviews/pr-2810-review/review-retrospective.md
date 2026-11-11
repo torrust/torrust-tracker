@@ -27,7 +27,7 @@ contract) was reviewed and how its findings were processed. The audit record is
 | Re-raised findings (`RE_RAISE_OF`) | 8 (F9 to F12, F16, F17, F18, F22) |
 | Findings about the audit record itself | 10 (F13 to F15, F18 to F24) |
 | Commits on the branch | 8 (1 audit-only, the round-1 audit commit; the other three `docs(pr-reviews)` commits, rounds 2 to 4, also change `ISSUE.md` and the evidence; from `git show --name-status`) |
-| First review to last thread resolution | about 17:33Z to 20:00Z on 2026-11-10 (the resolution times are not captured; 20:00Z is the last reply) |
+| First review to last thread resolution | 17:33Z on 2026-11-10 to the replies on 2026-11-11 after the merge (the resolution times are not captured) |
 | AI models used | Claude Sonnet 5.5 (author), unknown (reviewers) |
 
 Numbers come from the audit table (rows and `Relationship` column), `git log torrust/develop..HEAD` and the review and
@@ -73,10 +73,10 @@ audit, replies), and most of it recurred across rounds. Per finding:
 
 Patterns across the table:
 
-1. **Records before events** (F3, F8, F11, F12, F15, F17, F18, F19, F22): a stamp or a claim written before the event it describes.
-2. **Unverified claims** (F1, F2, F3, F11, F16): an assumption or an expected result recorded as an observation.
+1. **Records before events** (F3, F8, F11, F12, F15, F17, F18, F19, F22, F24): a stamp or a claim written before the event it describes.
+2. **Unverified claims** (F1, F2, F3, F11, F16, F24, F26): an assumption or an expected result recorded as an observation.
 3. **Incomplete sweeps** (F17, F18, F21, F22): each fix covered the instances the reviewer cited, not their siblings.
-4. **Cost:** four da2ce7 rounds and about four workflow approvals for one real defect; every push needs a maintainer approval.
+4. **Cost:** five da2ce7 rounds and about four workflow approvals for one real defect; every push needs a maintainer approval.
 
 ## Root Causes
 
