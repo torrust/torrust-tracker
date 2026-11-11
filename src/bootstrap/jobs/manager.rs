@@ -30,15 +30,9 @@ use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 use std::task::{Context, Poll};
 use std::time::Duration;
 
-use tokio::sync::oneshot::Sender;
 use tokio::task::{Id, JoinError, JoinHandle, JoinSet};
 use tokio::time::{Instant, timeout_at};
 use tokio_util::sync::CancellationToken;
-#[allow(
-    deprecated,
-    reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
-)]
-use torrust_server_lib::signals::Halted;
 use tracing::{info, warn};
 
 /// A component's explicit terminal result.
@@ -125,177 +119,6 @@ pub fn incomplete_components(outcomes: &[JobOutcome]) -> Vec<&str> {
         .filter(|outcome| !outcome.status.is_graceful())
         .map(|outcome| outcome.name.as_str())
         .collect()
-}
-
-/// Delivers a normal halt signal when its component is dropped.
-#[derive(Debug)]
-#[allow(
-    deprecated,
-    reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
-)]
-#[deprecated(
-    since = "4.0.0",
-    note = "use a `CancellationToken` and the token-aware shutdown controller; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
-)]
-pub struct HaltSignal {
-    sender: Option<Sender<Halted>>,
-}
-
-#[allow(
-    deprecated,
-    reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
-)]
-impl HaltSignal {
-    #[must_use]
-    #[allow(
-        deprecated,
-        reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
-    )]
-    pub const fn new(sender: Sender<Halted>) -> Self {
-        Self { sender: Some(sender) }
-    }
-
-    /// Signals normal shutdown. It is harmless when shutdown was already signalled.
-    ///
-    /// # Errors
-    ///
-    /// Returns the unsent signal when the receiver has already been dropped.
-    #[allow(
-        deprecated,
-        reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
-    )]
-    pub fn signal_shutdown(&mut self) -> Result<(), Halted> {
-        self.sender.take().map_or(Ok(()), |sender| sender.send(Halted::Normal))
-    }
-}
-
-#[allow(
-    deprecated,
-    reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
-)]
-impl Drop for HaltSignal {
-    fn drop(&mut self) {
-        let _ = self.signal_shutdown();
-    }
-}
-
-/// Owns a component's spawned server task until it has been joined.
-///
-/// Dropping the outer component runner can occur while its `select!` branch is
-/// awaiting this task, for example when `JobManager` escalates at its deadline.
-/// The drop implementation sends the normal halt signal and aborts the child,
-/// so the child cannot continue detached from its component owner.
-#[derive(Debug)]
-#[deprecated(
-    since = "4.0.0",
-    note = "use a `CancellationToken` and the token-aware shutdown controller; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
-)]
-#[allow(
-    deprecated,
-    reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
-)]
-pub struct NestedServerTask<T> {
-    halt_signal: HaltSignal,
-    task: JoinHandle<T>,
-    shutdown_controller: Option<JoinHandle<()>>,
-}
-
-#[allow(
-    deprecated,
-    reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
-)]
-impl<T> NestedServerTask<T> {
-    #[must_use]
-    #[allow(
-        deprecated,
-        reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
-    )]
-    pub const fn new(halt_task: Sender<Halted>, task: JoinHandle<T>) -> Self {
-        Self {
-            halt_signal: HaltSignal::new(halt_task),
-            task,
-            shutdown_controller: None,
-        }
-    }
-
-    /// Creates an owner that also supervises a server's shutdown controller.
-    #[must_use]
-    #[allow(
-        deprecated,
-        reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
-    )]
-    pub const fn with_shutdown_controller(
-        halt_task: Sender<Halted>,
-        task: JoinHandle<T>,
-        shutdown_controller: JoinHandle<()>,
-    ) -> Self {
-        Self {
-            halt_signal: HaltSignal::new(halt_task),
-            task,
-            shutdown_controller: Some(shutdown_controller),
-        }
-    }
-
-    /// Signals normal shutdown. It is harmless when shutdown was already signalled.
-    ///
-    /// # Errors
-    ///
-    /// Returns the unsent signal when the receiver has already been dropped.
-    #[allow(
-        deprecated,
-        reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
-    )]
-    pub fn signal_shutdown(&mut self) -> Result<(), Halted> {
-        self.halt_signal.signal_shutdown()
-    }
-
-    /// Joins the nested server task.
-    ///
-    /// # Errors
-    ///
-    /// Returns the nested task's join error when it panics or is aborted.
-    #[allow(
-        deprecated,
-        reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
-    )]
-    pub async fn join(&mut self) -> Result<T, JoinError> {
-        (&mut self.task).await
-    }
-
-    /// Joins the shutdown controller after normal halt has been signalled.
-    ///
-    /// # Errors
-    ///
-    /// Returns the controller's join error when it panics or is aborted.
-    #[allow(
-        deprecated,
-        reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
-    )]
-    pub async fn join_shutdown_controller(&mut self) -> Result<(), JoinError> {
-        if let Some(shutdown_controller) = &mut self.shutdown_controller {
-            shutdown_controller.await
-        } else {
-            Ok(())
-        }
-    }
-}
-
-#[allow(
-    deprecated,
-    reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
-)]
-impl<T> Drop for NestedServerTask<T> {
-    #[allow(
-        deprecated,
-        reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
-    )]
-    fn drop(&mut self) {
-        let _ = self.signal_shutdown();
-        self.task.abort();
-        if let Some(shutdown_controller) = &self.shutdown_controller {
-            shutdown_controller.abort();
-        }
-    }
 }
 
 /// Owns a token-aware server task and its cancellation drain controller.
@@ -1145,11 +968,6 @@ mod tests {
     use tokio::sync::oneshot;
     use tokio::time::{Duration, sleep, timeout};
     use tokio_util::sync::CancellationToken;
-    #[allow(
-        deprecated,
-        reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
-    )]
-    use torrust_server_lib::signals::Halted;
 
     use super::{
         ComponentCompletion, ComponentError, ComponentId, ComponentRegistry, ComponentResult, EXIT_CODE_GRACEFUL_SHUTDOWN,
@@ -1287,63 +1105,15 @@ mod tests {
     }
 
     #[tokio::test]
-    #[allow(
-        deprecated,
-        reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
-    )]
-    async fn it_should_abort_a_nested_server_task_when_the_component_is_aborted_after_the_deadline() {
-        // Arrange
-        let mut manager = JobManager::new();
-        let (child_completion_sender, child_completion_receiver) = oneshot::channel::<()>();
-        let (halt_sender, halt_receiver) = oneshot::channel();
-        let (server_ready_sender, server_ready_receiver) = oneshot::channel();
-        reserve_and_spawn(&mut manager, "server-component", async move {
-            let mut server = super::NestedServerTask::new(
-                halt_sender,
-                tokio::spawn(async move {
-                    let _ = child_completion_receiver.await;
-                }),
-            );
-            server_ready_sender
-                .send(())
-                .expect("the test waits until the nested server owner is constructed");
-            server
-                .join()
-                .await
-                .map_err(|error| ComponentError::new(format!("server task failed: {error}")))?;
-            Ok(ComponentCompletion::Completed)
-        });
-
-        // Act
-        server_ready_receiver
-            .await
-            .expect("the nested server owner must be constructed before the deadline starts");
-        let outcomes = manager.wait_for_all(Duration::ZERO).await;
-
-        // Assert
-        assert_eq!(outcomes[0].status, JobStatus::Aborted);
-        assert!(
-            child_completion_sender.send(()).is_err(),
-            "the nested task receiver must be dropped after the outer task abort"
-        );
-        assert!(matches!(halt_receiver.await, Ok(Halted::Normal)));
-    }
-
-    #[tokio::test]
-    #[allow(
-        deprecated,
-        reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
-    )]
-    async fn it_should_abort_a_nested_shutdown_controller_when_the_component_is_aborted_after_the_deadline() {
+    async fn it_should_abort_a_token_aware_server_task_and_its_shutdown_controller_when_the_component_is_aborted_after_the_deadline()
+     {
         // Arrange
         let mut manager = JobManager::new();
         let (server_completion_sender, server_completion_receiver) = oneshot::channel::<()>();
         let (controller_completion_sender, controller_completion_receiver) = oneshot::channel::<()>();
-        let (halt_sender, halt_receiver) = oneshot::channel();
         let (server_ready_sender, server_ready_receiver) = oneshot::channel();
         reserve_and_spawn(&mut manager, "server-component", async move {
-            let mut server = super::NestedServerTask::with_shutdown_controller(
-                halt_sender,
+            let mut server = super::TokenAwareServerTask::new(
                 tokio::spawn(async move {
                     let _ = server_completion_receiver.await;
                 }),
@@ -1369,7 +1139,6 @@ mod tests {
 
         // Assert
         assert_eq!(outcomes[0].status, JobStatus::Aborted);
-        assert!(matches!(halt_receiver.await, Ok(Halted::Normal)));
         assert!(
             server_completion_sender.send(()).is_err(),
             "the nested server receiver must be dropped after the outer task abort"
@@ -1377,41 +1146,6 @@ mod tests {
         assert!(
             controller_completion_sender.send(()).is_err(),
             "the shutdown controller receiver must be dropped after the outer task abort"
-        );
-    }
-
-    #[tokio::test]
-    #[allow(
-        deprecated,
-        reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
-    )]
-    async fn it_should_signal_and_drop_an_uncooperative_running_future_when_the_component_is_aborted_after_the_deadline() {
-        // Arrange
-        let mut manager = JobManager::new();
-        let (running_completion_sender, running_completion_receiver) = oneshot::channel::<()>();
-        let (halt_sender, halt_receiver) = oneshot::channel();
-        let (halt_signal_ready_sender, halt_signal_ready_receiver) = oneshot::channel();
-        reserve_and_spawn(&mut manager, "running-server-component", async move {
-            let _halt_signal = super::HaltSignal::new(halt_sender);
-            halt_signal_ready_sender
-                .send(())
-                .expect("the test waits until the halt signal guard is constructed");
-            let _ = running_completion_receiver.await;
-            Ok(ComponentCompletion::Completed)
-        });
-
-        // Act
-        halt_signal_ready_receiver
-            .await
-            .expect("the halt signal guard must be constructed before the deadline starts");
-        let outcomes = manager.wait_for_all(Duration::ZERO).await;
-
-        // Assert
-        assert_eq!(outcomes[0].status, JobStatus::Aborted);
-        assert!(matches!(halt_receiver.await, Ok(Halted::Normal)));
-        assert!(
-            running_completion_sender.send(()).is_err(),
-            "the running future receiver must be dropped after the outer task abort"
         );
     }
 

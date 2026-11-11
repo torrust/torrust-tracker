@@ -1,10 +1,10 @@
 [package]
 authors.workspace = true
-description = "The Torrust Bittorrent HTTP tracker."
-documentation.workspace = true
+categories = [ "web-programming::http-server", "network-programming" ]
+description = "BitTorrent HTTP tracker server (BEP 3 and BEP 23) built on Axum for the Torrust Tracker."
 edition.workspace = true
 homepage.workspace = true
-keywords = [ "axum", "bittorrent", "http", "server", "torrust", "tracker" ]
+keywords = [ "announce", "axum", "bittorrent", "http", "scrape" ]
 license.workspace = true
 name = "torrust-tracker-axum-http-server"
 publish.workspace = true
@@ -38,7 +38,7 @@ serde = { version = "1", features = [ "derive" ] }
 tokio = { version = "1", features = [ "macros", "net", "rt-multi-thread", "signal", "sync" ] }
 tokio-util = "0.7.15"
 torrust-tracker-axum-server = { version = "0.1.0", path = "../axum-server" }
-torrust-server-lib = "0.5.0"
+torrust-server-lib = "0.6.0"
 torrust-clock = { version = "3.0.0", optional = true }
 torrust-tracker-configuration = { version = "3.0.0", path = "../configuration" }
 torrust-net-primitives = "0.1.0"

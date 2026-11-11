@@ -18,7 +18,7 @@ semantic-links:
 
 Draft — implementation in progress under [EPIC #1488](../../issues/open/1488-overhaul-tracker-shutdown/ISSUE.md),
 which tracks each sub-issue's status. The [legacy API migration guide](legacy-api-migration.md) maps each
-deprecated shutdown symbol to its token-aware replacement. The [task inventory](task-inventory.md)
+removed legacy shutdown symbol to its token-aware replacement. The [task inventory](task-inventory.md)
 records the current state; for example, the standalone HTTP test environment
 and example use the token-aware lifecycle after SI-16 (#2412).
 

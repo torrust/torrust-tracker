@@ -442,6 +442,71 @@ mod tests {
     }
 
     #[test]
+    fn it_should_flag_a_review_of_a_newer_commit_than_the_head_first_read_when_the_head_moves_mid_snapshot() {
+        let gh = FakeGh::new();
+        gh.respond(PULL, pull("aaaa", "open", false));
+        gh.replace_after(REVIEWS, PULL, pull("bbbb", "open", false));
+        gh.respond(
+            REVIEWS,
+            json!([{"id": 2, "user": {"login": "da2ce7"}, "state": "COMMENTED", "commit_id": "bbbb", "html_url": "u", "submitted_at": "2026-10-28T07:00:00Z"}]),
+        );
+        gh.respond(ISSUE_COMMENTS, json!([]));
+        gh.respond(REVIEW_COMMENTS, json!([]));
+        gh.respond(
+            "repos/torrust/torrust-tracker/commits/aaaa",
+            json!({"sha": "aaaa", "commit": {"committer": {"date": "2026-10-28T06:00:00Z"}}}),
+        );
+        let config = Config {
+            since_head_sha: Some("aaaa".to_owned()),
+            ..config()
+        };
+
+        let event = wait(&gh, &FakeClock::default(), &pull_request(), &config).unwrap();
+
+        match event {
+            Event::Review {
+                head_sha, head_moved, ..
+            } => {
+                assert_eq!(head_sha, "bbbb");
+                assert!(head_moved);
+            }
+            other => panic!("expected a review, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn it_should_not_flag_a_review_of_the_head_that_was_read_when_nothing_moves() {
+        let gh = FakeGh::new();
+        gh.respond(PULL, pull("aaaa", "open", false));
+        gh.respond(
+            REVIEWS,
+            json!([{"id": 2, "user": {"login": "da2ce7"}, "state": "COMMENTED", "commit_id": "aaaa", "html_url": "u", "submitted_at": "2026-10-28T07:00:00Z"}]),
+        );
+        gh.respond(ISSUE_COMMENTS, json!([]));
+        gh.respond(REVIEW_COMMENTS, json!([]));
+        gh.respond(
+            "repos/torrust/torrust-tracker/commits/aaaa",
+            json!({"sha": "aaaa", "commit": {"committer": {"date": "2026-10-28T06:00:00Z"}}}),
+        );
+        let config = Config {
+            since_head_sha: Some("aaaa".to_owned()),
+            ..config()
+        };
+
+        let event = wait(&gh, &FakeClock::default(), &pull_request(), &config).unwrap();
+
+        match event {
+            Event::Review {
+                head_sha, head_moved, ..
+            } => {
+                assert_eq!(head_sha, "aaaa");
+                assert!(!head_moved);
+            }
+            other => panic!("expected a review, got {other:?}"),
+        }
+    }
+
+    #[test]
     fn it_should_not_report_a_head_change_when_the_commit_is_given_as_an_abbreviated_uppercase_sha() {
         let gh = FakeGh::new();
         gh.respond(PULL, pull("abc1234fedcba", "open", false));
@@ -506,6 +571,9 @@ mod tests {
     #[test]
     fn it_should_stop_with_an_error_when_the_deadline_hits_before_the_baseline_is_taken() {
         let gh = FakeGh::new();
+        gh.respond(REVIEWS, json!([]));
+        gh.respond(ISSUE_COMMENTS, json!([]));
+        gh.respond(REVIEW_COMMENTS, json!([]));
         gh.exceed_deadline(PULL);
 
         let result = wait(&gh, &FakeClock::default(), &pull_request(), &config());

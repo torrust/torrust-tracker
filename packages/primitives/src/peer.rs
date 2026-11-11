@@ -110,6 +110,18 @@ pub enum ParsePeerRoleError {
 ///     event: AnnounceEvent::Started,
 /// };
 /// ```
+///
+/// Equality compares every field. `Peer` has no ordering: an order by `peer_id` alone would
+/// disagree with `==`, so compare `peer_id` explicitly where only the id is meant.
+///
+/// ```compile_fail
+/// use torrust_tracker_primitives::peer::Peer;
+///
+/// // `Ord` requires `PartialOrd`, so this bound guards both traits.
+/// fn assert_partial_ord<T: PartialOrd>() {}
+///
+/// assert_partial_ord::<Peer>();
+/// ```
 #[derive(Debug, Clone, Serialize, Copy, PartialEq, Eq, Hash)]
 pub struct Peer {
     /// ID used by the downloader peer
@@ -189,18 +201,6 @@ pub fn ser_number_of_bytes<S: serde::Serializer>(number_of_bytes: &NumberOfBytes
 pub fn ser_peer_id<S: serde::Serializer>(peer_id: &PeerId, ser: S) -> Result<S::Ok, S::Error> {
     let id = Id { data: *peer_id };
     ser.serialize_some(&id)
-}
-
-impl Ord for Peer {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.peer_id.cmp(&other.peer_id)
-    }
-}
-
-impl PartialOrd for Peer {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(self.cmp(other))
-    }
 }
 
 pub trait ReadInfo {

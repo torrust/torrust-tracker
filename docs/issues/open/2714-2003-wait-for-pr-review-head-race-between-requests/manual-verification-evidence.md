@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2714-2003-wait-for-pr-review-head-race-between-requests/ISSUE.md
-last-updated-utc: "2026-11-04 14:35"
+last-updated-utc: "2026-11-10 20:06"
 ---
 
 # Manual Verification Evidence
@@ -69,8 +69,49 @@ practice depends on timing that was not observed.
 ### V2 - The same scenario after the fix
 
 - Goal: repeat V1 on the final build.
-- Status: `TODO`
+- Environment: 2026-11-10, Linux, `rustc 1.99.1 (58cf8f9c3 2026-10-13)`; the build is the one of the commit
+  `fix(wait-for-pr-review): read the head after the feedback (#2714)` (built from the working tree before it was committed;
+  the later commits change no Rust except tests and comments), on top of `develop` at `4a46f98b2` ("Merge torrust/torrust-tracker#2806: chore(issues): archive closed issue #2713 spec
+  to docs/issues/closed"), debug build. Same fake `gh` and command as V1.
+- Status: `DONE`
+- Outcome: **Fixed.** The head is the newer commit and `head_moved` is true.
+
+#### Observed Result
+
+```text
+exit=0
+{"kind":"review","reviewer":"da2ce7","review_id":1,"state":"COMMENTED","review_commit_id":"bbbb…","url":"https://example.test/review/1","head_sha":"bbbb…","cursor":"2026-11-04T10:00:00Z","head_moved":true}
+```
+
+(`bbbb…` is the 40-character `bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb` in the raw output.)
+
+### Regression tests, red and green (T1, T3)
+
+Five tests were added: in `snapshot.rs`, a review of a newer commit than the first head read, a conversation
+comment whose read is followed by the head change, and an ordinary case with a review of the head that was read;
+in `wait.rs`, the race at event level and an ordinary review of the head with `head_moved` false.
+`FakeGh::replace_after` scripts the head change when a named endpoint is called. Toolchain: `rustc 1.99.1
+(58cf8f9c3 2026-10-13)`, `cargo test` in `.github/skills/dev/pr-reviews/wait-for-pr-review/tool`, 2026-11-10.
+
+Red, with the old read order (head first) restored temporarily in `take_snapshot`, `cargo test --lib`:
+
+```text
+test snapshot::tests::it_should_fetch_the_head_after_a_conversation_comment_that_arrived_after_the_first_request ... FAILED
+test snapshot::tests::it_should_fetch_the_head_after_a_review_that_arrived_after_the_first_request ... FAILED
+test wait::tests::it_should_flag_a_review_of_a_newer_commit_than_the_head_first_read_when_the_head_moves_mid_snapshot ... FAILED
+test result: FAILED. 64 passed; 3 failed; 0 ignored; 0 measured; 0 filtered out
+```
+
+Green, with the fix, `cargo test`, an excerpt: the result lines of the library tests and of the integration tests
+(the binary's unit tests and the doc-tests print their own result lines, left out here):
+
+```text
+test result: ok. 67 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+test result: ok. 27 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+```
+
+The two ordinary-case tests pass in both runs, as they should: AC2 says the ordinary case is unchanged.
 
 ## Failures and Follow-up
 
-None yet.
+None.

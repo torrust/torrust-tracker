@@ -1,6 +1,24 @@
-# Torrust Axum HTTP Tracker
+# Torrust Tracker Axum Health Check API Server
 
-The Torrust Tracker Health Check API.
+`torrust-tracker-axum-health-check-api-server` serves the health check endpoint of the Torrust Tracker. The tracker container runs it on a local port to probe the UDP tracker, HTTP tracker and REST API services, and uses it as the container health check. It does not serve any BitTorrent or management traffic.
+
+## Where it fits
+
+Server (`axum-*`) package. Workspace dependencies: `torrust-tracker-axum-server`, `torrust-tracker-configuration`, `torrust-tracker-primitives`. Used by: `torrust-tracker`. See the [package catalog](https://github.com/torrust/torrust-tracker/blob/develop/docs/packages.md#package-catalog) for the full picture.
+
+## Main API
+
+`server::start` and `server::start_with_cancellation` start the server, `handlers` holds the `/health_check` handler, and `resources` and `responses` define the JSON response types.
+
+## Stability
+
+Versions are independent per package (see the [ADR](https://github.com/torrust/torrust-tracker/blob/develop/docs/adrs/20260629000000_adopt_independent_package_versioning.md)). While the version is `0.x`, the public API can change in any minor release. The crate is developed for the Torrust Tracker first, so use it directly only if you accept that.
+
+## Documentation
+
+- [API documentation](https://docs.rs/torrust-tracker-axum-health-check-api-server)
+
+## Endpoint
 
 The Torrust tracker container starts a local HTTP server on port 1313 to check all services.
 
@@ -47,12 +65,8 @@ While the tracker is shutting down, `/health_check` answers `503 Service Unavail
 readiness probes stop routing traffic to the instance. The server reads a
 `torrust_tracker_primitives::Readiness` handle passed to `server::start_with_cancellation`; the
 application marks it not ready before it cancels its components. See the
-[shutdown process documentation](../../docs/features/shutdown-process/README.md#readiness-before-drain).
-
-## Documentation
-
-[Crate documentation](https://docs.rs/crate/torrust-tracker/latest).
+[shutdown process documentation](https://github.com/torrust/torrust-tracker/blob/develop/docs/features/shutdown-process/README.md#readiness-before-drain).
 
 ## License
 
-The project is licensed under the terms of the [GNU AFFERO GENERAL PUBLIC LICENSE](./LICENSE).
+The project is licensed under the terms of the [GNU AFFERO GENERAL PUBLIC LICENSE](./LICENSE) (`AGPL-3.0-only`).

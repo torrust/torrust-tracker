@@ -5,20 +5,13 @@ use std::time::Duration;
 use derive_more::Constructor;
 use futures_util::StreamExt;
 use tokio::select;
-use tokio::sync::oneshot;
 use tokio::task::{JoinHandle, JoinSet};
 use tokio::time::timeout;
 use tokio_util::sync::CancellationToken;
 use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
 use torrust_server_lib::logging::STARTED_ON;
 use torrust_server_lib::registar::ServiceHealthCheckJob;
-#[allow(
-    deprecated,
-    reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
-)]
-use torrust_server_lib::signals::{Halted, Started, global_shutdown_signal};
 use torrust_tracker_client::udp::client::check;
-use torrust_tracker_configuration::v3_0_0::shutdown::Shutdown;
 use torrust_tracker_udp_core::container::UdpTrackerCoreContainer;
 use torrust_tracker_udp_core::event::ConnectionContext;
 use torrust_tracker_udp_core::{self, ConnectionIdValidationPolicy, UDP_TRACKER_LOG_TARGET};
@@ -44,19 +37,12 @@ pub(crate) struct StartedReceiveLoop {
     pub task: JoinHandle<Result<(), std::io::Error>>,
 }
 
-/// Aborts the receive loop if its owner is dropped before joining it or handing it on.
+/// Aborts the receive loop if its owner is dropped before handing it on.
 pub(crate) struct OwnedReceiveLoop(Option<JoinHandle<Result<(), std::io::Error>>>);
 
 impl OwnedReceiveLoop {
     pub(crate) const fn new(task: JoinHandle<Result<(), std::io::Error>>) -> Self {
         Self(Some(task))
-    }
-
-    async fn join(&mut self) -> Result<(), std::io::Error> {
-        match &mut self.0 {
-            Some(task) => task.await.map_err(std::io::Error::other)?,
-            None => Ok(()),
-        }
     }
 
     /// Hands the task to a new owner without aborting it.
@@ -183,83 +169,6 @@ impl Drop for OwnedReceiveLoop {
 }
 
 impl Launcher {
-    /// It starts the UDP server instance with graceful shutdown.
-    ///
-    /// This legacy entry point adapts the token-aware receive loop: a halt
-    /// message, a dropped halt sender, or the global OS shutdown signal cancels
-    /// the loop, which is then joined. Dropping this future aborts the loop.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the startup notification receiver is dropped or the
-    /// receive loop stops with an error.
-    #[instrument(skip(udp_tracker_core_container, udp_tracker_server_container, bound_socket, tx_start, rx_halt))]
-    #[allow(
-        deprecated,
-        reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
-    )]
-    #[deprecated(
-        since = "0.1.0",
-        note = "use `Server<Stopped>::start_with_cancellation`, which runs the token-aware launcher; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
-    )]
-    pub async fn run_with_graceful_shutdown(
-        udp_tracker_core_container: Arc<UdpTrackerCoreContainer>,
-        udp_tracker_server_container: Arc<UdpTrackerServerContainer>,
-        bound_socket: BoundSocket,
-        cookie_lifetime: Duration,
-        connection_id_validation: ConnectionIdValidationPolicy,
-        tx_start: oneshot::Sender<Started>,
-        rx_halt: oneshot::Receiver<Halted>,
-    ) -> Result<(), std::io::Error> {
-        let local_udp_url = bound_socket.url().to_string();
-        let cancellation_token = CancellationToken::new();
-
-        let StartedReceiveLoop {
-            service_binding,
-            address,
-            task,
-        } = Self::start_receive_loop(
-            udp_tracker_core_container,
-            udp_tracker_server_container,
-            bound_socket,
-            cookie_lifetime,
-            connection_id_validation,
-            cancellation_token.clone(),
-            // The legacy launcher path takes no shutdown settings; SI-19 removes it.
-            Shutdown::default().udp_request_drain(),
-        );
-        let mut receive_loop = OwnedReceiveLoop::new(task);
-
-        if tx_start
-            .send(Started {
-                service_binding,
-                address,
-            })
-            .is_err()
-        {
-            cancellation_token.cancel();
-            drop(receive_loop.join().await);
-            return Err(std::io::Error::new(
-                std::io::ErrorKind::BrokenPipe,
-                "UDP startup receiver was dropped",
-            ));
-        }
-
-        tracing::debug!(target: UDP_TRACKER_LOG_TARGET, local_udp_url, "Udp::run_with_graceful_shutdown (started)");
-
-        select! {
-            result = receive_loop.join() => {
-                tracing::debug!(target: UDP_TRACKER_LOG_TARGET, local_udp_url, "Udp::run_with_graceful_shutdown (stopped)");
-                result
-            },
-            () = legacy_stop_requested(rx_halt, format!("Halting UDP Service Bound to Socket: {address}")) => {
-                tracing::debug!(target: UDP_TRACKER_LOG_TARGET, local_udp_url, "Udp::run_with_graceful_shutdown (halting)");
-                cancellation_token.cancel();
-                receive_loop.join().await
-            }
-        }
-    }
-
     /// Logs the listener startup and spawns the receive loop, which stops
     /// admitting datagrams when `cancellation_token` is cancelled, drains its
     /// request processors for at most `request_drain_deadline`, and returns `Ok(())`.
@@ -506,35 +415,6 @@ impl Launcher {
     }
 }
 
-/// Resolves when a legacy consumer asks the UDP server to stop.
-///
-/// A dropped halt sender counts as a stop request instead of a panic. The
-/// global OS signal is still observed until the legacy API is removed (SI-19).
-#[allow(
-    deprecated,
-    reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
-)]
-async fn legacy_stop_requested(rx_halt: oneshot::Receiver<Halted>, message: String) {
-    select! {
-        () = halt_requested(rx_halt) => (),
-        () = global_shutdown_signal() => tracing::debug!(target: UDP_TRACKER_LOG_TARGET, "Global shutdown signal processed"),
-    }
-
-    tracing::info!(target: UDP_TRACKER_LOG_TARGET, "{message}");
-}
-
-#[allow(
-    deprecated,
-    reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
-)]
-async fn halt_requested(rx_halt: oneshot::Receiver<Halted>) {
-    if let Ok(signal) = rx_halt.await {
-        tracing::debug!(target: UDP_TRACKER_LOG_TARGET, "Halt signal processed: {signal}");
-    } else {
-        tracing::warn!(target: UDP_TRACKER_LOG_TARGET, "UDP halt sender dropped; stopping the server");
-    }
-}
-
 fn log_listener_startup(
     bind_to: std::net::SocketAddr,
     connection_id_validation: ConnectionIdValidationPolicy,
@@ -588,19 +468,12 @@ async fn publish_event_if_sender_available(sender: &Sender, event: Event) {
 
 #[cfg(test)]
 mod tests {
-    use std::io::ErrorKind;
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
     use std::sync::Arc;
     use std::sync::atomic::{AtomicUsize, Ordering};
     use std::time::Duration;
 
-    use tokio::sync::oneshot;
     use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
-    #[allow(
-        deprecated,
-        reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
-    )]
-    use torrust_server_lib::signals::{Halted, Started};
     use torrust_tracker_configuration::v3_0_0::logging;
     use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
@@ -613,7 +486,6 @@ mod tests {
     use crate::container::UdpTrackerServerContainer;
     use crate::event::Event;
     use crate::event::receiver::Receiver;
-    use crate::server::bound_socket::BoundSocket;
 
     const TEST_LOG_TARGET: &str = "udp://test";
     // This is an absolute failure bound, not a scheduling delay. Event-publication regressions
@@ -745,112 +617,6 @@ mod tests {
             .expect("the event receiver should remain connected")
     }
 
-    #[tokio::test]
-    #[allow(
-        deprecated,
-        reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
-    )]
-    async fn it_should_report_a_broken_pipe_when_the_startup_notification_receiver_is_dropped() {
-        // Arrange
-        let launcher = UdpLauncherTestContext::new().await;
-        let bound_socket = BoundSocket::bind(launcher.bind_address, false).expect("UDP socket should bind");
-        let (startup_notification_sender, startup_notification_receiver) = oneshot::channel::<Started>();
-        let (_halt_sender, halt_receiver) = oneshot::channel::<Halted>();
-        drop(startup_notification_receiver);
-
-        // Act
-        let result = Launcher::run_with_graceful_shutdown(
-            launcher.udp_tracker_core_container,
-            launcher.udp_tracker_server_container,
-            bound_socket,
-            launcher.cookie_lifetime,
-            ConnectionIdValidationPolicy::Strict,
-            startup_notification_sender,
-            halt_receiver,
-        )
-        .await;
-
-        // Assert
-        assert_eq!(
-            result.expect_err("startup notification should fail").kind(),
-            ErrorKind::BrokenPipe
-        );
-    }
-
-    #[tokio::test]
-    #[allow(
-        deprecated,
-        reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
-    )]
-    async fn it_should_release_the_socket_when_the_startup_notification_receiver_is_dropped() {
-        // Arrange
-        let launcher = UdpLauncherTestContext::new().await;
-        let bound_socket = BoundSocket::bind(launcher.bind_address, false).expect("UDP socket should bind");
-        let bound_address = bound_socket.address();
-        let (startup_notification_sender, startup_notification_receiver) = oneshot::channel::<Started>();
-        let (_halt_sender, halt_receiver) = oneshot::channel::<Halted>();
-        drop(startup_notification_receiver);
-
-        // Act
-        let _result = Launcher::run_with_graceful_shutdown(
-            launcher.udp_tracker_core_container,
-            launcher.udp_tracker_server_container,
-            bound_socket,
-            launcher.cookie_lifetime,
-            ConnectionIdValidationPolicy::Strict,
-            startup_notification_sender,
-            halt_receiver,
-        )
-        .await;
-
-        // Assert
-        BoundSocket::bind(bound_address, false).expect("UDP socket should be released after startup notification failure");
-    }
-
-    /// A legacy launcher that has sent its startup notification and is waiting for a halt.
-    #[allow(
-        deprecated,
-        reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
-    )]
-    struct RunningLegacyLauncher {
-        bound_address: SocketAddr,
-        halt_sender: oneshot::Sender<Halted>,
-        task: tokio::task::JoinHandle<Result<(), std::io::Error>>,
-    }
-
-    impl RunningLegacyLauncher {
-        #[allow(
-            deprecated,
-            reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
-        )]
-        async fn start() -> Self {
-            let launcher = UdpLauncherTestContext::new().await;
-            let bound_socket = BoundSocket::bind(launcher.bind_address, false).expect("UDP socket should bind");
-            let bound_address = bound_socket.address();
-            let (startup_notification_sender, startup_notification_receiver) = oneshot::channel::<Started>();
-            let (halt_sender, halt_receiver) = oneshot::channel::<Halted>();
-            let task = tokio::spawn(Launcher::run_with_graceful_shutdown(
-                launcher.udp_tracker_core_container,
-                launcher.udp_tracker_server_container,
-                bound_socket,
-                launcher.cookie_lifetime,
-                torrust_tracker_udp_core::ConnectionIdValidationPolicy::Strict,
-                startup_notification_sender,
-                halt_receiver,
-            ));
-            tokio::time::timeout(LIFECYCLE_TIMEOUT, startup_notification_receiver)
-                .await
-                .expect("the legacy launcher should start within the test deadline")
-                .expect("the legacy launcher should send its startup notification");
-
-            Self {
-                bound_address,
-                halt_sender,
-                task,
-            }
-        }
-    }
-
     async fn wait_until_bindable(address: SocketAddr) -> bool {
         tokio::time::timeout(LIFECYCLE_TIMEOUT, async {
             while std::net::UdpSocket::bind(address).is_err() {
@@ -859,47 +625,6 @@ mod tests {
         })
         .await
         .is_ok()
-    }
-
-    #[tokio::test]
-    async fn it_should_stop_without_panicking_and_release_the_socket_when_the_legacy_halt_sender_is_dropped() {
-        // Arrange
-        let launcher = RunningLegacyLauncher::start().await;
-
-        // Act
-        drop(launcher.halt_sender);
-        let result = tokio::time::timeout(LIFECYCLE_TIMEOUT, launcher.task)
-            .await
-            .expect("the legacy launcher should stop within the test deadline");
-
-        // Assert
-        assert!(
-            matches!(result, Ok(Ok(()))),
-            "a dropped halt sender should stop the legacy launcher cleanly: {result:?}"
-        );
-        assert!(
-            wait_until_bindable(launcher.bound_address).await,
-            "the legacy launcher must release its socket at {} within {LIFECYCLE_TIMEOUT:?}",
-            launcher.bound_address
-        );
-    }
-
-    #[tokio::test]
-    async fn it_should_release_the_socket_when_the_legacy_launcher_task_is_aborted() {
-        // Arrange
-        let launcher = RunningLegacyLauncher::start().await;
-        let _halt_sender = launcher.halt_sender;
-
-        // Act
-        launcher.task.abort();
-        drop(launcher.task.await);
-
-        // Assert
-        assert!(
-            wait_until_bindable(launcher.bound_address).await,
-            "aborting the legacy launcher must release its socket at {} within {LIFECYCLE_TIMEOUT:?}",
-            launcher.bound_address
-        );
     }
 
     #[tokio::test]

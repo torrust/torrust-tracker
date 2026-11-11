@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: in-progress
+status: done
 priority: p3
 epic: 2003
 github-issue: 2713
-spec-path: docs/issues/open/2713-2003-wait-for-pr-review-timeout-overflow-panic/ISSUE.md
+spec-path: docs/issues/closed/2713-2003-wait-for-pr-review-timeout-overflow-panic/ISSUE.md
 branch: "2713-wait-for-pr-review-timeout-overflow"
 related-pr: 2802
-last-updated-utc: "2026-11-10 14:00"
+last-updated-utc: "2026-11-10 16:40"
 semantic-links:
   skill-links:
     - create-issue
@@ -21,7 +21,7 @@ semantic-links:
     - .github/skills/dev/pr-reviews/wait-for-pr-review/tool/src/main.rs
     - docs/adrs/20260519000000_define_global_cli_output_contract.md
     - docs/issues/closed/2581-2003-pr-review-wait-poller/ISSUE.md
-    - docs/issues/open/2713-2003-wait-for-pr-review-timeout-overflow-panic/manual-verification-evidence.md
+    - docs/issues/closed/2713-2003-wait-for-pr-review-timeout-overflow-panic/manual-verification-evidence.md
 ---
 
 <!-- skill-link: create-issue -->
@@ -154,7 +154,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ### Workflow Checkpoints
 
-- [x] Folder-style spec drafted in `docs/issues/open/2713-2003-wait-for-pr-review-timeout-overflow-panic/ISSUE.md`
+- [x] Folder-style spec drafted in `docs/issues/drafts/`, then moved to `docs/issues/open/2713-2003-wait-for-pr-review-timeout-overflow-panic/ISSUE.md` when the issue was created
 - [x] Reproduction attempted and recorded before review (outcome: Reproduced)
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created (#2713) and issue number added to this spec
@@ -162,8 +162,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [x] Final like-for-like recheck of V1 recorded after the last production change
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Evidence-based implementation completion review recorded
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -175,19 +175,29 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   describes ran. The reproduction and lint commands ran between 11:49 and 11:56 UTC, as the command output and
   `manual-verification-evidence.md` record, so the drafting stamp is wrong. The earlier entries are kept unchanged,
   and `last-updated-utc` now holds the time of this edit.
-- 2026-11-10 12:59 UTC - AI assistant (Claude Code) - The maintainer chose option 1 with a maximum of 86400 s. T1: the new
+- 2026-11-10 12:59 UTC - AI assistant (Claude Code, Claude Sonnet 5.5) - The maintainer chose option 1 with a maximum of 86400 s. T1: the new
   tests failed on the unfixed code (oversized value exit `101`, 86401 exit `0`). T2/T4: added
   `MAX_TIMEOUT_SECONDS = 86_400` as the clap range upper bound, updated the `--help` text and the skill table.
   T3: `cargo test -p wait-for-pr-review` and clippy pass; V2 recorded.
-- 2026-11-10 13:28 UTC - AI assistant (Claude Code) - Review round 1 (da2ce7): moved `MAX_TIMEOUT_SECONDS` above the
+- 2026-11-10 13:28 UTC - AI assistant (Claude Code, Claude Sonnet 5.5) - Review round 1 (da2ce7): moved `MAX_TIMEOUT_SECONDS` above the
   `Cli` doc comment so `--help` keeps its description, and added a help-text assertion; renamed `gh_calls` to
   `pull_calls`; V2 rerun on the new build and recorded with the green output; this bookkeeping updated.
 
-- 2026-11-10 13:31 UTC - AI assistant (Claude Code) - Review round 2 (Copilot): reworded the `MAX_TIMEOUT_SECONDS` doc
+- 2026-11-10 13:31 UTC - AI assistant (Claude Code, Claude Sonnet 5.5) - Review round 2 (Copilot): reworded the `MAX_TIMEOUT_SECONDS` doc
   comment (no claim of a guarantee), made the `pull_calls` parse failure explicit, put the recorded stderr in a code
   block. A `checked_add` on the deadline was not added: the spec chose option 1 and this is out of scope.
-- 2026-11-10 14:00 UTC - AI assistant (Claude Code) - Review round 3 (da2ce7): fixed the residuals of F2-F5 and the
+- 2026-11-10 14:00 UTC - AI assistant (Claude Code, Claude Sonnet 5.5) - Review round 3 (da2ce7): fixed the residuals of F2-F5 and the
   stamps, edited the PR description, and added the review audit record `docs/pr-reviews/pr-2802-review/PR-REVIEW.md`.
+- 2026-11-10 15:44 UTC - AI assistant (Claude Code, Claude Sonnet 5.5) - Archived: GitHub issue #2713 closed at 15:39 UTC by the merge of
+  pull request #2802; the spec moved to `docs/issues/closed/`, the EPIC #2003 row is DONE, and the completion
+  checkpoints and the retrospective are recorded. No process retrospective is needed because the review findings
+  are recorded in the pull request audit `docs/pr-reviews/pr-2802-review/PR-REVIEW.md` and the one regression the
+  reviews found is guarded by a test.
+- 2026-11-10 16:05 UTC - AI assistant (Claude Code, Claude Sonnet 5.5) - Review of the close-out pull request (Copilot): the
+  agent log entries named the tool but not the model; every entry of 2026-11-10 above now names the model.
+- 2026-11-10 16:40 UTC - AI assistant (Claude Code, Claude Sonnet 5.5) - Close-out review (da2ce7): the drafting
+  checkpoint and the reason no retrospective is needed were corrected, and the 16:05 entry was
+  narrowed to the 2026-11-10 entries, since the 2026-11-04 entries name no model.
 
 ## Acceptance Criteria
 
@@ -239,7 +249,7 @@ None. The reproduction is a single command on the real binary.
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
+- Retrospective: No process retrospective needed. The fix was one validation bound; the review rounds found a regression in `--help` (the constant took the `Cli` doc comment), which the help test now guards, and record hygiene findings (stamps, build naming, audit record) covered by `docs/pr-reviews/pr-2802-review/PR-REVIEW.md`.
 - If no retrospective is needed, add a concise progress-log entry explaining why.
 
 ## References

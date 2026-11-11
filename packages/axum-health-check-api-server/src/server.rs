@@ -10,26 +10,15 @@ use axum::response::Response;
 use axum::routing::get;
 use axum::{Json, Router};
 use axum_server::Handle;
-use futures::Future;
 use hyper::Request;
 use serde_json::json;
-use tokio::sync::oneshot::{Receiver, Sender};
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
 use torrust_server_lib::logging::{Latency, STARTED_ON};
 use torrust_server_lib::registar::{Registar, RegistrationError, ServiceRegistration};
-#[allow(
-    deprecated,
-    reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
-)]
-use torrust_server_lib::signals::{Halted, Started};
 use torrust_tracker_axum_server::custom_axum_server;
-#[allow(
-    deprecated,
-    reason = "deprecated legacy shutdown API kept for compatibility until SI-19 removes it"
-)]
-use torrust_tracker_axum_server::signals::{GracefulShutdownOutcome, graceful_shutdown, graceful_shutdown_on_cancellation};
+use torrust_tracker_axum_server::signals::{GracefulShutdownOutcome, graceful_shutdown_on_cancellation};
 use torrust_tracker_primitives::{Readiness, RuntimeServiceMetadata};
 use tower_http::LatencyUnit;
 use tower_http::classify::ServerErrorsFailureClass;
@@ -37,7 +26,7 @@ use tower_http::compression::CompressionLayer;
 use tower_http::propagate_header::PropagateHeaderLayer;
 use tower_http::request_id::{MakeRequestUuid, SetRequestIdLayer};
 use tower_http::trace::{DefaultMakeSpan, TraceLayer};
-use tracing::{Level, Span, instrument};
+use tracing::{Level, Span};
 
 use crate::HEALTH_CHECK_API_LOG_TARGET;
 use crate::handlers::{HealthCheckState, health_check_handler};
@@ -58,8 +47,7 @@ pub enum Error {
 
 /// A token-aware health-check runtime and its owned drain controller.
 ///
-/// The caller must retain and join both handles. [`RunningServer`] remains the
-/// compatibility path for consumers using [`Halted`].
+/// The caller must retain and join both handles.
 pub struct CancellationRunning {
     pub local_addr: SocketAddr,
     /// The binding this server registered in the `registar`. A caller that
@@ -70,104 +58,12 @@ pub struct CancellationRunning {
     pub shutdown_controller: JoinHandle<GracefulShutdownOutcome>,
 }
 
-/// A health-check server's runtime future and its graceful-shutdown controller.
-///
-/// The caller owns both tasks. It must join them during normal shutdown or
-/// abort them when its enclosing component is aborted.
-#[deprecated(
-    since = "0.2.0",
-    note = "use `CancellationRunning` from `start_with_cancellation`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
-)]
-pub struct RunningServer<F> {
-    pub running: F,
-    pub shutdown_controller: JoinHandle<()>,
-}
-
-/// Starts Health Check API server.
-///
-/// # Errors
-///
-/// Returns an error if the listener cannot bind or be configured, or if the
-/// startup receiver is dropped before the listener is reported.
-#[instrument(skip(bind_to, tx, rx_halt, registar))]
-#[allow(
-    deprecated,
-    reason = "legacy shutdown path on the deprecated `Halted` channel; SI-19 removes it"
-)]
-///
-/// The deprecation is part of the contract until SI-19 removes this item. Using it without an allowance fails
-/// under `deny(deprecated)`:
-///
-/// ```
-/// use torrust_tracker_axum_health_check_api_server::server::start;
-/// let _ = start;
-/// ```
-///
-/// ```compile_fail
-/// #![deny(deprecated)]
-/// use torrust_tracker_axum_health_check_api_server::server::start;
-/// let _ = start;
-/// ```
-#[deprecated(
-    since = "0.2.0",
-    note = "use `start_with_cancellation` with a `CancellationToken`; removal is planned for the next breaking release of this package (SI-19, EPIC #1488); executables, not libraries, own OS-signal subscriptions (see docs/features/shutdown-process/legacy-api-migration.md)"
-)]
-pub fn start(
-    bind_to: SocketAddr,
-    tx: Sender<Started>,
-    rx_halt: Receiver<Halted>,
-    registar: Registar<RuntimeServiceMetadata>,
-) -> Result<RunningServer<impl Future<Output = Result<(), std::io::Error>> + Send>, std::io::Error> {
-    // The signal-based path has no application lifecycle: it is always ready.
-    let router = router(registar, Readiness::default());
-
-    let socket = std::net::TcpListener::bind(bind_to)?;
-    socket.set_nonblocking(true)?;
-    let address = socket.local_addr()?;
-    let protocol = Protocol::HTTP; // The health check API only supports HTTP directly now. Use a reverse proxy for HTTPS.
-    let service_binding = ServiceBinding::new(protocol, address).map_err(std::io::Error::other)?;
-
-    let handle = Handle::new();
-
-    tracing::debug!(target: HEALTH_CHECK_API_LOG_TARGET, "Starting service with graceful shutdown in a spawned task ...");
-
-    let shutdown_controller = tokio::task::spawn(graceful_shutdown(
-        handle.clone(),
-        rx_halt,
-        format!("Shutting down http server on socket address: {address}"),
-        address,
-    ));
-
-    let running = custom_axum_server::from_tcp_with_timeouts(socket)?
-        .handle(handle)
-        .serve(router.into_make_service_with_connect_info::<SocketAddr>());
-
-    if tx
-        .send(Started {
-            service_binding,
-            address,
-        })
-        .is_err()
-    {
-        shutdown_controller.abort();
-        return Err(std::io::Error::new(
-            std::io::ErrorKind::BrokenPipe,
-            "health check startup receiver was dropped",
-        ));
-    }
-
-    Ok(RunningServer {
-        running,
-        shutdown_controller,
-    })
-}
-
 /// Starts the Health Check API using an injected cancellation token.
 ///
 /// `readiness` is read on every `/health_check` request: while it is not ready the endpoint
 /// answers `503 Service Unavailable` without probing any registered service.
 ///
-/// This additive path does not subscribe to operating-system signals. It
+/// This path does not subscribe to operating-system signals. It
 /// registers the service and, if registration fails, cancels
 /// `cancellation_token`, stops both children, and releases the listener before
 /// returning. Otherwise the caller owns the returned runtime task and drain
@@ -353,40 +249,6 @@ mod tests {
 
             Self { bind_to, registar }
         }
-    }
-
-    /// The deprecated `Halted`-based `start` must keep working until SI-19 removes it.
-    #[tokio::test]
-    #[allow(
-        deprecated,
-        reason = "proves the deprecated legacy `start` still compiles and works until SI-19"
-    )]
-    async fn it_should_stop_the_legacy_server_when_a_normal_halt_is_sent() {
-        use torrust_server_lib::signals::{Halted, Started};
-
-        // Arrange
-        let (tx_start, rx_start) = tokio::sync::oneshot::channel::<Started>();
-        let (tx_halt, rx_halt) = tokio::sync::oneshot::channel::<Halted>();
-        let running = crate::server::start(any_available_port(), tx_start, rx_halt, Registar::default())
-            .expect("the legacy health check API should start");
-        let server = tokio::spawn(running.running);
-        rx_start.await.expect("the legacy start should report the bound address");
-
-        // Act
-        tx_halt
-            .send(Halted::Normal)
-            .expect("the legacy halt receiver should be alive");
-
-        // Assert
-        tokio::time::timeout(TEST_COMPLETION_TIMEOUT, running.shutdown_controller)
-            .await
-            .expect("the legacy shutdown controller should finish")
-            .expect("the legacy shutdown controller should not panic");
-        tokio::time::timeout(TEST_COMPLETION_TIMEOUT, server)
-            .await
-            .expect("the legacy server should stop after the halt")
-            .expect("the legacy server task should not panic")
-            .expect("the legacy server should stop without an I/O error");
     }
 
     #[tokio::test]

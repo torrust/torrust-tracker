@@ -1,10 +1,26 @@
-# BitTorrent Tracker Client
+# Torrust Tracker Client Library
 
-A library to interact with BitTorrent trackers.
+`torrust-tracker-client-lib` is a Rust client library for BitTorrent trackers over UDP and HTTP: announce and scrape requests with generic clients. It is published as `torrust-tracker-client-lib`.
 
-> **Disclaimer**: This project is actively under development. We’re currently extracting and refining common types from the[Torrust Tracker](https://github.com/torrust/torrust-tracker) to make them available to the BitTorrent community in Rust. While these types are functional, they are not yet ready for use in production or third-party projects.
+## Where it fits
+
+Client package. Workspace dependencies: `torrust-tracker-http-protocol`, `torrust-tracker-udp-protocol`. Used by: `torrust-tracker-client`, `torrust-tracker-udp-server`. See the [package catalog](https://github.com/torrust/torrust-tracker/blob/develop/docs/packages.md#package-catalog) for the full picture.
+
+## Main API
+
+`udp` and `http` hold the clients for each protocol and `peer_id` builds peer ids.
+
+## Stability
+
+Versions are independent per package (see the [ADR](https://github.com/torrust/torrust-tracker/blob/develop/docs/adrs/20260629000000_adopt_independent_package_versioning.md)). While the version is `0.x`, the public API can change in any minor release. The crate is developed for the Torrust Tracker first, so use it directly only if you accept that.
+
+## Documentation
+
+- [API documentation](https://docs.rs/torrust-tracker-client-lib)
 
 ## License
+
+This crate is licensed `LGPL-3.0-only`.
 
 **Copyright (c) 2024 The Torrust Developers.**
 
@@ -18,8 +34,8 @@ Some files include explicit copyright notices and/or license notices.
 
 ### Legacy Exception
 
-For prosperity, versions of Torrust BitTorrent Tracker Client that are older than five years are automatically granted the [MIT-0][MIT_0] license in addition to the existing [LGPL-3.0-only][LGPL_3_0] license.
+For posterity, versions of Torrust BitTorrent Tracker Client that are older than five years are automatically granted the [MIT-0][MIT_0] license in addition to the existing [LGPL-3.0-only][LGPL_3_0] license.
 
-[LGPL_3_0]: ../../LICENSE
-[MIT_0]: ../../docs/licenses/LICENSE-MIT_0
+[LGPL_3_0]: https://www.gnu.org/licenses/lgpl-3.0.html
+[MIT_0]: https://github.com/torrust/torrust-tracker/blob/develop/docs/licenses/LICENSE-MIT_0
 [FSF]: https://www.fsf.org/

@@ -118,11 +118,25 @@ struct Committer {
 
 /// Fetches the current state of `pull_request`.
 ///
+/// The head commit is fetched after the feedback, so it never predates a push that the feedback was
+/// already about when it was fetched. This is about the order of the requests, not commit ordering.
+///
 /// # Errors
 ///
 /// Returns an error when a request fails or a response does not have the expected shape.
 pub fn take_snapshot(gh: &impl Gh, pull_request: &PullRequest) -> Result<Snapshot, Error> {
     let pull_endpoint = pull_request.endpoint(&format!("pulls/{}", pull_request.number));
+    let reviews = fetch_all(gh, &format!("{pull_endpoint}/reviews?per_page=100"))?;
+    let issue_comments = fetch_all(
+        gh,
+        &pull_request.endpoint(&format!("issues/{}/comments?per_page=100", pull_request.number)),
+    )?;
+    let review_comments = fetch_all(gh, &format!("{pull_endpoint}/comments?per_page=100"))?;
+
+    // The head is read after the feedback, not before: a push that a reviewer reviewed while the
+    // feedback was being read is then already in the head, so the head never predates the feedback.
+    // A push between the feedback reads and this read makes the head newer than the feedback, a safe
+    // false alarm. A push after this read is not in the snapshot; the next poll reports it.
     let pull: PullResponse = decode(&pull_endpoint, gh.get(&pull_endpoint)?)?;
 
     let state = if pull.merged {
@@ -136,12 +150,9 @@ pub fn take_snapshot(gh: &impl Gh, pull_request: &PullRequest) -> Result<Snapsho
     Ok(Snapshot {
         head_sha: pull.head.sha,
         state,
-        reviews: fetch_all(gh, &format!("{pull_endpoint}/reviews?per_page=100"))?,
-        issue_comments: fetch_all(
-            gh,
-            &pull_request.endpoint(&format!("issues/{}/comments?per_page=100", pull_request.number)),
-        )?,
-        review_comments: fetch_all(gh, &format!("{pull_endpoint}/comments?per_page=100"))?,
+        reviews,
+        issue_comments,
+        review_comments,
     })
 }
 
@@ -209,6 +220,8 @@ pub mod fake {
     pub struct FakeGh {
         responses: RefCell<HashMap<String, VecDeque<Result<Value, Failure>>>>,
         pub calls: RefCell<Vec<String>>,
+        /// `(trigger, endpoint, response)`: once `trigger` is called, `endpoint` answers `response` from then on.
+        replacements: RefCell<Vec<(String, String, Value)>>,
         pub authenticated: bool,
     }
 
@@ -227,6 +240,14 @@ pub mod fake {
                 .entry(endpoint.to_owned())
                 .or_default()
                 .push_back(Ok(response));
+        }
+
+        /// Once `trigger` has been called, `endpoint` answers `response` from then on, as when the
+        /// state of the pull request changes between two requests of one snapshot.
+        pub fn replace_after(&self, trigger: &str, endpoint: &str, response: Value) {
+            self.replacements
+                .borrow_mut()
+                .push((trigger.to_owned(), endpoint.to_owned(), response));
         }
 
         pub fn fail(&self, endpoint: &str, message: &str) {
@@ -249,6 +270,13 @@ pub mod fake {
         fn next(&self, endpoint: &str) -> Result<Value, Error> {
             self.calls.borrow_mut().push(endpoint.to_owned());
             let mut responses = self.responses.borrow_mut();
+            self.replacements.borrow_mut().retain(|(trigger, target, response)| {
+                if trigger != endpoint {
+                    return true;
+                }
+                responses.insert(target.clone(), VecDeque::from([Ok(response.clone())]));
+                false
+            });
             let queue = responses
                 .get_mut(endpoint)
                 .unwrap_or_else(|| panic!("no response scripted for {endpoint}"));
@@ -347,6 +375,81 @@ mod tests {
 
         assert_eq!(snapshot.reviews.len(), 1);
         assert_eq!(snapshot.reviews[0].user, None);
+    }
+
+    fn head_race_review_of_b() -> serde_json::Value {
+        json!([{"id": 1, "user": {"login": "da2ce7"}, "state": "COMMENTED", "commit_id": "bbbb", "html_url": "u", "submitted_at": "2026-10-28T07:00:00Z"}])
+    }
+
+    #[test]
+    fn it_should_fetch_the_head_after_a_review_that_arrived_after_the_first_request() {
+        let gh = FakeGh::new();
+        gh.respond(
+            "repos/torrust/torrust-tracker/pulls/7",
+            json!({"head": {"sha": "aaaa"}, "state": "open", "merged": false}),
+        );
+        gh.replace_after(
+            "repos/torrust/torrust-tracker/pulls/7/reviews?per_page=100",
+            "repos/torrust/torrust-tracker/pulls/7",
+            json!({"head": {"sha": "bbbb"}, "state": "open", "merged": false}),
+        );
+        gh.respond(
+            "repos/torrust/torrust-tracker/pulls/7/reviews?per_page=100",
+            head_race_review_of_b(),
+        );
+        gh.respond("repos/torrust/torrust-tracker/issues/7/comments?per_page=100", json!([]));
+        gh.respond("repos/torrust/torrust-tracker/pulls/7/comments?per_page=100", json!([]));
+
+        let snapshot = take_snapshot(&gh, &pull_request()).unwrap();
+
+        assert_eq!(snapshot.reviews[0].commit_id.as_deref(), Some("bbbb"));
+        assert_eq!(snapshot.head_sha, "bbbb");
+    }
+
+    #[test]
+    fn it_should_fetch_the_head_after_a_conversation_comment_that_arrived_after_the_first_request() {
+        let gh = FakeGh::new();
+        gh.respond(
+            "repos/torrust/torrust-tracker/pulls/7",
+            json!({"head": {"sha": "aaaa"}, "state": "open", "merged": false}),
+        );
+        gh.replace_after(
+            "repos/torrust/torrust-tracker/issues/7/comments?per_page=100",
+            "repos/torrust/torrust-tracker/pulls/7",
+            json!({"head": {"sha": "bbbb"}, "state": "open", "merged": false}),
+        );
+        gh.respond("repos/torrust/torrust-tracker/pulls/7/reviews?per_page=100", json!([]));
+        gh.respond(
+            "repos/torrust/torrust-tracker/issues/7/comments?per_page=100",
+            json!([{"id": 5, "user": {"login": "da2ce7"}, "html_url": "u", "created_at": "2026-10-28T07:00:00Z"}]),
+        );
+        gh.respond("repos/torrust/torrust-tracker/pulls/7/comments?per_page=100", json!([]));
+
+        let snapshot = take_snapshot(&gh, &pull_request()).unwrap();
+
+        assert_eq!(snapshot.issue_comments.len(), 1);
+        assert_eq!(snapshot.head_sha, "bbbb");
+    }
+
+    #[test]
+    fn it_should_report_the_head_that_was_read_when_nothing_changed_while_taking_the_snapshot() {
+        let gh = FakeGh::new();
+        gh.respond(
+            "repos/torrust/torrust-tracker/pulls/7",
+            json!({"head": {"sha": "aaaa"}, "state": "open", "merged": false}),
+        );
+        gh.respond(
+            "repos/torrust/torrust-tracker/pulls/7/reviews?per_page=100",
+            json!([{"id": 1, "user": {"login": "da2ce7"}, "state": "COMMENTED", "commit_id": "aaaa", "html_url": "u", "submitted_at": "2026-10-28T07:00:00Z"}]),
+        );
+        gh.respond("repos/torrust/torrust-tracker/issues/7/comments?per_page=100", json!([]));
+        gh.respond("repos/torrust/torrust-tracker/pulls/7/comments?per_page=100", json!([]));
+
+        let snapshot = take_snapshot(&gh, &pull_request()).unwrap();
+
+        assert_eq!(snapshot.reviews[0].commit_id.as_deref(), Some("aaaa"));
+        assert_eq!(snapshot.head_sha, "aaaa");
+        assert_eq!(snapshot.state, PullState::Open);
     }
 
     #[test]

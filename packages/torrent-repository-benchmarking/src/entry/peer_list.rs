@@ -10,7 +10,7 @@ use torrust_tracker_primitives::{PeerId, peer};
 // For example, two peers with the same socket address but a different peer Id
 // would be allowed. That would lead to duplicated peers in the tracker responses.
 
-#[derive(Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct PeerList {
     peers: std::collections::BTreeMap<PeerId, Arc<peer::Peer>>,
 }

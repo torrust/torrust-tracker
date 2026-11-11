@@ -493,6 +493,7 @@ rusqlite
 rustc
 rustdoc
 rustfmt
+rustlib
 rustup
 rwxrwxr
 samv
@@ -584,6 +585,7 @@ udpv
 ulnp
 unconfigured
 underflows
+ungated
 ungetwc
 uninit
 unistd

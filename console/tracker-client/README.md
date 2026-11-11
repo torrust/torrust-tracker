@@ -2,7 +2,7 @@
 
 A collection of console clients to make requests to BitTorrent trackers.
 
-> **Disclaimer**: This project is actively under development. We’re currently extracting and refining common functionality from the [Torrust Tracker](https://github.com/torrust/torrust-tracker) to make it available to the BitTorrent community in Rust. While these tools are functional, they are not yet ready for use in production or third-party projects.
+> **Stability**: versions are independent per package (see the [ADR](https://github.com/torrust/torrust-tracker/blob/develop/docs/adrs/20260629000000_adopt_independent_package_versioning.md)). While the version is `0.x`, the commands and options can change in any minor release. The tool is developed for the Torrust Tracker first.
 
 There are currently three console clients available:
 
@@ -185,6 +185,8 @@ Output:
 
 ## License
 
+This crate is licensed `LGPL-3.0-only`.
+
 **Copyright (c) 2024 The Torrust Developers.**
 
 This program is free software: you can redistribute it and/or modify it under the terms of the [GNU Lesser General Public License][LGPL_3_0] as published by the [Free Software Foundation][FSF], version 3.
@@ -197,8 +199,8 @@ Some files include explicit copyright notices and/or license notices.
 
 ### Legacy Exception
 
-For prosperity, versions of Torrust BitTorrent Tracker Client that are older than five years are automatically granted the [MIT-0][MIT_0] license in addition to the existing [LGPL-3.0-only][LGPL_3_0] license.
+For posterity, versions of Torrust BitTorrent Tracker Client that are older than five years are automatically granted the [MIT-0][MIT_0] license in addition to the existing [LGPL-3.0-only][LGPL_3_0] license.
 
-[LGPL_3_0]: ../../LICENSE
-[MIT_0]: ../../docs/licenses/LICENSE-MIT_0
+[LGPL_3_0]: https://www.gnu.org/licenses/lgpl-3.0.html
+[MIT_0]: https://github.com/torrust/torrust-tracker/blob/develop/docs/licenses/LICENSE-MIT_0
 [FSF]: https://www.fsf.org/

@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p2
 epic: 1669
 github-issue: 2576
 spec-path: docs/issues/open/2576-1669-update-all-package-readmes/ISSUE.md
-branch: "2576-1669-update-all-package-readmes-spec"
-related-pr: null
-last-updated-utc: "2026-11-10 12:33"
+branch: "i2576-update-package-readmes"
+related-pr: 2812
+last-updated-utc: "2026-11-10 19:03"
 semantic-links:
   skill-links:
     - create-issue
@@ -115,6 +115,10 @@ The maintainer's answers of 2026-10-20 set this scope:
 | LGPL crates                 | Fix the license links and use `LGPL-3.0-only`.                                                                 |
 | Start                       | After #2482 is closed.                                                                                         |
 | Template                    | Add a reusable `docs/templates/PACKAGE-README.md`.                                                             |
+| Stability notice            | Replace the "not ready for production" disclaimers (`http-core`, `tracker-core`, `udp-core`, `tracker-client`, console client) with a version-based note: `0.x` APIs may change in any minor release, versions are independent, built for the tracker first (2026-11-10). |
+| README Rust examples        | Few: only crates meant for reuse (protocol crates, `primitives`, `rest-api-client`, `tracker-client`) and only when the example compiles without a running tracker (2026-11-10). |
+| Versions                    | No version bump here; the publish tracking issue (#2583) releases the new README and metadata of tier P (2026-11-10). |
+| Keywords and categories     | The agent proposes a per-crate table in chat; the maintainer approves it before manifests change (2026-11-10).  |
 
 ### In Scope
 
@@ -167,10 +171,11 @@ For each README in scope:
    `docs/packages.md` for the full picture.
 4. **Main API.** The few public types, traits or modules a user starts from, or a link to
    docs.rs when the list would only repeat it.
-5. **Usage.** A short example for crates meant for reuse outside the tracker (for example the
-   protocol crates, `primitives`, `rest-api-client`, `tracker-client`). Rust examples are
-   compile-checked through the README doctest hook; a crate without the hook has no Rust code
-   blocks in its README.
+5. **Usage.** Optional. A short example for crates meant for reuse outside the tracker (for
+   example the protocol crates, `primitives`, `rest-api-client`, `tracker-client`), added only
+   when it compiles without a running tracker. Rust examples are compile-checked through the
+   README doctest hook; a crate without the hook has no Rust code blocks in its README. This PR
+   adds no example (a follow-up can add them), so no README doctest hook exists yet.
 6. **Stability.** An accurate statement for a `0.x` or `3.x` crate, replacing the current
    disclaimers.
 7. **Documentation.** A link to the crate's own docs.rs page (`https://docs.rs/<crate>`), plus
@@ -188,10 +193,37 @@ For each README in scope:
 | Field           | Rule                                                                                                                       |
 | --------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | `description`   | One accurate plain-text sentence about the crate (crates.io requires it).                                                 |
-| `keywords`      | At most 5; ASCII, at most 20 characters; no filler (`library`, `rust`, `api`); no repeat of words already in the name. |
+| `keywords`      | At most 5; ASCII, at most 20 characters; no filler (`library`, `rust`, `api`); a word of the crate name may repeat only where the approved table below lists that keyword. |
 | `categories`    | 1 to 5 valid crates.io slugs (`https://crates.io/category_slugs`).                                                         |
 | `documentation` | Absent, in members and in `[workspace.package]`; crates.io then links the crate's own docs.rs page.                      |
 | `readme`        | `README.md` (already set everywhere; keep).                                                                                |
+
+Approved keywords and categories (maintainer, 2026-11-10; the root crate keeps its existing keywords, including `tracker`). AC2 is checked against this table:
+
+| Crate | Keywords | Categories |
+| ----- | -------- | ---------- |
+| `torrust-tracker-client` | announce, bittorrent, cli, scrape, udp | command-line-utilities, network-programming |
+| `torrust-tracker-client-lib` | announce, bittorrent, http, scrape, udp | network-programming, web-programming::http-client |
+| `torrust-tracker-http-protocol` | announce, bencode, bittorrent, http, scrape | network-programming, parser-implementations |
+| `torrust-tracker-udp-protocol` | announce, bep15, bittorrent, scrape, udp | network-programming, parser-implementations |
+| `torrust-tracker-axum-health-check-api-server` | axum, bittorrent, healthcheck, http, monitoring | web-programming::http-server |
+| `torrust-tracker-axum-server` | axum, graceful-shutdown, http, timeout, tls | web-programming::http-server, asynchronous |
+| `torrust-tracker-configuration` | bittorrent, config, settings, toml | config |
+| `torrust-tracker-primitives` | announce, bittorrent, info-hash, peer, swarm | data-structures, network-programming |
+| `torrust-tracker-axum-http-server` | announce, axum, bittorrent, http, scrape | web-programming::http-server, network-programming |
+| `torrust-tracker-core` | announce, bittorrent, peers, scrape, whitelist | network-programming |
+| `torrust-tracker-events` | async, broadcast, channels, pubsub | asynchronous, data-structures |
+| `torrust-tracker-swarm-coordination-registry` | bittorrent, concurrency, in-memory, peers, torrents | data-structures, network-programming |
+| `torrust-tracker-test-helpers` | bittorrent, fixtures, mock, testing | development-tools::testing |
+| `torrust-tracker-http-core` | announce, bittorrent, http, scrape, whitelist | network-programming |
+| `torrust-tracker-axum-rest-api-server` | axum, bittorrent, http, openapi, rest | web-programming::http-server |
+| `torrust-tracker-rest-api-application` | application, bittorrent, rest, use-cases | web-programming |
+| `torrust-tracker-rest-api-protocol` | bittorrent, contract, dto, rest, serde | web-programming |
+| `torrust-tracker-rest-api-client` | bittorrent, http-client, reqwest, rest | web-programming::http-client |
+| `torrust-tracker-rest-api-runtime-adapter` | adapter, bittorrent, hexagonal, rest, runtime | web-programming |
+| `torrust-tracker-udp-core` | announce, bittorrent, connection-id, scrape, udp | network-programming |
+| `torrust-tracker-udp-server` | announce, bittorrent, scrape, tokio, udp | network-programming, asynchronous |
+| `torrust-tracker` | bittorrent, file-sharing, peer-to-peer, torrent, tracker | network-programming, web-programming::http-server |
 
 ## Architectural Decisions
 
@@ -222,13 +254,13 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID  | Status  | Task                                                               | Notes / Expected Output                                                                                                                                      |
 | --- | ------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | T1  | DONE    | Confirm the rename issues are closed                               | #1816, #1819, #1821, #1823, #1829 and #1910 are closed (checked 2026-10-20).                                                                                 |
-| T2  | BLOCKED | Wait for #2482 to close, then re-baseline the package set          | Blocked on #2482. Record the `cargo metadata` tiers (including any crate #2482 adds) and the README baseline in `manual-verification-evidence.md`.           |
-| T3  | TODO    | Add the package README template                                    | `docs/templates/PACKAGE-README.md` encodes the quality bar (use the `create-markdown-template` skill); listed in `docs/templates/README.md`.                  |
-| T4  | TODO    | Remove the inherited `documentation` field                         | No member sets or inherits `documentation`; `[workspace.package]` has no `documentation` key; the workspace builds.                                         |
-| T5  | TODO    | Update each tier U and P crate, stubs first, then minimal, then good | Per crate: README from the template, metadata rules, license section, doctest hook when the README has Rust examples. Root crate: metadata only. Console client: metadata and license fix only. |
-| T6  | TODO    | Fix the tier N READMEs                                             | Correct titles; the `cargo bench` command names an existing package; links work.                                                                             |
-| T7  | TODO    | Re-audit and refresh `readme-audit.md`                             | No tier U or P package rated stub or minimal; audit dated and summarized.                                                                                    |
-| T8  | TODO    | Run verification and review acceptance criteria                    | Automatic checks pass; manual scenarios recorded in `manual-verification-evidence.md`.                                                                      |
+| T2  | DONE    | Re-baseline the package set (#2482 closed, verified 2026-11-10)    | Unblocked. Record the `cargo metadata` tiers (including any crate #2482 adds) and the README baseline in `manual-verification-evidence.md`.           |
+| T3  | DONE    | Add the package README template                                    | `docs/templates/PACKAGE-README.md` encodes the quality bar (use the `create-markdown-template` skill); listed in `docs/templates/README.md`.                  |
+| T4  | DONE    | Remove the inherited `documentation` field                         | No member sets or inherits `documentation`; `[workspace.package]` has no `documentation` key; the workspace builds.                                         |
+| T5  | DONE    | Update each tier U and P crate, stubs first, then minimal, then good | Per crate: README from the template, metadata rules, license section, doctest hook when the README has Rust examples. Root crate: metadata only. Console client: metadata and license fix only. |
+| T6  | DONE    | Fix the tier N READMEs                                             | Correct titles; the `cargo bench` command names an existing package; links work.                                                                             |
+| T7  | DONE    | Re-audit and refresh `readme-audit.md`                             | No tier U or P package rated stub or minimal; audit dated and summarized.                                                                                    |
+| T8  | DONE    | Run verification and review acceptance criteria                    | Automatic checks pass; manual scenarios recorded in `manual-verification-evidence.md`.                                                                      |
 
 ## Commit Points
 
@@ -251,11 +283,11 @@ Commit.
 - [x] Folder-style spec drafted in `docs/issues/drafts/1669-update-all-package-readmes/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] Spec-only PR merged into `develop` before implementation
-- [ ] #2482 closed before implementation starts
-- [ ] Implementation completed
+- [x] Spec-only PR merged into `develop` before implementation
+- [x] #2482 closed before implementation starts
+- [x] Implementation completed
 - [ ] Automatic verification completed (`linter all`, metadata check, `cargo package --list`, pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
@@ -288,21 +320,48 @@ Commit.
   `cargo metadata --no-deps`: the workspace has 32 members and seven `contrib/dev-tools/` members;
   the 2026-10-20 count missed `workspace-coupling`. The publishable and published counts are
   unchanged. Found while syncing the package catalogs for #1669.
+- 2026-11-10 16:17 UTC - Claude (Sonnet 5.5) - Refreshed against `develop` (#2482 closed, so T2 is
+  unblocked): the package tiers are unchanged (22 publishable, 3 `publish = false`, tier P versions
+  in the workspace are `configuration` 3.0.0, `primitives` 3.1.0, `test-helpers` 3.0.0, root
+  3.0.0-develop); the keyword, `documentation`, LGPL and disclaimer findings still hold.
+  Applied the maintainer's answers on the stability notice, README examples, versions and the
+  keyword/category approval (see the decisions table).
+- 2026-11-10 17:02 UTC - Claude (Sonnet 5.5) - Implemented: template, `documentation` removal, 20
+  crate READMEs and metadata (one commit each), tier N README fixes and root categories. No README
+  has a Rust example (examples were optional), so no doctest hook was added and AC8 holds because
+  no README has a Rust fence. AC6 holds because nothing was published. See
+  `manual-verification-evidence.md`.
+- 2026-11-10 17:37 UTC - Claude (Sonnet 5.5) - PR #2812 review finding F1 (da2ce7): 13 crates' keywords
+  repeat a word of the crate name, against the "no repeat" rule. The maintainer had approved the
+  keyword table, so the rule is amended (a repeat is allowed when it is the word users search for)
+  and the approved table is recorded in the metadata rules section.
+- 2026-11-10 17:45 UTC - Claude (Sonnet 5.5) - PR #2812 review (da2ce7) F2-F8: recorded M1 and per-AC
+  evidence in `manual-verification-evidence.md`; made README examples optional in quality-bar
+  item 5 (none added, so no doctest hook; the audit says the same); registered the template in
+  `docs/index.md` and the `add-workspace-member` skill and noted why it has no frontmatter;
+  corrected two audit notes; removed the deprecated `PeerId` and `DurationSinceUnixEpoch` from the
+  `primitives` README; fixed the REST API client license wording; updated the spec bookkeeping.
+  AC6 is unticked until the merge.
+- 2026-11-10 18:05 UTC - Claude (Sonnet 5.5) - PR #2812 review round 2 (da2ce7) F9, F12, F13 and F14:
+  the keyword rule now lets the approved table list the exceptions; M1 and M3 point at what ran;
+  the stamps carry a time; the baseline wording is corrected. F10 and F11 are answered by the
+  review audit record `docs/pr-reviews/pr-2812-review/PR-REVIEW.md`.
+- 2026-11-10 19:03 UTC - Claude (Sonnet 5.5) - PR #2812 review round 3 (da2ce7) F17: the 18:05 entry above names the audit record's F10 and F11 answers before that record existed. It stays as written. The audit record `docs/pr-reviews/pr-2812-review/PR-REVIEW.md` was added by commit `docs(pr-reviews): [#2576] add the review audit record for PR 2812` (created 18:10:49 UTC) and its F10 and F11 rows by commit `docs(pr-reviews): [#2576] record findings F10 and F11 in the PR 2812 audit` (created 18:13:46 UTC); times from `git log --format=%cI`.
 
 ## Acceptance Criteria
 
-- [ ] AC1: Every tier U and P README in scope meets the README quality bar, and every tier N
+- [x] AC1: Every tier U and P README in scope meets the README quality bar, and every tier N
       README has a correct title, current commands and working links.
-- [ ] AC2: Every tier U and P crate has a `description`, at most 5 valid `keywords` and 1 to 5
+- [x] AC2: Every tier U and P crate has a `description`, at most 5 valid `keywords` and 1 to 5
       valid `categories`; no workspace member sets or inherits `documentation`.
-- [ ] AC3: Every README's license section matches its crate's `license` field and links that
+- [x] AC3: Every README's license section matches its crate's `license` field and links that
       license's text; no crate uses the deprecated `LGPL-3.0` identifier.
-- [ ] AC4: READMEs of crates whose public API #2482 changed describe the post-#2482 API.
-- [ ] AC5: `readme-audit.md` is refreshed and rates no tier U or P package as stub or minimal.
+- [x] AC4: READMEs of crates whose public API #2482 changed describe the post-#2482 API.
+- [x] AC5: `readme-audit.md` is refreshed and rates no tier U or P package as stub or minimal.
 - [ ] AC6: The issue is merged before the first publish of any tier U crate.
-- [ ] AC7: `docs/templates/PACKAGE-README.md` exists, encodes the quality bar and is listed in
+- [x] AC7: `docs/templates/PACKAGE-README.md` exists, encodes the quality bar and is listed in
       `docs/templates/README.md`.
-- [ ] AC8: Every README with Rust code examples is compile-checked by the README doctest hook,
+- [x] AC8: Every README with Rust code examples is compile-checked by the README doctest hook,
       and `cargo test --doc --workspace` passes.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass (`cargo build --workspace` and `cargo test --doc --workspace`)
@@ -338,9 +397,9 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario                              | Human-oriented command/steps                                                                                    | Expected Result                                                              | Status | Evidence                                     |
 | --- | ------------------------------------- | --------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | ------ | -------------------------------------------- |
-| M1  | Read each README as a new user        | Open each changed README on the pushed branch on GitHub; follow every link                                     | Quality bar met; title matches the crate; every link resolves, except each tier U crate's own docs.rs link, which matches `https://docs.rs/<crate name>` and is recorded as pending | TODO   | `manual-verification-evidence.md` section V1 |
-| M2  | Read each README as crates.io shows it | For each tier U crate, run `cargo package -p <crate> --list` and read `README.md` with only the packaged files in mind | No link points to a file that is not packaged unless it is an absolute URL | TODO   | `manual-verification-evidence.md` section V2 |
-| M3  | Re-audit                              | Re-rate every package with the audit's quality scale                                                            | No tier U or P package rated stub or minimal                                 | TODO   | `manual-verification-evidence.md` section V3 |
+| M1  | Read each README as a new user        | Read each changed README source in the checkout; follow every absolute link with `curl`                                     | Quality bar met; title matches the crate; every link resolves, except each tier U crate's own docs.rs link, which matches `https://docs.rs/<crate name>` and is recorded as pending | DONE   | `manual-verification-evidence.md` sections V1 to V4 |
+| M2  | Read each README as crates.io shows it | For each tier U crate, run `cargo package -p <crate> --list` and read `README.md` with only the packaged files in mind | No link points to a file that is not packaged unless it is an absolute URL | DONE   | `manual-verification-evidence.md` section V2 |
+| M3  | Re-audit                              | Re-rate every package with the audit's quality scale                                                            | No tier U or P package rated stub or minimal                                 | DONE   | `manual-verification-evidence.md` section V4 |
 
 Notes:
 
@@ -358,14 +417,14 @@ evidence.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1   | TODO                   |          |
-| AC2   | TODO                   |          |
-| AC3   | TODO                   |          |
-| AC4   | TODO                   |          |
-| AC5   | TODO                   |          |
-| AC6   | TODO                   |          |
-| AC7   | TODO                   |          |
-| AC8   | TODO                   |          |
+| AC1   | DONE                    | `manual-verification-evidence.md`: V2 and V3 |
+| AC2   | DONE                    | `manual-verification-evidence.md`: V1 |
+| AC3   | DONE                    | `manual-verification-evidence.md`: V1 and V3 |
+| AC4   | DONE                    | `manual-verification-evidence.md`: V3 step 1 |
+| AC5   | DONE                    | `manual-verification-evidence.md`: V4 |
+| AC6   | TODO                    | `manual-verification-evidence.md`: Pending the merge; nothing was published |
+| AC7   | DONE                    | `manual-verification-evidence.md`: Template file and the rows in `docs/templates/README.md` and `docs/index.md` |
+| AC8   | DONE                    | `manual-verification-evidence.md`: V5 (no README has a Rust fence) |
 
 ## Risks and Trade-offs
 
