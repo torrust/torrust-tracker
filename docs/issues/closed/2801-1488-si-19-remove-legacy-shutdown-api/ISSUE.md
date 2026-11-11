@@ -9,7 +9,7 @@ github-issue: 2801
 spec-path: docs/issues/closed/2801-1488-si-19-remove-legacy-shutdown-api/ISSUE.md
 branch: "2801-remove-legacy-shutdown-api"
 related-pr: 2807
-last-updated-utc: "2026-11-11 10:19"
+last-updated-utc: "2026-11-11 16:30"
 semantic-links:
   skill-links:
     - create-issue

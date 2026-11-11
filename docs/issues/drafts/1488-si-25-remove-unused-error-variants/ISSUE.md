@@ -9,7 +9,7 @@ github-issue: null
 spec-path: docs/issues/drafts/1488-si-25-remove-unused-error-variants/ISSUE.md
 branch: "1488-si-25-remove-unused-error-variants"
 related-pr: null
-last-updated-utc: "2026-11-11 11:30"
+last-updated-utc: "2026-11-11 16:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -63,7 +63,7 @@ To be written when the draft is refined into an issue.
 
 - 2026-11-11 09:40 UTC - AI agent (Claude Sonnet 5.5) - Draft created as a follow-up of SI-19; not yet a GitHub issue.
 - 2026-11-11 10:59 UTC - AI agent (Claude Sonnet 5.5) - Renamed to an unnumbered folder with `epic: null` and added the Architectural Decisions, Verification Plan and the other initialization sections as placeholders.
-- 2026-11-11 11:30 UTC - AI agent (Claude Sonnet 5.5) - Registered as SI-25 of EPIC 1488: renamed the folder to `1488-si-25-remove-unused-error-variants`, set `epic: 1488` and added the EPIC roadmap row (sequence 22, Draft).
+- 2026-11-11 16:30 UTC - AI agent (Claude Sonnet 5.5) - Registered as SI-25 of EPIC 1488 at the maintainer's direction (josecelano told the EPIC coordinator to turn the SI-19 follow-up drafts into sub-issues SI-25 and SI-26; the parent is now established, which supersedes the 10:59 `epic: null` decision made while the number was unset): renamed the folder to `1488-si-25-remove-unused-error-variants`, set `epic: 1488` and added the EPIC roadmap row (sequence 22, Draft).
 
 ## Acceptance Verification
 
