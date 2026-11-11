@@ -33,7 +33,7 @@ arithmetic/encoding logic with round-trip or bounds properties.
 
 | # | File | Unit-only lines | Tests | Uncovered lines (groups) | Property candidate | Initial hypothesis |
 | ---: | --- | ---: | ---: | --- | --- | --- |
-| 1 | `peer.rs` | 115 / 325 (35.4%) | 8 | `PeerRole` impls (48-77); `Peer` serializers and `ReadInfo` impls (164-318); `Id` conversions/`Display`/`Serialize` (348-495); `fixture` builders (547-636) | Yes: `Id` byte round-trip and hex length; seeder/leecher classification table | Test candidate (largest gap, domain core). Fixture = test support (owner #2482). |
+| 1 | `peer.rs` | 115 / 325 (35.4%) | 8 | `PeerRole` impls (48-77); `Peer` serializers and `ReadInfo` impls (164-318); `Id` conversions/`Display`/`Serialize` (348-495); `fixture` builders (547-636) | Yes: `Id` byte round-trip and hex length; seeder/leecher classification table | Test candidate (largest gap, domain core). Fixture = test support, classified in the `peer.rs` record; any move behind a `testing` feature is owned by the F5 follow-up (EPIC #2482 is closed and did not reorganize it). |
 | 2 | `pagination.rs` | 0 / 21 | 0 | `Pagination` constructor, defaults, `new_with_options` (22-52) | Weak (Option precedence, 2 cases) | Test candidate (small) |
 | 3 | `policy.rs` | 0 / 16 | 0 | `TrackerPolicy` defaults, serde defaults (49-69) | No | Test candidate (documented defaults) |
 | 4 | `announce.rs` | 0 / 16 | 0 | `AnnouncePolicy` defaults and serde defaults, `AnnounceData` default (64-84) | No | Test candidate |
