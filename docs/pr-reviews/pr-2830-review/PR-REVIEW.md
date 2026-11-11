@@ -188,7 +188,7 @@ Round 1: da2ce7 review 5859800072 (`F1` to `F5`) and Copilot review 5859882741 (
 - Current-tree verification: `diff` of both sections against `PR-REVIEW-TEMPLATE.md`.
 - Resolution reference: docs(pr-reviews): [#2830] restore the template sections and fix the R1 and F5 rows
 - Follow-up PR URL: N/A
-- Reply URL: PENDING
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2830#discussion_r4540585741
 
 ### F10 - The reason given for `R1` does not hold: the bot's review and comment carry no finding ID.
 
@@ -201,7 +201,7 @@ Round 1: da2ce7 review 5859800072 (`F1` to `F5`) and Copilot review 5859882741 (
 - Current-tree verification: `git grep -n "audit-local reference" docs/pr-reviews/pr-2830-review/PR-REVIEW.md`.
 - Resolution reference: docs(pr-reviews): [#2830] restore the template sections and fix the R1 and F5 rows
 - Follow-up PR URL: N/A
-- Reply URL: PENDING
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2830#discussion_r4540586183
 
 ### F11 - F5's `Resolution reference` is prose, so the audit validator fails.
 
@@ -214,7 +214,7 @@ Round 1: da2ce7 review 5859800072 (`F1` to `F5`) and Copilot review 5859882741 (
 - Current-tree verification: `git grep -n issuecomment-6801479863 docs/pr-reviews/pr-2830-review/PR-REVIEW.md`.
 - Resolution reference: docs(pr-reviews): [#2830] restore the template sections and fix the R1 and F5 rows
 - Follow-up PR URL: N/A
-- Reply URL: PENDING
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2830#discussion_r4540585294
 
 ## Processing Log
 
@@ -222,6 +222,7 @@ Round 1: da2ce7 review 5859800072 (`F1` to `F5`) and Copilot review 5859882741 (
 - 2026-11-11 16:08 UTC - Round 2 review of da2ce7 received at 14:26 UTC (`F6` to `F8`); this audit and the stamp fix are the commits of the round.
 - 2026-11-11 16:11 UTC - Round 2 replies for `F6` to `F8` posted after the two fix commits; their reply URLs are recorded in the commit that carries this entry.
 - 2026-11-11 16:40 UTC - Round 3 review of da2ce7 received at 16:25 UTC (`F11`, `F9`, `F10`); the fix commit is `docs(pr-reviews): [#2830] restore the template sections and fix the R1 and F5 rows`. From this round the author resolves threads after replying, as the restored template says; all earlier threads are resolved with them.
+- 2026-11-11 16:45 UTC - Round 3 replies posted at 16:44 UTC after the fix commit; their reply URLs are in the commit that carries this entry.
 
 ## Completion Rules
 
