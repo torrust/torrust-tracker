@@ -665,6 +665,7 @@ pub mod test {
             let serialized = serde_json::to_value(PeerRole::Seeder).unwrap();
 
             assert_eq!(serialized, json!("seeder"));
+            assert_eq!(serialized, json!(PeerRole::Seeder.to_string()));
         }
 
         #[test]
@@ -672,6 +673,7 @@ pub mod test {
             let serialized = serde_json::to_value(PeerRole::Leecher).unwrap();
 
             assert_eq!(serialized, json!("leecher"));
+            assert_eq!(serialized, json!(PeerRole::Leecher.to_string()));
         }
     }
 
