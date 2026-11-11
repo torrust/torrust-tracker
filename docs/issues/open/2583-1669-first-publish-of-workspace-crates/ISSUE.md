@@ -9,7 +9,7 @@ github-issue: 2583
 spec-path: docs/issues/open/2583-1669-first-publish-of-workspace-crates/ISSUE.md
 branch: "2583-1669-first-publish-of-workspace-crates-spec"
 related-pr: null
-last-updated-utc: "2026-11-11 08:59"
+last-updated-utc: "2026-11-11 12:34"
 semantic-links:
   skill-links:
     - create-issue
@@ -32,7 +32,7 @@ semantic-links:
     - docs/issues/closed/2582-1669-remove-health-check-self-dev-dependency/ISSUE.md
     - docs/issues/closed/2454-1669-mark-public-error-enums-non-exhaustive/error-enum-inventory.md
     - docs/adrs/20260629000000_adopt_independent_package_versioning.md
-    - docs/release_process.md
+    - docs/release-process/workspace-packages.md
     - Cargo.toml
 ---
 
@@ -224,7 +224,7 @@ Status values: `TODO`, `BLOCKED`, `IN_PROGRESS`, `PUBLISHED`, `DEFERRED`.
 ## Per-Crate Publish Procedure
 
 For each crate, in checklist order, follow
-[Publishing a Workspace Package](../../../release_process.md#publishing-a-workspace-package)
+[Publishing a Workspace Package](../../../release-process/workspace-packages.md#publishing-a-workspace-package)
 (the `deployment-packages.yaml` path), as updated by T2. In short, without repeating that
 document:
 
@@ -270,7 +270,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID | Status | Task | Notes / Expected Output |
 | -- | ------ | ---- | ----------------------- |
 | T1 | DONE | Open pre-publish sub-issue P1 | #2582 created with this issue on 2026-10-20, linked to #1669 and to its checklist row. It does not wait for the prerequisites. |
-| T2 | TODO | Bring the publish procedure up to date | Not blocked. In `docs/release_process.md` "Publishing a Workspace Package": step 5 pushes a `pkg/...` ref from `torrust/main` although the release branch is cut from `develop`, and step 6 updates a `version` in the root `Cargo.toml` dependency entry although each crate now declares its own versioned path dependencies. In the `release-new-version` skill: step 6 lists crates `deployment.yaml` no longer publishes (`torrust-located-error`, `torrust-clock`, `torrust-tracker-torrent-repository` and others), and step 2 bumps every package's version. Fix them so the procedure matches the ADR and both workflows. |
+| T2 | TODO | Bring the publish procedure up to date | Not blocked. The release-process spec #2808 already fixed the pre-publish defects: the `pkg/...` push from `torrust/main` is gone, the tag is created on the published commit, and the `release-new-version` crate list and every-package version bump are gone. What remains for this issue is to confirm the procedure in `docs/release-process/workspace-packages.md` fits the first publish (publish order, and each crate's version together with its dependents' `version` requirements in one commit), and to fix any gap found there. |
 | T3 | BLOCKED | Wait for the prerequisites | #2482, #1488 and #1347 closed; #2576 merged; the rest of the EPIC's API work done; #2582 closed before row 21. |
 | T4 | BLOCKED | Check the checklist again | Re-run the checks in "Facts checked" (crate set, order, crates.io names, versions, `cargo package --workspace --no-verify`) and update the checklist; record them in `manual-verification-evidence.md`. Decide the `test-helpers` version against its published 3.0.0 API. |
 | T5 | BLOCKED | Publish each crate in checklist order | One crate at a time with the per-crate procedure; each row `PUBLISHED` with date and evidence. |
@@ -282,7 +282,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | Task | Coherent change set | Commit policy |
 | ---- | ------------------- | ------------- |
 | T1 | P1 issue number in this spec and the EPIC | One `docs(issues)` commit. |
-| T2 | Publish procedure in `docs/release_process.md` and the `release-new-version` skill | One `docs(release)` commit, in its own pull request. |
+| T2 | Publish procedure in `docs/release-process/workspace-packages.md` and the `release-new-version` skill | One `docs(release)` commit, in its own pull request. |
 | T4 | Checklist check and evidence | One `docs(issues)` commit. |
 | T5 | One crate's version and its dependents' `version` requirements | One `chore(<package>)` commit in a pull request for that crate. |
 | T5 | One crate's row set to `PUBLISHED`, with evidence | One `docs(issues)` commit per crate. |
@@ -330,6 +330,7 @@ release branch and a signed tag.
 - 2026-10-21 07:44 UTC - GitHub Copilot (Claude Opus 5.5) - The client-extraction issue is #2594, blocked by this
   issue on GitHub. With the maintainer's approval, T6 and the References name it and link its
   spec instead of the removed draft.
+- 2026-11-11 12:34 UTC - Claude Code (Claude Sonnet 5.5) - PR torrust/torrust-tracker#2825 (issue #2808) re-scoped T2 to what the release-process spec #2808 left (the `torrust/main` push, the old step 6 and the `release-new-version` crate list were fixed there).
 
 ## Acceptance Criteria
 
@@ -345,7 +346,7 @@ release branch and a signed tag.
       build succeeded, and its README's docs.rs link resolves.
 - [ ] AC6: Each newly published crate is owned on crates.io by `josecelano` and `da2ce7`.
 - [ ] AC7: No crate was published before #2482, #1488 and #1347 closed and #2576 merged.
-- [ ] AC8: The package publish procedure in `docs/release_process.md` and the
+- [ ] AC8: The package publish procedure in `docs/release-process/workspace-packages.md` and the
       `release-new-version` skill match the ADR and both workflows before the first publish (T2).
 - [ ] `linter all` exits with code `0`
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
@@ -433,6 +434,6 @@ None planned. The crates.io name check is a `curl` loop recorded in the evidence
   ([`ISSUE.md`](../../closed/2582-1669-remove-health-check-self-dev-dependency/ISSUE.md))
 - Blocks: #2594, the client extraction
   ([`ISSUE.md`](../2594-1669-extract-torrust-tracker-client-to-standalone-repo/ISSUE.md))
-- Procedure: [`docs/release_process.md`](../../../release_process.md#publishing-a-workspace-package);
+- Procedure: [`docs/release-process/workspace-packages.md`](../../../release-process/workspace-packages.md#publishing-a-workspace-package);
   the root crate's tracker release: `release-new-version` skill
 - Cargo reference: [Publishing on crates.io](https://doc.rust-lang.org/cargo/reference/publishing.html)

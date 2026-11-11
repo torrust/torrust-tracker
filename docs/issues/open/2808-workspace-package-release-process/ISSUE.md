@@ -7,9 +7,9 @@ priority: p2
 epic: null
 github-issue: 2808
 spec-path: docs/issues/open/2808-workspace-package-release-process/ISSUE.md
-branch: "2808-workspace-package-release-process-spec"
+branch: "2808-workspace-package-release-process"
 related-pr: null
-last-updated-utc: "2026-11-10 19:18"
+last-updated-utc: "2026-11-11 12:34"
 semantic-links:
   skill-links:
     - create-issue
@@ -158,16 +158,16 @@ Not applicable.
 
 ## Implementation Plan
 
-Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`. T2-T6 are `BLOCKED` until #2576 is closed (see Background).
+Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`. #2576 was closed before implementation started.
 
 | ID  | Status  | Task                                                                                                                  | Notes / Expected Output                                                                                                                                    |
 | --- | ------- | --------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | T1  | DONE    | Record maintainer decisions for the split, (c) pointer format, and (d) tag convention and backfill                    | Recorded in Background on 2026-11-10; no ADR needed                                                                                                        |
-| T2  | BLOCKED | Split `docs/release_process.md` into the index, `tracker.md` and `workspace-packages.md` (content moved, not changed) | Old anchors still resolve; live references updated; `git diff --color-moved` marks the moved lines                                                         |
-| T3  | BLOCKED | Rewrite the package process in `docs/release-process/workspace-packages.md` (process, roles, no GitHub release)       | Steps ordered; tag/branch ambiguity fixed; workspace and standalone variants                                                                               |
-| T4  | BLOCKED | Add the `release-workspace-package` skill and cross-link it                                                           | Skill links to `workspace-packages.md`; `release-new-version` links to `tracker.md`, loses the step 6 drift, and steps 2 and 9 bump only `torrust-tracker` |
-| T5  | BLOCKED | Add pointer docs to package READMEs as decided in (c)                                                                 | Pointer only; no copied steps                                                                                                                              |
-| T6  | BLOCKED | Prepare the follow-up `torrust-server-lib` issue text (tag backfill, docs cleanup)                                    | Text ready for the maintainer; nothing created without approval                                                                                            |
+| T2  | DONE    | Split `docs/release_process.md` into the index, `tracker.md` and `workspace-packages.md` (content moved, not changed) | Old anchors still resolve; live references updated; `git diff --color-moved` marks the moved lines                                                         |
+| T3  | DONE    | Rewrite the package process in `docs/release-process/workspace-packages.md` (process, roles, no GitHub release)       | Steps ordered; tag/branch ambiguity fixed; workspace and standalone variants                                                                               |
+| T4  | DONE    | Add the `release-workspace-package` skill and cross-link it                                                           | Skill links to `workspace-packages.md`; `release-new-version` links to `tracker.md`, loses the step 6 drift, and steps 2 and 9 bump only `torrust-tracker` |
+| T5  | DONE    | Add pointer docs to package READMEs as decided in (c)                                                                 | Pointer only; no copied steps                                                                                                                              |
+| T6  | DONE    | Prepare the follow-up `torrust-server-lib` issue text (tag backfill, docs cleanup)                                    | Text ready for the maintainer; nothing created without approval                                                                                            |
 
 ## Commit Points
 
@@ -189,12 +189,12 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - [x] Folder-style spec drafted in `docs/issues/drafts/workspace-package-release-process/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [ ] Committer verified spec progress is up to date before commit
@@ -212,29 +212,32 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-11-10 17:23 UTC - Claude Code (Claude Opus 5.5) - Correction to the 16:49 entry (audit F8): the log times were not uniformly "one hour or more ahead of UTC". Before the F4 fix the first entry read 12:00 for 16:07 (4 h 07 min behind); the next three read 16:30, 16:45 and 17:00 for 16:10, 16:15 and 16:17 (20, 30 and 43 min ahead); only the last read 17:30 for 16:24 (66 min ahead).
 - 2026-11-10 18:04 UTC - Claude Code (Claude Sonnet 5.5) - Addressed the Copilot review of 18:02 UTC on PR 2809 (audit F20): the torrust-server-lib PR references in Background are fully qualified. `related-pr` stays `null` (it names the implementation PR, as in the sibling spec-only PRs).
 - 2026-11-10 19:18 UTC - Claude Code (Claude Sonnet 5.5) - Correction to the 18:04 entry (audit F27): it said `related-pr` "names the implementation PR". The tree does not define the field that way: its schema calls it "the nullable positive related pull request number", the specs introduced by the spec-only PRs for #2798 and #2801 keep it `null`, and the specs of #2393 to #2396 set it to their spec-only PR #2397. This spec keeps it `null` on the first precedent.
+- 2026-11-11 11:17 UTC - Claude Code (Claude Sonnet 5.5) - #2576 closed; implemented T2-T6 in the implementation PR: pure-move split (T2), process rewrite (T3), `release-workspace-package` skill and `release-new-version` fixes (T4), no README describes releasing so none changed and the standalone "Releasing" text is in `workspace-packages.md` (T5), `torrust-server-lib-followup-issue.md` (T6); manual verification recorded in `manual-verification-evidence.md`. Open specs #2583 (T2 overlaps T3 here) and #2183 now name the new documents.
+- 2026-11-11 11:57 UTC - Claude Code (Claude Sonnet 5.5) - Implementation completion review, after the review of PR 2825: the one material discovery (audit F1) was that a published crate's version bump must raise the `version` requirement in every dependent manifest in the same PR; it is now precondition 2 of `workspace-packages.md`, so no separate retrospective is needed. The PR description uses `Closes #2808`: the issue closes on merge, and the spec move to `docs/issues/closed/` and the torrust-server-lib issue creation are done by the maintainer's close-out afterwards.
+- 2026-11-11 12:34 UTC - Claude Code (Claude Sonnet 5.5) - Correction to the 11:57 entry (audit F17): the discovery in audit F1 is material (a retained step that a review had to remove), so the completion review creates `implementation-retrospective.md` instead of the "no separate retrospective" the 11:57 entry stated.
 
 ## Acceptance Criteria
 
-- [ ] AC0: `docs/release_process.md` is an index linking `docs/release-process/tracker.md` and
+- [x] AC0: `docs/release_process.md` is an index linking `docs/release-process/tracker.md` and
       `docs/release-process/workspace-packages.md`; the tracker steps are moved without changes; the
       `#publishing-a-workspace-package` anchor still resolves; live references point to the new
       documents.
-- [ ] AC1: `docs/release-process/workspace-packages.md` defines the package release process end to end (preconditions,
+- [x] AC1: `docs/release-process/workspace-packages.md` defines the package release process end to end (preconditions,
       roles, order, publish from the merged commit, tag on the published commit, no GitHub
       release) for both a workspace package and a standalone-repository crate.
-- [ ] AC2: A `release-workspace-package` skill exists, links to `workspace-packages.md`, and duplicates none of its steps.
-- [ ] AC3: `release-new-version` links to `tracker.md`, no longer contradicts the ADR, and
+- [x] AC2: A `release-workspace-package` skill exists, links to `workspace-packages.md`, and duplicates none of its steps.
+- [x] AC3: `release-new-version` links to `tracker.md`, no longer contradicts the ADR, and
       cross-links the new skill.
-- [ ] AC4: Package docs carry a pointer to `workspace-packages.md` (plus differences) and no copied steps.
-- [ ] AC5: The standalone-repository `v<semver>` tag is documented as a difference, and the
+- [x] AC4: Package docs carry a pointer to `workspace-packages.md` (plus differences) and no copied steps.
+- [x] AC5: The standalone-repository `v<semver>` tag is documented as a difference, and the
       `torrust-server-lib` follow-up issue text (tag backfill and docs cleanup) is ready for the
       maintainer.
-- [ ] AC6: A fresh agent can release a workspace package or a standalone crate using only the
+- [x] AC6: A fresh agent can release a workspace package or a standalone crate using only the
       skill and the doc.
-- [ ] `linter all` exits with code `0`
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
-- [ ] Documentation is updated when behavior/workflow changes
+- [x] `linter all` exits with code `0`
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] Documentation is updated when behavior/workflow changes
 
 ## Verification Plan
 
@@ -249,10 +252,10 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 
 | ID  | Scenario                                  | Human-oriented command/steps                                                                                                                          | Expected Result                                                                                                                                   | Status | Evidence                                     |
 | --- | ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | -------------------------------------------- |
-| M1  | Walk the workspace-package path (dry run) | Follow only the skill and doc for a real package up to `cargo publish -p <crate> --dry-run`; do not publish or push                                   | Every step is findable and unambiguous; the dry run succeeds                                                                                      | TODO   | `manual-verification-evidence.md` section V1 |
-| M2  | Walk the standalone-crate path (dry run)  | Follow only the skill and doc for `torrust-server-lib` up to `cargo publish --dry-run`; do not publish or push                                        | The standalone variant in `workspace-packages.md` is complete on its own; the duplication left in server-lib docs is covered by the T6 issue text | TODO   | `manual-verification-evidence.md` section V2 |
-| M3  | Search for duplicated instructions        | `grep` package READMEs and the skills for the doc's step commands                                                                                     | Only pointers found; no copied steps                                                                                                              | TODO   | `manual-verification-evidence.md` section V3 |
-| M4  | Check old links after the split           | Open `docs/release_process.md#publishing-a-workspace-package` and the links in `AGENTS.md`, `docs/index.md` and both workflows on the rendered branch | Each lands on the index heading or the new document; no dead link                                                                                 | TODO   | `manual-verification-evidence.md` section V4 |
+| M1  | Walk the workspace-package path (dry run) | Follow only the skill and doc for a real package up to `cargo publish -p <crate> --dry-run`; do not publish or push                                   | Every step is findable and unambiguous; the dry run succeeds                                                                                      | DONE   | `manual-verification-evidence.md` section V1 |
+| M2  | Walk the standalone-crate path (dry run)  | Follow only the skill and doc for `torrust-server-lib` up to `cargo publish --dry-run`; do not publish or push                                        | The standalone variant in `workspace-packages.md` is complete on its own; the duplication left in server-lib docs is covered by the T6 issue text | DONE   | `manual-verification-evidence.md` section V2 |
+| M3  | Search for duplicated instructions        | `grep` package READMEs and the skills for the doc's step commands                                                                                     | Only pointers found; no copied steps                                                                                                              | DONE   | `manual-verification-evidence.md` section V3 |
+| M4  | Check old links after the split           | Open `docs/release_process.md#publishing-a-workspace-package` and the links in `AGENTS.md`, `docs/index.md` and both workflows on the rendered branch | Each lands on the index heading or the new document; no dead link                                                                                 | DONE   | `manual-verification-evidence.md` section V4 |
 
 Notes:
 
@@ -269,13 +272,13 @@ None planned.
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence           |
 | ----- | ---------------------- | ------------------ |
-| AC0   | TODO                   | {T2 diff / M4}     |
-| AC1   | TODO                   | {doc diff / PR}    |
-| AC2   | TODO                   | {skill / PR}       |
-| AC3   | TODO                   | {skill diff / PR}  |
-| AC4   | TODO                   | {README diffs}     |
-| AC5   | TODO                   | {doc diff / T6}    |
-| AC6   | TODO                   | M1 and M2 evidence |
+| AC0   | DONE                   | T2 commit / M4 |
+| AC1   | DONE                   | T3 commit |
+| AC2   | DONE                   | T4 commit |
+| AC3   | DONE                   | T4 commit |
+| AC4   | DONE                   | M3: no README describes releasing; pointer text specified in the document |
+| AC5   | DONE                   | T3 commit / `torrust-server-lib-followup-issue.md` |
+| AC6   | DONE                   | M1 and M2 evidence |
 
 ## Risks and Trade-offs
 
@@ -291,7 +294,7 @@ None planned.
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
+- Retrospective: `implementation-retrospective.md`
 - If needed, create `implementation-retrospective.md` from `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md`.
 - If none is needed, add a progress-log entry explaining why.
 

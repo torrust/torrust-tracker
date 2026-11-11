@@ -191,7 +191,9 @@ closed, so the contributor never has to tell it.
 The agent asks the contributor only in these cases: more than 5 rounds of review fixes have been
 pushed, more than 5 head commits have failed checks, or the skill says to.
 
-See [docs/release_process.md](docs/release_process.md) for the release workflow.
+See [docs/release_process.md](docs/release_process.md) for the release workflow: it links the
+[tracker release](docs/release-process/tracker.md) and the
+[workspace package release](docs/release-process/workspace-packages.md).
 
 ## 🧭 Development Principles
 

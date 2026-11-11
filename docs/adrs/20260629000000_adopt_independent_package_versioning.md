@@ -7,6 +7,8 @@ semantic-links:
     - docs/issues/open/1669-overhaul-packages/EPIC.md
     - docs/issues/open/1669-overhaul-packages/DECISIONS.md
     - docs/release_process.md
+    - docs/release-process/tracker.md
+    - docs/release-process/workspace-packages.md
     - .github/workflows/deployment.yaml
     - .github/workflows/deployment-packages.yaml
 ---

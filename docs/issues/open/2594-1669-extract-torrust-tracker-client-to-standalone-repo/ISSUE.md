@@ -9,7 +9,7 @@ github-issue: 2594
 spec-path: docs/issues/open/2594-1669-extract-torrust-tracker-client-to-standalone-repo/ISSUE.md
 branch: "2594-1669-extract-torrust-tracker-client-to-standalone-repo-spec"
 related-pr: null
-last-updated-utc: "2026-11-11 08:59"
+last-updated-utc: "2026-11-11 12:34"
 semantic-links:
   skill-links:
     - create-issue
@@ -88,7 +88,7 @@ with `cargo install` without the tracker source tree.
   - Six skills run `cargo run -p torrust-tracker-client --bin tracker_client`:
     `use-tracker-client`, `use-rest-api`, `run-tracker-locally`, `public-trackers-for-testing`,
     `manual-udp-download-completion-e2e`, `manual-torrent-cleanup-e2e`; and
-    `release-new-version` lists `console/tracker-client/Cargo.toml` among the files to bump.
+    `release-new-version` no longer lists `console/tracker-client/Cargo.toml` (removed by #2808).
   - Root `Cargo.toml` lists `console/tracker-client` as a member; `.dockerignore` admits
     `/console/` only for it; `AGENTS.md` has a "Console tools" table for it.
   - Root ADRs `20260512102000` (peer ID convention) and `20260519000000` (global CLI output
@@ -147,7 +147,7 @@ IDs are referenced in the rest of the document.
   - replace the E2E runner's use of the in-workspace checker (Q7);
   - remove `console/tracker-client` from the root `Cargo.toml` members, delete the directory, and
     drop the `/console/` entry from `.dockerignore` (`add-workspace-member` skill);
-  - update the skills that run the client (Q8) and the `release-new-version` file list;
+  - update the skills that run the client (Q8);
   - update `AGENTS.md` (move the crate to the extracted-packages table, remove the console tools
     table and the `console/` directory entry), `packages/AGENTS.md` and `docs/packages.md`;
   - update EPIC #1669 (package inventory, desired state, "Packages moving to standalone
@@ -253,6 +253,7 @@ Every commit is a signed Conventional Commit.
   on GitHub. Moved the spec to `docs/issues/open/` for a spec-only PR on branch
   `2594-1669-extract-torrust-tracker-client-to-standalone-repo-spec`; repaired the links to the
   draft in the #1669, #2583 and #269 documents.
+- 2026-11-11 12:34 UTC - Claude Code (Claude Sonnet 5.5) - PR torrust/torrust-tracker#2825 (issue #2808) updated the `release-new-version` file-list statements, because #2808 removed that list.
 
 ## Acceptance Criteria
 

@@ -8,7 +8,10 @@ metadata:
 
 # Release New Version
 
-Primary reference: [`docs/release_process.md`](../../../../../docs/release_process.md)
+Primary reference: [`docs/release-process/tracker.md`](../../../../../docs/release-process/tracker.md)
+
+This skill releases the **tracker binary** only. To release a workspace package or a standalone crate,
+use the [`release-workspace-package`](../release-workspace-package/SKILL.md) skill.
 
 ## Release Steps (Mandatory Order)
 
@@ -55,20 +58,18 @@ git push --force torrust develop:staging/main
 git stash
 git switch staging/main
 git reset --hard torrust/staging/main
-# Edit version in all Cargo.toml files:
+# Edit the `torrust-tracker` version in the root `Cargo.toml` and in the
+# `torrust-tracker` requirement of `packages/e2e-tools/Cargo.toml`:
 #   change X.Y.Z-develop → X.Y.Z
 git add -A
 git commit -S -m "release: version X.Y.Z"
 git push torrust
 ```
 
-Edit `version` in:
-
-- `Cargo.toml` (workspace)
-- All packages under `packages/` that publish crates
-- `console/tracker-client/Cargo.toml`
-
-Also update any internal path dependency `version` constraints.
+Bump only the `torrust-tracker` version and every requirement on it (a pre-release such as
+`3.0.1-develop` matches only a requirement that names a pre-release of `3.0.1`). Workspace packages version independently (see
+[the ADR](../../../../../docs/adrs/20260629000000_adopt_independent_package_versioning.md)),
+so do not edit their versions here.
 
 ### 3) PR staging/main → main
 
@@ -97,18 +98,9 @@ git push --tags torrust
 
 Check the
 [deployment workflow](https://github.com/torrust/torrust-tracker/actions/workflows/deployment.yaml)
-ran successfully and the following crates were published:
-
-- `torrust-located-error`
-- `torrust-tracker-primitives`
-- `torrust-clock`
-- `torrust-tracker-configuration`
-- `torrust-tracker-torrent-repository`
-- `torrust-tracker-test-helpers`
-- `torrust-tracker`
-
-Crates must be published in dependency order. Each must be indexed on crates.io before the next
-publishes.
+ran successfully and that `torrust-tracker` X.Y.Z is on crates.io. The workflow publishes only
+`torrust-tracker`; the dependency crates were already published independently by
+`deployment-packages.yaml`.
 
 ### 7) Create GitHub Release
 
@@ -127,7 +119,8 @@ git push --force torrust main:staging/develop
 git stash
 git switch staging/develop
 git reset --hard torrust/staging/develop
-# Edit version in all Cargo.toml files:
+# Edit the `torrust-tracker` version in the root `Cargo.toml` and in the
+# `torrust-tracker` requirement of `packages/e2e-tools/Cargo.toml`:
 #   change X.Y.Z → (next)X.Y.Z-develop (e.g. 3.0.0 → 3.0.1-develop)
 git add -A
 git commit -S -m "develop: bump to version (next)X.Y.Z-develop"
