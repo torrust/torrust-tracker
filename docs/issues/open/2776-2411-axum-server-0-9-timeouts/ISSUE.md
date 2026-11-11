@@ -9,7 +9,7 @@ github-issue: 2776
 spec-path: docs/issues/open/2776-2411-axum-server-0-9-timeouts/ISSUE.md
 branch: "2776-axum-server-0-9-timeouts-spec"
 related-pr: null
-last-updated-utc: "2026-11-11 10:00"
+last-updated-utc: "2026-11-11 11:00"
 semantic-links:
   skill-links:
     - create-issue
@@ -228,6 +228,7 @@ with GPG.
 - 2026-11-10 21:40 UTC - Claude Code (Claude Sonnet 5.5) - Review round 1 (PR 2813: Copilot lite review and da2ce7, 14 findings). F1: reran the HTTP/2 probes with the wrapper; the wrapper does not shorten idle HTTP/2 (10.0 s, probable cause in the evidence), so the removal stands, but AC4 and AC5 are reopened (F5) for the maintainer's ruling and the unmeasured "already 10 s on develop" claim is dropped. Also: lockfile restored to develop's resolution for the two unrelated edges (F4), citations by symbol in the EPIC (F3), commit ids dropped (F2), red and green output with commands recorded (F6), HTTP/2 tests now require a response and a close no earlier than the injected timeout (F7), probe note replaced (F8), plus the Copilot suggestions (probe script trap, drop guard in the health check test, longer test timeouts, fixture README, doc note on `from_tcp_with_timeouts`). Audit: `docs/pr-reviews/pr-2813-review/PR-REVIEW.md`.
 - 2026-11-11 09:00 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer ruling on AC4: an idle HTTP/2 connection closed after about 10 s is accepted (the extra 5 s changes the cost of a descriptor-exhaustion attack little; the real bound is a connection limit, EPIC #2411 case A1). AC4 reworded to match what ships, AC4 and AC5 ticked.
 - 2026-11-11 10:00 UTC - Claude Code (Claude Sonnet 5.5) - Added the package ADR on closing idle connections without a `408` (maintainer discussion: silent close kept; revisit via an upstream `axum-server` feature if proxies report confusing logs). Develop merged into the branch to resolve conflicts with #2801 and #2812.
+- 2026-11-11 11:00 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer asked for behaviour tests on every service: added the silent-connection test (plaintext and TLS) to the HTTP tracker and REST API packages, next to the existing health check API one; they fail when the constructor is bypassed (checked by swapping in `axum_server::from_tcp`). Also added the root `clippy.toml` `disallowed-methods` guard for the `axum-server` listener constructors, a documented `allow` in `custom_axum_server.rs`, doc comments at every call site, and switched the `token_aware_drain` example to the shared constructor.
 
 ## Acceptance Criteria
 

@@ -11,6 +11,7 @@ use tokio::net::TcpStream;
 use tokio::sync::Notify;
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
+use torrust_tracker_axum_server::custom_axum_server;
 use torrust_tracker_axum_server::signals::{GracefulShutdownOutcome, graceful_shutdown_on_cancellation};
 
 #[tokio::main]
@@ -111,8 +112,13 @@ where
             }
         }),
     );
+    // Build listeners with `custom_axum_server`, never with `axum_server::bind`, so they get the
+    // connection timeouts that close silent connections (issue #2776).
+    let socket = std::net::TcpListener::bind(SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 0)).expect("socket should bind");
+    socket.set_nonblocking(true).expect("socket should be non-blocking");
+    let server = custom_axum_server::from_tcp_with_timeouts(socket).expect("server should be created");
     let task = tokio::spawn(async move {
-        axum_server::bind(SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 0))
+        server
             .handle(server_handle)
             .serve(router.into_make_service())
             .await

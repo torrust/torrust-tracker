@@ -73,6 +73,8 @@ torrust-tracker-axum-rest-api-server = { path = ".", features = [ "testing" ] }
 rstest = { version = "0.28.0", default-features = false }
 rustls = { version = "0.23", default-features = false, features = [ "ring" ] }
 tempfile = "3.27.0"
+tokio = { version = "1", features = [ "io-util", "time" ] }
+tokio-rustls = { version = "0.26", default-features = false, features = [ "ring" ] }
 torrust-tracker-rest-api-client = { version = "0.1.0", path = "../rest-api-client" }
 torrust-tracker-test-helpers = { version = "3.0.0", path = "../test-helpers" }
 tower = { version = "0", features = [ "util" ] }

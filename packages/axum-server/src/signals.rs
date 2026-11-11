@@ -280,6 +280,10 @@ mod tests {
                 }
             }),
         );
+        #[allow(
+            clippy::disallowed_methods,
+            reason = "test-only listener for the shutdown logic; it needs no connection timeouts (#2776)"
+        )]
         let server = tokio::spawn(async move {
             axum_server::bind(SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 0))
                 .handle(server_handle)

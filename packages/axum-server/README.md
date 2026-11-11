@@ -12,7 +12,10 @@ Infrastructure used by the `axum-*` server packages. Workspace dependencies: `to
 
 The timeouts use `axum-server` 0.9. A connection that sends no complete first request is closed after 5 s, for plaintext and TLS (after the handshake). An idle connection after a response is closed after 5 s over HTTP/1 and about 10 s over HTTP/2, and a TLS handshake that does not complete is closed after 10 s. The server closes the connection without a `408` ([ADR](docs/adrs/20261111095222_close_idle_connections_without_a_408_response.md)). The values are constants; `from_tcp_with` and `from_tcp_rustls_with` accept others, for tests.
 
-Build every listener through `custom_axum_server`: building one with `axum_server::from_tcp` directly leaves idle connections open.
+Build every listener through `custom_axum_server`: building one with `axum_server::from_tcp` directly leaves idle connections open, which lets a flood of silent connections exhaust the process's file descriptors. Two guards enforce this:
+
+- The root `clippy.toml` forbids the `axum-server` listener constructors (`disallowed-methods`). Only `custom_axum_server.rs` allows them, with a documented `allow`.
+- Each service has a test that a connection that sends nothing is closed (plaintext, and TLS where it supports it). Add one when you add a listener.
 
 ## Stability
 

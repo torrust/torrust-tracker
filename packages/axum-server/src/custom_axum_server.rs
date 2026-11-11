@@ -21,6 +21,11 @@
 //! which did not work with TLS and did not cover the health check API. See
 //! issue #2776.
 //!
+//! Every Axum listener of the tracker must be built here. `clippy.toml` forbids calling the
+//! `axum-server` constructors elsewhere, because a listener built without these timeouts keeps idle
+//! connections open and lets silent connections exhaust the process's file descriptors. See the ADR
+//! `packages/axum-server/docs/adrs/20261111095222_close_idle_connections_without_a_408_response.md`.
+//!
 //! If you want to know more about Axum and timeouts see <https://github.com/josecelano/axum-server-timeout>.
 use std::net::{SocketAddr, TcpListener};
 use std::time::Duration;
@@ -80,6 +85,10 @@ pub fn from_tcp_with_timeouts(socket: TcpListener) -> ServerResult {
 /// # Errors
 ///
 /// Returns an error if the server cannot be created from the TCP socket.
+#[allow(
+    clippy::disallowed_methods,
+    reason = "this is the single place that builds listeners; every other crate must call it so the connection timeouts apply (#2776)"
+)]
 pub fn from_tcp_with(socket: TcpListener, timeouts: Timeouts) -> ServerResult {
     axum_server::from_tcp(socket).map(|server| add_timeouts(server, &timeouts))
 }
@@ -100,6 +109,10 @@ pub fn from_tcp_rustls_with_timeouts(socket: TcpListener, tls: RustlsConfig) -> 
 /// # Errors
 ///
 /// Returns an error if the server cannot be created from the TCP socket or if TLS configuration fails.
+#[allow(
+    clippy::disallowed_methods,
+    reason = "this is the single place that builds listeners; every other crate must call it so the connection timeouts apply (#2776)"
+)]
 pub fn from_tcp_rustls_with(socket: TcpListener, tls: RustlsConfig, timeouts: Timeouts) -> RustlsServerResult {
     let acceptor = RustlsAcceptor::new(tls).handshake_timeout(timeouts.tls_handshake);
 
