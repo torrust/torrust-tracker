@@ -1,6 +1,7 @@
 # Deployment (Workspace Packages)
 #
 # skill-link: update-github-workflow-actions
+# skill-link: release-workspace-package
 # adr: docs/adrs/20260629000000_adopt_independent_package_versioning.md
 #
 # PRIMARY publishing path for publishable workspace packages. Every publishable crate versions
