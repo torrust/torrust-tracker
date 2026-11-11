@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-One round: da2ce7 review 5860110297 (changes requested, submitted 14:14:48Z), findings F1 to F5. F5 is a review-body finding without an inline thread, so it is `NON_RESOLVABLE`.
+Round 1: da2ce7 review 5860110297 (changes requested, submitted 14:14:48Z), findings F1 to F5. Round 2: da2ce7 review 5860471258 (approved, submitted 14:40:32Z), findings F6, F8 and F9 (his `F7`, the missing audit record, was fixed in round 1 and is not a separate row). The automated review 5860133630 (14:16:32Z, on the first head) is a notice that its full review did not start before a timeout; it makes no request and has no row. F5 is a review-body finding without an inline thread, so it is `NON_RESOLVABLE`.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -50,6 +50,9 @@ One round: da2ce7 review 5860110297 (changes requested, submitted 14:14:48Z), fi
 | F3 | review-finding:pr-2832-f3 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F4 | review-finding:pr-2832-f4 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F5 | review-finding:pr-2832-f5 | Human | Nit | documentation | ORIGINAL | NO_ACTION | NON_RESOLVABLE |
+| F6 | review-finding:pr-2832-f6 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F8 | review-finding:pr-2832-f8 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F9 | review-finding:pr-2832-f9 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -118,11 +121,51 @@ One round: da2ce7 review 5860110297 (changes requested, submitted 14:14:48Z), fi
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2832#issuecomment-6798383022
 
+### F6 - The 14:19 correction sits under References, not in the progress log
+
+- PR number: 2832
+- Source review ID: 5860471258
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2832#discussion_r4539237812
+- Concern: The entry was appended to `## References` after the `Process docs` bullet, so a reader of the log sees no correction.
+- Solution: Moved the entry to the progress log after the 13:51 entry, reworded it to say it corrects the archive commit's checkpoint ticks, and bumped `last-updated-utc`.
+- Current-tree verification: `sed -n 216,222p docs/issues/closed/2808-*/ISSUE.md` shows the entry after the 13:51 entry; `tail -3` of the file ends with References bullets only.
+- Resolution reference: docs(issues): [#2808] move the 14:19 correction into the progress log of the archived spec
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2832#discussion_r4539289982
+
+### F8 - The description says the remaining checkpoints are ticked while one stays open
+
+- PR number: 2832
+- Source review ID: 5860471258
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2832#discussion_r4539237824
+- Concern: With F2 fixed, "Reviewer validated acceptance criteria" stays open, but the PR description said the remaining checkpoints are ticked.
+- Solution: Edited the PR description to say one checkpoint stays open and why.
+- Current-tree verification: `gh-bot pr view 2832 --json body` contains "which stays open because no reviewer edited the spec".
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2832#discussion_r4539290471
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2832#discussion_r4539290471
+
+### F9 - The audit does not mention the automated review 5860133630
+
+- PR number: 2832
+- Source review ID: 5860471258
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2832#discussion_r4539237834
+- Concern: Review 5860133630 (14:16:32Z, on the first head) is a timeout notice with no request; no row is right, but nothing showed it was read.
+- Solution: Named it in the intro and appended a log entry.
+- Current-tree verification: The `## Findings` intro and the Processing Log of this record name review 5860133630.
+- Resolution reference: docs(pr-reviews): [#2808] record round 2 of the PR 2832 review audit
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2832#discussion_r4539290926
+
 ## Processing Log
 
 - 2026-11-11 14:14 UTC - Started audit: da2ce7 review 5860110297 (submitted 14:14:48Z) with four inline threads and one review-body finding.
 - 2026-11-11 14:19 UTC - Fix commits at 14:17:12Z, 14:17:43Z, 14:18:12Z and 14:19:50Z, and the log commit at 14:19:51Z (`git log --format=%cI`); pushed after the last.
 - 2026-11-11 14:23 UTC - Replied on the four threads (reply `created_at` 14:23:12Z to 14:23:20Z) and posted the F5 explanation on the PR conversation (14:23:22Z), then resolved the four threads through GraphQL (four results, each `isResolved: true`).
+- 2026-11-11 14:45 UTC - Round 2: da2ce7 review 5860471258 (approved, submitted 14:40:32Z) with three comments. Fix commit `docs(issues): [#2808] move the 14:19 correction into the progress log of the archived spec` at 14:42:43Z (`git log --format=%cI`), pushed after it; the PR description was edited for F8 after that. Replied on the three threads (reply `created_at` 14:45:02Z to 14:45:07Z) and resolved them through GraphQL (three results, each `isResolved: true`). The automated review 5860133630 (14:16:32Z) was read: a timeout notice with no request, so no row (finding F9).
 
 ## Completion Rules
 
