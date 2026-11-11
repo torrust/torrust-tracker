@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: in-progress
+status: done
 priority: p2
 epic: 1669
 github-issue: 2576
-spec-path: docs/issues/open/2576-1669-update-all-package-readmes/ISSUE.md
+spec-path: docs/issues/closed/2576-1669-update-all-package-readmes/ISSUE.md
 branch: "i2576-update-package-readmes"
 related-pr: 2812
-last-updated-utc: "2026-11-10 19:03"
+last-updated-utc: "2026-11-11 08:24"
 semantic-links:
   skill-links:
     - create-issue
@@ -286,14 +286,14 @@ Commit.
 - [x] Spec-only PR merged into `develop` before implementation
 - [x] #2482 closed before implementation starts
 - [x] Implementation completed
-- [ ] Automatic verification completed (`linter all`, metadata check, `cargo package --list`, pre-push checks)
+- [x] Automatic verification completed (`linter all`, metadata check, `cargo package --list`, pre-push checks)
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
-- [ ] Reviewer validated acceptance criteria and updated checkboxes
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -347,6 +347,7 @@ Commit.
   the stamps carry a time; the baseline wording is corrected. F10 and F11 are answered by the
   review audit record `docs/pr-reviews/pr-2812-review/PR-REVIEW.md`.
 - 2026-11-10 19:03 UTC - Claude (Sonnet 5.5) - PR #2812 review round 3 (da2ce7) F17: the 18:05 entry above names the audit record's F10 and F11 answers before that record existed. It stays as written. The audit record `docs/pr-reviews/pr-2812-review/PR-REVIEW.md` was added by commit `docs(pr-reviews): [#2576] add the review audit record for PR 2812` (created 18:10:49 UTC) and its F10 and F11 rows by commit `docs(pr-reviews): [#2576] record findings F10 and F11 in the PR 2812 audit` (created 18:13:46 UTC); times from `git log --format=%cI`.
+- 2026-11-11 08:24 UTC - Claude (Sonnet 5.5) - PR #2812 merged (2026-11-11 08:23 UTC) and issue #2576 closed; nothing was published, so AC6 holds. Spec archived to `docs/issues/closed/`. The review audit is `docs/pr-reviews/pr-2812-review/PR-REVIEW.md`; eight findings of the last review (F21 to F28) were not addressed before the merge by the maintainer's decision.
 
 ## Acceptance Criteria
 
@@ -358,16 +359,16 @@ Commit.
       license's text; no crate uses the deprecated `LGPL-3.0` identifier.
 - [x] AC4: READMEs of crates whose public API #2482 changed describe the post-#2482 API.
 - [x] AC5: `readme-audit.md` is refreshed and rates no tier U or P package as stub or minimal.
-- [ ] AC6: The issue is merged before the first publish of any tier U crate.
+- [x] AC6: The issue is merged before the first publish of any tier U crate.
 - [x] AC7: `docs/templates/PACKAGE-README.md` exists, encodes the quality bar and is listed in
       `docs/templates/README.md`.
 - [x] AC8: Every README with Rust code examples is compile-checked by the README doctest hook,
       and `cargo test --doc --workspace` passes.
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass (`cargo build --workspace` and `cargo test --doc --workspace`)
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
-- [ ] Documentation is updated when behavior/workflow changes
+- [x] `linter all` exits with code `0`
+- [x] Relevant tests pass (`cargo build --workspace` and `cargo test --doc --workspace`)
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] Documentation is updated when behavior/workflow changes
 
 ## Verification Plan
 
@@ -440,7 +441,7 @@ evidence.
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
+- Retrospective: no implementation retrospective was needed; the review process lessons are in `docs/pr-reviews/pr-2812-review/review-retrospective.md`.
 - If needed, create `implementation-retrospective.md` from
   `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this directory.
 - If no retrospective is needed, add a concise progress-log entry explaining why.

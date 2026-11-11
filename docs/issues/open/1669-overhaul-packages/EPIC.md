@@ -6,7 +6,7 @@ epic: null
 github-issue: 1669
 spec-path: docs/issues/open/1669-overhaul-packages/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-10 12:33"
+last-updated-utc: "2026-11-11 08:24"
 semantic-links:
   skill-links:
     - create-issue
@@ -664,7 +664,7 @@ Status: TODO unless noted.
 #### 4. Other Tracked Items (Drafts and Promoted Issues)
 
 - [x] [#2446](https://github.com/torrust/torrust-tracker/issues/2446) SI-01: Establish baseline: dependency graph + README audit _(analysis; no blockers; informs all other subissues)_ — **DONE** (2026-10-06 coupling report, refreshed README audit and dependency diagram; three findings drafted as subissues)
-- [ ] [#2576](https://github.com/torrust/torrust-tracker/issues/2576) Update all package READMEs and crates.io metadata before the first publish _(documentation; was blocked on #2482, which is done; before the first publish of any unpublished crate)_
+- [x] [#2576](https://github.com/torrust/torrust-tracker/issues/2576) Update all package READMEs and crates.io metadata before the first publish _(documentation; was blocked on #2482, which is done; before the first publish of any unpublished crate)_
 - [ ] [#2583](https://github.com/torrust/torrust-tracker/issues/2583) First publish of the unpublished workspace crates _(publish tracking issue; per-crate checklist in dependency order; blocked on #2482, #2576, #1488 and #1347; at the end of this EPIC)_
 - [x] [#2582](https://github.com/torrust/torrust-tracker/issues/2582) Remove the self dev-dependency that stops the health check API server crate from being packaged _(bug; pre-publish sub-issue P1 of #2583; not blocked)_
 - [x] [#2454](https://github.com/torrust/torrust-tracker/issues/2454) Mark public error enums `#[non_exhaustive]` before first publish _(Pre-publish API checklist; per crate, before its first publish)_ — **DONE** (2026-10-20, PR #2568)
@@ -701,7 +701,7 @@ Details:
 | Metrics rename             | [#1819](https://github.com/torrust/torrust-tracker/issues/1819) — Rename `torrust-tracker-metrics` to `torrust-metrics`                                                                   | [issue #1819](https://github.com/torrust/torrust-tracker/issues/1819)                                                                                                                          | DONE   | Rule U; not yet published; no blockers; prerequisite for metrics extraction                                                                   |
 | Clock rename               | [#1821](https://github.com/torrust/torrust-tracker/issues/1821) — Rename `torrust-tracker-clock` to `torrust-clock`                                                                       | [issue #1821](https://github.com/torrust/torrust-tracker/issues/1821)                                                                                                                          | DONE   | Rule P; published on crates.io; no blockers; prerequisite for clock extraction                                                                |
 | Located error rename       | [#1823](https://github.com/torrust/torrust-tracker/issues/1823) — Rename `torrust-tracker-located-error` to `torrust-located-error`                                                       | [docs/issues/closed/1823-1669-10-rename-torrust-tracker-located-error-to-torrust-located-error/ISSUE.md](../../closed/1823-1669-10-rename-torrust-tracker-located-error-to-torrust-located-error/ISSUE.md) | DONE   | Rule P; completed                                                                                                                             |
-| README refresh             | [#2576](https://github.com/torrust/torrust-tracker/issues/2576) — Update all package READMEs and crates.io metadata before the first publish | [docs/issues/open/2576-1669-update-all-package-readmes/ISSUE.md](../2576-1669-update-all-package-readmes/ISSUE.md) | TODO   | Documentation and `Cargo.toml` metadata; was blocked on #2482 (done); must merge before the first publish of any unpublished crate |
+| README refresh             | [#2576](https://github.com/torrust/torrust-tracker/issues/2576) — Update all package READMEs and crates.io metadata before the first publish | [docs/issues/closed/2576-1669-update-all-package-readmes/ISSUE.md](../../closed/2576-1669-update-all-package-readmes/ISSUE.md) | DONE   | Documentation and `Cargo.toml` metadata; was blocked on #2482 (done); must merge before the first publish of any unpublished crate |
 | First publish              | [#2583](https://github.com/torrust/torrust-tracker/issues/2583) — First publish of the unpublished workspace crates | [docs/issues/open/2583-1669-first-publish-of-workspace-crates/ISSUE.md](../2583-1669-first-publish-of-workspace-crates/ISSUE.md) | BLOCKED | 20 library crates, one at a time in dependency order; blocked on #2482, #2576, #1488 and #1347; root crate and console client published elsewhere |
 | Health check packaging fix | [#2582](https://github.com/torrust/torrust-tracker/issues/2582) — Remove the self dev-dependency that stops the health check API server crate from being packaged | [docs/issues/closed/2582-1669-remove-health-check-self-dev-dependency/ISSUE.md](../../closed/2582-1669-remove-health-check-self-dev-dependency/ISSUE.md) | DONE | Bug; pre-publish sub-issue P1 of #2583; adds a CI `cargo package --workspace --no-verify` check |
 | Bencode migration          | [#1881](https://github.com/torrust/torrust-tracker/issues/1881) SI-16: Migrate `contrib/bencode` to `torrust/torrust-bittorrent` as `torrust-bencode`                                     | [docs/issues/closed/1881-1669-16-migrate-contrib-bencode-to-torrust-bittorrent/ISSUE.md](../../closed/1881-1669-16-migrate-contrib-bencode-to-torrust-bittorrent/ISSUE.md)                     | DONE   | Rule E; torrust-bencode 3.0.0 published; contrib/bencode removed from tracker workspace                                                       |
@@ -748,7 +748,7 @@ After SI-14, there is a proposal to evaluate a dedicated repository for protocol
 
 - [docs/issues/closed/2446-1669-establish-baseline-analysis/ISSUE.md](../../closed/2446-1669-establish-baseline-analysis/ISSUE.md)
 - [docs/issues/closed/2454-1669-mark-public-error-enums-non-exhaustive/ISSUE.md](../../closed/2454-1669-mark-public-error-enums-non-exhaustive/ISSUE.md)
-- [docs/issues/open/2576-1669-update-all-package-readmes/ISSUE.md](../2576-1669-update-all-package-readmes/ISSUE.md)
+- [docs/issues/closed/2576-1669-update-all-package-readmes/ISSUE.md](../../closed/2576-1669-update-all-package-readmes/ISSUE.md)
 - [docs/issues/open/2583-1669-first-publish-of-workspace-crates/ISSUE.md](../2583-1669-first-publish-of-workspace-crates/ISSUE.md)
 - [docs/issues/closed/2582-1669-remove-health-check-self-dev-dependency/ISSUE.md](../../closed/2582-1669-remove-health-check-self-dev-dependency/ISSUE.md)
 - [Issue #1669](https://github.com/torrust/torrust-tracker/issues/1669)
@@ -1146,3 +1146,4 @@ entire EPIC at once. The EPIC is considered healthy (not stale) when:
 - `cargo-depgraph`: <https://sr.ht/~jplatte/cargo-depgraph/>
 - GitNexus: <https://github.com/abhigyanpatwari/GitNexus>
 - CodeScene: <https://codescene.io/>
+- 2026-11-11 08:24 UTC - Claude (Sonnet 5.5, #2576 close-out) - #2576 is DONE: PR #2812 merged 2026-11-11 08:23 UTC, issue closed, spec archived to `docs/issues/closed/2576-1669-update-all-package-readmes/`. Nothing was published. The remaining order is #2583 (first publish), then #2594. Not addressed before the merge: eight findings of the last review (F21 to F28), see `docs/pr-reviews/pr-2812-review/PR-REVIEW.md`.

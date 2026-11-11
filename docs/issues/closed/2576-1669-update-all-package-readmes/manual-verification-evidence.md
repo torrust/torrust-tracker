@@ -1,6 +1,6 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2576-1669-update-all-package-readmes/ISSUE.md
+issue-spec: docs/issues/closed/2576-1669-update-all-package-readmes/ISSUE.md
 last-updated-utc: 2026-11-10 18:05
 ---
 

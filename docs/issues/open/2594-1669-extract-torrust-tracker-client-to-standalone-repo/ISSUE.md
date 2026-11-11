@@ -341,6 +341,6 @@ None planned.
 - Blocked by: #2583
   ([`ISSUE.md`](../../open/2583-1669-first-publish-of-workspace-crates/ISSUE.md#per-crate-checklist))
 - README and license links before extraction: #2576
-  ([`ISSUE.md`](../../open/2576-1669-update-all-package-readmes/ISSUE.md))
+  ([`ISSUE.md`](../../closed/2576-1669-update-all-package-readmes/ISSUE.md))
 - Earlier extraction used as a model: #1909
   ([`ISSUE.md`](../../closed/1909-1669-si-28-extract-server-lib-to-standalone-repo/ISSUE.md))

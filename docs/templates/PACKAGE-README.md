@@ -3,7 +3,7 @@
 Template for the README.md of a workspace package (crates.io and docs.rs show it).
 Copy it to `<package directory>/README.md`, replace every `<placeholder>`, delete the optional
 sections that do not apply and delete these comments. See the quality bar in
-docs/issues/open/2576-1669-update-all-package-readmes/ISSUE.md.
+docs/issues/closed/2576-1669-update-all-package-readmes/ISSUE.md.
 
 Rules:
 - This template has no YAML frontmatter on purpose: a copied README would show it on crates.io
