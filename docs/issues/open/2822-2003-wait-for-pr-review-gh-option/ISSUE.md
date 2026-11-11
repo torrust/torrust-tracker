@@ -104,7 +104,7 @@ is a child process and so needs an explicit bound and cancellation:
 - **Baseline.** The lookup runs before the baseline snapshot. Without `--since-head-sha` or `--since`, a review
   or comment that lands during a stalled lookup (up to the bound) is absorbed into the baseline and not
   reported. A push is absorbed unless `--since-head-sha` is given: `--since` alone keeps the first snapshot's
-  head, and only `--since-head-sha` takes the head and the cutoff from the caller's commit. The skill already
+  head, and only `--since-head-sha` takes the head from the caller's commit. The skill already
   tells agents to pass `--since-head-sha`; the spec records the rest as a known limit.
 - **Best effort.** `gh_identity` is written best effort, like `wait_started`: a failure to write it never
   changes the result or the exit code (the scenario that fills stderr with `/dev/full` keeps exit 0).
@@ -150,11 +150,12 @@ sub-issue and can be its own issue once the skill text exists.
   out). Putting the login in its own record keeps `wait_started` immediate (see the design review). The lookup is
   best effort and bounded as described above.
 - Tests pass a fake script's path through `--gh-command` while `PATH` does not contain it, so the option is the
-  only route to it. The existing scenarios keep their `PATH`-based fake, but every one that asserts or parses the stderr after
-  `wait_started` changes because the `gh_identity` record is written on every run and the fake's `api user`
-  fails, so `gh_login` is `null`: the two kind-sequence scenarios (the result scenario and the
-  not-authenticated scenario) gain the record in their expected sequence, and the signal scenarios and the
-  scenario that parses the rest of stderr as one JSON value must read or skip it. Those assertion updates are
+  only route to it. The existing scenarios keep their `PATH`-based fake, but the six that the `gh_identity` record
+  changes are updated, because the record is written on every run and the fake's `api user` fails, so
+  `gh_login` is `null`: the two kind-sequence scenarios (the result scenario and the not-authenticated
+  scenario) gain the record in their expected sequence, and the four signal scenarios, which parse the rest
+  of stderr as one JSON value, must read or skip it. The scenarios that parse every stderr line but assert
+  only the last kind keep passing and are not changed. Those assertion updates are
   the only change to them. No `PATH` shim
   is ever used.
 
