@@ -312,9 +312,9 @@ The 16 rows are every `.rs` file under `packages/primitives/src/`, each once.
 
 ### Progress Log
 
-- 2026-11-10: Draft written; baseline measured at `eaae0e487`; waiting for maintainer answers.
-- 2026-11-10: Maintainer approved slicing, `quickcheck` for two seams, the `peer::fixture` and `driver.rs`/`service_role.rs` decisions. Finding F1 (`Peer` `Ord` vs `Eq`) confirmed and handed to a separate bug session.
-- 2026-11-11 11:30 UTC - Claude Code (Sonnet 5.5): created issue #2824, moved the spec to `docs/issues/open/`, registered the subissue and baseline in EPIC #1347. S0 branch `2824-1347-add-tests-primitives-spec`.
+- 2026-11-10 (time not recorded) - Claude Code (session `i1347 primitives tests`) - Draft written; baseline measured at `eaae0e487`; waiting for maintainer answers.
+- 2026-11-10 (time not recorded) - Claude Code (session `i1347 primitives tests`) - Maintainer approved slicing, `quickcheck` for two seams, the `peer::fixture` and `driver.rs`/`service_role.rs` decisions. Finding F1 (`Peer` `Ord` vs `Eq`) confirmed and handed to a separate bug session.
+- 2026-11-11 11:22 UTC - Claude Code (Sonnet 5.5) - Created issue #2824, moved the spec to `docs/issues/open/`, registered the subissue and baseline in EPIC #1347. S0 branch `2824-1347-add-tests-primitives-spec`.
 
 ## Acceptance Criteria
 
