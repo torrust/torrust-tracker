@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: done
 priority: p2
 epic: 2758
 github-issue: 2762
-spec-path: docs/issues/open/2762-2758-package-coverage-check-contract/ISSUE.md
+spec-path: docs/issues/closed/2762-2758-package-coverage-check-contract/ISSUE.md
 branch: "2762-package-coverage-check-contract"
-related-pr: null
-last-updated-utc: "2026-11-10 21:33"
+related-pr: 2810
+last-updated-utc: "2026-11-11 10:01"
 semantic-links:
   skill-links:
     - create-issue
@@ -116,11 +116,11 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - [x] Implementation completed
 - [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks; see evidence L1 and G1)
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Committer verified spec progress is up to date before commit
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -134,6 +134,8 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-11-10 18:10 UTC - Claude Code (Claude Sonnet 5.5) - Addressed review round 2 of PR 2810 (da2ce7 F3, F8 to F11; Copilot F1, F2 recorded in the audit): hosted run recorded (H1), stamps taken from the commit times, commits cited by subject.
 - 2026-11-10 18:36 UTC - Claude Code (Claude Sonnet 5.5) - Addressed review round 3 of PR 2810 (da2ce7 approved with record findings): AC5 wording states what was observed, stamps from commit times, audit log corrected, older replies cite subjects, PR description records the hosted run.
 - 2026-11-10 21:33 UTC - Claude Code (Claude Sonnet 5.5) - Addressed review round 4 of PR 2810 (two Nit findings in the audit) and added the review retrospective `docs/pr-reviews/pr-2810-review/review-retrospective.md`.
+- 2026-11-11 09:25 UTC - Claude Code (Claude Sonnet 5.5) - PR 2810 merged into `develop` on 2026-11-11 and issue #2762 closed; spec archived to `docs/issues/closed/`, the EPIC row set to DONE, and the deferred review findings fixed in the close-out PR.
+- 2026-11-11 10:01 UTC - Claude Code (Claude Sonnet 5.5) - Review of the close-out PR 2820: the checkpoint "Reviewer validated acceptance criteria and updated checkboxes" is left open, because no reviewer edited this spec (the approvals are ACK comments on PR 2810, and the acceptance boxes were ticked by the author); no implementation retrospective was written because the contract change matched the spec and the `ci-gate` reference and the one code defect was fixed in one line in round 1.
 
 ## Acceptance Criteria
 
@@ -145,7 +147,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - [x] `linter all` exits with code `0` (evidence L1)
 - [x] Relevant tests pass
 - [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
+- [x] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
 - [x] Documentation is updated when behavior or workflow changes
 
 ## Verification Plan
@@ -184,7 +186,7 @@ Manual verification is mandatory even when automated tests pass. Record actual c
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
+- Retrospective: `Not needed for the implementation`: the contract change matched the spec and the `ci-gate` reference with no rework of the code. The one code defect (the `jq` pipe without `pipefail`) was found in review round 1 and fixed in one line. The review process produced lessons, recorded in `docs/pr-reviews/pr-2810-review/review-retrospective.md`.
 - If needed, create `implementation-retrospective.md` from `docs/templates/IMPLEMENTATION-RETROSPECTIVE.md` in this directory; otherwise record in the progress log why none was needed.
 
 ## References

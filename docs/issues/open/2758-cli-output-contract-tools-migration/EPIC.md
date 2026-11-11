@@ -6,7 +6,7 @@ epic: null
 github-issue: 2758
 spec-path: docs/issues/open/2758-cli-output-contract-tools-migration/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-10 11:29"
+last-updated-utc: "2026-11-11 09:25"
 semantic-links:
   skill-links:
     - create-issue
@@ -94,7 +94,7 @@ parallel; the maintainer sets how many sessions run at once.
 | ----- | ----- | ---------- | ------ | ------------------------ |
 | 1 | #2760 - Align the ADR binary table with the audit | `docs/issues/closed/2760-2758-adr-binary-table/ISSUE.md` | DONE | Wave 0, docs only: `docs/adrs/20260519000000_define_global_cli_output_contract.md`. Must land first; no other issue edits it. |
 | 2 | #2761 - `github-review-threads reply-status`: a missing reply is a result | `docs/issues/closed/2761-2758-reply-status-result/ISSUE.md` | DONE | Implemented in PR #2775. Wave 1: `contrib/dev-tools/github/github-review-threads/**`, `.github/skills/dev/pr-reviews/resolve-review-threads/SKILL.md`, `.github/skills/dev/pr-reviews/fetch-review-threads/SKILL.md` |
-| 3 | #2762 - `package-coverage-check`: NDJSON errors, usage exit 2, TTY refusal, JSON `summary` | `docs/issues/open/2762-2758-package-coverage-check-contract/ISSUE.md` | TODO | Wave 1: `contrib/dev-tools/checks/package-coverage-check/**`, `.github/workflows/generate_coverage_pr.yaml` |
+| 3 | #2762 - `package-coverage-check`: NDJSON errors, usage exit 2, TTY refusal, JSON `summary` | `docs/issues/closed/2762-2758-package-coverage-check-contract/ISSUE.md` | DONE | Implemented in PR #2810. Wave 1: `contrib/dev-tools/checks/package-coverage-check/**`, `.github/workflows/generate_coverage_pr.yaml` |
 | 4 | #2763 - Make `agent-review-report-contract` and `frontmatter-schema` emit NDJSON; classify `workspace-coupling` | `docs/issues/open/2763-2758-dev-tool-checks-ndjson/ISSUE.md` | TODO | Wave 1: `contrib/dev-tools/checks/agent-review-report-contract/**`, `contrib/dev-tools/checks/frontmatter-validator/src/bin/frontmatter-schema.rs`, `contrib/dev-tools/analysis/workspace-coupling/**` |
 | 5 | #2764 - `http_health_check`: NDJSON diagnostics, usage exit 2 | `docs/issues/open/2764-2758-http-health-check-no-stdout/ISSUE.md` | TODO | Wave 1: `src/bin/http_health_check.rs` and its tests; verify `Containerfile` `HEALTHCHECK` |
 | 6 | #2765 - Remove the deprecated tracker client binaries | `docs/issues/open/2765-2758-remove-deprecated-tracker-clients/ISSUE.md` | TODO | Wave 1: `console/tracker-client/src/bin/{http_tracker_client,udp_tracker_client,tracker_checker}.rs`, README, tests, docs that name them, and `src/console/ci/e2e/tracker_checker.rs` (the e2e runner launches the old `tracker_checker`; migrate it to `tracker_client check`) |
