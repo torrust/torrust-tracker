@@ -41,13 +41,15 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-One round: da2ce7's review `5856655819` (F1 to F3), processed after the replies were posted. The record is therefore late, which is the pattern this pull request describes; the replies were posted first because the validator requires reply URLs.
+Round 1: da2ce7's review `5856655819` (F1 to F3), processed after the replies were posted. The record is therefore late, which is the pattern this pull request describes; the replies were posted first because the validator requires reply URLs. Round 2: Copilot's review `5856716279` (F4, F5), on the first commit, processed with the record already present.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2818-f1 | Human | Minor | maintainability | ORIGINAL | FIXED | RESOLVED |
 | F2 | review-finding:pr-2818-f2 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F3 | review-finding:pr-2818-f3 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F4 | review-finding:pr-2818-f4 | Copilot | Minor (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F5 | review-finding:pr-2818-f5 | Copilot | Suggestion (inferred) | maintainability | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -90,11 +92,38 @@ One round: da2ce7's review `5856655819` (F1 to F3), processed after the replies 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4536270103
 
+### F4 - The trigger terms review and comment are ambiguous and unformatted
+
+- PR number: 2818
+- Source review ID: 5856716279
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4536274300
+- Concern: The new preface used unformatted "review or comment", which could mean several kinds of comment.
+- Solution: Used backticks and named the kinds that count: a submitted review, or a PR, review or inline comment.
+- Current-tree verification: Read the preface in process-pr-review/SKILL.md.
+- Resolution reference: docs(skills): point wait-for-pr-review to the audit start rule
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4536321407
+
+### F5 - The rule is stated in full in two skills
+
+- PR number: 2818
+- Source review ID: 5856716279
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4536274496
+- Concern: The same rule was spelled out in wait-for-pr-review and process-pr-review, which can drift.
+- Solution: Shortened wait-for-pr-review to a pointer to the rule in process-pr-review.
+- Current-tree verification: Read step 2 of the review loop in wait-for-pr-review/SKILL.md.
+- Resolution reference: docs(skills): point wait-for-pr-review to the audit start rule
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2818#discussion_r4536321795
+
 ## Processing Log
 
 - 2026-11-11 09:35 UTC - Review 5856655819 arrived with three findings.
 - 2026-11-11 09:40 UTC - Replied to the three threads after pushing the fix and editing the description.
 - 2026-11-11 09:41 UTC - Started audit late, after the replies, because the validator needs the reply URLs.
+- 2026-11-11 09:45 UTC - Copilot review 5856716279 arrived with two findings; fixed, replied, and added F4 and F5.
 
 ## Completion Rules
 

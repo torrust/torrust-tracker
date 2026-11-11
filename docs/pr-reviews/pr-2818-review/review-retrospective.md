@@ -19,19 +19,19 @@ Written by the PR author from the audit record and `git log`, following
 
 | Metric | Value |
 | ------ | ----- |
-| Review rounds | 1 (1 human, 0 bot) |
-| Audit findings | 3 |
+| Review rounds | 2 (1 human, 1 bot) |
+| Audit findings | 5 |
 | Re-raised findings (`RE_RAISE_OF`) | 0 |
 | Findings about the audit record itself | 0 |
-| Commits on the branch | 3 at the time of writing (1 audit and retrospective only) |
-| First review to last thread resolution | a few minutes (09:35 to about 09:45 UTC, 2026-11-11) |
+| Commits on the branch | 4 at the time of writing (1 audit and retrospective only) |
+| First review to last thread resolution | a few minutes (09:35 to about 09:46 UTC, 2026-11-11) |
 | AI models used | Claude Sonnet 5.5 (author), unknown (reviewer) |
 
 Numbers: the table in `PR-REVIEW.md`, `git log torrust/develop..HEAD`, and the review times from the GitHub API.
 
 ## What Went Well
 
-1. The change was small (two skills, nine lines), so the review was one round and every finding was minor.
+1. The change was small (two skills, nine lines), so there were two rounds and every finding was minor.
 2. The reviewer re-checked the motivation against the audits and found that the description overstated it
    (F3); the description now states only what the audits show.
 
@@ -40,7 +40,8 @@ Numbers: the table in `PR-REVIEW.md`, `git log torrust/develop..HEAD`, and the r
 F1 and F2 were gaps in my wording: the first sentence forbade a late start instead of handling it, and the
 trigger fired on events that need no record. Both came from writing the rule for the common case and not
 walking the other cases (a takeover after round 1, a clean first review). F3 came from summarizing six
-retrospectives from memory of the task brief instead of from each audit.
+retrospectives from memory of the task brief instead of from each audit. Copilot's F4 and F5 (ambiguous
+terms, the rule stated in full in two skills) are the same kind: wording and duplication I could have checked before pushing.
 
 ## Root Causes
 
