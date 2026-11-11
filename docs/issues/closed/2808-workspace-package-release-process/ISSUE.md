@@ -195,7 +195,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
-- [x] Reviewer validated acceptance criteria and updated checkboxes
+- [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [x] Committer verified spec progress is up to date before commit
 - [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
