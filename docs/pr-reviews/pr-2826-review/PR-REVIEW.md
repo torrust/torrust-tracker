@@ -607,7 +607,7 @@ R1 to R6 are Copilot's review 5858141026 (R1, R5 and R6 are its own IDs; R2 and 
 - Current-tree verification: The F26 entry of this record; the commit body names this edit.
 - Resolution reference: docs(pr-reviews): [#2822] record the fifth review round of PR #2826
 - Follow-up PR URL: N/A
-- Reply URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2826#discussion_r4539062839
 
 ### F38 - last-updated-utc and the Progress Log stop at the third review
 
@@ -620,7 +620,7 @@ R1 to R6 are Copilot's review 5858141026 (R1, R5 and R6 are its own IDs; R2 and 
 - Current-tree verification: Spec frontmatter and Progress Log.
 - Resolution reference: docs(issues): [#2822] log the fourth review round and refresh the stamp
 - Follow-up PR URL: N/A
-- Reply URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2826#discussion_r4539063671
 
 ## Processing Log
 
@@ -636,6 +636,9 @@ R1 to R6 are Copilot's review 5858141026 (R1, R5 and R6 are its own IDs; R2 and 
 - 2026-11-11 13:53 UTC - Review 5859817911 (da2ce7, `APPROVED`) submitted on the head of that push: F32 to F35, none blocking.
 - 2026-11-11 13:58 UTC - Pushed the two commits that fix F32 to F35 (push log time).
 - 2026-11-11 13:58 UTC - Replied to and resolved F32 to F35 after that push; the replies cite the pushed commit subjects and their URLs are in the entries.
+- 2026-11-11 14:20 UTC - Review 5860192787 (da2ce7, `APPROVED`) submitted on the head of the previous push: F37 and F38, none blocking.
+- 2026-11-11 14:24 UTC - Pushed the two commits that fix F37 and F38 (push log time).
+- 2026-11-11 14:24 UTC - Replied to and resolved F37 and F38 after that push; the reply URLs are in the entries.
 
 ## Completion Rules
 
