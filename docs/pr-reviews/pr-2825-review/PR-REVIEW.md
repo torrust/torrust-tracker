@@ -45,6 +45,8 @@ Round 1: da2ce7 review 5858161814 (changes requested, findings F1 to F11) and Co
 
 Round 2: da2ce7 review 5858720859 (approved, with findings F17 to F24; his `F11` collided with round 1's `F11` and is `F25`, a re-raise of F11 because the workflow marker was only partly fixed), submitted 12:30:01Z.
 
+Round 3: da2ce7 review 5859105345 (approved, submitted 13:00:34Z by the poller cursor), findings F26 to F30.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2825-f1 | Human | Major | correctness | ORIGINAL | FIXED | RESOLVED |
@@ -72,6 +74,11 @@ Round 2: da2ce7 review 5858720859 (approved, with findings F17 to F24; his `F11`
 | F23 | review-finding:pr-2825-f23 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F24 | review-finding:pr-2825-f24 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F25 | review-finding:pr-2825-f25 | Human | Nit | metadata | RE_RAISE_OF:F11 | FIXED | RESOLVED |
+| F26 | review-finding:pr-2825-f26 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F27 | review-finding:pr-2825-f27 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F28 | review-finding:pr-2825-f28 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F29 | review-finding:pr-2825-f29 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F30 | review-finding:pr-2825-f30 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -305,7 +312,7 @@ Round 2: da2ce7 review 5858720859 (approved, with findings F17 to F24; his `F11`
 - Concern: A pre-release matches only a comparator naming a pre-release of the same major.minor.patch; the skill and the audit's F2 Concern said "the same pre-release".
 - Solution: Skill wording now: "matches only a requirement that names a pre-release of `3.0.1`"; the F2 Concern in this audit has the same wording.
 - Current-tree verification: `grep -n "names a pre-release" .github/skills/dev/git-workflow/release-new-version/SKILL.md` finds it.
-- Resolution reference: docs(skills): [#2808] state Cargo's pre-release matching rule precisely in release-new-version
+- Resolution reference: docs(skills): [#2808] state Cargo's pre-release matching rule precisely in release-new-version; docs(pr-reviews): [#2808] record round 2 of the PR 2825 review audit
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2825#discussion_r4537946460
 
@@ -341,7 +348,7 @@ Round 2: da2ce7 review 5858720859 (approved, with findings F17 to F24; his `F11`
 - Source review ID: 5858720859
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2825#discussion_r4537876286
-- Concern: Commits 9c791e522 and a925c2434 each carry several independent fixes, and the first has no body; the review asks for one commit per finding next round.
+- Concern: The round 1 commits `docs(skills): [#2808] name the e2e-tools requirement, add skill links, align the docs index wording` and `docs(issues): [#2808] answer the review of PR 2825 in the specs and the evidence` each carry several independent fixes, and the first has no body; the review asks for one commit per finding next round.
 - Solution: No history rewrite was asked for. This round's fixes use one commit per finding.
 - Current-tree verification: `git log` over the round 2 fix commits lists one commit per finding (retrospective, skill-link, example, index, spec stamps, pre-release wording).
 - Resolution reference: https://github.com/torrust/torrust-tracker/pull/2825#discussion_r4537947635
@@ -400,6 +407,71 @@ Round 2: da2ce7 review 5858720859 (approved, with findings F17 to F24; his `F11`
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2825#discussion_r4537946030
 
+### F26 - The retrospective's dry-run claim goes further than the evidence
+
+- PR number: 2825
+- Source review ID: 5859105345
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2825#discussion_r4538171409
+- Concern: The retrospective said the dry runs "showed the documented path works", beyond what V1 and V2 record and beyond its own Root Cause.
+- Solution: Reworded to "showed that every step up to `cargo publish --dry-run` can be followed".
+- Current-tree verification: `grep -n "can be followed" docs/issues/open/2808-*/implementation-retrospective.md` finds it.
+- Resolution reference: docs(issues): [#2808] limit the retrospective's dry-run claim to what the evidence shows
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2825#discussion_r4538207955
+
+### F27 - The PR description's note on the first-publish spec is stale
+
+- PR number: 2825
+- Source review ID: 5859105345
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2825#discussion_r4538171419
+- Concern: The description said only that #2583's paths were updated and omitted #2594, the retrospective and the audit.
+- Solution: Edited the PR description: the note says T2 was re-scoped here, the spec list includes #2594, and a line names the retrospective and audit.
+- Current-tree verification: `gh-bot pr view 2825 --json body` contains `#2583, #2594 and #2183` and `implementation-retrospective.md`.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2825#discussion_r4538208245
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2825#discussion_r4538208245
+
+### F28 - Two branch commit ids in an audit Concern
+
+- PR number: 2825
+- Source review ID: 5859105345
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2825#discussion_r4538171400
+- Concern: The F21 Concern cited two PR-branch commits by id, which a rebase rewrites.
+- Solution: Described the commits by subject in the F21 Concern; swept this record and the spec files for other ids.
+- Current-tree verification: `grep -nE '\b[0-9a-f]{9}\b' docs/pr-reviews/pr-2825-review/PR-REVIEW.md` finds no commit id outside reply and discussion URLs.
+- Resolution reference: docs(pr-reviews): [#2808] record round 3 of the PR 2825 review audit
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2825#discussion_r4538207606
+
+### F29 - Two log entries break the stamp rule
+
+- PR number: 2825
+- Source review ID: 5859105345
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2825#discussion_r4538171424
+- Concern: The round 2 entry stamped 12:32 names commits up to 12:35:13Z and the push after them, and the last entry has no stamp.
+- Solution: Appended one stamped correction that dates both entries from their events.
+- Current-tree verification: The Processing Log ends with the stamped correction entry.
+- Resolution reference: docs(pr-reviews): [#2808] record round 3 of the PR 2825 review audit
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2825#discussion_r4538208649
+
+### F30 - F18's Resolution reference omits the audit commit
+
+- PR number: 2825
+- Source review ID: 5859105345
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2825#discussion_r4538171427
+- Concern: F18's Solution names the skill wording and the F2 Concern edit in this record; the reference cited only the skill commit.
+- Solution: F18's Resolution reference now lists both subjects separated by `;`; swept the other rows for the same pattern.
+- Current-tree verification: The F18 detail entry shows both subjects; the validator exits 0.
+- Resolution reference: docs(pr-reviews): [#2808] record round 3 of the PR 2825 review audit
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2825#discussion_r4538209028
+
 ## Processing Log
 
 - 2026-11-11 11:41 UTC - Started audit: da2ce7 review 5858161814 (submitted 11:41:44Z) and Copilot review 5858165805 (11:42:06Z), both on the head of the PR when opened; 16 inline threads, all unresolved.
@@ -411,6 +483,8 @@ Round 2: da2ce7 review 5858720859 (approved, with findings F17 to F24; his `F11`
 - 2026-11-11 12:38 UTC - Resolved the nine threads through GraphQL (nine results, each `isResolved: true`).
 - 2026-11-11 12:38 UTC - Correction to the first entry (audit F23): it was stamped 11:41 but names the Copilot review submitted at 11:42:06Z; the first fix commit is at 11:54:47Z. Also, `validate-audit-record.py` first ran against this record after the round 1 replies and resolutions (it needs the reply URLs) and before the first audit commit (12:02:56Z), with `failures: 0`; for round 2 it ran before the audit commit and reported only the two resolution references (F23, F24) that name that commit's own subject, which cannot exist before the commit.
 - Correction (audit F18, F24): the F2 Concern wording and the F13 Resolution reference were edited in place in round 2; the earlier text said "a pre-release only matches a requirement with the same pre-release" and cited only the `tracker.md` commit.
+- 2026-11-11 13:06 UTC - Round 3: da2ce7 review 5859105345 (approved; the poller cursor is 13:00:34Z) with five comments. The fix commit for F26 is at 13:01:44Z (`git log --format=%cI`) and was pushed after it; the PR description was edited for F27 before the replies. Replied on the five threads (reply `created_at` 13:04:06Z to 13:04:16Z) and resolved them through GraphQL (five results, each `isResolved: true`).
+- 2026-11-11 13:06 UTC - Correction (audit F29): the round 2 entry stamped 12:32 covers events up to the push after the last fix commit (12:35:13Z), and its audit commit is `docs(pr-reviews): [#2808] record round 2 of the PR 2825 review audit` at 12:40:06Z. The entry that begins "Correction (audit F18, F24)" had no stamp; it dates from that audit commit, 12:40:06Z. In round 3 the F21 Concern, the F18 Resolution reference and this log were edited, the first two in place, as the entries above and this one record.
 
 ## Completion Rules
 
