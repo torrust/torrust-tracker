@@ -1246,7 +1246,7 @@ Workspace deps: 9
 
 ## Observations
 
-Reviewed 2026-11-11 against `torrust/develop` (head `850e95e35`). Method: the report's per-edge
+Reviewed 2026-11-11 against `torrust/develop` at the merge base `f8b0f26e9`. Method: the report's per-edge
 import counts, cross-checked with `cargo metadata` (edge kinds, feature gating), `cargo tree -e normal`
 (default build chains) and `deny.toml`.
 
