@@ -6,7 +6,7 @@ epic: null
 github-issue: 2758
 spec-path: docs/issues/open/2758-cli-output-contract-tools-migration/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-11 09:27"
+last-updated-utc: "2026-11-11 09:25"
 semantic-links:
   skill-links:
     - create-issue

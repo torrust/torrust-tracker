@@ -9,7 +9,7 @@ github-issue: 2762
 spec-path: docs/issues/closed/2762-2758-package-coverage-check-contract/ISSUE.md
 branch: "2762-package-coverage-check-contract"
 related-pr: 2810
-last-updated-utc: "2026-11-11 09:27"
+last-updated-utc: "2026-11-11 09:25"
 semantic-links:
   skill-links:
     - create-issue
@@ -134,7 +134,7 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-11-10 18:10 UTC - Claude Code (Claude Sonnet 5.5) - Addressed review round 2 of PR 2810 (da2ce7 F3, F8 to F11; Copilot F1, F2 recorded in the audit): hosted run recorded (H1), stamps taken from the commit times, commits cited by subject.
 - 2026-11-10 18:36 UTC - Claude Code (Claude Sonnet 5.5) - Addressed review round 3 of PR 2810 (da2ce7 approved with record findings): AC5 wording states what was observed, stamps from commit times, audit log corrected, older replies cite subjects, PR description records the hosted run.
 - 2026-11-10 21:33 UTC - Claude Code (Claude Sonnet 5.5) - Addressed review round 4 of PR 2810 (two Nit findings in the audit) and added the review retrospective `docs/pr-reviews/pr-2810-review/review-retrospective.md`.
-- 2026-11-11 09:27 UTC - Claude Code (Claude Sonnet 5.5) - PR 2810 merged into `develop` on 2026-11-11 and issue #2762 closed; spec archived to `docs/issues/closed/`, the EPIC row set to DONE, and the deferred review findings fixed in the close-out PR.
+- 2026-11-11 09:25 UTC - Claude Code (Claude Sonnet 5.5) - PR 2810 merged into `develop` on 2026-11-11 and issue #2762 closed; spec archived to `docs/issues/closed/`, the EPIC row set to DONE, and the deferred review findings fixed in the close-out PR.
 
 ## Acceptance Criteria
 

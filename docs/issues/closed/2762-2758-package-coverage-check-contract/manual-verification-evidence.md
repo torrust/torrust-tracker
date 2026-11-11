@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/closed/2762-2758-package-coverage-check-contract/ISSUE.md
-last-updated-utc: 2026-11-11 09:27
+last-updated-utc: 2026-11-11 09:25
 ---
 
 # Manual Verification Evidence
