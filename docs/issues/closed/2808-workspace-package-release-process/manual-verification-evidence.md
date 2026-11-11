@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2808-workspace-package-release-process/ISSUE.md
-last-updated-utc: "2026-11-11 11:57"
+issue-spec: docs/issues/closed/2808-workspace-package-release-process/ISSUE.md
+last-updated-utc: "2026-11-11 13:51"
 ---
 
 # Manual Verification Evidence

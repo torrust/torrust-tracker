@@ -1,3 +1,11 @@
+---
+spec-path: docs/issues/closed/2808-workspace-package-release-process/torrust-server-lib-followup-issue.md
+last-updated-utc: "2026-11-11 14:18"
+semantic-links:
+  related-artifacts:
+    - docs/issues/closed/2808-workspace-package-release-process/ISSUE.md
+---
+
 # Follow-up issue text for torrust/torrust-server-lib
 
 Ready for the maintainer to create (T6 of torrust/torrust-tracker#2808). Nothing has been created.

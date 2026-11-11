@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: done
 priority: p2
 epic: null
 github-issue: 2808
-spec-path: docs/issues/open/2808-workspace-package-release-process/ISSUE.md
+spec-path: docs/issues/closed/2808-workspace-package-release-process/ISSUE.md
 branch: "2808-workspace-package-release-process"
-related-pr: null
-last-updated-utc: "2026-11-11 12:34"
+related-pr: 2825
+last-updated-utc: "2026-11-11 15:07"
 semantic-links:
   skill-links:
     - create-issue
@@ -196,9 +196,9 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
-- [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
-- [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
+- [x] Committer verified spec progress is up to date before commit
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -215,6 +215,8 @@ Use a Conventional Commit message with the narrow affected scope, and sign every
 - 2026-11-11 11:17 UTC - Claude Code (Claude Sonnet 5.5) - #2576 closed; implemented T2-T6 in the implementation PR: pure-move split (T2), process rewrite (T3), `release-workspace-package` skill and `release-new-version` fixes (T4), no README describes releasing so none changed and the standalone "Releasing" text is in `workspace-packages.md` (T5), `torrust-server-lib-followup-issue.md` (T6); manual verification recorded in `manual-verification-evidence.md`. Open specs #2583 (T2 overlaps T3 here) and #2183 now name the new documents.
 - 2026-11-11 11:57 UTC - Claude Code (Claude Sonnet 5.5) - Implementation completion review, after the review of PR 2825: the one material discovery (audit F1) was that a published crate's version bump must raise the `version` requirement in every dependent manifest in the same PR; it is now precondition 2 of `workspace-packages.md`, so no separate retrospective is needed. The PR description uses `Closes #2808`: the issue closes on merge, and the spec move to `docs/issues/closed/` and the torrust-server-lib issue creation are done by the maintainer's close-out afterwards.
 - 2026-11-11 12:34 UTC - Claude Code (Claude Sonnet 5.5) - Correction to the 11:57 entry (audit F17): the discovery in audit F1 is material (a retained step that a review had to remove), so the completion review creates `implementation-retrospective.md` instead of the "no separate retrospective" the 11:57 entry stated.
+- 2026-11-11 13:51 UTC - Claude Code (Claude Sonnet 5.5) - Archived after PR 2825 merged (issue #2808 closed on GitHub): spec moved to `docs/issues/closed/`, `status: done`, `related-pr: 2825`; da2ce7 approved the final head. The torrust-server-lib issue (tag backfill and checklist cleanup) is still to be created by the maintainer from `torrust-server-lib-followup-issue.md`.
+- 2026-11-11 14:19 UTC - Claude Code (Claude Sonnet 5.5) - Correction to the archive commit's checkpoint ticks (close-out review F2, F3; the 13:51 entry above says nothing about checkpoints): the checkpoint "Reviewer validated acceptance criteria" is left open, because no reviewer edited this spec, and the checkpoint "Independent reviewer reports recorded" is ticked, because the reviews of PR 2809 and PR 2825 are recorded in `docs/pr-reviews/pr-2809-review/PR-REVIEW.md` and `docs/pr-reviews/pr-2825-review/PR-REVIEW.md`. The 16:17 entry named `docs/issues/open/` correctly and is restored.
 
 ## Acceptance Criteria
 
