@@ -9,7 +9,7 @@ github-issue: 2804
 spec-path: docs/issues/open/2804-location-caller-track-caller-audit/ISSUE.md
 branch: "2804-location-caller-track-caller-audit-spec"
 related-pr: null
-last-updated-utc: "2026-11-11 11:11"
+last-updated-utc: "2026-11-11 11:16"
 semantic-links:
   skill-links:
     - create-issue
@@ -291,6 +291,7 @@ with the narrow affected scope, and sign every commit with GPG.
 - 2026-11-10 21:51 UTC - Claude Code (Sonnet 5.5) - Reworked the T2 trace, the closure and class columns, the standalone-crate scan and the experiment record after review of PR #2814 (`experiments.md`).
 - 2026-11-11 10:44 UTC - Claude Code (Sonnet 5.5) - T4 done: option comparison, semver estimate per crate and slicing proposal in `options.md`; recommendation awaits maintainer approval.
 - 2026-11-11 11:11 UTC - Claude Code (Sonnet 5.5) - Reworked T4 after review of PR #2821: count of 23 printed locations, option 1 reaches no production site, semver against the first-publish plan, slices S1 to S7 (`options.md`).
+- 2026-11-11 11:16 UTC - Claude Code (Sonnet 5.5) - Added the Copilot findings of PR #2821 to T4: additive constructors are not breaking, the `configuration` `LocatedError` sources, the peer-id wrapping site, and direct tests for S5 and S6 (`options.md`).
 
 ## Acceptance Criteria
 

@@ -1,7 +1,7 @@
 ---
 doc-type: issue-options
 issue-spec: docs/issues/open/2804-location-caller-track-caller-audit/ISSUE.md
-last-updated-utc: "2026-11-11 11:12"
+last-updated-utc: "2026-11-11 11:16"
 ---
 
 # Issue #2804 - T4: fix options and recommendation
@@ -63,7 +63,7 @@ the publish plan in `docs/issues/open/2583-1669-first-publish-of-workspace-crate
 | Correct for sync helpers reached through `TryFrom` or `async` code (P5a, P6, P7-P10) | No: the chain ends at the `TryFrom` impl or an `async` block (fact 6) | No: same callers | Yes | Yes |
 | Reaches users correctly | A workspace line at best, still a path to a user | Same | No path in the text | No path |
 | Fixes `LocatedError` text (fact 2) | No: the three existing `#[track_caller]` impls make the location correct but it is still printed (`inventory.md`, T2 table) | No | No by itself: needs the wrapper's `Display` changed or the wrapper dropped on these paths | Same as 3 |
-| Public API break | None | A new constructor; existing literals break | None if the field stays and only `Display` changes | Yes for 24 variants |
+| Public API break | None | None for an additive constructor or macro; existing literals break only if fields change, which capture at the call site does not need | None if the field stays and only `Display` changes | Yes for 24 variants |
 | Churn | One attribute per helper, plus all callers up the chain | New constructor or macro per error type | One format string per variant, and new wording or a new field for the 12 without input (fact 3) | One format string, one field, every constructor and test |
 | Keeps the developer hint | Yes, when correct | Yes, when correct | In `Debug` and logs while the field stays | No |
 
@@ -78,11 +78,11 @@ published at 3.0.0 and already owe 4.0.0 (`:196`, `:201`). "Display only" change
 | Crate | Version now, version planned | Variants printing a location | Option 3 (Display only, field kept) | Option 4 (field removed) |
 | --- | --- | --- | --- | --- |
 | `torrust-tracker-primitives` | 3.1.0, planned 4.0.0 | 3 (`peer.rs`) | patch, inside the planned 4.0.0 | none beyond the planned 4.0.0 |
-| `torrust-tracker-configuration` | 3.0.0, planned 4.0.0 | none | none | none |
+| `torrust-tracker-configuration` | 3.0.0, planned 4.0.0 | 0 own, but 4 public variants print a `LocatedError` source (`lib.rs:305-337`: `UnableToProcessExplicitConfigFile`, `UnableToLoadFromEnvironmentVariable`, `UnableToLoadFromConfigFile`, `ConfigError`) | patch if the `LocatedError` text changes (decision b); a source-type change (decision a) is breaking, inside the planned 4.0.0 | breaking for those sources, inside the planned 4.0.0 |
 | `torrust-tracker-http-protocol` | 0.1.0, first publish | 11 | none (first publish) | none (first publish) |
 | `torrust-tracker-core` | 0.1.0, first publish | 7 | none (first publish) | none (first publish) |
 | `torrust-tracker-udp-server` | 0.1.0, first publish | 2 | none (first publish) | none (first publish) |
-| `torrust-tracker-axum-server` | 0.1.0, first publish | 0 (`MissingTlsConfig` has an unprinted field; `BadTlsConfig` has a `LocatedError` source, `tls.rs:19`, `:25`) | none | none |
+| `torrust-tracker-axum-server` | 0.1.0, first publish | 0 printed fields; `BadTlsConfig` prints a `LocatedError` source (`tls.rs:25`) and `MissingTlsConfig` has an unprinted `location` field (`tls.rs:19`) | none (first publish) | none (first publish) |
 | `torrust-tracker-http-core`, `torrust-tracker-axum-http-server` | 0.1.0, first publish | 0 (no `location` field and no `LocatedError` in `src/`) | none | none |
 
 Consequence for option 4: while a crate has not been published, removing the field costs it nothing,
@@ -133,11 +133,11 @@ is nowhere in production today (fact 6).** Option 1 is not part of the recommend
 | Slice | Crates | Change | Red test | Version step |
 | --- | --- | --- | --- | --- |
 | S1 | `primitives` | `Display` of `ParsePeerRoleError`, `IdConversionError` without location | `"x".parse::<PeerRole>()` message has no library path; `Id::try_from` likewise. Closes finding F3 | inside the planned 4.0.0 |
-| S2 | `http-protocol` | 11 variants. The `torrust-info-hash` case is excluded from this slice: its two sites are in a registry crate (`inventory.md`, standalone crates) and the workspace wrapping sites (`announce.rs:543`, `scrape.rs:84`) print a second location until S3 settles `LocatedError` | response body of a malformed announce and scrape has no library path, for the `Display` variants of the slice | first publish |
-| S3 | `http-core`, `axum-http-server`, `http-protocol` wrapping sites | `LocatedError` decision (a or b), key and whitelist reasons, and the info-hash case of S2 | same, through the HTTP server, including a malformed `info_hash` | first publish |
+| S2 | `http-protocol` | 11 variants. The three `Located(err).into()` wrapping sites (`announce.rs:543` info hash, `:560` peer id; `scrape.rs:84` info hash) are excluded: their source is a `LocatedError`, which prints a second location until S3 settles it, and the two info-hash sources are in a registry crate (`inventory.md`, standalone crates) | response body of a malformed announce and scrape has no library path, for the `Display` variants of the slice | first publish |
+| S3 | `http-core`, `axum-http-server`, `http-protocol` wrapping sites | `LocatedError` decision (a or b), key and whitelist reasons, and the three wrapping sites of S2 | same, through the HTTP server, including a malformed `info_hash` and a short `peer_id` | first publish |
 | S4 | `tracker-core` | 7 variants, database conversion (class C reaches REST and UDP); the whitelist variant also reaches UDP announce replies | REST reply for a whitelist/database failure and UDP reply for a non-whitelisted announce have no library path | first publish |
-| S5 | `axum-server`, `configuration` | TLS startup text (`MissingTlsConfig`, `BadTlsConfig`) | startup error text for a missing certificate has no library path | first publish |
-| S6 | `udp-server` | The two variants `Internal` and `AuthRequired` are built only in `#[cfg(test)]` code, so they need no red test of their own; their `Display` is changed with S4's test as the coverage of the UDP path | none of its own (recorded) | first publish |
+| S5 | `axum-server`, `configuration` | TLS startup text (`MissingTlsConfig`, `BadTlsConfig`) and the four `LocatedError`-source variants of `Error` in `configuration` | direct `to_string()` tests: a missing certificate and a bad configuration file give text with no library path | first publish |
+| S6 | `udp-server` | `Internal` and `AuthRequired` are built only in `#[cfg(test)]` code, so no UDP reply exercises them; they get direct formatting tests | `to_string()` of each variant has no library path | first publish |
 | S7 | all | Enforcement test and skill update | grep or test from T3 fails on a new `Location::caller()` in a trait impl, closure or `async fn` | none |
 
 ## Evidence
