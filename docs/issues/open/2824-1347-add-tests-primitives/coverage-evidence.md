@@ -1,8 +1,9 @@
 ---
-doc-type: evidence
-epic: 1347
-spec-path: docs/issues/open/2824-1347-add-tests-primitives/ISSUE.md
-last-updated-utc: "2026-11-10"
+doc-type: coverage-evidence
+issue: 2824
+package: torrust-tracker-primitives
+measured-commit: eaae0e487
+measured-utc: 2026-11-10
 ---
 
 # Coverage Evidence - `torrust-tracker-primitives`
