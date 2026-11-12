@@ -42,8 +42,8 @@ The first case found is the announce `left` field. BEP 15 encodes it as a 64-bit
 which the implementation document it cites types as `int64_t`, and the UDP announce accepts a
 negative value. The HTTP announce parses `left` as `u64` and rejects
 it. `Peer::is_seeder` (`packages/primitives/src/peer.rs`) treats `left <= 0` as a seeder, so a
-negative value from a UDP client counts as a completed download, while the same value over HTTP is
-an error. Nobody decided this; it follows from the parsers being written independently.
+negative value from a UDP client counts the peer as a seeder (the `complete` count), while the same
+value over HTTP is an error. Nobody decided this; it follows from the parsers being written independently.
 
 The existing ADRs cover the other direction. [Bound protocol-agnostic values by the tightest
 delivery protocol](20261007082938_bound_protocol_agnostic_values_by_the_tightest_delivery_protocol.md)
