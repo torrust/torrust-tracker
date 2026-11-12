@@ -234,6 +234,7 @@ Round 1 is Copilot's review `5875845096` (F13, numbered after the others), da2ce
 - 2026-11-12 16:17 UTC - da2ce7's review `5875864302` (8 findings, F1 to F8) fixed: the branch history was rewritten and pushed (force-push with lease, approved by the maintainer). Replied on the eight threads and resolved them. This record did not exist yet.
 - 2026-11-12 16:17 UTC - da2ce7's review `5876129658` (4 findings, F9 to F12) arrived on the earlier head; its four threads were resolved by mistake in the same sweep, before being read.
 - 2026-11-12 16:24 UTC - Started this audit late, after the first replies. F9 (mutation attributions) and F10 (this record) are real: their threads were reopened, F9 was fixed and replied, F10 got a reply that announces this record. F11 (description) was fixed and F12 was folded by the rewrite; both replied. F9 to F12 and F13 are recorded in the rows above; the F9 and F10 threads are resolved after this record is pushed.
+- 2026-11-12 16:26 UTC - Correction: the entry above stamped 16:24 UTC is later than its commit (16:23 UTC); its content is accurate. The F9 and F10 threads were then resolved, and the validator passed (13 rows).
 
 ## Completion Rules
 
