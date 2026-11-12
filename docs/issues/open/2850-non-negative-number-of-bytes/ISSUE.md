@@ -482,7 +482,7 @@ What is taken over, so nothing is lost:
 | --- | --- | --- |
 | PR #2843, branch `2842-inbound-tolerance-adr` | The ADR, its index entry and the specification of #2842 | Carried over as commits of the spec-only pull request |
 | PR #2839, branch `2838-udp-reject-negative-announce-bytes` | The specification of #2838 with the field audit and the client and tracker evidence; the reproduction evidence; the UDP probe script | [`docs/issues/open/2838-1347-udp-reject-negative-announce-bytes/`](../2838-1347-udp-reject-negative-announce-bytes/ISSUE.md), carried over by the spec-only pull request |
-| PR #2839, the same branch | The tests: commits `f4f5ddf96` (red handler test), `913856842` (rejected and accepted byte counts in the announce service), `950cedfbf` (a negative byte count is classified as a bad request) | Not carried over yet. The implementation takes them from that branch and adapts them to the new error |
+| PR #2839, the same branch | The tests, in the commits "test(udp-server): reject a negative left in an announce (red)", "test(udp-core): [#2838] cover rejected and accepted byte counts in announce" and "fix(udp-server): [#2838] classify a negative byte count as a bad request" | Not carried over yet. The implementation takes them from that branch and adapts them to the new error |
 
 The frontmatter keeps `epic: null`.
 
@@ -499,7 +499,8 @@ The frontmatter keeps `epic: null`.
   typed value, as `ByteCountField` of PR #2839 does, or by the error's own variants; the
   implementation decides and records why. No `validate_number_of_bytes` function is added.
 - `udp-server`: the new error is classified as `ErrorKind::BadRequest` in `src/event.rs`, as
-  commit `950cedfbf` of PR #2839 does for its variant; the handler test; the message sent to the
+  the commit "fix(udp-server): [#2838] classify a negative byte count as a bad request" of PR #2839
+  does for its variant; the handler test; the message sent to the
   client is listed in the pull request for approval.
 - `http-protocol`: `NumberOfBytes` holds a private `u64` with `new(u64)` and `get()`; the parser
   stores the `u64` it parses; `ParseAnnounceQueryError::NumberOfBytesOverflow` is removed; the
@@ -584,7 +585,8 @@ The first steps were done for PR #2839 and are recorded in the folder of #2838:
   `evidence/probe-before-fix.txt`.
 - Regression-test boundary: the wire-to-domain conversion `peer_builder::from_request` (unit), the
   announce service (order of checks) and the UDP handler (response and no stored peer).
-- Red evidence: recorded for the handler test (`evidence/red-test-output.txt`, commit `f4f5ddf96`).
+- Red evidence: recorded for the handler test (`evidence/red-test-output.txt`, commit "test(udp-server): reject a negative left in an announce
+  (red)" of PR #2839).
   The implementation repeats it on its own branch before the production change.
 - Production fix: this issue (T2 and T3 of the plan).
 - Green evidence and like-for-like recheck: the same probe and values, recorded in this issue's
@@ -598,7 +600,8 @@ Each rule is protected at the boundary that owns it. The UDP tests exist on the 
 - `udp-core`, unit tests of `peer_builder::from_request` (the causal seam for UDP): each of the
   three counters with `-1`; `left` with `i64::MIN`; `left` with `0`, `16384` (what libtorrent
   sends before it has the metadata) and `i64::MAX` (what Transmission sends). The tests of PR #2839
-  for these values (commit `913856842`) move here from the service tests.
+  for these values (commit "test(udp-core): [#2838] cover rejected and accepted byte counts in
+  announce") move here from the service tests.
 - `udp-core`, service tests of PR #2839 for the order of checks: the connection cookie is validated
   before the conversion, and a negative counter is refused before the whitelist is consulted. They
   stay.
@@ -832,7 +835,7 @@ from.
   implementation merges. Mitigation: it only inflates a seeder count; T2 fixes it as the first code
   commit.
 - **Tests live on a branch of a closed pull request.** Mitigation: the branch is kept until the
-  implementation has taken them; the commits are named in D6.
+  implementation has taken them; the commits are named by their subject in D6.
 - **Scope growth into a review of every primitive.** Mitigation: the Out of Scope list; other types
   get their own issues, using the ADR.
 
