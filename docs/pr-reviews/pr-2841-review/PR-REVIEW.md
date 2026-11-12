@@ -39,7 +39,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Round 1 is Copilot's review `5875845096` (F13, numbered after the others) and da2ce7's review `5875864302` (F1 to F8), both submitted on the head whose last commit had the subject `docs(issues): [#2824] record the S2 coverage and the F6 finding`, and da2ce7's review `5876129658` (F9 to F12), submitted on the head whose last commit has the subject `test(primitives): [#2824] cover the ReadInfo role predicates for every state`. Round 2 is da2ce7's review `5878329038` (F14 to F20), submitted on the head whose last commit has the subject `docs(pr-reviews): [#2824] correct a log stamp of the PR 2841 audit`, and Copilot's review `5878380545` (F21), submitted on the head of the rebuilt history (last commit `docs(pr-reviews): [#2824] correct the PR 2841 audit facts after round 2`). Round 3 is da2ce7's approving review `5879377639` (F22 to F24). The branch history was rebuilt after round 2 (see F14), so the subjects of the round 1 fix commits are those listed in each `Resolution reference` below.
+Round 1 is Copilot's review `5875845096` (F13, numbered after the others) and da2ce7's review `5875864302` (F1 to F8), both submitted on the head whose last commit had the subject `docs(issues): [#2824] record the S2 coverage and the F6 finding`, and da2ce7's review `5876129658` (F9 to F12), submitted on the head whose last commit has the subject `test(primitives): [#2824] cover the ReadInfo role predicates for every state`. Round 2 is da2ce7's review `5878329038` (F14 to F20), submitted on the head whose last commit has the subject `docs(pr-reviews): [#2824] correct a log stamp of the PR 2841 audit`, and Copilot's review `5878380545` (F21), submitted on the head of the rebuilt history (last commit `docs(pr-reviews): [#2824] correct the PR 2841 audit facts after round 2`). Round 3 is da2ce7's approving review `5879377639` (F22 to F24) and Copilot's review `5879536305` (F25 to F27). The branch history was rebuilt after round 2 (see F14), so the subjects of the round 1 fix commits are those listed in each `Resolution reference` below.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -67,6 +67,9 @@ Round 1 is Copilot's review `5875845096` (F13, numbered after the others) and da
 | F22 | review-finding:pr-2841-f22 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F23 | review-finding:pr-2841-f23 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F24 | review-finding:pr-2841-f24 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F25 | review-finding:pr-2841-f25 | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F26 | review-finding:pr-2841-f26 | Copilot | Minor | documentation | RE_RAISE_OF:F22 | FIXED | RESOLVED |
+| F27 | review-finding:pr-2841-f27 | Copilot | Minor | documentation | RE_RAISE_OF:F22 | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -382,6 +385,45 @@ Round 1 is Copilot's review `5875845096` (F13, numbered after the others) and da
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2841#discussion_r4554279740
 
+### F25 - Cover the remaining non-completed events
+
+- PR number: 2841
+- Source review ID: 5879536305
+- Reviewer finding ID: F22
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2841#discussion_r4554347587
+- Concern: The `is_completed` test rejected only `Started`, so a predicate that accepted every event but `Started` still passed; the swarm coordinator uses it to count downloads.
+- Solution: The test also asserts `Stopped` and `None`; the mutant `event != Started` is killed and recorded in the mutation table.
+- Current-tree verification: Applied the mutant to `is_completed` and ran the package tests: the test fails; the file was restored byte for byte.
+- Resolution reference: test(primitives): [#2824] assert that Stopped and None peers are not completed
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2841#discussion_r4554413503
+
+### F26 - Cite the commit that adds the ReadInfo case table
+
+- PR number: 2841
+- Source review ID: 5879536305
+- Reviewer finding ID: F23
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2841#discussion_r4554347672
+- Concern: The resolution references of F2 and F13 named the initial test commit, not the commit that adds the case table.
+- Solution: Already fixed by the round 3 audit commit, which was pushed after the head this review covers: F2 and F13 cite the case-table commit.
+- Current-tree verification: Read the Resolution reference of F2 and F13 in the record.
+- Resolution reference: docs(pr-reviews): [#2824] record round 3 of the PR 2841 review
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2841#discussion_r4554414010
+
+### F27 - Reconcile F12 with the restored case-table commit
+
+- PR number: 2841
+- Source review ID: 5879536305
+- Reviewer finding ID: F24
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2841#discussion_r4554347733
+- Concern: F12 claimed the subject is gone although the rebuild restored the commit.
+- Solution: Already fixed by the round 3 audit commit: F12 is `NO_ACTION` with a solution, verification and reference that state the deliberate restoration (F14).
+- Current-tree verification: Read the F12 row and detail in the record.
+- Resolution reference: docs(pr-reviews): [#2824] record round 3 of the PR 2841 review
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2841#discussion_r4554414426
+
 ## Processing Log
 
 - 2026-11-12 14:14 UTC - Copilot's review `5875845096` (1 finding, F13) processed before this record existed: fixed in the test commit and replied on its thread.
@@ -391,6 +433,7 @@ Round 1 is Copilot's review `5875845096` (F13, numbered after the others) and da
 - 2026-11-12 16:26 UTC - Correction: the entry above stamped 16:24 UTC is later than its commit (16:23 UTC); its content is accurate. The F9 and F10 threads were then resolved, and the validator passed (13 rows).
 - 2026-11-12 17:31 UTC - Round 2: da2ce7's review `5878329038` (7 findings, F14 to F20) and Copilot's review `5878380545` (1 finding, F21; reviewer label F14) processed. The history was rebuilt and force-pushed with the maintainer's approval; the record, mutation cell, status and audit facts were fixed in new commits; F21 fixed with a mutation check. Replied on the eight threads. Correction of an earlier entry: the round 1 fix replies of 16:17 UTC cite subjects that the rebuilt history no longer has; the `Resolution reference` fields above name the current subjects.
 - 2026-11-12 17:58 UTC - Round 3: da2ce7's approving review `5879377639` (3 findings, F22 to F24) processed: record, stamp and audit corrections, plus the comment of the negative-left test and the F6 records now point at #2850. Replied on the three threads. Correction of the 17:31 UTC entry above: its last sentence says the round 1 fix replies cite subjects that the rebuilt history no longer has; the stale replies are the F1 and F12 replies (F12 got a correcting reply), and the round 1 replies cite no subject.
+- 2026-11-12 18:09 UTC - Round 3, Copilot's review `5879536305` (3 findings, F25 to F27, reviewer labels F22 to F24) on the head before the round 3 audit commit: F25 fixed with a mutation check; F26 and F27 were already fixed by the round 3 audit commit and are recorded as re-raises of F22. Replied on the three threads.
 
 ## Completion Rules
 
