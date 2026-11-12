@@ -754,6 +754,10 @@ Status values: `TODO`, `IN_PROGRESS`, `DONE`, `FAILED`, `BLOCKED`.
 Run a tracker with a UDP tracker, an HTTP tracker and the REST API on local ports. UDP announces
 are sent with the probe of #2838; HTTP announces with `curl`.
 
+The probe uses one info hash and one peer endpoint, so each accepted announce replaces the peer of
+the previous one. Read the REST output of M7 right after each accepted announce, before the next
+announce is sent, and use the single-torrent detail: the torrent list does not include peers.
+
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
 | M1 | UDP, negative `left` | Probe of #2838 with `left = -5` | Error response with the transaction id; `complete` does not grow | TODO | `manual-verification-evidence.md` section V1 |
@@ -762,7 +766,7 @@ are sent with the probe of #2838; HTTP announces with `curl`.
 | M4 | HTTP, the same values | `curl` announces with `left=-5`, `left=0`, `left=1000` and `left=9223372036854775807` | Refused with a `failure reason`, seeder, leecher, leecher: the same verdicts as M1 to M3 | TODO | `manual-verification-evidence.md` section V4 |
 | M5 | HTTP, above `i64::MAX` | `curl` announce with `left=9223372036854775808` | Normal response; the peer is a leecher | TODO | `manual-verification-evidence.md` section V5 |
 | M6 | HTTP, above `u64::MAX` | `curl` announce with `left=18446744073709551616` | Bencoded `failure reason` | TODO | `manual-verification-evidence.md` section V6 |
-| M7 | REST output | `GET` the torrents of M2, M3 and M5 from the REST API | `left`, `uploaded` and `downloaded` are JSON numbers with the values sent, including the one above `i64::MAX` | TODO | `manual-verification-evidence.md` section V7 |
+| M7 | REST output | Right after each accepted announce of M2, M3, M4 and M5, and before the next announce, `GET` the single-torrent detail from the REST API | For each announce, `left`, `uploaded` and `downloaded` of the peer are JSON numbers with the values just sent, including the one above `i64::MAX` | TODO | `manual-verification-evidence.md` section V7 |
 
 Notes:
 
