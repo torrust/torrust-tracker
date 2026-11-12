@@ -203,4 +203,54 @@ mod tests {
 
         assert_eq!(serde_json::to_string(&interval).expect("it should serialize"), "120");
     }
+
+    #[test]
+    fn it_should_be_built_from_a_u32_within_the_limit() {
+        let interval = AnnounceIntervalInSecs::try_from(120_u32).expect("120 seconds should be accepted");
+
+        assert_eq!(interval.get(), 120);
+    }
+
+    #[test]
+    fn it_should_fail_to_be_built_from_a_u32_above_the_limit() {
+        let result = AnnounceIntervalInSecs::try_from(2_147_483_648_u32);
+
+        assert_eq!(result, Err(AnnounceIntervalTooLargeError { value: 2_147_483_648 }));
+    }
+
+    #[test]
+    fn it_should_convert_to_a_u32_without_changing_the_seconds() {
+        let interval = AnnounceIntervalInSecs::from(120_u16);
+
+        assert_eq!(u32::from(interval), 120);
+    }
+
+    #[test]
+    fn it_should_display_as_the_plain_number_of_seconds() {
+        let interval = AnnounceIntervalInSecs::from(120_u16);
+
+        assert_eq!(interval.to_string(), "120");
+    }
+
+    #[test]
+    fn it_should_reject_deserializing_a_negative_interval() {
+        let result = serde_json::from_str::<AnnounceIntervalInSecs>("-1");
+
+        assert!(result.is_err(), "a negative interval should be rejected, got {result:?}");
+    }
+
+    mod interval_bound {
+        use quickcheck_macros::quickcheck;
+
+        use super::{AnnounceIntervalInSecs, MAX};
+
+        #[quickcheck]
+        fn it_should_deserialize_a_number_if_and_only_if_it_is_within_the_limit(seconds: u32) -> bool {
+            let result = serde_json::from_str::<AnnounceIntervalInSecs>(&seconds.to_string());
+
+            let expected = (seconds <= MAX).then_some(seconds);
+
+            result.ok().map(AnnounceIntervalInSecs::get) == expected
+        }
+    }
 }

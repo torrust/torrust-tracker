@@ -3,14 +3,14 @@ doc-type: file-test-plan
 issue: 2824
 package: torrust-tracker-primitives
 target-file: packages/primitives/src/announce_interval.rs
-status: approved
-last-updated-utc: "2026-11-12 20:30"
+status: done
+last-updated-utc: "2026-11-12 20:40"
 ---
 
 # `announce_interval.rs` File Test Plan
 
-Follow the shared [guidance](README.md). Ledger row 2, slice S3. Status: **approved** by the maintainer on 2026-11-12 (first gate; Q1 approved as written); next, the tests and the second
-gate (review of the completed file).
+Follow the shared [guidance](README.md). Ledger row 2, slice S3. Status: **done**: approved by the maintainer on
+2026-11-12 (first gate, Q1 as written) and the completed file approved on 2026-11-12 (second gate).
 
 ## Current State
 
@@ -56,14 +56,67 @@ worth its runtime and its machinery. Dependencies are already in place (`quickch
   is needed).
 - No question about the four tests: all test package-owned behavior and none pins a finding.
 
-## Prose-First AAA Review
+## Results (2026-11-12)
 
-Written when the tests exist, one row per added test, before the completed-file gate. Expected shape: one causal
-Arrange (a literal interval or a literal number), one Act (the conversion, the formatting or the deserialization),
-literal Assert.
+Toolchains: stable Rust 1.99.1 for tests and coverage, `cargo-llvm-cov 0.6.16`, nightly `cargo fmt`.
+
+| Measure | Before | After |
+| --- | ---: | ---: |
+| Unit tests of the package | 81 | 87 (6 added, all in `announce_interval.rs`) |
+| `announce_interval.rs` lines | 79 / 88 | 114 / 114 |
+| Package unit-only lines | 848 / 995 (85.23%) | 883 / 1,021 (86.48%) |
+| Package unit-only regions | 1,345 / 1,506 (89.31%) | 1,406 / 1,553 (90.54%) |
+| Package unit-only functions | 161 / 194 (82.99%) | 170 / 200 (85.00%) |
+
+Applied as planned: the four group tests (`TryFrom<u32>` in two tests, the `u32` conversion, `Display`, the negative
+number) and one `quickcheck` property (`interval_bound`). No deviation. `cargo clippy --all-targets` is clean (a first
+`match` in the property was rewritten as one comparison after `option_if_let_else`).
+
+### Property decision (the Q1 rule)
+
+The property deserializes any `u32` and expects success with the same value if and only if it is within the limit.
+It draws a `u32` and not a `u64`: `quickcheck` draws a full-range `u64` almost always above the limit, which would
+test one side only.
+
+| Mutant | Result | Killed by |
+| --- | --- | --- |
+| Bound slips for one value (`value != 1_000_000`) | **survived** | nothing: a random search does not find a single value; the edges do not either. Accepted as the limit of the technique. |
+| Bound slips for a mid-range band (`1_000_000_000..2_000_000_000` rejected) | killed | **the property only** (`it_should_deserialize_a_number_if_and_only_if_it_is_within_the_limit`, shrunk to `1000000000`); no example test fails |
+
+One mutant that only the property kills meets the rule, so the property is **kept**.
+
+### Mutation sample (8 mutants, each applied alone and reverted exactly)
+
+| Mutant | Result | Killed by |
+| --- | --- | --- |
+| Narrowing cast `as u32` instead of `u32::try_from` | killed | the above-`u32` message test (existing) |
+| Deserializer returns `value + 1` above a threshold | killed | 4 tests incl. the property (existing edge tests too) |
+| `TryFrom<u32>` skips the bound | killed | the `TryFrom` above-the-limit test |
+| `From<_> for u32` adds one | killed | the `u32` conversion test |
+| `Display` adds a unit suffix | killed | the display test |
+| Deserializer reads `i64` and casts to `u64` | **survived, equivalent** | `-1` becomes `2^64 - 1`, which the bound rejects anyway: the behavior is the same, so no test can tell |
+| Deserializer clamps a negative number to `0` | killed | the negative-number test (this is the case the test protects) |
+| Mid-range band slip | killed | the property only (above) |
+
+`cmp` against a saved copy showed the file restored byte for byte after every mutant.
+
+## Prose-First AAA Review (every added test)
+
+Temporary prose per test was written and compared with the code; the code expresses it.
+
+| Test | Arrange (the one causal state) | Act | Assert (literal, independent) | Outcome |
+| --- | --- | --- | --- | --- |
+| `it_should_be_built_from_a_u32_within_the_limit` | the literal `120` | `try_from` | `get()` is `120` | clean |
+| `it_should_fail_to_be_built_from_a_u32_above_the_limit` | the literal one above the limit | `try_from` | the whole error with the rejected value | clean |
+| `it_should_convert_to_a_u32_without_changing_the_seconds` | an interval of `120` | `u32::from` | `120` | clean |
+| `it_should_display_as_the_plain_number_of_seconds` | an interval of `120` | `to_string` | `"120"` | clean |
+| `it_should_reject_deserializing_a_negative_interval` | the JSON text `-1` | `from_str` | the call fails (the serde text is not asserted) | clean |
+| `interval_bound::it_should_deserialize_a_number_if_and_only_if_it_is_within_the_limit` | any `u32` (property) | `from_str` of its text | success with the same value iff within the limit, written as one comparison against the literal bound | clean; the bound is `MAX`, the test's own constant, not the production one |
+
+Test smells found and fixed while writing: none left. Existing tests judged `clean` in the plan are unchanged.
 
 ## Validation
 
-`cargo test -p torrust-tracker-primitives`; `cargo +nightly fmt --all -- --check`; `git diff --check`; the pre-commit
-gate; unit-only coverage re-run with before and after recorded here; a hand-run mutation sample of this file
-(each mutant applied alone and reverted with `cmp`).
+`cargo test -p torrust-tracker-primitives` (87 + 2 + 1 passed); `cargo +nightly fmt --all -- --check`;
+`cargo clippy -p torrust-tracker-primitives --all-targets`; `git diff --check`; the pre-commit gate (at commit);
+unit-only coverage before and after in the table above.
