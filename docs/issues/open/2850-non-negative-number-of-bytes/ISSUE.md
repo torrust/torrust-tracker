@@ -9,7 +9,7 @@ github-issue: 2850
 spec-path: docs/issues/open/2850-non-negative-number-of-bytes/ISSUE.md
 branch: "2850-non-negative-number-of-bytes-spec"
 related-pr: null
-last-updated-utc: "2026-11-12 17:40"
+last-updated-utc: "2026-11-12 18:10"
 semantic-links:
   skill-links:
     - create-issue
