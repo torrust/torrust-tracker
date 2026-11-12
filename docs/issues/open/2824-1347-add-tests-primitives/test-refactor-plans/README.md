@@ -23,6 +23,7 @@ changes nor work on another file until the maintainer approves it. Files with no
 | ---: | --- | --- |
 | 0 | [s1-peer-role-serialization.md](s1-peer-role-serialization.md) | DONE (reviewed in PR #2834) |
 | 1 | [peer.md](peer.md) | DONE (S2, PR #2841) |
+| 2 | [announce_interval.md](announce_interval.md) | IN PROGRESS (S3, record approved 2026-11-12) |
 
 ## Shared Guardrails
 
