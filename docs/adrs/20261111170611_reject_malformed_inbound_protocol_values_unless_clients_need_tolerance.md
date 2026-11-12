@@ -151,7 +151,7 @@ protocols in its own issue; this ADR does not change any of them.
 
 | Field | UDP | HTTP | Note |
 | ----- | --- | ---- | ---- |
-| Announce `left`, `downloaded`, `uploaded` | accepts negative (signed 64-bit) | rejects negative (its `i64::MAX` limit exists only to fit the old shared type) | First application: bug #2838, fixed in PR #2839 (UDP now rejects it) |
+| Announce `left`, `downloaded`, `uploaded` | accepts negative (signed 64-bit) | rejects negative and above `i64::MAX` (the limit exists only to fit an `i64` type) | First application: bug #2838; UDP still accepts it; the planned change is issue #2850 |
 | Announce `port` = 0 | rejected by the parser | no zero check found in the parser (to verify) | Possible disagreement. BEP 15 does not forbid port 0, so under rule 6 this parser check deserves a review. The event check (`0..=3`) mirrors BEP 15 |
 | Announce `num_want` / `numwant` | any `i32`; tracker ignores it | `u32` only; `-1` rejected | `-1` is legitimate for UDP (BEP 15 default); HTTP `-1` is unspecified |
 | Announce event outside the defined set | rejected | rejected | Consistent |
