@@ -51,6 +51,9 @@ F1 to F3 are in da2ce7's review 5875801804 and are inline threads; each carries 
 | R1 | review-finding:pr-2840-r1 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
 | R2 | review-finding:pr-2840-r2 | Copilot | Minor (inferred) | documentation | RE_RAISE_OF:F1 | FIXED | NON_RESOLVABLE |
 | F5 | review-finding:pr-2840-f5 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F7 | review-finding:pr-2840-f7 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F8 | review-finding:pr-2840-f8 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F9 | review-finding:pr-2840-f9 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F10 | review-finding:pr-2840-f10 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F11 | review-finding:pr-2840-f11 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F12 | review-finding:pr-2840-f12 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
@@ -174,6 +177,45 @@ F1 to F3 are in da2ce7's review 5875801804 and are inline threads; each carries 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2840#discussion_r4552018237
 
+### F7 - The log never says when the record was started
+
+- PR number: 2840
+- Source review ID: 5876404520
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2840#discussion_r4551940179
+- Concern: The record started after the first replies and the log did not say so.
+- Solution: An appended entry states the start at 14:14 UTC and the earlier replies.
+- Current-tree verification: The corrections entry of the Processing Log.
+- Resolution reference: docs(pr-reviews): [#2822] correct the audit of PR #2840 and record the second review
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2840#discussion_r4552080487
+
+### F8 - R2 is a re-raise of F1, not original
+
+- PR number: 2840
+- Source review ID: 5876404520
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2840#discussion_r4551940197
+- Concern: R2 asks for the same change as F1, later.
+- Solution: R2 is `RE_RAISE_OF:F1` with category `documentation`; the correction is logged.
+- Current-tree verification: The R2 row and the corrections entry.
+- Resolution reference: docs(pr-reviews): [#2822] correct the audit of PR #2840 and record the second review
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2840#discussion_r4552081438
+
+### F9 - The 14:30 entry is stamped later than its commit
+
+- PR number: 2840
+- Source review ID: 5876404520
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2840#discussion_r4551940208
+- Concern: The stamp and the response time were not taken from the commit and the forge.
+- Solution: An appended entry corrects them (commit 14:29:43 UTC, response 14:28:57 UTC).
+- Current-tree verification: The corrections entry of the Processing Log.
+- Resolution reference: docs(pr-reviews): [#2822] correct the audit of PR #2840 and record the second review
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2840#discussion_r4552082276
+
 ## Processing Log
 
 - 2026-11-12 14:06 UTC - Review 5875801804 (da2ce7, `CHANGES_REQUESTED`) submitted on the head of the close-out PR: F1, F2, F3.
@@ -181,6 +223,7 @@ F1 to F3 are in da2ce7's review 5875801804 and are inline threads; each carries 
 - 2026-11-12 14:30 UTC - Review 5875883208 (Copilot, `COMMENTED`) had been submitted at 14:12 UTC on the first head of the close-out PR: R1 and R2 in its summary, no inline threads. The retrospective commit was pushed at 14:28 UTC (push log time), and the PR conversation response that names the review and both findings with their dispositions and resolution subjects was posted at 14:29 UTC (its URL is in the entries). One entry carries these events because the 14:13 entry above was written before the review was read.
 - 2026-11-12 14:51 UTC - Review 5876404520 (da2ce7, `APPROVED`) had been submitted at 14:44 UTC on the head of the previous push, with seven findings, none blocking. The spec commit that fixes F5, F10, F11 and F12 was pushed at 14:50 UTC (push log time) and those four threads were replied to and resolved at 14:51 UTC; their rows are in this record.
 - 2026-11-12 14:51 UTC - Corrections, the entries above stay as they are. (a) This record was started at 14:14 UTC (the commit that added it was made at 14:14:08 UTC), after the first three replies, which were posted at 14:13:46 to 14:13:54 UTC. (b) Row R2 asks for the same change as F1, later than F1, so it is `RE_RAISE_OF:F1` with the category `documentation`; its row was changed in place. (c) The 14:30 entry was stamped later than its commit (made at 14:29:43 UTC), and the PR conversation response it dates at 14:29 was posted at 14:28:57 UTC (forge time); the retrospective commit's push at 14:28 UTC is as logged.
+- 2026-11-12 14:56 UTC - The audit commit that fixes F7, F8 and F9 was pushed at 14:55 UTC (push log time) and those three threads were replied to and resolved after it; their rows and reply URLs are in this record.
 
 ## Completion Rules
 
