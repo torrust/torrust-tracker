@@ -39,7 +39,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Round 1 is Copilot's review `5875845096` (F13, numbered after the others) and da2ce7's review `5875864302` (F1 to F8), both submitted on the head whose last commit had the subject `docs(issues): [#2824] record the S2 coverage and the F6 finding`, and da2ce7's review `5876129658` (F9 to F12), submitted on the head whose last commit has the subject `test(primitives): [#2824] cover the ReadInfo role predicates for every state`. Round 2 is da2ce7's review `5878329038` (F14 to F20), submitted on the head whose last commit has the subject `docs(pr-reviews): [#2824] correct a log stamp of the PR 2841 audit`. The branch history was rebuilt after round 2 (see F14), so the subjects of the round 1 fix commits are those listed in each `Resolution reference` below.
+Round 1 is Copilot's review `5875845096` (F13, numbered after the others) and da2ce7's review `5875864302` (F1 to F8), both submitted on the head whose last commit had the subject `docs(issues): [#2824] record the S2 coverage and the F6 finding`, and da2ce7's review `5876129658` (F9 to F12), submitted on the head whose last commit has the subject `test(primitives): [#2824] cover the ReadInfo role predicates for every state`. Round 2 is da2ce7's review `5878329038` (F14 to F20), submitted on the head whose last commit has the subject `docs(pr-reviews): [#2824] correct a log stamp of the PR 2841 audit`, and Copilot's review `5878380545` (F21), submitted on the head of the rebuilt history (last commit `docs(pr-reviews): [#2824] correct the PR 2841 audit facts after round 2`). Round 3 is da2ce7's approving review `5879377639` (F22 to F24). The branch history was rebuilt after round 2 (see F14), so the subjects of the round 1 fix commits are those listed in each `Resolution reference` below.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -54,16 +54,19 @@ Round 1 is Copilot's review `5875845096` (F13, numbered after the others) and da
 | F9 | review-finding:pr-2841-f9 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F10 | review-finding:pr-2841-f10 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F11 | review-finding:pr-2841-f11 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
-| F12 | review-finding:pr-2841-f12 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F12 | review-finding:pr-2841-f12 | Human | Nit | documentation | ORIGINAL | NO_ACTION | RESOLVED |
 | F13 | review-finding:pr-2841-f13 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
 | F14 | review-finding:pr-2841-f14 | Human | Major | maintainability | ORIGINAL | FIXED | RESOLVED |
 | F15 | review-finding:pr-2841-f15 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F16 | review-finding:pr-2841-f16 | Human | Minor | maintainability | ORIGINAL | FIXED | RESOLVED |
 | F17 | review-finding:pr-2841-f17 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F18 | review-finding:pr-2841-f18 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
-| F19 | review-finding:pr-2841-f19 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F19 | review-finding:pr-2841-f19 | Human | Nit | documentation | RE_RAISE_OF:F8 | FIXED | RESOLVED |
 | F20 | review-finding:pr-2841-f20 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
-| F21 | review-finding:pr-2841-f21 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
+| F21 | review-finding:pr-2841-f21 | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F22 | review-finding:pr-2841-f22 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F23 | review-finding:pr-2841-f23 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F24 | review-finding:pr-2841-f24 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -75,7 +78,7 @@ Round 1 is Copilot's review `5875845096` (F13, numbered after the others) and da
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2841#discussion_r4551530157
 - Concern: The docs commit carried the `peer.rs` tests, the manifests and the lock, and the test commit carried only a TOML re-spacing, so history and blame would point at the wrong commits; the description repeated the mismatch and lacked a "Validation performed" part.
 - Solution: Rewrote the unmerged branch (force-push with lease, with the maintainer's approval): the docs commit carried only the plan files and the test commit the code. Round 2 (F14, F16) found that the rewrite folded steps and put the record apart from its tests; the history was rebuilt from the pre-split commits (see F14).
-- Current-tree verification: Listed the files of each rewritten commit with `git show --stat`; the test commit contains `peer.rs`, `packages/primitives/Cargo.toml` and `Cargo.lock`, the docs commit only the two plan files.
+- Current-tree verification: Listed the files of each rewritten commit with `git show --stat`; the test commit contains `peer.rs`, `packages/primitives/Cargo.toml` and `Cargo.lock`, the docs commit (before the round 2 rebuild) only the two plan files; after the rebuild it holds only `README.md` and `peer.md` is in the test commit.
 - Resolution reference: test(primitives): [#2824] test the peer module
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2841#discussion_r4553083185
@@ -89,7 +92,7 @@ Round 1 is Copilot's review `5875845096` (F13, numbered after the others) and da
 - Concern: The `ReadInfo` tests asserted only a leecher through one entry point and only a seeder through the other, so replacing the trait `is_seeder` by a constant or its `<=` by `==` survived.
 - Solution: Added a case table (positive, zero and negative `left` with `Started`; zero and negative `left` with `Stopped`) asserting both `is_seeder` and `is_leecher` through the trait, on `Peer` and on `Arc<Peer>`, and ran the six standard mutants of both impls.
 - Current-tree verification: Applied each mutant alone and ran `cargo test -p torrust-tracker-primitives --lib`: all six fail the case table; the file was restored byte for byte (`cmp`).
-- Resolution reference: test(primitives): [#2824] test the peer module
+- Resolution reference: test(primitives): [#2824] cover the ReadInfo role predicates for every state
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2841#discussion_r4553083786
 
@@ -152,7 +155,7 @@ Round 1 is Copilot's review `5875845096` (F13, numbered after the others) and da
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2841#discussion_r4551530220
 - Concern: The frontmatter, the intro, the README index and the Validation section still described the completed-file review as pending.
-- Solution: Set the status to `completed` and updated the intro, the README row and the Validation section; the second gate was passed on 2026-11-12.
+- Solution: Set the status to `done` (first `completed`, changed after F17) and updated the intro, the README row and the Validation section; the second gate was passed on 2026-11-12.
 - Current-tree verification: Searched `peer.md` and the README for `pending` and `are added at the completed-file review`: none left.
 - Resolution reference: docs(issues): [#2824] fix the S2 records after review round 1
 - Follow-up PR URL: N/A
@@ -217,9 +220,9 @@ Round 1 is Copilot's review `5875845096` (F13, numbered after the others) and da
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2841#discussion_r4551735687
 - Concern: The subject of the commit that added the case table overstated what the five cases cover.
-- Solution: The history rewrite folded that commit into the test commit, whose subject and body do not make the claim; the five cases are enough for the standard mutants of both impls.
-- Current-tree verification: Listed the branch commits with `git log --format=%s`: the old subject is gone.
-- Resolution reference: test(primitives): [#2824] test the peer module
+- Solution: No change. The first rewrite folded that commit, but the rebuild after round 2 restored it with its subject (F14 requires every step to be kept). The subject overstates the five cases, which are enough for the standard mutants of both impls; only the wording is off.
+- Current-tree verification: `git log --format=%s` lists the restored commit with the subject `test(primitives): [#2824] cover the ReadInfo role predicates for every state`.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2841#discussion_r4554227749
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2841#discussion_r4553156550
 
@@ -232,7 +235,7 @@ Round 1 is Copilot's review `5875845096` (F13, numbered after the others) and da
 - Concern: Copilot reported that the `ReadInfo` tests cover one positive-left peer and one zero-left completed shared peer, so a constant result or a removed stopped-event check survives; it asked for trait-qualified cases on `Peer` and `Arc<Peer>`.
 - Solution: The case table described under F2 adds exactly those cases and asserts both seeder and leecher results.
 - Current-tree verification: Same mutant run as F2: all killed.
-- Resolution reference: test(primitives): [#2824] test the peer module
+- Resolution reference: test(primitives): [#2824] cover the ReadInfo role predicates for every state
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2841#discussion_r4551572064
 
@@ -340,6 +343,45 @@ Round 1 is Copilot's review `5875845096` (F13, numbered after the others) and da
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2841#discussion_r4553985041
 
+### F22 - The audit still describes the history before the rebuild, and a correction misses it
+
+- PR number: 2841
+- Source review ID: 5879377639
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2841#discussion_r4554219050
+- Concern: Several audit fields still described the history before the rebuild (the case-table commit named wrongly, F12 saying the commit is gone, F1 and F7 text, the round 2 review list, F21 severity and the F19 relationship), and the round 2 correction entry named the wrong replies.
+- Solution: Corrected the fields (F2 and F13 name the case-table commit, F12 is `NO_ACTION` with a correcting reply, F1, F7, the round 2 list, F21 `Minor`, F19 `RE_RAISE_OF:F8`) and added a new Processing Log entry for the correction, leaving the earlier entry as it was.
+- Current-tree verification: Read each corrected field in the record and ran the validator against GitHub.
+- Resolution reference: docs(pr-reviews): [#2824] record round 3 of the PR 2841 review
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2841#discussion_r4554278875
+
+### F23 - This entry is stamped before the rebuild it reports as done
+
+- PR number: 2841
+- Source review ID: 5879377639
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2841#discussion_r4554219058
+- Concern: A spec Progress Log entry was stamped 16:45 UTC and called the rebuild done while its commits were made until 16:47 UTC.
+- Solution: Added a correcting entry with the real times and left the earlier entry as it was.
+- Current-tree verification: Compared the stamps with `git log --format=%cI` of the rebuilt commits.
+- Resolution reference: docs(issues): [#2824] point the F6 records at #2850 and fix the S2 stamps
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2841#discussion_r4554279322
+
+### F24 - The note puts the three new mutants in round 1, and the stamp was not moved
+
+- PR number: 2841
+- Source review ID: 5879377639
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2841#discussion_r4554219069
+- Concern: The mutation note put the last three mutants in review round 1 although they answer a round 2 review, and the file stamp was not moved after the fixture commit.
+- Solution: The note says round 2 and the frontmatter stamp is moved.
+- Current-tree verification: Read the note and the frontmatter in the tree.
+- Resolution reference: docs(issues): [#2824] point the F6 records at #2850 and fix the S2 stamps
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2841#discussion_r4554279740
+
 ## Processing Log
 
 - 2026-11-12 14:14 UTC - Copilot's review `5875845096` (1 finding, F13) processed before this record existed: fixed in the test commit and replied on its thread.
@@ -348,6 +390,7 @@ Round 1 is Copilot's review `5875845096` (F13, numbered after the others) and da
 - 2026-11-12 16:24 UTC - Started this audit late, after the first replies. F9 (mutation attributions) and F10 (this record) are real: their threads were reopened, F9 was fixed and replied, F10 got a reply that announces this record. F11 (description) was fixed and F12 was folded by the rewrite; both replied. F9 to F12 and F13 are recorded in the rows above; the F9 and F10 threads are resolved after this record is pushed.
 - 2026-11-12 16:26 UTC - Correction: the entry above stamped 16:24 UTC is later than its commit (16:23 UTC); its content is accurate. The F9 and F10 threads were then resolved, and the validator passed (13 rows).
 - 2026-11-12 17:31 UTC - Round 2: da2ce7's review `5878329038` (7 findings, F14 to F20) and Copilot's review `5878380545` (1 finding, F21; reviewer label F14) processed. The history was rebuilt and force-pushed with the maintainer's approval; the record, mutation cell, status and audit facts were fixed in new commits; F21 fixed with a mutation check. Replied on the eight threads. Correction of an earlier entry: the round 1 fix replies of 16:17 UTC cite subjects that the rebuilt history no longer has; the `Resolution reference` fields above name the current subjects.
+- 2026-11-12 17:58 UTC - Round 3: da2ce7's approving review `5879377639` (3 findings, F22 to F24) processed: record, stamp and audit corrections, plus the comment of the negative-left test and the F6 records now point at #2850. Replied on the three threads. Correction of the 17:31 UTC entry above: its last sentence says the round 1 fix replies cite subjects that the rebuilt history no longer has; the stale replies are the F1 and F12 replies (F12 got a correcting reply), and the round 1 replies cite no subject.
 
 ## Completion Rules
 
