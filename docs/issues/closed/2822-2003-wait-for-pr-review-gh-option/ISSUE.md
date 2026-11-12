@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: enhancement
-status: in-progress
+status: done
 priority: p2
 epic: 2003
 github-issue: 2822
-spec-path: docs/issues/open/2822-2003-wait-for-pr-review-gh-option/ISSUE.md
-branch: "2822-wait-for-pr-review-gh-option-spec"
-related-pr: 2826
-last-updated-utc: "2026-11-12 08:59"
+spec-path: docs/issues/closed/2822-2003-wait-for-pr-review-gh-option/ISSUE.md
+branch: "2822-wait-for-pr-review-gh-option"
+related-pr: 2835
+last-updated-utc: "2026-11-12 13:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -202,13 +202,13 @@ increment, before final verification, commit and pull request.
 - [x] GitHub issue created (#2822) and issue number added to this spec (created at the coordinator's
       instruction, before spec review, because the maintainer approved the sub-issue and its order)
 - [x] Design decisions recorded
-- [ ] Spec reviewed and approved by the maintainer (PR #2826)
+- [x] Spec reviewed and approved by the maintainer (PR #2826)
 - [x] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [x] Manual verification recorded
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Evidence-based implementation completion review recorded
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -241,6 +241,9 @@ increment, before final verification, commit and pull request.
   entry understated the AC5 change. The criterion itself, merged with the spec in PR #2826, was narrowed to "the
   tests of a custom command", because the four scenarios that exercise the default `gh` cannot reach the fake
   only through the option; D2's test bullet now says the same.
+- 2026-11-12 13:30 UTC - AI assistant (Claude Code, Claude Sonnet 5.5) - PR #2835 merged on 2026-11-12 (merge commit
+  `388faf59a`); issue #2822 is closed by it. The spec moved from `docs/issues/open/` to `docs/issues/closed/` in the
+  close-out pull request.
 
 ## Acceptance Criteria
 
@@ -305,9 +308,21 @@ Evidence goes in issue-local `manual-verification-evidence.md`, naming the toolc
 
 ## Implementation Completion Review
 
-At close-out, record the outcome of the implementation: deviations from the plan, unexpected validation
-findings and reusable lessons. Create an issue-local `implementation-retrospective.md` when there is any of
-these; otherwise add a progress-log entry that explains why none is needed.
+Recorded at close-out. No separate `implementation-retrospective.md` was created: the implementation followed the
+merged spec (PR #2826, merged 2026-11-11), and the reusable lessons below fit here.
+
+- Deviations: none from the decisions D1 and D2. Review of the implementation PR (#2835) added a deterministic
+  unit test for an interrupted identity lookup, narrowed AC5 to the custom-command tests, and made the help text
+  exact about which value skips `auth status`.
+- Validation findings: the red run of the new tests had two tests that passed before the option existed; the
+  evidence recomputes the breakdown (8 of 10 new and 6 existing scenarios failed). A CLI scenario for an
+  interrupted lookup cannot pin its regression (the poller kills the spawned child at once), so a unit test does.
+- Lessons: the fake-`gh` scenarios of `tests/cli.rs` remain flaky (a fake script that fails to start); this
+  issue neither fixed nor measurably worsened it (one failing run in seven), and that fix stays a separate
+  issue. Review rounds mostly found statements in the spec's and the audit's own records, which the
+  "Statements in Your Own Records" rules of `process-pr-review` cover.
+- Acceptance criteria: reviewed after implementation; every row of the Acceptance Verification table is DONE
+  with its evidence.
 
 ## References
 

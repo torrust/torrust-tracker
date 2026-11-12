@@ -3,7 +3,7 @@ semantic-links:
   skill-links:
     - create-issue
   related-artifacts:
-    - docs/issues/open/2822-2003-wait-for-pr-review-gh-option/ISSUE.md
+    - docs/issues/closed/2822-2003-wait-for-pr-review-gh-option/ISSUE.md
 ---
 
 # Manual verification evidence for #2822
