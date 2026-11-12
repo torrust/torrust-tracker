@@ -84,9 +84,9 @@ not a valid Azureus-style id (the character after the four version characters mu
 registry reports no client for it. The new tests use `-qB4650-abcdefghijkl`, which the registry knows as
 qBittorrent. This confirms the maintainer's concern that test ids should look like real ones.
 
-### Mutation sample (14 mutants, each applied alone to `peer.rs` and reverted exactly)
+### Mutation sample (17 mutants, each applied alone to `peer.rs` and reverted exactly)
 
-The first eight mutants were run first and the last six in review round 1 of #2841 (2026-11-12). The "Killed by"
+The first eight mutants were run first, the next six and the last three in review round 1 of #2841 (2026-11-12). The "Killed by"
 column is the set of tests that fail on the final test set, re-checked after the case table was added, with the
 mutant applied to one place only (the inherent `Peer` rule for the first two rows).
 
@@ -106,6 +106,9 @@ mutant applied to one place only (the inherent `Peer` rule for the first two row
 | `ReadInfo for Arc<Peer>` `is_seeder` returns `true` | killed | the read-info role-case table |
 | `ReadInfo for Arc<Peer>` `is_seeder` `<=` to `==` | killed | the read-info role-case table |
 | `ReadInfo for Arc<Peer>` `is_leecher` not negated | killed | the read-info role-case table and the shared-peer read-info test (it asserts `!is_leecher` on a seeder) |
+| `mark_as_completed` also clears `uploaded` | killed | the mark-as-completed test (fixture with nonzero totals) |
+| `into_completed` also clears `downloaded` | killed | the into-completed test |
+| `into_seeder` also clears `uploaded` | killed | the into-seeder test |
 
 No survivor. Run with `cargo test -p torrust-tracker-primitives --lib` per mutant; `cmp` against a saved copy
 showed the file restored byte for byte.
@@ -118,7 +121,7 @@ prose is kept as a comment, except where a comment states a rule that the test n
 | Group | Arrange (the one causal state) | Act | Assert (literal, independent) | Outcome |
 | --- | --- | --- | --- | --- |
 | `peer_role` | none: the role or the text is the input | `opposite()` / `parse` | the other role; the parsed role; `raw_param` | clean |
-| `peer_state` | a peer from `a_peer_with(left, event)`: only `left` and `event` vary, everything else is fixed | the predicate or mutator | `is_seeder`, `is_leecher` and `role` agree; whole-value `assert_eq!` against the expected peer | clean; helper owns only the incidental fields |
+| `peer_state` | a peer from `a_peer_with(left, event)`: only `left` and `event` vary, everything else is fixed (the transfer totals are distinct nonzero values, so a mutator that resets one is caught) | the predicate or mutator | `is_seeder`, `is_leecher` and `role` agree; whole-value `assert_eq!` against the expected peer | clean; helper owns only the incidental fields |
 | `peer_state::read_info` | a leecher, and a completed seeder in an `Arc` | each trait accessor | literal id, state; fields compared with the peer's own | clean |
 | `peer_state::read_info` (round 1 of #2841) | five `(left, event)` cases: positive, zero and negative `left` with `Started`, zero and negative `left` with `Stopped`, each as a `Peer` and as an `Arc<Peer>` | `ReadInfo::is_seeder` and `is_leecher` | the expected role literal per case, and its negation for the leecher | clean |
 | `peer_serialization` | the peer built in the test with distinct values per field | `serde_json::to_value` | one whole JSON document written in the test; one event per test | clean |

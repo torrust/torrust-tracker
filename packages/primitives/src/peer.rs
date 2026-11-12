@@ -703,8 +703,8 @@ pub mod test {
                 peer_id: PeerId(*b"-qB4650-abcdefghijkl"),
                 peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
                 updated: DurationSinceUnixEpoch::new(1_669_397_478, 0),
-                uploaded: NumberOfBytes::new(0),
-                downloaded: NumberOfBytes::new(0),
+                uploaded: NumberOfBytes::new(1_024),
+                downloaded: NumberOfBytes::new(4_096),
                 left: NumberOfBytes::new(left),
                 event,
             }
