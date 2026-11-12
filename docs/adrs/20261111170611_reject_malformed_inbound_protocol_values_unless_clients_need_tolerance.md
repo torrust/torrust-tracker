@@ -156,7 +156,7 @@ protocols in its own issue; this ADR does not change any of them.
 | ----- | --- | ---- | ---- |
 | Announce `left`, `downloaded`, `uploaded` | accepts negative (signed 64-bit) | rejects negative and above `i64::MAX` (the limit exists only to fit an `i64` type) | First application: bug #2838; UDP still accepts it; the planned change is issue #2850 |
 | Announce `port` = 0 | rejected by the parser | no zero check found in the parser (to verify) | Possible disagreement. BEP 15 does not forbid port 0, so under rule 6 this parser check deserves a review. The event check (`0..=3`) mirrors BEP 15 |
-| Announce `num_want` / `numwant` | any `i32`; tracker ignores it | `u32` only; `-1` rejected | `-1` is legitimate for UDP (BEP 15 default); HTTP `-1` is unspecified |
+| Announce `num_want` / `numwant` | any `i32`; zero or negative means as many as possible, a positive value is capped at the tracker limit (`PeersWanted::from_client_request`) | `u32` only, so `-1` is rejected; `0` asks for no peers (`PeersWanted::only`) | `-1` is legitimate for UDP (BEP 15 default). UDP is lenient for values below `-1`. Zero means different things on the two protocols. HTTP `-1` is unspecified |
 | Announce event outside the defined set | rejected | rejected | Consistent |
 | Announce `ip` that is not an IP address | field ignored always | ignored; connection IP used | Recorded in [the `ip` ADR](20260716000000_accept_only_ip_addresses_in_http_announce_ip_param.md); no metric |
 | Scrape above the info-hash cap | extra hashes dropped | extra hashes dropped | Recorded in [the scrape cap ADR](20261005124222_cap_scrape_info_hashes_per_protocol.md); no metric |
