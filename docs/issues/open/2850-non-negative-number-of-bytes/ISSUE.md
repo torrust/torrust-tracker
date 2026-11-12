@@ -161,7 +161,7 @@ Questions with no recorded answer, found in this review:
 
 | Question | State |
 | --- | --- |
-| When does an error stay typed and when is it replaced by a generic one for the user? How far do errors bubble up? | The maintainer's rules are not written in any ADR. Candidate for an ADR outside this EPIC |
+| When does an error stay typed and when is it replaced by a generic one for the user? How far do errors bubble up? | The maintainer's rules are not written in any ADR. Candidate for an ADR outside this issue |
 | Why did the UDP protocol designers use a signed type for byte counts? | Unknown; not documented in the four sources |
 | Does a client that was not checked send a negative byte count on purpose? | Unknown. The specification of #2838 lists the unchecked clients |
 
@@ -319,7 +319,7 @@ Removing the duplication of the three copies is not part of this issue.
 | U3 | Both | Fails at the earliest point and the types still protect the domain | The rule is written twice, and the parser no longer only mirrors the specification |
 
 **Decided by the maintainer (2026-11-12): U2.** Failing fast is the preference, but implementing the
-public specification strictly has priority (see "Why This Is Needed"). BEP 15 and the documents it
+public specification strictly has priority (see "Background"). BEP 15 and the documents it
 cites allow a signed 64-bit value here (see "Research Findings"), so the delivery layer accepts it.
 The value is refused when it is converted into the domain type, the first type the project owns.
 
