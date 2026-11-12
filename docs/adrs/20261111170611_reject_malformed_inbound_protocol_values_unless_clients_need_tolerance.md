@@ -55,8 +55,8 @@ reject a bad configuration value. None of them says what to do with a value a cl
    `failure reason` over HTTP). It is not clamped, defaulted, or silently ignored.
 
 2. **Judge each field on its own.** A value that looks unusual may be legitimate: BEP 15
-   `num_want = -1` means "use the default", and `left`, `downloaded` and `uploaded` are signed on
-   the wire only because the format has no unsigned type. The question for each field is what its
+   `num_want = -1` means "use the default", and `left`, `downloaded` and `uploaded` are 64-bit
+   integers in BEP 15, and the sources do not document why they are signed. The question for each field is what its
    specification allows, not whether the value is negative or large. "Reject all negatives" is
    not the rule.
 
@@ -78,19 +78,25 @@ reject a bad configuration value. None of them says what to do with a value a cl
    counter, emitted as an objective event per [Events Are Objective Facts](20260727000000_events_are_objective_facts.md) (or, where a metric is not feasible, a rate-limited log) so the register can be
    reviewed with data and a tolerance that no client uses is removed.
 
-6. **The delivery adapter decides; the domain never sees the malformed value.** Rejecting or
-   normalizing happens at the delivery boundary (the protocol parser, or the protocol's announce
-   service in `udp-core`, as the `left` fix in #2839 does), before the value reaches `primitives`
-   or `tracker-core`. A tolerance normalizes to a value the domain already accepts. Domain types
-   document and enforce their own invariants (for example a non-negative number of bytes left)
-   and do not carry special cases for malformed input.
+6. **Implement the public specification strictly; refuse at the first project-owned type.**
+   Following a public protocol specification faithfully has priority over failing fast. A type
+   that mirrors a BEP keeps the shape the BEP gives it and is not narrowed, because the
+   specification is not our decision and its reasons may be unknown. The wire parser therefore
+   accepts what the BEP type allows. A value the specification allows but the domain does not is
+   refused at the first conversion into a type the project owns (application or domain layer),
+   as the fallible conversion in `udp-core` does for a negative `left`. The malformed value
+   never reaches `primitives` or `tracker-core`. A tolerance normalizes to a value the domain
+   already accepts. Domain types protect their invariants with newtypes and constructors (for
+   example a non-negative number of bytes) and carry no special cases for malformed input. See
+   [Keep protocol and domain types decoupled](20260527175600_keep_protocol_and_domain_types_decoupled.md).
 
-7. **All delivery protocols apply the same rule to the same field.** UDP and HTTP must not
-   disagree about whether a value is accepted. When the two wire formats differ in what they can
-   express (signed versus decimal text), the stricter reading wins unless the register records
-   a tolerance for both. Rejecting a malformed value is not by itself a reason to ban the client;
-   banning stays with the rules of the UDP ban service. Each field has a parity test that exercises both parsers with the same
-   values.
+7. **The protocols agree on the verdict for a value both wire formats can express.** UDP and
+   HTTP must not disagree about whether such a value is accepted. A range that only one wire
+   format can express follows that protocol's own specification: the protocols may differ at the
+   wire level and are equal in the domain, as in [Cap scrape info hashes per
+   protocol](20261005124222_cap_scrape_info_hashes_per_protocol.md). Rejecting a malformed value
+   is not by itself a reason to ban the client; banning stays with the rules of the UDP ban
+   service. Each field has a parity test that exercises both parsers with the same values.
 
 ### Register of tolerances
 
@@ -106,7 +112,7 @@ protocols in its own issue; this ADR does not change any of them.
 
 | Field | UDP | HTTP | Note |
 | ----- | --- | ---- | ---- |
-| Announce `left`, `downloaded`, `uploaded` | accepts negative (signed 64-bit) | rejects negative and above `i64::MAX` | First application: bug #2838, fixed in PR #2839 (UDP now rejects it) |
+| Announce `left`, `downloaded`, `uploaded` | accepts negative (signed 64-bit) | rejects negative (its `i64::MAX` limit exists only to fit the old shared type) | First application: bug #2838, fixed in PR #2839 (UDP now rejects it) |
 | Announce `port` = 0 | rejected by the parser | no zero check found in the parser (to verify) | Possible disagreement |
 | Announce `num_want` / `numwant` | any `i32`; tracker ignores it | `u32` only; `-1` rejected | `-1` is legitimate for UDP (BEP 15 default); HTTP `-1` is unspecified |
 | Announce event outside the defined set | rejected | rejected | Consistent |
