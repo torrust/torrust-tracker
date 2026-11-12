@@ -255,8 +255,9 @@ fn write_diagnostic(diagnostic: &impl Serialize) -> io::Result<()> {
 mod tests {
     use super::*;
 
-    // `yes` never exits on its own for the arguments the lookup passes (`api user`), so the lookup is still running when the flag is
-    // seen: the interruption is then deterministic and needs no fake script.
+    // `yes` never exits on its own for the arguments the lookup passes (`api user`),
+    // so the lookup is still running when the flag is seen: the interruption is then
+    // deterministic and needs no fake script.
     #[cfg(unix)]
     #[test]
     fn it_should_return_the_interruption_of_the_identity_lookup_to_the_caller() {
