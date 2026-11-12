@@ -72,10 +72,10 @@ Round 1 is Copilot's review `5875845096` (F13, numbered after the others) and da
 | F27 | review-finding:pr-2841-f27 | Copilot | Minor | documentation | RE_RAISE_OF:F22 | FIXED | RESOLVED |
 | F28 | review-finding:pr-2841-f28 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F29 | review-finding:pr-2841-f29 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
-| F30 | review-finding:pr-2841-f30 | Human | Minor | documentation | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F30 | review-finding:pr-2841-f30 | Human | Nit | documentation | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F31 | review-finding:pr-2841-f31 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F32 | review-finding:pr-2841-f32 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
-| F33 | review-finding:pr-2841-f33 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F33 | review-finding:pr-2841-f33 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
