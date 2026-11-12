@@ -86,11 +86,14 @@ qBittorrent. This confirms the maintainer's concern that test ids should look li
 
 ### Mutation sample (14 mutants, each applied alone to `peer.rs` and reverted exactly)
 
+The first eight mutants were run on 2026-11-11 and the last six on 2026-11-12 (review round 1 of #2841). The
+"Killed by" column is the set of tests that fail on the final test set, re-checked after the case table was added.
+
 | Mutant | Result | Killed by |
 | --- | --- | --- |
-| `is_seeder` `left <= 0` to `left == 0` | killed | the negative-`left` test (the only guard of `<=`) |
-| `is_seeder` `!= Stopped` to `== Stopped` | killed | 4 tests (state tests) |
-| `ReadInfo for Arc<Peer>` `<=` to `<` | killed | the read-info role-case table (earlier: the shared-peer read-info test) |
+| `is_seeder` `left <= 0` to `left == 0` | killed | the negative-`left` test and the read-info role-case table (`(-1, Started)`, through `is_leecher`) |
+| `is_seeder` `!= Stopped` to `== Stopped` | killed | 6 tests (the 5 state tests and the read-info role-case table) |
+| `ReadInfo for Arc<Peer>` `<=` to `<` | killed | the read-info role-case table and the shared-peer read-info test |
 | `opposite` of the seeder returns the seeder | killed | the opposite-role test |
 | `change_ip` resets the port | killed | the keep-the-port test |
 | hex string without `0x` | killed | 6 tests (incl. the property) |
