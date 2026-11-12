@@ -197,10 +197,10 @@ Follows [fix-bug](../../../../.github/skills/dev/debugging/fix-bug/SKILL.md):
 - [x] Folder-style spec drafted in `docs/issues/open/2838-1347-udp-reject-negative-announce-bytes/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
-- [x] Implementation completed
-- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [x] Acceptance criteria reviewed after implementation and updated with evidence
+- [ ] Implementation completed (superseded: done on the branch of PR #2839, which was not merged; the implementation is now issue #2850)
+- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks) (superseded: ran on the branch of PR #2839, not merged)
+- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md` (superseded: V1 and V1b describe `develop`; V2 ran on the branch of PR #2839, not merged)
+- [ ] Acceptance criteria reviewed after implementation and updated with evidence (superseded: reviewed against the branch of PR #2839, not merged)
 - [ ] Implementation completion review recorded
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
@@ -213,14 +213,17 @@ Follows [fix-bug](../../../../.github/skills/dev/debugging/fix-bug/SKILL.md):
 
 ## Acceptance Criteria
 
-- [x] AC1: a UDP announce with `left < 0` gets an error response (action 3) with the request's
+Superseded (PR #2839, not merged): these criteria were met on the branch of PR #2839 only. None is
+met on `develop`. Issue #2850 carries the criteria for the fix.
+
+- [ ] AC1: a UDP announce with `left < 0` gets an error response (action 3) with the request's
       transaction id, and no peer is registered.
-- [x] AC2: same for `uploaded < 0` and `downloaded < 0` (if approved).
-- [x] AC3: `left = 0`, `left = i64::MAX`, and `num_want = -1` are still accepted.
-- [x] AC4: the rejection emits the existing UDP error event and log.
-- [x] `linter all` exits with code `0`
-- [x] Relevant tests pass
-- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [ ] AC2: same for `uploaded < 0` and `downloaded < 0` (if approved).
+- [ ] AC3: `left = 0`, `left = i64::MAX`, and `num_want = -1` are still accepted.
+- [ ] AC4: the rejection emits the existing UDP error event and log.
+- [ ] `linter all` exits with code `0`
+- [ ] Relevant tests pass
+- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
 
 ## Verification Plan
 
@@ -246,10 +249,13 @@ Follows [fix-bug](../../../../.github/skills/dev/debugging/fix-bug/SKILL.md):
 
 | AC ID | Status | Evidence |
 | ----- | ------ | -------- |
-| AC1   | DONE   | udp-core `it_should_reject_a_negative_number_of_bytes`; udp-server handler test; V2 |
-| AC2   | DONE   | same tests, `uploaded`/`downloaded` cases; V2 |
-| AC3   | DONE   | `it_should_accept_a_non_negative_number_of_bytes_left` (0, 16384, i64::MAX) |
-| AC4   | DONE   | V2 log lines; `it_should_classify_a_negative_number_of_bytes_in_an_announce_as_a_bad_request` |
+| AC1   | TODO   | Superseded (PR #2839, not merged). On that branch: udp-core `it_should_reject_a_negative_number_of_bytes`; udp-server handler test; V2 |
+| AC2   | TODO   | Superseded (PR #2839, not merged). On that branch: same tests, `uploaded`/`downloaded` cases; V2 |
+| AC3   | TODO   | Superseded (PR #2839, not merged). On that branch: `it_should_accept_a_non_negative_number_of_bytes_left` (0, 16384, i64::MAX) |
+| AC4   | TODO   | Superseded (PR #2839, not merged). On that branch: V2 log lines; `it_should_classify_a_negative_number_of_bytes_in_an_announce_as_a_bad_request` |
+
+The tests named above exist only on the branch `2838-udp-reject-negative-announce-bytes`; they are
+not in the tree.
 
 ## Risks and Trade-offs
 

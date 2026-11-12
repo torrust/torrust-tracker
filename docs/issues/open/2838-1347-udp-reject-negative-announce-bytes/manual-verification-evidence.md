@@ -64,6 +64,10 @@ test result: FAILED. 0 passed; 1 failed
 
 ### V2 - Final like-for-like recheck (after the fix)
 
+> Superseded (PR #2839, not merged): this run used a tracker built from the branch of PR #2839.
+> That fix is not on `develop`, where the behaviour is still the one of V1. The recheck is repeated
+> by issue #2850 against its own implementation.
+
 - Status: `DONE`
 - Date and time (UTC): 2026-11-12 16:32
 - Build: a clean tree (`git status --short` printed nothing before the build) at the commit
