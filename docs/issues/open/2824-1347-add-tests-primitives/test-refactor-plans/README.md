@@ -22,7 +22,7 @@ changes nor work on another file until the maintainer approves it. Files with no
 | Sequence | Record | State |
 | ---: | --- | --- |
 | 0 | [s1-peer-role-serialization.md](s1-peer-role-serialization.md) | DONE (reviewed in PR #2834) |
-| 1 | [peer.md](peer.md) | Approved 2026-11-11; completed file pending review |
+| 1 | [peer.md](peer.md) | DONE (S2, PR #2841) |
 
 ## Shared Guardrails
 
@@ -34,7 +34,7 @@ changes nor work on another file until the maintainer approves it. Files with no
   no production-derived expectations, no logic in the test). List concrete smells; "clean" is also a
   recorded conclusion.
 - **Prose-First AAA Review** row for every added or changed test, before the completed-file review.
-- **Ownership:** `peer::fixture` is owned by #2482; the `AddAssign` of the swarm aggregate is gone
+- **Ownership:** `peer::fixture` is owned by the F5 follow-up (`peer-id-test-helper`; #2482 is closed and did not move it); the `AddAssign` of the swarm aggregate is gone
   (#2823); `Peer::Ord` is gone (#2798); `Location::caller()` is owned by #2804; `peer::Id::new` waits for its
   follow-up (F5). Do not test behavior that an open finding reports as wrong without a recorded maintainer
   decision (see [Findings During Implementation](../ISSUE.md#findings-during-implementation)).

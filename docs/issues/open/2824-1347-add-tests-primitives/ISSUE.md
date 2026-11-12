@@ -233,8 +233,8 @@ the maintainer (2026-11-10):
 | Slice | Content | Ledger rows | Branch | PR | Status |
 | --- | --- | --- | --- | --- | --- |
 | S0 | This specification, the T1 evidence, and the EPIC registration with the baseline | - | `2824-1347-add-tests-primitives-spec` | #2828 | DONE |
-| S1 | Defect fixes decided in this issue (T2a): F2 `PeerRole` JSON casing, only (F1 fixed upstream; F3, F4, F5 handed off). Merged first, so the test slices pin the fixed behavior. | - | `2824-1347-add-tests-primitives-fixes` | #2834 | IN_PROGRESS |
-| S2 | T2, then `peer.rs` (rank 1, the largest gap) | 1 | `2824-1347-add-tests-primitives-peer` | PR number at open | IN_PROGRESS |
+| S1 | Defect fixes decided in this issue (T2a): F2 `PeerRole` JSON casing, only (F1 fixed upstream; F3, F4, F5 handed off). Merged first, so the test slices pin the fixed behavior. | - | `2824-1347-add-tests-primitives-fixes` | #2834 | DONE |
+| S2 | T2, then `peer.rs` (rank 1, the largest gap) | 1 | `2824-1347-add-tests-primitives-peer` | #2841 | IN_PROGRESS |
 | S3 | Configuration defaults and bounded values: `announce.rs`, `policy.rs`, `mode.rs`, `pagination.rs`, `announce_interval.rs` | 2-6 | `2824-1347-add-tests-primitives-defaults` | - | TODO |
 | S4 | `swarm_metadata.rs`, no-change decisions for the covered and wiring files, then T4-T6; the clean-up moves the spec to `docs/issues/closed/` and updates the EPIC tables | 7-16 | `2824-1347-add-tests-primitives-final` | - | TODO |
 
@@ -282,7 +282,7 @@ States: `PENDING`, `IN_PROGRESS`, `BLOCKED`, `DONE`. Unit-only lines are the bas
 
 | Order | Source module | Rank | Slice | Unit-only lines | Initial hypothesis | State |
 | ---: | --- | ---: | --- | ---: | --- | --- |
-| 1 | `peer.rs` | 1 | S2 | 115 / 325 | Test candidate; property candidate (`Id`) | DONE (S2; the `Id::new` and `peer::fixture` groups wait on F5 and #2482) |
+| 1 | `peer.rs` | 1 | S2 | 115 / 325 | Test candidate; property candidate (`Id`) | DONE (S2; the `Id::new` and `peer::fixture` groups wait on the F5 follow-up) |
 | 2 | `announce_interval.rs` | 2 | S3 | 79 / 88 | Test candidate (3 gaps); property candidate | PENDING |
 | 3 | `announce.rs` | 2 | S3 | 0 / 16 | Test candidate | PENDING |
 | 4 | `policy.rs` | 2 | S3 | 0 / 16 | Test candidate | PENDING |
@@ -326,6 +326,7 @@ The 16 rows are every `.rs` file under `packages/primitives/src/`, each once.
 - 2026-11-10 (time not recorded) - Claude Code (session `i1347 primitives tests`) - Maintainer approved slicing, `quickcheck` for two seams, the `peer::fixture` and `driver.rs`/`service_role.rs` decisions. Finding F1 (`Peer` `Ord` vs `Eq`) confirmed and handed to a separate bug session.
 - 2026-11-11 11:22 UTC - Claude Code (Sonnet 5.5) - Created issue #2824, moved the spec to `docs/issues/open/`, registered the subissue and baseline in EPIC #1347. S0 branch `2824-1347-add-tests-primitives-spec`.
 - 2026-11-11 14:07 UTC - Claude Code (Sonnet 5.5) - S1: two regression tests for the `PeerRole` JSON casing failed before the fix (`"Seeder"`, `"Leecher"`) and pass after `rename_all = "lowercase"`; unit tests 49 passed. No other package serializes `PeerRole` to JSON.
+- 2026-11-12 14:10 UTC - Claude Code (Sonnet 5.5) - S2: `peer.rs` tests (32 added, 81 unit tests), decision record `test-refactor-plans/peer.md`, 14 of 14 sampled mutants killed; unit-only lines 85.20%, regions 89.28%, functions 82.99%. F6 (negative `left`) handed to #2838 (fix PR #2839). PR #2841, round 1 fixes (Copilot's `ReadInfo` cases; the reviewer's record and commit-split findings).
 
 ## Acceptance Criteria
 

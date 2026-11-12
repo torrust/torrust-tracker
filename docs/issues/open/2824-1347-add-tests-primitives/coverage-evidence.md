@@ -59,7 +59,7 @@ Change from S1: lines +22.47 pp, regions +18.99 pp, functions +23.50 pp (from th
 +21.34, +25.76 pp). The slice adds 32 tests, all in `peer.rs` (130 / 329 lines before, 508 / 576 after);
 the line totals include the in-file test modules, so part of the rise is the added test code itself. The
 uncovered `peer.rs` lines are the `Id::new` group (F5), the dead `Display` `None` branch and
-`peer::fixture` (#2482). Details and the mutation table: `test-refactor-plans/peer.md`.
+`peer::fixture` (the F5 follow-up). Details and the mutation table: `test-refactor-plans/peer.md`.
 
 ## Module Inventory
 

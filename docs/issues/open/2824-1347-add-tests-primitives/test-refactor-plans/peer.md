@@ -3,14 +3,14 @@ doc-type: file-test-plan
 issue: 2824
 package: torrust-tracker-primitives
 target-file: packages/primitives/src/peer.rs
-status: completed-file review pending
-last-updated-utc: "2026-11-11 17:08"
+status: completed
+last-updated-utc: "2026-11-12 14:15"
 ---
 
 # `peer.rs` File Test Plan
 
-Follow the shared [guidance](README.md). Ledger row 1, slice S2. Status: **approved by the maintainer on 2026-11-11** with the answers to Q1 to Q3 below; the tests are written and
-await the completed-file review (second gate).
+Follow the shared [guidance](README.md). Ledger row 1, slice S2. Status: **completed**: approved by the maintainer on 2026-11-11 with the answers to Q1 to Q3 below (Q1 settled
+on 2026-11-12), and the completed file was approved on 2026-11-12 (second gate).
 
 ## Current State
 
@@ -32,11 +32,11 @@ await the completed-file review (second gate).
 | The same rule in `ReadInfo for Peer` and `ReadInfo for Arc<Peer>`, and the accessors `get_*` | 216-264 | Unit | One consistency test per entry point against the inherent `is_seeder`; no refactor of the triple copy (maintainability note, not a finding). |
 | `Peer` mutators `ip`, `change_ip`, `mark_as_completed`, `into_completed`, `into_seeder` | 292-318 | Unit | Assert whole values: `change_ip` keeps the port; the `into_*` builders change only their own field. `ip(&mut self)` takes `&mut` needlessly: observation only. |
 | JSON shape of `Peer` (`ser_peer_id`, `ser_announce_event`, `ser_number_of_bytes`, `Id` `Serialize`) | 176-204, 465-480 | Unit | One whole-`Peer` JSON test against a literal document (fixture not used; the value is built in the test), plus `Id` alone. |
-| `Id`: `TryFrom<Vec<u8>>` success, `From<PeerId>`, `DerefMut`, `get_client_name` | 348-364, 402-405, 458-461 | Unit | `try_from` with 20 bytes gives the same bytes; `get_client_name` for `-qB...` is the qBittorrent client and `None` for an unknown prefix (collaboration with the `tdyne` registry, labelled; production reaches it through `rest-api-runtime-adapter`). `From` and `DerefMut` are compiler-guarded delegation: **unselected**. |
+| `Id`: `TryFrom<Vec<u8>>` success, `From<PeerId>`, `DerefMut`, `get_client_name` | 348-364, 402-405, 458-461 | Unit | `try_from` with 20 bytes gives the same bytes; `get_client_name` for `-qB...` is the qBittorrent client and `None` for an unknown prefix (collaboration with the `tdyne` registry, labelled; production reaches it through `rest-api-runtime-adapter`). `From` and `DerefMut` are compiler-guarded delegation: **unselected** in the approved plan, but two cheap tests were added anyway (`it_should_be_created_from_a_peer_id`, `it_should_give_mutable_access_to_the_peer_id_bytes`) to pin the delegation; recorded as a deviation. |
 | `Id` `Display` `None` branch | 413 | Unit-unreachable | `to_hex_string` only returns `None` for invalid UTF-8, and hex output is ASCII: dead defensive branch, **unselected**, recorded. |
 | `Id::new` | 369-382 | Owned elsewhere | Deferred: F5 moves it out of production code. No test until that issue decides. |
 | `FromIterator<Peer> for Vec<P: Encoding>` | 487-495 | Unit | One test with a local `Encoding` type: order preserved, one element per peer. |
-| `peer::fixture` (`PeerBuilder`) | 547-636 | Owned elsewhere | Deferred to #2482 (maintainer decision 2026-11-10). |
+| `peer::fixture` (`PeerBuilder`) | 547-636 | Owned elsewhere | Deferred to the F5 follow-up (`peer-id-test-helper`): #2482 is closed and did not move it (maintainer decision 2026-11-10 named #2482; the closed state was found later). |
 
 ## Property-Test Decision
 
@@ -45,7 +45,7 @@ One `quickcheck` property (the approved seam): for any 20-byte vector, `Id::try_
 It protects the encoding of every possible id, which the two example ids do not. Nothing else in the file has
 a natural property (the role has two values).
 
-## Decisions (2026-11-11)
+## Decisions (2026-11-11; Q1 settled 2026-11-12)
 
 - **Q1: pin the current behavior (option A).** `is_seeder` is `left <= 0 && event != Stopped`, so a negative
   `left` is a seeder. A characterization test with a name that states the rule is added. The maintainer wants the
@@ -56,7 +56,7 @@ a natural property (the role has two values).
 - **Q2: yes.** Correct the doc comment of `to_hex_string` (output has the `0x` prefix). Documentation only.
 - **Q3: yes.** Add `quickcheck` as a dev-dependency (the first property test), following `add-rust-dependency`.
 
-## Results (2026-11-11)
+## Results (2026-11-12)
 
 Toolchains: stable Rust 1.99.1 for tests and coverage, `cargo-llvm-cov 0.6.16`, nightly `cargo fmt`.
 
@@ -70,7 +70,7 @@ Toolchains: stable Rust 1.99.1 for tests and coverage, `cargo-llvm-cov 0.6.16`, 
 
 The line totals include the in-file test modules (the baseline did too), so the percentage rises partly because
 the added tests are covered code. The 68 uncovered lines of `peer.rs` are exactly the groups the plan leaves
-alone: `Id::new` (12 lines, F5), the dead `Display` `None` branch (1 line) and `peer::fixture` (55 lines, #2482).
+alone: `Id::new` (12 lines, F5), the dead `Display` `None` branch (1 line) and `peer::fixture` (55 lines, the F5 follow-up).
 
 All the planned groups are tested (`PeerRole`, the `Peer` predicates and mutators, `ReadInfo` for `Peer` and
 `Arc<Peer>`, the JSON of `Peer` and `Id`, the `Id` conversions, the collection, one `quickcheck` property with two
@@ -79,23 +79,29 @@ points at #2838); Q2 corrected the `to_hex_string` doc comment; Q3 added `quickc
 dev-dependencies (same requirements as `udp-core`; both already locked at their latest stable versions, 1.1.0 and
 1.2.0; `cargo machete --with-metadata` is run by the pre-commit gate).
 
-**A fixture lesson (for F5 and #2482).** The id the existing `PeerBuilder` fixture uses, `-qB00000000000000000`, is
+**A fixture lesson (for the F5 follow-up).** The id the existing `PeerBuilder` fixture uses, `-qB00000000000000000`, is
 not a valid Azureus-style id (the character after the four version characters must be `-`), so the client
 registry reports no client for it. The new tests use `-qB4650-abcdefghijkl`, which the registry knows as
 qBittorrent. This confirms the maintainer's concern that test ids should look like real ones.
 
-### Mutation sample (8 mutants, each applied alone to `peer.rs` and reverted exactly)
+### Mutation sample (14 mutants, each applied alone to `peer.rs` and reverted exactly)
 
 | Mutant | Result | Killed by |
 | --- | --- | --- |
 | `is_seeder` `left <= 0` to `left == 0` | killed | the negative-`left` test (the only guard of `<=`) |
 | `is_seeder` `!= Stopped` to `== Stopped` | killed | 4 tests (state tests) |
-| `ReadInfo for Arc<Peer>` `<=` to `<` | killed | the shared-peer read-info test |
+| `ReadInfo for Arc<Peer>` `<=` to `<` | killed | the read-info role-case table (earlier: the shared-peer read-info test) |
 | `opposite` of the seeder returns the seeder | killed | the opposite-role test |
 | `change_ip` resets the port | killed | the keep-the-port test |
 | hex string without `0x` | killed | 6 tests (incl. the property) |
 | `get_client_name` always `None` | killed | 3 tests |
 | `FromStr` case sensitive | killed | the case-insensitive parse test |
+| `ReadInfo for Peer` `is_seeder` returns `false` (round 1 of #2841) | killed | the read-info role-case table |
+| `ReadInfo for Peer` `is_seeder` `<=` to `==` | killed | the read-info role-case table |
+| `ReadInfo for Peer` `is_leecher` not negated | killed | the read-info role-case table |
+| `ReadInfo for Arc<Peer>` `is_seeder` returns `true` | killed | the read-info role-case table |
+| `ReadInfo for Arc<Peer>` `is_seeder` `<=` to `==` | killed | the read-info role-case table |
+| `ReadInfo for Arc<Peer>` `is_leecher` not negated | killed | the read-info role-case table |
 
 No survivor. Run with `cargo test -p torrust-tracker-primitives --lib` per mutant; `cmp` against a saved copy
 showed the file restored byte for byte.
@@ -123,5 +129,5 @@ Test smells found and fixed while writing: none left. Existing tests judged `cle
 ## Validation
 
 `cargo test -p torrust-tracker-primitives`; `cargo +nightly fmt --all -- --check`; `git diff --check`; the
-pre-commit gate; unit-only coverage re-run with before and after recorded here. Prose-First AAA Review rows and
-the mutation proofs are added at the completed-file review.
+pre-commit gate; unit-only coverage re-run with before and after recorded here. The Prose-First AAA Review rows
+and the mutation proofs are above.
