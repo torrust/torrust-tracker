@@ -17,6 +17,7 @@ semantic-links:
   related-artifacts:
     - .github/skills/dev/debugging/fix-bug/SKILL.md
     - .github/skills/dev/planning/create-issue/SKILL.md
+    - docs/issues/open/2850-non-negative-number-of-bytes/ISSUE.md
 ---
 
 <!-- skill-link: create-issue -->

@@ -9,7 +9,7 @@ github-issue: 2842
 spec-path: docs/issues/open/2842-inbound-tolerance-adr/ISSUE.md
 branch: "2842-inbound-tolerance-adr"
 related-pr: null
-last-updated-utc: "2026-11-11 17:10"
+last-updated-utc: "2026-11-12 17:41"
 semantic-links:
   skill-links:
     - create-issue
@@ -33,7 +33,7 @@ and when it rejects it, so UDP and HTTP stop disagreeing by accident.
 
 Found while writing the `primitives` tests for EPIC #1347. The UDP announce accepts a negative
 `left` (signed 64-bit on the wire), while HTTP rejects it, and `Peer::is_seeder` treats a negative
-`left` as a seeder. Bug #2838 (PR #2839) fixes that case; it needs a rule to
+`left` as a seeder. Bug #2838 is that case; its fix (issue #2850) needs a rule to
 apply. No ADR covers inbound values: the existing
 [tightest-protocol ADR](../../../adrs/20261007082938_bound_protocol_agnostic_values_by_the_tightest_delivery_protocol.md)
 covers values the tracker sends.
@@ -105,12 +105,13 @@ Not applicable.
 
 - 2026-11-11 17:10 UTC - Claude Code (Claude Sonnet 5.5) - Drafted spec and ADR.
 - 2026-11-12 14:00 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved the spec; issue #2842 created.
+- 2026-11-12 17:41 UTC - Claude Code (Fable 5.2) - The maintainer decided that this ADR is delivered by the spec-only pull request of issue #2850, its first application, instead of PR #2843. The four commits of PR #2843 were carried over unchanged; a following commit points the ADR at issue #2850.
 
 ## Acceptance Criteria
 
 - [ ] AC1: The ADR states the rule (strict by default, evidence-based tolerance, recorded in code
       and ADR, measurable, same over every delivery protocol, decided per field).
-- [ ] AC2: The ADR cites bug #2838 (PR #2839) as the first application and the existing
+- [ ] AC2: The ADR cites bug #2838 and its fix, issue #2850, as the first application and the existing
       related ADRs.
 - [ ] AC3: The inventory matches the current code (each row verified or marked "to verify").
 - [ ] AC4: No production code changes.
@@ -146,5 +147,8 @@ Not applicable: documentation-only change, no behavior to exercise.
 
 ## References
 
-- Related issues: #1347 (EPIC), #2838 (fixed by PR #2839)
+- Related issues: #1347 (EPIC), #2838 (the bug), #2850 (its fix, whose spec-only pull request
+  delivers this ADR)
+- Related PRs: #2843 (first pull request of this ADR, closed without merging; its commits were
+  carried over)
 - Related ADRs: `docs/adrs/20261007082938_bound_protocol_agnostic_values_by_the_tightest_delivery_protocol.md`

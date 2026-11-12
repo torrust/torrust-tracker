@@ -15,6 +15,9 @@ semantic-links:
     - packages/http-protocol/src/v1/requests/announce.rs
     - packages/udp-protocol/src/request.rs
     - packages/primitives/src/peer.rs
+    - docs/issues/open/2850-non-negative-number-of-bytes/ISSUE.md
+    - docs/issues/open/2838-1347-udp-reject-negative-announce-bytes/ISSUE.md
+    - docs/packages.md
 ---
 
 <!-- skill-link: create-adr -->
@@ -111,12 +114,14 @@ reject a bad configuration value. None of them says what to do with a value a cl
 ### First application: byte counts
 
 Announce `left`, `downloaded` and `uploaded` apply the rules above. This records the intended
-design; the code changes are tracked in their own issues.
+design; the code change is tracked in issue #2850
+([specification](../issues/open/2850-non-negative-number-of-bytes/ISSUE.md)).
 
 - Domain `NumberOfBytes` (in `primitives`) is a private `u64` with no upper bound.
 - UDP wire type `NumberOfBytes(I64)` and `Request::parse_bytes` stay unchanged. A negative value
   is refused in a fallible `peer_builder::from_request` in `udp-core`; its error is wrapped by
-  `UdpAnnounceError`. This replaces the validation function added by #2839.
+  `UdpAnnounceError`. No standalone validation function is added: PR #2839, which proposed one,
+  was closed without merging in favour of this design.
 - The HTTP protocol type becomes a private `u64` and its `i64::MAX` limit
   (`NumberOfBytesOverflow`) is removed, because the limit only existed to fit the old shared
   `i64` type. HTTP then accepts `0..=u64::MAX` and UDP `0..=i64::MAX`; the domain is the same for
@@ -128,8 +133,8 @@ integer" for these fields, never signed or unsigned. The libtorrent document (ci
 an existing implementation) uses `int64_t` for the byte counts, but `uint32_t` for `ip` and `key`
 and `uint16_t` for `port`, so unsigned types exist in the format. BEP 3 says only "encoded in
 base ten ascii". No document says why the counts are signed or what a tracker must do with a
-negative value. The "Evidence on real clients and other trackers" section of the #2838
-specification (PR #2839) shows that, before the metadata is known, libtorrent sends `left = 16384`
+negative value. The "Evidence on real clients and other trackers" section of the
+[#2838 specification](../issues/open/2838-1347-udp-reject-negative-announce-bytes/ISSUE.md) shows that, before the metadata is known, libtorrent sends `left = 16384`
 and Transmission sends `left = i64::MAX`; neither sends a negative value.
 
 ### Register of tolerances
@@ -217,7 +222,7 @@ This ADR changes no code. Follow-up issues apply it field by field.
 - [EPIC #1347](https://github.com/torrust/torrust-tracker/issues/1347) — package testing overhaul, where the `left` finding came up
 - [BEP 3: The BitTorrent Protocol Specification](https://www.bittorrent.org/beps/bep_0003.html)
 - [BEP 15: UDP Tracker Protocol](https://www.bittorrent.org/beps/bep_0015.html)
-- [Issue #2838](https://github.com/torrust/torrust-tracker/issues/2838) and [PR #2839](https://github.com/torrust/torrust-tracker/pull/2839) — first application: reject a negative `left`, `uploaded` or `downloaded` in a UDP announce
+- [Issue #2850](https://github.com/torrust/torrust-tracker/issues/2850) — first application, the design recorded above; it fixes [issue #2838](https://github.com/torrust/torrust-tracker/issues/2838). [PR #2839](https://github.com/torrust/torrust-tracker/pull/2839) was the first, tactical attempt: reject a negative `left`, `uploaded` or `downloaded` in a UDP announce
 - [Events Are Objective Facts](20260727000000_events_are_objective_facts.md) — how rejections and tolerances are reported
 - [Reject wildcard IPs as invalid `external_ip` values](20260617093046_reject_wildcard_external_ip.md) — the same fail-fast stance for configuration
 - [Use Exact IP Counters for UDP Banning](../../packages/udp-core/docs/adrs/20260829204258_use_exact_ip_counters_for_udp_banning.md) — ban rules, independent of this decision
