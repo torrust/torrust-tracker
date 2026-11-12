@@ -43,6 +43,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 F1 to F3 are in da2ce7's review 5875801804 and are inline threads; each carries his own finding ID. R1 and R2 are assertions in the summary of Copilot's review 5875883208, which has no inline thread, so their source is the review and their thread state is `NON_RESOLVABLE`; one PR conversation response names both with their dispositions.
 
+F5 and F7 to F12 are in da2ce7's review 5876404520, and F14 to F19 in his review 5876857550 (which approved the head of the previous push); their rows keep the reviewer's own finding IDs, which collide with none of the earlier ones. All of them are inline threads.
+
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2840-f1 | Human | Major | documentation | ORIGINAL | FIXED | RESOLVED |
@@ -57,6 +59,11 @@ F1 to F3 are in da2ce7's review 5875801804 and are inline threads; each carries 
 | F10 | review-finding:pr-2840-f10 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F11 | review-finding:pr-2840-f11 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F12 | review-finding:pr-2840-f12 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F14 | review-finding:pr-2840-f14 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F15 | review-finding:pr-2840-f15 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F16 | review-finding:pr-2840-f16 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F17 | review-finding:pr-2840-f17 | Human | Nit | documentation | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F18 | review-finding:pr-2840-f18 | Human | Nit | documentation | ORIGINAL | NO_ACTION | SUPERSEDED |
 
 ## Finding Details
 
@@ -216,6 +223,71 @@ F1 to F3 are in da2ce7's review 5875801804 and are inline threads; each carries 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2840#discussion_r4552082276
 
+### F14 - "Addressed the second review" names no review
+
+- PR number: 2840
+- Source review ID: 5876857550
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2840#discussion_r4552282451
+- Concern: The spec log entry did not name the review it meant.
+- Solution: A later entry names review 5876857550 and says which review the earlier entry meant.
+- Current-tree verification: The last Progress Log entry of the spec.
+- Resolution reference: docs(issues): [#2822] state the process cause of the missed retrospective and name the review
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2840#discussion_r4552349759
+
+### F15 - The retrospective puts the cause on a person
+
+- PR number: 2840
+- Source review ID: 5876857550
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2840#discussion_r4552282438
+- Concern: "The decision not to follow it was mine" is individual blame in a blameless review.
+- Solution: The root cause bullet states the process cause.
+- Current-tree verification: Root Cause in `implementation-retrospective.md`.
+- Resolution reference: docs(issues): [#2822] state the process cause of the missed retrospective and name the review
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2840#discussion_r4552348985
+
+### F16 - "With `create-issue` saying the same" overstates it
+
+- PR number: 2840
+- Source review ID: 5876857550
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2840#discussion_r4552282464
+- Concern: `create-issue` is less strict than the spec's instruction.
+- Solution: The bullet says what `create-issue` asks and that the spec's instruction was stricter.
+- Current-tree verification: Root Cause in `implementation-retrospective.md`.
+- Resolution reference: docs(issues): [#2822] state the process cause of the missed retrospective and name the review
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2840#discussion_r4552350716
+
+### F17 - A commit body says two stamps where it clarifies one stamp and a wording
+
+- PR number: 2840
+- Source review ID: 5876857550
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2840#discussion_r4552282474
+- Concern: The tree needs no change; only a commit body is imprecise.
+- Solution: No change and no rewrite of the pushed branch; the reply states what the commit clarifies.
+- Current-tree verification: The reply.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2840#discussion_r4552351534
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2840#discussion_r4552351534
+
+### F18 - A commit subject does not say what the commit adds
+
+- PR number: 2840
+- Source review ID: 5876857550
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2840#discussion_r4552282478
+- Concern: The tree needs no change; only a commit subject is imprecise.
+- Solution: No change and no rewrite of the pushed branch; the reply states what the commit adds.
+- Current-tree verification: The reply.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2840#discussion_r4552352355
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2840#discussion_r4552352355
+
 ## Processing Log
 
 - 2026-11-12 14:06 UTC - Review 5875801804 (da2ce7, `CHANGES_REQUESTED`) submitted on the head of the close-out PR: F1, F2, F3.
@@ -224,6 +296,7 @@ F1 to F3 are in da2ce7's review 5875801804 and are inline threads; each carries 
 - 2026-11-12 14:51 UTC - Review 5876404520 (da2ce7, `APPROVED`) had been submitted at 14:44 UTC on the head of the previous push, with seven findings, none blocking. The spec commit that fixes F5, F10, F11 and F12 was pushed at 14:50 UTC (push log time) and those four threads were replied to and resolved at 14:51 UTC; their rows are in this record.
 - 2026-11-12 14:51 UTC - Corrections, the entries above stay as they are. (a) This record was started at 14:14 UTC (the commit that added it was made at 14:14:08 UTC), after the first three replies, which were posted at 14:13:46 to 14:13:54 UTC. (b) Row R2 asks for the same change as F1, later than F1, so it is `RE_RAISE_OF:F1` with the category `documentation`; its row was changed in place. (c) The 14:30 entry was stamped later than its commit (made at 14:29:43 UTC), and the PR conversation response it dates at 14:29 was posted at 14:28:57 UTC (forge time); the retrospective commit's push at 14:28 UTC is as logged.
 - 2026-11-12 14:56 UTC - The audit commit that fixes F7, F8 and F9 was pushed at 14:55 UTC (push log time) and those three threads were replied to and resolved after it; their rows and reply URLs are in this record.
+- 2026-11-12 15:18 UTC - Review 5876857550 (da2ce7, `APPROVED`) had been submitted at 15:12 UTC on the head of the previous push, with six findings, none blocking. The spec commit that fixes F14, F15 and F16 was pushed at 15:18 UTC (push log time); those threads and the two no-change threads (F17, F18) were replied to and resolved at 15:18 UTC, and their rows are in this record. F19, the introduction of this record, is fixed by the commit that carries this entry.
 
 ## Completion Rules
 
