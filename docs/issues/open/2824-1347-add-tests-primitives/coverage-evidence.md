@@ -46,6 +46,21 @@ tests; most of the change is not from them: `develop` moved since the baseline (
 through #2827, which took 6 uncovered lines from `swarm_metadata.rs`, now 3 / 12 lines). `peer.rs`
 is 130 / 329 lines (baseline 115 / 325). The other files are unchanged.
 
+### S2 (`peer.rs` tests), 2026-11-12
+
+Measured on branch `2824-1347-add-tests-primitives-peer` after the S1 merge, with `cargo-llvm-cov 0.6.16`
+and stable Rust 1.99.1, same command as the baseline:
+
+| Scope | Tests | Lines | Regions | Functions |
+| --- | ---: | ---: | ---: | ---: |
+| Unit-only (`--lib`) = aggregate | 81 unit | 848 / 995 (85.23%) | 1,345 / 1,506 (89.31%) | 161 / 194 (82.99%) |
+
+Change from S1: lines +22.50 pp, regions +19.02 pp, functions +23.50 pp (from the baseline: +24.67,
++21.37, +25.76 pp). The slice adds 32 tests, all in `peer.rs` (130 / 329 lines before, 510 / 578 after);
+the line totals include the in-file test modules, so part of the rise is the added test code itself. The
+uncovered `peer.rs` lines are the `Id::new` group (F5), the dead `Display` `None` branch and
+`peer::fixture` (the F5 follow-up). Details and the mutation table: `test-refactor-plans/peer.md`.
+
 ## Module Inventory
 
 Every `.rs` file under `packages/primitives/src/` (16 files), once. "Initial hypothesis" is a

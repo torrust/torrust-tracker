@@ -419,15 +419,15 @@ pub const PEER_ID_BYTES_LEN: usize = 20;
 
 impl Id {
     #[must_use]
-    /// Converts to hex string.
+    /// Converts to hex string, prefixed with `0x`.
     ///
-    /// For the `PeerId` `-qB00000000000000000` it returns `2d71423030303030303030303030303030303030`
+    /// For the `PeerId` `-qB00000000000000000` it returns `0x2d71423030303030303030303030303030303030`
     ///
     /// For example:
     ///
     ///```text
     /// Bytes                = Hex
-    /// -qB00000000000000000 = 2d71423030303030303030303030303030303030
+    /// -qB00000000000000000 = 0x2d71423030303030303030303030303030303030
     /// -qB00000000000000000 = 2d 71 42 30 30 30 30 30 30 30 30 30 30 30 30 30 30 30 30 30
     ///
     /// -------------
@@ -652,6 +652,437 @@ pub mod test {
 
             assert_eq!(seeder1, seeder2);
             assert_ne!(seeder1, leecher1);
+        }
+    }
+
+    mod peer_role {
+        use crate::peer::{ParsePeerRoleError, PeerRole};
+
+        #[test]
+        fn it_should_have_the_leecher_as_the_opposite_of_the_seeder() {
+            assert_eq!(PeerRole::Seeder.opposite(), PeerRole::Leecher);
+        }
+
+        #[test]
+        fn it_should_have_the_seeder_as_the_opposite_of_the_leecher() {
+            assert_eq!(PeerRole::Leecher.opposite(), PeerRole::Seeder);
+        }
+
+        #[test]
+        fn it_should_be_parsed_from_its_lowercase_name() {
+            assert_eq!("seeder".parse::<PeerRole>().unwrap(), PeerRole::Seeder);
+            assert_eq!("leecher".parse::<PeerRole>().unwrap(), PeerRole::Leecher);
+        }
+
+        #[test]
+        fn it_should_be_parsed_ignoring_the_case_of_its_name() {
+            assert_eq!("SeEdEr".parse::<PeerRole>().unwrap(), PeerRole::Seeder);
+            assert_eq!("LEECHER".parse::<PeerRole>().unwrap(), PeerRole::Leecher);
+        }
+
+        #[test]
+        fn it_should_fail_to_parse_a_name_that_is_not_a_role_and_report_the_rejected_text() {
+            let error = "peer".parse::<PeerRole>().unwrap_err();
+
+            let ParsePeerRoleError::InvalidPeerRole { raw_param, .. } = error;
+
+            assert_eq!(raw_param, "peer");
+        }
+    }
+
+    mod peer_state {
+        use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+
+        use torrust_clock::DurationSinceUnixEpoch;
+
+        use crate::peer::{Peer, PeerRole};
+        use crate::{AnnounceEvent, NumberOfBytes, PeerId};
+
+        fn a_peer_with(left: i64, event: AnnounceEvent) -> Peer {
+            Peer {
+                peer_id: PeerId(*b"-qB4650-abcdefghijkl"),
+                peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
+                updated: DurationSinceUnixEpoch::new(1_669_397_478, 0),
+                uploaded: NumberOfBytes::new(1_024),
+                downloaded: NumberOfBytes::new(4_096),
+                left: NumberOfBytes::new(left),
+                event,
+            }
+        }
+
+        #[test]
+        fn it_should_be_a_seeder_when_it_has_no_bytes_left_to_download() {
+            let peer = a_peer_with(0, AnnounceEvent::Started);
+
+            assert!(peer.is_seeder());
+            assert!(!peer.is_leecher());
+            assert_eq!(peer.role(), PeerRole::Seeder);
+        }
+
+        #[test]
+        fn it_should_be_a_leecher_when_it_has_bytes_left_to_download() {
+            let peer = a_peer_with(1, AnnounceEvent::Started);
+
+            assert!(peer.is_leecher());
+            assert!(!peer.is_seeder());
+            assert_eq!(peer.role(), PeerRole::Leecher);
+        }
+
+        #[test]
+        fn it_should_be_a_leecher_when_it_has_stopped_even_with_no_bytes_left_to_download() {
+            let peer = a_peer_with(0, AnnounceEvent::Stopped);
+
+            assert!(peer.is_leecher());
+            assert_eq!(peer.role(), PeerRole::Leecher);
+        }
+
+        #[test]
+        fn it_should_be_a_seeder_when_it_has_completed_the_download() {
+            let peer = a_peer_with(0, AnnounceEvent::Completed);
+
+            assert!(peer.is_seeder());
+            assert_eq!(peer.role(), PeerRole::Seeder);
+        }
+
+        // A negative number of bytes left is not meaningful: issue #2850 makes it unrepresentable.
+        // This test pins how the signed domain value is classified until then; that change removes it.
+        #[test]
+        fn it_should_treat_a_negative_number_of_bytes_left_as_a_seeder() {
+            let peer = a_peer_with(-1, AnnounceEvent::Started);
+
+            assert!(peer.is_seeder());
+            assert_eq!(peer.role(), PeerRole::Seeder);
+        }
+
+        #[test]
+        fn it_should_be_completed_only_when_its_last_event_is_completed() {
+            assert!(a_peer_with(0, AnnounceEvent::Completed).is_completed());
+            assert!(!a_peer_with(0, AnnounceEvent::Started).is_completed());
+            assert!(!a_peer_with(0, AnnounceEvent::Stopped).is_completed());
+            assert!(!a_peer_with(0, AnnounceEvent::None).is_completed());
+        }
+
+        #[test]
+        fn it_should_keep_its_port_when_its_ip_address_changes() {
+            let mut peer = a_peer_with(0, AnnounceEvent::Started);
+
+            peer.change_ip(&IpAddr::V4(Ipv4Addr::new(10, 0, 0, 7)));
+
+            assert_eq!(peer.peer_addr, SocketAddr::new(IpAddr::V4(Ipv4Addr::new(10, 0, 0, 7)), 8080));
+            assert_eq!(peer.ip(), IpAddr::V4(Ipv4Addr::new(10, 0, 0, 7)));
+        }
+
+        #[test]
+        fn it_should_be_marked_as_completed_without_changing_anything_else() {
+            let mut peer = a_peer_with(1, AnnounceEvent::Started);
+
+            peer.mark_as_completed();
+
+            assert_eq!(peer, a_peer_with(1, AnnounceEvent::Completed));
+        }
+
+        #[test]
+        fn it_should_be_converted_into_a_completed_peer_without_changing_anything_else() {
+            let peer = a_peer_with(1, AnnounceEvent::Started);
+
+            assert_eq!(peer.into_completed(), a_peer_with(1, AnnounceEvent::Completed));
+        }
+
+        #[test]
+        fn it_should_be_converted_into_a_seeder_without_changing_anything_else() {
+            let peer = a_peer_with(1, AnnounceEvent::Started);
+
+            assert_eq!(peer.into_seeder(), a_peer_with(0, AnnounceEvent::Started));
+        }
+
+        mod read_info {
+            use std::sync::Arc;
+
+            use super::a_peer_with;
+            use crate::peer::ReadInfo;
+            use crate::{AnnounceEvent, PeerId};
+
+            #[test]
+            fn it_should_expose_the_peer_state_through_the_read_info_trait() {
+                let peer = a_peer_with(1, AnnounceEvent::Started);
+
+                assert!(ReadInfo::is_leecher(&peer));
+                assert!(!ReadInfo::is_seeder(&peer));
+                assert_eq!(ReadInfo::get_event(&peer), AnnounceEvent::Started);
+                assert_eq!(ReadInfo::get_id(&peer), PeerId(*b"-qB4650-abcdefghijkl"));
+                assert_eq!(ReadInfo::get_updated(&peer), peer.updated);
+                assert_eq!(ReadInfo::get_address(&peer), peer.peer_addr);
+            }
+
+            #[test]
+            fn it_should_expose_the_peer_state_through_the_read_info_trait_of_a_shared_peer() {
+                let peer = Arc::new(a_peer_with(0, AnnounceEvent::Completed));
+
+                assert!(ReadInfo::is_seeder(&peer));
+                assert!(!ReadInfo::is_leecher(&peer));
+                assert_eq!(ReadInfo::get_event(&peer), AnnounceEvent::Completed);
+                assert_eq!(ReadInfo::get_id(&peer), PeerId(*b"-qB4650-abcdefghijkl"));
+                assert_eq!(ReadInfo::get_updated(&peer), peer.updated);
+                assert_eq!(ReadInfo::get_address(&peer), peer.peer_addr);
+            }
+
+            #[test]
+            fn it_should_classify_the_role_through_the_read_info_trait_like_the_peer_does() {
+                // (left, event, is seeder): the stopped event wins over zero bytes left.
+                let cases = [
+                    (1, AnnounceEvent::Started, false),
+                    (0, AnnounceEvent::Started, true),
+                    (-1, AnnounceEvent::Started, true),
+                    (0, AnnounceEvent::Stopped, false),
+                    (-1, AnnounceEvent::Stopped, false),
+                ];
+
+                for (left, event, is_seeder) in cases {
+                    let peer = a_peer_with(left, event);
+                    let shared = Arc::new(a_peer_with(left, event));
+
+                    assert_eq!(ReadInfo::is_seeder(&peer), is_seeder, "left {left}, event {event:?}");
+                    assert_eq!(ReadInfo::is_leecher(&peer), !is_seeder, "left {left}, event {event:?}");
+                    assert_eq!(
+                        ReadInfo::is_seeder(&shared),
+                        is_seeder,
+                        "shared, left {left}, event {event:?}"
+                    );
+                    assert_eq!(
+                        ReadInfo::is_leecher(&shared),
+                        !is_seeder,
+                        "shared, left {left}, event {event:?}"
+                    );
+                }
+            }
+        }
+    }
+
+    mod peer_serialization {
+        use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+
+        use serde_json::json;
+        use torrust_clock::DurationSinceUnixEpoch;
+
+        use crate::peer::Peer;
+        use crate::{AnnounceEvent, NumberOfBytes, PeerId};
+
+        #[test]
+        fn it_should_serialize_every_field_in_its_json_form() {
+            let peer = Peer {
+                peer_id: PeerId(*b"-qB4650-abcdefghijkl"),
+                peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(126, 0, 0, 1)), 8080),
+                updated: DurationSinceUnixEpoch::new(1_669_397_478, 934_000_000),
+                uploaded: NumberOfBytes::new(10),
+                downloaded: NumberOfBytes::new(20),
+                left: NumberOfBytes::new(30),
+                event: AnnounceEvent::Completed,
+            };
+
+            let serialized = serde_json::to_value(peer).unwrap();
+
+            assert_eq!(
+                serialized,
+                json!({
+                    "peer_id": { "id": "0x2d7142343635302d6162636465666768696a6b6c", "client": "qBittorrent" },
+                    "peer_addr": "126.0.0.1:8080",
+                    "updated": 1_669_397_478_934_u64,
+                    "uploaded": 10,
+                    "downloaded": 20,
+                    "left": 30,
+                    "event": "Completed"
+                })
+            );
+        }
+
+        #[test]
+        fn it_should_serialize_the_none_announce_event_as_its_name() {
+            let peer = Peer {
+                peer_id: PeerId(*b"-qB4650-abcdefghijkl"),
+                peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080),
+                updated: DurationSinceUnixEpoch::new(0, 0),
+                uploaded: NumberOfBytes::new(0),
+                downloaded: NumberOfBytes::new(0),
+                left: NumberOfBytes::new(0),
+                event: AnnounceEvent::None,
+            };
+
+            let serialized = serde_json::to_value(peer).unwrap();
+
+            assert_eq!(serialized["event"], json!("None"));
+        }
+
+        #[test]
+        fn it_should_serialize_the_started_announce_event_as_its_name() {
+            let peer = Peer {
+                peer_id: PeerId(*b"-qB4650-abcdefghijkl"),
+                peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080),
+                updated: DurationSinceUnixEpoch::new(0, 0),
+                uploaded: NumberOfBytes::new(0),
+                downloaded: NumberOfBytes::new(0),
+                left: NumberOfBytes::new(0),
+                event: AnnounceEvent::Started,
+            };
+
+            let serialized = serde_json::to_value(peer).unwrap();
+
+            assert_eq!(serialized["event"], json!("Started"));
+        }
+
+        #[test]
+        fn it_should_serialize_the_stopped_announce_event_as_its_name() {
+            let peer = Peer {
+                peer_id: PeerId(*b"-qB4650-abcdefghijkl"),
+                peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 8080),
+                updated: DurationSinceUnixEpoch::new(0, 0),
+                uploaded: NumberOfBytes::new(0),
+                downloaded: NumberOfBytes::new(0),
+                left: NumberOfBytes::new(0),
+                event: AnnounceEvent::Stopped,
+            };
+
+            let serialized = serde_json::to_value(peer).unwrap();
+
+            assert_eq!(serialized["event"], json!("Stopped"));
+        }
+    }
+
+    mod peer_id {
+        use serde_json::json;
+
+        use crate::{PeerId, peer};
+
+        #[test]
+        fn it_should_be_converted_from_exactly_twenty_bytes_keeping_the_bytes() {
+            let id = peer::Id::try_from(b"-qB4650-abcdefghijkl".to_vec()).unwrap();
+
+            assert_eq!(id.0, *b"-qB4650-abcdefghijkl");
+        }
+
+        #[test]
+        fn it_should_be_created_from_a_peer_id() {
+            let id = peer::Id::from(PeerId(*b"-qB4650-abcdefghijkl"));
+
+            assert_eq!(id.0, *b"-qB4650-abcdefghijkl");
+        }
+
+        #[test]
+        fn it_should_give_mutable_access_to_the_peer_id_bytes() {
+            let mut id = peer::Id::from(PeerId(*b"-qB4650-abcdefghijkl"));
+
+            id.0[1] = b'Q';
+
+            assert_eq!(id.0, *b"-QB4650-abcdefghijkl");
+        }
+
+        #[test]
+        fn it_should_know_the_client_that_generated_a_registered_peer_id_prefix() {
+            let id = peer::Id::from(PeerId(*b"-qB4650-abcdefghijkl"));
+
+            assert_eq!(id.get_client_name(), Some("qBittorrent".to_string()));
+        }
+
+        #[test]
+        fn it_should_not_know_the_client_of_an_unregistered_peer_id_prefix() {
+            let id = peer::Id::from(PeerId([0; 20]));
+
+            assert_eq!(id.get_client_name(), None);
+        }
+
+        #[test]
+        fn it_should_serialize_the_hex_string_and_the_client_name() {
+            let id = peer::Id::from(PeerId(*b"-qB4650-abcdefghijkl"));
+
+            let serialized = serde_json::to_value(id).unwrap();
+
+            assert_eq!(
+                serialized,
+                json!({ "id": "0x2d7142343635302d6162636465666768696a6b6c", "client": "qBittorrent" })
+            );
+        }
+
+        #[test]
+        fn it_should_serialize_an_unknown_client_as_null() {
+            let id = peer::Id::from(PeerId([0; 20]));
+
+            let serialized = serde_json::to_value(id).unwrap();
+
+            assert_eq!(
+                serialized,
+                json!({ "id": "0x0000000000000000000000000000000000000000", "client": null })
+            );
+        }
+    }
+
+    mod peer_id_encoding {
+        use std::fmt::Write;
+
+        use quickcheck_macros::quickcheck;
+
+        use crate::peer;
+
+        #[quickcheck]
+        fn it_should_encode_any_twenty_bytes_as_a_hex_string_with_the_0x_prefix(bytes: Vec<u8>) -> bool {
+            let mut twenty_bytes = bytes;
+            twenty_bytes.resize(peer::PEER_ID_BYTES_LEN, 0);
+
+            let id = peer::Id::try_from(twenty_bytes.clone()).unwrap();
+
+            let expected = twenty_bytes.iter().fold(String::from("0x"), |mut hex, byte| {
+                write!(hex, "{byte:02x}").unwrap();
+                hex
+            });
+            id.0.to_vec() == twenty_bytes && id.to_hex_string() == Some(expected)
+        }
+
+        #[quickcheck]
+        fn it_should_reject_any_byte_vector_whose_length_is_not_twenty(bytes: Vec<u8>) -> bool {
+            bytes.len() == peer::PEER_ID_BYTES_LEN || peer::Id::try_from(bytes).is_err()
+        }
+    }
+
+    mod peer_collection {
+        use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+
+        use torrust_clock::DurationSinceUnixEpoch;
+
+        use crate::peer::{Encoding, Peer};
+        use crate::{AnnounceEvent, NumberOfBytes, PeerId};
+
+        #[derive(Debug, PartialEq)]
+        struct PeerPort(u16);
+
+        impl From<Peer> for PeerPort {
+            fn from(peer: Peer) -> Self {
+                Self(peer.peer_addr.port())
+            }
+        }
+
+        impl Encoding for PeerPort {}
+
+        fn a_peer_listening_on(port: u16) -> Peer {
+            Peer {
+                peer_id: PeerId(*b"-qB4650-abcdefghijkl"),
+                peer_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), port),
+                updated: DurationSinceUnixEpoch::new(0, 0),
+                uploaded: NumberOfBytes::new(0),
+                downloaded: NumberOfBytes::new(0),
+                left: NumberOfBytes::new(0),
+                event: AnnounceEvent::Started,
+            }
+        }
+
+        #[test]
+        fn it_should_collect_peers_into_a_vector_of_their_encoding_in_order() {
+            let peers = [
+                a_peer_listening_on(8081),
+                a_peer_listening_on(8082),
+                a_peer_listening_on(8083),
+            ];
+
+            let encoded: Vec<PeerPort> = peers.into_iter().collect();
+
+            assert_eq!(encoded, vec![PeerPort(8081), PeerPort(8082), PeerPort(8083)]);
         }
     }
 
