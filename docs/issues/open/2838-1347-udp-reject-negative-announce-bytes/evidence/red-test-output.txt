@@ -1,0 +1,8 @@
+thread 'handlers::announce::tests::announce_request::using_ipv4::it_should_reject_an_announce_with_a_negative_number_of_bytes_left' (1728527) panicked at packages/udp-server/src/handlers/announce.rs:595:17:
+a negative `left` must be rejected, got: Ok(AnnounceIpv4(AnnounceResponse { fixed: AnnounceResponseFixedData { transaction_id: TransactionId(I32(0)), announce_interval: AnnounceInterval(I32(120)), leechers: NumberOfPeers(I32(0)), seeders: NumberOfPeers(I32(1)) }, peers: [] }))
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+--
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 223 filtered out; finished in 0.02s
+
+error: test failed, to rerun pass `-p torrust-tracker-udp-server --lib`
