@@ -9,7 +9,7 @@ github-issue: 2822
 spec-path: docs/issues/closed/2822-2003-wait-for-pr-review-gh-option/ISSUE.md
 branch: "2822-wait-for-pr-review-gh-option"
 related-pr: 2835
-last-updated-utc: "2026-11-12 13:30"
+last-updated-utc: "2026-11-12 14:07"
 semantic-links:
   skill-links:
     - create-issue
@@ -244,6 +244,10 @@ increment, before final verification, commit and pull request.
 - 2026-11-12 13:30 UTC - AI assistant (Claude Code, Claude Sonnet 5.5) - PR #2835 merged on 2026-11-12 (merge commit
   `388faf59a`); issue #2822 is closed by it. The spec moved from `docs/issues/open/` to `docs/issues/closed/` in the
   close-out pull request.
+- 2026-11-12 14:07 UTC - AI assistant (Claude Code, Claude Sonnet 5.5) - Addressed the review of the close-out PR #2840: the
+  `linter all` run is recorded in the evidence and its criterion ticked. No `implementation-retrospective.md` was
+  created because the only change to the merged spec was the narrowing of AC5 and D2's test bullet (a wording
+  change to a test criterion), stated as a deviation in the Implementation Completion Review.
 
 ## Acceptance Criteria
 
@@ -259,7 +263,7 @@ increment, before final verification, commit and pull request.
 - [x] AC5: The tests of a custom command reach the fake command only through `--gh-command`, with no `PATH` shim, and the existing
       scenarios are no less reliable.
 - [x] AC6: `--help` and the skill document the option and the reported fields.
-- [ ] `linter all` exits with code `0`
+- [x] `linter all` exits with code `0`
 - [x] Relevant tests pass
 
 ## Verification Plan
@@ -309,11 +313,15 @@ Evidence goes in issue-local `manual-verification-evidence.md`, naming the toolc
 ## Implementation Completion Review
 
 Recorded at close-out. No separate `implementation-retrospective.md` was created: the implementation followed the
-merged spec (PR #2826, merged 2026-11-11), and the reusable lessons below fit here.
+decisions D1 and D2 of the merged spec (PR #2826, merged 2026-11-11), with one deviation in the spec's own text,
+and the reusable lessons below fit here.
 
-- Deviations: none from the decisions D1 and D2. Review of the implementation PR (#2835) added a deterministic
-  unit test for an interrupted identity lookup, narrowed AC5 to the custom-command tests, and made the help text
-  exact about which value skips `auth status`.
+- Deviations: none from the decisions D1 and D2 of the design. One change to the spec as merged: review of the
+  implementation PR (#2835) narrowed AC5 and D2's test bullet from "the tests" to "the tests of a custom
+  command", because the four scenarios that exercise the default `gh` reach the fake through the sandbox `PATH`.
+  It needs no separate retrospective because it changes the wording of a test criterion, not the design or the
+  behaviour. The review also added a deterministic unit test for an interrupted identity lookup and made the help
+  text exact about which value skips `auth status`.
 - Validation findings: the red run of the new tests had two tests that passed before the option existed; the
   evidence recomputes the breakdown (8 of 10 new and 6 existing scenarios failed). A CLI scenario for an
   interrupted lookup cannot pin its regression (the poller kills the spawned child at once), so a unit test does.
@@ -321,6 +329,7 @@ merged spec (PR #2826, merged 2026-11-11), and the reusable lessons below fit he
   issue neither fixed nor measurably worsened it (one failing run in seven), and that fix stays a separate
   issue. Review rounds mostly found statements in the spec's and the audit's own records, which the
   "Statements in Your Own Records" rules of `process-pr-review` cover.
+- Linters: `linter all` exits 0; the run is recorded in `manual-verification-evidence.md`.
 - Acceptance criteria: reviewed after implementation; every row of the Acceptance Verification table is DONE
   with its evidence.
 

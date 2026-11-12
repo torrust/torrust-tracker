@@ -91,3 +91,11 @@ prose and the code was left as it is where it already matched.
   helper.
 - Existing scenarios: only the expected stderr kinds (two scenarios) and the signal helper
   `start_and_wait_until_running` (it now also reads `gh_identity`, which the fake answers at once) changed.
+
+## Linters
+
+`linter all` was run on 2026-11-12 at 14:08 UTC on the close-out tree (the merge of PR #2835 plus the move of this
+folder), with the stable toolchain. Exit code `0`, 19.9 seconds. The tail of its output, which is what was read, shows
+clippy, rustfmt and shellcheck passing and ends with "All linters passed". The pre-push hook, which ran
+the workspace tests, passed for every push of PR #2835 except the pushes that were retried after the known
+unrelated failures noted above.
