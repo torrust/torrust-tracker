@@ -43,7 +43,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 F1 to F3 are in da2ce7's review 5875801804 and are inline threads; each carries his own finding ID. R1 and R2 are assertions in the summary of Copilot's review 5875883208, which has no inline thread, so their source is the review and their thread state is `NON_RESOLVABLE`; one PR conversation response names both with their dispositions.
 
-F5 and F7 to F12 are in da2ce7's review 5876404520, and F14 to F19 in his review 5876857550 (which approved the head of the previous push); their rows keep the reviewer's own finding IDs, which collide with none of the earlier ones. All of them are inline threads.
+F5 and F7 to F12 are in da2ce7's review 5876404520, and F14 to F19 in his review 5876857550; their rows keep the reviewer's own finding IDs, which collide with none of the earlier ones. All of them are inline threads.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
