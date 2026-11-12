@@ -15,6 +15,11 @@ last-updated-utc: 2026-11-12 18:10
 - Setup: tracker config [`evidence/tracker.toml`](evidence/tracker.toml) (the shipped
   `tracker.development.sqlite3.toml` with a temp database, HTTP/API removed, UDP on
   `127.0.0.1:6868`); probe [`evidence/udp_announce_probe.py`](evidence/udp_announce_probe.py).
+- Replay prerequisite, added after the recorded runs: the configuration stores the database in
+  `/tmp/claude-1000/run/sqlite3.db` and the tracker does not create the parent directory. Create
+  it first with `mkdir -p /tmp/claude-1000/run`, or change `path` in the configuration.
+- The probe was changed after the recorded runs: it now exits with status 1 when a response does
+  not carry the transaction id of its request. Its output for a correct response is unchanged.
 
 ## Verification Processes
 
