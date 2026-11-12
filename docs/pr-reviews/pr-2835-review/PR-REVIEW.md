@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-F1, F2, R2 and R1 are in Copilot's review 5862741540. F7 to F12 are in da2ce7's review 5870191489; only his F1 and F2 collide with Copilot's F1 and F2; all six were numbered F7 to F12 by choice, and each of his IDs is recorded as the reviewer finding ID of its audit ID. F13 to F16 are in da2ce7's review 5871706543, which approved the previous head; his IDs F8 to F11 collide with the audit's F8 to F11, so they are numbered F13 to F16. All are inline threads.
+F1, F2, R2 and R1 are in Copilot's review 5862741540. F7 to F12 are in da2ce7's review 5870191489; only his F1 and F2 collide with Copilot's F1 and F2; all six were numbered F7 to F12 by choice, and each of his IDs is recorded as the reviewer finding ID of its audit ID. F13 to F16 are in da2ce7's review 5871706543, which approved the previous head; his IDs F8 to F11 collide with the audit's F8 to F11, so they are numbered F13 to F16. F17 and F18 are in da2ce7's review 5872006301, which approved the next head; his IDs F12 and F13 collide with the audit's, so they are numbered F17 and F18. All are inline threads.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -59,6 +59,8 @@ F1, F2, R2 and R1 are in Copilot's review 5862741540. F7 to F12 are in da2ce7's 
 | F14 | review-finding:pr-2835-f14 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F15 | review-finding:pr-2835-f15 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F16 | review-finding:pr-2835-f16 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F17 | review-finding:pr-2835-f17 | Human | Nit | formatting | ORIGINAL | FIXED | RESOLVED |
+| F18 | review-finding:pr-2835-f18 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -244,6 +246,32 @@ F1, F2, R2 and R1 are in Copilot's review 5862741540. F7 to F12 are in da2ce7's 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548411259
 
+### F17 - This comment line is now 133 columns
+
+- PR number: 2835
+- Source review ID: 5872006301
+- Reviewer finding ID: F12
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548543344
+- Concern: The comment line exceeded `max_width = 130`.
+- Solution: The comment is rewrapped in three lines within 130 columns.
+- Current-tree verification: `awk 'length>130'` on `main.rs` prints nothing; `cargo +nightly fmt --all -- --check` passes.
+- Resolution reference: docs(pr-reviews): [#2822] date the pushes of the third review of PR #2835
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548633320
+
+### F18 - The 09:09 entry dates the spec commit's push late
+
+- PR number: 2835
+- Source review ID: 5872006301
+- Reviewer finding ID: F13
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548543334
+- Concern: The spec commit was pushed at about 09:03, not 09:09.
+- Solution: The log has a 09:03 entry for that push and the 09:09 entry covers the later push, the replies and the F12 edit.
+- Current-tree verification: The Processing Log of this record.
+- Resolution reference: docs(pr-reviews): [#2822] date the pushes of the third review of PR #2835
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548632701
+
 ## Processing Log
 
 - 2026-11-11 17:24 UTC - Review 5862741540 (Copilot) submitted on the first head of the PR: F1, F2, R2, R1.
@@ -256,6 +284,9 @@ F1, F2, R2 and R1 are in Copilot's review 5862741540. F7 to F12 are in da2ce7's 
 - 2026-11-12 08:58 UTC - Review 5871706543 (da2ce7, `APPROVED`) submitted on the head of the previous push: four findings, none blocking.
 - 2026-11-12 09:03 UTC - Pushed the spec commit that fixes F8 and F9 (the timeline shows this push dismissed the approval of review 5871706543 at 09:03:48Z).
 - 2026-11-12 09:09 UTC - Pushed the audit correction for the other two findings (the first attempt, at about 09:06, was blocked by an unrelated test), then replied to and resolved the four threads and rewrote the reply on F12 into the exact `Superseded by` form.
+- 2026-11-12 09:23 UTC - Review 5872006301 (da2ce7, `APPROVED`) submitted on the head of the previous push: two findings, none blocking.
+- 2026-11-12 09:32 UTC - Pushed the commit that fixes them (push log time).
+- 2026-11-12 09:32 UTC - Replied to and resolved the two threads after that push.
 
 ## Completion Rules
 
