@@ -28,9 +28,11 @@ the tests in `tests/cli.rs` and `main.rs`.
 ## What Went Well
 
 1. The merged specification fixed the design before code (D1 and D2, with pros and cons), so the implementation
-   needed no design change: the tests were written first and failed for the stated reason.
+   needed no design change, and the tests were written before the option; of the ten new tests of the red run, eight
+   failed and two passed before the option existed (the evidence says which and why).
 2. Tests pass the fake command only through the option for the custom-command cases, with a `PATH` that cannot reach
-   it, so no `gh` stand-in was ever put on `PATH`, the safety reason the issue exists for.
+   it. The default-`gh` scenarios run a fake named `gh` from the sandbox `PATH`, as they must to exercise the default;
+   no stand-in that calls `gh` again was ever put on `PATH`, which is the recursion the issue exists to prevent.
 3. The identity record answers the maintainer's concern that an agent must be able to tell which account it runs as,
    with data in the output instead of prose.
 
@@ -59,6 +61,11 @@ the tests in `tests/cli.rs` and `main.rs`.
 - Counts and claims in the evidence and in the specification's own records were written from memory of the work, not
   recomputed from the run output; most findings of the later review rounds, on both pull requests, were about these
   statements, not about the tool.
+- The close-out's first commit replaced the instruction of the merged specification ("Create an issue-local
+  `implementation-retrospective.md` when there is any of these", with `create-issue` saying the same) with "No separate
+  `implementation-retrospective.md` was created", although the work had deviations, validation findings and lessons.
+  The rule was in front of the work; the decision not to follow it was mine, made before the reviews that showed
+  it was wrong.
 - The audit and log rules (append only, stamp an event after it happened, separate commits for product fixes and audit)
   were applied round by round, after a reviewer named each slip, instead of being checked before pushing.
 

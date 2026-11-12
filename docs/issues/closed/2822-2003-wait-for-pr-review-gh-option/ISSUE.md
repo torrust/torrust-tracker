@@ -9,7 +9,7 @@ github-issue: 2822
 spec-path: docs/issues/closed/2822-2003-wait-for-pr-review-gh-option/ISSUE.md
 branch: "2822-wait-for-pr-review-gh-option"
 related-pr: 2835
-last-updated-utc: "2026-11-12 14:23"
+last-updated-utc: "2026-11-12 14:45"
 semantic-links:
   skill-links:
     - create-issue
@@ -251,6 +251,12 @@ increment, before final verification, commit and pull request.
 - 2026-11-12 14:23 UTC - AI assistant (Claude Code, Claude Sonnet 5.5) - At the maintainer's request, added
   `implementation-retrospective.md` and changed the Implementation Completion Review to point to it; the earlier
   entries that give the reason for no retrospective are superseded by this one.
+- 2026-11-12 14:45 UTC - AI assistant (Claude Code, Claude Sonnet 5.5) - Addressed the second review of close-out PR #2840.
+  Clarifications of earlier entries, which stay as they are: the 14:23 entry's "at the maintainer's request" refers to a
+  request made in the session of this issue, after Copilot's review of the close-out PR noted the missing
+  retrospective (audit row R1); it is not on the PR's threads. The `linter all` run that the 14:07 entry reports
+  was made at 14:08 UTC (the commit that records it was authored at 14:08:14 and committed at 14:09:38 UTC), so the
+  14:07 stamp is a minute early.
 
 ## Acceptance Criteria
 
@@ -317,7 +323,8 @@ Evidence goes in issue-local `manual-verification-evidence.md`, naming the toolc
 
 Recorded at close-out. The implementation followed the decisions D1 and D2 of the merged spec (PR #2826, merged
 2026-11-11), with one deviation in the spec's own text. The maintainer asked for an issue-local retrospective
-during review of the close-out PR; it is `implementation-retrospective.md` in this folder, and the summary below
+in the session of this issue, after Copilot's review of the close-out PR noted its absence (audit row R1 of
+`docs/pr-reviews/pr-2840-review/PR-REVIEW.md`); that request has no durable link on the PR. It is `implementation-retrospective.md` in this folder, and the summary below
 repeats its main points.
 
 - Deviations: none from the decisions D1 and D2 of the design. One change to the spec as merged: review of the
