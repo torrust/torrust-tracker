@@ -282,11 +282,11 @@ F1, F2, R2 and R1 are in Copilot's review 5862741540. F7 to F12 are in da2ce7's 
 - 2026-11-12 08:36 UTC - Pushed the commit that fixes them (push log time).
 - 2026-11-12 08:37 UTC - Replied to and resolved the six threads after that push; F12 is declined with its reason (reply URL in the entry).
 - 2026-11-12 08:58 UTC - Review 5871706543 (da2ce7, `APPROVED`) submitted on the head of the previous push: four findings, none blocking.
-- 2026-11-12 09:03 UTC - Pushed the spec commit that fixes F8 and F9 (the timeline shows this push dismissed the approval of review 5871706543 at 09:03:48Z).
-- 2026-11-12 09:09 UTC - Pushed the audit correction for the other two findings (the first attempt, at about 09:06, was blocked by an unrelated test), then replied to and resolved the four threads and rewrote the reply on F12 into the exact `Superseded by` form.
+- 2026-11-12 09:09 UTC - Pushed the spec commit and the audit correction that fix them, then replied to and resolved the four threads and rewrote the reply on F12 into the exact `Superseded by` form.
 - 2026-11-12 09:23 UTC - Review 5872006301 (da2ce7, `APPROVED`) submitted on the head of the previous push: two findings, none blocking.
 - 2026-11-12 09:32 UTC - Pushed the commit that fixes them (push log time).
 - 2026-11-12 09:32 UTC - Replied to and resolved the two threads after that push.
+- 2026-11-12 09:48 UTC - Correction: the 09:09 entry above was rewritten in place by an earlier commit and a 09:03 entry was inserted; both are restored to their first form. The first form names F8 and F9 by the reviewer's IDs where this record numbers them F13 and F14. What happened: the spec commit, which fixes F13 and F14, was pushed alone at 09:03 (the timeline's dismissal of the approval of review 5871706543 is at 09:03:48Z); the audit correction, which fixes F15 and F16, was pushed at 09:09 after a first attempt at about 09:06 was blocked by an unrelated test; the replies and the F12 edit followed at 09:09.
 
 ## Completion Rules
 
