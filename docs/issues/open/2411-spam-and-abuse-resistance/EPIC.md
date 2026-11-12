@@ -6,7 +6,7 @@ epic: null
 github-issue: 2411
 spec-path: docs/issues/open/2411-spam-and-abuse-resistance/EPIC.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-10 17:20"
+last-updated-utc: "2026-11-11 16:08"
 semantic-links:
   skill-links:
     - create-issue
@@ -54,7 +54,7 @@ Add a row for every new case. "Source" says where it was found.
 | ID | Case | Affected | Effect | Status | Source |
 | --- | --- | --- | --- | --- | --- |
 | A1 | No shared configurable request-rate policy | UDP, HTTP, REST API, health check | Aggregate work can exceed capacity despite existing local protections | Confirmed: no service has a request-rate policy; HTTP, REST API and health check have no concurrency or connection limit; UDP has only connection-ID banning and an approximate active-request ring. Hypothesis: the capacity at which aggregate work degrades service; confirm by measuring throughput and latency under parallel load on an isolated local tracker | Known limitation |
-| A2 | Connections without a client timeout | HTTP, REST API, health check | Idle connections hold resources | Mitigated by #2776 (`axum-server` 0.9): every Axum listener, plaintext and TLS, closes a connection that sends no complete first request within 5 s (`Server::first_request_timeout`), and closes one that is idle after a response (5 s for HTTP/1, about 10 s for HTTP/2); a TLS handshake that does not complete is closed after 10 s. Verified at runtime on the final build ([evidence](../2776-2411-axum-server-0-9-timeouts/manual-verification-evidence.md)). The server closes the connection without a `408`; the values are not configurable | #324, #2776 |
+| A2 | Connections without a client timeout | HTTP, REST API, health check | Idle connections hold resources | Mitigated by #2776 (`axum-server` 0.9): every Axum listener, plaintext and TLS, closes a connection that sends no complete first request within 5 s (`Server::first_request_timeout`), and closes one that is idle after a response (5 s for HTTP/1, about 10 s for HTTP/2); a TLS handshake that does not complete is closed after 10 s. Verified at runtime on the final build ([evidence](../../closed/2776-2411-axum-server-0-9-timeouts/manual-verification-evidence.md)). The server closes the connection without a `408`; the values are not configurable | #324, #2776 |
 | A3 | HTTP scrape exceeds the documented 74 info-hash limit | HTTP tracker | Local requests returned 75 and 1000 entries; overload impact not measured | Decided in #2417: HTTP keeps the first 100 as a per-request policy cap ([ADR](../../../adrs/20261005124222_cap_scrape_info_hashes_per_protocol.md)); total load still needs rate limiting | [HTTP limit evidence](../../closed/2417-2411-verify-http-scrape-info-hash-limit/manual-verification-evidence.md) |
 | A4 | Announce for new info hashes adds torrents to memory when policy permits | UDP, HTTP tracker | Memory is retained while peers remain active; expiry and optional peerless cleanup affect retention | Confirmed: with the default `listed = false` every info hash is authorized and its first announce adds a swarm, with no cap on the number of swarms; a swarm stays until its peers expire and peerless cleanup removes it, and stays indefinitely when `remove_peerless_torrents = false` or cleanup is disabled. Hypothesis: memory per swarm and its growth rate; confirm by measuring resident memory against distinct announced info hashes | SI-22 session, 2026-10-02 |
 | A5 | First announce of an unknown torrent reads the database when persistence is enabled | UDP, HTTP tracker | Database load from random info hashes | Confirmed: an announce for a swarm absent from memory reads the database once when `persistent_torrent_completed_stat` is enabled (default `false`); the swarm it then adds (A4) prevents re-reads until eviction. Hypothesis: database load at a given rate of new info hashes; confirm by counting queries and latency on an isolated local tracker | `AnnounceHandler::load_downloads_metric_if_needed` |
@@ -114,7 +114,8 @@ Each control bounds one cost locally; none bounds aggregate work across requests
 | --- | --- | --- | --- | --- |
 | 1 | #324 - Denial of Service attack factor | None (pre-dates specs) | TODO | Existing open issue; linked as a sub-issue |
 | 2 | #2417 - Verify whether HTTP scrape enforces the 74 info-hash limit | [ISSUE.md](../../closed/2417-2411-verify-http-scrape-info-hash-limit/ISSUE.md) | DONE | A3 |
-| 3 | #[To be assigned] - Rate-limiting design | Not drafted | TODO | Highest-impact mitigation for its effort (A1); deferred until after v4.0.0 |
+| 3 | #2776 - Adopt `axum-server` 0.9 timeouts and close idle-connection gaps | [ISSUE.md](../../closed/2776-2411-axum-server-0-9-timeouts/ISSUE.md) | DONE | A2 |
+| 4 | #[To be assigned] - Rate-limiting design | Not drafted | TODO | Highest-impact mitigation for its effort (A1); deferred until after v4.0.0 |
 
 ## Delivery Strategy
 

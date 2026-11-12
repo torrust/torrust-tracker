@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: in-progress
+status: done
 priority: p2
 epic: 2411
 github-issue: 2776
-spec-path: docs/issues/open/2776-2411-axum-server-0-9-timeouts/ISSUE.md
+spec-path: docs/issues/closed/2776-2411-axum-server-0-9-timeouts/ISSUE.md
 branch: "2776-axum-server-0-9-timeouts-spec"
-related-pr: null
-last-updated-utc: "2026-11-11 11:03"
+related-pr: 2813
+last-updated-utc: "2026-11-11 16:08"
 semantic-links:
   skill-links:
     - create-issue
@@ -205,7 +205,7 @@ with GPG.
 
 ### Workflow Checkpoints
 
-- [x] Folder-style spec drafted in `docs/issues/open/2776-2411-axum-server-0-9-timeouts/ISSUE.md`
+- [x] Folder-style spec drafted in `docs/issues/closed/2776-2411-axum-server-0-9-timeouts/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec (#2776)
 - [ ] (Optional, recommended for complex issues) Spec-only PR merged into `develop` before implementation
@@ -213,11 +213,11 @@ with GPG.
 - [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [x] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
+- [x] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Independent reviewer reports recorded in issue-local `agent-review-reports.md` when reviewers received this folder-style specification
 - [ ] Committer verified spec progress is up to date before commit
-- [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
+- [x] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
@@ -230,6 +230,7 @@ with GPG.
 - 2026-11-11 09:53 UTC - Claude Code (Claude Sonnet 5.5) - Added the ADR on closing idle connections without a `408` (silent close, revisit through an upstream `axum-server` feature if proxies report confusing logs). Merged `develop` into the branch to resolve conflicts with #2807 and #2812.
 - 2026-11-11 10:29 UTC - Claude Code (Claude Sonnet 5.5) - Added the silent-connection test (plaintext and TLS) to the HTTP tracker and REST API packages, next to the existing health check API one. They fail when a listener bypasses the shared constructor: red run in `evidence/red-run-service-tests.txt`. Added the root `clippy.toml` `disallowed-methods` guard for the `axum-server` listener constructors, a documented `allow` in `custom_axum_server.rs`, comments at every call site, and switched the `token_aware_drain` example to the shared constructor.
 - 2026-11-11 11:03 UTC - Claude Code (Claude Sonnet 5.5) - Review round 2 (da2ce7, findings F9 to F29 of their numbering): the ADR moved to `docs/adrs/` because the placement ADR puts protocol behaviour at the root; the README states the HTTP/2 condition (a client that answers pings is not time-bounded); the `signals.rs` test listener and the `token_aware_drain` example use the shared constructor, and `clippy.toml` also forbids `axum::serve` and the unix constructors; stamps use commit times, attributions to the maintainer are dropped and AC4 reads "no worse than with the wrapper". Audit: `docs/pr-reviews/pr-2813-review/PR-REVIEW.md`.
+- 2026-11-11 12:30 UTC - Claude Code (Claude Sonnet 5.5) - PR #2813 merged (merge commit `a83f3ef29`) after two review rounds; the audit and retrospective are in `docs/pr-reviews/pr-2813-review/`. Spec moved to `docs/issues/closed/`. T8 / AC7 stay with the maintainer: #324, #612, #613 and #603 remain open until he reviews them.
 
 ## Acceptance Criteria
 
