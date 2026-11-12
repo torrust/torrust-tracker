@@ -4,7 +4,7 @@ issue: 2824
 package: torrust-tracker-primitives
 target-file: packages/primitives/src/peer.rs
 status: done
-last-updated-utc: "2026-11-12 16:45"
+last-updated-utc: "2026-11-12 17:53"
 ---
 
 # `peer.rs` File Test Plan
@@ -52,7 +52,7 @@ a natural property (the role has two values).
   tracker to reject a negative `left` at the UDP boundary (HTTP already does: it parses a `u64`), which is outside
   `primitives`: finding F6, handed to issue #2838 (the maintainer approved rejecting a negative `left`, `uploaded` and `downloaded`), together with
   an ADR on tolerance of malformed inbound values (proposal `inbound-tolerance-adr`). The pinned test stays valid
-  after that fix because it tests the signed domain type; its comment points at #2838.
+  after that fix because it tests the signed domain type; its comment points at #2850. Update, 2026-11-12: the fix PR #2839 was closed unmerged; #2850 makes a negative count unrepresentable by construction, and its implementation removes this test.
 - **Q2: yes.** Correct the doc comment of `to_hex_string` (output has the `0x` prefix). Documentation only.
 - **Q3: yes.** Add `quickcheck` as a dev-dependency (the first property test), following `add-rust-dependency`.
 
@@ -75,7 +75,7 @@ alone: `Id::new` (12 lines, F5), the dead `Display` `None` branch (1 line) and `
 All the planned groups are tested (`PeerRole`, the `Peer` predicates and mutators, `ReadInfo` for `Peer` and
 `Arc<Peer>`, the JSON of `Peer` and `Id`, the `Id` conversions, the collection, one `quickcheck` property with two
 tests). Decisions applied: Q1 pinned with `it_should_treat_a_negative_number_of_bytes_left_as_a_seeder` (comment
-points at #2838); Q2 corrected the `to_hex_string` doc comment; Q3 added `quickcheck` and `quickcheck_macros` as
+points at #2850); Q2 corrected the `to_hex_string` doc comment; Q3 added `quickcheck` and `quickcheck_macros` as
 dev-dependencies (same requirements as `udp-core`; both already locked at their latest stable versions, 1.1.0 and
 1.2.0; `cargo machete --with-metadata` is run by the pre-commit gate).
 
@@ -86,7 +86,7 @@ qBittorrent. This confirms the maintainer's concern that test ids should look li
 
 ### Mutation sample (17 mutants, each applied alone to `peer.rs` and reverted exactly)
 
-The first eight mutants were run first, the next six and the last three in review round 1 of #2841 (2026-11-12). The "Killed by"
+The first eight mutants were run first, the next six and the last three in review round 2 of #2841 (2026-11-12). The "Killed by"
 column is the set of tests that fail on the final test set, re-checked after the case table was added, with the
 mutant applied to one place only (the inherent `Peer` rule for the first two rows).
 
