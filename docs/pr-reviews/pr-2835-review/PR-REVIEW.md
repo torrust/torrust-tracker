@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-All four findings are in Copilot's review 5862741540 and are inline threads; each carries its own finding ID.
+F1, F2, R2 and R1 are in Copilot's review 5862741540. F7 to F12 are in da2ce7's review 5870191489; his own IDs F1 to F6 collide with Copilot's F1 and F2, so each is recorded as the reviewer finding ID of an audit-assigned F7 to F12. All are inline threads.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -49,6 +49,12 @@ All four findings are in Copilot's review 5862741540 and are inline threads; eac
 | F2 | review-finding:pr-2835-f2 | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
 | R2 | review-finding:pr-2835-r2 | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
 | R1 | review-finding:pr-2835-r1 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F7 | review-finding:pr-2835-f7 | Human | Major | documentation | ORIGINAL | FIXED | RESOLVED |
+| F8 | review-finding:pr-2835-f8 | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F9 | review-finding:pr-2835-f9 | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F10 | review-finding:pr-2835-f10 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F11 | review-finding:pr-2835-f11 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F12 | review-finding:pr-2835-f12 | Human | Suggestion | maintainability | ORIGINAL | NO_ACTION | RESOLVED |
 
 ## Finding Details
 
@@ -104,12 +110,93 @@ All four findings are in Copilot's review 5862741540 and are inline threads; eac
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4541759863
 
+### F7 - The red-run breakdown does not recompute from the committed tests
+
+- PR number: 2835
+- Source review ID: 5870191489
+- Reviewer finding ID: F1
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4547152232
+- Concern: The evidence said 10 new and 4 existing tests failed; the committed tests give 8 new and 6 existing, and two new tests pass without the option.
+- Solution: The red-run section is recomputed with the reasons for each group.
+- Current-tree verification: `manual-verification-evidence.md` red-run section; the reviewer's recount against the binary at the merge base.
+- Resolution reference: test(wait-for-pr-review): [#2822] pin the empty-value message and the interrupted lookup
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548115644
+
+### F8 - The empty-value test passes with the option removed
+
+- PR number: 2835
+- Source review ID: 5870191489
+- Reviewer finding ID: F2
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4547152242
+- Concern: An unknown option is also a usage error with exit 2.
+- Solution: The test also asserts the message `expected a program name or path`.
+- Current-tree verification: `it_should_exit_two_when_gh_command_is_empty` in `tests/cli.rs`.
+- Resolution reference: test(wait-for-pr-review): [#2822] pin the empty-value message and the interrupted lookup
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548116152
+
+### F9 - The signal-during-lookup scenario does not discriminate its fix
+
+- PR number: 2835
+- Source review ID: 5870191489
+- Reviewer finding ID: F3
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4547152249
+- Concern: The CLI scenario usually passes on the unfixed code because the spawned child is killed at once.
+- Solution: A deterministic unit test returns the interruption of the lookup against `yes`; the evidence says the CLI scenario guards without pinning the regression.
+- Current-tree verification: `it_should_return_the_interruption_of_the_identity_lookup_to_the_caller` in `main.rs`; the evidence section on the signal.
+- Resolution reference: test(wait-for-pr-review): [#2822] pin the empty-value message and the interrupted lookup
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548116673
+
+### F10 - The AC5 evidence over-generalizes
+
+- PR number: 2835
+- Source review ID: 5870191489
+- Reviewer finding ID: F4
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4547152255
+- Concern: Only some scenarios reach the fake through `--gh-command`.
+- Solution: AC5's text, its evidence row and the PR description are narrowed to the custom-command scenarios.
+- Current-tree verification: AC5 in the spec; `gh pr view 2835 --json body`.
+- Resolution reference: test(wait-for-pr-review): [#2822] pin the empty-value message and the interrupted lookup
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548117299
+
+### F11 - The help text is not exact about which value skips auth status
+
+- PR number: 2835
+- Source review ID: 5870191489
+- Reviewer finding ID: F5
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4547152267
+- Concern: `--gh-command gh` is still checked with `auth status`.
+- Solution: Help and skill say the value `gh` is checked and any other value is not.
+- Current-tree verification: The `--gh-command` doc comment in `main.rs`; the skill option row.
+- Resolution reference: test(wait-for-pr-review): [#2822] pin the empty-value message and the interrupted lookup
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548117989
+
+### F12 - Two diagnostics still name `gh` for a custom command
+
+- PR number: 2835
+- Source review ID: 5870191489
+- Reviewer finding ID: F6
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4547152271
+- Concern: `MalformedResponse` and `DeadlineExceeded` say `gh`.
+- Solution: No change: D2 scoped the rename to `gh_api_error` and `gh_unavailable`; the reply offers a follow-up if wanted.
+- Current-tree verification: D2 of the merged spec; `error.rs`.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548118436
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548118436
+
 ## Processing Log
 
 - 2026-11-11 17:24 UTC - Review 5862741540 (Copilot) submitted on the first head of the PR: F1, F2, R2, R1.
 - 2026-11-11 18:24 UTC - The 60-minute wait for da2ce7 ended without a review; the wait stopped and the hand-over says so.
 - 2026-11-11 18:27 UTC - Pushed the two commits that fix the four findings (push log time).
 - 2026-11-11 18:28 UTC - Replied to and resolved the four threads after that push; the replies cite the pushed commit subjects and their URLs are in the entries.
+- 2026-11-12 06:37 UTC - Review 5870191489 (da2ce7, `CHANGES_REQUESTED`) submitted on the head of the previous push: six findings.
+- 2026-11-12 08:36 UTC - Pushed the commit that fixes them (push log time).
+- 2026-11-12 08:37 UTC - Replied to and resolved the six threads after that push; F12 is declined with its reason (reply URL in the entry).
 
 ## Completion Rules
 
