@@ -41,13 +41,15 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-All three findings are in da2ce7's review 5875801804 and are inline threads; each carries his own finding ID.
+F1 to F3 are in da2ce7's review 5875801804 and are inline threads; each carries his own finding ID. R1 and R2 are assertions in the summary of Copilot's review 5875883208, which has no inline thread, so their source is the review and their thread state is `NON_RESOLVABLE`; one PR conversation response names both with their dispositions.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2840-f1 | Human | Major | documentation | ORIGINAL | FIXED | RESOLVED |
 | F2 | review-finding:pr-2840-f2 | Human | Major | documentation | ORIGINAL | FIXED | RESOLVED |
 | F3 | review-finding:pr-2840-f3 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| R1 | review-finding:pr-2840-r1 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
+| R2 | review-finding:pr-2840-r2 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | NON_RESOLVABLE |
 
 ## Finding Details
 
@@ -90,10 +92,37 @@ All three findings are in da2ce7's review 5875801804 and are inline threads; eac
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2840#discussion_r4551563276
 
+### R1 - The archived issue lacks the required issue-local retrospective
+
+- PR number: 2840
+- Source review ID: 5875883208
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2840#pullrequestreview-5875883208
+- Concern: The summary of Copilot's review says the archived issue has no issue-local retrospective.
+- Solution: `implementation-retrospective.md` is added from the template and the completion review points to it.
+- Current-tree verification: `implementation-retrospective.md` exists in the closed folder; the Implementation Completion Review names it.
+- Resolution reference: docs(issues): [#2822] add the implementation retrospective
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2840#issuecomment-6826373230
+
+### R2 - No recorded `linter all` verification evidence
+
+- PR number: 2840
+- Source review ID: 5875883208
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2840#pullrequestreview-5875883208
+- Concern: The summary says the `linter all` verification is not recorded.
+- Solution: `linter all` was run (exit 0) and recorded in the evidence; its criterion is ticked.
+- Current-tree verification: The "Linters" section of the evidence and the criterion in the spec.
+- Resolution reference: docs(issues): [#2822] record the linter run and state the AC5 deviation in the close-out
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2840#issuecomment-6826373230
+
 ## Processing Log
 
 - 2026-11-12 14:06 UTC - Review 5875801804 (da2ce7, `CHANGES_REQUESTED`) submitted on the head of the close-out PR: F1, F2, F3.
 - 2026-11-12 14:13 UTC - Replied to and resolved the three threads after the commit `docs(issues): [#2822] record the linter run and state the AC5 deviation in the close-out` was pushed; the reply URLs are in the entries.
+- 2026-11-12 14:30 UTC - Review 5875883208 (Copilot, `COMMENTED`) had been submitted at 14:12 UTC on the first head of the close-out PR: R1 and R2 in its summary, no inline threads. The retrospective commit was pushed at 14:28 UTC (push log time), and the PR conversation response that names the review and both findings with their dispositions and resolution subjects was posted at 14:29 UTC (its URL is in the entries). One entry carries these events because the 14:13 entry above was written before the review was read.
 
 ## Completion Rules
 
