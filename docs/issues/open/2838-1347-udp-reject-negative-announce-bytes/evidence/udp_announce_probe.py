@@ -2,6 +2,8 @@
 
 Usage: python3 -I udp_announce_probe.py <port> <left> [uploaded] [downloaded]
 Prints the announce response (action, seeders, leechers) or the error message.
+Exits with status 1, without printing a result, when a response does not carry the
+transaction id of its request.
 """
 import socket
 import struct
@@ -15,12 +17,21 @@ s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 s.settimeout(3)
 addr = ("127.0.0.1", port)
 
-s.sendto(struct.pack(">qii", 0x41727101980, 0, 1234), addr)
+CONNECT_TID, ANNOUNCE_TID = 1234, 4321
+
+
+def check_transaction_id(name, sent, received):
+    if received != sent:
+        sys.exit(f"{name}: transaction id mismatch: sent {sent}, received {received}")
+
+
+s.sendto(struct.pack(">qii", 0x41727101980, 0, CONNECT_TID), addr)
 action, tid, connection_id = struct.unpack(">iiq", s.recvfrom(64)[0][:16])
+check_transaction_id("connect", CONNECT_TID, tid)
 
 packet = struct.pack(
     ">qii20s20sqqqiIiiH",  # cspell:disable-line
-    connection_id, 1, 4321,
+    connection_id, 1, ANNOUNCE_TID,
     b"\x11" * 20, b"-XX0001-000000000000",
     downloaded, left, uploaded,
     2,  # event: started
@@ -29,6 +40,7 @@ packet = struct.pack(
 s.sendto(packet, addr)
 data = s.recvfrom(2048)[0]
 action, tid = struct.unpack(">ii", data[:8])
+check_transaction_id("announce", ANNOUNCE_TID, tid)
 if action == 1:
     interval, leechers, seeders = struct.unpack(">iii", data[8:20])
     print(f"announce response: interval={interval} leechers={leechers} seeders={seeders}")
