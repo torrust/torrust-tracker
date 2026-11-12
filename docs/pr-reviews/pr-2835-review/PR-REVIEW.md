@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-F1, F2, R2 and R1 are in Copilot's review 5862741540. F7 to F12 are in da2ce7's review 5870191489; only his F1 and F2 collide with Copilot's F1 and F2; all six were numbered F7 to F12 by choice, and each of his IDs is recorded as the reviewer finding ID of its audit ID. F13 to F16 are in da2ce7's review 5871706543, which approved the previous head; his IDs F8 to F11 collide with the audit's F8 to F11, so they are numbered F13 to F16. F17 and F18 are in da2ce7's review 5872006301, which approved the next head; his IDs F12 and F13 collide with the audit's, so they are numbered F17 and F18. All are inline threads.
+F1, F2, R2 and R1 are in Copilot's review 5862741540. F7 to F12 are in da2ce7's review 5870191489; only his F1 and F2 collide with Copilot's F1 and F2; all six were numbered F7 to F12 by choice, and each of his IDs is recorded as the reviewer finding ID of its audit ID. F13 to F16 are in da2ce7's review 5871706543, which approved the previous head; his IDs F8 to F11 collide with the audit's F8 to F11, so they are numbered F13 to F16. F17 and F18 are in da2ce7's review 5872006301, which approved the next head; his IDs F12 and F13 collide with the audit's, so they are numbered F17 and F18. F19 to F21 are in da2ce7's review 5872313175, which approved the head of the previous round; his IDs F14 to F16 collide with the audit's, so they are numbered F19 to F21. All are inline threads.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -61,6 +61,9 @@ F1, F2, R2 and R1 are in Copilot's review 5862741540. F7 to F12 are in da2ce7's 
 | F16 | review-finding:pr-2835-f16 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F17 | review-finding:pr-2835-f17 | Human | Nit | formatting | ORIGINAL | FIXED | RESOLVED |
 | F18 | review-finding:pr-2835-f18 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F19 | review-finding:pr-2835-f19 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F20 | review-finding:pr-2835-f20 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F21 | review-finding:pr-2835-f21 | Human | Nit | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
 
 ## Finding Details
 
@@ -272,6 +275,45 @@ F1, F2, R2 and R1 are in Copilot's review 5862741540. F7 to F12 are in da2ce7's 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548632701
 
+### F19 - This entry names the spec commit's findings by the reviewer's IDs
+
+- PR number: 2835
+- Source review ID: 5872313175
+- Reviewer finding ID: F14
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548784666
+- Concern: The 09:03 entry said F8 and F9 where this record numbers them F13 and F14.
+- Solution: The correction at the end of the log names them F13 and F14.
+- Current-tree verification: The appended correction in the Processing Log.
+- Resolution reference: docs(pr-reviews): [#2822] restore the append-only log of PR #2835 and correct it
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548847840
+
+### F20 - This entry was rewritten in place, and the Processing Log is append-only
+
+- PR number: 2835
+- Source review ID: 5872313175
+- Reviewer finding ID: F15
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548784676
+- Concern: The 09:09 entry was rewritten and a 09:03 entry inserted above it.
+- Solution: Both are restored to their first form and a dated correction is appended.
+- Current-tree verification: The 09:09 entry and the last entry of the Processing Log.
+- Resolution reference: docs(pr-reviews): [#2822] restore the append-only log of PR #2835 and correct it
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548848480
+
+### F21 - The rewrap is in the same commit as the audit's log correction
+
+- PR number: 2835
+- Source review ID: 5872313175
+- Reviewer finding ID: F16
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548784683
+- Concern: One commit carried a code fix and an audit edit.
+- Solution: No rewrite was asked; this round's fix and its record are in separate commits.
+- Current-tree verification: `git log` for this round: a docs(pr-reviews) commit touching only the audit.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548849123
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548849123
+
 ## Processing Log
 
 - 2026-11-11 17:24 UTC - Review 5862741540 (Copilot) submitted on the first head of the PR: F1, F2, R2, R1.
@@ -287,6 +329,7 @@ F1, F2, R2 and R1 are in Copilot's review 5862741540. F7 to F12 are in da2ce7's 
 - 2026-11-12 09:32 UTC - Pushed the commit that fixes them (push log time).
 - 2026-11-12 09:32 UTC - Replied to and resolved the two threads after that push.
 - 2026-11-12 09:48 UTC - Correction: the 09:09 entry above was rewritten in place by an earlier commit and a 09:03 entry was inserted; both are restored to their first form. The first form names F8 and F9 by the reviewer's IDs where this record numbers them F13 and F14. What happened: the spec commit, which fixes F13 and F14, was pushed alone at 09:03 (the timeline's dismissal of the approval of review 5871706543 is at 09:03:48Z); the audit correction, which fixes F15 and F16, was pushed at 09:09 after a first attempt at about 09:06 was blocked by an unrelated test; the replies and the F12 edit followed at 09:09.
+- 2026-11-12 09:54 UTC - Review 5872313175 (da2ce7, `APPROVED`) had been submitted at 09:47 UTC on the head of the previous push, with three findings, none blocking. The commit that restores this log and appends the correction above was pushed at 09:53 UTC (push log time); the three threads were replied to and resolved after that push, and their reply URLs are in the entries. This one entry carries the events because the correction above (09:48) was written before that push.
 
 ## Completion Rules
 
