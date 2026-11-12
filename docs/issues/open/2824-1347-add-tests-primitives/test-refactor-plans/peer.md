@@ -62,11 +62,11 @@ Toolchains: stable Rust 1.99.1 for tests and coverage, `cargo-llvm-cov 0.6.16`, 
 
 | Measure | Before | After |
 | --- | ---: | ---: |
-| Unit tests of the package | 49 | 80 (31 added, all in `peer.rs`) |
-| `peer.rs` lines | 130 / 329 | 486 / 554 |
-| Package unit-only lines | 468 / 746 (62.73%) | 824 / 971 (84.86%) |
-| Package unit-only regions | 743 / 1,057 (70.29%) | 1,302 / 1,464 (88.93%) |
-| Package unit-only functions | 94 / 158 (59.49%) | 160 / 193 (82.90%) |
+| Unit tests of the package | 49 | 81 (32 added, all in `peer.rs`) |
+| `peer.rs` lines | 130 / 329 | 508 / 576 |
+| Package unit-only lines | 468 / 746 (62.73%) | 846 / 993 (85.20%) |
+| Package unit-only regions | 743 / 1,057 (70.29%) | 1,341 / 1,502 (89.28%) |
+| Package unit-only functions | 94 / 158 (59.49%) | 161 / 194 (82.99%) |
 
 The line totals include the in-file test modules (the baseline did too), so the percentage rises partly because
 the added tests are covered code. The 68 uncovered lines of `peer.rs` are exactly the groups the plan leaves
@@ -110,10 +110,13 @@ prose is kept as a comment, except where a comment states a rule that the test n
 | `peer_role` | none: the role or the text is the input | `opposite()` / `parse` | the other role; the parsed role; `raw_param` | clean |
 | `peer_state` | a peer from `a_peer_with(left, event)`: only `left` and `event` vary, everything else is fixed | the predicate or mutator | `is_seeder`, `is_leecher` and `role` agree; whole-value `assert_eq!` against the expected peer | clean; helper owns only the incidental fields |
 | `peer_state::read_info` | a leecher, and a completed seeder in an `Arc` | each trait accessor | literal id, state; fields compared with the peer's own | clean |
+| `peer_state::read_info` (round 1 of #2841) | five `(left, event)` cases: positive, zero and negative `left` with `Started`, zero and negative `left` with `Stopped`, each as a `Peer` and as an `Arc<Peer>` | `ReadInfo::is_seeder` and `is_leecher` | the expected role literal per case, and its negation for the leecher | clean |
 | `peer_serialization` | the peer built in the test with distinct values per field | `serde_json::to_value` | one whole JSON document written in the test; one event per test | clean |
 | `peer_id` | an id from a realistic prefix, or all zeros | conversion, `get_client_name`, JSON | bytes, client name or `None`, JSON literal | clean |
 | `peer_id_encoding` | any bytes (property) | `try_from`, `to_hex_string` | expected hex built independently with `format!("{byte:02x}")` | clean |
 | `peer_collection` | three peers with distinct ports; a local `Encoding` type | `collect` | order and one element per peer | clean |
+
+Review round 1 of PR #2841 (Copilot) found the `ReadInfo` role predicates only covered by two cases, so a constant result or a removed stopped-event check could survive; the case table above closes it (the sampled mutants stay killed).
 
 Test smells found and fixed while writing: none left. Existing tests judged `clean` in the plan are unchanged.
 

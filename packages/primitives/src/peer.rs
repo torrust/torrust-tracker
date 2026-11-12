@@ -823,6 +823,36 @@ pub mod test {
                 assert_eq!(ReadInfo::get_updated(&peer), peer.updated);
                 assert_eq!(ReadInfo::get_address(&peer), peer.peer_addr);
             }
+
+            #[test]
+            fn it_should_classify_the_role_through_the_read_info_trait_like_the_peer_does() {
+                // (left, event, is seeder): the stopped event wins over zero bytes left.
+                let cases = [
+                    (1, AnnounceEvent::Started, false),
+                    (0, AnnounceEvent::Started, true),
+                    (-1, AnnounceEvent::Started, true),
+                    (0, AnnounceEvent::Stopped, false),
+                    (-1, AnnounceEvent::Stopped, false),
+                ];
+
+                for (left, event, is_seeder) in cases {
+                    let peer = a_peer_with(left, event);
+                    let shared = Arc::new(a_peer_with(left, event));
+
+                    assert_eq!(ReadInfo::is_seeder(&peer), is_seeder, "left {left}, event {event:?}");
+                    assert_eq!(ReadInfo::is_leecher(&peer), !is_seeder, "left {left}, event {event:?}");
+                    assert_eq!(
+                        ReadInfo::is_seeder(&shared),
+                        is_seeder,
+                        "shared, left {left}, event {event:?}"
+                    );
+                    assert_eq!(
+                        ReadInfo::is_leecher(&shared),
+                        !is_seeder,
+                        "shared, left {left}, event {event:?}"
+                    );
+                }
+            }
         }
     }
 

@@ -53,10 +53,10 @@ and stable Rust 1.99.1, same command as the baseline:
 
 | Scope | Tests | Lines | Regions | Functions |
 | --- | ---: | ---: | ---: | ---: |
-| Unit-only (`--lib`) = aggregate | 80 unit | 824 / 971 (84.86%) | 1,302 / 1,464 (88.93%) | 160 / 193 (82.90%) |
+| Unit-only (`--lib`) = aggregate | 81 unit | 846 / 993 (85.20%) | 1,341 / 1,502 (89.28%) | 161 / 194 (82.99%) |
 
-Change from S1: lines +22.13 pp, regions +18.64 pp, functions +23.41 pp (from the baseline: +24.30,
-+20.99, +25.67 pp). The slice adds 31 tests, all in `peer.rs` (130 / 329 lines before, 486 / 554 after);
+Change from S1: lines +22.47 pp, regions +18.99 pp, functions +23.50 pp (from the baseline: +24.64,
++21.34, +25.76 pp). The slice adds 32 tests, all in `peer.rs` (130 / 329 lines before, 508 / 576 after);
 the line totals include the in-file test modules, so part of the rise is the added test code itself. The
 uncovered `peer.rs` lines are the `Id::new` group (F5), the dead `Display` `None` branch and
 `peer::fixture` (#2482). Details and the mutation table: `test-refactor-plans/peer.md`.
