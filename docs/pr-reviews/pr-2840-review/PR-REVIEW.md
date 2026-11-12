@@ -49,7 +49,11 @@ F1 to F3 are in da2ce7's review 5875801804 and are inline threads; each carries 
 | F2 | review-finding:pr-2840-f2 | Human | Major | documentation | ORIGINAL | FIXED | RESOLVED |
 | F3 | review-finding:pr-2840-f3 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | R1 | review-finding:pr-2840-r1 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | NON_RESOLVABLE |
-| R2 | review-finding:pr-2840-r2 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | NON_RESOLVABLE |
+| R2 | review-finding:pr-2840-r2 | Copilot | Minor (inferred) | documentation | RE_RAISE_OF:F1 | FIXED | NON_RESOLVABLE |
+| F5 | review-finding:pr-2840-f5 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F10 | review-finding:pr-2840-f10 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F11 | review-finding:pr-2840-f11 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F12 | review-finding:pr-2840-f12 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -118,11 +122,65 @@ F1 to F3 are in da2ce7's review 5875801804 and are inline threads; each carries 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2840#issuecomment-6826373230
 
+### F5 - The run is dated 14:08 UTC in the evidence but the 14:07 entry reports it
+
+- PR number: 2840
+- Source review ID: 5876404520
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2840#discussion_r4551940242
+- Concern: The 14:07 progress-log entry reported a run that was made at 14:08.
+- Solution: An appended log entry in the spec says the run was made at 14:08 UTC and the 14:07 stamp is a minute early.
+- Current-tree verification: The last entries of the spec's Progress Log.
+- Resolution reference: docs(issues): [#2822] correct the retrospective and say where its request was made
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2840#discussion_r4552018945
+
+### F10 - The retrospective request has no trace on the PR
+
+- PR number: 2840
+- Source review ID: 5876404520
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2840#discussion_r4551940216
+- Concern: The spec said the maintainer asked during review of the close-out PR, but the only request on the PR is the overview review.
+- Solution: The completion review says where the request was made (the session, after Copilot's review, row R1) and an appended entry clarifies the 14:23 entry.
+- Current-tree verification: The Implementation Completion Review and the last Progress Log entry of the spec.
+- Resolution reference: docs(issues): [#2822] correct the retrospective and say where its request was made
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2840#discussion_r4552016683
+
+### F11 - Items 1 and 2 of the retrospective contradict the evidence
+
+- PR number: 2840
+- Source review ID: 5876404520
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2840#discussion_r4551940225
+- Concern: Item 1 said the tests failed for the stated reason and item 2 said no `gh` was ever on `PATH`.
+- Solution: Item 1 gives eight failed and two passed; item 2 says the default-`gh` scenarios run a fake named `gh` from the sandbox `PATH`.
+- Current-tree verification: What Went Well in `implementation-retrospective.md`.
+- Resolution reference: docs(issues): [#2822] correct the retrospective and say where its request was made
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2840#discussion_r4552017467
+
+### F12 - The retrospective gives the missing agents as the reason it was missed
+
+- PR number: 2840
+- Source review ID: 5876404520
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2840#discussion_r4551940234
+- Concern: The rule was in front of the work and the close-out replaced it.
+- Solution: The Root Cause names the close-out's first commit as the decision; the agent point stays under Improvements.
+- Current-tree verification: Root Cause in `implementation-retrospective.md`.
+- Resolution reference: docs(issues): [#2822] correct the retrospective and say where its request was made
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2840#discussion_r4552018237
+
 ## Processing Log
 
 - 2026-11-12 14:06 UTC - Review 5875801804 (da2ce7, `CHANGES_REQUESTED`) submitted on the head of the close-out PR: F1, F2, F3.
 - 2026-11-12 14:13 UTC - Replied to and resolved the three threads after the commit `docs(issues): [#2822] record the linter run and state the AC5 deviation in the close-out` was pushed; the reply URLs are in the entries.
 - 2026-11-12 14:30 UTC - Review 5875883208 (Copilot, `COMMENTED`) had been submitted at 14:12 UTC on the first head of the close-out PR: R1 and R2 in its summary, no inline threads. The retrospective commit was pushed at 14:28 UTC (push log time), and the PR conversation response that names the review and both findings with their dispositions and resolution subjects was posted at 14:29 UTC (its URL is in the entries). One entry carries these events because the 14:13 entry above was written before the review was read.
+- 2026-11-12 14:51 UTC - Review 5876404520 (da2ce7, `APPROVED`) had been submitted at 14:44 UTC on the head of the previous push, with seven findings, none blocking. The spec commit that fixes F5, F10, F11 and F12 was pushed at 14:50 UTC (push log time) and those four threads were replied to and resolved at 14:51 UTC; their rows are in this record.
+- 2026-11-12 14:51 UTC - Corrections, the entries above stay as they are. (a) This record was started at 14:14 UTC (the commit that added it was made at 14:14:08 UTC), after the first three replies, which were posted at 14:13:46 to 14:13:54 UTC. (b) Row R2 asks for the same change as F1, later than F1, so it is `RE_RAISE_OF:F1` with the category `documentation`; its row was changed in place. (c) The 14:30 entry was stamped later than its commit (made at 14:29:43 UTC), and the PR conversation response it dates at 14:29 was posted at 14:28:57 UTC (forge time); the retrospective commit's push at 14:28 UTC is as logged.
 
 ## Completion Rules
 
