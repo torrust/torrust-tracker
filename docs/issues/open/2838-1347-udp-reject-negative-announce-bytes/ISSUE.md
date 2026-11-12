@@ -79,7 +79,7 @@ Maintainer decision (2026-11-11): be strict and reject it.
 
 `uploaded` and `downloaded` are only stored on the peer today; they drive no logic, so rejecting
 them is a consistency choice (same verdict as HTTP), not a defect fix. It is split as a separate
-decision for the maintainer (see "Decision to approve").
+decision for the maintainer (recorded in the "Progress Log": he approved all three fields).
 
 ### Evidence on real clients and other trackers
 
