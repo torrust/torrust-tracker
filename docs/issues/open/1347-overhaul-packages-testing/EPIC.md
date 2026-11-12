@@ -121,7 +121,7 @@ level or determine whether unit coverage is adequate.
 | `torrust-tracker-udp-core`         | [#1348](../../closed/1348-1347-add-tests-udp-core/ISSUE.md) | Lines: 72.49%; regions: 78.56%; functions: 71.27% | Lines: 98.04%; regions: 98.15%; functions: 97.61% | Lines: +25.55 pp; regions: +19.58 pp; functions: +26.34 pp | [Coverage evidence](../../closed/1348-1347-add-tests-udp-core/coverage-evidence.md) |
 | `torrust-tracker-http-core`        | [#1349](../../closed/1349-1347-add-tests-http-core/ISSUE.md) | Lines: 88.88%; regions: 90.41%; functions: 84.29% | Lines: 99.28%; regions: 99.25%; functions: 99.74% | Lines: +10.40 pp; regions: +8.84 pp; functions: +15.45 pp | [Coverage evidence](../../closed/1349-1347-add-tests-http-core/coverage-evidence.md) |
 | `torrust-tracker-axum-rest-api-server` | [#2637](../../closed/2637-1347-add-tests-axum-rest-api-server/ISSUE.md) | Lines: 87.98%; regions: 84.10%; functions: 83.42% | Lines: 97.67%; regions: 97.13%; functions: 95.48% | Lines: +9.69 pp; regions: +13.03 pp; functions: +12.06 pp | [Coverage evidence](../../closed/2637-1347-add-tests-axum-rest-api-server/coverage-evidence.md) |
-| `torrust-tracker-primitives` | [#2824](../2824-1347-add-tests-primitives/ISSUE.md) | Lines: 60.56%; regions: 67.94%; functions: 57.23% | Lines: 62.73%; regions: 70.29%; functions: 59.49% | Lines: +2.17 pp; regions: +2.35 pp; functions: +2.26 pp | [Coverage evidence](../2824-1347-add-tests-primitives/coverage-evidence.md) |
+| `torrust-tracker-primitives` | [#2824](../2824-1347-add-tests-primitives/ISSUE.md) | Lines: 60.56%; regions: 67.94%; functions: 57.23% | Lines: 84.86%; regions: 88.93%; functions: 82.90% | Lines: +24.30 pp; regions: +20.99 pp; functions: +25.67 pp | [Coverage evidence](../2824-1347-add-tests-primitives/coverage-evidence.md) |
 
 ### Unit-Only Coverage
 
@@ -136,7 +136,7 @@ weak unit-only result with aggregate, integration, example, or end-to-end covera
 | `torrust-tracker-udp-core` | [#1348](../../closed/1348-1347-add-tests-udp-core/ISSUE.md) | Lines: 72.49%; regions: 78.56%; functions: 71.27% | Lines: 98.04%; regions: 98.15%; functions: 97.61% | Lines: +25.55 pp; regions: +19.58 pp; functions: +26.34 pp | [Coverage evidence](../../closed/1348-1347-add-tests-udp-core/coverage-evidence.md) |
 | `torrust-tracker-http-core` | [#1349](../../closed/1349-1347-add-tests-http-core/ISSUE.md) | Lines: 88.88%; regions: 90.41%; functions: 84.29% | Lines: 99.28%; regions: 99.25%; functions: 99.74% | Lines: +10.40 pp; regions: +8.84 pp; functions: +15.45 pp | [Coverage evidence](../../closed/1349-1347-add-tests-http-core/coverage-evidence.md) |
 | `torrust-tracker-axum-rest-api-server` | [#2637](../../closed/2637-1347-add-tests-axum-rest-api-server/ISSUE.md) | Lines: 63.87%; regions: 63.98%; functions: 51.34% | Lines: 96.67%; regions: 96.38%; functions: 93.97% | Lines: +32.80 pp; regions: +32.40 pp; functions: +42.63 pp | [Coverage evidence](../../closed/2637-1347-add-tests-axum-rest-api-server/coverage-evidence.md) |
-| `torrust-tracker-primitives` | [#2824](../2824-1347-add-tests-primitives/ISSUE.md) | Lines: 60.56%; regions: 67.94%; functions: 57.23% | Lines: 62.73%; regions: 70.29%; functions: 59.49% | Lines: +2.17 pp; regions: +2.35 pp; functions: +2.26 pp | [Coverage evidence](../2824-1347-add-tests-primitives/coverage-evidence.md) |
+| `torrust-tracker-primitives` | [#2824](../2824-1347-add-tests-primitives/ISSUE.md) | Lines: 60.56%; regions: 67.94%; functions: 57.23% | Lines: 84.86%; regions: 88.93%; functions: 82.90% | Lines: +24.30 pp; regions: +20.99 pp; functions: +25.67 pp | [Coverage evidence](../2824-1347-add-tests-primitives/coverage-evidence.md) |
 
 ## Delivery Strategy
 
@@ -389,3 +389,4 @@ For each subissue implementation, the completion policy is:
 - Coverage tooling: `cargo llvm-cov`
 - Related historical work: #753, #1181, #1226, #1266
 - Test-pattern catalog: `docs/testing/refactoring-patterns/README.md`
+- 2026-11-12 13:40 UTC - Claude Code - #2824 S2 (`peer.rs` tests, 31 added) re-measured `primitives` unit-only (= aggregate) at lines 84.86% (824 / 971), regions 88.93%, functions 82.90%, 80 unit tests; the figures include the added in-file test code. Both "Latest" tables carry them; the row stays `IN_PROGRESS`.
