@@ -253,6 +253,7 @@ mod tests {
     use std::sync::Arc;
 
     use mockall::predicate::eq;
+    use rstest::rstest;
     use torrust_clock::clock::Time;
     use torrust_info_hash::InfoHash;
     use torrust_net_primitives::service_binding::{Protocol, ServiceBinding};
@@ -419,6 +420,70 @@ mod tests {
             peers_wanted: NumberOfPeers::new(1i32),
             port: Port::new(NonZeroU16::new(PEER_PORT).unwrap()),
         }
+    }
+
+    #[rstest]
+    #[case::left("left", -1)]
+    #[case::left_min("left", i64::MIN)]
+    #[case::uploaded("uploaded", -1)]
+    #[case::downloaded("downloaded", -1)]
+    #[tokio::test]
+    async fn it_should_reject_a_negative_number_of_bytes(#[case] field: &'static str, #[case] value: i64) {
+        // Arrange
+        let fixture = AnnounceServiceFixture::public_tracker();
+        let mut request = announce_request(valid_connection_id_for(client_socket_addr()));
+        let bytes = torrust_tracker_udp_protocol::NumberOfBytes(value.into());
+        match field {
+            "left" => request.bytes_left = bytes,
+            "uploaded" => request.bytes_uploaded = bytes,
+            _ => request.bytes_downloaded = bytes,
+        }
+
+        // Act
+        let result = fixture
+            .service
+            .handle_announce(
+                client_socket_addr(),
+                server_service_binding(),
+                &request,
+                cookie_valid_range(),
+                VALIDATE_COOKIE,
+            )
+            .await;
+
+        // Assert
+        assert!(matches!(
+            result,
+            Err(UdpAnnounceError::NegativeNumberOfBytes { field: rejected, value: rejected_value })
+                if rejected == field && rejected_value == value
+        ));
+    }
+
+    #[rstest]
+    #[case::zero(0)]
+    #[case::unknown_size_of_transmission(i64::MAX)]
+    #[case::unknown_size_of_libtorrent(16 * 1024)]
+    #[tokio::test]
+    async fn it_should_accept_a_non_negative_number_of_bytes_left(#[case] left: i64) {
+        // Arrange
+        let fixture = AnnounceServiceFixture::public_tracker();
+        let mut request = announce_request(valid_connection_id_for(client_socket_addr()));
+        request.bytes_left = torrust_tracker_udp_protocol::NumberOfBytes(left.into());
+
+        // Act
+        let result = fixture
+            .service
+            .handle_announce(
+                client_socket_addr(),
+                server_service_binding(),
+                &request,
+                cookie_valid_range(),
+                VALIDATE_COOKIE,
+            )
+            .await;
+
+        // Assert
+        assert!(result.is_ok());
     }
 
     #[tokio::test]
