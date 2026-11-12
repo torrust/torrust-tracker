@@ -9,7 +9,7 @@ github-issue: 2838
 spec-path: docs/issues/open/2838-1347-udp-reject-negative-announce-bytes/ISSUE.md
 branch: "2838-udp-reject-negative-announce-bytes"
 related-pr: null
-last-updated-utc: "2026-11-11 00:00"
+last-updated-utc: "2026-11-12 16:40"
 semantic-links:
   skill-links:
     - create-issue
@@ -31,12 +31,14 @@ both protocols.
 
 ## Background
 
-Found as finding F6 by the EPIC #1347 `primitives` tests work.
+Found during the EPIC #1347 `primitives` tests work (issue #2824), whose session tracks it as
+finding F6. That finding is not recorded in the #2824 spec at the time of writing.
 
 What happens today, step by step:
 
 1. A UDP client sends an announce packet. `bytes_left`, `bytes_uploaded` and `bytes_downloaded` are
-   decoded as signed 64-bit integers (`packages/udp-protocol/src/announce.rs`, `NumberOfBytes(I64)`).
+   decoded as signed 64-bit integers (request fields in `packages/udp-protocol/src/announce.rs`;
+   the type `NumberOfBytes(I64)` is defined in `packages/udp-protocol/src/common.rs`).
 2. `packages/udp-core/src/peer_builder.rs` copies them unchanged into `peer::Peer`
    (`NumberOfBytes(i64)`).
 3. `Peer::is_seeder` (`packages/primitives/src/peer.rs`) is `left.0 <= 0 && event != Stopped`, so a
@@ -107,8 +109,9 @@ sanitizer; any known bug report (none found).
 
 ### Out of Scope
 
-- Changing `peer::Peer::is_seeder` or `NumberOfBytes` (signed domain type; stays as is, pinned by
-  the primitives characterization test).
+- Changing `peer::Peer::is_seeder` or `NumberOfBytes` (signed domain type; stays as is). The
+  primitives tests work (issue #2824) plans a characterization test for it; that test is not in
+  the tree at the time of writing.
 - `num_want`, ids, `key`, `event` handling.
 - The repo-wide "strict by default on inbound protocol values" ADR (separate work; this issue is
   its first case and cites it once it exists).
@@ -121,13 +124,18 @@ sanitizer; any known bug report (none found).
 
 Proposed design: validate in `udp-core` `AnnounceService::handle_announce`, after cookie validation
 and before whitelist authorization (so a bad request reveals nothing about the whitelist), with a
-new `UdpAnnounceError` variant (e.g. `InvalidNumberOfBytes { field, value }`). The error maps to an
+new `UdpAnnounceError` variant (`NegativeNumberOfBytes { field, value }`). The error maps to an
 `ErrorResponse` through the existing handler error path.
 
-Alternatives considered: (a) validate in the `udp-protocol` decoder: the codec is a copy of
-aquatic's wire layer and must stay a faithful decoder, and its parse errors drop the transaction
-id; (b) change `NumberOfBytes` to unsigned: wide blast radius, and HTTP/REST already rely on the
-signed domain type.
+Alternatives considered:
+
+- (a) Validate in the `udp-protocol` decoder. Not chosen for this patch. An earlier version of this
+  spec said the decoder's parse errors drop the transaction id; that was wrong:
+  `Request::parse_bytes` already returns sendable errors for port 0 and invalid events. The
+  maintainer accepted the service-level check as a tactical patch, and a follow-up EPIC will
+  decide the layer.
+- (b) Make the domain `NumberOfBytes` non-negative. Wide blast radius (HTTP, REST and UDP use the
+  signed type); deferred to the same follow-up EPIC.
 
 ## Design and Ownership Review
 
@@ -150,9 +158,11 @@ Follows [fix-bug](../../../../.github/skills/dev/debugging/fix-bug/SKILL.md):
 - Handler test
   `handlers::announce::tests::announce_request::using_ipv4::it_should_reject_an_announce_with_a_negative_number_of_bytes_left`
   (already written, red: the announce returns `Ok` with `seeders: 1`).
-- At the fix: assert the exact error variant and an `ErrorResponse` with the request's transaction
-  id; same cases for `uploaded` and `downloaded` if approved; a boundary case (`0` and `i64::MAX`
-  still accepted; `-1` and `i64::MIN` rejected); IPv6 variant.
+- At the fix: the handler test asserts the exact error variant and that the failure carries the
+  request's transaction id (the shared handler error path turns it into the `ErrorResponse`);
+  `udp-core` tests cover `uploaded` and `downloaded`, the boundaries (`0`, `16384` and `i64::MAX`
+  accepted; `-1` and `i64::MIN` rejected) and the placement (after cookie validation, before the
+  whitelist). No IPv6 case: the check runs before any use of the client address.
 
 ## Implementation Plan
 
@@ -161,7 +171,7 @@ Follows [fix-bug](../../../../.github/skills/dev/debugging/fix-bug/SKILL.md):
 | T1  | DONE   | Reproduce over UDP and record evidence                        | `manual-verification-evidence.md` V1         |
 | T2  | DONE   | Add red handler test for negative `left`                      | Test fails: announce returns `Ok`            |
 | T3  | DONE   | Fix: validation + error variant in `udp-core`                 | Red test green; exact variant asserted       |
-| T4  | DONE   | Extend tests (uploaded/downloaded, boundaries, IPv6)          | Per approved field scope                     |
+| T4  | DONE   | Extend tests (uploaded/downloaded, boundaries, placement)     | Per approved field scope; no IPv6 case       |
 | T5  | DONE   | Green run and like-for-like recheck over UDP                  | V2 in evidence file                          |
 | T6  | DONE   | Document the behavior                                         | Error text and spec; no UDP docs list per-field validation |
 
@@ -181,16 +191,17 @@ Follows [fix-bug](../../../../.github/skills/dev/debugging/fix-bug/SKILL.md):
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [x] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
-- [ ] Acceptance criteria reviewed after implementation and updated with evidence
+- [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Implementation completion review recorded
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
 
 ### Progress Log
 
-- 2026-11-11 UTC - Claude Code (Claude Sonnet 5.5) - Spec drafted, defect reproduced, red test added; awaiting maintainer decision.
-- 2026-11-12 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved all three fields; issue #2838 created; fix, tests and recheck done.
+- 2026-11-11 17:30 UTC - Claude Code (Claude Sonnet 5.5) - Spec drafted, defect reproduced, red test added; awaiting maintainer decision.
+- 2026-11-12 09:15 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved all three fields; issue #2838 created; fix, tests and recheck done.
+- 2026-11-12 16:40 UTC - Claude Code (Claude Fable 5.2) - Review round 1 on PR #2839 addressed: typed field enum, `BadRequest` event classification, placement tests, exact-variant handler test, V2 repeated on the committed tree. The maintainer accepted the service-level check as a tactical patch; a follow-up EPIC (draft, no issue yet) will make the domain byte count non-negative by construction.
 
 ## Acceptance Criteria
 
@@ -199,9 +210,9 @@ Follows [fix-bug](../../../../.github/skills/dev/debugging/fix-bug/SKILL.md):
 - [x] AC2: same for `uploaded < 0` and `downloaded < 0` (if approved).
 - [x] AC3: `left = 0`, `left = i64::MAX`, and `num_want = -1` are still accepted.
 - [x] AC4: the rejection emits the existing UDP error event and log.
-- [ ] `linter all` exits with code `0`
-- [ ] Relevant tests pass
-- [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
+- [x] `linter all` exits with code `0`
+- [x] Relevant tests pass
+- [x] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
 
 ## Verification Plan
 
@@ -230,7 +241,7 @@ Follows [fix-bug](../../../../.github/skills/dev/debugging/fix-bug/SKILL.md):
 | AC1   | DONE   | udp-core `it_should_reject_a_negative_number_of_bytes`; udp-server handler test; V2 |
 | AC2   | DONE   | same tests, `uploaded`/`downloaded` cases; V2 |
 | AC3   | DONE   | `it_should_accept_a_non_negative_number_of_bytes_left` (0, 16384, i64::MAX) |
-| AC4   | DONE   | V2: tracker log shows the existing UDP error line per rejection |
+| AC4   | DONE   | V2 log lines; `it_should_classify_a_negative_number_of_bytes_in_an_announce_as_a_bad_request` |
 
 ## Risks and Trade-offs
 
