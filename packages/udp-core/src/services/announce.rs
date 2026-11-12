@@ -104,6 +104,8 @@ impl AnnounceService {
             self.authenticate(client_socket_addr, request, cookie_valid_range)?;
         }
 
+        validate_number_of_bytes(request)?;
+
         let info_hash = InfoHash::from(request.info_hash.0);
 
         self.authorize(&info_hash).await?;
@@ -189,6 +191,13 @@ pub enum UdpAnnounceError {
     #[error("Connection cookie error: {source}")]
     ConnectionCookieError { source: ConnectionCookieError },
 
+    /// Error returned when a byte-count field of the request is negative.
+    ///
+    /// The fields are signed on the UDP wire but a count of bytes cannot be
+    /// negative. The HTTP tracker rejects the same values.
+    #[error("Invalid announce request: `{field}` must not be negative, got {value}")]
+    NegativeNumberOfBytes { field: &'static str, value: i64 },
+
     /// Error returned when there was an error with the tracker core announce handler.
     #[error("Tracker core announce error: {source}")]
     TrackerCoreAnnounceError { source: AnnounceError },
@@ -196,6 +205,23 @@ pub enum UdpAnnounceError {
     /// Error returned when there was an error with the tracker core whitelist.
     #[error("Tracker core whitelist error: {source}")]
     TrackerCoreWhitelistError { source: WhitelistError },
+}
+
+/// Rejects a request whose `left`, `uploaded` or `downloaded` is negative.
+fn validate_number_of_bytes(request: &AnnounceRequest) -> Result<(), UdpAnnounceError> {
+    let fields = [
+        ("left", request.bytes_left.0.get()),
+        ("uploaded", request.bytes_uploaded.0.get()),
+        ("downloaded", request.bytes_downloaded.0.get()),
+    ];
+
+    for (field, value) in fields {
+        if value < 0 {
+            return Err(UdpAnnounceError::NegativeNumberOfBytes { field, value });
+        }
+    }
+
+    Ok(())
 }
 
 impl From<ConnectionCookieError> for UdpAnnounceError {
