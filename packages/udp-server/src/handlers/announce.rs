@@ -410,7 +410,7 @@ pub(crate) mod tests {
             use torrust_tracker_primitives::peer::fixture::PeerBuilder;
             use torrust_tracker_primitives::{ConfigurationInstanceId, ServiceRole};
             use torrust_tracker_udp_core::event::ConnectionContext;
-            use torrust_tracker_udp_core::services::announce::UdpAnnounceError;
+            use torrust_tracker_udp_core::services::announce::{ByteCountField, UdpAnnounceError};
             use torrust_tracker_udp_protocol::{
                 AnnounceInterval, AnnounceResponse, AnnounceResponseFixedData, ConnectionId, InfoHash as AquaticInfoHash,
                 Ipv4AddrBytes, Ipv6AddrBytes, NumberOfPeers, Response, ResponsePeer,
@@ -592,7 +592,22 @@ pub(crate) mod tests {
                 .await;
 
                 // Assert: the announce is refused (the HTTP tracker refuses the same value) and no peer is stored.
-                assert!(actual.is_err(), "a negative `left` must be rejected, got: {actual:?}");
+                assert!(matches!(
+                    actual,
+                    Err(boxed_error) if matches!(
+                        *boxed_error,
+                        (
+                            Error::AnnounceFailed {
+                                source: UdpAnnounceError::NegativeNumberOfBytes {
+                                    field: ByteCountField::Left,
+                                    value: -5,
+                                },
+                            },
+                            transaction_id,
+                            UdpRequestKind::Announce { announce_request },
+                        ) if transaction_id == request.transaction_id && announce_request == request
+                    )
+                ));
                 let peers = core_tracker_services
                     .in_memory_torrent_repository
                     .get_torrent_peers(&info_hash.0.into(), usize::MAX)
