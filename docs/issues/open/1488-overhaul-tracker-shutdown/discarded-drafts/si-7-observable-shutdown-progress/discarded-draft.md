@@ -1,38 +1,16 @@
----
-schema-version: 1
-doc-type: issue
-issue-type: task
-status: draft
-priority: p3
-epic: 1488
-github-issue: null
-spec-path: docs/issues/drafts/1488-si-7-observable-shutdown-progress/ISSUE.md
-branch: "1488-si-7-observable-shutdown-progress"
-related-pr: null
-last-updated-utc: "2026-09-29 11:47"
-semantic-links:
-  skill-links:
-    - create-issue
-  related-artifacts:
-    - src/bootstrap/jobs/manager.rs
-    - src/main.rs
-    - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
-    - docs/analysis/20260716-shutdown-process/README.md
----
-
-<!-- skill-link: create-issue -->
-
 # Superseded Draft SI-7 — Fold Outcome Reporting into Issue #1586
 
 > **Status**: Superseded for implementation planning. Its structured-outcome
-> requirement is part of issue [#1586](../../closed/1586-evaluate-job-manager-join-set/ISSUE.md);
+> requirement is part of issue [#1586](../../../../closed/1586-evaluate-job-manager-join-set/ISSUE.md);
 > optional periodic progress is a later additive presentation task after
 > operational feedback.
 >
-> **Retention**: This draft was never opened as a GitHub issue. It is kept only
-> as planning history for EPIC #1488 and will be deleted in the EPIC close-out
-> (see its [Superseded Draft Retention](../../open/1488-overhaul-tracker-shutdown/ISSUE.md#superseded-draft-retention)
-> section). Git history preserves it afterwards.
+> **Retention**: This draft was never opened as a GitHub issue. It is kept as an
+> artifact of EPIC #1488, evidence of a decision taken during the EPIC (see
+> [Discarded Drafts](../../ISSUE.md#discarded-drafts)). It is not deleted in the EPIC
+> close-out. It moved here from `docs/issues/drafts/` and lost its frontmatter, because
+> a specification in `docs/issues/open/` is validated as a live spec; git history has
+> the original.
 
 ## Why This Draft Is Superseded
 

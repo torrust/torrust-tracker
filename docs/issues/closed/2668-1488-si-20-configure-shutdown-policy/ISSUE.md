@@ -45,7 +45,7 @@ semantic-links:
     - docs/adrs/20260723184019_separate_configuration_value_invariants_from_consistency_validation.md
     - docs/issues/closed/1586-evaluate-job-manager-join-set/ISSUE.md
     - docs/issues/closed/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
-    - docs/issues/drafts/1488-si-8-configurable-grace-periods/ISSUE.md
+    - docs/issues/open/1488-overhaul-tracker-shutdown/discarded-drafts/si-8-configurable-grace-periods/discarded-draft.md
     - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
 ---
 

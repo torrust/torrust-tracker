@@ -1,40 +1,16 @@
----
-schema-version: 1
-doc-type: issue
-issue-type: task
-status: draft
-priority: p2
-epic: 1488
-github-issue: null
-spec-path: docs/issues/drafts/1488-si-3-fix-environment-stop/ISSUE.md
-branch: "1488-si-3-fix-environment-stop"
-related-pr: null
-last-updated-utc: "2026-10-07 08:03"
-semantic-links:
-  skill-links:
-    - create-issue
-  related-artifacts:
-    - packages/axum-http-server/src/testing/environment.rs
-    - packages/udp-server/src/testing/environment.rs
-    - packages/axum-http-server/examples/http_only_public_tracker.rs
-    - packages/udp-server/examples/udp_only_public_tracker.rs
-    - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
-    - docs/features/shutdown-process/questions.md
----
-
-<!-- skill-link: create-issue -->
-
 # Superseded Draft SI-3 — Split Standalone Environment Migration
 
-> **Status**: Superseded for implementation planning. [SI-16](../../closed/2412-1488-si-16-migrate-standalone-http-environment/ISSUE.md)
-> replaces the standalone HTTP environment/example and [SI-17](../../closed/2448-1488-si-17-migrate-standalone-udp-environment/ISSUE.md)
+> **Status**: Superseded for implementation planning. [SI-16](../../../../closed/2412-1488-si-16-migrate-standalone-http-environment/ISSUE.md)
+> replaces the standalone HTTP environment/example and [SI-17](../../../../closed/2448-1488-si-17-migrate-standalone-udp-environment/ISSUE.md)
 > replaces the standalone UDP environment/example, after the additive server
 > lifecycle API is available.
 >
-> **Retention**: This draft was never opened as a GitHub issue. It is kept only
-> as planning history for EPIC #1488 and will be deleted in the EPIC close-out
-> (see its [Superseded Draft Retention](../../open/1488-overhaul-tracker-shutdown/ISSUE.md#superseded-draft-retention)
-> section). Git history preserves it afterwards.
+> **Retention**: This draft was never opened as a GitHub issue. It is kept as an
+> artifact of EPIC #1488, evidence of a decision taken during the EPIC (see
+> [Discarded Drafts](../../ISSUE.md#discarded-drafts)). It is not deleted in the EPIC
+> close-out. It moved here from `docs/issues/drafts/` and lost its frontmatter, because
+> a specification in `docs/issues/open/` is validated as a live spec; git history has
+> the original.
 
 ## Why This Draft Is Superseded
 
