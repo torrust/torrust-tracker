@@ -46,6 +46,8 @@ review `5879649645` (F8 to F12, audit-local IDs). Both reviewed the first head o
 Copilot labels its five findings "Low severity"; the severity `Minor` is inferred from that label.
 Round 2 is the approving review `5881088057` of `da2ce7` (F13 to F16, reviewer-provided IDs), on
 the head that carried the round 1 audit.
+Round 3 is Copilot's review `5881522270` (F17 to F19, audit-local IDs), on the head that carried
+the round 2 audit. It gives no severity label; `Minor` is inferred from the text.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -65,6 +67,9 @@ the head that carried the round 1 audit.
 | F14 | review-finding:pr-2851-f14 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F15 | review-finding:pr-2851-f15 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F16 | review-finding:pr-2851-f16 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F17 | review-finding:pr-2851-f17 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
+| F18 | review-finding:pr-2851-f18 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F19 | review-finding:pr-2851-f19 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -276,6 +281,45 @@ the head that carried the round 1 audit.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4555648558
 
+### F17 - The probe neither checks nor shows the transaction id of the response
+
+- PR number: 2851
+- Source review ID: 5881522270
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4555935594
+- Concern: The UDP probe decoded the transaction id of each response and ignored it, so the planned recheck could not detect a response with a wrong id.
+- Solution: The probe compares the id of the connect and the announce response with the id it sent and exits with status 1 on a mismatch. Its output for a correct response is unchanged.
+- Current-tree verification: Ran the probe against a local fake UDP server: with the right id it printed the error response and exited 0; with a wrong id it printed a mismatch message on stderr and exited 1.
+- Resolution reference: test(udp-probe): [#2838] reject a response with the wrong transaction id in the UDP probe
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4556040577
+
+### F18 - Replaying the evidence fails because the database directory is not created
+
+- PR number: 2851
+- Source review ID: 5881522270
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4555935674
+- Concern: The recorded configuration stores the database under a directory that no step creates, and the tracker creates only the file.
+- Solution: The prerequisites have a bullet, marked as added after the recorded runs, that creates the directory. The record of the runs is unchanged.
+- Current-tree verification: Read the Environment and Prerequisites section of the evidence file and `path` in `evidence/tracker.toml` in the tree.
+- Resolution reference: docs(issues): [#2838] add the database directory as a replay prerequisite of the evidence
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4556040964
+
+### F19 - A REST check after all announces cannot show the earlier byte counts
+
+- PR number: 2851
+- Source review ID: 5881522270
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4555935730
+- Concern: The probe fixes the info hash and the peer endpoint, so each announce replaces the previous peer; scenario M7 read the REST output only at the end.
+- Solution: M7 reads the single-torrent detail right after each accepted announce, and the scenarios say why and that the torrent list has no peers.
+- Current-tree verification: Read the Manual Verification Scenarios of the #2850 specification in the tree, and the fixed info hash and port in the probe.
+- Resolution reference: docs(issues): [#2850] read the REST output after each accepted announce in scenario M7
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4556041507
+
 ## Processing Log
 
 - 2026-11-12 18:05 UTC - Started round 1 for review `5879517733` (submitted 18:02:39Z, forge `submitted_at`). Checked F1 to F7 against the tree.
@@ -291,6 +335,7 @@ the head that carried the round 1 audit.
 - 2026-11-12 19:57 UTC - Correction for F13: the entry stamped 18:07 was rewritten in place to remove three commit ids of the branch as it was before the history rewrite; it now cites those commits by subject only. No other entry was rewritten.
 - 2026-11-12 19:57 UTC - Correction for F14: the entry stamped 19:30 has the wrong time and actor. The forge timeline records the force push (`head_ref_force_pushed`) at 19:34:12Z with `josecelano-bot` as the actor; the maintainer ran `git-bot-push --force-with-lease`, which pushes as that account. The entry stamped 19:36 says "and pushed": the commits are stamped up to 19:36:24Z and their push landed later, before the first reply at 19:38:23Z, whose forge record names that head.
 - 2026-11-12 20:01 UTC - Round 2: the four fixes were committed between 19:55:16Z and 19:57:12Z (`git log --format=%cI`) and their push had landed by 20:00:04Z (`git ls-remote` of the fork matched the local head). Replied on the four threads between 20:00:05Z and 20:00:12Z (forge `created_at`). `validate-audit-record.py --pr-number 2851` exited 0 (16 rows, 0 failures). Resolved the four threads; a GraphQL refresh showed 0 unresolved threads.
+- 2026-11-12 20:38 UTC - Round 3: Copilot's review `5881522270` (submitted 20:28:18Z, forge `submitted_at`) with three findings, F17 to F19. Before it was read, the branch had been rebased onto `develop`, because the pull request conflicted in the sub-issue table of EPIC #1347 after PR #2841 merged; every commit was replayed in the same order. The three fixes were committed between 20:31:34Z and 20:32:42Z (`git log --format=%cI`). The forge timeline records the force push of the rebased branch at 20:37:18Z (`head_ref_force_pushed`, actor `josecelano-bot`; the maintainer ran `git-bot-push --force-with-lease`). Edited the pull request description to state the rebase. Replied on the three threads between 20:37:44Z and 20:37:50Z (forge `created_at`). `validate-audit-record.py --pr-number 2851` exited 0 (19 rows, 0 failures). Resolved the three threads; a GraphQL refresh showed 0 unresolved threads.
 
 ## Completion Rules
 
