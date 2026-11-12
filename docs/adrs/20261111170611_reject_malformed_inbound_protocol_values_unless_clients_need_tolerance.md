@@ -98,6 +98,39 @@ reject a bad configuration value. None of them says what to do with a value a cl
    is not by itself a reason to ban the client; banning stays with the rules of the UDP ban
    service. Each field has a parity test that exercises both parsers with the same values.
 
+8. **Validate each kind of rule in the layer that owns it, as early as possible.** Syntax is
+   validated in the delivery layer (the wire parser), application invariants in the service, and
+   domain invariants in the domain. Public protocol packages follow
+   [Package Conventions](../packages.md#package-conventions), principle 2: `*-protocol`
+   packages strictly implement BEP specifications.
+
+9. **Protect invariants with constructors or newtypes, not standalone validation functions.** A
+   value that must hold an invariant has a type whose constructor enforces it, so a valid value
+   cannot be bypassed and the check is not repeated by every caller.
+
+### First application: byte counts
+
+Announce `left`, `downloaded` and `uploaded` apply the rules above. This records the intended
+design; the code changes are tracked in their own issues.
+
+- Domain `NumberOfBytes` (in `primitives`) is a private `u64` with no upper bound.
+- UDP wire type `NumberOfBytes(I64)` and `Request::parse_bytes` stay unchanged. A negative value
+  is refused in a fallible `peer_builder::from_request` in `udp-core`; its error is wrapped by
+  `UdpAnnounceError`. This replaces the validation function added by #2839.
+- The HTTP protocol type becomes a private `u64` and its `i64::MAX` limit
+  (`NumberOfBytesOverflow`) is removed, because the limit only existed to fit the old shared
+  `i64` type. HTTP then accepts `0..=u64::MAX` and UDP `0..=i64::MAX`; the domain is the same for
+  both.
+- REST resource fields for byte counts are `u64`.
+
+Research behind the signed UDP fields: BEP 15 and the XBT Tracker document say only "64-bit
+integer" for these fields, never signed or unsigned. The libtorrent document (cited by BEP 15 as
+an existing implementation) uses `int64_t` for the byte counts, but `uint32_t` for `ip` and `key`
+and `uint16_t` for `port`, so unsigned types exist in the format. BEP 3 says only "encoded in
+base ten ascii". No document says why the counts are signed or what a tracker must do with a
+negative value, and no evidence was found that a real client sends one. Open task: read how
+libtorrent and Transmission fill `left` before the metadata is known (magnet links).
+
 ### Register of tolerances
 
 | Field | Protocols | Tolerated values | Normalized to | Evidence | Metric | Reconsider when |
@@ -113,7 +146,7 @@ protocols in its own issue; this ADR does not change any of them.
 | Field | UDP | HTTP | Note |
 | ----- | --- | ---- | ---- |
 | Announce `left`, `downloaded`, `uploaded` | accepts negative (signed 64-bit) | rejects negative (its `i64::MAX` limit exists only to fit the old shared type) | First application: bug #2838, fixed in PR #2839 (UDP now rejects it) |
-| Announce `port` = 0 | rejected by the parser | no zero check found in the parser (to verify) | Possible disagreement |
+| Announce `port` = 0 | rejected by the parser | no zero check found in the parser (to verify) | Possible disagreement. BEP 15 does not forbid port 0, so under rule 6 this parser check deserves a review. The event check (`0..=3`) mirrors BEP 15 |
 | Announce `num_want` / `numwant` | any `i32`; tracker ignores it | `u32` only; `-1` rejected | `-1` is legitimate for UDP (BEP 15 default); HTTP `-1` is unspecified |
 | Announce event outside the defined set | rejected | rejected | Consistent |
 | Announce `ip` that is not an IP address | field ignored always | ignored; connection IP used | Recorded in [the `ip` ADR](20260716000000_accept_only_ip_addresses_in_http_announce_ip_param.md); no metric |
