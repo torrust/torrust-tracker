@@ -4,7 +4,7 @@ issue: 2824
 package: torrust-tracker-primitives
 target-file: packages/primitives/src/peer.rs
 status: done
-last-updated-utc: "2026-11-12 18:04"
+last-updated-utc: "2026-11-12 18:24"
 ---
 
 # `peer.rs` File Test Plan
@@ -63,9 +63,9 @@ Toolchains: stable Rust 1.99.1 for tests and coverage, `cargo-llvm-cov 0.6.16`, 
 | Measure | Before | After |
 | --- | ---: | ---: |
 | Unit tests of the package | 49 | 81 (32 added, all in `peer.rs`) |
-| `peer.rs` lines | 130 / 329 | 508 / 576 |
-| Package unit-only lines | 468 / 746 (62.73%) | 846 / 993 (85.20%) |
-| Package unit-only regions | 743 / 1,057 (70.29%) | 1,341 / 1,502 (89.28%) |
+| `peer.rs` lines | 130 / 329 | 510 / 578 |
+| Package unit-only lines | 468 / 746 (62.73%) | 848 / 995 (85.23%) |
+| Package unit-only regions | 743 / 1,057 (70.29%) | 1,345 / 1,506 (89.31%) |
 | Package unit-only functions | 94 / 158 (59.49%) | 161 / 194 (82.99%) |
 
 The line totals include the in-file test modules (the baseline did too), so the percentage rises partly because
@@ -86,7 +86,7 @@ qBittorrent. This confirms the maintainer's concern that test ids should look li
 
 ### Mutation sample (18 mutants, each applied alone to `peer.rs` and reverted exactly)
 
-The first eight mutants were run first, the next six and the last four in review rounds 2 and 3 of #2841 (2026-11-12). The "Killed by"
+The first eight mutants were run first, the next six in review round 1 and the last four in review rounds 2 and 3 of #2841 (2026-11-12). The "Killed by"
 column is the set of tests that fail on the final test set, re-checked after the case table was added, with the
 mutant applied to one place only (the inherent `Peer` rule for the first two rows).
 
