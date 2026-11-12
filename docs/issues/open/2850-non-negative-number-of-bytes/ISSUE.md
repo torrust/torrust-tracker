@@ -9,7 +9,7 @@ github-issue: 2850
 spec-path: docs/issues/open/2850-non-negative-number-of-bytes/ISSUE.md
 branch: "2850-non-negative-number-of-bytes-spec"
 related-pr: null
-last-updated-utc: "2026-11-12 18:10"
+last-updated-utc: "2026-11-12 20:29"
 semantic-links:
   skill-links:
     - create-issue
@@ -663,10 +663,11 @@ with the narrow affected scope, and sign every commit with GPG.
 - **PR #2839 (issue #2838).** Closed without merging, by its own session. Its branch
   `2838-udp-reject-negative-announce-bytes` is kept until the implementation has taken the tests
   from it. Issue #2838 stays open; the implementation pull request of this issue closes it.
-- **Primitives tests (issue #2824, EPIC #1347).** That work has a characterization test that pins
-  "a negative `left` counts as a seeder". After this issue the test cannot be written. This issue deletes it
-  and adds tests for `left == 0` and `left > 0`. If the pull request of #2824 is still open when
-  the implementation starts, it waits for it or the two sessions agree who removes the test.
+- **Primitives tests (issue #2824, EPIC #1347).** That work is merged (PR #2841). Its tests in
+  `packages/primitives/src/peer.rs` pin today's behaviour for a negative `left`:
+  `it_should_treat_a_negative_number_of_bytes_left_as_a_seeder`, whose comment already points to
+  this issue, and the `-1` cases of the trait-qualified role table. After this issue those cases do
+  not compile. This issue deletes them and keeps the `left == 0` and `left > 0` cases.
 - **EPIC to remove source locations from errors (draft).** Its SI-3 edits
   `ParseAnnounceQueryError` in `packages/http-protocol/src/v1/requests/announce.rs`, a file this
   issue edits. The two must not run at the same time; whichever starts second rebases.
@@ -708,6 +709,7 @@ the model that produced them.
 - 2026-11-12 17:27 UTC - Claude Code (Fable 5.2) - Drafted the specifications of SI-1 and SI-2 and linked them. Replaced the "client sources were not read" statement with the client evidence already recorded in the specification of #2838. Recorded the interim state between SI-1 and SI-2. Not approved; no GitHub issue created.
 - 2026-11-12 17:32 UTC - Claude Code (Fable 5.2) - The maintainer decided that one issue is enough (D6). Merged the EPIC draft and the two sub-issue drafts into this single issue specification; nothing was dropped from the research, the decisions or the source map. Not approved; no GitHub issue created.
 - 2026-11-12 17:40 UTC - Claude Code (Fable 5.2) - The maintainer approved the plan: this issue is the fix for #2838 and replaces the patch of PR #2839, and the ADR of #2842 is delivered by this issue's spec-only pull request instead of PR #2843. Created issue #2850, moved the specification to `docs/issues/open/`, carried over the four ADR commits and the specification and evidence of #2838, and rewrote D3, D5, D6, the bug-fix process and the coordination for that plan. The two other sessions were told and close their pull requests.
+- 2026-11-12 20:29 UTC - Claude Code (Fable 5.2) - Rebased the spec-only branch onto `develop` after PR #2841 (the primitives tests of #2824) merged and conflicted in the EPIC #1347 table. Updated the coordination note: those tests are on `develop` and name this issue.
 
 ## Acceptance Criteria
 
