@@ -3,7 +3,7 @@ doc-type: test-refactor-plan-guidance
 issue: 2824
 package: torrust-tracker-primitives
 status: in-progress
-last-updated-utc: "2026-11-11 17:08"
+last-updated-utc: "2026-11-12 16:45"
 ---
 
 # `primitives` File Test Plan Guidance

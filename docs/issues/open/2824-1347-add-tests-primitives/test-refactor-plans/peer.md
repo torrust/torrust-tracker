@@ -3,8 +3,8 @@ doc-type: file-test-plan
 issue: 2824
 package: torrust-tracker-primitives
 target-file: packages/primitives/src/peer.rs
-status: completed
-last-updated-utc: "2026-11-12 14:15"
+status: done
+last-updated-utc: "2026-11-12 16:45"
 ---
 
 # `peer.rs` File Test Plan
@@ -86,13 +86,14 @@ qBittorrent. This confirms the maintainer's concern that test ids should look li
 
 ### Mutation sample (14 mutants, each applied alone to `peer.rs` and reverted exactly)
 
-The first eight mutants were run on 2026-11-11 and the last six on 2026-11-12 (review round 1 of #2841). The
-"Killed by" column is the set of tests that fail on the final test set, re-checked after the case table was added.
+The first eight mutants were run first and the last six in review round 1 of #2841 (2026-11-12). The "Killed by"
+column is the set of tests that fail on the final test set, re-checked after the case table was added, with the
+mutant applied to one place only (the inherent `Peer` rule for the first two rows).
 
 | Mutant | Result | Killed by |
 | --- | --- | --- |
 | `is_seeder` `left <= 0` to `left == 0` | killed | the negative-`left` test and the read-info role-case table (`(-1, Started)`, through `is_leecher`) |
-| `is_seeder` `!= Stopped` to `== Stopped` | killed | 6 tests (the 5 state tests and the read-info role-case table) |
+| `is_seeder` `!= Stopped` to `== Stopped` | killed | 5 tests (the 4 state tests that name stopped, completed, no bytes left and negative `left`, and the read-info role-case table) |
 | `ReadInfo for Arc<Peer>` `<=` to `<` | killed | the read-info role-case table and the shared-peer read-info test |
 | `opposite` of the seeder returns the seeder | killed | the opposite-role test |
 | `change_ip` resets the port | killed | the keep-the-port test |
@@ -101,10 +102,10 @@ The first eight mutants were run on 2026-11-11 and the last six on 2026-11-12 (r
 | `FromStr` case sensitive | killed | the case-insensitive parse test |
 | `ReadInfo for Peer` `is_seeder` returns `false` (round 1 of #2841) | killed | the read-info role-case table |
 | `ReadInfo for Peer` `is_seeder` `<=` to `==` | killed | the read-info role-case table |
-| `ReadInfo for Peer` `is_leecher` not negated | killed | the read-info role-case table |
+| `ReadInfo for Peer` `is_leecher` not negated | killed | the read-info role-case table and the read-info accessor test (it asserts `is_leecher` on a leecher) |
 | `ReadInfo for Arc<Peer>` `is_seeder` returns `true` | killed | the read-info role-case table |
 | `ReadInfo for Arc<Peer>` `is_seeder` `<=` to `==` | killed | the read-info role-case table |
-| `ReadInfo for Arc<Peer>` `is_leecher` not negated | killed | the read-info role-case table |
+| `ReadInfo for Arc<Peer>` `is_leecher` not negated | killed | the read-info role-case table and the shared-peer read-info test (it asserts `!is_leecher` on a seeder) |
 
 No survivor. Run with `cargo test -p torrust-tracker-primitives --lib` per mutant; `cmp` against a saved copy
 showed the file restored byte for byte.

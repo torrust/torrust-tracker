@@ -327,6 +327,7 @@ The 16 rows are every `.rs` file under `packages/primitives/src/`, each once.
 - 2026-11-11 11:22 UTC - Claude Code (Sonnet 5.5) - Created issue #2824, moved the spec to `docs/issues/open/`, registered the subissue and baseline in EPIC #1347. S0 branch `2824-1347-add-tests-primitives-spec`.
 - 2026-11-11 14:07 UTC - Claude Code (Sonnet 5.5) - S1: two regression tests for the `PeerRole` JSON casing failed before the fix (`"Seeder"`, `"Leecher"`) and pass after `rename_all = "lowercase"`; unit tests 49 passed. No other package serializes `PeerRole` to JSON.
 - 2026-11-12 14:10 UTC - Claude Code (Sonnet 5.5) - S2: `peer.rs` tests (32 added, 81 unit tests), decision record `test-refactor-plans/peer.md`, 14 of 14 sampled mutants killed; unit-only lines 85.20%, regions 89.28%, functions 82.99%. F6 (negative `left`) handed to #2838 (fix PR #2839). PR #2841, round 1 fixes (Copilot's `ReadInfo` cases; the reviewer's record and commit-split findings).
+- 2026-11-12 16:45 UTC - Claude Code (Sonnet 5.5) - S2 review round 1 timing (for the 14:10 entry above): the reviews arrived at 14:09 (Copilot) and 14:11 and 14:28 (da2ce7); the fixes were pushed at 16:16 after a history rewrite approved by the maintainer; round 2 (da2ce7, 16:41) asked to rebuild the history from the pre-split commits (done, keeping the case table and records as their own commits) and to correct records and the audit.
 
 ## Acceptance Criteria
 
