@@ -128,8 +128,9 @@ integer" for these fields, never signed or unsigned. The libtorrent document (ci
 an existing implementation) uses `int64_t` for the byte counts, but `uint32_t` for `ip` and `key`
 and `uint16_t` for `port`, so unsigned types exist in the format. BEP 3 says only "encoded in
 base ten ascii". No document says why the counts are signed or what a tracker must do with a
-negative value, and no evidence was found that a real client sends one. Open task: read how
-libtorrent and Transmission fill `left` before the metadata is known (magnet links).
+negative value. The "Evidence on real clients and other trackers" section of the #2838
+specification (PR #2839) shows that, before the metadata is known, libtorrent sends `left = 16384`
+and Transmission sends `left = i64::MAX`; neither sends a negative value.
 
 ### Register of tolerances
 
