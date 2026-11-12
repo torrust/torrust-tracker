@@ -50,6 +50,7 @@ pub struct GhCli {
     program: OsString,
     interrupted: Arc<AtomicBool>,
     deadline: Instant,
+    check_auth: bool,
 }
 
 impl GhCli {
@@ -61,7 +62,41 @@ impl GhCli {
             program: program.into(),
             interrupted,
             deadline,
+            check_auth: true,
         }
+    }
+
+    /// Skips the `auth status` check of [`Gh::check_authenticated`]. Used for a command the caller chose, which
+    /// is not assumed to implement `auth status`: an unusable or logged-out command is then reported by the
+    /// first API call.
+    #[must_use]
+    pub const fn without_auth_check(mut self) -> Self {
+        self.check_auth = false;
+        self
+    }
+
+    /// The program this handle runs, as the caller gave it.
+    #[must_use]
+    pub fn program(&self) -> String {
+        self.program.to_string_lossy().into_owned()
+    }
+
+    /// The login the command is authenticated as, from `api user`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the command cannot start, the request fails, the budget of this handle ends,
+    /// or the response has no `login`.
+    pub fn login(&self) -> Result<String, Error> {
+        let user = self.api("user", &[])?;
+
+        user.get("login")
+            .and_then(Value::as_str)
+            .map(str::to_owned)
+            .ok_or_else(|| Error::MalformedResponse {
+                endpoint: "user".to_owned(),
+                reason: "expected a `login` string".to_owned(),
+            })
     }
 
     fn run(&self, arguments: &[&str]) -> Result<(ExitStatus, Vec<u8>, Vec<u8>), Error> {
@@ -145,6 +180,7 @@ impl GhCli {
 
         if !status.success() {
             return Err(Error::GhApi {
+                program: self.program(),
                 endpoint: endpoint.to_owned(),
                 message: String::from_utf8_lossy(&stderr).trim().to_owned(),
             });
@@ -159,6 +195,10 @@ impl GhCli {
 
 impl Gh for GhCli {
     fn check_authenticated(&self) -> Result<(), Error> {
+        if !self.check_auth {
+            return Ok(());
+        }
+
         let (status, stdout, stderr) = self.run(&["auth", "status"])?;
 
         if status.success() {

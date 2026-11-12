@@ -288,6 +288,7 @@ pub mod fake {
 
             response.map_err(|failure| match failure {
                 Failure::Api(message) => Error::GhApi {
+                    program: "gh".to_owned(),
                     endpoint: endpoint.to_owned(),
                     message,
                 },

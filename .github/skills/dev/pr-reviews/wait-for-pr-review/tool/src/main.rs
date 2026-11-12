@@ -24,6 +24,13 @@ use wait_for_pr_review::{Config, GhCli, PullRequest, SystemClock, wait};
 /// overflow in practice. Rust does not guarantee a minimum `Instant` range.
 const MAX_TIMEOUT_SECONDS: u64 = 86_400;
 
+/// The command run when `--gh-command` is not given.
+const DEFAULT_GH_COMMAND: &str = "gh";
+
+/// Longest the best-effort identity lookup may take. It also never takes more than a quarter of
+/// `--timeout-seconds`, so a stalled lookup leaves the rest of the budget to the wait.
+const MAX_LOOKUP_SECONDS: u64 = 10;
+
 /// Block until a watched reviewer reviews or comments, the head commit changes, or the pull request
 /// closes. Print the event as one JSON object. Stdout must not be a terminal; pipe it, for example `| jq .`.
 #[derive(Debug, Parser)]
@@ -59,6 +66,20 @@ struct Cli {
     /// head that moved is not adopted silently.
     #[arg(long, value_parser = utc_timestamp)]
     since: Option<i64>,
+    /// The GitHub CLI command to run for every call to GitHub: one program name or a path, never split on
+    /// spaces and never run through a shell. It must accept the `gh` command line (`api ...`). The value
+    /// `gh`, the default, is checked with `gh auth status` first; any other value is not. The `wait_started` and
+    /// `gh_identity` records on stderr report the command and the login it runs as.
+    #[arg(long, default_value = DEFAULT_GH_COMMAND, value_parser = gh_command)]
+    gh_command: String,
+}
+
+fn gh_command(text: &str) -> Result<String, String> {
+    if text.is_empty() {
+        Err("expected a program name or path".to_owned())
+    } else {
+        Ok(text.to_owned())
+    }
 }
 
 fn utc_timestamp(text: &str) -> Result<i64, String> {
@@ -82,10 +103,18 @@ struct Diagnostic<'a> {
 #[derive(Serialize)]
 struct WaitStarted<'a> {
     kind: &'static str,
+    gh_command: &'a str,
     pr_number: u64,
     reviewers: &'a [String],
     timeout_seconds: u64,
     poll_interval_seconds: u64,
+}
+
+#[derive(Serialize)]
+struct GhIdentity<'a> {
+    kind: &'static str,
+    gh_command: &'a str,
+    gh_login: Option<&'a str>,
 }
 
 fn main() -> ExitCode {
@@ -115,11 +144,18 @@ fn main() -> ExitCode {
     // is what the caller relies on.
     drop(write_diagnostic(&WaitStarted {
         kind: "wait_started",
+        gh_command: &cli.gh_command,
         pr_number: cli.pr_number,
         reviewers: &cli.reviewers,
         timeout_seconds: cli.timeout_seconds,
         poll_interval_seconds: cli.poll_interval_seconds,
     }));
+
+    let started = Instant::now();
+    let timeout = Duration::from_secs(cli.timeout_seconds);
+    if let Err(error) = report_identity(&cli.gh_command, &interrupted, started, timeout) {
+        return emit_diagnostic(error.kind(), &error.to_string(), 1);
+    }
 
     let pull_request = PullRequest {
         owner: cli.owner,
@@ -128,19 +164,60 @@ fn main() -> ExitCode {
     };
     let config = Config {
         reviewers: cli.reviewers,
-        timeout: Duration::from_secs(cli.timeout_seconds),
+        timeout,
         poll_interval: Duration::from_secs(cli.poll_interval_seconds),
         since_head_sha: cli.since_head_sha,
         since_moment: cli.since,
     };
-    let started = Instant::now();
-    let gh = GhCli::new("gh", Arc::clone(&interrupted), started + config.timeout);
+    let gh = GhCli::new(&cli.gh_command, Arc::clone(&interrupted), started + config.timeout);
+    let gh = if cli.gh_command == DEFAULT_GH_COMMAND {
+        gh
+    } else {
+        gh.without_auth_check()
+    };
     let clock = SystemClock::starting_at(started, interrupted);
 
     match wait(&gh, &clock, &pull_request, &config) {
         Ok(event) => emit_json(&event),
         Err(error) => emit_diagnostic(error.kind(), &error.to_string(), 1),
     }
+}
+
+/// The deadline of the identity lookup: `min(10 s, timeout / 4)` after the start, so a stalled lookup leaves
+/// at least three quarters of the wait budget.
+fn lookup_bound(timeout: Duration) -> Duration {
+    Duration::from_secs(MAX_LOOKUP_SECONDS).min(timeout / 4)
+}
+
+/// Writes the `gh_identity` record: the command and the login it runs as. The lookup is best effort and
+/// has its own bound, [`lookup_bound`], so a stalled or failing lookup never changes the result: its login is
+/// then `null`.
+///
+/// # Errors
+///
+/// Returns [`wait_for_pr_review::Error::Interrupted`] when a signal ended the lookup. The caller reports the
+/// interruption and does not start the wait, so no other command is run after the signal.
+fn report_identity(
+    command: &str,
+    interrupted: &Arc<AtomicBool>,
+    started: Instant,
+    timeout: Duration,
+) -> Result<(), wait_for_pr_review::Error> {
+    let lookup = GhCli::new(command, Arc::clone(interrupted), started + lookup_bound(timeout));
+
+    let login = match lookup.login() {
+        Ok(login) => Some(login),
+        Err(error @ wait_for_pr_review::Error::Interrupted) => return Err(error),
+        Err(_) => None,
+    };
+
+    drop(write_diagnostic(&GhIdentity {
+        kind: "gh_identity",
+        gh_command: command,
+        gh_login: login.as_deref(),
+    }));
+
+    Ok(())
 }
 
 fn emit_json(value: &impl Serialize) -> ExitCode {
@@ -172,4 +249,38 @@ fn write_diagnostic(diagnostic: &impl Serialize) -> io::Result<()> {
     line.push(b'\n');
 
     io::stderr().lock().write_all(&line)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // `yes` never exits on its own for the arguments the lookup passes (`api user`),
+    // so the lookup is still running when the flag is seen: the interruption is then
+    // deterministic and needs no fake script.
+    #[cfg(unix)]
+    #[test]
+    fn it_should_return_the_interruption_of_the_identity_lookup_to_the_caller() {
+        let interrupted = Arc::new(AtomicBool::new(true));
+
+        let result = report_identity("yes", &interrupted, Instant::now(), Duration::from_secs(900));
+
+        assert!(matches!(result, Err(wait_for_pr_review::Error::Interrupted)));
+    }
+
+    #[test]
+    fn it_should_bound_the_lookup_at_a_quarter_of_a_short_timeout() {
+        assert_eq!(lookup_bound(Duration::from_secs(8)), Duration::from_secs(2));
+        assert_eq!(lookup_bound(Duration::from_secs(10)), Duration::from_millis(2500));
+    }
+
+    #[test]
+    fn it_should_cap_the_lookup_bound_at_ten_seconds_for_a_long_timeout() {
+        assert_eq!(lookup_bound(Duration::from_secs(40)), Duration::from_secs(10));
+        assert_eq!(lookup_bound(Duration::from_secs(900)), Duration::from_secs(10));
+        assert_eq!(
+            lookup_bound(Duration::from_secs(MAX_TIMEOUT_SECONDS)),
+            Duration::from_secs(10)
+        );
+    }
 }

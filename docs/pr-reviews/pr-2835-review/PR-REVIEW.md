@@ -1,0 +1,351 @@
+---
+semantic-links:
+  skill-links:
+    - process-pr-review
+  related-artifacts:
+    - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
+---
+
+<!-- skill-link: process-pr-review -->
+
+# PR #2835 Review Audit
+
+Source: pull-request reviews and inline review threads for https://github.com/torrust/torrust-tracker/pull/2835.
+
+## Ownership
+
+The PR author owns this tracked audit record. Reviewers, including repository review agents,
+deliver findings through GitHub and have no repository-artifact obligation.
+
+- Post-merge workflow approval: N/A
+
+## Status Values
+
+- Relationship: `ORIGINAL`, `RE_RAISE_OF:<FindingId>`
+- Disposition: `FIXED`, `NO_ACTION`, `SUPERSEDED`, `FOLLOW_UP`
+- Thread state: `OPEN`, `RESOLVED`, `NON_RESOLVABLE`, `SUPERSEDED`. `OPEN` applies prospectively
+  to audits created or updated for approved follow-up work; historical audits remain valid without
+  bulk migration.
+- Severity: `Blocker`, `Major`, `Minor`, `Nit`, `Suggestion`; append `(inferred)` when derived
+  from free prose.
+- Author class: `Copilot`, `Human`, `Unknown`
+- Category: `link-integrity`, `formatting`, `metadata`, `testing`, `correctness`,
+  `documentation`, `maintainability`, `security`, `other`
+- An outdated thread whose concern was fixed is `FIXED`/`RESOLVED`, even when GitHub marks the
+  original thread outdated after the push. For in-PR feedback, use `NO_ACTION`/`SUPERSEDED` only
+  for a duplicate, superseded, or no-change concern. A post-merge `NO_ACTION` requires maintainer
+  approval to decline the follow-up work.
+- When the current identity cannot resolve a thread (`viewerCanResolve` is `false`), keep the
+  disposition established from the current tree and record `Thread state=OPEN`. The reviewer or PR
+  author resolves it; permission says nothing about whether the concern was fixed.
+
+## Findings
+
+F1, F2, R2 and R1 are in Copilot's review 5862741540. F7 to F12 are in da2ce7's review 5870191489; only his F1 and F2 collide with Copilot's F1 and F2; all six were numbered F7 to F12 by choice, and each of his IDs is recorded as the reviewer finding ID of its audit ID. F13 to F16 are in da2ce7's review 5871706543, which approved the previous head; his IDs F8 to F11 collide with the audit's F8 to F11, so they are numbered F13 to F16. F17 and F18 are in da2ce7's review 5872006301, which approved the next head; his IDs F12 and F13 collide with the audit's, so they are numbered F17 and F18. F19 to F21 are in da2ce7's review 5872313175, which approved the head of the previous round; his IDs F14 to F16 collide with the audit's, so they are numbered F19 to F21. All are inline threads.
+
+| Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
+| ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
+| F1 | review-finding:pr-2835-f1 | Copilot | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F2 | review-finding:pr-2835-f2 | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| R2 | review-finding:pr-2835-r2 | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| R1 | review-finding:pr-2835-r1 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F7 | review-finding:pr-2835-f7 | Human | Major | documentation | ORIGINAL | FIXED | RESOLVED |
+| F8 | review-finding:pr-2835-f8 | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F9 | review-finding:pr-2835-f9 | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F10 | review-finding:pr-2835-f10 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F11 | review-finding:pr-2835-f11 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F12 | review-finding:pr-2835-f12 | Human | Suggestion | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F13 | review-finding:pr-2835-f13 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F14 | review-finding:pr-2835-f14 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F15 | review-finding:pr-2835-f15 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F16 | review-finding:pr-2835-f16 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F17 | review-finding:pr-2835-f17 | Human | Nit | formatting | ORIGINAL | FIXED | RESOLVED |
+| F18 | review-finding:pr-2835-f18 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F19 | review-finding:pr-2835-f19 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F20 | review-finding:pr-2835-f20 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F21 | review-finding:pr-2835-f21 | Human | Nit | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
+
+## Finding Details
+
+### F1 - Stop the main flow when the identity lookup is interrupted
+
+- PR number: 2835
+- Source review ID: 5862741540
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4541082521
+- Concern: A signal during `api user` ended only `report_identity`, so `wait` could still start another command and a spawn failure could replace the `interrupted` diagnostic.
+- Solution: `report_identity` returns the interruption to `main`, which reports `interrupted` and exits 1 before the wait starts.
+- Current-tree verification: `main.rs` `report_identity` and its caller; the new scenario `it_should_stop_on_sigterm_during_the_lookup_without_running_another_command` passes.
+- Resolution reference: fix(wait-for-pr-review): [#2822] stop on a signal during the identity lookup and test its bound
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4541757954
+
+### F2 - Test the stated lookup bound rather than only an early return
+
+- PR number: 2835
+- Source review ID: 5862741540
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4541082594
+- Concern: The CLI scenario also accepted a four- or six-second lookup, and nothing covered the ten-second cap.
+- Solution: `lookup_bound` is extracted with unit tests for both branches of `min(10 s, timeout / 4)`, and the CLI scenario asserts a lower and an upper time.
+- Current-tree verification: `main.rs` unit tests `it_should_bound_the_lookup_at_a_quarter_of_a_short_timeout` and `it_should_cap_the_lookup_bound_at_ten_seconds_for_a_long_timeout`; the scenario's two assertions.
+- Resolution reference: fix(wait-for-pr-review): [#2822] stop on a signal during the identity lookup and test its bound
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4541758586
+
+### R2 - Complete the stalled-lookup verification before marking M4 done
+
+- PR number: 2835
+- Source review ID: 5862741540
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4541082663
+- Concern: M4 and M4b had ended in `gh_api_error` with an incomplete fake and only M1 and M3 were rerun.
+- Solution: M4 and M4b were rerun with the corrected fake and their stdout, exit code and timing are recorded.
+- Current-tree verification: The M4 and M4b rows of `manual-verification-evidence.md`.
+- Resolution reference: docs(issues): [#2822] keep the manual-verification fake and rerun M4
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4541759130
+
+### R1 - Preserve the manual-verification fake and setup
+
+- PR number: 2835
+- Source review ID: 5862741540
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4541082723
+- Concern: The fake lived only in a scratchpad outside the repository.
+- Solution: The fake is kept as `evidence/fake-gh-command.sh`, embedded in the evidence file with its setup commands.
+- Current-tree verification: `evidence/fake-gh-command.sh` and the evidence file's environment section.
+- Resolution reference: docs(issues): [#2822] keep the manual-verification fake and rerun M4
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4541759863
+
+### F7 - The red-run breakdown does not recompute from the committed tests
+
+- PR number: 2835
+- Source review ID: 5870191489
+- Reviewer finding ID: F1
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4547152232
+- Concern: The evidence said 10 new and 4 existing tests failed; the committed tests give 8 new and 6 existing, and two new tests pass without the option.
+- Solution: The red-run section is recomputed with the reasons for each group.
+- Current-tree verification: `manual-verification-evidence.md` red-run section; the reviewer's recount against the binary at the merge base.
+- Resolution reference: test(wait-for-pr-review): [#2822] pin the empty-value message and the interrupted lookup
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548115644
+
+### F8 - The empty-value test passes with the option removed
+
+- PR number: 2835
+- Source review ID: 5870191489
+- Reviewer finding ID: F2
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4547152242
+- Concern: An unknown option is also a usage error with exit 2.
+- Solution: The test also asserts the message `expected a program name or path`.
+- Current-tree verification: `it_should_exit_two_when_gh_command_is_empty` in `tests/cli.rs`.
+- Resolution reference: test(wait-for-pr-review): [#2822] pin the empty-value message and the interrupted lookup
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548116152
+
+### F9 - The signal-during-lookup scenario does not discriminate its fix
+
+- PR number: 2835
+- Source review ID: 5870191489
+- Reviewer finding ID: F3
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4547152249
+- Concern: The CLI scenario usually passes on the unfixed code because the spawned child is killed at once.
+- Solution: A deterministic unit test returns the interruption of the lookup against `yes`; the evidence says the CLI scenario guards without pinning the regression.
+- Current-tree verification: `it_should_return_the_interruption_of_the_identity_lookup_to_the_caller` in `main.rs`; the evidence section on the signal.
+- Resolution reference: test(wait-for-pr-review): [#2822] pin the empty-value message and the interrupted lookup
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548116673
+
+### F10 - The AC5 evidence over-generalizes
+
+- PR number: 2835
+- Source review ID: 5870191489
+- Reviewer finding ID: F4
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4547152255
+- Concern: Only some scenarios reach the fake through `--gh-command`.
+- Solution: AC5's text, its evidence row and the PR description are narrowed to the custom-command scenarios.
+- Current-tree verification: AC5 in the spec; `gh pr view 2835 --json body`.
+- Resolution reference: test(wait-for-pr-review): [#2822] pin the empty-value message and the interrupted lookup
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548117299
+
+### F11 - The help text is not exact about which value skips auth status
+
+- PR number: 2835
+- Source review ID: 5870191489
+- Reviewer finding ID: F5
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4547152267
+- Concern: `--gh-command gh` is still checked with `auth status`.
+- Solution: Help and skill say the value `gh` is checked and any other value is not.
+- Current-tree verification: The `--gh-command` doc comment in `main.rs`; the skill option row.
+- Resolution reference: test(wait-for-pr-review): [#2822] pin the empty-value message and the interrupted lookup
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548117989
+
+### F12 - Two diagnostics still name `gh` for a custom command
+
+- PR number: 2835
+- Source review ID: 5870191489
+- Reviewer finding ID: F6
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4547152271
+- Concern: `MalformedResponse` and `DeadlineExceeded` say `gh`.
+- Solution: No change: D2 scoped the rename to `gh_api_error` and `gh_unavailable`; the reply uses the `Superseded by` form.
+- Current-tree verification: D2 of the merged spec; `error.rs`.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548118436
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548118436
+
+### F13 - This entry understates the AC5 change
+
+- PR number: 2835
+- Source review ID: 5871706543
+- Reviewer finding ID: F8
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548310226
+- Concern: The log and the commit body said the AC5 evidence was narrowed, but the criterion itself was narrowed too, and D2's test bullet was still broad.
+- Solution: The spec's Progress Log records that the criterion was narrowed and why, and D2's test bullet names the custom-command tests.
+- Current-tree verification: Progress Log and D2 test bullet of the spec.
+- Resolution reference: docs(issues): [#2822] say that AC5 and D2 name the custom-command tests
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548412387
+
+### F14 - `yes` does exit on its own for some arguments
+
+- PR number: 2835
+- Source review ID: 5871706543
+- Reviewer finding ID: F9
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548310231
+- Concern: The comment said "whatever its arguments", but `yes --help` exits.
+- Solution: The comment says "for the arguments the lookup passes (`api user`)".
+- Current-tree verification: The comment above `it_should_return_the_interruption_of_the_identity_lookup_to_the_caller` in `main.rs`.
+- Resolution reference: docs(issues): [#2822] say that AC5 and D2 name the custom-command tests
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548412884
+
+### F15 - F12's row and reply do not follow the no-change rule
+
+- PR number: 2835
+- Source review ID: 5871706543
+- Reviewer finding ID: F10
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548310219
+- Concern: A no-change in-PR thread is `NO_ACTION` with `SUPERSEDED` and the exact `Superseded by` reply.
+- Solution: F12 is `NO_ACTION` with `SUPERSEDED` and the reply uses the exact form.
+- Current-tree verification: The F12 row and detail entry; the reply on that thread.
+- Resolution reference: docs(pr-reviews): [#2822] correct the F12 record and the ID note of PR #2835
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548411831
+
+### F16 - Only two of the second review's IDs collide
+
+- PR number: 2835
+- Source review ID: 5871706543
+- Reviewer finding ID: F11
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548310212
+- Concern: The note said six IDs collide where only F1 and F2 do.
+- Solution: The note says only F1 and F2 collide and all six were numbered F7 to F12 by choice.
+- Current-tree verification: The Findings introduction of this record.
+- Resolution reference: docs(pr-reviews): [#2822] correct the F12 record and the ID note of PR #2835
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548411259
+
+### F17 - This comment line is now 133 columns
+
+- PR number: 2835
+- Source review ID: 5872006301
+- Reviewer finding ID: F12
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548543344
+- Concern: The comment line exceeded `max_width = 130`.
+- Solution: The comment is rewrapped in three lines within 130 columns.
+- Current-tree verification: `awk 'length>130'` on `main.rs` prints nothing; `cargo +nightly fmt --all -- --check` passes.
+- Resolution reference: docs(pr-reviews): [#2822] date the pushes of the third review of PR #2835
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548633320
+
+### F18 - The 09:09 entry dates the spec commit's push late
+
+- PR number: 2835
+- Source review ID: 5872006301
+- Reviewer finding ID: F13
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548543334
+- Concern: The spec commit was pushed at about 09:03, not 09:09.
+- Solution: The log has a 09:03 entry for that push and the 09:09 entry covers the later push, the replies and the F12 edit.
+- Current-tree verification: The Processing Log of this record.
+- Resolution reference: docs(pr-reviews): [#2822] date the pushes of the third review of PR #2835
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548632701
+
+### F19 - This entry names the spec commit's findings by the reviewer's IDs
+
+- PR number: 2835
+- Source review ID: 5872313175
+- Reviewer finding ID: F14
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548784666
+- Concern: The 09:03 entry said F8 and F9 where this record numbers them F13 and F14.
+- Solution: The correction at the end of the log names them F13 and F14.
+- Current-tree verification: The appended correction in the Processing Log.
+- Resolution reference: docs(pr-reviews): [#2822] restore the append-only log of PR #2835 and correct it
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548847840
+
+### F20 - This entry was rewritten in place, and the Processing Log is append-only
+
+- PR number: 2835
+- Source review ID: 5872313175
+- Reviewer finding ID: F15
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548784676
+- Concern: The 09:09 entry was rewritten and a 09:03 entry inserted above it.
+- Solution: Both are restored to their first form and a dated correction is appended.
+- Current-tree verification: The 09:09 entry and the last entry of the Processing Log.
+- Resolution reference: docs(pr-reviews): [#2822] restore the append-only log of PR #2835 and correct it
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548848480
+
+### F21 - The rewrap is in the same commit as the audit's log correction
+
+- PR number: 2835
+- Source review ID: 5872313175
+- Reviewer finding ID: F16
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548784683
+- Concern: One commit carried a code fix and an audit edit.
+- Solution: No rewrite was asked; this round's fix and its record are in separate commits.
+- Current-tree verification: `git log` for this round: a docs(pr-reviews) commit touching only the audit.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548849123
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548849123
+
+## Processing Log
+
+- 2026-11-11 17:24 UTC - Review 5862741540 (Copilot) submitted on the first head of the PR: F1, F2, R2, R1.
+- 2026-11-11 18:24 UTC - The 60-minute wait for da2ce7 ended without a review; the wait stopped and the hand-over says so.
+- 2026-11-11 18:27 UTC - Pushed the two commits that fix the four findings (push log time).
+- 2026-11-11 18:28 UTC - Replied to and resolved the four threads after that push; the replies cite the pushed commit subjects and their URLs are in the entries.
+- 2026-11-12 06:37 UTC - Review 5870191489 (da2ce7, `CHANGES_REQUESTED`) submitted on the head of the previous push: six findings.
+- 2026-11-12 08:36 UTC - Pushed the commit that fixes them (push log time).
+- 2026-11-12 08:37 UTC - Replied to and resolved the six threads after that push; F12 is declined with its reason (reply URL in the entry).
+- 2026-11-12 08:58 UTC - Review 5871706543 (da2ce7, `APPROVED`) submitted on the head of the previous push: four findings, none blocking.
+- 2026-11-12 09:09 UTC - Pushed the spec commit and the audit correction that fix them, then replied to and resolved the four threads and rewrote the reply on F12 into the exact `Superseded by` form.
+- 2026-11-12 09:23 UTC - Review 5872006301 (da2ce7, `APPROVED`) submitted on the head of the previous push: two findings, none blocking.
+- 2026-11-12 09:32 UTC - Pushed the commit that fixes them (push log time).
+- 2026-11-12 09:32 UTC - Replied to and resolved the two threads after that push.
+- 2026-11-12 09:48 UTC - Correction: the 09:09 entry above was rewritten in place by an earlier commit and a 09:03 entry was inserted; both are restored to their first form. The first form names F8 and F9 by the reviewer's IDs where this record numbers them F13 and F14. What happened: the spec commit, which fixes F13 and F14, was pushed alone at 09:03 (the timeline's dismissal of the approval of review 5871706543 is at 09:03:48Z); the audit correction, which fixes F15 and F16, was pushed at 09:09 after a first attempt at about 09:06 was blocked by an unrelated test; the replies and the F12 edit followed at 09:09.
+- 2026-11-12 09:54 UTC - Review 5872313175 (da2ce7, `APPROVED`) had been submitted at 09:47 UTC on the head of the previous push, with three findings, none blocking. The commit that restores this log and appends the correction above was pushed at 09:53 UTC (push log time); the three threads were replied to and resolved after that push, and their reply URLs are in the entries. This one entry carries the events because the correction above (09:48) was written before that push.
+
+## Completion Rules
+
+- Re-derive the reply claim against the current tree before replying or resolving a thread.
+- Reply on every resolvable thread before resolving it.
+- For an outdated thread whose concern was fixed, record `Disposition=FIXED` and
+  `Thread state=RESOLVED`, even if GitHub marks the thread outdated after the push. For a
+  duplicate, superseded, or no-change in-PR thread, reply exactly
+  `Superseded by <FindingId>: <reason>.`, record `Disposition=NO_ACTION` and
+  `Thread state=SUPERSEDED`, then resolve it. A post-merge `NO_ACTION` requires maintainer
+  approval to decline the follow-up work. When the current identity cannot resolve a thread
+  (`viewerCanResolve` is `false`), still reply, keep the disposition established from the current
+  tree, and record `Thread state=OPEN`; the reviewer or PR author resolves it.
+- A consolidated PR conversation response may cover multiple review rounds only when it names
+  every review ID and every finding ID with its disposition and resolution reference. Record its
+  durable URL in each related row.
+- Cite a fix by its unique Conventional Commit subject or durable reply URL, never by a branch SHA
+  that can change after a rebase.
+- Refresh review threads using GraphQL and confirm that no unresolved actionable thread remains.

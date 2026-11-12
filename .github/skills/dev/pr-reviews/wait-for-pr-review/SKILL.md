@@ -27,7 +27,10 @@ is the processing half.
 
 ## Prerequisites
 
-- GitHub CLI (`gh`), authenticated. The poller refuses to run otherwise.
+- A GitHub CLI command, authenticated as the account you act as. By default that is `gh`, and the poller
+  refuses to run when `gh auth status` fails. To run as another account, name its command with
+  `--gh-command`; never put a stand-in named `gh` on `PATH`, because one that calls `gh` again calls
+  itself without end.
 - The pull request number and the commit you last pushed.
 
 ## Run the Poller
@@ -55,6 +58,7 @@ cat .tmp/wait-for-pr-review.stdout
 | `--timeout-seconds <N>`     | 900 (15 minutes)                                     | Longest wait before a `timeout` result. At most 86400 (one day); a larger value is a usage error, exit `2`.    |
 | `--poll-interval-seconds N` | 120 (2 minutes)                                      | Pause between two looks at the pull request.                                                                    |
 | `--since-head-sha <sha>`    | the head at the start of the wait                    | The commit you have checked out. A pull request head that differs from it is reported as `head_changed`. Unless `--since` is given, reviews and comments created after this commit was made count as new. |
+| `--gh-command <command>`    | `gh`                                                 | The GitHub CLI command run for every call: one program name or path, never split on spaces and never run through a shell. It must accept the `gh` command line (`api ...`). `gh auth status` runs only when the value is `gh`. An empty value is a usage error, exit `2`. |
 | `--since <utc time>`        | the moment the poller starts                         | Count reviews and comments created strictly after this time. Pass the `cursor` of the previous result. Combine it with `--since-head-sha`, so a head that moved is not adopted silently. |
 
 Always pass `--since-head-sha "$(git rev-parse HEAD)"`, and add `--since <cursor>` when resuming
@@ -108,8 +112,13 @@ the login `Copilot`. The default reviewer set therefore sees its reviews and not
 which is enough because the review result is the signal. Add `--reviewer Copilot` to be woken by each
 inline comment as well.
 
-Stderr is NDJSON, one record per line, each with a `kind`: `wait_started` at the start, and on
-failure one diagnostic.
+Stderr is NDJSON, one record per line, each with a `kind`: `wait_started` at the start (with the
+`gh_command` that will run), then `gh_identity`, and on failure one diagnostic. `gh_identity` carries
+`gh_command` and `gh_login`, the account that command is authenticated as (from `api user`), or `null`
+when the lookup fails or ends at its bound, `min(10 s, timeout / 4)`. Check `gh_login` against the account
+you act as before you act on the result. The lookup runs before the baseline snapshot, so without
+`--since-head-sha` a push that lands while it stalls is absorbed into the baseline (a review or comment is
+absorbed without `--since-head-sha` or `--since`); always pass `--since-head-sha`.
 
 | Exit code | Meaning                                                                                                                                         |
 | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
