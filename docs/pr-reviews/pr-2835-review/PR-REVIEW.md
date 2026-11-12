@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-F1, F2, R2 and R1 are in Copilot's review 5862741540. F7 to F12 are in da2ce7's review 5870191489; only his F1 and F2 collide with Copilot's F1 and F2; all six were numbered F7 to F12 by choice, and each of his IDs is recorded as the reviewer finding ID of its audit ID. All are inline threads.
+F1, F2, R2 and R1 are in Copilot's review 5862741540. F7 to F12 are in da2ce7's review 5870191489; only his F1 and F2 collide with Copilot's F1 and F2; all six were numbered F7 to F12 by choice, and each of his IDs is recorded as the reviewer finding ID of its audit ID. F13 to F16 are in da2ce7's review 5871706543, which approved the previous head; his IDs F8 to F11 collide with the audit's F8 to F11, so they are numbered F13 to F16. All are inline threads.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -55,6 +55,10 @@ F1, F2, R2 and R1 are in Copilot's review 5862741540. F7 to F12 are in da2ce7's 
 | F10 | review-finding:pr-2835-f10 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F11 | review-finding:pr-2835-f11 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F12 | review-finding:pr-2835-f12 | Human | Suggestion | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
+| F13 | review-finding:pr-2835-f13 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F14 | review-finding:pr-2835-f14 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F15 | review-finding:pr-2835-f15 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F16 | review-finding:pr-2835-f16 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -188,6 +192,58 @@ F1, F2, R2 and R1 are in Copilot's review 5862741540. F7 to F12 are in da2ce7's 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548118436
 
+### F13 - This entry understates the AC5 change
+
+- PR number: 2835
+- Source review ID: 5871706543
+- Reviewer finding ID: F8
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548310226
+- Concern: The log and the commit body said the AC5 evidence was narrowed, but the criterion itself was narrowed too, and D2's test bullet was still broad.
+- Solution: The spec's Progress Log records that the criterion was narrowed and why, and D2's test bullet names the custom-command tests.
+- Current-tree verification: Progress Log and D2 test bullet of the spec.
+- Resolution reference: docs(issues): [#2822] say that AC5 and D2 name the custom-command tests
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548412387
+
+### F14 - `yes` does exit on its own for some arguments
+
+- PR number: 2835
+- Source review ID: 5871706543
+- Reviewer finding ID: F9
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548310231
+- Concern: The comment said "whatever its arguments", but `yes --help` exits.
+- Solution: The comment says "for the arguments the lookup passes (`api user`)".
+- Current-tree verification: The comment above `it_should_return_the_interruption_of_the_identity_lookup_to_the_caller` in `main.rs`.
+- Resolution reference: docs(issues): [#2822] say that AC5 and D2 name the custom-command tests
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548412884
+
+### F15 - F12's row and reply do not follow the no-change rule
+
+- PR number: 2835
+- Source review ID: 5871706543
+- Reviewer finding ID: F10
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548310219
+- Concern: A no-change in-PR thread is `NO_ACTION` with `SUPERSEDED` and the exact `Superseded by` reply.
+- Solution: F12 is `NO_ACTION` with `SUPERSEDED` and the reply uses the exact form.
+- Current-tree verification: The F12 row and detail entry; the reply on that thread.
+- Resolution reference: docs(pr-reviews): [#2822] correct the F12 record and the ID note of PR #2835
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548411831
+
+### F16 - Only two of the second review's IDs collide
+
+- PR number: 2835
+- Source review ID: 5871706543
+- Reviewer finding ID: F11
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548310212
+- Concern: The note said six IDs collide where only F1 and F2 do.
+- Solution: The note says only F1 and F2 collide and all six were numbered F7 to F12 by choice.
+- Current-tree verification: The Findings introduction of this record.
+- Resolution reference: docs(pr-reviews): [#2822] correct the F12 record and the ID note of PR #2835
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548411259
+
 ## Processing Log
 
 - 2026-11-11 17:24 UTC - Review 5862741540 (Copilot) submitted on the first head of the PR: F1, F2, R2, R1.
@@ -197,6 +253,8 @@ F1, F2, R2 and R1 are in Copilot's review 5862741540. F7 to F12 are in da2ce7's 
 - 2026-11-12 06:37 UTC - Review 5870191489 (da2ce7, `CHANGES_REQUESTED`) submitted on the head of the previous push: six findings.
 - 2026-11-12 08:36 UTC - Pushed the commit that fixes them (push log time).
 - 2026-11-12 08:37 UTC - Replied to and resolved the six threads after that push; F12 is declined with its reason (reply URL in the entry).
+- 2026-11-12 08:58 UTC - Review 5871706543 (da2ce7, `APPROVED`) submitted on the head of the previous push: four findings, none blocking.
+- 2026-11-12 09:09 UTC - Pushed the spec commit and the audit correction that fix them, then replied to and resolved the four threads and rewrote the reply on F12 into the exact `Superseded by` form.
 
 ## Completion Rules
 
