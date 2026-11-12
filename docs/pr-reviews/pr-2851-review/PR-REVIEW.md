@@ -229,6 +229,9 @@ Copilot labels its five findings "Low severity"; the severity `Minor` is inferre
 - 2026-11-12 19:38 UTC - Replied on the twelve threads between 19:38:23Z and 19:38:49Z (forge `created_at`).
 - 2026-11-12 19:40 UTC - Started this audit record, after the replies, because it holds their URLs.
 - 2026-11-12 19:41 UTC - `validate-audit-record.py --pr-number 2851` exited 0 (12 rows, 0 failures). Resolved the twelve threads; a GraphQL refresh showed 0 unresolved threads.
+- 2026-11-12 19:57 UTC - Round 2: review `5881088057` of `da2ce7` (APPROVED, submitted 19:53:43Z, forge `submitted_at`) with four findings, F13 to F16, on the audit and the #2838 records.
+- 2026-11-12 19:57 UTC - Correction for F13: the entry stamped 18:07 was rewritten in place to remove three commit ids of the branch as it was before the history rewrite; it now cites those commits by subject only. No other entry was rewritten.
+- 2026-11-12 19:57 UTC - Correction for F14: the entry stamped 19:30 has the wrong time and actor. The forge timeline records the force push (`head_ref_force_pushed`) at 19:34:12Z with `josecelano-bot` as the actor; the maintainer ran `git-bot-push --force-with-lease`, which pushes as that account. The entry stamped 19:36 says "and pushed": the commits are stamped up to 19:36:24Z and their push landed later, before the first reply at 19:38:23Z, whose forge record names that head.
 
 ## Completion Rules
 
