@@ -65,6 +65,7 @@ F5 and F7 to F12 are in da2ce7's review 5876404520, and F14 to F19 in his review
 | F17 | review-finding:pr-2840-f17 | Human | Nit | documentation | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F18 | review-finding:pr-2840-f18 | Human | Nit | documentation | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F19 | review-finding:pr-2840-f19 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F21 | review-finding:pr-2840-f21 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -302,6 +303,19 @@ F5 and F7 to F12 are in da2ce7's review 5876404520, and F14 to F19 in his review
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2840#discussion_r4552414112
 
+### F21 - A parenthetical in the introduction has no fixed referent
+
+- PR number: 2840
+- Source review ID: 5877289957
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2840#discussion_r4552581550
+- Concern: "(which approved the head of the previous push)" has no fixed referent after merge.
+- Solution: The parenthetical is dropped.
+- Current-tree verification: The Findings introduction of this record.
+- Resolution reference: docs(pr-reviews): [#2822] drop the parenthetical that has no fixed referent
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2840#discussion_r4552646905
+
 ## Processing Log
 
 - 2026-11-12 14:06 UTC - Review 5875801804 (da2ce7, `CHANGES_REQUESTED`) submitted on the head of the close-out PR: F1, F2, F3.
@@ -312,6 +326,7 @@ F5 and F7 to F12 are in da2ce7's review 5876404520, and F14 to F19 in his review
 - 2026-11-12 14:56 UTC - The audit commit that fixes F7, F8 and F9 was pushed at 14:55 UTC (push log time) and those three threads were replied to and resolved after it; their rows and reply URLs are in this record.
 - 2026-11-12 15:18 UTC - Review 5876857550 (da2ce7, `APPROVED`) had been submitted at 15:12 UTC on the head of the previous push, with six findings, none blocking. The spec commit that fixes F14, F15 and F16 was pushed at 15:18 UTC (push log time); those threads and the two no-change threads (F17, F18) were replied to and resolved at 15:18 UTC, and their rows are in this record. F19, the introduction of this record, is fixed by the commit that carries this entry.
 - 2026-11-12 15:23 UTC - The commit that fixes F19 was pushed at 15:23 UTC (push log time), and its thread was replied to and resolved after it; its row is in this record.
+- 2026-11-12 15:41 UTC - Review 5877289957 (da2ce7, `APPROVED`) had been submitted at 15:36 UTC with one nit, F21. The commit that drops the parenthetical was pushed at 15:41 UTC (push log time) and the thread was replied to and resolved after it; its row is in this record.
 
 ## Completion Rules
 
