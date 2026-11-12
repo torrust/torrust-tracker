@@ -41,7 +41,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-F1, F2, R2 and R1 are in Copilot's review 5862741540. F7 to F12 are in da2ce7's review 5870191489; his own IDs F1 to F6 collide with Copilot's F1 and F2, so each is recorded as the reviewer finding ID of an audit-assigned F7 to F12. All are inline threads.
+F1, F2, R2 and R1 are in Copilot's review 5862741540. F7 to F12 are in da2ce7's review 5870191489; only his F1 and F2 collide with Copilot's F1 and F2; all six were numbered F7 to F12 by choice, and each of his IDs is recorded as the reviewer finding ID of its audit ID. All are inline threads.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -54,7 +54,7 @@ F1, F2, R2 and R1 are in Copilot's review 5862741540. F7 to F12 are in da2ce7's 
 | F9 | review-finding:pr-2835-f9 | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
 | F10 | review-finding:pr-2835-f10 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F11 | review-finding:pr-2835-f11 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
-| F12 | review-finding:pr-2835-f12 | Human | Suggestion | maintainability | ORIGINAL | NO_ACTION | RESOLVED |
+| F12 | review-finding:pr-2835-f12 | Human | Suggestion | maintainability | ORIGINAL | NO_ACTION | SUPERSEDED |
 
 ## Finding Details
 
@@ -182,7 +182,7 @@ F1, F2, R2 and R1 are in Copilot's review 5862741540. F7 to F12 are in da2ce7's 
 - Reviewer finding ID: F6
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4547152271
 - Concern: `MalformedResponse` and `DeadlineExceeded` say `gh`.
-- Solution: No change: D2 scoped the rename to `gh_api_error` and `gh_unavailable`; the reply offers a follow-up if wanted.
+- Solution: No change: D2 scoped the rename to `gh_api_error` and `gh_unavailable`; the reply uses the `Superseded by` form.
 - Current-tree verification: D2 of the merged spec; `error.rs`.
 - Resolution reference: https://github.com/torrust/torrust-tracker/pull/2835#discussion_r4548118436
 - Follow-up PR URL: N/A
