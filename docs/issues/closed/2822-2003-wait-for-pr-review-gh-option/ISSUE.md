@@ -9,7 +9,7 @@ github-issue: 2822
 spec-path: docs/issues/closed/2822-2003-wait-for-pr-review-gh-option/ISSUE.md
 branch: "2822-wait-for-pr-review-gh-option"
 related-pr: 2835
-last-updated-utc: "2026-11-12 14:45"
+last-updated-utc: "2026-11-12 15:12"
 semantic-links:
   skill-links:
     - create-issue
@@ -257,6 +257,9 @@ increment, before final verification, commit and pull request.
   retrospective (audit row R1); it is not on the PR's threads. The `linter all` run that the 14:07 entry reports
   was made at 14:08 UTC (the commit that records it was authored at 14:08:14 and committed at 14:09:38 UTC), so the
   14:07 stamp is a minute early.
+- 2026-11-12 15:12 UTC - AI assistant (Claude Code, Claude Sonnet 5.5) - Addressed review 5876857550 of close-out PR #2840
+  (the fourth review submitted on it). Clarification of the previous entry, which stays as it is: "the second review"
+  there means review 5876404520, the third submitted on the PR; the PR's overview review (5875883208) is the second.
 
 ## Acceptance Criteria
 

@@ -62,10 +62,11 @@ the tests in `tests/cli.rs` and `main.rs`.
   recomputed from the run output; most findings of the later review rounds, on both pull requests, were about these
   statements, not about the tool.
 - The close-out's first commit replaced the instruction of the merged specification ("Create an issue-local
-  `implementation-retrospective.md` when there is any of these", with `create-issue` saying the same) with "No separate
-  `implementation-retrospective.md` was created", although the work had deviations, validation findings and lessons.
-  The rule was in front of the work; the decision not to follow it was mine, made before the reviews that showed
-  it was wrong.
+  `implementation-retrospective.md` when there is any of these") with "No separate `implementation-retrospective.md`
+  was created", although the work had deviations, validation findings and lessons. `create-issue` is less strict: it
+  asks for a retrospective for reusable lessons, material design changes or meaningful deviations from the plan. The
+  process cause is that the close-out step did not check its no-retrospective decision against the specification's own
+  instruction, which was the stricter rule and had no qualifier.
 - The audit and log rules (append only, stamp an event after it happened, separate commits for product fixes and audit)
   were applied round by round, after a reviewer named each slip, instead of being checked before pushing.
 
