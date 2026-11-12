@@ -9,7 +9,7 @@ github-issue: 2838
 spec-path: docs/issues/open/2838-1347-udp-reject-negative-announce-bytes/ISSUE.md
 branch: "2838-udp-reject-negative-announce-bytes"
 related-pr: null
-last-updated-utc: "2026-11-12 17:41"
+last-updated-utc: "2026-11-12 19:55"
 semantic-links:
   skill-links:
     - create-issue
@@ -237,7 +237,7 @@ met on `develop`. Issue #2850 carries the criteria for the fix.
 | ID  | Scenario                                   | Human-oriented command/steps                                   | Expected Result                       | Status | Evidence                                     |
 | --- | ------------------------------------------ | -------------------------------------------------------------- | ------------------------------------- | ------ | -------------------------------------------- |
 | M1  | Negative `left` over UDP (before the fix)  | Run the tracker; `python3 -I evidence/udp_announce_probe.py`   | Reproduced: response with seeders = 1 | DONE   | `manual-verification-evidence.md` section V1 |
-| M2  | Same probe after the fix                   | Same command on the fixed build                                | Error response, seeders = 0           | DONE   | `manual-verification-evidence.md` section V2 |
+| M2  | Same probe after the fix                   | Same command on the fixed build                                | Error response, seeders = 0           | TODO   | Superseded (PR #2839, not merged): `manual-verification-evidence.md` section V2 ran on the branch of PR #2839 |
 
 ### Disposable Verification Scripts
 
