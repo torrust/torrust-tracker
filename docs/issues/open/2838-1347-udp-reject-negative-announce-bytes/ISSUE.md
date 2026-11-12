@@ -2,12 +2,12 @@
 schema-version: 1
 doc-type: issue
 issue-type: bug
-status: draft
+status: in-progress
 priority: p2
-epic: null
-github-issue: null
-spec-path: docs/issues/drafts/udp-reject-negative-announce-bytes/ISSUE.md
-branch: "{issue-number}-udp-reject-negative-announce-bytes"
+epic: 1347
+github-issue: 2838
+spec-path: docs/issues/open/2838-1347-udp-reject-negative-announce-bytes/ISSUE.md
+branch: "2838-udp-reject-negative-announce-bytes"
 related-pr: null
 last-updated-utc: "2026-11-11 00:00"
 semantic-links:
@@ -21,7 +21,7 @@ semantic-links:
 
 <!-- skill-link: create-issue -->
 
-# Issue #[To be assigned] - UDP tracker accepts announces with a negative `left` (and `uploaded`/`downloaded`)
+# Issue #2838 - UDP tracker accepts announces with a negative `left` (and `uploaded`/`downloaded`)
 
 ## Goal
 
@@ -160,10 +160,10 @@ Follows [fix-bug](../../../../.github/skills/dev/debugging/fix-bug/SKILL.md):
 | --- | ------ | ------------------------------------------------------------- | -------------------------------------------- |
 | T1  | DONE   | Reproduce over UDP and record evidence                        | `manual-verification-evidence.md` V1         |
 | T2  | DONE   | Add red handler test for negative `left`                      | Test fails: announce returns `Ok`            |
-| T3  | TODO   | Fix: validation + error variant in `udp-core`                 | Red test green; exact variant asserted       |
-| T4  | TODO   | Extend tests (uploaded/downloaded, boundaries, IPv6)          | Per approved field scope                     |
-| T5  | TODO   | Green run and like-for-like recheck over UDP                  | V2 in evidence file                          |
-| T6  | TODO   | Document the behavior (UDP tracker docs/changelog if any)     | Docs mention rejection                       |
+| T3  | DONE   | Fix: validation + error variant in `udp-core`                 | Red test green; exact variant asserted       |
+| T4  | DONE   | Extend tests (uploaded/downloaded, boundaries, IPv6)          | Per approved field scope                     |
+| T5  | DONE   | Green run and like-for-like recheck over UDP                  | V2 in evidence file                          |
+| T6  | DONE   | Document the behavior                                         | Error text and spec; no UDP docs list per-field validation |
 
 ## Commit Points
 
@@ -177,10 +177,10 @@ Follows [fix-bug](../../../../.github/skills/dev/debugging/fix-bug/SKILL.md):
 
 ### Workflow Checkpoints
 
-- [x] Folder-style spec drafted in `docs/issues/drafts/udp-reject-negative-announce-bytes/ISSUE.md`
-- [ ] Spec reviewed and approved by user/maintainer
-- [ ] GitHub issue created and issue number added to this spec
-- [ ] Implementation completed
+- [x] Folder-style spec drafted in `docs/issues/open/2838-1347-udp-reject-negative-announce-bytes/ISSUE.md`
+- [x] Spec reviewed and approved by user/maintainer
+- [x] GitHub issue created and issue number added to this spec
+- [x] Implementation completed
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
@@ -190,14 +190,15 @@ Follows [fix-bug](../../../../.github/skills/dev/debugging/fix-bug/SKILL.md):
 ### Progress Log
 
 - 2026-11-11 UTC - Claude Code (Claude Sonnet 5.5) - Spec drafted, defect reproduced, red test added; awaiting maintainer decision.
+- 2026-11-12 UTC - Claude Code (Claude Sonnet 5.5) - Maintainer approved all three fields; issue #2838 created; fix, tests and recheck done.
 
 ## Acceptance Criteria
 
-- [ ] AC1: a UDP announce with `left < 0` gets an error response (action 3) with the request's
+- [x] AC1: a UDP announce with `left < 0` gets an error response (action 3) with the request's
       transaction id, and no peer is registered.
-- [ ] AC2: same for `uploaded < 0` and `downloaded < 0` (if approved).
-- [ ] AC3: `left = 0`, `left = i64::MAX`, and `num_want = -1` are still accepted.
-- [ ] AC4: the rejection emits the existing UDP error event and log.
+- [x] AC2: same for `uploaded < 0` and `downloaded < 0` (if approved).
+- [x] AC3: `left = 0`, `left = i64::MAX`, and `num_want = -1` are still accepted.
+- [x] AC4: the rejection emits the existing UDP error event and log.
 - [ ] `linter all` exits with code `0`
 - [ ] Relevant tests pass
 - [ ] Manual verification scenarios are executed and documented in issue-local `manual-verification-evidence.md`
@@ -213,8 +214,8 @@ Follows [fix-bug](../../../../.github/skills/dev/debugging/fix-bug/SKILL.md):
 
 | ID  | Scenario                                   | Human-oriented command/steps                                   | Expected Result                       | Status | Evidence                                     |
 | --- | ------------------------------------------ | -------------------------------------------------------------- | ------------------------------------- | ------ | -------------------------------------------- |
-| M1  | Negative `left` over UDP (before the fix)  | Run the tracker; `python3 -I evidence/udp_announce_probe.py`   | Reproduced: response with seeders = 1 | TODO   | `manual-verification-evidence.md` section V1 |
-| M2  | Same probe after the fix                   | Same command on the fixed build                                | Error response, seeders = 0           | TODO   | `manual-verification-evidence.md` section V2 |
+| M1  | Negative `left` over UDP (before the fix)  | Run the tracker; `python3 -I evidence/udp_announce_probe.py`   | Reproduced: response with seeders = 1 | DONE   | `manual-verification-evidence.md` section V1 |
+| M2  | Same probe after the fix                   | Same command on the fixed build                                | Error response, seeders = 0           | DONE   | `manual-verification-evidence.md` section V2 |
 
 ### Disposable Verification Scripts
 
@@ -226,10 +227,10 @@ Follows [fix-bug](../../../../.github/skills/dev/debugging/fix-bug/SKILL.md):
 
 | AC ID | Status | Evidence |
 | ----- | ------ | -------- |
-| AC1   | TODO   |          |
-| AC2   | TODO   |          |
-| AC3   | TODO   |          |
-| AC4   | TODO   |          |
+| AC1   | DONE   | udp-core `it_should_reject_a_negative_number_of_bytes`; udp-server handler test; V2 |
+| AC2   | DONE   | same tests, `uploaded`/`downloaded` cases; V2 |
+| AC3   | DONE   | `it_should_accept_a_non_negative_number_of_bytes_left` (0, 16384, i64::MAX) |
+| AC4   | DONE   | V2: tracker log shows the existing UDP error line per rejection |
 
 ## Risks and Trade-offs
 

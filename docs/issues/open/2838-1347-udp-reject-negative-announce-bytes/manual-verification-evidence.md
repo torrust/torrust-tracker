@@ -1,6 +1,6 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/drafts/udp-reject-negative-announce-bytes/ISSUE.md
+issue-spec: docs/issues/open/2838-1347-udp-reject-negative-announce-bytes/ISSUE.md
 last-updated-utc: 2026-11-11 17:30
 ---
 
@@ -64,9 +64,28 @@ test result: FAILED. 0 passed; 1 failed
 
 ### V2 - Final like-for-like recheck (after the fix)
 
-Status: `TODO` (repeat V1 on the fixed build, naming the fix commit by its Conventional Commit
-subject).
+- Status: `DONE`
+- Build: `develop` plus the `fix(udp-core): reject a negative number of bytes in an announce` commit
+  and the tests after it (no production change after the fix commit); `cargo build --bin
+  torrust-tracker`, same config and probe as V1, run 2026-11-12 09:12 UTC.
+- Output: [`evidence/probe-after-fix.txt`](evidence/probe-after-fix.txt)
+
+```text
+left=1000          -> announce response: interval=120 leechers=1 seeders=0
+left=-5            -> action=3 message='tracker announce error: Invalid announce request: `left` must not be negative, got -5'
+left=0             -> announce response: interval=120 leechers=0 seeders=1
+uploaded=-1        -> action=3 message='... `uploaded` must not be negative, got -1'
+downloaded=-1      -> action=3 message='... `downloaded` must not be negative, got -1'
+```
+
+The tracker log shows one `ERROR ... handle_error` line per rejection (the existing UDP error
+path, which also emits the UDP error event).
+
+Green regression tests: `cargo test -p torrust-tracker-udp-server --lib negative_number_of_bytes_left`
+(1 passed) and `cargo test -p torrust-tracker-udp-core --lib announce` (23 passed).
+
+Conclusion: the symptom observed in V1 is gone; valid values (`left` 0 and 1000) behave as before.
 
 ## Failures and Follow-up
 
-None yet.
+None.

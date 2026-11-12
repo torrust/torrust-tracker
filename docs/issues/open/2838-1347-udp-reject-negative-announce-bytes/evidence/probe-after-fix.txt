@@ -1,0 +1,10 @@
+args(left uploaded downloaded)=1000
+announce response: interval=120 leechers=1 seeders=0
+args(left uploaded downloaded)=-5
+action=3 message='tracker announce error: Invalid announce request: `left` must not be negative, got -5'
+args(left uploaded downloaded)=0
+announce response: interval=120 leechers=0 seeders=1
+args(left uploaded downloaded)=0 -1 0
+action=3 message='tracker announce error: Invalid announce request: `uploaded` must not be negative, got -1'
+args(left uploaded downloaded)=0 0 -1
+action=3 message='tracker announce error: Invalid announce request: `downloaded` must not be negative, got -1'
