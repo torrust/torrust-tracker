@@ -44,6 +44,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 Round 1 is the review `5879517733` of `da2ce7` (F1 to F7, reviewer-provided IDs) and Copilot's
 review `5879649645` (F8 to F12, audit-local IDs). Both reviewed the first head of the pull request.
 Copilot labels its five findings "Low severity"; the severity `Minor` is inferred from that label.
+Round 2 is the approving review `5881088057` of `da2ce7` (F13 to F16, reviewer-provided IDs), on
+the head that carried the round 1 audit.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -59,6 +61,10 @@ Copilot labels its five findings "Low severity"; the severity `Minor` is inferre
 | F10 | review-finding:pr-2851-f10 | Copilot | Minor (inferred) | correctness | RE_RAISE_OF:F2 | NO_ACTION | SUPERSEDED |
 | F11 | review-finding:pr-2851-f11 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
 | F12 | review-finding:pr-2851-f12 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
+| F13 | review-finding:pr-2851-f13 | Human | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F14 | review-finding:pr-2851-f14 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F15 | review-finding:pr-2851-f15 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F16 | review-finding:pr-2851-f16 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -218,6 +224,58 @@ Copilot labels its five findings "Low severity"; the severity `Minor` is inferre
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4555417701
 
+### F13 - The audit cites three commit ids that will never be on `develop`
+
+- PR number: 2851
+- Source review ID: 5881088057
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4555575897
+- Concern: The processing log cited the ids of three commits of the branch as it was before the history rewrite. A review audit may not cite a PR-branch commit by id.
+- Solution: The entry cites the commits by subject only, and a correction entry records that it was rewritten in place.
+- Current-tree verification: Ran the commit-id check of the `open-pull-request` skill in a clone that still holds the first head; it printed nothing.
+- Resolution reference: docs(pr-reviews): drop the commit ids of the rewritten branch from the audit of PR #2851
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4555647329
+
+### F14 - The force push is stamped 19:30; the forge records 19:34:12Z
+
+- PR number: 2851
+- Source review ID: 5881088057
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4555575908
+- Concern: The log stamped the force push before it happened and named the maintainer as the actor; the forge timeline records 19:34:12Z and the PR author's account.
+- Solution: A correction entry gives the forge time and actor and also corrects the "and pushed" of the next entry. The original entries are not rewritten.
+- Current-tree verification: Read `head_ref_force_pushed` in the forge timeline of the pull request: 2026-11-12T19:34:12Z, actor `josecelano-bot`.
+- Resolution reference: docs(pr-reviews): correct the time and actor of the force push in the audit of PR #2851
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4555647720
+
+### F15 - Scenario M2 still reads DONE for the fixed build
+
+- PR number: 2851
+- Source review ID: 5881088057
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4555575927
+- Concern: The manual scenario M2 of the #2838 specification still read DONE for a build that is not on `develop`.
+- Solution: M2 is TODO and its evidence cell carries the superseded mark.
+- Current-tree verification: Read the Manual Verification Scenarios table of the #2838 specification in the tree.
+- Resolution reference: docs(issues): [#2838] mark scenario M2 of the unmerged patch as superseded
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4555648132
+
+### F16 - `last-updated-utc` is unchanged by the edits
+
+- PR number: 2851
+- Source review ID: 5881088057
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4555575950
+- Concern: The evidence file of #2838 and the specifications of #2838 and #2850 were edited in round 1 and kept their earlier `last-updated-utc`.
+- Solution: The evidence file and the #2850 specification carry the time of their last content commits; the #2838 specification was stamped with its M2 edit in the commit for F15.
+- Current-tree verification: Compared the three `last-updated-utc` values with `git log --format=%cI` of each file.
+- Resolution reference: docs(issues): [#2850] set last-updated-utc to the time of the last content edits
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4555648558
+
 ## Processing Log
 
 - 2026-11-12 18:05 UTC - Started round 1 for review `5879517733` (submitted 18:02:39Z, forge `submitted_at`). Checked F1 to F7 against the tree.
@@ -232,6 +290,7 @@ Copilot labels its five findings "Low severity"; the severity `Minor` is inferre
 - 2026-11-12 19:57 UTC - Round 2: review `5881088057` of `da2ce7` (APPROVED, submitted 19:53:43Z, forge `submitted_at`) with four findings, F13 to F16, on the audit and the #2838 records.
 - 2026-11-12 19:57 UTC - Correction for F13: the entry stamped 18:07 was rewritten in place to remove three commit ids of the branch as it was before the history rewrite; it now cites those commits by subject only. No other entry was rewritten.
 - 2026-11-12 19:57 UTC - Correction for F14: the entry stamped 19:30 has the wrong time and actor. The forge timeline records the force push (`head_ref_force_pushed`) at 19:34:12Z with `josecelano-bot` as the actor; the maintainer ran `git-bot-push --force-with-lease`, which pushes as that account. The entry stamped 19:36 says "and pushed": the commits are stamped up to 19:36:24Z and their push landed later, before the first reply at 19:38:23Z, whose forge record names that head.
+- 2026-11-12 20:01 UTC - Round 2: the four fixes were committed between 19:55:16Z and 19:57:12Z (`git log --format=%cI`) and their push had landed by 20:00:04Z (`git ls-remote` of the fork matched the local head). Replied on the four threads between 20:00:05Z and 20:00:12Z (forge `created_at`). `validate-audit-record.py --pr-number 2851` exited 0 (16 rows, 0 failures). Resolved the four threads; a GraphQL refresh showed 0 unresolved threads.
 
 ## Completion Rules
 
