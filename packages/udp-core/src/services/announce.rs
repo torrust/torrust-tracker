@@ -7,6 +7,7 @@
 //!
 //! It also sends an [`Event`]
 //! because events are specific for the HTTP tracker.
+use std::fmt;
 use std::net::{IpAddr, SocketAddr};
 use std::ops::Range;
 use std::sync::Arc;
@@ -86,6 +87,7 @@ impl AnnounceService {
     /// It will return an error if:
     ///
     /// - Cookie validation fails and `validate_cookie` is `true`.
+    /// - `left`, `uploaded` or `downloaded` is negative.
     /// - The tracker is running in listed mode and the torrent is not in the
     ///   whitelist.
     ///
@@ -196,7 +198,7 @@ pub enum UdpAnnounceError {
     /// The fields are signed on the UDP wire but a count of bytes cannot be
     /// negative. The HTTP tracker rejects the same values.
     #[error("Invalid announce request: `{field}` must not be negative, got {value}")]
-    NegativeNumberOfBytes { field: &'static str, value: i64 },
+    NegativeNumberOfBytes { field: ByteCountField, value: i64 },
 
     /// Error returned when there was an error with the tracker core announce handler.
     #[error("Tracker core announce error: {source}")]
@@ -207,12 +209,30 @@ pub enum UdpAnnounceError {
     TrackerCoreWhitelistError { source: WhitelistError },
 }
 
+/// The byte-count fields of an announce request.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ByteCountField {
+    Left,
+    Uploaded,
+    Downloaded,
+}
+
+impl fmt::Display for ByteCountField {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(match self {
+            Self::Left => "left",
+            Self::Uploaded => "uploaded",
+            Self::Downloaded => "downloaded",
+        })
+    }
+}
+
 /// Rejects a request whose `left`, `uploaded` or `downloaded` is negative.
 fn validate_number_of_bytes(request: &AnnounceRequest) -> Result<(), UdpAnnounceError> {
     let fields = [
-        ("left", request.bytes_left.0.get()),
-        ("uploaded", request.bytes_uploaded.0.get()),
-        ("downloaded", request.bytes_downloaded.0.get()),
+        (ByteCountField::Left, request.bytes_left.0.get()),
+        (ByteCountField::Uploaded, request.bytes_uploaded.0.get()),
+        (ByteCountField::Downloaded, request.bytes_downloaded.0.get()),
     ];
 
     for (field, value) in fields {
@@ -272,7 +292,7 @@ mod tests {
         AnnounceActionPlaceholder, AnnounceRequest, ConnectionId, NumberOfPeers, PeerKey, Port, TransactionId,
     };
 
-    use super::{AnnounceService, UdpAnnounceError};
+    use super::{AnnounceService, ByteCountField, UdpAnnounceError};
     use crate::CurrentClock;
     use crate::connection_cookie::{ConnectionCookieError, gen_remote_fingerprint, make};
     use crate::crypto::cookie_cipher::CookieCipher;
@@ -423,20 +443,20 @@ mod tests {
     }
 
     #[rstest]
-    #[case::left("left", -1)]
-    #[case::left_min("left", i64::MIN)]
-    #[case::uploaded("uploaded", -1)]
-    #[case::downloaded("downloaded", -1)]
+    #[case::left(ByteCountField::Left, -1)]
+    #[case::left_min(ByteCountField::Left, i64::MIN)]
+    #[case::uploaded(ByteCountField::Uploaded, -1)]
+    #[case::downloaded(ByteCountField::Downloaded, -1)]
     #[tokio::test]
-    async fn it_should_reject_a_negative_number_of_bytes(#[case] field: &'static str, #[case] value: i64) {
+    async fn it_should_reject_a_negative_number_of_bytes(#[case] field: ByteCountField, #[case] value: i64) {
         // Arrange
         let fixture = AnnounceServiceFixture::public_tracker();
         let mut request = announce_request(valid_connection_id_for(client_socket_addr()));
         let bytes = torrust_tracker_udp_protocol::NumberOfBytes(value.into());
         match field {
-            "left" => request.bytes_left = bytes,
-            "uploaded" => request.bytes_uploaded = bytes,
-            _ => request.bytes_downloaded = bytes,
+            ByteCountField::Left => request.bytes_left = bytes,
+            ByteCountField::Uploaded => request.bytes_uploaded = bytes,
+            ByteCountField::Downloaded => request.bytes_downloaded = bytes,
         }
 
         // Act
@@ -616,6 +636,52 @@ mod tests {
 
         // Assert
         assert!(matches!(result, Err(UdpAnnounceError::ConnectionCookieError { .. })));
+    }
+
+    #[tokio::test]
+    async fn it_should_validate_the_connection_id_before_the_number_of_bytes() {
+        // Arrange
+        let fixture = AnnounceServiceFixture::public_tracker();
+        let mut request = announce_request(expired_connection_id_for(client_socket_addr()));
+        request.bytes_left = torrust_tracker_udp_protocol::NumberOfBytes((-1i64).into());
+
+        // Act
+        let result = fixture
+            .service
+            .handle_announce(
+                client_socket_addr(),
+                server_service_binding(),
+                &request,
+                cookie_valid_range(),
+                VALIDATE_COOKIE,
+            )
+            .await;
+
+        // Assert
+        assert!(matches!(result, Err(UdpAnnounceError::ConnectionCookieError { .. })));
+    }
+
+    #[tokio::test]
+    async fn it_should_reject_a_negative_number_of_bytes_before_revealing_whether_the_torrent_is_whitelisted() {
+        // Arrange
+        let fixture = AnnounceServiceFixture::listed_tracker_without_whitelisted_torrents();
+        let mut request = announce_request(valid_connection_id_for(client_socket_addr()));
+        request.bytes_left = torrust_tracker_udp_protocol::NumberOfBytes((-1i64).into());
+
+        // Act
+        let result = fixture
+            .service
+            .handle_announce(
+                client_socket_addr(),
+                server_service_binding(),
+                &request,
+                cookie_valid_range(),
+                VALIDATE_COOKIE,
+            )
+            .await;
+
+        // Assert
+        assert!(matches!(result, Err(UdpAnnounceError::NegativeNumberOfBytes { .. })));
     }
 
     #[tokio::test]
