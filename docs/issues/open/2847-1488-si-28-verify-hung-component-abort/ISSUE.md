@@ -5,7 +5,7 @@ issue-type: task
 status: planned
 priority: p3
 epic: 1488
-github-issue: null
+github-issue: 2847
 spec-path: docs/issues/open/2847-1488-si-28-verify-hung-component-abort/ISSUE.md
 branch: "2847-verify-hung-component-abort"
 related-pr: null
@@ -62,7 +62,8 @@ hung component needs a task that ignores cancellation, which no production compo
 - T1: a feasibility note choosing the least invasive way to run a never-finishing component under the
   real shutdown code. Candidates, in the order to try:
   1. an executable harness (an example or a dev-only test binary) that builds the real `JobManager`,
-     `begin_shutdown`/`report_shutdown` path and exit-code mapping from `src/` with one component that
+     `begin_shutdown` path and the reusable exit-code mapping (`shutdown_exit_code` and
+     `incomplete_components` in `bootstrap::jobs::manager`; `report_shutdown` is private to the binary) with one component that
      never completes, then runs it under the same signalling protocol as the tracker;
   2. an external stall of a real component (for example holding a lock or suspending a dependency the
      component awaits) if one exists without changing production code;

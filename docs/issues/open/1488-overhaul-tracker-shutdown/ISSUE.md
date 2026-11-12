@@ -231,6 +231,9 @@ stays open until they are done or dropped. Recommended implementation order: SI-
 The maintainer decided on 2026-11-12 that SI-25, SI-26 and SI-27 land before the first publish of the
 workspace crates (#2583), which is blocked on this EPIC as a whole.
 
+The four specs were written in one combined spec PR, so their `branch:` frontmatter names the reserved
+implementation branch (`{issue}-{description}`), not the spec branch; the implementing PR uses that name.
+
 **Why SI-16 and SI-17 come before SI-20 and SI-21**: the HTTP and UDP package
 integration tests run through the standalone test environments, which still use
 the legacy `Halted` shutdown path. Migrating them first makes those tests

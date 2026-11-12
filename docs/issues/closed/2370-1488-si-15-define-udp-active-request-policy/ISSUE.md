@@ -496,7 +496,7 @@ Sign every commit with GPG and use the `udp-server` scope.
 
 ### Workflow Checkpoints
 
-- [x] Folder-style spec drafted in `docs/issues/open/1488-overhaul-tracker-shutdown/discarded-drafts/si-15-define-udp-active-request-policy/discarded-draft.md`
+- [x] Folder-style spec drafted in `docs/issues/drafts/1488-si-15-define-udp-active-request-policy/ISSUE.md`
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue #2370 created, linked as a sub-issue of EPIC #1488, and issue number added to this spec
 - [x] Spec-only PR merged into `develop` before implementation

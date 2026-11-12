@@ -5,7 +5,7 @@ issue-type: task
 status: planned
 priority: p3
 epic: 1488
-github-issue: null
+github-issue: 2844
 spec-path: docs/issues/open/2844-1488-si-25-remove-unused-error-variants/ISSUE.md
 branch: "2844-remove-unused-error-variants"
 related-pr: null

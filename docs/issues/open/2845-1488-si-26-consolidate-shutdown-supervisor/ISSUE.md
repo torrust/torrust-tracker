@@ -5,7 +5,7 @@ issue-type: task
 status: planned
 priority: p3
 epic: 1488
-github-issue: null
+github-issue: 2845
 spec-path: docs/issues/open/2845-1488-si-26-consolidate-shutdown-supervisor/ISSUE.md
 branch: "2845-consolidate-shutdown-supervisor"
 related-pr: null

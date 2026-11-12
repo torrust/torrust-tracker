@@ -5,7 +5,7 @@ issue-type: task
 status: planned
 priority: p3
 epic: 1488
-github-issue: null
+github-issue: 2846
 spec-path: docs/issues/open/2846-1488-si-27-deregister-stopped-services/ISSUE.md
 branch: "2846-deregister-stopped-services"
 related-pr: null
@@ -49,7 +49,7 @@ Checked on 2026-11-12 against `torrust/develop` at `388faf59a`.
   tracker and health-check API). None removes it when it stops.
 - `Registar::deregister` exists since `torrust-server-lib` 0.4.0 (the repository uses 0.6.0). It
   removes whichever registration holds a binding, so a caller must pass only a binding it registered.
-- The only production-code user is the health-check API test environment (`stop()`, added by SI-24
+- The only production-code caller is the health-check API test environment (`stop()`, added by SI-24
   so a fixed-port restart can register again). The application components do not call it.
 - The maintainer suggested the change during the SI-21 review: the health list should stop reporting
   services that are no longer available. SI-21 kept it out of scope and recorded it as a later idea.
@@ -68,7 +68,10 @@ unhealthy in the health list. Only an orderly stop (cancellation requested, drai
 
 ### In Scope
 
-- Decide where the deregistration lives (T1). Recommended: in the token-aware stop path of each server
+- Decide where the deregistration lives (T1). Note that the SI-24 `Environment::stop` in
+  `packages/axum-health-check-api-server/src/environment.rs` calls `deregister` before it maps the join
+  error, so a failed stop also loses its entry; T1 must not copy that order, and records whether the
+  environment changes to match. Recommended: in the token-aware stop path of each server
   package, as SI-24 did for the health-check environment, because the package knows the binding it
   registered and the entry is removed exactly when the stop completes. The alternative is the root
   component supervisors, which would need the binding handed back from `start_job`.
