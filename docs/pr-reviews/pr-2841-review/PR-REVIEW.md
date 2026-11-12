@@ -56,6 +56,14 @@ Round 1 is Copilot's review `5875845096` (F13, numbered after the others) and da
 | F11 | review-finding:pr-2841-f11 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F12 | review-finding:pr-2841-f12 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F13 | review-finding:pr-2841-f13 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
+| F14 | review-finding:pr-2841-f14 | Human | Major | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F15 | review-finding:pr-2841-f15 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F16 | review-finding:pr-2841-f16 | Human | Minor | maintainability | ORIGINAL | FIXED | RESOLVED |
+| F17 | review-finding:pr-2841-f17 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F18 | review-finding:pr-2841-f18 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F19 | review-finding:pr-2841-f19 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F20 | review-finding:pr-2841-f20 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F21 | review-finding:pr-2841-f21 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -228,6 +236,110 @@ Round 1 is Copilot's review `5875845096` (F13, numbered after the others) and da
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2841#discussion_r4551572064
 
+### F14 - The rewrite drops two steps the branch had, so the merged history hides a correction
+
+- PR number: 2841
+- Source review ID: 5878329038
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2841#discussion_r4553379899
+- Concern: The first rewrite folded the case-table commit and the TOML re-spacing step into the test commit, hiding a correction, and the description did not say the history was rewritten.
+- Solution: Rebuilt the history from the pre-split commits: README alone, then the test commit with `peer.md`, the records commit, the case-table commit as its own commit, and the record fixes and audit commits above them. The TOML re-spacing step cannot be a separate commit because the pre-commit gate rejects the unformatted array; the test commit carries the formatted array and its body says so. The description says the history was rewritten.
+- Current-tree verification: Listed the rebuilt branch with `git log --format=%s` and compared its final tree with the previous head before the round 2 fixes: identical.
+- Resolution reference: test(primitives): [#2824] test the peer module
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2841#discussion_r4553981820
+
+### F15 - This log entry is stamped before the review it reports as fixed
+
+- PR number: 2841
+- Source review ID: 5878329038
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2841#discussion_r4553379918
+- Concern: A spec Progress Log entry was stamped before the review it reports, and the README frontmatter date was stale.
+- Solution: Added a new Progress Log entry with the real times of the round without editing the old one, and updated the README date.
+- Current-tree verification: Read the new entry and the frontmatter in the tree.
+- Resolution reference: docs(issues): [#2824] correct the S2 record statuses, mutation cells and timing
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2841#discussion_r4553982318
+
+### F16 - The decision record sits in the docs commit, apart from its tests
+
+- PR number: 2841
+- Source review ID: 5878329038
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2841#discussion_r4553379928
+- Concern: The spec puts a file's decision record, tests and coverage in one commit, but the record was in the docs commit before the tests.
+- Solution: The rebuild puts `peer.md` in the test commit; only the shared README is in the docs commit.
+- Current-tree verification: `git show --stat` of the test commit lists `peer.md`.
+- Resolution reference: test(primitives): [#2824] test the peer module
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2841#discussion_r4553982792
+
+### F17 - status: completed is a status no other file test plan uses
+
+- PR number: 2841
+- Source review ID: 5878329038
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2841#discussion_r4553379936
+- Concern: Every other file test plan says `status: done`.
+- Solution: Changed the status to `done`.
+- Current-tree verification: Read the frontmatter of `peer.md`.
+- Resolution reference: docs(issues): [#2824] correct the S2 record statuses, mutation cells and timing
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2841#discussion_r4553983267
+
+### F18 - Three "Killed by" cells still differ from the tests that fail
+
+- PR number: 2841
+- Source review ID: 5878329038
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2841#discussion_r4553379945
+- Concern: Three mutation table cells did not list every test that fails; the audit repeated a count of 6.
+- Solution: Re-ran each mutant at one place and recorded the failing tests; corrected the three cells and the audit text.
+- Current-tree verification: Ran the nine mutants listed in the table one at a time and compared the failing tests with the cells; the file was restored byte for byte.
+- Resolution reference: docs(issues): [#2824] correct the S2 record statuses, mutation cells and timing
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2841#discussion_r4553983709
+
+### F19 - The first run is dated before the decision that added its killing test
+
+- PR number: 2841
+- Source review ID: 5878329038
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2841#discussion_r4553379960
+- Concern: The note dated the first eight mutants to 2026-11-11, before the decision that added their killing test.
+- Solution: The note no longer dates the runs by day.
+- Current-tree verification: Read the note in `peer.md`.
+- Resolution reference: docs(issues): [#2824] correct the S2 record statuses, mutation cells and timing
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2841#discussion_r4553984173
+
+### F20 - The audit misstates two facts that the forge records
+
+- PR number: 2841
+- Source review ID: 5878329038
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2841#discussion_r4553379971
+- Concern: The audit named the reviewed heads by subjects they did not have and marked F13 as the re-raise of F2 although F13 came first.
+- Solution: Corrected the head subjects and the relationship (F2 is `RE_RAISE_OF:F13`) and logged the correction as a new entry.
+- Current-tree verification: Compared the heads and comment times with the API output of the PR.
+- Resolution reference: docs(pr-reviews): [#2824] correct the PR 2841 audit facts after round 2
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2841#discussion_r4553984607
+
+### F21 - Mutator fixture uses zero transfer totals
+
+- PR number: 2841
+- Source review ID: 5878380545
+- Reviewer finding ID: F14
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2841#discussion_r4553421890
+- Concern: Both transfer counters of the fixture were zero, so the three mutator tests also pass if a mutator clears `uploaded` or `downloaded`.
+- Solution: The fixture uses distinct nonzero totals; three mutants that clear a total are killed by their test and recorded in the mutation table.
+- Current-tree verification: Applied each mutant alone and ran the package tests: each fails exactly its mutator test.
+- Resolution reference: test(primitives): [#2824] use nonzero transfer totals in the peer mutator fixture
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2841#discussion_r4553985041
+
 ## Processing Log
 
 - 2026-11-12 14:14 UTC - Copilot's review `5875845096` (1 finding, F13) processed before this record existed: fixed in the test commit and replied on its thread.
@@ -235,6 +347,7 @@ Round 1 is Copilot's review `5875845096` (F13, numbered after the others) and da
 - 2026-11-12 16:17 UTC - da2ce7's review `5876129658` (4 findings, F9 to F12) arrived on the earlier head; its four threads were resolved by mistake in the same sweep, before being read.
 - 2026-11-12 16:24 UTC - Started this audit late, after the first replies. F9 (mutation attributions) and F10 (this record) are real: their threads were reopened, F9 was fixed and replied, F10 got a reply that announces this record. F11 (description) was fixed and F12 was folded by the rewrite; both replied. F9 to F12 and F13 are recorded in the rows above; the F9 and F10 threads are resolved after this record is pushed.
 - 2026-11-12 16:26 UTC - Correction: the entry above stamped 16:24 UTC is later than its commit (16:23 UTC); its content is accurate. The F9 and F10 threads were then resolved, and the validator passed (13 rows).
+- 2026-11-12 17:31 UTC - Round 2: da2ce7's review `5878329038` (7 findings, F14 to F20) and Copilot's review `5878380545` (1 finding, F21; reviewer label F14) processed. The history was rebuilt and force-pushed with the maintainer's approval; the record, mutation cell, status and audit facts were fixed in new commits; F21 fixed with a mutation check. Replied on the eight threads. Correction of an earlier entry: the round 1 fix replies of 16:17 UTC cite subjects that the rebuilt history no longer has; the `Resolution reference` fields above name the current subjects.
 
 ## Completion Rules
 
