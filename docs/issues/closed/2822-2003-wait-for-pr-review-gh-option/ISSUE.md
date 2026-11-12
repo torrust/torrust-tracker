@@ -9,7 +9,7 @@ github-issue: 2822
 spec-path: docs/issues/closed/2822-2003-wait-for-pr-review-gh-option/ISSUE.md
 branch: "2822-wait-for-pr-review-gh-option"
 related-pr: 2835
-last-updated-utc: "2026-11-12 14:07"
+last-updated-utc: "2026-11-12 14:23"
 semantic-links:
   skill-links:
     - create-issue
@@ -248,6 +248,9 @@ increment, before final verification, commit and pull request.
   `linter all` run is recorded in the evidence and its criterion ticked. No `implementation-retrospective.md` was
   created because the only change to the merged spec was the narrowing of AC5 and D2's test bullet (a wording
   change to a test criterion), stated as a deviation in the Implementation Completion Review.
+- 2026-11-12 14:23 UTC - AI assistant (Claude Code, Claude Sonnet 5.5) - At the maintainer's request, added
+  `implementation-retrospective.md` and changed the Implementation Completion Review to point to it; the earlier
+  entries that give the reason for no retrospective are superseded by this one.
 
 ## Acceptance Criteria
 
@@ -312,15 +315,15 @@ Evidence goes in issue-local `manual-verification-evidence.md`, naming the toolc
 
 ## Implementation Completion Review
 
-Recorded at close-out. No separate `implementation-retrospective.md` was created: the implementation followed the
-decisions D1 and D2 of the merged spec (PR #2826, merged 2026-11-11), with one deviation in the spec's own text,
-and the reusable lessons below fit here.
+Recorded at close-out. The implementation followed the decisions D1 and D2 of the merged spec (PR #2826, merged
+2026-11-11), with one deviation in the spec's own text. The maintainer asked for an issue-local retrospective
+during review of the close-out PR; it is `implementation-retrospective.md` in this folder, and the summary below
+repeats its main points.
 
 - Deviations: none from the decisions D1 and D2 of the design. One change to the spec as merged: review of the
   implementation PR (#2835) narrowed AC5 and D2's test bullet from "the tests" to "the tests of a custom
   command", because the four scenarios that exercise the default `gh` reach the fake through the sandbox `PATH`.
-  It needs no separate retrospective because it changes the wording of a test criterion, not the design or the
-  behaviour. The review also added a deterministic unit test for an interrupted identity lookup and made the help
+  It changes the wording of a test criterion, not the design or the behaviour. The review also added a deterministic unit test for an interrupted identity lookup and made the help
   text exact about which value skips `auth status`.
 - Validation findings: the red run of the new tests had two tests that passed before the option existed; the
   evidence recomputes the breakdown (8 of 10 new and 6 existing scenarios failed). A CLI scenario for an
