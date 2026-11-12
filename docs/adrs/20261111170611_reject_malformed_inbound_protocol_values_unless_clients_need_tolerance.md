@@ -100,7 +100,9 @@ reject a bad configuration value. None of them says what to do with a value a cl
    wire level and are equal in the domain, as in [Cap scrape info hashes per
    protocol](20261005124222_cap_scrape_info_hashes_per_protocol.md). Rejecting a malformed value
    is not by itself a reason to ban the client; banning stays with the rules of the UDP ban
-   service. Each field has a parity test that exercises both parsers with the same values.
+   service. Each field has a parity test that sends the same values through both protocols up to the
+   point where the request is accepted or refused, which includes the wire-to-domain conversion
+   and not only the parser.
 
 8. **Validate each kind of rule in the layer that owns it, as early as possible.** Syntax is
    validated in the delivery layer (the wire parser), application invariants in the service, and
