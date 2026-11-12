@@ -66,6 +66,7 @@ F5 and F7 to F12 are in da2ce7's review 5876404520, F14 to F19 in his review 587
 | F18 | review-finding:pr-2840-f18 | Human | Nit | documentation | ORIGINAL | NO_ACTION | SUPERSEDED |
 | F19 | review-finding:pr-2840-f19 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F21 | review-finding:pr-2840-f21 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F22 | review-finding:pr-2840-f22 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -316,6 +317,19 @@ F5 and F7 to F12 are in da2ce7's review 5876404520, F14 to F19 in his review 587
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2840#discussion_r4552646905
 
+### F22 - The introduction does not name review 5877289957
+
+- PR number: 2840
+- Source review ID: 5877609058
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2840#discussion_r4552821546
+- Concern: The introduction named the reviews of the other rows but not review 5877289957, where row F21 comes from.
+- Solution: The sentence names review 5877289957 (F21) and review 5877609058 (F22).
+- Current-tree verification: The Findings introduction of this record.
+- Resolution reference: docs(pr-reviews): [#2822] name review 5877289957 and its successor in the introduction
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2840#discussion_r4552897528
+
 ## Processing Log
 
 - 2026-11-12 14:06 UTC - Review 5875801804 (da2ce7, `CHANGES_REQUESTED`) submitted on the head of the close-out PR: F1, F2, F3.
@@ -327,6 +341,7 @@ F5 and F7 to F12 are in da2ce7's review 5876404520, F14 to F19 in his review 587
 - 2026-11-12 15:18 UTC - Review 5876857550 (da2ce7, `APPROVED`) had been submitted at 15:12 UTC on the head of the previous push, with six findings, none blocking. The spec commit that fixes F14, F15 and F16 was pushed at 15:18 UTC (push log time); those threads and the two no-change threads (F17, F18) were replied to and resolved at 15:18 UTC, and their rows are in this record. F19, the introduction of this record, is fixed by the commit that carries this entry.
 - 2026-11-12 15:23 UTC - The commit that fixes F19 was pushed at 15:23 UTC (push log time), and its thread was replied to and resolved after it; its row is in this record.
 - 2026-11-12 15:41 UTC - Review 5877289957 (da2ce7, `APPROVED`) had been submitted at 15:36 UTC with one nit, F21. The commit that drops the parenthetical was pushed at 15:41 UTC (push log time) and the thread was replied to and resolved after it; its row is in this record.
+- 2026-11-12 16:01 UTC - Review 5877609058 (da2ce7, `APPROVED`) had been submitted at 15:55 UTC with one nit, F22. The commit that names the reviews was pushed at 16:01 UTC (push log time) and the thread was replied to and resolved after it; its row is in this record.
 
 ## Completion Rules
 
