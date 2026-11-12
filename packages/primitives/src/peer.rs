@@ -758,6 +758,8 @@ pub mod test {
         fn it_should_be_completed_only_when_its_last_event_is_completed() {
             assert!(a_peer_with(0, AnnounceEvent::Completed).is_completed());
             assert!(!a_peer_with(0, AnnounceEvent::Started).is_completed());
+            assert!(!a_peer_with(0, AnnounceEvent::Stopped).is_completed());
+            assert!(!a_peer_with(0, AnnounceEvent::None).is_completed());
         }
 
         #[test]

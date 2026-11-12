@@ -4,7 +4,7 @@ issue: 2824
 package: torrust-tracker-primitives
 target-file: packages/primitives/src/peer.rs
 status: done
-last-updated-utc: "2026-11-12 17:53"
+last-updated-utc: "2026-11-12 18:04"
 ---
 
 # `peer.rs` File Test Plan
@@ -84,9 +84,9 @@ not a valid Azureus-style id (the character after the four version characters mu
 registry reports no client for it. The new tests use `-qB4650-abcdefghijkl`, which the registry knows as
 qBittorrent. This confirms the maintainer's concern that test ids should look like real ones.
 
-### Mutation sample (17 mutants, each applied alone to `peer.rs` and reverted exactly)
+### Mutation sample (18 mutants, each applied alone to `peer.rs` and reverted exactly)
 
-The first eight mutants were run first, the next six and the last three in review round 2 of #2841 (2026-11-12). The "Killed by"
+The first eight mutants were run first, the next six and the last four in review rounds 2 and 3 of #2841 (2026-11-12). The "Killed by"
 column is the set of tests that fail on the final test set, re-checked after the case table was added, with the
 mutant applied to one place only (the inherent `Peer` rule for the first two rows).
 
@@ -109,6 +109,7 @@ mutant applied to one place only (the inherent `Peer` rule for the first two row
 | `mark_as_completed` also clears `uploaded` | killed | the mark-as-completed test (fixture with nonzero totals) |
 | `into_completed` also clears `downloaded` | killed | the into-completed test |
 | `into_seeder` also clears `uploaded` | killed | the into-seeder test |
+| `is_completed` is `event != Started` | killed | the completed-only-on-completed test (it now also asserts `Stopped` and `None`) |
 
 No survivor. Run with `cargo test -p torrust-tracker-primitives --lib` per mutant; `cmp` against a saved copy
 showed the file restored byte for byte.
