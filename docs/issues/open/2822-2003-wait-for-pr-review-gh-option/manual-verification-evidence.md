@@ -30,8 +30,15 @@ esac
 ## Red run (T2)
 
 `cargo test --test cli` with the new tests and the updated existing scenarios, before the option existed:
-23 passed, 14 failed. The failing tests were the 10 new ones (`--gh-command` was an unknown option, exit 2) and
-the 4 existing scenarios that now expect `gh_identity`.
+23 passed, 14 failed. The breakdown, recomputed from the committed tests: 8 of the 10 new tests of that run failed (the
+signal-during-lookup test was added after review and was not in this run); 6 existing
+scenarios failed (the two kind-sequence scenarios and the four signal scenarios, which read `gh_identity`
+through `start_and_wait_until_running`). Two of the ten new tests of that run passed before the option
+existed: `it_should_run_auth_status_for_the_default_gh` (the default path already ran `auth status`) and
+`it_should_exit_two_when_gh_command_is_empty` (an unknown option is also a usage error, exit 2). Three of the
+eight failing new tests do not pass the option and failed for other reasons: `..._a_null_login...`,
+`..._stalled_lookup...` and `it_should_document_gh_command_in_the_help`. The empty-value test now also asserts
+the message of the empty-value check, so it no longer passes without the option.
 
 ## Green run (T3)
 
@@ -61,8 +68,12 @@ lookup (the fake, not the poller); they were rerun with the script above and the
 
 `tests/cli.rs` `it_should_stop_on_sigterm_during_the_lookup_without_running_another_command` starts the poller
 with the stalled lookup, sends `SIGTERM`, and asserts exit 1, one `interrupted` record, empty stdout, and that
-the fake served no pull request call and no `auth status`. It was added after review and passes; it was not run
-against the unfixed code.
+the fake served no pull request call and no `auth status`. It guards the fixed behaviour but does not pin the regression:
+on the unfixed code the run usually ends with the same single `interrupted` record, because the poller kills the
+spawned `auth status` child at once. The regression is pinned deterministically by the unit test
+`it_should_return_the_interruption_of_the_identity_lookup_to_the_caller` in `main.rs`, which runs the lookup
+against `yes` (a command that never exits) with the interrupt flag already set and asserts the lookup returns
+`Interrupted`; on the unfixed code `report_identity` returned `()`, so that assertion could not be written.
 
 ## Test design review (prose-first Arrange-Act-Assert)
 

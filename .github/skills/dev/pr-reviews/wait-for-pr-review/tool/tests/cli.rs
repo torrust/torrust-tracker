@@ -721,6 +721,9 @@ fn it_should_exit_two_when_gh_command_is_empty() {
 
     assert_eq!(output.status.code(), Some(2));
     assert_eq!(kinds(&output), ["usage_error"]);
+    // An unknown option is also a usage error, so pin the message of the empty-value check.
+    let message = stderr_records(&output)[0]["message"].as_str().unwrap().to_owned();
+    assert!(message.contains("expected a program name or path"), "got: {message}");
 }
 
 #[test]

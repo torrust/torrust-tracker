@@ -9,7 +9,7 @@ github-issue: 2822
 spec-path: docs/issues/open/2822-2003-wait-for-pr-review-gh-option/ISSUE.md
 branch: "2822-wait-for-pr-review-gh-option-spec"
 related-pr: 2826
-last-updated-utc: "2026-11-11 17:26"
+last-updated-utc: "2026-11-12 08:32"
 semantic-links:
   skill-links:
     - create-issue
@@ -233,6 +233,9 @@ increment, before final verification, commit and pull request.
 - 2026-11-11 17:26 UTC - AI assistant (Claude Code, Claude Sonnet 5.5) - Addressed the first review of PR #2835:
   a signal during the identity lookup now stops the run, the lookup bound is tested on both branches, and the
   fake and the M4 reruns are kept in the evidence.
+- 2026-11-12 08:32 UTC - AI assistant (Claude Code, Claude Sonnet 5.5) - Addressed the second review of PR #2835:
+  the red-run breakdown is recomputed, the empty-value test pins its message, the interrupted-lookup regression
+  has a unit test, AC5's evidence is narrowed to the custom-command scenarios, and the help text is exact.
 
 ## Acceptance Criteria
 
@@ -245,7 +248,7 @@ increment, before final verification, commit and pull request.
       (`null` when the lookup fails or times out). A failed or stalled lookup adds no error kind or exit code, and a stalled lookup
       ends at `min(10 s, timeout / 4)`; the budget it spends and the baseline limit are stated in the
       design review.
-- [x] AC5: The tests reach the fake command only through `--gh-command`, with no `PATH` shim, and the existing
+- [x] AC5: The tests of a custom command reach the fake command only through `--gh-command`, with no `PATH` shim, and the existing
       scenarios are no less reliable.
 - [x] AC6: `--help` and the skill document the option and the reported fields.
 - [ ] `linter all` exits with code `0`
@@ -279,7 +282,7 @@ Evidence goes in issue-local `manual-verification-evidence.md`, naming the toolc
 | AC2   | DONE                   | `tests/cli.rs` (`it_should_not_run_auth_status_for_a_command_named_by_gh_command`, `it_should_run_auth_status_for_the_default_gh`); M1 |
 | AC3   | DONE                   | Existing scenarios green; `it_should_exit_one_with_gh_unavailable_naming_the_command...`; M2 |
 | AC4   | DONE                   | `tests/cli.rs` (`..._login_in_gh_identity`, `..._a_null_login...`, `..._stalled_lookup...`); M3, M4, M4b |
-| AC5   | DONE                   | New scenarios pass the fake only through `--gh-command` with `PATH=/usr/bin:/bin`; flakiness note in the evidence file |
+| AC5   | DONE                   | Four custom-command scenarios pass the fake only through `--gh-command` with `PATH=/usr/bin:/bin`; four scenarios reach it through the sandbox `PATH` because they exercise the default `gh`; three reach no fake (`/nonexistent`, `--help`, the empty value); flakiness note in the evidence file |
 | AC6   | DONE                   | `it_should_document_gh_command_in_the_help`; `SKILL.md` option row and stderr paragraph |
 
 ## Risks and Trade-offs

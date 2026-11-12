@@ -67,8 +67,8 @@ struct Cli {
     #[arg(long, value_parser = utc_timestamp)]
     since: Option<i64>,
     /// The GitHub CLI command to run for every call to GitHub: one program name or a path, never split on
-    /// spaces and never run through a shell. It must accept the `gh` command line (`api ...`). The default
-    /// `gh` is checked with `gh auth status` first; a command you name is not. The `wait_started` and
+    /// spaces and never run through a shell. It must accept the `gh` command line (`api ...`). The value
+    /// `gh`, the default, is checked with `gh auth status` first; any other value is not. The `wait_started` and
     /// `gh_identity` records on stderr report the command and the login it runs as.
     #[arg(long, default_value = DEFAULT_GH_COMMAND, value_parser = gh_command)]
     gh_command: String,
@@ -254,6 +254,18 @@ fn write_diagnostic(diagnostic: &impl Serialize) -> io::Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    // `yes` never exits on its own, whatever its arguments, so the lookup is still running when the flag is
+    // seen: the interruption is then deterministic and needs no fake script.
+    #[cfg(unix)]
+    #[test]
+    fn it_should_return_the_interruption_of_the_identity_lookup_to_the_caller() {
+        let interrupted = Arc::new(AtomicBool::new(true));
+
+        let result = report_identity("yes", &interrupted, Instant::now(), Duration::from_secs(900));
+
+        assert!(matches!(result, Err(wait_for_pr_review::Error::Interrupted)));
+    }
 
     #[test]
     fn it_should_bound_the_lookup_at_a_quarter_of_a_short_timeout() {
