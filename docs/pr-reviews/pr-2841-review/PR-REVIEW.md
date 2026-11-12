@@ -39,12 +39,12 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Findings
 
-Round 1 is Copilot's review `5875845096` (F13, numbered after the others), da2ce7's review `5875864302` (F1 to F8) and da2ce7's review `5876129658` (F9 to F12), submitted on the heads whose last commits have the subjects `docs(issues): [#2824] record the S2 coverage, mutation results and the F6 finding` and `docs(issues): [#2824] cover the ReadInfo role predicates for every state` (the latter is gone after the history rewrite described in F1).
+Round 1 is Copilot's review `5875845096` (F13, numbered after the others) and da2ce7's review `5875864302` (F1 to F8), both submitted on the head whose last commit had the subject `docs(issues): [#2824] record the S2 coverage and the F6 finding`, and da2ce7's review `5876129658` (F9 to F12), submitted on the head whose last commit has the subject `test(primitives): [#2824] cover the ReadInfo role predicates for every state`. Round 2 is da2ce7's review `5878329038` (F14 to F20), submitted on the head whose last commit has the subject `docs(pr-reviews): [#2824] correct a log stamp of the PR 2841 audit`. The branch history was rebuilt after round 2 (see F14), so the subjects of the round 1 fix commits are those listed in each `Resolution reference` below.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
 | F1 | review-finding:pr-2841-f1 | Human | Major | maintainability | ORIGINAL | FIXED | RESOLVED |
-| F2 | review-finding:pr-2841-f2 | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F2 | review-finding:pr-2841-f2 | Human | Minor | testing | RE_RAISE_OF:F13 | FIXED | RESOLVED |
 | F3 | review-finding:pr-2841-f3 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F4 | review-finding:pr-2841-f4 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F5 | review-finding:pr-2841-f5 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
@@ -55,7 +55,7 @@ Round 1 is Copilot's review `5875845096` (F13, numbered after the others), da2ce
 | F10 | review-finding:pr-2841-f10 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F11 | review-finding:pr-2841-f11 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F12 | review-finding:pr-2841-f12 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
-| F13 | review-finding:pr-2841-f13 | Copilot | Minor (inferred) | testing | RE_RAISE_OF:F2 | FIXED | RESOLVED |
+| F13 | review-finding:pr-2841-f13 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -66,7 +66,7 @@ Round 1 is Copilot's review `5875845096` (F13, numbered after the others), da2ce
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2841#discussion_r4551530157
 - Concern: The docs commit carried the `peer.rs` tests, the manifests and the lock, and the test commit carried only a TOML re-spacing, so history and blame would point at the wrong commits; the description repeated the mismatch and lacked a "Validation performed" part.
-- Solution: Rewrote the unmerged branch (force-push with lease, with the maintainer's approval): the docs commit carries only `README.md` and `peer.md`; the test commit carries `peer.rs`, the manifests and the lock, with the taplo-formatted array in place; the description lists every commit and has the validation part.
+- Solution: Rewrote the unmerged branch (force-push with lease, with the maintainer's approval): the docs commit carried only the plan files and the test commit the code. Round 2 (F14, F16) found that the rewrite folded steps and put the record apart from its tests; the history was rebuilt from the pre-split commits (see F14).
 - Current-tree verification: Listed the files of each rewritten commit with `git show --stat`; the test commit contains `peer.rs`, `packages/primitives/Cargo.toml` and `Cargo.lock`, the docs commit only the two plan files.
 - Resolution reference: test(primitives): [#2824] test the peer module
 - Follow-up PR URL: N/A
@@ -94,7 +94,7 @@ Round 1 is Copilot's review `5875845096` (F13, numbered after the others), da2ce
 - Concern: The S2 row said "PR number at open", S1 stayed `IN_PROGRESS`, the EPIC row still said S1 was in review and the spec had no S2 Progress Log entry.
 - Solution: S1 is `DONE`, S2 names #2841, the EPIC row says S1 is merged and S2 in review, and the Progress Log has an S2 entry.
 - Current-tree verification: Read the three places back in the tree: the slice table, the EPIC subissue row and the Progress Log.
-- Resolution reference: docs(issues): [#2824] record the S2 coverage, mutation results and the F6 finding
+- Resolution reference: docs(issues): [#2824] fix the S2 records after review round 1
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2841#discussion_r4553084277
 
@@ -107,7 +107,7 @@ Round 1 is Copilot's review `5875845096` (F13, numbered after the others), da2ce
 - Concern: The S2 EPIC entry was appended after the References list and was stamped 13:40 UTC, before the commit that carries it.
 - Solution: Moved the entries under the Progress Log after the S1 entry; the rewritten commits are dated after every stamp (13:40 and 14:10 UTC).
 - Current-tree verification: Compared the stamps with `git log --format=%cI` for the rewritten commits.
-- Resolution reference: docs(issues): [#2824] record the S2 coverage, mutation results and the F6 finding
+- Resolution reference: docs(issues): [#2824] fix the S2 records after review round 1
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2841#discussion_r4553084785
 
@@ -120,7 +120,7 @@ Round 1 is Copilot's review `5875845096` (F13, numbered after the others), da2ce
 - Concern: Several records named #2482 (closed, did not move the fixture) as owner of `peer::fixture`, against the F5 row and the inventory.
 - Solution: The README, `peer.md`, `coverage-evidence.md` and the ledger row now name the F5 follow-up (`peer-id-test-helper`) as the owner and cite #2482 only as closed.
 - Current-tree verification: Searched the issue folder for `2482`: the remaining mentions say it is closed.
-- Resolution reference: docs(issues): [#2824] add the shared test plan guidance and the peer.rs decision record
+- Resolution reference: docs(issues): [#2824] fix the S2 records after review round 1
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2841#discussion_r4553085358
 
@@ -133,7 +133,7 @@ Round 1 is Copilot's review `5875845096` (F13, numbered after the others), da2ce
 - Concern: The approved record said `From` and `DerefMut` are unselected, yet the PR adds a test for each.
 - Solution: Recorded the deviation and its reason in the record row: two cheap tests that pin the delegation.
 - Current-tree verification: Read the row in `peer.md`.
-- Resolution reference: docs(issues): [#2824] add the shared test plan guidance and the peer.rs decision record
+- Resolution reference: docs(issues): [#2824] fix the S2 records after review round 1
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2841#discussion_r4553085818
 
@@ -146,7 +146,7 @@ Round 1 is Copilot's review `5875845096` (F13, numbered after the others), da2ce
 - Concern: The frontmatter, the intro, the README index and the Validation section still described the completed-file review as pending.
 - Solution: Set the status to `completed` and updated the intro, the README row and the Validation section; the second gate was passed on 2026-11-12.
 - Current-tree verification: Searched `peer.md` and the README for `pending` and `are added at the completed-file review`: none left.
-- Resolution reference: docs(issues): [#2824] add the shared test plan guidance and the peer.rs decision record
+- Resolution reference: docs(issues): [#2824] fix the S2 records after review round 1
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2841#discussion_r4553086615
 
@@ -159,7 +159,7 @@ Round 1 is Copilot's review `5875845096` (F13, numbered after the others), da2ce
 - Concern: The results heading and the coverage evidence dated the same measurement differently, and the Decisions section dated the Q1 resolution before it happened.
 - Solution: The results are dated 2026-11-12; the Decisions heading says Q1 was settled on 2026-11-12.
 - Current-tree verification: Read the two headings and the coverage-evidence section.
-- Resolution reference: docs(issues): [#2824] add the shared test plan guidance and the peer.rs decision record
+- Resolution reference: docs(issues): [#2824] fix the S2 records after review round 1
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2841#discussion_r4553087247
 
@@ -170,7 +170,7 @@ Round 1 is Copilot's review `5875845096` (F13, numbered after the others), da2ce
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2841#discussion_r4551735656
 - Concern: After the case table was added, several mutants are also killed by it, so the recorded attributions were stale.
-- Solution: Re-ran the three affected mutants and updated the column (the negative-left test and the role-case table; 6 tests; the role-case table and the shared-peer test); the table says which mutants were run on which day.
+- Solution: Re-ran the affected mutants and updated the column; round 2 (F18) found three cells still differing, and they were corrected from a run of each mutant at one place.
 - Current-tree verification: Mutated lines of `peer.rs` one at a time, listed the failing tests and restored the file (`cmp`).
 - Resolution reference: docs(issues): [#2824] re-check the mutation attributions of the peer.rs record
 - Follow-up PR URL: N/A
