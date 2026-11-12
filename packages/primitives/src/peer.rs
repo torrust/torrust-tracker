@@ -744,8 +744,8 @@ pub mod test {
             assert_eq!(peer.role(), PeerRole::Seeder);
         }
 
-        // A negative number of bytes left is not meaningful: issue #2838 makes the UDP announce reject it.
-        // This test pins how the signed domain value is classified, which stays valid after that fix.
+        // A negative number of bytes left is not meaningful: issue #2850 makes it unrepresentable.
+        // This test pins how the signed domain value is classified until then; that change removes it.
         #[test]
         fn it_should_treat_a_negative_number_of_bytes_left_as_a_seeder() {
             let peer = a_peer_with(-1, AnnounceEvent::Started);
