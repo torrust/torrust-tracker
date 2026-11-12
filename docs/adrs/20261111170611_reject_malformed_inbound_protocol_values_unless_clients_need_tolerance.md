@@ -87,7 +87,7 @@ reject a bad configuration value. None of them says what to do with a value a cl
    specification is not our decision and its reasons may be unknown. The wire parser therefore
    accepts what the BEP type allows. A value the specification allows but the domain does not is
    refused at the first conversion into a type the project owns (application or domain layer),
-   as the fallible conversion in `udp-core` does for a negative `left`. The malformed value
+   as issue #2850 plans for a negative `left` with a fallible conversion in `udp-core`. The malformed value
    never reaches `primitives` or `tracker-core`. A tolerance normalizes to a value the domain
    already accepts. Domain types protect their invariants with newtypes and constructors (for
    example a non-negative number of bytes) and carry no special cases for malformed input. See
