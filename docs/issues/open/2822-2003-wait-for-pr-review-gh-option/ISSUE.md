@@ -9,7 +9,7 @@ github-issue: 2822
 spec-path: docs/issues/open/2822-2003-wait-for-pr-review-gh-option/ISSUE.md
 branch: "2822-wait-for-pr-review-gh-option-spec"
 related-pr: 2826
-last-updated-utc: "2026-11-12 08:32"
+last-updated-utc: "2026-11-12 08:59"
 semantic-links:
   skill-links:
     - create-issue
@@ -149,8 +149,9 @@ sub-issue and can be its own issue once the skill text exists.
   follows with `gh_command` and `gh_login` (the login from `api user`; `null` when the lookup fails or times
   out). Putting the login in its own record keeps `wait_started` immediate (see the design review). The lookup is
   best effort and bounded as described above.
-- Tests pass a fake script's path through `--gh-command` while `PATH` does not contain it, so the option is the
-  only route to it. The existing scenarios keep their `PATH`-based fake, but the six that the `gh_identity` record
+- Tests of a custom command pass a fake script's path through `--gh-command` while `PATH` does not contain it, so
+  the option is the only route to it; the tests that exercise the default `gh` reach the fake through the sandbox
+  `PATH`. The existing scenarios keep their `PATH`-based fake, but the six that the `gh_identity` record
   changes are updated, because the record is written on every run and the fake's `api user` fails, so
   `gh_login` is `null`: the two kind-sequence scenarios (the result scenario and the not-authenticated
   scenario) gain the record in their expected sequence, and the four signal scenarios, which parse the rest
@@ -236,6 +237,10 @@ increment, before final verification, commit and pull request.
 - 2026-11-12 08:32 UTC - AI assistant (Claude Code, Claude Sonnet 5.5) - Addressed the second review of PR #2835:
   the red-run breakdown is recomputed, the empty-value test pins its message, the interrupted-lookup regression
   has a unit test, AC5's evidence is narrowed to the custom-command scenarios, and the help text is exact.
+- 2026-11-12 08:59 UTC - AI assistant (Claude Code, Claude Sonnet 5.5) - Addressed the third review of PR #2835: the 08:32
+  entry understated the AC5 change. The criterion itself, merged with the spec in PR #2826, was narrowed to "the
+  tests of a custom command", because the four scenarios that exercise the default `gh` cannot reach the fake
+  only through the option; D2's test bullet now says the same.
 
 ## Acceptance Criteria
 
