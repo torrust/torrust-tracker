@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Set CARGO_BUILD_JOBS to override the default cap on parallel Rust compiler jobs of the image build
-# (see "Memory and CPU use" in docs/containers.md), for example: CARGO_BUILD_JOBS=8 ./docker-build.sh
+# (see "Memory and CPU Use" in docs/containers.md), for example: CARGO_BUILD_JOBS=8 ./contrib/dev-tools/containers/docker-build.sh
 
 echo "Building docker image ..."
 

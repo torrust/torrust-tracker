@@ -69,10 +69,13 @@ end="$(date +%s)"
     awk -F'\t' -v base="${baseline_kb}" 'NR>1 {
         if (min=="" || $2<min) min=$2
         if ($3>max_count) max_count=$3
-        if ($4>max_rss) max_rss=$4
+        # Track peak RSS and the rustc count of that SAME sample (not an independent column
+        # maximum, which can come from a different, lower-memory moment, for example a brief
+        # process-count spike at a stage handoff before the new processes have grown).
+        if ($4>max_rss) { max_rss=$4; count_at_peak_rss=$3 }
     } END {
-        printf "baseline_available_gib=%.1f min_available_gib=%.1f peak_used_delta_gib=%.1f peak_rustc_count=%d peak_rustc_rss_gib=%.1f\n",
-            base/1048576, min/1048576, (base-min)/1048576, max_count, max_rss/1048576
+        printf "baseline_available_gib=%.1f min_available_gib=%.1f peak_used_delta_gib=%.1f peak_rustc_rss_gib=%.1f rustc_count_at_peak_rss=%d max_concurrent_rustc_count=%d\n",
+            base/1048576, min/1048576, (base-min)/1048576, max_rss/1048576, count_at_peak_rss, max_count
     }' "${samples}"
 } | tee -a "${summary}"
 exit "${status}"

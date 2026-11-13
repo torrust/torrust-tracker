@@ -136,7 +136,7 @@ Measured on a 32-thread machine for the release image (uncached build):
 
 Rule of thumb: peak RAM is about 2.5 GiB times the value, plus the system and whatever else is running. Raise it on a big machine to build
 faster; lower it (for example `2`) on a machine with 8 GB or less. See the
-[experiment report](../contrib/dev-tools/experiments/container-build-jobs/REPORT.md) for the method and the raw data.
+[experiment report](../contrib/dev-tools/experiments/container-build-jobs/report.md) for the method and the raw data.
 
 ```sh
 # Docker
@@ -148,6 +148,11 @@ podman build --target release --build-arg CARGO_BUILD_JOBS=8 --tag torrust-track
 # The build script passes the environment variable on
 CARGO_BUILD_JOBS=8 ./contrib/dev-tools/containers/docker-build.sh
 ```
+
+Using a value other than the one already cached invalidates the build cache from the `chef` and `tester` stages' first `RUN`
+onward: both the `ARG` and the `ENV` enter the cache key of every later layer, so apt installs, tool installs and every
+third-party and workspace cook re-run. Pick one value for a given machine and keep using it to keep the cache warm; switching
+back and forth pays the full cold-build time each time.
 
 `CARGO_BUILD_JOBS` is a standard Cargo setting: outside containers, `CARGO_BUILD_JOBS=4 cargo build` and `CARGO_BUILD_JOBS=4 cargo test` apply the same limit
 to your host builds.

@@ -9,7 +9,7 @@ github-issue: 2853
 spec-path: docs/issues/open/2853-container-build-jobs-limit/ISSUE.md
 branch: "2853-container-build-jobs-limit"
 related-pr: null
-last-updated-utc: "2026-11-13 08:50"
+last-updated-utc: "2026-11-13 10:55"
 semantic-links:
   skill-links:
     - create-issue
@@ -17,7 +17,7 @@ semantic-links:
   related-artifacts:
     - Containerfile
     - contrib/dev-tools/containers/docker-build.sh
-    - contrib/dev-tools/experiments/container-build-jobs/REPORT.md
+    - contrib/dev-tools/experiments/container-build-jobs/report.md
     - docs/containers.md
     - docs/self-hosted-runner.md
     - .github/skills/dev/debugging/fix-bug/SKILL.md
@@ -44,11 +44,11 @@ The goal is to lower the default so contributors with smaller machines can build
 
 ### In Scope
 
-- Measure peak memory and wall time of the release image build at `CARGO_BUILD_JOBS` = 4, 8 and 16, and record it in `contrib/dev-tools/experiments/container-build-jobs/REPORT.md` (same format as `contrib/dev-tools/experiments/sccache-docker/`), together with the measurement script.
+- Measure peak memory and wall time of the release image build at `CARGO_BUILD_JOBS` = 4, 8 and 16, and record it in `contrib/dev-tools/experiments/container-build-jobs/report.md` (same format as `contrib/dev-tools/experiments/sccache-docker/`), together with the measurement script.
 - Choose the default from that evidence.
 - `Containerfile`: one `ARG CARGO_BUILD_JOBS` plus `ENV CARGO_BUILD_JOBS` in the `chef` base stage, so every Rust stage is capped in one place.
 - `contrib/dev-tools/containers/docker-build.sh`: pass the value as a build argument when the caller sets it.
-- `docs/containers.md`: a "Memory and CPU use" subsection (default and why, raising and lowering it, memory rule of thumb, effect on plain `cargo build` and `cargo test`).
+- `docs/containers.md`: a "Memory and CPU Use" subsection (default and why, raising and lowering it, memory rule of thumb, effect on plain `cargo build` and `cargo test`).
 - Decide and record whether BuildKit stage overlap should also be addressed in the `Containerfile`.
 - Check the effect on the self-hosted CI runner and on GitHub-hosted runners.
 
@@ -88,12 +88,12 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Status      | Task                                                         | Notes / Expected Output                                                         |
 | --- | ----------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------- |
-| T1  | DONE        | Measure the release image build at 4, 8 and 16 jobs          | `REPORT.md` with peak memory, peak `rustc` count and wall time per job count    |
-| T2  | DONE        | Choose the default and decide on stage overlap               | Decision and reasoning in `REPORT.md`                                           |
+| T1  | DONE        | Measure the release image build at 4, 8 and 16 jobs          | `report.md` with peak memory, peak `rustc` count and wall time per job count    |
+| T2  | DONE        | Choose the default and decide on stage overlap               | Decision and reasoning in `report.md`                                           |
 | T3  | DONE        | `Containerfile` `ARG`/`ENV` in the `chef` stage              | Every cook, archive and build step capped; stages outside `chef` need no change |
 | T4  | DONE        | `docker-build.sh` passes `CARGO_BUILD_JOBS`                  | Build argument only when set                                                    |
-| T5  | DONE        | `docs/containers.md` "Memory and CPU use"                    | Default, raise, lower, rule of thumb, plain-cargo note                          |
-| T6  | DONE        | Check the self-hosted and GitHub-hosted runners              | Recorded in `REPORT.md` (see Risks)                                             |
+| T5  | DONE        | `docs/containers.md` "Memory and CPU Use"                    | Default, raise, lower, rule of thumb, plain-cargo note                          |
+| T6  | IN_PROGRESS | Check the self-hosted and GitHub-hosted runners              | Reasoning in `report.md`; real self-hosted run at this head pending (M4)        |
 
 ## Commit Points
 
@@ -121,13 +121,15 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ### Progress Log
 
-- 2026-11-13 09:50 UTC - Claude Code (Claude Sonnet 5.5) - Spec approved by the maintainer; issue #2853 created; implementation PR with spec, evidence and changes (no spec-only PR) - https://github.com/torrust/torrust-tracker/issues/2853
-- 2026-11-13 09:05 UTC - Claude Code (Claude Sonnet 5.5) - Measured the release image build (uncached, one at a time, watchdog at 8 GiB): 4 jobs 836 s / 10.4 GiB peak `rustc` RSS (12 `rustc`); 8 jobs 499 s / 19.8 GiB (16); 16 jobs 346 s / 35.5 GiB (24). Chose default 4; stage overlap left unchanged; implemented Containerfile, script and docs on the draft branch (not committed) - `contrib/dev-tools/experiments/container-build-jobs/REPORT.md`
 - 2026-11-13 08:50 UTC - Claude Code (Claude Sonnet 5.5) - Drafted the specification; measurement of the release image build started at 4 jobs - `contrib/dev-tools/experiments/container-build-jobs/`
+- 2026-11-13 08:31-08:59 UTC - Claude Code (Claude Sonnet 5.5) - Measured the release image build (uncached, one at a time, watchdog at 8 GiB): 4 jobs 836 s / 10.4 GiB peak `rustc` RSS; 8 jobs 499 s / 19.8 GiB; 16 jobs 346 s / 35.5 GiB. Chose default 4; stage overlap left unchanged - `contrib/dev-tools/experiments/container-build-jobs/results/`
+- 2026-11-13 09:44-09:48 UTC - Claude Code (Claude Sonnet 5.5) - Spec approved by the maintainer; issue #2853 created (`a3aaab735`); implemented Containerfile, script and docs (`29a321eb6`, `ca14aeb82`); opened implementation PR (no spec-only PR) - https://github.com/torrust/torrust-tracker/issues/2853, https://github.com/torrust/torrust-tracker/pull/2854
+- 2026-11-13 10:20-10:38 UTC - Claude Code (Claude Sonnet 5.5) - Addressed the Copilot review's R1/R2 (tester-stage cap, measure.sh signal trap), pushed (`334decbf9`) and replied on both threads.
+- 2026-11-13 10:55 UTC - Claude Code (Claude Sonnet 5.5) - Addressed da2ce7's review (F1-F11): corrected report.md's per-process-memory arithmetic and stage-overlap claim (F4, F5), fixed the `tester`/`chef` risk statement (F6), documented the build-cache invalidation (F7), renamed `REPORT.md` to `report.md` (F10) and fixed the heading-case and script-path nits (F9, F11), added the evidence file's reproduction classification (F2) and the no-flag default verification (F3), corrected the progress-log timestamps (F8). AC6/T6 held at IN_PROGRESS pending the real self-hosted run at this head (`run 43410572813`, in progress) - `contrib/dev-tools/experiments/container-build-jobs/report.md`
 
 ## Acceptance Criteria
 
-- [ ] AC1: `REPORT.md` records peak memory and wall time of the release image build at 4, 8 and 16 jobs, and the reproducible command.
+- [ ] AC1: `report.md` records peak memory and wall time of the release image build at 4, 8 and 16 jobs, and the reproducible command.
 - [ ] AC2: `docker build --target release` on a machine with many cores keeps the Cargo jobs at the chosen default without any flag; `--build-arg CARGO_BUILD_JOBS=N` overrides it for Docker and Podman.
 - [ ] AC3: `docker-build.sh` honours `CARGO_BUILD_JOBS` from the environment.
 - [ ] AC4: `docs/containers.md` documents the default, how to raise and lower it, and the memory rule of thumb.
@@ -150,26 +152,27 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID  | Scenario                    | Human-oriented command/steps                                                                                   | Expected Result                                               | Status | Evidence                                     |
 | --- | --------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- | ------ | -------------------------------------------- |
-| M1  | Measurement at 4, 8, 16     | `contrib/dev-tools/experiments/container-build-jobs/measure.sh <N>` one at a time, watchdog at 8 GiB available | Peak memory and wall time recorded                            | DONE   | `REPORT.md`                                  |
-| M2  | Release build, default      | `docker build --no-cache --target release --tag torrust-tracker:release --file Containerfile .`               | Build passes; peak memory matches the measured default        | DONE   | `manual-verification-evidence.md` section V2 |
-| M3  | Override and script         | `docker build --target chef --build-arg CARGO_BUILD_JOBS=2 ...` then `printenv`; `CARGO_BUILD_JOBS=2 ./contrib/dev-tools/containers/docker-build.sh` | `CARGO_BUILD_JOBS=2` visible in the stage and used by the build | DONE   | `manual-verification-evidence.md` section V3 |
+| M1  | Measurement at 4, 8, 16     | `contrib/dev-tools/experiments/container-build-jobs/measure.sh <N>` one at a time, watchdog at 8 GiB available | Peak memory and wall time recorded                            | DONE   | `report.md`                                  |
+| M2  | Release build, implicit default | `docker build --target chef\|tester ...` and `--target release --build-arg CARGO_BUILD_JOBS=4 ...` (the jobs-4 measurement) | No-flag build reaches `CARGO_BUILD_JOBS=4`; full build passes at that default | DONE   | `manual-verification-evidence.md` section V2 |
+| M3  | Override and script         | `docker build --target chef\|tester --build-arg CARGO_BUILD_JOBS=2 ...` then `printenv`; `CARGO_BUILD_JOBS=2 ./contrib/dev-tools/containers/docker-build.sh` | `CARGO_BUILD_JOBS=2` visible in both stages and used by the build | DONE   | `manual-verification-evidence.md` section V3 |
+| M4  | Self-hosted runner, this head | `Test (Docker) (release)` job on `torrust-runner-01` for this PR's head commit | Job duration recorded and compared with the prior unlimited-jobs baseline | IN_PROGRESS | `manual-verification-evidence.md` section V4 |
 
 ### Acceptance Verification
 
 | AC ID | Status (`TODO`/`DONE`) | Evidence |
 | ----- | ---------------------- | -------- |
-| AC1   | DONE                   | `REPORT.md` |
+| AC1   | DONE                   | `report.md` |
 | AC2   | DONE                   | M2, M3   |
 | AC3   | DONE                   | M3       |
 | AC4   | DONE                   | `docs/containers.md` |
-| AC5   | DONE                   | `REPORT.md` |
-| AC6   | DONE                   | `REPORT.md` |
+| AC5   | DONE                   | `report.md` |
+| AC6   | TODO                   | M4; `report.md` "Effect on the runners" |
 
 ## Risks and Trade-offs
 
 - A lower default makes builds slower on big machines. Mitigation: one flag raises it; the measured slowdown is documented.
 - The self-hosted runner (8 vCPU, 16 GB RAM) may build slower with a cap below 8. Mitigation: checked in T6 against the measured times; the workflow can pass a different value through `build-args` if needed.
-- `CARGO_BUILD_JOBS` set in the image `ENV` also reaches `cargo nextest run` in the `test` stages (they derive from `tester`, not `chef`, so they are not capped; the test binaries are already compiled by then).
+- `test` and `test_debug` derive from `tester`, not `chef`, so the `chef` stage's `ARG`/`ENV` does not reach them. `tester` now has its own `CARGO_BUILD_JOBS` `ARG`/`ENV` (added after review, since its `cargo binstall` of `cargo-nextest` can fall back to a source compile), but `cargo nextest run` itself compiles nothing — the test binaries it runs were already compiled by the preceding `build`/`build_debug`/`build_shipped*` stages — so the variable has no effect there either way.
 
 ## Implementation Completion Review
 
