@@ -287,7 +287,7 @@ States: `PENDING`, `IN_PROGRESS`, `BLOCKED`, `DONE`. Unit-only lines are the bas
 | 3 | `announce.rs` | 2 | S3 | 0 / 16 | Test candidate | DONE (S3) |
 | 4 | `policy.rs` | 2 | S3 | 0 / 16 | Test candidate | DONE (S3) |
 | 5 | `mode.rs` | 2 | S3 | 0 / 8 | Test candidate | DONE (S3) |
-| 6 | `pagination.rs` | 2 | S3 | 0 / 21 | Test candidate | PENDING |
+| 6 | `pagination.rs` | 2 | S3 | 0 / 21 | Test candidate | IN_PROGRESS (S3, record approved) |
 | 7 | `swarm_metadata.rs` | 3 | S4 | 3 / 18 | Test candidate; the `AddAssign` lines are not tested because #2823 deletes the impl | PENDING |
 | 8 | `scrape.rs` | 3 | S4 | 28 / 28 | No change; review test breadth | PENDING |
 | 9 | `service_role.rs` | 4 | S4 | 40 / 40 | No change | PENDING |
