@@ -23,19 +23,30 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 - Relationship: `ORIGINAL`, `RE_RAISE_OF:<FindingId>`
 - Disposition: `FIXED`, `NO_ACTION`, `SUPERSEDED`, `FOLLOW_UP`
-- Thread state: `OPEN`, `RESOLVED`, `NON_RESOLVABLE`, `SUPERSEDED`
+- Thread state: `OPEN`, `RESOLVED`, `NON_RESOLVABLE`, `SUPERSEDED`. `OPEN` applies prospectively
+  to audits created or updated for approved follow-up work; historical audits remain valid without
+  bulk migration.
 - Severity: `Blocker`, `Major`, `Minor`, `Nit`, `Suggestion`; append `(inferred)` when derived
   from free prose.
 - Author class: `Copilot`, `Human`, `Unknown`
 - Category: `link-integrity`, `formatting`, `metadata`, `testing`, `correctness`,
   `documentation`, `maintainability`, `security`, `other`
+- An outdated thread whose concern was fixed is `FIXED`/`RESOLVED`, even when GitHub marks the
+  original thread outdated after the push. For in-PR feedback, use `NO_ACTION`/`SUPERSEDED` only
+  for a duplicate, superseded, or no-change concern. A post-merge `NO_ACTION` requires maintainer
+  approval to decline the follow-up work.
+- When the current identity cannot resolve a thread (`viewerCanResolve` is `false`), keep the
+  disposition established from the current tree and record `Thread state=OPEN`. The reviewer or PR
+  author resolves it; permission says nothing about whether the concern was fixed.
 
 ## Findings
 
 Rounds: da2ce7 review `5878128462` (F1 to F6), Copilot reviews `5878561072` (F7 to F9) and
 `5881738305` (F10), da2ce7 reviews `5887686736` (F11, F12), `5887812564` (F13, F14) and
-`5889285431` (F15). da2ce7's
-`F7` of the third round collided with Copilot's audit-local `F7`, so it is `F11` here with the
+`5889285431` (F15), da2ce7 review `5889719702` (F20 to F22) and Copilot review `5889787805` (F16 to
+F19). da2ce7's `F7` of the third round collided with Copilot's audit-local `F7`, so it is `F11` here
+with the reviewer ID recorded; da2ce7's `F8`, `F10` and `F11` of the newest round collided with the
+existing audit-local `F8`, `F10` and `F11`, so they are `F20`, `F21` and `F22` here, each with the
 reviewer ID recorded.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
@@ -47,14 +58,21 @@ reviewer ID recorded.
 | F5 | review-finding:pr-2848-f5 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F6 | review-finding:pr-2848-f6 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F7 | review-finding:pr-2848-f7 | Copilot | Major (inferred) | link-integrity | ORIGINAL | NO_ACTION | RESOLVED |
-| F8 | review-finding:pr-2848-f8 | Copilot | Major (inferred) | metadata | ORIGINAL | FIXED | RESOLVED |
-| F9 | review-finding:pr-2848-f9 | Copilot | Minor (inferred) | link-integrity | ORIGINAL | FIXED | RESOLVED |
+| F8 | review-finding:pr-2848-f8 | Copilot | Major (inferred) | metadata | RE_RAISE_OF:F3 | FIXED | RESOLVED |
+| F9 | review-finding:pr-2848-f9 | Copilot | Minor (inferred) | link-integrity | RE_RAISE_OF:F1 | FIXED | RESOLVED |
 | F10 | review-finding:pr-2848-f10 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 | F11 | review-finding:pr-2848-f11 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F12 | review-finding:pr-2848-f12 | Human | Minor | documentation | RE_RAISE_OF:F4 | FIXED | RESOLVED |
 | F13 | review-finding:pr-2848-f13 | Human | Minor | documentation | RE_RAISE_OF:F4 | FIXED | RESOLVED |
 | F14 | review-finding:pr-2848-f14 | Human | Minor | documentation | RE_RAISE_OF:F11 | FIXED | RESOLVED |
 | F15 | review-finding:pr-2848-f15 | Human | Minor | documentation | RE_RAISE_OF:F11 | FIXED | RESOLVED |
+| F16 | review-finding:pr-2848-f16 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
+| F17 | review-finding:pr-2848-f17 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F18 | review-finding:pr-2848-f18 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
+| F19 | review-finding:pr-2848-f19 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
+| F20 | review-finding:pr-2848-f20 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F21 | review-finding:pr-2848-f21 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F22 | review-finding:pr-2848-f22 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -155,7 +173,7 @@ reviewer ID recorded.
 - Source review ID: 5878561072
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2848#discussion_r4553564459
-- Concern: Same defect as F3 in the four new specs.
+- Concern: Same defect as F3 in the four new specs. Re-raise, per F17 (Relationship corrected to RE_RAISE_OF:F3).
 - Solution: Set github-issue in all four specs (same change as F3).
 - Current-tree verification: grep of github-issue in the four specs shows the numbers.
 - Resolution reference: docs(issues): [#1488] address review of PR #2848
@@ -168,7 +186,7 @@ reviewer ID recorded.
 - Source review ID: 5878561072
 - Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2848#discussion_r4553564537
-- Concern: Same defect as F1.
+- Concern: Same defect as F1. Re-raise, per F17 (Relationship corrected to RE_RAISE_OF:F1).
 - Solution: Restored the original line (same change as F1).
 - Current-tree verification: Read the line in the #2370 spec.
 - Resolution reference: docs(issues): [#1488] address review of PR #2848
@@ -247,11 +265,102 @@ reviewer ID recorded.
 - Reviewer finding ID: F7
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2848#discussion_r4562073107
 - Concern: F11/F14's replies claimed the audit record was added, but at the time of the review the record was written locally and not yet committed or pushed, so it did not exist at the reviewed head.
-- Solution: Pushed the record at 524249b65 and replied citing that head.
-- Current-tree verification: `git log --format=%h -1` on the pushed branch is `524249b65`; the file exists at that head.
+- Solution: Pushed the record (subject `docs(pr-reviews): [#1488] record the review audit of PR #2848`) and replied citing that head.
+- Current-tree verification: the pushed branch's head commit, whose subject is `docs(pr-reviews): [#1488] record the review audit of PR #2848`, contains the file.
 - Resolution reference: docs(pr-reviews): [#1488] record the review audit of PR #2848
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2848#discussion_r4562282202
+
+### F16 - M1's Launcher search also matches two unrelated live structs
+
+- PR number: 2848
+- Source review ID: 5889787805
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2848#discussion_r4562460509
+- Concern: A bare-name search for the `Launcher` variant also matches the live `Launcher` structs in `axum-http-server` and `axum-rest-api-server` (`server.rs`), so the Background, Scope, T1, T4, the acceptance criterion and M1 cannot meet a "no match" bar as written.
+- Solution: Scoped every one of those checks to `UdpError::Launcher` and the `enum UdpError` definition, and added a sentence in Background naming the two unrelated structs.
+- Current-tree verification: `git grep -n '\bLauncher\b'` under `packages/` lists the two struct definitions (`axum-http-server/src/server.rs:70`, `axum-rest-api-server/src/server.rs:303`) alongside the `UdpError::Launcher` variant.
+- Resolution reference: docs(issues): [#1488] scope the Launcher check to the qualified form in SI-25
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2848#discussion_r4562594940
+
+### F17 - F8 and F9 should be recorded as re-raises of F3 and F1
+
+- PR number: 2848
+- Source review ID: 5889787805
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2848#discussion_r4562460676
+- Concern: F8 and F9's own detail entries say "Same defect as F3" and "Same defect as F1", but their Relationship was recorded as `ORIGINAL`, contradicting the deduplication rule (`process-pr-review` step 3) and double-counting the same defect.
+- Solution: Changed F8's Relationship to `RE_RAISE_OF:F3` and F9's to `RE_RAISE_OF:F1`, and noted the correction in each entry's Concern line.
+- Current-tree verification: Read F8 and F9's tracking row and detail entry after the edit.
+- Resolution reference: docs(pr-reviews): [#1488] address the third review round of PR #2848
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2848#discussion_r4562595968
+
+### F18 - SI-26's design-review checkpoint covers only the first increment
+
+- PR number: 2848
+- Source review ID: 5889787805
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2848#discussion_r4562460582
+- Concern: T2 to T4 of SI-26 each add or change tests, but only T2 had an explicit design-review checkpoint note.
+- Solution: Added a "Design-review checkpoint" note to T3 and T4's Notes column, and reworded the Design and Ownership Review paragraph to require the checkpoint after each of T2, T3 and T4, plus the final maintainer-review pause.
+- Current-tree verification: Read the Implementation Plan table and the Design and Ownership Review paragraph after the edit.
+- Resolution reference: docs(issues): [#1488] extend the SI-26 design-review checkpoints to T3 and T4
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2848#discussion_r4562595292
+
+### F19 - SI-27's design-review checkpoint covers only the HTTP slice
+
+- PR number: 2848
+- Source review ID: 5889787805
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2848#discussion_r4562460622
+- Concern: T3 (three more services) and T4 (an application-level test) add tests, but only T2 had an explicit design-review checkpoint note.
+- Solution: Added a "Design-review checkpoint" note to T3 and T4's Notes column, and reworded the Design and Ownership Review paragraph to require the checkpoint after each of T2, T3 and T4, plus the final maintainer-review pause.
+- Current-tree verification: Read the Implementation Plan table and the Design and Ownership Review paragraph after the edit.
+- Resolution reference: docs(issues): [#1488] extend the SI-27 design-review checkpoints to T3 and T4
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2848#discussion_r4562595631
+
+### F20 - Two Processing Log stamps disagree with the forge and with each other
+
+- PR number: 2848
+- Source review ID: 5889719702
+- Reviewer finding ID: F8
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2848#discussion_r4562406407
+- Concern: The entry at (then) line 263 was stamped 10:20 UTC, but the commit it records (`524249b65`) was made at 10:35:08Z and the F15 reply was posted at 10:38:44Z. The entry at (then) line 261 was stamped 09:50 UTC, but its four replies were posted 09:46:18Z to 09:46:26Z, and it said the threads were already resolved, while a later entry said F13 and F14 were resolved in a later pass (they were still open at 09:55:51Z per the reviewer's check).
+- Solution: The log is append-only, so the two wrong entries were not rewritten; a correction entry is appended below naming both and giving the times taken from `git log` and the forge `created_at`.
+- Current-tree verification: `git log --format=%cI -1 524249b65` is `2026-11-13T10:35:08Z`; the F15 reply's `created_at` is `2026-11-13T10:38:44Z`; the four F12/F7-record/F13/F14 replies' `created_at` values are `2026-11-13T09:46:18Z` to `2026-11-13T09:46:26Z`.
+- Resolution reference: docs(pr-reviews): [#1488] address the third review round of PR #2848
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2848#discussion_r4562596274
+
+### F21 - The audit cites commits by short SHA instead of subject
+
+- PR number: 2848
+- Source review ID: 5889719702
+- Reviewer finding ID: F10
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2848#discussion_r4562406417
+- Concern: F15's Solution and Current-tree verification, and the Processing Log, named commits `524249b65` and `8cd0c930d` by short id instead of Conventional Commit subject, which can go stale after a rebase.
+- Solution: Rewrote F15's Solution and Current-tree verification to cite the commit by subject. The two short ids remaining in the (append-only) Processing Log are covered by the existing cross-reference line mapping short ids to subjects; that line itself names subjects, not only short ids, so it is left as is. The nine replies already posted to GitHub keep their short-id wording because GitHub comments cannot be edited without losing their timestamp as evidence; the same cross-reference line maps those too.
+- Current-tree verification: Read F15's Solution and Current-tree verification fields, and the "Short commit ids cited in the first replies, mapped to subjects" line, after the edit.
+- Resolution reference: docs(pr-reviews): [#1488] address the third review round of PR #2848
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2848#discussion_r4562596595
+
+### F22 - Status Values and Completion Rules differ from the template
+
+- PR number: 2848
+- Source review ID: 5889719702
+- Reviewer finding ID: F11
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2848#discussion_r4562406425
+- Concern: Both sections were copied from an earlier audit record (PR 2351/2443/2451) rather than from `docs/templates/PR-REVIEW-TEMPLATE.md`, and were missing the template's `OPEN` sentence, its outdated-thread/`viewerCanResolve` bullets, and two Completion Rules bullets.
+- Solution: Replaced both sections with the template's current text verbatim.
+- Current-tree verification: Diffed the two sections against `docs/templates/PR-REVIEW-TEMPLATE.md` after the edit; no difference remains.
+- Resolution reference: docs(pr-reviews): [#1488] address the third review round of PR #2848
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2848#discussion_r4562597055
 
 ## Processing Log
 
@@ -262,11 +371,27 @@ reviewer ID recorded.
 - 2026-11-13 10:12 UTC - da2ce7 re-raised F7 again as F15 (comment created 10:12:54Z), because the audit commit was not yet pushed when they reviewed `8cd0c930d`.
 - 2026-11-13 10:20 UTC - Audit commit `524249b65` pushed; replied on F15's thread and resolved F13, F14 and F15 (none had been caught by the earlier resolve pass, since it ran before their replies existed). GraphQL refresh showed 0 unresolved threads.
 - Short commit ids cited in the first replies, mapped to subjects: `56cc1be` is `docs(issues): [#1488] address review of PR #2848` and `572ae56` is `docs(issues): [#1488] align SI-28 scope with its implementation plan`.
+- 2026-11-13 10:53 UTC - da2ce7 approved the PR (submitted 10:53:19Z) and left three minor/nit inline comments (F8, F10, F11 by their reviewer IDs; audit-local F20, F21, F22, since F8, F10 and F11 were already assigned). Copilot commented (submitted 10:58:30Z) with four more findings (F16 to F19).
+- 2026-11-13 10:53 UTC - **Correction** to the entry above stamped 2026-11-13 09:50 UTC (F20): the four replies it describes were posted 09:46:18Z to 09:46:26Z (forge `created_at`), not 09:50. Its claim that the threads were already resolved was also wrong; they were still open at 09:55:51Z (da2ce7's check) and were resolved in the pass the next entry describes.
+- 2026-11-13 10:53 UTC - **Correction** to the entry above stamped 2026-11-13 10:20 UTC (F20): commit `524249b65` (`docs(pr-reviews): [#1488] record the review audit of PR #2848`) was made at 10:35:08Z (`git log`), and the F15 reply was posted at 10:38:44Z, not 10:20.
+- 2026-11-13 11:10 UTC - Fix commits made at 11:09:30Z (F16), 11:10:01Z (F18) and 11:10:33Z (F19) (`git log`), after the wording was checked against the `Launcher` definitions and the two specs' Implementation Plan and Design and Ownership Review sections, then pushed.
+- 2026-11-13 11:13 UTC - Replied on the seven threads of this round (F16 and F18 to F22) at 11:13:20Z to 11:13:34Z (forge `created_at`).
 
 ## Completion Rules
 
 - Re-derive the reply claim against the current tree before replying or resolving a thread.
 - Reply on every resolvable thread before resolving it.
+- For an outdated thread whose concern was fixed, record `Disposition=FIXED` and
+  `Thread state=RESOLVED`, even if GitHub marks the thread outdated after the push. For a
+  duplicate, superseded, or no-change in-PR thread, reply exactly
+  `Superseded by <FindingId>: <reason>.`, record `Disposition=NO_ACTION` and
+  `Thread state=SUPERSEDED`, then resolve it. A post-merge `NO_ACTION` requires maintainer
+  approval to decline the follow-up work. When the current identity cannot resolve a thread
+  (`viewerCanResolve` is `false`), still reply, keep the disposition established from the current
+  tree, and record `Thread state=OPEN`; the reviewer or PR author resolves it.
+- A consolidated PR conversation response may cover multiple review rounds only when it names
+  every review ID and every finding ID with its disposition and resolution reference. Record its
+  durable URL in each related row.
 - Cite a fix by its unique Conventional Commit subject or durable reply URL, never by a branch SHA
   that can change after a rebase.
 - Refresh review threads using GraphQL and confirm that no unresolved actionable thread remains.
