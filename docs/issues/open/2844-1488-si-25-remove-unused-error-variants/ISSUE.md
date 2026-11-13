@@ -2,14 +2,14 @@
 schema-version: 1
 doc-type: issue
 issue-type: task
-status: planned
+status: in-progress
 priority: p3
 epic: 1488
 github-issue: 2844
 spec-path: docs/issues/open/2844-1488-si-25-remove-unused-error-variants/ISSUE.md
 branch: "2844-remove-unused-error-variants"
 related-pr: null
-last-updated-utc: "2026-11-12 14:30"
+last-updated-utc: "2026-11-13 22:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -120,11 +120,11 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | -- | ------ | ---- | ----------------------- |
-| T1 | TODO   | Re-run the variant search on the implementation base and record it. | A search for each of the nine variant names in `*.rs` and `*.md` outside `docs/issues` finds only the definitions; for `Launcher`, scope the search to `UdpError::Launcher` and the `enum UdpError` definition; for `Stop`, scope it to `Error::Stop` and each package's `enum Error` definition; never the bare identifier (see Background). |
-| T2 | TODO   | Remove the `Error` variants of `axum-http-server` and `axum-rest-api-server`. | Warning-free build; unused imports gone. |
-| T3 | TODO   | Remove the `UdpError` variants and the stale doc comment of `udp-server`. | Warning-free build. |
-| T4 | TODO   | Update docs, record the versioning decision, and re-run the search. | A search for the nine variant names finds nothing outside archived specs and history; for `Launcher`, scope to `UdpError::Launcher` and the enum definition; for `Stop`, scope to `Error::Stop` and each package's enum definition; never the bare identifier. |
-| T5 | TODO   | Verify and record evidence. | `manual-verification-evidence.md`. |
+| T1 | DONE   | Re-run the variant search on the implementation base and record it. | A search for each of the nine variant names in `*.rs` and `*.md` outside `docs/issues` finds only the definitions; for `Launcher`, scope the search to `UdpError::Launcher` and the `enum UdpError` definition; for `Stop`, scope it to `Error::Stop` and each package's `enum Error` definition; never the bare identifier (see Background). |
+| T2 | DONE   | Remove the `Error` variants of `axum-http-server` and `axum-rest-api-server`. | Warning-free build; unused imports gone. |
+| T3 | DONE   | Remove the `UdpError` variants and the stale doc comment of `udp-server`. | Warning-free build. |
+| T4 | DONE   | Update docs, record the versioning decision, and re-run the search. | A search for the nine variant names finds nothing outside archived specs and history; for `Launcher`, scope to `UdpError::Launcher` and the enum definition; for `Stop`, scope to `Error::Stop` and each package's enum definition; never the bare identifier. |
+| T5 | DONE   | Verify and record evidence. | `manual-verification-evidence.md`. |
 
 ## Commit Points
 
@@ -145,10 +145,10 @@ Sign every commit with GPG.
 - [x] Folder-style spec drafted in `docs/issues/drafts/`, moved to `docs/issues/open/`
 - [x] Spec reviewed and approved by the maintainer (decisions of 2026-11-12, in chat)
 - [x] GitHub issue created and issue number added to this spec (#2844)
-- [ ] Spec-only PR merged into `develop` before implementation
-- [ ] Implementation completed
-- [ ] Automatic verification completed (`linter all`, relevant tests, pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in `manual-verification-evidence.md`
+- [x] Spec-only PR merged into `develop` before implementation
+- [x] Implementation completed
+- [x] Automatic verification completed (`linter all`, relevant tests, pre-push checks)
+- [x] Manual verification scenarios executed and recorded in `manual-verification-evidence.md`
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Evidence-based implementation completion review recorded
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
@@ -158,18 +158,20 @@ Sign every commit with GPG.
 - 2026-11-11 09:40 UTC - AI agent (Claude Sonnet 5.5) - Draft created as a follow-up of SI-19; registered as SI-25 of EPIC 1488 at 16:30 UTC.
 - 2026-11-12 14:30 UTC - AI agent (Claude Sonnet 5.5) - Refined into a full spec on `torrust/develop` at `388faf59a`: verified no code constructs the nine variants, added the plan, verification and rollback, and recorded the maintainer's decisions of 2026-11-12 (SI-25 to SI-28 all open; SI-25, SI-26 and SI-27 land before #2583).
 
+- 2026-11-13 22:30 UTC - AI agent (Claude Sonnet 5.5) - Implemented on `2844-remove-unused-error-variants`. Versioning decision (maintainer, in chat): no version bump; the three packages stay at 0.1.0 and the removal ships in the release notes of the first publish (#2583). No changelog or migration note elsewhere. Evidence in `manual-verification-evidence.md`.
+
 ## Acceptance Criteria
 
-- [ ] The nine variants and the stale `udp-server` doc comment are removed.
-- [ ] A search for each variant name in the tree finds no use outside archived specs and history; the
+- [x] The nine variants and the stale `udp-server` doc comment are removed.
+- [x] A search for each variant name in the tree finds no use outside archived specs and history; the
       `Launcher` check is scoped to `UdpError::Launcher` and the enum definition, not the bare identifier,
       because `axum-http-server`, `axum-rest-api-server` and `udp-server` itself each define an
       unrelated `Launcher` struct; the `Stop` check is scoped to `Error::Stop` and each package's
       enum definition, not the bare identifier, because it also matches the `Stopped` state structs,
       their aliases, and unrelated comments and skill steps.
-- [ ] `cargo check --workspace --all-targets` is warning-free and `cargo test --workspace` passes.
-- [ ] The versioning decision for the three packages is recorded.
-- [ ] `linter all` passes.
+- [x] `cargo check --workspace --all-targets` is warning-free and `cargo test --workspace` passes.
+- [x] The versioning decision for the three packages is recorded.
+- [x] `linter all` passes.
 
 ## Verification Plan
 
@@ -187,9 +189,9 @@ The change cannot alter runtime behavior, so one executable-boundary run is enou
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | -- | -------- | ---------------------------- | --------------- | ------ | -------- |
-| M1 | Variants are gone | `git grep` for seven of the nine variant names (`*.rs`, `*.md`); for `Launcher`, `git grep 'UdpError::Launcher'` plus a read of the `enum UdpError` definition, not a bare-name `git grep 'Launcher'`; for `Stop`, `git grep 'Error::Stop'` plus a read of each package's `enum Error` definition, not a bare-name `git grep -w 'Stop'` (see Background for the unrelated structs and identifiers). | No match outside archived specs and history. | TODO | `manual-verification-evidence.md` |
-| M2 | Startup and shutdown unchanged | Start the tracker with HTTP, REST, UDP and health check enabled, send `SIGTERM` to the binary PID, then restart on the same ports. | Exit code 0 within the deadline; the restart binds the same ports. | TODO | `manual-verification-evidence.md` |
-| M3 | Startup errors still reported | Start with the REST port already bound by another process. | The same bind error as before the change (`Bind`), exit code 1. | TODO | `manual-verification-evidence.md` |
+| M1 | Variants are gone | `git grep` for seven of the nine variant names (`*.rs`, `*.md`); for `Launcher`, `git grep 'UdpError::Launcher'` plus a read of the `enum UdpError` definition, not a bare-name `git grep 'Launcher'`; for `Stop`, `git grep 'Error::Stop'` plus a read of each package's `enum Error` definition, not a bare-name `git grep -w 'Stop'` (see Background for the unrelated structs and identifiers). | No match outside archived specs and history. | DONE | `manual-verification-evidence.md` |
+| M2 | Startup and shutdown unchanged | Start the tracker with HTTP, REST, UDP and health check enabled, send `SIGTERM` to the binary PID, then restart on the same ports. | Exit code 0 within the deadline; the restart binds the same ports. | DONE | `manual-verification-evidence.md` |
+| M3 | Startup errors still reported | Start with the REST port already bound by another process. | The same bind error as before the change (`Bind`), exit code 1. | DONE | `manual-verification-evidence.md` |
 
 ### Disposable Verification Scripts
 
@@ -199,11 +201,11 @@ None.
 
 | AC | Status | Evidence |
 | -- | ------ | -------- |
-| Variants and doc comment removed | TODO | M1 |
-| No use outside history | TODO | M1 |
-| Build and tests pass | TODO | Automatic checks |
-| Versioning decision recorded | TODO | Progress log |
-| `linter all` passes | TODO | Automatic checks |
+| Variants and doc comment removed | DONE | M1 |
+| No use outside history | DONE | M1 |
+| Build and tests pass | DONE | Automatic checks |
+| Versioning decision recorded | DONE | Progress log |
+| `linter all` passes | DONE | Automatic checks |
 
 ## Risks and Trade-offs
 
