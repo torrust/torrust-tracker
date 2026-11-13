@@ -54,6 +54,12 @@ removing a variant still breaks code that names it. The `udp-server` enum carrie
 (`packages/udp-server/src/server/mod.rs`) that says the three variants stay "until the next
 breaking cleanup"; it goes with them.
 
+`Launcher` is also the name of an unrelated, live struct in `axum-http-server` and
+`axum-rest-api-server` (`server.rs`, holding the bind address and TLS config). A bare-name search
+for that one variant matches both structs, so every check below scopes it to `UdpError::Launcher`
+(the qualified construction form) or to the `enum UdpError` definition in
+`packages/udp-server/src/server/mod.rs`, never to the bare identifier `Launcher`.
+
 The health-check API server has no such variants (checked), so it is not touched.
 
 ## Scope
@@ -61,6 +67,8 @@ The health-check API server has no such variants (checked), so it is not touched
 ### In Scope
 
 - Remove the nine variants listed above, their `#[error(...)]` messages, and the stale doc comment.
+  Verify the `Launcher` removal against `UdpError::Launcher` and the `enum UdpError` definition, not a
+  bare-name search (see Background).
 - Remove imports and dependencies that become unused (for example the `oneshot::error::RecvError`
   path), and keep `cargo check --workspace --all-targets` warning-free.
 - Update documentation that mentions a removed variant (`git grep` over `docs/` and the package
@@ -102,10 +110,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | -- | ------ | ---- | ----------------------- |
-| T1 | TODO   | Re-run the variant search on the implementation base and record it. | A search for each of the nine variant names in `*.rs` and `*.md` outside `docs/issues` finds only the definitions. |
+| T1 | TODO   | Re-run the variant search on the implementation base and record it. | A search for each of the nine variant names in `*.rs` and `*.md` outside `docs/issues` finds only the definitions; for `Launcher`, scope the search to `UdpError::Launcher` and the `enum UdpError` definition, not the bare identifier (see Background). |
 | T2 | TODO   | Remove the `Error` variants of `axum-http-server` and `axum-rest-api-server`. | Warning-free build; unused imports gone. |
 | T3 | TODO   | Remove the `UdpError` variants and the stale doc comment of `udp-server`. | Warning-free build. |
-| T4 | TODO   | Update docs, record the versioning decision, and re-run the search. | A search for the nine variant names finds nothing outside archived specs and history. |
+| T4 | TODO   | Update docs, record the versioning decision, and re-run the search. | A search for the nine variant names finds nothing outside archived specs and history; for `Launcher`, scope to `UdpError::Launcher` and the enum definition, not the bare identifier. |
 | T5 | TODO   | Verify and record evidence. | `manual-verification-evidence.md`. |
 
 ## Commit Points
@@ -143,7 +151,9 @@ Sign every commit with GPG.
 ## Acceptance Criteria
 
 - [ ] The nine variants and the stale `udp-server` doc comment are removed.
-- [ ] A search for each variant name in the tree finds no use outside archived specs and history.
+- [ ] A search for each variant name in the tree finds no use outside archived specs and history; the
+      `Launcher` check is scoped to `UdpError::Launcher` and the enum definition, not the bare identifier,
+      because `axum-http-server` and `axum-rest-api-server` each define an unrelated `Launcher` struct.
 - [ ] `cargo check --workspace --all-targets` is warning-free and `cargo test --workspace` passes.
 - [ ] The versioning decision for the three packages is recorded.
 - [ ] `linter all` passes.
@@ -164,7 +174,7 @@ The change cannot alter runtime behavior, so one executable-boundary run is enou
 
 | ID | Scenario | Human-oriented command/steps | Expected Result | Status | Evidence |
 | -- | -------- | ---------------------------- | --------------- | ------ | -------- |
-| M1 | Variants are gone | `git grep` for each of the nine variant names (`*.rs`, `*.md`). | No match outside archived specs and history. | TODO | `manual-verification-evidence.md` |
+| M1 | Variants are gone | `git grep` for eight of the nine variant names (`*.rs`, `*.md`); for `Launcher`, `git grep 'UdpError::Launcher'` plus a read of the `enum UdpError` definition, not a bare-name `git grep 'Launcher'` (see Background for the unrelated struct). | No match outside archived specs and history. | TODO | `manual-verification-evidence.md` |
 | M2 | Startup and shutdown unchanged | Start the tracker with HTTP, REST, UDP and health check enabled, send `SIGTERM` to the binary PID, then restart on the same ports. | Exit code 0 within the deadline; the restart binds the same ports. | TODO | `manual-verification-evidence.md` |
 | M3 | Startup errors still reported | Start with the REST port already bound by another process. | The same bind error as before the change (`Bind`), exit code 1. | TODO | `manual-verification-evidence.md` |
 
