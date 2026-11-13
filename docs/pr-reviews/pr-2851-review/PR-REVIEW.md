@@ -47,7 +47,9 @@ Copilot labels its five findings "Low severity"; the severity `Minor` is inferre
 Round 2 is the approving review `5881088057` of `da2ce7` (F13 to F16, reviewer-provided IDs), on
 the head that carried the round 1 audit.
 Round 3 is Copilot's review `5881522270` (F17 to F19, audit-local IDs), on the head that carried
-the round 2 audit. It gives no severity label; `Minor` is inferred from the text.
+the round 2 audit. It labels its three findings "Low severity"; the severity `Minor` is inferred from that label.
+Round 4 is the approving review `5887584344` of `da2ce7` (F20 to F22, reviewer-provided IDs), on the head that carried
+the round 3 audit.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -70,6 +72,9 @@ the round 2 audit. It gives no severity label; `Minor` is inferred from the text
 | F17 | review-finding:pr-2851-f17 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
 | F18 | review-finding:pr-2851-f18 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
 | F19 | review-finding:pr-2851-f19 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
+| F20 | review-finding:pr-2851-f20 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F21 | review-finding:pr-2851-f21 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F22 | review-finding:pr-2851-f22 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -320,6 +325,45 @@ the round 2 audit. It gives no severity label; `Minor` is inferred from the text
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4556041507
 
+### F20 - The round-3 review does carry a severity label
+
+- PR number: 2851
+- Source review ID: 5887584344
+- Reviewer finding ID: F20
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4560762446
+- Concern: This audit said Copilot's round-3 review gives no severity label; its body marks each of the three findings "Low severity".
+- Solution: The round overview now says the review labels its three findings "Low severity" and that `Minor` is inferred from that label.
+- Current-tree verification: Read the round overview of this record in the tree.
+- Resolution reference: docs(pr-reviews): record round 4 in the review audit of PR #2851
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4560877430
+
+### F21 - `last-updated-utc` again trails the edits of two files
+
+- PR number: 2851
+- Source review ID: 5887584344
+- Reviewer finding ID: F21
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4560762450
+- Concern: The evidence file and the #2850 specification carried times earlier than their last content edits (the same defect as F16).
+- Solution: Both files now read 2026-11-12 20:32, the time of their last content edits in `git log`.
+- Current-tree verification: Read the frontmatter of both files in the tree and `git log -1 --format=%aI` of each before this fix.
+- Resolution reference: docs(issues): [#2850] carry the time of the last content edit in last-updated-utc of two files
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4560877678
+
+### F22 - After the rebase, committer times no longer match the times this log attributes
+
+- PR number: 2851
+- Source review ID: 5887584344
+- Reviewer finding ID: F22
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4560762460
+- Concern: The rebase reset the committer time of the 24 commits up to the round-2 audit to 20:28:16Z to 20:28:32Z, so `git log --format=%cI` no longer gives the times that earlier entries cite; `%aI` keeps the original times, except for the last fix of the 19:36 range (19:35:03Z there).
+- Solution: An appended entry in the processing log says so; no earlier entry was rewritten.
+- Current-tree verification: Read the processing log in the tree.
+- Resolution reference: docs(pr-reviews): record round 4 in the review audit of PR #2851
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4560877891
+
 ## Processing Log
 
 - 2026-11-12 18:05 UTC - Started round 1 for review `5879517733` (submitted 18:02:39Z, forge `submitted_at`). Checked F1 to F7 against the tree.
@@ -336,6 +380,7 @@ the round 2 audit. It gives no severity label; `Minor` is inferred from the text
 - 2026-11-12 19:57 UTC - Correction for F14: the entry stamped 19:30 has the wrong time and actor. The forge timeline records the force push (`head_ref_force_pushed`) at 19:34:12Z with `josecelano-bot` as the actor; the maintainer ran `git-bot-push --force-with-lease`, which pushes as that account. The entry stamped 19:36 says "and pushed": the commits are stamped up to 19:36:24Z and their push landed later, before the first reply at 19:38:23Z, whose forge record names that head.
 - 2026-11-12 20:01 UTC - Round 2: the four fixes were committed between 19:55:16Z and 19:57:12Z (`git log --format=%cI`) and their push had landed by 20:00:04Z (`git ls-remote` of the fork matched the local head). Replied on the four threads between 20:00:05Z and 20:00:12Z (forge `created_at`). `validate-audit-record.py --pr-number 2851` exited 0 (16 rows, 0 failures). Resolved the four threads; a GraphQL refresh showed 0 unresolved threads.
 - 2026-11-12 20:38 UTC - Round 3: Copilot's review `5881522270` (submitted 20:28:18Z, forge `submitted_at`) with three findings, F17 to F19. Before it was read, the branch had been rebased onto `develop`, because the pull request conflicted in the sub-issue table of EPIC #1347 after PR #2841 merged; every commit was replayed in the same order. The three fixes were committed between 20:31:34Z and 20:32:42Z (`git log --format=%cI`). The forge timeline records the force push of the rebased branch at 20:37:18Z (`head_ref_force_pushed`, actor `josecelano-bot`; the maintainer ran `git-bot-push --force-with-lease`). Edited the pull request description to state the rebase. Replied on the three threads between 20:37:44Z and 20:37:50Z (forge `created_at`). `validate-audit-record.py --pr-number 2851` exited 0 (19 rows, 0 failures). Resolved the three threads; a GraphQL refresh showed 0 unresolved threads.
+- 2026-11-13 07:44 UTC - Round 4: the approving review `5887584344` of `da2ce7` (submitted 2026-11-13 07:28:03Z, forge `submitted_at`) at the head that carried the round 3 audit, with three nits, F20 to F22. The F21 fix was committed and pushed first; the replies on the three threads follow it (forge `created_at`). Correction for F22: the rebase set the committer time of the 24 commits up to the round 2 audit to 20:28:16Z to 20:28:32Z, so `git log --format=%cI` does not give the times that the entries stamped 18:11, 19:36 and the F16 verification cite. `git log --format=%aI` keeps the original times (18:08:03Z, 18:11:27Z, 19:33:34Z, 19:55:16Z, 19:57:12Z), except that the last fix of the 19:36 range shows 19:35:03Z there, not 19:36:24Z. No earlier entry was rewritten.
 
 ## Completion Rules
 
