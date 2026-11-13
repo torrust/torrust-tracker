@@ -52,6 +52,10 @@ Round 4 is the approving review `5887584344` of `da2ce7` (F20 to F22, reviewer-p
 the round 3 audit.
 Round 5 is the approving review `5887875398` of `da2ce7` (F23 and F24, reviewer-provided IDs) and Copilot's review
 `5888919892` (F25 and F26, audit-local IDs; Copilot labels them F24 and F25), both on the head that carried the round 4 audit.
+Round 6 is the review `5889368194` of `da2ce7` (COMMENTED, F27 to F31, audit-local IDs; the reviewer's own numbering,
+which collides with F25 and F26 above, is recorded as the original), on the head that carried the round 5 spec changes
+before the round 5 audit record; and the review `5889728498` of `da2ce7` (COMMENTED, F32 to F34, audit-local IDs; same
+collision, with the reviewer's own F30 to F32 recorded as the original), on the head that carried the round 5 audit.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -81,6 +85,14 @@ Round 5 is the approving review `5887875398` of `da2ce7` (F23 and F24, reviewer-
 | F24 | review-finding:pr-2851-f24 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F25 | review-finding:pr-2851-f25 | Copilot | Minor | security | ORIGINAL | FIXED | RESOLVED |
 | F26 | review-finding:pr-2851-f26 | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F27 | review-finding:pr-2851-f27 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F28 | review-finding:pr-2851-f28 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F29 | review-finding:pr-2851-f29 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F30 | review-finding:pr-2851-f30 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F31 | review-finding:pr-2851-f31 | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
+| F32 | review-finding:pr-2851-f32 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F33 | review-finding:pr-2851-f33 | Human | Minor | process | ORIGINAL | FIXED | RESOLVED |
+| F34 | review-finding:pr-2851-f34 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -417,10 +429,114 @@ Round 5 is the approving review `5887875398` of `da2ce7` (F23 and F24, reviewer-
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4561799123
 - Concern: T2 changes every UDP announce but the plan only compiled the benches; `docs/benchmarking.md` requires a relevant microbenchmark, the load test, a baseline before production changes and a one-sided pass rule agreed before implementation.
 - Solution: New task T0 adds the missing UDP announce benchmark in its own commit and records the baseline before T2; T6 repeats the measurement after T3; a Performance Evidence section states the instruments, the one-sided rule and the tolerance to agree for the UDP announce; evidence goes to `performance-evidence.md`.
-- Current-tree verification: Read the Implementation Plan and the Performance Evidence section of the #2850 specification; checked that `udp-core` benches hold only `connect_once` and `udp-server` only a scrape benchmark.
+- Current-tree verification: Read the Implementation Plan and the Performance Evidence section of the #2850 specification; checked that no `udp-core` or `udp-server` benchmark times an announce (`udp-core` times the connect, the connection cookie and the ban service; `udp-server` a scrape).
 - Resolution reference: docs(issues): [#2850] plan the performance baseline and the missing UDP announce benchmark
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4561861311
+
+### F27 - The audit record stops at round 4, and two replies cite a commit that is not on the branch
+
+- PR number: 2851
+- Source review ID: 5889368194
+- Reviewer finding ID: F25
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4562135511
+- Concern: The record had no row or log entry for the two reviews after round 4; two replies said a fix was "pushed right after this reply" in a commit subject that was not yet on the branch.
+- Solution: The round-5 audit commit landed (rows F23 to F26, log entry at 09:50); this round adds rows for this review's own five findings, which the round-5 commit had not covered.
+- Current-tree verification: Read the round 5 and round 6 sections of this record and `git log` of the branch.
+- Resolution reference: docs(pr-reviews): record round 6 in the review audit of PR #2851
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4562440525
+
+### F28 - `udp-core` has three benchmarks, not only `connect_once`
+
+- PR number: 2851
+- Source review ID: 5889368194
+- Reviewer finding ID: F26
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4562135512
+- Concern: The T0 row said "`udp-core` has only `connect_once`", omitting `ban_service_benchmark` and `connection_cookie_benchmark`; the conclusion (no announce benchmark) held regardless.
+- Solution: The T0 row now reads "the `udp-core` benchmarks time only the connect, the connection cookie and the ban service"; the audit's own verification text for F26 above is corrected the same way (sweep).
+- Current-tree verification: Read the T0 row of the #2850 specification and `packages/udp-core/Cargo.toml` lines 50 to 60 in the tree.
+- Resolution reference: docs(issues): [#2850] correct benchmark wording, add a Commit Points row, and record the tolerance write-back
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4562440881
+
+### F29 - T2 adds one check per counter, not one comparison per announce
+
+- PR number: 2851
+- Source review ID: 5889368194
+- Reviewer finding ID: F27
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4562135522
+- Concern: The Performance Evidence section said T2 "deliberately adds one comparison on every UDP announce"; the design converts each of `bytes_left`, `bytes_uploaded` and `bytes_downloaded` with `u64::try_from`, so it adds three checks.
+- Solution: The section now reads "one sign check per counter — three checks on every UDP announce", naming the three counters and that `peer_builder.rs` copies them unchecked today.
+- Current-tree verification: Read the Performance Evidence section and `packages/udp-core/src/peer_builder.rs` lines 23 to 25 in the tree.
+- Resolution reference: docs(issues): [#2850] correct benchmark wording, add a Commit Points row, and record the tolerance write-back
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4562441227
+
+### F30 - Commit Points has no row for T0
+
+- PR number: 2851
+- Source review ID: 5889368194
+- Reviewer finding ID: F28
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4562135516
+- Concern: The Commit Points table started at T1, with no row for the new T0 task, and `bench` is not a Conventional Commit type the repository recognizes.
+- Solution: A T0 row was added: `test(udp-core)` for the benchmark, `docs(issues)` for the baseline in `performance-evidence.md`.
+- Current-tree verification: Read the Commit Points table of the #2850 specification in the tree.
+- Resolution reference: docs(issues): [#2850] correct benchmark wording, add a Commit Points row, and record the tolerance write-back
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4562441604
+
+### F31 - Say where the agreed tolerance is written
+
+- PR number: 2851
+- Source review ID: 5889368194
+- Reviewer finding ID: F29
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4562135525
+- Concern: The Expected cost bullet asked the maintainer to agree a tolerance after the baseline but did not say where that figure would be recorded, so the after measurement could be judged against a figure the plan never states.
+- Solution: The bullet now ends "...and before the after measurement, and is then added to this section".
+- Current-tree verification: Read the Performance Evidence section of the #2850 specification in the tree.
+- Resolution reference: docs(issues): [#2850] correct benchmark wording, add a Commit Points row, and record the tolerance write-back
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4562442024
+
+### F32 - The round-5 log entry places the F23 and F24 fix before its replies
+
+- PR number: 2851
+- Source review ID: 5889728498
+- Reviewer finding ID: F30
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4562413702
+- Concern: The round-5 entry said the F23/F24 fix was committed and pushed before the 09:46 replies, and gave a placeholder time "09:5x"; in fact that fix is `c237cca8b`, committed at 10:38:07Z, 52 minutes after those replies.
+- Solution: An appended correction entry gives the forge time of the replies and the actual commit time of the fix; the original entry stays as it is, per the Completion Rules' correction convention.
+- Current-tree verification: Read the round-5 log entry and the appended correction, and `git log --format=%cI` of `c237cca8b`.
+- Resolution reference: docs(pr-reviews): record round 6 in the review audit of PR #2851
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4562443275
+
+### F33 - The five threads of review `5889368194` were resolved with no reply and no row
+
+- PR number: 2851
+- Source review ID: 5889728498
+- Reviewer finding ID: F31
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4562413688
+- Concern: A blanket GraphQL resolve call closed those five threads before they were read or replied to, against the skill's rule that a reply precedes resolution; the record had no row for them.
+- Solution: All five threads were reopened, replied to with their disposition and verification (this round's F27 to F31), and resolved again after the replies.
+- Current-tree verification: Read the five threads on the forge: each now has a reply before its resolution, and rows F27 to F31 above.
+- Resolution reference: docs(pr-reviews): record round 6 in the review audit of PR #2851
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4562442447
+
+### F34 - This verification repeats the `udp-core` benchmark claim of F26
+
+- PR number: 2851
+- Source review ID: 5889728498
+- Reviewer finding ID: F32
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4562413698
+- Concern: The audit's own current-tree verification for F26 (round 5) repeated the inaccurate "only `connect_once`" claim that F28 (this round) corrects in the specification.
+- Solution: The verification text for F26 above now reads "no `udp-core` or `udp-server` benchmark times an announce", matching the corrected specification wording.
+- Current-tree verification: Read the F26 section of this record in the tree.
+- Resolution reference: docs(issues): [#2850] correct benchmark wording, add a Commit Points row, and record the tolerance write-back
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4562442841
 
 ## Processing Log
 
@@ -440,6 +556,8 @@ Round 5 is the approving review `5887875398` of `da2ce7` (F23 and F24, reviewer-
 - 2026-11-12 20:38 UTC - Round 3: Copilot's review `5881522270` (submitted 20:28:18Z, forge `submitted_at`) with three findings, F17 to F19. Before it was read, the branch had been rebased onto `develop`, because the pull request conflicted in the sub-issue table of EPIC #1347 after PR #2841 merged; every commit was replayed in the same order. The three fixes were committed between 20:31:34Z and 20:32:42Z (`git log --format=%cI`). The forge timeline records the force push of the rebased branch at 20:37:18Z (`head_ref_force_pushed`, actor `josecelano-bot`; the maintainer ran `git-bot-push --force-with-lease`). Edited the pull request description to state the rebase. Replied on the three threads between 20:37:44Z and 20:37:50Z (forge `created_at`). `validate-audit-record.py --pr-number 2851` exited 0 (19 rows, 0 failures). Resolved the three threads; a GraphQL refresh showed 0 unresolved threads.
 - 2026-11-13 07:44 UTC - Round 4: the approving review `5887584344` of `da2ce7` (submitted 2026-11-13 07:28:03Z, forge `submitted_at`) at the head that carried the round 3 audit, with three nits, F20 to F22. The F21 fix was committed and pushed first; the replies on the three threads follow it (forge `created_at`). Correction for F22: the rebase set the committer time of the 24 commits up to the round 2 audit to 20:28:16Z to 20:28:32Z, so `git log --format=%cI` does not give the times that the entries stamped 18:11, 19:36 and the F16 verification cite. `git log --format=%aI` keeps the original times (18:08:03Z, 18:11:27Z, 19:33:34Z, 19:55:16Z, 19:57:12Z), except that the last fix of the 19:36 range shows 19:35:03Z there, not 19:36:24Z. No earlier entry was rewritten.
 - 2026-11-13 09:50 UTC - Round 5: the approving review `5887875398` of `da2ce7` (forge `submitted_at` 2026-11-13 08:00:46Z) with two nits, F23 and F24, and Copilot's review `5888919892` (submitted 09:39:31Z, forge `submitted_at`) with two findings, F25 and F26, on the head that carried the round 4 audit. Their fixes were committed and pushed before the replies on the four threads (forge `created_at` 09:5x). Correction for F24: the entry stamped 20:01 cites `git log --format=%cI` for the four round 2 fixes (19:55:16Z to 19:57:12Z); after the rebase `%cI` shows 20:28:31Z for them, and `%aI` keeps 19:55:16Z to 19:57:12Z. No earlier entry was rewritten.
+- 2026-11-13 11:10 UTC - Round 6: two reviews of `da2ce7` that had not yet been processed. `5889368194` (submitted 10:21:06Z, forge `submitted_at`) with five findings in the reviewer's own numbering F25 to F29, on the head that carried the round-5 spec commits before the round-5 audit landed; its five threads had been resolved earlier by a blanket GraphQL call with no reply, against the skill's rule. `5889728498` (submitted 10:54:09Z, forge `submitted_at`) with three findings, reviewer's own F30 to F32, on the head that carried the round-5 audit. Both sets of reviewer IDs collide with existing audit IDs (F25, F26, F30, F31), so new audit-local IDs F27 to F34 were assigned, recording the originals. The five wrongly-resolved threads were reopened (`unresolveReviewThread`), then all eight threads were replied to between 11:04:40Z and 11:07:55Z (forge `created_at`), apologizing on the five for the process error. The spec fix (F28, F29, F30, F31, F34 wording) was committed as `docs(issues): [#2850] correct benchmark wording, add a Commit Points row, and record the tolerance write-back` and the audit rows and sections as `docs(pr-reviews): record round 6 in the review audit of PR #2851`, then pushed. `validate-audit-record.py --pr-number 2851` exited 0 (34 rows, 0 failures). Resolved all eight threads, in order, after their replies; a GraphQL refresh showed 0 unresolved threads.
+- 2026-11-13 11:10 UTC - Correction for F32: the round-5 log entry (stamped 09:50) says the F23/F24 fix was committed and pushed before the four replies, with a placeholder time "09:5x". The fix is commit `c237cca8b`, authored and committed at 10:38:07Z (`git log --format=%aI`/`%cI`), 52 minutes after the four replies (forge `created_at` 09:46:22Z to 09:46:28Z). The listener and benchmark-plan fixes (`9b4f2de6d`, pushed by 09:46:13Z) are unaffected by this correction. No earlier entry is rewritten.
 
 ## Completion Rules
 
