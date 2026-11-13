@@ -1,3 +1,3 @@
 build pid 356082, baseline MemAvailable 49013920 kB
 jobs=8 exit=0 aborted=0 wall_seconds=499
-baseline_available_gib=46,7 min_available_gib=28,5 peak_used_delta_gib=18,2 peak_rustc_rss_gib=19,8 rustc_count_at_peak_rss=8 max_concurrent_rustc_count=16
+baseline_available_gib=46,7 min_available_gib=28,5 peak_used_delta_gib=18,2 peak_rustc_count=16 peak_rustc_rss_gib=19,8

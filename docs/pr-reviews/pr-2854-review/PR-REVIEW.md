@@ -52,6 +52,7 @@ Commit subject (finding F12 below). Late start logged in the Processing Log.
 | F11 | review-finding:pr-2854-f11 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F12 | review-finding:pr-2854-f12 | Human | Minor | maintainability | ORIGINAL | FIXED | RESOLVED |
 | F13 | review-finding:pr-2854-f13 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F14 | review-finding:pr-2854-f14 | Human | Major | correctness | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -235,10 +236,23 @@ Commit subject (finding F12 below). Late start logged in the Processing Log.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562419076
 
+### F14 - The three committed run summaries were rewritten after the runs, and one corrected figure is itself wrong
+
+- PR number: 2854
+- Source review ID: 5889901103
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562551182
+- Concern: the F4 fix overwrote `results/jobs-{4,8,16}.summary.txt` with the output of a differently-formatted `measure.sh` that none of the three runs executed, with no note that the files were regenerated; the 16-jobs line's `peak_used_delta_gib=32,9` matches neither the run's own output nor a correct recomputation from the unchanged `jobs-16.samples.tsv` (33.0), and `report.md:41` copied the wrong value.
+- Solution: restored the three summary files to exactly what each run printed, read from the commit that first added them (`git show a3aaab735:.../jobs-<N>.summary.txt`), rather than a regenerated format. Corrected `report.md`'s 16-jobs "Peak `MemAvailable` drop" cell to 33.0 GiB. Added a sentence to `report.md`'s "Method" section stating which columns are copied unmodified from the run output (`MemAvailable` drop, lowest `MemAvailable`) and which are recomputed from the raw samples (`rustc` at peak RSS, peak `rustc` RSS), so a future reader does not need to infer it. The wrong 32.9 came from the one-off regeneration script building the baseline from an already-rounded GiB figure instead of the exact kB baseline on the summary's first line — a precision-loss bug distinct from the F4 arithmetic fix itself (which remains correct, since it only changed which sample row's count/RSS pair is reported, not this baseline/minimum subtraction).
+- Current-tree verification: `git diff a3aaab735 -- contrib/dev-tools/experiments/container-build-jobs/results/` against the current tree shows no difference in the three summary files; `awk` over `jobs-16.samples.tsv` with the exact baseline `49323728` kB from the file's own first line gives `(49323728-14758164)/1048576 = 32.96` GiB, which `report.md` now states as 33.0.
+- Resolution reference: `fix(container): [#2853] restore raw run summaries, correct the 16-jobs delta to 33.0`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562573939
+
 ## Processing Log
 
 - 2026-11-13 11:05 UTC - Started audit late (after R1, R2, F1-F11 replies/fixes were already in progress or posted); backfilled all entries from the current tree and the GitHub review/comment history.
 - 2026-11-13 11:05 UTC - Replied on all resolvable threads (R1, R2, F1-F11, F12, F13) and resolved them via GraphQL `resolveReviewThread`.
+- 2026-11-13 11:10 UTC - Added F14 (raw-summary overwrite, wrong corrected figure), fixed it, replied, and resolved its thread.
 
 ## Completion Rules
 

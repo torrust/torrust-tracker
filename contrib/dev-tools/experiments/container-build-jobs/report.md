@@ -18,7 +18,11 @@ docker build --no-cache --progress=plain --target release --build-arg CARGO_BUIL
 While it runs it samples `MemAvailable` and the root-owned `rustc` processes (those started by Docker/BuildKit) every 2 seconds,
 and it would cancel the build by the PID of the `docker build` client if `MemAvailable` fell below 8 GiB. It refuses to start while
 another container build runs, and traps its own INT/TERM to cancel the build if the script itself is interrupted. It refuses to
-start while another container build runs. The uncapped build was never run. Raw samples and summaries are in [`results/`](results/).
+start while another container build runs. The uncapped build was never run. Raw samples and summaries are in [`results/`](results/),
+unmodified since each run printed them. "Peak `MemAvailable` drop" and "Lowest `MemAvailable`" below are copied from those files
+as printed; "`rustc` at peak RSS" and "Peak `rustc` RSS" are recomputed from the raw samples (see the next bullet and "Per-process
+memory") and are not in the summary files, since the original `measure.sh` reported two independent column maxima instead (see
+"Per-process memory" for why that was wrong).
 
 - Machine: 32 threads, 62 GB RAM, Docker 28.3.3 with the embedded BuildKit v0.23.2 (default `docker` builder), run on 2026-11-13. Other
   work (about 13-15 GB) was running on the machine, so "peak used" is the drop of `MemAvailable` from the baseline.
@@ -38,7 +42,7 @@ start while another container build runs. The uncapped build was never run. Raw 
 | ------------------ | --------- | -------------------- | ---------------- | ------------------------ | --------------------- |
 | 4                  | 836 s     | 4                     | 10.4 GiB         | 10.2 GiB                 | 37.4 GiB              |
 | 8                  | 499 s     | 8                     | 19.8 GiB         | 18.2 GiB                 | 28.5 GiB              |
-| 16                 | 346 s     | 17                    | 35.5 GiB         | 32.9 GiB                 | 14.1 GiB              |
+| 16                 | 346 s     | 17                    | 35.5 GiB         | 33.0 GiB                 | 14.1 GiB              |
 
 A separate, independent maximum of concurrent `rustc` processes (regardless of their memory at that moment) was 12, 16 and 24 for the
 three runs, against an expected worst case of twice the job count (see "Stage overlap" below): exactly met at 8 jobs (16), under it at
