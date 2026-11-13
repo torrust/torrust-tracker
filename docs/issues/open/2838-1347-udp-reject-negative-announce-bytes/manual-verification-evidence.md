@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2838-1347-udp-reject-negative-announce-bytes/ISSUE.md
-last-updated-utc: 2026-11-13 09:41
+last-updated-utc: 2026-11-13 11:35
 ---
 
 # Manual Verification Evidence
@@ -23,7 +23,9 @@ last-updated-utc: 2026-11-13 09:41
   `127.0.0.1:6868`), and it exposed the replay tracker beyond localhost. The recorded runs were
   made with it present and are unaffected.
 - The probe was changed after the recorded runs: it now exits with status 1 when a response does
-  not carry the transaction id of its request. Its output for a correct response is unchanged.
+  not carry the transaction id of its request, and also when the connect response's action is not
+  0 (it then prints the decoded error message instead of unpacking a connection id from a short or
+  error packet). Its output for a correct response is unchanged.
 
 ## Verification Processes
 

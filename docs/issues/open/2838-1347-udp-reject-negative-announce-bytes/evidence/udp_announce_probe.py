@@ -3,7 +3,8 @@
 Usage: python3 -I udp_announce_probe.py <port> <left> [uploaded] [downloaded]
 Prints the announce response (action, seeders, leechers) or the error message.
 Exits with status 1, without printing a result, when a response does not carry the
-transaction id of its request.
+transaction id of its request. Also exits with status 1, printing the decoded error
+message, when the connect response's action is not 0.
 """
 import socket
 import struct
