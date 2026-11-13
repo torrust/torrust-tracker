@@ -70,6 +70,7 @@ Processing Log.
 | F26 | review-finding:pr-2854-f26 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F27 | review-finding:pr-2854-f27 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F28 | review-finding:pr-2854-f28 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F29 | review-finding:pr-2854-f29 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -449,6 +450,19 @@ Processing Log.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4563776957
 
+### F29 - The thread answered at 13:21:54 UTC has no row in this record
+
+- PR number: 2854
+- Source review ID: 5891772185
+- Reviewer finding ID: F28 (collides with this record's F28, so reassigned per the skill's collision rule)
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4563819430
+- Concern: at the reviewed head the thread of the previous review's last finding had a reply but no row or detail entry in this record, and the skill asks for the row before the reply.
+- Solution: the row and detail entry (F28) were added in the commit below, which was pushed after this review was posted and before it was read. No further change was needed for this finding.
+- Current-tree verification: the F28 Source URL in this record cites comment 4562957889, and `validate-audit-record.py --pr-number 2854` reported status ok with 31 rows at that commit.
+- Resolution reference: `docs(pr-reviews): [#2853] record F28 and re-derive two verification lines`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4563888553
+
 ## Processing Log
 
 - 2026-11-13 11:05 UTC - Started audit late (after R1, R2, F1-F11 replies/fixes were already in progress or posted); backfilled all entries from the current tree and the GitHub review/comment history.
@@ -459,6 +473,7 @@ Processing Log.
 - 2026-11-13 13:17 UTC - Correction to the 11:40 UTC entry above, which is left as written. Its timestamp is wrong: the three replies it reports were posted at 11:42:12 to 11:42:17 UTC (GitHub `created_at`), after 11:40. Its sentence beginning "Renumbered the automated review's" does not parse; it meant: this record had already assigned F21 to F24 to the automated review's four findings, and da2ce7 then used F21 to F23 for three new findings of its own, so those three are recorded as F25 to F27.
 - 2026-11-13 13:17 UTC - Edited 16 of this PR's own review replies at 13:16:05 to 13:16:28 UTC (GitHub `updated_at`) so each cites a Conventional Commit subject: the R1 and R2 replies cited a branch commit hash, the eleven replies posted at 11:24 UTC said "the commit addressing this review round", and the three posted at 11:42 UTC said "the commit addressing this round". The eleven 11:24 UTC replies were posted before their commit existed (committed 11:29:01 UTC). Removed the two branch commit hashes quoted in the F26 Concern; the `open-pull-request` commit-id check printed both before this change.
 - 2026-11-13 13:26 UTC - Added F28 after the fact: its fix was committed at 13:17:14 UTC and pushed, the reply was posted at 13:21:54 UTC (GitHub `created_at`) and the thread was then resolved. A GraphQL read after that showed 31 of 31 review threads resolved.
+- 2026-11-13 13:32 UTC - Added F29: a review posted at 13:26:00 UTC on the previous head asked for the F28 row, which was pushed two minutes later. Replied at 13:32:09 UTC (GitHub `created_at`) and resolved the thread.
 
 ## Completion Rules
 

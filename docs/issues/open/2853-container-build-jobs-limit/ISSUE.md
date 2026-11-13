@@ -9,7 +9,7 @@ github-issue: 2853
 spec-path: docs/issues/open/2853-container-build-jobs-limit/ISSUE.md
 branch: "2853-container-build-jobs-limit"
 related-pr: null
-last-updated-utc: "2026-11-13 13:26"
+last-updated-utc: "2026-11-13 13:32"
 semantic-links:
   skill-links:
     - create-issue
@@ -182,7 +182,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ## Implementation Completion Review
 
-- Retrospective: [implementation-retrospective.md](implementation-retrospective.md). It covers the review of pull request #2854, which took nine reviews and 31 findings for a 61-line change.
+- Retrospective: [implementation-retrospective.md](implementation-retrospective.md). It covers the review of pull request #2854.
 
 ## References
 
