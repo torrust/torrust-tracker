@@ -46,7 +46,7 @@ The goal is to lower the default so contributors with smaller machines can build
 
 - Measure peak memory and wall time of the release image build at `CARGO_BUILD_JOBS` = 4, 8 and 16, and record it in `contrib/dev-tools/experiments/container-build-jobs/report.md` (same format as `contrib/dev-tools/experiments/sccache-docker/`), together with the measurement script.
 - Choose the default from that evidence.
-- `Containerfile`: one `ARG CARGO_BUILD_JOBS` plus `ENV CARGO_BUILD_JOBS` in the `chef` base stage, so every Rust stage is capped in one place.
+- `Containerfile`: one `ARG CARGO_BUILD_JOBS` plus `ENV CARGO_BUILD_JOBS` in the `chef` base stage (every stage that compiles Rust and derives from it), and the same declaration in the separate `tester` base stage (its `cargo binstall` of `cargo-nextest` can fall back to a source compile), so every compiling stage is capped.
 - `contrib/dev-tools/containers/docker-build.sh`: pass the value as a build argument when the caller sets it.
 - `docs/containers.md`: a "Memory and CPU Use" subsection (default and why, raising and lowering it, memory rule of thumb, effect on plain `cargo build` and `cargo test`).
 - Decide and record whether BuildKit stage overlap should also be addressed in the `Containerfile`.
@@ -90,7 +90,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | --- | ----------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------- |
 | T1  | DONE        | Measure the release image build at 4, 8 and 16 jobs          | `report.md` with peak memory, peak `rustc` count and wall time per job count    |
 | T2  | DONE        | Choose the default and decide on stage overlap               | Decision and reasoning in `report.md`                                           |
-| T3  | DONE        | `Containerfile` `ARG`/`ENV` in the `chef` stage              | Every cook, archive and build step capped; stages outside `chef` need no change |
+| T3  | DONE        | `Containerfile` `ARG`/`ENV` in the `chef` and `tester` stages | Every cook, archive and build step, and `tester`'s own tool install, capped    |
 | T4  | DONE        | `docker-build.sh` passes `CARGO_BUILD_JOBS`                  | Build argument only when set                                                    |
 | T5  | DONE        | `docs/containers.md` "Memory and CPU Use"                    | Default, raise, lower, rule of thumb, plain-cargo note                          |
 | T6  | IN_PROGRESS | Check the self-hosted and GitHub-hosted runners              | Reasoning in `report.md`; real self-hosted run at this head pending (M4)        |
