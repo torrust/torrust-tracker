@@ -9,7 +9,7 @@ github-issue: 2855
 spec-path: docs/issues/open/2855-container-regression-timeout-sigint/ISSUE.md
 branch: "2855-container-regression-timeout-sigint-spec"
 related-pr: 2857
-last-updated-utc: "2026-11-13 11:20"
+last-updated-utc: "2026-11-13 14:00"
 semantic-links:
   skill-links:
     - create-issue
@@ -60,8 +60,11 @@ runner, hiding real regressions and blocking the E2E steps that follow it in the
 run also leaves its tracker container running: `docker run --rm` only removes the container on
 exit, and `--kill-after` kills the attached client, not the container, so it never exits. The
 runner's daily prune (`contrib/dev-tools/self-hosted-runner/docker-ci-prune.sh`) only removes
-*stopped* containers, so these accumulate; 26 were running on the runner at the time of writing,
-the oldest since before this regression's first red run (`manual-verification-evidence.md` V5).
+*stopped* containers, so these accumulate: 31 were running on the runner at the time of writing,
+all identifiable as this script's by image and mount pattern, and none stopped
+(`manual-verification-evidence.md` V5). The oldest of them predates the last known-green Container
+run, so at least that one is not explained by this regression; the rest, created after the first
+red run, are consistent with it but not individually proven to be caused by it.
 
 Why it regressed with no repository change: the job runs on the self-hosted `torrust-hetzner`
 runner (`torrust-runner-01`, Ubuntu 26.04.1), whose `timeout` is the uutils one. The runner's
@@ -112,8 +115,8 @@ run after it, plus the Container workflow on the fix PR.
 | --- | ------ | ------------------------------------------------------------------------- | -------------------------------------------- |
 | T1  | DONE   | Reproduce and record evidence                                             | `manual-verification-evidence.md` V1, V2     |
 | T2  | DONE   | Record red run of the script before the fix                               | Evidence V1: `RUN_TRACKER_STATUS=137`, exit 1 |
-| T3  | DONE   | Add `--foreground` to `timeout`; report the unexpected status on failure | Script change only                           |
-| T4  | IN_PROGRESS | Green run locally and Container workflow green on the PR             | Evidence V3 done locally; PR #2857 checks pending |
+| T3  | DONE   | Add `--foreground` to `timeout`; report the unexpected status on failure | Script change only, on PR #2857's branch (not yet merged to `develop`) |
+| T4  | DONE   | Green run locally and Container workflow green on the PR             | Evidence V3 (local); PR #2857's `Test (Docker) (release)` job passed |
 
 ## Commit Points
 
@@ -129,9 +132,11 @@ run after it, plus the Container workflow on the fix PR.
 - [x] Spec reviewed and approved by user/maintainer
 - [x] GitHub issue created and issue number added to this spec
 - [ ] Spec-only PR merged into `develop` before implementation
-- [x] Implementation completed
+- [x] Implementation completed (on PR #2857's branch; that PR had already been opened and
+      reviewed before this checkpoint was reconciled — see the 2026-11-13 11:20 UTC progress-log
+      entry for the process deviation from the recommended spec-first PR sequence)
 - [x] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
-- [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
+- [x] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
 - [ ] Evidence-based implementation completion review recorded: issue-local retrospective created for material discoveries, or progress log states why none was needed
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
@@ -142,14 +147,16 @@ run after it, plus the Container workflow on the fix PR.
 ### Progress Log
 
 - 2026-11-13 10:10 UTC - Claude Code (Claude Sonnet 5.5) - Drafted spec, reproduced the failure locally - `manual-verification-evidence.md`
-- 2026-11-13 10:40 UTC - Claude Code (Claude Sonnet 5.5) - Runner apt history confirms rust-coreutils 0.8.0 to 0.10.0 on 2026-11-12; issue #2855 created; spec moved to open/ - evidence V4
-- 2026-11-13 11:20 UTC - Claude Code (Claude Sonnet 5.5) - Opened implementation PR #2857 (T3 commit); addressed PR #2856 review findings F1-F7: re-ran V1/V2 with recorded repeatable commands, added V3 (green recheck) and V5 (leftover-container evidence), rewrote the Background mechanism claim as a hypothesis, updated Scope, Implementation Plan and checkpoints - `manual-verification-evidence.md` V1-V5
+- 2026-11-13 10:12 UTC - Claude Code (Claude Sonnet 5.5) - Runner apt history confirms rust-coreutils 0.8.0 to 0.10.0 on 2026-11-12; issue #2855 created; spec moved to open/ - evidence V4
+- 2026-11-13 11:20 UTC - Claude Code (Claude Sonnet 5.5) - Opened implementation PR #2857 (T3 commit) before this spec-only PR merged, deviating from the recommended spec-first PR sequence in `create-issue` (implementation was started in parallel rather than after merge); addressed PR #2856 review findings F1-F7: re-ran V1/V2 with recorded repeatable commands, added V3 (green recheck) and V5 (leftover-container evidence), rewrote the Background mechanism claim as a hypothesis, updated Scope, Implementation Plan and checkpoints - `manual-verification-evidence.md` V1-V5
+- 2026-11-13 14:00 UTC - Claude Code (Claude Sonnet 5.5) - Addressed PR #2856 round-2 review findings F8-F14: re-ran V5 on the runner with a full container list, an exited-count check and image/mount identification (31 containers, all this script's, oldest predating the last green run), softened the Impact claim, named the fixing commit in V3, fixed the V1 diff (removed a no-op pair, added the real `PROJECT_ROOT` edit), fixed this log's backfilled timestamp, and marked T4/AC1-AC3 DONE now that PR #2857's `Test (Docker) (release)` job passed - `manual-verification-evidence.md` V1, V3, V5
 
 ## Acceptance Criteria
 
-- [ ] AC1: `test-mounted-no-persistence-configuration.sh` passes with uutils `timeout` 0.10.0.
-- [ ] AC2: It still passes with GNU `timeout`.
-- [ ] AC3: The Container workflow "Test (Docker) (release)" job is green on the fix PR.
+- [x] AC1: `test-mounted-no-persistence-configuration.sh` passes with uutils `timeout` 0.10.0 (on
+      PR #2857's branch; `develop` lacks the fix until that PR merges).
+- [x] AC2: It still passes with GNU `timeout` (same branch).
+- [x] AC3: The Container workflow "Test (Docker) (release)" job is green on PR #2857.
 - [ ] `linter all` exits with code `0`
 - [ ] Acceptance criteria are re-reviewed after implementation and reflect actual behavior
 
@@ -176,7 +183,7 @@ run after it, plus the Container workflow on the fix PR.
 | ----- | ------ | -------- |
 | AC1   | DONE   | `manual-verification-evidence.md` V3 (uutils run) |
 | AC2   | DONE   | `manual-verification-evidence.md` V3 (GNU run via `PATH`) |
-| AC3   | TODO   | PR #2857 checks (pending) |
+| AC3   | DONE   | PR #2857 `Test (Docker) (release)` job: https://github.com/torrust/torrust-tracker/actions/runs/43410972003/job/131846372838 |
 
 ## Risks and Trade-offs
 

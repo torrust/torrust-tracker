@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2855-container-regression-timeout-sigint/ISSUE.md
-last-updated-utc: "2026-11-13 11:20"
+last-updated-utc: "2026-11-13 14:00"
 ---
 
 # Manual Verification Evidence
@@ -21,22 +21,28 @@ last-updated-utc: "2026-11-13 11:20"
 
 - Status: `DONE` (outcome: **Reproduced**)
 
-Edit applied to a working copy of the script (not committed; `PROJECT_ROOT` pinned to the
-working directory, and the unchanged `run_tracker` call instrumented to print the real exit
-status before the accept/reject `test`):
+Setup (not committed; the instrumented copy is not retained as an issue-local artifact because the
+complete patch below reconstructs it exactly from the unmodified script):
 
-```diff
--    timeout --signal=INT --kill-after=3s 10s docker run --rm \
-+    timeout --signal=INT --kill-after=3s 10s docker run --rm \
-         --env USER_ID="$(id -u)" \
-         --volume "${TEST_DIRECTORY}/etc:/etc/torrust/tracker:rw" \
-         --volume "${TEST_DIRECTORY}/lib:/var/lib/torrust/tracker:rw" \
-         --volume "${TEST_DIRECTORY}/log:/var/log/torrust/tracker:rw" \
+```bash
+cp contrib/dev-tools/containers/tests/test-mounted-no-persistence-configuration.sh ./instrumented-copy.sh
+patch ./instrumented-copy.sh <<'PATCH'
+--- a/test-mounted-no-persistence-configuration.sh
++++ b/instrumented-copy.sh
+@@ -16 +16 @@
+-PROJECT_ROOT=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../../../.." && pwd)
++PROJECT_ROOT=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+@@ -37,2 +37,3 @@ run_tracker() {
          "${IMAGE_TAG}" || exit_status=$?
 
 +    echo "RUN_TRACKER_STATUS=${exit_status}" >&2
      test "${exit_status}" -eq 0 -o "${exit_status}" -eq 124
+PATCH
 ```
+
+`PROJECT_ROOT` is pinned because the copy runs directly beside the unmodified script instead of at
+its nested path under the repository root; the `run_tracker` call itself is unchanged, only
+instrumented to print the real exit status before the accept/reject `test`.
 
 Command: `IMAGE_TAG=tt:repro BUILD_IMAGE=false bash -x ./instrumented-copy.sh`
 
@@ -89,8 +95,9 @@ symptom.
 
 - Status: `DONE`
 
-Ran the unmodified, fixed script (`timeout --foreground --signal=INT --kill-after=3s 10s ...`)
-against the same `tt:repro` image, once under each `timeout`:
+Ran the script with the fix from `fix(container): [#2855] stop the tracker with timeout
+--foreground` (PR #2857, `timeout --foreground --signal=INT --kill-after=3s 10s ...`), against the
+same `tt:repro` image, once under each `timeout`:
 
 ```text
 $ IMAGE_TAG=tt:repro BUILD_IMAGE=false bash contrib/dev-tools/containers/tests/test-mounted-no-persistence-configuration.sh
@@ -151,21 +158,38 @@ client is SIGKILLed (row 6 above), so `--rm` never fires and the prune filter ne
 On the runner:
 
 ```text
-$ docker ps -a --format '{{.ID}} {{.Status}} {{.CreatedAt}}' | head -5
-783e39c1bd04 Up 22 minutes (healthy)  2026-11-13 10:52:04 +0000 UTC
-114539ac5359 Up 49 minutes (healthy)  2026-11-13 10:25:01 +0000 UTC
-a4ecdde3c538 Up About an hour (healthy) 2026-11-13 10:11:37 +0000 UTC
-...
-2212f3f2e8ef Up 2 days (healthy)       2026-11-11 09:45:50 +0000 UTC
+$ docker ps -a --format '{{.ID}} {{.Status}} {{.CreatedAt}}'
+5e006c603754 Up 2 hours (healthy) 2026-11-13 13:46:16 +0000 UTC
+44f49cd688f5 Up 2 hours (healthy) 2026-11-13 13:32:55 +0000 UTC
+00c930a09fca Up 2 hours (healthy) 2026-11-13 13:18:40 +0000 UTC
+[... 27 more lines, newest to oldest ...]
+a040534e2abb Up 31 hours (healthy) 2026-11-12 08:37:16 +0000 UTC
+2212f3f2e8ef Up 2 days (healthy)   2026-11-11 09:45:50 +0000 UTC
+
+$ docker ps -a --filter status=exited -q | wc -l
+0
 
 $ docker ps -a -q | wc -l
-26
+31
+
+$ for c in $(docker ps -aq); do
+    echo "$c $(docker inspect "$c" --format '{{.Config.Image}} {{range .Mounts}}{{.Source}} {{end}}')"
+  done
+5e006c603754 torrust-tracker:local /tmp/test-mounted-no-persistence-configuration.zzu8BD/etc /tmp/test-mounted-no-persistence-configuration.zzu8BD/lib /tmp/test-mounted-no-persistence-configuration.zzu8BD/log
+[... 29 more lines, each torrust-tracker:local with a
+     /tmp/test-mounted-no-persistence-configuration.<random>/{etc,lib,log} mount set ...]
+2212f3f2e8ef torrust-tracker:local /tmp/test-mounted-no-persistence-configuration.5G4agY/etc /tmp/test-mounted-no-persistence-configuration.5G4agY/lib /tmp/test-mounted-no-persistence-configuration.5G4agY/log
 ```
 
-26 containers were running (none stopped), the oldest since 2026-11-11 09:45 UTC, a time before
-this regression's first red run; these containers' age range is consistent with, but not proven
-to be entirely caused by, the bug fixed here (the runner also runs release-image containers from
-other jobs that are not `--rm`'d by this script). The fix (`--foreground`) stops new leftovers
-from this script; it does not clean up the ones already running. Cleaning the existing backlog is
-left to the maintainer or a follow-up, since it changes state on the shared runner and was not
-requested as part of this fix.
+All 31 running containers (none stopped) carry the `torrust-tracker:local` image and a
+`/tmp/test-mounted-no-persistence-configuration.<random>/{etc,lib,log}` mount set, so every one of
+them was started by this script, by its `mktemp -d` temp-directory naming pattern (script line
+17). The oldest, `2212f3f2e8ef`, was created 2026-11-11 09:45:50 UTC — before the last known-green
+Container run (2026-11-11 16:30 UTC, V4) — so this leftover alone predates the regression and is
+not explained by the SIGINT-forwarding bug fixed here; it must come from an earlier, separate
+failure of the same script. The remaining 30 containers were created between 2026-11-12 08:37 UTC
+(after the first red run, V4) and 2026-11-13 13:46 UTC, consistent with (but, for any individual
+container, not proven to be caused by) this regression. The fix (`--foreground`) stops new
+leftovers of this kind; it does not clean up the ones already running. Cleaning the existing
+backlog is left to the maintainer or a follow-up, since it changes state on the shared runner and
+was not requested as part of this fix.
