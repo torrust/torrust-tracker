@@ -68,9 +68,11 @@ hung component needs a task that ignores cancellation, which no production compo
   2. an external stall of a real component (for example holding a lock or suspending a dependency the
      component awaits) if one exists without changing production code;
   3. a test-only fault-injection point behind a Cargo feature that is off in every release profile.
-- T2: run the chosen technique with `SIGTERM` and `SIGINT`, capture bounded exit status, the log lines
+- T2: build the harness, if the chosen technique needs one.
+- T3: run the chosen technique with `SIGTERM` and `SIGINT`, capture bounded exit status, the log lines
   (`aborted`, the component name, what it waited for) and timing against `P`, and record it in
   `manual-verification-evidence.md`.
+- T4: update the shutdown docs if they still call the hung-component path unverified.
 - If no technique is acceptable, record a reasoned decision that the unit tests plus the harness are the
   strongest feasible evidence, and close the issue with that decision.
 
