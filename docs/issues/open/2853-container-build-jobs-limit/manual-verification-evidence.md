@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2853-container-build-jobs-limit/ISSUE.md
-last-updated-utc: "2026-11-13 11:20"
+last-updated-utc: "2026-11-13 13:26"
 ---
 
 # Manual Verification Evidence
@@ -68,6 +68,23 @@ Result: pass.
 
 ## V4: self-hosted runner effect
 
-Status: see the Progress Log for the recorded outcome once `torrust-runner-01`'s `Test (Docker) (release)` job completes at this PR's
-head. `report.md`, "Effect on the runners" has the reasoning and the comparison baseline (three prior unlimited-jobs `develop` runs,
-about 12.5 minutes each for the image build step).
+Step times of `Build Tracker Image` in the `Test (Docker) (release)` job, all on `torrust-runner-01`, read on 2026-11-13 with
+`gh api repos/torrust/torrust-tracker/actions/runs/<run id>/jobs` (the step's `started_at` and `completed_at`):
+
+| Run id      | Built                                                                                          | Cargo jobs   | Build step |
+| ----------- | ---------------------------------------------------------------------------------------------- | ------------ | ---------- |
+| 42846692510 | `develop`, 2026-11-10                                                                          | uncapped (8) | 721 s      |
+| 43016685734 | `develop`, 2026-11-11                                                                          | uncapped (8) | 723 s      |
+| 43059027926 | `develop`, 2026-11-11                                                                          | uncapped (8) | 749 s      |
+| 43410572813 | this PR at `fix(container): [#2853] address Copilot review: cap tester stage, trap measure.sh signals` | 4    | 814 s      |
+| 43413696734 | this PR at `docs(pr-reviews): [#2853] fix audit record table formatting and reply URLs`        | 4            | 842 s      |
+| 43420090960 | this PR at `fix(container): [#2853] address review round 3: audit timestamps, report accuracy` | 4            | 824 s      |
+
+Means: 731 s uncapped, 827 s at 4 jobs, a difference of 96 s (13%). Limits of this comparison: the runs built different commits, and
+the state of the runner's Docker layer cache at each run was not checked.
+
+In the three runs of this PR the build step passed and the next step, `Run Persistence Transition Regression`, failed. The same
+step fails on `develop` at this branch's merge base (run 43299605132, 2026-11-12), so that failure is not caused by this change.
+It makes the `Test (Docker) (release)` check red on this PR until it is fixed on `develop`.
+
+Result: measured. Whether a 13% slower build step is acceptable for AC6 is the maintainer's decision.

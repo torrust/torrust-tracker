@@ -9,7 +9,7 @@ github-issue: 2853
 spec-path: docs/issues/open/2853-container-build-jobs-limit/ISSUE.md
 branch: "2853-container-build-jobs-limit"
 related-pr: null
-last-updated-utc: "2026-11-13 11:43"
+last-updated-utc: "2026-11-13 13:26"
 semantic-links:
   skill-links:
     - create-issue
@@ -93,7 +93,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | T3  | DONE        | `Containerfile` `ARG`/`ENV` in the `chef` and `tester` stages | Every cook, archive and build step, and `tester`'s own tool install, capped    |
 | T4  | DONE        | `docker-build.sh` passes `CARGO_BUILD_JOBS`                  | Build argument only when set                                                    |
 | T5  | DONE        | `docs/containers.md` "Memory and CPU Use"                    | Default, raise, lower, rule of thumb, plain-cargo note                          |
-| T6  | IN_PROGRESS | Check the self-hosted and GitHub-hosted runners              | Reasoning in `report.md`; real self-hosted run at this head pending (M4)        |
+| T6  | DONE        | Check the self-hosted and GitHub-hosted runners              | Reasoning in `report.md`; self-hosted build step measured (M4)                   |
 
 ## Commit Points
 
@@ -114,7 +114,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - [ ] Automatic verification completed (`linter all`, relevant tests, and any pre-push checks)
 - [ ] Manual verification scenarios executed and recorded in issue-local `manual-verification-evidence.md`
 - [ ] Acceptance criteria reviewed after implementation and updated with evidence
-- [ ] Evidence-based implementation completion review recorded
+- [x] Evidence-based implementation completion review recorded
 - [ ] Reviewer validated acceptance criteria and updated checkboxes
 - [ ] Committer verified spec progress is up to date before commit
 - [ ] Issue closed and spec moved from `docs/issues/open/` to `docs/issues/closed/`
@@ -131,6 +131,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-13 11:12 UTC - Claude Code (Claude Sonnet 5.5) - Restored the three raw run summaries da2ce7's F14 found had been overwritten with a wrong recomputed figure, and corrected report.md's 16-jobs delta to 33.0 (`fix(container): [#2853] restore raw run summaries, correct the 16-jobs delta to 33.0`).
 - 2026-11-13 11:28 UTC - Claude Code (Claude Sonnet 5.5) - Addressed R3/R4 (an earlier Copilot review), da2ce7's F15-F17/F19/F20, and Copilot's F21-F24 (locale, PID-anchor, stage-overlap scope, audit-record accuracy, and small doc fixes) (`fix(container): [#2853] address review round 2: locale, PID anchor, stage overlap, audit accuracy`).
 - 2026-11-13 11:43 UTC - Claude Code (Claude Sonnet 5.5) - Addressed da2ce7's next round (F25-F27, reassigned from its reused F21-F23 under the audit's collision rule): this entry's own 08:50 claim was itself one of the findings, so it was corrected above rather than here; also fixed report.md's remaining Method/Stage-overlap overstatements and the audit record's two mistimed Processing Log entries (left as written, with an appended correction) (`fix(container): [#2853] address review round 3: audit timestamps, report accuracy`).
+- 2026-11-13 13:26 UTC - Claude Code (Claude Fable 5.2) - Appended a correction to the audit log and removed two quoted commit hashes (`docs(pr-reviews): [#2853] correct the audit log and drop quoted commit hashes`, committed 13:17 UTC); all 31 review threads are resolved. Recorded the self-hosted runner build step times (M4, evidence V4): 827 s at 4 jobs against 731 s uncapped. AC6 stays TODO until the maintainer decides whether that is acceptable. Added `implementation-retrospective.md`.
 
 ## Acceptance Criteria
 
@@ -160,7 +161,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | M1  | Measurement at 4, 8, 16     | `contrib/dev-tools/experiments/container-build-jobs/measure.sh <N>` one at a time, watchdog at 8 GiB available | Peak memory and wall time recorded                            | DONE   | `report.md`                                  |
 | M2  | Release build, implicit default | `docker build --target chef\|tester ...` and `--target release --build-arg CARGO_BUILD_JOBS=4 ...` (the jobs-4 measurement) | No-flag build reaches `CARGO_BUILD_JOBS=4`; full build passes at that default | DONE   | `manual-verification-evidence.md` section V2 |
 | M3  | Override and script         | `docker build --target chef\|tester --build-arg CARGO_BUILD_JOBS=2 ...` then `printenv`; `CARGO_BUILD_JOBS=2 ./contrib/dev-tools/containers/docker-build.sh` | `CARGO_BUILD_JOBS=2` visible in both stages and used by the build | DONE   | `manual-verification-evidence.md` section V3 |
-| M4  | Self-hosted runner, this head | `Test (Docker) (release)` job on `torrust-runner-01` for this PR's head commit | Job duration recorded and compared with the prior unlimited-jobs baseline | IN_PROGRESS | `manual-verification-evidence.md` section V4 |
+| M4  | Self-hosted runner | Read the `Build Tracker Image` step time of the `Test (Docker) (release)` job on `torrust-runner-01` for runs of this PR and of `develop` | Build step time recorded and compared with the uncapped baseline | DONE | `manual-verification-evidence.md` section V4 |
 
 ### Acceptance Verification
 
@@ -171,7 +172,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | AC3   | DONE                   | M3       |
 | AC4   | DONE                   | `docs/containers.md` |
 | AC5   | DONE                   | `report.md` |
-| AC6   | TODO                   | M4; `report.md` "Effect on the runners" |
+| AC6   | TODO                   | Measured in V4: the build step is about 13% slower (827 s against 731 s). Waiting for the maintainer to accept that or ask for a higher value in the workflow |
 
 ## Risks and Trade-offs
 
@@ -181,7 +182,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ## Implementation Completion Review
 
-- Retrospective: `Not yet assessed`
+- Retrospective: [implementation-retrospective.md](implementation-retrospective.md). It covers the review of pull request #2854, which took nine reviews and 31 findings for a 61-line change.
 
 ## References
 

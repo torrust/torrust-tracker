@@ -105,10 +105,11 @@ BuildKit `max-parallelism`, which belongs to the machine configuration, not the 
   comfortably inside its RAM. `build` and `build_shipped` both `COPY . /build/src`, so every source change recompiles the whole
   workspace regardless of Docker layer caching for those two stages; this is not a one-time cold-build effect, it happens on every
   PR into `develop` and every push to it.
-  - The runner's actual `Test (Docker) (release)` job duration at the new default, compared against the prior unlimited-jobs
-    baseline (the three successful `develop` runs of 2026-11-10/11, each about 12.5 minutes for the image build step, with the
-    runner's persistent Docker store keeping cached layers from earlier runs), is pending: see manual scenario M4 and its evidence
-    section V4, named by the commit subject of the PR head they measure rather than a branch commit id (a rebase would orphan an id).
-    If the capped build regresses meaningfully, `container.yaml` can pass a higher `CARGO_BUILD_JOBS` for that runner specifically.
+  - Measured on `torrust-runner-01` from the `Build Tracker Image` step times the GitHub API reports. Three runs of this pull request
+    at the default of 4 took 814 s, 842 s and 824 s (mean 827 s). The three successful `develop` runs of 2026-11-10 and 2026-11-11,
+    uncapped, took 721 s, 723 s and 749 s (mean 731 s). The capped build step is about 96 s, or 13%, slower. The runs built
+    different commits and the state of the runner's layer cache at each run was not checked, so this is a rough comparison, not a
+    controlled one. The run ids and commands are in the issue's manual verification evidence, section V4. If that is too slow,
+    `container.yaml` can pass a higher `CARGO_BUILD_JOBS` for that runner only.
 - Plain `cargo build` and `cargo test` outside containers read `CARGO_BUILD_JOBS` too, so the variable also limits them. The
   `Containerfile` sets it as an image environment variable only; it does not change host builds.
