@@ -53,6 +53,9 @@ deliver findings through GitHub and have no repository-artifact obligation.
 | F7 | review-finding:pr-2858-f7 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F8 | review-finding:pr-2858-f8 | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
 | F9 | review-finding:pr-2858-f9 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F10 | review-finding:pr-2858-f10 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F11 | review-finding:pr-2858-f11 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F12 | review-finding:pr-2858-f12 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -176,10 +179,47 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Follow-up PR URL: NA
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2858#discussion_r4569668697
 
+### F10 - Audit record fails its validator
+
+- PR number: 2858
+- Source review ID: 5899470290
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2858#discussion_r4569803647
+- Concern: Review IDs and one resolution reference were wrong, and a branch commit id was cited.
+- Solution: Corrected the IDs, used the F2 reply URL, removed the branch id; validator reports 0 failures.
+- Current-tree verification: `validate-audit-record.py --pr-number 2858` and a read of the changed files.
+- Resolution reference: docs(issues): [#2844] fix audit record ids and stamps after review
+- Follow-up PR URL: NA
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2858#discussion_r4569841227
+
+### F11 - Reply and stamp times do not match
+
+- PR number: 2858
+- Source review ID: 5899470290
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2858#discussion_r4569803653
+- Concern: Reply time and the 23:10 stamps were wrong.
+- Solution: Replies logged from 22:55 UTC; stamps moved to the commit minute.
+- Current-tree verification: `validate-audit-record.py --pr-number 2858` and a read of the changed files.
+- Resolution reference: docs(issues): [#2844] fix audit record ids and stamps after review
+- Follow-up PR URL: NA
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2858#discussion_r4569841508
+
+### F12 - Stamp note promises three stamps
+
+- PR number: 2858
+- Source review ID: 5899470290
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2858#discussion_r4569803657
+- Concern: The note said three stamps per run, the block shows two.
+- Solution: Note now says two stamps per run are kept.
+- Current-tree verification: `validate-audit-record.py --pr-number 2858` and a read of the changed files.
+- Resolution reference: docs(issues): [#2844] fix audit record ids and stamps after review
+- Follow-up PR URL: NA
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2858#discussion_r4569841845
+
 ## Processing Log
 
 - 2026-11-13 22:49 UTC - First review (da2ce7) arrived; replies to F1 to F6 posted from 22:55 UTC without this record.
 - 2026-11-13 23:06 UTC - Late start: record created after the round-2 review (F7); all threads answered and resolved.
+- 2026-11-13 23:30 UTC - Round 3 review (F10 to F12) answered and resolved; rows added.
 
 ## Completion Rules
 
