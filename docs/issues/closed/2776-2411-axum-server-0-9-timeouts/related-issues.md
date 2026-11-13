@@ -42,12 +42,12 @@ Evidence used below:
 
 | Issue | Title                                                | Disposition                                    |
 | ----- | ---------------------------------------------------- | ---------------------------------------------- |
-| #612  | Tracker API: timeouts for TLS handshake and headers  | Fixed by #2813; close                          |
-| #613  | HTTP Tracker: timeouts for TLS handshake and headers | Fixed by #2813; close                          |
+| #612  | Tracker API: Add a timeout to the TLS handshake, waiting for headers, and waiting for receiving headers | Fixed by #2813; close                          |
+| #613  | HTTP Tracker: Add a timeout to the TLS handshake, waiting for headers, and waiting for receiving headers | Fixed by #2813; close                          |
 | #603  | Review missing timeouts (EPIC)                       | All items done once #612 and #613 close; close |
 | #324  | Denial of Service attack factor                      | Keep open, re-scoped to EPIC #2411 case A1     |
 
-## #612 - Tracker API: add a timeout to the TLS handshake, waiting for headers
+## #612 - Tracker API: Add a timeout to the TLS handshake, waiting for headers, and waiting for receiving headers
 
 Original report (2024-01-16, maintainer; label Bug; child of #603): add timeouts to the REST API
 for the TLS handshake, the wait for a first request after the connection opens, and the wait for
@@ -65,7 +65,7 @@ issue's reproduction repository sends is deliberately not reproduced; see the AD
 
 Remains open: nothing for this issue. Rate limiting and connection caps live in EPIC #2411 case A1.
 
-## #613 - HTTP Tracker: add a timeout to the TLS handshake, waiting for headers
+## #613 - HTTP Tracker: Add a timeout to the TLS handshake, waiting for headers, and waiting for receiving headers
 
 Original report (2024-01-16, maintainer; label Bug; child of #603): identical text to #612, applied
 to the HTTP tracker. Same comment history.
