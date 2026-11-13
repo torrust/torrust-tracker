@@ -78,7 +78,7 @@ rise is the added test code itself. Per file, unit-only lines after the slice: `
 0 / 8, 0 / 21). Details, mutation tables and the property decision: `test-refactor-plans/announce_interval.md`,
 `announce.md`, `policy.md`, `mode.md` and `pagination.md`.
 
-Reconciliation of the per-file and package figures (review round 1 of #2852, F3): the per-file lines sum to +196 covered
+Reconciliation of the per-file and package figures (`review-finding:pr-2852-f3`): the per-file lines sum to +196 covered
 and +126 lines (34 + 55 + 40 + 25 + 42 and 25 + 39 + 24 + 17 + 21), the package moved from 848 / 995 to 1,044 / 1,121
 (+196 and +126), and each step agrees when re-measured at its own commit: `announce_interval.rs` 882 / 1,020,
 `announce.rs` 937 / 1,059, `policy.rs` 977 / 1,083, `mode.rs` 1,002 / 1,100, `pagination.rs` 1,044 / 1,121. Two

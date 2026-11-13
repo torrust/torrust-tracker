@@ -4,7 +4,7 @@ issue: 2824
 package: torrust-tracker-primitives
 target-file: packages/primitives/src/pagination.rs
 status: done
-last-updated-utc: "2026-11-13 08:31"
+last-updated-utc: "2026-11-13 09:44"
 ---
 
 # `pagination.rs` File Test Plan

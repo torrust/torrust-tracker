@@ -4,7 +4,7 @@ issue: 2824
 package: torrust-tracker-primitives
 target-file: packages/primitives/src/announce_interval.rs
 status: done
-last-updated-utc: "2026-11-12 20:40"
+last-updated-utc: "2026-11-13 09:44"
 ---
 
 # `announce_interval.rs` File Test Plan
@@ -73,7 +73,7 @@ number) and one `quickcheck` property (`interval_bound`). No deviation. `cargo c
 `match` in the property was rewritten as one comparison after `option_if_let_else`). The figures were first measured
 before that rewrite (114 / 114 for the file, 883 / 1,021 for the package); the rewrite removed one covered line, and the
 table shows the re-measure at the commit `test(primitives): [#2824] test the announce interval conversions and bound`
-(review round 1 of #2852, F3).
+(`review-finding:pr-2852-f3`).
 
 ### Property decision (the Q1 rule)
 
@@ -89,7 +89,7 @@ test one side only.
 One mutant that only the property kills meets the rule, so the property is **kept**. None of the three mutants named in
 advance (above) met the rule: the single-value slip survived everything, and the narrowing cast and the `value + 1`
 mutant are killed by example tests. The deciding mutant, the band slip, was added after them, when the property had been
-run (review round 1 of #2852, F1).
+run (`review-finding:pr-2852-f1`).
 
 ### Mutation sample (8 mutants, each applied alone and reverted exactly)
 
