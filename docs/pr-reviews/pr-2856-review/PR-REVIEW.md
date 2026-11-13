@@ -6,6 +6,8 @@ semantic-links:
     - .github/skills/dev/pr-reviews/process-pr-review/SKILL.md
 ---
 
+<!-- skill-link: process-pr-review -->
+
 # PR #2856 Review Audit
 
 Source: pull-request reviews and inline review threads for https://github.com/torrust/torrust-tracker/pull/2856.
@@ -18,11 +20,11 @@ deliver findings through GitHub and have no repository-artifact obligation.
 - Post-merge workflow approval: N/A
 
 This record was created late (round 2), after round 1's ten findings were already fixed and
-replied to. Round 1's nine `da2ce7`-thread replies and all ten resolutions cite commit
-`f2f0e4e73` (a branch commit id) rather than its Conventional Commit subject, `docs(issues):
-[#2855] address PR #2856 review findings F1-F7`. That subject is the durable resolution
-reference for F1-F7 and F15-F17 below; the id-based replies predate this record and are not
-edited.
+replied to. Round 1's six `da2ce7`-thread replies and three automated-reviewer-thread replies
+(nine total) and all ten resolutions cite commit `f2f0e4e73` (a branch commit id) rather than its
+Conventional Commit subject, `docs(issues): [#2855] address PR #2856 review findings F1-F7`. That
+subject is the durable resolution reference for F1-F7 and F15-F17 below; the id-based replies
+predate this record and are not edited.
 
 ## Status Values
 
@@ -52,7 +54,14 @@ had the subject `docs(issues): add issue specification for #2855`. Round 2 is `d
 `5890192507` (F8 to F14), submitted on the head whose last commit has the subject `docs(issues):
 [#2855] address PR #2856 review findings F1-F7`, and `copilot-pull-request-reviewer`'s review
 `5891738510` (F18, reviewer label `F8`, reassigned on collision with `da2ce7`'s F8), submitted on
-the same head.
+the same head. Round 3 is `da2ce7`'s APPROVED review `5893913692` (F19 to F24, reviewer labels
+F15-F20, reassigned on collision with the audit's own F15-F18 and with round 2's reviewer-label
+usage) and `copilot-pull-request-reviewer`'s review `5894073993` (F25 to F27, reviewer labels
+F19-F21 in each comment's own title, reassigned on collision with `da2ce7`'s round-3 F19-F21),
+both submitted on the head whose last commit has the subject `docs(issues): [#2855] address
+PR #2856 review findings F8-F14`. F26 and F27 are the automated reviewer's independent re-raises of
+`da2ce7`'s F21 and F23 (same concerns, found separately by both reviewers in the same round, not
+one reviewer repeating the other's finding).
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -73,7 +82,16 @@ the same head.
 | F15 | review-finding:pr-2856-f15 | Copilot | Minor (inferred) | documentation | RE_RAISE_OF:F6 | FIXED | RESOLVED |
 | F16 | review-finding:pr-2856-f16 | Copilot | Minor (inferred) | formatting | ORIGINAL | NO_ACTION | RESOLVED |
 | F17 | review-finding:pr-2856-f17 | Copilot | Nit (inferred) | documentation | RE_RAISE_OF:F7 | FIXED | RESOLVED |
-| F18 | review-finding:pr-2856-f18 | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F18 | review-finding:pr-2856-f18 | Copilot | Minor | testing | RE_RAISE_OF:F13 | FIXED | RESOLVED |
+| F19 | review-finding:pr-2856-f19 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F20 | review-finding:pr-2856-f20 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F21 | review-finding:pr-2856-f21 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F22 | review-finding:pr-2856-f22 | Human | Nit | testing | ORIGINAL | FIXED | RESOLVED |
+| F23 | review-finding:pr-2856-f23 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F24 | review-finding:pr-2856-f24 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
+| F25 | review-finding:pr-2856-f25 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
+| F26 | review-finding:pr-2856-f26 | Copilot | Nit (inferred) | documentation | RE_RAISE_OF:F21 | FIXED | RESOLVED |
+| F27 | review-finding:pr-2856-f27 | Copilot | Minor (inferred) | documentation | RE_RAISE_OF:F23 | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -254,7 +272,7 @@ the same head.
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4562747535
 - Concern: The 10:40 UTC progress-log entry was already in the first commit, which was committed at 10:13:58 UTC, so the entry's own stamp postdated its commit.
 - Solution: Changed the stamp to 10:12 UTC, no later than the 10:13:58 UTC commit that carries it.
-- Current-tree verification: `git log --format=%cI` for `9796436047f042efb5d2800d89ad4ec973706a81` shows `2026-11-13T10:13:58Z`; the entry now reads `10:12 UTC`.
+- Current-tree verification: `git log --format=%cI` for the commit with subject `docs(issues): add issue specification for #2855` shows `2026-11-13T10:13:58Z`; the entry now reads `10:12 UTC`.
 - Resolution reference: docs(issues): [#2855] address PR #2856 review findings F8-F14
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4565228445
@@ -311,7 +329,125 @@ the same head.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4565229077
 
+### F19 - Audit record missing the skill-link marker
+
+- PR number: 2856
+- Source review ID: 5893913692
+- Reviewer finding ID: F15
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4565388335
+- Concern: The template and the audit records for PR #2826 and PR #2830 carry `<!-- skill-link: process-pr-review -->` between the frontmatter and the heading; this record did not.
+- Solution: Added the marker in the same position.
+- Current-tree verification: `docs/pr-reviews/pr-2856-review/PR-REVIEW.md` lines 1-9 now show the marker between the frontmatter's closing `---` and the `# PR #2856 Review Audit` heading.
+- Resolution reference: docs(issues): [#2855] address PR #2856 review findings F19-F27
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4569357597
+
+### F20 - Commit cited by id; Ownership note's reply count attributed all nine to `da2ce7`
+
+- PR number: 2856
+- Source review ID: 5893913692
+- Reviewer finding ID: F16
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4565388346
+- Concern: F14's current-tree verification cited the first commit by its full id rather than its Conventional Commit subject, and the F14 reply on GitHub cited it by a short id; separately, the Ownership note's "nine `da2ce7`-thread replies" counted six `da2ce7`-thread replies plus three automated-reviewer-thread replies as all belonging to `da2ce7`.
+- Solution: Changed F14's current-tree verification to cite the commit by subject (`docs(issues): add issue specification for #2855`); posted a new reply on the F14 thread correcting the citation without editing the published comment; reworded the Ownership note to "six `da2ce7`-thread replies and three automated-reviewer-thread replies (nine total)".
+- Current-tree verification: `docs/pr-reviews/pr-2856-review/PR-REVIEW.md` F14 entry and Ownership section.
+- Resolution reference: docs(issues): [#2855] address PR #2856 review findings F19-F27
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4569336328
+
+### F21 - V5 elided-line count does not add up to the reported total
+
+- PR number: 2856
+- Source review ID: 5893913692
+- Reviewer finding ID: F17
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4565388350
+- Concern: Five displayed rows plus "27 more lines" makes 32 containers, but `docker ps -a -q | wc -l` reported 31.
+- Solution: Recaptured V5 on the runner (read-only, maintainer-approved) with a fresh run: 34 containers total, 0 exited; the listing shows 3 newest rows, elides 29, then shows the 2 oldest rows (3 + 29 + 2 = 34), matching `wc -l`.
+- Current-tree verification: `manual-verification-evidence.md` V5: `docker ps -a -q | wc -l` prints 34; the `docker ps -a --format ...` listing shows 3 rows, "[... 29 more lines, newest to oldest ...]", then 2 rows (3 + 29 + 2 = 34).
+- Resolution reference: docs(issues): [#2855] address PR #2856 review findings F19-F27
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4569358576
+
+### F22 - V1 patch's second hunk header miscounted; `cp` location wrongly described
+
+- PR number: 2856
+- Source review ID: 5893913692
+- Reviewer finding ID: F18
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4565388359
+- Concern: The second hunk header said `@@ -37,2 +37,3 @@` (2 old, 3 new) but the body has 3 old lines and 4 new, so a strict applier (`git apply`) rejects it; separately, the prose said the copy "runs directly beside the unmodified script" when the `cp` command's relative source path actually puts the copy in the repository root (the working directory), which is why pinning `PROJECT_ROOT` to the copy's own directory works.
+- Solution: Corrected the header to `@@ -37,3 +37,4 @@`; reworded the prose to describe the `cp` command's actual effect (puts the copy in the repository root because its source path is relative).
+- Current-tree verification: Applied the corrected patch locally with `patch(1)` against an unmodified copy of the script; it applies and produces the two intended edits (confirmed both the `PROJECT_ROOT` line and the added echo line are present, nothing else changed).
+- Resolution reference: docs(issues): [#2855] address PR #2856 review findings F19-F27
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4569359397
+
+### F23 - Backfilled 14:00 stamps predate the V5 rerun they report
+
+- PR number: 2856
+- Source review ID: 5893913692
+- Reviewer finding ID: F19
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4565388371
+- Concern: Both `last-updated-utc` fields and the ISSUE.md progress-log entry said 14:00 UTC, but the V5 listing's newest container ("Up 2 hours" at 13:46:16 creation) could not have been captured before roughly 15:16, and the commit carrying it was committed at 15:23:59.
+- Solution: Recaptured V5 on the runner at a recorded real time (2026-11-13 22:18:22 UTC) and set `last-updated-utc` in both files, plus a new progress-log entry, to match.
+- Current-tree verification: `manual-verification-evidence.md` frontmatter and V5 "Capture time" line; `ISSUE.md` frontmatter and progress log.
+- Resolution reference: docs(issues): [#2855] address PR #2856 review findings F19-F27
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4569360166
+
+### F24 - `linter all` criterion unchecked; description's Files touched list stale
+
+- PR number: 2856
+- Source review ID: 5893913692
+- Reviewer finding ID: F20
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4565388384
+- Concern: The `linter all` acceptance criterion was unchecked while the checkpoint on the line above marked automatic verification complete and the description said `linter all` passes; separately, the description's Files touched list omitted `docs/pr-reviews/pr-2856-review/PR-REVIEW.md`.
+- Solution: Ran `linter all` (exits 0) and checked the criterion; added the audit record to the description's Files touched list via `gh-bot pr edit`.
+- Current-tree verification: `ISSUE.md` Acceptance Criteria; PR #2856 description.
+- Resolution reference: docs(issues): [#2855] address PR #2856 review findings F19-F27
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4569361000
+
+### F25 - Copilot: F18 should be classified as a re-raise of F13
+
+- PR number: 2856
+- Source review ID: 5894073993
+- Reviewer finding ID: F19
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4565509280
+- Concern: F18's detail explicitly says it requests the same reconstruction fix as F13 and uses the same verification, but the table labeled it `ORIGINAL`, double-counting one underlying concern.
+- Solution: Changed F18's Relationship to `RE_RAISE_OF:F13`.
+- Current-tree verification: `docs/pr-reviews/pr-2856-review/PR-REVIEW.md` F18 row.
+- Resolution reference: docs(issues): [#2855] address PR #2856 review findings F19-F27
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4569305288
+
+### F26 - Copilot: re-raise of F21 (elided container count)
+
+- PR number: 2856
+- Source review ID: 5894073993
+- Reviewer finding ID: F20
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4565509225
+- Concern: Same concern as F21 (elided-line count did not add up to the reported total).
+- Solution: Fixed together with F21.
+- Current-tree verification: Same as F21.
+- Resolution reference: docs(issues): [#2855] address PR #2856 review findings F19-F27
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4569306256
+
+### F27 - Copilot: re-raise of F23 (V5 capture time)
+
+- PR number: 2856
+- Source review ID: 5894073993
+- Reviewer finding ID: F21
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4565509158
+- Concern: Same concern as F23 (backfilled stamp predates the V5 rerun it reports).
+- Solution: Fixed together with F23.
+- Current-tree verification: Same as F23.
+- Resolution reference: docs(issues): [#2855] address PR #2856 review findings F19-F27
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4569307085
+
 ## Processing Log
 
 - 2026-11-13 11:20 UTC - `da2ce7`'s review `5889698232` (7 findings, F1 to F7) and `copilot-pull-request-reviewer`'s review `5889723390` (3 findings, F15 to F17) processed before this record existed: fixed in commit `f2f0e4e73` (branch id cited in the nine replies instead of this subject) and replied on all ten threads, then resolved.
 - 2026-11-13 14:00 UTC - Started this record late, after round 2 arrived. Processing round 2: `da2ce7`'s review `5890192507` (7 findings, F8 to F14) and `copilot-pull-request-reviewer`'s review `5891738510` (1 finding, F18, reviewer label `F8`, reassigned on collision with `da2ce7`'s F8).
+- 2026-11-13 22:30 UTC - Processing round 3: `da2ce7`'s APPROVED review `5893913692` (6 findings, F19 to F24, reviewer labels F15-F20) and `copilot-pull-request-reviewer`'s review `5894073993` (3 findings, F25 to F27, reviewer labels F19-F21). F26 and F27 are independent re-raises of F21 and F23 (same underlying concerns, found separately by both reviewers in this round). Fixed in commit `docs(issues): [#2855] address PR #2856 review findings F19-F27`: added the skill-link marker (F19); cited the first commit by subject and corrected the Ownership note's reply-count attribution (F20); recaptured V5 on torrust-runner-01 (read-only, maintainer-approved) with a fresh, internally-consistent listing (F21, F26); corrected the V1 patch's second hunk header and the `cp` location prose (F22); recorded the real V5 capture time throughout (F23, F27); ran `linter all`, checked the criterion, and added the audit record to the PR description's Files touched list (F24); reclassified F18 as `RE_RAISE_OF:F13` (F25). Replied on all nine threads, then resolved them.
