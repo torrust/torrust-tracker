@@ -26,6 +26,7 @@ changes nor work on another file until the maintainer approves it. Files with no
 | 2 | [announce_interval.md](announce_interval.md) | DONE (S3) |
 | 3 | [announce.md](announce.md) | DONE (S3) |
 | 4 | [policy.md](policy.md) | DONE (S3) |
+| 5 | [mode.md](mode.md) | IN PROGRESS (S3, record approved 2026-11-13) |
 
 ## Shared Guardrails
 
