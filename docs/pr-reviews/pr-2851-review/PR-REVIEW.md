@@ -56,6 +56,8 @@ Round 6 is the review `5889368194` of `da2ce7` (COMMENTED, F27 to F31, audit-loc
 which collides with F25 and F26 above, is recorded as the original), on the head that carried the round 5 spec changes
 before the round 5 audit record; and the review `5889728498` of `da2ce7` (COMMENTED, F32 to F34, audit-local IDs; same
 collision, with the reviewer's own F30 to F32 recorded as the original), on the head that carried the round 5 audit.
+Round 7 is Copilot's review `5890015379` (COMMENTED, F35 to F37, audit-local IDs), on the head that carried the round 6
+audit, submitted after a timed-out agentic pass with three mechanical comments.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -91,8 +93,11 @@ collision, with the reviewer's own F30 to F32 recorded as the original), on the 
 | F30 | review-finding:pr-2851-f30 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F31 | review-finding:pr-2851-f31 | Human | Suggestion | documentation | ORIGINAL | FIXED | RESOLVED |
 | F32 | review-finding:pr-2851-f32 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
-| F33 | review-finding:pr-2851-f33 | Human | Minor | process | ORIGINAL | FIXED | RESOLVED |
+| F33 | review-finding:pr-2851-f33 | Human | Minor | other | ORIGINAL | FIXED | RESOLVED |
 | F34 | review-finding:pr-2851-f34 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F35 | review-finding:pr-2851-f35 | Copilot | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F36 | review-finding:pr-2851-f36 | Copilot | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F37 | review-finding:pr-2851-f37 | Copilot | Minor | metadata | RE_RAISE_OF:F36 | NO_ACTION | SUPERSEDED |
 
 ## Finding Details
 
@@ -538,6 +543,45 @@ collision, with the reviewer's own F30 to F32 recorded as the original), on the 
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4562442841
 
+### F35 - The probe assumes the connect response is always 16 bytes and action 0
+
+- PR number: 2851
+- Source review ID: 5890015379
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4562634358
+- Concern: `struct.unpack(">iiq", ...[:16])` on the connect response raises `struct.error` with no useful message if the tracker returns a BEP15 error (action 3) or a packet shorter than 16 bytes.
+- Solution: unpack only the first 8 bytes first (action, tid); check `action == 0` and exit with the decoded error message otherwise; only then unpack `connection_id` from the next 8 bytes.
+- Current-tree verification: Read `evidence/udp_announce_probe.py` in the tree and `python3 -I -c "import ast; ast.parse(...)"` on it.
+- Resolution reference: docs(issues): [#2838] parse the connect response defensively in the UDP probe
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4562694766
+
+### F36 - The document uses a `Category` value, `process`, that is not in its own allowed list
+
+- PR number: 2851
+- Source review ID: 5890015379
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4562634429
+- Concern: Row F33 used `process` as its Category, which the Conventions section's enum does not list, so the taxonomy was not self-consistent.
+- Solution: F33's Category is now `other`, a listed value.
+- Current-tree verification: Read the Conventions section and row F33 in the tree.
+- Resolution reference: docs(pr-reviews): record round 7 in the review audit of PR #2851
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4562695099
+
+### F37 - Duplicate of F36
+
+- PR number: 2851
+- Source review ID: 5890015379
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4562634476
+- Concern: Identical body to F36's comment, on a second thread.
+- Solution: Superseded by F36; no separate change.
+- Current-tree verification: Read F36 above.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4562695454
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4562695454
+
 ## Processing Log
 
 - 2026-11-12 18:05 UTC - Started round 1 for review `5879517733` (submitted 18:02:39Z, forge `submitted_at`). Checked F1 to F7 against the tree.
@@ -558,6 +602,7 @@ collision, with the reviewer's own F30 to F32 recorded as the original), on the 
 - 2026-11-13 09:50 UTC - Round 5: the approving review `5887875398` of `da2ce7` (forge `submitted_at` 2026-11-13 08:00:46Z) with two nits, F23 and F24, and Copilot's review `5888919892` (submitted 09:39:31Z, forge `submitted_at`) with two findings, F25 and F26, on the head that carried the round 4 audit. Their fixes were committed and pushed before the replies on the four threads (forge `created_at` 09:5x). Correction for F24: the entry stamped 20:01 cites `git log --format=%cI` for the four round 2 fixes (19:55:16Z to 19:57:12Z); after the rebase `%cI` shows 20:28:31Z for them, and `%aI` keeps 19:55:16Z to 19:57:12Z. No earlier entry was rewritten.
 - 2026-11-13 11:10 UTC - Round 6: two reviews of `da2ce7` that had not yet been processed. `5889368194` (submitted 10:21:06Z, forge `submitted_at`) with five findings in the reviewer's own numbering F25 to F29, on the head that carried the round-5 spec commits before the round-5 audit landed; its five threads had been resolved earlier by a blanket GraphQL call with no reply, against the skill's rule. `5889728498` (submitted 10:54:09Z, forge `submitted_at`) with three findings, reviewer's own F30 to F32, on the head that carried the round-5 audit. Both sets of reviewer IDs collide with existing audit IDs (F25, F26, F30, F31), so new audit-local IDs F27 to F34 were assigned, recording the originals. The five wrongly-resolved threads were reopened (`unresolveReviewThread`), then all eight threads were replied to between 11:04:40Z and 11:07:55Z (forge `created_at`), apologizing on the five for the process error. The spec fix (F28, F29, F30, F31, F34 wording) was committed as `docs(issues): [#2850] correct benchmark wording, add a Commit Points row, and record the tolerance write-back` and the audit rows and sections as `docs(pr-reviews): record round 6 in the review audit of PR #2851`, then pushed. `validate-audit-record.py --pr-number 2851` exited 0 (34 rows, 0 failures). Resolved all eight threads, in order, after their replies; a GraphQL refresh showed 0 unresolved threads.
 - 2026-11-13 11:10 UTC - Correction for F32: the round-5 log entry (stamped 09:50) says the F23/F24 fix was committed and pushed before the four replies, with a placeholder time "09:5x". The fix is commit `c237cca8b`, authored and committed at 10:38:07Z (`git log --format=%aI`/`%cI`), 52 minutes after the four replies (forge `created_at` 09:46:22Z to 09:46:28Z). The listener and benchmark-plan fixes (`9b4f2de6d`, pushed by 09:46:13Z) are unaffected by this correction. No earlier entry is rewritten.
+- 2026-11-13 11:25 UTC - Round 7: Copilot's review `5890015379` (submitted 11:17:55Z, forge `submitted_at`; a timed-out agentic pass with three mechanical comments) at the head that carried the round-6 audit, with F35 to F37 (audit-local IDs; no reviewer-provided IDs). F35 fixed in the probe script. F36 fixed in the audit's own Category value for F33. F37 replied `Superseded by F36: duplicate comment with identical body.` and recorded `NO_ACTION`/`SUPERSEDED`. The probe fix was committed as `docs(issues): [#2838] parse the connect response defensively in the UDP probe` and the audit rows and sections as `docs(pr-reviews): record round 7 in the review audit of PR #2851`, then pushed. Replied on the three threads, then resolved them.
 
 ## Completion Rules
 
