@@ -13,6 +13,12 @@
 ## Builder Image
 FROM docker.io/library/rust:slim-trixie AS chef
 WORKDIR /tmp
+# Cap the number of parallel `rustc` jobs of every Rust stage (they all derive from this one). Cargo
+# starts one job per CPU core by default, and BuildKit runs independent stages at the same time, so
+# an uncapped build on a many-core machine exhausts the RAM. Raise it on a bigger machine with
+# `--build-arg CARGO_BUILD_JOBS=N`. See "Memory and CPU use" in docs/containers.md.
+ARG CARGO_BUILD_JOBS=4
+ENV CARGO_BUILD_JOBS=${CARGO_BUILD_JOBS}
 RUN apt-get update \
  && apt-get install -y --no-install-recommends curl libssl-dev pkg-config \
  && apt-get clean \
