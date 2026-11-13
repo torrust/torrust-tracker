@@ -61,8 +61,10 @@ Verdict: **fixed by #2813**. Evidence: the baseline probed the REST API in plain
 closed after 5 s); the gap was that its TLS branch had no timeout wrapper (see the spec's
 Background). The runtime TLS figures were measured on the HTTP tracker port: a TLS connection that
 finishes the handshake and sends nothing was open after 25 s on `develop` and is closed after 5 s
-on the final build; an idle HTTP/1 connection after a response closes after 5 s and an idle HTTP/2
-connection after about 10 s. A stalled TLS handshake was already closed after 10 s before the fix
+on the final build, and an idle HTTP/2 connection after a response closes after about 10 s. The
+idle HTTP/1 figure (5 s after a response) was measured in plaintext; over TLS it is covered by the
+test `it_should_close_an_idle_http1_connection_after_a_response_over_tls` in
+`packages/axum-server/tests/idle_connections.rs`. A stalled TLS handshake was already closed after 10 s before the fix
 (upstream value). For the REST API's own TLS listener the evidence is the unit test
 `it_should_close_a_tls_connection_that_completes_the_handshake_and_sends_nothing` in
 `packages/axum-rest-api-server/src/server.rs` (red in `evidence/red-run-service-tests.txt`, green in
