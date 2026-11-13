@@ -40,12 +40,12 @@ Evidence used below:
 
 ## Summary
 
-| Issue | Title                                                | Disposition                                    |
-| ----- | ---------------------------------------------------- | ---------------------------------------------- |
-| #612  | Tracker API: Add a timeout to the TLS handshake, waiting for headers, and waiting for receiving headers | Fixed by #2813; close                          |
+| Issue | Title                                                                                                    | Disposition                                    |
+| ----- | -------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| #612  | Tracker API: Add a timeout to the TLS handshake, waiting for headers, and waiting for receiving headers  | Fixed by #2813; close                          |
 | #613  | HTTP Tracker: Add a timeout to the TLS handshake, waiting for headers, and waiting for receiving headers | Fixed by #2813; close                          |
-| #603  | Review missing timeouts (EPIC)                       | All items done once #612 and #613 close; close |
-| #324  | Denial of Service attack factor                      | Keep open, re-scoped to EPIC #2411 case A1     |
+| #603  | Review missing timeouts (EPIC)                                                                           | All items done once #612 and #613 close; close |
+| #324  | Denial of Service attack factor                                                                          | Keep open, re-scoped to EPIC #2411 case A1     |
 
 ## #612 - Tracker API: Add a timeout to the TLS handshake, waiting for headers, and waiting for receiving headers
 
