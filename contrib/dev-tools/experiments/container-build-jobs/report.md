@@ -19,10 +19,11 @@ While it runs it samples `MemAvailable` and the root-owned `rustc` processes (th
 and it would cancel the build by the PID of the `docker build` client if `MemAvailable` fell below 8 GiB. It refuses to start while
 another container build runs, and traps its own INT/TERM to cancel the build if the script itself is interrupted. The uncapped
 build was never run. Raw samples and summaries are in [`results/`](results/),
-unmodified since each run printed them. "Peak `MemAvailable` drop" and "Lowest `MemAvailable`" below are copied from those files
-as printed; "`rustc` at peak RSS" and "Peak `rustc` RSS" are recomputed from the raw samples (see the next bullet and "Per-process
-memory") and are not in the summary files, since the original `measure.sh` reported two independent column maxima instead (see
-"Per-process memory" for why that was wrong).
+unmodified since each run printed them. "Peak `MemAvailable` drop", "Lowest `MemAvailable`" and "Peak `rustc` RSS" below are copied
+from those files as printed (the restored summaries already carry the peak RSS, since a column's maximum is the same number
+whichever row it is read from). Only "`rustc` at peak RSS" is new: the original `measure.sh` printed it as an independent maximum
+of the process-count column, which can be a different sample than the one holding the peak RSS; see "Per-process memory" for why
+reading the two from different samples, not printing them, was the error.
 
 - Machine: 32 threads, 62 GB RAM, Docker 28.3.3 with the embedded BuildKit v0.23.2 (default `docker` builder), run on 2026-11-13. Other
   work (about 13-15 GB) was running on the machine, so "peak used" is the drop of `MemAvailable` from the baseline.
@@ -84,14 +85,15 @@ once it finishes, two independent branches that both derive from it: `dependenci
 `dependencies_shipped_thirdparty` (shipped third-party cook) → `dependencies_shipped` (shipped cook) → `build_shipped` (binary build).
 Every branch hangs off `dependencies_thirdparty`, so **at most two** of these workspace-compiling stages run at once, not three as an
 earlier version of this report said. That bound does not cover the whole release target, though: `tester` does not derive from
-`dependencies_thirdparty` (or from `chef` at all; see "Effect on the runners" and the `Containerfile`), so its own `cargo binstall`
-of `cargo-nextest` can fall back to a source compile independently of, and concurrently with, both workspace branches — a third,
-unbound compile path, capped individually by `tester`'s own `CARGO_BUILD_JOBS` (R1) but not by this two-stage count. Serializing the
-two workspace branches (for example coupling one branch's `FROM` to the other's output) would make the shipped build wait for the
-test cook, losing parallelism that cached CI builds rely on, and would couple stages that are independent by design. The rule of
-thumb already covers the observed worst case for the measured release target (see "Results" above), where `tester`'s install step
-runs with cached crates.io binaries and does not fall back to a source compile. A machine-wide limit is BuildKit `max-parallelism`,
-which belongs to the machine configuration, not the repository.
+`dependencies_thirdparty` (or from `chef` at all; see the `Containerfile`), so its own `cargo binstall` of `cargo-nextest` can fall
+back to a source compile independently of, and concurrently with, both workspace branches — a third, unbound compile path, capped
+individually by `tester`'s own `CARGO_BUILD_JOBS` (R1) but not by this two-stage count. Serializing the two workspace branches (for
+example coupling one branch's `FROM` to the other's output) would make the shipped build wait for the test cook, losing parallelism
+that cached CI builds rely on, and would couple stages that are independent by design. The rule of thumb already covers the observed
+worst case for the measured release target (see "Results" above): the measured runs kept no `tester`-stage build log, so whether
+`cargo binstall` used a prebuilt download (from the crate's release artifacts or a binary mirror, not crates.io) or fell back to a
+source compile is assumed from the `Containerfile`'s own behavior, not shown by anything recorded here. A machine-wide limit is
+BuildKit `max-parallelism`, which belongs to the machine configuration, not the repository.
 
 ## Effect on the runners
 

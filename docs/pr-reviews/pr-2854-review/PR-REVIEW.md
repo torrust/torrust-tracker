@@ -66,6 +66,9 @@ Processing Log.
 | F22 | review-finding:pr-2854-f22 | Copilot | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
 | F23 | review-finding:pr-2854-f23 | Copilot | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F24 | review-finding:pr-2854-f24 | Copilot | Nit | formatting | ORIGINAL | FIXED | RESOLVED |
+| F25 | review-finding:pr-2854-f25 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F26 | review-finding:pr-2854-f26 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F27 | review-finding:pr-2854-f27 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -230,8 +233,8 @@ Processing Log.
 - PR number: 2854
 - Source review ID: 5889641059
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562346507
-- Concern: `process-pr-review` requires creating `docs/pr-reviews/pr-2854-review/PR-REVIEW.md` before the first reply; the R1/R2 replies were posted without it and cited the branch commit id `334decbf9` instead of its Conventional Commit subject (a rebase would orphan that id); F1-F11 had neither a reply nor a fix yet at the time this finding was raised.
-- Solution: created this audit record (late; logged below), covering R1, R2 and F1-F11 alongside this review's own F12/F13, with every `Resolution reference` citing the commit subject. The earlier two replies (to R1/R2) remain on GitHub with the commit id, since GitHub comments cannot be edited by this identity's normal flow without risk of losing the thread association; this audit record is the corrected, durable reference going forward.
+- Concern: `process-pr-review` requires creating `docs/pr-reviews/pr-2854-review/PR-REVIEW.md` before the first reply; the R1/R2 replies were posted without it and cited the branch commit by its short hash instead of its Conventional Commit subject (a rebase would orphan that hash); F1-F11 had neither a reply nor a fix yet at the time this finding was raised.
+- Solution: created this audit record (late; logged below), covering R1, R2 and F1-F11 alongside this review's own F12/F13, with every `Resolution reference` citing the commit subject. The earlier two replies (to R1/R2) still show the hash in their own GitHub comment text; this audit record is the corrected, durable reference going forward, and those two replies were left as posted rather than edited.
 - Current-tree verification: this file exists at `docs/pr-reviews/pr-2854-review/PR-REVIEW.md`.
 - Resolution reference: `fix(container): [#2853] fix tester/chef wording contradiction, add audit record`
 - Follow-up PR URL: N/A
@@ -255,8 +258,8 @@ Processing Log.
 - Source review ID: 5889901103
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562551182
 - Concern: the F4 fix overwrote `results/jobs-{4,8,16}.summary.txt` with the output of a differently-formatted `measure.sh` that none of the three runs executed, with no note that the files were regenerated; the 16-jobs line's `peak_used_delta_gib=32,9` matches neither the run's own output nor a correct recomputation from the unchanged `jobs-16.samples.tsv` (33.0), and `report.md:41` copied the wrong value.
-- Solution: restored the three summary files to exactly what each run printed, read from the commit that first added them (`git show a3aaab735:.../jobs-<N>.summary.txt`), rather than a regenerated format. Corrected `report.md`'s 16-jobs "Peak `MemAvailable` drop" cell to 33.0 GiB. Added a sentence to `report.md`'s "Method" section stating which columns are copied unmodified from the run output (`MemAvailable` drop, lowest `MemAvailable`) and which are recomputed from the raw samples (`rustc` at peak RSS, peak `rustc` RSS), so a future reader does not need to infer it. The wrong 32.9 came from the one-off regeneration script building the baseline from an already-rounded GiB figure instead of the exact kB baseline on the summary's first line — a precision-loss bug distinct from the F4 arithmetic fix itself (which remains correct, since it only changed which sample row's count/RSS pair is reported, not this baseline/minimum subtraction).
-- Current-tree verification: `git diff a3aaab735 -- contrib/dev-tools/experiments/container-build-jobs/results/` against the current tree shows no difference in the three summary files; `awk` over `jobs-16.samples.tsv` with the exact baseline `49323728` kB from the file's own first line gives `(49323728-14758164)/1048576 = 32.96` GiB, which `report.md` now states as 33.0.
+- Solution: restored the three summary files to exactly what each run printed, read from the commit `docs(issues): [#2853] spec and measured evidence for the container build jobs limit`, which first added them, rather than a regenerated format. Corrected `report.md`'s 16-jobs "Peak `MemAvailable` drop" cell to 33.0 GiB. Added a sentence to `report.md`'s "Method" section stating which columns are copied unmodified from the run output and which are recomputed from the raw samples, so a future reader does not need to infer it. The wrong 32.9 came from the one-off regeneration script building the baseline from an already-rounded GiB figure instead of the exact kB baseline on the summary's first line — a precision-loss bug distinct from the F4 arithmetic fix itself (which remains correct, since it only changed which sample row's count/RSS pair is reported, not this baseline/minimum subtraction).
+- Current-tree verification: a diff of the three restored summary files against that same commit's versions shows no difference; `awk` over `jobs-16.samples.tsv` with the exact baseline `49323728` kB from the file's own first line gives `(49323728-14758164)/1048576 = 32.96` GiB, which `report.md` now states as 33.0.
 - Resolution reference: `fix(container): [#2853] restore raw run summaries, correct the 16-jobs delta to 33.0`
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562573939
@@ -393,12 +396,52 @@ Processing Log.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562690930
 
+### F25 - The new Method sentence says peak `rustc` RSS is "not in the summary files", but each summary carries it
+
+- PR number: 2854
+- Source review ID: 5890103485
+- Reviewer finding ID: F21 (da2ce7 reused this id for a new finding; collides with this record's existing Copilot F21, so reassigned per the skill's collision rule)
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562691809
+- Concern: the restored summaries print `peak_rustc_rss_gib` directly, and the maximum of that column is by definition the same number whichever row it comes from, so only "`rustc` at peak RSS" (the count) is actually new; the clause calling the earlier script's two independent maxima "wrong" also overstated — printing them was fine, dividing one by the other was the error.
+- Solution: reworded the "Method" bullet to say only the count column is recomputed, and that printing the two independent maxima was fine; only reading them from different samples (not printing them) was the error.
+- Current-tree verification: read the reworded "Method" section; it no longer claims the RSS figure is absent from the summaries.
+- Resolution reference: `fix(container): [#2853] address review round 3: audit timestamps, report accuracy`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562838627
+
+### F26 - Three rows record FIXED with verification lines the tree contradicts
+
+- PR number: 2854
+- Source review ID: 5890286739
+- Reviewer finding ID: F22 (da2ce7 reused this id for a new finding; collides with this record's existing Copilot F22, so reassigned per the skill's collision rule)
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562806786
+- Concern: F16's row claimed no bare branch commit id remained, but `334decbf9` and `a3aaab735` still appeared in F12's and F14's prose; F8's row claimed the 08:50 progress-log entry no longer said the 4-job run started then, but it still did; F19's row claimed this record's own Processing Log was restamped, but its two 11:05 UTC entries, which sit in a commit made at 10:52 describing replies posted at 10:54, were unchanged.
+- Solution: replaced the two remaining bare hashes with a commit subject and a plain description; fixed `ISSUE.md`'s 08:50 entry to no longer claim the measurement started then; left the two 11:05 UTC entries as originally written (their content was accurate) and appended a correction entry below, rather than rewriting them in place, stating the actual commit and reply times. Also folded in the collision this very finding caused: da2ce7 reused F21-F23 for new findings that collide with this record's existing Copilot F21-F23, reassigned here as F25-F27, with the reviewer's original id recorded in each.
+- Current-tree verification: a backtick-quoted 7-10 character hex string search of `ISSUE.md`, `report.md` and this record finds no remaining bare branch commit id; `ISSUE.md`'s 08:50 entry read directly; the Processing Log's two original entries and the appended correction read directly.
+- Resolution reference: `fix(container): [#2853] address review round 3: audit timestamps, report accuracy`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562838932
+
+### F27 - The new `tester` sentences overstate what the report shows
+
+- PR number: 2854
+- Source review ID: 5890286739
+- Reviewer finding ID: F23 (da2ce7 reused this id for a new finding; collides with this record's existing Copilot F23, so reassigned per the skill's collision rule)
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562806800
+- Concern: `cargo binstall` fetches prebuilt binaries from the crate's release artifacts or a binary mirror, not crates.io; no build log was kept for the measured runs, so "does not fall back to a source compile" was not shown by anything in `results/`; the cross-reference to "Effect on the runners" leads to a section that does not mention `tester`.
+- Solution: reworded the Stage overlap section to drop the crates.io claim, state that whether `tester` used a prebuilt download or fell back to a source compile is assumed from the `Containerfile` alone (no build log kept), and removed the cross-reference to "Effect on the runners".
+- Current-tree verification: read the reworded paragraph in `report.md`'s "Stage overlap" section.
+- Resolution reference: `fix(container): [#2853] address review round 3: audit timestamps, report accuracy`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562839358
+
 ## Processing Log
 
 - 2026-11-13 11:05 UTC - Started audit late (after R1, R2, F1-F11 replies/fixes were already in progress or posted); backfilled all entries from the current tree and the GitHub review/comment history.
 - 2026-11-13 11:05 UTC - Replied on all resolvable threads (R1, R2, F1-F11, F12, F13) and resolved them via GraphQL `resolveReviewThread`.
 - 2026-11-13 11:10 UTC - Added F14 (raw-summary overwrite, wrong corrected figure), fixed it, replied, and resolved its thread.
 - 2026-11-13 11:28 UTC - Added R3, R4 (an earlier, unprocessed Copilot review), F15-F17, F19, F20 (da2ce7's next round) and F21-F24 (a newer Copilot review): fixed all eleven, replied on every thread, and resolved them via GraphQL `resolveReviewThread`.
+- 2026-11-13 11:40 UTC - Correction: the two entries above timestamped 11:05 UTC were themselves wrong (da2ce7's F22 round). The first entry's commit was made at 10:52 UTC; the replies the second entry describes were posted at 10:54 UTC, after that commit, not at 11:05. Both entries' content stands; only their timestamps were inaccurate. Renumbered the automated review's PID-anchor/locale findings this record had assigned F21-F24 did not collide here, since da2ce7 independently reused F21-F23 for its own new findings in the same round that reported this correction; those are recorded below as F25-F27 per the skill's collision rule. Also fixed: ISSUE.md:124 no longer claims the 4-job measurement started at 08:50 (it started 08:31); `report.md`'s Method section no longer claims the peak RSS figure is absent from the summaries (only the process-count-at-peak-RSS figure is new); the Stage overlap section no longer claims `cargo binstall` fetches from crates.io or that the measured runs are shown not to have fallen back to a source compile; and two remaining branch-commit hashes (in F12's and F14's prose) were replaced with commit subjects or removed. Fixed, replied and resolved F21(da2ce7)/F22/F23(da2ce7), renumbered F25-F27 below, in `fix(container): [#2853] address review round 3: audit timestamps, report accuracy`.
 
 ## Completion Rules
 

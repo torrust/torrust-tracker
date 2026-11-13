@@ -9,7 +9,7 @@ github-issue: 2853
 spec-path: docs/issues/open/2853-container-build-jobs-limit/ISSUE.md
 branch: "2853-container-build-jobs-limit"
 related-pr: null
-last-updated-utc: "2026-11-13 11:28"
+last-updated-utc: "2026-11-13 11:43"
 semantic-links:
   skill-links:
     - create-issue
@@ -121,7 +121,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 ### Progress Log
 
-- 2026-11-13 08:50 UTC - Claude Code (Claude Sonnet 5.5) - Drafted the specification; measurement of the release image build started at 4 jobs - `contrib/dev-tools/experiments/container-build-jobs/`
+- 2026-11-13 08:50 UTC - Claude Code (Claude Sonnet 5.5) - Drafted the specification while the measurement runs described in the next entry were already under way (started 08:31 UTC) - `contrib/dev-tools/experiments/container-build-jobs/`
 - 2026-11-13 09:00 UTC - Claude Code (Claude Sonnet 5.5) - Measured the release image build (uncached, one at a time, watchdog at 8 GiB): 4 jobs (08:31-08:45 UTC) 836 s / 10.4 GiB peak `rustc` RSS; 8 jobs (08:45-08:53 UTC) 499 s / 19.8 GiB; 16 jobs (08:53-08:59 UTC) 346 s / 35.5 GiB. Chose default 4; stage overlap left unchanged - `contrib/dev-tools/experiments/container-build-jobs/results/`
 - 2026-11-13 09:48 UTC - Claude Code (Claude Sonnet 5.5) - Spec approved by the maintainer; issue #2853 created; implemented Containerfile, script and docs (`docs(issues): [#2853] spec and measured evidence for the container build jobs limit`, `fix(container): [#2853] cap the Cargo jobs of the image build with CARGO_BUILD_JOBS`, `docs(containers): [#2853] document the memory and CPU use of the image build`); opened implementation PR (no spec-only PR) - https://github.com/torrust/torrust-tracker/issues/2853, https://github.com/torrust/torrust-tracker/pull/2854
 - 2026-11-13 10:38 UTC - Claude Code (Claude Sonnet 5.5) - Addressed the Copilot review's R1/R2 (tester-stage cap, measure.sh signal trap), pushed (`fix(container): [#2853] address Copilot review: cap tester stage, trap measure.sh signals`) and replied on both threads.
@@ -130,6 +130,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-13 10:59 UTC - Claude Code (Claude Sonnet 5.5) - Fixed the audit record's table formatting and filled in its Reply URLs so `validate-audit-record.py` passes (`docs(pr-reviews): [#2853] fix audit record table formatting and reply URLs`).
 - 2026-11-13 11:12 UTC - Claude Code (Claude Sonnet 5.5) - Restored the three raw run summaries da2ce7's F14 found had been overwritten with a wrong recomputed figure, and corrected report.md's 16-jobs delta to 33.0 (`fix(container): [#2853] restore raw run summaries, correct the 16-jobs delta to 33.0`).
 - 2026-11-13 11:28 UTC - Claude Code (Claude Sonnet 5.5) - Addressed R3/R4 (an earlier Copilot review), da2ce7's F15-F17/F19/F20, and Copilot's F21-F24 (locale, PID-anchor, stage-overlap scope, audit-record accuracy, and small doc fixes) (`fix(container): [#2853] address review round 2: locale, PID anchor, stage overlap, audit accuracy`).
+- 2026-11-13 11:43 UTC - Claude Code (Claude Sonnet 5.5) - Addressed da2ce7's next round (F25-F27, reassigned from its reused F21-F23 under the audit's collision rule): this entry's own 08:50 claim was itself one of the findings, so it was corrected above rather than here; also fixed report.md's remaining Method/Stage-overlap overstatements and the audit record's two mistimed Processing Log entries (left as written, with an appended correction) (`fix(container): [#2853] address review round 3: audit timestamps, report accuracy`).
 
 ## Acceptance Criteria
 
