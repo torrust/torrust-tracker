@@ -59,7 +59,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 ### F1 - HTTP `Error` doc describes removed variants
 
 - PR number: 2858
-- Source review ID: 4569554532 (review of 22641fc6b)
+- Source review ID: 5899149477
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2858#discussion_r4569554532
 - Concern: The doc comment of the HTTP `Error` still listed startup-notification and stop failures.
 - Solution: Replaced it with a doc naming only the startup errors the remaining variants carry.
@@ -71,19 +71,19 @@ deliver findings through GitHub and have no repository-artifact obligation.
 ### F2 - PR title is not a Conventional Commits line
 
 - PR number: 2858
-- Source review ID: same review
+- Source review ID: 5899149477
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2858#discussion_r4569554534
 - Concern: The title had no `type(scope):`.
 - Solution: Retitled to `refactor(servers): [#2844] remove unused public shutdown error variants`.
 - Current-tree verification: `gh pr view 2858` title.
-- Resolution reference: PR title edit; see reply
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2858#discussion_r4569601682
 - Follow-up PR URL: NA
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2858#discussion_r4569601682
 
 ### F3 - REST `Error` doc says "or stopping"
 
 - PR number: 2858
-- Source review ID: same review
+- Source review ID: 5899149477
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2858#discussion_r4569554539
 - Concern: The doc still said starting or stopping.
 - Solution: Reworded to starting only.
@@ -95,7 +95,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 ### F4 - M2 and M3 evidence lacks commands and output
 
 - PR number: 2858
-- Source review ID: same review
+- Source review ID: 5899149477
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2858#discussion_r4569554544
 - Concern: Evidence recorded results without commands, stamps or output; "five listeners" instead of six.
 - Solution: Reran M2 and M3 and rewrote the evidence with commands, stamps, six listeners, bind error and toolchain.
@@ -107,7 +107,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 ### F5 - `related-pr` still null
 
 - PR number: 2858
-- Source review ID: same review
+- Source review ID: 5899149477
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2858#discussion_r4569554552
 - Concern: Frontmatter lacked the implementation PR.
 - Solution: Set `related-pr: 2858`.
@@ -119,7 +119,7 @@ deliver findings through GitHub and have no repository-artifact obligation.
 ### F6 - Progress-log entry after a blank line
 
 - PR number: 2858
-- Source review ID: same review
+- Source review ID: 5899149477
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2858#discussion_r4569554555
 - Concern: The new entry sat after the blank line, making a loose list.
 - Solution: Moved it into the tight list.
@@ -178,8 +178,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 ## Processing Log
 
-- 2026-11-13 22:49 UTC - First review (da2ce7) arrived; replies to F1 to F6 posted at 22:52 UTC without this record.
-- 2026-11-13 23:10 UTC - Late start: record created after the round-2 review (F7); all threads answered and resolved.
+- 2026-11-13 22:49 UTC - First review (da2ce7) arrived; replies to F1 to F6 posted from 22:55 UTC without this record.
+- 2026-11-13 23:06 UTC - Late start: record created after the round-2 review (F7); all threads answered and resolved.
 
 ## Completion Rules
 

@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2844-1488-si-25-remove-unused-error-variants/ISSUE.md
-last-updated-utc: "2026-11-13 23:10"
+last-updated-utc: "2026-11-13 23:06"
 ---
 
 <!-- cspell:ignore lntu -->
@@ -35,8 +35,7 @@ API (1212) and, always, the health check API (127.0.0.1:1313): six listeners.
 
 Output below is trimmed, not verbatim: log lines are the message part of the relevant `Started on` lines (timestamps and
 span fields removed, the UDP lines omitted); `ss -lntu` columns are reduced to protocol and local address (it also prints
-state, queues and peer); the `HH:MM:SS` stamps come from `date -u +%T` calls run immediately before the start, the
-signal and after the wait of each run, and are shown as trailing comments.
+state, queues and peer); the `HH:MM:SS` stamps come from `date -u +%T` calls run at the start and again after the signal and wait of each run (two stamps per run are kept), and are shown as trailing comments.
 
 ```text
 $ export TORRUST_TRACKER_CONFIG_TOML_PATH=.tmp/m/t.toml
