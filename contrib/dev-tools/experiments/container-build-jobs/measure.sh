@@ -40,6 +40,13 @@ docker build --no-cache --progress=plain --target release \
 build_pid=$!
 echo "build pid ${build_pid}, baseline MemAvailable ${baseline_kb} kB" | tee "${summary}"
 
+# If this script itself is interrupted (Ctrl-C, or killed by someone else), stop the background
+# build too: otherwise it keeps consuming memory with no watchdog left to cancel it.
+trap 'echo "measure.sh interrupted; cancelling build pid ${build_pid}" | tee -a "${summary}" >&2
+      kill -TERM "${build_pid}" 2>/dev/null
+      wait "${build_pid}" 2>/dev/null
+      exit 130' INT TERM
+
 aborted=0
 while kill -0 "${build_pid}" 2>/dev/null; do
     avail="$(mem_available_kb)"
