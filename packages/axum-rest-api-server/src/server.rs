@@ -40,7 +40,7 @@ use tracing::instrument;
 use super::routes::router;
 use crate::API_LOG_TARGET;
 
-/// Errors that can occur when starting or stopping the API server.
+/// Errors that can occur when starting the API server.
 #[derive(Debug, Error)]
 #[non_exhaustive]
 pub enum Error {

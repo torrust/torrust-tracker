@@ -23,18 +23,8 @@ use torrust_tracker_primitives::RuntimeServiceMetadata;
 use super::v1::routes::router;
 use crate::HTTP_TRACKER_LOG_TARGET;
 
-/// Error that can occur when starting or stopping the HTTP server.
-///
-/// Some errors triggered while starting the server are:
-///
-/// - The spawned server cannot send its `SocketAddr` back to the main thread.
-/// - The launcher cannot receive the `SocketAddr` from the spawned server.
-///
-/// Some errors triggered while stopping the server are:
-///
-/// - The channel to send the shutdown signal to the server is closed.
-/// - The task to shutdown the server on the spawned server failed to execute to
-///   completion.
+/// Error that can occur when starting the HTTP server: the listener cannot be
+/// bound or configured, or the service cannot be registered.
 #[derive(Debug, thiserror::Error)]
 #[non_exhaustive]
 pub enum Error {
