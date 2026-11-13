@@ -103,8 +103,8 @@ never disconnected, which the reporter considered a critical security flaw. The 
 raised a missing rate limit and lock contention under load. The reopening comment on #612 and #613
 says the issue was reopened to consolidate those two.
 
-Verdict: **keep open, re-scoped.** The idle-connection part is fixed by #2813 (baseline: plaintext
-listeners were already protected; the real gaps were TLS and the health check API, both now
+Verdict: **keep open, re-scoped.** The idle-connection part is fixed by #2813 (baseline: the plaintext HTTP
+tracker and REST API listeners were already protected; the real gaps were TLS and the health check API, both now
 closed). What stays valid is the rate-limiting half of the report. In particular, a client that
 stays connected and answers HTTP/2 keep-alive pings is not time-bounded by the timeouts (recorded
 in the ADR and in AC4 of the #2776 spec), and no connection or request-rate limit exists on the
