@@ -6,7 +6,7 @@ epic: null
 github-issue: 1488
 spec-path: docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
 epic-owner: josecelano
-last-updated-utc: "2026-11-11 16:30"
+last-updated-utc: "2026-11-12 14:30"
 semantic-links:
   skill-links:
     - create-issue
@@ -213,18 +213,26 @@ deterministic tests, and manual evidence.
 | 19       | #2801 | [Remove legacy shutdown API and library OS signals](../../closed/2801-1488-si-19-remove-legacy-shutdown-api/ISSUE.md)     | Done       | Removed the legacy API; merged in PR #2807 with `torrust-server-lib` 0.6.0.                  |
 | 20       | #2668 | [Configure shutdown policy and deployment contract](../../closed/2668-1488-si-20-configure-shutdown-policy/ISSUE.md)     | Done       | Apply approved Q3/Q4 outcomes, budgets, configuration, and deployment guidance.                      |
 | 21       | #2697 | [Mark health check unhealthy during shutdown](../../closed/2697-1488-si-21-mark-health-unhealthy-during-shutdown/ISSUE.md)         | Done       | Set readiness to not ready before root cancellation and component drain.                             |
-| 22       | SI-25 | [Remove the unused public error variants](../../drafts/1488-si-25-remove-unused-error-variants/ISSUE.md) | Draft | Follow-up of SI-19. Remove the shutdown error variants nothing constructs (`Error::Stop`, `StartupNotification`, `StartupNotificationDropped` of the HTTP and REST servers; three `UdpError` variants). Breaking change to public enums. |
-| 23       | SI-26 | [Consolidate the shutdown supervisors and review the owner types](../../drafts/1488-si-26-consolidate-shutdown-supervisor/ISSUE.md) | Draft | Follow-up of SI-19. Consolidate the token-aware supervisors, review `OwnedTask`, `TokenAwareServerTask` and `OwnedReceiveLoop`, and adopt the health-check join order. |
-| —        | SI-3  | [Combined standalone environment migration](../../drafts/1488-si-3-fix-environment-stop/ISSUE.md)                         | Superseded | Replaced by SI-16 and SI-17. Do not implement.                                                       |
-| —        | SI-6  | [Concurrent supervisor outcomes](../../drafts/1488-si-6-align-grace-periods/ISSUE.md)                                     | Superseded | Replaced by existing issue #1586. Do not implement separately.                                       |
-| —        | SI-7  | [Standalone shutdown-progress reporting](../../drafts/1488-si-7-observable-shutdown-progress/ISSUE.md)                    | Superseded | Structured outcomes are incorporated into issue #1586. Do not implement.                             |
-| —        | SI-8  | [Original shutdown configuration](../../drafts/1488-si-8-configurable-grace-periods/ISSUE.md)                             | Superseded | Replaced by SI-20 after Q3/Q4 decisions. Do not implement.                                           |
-| —        | SI-9  | [Combined UDP shutdown migration](../../drafts/1488-si-9-improve-udp-shutdown/ISSUE.md)                                   | Superseded | Replaced by SI-14 and SI-15. Do not implement.                                                       |
+| 22       | #2844 | [Remove the unused public error variants](../2844-1488-si-25-remove-unused-error-variants/ISSUE.md) | Planned | Follow-up of SI-19. Remove the shutdown error variants nothing constructs (`Error::Stop`, `StartupNotification`, `StartupNotificationDropped` of the HTTP and REST servers; three `UdpError` variants). Breaking change to public enums of unpublished crates, so it lands before the first publish (#2583). |
+| 23       | #2845 | [Consolidate the shutdown supervisors and migrate the last legacy job](../2845-1488-si-26-consolidate-shutdown-supervisor/ISSUE.md) | Planned | Follow-up of SI-19 and SI-21. One shared token-aware supervisor with the health-check join order, review of the owner types (`OwnedTask`, `TokenAwareServerTask`, `OwnedReceiveLoop`), and `udp_ban_cleanup` (the only `register_legacy` job, not ordered by the stop-last edge) becomes a reserved component. Lands before #2583. |
+| 24       | #2846 | [Deregister stopped services from the Registar](../2846-1488-si-27-deregister-stopped-services/ISSUE.md) | Planned | Follow-up of SI-21. An orderly stop removes the service's registration (`Registar::deregister`); a failed stop keeps it. Starts with a go/no-go decision. Lands before #2583. |
+| 25       | #2847 | [Verify the hung-component abort on the real binary](../2847-1488-si-28-verify-hung-component-abort/ISSUE.md) | Planned | Follow-up of SI-21 and SI-20. Executable-boundary evidence that a never-finishing component is aborted at the process deadline with exit code 1. Evidence only; after SI-26. |
+| —        | SI-3  | [Combined standalone environment migration](discarded-drafts/si-3-fix-environment-stop/discarded-draft.md) | Superseded | Replaced by SI-16 and SI-17. Do not implement. Discarded draft, kept as evidence in `discarded-drafts/`. |
+| —        | SI-6  | [Concurrent supervisor outcomes](discarded-drafts/si-6-align-grace-periods/discarded-draft.md) | Superseded | Replaced by existing issue #1586. Do not implement separately. Discarded draft, kept as evidence in `discarded-drafts/`. |
+| —        | SI-7  | [Standalone shutdown-progress reporting](discarded-drafts/si-7-observable-shutdown-progress/discarded-draft.md) | Superseded | Structured outcomes are incorporated into issue #1586. Do not implement. Discarded draft, kept as evidence in `discarded-drafts/`. |
+| —        | SI-8  | [Original shutdown configuration](discarded-drafts/si-8-configurable-grace-periods/discarded-draft.md) | Superseded | Replaced by SI-20 after Q3/Q4 decisions. Do not implement. Discarded draft, kept as evidence in `discarded-drafts/`. |
+| —        | SI-9  | [Combined UDP shutdown migration](discarded-drafts/si-9-improve-udp-shutdown/discarded-draft.md) | Superseded | Replaced by SI-14 and SI-15. Do not implement. Discarded draft, kept as evidence in `discarded-drafts/`. |
 
-SI-25 and SI-26 were added on 2026-11-11 as follow-ups split out of SI-19 scope: the
-public error variants that nothing constructs after the legacy API removal, and the
-supervisor and owner-type consolidation. They are drafts and do not change the shutdown
-contract, which is implemented; the EPIC stays open until they are done or dropped.
+SI-25 and SI-26 were added on 2026-11-11 as follow-ups split out of SI-19 scope, and SI-27 and SI-28
+on 2026-11-12 from the SI-21 follow-ups, when the maintainer asked for a GitHub issue and a consistent
+spec for every pending item. They do not change the shutdown contract, which is implemented; the EPIC
+stays open until they are done or dropped. Recommended implementation order: SI-25 (#2844), SI-26
+(#2845), SI-27 (#2846), SI-28 (#2847); SI-28 follows SI-26 so its evidence covers the final supervisor.
+The maintainer decided on 2026-11-12 that SI-25, SI-26 and SI-27 land before the first publish of the
+workspace crates (#2583), which is blocked on this EPIC as a whole.
+
+The four specs were written in one combined spec PR, so their `branch:` frontmatter names the reserved
+implementation branch (`{issue}-{description}`), not the spec branch; the implementing PR uses that name.
 
 **Why SI-16 and SI-17 come before SI-20 and SI-21**: the HTTP and UDP package
 integration tests run through the standalone test environments, which still use
@@ -250,20 +258,20 @@ that the HTTP test environment does not stop its server when dropped without
 the shutdown task panic). It precedes SI-22 because SI-22 T9 changes the same
 environment.
 
-### Superseded Draft Retention
+### Discarded Drafts
 
-The superseded drafts SI-3, SI-6, SI-7, SI-8, and SI-9 were never opened as
-GitHub issues, so they have no closed-issue folder. They stay in
-`docs/issues/drafts/` while this EPIC is open because they record why the
-original plan was split or replaced, and several active and closed specs link
-to them.
+The superseded drafts SI-3, SI-6, SI-7, SI-8, and SI-9 were never opened as GitHub issues, so they have
+no closed-issue folder. They record why the original plan was split or replaced, and several closed
+specs link to them. They live in [`discarded-drafts/`](discarded-drafts/) in this EPIC folder as
+artifacts of the EPIC: documented evidence of decisions taken during it. They are not deleted in the
+close-out. Each lost its frontmatter on the move, because the validator treats a file with issue
+frontmatter in `docs/issues/open/` as a live spec; git history has the originals.
 
-Cleanup happens once, in the EPIC close-out, after every active work item is
-done: delete the five draft folders, replace live links to them with the
-replacement item or a plain-text mention, and keep links in immutable
-historical records only when they describe the path at that time. Git history
-preserves the deleted drafts. Do not delete them earlier; a draft that becomes
-superseded later gets the same retention note and joins this cleanup.
+Policy for drafts that are never opened as issues and are replaced or dropped: a draft that documents a
+decision stays as an artifact of its EPIC (here); any other discarded draft is removed, its decision
+recorded in the replacing issue or the EPIC, or it moves to a discarded-drafts folder. The issue
+workflow, the lifecycle folders and the validator are not changed for now; the policy may be revisited
+later.
 
 ### Release and Review Requirements
 

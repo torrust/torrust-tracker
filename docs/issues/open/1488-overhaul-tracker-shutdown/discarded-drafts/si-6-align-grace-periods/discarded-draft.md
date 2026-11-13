@@ -1,40 +1,16 @@
----
-schema-version: 1
-doc-type: issue
-issue-type: task
-status: draft
-priority: p2
-epic: 1488
-github-issue: null
-spec-path: docs/issues/drafts/1488-si-6-align-grace-periods/ISSUE.md
-branch: "1488-si-6-align-grace-periods"
-related-pr: null
-last-updated-utc: "2026-09-29 11:47"
-semantic-links:
-  skill-links:
-    - create-issue
-  related-artifacts:
-    - src/main.rs
-    - src/bootstrap/jobs/manager.rs
-    - packages/axum-server/src/signals.rs
-    - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
-    - docs/analysis/20260716-shutdown-process/README.md
-    - docs/features/shutdown-process/questions.md
----
-
-<!-- skill-link: create-issue -->
-
 # Superseded Draft SI-6 — Use Issue #1586 for Supervisor Ownership
 
 > **Status**: Superseded for implementation planning. Existing issue
-> [#1586](../../closed/1586-evaluate-job-manager-join-set/ISSUE.md) replaces this
+> [#1586](../../../../closed/1586-evaluate-job-manager-join-set/ISSUE.md) replaces this
 > draft because it requires direct `JoinSet` ownership rather than wrapping
 > already-spawned handles.
 >
-> **Retention**: This draft was never opened as a GitHub issue. It is kept only
-> as planning history for EPIC #1488 and will be deleted in the EPIC close-out
-> (see its [Superseded Draft Retention](../../open/1488-overhaul-tracker-shutdown/ISSUE.md#superseded-draft-retention)
-> section). Git history preserves it afterwards.
+> **Retention**: This draft was never opened as a GitHub issue. It is kept as an
+> artifact of EPIC #1488, evidence of a decision taken during the EPIC (see
+> [Discarded Drafts](../../ISSUE.md#discarded-drafts)). It is not deleted in the EPIC
+> close-out. It moved here from `docs/issues/drafts/` and lost its frontmatter, because
+> a specification in `docs/issues/open/` is validated as a live spec; git history has
+> the original.
 
 ## Why This Draft Is Superseded
 
@@ -65,7 +41,7 @@ Because the `JobManager` times out after 10s per job, the main process exits
 before the Axum 90s drain period completes. The Axum drain task keeps running
 as an orphan but the process has already exited — connections are force-dropped.
 
-See [analysis §5.1 and §7.3](../../../analysis/20260716-shutdown-process/README.md).
+See [analysis §5.1 and §7.3](../../../../../analysis/20260716-shutdown-process/README.md).
 
 **The tension with Docker**:
 

@@ -1,39 +1,15 @@
----
-schema-version: 1
-doc-type: issue
-issue-type: task
-status: draft
-priority: p3
-epic: 1488
-github-issue: null
-spec-path: docs/issues/drafts/1488-si-8-configurable-grace-periods/ISSUE.md
-branch: "1488-si-8-configurable-grace-periods"
-related-pr: null
-last-updated-utc: "2026-10-28 16:37"
-semantic-links:
-  skill-links:
-    - create-issue
-  related-artifacts:
-    - packages/configuration/src/v3_0_0/mod.rs
-    - src/main.rs
-    - src/bootstrap/jobs/manager.rs
-    - packages/axum-server/src/signals.rs
-    - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
-    - docs/features/shutdown-process/questions.md
----
-
-<!-- skill-link: create-issue -->
-
 # Superseded Draft SI-8 — Split Shutdown Policy Configuration
 
-> **Status**: Superseded for implementation planning. [SI-20](../../closed/2668-1488-si-20-configure-shutdown-policy/ISSUE.md)
+> **Status**: Superseded for implementation planning. [SI-20](../../../../closed/2668-1488-si-20-configure-shutdown-policy/ISSUE.md)
 > replaces this draft after Q3 and Q4 defined the final outcome and deadline
 > semantics.
 >
-> **Retention**: This draft was never opened as a GitHub issue. It is kept only
-> as planning history for EPIC #1488 and will be deleted in the EPIC close-out
-> (see its [Superseded Draft Retention](../../open/1488-overhaul-tracker-shutdown/ISSUE.md#superseded-draft-retention)
-> section). Git history preserves it afterwards.
+> **Retention**: This draft was never opened as a GitHub issue. It is kept as an
+> artifact of EPIC #1488, evidence of a decision taken during the EPIC (see
+> [Discarded Drafts](../../ISSUE.md#discarded-drafts)). It is not deleted in the EPIC
+> close-out. It moved here from `docs/issues/drafts/` and lost its frontmatter, because
+> a specification in `docs/issues/open/` is validated as a live spec; git history has
+> the original.
 
 ## Why This Draft Is Superseded
 

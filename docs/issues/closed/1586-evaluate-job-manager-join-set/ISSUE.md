@@ -17,7 +17,7 @@ semantic-links:
     - docs/features/shutdown-process/README.md
     - docs/features/shutdown-process/questions.md
     - docs/features/shutdown-process/task-inventory.md
-    - docs/issues/drafts/1488-si-6-align-grace-periods/ISSUE.md
+    - docs/issues/open/1488-overhaul-tracker-shutdown/discarded-drafts/si-6-align-grace-periods/discarded-draft.md
     - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
 ---
 

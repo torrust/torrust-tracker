@@ -27,8 +27,8 @@ semantic-links:
     - docs/features/shutdown-process/README.md
     - docs/features/shutdown-process/questions.md
     - docs/features/shutdown-process/task-inventory.md
-    - docs/issues/drafts/1488-si-3-fix-environment-stop/ISSUE.md
-    - docs/issues/drafts/1488-si-17-migrate-standalone-udp-environment/ISSUE.md
+    - docs/issues/open/1488-overhaul-tracker-shutdown/discarded-drafts/si-3-fix-environment-stop/discarded-draft.md
+    - docs/issues/closed/2448-1488-si-17-migrate-standalone-udp-environment/ISSUE.md
     - docs/issues/closed/2668-1488-si-20-configure-shutdown-policy/ISSUE.md
     - docs/issues/closed/2410-1488-si-22-process-queued-events-before-listeners-stop/EPIC.md
     - docs/issues/closed/2234-1488-si-2-remove-global-shutdown-signal/ISSUE.md

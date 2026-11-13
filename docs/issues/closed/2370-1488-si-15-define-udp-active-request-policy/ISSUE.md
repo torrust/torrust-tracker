@@ -30,7 +30,7 @@ semantic-links:
     - docs/features/shutdown-process/questions.md
     - docs/features/shutdown-process/task-inventory.md
     - docs/issues/closed/2342-1488-si-14-migrate-udp-receive-reset-token-lifecycle/ISSUE.md
-    - docs/issues/drafts/1488-si-9-improve-udp-shutdown/ISSUE.md
+    - docs/issues/open/1488-overhaul-tracker-shutdown/discarded-drafts/si-9-improve-udp-shutdown/discarded-draft.md
     - docs/issues/closed/2668-1488-si-20-configure-shutdown-policy/ISSUE.md
     - docs/issues/open/1488-overhaul-tracker-shutdown/ISSUE.md
 ---
@@ -725,4 +725,4 @@ findings, and reusable lessons.
 - Preceding migration: [#2342](https://github.com/torrust/torrust-tracker/issues/2342), PR [#2351](https://github.com/torrust/torrust-tracker/pull/2351)
 - Eviction policy background: [#2149](https://github.com/torrust/torrust-tracker/issues/2149)
 - Decisions: [Q3 and Q4](../../../features/shutdown-process/questions.md)
-- Superseded combined draft: [SI-9](../../drafts/1488-si-9-improve-udp-shutdown/ISSUE.md)
+- Superseded combined draft: [SI-9](../../open/1488-overhaul-tracker-shutdown/discarded-drafts/si-9-improve-udp-shutdown/discarded-draft.md)
