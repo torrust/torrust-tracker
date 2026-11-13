@@ -87,7 +87,7 @@ Temporary prose per test was written and compared with the code; the code expres
 | `it_should_use_the_default_of_every_field_missing_from_the_json` | the JSON text `{}` | `from_str` | the same literal policy | clean |
 | `it_should_keep_the_given_field_and_default_the_others` | `{"interval_min": 30}` | `from_str` | `120`, `30`, `74` | clean |
 | `it_should_reject_an_interval_above_the_limit_of_every_delivery_protocol` | `{"interval": 2147483648}` | `from_str` | the call fails (the text belongs to `announce_interval.rs`) | clean |
-| `it_should_serialize_to_the_three_configuration_keys` | a policy of `60`, `30`, `10` (three distinct values) | `to_string` | one literal JSON document | clean |
+| `it_should_serialize_to_the_three_configuration_keys` | a policy of `60`, `30`, `10` (three distinct values) | `to_value` | one literal JSON document, as a `serde_json::Value` | clean |
 | `it_should_default_to_no_peers_empty_statistics_and_the_default_policy` | none | `AnnounceData::default()` | the whole value built from literals | clean |
 
 Test smells found and fixed while writing: a first draft built the expected `AnnounceData` from the production

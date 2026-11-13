@@ -108,11 +108,15 @@ mod tests {
     fn it_should_serialize_to_the_three_configuration_keys() {
         let policy = TrackerPolicy::new(60, true, false);
 
-        let json = serde_json::to_string(&policy).expect("it should serialize");
+        let value = serde_json::to_value(policy).expect("it should serialize");
 
         assert_eq!(
-            json,
-            r#"{"max_peer_timeout":60,"persistent_torrent_completed_stat":true,"remove_peerless_torrents":false}"#
+            value,
+            serde_json::json!({
+                "max_peer_timeout": 60,
+                "persistent_torrent_completed_stat": true,
+                "remove_peerless_torrents": false
+            })
         );
     }
 }

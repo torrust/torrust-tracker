@@ -82,7 +82,7 @@ Temporary prose per test was written and compared with the code; the code expres
 | `it_should_use_the_default_of_every_field_missing_from_the_json` | the JSON text `{}` | `from_str` | the same literal policy | clean |
 | `it_should_keep_the_given_peer_timeout_and_default_the_rest` | `{"max_peer_timeout": 60}` | `from_str` | `60`, `false`, `true` | clean |
 | `it_should_keep_each_flag_in_its_own_field` | both flags set to the opposite of their defaults | `from_str` | `900`, `true`, `false` | clean |
-| `it_should_serialize_to_the_three_configuration_keys` | a policy of `60`, `true`, `false` (non-default values) | `to_string` | one literal JSON document | clean |
+| `it_should_serialize_to_the_three_configuration_keys` | a policy of `60`, `true`, `false` (non-default values) | `to_value` | one literal JSON document, as a `serde_json::Value` | clean |
 
 Test smells found and fixed while writing: none.
 

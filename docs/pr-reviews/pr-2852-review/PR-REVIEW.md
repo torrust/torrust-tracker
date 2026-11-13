@@ -44,7 +44,10 @@ Round 1 is Copilot's review `5888862726` (no findings; approval recommended) and
 `docs(issues): [#2824] record the S3 pull request number`. Round 2 is da2ce7's review `5889372966`
 (F9 to F11), submitted on the head whose last commit had the subject
 `docs(issues): [#2824] fix the S3 records after review round 1`, which fixed F1 to F8 without an
-audit record (this record's own gap, F9).
+audit record (this record's own gap, F9). Round 3 is Copilot's review `5889997099` (F12 to F14),
+submitted on the head whose last commit had the subject
+`docs(issues): [#2824] create the PR 2852 review audit record`; Copilot's agentic review did not
+start before its timeout, so this round is its lighter, non-agentic pass.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -59,6 +62,9 @@ audit record (this record's own gap, F9).
 | F9 | review-finding:pr-2852-f9 | Human | Minor | maintainability | ORIGINAL | FIXED | RESOLVED |
 | F10 | review-finding:pr-2852-f10 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F11 | review-finding:pr-2852-f11 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F12 | review-finding:pr-2852-f12 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
+| F13 | review-finding:pr-2852-f13 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
+| F14 | review-finding:pr-2852-f14 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -252,10 +258,60 @@ audit record (this record's own gap, F9).
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2852#discussion_r4562317666
 
+### F12 - The announce.rs serialization test is sensitive to non-semantic field-order changes
+
+- PR number: 2852
+- Source review ID: 5889997099
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2852#discussion_r4562622273
+- Concern: `it_should_serialize_to_the_three_configuration_keys` asserted the exact JSON string, which
+  would fail on a non-semantic serialization change such as struct field reordering, even though the
+  derived field order is deterministic today.
+- Solution: Changed the assertion to `serde_json::to_value` compared against a `serde_json::json!`
+  literal (structural equality, order-independent), keeping every key and value pinned. Re-ran the
+  key-rename mutant (`max_peers_per_announce` renamed in JSON) and confirmed it still fails the test.
+- Current-tree verification: `cargo test -p torrust-tracker-primitives --lib announce::`; re-applied
+  the key-rename mutant and reverted with `cmp`.
+- Resolution reference: test(primitives): [#2824] compare serialized JSON by value, not by string
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2852#discussion_r4562655115
+
+### F13 - The mode.rs serialization test is sensitive to non-semantic field-order changes
+
+- PR number: 2852
+- Source review ID: 5889997099
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2852#discussion_r4562622326
+- Concern: Same concern as F12, for `it_should_serialize_to_the_configuration_key` in `mode.rs`.
+- Solution: Same fix as F12. Re-ran the key-rename mutant (`check_keys_expiration` renamed in JSON)
+  and confirmed it still fails the test.
+- Current-tree verification: `cargo test -p torrust-tracker-primitives --lib mode::`; re-applied the
+  key-rename mutant and reverted with `cmp`.
+- Resolution reference: test(primitives): [#2824] compare serialized JSON by value, not by string
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2852#discussion_r4562655456
+
+### F14 - The policy.rs serialization test is sensitive to non-semantic field-order changes
+
+- PR number: 2852
+- Source review ID: 5889997099
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2852#discussion_r4562622378
+- Concern: Same concern as F12, for `it_should_serialize_to_the_three_configuration_keys` in
+  `policy.rs`.
+- Solution: Same fix as F12. Re-ran the key-rename mutant (`remove_peerless_torrents` renamed in
+  JSON) and confirmed it still fails the test.
+- Current-tree verification: `cargo test -p torrust-tracker-primitives --lib policy::`; re-applied
+  the key-rename mutant and reverted with `cmp`.
+- Resolution reference: test(primitives): [#2824] compare serialized JSON by value, not by string
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2852#discussion_r4562655772
+
 ## Processing Log
 
 - 2026-11-13 09:50 UTC - Started this audit, after round 1 (F1 to F8) was already fixed and pushed
   without it (F9). Replying on all eleven threads and resolving them now.
+- 2026-11-13 11:20 UTC - Round 3: Copilot's review `5889997099` (F12 to F14) fixed in one commit; replying on the three threads and resolving them now.
 
 ## Completion Rules
 

@@ -86,7 +86,7 @@ Temporary prose per test was written and compared with the code; the code expres
 | `it_should_check_the_keys_expiration_by_default` | none | `PrivateMode::default()` | the value built with `true` | clean |
 | `it_should_check_the_keys_expiration_when_the_json_does_not_say_otherwise` | the JSON text `{}` | `from_str` | the value built with `true` | clean |
 | `it_should_keep_an_explicit_choice_not_to_check_the_keys_expiration` | `{"check_keys_expiration": false}` | `from_str` | the value built with `false` | clean |
-| `it_should_serialize_to_the_configuration_key` | a mode with the flag `false` (non-default) | `to_string` | the literal document | clean |
+| `it_should_serialize_to_the_configuration_key` | a mode with the flag `false` (non-default) | `to_value` | the literal document, as a `serde_json::Value` | clean |
 
 Test smells found and fixed while writing: none.
 

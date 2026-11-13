@@ -163,9 +163,12 @@ mod tests {
         fn it_should_serialize_to_the_three_configuration_keys() {
             let policy = AnnouncePolicy::new(secs(60), secs(30), 10);
 
-            let json = serde_json::to_string(&policy).expect("it should serialize");
+            let value = serde_json::to_value(policy).expect("it should serialize");
 
-            assert_eq!(json, r#"{"interval":60,"interval_min":30,"max_peers_per_announce":10}"#);
+            assert_eq!(
+                value,
+                serde_json::json!({"interval": 60, "interval_min": 30, "max_peers_per_announce": 10})
+            );
         }
     }
 

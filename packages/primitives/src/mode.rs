@@ -67,8 +67,8 @@ mod tests {
     fn it_should_serialize_to_the_configuration_key() {
         let mode = PrivateMode::new(false);
 
-        let json = serde_json::to_string(&mode).expect("it should serialize");
+        let value = serde_json::to_value(mode).expect("it should serialize");
 
-        assert_eq!(json, r#"{"check_keys_expiration":false}"#);
+        assert_eq!(value, serde_json::json!({"check_keys_expiration": false}));
     }
 }
