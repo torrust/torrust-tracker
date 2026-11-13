@@ -33,7 +33,8 @@ deliver findings through GitHub and have no repository-artifact obligation.
 ## Findings
 
 Rounds: da2ce7 review `5878128462` (F1 to F6), Copilot reviews `5878561072` (F7 to F9) and
-`5881738305` (F10), da2ce7 reviews `5887686736` (F11, F12) and `5887812564` (F13, F14). da2ce7's
+`5881738305` (F10), da2ce7 reviews `5887686736` (F11, F12), `5887812564` (F13, F14) and
+`5889285431` (F15). da2ce7's
 `F7` of the third round collided with Copilot's audit-local `F7`, so it is `F11` here with the
 reviewer ID recorded.
 
@@ -53,6 +54,7 @@ reviewer ID recorded.
 | F12 | review-finding:pr-2848-f12 | Human | Minor | documentation | RE_RAISE_OF:F4 | FIXED | RESOLVED |
 | F13 | review-finding:pr-2848-f13 | Human | Minor | documentation | RE_RAISE_OF:F4 | FIXED | RESOLVED |
 | F14 | review-finding:pr-2848-f14 | Human | Minor | documentation | RE_RAISE_OF:F11 | FIXED | RESOLVED |
+| F15 | review-finding:pr-2848-f15 | Human | Minor | documentation | RE_RAISE_OF:F11 | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -238,12 +240,27 @@ reviewer ID recorded.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2848#discussion_r4561860878
 
+### F15 - The replies said the audit record was added, but it was not yet pushed
+
+- PR number: 2848
+- Source review ID: 5889285431
+- Reviewer finding ID: F7
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2848#discussion_r4562073107
+- Concern: F11/F14's replies claimed the audit record was added, but at the time of the review the record was written locally and not yet committed or pushed, so it did not exist at the reviewed head.
+- Solution: Pushed the record at 524249b65 and replied citing that head.
+- Current-tree verification: `git log --format=%h -1` on the pushed branch is `524249b65`; the file exists at that head.
+- Resolution reference: docs(pr-reviews): [#1488] record the review audit of PR #2848
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2848#discussion_r4562282202
+
 ## Processing Log
 
 - 2026-11-12 20:15 UTC - Replied on the nine threads of the first two reviews at 20:14:46Z to 20:15:04Z (forge `created_at`) and resolved them, before this record existed. This record was started late, on 2026-11-13, after da2ce7 asked for it.
 - 2026-11-13 07:43 UTC - Replied on the Copilot thread of the second round (F10) at 07:43:29Z and resolved the open threads. That resolution also closed two new da2ce7 threads (F12 and F11) without a reply.
 - 2026-11-13 09:42 UTC - Fix commit for F12 and F13 made at 09:42:25Z (`git log`), after the wording was checked against `lib.rs` and the `deregister(` callers.
 - 2026-11-13 09:50 UTC - Replied on the four da2ce7 threads of the third and fourth reviews (F11 to F14); the threads were already resolved.
+- 2026-11-13 10:12 UTC - da2ce7 re-raised F7 again as F15 (comment created 10:12:54Z), because the audit commit was not yet pushed when they reviewed `8cd0c930d`.
+- 2026-11-13 10:20 UTC - Audit commit `524249b65` pushed; replied on F15's thread and resolved F13, F14 and F15 (none had been caught by the earlier resolve pass, since it ran before their replies existed). GraphQL refresh showed 0 unresolved threads.
 - Short commit ids cited in the first replies, mapped to subjects: `56cc1be` is `docs(issues): [#1488] address review of PR #2848` and `572ae56` is `docs(issues): [#1488] align SI-28 scope with its implementation plan`.
 
 ## Completion Rules
