@@ -26,8 +26,12 @@ def check_transaction_id(name, sent, received):
 
 
 s.sendto(struct.pack(">qii", 0x41727101980, 0, CONNECT_TID), addr)
-action, tid, connection_id = struct.unpack(">iiq", s.recvfrom(64)[0][:16])
+connect_response = s.recvfrom(64)[0]
+action, tid = struct.unpack(">ii", connect_response[:8])
 check_transaction_id("connect", CONNECT_TID, tid)
+if action != 0:
+    sys.exit(f"connect: action={action} message={connect_response[8:].decode(errors='replace')!r}")
+(connection_id,) = struct.unpack(">q", connect_response[8:16])
 
 packet = struct.pack(
     ">qii20s20sqqqiIiiH",  # cspell:disable-line
