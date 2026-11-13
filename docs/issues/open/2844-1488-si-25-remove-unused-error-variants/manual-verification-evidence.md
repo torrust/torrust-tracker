@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2844-1488-si-25-remove-unused-error-variants/ISSUE.md
-last-updated-utc: "2026-11-13 22:55"
+last-updated-utc: "2026-11-13 23:10"
 ---
 
 <!-- cspell:ignore lntu -->
@@ -33,12 +33,18 @@ Configuration: `share/default/config/tracker.development.sqlite3.toml` with only
 temporary file (`.tmp/m/db.sqlite`). It enables two UDP trackers (6868, 6969), two HTTP trackers (7070, 7171), the REST
 API (1212) and, always, the health check API (127.0.0.1:1313): six listeners.
 
+Output below is trimmed, not verbatim: log lines are the message part of the relevant `Started on` lines (timestamps and
+span fields removed, the UDP lines omitted); `ss -lntu` columns are reduced to protocol and local address (it also prints
+state, queues and peer); the `HH:MM:SS` stamps come from `date -u +%T` calls run immediately before the start, the
+signal and after the wait of each run, and are shown as trailing comments.
+
 ```text
 $ export TORRUST_TRACKER_CONFIG_TOML_PATH=.tmp/m/t.toml
 $ date -u +%T; ./target/debug/torrust-tracker & P=$!; sleep 4        # 22:50:04 start
   log: API: Started on: http://0.0.0.0:1212
        HEALTH CHECK API: Started on: http://127.0.0.1:1313
-       HTTP TRACKER: Started on: http://0.0.0.0:7070 and http://0.0.0.0:7171
+       HTTP TRACKER: Started on: http://0.0.0.0:7070
+       HTTP TRACKER: Started on: http://0.0.0.0:7171
 $ kill -TERM $P; wait $P; echo exit=$?                              # 22:50:08
 exit=0
 

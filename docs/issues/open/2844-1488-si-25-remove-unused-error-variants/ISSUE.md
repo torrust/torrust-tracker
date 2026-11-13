@@ -9,7 +9,7 @@ github-issue: 2844
 spec-path: docs/issues/open/2844-1488-si-25-remove-unused-error-variants/ISSUE.md
 branch: "2844-remove-unused-error-variants"
 related-pr: 2858
-last-updated-utc: "2026-11-13 22:30"
+last-updated-utc: "2026-11-13 23:10"
 semantic-links:
   skill-links:
     - create-issue
@@ -159,6 +159,7 @@ Sign every commit with GPG.
 - 2026-11-12 14:30 UTC - AI agent (Claude Sonnet 5.5) - Refined into a full spec on `torrust/develop` at `388faf59a`: verified no code constructs the nine variants, added the plan, verification and rollback, and recorded the maintainer's decisions of 2026-11-12 (SI-25 to SI-28 all open; SI-25, SI-26 and SI-27 land before #2583).
 - 2026-11-13 22:30 UTC - AI agent (Claude Sonnet 5.5) - Implemented on `2844-remove-unused-error-variants`. Versioning decision (maintainer, in chat): no version bump; the three packages stay at 0.1.0 and the removal ships in the release notes of the first publish (#2583). No changelog or migration note elsewhere. Evidence in `manual-verification-evidence.md`.
 - 2026-11-13 22:55 UTC - AI agent (Claude Sonnet 5.5) - PR #2858 review round 1: fixed the two stale `Error` doc comments, the PR title, `related-pr`, and the M2/M3 evidence (commands, stamps, six listeners).
+- 2026-11-13 23:10 UTC - AI agent (Claude Sonnet 5.5) - PR #2858 review round 2: added the review audit record `docs/pr-reviews/pr-2858-review/PR-REVIEW.md` (late start), stated the trimming of the M2 output, moved `last-updated-utc`.
 
 ## Acceptance Criteria
 
