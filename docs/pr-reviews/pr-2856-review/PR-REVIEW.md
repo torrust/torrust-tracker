@@ -64,7 +64,11 @@ PR #2856 review findings F8-F14`. F26 and F27 are the automated reviewer's indep
 one reviewer repeating the other's finding). Round 4 is `da2ce7`'s APPROVED review `5899089435`
 (F28 to F31, reviewer labels F21-F24, reassigned on collision with round-3 usage), submitted on
 the head whose last commit has the subject `docs(issues): [#2855] address PR #2856 review
-findings F19-F27`.
+findings F19-F27`. Round 5 is `copilot-pull-request-reviewer`'s review `5899193311` (F32 to F33,
+reviewer labels F28 for both, reassigned on collision with each other and with round-4 usage),
+submitted against the round-3 head (before round 4's fix was pushed). F33 is an independent
+re-raise of F28 (found separately by `da2ce7` in round 4 and by the automated reviewer here, on a
+head that predates round 4's fix).
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -99,6 +103,8 @@ findings F19-F27`.
 | F29 | review-finding:pr-2856-f29 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F30 | review-finding:pr-2856-f30 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F31 | review-finding:pr-2856-f31 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F32 | review-finding:pr-2856-f32 | Copilot | Minor | metadata | ORIGINAL | FIXED | RESOLVED |
+| F33 | review-finding:pr-2856-f33 | Copilot | Minor | testing | RE_RAISE_OF:F28 | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -505,9 +511,36 @@ findings F19-F27`.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4569542129
 
+### F32 - Copilot: archive the completed issue specification
+
+- PR number: 2856
+- Source review ID: 5899193311
+- Reviewer finding ID: F28
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4569586176
+- Concern: PR #2857 merged and closed #2855 at 19:44 UTC, before this document's latest update, but the spec still lived in the open backlog with `status: planned`; `docs/issues/open/README.md` reserves that directory for currently open issues.
+- Solution: Moved the issue folder to `docs/issues/closed/`, set `status: done`, and updated `spec-path` and the evidence file's `issue-spec` reference to the new location; checked the two Workflow Checkpoints boxes that are now true (acceptance criteria reviewed with evidence; issue closed and spec moved) and added a progress-log entry.
+- Current-tree verification: `docs/issues/closed/2855-container-regression-timeout-sigint/ISSUE.md` and `manual-verification-evidence.md` exist; `docs/issues/open/2855-container-regression-timeout-sigint/` does not; `rg '2855-container-regression-timeout-sigint'` finds no remaining reference outside the moved folder and this audit record.
+- Resolution reference: docs(issues): [#2855] archive the completed issue specification
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4569614794
+
+### F33 - Copilot: re-raise of F28 (V1 pinned to a pre-fix checkout)
+
+- PR number: 2856
+- Source review ID: 5899193311
+- Reviewer finding ID: F28
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4569586233
+- Concern: Same concern as F28 (copying the working-tree script after PR #2857 merged copies the fixed script, not the one the recorded red run reproduces). This review was submitted against the round-3 head, before the F28 fix was pushed in round 4.
+- Solution: No action beyond F28's existing fix: V1 already pins to `ec1f58ec9` via `git show`.
+- Current-tree verification: Same as F28.
+- Resolution reference: docs(issues): [#2855] address PR #2856 review findings F28-F31
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4569615703
+
 ## Processing Log
 
 - 2026-11-13 11:20 UTC - `da2ce7`'s review `5889698232` (7 findings, F1 to F7) and `copilot-pull-request-reviewer`'s review `5889723390` (3 findings, F15 to F17) processed before this record existed: fixed in commit `f2f0e4e73` (branch id cited in the nine replies instead of this subject) and replied on all ten threads, then resolved.
 - 2026-11-13 14:00 UTC - Started this record late, after round 2 arrived. Processing round 2: `da2ce7`'s review `5890192507` (7 findings, F8 to F14) and `copilot-pull-request-reviewer`'s review `5891738510` (1 finding, F18, reviewer label `F8`, reassigned on collision with `da2ce7`'s F8).
 - 2026-11-13 22:30 UTC - Processing round 3: `da2ce7`'s APPROVED review `5893913692` (6 findings, F19 to F24, reviewer labels F15-F20) and `copilot-pull-request-reviewer`'s review `5894073993` (3 findings, F25 to F27, reviewer labels F19-F21). F26 and F27 are independent re-raises of F21 and F23 (same underlying concerns, found separately by both reviewers in this round). Fixed in commit `docs(issues): [#2855] address PR #2856 review findings F19-F27`: added the skill-link marker (F19); cited the first commit by subject and corrected the Ownership note's reply-count attribution (F20); recaptured V5 on torrust-runner-01 (read-only, maintainer-approved) with a fresh, internally-consistent listing (F21, F26); corrected the V1 patch's second hunk header and the `cp` location prose (F22); recorded the real V5 capture time throughout (F23, F27); ran `linter all`, checked the criterion, and added the audit record to the PR description's Files touched list (F24); reclassified F18 as `RE_RAISE_OF:F13` (F25). Replied on all nine threads, then resolved them.
 - 2026-11-13 22:45 UTC - Processing round 4: `da2ce7`'s APPROVED review `5899089435` (4 findings, F28 to F31, reviewer labels F21-F24). Fixed in commit `docs(issues): [#2855] address PR #2856 review findings F28-F31`: named the pre-fix script by its durable `develop` commit id `ec1f58ec9` instead of a `cp` of the (now fixed) working tree or an unqualified line number (F28); corrected the round-2 progress-log entry's container count (31 to 32) and timestamp, noting the original was wrong (F29); posted the F14 correction on F14's own thread instead of F16's, and removed the incorrect "(inferred)" tag from F25-F27 (F30); rewrote the round-3 progress-log entry to cite audit IDs instead of the automated reviewer's own labels and to list all of that commit's fixes (F31). Replied on all four threads, then resolved them.
+- 2026-11-13 22:55 UTC - Processing round 5: `copilot-pull-request-reviewer`'s review `5899193311` (2 findings, F32 to F33, reviewer label F28 for both), submitted against the round-3 head, before round 4's fix was pushed. Fixed in commit `docs(issues): [#2855] archive the completed issue specification`: moved the issue folder to `docs/issues/closed/`, set `status: done`, and updated `spec-path` and the evidence file's `issue-spec` reference (F32). F33 was already resolved by round 4's F28 fix; no further action was needed. Replied on both threads, then resolved them.

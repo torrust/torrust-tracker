@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
-issue-spec: docs/issues/open/2855-container-regression-timeout-sigint/ISSUE.md
-last-updated-utc: "2026-11-13 22:18"
+issue-spec: docs/issues/closed/2855-container-regression-timeout-sigint/ISSUE.md
+last-updated-utc: "2026-11-13 22:55"
 ---
 
 # Manual Verification Evidence
