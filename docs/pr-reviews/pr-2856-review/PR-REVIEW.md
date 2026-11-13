@@ -179,7 +179,7 @@ the same head.
 - Current-tree verification: `manual-verification-evidence.md` V5 now shows the full listing, the exited-count command, and the image/mount identification, with the true oldest (`2212f3f2e8ef`, 2026-11-11 09:45:50 UTC) and count (31) stated from that listing.
 - Resolution reference: docs(issues): [#2855] address PR #2856 review findings F8-F14
 - Follow-up PR URL: N/A
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4562747484
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4565221088
 
 ### F9 - Impact states an unproven cause as fact
 
@@ -192,7 +192,7 @@ the same head.
 - Current-tree verification: `ISSUE.md` Impact paragraph 2 now carries this hedge, matching V5's own wording.
 - Resolution reference: docs(issues): [#2855] address PR #2856 review findings F8-F14
 - Follow-up PR URL: N/A
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4562747491
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4565224903
 
 ### F10 - No review audit record; replies cite a branch commit id
 
@@ -205,7 +205,7 @@ the same head.
 - Current-tree verification: `docs/pr-reviews/pr-2856-review/PR-REVIEW.md` exists at this head with the Ownership note naming the nine id-based replies' actual subject.
 - Resolution reference: docs(pr-reviews): [#2855] create the PR 2856 review audit record
 - Follow-up PR URL: N/A
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4562747500
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4565225743
 
 ### F11 - PR description still states the mechanism as fact
 
@@ -218,7 +218,7 @@ the same head.
 - Current-tree verification: `gh-bot pr view 2856 --json body` shows the reworded sentence.
 - Resolution reference: https://github.com/torrust/torrust-tracker/pull/2856#issuecomment-6857306524
 - Follow-up PR URL: N/A
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4562747509
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4565232871
 
 ### F12 - Spec-only PR records unmerged-implementation results; checkpoint order
 
@@ -231,7 +231,7 @@ the same head.
 - Current-tree verification: `ISSUE.md` Implementation Plan and Acceptance Verification name PR #2857 and its commit subject; the 2026-11-13 11:20 UTC progress-log entry states the deviation.
 - Resolution reference: docs(issues): [#2855] address PR #2856 review findings F8-F14
 - Follow-up PR URL: N/A
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4562747514
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4565227131
 
 ### F13 - V1 edit has a no-op pair and omits the `PROJECT_ROOT` change
 
@@ -244,7 +244,7 @@ the same head.
 - Current-tree verification: `manual-verification-evidence.md` V1 shows a `cp` + `patch <<'PATCH'` setup block with two hunks, no no-op lines.
 - Resolution reference: docs(issues): [#2855] address PR #2856 review findings F8-F14
 - Follow-up PR URL: N/A
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4562747522
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4565227755
 
 ### F14 - Backfilled progress-log time is later than its own commit
 
@@ -257,7 +257,7 @@ the same head.
 - Current-tree verification: `git log --format=%cI` for `9796436047f042efb5d2800d89ad4ec973706a81` shows `2026-11-13T10:13:58Z`; the entry now reads `10:12 UTC`.
 - Resolution reference: docs(issues): [#2855] address PR #2856 review findings F8-F14
 - Follow-up PR URL: N/A
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4562747535
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4565228445
 
 ### F15 - Copilot re-raise: T2 status inconsistency
 
@@ -309,7 +309,7 @@ the same head.
 - Current-tree verification: Same as F13.
 - Resolution reference: docs(issues): [#2855] address PR #2856 review findings F8-F14
 - Follow-up PR URL: N/A
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4563793717
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2856#discussion_r4565229077
 
 ## Processing Log
 
