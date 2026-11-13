@@ -11,7 +11,7 @@ use serde::Deserialize;
 )]
 #[derive(Deserialize, Copy, Clone, Debug, PartialEq, Eq, Constructor)]
 pub struct Pagination {
-    /// The page number, starting at 0
+    /// The number of results to skip: `0` starts at the first result
     pub offset: u32,
     /// Page size. The number of results per page
     pub limit: u32,
@@ -49,5 +49,44 @@ impl Default for Pagination {
             offset: Self::default_offset(),
             limit: Self::default_limit(),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::pagination::Pagination;
+
+    #[test]
+    fn it_should_default_to_the_first_result_and_a_page_of_4000() {
+        let pagination = Pagination::default();
+
+        assert_eq!(pagination, Pagination::new(0, 4000));
+    }
+
+    #[test]
+    fn it_should_default_each_value_that_is_missing_and_keep_each_value_that_is_given() {
+        let cases = [
+            (None, None, Pagination::new(0, 4000)),
+            (Some(5), None, Pagination::new(5, 4000)),
+            (None, Some(10), Pagination::new(0, 10)),
+            (Some(5), Some(10), Pagination::new(5, 10)),
+            (Some(0), Some(0), Pagination::new(0, 0)),
+        ];
+
+        for (offset, limit, expected) in cases {
+            assert_eq!(
+                Pagination::new_with_options(offset, limit),
+                expected,
+                "offset {offset:?} and limit {limit:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn it_should_be_deserialized_from_an_offset_and_a_limit() {
+        let pagination: Pagination =
+            serde_json::from_str(r#"{"offset": 5, "limit": 10}"#).expect("the pagination should deserialize");
+
+        assert_eq!(pagination, Pagination::new(5, 10));
     }
 }
