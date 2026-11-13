@@ -28,8 +28,9 @@ Evidence used below:
   check API never closed one (still open after 25 s).
 - Final build, after the fix: [evidence/results-final-build.txt](evidence/results-final-build.txt) and V8, V9 in
   [manual-verification-evidence.md](manual-verification-evidence.md).
-- Automatic tests: the silent-connection tests (plaintext and TLS) in the HTTP tracker, REST API
-  and health check API packages; red run in
+- Automatic tests: the silent-connection tests (plaintext and TLS in the HTTP tracker and REST API
+  packages, plaintext in the health check API package, which has no TLS listener) and the
+  listener-level suite `packages/axum-server/tests/idle_connections.rs`; red run in
   [evidence/red-run.txt](evidence/red-run.txt) and
   [evidence/red-run-service-tests.txt](evidence/red-run-service-tests.txt), green run in
   [evidence/green-run.txt](evidence/green-run.txt).
