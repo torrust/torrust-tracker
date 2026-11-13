@@ -61,6 +61,23 @@ the line totals include the in-file test modules, so part of the rise is the add
 uncovered `peer.rs` lines are the `Id::new` group (F5), the dead `Display` `None` branch and
 `peer::fixture` (the F5 follow-up). Details and the mutation table: `test-refactor-plans/peer.md`.
 
+### S3 (configuration defaults and bounded values), 2026-11-13
+
+Measured on branch `2824-1347-add-tests-primitives-defaults` after the S2 merge (#2841), with `cargo-llvm-cov 0.6.16`
+and stable Rust 1.99.1, same command as the baseline (separate `CARGO_LLVM_COV_TARGET_DIR`):
+
+| Scope | Tests | Lines | Regions | Functions |
+| --- | ---: | ---: | ---: | ---: |
+| Unit-only (`--lib`) = aggregate | 105 unit | 1,044 / 1,121 (93.13%) | 1,649 / 1,742 (94.66%) | 203 / 219 (92.69%) |
+
+Change from S2: lines +7.90 pp, regions +5.35 pp, functions +9.70 pp (from the baseline: +32.57, +26.72, +35.46 pp).
+The slice adds 24 tests (`announce_interval.rs` 6, `announce.rs` 6, `policy.rs` 5, `mode.rs` 4, `pagination.rs` 3), and
+changes two doc comments (`mode.rs`, `pagination.rs`). The line totals include the in-file test modules, so part of the
+rise is the added test code itself. Per file, unit-only lines after the slice: `announce_interval.rs` 114 / 114,
+`announce.rs` 55 / 55, `policy.rs` 40 / 40, `mode.rs` 25 / 25, `pagination.rs` 42 / 42 (before: 79 / 88, 0 / 16, 0 / 16,
+0 / 8, 0 / 21). Details, mutation tables and the property decision: `test-refactor-plans/announce_interval.md`,
+`announce.md`, `policy.md`, `mode.md` and `pagination.md`.
+
 ## Module Inventory
 
 Every `.rs` file under `packages/primitives/src/` (16 files), once. "Initial hypothesis" is a
