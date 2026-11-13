@@ -613,6 +613,7 @@ urlencode
 uroot
 usize
 utoipa
+uutils
 valgrind
 valueonly
 valuevec
