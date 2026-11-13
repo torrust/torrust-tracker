@@ -140,8 +140,11 @@ Responsibility and ownership map (unchanged by this task, listed so the review c
 
 Invariants to keep, in the normal and the failure and drop paths: a component never reports an outcome
 before its owned children finished or were deliberately aborted; a dropped owner aborts its children;
-every awaited operation is bounded by the process deadline `P`. A design-review checkpoint follows the
-first passing vertical slice (the shared supervisor with the health check migrated).
+every awaited operation is bounded by the process deadline `P`. A design-review checkpoint (a recorded
+prose-first Arrange-Act-Assert review, `.github/skills/dev/planning/create-issue/SKILL.md:180-192`)
+follows each passing test-producing increment: T2 (the shared supervisor with the health check
+migrated), T3 (the owner-type change) and T4 (the `udp_ban_cleanup` migration), plus the final
+maintainer-review pause.
 
 ## Implementation Plan
 
@@ -151,8 +154,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | -- | ------ | ---- | ----------------------- |
 | T1 | TODO | Design note: diff the three supervisors, decide the owner types, re-check that `udp_ban_cleanup` publishes nothing. Present it to the maintainer before coding. | A short section in this spec; the maintainer's decision is recorded. |
 | T2 | TODO | Add the shared supervisor with tests (a table of the join and error cases, including a server-join error that must still join the controller), migrate the health check first, then HTTP and REST. | Existing component tests keep passing unchanged; the controller-join case is new. Design-review checkpoint. |
-| T3 | TODO | Apply the owner-type decision. | Code and tests per T1. |
-| T4 | TODO | Migrate `udp_ban_cleanup` to `reserve` and `spawn`; remove the legacy registration path from `JobManager`. | The stop-order test in `src/app.rs` asserts the job stops before `health_check_api`; no `register_legacy` or `legacy_cancellation_token` remains. |
+| T3 | TODO | Apply the owner-type decision. | Code and tests per T1. Design-review checkpoint. |
+| T4 | TODO | Migrate `udp_ban_cleanup` to `reserve` and `spawn`; remove the legacy registration path from `JobManager`. | The stop-order test in `src/app.rs` asserts the job stops before `health_check_api`; no `register_legacy` or `legacy_cancellation_token` remains. Design-review checkpoint. |
 | T5 | TODO | Update the ADRs, architecture and shutdown-process docs. | `git grep` finds no live mention of the legacy job. |
 | T6 | TODO | Verify and record evidence. | `manual-verification-evidence.md`. |
 
