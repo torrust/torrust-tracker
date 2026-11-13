@@ -43,11 +43,14 @@ deliver findings through GitHub and have no repository-artifact obligation.
 
 Rounds: da2ce7 review `5878128462` (F1 to F6), Copilot reviews `5878561072` (F7 to F9) and
 `5881738305` (F10), da2ce7 reviews `5887686736` (F11, F12), `5887812564` (F13, F14) and
-`5889285431` (F15), da2ce7 review `5889719702` (F20 to F22) and Copilot review `5889787805` (F16 to
-F19). da2ce7's `F7` of the third round collided with Copilot's audit-local `F7`, so it is `F11` here
-with the reviewer ID recorded; da2ce7's `F8`, `F10` and `F11` of the newest round collided with the
-existing audit-local `F8`, `F10` and `F11`, so they are `F20`, `F21` and `F22` here, each with the
-reviewer ID recorded.
+`5889285431` (F15), da2ce7 review `5889719702` (F20 to F22), Copilot review `5889787805` (F16 to
+F19), Copilot review `5890021455` (F23, F24) and da2ce7 review `5890156298` (F25 to F27). da2ce7's
+`F7` of the third round collided with Copilot's audit-local `F7`, so it is `F11` here with the
+reviewer ID recorded; da2ce7's `F8`, `F10` and `F11` of the newest round collided with the existing
+audit-local `F8`, `F10` and `F11`, so they are `F20`, `F21` and `F22` here, each with the reviewer
+ID recorded; da2ce7's `F10`, `F23` and `F24` of the following round collided with the existing
+audit-local `F10` and the `F23`/`F24` just assigned to that round's Copilot comments, so they are
+`F25`, `F26` and `F27` here, each with the reviewer ID recorded.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -66,13 +69,18 @@ reviewer ID recorded.
 | F13 | review-finding:pr-2848-f13 | Human | Minor | documentation | RE_RAISE_OF:F4 | FIXED | RESOLVED |
 | F14 | review-finding:pr-2848-f14 | Human | Minor | documentation | RE_RAISE_OF:F11 | FIXED | RESOLVED |
 | F15 | review-finding:pr-2848-f15 | Human | Minor | documentation | RE_RAISE_OF:F11 | FIXED | RESOLVED |
-| F16 | review-finding:pr-2848-f16 | Copilot | Minor (inferred) | correctness | ORIGINAL | FIXED | RESOLVED |
-| F17 | review-finding:pr-2848-f17 | Copilot | Minor (inferred) | documentation | ORIGINAL | FIXED | RESOLVED |
-| F18 | review-finding:pr-2848-f18 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
-| F19 | review-finding:pr-2848-f19 | Copilot | Minor (inferred) | testing | ORIGINAL | FIXED | RESOLVED |
+| F16 | review-finding:pr-2848-f16 | Copilot | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F17 | review-finding:pr-2848-f17 | Copilot | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F18 | review-finding:pr-2848-f18 | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F19 | review-finding:pr-2848-f19 | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
 | F20 | review-finding:pr-2848-f20 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F21 | review-finding:pr-2848-f21 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 | F22 | review-finding:pr-2848-f22 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F23 | review-finding:pr-2848-f23 | Copilot | Minor (inferred) | formatting | ORIGINAL | NO_ACTION | RESOLVED |
+| F24 | review-finding:pr-2848-f24 | Copilot | Minor (inferred) | formatting | ORIGINAL | NO_ACTION | RESOLVED |
+| F25 | review-finding:pr-2848-f25 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F26 | review-finding:pr-2848-f26 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F27 | review-finding:pr-2848-f27 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -343,7 +351,7 @@ reviewer ID recorded.
 - Reviewer finding ID: F10
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2848#discussion_r4562406417
 - Concern: F15's Solution and Current-tree verification, and the Processing Log, named commits `524249b65` and `8cd0c930d` by short id instead of Conventional Commit subject, which can go stale after a rebase.
-- Solution: Rewrote F15's Solution and Current-tree verification to cite the commit by subject. The two short ids remaining in the (append-only) Processing Log are covered by the existing cross-reference line mapping short ids to subjects; that line itself names subjects, not only short ids, so it is left as is. The nine replies already posted to GitHub keep their short-id wording because GitHub comments cannot be edited without losing their timestamp as evidence; the same cross-reference line maps those too.
+- Solution: Rewrote F15's Solution and Current-tree verification to cite the commit by subject. The two short ids remaining in the (append-only) Processing Log are covered by the existing cross-reference line mapping short ids to subjects; that line itself names subjects, not only short ids, so it is left as is. The nine replies already posted to GitHub keep their short-id wording; the same cross-reference line maps those too, so the record is navigable without editing the replies.
 - Current-tree verification: Read F15's Solution and Current-tree verification fields, and the "Short commit ids cited in the first replies, mapped to subjects" line, after the edit.
 - Resolution reference: docs(pr-reviews): [#1488] address the third review round of PR #2848
 - Follow-up PR URL: N/A
@@ -362,6 +370,71 @@ reviewer ID recorded.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2848#discussion_r4562597055
 
+### F23 - The findings table does not use a double leading pipe
+
+- PR number: 2848
+- Source review ID: 5890021455
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2848#discussion_r4562638292
+- Concern: The findings table was reported to use a double leading pipe (`||`), which would render as an extra empty column in standard GitHub-flavored Markdown tables.
+- Solution: No change. The table (and every row added since) uses a single leading `|` throughout; there is no double-pipe sequence anywhere in the file.
+- Current-tree verification: `grep -n '^||' docs/pr-reviews/pr-2848-review/PR-REVIEW.md` and `grep -n '||' docs/pr-reviews/pr-2848-review/PR-REVIEW.md` both find no match.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2848#discussion_r4565157613
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2848#discussion_r4565157613
+
+### F24 - The verification.md note does not use `|>` for its blockquote
+
+- PR number: 2848
+- Source review ID: 5890021455
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2848#discussion_r4562638346
+- Concern: `docs/issues/open/1488-overhaul-tracker-shutdown/discarded-drafts/si-9-improve-udp-shutdown/verification.md` was reported to use `|>` instead of standard Markdown blockquote syntax (`>`), and relative links one directory level too shallow.
+- Solution: No change. The file (unchanged since commit `6e553319d`, which the review's own diff hunk reflects) already uses plain `>` blockquote markers and the correct four-level-up relative paths (`../../../../closed/...`); there is no `|>` sequence in the file.
+- Current-tree verification: `grep -n '|>' docs/issues/open/1488-overhaul-tracker-shutdown/discarded-drafts/si-9-improve-udp-shutdown/verification.md` finds no match; `sed -n '1,5p'` of the file shows `> **Status**...` and the four-level-up paths.
+- Resolution reference: https://github.com/torrust/torrust-tracker/pull/2848#discussion_r4565158230
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2848#discussion_r4565158230
+
+### F25 - F21's stated reason for not editing the nine replies is technically wrong
+
+- PR number: 2848
+- Source review ID: 5890156298
+- Reviewer finding ID: F10
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2848#discussion_r4562724902
+- Concern: F21's Solution said the nine already-posted replies keep their short-id wording "because GitHub comments cannot be edited without losing their timestamp as evidence." Editing a GitHub comment changes its `updated_at` but keeps `created_at`; the stated reason was wrong, even though the underlying decision (leave them unedited, rely on the cross-reference line) was sound.
+- Solution: Removed the incorrect "losing their timestamp" claim from F21's Solution; it now says the replies are left as posted because the existing cross-reference line already maps their short ids to subjects, so the record stays navigable without editing them.
+- Current-tree verification: Read F21's Solution field after the edit; it no longer makes a claim about comment editing and timestamps.
+- Resolution reference: docs(pr-reviews): [#1488] address the fourth review round of PR #2848
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2848#discussion_r4565160604
+
+### F26 - SI-25's namesake scoping missed a third `Launcher` struct and did not scope `Stop`
+
+- PR number: 2848
+- Source review ID: 5890156298
+- Reviewer finding ID: F23
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2848#discussion_r4562724918
+- Concern: `udp-server` defines its own unrelated `Launcher` struct (`packages/udp-server/src/server/launcher.rs:31`, used by `states.rs`), a third live struct the Background paragraph did not name, so a bare-name search for the `Launcher` variant matches three structs, not two. `Stop` has the same problem: besides the two `Error::Stop` variants, a whole-word `git grep -w 'Stop'` also matches the `Stopped` state structs and their aliases, plus 11 `*.rs` and 36 `*.md` lines outside `docs/issues` (comments and skill steps such as "Stop the tracker"), so T1, T4, the acceptance criterion and M1 could not pass for `Stop` as written.
+- Solution: Added the `udp-server` `Launcher` struct to the Background paragraph (now three structs), and added a parallel paragraph scoping `Stop` to `Error::Stop` (the qualified construction form) or to each package's `enum Error` definition, never the bare identifier. Updated the In Scope bullet, T1 and T4 Notes, the Acceptance Criteria bullet, and the M1 manual-verification row to apply the same scoping to `Stop`.
+- Current-tree verification: `grep -n 'Launcher' packages/udp-server/src/server/launcher.rs` shows `pub struct Launcher;` at line 31; `grep -n 'Launcher' packages/udp-server/src/server/states.rs` shows it imported and used; `grep -n 'Stop' packages/axum-http-server/src/server.rs packages/axum-rest-api-server/src/server.rs` shows `Stop { message: String }` in each package's `Error` enum; `git grep -w 'Stop' -- '*.rs' ':!docs/issues'` and `-- '*.md'` return 11 and 36 matches respectively, confirming the bare-word search is unsafe.
+- Resolution reference: docs(issues): [#1488] scope the Stop check and add the third Launcher struct in SI-25
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2848#discussion_r4565161099
+
+### F27 - Three details of the newest log entry and rows disagreed with the forge
+
+- PR number: 2848
+- Source review ID: 5890156298
+- Reviewer finding ID: F24
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2848#discussion_r4562724936
+- Concern: The Processing Log entry stamped "2026-11-13 10:53 UTC" also records Copilot's review, which was submitted at 10:58:30Z, after the entry's own stamp, violating the chronological-order rule in `process-pr-review` (Completion Rules: reply/resolve against the current tree; entries must not describe events that postdate their own stamp). The log's last entry says replies were posted "on the seven threads of this round (F16 and F18 to F22)", which names only six ids, omitting F17 (reply at 11:13:27Z, the seventh). Rows F16 to F19 marked severity `Minor (inferred)`, but each source comment opens with an explicit `[Minor]` bracket, and Status Values reserve `(inferred)` for severities derived from free prose, not stated ones.
+- Solution: Fixed the direct errors in place (the table is current state, not a log): F16 to F19's Severity changed from `Minor (inferred)` to `Minor`. The Processing Log is append-only, so the two log mistakes were not rewritten; a correction entry is appended below naming both: the 10:53 entry's own stamp predates the Copilot review it describes (actual submission 10:58:30Z), and the last entry's thread count should read "F16 to F22" (seven ids), not "F16 and F18 to F22" (six).
+- Current-tree verification: Read the findings table rows F16 to F19 after the edit (Severity is `Minor`). `gh-bot api repos/torrust/torrust-tracker/pulls/2848/reviews --jq '.[] | select(.id==5889787805) | .submitted_at'` returns `2026-11-13T10:58:30Z`. The seven replies of the third round (F16 to F22) have forge `created_at` 11:13:20Z to 11:13:34Z, confirmed by re-listing `pulls/2848/comments`.
+- Resolution reference: docs(pr-reviews): [#1488] address the fourth review round of PR #2848
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2848#discussion_r4565161683
+
 ## Processing Log
 
 - 2026-11-12 20:15 UTC - Replied on the nine threads of the first two reviews at 20:14:46Z to 20:15:04Z (forge `created_at`) and resolved them, before this record existed. This record was started late, on 2026-11-13, after da2ce7 asked for it.
@@ -376,6 +449,11 @@ reviewer ID recorded.
 - 2026-11-13 10:53 UTC - **Correction** to the entry above stamped 2026-11-13 10:20 UTC (F20): commit `524249b65` (`docs(pr-reviews): [#1488] record the review audit of PR #2848`) was made at 10:35:08Z (`git log`), and the F15 reply was posted at 10:38:44Z, not 10:20.
 - 2026-11-13 11:10 UTC - Fix commits made at 11:09:30Z (F16), 11:10:01Z (F18) and 11:10:33Z (F19) (`git log`), after the wording was checked against the `Launcher` definitions and the two specs' Implementation Plan and Design and Ownership Review sections, then pushed.
 - 2026-11-13 11:13 UTC - Replied on the seven threads of this round (F16 and F18 to F22) at 11:13:20Z to 11:13:34Z (forge `created_at`).
+- 2026-11-13 15:21 UTC - **Correction** to the entry above stamped 2026-11-13 10:53 UTC (F27): that entry also records Copilot's review, but Copilot's review was submitted at 10:58:30Z, after the entry's own 10:53 stamp. The da2ce7 approval and its three inline comments were the only events at 10:53; the Copilot review and its four findings belong at 10:58.
+- 2026-11-13 15:21 UTC - **Correction** to the entry above stamped 2026-11-13 11:13 UTC (F27): "the seven threads of this round" names six ids ("F16 and F18 to F22"); it should read F16 to F22 inclusive (seven ids) — F17's reply (11:13:27Z, forge `created_at`) was omitted from the list.
+- 2026-11-13 15:21 UTC - Copilot commented again (submitted 11:18:24Z) with two findings (no reviewer IDs; audit-local F23, F24). da2ce7 left three more inline comments (submitted 11:28:36Z; reviewer IDs F10, F23, F24, colliding with the existing audit-local F10 and the F23/F24 just assigned, so they are F25, F26 and F27 here).
+- 2026-11-13 15:21 UTC - Fix commit for F26 (`docs(issues): [#1488] scope the Stop check and add the third Launcher struct in SI-25`) made after the wording was checked against `packages/udp-server/src/server/launcher.rs`, `states.rs`, and the `Error::Stop` definitions in `axum-http-server`/`axum-rest-api-server`.
+- 2026-11-13 15:21 UTC - Replied on the five threads of this round (F23 to F27) at forge `created_at` times for comments `r4565157613`, `r4565158230`, `r4565160604`, `r4565161099` and `r4565161683`.
 
 ## Completion Rules
 
