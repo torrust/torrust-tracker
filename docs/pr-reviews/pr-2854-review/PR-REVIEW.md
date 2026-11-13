@@ -37,17 +37,17 @@ Commit subject (finding F12 below). Late start logged in the Processing Log.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
-| R1  | review-finding:pr-2854-r1  | Copilot | Major | correctness | ORIGINAL | FIXED | RESOLVED |
-| R2  | review-finding:pr-2854-r2  | Copilot | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
-| F1  | review-finding:pr-2854-f1  | Human | Major | testing | ORIGINAL | FIXED | RESOLVED |
-| F2  | review-finding:pr-2854-f2  | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
-| F3  | review-finding:pr-2854-f3  | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
-| F4  | review-finding:pr-2854-f4  | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
-| F5  | review-finding:pr-2854-f5  | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
-| F6  | review-finding:pr-2854-f6  | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
-| F7  | review-finding:pr-2854-f7  | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
-| F8  | review-finding:pr-2854-f8  | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
-| F9  | review-finding:pr-2854-f9  | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| R1 | review-finding:pr-2854-r1 | Copilot | Major | correctness | ORIGINAL | FIXED | RESOLVED |
+| R2 | review-finding:pr-2854-r2 | Copilot | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F1 | review-finding:pr-2854-f1 | Human | Major | testing | ORIGINAL | FIXED | RESOLVED |
+| F2 | review-finding:pr-2854-f2 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F3 | review-finding:pr-2854-f3 | Human | Minor | testing | ORIGINAL | FIXED | RESOLVED |
+| F4 | review-finding:pr-2854-f4 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F5 | review-finding:pr-2854-f5 | Human | Minor | correctness | ORIGINAL | FIXED | RESOLVED |
+| F6 | review-finding:pr-2854-f6 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F7 | review-finding:pr-2854-f7 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F8 | review-finding:pr-2854-f8 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F9 | review-finding:pr-2854-f9 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F10 | review-finding:pr-2854-f10 | Human | Nit | formatting | ORIGINAL | FIXED | RESOLVED |
 | F11 | review-finding:pr-2854-f11 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F12 | review-finding:pr-2854-f12 | Human | Minor | maintainability | ORIGINAL | FIXED | RESOLVED |
@@ -65,7 +65,7 @@ Commit subject (finding F12 below). Late start logged in the Processing Log.
 - Current-tree verification: `docker build -q --target tester --build-arg CARGO_BUILD_JOBS=2 --tag tmp-tester-check --file Containerfile .` then `docker run --rm --entrypoint printenv tmp-tester-check CARGO_BUILD_JOBS` printed `2`; repeated with no `--build-arg` printed `4` (the compiled-in default). Recorded in `manual-verification-evidence.md` V2/V3.
 - Resolution reference: `fix(container): [#2853] address Copilot review: cap tester stage, trap measure.sh signals`
 - Follow-up PR URL: N/A
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562277725 (cites the branch commit id `334decbf9`, not its subject; see F12)
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562277725
 
 ### R2 - Cancel the background build when the measurement is interrupted
 
@@ -77,7 +77,7 @@ Commit subject (finding F12 below). Late start logged in the Processing Log.
 - Current-tree verification: launched `measure.sh` in the background against a `docker` stub that only sleeps, sent it `SIGINT`, and confirmed the `measure.sh` process exited immediately and the message "measure.sh interrupted; cancelling build pid ..." was written to the summary file.
 - Resolution reference: `fix(container): [#2853] address Copilot review: cap tester stage, trap measure.sh signals`
 - Follow-up PR URL: N/A
-- Reply URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562278024 (cites the branch commit id `334decbf9`, not its subject; see F12)
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562278024
 
 ### F1 - AC6 is marked DONE, but its condition is not met at this head
 
@@ -89,7 +89,7 @@ Commit subject (finding F12 below). Late start logged in the Processing Log.
 - Current-tree verification: `gh-bot api repos/torrust/torrust-tracker/actions/runs/43410572813/jobs` confirms the job runs on `torrust-runner-01`; its duration is recorded in `manual-verification-evidence.md` V4 once it completes.
 - Resolution reference: `fix(container): [#2853] address da2ce7 review: fix report arithmetic, evidence, docs nits`
 - Follow-up PR URL: N/A
-- Reply URL: (filled after replying)
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562418701
 
 ### F2 - The evidence file lacks the records `fix-bug` requires for an infeasible reproduction
 
@@ -101,7 +101,7 @@ Commit subject (finding F12 below). Late start logged in the Processing Log.
 - Current-tree verification: read `manual-verification-evidence.md` after the edit; the reproduction section and the named commits are present.
 - Resolution reference: `fix(container): [#2853] address da2ce7 review: fix report arithmetic, evidence, docs nits`
 - Follow-up PR URL: N/A
-- Reply URL: (filled after replying)
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562418154
 
 ### F3 - M2 is DONE, but its command (no `--build-arg`) was not run as written
 
@@ -113,7 +113,7 @@ Commit subject (finding F12 below). Late start logged in the Processing Log.
 - Current-tree verification: commands re-run while fixing this finding: `docker build -q --target chef --tag tmp-chef-default --file Containerfile .` then `docker run --rm --entrypoint printenv tmp-chef-default CARGO_BUILD_JOBS` → `4`; same for `--target tester` → `4`.
 - Resolution reference: `fix(container): [#2853] address da2ce7 review: fix report arithmetic, evidence, docs nits`
 - Follow-up PR URL: N/A
-- Reply URL: (filled after replying)
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562420225
 
 ### F4 - "A single `rustc` is about 0.9-1.6 GiB" is contradicted by the raw samples
 
@@ -125,7 +125,7 @@ Commit subject (finding F12 below). Late start logged in the Processing Log.
 - Current-tree verification: `awk` recomputation against `results/jobs-{4,8,16}.samples.tsv` gives (count, RSS) pairs (4, 10.38 GiB), (8, 19.79 GiB), (17, 35.49 GiB) — per-process 2.60/2.47/2.09 GiB, matching the new `report.md` text.
 - Resolution reference: `fix(container): [#2853] address da2ce7 review: fix report arithmetic, evidence, docs nits`
 - Follow-up PR URL: N/A
-- Reply URL: (filled after replying)
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562419904
 
 ### F5 - "three at most in the release target" does not match the stage graph
 
@@ -137,7 +137,7 @@ Commit subject (finding F12 below). Late start logged in the Processing Log.
 - Current-tree verification: read `Containerfile`'s `FROM` graph for the release target; every compiling stage traces back to `dependencies_thirdparty` through exactly one of the two branches.
 - Resolution reference: `fix(container): [#2853] address da2ce7 review: fix report arithmetic, evidence, docs nits`
 - Follow-up PR URL: N/A
-- Reply URL: (filled after replying)
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562416772
 
 ### F6 - This risk contradicts itself and the `Containerfile`
 
@@ -147,9 +147,9 @@ Commit subject (finding F12 below). Late start logged in the Processing Log.
 - Concern: the risk bullet said the `ENV` "also reaches `cargo nextest run` in the `test` stages", then that those stages derive from `tester`, not `chef` — self-contradictory, since `tester` at that point had no `CARGO_BUILD_JOBS` of its own either.
 - Solution: rewrote the bullet to state that `test`/`test_debug` derive from `tester` (not `chef`), that `tester` now declares its own `CARGO_BUILD_JOBS` (added for R1), but that `cargo nextest run` itself compiles nothing — the test binaries were already compiled by the preceding build stages — so the variable has no effect on it either way. A later pass (F13) corrected a residual inconsistency between this bullet, the Goal section, and the `Containerfile` comment about which stages the cap is declared in.
 - Current-tree verification: read the current risk bullet and the `Containerfile`'s `tester` stage; the statement matches both.
-- Resolution reference: `fix(container): [#2853] address da2ce7 review: fix report arithmetic, evidence, docs nits`; `fix(container): [#2853] fix tester/chef wording contradiction, add audit record` (F13)
+- Resolution reference: `fix(container): [#2853] fix tester/chef wording contradiction, add audit record`
 - Follow-up PR URL: N/A
-- Reply URL: (filled after replying)
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562417156
 
 ### F7 - A changed value invalidates the cache from the first `RUN` of `chef` onward, and the docs do not say so
 
@@ -161,7 +161,7 @@ Commit subject (finding F12 below). Late start logged in the Processing Log.
 - Current-tree verification: read the added paragraph in `docs/containers.md`.
 - Resolution reference: `fix(container): [#2853] address da2ce7 review: fix report arithmetic, evidence, docs nits`
 - Follow-up PR URL: N/A
-- Reply URL: (filled after replying)
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562419381
 
 ### F8 - The progress-log times do not match the sample epochs
 
@@ -173,7 +173,7 @@ Commit subject (finding F12 below). Late start logged in the Processing Log.
 - Current-tree verification: `git log --format='%H %ad %s' --date=iso-strict-local` against the entries' cited commits; times match.
 - Resolution reference: `fix(container): [#2853] address da2ce7 review: fix report arithmetic, evidence, docs nits`
 - Follow-up PR URL: N/A
-- Reply URL: (filled after replying)
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562420505
 
 ### F9 - The `docker-build.sh` example works only from the repository root
 
@@ -185,7 +185,7 @@ Commit subject (finding F12 below). Late start logged in the Processing Log.
 - Current-tree verification: read the updated comment in `contrib/dev-tools/containers/docker-build.sh`.
 - Resolution reference: `fix(container): [#2853] address da2ce7 review: fix report arithmetic, evidence, docs nits`
 - Follow-up PR URL: N/A
-- Reply URL: (filled after replying)
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562417840
 
 ### F10 - New concrete Markdown documents use lowercase filenames
 
@@ -197,7 +197,7 @@ Commit subject (finding F12 below). Late start logged in the Processing Log.
 - Current-tree verification: `grep -rn "REPORT.md" docs/issues/open/2853-container-build-jobs-limit docs/containers.md contrib/dev-tools/experiments/container-build-jobs` returns nothing live; `linter all` passes (covers markdown link checks).
 - Resolution reference: `fix(container): [#2853] address da2ce7 review: fix report arithmetic, evidence, docs nits`
 - Follow-up PR URL: N/A
-- Reply URL: (filled after replying)
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562417517
 
 ### F11 - Heading-case cross-reference mismatch
 
@@ -209,7 +209,7 @@ Commit subject (finding F12 below). Late start logged in the Processing Log.
 - Current-tree verification: `grep -rn "Memory and CPU" Containerfile docs/containers.md docs/issues/open/2853-container-build-jobs-limit/ISSUE.md contrib/dev-tools/containers/docker-build.sh` shows one spelling.
 - Resolution reference: `fix(container): [#2853] address da2ce7 review: fix report arithmetic, evidence, docs nits`
 - Follow-up PR URL: N/A
-- Reply URL: (filled after replying)
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562419639
 
 ### F12 - Two review threads were answered with no review audit record, citing a branch commit id
 
@@ -221,7 +221,7 @@ Commit subject (finding F12 below). Late start logged in the Processing Log.
 - Current-tree verification: this file exists at `docs/pr-reviews/pr-2854-review/PR-REVIEW.md`.
 - Resolution reference: `fix(container): [#2853] fix tester/chef wording contradiction, add audit record`
 - Follow-up PR URL: N/A
-- Reply URL: (filled after replying)
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562418412
 
 ### F13 - The `tester` cap contradicts the spec, the description and the `chef` comment
 
@@ -233,7 +233,7 @@ Commit subject (finding F12 below). Late start logged in the Processing Log.
 - Current-tree verification: `grep -n "chef\|tester" docs/issues/open/2853-container-build-jobs-limit/ISSUE.md` and the `Containerfile` comment show one consistent statement; `manual-verification-evidence.md` V2/V3 include the `tester` commands and their `4`/`2` output.
 - Resolution reference: `fix(container): [#2853] fix tester/chef wording contradiction, add audit record`
 - Follow-up PR URL: N/A
-- Reply URL: (filled after replying)
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4562419076
 
 ## Processing Log
 
