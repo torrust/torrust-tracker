@@ -9,7 +9,7 @@ github-issue: 2776
 spec-path: docs/issues/closed/2776-2411-axum-server-0-9-timeouts/ISSUE.md
 branch: "2776-axum-server-0-9-timeouts-spec"
 related-pr: 2813
-last-updated-utc: "2026-11-12 20:30"
+last-updated-utc: "2026-11-13 09:42"
 semantic-links:
   skill-links:
     - create-issue
