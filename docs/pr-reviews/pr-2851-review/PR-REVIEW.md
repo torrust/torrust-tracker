@@ -50,6 +50,8 @@ Round 3 is Copilot's review `5881522270` (F17 to F19, audit-local IDs), on the h
 the round 2 audit. It labels its three findings "Low severity"; the severity `Minor` is inferred from that label.
 Round 4 is the approving review `5887584344` of `da2ce7` (F20 to F22, reviewer-provided IDs), on the head that carried
 the round 3 audit.
+Round 5 is the approving review `5887875398` of `da2ce7` (F23 and F24, reviewer-provided IDs) and Copilot's review
+`5888919892` (F25 and F26, audit-local IDs; Copilot labels them F24 and F25), both on the head that carried the round 4 audit.
 
 | Finding ID | Review finding reference | Author class | Severity | Category | Relationship | Disposition | Thread state |
 | ---------- | ------------------------ | ------------ | -------- | -------- | ------------ | ----------- | ------------ |
@@ -75,6 +77,10 @@ the round 3 audit.
 | F20 | review-finding:pr-2851-f20 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F21 | review-finding:pr-2851-f21 | Human | Nit | metadata | ORIGINAL | FIXED | RESOLVED |
 | F22 | review-finding:pr-2851-f22 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F23 | review-finding:pr-2851-f23 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F24 | review-finding:pr-2851-f24 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
+| F25 | review-finding:pr-2851-f25 | Copilot | Minor | security | ORIGINAL | FIXED | RESOLVED |
+| F26 | review-finding:pr-2851-f26 | Copilot | Minor | testing | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -329,7 +335,7 @@ the round 3 audit.
 
 - PR number: 2851
 - Source review ID: 5887584344
-- Reviewer finding ID: F20
+- Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4560762446
 - Concern: This audit said Copilot's round-3 review gives no severity label; its body marks each of the three findings "Low severity".
 - Solution: The round overview now says the review labels its three findings "Low severity" and that `Minor` is inferred from that label.
@@ -342,7 +348,7 @@ the round 3 audit.
 
 - PR number: 2851
 - Source review ID: 5887584344
-- Reviewer finding ID: F21
+- Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4560762450
 - Concern: The evidence file and the #2850 specification carried times earlier than their last content edits (the same defect as F16).
 - Solution: Both files now read 2026-11-12 20:32, the time of their last content edits in `git log`.
@@ -355,7 +361,7 @@ the round 3 audit.
 
 - PR number: 2851
 - Source review ID: 5887584344
-- Reviewer finding ID: F22
+- Reviewer finding ID: N/A
 - Source URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4560762460
 - Concern: The rebase reset the committer time of the 24 commits up to the round-2 audit to 20:28:16Z to 20:28:32Z, so `git log --format=%cI` no longer gives the times that earlier entries cite; `%aI` keeps the original times, except for the last fix of the 19:36 range (19:35:03Z there).
 - Solution: An appended entry in the processing log says so; no earlier entry was rewritten.
@@ -363,6 +369,58 @@ the round 3 audit.
 - Resolution reference: docs(pr-reviews): record round 4 in the review audit of PR #2851
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4560877891
+
+### F23 - `Reviewer finding ID` repeats IDs that were not reassigned
+
+- PR number: 2851
+- Source review ID: 5887875398
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4560991862
+- Concern: The entries of F20, F21 and F22 set `Reviewer finding ID` to the reviewer's own IDs, which are not reassigned.
+- Solution: The three entries read `N/A`, as those of F1 to F7 and F13 to F16.
+- Current-tree verification: Read the three entries in the tree.
+- Resolution reference: docs(pr-reviews): record round 5 in the review audit of PR #2851
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4561860121
+
+### F24 - The correction for F22 does not name the entry stamped 20:01
+
+- PR number: 2851
+- Source review ID: 5887875398
+- Reviewer finding ID: N/A
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4560991869
+- Concern: The correction for F22 names the entries stamped 18:11 and 19:36 and the F16 verification, not the one stamped 20:01, which also cites `%cI` for commits the rebase re-stamped.
+- Solution: An appended log entry names the entry stamped 20:01; the entry of the correction for F22 stays as it is.
+- Current-tree verification: Read the processing log in the tree and `git log --format=%cI` and `%aI` of the four round 2 fixes.
+- Resolution reference: docs(pr-reviews): record round 5 in the review audit of PR #2851
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4561860498
+
+### F25 - The replay configuration binds an unused listener on every interface
+
+- PR number: 2851
+- Source review ID: 5888919892
+- Reviewer finding ID: F24
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4561799031
+- Concern: `evidence/tracker.toml` bound a UDP listener on `0.0.0.0:6969` that no probe used, exposing the replay tracker beyond localhost.
+- Solution: The listener is removed, and the evidence file records the removal as a replay-only adjustment.
+- Current-tree verification: Read `evidence/tracker.toml` and the Environment section of the evidence file in the tree; every probe targets `127.0.0.1:6868`.
+- Resolution reference: docs(issues): [#2838] remove the unused second UDP listener from the replay configuration
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4561860930
+
+### F26 - The plan has no baseline and no UDP announce benchmark
+
+- PR number: 2851
+- Source review ID: 5888919892
+- Reviewer finding ID: F25
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4561799123
+- Concern: T2 changes every UDP announce but the plan only compiled the benches; `docs/benchmarking.md` requires a relevant microbenchmark, the load test, a baseline before production changes and a one-sided pass rule agreed before implementation.
+- Solution: New task T0 adds the missing UDP announce benchmark in its own commit and records the baseline before T2; T6 repeats the measurement after T3; a Performance Evidence section states the instruments, the one-sided rule and the tolerance to agree for the UDP announce; evidence goes to `performance-evidence.md`.
+- Current-tree verification: Read the Implementation Plan and the Performance Evidence section of the #2850 specification; checked that `udp-core` benches hold only `connect_once` and `udp-server` only a scrape benchmark.
+- Resolution reference: docs(issues): [#2850] plan the performance baseline and the missing UDP announce benchmark
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2851#discussion_r4561861311
 
 ## Processing Log
 
@@ -381,6 +439,7 @@ the round 3 audit.
 - 2026-11-12 20:01 UTC - Round 2: the four fixes were committed between 19:55:16Z and 19:57:12Z (`git log --format=%cI`) and their push had landed by 20:00:04Z (`git ls-remote` of the fork matched the local head). Replied on the four threads between 20:00:05Z and 20:00:12Z (forge `created_at`). `validate-audit-record.py --pr-number 2851` exited 0 (16 rows, 0 failures). Resolved the four threads; a GraphQL refresh showed 0 unresolved threads.
 - 2026-11-12 20:38 UTC - Round 3: Copilot's review `5881522270` (submitted 20:28:18Z, forge `submitted_at`) with three findings, F17 to F19. Before it was read, the branch had been rebased onto `develop`, because the pull request conflicted in the sub-issue table of EPIC #1347 after PR #2841 merged; every commit was replayed in the same order. The three fixes were committed between 20:31:34Z and 20:32:42Z (`git log --format=%cI`). The forge timeline records the force push of the rebased branch at 20:37:18Z (`head_ref_force_pushed`, actor `josecelano-bot`; the maintainer ran `git-bot-push --force-with-lease`). Edited the pull request description to state the rebase. Replied on the three threads between 20:37:44Z and 20:37:50Z (forge `created_at`). `validate-audit-record.py --pr-number 2851` exited 0 (19 rows, 0 failures). Resolved the three threads; a GraphQL refresh showed 0 unresolved threads.
 - 2026-11-13 07:44 UTC - Round 4: the approving review `5887584344` of `da2ce7` (submitted 2026-11-13 07:28:03Z, forge `submitted_at`) at the head that carried the round 3 audit, with three nits, F20 to F22. The F21 fix was committed and pushed first; the replies on the three threads follow it (forge `created_at`). Correction for F22: the rebase set the committer time of the 24 commits up to the round 2 audit to 20:28:16Z to 20:28:32Z, so `git log --format=%cI` does not give the times that the entries stamped 18:11, 19:36 and the F16 verification cite. `git log --format=%aI` keeps the original times (18:08:03Z, 18:11:27Z, 19:33:34Z, 19:55:16Z, 19:57:12Z), except that the last fix of the 19:36 range shows 19:35:03Z there, not 19:36:24Z. No earlier entry was rewritten.
+- 2026-11-13 09:50 UTC - Round 5: the approving review `5887875398` of `da2ce7` (forge `submitted_at` 2026-11-13 08:00:46Z) with two nits, F23 and F24, and Copilot's review `5888919892` (submitted 09:39:31Z, forge `submitted_at`) with two findings, F25 and F26, on the head that carried the round 4 audit. Their fixes were committed and pushed before the replies on the four threads (forge `created_at` 09:5x). Correction for F24: the entry stamped 20:01 cites `git log --format=%cI` for the four round 2 fixes (19:55:16Z to 19:57:12Z); after the rebase `%cI` shows 20:28:31Z for them, and `%aI` keeps 19:55:16Z to 19:57:12Z. No earlier entry was rewritten.
 
 ## Completion Rules
 
