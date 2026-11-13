@@ -18,30 +18,16 @@ pub mod states;
 ///
 /// - The server cannot bind to the given address.
 /// - The service cannot be registered.
-///
-/// `StartupNotification`, `Launcher` and `FailedToStartOrStopServer` belong to
-/// the legacy start and stop path that SI-19 removed. They are no longer
-/// constructed and stay only to keep the enum's public surface unchanged until
-/// the next breaking cleanup.
 #[derive(Debug, Error)]
 #[non_exhaustive]
 pub enum UdpError {
     #[error("could not bind UDP tracker listener: {source}")]
     Bind { source: std::io::Error },
 
-    #[error("UDP tracker startup notification was not received: {source}")]
-    StartupNotification { source: tokio::sync::oneshot::error::RecvError },
-
-    #[error("UDP tracker launcher failed during startup: {source}")]
-    Launcher { source: std::io::Error },
-
     #[error("could not register UDP tracker service: {source}")]
     Registration {
         source: torrust_server_lib::registar::RegistrationError,
     },
-
-    #[error("Any error to do with starting or stopping the server")]
-    FailedToStartOrStopServer(String),
 }
 
 /// A UDP server.

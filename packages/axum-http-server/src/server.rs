@@ -44,19 +44,10 @@ pub enum Error {
     #[error("could not configure HTTP tracker listener: {source}")]
     Listener { source: std::io::Error },
 
-    #[error("HTTP tracker startup notification receiver was dropped")]
-    StartupNotificationDropped,
-
-    #[error("HTTP tracker startup notification was not received: {source}")]
-    StartupNotification { source: tokio::sync::oneshot::error::RecvError },
-
     #[error("could not register HTTP tracker service: {source}")]
     Registration {
         source: torrust_server_lib::registar::RegistrationError,
     },
-
-    #[error("could not stop HTTP tracker service: {message}")]
-    Stop { message: String },
 }
 
 // `derive_more::Constructor` generates `field: field` initializers on this MSRV-compatible version.
