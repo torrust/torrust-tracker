@@ -9,7 +9,7 @@ github-issue: 2850
 spec-path: docs/issues/open/2850-non-negative-number-of-bytes/ISSUE.md
 branch: "2850-non-negative-number-of-bytes-spec"
 related-pr: null
-last-updated-utc: "2026-11-12 20:32"
+last-updated-utc: "2026-11-13 09:41"
 semantic-links:
   skill-links:
     - create-issue
@@ -43,6 +43,7 @@ semantic-links:
     - docs/adrs/20260629000000_adopt_independent_package_versioning.md
     - docs/adrs/20260727000000_events_are_objective_facts.md
     - .github/skills/dev/rust-code-quality/handle-errors-in-code/SKILL.md
+    - docs/benchmarking.md
     - docs/issues/open/2824-1347-add-tests-primitives/ISSUE.md
     - docs/issues/open/2838-1347-udp-reject-negative-announce-bytes/ISSUE.md
     - docs/issues/open/2838-1347-udp-reject-negative-announce-bytes/manual-verification-evidence.md
@@ -622,12 +623,13 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 
 | ID | Status | Task | Notes / Expected Output |
 | --- | --- | --- | --- |
+| T0 | TODO | Add the missing benchmark and record the baseline | [`docs/benchmarking.md`](../../../benchmarking.md) requires it before any production change. `udp-core` has only `connect_once` and `udp-server` only a scrape benchmark, so no Criterion benchmark covers the UDP announce: add one in its own `test`/`bench` commit (announce through the `udp-core` service, so the conversion is on the timed path). The HTTP announce is covered by `bench_announce_once` in `http-core`. Record the baseline of both, plus the end-to-end UDP load test (`aquatic_udp_load_test`), in `performance-evidence.md`, on the code the branch starts from plus documentation and benchmark-only commits: three Criterion runs (medians) and five 30-second load-test runs, with the checks of the machine that the guide lists. |
 | T1 | TODO | Pin today's HTTP range with tests | Unit tests in `http-protocol` for each param: negative refused, `0` accepted, non-numeric refused. They pass before any production change |
 | T2 | TODO | Make the UDP conversion fallible | Red first: the handler test of PR #2839 fails. Then `peer_builder::from_request` returns `Result` with its own error; the service uses `?`; `UdpAnnounceError` wraps it; `udp-server` classifies it as a bad request; tests taken from the branch of PR #2839. The domain type is still `i64`. This step alone fixes the bug of #2838 |
 | T3 | TODO | Change the two types and their callers | `primitives` and `http-protocol` types hold a private `u64`; `is_seeder`, serializer, parser, builder, `http-core`, REST resource and adapter, benches and any test code that does not compile. `NumberOfBytesOverflow` removed. The workspace builds and all tests pass |
 | T4 | TODO | Add the tests for the new range | `u64::MAX` and above in `http-protocol`; the contract test in `axum-http-server`; seeder and leecher tests in `primitives` |
 | T5 | TODO | Check client-visible output and documentation | UDP error message for a negative counter; REST peer JSON; API description; "non-negative integer" in the `axum-http-server` documentation. Old and new listed in the pull request |
-| T6 | TODO | Verification and evidence | Automatic checks, manual scenarios, acceptance review, completion review |
+| T6 | TODO | Verification and evidence | Automatic checks, manual scenarios, the performance measurement again after T3 (same machine, build profile, configuration and settings as the baseline; every run in `performance-evidence.md`), acceptance review, completion review |
 
 T2 goes before T3 on purpose: it fixes the bug in the conversion while the domain type is
 unchanged, so it can be reviewed and tested alone. T3 is one commit, because the workspace does not
@@ -744,8 +746,24 @@ Define verification before implementation starts and execute it before closing t
 - `cargo test --workspace`, because a `primitives` type changes
 - `cargo test --doc --workspace`, because doc examples build the type
 - `cargo bench --workspace --no-run`, so the benches compile
+- Performance, because T2 adds a check to every UDP announce and T3 changes the type that every announce carries; see Performance Evidence below
 - `cargo deny check bans`, the layer boundary check
 - Pre-push checks
+
+### Performance Evidence
+
+Planned here, before any production change, as [`docs/benchmarking.md`](../../../benchmarking.md)
+requires. The instruments are the UDP announce Criterion benchmark added by T0, `bench_announce_once`
+of `http-core`, and the end-to-end UDP load test.
+
+- Baseline: T0, before T2. After: repeated after T3 with the same machine, build profile,
+  configuration and settings. Both are recorded in issue-local `performance-evidence.md`.
+- Pass rule, one-sided: the after mean of the load test is not below the lowest baseline run, and
+  each after Criterion median is not above the highest baseline median.
+- Expected cost: T2 deliberately adds one comparison on every UDP announce (the sign check), so
+  the one-sided rule for the UDP announce benchmark is stated with a tolerance. The tolerance is
+  not set here: the maintainer agrees on it after the baseline shows the noise, and before the
+  after measurement. The HTTP path adds no work, so its rule has no tolerance.
 
 ### Manual Verification Scenarios
 
