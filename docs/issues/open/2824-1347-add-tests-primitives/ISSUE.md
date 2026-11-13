@@ -285,7 +285,7 @@ States: `PENDING`, `IN_PROGRESS`, `BLOCKED`, `DONE`. Unit-only lines are the bas
 | 1 | `peer.rs` | 1 | S2 | 115 / 325 | Test candidate; property candidate (`Id`) | DONE (S2; the `Id::new` and `peer::fixture` groups wait on the F5 follow-up) |
 | 2 | `announce_interval.rs` | 2 | S3 | 79 / 88 | Test candidate (3 gaps); property candidate | DONE (S3) |
 | 3 | `announce.rs` | 2 | S3 | 0 / 16 | Test candidate | DONE (S3) |
-| 4 | `policy.rs` | 2 | S3 | 0 / 16 | Test candidate | IN_PROGRESS (S3, record approved) |
+| 4 | `policy.rs` | 2 | S3 | 0 / 16 | Test candidate | DONE (S3) |
 | 5 | `mode.rs` | 2 | S3 | 0 / 8 | Test candidate | PENDING |
 | 6 | `pagination.rs` | 2 | S3 | 0 / 21 | Test candidate | PENDING |
 | 7 | `swarm_metadata.rs` | 3 | S4 | 3 / 18 | Test candidate; the `AddAssign` lines are not tested because #2823 deletes the impl | PENDING |

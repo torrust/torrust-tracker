@@ -68,3 +68,51 @@ impl TrackerPolicy {
         true
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::policy::TrackerPolicy;
+
+    #[test]
+    fn it_should_default_to_the_documented_values() {
+        let policy = TrackerPolicy::default();
+
+        assert_eq!(policy, TrackerPolicy::new(900, false, true));
+    }
+
+    #[test]
+    fn it_should_use_the_default_of_every_field_missing_from_the_json() {
+        let policy: TrackerPolicy = serde_json::from_str("{}").expect("an empty object should deserialize");
+
+        assert_eq!(policy, TrackerPolicy::new(900, false, true));
+    }
+
+    #[test]
+    fn it_should_keep_the_given_peer_timeout_and_default_the_rest() {
+        let policy: TrackerPolicy =
+            serde_json::from_str(r#"{"max_peer_timeout": 60}"#).expect("a partial object should deserialize");
+
+        assert_eq!(policy, TrackerPolicy::new(60, false, true));
+    }
+
+    #[test]
+    fn it_should_keep_each_flag_in_its_own_field() {
+        let policy: TrackerPolicy =
+            serde_json::from_str(r#"{"persistent_torrent_completed_stat": true, "remove_peerless_torrents": false}"#)
+                .expect("an object with both flags should deserialize");
+
+        assert_eq!(policy, TrackerPolicy::new(900, true, false));
+    }
+
+    #[test]
+    fn it_should_serialize_to_the_three_configuration_keys() {
+        let policy = TrackerPolicy::new(60, true, false);
+
+        let json = serde_json::to_string(&policy).expect("it should serialize");
+
+        assert_eq!(
+            json,
+            r#"{"max_peer_timeout":60,"persistent_torrent_completed_stat":true,"remove_peerless_torrents":false}"#
+        );
+    }
+}
