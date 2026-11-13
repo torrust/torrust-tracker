@@ -113,7 +113,10 @@ The registration is owned by the component that registered it. Invariants: a reg
 while the service can serve; it is removed after the drain finished (so a probe during the drain still
 sees the service), and never for a failed stop; removing it must not block the stop beyond the process
 deadline `P`, because `deregister` awaits the registry lock (the lock is held only for map operations).
-A design-review checkpoint follows the first passing vertical slice (the HTTP tracker).
+A design-review checkpoint (a recorded prose-first Arrange-Act-Assert review,
+.github/skills/dev/planning/create-issue/SKILL.md:180-192) follows each passing test-producing
+increment: T2 (the HTTP tracker slice), T3 (REST API, UDP tracker, health-check API) and T4 (the
+application-level test), plus the final maintainer-review pause.
 
 ## Implementation Plan
 
@@ -123,8 +126,8 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | -- | ------ | ---- | ----------------------- |
 | T1 | TODO | Go/no-go and location decision; recorded in the spec after the maintainer answers. | Decision and reasons in the progress log. |
 | T2 | TODO | HTTP tracker: deregister after an orderly drain; tests for drained, timed out, and other services intact. | First vertical slice; design-review checkpoint. |
-| T3 | TODO | REST API, UDP tracker and health-check API, the same way. | Same tests per service. |
-| T4 | TODO | Application-level test: stop one component and check the registry lists the rest. | Uses the existing component test harness. |
+| T3 | TODO | REST API, UDP tracker and health-check API, the same way. | Same tests per service. Design-review checkpoint. |
+| T4 | TODO | Application-level test: stop one component and check the registry lists the rest. | Uses the existing component test harness. Design-review checkpoint. |
 | T5 | TODO | Docs. | Shutdown-process docs and `Registar` notes. |
 | T6 | TODO | Verify and record evidence. | `manual-verification-evidence.md`. |
 
