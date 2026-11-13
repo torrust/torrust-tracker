@@ -198,6 +198,7 @@ mod tests {
     use torrust_tracker_axum_server::signals::GracefulShutdownOutcome;
     use torrust_tracker_configuration::v3_0_0::health_check_api::HealthCheckApi;
     use torrust_tracker_primitives::{ConfigurationInstanceId, Readiness, RuntimeServiceMetadata, ServiceRole};
+    use torrust_tracker_test_helpers::ports::reserve_free_tcp_address;
 
     use super::{Environment, Error, Running, Started, Unstarted, join_owned_tasks};
     use crate::server::CancellationRunning;
@@ -298,10 +299,7 @@ mod tests {
     #[tokio::test]
     async fn it_should_serve_requests_after_being_stopped_and_started_again_on_a_fixed_port() {
         // Arrange
-        let fixed_address = {
-            let probe = TcpListener::bind("127.0.0.1:0").unwrap();
-            probe.local_addr().unwrap()
-        };
+        let fixed_address = reserve_free_tcp_address();
         let config = HealthCheckApi {
             bind_address: fixed_address,
         };

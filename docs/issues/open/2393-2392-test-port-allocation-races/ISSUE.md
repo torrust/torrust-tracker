@@ -150,10 +150,10 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | ID | Status | Task | Expected Output |
 | --- | --- | --- | --- |
 | T1 | DONE | Reproduce and inventory the observed failures | Evidence records the 200 isolated, 100 package, and 51 full-suite runs and source inventory. |
-| T2 | TODO | Plan `axum-http-server` repair | Identify a test-only seam that retains or transfers the reserved listener; record the selected regression boundary. |
-| T3 | TODO | Prove and repair the duplicate-registration test | Red regression evidence, smallest fixture change, focused green run, and design review. |
-| T4 | TODO | Prove and repair CLI configuration ports | The precedence contract needs three distinct, predictable health-check addresses, so plain port `0` cannot identify the winning source. Choose between ports outside the ephemeral range or exclusively owned addresses; prove red and green under the selected parallel boundary. |
-| T5 | TODO | Audit related fixtures | Classify each port-`0` or fixed-port fixture as safe, repaired, or follow-up, including #1419's `tests/metrics/fixed_ports.rs`; do not change unrelated fixtures without evidence. |
+| T2 | DONE | Plan `axum-http-server` repair | Identify a test-only seam that retains or transfers the reserved listener; record the selected regression boundary. |
+| T3 | DONE | Prove and repair the duplicate-registration test | Red regression evidence, smallest fixture change, focused green run, and design review. |
+| T4 | DONE | Prove and repair CLI configuration ports | The precedence contract needs three distinct, predictable health-check addresses, so plain port `0` cannot identify the winning source. Choose between ports outside the ephemeral range or exclusively owned addresses; prove red and green under the selected parallel boundary. |
+| T5 | DONE | Audit related fixtures | Classify each port-`0` or fixed-port fixture as safe, repaired, or follow-up, including #1419's `tests/metrics/fixed_ports.rs`; do not change unrelated fixtures without evidence. |
 | T6 | TODO | Recheck and complete review | Like-for-like parallel recheck, acceptance review, completion review, and evidence update. |
 
 ## Commit Points
@@ -193,6 +193,16 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
   EPIC subissues and stated the port-inventory boundary with the shared-resource audit subissue.
 - 2026-09-30 14:58 UTC - GitHub Copilot - Maintainer approved the draft. Created #2393 as a
   sub-issue of EPIC #2392 and moved the specification to `docs/issues/open/`.
+- 2026-11-13 - Claude - Implementation. T4 was already delivered by #2581 (`reserve_free_ports`
+  draws ports below the ephemeral range). The port helper moved to `torrust-tracker-test-helpers`
+  (`ports` module) and the `axum-http-server`, `axum-rest-api-server`, `axum-health-check-api-server`,
+  `udp-server` and main-application fixtures that dropped a port-zero socket now use it. A listener
+  cannot be retained for these tests because the server under test must bind the address itself, so
+  the address comes from the range the kernel never assigns. No red run was possible: the race is
+  probabilistic (0 of 200 isolated runs failed). Audit: `tests/metrics/fixed_ports.rs` (`17091`-`17094`)
+  is below the ephemeral range and safe; fixtures that keep their listener open until the test ends
+  (`src/app.rs`, `src/bootstrap/jobs/http_tracker.rs`, the occupied-port tests) are safe. Full suite:
+  9 consecutive runs, 1813 passed each.
 
 ## Acceptance Criteria
 

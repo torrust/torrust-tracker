@@ -390,6 +390,7 @@ mod tests {
     use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
     use torrust_tracker_swarm_coordination_registry::container::SwarmCoordinationRegistryContainer;
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
+    use torrust_tracker_test_helpers::ports::reserve_free_tcp_address;
 
     use crate::server::{Error, HttpServer, Launcher, check_fn_with_client, health_check_url};
 
@@ -534,14 +535,11 @@ mod tests {
         }
 
         fn available_http_bind_address() -> SocketAddr {
-            // Registration must fail after the server has bound this address, so this listener is
-            // released before start. Do not add retries or waits: they would hide this OS-level handoff
-            // risk instead of preserving the cleanup contract under test.
-            let available_listener = TcpListener::bind((Ipv4Addr::LOCALHOST, 0)).expect("select available HTTP listener address");
-            let bind_to = available_listener.local_addr().expect("read available listener address");
-            drop(available_listener);
-
-            bind_to
+            // Registration must fail after the server has bound this address, so the address cannot be
+            // held by the fixture. A port-zero bind would hand back a kernel-assigned ephemeral port that
+            // a parallel test can claim before the server binds it, or before the release assertion
+            // rebinds it. This address is below the ephemeral range, which the kernel never assigns.
+            reserve_free_tcp_address()
         }
 
         fn configuration_bound_to(bind_to: SocketAddr) -> Arc<Configuration> {

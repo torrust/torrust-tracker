@@ -114,6 +114,7 @@ mod tests {
     use tokio_util::sync::CancellationToken;
     use torrust_tracker_primitives::RuntimeServiceMetadata;
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
+    use torrust_tracker_test_helpers::ports::reserve_free_udp_address;
     use torrust_tracker_udp_core::ConnectionIdValidationPolicy;
 
     use crate::bootstrap::app::initialize_global_services;
@@ -125,8 +126,7 @@ mod tests {
     const BIND_RETRY_INTERVAL: Duration = Duration::from_millis(10);
 
     fn available_udp_address() -> SocketAddr {
-        let socket = UdpSocket::bind("127.0.0.1:0").expect("select available UDP address");
-        socket.local_addr().expect("read available UDP address")
+        reserve_free_udp_address()
     }
 
     async fn wait_until_bindable(address: SocketAddr) -> bool {

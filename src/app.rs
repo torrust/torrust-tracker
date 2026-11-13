@@ -704,6 +704,7 @@ mod tests {
     use torrust_tracker_primitives::peer::Peer;
     use torrust_tracker_swarm_coordination_registry::event::Event;
     use torrust_tracker_test_helpers::configuration::ephemeral_public;
+    use torrust_tracker_test_helpers::ports::reserve_free_udp_address;
 
     use super::{
         Error, EventFlows, begin_shutdown, component_runner, connection_id_validation_policy, load_data_from_database,
@@ -1406,7 +1407,6 @@ mod tests {
     }
 
     fn reserve_udp_address() -> SocketAddr {
-        let socket = UdpSocket::bind("127.0.0.1:0").expect("reserve UDP listener address");
-        socket.local_addr().expect("read UDP listener address")
+        reserve_free_udp_address()
     }
 }

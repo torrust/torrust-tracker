@@ -80,7 +80,7 @@ mod tests {
     }
 
     mod token_aware_start {
-        use std::net::{Ipv4Addr, SocketAddr, UdpSocket};
+        use std::net::{SocketAddr, UdpSocket};
         use std::sync::Arc;
         use std::time::Duration;
 
@@ -90,6 +90,7 @@ mod tests {
         use torrust_tracker_configuration::v3_0_0::shutdown::Shutdown;
         use torrust_tracker_primitives::{ConfigurationInstanceId, RuntimeServiceMetadata, ServiceRole};
         use torrust_tracker_test_helpers::configuration::ephemeral_public;
+        use torrust_tracker_test_helpers::ports::reserve_free_udp_address;
         use torrust_tracker_udp_core::ConnectionIdValidationPolicy;
         use torrust_tracker_udp_core::container::UdpTrackerCoreContainer;
 
@@ -102,8 +103,7 @@ mod tests {
         const TEST_COMPLETION_TIMEOUT: Duration = Duration::from_secs(5);
 
         fn available_udp_address() -> SocketAddr {
-            let socket = UdpSocket::bind((Ipv4Addr::LOCALHOST, 0)).expect("select available UDP address");
-            socket.local_addr().expect("read available UDP address")
+            reserve_free_udp_address()
         }
 
         fn udp_tracker_metadata() -> RuntimeServiceMetadata {
