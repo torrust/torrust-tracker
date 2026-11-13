@@ -9,7 +9,7 @@ github-issue: 2853
 spec-path: docs/issues/open/2853-container-build-jobs-limit/ISSUE.md
 branch: "2853-container-build-jobs-limit"
 related-pr: null
-last-updated-utc: "2026-11-13 13:32"
+last-updated-utc: "2026-11-13 22:33"
 semantic-links:
   skill-links:
     - create-issue
@@ -132,6 +132,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 - 2026-11-13 11:28 UTC - Claude Code (Claude Sonnet 5.5) - Addressed R3/R4 (an earlier Copilot review), da2ce7's F15-F17/F19/F20, and Copilot's F21-F24 (locale, PID-anchor, stage-overlap scope, audit-record accuracy, and small doc fixes) (`fix(container): [#2853] address review round 2: locale, PID anchor, stage overlap, audit accuracy`).
 - 2026-11-13 11:43 UTC - Claude Code (Claude Sonnet 5.5) - Addressed da2ce7's next round (F25-F27, reassigned from its reused F21-F23 under the audit's collision rule): this entry's own 08:50 claim was itself one of the findings, so it was corrected above rather than here; also fixed report.md's remaining Method/Stage-overlap overstatements and the audit record's two mistimed Processing Log entries (left as written, with an appended correction) (`fix(container): [#2853] address review round 3: audit timestamps, report accuracy`).
 - 2026-11-13 13:26 UTC - Claude Code (Claude Fable 5.2) - Appended a correction to the audit log and removed two quoted commit hashes (`docs(pr-reviews): [#2853] correct the audit log and drop quoted commit hashes`, committed 13:17 UTC); all 31 review threads are resolved. Recorded the self-hosted runner build step times (M4, evidence V4): 827 s at 4 jobs against 731 s uncapped. AC6 stays TODO until the maintainer decides whether that is acceptable. Added `implementation-retrospective.md`.
+- 2026-11-13 22:33 UTC - Claude Code (Claude Fable 5.2) - The maintainer accepted the 13% slower build step on the self-hosted runner, so AC6 is DONE. Rebased the branch onto `develop` to take the fix of the container regression script (issue #2855), which made the `Test (Docker) (release)` check fail on this pull request. Stated in `implementation-retrospective.md` the time its review counts were taken (review finding F30).
 
 ## Acceptance Criteria
 
@@ -172,7 +173,7 @@ Status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
 | AC3   | DONE                   | M3       |
 | AC4   | DONE                   | `docs/containers.md` |
 | AC5   | DONE                   | `report.md` |
-| AC6   | TODO                   | Measured in V4: the build step is about 13% slower (827 s against 731 s). Waiting for the maintainer to accept that or ask for a higher value in the workflow |
+| AC6   | DONE                   | Measured in V4: the build step is about 13% slower (827 s against 731 s). The maintainer accepted that on 2026-11-13; the workflow passes no different value |
 
 ## Risks and Trade-offs
 

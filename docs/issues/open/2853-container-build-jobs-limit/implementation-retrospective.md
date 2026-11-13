@@ -39,6 +39,9 @@ after the pull request was opened. It produced 31 findings, all answered and res
 first review (10:20 UTC) to the approving review (11:55 UTC, which GitHub now shows as dismissed) it took 95 minutes. The last thread
 was resolved at 13:21 UTC.
 
+The review counts in this document (reviews, findings and resolved threads) were taken at 13:21 UTC
+on 2026-11-13. The review continued after that time; the review audit record lists every finding.
+
 ## What Went Well
 
 1. The reviewer recomputed every figure from the raw samples. That is how the wrong per-process

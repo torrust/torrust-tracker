@@ -71,6 +71,7 @@ Processing Log.
 | F27 | review-finding:pr-2854-f27 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F28 | review-finding:pr-2854-f28 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 | F29 | review-finding:pr-2854-f29 | Human | Minor | documentation | ORIGINAL | FIXED | RESOLVED |
+| F30 | review-finding:pr-2854-f30 | Human | Nit | documentation | ORIGINAL | FIXED | RESOLVED |
 
 ## Finding Details
 
@@ -463,6 +464,19 @@ Processing Log.
 - Follow-up PR URL: N/A
 - Reply URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4563888553
 
+### F30 - The retrospective's review counts were stale when it was committed
+
+- PR number: 2854
+- Source review ID: 5891987849
+- Reviewer finding ID: F30
+- Source URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4563984196
+- Concern: `implementation-retrospective.md` gave review counts (nine reviews, 31 findings, last thread resolved at 13:21 UTC) that two reviews posted at 13:26:00 UTC had already made stale when the file was committed. The reviewer asked to state the time the counts were taken, or to update them.
+- Solution: added one paragraph to the retrospective stating that its review counts were taken at 13:21 UTC on 2026-11-13 and that the review continued after that time. The counts themselves are unchanged.
+- Current-tree verification: `grep -c "were taken at 13:21 UTC" docs/issues/open/2853-container-build-jobs-limit/implementation-retrospective.md` prints 1.
+- Resolution reference: `docs(issues): [#2853] accept the runner slowdown for AC6 and date the retrospective counts`
+- Follow-up PR URL: N/A
+- Reply URL: https://github.com/torrust/torrust-tracker/pull/2854#discussion_r4565034991
+
 ## Processing Log
 
 - 2026-11-13 11:05 UTC - Started audit late (after R1, R2, F1-F11 replies/fixes were already in progress or posted); backfilled all entries from the current tree and the GitHub review/comment history.
@@ -474,6 +488,7 @@ Processing Log.
 - 2026-11-13 13:17 UTC - Edited 16 of this PR's own review replies at 13:16:05 to 13:16:28 UTC (GitHub `updated_at`) so each cites a Conventional Commit subject: the R1 and R2 replies cited a branch commit hash, the eleven replies posted at 11:24 UTC said "the commit addressing this review round", and the three posted at 11:42 UTC said "the commit addressing this round". The eleven 11:24 UTC replies were posted before their commit existed (committed 11:29:01 UTC). Removed the two branch commit hashes quoted in the F26 Concern; the `open-pull-request` commit-id check printed both before this change.
 - 2026-11-13 13:26 UTC - Added F28 after the fact: its fix was committed at 13:17:14 UTC and pushed, the reply was posted at 13:21:54 UTC (GitHub `created_at`) and the thread was then resolved. A GraphQL read after that showed 31 of 31 review threads resolved.
 - 2026-11-13 13:32 UTC - Added F29: a review posted at 13:26:00 UTC on the previous head asked for the F28 row, which was pushed two minutes later. Replied at 13:32:09 UTC (GitHub `created_at`) and resolved the thread.
+- 2026-11-13 22:33 UTC - Added F30. The first reply, posted at 15:13:04 UTC (GitHub `created_at`), deferred it to the close-out with the maintainer's agreement. The branch was then rebased onto `develop` for an unrelated CI fix, so the correction is made in the commit that adds this entry. A second reply citing that commit, and the resolution of the thread, come after the push of that commit.
 
 ## Completion Rules
 

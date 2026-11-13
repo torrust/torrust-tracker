@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2853-container-build-jobs-limit/ISSUE.md
-last-updated-utc: "2026-11-13 13:26"
+last-updated-utc: "2026-11-13 22:33"
 ---
 
 # Manual Verification Evidence
@@ -87,4 +87,4 @@ In the three runs of this PR the build step passed and the next step, `Run Persi
 step fails on `develop` at this branch's merge base (run 43299605132, 2026-11-12), so that failure is not caused by this change.
 It makes the `Test (Docker) (release)` check red on this PR until it is fixed on `develop`.
 
-Result: measured. Whether a 13% slower build step is acceptable for AC6 is the maintainer's decision.
+Result: measured. The maintainer accepted the 13% slower build step for AC6 on 2026-11-13.
