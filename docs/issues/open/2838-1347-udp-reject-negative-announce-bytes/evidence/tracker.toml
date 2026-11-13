@@ -40,7 +40,3 @@ remove_peerless_torrents = true
 [[udp_trackers]]
 bind_address = "127.0.0.1:6868"
 tracker_usage_statistics = true
-
-[[udp_trackers]]
-bind_address = "0.0.0.0:6969"
-tracker_usage_statistics = true

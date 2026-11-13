@@ -1,7 +1,7 @@
 ---
 doc-type: manual-verification-evidence
 issue-spec: docs/issues/open/2838-1347-udp-reject-negative-announce-bytes/ISSUE.md
-last-updated-utc: 2026-11-12 20:32
+last-updated-utc: 2026-11-13 09:41
 ---
 
 # Manual Verification Evidence
@@ -18,6 +18,10 @@ last-updated-utc: 2026-11-12 20:32
 - Replay prerequisite, added after the recorded runs: the configuration stores the database in
   `/tmp/claude-1000/run/sqlite3.db` and the tracker does not create the parent directory. Create
   it first with `mkdir -p /tmp/claude-1000/run`, or change `path` in the configuration.
+- Replay-only adjustment of the configuration, made after the recorded runs: the second UDP
+  listener on `0.0.0.0:6969` was removed from `evidence/tracker.toml`. No probe used it (all target
+  `127.0.0.1:6868`), and it exposed the replay tracker beyond localhost. The recorded runs were
+  made with it present and are unaffected.
 - The probe was changed after the recorded runs: it now exits with status 1 when a response does
   not carry the transaction id of its request. Its output for a correct response is unchanged.
 
