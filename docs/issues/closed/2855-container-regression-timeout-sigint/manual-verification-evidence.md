@@ -25,7 +25,9 @@ Setup (not committed; the instrumented copy is not retained as an issue-local ar
 complete patch below reconstructs it exactly from the pre-fix script). The working tree's script
 now carries the fix (PR #2857, merged into `develop`), so the pre-fix state is named by its
 `develop` commit id, `ec1f58ec9` (the last commit before that merge), a durable reference that a
-rebase cannot move:
+rebase cannot move. Run from the repository root (`git show <rev>:<path>` resolves `<path>` from
+the tree root regardless of the working directory, but the redirect below writes the copy into
+the working directory, which the `PROJECT_ROOT` pinning below assumes is the repository root):
 
 ```bash
 git show ec1f58ec9:contrib/dev-tools/containers/tests/test-mounted-no-persistence-configuration.sh > ./instrumented-copy.sh
